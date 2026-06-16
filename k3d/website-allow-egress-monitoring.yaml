@@ -1,0 +1,23 @@
+# k3d/website-allow-egress-monitoring.yaml
+# Website-ns is default-deny-egress. The /admin/factory-observability API route
+# server-side proxies Prometheus in the monitoring ns. This policy opens egress
+# website-ns → monitoring-ns Prometheus :9090.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-egress-to-monitoring
+  namespace: ${WEBSITE_NAMESPACE}
+  labels:
+    app: website
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+      ports:
+        - port: 9090
+          protocol: TCP

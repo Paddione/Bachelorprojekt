@@ -54,6 +54,8 @@ resources:
   # Mediaviewer Widget
   - mediaviewer-widget.yaml
   - oauth2-proxy-mediaviewer.yaml
+  # Website egress: allow Prometheus queries from factory-observability API
+  - website-allow-egress-monitoring.yaml
   # VideoVault
   - videovault-uploads-pvc.yaml
   - videovault.yaml

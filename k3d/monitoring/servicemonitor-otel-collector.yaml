@@ -1,0 +1,20 @@
+# k3d/monitoring/servicemonitor-otel-collector.yaml
+# Scrape the OTel collector's Prometheus exporter (port 8889) so the
+# kube-prometheus-stack persists native Claude-Code + factory metrics.
+# `release: monitoring` matches the existing servicemonitor-traefik.yaml label.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: otel-collector
+  namespace: monitoring
+  labels:
+    app: otel-collector
+    release: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: otel-collector
+  endpoints:
+    - port: prom-metrics
+      interval: 30s
+      path: /metrics

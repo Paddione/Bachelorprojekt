@@ -123,6 +123,35 @@ gehaltene Verbindung — s. `lib.sh:31-35`, `dispatcher.js:15`).
 claude.ai und haben **kein Repo-Checkout, keinen git-crypt-Key, kein fleet-Kubeconfig
 und kein Workflow-Tool**. Der WSL-Host-Timer ist der einzige Locus mit allen vier.
 
+## OpenTelemetry / Observability
+
+Jeder Tick exportiert OTLP-Telemetrie an den on-prem OTel-Collector
+(`otel.<domain>`, monitoring-ns, in Prometheus persistiert) und wird unter
+`/admin/factory-observability` sichtbar. Zwei Ebenen:
+
+1. **Native Claude-Code-Telemetrie** (Token/Kosten/Commits/PRs) via `OTEL_*`-Env.
+2. **Factory-eigene Spans/Metriken** (Phasen-Übergänge, Tick-Tiefe) via
+   `otel-emit.cjs` (in `pipeline.js`/`dispatcher.js` verdrahtet) und `otel-emit.sh`
+   (in `wakeup.sh`/`dispatcher.js`-Bash). Beide sind **fire-and-forget** und
+   **no-op**, wenn `OTEL_EXPORTER_OTLP_ENDPOINT` ungesetzt oder
+   `OTEL_SDK_DISABLED=true` ist — sie scheitern nie den Tick.
+
+**Host-Setup (WSL):**
+
+```bash
+cp scripts/factory/autopilot.env.example ~/.config/factory/autopilot.env
+# Dann in ~/.config/factory/autopilot.env je aktiver Brand setzen:
+#   OTEL_EXPORTER_OTLP_ENDPOINT="https://otel.<brand-domain>"
+#   FACTORY_OTLP_TOKEN="<FACTORY_OTLP_TOKEN aus environments/.secrets/<brand>.yaml>"
+```
+
+- `OTEL_METRIC_EXPORT_INTERVAL=10000` (10 s) ist **Pflicht**: der Default 60000 ms
+  flusht einen kurzen `claude -p`-Tick nie, sodass keine Metriken den Collector
+  erreichen.
+- Bearer-Auth erzwingt der Collector selbst (`bearertokenauth`-Extension); der Token
+  liegt als SealedSecret `otel-collector-auth` im monitoring-ns.
+- Dashboard: `/admin/factory-observability` (isAdmin-gated).
+
 ## Verwandte Dokumente
 
 - Spec: `docs/superpowers/specs/2026-06-01-software-factory-design.md`

@@ -210,3 +210,18 @@ spec:
       name: ipv64-api-key
       namespace: cert-manager
     type: Opaque
+---
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: otel-collector-auth
+  namespace: monitoring
+spec:
+  encryptedData:
+    FACTORY_OTLP_TOKEN: AgC8To2Xwsx2PPcMSwgYlp7jyo5dYAGOjQaAi+XGNXAi3r7tPX7l2bNRs1i89g9R8LzMS7+2aYefet4mulLtBdK13b+6Aaun7405pBU0k2rNS7ZcRUSQhA1hWrH//tA8nToxfaiI/XJMLRcMEAOtT39Lmxh/Q4n2v5bd0Rzs3qKfrqB/paJi8NBFcfU094POuwZOuGYW7zuxOt+VqmODAH29zlaErq9xwRBKFfRGDuChPjWah2qMqVrg75x/4HbnzOeADtrc94Eey9OqycFHkyKhefhRyhneihSPDB5fmDaKty68JPNpprd+lsUv2i1O4dIVHkCjmr9fgGEh74LPxN0pdydAwbKxNyxIKACM9X5xeWQuFv9bikhRPJtwXP7VKZxPuaq7+xZmC59lHUuABELFtGIadkBmehNY1e63Z5NrZsvN5T7pAK4myDkNZjHMnYzphECq0sbVCQDmEJpRwfitpRow5fDEet3zjcnEQ7dI247WjLeMrx41ZhNqlhc21PtKi+KeIyCY+LjaaJ/WmCpSZEz2MFtYQY89UMSdvllEOkGl5CrLpMn47secBpH2AM4s+RrzfXxrCNNVSsvA0LiouzbSSczimZRr9J/kW5PioMjA/XOckIZWrAhBpJ1MlIFhv0AOIzcCXryd+mL/yt97OLy+TVtSAHR3JuXtQpzcHXWWvkjh8KisGzRODEhEFwQ2Q4lOjZyNAugathlwAqHxz84JdlCpHjnGMqGC2fDydEOerY9loviYAPQ8imZJgpD2CKvCa5cMW7JFptc50yr+
+  template:
+    metadata:
+      name: otel-collector-auth
+      namespace: monitoring
+    type: Opaque

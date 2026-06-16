@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-16T06:16:16.812Z",
+  "generatedAt": "2026-06-16T07:02:56.338Z",
   "endpoints": [
     {
       "path": "/api/admin/angebote/save",
@@ -2762,6 +2762,14 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/factory-metrics.ts"
+    },
+    {
+      "path": "/api/factory-observability",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/factory-observability.ts"
     },
     {
       "path": "/api/health",

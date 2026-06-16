@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-06-16T06:16:16.812Z
+> Generated at 2026-06-16T07:02:56.338Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -342,6 +342,7 @@
 | `/api/factory-floor/{extId}/release` | POST | 🔐 admin | `website/src/pages/api/factory-floor/[extId]/release.ts` |
 | `/api/factory-floor/stream` | GET | 🔐 admin | `website/src/pages/api/factory-floor/stream.ts` |
 | `/api/factory-metrics` | GET | 🔐 admin | `website/src/pages/api/factory-metrics.ts` |
+| `/api/factory-observability` | GET | 🔐 admin | `website/src/pages/api/factory-observability.ts` |
 | `/api/health` | GET | ❓ unclassified | `website/src/pages/api/health.ts` |
 | `/api/internal/tickets/notify-close` | POST | 🔒 internal | `website/src/pages/api/internal/tickets/notify-close.ts` |
 | `/api/leistungen` | GET | ❓ unclassified | `website/src/pages/api/leistungen.ts` |

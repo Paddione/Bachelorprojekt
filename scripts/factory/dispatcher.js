@@ -176,8 +176,10 @@ async function main() {
            })),
          )}
        After notifying, append ONE breadcrumb to the Vorhaben ticket:
-         bash ${REPO}/scripts/ticket.sh add-comment --id T000413 \\
-           --body ${JSON.stringify('Factory dispatcher: ' + escalations.length + ' run(s) escalated this tick.')}
+       bash ${REPO}/scripts/ticket.sh add-comment --id T000413 \\
+         --body ${JSON.stringify('Factory dispatcher: ' + escalations.length + ' run(s) escalated this tick.')}
+       Report also emit escalation count via otel:
+         bash ${REPO}/scripts/factory/otel-emit.sh metric factory.tick.escalations ${escalations.length}
        Report what was notified and the ticket-comment output.`,
       { label: 'escalate', phase: 'Launch' },
     )
@@ -192,7 +194,11 @@ async function main() {
      Run the factory metrics summary for BOTH brands from ${REPO} and report stdout:
        BRAND=mentolder bash ${REPO}/scripts/factory/metrics.sh
        BRAND=korczewski bash ${REPO}/scripts/factory/metrics.sh
-     (metrics.sh is best-effort: a missing Vorhaben ticket on a brand is a silent no-op.)`,
+     (metrics.sh is best-effort: a missing Vorhaben ticket on a brand is a silent no-op.)
+     Then emit factory tick metrics (best-effort, never fail the tick):
+       bash ${REPO}/scripts/factory/otel-emit.sh metric factory.tick.count 1 brand=mentolder
+       bash ${REPO}/scripts/factory/otel-emit.sh metric factory.tick.count 1 brand=korczewski
+       bash ${REPO}/scripts/factory/otel-emit.sh metric factory.tick.launches ${launches.length}`,
     { label: 'metrics', phase: 'Metrics' },
   )
 }

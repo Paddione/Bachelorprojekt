@@ -4,6 +4,7 @@ kind: Kustomization
 resources:
   - ../../k3d/monitoring
   - grafana-ingress.yaml
+  - otel-ingressroute.yaml
 
 patches:
   - target: { kind: Secret, name: alertmanager-pushover }
@@ -23,6 +24,21 @@ patches:
       apiVersion: traefik.io/v1alpha1
       kind: IngressRoute
       metadata: { name: grafana, namespace: monitoring }
+      $patch: delete
+  # Strip the dev otel placeholder Secret + plain-web IngressRoute. Prod provides
+  # the otel-collector-auth Secret via SealedSecret and the TLS route via
+  # otel-ingressroute.yaml.
+  - target: { kind: Secret, name: otel-collector-auth }
+    patch: |
+      apiVersion: v1
+      kind: Secret
+      metadata: { name: otel-collector-auth, namespace: monitoring }
+      $patch: delete
+  - target: { kind: IngressRoute, name: otel-collector }
+    patch: |
+      apiVersion: traefik.io/v1alpha1
+      kind: IngressRoute
+      metadata: { name: otel-collector, namespace: monitoring }
       $patch: delete
   - path: storage-class-patch.yaml
   - path: grafana-oidc-patch.yaml

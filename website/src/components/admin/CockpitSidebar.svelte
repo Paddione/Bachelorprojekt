@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import type { PortfolioPayload, FeatureNode } from '../../lib/tickets/cockpit-types';
+  import type { Suggestion } from '../../lib/tickets/suggest-prompt';
   import SuggestionBar from './SuggestionBar.svelte';
 
   export let portfolio: PortfolioPayload;
@@ -11,6 +12,9 @@
 
   let drawerOpen = false;
   let isRolling = false;
+  // Last AI roll result — surfaced in the SuggestionBar so the model's
+  // value/blocker reasoning + impact is visible instead of silently discarded.
+  let suggestions: Suggestion[] = [];
 
   // Scaling controls for the 130+ feature list: search, active-only, per-product collapse.
   let filter = '';
@@ -70,8 +74,10 @@
         body: JSON.stringify({ provider: detail.provider, model: detail.model }),
       });
       if (!res.ok) throw new Error(`suggest ${res.status}`);
+      const data = await res.json().catch(() => ({}));
+      suggestions = Array.isArray(data.suggestions) ? data.suggestions : [];
       onMutated?.();
-    } catch { /* errors surfaced via parent toast */ }
+    } catch { suggestions = []; /* errors surfaced via parent toast */ }
     finally { isRolling = false; }
   }
 
@@ -191,6 +197,7 @@
   <div class="sidebar-footer">
     <SuggestionBar
       features={allFeatures.filter((f) => !f.synthetic)}
+      {suggestions}
       {isRolling}
       onroll={handleRoll}
       onapply={handleApply}

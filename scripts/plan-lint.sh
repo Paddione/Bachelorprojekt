@@ -149,15 +149,27 @@ while IFS= read -r g; do warn "${g/G1:/G1: }"; done < <(awk '
 ' "$PLAN")
 
 # === verdict ===
+# Pure-bash JSON string escaper (no python3 fork). Escapes \ and " and the few
+# control chars that can appear; valid UTF-8 (e.g. ≤) passes through unchanged.
+_json_str() {
+  local s="$1"
+  s="${s//\\/\\\\}"   # backslash first
+  s="${s//\"/\\\"}"   # double quote
+  s="${s//$'\t'/\\t}"
+  s="${s//$'\n'/\\n}"
+  s="${s//$'\r'/\\r}"
+  printf '"%s"' "$s"
+}
+
 emit_verdict() {
   local n_hard=${#HARD[@]} n_warn=${#WARN[@]}
   if [[ $JSON -eq 1 ]]; then
     printf '{"verdict":"%s","hard":[' "$([[ $n_hard -eq 0 ]] && echo PASS || echo FAIL)"
     local first=1 m
-    for m in "${HARD[@]:-}"; do [[ -z "$m" ]] && continue; [[ $first -eq 1 ]] || printf ','; printf '%s' "$(printf '%s' "$m" | python3 -c 'import json,sys;print(json.dumps(sys.stdin.read()))')"; first=0; done
+    for m in "${HARD[@]:-}"; do [[ -z "$m" ]] && continue; [[ $first -eq 1 ]] || printf ','; _json_str "$m"; first=0; done
     printf '],"warn":['
     first=1
-    for m in "${WARN[@]:-}"; do [[ -z "$m" ]] && continue; [[ $first -eq 1 ]] || printf ','; printf '%s' "$(printf '%s' "$m" | python3 -c 'import json,sys;print(json.dumps(sys.stdin.read()))')"; first=0; done
+    for m in "${WARN[@]:-}"; do [[ -z "$m" ]] && continue; [[ $first -eq 1 ]] || printf ','; _json_str "$m"; first=0; done
     printf ']}\n'
   else
     local m

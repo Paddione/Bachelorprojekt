@@ -16,6 +16,7 @@ export const meta = {
 
 const D = require('./pipeline-decompose.cjs')
 const BL = require('./build-loop.cjs')
+const SQ = require('./scout-quality-check.cjs')
 function routeProviderSync(source, tier) {
   if (tier === 'opus') return { provider: 'anthropic', modelId: 'claude-opus-4-6', baseUrl: null, slotId: null, emergency: false }
   if (process.env.ANTHROPIC_MODEL) {
@@ -197,6 +198,23 @@ try {
 }
 phaseEvent('scout', 'done', `${(scout.touched_files || []).length} touched_files`)
 
+const sq = SQ.evaluateScoutQuality({
+  touched_files: scout.touched_files,
+  spec_content: `${A.title ?? ''}\n${A.description ?? ''}`,
+  plan_path: 'pending',
+})
+if (sq.weak) {
+  log(`Scout weak: ${sq.reasons.join(',')} — parking ticket for interactive worker`)
+  try {
+    cp.execFileSync('bash', [`${REPO}/scripts/ticket.sh`, 'add-comment',
+      '--id', String(A.ticket_id), '--author', 'factory', '--visibility', 'internal',
+      '--body', `SCOUT_WEAK=true\ntouched_files=${scout.touched_files.length}\nspec_length=${(`${A.title ?? ''}\n${A.description ?? ''}`).length}\nreason=${sq.reasons[0]}`],
+      { stdio: 'ignore', timeout: 15000 })
+  } catch (e) { log(`scout_weak comment failed (non-fatal): ${e.message}`) }
+  phaseEvent('scout', 'blocked', `scout_weak: ${sq.reasons.join(',')}`)
+  return { status: 'scout_weak', ticket_id: A.ticket_id, reasons: sq.reasons }
+}
+
 let scsSuggestedFiles = []
 try {
   const BASE_URL = process.env.WEBSITE_BASE_URL ?? 'http://website.workspace.svc.cluster.local:4321'
@@ -209,9 +227,9 @@ try {
     scsSuggestedFiles = scsJson.results ?? []
     log(`SCS: ${scsSuggestedFiles.length} semantically related files found`)
     if (scsSuggestedFiles.length > 0) {
-      scout.suggested_files = scsSuggestedFiles
-      const scsPaths = scsSuggestedFiles.map(f => `${REPO}/${f.path}`)
+      scout.touched_files = scout.touched_files || []
       const existingSet = new Set(scout.touched_files)
+      const scsPaths = scsSuggestedFiles.map(f => `${REPO}/${f.path}`)
       for (const p of scsPaths) {
         if (!existingSet.has(p)) {
           scout.touched_files.push(p)
@@ -224,7 +242,7 @@ try {
   }
 } catch (scsErr) {
   log(`SCS: unavailable (graceful degradation) — ${scsErr.message ?? scsErr}`)
-  scout.suggested_files = []
+  scsSuggestedFiles = []
 }
 
 const isSimple = scout.complexity === 'simple'

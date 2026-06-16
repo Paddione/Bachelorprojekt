@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.82.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.81.0...website-v1.82.0) (2026-06-16)
+
+
+### Features
+
+* **factory:** Tier 2 observability — Grafana dashboard + provider/per-ticket metrics [T000883] ([a564bd2](https://github.com/Paddione/Bachelorprojekt/commit/a564bd263656557ed163fdab305f026f5cd98e78))
+
 ## [1.81.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.80.0...website-v1.81.0) (2026-06-16)
 
 

@@ -48,8 +48,9 @@
       features: p.features.filter((f: FeatureNode) => {
         const matchText = !q || f.title.toLowerCase().includes(q) || f.extId.toLowerCase().includes(q);
         const openWork = (f.rollup.open ?? 0) + (f.rollup.inProgress ?? 0) + (f.rollup.blocked ?? 0);
-        // Always keep the selected feature visible even if it has no open work.
-        const matchActive = !activeOnly || openWork > 0 || f.extId === selectedFeature;
+        // Always keep synthetic aggregate buckets (Alle Tickets / Ohne Feature)
+        // and the selected feature visible even if there is no open work.
+        const matchActive = !activeOnly || f.synthetic || openWork > 0 || f.extId === selectedFeature;
         return matchText && matchActive;
       }),
     }))
@@ -151,7 +152,7 @@
                   <span class="feature-name">{f.title}</span>
                   <span class="feature-count">{f.rollup.total} Tickets</span>
                 </button>
-                {#if onFeatureAction}
+                {#if onFeatureAction && !f.synthetic}
                   <div class="action-overlay" role="group" aria-label="Feature-Aktionen">
                     <button
                       class="action-btn next-btn"
@@ -189,7 +190,7 @@
 
   <div class="sidebar-footer">
     <SuggestionBar
-      features={allFeatures}
+      features={allFeatures.filter((f) => !f.synthetic)}
       {isRolling}
       onroll={handleRoll}
       onapply={handleApply}

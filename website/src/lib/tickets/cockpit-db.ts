@@ -4,6 +4,7 @@ import type {
   FeatureTickets, TicketRow, RollupMetrics, HealthStatus,
   BatchMutation, BatchResult,
 } from './cockpit-types';
+import { ALL_TICKETS_ID, NO_FEATURE_ID, NO_PRODUCT_ID } from './cockpit-ids';
 
 function toRollup(r: Record<string, unknown> | undefined): RollupMetrics {
   return {
@@ -16,11 +17,14 @@ function toRollup(r: Record<string, unknown> | undefined): RollupMetrics {
   };
 }
 
-// Synthetic feature that collects parentless task/bug leaves. The cockpit only
-// renders tickets nested under a feature, so without this bucket every leaf with
-// parent_id IS NULL is invisible (root cause of T000848 on live). Mirrors the
-// existing "__no_product__" pattern for parentless features.
-export const NO_FEATURE_ID = '__no_feature__';
+// Synthetic aggregate buckets surface task/bug *leaves* that the feature-centric
+// cockpit would otherwise hide:
+//   - ALL_TICKETS_ID ("Alle Tickets"): every leaf of the brand, regardless of
+//     feature linkage — the flat "see all my tickets" view (T000877 follow-up).
+//   - NO_FEATURE_ID  ("Ohne Feature"): parentless leaves only (T000848); a
+//     subset of Alle Tickets, surfaced only when it is a genuine subset.
+// Re-exported so existing importers keep resolving these ids from cockpit-db.
+export { ALL_TICKETS_ID, NO_FEATURE_ID };
 
 function rollupHealth(r: RollupMetrics): HealthStatus {
   if (r.blocked > 0) return 'red';
@@ -28,10 +32,11 @@ function rollupHealth(r: RollupMetrics): HealthStatus {
   return 'amber';
 }
 
-// Rollup over brand-scoped task/bug leaves that have no parent. Bucket logic
-// mirrors tickets.v_cockpit_rollup (archived excluded; qa_review counts as
-// in-progress) so the synthetic bucket reads consistently with real features.
-async function fetchOrphanRollup(brand: string): Promise<RollupMetrics> {
+// Rollup over brand-scoped task/bug leaves. Bucket logic mirrors
+// tickets.v_cockpit_rollup (archived excluded; qa_review counts as in-progress)
+// so the synthetic bucket reads consistently with real features. When
+// `orphanOnly` is set the rollup is restricted to parentless leaves.
+async function fetchLeafRollup(brand: string, orphanOnly: boolean): Promise<RollupMetrics> {
   const { rows } = await pool.query(
     `SELECT
        SUM(CASE WHEN status <> 'archived' THEN 1 ELSE 0 END) AS total_leaves,
@@ -40,7 +45,7 @@ async function fetchOrphanRollup(brand: string): Promise<RollupMetrics> {
        SUM(CASE WHEN status IN ('in_progress','in_review','qa_review') THEN 1 ELSE 0 END) AS in_progress_leaves,
        SUM(CASE WHEN status IN ('triage','backlog','planning','plan_staged') THEN 1 ELSE 0 END) AS open_leaves
      FROM tickets.tickets
-     WHERE brand = $1 AND type IN ('task', 'bug') AND parent_id IS NULL`,
+     WHERE brand = $1 AND type IN ('task', 'bug')${orphanOnly ? ' AND parent_id IS NULL' : ''}`,
     [brand],
   );
   const r = rows[0] ?? {};
@@ -55,22 +60,26 @@ async function fetchOrphanRollup(brand: string): Promise<RollupMetrics> {
   };
 }
 
-function syntheticNoFeature(rollup: RollupMetrics): FeatureNode {
+function syntheticBucket(id: string, title: string, rollup: RollupMetrics): FeatureNode {
   return {
-    id: NO_FEATURE_ID, extId: NO_FEATURE_ID, title: 'Ohne Feature',
+    id, extId: id, title,
     priority: 'mittel', health: rollupHealth(rollup), rollup,
-    nextStep: false, discarded: false, majorFeature: false,
+    nextStep: false, discarded: false, majorFeature: false, synthetic: true,
   };
 }
 
-async function getOrphanTickets(brand: string): Promise<FeatureTickets> {
-  const feature = syntheticNoFeature(await fetchOrphanRollup(brand));
+// Load the leaves for a synthetic bucket. `orphanOnly` selects the "Ohne Feature"
+// semantics; otherwise it is the full "Alle Tickets" list across every feature.
+async function getLeafTickets(
+  brand: string, id: string, title: string, orphanOnly: boolean,
+): Promise<FeatureTickets> {
+  const feature = syntheticBucket(id, title, await fetchLeafRollup(brand, orphanOnly));
   const tr = await pool.query(
     `SELECT t.id, t.external_id, t.type, t.title, t.status, t.priority,
             t.parent_id, t.planning_rank
        FROM tickets.tickets t
       WHERE t.brand = $1 AND t.type IN ('task', 'bug')
-        AND t.parent_id IS NULL AND t.status <> 'archived'
+        AND t.status <> 'archived'${orphanOnly ? ' AND t.parent_id IS NULL' : ''}
       ORDER BY COALESCE(t.planning_rank, 2147483647), t.external_id`,
     [brand],
   );
@@ -130,19 +139,32 @@ export async function getPortfolio(brand: string): Promise<PortfolioPayload> {
 
   if (looseFeatures.length > 0) {
     products.push({
-      id: '__no_product__', extId: '__no_product__', title: 'Ohne Produkt',
+      id: NO_PRODUCT_ID, extId: NO_PRODUCT_ID, title: 'Ohne Produkt',
       rollup: aggregate(looseFeatures), features: looseFeatures,
     });
   }
 
   // Surface parentless task/bug leaves under a synthetic "Ohne Feature" bucket
-  // so they are visible in the cockpit (T000848). Omitted when there are none.
-  const orphanRollup = await fetchOrphanRollup(brand);
-  if (orphanRollup.total > 0) {
-    const orphanFeature = syntheticNoFeature(orphanRollup);
+  // (T000848). Only shown when it is a genuine SUBSET of "Alle Tickets" — when
+  // every leaf is parentless the two buckets are identical, so it is dropped to
+  // avoid a confusing duplicate.
+  const orphanRollup = await fetchLeafRollup(brand, true);
+  const allRollup = await fetchLeafRollup(brand, false);
+  if (orphanRollup.total > 0 && orphanRollup.total < allRollup.total) {
     products.push({
       id: NO_FEATURE_ID, extId: NO_FEATURE_ID, title: 'Ohne Feature',
-      rollup: orphanRollup, features: [orphanFeature],
+      rollup: orphanRollup, features: [syntheticBucket(NO_FEATURE_ID, 'Ohne Feature', orphanRollup)],
+    });
+  }
+
+  // Prepend the flat "Alle Tickets" bucket: every task/bug leaf of the brand,
+  // regardless of feature linkage. This is the PM's primary entry point and the
+  // cockpit's default landing — when no ticket is nested under a feature
+  // (mentolder), it is the only place work is visible at all. (T000877)
+  if (allRollup.total > 0) {
+    products.unshift({
+      id: ALL_TICKETS_ID, extId: ALL_TICKETS_ID, title: 'Alle Tickets',
+      rollup: allRollup, features: [syntheticBucket(ALL_TICKETS_ID, 'Alle Tickets', allRollup)],
     });
   }
   return { products };
@@ -161,7 +183,8 @@ function aggregate(features: FeatureNode[]): RollupMetrics {
 export class NotFoundError extends Error {}
 
 export async function getFeatureTickets(brand: string, extId: string): Promise<FeatureTickets> {
-  if (extId === NO_FEATURE_ID) return getOrphanTickets(brand);
+  if (extId === ALL_TICKETS_ID) return getLeafTickets(brand, ALL_TICKETS_ID, 'Alle Tickets', false);
+  if (extId === NO_FEATURE_ID) return getLeafTickets(brand, NO_FEATURE_ID, 'Ohne Feature', true);
   const fr = await pool.query(
     `SELECT t.id, t.external_id, t.type, t.title, t.value_prop, t.priority,
             t.next_step, t.discarded, t.major_feature, t.suggestion_comment,

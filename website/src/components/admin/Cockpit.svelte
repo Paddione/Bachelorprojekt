@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import type { PortfolioPayload, FeatureTickets, TicketRow, FeatureNode } from '../../lib/tickets/cockpit-types';
+  import { ALL_TICKETS_ID } from '../../lib/tickets/cockpit-ids';
   import { cockpitStore, selectFeature, setActiveTicket, initStoreFromUrl, setLoading, setError }
     from '../../lib/stores/cockpitStore';
   import CockpitSidebar from './CockpitSidebar.svelte';
@@ -21,20 +22,30 @@
   $: allFeatures = portfolio?.products?.flatMap((p) => p.features) ?? [];
   $: currentFeatureNode = allFeatures.find((f) => f.extId === $cockpitStore.selectedFeature) ?? null;
 
-  // Pick a sensible default feature so the cockpit lands on a populated
-  // ticket list instead of an empty table. Prefer the first non-discarded
-  // feature that actually has tickets; fall back to the first feature.
-  function pickDefaultFeature(): FeatureNode | null {
-    const feats = allFeatures.filter((f) => !f.discarded);
-    return feats.find((f) => (f.rollup?.total ?? 0) > 0) ?? feats[0] ?? allFeatures[0] ?? null;
+  // Pick a sensible default feature so the cockpit lands on a populated ticket
+  // list instead of an empty table. Prefer the flat "Alle Tickets" bucket (the
+  // PM's see-everything view); otherwise the first non-discarded feature that
+  // actually has tickets, then any feature.
+  function pickDefaultFeature(feats: FeatureNode[]): FeatureNode | null {
+    const all = feats.find((f) => f.extId === ALL_TICKETS_ID);
+    if (all) return all;
+    const live = feats.filter((f) => !f.discarded);
+    return live.find((f) => (f.rollup?.total ?? 0) > 0) ?? live[0] ?? feats[0] ?? null;
   }
 
   onMount(async () => {
     if (typeof window !== 'undefined') initStoreFromUrl(new URL(window.location.href).searchParams);
     if (!portfolio) await loadPortfolio();
-    // No feature from URL/localStorage → auto-select one so tickets show on open.
-    if (!$cockpitStore.selectedFeature) {
-      const def = pickDefaultFeature();
+    // Auto-select a feature when there is none, OR when the persisted/URL
+    // selection no longer exists in the portfolio (e.g. a stale localStorage
+    // feature, or the old "Ohne Feature" bucket now folded into "Alle Tickets").
+    // Without this the table renders empty and never recovers — the user's
+    // "I still can't see any tickets" report.
+    const feats = portfolio?.products?.flatMap((p) => p.features) ?? [];
+    const sel = $cockpitStore.selectedFeature;
+    const known = !!sel && feats.some((f) => f.extId === sel);
+    if (!known) {
+      const def = pickDefaultFeature(feats);
       if (def) selectFeature(def.extId);
     }
     if ($cockpitStore.selectedFeature) await loadFeature($cockpitStore.selectedFeature);

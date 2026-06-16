@@ -5,6 +5,7 @@ resources:
   - ../../k3d/website.yaml
   - ../../k3d/website-seller-config.yaml
   # Security-headers middleware in this namespace (allowCrossNamespace disabled on korczewski)
+  - ../website-common/domain-config.yaml
   - website-security-headers.yaml
 patches:
   # Fix HTTPS: add websecure entryPoint + wildcard TLS cert (T000144)

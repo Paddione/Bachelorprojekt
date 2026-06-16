@@ -6,6 +6,10 @@ resources:
   - kube-prometheus-stack-rendered.yaml
   - traefik-metrics.yaml
   - servicemonitor-traefik.yaml
+  - otel-collector.yaml
+  - otel-collector-auth-secret.yaml
+  - otel-ingressroute.yaml
+  - servicemonitor-otel-collector.yaml
   - prometheus-rules.yaml
   - alertmanager-config.yaml
   - alertmanager-pushover-secret.yaml

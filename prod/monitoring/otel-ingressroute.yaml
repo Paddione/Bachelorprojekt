@@ -1,0 +1,22 @@
+# prod/monitoring/otel-ingressroute.yaml
+# Prod TLS-terminating IngressRoute for the OTel collector OTLP/HTTP endpoint.
+# Hostname comes from ${OTEL_DOMAIN} (configmap-domains / envsubst at deploy) —
+# never a brand literal (S3). Bearer-token auth is enforced by the collector itself
+# (bearertokenauth extension); this route only terminates TLS and routes OTLP.
+# The dev base route (name: otel-collector) is $patch:delete'd in
+# prod/monitoring/kustomization.yaml.
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: otel-collector-prod
+  namespace: monitoring
+spec:
+  entryPoints: [websecure]
+  routes:
+    - match: Host(`${OTEL_DOMAIN}`)
+      kind: Rule
+      services:
+        - name: otel-collector
+          port: 4318
+  tls:
+    secretName: ${TLS_SECRET_NAME}

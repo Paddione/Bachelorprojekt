@@ -1,0 +1,20 @@
+# k3d/monitoring/otel-ingressroute.yaml
+# Dev IngressRoute for the OTel collector OTLP/HTTP endpoint (otel.localhost, plain
+# web entrypoint, no TLS). Bearer-token auth is enforced by the collector itself
+# (bearertokenauth extension). In prod this base route is $patch:delete'd and
+# replaced by prod/monitoring/otel-ingressroute.yaml (TLS + ${OTEL_DOMAIN}).
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: otel-collector
+  namespace: monitoring
+  labels:
+    app: otel-collector
+spec:
+  entryPoints: [web]
+  routes:
+    - match: Host(`otel.localhost`)
+      kind: Rule
+      services:
+        - name: otel-collector
+          port: 4318

@@ -1,0 +1,141 @@
+# k3d/monitoring/otel-collector.yaml
+# On-prem OpenTelemetry Collector for the headless Software Factory autopilot.
+# Receives OTLP (native Claude-Code telemetry + custom factory spans/metrics) and
+# exposes a Prometheus /metrics endpoint scraped by the kube-prometheus-stack
+# (servicemonitor-otel-collector.yaml). Bearer-token auth on the OTLP receiver is
+# enforced by the collector itself (bearertokenauth extension); the token comes from
+# the otel-collector-auth Secret (dev placeholder here, SealedSecret in prod).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+  namespace: monitoring
+  labels:
+    app: otel-collector
+data:
+  config.yaml: |
+    extensions:
+      bearertokenauth:
+        scheme: Bearer
+        token: ${env:FACTORY_OTLP_TOKEN}
+    receivers:
+      otlp:
+        protocols:
+          http:
+            endpoint: 0.0.0.0:4318
+            auth:
+              authenticator: bearertokenauth
+          grpc:
+            endpoint: 0.0.0.0:4317
+            auth:
+              authenticator: bearertokenauth
+    processors:
+      memory_limiter:
+        check_interval: 5s
+        limit_percentage: 80
+        spike_limit_percentage: 25
+      batch:
+        timeout: 5s
+      resource:
+        attributes:
+          - key: service.namespace
+            value: factory
+            action: upsert
+    exporters:
+      prometheus:
+        endpoint: 0.0.0.0:8889
+        resource_to_telemetry_conversion:
+          enabled: true
+      debug:
+        verbosity: basic
+    service:
+      extensions: [bearertokenauth]
+      pipelines:
+        metrics:
+          receivers: [otlp]
+          processors: [memory_limiter, batch, resource]
+          exporters: [prometheus]
+        logs:
+          receivers: [otlp]
+          processors: [memory_limiter, batch, resource]
+          exporters: [debug]
+        traces:
+          receivers: [otlp]
+          processors: [memory_limiter, batch, resource]
+          exporters: [debug]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-collector
+  namespace: monitoring
+  labels:
+    app: otel-collector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: otel-collector
+  template:
+    metadata:
+      labels:
+        app: otel-collector
+    spec:
+      containers:
+        - name: otel-collector
+          image: otel/opentelemetry-collector-contrib:0.145.0
+          args: ["--config=/etc/otel/config.yaml"]
+          env:
+            - name: FACTORY_OTLP_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: otel-collector-auth
+                  key: FACTORY_OTLP_TOKEN
+          ports:
+            - name: otlp-http
+              containerPort: 4318
+            - name: otlp-grpc
+              containerPort: 4317
+            - name: prom-metrics
+              containerPort: 8889
+          volumeMounts:
+            - name: config
+              mountPath: /etc/otel
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 10001
+            capabilities:
+              drop: ["ALL"]
+      volumes:
+        - name: config
+          configMap:
+            name: otel-collector-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-collector
+  namespace: monitoring
+  labels:
+    app: otel-collector
+spec:
+  selector:
+    app: otel-collector
+  ports:
+    - name: otlp-http
+      port: 4318
+      targetPort: 4318
+    - name: otlp-grpc
+      port: 4317
+      targetPort: 4317
+    - name: prom-metrics
+      port: 8889
+      targetPort: 8889

@@ -24,24 +24,15 @@ export function phaseProgress(phase: Phase | null, state: PhaseState | null): Ph
   });
 }
 
-export const ALL_TICKET_STATUSES = [
-  'triage', 'planning', 'plan_staged', 'backlog', 'in_progress',
-  'in_review', 'blocked', 'qa_review', 'done', 'archived',
-] as const;
-export type TicketStatus = (typeof ALL_TICKET_STATUSES)[number];
-
-export const STATUS_BUCKETS: Record<TicketStatus, string> = {
-  triage:      'planning',
-  planning:    'planning',
-  plan_staged: 'staged',
-  backlog:     'loadingDock',
-  in_progress: 'hall',
-  in_review:   'hall',
-  blocked:     'attention',
-  qa_review:   'qa',
-  done:        'shipped',
-  archived:    'archive',
-};
+// Ordered pipeline-lane SSOT lives in ./tickets/pipeline-order (pure module, no DB
+// import). Re-exported here so existing consumers keep importing from factory-floor.
+export {
+  ALL_TICKET_STATUSES,
+  PIPELINE_LANES,
+  PIPELINE_STATUSES,
+  STATUS_BUCKETS,
+} from './tickets/pipeline-order';
+export type { TicketStatus, PipelineLane, LaneKey } from './tickets/pipeline-order';
 
 export interface AttentionPayload {
   blocked: { extId: string; reason: string }[];

@@ -261,6 +261,7 @@ tasks:
       - task: test:unit:wg-mesh-fullmesh
       - task: test:unit:recovery-domain-durability
       - task: test:unit:mediaviewer-host-durability
+      - task: test:unit:website-domain-config-overlay
       - task: test:unit:ticket-external-id
       - task: test:unit:ticket-triage
       - task: test:unit:website-ci-deploy
@@ -409,6 +410,11 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/mediaviewer-host-durability.bats
+
+  test:unit:website-domain-config-overlay:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/website-domain-config-overlay.bats
 
   test:unit:ticket-external-id:
     internal: true

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 438,
+      "file_count": 439,
       "files": [
         "tests/.gitignore",
         "tests/batch/batch-gap-analysis.bats",
@@ -424,6 +424,7 @@
         "tests/unit/vda-core.bats",
         "tests/unit/vda-ticket-smoke.bats",
         "tests/unit/website-ci-deploy.bats",
+        "tests/unit/website-domain-config-overlay.bats",
         "tests/unit/wg-mesh-fullmesh.bats",
         "tests/unit/worktree-create.bats",
         "website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
@@ -1884,7 +1885,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 398,
+      "file_count": 399,
       "files": [
         "claude-code/gekko-android-mcp-guide.md",
         "claude-code/settings.json",
@@ -2204,6 +2205,7 @@
         "prod-fleet/platform/ingressclass.yaml",
         "prod-fleet/platform/kustomization.yaml",
         "prod-fleet/platform/reflector-rbac.yaml",
+        "prod-fleet/website-common/domain-config.yaml",
         "prod-fleet/website-korczewski/kustomization.yaml",
         "prod-fleet/website-korczewski/website-security-headers.yaml",
         "prod-fleet/website-mentolder/kustomization.yaml",

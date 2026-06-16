@@ -6,7 +6,7 @@ import { pool } from './website-db';
 import { officeCount } from './planning-office';
 
 
-const PHASE_ORDER = ['scout', 'design', 'plan', 'implement', 'verify', 'deploy'] as const;
+export const PHASE_ORDER = ['scout', 'design', 'plan', 'implement', 'verify', 'deploy'] as const;
 export type Phase = (typeof PHASE_ORDER)[number];
 export type PhaseState = 'entered' | 'done' | 'blocked';
 

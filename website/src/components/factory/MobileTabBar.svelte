@@ -1,5 +1,5 @@
-<script lang="ts">
-  const TABS = [
+<script module lang="ts">
+  export const TABS = [
     { key: 'staged', label: 'STAGED' },
     { key: 'backlog', label: 'BACKLOG' },
     { key: 'scout', label: 'SCOUT' },
@@ -11,7 +11,9 @@
     { key: 'qs', label: 'QS' },
     { key: 'done', label: 'DONE' },
   ] as const;
+</script>
 
+<script lang="ts">
   let {
     activeIndex,
     onSelect,

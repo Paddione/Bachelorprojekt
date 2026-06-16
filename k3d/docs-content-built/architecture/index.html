@@ -178,20 +178,20 @@
 <body>
   <div class="header">
     <h1>⬡ Architektur — Living Docs</h1>
-    <span class="meta">Generiert: 2026-06-16T06:16:16.857Z</span>
+    <span class="meta">Generiert: 2026-06-16T07:02:56.382Z</span>
   </div>
 
   <div class="stats">
     <div class="stat">
-      <span class="stat-value">78</span>
+      <span class="stat-value">79</span>
       <span class="stat-label">Services</span>
     </div>
     <div class="stat">
-      <span class="stat-value">1612</span>
+      <span class="stat-value">1614</span>
       <span class="stat-label">Abhängigkeiten</span>
     </div>
     <div class="stat">
-      <span class="stat-value">391</span>
+      <span class="stat-value">392</span>
       <span class="stat-label">API Endpoints</span>
     </div>
   </div>
@@ -251,6 +251,7 @@ flowchart LR
   monitoring_grafana["monitoring-grafana"]:::default
   monitoring_kube_state_metrics["monitoring-kube-state-metrics"]:::default
   monitoring_operator["monitoring-operator"]:::default
+  otel_collector["otel-collector"]:::default
   nextcloud_redis["nextcloud-redis"]:::default
   nextcloud["nextcloud"]:::default
   notify_unread["notify-unread"]:::default
@@ -409,6 +410,7 @@ flowchart LR
   traefik -->|"ingress"| oauth2_proxy_mailpit
   traefik -->|"ingress"| mailpit
   traefik -->|"ingress"| monitoring_grafana
+  traefik -->|"ingress"| otel_collector
   traefik -->|"ingress"| collabora
   traefik -->|"ingress"| oauth2_proxy_recovery
   traefik -->|"ingress"| oauth2_proxy_traefik
@@ -436,6 +438,7 @@ flowchart LR
   mediaviewer_widget -->|"selector"| mediaviewer_widget
   monitoring_kube_state_metrics -->|"selector"| monitoring_kube_state_metrics
   monitoring_operator -->|"selector"| monitoring_operator
+  otel_collector -->|"selector"| otel_collector
   nextcloud_redis -->|"selector"| nextcloud_redis
   oauth2_proxy_videovault -->|"selector"| oauth2_proxy_videovault
   collabora -->|"selector"| collabora
@@ -1829,7 +1832,7 @@ flowchart LR
   website -->|"secret:staging-db-…"| shared_db_staging
       </div>
     </div>
-    <p class="diagram-caption">Alle 78 K8s-Services und ihre 1612 Abhängigkeitskanten (env-Refs, initContainer-Waits, Ingress-Backends)</p>
+    <p class="diagram-caption">Alle 79 K8s-Services und ihre 1614 Abhängigkeitskanten (env-Refs, initContainer-Waits, Ingress-Backends)</p>
   </div>
 
   <!-- K8s Topology Tab -->
@@ -1917,6 +1920,7 @@ flowchart TB
     monitoring_grafana["monitoring-grafana"]
     monitoring_kube_state_metrics["monitoring-kube-state-metrics"]
     monitoring_operator["monitoring-operator"]
+    otel_collector["otel-collector"]
   end
   subgraph workspace_office["workspace-office"]
     collabora["collabora"]
@@ -1946,7 +1950,7 @@ flowchart TB
     <div class="filter-bar">
       <span class="filter-label">Filter:</span>
       <input class="filter-input" type="text" id="api-filter" placeholder="/api/..." oninput="filterApi(this.value)">
-      <span class="filter-label" id="api-count">391 endpoints</span>
+      <span class="filter-label" id="api-count">392 endpoints</span>
     </div>
     <div style="max-height:70vh;overflow-y:auto;border:1px solid var(--ff-border);border-radius:4px;">
       <table>
@@ -3645,6 +3649,11 @@ flowchart TB
     </tr>
       <tr>
       <td><code>/api/factory-metrics</code></td>
+      <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">GET</code></td>
+      <td style="color:#ef4444">🔐 admin</td>
+    </tr>
+      <tr>
+      <td><code>/api/factory-observability</code></td>
       <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">GET</code></td>
       <td style="color:#ef4444">🔐 admin</td>
     </tr>

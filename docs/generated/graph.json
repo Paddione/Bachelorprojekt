@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-16T06:16:16.730Z",
+  "generatedAt": "2026-06-16T07:02:56.257Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -234,6 +234,12 @@
       "namespace": "monitoring",
       "type": "Deployment",
       "name": "monitoring-operator"
+    },
+    {
+      "id": "otel-collector",
+      "namespace": "monitoring",
+      "type": "Deployment",
+      "name": "otel-collector"
     },
     {
       "id": "nextcloud-redis",
@@ -1301,6 +1307,12 @@
     },
     {
       "from": "traefik",
+      "to": "otel-collector",
+      "via": "ingress",
+      "kind": "ingress"
+    },
+    {
+      "from": "traefik",
       "to": "collabora",
       "via": "ingress",
       "kind": "ingress"
@@ -1458,6 +1470,12 @@
     {
       "from": "monitoring-operator",
       "to": "monitoring-operator",
+      "via": "selector",
+      "kind": "selector"
+    },
+    {
+      "from": "otel-collector",
+      "to": "otel-collector",
       "via": "selector",
       "kind": "selector"
     },

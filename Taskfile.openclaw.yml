@@ -144,29 +144,38 @@ tasks:
   factory-mcp:start:
     desc: "Start the Factory MCP server in the background (PID file)"
     cmds:
+      # Run under real bash: go-task's mvdan/sh interpreter returns a job handle
+      # (e.g. "g1") instead of a real OS PID from `$!`, which breaks the PID file
+      # and factory-mcp:stop. bash gives the actual node PID.
       - |
-        PIDFILE=/tmp/factory-mcp.pid
-        if [[ -f "$PIDFILE" ]] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
-          echo "factory-mcp already running (PID $(cat $PIDFILE))"
-        else
-          nohup node scripts/factory/mcp-server.mjs > /tmp/factory-mcp.log 2>&1 &
-          echo $! > "$PIDFILE"
-          echo "factory-mcp started (PID $!)"
-        fi
+        bash -c '
+          PIDFILE=/tmp/factory-mcp.pid
+          if [[ -f "$PIDFILE" ]] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
+            echo "factory-mcp already running (PID $(cat "$PIDFILE"))"
+          else
+            nohup node scripts/factory/mcp-server.mjs > /tmp/factory-mcp.log 2>&1 &
+            echo $! > "$PIDFILE"
+            echo "factory-mcp started (PID $(cat "$PIDFILE"))"
+          fi
+        '
 
   factory-mcp:stop:
     desc: "Stop the Factory MCP server"
     cmds:
+      # Run under real bash: go-task's mvdan/sh `kill` builtin mishandles `kill -0`,
+      # so the liveness check always fails and the server is never actually stopped.
       - |
-        PIDFILE=/tmp/factory-mcp.pid
-        if [[ -f "$PIDFILE" ]] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
-          kill "$(cat "$PIDFILE")"
-          rm -f "$PIDFILE"
-          echo "factory-mcp stopped"
-        else
-          echo "factory-mcp not running"
-          rm -f "$PIDFILE"
-        fi
+        bash -c '
+          PIDFILE=/tmp/factory-mcp.pid
+          if [[ -f "$PIDFILE" ]] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
+            kill "$(cat "$PIDFILE")"
+            rm -f "$PIDFILE"
+            echo "factory-mcp stopped"
+          else
+            echo "factory-mcp not running"
+            rm -f "$PIDFILE"
+          fi
+        '
 
   factory-mcp:status:
     desc: "Health-check the Factory MCP server"

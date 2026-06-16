@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { getPortfolio } from '../../../../lib/tickets/cockpit-db';
+import { buildFeatureList, parseSuggestions, SUGGEST_SYSTEM_PROMPT } from '../../../../lib/tickets/suggest-prompt';
 
 const BRAND = (): string => process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 const json = (d: unknown, s = 200) =>
@@ -17,25 +18,9 @@ export const POST: APIRoute = async ({ request }) => {
   const model = body.model || 'deepseek-chat';
 
   const portfolio = await getPortfolio(BRAND());
-  const features = portfolio.products.flatMap(p => p.features);
+  const featureList = buildFeatureList(portfolio);
 
-  if (features.length === 0) return json({ suggestions: [] });
-
-  const featureList = features.map((f, i) =>
-    `${i + 1}. [${f.extId}] ${f.title} (Produkt: ${portfolio.products.find(p =>
-      p.features.some(pf => pf.id === f.id))?.title ?? '?'}, ` +
-    `Priorität: ${f.priority}, Major: ${f.majorFeature}, Verworfen: ${f.discarded}, ` +
-    `Nächster Schritt: ${f.nextStep}` +
-    `${f.suggestionComment ? `, Kommentar: ${f.suggestionComment}` : ''})`,
-  ).join('\n');
-
-  const systemPrompt = `Du bist ein Feature-Portfolio-Manager. Verteile die folgenden Features auf "nächster Schritt" (nextStep).
-Regeln:
-1. Gleichverteilung über Produkte: ungefähr gleiche Anzahl Features pro Produkt für nextStep=true.
-2. Features mit discarded=true nicht für nextStep vorschlagen.
-3. Features mit majorFeature=true bevorzugen.
-4. Falls ein Kommentar vorhanden ist, diesen als Kontext berücksichtigen.
-5. Antworte NUR mit einem JSON-Array, kein weiterer Text: [{"featureId":"<extId>","nextStep":true|false,"reason":"<kurze Begründung>"}]`;
+  if (featureList === '') return json({ suggestions: [] });
 
   try {
     const { default: OpenAI } = await import('openai');
@@ -48,16 +33,15 @@ Regeln:
       max_tokens: 2000,
       temperature: 0.3,
       messages: [
-        { role: 'system', content: systemPrompt },
+        { role: 'system', content: SUGGEST_SYSTEM_PROMPT },
         { role: 'user', content: `Hier sind die Features:\n\n${featureList}` },
       ],
     });
 
     const text = resp.choices[0]?.message.content ?? '';
-    const match = text.match(/\[[\s\S]*\]/);
-    if (!match) return json({ error: 'AI response could not be parsed', raw: text }, 500);
+    const suggestions = parseSuggestions(text);
+    if (suggestions.length === 0) return json({ error: 'AI response could not be parsed', raw: text }, 500);
 
-    const suggestions = JSON.parse(match[0]);
     return json({ suggestions });
   } catch (e) {
     const msg = String((e as Error).message);

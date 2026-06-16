@@ -1,17 +1,42 @@
-<script lang="ts">
-  const TABS = [
-    { key: 'staged', label: 'STAGED' },
-    { key: 'backlog', label: 'BACKLOG' },
-    { key: 'scout', label: 'SCOUT' },
-    { key: 'design', label: 'DESIGN' },
-    { key: 'plan', label: 'PLAN' },
-    { key: 'implement', label: 'IMPL' },
-    { key: 'verify', label: 'VERIFY' },
-    { key: 'deploy', label: 'DEPLOY' },
-    { key: 'qs', label: 'QS' },
-    { key: 'done', label: 'DONE' },
-  ] as const;
+<script module lang="ts">
+  import { PIPELINE_LANES } from '../../lib/tickets/pipeline-order';
+  import { PHASE_ORDER } from '../../lib/factory-floor';
 
+  const linearLanes = PIPELINE_LANES.filter(l => !l.side && l.key !== 'planning');
+
+  export const TABS = linearLanes.flatMap(l => {
+    if (l.key === 'hall') {
+      return PHASE_ORDER.map(p => ({
+        key: p,
+        label: p === 'implement' ? 'IMPL' : p.toUpperCase(),
+      }));
+    }
+    const labelMap: Record<string, string> = {
+      staged: 'STAGED',
+      loadingDock: 'BACKLOG',
+      qa: 'QS',
+      awaitingDeploy: 'AWAITING',
+      shipped: 'DONE'
+    };
+    return [{
+      key: l.key,
+      label: labelMap[l.key] || l.key.toUpperCase(),
+    }];
+  });
+
+  const keyMap: Record<string, string> = {
+    loadingDock: 'backlog',
+    qa: 'qs',
+    shipped: 'done'
+  };
+  const getIndexKey = (key: string) => keyMap[key] || key;
+
+  export const MOBILE_COL_INDEX = Object.fromEntries(
+    TABS.map((tab, idx) => [getIndexKey(tab.key), idx])
+  ) as Record<string, number>;
+</script>
+
+<script lang="ts">
   let {
     activeIndex,
     onSelect,

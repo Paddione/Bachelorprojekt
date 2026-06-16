@@ -1469,6 +1469,181 @@
 .drawer .guide-steps li::marker { color: var(--brass); font-family: var(--mono); font-size: 11px; }
 
 /* =========================================================================
+   PipelineSidekickView — .pv-* prefix
+   ========================================================================= */
+
+.drawer .pv-intro {
+  padding: 24px 22px 16px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.drawer .pv-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--brass);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.drawer .pv-eyebrow-bar {
+  width: 22px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.8;
+  flex-shrink: 0;
+}
+.drawer .pv-desc {
+  margin: 0;
+  font-size: 13px;
+  color: var(--fg-soft);
+  line-height: 1.55;
+  max-width: 38ch;
+}
+
+.drawer .pv-strip {
+  display: flex;
+  flex-direction: column;
+  padding: 16px 22px;
+  gap: 8px;
+}
+
+.drawer .pv-lane {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  background: var(--ink-800);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+  transition: border-color 180ms ease, background 180ms ease;
+  width: 100%;
+}
+.drawer .pv-lane:hover {
+  border-color: var(--brass-d);
+  background: var(--ink-750);
+}
+.drawer .pv-lane:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: -2px;
+}
+.drawer .pv-lane--open {
+  border-color: var(--brass-d);
+  background: var(--ink-750);
+}
+
+.drawer .pv-lane-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.drawer .pv-lane-label {
+  font-family: var(--serif);
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--fg);
+  letter-spacing: -0.01em;
+}
+.drawer .pv-lane-count {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--brass);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.drawer .pv-bar-track {
+  height: 4px;
+  background: var(--ink-850);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.drawer .pv-bar-fill {
+  height: 100%;
+  background: var(--brass);
+  border-radius: 99px;
+  transition: width 320ms ease;
+  min-width: 4px;
+}
+
+.drawer .pv-drill {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px 0 8px 16px;
+  border-left: 2px solid var(--line);
+  margin-left: 14px;
+}
+
+.drawer .pv-ticket {
+  background: var(--ink-850);
+  border: 1px solid var(--line-2);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: border-color 180ms ease;
+}
+.drawer .pv-ticket:hover {
+  border-color: var(--brass-d);
+}
+
+.drawer .pv-ticket-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+  min-height: 40px;
+}
+.drawer .pv-ticket-head:hover {
+  background: oklch(1 0 0 / 0.02);
+}
+.drawer .pv-ticket-head:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: -2px;
+}
+
+.drawer .pv-ticket-label {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.drawer .pv-ticket-title {
+  font-size: 13px;
+  color: var(--fg-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.drawer .pv-stepper-wrap {
+  padding: 0 12px 10px;
+}
+
+.drawer .pv-skeleton {
+  height: 64px;
+  background: linear-gradient(90deg, var(--ink-800) 25%, var(--ink-750) 50%, var(--ink-800) 75%);
+  background-size: 200% 100%;
+  animation: sk-shimmer 1.4s infinite;
+  border-radius: 12px;
+  margin: 0 22px;
+}
+
+/* =========================================================================
    Mobile responsive overrides
    ========================================================================= */
 @media (max-width: 480px) {

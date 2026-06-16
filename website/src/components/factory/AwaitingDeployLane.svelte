@@ -1,9 +1,10 @@
 <script lang="ts">
   import type { AwaitingDeployItem } from '../../lib/factory-floor';
-  let { items = [] }: { items: AwaitingDeployItem[] } = $props();
+  import { MOBILE_COL_INDEX } from '../FactoryFloor.svelte';
+  let { items = [], mobileColIndex }: { items: AwaitingDeployItem[]; mobileColIndex: number } = $props();
 </script>
 
-<section class="lg:w-1/5" data-testid="floor-awaiting-deploy" id="floor-awaiting-deploy">
+<section class="lg:w-1/5" data-col="awaitingDeploy" class:mobile-visible={mobileColIndex === MOBILE_COL_INDEX.awaitingDeploy} data-testid="floor-awaiting-deploy" id="floor-awaiting-deploy">
   <h3 class="text-sm font-semibold text-muted mb-2">Wartet auf Deploy</h3>
   {#if items.length === 0}
     <p class="text-muted text-xs">Nichts wartet auf Deploy.</p>

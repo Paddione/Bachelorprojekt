@@ -63,4 +63,21 @@ describe('SuggestionBar', () => {
     expect((getByText('Übernehmen') as HTMLButtonElement).disabled).toBe(true);
     expect((getByText('Zurücksetzen') as HTMLButtonElement).disabled).toBe(true);
   });
+
+  it('renders the rich AI suggestions with reason, title and impact badge', () => {
+    const suggestions = [
+      { featureId: 'f1', nextStep: true, reason: 'fast fertig, hoher Wert', impact: 'hoch' as const },
+      { featureId: 'f3', nextStep: false, reason: 'blockiert' },
+    ];
+    const { getByTestId, getByText } = render(SuggestionBar, { features, suggestions, isRolling: false });
+    expect(getByTestId('suggestion-list')).toBeTruthy();
+    expect(getByText('fast fertig, hoher Wert')).toBeTruthy();
+    expect(getByText('hoch')).toBeTruthy();       // impact badge
+    expect(getByText('F1')).toBeTruthy();          // resolved feature title
+  });
+
+  it('does not render the suggestion list when there are no suggestions', () => {
+    const { queryByTestId } = render(SuggestionBar, { features, isRolling: false });
+    expect(queryByTestId('suggestion-list')).toBeNull();
+  });
 });

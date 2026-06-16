@@ -6,7 +6,7 @@ import { pool } from './website-db';
 import { officeCount } from './planning-office';
 
 
-const PHASE_ORDER = ['scout', 'design', 'plan', 'implement', 'verify', 'deploy'] as const;
+export const PHASE_ORDER = ['scout', 'design', 'plan', 'implement', 'verify', 'deploy'] as const;
 export type Phase = (typeof PHASE_ORDER)[number];
 export type PhaseState = 'entered' | 'done' | 'blocked';
 
@@ -24,25 +24,15 @@ export function phaseProgress(phase: Phase | null, state: PhaseState | null): Ph
   });
 }
 
-export const ALL_TICKET_STATUSES = [
-  'triage', 'planning', 'plan_staged', 'backlog', 'in_progress',
-  'in_review', 'blocked', 'qa_review', 'awaiting_deploy', 'done', 'archived',
-] as const;
-export type TicketStatus = (typeof ALL_TICKET_STATUSES)[number];
-
-export const STATUS_BUCKETS: Record<TicketStatus, string> = {
-  triage:          'planning',
-  planning:        'planning',
-  plan_staged:     'staged',
-  backlog:         'loadingDock',
-  in_progress:     'hall',
-  in_review:       'hall',
-  blocked:         'attention',
-  qa_review:       'qa',
-  awaiting_deploy: 'awaitingDeploy',
-  done:            'shipped',
-  archived:        'archive',
-};
+// Ordered pipeline-lane SSOT lives in ./tickets/pipeline-order (pure module, no DB
+// import). Re-exported here so existing consumers keep importing from factory-floor.
+export {
+  ALL_TICKET_STATUSES,
+  PIPELINE_LANES,
+  PIPELINE_STATUSES,
+  STATUS_BUCKETS,
+} from './tickets/pipeline-order';
+export type { TicketStatus, PipelineLane, LaneKey } from './tickets/pipeline-order';
 
 export interface AttentionPayload {
   blocked: { extId: string; reason: string }[];

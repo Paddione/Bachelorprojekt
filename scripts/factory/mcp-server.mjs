@@ -3,7 +3,6 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
 import { createServer } from 'node:http'
 import { execFileSync, execFile } from 'child_process'
-import { randomUUID } from 'crypto'
 import { z } from 'zod'
 
 const REPO = process.env.FACTORY_REPO || '/home/patrick/Bachelorprojekt'
@@ -17,6 +16,11 @@ function psqlJSON(sql) {
   } catch (e) { return JSON.stringify({ error: e.message }) }
 }
 
+// Build a fresh server instance per request (stateless MCP — see transport below).
+// Tools are pure (shell/psql calls, no shared in-process state), so re-registering
+// per request is cheap and avoids the "already connected" / single-session pitfalls
+// of sharing one McpServer across multiple clients.
+function buildServer() {
 const server = new McpServer({ name: 'factory', version: '1.0.0' })
 
 server.tool('factory_status', 'Show factory queue depth and whether a tick is running', async () => {
@@ -50,6 +54,9 @@ server.tool('factory_recent', 'Show last N factory run comments from ticket_comm
   return { content: [{ type: 'text', text: psqlJSON(sql) }] }
 })
 
+  return server
+}
+
 const app = createServer(async (req, res) => {
   if (req.method === 'GET' && req.url === '/health') {
     res.writeHead(200, { 'Content-Type': 'application/json' })
@@ -59,10 +66,22 @@ const app = createServer(async (req, res) => {
   if (req.method === 'POST' && req.url === '/mcp') {
     let body = ''
     for await (const chunk of req) body += chunk
-    const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: () => randomUUID() })
-    await server.connect(transport)
-    req.body = JSON.parse(body)
-    await transport.handleRequest(req, res, req.body)
+    // Stateless transport: a fresh server+transport per request, no session id.
+    // Every initialize is accepted, so multiple/reconnecting clients (Claude Code,
+    // the OpenCode bridge) never collide on a single shared session.
+    const server = buildServer()
+    const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined })
+    res.on('close', () => { transport.close(); server.close() })
+    try {
+      req.body = JSON.parse(body)
+      await server.connect(transport)
+      await transport.handleRequest(req, res, req.body)
+    } catch (e) {
+      if (!res.headersSent) {
+        res.writeHead(500, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ jsonrpc: '2.0', error: { code: -32603, message: String(e?.message || e) }, id: null }))
+      }
+    }
     return
   }
   res.writeHead(404).end()

@@ -11,6 +11,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const COMPONENT_TESTS = [
   'src/components/**/*.{test,spec}.ts',
   'src/lib/stores/cockpitStore.test.ts',
+  'src/lib/factory-floor.order.test.ts',
 ];
 
 export default defineConfig({

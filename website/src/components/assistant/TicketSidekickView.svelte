@@ -1,8 +1,9 @@
 <!-- website/src/components/assistant/TicketSidekickView.svelte -->
 <script lang="ts">
   import MarkdownEditor from '../admin/MarkdownEditor.svelte';
+  import { STATUS_LABELS, defaultResolutionFor } from '../../lib/tickets/cockpit-labels';
+  import type { TicketStatus } from '../../lib/tickets/transition';
   type TicketType = 'feature' | 'task' | 'project';
-  type TicketStatus = 'triage' | 'backlog' | 'in_progress' | 'in_review' | 'blocked' | 'done' | 'archived';
   type TicketPriority = 'hoch' | 'mittel' | 'niedrig';
 
   interface TicketRow {
@@ -89,13 +90,17 @@
     }
   }
 
-  async function changeStatus(ticketId: string, status: TicketStatus) {
+  async function changeStatus(ticketId: string, status: TicketStatus, type: string) {
+    const body: Record<string, unknown> = { status };
+    if (status === 'done' || status === 'archived') {
+      body.resolution = defaultResolutionFor(type);
+    }
     try {
       const r = await fetch(`/api/admin/tickets/${ticketId}/transition`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
-        body: JSON.stringify({ status }),
+        body: JSON.stringify(body),
       });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       // optimistic update
@@ -108,11 +113,6 @@
 
   // Load on mount
   $effect(() => { loadTickets(); });
-
-  const STATUS_LABELS: Record<TicketStatus, string> = {
-    triage: 'Triage', backlog: 'Backlog', in_progress: 'In Arbeit',
-    in_review: 'Review', blocked: 'Blockiert', done: 'Erledigt', archived: 'Archiviert',
-  };
   const TYPE_LABELS: Record<TicketType, string> = {
     feature: 'Feature', task: 'Aufgabe', project: 'Projekt',
   };
@@ -214,7 +214,7 @@
             <div class="ticket-actions">
               <select
                 value={t.status}
-                onchange={(e) => changeStatus(t.id, (e.target as HTMLSelectElement).value as TicketStatus)}
+                onchange={(e) => changeStatus(t.id, (e.target as HTMLSelectElement).value as TicketStatus, t.type)}
               >
                 {#each Object.entries(STATUS_LABELS) as [val, label]}
                   <option value={val}>{label}</option>

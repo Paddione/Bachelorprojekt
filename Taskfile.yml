@@ -290,6 +290,7 @@ tasks:
       - task: test:unit:ticket-graph
       - task: test:unit:T000668-graph-api
       - task: test:unit:factory-blocked
+      - task: test:unit:factory-mcp
       - task: test:unit:readiness-webhook
       - task: test:unit:staging
       - task: test:unit:api-auth-gate
@@ -331,6 +332,11 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/factory-scout-quality.bats
+
+  test:unit:factory-mcp:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/factory/mcp-server.bats
 
   test:unit:readiness-webhook:
     internal: true

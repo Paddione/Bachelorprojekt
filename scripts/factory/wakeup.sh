@@ -52,6 +52,9 @@ if ! flock -n 9; then
   exit 0
 fi
 
+bash "${REPO}/scripts/agent-msg.sh" read --unread 2>/dev/null || true
+AGENT_MSG_LABEL=factory bash "${REPO}/scripts/agent-msg.sh" post "factory-tick: starting (dry_run=${DRY_RUN})" 2>/dev/null || true
+
 # ── git-crypt: a locked secrets file starts with the \0GITCRYPT\0 magic ───────
 # We probe one known-encrypted file; if it is still ciphertext, unlock the tree.
 CRYPT_PROBE="environments/.secrets/mentolder.yaml"
@@ -130,3 +133,4 @@ Report only the dispatcher's final JSON result. Do not improvise scheduling."
   echo "wakeup.sh: idle-retick — queue empty after tick #${TICK}, exiting (timer handles future work)" >&2
   break
 done
+AGENT_MSG_LABEL=factory bash "${REPO}/scripts/agent-msg.sh" post "factory-tick: done" 2>/dev/null || true

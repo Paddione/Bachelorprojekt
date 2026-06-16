@@ -62,6 +62,9 @@ jobs:
       - name: Install node dependencies (docs-gen generator + tests)
         run: npm ci
 
+      - name: Install factory MCP dependencies
+        run: npm ci --prefix scripts/factory
+
       - name: Create CI dummy secrets
         run: bash scripts/ci-dummy-secrets.sh
 

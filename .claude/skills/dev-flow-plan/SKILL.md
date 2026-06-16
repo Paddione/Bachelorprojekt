@@ -60,6 +60,7 @@ Räume tote Sessions/Zombies/stale Worktrees auf und sieh, wer gerade was bearbe
 ```bash
 bash scripts/agent-lock.sh reap   # killt cwd-tote-Worktree-Prozesse, prunet Worktrees, räumt tote Locks
 bash scripts/agent-lock.sh list   # "Wer macht was": laufende Claims anderer Sessions
+bash scripts/agent-msg.sh read --unread   # offene Nachrichten paralleler Sessions sichten [T000882]
 git worktree list
 # Stale Worktrees ggf. löschen: git worktree remove <path> --force && git branch -D <branch>
 ```

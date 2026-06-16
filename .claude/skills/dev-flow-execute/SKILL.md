@@ -173,6 +173,7 @@ Synchronisiere `main` im Haupt-Repo:
 
 ```bash
 bash scripts/agent-lock.sh reap   # Session-Koordination [T000510]: Zombie-Prozesse, stale Worktrees & tote Locks räumen
+bash scripts/agent-msg.sh read --unread   # offene Nachrichten paralleler Sessions sichten [T000882]
 MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
 (cd "$MAIN_REPO" && git fetch origin main && git pull --rebase origin main)
 ```

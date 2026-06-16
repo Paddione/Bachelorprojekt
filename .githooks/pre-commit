@@ -15,6 +15,14 @@ if [ -n "$_al_gd" ] && [ "$_al_gd" = "$_al_cd" ]; then
   fi
 fi
 
+# --- agent-collision: advisory live edit-collision warning (fail-open) [T000882] ---
+if ! bash "$repo_root/scripts/agent-collision.sh" check --staged; then
+  if [ -n "${AGENT_COLLISION_STRICT:-}" ]; then
+    echo "ERROR: refusing commit — staged files collide with a live session (AGENT_COLLISION_STRICT=1)." >&2
+    exit 1
+  fi
+fi
+
 if ! bash "$repo_root/scripts/git-crypt-guard.sh" check-staged; then
   echo "ERROR: refusing commit — a managed secret is staged unencrypted." >&2
   echo "Did you run 'git-crypt unlock'? See docs/WSL-BOOTSTRAP.md." >&2

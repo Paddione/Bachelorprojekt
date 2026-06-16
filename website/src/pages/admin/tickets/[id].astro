@@ -12,7 +12,7 @@ import {
 } from '../../../lib/questionnaire-db';
 import { getDisplayScores } from '../../../lib/compute-scores';
 import ProjectQuestionnairesPanel, { type AssignmentBundle } from '../../../components/admin/ProjectQuestionnairesPanel.astro';
-import GrillingAnswersPanel from '../../../components/admin/GrillingAnswersPanel.svelte';
+import GrillingStepper from '../../../components/admin/GrillingStepper.svelte';
 import { renderMarkdown } from '../../../lib/markdown';
 import '../../../styles/markdown.css';
 
@@ -151,10 +151,12 @@ function fmtDateTime(d: Date | string | null): string {
             )}
           </div>
 
-          <GrillingAnswersPanel
+          <GrillingStepper
             client:load
             ticketId={ticket.id}
+            questionnaireId="coaching-sessions-v1"
             grillingAnswers={ticket.grillingAnswers ?? null}
+            grillingMeta={ticket.grillingMeta ?? null}
           />
 
           <ProjectQuestionnairesPanel assignments={questionnaireBundles} />

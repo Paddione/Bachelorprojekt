@@ -93,3 +93,170 @@ export const QUESTIONNAIRES: Record<string, GrillingQuestionnaire> = {
 export function getQuestionnaire(id: string): GrillingQuestionnaire | undefined {
   return QUESTIONNAIRES[id];
 }
+
+// --- Grilling-Doc absorption: pure parsing/split/status helpers (no DB, no cycles) ---
+
+export interface ParsedQuestion { id: string; prompt: string; section?: string; answer?: string }
+
+const PLACEHOLDER_ANSWERS = new Set(['—', '-', 'tbd', '(offen)', 'n/a']);
+
+/** Empty, whitespace-only, or known placeholder tokens count as "no answer". */
+export function isBlankAnswer(value: string | null | undefined): boolean {
+  if (value == null) return true;
+  const t = value.trim();
+  if (t === '') return true;
+  return PLACEHOLDER_ANSWERS.has(t.toLowerCase());
+}
+
+/** Partition questions into answered (non-blank answer) and unanswered. */
+export function splitAnswered(questions: ParsedQuestion[]): {
+  answered: ParsedQuestion[];
+  unanswered: ParsedQuestion[];
+} {
+  const answered: ParsedQuestion[] = [];
+  const unanswered: ParsedQuestion[] = [];
+  for (const q of questions) (isBlankAnswer(q.answer) ? unanswered : answered).push(q);
+  return { answered, unanswered };
+}
+
+export interface ParsedGrillingDoc { questionnaireId: string; title: string; questions: ParsedQuestion[] }
+
+const FRONT_RE = /^---\s*$/;
+const HEADING_RE = /^#{2,3}\s+(.*?)\s*$/;
+const NUMBERED_RE = /^\s*(?:q(\d+)[.)]|(\d+)[.)])\s+(.*?)\s*$/i;
+const BOLD_Q_RE = /^\s*\*\*(.+\?)\*\*\s*$/;
+const ID_SUFFIX_RE = /\s*\{#([A-Za-z0-9_-]+)\}\s*$/;
+const ANSWER_PREFIX_RE = /^\s*(?:antwort|a)\s*:\s*(.*)$/i;
+const BLOCKQUOTE_RE = /^\s*>\s?(.*)$/;
+
+interface RawQuestion { explicitId?: string; prompt: string; answerLines: string[] }
+
+/** Tolerant Markdown grilling-doc parser. Never throws; best-effort question extraction. */
+export function parseGrillingDoc(content: string, fallbackId: string): ParsedGrillingDoc {
+  const lines = content.replace(/\r\n/g, '\n').split('\n');
+  let i = 0;
+  let frontId = '';
+  let frontTitle = '';
+
+  if (lines[0] !== undefined && FRONT_RE.test(lines[0])) {
+    i = 1;
+    while (i < lines.length && !FRONT_RE.test(lines[i])) {
+      const m = /^([A-Za-z_]+)\s*:\s*(.*)$/.exec(lines[i]);
+      if (m) {
+        if (m[1] === 'questionnaire') frontId = m[2].trim();
+        else if (m[1] === 'title') frontTitle = m[2].trim();
+      }
+      i++;
+    }
+    if (i < lines.length) i++;
+  }
+
+  const raws: RawQuestion[] = [];
+  let current: RawQuestion | null = null;
+  const pushAnswer = (text: string) => { if (current) current.answerLines.push(text); };
+
+  for (; i < lines.length; i++) {
+    const line = lines[i];
+    const startQuestion = (rawPrompt: string, explicitId?: string) => {
+      let prompt = rawPrompt;
+      const idm = ID_SUFFIX_RE.exec(prompt);
+      let id = explicitId;
+      if (idm) { id = idm[1]; prompt = prompt.replace(ID_SUFFIX_RE, '').trim(); }
+      current = { explicitId: id, prompt: prompt.trim(), answerLines: [] };
+      raws.push(current);
+    };
+
+    const heading = HEADING_RE.exec(line);
+    const numbered = NUMBERED_RE.exec(line);
+    const bold = BOLD_Q_RE.exec(line);
+    if (heading) { startQuestion(heading[1]); continue; }
+    if (numbered) { startQuestion(numbered[3], numbered[1] ? `q${numbered[1]}` : undefined); continue; }
+    if (bold) { startQuestion(bold[1]); continue; }
+
+    if (!current) continue;
+    const ans = ANSWER_PREFIX_RE.exec(line);
+    if (ans) { pushAnswer(ans[1].trim()); continue; }
+    const bq = BLOCKQUOTE_RE.exec(line);
+    if (bq) { pushAnswer(bq[1].trim()); continue; }
+    if (line.trim() === '') continue;
+    pushAnswer(line.trim());
+  }
+
+  let auto = 0;
+  const questions: ParsedQuestion[] = raws.map((r) => {
+    auto += 1;
+    const id = r.explicitId ?? `q${auto}`;
+    const answerText = r.answerLines.join('\n').trim();
+    const q: ParsedQuestion = { id, prompt: r.prompt };
+    if (!isBlankAnswer(answerText)) q.answer = answerText;
+    return q;
+  });
+
+  return {
+    questionnaireId: frontId || fallbackId,
+    title: frontTitle || frontId || fallbackId,
+    questions,
+  };
+}
+
+export interface GrillingMetaEntry {
+  title?: string;
+  questions: { id: string; prompt: string; section?: string }[];
+  dismissed: string[];
+}
+export type GrillingMeta = Record<string, GrillingMetaEntry>;
+export interface ResolvedQuestion { id: string; prompt: string; section?: string }
+
+/** Registry questions (flattened, section title as `section`) ∪ absorbed meta questions.
+ *  Registry wins on duplicate id; absorbed-only ids are appended in meta order. */
+export function resolveQuestions(
+  qnId: string,
+  registry: Record<string, GrillingQuestionnaire>,
+  meta: GrillingMeta | null,
+): ResolvedQuestion[] {
+  const out: ResolvedQuestion[] = [];
+  const seen = new Set<string>();
+  const qn = registry[qnId];
+  if (qn) {
+    for (const s of qn.sections) {
+      for (const q of s.questions) {
+        out.push({ id: q.id, prompt: q.label, section: s.title });
+        seen.add(q.id);
+      }
+    }
+  }
+  for (const q of meta?.[qnId]?.questions ?? []) {
+    if (seen.has(q.id)) continue;
+    out.push({ id: q.id, prompt: q.prompt, section: q.section });
+    seen.add(q.id);
+  }
+  return out;
+}
+
+/** answered (non-blank answer) | dismissed (in meta.dismissed) | open. answered wins over dismissed. */
+export function questionStatus(
+  qId: string,
+  qnId: string,
+  answers: GrillingAnswers | null,
+  meta: GrillingMeta | null,
+): 'answered' | 'dismissed' | 'open' {
+  if (!isBlankAnswer(answers?.[qnId]?.[qId])) return 'answered';
+  if ((meta?.[qnId]?.dismissed ?? []).includes(qId)) return 'dismissed';
+  return 'open';
+}
+
+/** Aggregate counts over the resolved (registry ∪ absorbed) question set. */
+export function grillingProgress(
+  qnId: string,
+  registry: Record<string, GrillingQuestionnaire>,
+  answers: GrillingAnswers | null,
+  meta: GrillingMeta | null,
+): { total: number; answered: number; dismissed: number; open: number } {
+  const qs = resolveQuestions(qnId, registry, meta);
+  let answered = 0, dismissed = 0, open = 0;
+  for (const q of qs) {
+    const st = questionStatus(q.id, qnId, answers, meta);
+    if (st === 'answered') answered++; else if (st === 'dismissed') dismissed++; else open++;
+  }
+  return { total: qs.length, answered, dismissed, open };
+}

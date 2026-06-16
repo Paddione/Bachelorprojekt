@@ -227,7 +227,7 @@ export async function initTicketsSchema(): Promise<void> {
       ADD COLUMN IF NOT EXISTS source_test_result_id     BIGINT,
       ADD COLUMN IF NOT EXISTS source_test_id            TEXT
   `);
-  await pool.query(`ALTER TABLE tickets.tickets ADD COLUMN IF NOT EXISTS grilling_answers JSONB`);
+  await pool.query(`ALTER TABLE tickets.tickets ADD COLUMN IF NOT EXISTS grilling_answers JSONB, ADD COLUMN IF NOT EXISTS grilling_meta JSONB`);
 
   await pool.query(`CREATE INDEX IF NOT EXISTS tickets_status_idx ON tickets.tickets (status) WHERE status NOT IN ('done','archived')`);
   await pool.query(`CREATE INDEX IF NOT EXISTS tickets_type_brand_idx ON tickets.tickets (type, brand)`);

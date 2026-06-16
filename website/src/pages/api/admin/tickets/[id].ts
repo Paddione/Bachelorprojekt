@@ -44,7 +44,7 @@ export const PATCH: APIRoute = async ({ request, params }) => {
   const allowed = ['title','description','notes','url','priority','severity','component',
                    'attentionMode', 'thesisTag','parentId','customerId','assigneeId','reporterEmail',
                    'startDate','dueDate','estimateMinutes',
-                   'aiQuestion','humanAnswer','grillingAnswers'] as const;
+                    'aiQuestion','humanAnswer','grillingAnswers','grillingMeta'] as const;
   const patch: Record<string, unknown> = {};
   for (const k of allowed) if (k in body) patch[k] = (body as Record<string, unknown>)[k];
 

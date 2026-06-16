@@ -20,6 +20,7 @@ const SQ = require('./scout-quality-check.cjs')
 let _msgBridge = null
 try { _msgBridge = require('./agent-msg-bridge.cjs') } catch (_) {}
 const { decideDeployTransition } = require('./deploy-transition.cjs')
+const { resolveTaskSource } = require('./task-source.cjs')
 function routeProviderSync(source, tier) {
   if (tier === 'opus') return { provider: 'anthropic', modelId: 'claude-opus-4-6', baseUrl: null, slotId: null, emergency: false }
   if (process.env.ANTHROPIC_MODEL) {
@@ -579,7 +580,7 @@ const deploy = await agent(
       If RC -ge 2 or a gate failed: bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status blocked; add-comment "CI red after retries"; return.
    4. gh pr merge "$PR" --squash --delete-branch --auto
    5. bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status qa_review
-      bash ${REPO}/scripts/ticket.sh archive-plan --id ${A.ticket_id} --slug ${slug} --branch ${WORK_BRANCH} --plan-file ${planFilePath ?? `${REPO}/docs/superpowers/plans/${slug}.md`}
+      bash ${REPO}/scripts/ticket.sh archive-plan --id ${A.ticket_id} --slug ${slug} --branch ${WORK_BRANCH} --plan-file ${planFilePath ?? resolveTaskSource(slug, REPO)}
    5b. bash ${REPO}/scripts/ticket.sh feature-flag set --brand mentolder --key ${slug} --enabled false --set-by factory
        bash ${REPO}/scripts/ticket.sh feature-flag set --brand korczewski --key ${slug} --enabled false --set-by factory
    6. ${deployStepCmd}

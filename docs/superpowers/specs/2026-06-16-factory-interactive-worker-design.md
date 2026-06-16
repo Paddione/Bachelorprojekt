@@ -2,8 +2,8 @@
 title: Factory Interactive Worker
 date: 2026-06-16
 status: draft
-ticket_id: null
-plan_ref: null
+ticket_id: T000911
+plan_ref: docs/superpowers/plans/2026-06-16-factory-interactive-worker.md
 areas:
   - factory
   - dev-flow

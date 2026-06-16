@@ -395,7 +395,7 @@ kubectl --context k3d-mentolder-dev -n website get configmap domain-config 2>/de
 **Wenn (c) zeigt, dass keine `domain-config` in der dev-website-ns existiert** (Lücke akut) → fahre mit Step 3 fort.
 **Wenn die cm existiert** (z.B. aus einem früheren Apply geerbt) ODER **kein dev-Cluster verfügbar ist und Dev nicht im Scope der Bachelorarbeit-Deploys liegt** → **Prod-only bleiben**, Step 3 überspringen, Begründung als Commit-/PR-Kommentar festhalten: „Dev-Zweig nicht angefasst — Dev-website-ns trägt keine domain-config über das Overlay (imperativer Apply), Wert-SSOT ist `k3d/configmap-domains.yaml`; eine Dev-Lücke wird separat behandelt, da `environments/dev.yaml` kein `PROD_DOMAIN` führt und der geteilte Overlay-ConfigMap-Ausdruck im Dev nicht korrekt substituieren würde."
 
-- [ ] **Step 3 (NUR bei akuter Dev-Lücke): Dev-Zweig die Dev-domain-config applizieren lassen**
+- [x] **Step 3 (NUR bei akuter Dev-Lücke): Dev-Zweig die Dev-domain-config applizieren lassen** _(übersprungen — kein dev-Cluster, prod-only per Plan-Entscheidung)_
 
 Da der geteilte Overlay-ConfigMap-Ausdruck (`mediaviewer.${PROD_DOMAIN}`) im Dev mangels `PROD_DOMAIN` NICHT korrekt auflöst, applied der Dev-Zweig stattdessen die **Dev-SSOT** `k3d/configmap-domains.yaml` in die website-ns (analog dem workspace-ns-Apply Z.2240, aber in `${WEBSITE_NAMESPACE}`). Füge im Dev-Zweig (nach dem `website-seller-config.yaml`-Apply, Z.3539) ein:
 ```bash
@@ -407,7 +407,7 @@ Da der geteilte Overlay-ConfigMap-Ausdruck (`mediaviewer.${PROD_DOMAIN}`) im Dev
 ```
 > `WEBSITE_NAMESPACE` ist im Block bereits exportiert (Z.3526). Dies ist **kein** envsubst des Overlay-ConfigMaps — bewusst, weil der Dev-Wert literal `mediaviewer.localhost` ist und nicht aus `${PROD_DOMAIN}` abgeleitet werden kann.
 
-- [ ] **Step 4 (NUR falls Step 3 ausgeführt): Dev-Apply verifizieren**
+- [x] **Step 4 (NUR falls Step 3 ausgeführt): Dev-Apply verifizieren** _(übersprungen — kein dev-Cluster, prod-only per Plan-Entscheidung)_
 
 Run (falls dev-Cluster läuft):
 ```bash
@@ -416,7 +416,7 @@ kubectl --context k3d-mentolder-dev -n website get configmap domain-config -o js
 ```
 Expected: `mediaviewer.localhost`; das website-Pod kommt ohne `CreateContainerConfigError` hoch.
 
-- [ ] **Step 5: Commit (nur falls Step 3 ausgeführt)**
+- [x] **Step 5: Commit (nur falls Step 3 ausgeführt)** _(übersprungen — kein dev-Cluster, prod-only per Plan-Entscheidung)_
 
 ```bash
 git add Taskfile.yml
@@ -485,7 +485,7 @@ Run:
 ```
 Expected: entweder eine passende ID ausführen, oder bestätigen, dass der neue bats-Guard die Abdeckung liefert.
 
-- [ ] **Step 3: Gezielte Tests für geänderte Domains**
+- [x] **Step 3: Gezielte Tests für geänderte Domains**
 
 Run:
 ```bash
@@ -493,7 +493,7 @@ task test:changed
 ```
 Expected: grün (vitest --changed + BATS-Selection + quality), inkl. des neuen `website-domain-config-overlay.bats`.
 
-- [ ] **Step 4: Test-Inventar regenerieren (wegen neuem Test PFLICHT)**
+- [x] **Step 4: Test-Inventar regenerieren (wegen neuem Test PFLICHT)**
 
 Run:
 ```bash
@@ -502,7 +502,7 @@ git add website/src/data/test-inventory.json
 ```
 Expected: `website/src/data/test-inventory.json` enthält jetzt `website-domain-config-overlay` (sonst failt CI's Inventory-Check).
 
-- [ ] **Step 5: Freshness-Artefakte regenerieren**
+- [x] **Step 5: Freshness-Artefakte regenerieren**
 
 Run:
 ```bash
@@ -510,7 +510,7 @@ task freshness:regenerate
 ```
 Expected: aktualisiert generierte Artefakte (test-inventory, repo-index, …). Generierte Konflikt-Magnete (`docs/generated/**`, `docs/code-quality/repo-index.json`, `k3d/docs-content-built/architecture/index.html`) ggf. mit `git add` aufnehmen.
 
-- [ ] **Step 6: CI-Äquivalent prüfen (S1-S4-Ratchet + Baseline-Assertion)**
+- [x] **Step 6: CI-Äquivalent prüfen (S1-S4-Ratchet + Baseline-Assertion)**
 
 Run:
 ```bash
@@ -522,7 +522,7 @@ Expected: grün — insbesondere:
 - S3 (keine hardcodierten Brand-Domains): die geteilte ConfigMap nutzt `${PROD_DOMAIN}`, der bats-Guard nutzt Regex-Pattern, keine Literale.
 - S4 (Orphans): `prod-fleet/website-common/domain-config.yaml` ist in beiden `kustomization.yaml` referenziert; der bats-Test in `Taskfile.yml` verdrahtet.
 
-- [ ] **Step 7: Test-Inventar + Freshness-Artefakte committen**
+- [x] **Step 7: Test-Inventar + Freshness-Artefakte committen**
 
 ```bash
 git add website/src/data/test-inventory.json docs/generated docs/code-quality/repo-index.json 2>/dev/null; \
@@ -531,7 +531,7 @@ git commit -m "chore: regenerate test-inventory + freshness artifacts for websit
 ```
 > Falls `git status` keine Änderungen zeigt (Artefakte bereits aktuell), diesen Commit überspringen.
 
-- [ ] **Step 8: Abschluss-Verifikation der Akzeptanzkriterien**
+- [x] **Step 8: Abschluss-Verifikation der Akzeptanzkriterien**
 
 Run (Sammel-Check):
 ```bash

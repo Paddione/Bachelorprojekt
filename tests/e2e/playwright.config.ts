@@ -113,6 +113,7 @@ export default defineConfig({
       dependencies: ['mentolder-setup'],
       testMatch: [
         '**/fa-48-*.spec.ts',
+        '**/fa-49-*.spec.ts',             // /admin/factory-observability OTel dashboard (admin-gated)
         '**/fa-46-*.spec.ts',
         '**/fa-45-*.spec.ts',
         '**/fa-42-*.spec.ts',             // platform asset inventory (admin-gated)

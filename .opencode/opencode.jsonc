@@ -1,0 +1,44 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permission": "allow",
+  "mcp": {
+    "mcp-k8s": {
+      "type": "remote",
+      "url": "http://localhost:18080/sse",
+      "enabled": true
+    },
+    "mcp-browser": {
+      "type": "remote",
+      "url": "http://localhost:13000/mcp",
+      "enabled": true
+    },
+    "mcp-github": {
+      "type": "remote",
+      "url": "http://localhost:13002/mcp",
+      "enabled": true
+    },
+    "mcp-postgres": {
+      "type": "remote",
+      "url": "http://localhost:13001/mcp",
+      "enabled": true
+    },
+    "mcp-keycloak": {
+      "type": "remote",
+      "url": "http://localhost:18081/mcp/sse",
+      "enabled": true
+    }
+  },
+  "plugin": ["@mailshieldai/opencode-canvas"],
+  "experimental": {
+    "openTelemetry": true
+  },
+  "provider": {
+    "ollama": {
+      "options": {
+        "baseURL": "http://localhost:11434/v1",
+        "apiKey": "ollama"
+      }
+    }
+  },
+  "instructions": ["AGENTS.md"]
+}

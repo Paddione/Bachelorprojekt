@@ -65,7 +65,10 @@ website/.astro/
 .worktrees/
 tmp/
 
-# ── Claude Code local state (settings + hookify rules) ──
+# ── OpenCode / Claude Code local state ──
+# Project-side opencode config (committed: opencode.jsonc, local overrides: opencode.local.jsonc)
+.opencode/opencode.local.jsonc
+# Claude Code local state (settings + hookify rules)
 .claude/*.local.md
 .claude/settings.local.json
 .claude/worktrees/

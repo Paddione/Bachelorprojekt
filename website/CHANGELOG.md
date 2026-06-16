@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.89.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.88.0...website-v1.89.0) (2026-06-16)
+
+
+### Features
+
+* **tickets:** Pflichtenheft→Lastenheft requirements list with AI-readiness lock [T000928] ([#1797](https://github.com/Paddione/Bachelorprojekt/issues/1797)) ([b337607](https://github.com/Paddione/Bachelorprojekt/commit/b3376074ea9ba41a09839a4af0c238bb02c342b4))
+
 ## [1.88.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.87.0...website-v1.88.0) (2026-06-16)
 
 

@@ -21,4 +21,34 @@ function evaluateScoutQuality(scoutResult) {
   return { weak: reasons.length > 0, reasons }
 }
 
-module.exports = { evaluateScoutQuality }
+/**
+ * Run the Scout quality gate with side effects.
+ * Returns a scout_weak result object if weak (pipeline should return it), or null if ok.
+ * @param {object} scout  Scout output (touched_files, etc.)
+ * @param {string} ticketId  External ticket ID
+ * @param {string} repo  Absolute repo path
+ * @param {object} cp  require('child_process')
+ * @param {Function} log  log function
+ * @param {Function} phaseEvent  phaseEvent function
+ * @returns {{status:string,ticket_id:string,reasons:string[]}|null}
+ */
+function runScoutGate(scout, ticketId, repo, cp, log, phaseEvent) {
+  const sq = evaluateScoutQuality({
+    touched_files: scout.touched_files,
+    spec_content: `${scout.title ?? ''}\n${scout.description ?? ''}`,
+    plan_path: 'pending',
+  })
+  if (!sq.weak) return null
+  log(`Scout weak: ${sq.reasons.join(',')} — parking for interactive worker`)
+  try {
+    cp.execFileSync('bash', [
+      `${repo}/scripts/ticket.sh`, 'add-comment',
+      '--id', String(ticketId), '--author', 'factory', '--visibility', 'internal',
+      '--body', `SCOUT_WEAK=true\ntouched_files=${(scout.touched_files||[]).length}\nreason=${sq.reasons[0]}`,
+    ], { stdio: 'ignore', timeout: 15000 })
+  } catch (e) { log(`scout_weak comment failed (non-fatal): ${e.message}`) }
+  phaseEvent('scout', 'blocked', `scout_weak: ${sq.reasons.join(',')}`)
+  return { status: 'scout_weak', ticket_id: ticketId, reasons: sq.reasons }
+}
+
+module.exports = { evaluateScoutQuality, runScoutGate }

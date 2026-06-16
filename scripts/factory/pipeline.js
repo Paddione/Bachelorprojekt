@@ -198,22 +198,8 @@ try {
 }
 phaseEvent('scout', 'done', `${(scout.touched_files || []).length} touched_files`)
 
-const sq = SQ.evaluateScoutQuality({
-  touched_files: scout.touched_files,
-  spec_content: `${A.title ?? ''}\n${A.description ?? ''}`,
-  plan_path: 'pending',
-})
-if (sq.weak) {
-  log(`Scout weak: ${sq.reasons.join(',')} — parking ticket for interactive worker`)
-  try {
-    cp.execFileSync('bash', [`${REPO}/scripts/ticket.sh`, 'add-comment',
-      '--id', String(A.ticket_id), '--author', 'factory', '--visibility', 'internal',
-      '--body', `SCOUT_WEAK=true\ntouched_files=${scout.touched_files.length}\nspec_length=${(`${A.title ?? ''}\n${A.description ?? ''}`).length}\nreason=${sq.reasons[0]}`],
-      { stdio: 'ignore', timeout: 15000 })
-  } catch (e) { log(`scout_weak comment failed (non-fatal): ${e.message}`) }
-  phaseEvent('scout', 'blocked', `scout_weak: ${sq.reasons.join(',')}`)
-  return { status: 'scout_weak', ticket_id: A.ticket_id, reasons: sq.reasons }
-}
+const sqGate = SQ.runScoutGate({ ...scout, title: A.title, description: A.description }, A.ticket_id, REPO, cp, log, phaseEvent)
+if (sqGate) return sqGate
 
 let scsSuggestedFiles = []
 try {

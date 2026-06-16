@@ -268,6 +268,7 @@ tasks:
       - task: test:unit:ticket-triage
       - task: test:unit:website-ci-deploy
       - task: test:unit:plan-frontmatter-hook
+      - task: test:unit:plan-lint
       - task: test:unit:mishap-tracker
       - task: test:unit:ticket-add-pr-link
       - task: test:unit:ticket-create
@@ -442,6 +443,11 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/plan-frontmatter-hook.bats
+
+  test:unit:plan-lint:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/plan-lint.bats
 
   test:unit:mishap-tracker:
     internal: true

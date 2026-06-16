@@ -15,7 +15,9 @@ FORCE_ACTIVE=0
 SPEC_MODE=0
 if [[ "${1:-}" == "--activate" ]]; then FORCE_ACTIVE=1; shift; fi
 if [[ "${1:-}" == "--spec" ]]; then SPEC_MODE=1; shift; fi
-FILE="${1:?Usage: plan-frontmatter-hook.sh [--activate|--spec] <plan.md>}"
+VALIDATE_MODE=0
+if [[ "${1:-}" == "--validate" ]]; then VALIDATE_MODE=1; shift; fi
+FILE="${1:?Usage: plan-frontmatter-hook.sh [--activate|--spec|--validate] <plan.md>}"
 
 if [[ "$SPEC_MODE" -eq 1 ]]; then
   # Idempotent: only prepend when the file has no frontmatter yet.
@@ -105,6 +107,31 @@ _fm_field() {
 slug="$(basename "$FILE" .md)"
 title="$(grep -m1 '^# ' "$FILE" | sed 's/^# //' || true)"
 [[ -n "$title" ]] || title="$slug"
+
+# ── --validate: structural schema gate (used by the plan paths) ──
+if [[ "$VALIDATE_MODE" -eq 1 ]]; then
+  if ! _has_frontmatter; then
+    echo "VALIDATE: $FILE has no frontmatter block" >&2; exit 1
+  fi
+  # Auto-fill a missing title from the first H1 (fixes the plan-context.sh empty-header bug).
+  if [[ -z "$(_fm_field title)" ]]; then
+    h1="$(grep -m1 '^# ' "$FILE" | sed 's/^# //' || true)"
+    [[ -n "$h1" ]] || h1="$(basename "$FILE" .md)"
+    tmp="$(mktemp)"
+    awk -v t="$h1" 'BEGIN{f=0;done=0}{sub(/\r$/,"")}
+      NR==1 && $0=="---"{print;f=1;next}
+      f==1 && $0=="---" && done==0{print "title: " t; done=1; print; f=0; next}
+      {print}' "$FILE" > "$tmp"
+    mv "$tmp" "$FILE"
+  fi
+  rc=0
+  for key in title ticket_id domains status; do
+    v="$(_fm_field "$key" | tr -d ' \t\r')"
+    case "$v" in ""|"null") [[ "$key" == "ticket_id" ]] || { echo "VALIDATE: $FILE missing/empty '$key'" >&2; rc=1; } ;; esac
+    [[ "$key" == "domains" && ( "$v" == "[]" ) ]] && { echo "VALIDATE: $FILE has empty domains []" >&2; rc=1; }
+  done
+  exit $rc
+fi
 
 # ── Case A: no frontmatter → derive, optional interactive override, prepend ──
 if ! _has_frontmatter; then

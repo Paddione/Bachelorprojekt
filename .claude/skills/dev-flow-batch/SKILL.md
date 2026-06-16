@@ -141,6 +141,14 @@ Workflow({
 })
 ```
 
+Nach `plan-frontmatter-hook.sh` für jeden generierten Plan das **harte Gate** laufen lassen:
+
+```bash
+bash scripts/plan-lint.sh "$plan_path"   # Exit 1 = Plan verwerfen/nachbessern, nicht stagen
+```
+
+Pläne mit rotem Linter werden NICHT in die Kommissionierung gestellt (als SKIPPED melden).
+
 ### Schritt 6: Ergebnis berichten
 
 Nach Workflow-Abschluss: berichte dem User wie viele Specs+Pläne erfolgreich erstellt wurden, welche übersprungen wurden (SKIPPED), und dass alle fertigen Pläne in der Kommissionierung (`/dev-status`) unter `status=plan_staged` auf Freigabe warten.

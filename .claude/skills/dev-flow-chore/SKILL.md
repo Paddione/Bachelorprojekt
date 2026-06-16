@@ -71,6 +71,17 @@ Siehe [dev-flow-gotchas.md](file:///home/patrick/Bachelorprojekt/.claude/skills/
 > **⚠ Freshness-Guard (vor jedem Commit):** Neue Test-Specs, Routen oder Assets ändern generierte Indexdateien (`repo-index.json`, `test-inventory.json`, …). Ohne Regenerierung schlägt CI fehl. Der Pre-commit-Hook erledigt das automatisch nach `task secrets:install-hooks` — ohne Hook: `task freshness:regenerate` manuell ausführen und staged Änderungen mitcommittten.
 
 > **⚠ S1-Gate-Guard (Chores ohne Plan!):** Chores haben **kein** Zeilenbudget-Planungsschritt. Berührt die Chore Code-Dateien (`.ts/.svelte/.astro/.sh/.mjs/...`), prüfe vor dem Commit das S1-Ratchet mit `task freshness:check`. Achtung: Das Ratchet vergleicht gegen den **eingefrorenen Baseline-Wert** in `docs/code-quality/baseline.json`, nicht nur gegen das statische Limit — eine schon gebaselinete (gewachsene) Datei hat **0 Zeilen Budget**, d.h. schon +1 Zeile macht CI rot. Dann die Datei **echt verkleinern/aufteilen**, nicht kosmetisch Zeilen zusammenziehen (das trippt bei der nächsten Änderung erneut).
+>
+> **Plan-Linter gibt es für Chores nicht** (kein Plan) — aber das S1-Budget der berührten
+> Code-Dateien lässt sich vor dem Commit prüfen: für jede geänderte Datei den Restbudget-Wert
+> mit der gleichen Mathematik wie der Linter ermitteln:
+> ```bash
+> for f in $(git diff --name-only); do
+>   PLAN_LINT_SELFTEST=1 bash scripts/plan-lint.sh residual_budget "$f" 2>/dev/null \
+>     | awk -v f="$f" '{print f": Restbudget "$0}'
+> done
+> ```
+> Bei Restbudget ≤ 0 die Datei **echt verkleinern**, nicht kosmetisch zusammenziehen.
 
 ## Schritt 4: Commit, Push & PR
 

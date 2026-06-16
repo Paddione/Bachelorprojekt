@@ -118,3 +118,83 @@ export function splitAnswered(questions: ParsedQuestion[]): {
   for (const q of questions) (isBlankAnswer(q.answer) ? unanswered : answered).push(q);
   return { answered, unanswered };
 }
+
+export interface ParsedGrillingDoc { questionnaireId: string; title: string; questions: ParsedQuestion[] }
+
+const FRONT_RE = /^---\s*$/;
+const HEADING_RE = /^#{2,3}\s+(.*?)\s*$/;
+const NUMBERED_RE = /^\s*(?:q(\d+)[.)]|(\d+)[.)])\s+(.*?)\s*$/i;
+const BOLD_Q_RE = /^\s*\*\*(.+\?)\*\*\s*$/;
+const ID_SUFFIX_RE = /\s*\{#([A-Za-z0-9_-]+)\}\s*$/;
+const ANSWER_PREFIX_RE = /^\s*(?:antwort|a)\s*:\s*(.*)$/i;
+const BLOCKQUOTE_RE = /^\s*>\s?(.*)$/;
+
+interface RawQuestion { explicitId?: string; prompt: string; answerLines: string[] }
+
+/** Tolerant Markdown grilling-doc parser. Never throws; best-effort question extraction. */
+export function parseGrillingDoc(content: string, fallbackId: string): ParsedGrillingDoc {
+  const lines = content.replace(/\r\n/g, '\n').split('\n');
+  let i = 0;
+  let frontId = '';
+  let frontTitle = '';
+
+  if (lines[0] !== undefined && FRONT_RE.test(lines[0])) {
+    i = 1;
+    while (i < lines.length && !FRONT_RE.test(lines[i])) {
+      const m = /^([A-Za-z_]+)\s*:\s*(.*)$/.exec(lines[i]);
+      if (m) {
+        if (m[1] === 'questionnaire') frontId = m[2].trim();
+        else if (m[1] === 'title') frontTitle = m[2].trim();
+      }
+      i++;
+    }
+    if (i < lines.length) i++;
+  }
+
+  const raws: RawQuestion[] = [];
+  let current: RawQuestion | null = null;
+  const pushAnswer = (text: string) => { if (current) current.answerLines.push(text); };
+
+  for (; i < lines.length; i++) {
+    const line = lines[i];
+    const startQuestion = (rawPrompt: string, explicitId?: string) => {
+      let prompt = rawPrompt;
+      const idm = ID_SUFFIX_RE.exec(prompt);
+      let id = explicitId;
+      if (idm) { id = idm[1]; prompt = prompt.replace(ID_SUFFIX_RE, '').trim(); }
+      current = { explicitId: id, prompt: prompt.trim(), answerLines: [] };
+      raws.push(current);
+    };
+
+    const heading = HEADING_RE.exec(line);
+    const numbered = NUMBERED_RE.exec(line);
+    const bold = BOLD_Q_RE.exec(line);
+    if (heading) { startQuestion(heading[1]); continue; }
+    if (numbered) { startQuestion(numbered[3], numbered[1] ? `q${numbered[1]}` : undefined); continue; }
+    if (bold) { startQuestion(bold[1]); continue; }
+
+    if (!current) continue;
+    const ans = ANSWER_PREFIX_RE.exec(line);
+    if (ans) { pushAnswer(ans[1].trim()); continue; }
+    const bq = BLOCKQUOTE_RE.exec(line);
+    if (bq) { pushAnswer(bq[1].trim()); continue; }
+    if (line.trim() === '') continue;
+    pushAnswer(line.trim());
+  }
+
+  let auto = 0;
+  const questions: ParsedQuestion[] = raws.map((r) => {
+    auto += 1;
+    const id = r.explicitId ?? `q${auto}`;
+    const answerText = r.answerLines.join('\n').trim();
+    const q: ParsedQuestion = { id, prompt: r.prompt };
+    if (!isBlankAnswer(answerText)) q.answer = answerText;
+    return q;
+  });
+
+  return {
+    questionnaireId: frontId || fallbackId,
+    title: frontTitle || frontId || fallbackId,
+    questions,
+  };
+}

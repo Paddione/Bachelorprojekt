@@ -13,6 +13,62 @@ describe('isBlankAnswer', () => {
   });
 });
 
+import { parseGrillingDoc } from './grilling';
+
+describe('parseGrillingDoc', () => {
+  it('parses ## headings with Antwort: markers and frontmatter', () => {
+    const doc = [
+      '---',
+      'questionnaire: gekko-coaching-followup',
+      'title: Coaching Follow-up',
+      '---',
+      '',
+      '## Wie oft treffen?',
+      'Antwort: Alle zwei Wochen.',
+      '',
+      '## Welche Themen?',
+      '',
+      '## Video oder Präsenz? {#format-pref}',
+      'A: Video.',
+    ].join('\n');
+    const r = parseGrillingDoc(doc, 'fallback');
+    expect(r.questionnaireId).toBe('gekko-coaching-followup');
+    expect(r.title).toBe('Coaching Follow-up');
+    expect(r.questions).toHaveLength(3);
+    expect(r.questions[0]).toMatchObject({ id: 'q1', prompt: 'Wie oft treffen?', answer: 'Alle zwei Wochen.' });
+    expect(r.questions[1]).toMatchObject({ id: 'q2', prompt: 'Welche Themen?' });
+    expect(r.questions[1].answer).toBeUndefined();
+    expect(r.questions[2]).toMatchObject({ id: 'format-pref', prompt: 'Video oder Präsenz?', answer: 'Video.' });
+  });
+
+  it('falls back to fallbackId when frontmatter is absent', () => {
+    const r = parseGrillingDoc('## Nur eine Frage?', 'my-file');
+    expect(r.questionnaireId).toBe('my-file');
+    expect(r.title).toBe('my-file');
+    expect(r.questions).toEqual([{ id: 'q1', prompt: 'Nur eine Frage?' }]);
+  });
+
+  it('accepts numbered list markers and explicit qN tokens', () => {
+    const doc = ['1. Erste Frage?', 'Antwort: Eins.', '2) Zweite Frage?', 'q5. Fünfte Frage?'].join('\n');
+    const r = parseGrillingDoc(doc, 'fb');
+    expect(r.questions.map((q) => q.id)).toEqual(['q1', 'q2', 'q5']);
+    expect(r.questions[0].answer).toBe('Eins.');
+  });
+
+  it('treats blockquote and following-paragraph as answers; merges multi-line', () => {
+    const doc = ['## Frage A?', '> Zeile eins', '> Zeile zwei', '', '## Frage B?', 'Ein Folgeabsatz', 'noch eine Zeile'].join('\n');
+    const r = parseGrillingDoc(doc, 'fb');
+    expect(r.questions[0].answer).toBe('Zeile eins\nZeile zwei');
+    expect(r.questions[1].answer).toBe('Ein Folgeabsatz\nnoch eine Zeile');
+  });
+
+  it('treats placeholder answer values as no answer', () => {
+    const doc = ['## Frage?', 'Antwort: —'].join('\n');
+    const r = parseGrillingDoc(doc, 'fb');
+    expect(r.questions[0].answer === undefined || r.questions[0].answer === '—').toBe(true);
+  });
+});
+
 describe('splitAnswered', () => {
   it('splits by answer presence using isBlankAnswer', () => {
     const qs: ParsedQuestion[] = [

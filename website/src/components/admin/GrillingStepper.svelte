@@ -28,6 +28,26 @@
 
   let idx = $state(0);
   const current = $derived(ordered[Math.min(idx, Math.max(0, ordered.length - 1))]);
+  const answerText = $derived(current ? (answers[questionnaireId]?.[current.id] ?? '') : '');
+
+  let saveTimer: ReturnType<typeof setTimeout> | null = null;
+
+  async function patch(body: Record<string, unknown>) {
+    await fetch(`/api/admin/tickets/${ticketId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+  }
+
+  function onInput(e: Event) {
+    if (!current) return;
+    const value = (e.target as HTMLTextAreaElement).value;
+    const qn = answers[questionnaireId] ?? {};
+    answers = { ...answers, [questionnaireId]: { ...qn, [current.id]: value } };
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => { void patch({ grillingAnswers: answers }); }, 800);
+  }
 
   function prev() { if (idx > 0) idx -= 1; }
   function next() { if (idx < ordered.length - 1) idx += 1; }
@@ -45,7 +65,7 @@
   {#if current}
     {#if current.section}<p class="text-xs uppercase text-muted">{current.section}</p>{/if}
     <p class="font-medium">{current.prompt}</p>
-    <textarea class="w-full rounded-lg bg-dark border border-dark-lighter p-3" rows="4" aria-label="Antwort"></textarea>
+    <textarea class="w-full rounded-lg bg-dark border border-dark-lighter p-3" rows="4" aria-label="Antwort" oninput={onInput}>{answerText}</textarea>
     <div class="flex gap-2">
       <button type="button" onclick={prev} disabled={idx === 0}>Zurück</button>
       <button type="button" onclick={next} disabled={idx >= ordered.length - 1}>Weiter</button>

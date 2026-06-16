@@ -13,7 +13,7 @@ function setup(answers: any = null, meta: any = null) {
 
 beforeEach(() => {
   vi.restoreAllMocks();
-  global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => ({}) }) as any;
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({}) }));
 });
 
 describe('GrillingStepper', () => {
@@ -32,5 +32,18 @@ describe('GrillingStepper', () => {
     expect(screen.getByText(second)).toBeTruthy();
     await fireEvent.click(screen.getByRole('button', { name: /Zurück/ }));
     expect(screen.getByText(first)).toBeTruthy();
+  });
+
+  it('debounce-saves the typed answer via PATCH with merged grillingAnswers', async () => {
+    setup(null, null);
+    const ta = screen.getByLabelText('Antwort') as HTMLTextAreaElement;
+    await fireEvent.input(ta, { target: { value: 'Meine Antwort' } });
+    await new Promise((r) => setTimeout(r, 1000));
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    const [url, opts] = (global.fetch as any).mock.calls.at(-1);
+    expect(url).toBe('/api/admin/tickets/t1');
+    expect(opts.method).toBe('PATCH');
+    const body = JSON.parse(opts.body);
+    expect(body.grillingAnswers[QN].q1).toBe('Meine Antwort');
   });
 });

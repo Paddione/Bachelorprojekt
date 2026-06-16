@@ -347,6 +347,54 @@ Der Subagent führt den gesamten dev-flow-execute-Pipeline selbstständig bis zu
 
 ---
 
+## Schritt 2.5 — Lokaler Self-Correcting-Loop (optional)
+
+Nach dem Implementer-Subagenten (Schritt 2) **vor** der finalen Verifikation (Schritt 3):
+
+```bash
+source scripts/factory/build-loop.sh
+source scripts/factory/classify-failure.sh
+source scripts/factory/classify-paths.sh
+
+MAX_LOOP=${FACTORY_BUILD_LOOP_MAX:-3}
+ITER=0
+PREV_HASH=""
+RESULT_FILE=$(mktemp)
+
+# implementer output captured into RESULT_FILE
+while [[ $ITER -lt $MAX_LOOP ]]; do
+  task test:changed > "$RESULT_FILE" 2>&1 || true
+  CLASS=$(classify_failure "$RESULT_FILE")
+  HASH=$(build_loop_sig_hash "$RESULT_FILE")
+  TOUCHED=$(git diff --name-only origin/main...HEAD | tr '\n' ',')
+
+  DECIDE=$(build_loop_decide "$ITER" "$MAX_LOOP" "$PREV_HASH" "$CLASS" "$TOUCHED" "$HASH")
+  DECIDE_ACTION=$(echo "$DECIDE" | sed -n '1p')
+  DECIDE_HASH=$(echo "$DECIDE" | sed -n '2p')
+
+  case "$DECIDE_ACTION" in
+    continue)
+      FEEDBACK=$(build_loop_feedback "$CLASS" "$RESULT_FILE" "")
+      ./scripts/ticket.sh phase "$TICKET_ID" implement loop --driver devflow --detail "iter $((ITER+1))/$MAX_LOOP class=$CLASS" || true
+      # Spawne Korrektur-Subagent mit dem Feedback-Block
+      ITER=$((ITER + 1))
+      PREV_HASH="$DECIDE_HASH"
+      ;;
+    abort:no-progress|abort:max-iterations|abort:escalate-gate)
+      ./scripts/ticket.sh add-comment --id "$TICKET_ID" --body "Build-Loop aborted: $DECIDE_ACTION (class=$CLASS)" || true
+      break
+      ;;
+  esac
+done
+rm -f "$RESULT_FILE"
+```
+
+- Default `MAX_LOOP=3`, env `FACTORY_BUILD_LOOP_MAX` überschreibbar.
+- Bei `abort:escalate-gate|no-progress|max-iterations`: Eskalation (Ticket-Kommentar), **kein** blindes Weiter-Pushen.
+- **Abgrenzung zu Schritt 5.5:** Dieser Loop ist **vorgelagert** (lokal, vor `git push`) und reduziert die Last auf die CI-Retry-Schleife — ersetzt sie aber nicht. Schritt 3 (finale Verifikation) bleibt unverändert.
+
+---
+
 ## Schritt 3: Lokale Verifikation
 
 Rufe das Skill **`verification-before-completion`** auf, um die Verifikation strukturiert zu steuern.

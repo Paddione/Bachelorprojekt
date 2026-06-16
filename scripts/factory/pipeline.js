@@ -15,7 +15,7 @@ export const meta = {
 }
 
 const D = require('./pipeline-decompose.cjs')
-
+const BL = require('./build-loop.cjs')
 function routeProviderSync(source, tier) {
   if (tier === 'opus') return { provider: 'anthropic', modelId: 'claude-opus-4-6', baseUrl: null, slotId: null, emergency: false }
   if (process.env.ANTHROPIC_MODEL) {
@@ -368,13 +368,8 @@ if (tasks.length && !A.batch_mode) {
       throw err
     }
     if (impl == null) continue
-    const verify = await agent(
-      `Self-verify task ${t.id}: re-read the diff in ${WORK_WT}
-       (git -C ${WORK_WT} diff origin/main...HEAD) and confirm each acceptance criterion:
-       ${t.acceptance_criteria.join('; ')}. Report pass/fail for each.`,
-      { label: `impl-verify:${t.id}`, phase: 'Implement' },
-    )
-    if (verify != null) implemented.push(verify)
+    const vr = await BL.runTaskVerifyLoop({ t, maxLoop: parseInt(process.env.FACTORY_BUILD_LOOP_MAX || '3'), WORK_WT, WORK_BRANCH, slug, A, prov })
+    if (vr) implemented.push(vr)
   }
   phaseEvent('implement', 'done', `${tasks.length} Tasks implementiert`)
 }

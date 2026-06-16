@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.79.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.79.0...website-v1.79.1) (2026-06-16)
+
+
+### Bug Fixes
+
+* **infra:** fleet streaming oauth2 prod patch, video bridge, 2c security [T000879] ([#1751](https://github.com/Paddione/Bachelorprojekt/issues/1751)) ([3247792](https://github.com/Paddione/Bachelorprojekt/commit/32477927d6a0121f2b4a93fb9b3f11189e80e07a))
+
 ## [1.79.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.78.0...website-v1.79.0) (2026-06-16)
 
 

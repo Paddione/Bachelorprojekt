@@ -26,21 +26,22 @@ export function phaseProgress(phase: Phase | null, state: PhaseState | null): Ph
 
 export const ALL_TICKET_STATUSES = [
   'triage', 'planning', 'plan_staged', 'backlog', 'in_progress',
-  'in_review', 'blocked', 'qa_review', 'done', 'archived',
+  'in_review', 'blocked', 'qa_review', 'awaiting_deploy', 'done', 'archived',
 ] as const;
 export type TicketStatus = (typeof ALL_TICKET_STATUSES)[number];
 
 export const STATUS_BUCKETS: Record<TicketStatus, string> = {
-  triage:      'planning',
-  planning:    'planning',
-  plan_staged: 'staged',
-  backlog:     'loadingDock',
-  in_progress: 'hall',
-  in_review:   'hall',
-  blocked:     'attention',
-  qa_review:   'qa',
-  done:        'shipped',
-  archived:    'archive',
+  triage:          'planning',
+  planning:        'planning',
+  plan_staged:     'staged',
+  backlog:         'loadingDock',
+  in_progress:     'hall',
+  in_review:       'hall',
+  blocked:         'attention',
+  qa_review:       'qa',
+  awaiting_deploy: 'awaitingDeploy',
+  done:            'shipped',
+  archived:        'archive',
 };
 
 export interface AttentionPayload {
@@ -100,6 +101,7 @@ export interface HallItem {
   phaseProgress: PhaseProgressSegment[];
 }
 export interface ShippedItem { extId: string; title: string; doneAt: string | null; prNumber: number | null; }
+export interface AwaitingDeployItem { extId: string; title: string; mergedAt: string | null; prNumber: number | null; }
 export interface StagedItem {
   extId: string; title: string; priority: string;
   branch: string | null; planPath: string | null; createdAt: string | null;
@@ -118,6 +120,7 @@ export interface FloorPayload {
   loadingDock: LoadingDockItem[];
   hall: HallItem[];
   shipped: ShippedItem[];
+  awaitingDeploy: AwaitingDeployItem[];
   staged: StagedItem[];
   providerHealth: ProviderStatus[];
   officeWaiting: number;
@@ -271,6 +274,30 @@ export async function getShipped(limit = 8): Promise<ShippedItem[]> {
   }));
 }
 
+/** Tickets merged to main but not yet deployed to fleet (the "merge ≠ prod" lane). */
+export async function getAwaitingDeploy(limit = 12): Promise<AwaitingDeployItem[]> {
+  const r = await pool.query(
+    `SELECT t.external_id, t.title, t.updated_at, l.pr_number
+       FROM tickets.tickets t
+       LEFT JOIN (
+         SELECT DISTINCT ON (from_id) from_id, pr_number
+           FROM tickets.ticket_links
+          WHERE kind = 'pr' AND pr_number IS NOT NULL
+          ORDER BY from_id, created_at DESC
+       ) l ON l.from_id = t.id
+      WHERE t.status = 'awaiting_deploy'
+      ORDER BY t.updated_at DESC NULLS LAST
+      LIMIT $1::int`,
+    [limit],
+  );
+  return r.rows.map((row: any) => ({
+    extId: row.external_id,
+    title: row.title,
+    mergedAt: row.updated_at ? new Date(row.updated_at).toISOString() : null,
+    prNumber: row.pr_number ?? null,
+  }));
+}
+
 /** Plan_staged features (Kommissionierung) with branch/plan parsed from the latest
  *  FACTORY-PLAN-REF comment. Newest first. branch/planPath are null when no ref. */
 export async function getStaged(limit = 12): Promise<StagedItem[]> {
@@ -376,18 +403,19 @@ export async function getProviderHealth(): Promise<ProviderStatus[]> {
 /** Assemble the full floor payload. slotsCap from FACTORY_GLOBAL_CAP. */
 export async function getFloor(slotsCap: number): Promise<FloorPayload> {
   const control = await getControl(slotsCap);
-  const [metrics, loadingDock, hall, shipped, staged, officeWaiting, planningCount, providerHealth] = await Promise.all([
+  const [metrics, loadingDock, hall, shipped, awaitingDeploy, staged, officeWaiting, planningCount, providerHealth] = await Promise.all([
     getMetrics(),
     getLoadingDock(control.slotsUsed, control.slotsCap),
     getHall(),
     getShipped(),
+    getAwaitingDeploy(),
     getStaged(),
     officeCount(),
     getPlanningCount(),
     getProviderHealth(),
   ]);
   return {
-    control, metrics, loadingDock, hall, shipped, staged, providerHealth,
+    control, metrics, loadingDock, hall, shipped, awaitingDeploy, staged, providerHealth,
     officeWaiting, stagedWaiting: staged.length,
     planningCount,
     attention: buildAttention(hall, providerHealth),

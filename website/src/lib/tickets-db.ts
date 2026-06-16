@@ -167,7 +167,7 @@ export async function initTicketsSchema(): Promise<void> {
   await pool.query(`ALTER TABLE tickets.tickets DROP CONSTRAINT IF EXISTS tickets_status_check`);
   await pool.query(`
     ALTER TABLE tickets.tickets ADD CONSTRAINT tickets_status_check
-      CHECK (status IN ('triage','planning','plan_staged','backlog','in_progress','in_review','blocked','qa_review','done','archived'))
+      CHECK (status IN ('triage','planning','plan_staged','backlog','in_progress','in_review','blocked','qa_review','awaiting_deploy','done','archived'))
   `);
   await pool.query(`
     ALTER TABLE tickets.tickets

@@ -74,7 +74,7 @@ vi.mock('./tickets-db', () => ({
 
 import { getHall, getLoadingDock, getShipped, getMetrics, getControl,
          insertInjection, getInjections, consumeInjections, getTicketDetail,
-         getStaged, releaseToBacklog, getProviderHealth,
+         getStaged, releaseToBacklog, getProviderHealth, getAwaitingDeploy,
          phaseProgress, STATUS_BUCKETS, ALL_TICKET_STATUSES,
          buildAttention, phaseDurations } from './factory-floor';
 import { aggregateCheckRuns } from './github-ci';
@@ -323,7 +323,7 @@ describe('getHall phaseProgress', () => {
 describe('status coverage', () => {
   const ENUM = [
     'triage', 'planning', 'plan_staged', 'backlog', 'in_progress',
-    'in_review', 'blocked', 'qa_review', 'done', 'archived',
+    'in_review', 'blocked', 'qa_review', 'awaiting_deploy', 'done', 'archived',
   ];
 
   it('exports every enum value (drift guard against tickets-db.ts)', () => {
@@ -373,5 +373,27 @@ describe('phaseDurations', () => {
     const d = phaseDurations(events);
     expect(d[0]).toMatchObject({ phase: 'scout', state: 'entered', durationSec: null });
     expect(d[1]).toMatchObject({ phase: 'scout', state: 'done', durationSec: 300 });
+  });
+});
+
+describe('awaiting_deploy status', () => {
+  it('is part of ALL_TICKET_STATUSES', () => {
+    expect(ALL_TICKET_STATUSES).toContain('awaiting_deploy');
+  });
+  it('maps to its own awaitingDeploy bucket', () => {
+    expect(STATUS_BUCKETS.awaiting_deploy).toBe('awaitingDeploy');
+  });
+  it('every status has a bucket (no undefined mapping)', () => {
+    for (const s of ALL_TICKET_STATUSES) {
+      expect(STATUS_BUCKETS[s]).toBeDefined();
+    }
+  });
+});
+
+describe('getAwaitingDeploy', () => {
+  it('returns empty array when no awaiting_deploy tickets exist', async () => {
+    const rows = await getAwaitingDeploy();
+    expect(Array.isArray(rows)).toBe(true);
+    expect(rows.length).toBe(0);
   });
 });

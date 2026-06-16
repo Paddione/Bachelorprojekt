@@ -14,7 +14,7 @@ setup() {
 }
 
 @test "postStart self-heals databases (CREATE DATABASE loop over all services)" {
-  run grep -qE 'for db in keycloak nextcloud vaultwarden website pentest; do' "$MANIFEST"
+  run grep -qE 'for db in keycloak nextcloud vaultwarden website pentest videovault; do' "$MANIFEST"
   [ "$status" -eq 0 ]
   grep -qE 'CREATE DATABASE' "$MANIFEST"
 }

@@ -293,6 +293,9 @@ tasks:
       - task: test:unit:readiness-webhook
       - task: test:unit:staging
       - task: test:unit:api-auth-gate
+      - task: test:unit:factory-readiness
+      - task: test:unit:factory-scout-quality
+
 
   test:unit:build-graph:
     internal: true
@@ -318,6 +321,16 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/factory-blocked.bats
+
+  test:unit:factory-readiness:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/factory-readiness.bats
+
+  test:unit:factory-scout-quality:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/factory-scout-quality.bats
 
   test:unit:readiness-webhook:
     internal: true

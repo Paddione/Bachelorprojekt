@@ -147,8 +147,6 @@ Bestätige mit der Ausgabe des Befehls.`,
 ))
 
 return { succeeded: succeeded.length, total: tickets.length, skipped: tickets.length - succeeded.length }
-
-})()
 WORKFLOW_EOF
 
 echo "$OUTPUT"

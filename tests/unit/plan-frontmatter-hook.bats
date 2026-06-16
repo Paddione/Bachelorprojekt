@@ -229,3 +229,78 @@ EOF
   [ "$status" -eq 0 ]
   [ "$before" == "$(cat "$TMP/g-spec.md")" ]
 }
+
+# ── ticket_id derivation (the T000886 batch bug) ─────────────────────
+
+@test "no frontmatter: ticket_id derived from body **Ticket:** line, not null" {
+  cat > "$TMP/h-body-ticket.md" <<'EOF'
+# Plan — Some Feature
+
+**Ticket:** T000886
+**Branch:** feature/t000886
+
+Touches scripts/ and skills.
+EOF
+  run bash "$HOOK" "$TMP/h-body-ticket.md"
+  [ "$status" -eq 0 ]
+  grep -q '^ticket_id: T000886$' "$TMP/h-body-ticket.md"
+  ! grep -Eq '^ticket_id: *null' "$TMP/h-body-ticket.md"
+}
+
+@test "no frontmatter: ticket_id derived from filename slug when body lacks it" {
+  cat > "$TMP/2026-06-16-t000884.md" <<'EOF'
+# Plan — Loops
+
+Touches scripts/factory and tests/.
+EOF
+  run bash "$HOOK" "$TMP/2026-06-16-t000884.md"
+  [ "$status" -eq 0 ]
+  grep -q '^ticket_id: T000884$' "$TMP/2026-06-16-t000884.md"
+}
+
+@test "incomplete frontmatter: null ticket_id is repaired when derivable from body" {
+  cat > "$TMP/i-null-ticket.md" <<'EOF'
+---
+title: Repair me
+ticket_id: null
+domains: []
+status: active
+---
+
+# Plan
+
+**Ticket:** T000999
+
+Touches k3d/ manifests.
+EOF
+  run bash "$HOOK" "$TMP/i-null-ticket.md"
+  [ "$status" -eq 0 ]
+  grep -q '^ticket_id: T000999$' "$TMP/i-null-ticket.md"
+  # domains were also re-derived (infra), proving combined repair
+  grep -Eq '^domains:.*infra' "$TMP/i-null-ticket.md"
+}
+
+@test "ticket_id null stays null (idempotent) when NOT derivable from body or slug" {
+  cat > "$TMP/j-undeterminable.md" <<'EOF'
+---
+title: Generic
+ticket_id: null
+domains: [infra]
+status: active
+pr_number: null
+file_locks: []
+shared_changes: false
+batch_id: null
+parent_feature: null
+depends_on_plans: []
+---
+
+# Plan
+
+Touches k3d/ manifests.
+EOF
+  before="$(cat "$TMP/j-undeterminable.md")"
+  run bash "$HOOK" "$TMP/j-undeterminable.md"
+  [ "$status" -eq 0 ]
+  [ "$before" = "$(cat "$TMP/j-undeterminable.md")" ]
+}

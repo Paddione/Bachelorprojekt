@@ -3,7 +3,7 @@ title: "Agent-Computer-Interface (ACI) mit lokalisiertem Edit/Repair-Loop"
 date: 2026-06-17
 status: draft
 ticket_id: T000931
-plan_ref: null
+plan_ref: docs/superpowers/plans/2026-06-17-factory-aci.md
 domains: [factory]
 ---
 

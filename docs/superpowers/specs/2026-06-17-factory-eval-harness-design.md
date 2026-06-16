@@ -3,7 +3,7 @@ title: "SWE-bench-artige Eval-Harness für die Software Factory"
 date: 2026-06-17
 status: draft
 ticket_id: T000930
-plan_ref: null
+plan_ref: docs/superpowers/plans/2026-06-17-factory-eval-harness.md
 domains: [factory, test]
 ---
 

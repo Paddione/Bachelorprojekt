@@ -3,7 +3,7 @@ title: "Deklarativer App-Katalog mit One-Click-Install"
 date: 2026-06-17
 status: draft
 ticket_id: T000929
-plan_ref: null
+plan_ref: docs/superpowers/plans/2026-06-17-app-catalog-oneclick-install.md
 domains: [infra, website, factory]
 ---
 

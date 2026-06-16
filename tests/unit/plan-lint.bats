@@ -38,3 +38,42 @@ setup() {
   [ "$status" -eq 1 ]
   echo "$output" | grep -q 'P1'
 }
+
+@test "B1 math: ungated extension (.md) -> effective threshold 0" {
+  run env PLAN_LINT_SELFTEST=1 bash "$LINT" effective_threshold "docs/foo.md"
+  [ "$status" -eq 0 ]
+  [ "$output" = "0" ]
+}
+
+@test "B1 math: unbaselined .sh -> effective threshold = static 500" {
+  run env PLAN_LINT_SELFTEST=1 bash "$LINT" effective_threshold "scripts/never-baselined-xyz.sh"
+  [ "$status" -eq 0 ]
+  [ "$output" = "500" ]
+}
+
+@test "B1 math: baselined file uses max(limit, baseline.metric)" {
+  # scripts/backup-restore.sh is baselined at 1037 (> 500 .sh limit) in baseline.json
+  run env PLAN_LINT_SELFTEST=1 bash "$LINT" effective_threshold "scripts/backup-restore.sh"
+  [ "$status" -eq 0 ]
+  [ "$output" = "1037" ]
+}
+
+@test "B1 math: residual_budget = threshold - wc -l on a live file" {
+  # plan-context.sh is 34 lines, unbaselined .sh -> 500 - 34 = 466
+  run env PLAN_LINT_SELFTEST=1 bash "$LINT" residual_budget "scripts/plan-context.sh"
+  [ "$status" -eq 0 ]
+  [ "$output" = "466" ]
+}
+
+@test "B1a: a self-reported budget contradicting the computed value is a hard fail" {
+  run bash "$LINT" "$FIX/wrong-budget.md"
+  [ "$status" -eq 1 ]
+  echo "$output" | grep -q 'B1a'
+}
+
+@test "B1b: file over its effective threshold without a split step warns (exit 0)" {
+  run bash "$LINT" "$FIX/over-threshold.md"
+  [ "$status" -eq 0 ]
+  echo "$output" | grep -q 'B1b'
+  echo "$output" | grep -qE 'PLAN-LINT: PASS \([0-9]+ hard, [1-9]'
+}

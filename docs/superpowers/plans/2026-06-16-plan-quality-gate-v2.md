@@ -503,7 +503,7 @@ This is the **core** of the linter. The budget math is its own function so it ca
 - Create: `tests/unit/fixtures/plan-lint/wrong-budget.md`
 - Create: `tests/unit/fixtures/plan-lint/over-threshold.md`
 
-- [ ] **Step 1: Add the testable budget function to `scripts/plan-lint.sh`**
+- [x] **Step 1: Add the testable budget function to `scripts/plan-lint.sh`**
 
 Insert near the top (after `BASELINE=` is defined, before the checks). Note: the extension-limit table mirrors `docs/code-quality/gates.yaml` `s1.limits`; if it drifts, the FA-SF-style contract is that gates.yaml is the SSOT — keep them in sync (a follow-up could parse gates.yaml, but YAGNI for now since the table is stable):
 
@@ -559,7 +559,7 @@ fi
 
 > The self-test hook must appear **before** the argument parsing that consumes `$1` as the plan path, and the `_ext_limit`/`effective_threshold`/`residual_budget` definitions must be sourced before it can call them. Place the function definitions immediately after `set -euo pipefail`, then the self-test hook, then the normal `--json`/plan-path parsing.
 
-- [ ] **Step 2: Write the failing budget-math BATS tests**
+- [x] **Step 2: Write the failing budget-math BATS tests**
 
 Append to `tests/unit/plan-lint.bats`. These call the pure functions directly:
 
@@ -591,14 +591,14 @@ Append to `tests/unit/plan-lint.bats`. These call the pure functions directly:
 }
 ```
 
-- [ ] **Step 3: Run to verify the budget tests pass**
+- [x] **Step 3: Run to verify the budget tests pass**
 
 Run: `./tests/unit/lib/bats-core/bin/bats tests/unit/plan-lint.bats`
 Expected: PASS — the four math tests now pass (functions exist + self-test hook works). The B1a/B1b *integration* fixtures don't exist yet; that's the next step.
 
 > If the `residual_budget` test is brittle because `scripts/plan-context.sh` line count changes, recompute the expected value with `wc -l scripts/plan-context.sh` and update the literal — but per this plan `plan-context.sh` is **not** modified, so 34→466 holds.
 
-- [ ] **Step 4: Write the B1a + B1b integration fixtures**
+- [x] **Step 4: Write the B1a + B1b integration fixtures**
 
 Create `tests/unit/fixtures/plan-lint/wrong-budget.md` — claims a budget for a real file that contradicts the computed value. Use `scripts/plan-context.sh` (34 lines, threshold 500 → real budget 466). The plan lies and says budget 999:
 
@@ -635,7 +635,7 @@ Expected: FAIL
 
 ## Task 2: Verify
 
-- [ ] **Step 1**
+- [x] **Step 1**
 
 ```bash
 task test:changed
@@ -679,7 +679,7 @@ Expected: FAIL
 
 ## Task 2: Verify
 
-- [ ] **Step 1**
+- [x] **Step 1**
 
 ```bash
 task test:changed
@@ -688,7 +688,7 @@ task freshness:check
 ```
 ```
 
-- [ ] **Step 5: Write the failing B1a/B1b integration tests**
+- [x] **Step 5: Write the failing B1a/B1b integration tests**
 
 Append to `tests/unit/plan-lint.bats`:
 
@@ -707,12 +707,12 @@ Append to `tests/unit/plan-lint.bats`:
 }
 ```
 
-- [ ] **Step 6: Run to verify they fail**
+- [x] **Step 6: Run to verify they fail**
 
 Run: `./tests/unit/lib/bats-core/bin/bats tests/unit/plan-lint.bats`
 Expected: the B1a + B1b tests FAIL (no B1 integration scanning yet).
 
-- [ ] **Step 7: Add the B1a/B1b plan-scan logic to `scripts/plan-lint.sh`**
+- [x] **Step 7: Add the B1a/B1b plan-scan logic to `scripts/plan-lint.sh`**
 
 Insert before the verdict block. Parse claimed budgets from `File`/`Files:` lines and S1 tables. The recognised forms are a markdown table row `| \`<path>\` | <ist> | <budget> |` and a prose form `<path> … Budget <N>`:
 
@@ -742,12 +742,12 @@ done < <(grep -oE '`[A-Za-z0-9_./-]+\.(sh|bash|ts|tsx|js|jsx|mjs|mts|cjs|py|svel
 
 > The `grep`/`sed` path-escaping handles the `.`/`/` in paths. The claimed-budget regex tolerates both the table form and the prose form; `tail -1` takes the last number on the matched fragment (the budget column). If parsing a claimed budget is ambiguous, the linter only fails on a clear contradiction — when no number is parsed, B1a stays silent (the missing-budget case is a G1/manual concern, not a hard fail).
 
-- [ ] **Step 8: Run the tests to verify they pass**
+- [x] **Step 8: Run the tests to verify they pass**
 
 Run: `./tests/unit/lib/bats-core/bin/bats tests/unit/plan-lint.bats`
 Expected: PASS — B1a fixture hard-fails, B1b fixture warns (exit 0, warn ≥ 1). Verify `good.md` still PASSes (it references `scripts/example.sh` which does **not** exist on disk → skipped, so no false B1a).
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add scripts/plan-lint.sh tests/unit/plan-lint.bats tests/unit/fixtures/plan-lint/wrong-budget.md tests/unit/fixtures/plan-lint/over-threshold.md

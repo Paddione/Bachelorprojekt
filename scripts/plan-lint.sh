@@ -5,6 +5,50 @@
 # Pure CLI: reads plan markdown + docs/code-quality/baseline.json + live `wc -l`.
 set -euo pipefail
 
+# --- B1 budget math (pure; unit-tested via the PLAN_LINT_SELFTEST hook) ---
+# Static per-extension line limits — mirror of docs/code-quality/gates.yaml s1.limits.
+_ext_limit() {  # _ext_limit <path> -> static limit (0 = ungated extension)
+  case "$1" in
+    *.astro|*.tsx|*.java|*.php) echo 400 ;;
+    *.ts|*.js|*.jsx|*.py)       echo 600 ;;
+    *.svelte|*.sh|*.mjs|*.mts)  echo 500 ;;
+    *.bash)                     echo 300 ;;
+    *.cjs)                      echo 200 ;;
+    *)                          echo 0   ;;
+  esac
+}
+
+# effective_threshold <path> -> max(static_limit, baseline.metric); 0 if ungated & unbaselined
+effective_threshold() {
+  local path="$1" limit base
+  limit="$(_ext_limit "$path")"
+  base="$(jq -r --arg k "S1:$path" '.[$k].metric // empty' "$BASELINE")"
+  if [[ -n "$base" ]]; then
+    (( base > limit )) && echo "$base" || echo "$limit"
+  else
+    echo "$limit"
+  fi
+}
+
+# residual_budget <path> -> effective_threshold − live wc -l ; empty if file absent
+residual_budget() {
+  local path="$1" thr cur
+  [[ -f "$REPO_ROOT/$path" ]] || { echo ""; return 0; }
+  thr="$(effective_threshold "$path")"
+  cur="$(wc -l < "$REPO_ROOT/$path" | tr -d ' ')"
+  echo $(( thr - cur ))
+}
+
+# Self-test hook: `PLAN_LINT_SELFTEST=1 plan-lint.sh <fn> <args...>` runs one
+# pure function and prints its result — keeps the budget math unit-testable.
+if [[ "${PLAN_LINT_SELFTEST:-0}" == "1" ]]; then
+  REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+  BASELINE="$REPO_ROOT/docs/code-quality/baseline.json"
+  fn="$1"; shift
+  "$fn" "$@"
+  exit $?
+fi
+
 JSON=0
 if [[ "${1:-}" == "--json" ]]; then JSON=1; shift; fi
 PLAN="${1:?Usage: plan-lint.sh [--json] <plan-file>}"
@@ -58,6 +102,28 @@ PLAN_PROSE="$(awk 'BEGIN{inf=0}/^```/{inf=!inf;next}inf==0{print}' "$PLAN")"
 if grep -nE '\b(TBD|TODO|FIXME)\b|\?\?\?|<ausfüllen>|similar to Task [0-9]' <<<"$PLAN_PROSE" >/dev/null; then
   hard "P1: open placeholder found (TBD/TODO/FIXME/???/'similar to Task N')"
 fi
+
+# === B1a/B1b: per-file budget integrity + strategy ===
+# Extract (path, claimed_budget) pairs from table rows and 'Budget <N>' prose.
+# Table row:  | `path` | <ist> | <budget> |
+# Prose:      `path` ... Budget <N>
+while IFS= read -r path; do
+  [[ -n "$path" ]] || continue
+  # skip files that don't exist on disk (planned-new files have no live wc -l)
+  [[ -f "$REPO_ROOT/$path" ]] || continue
+  computed="$(residual_budget "$path")"
+  # find a claimed budget for this exact path anywhere in the plan
+  claimed="$(grep -oE "\`$(printf '%s' "$path" | sed 's/[.[*^$/]/\\&/g')\`[^|]*\|[^|]*\| *-?[0-9]+ *\||\`$(printf '%s' "$path" | sed 's/[.[*^$/]/\\&/g')\`[^0-9]*Budget *-?[0-9]+" "$PLAN" 2>/dev/null | grep -oE -- '-?[0-9]+' | tail -1 || true)"
+  if [[ -n "$claimed" && -n "$computed" && "$claimed" != "$computed" ]]; then
+    hard "B1a: $path claims budget $claimed but computed effective budget is $computed"
+  fi
+  if [[ -n "$computed" && "$computed" -le 0 ]]; then
+    # B1b: only warn when no split/shrink step is planned for this file.
+    if ! grep -qiE "split|extract|verkleiner|shrink|aufteil" "$PLAN"; then
+      warn "B1b: $path residual budget $computed ≤ 0 and no split/shrink step planned"
+    fi
+  fi
+done < <(grep -oE '`[A-Za-z0-9_./-]+\.(sh|bash|ts|tsx|js|jsx|mjs|mts|cjs|py|svelte|astro|java|php)`' "$PLAN" | tr -d '`' | sort -u)
 
 # === verdict ===
 emit_verdict() {

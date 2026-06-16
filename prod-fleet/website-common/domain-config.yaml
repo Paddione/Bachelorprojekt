@@ -11,3 +11,4 @@ data:
   # Jeder neue required configMapKeyRef name: domain-config in k3d/website.yaml MUSS hier
   # ergänzt werden, sonst macht der bats-Guard CI rot.
   MEDIAVIEWER_HOST: "mediaviewer.${PROD_DOMAIN}"
+  VIDEOVAULT_DOMAIN: "videovault.${PROD_DOMAIN}"

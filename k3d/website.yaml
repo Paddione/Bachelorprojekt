@@ -435,6 +435,11 @@ spec:
                 configMapKeyRef:
                   name: domain-config
                   key: MEDIAVIEWER_HOST
+            - name: VIDEOVAULT_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: VIDEOVAULT_DOMAIN
           volumeMounts:
             - name: evidence
               mountPath: /var/evidence

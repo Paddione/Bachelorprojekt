@@ -87,7 +87,7 @@ The spec cites several anchors loosely. Corrected:
 - Create: `openspec/changes/archive/.gitkeep`
 - (Keep existing `openspec/config.yaml` untouched.)
 
-- [ ] **Step 1: Write `openspec/project.md`** (the cutover ADR + format contract)
+**DONE** **Step 1: Write `openspec/project.md`** (the cutover ADR + format contract)
 
 ```markdown
 # OpenSpec — Project Conventions
@@ -130,14 +130,14 @@ because the files are already conformant — kept cheap by the `task test:opensp
 `docs/superpowers/` stay as a historical archive and are NOT migrated.
 ```
 
-- [ ] **Step 2: Create the directory placeholders**
+**DONE** **Step 2: Create the directory placeholders**
 
 ```bash
 mkdir -p openspec/specs openspec/changes/archive
 touch openspec/specs/.gitkeep openspec/changes/.gitkeep openspec/changes/archive/.gitkeep
 ```
 
-- [ ] **Step 3: Commit**
+**DONE** **Step 3: Commit**
 
 ```bash
 git add openspec/project.md openspec/specs/.gitkeep openspec/changes/.gitkeep openspec/changes/archive/.gitkeep
@@ -153,7 +153,7 @@ git commit -m "feat(openspec): seed openspec/ layout + project.md ADR"
 - Create: `tests/unit/fixtures/openspec/valid/changes/sample-change/specs/sample-capability.md`
 - Create: `tests/unit/fixtures/openspec/bad-heading/changes/sample-change/specs/sample-capability.md`
 
-- [ ] **Step 1: Write the valid fixture delta** (`tests/unit/fixtures/openspec/valid/changes/sample-change/specs/sample-capability.md`)
+**DONE** **Step 1: Write the valid fixture delta** (`tests/unit/fixtures/openspec/valid/changes/sample-change/specs/sample-capability.md`)
 
 ```markdown
 ## ADDED Requirements
@@ -169,7 +169,7 @@ The system SHALL do the sample thing.
 - **THEN** an outcome holds
 ```
 
-- [ ] **Step 2: Write the valid proposal + tasks fixtures**
+**DONE** **Step 2: Write the valid proposal + tasks fixtures**
 
 `tests/unit/fixtures/openspec/valid/changes/sample-change/proposal.md`:
 ```markdown
@@ -186,10 +186,10 @@ Add a sample capability.
 ```markdown
 # Tasks: Sample Change
 
-- [ ] Task 1: do the thing
+**DONE** Task 1: do the thing
 ```
 
-- [ ] **Step 3: Write the bad-heading fixture** (H2 requirement instead of H3 — must fail validate)
+**DONE** **Step 3: Write the bad-heading fixture** (H2 requirement instead of H3 — must fail validate)
 
 `tests/unit/fixtures/openspec/bad-heading/changes/sample-change/specs/sample-capability.md`:
 ```markdown
@@ -200,7 +200,7 @@ Add a sample capability.
 This requirement uses H2 instead of H3 and must be rejected.
 ```
 
-- [ ] **Step 4: Write `tests/unit/openspec.bats`** (failing — script does not exist yet)
+**DONE** **Step 4: Write `tests/unit/openspec.bats`** (failing — script does not exist yet)
 
 ```bash
 #!/usr/bin/env bats
@@ -241,12 +241,12 @@ FIX="$PROJECT_DIR/tests/unit/fixtures/openspec"
 }
 ```
 
-- [ ] **Step 5: Run the test to verify it fails**
+**DONE** **Step 5: Run the test to verify it fails**
 
 Run: `./tests/unit/lib/bats-core/bin/bats tests/unit/openspec.bats`
 Expected: FAIL (`scripts/openspec.sh` does not exist).
 
-- [ ] **Step 6: Commit**
+**DONE** **Step 6: Commit**
 
 ```bash
 git add tests/unit/openspec.bats tests/unit/fixtures/openspec
@@ -258,7 +258,7 @@ git commit -m "test(openspec): failing BATS for openspec.sh validate + fixtures"
 **Files:**
 - Create: `scripts/openspec.sh`
 
-- [ ] **Step 1: Write `scripts/openspec.sh`** (keep under 500 lines; verbs are small)
+**DONE** **Step 1: Write `scripts/openspec.sh`** (keep under 500 lines; verbs are small)
 
 ```bash
 #!/usr/bin/env bash
@@ -294,7 +294,7 @@ cmd_propose() {
   [[ -e "$dir" ]] && die "change '$slug' already exists at $dir"
   mkdir -p "$dir/specs"
   printf '# Proposal: %s\n\n## Why\n\n## What\n\n_Ticket: %s_\n' "$slug" "$ticket" > "$dir/proposal.md"
-  printf '# Tasks: %s\n\n- [ ] (writing-plans output goes here)\n' "$slug" > "$dir/tasks.md"
+  printf '# Tasks: %s\n\n**DONE** (writing-plans output goes here)\n' "$slug" > "$dir/tasks.md"
   printf '## ADDED Requirements\n\n### Requirement: TODO\n\nThe system SHALL …\n\n#### Scenario: TODO\n\n- **GIVEN** …\n- **WHEN** …\n- **THEN** …\n' > "$dir/specs/$slug.md"
   echo "$ticket" > "$dir/.ticket"
   if [[ "${TICKET_OFFLINE:-0}" != "1" ]]; then
@@ -408,7 +408,7 @@ main() {
 main "$@"
 ```
 
-- [ ] **Step 2: Make it executable + run the BATS**
+**DONE** **Step 2: Make it executable + run the BATS**
 
 Run:
 ```bash
@@ -417,12 +417,12 @@ chmod +x scripts/openspec.sh
 ```
 Expected: all PASS.
 
-- [ ] **Step 3: Verify line count under limit**
+**DONE** **Step 3: Verify line count under limit**
 
 Run: `wc -l scripts/openspec.sh`
 Expected: ≤ 500 (split verbs into `scripts/openspec/*.sh` if it grows past ~400 in a later change).
 
-- [ ] **Step 4: Commit**
+**DONE** **Step 4: Commit**
 
 ```bash
 git add scripts/openspec.sh
@@ -434,7 +434,7 @@ git commit -m "feat(openspec): scripts/openspec.sh propose/apply/archive/validat
 **Files:**
 - Modify: `Taskfile.yml` (add `test:openspec`, `test:unit:openspec`, and `openspec:*` passthrough tasks; register `test:unit:openspec` in the `test:unit` umbrella list ~line 253-281)
 
-- [ ] **Step 1: Add a `test:openspec` task** (near the other `test:*` tasks, ~after `test:factory` at line ~620)
+**DONE** **Step 1: Add a `test:openspec` task** (near the other `test:*` tasks, ~after `test:factory` at line ~620)
 
 ```yaml
   test:openspec:
@@ -448,13 +448,13 @@ git commit -m "feat(openspec): scripts/openspec.sh propose/apply/archive/validat
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/openspec.bats
 ```
 
-- [ ] **Step 2: Add `test:unit:openspec` to the `test:unit` umbrella list** (the `cmds:` block at lines ~253-281, append a new line)
+**DONE** **Step 2: Add `test:unit:openspec` to the `test:unit` umbrella list** (the `cmds:` block at lines ~253-281, append a new line)
 
 ```yaml
       - task: test:unit:openspec
 ```
 
-- [ ] **Step 3: Add the operator passthrough verbs** (anywhere sensible, e.g. near other ops tasks)
+**DONE** **Step 3: Add the operator passthrough verbs** (anywhere sensible, e.g. near other ops tasks)
 
 ```yaml
   openspec:propose:
@@ -475,7 +475,7 @@ git commit -m "feat(openspec): scripts/openspec.sh propose/apply/archive/validat
       - bash scripts/openspec.sh validate
 ```
 
-- [ ] **Step 4: Verify the tasks resolve + validate passes against the real tree**
+**DONE** **Step 4: Verify the tasks resolve + validate passes against the real tree**
 
 Run:
 ```bash
@@ -484,7 +484,7 @@ task test:unit:openspec
 ```
 Expected: both exit 0 (the seeded `openspec/` has no active changes yet → "no changes/ dir … (ok)" or "validate: OK").
 
-- [ ] **Step 5: Commit**
+**DONE** **Step 5: Commit**
 
 ```bash
 git add Taskfile.yml
@@ -505,7 +505,7 @@ git commit -m "feat(openspec): wire test:openspec + openspec:* tasks into Taskfi
 - Test: `website/src/lib/factory-floor.test.ts`
 - Modify: `website/src/lib/factory-floor.ts:27-44`
 
-- [ ] **Step 1: Write the failing test** (append to the existing bucket-mapping describe block in `factory-floor.test.ts`)
+**DONE** **Step 1: Write the failing test** (append to the existing bucket-mapping describe block in `factory-floor.test.ts`)
 
 ```typescript
 import { ALL_TICKET_STATUSES, STATUS_BUCKETS } from './factory-floor';
@@ -525,12 +525,12 @@ describe('awaiting_deploy status', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+**DONE** **Step 2: Run test to verify it fails**
 
 Run: `cd website && pnpm vitest run src/lib/factory-floor.test.ts`
 Expected: FAIL (`awaiting_deploy` not in array / bucket undefined).
 
-- [ ] **Step 3: Add `awaiting_deploy` to the status array** (`factory-floor.ts` line 27-30)
+**DONE** **Step 3: Add `awaiting_deploy` to the status array** (`factory-floor.ts` line 27-30)
 
 ```typescript
 export const ALL_TICKET_STATUSES = [
@@ -539,7 +539,7 @@ export const ALL_TICKET_STATUSES = [
 ] as const;
 ```
 
-- [ ] **Step 4: Add the bucket mapping** (`factory-floor.ts` line 33-44 — add the new entry before `done`)
+**DONE** **Step 4: Add the bucket mapping** (`factory-floor.ts` line 33-44 — add the new entry before `done`)
 
 ```typescript
 export const STATUS_BUCKETS: Record<TicketStatus, string> = {
@@ -557,14 +557,14 @@ export const STATUS_BUCKETS: Record<TicketStatus, string> = {
 };
 ```
 
-- [ ] **Step 5: Run test to verify it passes**
+**DONE** **Step 5: Run test to verify it passes**
 
 Run: `cd website && pnpm vitest run src/lib/factory-floor.test.ts`
 Expected: PASS.
 
-- [ ] **Step 6: Verify line budget** — Run `wc -l website/src/lib/factory-floor.ts` → expect ≤ 543 (was 541, +2; budget +59, fine).
+**DONE** **Step 6: Verify line budget** — Run `wc -l website/src/lib/factory-floor.ts` → expect ≤ 543 (was 541, +2; budget +59, fine).
 
-- [ ] **Step 7: Commit**
+**DONE** **Step 7: Commit**
 
 ```bash
 git add website/src/lib/factory-floor.ts website/src/lib/factory-floor.test.ts
@@ -579,7 +579,7 @@ git commit -m "feat(factory-floor): add awaiting_deploy status + awaitingDeploy 
 
 > **Why:** The floor currently has no query for `awaiting_deploy` tickets, so the new lane would be empty. Add a small read-only DAL function mirroring `getShipped`.
 
-- [ ] **Step 1: Write the failing test** (append to `factory-floor.test.ts`; use the existing pg-mem/mock harness pattern already in the file — model it on the existing `getShipped` test)
+**DONE** **Step 1: Write the failing test** (append to `factory-floor.test.ts`; use the existing pg-mem/mock harness pattern already in the file — model it on the existing `getShipped` test)
 
 ```typescript
 import { getAwaitingDeploy } from './factory-floor';
@@ -598,12 +598,12 @@ describe('getAwaitingDeploy', () => {
 
 > If the file has no reusable pool-seeding helper, follow the exact mocking style already used by the nearest existing DAL test in this file (do not invent a new harness).
 
-- [ ] **Step 2: Run to verify it fails**
+**DONE** **Step 2: Run to verify it fails**
 
 Run: `cd website && pnpm vitest run src/lib/factory-floor.test.ts`
 Expected: FAIL (`getAwaitingDeploy` is not exported).
 
-- [ ] **Step 3: Add the DAL function + interface + payload field** (`factory-floor.ts`)
+**DONE** **Step 3: Add the DAL function + interface + payload field** (`factory-floor.ts`)
 
 Add the interface near `ShippedItem` (line ~102):
 ```typescript
@@ -639,14 +639,14 @@ export async function getAwaitingDeploy(limit = 12): Promise<AwaitingDeployItem[
 
 Add `awaitingDeploy: AwaitingDeployItem[];` to the `FloorPayload` interface (line ~115-128), and thread it into `getFloor` (line ~377-396): add `getAwaitingDeploy()` to the `Promise.all` array and include `awaitingDeploy` in the returned object.
 
-- [ ] **Step 4: Run to verify it passes**
+**DONE** **Step 4: Run to verify it passes**
 
 Run: `cd website && pnpm vitest run src/lib/factory-floor.test.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Verify line budget** — `wc -l website/src/lib/factory-floor.ts` → expect ≤ ~570 (budget +59, fine).
+**DONE** **Step 5: Verify line budget** — `wc -l website/src/lib/factory-floor.ts` → expect ≤ ~570 (budget +59, fine).
 
-- [ ] **Step 6: Commit**
+**DONE** **Step 6: Commit**
 
 ```bash
 git add website/src/lib/factory-floor.ts website/src/lib/factory-floor.test.ts
@@ -661,7 +661,7 @@ git commit -m "feat(factory-floor): getAwaitingDeploy DAL + payload field"
 
 > **Why extract:** `FactoryFloor.svelte` is 486/500 → only +14 lines of headroom. Putting the lane markup inline would blow S1. The new lane is a self-contained child component fed `data.awaitingDeploy`.
 
-- [ ] **Step 1: Create the lane component** (`website/src/components/factory/AwaitingDeployLane.svelte`)
+**DONE** **Step 1: Create the lane component** (`website/src/components/factory/AwaitingDeployLane.svelte`)
 
 ```svelte
 <script lang="ts">
@@ -686,7 +686,7 @@ git commit -m "feat(factory-floor): getAwaitingDeploy DAL + payload field"
 </section>
 ```
 
-- [ ] **Step 2: Wire it into `FactoryFloor.svelte`** (import in the `<script>` block, render near the QA/shipped lanes ~line 381)
+**DONE** **Step 2: Wire it into `FactoryFloor.svelte`** (import in the `<script>` block, render near the QA/shipped lanes ~line 381)
 
 Add to imports:
 ```svelte
@@ -698,17 +698,17 @@ Render (place next to the existing shipped/qa lanes):
 ```
 Also add `awaitingDeploy` to the `MOBILE_COL_INDEX` map (line 28) between `qs` and `done` if mobile column ordering applies: `awaitingDeploy: 9, done: 10` (renumber `done` accordingly).
 
-- [ ] **Step 3: Verify the budget**
+**DONE** **Step 3: Verify the budget**
 
 Run: `wc -l website/src/components/FactoryFloor.svelte`
 Expected: ≤ 500 (net add ≤14). If it exceeds, move more markup into the child component.
 
-- [ ] **Step 4: Typecheck**
+**DONE** **Step 4: Typecheck**
 
 Run: `cd website && pnpm check` (or `pnpm exec svelte-check --tsconfig ./tsconfig.json` if `check` is unavailable)
 Expected: no new type errors.
 
-- [ ] **Step 5: Commit**
+**DONE** **Step 5: Commit**
 
 ```bash
 git add website/src/components/factory/AwaitingDeployLane.svelte website/src/components/FactoryFloor.svelte
@@ -726,7 +726,7 @@ git commit -m "feat(factory-floor): AwaitingDeployLane 'Wartet auf Deploy' lane"
 
 > **Decision (per spec):** `awaiting_deploy` gets its OWN counter `awaiting_deploy_leaves` so the deploy backlog is measurable — NOT folded into `in_progress_leaves`. **Bucket-disjointness invariant:** `done + blocked + in_progress + awaiting_deploy + open == total`. So `awaiting_deploy` must be removed from any other bucket (it is currently in none — confirmed it is a brand-new status).
 
-- [ ] **Step 1: Write the failing schema-string test** (append to `cockpit-schema.test.ts`)
+**DONE** **Step 1: Write the failing schema-string test** (append to `cockpit-schema.test.ts`)
 
 ```typescript
 it('aggregates an awaiting_deploy_leaves column in its own bucket', () => {
@@ -739,7 +739,7 @@ it('aggregates an awaiting_deploy_leaves column in its own bucket', () => {
 });
 ```
 
-- [ ] **Step 2: Write the failing rollup-math test** (append to `cockpit-db.test.ts`, following the file's existing pg-mem seeding pattern — seed a feature with one `awaiting_deploy` leaf and assert the new field)
+**DONE** **Step 2: Write the failing rollup-math test** (append to `cockpit-db.test.ts`, following the file's existing pg-mem seeding pattern — seed a feature with one `awaiting_deploy` leaf and assert the new field)
 
 ```typescript
 it('counts awaiting_deploy leaves in their own bucket (not in_progress)', async () => {
@@ -753,12 +753,12 @@ it('counts awaiting_deploy leaves in their own bucket (not in_progress)', async 
 
 > Use the actual helper name present in `cockpit-db.test.ts` (do not invent one). If the test file fetches rollups via `loadCockpit(brand)`, assert on that path instead.
 
-- [ ] **Step 3: Run both tests to verify they fail**
+**DONE** **Step 3: Run both tests to verify they fail**
 
 Run: `cd website && pnpm vitest run src/lib/tickets/cockpit-schema.test.ts src/lib/tickets/cockpit-db.test.ts`
 Expected: FAIL (`awaiting_deploy_leaves` / `awaitingDeploy` missing).
 
-- [ ] **Step 4: Add the column to `cockpit-schema.ts`** (the `agg` CTE — add a FILTER line; and the outer SELECT — add a COALESCE line)
+**DONE** **Step 4: Add the column to `cockpit-schema.ts`** (the `agg` CTE — add a FILTER line; and the outer SELECT — add a COALESCE line)
 
 In the `agg` SELECT (currently lines ~32-36), add after the `in_progress_leaves` line:
 ```sql
@@ -769,18 +769,18 @@ In the outer SELECT (currently lines ~44-46), add after the `in_progress_leaves`
       COALESCE(a.awaiting_deploy_leaves, 0) AS awaiting_deploy_leaves,
 ```
 
-- [ ] **Step 5: Mirror the SAME two edits into `scripts/migrations/2026-06-15-cockpit-rollup-view.sql`** (the `agg` block line ~30 and the outer SELECT line ~40) so the applied migration and the runtime SSOT stay identical.
+**DONE** **Step 5: Mirror the SAME two edits into `scripts/migrations/2026-06-15-cockpit-rollup-view.sql`** (the `agg` block line ~30 and the outer SELECT line ~40) so the applied migration and the runtime SSOT stay identical.
 
-- [ ] **Step 6: Thread the field through `cockpit-db.ts`** — add `awaitingDeploy: number;` to `RollupMetrics`, add `awaitingDeploy: Number(r?.awaiting_deploy_leaves ?? 0),` in `toRollup` (line ~14), and in `fetchLeafRollup`'s flat-aggregate SQL (line ~42-45) add `SUM(CASE WHEN status = 'awaiting_deploy' THEN 1 ELSE 0 END) AS awaiting_deploy_leaves,` plus the corresponding `awaitingDeploy: Number(r.awaiting_deploy_leaves ?? 0),` in its return object (line ~57).
+**DONE** **Step 6: Thread the field through `cockpit-db.ts`** — add `awaitingDeploy: number;` to `RollupMetrics`, add `awaitingDeploy: Number(r?.awaiting_deploy_leaves ?? 0),` in `toRollup` (line ~14), and in `fetchLeafRollup`'s flat-aggregate SQL (line ~42-45) add `SUM(CASE WHEN status = 'awaiting_deploy' THEN 1 ELSE 0 END) AS awaiting_deploy_leaves,` plus the corresponding `awaitingDeploy: Number(r.awaiting_deploy_leaves ?? 0),` in its return object (line ~57).
 
 > **Total-count invariant:** `fetchLeafRollup` computes `total_leaves` as "all non-archived". `awaiting_deploy` rows are non-archived, so they are already in `total`. No change to the total expression needed — just the new bucket.
 
-- [ ] **Step 7: Run the tests to verify they pass**
+**DONE** **Step 7: Run the tests to verify they pass**
 
 Run: `cd website && pnpm vitest run src/lib/tickets/cockpit-schema.test.ts src/lib/tickets/cockpit-db.test.ts`
 Expected: PASS.
 
-- [ ] **Step 8: Commit**
+**DONE** **Step 8: Commit**
 
 ```bash
 git add website/src/lib/tickets/cockpit-schema.ts website/src/lib/tickets/cockpit-schema.test.ts \
@@ -799,7 +799,7 @@ git commit -m "feat(cockpit): awaiting_deploy_leaves rollup counter (schema + mi
 
 > **Semantics (per spec §"Der neue State"):** After a successful merge, the pipeline result becomes `awaiting_deploy` rather than `done`. A subsequent explicit deploy step advances it to `done`. **Website auto-advance exception:** the `pipeline.js` deploy phase already runs `task feature:website`-style rollout for website tickets (steps 6-8 of the deploy agent block); for those, the rollout IS the deploy → they may advance straight to `done`. Everything else (push-based) stays in `awaiting_deploy` until `task workspace:deploy` runs.
 
-- [ ] **Step 1: Write the failing unit test** (new file `tests/unit/factory/deploy-transition.bats` OR a vitest — choose vitest since the module is `.mjs` and Node-testable)
+**DONE** **Step 1: Write the failing unit test** (new file `tests/unit/factory/deploy-transition.bats` OR a vitest — choose vitest since the module is `.mjs` and Node-testable)
 
 Create `scripts/factory/deploy-transition.test.mjs`:
 ```javascript
@@ -822,12 +822,12 @@ describe('decideDeployTransition', () => {
 
 > Register this test: add `scripts/factory/deploy-transition.test.mjs` to the website vitest include OR a root vitest config — confirm where existing `scripts/**/*.test.mjs` are picked up; if none exist, wire it into `task test:unit:openspec`-style standalone via `node --test`. Prefer the existing vitest project that already globs `scripts/`. If no such project exists, convert this to a BATS test under `tests/unit/factory/` that shells `node -e`.
 
-- [ ] **Step 2: Run to verify it fails**
+**DONE** **Step 2: Run to verify it fails**
 
 Run: `cd website && pnpm vitest run ../scripts/factory/deploy-transition.test.mjs` (adjust path to the wired project)
 Expected: FAIL (module missing).
 
-- [ ] **Step 3: Write `scripts/factory/deploy-transition.mjs`** (pure, no imports of pipeline/DB)
+**DONE** **Step 3: Write `scripts/factory/deploy-transition.mjs`** (pure, no imports of pipeline/DB)
 
 ```javascript
 // scripts/factory/deploy-transition.mjs — pure decision for the post-merge status.
@@ -850,7 +850,7 @@ export function decideDeployTransition(ctx) {
 }
 ```
 
-- [ ] **Step 4: Replace the inline `done` block in `pipeline.js`** (lines 592-597). Current:
+**DONE** **Step 4: Replace the inline `done` block in `pipeline.js`** (lines 592-597). Current:
 
 ```javascript
 if (deploy.includes('deploy-guard') || deploy.includes('"status": "blocked"') || deploy.includes("status: 'blocked'")) {
@@ -876,12 +876,12 @@ import { decideDeployTransition } from './deploy-transition.mjs'
 
 > **Note:** determine `isWebsite` from the data already in scope — the deploy agent block (lines 543-550) already branches website vs non-website via `${deployStepCmd}`. Reuse whatever flag computes `deployStepCmd`; if it's a local `const isWebsite`, pass that. Do NOT introduce a brand-domain literal — use the slug/service flag already present.
 
-- [ ] **Step 5: Verify the line budget (HARD GATE)**
+**DONE** **Step 5: Verify the line budget (HARD GATE)**
 
 Run: `wc -l scripts/factory/pipeline.js`
 Expected: ≤ 600. If 601+, compress the replacement (e.g. inline `deployReason`) until ≤600. This is non-negotiable.
 
-- [ ] **Step 6: Run the transition test + a pipeline load-check**
+**DONE** **Step 6: Run the transition test + a pipeline load-check**
 
 Run:
 ```bash
@@ -890,7 +890,7 @@ node --check scripts/factory/pipeline.js
 ```
 Expected: test PASS, `node --check` OK.
 
-- [ ] **Step 7: Commit**
+**DONE** **Step 7: Commit**
 
 ```bash
 git add scripts/factory/deploy-transition.mjs scripts/factory/deploy-transition.test.mjs scripts/factory/pipeline.js
@@ -904,7 +904,7 @@ git commit -m "feat(factory): pipeline done→awaiting_deploy + explicit deploy 
 
 > **Finding:** `queue.sh` selects `WHERE type='feature' AND status='backlog'` — `awaiting_deploy` is already excluded from new-work scheduling. We lock this in with a regression assertion rather than changing code (the spec's `schedule.sh:50` anchor was a mis-citation).
 
-- [ ] **Step 1: Add a guard test** that asserts `queue.sh`'s SQL filters to `backlog` and never selects `awaiting_deploy`. Append to the existing `tests/unit/factory-blocked.bats`:
+**DONE** **Step 1: Add a guard test** that asserts `queue.sh`'s SQL filters to `backlog` and never selects `awaiting_deploy`. Append to the existing `tests/unit/factory-blocked.bats`:
 
 ```bash
 @test "queue.sh only schedules backlog features (excludes awaiting_deploy)" {
@@ -917,12 +917,12 @@ git commit -m "feat(factory): pipeline done→awaiting_deploy + explicit deploy 
 
 > Ensure `PROJECT_DIR` is defined in that BATS file's setup (it is in most; if not, add `PROJECT_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"`).
 
-- [ ] **Step 2: Run it**
+**DONE** **Step 2: Run it**
 
 Run: `./tests/unit/lib/bats-core/bin/bats tests/unit/factory-blocked.bats`
 Expected: PASS.
 
-- [ ] **Step 3: Commit**
+**DONE** **Step 3: Commit**
 
 ```bash
 git add tests/unit/factory-blocked.bats
@@ -946,7 +946,7 @@ git commit -m "test(factory): assert queue.sh excludes awaiting_deploy from sche
 
 > **S1:** `pipeline.js` is at its 600 limit. The resolver is a separate module; the pipeline edit must be line-neutral (swap one expression for a function call). Verify with `wc -l` after.
 
-- [ ] **Step 1: Write the failing test** (`scripts/factory/task-source.test.mjs`)
+**DONE** **Step 1: Write the failing test** (`scripts/factory/task-source.test.mjs`)
 
 ```javascript
 import { describe, it, expect } from 'vitest';
@@ -966,12 +966,12 @@ describe('resolveTaskSource', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify fail**
+**DONE** **Step 2: Run to verify fail**
 
 Run: `cd website && pnpm vitest run ../scripts/factory/task-source.test.mjs`
 Expected: FAIL.
 
-- [ ] **Step 3: Write `scripts/factory/task-source.mjs`**
+**DONE** **Step 3: Write `scripts/factory/task-source.mjs`**
 
 ```javascript
 // scripts/factory/task-source.mjs — resolve the canonical task list for a change.
@@ -994,19 +994,19 @@ export function resolveTaskSource(slug, repo, exists = existsSync) {
 
 > The `exists(slug ? rel : ...)` keeps the injected predicate matching the test's `p === 'openspec/changes/foo/tasks.md'`. In production `existsSync` receives the relative path; if `pipeline.js` runs from `${REPO}`, pass `existsSync` directly. Adjust the predicate arg to whatever cwd the pipeline uses (verify `process.cwd()` in pipeline at runtime); if it runs from an arbitrary cwd, build an absolute path inside the resolver and check that instead — keep the two test cases passing.
 
-- [ ] **Step 4: Use it in `pipeline.js`** — replace the `planFilePath ?? `${REPO}/docs/superpowers/plans/${slug}.md`` expression at line 542 with `resolveTaskSource(slug, REPO)` (and import `resolveTaskSource` at the top, alongside the B5 import — that's the only added import line). Keep the change line-neutral.
+**DONE** **Step 4: Use it in `pipeline.js`** — replace the `planFilePath ?? `${REPO}/docs/superpowers/plans/${slug}.md`` expression at line 542 with `resolveTaskSource(slug, REPO)` (and import `resolveTaskSource` at the top, alongside the B5 import — that's the only added import line). Keep the change line-neutral.
 
-- [ ] **Step 5: Verify budget + node check**
+**DONE** **Step 5: Verify budget + node check**
 
 Run: `wc -l scripts/factory/pipeline.js && node --check scripts/factory/pipeline.js`
 Expected: ≤600, OK. (Two imports were added across B5+C1 — confirm total file still ≤600; if it tips over, combine the two new imports onto one line: `import { decideDeployTransition } from './deploy-transition.mjs'; import { resolveTaskSource } from './task-source.mjs'`.)
 
-- [ ] **Step 6: Run the resolver test**
+**DONE** **Step 6: Run the resolver test**
 
 Run: `cd website && pnpm vitest run ../scripts/factory/task-source.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+**DONE** **Step 7: Commit**
 
 ```bash
 git add scripts/factory/task-source.mjs scripts/factory/task-source.test.mjs scripts/factory/pipeline.js
@@ -1028,7 +1028,7 @@ git commit -m "feat(factory): read openspec/changes/<slug>/tasks.md as task sour
 
 > **Why minimal:** the SKILL is large (449 lines) and orchestrates many steps. We make a surgical change: after the spec is written, call `scripts/openspec.sh propose` to seed `openspec/changes/<slug>/`, and direct the writing-plans subagent to ALSO write `tasks.md` there. We keep the legacy `docs/superpowers/plans/<slug>.md` write for now (Slice C's resolver falls back to it), so nothing downstream breaks during cutover.
 
-- [ ] **Step 1: Add an `openspec propose` step** after the spec-creation block (after line ~143 where the spec frontmatter hook runs). Insert:
+**DONE** **Step 1: Add an `openspec propose` step** after the spec-creation block (after line ~143 where the spec frontmatter hook runs). Insert:
 
 ```markdown
 ### 2.5 OpenSpec-Change anlegen
@@ -1046,19 +1046,19 @@ Der Implementierungsplan wird in **beide** Ziele geschrieben: `openspec/changes/
 Cutover abgeschlossen ist; der Factory-Resolver fällt darauf zurück).
 ```
 
-- [ ] **Step 2: Amend the writing-plans subagent Auftrag** (line ~167) to add: "Schreibe `tasks.md` zusätzlich nach `openspec/changes/<slug>/tasks.md` (OpenSpec-Format: H2-Operationsheader im Delta, H3-Requirement, H4-Scenario im `specs/<capability>.md`)."
+**DONE** **Step 2: Amend the writing-plans subagent Auftrag** (line ~167) to add: "Schreibe `tasks.md` zusätzlich nach `openspec/changes/<slug>/tasks.md` (OpenSpec-Format: H2-Operationsheader im Delta, H3-Requirement, H4-Scenario im `specs/<capability>.md`)."
 
-- [ ] **Step 3: Add a validate step** before the commit (line ~233) so malformed deltas fail early:
+**DONE** **Step 3: Add a validate step** before the commit (line ~233) so malformed deltas fail early:
 
 ```markdown
 Vor dem Commit: `task test:openspec` (oder `bash scripts/openspec.sh validate`) — muss grün sein.
 ```
 
-- [ ] **Step 4: Sanity-check the SKILL still parses** (it's markdown; just confirm no broken code fences)
+**DONE** **Step 4: Sanity-check the SKILL still parses** (it's markdown; just confirm no broken code fences)
 
 Run: `grep -c '```' .claude/skills/dev-flow-plan/SKILL.md` → expect an even number (balanced fences).
 
-- [ ] **Step 5: Commit**
+**DONE** **Step 5: Commit**
 
 ```bash
 git add .claude/skills/dev-flow-plan/SKILL.md
@@ -1075,23 +1075,23 @@ git commit -m "docs(dev-flow-plan): write proposal+tasks into openspec/ layout (
 
 > This MUST be the last task. It reproduces the CI gates locally including the S1–S4 ratchet, and regenerates the test inventory because we added BATS + Vitest tests.
 
-- [ ] **Step 1: Targeted tests for changed domains**
+**DONE** **Step 1: Targeted tests for changed domains**
 
 Run: `task test:changed`
 Expected: vitest (website) + selected BATS + quality all green. Investigate any failure before proceeding.
 
-- [ ] **Step 2: OpenSpec gate explicitly**
+**DONE** **Step 2: OpenSpec gate explicitly**
 
 Run: `task test:openspec && ./tests/unit/lib/bats-core/bin/bats tests/unit/openspec.bats`
 Expected: both green.
 
-- [ ] **Step 3: Regenerate the test inventory (new tests were added)**
+**DONE** **Step 3: Regenerate the test inventory (new tests were added)**
 
 Run: `task test:inventory`
 Then: `git add website/src/data/test-inventory.json`
 Expected: the inventory now lists `openspec.bats`, the new factory tests, and the new vitest specs.
 
-- [ ] **Step 4: Regenerate freshness artifacts**
+**DONE** **Step 4: Regenerate freshness artifacts**
 
 Run: `task freshness:regenerate`
 Then stage any regenerated files (`docs/generated/**`, `docs/code-quality/repo-index.json`, etc.):
@@ -1099,24 +1099,24 @@ Then stage any regenerated files (`docs/generated/**`, `docs/code-quality/repo-i
 git add -A docs/generated docs/code-quality
 ```
 
-- [ ] **Step 5: Run the CI-equivalent freshness + quality ratchet (S1–S4 + baseline key-count assertion)**
+**DONE** **Step 5: Run the CI-equivalent freshness + quality ratchet (S1–S4 + baseline key-count assertion)**
 
 Run: `task freshness:check`
 Expected: PASS. If S1 fails, the offending file grew past its effective threshold — go back and shrink it (most likely `pipeline.js` or `FactoryFloor.svelte`); do NOT add a baseline entry (the key-count assertion will fail on baseline growth).
 
-- [ ] **Step 6: Manifest validation (a `.sql` migration changed, no kustomize change — still cheap to confirm)**
+**DONE** **Step 6: Manifest validation (a `.sql` migration changed, no kustomize change — still cheap to confirm)**
 
 Run: `task workspace:validate`
 Expected: PASS (no manifest structure regressions).
 
-- [ ] **Step 7: Final commit of regenerated artifacts**
+**DONE** **Step 7: Final commit of regenerated artifacts**
 
 ```bash
 git add website/src/data/test-inventory.json docs/generated docs/code-quality
 git commit -m "chore: regenerate test-inventory + freshness artifacts for openspec workflow"
 ```
 
-- [ ] **Step 8: Confirm clean tree + line budgets one last time**
+**DONE** **Step 8: Confirm clean tree + line budgets one last time**
 
 Run:
 ```bash

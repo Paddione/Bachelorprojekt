@@ -16,7 +16,7 @@ set -euo pipefail
 : "${PGPORT:=15432}"
 
 DBS=("website" "bugs" "bachelorprojekt")
-STAMP=$(ls -1 "$BACKUP_DIR" | sort -r | head -1)
+STAMP=$(ls -1 "$BACKUP_DIR" | grep -v "^pvc-" | sort -r | head -1)
 if [[ -z "$STAMP" ]]; then
   echo "No backups found in $BACKUP_DIR — bailing." >&2
   exit 1

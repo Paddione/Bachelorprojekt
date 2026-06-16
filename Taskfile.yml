@@ -290,6 +290,8 @@ tasks:
       - task: test:unit:readiness-webhook
       - task: test:unit:staging
       - task: test:unit:api-auth-gate
+      - task: test:unit:brainstorm-submit-smoke
+      - task: test:unit:plan-review-smoke
 
   test:unit:build-graph:
     internal: true
@@ -330,6 +332,16 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/api-auth-gate.bats
+
+  test:unit:brainstorm-submit-smoke:
+    internal: true
+    cmds:
+      - bash scripts/tests/brainstorm-submit-smoke.sh
+
+  test:unit:plan-review-smoke:
+    internal: true
+    cmds:
+      - bash scripts/tests/plan-review-smoke.sh
 
   test:unit:ticket-triage:
     internal: true

@@ -169,11 +169,50 @@ fs.writeFileSync(f, s);
 NODE
       echo "patched server: $server"; done_n=$((done_n+1))
     fi
+
+    # E) plan-review patch — separate pass (anchor exists only after main patch)
+    if ! grep -qF 'plan-review-server v1' "$server" 2>/dev/null; then
+      MARKER_PR="plan-review-server v1" node - "$server" <<'NODE2'
+const fs = require('fs');
+const f = process.argv[2];
+let s = fs.readFileSync(f, 'utf8');
+const P = [];
+P.push([
+`      const sub = { v: 1, ts: Date.now(), seq: ev.seq || 0, nonce: ev.nonce || null,
+        screen: ev.screen || null, question: ev.question || '', selected: ev.selected || [],
+        fields: ev.fields || {}, markdown: md };`,
+`      const sub = { v: 1, ts: Date.now(), seq: ev.seq || 0, nonce: ev.nonce || null,
+        screen: ev.screen || null, question: ev.question || '', selected: ev.selected || [],
+        fields: ev.fields || {}, markdown: md,
+        /* plan-review-server v1 */
+        annotations: ev.kind === 'plan-review' ? ev.annotations || [] : undefined,
+        verdict: ev.kind === 'plan-review' ? (ev.verdict || null) : undefined };`
+]);
+const missing = P.map(([a], i) => [i, s.split(a).length - 1]).filter(([, n]) => n !== 1);
+if (missing.length) {
+  console.error('ERROR: plan-review anchors not unique/found ' + JSON.stringify(missing) + ' in ' + f + ' — companion changed; not patched');
+  process.exit(2);
+}
+for (const [a, r] of P) s = s.replace(a, r);
+fs.writeFileSync(f, s);
+NODE2
+      echo "patched server (plan-review): $server"; done_n=$((done_n+1))
+    fi
   done
 done
 
 if [[ "$MODE" == "--check" ]]; then
   [[ $need -eq 1 ]] && { echo "submit patch needed" >&2; exit 1; }
-  echo "submit patch present"; exit 0
+  # also check plan-review marker on each cached server.cjs
+  for root in "$HOME/.claude/plugins/cache" "$HOME/.config/claude/plugins/cache"; do
+    [[ -d "$root" ]] || continue
+    for server in "$root"/**/superpowers/**/skills/brainstorming/scripts/server.cjs; do
+      [[ -f "$server" ]] || continue
+      grep -qF 'plan-review-server v1' "$server" && continue
+      echo "plan-review patch needed: $server" >&2; need=1
+    done
+  done
+  [[ $need -eq 1 ]] && { echo "plan-review patch needed" >&2; exit 1; }
+  echo "submit + plan-review patch present"; exit 0
 fi
 echo "submit patch: ${done_n} file edit(s) applied"

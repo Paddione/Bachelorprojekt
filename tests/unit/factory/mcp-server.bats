@@ -4,10 +4,10 @@
 setup() {
   export FACTORY_REPO="${BATS_TMPDIR}/mock-repo"
   mkdir -p "$FACTORY_REPO/scripts/factory"
-  cp "${BATS_TEST_DIRNAME}/../../../scripts/factory/mcp-server.mjs" "$FACTORY_REPO/scripts/factory/"
-  cp "${BATS_TEST_DIRNAME}/../../../scripts/factory/package.json" "$FACTORY_REPO/scripts/factory/" 2>/dev/null || true
+  ORIG_REPO="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
   export FACTORY_MCP_PORT=13099
   export REPO="$FACTORY_REPO"
+  MCP_SERVER="${ORIG_REPO}/scripts/factory/mcp-server.mjs"
 }
 
 teardown() {
@@ -16,7 +16,7 @@ teardown() {
 }
 
 _start_server() {
-  node "${FACTORY_REPO}/scripts/factory/mcp-server.mjs" &
+  node "${MCP_SERVER}" &
   MCP_PID=$!
   sleep 1
 }

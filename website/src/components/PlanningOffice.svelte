@@ -18,6 +18,8 @@
     dorScore: number;
     isNextCandidate: boolean;
     pinned: boolean;
+    requirementsList: string[];
+    lastenheftLocked: boolean;
   }
 
   interface Stats {
@@ -75,6 +77,31 @@
 
   async function toggleDor(it: PlanItem, key: string) {
     await patch(it.extId, { readiness: { ...it.readiness, [key]: !(it.readiness?.[key]) } });
+  }
+
+  // Save the requirements list (Pflichtenheft) without locking.
+  async function saveRequirements(it: PlanItem, requirements: string[]) {
+    await patch(it.extId, { requirements });
+  }
+
+  // Toggle the Lastenheft lock. Locking needs >=1 requirement (server-enforced) and
+  // forwards the ticket into the autopilot lane → it leaves the Planungsbüro.
+  async function toggleLock(it: PlanItem) {
+    const r = await fetch(`/api/admin/planungsbuero/${it.extId}`, {
+      method: 'PATCH',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ lastenheftLocked: !it.lastenheftLocked }),
+    });
+    if (r.status === 422) {
+      alert('Lastenheft kann nicht verriegelt werden — mindestens eine Anforderung nötig.');
+      return;
+    }
+    if (!it.lastenheftLocked && r.ok) {
+      // Just locked → status forwarded to backlog; clear selection (item left the office).
+      selected = null;
+      sheetOpen = false;
+    }
+    await load();
   }
 
   async function promote(it: PlanItem) {
@@ -252,6 +279,8 @@
             promoteFn={promote}
             removeDepFn={removeDep}
             addDepFn={addDep}
+            saveRequirementsFn={saveRequirements}
+            lockFn={toggleLock}
           />
         </div>
       {/if}

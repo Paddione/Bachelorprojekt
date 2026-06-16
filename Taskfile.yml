@@ -273,6 +273,7 @@ tasks:
       - task: test:unit:ticket-add-pr-link
       - task: test:unit:ticket-create
       - task: test:unit:ticket-grill
+      - task: test:unit:ticket-lastenheft
       - task: test:unit:worktree-create
       - task: test:unit:test-tasks-node-deps
       - task: test:unit:quality-loop
@@ -494,6 +495,11 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/ticket-grill.bats
+
+  test:unit:ticket-lastenheft:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/ticket-lastenheft.bats
 
   test:unit:worktree-create:
     internal: true

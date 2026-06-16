@@ -35,9 +35,13 @@ export const PATCH: APIRoute = async ({ request, params }) => {
       dependsOn: Array.isArray(b.dependsOn) ? b.dependsOn : undefined,
       rank: typeof b.rank === 'number' ? b.rank : undefined,
       readiness,
+      requirements: Array.isArray(b.requirements) ? b.requirements : undefined,
+      lastenheftLocked: typeof b.lastenheftLocked === 'boolean' ? b.lastenheftLocked : undefined,
     });
     return ok ? json({ ok: true }) : json({ error: 'not_found_or_noop' }, 404);
   } catch (e) {
+    if (e instanceof Error && e.message === 'lastenheft_empty')
+      return json({ error: 'lastenheft_empty' }, 422);
     console.error('[api/admin/planungsbuero PATCH]', e);
     return json({ error: 'patch_failed' }, 500);
   }

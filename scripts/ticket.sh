@@ -38,100 +38,16 @@ if [[ "$CTX" == k3d-* || "$CTX" == *-dev ]]; then
   fi
 fi
 
-_pgpod() {
-  local pod
-  pod=$(kubectl get pod -n "$NS" --context "$CTX" -l 'app in (shared-db, shared-db-dev)' -o name 2>/dev/null | head -1)
-  if [[ -z "$pod" ]]; then
-    echo "ERROR: no shared-db pod found in namespace $NS (context $CTX)" >&2
-    exit 1
-  fi
-  echo "$pod"
-}
-
-_exec_sql() {
-  local pod="$1"; shift
-  # We read from stdin (which is passed down)
-  kubectl exec -i "$pod" -n "$NS" --context "$CTX" -c postgres -- \
-    psql -U "$USER" -d "$DB" -qtA -v ON_ERROR_STOP=1 "$@"
-}
+source "$(dirname "${BASH_SOURCE[0]}")/vda/ticket/_ticket-core.sh"
 
 cmd_create() {
-  local type="" title="" desc="" brand="mentolder" severity="" priority="mittel" status="triage" attention_mode="" is_test="false"
-  while [[ $# -gt 0 ]]; do case "$1" in
-      --type)           type="$2"; shift 2 ;;
-      --title)          title="$2"; shift 2 ;;
-      --description)    desc="$2"; shift 2 ;;
-      --brand)          brand="$2"; shift 2 ;;
-      --severity)       severity="$2"; shift 2 ;;
-      --priority)       priority="$2"; shift 2 ;;
-      --status)         status="$2"; shift 2 ;;
-      --attention-mode) attention_mode="$2"; shift 2 ;;
-      --is-test-data)   is_test="true"; shift ;;
-      *)                echo "Unknown create option: $1" >&2; exit 2 ;;
-    esac; done
-  if [[ -z "$type" || -z "$title" || -z "$desc" ]]; then
-    echo "ERROR: --type, --title, and --description are required." >&2
-    exit 2
-  fi
-  local pod; pod=$(_pgpod)
-  local result ext_id
-  result=$(_exec_sql "$pod" \
-    -v type="$type" \
-    -v brand="$brand" \
-    -v title="$title" \
-    -v desc="$desc" \
-    -v status="$status" \
-    -v sev="$severity" \
-    -v prio="$priority" \
-    -v attn="$attention_mode" \
-    -v is_test="$is_test" <<'EOF'
-INSERT INTO tickets.tickets (type, brand, title, description, status, severity, priority, attention_mode, is_test_data)
-VALUES (:'type', :'brand', :'title', :'desc', :'status', NULLIF(:'sev', ''), :'prio', COALESCE(NULLIF(:'attn', ''), 'auto'), :'is_test'::boolean)
-RETURNING external_id || '|' || id;
-EOF
-)
-  ext_id="${result%%|*}"
-  echo "$result"
-  if [[ "$type" == "mishap" ]] && [[ -n "$ext_id" ]]; then
-    local sdir; sdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    "$sdir/mishap-categorize.sh" "$ext_id" "$title" "$desc" >&2 || true
-  fi
+  source "$(dirname "${BASH_SOURCE[0]}")/vda/ticket/create.sh"
+  main "$@"
 }
 
 cmd_update_status() {
-  local id="" status="" resolution="" notes=""
-  while [[ $# -gt 0 ]]; do case "$1" in
-      --id)         id="$2"; shift 2 ;;
-      --status)     status="$2"; shift 2 ;;
-      --resolution) resolution="$2"; shift 2 ;;
-      --notes)      notes="$2"; shift 2 ;;
-      *)            echo "Unknown update-status option: $1" >&2; exit 2 ;;
-    esac; done
-
-  if [[ -z "$id" || -z "$status" ]]; then
-    echo "ERROR: --id and --status are required." >&2
-    exit 2
-  fi
-
-  local pod
-  pod=$(_pgpod)
-
-  _exec_sql "$pod" \
-    -v ext_id="$id" \
-    -v status="$status" \
-    -v res="$resolution" \
-    -v notes="$notes" <<'EOF' >/dev/null
-UPDATE tickets.tickets SET
-  status = :'status',
-  resolution = NULLIF(:'res', ''),
-  done_at = CASE WHEN :'status' = 'done' THEN now() ELSE done_at END,
-  -- Release the pipeline slot on a terminal transition so the ledger never leaks (T000525).
-  pipeline_slot = CASE WHEN :'status' IN ('done','archived') THEN NULL ELSE pipeline_slot END,
-  notes = CASE WHEN :'notes' <> '' THEN COALESCE(notes || E'\n\n', '') || :'notes' ELSE notes END
-WHERE external_id = :'ext_id';
-EOF
-
-  echo "Ticket $id status updated to $status"
+  source "$(dirname "${BASH_SOURCE[0]}")/vda/ticket/update-status.sh"
+  main "$@"
 }
 
 cmd_add_comment() {
@@ -307,92 +223,18 @@ EOF
 }
 
 cmd_get() {
-  local id=""
-  while [[ $# -gt 0 ]]; do case "$1" in
-      --id) id="$2"; shift 2 ;;
-      *)    echo "Unknown get option: $1" >&2; exit 2 ;;
-    esac; done
-  if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
-  local pod; pod=$(_pgpod)
-  # Metadata only — NEVER select ticket_plans.content.
-  _exec_sql "$pod" -v ext_id="$id" <<'EOF'
-SELECT json_build_object(
-  'external_id', t.external_id, 'id', t.id, 'type', t.type, 'brand', t.brand,
-  'title', t.title, 'status', t.status, 'priority', t.priority,
-  'touched_files', t.touched_files, 'pipeline_slot', t.pipeline_slot,
-  'created_at', t.created_at, 'updated_at', t.updated_at,
-  'plan_ref', (
-    SELECT c.body FROM tickets.ticket_comments c
-    WHERE c.ticket_id = t.id AND c.body LIKE 'FACTORY-PLAN-REF %'
-    ORDER BY c.created_at DESC LIMIT 1
-  )
-) FROM tickets.tickets t WHERE t.external_id = :'ext_id';
-EOF
+  source "$(dirname "${BASH_SOURCE[0]}")/vda/ticket/get.sh"
+  main "$@"
 }
 
 cmd_enqueue() {
-  local id="" branch="" plan=""
-  while [[ $# -gt 0 ]]; do case "$1" in
-      --id)     id="$2"; shift 2 ;;
-      --branch) branch="$2"; shift 2 ;;
-      --plan)   plan="$2"; shift 2 ;;
-      *)        echo "Unknown enqueue option: $1" >&2; exit 2 ;;
-    esac; done
-  if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
-  local pod; pod=$(_pgpod)
-  # Flip into the factory queue: type=feature, status=backlog (claimable by slots.sh).
-  _exec_sql "$pod" -v ext_id="$id" <<'EOF' >/dev/null
-UPDATE tickets.tickets SET type='feature', status='backlog' WHERE external_id = :'ext_id';
-EOF
-  # Record a DDL-free plan reference for the pipeline's plan-reuse entrypoint.
-  # Idempotent: skip if a FACTORY-PLAN-REF already exists (e.g. written by
-  # `stage-plan` during Kommissionierung) to avoid duplicate refs.
-  if [[ -n "$branch" || -n "$plan" ]]; then
-    _exec_sql "$pod" -v ext_id="$id" -v ref="FACTORY-PLAN-REF branch=${branch} plan=${plan}" <<'EOF' >/dev/null
-INSERT INTO tickets.ticket_comments (ticket_id, author_label, body, visibility)
-SELECT t.id, 'factory', :'ref', 'internal'
-  FROM tickets.tickets t
- WHERE t.external_id = :'ext_id'
-   AND NOT EXISTS (
-     SELECT 1 FROM tickets.ticket_comments c
-      WHERE c.ticket_id = t.id AND c.body LIKE 'FACTORY-PLAN-REF %'
-   );
-EOF
-  fi
-  echo "Ticket $id enqueued for the Software Factory (type=feature, status=backlog)"
+  source "$(dirname "${BASH_SOURCE[0]}")/vda/ticket/enqueue.sh"
+  main "$@"
 }
 
 cmd_stage_plan() {
-  local id="" branch="" plan=""
-  while [[ $# -gt 0 ]]; do case "$1" in
-      --id)     id="$2"; shift 2 ;;
-      --branch) branch="$2"; shift 2 ;;
-      --plan)   plan="$2"; shift 2 ;;
-      *)        echo "Unknown stage-plan option: $1" >&2; exit 2 ;;
-    esac; done
-  # Validate BEFORE _pgpod so bad-arg errors are deterministic w/o a cluster (FA-SF-35/50).
-  if [[ -z "$id"     ]]; then echo "ERROR: --id is required."     >&2; exit 2; fi
-  if [[ -z "$branch" ]]; then echo "ERROR: --branch is required." >&2; exit 2; fi
-  if [[ -z "$plan"   ]]; then echo "ERROR: --plan is required."   >&2; exit 2; fi
-  local pod; pod=$(_pgpod)
-  # Kommissionierung: type=feature, status=plan_staged (factory-unsichtbar; der
-  # Dispatcher pollt nur 'backlog'). Wartet auf manuelle Freigabe in /dev-status.
-  _exec_sql "$pod" -v ext_id="$id" <<'EOF' >/dev/null
-UPDATE tickets.tickets SET type='feature', status='plan_staged' WHERE external_id = :'ext_id';
-EOF
-  # FACTORY-PLAN-REF nur schreiben, falls noch keiner existiert (idempotent ->
-  # kein Duplikat beim spateren Staging->Enqueue).
-  _exec_sql "$pod" -v ext_id="$id" -v ref="FACTORY-PLAN-REF branch=${branch} plan=${plan}" <<'EOF' >/dev/null
-INSERT INTO tickets.ticket_comments (ticket_id, author_label, body, visibility)
-SELECT t.id, 'dev-flow-plan', :'ref', 'internal'
-  FROM tickets.tickets t
- WHERE t.external_id = :'ext_id'
-   AND NOT EXISTS (
-     SELECT 1 FROM tickets.ticket_comments c
-      WHERE c.ticket_id = t.id AND c.body LIKE 'FACTORY-PLAN-REF %'
-   );
-EOF
-  echo "Ticket $id staged in Kommissionierung (type=feature, status=plan_staged)"
+  source "$(dirname "${BASH_SOURCE[0]}")/vda/ticket/stage-plan.sh"
+  main "$@"
 }
 
 cmd_set_touched_files() {

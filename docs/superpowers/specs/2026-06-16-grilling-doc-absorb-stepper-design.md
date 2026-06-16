@@ -3,7 +3,7 @@ title: "Grilling-Doc-Absorption + Frage-für-Frage-Stepper + Dismiss"
 date: 2026-06-16
 status: draft
 domains: [website]
-ticket_id: null
+ticket_id: T000893
 plan_ref: null
 ---
 

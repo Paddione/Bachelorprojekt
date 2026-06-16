@@ -261,6 +261,8 @@ tasks:
       - task: test:unit:wg-mesh-fullmesh
       - task: test:unit:recovery-domain-durability
       - task: test:unit:mediaviewer-host-durability
+      - task: test:unit:agent-collision
+      - task: test:unit:agent-msg
       - task: test:unit:website-domain-config-overlay
       - task: test:unit:ticket-external-id
       - task: test:unit:ticket-triage
@@ -410,6 +412,16 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/mediaviewer-host-durability.bats
+
+  test:unit:agent-collision:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/agent-collision.bats
+
+  test:unit:agent-msg:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/agent-msg.bats
 
   test:unit:website-domain-config-overlay:
     internal: true

@@ -64,7 +64,7 @@ verifizieren/redeployen. Sensibler Wert → kann/darf hier nicht gesetzt werden.
 
 ## Implementierungsschritte
 
-### 1. Shared Helper `tests/e2e/lib/e2e-marker.ts` (neu, Leaf-Modul, kein Import-Zyklus)
+### [x] 1. Shared Helper `tests/e2e/lib/e2e-marker.ts` (neu, Leaf-Modul, kein Import-Zyklus)
 
 ```ts
 const BASE = process.env.WEBSITE_URL ?? 'http://localhost:4321';
@@ -96,19 +96,19 @@ export async function createTestBugReport(
 }
 ```
 
-### 2. `tests/e2e/specs/fa-admin-tickets.spec.ts` (T000863)
+### [x] 2. `tests/e2e/specs/fa-admin-tickets.spec.ts` (T000863)
 
 - Import `createTestBugReport`, `markerAvailable`.
 - Am Anfang des Full-Flow-Tests: `test.skip(!markerAvailable(), 'CRON_SECRET fehlt — Seed würde Prod-Tracker verschmutzen');`
 - Seed-Block (Z. 55–67) durch `const { ticketId: externalId } = await createTestBugReport(request, { description: 'PR4 admin-tickets E2E seed', email: reporter, category: 'fehler', url: '/admin/tickets-e2e' });` ersetzen.
 
-### 3. `tests/e2e/specs/fa-26-bug-report-form.spec.ts` (T000862)
+### [x] 3. `tests/e2e/specs/fa-26-bug-report-form.spec.ts` (T000862)
 
 - Import `markerHeaders`, `markerAvailable`.
 - Den Inline-`if (CRON_SECRET)`-Block durch `markerHeaders()` ersetzen.
 - Test *"valid data returns 200"*: `test.skip(!markerAvailable(), 'CRON_SECRET fehlt — würde echtes Ticket erzeugen');` voranstellen. (Die 400-Validierungs-Tests erzeugen keine Zeilen → laufen weiter.)
 
-### 4. Workflow-Verdrahtung — `CRON_SECRET: ${{ secrets.CRON_SECRET }}`
+### [x] 4. Workflow-Verdrahtung — `CRON_SECRET: ${{ secrets.CRON_SECRET }}`
 
 In den Runner-/Step-`env`-Block aufnehmen (forward-kompatibel: fehlt das Repo-Secret,
 ist der Wert leer → Tests skippen statt zu lecken):
@@ -117,7 +117,7 @@ ist der Wert leer → Tests skippen statt zu lecken):
 - `.github/workflows/e2e.yml` (Playwright-Step-`env`; den reinen Kommentar Z. 114 durch die echte Zuweisung ersetzen).
 - `.github/workflows/factory-post-merge-e2e.yml` (Step-`env`, falls er Playwright fährt).
 
-### 5. Guard-Test (bereits geschrieben, rot→grün)
+### [x] 5. Guard-Test (bereits geschrieben, rot→grün) — inkl. markerTokens-Erweiterung
 
 `website/tests/e2e-marker-hygiene.test.ts` — scannt alle Specs; jede, die zu
 `/api/bug-report` POSTet, muss den Marker führen. Heute rot (fa-admin-tickets),

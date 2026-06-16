@@ -47,7 +47,7 @@ function collectSpecFiles(dir: string): string[] {
  * (`X-E2E-Test`) or via the shared helper (`createTestBugReport`). Detection is
  * intentionally conservative: it only flags files that POST to /api/bug-report.
  */
-const MARKER_TOKENS = ['X-E2E-Test', 'createTestBugReport', 'bugReportMarkerHeaders'];
+const MARKER_TOKENS = ['X-E2E-Test', 'createTestBugReport', 'bugReportMarkerHeaders', 'markerHeaders', 'markerAvailable'];
 
 describe('E2E marker hygiene (T000862/T000863)', () => {
   const specs = collectSpecFiles(E2E_ROOT);

@@ -38,6 +38,7 @@ jobs:
         if: steps.factory-check.outputs.is_factory == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
           TICKET_ID: ${{ steps.factory-check.outputs.ticket_id }}
         run: |
           echo "Triggering e2e.yml for ticket $TICKET_ID (cluster=both)"

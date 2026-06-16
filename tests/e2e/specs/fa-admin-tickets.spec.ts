@@ -13,6 +13,7 @@
 
 import { test, expect } from '@playwright/test';
 import { assertAuthenticatedReachable } from '../lib/health-assertions';
+import { createTestBugReport, markerAvailable } from '../lib/e2e-marker';
 
 const BASE       = process.env.WEBSITE_URL ?? 'http://localhost:4321';
 const MAILPIT    = process.env.MAILPIT_URL ?? 'http://localhost:8025';
@@ -44,6 +45,8 @@ async function loginAsAdmin(page: import('@playwright/test').Page) {
 
 test.describe('FA-admin-tickets', { tag: ['@admin'] }, () => {
   test('full flow: filter + comment + transition + timeline', async ({ page, request }, testInfo) => {
+    test.skip(!markerAvailable(), 'CRON_SECRET fehlt — Seed würde Prod-Tracker verschmutzen');
+
     await assertAuthenticatedReachable(
       request,
       `${BASE}/admin/tickets`,
@@ -53,18 +56,12 @@ test.describe('FA-admin-tickets', { tag: ['@admin'] }, () => {
 
     // ── 1. Mint a public bug as the seed ticket ──
     const reporter = `e2e-tickets-${Date.now()}@example.com`;
-    const create = await request.post(`${BASE}/api/bug-report`, {
-      multipart: {
-        description: 'PR4 admin-tickets E2E seed',
-        email:       reporter,
-        category:    'fehler',
-        url:         '/admin/tickets-e2e',
-      },
+    const { ticketId: externalId } = await createTestBugReport(request, {
+      description: 'PR4 admin-tickets E2E seed',
+      email:       reporter,
+      category:    'fehler',
+      url:         '/admin/tickets-e2e',
     });
-    expect(create.ok()).toBeTruthy();
-    const cb = await create.json() as { success: boolean; ticketId: string };
-    expect(cb.ticketId).toMatch(/^T\d{6,}$/);
-    const externalId = cb.ticketId;
 
     // ── 2. Admin login + index filter ──
     await loginAsAdmin(page);

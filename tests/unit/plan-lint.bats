@@ -77,3 +77,15 @@ setup() {
   echo "$output" | grep -q 'B1b'
   echo "$output" | grep -qE 'PLAN-LINT: PASS \([0-9]+ hard, [1-9]'
 }
+
+@test "--json emits a parseable verdict object for a passing plan" {
+  run bash "$LINT" --json "$FIX/good.md"
+  [ "$status" -eq 0 ]
+  echo "$output" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["verdict"]=="PASS"; assert isinstance(d["hard"],list); assert isinstance(d["warn"],list)'
+}
+
+@test "--json emits FAIL verdict with hard array for a broken plan" {
+  run bash "$LINT" --json "$FIX/missing-title.md"
+  [ "$status" -eq 1 ]
+  echo "$output" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["verdict"]=="FAIL"; assert len(d["hard"])>=1'
+}

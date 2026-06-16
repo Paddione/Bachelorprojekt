@@ -762,7 +762,7 @@ git commit -m "feat(plan-lint): B1a budget-integrity hard-fail + B1b strategy wa
 - Modify: `scripts/plan-lint.sh`
 - Modify: `tests/unit/plan-lint.bats`
 
-- [ ] **Step 1: Write the failing tests (G1 + JSON shape)**
+- [x] **Step 1: Write the failing tests (G1 + JSON shape)**
 
 Append to `tests/unit/plan-lint.bats`:
 
@@ -780,12 +780,12 @@ Append to `tests/unit/plan-lint.bats`:
 }
 ```
 
-- [ ] **Step 2: Run to verify**
+- [x] **Step 2: Run to verify**
 
 Run: `./tests/unit/lib/bats-core/bin/bats tests/unit/plan-lint.bats`
 Expected: the two JSON tests PASS already (the `--json` path was built in Task 1). If they pass, G1 is the only remaining check — proceed to add it. (This step confirms the JSON contract Factory relies on is stable.)
 
-- [ ] **Step 3: Add G1 (granularity warning) to `scripts/plan-lint.sh`**
+- [x] **Step 3: Add G1 (granularity warning) to `scripts/plan-lint.sh`**
 
 Insert before the verdict block. G1 is a soft heuristic — count `target_files`/`Files:` entries per task and warn if a task lists >3 files. Keep it conservative to avoid false positives:
 
@@ -801,12 +801,12 @@ awk '
 
 > G1 is `warn` only — it never changes the exit code. The awk pass is best-effort; over-counting a few inline path mentions is acceptable for a warning.
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `./tests/unit/lib/bats-core/bin/bats tests/unit/plan-lint.bats`
 Expected: PASS (all tests). `good.md` still PASS (its tasks list ≤3 files).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/plan-lint.sh tests/unit/plan-lint.bats

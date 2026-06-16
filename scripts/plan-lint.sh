@@ -125,6 +125,14 @@ while IFS= read -r path; do
   fi
 done < <(grep -oE '`[A-Za-z0-9_./-]+\.(sh|bash|ts|tsx|js|jsx|mjs|mts|cjs|py|svelte|astro|java|php)`' "$PLAN" | tr -d '`' | sort -u)
 
+# === G1: granularity warning — a single task touching >3 files (warn only) ===
+# Count `path` tokens inside each "## Task" block; warn if any block lists >3.
+while IFS= read -r g; do warn "${g/G1:/G1: }"; done < <(awk '
+  /^#+ +Task /{ if (n>3) print "G1:" task " touches " n " files"; task=$0; n=0; next }
+  /`[A-Za-z0-9_./-]+\.[a-z]+`/{ for(i=1;i<=NF;i++) if($i ~ /`.*\..*`/) n++ }
+  END{ if (n>3) print "G1:" task " touches " n " files" }
+' "$PLAN")
+
 # === verdict ===
 emit_verdict() {
   local n_hard=${#HARD[@]} n_warn=${#WARN[@]}

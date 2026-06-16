@@ -1,6 +1,15 @@
+<script module lang="ts">
+  import { PHASE_ORDER } from '../lib/factory-floor';
+  import type { Phase } from '../lib/factory-floor';
+  export const STATIONS: { key: Phase; label: string }[] =
+    PHASE_ORDER.map((key) => ({ key, label: key.charAt(0).toUpperCase() + key.slice(1) }));
+  export const MOBILE_COL_INDEX: Record<string, number> =
+    { staged: 0, backlog: 1, scout: 2, design: 3, plan: 4, implement: 5, verify: 6, deploy: 7, qs: 8, done: 9 };
+</script>
+
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import type { FloorPayload, TicketDetail, HallItem, Phase, InjectionKind } from '../lib/factory-floor';
+  import type { FloorPayload, TicketDetail, HallItem, InjectionKind } from '../lib/factory-floor';
 
   import QaChip from './QaChip.svelte';
   import QaModal from './QaModal.svelte';
@@ -19,13 +28,7 @@
 
   let { initial }: { initial: FloorPayload | null } = $props();
 
-  const STATIONS: { key: Phase; label: string }[] = [
-    { key: 'scout', label: 'Scout' }, { key: 'design', label: 'Design' }, { key: 'plan', label: 'Plan' },
-    { key: 'implement', label: 'Implement' }, { key: 'verify', label: 'Verify' }, { key: 'deploy', label: 'Deploy' },
-  ];
-
   const MOBILE_COL_COUNT = 10;
-  const MOBILE_COL_INDEX: Record<string, number> = { staged: 0, backlog: 1, scout: 2, design: 3, plan: 4, implement: 5, verify: 6, deploy: 7, qs: 8, done: 9 };
   let mobileColIndex = $state(0);
   let touchStartX = $state(0);
   let isMobile = $state(false);

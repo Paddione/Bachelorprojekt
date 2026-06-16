@@ -2279,7 +2279,7 @@ tasks:
           if [ -f "$sealed" ]; then
             # Pre-create ALL namespaces referenced by SealedSecrets so apply doesn't fail.
             # Includes coturn + workspace-office so their SealedSecrets land cleanly.
-            for _ns in "$_ws_ns" cert-manager "$_website_ns" coturn workspace-office; do
+            for _ns in "$_ws_ns" cert-manager "$_website_ns" coturn workspace-office monitoring; do
               kubectl --context "$ENV_CONTEXT" create namespace "$_ns" \
                 --dry-run=client -o yaml | kubectl --context "$ENV_CONTEXT" apply -f -
             done
@@ -2334,7 +2334,7 @@ tasks:
           ENVSUBST_VARS="$ENVSUBST_VARS \$WEBSITE_IMAGE \$TURN_PUBLIC_IP \$TURN_NODE \$BRAND_ID"
           ENVSUBST_VARS="$ENVSUBST_VARS \$KC_USER1_USERNAME \$KC_USER1_EMAIL \$KC_USER2_USERNAME \$KC_USER2_EMAIL"
           ENVSUBST_VARS="$ENVSUBST_VARS \$BRETT_DOMAIN"
-          ENVSUBST_VARS="$ENVSUBST_VARS \$LIVEKIT_DOMAIN \$STREAM_DOMAIN \$RECOVER_DOMAIN"
+          ENVSUBST_VARS="$ENVSUBST_VARS \$LIVEKIT_DOMAIN \$STREAM_DOMAIN \$RECOVER_DOMAIN \$OTEL_DOMAIN"
           ENVSUBST_VARS="$ENVSUBST_VARS \$WORKSPACE_NAMESPACE \$WEBSITE_NAMESPACE"
           ENVSUBST_VARS="$ENVSUBST_VARS \$SYSTEMTEST_LOOP_ENABLED"
           ENVSUBST_VARS="$ENVSUBST_VARS \$LLM_HOST_IP \$LLM_ENABLED \$LLM_RERANK_ENABLED \$LLM_ROUTER_URL \$LLM_EMBED_URL"

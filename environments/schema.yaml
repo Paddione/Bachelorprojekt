@@ -193,6 +193,12 @@ env_vars:
     required: true
     default_dev: "recover.localhost"
 
+  - name: OTEL_DOMAIN
+    required: true
+    default_dev: "otel.localhost"
+    validate: "^[a-z0-9.-]+$"
+    description: "Public hostname of the OTel collector OTLP ingress (otel.<domain>)"
+
   - name: LIVEKIT_DOMAIN
     required: true
     default_dev: "livekit.localhost"
@@ -626,6 +632,17 @@ secrets:
     required: true
     generate: true
     length: 40
+
+  # Software Factory OTel collector bearer token (per-brand, manually provisioned).
+  # Sealed into the monitoring ns as the otel-collector-auth Secret (key
+  # FACTORY_OTLP_TOKEN) that the otel-collector Deployment reads for bearer auth.
+  - name: FACTORY_OTLP_TOKEN
+    required: true
+    generate: false
+    description: "Bearer token the autopilot presents to the OTel collector ingress (per-brand, set manually in .secrets/<env>.yaml)"
+    extra_namespaces:
+      - namespace: monitoring
+        secret: otel-collector-auth
 
   # Claude Code
   - name: CLAUDE_CODE_OIDC_SECRET

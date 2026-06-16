@@ -1037,7 +1037,7 @@ git commit -m "feat(plan-lint): wire deterministic gate into dev-flow-plan/batch
 **Files:**
 - Modify: `Taskfile.yml:249-294` (test:unit aggregation), and add an internal `test:unit:plan-lint` task
 
-- [ ] **Step 1: Add the internal task + register it in `test:unit`**
+- [x] **Step 1: Add the internal task + register it in `test:unit`**
 
 In `Taskfile.yml`, add a new internal task next to the other `test:unit:*` entries (e.g. after `test:unit:plan-frontmatter-hook` block, near line ~444). The existing pattern is:
 
@@ -1054,19 +1054,19 @@ Then register it in the `test:unit` task's `cmds:` list (lines 253-294) by addin
       - task: test:unit:plan-lint
 ```
 
-- [ ] **Step 2: Verify the coverage-guard passes (the new bats is tracked)**
+- [x] **Step 2: Verify the coverage-guard passes (the new bats is tracked)**
 
 The `unit-coverage-guard.sh` fails if any `tests/unit/*.bats` is run by no task. Verify:
 
 Run: `bash scripts/tests/unit-coverage-guard.sh`
 Expected: PASS — `plan-lint.bats` is now wired (`grep -qF "plan-lint.bats" Taskfile.yml` matches).
 
-- [ ] **Step 3: Run the full unit suite to confirm wiring**
+- [x] **Step 3: Run the full unit suite to confirm wiring**
 
 Run: `task test:unit:plan-lint && task test:unit:coverage-guard`
 Expected: both PASS.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add Taskfile.yml

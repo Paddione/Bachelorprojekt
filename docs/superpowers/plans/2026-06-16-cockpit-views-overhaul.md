@@ -3,7 +3,7 @@ date: 2026-06-16
 slug: cockpit-views-overhaul
 status: draft
 domains: [website]
-ticket_id: null
+ticket_id: T000877
 spec_ref: docs/superpowers/specs/2026-06-16-cockpit-views-overhaul-design.md
 file_locks: []
 shared_changes: false

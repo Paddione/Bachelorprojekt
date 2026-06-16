@@ -3,7 +3,7 @@ date: 2026-06-16
 slug: cockpit-views-overhaul
 status: draft
 domains: [website]
-ticket_id: null
+ticket_id: T000877
 plan_ref: null
 ---
 

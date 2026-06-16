@@ -6,6 +6,7 @@
     statusLabel, priorityLabel, typeLabel, resolutionLabel, RESOLUTION_LABELS,
     ALL_PRIORITIES, nextTransitions, isTerminal, defaultResolutionFor,
   } from '../../lib/tickets/cockpit-labels';
+  import MarkdownEditor from './MarkdownEditor.svelte';
   export let ticket: TicketRowT | null;
   export let open = false;
   export let onClose: (() => void) | undefined = undefined;
@@ -100,10 +101,10 @@
       {#if ticket.createdAt}<dt>Erstellt</dt><dd>{ticket.createdAt.slice(0, 10)}</dd>{/if}
     </dl>
 
-    <label class="fld">Beschreibung
-      <textarea data-testid="drawer-description" rows="4"
-        bind:value={description} on:blur={saveDescription}></textarea>
-    </label>
+    <div class="fld"><span>Beschreibung</span>
+      <MarkdownEditor testid="drawer-description" rows={4}
+        bind:value={description} onblur={saveDescription} />
+    </div>
 
     {#if showResolution}
       <label class="fld">Resolution (bei Erledigt/Archiviert)
@@ -138,7 +139,7 @@
   .back { display: none; background: none; border: none; color: inherit; font-size: 1.3rem; cursor: pointer; }
   .close { background: none; border: none; color: inherit; font-size: 1.4rem; cursor: pointer; }
   .fld { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.85rem; }
-  input, textarea, select { background: var(--admin-bg, #1c1f26); border: 1px solid var(--admin-border, #2a2e37); color: inherit; padding: 0.4rem; border-radius: 4px; font: inherit; }
+  input, select { background: var(--admin-bg, #1c1f26); border: 1px solid var(--admin-border, #2a2e37); color: inherit; padding: 0.4rem; border-radius: 4px; font: inherit; }
   .badges { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
   .badge { display: inline-block; padding: 0.2rem 0.55rem; border-radius: 999px; font-size: 0.78rem; font-weight: 600;
     background: var(--admin-bg, #1c1f26); border: 1px solid var(--admin-border, #2a2e37); }

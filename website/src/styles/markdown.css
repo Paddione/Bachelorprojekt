@@ -1,0 +1,64 @@
+/* Geteilte Render-Styles für gerendertes Ticket-Markdown (renderMarkdown()).
+   Importiert von der Vollbild-Seite, der Activity-Timeline und der Editor-Vorschau.
+   Bewusst tokenarm + currentColor, damit es in Admin- (Tailwind) UND Kore-Kontext passt. */
+
+.md-body {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: inherit;
+  word-break: break-word;
+}
+.md-body > :first-child { margin-top: 0; }
+.md-body > :last-child { margin-bottom: 0; }
+
+.md-body p { margin: 0 0 0.6em; }
+
+.md-body h3,
+.md-body h4,
+.md-body h5 {
+  margin: 1em 0 0.4em;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.md-body h3 { font-size: 1.05rem; }
+.md-body h4 { font-size: 0.95rem; }
+.md-body h5 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.85; }
+
+.md-body ul,
+.md-body ol { margin: 0 0 0.6em; padding-left: 1.4em; }
+.md-body li { margin: 0.15em 0; }
+.md-body ul { list-style: disc; }
+.md-body ol { list-style: decimal; }
+
+.md-body strong { font-weight: 700; }
+.md-body em { font-style: italic; }
+
+.md-body code {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.85em;
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  background: rgba(127, 127, 127, 0.18);
+}
+.md-body pre {
+  margin: 0 0 0.6em;
+  padding: 0.7em 0.9em;
+  border-radius: 8px;
+  background: rgba(127, 127, 127, 0.14);
+  overflow-x: auto;
+}
+.md-body pre code { padding: 0; background: none; }
+
+.md-body blockquote {
+  margin: 0 0 0.6em;
+  padding: 0.3em 0.9em;
+  border-left: 3px solid currentColor;
+  opacity: 0.85;
+}
+
+.md-body a {
+  color: var(--brass, #cda260);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.md-body a:hover { text-decoration: none; }

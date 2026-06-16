@@ -5,4 +5,5 @@ resources:
   - ../../k3d/website.yaml
   - ../../k3d/website-seller-config.yaml
   # mentolder HTTPS Ingress (tracked here to survive cluster rebuilds — T000146)
+  - ../website-common/domain-config.yaml
   - website-ingress-web.yaml

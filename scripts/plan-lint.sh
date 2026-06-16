@@ -97,23 +97,38 @@ grep -qE 'task[[:space:]]+freshness:check'      "$PLAN" || hard "STRUCT3: verify
 
 # === P1: no open placeholders in the plan body (outside code fences) ===
 # Strip fenced code blocks first so example snippets don't false-positive,
-# then look for placeholder tokens.
+# then look for placeholder tokens. Inline-code spans (`...`) are also stripped so
+# a literal token quoted as code (e.g. a `TODO` placeholder mentioned in prose) is
+# not flagged — only an UNQUOTED placeholder left in real prose is a hard fail.
 PLAN_PROSE="$(awk 'BEGIN{inf=0}/^```/{inf=!inf;next}inf==0{print}' "$PLAN")"
-if grep -nE '\b(TBD|TODO|FIXME)\b|\?\?\?|<ausfüllen>|similar to Task [0-9]' <<<"$PLAN_PROSE" >/dev/null; then
+PLAN_PROSE_NOCODE="$(sed 's/`[^`]*`//g' <<<"$PLAN_PROSE")"
+if grep -nE '\b(TBD|TODO|FIXME)\b|\?\?\?|<ausfüllen>|similar to Task [0-9]' <<<"$PLAN_PROSE_NOCODE" >/dev/null; then
   hard "P1: open placeholder found (TBD/TODO/FIXME/???/'similar to Task N')"
 fi
 
 # === B1a/B1b: per-file budget integrity + strategy ===
-# Extract (path, claimed_budget) pairs from table rows and 'Budget <N>' prose.
-# Table row:  | `path` | <ist> | <budget> |
-# Prose:      `path` ... Budget <N>
+# Scanned on FENCE-STRIPPED prose so reproduced fixture tables inside ```code```
+# blocks never count as a real self-reported budget. A claimed budget is only read
+# from a DELIBERATE, unambiguous form:
+#   - simple 3-column table row:  | `path` | <ist-num> | <budget-num> |
+#       (the wide Pre-flight table has non-numeric cells after the path → no match)
+#   - explicit labelled prose:    `path` … (Budget|Restbudget|budget) <N>
 while IFS= read -r path; do
   [[ -n "$path" ]] || continue
   # skip files that don't exist on disk (planned-new files have no live wc -l)
   [[ -f "$REPO_ROOT/$path" ]] || continue
   computed="$(residual_budget "$path")"
-  # find a claimed budget for this exact path anywhere in the plan
-  claimed="$(grep -oE "\`$(printf '%s' "$path" | sed 's/[.[*^$/]/\\&/g')\`[^|]*\|[^|]*\| *-?[0-9]+ *\||\`$(printf '%s' "$path" | sed 's/[.[*^$/]/\\&/g')\`[^0-9]*Budget *-?[0-9]+" "$PLAN" 2>/dev/null | grep -oE -- '-?[0-9]+' | tail -1 || true)"
+  esc="$(printf '%s' "$path" | sed 's/[.[*^$/]/\\&/g')"
+  # 3-column table form: capture the LAST numeric cell on a row that is exactly
+  # `| \`path\` | <num> | <num> |` (ist then budget). The wide Pre-flight table
+  # row begins `| \`path\` | \`.sh\` / 500 | …` → 2nd cell non-numeric → no match.
+  claimed="$(grep -oE "\| *\`$esc\` *\| *-?[0-9]+ *\| *-?[0-9]+ *\|" <<<"$PLAN_PROSE" 2>/dev/null \
+            | grep -oE -- '-?[0-9]+' | tail -1 || true)"
+  # explicit labelled prose form (only if no table claim found)
+  if [[ -z "$claimed" ]]; then
+    claimed="$(grep -oE "\`$esc\`.{0,60}(Budget|Restbudget|budget) *-?[0-9]+" <<<"$PLAN_PROSE" 2>/dev/null \
+              | grep -oE -- '-?[0-9]+' | tail -1 || true)"
+  fi
   if [[ -n "$claimed" && -n "$computed" && "$claimed" != "$computed" ]]; then
     hard "B1a: $path claims budget $claimed but computed effective budget is $computed"
   fi
@@ -123,7 +138,7 @@ while IFS= read -r path; do
       warn "B1b: $path residual budget $computed ≤ 0 and no split/shrink step planned"
     fi
   fi
-done < <(grep -oE '`[A-Za-z0-9_./-]+\.(sh|bash|ts|tsx|js|jsx|mjs|mts|cjs|py|svelte|astro|java|php)`' "$PLAN" | tr -d '`' | sort -u)
+done < <(grep -oE '`[A-Za-z0-9_./-]+\.(sh|bash|ts|tsx|js|jsx|mjs|mts|cjs|py|svelte|astro|java|php)`' <<<"$PLAN_PROSE" | tr -d '`' | sort -u)
 
 # === G1: granularity warning — a single task touching >3 files (warn only) ===
 # Count `path` tokens inside each "## Task" block; warn if any block lists >3.

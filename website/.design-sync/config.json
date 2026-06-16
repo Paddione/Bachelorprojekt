@@ -1,0 +1,10 @@
+{
+  "pkg": "mentolder-website",
+  "globalName": "MentolderDS",
+  "projectId": "5afb3eef-e9a4-43db-a111-03e308d5f0b8",
+  "shape": "package",
+  "readmeHeader": ".design-sync/conventions.md",
+  "offScript": true,
+  "note": "Off-script Svelte→React-wrapper sync. The stock converter (package-build.mjs) does NOT apply — components are Svelte 5, not React. Build pipeline lives in .ds-sync/ (gen.mjs). See NOTES.md.",
+  "globalNamespace": "MentolderDS"
+}

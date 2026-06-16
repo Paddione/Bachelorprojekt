@@ -112,7 +112,9 @@ unabhängiger Beweis ist. Stufen 3+4 prüfen andere Dimensionen (Review-Qualitä
 
 | Skill | When to use |
 |---|---|
-| `operations-management` | Production incident response triage (scope, diagnose, rollback/fix), DB ticket management (triage, AI-fixes, routing), repository hygiene (pruning stale worktrees/branches), PR reviews, and mishap tracking. |
+| `operations-management` | **Routing hub** — dispatches to `incident-response` (time-critical incidents) or `ticket-ops` (daily ops). Entry point for all operational work. |
+| `incident-response` | Production incident triage & recovery — scope, diagnose, fix/rollback, post-mortem. Use when a core service is down or degraded. |
+| `ticket-ops` | Daily operations — DB ticket triage, stale worktrees/branches, PR merge→close workflow, GitHub issue intake. Non-incident operational work. |
 | `update-dependencies` | Update workspace packages, fix deprecation warnings, and handle security audits/Major version bumps across all directories. |
 | `factory-autopilot` | Software Factory Autopilot lifecycle — install, status, uninstall the headless timer-driven dispatcher that autonomously processes backlog tickets. |
 
@@ -165,6 +167,8 @@ graph TD
     subgraph "Support"
         MT[mishap-tracker]
         OM[operations-management]
+        IR[incident-response]
+        TO[ticket-ops]
     end
 
     DP --> CD
@@ -179,7 +183,10 @@ graph TD
     DEE --> FO
     DEE --> CD
 
-    OM --> MT
+    OM --> IR
+    OM --> TO
+    IR --> MT
+    TO --> MT
     CD -.-> OM
     FO -.-> OM
     DO -.-> OM

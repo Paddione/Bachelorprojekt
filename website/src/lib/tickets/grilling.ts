@@ -198,3 +198,65 @@ export function parseGrillingDoc(content: string, fallbackId: string): ParsedGri
     questions,
   };
 }
+
+export interface GrillingMetaEntry {
+  title?: string;
+  questions: { id: string; prompt: string; section?: string }[];
+  dismissed: string[];
+}
+export type GrillingMeta = Record<string, GrillingMetaEntry>;
+export interface ResolvedQuestion { id: string; prompt: string; section?: string }
+
+/** Registry questions (flattened, section title as `section`) ∪ absorbed meta questions.
+ *  Registry wins on duplicate id; absorbed-only ids are appended in meta order. */
+export function resolveQuestions(
+  qnId: string,
+  registry: Record<string, GrillingQuestionnaire>,
+  meta: GrillingMeta | null,
+): ResolvedQuestion[] {
+  const out: ResolvedQuestion[] = [];
+  const seen = new Set<string>();
+  const qn = registry[qnId];
+  if (qn) {
+    for (const s of qn.sections) {
+      for (const q of s.questions) {
+        out.push({ id: q.id, prompt: q.label, section: s.title });
+        seen.add(q.id);
+      }
+    }
+  }
+  for (const q of meta?.[qnId]?.questions ?? []) {
+    if (seen.has(q.id)) continue;
+    out.push({ id: q.id, prompt: q.prompt, section: q.section });
+    seen.add(q.id);
+  }
+  return out;
+}
+
+/** answered (non-blank answer) | dismissed (in meta.dismissed) | open. answered wins over dismissed. */
+export function questionStatus(
+  qId: string,
+  qnId: string,
+  answers: GrillingAnswers | null,
+  meta: GrillingMeta | null,
+): 'answered' | 'dismissed' | 'open' {
+  if (!isBlankAnswer(answers?.[qnId]?.[qId])) return 'answered';
+  if ((meta?.[qnId]?.dismissed ?? []).includes(qId)) return 'dismissed';
+  return 'open';
+}
+
+/** Aggregate counts over the resolved (registry ∪ absorbed) question set. */
+export function grillingProgress(
+  qnId: string,
+  registry: Record<string, GrillingQuestionnaire>,
+  answers: GrillingAnswers | null,
+  meta: GrillingMeta | null,
+): { total: number; answered: number; dismissed: number; open: number } {
+  const qs = resolveQuestions(qnId, registry, meta);
+  let answered = 0, dismissed = 0, open = 0;
+  for (const q of qs) {
+    const st = questionStatus(q.id, qnId, answers, meta);
+    if (st === 'answered') answered++; else if (st === 'dismissed') dismissed++; else open++;
+  }
+  return { total: qs.length, answered, dismissed, open };
+}

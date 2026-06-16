@@ -69,6 +69,64 @@ describe('parseGrillingDoc', () => {
   });
 });
 
+import {
+  resolveQuestions, questionStatus, grillingProgress,
+  type GrillingMeta,
+} from './grilling';
+import { QUESTIONNAIRES } from './grilling';
+
+const QN = 'coaching-sessions-v1';
+
+describe('resolveQuestions', () => {
+  it('returns registry questions flattened when no meta', () => {
+    const r = resolveQuestions(QN, QUESTIONNAIRES, null);
+    expect(r).toHaveLength(23);
+    expect(r[0]).toMatchObject({ id: 'q1', section: '1. Die Coaching-Beziehung' });
+  });
+  it('unions absorbed meta questions (new ids appended, existing ids kept registry-first)', () => {
+    const meta: GrillingMeta = {
+      [QN]: { questions: [{ id: 'q1', prompt: 'override?' }, { id: 'qX', prompt: 'absorbed?' }], dismissed: [] },
+    };
+    const r = resolveQuestions(QN, QUESTIONNAIRES, meta);
+    expect(r.find((q) => q.id === 'qX')).toMatchObject({ id: 'qX', prompt: 'absorbed?' });
+    expect(r.filter((q) => q.id === 'q1')).toHaveLength(1);
+  });
+  it('returns absorbed-only questions for a questionnaire not in the registry', () => {
+    const meta: GrillingMeta = { 'doc-x': { questions: [{ id: 'a', prompt: 'A?' }], dismissed: [] } };
+    expect(resolveQuestions('doc-x', QUESTIONNAIRES, meta)).toEqual([{ id: 'a', prompt: 'A?' }]);
+  });
+});
+
+describe('questionStatus', () => {
+  const answers = { [QN]: { q1: 'Ja' } };
+  const meta: GrillingMeta = { [QN]: { questions: [], dismissed: ['q2'] } };
+  it('answered when non-blank answer present', () => {
+    expect(questionStatus('q1', QN, answers, meta)).toBe('answered');
+  });
+  it('dismissed when in meta.dismissed and not answered', () => {
+    expect(questionStatus('q2', QN, answers, meta)).toBe('dismissed');
+  });
+  it('open otherwise', () => {
+    expect(questionStatus('q3', QN, answers, meta)).toBe('open');
+  });
+  it('answered beats dismissed', () => {
+    const a2 = { [QN]: { q2: 'spät beantwortet' } };
+    expect(questionStatus('q2', QN, a2, meta)).toBe('answered');
+  });
+});
+
+describe('grillingProgress', () => {
+  it('counts total/answered/dismissed/open over registry ∪ meta', () => {
+    const answers = { [QN]: { q1: 'Ja', q2: 'Auch' } };
+    const meta: GrillingMeta = { [QN]: { questions: [{ id: 'qX', prompt: 'extra?' }], dismissed: ['q3'] } };
+    const p = grillingProgress(QN, QUESTIONNAIRES, answers, meta);
+    expect(p.total).toBe(24);
+    expect(p.answered).toBe(2);
+    expect(p.dismissed).toBe(1);
+    expect(p.open).toBe(21);
+  });
+});
+
 describe('splitAnswered', () => {
   it('splits by answer presence using isBlankAnswer', () => {
     const qs: ParsedQuestion[] = [

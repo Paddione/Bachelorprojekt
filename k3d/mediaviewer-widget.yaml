@@ -18,6 +18,8 @@ spec:
       labels:
         app: mediaviewer-widget
     spec:
+      imagePullSecrets:
+        - name: ghcr-pull-secret
       securityContext:
         runAsNonRoot: true
         runAsUser: 65534

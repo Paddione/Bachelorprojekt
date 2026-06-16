@@ -22,17 +22,17 @@ import FactoryFloor from '../components/FactoryFloor.svelte';
 
 // The declared expectation, independent of the implementation. Front→back, linear lanes only.
 const EXPECTED_LINEAR_STATUSES = [
-  'triage', 'planning', 'plan_staged', 'backlog', 'in_progress', 'in_review', 'qa_review', 'done',
+  'triage', 'planning', 'plan_staged', 'backlog', 'in_progress', 'in_review', 'qa_review', 'awaiting_deploy', 'done',
 ] as const;
 
 // The byte-identical bucket map the codebase shipped before centralization.
 const EXPECTED_BUCKETS: Record<string, LaneKey> = {
   triage: 'planning', planning: 'planning', plan_staged: 'staged', backlog: 'loadingDock',
   in_progress: 'hall', in_review: 'hall', blocked: 'attention', qa_review: 'qa',
-  done: 'shipped', archived: 'archive',
+  awaiting_deploy: 'awaitingDeploy', done: 'shipped', archived: 'archive',
 };
 
-const EXPECTED_MOBILE_SEQUENCE = ['staged', 'backlog', ...PHASE_ORDER, 'qs', 'done'];
+const EXPECTED_MOBILE_SEQUENCE = ['staged', 'backlog', ...PHASE_ORDER, 'qs', 'awaitingDeploy', 'done'];
 
 const MOCK_FLOOR = {
   control: { killSwitch: false, slotsUsed: 0, slotsCap: 3, dailyCap: 5, dailyUsed: 0, dryRun: false, watchdogStale: 0 },
@@ -125,6 +125,7 @@ describe('pipeline-order SSOT', () => {
       (e) => (e as HTMLElement).dataset.testid ?? '',
     );
     expect(order.indexOf('floor-loadingdock')).toBeLessThan(order.indexOf('floor-hall'));
-    expect(order.indexOf('floor-qa')).toBeLessThan(order.indexOf('floor-shipped'));
+    expect(order.indexOf('floor-qa')).toBeLessThan(order.indexOf('floor-awaiting-deploy'));
+    expect(order.indexOf('floor-awaiting-deploy')).toBeLessThan(order.indexOf('floor-shipped'));
   });
 });

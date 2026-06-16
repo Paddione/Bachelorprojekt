@@ -5,13 +5,13 @@ import { linkReporterByEmail } from './reporter-link';
 import { updateSuccessorReadiness } from '../ticket-readiness';
 
 export type TicketStatus =
-  'triage' | 'planning' | 'plan_staged' | 'backlog' | 'in_progress' | 'in_review' | 'qa_review' | 'blocked' | 'done' | 'archived';
+  'triage' | 'planning' | 'plan_staged' | 'backlog' | 'in_progress' | 'in_review' | 'qa_review' | 'awaiting_deploy' | 'blocked' | 'done' | 'archived';
 
 export type TicketResolution =
   'fixed' | 'shipped' | 'wontfix' | 'duplicate' | 'cant_reproduce' | 'obsolete';
 
 const VALID_STATUSES: ReadonlySet<TicketStatus> = new Set(
-  ['triage', 'planning', 'plan_staged', 'backlog', 'in_progress', 'in_review', 'qa_review', 'blocked', 'done', 'archived']);
+  ['triage', 'planning', 'plan_staged', 'backlog', 'in_progress', 'in_review', 'qa_review', 'awaiting_deploy', 'blocked', 'done', 'archived']);
 
 export function isValidStatus(s: string): s is TicketStatus {
   return VALID_STATUSES.has(s as TicketStatus);

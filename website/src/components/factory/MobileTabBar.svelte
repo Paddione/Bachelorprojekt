@@ -18,21 +18,19 @@
       awaitingDeploy: 'AWAITING',
       shipped: 'DONE'
     };
+    const keyMap: Record<string, string> = {
+      loadingDock: 'backlog',
+      qa: 'qs',
+      shipped: 'done'
+    };
     return [{
-      key: l.key,
+      key: keyMap[l.key] || l.key,
       label: labelMap[l.key] || l.key.toUpperCase(),
     }];
   });
 
-  const keyMap: Record<string, string> = {
-    loadingDock: 'backlog',
-    qa: 'qs',
-    shipped: 'done'
-  };
-  const getIndexKey = (key: string) => keyMap[key] || key;
-
   export const MOBILE_COL_INDEX = Object.fromEntries(
-    TABS.map((tab, idx) => [getIndexKey(tab.key), idx])
+    TABS.map((tab, idx) => [tab.key, idx])
   ) as Record<string, number>;
 </script>
 

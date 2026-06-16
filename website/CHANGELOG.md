@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.78.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.77.3...website-v1.78.0) (2026-06-16)
+
+
+### Features
+
+* **website:** fix cockpit overview, focus drawer & feature select [T000877] ([#1748](https://github.com/Paddione/Bachelorprojekt/issues/1748)) ([19967e5](https://github.com/Paddione/Bachelorprojekt/commit/19967e50e5235d1f95312179d905e8442f687693))
+
 ## [1.77.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.77.2...website-v1.77.3) (2026-06-16)
 
 

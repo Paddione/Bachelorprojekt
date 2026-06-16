@@ -61,6 +61,11 @@ declare -A SERVICE_REGISTRY=(
   [k3d/website-allow-egress-monitoring.yaml]="website"
   [k3d/cicd-deploy-sa.yaml]="cicd"
   [k3d/llm-gpu.yaml]="llm-gateway"
+  [k3d/mediaviewer-widget.yaml]="mediaviewer-widget"
+  [k3d/oauth2-proxy-mediaviewer.yaml]="mediaviewer-widget"
+  [k3d/oauth2-proxy-videovault.yaml]="videovault"
+  [k3d/videovault-uploads-pvc.yaml]="videovault"
+  [k3d/videovault.yaml]="videovault"
 )
 
 # Infra: namespace/network/secrets/controller — ALWAYS full-deploy, never partial.

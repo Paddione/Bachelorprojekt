@@ -79,6 +79,20 @@ _body() {
     fi
 }
 
+# Derive the ticket id (TNNNN…) from the plan body (**Ticket:** TNNNN) or, as a
+# fallback, from the filename slug (…-tNNNN.md). Empty when nothing derivable —
+# callers MUST only fill ticket_id when this is non-empty (preserves idempotency
+# for slug-less plans whose ticket_id is a deliberate null).
+_derive_ticket_id() {
+    local tid
+    tid="$(grep -m1 -ioE 'ticket:[*[:space:]]*T[0-9]{4,}' "$FILE" 2>/dev/null \
+        | grep -oiE 'T[0-9]{4,}' | head -1 | tr '[:lower:]' '[:upper:]')"
+    if [[ -z "$tid" ]]; then
+        tid="$(basename "$FILE" .md | grep -oiE 't[0-9]{4,}' | head -1 | tr '[:lower:]' '[:upper:]')"
+    fi
+    printf '%s' "$tid"
+}
+
 # value of KEY inside the frontmatter block (first pair of ---); empty if absent
 _fm_field() {
     awk -v key="$1" '
@@ -109,7 +123,8 @@ if ! _has_frontmatter; then
     {
         printf '%s\n' "---"
         printf 'title: %s\n' "$title"
-        printf 'ticket_id: null\n'
+        tid_new="$(_derive_ticket_id)"
+        if [[ -n "$tid_new" ]]; then printf 'ticket_id: %s\n' "$tid_new"; else printf 'ticket_id: null\n'; fi
         printf 'domains: %s\n' "$domains_yaml"
         printf 'status: active\n'
         printf 'pr_number: null\n'
@@ -130,6 +145,7 @@ fi
 dom_raw="$(_fm_field domains | tr -d ' \t\r')"
 st_raw="$(_fm_field status | tr -d ' \t\r')"
 fl_raw="$(_fm_field file_locks | tr -d ' \t\r')"
+tid_raw="$(_fm_field ticket_id | tr -d ' \t\r')"
 
 needs_domains=0
 case "$dom_raw" in ""|"[]"|"null") needs_domains=1 ;; esac
@@ -138,8 +154,13 @@ case "$st_raw" in ""|"null") needs_status=1 ;; esac
 [[ "$FORCE_ACTIVE" -eq 1 ]] && needs_status=1
 needs_batch=0
 [[ -z "$fl_raw" ]] && needs_batch=1
+# Fill a null/missing ticket_id ONLY when one is derivable — a slug-less plan
+# with a deliberate `ticket_id: null` must stay a clean no-op (idempotency).
+tid_derived="$(_derive_ticket_id)"
+needs_ticket=0
+case "$tid_raw" in ""|"null") [[ -n "$tid_derived" ]] && needs_ticket=1 ;; esac
 
-if [[ "$needs_domains" -eq 0 && "$needs_status" -eq 0 && "$needs_batch" -eq 0 ]]; then
+if [[ "$needs_domains" -eq 0 && "$needs_status" -eq 0 && "$needs_batch" -eq 0 && "$needs_ticket" -eq 0 ]]; then
     echo "Frontmatter already complete in $FILE — nothing to do."
     exit 0
 fi
@@ -151,13 +172,15 @@ derived_yaml="$(_domains_to_yaml "$derived")"
 
 tmpfile="$(mktemp)"
 awk -v derived="$derived_yaml" -v needs_dom="$needs_domains" \
-    -v needs_st="$needs_status" -v needs_batch="$needs_batch" '
-    BEGIN { infm=0; dom_seen=0; st_seen=0; batch_seen=0 }
+    -v needs_st="$needs_status" -v needs_batch="$needs_batch" \
+    -v tid="$tid_derived" -v needs_ticket="$needs_ticket" '
+    BEGIN { infm=0; dom_seen=0; st_seen=0; batch_seen=0; tid_seen=0 }
     { sub(/\r$/,"") }
     NR==1 && $0=="---" { print; infm=1; next }
     infm==1 && $0=="---" {
-        if (needs_dom==1   && dom_seen==0)   print "domains: " derived
-        if (needs_st==1    && st_seen==0)    print "status: active"
+        if (needs_dom==1    && dom_seen==0)    print "domains: " derived
+        if (needs_st==1     && st_seen==0)     print "status: active"
+        if (needs_ticket==1 && tid_seen==0)    print "ticket_id: " tid
         if (needs_batch==1 && batch_seen==0) {
             print "file_locks: []"
             print "shared_changes: false"
@@ -166,6 +189,11 @@ awk -v derived="$derived_yaml" -v needs_dom="$needs_domains" \
             print "depends_on_plans: []"
         }
         print; infm=0; next
+    }
+    infm==1 && $0 ~ /^ticket_id:/ {
+        tid_seen=1
+        if (needs_ticket==1) { print "ticket_id: " tid } else { print }
+        next
     }
     infm==1 && $0 ~ /^domains:/ {
         dom_seen=1

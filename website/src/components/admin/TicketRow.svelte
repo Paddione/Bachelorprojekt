@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import type { TicketRow as TicketRowT } from '../../lib/tickets/cockpit-types';
+  import { WORKFLOW_STATUSES, ALL_PRIORITIES, statusLabel, priorityLabel } from '../../lib/tickets/cockpit-labels';
   export let ticket: TicketRowT;
   export let selected = false;
   export let busy = false;
@@ -13,8 +14,12 @@
 
   const dispatch = createEventDispatcher();
 
-  const STATUSES = ['triage', 'backlog', 'planning', 'in_progress', 'in_review', 'blocked', 'done'];
-  const PRIORITIES = ['niedrig', 'mittel', 'hoch'];
+  // Always include the ticket's current value so an out-of-list status/priority
+  // (e.g. legacy 'planning') still displays selected instead of showing blank.
+  $: STATUSES = WORKFLOW_STATUSES.includes(ticket.status as never)
+    ? [...WORKFLOW_STATUSES] : [ticket.status, ...WORKFLOW_STATUSES];
+  $: PRIORITIES = ALL_PRIORITIES.includes(ticket.priority as never)
+    ? [...ALL_PRIORITIES] : [ticket.priority, ...ALL_PRIORITIES];
 
   function handleStatus(e: Event) {
     const detail = { id: ticket.id, status: (e.target as HTMLSelectElement).value };
@@ -62,10 +67,10 @@
   <code class="ext ticket-col-id">{ticket.extId}</code>
   <button class="title-link" on:click={handleOpenDrawer}>{ticket.title}</button>
   <select data-testid="status-select" value={ticket.status} on:change={handleStatus} disabled={busy}>
-    {#each STATUSES as s}<option value={s}>{s}</option>{/each}
+    {#each STATUSES as s}<option value={s}>{statusLabel(s)}</option>{/each}
   </select>
   <select class="priority-select" data-testid="priority-select" value={ticket.priority} on:change={handlePriority} disabled={busy}>
-    {#each PRIORITIES as p}<option value={p}>{p}</option>{/each}
+    {#each PRIORITIES as p}<option value={p}>{priorityLabel(p)}</option>{/each}
   </select>
   <span class="created ticket-col-created">{relDate(ticket.createdAt)}</span>
 </div>

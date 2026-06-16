@@ -50,3 +50,17 @@ describe('TicketRow responsive', () => {
     expect(container.querySelector('.ticket-col-created')).toBeTruthy();
   });
 });
+
+describe('TicketRow labels + priorities', () => {
+  const ticket = { id: 't1', extId: 'T1', title: 'X', status: 'in_progress', priority: 'mittel', type: 'task' };
+  it('offers kritisch in the priority dropdown', () => {
+    const { getByTestId } = render(TicketRow, { ticket });
+    const prio = getByTestId('priority-select') as HTMLSelectElement;
+    expect(Array.from(prio.options).map((o) => o.value)).toContain('kritisch');
+  });
+  it('shows a human label for in_progress status', () => {
+    const { getByTestId } = render(TicketRow, { ticket });
+    const status = getByTestId('status-select') as HTMLSelectElement;
+    expect(Array.from(status.options).map((o) => o.textContent)).toContain('In Arbeit');
+  });
+});

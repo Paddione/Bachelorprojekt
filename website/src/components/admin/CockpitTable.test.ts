@@ -88,4 +88,30 @@ describe('CockpitTable', () => {
     await fireEvent.click(getByText('Alpha'));
     expect(onOpenDrawer).toHaveBeenCalled();
   });
+  it('hides done tickets by default and reveals them via "Alle"', async () => {
+    const withDone = [
+      { id: 't1', extId: 'T1', title: 'Alpha', status: 'in_progress', priority: 'mittel', type: 'task' },
+      { id: 't2', extId: 'T2', title: 'ClosedOne', status: 'done', priority: 'mittel', type: 'task' },
+    ];
+    const { queryByText, getAllByTestId } = render(CockpitTable, { feature, tickets: withDone, features: [feature] });
+    expect(queryByText('ClosedOne')).toBeNull();
+    const alle = getAllByTestId('status-chip').find((c) => /alle/i.test(c.textContent ?? ''))!;
+    await fireEvent.click(alle);
+    expect(queryByText('ClosedOne')).toBeTruthy();
+  });
+  it('renders a column header', () => {
+    const { getByTestId } = render(CockpitTable, { feature, tickets, features: [feature] });
+    expect(getByTestId('table-header')).toBeTruthy();
+  });
+  it('paginates with a load-more button beyond the page size', async () => {
+    const many = Array.from({ length: 60 }, (_, i) => ({
+      id: `t${i}`, extId: `T${i}`, title: `Item ${i}`, status: 'in_progress', priority: 'mittel', type: 'task',
+    }));
+    const { getAllByTestId, getByTestId, queryByTestId } = render(CockpitTable, { feature, tickets: many, features: [feature] });
+    expect(getAllByTestId('row-checkbox')).toHaveLength(50);
+    expect(getByTestId('load-more')).toBeTruthy();
+    await fireEvent.click(getByTestId('load-more'));
+    expect(getAllByTestId('row-checkbox')).toHaveLength(60);
+    expect(queryByTestId('load-more')).toBeNull();
+  });
 });

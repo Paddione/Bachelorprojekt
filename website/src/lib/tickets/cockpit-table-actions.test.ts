@@ -16,6 +16,18 @@ describe('cockpit-table-actions', () => {
     vi.spyOn(global, 'fetch').mockResolvedValue(new Response('err', { status: 500 }));
     expect(await actions.transitionTicket('t1', 'done')).toBe(false);
   });
+  it('transitionTicket includes resolution in the body when provided', async () => {
+    const spy = vi.spyOn(global, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }));
+    await actions.transitionTicket('t1', 'done', 'fixed');
+    const body = JSON.parse((spy.mock.calls[0][1] as RequestInit).body as string);
+    expect(body).toEqual({ status: 'done', resolution: 'fixed' });
+  });
+  it('transitionTicket omits resolution when not provided', async () => {
+    const spy = vi.spyOn(global, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }));
+    await actions.transitionTicket('t1', 'in_progress');
+    const body = JSON.parse((spy.mock.calls[0][1] as RequestInit).body as string);
+    expect(body).toEqual({ status: 'in_progress' });
+  });
   it('patchPriority PATCHes the ticket', async () => {
     const spy = vi.spyOn(global, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }));
     await actions.patchPriority('t1', 'hoch');

@@ -52,7 +52,7 @@ describe('Cockpit shell', () => {
     }), { status: 200 }));
     const { getByText, getByTestId } = render(Cockpit,
       { portfolioInitial: portfolioWithFeature, brand: 'mentolder' });
-    await fireEvent.click(getByText('F1'));
+    await fireEvent.click(getByTestId('sidebar-feature'));
     await waitFor(() => expect(getByText('Alpha')).toBeTruthy());
     expect(getByTestId('cockpit-table')).toBeTruthy();
   });

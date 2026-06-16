@@ -1,9 +1,12 @@
 <script lang="ts">
-  import type { FeatureNode } from '../../lib/tickets/cockpit-types';
+  import type { FeatureNode, ProductNode } from '../../lib/tickets/cockpit-types';
   import { createTicket } from '../../lib/tickets/cockpit-table-actions';
 
   export let open = false;
   export let features: FeatureNode[] = [];
+  // When products are supplied the feature dropdown groups by product (<optgroup>);
+  // otherwise it falls back to a flat list of `features`.
+  export let products: ProductNode[] = [];
   export let defaultFeatureId: string | null = null;
   export let onClose: () => void;
   export let onCreated: ((detail: { id?: string }) => void) | undefined = undefined;
@@ -58,7 +61,15 @@
       <label>Feature
         <select data-testid="feature-select" bind:value={parentId}>
           <option value="">— kein Feature —</option>
-          {#each features as f (f.id)}<option value={f.id}>{f.title}</option>{/each}
+          {#if products.length > 0}
+            {#each products as p (p.id)}
+              <optgroup label={p.title}>
+                {#each p.features as f (f.id)}<option value={f.id}>{f.title}</option>{/each}
+              </optgroup>
+            {/each}
+          {:else}
+            {#each features as f (f.id)}<option value={f.id}>{f.title}</option>{/each}
+          {/if}
         </select>
       </label>
       <label>Typ

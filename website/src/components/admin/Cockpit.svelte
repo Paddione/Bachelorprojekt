@@ -120,6 +120,7 @@
   {/if}
 
   <TicketCreateModal open={createOpen} features={allFeatures}
+    products={portfolio?.products ?? []}
     defaultFeatureId={currentFeatureNode?.id ?? null}
     onClose={() => (createOpen = false)}
     onCreated={refetch} />

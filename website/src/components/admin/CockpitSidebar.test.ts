@@ -53,3 +53,40 @@ describe('CockpitSidebar', () => {
     expect(getByTestId('cockpit-sidebar').classList.contains('drawer-open')).toBe(false);
   });
 });
+
+describe('CockpitSidebar scaling controls', () => {
+  it('filters the feature list by the search box', async () => {
+    const { getByTestId, getAllByTestId } = render(CockpitSidebar,
+      { portfolio, selectedFeature: null, onSelectFeature: () => {} });
+    await fireEvent.input(getByTestId('feature-filter'), { target: { value: 'Auth' } });
+    const feats = getAllByTestId('sidebar-feature');
+    expect(feats).toHaveLength(1);
+    expect(feats[0].textContent).toContain('Auth');
+  });
+
+  it('hides fully-done features until "active only" is turned off', async () => {
+    const portfolio2 = { products: [{
+      id: 'p1', extId: 'p1', title: 'P',
+      rollup: { total: 9, done: 9, blocked: 0, inProgress: 0, open: 0, pctDone: 100 },
+      features: [
+        { id: 'f1', extId: 'F-A', title: 'ActiveOne', priority: 'mittel', health: 'amber' as const,
+          rollup: { total: 4, done: 0, blocked: 0, inProgress: 0, open: 4, pctDone: 0 } },
+        { id: 'f2', extId: 'F-D', title: 'DoneOne', priority: 'mittel', health: 'green' as const,
+          rollup: { total: 5, done: 5, blocked: 0, inProgress: 0, open: 0, pctDone: 100 } },
+      ],
+    }]};
+    const { getByTestId, queryByText } = render(CockpitSidebar,
+      { portfolio: portfolio2, selectedFeature: null, onSelectFeature: () => {} });
+    expect(queryByText('DoneOne')).toBeNull();
+    await fireEvent.click(getByTestId('feature-active-only'));
+    expect(queryByText('DoneOne')).toBeTruthy();
+  });
+
+  it('collapses a product when its heading is clicked', async () => {
+    const { getByTestId, getAllByTestId, queryAllByTestId } = render(CockpitSidebar,
+      { portfolio, selectedFeature: null, onSelectFeature: () => {} });
+    expect(getAllByTestId('sidebar-feature').length).toBeGreaterThan(0);
+    await fireEvent.click(getByTestId('product-toggle'));
+    expect(queryAllByTestId('sidebar-feature')).toHaveLength(0);
+  });
+});

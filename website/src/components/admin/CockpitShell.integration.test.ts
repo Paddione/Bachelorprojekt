@@ -19,8 +19,8 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe('Cockpit shell integration', () => {
   it('persists the selected feature to localStorage', async () => {
-    const { getByText } = render(Cockpit, { portfolioInitial: portfolio, brand: 'mentolder' });
-    await fireEvent.click(getByText('F1'));
+    const { getByTestId } = render(Cockpit, { portfolioInitial: portfolio, brand: 'mentolder' });
+    await fireEvent.click(getByTestId('sidebar-feature'));
     expect(localStorage.getItem('cockpit:feature')).toBe('F1');
   });
 

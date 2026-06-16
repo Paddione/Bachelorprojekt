@@ -1,5 +1,6 @@
 <script lang="ts">
-  import type { PortfolioPayload } from '../../lib/tickets/cockpit-types';
+  import { onMount } from 'svelte';
+  import type { PortfolioPayload, FeatureNode } from '../../lib/tickets/cockpit-types';
   import SuggestionBar from './SuggestionBar.svelte';
 
   export let portfolio: PortfolioPayload;
@@ -11,7 +12,49 @@
   let drawerOpen = false;
   let isRolling = false;
 
+  // Scaling controls for the 130+ feature list: search, active-only, per-product collapse.
+  let filter = '';
+  let activeOnly = true;
+  let collapsed = new Set<string>();
+
+  const LS_ACTIVE = 'cockpit:activeOnly';
+  const LS_COLLAPSED = 'cockpit:collapsed';
+  onMount(() => {
+    try {
+      const a = localStorage.getItem(LS_ACTIVE);
+      if (a !== null) activeOnly = a === '1';
+      const c = localStorage.getItem(LS_COLLAPSED);
+      if (c) collapsed = new Set(JSON.parse(c) as string[]);
+    } catch { /* localStorage unavailable — keep defaults */ }
+  });
+  function persistActive() {
+    try { localStorage.setItem(LS_ACTIVE, activeOnly ? '1' : '0'); } catch { /* ignore */ }
+  }
+  function toggleCollapse(id: string) {
+    const n = new Set(collapsed);
+    if (n.has(id)) n.delete(id); else n.add(id);
+    collapsed = n;
+    try { localStorage.setItem(LS_COLLAPSED, JSON.stringify([...n])); } catch { /* ignore */ }
+  }
+
   $: allFeatures = portfolio.products?.flatMap((p) => p.features) ?? [];
+  $: q = filter.trim().toLowerCase();
+
+  // Inline the filter so Svelte tracks q/activeOnly/selectedFeature as direct
+  // dependencies of this reactive statement — it does NOT trace into helper functions.
+  $: displayedProducts = (portfolio.products ?? [])
+    .map((p) => ({
+      ...p,
+      features: p.features.filter((f: FeatureNode) => {
+        const matchText = !q || f.title.toLowerCase().includes(q) || f.extId.toLowerCase().includes(q);
+        const openWork = (f.rollup.open ?? 0) + (f.rollup.inProgress ?? 0) + (f.rollup.blocked ?? 0);
+        // Always keep the selected feature visible even if it has no open work.
+        const matchActive = !activeOnly || openWork > 0 || f.extId === selectedFeature;
+        return matchText && matchActive;
+      }),
+    }))
+    .filter((p) => p.features.length > 0);
+  $: totalShown = displayedProducts.reduce((n, p) => n + p.features.length, 0);
 
   function pick(extId: string) {
     onSelectFeature(extId);
@@ -60,59 +103,88 @@
   data-testid="cockpit-sidebar"
   aria-label="Feature-Navigation"
 >
+  <div class="filters">
+    <input
+      class="feature-filter"
+      data-testid="feature-filter"
+      type="search"
+      placeholder="Feature suchen…"
+      bind:value={filter}
+      aria-label="Features filtern"
+    />
+    <label class="active-toggle">
+      <input type="checkbox" data-testid="feature-active-only"
+        bind:checked={activeOnly} on:change={persistActive} />
+      nur mit offener Arbeit
+    </label>
+  </div>
+
   <div class="feature-list">
-    {#each portfolio.products as product (product.id)}
+    {#each displayedProducts as product (product.id)}
+      <!-- Collapse is ignored while searching so matches always surface. -->
+      {@const expanded = !(collapsed.has(product.id) && !q)}
       <div class="product">
-        <h4 class="product-title">{product.title}</h4>
-        <ul class="features">
-          {#each product.features as f (f.id)}
-            <li class="feature-item"
-              class:next-step={f.nextStep}
-              class:discarded={f.discarded}
-              class:major={f.majorFeature}
-            >
-              <button
-                class="feature"
-                class:active={selectedFeature === f.extId}
-                data-testid="sidebar-feature"
-                on:click={() => pick(f.extId)}
+        <button
+          class="product-title"
+          data-testid="product-toggle"
+          aria-expanded={expanded}
+          on:click={() => toggleCollapse(product.id)}
+        >
+          <span class="caret">{expanded ? '▾' : '▸'}</span>
+          {product.title}
+          <span class="product-count">{product.features.length}</span>
+        </button>
+        {#if expanded}
+          <ul class="features">
+            {#each product.features as f (f.id)}
+              <li class="feature-item"
+                class:next-step={f.nextStep}
+                class:discarded={f.discarded}
+                class:major={f.majorFeature}
               >
-                <span class="feature-name">{f.title}</span>
-                <span class="feature-count">{f.rollup.total} Tickets</span>
-              </button>
-              {#if onFeatureAction}
-                <div class="action-overlay" role="group" aria-label="Feature-Aktionen">
-                  <button
-                    class="action-btn next-btn"
-                    class:active={f.nextStep}
-                    title={f.nextStep ? 'Nächster Schritt entfernen' : 'Als nächsten Schritt markieren'}
-                    on:click|stopPropagation={() => onFeatureAction(f.id, 'next_step', !f.nextStep)}
-                    aria-pressed={f.nextStep}
-                  >▶</button>
-                  <button
-                    class="action-btn discard-btn"
-                    class:active={f.discarded}
-                    title={f.discarded ? 'Verwerfen rückgängig' : 'Feature verwerfen'}
-                    on:click|stopPropagation={() => onFeatureAction(f.id, 'discard', !f.discarded)}
-                    aria-pressed={f.discarded}
-                  >🗑</button>
-                  <button
-                    class="action-btn major-btn"
-                    class:active={f.majorFeature}
-                    title={f.majorFeature ? 'Major-Flag entfernen' : 'Als Major-Feature markieren'}
-                    on:click|stopPropagation={() => onFeatureAction(f.id, 'major', !f.majorFeature)}
-                    aria-pressed={f.majorFeature}
-                  >★</button>
-                </div>
-              {/if}
-            </li>
-          {/each}
-          {#if product.features.length === 0}
-            <li class="empty">Keine Features</li>
-          {/if}
-        </ul>
+                <button
+                  class="feature"
+                  class:active={selectedFeature === f.extId}
+                  data-testid="sidebar-feature"
+                  on:click={() => pick(f.extId)}
+                >
+                  <span class="feature-name">{f.title}</span>
+                  <span class="feature-count">{f.rollup.total} Tickets</span>
+                </button>
+                {#if onFeatureAction}
+                  <div class="action-overlay" role="group" aria-label="Feature-Aktionen">
+                    <button
+                      class="action-btn next-btn"
+                      class:active={f.nextStep}
+                      title={f.nextStep ? 'Nächster Schritt entfernen' : 'Als nächsten Schritt markieren'}
+                      on:click|stopPropagation={() => onFeatureAction(f.id, 'next_step', !f.nextStep)}
+                      aria-pressed={f.nextStep}
+                    >▶</button>
+                    <button
+                      class="action-btn discard-btn"
+                      class:active={f.discarded}
+                      title={f.discarded ? 'Verwerfen rückgängig' : 'Feature verwerfen'}
+                      on:click|stopPropagation={() => onFeatureAction(f.id, 'discard', !f.discarded)}
+                      aria-pressed={f.discarded}
+                    >🗑</button>
+                    <button
+                      class="action-btn major-btn"
+                      class:active={f.majorFeature}
+                      title={f.majorFeature ? 'Major-Flag entfernen' : 'Als Major-Feature markieren'}
+                      on:click|stopPropagation={() => onFeatureAction(f.id, 'major', !f.majorFeature)}
+                      aria-pressed={f.majorFeature}
+                    >★</button>
+                  </div>
+                {/if}
+              </li>
+            {/each}
+          </ul>
+        {/if}
       </div>
     {/each}
+    {#if totalShown === 0}
+      <p class="empty">Keine passenden Features</p>
+    {/if}
   </div>
 
   <div class="sidebar-footer">
@@ -128,12 +200,38 @@
 
 <style>
   .cockpit-sidebar {
-    width: 220px;
-    flex: 0 0 220px;
+    width: 240px;
+    flex: 0 0 240px;
     border-right: 1px solid var(--admin-border, #2a2e37);
     display: flex;
     flex-direction: column;
     overflow: hidden;
+  }
+  .filters {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.5rem 0.4rem;
+    border-bottom: 1px solid var(--admin-border, #2a2e37);
+  }
+  .feature-filter {
+    width: 100%;
+    background: var(--admin-bg, #1c1f26);
+    border: 1px solid var(--admin-border, #2a2e37);
+    color: inherit;
+    border-radius: 6px;
+    padding: 0.35rem 0.5rem;
+    font: inherit;
+    font-size: 0.82rem;
+  }
+  .active-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.72rem;
+    color: var(--admin-text-mute, #9ca3af);
+    cursor: pointer;
   }
   .feature-list {
     flex: 1 1 auto;
@@ -146,11 +244,29 @@
     border-top: 1px solid var(--admin-border, #2a2e37);
   }
   .product-title {
-    margin: 0.75rem 0.5rem 0.25rem;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0.4rem 0 0.2rem;
+    padding: 0.2rem 0.4rem;
+    background: none;
+    border: none;
+    color: var(--admin-text-mute, #9ca3af);
     font-size: 0.72rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--admin-text-mute, #9ca3af);
+    text-align: left;
+    cursor: pointer;
+  }
+  .product-title:hover { color: var(--admin-text, #e5e7eb); }
+  .caret { font-size: 0.6rem; opacity: 0.7; }
+  .product-count {
+    margin-left: auto;
+    background: var(--admin-bg, #1c1f26);
+    border-radius: 999px;
+    padding: 0 0.4rem;
+    font-size: 0.66rem;
   }
   .features { list-style: none; margin: 0; padding: 0; }
 
@@ -187,7 +303,7 @@
   .feature:hover { background: var(--admin-surface-hover, #1e2129); }
   .feature.active { background: var(--admin-primary, #6ea8fe); color: var(--admin-bg, #0b0d12); font-weight: 600; }
   .feature-count { font-size: 0.7rem; opacity: 0.7; white-space: nowrap; }
-  .empty { padding: 0.35rem 0.5rem; font-size: 0.8rem; opacity: 0.5; }
+  .empty { padding: 0.5rem; font-size: 0.8rem; opacity: 0.5; }
 
   .action-overlay {
     position: absolute;

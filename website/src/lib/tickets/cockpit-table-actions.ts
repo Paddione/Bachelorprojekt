@@ -6,10 +6,17 @@ import type { TicketRow } from './cockpit-types';
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
 
-export async function transitionTicket(id: string, status: string): Promise<boolean> {
+// `resolution` is REQUIRED by the server for status=done|archived (transition.ts).
+// Without it the call 400s and the optimistic update rolls back — that was the
+// reason a ticket could not be closed from the cockpit. Callers pass a sensible
+// default via defaultResolutionFor(type).
+export async function transitionTicket(
+  id: string, status: string, resolution?: string): Promise<boolean> {
+  const body: Record<string, string> = { status };
+  if (resolution) body.resolution = resolution;
   const res = await fetch(`/api/admin/tickets/${id}/transition`, {
     method: 'POST', headers: JSON_HEADERS, credentials: 'same-origin',
-    body: JSON.stringify({ status }),
+    body: JSON.stringify(body),
   });
   return res.ok;
 }

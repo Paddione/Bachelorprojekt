@@ -1079,40 +1079,40 @@ git commit -m "test(plan-lint): wire plan-lint.bats into task test:unit [T000?]"
 
 **Files:** none (verification only)
 
-- [ ] **Step 1: Self-lint the plan with the new linter (dogfood)**
+- [x] **Step 1: Self-lint the plan with the new linter (dogfood)**
 
 Run: `bash scripts/plan-lint.sh docs/superpowers/plans/2026-06-16-plan-quality-gate-v2.md`
 Expected: `PLAN-LINT: PASS` (this plan satisfies F1/F2/STRUCT/P1/B1a; B1b/G1 warnings are acceptable, exit 0).
 
-- [ ] **Step 2: Run the targeted tests for changed domains**
+- [x] **Step 2: Run the targeted tests for changed domains**
 
 Run: `task test:changed`
 Expected: runs `task test:unit` (scripts/ changed) + `task test:factory` (scripts/factory/ changed) + `task test:code-quality` — all PASS. `plan-lint.bats` and `plan-frontmatter-hook.bats` green.
 
-- [ ] **Step 3: Regenerate freshness artifacts (new script enters repo-index)**
+- [x] **Step 3: Regenerate freshness artifacts (new script enters repo-index)**
 
 Run: `task freshness:regenerate`
 Expected: updates `docs/code-quality/repo-index.json` (the new `scripts/plan-lint.sh` is added) and any test-inventory entries.
 
-- [ ] **Step 4: Run the CI-equivalent freshness + quality gate**
+- [x] **Step 4: Run the CI-equivalent freshness + quality gate**
 
 Run: `task freshness:check`
 Expected: PASS — S1 ratchet green (`plan-lint.sh` ≤ 500 lines, S4 sees it referenced by Taskfile/pipeline.js/SKILLs → no orphan), baseline key-count unchanged (no new baseline entries added).
 
-- [ ] **Step 5: Regenerate the test inventory (a test file was added) + commit it**
+- [x] **Step 5: Regenerate the test inventory (a test file was added) + commit it**
 
 Run: `task test:inventory`
 Then: `git add website/src/data/test-inventory.json docs/code-quality/repo-index.json`
 Expected: `plan-lint.bats` appears in the inventory; CI inventory-check will match.
 
-- [ ] **Step 6: Final commit**
+- [x] **Step 6: Final commit**
 
 ```bash
 git add -A
 git commit -m "chore(plan-lint): regenerate freshness + test inventory [T000?]"
 ```
 
-- [ ] **Step 7: Verify nothing is left uncommitted**
+- [x] **Step 7: Verify nothing is left uncommitted**
 
 Run: `git status --porcelain`
 Expected: empty output.

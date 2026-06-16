@@ -271,6 +271,8 @@ tasks:
       - task: test:unit:worktree-create
       - task: test:unit:test-tasks-node-deps
       - task: test:unit:quality-loop
+      - task: test:unit:vda-core
+      - task: test:unit:vda-ticket-smoke
       - task: test:unit:offline-batch
       - task: test:unit:collabora-wopi-discovery
       - task: test:unit:collabora-wopi-single-brand-guard
@@ -456,6 +458,16 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/quality-loop.bats
+
+  test:unit:vda-core:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/vda-core.bats
+
+  test:unit:vda-ticket-smoke:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/vda-ticket-smoke.bats
 
   test:unit:offline-batch:
     internal: true

@@ -66,241 +66,7 @@ ROLLBACK_TIMEOUT="${ROLLBACK_TIMEOUT:-180s}"
 SMOKE_GREP_OVERRIDE="${SMOKE_GREP:-}"
 DRY_RUN="${DRY_RUN:-0}"
 
-# In dry-run mode, side-effect commands are echoed with a [dry-run] prefix
-# instead of executed. Read-only commands (kubectl get, etc.) still run so
-# diagnostic output stays accurate.
-run() {
-  if [[ "$DRY_RUN" == "1" ]]; then
-    echo "  [dry-run] $*"
-  else
-    "$@"
-  fi
-}
-
-# ── Prompts ───────────────────────────────────────────────────────────────────
-if [[ -z "$SERVICE" ]]; then
-  echo "Which service to promote?"
-  PS3=$'\nService: '
-  select s in website brett arena docs; do
-    [[ -n "$s" ]] && SERVICE="$s" && break
-  done
-fi
-if [[ -z "$TARGET" ]]; then
-  echo ""
-  echo "Which prod target?"
-  PS3=$'\nTarget: '
-  select t in mentolder korczewski both; do
-    [[ -n "$t" ]] && TARGET="$t" && break
-  done
-fi
-
-# ── Guards ────────────────────────────────────────────────────────────────────
-case "$SERVICE" in
-  website|brett|arena|docs) ;;
-  *) echo "✗ Unknown SERVICE='$SERVICE'" >&2; exit 1 ;;
-esac
-case "$TARGET" in
-  mentolder|korczewski|both) ;;
-  *) echo "✗ Unknown TARGET='$TARGET'" >&2; exit 1 ;;
-esac
-if [[ "$SERVICE" == "arena" ]]; then
-  [[ "$TARGET" == "mentolder" ]] && { echo "✗ arena is korczewski-only" >&2; exit 1; }
-  [[ "$TARGET" == "both" ]] && { echo "ℹ arena: TARGET=both → korczewski" >&2; TARGET=korczewski; }
-fi
-
-case "$TARGET" in
-  mentolder)  CLUSTERS=(mentolder) ;;
-  korczewski) CLUSTERS=(korczewski) ;;
-  both)       CLUSTERS=(mentolder korczewski) ;;
-esac
-
-# ── Per-service metadata ──────────────────────────────────────────────────────
-svc_image_repo() {
-  local svc="$1" cluster="$2"
-  case "$svc" in
-    website)
-      case "$cluster" in
-        mentolder)  echo "ghcr.io/paddione/mentolder-website" ;;
-        korczewski) echo "ghcr.io/paddione/korczewski-website" ;;
-      esac ;;
-    brett) echo "ghcr.io/paddione/workspace-brett" ;;
-    arena) echo "ghcr.io/paddione/arena-server" ;;
-    docs)  echo "ghcr.io/paddione/workspace-docs" ;;
-  esac
-}
-
-svc_deployment() {
-  case "$1" in
-    website) echo "website" ;;
-    brett)   echo "brett" ;;
-    arena)   echo "arena-server" ;;
-    docs)    echo "docs" ;;
-  esac
-}
-
-# Dev context/namespace per cluster.
-dev_ctx() { case "$1" in mentolder) echo "k3d-mentolder-dev" ;; korczewski) echo "k3d-mentolder-dev" ;; esac; }
-dev_ns()  { case "$1" in mentolder) echo "workspace-dev"    ;; korczewski) echo "workspace-korczewski-dev" ;; esac; }
-
-# Prod context resolved via env-resolve.sh → always "fleet" (both brands share the fleet cluster).
-# shellcheck disable=SC2120
-prod_ctx() { # shellcheck disable=SC1091
-  source "$REPO/scripts/env-resolve.sh" "$1" >/dev/null 2>&1; echo "${ENV_CONTEXT:-fleet}"; }
-prod_ns() {
-  local svc="$1" cluster="$2"
-  if [[ "$svc" == "website" ]]; then
-    [[ "$cluster" == "mentolder" ]] && echo "website" || echo "website-korczewski"
-  else
-    [[ "$cluster" == "mentolder" ]] && echo "workspace" || echo "workspace-korczewski"
-  fi
-}
-
-# ── Smoke spec resolution (#2) ────────────────────────────────────────────────
-default_smoke_grep() {
-  case "$1" in
-    website) echo 'fa-fragebogen|.*-auth-setup|fa-07-' ;;
-    brett)   echo 'brett-duel-mode|fa-27-brett' ;;
-    arena)   echo 'nfa-10-arena|fa-28-arena|fa-29-arena' ;;
-    docs)    echo '' ;;
-  esac
-}
-resolve_smoke_grep() {
-  local svc="$1" cfg="tests/e2e/smoke/$1.txt"
-  if [[ -n "$SMOKE_GREP_OVERRIDE" ]]; then echo "$SMOKE_GREP_OVERRIDE"; return; fi
-  if [[ -f "$cfg" ]]; then
-    # Lines that aren't blank/comments, joined with | into a single regex.
-    grep -vE '^\s*(#|$)' "$cfg" | paste -sd '|' -
-    return
-  fi
-  default_smoke_grep "$svc"
-}
-
-# ── Build + push the pinned tag (#1) ──────────────────────────────────────────
-# Returns the fully-qualified image (repo:tag) on stdout.
-build_and_push() {
-  local svc="$1" cluster="$2"
-  local repo full
-  repo=$(svc_image_repo "$svc" "$cluster")
-  full="${repo}:${PROMOTE_TAG}"
-
-  echo "▸ Build ${full}" >&2
-  case "$svc" in
-    website) run docker build -t "$full" website/ >&2 ;;
-    brett)   run docker build -t "$full" brett/ >&2 ;;
-    arena)   run docker build -t "$full" arena-server/ >&2 ;;
-    docs)
-      run node scripts/build-docs.mjs >&2
-      run docker build -t "$full" -f scripts/docs.Dockerfile . >&2
-      ;;
-  esac
-
-  echo "▸ Push ${full}" >&2
-  run docker push "$full" >&2
-  echo "$full"
-}
-
-# ── kubectl set-image with auto-rollback (#3) ─────────────────────────────────
-# Args: <stage:dev|prod> <cluster> <full_image>
-roll() {
-  local stage="$1" cluster="$2" full="$3"
-  local ctx ns deploy=$(svc_deployment "$SERVICE")
-  if [[ "$stage" == "dev" ]]; then
-    ctx=$(dev_ctx "$cluster"); ns=$(dev_ns "$cluster")
-  else
-    ctx=$(prod_ctx "$cluster"); ns=$(prod_ns "$SERVICE" "$cluster")
-  fi
-
-  echo "▸ ${stage}/${cluster}: set image deploy/${deploy} → ${full}"
-  if ! run kubectl --context "$ctx" -n "$ns" set image "deploy/${deploy}" "${deploy}=${full}"; then
-    echo "✗ set image failed on ${stage}/${cluster} (deploy/${deploy} may not exist yet — run full task ${SERVICE}:deploy first)" >&2
-    return 1
-  fi
-
-  if run kubectl --context "$ctx" -n "$ns" rollout status "deploy/${deploy}" --timeout="$ROLLBACK_TIMEOUT"; then
-    return 0
-  fi
-
-  echo "✗ Rollout FAILED on ${stage}/${cluster} — auto-rolling back…" >&2
-  run kubectl --context "$ctx" -n "$ns" rollout undo "deploy/${deploy}" || true
-  run kubectl --context "$ctx" -n "$ns" rollout status "deploy/${deploy}" --timeout=120s || true
-  echo "↩ Rolled back ${stage}/${cluster} to previous ReplicaSet." >&2
-  return 1
-}
-
-# ── Layer-4 live-prod canary + capture-revision rollback (Phase 1D) ───────────
-# observe_prod <cluster> <full_image>
-# Precondition: the prod set-image for <cluster> already ran (via roll prod …).
-# Runs post_deploy_watch() for CrashLoopBackOff + healthcheck monitoring,
-# then runs Playwright smoke only if the watch passes. On failure, rolls back
-# to the captured pre-deploy revision.
-observe_prod() {
-  local cluster="$1" full="$2"
-  local deploy ns ctx prev_rev live grep_pat
-  deploy=$(svc_deployment "$SERVICE")
-
-  # shellcheck disable=SC1091
-  source "$REPO/scripts/env-resolve.sh" "$cluster" >/dev/null
-  ctx="$ENV_CONTEXT"
-  ns=$(prod_ns "$SERVICE" "$cluster")
-
-  case "$cluster" in
-    mentolder)  live="https://web.mentolder.de" ;;
-    korczewski) live="https://web.korczewski.de" ;;
-  esac
-
-  prev_rev=$(run kubectl --context "$ctx" -n "$ns" rollout history "deploy/${deploy}" \
-              2>/dev/null | awk 'NF && $1 ~ /^[0-9]+$/ {r=$1} END{print r-1}')
-  [[ -z "$prev_rev" || "$prev_rev" -lt 1 ]] && prev_rev=""
-
-  echo "▸ Canary observe prod/${cluster}: post-deploy-watch + smoke (${live}, rev=${prev_rev:-<none>})"
-
-  if ! post_deploy_watch "$cluster" "$deploy" "$ns" "$ctx" "${live}/api/health"; then
-    echo "✗ post-deploy-watch FAILED on prod/${cluster} — rollback already triggered" >&2
-    return 1
-  fi
-
-  grep_pat=$(resolve_smoke_grep "$SERVICE")
-  if [[ -n "$grep_pat" ]]; then
-    if [[ "$DRY_RUN" == "1" ]]; then
-      echo "  [dry-run] playwright --grep '${grep_pat}' against ${live}"
-    elif ! smoke_one "$cluster" "$grep_pat"; then
-      echo "✗ Canary RED on prod/${cluster} — rolling back ${deploy} to revision ${prev_rev:-previous}…" >&2
-      if [[ -n "$prev_rev" ]]; then
-        run kubectl --context "$ctx" -n "$ns" rollout undo "deploy/${deploy}" --to-revision="$prev_rev" || true
-      else
-        run kubectl --context "$ctx" -n "$ns" rollout undo "deploy/${deploy}" || true
-      fi
-      run kubectl --context "$ctx" -n "$ns" rollout status "deploy/${deploy}" --timeout=120s || true
-      notify_pushover "Deploy FAIL ${cluster}" "Playwright smoke failed on ${deploy} — rolled back to rev ${prev_rev:-previous}" "1"
-      echo "↩ Canary rolled prod/${cluster} back (rev=${prev_rev:-previous})." >&2
-      return 1
-    fi
-  fi
-
-  echo "✓ Canary GREEN on prod/${cluster}."
-  return 0
-}
-
-# ── Playwright smoke ─────────────────────────────────────────────────────────
-smoke_one() {
-  local cluster="$1" grep_pat="$2"
-  [[ -z "$grep_pat" ]] && return 0
-  local url
-  case "$cluster" in
-    mentolder)  url="https://dev.mentolder.de" ;;
-    korczewski) url="https://dev.korczewski.de" ;;
-  esac
-  echo "▸ Smoke ${url} (grep: ${grep_pat})"
-  if [[ "$DRY_RUN" == "1" ]]; then
-    echo "  [dry-run] (cd tests/e2e && WEBSITE_URL=$url playwright test --grep '$grep_pat' --reporter=line)"
-    return 0
-  fi
-  if [[ ! -d tests/e2e/node_modules ]]; then
-    ( cd tests/e2e && npm ci && ./node_modules/.bin/playwright install chromium )
-  fi
-  ( cd tests/e2e && WEBSITE_URL="$url" \
-      ./node_modules/.bin/playwright test --grep "$grep_pat" --reporter=line )
-}
+source "$(dirname "${BASH_SOURCE[0]}")/lib/promote-phases.sh"
 
 # ── Orchestration ────────────────────────────────────────────────────────────
 echo "═══ Promote ${SERVICE} → ${TARGET}  tag=${PROMOTE_TAG} ═══"
@@ -312,10 +78,12 @@ echo ""
 echo "▶ Phase 1/4 — build + push"
 if [[ "$SERVICE" == "website" ]]; then
   for c in "${CLUSTERS[@]}"; do
-    IMG[$c]=$(build_and_push "$SERVICE" "$c")
+    IMG[$c]=$(promote_phase_build "$SERVICE" "$c" "$PROMOTE_TAG")
+    promote_phase_push "${IMG[$c]}"
   done
 else
-  shared=$(build_and_push "$SERVICE" "${CLUSTERS[0]}")
+  shared=$(promote_phase_build "$SERVICE" "${CLUSTERS[0]}" "$PROMOTE_TAG")
+  promote_phase_push "$shared"
   for c in "${CLUSTERS[@]}"; do IMG[$c]="$shared"; done
 fi
 
@@ -324,7 +92,7 @@ if [[ "$SERVICE" != "docs" ]]; then
   echo ""
   echo "▶ Phase 2/4 — dev rollout"
   for c in "${CLUSTERS[@]}"; do
-    roll dev "$c" "${IMG[$c]}" || { echo "✗ Dev rollout failed. Aborting." >&2; exit 1; }
+    promote_phase_dev_deploy "$SERVICE" "$c" "${IMG[$c]}" || { echo "✗ Dev rollout failed. Aborting." >&2; exit 1; }
   done
 
   # Phase 3 — smoke.
@@ -333,7 +101,7 @@ if [[ "$SERVICE" != "docs" ]]; then
   if [[ -n "$PW_FILTER" ]]; then
     echo "▶ Phase 3/4 — Playwright smoke"
     for c in "${CLUSTERS[@]}"; do
-      if ! smoke_one "$c" "$PW_FILTER"; then
+      if ! promote_phase_smoke "$SERVICE" "$c"; then
         echo "✗ Smoke FAILED on dev/${c}. Aborting before prod." >&2
         echo "  Dev is still on tag ${PROMOTE_TAG}; revert with: kubectl --context $(dev_ctx "$c") -n $(dev_ns "$c") rollout undo deploy/$(svc_deployment "$SERVICE")" >&2
         exit 1
@@ -355,7 +123,7 @@ PROD_CLUSTERS=("${CLUSTERS[@]}")
 
 FAIL=0
 for c in "${PROD_CLUSTERS[@]}"; do
-  roll prod "$c" "${IMG[$c]:-${IMG[${CLUSTERS[0]}]}}" || FAIL=1
+  promote_phase_prod_deploy "$SERVICE" "$c" "${IMG[$c]:-${IMG[${CLUSTERS[0]}]}}" || FAIL=1
 done
 
 if (( FAIL )); then

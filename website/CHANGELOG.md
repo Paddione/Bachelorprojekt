@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.82.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.82.0...website-v1.82.1) (2026-06-16)
+
+
+### Bug Fixes
+
+* **factory:** correct prometheus URL fallback and improve error message [T000889] ([#1760](https://github.com/Paddione/Bachelorprojekt/issues/1760)) ([06fc7d3](https://github.com/Paddione/Bachelorprojekt/commit/06fc7d387e1d10e4ee98c3e39af9b86543b6022b))
+
 ## [1.82.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.81.0...website-v1.82.0) (2026-06-16)
 
 

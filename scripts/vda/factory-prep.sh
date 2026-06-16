@@ -48,7 +48,7 @@ run_prep() {
 
     # Daily cap
     if ! "${skip}"; then
-      if FACTORY_DAILY_DEPLOY_CAP=5 GUARDS_REPO="${REPO}" guard_daily_cap_reached "${brand}"; then
+      if FACTORY_DAILY_DEPLOY_CAP="${FACTORY_DAILY_DEPLOY_CAP:-5}" GUARDS_REPO="${REPO}" guard_daily_cap_reached "${brand}"; then
         log "DAILY CAP REACHED -> skip ${brand}"
         skip=true; reason="daily_cap"
       fi
@@ -66,7 +66,7 @@ run_prep() {
     # Schedule
     log "Schedule ${brand}..."
     local schedule_out
-    schedule_out=$(BRAND="${brand}" FACTORY_GLOBAL_CAP=3 bash "${REPO}/scripts/factory/schedule.sh" 2>/dev/null)
+    schedule_out=$(BRAND="${brand}" FACTORY_GLOBAL_CAP="${FACTORY_GLOBAL_CAP:-3}" bash "${REPO}/scripts/factory/schedule.sh" 2>/dev/null)
     log "Schedule result: ${schedule_out}"
 
     # Process candidates from schedule

@@ -233,7 +233,8 @@ if (!isSimple) {
   phase('Design')
   phaseEvent('design', 'entered', 'Spec-Generierung')
   const design = await agent(
-    `Liveness: \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`.
+    `/goal Generate design specification for feature "${A.title}".
+     Liveness: \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`.
      Write a design spec for "${A.title}" following ARCH/GOALS/RISKS/DECISIONS structure.
      For medium/complex, include a "try to refute this design" section.
      Save the spec to: ${REPO}/docs/superpowers/specs/$(date +%F)-${slug}-design.md
@@ -276,7 +277,8 @@ if (!isSimple) {
   const planProv = D.provision({ complexity: scout.complexity, role: 'plan', risk: (scout.risk_areas?.length ? 'high' : 'low'), budgetRemaining: 1, ticketId: A.ticket_id, touchedFiles: scout.touched_files, gpuEmbeddings: false })
   const planRoute = routeProviderSync('factory-plan', routerTier(planProv.model))
   const plan = await agent(
-    `Decompose the spec at ${specPath} into independent tasks where no two tasks
+    `/goal Decompose specification into task list plan.
+     Decompose the spec at ${specPath} into independent tasks where no two tasks
      touch the same file. For each task provide: id, target_files (array),
      acceptance_criteria (array of strings).
 
@@ -346,7 +348,8 @@ if (tasks.length && !A.batch_mode) {
     let impl = null
     try {
       impl = await agent(
-        `Liveness: \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`.
+        `/goal Implement task ${t.id} for ticket ${A.ticket_id}.
+         Liveness: \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`.
          Implement task ${t.id} on ${WORK_BRANCH} in the shared worktree at ${WORK_WT}
          (already exists — do NOT run \`git worktree add\`).
          Target files: ${t.target_files.join(', ')}.
@@ -410,7 +413,8 @@ if (!cleanDiff || !String(cleanDiff).trim()) {
   reviews = (await parallel(lenses.map((l) => () => {
     const route = routeProviderSync('factory-review', 'opus')
     return agent(
-      `Liveness: \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then review at ${REPO}/${l.file} against: git -C ${WORK_WT} diff origin/main...HEAD. Return findings as JSON per the prompt's schema.` + consumeInjections('verify'),
+      `/goal Perform verification review lens: ${l.key}.
+       Liveness: \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then review at ${REPO}/${l.file} against: git -C ${WORK_WT} diff origin/main...HEAD. Return findings as JSON per the prompt's schema.` + consumeInjections('verify'),
       { label: `review:${l.key}`, phase: 'Verify', ...(l.key === 'agents-md' ? {} : { schema: REVIEW_SCHEMA }), model: route.modelId },
     )
   }))).filter(Boolean)
@@ -500,7 +504,8 @@ log(`Deploy mode: ${partialServices ? `PARTIAL [${partialServices}]` : 'FULL'} (
 phaseEvent('deploy', partialServices ? 'partial' : 'full', partialServices ? `services=${partialServices}` : 'full deploy')
 
 const deploy = await agent(
-  `Liveness: \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`.
+  `/goal Deploy feature branch ${WORK_BRANCH} to both brands.
+   Liveness: \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`.
    Deploy to both brands. Operate from MAIN repo ${REPO} (NOT ${WORK_WT}).
 
    HARD GUARDS — STOP on any failure:

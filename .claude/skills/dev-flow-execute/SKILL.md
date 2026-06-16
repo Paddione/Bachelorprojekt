@@ -88,7 +88,7 @@ echo "$BATCH_JSON" | jq -r '.[] | "  • \(.ticket_id) [\(.priority)] \(.title) 
 
 ```bash
 MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
-WORKTREE_DIR="/tmp/wt-batch-execute-$(date +%s)"
+WORKTREE_DIR="$MAIN_REPO/tmp/wt-batch-execute-$(date +%s)"
 
 # Für jeden Plan: Worktree erstellen und Plan-Datei validieren
 echo "$BATCH_JSON" | jq -c '.[]' | while read -r item; do
@@ -96,7 +96,7 @@ echo "$BATCH_JSON" | jq -c '.[]' | while read -r item; do
   BRANCH=$(echo "$item" | jq -r '.branch')
   PLAN_FILE=$(echo "$item" | jq -r '.plan_file')
 
-  WT_PATH="/tmp/wt-execute-$TICKET_ID"
+  WT_PATH="$MAIN_REPO/tmp/wt-execute-$TICKET_ID"
 
   # Worktree erstellen (falls nicht vorhanden)
   if [[ ! -d "$WT_PATH" ]]; then
@@ -118,19 +118,18 @@ done
 
 ### Batch-Schritt 3: Parallele Implementierung orchestrieren
 
-Setze alle Tickets auf `in_progress` und spawne für jeden Plan **einen separaten Implementer-Subagenten** via `Agent`-Tool — alle parallel (d.h. in einer einzigen Antwort mehrere `Agent`-Tool-Calls ohne auf das Ergebnis des vorherigen zu warten):
+Setze alle Tickets auf `in_progress` und spawne für jeden Plan **einen separaten Implementer-Subagenten** via `invoke_subagent` (Gemini/Antigravity) bzw. `Agent`-Tool (Claude Code) — alle parallel (d.h. in einer einzigen Antwort mehrere Subagenten-Calls ohne auf das Ergebnis des vorherigen zu warten):
 
 ```bash
 # Tickets auf in_progress setzen (sequentiell, schnell)
 echo "$BATCH_JSON" | jq -r '.[].ticket_id' | while read -r tid; do
-  ./scripts/ticket.sh update-status --id "$tid" --status in_progress || true
+  ./scripts/vda.sh ticket update-status --id "$tid" --status in_progress || true
 done
 ```
 
-Starte danach **für jedes Element aus `$BATCH_JSON`** einen Subagenten via `Agent`-Tool mit:
-- `model`: gemäß Plan-Charakter wählen (wie Single-Modus Schritt 2 — Standard `sonnet`)
-- `run_in_background: true` für alle Subagenten (echte Parallelität)
-- `subagent_type: general-purpose`
+Starte danach **für jedes Element aus `$BATCH_JSON`** einen Subagenten:
+* **Gemini/Antigravity CLI:** call `invoke_subagent` with `TypeName: "self"` (or `"research"`), `Role: "Implementer <TICKET_ID>"`, and `Workspace: "share"` (or `"inherit"`).
+* **Claude Code CLI:** call `Agent`-Tool with `subagent_type: "general-purpose"`, choosing the appropriate model/slot from routing, and setting `run_in_background: true`.
 - **Prompt** (Kontext-Injektion, da der Subagent KEINEN Kontext hat):
   ```
   /goal Finish dev-flow-execute and merge the PR cleanly.
@@ -216,7 +215,7 @@ immer die DB als Quelle nutzen, genau wie der Factory-Dispatcher.
 TICKET_ID="<T-######>"
 
 # Plan-Metadaten aus der Datenbank laden
-TICKET_JSON=$(./scripts/ticket.sh get --id "$TICKET_ID")
+TICKET_JSON=$(./scripts/vda.sh ticket get --id "$TICKET_ID")
 PLAN_REF=$(echo "$TICKET_JSON" | jq -r '.plan_ref // empty')
 
 if [[ -z "$PLAN_REF" ]]; then
@@ -267,7 +266,7 @@ done
 Falls eine Ticket-ID vorhanden ist, setze das Ticket auf in_progress:
 
 ```bash
-./scripts/ticket.sh update-status --id "$TICKET_ID" --status in_progress
+./scripts/vda.sh ticket update-status --id "$TICKET_ID" --status in_progress
 # Live-Floor-Telemetrie (best-effort; --driver devflow; darf den Flow nie stoppen)
 SLUG=$(basename "$PLAN_FILE" .md)
 ./scripts/ticket.sh phase "$TICKET_ID" plan entered --driver devflow --detail "Plan: $SLUG · $TICKET_ID" || true
@@ -302,25 +301,27 @@ ATTACHMENT_DIR="/tmp/ticket-attachments-$TICKET_ID"
 ./scripts/ticket.sh phase "$TICKET_ID" implement entered --driver devflow --detail "Subagent gestartet" || true
 ```
 
-Statt deinen eigenen Kontext/Modell zurückzusetzen (das ließe dich den Faden verlieren), delegiere die **gesamte Implementierung an EINEN frischen Subagenten** — sauberer Kontext per Konstruktion, **Modell + Effort passend zum Charakter der Plan-Tasks**. Du behältst den vollen Plan-Kontext und verifizierst das Ergebnis anschließend unabhängig.
+Statt deinen eigenen Kontext/Modell zurückzusetzen (das ließe dich den Faden verlieren), delegiere die **gesamte Implementierung an EINEN frischen Subagenten** — sauberer Kontext per Konstruktion. Du behältst den vollen Plan-Kontext und verifizierst das Ergebnis anschließend unabhängig.
 
-> **Warum EIN Implementer statt `superpowers:subagent-driven-development`-Fan-out?** Dieser Skill läuft bereits *selbst* als delegierte Ebene (oft aus einem dev-flow-Orchestrator). Ein zusätzlicher Per-Task-Fan-out wäre **verschachtelte Delegation** → Kontext-Explosion und Synthese-Last (siehe [subagent-provisioning.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md), 162k-Prompt-Lehre). Der Implementer ruft `superpowers:executing-plans` daher **in-context** auf (kein weiterer Agenten-Fan-out). Nur wenn der Plan ausdrücklich viele **voneinander unabhängige** Tasks hat und der Einzel-Implementer am Kontext-Limit scheitert, lohnt der Wechsel auf `subagent-driven-development` bzw. einen `Workflow`-Fan-out — bewusste Eskalation, nicht Default.
+> **Warum EIN Implementer statt `superpowers:subagent-driven-development`-Fan-out?** Dieser Skill läuft bereits *selbst* als delegierte Ebene (oft aus einem dev-flow-Orchestrator). Ein zusätzlicher Per-Task-Fan-out wäre **verschachtelte Delegation** $\rightarrow$ Kontext-Explosion und Synthese-Last (siehe [subagent-provisioning.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md), 162k-Prompt-Lehre). Der Implementer ruft `superpowers:executing-plans` daher **in-context** auf (kein weiterer Agenten-Fan-out). Nur wenn der Plan ausdrücklich viele **voneinander unabhängige** Tasks hat und der Einzel-Implementer am Kontext-Limit scheitert, lohnt der Wechsel auf `subagent-driven-development` bzw. einen `Workflow`-Fan-out — bewusste Eskalation, nicht Default.
 
-Spawne über das `Agent`/`Task`-Tool einen Subagenten, **provisioniert gemäß** [subagent-provisioning.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md) (Modell · Effort · Kontext):
-- **Modell — nach Plan-Charakter wählen, nicht pauschal:** mechanisch (Config/Doku/Single-File) → `haiku`; Standard-Feature/Fix (mehrere Dateien, klarer Plan) → `sonnet`; komplex/riskant (systemübergreifend, Architektur, Security, DB-/Schema-Migration, Auto-Deploy) → `opus`. Im Zweifel eine Stufe höher.
-- **Provider-Routing (Kosten/Resilienz):** Vor dem Spawnen den Provider routen:
-  ```bash
-  ROUTE=$(bash scripts/factory/route-provider.sh dev-flow-execute sonnet)
-  MODEL=$(echo "$ROUTE" | jq -r .modelId)
-  SLOT=$(echo "$ROUTE" | jq -r .slotId)
-  ```
-  Subagent mit `--model "$MODEL"` spawnen. Danach den Slot freigeben:
-  ```bash
-  bash scripts/factory/release-slot.sh "$SLOT" true   # false bei Fehlschlag → Circuit-Breaker
-  ```
-  `opus`/plan-kritische Subagenten IMMER ohne Routing (hardcodiert Anthropic).
-- **Effort per Prompt-Direktive** (das `Agent`-Tool kennt keinen Effort-Regler): mechanisch „Arbeite zügig und fokussiert."; komplex/riskant „Ultrathink. Denke sehr gründlich nach."
-- `subagent_type: general-purpose`.
+Spawne den Subagenten:
+* **Gemini/Antigravity CLI:** call `invoke_subagent` with `TypeName: "self"` (inherits permissions and tools), `Role: "Implementer <TICKET_ID>"`, and `Workspace: "share"` (or `"inherit"`).
+* **Claude Code CLI:** Spawne über das `Agent`/`Task`-Tool einen Subagenten, **provisioniert gemäß** [subagent-provisioning.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md) (Modell · Effort · Kontext):
+  * **Modell — nach Plan-Charakter wählen, nicht pauschal:** mechanisch (Config/Doku/Single-File) $\rightarrow$ `haiku`; Standard-Feature/Fix $\rightarrow$ `sonnet`; komplex/riskant (systemübergreifend, Architektur, DB-Migration, Auto-Deploy) $\rightarrow$ `opus`.
+  * **Provider-Routing (Kosten/Resilienz):** Vor dem Spawnen den Provider routen:
+    ```bash
+    ROUTE=$(bash scripts/factory/route-provider.sh dev-flow-execute sonnet)
+    MODEL=$(echo "$ROUTE" | jq -r .modelId)
+    SLOT=$(echo "$ROUTE" | jq -r .slotId)
+    ```
+    Subagent mit `--model "$MODEL"` spawnen. Danach den Slot freigeben:
+    ```bash
+    bash scripts/factory/release-slot.sh "$SLOT" true   # false bei Fehlschlag → Circuit-Breaker
+    ```
+    `opus`/plan-kritische Subagenten IMMER ohne Routing (hardcodiert Anthropic).
+  * **Effort per Prompt-Direktive** (das `Agent`-Tool kennt keinen Effort-Regler): mechanisch „Arbeite zügig und fokussiert."; komplex/riskant „Ultrathink. Denke sehr gründlich nach."
+  * `subagent_type: general-purpose`.
 - **Kontext-Injektion** (er hat sonst KEINEN Kontext — gib ihm alles explizit):
   - Absoluter Worktree-Pfad + Branch-Name; er arbeitet NUR relativ dazu.
   - Plan-Datei `$PLAN_FILE` (aus Schritt 1, via DB aufgelöst) + Ticket-ID.
@@ -399,7 +400,7 @@ Rufe `dev-flow-iterate` auf, um Änderungen im dev-Cluster zu testen.
 ```bash
 # Branch-Guard prüfen
 git add -A
-git commit -m "<type>(<scope>): <subject>" # commitlint regeln beachten (<100 Zeichen body)
+git commit -m "<type>(<scope>): <subject>" # commitlint regeln beachten (<100 Zeichen Subject/Header)
 # Closes T000XXX im Body bei Fixes
 ```
 
@@ -500,7 +501,7 @@ PR_NUM=$(gh pr view --json number -q '.number')
 # PR-Nummer in ticket_links eintragen, damit der Shipped-Tab sie zeigt (Fix 1):
 ./scripts/ticket.sh add-pr-link --id "$TICKET_ID" --pr "$PR_NUM"
 
-./scripts/ticket.sh update-status --id "$TICKET_ID" --status qa_review
+./scripts/vda.sh ticket update-status --id "$TICKET_ID" --status qa_review
 # Live-Floor-Telemetrie (best-effort; --driver devflow; darf den Flow nie stoppen)
 ./scripts/ticket.sh phase "$TICKET_ID" deploy done --driver devflow --detail "PR #$PR_NUM merged · deployed" || true
 ./scripts/ticket.sh add-comment --id "$TICKET_ID" --body "PR #$PR_NUM merged. Plan archived to tickets.ticket_plans."
@@ -550,8 +551,7 @@ Lösche den lokalen Worktree und Branch (im Haupt-Repo ausführen):
 # Claims freigeben (Session-Koordination [T000510]) — VOR dem Worktree-Remove:
 bash scripts/agent-lock.sh release ticket "$TICKET_ID" 2>/dev/null || true
 bash scripts/agent-lock.sh release branch "<branch>" 2>/dev/null || true
-cd /home/patrick/Bachelorprojekt
-git worktree remove "/tmp/wt-<slug>" --force
+git worktree remove "$MAIN_REPO/tmp/wt-<slug>" --force
 git branch -D "<branch>"
 ```
 

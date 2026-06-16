@@ -43,52 +43,16 @@ async function main() {
   }
 
   // ── ① Prep: watchdog sweep + queue poll + conflict-gate + slot-claim ──────────
+  // Deterministic prep logic is delegated to scripts/vda.sh factory-prep, which consolidates:
+  // - watchdog.sh (watchdog sweep)
+  // - schedule.sh (poll backlog + conflict-gate + slot-claim)
+  // - ticket.sh get (fetch details for launch)
+  // - scripts/factory/guards.sh (kill-switch via guard_killswitch_on, daily cap via guard_daily_cap_reached)
   phase('Prep')
   const prep = await agent(
-    `You are the Software Factory dispatcher PREP step. Run the deterministic scripts below from
-     ${REPO} and report ONLY what the scripts decide — do not schedule by your own judgment.
-
-     For EACH brand in [mentolder, korczewski]:
-       0. HARD-GUARD GATE (read fresh per tick; fail-closed — on ANY non-zero exit other than the
-          documented "not tripped" case, treat the guard as tripped and SKIP scheduling this brand):
-            source ${REPO}/scripts/factory/guards.sh
-            # kill-switch ON  → exit 0; record "killswitch" and SKIP this brand
-            GUARDS_REPO=${REPO} guard_killswitch_on <brand>   ; KS=$?
-            # daily-cap reached → exit 0; record "daily_cap" and SKIP this brand
-            FACTORY_DAILY_DEPLOY_CAP=${A.FACTORY_DAILY_DEPLOY_CAP ?? '5'} GUARDS_REPO=${REPO} guard_daily_cap_reached <brand> ; CAP=$?
-          If KS==0 (kill-switch ON) OR CAP==0 (daily cap reached): emit NO launch objects for this
-          brand and append { brand, reason } to a "skipped" list. Otherwise continue to steps 1-2.
-       1. Watchdog sweep (escalate stale runs, free their slots):
-          BRAND=<brand> bash ${REPO}/scripts/factory/watchdog.sh
-       2. Schedule (poll backlog + best-effort conflict gate + claim slots up to the global cap):
-          BRAND=<brand> FACTORY_GLOBAL_CAP=3 bash ${REPO}/scripts/factory/schedule.sh
-          (schedule.sh enforces the global cap across BOTH brands by summing occupied slots.)
-
-     For EACH claimed external_id also enforce the per-ticket DRY-RUN-FIRST guard
-     (a feature must have been dry-run at least once before it may ship live):
-       GUARDS_REPO=${REPO} guard_dryrun_ok <external_id> ; DR=$?
-       If DR != 0 (not yet dry-run), STILL launch it but force dry_run=true for THAT object only.
-
-     For EACH claimed external_id also enforce the SESSION-COORDINATION guard [T000510]
-     (never let the Factory duplicate work a live interactive Claude/Gemini session is doing):
-       bash ${REPO}/scripts/agent-lock.sh check ticket <external_id> ; AL=$?
-       If AL == 3 (a LIVE interactive session holds the ticket claim), DO NOT launch it:
-         release its slot — BRAND=<brand> bash ${REPO}/scripts/ticket.sh release-slot --id <external_id>
-         and append { brand: <brand>, reason: "claimed by live interactive session" } to "skipped".
-       Any other AL value (0 = free/mine, 1) → proceed normally.
-
-     Collect every {brand, external_id, slot} object that schedule.sh claimed across both brands.
-     For each claimed external_id, fetch its details:
-       BRAND=<brand> bash ${REPO}/scripts/ticket.sh get --id <external_id>
-       Read .title and .plan_ref from the returned JSON.
-       If .plan_ref contains a FACTORY-PLAN-REF comment, parse "branch=<value>" and "plan=<value>" from it.
-
-     Return JSON: { "launch": [ {brand, external_id, slot, title, branch, plan_path, dry_run} ... ],
-                    "skipped": [ {brand, reason} ... ] }.
-     dry_run is true for objects that failed the dry-run-first guard, else inherit the tick policy.
-     If a guard read errors (non-zero with no documented meaning), fail-closed: skip that brand.
-     If a ticket has no plan reference, set branch and plan_path to null.
-     If nothing was claimed across both brands, return { "launch": [], "skipped": [...] }.`,
+    `Run the unified Software Factory prep script from ${REPO} and return its JSON output:
+       FACTORY_DAILY_DEPLOY_CAP=${A.FACTORY_DAILY_DEPLOY_CAP ?? '5'} FACTORY_GLOBAL_CAP=3 bash ${REPO}/scripts/vda.sh factory-prep
+     Return the exact JSON output from this script and nothing else.`,
     { label: 'prep', phase: 'Prep', schema: PLAN_SCHEMA },
   )
 
@@ -121,7 +85,8 @@ async function main() {
   }
 
   const budgetResult = await agent(
-    `You are the Software Factory budget guard. Process ONLY the features listed below.
+    `/goal Guard the Software Factory budget and estimate feature costs.
+     You are the Software Factory budget guard. Process ONLY the features listed below.
      REPO=${REPO}
 
      For EACH feature in this list:
@@ -195,7 +160,8 @@ async function main() {
   ]
   if (escalations.length) {
     await agent(
-      `${escalations.length} pipeline run(s) ended in error or blocked this tick. Notify the operator
+      `/goal Notify the operator about blocked or errored Software Factory pipelines and log them.
+       ${escalations.length} pipeline run(s) ended in error or blocked this tick. Notify the operator
        and record it on the Vorhaben ticket. PushNotification is a DEFERRED tool — you MUST first run
        \`ToolSearch select:PushNotification\` to load its schema, then call it ONCE with a summary:
          title:   "Software Factory: ${escalations.length} run(s) blocked/errored"
@@ -222,7 +188,8 @@ async function main() {
   // ── ③ Metrics: per-brand throughput summary on the Vorhaben ticket ────────────
   phase('Metrics')
   await agent(
-    `Run the factory metrics summary for BOTH brands from ${REPO} and report stdout:
+    `/goal Retrieve and report Software Factory metrics for both brands.
+     Run the factory metrics summary for BOTH brands from ${REPO} and report stdout:
        BRAND=mentolder bash ${REPO}/scripts/factory/metrics.sh
        BRAND=korczewski bash ${REPO}/scripts/factory/metrics.sh
      (metrics.sh is best-effort: a missing Vorhaben ticket on a brand is a silent no-op.)`,

@@ -1,6 +1,8 @@
 <!-- website/src/components/admin/TicketActivityTimeline.svelte -->
 <script lang="ts">
   import type { TimelineEntry } from '../../lib/tickets/admin';
+  import { renderMarkdown } from '../../lib/markdown';
+  import '../../styles/markdown.css';
   export let entries: TimelineEntry[] = [];
 
   const FIELD_LABEL: Record<string, string> = {
@@ -79,7 +81,7 @@
             {#if e.commentKind !== 'comment'}
               <span class="ticket-timeline-badge alt">{e.commentKind}</span>
             {/if}
-            <p style="white-space: pre-wrap; margin: 4px 0 0;">{e.body}</p>
+            <div class="md-body" style="margin: 4px 0 0;">{@html renderMarkdown(e.body)}</div>
           </div>
         {:else if e.kind === 'link_added'}
           <p>

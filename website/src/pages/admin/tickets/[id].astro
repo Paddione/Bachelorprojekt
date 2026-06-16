@@ -13,6 +13,8 @@ import {
 import { getDisplayScores } from '../../../lib/compute-scores';
 import ProjectQuestionnairesPanel, { type AssignmentBundle } from '../../../components/admin/ProjectQuestionnairesPanel.astro';
 import GrillingAnswersPanel from '../../../components/admin/GrillingAnswersPanel.svelte';
+import { renderMarkdown } from '../../../lib/markdown';
+import '../../../styles/markdown.css';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -138,7 +140,7 @@ function fmtDateTime(d: Date | string | null): string {
           <div class="bg-dark-light rounded-2xl border border-dark-lighter p-6">
             <h2 class="text-sm font-semibold text-light mb-2 font-serif uppercase tracking-wide">Beschreibung</h2>
             {ticket.description ? (
-              <p class="text-sm text-light/90 whitespace-pre-wrap">{ticket.description}</p>
+              <div class="md-body text-light/90" set:html={renderMarkdown(ticket.description)} />
             ) : (
               <p class="text-sm text-muted italic">Keine Beschreibung.</p>
             )}

@@ -1,6 +1,7 @@
 <!-- website/src/components/admin/TicketActionBar.svelte -->
 <script lang="ts">
   import type { TicketStatus, TicketResolution, ListedTicket, LinkKind } from '../../lib/tickets/admin';
+  import MarkdownEditor from './MarkdownEditor.svelte';
 
   export let ticketId: string;
   export let currentStatus: TicketStatus;
@@ -104,8 +105,9 @@
           {#each RESOLUTIONS as r}<option value={r}>{r}</option>{/each}
         </select></label>
       {/if}
-      <label>Notiz (optional)<textarea bind:value={transitionNote} disabled={busy}
-        rows="2" maxlength="2000" placeholder="Warum dieser Übergang?"></textarea></label>
+      <div class="mdfield"><span>Notiz (optional)</span>
+        <MarkdownEditor bind:value={transitionNote} rows={2} maxlength={2000}
+          placeholder="Warum dieser Übergang?" /></div>
       <label class="row">
         <input type="checkbox" disabled={busy}
           checked={transitionVisibility === 'public'}
@@ -119,8 +121,9 @@
     </div>
   {:else if mode === 'comment'}
     <div class="ticket-action-panel">
-      <label>Text<textarea bind:value={commentBody} disabled={busy}
-        rows="3" maxlength="4000" placeholder="Kommentar (max. 4000 Zeichen)"></textarea></label>
+      <div class="mdfield"><span>Text</span>
+        <MarkdownEditor bind:value={commentBody} rows={3} maxlength={4000}
+          placeholder="Kommentar (max. 4000 Zeichen)" /></div>
       <label class="row">
         <input type="checkbox" disabled={busy}
           checked={commentVisibility === 'public'}
@@ -189,6 +192,7 @@
   }
   .ticket-action-panel label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--mute, #aabbcc); }
   .ticket-action-panel label.row { flex-direction: row; align-items: center; gap: 6px; }
+  .ticket-action-panel .mdfield { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--mute, #aabbcc); }
   .ticket-action-panel input[type="text"], .ticket-action-panel input[type="number"], .ticket-action-panel select, .ticket-action-panel textarea {
     background: var(--ink-900, #0f1623); border: 1px solid var(--brass-d, #2a3a52);
     border-radius: 6px; padding: 6px 8px; color: var(--fg, #e8e8f0); font-size: 13px;

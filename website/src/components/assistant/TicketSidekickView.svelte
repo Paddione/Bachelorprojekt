@@ -1,5 +1,6 @@
 <!-- website/src/components/assistant/TicketSidekickView.svelte -->
 <script lang="ts">
+  import MarkdownEditor from '../admin/MarkdownEditor.svelte';
   type TicketType = 'feature' | 'task' | 'project';
   type TicketStatus = 'triage' | 'backlog' | 'in_progress' | 'in_review' | 'blocked' | 'done' | 'archived';
   type TicketPriority = 'hoch' | 'mittel' | 'niedrig';
@@ -167,7 +168,7 @@
         </div>
         <div class="field">
           <label for="sk-desc">Beschreibung</label>
-          <textarea id="sk-desc" bind:value={cDescription} maxlength="2000" rows="2" placeholder="Details, Kontext…"></textarea>
+          <MarkdownEditor id="sk-desc" bind:value={cDescription} maxlength={2000} rows={2} placeholder="Details, Kontext…" />
         </div>
         <div class="field">
           <label for="sk-comp">Komponente</label>
@@ -388,7 +389,6 @@
     -webkit-appearance: none;
     transition: border-color 180ms ease, background 180ms ease;
   }
-  .field textarea { min-height: 64px; }
   .field select {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23cda260' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;

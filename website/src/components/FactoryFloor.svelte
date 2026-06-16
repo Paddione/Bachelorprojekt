@@ -10,6 +10,7 @@
   import MobileTabBar from './factory/MobileTabBar.svelte';
   import StagedColumn from './factory/StagedColumn.svelte';
   import ShippedColumn from './factory/ShippedColumn.svelte';
+  import AwaitingDeployLane from './factory/AwaitingDeployLane.svelte';
   import PhaseStepper from './factory/PhaseStepper.svelte';
   import CiBadge from './factory/CiBadge.svelte';
   import AttentionStrip from './factory/AttentionStrip.svelte';
@@ -24,8 +25,8 @@
     { key: 'implement', label: 'Implement' }, { key: 'verify', label: 'Verify' }, { key: 'deploy', label: 'Deploy' },
   ];
 
-  const MOBILE_COL_COUNT = 10;
-  const MOBILE_COL_INDEX: Record<string, number> = { staged: 0, backlog: 1, scout: 2, design: 3, plan: 4, implement: 5, verify: 6, deploy: 7, qs: 8, done: 9 };
+  const MOBILE_COL_COUNT = 11;
+  const MOBILE_COL_INDEX: Record<string, number> = { staged: 0, backlog: 1, scout: 2, design: 3, plan: 4, implement: 5, verify: 6, deploy: 7, qs: 8, awaitingDeploy: 9, done: 10 };
   let mobileColIndex = $state(0);
   let touchStartX = $state(0);
   let isMobile = $state(false);
@@ -377,6 +378,8 @@
         {prUrl}
         {ticketUrl}
       />
+
+      <AwaitingDeployLane items={data.awaitingDeploy ?? []} />
 
       <div class="lg:w-1/5" data-testid="floor-qa">
         <h3 class="font-semibold mb-2">QS-Abnahme</h3>

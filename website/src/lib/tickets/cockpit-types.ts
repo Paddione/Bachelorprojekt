@@ -8,6 +8,7 @@ export interface RollupMetrics {
   done: number;
   blocked: number;
   inProgress: number;
+  awaitingDeploy: number;
   open: number;
   pctDone: number;
 }

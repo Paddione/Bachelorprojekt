@@ -235,7 +235,31 @@ git commit -m "chore(plans): stage <slug> for execution [$TICKET_EXT_ID]"
 git push -u origin $(git branch --show-current)
 ```
 
-### Schritt 6: Batch-Status prüfen und Ausführungsoptionen anzeigen
+### Schritt 6: Optionaler Plan-Review (interaktiv)
+
+Bevor du den Plan committest und Ausführungsoptionen anzeigst, kannst du den Plan
+annotierbar rendern und im Browser reviewen (additiv/optional; der bestehende
+STOP-Text in Schritt 5 bleibt der Default):
+
+```bash
+bash scripts/plan-review/plan-review.sh render docs/superpowers/plans/<date>-<slug>.md
+```
+
+Im Browser: Text markieren → annotieren (Durchstreichen/Ersetzen/Einfügen/Kommentar) →
+✓ Approve oder ↺ Änderungen anfordern. Danach das Ergebnis einlesen:
+
+```bash
+bash scripts/plan-review/plan-review.sh result
+```
+
+- **approve**: `{verdict:"approve"}` → fahre mit Schritt 6 fort (Ausführungsoptionen).
+- **request-changes**: `{verdict:"request-changes", annotations:[…]}` → die
+  Annotationen als Änderungsauftrag an einen Plan-Schreib-Agenten übergeben,
+  1 Revisions-Runde, dann erneut rendern und reviewen. Wiederhole bis approve.
+
+Details siehe [plan-review-ui.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-review-ui.md).
+
+### Schritt 6.5: Batch-Status prüfen und Ausführungsoptionen anzeigen
 
 Prüfe ob weitere Pläne in der Kommissionierung warten und zeige dem User die Batch-Ausführungsoptionen:
 

@@ -139,7 +139,7 @@ git commit -m "feat(website): add ordered pipeline-lane SSOT helper [T000919]"
 **Files:**
 - Create: `website/src/lib/factory-floor.order.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `website/src/lib/factory-floor.order.test.ts`. It imports the SSOT **and** re-exports from `factory-floor.ts` to prove the re-export wiring (Task 3) holds. The component-order assertions that Sub-Plan 4 (T000922) will wire are written as `it.todo` placeholders — clearly labelled — and SP4 turns them into real assertions.
 
@@ -219,12 +219,12 @@ describe('pipeline-order SSOT', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `pnpm --dir website exec vitest run factory-floor.order`
 Expected: FAIL. The `factory-floor.ts re-exports the SSOT symbols` test errors because `factory-floor.ts` does not yet export `PIPELINE_LANES` / does not re-export from the helper (import resolves to `undefined` → `toBe` fails). This proves the re-export wiring is genuinely absent before Task 3.
 
-- [ ] **Step 3: Commit the failing test**
+- [x] **Step 3: Commit the failing test**
 
 ```bash
 git add website/src/lib/factory-floor.order.test.ts

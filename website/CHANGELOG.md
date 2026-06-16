@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.81.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.80.0...website-v1.81.0) (2026-06-16)
+
+
+### Features
+
+* **factory:** OTel observability dashboard spans wiring [T000883] ([#1757](https://github.com/Paddione/Bachelorprojekt/issues/1757)) ([c421141](https://github.com/Paddione/Bachelorprojekt/commit/c4211411faf1ad3fd012f136bd4d191b109cad67))
+
 ## [1.80.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.79.1...website-v1.80.0) (2026-06-16)
 
 

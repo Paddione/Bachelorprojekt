@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: domain-config
+  # KEIN namespace: hier — die Overlay-namespace:-Direktive (website / website-korczewski)
+  # re-namespaced diese ConfigMap brand-korrekt. NICHT hinzufügen.
+data:
+  # Muss exakt dem prod/configmap-domains.yaml-Ausdruck entsprechen (SSOT, drift-guarded
+  # durch tests/unit/website-domain-config-overlay.bats). Wert wird via website:deploy-
+  # envsubst gefüllt ($PROD_DOMAIN ist bereits in der Liste, Taskfile.yml Z.3564/3538).
+  # Jeder neue required configMapKeyRef name: domain-config in k3d/website.yaml MUSS hier
+  # ergänzt werden, sonst macht der bats-Guard CI rot.
+  MEDIAVIEWER_HOST: "mediaviewer.${PROD_DOMAIN}"

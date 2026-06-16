@@ -46,4 +46,24 @@ describe('GrillingStepper', () => {
     const body = JSON.parse(opts.body);
     expect(body.grillingAnswers[QN].q1).toBe('Meine Antwort');
   });
+
+  it('Verwerfen adds the question to grillingMeta.dismissed and advances the queue', async () => {
+    setup(null, null);
+    const first = QUESTIONNAIRES[QN].sections[0].questions[0].label;
+    expect(screen.getByText(first)).toBeTruthy();
+    await fireEvent.click(screen.getByRole('button', { name: /Verwerfen/ }));
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    const [, opts] = (global.fetch as any).mock.calls.at(-1);
+    const body = JSON.parse(opts.body);
+    expect(body.grillingMeta[QN].dismissed).toContain('q1');
+    expect(screen.getByText(QUESTIONNAIRES[QN].sections[0].questions[1].label)).toBeTruthy();
+  });
+
+  it('mode toggle switches between step and all mode', async () => {
+    setup(null, null);
+    const btn = screen.getByTestId('grilling-mode');
+    expect(btn.textContent).toMatch(/Alle anzeigen/);
+    await fireEvent.click(btn);
+    expect(btn.textContent).toMatch(/Schritt für Schritt/);
+  });
 });

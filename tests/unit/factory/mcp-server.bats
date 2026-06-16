@@ -3,9 +3,12 @@
 # Tool endpoint tests require full MCP protocol handshake — tested via manual integration.
 
 setup() {
+  ORIG_REPO="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
+  if [[ ! -d "${ORIG_REPO}/scripts/factory/node_modules/@modelcontextprotocol" ]]; then
+    skip "scripts/factory/node_modules not installed (run npm install in scripts/factory/)"
+  fi
   export FACTORY_REPO="${BATS_TMPDIR}/mock-repo"
   mkdir -p "$FACTORY_REPO/scripts/factory"
-  ORIG_REPO="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
   export FACTORY_MCP_PORT=13099
   export REPO="$FACTORY_REPO"
   MCP_SERVER="${ORIG_REPO}/scripts/factory/mcp-server.mjs"

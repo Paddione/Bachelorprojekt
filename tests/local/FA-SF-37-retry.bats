@@ -127,3 +127,163 @@ BLS="$BATS_TEST_DIRNAME/../../scripts/factory/build-loop.sh"
   [ "$status" -eq 0 ]
   [[ "$output" == "function" ]]
 }
+
+# ── precompact-prune tests (was FA-SF-54) ──
+
+@test "FA-SF-37-retry: precompact-prune fehlendes Transcript → exit 0" {
+  run bash scripts/hooks/precompact-prune.sh <<< '{}'
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-37-retry: precompact-prune leeres Transcript → exit 0" {
+  local t; t=$(mktemp -d); trap "rm -rf '$t'" EXIT
+  local f="$t/transcript.jsonl"
+  : > "$f"
+  run bash -c "echo '{\"transcript_path\": \"$f\"}' | bash scripts/hooks/precompact-prune.sh"
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-37-retry: precompact-prune obsoletes tool_result → pruned" {
+  local t; t=$(mktemp -d); trap "rm -rf '$t'" EXIT
+  local f="$t/transcript.jsonl"
+  cat > "$f" <<'JSON'
+{"type":"tool_use","tool_use_id":"call-init"}
+{"type":"tool_result","tool_use_id":"call-1","content":"very long obsolete output","metadata":{"original_tool":"Read"}}
+{"type":"tool_use","tool_use_id":"call-2"}
+{"type":"tool_result","tool_use_id":"call-2","content":"newer read","metadata":{"original_tool":"Read"}}
+{"type":"tool_use","tool_use_id":"call-3"}
+{"type":"tool_result","tool_use_id":"call-3","content":"even newer","metadata":{"original_tool":"Bash"}}
+JSON
+  run bash -c "echo '{\"script_path\": \"$f\"}' | bash scripts/hooks/precompact-prune.sh 2>/dev/null || true"
+  run bash -c "echo '{\"transcript_path\": \"$f\"}' | bash scripts/hooks/precompact-prune.sh"
+  [ "$status" -eq 0 ]
+  run jq -r 'select(.type == "tool_result") | select(.content | startswith("[pruned:")) | .content' "$f"
+  [ -n "$output" ]
+}
+
+@test "FA-SF-37-retry: precompact-prune jüngstes Output unangetastet" {
+  local t; t=$(mktemp -d); trap "rm -rf '$t'" EXIT
+  local f="$t/transcript.jsonl"
+  cat > "$f" <<'JSON'
+{"type":"tool_use","tool_use_id":"call-init"}
+{"type":"tool_result","tool_use_id":"call-1","content":"recent output","metadata":{"original_tool":"Read"}}
+{"type":"assistant","content":[{"type":"tool_use","tool_use_id":"call-1"}]}
+{"type":"tool_use","tool_use_id":"call-2"}
+{"type":"tool_result","tool_use_id":"call-2","content":"other","metadata":{"original_tool":"Bash"}}
+JSON
+  run bash -c "echo '{\"transcript_path\": \"$f\"}' | bash scripts/hooks/precompact-prune.sh"
+  [ "$status" -eq 0 ]
+  run jq -r 'select(.type == "tool_result") | select(.tool_use_id == "call-1") | .content' "$f"
+  [[ "$output" == "recent output" ]]
+}
+
+@test "FA-SF-37-retry: precompact-prune Idempotenz" {
+  local t; t=$(mktemp -d); trap "rm -rf '$t'" EXIT
+  local f="$t/transcript.jsonl"
+  cat > "$f" <<'JSON'
+{"type":"tool_use","tool_use_id":"call-init"}
+{"type":"tool_result","tool_use_id":"call-1","content":"long obsolete read","metadata":{"original_tool":"Grep"}}
+{"type":"tool_use","tool_use_id":"call-2"}
+{"type":"tool_result","tool_use_id":"call-2","content":"newer","metadata":{"original_tool":"Read"}}
+JSON
+  run bash -c "echo '{\"transcript_path\": \"$f\"}' | bash scripts/hooks/precompact-prune.sh"
+  [ "$status" -eq 0 ]
+  local h1; h1=$(sha256sum "$f" | cut -d' ' -f1)
+  run bash -c "echo '{\"transcript_path\": \"$f\"}' | bash scripts/hooks/precompact-prune.sh"
+  [ "$status" -eq 0 ]
+  local h2; h2=$(sha256sum "$f" | cut -d' ' -f1)
+  [ "$h2" = "$h1" ]
+}
+
+@test "FA-SF-37-retry: precompact-prune alle Zeilen valides JSON" {
+  local t; t=$(mktemp -d); trap "rm -rf '$t'" EXIT
+  local f="$t/transcript.jsonl"
+  cat > "$f" <<'JSON'
+{"type":"tool_use","tool_use_id":"call-init"}
+{"type":"tool_result","tool_use_id":"call-1","content":"long content","metadata":{"original_tool":"Bash"}}
+{"type":"tool_use","tool_use_id":"call-2"}
+{"type":"tool_result","tool_use_id":"call-2","content":"more","metadata":{"original_tool":"Read"}}
+JSON
+  run bash -c "echo '{\"transcript_path\": \"$f\"}' | bash scripts/hooks/precompact-prune.sh"
+  [ "$status" -eq 0 ]
+  run bash -c "jq -e . < '$f' >/dev/null 2>&1"
+  [ "$status" -eq 0 ]
+}
+
+# ── usage-report tests (was FA-SF-55) ──
+
+@test "FA-SF-37-retry: usage-report fehlende Dirs → Exit 0" {
+  local t; t=$(mktemp -d); trap "rm -rf '$t'" EXIT
+  export CLAUDE_USAGE_DIR="$t/nonexistent"
+  export OPENCLAW_USAGE_DIR="$t/nonexistent"
+  run bash scripts/factory/usage-report.sh
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-37-retry: usage-report Fixtures → Summen pro Tag" {
+  local t; t=$(mktemp -d); trap "rm -rf '$t'" EXIT
+  export CLAUDE_USAGE_DIR="$t/claude"; mkdir "$CLAUDE_USAGE_DIR"
+  export OPENCLAW_USAGE_DIR="$t/openclaw"; mkdir "$OPENCLAW_USAGE_DIR"
+  cat > "$CLAUDE_USAGE_DIR/usage-1.jsonl" <<'JSON'
+{"timestamp":"2026-06-15T10:00:00Z","model":"claude-sonnet-4","tokens_in":100,"tokens_out":50,"cost_usd":0.002}
+{"timestamp":"2026-06-15T11:00:00Z","model":"claude-sonnet-4","tokens_in":200,"tokens_out":100,"cost_usd":0.004}
+JSON
+  run bash scripts/factory/usage-report.sh
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"2026-06-15"* ]]
+  [[ "$output" == *"claude-sonnet-4"* ]]
+}
+
+@test "FA-SF-37-retry: usage-report --json valides JSON" {
+  local t; t=$(mktemp -d); trap "rm -rf '$t'" EXIT
+  export CLAUDE_USAGE_DIR="$t/claude"; mkdir "$CLAUDE_USAGE_DIR"
+  export OPENCLAW_USAGE_DIR="$t/openclaw"; mkdir "$OPENCLAW_USAGE_DIR"
+  cat > "$CLAUDE_USAGE_DIR/usage-1.jsonl" <<'JSON'
+{"timestamp":"2026-06-14T10:00:00Z","model":"claude-haiku-4","tokens_in":50,"tokens_out":25,"cost_usd":0.001}
+JSON
+  run bash scripts/factory/usage-report.sh --json
+  [ "$status" -eq 0 ]
+  run jq -e . <<< "$output"
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-37-retry: usage-report --otel ohne Endpoint → no-op" {
+  local t; t=$(mktemp -d); trap "rm -rf '$t'" EXIT
+  export CLAUDE_USAGE_DIR="$t/claude"; mkdir "$CLAUDE_USAGE_DIR"
+  export OPENCLAW_USAGE_DIR="$t/openclaw"; mkdir "$OPENCLAW_USAGE_DIR"
+  cat > "$CLAUDE_USAGE_DIR/usage-1.jsonl" <<'JSON'
+{"timestamp":"2026-06-13T10:00:00Z","model":"claude-opus-4","tokens_in":300,"tokens_out":150,"cost_usd":0.015}
+JSON
+  unset OTEL_EXPORTER_OTLP_ENDPOINT
+  run bash scripts/factory/usage-report.sh --otel
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-37-retry: usage-report unbekannte Felder kein Crash" {
+  local t; t=$(mktemp -d); trap "rm -rf '$t'" EXIT
+  export CLAUDE_USAGE_DIR="$t/claude"; mkdir "$CLAUDE_USAGE_DIR"
+  export OPENCLAW_USAGE_DIR="$t/openclaw"; mkdir "$OPENCLAW_USAGE_DIR"
+  cat > "$CLAUDE_USAGE_DIR/usage-1.jsonl" <<'JSON'
+{"weird_field":true,"unknown":"data"}
+{"timestamp":"2026-06-12T10:00:00Z","model":"claude-sonnet-4","tokens_in":100,"tokens_out":50,"cost_usd":0.002}
+JSON
+  run bash scripts/factory/usage-report.sh
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"2026-06-12"* ]]
+}
+
+@test "FA-SF-37-retry: usage-report beide Tools gemischt" {
+  local t; t=$(mktemp -d); trap "rm -rf '$t'" EXIT
+  export CLAUDE_USAGE_DIR="$t/claude"; mkdir "$CLAUDE_USAGE_DIR"
+  export OPENCLAW_USAGE_DIR="$t/openclaw"; mkdir "$OPENCLAW_USAGE_DIR"
+  cat > "$CLAUDE_USAGE_DIR/usage-1.jsonl" <<'JSON'
+{"timestamp":"2026-06-10T10:00:00Z","model":"claude-sonnet-4","tokens_in":100,"tokens_out":50,"cost_usd":0.002}
+JSON
+  cat > "$OPENCLAW_USAGE_DIR/usage-1.jsonl" <<'JSON'
+{"timestamp":"2026-06-10T11:00:00Z","model":"claude-sonnet-4","tokens_in":50,"tokens_out":25,"cost_usd":0.001}
+JSON
+  run bash scripts/factory/usage-report.sh
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"claude-code"* ]]
+  [[ "$output" == *"openclaw"* ]]
+}

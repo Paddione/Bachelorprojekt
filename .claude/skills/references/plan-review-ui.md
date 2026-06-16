@@ -35,7 +35,7 @@ channel. No external service, no DB, no network.
 | `scripts/plan-review/render-plan.mjs` | Pure Node Markdown→HTML renderer |
 | `scripts/plan-review/annotate-client.js` | Vanilla-JS annotation client (embedded in HTML) |
 | `scripts/plan-review/plan-review.sh` | CLI wrapper: `render` / `result` |
-| `scripts/tests/plan-review-smoke.sh` | Server smoke test |
+| `tests/unit/superpowers-submit-patch.bats` | Server patch smoke tests (plan-review fields) |
 
 ## Security
 

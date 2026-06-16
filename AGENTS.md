@@ -152,6 +152,18 @@ task factory:autopilot:install|status|uninstall
 task factory:enqueue -- <T-ID> <branch> <plan-file>
 ```
 
+**Software Factory (OpenCode MCP)**
+```
+mcp-factory:factory_status    # Queue depth + tick lock status
+mcp-factory:factory_queue     # List waiting tickets
+mcp-factory:factory_enqueue   # Add ticket to backlog (param: ticket_id)
+mcp-factory:factory_trigger   # Start a factory tick immediately
+mcp-factory:factory_recent    # Last N factory run comments
+```
+Start the MCP server: `task factory-mcp:start`
+When the user asks about factory tickets, queue status, or wants to enqueue/trigger — use these tools instead of raw bash.
+At session start, check for pending factory messages: `bash scripts/agent-msg.sh read --unread 2>/dev/null || true`
+
 **Service-specific**
 ```
 task brett:deploy|sync|logs|bot-setup ENV=...

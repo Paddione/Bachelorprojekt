@@ -140,3 +140,35 @@ tasks:
       - sudo npm uninstall -g "{{.OPCODE_CMD}}" || true
       - rm -rf "{{.ACTIVE_HOME}}" "{{.BACKUP_DIR}}"
       - echo "Wiped."
+
+  factory-mcp:start:
+    desc: "Start the Factory MCP server in the background (PID file)"
+    cmds:
+      - |
+        PIDFILE=/tmp/factory-mcp.pid
+        if [[ -f "$PIDFILE" ]] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
+          echo "factory-mcp already running (PID $(cat $PIDFILE))"
+        else
+          nohup node scripts/factory/mcp-server.mjs > /tmp/factory-mcp.log 2>&1 &
+          echo $! > "$PIDFILE"
+          echo "factory-mcp started (PID $!)"
+        fi
+
+  factory-mcp:stop:
+    desc: "Stop the Factory MCP server"
+    cmds:
+      - |
+        PIDFILE=/tmp/factory-mcp.pid
+        if [[ -f "$PIDFILE" ]] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
+          kill "$(cat "$PIDFILE")"
+          rm -f "$PIDFILE"
+          echo "factory-mcp stopped"
+        else
+          echo "factory-mcp not running"
+          rm -f "$PIDFILE"
+        fi
+
+  factory-mcp:status:
+    desc: "Health-check the Factory MCP server"
+    cmds:
+      - curl -sS --max-time 3 http://127.0.0.1:13003/health && echo "" || echo "factory-mcp not responding"

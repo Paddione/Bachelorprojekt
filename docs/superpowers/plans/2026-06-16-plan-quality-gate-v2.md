@@ -391,7 +391,7 @@ git commit -m "feat(plan-lint): STRUCT1/2/3 structural checks [T000?]"
 - Modify: `tests/unit/plan-lint.bats`
 - Create: `tests/unit/fixtures/plan-lint/placeholder-todo.md`
 
-- [ ] **Step 1: Write the placeholder fixture**
+- [x] **Step 1: Write the placeholder fixture**
 
 Create `tests/unit/fixtures/plan-lint/placeholder-todo.md` — a full passing-shaped plan but with a `TODO` placeholder in a task body:
 
@@ -430,7 +430,7 @@ TODO: fill in the implementation here
 
 ## Task 2: Verify
 
-- [ ] **Step 1**
+- [x] **Step 1**
 
 ```bash
 task test:changed
@@ -439,7 +439,7 @@ task freshness:check
 ```
 ```
 
-- [ ] **Step 2: Write the failing BATS test**
+- [x] **Step 2: Write the failing BATS test**
 
 Append to `tests/unit/plan-lint.bats`:
 
@@ -451,12 +451,12 @@ Append to `tests/unit/plan-lint.bats`:
 }
 ```
 
-- [ ] **Step 3: Run to verify it fails**
+- [x] **Step 3: Run to verify it fails**
 
 Run: `./tests/unit/lib/bats-core/bin/bats tests/unit/plan-lint.bats`
 Expected: the P1 test FAILS (linter exits 0 — no P1 check yet).
 
-- [ ] **Step 4: Add P1 to `scripts/plan-lint.sh`**
+- [x] **Step 4: Add P1 to `scripts/plan-lint.sh`**
 
 Insert before the verdict block. Scan the plan **body** (skip fenced code blocks so a fixture's literal `@test` etc. are fine, but catch placeholders in prose). Match the placeholder tokens case-sensitively where they are conventionally upper-case:
 
@@ -472,12 +472,12 @@ fi
 
 > Note: stripping code fences means a placeholder hidden *inside* a code block is intentionally not flagged — the goal is to catch unfinished prose/steps, and code-block contents are real code an engineer will paste.
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [x] **Step 5: Run the tests to verify they pass**
 
 Run: `./tests/unit/lib/bats-core/bin/bats tests/unit/plan-lint.bats`
 Expected: PASS (5 tests) — note the `good.md` fixture must still pass (it has no bare placeholder tokens in prose; "good fixture passes" test stays green).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/plan-lint.sh tests/unit/plan-lint.bats tests/unit/fixtures/plan-lint/placeholder-todo.md

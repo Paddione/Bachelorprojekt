@@ -51,6 +51,14 @@ grep -qE 'task[[:space:]]+test:changed'         "$PLAN" || hard "STRUCT3: verify
 grep -qE 'task[[:space:]]+freshness:regenerate' "$PLAN" || hard "STRUCT3: verify task missing 'task freshness:regenerate'"
 grep -qE 'task[[:space:]]+freshness:check'      "$PLAN" || hard "STRUCT3: verify task missing 'task freshness:check'"
 
+# === P1: no open placeholders in the plan body (outside code fences) ===
+# Strip fenced code blocks first so example snippets don't false-positive,
+# then look for placeholder tokens.
+PLAN_PROSE="$(awk 'BEGIN{inf=0}/^```/{inf=!inf;next}inf==0{print}' "$PLAN")"
+if grep -nE '\b(TBD|TODO|FIXME)\b|\?\?\?|<ausfüllen>|similar to Task [0-9]' <<<"$PLAN_PROSE" >/dev/null; then
+  hard "P1: open placeholder found (TBD/TODO/FIXME/???/'similar to Task N')"
+fi
+
 # === verdict ===
 emit_verdict() {
   local n_hard=${#HARD[@]} n_warn=${#WARN[@]}

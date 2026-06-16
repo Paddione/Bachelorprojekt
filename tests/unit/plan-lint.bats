@@ -32,3 +32,9 @@ setup() {
   run bash "$LINT" "$FIX/good.md"
   [ "$status" -eq 0 ]
 }
+
+@test "P1: a TODO placeholder in a task body is a hard fail" {
+  run bash "$LINT" "$FIX/placeholder-todo.md"
+  [ "$status" -eq 1 ]
+  echo "$output" | grep -q 'P1'
+}

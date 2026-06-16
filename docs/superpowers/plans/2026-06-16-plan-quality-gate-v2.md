@@ -933,7 +933,7 @@ These are markdown/JS edits (no S1 line-budget gate on `.md`; `pipeline.js` is S
 - Modify: `scripts/factory/pipeline.js:280-301` (Plan phase)
 - Modify: `.claude/skills/dev-flow-chore/SKILL.md` (S1-Gate-Guard section ~line 73)
 
-- [ ] **Step 1: dev-flow-plan Schritt 3.8 — linter before LLM-QA**
+- [x] **Step 1: dev-flow-plan Schritt 3.8 — linter before LLM-QA**
 
 In `.claude/skills/dev-flow-plan/SKILL.md`, replace the Schritt 3.8 heading + intro (lines 169-175) so the deterministic linter is the hard gate and the DeepSeek QA runs after it as advisory. Edit the section to:
 
@@ -956,7 +956,7 @@ bash scripts/plan-lint.sh docs/superpowers/plans/<date>-<slug>.md
   bis `plan-lint.sh` PASS liefert. KEIN Weitergehen mit rotem Linter.
 ```
 
-- [ ] **Step 2: dev-flow-batch — lint each generated plan**
+- [x] **Step 2: dev-flow-batch — lint each generated plan**
 
 In `.claude/skills/dev-flow-batch/SKILL.md`, in Schritt 5 (Workflow-Script generieren), add a per-plan lint step to the Workflow pipeline instruction. After the plan-generation + frontmatter-hook step, insert:
 
@@ -970,7 +970,7 @@ bash scripts/plan-lint.sh "$plan_path"   # Exit 1 = Plan verwerfen/nachbessern, 
 Pläne mit rotem Linter werden NICHT in die Kommissionierung gestellt (als SKIPPED melden).
 ```
 
-- [ ] **Step 3: Factory pipeline.js — `--json` shell-out + one fix iteration**
+- [x] **Step 3: Factory pipeline.js — `--json` shell-out + one fix iteration**
 
 In `scripts/factory/pipeline.js`, after the Plan phase produces `planFilePath` (right after line 300 `planFilePath = plan.plan_path`), insert a lint gate. Keep it minimal (pipeline.js is the S1 exception — don't bloat it):
 
@@ -1005,7 +1005,7 @@ In `scripts/factory/pipeline.js`, after the Plan phase produces `planFilePath` (
 
 > Verify `ticket.sh comment` exists; if the subcommand differs, use the same notify pattern as the conflict path (lines 263-273). Check with `bash scripts/ticket.sh --help` before finalising the snippet.
 
-- [ ] **Step 4: dev-flow-chore — S1 diff-preview for code-touching chores**
+- [x] **Step 4: dev-flow-chore — S1 diff-preview for code-touching chores**
 
 In `.claude/skills/dev-flow-chore/SKILL.md`, augment the existing **S1-Gate-Guard** callout (~line 73). Chores have no plan, so lint the *diff*, not a plan. Append:
 
@@ -1023,7 +1023,7 @@ In `.claude/skills/dev-flow-chore/SKILL.md`, augment the existing **S1-Gate-Guar
 > Bei Restbudget ≤ 0 die Datei **echt verkleinern**, nicht kosmetisch zusammenziehen.
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add .claude/skills/dev-flow-plan/SKILL.md .claude/skills/dev-flow-batch/SKILL.md .claude/skills/dev-flow-chore/SKILL.md scripts/factory/pipeline.js

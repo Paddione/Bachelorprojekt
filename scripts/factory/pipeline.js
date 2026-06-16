@@ -299,6 +299,33 @@ if (!isSimple) {
   tasks = plan.tasks
   planFilePath = plan.plan_path
   phaseEvent('plan', 'done', `${(plan.tasks || []).length} Tasks`)
+
+  // Deterministic plan-lint gate (T000910) — fail-closed, no LLM. One fix iteration.
+  const lintOnce = async (note) => agent(
+    `Run the deterministic plan linter and return ONLY its stdout:
+     bash ${REPO}/scripts/plan-lint.sh --json ${planFilePath}` + (note || ''),
+    { label: 'plan:lint', phase: 'Plan' },
+  )
+  let lintOut = await lintOnce('')
+  if (/"verdict"\s*:\s*"FAIL"/.test(lintOut)) {
+    await agent(
+      `The plan ${planFilePath} failed plan-lint with: ${String(lintOut).slice(0, 400)}.
+       Fix ONLY the reported hard-fails (frontmatter/STRUCT/P1/B1a) in place, then re-run.`,
+      { label: 'plan:lint-fix', phase: 'Plan' },
+    )
+    lintOut = await lintOnce(' (after fix iteration)')
+  }
+  if (/"verdict"\s*:\s*"FAIL"/.test(lintOut)) {
+    await agent(
+      `Plan still fails plan-lint after one fix. Block enqueue + comment the ticket:
+       bash ${REPO}/scripts/ticket.sh release-slot --id ${A.ticket_id}
+       bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status backlog
+       bash ${REPO}/scripts/ticket.sh add-comment --id ${A.ticket_id} --body "plan-lint FAIL: ${String(lintOut).replace(/"/g,"'").slice(0, 300)}"`,
+      { label: 'plan:lint-block', phase: 'Plan' },
+    )
+    phaseEvent('plan', 'blocked', 'plan-lint-fail')
+    return { status: 'blocked', reason: 'plan-lint-fail', lint: lintOut }
+  }
 }
 }
 

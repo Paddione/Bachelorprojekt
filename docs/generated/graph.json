@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-16T05:06:58.154Z",
+  "generatedAt": "2026-06-16T05:10:16.269Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -1464,12 +1464,6 @@
     {
       "from": "nextcloud-redis",
       "to": "nextcloud-redis",
-      "via": "selector",
-      "kind": "selector"
-    },
-    {
-      "from": "oauth2-proxy-mediaviewer",
-      "to": "oauth2-proxy-mediaviewer",
       "via": "selector",
       "kind": "selector"
     },

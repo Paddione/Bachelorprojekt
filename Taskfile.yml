@@ -50,6 +50,11 @@ includes:
     taskfile: ./Taskfile.factory.yml
     dir: .
 
+  # Task Master AI — task management CLI integration
+  taskmaster:
+    taskfile: ./Taskfile.taskmaster.yml
+    dir: .
+
 vars:
   CLUSTER_NAME: korczewski
   REGISTRY: localhost:5000

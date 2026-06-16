@@ -1242,18 +1242,6 @@
     "kind": "shell"
   },
   {
-    "id": "FA-SF-54",
-    "file": "tests/local/FA-SF-54-precompact-prune.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-55",
-    "file": "tests/local/FA-SF-55-usage-report.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
     "id": "FA-SF-60",
     "file": "tests/local/FA-SF-60-partial-deploy.bats",
     "category": "FA",

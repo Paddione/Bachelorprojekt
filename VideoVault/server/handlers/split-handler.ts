@@ -10,6 +10,19 @@ import { logger } from '../lib/logger';
 const PROCESSED_MEDIA_PATH =
   process.env.PROCESSED_MEDIA_PATH || path.join(process.cwd(), 'processed');
 
+function safeOutputPath(outDir: string, filename: string): string | null {
+  const base = path.basename(filename);
+  if (!base || base !== filename || base === '.' || base === '..' || base.includes('..')) {
+    return null;
+  }
+  const resolvedDir = path.resolve(outDir);
+  const candidate = path.resolve(resolvedDir, base);
+  if (candidate !== path.join(resolvedDir, base) || !candidate.startsWith(resolvedDir + path.sep)) {
+    return null;
+  }
+  return candidate;
+}
+
 export type SplitErrorCode =
   | 'missing_handle' | 'missing_directory' | 'invalid_split'
   | 'ffmpeg_failed' | 'permission_denied' | 'conflict' | 'not_server_resident';
@@ -101,8 +114,11 @@ export async function splitVideoOnServer(p: ServerSplitParams, db: unknown): Pro
 
   const outDir = path.join(PROCESSED_MEDIA_PATH, 'splits', p.sourceId.slice(0, 2));
   await fs.mkdir(outDir, { recursive: true });
-  const out1 = path.join(outDir, p.first.filename);
-  const out2 = path.join(outDir, p.second.filename);
+  const out1 = safeOutputPath(outDir, p.first.filename);
+  const out2 = safeOutputPath(outDir, p.second.filename);
+  if (!out1 || !out2) {
+    return { success: false, message: 'Invalid output filename', code: 'invalid_split' };
+  }
 
   for (const out of [out1, out2]) {
     try { await fs.access(out); return { success: false, message: `File already exists: ${out}`, code: 'conflict' }; }

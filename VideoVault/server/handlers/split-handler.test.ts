@@ -83,3 +83,30 @@ describe('splitVideoOnServer', () => {
     expect(secondArgs).toContain('-ss');
   });
 });
+
+describe('splitVideoOnServer — path traversal hardening', () => {
+  beforeEach(() => {
+    vi.mocked(resolveInputPath).mockResolvedValue('/media/src.mp4');
+    vi.mocked(extractMovieMetadata).mockResolvedValue(META as any);
+  });
+
+  it('rejects a first.filename containing a path separator / traversal', async () => {
+    const params: ServerSplitParams = {
+      ...baseParams,
+      first: { ...baseParams.first, filename: '../../evil.mp4' },
+    };
+    const result = await splitVideoOnServer(params, undefined);
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.code).toBe('invalid_split');
+  });
+
+  it('rejects a second.filename that is an absolute path', async () => {
+    const params: ServerSplitParams = {
+      ...baseParams,
+      second: { ...baseParams.second, filename: '/etc/cron.d/x.mp4' },
+    };
+    const result = await splitVideoOnServer(params, undefined);
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.code).toBe('invalid_split');
+  });
+});

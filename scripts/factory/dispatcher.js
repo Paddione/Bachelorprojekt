@@ -5,6 +5,8 @@ export const meta = {
   phases: [{ title: 'Prep' }, { title: 'Launch' }, { title: 'Metrics' }],
 }
 
+const _msgBridge = require('./agent-msg-bridge.cjs')
+
 async function main() {
   const A = args ?? {}
   const REPO = '/home/patrick/Bachelorprojekt'
@@ -193,6 +195,7 @@ async function main() {
     )
   ]
   if (escalations.length) {
+    _msgBridge.broadcast(`factory-dispatch: ${escalations.length} run(s) blocked/escalated`, 'factory')
     await agent(
       `/goal Notify the operator about blocked or errored Software Factory pipelines and log them.
        ${escalations.length} pipeline run(s) ended in error or blocked this tick. Notify the operator

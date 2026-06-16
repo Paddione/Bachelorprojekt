@@ -17,6 +17,7 @@ export const meta = {
 const D = require('./pipeline-decompose.cjs')
 const BL = require('./build-loop.cjs')
 const SQ = require('./scout-quality-check.cjs')
+const _msgBridge = require('./agent-msg-bridge.cjs')
 function routeProviderSync(source, tier) {
   if (tier === 'opus') return { provider: 'anthropic', modelId: 'claude-opus-4-6', baseUrl: null, slotId: null, emergency: false }
   if (process.env.ANTHROPIC_MODEL) {
@@ -153,12 +154,9 @@ const REVIEW_SCHEMA = { type: 'object', required: ['findings'], properties: { fi
 try { if (!REUSE) {
 phase('Scout')
 phaseEvent('scout', 'entered', 'Codebase-Analyse (deterministisch) gestartet')
+_msgBridge.broadcast(`factory-pipeline: claiming ${A.ticket_id} (${A.title || A.slug})`, 'factory')
 const cp = require('child_process')
-try {
-  cp.execFileSync('bash',
-    [`${REPO}/scripts/ticket.sh`, 'touch', '--id', String(A.ticket_id)],
-    { stdio: 'ignore', timeout: 10000 })
-} catch {}
+try { cp.execFileSync('bash', [`${REPO}/scripts/ticket.sh`, 'touch', '--id', String(A.ticket_id)], { stdio: 'ignore', timeout: 10000 }) } catch {}
 
 const scoutJson = cp.execFileSync('bash',
   [`${REPO}/scripts/factory/scout.sh`,
@@ -634,6 +632,7 @@ if (deploy.includes('deploy-guard') || deploy.includes('"status": "blocked"') ||
   return { status: 'blocked', reason: 'deploy-guard' }
 }
 phaseEvent('deploy', 'done', 'PR merged')
+_msgBridge.broadcast(`factory-pipeline: ${A.ticket_id} finished`, 'factory')
 return { status: 'done', pr: deploy, reviews: reviews.length, tasks: tasks.length, implemented: implemented.length }
 } finally { if (WORK_BRANCH || WORK_WT) { try { await agent(`bash ${REPO}/scripts/factory/cleanup.sh --branch '${WORK_BRANCH}' --worktree '${WORK_WT}'`, { label: 'cleanup' }) } catch (_) {} } } }
 await main();

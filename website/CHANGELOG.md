@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.77.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.77.2...website-v1.77.3) (2026-06-16)
+
+
+### Bug Fixes
+
+* **e2e:** E2E-Specs verschmutzen nicht mehr den Produktions-Tracker [T000862] ([#1742](https://github.com/Paddione/Bachelorprojekt/issues/1742)) ([fc2f4c3](https://github.com/Paddione/Bachelorprojekt/commit/fc2f4c3354e0a8b2687afde880fe003f328aa2af))
+
 ## [1.77.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.77.1...website-v1.77.2) (2026-06-15)
 
 

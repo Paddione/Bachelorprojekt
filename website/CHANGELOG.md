@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.84.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.83.0...website-v1.84.0) (2026-06-16)
+
+
+### Features
+
+* **tickets:** grilling doc-absorption stepper dismiss [T000893] ([#1768](https://github.com/Paddione/Bachelorprojekt/issues/1768)) ([3a5a073](https://github.com/Paddione/Bachelorprojekt/commit/3a5a0738a8b840060150a80db3aa27afca6413c5))
+
 ## [1.83.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.82.1...website-v1.83.0) (2026-06-16)
 
 

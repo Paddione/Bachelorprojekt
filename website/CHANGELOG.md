@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.87.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.86.1...website-v1.87.0) (2026-06-16)
+
+
+### Features
+
+* **admin:** reichere KI-Feature-Vorschläge im Cockpit (value/health/rollup) [T000924] ([#1793](https://github.com/Paddione/Bachelorprojekt/issues/1793)) ([1210dfc](https://github.com/Paddione/Bachelorprojekt/commit/1210dfc5def57913a17063280954f4901725bc48))
+
 ## [1.86.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.86.0...website-v1.86.1) (2026-06-16)
 
 

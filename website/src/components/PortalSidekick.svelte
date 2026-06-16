@@ -8,11 +8,12 @@
   import TicketSidekickView from './assistant/TicketSidekickView.svelte';
   import InboxSidekickView from './assistant/InboxSidekickView.svelte';
   import AgentGuideView from './assistant/AgentGuideView.svelte';
+  import PipelineSidekickView from './assistant/PipelineSidekickView.svelte';
   import MediaviewerPanel from './MediaviewerPanel.svelte';
   import { resolveHelpVideos } from '../lib/help-videos';
   import { parseNavigateEvent, shouldShowLearnDot } from '../lib/assistant/sidekick-nudge';
 
-  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'tickets' | 'inbox' | 'agent-guide' | 'mediaviewer';
+  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'tickets' | 'inbox' | 'pipeline' | 'agent-guide' | 'mediaviewer';
 
   let {
     helpSection = '',
@@ -68,6 +69,7 @@
     help: 'Hilfe',
     tickets: 'Anfragen',
     inbox: 'Postfach',
+    pipeline: 'Pipeline',
     'agent-guide': 'Agent-Anleitung',
     mediaviewer: 'Mediaviewer',
   };
@@ -261,6 +263,8 @@
       <TicketSidekickView onClose={closeDrawer} />
     {:else if view === 'inbox'}
       <InboxSidekickView onClose={closeDrawer} />
+    {:else if view === 'pipeline'}
+      <PipelineSidekickView onClose={closeDrawer} />
     {:else if view === 'mediaviewer'}
       <MediaviewerPanel {mediaviewerHost} videos={mediaviewerVideos} />
     {/if}

@@ -4,10 +4,10 @@
 // DOM wiring is covered by Playwright (fa-46-lernpfad-cta.spec.ts).
 
 export type SidekickView =
-  | 'home' | 'support' | 'questionnaire' | 'help' | 'tickets' | 'inbox' | 'agent-guide';
+  | 'home' | 'support' | 'questionnaire' | 'help' | 'tickets' | 'inbox' | 'pipeline' | 'agent-guide';
 
 const KNOWN_VIEWS: ReadonlySet<string> = new Set([
-  'home', 'support', 'questionnaire', 'help', 'tickets', 'inbox', 'agent-guide',
+  'home', 'support', 'questionnaire', 'help', 'tickets', 'inbox', 'pipeline', 'agent-guide',
 ]);
 
 export interface BannerInput { done: number; total: number; }

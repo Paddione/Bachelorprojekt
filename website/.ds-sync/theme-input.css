@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+@theme {
+  --color-dark: #0b111c;
+  --color-dark-light: #101826;
+  --color-dark-lighter: #17202e;
+  --color-gold: oklch(0.80 0.09 75);
+  --color-gold-light: oklch(0.86 0.09 75);
+  --color-gold-dim: oklch(0.80 0.09 75 / 0.14);
+  --color-light: #eef1f3;
+  --color-muted: #8c96a3;
+  --color-muted-dark: #6a727e;
+  --color-ink-900: #0b111c;
+  --color-ink-850: #101826;
+  --color-ink-800: #17202e;
+  --color-ink-750: #1d2736;
+  --color-fg: #eef1f3;
+  --color-fg-soft: #cdd3d9;
+  --color-mute: #8c96a3;
+  --color-mute-2: #6a727e;
+  --color-brass: oklch(0.80 0.09 75);
+  --color-brass-2: oklch(0.86 0.09 75);
+  --color-brass-d: oklch(0.80 0.09 75 / 0.14);
+  --color-sage: oklch(0.80 0.06 160);
+  --color-surface: #101826;
+  --color-surface-hover: #17202e;
+  --color-border: rgba(255, 255, 255, 0.10);
+  --color-line: rgba(255, 255, 255, 0.07);
+  --color-line-2: rgba(255, 255, 255, 0.12);
+  --font-serif: "Newsreader", "Iowan Old Style", Georgia, serif;
+  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --radius: 22px;
+  --maxw: 1240px;
+}
+
+/* Shorthand CSS vars the scoped component <style> blocks reference. */
+:root {
+  --ink-900: var(--color-ink-900); --ink-850: var(--color-ink-850);
+  --ink-800: var(--color-ink-800); --ink-750: var(--color-ink-750);
+  --fg: var(--color-fg); --fg-soft: var(--color-fg-soft);
+  --mute: var(--color-mute); --mute-2: var(--color-mute-2);
+  --brass: var(--color-brass); --brass-2: var(--color-brass-2); --brass-d: var(--color-brass-d);
+  --sage: var(--color-sage); --line: var(--color-line); --line-2: var(--color-line-2);
+  --serif: var(--font-serif); --sans: var(--font-sans); --mono: var(--font-mono);
+}

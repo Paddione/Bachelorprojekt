@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-06-16T10:46:27.314Z
+> Generated at 2026-06-16T10:50:41.398Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|

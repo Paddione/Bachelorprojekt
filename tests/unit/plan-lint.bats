@@ -20,3 +20,15 @@ setup() {
   echo "$output" | grep -q 'F1'
   echo "$output" | grep -q 'PLAN-LINT: FAIL'
 }
+
+@test "STRUCT3: missing 'task freshness:check' in verify task is a hard fail" {
+  run bash "$LINT" "$FIX/missing-verify.md"
+  [ "$status" -eq 1 ]
+  echo "$output" | grep -q 'STRUCT3'
+}
+
+@test "STRUCT3 requires test:changed not test:all (consistency with linter contract)" {
+  # good.md uses 'task test:changed' and must pass STRUCT3
+  run bash "$LINT" "$FIX/good.md"
+  [ "$status" -eq 0 ]
+}

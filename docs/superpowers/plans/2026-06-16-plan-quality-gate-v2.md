@@ -68,7 +68,7 @@ Per `.claude/skills/references/plan-quality-gates.md`, both the live `wc -l` and
 - Create: `tests/unit/fixtures/plan-lint/good.md`
 - Create: `tests/unit/fixtures/plan-lint/missing-title.md`
 
-- [ ] **Step 1: Write the good + missing-title fixtures**
+- [x] **Step 1: Write the good + missing-title fixtures**
 
 Create `tests/unit/fixtures/plan-lint/good.md`. This is the canonical PASS fixture reused by later tasks — it must satisfy every hard check (F1/F2, STRUCT1-3, P1, B1a):
 
@@ -93,13 +93,13 @@ status: active
 **Files:**
 - Modify: `scripts/example.sh`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```bash
 @test "example" { run bash scripts/example.sh; [ "$status" -eq 0 ]; }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `bats tests/unit/example.bats`
 Expected: FAIL with "command not found"
@@ -134,13 +134,13 @@ status: active
 
 ## Task 1: Do the thing
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```bash
 @test "x" { run true; }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `bats x`
 Expected: FAIL
@@ -280,7 +280,7 @@ git commit -m "feat(plan-lint): skeleton + F1/F2 frontmatter checks [T000?]"
 - Modify: `tests/unit/plan-lint.bats`
 - Create: `tests/unit/fixtures/plan-lint/missing-verify.md`
 
-- [ ] **Step 1: Write the missing-verify fixture**
+- [x] **Step 1: Write the missing-verify fixture**
 
 Create `tests/unit/fixtures/plan-lint/missing-verify.md` — a full plan whose final task omits `task freshness:check`:
 
@@ -302,20 +302,20 @@ status: active
 
 ## Task 1: Do the thing
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```bash
 @test "x" { run true; }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `bats x`
 Expected: FAIL
 
 ## Task 2: Verify
 
-- [ ] **Step 1**
+- [x] **Step 1**
 
 ```bash
 task test:changed
@@ -323,7 +323,7 @@ task freshness:regenerate
 ```
 ```
 
-- [ ] **Step 2: Write the failing BATS tests**
+- [x] **Step 2: Write the failing BATS tests**
 
 Append to `tests/unit/plan-lint.bats`:
 
@@ -341,12 +341,12 @@ Append to `tests/unit/plan-lint.bats`:
 }
 ```
 
-- [ ] **Step 3: Run to verify the STRUCT3 test fails**
+- [x] **Step 3: Run to verify the STRUCT3 test fails**
 
 Run: `./tests/unit/lib/bats-core/bin/bats tests/unit/plan-lint.bats`
 Expected: the `missing-verify` test FAILS (linter still exits 0 — no STRUCT checks yet).
 
-- [ ] **Step 4: Add STRUCT1/STRUCT2/STRUCT3 to `scripts/plan-lint.sh`**
+- [x] **Step 4: Add STRUCT1/STRUCT2/STRUCT3 to `scripts/plan-lint.sh`**
 
 Insert before the `# === verdict ===` block:
 
@@ -370,12 +370,12 @@ grep -qE 'task[[:space:]]+freshness:regenerate' "$PLAN" || hard "STRUCT3: verify
 grep -qE 'task[[:space:]]+freshness:check'      "$PLAN" || hard "STRUCT3: verify task missing 'task freshness:check'"
 ```
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [x] **Step 5: Run the tests to verify they pass**
 
 Run: `./tests/unit/lib/bats-core/bin/bats tests/unit/plan-lint.bats`
 Expected: PASS (4 tests).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/plan-lint.sh tests/unit/plan-lint.bats tests/unit/fixtures/plan-lint/missing-verify.md
@@ -413,18 +413,18 @@ status: active
 
 ## Task 1: Do the thing
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```bash
 @test "x" { run true; }
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `bats x`
 Expected: FAIL
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 TODO: fill in the implementation here
 
@@ -622,13 +622,13 @@ status: active
 
 ## Task 1: Edit
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```bash
 @test "x" { run true; }
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `bats x`
 Expected: FAIL
@@ -666,13 +666,13 @@ status: active
 
 ## Task 1: Edit
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```bash
 @test "x" { run true; }
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `bats x`
 Expected: FAIL

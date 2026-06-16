@@ -33,6 +33,24 @@ done
 dom="$(fm_field domains | tr -d ' \t\r')"
 case "$dom" in ""|"[]"|"null") hard "F2: domains is empty (role injection needs it)";; esac
 
+# === STRUCT1: plan-shaped (Implementation Plan header + File Structure section) ===
+grep -qE '^#.*Implementation Plan' "$PLAN" || hard "STRUCT1: missing '# … Implementation Plan' header"
+grep -qiE '^#+ +File Structure' "$PLAN" || hard "STRUCT1: missing 'File Structure' section"
+
+# === STRUCT2: at least one failing-test step (test invocation + expect FAIL) ===
+# Look for a step that runs a test AND a line asserting failure (FAIL/rot/exit 1).
+if grep -qiE 'expected:? *fail|verify (it|test).*fail|to verify (it|they) fail' "$PLAN"; then
+  :
+else
+  hard "STRUCT2: no task contains a failing-test step (run a test + expect FAIL)"
+fi
+
+# === STRUCT3: final verify task lists the three mandatory gate commands ===
+# Per the linter contract: test:changed (NOT test:all), freshness:regenerate, freshness:check.
+grep -qE 'task[[:space:]]+test:changed'         "$PLAN" || hard "STRUCT3: verify task missing 'task test:changed'"
+grep -qE 'task[[:space:]]+freshness:regenerate' "$PLAN" || hard "STRUCT3: verify task missing 'task freshness:regenerate'"
+grep -qE 'task[[:space:]]+freshness:check'      "$PLAN" || hard "STRUCT3: verify task missing 'task freshness:check'"
+
 # === verdict ===
 emit_verdict() {
   local n_hard=${#HARD[@]} n_warn=${#WARN[@]}

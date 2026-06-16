@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.85.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.84.0...website-v1.85.0) (2026-06-16)
+
+
+### Features
+
+* **website:** Sidekick Pipeline SP1+SP2 — Lane-SSOT + Enum-Konsistenz [T000919] [T000920] ([#1787](https://github.com/Paddione/Bachelorprojekt/issues/1787)) ([e2cad3d](https://github.com/Paddione/Bachelorprojekt/commit/e2cad3d7e03012f6ab1011cf0cce14357879b1f1))
+
 ## [1.84.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.83.0...website-v1.84.0) (2026-06-16)
 
 

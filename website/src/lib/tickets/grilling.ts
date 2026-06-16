@@ -93,3 +93,28 @@ export const QUESTIONNAIRES: Record<string, GrillingQuestionnaire> = {
 export function getQuestionnaire(id: string): GrillingQuestionnaire | undefined {
   return QUESTIONNAIRES[id];
 }
+
+// --- Grilling-Doc absorption: pure parsing/split/status helpers (no DB, no cycles) ---
+
+export interface ParsedQuestion { id: string; prompt: string; section?: string; answer?: string }
+
+const PLACEHOLDER_ANSWERS = new Set(['—', '-', 'tbd', '(offen)', 'n/a']);
+
+/** Empty, whitespace-only, or known placeholder tokens count as "no answer". */
+export function isBlankAnswer(value: string | null | undefined): boolean {
+  if (value == null) return true;
+  const t = value.trim();
+  if (t === '') return true;
+  return PLACEHOLDER_ANSWERS.has(t.toLowerCase());
+}
+
+/** Partition questions into answered (non-blank answer) and unanswered. */
+export function splitAnswered(questions: ParsedQuestion[]): {
+  answered: ParsedQuestion[];
+  unanswered: ParsedQuestion[];
+} {
+  const answered: ParsedQuestion[] = [];
+  const unanswered: ParsedQuestion[] = [];
+  for (const q of questions) (isBlankAnswer(q.answer) ? unanswered : answered).push(q);
+  return { answered, unanswered };
+}

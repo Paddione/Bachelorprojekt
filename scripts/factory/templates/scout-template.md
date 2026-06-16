@@ -37,6 +37,8 @@
 
 - [ ] {prereq_1}
 - [ ] {prereq_2}
+- [ ] **Design-Bundle gesichtet** (falls UI-Ticket): `docs/superpowers/plans/assets/{slug}/`
+      bzw. `assets-inbox/`-Attachments als Quelle aufnehmen, nicht frei erfinden
 
 ## Notes
 

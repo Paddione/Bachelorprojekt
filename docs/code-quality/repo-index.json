@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 435,
+      "file_count": 437,
       "files": [
         "tests/.gitignore",
         "tests/batch/batch-gap-analysis.bats",
@@ -20,6 +20,7 @@
         "tests/e2e/lib/auth.ts",
         "tests/e2e/lib/build-gallery.mjs",
         "tests/e2e/lib/dynamic-resolver.ts",
+        "tests/e2e/lib/e2e-marker.ts",
         "tests/e2e/lib/health-assertions.test.ts",
         "tests/e2e/lib/health-assertions.ts",
         "tests/e2e/lib/nav-graph.ts",
@@ -439,6 +440,7 @@
         "website/tests/api/portal-sign.test.ts",
         "website/tests/api/signing-template-renderer.test.ts",
         "website/tests/compute-scores.test.mjs",
+        "website/tests/e2e-marker-hygiene.test.ts",
         "website/tests/fixtures/mustang.sh",
         "website/tests/live-state.test.mjs",
         "website/tests/zugferd.test.mjs"

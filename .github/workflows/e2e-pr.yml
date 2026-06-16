@@ -50,6 +50,7 @@ jobs:
       SKIP_DB_PURGE: "1"
       E2E_ADMIN_USER: paddione
       E2E_ADMIN_PASS: ${{ secrets.E2E_ADMIN_PASS }}
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
       MM_TEST_USER: ${{ secrets.MM_TEST_USER }}
       MM_TEST_PASS: ${{ secrets.MM_TEST_PASS }}
 

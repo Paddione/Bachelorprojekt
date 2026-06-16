@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
+import { markerHeaders, markerAvailable } from '../lib/e2e-marker';
 
 const BASE        = process.env.WEBSITE_URL || 'http://localhost:4321';
-const CRON_SECRET = process.env.CRON_SECRET;
 
 // The bug report widget is rendered inside AdminLayout (admin-only UI).
 // These tests exercise the public /api/bug-report endpoint directly.
@@ -36,14 +36,9 @@ test.describe('FA-26: Bug report API', () => {
   });
 
   test('POST /api/bug-report with valid data returns 200 with ticketId', async ({ request }) => {
-    // X-E2E-Test + X-Cron-Secret stamps is_test_data=true so the purge bracket
-    // cleans up the created ticket and inbox item. Without these headers the row
-    // accumulates in the admin inbox on every E2E run.
-    const headers: Record<string, string> = {};
-    if (CRON_SECRET) {
-      headers['X-E2E-Test'] = '1';
-      headers['X-Cron-Secret'] = CRON_SECRET;
-    }
+    test.skip(!markerAvailable(), 'CRON_SECRET fehlt — würde echtes Ticket erzeugen');
+
+    const headers = markerHeaders();
     const res = await request.post(`${BASE}/api/bug-report`, {
       headers,
       multipart: {

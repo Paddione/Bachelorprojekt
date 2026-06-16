@@ -74,3 +74,16 @@ teardown() { rm -rf "$MOCKDIR"; }
   grep -q "INSERT INTO tickets.ticket_comments" "$CAP"
   grep -q "'grilling'" "$CAP"
 }
+
+@test "grill --grilling-doc rejects a missing file" {
+  run bash "$TICKET" grill --id T000999 --grilling-doc /no/such/file.md
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"grilling doc missing or empty"* ]]
+}
+
+@test "grill --grilling-doc conflicts with --json (exactly one source)" {
+  doc="$BATS_TEST_TMPDIR/g.md"; printf '## Q?\n' > "$doc"
+  run bash "$TICKET" grill --id T000999 --grilling-doc "$doc" --json '{"q1":"x"}'
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"exactly one of"* ]]
+}

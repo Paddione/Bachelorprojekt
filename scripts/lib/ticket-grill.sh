@@ -24,7 +24,7 @@ _grill_answers_json() {
 }
 
 cmd_grill() {
-  local id="" questionnaire="coaching-sessions-v1" json="" answers_file="" no_comment="false"
+  local id="" questionnaire="coaching-sessions-v1" json="" answers_file="" grilling_doc="" no_comment="false" dry_run_json=""
   local -a answers=()
   while [[ $# -gt 0 ]]; do case "$1" in
       --id)            id="$2"; shift 2 ;;
@@ -32,6 +32,8 @@ cmd_grill() {
       --json)          json="$2"; shift 2 ;;
       --answers-file)  answers_file="$2"; shift 2 ;;
       --answer)        answers+=("$2"); shift 2 ;;
+      --grilling-doc)  grilling_doc="$2"; shift 2 ;;
+      --dry-run-json)  dry_run_json="true"; shift ;;
       --no-comment)    no_comment="true"; shift ;;
       --brand)         shift 2 ;;  # consumed pre-source by ticket.sh BRAND handling; ignore here
       *)               echo "Unknown grill option: $1" >&2; exit 2 ;;
@@ -44,6 +46,7 @@ cmd_grill() {
   [[ -n "$json" ]] && sources=$((sources+1))
   [[ -n "$answers_file" ]] && sources=$((sources+1))
   [[ ${#answers[@]} -gt 0 ]] && sources=$((sources+1))
+  [[ -n "$grilling_doc" ]] && sources=$((sources+1))
   if [[ "$sources" -eq 0 ]]; then
     echo "ERROR: one answer source is required (--json | --answers-file | --answer qid=text ...)." >&2
     exit 2
@@ -51,6 +54,10 @@ cmd_grill() {
   if [[ "$sources" -gt 1 ]]; then
     echo "ERROR: use exactly one of --json | --answers-file | --answer." >&2
     exit 2
+  fi
+
+  if [[ -n "$grilling_doc" && ! -s "$grilling_doc" ]]; then
+    echo "ERROR: grilling doc missing or empty: $grilling_doc" >&2; exit 2
   fi
 
   # --- Resolve the answers JSON for this questionnaire (still cluster-free). ---

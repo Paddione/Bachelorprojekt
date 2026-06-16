@@ -301,9 +301,14 @@ if (!isSimple) {
   phaseEvent('plan', 'done', `${(plan.tasks || []).length} Tasks`)
 
   // Deterministic plan-lint gate (T000910) — fail-closed, no LLM. One fix iteration.
+  // Security (T000910 follow-up): every interpolated value below is either a sanitized
+  // ticket id ([A-Za-z0-9_-] only) or base64-encoded before it reaches the shell, so
+  // untrusted linter output / plan paths can never break out of the command string.
+  const shSafeTicketId = String(A.ticket_id).replace(/[^A-Za-z0-9_-]/g, '')
+  const shQuotedPlanPath = `'${String(planFilePath).replace(/'/g, "'\\''")}'`
   const lintOnce = async (note) => agent(
     `Run the deterministic plan linter and return ONLY its stdout:
-     bash ${REPO}/scripts/plan-lint.sh --json ${planFilePath}` + (note || ''),
+     bash ${REPO}/scripts/plan-lint.sh --json ${shQuotedPlanPath}` + (note || ''),
     { label: 'plan:lint', phase: 'Plan' },
   )
   let lintOut = await lintOnce('')
@@ -316,11 +321,15 @@ if (!isSimple) {
     lintOut = await lintOnce(' (after fix iteration)')
   }
   if (/"verdict"\s*:\s*"FAIL"/.test(lintOut)) {
+    // base64-encode the untrusted linter output; the shell decodes it back into a single
+    // --body argument. base64's alphabet ([A-Za-z0-9+/=]) is safe inside single quotes,
+    // so no token in lintOut (backtick, $(), ;, quote) can ever break out of the command.
+    const reasonB64 = Buffer.from(`plan-lint FAIL: ${String(lintOut).slice(0, 300)}`, 'utf8').toString('base64')
     await agent(
       `Plan still fails plan-lint after one fix. Block enqueue + comment the ticket:
-       bash ${REPO}/scripts/ticket.sh release-slot --id ${A.ticket_id}
-       bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status backlog
-       bash ${REPO}/scripts/ticket.sh add-comment --id ${A.ticket_id} --body "plan-lint FAIL: ${String(lintOut).replace(/"/g,"'").slice(0, 300)}"`,
+       bash ${REPO}/scripts/ticket.sh release-slot --id '${shSafeTicketId}'
+       bash ${REPO}/scripts/ticket.sh update-status --id '${shSafeTicketId}' --status backlog
+       bash ${REPO}/scripts/ticket.sh add-comment --id '${shSafeTicketId}' --body "$(printf %s '${reasonB64}' | base64 -d)"`,
       { label: 'plan:lint-block', phase: 'Plan' },
     )
     phaseEvent('plan', 'blocked', 'plan-lint-fail')

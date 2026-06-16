@@ -14,6 +14,7 @@ SSH_OPTS=(-i "$SSH_KEY" -o StrictHostKeyChecking=accept-new)
 echo "[1/3] Pulling Ollama models (~32 GB)..."
 ssh "${SSH_OPTS[@]}" "${HOST}" "bash -s" <<'REMOTE'
 set -euo pipefail
+ollama pull qwen3:4b   # lightweight routing/classification (Factory ticket-triage, oracle) — keeps GPU footprint minimal
 ollama pull qwen2.5:14b-instruct-q4_K_M
 ollama pull qwen2.5-coder:14b-instruct-q4_K_M
 ollama pull qwen2.5vl:7b-instruct-q4_K_M

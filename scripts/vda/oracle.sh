@@ -193,7 +193,6 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 
 REPO="/home/patrick/Bachelorprojekt"
-MODEL="qwen/qwen3-4b-2507"
 HERMES="${HERMES:-$HOME/.local/bin/hermes}"
 
 # ── Infer target environment from goal keywords ───────────────────────────
@@ -209,7 +208,7 @@ infer_env() {
   fi
 }
 
-# ── Check if local LLM (Ollama or LM Studio) is available ──────────────────
+# ── Check if local LLM (Ollama) is available ───────────────────────────────
 local_llm_available() {
   if [[ "${HERMES:-}" == "/dev/null" ]]; then
     return 1
@@ -220,11 +219,7 @@ try:
     urllib.request.urlopen("http://localhost:11434/api/tags", timeout=0.8)
     sys.exit(0)
 except Exception:
-    try:
-        urllib.request.urlopen("http://localhost:1234/v1/models", timeout=0.8)
-        sys.exit(0)
-    except Exception:
-        sys.exit(1)
+    sys.exit(1)
 ' 2>/dev/null
 }
 
@@ -240,12 +235,23 @@ def get_ollama_model(base_url):
         with urllib.request.urlopen(req, timeout=1.5) as response:
             data = json.loads(response.read().decode("utf-8"))
             models = [m["name"] for m in data.get("models", [])]
-            if models:
-                qwen_models = [m for m in models if "qwen" in m.lower()]
-                return qwen_models[0] if qwen_models else models[0]
     except Exception:
-        pass
-    return None
+        return None
+    if not models:
+        return None
+    # Routing is a lightweight classification task -- deterministically prefer a
+    # small qwen3 model and avoid large coder models, so the local GPU footprint
+    # stays minimal regardless of which other models happen to be pulled.
+    big = ("14b", "30b", "32b", "35b", "70b", "72b")
+    def is_small(m): return not any(b in m.lower() for b in big)
+    for pref in (lambda m: m == "qwen3:4b",
+                 lambda m: "qwen3" in m.lower() and is_small(m),
+                 lambda m: "qwen" in m.lower() and is_small(m),
+                 lambda m: "qwen" in m.lower()):
+        hit = [m for m in models if pref(m)]
+        if hit:
+            return hit[0]
+    return models[0]
 
 def query_ollama(base_url, prompt):
     model = get_ollama_model(base_url)
@@ -265,30 +271,8 @@ def query_ollama(base_url, prompt):
     except Exception:
         return None
 
-def query_lmstudio(base_url, prompt):
-    url = f"{base_url}/v1/chat/completions"
-    payload = {
-        "messages": [{"role": "user", "content": prompt}],
-        "temperature": 0.1
-    }
-    try:
-        req = urllib.request.Request(
-            url,
-            data=json.dumps(payload).encode("utf-8"),
-            headers={"Content-Type": "application/json"}
-        )
-        with urllib.request.urlopen(req, timeout=15) as response:
-            res_data = json.loads(response.read().decode("utf-8"))
-            choices = res_data.get("choices", [])
-            if choices:
-                return choices[0].get("message", {}).get("content", "")
-    except Exception:
-        return None
-
 prompt = sys.argv[1]
 res = query_ollama("http://localhost:11434", prompt)
-if not res:
-    res = query_lmstudio("http://localhost:1234", prompt)
 if res:
     print(res)
     sys.exit(0)
@@ -466,6 +450,6 @@ if curl -sf http://localhost:18789/healthz >/dev/null 2>&1; then
   fi
 fi
 
-echo "No local LLM service (Ollama/LM Studio) or Opencode/OpenClaw daemon is running (Neither Hermes nor OpenClaw is available)." >&2
+echo "No local LLM service (Ollama) or Opencode/OpenClaw daemon is running (Neither Hermes nor OpenClaw is available)." >&2
 echo "Discover tasks manually: cd ${REPO} && task --list" >&2
 exit 1

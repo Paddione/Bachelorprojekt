@@ -1,6 +1,6 @@
 ---
 ticket_id: null
-plan_ref: null
+plan_ref: docs/superpowers/plans/2026-06-16-vda-unify.md
 status: active
 date: 2026-06-16
 ---

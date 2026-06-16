@@ -98,6 +98,35 @@ Frage den User aktiv nach Spec-Notizen, Mockups oder Screenshots. Lese Text- und
 ### Schritt 1.6: Codebase-Exploration
 Verwende einen Code-Explorer Subagenten, um die Code-Pfade und Architektur vor dem Brainstorming zu analysieren.
 
+### Schritt 1.7: Design-Bundle co-lokalisieren (nur Design-/UI-Tickets)
+
+Wenn das Ticket einen Design-Handoff hat (claude.ai-Design-Session → Bundle-ID), ziehe das Bundle **direkt neben den Plan** in den Branch, damit sowohl `dev-flow-execute` als auch die Factory (liest den Branch via `git show` + Reuse-Worktree) Intent **und** Assets auf Platte haben. Andernfalls überspringe diesen Schritt.
+
+```bash
+SLUG="<slug>"
+DESIGN_DIR="docs/superpowers/plans/assets/${SLUG}"
+mkdir -p "${DESIGN_DIR}/new"
+
+# 1. Bundle in new/ synchronisieren (DesignSync-Tool ist deferred → erst Schema laden):
+#    ToolSearch select:DesignSync  →  dann /design-sync mit Ziel ${DESIGN_DIR}/new
+#    (Bundle-ID vom User; .tar.gz: chats/chat1.md = Intent, project/ = SVGs)
+
+# 2. Intent extrahieren:  cp <bundle>/chats/chat1.md "${DESIGN_DIR}/intent.md"
+```
+
+**Qualitäts-Gate — nur passende Assets co-lokalisieren** (aus T000756): jedes synchronisierte
+SVG vor dem Ablegen prüfen und **unpassende verwerfen** (NICHT mit in `new/` aufnehmen):
+`currentColor` statt `<img>`-Einbettung, keine Stray-Hex-Werte, kein Root-`width/height`,
+und **Export-Vollständigkeit** (Anzahl gelieferter Dateien vs. im Intent spezifizierte).
+Alt-Assets werden **nicht** mitkopiert — der Abgleich passiert in-place gegen die echte
+Repo-Datei (`git diff` / `Read` der Live-Datei) erst beim Verbauen, nicht als Plan-Ballast.
+
+Zusätzlich die Schlüsseldateien ans Ticket hängen (autonome Factory-Design-Phase materialisiert
+Attachments nach `assets-inbox/`):
+```bash
+bash scripts/ticket-attach.sh "$TICKET_UUID" "${DESIGN_DIR}/intent.md" "${DESIGN_DIR}"/new/*.svg
+```
+
 ### Schritt 2: Brainstorming Visual Companion Tunnel
 Starte den Companion-Server und Tunnel. Detaillierte Befehle und Fehlerbehebungen findest du in [brainstorm-tunnel-setup.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/brainstorm-tunnel-setup.md).
 ```bash
@@ -127,6 +156,11 @@ Statt deinen eigenen Kontext zurückzusetzen (das ließe dich den Faden verliere
    - **Kontext-Injektion** (er hat sonst KEINEN Kontext — gib ihm alles explizit):
      - Absoluter Worktree-Pfad (`pwd`) + Branch-Name; er arbeitet NUR relativ dazu.
      - Spec-Pfad: `docs/superpowers/specs/<date>-<slug>-design.md`
+     - **Design-Bundle** (falls Schritt 1.7 lief): `docs/superpowers/plans/assets/<slug>/` —
+       der Plan MUSS `intent.md` als Design-Quelle referenzieren, die finalen Asset-Zielpfade
+       (z. B. unter `website/src/...`) in die Task-`target_files` aufnehmen und die T000756-
+       Guardrails (currentColor statt `<img>`, keine Stray-Hex, Export-Vollständigkeit) als
+       Acceptance-Kriterien notieren. `new/` enthält nur geprüfte, passende Assets.
      - Ticket-/Grilling-Kontext (`$GRILLING_TICKET_EXT_ID` etc.), falls vorhanden.
      - **CI-/Quality-Gates:** [plan-quality-gates.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-quality-gates.md) — der Subagent MUSS die Datei lesen und den Plan dagegen schreiben: pro zu ändernder Datei `wc -l` UND den Baseline-Wert (`jq -r '."S1:<pfad>".metric // "nicht-baselined"' docs/code-quality/baseline.json`) ermitteln und das S1-Budget gegen die **wirksame Schwelle** notieren — bei schon gebaselineten (gewachsenen) Dateien ist das Budget oft **0** (jede Netto-Zeile trippt das CI-Ratchet), dann zeilenneutral planen oder die Datei in dieser PR **echt verkleinern**; bei >~80 % der Schwelle echten Modul-Split einplanen (kein kosmetisches Zusammenziehen). Dazu: keine Brand-Domain-Literale in Code-Snippets (S3), Helper als pure Module ohne Import-Zyklen (S2), neue Manifeste/Skripte referenzieren statt verwaisen lassen (S4).
    - **Auftrag:** „Lies die Spec UND `.claude/skills/references/plan-quality-gates.md`. Rufe `superpowers:writing-plans` auf und schreibe den Implementierungsplan nach `docs/superpowers/plans/<date>-<slug>.md`. Der finale Verifikations-Task des Plans MUSS `task test:changed`, `task freshness:regenerate` und `task freshness:check` als Steps enthalten (CI-Äquivalent inkl. S1–S4-Ratchet); nach Test-Änderungen zusätzlich `task test:inventory` + Commit des Inventars. Starte KEINE Implementierung (nur Plan schreiben, dann STOPP). Führe danach `bash scripts/plan-frontmatter-hook.sh docs/superpowers/plans/<date>-<slug>.md` aus. Gib den Plan-Pfad und eine 3-Zeilen-Zusammenfassung zurück."

@@ -132,7 +132,7 @@
           {/each}
         </div>
       {:else}
-        <p class="muted">Keine Phasen-Metriken verfügbar (OTel Collector noch nicht deployed).</p>
+        <p class="muted">Keine Phasen-Metriken verfügbar (Prometheus/OTel Verbindung prüfen oder noch keine Factory Ticks gelaufen).</p>
       {/if}
     </div>
 

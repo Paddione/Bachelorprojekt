@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.79.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.78.0...website-v1.79.0) (2026-06-16)
+
+
+### Features
+
+* **website:** flat 'Alle Tickets' cockpit view so the PM sees every ticket [T000877] ([#1750](https://github.com/Paddione/Bachelorprojekt/issues/1750)) ([9c98391](https://github.com/Paddione/Bachelorprojekt/commit/9c983917f96324a47f539ac687385cf95369b8eb))
+
 ## [1.78.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.77.3...website-v1.78.0) (2026-06-16)
 
 

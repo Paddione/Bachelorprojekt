@@ -151,6 +151,7 @@ cmd_grill() {
   # Idempotent self-protection: works independent of T000737 merge timing, same column/shape.
   _exec_sql "$pod" <<'EOF' >/dev/null
 ALTER TABLE tickets.tickets ADD COLUMN IF NOT EXISTS grilling_answers JSONB;
+ALTER TABLE tickets.tickets ADD COLUMN IF NOT EXISTS grilling_meta JSONB;
 EOF
 
   # Per-question accumulating merge (existing answers kept; same questionId overwritten).
@@ -172,12 +173,36 @@ EOF
     exit 1
   fi
 
+  # When a grilling doc was absorbed, merge its questions/definitions into grilling_meta.
+  if [[ -n "$grilling_doc" ]]; then
+    _exec_sql "$pod" -v ext_id="$id" -v qid="$questionnaire" -v title="$doc_title" -v questions="$meta_questions" <<'EOF' >/dev/null
+UPDATE tickets.tickets t
+   SET grilling_meta =
+       COALESCE(t.grilling_meta, '{}'::jsonb)
+       || jsonb_build_object(:'qid', (
+            jsonb_build_object('title', :'title')
+            || jsonb_build_object('questions', :'questions'::jsonb)
+            || jsonb_build_object('dismissed',
+                 COALESCE(t.grilling_meta -> :'qid' -> 'dismissed', '[]'::jsonb))
+          ))
+ WHERE t.external_id = :'ext_id';
+EOF
+  fi
+
   # Universal visibility: a readable Q/A timeline comment unless suppressed.
   if [[ "$no_comment" != "true" ]]; then
     local summary
-    summary=$(jq -r --arg q "$questionnaire" \
-      '"Grilling-Session (\($q)):\n" + (to_entries | map("- \(.key): \(.value)") | join("\n"))' \
-      <<<"$answers_json")
+    if [[ -n "$grilling_doc" ]]; then
+      local n_total n_ans n_open
+      n_total=$(jq 'length' <<<"$meta_questions")
+      n_ans=$(jq 'keys|length' <<<"$answers_json")
+      n_open=$(( n_total - n_ans ))
+      summary="Grilling-Doc absorbiert ($questionnaire): $n_total Fragen ($n_ans beantwortet, $n_open offen)."
+    else
+      summary=$(jq -r --arg q "$questionnaire" \
+        '"Grilling-Session (\($q)):\n" + (to_entries | map("- \(.key): \(.value)") | join("\n"))' \
+        <<<"$answers_json")
+    fi
     _exec_sql "$pod" -v ext_id="$id" -v body="$summary" <<'EOF' >/dev/null
 INSERT INTO tickets.ticket_comments (ticket_id, author_label, body, visibility)
 SELECT id, 'grilling', :'body', 'internal'
@@ -185,5 +210,9 @@ FROM tickets.tickets WHERE external_id = :'ext_id';
 EOF
   fi
 
-  echo "Grilling session ($questionnaire) saved to ticket $id"
+  if [[ -n "$grilling_doc" ]]; then
+    echo "Grilling-Doc ($questionnaire) absorbed into ticket $id"
+  else
+    echo "Grilling session ($questionnaire) saved to ticket $id"
+  fi
 }

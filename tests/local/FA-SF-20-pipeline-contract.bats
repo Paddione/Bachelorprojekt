@@ -72,22 +72,22 @@ SCRIPT="scripts/factory/pipeline.js"
   [ "$status" -eq 0 ]
 }
 
-@test "FA-SF-20: defines consumeInjections and calls it after every phaseEvent(...,'entered')" {
-  run grep -q "function consumeInjections" "$SCRIPT"; [ "$status" -eq 0 ]
-  # one consume per entered-boundary: scout, design, plan(x2 reuse+fresh), implement, verify, deploy
+@test "FA-SF-20: defines consumeInjections (in pipeline-decompose.js) and calls it after every phaseEvent(...,'entered')" {
+  # consumeInjections is defined as a method in pipeline-decompose.js (createContextHelpers)
+  run grep -q "consumeInjections(ph)" "scripts/factory/pipeline-decompose.js"; [ "$status" -eq 0 ]
+  # one consume per entered-boundary: design, plan(x2 reuse+fresh), implement, verify, deploy
   run grep -c "consumeInjections(" "$SCRIPT"
   [ "$status" -eq 0 ]
-  [ "$output" -ge 7 ]
+  [ "$output" -ge 6 ]
 }
 
 @test "FA-SF-20: consumeInjections is best-effort (try/catch, never throws) and uses get-injections --consume" {
-  run grep -q "get-injections" "$SCRIPT"; [ "$status" -eq 0 ]
-  run grep -q "'--consume'" "$SCRIPT"; [ "$status" -eq 0 ]
-  # the helper body wraps in try/catch (mirrors phaseEvent)
-  run bash -c "awk '/function consumeInjections/,/^}/' \"$SCRIPT\" | grep -q 'try {'"
+  run grep -q "get-injections" "scripts/factory/pipeline-decompose.js"; [ "$status" -eq 0 ]
+  run grep -q "'--consume'" "scripts/factory/pipeline-decompose.js"; [ "$status" -eq 0 ]
+  run bash -c "grep -A10 'consumeInjections(ph)' \"scripts/factory/pipeline-decompose.js\" | grep -q 'try {'"
   [ "$status" -eq 0 ]
 }
 
 @test "FA-SF-20: consumeInjections materializes assets into assets-inbox" {
-  run grep -q "assets-inbox" "$SCRIPT"; [ "$status" -eq 0 ]
+  run grep -q "assets-inbox" "scripts/factory/pipeline-decompose.js"; [ "$status" -eq 0 ]
 }

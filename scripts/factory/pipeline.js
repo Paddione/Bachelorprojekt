@@ -1,29 +1,9 @@
 /**
- * scripts/factory/pipeline.js
- *
- * Software Factory Phase-1 pipeline — Claude Code Workflow script.
- *
- * CRITICAL: This is a Workflow script run by the Claude Code harness Workflow tool.
- * The globals `agent`, `parallel`, `pipeline`, `phase`, `log`, `args` are
- * HARNESS-INJECTED top-level globals — do NOT run this with `node scripts/factory/pipeline.js`.
- *
- * Offline lint only: `node --check scripts/factory/pipeline.js`
- * Contract tests:    `./tests/runner.sh local FA-SF-20`
- *
- * Usage (Workflow tool):
- *   args = {
- *     title:       string,   // feature title
- *     description: string,   // full feature description
- *     slug:        string,   // kebab-case slug (used for branch/worktree naming)
- *     ticket_id:   string,   // tickets.external_id (e.g. T000420)
- *     brand:       'mentolder' | 'korczewski',
- *     timestamp:   string,   // ISO8601 from the harness — use this, never Date.now()
- *   }
- *
- * Phases: Scout → Design → Plan → Implement → Verify → Deploy
- *
- * Out of scope (Phase 2): cron Dispatcher, queue polling, watchdog/slot manager,
- * Layer-4 canary smoke + auto-rollback, directory-level conflict heuristic.
+ * scripts/factory/pipeline.js — Software Factory Workflow script.
+ * Harness-injected globals: agent, parallel, pipeline, phase, log, args.
+ * Offline check: node --check scripts/factory/pipeline.js
+ * args: { title, description, slug, ticket_id, brand, args.timestamp (resume-safe),
+ *         batch_mode?, sub_features[]?, dry_run?, branch?, plan_path? }
  */
 
 export const meta = {
@@ -35,175 +15,61 @@ export const meta = {
   ],
 }
 
-// Inlined from provision.js for Workflow compatibility (no ESM imports allowed in harness)
-const ALWAYS_OPUS_ROLES = new Set(['review', 'security'])
-const COMPLEXITY_TIER = {
-  simple: 'haiku',
-  medium: 'sonnet',
-  complex: 'opus',
-}
+const {
+  chooseModel, chooseEffort, buildContextHints, provision,
+  routerSource, routerTier, createContextHelpers,
+} = require('./pipeline-decompose.js')
 
-function chooseModel(complexity, role) {
-  if (ALWAYS_OPUS_ROLES.has(role)) return 'opus'
-  const tier = COMPLEXITY_TIER[complexity]
-  return tier ?? null
-}
-
-const EFFORT_LADDER = ['quick', 'standard', 'ultra']
-const COMPLEXITY_EFFORT_INDEX = {
-  simple: 0,
-  medium: 1,
-  complex: 2,
-}
-
-function clampEffortIdx(i) {
-  return Math.max(0, Math.min(EFFORT_LADDER.length - 1, i))
-}
-function chooseEffort(complexity, risk, budgetRemaining) {
-  let idx = COMPLEXITY_EFFORT_INDEX[complexity]
-  if (idx === undefined) idx = 1
-  if (risk === 'high') idx = clampEffortIdx(idx + 1)
-  const remaining = typeof budgetRemaining === 'number' ? budgetRemaining : 1
-  if (remaining < 0.25) idx -= 1
-  return EFFORT_LADDER[clampEffortIdx(idx)]
-}
-
-function buildContextHints(task) {
-  const t = task ?? {}
-  const hints = [
-    'Vorhaben pack T000413: vision + repo conventions + footguns (compact)',
-    'ticket spec + attachments via `ticket.sh get-attachments`',
-    `touched_files: ${(t.touchedFiles ?? []).length} path(s)`,
-    'relevant target-code excerpts only (no whole files)',
-  ]
-  if (t.gpuEmbeddings === true) {
-    hints.push('similar-tickets (pgvector top-k, GPU embeddings)')
-  }
-  return hints
-}
-
-function provision(task) {
-  const t = task ?? {}
-  return {
-    model: chooseModel(t.complexity, t.role),
-    effort: chooseEffort(t.complexity, t.risk, t.budgetRemaining),
-    contextHints: buildContextHints(t),
-  }
-}
-
-// ── Inlined provider router (provider-router.js is the unit-tested SSOT; the
-//    Workflow harness forbids ESM imports, so we shell out to the bash wrappers
-//    which talk to tickets.provider_config / provider_health). opus → no DB. ──
-// SPIKE VERDICT (Task 9): per-call `baseURL` override is NOT supported by the
-// Workflow agent() API. ANTHROPIC_BASE_URL is set process-level via autopilot.env
-// (sourced by wakeup.sh). Only `model` can vary per agent() call. The router
-// still picks the provider/model per phase for slot claim/release (resilience),
-// but baseUrl is fixed for the whole pipeline run.
-function routeProviderSync(source, tier) {
-  if (tier === 'opus') return { provider: 'anthropic', modelId: 'claude-opus-4-6', baseUrl: null, slotId: null, emergency: false }
-  if (process.env.ANTHROPIC_MODEL) {
-    return { provider: 'anthropic-compat', modelId: process.env.ANTHROPIC_MODEL,
-             baseUrl: process.env.ANTHROPIC_BASE_URL || null, slotId: null, emergency: false }
-  }
-  try {
-    const { execFileSync } = require('child_process')
-    const out = execFileSync('bash', [`${REPO}/scripts/factory/route-provider.sh`, source, tier],
-      { encoding: 'utf8', timeout: 20000, env: { ...process.env, BRAND: brand } }).trim()
-    return JSON.parse(out)
-  } catch (e) {
-    log(`routeProvider(${source},${tier}) failed → emergency anthropic-sonnet: ${e.message}`)
-    return { provider: 'anthropic', modelId: 'claude-sonnet-4-6', baseUrl: null, slotId: null, emergency: true }
-  }
-}
-function releaseSlotSync(slotId, success) {
-  if (!slotId) return
-  try {
-    const { execFileSync } = require('child_process')
-    execFileSync('bash', [`${REPO}/scripts/factory/release-slot.sh`, String(slotId), success ? 'true' : 'false'],
-      { stdio: 'ignore', timeout: 20000, env: { ...process.env, BRAND: brand } })
-  } catch (e) { log(`releaseSlot(${slotId}) failed (non-fatal): ${e.message}`) }
-}
-function routerSource(phaseKey) {
-  return ({ scout: 'factory-scout', design: 'factory-plan', plan: 'factory-plan',
-            implement: 'factory-implement', verify: 'factory-review', deploy: 'factory-implement' })[phaseKey] || '*'
-}
-function routerTier(model) { return model === 'opus' ? 'opus' : (model === 'haiku' ? 'haiku' : 'sonnet') }
-
-// Top-level globals injected by the harness: agent, parallel, pipeline, phase, log, args.
-// args.timestamp (never Date.now()), args.slug, args.title, args.description, args.ticket_id, args.brand.
-
-// Pipeline body runs as a top-level async function so that:
-//   • `return` is valid (node --check passes)
-//   • harness-injected globals are in scope without a harness-param destructure
 async function main() {
-
-// ─── Config ──────────────────────────────────────────────────────────────
-
 const A = args ?? {}
 const slug = A.slug
 const brand = A.brand ?? 'mentolder'
 const REPO = '/home/patrick/Bachelorprojekt'
 const WT = `/tmp/wt-${slug}`
 
-// Best-effort live-floor telemetry. NEVER throws — a failed insert must not kill
-// the pipeline (T-FACTORY-FLOOR). One INSERT per phase boundary, driver=factory.
-function phaseEvent(ph, state, detail) {
-  try {
-    const { execFileSync } = require('child_process')
-    const a = [`${REPO}/scripts/ticket.sh`, 'phase', String(A.ticket_id), ph, state, '--driver', 'factory']
-    if (detail) a.push('--detail', String(detail).slice(0, 240))
-    execFileSync('bash', a, { stdio: 'ignore', timeout: 15000 }) // arg array → no shell injection via detail
-  } catch { /* telemetry is best-effort; swallow */ }
-}
+const {
+  routeProviderSync, releaseSlotSync,
+  phaseEvent, consumeInjections,
+} = createContextHelpers({ brand, REPO, A, WORK_WT: WT, log })
 
-// Factory injection consume (factory-injection): atomically consume this phase's (or NULL-phase)
-// injections → binding prompt block ('' if none) + assets to assets-inbox/. Best-effort, NEVER throws.
-function consumeInjections(ph) {
-  try {
-    const { execFileSync } = require('child_process'), fs = require('fs'), path = require('path'), sh = (a, opt) => execFileSync('bash', [`${REPO}/scripts/ticket.sh`, ...a], opt)
-    const rows = JSON.parse(sh(['get-injections', '--id', String(A.ticket_id), '--phase', ph, '--consume', '--format', 'json'], { encoding: 'utf8', timeout: 20000 }).trim() || '[]')
-    if (!Array.isArray(rows) || !rows.length) return ''
-    const inbox = path.join(WORK_WT, 'assets-inbox', String(A.ticket_id)), lines = [], files = (r) => r.target_files ? r.target_files.join(', ') : ''
-    for (const r of rows) {
-      if (r.kind === 'asset' && r.data_url && r.filename)
-        try { fs.mkdirSync(inbox, { recursive: true }); const dest = path.join(inbox, path.basename(String(r.filename))); fs.writeFileSync(dest, Buffer.from(String(r.data_url).replace(/^data:[^;]+;base64,/, ''), 'base64')); lines.push(`ASSET available at ${dest}${files(r) ? ` (for: ${files(r)})` : ''}`) } catch { /* best-effort */ }
-      else if (r.content || r.title) lines.push(`- ${r.title ? r.title + ': ' : ''}${r.content ?? ''}${files(r) ? ` [files: ${files(r)}]` : ''}`)
-    }
-    try { sh(['add-comment', '--id', String(A.ticket_id), '--author', 'factory', '--body', `consumed ${rows.length} @ ${ph}`], { stdio: 'ignore', timeout: 15000 }) } catch {}
-    return lines.length ? `\n\nOPERATOR INJECTED CONTEXT — verbindlich berücksichtigen:\n${lines.join('\n')}\n` : ''
-  } catch { return '' } // best-effort: swallow everything
-}
-
-// Dry-run: skip the destructive Deploy actions (push/merge/prod-deploy). Passed
-// in args by the dispatcher / task; default off. Lets us run Scout→Verify safely.
 const DRY_RUN = A.dry_run === true || A.dry_run === 'true'
-
-// Plan-reuse: when a human dev-flow plan is handed off, work on that branch and
-// reuse its plan instead of self-planning (Scout/Design/Plan). Falsy → self-plan.
-const REUSE_BRANCH = A.branch || null          // e.g. feature/<slug>
-const REUSE_PLAN   = A.plan_path || null        // e.g. docs/superpowers/plans/<file>.md
+const REUSE_BRANCH = A.branch || null
+const REUSE_PLAN   = A.plan_path || null
 const REUSE = !!(REUSE_BRANCH && REUSE_PLAN)
 const WORK_BRANCH = REUSE ? REUSE_BRANCH : `feature/${slug}`
 const WORK_WT = REUSE ? `/tmp/wt-${slug}-reuse` : WT
 
-let specPath = null
-let tasks = []
-// Hoisted out of the `if (!REUSE)` Scout block so the Implement fan-out (which lives
-// OUTSIDE that block) can read the feature complexity for adaptive provisioning.
-// Stays null in the REUSE path → chooseModel returns null → the `model` key is omitted
-// and the implementer inherits the main-loop default. Referencing block-local `scout`
-// here would throw `ReferenceError: scout is not defined` (optional chaining does NOT
-// guard an undeclared binding, only null/undefined values).
+let specPath = null, tasks = []
 let featureComplexity = null
-// Same hoist rationale: the Deploy phase's two-gated retry loop (outside the !REUSE block)
-// feeds the touched-file list to paths_are_escalate_class. Stays [] in the REUSE path.
 let featureTouchedFiles = []
-// Plan file path: captured from the Plan agent's return (it stamps `date +%F` itself, as
-// A.timestamp is unreliable). Used by Deploy's archive-plan. REUSE → the handed-off plan.
 let planFilePath = REUSE ? REUSE_PLAN : null
 
-// JSON schemas for structured agent outputs (compact one-liners; same shape).
 const REVIEW_SCHEMA = { type: 'object', required: ['findings'], properties: { findings: { type: 'array', items: { type: 'object', required: ['severity', 'file', 'description'], properties: { severity: { enum: ['low', 'medium', 'high', 'critical'] }, file: { type: 'string' }, line: { type: 'integer' }, description: { type: 'string' }, suggested_fix: { type: 'string' } } } }, summary: { type: 'string' } } }
+
+// ── Batch mode: parallel sub-feature execution ──
+if (A.batch_mode === true && Array.isArray(A.sub_features)) {
+  const subFeatures = A.sub_features
+  const results = await parallel(subFeatures.map(sf => () => {
+    const slug = sf.slug || sf.id
+    const sfWT = `/tmp/wt-${slug}`
+    return agent(
+      `Record liveness: bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}.
+       Create worktree: bash ${REPO}/scripts/worktree-create.sh feature/${slug} ${sfWT} origin/main
+       Implement sub-feature ${sf.id} — ${sf.title}.
+       Description: ${sf.description}.
+       Assigned files: ${(sf.assignedFiles || []).join(', ')}.
+       ${sf.depends_on && sf.depends_on.length ? `Depends on: ${sf.depends_on.join(', ')}.` : ''}
+       After implementing: cd ${sfWT} && task workspace:validate && task test:all && task freshness:regenerate
+       Commit: cd ${sfWT} && git add -A && git commit -m "feat(${slug}): ${sf.id}"
+       Return a summary.`,
+      { label: `batch:${slug}`, phase: 'Implement' }
+    )
+  }))
+  const succeeded = results.filter(r => r != null)
+  log(`Batch: ${succeeded.length}/${subFeatures.length} sub-features done, ${subFeatures.length - succeeded.length} skipped`)
+  return { succeeded: succeeded.length, skipped: subFeatures.length - succeeded.length, results: succeeded }
+}
+
 try { if (!REUSE) {
 // ── ① Scout (deterministisch) ─────────────────────────────────────────────
 phase('Scout')
@@ -400,12 +266,7 @@ if (REUSE) {
   phaseEvent('plan', 'done', `${(tasks || []).length} Tasks (reuse)`)
 }
 
-// ── ④ Implement (ONE shared git-crypt-safe worktree, tasks run sequentially) ──
-// NOT the harness `isolation: 'worktree'` option: its raw `git worktree add` checkout
-// runs the git-crypt smudge filter and dies (new gitdir has no key) — T000473/T000426.
-// One shared worktree is made up front via scripts/worktree-create.sh; tasks run
-// SEQUENTIALLY (shared tree → concurrent test/commit would race the index.lock; Plan
-// guarantees disjoint files, so per-task worktrees+merge is a future optimization).
+// ── ④ Implement (shared worktree via worktree-create.sh, tasks sequential) ──
 let implemented = []
 if (tasks.length) {
   phase('Implement')
@@ -584,11 +445,6 @@ if (DRY_RUN) {
   return { status: 'dry-run', report, reviews: reviews.length, tasks: tasks.length }
 }
 
-// ── Partial-deploy decision (T000591) ───────────────────────────────────────
-// Source the bash service-registry SSOT and ask it whether the touched k3d files
-// qualify for a partial deploy (≤5 services, no infra/unknown k3d files). If they
-// do, we deploy only those `app:` slugs; otherwise we fall back to full
-// workspace:deploy. featureTouchedFiles was hoisted in the Scout phase (line ~193).
 function resolvePartialServices(touched) {
   try {
     const { execFileSync } = require('child_process')
@@ -611,117 +467,24 @@ log(`Deploy mode: ${partialServices ? `PARTIAL [${partialServices}]` : 'FULL'} (
 phaseEvent('deploy', partialServices ? 'partial' : 'full', partialServices ? `services=${partialServices}` : 'full deploy')
 
 const deploy = await agent(
-  `Record pipeline liveness first so the dispatcher watchdog does not flag this run as stale: run \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then:
-   Deploy the feature to both brands. Operate from the MAIN repo at ${REPO}
-   (NOT the worktree ${WORK_WT}) to avoid gotcha T000342 (merge conflicts from wrong CWD).
-
-   HARD GUARDS — run these from ${REPO} and STOP (set the ticket blocked, notify, return) on any failure:
-   a. Branch policy: WORK_BRANCH must match ^(feature|fix)/ .
-      printf '%s' "${WORK_BRANCH}" | grep -Eq '^(feature|fix)/' || { echo "BLOCK: WORK_BRANCH ${WORK_BRANCH} not feature/*|fix/*"; exit 1; }
-   b. Diff-size cap (HARD): from ${REPO},
-      source ${REPO}/scripts/factory/guards.sh
-      GUARDS_REPO=${REPO} guard_check_diff_size ${process.env.FACTORY_MAX_DIFF ?? '800'} ${WORK_BRANCH}
-      If guard_check_diff_size returns non-zero, the diff exceeds FACTORY_MAX_DIFF — DO NOT push/merge/deploy.
-   c. CWD assertion: every git/gh/task command below MUST run with cwd = ${REPO} (the MAIN repo),
-      never the worktree ${WORK_WT} (gotcha T000342).
-   d. Explicit ENV: prod deploys use ENV=mentolder and ENV=korczewski explicitly — NEVER a bare
-      kubectl context. Context is resolved internally via \`source ${REPO}/scripts/env-resolve.sh <env>\`
-      (→ ENV_CONTEXT=fleet); do not pass a bare cluster name.
-
-   If guard (a) or (b) fails: run
-     bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status blocked
-   then load PushNotification (\`ToolSearch select:PushNotification\`) and notify
-     title: "Factory Deploy blocked: ${A.ticket_id}"
-     message: which guard failed (branch-policy or diff>FACTORY_MAX_DIFF) for brand ${brand}.
-   Return JSON: { "status": "blocked", "reason": "deploy-guard" }.
-
+  `Record liveness: bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}. Deploy to both brands from ${REPO} (NOT worktree).
+   HARD GUARDS (STOP+blocked on fail):
+   a) Branch: printf '%s' "${WORK_BRANCH}" | grep -Eq '^(feature|fix)/' || BLOCK
+   b) Diff cap: source ${REPO}/scripts/factory/guards.sh; GUARDS_REPO=${REPO} guard_check_diff_size ${process.env.FACTORY_MAX_DIFF ?? '800'} ${WORK_BRANCH}
+   c) CWD=${REPO} always, never worktree (T000342)
+   d) ENV=mentolder|korczewski explicit, no bare kubectl
+   Guard fail: bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status blocked; PushNotification: "Factory Deploy blocked: ${A.ticket_id}"; return {status:"blocked",reason:"deploy-guard"}
    Steps:
-   1. Push branch ${WORK_BRANCH} to origin:
-      cd ${REPO} && git push -u origin ${WORK_BRANCH}
-   2. Open a PR (if not open) and record its number immediately:
-      gh pr create --title "feat(${slug}): ${A.title}" --base main
-      PR=$(gh pr view --json number -q .number)
-      bash ${REPO}/scripts/ticket.sh add-comment --id ${A.ticket_id} --body "Factory: PR #$PR opened (phase=Deploy)."
-      bash ${REPO}/scripts/ticket.sh add-pr-link --id ${A.ticket_id} --pr "$PR"
-    3. STRUCTURED SELF-HEALING RETRY LOOP (≤2 fix attempts; NO raw SQL — use ticket.sh).
-       Run CI to green using this exact loop. Per attempt:
-
-       a) Wait for CI to finish and read its verdict DETERMINISTICALLY — never eyeball
-          the PR page or guess. From ${REPO}:
-            gh pr checks "$PR" --watch --interval 20 --fail-fast > /tmp/factory-ci-${A.ticket_id}.status 2>&1; CI_RC=$?
-          CI_RC == 0  ⇒ every required check is GREEN → go to step 4 (merge).
-          CI_RC != 0  ⇒ a required check failed or was cancelled → self-heal below.
-          Read the current retry count (fail-closed → treat unreadable as 2):
-            RC=$(bash ${REPO}/scripts/ticket.sh retry-count get --id ${A.ticket_id})
-          If RC -ge 2 → STOP: this is the 3rd failure. Set blocked, notify, return.
-
-       b) Capture the failing CI log to a file:
-            gh run view --log-failed > /tmp/factory-ci-${A.ticket_id}.log 2>&1 || \
-              gh run view --log > /tmp/factory-ci-${A.ticket_id}.log 2>&1
-
-       b2) DETERMINISTIC freshness fast-path (no LLM guess, spends NO retry). Classify first:
-            source ${REPO}/scripts/factory/classify-failure.sh
-            CLASS=$(classify_failure /tmp/factory-ci-${A.ticket_id}.log)
-          If CLASS == freshness AND you have not already regenerated once this run:
-            the only failure is stale generated artifacts — regenerate deterministically in
-            the worktree (${WORK_WT}, where ${WORK_BRANCH} is checked out):
-              cd ${WORK_WT} && task freshness:regenerate \
-                && git commit -am 'chore: refresh generated artifacts (factory)' && git push
-            then re-run CI from (a) WITHOUT incrementing the retry count (deterministic
-            regeneration, not a code fix). Do this AT MOST ONCE per run; if CLASS == freshness
-            again afterwards, regeneration did not converge → treat as class "other" and BLOCK.
-
-       c) TWO-GATED auto-fix decision. Auto-fix ONLY when BOTH gates pass:
-          Gate 1 (failure class): source ${REPO}/scripts/factory/classify-failure.sh;
-            CLASS=$(classify_failure /tmp/factory-ci-${A.ticket_id}.log)
-            — must be one of: ci, test, lint.  (sql|manifest|secret|realm|other ⇒ NO auto-fix.)
-          Gate 2 (path class): source ${REPO}/scripts/factory/classify-paths.sh;
-            if paths_are_escalate_class "${featureTouchedFiles.join(',')}"  (exit 0 = escalate)
-            ⇒ NO auto-fix (shared-state / secret / realm*.json / *.sql touched).
-          If EITHER gate fails ⇒ do NOT auto-fix: set blocked, notify, return (escalate to human).
-
-       d) If both gates pass: make the smallest fix that addresses CLASS=${CLASS} on
-          branch ${WORK_BRANCH}, commit + push, then record the attempt:
-            bash ${REPO}/scripts/ticket.sh retry-count incr --id ${A.ticket_id}
-            bash ${REPO}/scripts/ticket.sh add-comment --id ${A.ticket_id} \
-              --body "$(printf 'Factory retry %s/2 (class=%s)\n--- diff ---\n%s\n--- ci log tail ---\n%s' \
-                "$RC" "$CLASS" "$(git diff HEAD~1 --shortstat)" "$(tail -30 /tmp/factory-ci-${A.ticket_id}.log)")"
-          Then re-run CI and repeat from (a).
-
-       If the loop exits because RC -ge 2 OR a gate failed, perform the BLOCK:
-            bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status blocked
-            bash ${REPO}/scripts/ticket.sh add-comment --id ${A.ticket_id} \
-              --body "Factory blocked: CI red after ${A.ticket_id} retries (class gate or cap)."
-          and report that the ticket is blocked. Take NO merge action.
-   4. Squash-merge (from ${REPO}, NOT the worktree). With required status checks on
-      main, --auto merges the instant the gate is green and refuses a red merge:
-      cd ${REPO} && gh pr merge "$PR" --squash --delete-branch --auto
-   5. Close the ticket and archive the plan:
-      bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status qa_review
-      bash ${REPO}/scripts/ticket.sh archive-plan --id ${A.ticket_id} --slug ${slug} \
-        --branch ${WORK_BRANCH} --plan-file ${planFilePath ?? `${REPO}/docs/superpowers/plans/${slug}.md`}
-   5b. Seed the dark-launch flag default-OFF for BOTH brands (mirrors the
-       isFeatureEnabled('${slug}') gate added during Implement):
-      bash ${REPO}/scripts/ticket.sh feature-flag set --brand mentolder --key ${slug} --enabled false --set-by factory
-      bash ${REPO}/scripts/ticket.sh feature-flag set --brand korczewski --key ${slug} --enabled false --set-by factory
-   6. Deploy BOTH brands explicitly (fleet cluster, push-based — no GitOps reconciler).
-      DEPLOY MODE (pre-computed from touched_files): ${partialServices ? `PARTIAL — only services [${partialServices}]` : 'FULL'}.
-      Website changes still auto-roll-out via CI (task feature:website); for the K8s/manifest
-      deploy run EXACTLY this command (do not substitute a different one):
-        ${deployStepCmd}
-    7. Verify rollout on both brands:
-       kubectl --context fleet rollout status deployment/website -n website --timeout=300s
-       kubectl --context fleet rollout status deployment/website -n website-korczewski --timeout=300s
-    8. LAYER-4 LIVE-PROD CANARY (per brand). For EACH brand in mentolder korczewski:
-       observe the LIVE site for ~5 min using the canary helper:
-         SERVICE=website TARGET=<brand> source ${REPO}/scripts/feature-promote.sh  # exposes observe_prod
-         observe_prod <brand> "$(svc_image_repo website <brand>):${A.timestamp}"
-       observe_prod re-probes web.<brand>.de /api/health + the unauth grep from
-       tests/e2e/smoke/website.txt, and on RED captures the pre-deploy revision and
-       rolls that brand back to it (exit 1). Record the per-brand verdict (GREEN/RED).
-       If ANY brand returns RED, output a line containing exactly: CANARY_RED <brand>
-
-    Report the merged PR number and the deploy command outputs.` + consumeInjections('deploy'),
+   1) cd ${REPO} && git push -u origin ${WORK_BRANCH}
+   2) gh pr create --title "feat(${slug}): ${A.title}" --base main; PR=$(gh pr view --json number -q .number); bash ${REPO}/scripts/ticket.sh add-comment --id ${A.ticket_id} --body "Factory: PR #$PR opened (phase=Deploy)."; bash ${REPO}/scripts/ticket.sh add-pr-link --id ${A.ticket_id} --pr "$PR"
+   3) STRUCTURED SELF-HEALING RETRY (≤2 attempts). gh pr checks --watch --interval 20 --fail-fast. CI_RC=0 → step 4. CI_RC!=0 → read RC via bash ${REPO}/scripts/ticket.sh retry-count get; if RC≥2 → blocked+PushNotification. Classify failure: source ${REPO}/scripts/factory/classify-failure.sh; CLASS=$(classify_failure /tmp/factory-ci-${A.ticket_id}.log). Freshness fast-path (once). Two-gated: CLASS ∈ {ci,test,lint} AND source ${REPO}/scripts/factory/classify-paths.sh; paths_are_escalate_class "${featureTouchedFiles.join(',')}" must exit !=0. Pass→bash ${REPO}/scripts/ticket.sh retry-count incr --id ${A.ticket_id}; fix+commit+push. Otherwise blocked+PushNotification. Loop ≤2×.
+   4) cd ${REPO} && gh pr merge "$PR" --squash --delete-branch --auto
+   5) bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status qa_review; bash ${REPO}/scripts/ticket.sh archive-plan --id ${A.ticket_id} --slug ${slug} --branch ${WORK_BRANCH} --plan-file ${planFilePath ?? `${REPO}/docs/superpowers/plans/${slug}.md`}
+   5b) bash ${REPO}/scripts/ticket.sh feature-flag set --brand mentolder --key ${slug} --enabled false --set-by factory && same for korczewski
+   6) deploy via task feature:website (auto CI) + ${deployStepCmd}
+   7) kubectl --context fleet rollout status deployment/website -n website --timeout=300s && same for website-korczewski
+   8) CANARY per brand: SERVICE=website TARGET=<brand> source ${REPO}/scripts/feature-promote.sh; observe_prod <brand> "$(svc_image_repo website <brand>):${A.timestamp}". If RED output exactly: CANARY_RED <brand>
+   Report PR number + deploy outputs.` + consumeInjections('deploy'),
   { label: 'deploy', phase: 'Deploy' },
 )
 

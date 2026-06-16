@@ -35,7 +35,7 @@ depends_on_plans: []
 
 **Mitigation — do this FIRST, before any other work:**
 
-- [ ] **Step 0a: Confirm the worktree exists; recreate it if reaped**
+- [x] **Step 0a: Confirm the worktree exists; recreate it if reaped**
 
 ```bash
 # If /tmp/wt-opencode-factory-bridge is gone (reaper hit), recreate it from the remote branch:
@@ -103,14 +103,14 @@ The branch already has commits and an upstream, so it is currently reaper-safe. 
 
 ## Task 1 — Add `@modelcontextprotocol/sdk` dependency
 
-- [ ] **Step 1: Add the MCP SDK to `scripts/factory/package.json`**
+- [x] **Step 1: Add the MCP SDK to `scripts/factory/package.json`**
 
 ```bash
 cd /tmp/wt-opencode-factory-bridge
 npm install @modelcontextprotocol/sdk --save --prefix scripts/factory
 ```
 
-- [ ] **Step 2: Verify the dependency was added**
+- [x] **Step 2: Verify the dependency was added**
 
 ```bash
 grep '@modelcontextprotocol/sdk' scripts/factory/package.json
@@ -118,7 +118,7 @@ grep '@modelcontextprotocol/sdk' scripts/factory/package.json
 
 Expected: `"@modelcontextprotocol/sdk": "^X.Y.Z"` in dependencies.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add scripts/factory/package.json scripts/factory/package-lock.json
@@ -132,7 +132,7 @@ git push origin feature/opencode-factory-bridge
 
 This pure CJS helper wraps `agent-msg.sh` calls so `pipeline.js` can broadcast messages without exceeding its S1 budget.
 
-- [ ] **Step 1: Create the file**
+- [x] **Step 1: Create the file**
 
 ```bash
 cat > scripts/factory/agent-msg-bridge.cjs << 'BRIDGE_EOF'
@@ -159,13 +159,13 @@ module.exports = { broadcast }
 BRIDGE_EOF
 ```
 
-- [ ] **Step 2: Verify syntax**
+- [x] **Step 2: Verify syntax**
 
 ```bash
 node --check scripts/factory/agent-msg-bridge.cjs
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add scripts/factory/agent-msg-bridge.cjs
@@ -177,7 +177,7 @@ git push origin feature/opencode-factory-bridge
 
 ## Task 3 — Wire agent-msg into `wakeup.sh`
 
-- [ ] **Step 1: Add agent-msg calls to `wakeup.sh`**
+- [x] **Step 1: Add agent-msg calls to `wakeup.sh`**
 
 After the flock acquire (line ~53, after the `exit 0` for the lock-already-held case) and before the tick loop, add:
 
@@ -194,13 +194,13 @@ At the end of the file (after the `done` of the while loop), add:
 AGENT_MSG_LABEL=factory bash "${REPO}/scripts/agent-msg.sh" post "factory-tick: done" 2>/dev/null || true
 ```
 
-- [ ] **Step 2: Verify syntax**
+- [x] **Step 2: Verify syntax**
 
 ```bash
 bash -n scripts/factory/wakeup.sh
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add scripts/factory/wakeup.sh
@@ -212,13 +212,13 @@ git push origin feature/opencode-factory-bridge
 
 ## Task 4 — Wire agent-msg into `pipeline.js`
 
-- [ ] **Step 1: Add import at the top of `pipeline.js` (after line 17 `const D = require(...)`)**
+- [x] **Step 1: Add import at the top of `pipeline.js` (after line 17 `const D = require(...)`)**
 
 ```javascript
 const _msgBridge = require('./agent-msg-bridge.cjs')
 ```
 
-- [ ] **Step 2: Add claim broadcast after the ticket-claim phase**
+- [x] **Step 2: Add claim broadcast after the ticket-claim phase**
 
 Find the Scout phase entry (around the `phase('Scout')` call) and add after the first `phaseEvent`:
 
@@ -226,7 +226,7 @@ Find the Scout phase entry (around the `phase('Scout')` call) and add after the 
 _msgBridge.broadcast(`factory-pipeline: claiming ${A.ticket_id} (${A.title || A.slug})`, 'factory')
 ```
 
-- [ ] **Step 3: Add done broadcast at the end of `main()`**
+- [x] **Step 3: Add done broadcast at the end of `main()`**
 
 Before the final `return` or at the end of the function body:
 
@@ -234,17 +234,17 @@ Before the final `return` or at the end of the function body:
 _msgBridge.broadcast(`factory-pipeline: ${A.ticket_id} finished`, 'factory')
 ```
 
-- [ ] **Step 4: Offset S1 budget — compress 2 lines**
+- [x] **Step 4: Offset S1 budget — compress 2 lines**
 
 Since `pipeline.js` is at 599/600, find 2 lines that can be compressed (e.g., a multi-line comment that can be shortened, or a blank line + redundant semicolon). The implementer should identify the safest compression at implementation time.
 
-- [ ] **Step 5: Verify syntax**
+- [x] **Step 5: Verify syntax**
 
 ```bash
 node --check scripts/factory/pipeline.js
 ```
 
-- [ ] **Step 6: Verify line count ≤ 600**
+- [x] **Step 6: Verify line count ≤ 600**
 
 ```bash
 wc -l scripts/factory/pipeline.js
@@ -252,7 +252,7 @@ wc -l scripts/factory/pipeline.js
 
 Expected: ≤ 600.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/factory/pipeline.js
@@ -264,13 +264,13 @@ git push origin feature/opencode-factory-bridge
 
 ## Task 5 — Wire agent-msg into `dispatcher.js`
 
-- [ ] **Step 1: Add import at the top of `dispatcher.js` (after the `export const meta` block)**
+- [x] **Step 1: Add import at the top of `dispatcher.js` (after the `export const meta` block)**
 
 ```javascript
 const _msgBridge = require('./agent-msg-bridge.cjs')
 ```
 
-- [ ] **Step 2: Add escalation broadcast**
+- [x] **Step 2: Add escalation broadcast**
 
 Inside the `if (escalations.length)` block (around line 161), add before the `await agent(...)` call:
 
@@ -278,13 +278,13 @@ Inside the `if (escalations.length)` block (around line 161), add before the `aw
 _msgBridge.broadcast(`factory-dispatch: ${escalations.length} run(s) blocked/escalated`, 'factory')
 ```
 
-- [ ] **Step 3: Verify syntax**
+- [x] **Step 3: Verify syntax**
 
 ```bash
 node --check scripts/factory/dispatcher.js
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add scripts/factory/dispatcher.js
@@ -296,7 +296,7 @@ git push origin feature/opencode-factory-bridge
 
 ## Task 6 — Create `scripts/factory/mcp-server.mjs`
 
-- [ ] **Step 1: Create the MCP server file**
+- [x] **Step 1: Create the MCP server file**
 
 ```bash
 cat > scripts/factory/mcp-server.mjs << 'MCP_EOF'
@@ -377,13 +377,13 @@ app.listen(PORT, '127.0.0.1', () => console.log(`factory-mcp listening on 127.0.
 MCP_EOF
 ```
 
-- [ ] **Step 2: Verify syntax**
+- [x] **Step 2: Verify syntax**
 
 ```bash
 node --check scripts/factory/mcp-server.mjs
 ```
 
-- [ ] **Step 3: Check line count ≤ 500**
+- [x] **Step 3: Check line count ≤ 500**
 
 ```bash
 wc -l scripts/factory/mcp-server.mjs
@@ -391,7 +391,7 @@ wc -l scripts/factory/mcp-server.mjs
 
 Expected: ≤ 200 (well within the 500 `.mjs` limit).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add scripts/factory/mcp-server.mjs
@@ -403,7 +403,7 @@ git push origin feature/opencode-factory-bridge
 
 ## Task 7 — Configure OpenCode to use the MCP server
 
-- [ ] **Step 1: Add `mcp-factory` entry to `.opencode/opencode.jsonc`**
+- [x] **Step 1: Add `mcp-factory` entry to `.opencode/opencode.jsonc`**
 
 Add the following entry inside the `"mcp"` object (after `mcp-keycloak`):
 
@@ -415,13 +415,13 @@ Add the following entry inside the `"mcp"` object (after `mcp-keycloak`):
 }
 ```
 
-- [ ] **Step 2: Verify JSON validity**
+- [x] **Step 2: Verify JSON validity**
 
 ```bash
 node -e "JSON.parse(require('fs').readFileSync('.opencode/opencode.jsonc','utf8').replace(/\/\/.*$/gm,''))"
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add .opencode/opencode.jsonc
@@ -433,7 +433,7 @@ git push origin feature/opencode-factory-bridge
 
 ## Task 8 — Add Taskfile tasks for MCP server lifecycle
 
-- [ ] **Step 1: Add tasks to `Taskfile.openclaw.yml`**
+- [x] **Step 1: Add tasks to `Taskfile.openclaw.yml`**
 
 Append to the `tasks:` section:
 
@@ -471,7 +471,7 @@ Append to the `tasks:` section:
       - curl -sS --max-time 3 http://127.0.0.1:13003/health && echo "" || echo "factory-mcp not responding"
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add Taskfile.openclaw.yml
@@ -483,7 +483,7 @@ git push origin feature/opencode-factory-bridge
 
 ## Task 9 — Update AGENTS.md with Factory section
 
-- [ ] **Step 1: Add a "Software Factory (OpenCode)" section to `AGENTS.md`**
+- [x] **Step 1: Add a "Software Factory (OpenCode)" section to `AGENTS.md`**
 
 Insert after the existing "Software Factory (autopilot)" section (around line 153):
 
@@ -501,11 +501,11 @@ When the user asks about factory tickets, queue status, or wants to enqueue/trig
 At session start, check for pending factory messages: `bash scripts/agent-msg.sh read --unread 2>/dev/null || true`
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add AGENTS.md
-git commit -m "docs(agents): add Software Factory OpenCode section [T000914]"
+git commit -m "docs(agents): add Software Factory OPENCode section [T000914]"
 git push origin feature/opencode-factory-bridge
 ```
 
@@ -513,7 +513,7 @@ git push origin feature/opencode-factory-bridge
 
 ## Task 10 — BATS tests for MCP server
 
-- [ ] **Step 1: Create `tests/unit/factory/mcp-server.bats`**
+- [x] **Step 1: Create `tests/unit/factory/mcp-server.bats`**
 
 ```bash
 cat > tests/unit/factory/mcp-server.bats << 'BATS_EOF'
@@ -595,13 +595,13 @@ _health_check() {
 BATS_EOF
 ```
 
-- [ ] **Step 2: Verify BATS syntax**
+- [x] **Step 2: Verify BATS syntax**
 
 ```bash
 bash -n tests/unit/factory/mcp-server.bats 2>/dev/null || true
 ```
 
-- [ ] **Step 3: Wire into Taskfile.yml**
+- [x] **Step 3: Wire into Taskfile.yml**
 
 Add a new task `test:unit:factory-mcp` and include it in the `test:unit` dependency list:
 
@@ -612,7 +612,7 @@ Add a new task `test:unit:factory-mcp` and include it in the `test:unit` depende
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/factory/mcp-server.bats
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add tests/unit/factory/mcp-server.bats Taskfile.yml
@@ -624,13 +624,13 @@ git push origin feature/opencode-factory-bridge
 
 ## Task 11 — Update spec frontmatter
 
-- [ ] **Step 1: Update the spec's frontmatter**
+- [x] **Step 1: Update the spec's frontmatter**
 
 Edit `docs/superpowers/specs/2026-06-16-opencode-factory-bridge-design.md`:
 - Change `ticket_id: T000915` → `ticket_id: T000914`
 - Change `plan_ref: null` → `plan_ref: docs/superpowers/plans/2026-06-16-opencode-factory-bridge.md`
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add docs/superpowers/specs/2026-06-16-opencode-factory-bridge-design.md
@@ -642,31 +642,31 @@ git push origin feature/opencode-factory-bridge
 
 ## Task 12 — Final verification
 
-- [ ] **Step 1: Run targeted tests for changed domains**
+- [x] **Step 1: Run targeted tests for changed domains**
 
 ```bash
 task test:changed
 ```
 
-- [ ] **Step 2: Regenerate freshness artifacts**
+- [x] **Step 2: Regenerate freshness artifacts**
 
 ```bash
 task freshness:regenerate
 ```
 
-- [ ] **Step 3: Run freshness check (CI equivalent)**
+- [x] **Step 3: Run freshness check (CI equivalent)**
 
 ```bash
 task freshness:check
 ```
 
-- [ ] **Step 4: Run the plan frontmatter hook**
+- [x] **Step 4: Run the plan frontmatter hook**
 
 ```bash
 bash scripts/plan-frontmatter-hook.sh docs/superpowers/plans/2026-06-16-opencode-factory-bridge.md
 ```
 
-- [ ] **Step 5: Commit any regenerated artifacts**
+- [x] **Step 5: Commit any regenerated artifacts**
 
 ```bash
 git add -A
@@ -674,7 +674,7 @@ git commit -m "chore: auto-regenerate freshness artifacts [ci skip] [T000914]" |
 git push origin feature/opencode-factory-bridge
 ```
 
-- [ ] **Step 6: Final sanity checks**
+- [x] **Step 6: Final sanity checks**
 
 ```bash
 wc -l scripts/factory/pipeline.js   # must be ≤ 600

@@ -69,3 +69,49 @@ EOF
   run bash "$SCRIPT"
   [ "$status" -eq 2 ]
 }
+
+@test "applies plan-review fields (marker + annotations + verdict)" {
+  # server.cjs needs the submit handleSub anchor for section E
+  cat > "$ROOT/server.cjs" <<'PRANCHOR'
+const http = require('http');
+const PORT = 47600;
+let ownerPid = process.env.BRAINSTORM_OWNER_PID ? Number(process.env.BRAINSTORM_OWNER_PID) : null;
+function handleRequest(req, res) {
+    if (html.includes('</body>')) {
+      html = html.replace('</body>', helperInjection + '\n</body>');
+    } else {
+      html += helperInjection;
+    }
+}
+function startServer() {
+  if (!fs.existsSync(CONTENT_DIR)) fs.mkdirSync(CONTENT_DIR, { recursive: true });
+  if (!fs.existsSync(STATE_DIR)) fs.mkdirSync(STATE_DIR, { recursive: true });
+      if (!knownFiles.has(filename)) {
+        knownFiles.add(filename);
+        const eventsFile = path.join(STATE_DIR, 'events');
+        if (fs.existsSync(eventsFile)) fs.unlinkSync(eventsFile);
+        console.log('screen-added');
+      }
+}
+const sub = { v: 1, ts: Date.now(), seq: ev.seq || 0, nonce: ev.nonce || null,
+  screen: ev.screen || null, question: ev.question || '', selected: ev.selected || [],
+  fields: ev.fields || {}, markdown: md };
+PRANCHOR
+  run bash "$SCRIPT"
+  [ "$status" -eq 0 ]
+  grep -qF "plan-review-server v1" "$ROOT/server.cjs"
+  grep -q "annotations:" "$ROOT/server.cjs"
+  grep -q "verdict:" "$ROOT/server.cjs"
+  grep -q "ev.kind === 'plan-review'" "$ROOT/server.cjs"
+}
+
+@test "plan-review: --check succeeds after patch" {
+  cat > "$ROOT/server.cjs" <<'PRCHK'
+const sub = { v: 1, ts: Date.now(), seq: ev.seq || 0, nonce: ev.nonce || null,
+  screen: ev.screen || null, question: ev.question || '', selected: ev.selected || [],
+  fields: ev.fields || {}, markdown: md };
+PRCHK
+  bash "$SCRIPT"
+  run bash "$SCRIPT" --check
+  [ "$status" -eq 0 ]
+}

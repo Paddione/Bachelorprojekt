@@ -238,7 +238,7 @@ git commit -m "test(website): front-to-back pipeline order regression test (fail
 **Files:**
 - Modify: `website/src/lib/factory-floor.ts` (remove the hand-written enum/buckets near the `ALL_TICKET_STATUSES`/`STATUS_BUCKETS` block, add re-exports)
 
-- [ ] **Step 1: Replace the hand-written enum + bucket literals with a re-export**
+- [x] **Step 1: Replace the hand-written enum + bucket literals with a re-export**
 
 In `website/src/lib/factory-floor.ts`, delete the block that currently reads:
 
@@ -279,22 +279,22 @@ export type { TicketStatus, PipelineLane, LaneKey } from './tickets/pipeline-ord
 
 Leave `PHASE_ORDER`, `Phase`, `phaseProgress`, and everything else in `factory-floor.ts` untouched.
 
-- [ ] **Step 2: Run the order test to verify it passes**
+- [x] **Step 2: Run the order test to verify it passes**
 
 Run: `pnpm --dir website exec vitest run factory-floor.order`
 Expected: PASS — all live `it()` assertions green (re-export `toBe` identity holds, buckets byte-identical, qa before done); the three `it.todo` show as todo (not failures).
 
-- [ ] **Step 3: Run the existing factory-floor DAL test to confirm no regression**
+- [x] **Step 3: Run the existing factory-floor DAL test to confirm no regression**
 
 Run: `pnpm --dir website exec vitest run factory-floor.test`
 Expected: PASS — the DAL test (`factory-floor.test.ts`) still passes; `STATUS_BUCKETS`/`ALL_TICKET_STATUSES`/`TicketStatus` are now re-exported with identical values and no consumer breaks.
 
-- [ ] **Step 4: Verify factory-floor.ts shrank (S1 budget evidence)**
+- [x] **Step 4: Verify factory-floor.ts shrank (S1 budget evidence)**
 
 Run: `wc -l website/src/lib/factory-floor.ts`
 Expected: ≈ 528 lines (down from 541) — confirms the extraction is a net shrink, well under the 600 budget.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add website/src/lib/factory-floor.ts

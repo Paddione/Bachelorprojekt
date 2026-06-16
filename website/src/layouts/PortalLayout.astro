@@ -12,6 +12,7 @@ import TicketWidgetBar from '../components/TicketWidgetBar.astro';
 import AssistantWidget from '../components/assistant/AssistantWidget.svelte';
 const ASSISTANT_ENABLED = (process.env.ENABLE_ASSISTANT_PORTAL ?? 'false') === 'true';
 const MEDIAVIEWER_HOST = process.env.MEDIAVIEWER_HOST ?? 'mediaviewer.localhost';
+const VIDEOVAULT_HOST = process.env.VIDEOVAULT_DOMAIN ?? 'videovault.localhost';
 import SessionExpiryWarning from '../components/SessionExpiryWarning.svelte';
 
 interface Props {
@@ -295,7 +296,7 @@ try {
       <AssistantWidget client:load profile="portal" />
     ) : null}
     <TicketWidgetBar context="portal" showEdit={!ASSISTANT_ENABLED} />
-    <PortalSidekick client:load helpSection={section} helpContext="portal" mediaviewerHost={MEDIAVIEWER_HOST} />
+    <PortalSidekick client:load helpSection={section} helpContext="portal" mediaviewerHost={MEDIAVIEWER_HOST} videovaultHost={VIDEOVAULT_HOST} />
     {workflowTracks.length > 0 && (
       <WorkflowStatusMinimap client:load tracks={workflowTracks} />
     )}

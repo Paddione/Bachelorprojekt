@@ -9,6 +9,7 @@
   import InboxSidekickView from './assistant/InboxSidekickView.svelte';
   import AgentGuideView from './assistant/AgentGuideView.svelte';
   import MediaviewerPanel from './MediaviewerPanel.svelte';
+  import { resolveHelpVideos } from '../lib/help-videos';
   import { parseNavigateEvent, shouldShowLearnDot } from '../lib/assistant/sidekick-nudge';
 
   type View = 'home' | 'support' | 'questionnaire' | 'help' | 'tickets' | 'inbox' | 'agent-guide' | 'mediaviewer';
@@ -17,10 +18,12 @@
     helpSection = '',
     helpContext = 'portal' as HelpContext,
     mediaviewerHost = 'mediaviewer.localhost',
+    videovaultHost = 'videovault.localhost',
   }: {
     helpSection?: string;
     helpContext?: HelpContext;
     mediaviewerHost?: string;
+    videovaultHost?: string;
   } = $props();
 
   let open = $state(false);
@@ -28,6 +31,7 @@
   let view = $state<View>('home');
   let pendingQuestionnaires = $state(0);
   let pendingTickets = $state(0);
+  const mediaviewerVideos = $derived(resolveHelpVideos(videovaultHost));
   let inboxPending = $state(0);
   let isMobile = $state(false);
 
@@ -258,7 +262,7 @@
     {:else if view === 'inbox'}
       <InboxSidekickView onClose={closeDrawer} />
     {:else if view === 'mediaviewer'}
-      <MediaviewerPanel {mediaviewerHost} />
+      <MediaviewerPanel {mediaviewerHost} videos={mediaviewerVideos} />
     {/if}
   </div>
 </div>

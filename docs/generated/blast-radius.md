@@ -1,6 +1,6 @@
 # Blast-Radius-Report
-> Generated: 2026-06-16T05:06:58.329Z
-> Nodes: 78 | Edges: 1613 | Isolated: 2
+> Generated: 2026-06-16T05:10:16.422Z
+> Nodes: 78 | Edges: 1612 | Isolated: 2
 
 ## Ranking (transitive Abhängige)
 
@@ -19,20 +19,20 @@
 | 11 | oauth2-proxy-brainstorm | 39 | 53 | 39 |
 | 12 | oauth2-proxy-dev | 39 | 53 | 39 |
 | 13 | livekit-server | 39 | 53 | 39 |
-| 14 | oauth2-proxy-mediaviewer | 39 | 53 | 39 |
-| 15 | oauth2-proxy-videovault | 39 | 53 | 39 |
-| 16 | oauth2-proxy-recovery | 39 | 53 | 39 |
-| 17 | shared-db | 39 | 53 | 39 |
-| 18 | spreed-signaling | 39 | 53 | 39 |
-| 19 | vaultwarden | 39 | 53 | 39 |
-| 20 | whiteboard | 39 | 53 | 39 |
-| 21 | arena-server | 39 | 53 | 39 |
-| 22 | mcp-github | 38 | 53 | 38 |
-| 23 | claude-code-mcp-ops | 38 | 53 | 38 |
-| 24 | oauth2-proxy-brett | 38 | 53 | 38 |
-| 25 | oauth2-proxy-comfy | 38 | 53 | 38 |
-| 26 | oauth2-proxy-docs | 38 | 53 | 38 |
-| 27 | oauth2-proxy-mailpit | 38 | 53 | 38 |
+| 14 | oauth2-proxy-videovault | 39 | 53 | 39 |
+| 15 | oauth2-proxy-recovery | 39 | 53 | 39 |
+| 16 | shared-db | 39 | 53 | 39 |
+| 17 | spreed-signaling | 39 | 53 | 39 |
+| 18 | vaultwarden | 39 | 53 | 39 |
+| 19 | whiteboard | 39 | 53 | 39 |
+| 20 | arena-server | 39 | 53 | 39 |
+| 21 | mcp-github | 38 | 53 | 38 |
+| 22 | claude-code-mcp-ops | 38 | 53 | 38 |
+| 23 | oauth2-proxy-brett | 38 | 53 | 38 |
+| 24 | oauth2-proxy-comfy | 38 | 53 | 38 |
+| 25 | oauth2-proxy-docs | 38 | 53 | 38 |
+| 26 | oauth2-proxy-mailpit | 38 | 53 | 38 |
+| 27 | oauth2-proxy-mediaviewer | 38 | 53 | 38 |
 | 28 | oauth2-proxy-traefik | 38 | 53 | 38 |
 | 29 | talk-recording | 38 | 53 | 38 |
 | 30 | videovault | 38 | 53 | 38 |
@@ -145,11 +145,6 @@
 **Transitive Abhängige:** 53 — admin-actions-cleanup, admin-actions-prune, arena-server, billing-dunning-detection, brett, claude-code-mcp-auth, claude-code-mcp-monolith, claude-code-mcp-ops, db-backup, ddns-updater, dev-db-refresh, keycloak, knowledge-ingest-bugs, knowledge-ingest-markdown, knowledge-ingest-prs, knowledge-reindex-all, livekit-egress, livekit-ingress, livekit-server, mcp-auth-proxy-dev, mcp-github, monitoring-grafana, monthly-billing, nextcloud, notify-unread, oauth2-proxy-brainstorm, oauth2-proxy-brett, oauth2-proxy-comfy, oauth2-proxy-dev, oauth2-proxy-docs, oauth2-proxy-mailpit, oauth2-proxy-mediaviewer, oauth2-proxy-recovery, oauth2-proxy-traefik, oauth2-proxy-videovault, pvc-backup, scheduled-publish, shared-db, shared-db-dev, shared-db-dev-lb, shared-db-staging, spreed-signaling, systemtest-cleanup, systemtest-outbox, systemtest-purge-all, talk-recording, talk-transcriber, tests-results-retention, traefik, vaultwarden, videovault, website, whiteboard
 **Upstream (In-Degree):** 39
 
-### oauth2-proxy-mediaviewer
-**Direkte Abhängige:** 39 — admin-actions-cleanup, admin-actions-prune, arena-server, billing-dunning-detection, brett, claude-code-mcp-ops, db-backup, ddns-updater, dev-db-refresh, keycloak, knowledge-ingest-bugs, knowledge-ingest-prs, knowledge-reindex-all, livekit-egress, livekit-ingress, livekit-server, mcp-github, monthly-billing, nextcloud, notify-unread, oauth2-proxy-brainstorm, oauth2-proxy-brett, oauth2-proxy-comfy, oauth2-proxy-dev, oauth2-proxy-docs, oauth2-proxy-mailpit, oauth2-proxy-mediaviewer, oauth2-proxy-recovery, oauth2-proxy-traefik, oauth2-proxy-videovault, scheduled-publish, shared-db, spreed-signaling, talk-recording, talk-transcriber, traefik, vaultwarden, videovault, whiteboard
-**Transitive Abhängige:** 53 — admin-actions-cleanup, admin-actions-prune, arena-server, billing-dunning-detection, brett, claude-code-mcp-auth, claude-code-mcp-monolith, claude-code-mcp-ops, db-backup, ddns-updater, dev-db-refresh, keycloak, knowledge-ingest-bugs, knowledge-ingest-markdown, knowledge-ingest-prs, knowledge-reindex-all, livekit-egress, livekit-ingress, livekit-server, mcp-auth-proxy-dev, mcp-github, monitoring-grafana, monthly-billing, nextcloud, notify-unread, oauth2-proxy-brainstorm, oauth2-proxy-brett, oauth2-proxy-comfy, oauth2-proxy-dev, oauth2-proxy-docs, oauth2-proxy-mailpit, oauth2-proxy-mediaviewer, oauth2-proxy-recovery, oauth2-proxy-traefik, oauth2-proxy-videovault, pvc-backup, scheduled-publish, shared-db, shared-db-dev, shared-db-dev-lb, shared-db-staging, spreed-signaling, systemtest-cleanup, systemtest-outbox, systemtest-purge-all, talk-recording, talk-transcriber, tests-results-retention, traefik, vaultwarden, videovault, website, whiteboard
-**Upstream (In-Degree):** 39
-
 ### oauth2-proxy-videovault
 **Direkte Abhängige:** 39 — admin-actions-cleanup, admin-actions-prune, arena-server, billing-dunning-detection, brett, claude-code-mcp-ops, db-backup, ddns-updater, dev-db-refresh, keycloak, knowledge-ingest-bugs, knowledge-ingest-prs, knowledge-reindex-all, livekit-egress, livekit-ingress, livekit-server, mcp-github, monthly-billing, nextcloud, notify-unread, oauth2-proxy-brainstorm, oauth2-proxy-brett, oauth2-proxy-comfy, oauth2-proxy-dev, oauth2-proxy-docs, oauth2-proxy-mailpit, oauth2-proxy-mediaviewer, oauth2-proxy-recovery, oauth2-proxy-traefik, oauth2-proxy-videovault, scheduled-publish, shared-db, spreed-signaling, talk-recording, talk-transcriber, traefik, vaultwarden, videovault, whiteboard
 **Transitive Abhängige:** 53 — admin-actions-cleanup, admin-actions-prune, arena-server, billing-dunning-detection, brett, claude-code-mcp-auth, claude-code-mcp-monolith, claude-code-mcp-ops, db-backup, ddns-updater, dev-db-refresh, keycloak, knowledge-ingest-bugs, knowledge-ingest-markdown, knowledge-ingest-prs, knowledge-reindex-all, livekit-egress, livekit-ingress, livekit-server, mcp-auth-proxy-dev, mcp-github, monitoring-grafana, monthly-billing, nextcloud, notify-unread, oauth2-proxy-brainstorm, oauth2-proxy-brett, oauth2-proxy-comfy, oauth2-proxy-dev, oauth2-proxy-docs, oauth2-proxy-mailpit, oauth2-proxy-mediaviewer, oauth2-proxy-recovery, oauth2-proxy-traefik, oauth2-proxy-videovault, pvc-backup, scheduled-publish, shared-db, shared-db-dev, shared-db-dev-lb, shared-db-staging, spreed-signaling, systemtest-cleanup, systemtest-outbox, systemtest-purge-all, talk-recording, talk-transcriber, tests-results-retention, traefik, vaultwarden, videovault, website, whiteboard
@@ -212,6 +207,11 @@
 
 ### oauth2-proxy-mailpit
 **Direkte Abhängige:** 38 — admin-actions-cleanup, admin-actions-prune, arena-server, billing-dunning-detection, brett, claude-code-mcp-ops, db-backup, ddns-updater, dev-db-refresh, keycloak, knowledge-ingest-bugs, knowledge-ingest-prs, knowledge-reindex-all, livekit-egress, livekit-ingress, livekit-server, mcp-github, monthly-billing, nextcloud, notify-unread, oauth2-proxy-brainstorm, oauth2-proxy-brett, oauth2-proxy-comfy, oauth2-proxy-dev, oauth2-proxy-docs, oauth2-proxy-mediaviewer, oauth2-proxy-recovery, oauth2-proxy-traefik, oauth2-proxy-videovault, scheduled-publish, shared-db, spreed-signaling, talk-recording, talk-transcriber, traefik, vaultwarden, videovault, whiteboard
+**Transitive Abhängige:** 53 — admin-actions-cleanup, admin-actions-prune, arena-server, billing-dunning-detection, brett, claude-code-mcp-auth, claude-code-mcp-monolith, claude-code-mcp-ops, db-backup, ddns-updater, dev-db-refresh, keycloak, knowledge-ingest-bugs, knowledge-ingest-markdown, knowledge-ingest-prs, knowledge-reindex-all, livekit-egress, livekit-ingress, livekit-server, mcp-auth-proxy-dev, mcp-github, monitoring-grafana, monthly-billing, nextcloud, notify-unread, oauth2-proxy-brainstorm, oauth2-proxy-brett, oauth2-proxy-comfy, oauth2-proxy-dev, oauth2-proxy-docs, oauth2-proxy-mailpit, oauth2-proxy-mediaviewer, oauth2-proxy-recovery, oauth2-proxy-traefik, oauth2-proxy-videovault, pvc-backup, scheduled-publish, shared-db, shared-db-dev, shared-db-dev-lb, shared-db-staging, spreed-signaling, systemtest-cleanup, systemtest-outbox, systemtest-purge-all, talk-recording, talk-transcriber, tests-results-retention, traefik, vaultwarden, videovault, website, whiteboard
+**Upstream (In-Degree):** 38
+
+### oauth2-proxy-mediaviewer
+**Direkte Abhängige:** 38 — admin-actions-cleanup, admin-actions-prune, arena-server, billing-dunning-detection, brett, claude-code-mcp-ops, db-backup, ddns-updater, dev-db-refresh, keycloak, knowledge-ingest-bugs, knowledge-ingest-prs, knowledge-reindex-all, livekit-egress, livekit-ingress, livekit-server, mcp-github, monthly-billing, nextcloud, notify-unread, oauth2-proxy-brainstorm, oauth2-proxy-brett, oauth2-proxy-comfy, oauth2-proxy-dev, oauth2-proxy-docs, oauth2-proxy-mailpit, oauth2-proxy-recovery, oauth2-proxy-traefik, oauth2-proxy-videovault, scheduled-publish, shared-db, spreed-signaling, talk-recording, talk-transcriber, traefik, vaultwarden, videovault, whiteboard
 **Transitive Abhängige:** 53 — admin-actions-cleanup, admin-actions-prune, arena-server, billing-dunning-detection, brett, claude-code-mcp-auth, claude-code-mcp-monolith, claude-code-mcp-ops, db-backup, ddns-updater, dev-db-refresh, keycloak, knowledge-ingest-bugs, knowledge-ingest-markdown, knowledge-ingest-prs, knowledge-reindex-all, livekit-egress, livekit-ingress, livekit-server, mcp-auth-proxy-dev, mcp-github, monitoring-grafana, monthly-billing, nextcloud, notify-unread, oauth2-proxy-brainstorm, oauth2-proxy-brett, oauth2-proxy-comfy, oauth2-proxy-dev, oauth2-proxy-docs, oauth2-proxy-mailpit, oauth2-proxy-mediaviewer, oauth2-proxy-recovery, oauth2-proxy-traefik, oauth2-proxy-videovault, pvc-backup, scheduled-publish, shared-db, shared-db-dev, shared-db-dev-lb, shared-db-staging, spreed-signaling, systemtest-cleanup, systemtest-outbox, systemtest-purge-all, talk-recording, talk-transcriber, tests-results-retention, traefik, vaultwarden, videovault, website, whiteboard
 **Upstream (In-Degree):** 38
 

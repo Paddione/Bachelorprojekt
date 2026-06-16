@@ -7,7 +7,7 @@ import { pool } from './website-db';
 
 const PROM_BASE =
   process.env.PROMETHEUS_URL ||
-  'http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090';
+  'http://monitoring-prometheus.monitoring.svc.cluster.local:9090';
 
 export interface PromMatrix {
   status: string;

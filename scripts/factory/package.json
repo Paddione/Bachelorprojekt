@@ -4,6 +4,7 @@
   "type": "module",
   "description": "Isolated deps for the CI AI-review orchestrator (ci-review.mjs).",
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.98.0"
+    "@anthropic-ai/sdk": "^0.98.0",
+    "@modelcontextprotocol/sdk": "^1.29.0"
   }
 }

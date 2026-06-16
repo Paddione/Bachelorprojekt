@@ -17,7 +17,9 @@ export const meta = {
 const D = require('./pipeline-decompose.cjs')
 const BL = require('./build-loop.cjs')
 const SQ = require('./scout-quality-check.cjs')
-const _msgBridge = require('./agent-msg-bridge.cjs')
+let _msgBridge = null
+try { _msgBridge = require('./agent-msg-bridge.cjs') } catch (_) {}
+const { decideDeployTransition } = require('./deploy-transition.cjs')
 function routeProviderSync(source, tier) {
   if (tier === 'opus') return { provider: 'anthropic', modelId: 'claude-opus-4-6', baseUrl: null, slotId: null, emergency: false }
   if (process.env.ANTHROPIC_MODEL) {
@@ -627,12 +629,10 @@ if (canaryRed.length) {
   return { status: 'blocked', reason: 'canary-red', brands: canaryRed, ticket: A.ticket_id }
 }
 
-if (deploy.includes('deploy-guard') || deploy.includes('"status": "blocked"') || deploy.includes("status: 'blocked'")) {
-  phaseEvent('deploy', 'blocked', 'deploy-guard')
-  return { status: 'blocked', reason: 'deploy-guard' }
-}
-phaseEvent('deploy', 'done', 'PR merged')
-_msgBridge.broadcast(`factory-pipeline: ${A.ticket_id} finished`, 'factory')
-return { status: 'done', pr: deploy, reviews: reviews.length, tasks: tasks.length, implemented: implemented.length }
+const { status: deployStatus, reason: deployReason } = decideDeployTransition({ isWebsite: slug?.includes('website') ?? false, deployOutput: deploy })
+phaseEvent('deploy', deployStatus === 'blocked' ? 'blocked' : 'done', deployStatus === 'awaiting_deploy' ? 'merged; awaiting deploy' : 'PR merged')
+if (deployStatus === 'awaiting_deploy') { await agent(`bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status awaiting_deploy`, { label: 'status:awaiting_deploy', phase: 'Deploy' }) }
+if (_msgBridge) _msgBridge.broadcast(`factory-pipeline: ${A.ticket_id} finished (${deployStatus})`, 'factory')
+return { status: deployStatus, reason: deployReason, pr: deploy, reviews: reviews.length, tasks: tasks.length, implemented: implemented.length }
 } finally { if (WORK_BRANCH || WORK_WT) { try { await agent(`bash ${REPO}/scripts/factory/cleanup.sh --branch '${WORK_BRANCH}' --worktree '${WORK_WT}'`, { label: 'cleanup' }) } catch (_) {} } } }
 await main();

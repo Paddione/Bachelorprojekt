@@ -73,7 +73,7 @@ Alle Fakten unten wurden im Worktree `/tmp/wt-website-domain-config-overlay` ver
 **Files:**
 - Create: `prod-fleet/website-common/domain-config.yaml`
 
-- [ ] **Step 1: Datei anlegen**
+- [x] **Step 1: Datei anlegen**
 
 Wert-Ausdruck `mediaviewer.${PROD_DOMAIN}` ist **byte-identisch** zu `prod/configmap-domains.yaml:27` → konsistente Werte zwischen workspace-ns und website-ns, kein Drift. `${PROD_DOMAIN}` wird im Prod-Pfad von `website:deploy` per envsubst gefüllt (steht bereits in der Liste). Datei hat **bewusst kein `metadata.namespace`** — die `namespace:`-Direktive des einbindenden Overlays setzt sie korrekt.
 
@@ -93,7 +93,7 @@ data:
   MEDIAVIEWER_HOST: "mediaviewer.${PROD_DOMAIN}"
 ```
 
-- [ ] **Step 2: Wert-Parität gegen die SSOT verifizieren**
+- [x] **Step 2: Wert-Parität gegen die SSOT verifizieren**
 
 Run:
 ```bash
@@ -102,7 +102,7 @@ diff <(grep -E '^[[:space:]]+MEDIAVIEWER_HOST:' prod/configmap-domains.yaml | tr
 ```
 Expected: kein Output (Exit 0) — die `MEDIAVIEWER_HOST:`-Zeile ist in beiden Dateien identisch (`MEDIAVIEWER_HOST: "mediaviewer.${PROD_DOMAIN}"`).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add prod-fleet/website-common/domain-config.yaml
@@ -116,7 +116,7 @@ git commit -m "feat(infra): add shared domain-config ConfigMap for website overl
 **Files:**
 - Modify: `prod-fleet/website-mentolder/kustomization.yaml`
 
-- [ ] **Step 1: resources-Eintrag ergänzen**
+- [x] **Step 1: resources-Eintrag ergänzen**
 
 Aktueller Inhalt (verifiziert, 8 Z.):
 ```yaml
@@ -137,7 +137,7 @@ resources:
   - website-ingress-web.yaml
 ```
 
-- [ ] **Step 2: kustomize build prüft die Einbindung + Namespace**
+- [x] **Step 2: kustomize build prüft die Einbindung + Namespace**
 
 Run:
 ```bash
@@ -148,7 +148,7 @@ Expected: zeigt `name: domain-config`, `namespace: website` und `MEDIAVIEWER_HOS
 
 > Falls `kustomize` lokal fehlt: `kubectl kustomize prod-fleet/website-mentolder` als Fallback.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add prod-fleet/website-mentolder/kustomization.yaml
@@ -162,7 +162,7 @@ git commit -m "feat(infra): wire shared domain-config into mentolder website ove
 **Files:**
 - Modify: `prod-fleet/website-korczewski/kustomization.yaml`
 
-- [ ] **Step 1: resources-Eintrag ergänzen**
+- [x] **Step 1: resources-Eintrag ergänzen**
 
 Aktueller Inhalt (verifiziert, 31 Z. — `namespace: website-korczewski`, `resources:` mit `../../k3d/website.yaml`, `../../k3d/website-seller-config.yaml`, `website-security-headers.yaml`, plus `patches:` für den IngressRoute-TLS/Middleware-Patch). **Den `patches:`-Block unverändert lassen.** Nur den `resources:`-Block erweitern:
 
@@ -176,7 +176,7 @@ resources:
 
 > Hinweis: Lies die Datei zuerst vollständig und füge die Zeile `  - ../website-common/domain-config.yaml` exakt in den bestehenden `resources:`-Block ein (z.B. nach `website-seller-config.yaml`). `patches:` und `namespace: website-korczewski` bleiben unangetastet.
 
-- [ ] **Step 2: kustomize build prüft die Einbindung + Namespace**
+- [x] **Step 2: kustomize build prüft die Einbindung + Namespace**
 
 Run:
 ```bash
@@ -185,7 +185,7 @@ kustomize build prod-fleet/website-korczewski --load-restrictor=LoadRestrictions
 ```
 Expected: zeigt `name: domain-config`, `namespace: website-korczewski` und `MEDIAVIEWER_HOST: "mediaviewer.${PROD_DOMAIN}"`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add prod-fleet/website-korczewski/kustomization.yaml
@@ -207,7 +207,7 @@ Dieser Guard ist **offline** (keine Cluster-Calls, kein kubectl, kein Netzwerk).
 
 Die `kustomize build`-Assertion aus der Spec wird **bewusst weggelassen** — `kustomize` ist im Offline-CI-Lauf (`task test:all`) nicht garantiert installiert; die `kustomize build`-Verifikation läuft stattdessen in Task 2/3 (manuell) und Task 6 (`task workspace:validate`). Der bats-Guard bleibt rein `grep`-basiert und damit zuverlässig offline.
 
-- [ ] **Step 1: Den failing Guard schreiben**
+- [x] **Step 1: Den failing Guard schreiben**
 
 > TDD-Hinweis: Schreibe zuerst den vollständigen Guard. Er ist initial **rot** für die Parity/Presence-Tests, solange Task 1-3 noch nicht committed sind — in der subagent-Reihenfolge laufen Task 1-3 aber zuerst, sodass er nach dem Wiring grün wird. Um den failing-Zustand zu demonstrieren, siehe Step 3.
 
@@ -296,7 +296,7 @@ setup() {
 }
 ```
 
-- [ ] **Step 2: Subtask + Aggregator-Eintrag im Taskfile ergänzen (analog mediaviewer-host-durability)**
+- [x] **Step 2: Subtask + Aggregator-Eintrag im Taskfile ergänzen (analog mediaviewer-host-durability)**
 
 Im Aggregator `test:unit` (Taskfile.yml, Block Z.249-290), direkt **nach** der Zeile
 `      - task: test:unit:mediaviewer-host-durability` (Z.263) eine Zeile einfügen:
@@ -314,7 +314,7 @@ Und die Subtask-Definition direkt **nach** dem `test:unit:mediaviewer-host-durab
 
 > Beide Edits sind rein additiv. `.yml` fällt unter kein S1-Extension-Limit (kein Ratchet-Risiko). Der `coverage-guard` (`scripts/tests/unit-coverage-guard.sh`) sieht `website-domain-config-overlay.bats` über die Subtask-`cmds`-Zeile per `grep -qF` → kein Allowlist-Eintrag nötig.
 
-- [ ] **Step 3: Demonstriere den failing-Zustand des Parity-Guards (TDD-Beweis)**
+- [x] **Step 3: Demonstriere den failing-Zustand des Parity-Guards (TDD-Beweis)**
 
 Temporär einen Dummy-required-Key in `k3d/website.yaml` hinzufügen, der NICHT in der geteilten ConfigMap ist, und den Parity-Test laufen lassen:
 ```bash
@@ -336,7 +336,7 @@ Danach Backup zurückspielen:
 mv /tmp/website.yaml.bak k3d/website.yaml
 ```
 
-- [ ] **Step 4: Guard grün laufen lassen (echter Zustand)**
+- [x] **Step 4: Guard grün laufen lassen (echter Zustand)**
 
 Run:
 ```bash
@@ -346,7 +346,7 @@ Expected: alle Tests **PASS** (9 ok).
 
 > Falls bats-Submodul fehlt: `git submodule update --init --recursive` (wie `test:unit` Z.252 es tut).
 
-- [ ] **Step 5: Über den Aggregator-Task laufen lassen (Wiring-Beweis)**
+- [x] **Step 5: Über den Aggregator-Task laufen lassen (Wiring-Beweis)**
 
 Run:
 ```bash
@@ -360,7 +360,7 @@ bash scripts/tests/unit-coverage-guard.sh
 ```
 Expected: `unit-coverage: all <N> tests/unit/*.bats files are tracked (run by a task or allowlisted).` — kein Eintrag fehlt.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add tests/unit/website-domain-config-overlay.bats Taskfile.yml
@@ -376,7 +376,7 @@ git commit -m "test(infra): add offline website-ns domain-config parity guard"
 
 **Verifizierter Ausgangsbefund:** Der Dev-Zweig von `website:deploy` (Z.3528-3539) applied `k3d/website.yaml` imperativ in die website-ns, applied dabei aber **keine** `domain-config` (Z.2240 applied `k3d/configmap-domains.yaml` ausschließlich in die `workspace`-ns). `environments/dev.yaml` hat **keinen `PROD_DOMAIN`-Schlüssel** — ein `envsubst "\$PROD_DOMAIN"` der geteilten ConfigMap würde im Dev daher `mediaviewer.` (leer) oder den literalen Platzhalter ergeben, NICHT `mediaviewer.localhost`. Die Dev-SSOT für den Wert ist `k3d/configmap-domains.yaml` (`MEDIAVIEWER_HOST: "mediaviewer.localhost"`).
 
-- [ ] **Step 1: Prüfen, ob der Dev-`website:deploy` aktuell überhaupt bricht**
+- [x] **Step 1: Prüfen, ob der Dev-`website:deploy` aktuell überhaupt bricht**
 
 Entscheidungslogik (rein lokal, kein Cluster nötig falls kein dev-Cluster läuft):
 ```bash
@@ -390,7 +390,7 @@ kubectl --context k3d-mentolder-dev -n website get configmap domain-config 2>/de
   || echo "DEV: keine domain-config in website-ns → frischer Dev-Deploy würde brechen"
 ```
 
-- [ ] **Step 2: Entscheidung dokumentieren**
+- [x] **Step 2: Entscheidung dokumentieren**
 
 **Wenn (c) zeigt, dass keine `domain-config` in der dev-website-ns existiert** (Lücke akut) → fahre mit Step 3 fort.
 **Wenn die cm existiert** (z.B. aus einem früheren Apply geerbt) ODER **kein dev-Cluster verfügbar ist und Dev nicht im Scope der Bachelorarbeit-Deploys liegt** → **Prod-only bleiben**, Step 3 überspringen, Begründung als Commit-/PR-Kommentar festhalten: „Dev-Zweig nicht angefasst — Dev-website-ns trägt keine domain-config über das Overlay (imperativer Apply), Wert-SSOT ist `k3d/configmap-domains.yaml`; eine Dev-Lücke wird separat behandelt, da `environments/dev.yaml` kein `PROD_DOMAIN` führt und der geteilte Overlay-ConfigMap-Ausdruck im Dev nicht korrekt substituieren würde."
@@ -431,7 +431,7 @@ git commit -m "fix(infra): mirror domain-config into dev website namespace"
 
 Der Prod-Pfad nutzt `kubectl apply --server-side --force-conflicts` (Z.3566). Die live `domain-config` in `website`/`website-korczewski` wurde bei PR #1735 **ad-hoc imperativ** erstellt (`kubectl create`/`cp`), ist also evtl. nicht SSA-gemanagt (field-manager `kubectl-client-side-apply` oder gar keiner). Beim ersten Overlay-Deploy übernimmt SSA das Field-Ownership — analog dem `knowledge-secrets`-Adoptionsproblem aus CLAUDE.md (dort verweigerte der SealedSecrets-Controller die Adoption eines secretGenerator-Secrets). Bei einer ConfigMap via `--server-side --force-conflicts` ist die Adoption i.d.R. konfliktfrei, MUSS aber verifiziert werden.
 
-- [ ] **Step 1: Diff der gebauten ConfigMap gegen live (Server-Side dry-run, kein echter Apply)**
+- [x] **Step 1: Diff der gebauten ConfigMap gegen live (Server-Side dry-run, kein echter Apply)**
 
 Run (für beide Brands, hier mentolder; `--context fleet`):
 ```bash
@@ -447,7 +447,7 @@ Expected: der Diff zeigt höchstens eine `managedFields`-Übernahme bzw. identis
 
 > `kubectl diff --server-side` simuliert den Apply ohne Mutation. Falls `diff` einen Konflikt meldet, ist `--force-conflicts` (bereits im Deploy-Pfad gesetzt, Z.3566) die korrekte Auflösung — sie übernimmt das Field-Ownership. Das ist erwartet und sicher für eine ConfigMap (keine Secret-Daten, kein Datenverlust). Dokumentiere das Ergebnis im PR-Body.
 
-- [ ] **Step 2: Dasselbe für korczewski**
+- [x] **Step 2: Dasselbe für korczewski**
 
 Run:
 ```bash
@@ -469,7 +469,7 @@ Expected: `data.MEDIAVIEWER_HOST` = `mediaviewer.korczewski.de`, kein un-auflös
 
 **Files:** keine — nur Verifikation + ein Commit für regenerierte Artefakte.
 
-- [ ] **Step 1: Kustomize-Strukturvalidierung**
+- [x] **Step 1: Kustomize-Strukturvalidierung**
 
 Run:
 ```bash
@@ -477,7 +477,7 @@ task workspace:validate
 ```
 Expected: grün (alle Overlays inkl. `prod-fleet/website-*` bauen fehlerfrei).
 
-- [ ] **Step 2: Manifest-Testrunner für den betroffenen Bereich (falls passende TEST-ID existiert)**
+- [x] **Step 2: Manifest-Testrunner für den betroffenen Bereich (falls passende TEST-ID existiert)**
 
 Run:
 ```bash

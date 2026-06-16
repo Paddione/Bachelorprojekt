@@ -66,7 +66,7 @@ No baseline entries are added (all three files stay below their static `.ts` lim
 **Files:**
 - Create: `website/src/lib/tickets/pipeline-order.ts`
 
-- [ ] **Step 1: Write the new pure SSOT module**
+- [x] **Step 1: Write the new pure SSOT module**
 
 Create `website/src/lib/tickets/pipeline-order.ts` with the ordered declaration and the derived exports. The lane order is front→back exactly as spec §2. `STATUS_BUCKETS` values are derived from `PIPELINE_LANES` and MUST equal today's hand-written map (verified in Task 3). `ALL_TICKET_STATUSES` keeps its current order (it is a Set of valid states, not the lane order — `blocked` sits between `in_review` and `qa_review` historically; do not reorder it).
 
@@ -120,12 +120,12 @@ export const STATUS_BUCKETS: Record<TicketStatus, LaneKey> = Object.fromEntries(
 ) as Record<TicketStatus, LaneKey>;
 ```
 
-- [ ] **Step 2: Type-check the new module compiles**
+- [x] **Step 2: Type-check the new module compiles**
 
 Run: `pnpm --dir website exec tsc --noEmit -p tsconfig.json`
 Expected: PASS (no errors referencing `pipeline-order.ts`). If `tsc` is slow/unconfigured for partial checks, this step's failure is only meaningful when it names `pipeline-order.ts`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add website/src/lib/tickets/pipeline-order.ts

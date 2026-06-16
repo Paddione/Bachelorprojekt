@@ -308,27 +308,27 @@ git commit -m "refactor(website): derive ALL_TICKET_STATUSES/STATUS_BUCKETS from
 **Files:**
 - None modified in this task (verification only). Regenerated artifacts (`website/src/data/test-inventory.json`, freshness outputs) are committed here.
 
-- [ ] **Step 1: Run targeted tests for changed domains**
+- [x] **Step 1: Run targeted tests for changed domains**
 
 Run: `task test:changed`
 Expected: PASS — vitest `--changed` picks up `factory-floor.order.test.ts` + `factory-floor.test.ts`; quality/S1–S4 ratchet over the touched files passes (factory-floor.ts shrank; new files under limit; no new import cycle; no brand-domain literal; no orphan — the new test is auto-discovered by vitest and the helper is imported by factory-floor.ts).
 
-- [ ] **Step 2: Regenerate test inventory (a test file was added)**
+- [x] **Step 2: Regenerate test inventory (a test file was added)**
 
 Run: `task test:inventory`
 Expected: regenerates `website/src/data/test-inventory.json` to include `factory-floor.order.test.ts`.
 
-- [ ] **Step 3: Regenerate freshness artifacts**
+- [x] **Step 3: Regenerate freshness artifacts**
 
 Run: `task freshness:regenerate`
 Expected: updates generated artifacts (repo-index, etc.) for the new/changed files.
 
-- [ ] **Step 4: Run the CI-equivalent freshness + quality gate**
+- [x] **Step 4: Run the CI-equivalent freshness + quality gate**
 
 Run: `task freshness:check`
 Expected: PASS — freshness clean, S1–S4 quality ratchet green, baseline key-count unchanged (no baseline entries added).
 
-- [ ] **Step 5: Commit regenerated artifacts**
+- [x] **Step 5: Commit regenerated artifacts**
 
 ```bash
 git add website/src/data/test-inventory.json docs/code-quality docs/generated

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.86.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.86.0...website-v1.86.1) (2026-06-16)
+
+
+### Bug Fixes
+
+* **website:** FactoryFloor desktop lane order front→back [T000922] ([#1791](https://github.com/Paddione/Bachelorprojekt/issues/1791)) ([d4dc129](https://github.com/Paddione/Bachelorprojekt/commit/d4dc129498072ce519b04fce4d780425bbc1f4a3))
+
 ## [1.86.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.85.0...website-v1.86.0) (2026-06-16)
 
 

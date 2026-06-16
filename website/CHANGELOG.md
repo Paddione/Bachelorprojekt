@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.80.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.79.1...website-v1.80.0) (2026-06-16)
+
+
+### Features
+
+* **tickets:** Markdown-Rich-Text-Editor + Sidekick-Refresh [T000887] ([#1755](https://github.com/Paddione/Bachelorprojekt/issues/1755)) ([3a815cc](https://github.com/Paddione/Bachelorprojekt/commit/3a815cce09f80a331a4219c92476303c7db275de))
+
 ## [1.79.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.79.0...website-v1.79.1) (2026-06-16)
 
 

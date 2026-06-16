@@ -113,6 +113,11 @@ tasks:
     cmds:
       - bash scripts/factory/budget-guard.sh "{{.ENV}}"
 
+  usage:
+    desc: "Cross-Tool-CLI Token/Kosten-Überblick (tokscale-Delta, read-only). Usage: task factory:usage -- [--json] [--otel]"
+    cmds:
+      - bash scripts/factory/usage-report.sh {{.CLI_ARGS}}
+
   disp:korczewski:
     desc: "Run Software Factory schedule for korczewski brand (convenience wrapper for disp-korczewski.sh)"
     cmds:

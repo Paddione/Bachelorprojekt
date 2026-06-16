@@ -152,6 +152,33 @@ cp scripts/factory/autopilot.env.example ~/.config/factory/autopilot.env
   liegt als SealedSecret `otel-collector-auth` im monitoring-ns.
 - Dashboard: `/admin/factory-observability` (isAdmin-gated).
 
+## PreCompact Context-Pruning (Opt-in)
+
+`scripts/hooks/precompact-prune.sh` ist ein Claude Code PreCompact-Hook, der obsolete
+`tool_result`-Blöcke vor `/compact` kürzt, um Context-Bloat zu reduzieren.
+
+**Aktivierung (Opt-in, per Maschine):** In `.claude/settings.json` (gitignored) ergänzen:
+```json
+{ "hooks": { "PreCompact": [{ "command": "bash scripts/hooks/precompact-prune.sh" }] } }
+```
+- `PRUNE_MIN_AGE_TURNS` (Env, Default 3): Mindestalter in Turns vor dem Prunen.
+- `OTEL_EXPORTER_OTLP_ENDPOINT`: Optional — emittiert `factory.context.pruned_chars`-Metrik.
+- Fail-open: bei jedem Zweifel bleibt das Original unangetastet.
+
+## Cross-Tool Usage-Report (tokscale-Delta)
+
+`scripts/factory/usage-report.sh` ist ein read-only Aggregator der lokalen Claude-Code- und
+OpenClaw-Usage-Logs für einen Cross-Tool-CLI-Token/Kosten-Überblick.
+
+```
+task factory:usage                     # Text-Ansicht
+task factory:usage -- --json           # Maschinenlesbar
+task factory:usage -- --otel           # Optional: Gauges an OTLP-Collector
+```
+- Baut NICHT auf `factory_run_budget` auf (separater CLI-Blick).
+- `CLAUDE_USAGE_DIR` / `OPENCLAWN_USAGE_DIR` (Env) überschreiben die Log-Pfade.
+- `OTEL_EXPORTER_OTLP_ENDPOINT` muss gesetzt sein für `--otel`.
+
 ## Verwandte Dokumente
 
 - Spec: `docs/superpowers/specs/2026-06-01-software-factory-design.md`

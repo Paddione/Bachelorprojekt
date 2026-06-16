@@ -17,3 +17,20 @@ const HelpVideoListSchema = z.array(HelpVideoSchema);
 export function loadHelpVideos(): HelpVideo[] {
   return HelpVideoListSchema.parse(manifest);
 }
+
+const DEV_VIDEOVAULT_HOST = 'videovault.localhost';
+
+export function resolveHelpVideos(videovaultHost: string): HelpVideo[] {
+  return loadHelpVideos().map((v) => {
+    try {
+      const u = new URL(v.url);
+      if (u.hostname === DEV_VIDEOVAULT_HOST) {
+        u.hostname = videovaultHost;
+        return { ...v, url: u.toString() };
+      }
+      return v;
+    } catch {
+      return v;
+    }
+  });
+}

@@ -64,6 +64,7 @@ function phaseEvent(ph, state, detail) {
     if (detail) a.push('--detail', String(detail).slice(0, 240))
     execFileSync('bash', a, { stdio: 'ignore', timeout: 15000 })
   } catch {}
+  try { require('./otel-emit.cjs').emitPhase(ph, state, { brand, ticket_id: A.ticket_id }); } catch {}
 }
 
 function consumeInjections(ph) {

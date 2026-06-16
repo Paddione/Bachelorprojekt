@@ -94,6 +94,7 @@ The dispatcher reads all guards (kill-switch, daily-cap, dry-run-first) fresh pe
 Report only the dispatcher's final JSON result. Do not improvise scheduling."
 
   echo "wakeup.sh: starting tick #${TICK} at ${TIMESTAMP}" >&2
+  bash "${REPO}/scripts/factory/otel-emit.sh" metric factory.tick.count 1 brand="${BRAND:-mentolder}" || true
   # Lücke 3.1: plan_staged → backlog auto-enqueue (vor Dispatcher-Tick, damit schedule.sh
   # die frisch-enqueueten Tickets in diesem Tick sieht). Best-effort: Fehler nicht fatal.
   for _ae_brand in mentolder korczewski; do
@@ -118,6 +119,7 @@ Report only the dispatcher's final JSON result. Do not improvise scheduling."
   BL_M=$(BRAND=mentolder bash "${REPO}/scripts/factory/queue.sh" 2>/dev/null | jq 'length' 2>/dev/null || echo 0)
   BL_K=$(BRAND=korczewski bash "${REPO}/scripts/factory/queue.sh" 2>/dev/null | jq 'length' 2>/dev/null || echo 0)
   TOTAL=$(( BL_M + BL_K ))
+  bash "${REPO}/scripts/factory/otel-emit.sh" metric factory.tick.queue_depth "${TOTAL}" || true
 
   if [[ "${TOTAL}" -gt 0 ]]; then
     echo "wakeup.sh: idle-retick — ${TOTAL} item(s) in queue (mentolder=${BL_M}, korczewski=${BL_K}), re-arming in ${RETICK_DELAY}s" >&2

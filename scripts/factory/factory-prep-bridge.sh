@@ -8,6 +8,10 @@ cd "$REPO"
 
 log() { echo "[PREP] $*" >&2; }
 
+# Readiness guard (T: factory-interactive-worker) — provides check_ticket_readiness
+# shellcheck source=scripts/factory/readiness-check.sh
+source "$HERE/readiness-check.sh"
+
 launch='[]'
 skipped='[]'
 
@@ -117,6 +121,20 @@ for brand in mentolder korczewski; do
       if echo "$plan_ref" | grep -q 'plan='; then
         plan_path=$(echo "$plan_ref" | grep -oP 'plan=\K\S+' || echo null)
       fi
+    fi
+
+    # --- Readiness guard: branch + plan must exist on origin ---
+    if [[ "$branch" == "null" || -z "$branch" || "$plan_path" == "null" || -z "$plan_path" ]]; then
+      log "SKIP reason=not_ready ticket=$ext_id (no branch/plan — not yet planned)"
+      BRAND="$brand" bash "$REPO/scripts/ticket.sh" release-slot --id "$ext_id" >/dev/null 2>&1 || true
+      skipped=$(echo "$skipped" | jq -c --arg b "$brand" --arg r "not_ready" '. + [{"brand":$b,"reason":$r}]')
+      continue
+    fi
+    if ! check_ticket_readiness "$branch" "$plan_path" >/dev/null 2>&1; then
+      log "SKIP reason=not_ready ticket=$ext_id (branch/plan not on origin)"
+      BRAND="$brand" bash "$REPO/scripts/ticket.sh" release-slot --id "$ext_id" >/dev/null 2>&1 || true
+      skipped=$(echo "$skipped" | jq -c --arg b "$brand" --arg r "not_ready" '. + [{"brand":$b,"reason":$r}]')
+      continue
     fi
 
     launch=$(echo "$launch" | jq -c \

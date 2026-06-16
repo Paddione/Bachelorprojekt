@@ -16,6 +16,7 @@ export const meta = {
 
 const D = require('./pipeline-decompose.cjs')
 const BL = require('./build-loop.cjs')
+const SQ = require('./scout-quality-check.cjs')
 function routeProviderSync(source, tier) {
   if (tier === 'opus') return { provider: 'anthropic', modelId: 'claude-opus-4-6', baseUrl: null, slotId: null, emergency: false }
   if (process.env.ANTHROPIC_MODEL) {
@@ -197,6 +198,9 @@ try {
 }
 phaseEvent('scout', 'done', `${(scout.touched_files || []).length} touched_files`)
 
+const sqGate = SQ.runScoutGate({ ...scout, title: A.title, description: A.description }, A.ticket_id, REPO, cp, log, phaseEvent)
+if (sqGate) return sqGate
+
 let scsSuggestedFiles = []
 try {
   const BASE_URL = process.env.WEBSITE_BASE_URL ?? 'http://website.workspace.svc.cluster.local:4321'
@@ -209,9 +213,9 @@ try {
     scsSuggestedFiles = scsJson.results ?? []
     log(`SCS: ${scsSuggestedFiles.length} semantically related files found`)
     if (scsSuggestedFiles.length > 0) {
-      scout.suggested_files = scsSuggestedFiles
-      const scsPaths = scsSuggestedFiles.map(f => `${REPO}/${f.path}`)
+      scout.touched_files = scout.touched_files || []
       const existingSet = new Set(scout.touched_files)
+      const scsPaths = scsSuggestedFiles.map(f => `${REPO}/${f.path}`)
       for (const p of scsPaths) {
         if (!existingSet.has(p)) {
           scout.touched_files.push(p)
@@ -224,7 +228,7 @@ try {
   }
 } catch (scsErr) {
   log(`SCS: unavailable (graceful degradation) — ${scsErr.message ?? scsErr}`)
-  scout.suggested_files = []
+  scsSuggestedFiles = []
 }
 
 const isSimple = scout.complexity === 'simple'

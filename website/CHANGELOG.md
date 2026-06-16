@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.86.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.85.0...website-v1.86.0) (2026-06-16)
+
+
+### Features
+
+* **website:** Sidekick In-Drawer Pipeline View [T000921] ([#1789](https://github.com/Paddione/Bachelorprojekt/issues/1789)) ([4303da0](https://github.com/Paddione/Bachelorprojekt/commit/4303da07d5ecbda09064ed51ca6701fa5717b9eb))
+
 ## [1.85.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.84.0...website-v1.85.0) (2026-06-16)
 
 

@@ -23,6 +23,62 @@ _grill_answers_json() {
   printf '%s' "$json"
 }
 
+# Parse a tolerant grilling doc into TSV output:
+#   First line:  questionnaireId \t title \t count
+#   Rest lines:  id \t prompt \t section \t answer (empty if blank)
+# Mirrors website/src/lib/tickets/grilling.ts parseGrillingDoc (same markers/placeholders/auto-ids).
+_grill_parse_doc() {
+  local file="$1" fallback="$2"
+  awk -v fallback="$fallback" '
+    function flush(  a) {
+      if (have) {
+        ids[n]=(curid!="" ? curid : "q" (n+1)); prompts[n]=curprompt; secs[n]=cursec;
+        ans[n]=curans; n++;
+      }
+      have=0; curid=""; curprompt=""; cursec=""; curans="";
+    }
+    function trim(s){ gsub(/^[ \t]+|[ \t]+$/,"",s); return s }
+    function isblank(s,  t){ t=tolower(trim(s));
+      return (t==""||t=="—"||t=="-"||t=="tbd"||t=="(offen)"||t=="n/a") }
+    BEGIN{ fm=0; n=0; have=0; qid=fallback; title="" }
+    NR==1 && $0 ~ /^---[ \t]*$/ { fm=1; next }
+    fm==1 {
+      if ($0 ~ /^---[ \t]*$/) { fm=0; next }
+      if ($0 ~ /^questionnaire[ \t]*:/) { sub(/^questionnaire[ \t]*:[ \t]*/,""); qid=trim($0); next }
+      if ($0 ~ /^title[ \t]*:/) { sub(/^title[ \t]*:[ \t]*/,""); title=trim($0); next }
+      next
+    }
+    {
+      line=$0
+      if (line ~ /^#{2,3}[ \t]+/) { flush(); p=line; sub(/^#{2,3}[ \t]+/,"",p); split_id(p); have=1; next }
+      if (line ~ /^[ \t]*(q?[0-9]+[.)])[ \t]+/) {
+        flush(); m=line; eid=m; sub(/^[ \t]*/,"",eid);
+        if (eid ~ /^q[0-9]+/) { num=eid; sub(/[.)].*/,"",num); sub(/^q/,"",num); curid_pre="q" num } else { curid_pre="" }
+        p=line; sub(/^[ \t]*q?[0-9]+[.)][ \t]+/,"",p); split_id(p); if (curid_pre!="") curid=curid_pre; have=1; next
+      }
+      if (line ~ /^[ \t]*\*\*.+\?\*\*[ \t]*$/) { flush(); p=line; gsub(/^[ \t]*\*\*|\*\*[ \t]*$/,"",p); split_id(p); have=1; next }
+      if (!have) next
+      if (tolower(line) ~ /^[ \t]*(antwort|a)[ \t]*:/) { sub(/^[ \t]*(antwort|a|Antwort|A)[ \t]*:[ \t]*/,"",line); addans(trim(line)); next }
+      if (line ~ /^[ \t]*>/) { sub(/^[ \t]*>[ \t]?/,"",line); addans(trim(line)); next }
+      if (trim(line)=="") next
+      addans(trim(line))
+    }
+    function split_id(p,  idm){ curprompt=p; if (match(p,/\{#[A-Za-z0-9_-]+\}[ \t]*$/)) {
+        idm=substr(p,RSTART+2,RLENGTH-3); sub(/[ \t]*\{#[A-Za-z0-9_-]+\}[ \t]*$/,"",curprompt); curid=trim(idm) }
+        curprompt=trim(curprompt) }
+    function addans(s){ curans=(curans=="" ? s : curans "\n" s) }
+    END{
+      flush();
+      if (title=="") title=qid;
+      printf("%s\t%s\t%d\n", qid, title, n);
+      for (k=0;k<n;k++) {
+        a=ans[k]; if (isblank(a)) a="";
+        printf("%s\t%s\t%s\t%s\n", ids[k], prompts[k], secs[k], a);
+      }
+    }
+  ' "$file"
+}
+
 cmd_grill() {
   local id="" questionnaire="coaching-sessions-v1" json="" answers_file="" grilling_doc="" no_comment="false" dry_run_json=""
   local -a answers=()
@@ -60,9 +116,24 @@ cmd_grill() {
     echo "ERROR: grilling doc missing or empty: $grilling_doc" >&2; exit 2
   fi
 
-  # --- Resolve the answers JSON for this questionnaire (still cluster-free). ---
-  local answers_json=""
-  if [[ -n "$json" ]]; then
+  # --- If grilling-doc is given, parse it (still cluster-free). ---
+  local answers_json="" meta_questions="" doc_title=""
+  if [[ -n "$grilling_doc" ]]; then
+    local base; base=$(basename "$grilling_doc"); base="${base%.*}"
+    local tsv; tsv=$(_grill_parse_doc "$grilling_doc" "$base")
+    local header; header=$(head -n1 <<<"$tsv")
+    questionnaire=$(cut -f1 <<<"$header")
+    doc_title=$(cut -f2 <<<"$header")
+    local parsed
+    parsed=$(tail -n +2 <<<"$tsv" | jq -R -s --arg qn "$questionnaire" --arg title "$doc_title" '
+      ( split("\n") | map(select(length>0) | split("\t"))
+        | { questionnaireId:$qn, title:$title,
+            answers: ( map(select(.[3] != "")) | map({ (.[0]): .[3] }) | add // {} ),
+            questions: ( map({ id:.[0], prompt:.[1] } + (if .[2]=="" then {} else {section:.[2]} end)) ) } )')
+    if [[ "$dry_run_json" == "true" ]]; then printf '%s\n' "$(jq -c . <<<"$parsed")"; exit 0; fi
+    answers_json=$(jq -c '.answers' <<<"$parsed")
+    meta_questions=$(jq -c '.questions' <<<"$parsed")
+  elif [[ -n "$json" ]]; then
     answers_json="$json"
   elif [[ -n "$answers_file" ]]; then
     if [[ ! -s "$answers_file" ]]; then echo "ERROR: answers file missing or empty: $answers_file" >&2; exit 2; fi
@@ -71,8 +142,8 @@ cmd_grill() {
     answers_json=$(_grill_answers_json "${answers[@]}") || exit $?
   fi
   # Fail closed on malformed JSON before touching the cluster.
-  if ! jq -e . >/dev/null 2>&1 <<<"$answers_json"; then
-    echo "ERROR: answers are not valid JSON: $answers_json" >&2; exit 2
+  if [[ -z "$grilling_doc" ]] && ! jq -e . >/dev/null 2>&1 <<<"$answers_json"; then
+    echo "ERROR: answers are not valid JSON" >&2; exit 2
   fi
 
   local pod; pod=$(_pgpod)

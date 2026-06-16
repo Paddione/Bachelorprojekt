@@ -87,3 +87,33 @@ teardown() { rm -rf "$MOCKDIR"; }
   [ "$status" -eq 2 ]
   [[ "$output" == *"exactly one of"* ]]
 }
+
+@test "grill --grilling-doc --dry-run-json splits answered vs unanswered" {
+  doc="$BATS_TEST_TMPDIR/g.md"
+  cat > "$doc" <<'MD'
+---
+questionnaire: gekko-x
+title: Gekko X
+---
+## Frage eins?
+Antwort: Antwort eins.
+## Frage zwei?
+## Frage drei? {#drei}
+A: —
+MD
+  run bash "$TICKET" grill --id T000999 --grilling-doc "$doc" --dry-run-json
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'"questionnaireId":"gekko-x"'* ]]
+  echo "$output" | grep -q '"answers":{"q1":"Antwort eins."}'
+  echo "$output" | grep -q '"id":"drei"'
+  ! echo "$output" | grep -q '"drei":'
+}
+
+@test "grill --grilling-doc auto-assigns q1..qN and accepts numbered markers" {
+  doc="$BATS_TEST_TMPDIR/n.md"
+  printf '1. Erste?\nAntwort: A.\n2) Zweite?\n' > "$doc"
+  run bash "$TICKET" grill --id T000999 --grilling-doc "$doc" --dry-run-json
+  [ "$status" -eq 0 ]
+  echo "$output" | grep -q '"answers":{"q1":"A."}'
+  echo "$output" | grep -q '"id":"q2"'
+}

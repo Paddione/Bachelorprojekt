@@ -32,6 +32,21 @@ test('emitPhase posts an OTLP metrics payload to /v1/metrics', async () => {
   assert.ok(metricNames.includes('factory.phase.transition'));
 });
 
+test('emitPhase includes model and provider as metric labels', async () => {
+  process.env.OTEL_EXPORTER_OTLP_ENDPOINT = 'https://otel.example.invalid';
+  delete process.env.OTEL_SDK_DISABLED;
+  let captured = null;
+  global.fetch = async (url, opts) => {
+    captured = { url, body: JSON.parse(opts.body), headers: opts.headers };
+    return { ok: true, status: 200 };
+  };
+  await otel.emitPhase('plan', 'entered', { brand: 'korczewski', ticket_id: 'T000900', model: 'sonnet', provider: 'anthropic' });
+  const attrs = captured.body.resourceMetrics[0].scopeMetrics[0].metrics[0].sum.dataPoints[0].attributes;
+  const labels = Object.fromEntries(attrs.map(a => [a.key, a.value.stringValue]));
+  assert.strictEqual(labels.model, 'sonnet');
+  assert.strictEqual(labels.provider, 'anthropic');
+});
+
 test('emit never throws on fetch failure (fire-and-forget)', async () => {
   process.env.OTEL_EXPORTER_OTLP_ENDPOINT = 'https://otel.example.invalid';
   global.fetch = async () => { throw new Error('network down'); };

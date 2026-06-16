@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../lib/auth';
-import { queryRange, buildPromQL, listPhaseTimeline } from '../../lib/factory-observability';
+import { queryRange, queryInstant, buildPromQL, listPhaseTimeline } from '../../lib/factory-observability';
 
 export const prerender = false;
 
@@ -16,14 +16,16 @@ export const GET: APIRoute = async ({ request }) => {
   const start = now - 7 * 24 * 3600;
   const step = 3600;
   try {
-    const [cost, tokens, phaseDuration, timeline] = await Promise.all([
+    const [cost, tokens, phaseDuration, costByModel, costByTicket, timeline] = await Promise.all([
       queryRange(buildPromQL('cost', brand), start, now, step).catch(() => null),
       queryRange(buildPromQL('tokens', brand), start, now, step).catch(() => null),
       queryRange(buildPromQL('phase_duration', brand), start, now, step).catch(() => null),
+      queryInstant(buildPromQL('cost_by_model', brand)).catch(() => null),
+      queryInstant(buildPromQL('cost_by_ticket', brand)).catch(() => null),
       listPhaseTimeline(200).catch(() => []),
     ]);
     return new Response(
-      JSON.stringify({ brand, cost, tokens, phaseDuration, timeline, fetchedAt: new Date().toISOString() }),
+      JSON.stringify({ brand, cost, tokens, phaseDuration, costByModel, costByTicket, timeline, fetchedAt: new Date().toISOString() }),
       { status: 200, headers: { 'content-type': 'application/json' } },
     );
   } catch (err) {

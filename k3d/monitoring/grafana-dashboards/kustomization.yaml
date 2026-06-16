@@ -15,6 +15,12 @@ configMapGenerator:
     options:
       labels:
         grafana_dashboard: "1"
+  - name: grafana-dashboard-factory-otel
+    files:
+      - factory-otel.json
+    options:
+      labels:
+        grafana_dashboard: "1"
 
 generatorOptions:
   disableNameSuffixHash: true

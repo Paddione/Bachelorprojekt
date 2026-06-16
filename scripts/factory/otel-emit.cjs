@@ -75,9 +75,12 @@ async function emitMetric(name, value, attrs, opts) {
 }
 
 // Phase transition + duration. state: entered|done|blocked. duration optional.
+// ctx may contain { brand, ticket_id, durationMs, model, provider }.
 async function emitPhase(phase, state, ctx) {
   if (!endpoint()) return { skipped: true };
   const labels = { phase, state, brand: (ctx && ctx.brand) || 'unknown' };
+  if (ctx && ctx.model) labels.model = ctx.model;
+  if (ctx && ctx.provider) labels.provider = ctx.provider;
   const metrics = [{ name: 'factory.phase.transition', kind: 'sum', value: 1, attrs: labels }];
   if (ctx && typeof ctx.durationMs === 'number') {
     metrics.push({ name: 'factory.phase.duration', kind: 'gauge', value: ctx.durationMs, attrs: labels });

@@ -1,0 +1,159 @@
+{
+  "title": "Software Factory OTel",
+  "uid": "factory-otel",
+  "schemaVersion": 39,
+  "panels": [
+    {
+      "id": 1,
+      "title": "Token Usage / Day",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum by (model) (rate(claude_code_token_usage{brand=~\"$brand\"}[1d]))",
+          "legendFormat": "{{model}}"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "short" } }
+    },
+    {
+      "id": 2,
+      "title": "Cost / Day (USD)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum by (model) (rate(claude_code_cost_usage{brand=~\"$brand\"}[1d]))",
+          "legendFormat": "{{model}}"
+        }
+      ],
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "currencyUSD" } }
+    },
+    {
+      "id": 3,
+      "title": "Tickets / Day",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(increase(factory_tick_count{brand=~\"$brand\"}[1d]))",
+          "legendFormat": "Ticks"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 8, "w": 6, "h": 4 }
+    },
+    {
+      "id": 4,
+      "title": "Avg Phase Duration",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "avg(factory_phase_duration{brand=~\"$brand\"})",
+          "legendFormat": "ms"
+        }
+      ],
+      "gridPos": { "x": 6, "y": 8, "w": 6, "h": 4 },
+      "fieldConfig": { "defaults": { "unit": "ms" } }
+    },
+    {
+      "id": 5,
+      "title": "Escalations / Day",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(increase(factory_tick_escalations{brand=~\"$brand\"}[1d]))",
+          "legendFormat": "Escalations"
+        }
+      ],
+      "gridPos": { "x": 12, "y": 8, "w": 6, "h": 4 }
+    },
+    {
+      "id": 6,
+      "title": "Queue Depth",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "factory_tick_queue_depth{brand=~\"$brand\"}",
+          "legendFormat": "Queue"
+        }
+      ],
+      "gridPos": { "x": 18, "y": 8, "w": 6, "h": 4 }
+    },
+    {
+      "id": 7,
+      "title": "Phase Duration by Phase",
+      "type": "bargauge",
+      "targets": [
+        {
+          "expr": "avg by (phase) (factory_phase_duration{brand=~\"$brand\"})",
+          "legendFormat": "{{phase}}"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 12, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "ms" } },
+      "options": { "orientation": "horizontal", "displayMode": "gradient" }
+    },
+    {
+      "id": 8,
+      "title": "Phase Transitions",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum by (phase, state) (rate(factory_phase_transition{brand=~\"$brand\"}[1d]))",
+          "legendFormat": "{{phase}}/{{state}}"
+        }
+      ],
+      "gridPos": { "x": 12, "y": 12, "w": 12, "h": 8 }
+    },
+    {
+      "id": 9,
+      "title": "Token Usage by Provider & Model",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum by (model) (rate(claude_code_token_usage{brand=~\"$brand\"}[1d]))",
+          "legendFormat": "{{model}}"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 20, "w": 12, "h": 8 }
+    },
+    {
+      "id": 10,
+      "title": "Cost per Ticket (Top 10)",
+      "type": "table",
+      "targets": [
+        {
+          "expr": "topk(10, sum by (ticket_id) (claude_code_cost_usage{brand=~\"$brand\"}))",
+          "legendFormat": "{{ticket_id}}",
+          "format": "table"
+        }
+      ],
+      "gridPos": { "x": 12, "y": 20, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "currencyUSD" } }
+    },
+    {
+      "id": 11,
+      "title": "Factory Tick Count",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum by (brand) (rate(factory_tick_count[1d]))",
+          "legendFormat": "{{brand}} ticks"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 28, "w": 24, "h": 6 }
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "brand",
+        "type": "query",
+        "query": "label_values(factory_tick_count, brand)",
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": { "value": ["$__all"] }
+      }
+    ]
+  }
+}

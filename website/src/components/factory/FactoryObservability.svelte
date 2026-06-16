@@ -22,6 +22,8 @@
     cost: PromMatrix | null;
     tokens: PromMatrix | null;
     phaseDuration: PromMatrix | null;
+    costByModel: PromMatrix | null;
+    costByTicket: PromMatrix | null;
     timeline: TimelineRow[];
     fetchedAt: string;
   }
@@ -131,6 +133,57 @@
         </div>
       {:else}
         <p class="muted">Keine Phasen-Metriken verfügbar (OTel Collector noch nicht deployed).</p>
+      {/if}
+    </div>
+
+    <!-- Provider/Model Cost Breakdown -->
+    <div class="section">
+      <h2 class="section-title">Kosten nach Provider/Model</h2>
+      {#if data.costByModel?.data?.result?.length}
+        <div class="phase-bars">
+          {#each data.costByModel.data.result as row}
+            {@const model = row.metric.model || 'unknown'}
+            {@const cost = parseFloat(row.values?.[row.values.length - 1]?.[1] || '0') || 0}
+            <div class="phase-bar-row">
+              <span class="phase-label">{model}</span>
+              <div class="phase-bar-track">
+                <div class="phase-bar-fill" style="width: {Math.min(100, cost * 100)}%; background: {PHASE_COLORS[model] || ACCENT}"></div>
+              </div>
+              <span class="phase-val">${cost.toFixed(4)}</span>
+            </div>
+          {/each}
+        </div>
+      {:else}
+        <p class="muted">Keine Provider-Metriken verfügbar.</p>
+      {/if}
+    </div>
+
+    <!-- Per-Ticket Cost (Top 10) -->
+    <div class="section">
+      <h2 class="section-title">Kosten pro Ticket (Top 10)</h2>
+      {#if data.costByTicket?.data?.result?.length}
+        <div class="timeline-table-wrap">
+          <table class="timeline-table">
+            <thead>
+              <tr>
+                <th>Ticket ID</th>
+                <th>Kosten (USD)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {#each data.costByTicket.data.result.slice(0, 10) as row}
+                {@const tid = row.metric.ticket_id || '—'}
+                {@const cost = parseFloat(row.values?.[row.values.length - 1]?.[1] || '0') || 0}
+                <tr>
+                  <td class="mono">{tid}</td>
+                  <td class="mono">${cost.toFixed(4)}</td>
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+        </div>
+      {:else}
+        <p class="muted">Keine Ticket-Kosten verfügbar.</p>
       {/if}
     </div>
 

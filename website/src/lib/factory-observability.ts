@@ -22,8 +22,19 @@ export function buildPromQL(panel: string, brand: string): string {
     case 'commits':return `sum(increase(claude_code_commit_count{${b}}[1d]))`;
     case 'phase_duration': return `avg by (phase) (factory_phase_duration{${b}})`;
     case 'phase_blocked':  return `sum by (phase) (factory_phase_transition{${b},state="blocked"})`;
+    case 'cost_by_model':  return `sum by (model) (claude_code_cost_usage{${b}})`;
+    case 'tokens_by_model': return `sum by (model) (claude_code_token_usage{${b}})`;
+    case 'cost_by_ticket': return `topk(10, sum by (ticket_id) (claude_code_cost_usage{${b}}))`;
     default: return `up`;
   }
+}
+
+export async function queryInstant(query: string): Promise<PromMatrix> {
+  const u = new URL(`${PROM_BASE}/api/v1/query`);
+  u.searchParams.set('query', query);
+  const res = await fetch(u.toString());
+  if (!res.ok) throw new Error(`prometheus ${res.status}`);
+  return (await res.json()) as PromMatrix;
 }
 
 export async function queryRange(

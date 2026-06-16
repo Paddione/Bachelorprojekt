@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.83.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.82.1...website-v1.83.0) (2026-06-16)
+
+
+### Features
+
+* **website:** off-script design-sync pipeline for claude.ai/design ([#1763](https://github.com/Paddione/Bachelorprojekt/issues/1763)) ([fb4ddb3](https://github.com/Paddione/Bachelorprojekt/commit/fb4ddb36698f2e54fd536f2c3cdc9456a86f80ae))
+
 ## [1.82.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.82.0...website-v1.82.1) (2026-06-16)
 
 

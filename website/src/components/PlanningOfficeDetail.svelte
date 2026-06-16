@@ -20,6 +20,8 @@
     dorScore: number;
     isNextCandidate: boolean;
     pinned: boolean;
+    requirementsList: string[];
+    lastenheftLocked: boolean;
   }
 
   let {
@@ -31,6 +33,8 @@
     promoteFn,
     removeDepFn,
     addDepFn,
+    saveRequirementsFn,
+    lockFn,
   }: {
     item: PlanItem;
     override: boolean;
@@ -40,7 +44,18 @@
     promoteFn: (item: PlanItem) => void;
     removeDepFn: (dep: string) => void;
     addDepFn: () => void;
+    saveRequirementsFn: (item: PlanItem, requirements: string[]) => void;
+    lockFn: (item: PlanItem) => void;
   } = $props();
+
+  // The requirements editor binds to a newline-joined draft; one line = one requirement.
+  // While locked the textarea is read-only ("Lastenheft"); unlock to edit ("Pflichtenheft").
+  function linesToList(text: string): string[] {
+    return text.split('\n').map((s) => s.trim()).filter((s) => s.length > 0);
+  }
+  function saveReqs(e: Event) {
+    saveRequirementsFn(item, linesToList((e.target as HTMLTextAreaElement).value));
+  }
 </script>
 
 <h2 class="pb-detail-title">{item.title}</h2>
@@ -51,6 +66,31 @@
     onblur={(e) => patchFn(item.extId, { valueProp: (e.target as HTMLTextAreaElement).value })}
   ></textarea>
 </label>
+
+<fieldset class="pb-fieldset">
+  <legend>
+    {item.lastenheftLocked ? 'Lastenheft' : 'Pflichtenheft'} — Anforderungen
+    {#if item.lastenheftLocked}<span class="pb-lock-badge" data-testid="pb-lastenheft-badge">🔒 verriegelt · KI-bereit</span>{/if}
+  </legend>
+  <textarea
+    class="pb-textarea pb-requirements"
+    data-testid="pb-requirements"
+    placeholder={'Eine Anforderung pro Zeile…\n- Login via SSO\n- Export als PDF'}
+    value={(item.requirementsList ?? []).join('\n')}
+    readonly={item.lastenheftLocked}
+    onblur={saveReqs}
+  ></textarea>
+  <button
+    class="pb-lock-btn"
+    class:locked={item.lastenheftLocked}
+    data-testid="pb-lastenheft-toggle"
+    onclick={() => lockFn(item)}
+  >
+    {item.lastenheftLocked
+      ? '🔓 Entriegeln (zurück zu Pflichtenheft)'
+      : '🔒 Verriegeln → Lastenheft (an Factory übergeben)'}
+  </button>
+</fieldset>
 <fieldset class="pb-fieldset">
   <legend>Definition of Ready</legend>
   {#each DOR_KEYS as k}
@@ -127,6 +167,40 @@
     border-radius: 4px;
     padding: 8px 12px;
     margin: 12px 0;
+  }
+
+  .pb-requirements {
+    min-height: 90px;
+    margin-top: 4px;
+  }
+
+  .pb-requirements[readonly] {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  .pb-lock-badge {
+    font-size: 0.65rem;
+    color: var(--pb-amber);
+    margin-left: 6px;
+  }
+
+  .pb-lock-btn {
+    width: 100%;
+    margin-top: 8px;
+    padding: 6px 8px;
+    background: var(--pb-bg);
+    border: 1px solid var(--pb-amber);
+    color: var(--pb-amber);
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: var(--pb-mono);
+    font-size: 0.75rem;
+  }
+
+  .pb-lock-btn.locked {
+    border-color: var(--pb-border);
+    color: var(--pb-text-muted);
   }
 
   .pb-fieldset legend {

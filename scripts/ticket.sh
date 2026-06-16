@@ -533,7 +533,7 @@ cmd_plan_meta() {
   if [[ "$action" != "set" && "$action" != "get" ]]; then
     echo "ERROR: plan-meta requires a subaction: set|get" >&2; exit 2
   fi
-  local id="" value_prop="" effort="" areas="" depends="" rank="" readiness=""
+  local id="" value_prop="" effort="" areas="" depends="" rank="" readiness="" requirements=""
   while [[ $# -gt 0 ]]; do case "$1" in
       --id)          id="$2"; shift 2 ;;
       --value-prop)  value_prop="$2"; shift 2 ;;
@@ -542,6 +542,7 @@ cmd_plan_meta() {
       --depends-on)  depends="$2"; shift 2 ;;
       --rank)        rank="$2"; shift 2 ;;
       --readiness)   readiness="$2"; shift 2 ;;
+      --requirements) requirements="$2"; shift 2 ;;  # Pflichtenheft list; '|'-separated (reqs may contain commas)
       *) echo "Unknown plan-meta option: $1" >&2; exit 2 ;;
     esac; done
   if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
@@ -555,27 +556,30 @@ cmd_plan_meta() {
 SELECT json_build_object(
   'external_id', external_id, 'status', status, 'value_prop', value_prop,
   'effort', effort, 'areas', areas, 'depends_on', depends_on,
-  'planning_rank', planning_rank, 'readiness', readiness
+  'planning_rank', planning_rank, 'readiness', readiness,
+  'requirements_list', requirements_list
 ) FROM tickets.tickets WHERE external_id = :'ext_id';
 EOF
     return
   fi
 
-  local areas_sql="NULL" depends_sql="NULL" rank_sql="NULL" readiness_sql="NULL"
+  local areas_sql="NULL" depends_sql="NULL" rank_sql="NULL" readiness_sql="NULL" requirements_sql="NULL"
   [[ -n "$areas" ]]   && areas_sql="ARRAY[$(_csv_to_quoted "$areas")]"
   [[ -n "$depends" ]] && depends_sql="ARRAY[$(_csv_to_quoted "$depends")]"
   [[ -n "$rank" ]]    && rank_sql="$rank"
   [[ -n "$readiness" ]] && readiness_sql="'$(_readiness_to_json "$readiness")'::jsonb"
+  [[ -n "$requirements" ]] && requirements_sql="ARRAY[$(_pipe_to_quoted "$requirements")]"
   _exec_sql "$pod" \
     -v ext_id="$id" -v vp="$value_prop" -v eff="$effort" <<EOF >/dev/null
 UPDATE tickets.tickets SET
-  value_prop    = COALESCE(NULLIF(:'vp',''), value_prop),
-  effort        = COALESCE(NULLIF(:'eff',''), effort),
-  areas         = COALESCE($areas_sql, areas),
-  depends_on    = COALESCE($depends_sql, depends_on),
-  planning_rank = COALESCE($rank_sql, planning_rank),
-  readiness     = COALESCE($readiness_sql, readiness),
-  updated_at    = now()
+  value_prop        = COALESCE(NULLIF(:'vp',''), value_prop),
+  effort            = COALESCE(NULLIF(:'eff',''), effort),
+  areas             = COALESCE($areas_sql, areas),
+  depends_on        = COALESCE($depends_sql, depends_on),
+  planning_rank     = COALESCE($rank_sql, planning_rank),
+  readiness         = COALESCE($readiness_sql, readiness),
+  requirements_list = COALESCE($requirements_sql, requirements_list),
+  updated_at        = now()
 WHERE external_id = :'ext_id';
 EOF
   echo "plan-meta updated for $id"
@@ -591,6 +595,63 @@ _csv_to_quoted() {
   echo "$out"
 }
 
+# "a|b,c|d" -> "'a','b,c','d'" — pipe-separated so requirement lines may contain commas.
+_pipe_to_quoted() {
+  local IFS='|'; local out=""; local item
+  for item in $1; do
+    item="${item//\'/\'\'}"
+    out+="${out:+,}'$item'"
+  done
+  echo "$out"
+}
+
+# lastenheft lock|unlock --id <external_id>
+#   lock:   requires >=1 requirement; sets readiness.lastenheft_locked=true and
+#           forward-transitions status (triage/planning/plan_staged -> backlog).
+#   unlock: clears the flag (back to "Pflichtenheft"); status untouched.
+cmd_lastenheft() {
+  local action="${1:-}"; shift || true
+  if [[ "$action" != "lock" && "$action" != "unlock" ]]; then
+    echo "ERROR: lastenheft requires a subaction: lock|unlock" >&2; exit 2
+  fi
+  local id=""
+  while [[ $# -gt 0 ]]; do case "$1" in
+      --id) id="$2"; shift 2 ;;
+      *) echo "Unknown lastenheft option: $1" >&2; exit 2 ;;
+    esac; done
+  # Validate before _pgpod so bad-arg errors are deterministic without a cluster.
+  if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
+  local pod; pod=$(_pgpod)
+  if [[ "$action" == "lock" ]]; then
+    local n
+    n=$(_exec_sql "$pod" -v ext_id="$id" <<'EOF'
+SELECT COALESCE(array_length(array_remove(array_remove(requirements_list, NULL), ''), 1), 0)
+FROM tickets.tickets WHERE external_id = :'ext_id';
+EOF
+)
+    n="${n//[[:space:]]/}"
+    if [[ -z "$n" || "$n" == "0" ]]; then
+      echo "ERROR: cannot lock — Lastenheft is empty (need >=1 requirement)." >&2; exit 3
+    fi
+    _exec_sql "$pod" -v ext_id="$id" <<'EOF' >/dev/null
+UPDATE tickets.tickets SET
+  readiness = COALESCE(readiness,'{}'::jsonb) || '{"lastenheft_locked":true}'::jsonb,
+  status    = CASE WHEN status IN ('triage','planning','plan_staged') THEN 'backlog' ELSE status END,
+  updated_at = now()
+WHERE external_id = :'ext_id';
+EOF
+    echo "lastenheft locked for $id (Lastenheft — AI-ready, status forwarded to backlog)"
+  else
+    _exec_sql "$pod" -v ext_id="$id" <<'EOF' >/dev/null
+UPDATE tickets.tickets SET
+  readiness = COALESCE(readiness,'{}'::jsonb) || '{"lastenheft_locked":false}'::jsonb,
+  updated_at = now()
+WHERE external_id = :'ext_id';
+EOF
+    echo "lastenheft unlocked for $id (Pflichtenheft — editable)"
+  fi
+}
+
 # "spec_skizziert=true,aufwand_geschaetzt=false" -> {"spec_skizziert":true,...}
 _readiness_to_json() {
   local IFS=','; local out=""; local kv k v
@@ -604,7 +665,7 @@ _readiness_to_json() {
 
 if [[ $# -lt 1 ]]; then
   echo "Usage: $0 <command> [options]" >&2
-  echo "Commands: create, update-status, add-comment, add-pr-link, grill, archive-plan, get-attachments, get, set-touched-files, set-pipeline-slot, release-slot, touch, enqueue, stage-plan, retry-count, factory-control, dryrun-mark, dryrun-check, feature-flag, phase, inject, get-injections, plan-meta" >&2
+  echo "Commands: create, update-status, add-comment, add-pr-link, grill, archive-plan, get-attachments, get, set-touched-files, set-pipeline-slot, release-slot, touch, enqueue, stage-plan, retry-count, factory-control, dryrun-mark, dryrun-check, feature-flag, phase, inject, get-injections, plan-meta, lastenheft" >&2
   exit 1
 fi
 cmd="$1"; shift
@@ -632,6 +693,7 @@ case "$cmd" in
   inject)            cmd_inject "$@" ;;
   get-injections)    cmd_get_injections "$@" ;;
   plan-meta)         cmd_plan_meta "$@" ;;
+  lastenheft)        cmd_lastenheft "$@" ;;
   *)                 echo "Unknown command: $cmd" >&2; exit 1 ;;
 esac
 

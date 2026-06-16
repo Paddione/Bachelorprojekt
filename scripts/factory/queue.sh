@@ -15,6 +15,9 @@ FROM (
   SELECT external_id, title, priority, touched_files, created_at
   FROM tickets.tickets
   WHERE type='feature' AND status='backlog'
+    -- Pflichtenheft → Lastenheft gate: the autopilot only picks up tickets whose
+    -- Lastenheft is locked (requirements firm = AI-ready). Fail-closed on absent flag.
+    AND COALESCE((readiness->>'lastenheft_locked')::boolean, false) = true
   ORDER BY CASE priority WHEN 'hoch' THEN 1 WHEN 'mittel' THEN 2 WHEN 'niedrig' THEN 3 END, created_at
 ) q;
 SQL

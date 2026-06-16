@@ -1,4 +1,5 @@
 import { pool } from './website-db';
+import { canLock, normalizeRequirements, isLastenheftLocked, LASTENHEFT_LOCK_KEY } from './tickets/lastenheft';
 
 export const DOR_KEYS = [
   'spec_skizziert', 'offene_fragen_geklaert', 'abhaengigkeiten_klar', 'aufwand_geschaetzt',
@@ -11,6 +12,8 @@ export interface OfficeItem {
   effort: string | null; areas: string[]; dependsOn: string[];
   rank: number | null; readiness: Readiness; dorScore: number;
   isNextCandidate: boolean; pinned: boolean; createdAt: string; updatedAt: string;
+  // Pflichtenheft → Lastenheft: the requirements list + derived lock state.
+  requirementsList: string[]; lastenheftLocked: boolean;
 }
 
 export function dorScore(r: Readiness | null): number {
@@ -27,13 +30,15 @@ function mapRow(row: any): OfficeItem {
     rank: row.planning_rank, readiness, dorScore: dorScore(readiness),
     isNextCandidate: (row.planning_rank ?? 99) === 0 && dorScore(readiness) === 4,
     pinned: row.pinned ?? false, createdAt: row.created_at, updatedAt: row.updated_at,
+    requirementsList: row.requirements_list ?? [],
+    lastenheftLocked: isLastenheftLocked(readiness),
   };
 }
 
 export async function listOffice(): Promise<OfficeItem[]> {
   const r = await pool.query(
     `SELECT external_id, title, value_prop, priority, effort, areas, depends_on,
-            planning_rank, readiness, pinned, created_at, updated_at
+            planning_rank, readiness, pinned, created_at, updated_at, requirements_list
        FROM tickets.tickets
       WHERE type = 'feature' AND status = 'planning'
       ORDER BY pinned DESC, COALESCE(planning_rank, 2147483647), created_at`,
@@ -62,8 +67,24 @@ export async function createIdea(inp: CreateInput): Promise<string> {
 export interface PatchInput {
   valueProp?: string; priority?: string; effort?: string;
   areas?: string[]; dependsOn?: string[]; rank?: number; readiness?: Readiness; pinned?: boolean;
+  // Pflichtenheft → Lastenheft. `requirements` overwrites the list; `lastenheftLocked`
+  // toggles the lock (locking needs >=1 requirement, else throws 'lastenheft_empty',
+  // and forward-transitions the status into the autopilot lane).
+  requirements?: string[]; lastenheftLocked?: boolean;
 }
 export async function patchItem(extId: string, p: PatchInput): Promise<boolean> {
+  // Lock precondition: a Lastenheft may only be locked with >=1 requirement.
+  if (p.lastenheftLocked === true) {
+    let effective = p.requirements;
+    if (effective === undefined) {
+      const cur = await pool.query(
+        `SELECT requirements_list FROM tickets.tickets WHERE external_id = $1 AND status = 'planning'`,
+        [extId]);
+      effective = cur.rows[0]?.requirements_list ?? [];
+    }
+    if (!canLock(effective)) throw new Error('lastenheft_empty');
+  }
+
   const sets: string[] = []; const vals: any[] = []; let i = 1;
   const add = (col: string, v: any) => { sets.push(`${col} = $${i++}`); vals.push(v); };
   if (p.valueProp !== undefined) add('value_prop', p.valueProp);
@@ -73,11 +94,21 @@ export async function patchItem(extId: string, p: PatchInput): Promise<boolean> 
   if (p.dependsOn !== undefined) add('depends_on', p.dependsOn);
   if (p.rank !== undefined) add('planning_rank', p.rank);
   if (p.pinned !== undefined) add('pinned', p.pinned);
-  if (p.readiness !== undefined) {
-    const clean: Readiness = {};
-    for (const k of DOR_KEYS) if (p.readiness[k] !== undefined) clean[k] = !!p.readiness[k];
-    add('readiness', JSON.stringify(clean));
+  if (p.requirements !== undefined) add('requirements_list', normalizeRequirements(p.requirements));
+  // Accumulate all readiness changes (DOR flags + lock flag) into ONE JSONB merge,
+  // so toggling a DOR checkbox never clobbers lastenheft_locked and vice-versa.
+  const readinessMerge: Record<string, boolean> = {};
+  if (p.readiness !== undefined)
+    for (const k of DOR_KEYS) if (p.readiness[k] !== undefined) readinessMerge[k] = !!p.readiness[k];
+  if (p.lastenheftLocked !== undefined) readinessMerge[LASTENHEFT_LOCK_KEY] = p.lastenheftLocked;
+  if (Object.keys(readinessMerge).length) {
+    sets.push(`readiness = COALESCE(readiness, '{}'::jsonb) || $${i++}::jsonb`);
+    vals.push(JSON.stringify(readinessMerge));
   }
+  // Locking releases the ticket into the autopilot lane; forward-only, never regresses.
+  if (p.lastenheftLocked === true)
+    sets.push(`status = CASE WHEN status IN ('triage','planning','plan_staged') THEN 'backlog' ELSE status END`);
+
   if (!sets.length) return false;
   vals.push(extId);
   const r = await pool.query(

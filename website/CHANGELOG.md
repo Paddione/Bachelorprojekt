@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.88.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.87.0...website-v1.88.0) (2026-06-16)
+
+
+### Features
+
+* **scripts:** native OpenSpec workflow + awaiting_deploy state [T000909] ([86ebf43](https://github.com/Paddione/Bachelorprojekt/commit/86ebf43e5119d49c3e2890c45507783f7f824ca5))
+* **scripts:** native OpenSpec workflow + awaiting_deploy state [T000909] ([#1786](https://github.com/Paddione/Bachelorprojekt/issues/1786)) ([86ebf43](https://github.com/Paddione/Bachelorprojekt/commit/86ebf43e5119d49c3e2890c45507783f7f824ca5))
+
 ## [1.87.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.86.1...website-v1.87.0) (2026-06-16)
 
 

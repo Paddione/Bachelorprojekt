@@ -101,10 +101,23 @@ function main() {
   }
 
   const content = lines.join('\n');
+
+  function hasStructuralChange(path) {
+    try {
+      const existing = readFileSync(path, 'utf8');
+      const stripTs = (s) => s.replace(/^> Generated: .*/m, '').replace(/^> Nodes:.*/m, '');
+      return stripTs(existing) !== stripTs(content);
+    } catch { return true; }
+  }
+
   mkdirSync(join(ROOT, 'docs/generated'), { recursive: true });
   const outPath = join(ROOT, 'docs/generated/blast-radius.md');
-  writeFileSync(outPath, content);
-  console.log(`✓ blast-radius.md: ${ranked.length} ranked services → ${outPath}`);
+  if (hasStructuralChange(outPath)) {
+    writeFileSync(outPath, content);
+    console.log(`✓ blast-radius.md: ${ranked.length} ranked services → ${outPath}`);
+  } else {
+    console.log(`○ blast-radius.md: no structural change, skipped`);
+  }
 }
 
 main();

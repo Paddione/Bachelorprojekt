@@ -252,6 +252,7 @@ export async function getShipped(limit = 8): Promise<ShippedItem[]> {
   // Latest 'pr' link per ticket via DISTINCT ON + LEFT JOIN (pg-mem cannot run
   // a correlated scalar subquery referencing the outer alias t.id). LIMIT is cast
   // to int so a string-bound param works under both pg-mem and real Postgres.
+  // The nested subquery is constrained to done tickets to avoid unbounded scans.
   const r = await pool.query(
     `SELECT t.external_id, t.title, t.done_at, l.pr_number
        FROM tickets.tickets t
@@ -259,6 +260,9 @@ export async function getShipped(limit = 8): Promise<ShippedItem[]> {
          SELECT DISTINCT ON (from_id) from_id, pr_number
            FROM tickets.ticket_links
           WHERE kind = 'pr' AND pr_number IS NOT NULL
+            AND from_id IN (
+              SELECT id FROM tickets.tickets WHERE status = 'done'
+            )
           ORDER BY from_id, created_at DESC
        ) l ON l.from_id = t.id
       WHERE t.status = 'done'
@@ -276,6 +280,7 @@ export async function getShipped(limit = 8): Promise<ShippedItem[]> {
 
 /** Tickets merged to main but not yet deployed to fleet (the "merge ≠ prod" lane). */
 export async function getAwaitingDeploy(limit = 12): Promise<AwaitingDeployItem[]> {
+  // Bounded query targeting only awaiting_deploy tickets for performance.
   const r = await pool.query(
     `SELECT t.external_id, t.title, t.updated_at, l.pr_number
        FROM tickets.tickets t
@@ -283,6 +288,9 @@ export async function getAwaitingDeploy(limit = 12): Promise<AwaitingDeployItem[
          SELECT DISTINCT ON (from_id) from_id, pr_number
            FROM tickets.ticket_links
           WHERE kind = 'pr' AND pr_number IS NOT NULL
+            AND from_id IN (
+              SELECT id FROM tickets.tickets WHERE status = 'awaiting_deploy'
+            )
           ORDER BY from_id, created_at DESC
        ) l ON l.from_id = t.id
       WHERE t.status = 'awaiting_deploy'

@@ -443,10 +443,25 @@ function main() {
     edges,
   };
 
+  function hasStructuralChange(path) {
+    try {
+      const existing = readFileSync(path, 'utf8');
+      const oldData = JSON.parse(existing);
+      const newData = JSON.parse(JSON.stringify(output));
+      delete oldData.generatedAt;
+      delete newData.generatedAt;
+      return JSON.stringify(oldData) !== JSON.stringify(newData);
+    } catch { return true; }
+  }
+
   mkdirSync(join(ROOT, 'docs/generated'), { recursive: true });
   const outPath = join(ROOT, 'docs/generated/graph.json');
-  writeFileSync(outPath, JSON.stringify(output, null, 2));
-  console.log(`✓ graph.json: ${output.nodes.length} nodes, ${output.edges.length} edges → ${outPath}`);
+  if (hasStructuralChange(outPath)) {
+    writeFileSync(outPath, JSON.stringify(output, null, 2));
+    console.log(`✓ graph.json: ${output.nodes.length} nodes, ${output.edges.length} edges → ${outPath}`);
+  } else {
+    console.log(`○ graph.json: no structural change, skipped`);
+  }
 }
 
 main();

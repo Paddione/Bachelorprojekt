@@ -1,182 +1,116 @@
-# AGENTS.md — High-Signal Reference for AI Agents
+# AGENTS.md — High-Signal Reference for OpenCode Sessions
+
+Loaded via `.opencode/opencode.jsonc` and `.agents/settings.json` → `"instructions": ["AGENTS.md"]`. Comprehensive reference: `CLAUDE.md`.
 
 ## Agent Routing
 
-Check these signals before acting; delegate to the named sub-agent when they match:
+Delegates to sub-agents when signals match. Tie-break: prefer domain of files being changed.
 
 | Signals | Agent |
 |---------|-------|
-| `website/`, Astro, Svelte, component, homepage, kore, brand, CSS, UI, frontend, design | `bachelorprojekt-website` |
-| pod, logs, status, restart, crash, health, kubectl, "what's wrong", "why is X failing", "is X running", `llm:`, GPU, Ollama, model, LiveKit | `bachelorprojekt-ops` |
-| `k3d/`, `prod*/`, manifest, kustomize, overlay, Taskfile, `ENV=`, `environments/`, deploy, `workspace:setup` | `bachelorprojekt-infra` |
-| test, `FA-*`, `SA-*`, `NFA-*`, `AK-*`, BATS, Playwright, `runner.sh`, `factory:`, autopilot, `FA-SF` | `bachelorprojekt-test` |
-| database, PostgreSQL, psql, schema, query, backup, restore, `v_timeline` | `bachelorprojekt-db` |
-| SealedSecret, Keycloak realm, OIDC, DSGVO, credentials, rotate, certificate, secret | `bachelorprojekt-security` |
+| `website/`, Astro, Svelte, CSS, UI, frontend, design, kore, brand | `bachelorprojekt-website` |
+| pod, logs, status, restart, crash, health, kubectl, LLM, GPU, Ollama, LiveKit | `bachelorprojekt-ops` |
+| `k3d/`, `prod*/`, manifest, kustomize, Taskfile, `ENV=`, `environments/`, deploy | `bachelorprojekt-infra` |
+| test, BATS, Playwright, `runner.sh`, `FA-*`, `SA-*`, `NFA-*`, `AK-*`, autopilot | `bachelorprojekt-test` |
+| database, PostgreSQL, psql, schema, query, backup, restore | `bachelorprojekt-db` |
+| SealedSecret, Keycloak, OIDC, DSGVO, credential, certificate, secret | `bachelorprojekt-security` |
 
-Before dispatching any agent: `bash scripts/plan-context.sh <role>` → prepend output as `<active-plans>`. Tie-break: prefer domain of files being changed. Cross-cutting requests stay with orchestrator.
+Before dispatching: `bash scripts/plan-context.sh <role>` → prepend output as `<active-plans>`. Cross-cutting requests stay with orchestrator.
 
 ## Core Commands
 
 ```bash
 # Task oracle — primary CLI. Never hardcode task paths.
-bash scripts/task-oracle.sh '<goal in plain English>'
+bash scripts/vda.sh oracle '<goal in plain English>'
 
 # Dev cluster (k3d, default ENV=dev)
 task cluster:create && task workspace:deploy && task workspace:office:deploy && task workspace:post-setup
 
-# Tests
-./tests/runner.sh local            # full suite against k3d
-./tests/runner.sh local FA-01      # single test (IDs: FA-*, SA-*, NFA-*, AK-*)
-task test:all                      # offline suite (BATS + manifests + dry-run)
+# Pre-commit gate
+task test:changed   # smart selection: only tests relevant to changed files. Also gated by `.githooks/pre-commit`
+task workspace:validate  # kustomize dry-run
 
 # Prod — ENV= is always explicit
 task workspace:deploy ENV=mentolder
-task feature:deploy                # fan-out to both brands
+task workspace:deploy ENV=korczewski
+task feature:deploy  # fan-out to both brands
 ```
 
 ## Workflow
 
 - Branch naming: `feature/*`, `fix/*`, `chore/*`, `docs/*`
 - All changes via PRs → squash-and-merge. No direct pushes to `main`.
-- For structured work: invoke `dev-flow-plan` skill (plan → push) then `dev-flow-execute` (implement → PR → deploy).
-- CI must be green: `task test:all` before commit.
-- Validate manifests: `task workspace:validate`.
+- Use `dev-flow-plan` (brainstorm → spec → plan → push) then `dev-flow-execute` (implement → PR → deploy). Chores use `dev-flow-chore` (inline execute + merge).
+- **OpenSpec Native Workflow**: Specifications are written in the OpenSpec format under `openspec/`.
+  - `task openspec:propose -- <slug> --ticket <ext-id>`: Create a new proposal skeleton (status: planning).
+  - `task openspec:apply -- <slug>`: Mark proposal as implementable (status: plan_staged).
+  - `task openspec:archive -- <slug>`: Archive a completed proposal and merge its delta into the SSOT.
+  - `task openspec:validate`: Dry-run validation of the `openspec/` change tree (runs in CI).
+- **awaiting_deploy status**: A transition state for tickets that are merged to `main` but not yet deployed to production (the "merge ≠ prod" lane on the dashboard cockpit).
+- CI gate: `task test:changed` (smart selection) + `task freshness:check` + `task workspace:validate`.
+- Pre-commit hook (`.githooks/pre-commit`) auto-runs freshness regeneration, secret scanning, agent-lock guard. Install with `git config core.hooksPath .githooks`.
 
 ## Architecture
 
-- **Fleet cluster** (single k3s): mentolder → ns `workspace`, korczewski → ns `workspace-korczewski`. Both run on `fleet` context.
+- **Fleet cluster** (single k3s): mentolder → ns `workspace`, korczewski → ns `workspace-korczewski`. Both on `fleet` context. No other contexts are alive.
 - **k3d/ is base** for all Kustomize manifests. Prod overlays: `prod-fleet/mentolder/` and `prod-fleet/korczewski/`.
-- **No GitOps** — deploy is push-based (`task workspace:deploy ENV=<brand>`). Only website auto-deploys via GH Actions.
+- **No GitOps** — push-based deploy. Only website auto-deploys via GH Actions.
 - **Centralized domains**: `k3d/configmap-domains.yaml` — never hardcode hostnames.
-- **Secrets flow**: plaintext `environments/.secrets/<env>.yaml` → `task env:seal ENV=<env>` → SealedSecret in `environments/sealed-secrets/`.
-- Cross-cutting DB/OIDC changes apply to **both** `workspace` and `workspace-korczewski` namespaces explicitly.
+- **Secrets flow**: plaintext `environments/.secrets/<env>.yaml` → `task env:seal ENV=<env>` → committed SealedSecret.
+- Cross-cutting DB/OIDC changes apply to **both** namespaces.
+- **Website uses `pnpm`**; root, brett, arena-server use `npm`. The website has its own Postgres dependency (via `DATABASE_URL`).
+
+## Package Managers & Lockfiles
+
+| Area | Manager | Lockfile |
+|------|---------|----------|
+| Root (scripts, docs-gen) | `npm` | `package-lock.json` |
+| `website/` | `pnpm` | `website/pnpm-lock.yaml` |
+| `brett/` | `npm` | `brett/package-lock.json` |
+| `arena-server/` | `npm` | `arena-server/package-lock.json` |
+
+## Quality Gates
+
+- **`task test:changed`** — smart selection based on `git diff` against `origin/main`. Falls back to vitest run if no domain detected.
+- **`task freshness:check`** — all generated artifacts (test-inventory, route-manifest, learning-assets, quality-index, agent-guide maps) must be committed. Pre-commit hook auto-regenerates via `task freshness:regenerate`.
+- **`task test:code-quality`** — file-size caps, import-cycle detection (`madge`), hardcoded-hostname scan, orphan-asset check.
+- **`task test:unit`** — all BATS unit tests (root scripts) + factory bats.
+- **Brett**: `npm run typecheck --prefix brett && npm test --prefix brett && npm run build --prefix brett`
+- **Website**: `npm --prefix website run test:unit` (vitest)
+- **Arena**: `npm --prefix arena-server test` (vitest)
+- **Arena proto-drift guard**: `arena-server/src/proto/messages.ts` and `website/src/components/arena/shared/lobbyTypes.ts` must be byte-identical.
+- PR titles: Conventional Commits with `[T000XXX]` tag. Scopes defined in `ci.yml`.
 
 ## Critical Footguns
 
 - **`scripts/env-resolve.sh` must be sourced, not executed.** `bash scripts/env-resolve.sh` exits the parent shell.
-- **Adding `${VAR}` to a manifest?** Register in `environments/schema.yaml` AND the `envsubst` list in every Taskfile task that builds that manifest.
-- **Never SELECT * from `tickets.ticket_plans`** — `content` column is multi-MB markdown. Query metadata columns or filter by id/slug.
-- **`docs:sync` does NOT work** — container rootfs is read-only. Deploy via `task docs:deploy`.
-- **Website, Brett, Docs images use `:latest` intentionally** — don't "fix" to digests.
+- **`scripts/task-oracle.sh` is DEPRECATED.** Use `bash scripts/vda.sh oracle` instead. The old script is a thin shim.
+- **Adding `${VAR}` to a manifest?** Register in `environments/schema.yaml` AND `envsubst` list in every Taskfile task that builds that manifest.
+- **Never SELECT * from `tickets.ticket_plans`** — `content` column is multi-MB markdown.
+- **Website, Brett, Docs images use `:latest` intentionally** — CI warns, do not "fix" to digests.
 - **`env:generate ENV=<target>` must run before `env:seal`** — talk-hpb-setup.sh aborts on placeholder values.
 - **Cluster reset order**: sealed-secrets:install → env:fetch-cert → env:seal → cert:install → cert:secret → workspace:deploy.
-
-## CI/CD Requirements (dev-flow-execute)
-
-Every change MUST satisfy all checks in `ci.yml` before commit:
-
-- **`task test:all` grün** (BATS 18 Sub-Suiten + Factory + Manifests + Menu-Gate + Dry-Run + Docs-Gen + Agent-Guide + Code-Quality)
-- **`task freshness:check` grün** — alle Generated Artifacts (test-inventory, route-manifest, learning-assets, quality-index, agent-guide) müssen committed sein
-- **Quality Gates S1–S4**: keine Verschlechterung (File-Size, Import-Cycles, Hardcoded-Hostnames, Orphans)
-- **Security**: keine `:latest` in k3d/*.yaml (außer Website/Brett/Docs — intentional), keine hartcodierten Secrets, git-crypt-Verschlüsselung für `environments/.secrets/*`
-- **Brett**: `npm run typecheck --prefix brett`, `npm test --prefix brett`, `npm run build --prefix brett`
-- **Website**: `npm --prefix website run test:unit` (vitest)
-- **Arena**: `npm --prefix arena-server test` (vitest)
-- **PR-Titel**: Conventional Commits (`feat:|fix:|chore:|docs:|refactor:|test:|build:|ci:|perf:|revert:`), 1–200 Zeichen, **immer** `[T000XXX]`-Tag im Titel (auch chore PRs — keine Ausnahmen)
-- **Neue `${VAR}` in Manifest?** → Registrieren in `environments/schema.yaml` + `envsubst`-Liste
-- **Neue Admin-Seite?** → Muss im Sidemenu erreichbar sein (Gate R1), Labels sind Ziele (R2), max 6 Items/Gruppe (R4), max 6 Gruppen (R5)
-- **Neue `tests/unit/*.bats`?** → In `task test:unit` einbinden ODER in `.coverage-allowlist`
-- **Cross-cutting DB/OIDC** → Immer beide Namespaces (`workspace` + `workspace-korczewski`)
-- **Nach letzter Änderung**: `task freshness:regenerate` laufen + Ergebnis committen
+- **`docs:sync` does NOT work** — container rootfs is read-only. Deploy via `task docs:deploy`.
+- **Task collision on Ubuntu**: `apt install task` installs taskwarrior, not go-task. Use `snap install task --classic`.
+- **Pre-commit blocks main-checkout commits** when another session holds the `main-checkout` lock. Use worktrees (`scripts/worktree-create.sh`) for isolation.
 
 ## Agent Coordination
 
-Multiple agent sessions share one checkout. Use:
+Multiple agent sessions share one checkout:
 
 ```bash
-bash scripts/agent-lock.sh reap    # start of every session
+bash scripts/agent-lock.sh reap    # start of every session (cleans stale locks)
 bash scripts/agent-lock.sh claim ticket <id> --branch <b> --worktree <wt> --label <skill>
 bash scripts/agent-lock.sh release ticket <id>
 bash scripts/agent-lock.sh list    # see who is doing what
 ```
 
-Use worktrees (`scripts/worktree-create.sh`) for isolation — main-checkout commits are gated by agent-lock.
+Session messaging: `bash scripts/agent-msg.sh read --unread` (incoming), `bash scripts/agent-msg.sh post "msg"` (broadcast to live sessions).
 
-## Task Reference
+## Important References
 
-Use `bash scripts/task-oracle.sh '<goal>'` when unsure — it routes to the right task. The groups below are for quick orientation.
-
-**Daily workflow**
-```
-task test:all                          # before every push (offline CI)
-task freshness:regenerate              # after modifying generated artifacts
-task workspace:validate                # validate manifests without deploying
-task feature:website                   # rebuild + deploy website on both brands
-task feature:brett                     # rebuild + deploy brett on both brands
-task feature:deploy                    # all workspace changes on both brands
-task workspace:deploy ENV=mentolder    # single brand deploy
-```
-
-**Dev cluster**
-```
-task up / task down / task clean
-task cluster:create|delete|start|stop|status
-task dev:deploy                        # build images + apply manifests to k3d
-task dev:redeploy:website|brett        # fast redeploy single service
-task dev:db:refresh                    # restore prod snapshot into dev DB
-task website:dev                       # Astro hot-reload dev server
-```
-
-**Tests**
-```
-task test:all          # BATS unit + factory + agent-lock + manifests + dry-run
-task test:unit         # BATS only
-task test:manifests    # kustomize structure check
-task test:factory      # FA-SF bats (Software Factory)
-task test:e2e ENV=mentolder            # Playwright E2E
-task test:e2e:all-prods               # E2E against both brands
-```
-
-**Secrets & environments**
-```
-task secrets:unlock KEY=<path>
-task env:seal ENV=<brand>
-task env:fetch-cert ENV=<brand>
-task env:generate ENV=<brand>
-task secrets:sync                      # apply SealedSecrets to both clusters
-```
-
-**Ops / health**
-```
-task health                            # cross-cluster health check
-task workspace:status:all-prods        # pod/svc/ingress/PVC on both brands
-task workspace:verify ENV=<brand>      # post-deploy sanity check
-task workspace:backup ENV=<brand>      # trigger immediate DB backup
-task workspace:db:restore -- <db> <ts> # restore DB from backup
-task recovery:browse ENV=<brand>       # SSO-gated file recovery UI
-```
-
-**Software Factory (autopilot)**
-```
-task factory:autopilot:install|status|uninstall
-task factory:enqueue -- <T-ID> <branch> <plan-file>
-```
-
-**Software Factory (OpenCode MCP)**
-```
-mcp-factory:factory_status    # Queue depth + tick lock status
-mcp-factory:factory_queue     # List waiting tickets
-mcp-factory:factory_enqueue   # Add ticket to backlog (param: ticket_id)
-mcp-factory:factory_trigger   # Start a factory tick immediately
-mcp-factory:factory_recent    # Last N factory run comments
-```
-Start the MCP server: `task factory-mcp:start`
-When the user asks about factory tickets, queue status, or wants to enqueue/trigger — use these tools instead of raw bash.
-At session start, check for pending factory messages: `bash scripts/agent-msg.sh read --unread 2>/dev/null || true`
-
-**Service-specific**
-```
-task brett:deploy|sync|logs|bot-setup ENV=...
-task website:deploy|sync|logs|restart ENV=...
-task arena:deploy|logs|status ENV=...
-task keycloak:sync ENV=...
-task llm:deploy|status|test ENV=...
-task openclaw:start|status|logs
-task docs:deploy
-```
-
-## Important Links
-
-- `website/CLAUDE.md` — Astro/Svelte dev quick-start, content model, adding service pages, footguns
+- `CLAUDE.md` — authoritative comprehensive reference (task lists, topology details, all footguns)
+- `website/CLAUDE.md` — Astro/Svelte quick-start, content model, adding service pages
 - `docs/agent-guide/README.md` — agent operating guide registry (taxonomy, guardrails, tools, goals)
-- `CONTRIBUTING.md` — human-readable dev workflow, PR expectations
+- `CONTRIBUTING.md` — human-readable dev workflow
+- `.agents/skills/OVERVIEW.md` — skill layering contract (dev-flow → superpowers)

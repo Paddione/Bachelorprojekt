@@ -93,4 +93,22 @@ describe('TicketCreateModal', () => {
     await waitFor(() => expect(getByText('boom')).toBeTruthy());
     expect(onClose).not.toHaveBeenCalled();
   });
+
+  it('groups features by product via optgroup when products are passed', () => {
+    const products = [
+      { id: 'p1', extId: 'p1', title: 'Produkt A',
+        rollup: { total: 1, done: 0, blocked: 0, inProgress: 0, open: 1, pctDone: 0 },
+        features: [
+          { id: 'f1', extId: 'F1', title: 'Auth', priority: 'mittel', health: 'green' as const,
+            rollup: { total: 1, done: 0, blocked: 0, inProgress: 0, open: 1, pctDone: 0 } },
+        ] },
+    ];
+    const { getByTestId } = render(TicketCreateModal,
+      { open: true, products, features, onClose: () => {} });
+    const sel = getByTestId('feature-select') as HTMLSelectElement;
+    const optgroups = sel.querySelectorAll('optgroup');
+    expect(optgroups).toHaveLength(1);
+    expect(optgroups[0].getAttribute('label')).toBe('Produkt A');
+    expect(sel.querySelector('option[value="f1"]')?.textContent).toBe('Auth');
+  });
 });

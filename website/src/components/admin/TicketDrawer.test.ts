@@ -53,4 +53,27 @@ describe('TicketDrawer transitions + inline edit', () => {
     await waitFor(() => expect(spy).toHaveBeenCalledWith(
       '/api/admin/tickets/t1', expect.objectContaining({ method: 'PATCH' })));
   });
+  it('edits priority via the drawer select (PATCH)', async () => {
+    const spy = vi.spyOn(global, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }));
+    const { getByTestId } = render(TicketDrawer, { ticket: { ...ticket }, open: true });
+    await fireEvent.change(getByTestId('drawer-priority'), { target: { value: 'kritisch' } });
+    await waitFor(() => expect(spy).toHaveBeenCalledWith(
+      '/api/admin/tickets/t1', expect.objectContaining({ method: 'PATCH' })));
+  });
+  it('sends a resolution when transitioning to done (was the 400 bug)', async () => {
+    const spy = vi.spyOn(global, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }));
+    const { getByText } = render(TicketDrawer, { ticket: { ...ticket }, open: true });
+    await fireEvent.click(getByText('→ Erledigt'));
+    await waitFor(() => {
+      const call = spy.mock.calls.find((c) => String(c[0]).endsWith('/transition'));
+      expect(call).toBeTruthy();
+      const body = JSON.parse((call![1] as RequestInit).body as string);
+      expect(body.resolution).toBeTruthy();
+    });
+  });
+  it('links to the full ticket page by uuid', () => {
+    const { getByTestId } = render(TicketDrawer, { ticket: { ...ticket }, open: true });
+    expect((getByTestId('drawer-fullview') as HTMLAnchorElement).getAttribute('href'))
+      .toBe('/admin/tickets/t1');
+  });
 });

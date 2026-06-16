@@ -2,8 +2,8 @@
 title: "OpenCode × Factory Bridge + Agent-Msg Wiring"
 date: 2026-06-16
 status: draft
-ticket_id: T000915
-plan_ref: null
+ticket_id: T000914
+plan_ref: docs/superpowers/plans/2026-06-16-opencode-factory-bridge.md
 domains: [factory, opencode, agent-coordination]
 ---
 

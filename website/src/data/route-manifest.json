@@ -1,6 +1,6 @@
 {
   "generatedFrom": "website/src/pages",
-  "count": 132,
+  "count": 133,
   "routes": [
     {
       "route": "/",
@@ -53,6 +53,14 @@
     },
     {
       "route": "/admin/angebote",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/app-catalog",
       "authTier": "admin",
       "brand": "both",
       "dynamic": false,

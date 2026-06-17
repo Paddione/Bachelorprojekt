@@ -50,6 +50,11 @@ includes:
     taskfile: ./Taskfile.factory.yml
     dir: .
 
+  # Task Master AI — task management CLI integration
+  taskmaster:
+    taskfile: ./Taskfile.taskmaster.yml
+    dir: .
+
 vars:
   CLUSTER_NAME: korczewski
   REGISTRY: localhost:5000
@@ -897,8 +902,8 @@ tasks:
           if (!Array.isArray(m.routes)) {
             errs.push("routes must be an array");
           }
-          if (m.count !== 132) {
-            errs.push(`expected count===132, got ${m.count}`);
+          if (m.count !== 133) {
+            errs.push(`expected count===133, got ${m.count}`);
           }
           for (const r of (m.routes || [])) {
             const isAdmin = r.route.startsWith("/admin");
@@ -2058,6 +2063,26 @@ tasks:
           -f k3d/monitoring/values/kube-prometheus-stack-dev-values.yaml \
           > k3d/monitoring/kube-prometheus-stack-rendered.yaml
         echo "✓ Rendered to k3d/monitoring/kube-prometheus-stack-rendered.yaml — review the diff and commit."
+
+  loki:render:
+    desc: "Pre-render Loki + promtail Helm charts to committed YAML (additive to monitoring:render). Renders the DEV values baseline; prod layers patches via prod/monitoring."
+    preconditions:
+      - sh: command -v helm > /dev/null
+        msg: "helm not found. Install: https://helm.sh/docs/intro/install/"
+    cmds:
+      - |
+        helm repo add grafana https://grafana.github.io/helm-charts 2>/dev/null || true
+        helm repo update grafana
+        helm template loki grafana/loki \
+          --namespace monitoring \
+          --version 7.0.0 \
+          -f k3d/monitoring/values/loki-values.yaml \
+          > k3d/monitoring/loki-rendered.yaml
+        helm template promtail grafana/promtail \
+          --namespace monitoring \
+          -f k3d/monitoring/values/promtail-values.yaml \
+          > k3d/monitoring/promtail-rendered.yaml
+        echo "✓ Rendered loki-rendered.yaml + promtail-rendered.yaml — review the diff and commit."
 
   monitoring:validate:
     desc: "Validate the monitoring base + prod overlays build cleanly."
@@ -4726,3 +4751,16 @@ tasks:
             const fn = augmented ? searchCodeAugmented : searchCode;
             fn(q, limit).then(r => console.log(JSON.stringify(r, null, 2))).catch(e => { console.error(e.message); process.exit(1); });
           " {{.CLI_ARGS}}
+
+  app:install:
+    desc: "Install a curated catalog app (ENV=dev|mentolder|korczewski). Usage: task app:install -- <app-name> [--dry-run]"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - ENV={{.ENV}} bash scripts/app-install.sh {{.CLI_ARGS}}
+
+  app:validate:
+    desc: "Validate an app manifest against the schema. Usage: task app:validate -- <app-name>"
+    cmds:
+      - node scripts/validate-manifest.mjs apps/{{.CLI_ARGS}}/app.yaml
+

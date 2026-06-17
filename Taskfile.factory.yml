@@ -42,6 +42,11 @@ tasks:
       MATCH:
         sh: echo "{{.CLI_ARGS}}"
 
+  eval:
+    desc: "Run the SWE-bench-style evaluation harness against golden fixtures. Produces scorecard in docs/factory-eval/."
+    cmds:
+      - node scripts/factory/eval.mjs
+
   autopilot:install:
     desc: |
       Install the persistent Software Factory dispatcher: symlink the systemd

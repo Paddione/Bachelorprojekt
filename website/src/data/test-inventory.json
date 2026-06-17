@@ -30,6 +30,12 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:app-catalog",
+    "file": "tests/e2e/specs/app-catalog.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:arena-mentolder-auth-setup",
     "file": "tests/e2e/specs/arena-mentolder-auth-setup.spec.ts",
     "category": "E2E",
@@ -1238,6 +1244,24 @@
   {
     "id": "FA-SF-53",
     "file": "tests/local/FA-SF-53-decompose.bats",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-SF-57",
+    "file": "tests/local/FA-SF-57-app-catalog.bats",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-SF-58",
+    "file": "tests/local/FA-SF-58-eval-harness.bats",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-SF-59",
+    "file": "tests/local/FA-SF-59-aci-loop.bats",
     "category": "FA",
     "kind": "shell"
   },

@@ -1,0 +1,17 @@
+{
+  "files": [
+    "website/src/components/DeliveryHistory.svelte",
+    "website/src/components/DevStatusTabs.svelte",
+    "website/src/lib/delivery-metrics.ts",
+    "website/src/lib/delivery-metrics.test.ts",
+    "website/src/pages/api/admin/delivery-metrics.ts"
+  ],
+  "forbidden": [
+    "k3d/configmap-domains.yaml",
+    "environments/*.yaml",
+    "scripts/factory/eval.mjs"
+  ],
+  "tests": ["node --check website/src/lib/delivery-metrics.test.ts"],
+  "min_recall": 0.4,
+  "min_precision": 0.3
+}

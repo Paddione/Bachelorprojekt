@@ -390,16 +390,9 @@ const clientTabs = [
   const enrollModalCancel = document.getElementById('enroll-modal-cancel');
   let activeEnrollBtn: HTMLButtonElement | null = null;
 
-  function splitName(full: string): [string, string] {
-    const i = full.lastIndexOf(' ');
-    return i > -1 ? [full.slice(0, i), full.slice(i + 1)] : [full, ''];
-  }
+  const splitName = (full: string): [string, string] => { const i = full.lastIndexOf(' '); return i > -1 ? [full.slice(0, i), full.slice(i + 1)] : [full, '']; };
 
-  function closeEnrollModal() {
-    enrollModal?.classList.add('hidden');
-    if (enrollModalError) { enrollModalError.textContent = ''; enrollModalError.classList.add('hidden'); }
-    activeEnrollBtn = null;
-  }
+  function closeEnrollModal() { enrollModal?.classList.add('hidden'); if (enrollModalError) { enrollModalError.textContent = ''; enrollModalError.classList.add('hidden'); } activeEnrollBtn = null; }
 
   enrollModalCancel?.addEventListener('click', closeEnrollModal);
   enrollModal?.addEventListener('click', (e) => { if (e.target === enrollModal) closeEnrollModal(); });

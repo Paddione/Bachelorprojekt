@@ -1,5 +1,5 @@
-✓ wrote docs/code-quality/repo-index.json (3663 files)
-,
+{
+  "generated_by": "scripts/code-quality/emit-index.mjs",
   "subsystems": [
     {
       "id": "tests",
@@ -534,7 +534,7 @@
       "id": "website",
       "name": "Astro + Svelte website",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 1461,
+      "file_count": 1472,
       "files": [
         "website/.build-trigger",
         "website/.design-sync/NOTES.md",
@@ -884,6 +884,16 @@
         "website/src/components/admin/platform/HardwareTab.svelte",
         "website/src/components/admin/platform/HealthTab.svelte",
         "website/src/components/admin/platform/SoftwareTab.svelte",
+        "website/src/components/admin/ui/AdminBadge.svelte",
+        "website/src/components/admin/ui/AdminCard.svelte",
+        "website/src/components/admin/ui/AdminEmptyState.svelte",
+        "website/src/components/admin/ui/AdminFormField.svelte",
+        "website/src/components/admin/ui/AdminModal.svelte",
+        "website/src/components/admin/ui/AdminPageHeader.svelte",
+        "website/src/components/admin/ui/AdminStatCard.svelte",
+        "website/src/components/admin/ui/AdminTable.svelte",
+        "website/src/components/admin/ui/AdminTabs.svelte",
+        "website/src/components/admin/ui/index.ts",
         "website/src/components/arena/ArenaBanner.svelte",
         "website/src/components/arena/ArenaIsland.tsx",
         "website/src/components/arena/arenaStore.ts",
@@ -1988,6 +1998,7 @@
         "website/src/pages/stripe/success.astro",
         "website/src/pages/termin.astro",
         "website/src/pages/ueber-mich.astro",
+        "website/src/styles/admin-foundation.css",
         "website/src/styles/admin-premium.css",
         "website/src/styles/factory-tokens.css",
         "website/src/styles/global.css",

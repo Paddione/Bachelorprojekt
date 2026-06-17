@@ -3,6 +3,7 @@ name: CI
 on:
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened, edited]
     paths-ignore:
       - 'docs/**'
       - '*.md'
@@ -32,6 +33,7 @@ env:
 jobs:
   offline-tests:
     name: Offline Tests (Manifests, Configs, Unit)
+    if: github.event.action != 'edited'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -97,6 +99,7 @@ jobs:
 
   security-scan:
     name: Security Scan
+    if: github.event.action != 'edited'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -135,6 +138,7 @@ jobs:
 
   brett-typescript:
     name: Brett TypeScript
+    if: github.event.action != 'edited'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -155,6 +159,7 @@ jobs:
 
   vitest:
     name: Vitest (website + arena-server)
+    if: github.event.action != 'edited'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:

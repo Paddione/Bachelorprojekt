@@ -12,8 +12,8 @@ setup() {
   [ -f "$RULES_FILE" ]
 }
 
-@test "prometheus-rules.yaml declares all 5 mandatory alerts" {
-  for alert in PodCrashLoopBackOff HighCPUUsage HighMemoryUsage HighDiskUsage High5xxErrorRate; do
+@test "prometheus-rules.yaml declares all 8 mandatory alerts" {
+  for alert in PodCrashLoopBackOff HighCPUUsage HighMemoryUsage HighDiskUsage High5xxErrorRate PodRestartSpike NodeHighCPUUsage NodeFilesystemAlmostFull; do
     grep -q "alert: $alert" "$RULES_FILE"
   done
 }
@@ -31,6 +31,14 @@ setup() {
 
 @test "alertmanager-config.yaml declares a pushover receiver" {
   grep -q "pushoverConfigs:" "$AM_FILE"
+}
+
+@test "alertmanager-config.yaml declares an email receiver" {
+  grep -q "emailConfigs:" "$AM_FILE"
+}
+
+@test "alertmanager-config.yaml has no hardcoded brand domain" {
+  ! grep -Eq 'mentolder\.de|korczewski\.de' <(grep -v '^\s*#' "$AM_FILE")
 }
 
 @test "k3d/monitoring kustomize builds" {

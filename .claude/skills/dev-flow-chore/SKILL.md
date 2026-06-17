@@ -86,11 +86,34 @@ Siehe [dev-flow-gotchas.md](file:///home/patrick/Bachelorprojekt/.claude/skills/
 ## Schritt 4: Commit, Push & PR
 
 ```bash
+BASE_SHA="$(git rev-parse "@{upstream}" 2>/dev/null || git rev-parse origin/main)"
 git add -A
 git commit -m "chore(<scope>): <subject> [$TICKET_EXT_ID]"   # commitlint: Body-Zeilen <100 Zeichen
+
+# Verify commit landed — git-crypt clean filter can cause silent commit failures
+# in worktrees, and an un-chained push would send an empty branch. [T000925]
+HEAD_SHA="$(git rev-parse HEAD)"
+if [ "$HEAD_SHA" = "$BASE_SHA" ]; then
+  echo "FATAL: commit did not land (git-crypt clean filter?). Push aborted." >&2
+  exit 1
+fi
+
+# Validate PR title scope BEFORE creating the PR. [T000925]
+bash scripts/preflight-pr-scope.sh "chore(<scope>): <subject> [$TICKET_EXT_ID]"
+if [ $? -ne 0 ]; then
+  echo "FATAL: PR title scope failed preflight — fix the scope and retry." >&2
+  exit 1
+fi
 ```
 Die `[T000XXX]`-Referenz wird von `.github/workflows/post-merge.yml` gelesen — das Ticket ist
 bereits `done`, der Status-Update ist ein idempotenter No-op.
+
+> **Titel nachträglich editieren (REST-Fallback):** `gh pr edit --title` scheitert
+> gelegentlich an einer Projects-Classic-GraphQL-Deprecation. Nutze stattdessen:
+> ```bash
+> gh api -X PATCH "repos/{owner}/{repo}/pulls/<n>" -f title="<neuer Titel>"
+> ```
+> Der Preflight (oben) sollte Titel-Edits aber überflüssig machen. [T000925]
 
 Rufe `commit-commands:commit-push-pr` auf (oder `gh pr create` manuell).
 

@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 # scripts/vda/ticket/_ticket-core.sh
 # Shared PG helpers for ticket subcommands. Sourced by ticket.sh and vda/ticket/*.sh.
-# Expects: NS, CTX, DB, USER from sourcing context.
+# Expects: NS, CTX, DB, USER from sourcing context; defaults from TICKET_* env vars.
+
+: "${NS:=${TICKET_NS:-workspace}}"
+: "${CTX:=${TICKET_CTX:-fleet}}"
+: "${DB:=website}"
+: "${USER:=website}"
 
 _pgpod() {
   local pod

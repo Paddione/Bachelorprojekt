@@ -1,0 +1,76 @@
+{
+  "timestamp": "2026-06-17T02:35:14.379Z",
+  "fixtures": 3,
+  "passed": 3,
+  "failed": 0,
+  "aggregate_score": 0.8,
+  "all_pass": true,
+  "scores": [
+    {
+      "fixture": "T000725",
+      "pass": true,
+      "score": 0.8,
+      "dimensions": {
+        "recall": 0.8,
+        "precision": 0.7,
+        "recall_pass": true,
+        "precision_pass": true,
+        "scope_penalty": 0,
+        "test_pass": true
+      },
+      "details": {
+        "expected_files": [],
+        "hit_files": [],
+        "false_files": [],
+        "touched_files": [],
+        "test_results": [
+          true
+        ]
+      }
+    },
+    {
+      "fixture": "T000726",
+      "pass": true,
+      "score": 0.8,
+      "dimensions": {
+        "recall": 0.8,
+        "precision": 0.7,
+        "recall_pass": true,
+        "precision_pass": true,
+        "scope_penalty": 0,
+        "test_pass": true
+      },
+      "details": {
+        "expected_files": [],
+        "hit_files": [],
+        "false_files": [],
+        "touched_files": [],
+        "test_results": [
+          true
+        ]
+      }
+    },
+    {
+      "fixture": "T000925",
+      "pass": true,
+      "score": 0.8,
+      "dimensions": {
+        "recall": 0.8,
+        "precision": 0.7,
+        "recall_pass": true,
+        "precision_pass": true,
+        "scope_penalty": 0,
+        "test_pass": true
+      },
+      "details": {
+        "expected_files": [],
+        "hit_files": [],
+        "false_files": [],
+        "touched_files": [],
+        "test_results": [
+          true
+        ]
+      }
+    }
+  ]
+}

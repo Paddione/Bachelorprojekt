@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 459,
+      "file_count": 460,
       "files": [
         "tests/.gitignore",
         "tests/batch/batch-gap-analysis.bats",
@@ -404,6 +404,7 @@
         "tests/unit/planning-office.bats",
         "tests/unit/planungsbuero-stats.bats",
         "tests/unit/portal-profile-update.bats",
+        "tests/unit/preflight-pr-scope.bats",
         "tests/unit/purge-fn-gaps.bats",
         "tests/unit/qa-dal.bats",
         "tests/unit/quality-loop.bats",
@@ -2378,7 +2379,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 364,
+      "file_count": 365,
       "files": [
         "scripts/add-whiteboard-library.py",
         "scripts/admin-menu-gate.sh",
@@ -2693,6 +2694,7 @@
         "scripts/plan-review/render-plan.mjs",
         "scripts/post-deploy-watch.sh",
         "scripts/pre-deploy-check.sh",
+        "scripts/preflight-pr-scope.sh",
         "scripts/provision-dev-vm.sh",
         "scripts/recording-setup.sh",
         "scripts/rig_for_mixamo.py",

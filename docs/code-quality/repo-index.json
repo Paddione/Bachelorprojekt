@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 470,
+      "file_count": 471,
       "files": [
         "tests/.gitignore",
         "tests/batch/batch-gap-analysis.bats",
@@ -260,6 +260,7 @@
         "tests/local/FA-AR-02-classify-risk.bats",
         "tests/local/FA-SF-01-conflict-check.bats",
         "tests/local/FA-SF-04-db-schema.bats",
+        "tests/local/FA-SF-05-triage.bats",
         "tests/local/FA-SF-20-pipeline-contract.bats",
         "tests/local/FA-SF-21-ticket-cli.bats",
         "tests/local/FA-SF-22-fixtures.bats",
@@ -483,7 +484,7 @@
       "id": "scripts-db",
       "name": "Database scripts (migrations + datamodel)",
       "owner_agent": "bachelorprojekt-db",
-      "file_count": 35,
+      "file_count": 36,
       "files": [
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-korczewski.sql",
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-mentolder.sql",
@@ -519,14 +520,15 @@
         "scripts/migrations/2026-06-14-provider-config-unify.sql",
         "scripts/migrations/2026-06-15-cockpit-feature-suggest.sql",
         "scripts/migrations/2026-06-15-cockpit-rollup-view.sql",
-        "scripts/migrations/2026-06-15-grilling-answers.sql"
+        "scripts/migrations/2026-06-15-grilling-answers.sql",
+        "scripts/migrations/2026-06-17-triage-columns.sql"
       ]
     },
     {
       "id": "website",
       "name": "Astro + Svelte website",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 1442,
+      "file_count": 1443,
       "files": [
         "website/.build-trigger",
         "website/.design-sync/NOTES.md",
@@ -726,6 +728,7 @@
         "website/src/components/PlanningOffice.svelte",
         "website/src/components/PlanningOfficeDetail.svelte",
         "website/src/components/PlanningOfficeQueue.svelte",
+        "website/src/components/PlanningOfficeTriage.svelte",
         "website/src/components/PortalSidekick.svelte",
         "website/src/components/PortalSidekick.test.ts",
         "website/src/components/Portrait.svelte",
@@ -2397,7 +2400,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 378,
+      "file_count": 380,
       "files": [
         "scripts/add-whiteboard-library.py",
         "scripts/admin-menu-gate.sh",
@@ -2557,6 +2560,7 @@
         "scripts/factory/aci.test.cjs",
         "scripts/factory/agent-msg-bridge.cjs",
         "scripts/factory/auto-enqueue.sh",
+        "scripts/factory/auto-triage.sh",
         "scripts/factory/autopilot.env.example",
         "scripts/factory/budget-estimate.sh",
         "scripts/factory/budget-guard.sh",
@@ -2624,6 +2628,7 @@
         "scripts/factory/templates/design-template.md",
         "scripts/factory/templates/lessons-learned-template.md",
         "scripts/factory/templates/scout-template.md",
+        "scripts/factory/triage-enums.json",
         "scripts/factory/usage-report.sh",
         "scripts/factory/wakeup.sh",
         "scripts/factory/watchdog.sh",

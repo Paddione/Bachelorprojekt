@@ -11,7 +11,7 @@ describe('transition status gate', () => {
     }
   });
   it('rejects an unknown state', () => {
-    expect(isValidStatus('awaiting_deploy')).toBe(false); // not on main
+    expect(isValidStatus('awaiting_deploy')).toBe(true);
     expect(isValidStatus('nonsense')).toBe(false);
   });
 });

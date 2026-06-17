@@ -35,4 +35,17 @@ for ext_id in "${stale[@]}"; do
   fi
   escalated=$(echo "$escalated" | jq -c --arg e "$ext_id" '. + [$e]')
 done
+
+# ── awaiting_deploy staleness (>24h) ──────────────────────────────────────
+AD_STALE_H="${FACTORY_AD_STALE_H:-24}"
+mapfile -t ad_stale < <(printf "SELECT external_id FROM tickets.tickets WHERE type='feature' AND status='awaiting_deploy' AND updated_at < now() - make_interval(hours => %s);" "$AD_STALE_H" | factory_psql)
+
+for ext_id in "${ad_stale[@]}"; do
+  [[ -z "$ext_id" ]] && continue
+  BRAND="$BRAND" TICKET_CTX="$FACTORY_CTX" bash "$HERE/../ticket.sh" add-comment --id "$ext_id" \
+    --body "Watchdog: awaiting_deploy stale > ${AD_STALE_H}h. Merged but not deployed — needs manual intervention." >/dev/null
+  BRAND="$BRAND" TICKET_CTX="$FACTORY_CTX" bash "$HERE/../ticket.sh" patch --id "$ext_id" --attention-mode needs_human >/dev/null
+  escalated=$(echo "$escalated" | jq -c --arg e "$ext_id" '. + [$e]')
+done
+
 echo "$escalated"

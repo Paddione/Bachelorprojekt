@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   ALL_PRIORITIES, WORKFLOW_STATUSES, ACTIVE_STATUSES,
+  STATUS_LABELS,
   statusLabel, priorityLabel, typeLabel, resolutionLabel,
   defaultResolutionFor, isTerminal, nextTransitions,
 } from './cockpit-labels';
@@ -40,5 +41,11 @@ describe('cockpit-labels', () => {
   it('WORKFLOW_STATUSES are real, non-empty', () => {
     expect(WORKFLOW_STATUSES.length).toBeGreaterThan(0);
     expect(WORKFLOW_STATUSES).toContain('done');
+  });
+  it('awaiting_deploy has a display label', () => {
+    expect(STATUS_LABELS.awaiting_deploy).toBe('Wartet auf Deploy');
+  });
+  it('awaiting_deploy is a workflow status in the table dropdown', () => {
+    expect(WORKFLOW_STATUSES).toContain('awaiting_deploy');
   });
 });

@@ -36,4 +36,5 @@ done
 
 export SERVICE="${SERVICE:-}"
 export TARGET="${TARGET:-}"
-exec "${SCRIPT_DIR}/feature-promote.sh"
+unset SCRIPT_DIR
+exec "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/feature-promote.sh"

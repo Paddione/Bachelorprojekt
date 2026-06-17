@@ -84,12 +84,13 @@ jobs:
         run: |
           if ! task freshness:check; then
             echo ""
-            echo "❌ Freshness artifacts are stale."
-            echo "   Run locally:  task freshness:regenerate"
-            echo "   Then commit and push the regenerated files."
+            echo "❌ Freshness / quality gate failed — see above for the specific cause."
+            echo ""
+            echo "   Stale generated artifacts  →  task freshness:regenerate  (then commit + push)"
+            echo "   New code-quality violation →  task quality:check  (then fix or 'task quality:baseline:freeze')"
             exit 1
           fi
-          echo "✅ Freshness artifacts are up to date"
+          echo "✅ Freshness and quality gates passed"
 
       - name: Verify learning-assets build script (unit test)
         run: node --test scripts/build-learning-assets.test.mjs

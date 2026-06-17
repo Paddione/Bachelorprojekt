@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.95.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.95.0...website-v1.95.1) (2026-06-17)
+
+
+### Bug Fixes
+
+* **website:** awaiting_deploy status gaps in cockpit & pipeline [T000943] ([#1836](https://github.com/Paddione/Bachelorprojekt/issues/1836)) ([010ace5](https://github.com/Paddione/Bachelorprojekt/commit/010ace50f134e13be7f1e2b7504589ce94745d2c))
+
 ## [1.95.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.94.0...website-v1.95.0) (2026-06-17)
 
 

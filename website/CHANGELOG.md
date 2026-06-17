@@ -1,5 +1,48 @@
 # Changelog
 
+## [1.89.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.88.0...website-v1.89.0) (2026-06-16)
+
+
+### Features
+
+* **tickets:** Pflichtenheft→Lastenheft requirements list with AI-readiness lock [T000928] ([#1797](https://github.com/Paddione/Bachelorprojekt/issues/1797)) ([b337607](https://github.com/Paddione/Bachelorprojekt/commit/b3376074ea9ba41a09839a4af0c238bb02c342b4))
+
+## [1.88.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.87.0...website-v1.88.0) (2026-06-16)
+
+
+### Features
+
+* **scripts:** native OpenSpec workflow + awaiting_deploy state [T000909] ([86ebf43](https://github.com/Paddione/Bachelorprojekt/commit/86ebf43e5119d49c3e2890c45507783f7f824ca5))
+* **scripts:** native OpenSpec workflow + awaiting_deploy state [T000909] ([#1786](https://github.com/Paddione/Bachelorprojekt/issues/1786)) ([86ebf43](https://github.com/Paddione/Bachelorprojekt/commit/86ebf43e5119d49c3e2890c45507783f7f824ca5))
+
+## [1.87.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.86.1...website-v1.87.0) (2026-06-16)
+
+
+### Features
+
+* **admin:** reichere KI-Feature-Vorschläge im Cockpit (value/health/rollup) [T000924] ([#1793](https://github.com/Paddione/Bachelorprojekt/issues/1793)) ([1210dfc](https://github.com/Paddione/Bachelorprojekt/commit/1210dfc5def57913a17063280954f4901725bc48))
+
+## [1.86.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.86.0...website-v1.86.1) (2026-06-16)
+
+
+### Bug Fixes
+
+* **website:** FactoryFloor desktop lane order front→back [T000922] ([#1791](https://github.com/Paddione/Bachelorprojekt/issues/1791)) ([d4dc129](https://github.com/Paddione/Bachelorprojekt/commit/d4dc129498072ce519b04fce4d780425bbc1f4a3))
+
+## [1.86.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.85.0...website-v1.86.0) (2026-06-16)
+
+
+### Features
+
+* **website:** Sidekick In-Drawer Pipeline View [T000921] ([#1789](https://github.com/Paddione/Bachelorprojekt/issues/1789)) ([4303da0](https://github.com/Paddione/Bachelorprojekt/commit/4303da07d5ecbda09064ed51ca6701fa5717b9eb))
+
+## [1.85.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.84.0...website-v1.85.0) (2026-06-16)
+
+
+### Features
+
+* **website:** Sidekick Pipeline SP1+SP2 — Lane-SSOT + Enum-Konsistenz [T000919] [T000920] ([#1787](https://github.com/Paddione/Bachelorprojekt/issues/1787)) ([e2cad3d](https://github.com/Paddione/Bachelorprojekt/commit/e2cad3d7e03012f6ab1011cf0cce14357879b1f1))
+
 ## [1.84.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.83.0...website-v1.84.0) (2026-06-16)
 
 

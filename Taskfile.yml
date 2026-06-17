@@ -273,10 +273,12 @@ tasks:
       - task: test:unit:ticket-triage
       - task: test:unit:website-ci-deploy
       - task: test:unit:plan-frontmatter-hook
+      - task: test:unit:plan-lint
       - task: test:unit:mishap-tracker
       - task: test:unit:ticket-add-pr-link
       - task: test:unit:ticket-create
       - task: test:unit:ticket-grill
+      - task: test:unit:ticket-lastenheft
       - task: test:unit:worktree-create
       - task: test:unit:test-tasks-node-deps
       - task: test:unit:quality-loop
@@ -290,13 +292,18 @@ tasks:
       - task: test:unit:build-graph
       - task: test:unit:freshness-graph
       - task: test:unit:scs-index
+      - task: test:unit:openspec
       - task: test:unit:scs-search
       - task: test:unit:ticket-graph
       - task: test:unit:T000668-graph-api
       - task: test:unit:factory-blocked
+      - task: test:unit:factory-mcp
       - task: test:unit:readiness-webhook
       - task: test:unit:staging
       - task: test:unit:api-auth-gate
+      - task: test:unit:factory-readiness
+      - task: test:unit:factory-scout-quality
+
 
   test:unit:build-graph:
     internal: true
@@ -322,6 +329,22 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/factory-blocked.bats
+
+  test:unit:factory-readiness:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/factory-readiness.bats
+
+  test:unit:factory-scout-quality:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/factory-scout-quality.bats
+
+  test:unit:factory-mcp:
+    internal: true
+    cmds:
+      - '[ -d scripts/factory/node_modules ] || npm install --prefix scripts/factory --silent'
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/factory/mcp-server.bats
 
   test:unit:readiness-webhook:
     internal: true
@@ -448,6 +471,11 @@ tasks:
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/plan-frontmatter-hook.bats
 
+  test:unit:plan-lint:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/plan-lint.bats
+
   test:unit:mishap-tracker:
     internal: true
     cmds:
@@ -472,6 +500,11 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/ticket-grill.bats
+
+  test:unit:ticket-lastenheft:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/ticket-lastenheft.bats
 
   test:unit:worktree-create:
     internal: true
@@ -621,6 +654,33 @@ tasks:
     cmds:
       - '[ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive'
       - ./tests/unit/lib/bats-core/bin/bats tests/local/FA-SF-*.bats tests/local/FA-AR-*.bats
+
+  test:openspec:
+    desc: "Validate the openspec/ change tree is OpenSpec-format-conformant (fail-closed CI gate)."
+    cmds:
+      - bash scripts/openspec.sh validate
+
+  test:unit:openspec:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/openspec.bats
+
+  openspec:propose:
+    desc: "Create an openspec change skeleton. Usage: task openspec:propose -- <slug> --ticket <ext-id>"
+    cmds:
+      - bash scripts/openspec.sh propose {{.CLI_ARGS}}
+  openspec:apply:
+    desc: "Mark an openspec change implementable. Usage: task openspec:apply -- <slug>"
+    cmds:
+      - bash scripts/openspec.sh apply {{.CLI_ARGS}}
+  openspec:archive:
+    desc: "Archive a done change + merge its delta into the SSOT. Usage: task openspec:archive -- <slug>"
+    cmds:
+      - bash scripts/openspec.sh archive {{.CLI_ARGS}}
+  openspec:validate:
+    desc: "Validate the openspec/ tree (same as test:openspec)."
+    cmds:
+      - bash scripts/openspec.sh validate
 
   test:agent-lock:
     desc: "Run the offline agent-lock session-coordination bats (tests/local/AGENT-LOCK-*)."
@@ -836,8 +896,8 @@ tasks:
           if (!Array.isArray(m.routes)) {
             errs.push("routes must be an array");
           }
-          if (m.count !== 132) {
-            errs.push(`expected count===132, got ${m.count}`);
+          if (m.count !== 133) {
+            errs.push(`expected count===133, got ${m.count}`);
           }
           for (const r of (m.routes || [])) {
             const isAdmin = r.route.startsWith("/admin");
@@ -4665,3 +4725,16 @@ tasks:
             const fn = augmented ? searchCodeAugmented : searchCode;
             fn(q, limit).then(r => console.log(JSON.stringify(r, null, 2))).catch(e => { console.error(e.message); process.exit(1); });
           " {{.CLI_ARGS}}
+
+  app:install:
+    desc: "Install a curated catalog app (ENV=dev|mentolder|korczewski). Usage: task app:install -- <app-name> [--dry-run]"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - ENV={{.ENV}} bash scripts/app-install.sh {{.CLI_ARGS}}
+
+  app:validate:
+    desc: "Validate an app manifest against the schema. Usage: task app:validate -- <app-name>"
+    cmds:
+      - node scripts/validate-manifest.mjs apps/{{.CLI_ARGS}}/app.yaml
+

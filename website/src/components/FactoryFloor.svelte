@@ -1,6 +1,15 @@
+<script module lang="ts">
+  import { PHASE_ORDER } from '../lib/factory-floor';
+  import type { Phase } from '../lib/factory-floor';
+  import { MOBILE_COL_INDEX } from './factory/MobileTabBar.svelte';
+  export { MOBILE_COL_INDEX };
+  export const STATIONS: { key: Phase; label: string }[] =
+    PHASE_ORDER.map((key) => ({ key, label: key.charAt(0).toUpperCase() + key.slice(1) }));
+</script>
+
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import type { FloorPayload, TicketDetail, HallItem, Phase, InjectionKind } from '../lib/factory-floor';
+  import type { FloorPayload, TicketDetail, HallItem, InjectionKind } from '../lib/factory-floor';
 
   import QaChip from './QaChip.svelte';
   import QaModal from './QaModal.svelte';
@@ -10,6 +19,7 @@
   import MobileTabBar from './factory/MobileTabBar.svelte';
   import StagedColumn from './factory/StagedColumn.svelte';
   import ShippedColumn from './factory/ShippedColumn.svelte';
+  import AwaitingDeployLane from './factory/AwaitingDeployLane.svelte';
   import PhaseStepper from './factory/PhaseStepper.svelte';
   import CiBadge from './factory/CiBadge.svelte';
   import AttentionStrip from './factory/AttentionStrip.svelte';
@@ -19,13 +29,7 @@
 
   let { initial }: { initial: FloorPayload | null } = $props();
 
-  const STATIONS: { key: Phase; label: string }[] = [
-    { key: 'scout', label: 'Scout' }, { key: 'design', label: 'Design' }, { key: 'plan', label: 'Plan' },
-    { key: 'implement', label: 'Implement' }, { key: 'verify', label: 'Verify' }, { key: 'deploy', label: 'Deploy' },
-  ];
-
-  const MOBILE_COL_COUNT = 10;
-  const MOBILE_COL_INDEX: Record<string, number> = { staged: 0, backlog: 1, scout: 2, design: 3, plan: 4, implement: 5, verify: 6, deploy: 7, qs: 8, done: 9 };
+  const MOBILE_COL_COUNT = 11;
   let mobileColIndex = $state(0);
   let touchStartX = $state(0);
   let isMobile = $state(false);
@@ -272,6 +276,41 @@
       ontouchstart={onTouchStart}
       ontouchend={onTouchEnd}
     >
+      <StagedColumn
+        staged={data.staged}
+        stagedWaiting={data.stagedWaiting ?? 0}
+        {releasing}
+        {releaseErr}
+        {manualHintFor}
+        {mobileColIndex}
+        onOpenDetail={openDetail}
+        onReleaseToFactory={releaseToFactory}
+        onToggleManualHint={toggleManualHint}
+        {relTime}
+        {prioDot}
+        {planUrl}
+        {ticketUrl}
+      />
+      <div data-col="backlog" class:mobile-visible={mobileColIndex === 1} class="lg:w-1/5" data-testid="floor-loadingdock">
+        <h3 class="font-semibold mb-2">Laderampe</h3>
+        {#if data.loadingDock.length === 0}
+          <p class="text-muted text-sm">Leer.</p>
+        {:else}
+          <ul class="space-y-1">
+            {#each data.loadingDock as d (d.extId)}
+              <li class="rounded bg-white/5 px-2 py-1 text-sm">
+                <div class="flex items-center gap-1.5">
+                  <span class="h-2 w-2 shrink-0 rounded-full {prioDot(d.priority)}" title={`Priorität: ${d.priority}`}></span>
+                  <a href={ticketUrl(d.extId)} class="font-mono text-xs text-gold hover:underline">{d.extId}</a>
+                  <span class="truncate">{d.title}</span>
+                </div>
+                <span class="block text-muted text-xs">⏳ {d.waitReason}</span>
+              </li>
+            {/each}
+          </ul>
+        {/if}
+      </div>
+
       {#if floorView === 'conveyor'}
         <div class="conveyor-wrapper w-full" data-testid="floor-hall">
           <ConveyorBelt
@@ -334,50 +373,6 @@
         </div>
       {/if}
 
-      <StagedColumn
-        staged={data.staged}
-        stagedWaiting={data.stagedWaiting ?? 0}
-        {releasing}
-        {releaseErr}
-        {manualHintFor}
-        {mobileColIndex}
-        onOpenDetail={openDetail}
-        onReleaseToFactory={releaseToFactory}
-        onToggleManualHint={toggleManualHint}
-        {relTime}
-        {prioDot}
-        {planUrl}
-        {ticketUrl}
-      />
-      <div data-col="backlog" class:mobile-visible={mobileColIndex === 1} class="lg:w-1/5" data-testid="floor-loadingdock">
-        <h3 class="font-semibold mb-2">Laderampe</h3>
-        {#if data.loadingDock.length === 0}
-          <p class="text-muted text-sm">Leer.</p>
-        {:else}
-          <ul class="space-y-1">
-            {#each data.loadingDock as d (d.extId)}
-              <li class="rounded bg-white/5 px-2 py-1 text-sm">
-                <div class="flex items-center gap-1.5">
-                  <span class="h-2 w-2 shrink-0 rounded-full {prioDot(d.priority)}" title={`Priorität: ${d.priority}`}></span>
-                  <a href={ticketUrl(d.extId)} class="font-mono text-xs text-gold hover:underline">{d.extId}</a>
-                  <span class="truncate">{d.title}</span>
-                </div>
-                <span class="block text-muted text-xs">⏳ {d.waitReason}</span>
-              </li>
-            {/each}
-          </ul>
-        {/if}
-      </div>
-
-      <ShippedColumn
-        shipped={data.shipped}
-        {mobileColIndex}
-        onOpenDetail={openDetail}
-        {relTime}
-        {prUrl}
-        {ticketUrl}
-      />
-
       <div class="lg:w-1/5" data-testid="floor-qa">
         <h3 class="font-semibold mb-2">QS-Abnahme</h3>
         {#if qaItems.length === 0}
@@ -395,6 +390,17 @@
           </div>
         {/if}
       </div>
+
+      <AwaitingDeployLane items={data.awaitingDeploy ?? []} {mobileColIndex} />
+
+      <ShippedColumn
+        shipped={data.shipped}
+        {mobileColIndex}
+        onOpenDetail={openDetail}
+        {relTime}
+        {prUrl}
+        {ticketUrl}
+      />
     </div>
 
     <DetailPanel

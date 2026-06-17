@@ -19,7 +19,7 @@ resources:
   # because they need dedicated privileged namespaces and can't be
   # transformed by this kustomization's `namespace: workspace` directive.
   - talk-hpb.yaml
-  - whiteboard.yaml
+  - whiteboard
   - talk-recording.yaml
   - vaultwarden.yaml
   # Buchhaltung

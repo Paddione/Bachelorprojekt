@@ -8,7 +8,7 @@ describe('COCKPIT_ROLLUP_VIEW_SQL', () => {
   });
 
   it('aggregates all five leaf-count columns', () => {
-    for (const col of ['total_leaves','done_leaves','blocked_leaves','in_progress_leaves','open_leaves']) {
+    for (const col of ['total_leaves','done_leaves','blocked_leaves','in_progress_leaves','awaiting_deploy_leaves','open_leaves']) {
       expect(COCKPIT_ROLLUP_VIEW_SQL).toContain(col);
     }
   });
@@ -45,5 +45,13 @@ describe('COCKPIT_ROLLUP_VIEW_SQL', () => {
       .find(l => l.includes('open_leaves') && l.includes('FILTER'));
     expect(openLeavesLine).toBeDefined();
     expect(openLeavesLine).not.toContain('qa_review');
+  });
+
+  it('aggregates an awaiting_deploy_leaves column in its own bucket', () => {
+    expect(COCKPIT_ROLLUP_VIEW_SQL).toContain('awaiting_deploy_leaves');
+    const inProgLine = COCKPIT_ROLLUP_VIEW_SQL
+      .split('\n').find(l => l.includes('in_progress_leaves') && l.includes('FILTER'));
+    expect(inProgLine).toBeDefined();
+    expect(inProgLine).not.toContain('awaiting_deploy');
   });
 });

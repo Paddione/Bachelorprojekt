@@ -106,7 +106,30 @@ PRANCHOR
 }
 
 @test "plan-review: --check succeeds after patch" {
+  # The --check pass validates a fully-patched companion, so the fixture must
+  # carry ALL main-pass anchors (not just the plan-review handleSub block) —
+  # otherwise the initial patch aborts with "anchors not unique/found".
   cat > "$ROOT/server.cjs" <<'PRCHK'
+const http = require('http');
+const PORT = 47600;
+let ownerPid = process.env.BRAINSTORM_OWNER_PID ? Number(process.env.BRAINSTORM_OWNER_PID) : null;
+function handleRequest(req, res) {
+    if (html.includes('</body>')) {
+      html = html.replace('</body>', helperInjection + '\n</body>');
+    } else {
+      html += helperInjection;
+    }
+}
+function startServer() {
+  if (!fs.existsSync(CONTENT_DIR)) fs.mkdirSync(CONTENT_DIR, { recursive: true });
+  if (!fs.existsSync(STATE_DIR)) fs.mkdirSync(STATE_DIR, { recursive: true });
+      if (!knownFiles.has(filename)) {
+        knownFiles.add(filename);
+        const eventsFile = path.join(STATE_DIR, 'events');
+        if (fs.existsSync(eventsFile)) fs.unlinkSync(eventsFile);
+        console.log('screen-added');
+      }
+}
 const sub = { v: 1, ts: Date.now(), seq: ev.seq || 0, nonce: ev.nonce || null,
   screen: ev.screen || null, question: ev.question || '', selected: ev.selected || [],
   fields: ev.fields || {}, markdown: md };

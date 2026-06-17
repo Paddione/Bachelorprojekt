@@ -26,6 +26,11 @@
       "type": "remote",
       "url": "http://localhost:18081/mcp/sse",
       "enabled": true
+    },
+    "mcp-factory": {
+      "type": "remote",
+      "url": "http://localhost:13003/mcp",
+      "enabled": true
     }
   },
   "plugin": ["@mailshieldai/opencode-canvas"],

@@ -1,8 +1,10 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import type { FeatureNode } from '../../lib/tickets/cockpit-types';
+  import type { Suggestion } from '../../lib/tickets/suggest-prompt';
 
   export let features: FeatureNode[] = [];
+  export let suggestions: Suggestion[] = [];
   export let isRolling: boolean = false;
   export let onroll: ((detail: { provider: string; model: string }) => void) | undefined = undefined;
   export let onapply: (() => void) | undefined = undefined;
@@ -16,6 +18,10 @@
   $: nextCount = features.filter(f => f.nextStep).length;
   $: discardedCount = features.filter(f => f.discarded).length;
   $: majorCount = features.filter(f => f.majorFeature).length;
+
+  function titleFor(featureId: string): string {
+    return features.find(f => f.extId === featureId)?.title ?? featureId;
+  }
 
   function onRoll() {
     const detail = { provider, model };
@@ -68,6 +74,23 @@
   </div>
 </div>
 
+{#if suggestions.length > 0}
+  <ul class="suggestion-list" data-testid="suggestion-list">
+    {#each suggestions as s (s.featureId)}
+      <li class="suggestion" class:next={s.nextStep}>
+        <span class="s-flag" title={s.nextStep ? 'Als nächster Schritt empfohlen' : 'Nicht für nächsten Schritt'}>
+          {s.nextStep ? '▶' : '·'}
+        </span>
+        <span class="s-title">{titleFor(s.featureId)}</span>
+        {#if s.impact}
+          <span class="impact impact-{s.impact}" title="Geschätzter Nutzen">{s.impact}</span>
+        {/if}
+        <span class="s-reason">{s.reason}</span>
+      </li>
+    {/each}
+  </ul>
+{/if}
+
 <style>
   .suggestion-bar { display: flex; align-items: center; justify-content: space-between;
     gap: 0.75rem; padding: 0.5rem 0.75rem; background: rgba(28,31,38,.5); border-radius: 8px;
@@ -92,4 +115,19 @@
   .counter.discarded { background: rgba(239,68,68,.12); color: #f87171; }
   .counter.major { background: rgba(245,158,11,.12); color: #fbbf24; }
   .counter.total { background: #2a2e37; color: #9ca3af; }
+
+  .suggestion-list { list-style: none; margin: 0.5rem 0 0; padding: 0;
+    display: flex; flex-direction: column; gap: 0.25rem; }
+  .suggestion { display: flex; align-items: baseline; gap: 0.4rem;
+    font-size: 0.78rem; padding: 0.2rem 0.4rem; border-radius: 6px;
+    background: rgba(28,31,38,.4); }
+  .suggestion.next { background: rgba(16,185,129,.08); }
+  .s-flag { color: #34d399; width: 1ch; flex-shrink: 0; }
+  .s-title { font-weight: 600; color: #e5e7eb; flex-shrink: 0; }
+  .s-reason { color: #9ca3af; }
+  .impact { padding: 0.05rem 0.4rem; border-radius: 999px; font-size: 0.7rem;
+    font-weight: 600; flex-shrink: 0; }
+  .impact-hoch { background: rgba(16,185,129,.15); color: #34d399; }
+  .impact-mittel { background: rgba(245,158,11,.15); color: #fbbf24; }
+  .impact-niedrig { background: #2a2e37; color: #9ca3af; }
 </style>

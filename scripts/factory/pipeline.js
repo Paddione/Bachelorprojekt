@@ -16,6 +16,11 @@ export const meta = {
 
 const D = require('./pipeline-decompose.cjs')
 const BL = require('./build-loop.cjs')
+const SQ = require('./scout-quality-check.cjs')
+let _msgBridge = null
+try { _msgBridge = require('./agent-msg-bridge.cjs') } catch (_) {}
+const { decideDeployTransition } = require('./deploy-transition.cjs')
+const { resolveTaskSource } = require('./task-source.cjs')
 function routeProviderSync(source, tier) {
   if (tier === 'opus') return { provider: 'anthropic', modelId: 'claude-opus-4-6', baseUrl: null, slotId: null, emergency: false }
   if (process.env.ANTHROPIC_MODEL) {
@@ -152,12 +157,9 @@ const REVIEW_SCHEMA = { type: 'object', required: ['findings'], properties: { fi
 try { if (!REUSE) {
 phase('Scout')
 phaseEvent('scout', 'entered', 'Codebase-Analyse (deterministisch) gestartet')
+_msgBridge.broadcast(`factory-pipeline: claiming ${A.ticket_id} (${A.title || A.slug})`, 'factory')
 const cp = require('child_process')
-try {
-  cp.execFileSync('bash',
-    [`${REPO}/scripts/ticket.sh`, 'touch', '--id', String(A.ticket_id)],
-    { stdio: 'ignore', timeout: 10000 })
-} catch {}
+try { cp.execFileSync('bash', [`${REPO}/scripts/ticket.sh`, 'touch', '--id', String(A.ticket_id)], { stdio: 'ignore', timeout: 10000 }) } catch {}
 
 const scoutJson = cp.execFileSync('bash',
   [`${REPO}/scripts/factory/scout.sh`,
@@ -197,6 +199,9 @@ try {
 }
 phaseEvent('scout', 'done', `${(scout.touched_files || []).length} touched_files`)
 
+const sqGate = SQ.runScoutGate({ ...scout, title: A.title, description: A.description }, A.ticket_id, REPO, cp, log, phaseEvent)
+if (sqGate) return sqGate
+
 let scsSuggestedFiles = []
 try {
   const BASE_URL = process.env.WEBSITE_BASE_URL ?? 'http://website.workspace.svc.cluster.local:4321'
@@ -209,9 +214,9 @@ try {
     scsSuggestedFiles = scsJson.results ?? []
     log(`SCS: ${scsSuggestedFiles.length} semantically related files found`)
     if (scsSuggestedFiles.length > 0) {
-      scout.suggested_files = scsSuggestedFiles
-      const scsPaths = scsSuggestedFiles.map(f => `${REPO}/${f.path}`)
+      scout.touched_files = scout.touched_files || []
       const existingSet = new Set(scout.touched_files)
+      const scsPaths = scsSuggestedFiles.map(f => `${REPO}/${f.path}`)
       for (const p of scsPaths) {
         if (!existingSet.has(p)) {
           scout.touched_files.push(p)
@@ -224,7 +229,7 @@ try {
   }
 } catch (scsErr) {
   log(`SCS: unavailable (graceful degradation) — ${scsErr.message ?? scsErr}`)
-  scout.suggested_files = []
+  scsSuggestedFiles = []
 }
 
 const isSimple = scout.complexity === 'simple'
@@ -299,6 +304,42 @@ if (!isSimple) {
   tasks = plan.tasks
   planFilePath = plan.plan_path
   phaseEvent('plan', 'done', `${(plan.tasks || []).length} Tasks`)
+
+  // Deterministic plan-lint gate (T000910) — fail-closed, no LLM. One fix iteration.
+  // Security (T000910 follow-up): every interpolated value below is either a sanitized
+  // ticket id ([A-Za-z0-9_-] only) or base64-encoded before it reaches the shell, so
+  // untrusted linter output / plan paths can never break out of the command string.
+  const shSafeTicketId = String(A.ticket_id).replace(/[^A-Za-z0-9_-]/g, '')
+  const shQuotedPlanPath = `'${String(planFilePath).replace(/'/g, "'\\''")}'`
+  const lintOnce = async (note) => agent(
+    `Run the deterministic plan linter and return ONLY its stdout:
+     bash ${REPO}/scripts/plan-lint.sh --json ${shQuotedPlanPath}` + (note || ''),
+    { label: 'plan:lint', phase: 'Plan' },
+  )
+  let lintOut = await lintOnce('')
+  if (/"verdict"\s*:\s*"FAIL"/.test(lintOut)) {
+    await agent(
+      `The plan ${planFilePath} failed plan-lint with: ${String(lintOut).slice(0, 400)}.
+       Fix ONLY the reported hard-fails (frontmatter/STRUCT/P1/B1a) in place, then re-run.`,
+      { label: 'plan:lint-fix', phase: 'Plan' },
+    )
+    lintOut = await lintOnce(' (after fix iteration)')
+  }
+  if (/"verdict"\s*:\s*"FAIL"/.test(lintOut)) {
+    // base64-encode the untrusted linter output; the shell decodes it back into a single
+    // --body argument. base64's alphabet ([A-Za-z0-9+/=]) is safe inside single quotes,
+    // so no token in lintOut (backtick, $(), ;, quote) can ever break out of the command.
+    const reasonB64 = Buffer.from(`plan-lint FAIL: ${String(lintOut).slice(0, 300)}`, 'utf8').toString('base64')
+    await agent(
+      `Plan still fails plan-lint after one fix. Block enqueue + comment the ticket:
+       bash ${REPO}/scripts/ticket.sh release-slot --id '${shSafeTicketId}'
+       bash ${REPO}/scripts/ticket.sh update-status --id '${shSafeTicketId}' --status backlog
+       bash ${REPO}/scripts/ticket.sh add-comment --id '${shSafeTicketId}' --body "$(printf %s '${reasonB64}' | base64 -d)"`,
+      { label: 'plan:lint-block', phase: 'Plan' },
+    )
+    phaseEvent('plan', 'blocked', 'plan-lint-fail')
+    return { status: 'blocked', reason: 'plan-lint-fail', lint: lintOut }
+  }
 }
 }
 
@@ -539,7 +580,7 @@ const deploy = await agent(
       If RC -ge 2 or a gate failed: bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status blocked; add-comment "CI red after retries"; return.
    4. gh pr merge "$PR" --squash --delete-branch --auto
    5. bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status qa_review
-      bash ${REPO}/scripts/ticket.sh archive-plan --id ${A.ticket_id} --slug ${slug} --branch ${WORK_BRANCH} --plan-file ${planFilePath ?? `${REPO}/docs/superpowers/plans/${slug}.md`}
+      bash ${REPO}/scripts/ticket.sh archive-plan --id ${A.ticket_id} --slug ${slug} --branch ${WORK_BRANCH} --plan-file ${planFilePath ?? resolveTaskSource(slug, REPO)}
    5b. bash ${REPO}/scripts/ticket.sh feature-flag set --brand mentolder --key ${slug} --enabled false --set-by factory
        bash ${REPO}/scripts/ticket.sh feature-flag set --brand korczewski --key ${slug} --enabled false --set-by factory
    6. ${deployStepCmd}
@@ -589,11 +630,10 @@ if (canaryRed.length) {
   return { status: 'blocked', reason: 'canary-red', brands: canaryRed, ticket: A.ticket_id }
 }
 
-if (deploy.includes('deploy-guard') || deploy.includes('"status": "blocked"') || deploy.includes("status: 'blocked'")) {
-  phaseEvent('deploy', 'blocked', 'deploy-guard')
-  return { status: 'blocked', reason: 'deploy-guard' }
-}
-phaseEvent('deploy', 'done', 'PR merged')
-return { status: 'done', pr: deploy, reviews: reviews.length, tasks: tasks.length, implemented: implemented.length }
+const { status: deployStatus, reason: deployReason } = decideDeployTransition({ isWebsite: slug?.includes('website') ?? false, deployOutput: deploy })
+phaseEvent('deploy', deployStatus === 'blocked' ? 'blocked' : 'done', deployStatus === 'awaiting_deploy' ? 'merged; awaiting deploy' : 'PR merged')
+if (deployStatus === 'awaiting_deploy') { await agent(`bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status awaiting_deploy`, { label: 'status:awaiting_deploy', phase: 'Deploy' }) }
+if (_msgBridge) _msgBridge.broadcast(`factory-pipeline: ${A.ticket_id} finished (${deployStatus})`, 'factory')
+return { status: deployStatus, reason: deployReason, pr: deploy, reviews: reviews.length, tasks: tasks.length, implemented: implemented.length }
 } finally { if (WORK_BRANCH || WORK_WT) { try { await agent(`bash ${REPO}/scripts/factory/cleanup.sh --branch '${WORK_BRANCH}' --worktree '${WORK_WT}'`, { label: 'cleanup' }) } catch (_) {} } } }
 await main();

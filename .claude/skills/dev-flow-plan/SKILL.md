@@ -143,6 +143,20 @@ Nach dem Schreiben der Spec das Frontmatter setzen (siehe
 `bash scripts/plan-frontmatter-hook.sh --spec docs/superpowers/specs/<date>-<slug>-design.md`
 und `ticket_id`/`plan_ref` ausfüllen sobald Ticket-ID und Plan-Pfad feststehen.
 
+### Schritt 3.1: OpenSpec-Change anlegen
+
+Lege den OpenSpec-Change-Ordner an (seedet `proposal.md` + `tasks.md` + Delta-Skeleton und
+setzt den Ticket-Status auf `planning`):
+
+```bash
+bash scripts/openspec.sh propose "<slug>" --ticket "<TICKET_EXT_ID>"
+```
+
+Übertrage den Brainstorming-Output (WARUM + WAS) nach `openspec/changes/<slug>/proposal.md`.
+Der Implementierungsplan wird in **beide** Ziele geschrieben: `openspec/changes/<slug>/tasks.md`
+(Factory-Standard-Input) **und** das Legacy-`docs/superpowers/plans/<date>-<slug>.md` (bis der
+Cutover abgeschlossen ist; der Factory-Resolver fällt darauf zurück).
+
 ### Schritt 3.5: Playwright-Projekt-Gate
 Falls neue E2E-Tests geplant sind, weise das passende Playwright-Projekt zu (siehe [dev-flow-gotchas.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md) für Zuordnungstabelle).
 
@@ -164,22 +178,25 @@ Statt deinen eigenen Kontext zurückzusetzen (das ließe dich den Faden verliere
        Acceptance-Kriterien notieren. `new/` enthält nur geprüfte, passende Assets.
      - Ticket-/Grilling-Kontext (`$GRILLING_TICKET_EXT_ID` etc.), falls vorhanden.
      - **CI-/Quality-Gates:** [plan-quality-gates.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-quality-gates.md) — der Subagent MUSS die Datei lesen und den Plan dagegen schreiben: pro zu ändernder Datei `wc -l` UND den Baseline-Wert (`jq -r '."S1:<pfad>".metric // "nicht-baselined"' docs/code-quality/baseline.json`) ermitteln und das S1-Budget gegen die **wirksame Schwelle** notieren — bei schon gebaselineten (gewachsenen) Dateien ist das Budget oft **0** (jede Netto-Zeile trippt das CI-Ratchet), dann zeilenneutral planen oder die Datei in dieser PR **echt verkleinern**; bei >~80 % der Schwelle echten Modul-Split einplanen (kein kosmetisches Zusammenziehen). Dazu: keine Brand-Domain-Literale in Code-Snippets (S3), Helper als pure Module ohne Import-Zyklen (S2), neue Manifeste/Skripte referenzieren statt verwaisen lassen (S4).
-   - **Auftrag:** „Lies die Spec UND `.claude/skills/references/plan-quality-gates.md`. Rufe `superpowers:writing-plans` auf und schreibe den Implementierungsplan nach `docs/superpowers/plans/<date>-<slug>.md`. Der finale Verifikations-Task des Plans MUSS `task test:changed`, `task freshness:regenerate` und `task freshness:check` als Steps enthalten (CI-Äquivalent inkl. S1–S4-Ratchet); nach Test-Änderungen zusätzlich `task test:inventory` + Commit des Inventars. Starte KEINE Implementierung (nur Plan schreiben, dann STOPP). Führe danach `bash scripts/plan-frontmatter-hook.sh docs/superpowers/plans/<date>-<slug>.md` aus. Gib den Plan-Pfad und eine 3-Zeilen-Zusammenfassung zurück."
+    - **Auftrag:** „Lies die Spec UND `.claude/skills/references/plan-quality-gates.md`. Rufe `superpowers:writing-plans` auf und schreibe den Implementierungsplan nach `docs/superpowers/plans/<date>-<slug>.md`. Schreibe dieselben Tasks zusätzlich nach `openspec/changes/<slug>/tasks.md` (OpenSpec-Format: H2-Operationsheader im Delta, H3-Requirement, H4-Scenario im `specs/<capability>.md`). Der finale Verifikations-Task des Plans MUSS `task test:changed`, `task freshness:regenerate` und `task freshness:check` als Steps enthalten (CI-Äquivalent inkl. S1–S4-Ratchet); nach Test-Änderungen zusätzlich `task test:inventory` + Commit des Inventars. Vor dem Commit: `task test:openspec` (oder `bash scripts/openspec.sh validate`) — muss grün sein. Starte KEINE Implementierung (nur Plan schreiben, dann STOPP). Führe danach `bash scripts/plan-frontmatter-hook.sh docs/superpowers/plans/<date>-<slug>.md` aus. Gib den Plan-Pfad und eine 3-Zeilen-Zusammenfassung zurück."
 
-### Schritt 3.8: Plan-Qualitäts-Check (DeepSeek QA)
+### Schritt 3.8: Plan-Qualitäts-Gate (deterministischer Linter + advisory LLM-QA)
 
-Führe den automatischen QA-Check auf den Plan-Pfad aus, den der Subagent zurückgegeben hat:
+Führe ZUERST den deterministischen, fail-closed Linter auf den Plan-Pfad aus, den der
+Subagent zurückgegeben hat — das ist das **harte Gate**:
 
 ```bash
-bash scripts/plan-qa-check.sh docs/superpowers/plans/<date>-<slug>.md
+bash scripts/plan-lint.sh docs/superpowers/plans/<date>-<slug>.md
 ```
 
-- **PASS (Exit 0):** Weiter zu Schritt 4.
-- **FAIL (Exit 1):** DeepSeek hat bis zu 2 Auto-Fix-Versuche unternommen. Lies die
-  Fehlermeldung (konkrete Lücken), delegiere erneut an einen Plan-Subagenten (Schritt 3.7)
-  mit den fehlenden Punkten als Korrektur-Hinweis — oder bessere den Plan manuell nach.
-- **Kein API-Key (Exit 0 + Warnung):** Advisory — QA wurde übersprungen. Weiter zu Schritt 4,
-  aber prüfe den Plan manuell gegen `.claude/skills/references/plan-quality-gates.md`.
+- **PASS (Exit 0):** weiter — danach optional die advisory LLM-QA (bricht nie):
+  ```bash
+  bash scripts/plan-qa-check.sh docs/superpowers/plans/<date>-<slug>.md || true
+  ```
+  Anschließend weiter zu Schritt 4.
+- **FAIL (Exit 1):** der Linter listet die Hard-Fails (F1/F2/STRUCT/P1/B1a). Delegiere
+  erneut an einen Plan-Subagenten (Schritt 3.7) mit den Hard-Fails als Korrektur-Hinweis,
+  bis `plan-lint.sh` PASS liefert. KEIN Weitergehen mit rotem Linter.
 
 ### Schritt 4: Plan prüfen & übernehmen
 Du behältst deinen vollen Brainstorming-Kontext: lies den vom Subagenten zurückgegebenen Plan und prüfe ihn gegen die im Brainstorming getroffenen Entscheidungen. Prüfe zusätzlich die Gate-Konformität (Checkliste in [plan-quality-gates.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-quality-gates.md)): S1-Budgets gegen die **wirksame Schwelle** (Baseline-Wert falls gebaselined, sonst Limit) pro Datei notiert — und bei Budget≈0 ein echter Verkleinerungs-/Split-Schritt statt kosmetischem Zusammenziehen? Finaler Verifikations-Task enthält `task test:changed` + `task freshness:regenerate` + `task freshness:check`? Keine Brand-Domain-Literale in den Code-Snippets? Bei Lücken oder Abweichungen delegiere erneut (Schritt 3.7) mit konkreten Korrektur-Hinweisen. Erst wenn der Plan passt, weiter zu Schritt 4.5.

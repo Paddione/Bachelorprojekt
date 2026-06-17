@@ -440,11 +440,23 @@ ${topologyDiagram}
 </body>
 </html>`;
 
+  function hasStructuralChange(path) {
+    try {
+      const existing = readFileSync(path, 'utf8');
+      const stripTs = (s) => s.replace(/<span class="meta">.*?<\/span>/, '');
+      return stripTs(existing) !== stripTs(html);
+    } catch { return true; }
+  }
+
   const outDir = join(ROOT, 'k3d/docs-content-built/architecture');
   mkdirSync(outDir, { recursive: true });
   const outPath = join(outDir, 'index.html');
-  writeFileSync(outPath, html);
-  console.log(`✓ architecture/index.html → ${outPath}`);
+  if (hasStructuralChange(outPath)) {
+    writeFileSync(outPath, html);
+    console.log(`✓ architecture/index.html → ${outPath}`);
+  } else {
+    console.log(`○ architecture/index.html: no structural change, skipped`);
+  }
   console.log(`  ${nodeCount} nodes, ${edgeCount} edges, ${endpointCount} API endpoints`);
 }
 

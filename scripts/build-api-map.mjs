@@ -133,11 +133,36 @@ function main() {
 
   mkdirSync(join(ROOT, 'docs/generated'), { recursive: true });
 
-  // Write JSON
-  const jsonPath = join(ROOT, 'docs/generated/api-map.json');
-  writeFileSync(jsonPath, JSON.stringify(output, null, 2));
+  function hasStructuralChange(path, newContent) {
+    try {
+      const existing = readFileSync(path, 'utf8');
+      const oldData = JSON.parse(existing);
+      const newData = JSON.parse(newContent);
+      delete oldData.generatedAt;
+      delete newData.generatedAt;
+      return JSON.stringify(oldData) !== JSON.stringify(newData);
+    } catch { return true; }
+  }
 
-  // Write Markdown table
+  function hasMdStructuralChange(path, newContent) {
+    try {
+      const existing = readFileSync(path, 'utf8');
+      const stripTs = (s) => s.replace(/^> Generated at .*/m, '');
+      return stripTs(existing) !== stripTs(newContent);
+    } catch { return true; }
+  }
+
+  // Write JSON (skip if only timestamp changed)
+  const jsonPath = join(ROOT, 'docs/generated/api-map.json');
+  const jsonContent = JSON.stringify(output, null, 2);
+  if (hasStructuralChange(jsonPath, jsonContent)) {
+    writeFileSync(jsonPath, jsonContent);
+    console.log(`✓ api-map.json: ${endpoints.length} endpoints → ${jsonPath}`);
+  } else {
+    console.log(`○ api-map.json: no structural change, skipped`);
+  }
+
+  // Write Markdown table (skip if only timestamp changed)
   const mdLines = [
     '# API Surface Map',
     '',
@@ -159,10 +184,13 @@ function main() {
   mdLines.push('');
 
   const mdPath = join(ROOT, 'docs/generated/api-surface.md');
-  writeFileSync(mdPath, mdLines.join('\n'));
-
-  console.log(`✓ api-map.json: ${endpoints.length} endpoints → ${jsonPath}`);
-  console.log(`✓ api-surface.md: ${endpoints.length} rows → ${mdPath}`);
+  const mdContent = mdLines.join('\n');
+  if (hasMdStructuralChange(mdPath, mdContent)) {
+    writeFileSync(mdPath, mdContent);
+    console.log(`✓ api-surface.md: ${endpoints.length} rows → ${mdPath}`);
+  } else {
+    console.log(`○ api-surface.md: no structural change, skipped`);
+  }
 }
 
 main();

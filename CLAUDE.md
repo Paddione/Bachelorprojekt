@@ -38,6 +38,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 For any work request in this repo (add/change/fix/build), invoke **`dev-flow-plan`** (`.claude/skills/dev-flow-plan/SKILL.md`). It declares the path, and for **feature/fix** does worktree setup, brainstorming, spec, and plan creation — then commits and pushes the plan to the branch and stops. **Chores** (maintenance, no behavior change) route to **`dev-flow-chore`** (`.claude/skills/dev-flow-chore/SKILL.md`), which executes and merges inline (no plan/execute handoff). When ready to implement a staged plan, invoke **`dev-flow-execute`** (`.claude/skills/dev-flow-execute/SKILL.md`) — it picks up the plan, runs implementation, verification, PR, and post-merge deploy. All auto-invoke via their `description` frontmatter; no special wiring needed. The `dev-flow-*` skills are project orchestrators that call the generic `superpowers:*` skills for discipline — see `.claude/skills/OVERVIEW.md` (Schicht-Kontrakt) for the layering and which step calls which.
 
+### OpenSpec native change workflow
+Specifications are written in the OpenSpec format under `openspec/`.
+* `task openspec:propose -- <slug> --ticket <ext-id>`: Create a new proposal skeleton (status: planning).
+* `task openspec:apply -- <slug>`: Mark proposal as implementable (status: plan_staged).
+* `task openspec:archive -- <slug>`: Archive a completed proposal and merge its delta into the SSOT.
+* `task openspec:validate`: Dry-run validation of the `openspec/` change tree (fail-closed CI gate).
+
+### Domain conventions: awaiting_deploy status
+A transition state for tickets that are merged to `main` but not yet deployed to production (the "merge ≠ prod" lane on the dashboard cockpit). Used to prevent premature closure.
+
 ## Project Overview
 
 **Workspace MVP** -- a Kubernetes-based self-hosted collaboration platform for small teams (bachelor thesis). Integrates a custom messaging system (chat, built into the Astro website), Nextcloud (files + video via Talk), Keycloak (SSO/OIDC), Collabora (office suite), Claude Code (AI), Vaultwarden (passwords), and supporting services. All data stays on-premises (DSGVO/GDPR by design).

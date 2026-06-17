@@ -5,6 +5,9 @@ export const meta = {
   phases: [{ title: 'Prep' }, { title: 'Launch' }, { title: 'Metrics' }],
 }
 
+let _msgBridge
+try { _msgBridge = require('./agent-msg-bridge.cjs') } catch (_) { _msgBridge = { broadcast: (msg, label) => log(`[broadcast:${label}] ${msg}`) } }
+
 async function main() {
   const A = args ?? {}
   const REPO = '/home/patrick/Bachelorprojekt'
@@ -122,8 +125,42 @@ async function main() {
 
   // ── ② Launch: nest one pipeline workflow per scheduled feature (Model A) ──────
   phase('Launch')
+
+  // ── Sentinel: an interactive worker is active → yield one parallel slot ──
+  const SENTINEL_SCHEMA = {
+    type: 'object',
+    required: ['interactive_worker_active'],
+    properties: { interactive_worker_active: { type: 'boolean' } },
+  }
+  const sentinel = await agent(
+    `Run this and report the result as JSON ONLY:
+       bash ${REPO}/scripts/agent-lock.sh list | grep -q interactive-worker && echo found || echo none
+     If output is "found": return {"interactive_worker_active": true}
+     If output is "none":  return {"interactive_worker_active": false}`,
+    { label: 'sentinel-check', phase: 'Launch', schema: SENTINEL_SCHEMA },
+  )
+
+  let maxParallel = launches.length
+  if (sentinel && sentinel.interactive_worker_active) {
+    maxParallel = Math.max(1, launches.length - 1)
+    log(`Dispatcher: interactive-worker detected, reducing slots to ${maxParallel}`)
+  }
+
+  const toLaunch = launches.slice(0, maxParallel)
+  const deferred = launches.slice(maxParallel)
+  if (deferred.length) {
+    log(`Dispatcher: deferring ${deferred.length} feature(s) to next tick (interactive-worker yield)`)
+    await agent(
+      `Release the slots for these deferred features so they re-queue cleanly next tick:
+       ${JSON.stringify(deferred.map((f) => ({ external_id: f.external_id, brand: f.brand })))}
+       For EACH: BRAND=<brand> bash ${REPO}/scripts/ticket.sh release-slot --id <external_id>
+       Report which slots were released.`,
+      { label: 'sentinel-defer', phase: 'Launch' },
+    )
+  }
+
   const results = await parallel(
-    launches.map(
+    toLaunch.map(
       (f) => () =>
         workflow(
           { scriptPath: 'scripts/factory/pipeline.js' },
@@ -159,6 +196,7 @@ async function main() {
     )
   ]
   if (escalations.length) {
+    _msgBridge.broadcast(`factory-dispatch: ${escalations.length} run(s) blocked/escalated`, 'factory')
     await agent(
       `/goal Notify the operator about blocked or errored Software Factory pipelines and log them.
        ${escalations.length} pipeline run(s) ended in error or blocked this tick. Notify the operator

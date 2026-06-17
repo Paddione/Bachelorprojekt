@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-06-17T17:41:11.261Z
+> Generated at 2026-06-17T19:22:58.218Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -344,6 +344,7 @@
 | `/api/factory-floor` | GET | 🔐 admin | `website/src/pages/api/factory-floor.ts` |
 | `/api/factory-floor/{extId}` | GET | 🔐 admin | `website/src/pages/api/factory-floor/[extId].ts` |
 | `/api/factory-floor/{extId}/ci` | GET | 🔐 admin | `website/src/pages/api/factory-floor/[extId]/ci.ts` |
+| `/api/factory-floor/{extId}/deploy` | POST | 🔐 admin | `website/src/pages/api/factory-floor/[extId]/deploy.ts` |
 | `/api/factory-floor/{extId}/inject` | POST | 🔐 admin | `website/src/pages/api/factory-floor/[extId]/inject.ts` |
 | `/api/factory-floor/{extId}/release` | POST | 🔐 admin | `website/src/pages/api/factory-floor/[extId]/release.ts` |
 | `/api/factory-floor/stream` | GET | 🔐 admin | `website/src/pages/api/factory-floor/stream.ts` |

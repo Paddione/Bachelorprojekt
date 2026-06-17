@@ -49,11 +49,10 @@ EOF
 }
 
 @test "FA-SF-57: app-install.sh dry-run simulates deployment steps" {
-  # Use a unique temp app name to avoid CI parallel-run collisions
-  local app_name="test-mock-app-$$-$RANDOM"
-  mkdir -p "apps/$app_name"
-  cat <<EOF > "apps/$app_name/app.yaml"
-name: $app_name
+  # Mock a test catalog app
+  mkdir -p "apps/test-mock-app"
+  cat <<EOF > "apps/test-mock-app/app.yaml"
+name: test-mock-app
 title: "Mock App"
 description: "A mock app for testing"
 kustomize: k3d/whiteboard
@@ -64,10 +63,9 @@ secrets:
   - MOCK_APP_JWT_SECRET
 EOF
 
-  run bash scripts/app-install.sh "$app_name" --dry-run
+  run bash scripts/app-install.sh test-mock-app --dry-run
   local test_status=$status test_output="$output"
-  # Clean up immediately regardless of test outcome
-  rm -rf "apps/$app_name"
+  rm -rf "apps/test-mock-app"
 
   [ "$test_status" -eq 0 ]
   [[ "$test_output" =~ "Validating manifest schema" ]]

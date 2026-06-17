@@ -4,6 +4,7 @@ import './moveSession';
 import './cancelSession';
 import './signDocument';
 import './uploadFile';
+import './shareFile';
 import './messageCoach';
 import './startQuestionnaire';
 import './requestSession';

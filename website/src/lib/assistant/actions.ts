@@ -4,6 +4,7 @@ import { getCustomerByKeycloakId } from '../website-db';
 export interface ActionContext {
   profile: AssistantProfile;
   userSub: string;
+  preferredUsername?: string;
   email?: string;
   payload: Record<string, unknown>;
 }

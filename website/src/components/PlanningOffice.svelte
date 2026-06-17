@@ -2,6 +2,7 @@
   import { onMount, onDestroy } from 'svelte';
   import PlanningOfficeDetail from './PlanningOfficeDetail.svelte';
   import PlanningOfficeQueue from './PlanningOfficeQueue.svelte';
+  import PlanningOfficeTriage from './PlanningOfficeTriage.svelte';
 
   const { brand }: { brand: string } = $props();
 
@@ -20,6 +21,12 @@
     pinned: boolean;
     requirementsList: string[];
     lastenheftLocked: boolean;
+    triage: {
+      type: string; priority: string; severity: string;
+      areas: string[]; component: string | null;
+      assignee_suggested: string; rationale: string;
+      model: string; at: string;
+    } | null;
   }
 
   interface Stats {
@@ -270,6 +277,11 @@
 
       {#if !isMobile && selected}
         <div class="pb-detail" data-testid="pb-detail">
+          <PlanningOfficeTriage
+            extId={selected.extId}
+            triage={selected.triage}
+            onTriageDone={load}
+          />
           <PlanningOfficeDetail
             item={selected}
             bind:override
@@ -297,6 +309,11 @@
         <button class="pb-sheet-close" data-testid="pb-sheet-close" onclick={() => sheetOpen = false}>×</button>
       </div>
       <div class="pb-sheet-body">
+        <PlanningOfficeTriage
+          extId={sheetItem.extId}
+          triage={sheetItem.triage}
+          onTriageDone={load}
+        />
         <PlanningOfficeDetail
           item={sheetItem}
           bind:override

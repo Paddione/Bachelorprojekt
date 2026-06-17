@@ -1056,6 +1056,12 @@
     "kind": "shell"
   },
   {
+    "id": "FA-SF-05",
+    "file": "tests/local/FA-SF-05-triage.bats",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
     "id": "FA-SF-20",
     "file": "tests/local/FA-SF-20-pipeline-contract.bats",
     "category": "FA",

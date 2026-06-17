@@ -15,6 +15,7 @@ show_help() {
   echo "  frontmatter                Plan frontmatter hook"
   echo "  backup                     Database backup operations"
   echo "  ticket                     Ticket operations (CRUD / pipeline)"
+  echo "  factory                    Factory operations (slots, …)"
   echo "  factory-prep               Factory preparation guards"
   echo "  brainstorm                 Brainstorming bridge"
   echo "  help                       Show this help"
@@ -54,6 +55,10 @@ main() {
     brainstorm)
       shift
       exec "${SCRIPT_DIR}/vda/brainstorm.sh" "$@"
+      ;;
+    factory)
+      shift
+      exec "${SCRIPT_DIR}/vda/factory.sh" "$@"
       ;;
     help|--help|-h)
       show_help

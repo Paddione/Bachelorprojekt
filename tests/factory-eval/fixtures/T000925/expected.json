@@ -1,0 +1,15 @@
+{
+  "files": [
+    "scripts/factory/eval.mjs",
+    "tests/factory-eval/fixtures/*/*.json",
+    "tests/local/FA-SF-58-eval-harness.bats",
+    "Taskfile.yml"
+  ],
+  "forbidden": [
+    "k3d/configmap-domains.yaml",
+    "environments/*.yaml"
+  ],
+  "tests": ["node --check scripts/factory/eval.mjs"],
+  "min_recall": 0.5,
+  "min_precision": 0.4
+}

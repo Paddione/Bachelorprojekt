@@ -17,4 +17,7 @@ resources:
   - grafana-oidc-secret.yaml
   - grafana-ingress.yaml
   - networkpolicy.yaml
+  - loki-rendered.yaml
+  - promtail-rendered.yaml
+  - loki-grafana-datasource.yaml
   - grafana-dashboards

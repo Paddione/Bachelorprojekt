@@ -1,0 +1,8 @@
+{
+  "title": "Eval-Harness Integration (Scoring + Trend)",
+  "description": "Integriere ein reproduzierbares Eval-Scoring in die Factory, das Agenten-Output gegen bekannte Golden-Fixtures misst und Trends über Zeit abbildet.",
+  "type": "feature",
+  "external_id": "T000925",
+  "brand": "mentolder",
+  "area": "factory"
+}

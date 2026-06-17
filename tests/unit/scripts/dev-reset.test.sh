@@ -153,6 +153,18 @@ teardown() {
   grep -q "k3d image import" "$LOG_FILE" && return 1 || true
 }
 
+@test "REBUILD=1: builds missing images even when some are missing" {
+  printf '%s\n' \
+    "ghcr.io/paddione/workspace-website:latest" > "$MOCK_IMAGE_LIST"
+  REBUILD=1 run bash scripts/dev-reset.sh
+  [ "$status" -eq 0 ]
+  grep -q "task website:build:import ENV=dev" "$LOG_FILE"
+  grep -q "task brett:build ENV=dev" "$LOG_FILE"
+  grep -q "task docs:build:import ENV=dev" "$LOG_FILE"
+  # Should NOT call k3d image import (REBUILD=1 skips import)
+  grep -q "k3d image import" "$LOG_FILE" && return 1 || true
+}
+
 # ── Execution Order ──────────────────────────────────────────────────
 
 @test "execution order is correct" {

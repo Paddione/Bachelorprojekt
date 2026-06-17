@@ -10,11 +10,14 @@ echo "  Target cluster: $CLUSTER_NAME"
 echo ""
 
 # ── Prod Guard ──────────────────────────────────────────────────────
+KNOWN_PROD_CONTEXTS=("fleet" "prod" "production")
 CURRENT_CTX=$(kubectl config current-context 2>/dev/null || true)
-if [ "$CURRENT_CTX" = "fleet" ]; then
-  echo "❌ Aborting: active kubectl context is 'fleet' (production). This script is for dev only." >&2
-  exit 1
-fi
+for ctx in "${KNOWN_PROD_CONTEXTS[@]}"; do
+  if [ "$CURRENT_CTX" = "$ctx" ]; then
+    echo "❌ Aborting: active kubectl context is '$ctx' (production). This script is for dev only." >&2
+    exit 1
+  fi
+done
 
 # ── Docker Reachability ─────────────────────────────────────────────
 docker info >/dev/null 2>&1 || {
@@ -25,7 +28,7 @@ docker info >/dev/null 2>&1 || {
 # ── Confirmation ────────────────────────────────────────────────────
 if [ "$CONFIRM" != "yes" ]; then
   if [ -t 0 ]; then
-    read -r -p "Reset cluster '$CLUSTER_NAME'? This will destroy and recreate everything. [y/N] " reply
+    read -r -p "Reset cluster '$CLUSTER_NAME'? This will destroy and recreate everything. [yes/NO] " reply
     case "$reply" in
       [yY]|[yY][eE][sS]) ;;
       *) echo "Aborted."; exit 1 ;;
@@ -35,6 +38,21 @@ if [ "$CONFIRM" != "yes" ]; then
     exit 1
   fi
 fi
+
+# ── Step 1: Delete cluster ──────────────────────────────────────────
+echo "→ Step 1/6: Deleting cluster..."
+task cluster:delete || true
+echo ""
+
+# ── Step 2: Create cluster ──────────────────────────────────────────
+echo "→ Step 2/6: Creating cluster..."
+task cluster:create
+echo ""
+
+# ── Step 3: cert-manager CRDs ───────────────────────────────────────
+echo "→ Step 3/6: Installing cert-manager CRDs..."
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.16.3/cert-manager.crds.yaml
+echo ""
 
 # ── Image Snapshot ──────────────────────────────────────────────────
 IMAGES=(
@@ -52,21 +70,6 @@ for img in "${IMAGES[@]}"; do
     MISSING_IMAGES+=("$img")
   fi
 done
-echo ""
-
-# ── Step 1: Delete cluster ──────────────────────────────────────────
-echo "→ Step 1/6: Deleting cluster..."
-task cluster:delete
-echo ""
-
-# ── Step 2: Create cluster ──────────────────────────────────────────
-echo "→ Step 2/6: Creating cluster..."
-task cluster:create
-echo ""
-
-# ── Step 3: cert-manager CRDs ───────────────────────────────────────
-echo "→ Step 3/6: Installing cert-manager CRDs..."
-kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.16.3/cert-manager.crds.yaml
 echo ""
 
 # ── Step 4: Image import/rebuild ────────────────────────────────────

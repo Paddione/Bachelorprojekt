@@ -85,15 +85,46 @@ jobs:
         run: task workspace:deploy ENV=korczewski
 
       - name: Mark ticket done
+        id: close
         if: success()
         run: |
           set -euo pipefail
           TICKET_ID="$(git log -1 --pretty=%B | grep -oE 'T[0-9]{6}' | head -1 || true)"
           if [[ -z "$TICKET_ID" ]]; then
             echo "No T###### id in merge commit — nothing to close."
+            echo "ticket_id=" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           echo "Closing ticket $TICKET_ID (deployed to both brands)."
+          echo "ticket_id=$TICKET_ID" >> "$GITHUB_OUTPUT"
+          mkdir -p "$HOME/.kube"
+          echo "$FLEET_KUBECONFIG" | base64 -d > "$HOME/.kube/config"
+          chmod 600 "$HOME/.kube/config"
+          export KUBECONFIG="$HOME/.kube/config"
           export TICKET_CTX=fleet BRAND=mentolder
           bash scripts/ticket.sh update-status --id "$TICKET_ID" --status done \
             || echo "WARNING: update-status failed for $TICKET_ID (non-fatal)."
+      - name: Scout drift ratchet
+        if: steps.close.outputs.ticket_id != ''
+        env:
+          FLEET_KUBECONFIG: ${{ secrets.FLEET_KUBECONFIG }}
+        run: |
+          set -euo pipefail
+          TICKET_ID="${{ steps.close.outputs.ticket_id }}"
+          mkdir -p "$HOME/.kube"
+          echo "$FLEET_KUBECONFIG" | base64 -d > "$HOME/.kube/config"
+          chmod 600 "$HOME/.kube/config"
+          export KUBECONFIG="$HOME/.kube/config"
+          export TICKET_CTX=fleet BRAND=mentolder
+          BASE="$(git rev-parse HEAD~1)" || BASE=""
+          HEAD="$(git rev-parse HEAD)"   || HEAD=""
+          if [[ -n "$BASE" && -n "$HEAD" ]]; then
+            bash scripts/factory/scout-drift.sh \
+              --ticket "$TICKET_ID" \
+              --base "$BASE" \
+              --head "$HEAD" \
+              --repo "$PWD" \
+              || echo "WARNING: scout-drift failed (non-fatal)."
+          else
+            echo "WARNING: could not resolve base/head for drift ratchet (non-fatal)."
+          fi

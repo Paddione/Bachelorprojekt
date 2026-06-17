@@ -1,7 +1,5 @@
 {
-  "generatedAt": "2026-06-16T14:07:35.858Z",
-  "generatedAt": "2026-06-16T17:21:05.216Z",
-  "generatedAt": "2026-06-16T19:12:16.487Z",
+  "generatedAt": "2026-06-17T03:29:26.022Z",
   "endpoints": [
     {
       "path": "/api/admin/angebote/save",
@@ -1051,6 +1049,30 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/faq/save.ts"
+    },
+    {
+      "path": "/api/admin/folder-templates/create",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/folder-templates/create.ts"
+    },
+    {
+      "path": "/api/admin/folder-templates/delete",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/folder-templates/delete.ts"
+    },
+    {
+      "path": "/api/admin/folder-templates/update",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/folder-templates/update.ts"
     },
     {
       "path": "/api/admin/followups/create",

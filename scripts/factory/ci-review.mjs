@@ -6,12 +6,15 @@
 import { readFileSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
 import Anthropic from '@anthropic-ai/sdk'
+import { parseChangedLines, filterFindings, formatChangedLinesHint } from './review-finding-filter.mjs'
 
 const {
   ANTHROPIC_BASE_URL, ANTHROPIC_API_KEY,
   CLEAN_DIFF_PATH, TIER_JSON_PATH,
   PR_NUMBER, CI_REVIEW_MODEL = 'deepseek-chat',
+  CI_REVIEW_CONFIDENCE_THRESHOLD,
 } = process.env
+const confidenceThreshold = (() => { const v = Number(CI_REVIEW_CONFIDENCE_THRESHOLD); return Number.isNaN(v) ? 0.6 : v })()
 
 const PROMPT_DIR = new URL('.', import.meta.url).pathname
 
@@ -52,9 +55,10 @@ async function callModel(systemPrompt, userContent) {
   return res.content.map((b) => (b.type === 'text' ? b.text : '')).join('')
 }
 
-async function runLens(lens, diff) {
+async function runLens(lens, diff, hint) {
   try {
-    const out = await callModel(readPrompt(lens), `Review this diff:\n\n${diff}`)
+    const prefix = hint ? `Only report findings on these changed lines per file: ${hint}\nEach finding MUST include a numeric confidence 0.0–1.0.\n\n` : ''
+    const out = await callModel(readPrompt(lens), `${prefix}Review this diff:\n\n${diff}`)
     return { lens, result: parseJson(out, { findings: [] }) }
   } catch (e) {
     console.error(`ci-review: lens ${lens} failed: ${e.message}`)
@@ -62,28 +66,31 @@ async function runLens(lens, diff) {
   }
 }
 
-function fallbackVerdict(reviews) {
+function fallbackVerdict(reviews, suppressedCount) {
   const findings = reviews.flatMap((r) => r.result.findings || [])
-  if (findings.some((f) => f && (f.severity === 'high' || f.severity === 'critical'))) return { verdict: 'requested_changes', summary: 'High/critical findings present.', findings }
-  if (findings.length) return { verdict: 'minor_issues', summary: 'Minor findings present.', findings }
-  return { verdict: 'approved', summary: 'No blocking findings.', findings: [] }
+  if (findings.some((f) => f && (f.severity === 'high' || f.severity === 'critical'))) return { verdict: 'requested_changes', summary: 'High/critical findings present.', findings, suppressedCount }
+  if (findings.length) return { verdict: 'minor_issues', summary: 'Minor findings present.', findings, suppressedCount }
+  return { verdict: 'approved', summary: 'No blocking findings.', findings: [], suppressedCount: suppressedCount || 0 }
 }
 
-async function coordinate(reviews) {
+async function coordinate(reviews, suppressedCount) {
   const xml = '<reviews>\n' + reviews.map((r) => `  <lens name="${r.lens}">${JSON.stringify(r.result)}</lens>`).join('\n') + '\n</reviews>'
   try {
     const coordPrompt = readFileSync(PROMPT_DIR + 'review-coordinator.prompt.md', 'utf8')
     const out = await callModel(coordPrompt, `Consolidate these lens findings:\n${xml}`)
-    return parseJson(out, fallbackVerdict(reviews))
+    const result = parseJson(out, fallbackVerdict(reviews))
+    result.suppressedCount = (result.suppressedCount || 0) + (suppressedCount || 0)
+    return result
   } catch (e) {
     console.error(`ci-review: coordinator failed: ${e.message}`)
-    return fallbackVerdict(reviews)
+    return fallbackVerdict(reviews, suppressedCount)
   }
 }
 
 function renderBody(tier, consolidated) {
   const rows = (consolidated.findings || []).slice(0, 10).map((f) =>
     `| ${f.category || '-'} | ${f.severity || '-'} | ${f.file || '-'}:${f.line || '-'} | ${(f.description || '').replace(/\|/g, '\\|')} |`).join('\n')
+  const suppressed = consolidated.suppressedCount ? `<sub>${consolidated.suppressedCount} finding(s) suppressed (out-of-diff / low-confidence / style)</sub>\n\n` : ''
   return [
     `### AI Code Review — tier: \`${tier}\``,
     '',
@@ -93,6 +100,7 @@ function renderBody(tier, consolidated) {
     '',
     `**Verdict:** \`${consolidated.verdict}\``,
     '',
+    suppressed,
     '<sub>Advisory automated review. Not a required check.</sub>',
   ].join('\n')
 }
@@ -119,11 +127,22 @@ async function main() {
   const tier = parseJson(readFileSync(TIER_JSON_PATH, 'utf8'), { tier: 'full' }).tier || 'full'
   const lenses = TIER_LENSES[tier] || TIER_LENSES.full
 
+  const changedLines = parseChangedLines(diff)
+  const hint = formatChangedLinesHint(changedLines)
+
   const beat = setInterval(() => console.log('AI review running...'), 30_000)
   try {
-    const settled = await Promise.all(lenses.map((l) => runLens(l, diff)))
+    const settled = await Promise.all(lenses.map((l) => runLens(l, diff, hint)))
     const reviews = settled.filter(Boolean)
-    const consolidated = (tier === 'full' && reviews.length >= 2) ? await coordinate(reviews) : fallbackVerdict(reviews)
+
+    let totalSuppressed = 0
+    for (const r of reviews) {
+      const filtered = filterFindings(r.result.findings || [], changedLines, { confidenceThreshold })
+      totalSuppressed += filtered.dropped.length
+      r.result.findings = filtered.kept
+    }
+
+    const consolidated = (tier === 'full' && reviews.length >= 2) ? await coordinate(reviews, totalSuppressed) : fallbackVerdict(reviews, totalSuppressed)
     postReview(consolidated.verdict, renderBody(tier, consolidated))
   } finally {
     clearInterval(beat)

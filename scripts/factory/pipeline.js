@@ -493,6 +493,36 @@ if (!cleanDiff || !String(cleanDiff).trim()) {
   }))).filter(Boolean)
   log(`Verify: ${reviews.length}/${lenses.length} lenses done, tier=${tier}`)
 
+  const allFindings = reviews.flatMap((r) => r.findings || [])
+  if (allFindings.length > 0 && cleanDiff) {
+    try {
+      const { execSync } = require('child_process')
+      const fs = require('fs')
+      const path = require('path')
+      const tmpDir = '/tmp'
+      const diffFile = path.join(tmpDir, `ci-filter-diff-${A.ticket_id}.diff`)
+      fs.writeFileSync(diffFile, String(cleanDiff), 'utf8')
+      const kept = (() => {
+        try {
+          const raw = execSync(
+            `node ${REPO}/scripts/factory/review-finding-filter.mjs --cli --diff ${diffFile} --stdin`,
+            { input: JSON.stringify(allFindings), encoding: 'utf8', timeout: 10_000 }
+          )
+          const parsed = JSON.parse(raw)
+          return parsed.kept || []
+        } catch { return allFindings }
+        finally { try { fs.unlinkSync(diffFile) } catch {} }
+      })()
+      if (kept.length !== allFindings.length) {
+        const keptSet = new Set(kept.map((f) => JSON.stringify(f)))
+        for (const r of reviews) {
+          r.findings = (r.findings || []).filter((f) => keptSet.has(JSON.stringify(f)))
+        }
+        log(`Verify: filtered findings — ${kept.length} kept, ${allFindings.length - kept.length} suppressed`)
+      }
+    } catch { /* fail-open: keep original reviews */ }
+  }
+
   if (tier === 'full' && reviews.length >= 2) {
     const xml = '<reviews>\n' + reviews.map((r, i) =>
       `  <lens name="${(lenses[i] && lenses[i].key) || 'lens' + i}">${JSON.stringify(r)}</lens>`).join('\n') + '\n</reviews>'

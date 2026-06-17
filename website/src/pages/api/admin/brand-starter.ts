@@ -3,6 +3,8 @@ import { getSession, isAdmin } from '../../../lib/auth';
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { pool } from '../../../lib/website-db';
+import { recordAudit, clientIpFromRequest } from '../../../lib/audit-log';
 
 function readStarter(filename: string): string | null {
   const candidates = [
@@ -23,5 +25,6 @@ export const GET: APIRoute = async ({ request }) => {
   const html = readStarter(`contract-${brand}.html`);
   if (!html) return new Response('Starter not found', { status: 404 });
 
+  recordAudit(pool, { actor_id: session.sub, actor_email: session.email, action: 'brand_starter.read', ip: clientIpFromRequest(request) });
   return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
 };

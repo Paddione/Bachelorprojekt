@@ -1,6 +1,8 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { appendBugTicketComment, archiveBugTicket } from '../../../../lib/website-db';
+import { pool } from '../../../../lib/website-db';
+import { recordAudit, clientIpFromRequest } from '../../../../lib/audit-log';
 import { buildBackUrl, buildErrorUrl } from './_helpers';
 
 export const POST: APIRoute = async ({ request }) => {
@@ -46,6 +48,7 @@ export const POST: APIRoute = async ({ request }) => {
       kind: 'status_change',
       body: 'archived',
     }).catch(() => {/* best-effort */});
+    recordAudit(pool, { actor_id: session.sub, actor_email: session.email, action: 'bug.archive', target_type: 'bug', target_id: ticketId, ip: clientIpFromRequest(request) });
   } catch (err) {
     console.error('[bugs/archive] DB error:', err);
     if (isJson) {

@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../lib/auth';
 import { pool } from '../../../lib/website-db';
 import { writeControl } from '../../../lib/factory-floor';
+import { recordAudit, clientIpFromRequest } from '../../../lib/audit-log';
 
 export const prerender = false;
 
@@ -130,6 +131,7 @@ export const PATCH: APIRoute = async ({ request }) => {
         await writeControl(dbKey, mapped, session!.preferred_username);
       }
     }
+    recordAudit(pool, { actor_id: session!.sub, actor_email: session!.email, action: 'factory.control', ip: clientIpFromRequest(request) });
     const state = await getControlState();
     return new Response(JSON.stringify(state), {
       status: 200,

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { createInboundHandler, emitEvent, type BridgeDeps } from './bridge';
+import { createInboundHandler, emitEvent, type BridgeDeps, type GrillingSessionData } from './bridge';
 import type { MediaviewerHandle } from '@videovault-player';
 
 function makeHandle(): MediaviewerHandle {
@@ -17,11 +17,23 @@ function deps(overrides: Partial<BridgeDeps> = {}): BridgeDeps {
   return {
     getHandle: () => makeHandle(),
     setVideos: vi.fn(),
+    setMode: vi.fn(),
+    setGrillingData: vi.fn(),
     post: vi.fn(),
     allowedOrigins: ['https://portal.example'],
     ...overrides,
   };
 }
+
+const mockGrillingData: GrillingSessionData = {
+  ticketId: 'T000942',
+  questionnaireId: 'final-grilling-v1',
+  questions: [{ id: 'q1', label: 'Test?', section: 'S1' }],
+  hints: {},
+  suggestions: {},
+  existingAnswers: {},
+  assets: [],
+};
 
 describe('createInboundHandler', () => {
   it('ruft setVideos bei type=setVideos von erlaubter Origin', () => {
@@ -51,6 +63,20 @@ describe('createInboundHandler', () => {
     expect(handle.seek).toHaveBeenCalledWith(12);
   });
 
+  it('delegiert setMode an deps.setMode', () => {
+    const setMode = vi.fn();
+    const handler = createInboundHandler(deps({ setMode }));
+    handler({ origin: 'https://portal.example', data: { type: 'setMode', mode: 'grilling', ticketId: 'T000001' } } as MessageEvent);
+    expect(setMode).toHaveBeenCalledWith('grilling', 'T000001');
+  });
+
+  it('delegiert setGrillingData an deps.setGrillingData', () => {
+    const setGrillingData = vi.fn();
+    const handler = createInboundHandler(deps({ setGrillingData }));
+    handler({ origin: 'https://portal.example', data: { type: 'setGrillingData', data: mockGrillingData } } as MessageEvent);
+    expect(setGrillingData).toHaveBeenCalledWith(mockGrillingData);
+  });
+
   it('ignoriert Nachrichten von nicht erlaubter Origin', () => {
     const handle = makeHandle();
     const handler = createInboundHandler(deps({ getHandle: () => handle }));
@@ -64,6 +90,12 @@ describe('createInboundHandler', () => {
     handler({ origin: 'https://portal.example', data: { foo: 'bar' } } as MessageEvent);
     handler({ origin: 'https://portal.example', data: 'string-noise' } as unknown as MessageEvent);
     expect(setVideos).not.toHaveBeenCalled();
+  });
+
+  it('emitEvent postet grillingAnswer an den Parent', () => {
+    const post = vi.fn();
+    emitEvent(post, { type: 'grillingAnswer', questionId: 'q1', answer: 'Yes' });
+    expect(post).toHaveBeenCalledWith({ type: 'grillingAnswer', questionId: 'q1', answer: 'Yes' });
   });
 
   it('emitEvent postet type+payload an den Parent', () => {

@@ -3,12 +3,23 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { createRef } from 'react';
 import { MediaviewerWidget } from './MediaviewerWidget';
 import type { MediaviewerHandle, VideoSource } from '@videovault-player';
+import type { GrillingSessionData } from './embed/bridge';
 
 const mockVideos: VideoSource[] = [
   { id: 'v1', url: 'https://example.com/help1.mp4', title: 'How to use VideoVault', duration: 60 },
   { id: 'v2', url: 'https://example.com/help2.mp4', title: 'Managing categories', duration: 90 },
   { id: 'v3', url: 'https://example.com/help3.mp4', title: 'Batch operations', duration: 120 },
 ];
+
+const mockGrillingData: GrillingSessionData = {
+  ticketId: 'T000942',
+  questionnaireId: 'final-grilling-v1',
+  questions: [{ id: 'q1', label: 'Was ist das Kernproblem?', section: '1. Anforderungsklärung' }],
+  hints: {},
+  suggestions: {},
+  existingAnswers: {},
+  assets: [],
+};
 
 describe('MediaviewerWidget', () => {
   it('renders picker with all help video titles', () => {
@@ -59,5 +70,24 @@ describe('MediaviewerWidget', () => {
     fireEvent.click(screen.getByText('How to use VideoVault'));
     // VideoPlayer should be rendered
     expect(screen.getByTestId('video-player')).toBeInTheDocument();
+  });
+
+  it('renders GrillingSessionView when mode=grilling with data', () => {
+    render(
+      <MediaviewerWidget
+        videos={[]}
+        onSelect={() => {}}
+        mode="grilling"
+        grillingData={mockGrillingData}
+      />,
+    );
+    expect(screen.getByText('Final Grilling')).toBeInTheDocument();
+    expect(screen.getByText('Was ist das Kernproblem?')).toBeInTheDocument();
+    expect(screen.getByTestId('mediaviewer-widget').getAttribute('data-mode')).toBe('grilling');
+  });
+
+  it('renders video mode by default', () => {
+    render(<MediaviewerWidget videos={mockVideos} onSelect={() => {}} />);
+    expect(screen.getByTestId('mediaviewer-widget').getAttribute('data-mode')).toBe('video');
   });
 });

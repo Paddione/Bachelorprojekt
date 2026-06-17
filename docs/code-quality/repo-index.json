@@ -1979,7 +1979,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 413,
+      "file_count": 414,
       "files": [
         "claude-code/gekko-android-mcp-guide.md",
         "claude-code/settings.json",
@@ -2212,6 +2212,7 @@
         "k3d/mediaviewer-widget.yaml",
         "k3d/monitoring/alertmanager-config.yaml",
         "k3d/monitoring/alertmanager-pushover-secret.yaml",
+        "k3d/monitoring/alertmanager-smtp-secret.yaml",
         "k3d/monitoring/grafana-dashboards/factory-otel.json",
         "k3d/monitoring/grafana-dashboards/kubernetes-overview.json",
         "k3d/monitoring/grafana-dashboards/kustomization.yaml",

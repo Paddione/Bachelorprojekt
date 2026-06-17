@@ -1,0 +1,61 @@
+---
+import fs from 'fs';
+import path from 'path';
+import YAML from 'yaml';
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import AppCatalog from '../../components/admin/AppCatalog.svelte';
+import { getSession, isAdmin } from '../../lib/auth';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session || !isAdmin(session)) return Astro.redirect('/login');
+
+const env = process.env.CLUSTER_ENV ?? 'dev';
+const brandId = process.env.BRAND_ID ?? 'mentolder';
+
+const appsDir = path.resolve('apps');
+const apps = [];
+
+if (fs.existsSync(appsDir)) {
+  const dirs = fs.readdirSync(appsDir);
+  for (const dir of dirs) {
+    const appYamlPath = path.join(appsDir, dir, 'app.yaml');
+    if (fs.existsSync(appYamlPath)) {
+      try {
+        const content = fs.readFileSync(appYamlPath, 'utf8');
+        const parsed = YAML.parse(content);
+        apps.push({
+          name: parsed.name,
+          title: parsed.title,
+          description: parsed.description,
+          kustomize: parsed.kustomize,
+          domains: parsed.domains || [],
+          oidc: parsed.oidc || null,
+          secrets: parsed.secrets || [],
+          requires: parsed.requires || [],
+          resources: parsed.resources || null
+        });
+      } catch (err) {
+        console.error(`Error parsing manifest for ${dir}:`, err);
+      }
+    }
+  }
+}
+
+// Read installed status
+let installedApps = [];
+const registryPath = path.resolve(`apps/installed-${env}.json`);
+if (fs.existsSync(registryPath)) {
+  try {
+    const registryContent = fs.readFileSync(registryPath, 'utf8');
+    if (registryContent.trim()) {
+      installedApps = JSON.parse(registryContent);
+    }
+  } catch (err) {
+    console.error('Error reading installed apps registry:', err);
+  }
+}
+---
+
+<AdminLayout title="App-Katalog">
+  <AppCatalog {apps} {installedApps} {env} {brandId} client:load />
+</AdminLayout>

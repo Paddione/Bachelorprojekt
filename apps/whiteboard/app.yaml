@@ -1,0 +1,13 @@
+name: whiteboard
+title: "Whiteboard"
+description: "Kollaboratives Whiteboard für Teams"
+kustomize: k3d/whiteboard
+domains:
+  - key: WHITEBOARD_DOMAIN
+    host: "board.${PROD_DOMAIN}"
+secrets:
+  - WHITEBOARD_JWT_SECRET
+requires: []
+resources:
+  cpu: "200m"
+  memory: "256Mi"

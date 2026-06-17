@@ -2415,7 +2415,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 383,
+      "file_count": 384,
       "files": [
         "scripts/add-whiteboard-library.py",
         "scripts/admin-menu-gate.sh",
@@ -2788,6 +2788,7 @@
         "scripts/vda/factory/slots.sh",
         "scripts/vda/frontmatter.sh",
         "scripts/vda/oracle.sh",
+        "scripts/vda/promote.sh",
         "scripts/vda/ticket.sh",
         "scripts/vda/ticket/_ticket-core.sh",
         "scripts/vda/ticket/create.sh",

@@ -6,11 +6,15 @@
     roomId,
     role,
     senderId,
+    onclose,
+    onshare,
   }: {
     messagesBaseUrl: string;
     roomId: number;
     role: 'admin' | 'user';
     senderId: string;
+    onclose?: () => void;
+    onshare?: (msg: ChatMessage) => void;
   } = $props();
 
   let closed = $state(false);
@@ -21,9 +25,6 @@
   let shareNote = $state('');
   let shareSending = $state(false);
   let shareError = $state('');
-
-  const onclose = $props()['onclose'] as (() => void) | undefined;
-  const onshare = $props()['onshare'] as ((msg: ChatMessage) => void) | undefined;
 
   function handleClose() {
     sharePath = '';

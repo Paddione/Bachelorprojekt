@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
-import { getSession, isAdmin } from '../../../../lib/auth';
-import { getRoom, addRoomMessage } from '../../../../lib/messaging-db';
-import { assertPathAllowed, createShareLink } from '../../../../lib/nextcloud-shares';
+import { getSession, isAdmin } from '../../../../../lib/auth';
+import { getRoom, addRoomMessage } from '../../../../../lib/messaging-db';
+import { assertPathAllowed, createShareLink } from '../../../../../lib/nextcloud-shares';
 
 export const POST: APIRoute = async ({ request, params }) => {
   const session = await getSession(request.headers.get('cookie'));

@@ -71,3 +71,30 @@ spec:
           annotations:
             summary: "Hohe 5xx-Rate auf Router {{ $labels.router }}"
             description: "Mehr als 1% HTTP-5xx-Fehler für 5 Minuten: {{ $value | humanizePercentage }}"
+        - alert: PodRestartSpike
+          expr: |
+            rate(kube_pod_container_status_restarts_total{namespace=~"workspace|workspace-korczewski"}[15m]) * 60 > 3
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Pod {{ $labels.pod }} restarted frequently ({{ $labels.namespace }})"
+            description: "Pod {{ $labels.pod }} ({{ $labels.namespace }}) hat {{ $value | humanize }} Restarts/min in den letzten 15 Minuten."
+        - alert: NodeHighCPUUsage
+          expr: |
+            (1 - avg by (instance)(rate(node_cpu_seconds_total{mode="idle"}[5m]))) > 0.9
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Node CPU-Auslastung > 90% ({{ $labels.instance }})"
+            description: "Node {{ $labels.instance }} hat > 90% CPU-Auslastung für 10 Minuten."
+        - alert: NodeFilesystemAlmostFull
+          expr: |
+            (1 - node_filesystem_avail_bytes{fstype!="",mountpoint="/"} / node_filesystem_size_bytes{fstype!="",mountpoint="/"}) > 0.85
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Node-Root-Filesystem fast voll ({{ $labels.instance }})"
+            description: "Node {{ $labels.instance }} Root-FS ({{ $labels.mountpoint }}) > 85% voll."

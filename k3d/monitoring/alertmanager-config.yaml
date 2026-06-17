@@ -1,7 +1,7 @@
 apiVersion: monitoring.coreos.com/v1alpha1
 kind: AlertmanagerConfig
 metadata:
-  name: pushover
+  name: workspace-alerts
   namespace: monitoring
   labels:
     release: monitoring
@@ -11,13 +11,25 @@ spec:
     groupWait: 30s
     groupInterval: 5m
     repeatInterval: 4h
-    receiver: pushover
+    receiver: email
     routes:
       - matchers:
           - name: severity
             value: critical
         receiver: pushover
+        continue: true
   receivers:
+    - name: email
+      emailConfigs:
+        - sendResolved: true
+          to: ${CONTACT_EMAIL}
+          from: ${SMTP_FROM}
+          smarthost: ${SMTP_HOST}:${SMTP_PORT}
+          authUsername: ${SMTP_USER}
+          authPassword:
+            name: alertmanager-smtp
+            key: SMTP_PASSWORD
+          requireTLS: true
     - name: pushover
       pushoverConfigs:
         - sendResolved: true

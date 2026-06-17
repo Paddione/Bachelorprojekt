@@ -13,6 +13,12 @@ patches:
       kind: Secret
       metadata: { name: alertmanager-pushover }
       $patch: delete
+  - target: { kind: Secret, name: alertmanager-smtp }
+    patch: |
+      apiVersion: v1
+      kind: Secret
+      metadata: { name: alertmanager-smtp }
+      $patch: delete
   - target: { kind: Secret, name: grafana-oidc }
     patch: |
       apiVersion: v1

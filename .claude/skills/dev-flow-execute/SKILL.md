@@ -448,10 +448,36 @@ Rufe `dev-flow-iterate` auf, um Änderungen im dev-Cluster zu testen.
 
 ```bash
 # Branch-Guard prüfen
+BASE_SHA="$(git rev-parse "@{upstream}" 2>/dev/null || git rev-parse origin/main)"
 git add -A
-git commit -m "<type>(<scope>): <subject>" # commitlint regeln beachten (<100 Zeichen Subject/Header)
+git commit -m "<type>(<scope>): <subject> [<TICKET_ID>]" # commitlint regeln beachten (<100 Zeichen Subject/Header)
 # Closes T000XXX im Body bei Fixes
+
+# Verify commit landed — git-crypt clean filter can cause silent commit failures
+# in worktrees, and an un-chained push would send an empty branch. [T000925]
+HEAD_SHA="$(git rev-parse HEAD)"
+if [ "$HEAD_SHA" = "$BASE_SHA" ]; then
+  echo "FATAL: commit did not land (git-crypt clean filter?). Push aborted." >&2
+  exit 1
+fi
+
+# Validate PR title scope BEFORE creating the PR — prevents a full CI cycle loss
+# when the scope is not in the semantic-PR allowlist (e.g. 'cockpit' instead of 'admin'). [T000925]
+bash scripts/preflight-pr-scope.sh "<type>(<scope>): <subject>"
+if [ $? -ne 0 ]; then
+  echo "FATAL: PR title scope failed preflight — fix the scope and retry." >&2
+  exit 1
+fi
+
+git push -u origin "$(git rev-parse --abbrev-ref HEAD)"
 ```
+
+> **Titel nachträglich editieren (REST-Fallback):** `gh pr edit --title` scheitert
+> gelegentlich an einer Projects-Classic-GraphQL-Deprecation. Nutze stattdessen:
+> ```bash
+> gh api -X PATCH "repos/{owner}/{repo}/pulls/<n>" -f title="<neuer Titel>"
+> ```
+> Der Preflight (oben) sollte Titel-Edits aber überflüssig machen. [T000925]
 
 Rufe `commit-commands:commit-push-pr` auf (oder führe `gh pr create` manuell aus).
 

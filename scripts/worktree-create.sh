@@ -7,9 +7,11 @@
 # rolled back — even when the MAIN checkout is unlocked. This wrapper creates the
 # worktree WITHOUT checkout, then either (a) copies the git-crypt key into the
 # worktree gitdir so checkout decrypts normally and ALL later git ops work
-# (unlocked repo), or (b) neutralizes the git-crypt filters worktree-locally so
-# checkout and later git ops pass encrypted blobs through verbatim, no key needed
-# (locked repo). Finally it inits submodules (the BATS runner lives in one).
+# (unlocked repo — key present but clean/required neutralized to prevent commit
+# failures on git-crypt-managed files), or (b) neutralizes ALL git-crypt filters
+# worktree-locally so checkout and later git ops pass encrypted blobs through
+# verbatim, no key needed (locked repo). [T000925]
+# Finally it inits submodules (the BATS runner lives in one).
 #
 # Usage: scripts/worktree-create.sh <branch> <path> [<base>]
 #   <branch>  branch name, e.g. fix/foo. If it already exists (locally or on
@@ -68,8 +70,13 @@ WT_GITDIR="$(git -C "$WT_PATH" rev-parse --absolute-git-dir)"
 
 if [ -f "$KEY_SRC" ]; then
     # Unlocked: give the worktree its own copy of the key → real decryption.
+    # Also neutralize clean/required so `git commit` of a git-crypt-managed file
+    # never fails on a broken clean filter in the worktree gitdir. [T000925]
     mkdir -p "$WT_GITDIR/git-crypt/keys"
     cp "$KEY_SRC" "$WT_GITDIR/git-crypt/keys/default"
+    git -C "$WT_PATH" config extensions.worktreeConfig true
+    git -C "$WT_PATH" config --worktree filter.git-crypt.clean    cat
+    git -C "$WT_PATH" config --worktree filter.git-crypt.required false
     git -C "$WT_PATH" checkout
 else
     # Locked (no key): neutralize git-crypt filters worktree-locally so checkout

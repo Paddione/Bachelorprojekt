@@ -60,7 +60,7 @@ data:
       DECLARE
         s TEXT;
       BEGIN
-        FOREACH s IN ARRAY ARRAY['public','arena','bugs','bachelorprojekt','platform','meetings'] LOOP
+        FOREACH s IN ARRAY ARRAY['public','arena','bugs','bachelorprojekt','platform','meetings','audit'] LOOP
           IF EXISTS (SELECT FROM pg_namespace WHERE nspname = s) THEN
             EXECUTE format('GRANT USAGE ON SCHEMA %I TO website', s);
             EXECUTE format('GRANT SELECT ON ALL TABLES IN SCHEMA %I TO website', s);
@@ -198,6 +198,25 @@ data:
         ADD COLUMN IF NOT EXISTS fixed_in_pr      INTEGER,
         ADD COLUMN IF NOT EXISTS fixed_at         TIMESTAMPTZ;
       CREATE INDEX IF NOT EXISTS idx_bug_tickets_fixed_in_pr ON bugs.bug_tickets (fixed_in_pr);
+
+      -- ── Security Audit Log ──────────────────────────────────────────
+      CREATE SCHEMA IF NOT EXISTS audit AUTHORIZATION website;
+
+      CREATE TABLE IF NOT EXISTS audit.audit_log (
+        id          bigserial PRIMARY KEY,
+        actor_id    text,
+        actor_email text,
+        action      text NOT NULL,
+        target_type text,
+        target_id   text,
+        ip          inet,
+        ts          timestamptz NOT NULL DEFAULT now(),
+        metadata    jsonb
+      );
+      ALTER TABLE audit.audit_log OWNER TO website;
+      CREATE INDEX IF NOT EXISTS audit_log_ts_idx ON audit.audit_log (ts DESC);
+      CREATE INDEX IF NOT EXISTS audit_log_actor_idx ON audit.audit_log (actor_id, ts DESC);
+      CREATE INDEX IF NOT EXISTS audit_log_action_idx ON audit.audit_log (action, ts DESC);
 
       -- ── Coaching Knowledge Pipeline ─────────────────────────────────
       CREATE SCHEMA IF NOT EXISTS coaching AUTHORIZATION website;
@@ -816,7 +835,7 @@ data:
       DECLARE
         s TEXT;
       BEGIN
-        FOREACH s IN ARRAY ARRAY['public','arena','bugs','bachelorprojekt','platform','meetings'] LOOP
+        FOREACH s IN ARRAY ARRAY['public','arena','bugs','bachelorprojekt','platform','meetings','audit'] LOOP
           IF EXISTS (SELECT FROM pg_namespace WHERE nspname = s) THEN
             EXECUTE format('GRANT USAGE ON SCHEMA %I TO website', s);
             EXECUTE format('GRANT SELECT ON ALL TABLES IN SCHEMA %I TO website', s);
@@ -963,6 +982,25 @@ data:
         ADD COLUMN IF NOT EXISTS fixed_in_pr      INTEGER,
         ADD COLUMN IF NOT EXISTS fixed_at         TIMESTAMPTZ;
       CREATE INDEX IF NOT EXISTS idx_bug_tickets_fixed_in_pr ON bugs.bug_tickets (fixed_in_pr);
+
+      -- ── Security Audit Log ──────────────────────────────────────────
+      CREATE SCHEMA IF NOT EXISTS audit AUTHORIZATION website;
+
+      CREATE TABLE IF NOT EXISTS audit.audit_log (
+        id          bigserial PRIMARY KEY,
+        actor_id    text,
+        actor_email text,
+        action      text NOT NULL,
+        target_type text,
+        target_id   text,
+        ip          inet,
+        ts          timestamptz NOT NULL DEFAULT now(),
+        metadata    jsonb
+      );
+      ALTER TABLE audit.audit_log OWNER TO website;
+      CREATE INDEX IF NOT EXISTS audit_log_ts_idx ON audit.audit_log (ts DESC);
+      CREATE INDEX IF NOT EXISTS audit_log_actor_idx ON audit.audit_log (actor_id, ts DESC);
+      CREATE INDEX IF NOT EXISTS audit_log_action_idx ON audit.audit_log (action, ts DESC);
 
       -- ── Coaching Knowledge Pipeline ─────────────────────────────────
       CREATE SCHEMA IF NOT EXISTS coaching AUTHORIZATION website;

@@ -257,6 +257,7 @@ tasks:
       - '[ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive'
       - task: test:unit:assert
       - task: test:unit:scripts
+      - task: test:unit:changed-manifests
       - task: test:unit:agents
       - task: test:unit:figure-pack
       - task: test:unit:discover-versions
@@ -280,6 +281,7 @@ tasks:
       - task: test:unit:ticket-grill
       - task: test:unit:ticket-lastenheft
       - task: test:unit:worktree-create
+      - task: test:unit:preflight-pr-scope
       - task: test:unit:test-tasks-node-deps
       - task: test:unit:quality-loop
       - task: test:unit:vda-core
@@ -371,6 +373,11 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/ticket-triage.bats
+
+  test:unit:changed-manifests:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/changed-manifests.bats
 
   test:unit:collabora-wopi-discovery:
     internal: true
@@ -516,6 +523,11 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/worktree-create.bats
+
+  test:unit:preflight-pr-scope:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/preflight-pr-scope.bats
 
   test:unit:test-tasks-node-deps:
     internal: true
@@ -2360,7 +2372,7 @@ tasks:
           LLM_HOST_IP="${LLM_HOST_IP:-172.17.0.1}" \
           LLM_ROUTER_URL="${LLM_ROUTER_URL:-http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234}" \
           LLM_EMBED_URL="${LLM_EMBED_URL:-http://llm-gateway-embed.workspace.svc.cluster.local:8081}" \
-            kustomize build k3d/ --load-restrictor=LoadRestrictionsNone | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$BRAND_ID \$LIVEKIT_DOMAIN \$STREAM_DOMAIN \$SYSTEMTEST_LOOP_ENABLED \$ARENA_WS_URL \$LLM_ENABLED \$LLM_RERANK_ENABLED \$LLM_HOST_IP \$LLM_ROUTER_URL \$LLM_EMBED_URL \$WEBSITE_NAMESPACE" | sed -E 's/\$\$([a-zA-Z0-9_]|\{)/$\1/g' | kubectl apply --server-side --force-conflicts -f -
+            kustomize build k3d/ --load-restrictor=LoadRestrictionsNone | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$BRAND_ID \$LIVEKIT_DOMAIN \$STREAM_DOMAIN \$SYSTEMTEST_LOOP_ENABLED \$ARENA_WS_URL \$LLM_ENABLED \$LLM_RERANK_ENABLED \$LLM_HOST_IP \$LLM_ROUTER_URL \$LLM_EMBED_URL \$WEBSITE_NAMESPACE \$SMTP_FROM \$SMTP_HOST \$SMTP_PORT \$SMTP_USER" | sed -E 's/\$\$([a-zA-Z0-9_]|\{)/$\1/g' | kubectl apply --server-side --force-conflicts -f -
           # Tests retention CronJob — applied separately so its Role+RoleBinding
           # can land in WEBSITE_NAMESPACE (kustomize's top-level namespace
           # transformer would otherwise force them into workspace).

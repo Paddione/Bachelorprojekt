@@ -1,6 +1,7 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import Cockpit from '../../components/admin/Cockpit.svelte';
+import AdminPageHeader from '../../components/admin/ui/AdminPageHeader.svelte';
 import { getSession, isAdmin } from '../../lib/auth';
 import { getPortfolio } from '../../lib/tickets/cockpit-db';
 
@@ -19,5 +20,11 @@ try {
 ---
 
 <AdminLayout title="Projekt-Cockpit">
+  <div style="max-width:88rem; margin:0 auto; padding:1.5rem 1.5rem 0;">
+    <AdminPageHeader
+      title="Cockpit"
+      description="Ticket-Board, Bugs und Factory-Übersicht"
+    />
+  </div>
   <Cockpit {portfolioInitial} {brand} client:load />
 </AdminLayout>

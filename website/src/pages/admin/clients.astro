@@ -1,5 +1,8 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../components/admin/ui/AdminPageHeader.svelte';
+import AdminTabs from '../../components/admin/ui/AdminTabs.svelte';
+import AdminBadge from '../../components/admin/ui/AdminBadge.svelte';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { listUsers } from '../../lib/keycloak';
 import type { KcUser } from '../../lib/keycloak';
@@ -33,21 +36,21 @@ try {
 } catch {
   // DB unavailable
 }
+const clientTabs = [
+  { id: '/admin/clients',  label: 'Klienten', href: '/admin/clients' },
+  { id: '/admin/meetings', label: 'Meetings', href: '/admin/meetings' },
+];
 ---
 
 <AdminLayout title="Admin — Clients">
-  <div style="border-bottom:1px solid var(--line);padding:0 2rem;display:flex;gap:0;overflow-x:auto;flex-shrink:0;">
-    <a href="/admin/clients" style="display:inline-flex;align-items:center;padding:12px 16px;font-size:13px;font-weight:500;border-bottom:2px solid var(--brass);color:var(--brass);text-decoration:none;white-space:nowrap;margin-bottom:-1px;">Klienten</a>
-    <a href="/admin/meetings" style="display:inline-flex;align-items:center;padding:12px 16px;font-size:13px;font-weight:500;border-bottom:2px solid transparent;color:var(--fg-soft);text-decoration:none;white-space:nowrap;transition:color 0.15s ease,border-color 0.15s ease;margin-bottom:-1px;">Meetings</a>
+  <div style="border-bottom:1px solid var(--line);padding:0 2rem;flex-shrink:0;">
+    <AdminTabs tabs={clientTabs} active="/admin/clients" client:load />
   </div>
   <section class="pt-10 pb-20 bg-dark min-h-screen">
     <div class="max-w-5xl mx-auto px-6">
       <div class="mb-8 flex items-center justify-between">
-        <div>
-          <h1 class="text-3xl font-bold text-light font-serif">Clients</h1>
-          <p class="text-muted mt-1">{users.length} Benutzer</p>
-        </div>
-        <div class="flex gap-2">
+        <AdminPageHeader title="Klienten" description={`${users.length} Benutzer`} />
+        <div class="flex gap-2" style="flex-shrink:0;">
           <!-- View toggle -->
           <div class="flex border border-dark-lighter rounded-lg overflow-hidden" id="view-toggle">
             <button id="view-grid-btn" title="Kachelansicht"

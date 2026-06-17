@@ -69,7 +69,8 @@ for kw in "${TITLE_WORDS[@]:-}"; do
   for d in "${SRC_DIRS[@]}"; do
     [[ -d "$d" ]] || continue
     grep -rliF \
-      --include="*.ts" --include="*.js" --include="*.svelte" --include="*.astro" \
+      --include="*.ts" --include="*.js" --include="*.mjs" --include="*.cjs" \
+      --include="*.svelte" --include="*.astro" \
       --include="*.yaml" --include="*.yml" --include="*.sh" \
       -- "$kw" "$d" 2>/dev/null | head -20
   done
@@ -81,7 +82,8 @@ if [[ ${#SLUG_PARTS[@]} -gt 0 ]]; then
   for d in "${SRC_DIRS[@]}"; do
     [[ -d "$d" ]] || continue
     find "$d" -type f \
-      \( -name "*.ts" -o -name "*.js" -o -name "*.svelte" -o -name "*.astro" \) \
+      \( -name "*.ts" -o -name "*.js" -o -name "*.mjs" -o -name "*.cjs" \
+         -o -name "*.svelte" -o -name "*.astro" \) \
       2>/dev/null | grep -iE -- "$slug_re" | head -20
   done >> "$tmp_hits"
 fi
@@ -109,6 +111,33 @@ mapfile -t TOUCHED < <(
 # Limit total to 30 files
 if [[ ${#TOUCHED[@]} -gt 30 ]]; then
   TOUCHED=("${TOUCHED[@]:0:30}")
+fi
+
+# ── Phase 2b: LLM fallback (hybrid scout) ─────────────────────────────────────
+# When deterministic discovery finds fewer than SCOUT_LLM_MIN_FILES (default 2)
+# and the fallback is not explicitly disabled, invoke DeepSeek for additional paths.
+# Fail-soft: on any error the deterministic result stays untainted.
+SCOUT_LLM_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ ${#TOUCHED[@]} -lt ${SCOUT_LLM_MIN_FILES:-2} && "${SCOUT_LLM_ENABLED:-}" != "false" ]]; then
+  if [[ -x "$SCOUT_LLM_ROOT/scout-llm-fallback.sh" ]]; then
+    mapfile -t LLM_PATHS < <(
+      bash "$SCOUT_LLM_ROOT/scout-llm-fallback.sh" \
+        --title "$TITLE" --slug "$SLUG" --description "$DESCRIPTION" --repo "$REPO" \
+        2>/dev/null || true
+    )
+    for llm_p in "${LLM_PATHS[@]:-}"; do
+      [[ -z "$llm_p" ]] && continue
+      TOUCHED+=("$llm_p")
+    done
+    # Re-deduplicate after merge
+    if [[ ${#TOUCHED[@]} -gt 0 ]]; then
+      mapfile -t TOUCHED < <(printf '%s\n' "${TOUCHED[@]}" | sort -u)
+    fi
+    # Re-cap at 30
+    if [[ ${#TOUCHED[@]} -gt 30 ]]; then
+      TOUCHED=("${TOUCHED[@]:0:30}")
+    fi
+  fi
 fi
 
 # ── Phase 3: Complexity classification ───────────────────────────────────────

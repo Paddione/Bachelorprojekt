@@ -88,3 +88,11 @@ setup() {
   # Assert the old LLM scout prompt phrase is gone.
   ! grep -q "Scout the feature" "$PIPELINE"
 }
+
+@test "scout.sh with SCOUT_LLM_ENABLED=false runs deterministic path only (no crash, valid JSON)" {
+  run env SCOUT_LLM_ENABLED=false bash "$SCOUT" --title "zzzxqq fffvvv" --slug "" --repo "$REPO_ROOT"
+  [ "$status" -eq 0 ]
+  echo "$output" | jq -e . >/dev/null
+  c="$(echo "$output" | jq -r '.complexity')"
+  [ "$c" = "medium" ]
+}

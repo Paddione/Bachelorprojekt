@@ -16,13 +16,14 @@ import {
 
 // The declared expectation, independent of the implementation. Front→back, linear lanes only.
 const EXPECTED_LINEAR_STATUSES = [
-  'triage', 'planning', 'plan_staged', 'backlog', 'in_progress', 'in_review', 'qa_review', 'done',
+  'triage', 'planning', 'plan_staged', 'backlog', 'in_progress', 'in_review', 'qa_review', 'awaiting_deploy', 'done',
 ] as const;
 
 // The byte-identical bucket map the codebase shipped before centralization.
 const EXPECTED_BUCKETS: Record<string, LaneKey> = {
   triage: 'planning', planning: 'planning', plan_staged: 'staged', backlog: 'loadingDock',
   in_progress: 'hall', in_review: 'hall', blocked: 'attention', qa_review: 'qa',
+  awaiting_deploy: 'awaitingDeploy',
   done: 'shipped', archived: 'archive',
 };
 

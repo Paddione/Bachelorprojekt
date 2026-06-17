@@ -80,6 +80,7 @@ _grill_parse_doc() {
 }
 
 cmd_grill() {
+  echo "⚠ ticket-grill.sh/cmd_grill is deprecated. Use: vda.sh ticket triage --id <id>" >&2
   local id="" questionnaire="coaching-sessions-v1" json="" answers_file="" grilling_doc="" no_comment="false" dry_run_json=""
   local -a answers=()
   while [[ $# -gt 0 ]]; do case "$1" in

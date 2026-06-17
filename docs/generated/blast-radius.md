@@ -1,6 +1,6 @@
 # Blast-Radius-Report
-> Generated: 2026-06-16T17:08:43.979Z
-> Nodes: 79 | Edges: 1614 | Isolated: 2
+> Generated: 2026-06-17T02:57:01.832Z
+> Nodes: 82 | Edges: 1617 | Isolated: 2
 
 ## Ranking (transitive Abhängige)
 
@@ -67,17 +67,18 @@
 | 59 | bachelorprojekt | 1 | 53 | 1 |
 | 60 | tracking | 1 | 53 | 1 |
 | 61 | docuseal | 1 | 53 | 1 |
-| 62 | claude-code-mcp-auth | 1 | 1 | 1 |
-| 63 | mcp-browser | 1 | 1 | 1 |
-| 64 | mcp-auth-proxy-dev | 1 | 1 | 1 |
-| 65 | docs | 1 | 1 | 1 |
-| 66 | einvoice-sidecar | 1 | 1 | 1 |
-| 67 | mediaviewer-widget | 1 | 1 | 1 |
-| 68 | monitoring-kube-state-metrics | 1 | 1 | 1 |
-| 69 | monitoring-operator | 1 | 1 | 1 |
-| 70 | nextcloud-redis | 1 | 1 | 1 |
-| 71 | sealed-secrets-controller | 1 | 1 | 1 |
-| 72 | whisper | 1 | 1 | 1 |
+| 62 | loki | 3 | 3 | 3 |
+| 63 | claude-code-mcp-auth | 1 | 1 | 1 |
+| 64 | mcp-browser | 1 | 1 | 1 |
+| 65 | mcp-auth-proxy-dev | 1 | 1 | 1 |
+| 66 | docs | 1 | 1 | 1 |
+| 67 | einvoice-sidecar | 1 | 1 | 1 |
+| 68 | mediaviewer-widget | 1 | 1 | 1 |
+| 69 | monitoring-kube-state-metrics | 1 | 1 | 1 |
+| 70 | monitoring-operator | 1 | 1 | 1 |
+| 71 | nextcloud-redis | 1 | 1 | 1 |
+| 72 | sealed-secrets-controller | 1 | 1 | 1 |
+| 73 | whisper | 1 | 1 | 1 |
 
 ## Details
 
@@ -385,6 +386,11 @@
 **Direkte Abhängige:** 1 — shared-db
 **Transitive Abhängige:** 53 — admin-actions-cleanup, admin-actions-prune, arena-server, billing-dunning-detection, brett, claude-code-mcp-auth, claude-code-mcp-monolith, claude-code-mcp-ops, db-backup, ddns-updater, dev-db-refresh, keycloak, knowledge-ingest-bugs, knowledge-ingest-markdown, knowledge-ingest-prs, knowledge-reindex-all, livekit-egress, livekit-ingress, livekit-server, mcp-auth-proxy-dev, mcp-github, monitoring-grafana, monthly-billing, nextcloud, notify-unread, oauth2-proxy-brainstorm, oauth2-proxy-brett, oauth2-proxy-comfy, oauth2-proxy-dev, oauth2-proxy-docs, oauth2-proxy-mailpit, oauth2-proxy-mediaviewer, oauth2-proxy-recovery, oauth2-proxy-traefik, oauth2-proxy-videovault, pvc-backup, scheduled-publish, shared-db, shared-db-dev, shared-db-dev-lb, shared-db-staging, spreed-signaling, systemtest-cleanup, systemtest-outbox, systemtest-purge-all, talk-recording, talk-transcriber, tests-results-retention, traefik, vaultwarden, videovault, website, whiteboard
 **Upstream (In-Degree):** 1
+
+### loki
+**Direkte Abhängige:** 3 — loki, loki-headless, loki-memberlist
+**Transitive Abhängige:** 3 — loki, loki-headless, loki-memberlist
+**Upstream (In-Degree):** 3
 
 ### claude-code-mcp-auth
 **Direkte Abhängige:** 1 — claude-code-mcp-auth

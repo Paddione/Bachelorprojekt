@@ -117,3 +117,17 @@ MD
   echo "$output" | grep -q '"answers":{"q1":"A."}'
   echo "$output" | grep -q '"id":"q2"'
 }
+
+@test "grill emits deprecation warning on stderr" {
+  run --separate-stderr bash "$TICKET" grill --id T000123 --answer q1=foo
+  [ "$status" -eq 0 ]
+  [[ "$stderr" == *"deprecated"* ]]
+  [[ "$stderr" == *"vda.sh ticket triage"* ]]
+}
+
+@test "grill stdout shape unchanged despite deprecation" {
+  run --separate-stderr bash "$TICKET" grill --id T000123 --answer q1=foo
+  [ "$status" -eq 0 ]
+  [[ "$output" == "Grilling session"* ]]
+  [[ "$output" != *"deprecated"* ]]
+}

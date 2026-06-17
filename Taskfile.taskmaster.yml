@@ -1,0 +1,53 @@
+# https://taskfile.dev
+version: "3"
+
+tasks:
+  list:
+    desc: "List all Task Master tasks"
+    cmds:
+      - npx -y -p task-master-ai task-master list {{.CLI_ARGS}}
+
+  next:
+    desc: "Show the next task to work on based on dependencies"
+    cmds:
+      - npx -y -p task-master-ai task-master next {{.CLI_ARGS}}
+
+  show:
+    desc: "Show detailed info for a specific task"
+    cmds:
+      - npx -y -p task-master-ai task-master show {{.CLI_ARGS}}
+
+  add:
+    desc: "Add a new task using AI"
+    cmds:
+      - npx -y -p task-master-ai task-master add-task {{.CLI_ARGS}}
+
+  remove:
+    desc: "Remove a task or subtask"
+    cmds:
+      - npx -y -p task-master-ai task-master remove-task {{.CLI_ARGS}}
+
+  expand:
+    desc: "Break down a task into detailed subtasks"
+    cmds:
+      - npx -y -p task-master-ai task-master expand {{.CLI_ARGS}}
+
+  research:
+    desc: "Perform AI-powered research with project context"
+    cmds:
+      - npx -y -p task-master-ai task-master research {{.CLI_ARGS}}
+
+  sync:
+    desc: "Sync tasks to README.md"
+    cmds:
+      - npx -y -p task-master-ai task-master sync-readme {{.CLI_ARGS}}
+
+  tags:
+    desc: "Manage tag context for tasks"
+    cmds:
+      - npx -y -p task-master-ai task-master tags {{.CLI_ARGS}}
+
+  mcp:
+    desc: "Start Task Master MCP server"
+    cmds:
+      - npx -y task-master-ai

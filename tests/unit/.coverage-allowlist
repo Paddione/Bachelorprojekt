@@ -60,3 +60,6 @@ newsletter-scheduled-publish
 #
 # --- Requires a live API server (graph API integration — needs Kubernetes cluster):
 T000668-graph-api
+#
+# --- Requires VDA core + DB/cluster (factory slot operations):
+vda-factory-slots

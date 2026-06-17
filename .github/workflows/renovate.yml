@@ -1,0 +1,51 @@
+name: Renovate
+
+# Self-hosted Renovate dependency update bot.
+# Spec:  docs/superpowers/specs/2026-06-17-t000898-design.md
+# Plan:  docs/superpowers/plans/2026-06-17-t000898.md
+# Setup: A dedicated GitHub App token must be stored as repo secret RENOVATE_TOKEN.
+#        See PR description for setup steps. Without the secret, this workflow fails.
+#
+# First run: trigger manually via workflow_dispatch after setting RENOVATE_TOKEN.
+
+on:
+  schedule:
+    # Monday 07:00 UTC (≈ 08:00/09:00 Berlin depending on DST)
+    - cron: '0 7 * * 1'
+  workflow_dispatch:
+    # Manual trigger — only available to repo members.
+
+concurrency:
+  # Prevent overlapping Renovate runs.
+  group: renovate-${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  renovate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      # Required: Renovate opens/updates PRs and writes to branches.
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Self-hosted Renovate
+        # SHA-gepinnt (Supply-Chain: Action erhaelt RENOVATE_TOKEN).
+        # v46.1.15 (2026-06). Bump via Review / Renovate selbst; nie @latest
+        # fuer secret-tragende Third-Party-Actions.
+        uses: renovatebot/github-action@8217b3fc286df088d7c27f3255fe8414463bc0fd  # v46.1.15
+        env:
+          # Dedicated GitHub App installation token.
+          RENOVATE_TOKEN: ${{ secrets.RENOVATE_TOKEN }}
+          # Log level for debugging.
+          LOG_LEVEL: ${{ vars.RENOVATE_LOG_LEVEL || 'info' }}
+        with:
+          configurationFile: renovate.json5
+          token: ${{ secrets.RENOVATE_TOKEN }}

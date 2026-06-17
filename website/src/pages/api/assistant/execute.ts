@@ -22,7 +22,7 @@ export const POST: APIRoute = async ({ request }) => {
   if (typeof actionId !== 'string' || !actionId) return json({ error: 'missing actionId' }, 400);
 
   try {
-    const result = await executeAction(actionId, { profile, userSub: session.sub, payload: payload ?? {} });
+    const result = await executeAction(actionId, { profile, userSub: session.sub, preferredUsername: session.preferred_username, payload: payload ?? {} });
     return json({ result });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'execute failed';

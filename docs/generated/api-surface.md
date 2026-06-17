@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-06-17T02:38:37.899Z
+> Generated at 2026-06-17T14:17:36.400Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -133,6 +133,9 @@
 | `/api/admin/evidence/upload` | POST | 🔐 admin | `website/src/pages/api/admin/evidence/upload.ts` |
 | `/api/admin/factory-control` | GET, PATCH | 🔐 admin | `website/src/pages/api/admin/factory-control.ts` |
 | `/api/admin/faq/save` | POST | 🔐 admin | `website/src/pages/api/admin/faq/save.ts` |
+| `/api/admin/folder-templates/create` | POST | 🔐 admin | `website/src/pages/api/admin/folder-templates/create.ts` |
+| `/api/admin/folder-templates/delete` | POST | 🔐 admin | `website/src/pages/api/admin/folder-templates/delete.ts` |
+| `/api/admin/folder-templates/update` | POST | 🔐 admin | `website/src/pages/api/admin/folder-templates/update.ts` |
 | `/api/admin/followups/create` | POST | 🔐 admin | `website/src/pages/api/admin/followups/create.ts` |
 | `/api/admin/followups/delete` | POST | 🔐 admin | `website/src/pages/api/admin/followups/delete.ts` |
 | `/api/admin/followups/notify` | POST | 🔐 admin | `website/src/pages/api/admin/followups/notify.ts` |

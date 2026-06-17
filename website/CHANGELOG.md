@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.94.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.93.0...website-v1.94.0) (2026-06-17)
+
+
+### Features
+
+* **website:** final grilling session in mediaviewer sidekick [T000942] ([#1832](https://github.com/Paddione/Bachelorprojekt/issues/1832)) ([444c8a2](https://github.com/Paddione/Bachelorprojekt/commit/444c8a2166ff9443abd142af0ab698ee36c3ef77))
+
 ## [1.93.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.92.0...website-v1.93.0) (2026-06-17)
 
 

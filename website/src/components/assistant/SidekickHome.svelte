@@ -1,7 +1,7 @@
 <script lang="ts">
   import { decideBanner, type BannerDecision } from '../../lib/assistant/sidekick-nudge';
 
-  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'tickets' | 'inbox' | 'pipeline' | 'agent-guide' | 'mediaviewer';
+  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'tickets' | 'inbox' | 'pipeline' | 'agent-guide' | 'mediaviewer' | 'grilling';
 
   let {
     onNavigate,
@@ -36,12 +36,13 @@
     { id: 'tickets',       no: '01', title: 'Anfragen',           sub: 'Tickets erstellen & bearbeiten', badge: pendingTickets > 0 ? pendingTickets : undefined,       show: isAdmin },
     { id: 'inbox',         no: '02', title: 'Postfach',           sub: 'Nachrichten & Anfragen',         badge: pendingInbox > 0 ? pendingInbox : undefined,           show: isAdmin },
     { id: 'pipeline',      no: '03', title: 'Pipeline',           sub: 'Ticket-Status vorne→hinten',                                                                 show: isAdmin },
-    { id: 'questionnaire', no: isAdmin ? '04' : '01', title: 'Fragebögen', sub: 'Aufgaben beantworten', badge: pendingQuestionnaires > 0 ? pendingQuestionnaires : undefined, show: true },
-    { id: 'support',       no: isAdmin ? '05' : '02', title: 'Feedback & Support', sub: 'Fehler melden, Ideen teilen', show: true },
-    { id: 'agent-guide',   no: isAdmin ? '06' : '03', title: 'Agent-Anleitung', sub: progressSub ? `Lernen · ${progressSub}` : 'Lernen, wie alles funktioniert', show: true },
-    { id: 'loslernen',     no: isAdmin ? '07' : '04', title: 'Lernpfad',     sub: progressSub ?? 'Fortschritt verfolgen',            show: true, href: '/portal/loslernen' },
-    { id: 'mediaviewer',   no: isAdmin ? '08' : '05', title: 'Mediaviewer', sub: 'Hilfe- & Onboarding-Videos', show: true },
-    { id: 'help',          no: isAdmin ? '09' : '06', title: 'Hilfe',        sub: 'Kontexthilfe für diese Seite', show: !!helpSection },
+    { id: 'grilling',      no: '04', title: 'Final Grilling',     sub: 'Abschließende Klärungsrunde',                                                                 show: isAdmin },
+    { id: 'questionnaire', no: isAdmin ? '05' : '01', title: 'Fragebögen', sub: 'Aufgaben beantworten', badge: pendingQuestionnaires > 0 ? pendingQuestionnaires : undefined, show: true },
+    { id: 'support',       no: isAdmin ? '06' : '02', title: 'Feedback & Support', sub: 'Fehler melden, Ideen teilen', show: true },
+    { id: 'agent-guide',   no: isAdmin ? '07' : '03', title: 'Agent-Anleitung', sub: progressSub ? `Lernen · ${progressSub}` : 'Lernen, wie alles funktioniert', show: true },
+    { id: 'loslernen',     no: isAdmin ? '08' : '04', title: 'Lernpfad',     sub: progressSub ?? 'Fortschritt verfolgen',            show: true, href: '/portal/loslernen' },
+    { id: 'mediaviewer',   no: isAdmin ? '09' : '05', title: 'Mediaviewer', sub: 'Hilfe- & Onboarding-Videos', show: true },
+    { id: 'help',          no: isAdmin ? '10' : '06', title: 'Hilfe',        sub: 'Kontexthilfe für diese Seite', show: !!helpSection },
   ].filter(i => i.show));
 
   let hover = $state<string | null>(null);

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-17T14:28:46.331Z",
+  "generatedAt": "2026-06-17T18:34:05.423Z",
   "endpoints": [
     {
       "path": "/api/admin/angebote/save",
@@ -2022,6 +2022,14 @@
       "file": "website/src/pages/api/admin/rooms/[id]/members.ts"
     },
     {
+      "path": "/api/admin/rooms/{id}/share",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/rooms/[id]/share.ts"
+    },
+    {
       "path": "/api/admin/rooms/direct",
       "methods": [
         "POST"
@@ -2772,6 +2780,14 @@
       "file": "website/src/pages/api/factory-floor/[extId]/ci.ts"
     },
     {
+      "path": "/api/factory-floor/{extId}/deploy",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/factory-floor/[extId]/deploy.ts"
+    },
+    {
       "path": "/api/factory-floor/{extId}/inject",
       "methods": [
         "POST"
@@ -3111,6 +3127,14 @@
       ],
       "auth": "session",
       "file": "website/src/pages/api/portal/rooms/[id]/messages.ts"
+    },
+    {
+      "path": "/api/portal/rooms/{id}/share",
+      "methods": [
+        "POST"
+      ],
+      "auth": "session",
+      "file": "website/src/pages/api/portal/rooms/[id]/share.ts"
     },
     {
       "path": "/api/portal/rooms/ensure-direct",

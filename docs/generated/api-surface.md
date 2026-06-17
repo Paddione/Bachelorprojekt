@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-06-17T14:28:46.331Z
+> Generated at 2026-06-17T18:34:05.423Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -250,6 +250,7 @@
 | `/api/admin/rooms` | GET, POST | 🔐 admin | `website/src/pages/api/admin/rooms.ts` |
 | `/api/admin/rooms/{id}` | GET, PUT, POST | 🔐 admin | `website/src/pages/api/admin/rooms/[id].ts` |
 | `/api/admin/rooms/{id}/members` | POST | 🔐 admin | `website/src/pages/api/admin/rooms/[id]/members.ts` |
+| `/api/admin/rooms/{id}/share` | POST | 🔐 admin | `website/src/pages/api/admin/rooms/[id]/share.ts` |
 | `/api/admin/rooms/direct` | POST | 🔐 admin | `website/src/pages/api/admin/rooms/direct.ts` |
 | `/api/admin/seo` | GET | 🔐 admin | `website/src/pages/api/admin/seo/index.ts` |
 | `/api/admin/seo/pages` | GET | 🔐 admin | `website/src/pages/api/admin/seo/pages.ts` |
@@ -343,6 +344,7 @@
 | `/api/factory-floor` | GET | 🔐 admin | `website/src/pages/api/factory-floor.ts` |
 | `/api/factory-floor/{extId}` | GET | 🔐 admin | `website/src/pages/api/factory-floor/[extId].ts` |
 | `/api/factory-floor/{extId}/ci` | GET | 🔐 admin | `website/src/pages/api/factory-floor/[extId]/ci.ts` |
+| `/api/factory-floor/{extId}/deploy` | POST | 🔐 admin | `website/src/pages/api/factory-floor/[extId]/deploy.ts` |
 | `/api/factory-floor/{extId}/inject` | POST | 🔐 admin | `website/src/pages/api/factory-floor/[extId]/inject.ts` |
 | `/api/factory-floor/{extId}/release` | POST | 🔐 admin | `website/src/pages/api/factory-floor/[extId]/release.ts` |
 | `/api/factory-floor/stream` | GET | 🔐 admin | `website/src/pages/api/factory-floor/stream.ts` |
@@ -385,6 +387,7 @@
 | `/api/portal/questionnaires/{id}/submit` | POST | 🔑 session | `website/src/pages/api/portal/questionnaires/[id]/submit.ts` |
 | `/api/portal/rooms` | GET | 🔑 session | `website/src/pages/api/portal/rooms.ts` |
 | `/api/portal/rooms/{id}/messages` | GET, POST | 🔑 session | `website/src/pages/api/portal/rooms/[id]/messages.ts` |
+| `/api/portal/rooms/{id}/share` | POST | 🔑 session | `website/src/pages/api/portal/rooms/[id]/share.ts` |
 | `/api/portal/rooms/ensure-direct` | POST | 🔑 session | `website/src/pages/api/portal/rooms/ensure-direct.ts` |
 | `/api/portal/sign/{assignmentId}` | POST | 🔑 session | `website/src/pages/api/portal/sign/[assignmentId].ts` |
 | `/api/register` | POST | ❓ unclassified | `website/src/pages/api/register.ts` |

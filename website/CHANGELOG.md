@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.95.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.95.0...website-v1.95.1) (2026-06-17)
+
+
+### Bug Fixes
+
+* **website:** awaiting_deploy status gaps in cockpit & pipeline [T000943] ([#1836](https://github.com/Paddione/Bachelorprojekt/issues/1836)) ([010ace5](https://github.com/Paddione/Bachelorprojekt/commit/010ace50f134e13be7f1e2b7504589ce94745d2c))
+
+## [1.95.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.94.0...website-v1.95.0) (2026-06-17)
+
+
+### Features
+
+* **nextcloud:** direct file share link from Nextcloud to chat [T000906] ([#1833](https://github.com/Paddione/Bachelorprojekt/issues/1833)) ([db6c8a4](https://github.com/Paddione/Bachelorprojekt/commit/db6c8a44f28914f0808e5ccbd381aac3b6a2d50f))
+
+## [1.94.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.93.0...website-v1.94.0) (2026-06-17)
+
+
+### Features
+
+* **website:** final grilling session in mediaviewer sidekick [T000942] ([#1832](https://github.com/Paddione/Bachelorprojekt/issues/1832)) ([444c8a2](https://github.com/Paddione/Bachelorprojekt/commit/444c8a2166ff9443abd142af0ab698ee36c3ef77))
+
 ## [1.93.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.92.0...website-v1.93.0) (2026-06-17)
 
 

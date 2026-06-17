@@ -52,7 +52,7 @@
       ...p,
       features: p.features.filter((f: FeatureNode) => {
         const matchText = !q || f.title.toLowerCase().includes(q) || f.extId.toLowerCase().includes(q);
-        const openWork = (f.rollup.open ?? 0) + (f.rollup.inProgress ?? 0) + (f.rollup.blocked ?? 0);
+        const openWork = (f.rollup.open ?? 0) + (f.rollup.inProgress ?? 0) + (f.rollup.blocked ?? 0) + (f.rollup.awaitingDeploy ?? 0);
         // Always keep synthetic aggregate buckets (Alle Tickets / Ohne Feature)
         // and the selected feature visible even if there is no open work.
         const matchActive = !activeOnly || f.synthetic || openWork > 0 || f.extId === selectedFeature;
@@ -157,7 +157,12 @@
                   on:click={() => pick(f.extId)}
                 >
                   <span class="feature-name">{f.title}</span>
-                  <span class="feature-count">{f.rollup.total} Tickets</span>
+                  <span class="feature-count">
+                    {#if f.rollup.awaitingDeploy > 0}
+                      <span class="ad-warn" title="Wartet auf Deploy: {f.rollup.awaitingDeploy}">⚠</span>
+                    {/if}
+                    {f.rollup.done}/{f.rollup.total}
+                  </span>
                 </button>
                 {#if onFeatureAction && !f.synthetic}
                   <div class="action-overlay" role="group" aria-label="Feature-Aktionen">
@@ -312,6 +317,7 @@
   .feature:hover { background: var(--admin-surface-hover, #1e2129); }
   .feature.active { background: var(--admin-primary, #6ea8fe); color: var(--admin-bg, #0b0d12); font-weight: 600; }
   .feature-count { font-size: 0.7rem; opacity: 0.7; white-space: nowrap; }
+  .ad-warn { color: #f59e0b; margin-right: 2px; font-size: 0.65rem; }
   .empty { padding: 0.5rem; font-size: 0.8rem; opacity: 0.5; }
 
   .action-overlay {

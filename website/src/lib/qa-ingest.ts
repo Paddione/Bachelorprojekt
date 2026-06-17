@@ -1,10 +1,10 @@
 // website/src/lib/qa-ingest.ts [T000730]
-// Rückkanal: mappt E2E-Ergebnisse auf qa_review-Tickets (Lücke 6.2).
+// Rückkanal: mappt E2E-Ergebnisse auf qa_review- und awaiting_deploy-Tickets.
 //
 // Feature-Slug-Konvention: Spec-/Test-Titel beginnen mit "[<slug>] ..."
-// Wenn ALLE Tests für einen Slug PASS sind und ein qa_review-Ticket mit
-// diesem Slug existiert, wird das Ticket auf 'done' gesetzt und der
-// Feature-Flag für beide Brands aktiviert.
+// Wenn ALLE Tests für einen Slug PASS sind und ein qa_review- oder
+// awaiting_deploy-Ticket mit diesem Slug existiert, wird das Ticket auf
+// 'done' gesetzt und der Feature-Flag für beide Brands aktiviert.
 import { pool } from './website-db';
 
 export type E2ETestStatus = 'pass' | 'fail' | 'skip';
@@ -41,15 +41,16 @@ export async function closeQaTicketsBySlug(results: E2ETestResult[]): Promise<st
   // Alle Slugs aus den Ergebnissen (unabhängig von Pass/Fail) für DB-Lookup
   const allSlugs = [...bySlug.keys()];
 
-  // qa_review-Tickets mit passenden Slugs laden
-  let qaRows: Array<{ id: string; external_id: string; slug_key: string }> = [];
+  // qa_review- und awaiting_deploy-Tickets mit passenden Slugs laden
+  let qaRows: Array<{ id: string; external_id: string; slug_key: string; status: string }> = [];
   try {
-    const r = await pool.query<{ id: string; external_id: string; slug_key: string }>(
+    const r = await pool.query<{ id: string; external_id: string; slug_key: string; status: string }>(
       `SELECT DISTINCT t.id, t.external_id,
-              substring(c.body FROM 'branch=feature/([^ ]+)') AS slug_key
+              substring(c.body FROM 'branch=feature/([^ ]+)') AS slug_key,
+              t.status
        FROM tickets.tickets t
        JOIN tickets.ticket_comments c ON c.ticket_id = t.id
-       WHERE t.status = 'qa_review'
+       WHERE t.status IN ('qa_review', 'awaiting_deploy')
          AND t.type = 'feature'
          AND c.body LIKE 'FACTORY-PLAN-REF %'
          AND substring(c.body FROM 'branch=feature/([^ ]+)') = ANY($1)`,
@@ -72,8 +73,8 @@ export async function closeQaTicketsBySlug(results: E2ETestResult[]): Promise<st
     try {
       const updateResult = await pool.query(
         `UPDATE tickets.tickets
-         SET status = 'done', done_at = now(), pipeline_slot = NULL, updated_at = now()
-         WHERE id = $1 AND status = 'qa_review'`,
+         SET status = 'done', resolution = COALESCE(resolution, 'shipped'), done_at = now(), pipeline_slot = NULL, updated_at = now()
+         WHERE id = $1 AND status IN ('qa_review', 'awaiting_deploy')`,
         [row.id],
       );
       if ((updateResult.rowCount ?? 0) === 0) continue;

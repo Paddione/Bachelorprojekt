@@ -11,6 +11,7 @@ export const STATUS_LABELS: Record<string, string> = {
   in_review: 'Review',
   qa_review: 'QA-Review',
   blocked: 'Blockiert',
+  awaiting_deploy: 'Wartet auf Deploy',
   done: 'Erledigt',
   archived: 'Archiviert',
 };
@@ -33,7 +34,7 @@ export const ALL_PRIORITIES = ['niedrig', 'mittel', 'hoch', 'kritisch'] as const
 // Curated statuses offered in the table-row select: only those that actually occur
 // and that a PM toggles directly. Excludes workflow-internal plan_staged/qa_review.
 export const WORKFLOW_STATUSES =
-  ['triage', 'backlog', 'in_progress', 'in_review', 'blocked', 'done'] as const;
+  ['triage', 'backlog', 'in_progress', 'in_review', 'blocked', 'awaiting_deploy', 'done'] as const;
 
 const TERMINAL = new Set(['done', 'archived']);
 

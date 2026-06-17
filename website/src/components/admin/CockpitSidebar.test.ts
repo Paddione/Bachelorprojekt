@@ -4,14 +4,14 @@ import CockpitSidebar from './CockpitSidebar.svelte';
 
 const baseFeatures = [
   { id: 'f1', extId: 'F-AUTH', title: 'Auth', priority: 'mittel', health: 'amber' as const,
-    rollup: { total: 4, done: 0, blocked: 0, inProgress: 0, open: 4, pctDone: 0 } },
+    rollup: { total: 4, done: 0, blocked: 0, inProgress: 0, awaitingDeploy: 0, open: 4, pctDone: 0 } },
   { id: 'f2', extId: 'F-CRM', title: 'CRM', priority: 'mittel', health: 'green' as const,
-    rollup: { total: 5, done: 0, blocked: 0, inProgress: 0, open: 5, pctDone: 0 } },
+    rollup: { total: 5, done: 0, blocked: 0, inProgress: 0, awaitingDeploy: 0, open: 5, pctDone: 0 } },
 ];
 
 const portfolio = { products: [{
   id: 'p1', extId: 'p1', title: 'System-Tests',
-  rollup: { total: 7, done: 0, blocked: 0, inProgress: 0, open: 7, pctDone: 0 },
+  rollup: { total: 7, done: 0, blocked: 0, inProgress: 0, awaitingDeploy: 0, open: 7, pctDone: 0 },
   features: baseFeatures,
 }]};
 
@@ -21,7 +21,7 @@ describe('CockpitSidebar', () => {
       { portfolio, selectedFeature: null, onSelectFeature: () => {} });
     expect(getByText('System-Tests')).toBeTruthy();
     expect(getAllByTestId('sidebar-feature')).toHaveLength(2);
-    expect(getByText(/4 Tickets/)).toBeTruthy();
+    expect(getByText(/0\/4/)).toBeTruthy();
   });
   it('calls onSelectFeature with the feature extId on click', async () => {
     const onSelectFeature = vi.fn();
@@ -69,12 +69,12 @@ describe('CockpitSidebar scaling controls', () => {
   it('hides fully-done features until "active only" is turned off', async () => {
     const portfolio2 = { products: [{
       id: 'p1', extId: 'p1', title: 'P',
-      rollup: { total: 9, done: 9, blocked: 0, inProgress: 0, open: 0, pctDone: 100 },
+      rollup: { total: 9, done: 9, blocked: 0, inProgress: 0, awaitingDeploy: 0, open: 0, pctDone: 100 },
       features: [
         { id: 'f1', extId: 'F-A', title: 'ActiveOne', priority: 'mittel', health: 'amber' as const,
-          rollup: { total: 4, done: 0, blocked: 0, inProgress: 0, open: 4, pctDone: 0 } },
+          rollup: { total: 4, done: 0, blocked: 0, inProgress: 0, awaitingDeploy: 0, open: 4, pctDone: 0 } },
         { id: 'f2', extId: 'F-D', title: 'DoneOne', priority: 'mittel', health: 'green' as const,
-          rollup: { total: 5, done: 5, blocked: 0, inProgress: 0, open: 0, pctDone: 100 } },
+          rollup: { total: 5, done: 5, blocked: 0, inProgress: 0, awaitingDeploy: 0, open: 0, pctDone: 100 } },
       ],
     }]};
     const { getByTestId, queryByText } = render(CockpitSidebar,
@@ -96,16 +96,16 @@ describe('CockpitSidebar scaling controls', () => {
 describe('CockpitSidebar batch roundtrip (B2)', () => {
   const batchPortfolio = { products: [{
     id: 'p1', extId: 'p1', title: 'Test',
-    rollup: { total: 3, done: 0, blocked: 0, inProgress: 0, open: 3, pctDone: 0 },
+    rollup: { total: 3, done: 0, blocked: 0, inProgress: 0, awaitingDeploy: 0, open: 3, pctDone: 0 },
     features: [
       { id: 'fa', extId: 'F-A', title: 'Feature A', priority: 'mittel', health: 'amber' as const,
-        rollup: { total: 3, done: 0, blocked: 0, inProgress: 0, open: 3, pctDone: 0 },
+        rollup: { total: 3, done: 0, blocked: 0, inProgress: 0, awaitingDeploy: 0, open: 3, pctDone: 0 },
         nextStep: true, discarded: false, majorFeature: false },
       { id: 'fb', extId: 'F-B', title: 'Feature B', priority: 'mittel', health: 'amber' as const,
-        rollup: { total: 3, done: 0, blocked: 0, inProgress: 0, open: 3, pctDone: 0 },
+        rollup: { total: 3, done: 0, blocked: 0, inProgress: 0, awaitingDeploy: 0, open: 3, pctDone: 0 },
         nextStep: true, discarded: false, majorFeature: false },
       { id: 'fc', extId: 'F-C', title: 'Feature C', priority: 'mittel', health: 'amber' as const,
-        rollup: { total: 3, done: 0, blocked: 0, inProgress: 0, open: 3, pctDone: 0 },
+        rollup: { total: 3, done: 0, blocked: 0, inProgress: 0, awaitingDeploy: 0, open: 3, pctDone: 0 },
         nextStep: true, discarded: false, majorFeature: false },
     ],
   }]};

@@ -26,6 +26,7 @@
     { label: 'In Arbeit', value: 'in_progress' },
     { label: 'Review', value: 'in_review' },
     { label: 'Blockiert', value: 'blocked' },
+    { label: 'Wartet auf Deploy', value: 'awaiting_deploy' },
     { label: 'Erledigt', value: 'done' },
     { label: 'Alle', value: '' },
   ];

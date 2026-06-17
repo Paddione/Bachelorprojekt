@@ -550,5 +550,12 @@
       ],
       "secret": "${VIDEOVAULT_OIDC_SECRET}"
     }
+  ],
+  "eventsEnabled": true,
+  "adminEventsEnabled": true,
+  "adminEventsDetailsEnabled": true,
+  "eventsExpiration": 7776000,
+  "eventsListeners": [
+    "jboss-logging"
   ]
 }

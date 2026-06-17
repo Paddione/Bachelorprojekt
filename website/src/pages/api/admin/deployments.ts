@@ -1,6 +1,8 @@
 import type { APIRoute } from 'astro';
 import { createK8sClient } from '../../../lib/k8s';
 import { getSession, isAdmin } from '../../../lib/auth';
+import { pool } from '../../../lib/website-db';
+import { recordAudit, clientIpFromRequest } from '../../../lib/audit-log';
 
 type DeploymentStatus = 'healthy' | 'degraded' | 'stopped';
 
@@ -43,6 +45,7 @@ export const GET: APIRoute = async ({ request }) => {
         status: deploymentStatus(desired, ready),
       };
     });
+    recordAudit(pool, { actor_id: session!.sub, actor_email: session!.email, action: 'deployment.list', ip: clientIpFromRequest(request) });
     return new Response(JSON.stringify({ deployments }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },

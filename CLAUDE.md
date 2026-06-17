@@ -117,6 +117,7 @@ Services: Traefik → Keycloak (OIDC), Nextcloud+Talk, Collabora, Talk-HPB+cotur
 GitHub Actions (`.github/workflows/ci.yml`) runs on every PR:
 - Offline tests: `task test:all` (BATS unit tests, kustomize manifest structure, Taskfile dry-run)
 - **Test inventory check**: re-runs `task test:inventory` and fails the job if `website/src/data/test-inventory.json` differs from the committed version — regenerate it locally and commit alongside any test additions.
+- **Release notes**: Generate structured release notes from merged PRs via `bash scripts/vda.sh release-notes generate` or `task release:notes` (LLM/DeepSeek-gestützt mit deterministischem Fallback). Publish to GitHub Release body with `publish-github` or prepend to `CHANGELOG.md` with `publish-changelog`.
 - Systembrett template validation (`scripts/tests/systembrett-template.test.sh`)
 - Security scan: image-pin advisory + hardcoded-secret detection in `k3d/*.yaml`
 Other workflows: `renovate.yml` (self-hosted Renovate weekly dependency update bot, T000898), `e2e.yml` (nightly Playwright against both brands on fleet), `build-brett.yml` (tag `brett-v*`), `build-docs.yml` (tag `docs-v*`), `build-collabora.yml`, `build-transcriber.yml`, `build-website.yml` / `build-website-korczewski.yml` (auto build+rollout on `website/**` push to main).

@@ -18,6 +18,8 @@ function toRollup(r: Record<string, unknown> | undefined): RollupMetrics {
   };
 }
 
+export const PORTFOLIO_MAX_ROWS = 1000;
+
 // Synthetic aggregate buckets surface task/bug *leaves* that the feature-centric
 // cockpit would otherwise hide:
 //   - ALL_TICKETS_ID ("Alle Tickets"): every leaf of the brand, regardless of
@@ -83,8 +85,9 @@ async function getLeafTickets(
        FROM tickets.tickets t
       WHERE t.brand = $1 AND t.type IN ('task', 'bug')
         AND t.status <> 'archived'${orphanOnly ? ' AND t.parent_id IS NULL' : ''}
-      ORDER BY COALESCE(t.planning_rank, 2147483647), t.external_id`,
-    [brand],
+      ORDER BY COALESCE(t.planning_rank, 2147483647), t.external_id
+      LIMIT $2`,
+    [brand, PORTFOLIO_MAX_ROWS],
   );
   const tickets: TicketRow[] = tr.rows.map((t: Record<string, unknown>) => ({
     id: String(t.id), extId: String(t.external_id), title: String(t.title),
@@ -105,8 +108,9 @@ export async function getPortfolio(brand: string): Promise<PortfolioPayload> {
        FROM tickets.tickets t
        LEFT JOIN tickets.v_cockpit_rollup r ON r.container_id = t.id
       WHERE t.brand = $1 AND t.type IN ('project', 'feature')
-      ORDER BY COALESCE(t.planning_rank, 2147483647), t.created_at`,
-    [brand],
+      ORDER BY COALESCE(t.planning_rank, 2147483647), t.created_at
+      LIMIT $2`,
+    [brand, PORTFOLIO_MAX_ROWS],
   );
 
   const products: ProductNode[] = [];

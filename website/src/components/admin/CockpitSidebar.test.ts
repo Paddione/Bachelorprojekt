@@ -2,15 +2,17 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, fireEvent } from '@testing-library/svelte';
 import CockpitSidebar from './CockpitSidebar.svelte';
 
+const baseFeatures = [
+  { id: 'f1', extId: 'F-AUTH', title: 'Auth', priority: 'mittel', health: 'amber' as const,
+    rollup: { total: 4, done: 0, blocked: 0, inProgress: 0, open: 4, pctDone: 0 } },
+  { id: 'f2', extId: 'F-CRM', title: 'CRM', priority: 'mittel', health: 'green' as const,
+    rollup: { total: 5, done: 0, blocked: 0, inProgress: 0, open: 5, pctDone: 0 } },
+];
+
 const portfolio = { products: [{
   id: 'p1', extId: 'p1', title: 'System-Tests',
   rollup: { total: 7, done: 0, blocked: 0, inProgress: 0, open: 7, pctDone: 0 },
-  features: [
-    { id: 'f1', extId: 'F-AUTH', title: 'Auth', priority: 'mittel', health: 'amber' as const,
-      rollup: { total: 4, done: 0, blocked: 0, inProgress: 0, open: 4, pctDone: 0 } },
-    { id: 'f2', extId: 'F-CRM', title: 'CRM', priority: 'mittel', health: 'green' as const,
-      rollup: { total: 5, done: 0, blocked: 0, inProgress: 0, open: 5, pctDone: 0 } },
-  ],
+  features: baseFeatures,
 }]};
 
 describe('CockpitSidebar', () => {
@@ -88,5 +90,55 @@ describe('CockpitSidebar scaling controls', () => {
     expect(getAllByTestId('sidebar-feature').length).toBeGreaterThan(0);
     await fireEvent.click(getByTestId('product-toggle'));
     expect(queryAllByTestId('sidebar-feature')).toHaveLength(0);
+  });
+});
+
+describe('CockpitSidebar batch roundtrip (B2)', () => {
+  const batchPortfolio = { products: [{
+    id: 'p1', extId: 'p1', title: 'Test',
+    rollup: { total: 3, done: 0, blocked: 0, inProgress: 0, open: 3, pctDone: 0 },
+    features: [
+      { id: 'fa', extId: 'F-A', title: 'Feature A', priority: 'mittel', health: 'amber' as const,
+        rollup: { total: 3, done: 0, blocked: 0, inProgress: 0, open: 3, pctDone: 0 },
+        nextStep: true, discarded: false, majorFeature: false },
+      { id: 'fb', extId: 'F-B', title: 'Feature B', priority: 'mittel', health: 'amber' as const,
+        rollup: { total: 3, done: 0, blocked: 0, inProgress: 0, open: 3, pctDone: 0 },
+        nextStep: true, discarded: false, majorFeature: false },
+      { id: 'fc', extId: 'F-C', title: 'Feature C', priority: 'mittel', health: 'amber' as const,
+        rollup: { total: 3, done: 0, blocked: 0, inProgress: 0, open: 3, pctDone: 0 },
+        nextStep: true, discarded: false, majorFeature: false },
+    ],
+  }]};
+
+  it('handleApply triggers exactly one batch call for all marked features', async () => {
+    const onBatchFeatureAction = vi.fn();
+    const { getByText } = render(CockpitSidebar, {
+      portfolio: batchPortfolio,
+      selectedFeature: null,
+      onSelectFeature: () => {},
+      onBatchFeatureAction,
+    });
+    await fireEvent.click(getByText('Übernehmen'));
+    // Exactly one batch call containing all 3 features
+    expect(onBatchFeatureAction).toHaveBeenCalledTimes(1);
+    const callArgs = onBatchFeatureAction.mock.calls[0][0];
+    expect(callArgs).toHaveLength(3);
+    expect(callArgs.map((a: any) => a.featureId)).toEqual(['fa', 'fb', 'fc']);
+    expect(callArgs.every((a: any) => a.action === 'next_step' && a.value === true)).toBe(true);
+  });
+
+  it('handleReset triggers exactly one batch call for all marked features', async () => {
+    const onBatchFeatureAction = vi.fn();
+    const { getByText } = render(CockpitSidebar, {
+      portfolio: batchPortfolio,
+      selectedFeature: null,
+      onSelectFeature: () => {},
+      onBatchFeatureAction,
+    });
+    await fireEvent.click(getByText('Zurücksetzen'));
+    expect(onBatchFeatureAction).toHaveBeenCalledTimes(1);
+    const callArgs = onBatchFeatureAction.mock.calls[0][0];
+    expect(callArgs).toHaveLength(3);
+    expect(callArgs.every((a: any) => a.action === 'next_step' && a.value === false)).toBe(true);
   });
 });

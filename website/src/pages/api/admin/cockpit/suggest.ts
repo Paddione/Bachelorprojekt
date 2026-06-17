@@ -2,8 +2,11 @@ import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { getPortfolio } from '../../../../lib/tickets/cockpit-db';
 import { buildFeatureList, parseSuggestions, SUGGEST_SYSTEM_PROMPT } from '../../../../lib/tickets/suggest-prompt';
+import { resolveProvider } from '../../../../lib/tickets/suggest-providers';
+import OpenAI from 'openai';
 
-const BRAND = (): string => process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
+export const SUGGEST_TIMEOUT_MS = 10_000;
+
 const json = (d: unknown, s = 200) =>
   new Response(JSON.stringify(d), { status: s, headers: { 'Content-Type': 'application/json' } });
 
@@ -11,22 +14,29 @@ export const POST: APIRoute = async ({ request }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response(null, { status: 403 });
 
+  const brand = process.env.BRAND_ID ?? process.env.BRAND ?? '';
+  if (!brand) return json({ error: 'brand not configured' }, 500);
+
   let body: { provider?: string; model?: string };
   try { body = await request.json(); } catch { body = {}; }
 
-  const provider = body.provider || 'deepseek';
-  const model = body.model || 'deepseek-chat';
+  const providerSpec = resolveProvider(body.provider || 'deepseek');
+  if (!providerSpec) return json({ error: `invalid provider: ${body.provider}` }, 400);
 
-  const portfolio = await getPortfolio(BRAND());
+  const model = body.model || providerSpec.defaultModel;
+
+  const apiKey = providerSpec.apiKeyEnv ? (process.env[providerSpec.apiKeyEnv] ?? '') : '';
+  if (providerSpec.apiKeyEnv && !apiKey) {
+    return json({ error: `provider not configured: ${providerSpec.id}` }, 503);
+  }
+
+  const portfolio = await getPortfolio(brand);
   const featureList = buildFeatureList(portfolio);
 
   if (featureList === '') return json({ suggestions: [] });
 
   try {
-    const { default: OpenAI } = await import('openai');
-    const endpoint = provider === 'deepseek' ? 'https://api.deepseek.com/v1' : undefined;
-    const apiKey = provider === 'deepseek' ? (process.env.DEEPSEEK_API_KEY ?? 'not-required') : 'not-required';
-    const client = new OpenAI({ apiKey, baseURL: endpoint });
+    const client = new OpenAI({ apiKey, baseURL: providerSpec.baseURL });
 
     const resp = await client.chat.completions.create({
       model,
@@ -36,17 +46,20 @@ export const POST: APIRoute = async ({ request }) => {
         { role: 'system', content: SUGGEST_SYSTEM_PROMPT },
         { role: 'user', content: `Hier sind die Features:\n\n${featureList}` },
       ],
+      timeout: SUGGEST_TIMEOUT_MS,
     });
 
     const text = resp.choices[0]?.message.content ?? '';
     const suggestions = parseSuggestions(text);
-    if (suggestions.length === 0) return json({ error: 'AI response could not be parsed', raw: text }, 500);
 
     return json({ suggestions });
   } catch (e) {
     const msg = String((e as Error).message);
+    if (msg.includes('timeout') || msg.includes('Timeout') || msg.includes('abort')) {
+      return json({ error: 'AI provider timed out', raw: msg }, 504);
+    }
     if (msg.includes('API key') || msg.includes('Incorrect API key'))
-      return json({ error: 'Deepseek API key not configured', raw: msg }, 500);
+      return json({ error: 'AI API key not configured', raw: msg }, 500);
     return json({ error: msg }, 500);
   }
 };

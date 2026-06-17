@@ -1254,6 +1254,18 @@
     "kind": "shell"
   },
   {
+    "id": "FA-SF-58",
+    "file": "tests/local/FA-SF-58-eval-harness.bats",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-SF-59",
+    "file": "tests/local/FA-SF-59-aci-loop.bats",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
     "id": "FA-SF-60",
     "file": "tests/local/FA-SF-60-partial-deploy.bats",
     "category": "FA",

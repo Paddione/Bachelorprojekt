@@ -376,6 +376,19 @@ export async function releaseToBacklog(extId: string): Promise<boolean> {
   return (r.rowCount ?? 0) > 0;
 }
 
+/** Deploy eines awaiting_deploy-Tickets abschließen: awaiting_deploy → done.
+ *  Setzt resolution='shipped' und done_at. Nur Feature-Tickets mit aktuellem
+ *  awaiting_deploy-Status werden akzeptiert. */
+export async function deployFromAwaiting(extId: string): Promise<boolean> {
+  const r = await pool.query(
+    `UPDATE tickets.tickets
+        SET status = 'done', resolution = 'shipped', done_at = now(), updated_at = now()
+      WHERE external_id = $1 AND type = 'feature' AND status = 'awaiting_deploy'`,
+    [extId],
+  );
+  return (r.rowCount ?? 0) > 0;
+}
+
 export async function getProviderHealth(): Promise<ProviderStatus[]> {
   const { rows } = await pool.query(`
     SELECT ph.provider,

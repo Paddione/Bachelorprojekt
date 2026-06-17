@@ -275,6 +275,7 @@ tasks:
       - task: test:unit:ticket-grill
       - task: test:unit:ticket-lastenheft
       - task: test:unit:worktree-create
+      - task: test:unit:preflight-pr-scope
       - task: test:unit:test-tasks-node-deps
       - task: test:unit:quality-loop
       - task: test:unit:vda-core
@@ -505,6 +506,11 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/worktree-create.bats
+
+  test:unit:preflight-pr-scope:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/preflight-pr-scope.bats
 
   test:unit:test-tasks-node-deps:
     internal: true

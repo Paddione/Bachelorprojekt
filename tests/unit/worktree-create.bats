@@ -90,6 +90,35 @@ teardown() { rm -rf "$TMP"; }
   [ "$status" -eq 0 ]
 }
 
+# ── Friction 1 (T000925): unlocked worktree neutralizes clean/required ───
+
+@test "T000925: unlocked worktree neutralizes git-crypt clean and required, keeps smudge real" {
+  run bash -c "cd '$MAIN' && bash '$HELPER' fix/friction1 '$TMP/wt-f1' HEAD"
+  [ "$status" -eq 0 ]
+
+  WT_GD="$(git -C "$TMP/wt-f1" rev-parse --absolute-git-dir)"
+  # clean is cat (passthrough) so commits of git-crypt-managed files don't fail
+  run git -C "$TMP/wt-f1" config --worktree filter.git-crypt.clean
+  [ "$status" -eq 0 ]
+  [ "$output" = "cat" ]
+  # required is false so a missing/broken filter does not block the commit
+  run git -C "$TMP/wt-f1" config --worktree filter.git-crypt.required
+  [ "$status" -eq 0 ]
+  [ "$output" = "false" ]
+  # smudge is NOT neutralized — real decryption works because the key is present
+  run git -C "$TMP/wt-f1" config --worktree filter.git-crypt.smudge 2>/dev/null
+  [ "$status" -ne 0 ] || [ "$output" != "cat" ]
+}
+
+@test "T000925: git commit of a managed file succeeds in unlocked worktree" {
+  run bash -c "cd '$MAIN' && bash '$HELPER' fix/f1c '$TMP/wt-f1c' HEAD"
+  [ "$status" -eq 0 ]
+  # Modify a git-crypt-managed file and commit — must not fail on the clean filter
+  echo "modified" >> "$TMP/wt-f1c/secret/data.yaml"
+  run git -C "$TMP/wt-f1c" commit -am "test: modify git-crypt-managed file"
+  [ "$status" -eq 0 ]
+}
+
 # ── RED: locked repo (no key) → still a usable worktree, keyless ─────
 
 @test "helper works when the repo is locked (no key) via filter neutralization" {
@@ -128,14 +157,16 @@ teardown() { rm -rf "$TMP"; }
 
 # ── Rollback: a failure AFTER the --no-checkout skeleton must not leave junk ──
 
-@test "a post-skeleton failure rolls back the worktree and branch (no leftover)" {
-  # Force the smudge filter to fail even with the key present, so the unlocked
-  # `git checkout` fails AFTER the worktree + branch were registered.
+@test "T000925: broken smudge filter does not abort checkout with required=false" {
+  # With the T000925 fix (required=false), a failing smudge filter no longer
+  # causes checkout failure — git falls back to unfiltered content. This is
+  # the safety net that prevents silent commit failures.
+  mkdir -p "$MAIN/.git/git-crypt/keys"
+  printf 'FAKEKEY\n' > "$MAIN/.git/git-crypt/keys/default"
   git -C "$MAIN" config filter.git-crypt.smudge false
-  run bash -c "cd '$MAIN' && bash '$HELPER' fix/rollback '$TMP/wt-rb' HEAD"
-  [ "$status" -ne 0 ]
-  # nothing left behind: no registered worktree, no branch, no directory
-  ! git -C "$MAIN" worktree list --porcelain | grep -q "$TMP/wt-rb"
-  ! git -C "$MAIN" rev-parse --verify --quiet refs/heads/fix/rollback
-  [ ! -d "$TMP/wt-rb" ]
+  run bash -c "cd '$MAIN' && bash '$HELPER' fix/smudge-ok '$TMP/wt-smudge' HEAD"
+  [ "$status" -eq 0 ]
+  # worktree exists and follow-up git ops work
+  run git -C "$TMP/wt-smudge" status --porcelain
+  [ "$status" -eq 0 ]
 }

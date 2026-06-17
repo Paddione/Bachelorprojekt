@@ -1,0 +1,16 @@
+{
+  "files": [
+    "scripts/mishap-categorize.sh",
+    "scripts/mishap-keywords.json",
+    "scripts/ticket.sh",
+    "Taskfile.yml"
+  ],
+  "forbidden": [
+    "k3d/configmap-domains.yaml",
+    "environments/*.yaml",
+    "website/*"
+  ],
+  "tests": ["bash -n scripts/mishap-categorize.sh"],
+  "min_recall": 0.5,
+  "min_precision": 0.3
+}

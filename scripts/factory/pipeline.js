@@ -14,11 +14,13 @@ export const meta = {
   ],
 }
 
+const path = require('path')
 const D = require('./pipeline-decompose.cjs')
 const BL = require('./build-loop.cjs')
 const SQ = require('./scout-quality-check.cjs')
 let _msgBridge = null
 try { _msgBridge = require('./agent-msg-bridge.cjs') } catch (_) {}
+const ACI = process.env.ACI_ENABLED === 'true' ? require('./aci.cjs') : null
 const { decideDeployTransition } = require('./deploy-transition.cjs')
 const { resolveTaskSource } = require('./task-source.cjs')
 function routeProviderSync(source, tier) {
@@ -387,6 +389,14 @@ if (tasks.length && !A.batch_mode) {
   for (const t of tasks) {
     const prov = D.provision({ complexity: featureComplexity, role: 'implement', risk: (t.target_files?.some((f) => /\.sql$|^k3d\/|^environments\/|realm.*\.json/.test(f)) ? 'high' : 'low'), budgetRemaining: 1, ticketId: A.ticket_id, touchedFiles: t.target_files, gpuEmbeddings: false })
     const route = routeProviderSync('factory-implement', routerTier(prov.model))
+    const aciToolHint = ACI ? [
+      'Use the ACI tool set for file operations:',
+      '  aci_view <file> [start:end]  - view numbered lines (focused reading, max 80 lines)',
+      '  aci_search <pattern> [glob]  - find pattern in files with line numbers',
+      '  aci_edit <file> <start> <end> <replacement>  - edit with auto-syntax-validate + revert',
+      '  aci_test [subset]  - run relevant tests for changed files',
+      'Each aci_edit is validated automatically. If validation fails, the edit is reverted.',
+    ].join('\n') : ''
     let impl = null
     try {
       impl = await agent(
@@ -398,6 +408,7 @@ if (tasks.length && !A.batch_mode) {
          Follow TDD (red-green). Acceptance: ${t.acceptance_criteria.join('; ')}.
          DARK-LAUNCH: gate new behavior behind isFeatureEnabled('${brand}', '${slug}') (default OFF).
          Context hints: ${prov.contextHints.join(' | ')}.
+         ${aciToolHint}
          After implementing: cd ${WORK_WT} && task workspace:validate && task test:all && task freshness:regenerate
          Then commit: cd ${WORK_WT} && git add -A && git commit -m ${JSON.stringify(`feat(${slug}): ${t.id} [factory]`)}
          Return a summary of the diff and local test result (pass/fail).` + consumeInjections('implement'),
@@ -409,6 +420,31 @@ if (tasks.length && !A.batch_mode) {
       throw err
     }
     if (impl == null) continue
+
+    // ACI repair loop: validate target files, retry on failure
+    if (ACI) {
+      const MAX_REPAIR = parseInt(process.env.ACI_MAX_REPAIR || '3')
+      for (let repair = 0; repair < MAX_REPAIR; repair++) {
+        const failures = []
+        for (const f of t.target_files) {
+          const v = ACI.validate(path.join(WORK_WT, f))
+          if (!v.valid) failures.push({ file: f, error: v.error, label: v.label })
+        }
+        if (failures.length === 0) break
+        log(`ACI repair iteration ${repair + 1}/${MAX_REPAIR}: ${failures.length} file(s) invalid`)
+        const repairResult = await agent(
+          `/goal Fix validation errors for task ${t.id} in ${WORK_WT}.
+           Files with validation errors:
+           ${failures.map(f => `  ${f.file}: ${f.error}`).join('\n')}
+           Use aci_view to inspect, aci_edit to fix. Each edit auto-validates.
+           After fixes: cd ${WORK_WT} && git add -A && git commit --amend --no-edit.
+           Report pass/fail.`,
+          { label: `impl:${t.id}:repair-${repair}`, phase: 'Implement' },
+        )
+        if (!repairResult) break
+      }
+    }
+
     const vr = await BL.runTaskVerifyLoop({ t, maxLoop: parseInt(process.env.FACTORY_BUILD_LOOP_MAX || '3'), WORK_WT, WORK_BRANCH, slug, A, prov })
     if (vr) implemented.push(vr)
   }

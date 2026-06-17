@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.91.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.90.0...website-v1.91.0) (2026-06-17)
+
+
+### Features
+
+* **factory:** Eval-Harness + ACI [T000930 T000931] ([#1809](https://github.com/Paddione/Bachelorprojekt/issues/1809)) ([2e24484](https://github.com/Paddione/Bachelorprojekt/commit/2e24484d7d07b20b3b20eb7d5cac3e5281794d57))
+
+## [1.90.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.89.0...website-v1.90.0) (2026-06-17)
+
+
+### Features
+
+* **factory:** self-hosted Renovate dependency bot [T000898] ([#1808](https://github.com/Paddione/Bachelorprojekt/issues/1808)) ([2482026](https://github.com/Paddione/Bachelorprojekt/commit/2482026dd662ed6e79f2829aee8083e1020e2c24))
+
 ## [1.89.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.88.0...website-v1.89.0) (2026-06-16)
 
 

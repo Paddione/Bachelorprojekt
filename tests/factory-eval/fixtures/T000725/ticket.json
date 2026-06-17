@@ -1,0 +1,8 @@
+{
+  "title": "Mishap Auto-Kategorisierung (7 Kategorien, Hybrid Keyword+LLM)",
+  "description": "Implementiere ein System zur automatischen Kategorisierung von Mishaps in 7 Kategorien. Nutze einen Hybrid-Ansatz aus Keyword-Matching und LLM-Klassifikation.",
+  "type": "feature",
+  "external_id": "T000725",
+  "brand": "mentolder",
+  "area": "factory"
+}

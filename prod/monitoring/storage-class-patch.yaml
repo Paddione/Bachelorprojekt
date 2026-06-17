@@ -43,3 +43,19 @@ spec:
   resources:
     requests:
       storage: 5Gi
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: loki
+  namespace: monitoring
+spec:
+  volumeClaimTemplates:
+    - metadata:
+        name: storage
+      spec:
+        storageClassName: longhorn
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 20Gi

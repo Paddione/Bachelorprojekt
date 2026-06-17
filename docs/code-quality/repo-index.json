@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 473,
+      "file_count": 474,
       "files": [
         "tests/.gitignore",
         "tests/batch/batch-gap-analysis.bats",
@@ -425,6 +425,7 @@
         "tests/unit/recovery-domain-durability.bats",
         "tests/unit/render-cloud-init.bats",
         "tests/unit/scripts.bats",
+        "tests/unit/scripts/dev-reset.test.sh",
         "tests/unit/scripts/software-history-classify.bats",
         "tests/unit/scs-index.bats",
         "tests/unit/scs-search.bats",
@@ -2418,7 +2419,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 383,
+      "file_count": 384,
       "files": [
         "scripts/add-whiteboard-library.py",
         "scripts/admin-menu-gate.sh",
@@ -2532,6 +2533,7 @@
         "scripts/db-schema-diagram.py",
         "scripts/dev-cluster-autostart.sh",
         "scripts/dev-db-refresh.sh",
+        "scripts/dev-reset.sh",
         "scripts/discover-versions.sh",
         "scripts/docs-configmap-apply.sh",
         "scripts/docs-gen/build-smoke.test.mjs",

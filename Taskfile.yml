@@ -171,6 +171,14 @@ tasks:
       - echo "=== Resource Usage ==="
       - docker stats --no-stream --format "table {{`{{.Name}}`}}\t{{`{{.CPUPerc}}`}}\t{{`{{.MemUsage}}`}}" $(docker ps -q --filter "label=app=k3d") 2>/dev/null || true
 
+  dev:reset:
+    desc: "One-Click-Reset des dev-k3d-Clusters (REBUILD=1 baut Images neu, CONFIRM=yes überspringt Prompt)"
+    vars:
+      REBUILD: '{{.REBUILD | default ""}}'
+      CONFIRM: '{{.CONFIRM | default ""}}'
+    cmds:
+      - REBUILD={{.REBUILD}} CONFIRM={{.CONFIRM}} CLUSTER_NAME={{.CLUSTER_NAME}} bash scripts/dev-reset.sh
+
   workspace:dsgvo-check:
     desc: Run DSGVO compliance verification (NFA-01 data sovereignty proof)
     vars:
@@ -306,6 +314,7 @@ tasks:
       - task: test:unit:factory-readiness
       - task: test:unit:factory-scout-quality
       - task: test:unit:factory-scout-drift
+      - task: test:unit:dev-reset
 
 
   test:unit:build-graph:
@@ -408,6 +417,11 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/scripts.bats
+
+  test:unit:dev-reset:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/scripts/dev-reset.test.sh
 
   test:unit:agents:
     internal: true
@@ -2878,6 +2892,19 @@ tasks:
     desc: Generate the full static docs site into k3d/docs-content-built/ (pages, assets, search.json)
     cmds:
       - node scripts/build-docs.mjs
+
+  docs:build:import:
+    desc: Build and import docs image into k3d cluster
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - node scripts/build-docs.mjs
+      - docker build -t ghcr.io/paddione/workspace-docs:latest -f scripts/docs.Dockerfile .
+      - |
+        if [ "{{.ENV}}" = "dev" ]; then
+          k3d image import ghcr.io/paddione/workspace-docs:latest -c {{.CLUSTER_NAME}}
+          echo "✓ docs image imported into k3d cluster"
+        fi
 
   agent-guide:docs:
     desc: "Regenerate docs/agent-guide/{10-ziele,20-werkzeuge,30-bausteine}.md from the registry"

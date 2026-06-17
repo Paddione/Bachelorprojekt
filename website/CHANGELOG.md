@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.93.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.92.0...website-v1.93.0) (2026-06-17)
+
+
+### Features
+
+* **website:** admin canvas redesign — unified UI [T000937,T000938,T000939,T000940,T000941] ([#1827](https://github.com/Paddione/Bachelorprojekt/issues/1827)) ([2475a81](https://github.com/Paddione/Bachelorprojekt/commit/2475a8137b4733facc82ec3368d6534943fce40f))
+
 ## [1.92.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.91.0...website-v1.92.0) (2026-06-17)
 
 

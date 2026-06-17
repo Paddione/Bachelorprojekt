@@ -1,0 +1,89 @@
+---
+interface TemplateOption {
+  id: string;
+  name: string;
+  isDefault: boolean;
+}
+interface Props {
+  BRAND: string;
+  customers: Array<{ id: string; name: string; customer_number?: string; email?: string }>;
+  admins: Array<{ id: string; name: string; admin_number?: string; email?: string }>;
+  prefillCustomerId?: string;
+  templates: TemplateOption[];
+  inputCls: string;
+  selectCls: string;
+  labelCls: string;
+  statusLabels: Record<string, string>;
+}
+const { BRAND, customers, admins, prefillCustomerId, templates, inputCls, selectCls, labelCls, statusLabels } = Astro.props;
+const defaultTemplateId = templates.find(t => t.isDefault)?.id ?? '';
+---
+<form method="post" action="/api/admin/projekte/create" class="space-y-4">
+  <input type="hidden" name="brand" value={BRAND} />
+  <div>
+    <label class={labelCls}>Name <span class="text-red-400">*</span></label>
+    <input type="text" name="name" required maxlength="200" class={inputCls} />
+  </div>
+  <div class="grid grid-cols-2 gap-3">
+    <div>
+      <label class={labelCls}>Status</label>
+      <select name="status" class={selectCls}>
+        {(['entwurf','wartend','geplant','aktiv','erledigt','archiviert'] as const).map(s => (
+          <option value={s} selected={s === 'entwurf'}>{statusLabels[s]}</option>
+        ))}
+      </select>
+    </div>
+    <div>
+      <label class={labelCls}>Priorität</label>
+      <select name="priority" class={selectCls}>
+        <option value="hoch">▲ Hoch</option>
+        <option value="mittel" selected>● Mittel</option>
+        <option value="niedrig">▼ Niedrig</option>
+      </select>
+    </div>
+  </div>
+  <div class="grid grid-cols-2 gap-3">
+    <div>
+      <label class={labelCls}>Startdatum</label>
+      <input type="date" name="startDate" class={inputCls} />
+    </div>
+    <div>
+      <label class={labelCls}>Fälligkeitsdatum</label>
+      <input type="date" name="dueDate" class={inputCls} />
+    </div>
+  </div>
+  <div class="grid grid-cols-2 gap-3">
+    <div>
+      <label class={labelCls}>Verantwortlicher Kunde <span class="text-red-400">*</span></label>
+      <select name="customerId" required class={selectCls}>
+        <option value="" disabled selected={!prefillCustomerId}>— Kunden wählen —</option>
+        {customers.map(c => <option value={c.id} selected={c.id === prefillCustomerId}>{c.name} ({c.customer_number ?? c.email})</option>)}
+      </select>
+      <p class="text-xs text-muted mt-1">Erforderlich. Projekte ohne Kundenzuordnung sind nicht möglich.</p>
+    </div>
+    <div>
+      <label class={labelCls}>Verantwortlicher Admin</label>
+      <select name="adminId" class={selectCls}>
+        <option value="">— kein Admin —</option>
+        {admins.map(a => <option value={a.id}>{a.name} ({a.admin_number ?? a.email})</option>)}
+      </select>
+    </div>
+  </div>
+  <div>
+    <label class={labelCls}>Ordnerstruktur</label>
+    <select name="folderTemplateId" class={selectCls}>
+      <option value="">— keine Struktur —</option>
+      {templates.map(t => (
+        <option value={t.id} selected={t.id === defaultTemplateId}>{t.name}</option>
+      ))}
+    </select>
+  </div>
+  <div>
+    <label class={labelCls}>Beschreibung</label>
+    <textarea name="description" rows="2" maxlength="2000" class={`${inputCls} resize-none`}></textarea>
+  </div>
+  <div class="flex gap-3 justify-end pt-2">
+    <button type="button" id="create-cancel" class="px-4 py-2 text-sm text-muted hover:text-light transition-colors">Abbrechen</button>
+    <button type="submit" class="px-4 py-2 text-sm bg-gold hover:bg-gold-light text-dark font-semibold rounded-lg transition-colors">Erstellen</button>
+  </div>
+</form>

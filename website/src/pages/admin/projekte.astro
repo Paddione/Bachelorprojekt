@@ -3,6 +3,8 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { listProjects, listAllCustomers, listAdminUsers } from '../../lib/website-db';
 import type { Project, Customer } from '../../lib/website-db';
+import { listTemplates } from '../../lib/folder-templates-db';
+import ProjectCreateForm from '../../components/admin/ProjectCreateForm.astro';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -15,6 +17,7 @@ const priorityFilter = Astro.url.searchParams.get('priority') ?? '';
 const qFilter        = Astro.url.searchParams.get('q')        ?? '';
 const errorMsg       = Astro.url.searchParams.get('error')    ?? '';
 const saved          = Astro.url.searchParams.get('saved')    ?? '';
+const foldersWarn    = Astro.url.searchParams.get('foldersWarn') ?? '';
 const prefillCustomerEmail = Astro.url.searchParams.get('customerEmail') ?? '';
 // When a customer email is supplied (e.g. from /admin/<clientId>?tab=projekte),
 // resolve it to the matching customer ID so the dialog opens pre-selected.
@@ -23,6 +26,7 @@ let prefillCustomerId = '';
 let projects: Project[] = [];
 let customers: Customer[] = [];
 let admins: Customer[] = [];
+let templates: Array<{ id: string; name: string; isDefault: boolean }> = [];
 let dbError = '';
 try {
   [projects, customers, admins] = await Promise.all([
@@ -30,6 +34,7 @@ try {
     listAllCustomers(),
     listAdminUsers(),
   ]);
+  templates = (await listTemplates(BRAND)).map(t => ({ id: t.id, name: t.name, isDefault: t.is_default }));
 } catch (err) {
   console.error('[admin/projekte] DB error:', err);
   dbError = 'Datenbankfehler beim Laden der Projekte.';
@@ -163,6 +168,11 @@ const labelCls  = 'block text-xs text-muted mb-1';
         <div id="saved-banner" class="mb-6 p-4 bg-green-900/30 border border-green-800 rounded-xl text-green-300 text-sm flex items-start justify-between gap-4">
           <span>Projekt erfolgreich gespeichert.</span>
           <button type="button" onclick="document.getElementById('saved-banner').remove()" class="text-green-400 hover:text-green-200 shrink-0">✕</button>
+        </div>
+      )}
+      {foldersWarn && (
+        <div class="mb-6 p-4 bg-yellow-900/30 border border-yellow-800 rounded-xl text-yellow-300 text-sm">
+          Ordnerstruktur konnte nicht vollständig angelegt werden (Nextcloud nicht erreichbar). Ordner können später manuell erstellt werden.
         </div>
       )}
 
@@ -353,66 +363,17 @@ const labelCls  = 'block text-xs text-muted mb-1';
   <dialog id="create-dialog"
     class="bg-dark-light border border-dark-lighter rounded-2xl p-6 w-full max-w-xl backdrop:bg-black/60">
     <h2 class="text-lg font-semibold text-light mb-4 font-serif">Neues Projekt</h2>
-    <form method="post" action="/api/admin/projekte/create" class="space-y-4">
-      <input type="hidden" name="brand" value={BRAND} />
-      <div>
-        <label class={labelCls}>Name <span class="text-red-400">*</span></label>
-        <input type="text" name="name" required maxlength="200" class={inputCls} />
-      </div>
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class={labelCls}>Status</label>
-          <select name="status" class={selectCls}>
-            {(['entwurf','wartend','geplant','aktiv','erledigt','archiviert'] as const).map(s => (
-              <option value={s} selected={s === 'entwurf'}>{STATUS_LABELS[s]}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label class={labelCls}>Priorität</label>
-          <select name="priority" class={selectCls}>
-            <option value="hoch">▲ Hoch</option>
-            <option value="mittel" selected>● Mittel</option>
-            <option value="niedrig">▼ Niedrig</option>
-          </select>
-        </div>
-      </div>
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class={labelCls}>Startdatum</label>
-          <input type="date" name="startDate" class={inputCls} />
-        </div>
-        <div>
-          <label class={labelCls}>Fälligkeitsdatum</label>
-          <input type="date" name="dueDate" class={inputCls} />
-        </div>
-      </div>
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class={labelCls}>Verantwortlicher Kunde <span class="text-red-400">*</span></label>
-          <select name="customerId" required class={selectCls}>
-            <option value="" disabled selected={!prefillCustomerId}>— Kunden wählen —</option>
-            {customers.map(c => <option value={c.id} selected={c.id === prefillCustomerId}>{c.name} ({c.customer_number ?? c.email})</option>)}
-          </select>
-          <p class="text-xs text-muted mt-1">Erforderlich. Projekte ohne Kundenzuordnung sind nicht möglich.</p>
-        </div>
-        <div>
-          <label class={labelCls}>Verantwortlicher Admin</label>
-          <select name="adminId" class={selectCls}>
-            <option value="">— kein Admin —</option>
-            {admins.map(a => <option value={a.id}>{a.name} ({a.admin_number ?? a.email})</option>)}
-          </select>
-        </div>
-      </div>
-      <div>
-        <label class={labelCls}>Beschreibung</label>
-        <textarea name="description" rows="2" maxlength="2000" class={`${inputCls} resize-none`}></textarea>
-      </div>
-      <div class="flex gap-3 justify-end pt-2">
-        <button type="button" id="create-cancel" class="px-4 py-2 text-sm text-muted hover:text-light transition-colors">Abbrechen</button>
-        <button type="submit" class="px-4 py-2 text-sm bg-gold hover:bg-gold-light text-dark font-semibold rounded-lg transition-colors">Erstellen</button>
-      </div>
-    </form>
+    <ProjectCreateForm
+      BRAND={BRAND}
+      customers={customers}
+      admins={admins}
+      prefillCustomerId={prefillCustomerId}
+      templates={templates}
+      inputCls={inputCls}
+      selectCls={selectCls}
+      labelCls={labelCls}
+      statusLabels={STATUS_LABELS}
+    />
   </dialog>
 </AdminLayout>
 

@@ -1,6 +1,6 @@
 {
   "generatedFrom": "website/src/pages",
-  "count": 133,
+  "count": 134,
   "routes": [
     {
       "route": "/",
@@ -261,6 +261,14 @@
     },
     {
       "route": "/admin/einstellungen/email",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/einstellungen/ordner-templates",
       "authTier": "admin",
       "brand": "both",
       "dynamic": false,

@@ -83,6 +83,12 @@ describe('resolveQuestions', () => {
     expect(r).toHaveLength(23);
     expect(r[0]).toMatchObject({ id: 'q1', section: '1. Die Coaching-Beziehung' });
   });
+  it('resolves final-grilling-v1 with 23 questions across 6 sections', () => {
+    const r = resolveQuestions('final-grilling-v1', QUESTIONNAIRES, null);
+    expect(r).toHaveLength(23);
+    expect(r[0]).toMatchObject({ id: 'q1', section: '1. Anforderungsklärung' });
+    expect(r[22]).toMatchObject({ id: 'q23', section: '6. Abschluss & Übergabe' });
+  });
   it('unions absorbed meta questions (new ids appended, existing ids kept registry-first)', () => {
     const meta: GrillingMeta = {
       [QN]: { questions: [{ id: 'q1', prompt: 'override?' }, { id: 'qX', prompt: 'absorbed?' }], dismissed: [] },

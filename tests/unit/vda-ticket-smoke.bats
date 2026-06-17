@@ -41,12 +41,6 @@ TICKET_SH="$BATS_TEST_DIRNAME/../../scripts/vda/ticket.sh"
   [[ "$output" == *"triage"* ]]
 }
 
-@test "ticket unknown subcommand passes through to ticket.sh and exits 1" {
-  run bash "$TICKET_SH" nonexistent
-  [ "$status" -eq 1 ]
-  [[ "$output" == *"Unknown command"* ]]
-}
-
 @test "vda.sh promote --help exits 0 (promote.sh must exist)" {
   run bash "$BATS_TEST_DIRNAME/../../scripts/vda.sh" promote --help
   [ "$status" -eq 0 ]

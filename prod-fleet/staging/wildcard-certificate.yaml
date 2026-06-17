@@ -1,0 +1,19 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: staging-wildcard
+  namespace: workspace-staging
+spec:
+  secretName: ${TLS_SECRET_NAME}
+  secretTemplate:
+    annotations:
+      reflector.v1.emberstack.eu/reflection-allowed: "true"
+      reflector.v1.emberstack.eu/reflection-allowed-namespaces: "coturn,workspace-office,${WEBSITE_NAMESPACE}"
+      reflector.v1.emberstack.eu/reflection-auto-enabled: "true"
+      reflector.v1.emberstack.eu/reflection-auto-namespaces: "coturn,workspace-office,${WEBSITE_NAMESPACE}"
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+    - "*.${PROD_DOMAIN}"
+    - "${PROD_DOMAIN}"

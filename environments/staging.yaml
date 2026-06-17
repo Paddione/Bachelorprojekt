@@ -1,0 +1,83 @@
+# environments/staging.yaml
+# Staging environment on fleet cluster. Fully isolated namespace workspace-staging,
+# own shared-db, *.staging.<domain> wildcard TLS, push-deploy via ENV=staging.
+# No brand affiliation — neutral testing ground before prod.
+environment: staging
+context: fleet
+domain: staging.korczewski.de
+
+env_vars:
+  PROD_DOMAIN: staging.korczewski.de
+  CLUSTER_ENV: fleet-staging
+  BRAND_NAME: "Staging"
+  BRAND_ID: staging
+  CONTACT_EMAIL: staging@korczewski.de
+  CONTACT_PHONE: ""
+  CONTACT_CITY: "Staging"
+  CONTACT_NAME: "Staging Admin"
+  LEGAL_STREET: "Staging"
+  LEGAL_ZIP: "00000"
+  LEGAL_JOBTITLE: "Staging Environment"
+  LEGAL_UST_ID: "Nicht vorhanden"
+  LEGAL_WEBSITE: staging.korczewski.de
+  WEBSITE_IMAGE: korczewski-website
+  DOCS_IMAGE: korczewski-docs
+  WEBSITE_NAMESPACE: website-staging
+  WORKSPACE_NAMESPACE: workspace-staging
+  WEBSITE_NODE_AFFINITY: '["pk-hetzner-4","pk-hetzner-6","pk-hetzner-8"]'
+  INFRA_NAMESPACE: staging-infra
+  TLS_SECRET_NAME: staging-wildcard-tls
+  # Mailpit as staging mail sink (same pattern as dev)
+  SMTP_FROM: staging@staging.korczewski.de
+  SMTP_USER: staging
+  SMTP_HOST: mailpit.workspace-staging.svc.cluster.local
+  SMTP_PORT: "1025"
+  SMTP_SECURE: "false"
+  SMTP_PASSWORD: "staging-dev-password"
+  # TURN_NODE: no dedicated Coturn on staging — point to pk-hetzner-4 (fleet CP)
+  TURN_PUBLIC_IP: "204.168.244.104"
+  TURN_NODE: "pk-hetzner-4"
+  NEXTCLOUD_EXTERNAL_URL: "https://files.staging.korczewski.de"
+  DOCS_URL: "https://docs.staging.korczewski.de"
+  AUTH_EXTERNAL_URL: "https://auth.staging.korczewski.de"
+  VAULT_EXTERNAL_URL: "https://vault.staging.korczewski.de"
+  WHITEBOARD_EXTERNAL_URL: "https://files.staging.korczewski.de/apps/files"
+  TRAEFIK_EXTERNAL_URL: "https://traefik.staging.korczewski.de"
+  MAIL_EXTERNAL_URL: "https://mail.staging.korczewski.de"
+  BRETT_DOMAIN: brett.staging.korczewski.de
+  MEDIAVIEWER_HOST: mediaviewer.staging.korczewski.de
+  VIDEOVAULT_DOMAIN: videovault.staging.korczewski.de
+  RECOVER_DOMAIN: recover.staging.korczewski.de
+  LIVEKIT_DOMAIN: livekit.staging.korczewski.de
+  OTEL_DOMAIN: otel.staging.korczewski.de
+  LIVEKIT_PIN_IP: ""
+  STREAM_DOMAIN: stream.staging.korczewski.de
+  WEBSITE_HOST: web.staging.korczewski.de
+  WEBSITE_SITE_URL: "https://web.staging.korczewski.de"
+  KEYCLOAK_FRONTEND_URL: "https://auth.staging.korczewski.de"
+  ARENA_WS_URL: https://arena-ws.staging.korczewski.de
+  # No LLM on staging — avoid GPU host load; embedding/chats fall through to Voyage/Anthropic
+  LLM_ENABLED: "false"
+  LLM_RERANK_ENABLED: "false"
+  LLM_HOST_IP: ""
+  COMFY_HOST_IP: ""
+  COMFY_PORT: ""
+  LLM_ROUTER_URL: "http://llm-gateway-lmstudio.workspace-staging.svc.cluster.local:1234"
+  LLM_EMBED_URL: "http://llm-gateway-embed.workspace-staging.svc.cluster.local:8081"
+  # System-test failure loop disabled on staging
+  SYSTEMTEST_LOOP_ENABLED: "false"
+  # Dev stack omitted
+  DEV_SSH_ALLOWLIST: ""
+  PUSHOVER_TOKEN: ""
+  PUSHOVER_USER: ""
+  FACTORY_OTLP_TOKEN: "staging-factory-otlp-token-placeholder"
+
+overlay: prod-fleet/staging
+workspace_namespace: workspace-staging
+website_namespace: website-staging
+secrets_ref: sealed-secrets/staging.yaml
+
+setup_vars:
+  KC_USER1_USERNAME: staging-admin
+  KC_USER1_EMAIL: staging@korczewski.de
+  KC_USER1_PASSWORD: SEALED

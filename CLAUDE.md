@@ -201,6 +201,14 @@ After any cluster reset (including replacing a Sealed Secrets controller keypair
 - **LiveKit needs node-pinning + DNS-pinning + ufw rules.** `livekit-server` runs with `hostNetwork: true` (workspace ns is `pod-security: privileged` for this) and is pinned via `nodeAffinity` to `pk-hetzner-4` (fleet). The Hetzner host firewall blocks all inter-node traffic except 80/443 — `prod/cloud-init.yaml` opens 7880/tcp + 7881/tcp + 50000-60000/udp + 30000-40000/udp on every node. `livekit.<domain>` and `stream.<domain>` should DNS-pin to `204.168.244.104` (pk-hetzner-4) via `task livekit:dns-pin` (browsers otherwise hit a non-LiveKit node ~66% of the time and ICE silently fails). `Room.connect()` must run from a user gesture — Chrome blocks the AudioContext otherwise.
 - **E2E PR ist kein required check — Auto-Merge wird nicht blockiert.** `E2E PR` wurde mit T000722 aus den Branch-Protection required checks entfernt. Der E2E-Workflow (`e2e-pr.yml`) läuft weiterhin bei jedem PR und zeigt sein Ergebnis informativ an (gelb wenn rot, kein Merge-Block). Auto-Merge wartet nur auf: `Offline Tests (Manifests, Configs, Unit)`, `Security Scan`, `Brett TypeScript`, `Vitest (website + arena-server)`, `Conventional Commits`. Emergency-Wiederherstellung: `task gh:branch-protection:emergency-add-e2e` oder GitHub Settings UI unter `Settings → Branches → main`. Skript-Status anzeigen: `task gh:branch-protection:status`.
 
+### Staging environment (ENV=staging)
+- **`ENV=staging`** deploys to the fleet cluster namespace `workspace-staging` — fully isolated from prod brands (`workspace`, `workspace-korczewski`).
+- Own shared-db (namespace-local `shared-db` Service resolves to staging pod automatically), own `*.staging.<domain>` wildcard TLS, own SealedSecrets (`environments/sealed-secrets/staging.yaml`).
+- **LiveKit is disabled** (replicas 0) — hostNetwork slot on pk-hetzner-4 is occupied by prod. LLM is disabled (`LLM_ENABLED=false`).
+- Push-deploy via existing tasks: `task workspace:deploy ENV=staging` → `task workspace:post-setup ENV=staging`.
+- Deploy order (fresh ns): `env:fetch-cert ENV=staging` → `env:seal ENV=staging` → `cert:secret -- <ipv64-key> ENV=staging` → `workspace:deploy ENV=staging`.
+- Overlay: `prod-fleet/staging/` (wraps `../../prod` + `fleet-common` component). Env file: `environments/staging.yaml`. SealedSecrets ref: `sealed-secrets/staging.yaml`.
+
 ### Korczewski homepage uses the Kore design system (different from mentolder)
 
 `web.korczewski.de` and `web.mentolder.de` no longer share a layout. `website/src/pages/index.astro` branches on `process.env.BRAND_ID ?? process.env.BRAND` and renders the components under `website/src/components/kore/` for the `korczewski` brand. Mentolder still uses the existing Hero/WhyMe/ServiceRow/... Svelte components.

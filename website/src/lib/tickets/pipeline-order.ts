@@ -1,9 +1,6 @@
 // Ordered pipeline-lane SSOT. The ONE front→back declaration; PIPELINE_STATUSES
 // and STATUS_BUCKETS are derived from it. Pure module — imports nothing (no DB,
 // no API), so tests and Svelte components can import it without booting the pg Pool.
-// Forward-compat: awaiting_deploy (PR #1786, NOT on main) would later be a single
-// lane insert between 'qa' and 'shipped' here; every derived view + test follows.
-
 // Valid ticket states (Set, NOT lane order). Mirrors the DB CHECK in tickets-db.ts.
 // Order is historical (blocked between in_review and qa_review) and intentionally
 // preserved for backward compatibility — lane order lives in PIPELINE_LANES below.
@@ -30,9 +27,9 @@ export const PIPELINE_LANES: readonly PipelineLane[] = [
   { key: 'staged',      label: 'Kommissioniert', statuses: ['plan_staged'],        side: false },
   { key: 'loadingDock', label: 'Laderampe',      statuses: ['backlog'],            side: false },
   { key: 'hall',        label: 'In Arbeit',      statuses: ['in_progress', 'in_review'], side: false },
-  { key: 'qa',          label: 'QS-Abnahme',     statuses: ['qa_review'],          side: false },
-  { key: 'awaitingDeploy', label: 'Wartet auf Deploy', statuses: ['awaiting_deploy'], side: false },
-  { key: 'shipped',     label: 'Fertig',         statuses: ['done'],               side: false },
+  { key: 'qa',             label: 'QS-Abnahme',     statuses: ['qa_review'],               side: false },
+  { key: 'awaitingDeploy', label: 'Deploy-Wartung',  statuses: ['awaiting_deploy'],          side: false },
+  { key: 'shipped',        label: 'Fertig',          statuses: ['done'],                    side: false },
   { key: 'attention',   label: 'Blockiert',      statuses: ['blocked'],            side: true },
   { key: 'archive',     label: 'Archiv',         statuses: ['archived'],           side: true },
 ] as const;

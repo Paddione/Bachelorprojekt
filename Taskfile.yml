@@ -2058,6 +2058,26 @@ tasks:
           > k3d/monitoring/kube-prometheus-stack-rendered.yaml
         echo "✓ Rendered to k3d/monitoring/kube-prometheus-stack-rendered.yaml — review the diff and commit."
 
+  loki:render:
+    desc: "Pre-render Loki + promtail Helm charts to committed YAML (additive to monitoring:render). Renders the DEV values baseline; prod layers patches via prod/monitoring."
+    preconditions:
+      - sh: command -v helm > /dev/null
+        msg: "helm not found. Install: https://helm.sh/docs/intro/install/"
+    cmds:
+      - |
+        helm repo add grafana https://grafana.github.io/helm-charts 2>/dev/null || true
+        helm repo update grafana
+        helm template loki grafana/loki \
+          --namespace monitoring \
+          --version 7.0.0 \
+          -f k3d/monitoring/values/loki-values.yaml \
+          > k3d/monitoring/loki-rendered.yaml
+        helm template promtail grafana/promtail \
+          --namespace monitoring \
+          -f k3d/monitoring/values/promtail-values.yaml \
+          > k3d/monitoring/promtail-rendered.yaml
+        echo "✓ Rendered loki-rendered.yaml + promtail-rendered.yaml — review the diff and commit."
+
   monitoring:validate:
     desc: "Validate the monitoring base + prod overlays build cleanly."
     cmds:

@@ -45,6 +45,7 @@ client
 |---|---|---|
 | First-time cluster bring-up | `task dev:cluster:create` | SSHes to `$DEV_NODE`, runs `k3d cluster create` with the load-bearing port mappings (`127.0.0.1:18080`, `0.0.0.0:2222`, `127.0.0.1:15432`). |
 | Status | `task dev:cluster:status` | Pods, services, ingresses in `workspace-dev`. |
+| Voller Reset | `task dev:reset` | Images werden re-importiert; `REBUILD=1` baut neu. |
 | Full deploy | `task dev:deploy` | Builds website + brett, imports into k3d, applies manifests. |
 | Website only | `task dev:redeploy:website` | Rebuild + roll. |
 | Brett only | `task dev:redeploy:brett` | Same. |

@@ -1,12 +1,13 @@
 # API Surface Map
 
-> Generated at 2026-06-17T14:17:36.400Z
+> Generated at 2026-06-17T14:28:46.331Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
 | `/api/admin/angebote/save` | POST | 🔐 admin | `website/src/pages/api/admin/angebote/save.ts` |
 | `/api/admin/assets` | GET | 🔐 admin | `website/src/pages/api/admin/assets.ts` |
 | `/api/admin/assets/upload` | POST | 🔐 admin | `website/src/pages/api/admin/assets/upload.ts` |
+| `/api/admin/backup-status` | GET | 🔐 admin | `website/src/pages/api/admin/backup-status.ts` |
 | `/api/admin/billing/{id}` | GET | 🔐 admin | `website/src/pages/api/admin/billing/[id]/index.ts` |
 | `/api/admin/billing/{id}/discard` | POST | 🔐 admin | `website/src/pages/api/admin/billing/[id]/discard.ts` |
 | `/api/admin/billing/{id}/finalize-from-prepayment` | POST | 🔐 admin | `website/src/pages/api/admin/billing/[id]/finalize-from-prepayment.ts` |

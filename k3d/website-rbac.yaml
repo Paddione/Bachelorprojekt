@@ -1,12 +1,3 @@
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: website
-  namespace: website
-  labels:
-    app: website
----
-
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -21,6 +12,9 @@ rules:
   - apiGroups: ["apps"]
     resources: ["deployments"]
     verbs: ["get", "list", "patch"]
+  - apiGroups: ["batch"]
+    resources: ["jobs", "cronjobs"]
+    verbs: ["get", "list"]
 ---
 
 apiVersion: rbac.authorization.k8s.io/v1

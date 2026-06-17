@@ -3,6 +3,7 @@
   import {
     loadActivePrompts, insertPromptBody, recordPromptUse, type PromptOption,
   } from '../lib/prompt-insert';
+  import ShareFileInline from './ShareFileInline.svelte';
 
   type Member = { customer_id: string; name: string; email: string };
   type Customer = { id: string; name: string; email: string };
@@ -33,6 +34,9 @@
   let allCustomers = $state<Customer[]>([]);
   let memberSearch = $state('');
   let memberLoading = $state(false);
+
+  // ── Share "Datei teilen" toggle ──────────────────────────────────────────
+  let showShare = $state(false);
 
   // ── Prompt-library "Vorlage einfügen" dropdown (admin only) ──────────────
   let prompts = $state<PromptOption[]>([]);
@@ -250,7 +254,20 @@
           </div>
         {/each}
       </div>
+      {#if showShare && activeRoom}
+        <ShareFileInline
+          messagesBaseUrl={messagesBaseUrl}
+          roomId={activeRoom.id}
+          role={role}
+          senderId={activeRoom.created_by}
+          onclose={() => showShare = false}
+          onshare={(msg) => { messages = [...messages, msg]; lastId = msg.id; }}
+        />
+      {/if}
       <div class="reply-bar">
+        <button class="btn-share" onclick={() => showShare = !showShare} title="Datei teilen">
+          {showShare ? '✕' : '📎'}
+        </button>
         <textarea bind:value={newBody} placeholder="Nachricht…" rows="2"
           onkeydown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}></textarea>
         {#if role === 'admin'}
@@ -328,4 +345,7 @@
   .prompt-item { width: 100%; text-align: left; background: transparent; border: none; color: #e8e8f0; padding: 8px 10px; font-size: 13px; cursor: pointer; border-radius: 4px; }
   .prompt-item:hover { background: #2a2a3e; }
   .prompt-empty { color: #666; font-size: 12px; padding: 8px 10px; }
+  .btn-share { background: #2a2a3e; color: #ccc; border: 1px solid #374151; border-radius: 6px; padding: 8px 10px; cursor: pointer; font-size: 14px; align-self: flex-end; }
+  .btn-share:hover { background: #374151; }
+
 </style>

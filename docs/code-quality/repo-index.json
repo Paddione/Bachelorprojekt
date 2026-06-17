@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 459,
+      "file_count": 460,
       "files": [
         "tests/.gitignore",
         "tests/batch/batch-gap-analysis.bats",
@@ -351,6 +351,7 @@
         "tests/unit/brainstorm-dev-host.bats",
         "tests/unit/brainstorm-extract-choice.bats",
         "tests/unit/build-graph.bats",
+        "tests/unit/changed-manifests.bats",
         "tests/unit/coaching-json-ingest.bats",
         "tests/unit/collabora-wopi-discovery.bats",
         "tests/unit/collabora-wopi-single-brand-guard.bats",
@@ -2378,7 +2379,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 364,
+      "file_count": 365,
       "files": [
         "scripts/add-whiteboard-library.py",
         "scripts/admin-menu-gate.sh",
@@ -2446,6 +2447,7 @@
         "scripts/build-route-manifest.mjs",
         "scripts/build-srgb-icc.mjs",
         "scripts/build-test-inventory.sh",
+        "scripts/changed-manifests.sh",
         "scripts/check-connectivity.sh",
         "scripts/check-updates.sh",
         "scripts/ci-dummy-secrets.sh",

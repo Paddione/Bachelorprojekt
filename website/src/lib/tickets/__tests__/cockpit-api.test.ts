@@ -1,5 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+// Mock openai for suggest endpoint tests — must be before any imports
+const openaiMocks = vi.hoisted(() => ({
+  create: vi.fn(),
+}));
+
+vi.mock('openai', () => {
+  function MockOpenAI() {
+    return { chat: { completions: { create: openaiMocks.create } } };
+  }
+  return { default: MockOpenAI };
+});
+
 // All cockpit-db function mocks consolidated upfront (one vi.mock per module).
 const mocks = vi.hoisted(() => ({
   // auth
@@ -38,6 +50,8 @@ import { POST as REORDER } from '../../../pages/api/admin/cockpit/reorder';
 import { POST as REPARENT } from '../../../pages/api/admin/cockpit/reparent';
 import { POST as BATCH } from '../../../pages/api/admin/cockpit/batch';
 import { POST as FEATURE_ACTION } from '../../../pages/api/admin/cockpit/feature-action';
+import { POST as SUGGEST } from '../../../pages/api/admin/cockpit/suggest';
+import { POST as FEATURE_ACTIONS } from '../../../pages/api/admin/cockpit/feature-actions';
 
 const req = () => new Request('http://x/api/admin/cockpit/portfolio',
   { headers: { cookie: 'sid=1' } });
@@ -213,5 +227,307 @@ describe('POST /cockpit/feature-action', () => {
     mocks.setFeatureAction.mockRejectedValue(new BrandMismatchError('wrong brand'));
     const res = await post(FEATURE_ACTION, { featureId: 'f1', action: 'next_step' });
     expect(res.status).toBe(400);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// POST /cockpit/suggest — feature suggestion endpoint
+// ---------------------------------------------------------------------------
+const featurePortfolio = {
+  products: [{
+    id: 'p1', extId: 'P1', title: 'Product',
+    rollup: { total: 0, done: 0, blocked: 0, inProgress: 0, open: 0, pctDone: 0 },
+    features: [{
+      id: 'f1', extId: 'F1', title: 'Feature One',
+      valueProp: 'value', priority: 'mittel', health: 'amber' as const,
+      rollup: { total: 5, done: 2, blocked: 0, inProgress: 1, open: 2, pctDone: 40 },
+      nextStep: false, discarded: false, majorFeature: true, synthetic: false,
+    }],
+  }],
+};
+
+describe('POST /cockpit/suggest', () => {
+  beforeEach(() => {
+    mocks.getSession.mockResolvedValue({ user: {} });
+    mocks.isAdmin.mockReturnValue(true);
+    mocks.getPortfolio.mockResolvedValue(featurePortfolio);
+    // Reset openai mock
+    openaiMocks.create.mockReset();
+  });
+
+  it('403 when not admin', async () => {
+    mocks.isAdmin.mockReturnValue(false);
+    const res = await post(SUGGEST, { provider: 'deepseek' });
+    expect(res.status).toBe(403);
+  });
+
+  it('400 when provider is not in allowlist', async () => {
+    const res = await post(SUGGEST, { provider: 'evil' });
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toMatch(/invalid provider/);
+    // B3: upstream call must not happen
+    expect(openaiMocks.create).not.toHaveBeenCalled();
+  });
+
+  it('503 when provider requires API key and it is not set', async () => {
+    delete process.env.DEEPSEEK_API_KEY;
+    const res = await post(SUGGEST, { provider: 'deepseek' });
+    expect(res.status).toBe(503);
+    const body = await res.json();
+    expect(body.error).toMatch(/not configured/);
+    // B5: client must not be constructed / called
+    expect(openaiMocks.create).not.toHaveBeenCalled();
+  });
+
+  it('200 with suggestions on successful LLM call', async () => {
+    process.env.DEEPSEEK_API_KEY = 'sk-test';
+    openaiMocks.create.mockResolvedValue({
+      choices: [{ message: { content: JSON.stringify([
+        { featureId: 'F1', nextStep: true, reason: 'fast fertig', impact: 'hoch' },
+      ]) } }],
+    });
+    const res = await post(SUGGEST, { provider: 'deepseek' });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.suggestions).toHaveLength(1);
+    expect(body.suggestions[0].featureId).toBe('F1');
+    expect(body.suggestions[0].nextStep).toBe(true);
+  });
+
+  it('200 with empty suggestions array when LLM returns prose without JSON (B4)', async () => {
+    process.env.DEEPSEEK_API_KEY = 'sk-test';
+    openaiMocks.create.mockResolvedValue({
+      choices: [{ message: { content: 'Das ist nur Prosa ohne JSON-Array.' } }],
+    });
+    const res = await post(SUGGEST, { provider: 'deepseek' });
+    // B4: must return 200, not 500
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.suggestions).toEqual([]);
+  });
+
+  it('200 with valid items only when LLM returns mixed valid/invalid items (B4)', async () => {
+    process.env.DEEPSEEK_API_KEY = 'sk-test';
+    openaiMocks.create.mockResolvedValue({
+      choices: [{ message: { content: JSON.stringify([
+        { featureId: 'F1', nextStep: true, reason: 'gut', impact: 'hoch' },
+        { featureId: '', nextStep: true, reason: 'bad' },
+        { nextStep: false, reason: 'missing featureId' },
+        { featureId: 'F2', nextStep: false, reason: 'niedrige Priorität', impact: 'niedrig' },
+        { featureId: 'F3', nextStep: true, reason: 'OK', impact: 'unsinnig' },
+      ]) } }],
+    });
+    const res = await post(SUGGEST, { provider: 'deepseek' });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    // Only F1 (valid) and F2 (valid, impact niedrig) should remain; empty featureId, missing featureId dropped;
+    // F3 has invalid impact which should be dropped but item still valid
+    expect(body.suggestions.length).toBeGreaterThanOrEqual(3);
+    expect(body.suggestions.every((s: any) => s.featureId && s.featureId.length > 0)).toBe(true);
+  });
+
+  it('504 when LLM call times out (B1)', async () => {
+    process.env.DEEPSEEK_API_KEY = 'sk-test';
+    openaiMocks.create.mockRejectedValue(new Error('timeout of 10000ms exceeded'));
+    const res = await post(SUGGEST, { provider: 'deepseek' });
+    expect(res.status).toBe(504);
+    const body = await res.json();
+    expect(body.error).toMatch(/timed out/i);
+  });
+
+  it('returns 200 empty suggestions when portfolio has no features', async () => {
+    mocks.getPortfolio.mockResolvedValue({ products: [] });
+    process.env.DEEPSEEK_API_KEY = 'sk-test';
+    const res = await post(SUGGEST, { provider: 'deepseek' });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.suggestions).toEqual([]);
+    // No LLM call is made
+    expect(openaiMocks.create).not.toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// POST /cockpit/feature-actions (plural) — batch feature actions (B2)
+// ---------------------------------------------------------------------------
+describe('POST /cockpit/feature-actions', () => {
+  beforeEach(() => {
+    mocks.getSession.mockResolvedValue({ user: {} });
+    mocks.isAdmin.mockReturnValue(true);
+  });
+
+  it('403 when not admin', async () => {
+    mocks.isAdmin.mockReturnValue(false);
+    const res = await post(FEATURE_ACTIONS, { actions: [{ featureId: 'f1', action: 'next_step' }] });
+    expect(res.status).toBe(403);
+  });
+
+  it('400 when actions array missing', async () => {
+    const res = await post(FEATURE_ACTIONS, {});
+    expect(res.status).toBe(400);
+  });
+
+  it('400 when actions is empty', async () => {
+    const res = await post(FEATURE_ACTIONS, { actions: [] });
+    expect(res.status).toBe(400);
+  });
+
+  it('400 when action entry missing featureId', async () => {
+    const res = await post(FEATURE_ACTIONS, { actions: [{ action: 'next_step' }] });
+    expect(res.status).toBe(400);
+  });
+
+  it('200 processes all actions and returns per-entry results', async () => {
+    mocks.setFeatureAction.mockResolvedValue({ ok: true });
+    const res = await post(FEATURE_ACTIONS, {
+      actions: [
+        { featureId: 'f1', action: 'next_step', value: true },
+        { featureId: 'f2', action: 'discard', value: true },
+      ],
+    });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.ok).toBe(true);
+    expect(body.results).toHaveLength(2);
+    expect(body.results.every((r: any) => r.success)).toBe(true);
+    expect(mocks.setFeatureAction).toHaveBeenCalledTimes(2);
+    expect(mocks.setFeatureAction).toHaveBeenCalledWith('mentolder', 'f1', 'next_step', true);
+    expect(mocks.setFeatureAction).toHaveBeenCalledWith('mentolder', 'f2', 'discard', true);
+  });
+
+  it('reports per-action errors without failing the whole batch', async () => {
+    const { BrandMismatchError } = await import('../../../lib/tickets/cockpit-db');
+    mocks.setFeatureAction
+      .mockResolvedValueOnce({ ok: true })
+      .mockRejectedValueOnce(new BrandMismatchError('cross-brand'));
+    const res = await post(FEATURE_ACTIONS, {
+      actions: [
+        { featureId: 'f1', action: 'next_step', value: true },
+        { featureId: 'f2', action: 'next_step', value: false },
+      ],
+    });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.results).toHaveLength(2);
+    expect(body.results[0].success).toBe(true);
+    expect(body.results[1].success).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// resolveProvider unit tests (B3)
+// ---------------------------------------------------------------------------
+describe('resolveProvider', () => {
+  it('returns spec for known provider deepseek', () => {
+    const spec = resolveProvider('deepseek');
+    expect(spec).not.toBeNull();
+    expect(spec!.id).toBe('deepseek');
+    expect(spec!.baseURL).toBe('https://api.deepseek.com/v1');
+    expect(spec!.apiKeyEnv).toBe('DEEPSEEK_API_KEY');
+  });
+
+  it('returns spec for known provider anthropic', () => {
+    const spec = resolveProvider('anthropic');
+    expect(spec).not.toBeNull();
+    expect(spec!.id).toBe('anthropic');
+    expect(spec!.apiKeyEnv).toBe('ANTHROPIC_API_KEY');
+  });
+
+  it('returns null for unknown provider', () => {
+    expect(resolveProvider('evil')).toBeNull();
+    expect(resolveProvider('')).toBeNull();
+    expect(resolveProvider('openai')).toBeNull();
+    expect(resolveProvider('local-cluster')).toBeNull();
+  });
+
+  it('ALLOWED_PROVIDERS is frozen and contains exactly expected entries', () => {
+    expect(Object.keys(ALLOWED_PROVIDERS).sort()).toEqual(['anthropic', 'deepseek']);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// parseSuggestions unit tests (B4)
+// ---------------------------------------------------------------------------
+import { parseSuggestions } from '../../../lib/tickets/suggest-prompt';
+import { resolveProvider, ALLOWED_PROVIDERS } from '../../../lib/tickets/suggest-providers';
+
+describe('parseSuggestions', () => {
+  it('returns [] for prose without JSON array', () => {
+    expect(parseSuggestions('Das ist ein normaler Text ohne JSON.')).toEqual([]);
+  });
+
+  it('returns [] for completely empty string', () => {
+    expect(parseSuggestions('')).toEqual([]);
+  });
+
+  it('returns [] for JSON that is not an array', () => {
+    expect(parseSuggestions('{"key": "value"}')).toEqual([]);
+  });
+
+  it('returns [] for malformed JSON', () => {
+    expect(parseSuggestions('[{"featureId": "f1" ohne schließende Klammer')).toEqual([]);
+  });
+
+  it('drops items with empty featureId', () => {
+    const result = parseSuggestions(JSON.stringify([
+      { featureId: 'f1', nextStep: true, reason: 'gut' },
+      { featureId: '', nextStep: true, reason: 'bad' },
+    ]));
+    expect(result).toHaveLength(1);
+    expect(result[0].featureId).toBe('f1');
+  });
+
+  it('drops items with missing featureId', () => {
+    const result = parseSuggestions(JSON.stringify([
+      { nextStep: true, reason: 'missing featureId' },
+      { featureId: 'f2', nextStep: false, reason: 'ok' },
+    ]));
+    expect(result).toHaveLength(1);
+    expect(result[0].featureId).toBe('f2');
+  });
+
+  it('drops non-object items in the array', () => {
+    const result = parseSuggestions(JSON.stringify([
+      'string item',
+      42,
+      { featureId: 'f1', nextStep: true, reason: 'valid' },
+    ]));
+    expect(result).toHaveLength(1);
+    expect(result[0].featureId).toBe('f1');
+  });
+
+  it('only includes impact values from IMPACT_VALUES', () => {
+    const result = parseSuggestions(JSON.stringify([
+      { featureId: 'f1', nextStep: true, reason: 'a', impact: 'hoch' },
+      { featureId: 'f2', nextStep: true, reason: 'b', impact: 'unsinnig' },
+      { featureId: 'f3', nextStep: true, reason: 'c' },
+    ]));
+    expect(result).toHaveLength(3);
+    expect(result[0].impact).toBe('hoch');
+    expect(result[1].impact).toBeUndefined();
+    expect(result[2].impact).toBeUndefined();
+  });
+
+  it('coerces reason to empty string when missing or not a string', () => {
+    const result = parseSuggestions(JSON.stringify([
+      { featureId: 'f1', nextStep: true },
+      { featureId: 'f2', nextStep: true, reason: 42 },
+    ]));
+    expect(result).toHaveLength(2);
+    expect(result[0].reason).toBe('');
+    expect(result[1].reason).toBe('');
+  });
+
+  it('sets nextStep only for boolean true', () => {
+    const result = parseSuggestions(JSON.stringify([
+      { featureId: 'f1', nextStep: true, reason: 'yes' },
+      { featureId: 'f2', nextStep: false, reason: 'no' },
+      { featureId: 'f3', nextStep: 'true', reason: 'string true' },
+    ]));
+    expect(result).toHaveLength(3);
+    expect(result[0].nextStep).toBe(true);
+    expect(result[1].nextStep).toBe(false);
+    expect(result[2].nextStep).toBe(false); // 'true' string ≠ boolean true
   });
 });

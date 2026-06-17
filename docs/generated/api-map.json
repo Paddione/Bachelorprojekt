@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-17T14:17:48.126Z",
+  "generatedAt": "2026-06-17T14:28:46.331Z",
   "endpoints": [
     {
       "path": "/api/admin/angebote/save",
@@ -786,6 +786,14 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/cockpit/feature-action.ts"
+    },
+    {
+      "path": "/api/admin/cockpit/feature-actions",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/cockpit/feature-actions.ts"
     },
     {
       "path": "/api/admin/cockpit/portfolio",

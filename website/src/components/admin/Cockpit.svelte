@@ -96,6 +96,17 @@
       await loadPortfolio();
     } catch (e) { setError(String((e as Error).message)); }
   }
+
+  async function batchFeatureAction(actions: { featureId: string; action: string; value?: boolean | string }[]) {
+    try {
+      const res = await fetch('/api/admin/cockpit/feature-actions', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ actions }),
+      });
+      if (!res.ok) throw new Error(`feature-actions ${res.status}`);
+      await loadPortfolio();
+    } catch (e) { setError(String((e as Error).message)); }
+  }
 </script>
 
 <div class="cockpit-shell" data-brand={brand}>
@@ -116,6 +127,7 @@
     <div class="layout">
       <CockpitSidebar {portfolio} selectedFeature={$cockpitStore.selectedFeature}
         onSelectFeature={pickFeature} onFeatureAction={featureAction}
+        onBatchFeatureAction={batchFeatureAction}
         onMutated={refetch} />
       <main class="main">
         {#if $cockpitStore.isLoading}<div class="loading">Lädt …</div>{/if}

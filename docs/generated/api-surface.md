@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-06-17T14:17:48.126Z
+> Generated at 2026-06-17T14:28:46.331Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -100,6 +100,7 @@
 | `/api/admin/cockpit/batch` | POST | 🔐 admin | `website/src/pages/api/admin/cockpit/batch.ts` |
 | `/api/admin/cockpit/feature` | GET | 🔐 admin | `website/src/pages/api/admin/cockpit/feature.ts` |
 | `/api/admin/cockpit/feature-action` | POST | 🔐 admin | `website/src/pages/api/admin/cockpit/feature-action.ts` |
+| `/api/admin/cockpit/feature-actions` | POST | 🔐 admin | `website/src/pages/api/admin/cockpit/feature-actions.ts` |
 | `/api/admin/cockpit/portfolio` | GET | 🔐 admin | `website/src/pages/api/admin/cockpit/portfolio.ts` |
 | `/api/admin/cockpit/reorder` | POST | 🔐 admin | `website/src/pages/api/admin/cockpit/reorder.ts` |
 | `/api/admin/cockpit/reparent` | POST | 🔐 admin | `website/src/pages/api/admin/cockpit/reparent.ts` |

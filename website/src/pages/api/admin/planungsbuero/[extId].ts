@@ -2,6 +2,8 @@ import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import {
   patchItem,
+  applyTriage,
+  discardTriage,
   DOR_KEYS,
   type Readiness,
 } from '../../../../lib/planning-office';
@@ -21,6 +23,15 @@ export const PATCH: APIRoute = async ({ request, params }) => {
   const extId = params.extId!;
   try {
     const b = await request.json();
+
+    // T000933: Triage apply/discard
+    if (b.triageAction === 'apply' || b.triageAction === 'discard') {
+      const ok = b.triageAction === 'apply'
+        ? await applyTriage(extId)
+        : await discardTriage(extId);
+      return ok ? json({ ok: true }) : json({ error: 'triage_not_found' }, 404);
+    }
+
     if (b.effort && !['klein', 'mittel', 'gross'].includes(b.effort))
       return json({ error: 'bad_effort' }, 400);
     let readiness: Readiness | undefined;

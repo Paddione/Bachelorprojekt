@@ -1,0 +1,45 @@
+{
+  "areas": [
+    "website",
+    "infra",
+    "db",
+    "test",
+    "security",
+    "ops",
+    "arena",
+    "brett",
+    "docs",
+    "ci",
+    "tickets",
+    "coaching",
+    "billing",
+    "chat"
+  ],
+  "components": [
+    "planungsbuero",
+    "cockpit",
+    "tickets-ui",
+    "arena-server",
+    "brett-client",
+    "ingress",
+    "keycloak",
+    "shared-db",
+    "sealed-secrets",
+    "kustomize",
+    "taskfile",
+    "ci-pipeline",
+    "autopilot",
+    "factory-dispatcher",
+    "grilling",
+    "coaching-sessions",
+    "billing-invoices",
+    "chat-rooms",
+    "knowledge-base",
+    "agent-guide",
+    "docs-site"
+  ],
+  "assignees": [
+    "patrick",
+    "factory"
+  ]
+}

@@ -104,6 +104,12 @@ Report only the dispatcher's final JSON result. Do not improvise scheduling."
     BRAND="$_ae_brand" bash "${REPO}/scripts/factory/auto-enqueue.sh" 2>&1 \
       | sed "s/^/[auto-enqueue:${_ae_brand}] /" >&2 || true
   done
+  # T000933: KI-Ticket-Auto-Triage — DeepSeek klassifiziert untriagierte Tickets
+  # und schreibt Vorschläge nach grilling_meta.triage. Best-effort, nicht fatal.
+  for _t_brand in mentolder korczewski; do
+    BRAND="$_t_brand" bash "${REPO}/scripts/factory/auto-triage.sh" 2>&1 \
+      | sed "s/^/[auto-triage:${_t_brand}] /" >&2 || true
+  done
   "${CLAUDE_BIN}" -p "${PROMPT}" \
     --allowedTools "Workflow,Bash(bash scripts/factory/*),Bash(bash scripts/ticket.sh*),ToolSearch,PushNotification" \
     --permission-mode acceptEdits

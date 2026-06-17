@@ -7,7 +7,7 @@ function item(partial: Partial<OfficeItem>): OfficeItem {
     extId: 'T000571', title: 'X', valueProp: null, priority: 'mittel',
     effort: null, areas: [], dependsOn: [], rank: null,
     readiness: {}, dorScore: 0, isNextCandidate: false, pinned: false,
-    requirementsList: [], lastenheftLocked: false,
+    requirementsList: [], lastenheftLocked: false, triage: null,
     createdAt: '', updatedAt: '', ...partial,
   };
 }

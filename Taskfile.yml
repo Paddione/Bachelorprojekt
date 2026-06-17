@@ -305,6 +305,7 @@ tasks:
       - task: test:unit:api-auth-gate
       - task: test:unit:factory-readiness
       - task: test:unit:factory-scout-quality
+      - task: test:unit:factory-scout-drift
 
 
   test:unit:build-graph:
@@ -341,6 +342,11 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/factory-scout-quality.bats
+
+  test:unit:factory-scout-drift:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/factory-scout-drift.bats
 
   test:unit:factory-mcp:
     internal: true

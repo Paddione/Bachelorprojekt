@@ -9,6 +9,7 @@
 #   get-attachments --id <external_id> --out-dir <out_dir>
 #   get --id <external_id>
 #   set-touched-files --id <external_id> --files <comma-separated-paths>
+#   set-scout-drift --id <external_id> --drift <numeric>
 #   set-pipeline-slot --id <external_id> --slot <integer|null>
 #   release-slot --id <external_id>
 #   touch --id <external_id>
@@ -250,6 +251,21 @@ cmd_set_touched_files() {
 UPDATE tickets.tickets SET touched_files = string_to_array(:'files', ',') WHERE external_id = :'ext_id';
 EOF
   echo "touched_files set for ticket $id"
+}
+
+cmd_set_scout_drift() {
+  local id="" drift=""
+  while [[ $# -gt 0 ]]; do case "$1" in
+      --id)    id="$2"; shift 2 ;;
+      --drift) drift="$2"; shift 2 ;;
+      *)       echo "Unknown set-scout-drift option: $1" >&2; exit 2 ;;
+    esac; done
+  if [[ -z "$id" || -z "$drift" ]]; then echo "ERROR: --id and --drift are required." >&2; exit 2; fi
+  local pod; pod=$(_pgpod)
+  _exec_sql "$pod" -v ext_id="$id" -v drift="$drift" <<'EOF' >/dev/null
+UPDATE tickets.tickets SET scout_drift = :'drift'::numeric, scout_drift_at = now() WHERE external_id = :'ext_id';
+EOF
+  echo "scout_drift set to $drift for ticket $id"
 }
 
 cmd_set_pipeline_slot() {
@@ -665,7 +681,7 @@ _readiness_to_json() {
 
 if [[ $# -lt 1 ]]; then
   echo "Usage: $0 <command> [options]" >&2
-  echo "Commands: create, update-status, add-comment, add-pr-link, grill, archive-plan, get-attachments, get, set-touched-files, set-pipeline-slot, release-slot, touch, enqueue, stage-plan, retry-count, factory-control, dryrun-mark, dryrun-check, feature-flag, phase, inject, get-injections, plan-meta, lastenheft" >&2
+  echo "Commands: create, update-status, add-comment, add-pr-link, grill, archive-plan, get-attachments, get, set-touched-files, set-scout-drift, set-pipeline-slot, release-slot, touch, enqueue, stage-plan, retry-count, factory-control, dryrun-mark, dryrun-check, feature-flag, phase, inject, get-injections, plan-meta, lastenheft" >&2
   exit 1
 fi
 cmd="$1"; shift
@@ -679,6 +695,7 @@ case "$cmd" in
   get-attachments)   cmd_get_attachments "$@" ;;
   get)               cmd_get "$@" ;;
   set-touched-files) cmd_set_touched_files "$@" ;;
+  set-scout-drift)   cmd_set_scout_drift "$@" ;;
   set-pipeline-slot) cmd_set_pipeline_slot "$@" ;;
   release-slot)      cmd_release_slot "$@" ;;
   touch)             cmd_touch "$@" ;;

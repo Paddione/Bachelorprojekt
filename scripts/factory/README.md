@@ -179,6 +179,51 @@ task factory:usage -- --otel           # Optional: Gauges an OTLP-Collector
 - `CLAUDE_USAGE_DIR` / `OPENCLAWN_USAGE_DIR` (Env) überschreiben die Log-Pfade.
 - `OTEL_EXPORTER_OTLP_ENDPOINT` muss gesetzt sein für `--otel`.
 
+## Hybrid-Scout + Drift-Ratchet
+
+Der deterministische Scout (`scout.sh`) besitzt einen optionalen LLM-Fallback via
+DeepSeek für den Fall, dass die grep/find-Discovery zu wenige Dateien findet.
+
+**Hybrid-Scout (Baustein A):**
+- `scout.sh` ruft `scout-llm-fallback.sh` auf, wenn die deterministische Discovery
+  `< SCOUT_LLM_MIN_FILES` (Default: 2) Dateien findet **und** ein DeepSeek-Provider
+  via `route-provider.sh` auflösbar ist.
+- Der LLM-Fallback ist **fail-soft**: bei fehlendem Provider, Timeout oder ungültiger
+  Antwort bleibt das deterministische Ergebnis unberührt.
+- Opt-out: `SCOUT_LLM_ENABLED=false`.
+- `scout-llm-fallback.sh` ist ein eigenes Skript (kein Inline-Code in `scout.sh`),
+  um `scout.sh` unter dem Zeilenlimit zu halten.
+
+**Drift-Ratchet (Baustein B):**
+- Nach jedem Merge prüft `scout-drift.sh` die Scout-Vorhersage (`touched_files` aus
+  dem Ticket) gegen den echten `git diff --name-only` des PR und berechnet eine
+  Jaccard-Distanz (0 = perfekte Vorhersage, 1 = völlig daneben).
+- Der Score wird in `tickets.tickets.scout_drift` persistiert (via `ticket.sh
+  set-scout-drift`).
+- Bei Überschreitung von `SCOUT_DRIFT_THRESHOLD` (Default: 0.9) gibt es einen
+  **Warn-Kommentar** am Ticket — **kein hartes Gate, kein Status-Wechsel.**
+- `scout-drift.cjs` ist ein reiner CommonJS-Helper (Jaccard-Distanz + Noise-Filter),
+  testbar via `require()` aus Bats und `scout-drift.sh`.
+
+**Datenmodell:**
+- `tickets.tickets`: neue Spalten `scout_drift` (NUMERIC, nullable) und
+  `scout_drift_at` (TIMESTAMPTZ).
+- Migration `scripts/migrations/2026-06-17-scout-drift.sql` ist idempotent
+  (`ADD COLUMN IF NOT EXISTS`) und muss auf beide Brand-DBs angewandt werden
+  (`workspace` + `workspace-korczewski`).
+
+**Env-Vars (alle optional, fail-soft):**
+
+| Variable | Default | Zweck |
+|---|---|---|
+| `SCOUT_LLM_ENABLED` | `true` | LLM-Fallback aktivieren/abschalten |
+| `SCOUT_LLM_MIN_FILES` | `2` | Schwelle für LLM-Fallback |
+| `SCOUT_DRIFT_THRESHOLD` | `0.9` | Warn-Schwelle für Drift-Score |
+
+**Referenzen:**
+- Spec: `docs/superpowers/specs/2026-06-17-t000901-design.md`
+- Plan: `docs/superpowers/plans/2026-06-17-t000901.md`
+
 ## Verwandte Dokumente
 
 - Spec: `docs/superpowers/specs/2026-06-01-software-factory-design.md`

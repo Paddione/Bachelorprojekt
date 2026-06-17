@@ -314,6 +314,13 @@
     "detail": "hardcoded host: grafana.mentolder.de",
     "frozen_at": "9de24a8b"
   },
+  "S3:prod-fleet/staging/realm-workspace-staging.json:staging.korczewski.de": {
+    "gate": "S3",
+    "path": "prod-fleet/staging/realm-workspace-staging.json",
+    "metric": 1,
+    "detail": "hardcoded host: staging.korczewski.de",
+    "frozen_at": "9c66d269"
+  },
   "S3:prod-fleet/website-mentolder/website-ingress-web.yaml:web.mentolder.de": {
     "gate": "S3",
     "path": "prod-fleet/website-mentolder/website-ingress-web.yaml",

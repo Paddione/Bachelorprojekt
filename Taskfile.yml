@@ -294,6 +294,7 @@ tasks:
       - task: test:unit:quality-loop
       - task: test:unit:vda-core
       - task: test:unit:vda-ticket-smoke
+      - task: test:unit:vda-release-notes-smoke
       - task: test:unit:offline-batch
       - task: test:unit:collabora-wopi-discovery
       - task: test:unit:collabora-wopi-single-brand-guard
@@ -513,6 +514,11 @@ tasks:
     cmds:
       - bash scripts/mishap-categorize.sh {{.CLI_ARGS}}
 
+  release:notes:
+    desc: "Generate release notes from merged PRs since last tag. Usage: task release:notes -- [--since <tag>] [--out <file>]"
+    cmds:
+      - bash scripts/vda.sh release-notes generate {{.CLI_ARGS}}
+
   test:unit:ticket-add-pr-link:
     internal: true
     cmds:
@@ -562,6 +568,11 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/vda-ticket-smoke.bats
+
+  test:unit:vda-release-notes-smoke:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/vda-release-notes-smoke.bats
 
   test:unit:offline-batch:
     internal: true

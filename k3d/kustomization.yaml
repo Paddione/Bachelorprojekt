@@ -91,6 +91,8 @@ resources:
   - network-policies.yaml
   # Ingress
   - ingress.yaml
+  # Website RBAC (Role/RoleBinding in workspace ns for monitoring + backup-status API)
+  - website-rbac.yaml
 
 # ConfigMaps aus lokalen Dateien (dev-spezifisch)
 configMapGenerator:

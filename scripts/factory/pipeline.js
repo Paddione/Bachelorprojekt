@@ -502,17 +502,16 @@ if (!cleanDiff || !String(cleanDiff).trim()) {
       const tmpDir = '/tmp'
       const diffFile = path.join(tmpDir, `ci-filter-diff-${A.ticket_id}.diff`)
       fs.writeFileSync(diffFile, String(cleanDiff), 'utf8')
-      const kept = (() => {
-        try {
-          const raw = execSync(
-            `node ${REPO}/scripts/factory/review-finding-filter.mjs --cli --diff ${diffFile} --stdin`,
-            { input: JSON.stringify(allFindings), encoding: 'utf8', timeout: 10_000 }
-          )
-          const parsed = JSON.parse(raw)
-          return parsed.kept || []
-        } catch { return allFindings }
-        finally { try { fs.unlinkSync(diffFile) } catch {} }
-      })()
+      let kept
+      try {
+        const raw = execSync(
+          `node ${REPO}/scripts/factory/review-finding-filter.mjs --cli --diff ${diffFile} --stdin`,
+          { input: JSON.stringify(allFindings), encoding: 'utf8', timeout: 10_000 }
+        )
+        const parsed = JSON.parse(raw)
+        kept = parsed.kept || []
+      } catch { kept = allFindings }
+      finally { try { fs.unlinkSync(diffFile) } catch {} }
       if (kept.length !== allFindings.length) {
         const keptSet = new Set(kept.map((f) => JSON.stringify(f)))
         for (const r of reviews) {

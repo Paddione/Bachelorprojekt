@@ -24,7 +24,7 @@ describe('portal/admin action isolation', () => {
     expect(adminIds.every((id) => !id.startsWith('portal:'))).toBe(true);
   });
 
-  it('all 8 portal actions are registered', () => {
+  it('all 9 portal actions are registered', () => {
     const portalIds = listActionsFor('portal').map((a) => a.id).sort();
     expect(portalIds).toEqual([
       'portal:book-session',
@@ -32,6 +32,7 @@ describe('portal/admin action isolation', () => {
       'portal:message-coach',
       'portal:move-session',
       'portal:request-session',
+      'portal:share-file',
       'portal:sign-document',
       'portal:start-questionnaire',
       'portal:upload-file',

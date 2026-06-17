@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 471,
+      "file_count": 472,
       "files": [
         "tests/.gitignore",
         "tests/batch/batch-gap-analysis.bats",
@@ -528,7 +528,7 @@
       "id": "website",
       "name": "Astro + Svelte website",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 1445,
+      "file_count": 1447,
       "files": [
         "website/.build-trigger",
         "website/.design-sync/NOTES.md",
@@ -1103,6 +1103,8 @@
         "website/src/lib/assistant/actions/portal/profile-isolation.test.ts",
         "website/src/lib/assistant/actions/portal/requestSession.test.ts",
         "website/src/lib/assistant/actions/portal/requestSession.ts",
+        "website/src/lib/assistant/actions/portal/shareFile.test.ts",
+        "website/src/lib/assistant/actions/portal/shareFile.ts",
         "website/src/lib/assistant/actions/portal/signDocument.ts",
         "website/src/lib/assistant/actions/portal/startQuestionnaire.ts",
         "website/src/lib/assistant/actions/portal/uploadFile.ts",
@@ -2403,7 +2405,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 379,
+      "file_count": 380,
       "files": [
         "scripts/add-whiteboard-library.py",
         "scripts/admin-menu-gate.sh",

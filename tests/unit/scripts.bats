@@ -129,7 +129,7 @@ for r in data.get('resources', []):
 ")
   while IFS= read -r res; do
     [[ -z "$res" ]] && continue
-    if [[ ! -f "${PROJECT_DIR}/k3d/${res}" ]]; then
+    if [[ ! -f "${PROJECT_DIR}/k3d/${res}" && ! -d "${PROJECT_DIR}/k3d/${res}" ]]; then
       local known=false
       for g in "${KNOWN_GENERATED[@]}"; do
         [[ "$res" == "$g" ]] && known=true && break

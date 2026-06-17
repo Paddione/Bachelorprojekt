@@ -891,8 +891,8 @@ tasks:
           if (!Array.isArray(m.routes)) {
             errs.push("routes must be an array");
           }
-          if (m.count !== 132) {
-            errs.push(`expected count===132, got ${m.count}`);
+          if (m.count !== 133) {
+            errs.push(`expected count===133, got ${m.count}`);
           }
           for (const r of (m.routes || [])) {
             const isAdmin = r.route.startsWith("/admin");
@@ -4720,3 +4720,16 @@ tasks:
             const fn = augmented ? searchCodeAugmented : searchCode;
             fn(q, limit).then(r => console.log(JSON.stringify(r, null, 2))).catch(e => { console.error(e.message); process.exit(1); });
           " {{.CLI_ARGS}}
+
+  app:install:
+    desc: "Install a curated catalog app (ENV=dev|mentolder|korczewski). Usage: task app:install -- <app-name> [--dry-run]"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - ENV={{.ENV}} bash scripts/app-install.sh {{.CLI_ARGS}}
+
+  app:validate:
+    desc: "Validate an app manifest against the schema. Usage: task app:validate -- <app-name>"
+    cmds:
+      - node scripts/validate-manifest.mjs apps/{{.CLI_ARGS}}/app.yaml
+

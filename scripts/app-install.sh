@@ -43,8 +43,8 @@ echo "🔍 Validating manifest schema for $APP_NAME..."
 node "$SCRIPT_DIR/validate-manifest.mjs" "$MANIFEST_PATH"
 
 # 3. Read manifest properties
-TITLE=$(node --input-type=module -e "import YAML from 'yaml'; import fs from 'fs'; console.log(YAML.parse(fs.readFileSync('$MANIFEST_PATH', 'utf8')).title || '$APP_NAME')")
-KUSTOMIZE_PATH_RAW=$(node --input-type=module -e "import YAML from 'yaml'; import fs from 'fs'; console.log(YAML.parse(fs.readFileSync('$MANIFEST_PATH', 'utf8')).kustomize)")
+TITLE=$(node -e "import YAML from 'yaml'; import fs from 'fs'; console.log(YAML.parse(fs.readFileSync('$MANIFEST_PATH', 'utf8')).title || '$APP_NAME')")
+KUSTOMIZE_PATH_RAW=$(node -e "import YAML from 'yaml'; import fs from 'fs'; console.log(YAML.parse(fs.readFileSync('$MANIFEST_PATH', 'utf8')).kustomize)")
 KUSTOMIZE_PATH="$ROOT_DIR/$KUSTOMIZE_PATH_RAW"
 
 if [[ ! -d "$KUSTOMIZE_PATH" ]]; then

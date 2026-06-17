@@ -267,6 +267,8 @@ UPDATE tickets.tickets SET scout_drift = :'drift'::numeric, scout_drift_at = now
 EOF
   echo "scout_drift set to $drift for ticket $id"
 }
+
+cmd_set_pipeline_slot() {
   local id="" slot=""
   while [[ $# -gt 0 ]]; do case "$1" in
       --id)   id="$2"; shift 2 ;;

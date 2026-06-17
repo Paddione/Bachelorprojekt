@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-06-17T03:29:26.022Z
+> Generated at 2026-06-17T02:38:37.899Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -99,6 +99,7 @@
 | `/api/admin/cockpit/batch` | POST | 🔐 admin | `website/src/pages/api/admin/cockpit/batch.ts` |
 | `/api/admin/cockpit/feature` | GET | 🔐 admin | `website/src/pages/api/admin/cockpit/feature.ts` |
 | `/api/admin/cockpit/feature-action` | POST | 🔐 admin | `website/src/pages/api/admin/cockpit/feature-action.ts` |
+| `/api/admin/cockpit/feature-actions` | POST | 🔐 admin | `website/src/pages/api/admin/cockpit/feature-actions.ts` |
 | `/api/admin/cockpit/portfolio` | GET | 🔐 admin | `website/src/pages/api/admin/cockpit/portfolio.ts` |
 | `/api/admin/cockpit/reorder` | POST | 🔐 admin | `website/src/pages/api/admin/cockpit/reorder.ts` |
 | `/api/admin/cockpit/reparent` | POST | 🔐 admin | `website/src/pages/api/admin/cockpit/reparent.ts` |
@@ -132,9 +133,6 @@
 | `/api/admin/evidence/upload` | POST | 🔐 admin | `website/src/pages/api/admin/evidence/upload.ts` |
 | `/api/admin/factory-control` | GET, PATCH | 🔐 admin | `website/src/pages/api/admin/factory-control.ts` |
 | `/api/admin/faq/save` | POST | 🔐 admin | `website/src/pages/api/admin/faq/save.ts` |
-| `/api/admin/folder-templates/create` | POST | 🔐 admin | `website/src/pages/api/admin/folder-templates/create.ts` |
-| `/api/admin/folder-templates/delete` | POST | 🔐 admin | `website/src/pages/api/admin/folder-templates/delete.ts` |
-| `/api/admin/folder-templates/update` | POST | 🔐 admin | `website/src/pages/api/admin/folder-templates/update.ts` |
 | `/api/admin/followups/create` | POST | 🔐 admin | `website/src/pages/api/admin/followups/create.ts` |
 | `/api/admin/followups/delete` | POST | 🔐 admin | `website/src/pages/api/admin/followups/delete.ts` |
 | `/api/admin/followups/notify` | POST | 🔐 admin | `website/src/pages/api/admin/followups/notify.ts` |

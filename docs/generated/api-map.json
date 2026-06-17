@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-17T03:29:26.022Z",
+  "generatedAt": "2026-06-17T02:38:37.899Z",
   "endpoints": [
     {
       "path": "/api/admin/angebote/save",
@@ -780,6 +780,14 @@
       "file": "website/src/pages/api/admin/cockpit/feature-action.ts"
     },
     {
+      "path": "/api/admin/cockpit/feature-actions",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/cockpit/feature-actions.ts"
+    },
+    {
       "path": "/api/admin/cockpit/portfolio",
       "methods": [
         "GET"
@@ -1049,30 +1057,6 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/faq/save.ts"
-    },
-    {
-      "path": "/api/admin/folder-templates/create",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/folder-templates/create.ts"
-    },
-    {
-      "path": "/api/admin/folder-templates/delete",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/folder-templates/delete.ts"
-    },
-    {
-      "path": "/api/admin/folder-templates/update",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/folder-templates/update.ts"
     },
     {
       "path": "/api/admin/followups/create",

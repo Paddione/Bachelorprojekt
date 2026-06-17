@@ -178,20 +178,20 @@
 <body>
   <div class="header">
     <h1>⬡ Architektur — Living Docs</h1>
-    <span class="meta">Generiert: 2026-06-17T03:29:26.090Z</span>
+    <span class="meta">Generiert: 2026-06-17T02:38:37.942Z</span>
   </div>
 
   <div class="stats">
     <div class="stat">
-      <span class="stat-value">82</span>
+      <span class="stat-value">79</span>
       <span class="stat-label">Services</span>
     </div>
     <div class="stat">
-      <span class="stat-value">1617</span>
+      <span class="stat-value">1614</span>
       <span class="stat-label">Abhängigkeiten</span>
     </div>
     <div class="stat">
-      <span class="stat-value">395</span>
+      <span class="stat-value">393</span>
       <span class="stat-label">API Endpoints</span>
     </div>
   </div>
@@ -251,7 +251,6 @@ flowchart LR
   monitoring_grafana["monitoring-grafana"]:::default
   monitoring_kube_state_metrics["monitoring-kube-state-metrics"]:::default
   monitoring_operator["monitoring-operator"]:::default
-  loki["loki"]:::default
   otel_collector["otel-collector"]:::default
   nextcloud_redis["nextcloud-redis"]:::default
   nextcloud["nextcloud"]:::default
@@ -289,8 +288,6 @@ flowchart LR
   old_webspace["old-webspace"]:::default
   bachelorprojekt["bachelorprojekt"]:::default
   shared_db_dev_lb["shared-db-dev-lb"]:::default
-  loki_memberlist["loki-memberlist"]:::default
-  loki_headless["loki-headless"]:::default
   tracking["tracking"]:::default
   docuseal["docuseal"]:::default
   livekit["livekit"]:::default
@@ -441,9 +438,6 @@ flowchart LR
   mediaviewer_widget -->|"selector"| mediaviewer_widget
   monitoring_kube_state_metrics -->|"selector"| monitoring_kube_state_metrics
   monitoring_operator -->|"selector"| monitoring_operator
-  loki_memberlist -->|"selector"| loki
-  loki_headless -->|"selector"| loki
-  loki -->|"selector"| loki
   otel_collector -->|"selector"| otel_collector
   nextcloud_redis -->|"selector"| nextcloud_redis
   oauth2_proxy_videovault -->|"selector"| oauth2_proxy_videovault
@@ -1838,7 +1832,7 @@ flowchart LR
   website -->|"secret:staging-db-…"| shared_db_staging
       </div>
     </div>
-    <p class="diagram-caption">Alle 82 K8s-Services und ihre 1617 Abhängigkeitskanten (env-Refs, initContainer-Waits, Ingress-Backends)</p>
+    <p class="diagram-caption">Alle 79 K8s-Services und ihre 1614 Abhängigkeitskanten (env-Refs, initContainer-Waits, Ingress-Backends)</p>
   </div>
 
   <!-- K8s Topology Tab -->
@@ -1906,8 +1900,6 @@ flowchart TB
     old_webspace["old-webspace"]
     bachelorprojekt["bachelorprojekt"]
     shared_db_dev_lb["shared-db-dev-lb"]
-    loki_memberlist["loki-memberlist"]
-    loki_headless["loki-headless"]
     tracking["tracking"]
     docuseal["docuseal"]
     livekit["livekit"]
@@ -1928,7 +1920,6 @@ flowchart TB
     monitoring_grafana["monitoring-grafana"]
     monitoring_kube_state_metrics["monitoring-kube-state-metrics"]
     monitoring_operator["monitoring-operator"]
-    loki["loki"]
     otel_collector["otel-collector"]
   end
   subgraph workspace_office["workspace-office"]
@@ -1959,7 +1950,7 @@ flowchart TB
     <div class="filter-bar">
       <span class="filter-label">Filter:</span>
       <input class="filter-input" type="text" id="api-filter" placeholder="/api/..." oninput="filterApi(this.value)">
-      <span class="filter-label" id="api-count">395 endpoints</span>
+      <span class="filter-label" id="api-count">393 endpoints</span>
     </div>
     <div style="max-height:70vh;overflow-y:auto;border:1px solid var(--ff-border);border-radius:4px;">
       <table>
@@ -2447,6 +2438,11 @@ flowchart TB
       <td style="color:#ef4444">🔐 admin</td>
     </tr>
       <tr>
+      <td><code>/api/admin/cockpit/feature-actions</code></td>
+      <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">POST</code></td>
+      <td style="color:#ef4444">🔐 admin</td>
+    </tr>
+      <tr>
       <td><code>/api/admin/cockpit/portfolio</code></td>
       <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">GET</code></td>
       <td style="color:#ef4444">🔐 admin</td>
@@ -2608,21 +2604,6 @@ flowchart TB
     </tr>
       <tr>
       <td><code>/api/admin/faq/save</code></td>
-      <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">POST</code></td>
-      <td style="color:#ef4444">🔐 admin</td>
-    </tr>
-      <tr>
-      <td><code>/api/admin/folder-templates/create</code></td>
-      <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">POST</code></td>
-      <td style="color:#ef4444">🔐 admin</td>
-    </tr>
-      <tr>
-      <td><code>/api/admin/folder-templates/delete</code></td>
-      <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">POST</code></td>
-      <td style="color:#ef4444">🔐 admin</td>
-    </tr>
-      <tr>
-      <td><code>/api/admin/folder-templates/update</code></td>
       <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">POST</code></td>
       <td style="color:#ef4444">🔐 admin</td>
     </tr>

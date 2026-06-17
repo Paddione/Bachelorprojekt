@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 474,
+      "file_count": 475,
       "files": [
         "tests/.gitignore",
         "tests/batch/batch-gap-analysis.bats",
@@ -2420,7 +2420,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 384,
+      "file_count": 386,
       "files": [
         "scripts/add-whiteboard-library.py",
         "scripts/admin-menu-gate.sh",
@@ -2794,6 +2794,7 @@
         "scripts/vda/factory/slots.sh",
         "scripts/vda/frontmatter.sh",
         "scripts/vda/oracle.sh",
+        "scripts/vda/promote.sh",
         "scripts/vda/release-notes.sh",
         "scripts/vda/ticket.sh",
         "scripts/vda/ticket/_ticket-core.sh",

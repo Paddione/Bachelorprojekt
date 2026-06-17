@@ -64,7 +64,7 @@ secrets:
   - MOCK_APP_JWT_SECRET
 EOF
 
-  run env ENV=dev bash scripts/app-install.sh "$app_name" --dry-run
+  run bash scripts/app-install.sh "$app_name" --dry-run
   local test_status=$status test_output="$output"
   # Clean up immediately regardless of test outcome
   rm -rf "apps/$app_name"

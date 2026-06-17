@@ -23,6 +23,71 @@ export interface GrillingQuestionnaire {
 export type GrillingAnswers = Record<string, Record<string, string>>;
 
 export const QUESTIONNAIRES: Record<string, GrillingQuestionnaire> = {
+  'final-grilling-v1': {
+    id: 'final-grilling-v1',
+    title: 'Final-Grilling-Session — Softwareentwicklungs-Ticket',
+    sections: [
+      {
+        id: 's1',
+        title: '1. Anforderungsklärung',
+        questions: [
+          { id: 'q1', label: 'Was ist das Kernproblem, das dieses Ticket löst?' },
+          { id: 'q2', label: 'Welche Acceptance Criteria müssen erfüllt sein?' },
+          { id: 'q3', label: 'Gibt es Abhängigkeiten zu anderen Tickets oder Komponenten?' },
+          { id: 'q4', label: 'Welche Stakeholder sind betroffen?' },
+        ],
+      },
+      {
+        id: 's2',
+        title: '2. Architektur & Design',
+        questions: [
+          { id: 'q5', label: 'Welche Komponenten/Dateien sind betroffen?' },
+          { id: 'q6', label: 'Gibt es ein Architektur-Diagramm oder eine Spec?' },
+          { id: 'q7', label: 'Welche bestehenden Patterns werden wiederverwendet?' },
+          { id: 'q8', label: 'Sind Breaking Changes zu erwarten?' },
+        ],
+      },
+      {
+        id: 's3',
+        title: '3. Risiken & Edge Cases',
+        questions: [
+          { id: 'q9', label: 'Was sind die kritischsten Edge Cases?' },
+          { id: 'q10', label: 'Welche Fehlerzustände müssen behandelt werden?' },
+          { id: 'q11', label: 'Gibt es Security-Implikationen?' },
+          { id: 'q12', label: 'Performance- oder Skalierungsbedenken?' },
+        ],
+      },
+      {
+        id: 's4',
+        title: '4. Testing-Strategie',
+        questions: [
+          { id: 'q13', label: 'Welche Test-Typen sind nötig? (Unit, Integration, E2E?)' },
+          { id: 'q14', label: 'Welche bestehenden Tests sind betroffen?' },
+          { id: 'q15', label: 'Braucht es neue Test-Fixtures oder Mocks?' },
+          { id: 'q16', label: 'Wie wird die Korrektheit verifiziert?' },
+        ],
+      },
+      {
+        id: 's5',
+        title: '5. Deployment & Rollout',
+        questions: [
+          { id: 'q17', label: 'Welche Umgebungen sind betroffen? (dev, beide Brands?)' },
+          { id: 'q18', label: 'Gibt es einen Rollback-Plan?' },
+          { id: 'q19', label: 'Sind DB-Migrationen, Secrets oder Config-Änderungen nötig?' },
+          { id: 'q20', label: 'Wer reviewt und deployed?' },
+        ],
+      },
+      {
+        id: 's6',
+        title: '6. Abschluss & Übergabe',
+        questions: [
+          { id: 'q21', label: 'Sind alle Unklarheiten beseitigt?' },
+          { id: 'q22', label: 'Was sind die nächsten Schritte nach der Implementierung?' },
+          { id: 'q23', label: 'Gibt es offene Punkte für ein Follow-up-Ticket?' },
+        ],
+      },
+    ],
+  },
   'coaching-sessions-v1': {
     id: 'coaching-sessions-v1',
     title: 'Konzeptioneller Aufbau von Coaching-Sessions',

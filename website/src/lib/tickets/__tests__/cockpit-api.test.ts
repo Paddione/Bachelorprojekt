@@ -434,21 +434,15 @@ describe('resolveProvider', () => {
     expect(spec!.apiKeyEnv).toBe('ANTHROPIC_API_KEY');
   });
 
-  it('returns spec for local-cluster (no API key required)', () => {
-    const spec = resolveProvider('local-cluster');
-    expect(spec).not.toBeNull();
-    expect(spec!.id).toBe('local-cluster');
-    expect(spec!.apiKeyEnv).toBeUndefined();
-  });
-
   it('returns null for unknown provider', () => {
     expect(resolveProvider('evil')).toBeNull();
     expect(resolveProvider('')).toBeNull();
     expect(resolveProvider('openai')).toBeNull();
+    expect(resolveProvider('local-cluster')).toBeNull();
   });
 
   it('ALLOWED_PROVIDERS is frozen and contains exactly expected entries', () => {
-    expect(Object.keys(ALLOWED_PROVIDERS).sort()).toEqual(['anthropic', 'deepseek', 'local-cluster']);
+    expect(Object.keys(ALLOWED_PROVIDERS).sort()).toEqual(['anthropic', 'deepseek']);
   });
 });
 

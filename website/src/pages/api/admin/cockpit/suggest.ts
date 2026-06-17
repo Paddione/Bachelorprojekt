@@ -3,8 +3,7 @@ import { getSession, isAdmin } from '../../../../lib/auth';
 import { getPortfolio } from '../../../../lib/tickets/cockpit-db';
 import { buildFeatureList, parseSuggestions, SUGGEST_SYSTEM_PROMPT } from '../../../../lib/tickets/suggest-prompt';
 import { resolveProvider } from '../../../../lib/tickets/suggest-providers';
-
-const BRAND = (): string => process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
+import OpenAI from 'openai';
 
 export const SUGGEST_TIMEOUT_MS = 10_000;
 
@@ -15,6 +14,9 @@ export const POST: APIRoute = async ({ request }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response(null, { status: 403 });
 
+  const brand = process.env.BRAND_ID ?? process.env.BRAND ?? '';
+  if (!brand) return json({ error: 'brand not configured' }, 500);
+
   let body: { provider?: string; model?: string };
   try { body = await request.json(); } catch { body = {}; }
 
@@ -23,18 +25,17 @@ export const POST: APIRoute = async ({ request }) => {
 
   const model = body.model || providerSpec.defaultModel;
 
-  const portfolio = await getPortfolio(BRAND());
-  const featureList = buildFeatureList(portfolio);
-
-  if (featureList === '') return json({ suggestions: [] });
-
   const apiKey = providerSpec.apiKeyEnv ? (process.env[providerSpec.apiKeyEnv] ?? '') : '';
   if (providerSpec.apiKeyEnv && !apiKey) {
     return json({ error: `provider not configured: ${providerSpec.id}` }, 503);
   }
 
+  const portfolio = await getPortfolio(brand);
+  const featureList = buildFeatureList(portfolio);
+
+  if (featureList === '') return json({ suggestions: [] });
+
   try {
-    const { default: OpenAI } = await import('openai');
     const client = new OpenAI({ apiKey, baseURL: providerSpec.baseURL });
 
     const resp = await client.chat.completions.create({

@@ -4,7 +4,8 @@
       "command": "npx",
       "args": ["-y", "task-master-ai"],
       "env": {
-        "OLLAMA_BASE_URL": "http://localhost:11434/api"
+        "OLLAMA_BASE_URL": "http://localhost:11434/api",
+        "TASK_MASTER_TOOLS": "all"
       }
     },
     "openspec": {

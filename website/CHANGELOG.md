@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.95.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.94.0...website-v1.95.0) (2026-06-17)
+
+
+### Features
+
+* **nextcloud:** direct file share link from Nextcloud to chat [T000906] ([#1833](https://github.com/Paddione/Bachelorprojekt/issues/1833)) ([db6c8a4](https://github.com/Paddione/Bachelorprojekt/commit/db6c8a44f28914f0808e5ccbd381aac3b6a2d50f))
+
 ## [1.94.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.93.0...website-v1.94.0) (2026-06-17)
 
 

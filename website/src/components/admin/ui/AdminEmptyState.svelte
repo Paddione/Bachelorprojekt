@@ -11,8 +11,7 @@
     icon = '',
     title,
     description = '',
-    action,
-  }: Props & { action?: any } = $props();
+  }: Props = $props();
 
   const svg = $derived(icon && icons[icon] ? icons[icon] : '');
 </script>
@@ -27,11 +26,9 @@
   {#if description}
     <p class="empty-state__description">{description}</p>
   {/if}
-  {#if action}
-    <div class="empty-state__action">
-      {@render action()}
-    </div>
-  {/if}
+  <div class="empty-state__action">
+    <slot name="action" />
+  </div>
 </div>
 
 <style>

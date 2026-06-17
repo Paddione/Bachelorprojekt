@@ -9,10 +9,7 @@
     open = false,
     title,
     size = 'md',
-    children,
-    footer,
-    onclose,
-  }: Props & { children?: any; footer?: any; onclose?: () => void } = $props();
+  }: Props = $props();
 
   let modalRef = $state<HTMLDialogElement | null>(null);
   let previousFocus = $state<HTMLElement | null>(null);
@@ -27,7 +24,6 @@
     if (modalRef) modalRef.close();
     document.body.style.overflow = '';
     previousFocus?.focus();
-    onclose?.();
   }
 
   function handleBackdropClick(e: MouseEvent) {
@@ -35,10 +31,7 @@
   }
 
   function handleKeydown(e: KeyboardEvent) {
-    if (e.key === 'Escape') {
-      closeModal();
-    }
-    // basic focus trap
+    if (e.key === 'Escape') closeModal();
     if (e.key === 'Tab' && modalRef) {
       const focusable = modalRef.querySelectorAll<HTMLElement>(
         'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
@@ -85,13 +78,11 @@
       </button>
     </div>
     <div class="modal__body">
-      {@render children?.()}
+      <slot />
     </div>
-    {#if footer}
-      <div class="modal__footer">
-        {@render footer()}
-      </div>
-    {/if}
+    <slot name="footer">
+      <div class="modal__footer"></div>
+    </slot>
   </div>
 </dialog>
 

@@ -7,10 +7,7 @@
   let {
     variant = 'default',
     padding = true,
-    children,
-    header,
-    footer,
-  }: Props & { children?: any; header?: any; footer?: any } = $props();
+  }: Props = $props();
 </script>
 
 <div
@@ -21,19 +18,11 @@
   role={variant === 'interactive' ? 'button' : undefined}
   tabindex={variant === 'interactive' ? 0 : undefined}
 >
-  {#if header}
-    <div class="admin-card__header">
-      {@render header()}
-    </div>
-  {/if}
+  <slot name="header" />
   <div class="admin-card__body">
-    {@render children?.()}
+    <slot />
   </div>
-  {#if footer}
-    <div class="admin-card__footer">
-      {@render footer()}
-    </div>
-  {/if}
+  <slot name="footer" />
 </div>
 
 <style>
@@ -67,13 +56,13 @@
     outline-offset: 2px;
   }
 
-  .admin-card__header {
+  :global(.admin-card__header) {
     padding-bottom: var(--space-3);
     border-bottom: 1px solid var(--admin-border);
     margin-bottom: var(--space-4);
   }
 
-  .admin-card__footer {
+  :global(.admin-card__footer) {
     padding-top: var(--space-3);
     border-top: 1px solid var(--admin-border);
     margin-top: var(--space-4);

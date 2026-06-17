@@ -7,6 +7,9 @@ import { getAllBillingInvoices } from '../lib/stripe-billing';
 import { getAvailableSlots } from '../lib/caldav';
 import AdminShortcuts from '../components/admin/AdminShortcuts.svelte';
 import { icons } from '../layouts/admin-icons';
+import AdminPageHeader from '../components/admin/ui/AdminPageHeader.svelte';
+import AdminStatCard from '../components/admin/ui/AdminStatCard.svelte';
+import AdminCard from '../components/admin/ui/AdminCard.svelte';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -74,7 +77,6 @@ const adminLinks = [
   ...(mailUrl  ? [{ href: mailUrl,                               label: 'Mailpit',    icon: icons.mail,     color: '#2dd4bf' }] : []),
 ];
 
-const isKore = BRAND === 'korczewski';
 const now = new Date();
 const stand = now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
 const datum = now.toLocaleDateString('de-DE', { weekday: 'long', day: '2-digit', month: 'long' });
@@ -82,114 +84,60 @@ const datum = now.toLocaleDateString('de-DE', { weekday: 'long', day: '2-digit',
 const kpis = [
   {
     label: 'Aktive Projekte',
-    value: String(activeProjects),
+    value: activeProjects,
     href: '/admin/projekte',
-    state: activeProjects > 0 ? 'is-warn' : '',
+    color: activeProjects > 0 ? 'brass' as const : 'neutral' as const,
     suffix: 'laufend',
   },
   {
     label: 'Offene Rechnungen',
-    value: String(openInvoices),
-    unit: openInvoices > 0 ? fmtCurrency(openInvoiceAmount) : '',
+    value: openInvoices,
     href: '/admin/rechnungen',
-    state: openInvoices > 0 ? 'is-warn' : '',
-    suffix: openInvoices > 0 ? 'noch nicht bezahlt' : 'alles bezahlt',
+    color: openInvoices > 0 ? 'brass' as const : 'neutral' as const,
+    suffix: openInvoices > 0 ? `${fmtCurrency(openInvoiceAmount)} — noch nicht bezahlt` : 'alles bezahlt',
   },
   {
     label: 'Überfällige Bugs',
-    value: String(openBugCount),
+    value: openBugCount,
     href: '/admin/bugs',
-    state: openBugCount > 0 ? 'is-fail' : '',
+    color: openBugCount > 0 ? 'danger' as const : 'neutral' as const,
     suffix: openBugCount > 0 ? 'in Bearbeitung' : 'sauber',
   },
   {
     label: 'Freie Slots · 7T',
-    value: String(freeSlots),
+    value: freeSlots,
     href: '/admin/termine',
-    state: freeSlots > 0 ? 'is-ok' : '',
+    color: freeSlots > 0 ? 'sage' as const : 'neutral' as const,
     suffix: freeSlots > 0 ? 'buchbar' : 'voll',
   },
 ];
 ---
 <AdminLayout title="Admin — Dashboard">
-  {isKore ? (
-    <main class="ka-page">
-      <header class="ka-section-head">
-        <span class="ka-num">01 / Übersicht</span>
-        <h1>Heute, <em>{datum.split(',')[0].toLowerCase()}</em>.</h1>
-        <span class="ka-hint">Stand {stand} · KORCZEWSKI</span>
-      </header>
+  <section style="padding:2.5rem 0 5rem; min-height:100vh;">
+    <div style="max-width:56rem; margin:0 auto; padding:0 1.5rem;">
 
-      <div class="ka-kpi-row">
+      <AdminPageHeader
+        title="Übersicht"
+        description={`Stand ${stand} · ${datum}`}
+      />
+
+      <!-- KPI Grid -->
+      <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(11rem, 1fr)); gap:0.75rem; margin-bottom:2rem;">
         {kpis.map(k => (
-          <a href={k.href} class={`ka-kpi ${k.state}`}>
-            <span class="ka-kpi-lab">{k.label}</span>
-            <span class="ka-kpi-v">
-              {k.value}
-              {k.unit && <span class="ka-kpi-u">{k.unit}</span>}
-            </span>
-            <span class="ka-kpi-s">{k.suffix}</span>
-          </a>
+          <AdminStatCard
+            value={k.value}
+            label={k.label}
+            href={k.href}
+            color={k.color}
+            suffix={k.suffix}
+          />
         ))}
       </div>
 
-      <section class="ka-card ka-card--lime" style="margin-bottom:14px;">
-        <span class="ka-card-eye">Dienste</span>
-        <h3 class="ka-card-title">Werkzeuge & <em>externe Konten</em></h3>
-        <p style="margin-top:10px; color:var(--fg-soft); font-size:14px;">
-          Direktzugriff auf Nextcloud, Keycloak, Vaultwarden und die anderen
-          Dienste hinter dem Workspace. Alle Links verlangen erneutes SSO.
-        </p>
-        <div class="ka-services" style="margin-top:24px;">
-          {adminLinks.map(l => (
-            <a href={l.href} class="ka-service" target={l.href.startsWith('http') ? '_blank' : undefined} rel={l.href.startsWith('http') ? 'noopener' : undefined}>
-              <span class="ka-service-glyph" set:html={l.icon} />
-              <span>{l.label}</span>
-            </a>
-          ))}
-        </div>
-      </section>
-
-      <section class="ka-card" style="margin-bottom:14px;">
-        <span class="ka-card-eye">Schnellzugriffe</span>
-        <h3 class="ka-card-title">Eigene <em>Verknüpfungen</em></h3>
-        <div style="margin-top:18px;">
-          <AdminShortcuts client:load links={shortcuts} />
-        </div>
-      </section>
-    </main>
-  ) : (
-    <section style="padding:2.5rem 0 5rem; min-height:100vh;">
-      <div style="max-width:56rem; margin:0 auto; padding:0 1.5rem;">
-
-        <!-- Header -->
-        <div style="margin-bottom:2.5rem;">
-          <p style="font-family:var(--font-mono); font-size:0.7rem; color:var(--admin-text-disabled); text-transform:uppercase; letter-spacing:0.15em; margin:0 0 4px;">
-            Verwaltung &amp; Werkzeuge
-          </p>
-          <h1 style="font-family:var(--font-serif); font-size:2rem; font-weight:700; color:var(--admin-text); letter-spacing:-0.02em; margin:0;">Admin</h1>
-        </div>
-
-        <!-- KPI Banner -->
-        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(11rem, 1fr)); gap:0.75rem; margin-bottom:2rem;">
-          {kpis.map(k => (
-            <a href={k.href} class="admin-card" style={`text-decoration:none; display:block; border-left:3px solid ${
-              k.state === 'is-ok'   ? '#34d399' :
-              k.state === 'is-warn' ? 'oklch(0.80 0.09 75)' :
-              k.state === 'is-fail' ? '#f87171' :
-              'var(--admin-border)'
-            };`}>
-              <div style="font-size:1.5rem; font-weight:700; color:var(--admin-text); line-height:1.2;">{k.value}</div>
-              {k.unit && <div style="font-size:0.85rem; font-weight:600; color:var(--admin-text); margin-top:2px;">{k.unit}</div>}
-              <div style="font-size:0.7rem; color:var(--admin-text-mute); margin-top:4px;">{k.label}</div>
-              <div style="font-size:0.75rem; color:var(--admin-text-disabled); margin-top:2px;">{k.suffix}</div>
-            </a>
-          ))}
-        </div>
-
-        <!-- Service Links -->
-        <div class="admin-card" style="margin-bottom:1.5rem;">
-          <p style="font-family:var(--font-mono); font-size:0.65rem; color:var(--admin-text-disabled); text-transform:uppercase; letter-spacing:0.12em; margin:0 0 1rem;">Dienste</p>
+      <!-- Service Links -->
+      <div style="margin-bottom:1.5rem;">
+        <AdminCard>
+          <p slot="header" style="font-family:var(--font-mono); font-size:0.65rem; color:var(--admin-text-disabled); text-transform:uppercase; letter-spacing:0.12em; margin:0;">Dienste</p>
           <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(7rem, 1fr)); gap:0.75rem;">
             {adminLinks.map(l => (
               <a
@@ -207,15 +155,15 @@ const kpis = [
               </a>
             ))}
           </div>
-        </div>
-
-        <!-- Custom Shortcuts -->
-        <div class="admin-card">
-          <p style="font-family:var(--font-mono); font-size:0.65rem; color:var(--admin-text-disabled); text-transform:uppercase; letter-spacing:0.12em; margin:0 0 1rem;">Schnellzugriffe</p>
-          <AdminShortcuts client:load links={shortcuts} />
-        </div>
-
+        </AdminCard>
       </div>
-    </section>
-  )}
+
+      <!-- Custom Shortcuts -->
+      <AdminCard>
+        <p slot="header" style="font-family:var(--font-mono); font-size:0.65rem; color:var(--admin-text-disabled); text-transform:uppercase; letter-spacing:0.12em; margin:0;">Schnellzugriffe</p>
+        <AdminShortcuts client:load links={shortcuts} />
+      </AdminCard>
+
+    </div>
+  </section>
 </AdminLayout>

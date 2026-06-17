@@ -13,8 +13,7 @@
     hint = '',
     required = false,
     htmlFor = '',
-    children,
-  }: Props & { children?: any } = $props();
+  }: Props = $props();
 </script>
 
 <div class="form-field" class:form-field--error={!!error}>
@@ -25,7 +24,7 @@
     {/if}
   </label>
   <div class="form-field__input">
-    {@render children?.()}
+    <slot />
   </div>
   {#if error}
     <p class="form-field__error" role="alert">{error}</p>

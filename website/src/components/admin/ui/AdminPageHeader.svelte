@@ -14,8 +14,7 @@
     title,
     description = '',
     breadcrumbs = [],
-    actions,
-  }: Props & { actions?: any } = $props();
+  }: Props = $props();
 </script>
 
 <header class="page-header">
@@ -40,11 +39,9 @@
     <p class="page-header__description">{description}</p>
   {/if}
 
-  {#if actions}
-    <div class="page-header__actions">
-      {@render actions()}
-    </div>
-  {/if}
+  <div class="page-header__actions">
+    <slot name="actions" />
+  </div>
 </header>
 
 <style>

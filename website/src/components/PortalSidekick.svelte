@@ -10,10 +10,11 @@
   import AgentGuideView from './assistant/AgentGuideView.svelte';
   import PipelineSidekickView from './assistant/PipelineSidekickView.svelte';
   import MediaviewerPanel from './MediaviewerPanel.svelte';
+  import GrillingSessionHost from './mediaviewer/GrillingSessionHost.svelte';
   import { resolveHelpVideos } from '../lib/help-videos';
   import { parseNavigateEvent, shouldShowLearnDot } from '../lib/assistant/sidekick-nudge';
 
-  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'tickets' | 'inbox' | 'pipeline' | 'agent-guide' | 'mediaviewer';
+  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'tickets' | 'inbox' | 'pipeline' | 'agent-guide' | 'mediaviewer' | 'grilling';
 
   let {
     helpSection = '',
@@ -35,6 +36,7 @@
   const mediaviewerVideos = $derived(resolveHelpVideos(videovaultHost));
   let inboxPending = $state(0);
   let isMobile = $state(false);
+  let currentTicketId = $state<string | null>(null);
 
   // Summary-driven nudge (fail-soft: stays null if the fetch fails → no badge/dot).
   let learningSummary = $state<{ done: number; total: number; pct: number } | null>(null);
@@ -72,6 +74,7 @@
     pipeline: 'Pipeline',
     'agent-guide': 'Agent-Anleitung',
     mediaviewer: 'Mediaviewer',
+    grilling: 'Final Grilling',
   };
 
   $effect(() => {
@@ -152,10 +155,13 @@
   $effect(() => {
     const onNavigate = (e: Event) => {
       const intent = parseNavigateEvent((e as CustomEvent).detail);
-      if (!intent) return;                       // defensive: ignore unknown/invalid
+      if (!intent) return;
       open = true;
       view = intent.view;
       pendingJump = intent.jumpTo;
+      if ((e as CustomEvent).detail?.ticketId) {
+        currentTicketId = (e as CustomEvent).detail.ticketId;
+      }
     };
     window.addEventListener('sidekick:navigate', onNavigate);
     return () => window.removeEventListener('sidekick:navigate', onNavigate);
@@ -267,6 +273,8 @@
       <PipelineSidekickView onClose={closeDrawer} />
     {:else if view === 'mediaviewer'}
       <MediaviewerPanel {mediaviewerHost} videos={mediaviewerVideos} />
+    {:else if view === 'grilling'}
+      <GrillingSessionHost {mediaviewerHost} ticketId={currentTicketId ?? ''} />
     {/if}
   </div>
 </div>

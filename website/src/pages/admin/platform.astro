@@ -1,5 +1,6 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../components/admin/ui/AdminPageHeader.svelte';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import PlatformHub from '../../components/admin/PlatformHub.svelte';
 
@@ -11,5 +12,8 @@ const brandId = (process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder').toLow
 ---
 
 <AdminLayout title="Plattform Hub">
+  <div style="max-width:72rem; margin:0 auto; padding:1.5rem 1.5rem 0;">
+    <AdminPageHeader title="Plattform Hub" />
+  </div>
   <PlatformHub client:load cluster={brandId} />
 </AdminLayout>

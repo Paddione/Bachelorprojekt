@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import '../styles/admin-foundation.css';
 import '../styles/admin-premium.css';
 import '../styles/sidekick-panels.css';
 import { config } from '../config/index';
@@ -62,64 +63,42 @@ const adminInitials = ((adminGivenName[0] ?? '') + (adminFamilyName[0] ?? '')).t
 const brandId = (process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder').toLowerCase();
 const isKore = brandId === 'korczewski';
 
-const navGroups: { label: string; iconClass: string; items: NavItem[] }[] = [
+const navSections: { label?: string; items: NavItem[] }[] = [
   {
-    label: 'Kern',
-    iconClass: 'nav-icon-kern',
     items: [
-      { href: '/admin/termine',     label: 'Kalender',     icon: 'calendar' },
-      { href: '/admin/cockpit',    label: 'Cockpit',      icon: 'tag',     matches: ['/admin/cockpit', '/admin/tickets'] },
-      { href: '/admin/inbox',       label: 'Postfach',     icon: 'inbox',     badge: inboxPending },
-      { href: '/admin/live',        label: 'Live-Stream',  icon: 'broadcast' },
+      { href: '/admin',          label: 'Dashboard', icon: 'dashboard' },
+      { href: '/admin/cockpit',  label: 'Cockpit',   icon: 'tag', matches: ['/admin/cockpit', '/admin/tickets'] },
+      { href: '/admin/inbox',    label: 'Postfach',   icon: 'inbox', badge: inboxPending },
+      { href: '/admin/termine',  label: 'Kalender',   icon: 'calendar' },
     ],
   },
   {
-    label: 'CRM',
-    iconClass: 'nav-icon-crm',
+    label: 'Geschäft',
     items: [
-      { href: '/admin/clients',   label: 'Klienten',  icon: 'users' },
-      { href: '/admin/members',   label: 'Mitglieder', icon: 'users' },
-      { href: '/admin/projekte',  label: 'Mandate',   icon: 'folder' },
+      { href: '/admin/clients',             label: 'Klienten',    icon: 'users' },
+      { href: '/admin/members',             label: 'Mitglieder',  icon: 'users' },
+      { href: '/admin/projekte',            label: 'Mandate',     icon: 'folder' },
+      { href: '/admin/coaching/sessions',   label: 'Sitzungen',   icon: 'clipboard', matches: ['/admin/coaching/sessions', '/admin/fragebogen'] },
+      { href: '/admin/rechnungen',          label: 'Fakturierung', icon: 'receipt', matches: ['/admin/rechnungen', '/admin/billing'] },
+      { href: '/admin/buchhaltung',         label: 'Kontierung',  icon: 'scale' },
     ],
   },
   {
-    label: 'Coaching',
-    iconClass: 'nav-icon-coaching',
+    label: 'Werkstatt',
     items: [
-      { href: '/admin/coaching/sessions',  label: 'Sitzungen',   icon: 'clipboard', matches: ['/admin/coaching/sessions', '/admin/fragebogen'] },
-      { href: '/admin/prompts',            label: 'Prompt-Bibliothek', icon: 'book' },
-      { href: '/admin/ki-konfiguration',   label: 'KI-Konfiguration', icon: 'cpu', matches: ['/admin/ki-konfiguration'] },
-      { href: BRETT_URL,                    label: 'Systembrett', icon: 'brett', external: true },
-      ...(isKore ? [{ href: '/admin/arena', label: 'Arena',       icon: 'arena' }] : []),
-    ],
-  },
-  {
-    label: 'Redaktion',
-    iconClass: 'nav-icon-redaktion',
-    items: [
-      { href: '/admin/inhalte',  label: 'Content Hub',  icon: 'layout', matches: ['/admin/inhalte', '/admin/startseite', '/admin/uebermich', '/admin/angebote', '/admin/faq', '/admin/kontakt', '/admin/referenzen', '/admin/rechtliches', '/admin/dokumente'] },
-      { href: '/admin/wissen',   label: 'Wissensbasis', icon: 'book',   matches: ['/admin/wissen', '/admin/wissensquellen', '/admin/knowledge'] },
-      { href: '/admin/assets',   label: 'Assets',       icon: 'palette' },
-      { href: '/admin/asset-generation', label: '3D Generator', icon: 'palette' },
-    ],
-  },
-  {
-    label: 'Kapital',
-    iconClass: 'nav-icon-kapital',
-    items: [
-      { href: '/admin/rechnungen',  label: 'Fakturierung', icon: 'receipt', matches: ['/admin/rechnungen', '/admin/billing'] },
-      { href: '/admin/buchhaltung', label: 'Kontierung',   icon: 'scale' },
-    ],
-  },
-  {
-    label: 'Kontrollzentrum',
-    iconClass: 'nav-icon-kontrolle',
-    items: [
-      { href: '/admin/platform',                            label: 'Plattform Hub', icon: 'monitor', matches: ['/admin/monitoring', '/admin/ops', '/admin/platform'] },
-      { href: '/admin/app-catalog',                         label: 'App-Katalog',   icon: 'server',  matches: ['/admin/app-catalog'] },
-      { href: '/admin/architektur',                         label: 'Architektur',   icon: 'server',  matches: ['/admin/architektur'] },
-      { href: '/dev-status', label: 'Dev Status', icon: 'activity', matches: ['/dev-status', '/admin/planungsbuero', '/admin/factory-budget', '/admin/factory-observability'] },
-      { href: '/admin/einstellungen/benachrichtigungen',    label: 'System-Setup',  icon: 'settings', matches: ['/admin/einstellungen/'] },
+      { href: '/admin/inhalte',                       label: 'Content Hub',  icon: 'layout', matches: ['/admin/inhalte', '/admin/startseite', '/admin/uebermich', '/admin/angebote', '/admin/faq', '/admin/kontakt', '/admin/referenzen', '/admin/rechtliches', '/admin/dokumente'] },
+      { href: '/admin/wissen',                        label: 'Wissensbasis', icon: 'book',  matches: ['/admin/wissen', '/admin/wissensquellen', '/admin/knowledge'] },
+      { href: '/admin/assets',                        label: 'Assets',       icon: 'palette' },
+      { href: '/admin/asset-generation',              label: '3D Generator', icon: 'palette' },
+      { href: '/admin/platform',                      label: 'Plattform Hub',icon: 'monitor', matches: ['/admin/monitoring', '/admin/ops', '/admin/platform'] },
+      { href: '/admin/architektur',                   label: 'Architektur',  icon: 'server', matches: ['/admin/architektur'] },
+      { href: '/dev-status',                          label: 'Dev Status',   icon: 'activity', matches: ['/dev-status', '/admin/planungsbuero', '/admin/factory-budget', '/admin/factory-observability'] },
+      { href: '/admin/ki-konfiguration',              label: 'KI-Konfig.',   icon: 'cpu', matches: ['/admin/ki-konfiguration'] },
+      { href: '/admin/prompts',                       label: 'Prompts',      icon: 'book' },
+      { href: '/admin/einstellungen/benachrichtigungen', label: 'Einstellungen', icon: 'settings', matches: ['/admin/einstellungen/'] },
+      { href: BRETT_URL,                              label: 'Systembrett',  icon: 'brett', external: true },
+      ...(isKore ? [{ href: '/admin/arena',           label: 'Arena',        icon: 'arena' }] : []),
+      { href: '/admin/live',                          label: 'Live-Stream',  icon: 'broadcast' },
     ],
   },
 ];
@@ -191,21 +170,12 @@ const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
       </div>
 
       <nav style="flex:1; overflow-y:auto; padding:16px 0; display:flex; flex-direction:column;">
-        <a
-          href="/admin"
-          class:list={[
-            'sidebar-nav-item',
-            { 'is-active': path === '/admin' },
-          ]}
-        >
-          <span class="nav-icon nav-icon-kern" set:html={icons.dashboard} />
-          <span class="sidebar-label" style="margin-left:12px;">Dashboard</span>
-        </a>
-
-        {navGroups.map(group => (
+        {navSections.map((section, si) => (
           <div class="sidebar-group">
-            <p class="sidebar-group-label">{group.label}</p>
-            {group.items.map(item => (
+            {section.label ? (
+              <p class="sidebar-group-label">{section.label}</p>
+            ) : null}
+            {section.items.map(item => (
               <a
                 href={item.href}
                 class:list={[
@@ -214,14 +184,18 @@ const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
                 ]}
                 target={item.external ? '_blank' : undefined}
                 rel={item.external ? 'noopener noreferrer' : undefined}
+                title={item.label}
               >
-                <span class={`nav-icon ${group.iconClass}`} set:html={icons[item.icon]} />
+                <span class="nav-icon" set:html={icons[item.icon]} />
                 <span class="sidebar-label" style="margin-left:12px; flex:1;">{item.label}</span>
                 {item.badge ? (
                   <span class="sidebar-label" style="padding:2px 6px; border-radius:6px; background:var(--admin-primary); color:var(--admin-bg); font-size:10px; font-weight:800;">{item.badge}</span>
                 ) : null}
               </a>
             ))}
+            {si < navSections.length - 1 ? (
+              <div style="height:1px; background:var(--admin-border); margin:8px 16px;" aria-hidden="true"></div>
+            ) : null}
           </div>
         ))}
       </nav>

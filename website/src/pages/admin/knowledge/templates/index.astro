@@ -1,5 +1,6 @@
 ---
 import AdminLayout from '../../../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../../../components/admin/ui/AdminPageHeader.svelte';
 import { listTemplates, type TargetSurface, type TemplateStatus } from '../../../../lib/coaching-db';
 import { getSession, getLoginUrl, isAdmin } from '../../../../lib/auth';
 import { pool } from '../../../../lib/website-db';
@@ -27,8 +28,7 @@ try {
         <a href="/admin/wissensquellen">Wissen</a> ›
         Templates
       </nav>
-      <h1>Templates</h1>
-      <p class="subtitle">Veröffentlichte und entworfene Templates pro Snippet (jeweils neueste Version).</p>
+<AdminPageHeader title="Templates" />
       <div class="filters">
         <a class={!surfaceParam ? 'active' : ''} href="/admin/knowledge/templates">Alle Surfaces</a>
         <a class={surfaceParam === 'questionnaire' ? 'active' : ''} href="/admin/knowledge/templates?surface=questionnaire">Questionnaire</a>

@@ -1,5 +1,6 @@
 ---
 import AdminLayout from '../../../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../../../components/admin/ui/AdminPageHeader.svelte';
 import { getSession, getLoginUrl, isAdmin } from '../../../../lib/auth';
 import { listKiProviders } from '../../../../lib/coaching-ki-config-db';
 import { pool } from '../../../../lib/website-db';
@@ -30,8 +31,7 @@ const today = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2
       <a href="/admin">Admin</a><span class="sep">›</span>
       <a href="/admin/coaching/sessions">Sessions</a><span class="sep">›</span>Neu
     </nav>
-    <h1>Neue Session</h1>
-
+<AdminPageHeader title="Neue Session" />
     <form class="form" id="new-session-form">
       <div class="field">
         <label for="title">Titel der Session</label>

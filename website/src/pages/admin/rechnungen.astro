@@ -1,5 +1,7 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../components/admin/ui/AdminPageHeader.svelte';
+import AdminTabs from '../../components/admin/ui/AdminTabs.svelte';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { getAllBillingInvoices, getDraftInvoices } from '../../lib/stripe-billing';
 import { listPendingDunnings, type PendingDunning } from '../../lib/invoice-dunning';
@@ -71,6 +73,11 @@ const STATUS_CLS: Record<string, string> = {
   'uncollectible':  'bg-red-900/40 text-red-300 border-red-800',
 };
 
+const billingTabs = [
+  { id: '/admin/rechnungen',    label: 'Rechnungen',    href: '/admin/rechnungen' },
+  { id: '/admin/zeiterfassung', label: 'Zeiterfassung', href: '/admin/zeiterfassung' },
+];
+
 const STATUS_TABS = [
   { value: '',               label: 'Alle' },
   { value: 'open',           label: 'Offen' },
@@ -84,9 +91,8 @@ const STATUS_TABS = [
 ---
 
 <AdminLayout title="Admin — Rechnungen">
-  <div style="border-bottom:1px solid var(--line);padding:0 2rem;display:flex;gap:0;overflow-x:auto;flex-shrink:0;">
-    <a href="/admin/rechnungen" style="display:inline-flex;align-items:center;padding:12px 16px;font-size:13px;font-weight:500;border-bottom:2px solid var(--brass);color:var(--brass);text-decoration:none;white-space:nowrap;margin-bottom:-1px;">Rechnungen</a>
-    <a href="/admin/zeiterfassung" style="display:inline-flex;align-items:center;padding:12px 16px;font-size:13px;font-weight:500;border-bottom:2px solid transparent;color:var(--fg-soft);text-decoration:none;white-space:nowrap;transition:color 0.15s ease,border-color 0.15s ease;margin-bottom:-1px;">Zeiterfassung</a>
+  <div style="border-bottom:1px solid var(--line);padding:0 2rem;flex-shrink:0;">
+    <AdminTabs tabs={billingTabs} active="/admin/rechnungen" client:load />
   </div>
   <section class="pt-10 pb-20 bg-dark min-h-screen">
     <div class="max-w-6xl mx-auto px-6">
@@ -95,20 +101,10 @@ const STATUS_TABS = [
       <DatevExportWidget client:load />
 
       <div class="mb-8 flex items-start justify-between gap-4">
-        <div>
-          <h1 class="text-3xl font-bold text-light font-serif">
-            Rechnungen
-            <span
-              id="draft-badge"
-              class={draftInvoices.length > 0
-                ? "ml-2 bg-red-500 text-white text-xs font-bold rounded-full px-1.5 py-0.5"
-                : "hidden"}
-            >
-              {draftInvoices.length}
-            </span>
-          </h1>
-          <p class="text-muted mt-1">{invoices.length} Rechnungen über alle Clients</p>
-        </div>
+        <AdminPageHeader
+          title="Fakturierung"
+          description={`${invoices.length} Rechnungen über alle Clients`}
+        />
         <CreateInvoiceModal {serviceOptions} client:load />
       </div>
 

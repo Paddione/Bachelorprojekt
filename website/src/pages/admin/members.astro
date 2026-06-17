@@ -1,5 +1,6 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../components/admin/ui/AdminPageHeader.svelte';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import type { EnrichedMember } from '../api/admin/members/list';
 
@@ -39,10 +40,7 @@ const nextOffset = offsetParam + limit;
 <AdminLayout title="Admin — Mitglieder">
   <section class="pt-10 pb-20 bg-dark min-h-screen">
     <div class="max-w-5xl mx-auto px-6">
-      <div class="mb-8">
-        <h1 class="text-3xl font-bold text-light font-serif">Mitglieder</h1>
-        <p class="text-muted mt-1">{totalCount} Mitglieder mit Lernfortschritt</p>
-      </div>
+      <AdminPageHeader title="Mitglieder" description={`${totalCount} Mitglieder mit Lernfortschritt`} />
 
       {fetchError && (
         <div class="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm">

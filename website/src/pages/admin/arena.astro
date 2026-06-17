@@ -1,5 +1,6 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../components/admin/ui/AdminPageHeader.svelte';
 import { getSession, getLoginUrl } from '../../lib/auth';
 
 const user = await getSession(Astro.request.headers.get('cookie'));
@@ -10,8 +11,7 @@ const isAdmin = (user.realmRoles ?? []).includes('arena_admin');
 
 <AdminLayout title="Arena">
   <section class="arena-admin">
-    <h1>Arena · admin</h1>
-    {!isAdmin ? (
+<AdminPageHeader title="Arena · admin" />
       <p class="warn">This page requires the <code>arena_admin</code> realm role.</p>
     ) : (
       <>

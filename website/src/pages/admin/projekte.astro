@@ -1,5 +1,6 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../components/admin/ui/AdminPageHeader.svelte';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { listProjects, listAllCustomers, listAdminUsers } from '../../lib/website-db';
 import type { Project, Customer } from '../../lib/website-db';
@@ -126,11 +127,11 @@ const labelCls  = 'block text-xs text-muted mb-1';
     <div class="max-w-7xl mx-auto px-6">
 
       <div class="mb-8 flex items-center justify-between gap-4 flex-wrap">
-        <div>
-          <h1 class="text-3xl font-bold text-light font-serif">Projekte</h1>
-          <p class="text-muted mt-1">{stats.total} gesamt · {stats.aktiv} aktiv · {stats.ueberfaellig > 0 ? `${stats.ueberfaellig} überfällig` : 'keine überfällig'}</p>
-        </div>
-        <div class="flex gap-3">
+        <AdminPageHeader
+          title="Mandate"
+          description={`${stats.total} gesamt · ${stats.aktiv} aktiv · ${stats.ueberfaellig > 0 ? `${stats.ueberfaellig} überfällig` : 'keine überfällig'}`}
+        />
+        <div class="flex gap-3" style="flex-shrink:0;">
           <a href={`/api/admin/projekte/export?brand=${BRAND}`}
             class="px-4 py-2 bg-dark-light border border-dark-lighter text-muted text-sm rounded-lg hover:text-light hover:border-gold/40 transition-colors">
             ↓ CSV Export

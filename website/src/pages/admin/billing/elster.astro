@@ -1,5 +1,6 @@
 ---
 import AdminLayout from '../../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../../components/admin/ui/AdminPageHeader.svelte';
 import { getSession, isAdmin } from '../../../lib/auth';
 import { getUstvaKennzahlen, buildUstvaXml } from '../../../lib/elster-xml';
 
@@ -17,8 +18,7 @@ const xml = buildUstvaXml(kennzahlen, { brand, year, period });
 <AdminLayout title="Admin — ELSTER Dashboard">
   <section class="pt-10 pb-20 bg-dark min-h-screen">
     <div class="max-w-4xl mx-auto px-6">
-      <h1 class="text-3xl font-bold text-light font-serif mb-8">ELSTER Dashboard</h1>
-      
+<AdminPageHeader title="ELSTER Dashboard" />
       <div class="bg-dark-light rounded-2xl border border-dark-lighter p-6 mb-8">
         <h2 class="text-xl font-semibold text-light mb-4">Umsatzsteuer-Voranmeldung (UStVA)</h2>
         <p class="text-muted mb-6">Zeitraum: {period}/{year}</p>

@@ -12,6 +12,7 @@
 // SECURITY: this page is authored with strict no-innerHTML rules. Every
 // dynamic value is set via createElement + textContent / setAttribute.
 import AdminLayout from '../../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../../components/admin/ui/AdminPageHeader.svelte';
 import { getSession, getLoginUrl, isAdmin } from '../../../lib/auth';
 import { isSystemtestLoopEnabled } from '../../../lib/systemtest/feature-flag';
 import { listQTemplates } from '../../../lib/questionnaire-db';
@@ -88,8 +89,7 @@ const COLUMNS: Array<{ key: string; title: string; hint: string }> = [
     <div class="max-w-7xl mx-auto px-6">
       <div class="mb-6 flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h1 class="text-3xl font-bold text-light font-serif">System-Test Board</h1>
-          <p class="text-muted mt-1 text-sm">
+<AdminPageHeader title="System-Test Board" />
             Fehlgeschlagene Test-Schritte → automatisch erstelltes Ticket → Fix → Retest.
           </p>
         </div>

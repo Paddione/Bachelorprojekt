@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import YAML from 'yaml';
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../components/admin/ui/AdminPageHeader.svelte';
 import AppCatalog from '../../components/admin/AppCatalog.svelte';
 import { getSession, isAdmin } from '../../lib/auth';
 
@@ -57,5 +58,8 @@ if (fs.existsSync(registryPath)) {
 ---
 
 <AdminLayout title="App-Katalog">
+  <div style="max-width:72rem; margin:0 auto; padding:1.5rem 1.5rem 0;">
+    <AdminPageHeader title="App-Katalog" description={`${apps.length} Apps verfügbar · Umgebung: ${env}`} />
+  </div>
   <AppCatalog {apps} {installedApps} {env} {brandId} client:load />
 </AdminLayout>

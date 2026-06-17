@@ -1,5 +1,6 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../components/admin/ui/AdminPageHeader.svelte';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import EurReport from '../../components/admin/EurReport.svelte';
 
@@ -14,8 +15,7 @@ const year = new Date().getFullYear();
     <a href="/admin/steuer" style="display:inline-flex;align-items:center;padding:12px 16px;font-size:13px;font-weight:500;border-bottom:2px solid transparent;color:var(--fg-soft);text-decoration:none;white-space:nowrap;transition:color 0.15s ease,border-color 0.15s ease;margin-bottom:-1px;">Steuer</a>
   </div>
   <div style="padding:2rem;max-width:720px;">
-    <h1 style="font-family:var(--font-serif);font-size:1.5rem;color:var(--fg);margin-bottom:2rem;">Buchhaltung / EÜR {year}</h1>
-    <EurReport {year} client:load />
+<AdminPageHeader title="Buchhaltung / EÜR {year}" />
     <p style="margin-top:1.5rem;font-size:0.8rem;color:var(--mute-2);">
       Buchungen werden automatisch bei Rechnungsversand und -zahlung angelegt. Manuelle Ausgabenbuchungen können über die API ergänzt werden.
     </p>

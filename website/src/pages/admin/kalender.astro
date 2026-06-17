@@ -1,5 +1,6 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../components/admin/ui/AdminPageHeader.svelte';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { listTasksInMonth, listProjectsInMonth, listMeetingsInRange } from '../../lib/website-db';
 import type { CalendarTask, CalendarProject, CalendarMeeting } from '../../lib/website-db';
@@ -184,8 +185,7 @@ const headerLabel = view === 'week'
 
       <div class="mb-8 flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h1 class="text-3xl font-bold text-light font-serif">Kalender</h1>
-          <p class="text-muted mt-1" data-testid="kalender-summary">
+<AdminPageHeader title="Kalender" />
             {headerLabel}
             &mdash; {tasks.length} Aufgaben &middot; {projects.length} Projekte &middot; {bookings.length} Termine &middot; {meetings.length} Meetings
           </p>

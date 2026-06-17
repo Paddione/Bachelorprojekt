@@ -1,5 +1,6 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../components/admin/ui/AdminPageHeader.svelte';
 import MessagePanel from '../../components/MessagePanel.svelte';
 import { getSession, isAdmin, getLoginUrl } from '../../lib/auth';
 import { listThreadsForAdmin, listAllCustomers } from '../../lib/messaging-db';
@@ -18,7 +19,10 @@ try {
 ---
 
 <AdminLayout title="Nachrichten">
-  <div style="height: calc(100vh - 120px)">
+  <div style="max-width:72rem; margin:0 auto; padding:1.5rem 1.5rem 0;">
+    <AdminPageHeader title="Nachrichten" />
+  </div>
+  <div style="height: calc(100vh - 220px)">
     <MessagePanel
       threads={threads}
       role="admin"

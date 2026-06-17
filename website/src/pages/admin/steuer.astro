@@ -1,5 +1,6 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../components/admin/ui/AdminPageHeader.svelte';
 import TaxMonitorWidget from '../../components/admin/TaxMonitorWidget.svelte';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { getUstvaExport, getTaxMode, getMonthlyBreakdown, THRESHOLD_KLEIN, THRESHOLD_WARNING } from '../../lib/tax-monitor';
@@ -30,8 +31,7 @@ function barColor(status: string) {
 <AdminLayout title="Steuerauswertung">
   <div style="padding:2rem;max-width:760px;">
     <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:0.25rem;">
-      <h1 style="font-family:var(--font-serif);font-size:1.5rem;color:var(--fg);">Steuerauswertung {year}</h1>
-      <a href="/admin/einstellungen/rechnungen" style="font-size:0.75rem;color:var(--brass);text-decoration:none;">
+<AdminPageHeader title="Steuerauswertung {year}" />
         Modus ändern →
       </a>
     </div>

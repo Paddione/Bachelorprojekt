@@ -1,5 +1,6 @@
 ---
 import AdminLayout from '../../../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../../../components/admin/ui/AdminPageHeader.svelte';
 import { getSession, getLoginUrl, isAdmin } from '../../../../lib/auth';
 import { listProjects } from '../../../../lib/coaching-project-db';
 import { pool } from '../../../../lib/website-db';
@@ -23,7 +24,6 @@ try {
       <span style="margin:0 0.4rem;">›</span>
       Projekte
     </nav>
-    <h1 style="font-size:1.8rem;font-weight:700;color:var(--text-light,#f0f0f0);margin:0 0 1.5rem;padding:0 1.5rem;">Coaching-Projekte</h1>
-    <ProjectsOverview client:load {initialResult} />
+<AdminPageHeader title="Coaching-Projekte" />
   </div>
 </AdminLayout>

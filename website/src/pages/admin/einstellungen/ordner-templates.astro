@@ -1,5 +1,8 @@
 ---
 import AdminLayout from '../../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../../components/admin/ui/AdminPageHeader.svelte';
+import AdminCard from '../../../components/admin/ui/AdminCard.svelte';
+import AdminFormField from '../../../components/admin/ui/AdminFormField.svelte';
 import AdminEinstellungenTabs from '../../../components/AdminEinstellungenTabs.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../../lib/auth';
 import { listTemplates } from '../../../lib/folder-templates-db';
@@ -20,8 +23,7 @@ const editTemplate = editId ? templates.find(t => t.id === editId) : null;
 <AdminLayout title="Ordner-Templates">
   <AdminEinstellungenTabs current={Astro.url.pathname} />
   <div style="padding: 2rem; max-width: 800px;">
-    <h1 style="font-family: var(--font-serif); font-size: 1.5rem; color: var(--fg); margin-bottom: 0.25rem;">Ordner-Templates</h1>
-    <p style="color: var(--mute); font-size: 0.875rem; margin-bottom: 2rem;">
+<AdminPageHeader title="Ordner-Templates" />
       Vordefinierte Ordnerstrukturen, die bei der Projektanlage automatisch im Nextcloud angelegt werden.
     </p>
 

@@ -1,5 +1,6 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../components/admin/ui/AdminPageHeader.svelte';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import AssetGallery from '../../components/admin/AssetGallery.svelte';
 
@@ -9,5 +10,8 @@ if (!isAdmin(session)) return Astro.redirect('/admin');
 ---
 
 <AdminLayout title="Assets">
+  <div style="max-width:72rem; margin:0 auto; padding:1.5rem 1.5rem 0;">
+    <AdminPageHeader title="Assets" />
+  </div>
   <AssetGallery client:load />
 </AdminLayout>

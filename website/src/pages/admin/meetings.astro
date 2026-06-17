@@ -4,6 +4,7 @@
 // System-Test 2 / Q4 (T000161, T000164), weil dort kein "Neues Meeting"
 // Button existiert. Jetzt rendert die Seite eine echte Meeting-Liste.
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../components/admin/ui/AdminPageHeader.svelte';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { listAllMeetings, listProjects } from '../../lib/website-db';
 import type { AdminMeeting, Project } from '../../lib/website-db';
@@ -57,8 +58,7 @@ function fmtTime(d: Date | string | null): string {
 
       <div class="mb-8 flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h1 class="text-3xl font-bold text-light font-serif">Meetings</h1>
-          <p class="text-muted mt-1">{meetings.length} Meetings · {upcoming.length} anstehend</p>
+<AdminPageHeader title="Meetings" />
         </div>
         <div class="flex gap-3">
           <AdminMeetingModal

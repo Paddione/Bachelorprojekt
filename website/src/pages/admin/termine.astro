@@ -1,5 +1,6 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../components/admin/ui/AdminPageHeader.svelte';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { getAllBookings } from '../../lib/caldav';
 import type { AdminBooking } from '../../lib/caldav';
@@ -107,8 +108,7 @@ function formatTime(d: Date) {
 
       <div class="mb-8 flex items-center justify-between">
         <div>
-          <h1 class="text-3xl font-bold text-light font-serif">Termine</h1>
-          <p class="text-muted mt-1">{bookings.length} gebucht · <span class="text-gold"><span id="windows-counter">{totalWindows}</span> Zeiträume freigegeben</span></p>
+<AdminPageHeader title="Termine" />
         </div>
         <div class="flex gap-3">
           <AdminBookingModal

@@ -1,5 +1,6 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../components/admin/ui/AdminPageHeader.svelte';
 import WissenHub from '../../components/admin/WissenHub.svelte';
 import { listCollections } from '../../lib/knowledge-db';
 import { listBooks } from '../../lib/coaching-db';
@@ -24,6 +25,9 @@ await Promise.allSettled([
 ---
 
 <AdminLayout title="Wissensbasis">
+  <div style="max-width:72rem; margin:0 auto; padding:1.5rem 1.5rem 0;">
+    <AdminPageHeader title="Wissensbasis" />
+  </div>
   <WissenHub
     client:load
     initialCollections={collections}

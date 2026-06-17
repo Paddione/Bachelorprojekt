@@ -1,5 +1,6 @@
 ---
 import AdminLayout from '../../../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../../../components/admin/ui/AdminPageHeader.svelte';
 import { getSession, getLoginUrl, isAdmin } from '../../../../lib/auth';
 import { listSessions } from '../../../../lib/coaching-session-db';
 import { pool } from '../../../../lib/website-db';
@@ -28,8 +29,7 @@ try {
       Sessions
     </nav>
     <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;padding:0 1.5rem;margin:0 0 1.5rem;">
-      <h1 style="font-size:1.8rem;font-weight:700;color:var(--text-light,#f0f0f0);margin:0;">Coaching-Sessions</h1>
-      <a href="/admin/coaching/sessions/new" class="btn btn-primary">
+<AdminPageHeader title="Coaching-Sessions" />
         + Neue Session
       </a>
     </div>

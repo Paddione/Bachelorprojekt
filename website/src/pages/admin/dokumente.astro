@@ -1,5 +1,6 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../components/admin/ui/AdminPageHeader.svelte';
 import DokumenteAdmin from '../../components/admin/DokumenteAdmin.svelte';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { listAllAssignments } from '../../lib/documents-db';
@@ -15,8 +16,7 @@ const initial = JSON.parse(JSON.stringify(assignments));
 <AdminLayout title="Admin — Dokumente">
   <section class="pt-0 pb-0 bg-dark min-h-screen">
     <div class="px-8 pt-8 mb-2">
-      <h1 class="text-3xl font-bold text-light font-serif">Dokumente</h1>
-      <p class="text-muted mt-1 text-sm">Alle Vertrags-Zuweisungen — Vorschau und Download</p>
+<AdminPageHeader title="Dokumente" />
     </div>
     <div class="px-8 pb-12">
       <DokumenteAdmin assignments={initial} client:load />

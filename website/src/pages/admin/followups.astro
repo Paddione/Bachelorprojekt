@@ -1,5 +1,6 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../components/admin/ui/AdminPageHeader.svelte';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { listFollowUps } from '../../lib/website-db';
 import type { FollowUp } from '../../lib/website-db';
@@ -39,8 +40,7 @@ const labelCls = 'block text-xs text-muted mb-1';
 
       <div class="mb-8 flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h1 class="text-3xl font-bold text-light font-serif">Follow-ups</h1>
-          <p class="text-muted mt-1">
+<AdminPageHeader title="Follow-ups" />
             {followUps.length} {showDone ? 'gesamt' : 'offen'} ·
             {dueCount > 0 ? `${dueCount} fällig` : 'keine fällig'}
           </p>

@@ -1,5 +1,8 @@
 ---
 import AdminLayout from '../../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../../components/admin/ui/AdminPageHeader.svelte';
+import AdminCard from '../../../components/admin/ui/AdminCard.svelte';
+import AdminFormField from '../../../components/admin/ui/AdminFormField.svelte';
 import AdminEinstellungenTabs from '../../../components/AdminEinstellungenTabs.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../../lib/auth';
 import { getSiteSetting } from '../../../lib/website-db';
@@ -19,8 +22,7 @@ const s = Object.fromEntries(keys.map((k, i) => [k, results[i] ?? ''])) as Recor
 <AdminLayout title="Branding & Kontakt">
   <AdminEinstellungenTabs current={Astro.url.pathname} />
   <div style="padding: 2rem; max-width: 640px;">
-    <h1 style="font-family: var(--font-serif); font-size: 1.5rem; color: var(--fg); margin-bottom: 0.25rem;">Branding & Kontakt</h1>
-    <p style="color: var(--mute); font-size: 0.875rem; margin-bottom: 2rem;">Markenname, Kontaktdaten und Social-Media-Links.</p>
+<AdminPageHeader title="Branding & Kontakt" />
 
     {saved && (
       <div style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1.5rem; color: #86efac; font-size: 0.875rem;">

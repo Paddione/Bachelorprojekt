@@ -1,5 +1,6 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../components/admin/ui/AdminPageHeader.svelte';
 import Components from '../../components/admin/Components.svelte';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 
@@ -9,7 +10,6 @@ if (!isAdmin(session)) return Astro.redirect('/admin');
 ---
 
 <AdminLayout title="Komponenten-Registrierung">
-  <h1>Komponenten-Registrierung</h1>
-  <p class="lede">Physische und Software-Komponenten der Plattform.</p>
+<AdminPageHeader title="Komponenten-Registrierung" />
   <Components client:load />
 </AdminLayout>

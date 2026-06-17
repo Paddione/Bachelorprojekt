@@ -1,5 +1,6 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../components/admin/ui/AdminPageHeader.svelte';
 import InhalteEditor from '../../components/admin/InhalteEditor.svelte';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { getEffectiveHomepage, getEffectiveUebermich, getEffectiveServices, getEffectiveLeistungen, getPriceListUrl, getEffectiveFaq, getEffectiveKontakt, getEffectiveReferenzen, getEffectiveStammdaten, getEffectiveNavigation, getEffectiveFooter, getEffectiveKoreFlags } from '../../lib/content';
@@ -105,8 +106,7 @@ const initialData = JSON.parse(JSON.stringify({
 <AdminLayout title="Admin — Inhalte">
   <section class="pt-0 pb-0 bg-dark min-h-screen">
     <div class="px-8 pt-8 mb-2">
-      <h1 class="text-3xl font-bold text-light font-serif">Inhalte</h1>
-      <p class="text-muted mt-1 text-sm">Website, Newsletter, Fragebögen und Vertragsvorlagen</p>
+<AdminPageHeader title="Inhalte" />
     </div>
     <InhalteEditor {initialData} {rechnungsvorlagen} brand={BRAND} staticServiceSlugs={config.services.map(s => s.slug)} client:load />
   </section>

@@ -1,5 +1,6 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../components/admin/ui/AdminPageHeader.svelte';
 import PromptLibraryManager from '../../components/admin/PromptLibraryManager.svelte';
 import { getSession, isAdmin, getLoginUrl } from '../../lib/auth';
 import { pool } from '../../lib/website-db';
@@ -20,5 +21,8 @@ try {
 ---
 
 <AdminLayout title="Prompt-Bibliothek">
+  <div style="max-width:72rem; margin:0 auto; padding:1.5rem 1.5rem 0;">
+    <AdminPageHeader title="Prompt-Bibliothek" />
+  </div>
   <PromptLibraryManager prompts={prompts} client:load />
 </AdminLayout>

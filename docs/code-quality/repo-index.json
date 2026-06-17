@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 473,
+      "file_count": 474,
       "files": [
         "tests/.gitignore",
         "tests/batch/batch-gap-analysis.bats",
@@ -456,6 +456,7 @@
         "tests/unit/tickets-transition.bats",
         "tests/unit/vda-core.bats",
         "tests/unit/vda-factory-slots.bats",
+        "tests/unit/vda-release-notes-smoke.bats",
         "tests/unit/vda-ticket-smoke.bats",
         "tests/unit/website-ci-deploy.bats",
         "tests/unit/website-domain-config-overlay.bats",
@@ -2415,7 +2416,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 383,
+      "file_count": 384,
       "files": [
         "scripts/add-whiteboard-library.py",
         "scripts/admin-menu-gate.sh",
@@ -2788,6 +2789,7 @@
         "scripts/vda/factory/slots.sh",
         "scripts/vda/frontmatter.sh",
         "scripts/vda/oracle.sh",
+        "scripts/vda/release-notes.sh",
         "scripts/vda/ticket.sh",
         "scripts/vda/ticket/_ticket-core.sh",
         "scripts/vda/ticket/create.sh",

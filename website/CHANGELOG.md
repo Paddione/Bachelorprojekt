@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.90.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.89.0...website-v1.90.0) (2026-06-17)
+
+
+### Features
+
+* **factory:** self-hosted Renovate dependency bot [T000898] ([#1808](https://github.com/Paddione/Bachelorprojekt/issues/1808)) ([2482026](https://github.com/Paddione/Bachelorprojekt/commit/2482026dd662ed6e79f2829aee8083e1020e2c24))
+
 ## [1.89.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.88.0...website-v1.89.0) (2026-06-16)
 
 

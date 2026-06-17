@@ -57,11 +57,11 @@
   let userFamilyName = $state('');
   let userAvailable = $state(true);
 
-  const STANDARD_WIDTH = 380;
+  const STANDARD_WIDTH = 460;
   const EXPANDED_WIDTH = 640;
 
   const drawerWidth = $derived(
-    isMobile ? Math.min(window?.innerWidth ?? 380, 420) : (expanded ? EXPANDED_WIDTH : STANDARD_WIDTH)
+    isMobile ? (window?.innerWidth ?? 460) : (expanded ? EXPANDED_WIDTH : STANDARD_WIDTH)
   );
 
   const titleMap: Record<View, string> = {
@@ -169,6 +169,7 @@
 
   function openDrawer() { open = true; view = 'home'; }
   function closeDrawer() { open = false; }
+  function toggleDrawer() { open ? closeDrawer() : openDrawer(); }
   function onKeydown(e: KeyboardEvent) { if (e.key === 'Escape' && open) closeDrawer(); }
   function navigate(v: View) { pendingJump = null; view = v; }
 </script>
@@ -191,7 +192,7 @@
 <button
   class="fab"
   class:fab--open={open}
-  onclick={open ? closeDrawer : openDrawer}
+  onclick={toggleDrawer}
   aria-label={open ? 'Sidekick schließen' : 'Sidekick öffnen'}
   aria-expanded={open}
 >
@@ -220,7 +221,7 @@
   aria-modal="true"
   aria-label="Sidekick"
   aria-hidden={!open}
-  inert={!open}
+  inert={open ? undefined : true}
   style="width: {drawerWidth}px; transform: translateX({open ? '0' : '100%'});"
 >
   <!-- Ambient halo overlays -->
@@ -413,7 +414,6 @@
   @media (max-width: 767px) {
     .drawer {
       width: 100vw !important;
-      max-width: 420px !important;
     }
   }
 </style>

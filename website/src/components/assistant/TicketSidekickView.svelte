@@ -242,21 +242,21 @@
     flex-direction: column;
     gap: 0;
     flex: 1;
-    overflow-y: auto;
+    min-height: 0;
     padding-bottom: 60px;
   }
 
   /* ── Intro ──────────────────────────────────────────────── */
   .tv-intro {
-    padding: 24px 22px 16px;
+    padding: 24px 24px 18px;
     border-bottom: 1px solid var(--line);
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
   }
   .tv-eyebrow {
     font-family: var(--mono);
-    font-size: 11px;
+    font-size: 12px;
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--brass);
@@ -273,10 +273,10 @@
   }
   .tv-desc {
     margin: 0;
-    font-size: 13px;
+    font-size: 14px;
     color: var(--fg-soft);
     line-height: 1.55;
-    max-width: 38ch;
+    max-width: 42ch;
   }
 
   /* ── Section accordion / list header ───────────────────── */
@@ -290,7 +290,7 @@
     justify-content: space-between;
     width: 100%;
     min-height: 48px;
-    padding: 14px 22px;
+    padding: 14px 24px;
     background: transparent;
     border: none;
     cursor: pointer;
@@ -305,7 +305,7 @@
 
   .section-title {
     font-family: var(--mono);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 500;
     letter-spacing: 0.18em;
     text-transform: uppercase;
@@ -328,14 +328,14 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 18px 22px 10px;
+    padding: 18px 24px 12px;
   }
 
   .count-badge {
     font-family: var(--mono);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
-    padding: 2px 8px;
+    padding: 2px 10px;
     border-radius: var(--radius-pill, 999px);
     background: var(--brass-d);
     color: var(--brass);
@@ -346,14 +346,14 @@
   .create-form {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    padding: 4px 22px 20px;
+    gap: 14px;
+    padding: 4px 24px 20px;
   }
 
   .row2 {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    gap: 12px;
   }
 
   .field {
@@ -364,7 +364,7 @@
 
   .field label {
     font-family: var(--mono);
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 500;
     letter-spacing: 0.14em;
     text-transform: uppercase;
@@ -381,9 +381,9 @@
     border-radius: var(--radius-md, 12px);
     color: var(--fg);
     font-family: var(--sans);
-    font-size: 14px;
-    padding: 11px 14px;
-    min-height: 44px;
+    font-size: 15px;
+    padding: 12px 14px;
+    min-height: 46px;
     resize: vertical;
     appearance: none;
     -webkit-appearance: none;
@@ -438,20 +438,20 @@
   .ticket-list {
     list-style: none;
     margin: 0;
-    padding: 0 22px 16px;
+    padding: 0 24px 16px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
   }
 
   .ticket-row {
     background: var(--ink-800);
     border: 1px solid var(--line);
     border-radius: var(--radius-md, 12px);
-    padding: 14px 16px;
+    padding: 16px 18px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
     transition: border-color 180ms ease, background 180ms ease;
   }
   .ticket-row:hover {
@@ -467,7 +467,7 @@
 
   .ext-id {
     font-family: var(--mono);
-    font-size: 10px;
+    font-size: 11px;
     color: var(--brass);
     font-weight: 600;
     letter-spacing: 0.06em;
@@ -475,11 +475,11 @@
 
   .type-pill {
     font-family: var(--mono);
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 500;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    padding: 2px 8px;
+    padding: 2px 10px;
     border-radius: var(--radius-pill, 999px);
     background: rgba(255,255,255,0.05);
     color: var(--mute);
@@ -500,9 +500,9 @@
 
   .ticket-title {
     font-family: var(--serif);
-    font-size: 16px;
+    font-size: 17px;
     font-weight: 400;
-    line-height: 1.35;
+    line-height: 1.4;
     letter-spacing: -0.01em;
     color: var(--fg);
     margin: 0;
@@ -516,13 +516,13 @@
     background: var(--ink-900);
     border: 1px solid var(--line-2);
     border-radius: var(--radius-pill, 999px);
-    color: var(--fg-soft);
+    color: var(--fg);
     font-family: var(--mono);
-    font-size: 11px;
+    font-size: 12px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    padding: 8px 28px 8px 12px;
-    min-height: 36px;
+    padding: 8px 30px 8px 14px;
+    min-height: 38px;
     cursor: pointer;
     appearance: none;
     -webkit-appearance: none;
@@ -535,7 +535,7 @@
   .ticket-actions select:focus { outline: none; border-color: var(--brass); }
 
   .skeleton {
-    height: 88px;
+    height: 96px;
     background: linear-gradient(
       90deg,
       var(--ink-800) 25%,
@@ -545,7 +545,7 @@
     background-size: 200% 100%;
     animation: shimmer 1.4s infinite;
     border-radius: var(--radius-md, 12px);
-    margin: 0 22px 10px;
+    margin: 0 24px 10px;
   }
   @keyframes shimmer {
     0% { background-position: 200% 0; }
@@ -554,14 +554,14 @@
 
   .empty {
     color: var(--mute);
-    font-size: 13px;
-    padding: 12px 22px 20px;
+    font-size: 14px;
+    padding: 12px 24px 20px;
     margin: 0;
     font-style: italic;
   }
   .err {
     color: oklch(0.62 0.18 22);
-    font-size: 12px;
+    font-size: 13px;
     margin: 0;
   }
 
@@ -572,11 +572,11 @@
     gap: 6px;
     position: sticky;
     bottom: 0;
-    padding: 14px 22px;
+    padding: 14px 24px;
     background: linear-gradient(to top, var(--ink-900), var(--ink-900) 70%, transparent);
     border-top: 1px solid var(--line);
     font-family: var(--mono);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 500;
     letter-spacing: 0.14em;
     text-transform: uppercase;
@@ -591,14 +591,14 @@
     position: fixed;
     bottom: 80px;
     right: 16px;
-    padding: 10px 16px;
+    padding: 12px 18px;
     border-radius: var(--radius-pill, 999px);
     font-family: var(--mono);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 500;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    z-index: 100;
+    z-index: 9100;
     pointer-events: none;
     backdrop-filter: blur(8px);
   }
@@ -613,12 +613,15 @@
     border: 1px solid oklch(0.62 0.18 22 / 0.4);
   }
 
-  @media (max-width: 480px) {
+  @media (max-width: 520px) {
     .tv-intro,
     .section-header,
     .list-header,
     .create-form,
     .ticket-list { padding-inline: 18px; }
+    .footer-link { padding-inline: 18px; }
+    .empty { padding-inline: 18px; }
+    .skeleton { margin-inline: 18px; }
     .row2 { grid-template-columns: 1fr; }
   }
 </style>

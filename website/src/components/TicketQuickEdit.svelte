@@ -231,7 +231,7 @@
   aria-modal="true"
   aria-labelledby="tqe-panel-title"
   aria-hidden={!open}
-  inert={!open}
+  inert={open ? undefined : true}
   style="
     position: fixed; top: 0; right: 0; bottom: 0; z-index: 62;
     width: 320px;

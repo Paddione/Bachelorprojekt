@@ -874,7 +874,7 @@
   "eventsEnabled": true,
   "adminEventsEnabled": true,
   "adminEventsDetailsEnabled": true,
-  "eventsExpiration": 2592000,
+  "eventsExpiration": 7776000,
   "eventsListeners": [
     "jboss-logging"
   ],

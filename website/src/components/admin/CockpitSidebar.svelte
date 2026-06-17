@@ -8,6 +8,7 @@
   export let selectedFeature: string | null = null;
   export let onSelectFeature: (extId: string) => void;
   export let onFeatureAction: ((featureId: string, action: string, value?: boolean | string) => void) | undefined = undefined;
+  export let onBatchFeatureAction: ((actions: { featureId: string; action: string; value?: boolean | string }[]) => void) | undefined = undefined;
   export let onMutated: (() => void) | undefined = undefined;
 
   let drawerOpen = false;
@@ -82,13 +83,13 @@
   }
 
   async function handleApply() {
-    for (const f of allFeatures.filter(f => f.nextStep)) onFeatureAction?.(f.id, 'next_step', true);
-    onMutated?.();
+    const targets = allFeatures.filter(f => f.nextStep).map(f => ({ featureId: f.id, action: 'next_step' as const, value: true }));
+    if (targets.length > 0) onBatchFeatureAction?.(targets);
   }
 
   async function handleReset() {
-    for (const f of allFeatures.filter(f => f.nextStep)) onFeatureAction?.(f.id, 'next_step', false);
-    onMutated?.();
+    const targets = allFeatures.filter(f => f.nextStep).map(f => ({ featureId: f.id, action: 'next_step' as const, value: false }));
+    if (targets.length > 0) onBatchFeatureAction?.(targets);
   }
 </script>
 

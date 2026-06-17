@@ -7,6 +7,13 @@ export const DOR_KEYS = [
 export type DorKey = (typeof DOR_KEYS)[number];
 export type Readiness = Partial<Record<DorKey, boolean>>;
 
+export interface TriageSuggestion {
+  type: string; priority: string; severity: string;
+  areas: string[]; component: string | null;
+  assignee_suggested: string; rationale: string;
+  model: string; at: string;
+}
+
 export interface OfficeItem {
   extId: string; title: string; valueProp: string | null; priority: string;
   effort: string | null; areas: string[]; dependsOn: string[];
@@ -14,6 +21,8 @@ export interface OfficeItem {
   isNextCandidate: boolean; pinned: boolean; createdAt: string; updatedAt: string;
   // Pflichtenheft → Lastenheft: the requirements list + derived lock state.
   requirementsList: string[]; lastenheftLocked: boolean;
+  // T000933: KI-Triage-Vorschlag aus grilling_meta
+  triage: TriageSuggestion | null;
 }
 
 export function dorScore(r: Readiness | null): number {
@@ -23,6 +32,7 @@ export function dorScore(r: Readiness | null): number {
 
 function mapRow(row: any): OfficeItem {
   const readiness: Readiness = row.readiness ?? {};
+  const grillingMeta = row.grilling_meta ?? {};
   return {
     extId: row.external_id, title: row.title, valueProp: row.value_prop,
     priority: row.priority, effort: row.effort,
@@ -32,13 +42,17 @@ function mapRow(row: any): OfficeItem {
     pinned: row.pinned ?? false, createdAt: row.created_at, updatedAt: row.updated_at,
     requirementsList: row.requirements_list ?? [],
     lastenheftLocked: isLastenheftLocked(readiness),
+    triage: (grillingMeta.triage && typeof grillingMeta.triage === 'object')
+      ? grillingMeta.triage as TriageSuggestion
+      : null,
   };
 }
 
 export async function listOffice(): Promise<OfficeItem[]> {
   const r = await pool.query(
     `SELECT external_id, title, value_prop, priority, effort, areas, depends_on,
-            planning_rank, readiness, pinned, created_at, updated_at, requirements_list
+            planning_rank, readiness, pinned, created_at, updated_at, requirements_list,
+            grilling_meta
        FROM tickets.tickets
       WHERE type = 'feature' AND status = 'planning'
       ORDER BY pinned DESC, COALESCE(planning_rank, 2147483647), created_at`,
@@ -211,4 +225,50 @@ export async function clarifyItem(
   }
 
   return true;
+}
+
+// ── T000933: Triage apply/discard ─────────────────────────────────────────
+
+const VALID_TYPES = ['bug', 'feature', 'task', 'project'];
+const VALID_PRIORITIES = ['hoch', 'mittel', 'niedrig'];
+const VALID_SEVERITIES = ['critical', 'major', 'minor', 'trivial'];
+
+export async function applyTriage(extId: string): Promise<boolean> {
+  const r = await pool.query(
+    `SELECT grilling_meta FROM tickets.tickets
+      WHERE external_id = $1 AND status = 'planning'`,
+    [extId],
+  );
+  const triage = r.rows[0]?.grilling_meta?.triage;
+  if (!triage || typeof triage !== 'object') return false;
+
+  const t = triage as Record<string, unknown>;
+  const type = t.type; const priority = t.priority; const severity = t.severity;
+  const areas = t.areas; const component = t.component;
+
+  if (typeof type !== 'string' || !VALID_TYPES.includes(type)) return false;
+  if (typeof priority !== 'string' || !VALID_PRIORITIES.includes(priority)) return false;
+  if (typeof severity !== 'string' || !VALID_SEVERITIES.includes(severity)) return false;
+  if (areas !== undefined && areas !== null && !Array.isArray(areas)) return false;
+  if (component !== undefined && component !== null && typeof component !== 'string') return false;
+
+  const res = await pool.query(
+    `UPDATE tickets.tickets
+        SET type = $1, priority = $2, severity = $3,
+            areas = $4, component = $5, updated_at = now()
+      WHERE external_id = $6 AND status = 'planning'`,
+    [type, priority, severity, areas ?? null, component ?? null, extId],
+  );
+  return (res.rowCount ?? 0) > 0;
+}
+
+export async function discardTriage(extId: string): Promise<boolean> {
+  const res = await pool.query(
+    `UPDATE tickets.tickets
+        SET grilling_meta = grilling_meta - 'triage', updated_at = now()
+      WHERE external_id = $1 AND status = 'planning'
+        AND grilling_meta ? 'triage'`,
+    [extId],
+  );
+  return (res.rowCount ?? 0) > 0;
 }

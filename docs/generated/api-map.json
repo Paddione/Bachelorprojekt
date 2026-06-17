@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-17T03:29:26.022Z",
+  "generatedAt": "2026-06-17T14:28:46.331Z",
   "endpoints": [
     {
       "path": "/api/admin/angebote/save",
@@ -24,6 +24,14 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/assets/upload.ts"
+    },
+    {
+      "path": "/api/admin/backup-status",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/backup-status.ts"
     },
     {
       "path": "/api/admin/billing/{id}",
@@ -778,6 +786,14 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/cockpit/feature-action.ts"
+    },
+    {
+      "path": "/api/admin/cockpit/feature-actions",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/cockpit/feature-actions.ts"
     },
     {
       "path": "/api/admin/cockpit/portfolio",

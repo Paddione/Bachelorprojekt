@@ -1,12 +1,13 @@
 # API Surface Map
 
-> Generated at 2026-06-17T03:29:26.022Z
+> Generated at 2026-06-17T14:28:46.331Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
 | `/api/admin/angebote/save` | POST | 🔐 admin | `website/src/pages/api/admin/angebote/save.ts` |
 | `/api/admin/assets` | GET | 🔐 admin | `website/src/pages/api/admin/assets.ts` |
 | `/api/admin/assets/upload` | POST | 🔐 admin | `website/src/pages/api/admin/assets/upload.ts` |
+| `/api/admin/backup-status` | GET | 🔐 admin | `website/src/pages/api/admin/backup-status.ts` |
 | `/api/admin/billing/{id}` | GET | 🔐 admin | `website/src/pages/api/admin/billing/[id]/index.ts` |
 | `/api/admin/billing/{id}/discard` | POST | 🔐 admin | `website/src/pages/api/admin/billing/[id]/discard.ts` |
 | `/api/admin/billing/{id}/finalize-from-prepayment` | POST | 🔐 admin | `website/src/pages/api/admin/billing/[id]/finalize-from-prepayment.ts` |
@@ -99,6 +100,7 @@
 | `/api/admin/cockpit/batch` | POST | 🔐 admin | `website/src/pages/api/admin/cockpit/batch.ts` |
 | `/api/admin/cockpit/feature` | GET | 🔐 admin | `website/src/pages/api/admin/cockpit/feature.ts` |
 | `/api/admin/cockpit/feature-action` | POST | 🔐 admin | `website/src/pages/api/admin/cockpit/feature-action.ts` |
+| `/api/admin/cockpit/feature-actions` | POST | 🔐 admin | `website/src/pages/api/admin/cockpit/feature-actions.ts` |
 | `/api/admin/cockpit/portfolio` | GET | 🔐 admin | `website/src/pages/api/admin/cockpit/portfolio.ts` |
 | `/api/admin/cockpit/reorder` | POST | 🔐 admin | `website/src/pages/api/admin/cockpit/reorder.ts` |
 | `/api/admin/cockpit/reparent` | POST | 🔐 admin | `website/src/pages/api/admin/cockpit/reparent.ts` |

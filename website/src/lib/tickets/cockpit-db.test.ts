@@ -384,3 +384,39 @@ describe('Alle Tickets bucket (flat all-tickets view)', () => {
     expect(out.products).toHaveLength(0);
   });
 });
+
+describe('PORTFOLIO_MAX_ROWS limit (B6)', () => {
+  it('getPortfolio limits containers to PORTFOLIO_MAX_ROWS', async () => {
+    // Seed more projects than PORTFOLIO_MAX_ROWS (1000)
+    for (let i = 0; i < 1005; i++) {
+      await pool.query(
+        `INSERT INTO tickets.tickets (id, external_id, brand, type, title, priority, status, planning_rank)
+         VALUES ($1,$1,'mentolder','project',$2,'mittel','backlog',$3)`,
+        [`bulk-p-${i}`, `Bulk Project ${i}`, i],
+      );
+    }
+    const out = await getPortfolio('mentolder');
+    // All products = synthetic buckets (Alle Tickets, Ohne Feature) + at most PORTFOLIO_MAX_ROWS
+    const realProducts = out.products.filter(
+      p => p.extId !== '__all_tickets__' && p.extId !== '__no_feature__',
+    );
+    expect(realProducts.length).toBeLessThanOrEqual(1000);
+  });
+
+  it('getPortfolio still returns the correct base fixture data alongside many others', async () => {
+    // Seed many extra rows, then verify the original fixture project is still found
+    for (let i = 0; i < 1005; i++) {
+      await pool.query(
+        `INSERT INTO tickets.tickets (id, external_id, brand, type, title, priority, status, planning_rank)
+         VALUES ($1,$1,'mentolder','project',$2,'mittel','backlog',$3)`,
+        [`bulk-p-${i}`, `Bulk Project ${i}`, i + 100],
+      );
+    }
+    const out = await getPortfolio('mentolder');
+    // Original project 'p1' should still appear if it falls within the limit (ordered by
+    // planning_rank, then created_at; original p1/P1 has rank 0 which sorts first)
+    const p = out.products.find((x) => x.extId === 'p1');
+    expect(p).toBeTruthy();
+    expect(p!.features).toHaveLength(2);
+  });
+});

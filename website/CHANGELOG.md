@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.92.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.91.0...website-v1.92.0) (2026-06-17)
+
+
+### Features
+
+* **security:** audit log [T000904] ([#1816](https://github.com/Paddione/Bachelorprojekt/issues/1816)) ([24775de](https://github.com/Paddione/Bachelorprojekt/commit/24775dea841e8f74cff66ae5f7fb50fce8a30af5))
+* **tickets:** AI-powered auto-triage [T000933] ([#1823](https://github.com/Paddione/Bachelorprojekt/issues/1823)) ([1f119e4](https://github.com/Paddione/Bachelorprojekt/commit/1f119e438b9b2afa1d9bef0466d6057cff05fe02))
+* **website:** backup status in admin UI [T000905] ([#1818](https://github.com/Paddione/Bachelorprojekt/issues/1818)) ([9ee062c](https://github.com/Paddione/Bachelorprojekt/commit/9ee062c4429060a47775adfe639088efcd1ede3c))
+* **website:** folder structure templates [T000907] ([#1819](https://github.com/Paddione/Bachelorprojekt/issues/1819)) ([ad2bf68](https://github.com/Paddione/Bachelorprojekt/commit/ad2bf6895a36947ddfe39c2b62554fd6b407c474))
+* **website:** Nextcloud share-link generation [T000906] ([#1820](https://github.com/Paddione/Bachelorprojekt/issues/1820)) ([52f0e6e](https://github.com/Paddione/Bachelorprojekt/commit/52f0e6e4426f8e1693953b0ea205cd6f92c8f66d))
+
+
+### Bug Fixes
+
+* **admin:** feature-suggest critical bugs [T000788] ([#1805](https://github.com/Paddione/Bachelorprojekt/issues/1805)) ([3aa2511](https://github.com/Paddione/Bachelorprojekt/commit/3aa251101d4decec440ee2eed4489c8d00302e3e))
+
 ## [1.91.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.90.0...website-v1.91.0) (2026-06-17)
 
 

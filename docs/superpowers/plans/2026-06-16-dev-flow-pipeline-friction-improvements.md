@@ -11,7 +11,7 @@ parent_feature: null
 depends_on_plans: []
 ---
 
-# Implementierungsplan — dev-flow Pipeline-Friction beheben [T000925]
+# Implementierungsplan — dev-flow Pipeline-Friction beheben [T000925] — Implementation Plan
 
 > Spec: `docs/superpowers/specs/2026-06-16-dev-flow-pipeline-friction-improvements.md`
 > Ticket: T000925 · Branch: `feature/t000925`
@@ -33,7 +33,9 @@ Required-Set oder die git-crypt-Verschlüsselung zu lockern:
    Leer-Commit half. Plus: `gh pr edit --title` scheitert still an Projects-Classic-
    GraphQL → REST-`PATCH`-Fallback.
 
-## Architektur & betroffene Dateien
+## File Structure
+
+(Architektur & betroffene Dateien)
 
 | Datei | Art | S1-Budget |
 |---|---|---|
@@ -82,7 +84,8 @@ unverkettet pusht. Der **locked** Pfad (Z. 75–83) neutralisiert bereits korrek
   nach `worktree-create.sh` im erzeugten Worktree prüft, dass ein `git commit` einer
   git-crypt-verwalteten Pfad-Änderung gelingt (bzw. dass `filter.git-crypt.required`
   im Worktree-gitdir `false` und `filter.git-crypt.clean`/`smudge` auf `cat` stehen) —
-  **für beide** Pfade (locked und unlocked-mit-Key-Fixture). Test rot laufen lassen.
+  **für beide** Pfade (locked und unlocked-mit-Key-Fixture). Test ausführen und
+  scheitern sehen (expected: fail) — der unlocked-Pfad ist noch nicht gehärtet.
 - [ ] In `scripts/worktree-create.sh` den **unlocked** Pfad härten: nach dem Key-Copy
   und vor/nach `git -C "$WT_PATH" checkout` die `--worktree`-Filter-Neutralisierung
   (`extensions.worktreeConfig true`, `filter.git-crypt.clean cat`,

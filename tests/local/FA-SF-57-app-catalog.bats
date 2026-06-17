@@ -49,10 +49,11 @@ EOF
 }
 
 @test "FA-SF-57: app-install.sh dry-run simulates deployment steps" {
-  # Mock a test catalog app
-  mkdir -p "apps/test-mock-app"
-  cat <<EOF > "apps/test-mock-app/app.yaml"
-name: test-mock-app
+  # Use a unique temp app name to avoid CI parallel-run collisions
+  local app_name="test-mock-app-$$-$RANDOM"
+  mkdir -p "apps/$app_name"
+  cat <<EOF > "apps/$app_name/app.yaml"
+name: $app_name
 title: "Mock App"
 description: "A mock app for testing"
 kustomize: k3d/whiteboard
@@ -63,13 +64,14 @@ secrets:
   - MOCK_APP_JWT_SECRET
 EOF
 
-  run bash scripts/app-install.sh test-mock-app --dry-run
-  # Clean up immediately
-  rm -rf "apps/test-mock-app"
+  run bash scripts/app-install.sh "$app_name" --dry-run
+  local test_status=$status test_output="$output"
+  # Clean up immediately regardless of test outcome
+  rm -rf "apps/$app_name"
 
-  [ "$status" -eq 0 ]
-  [[ "$output" =~ "Validating manifest schema" ]]
-  [[ "$output" =~ "Merging domains" ]]
-  [[ "$output" =~ "Would register secret" ]]
-  [[ "$output" =~ "Simulating deploy" ]]
+  [ "$test_status" -eq 0 ]
+  [[ "$test_output" =~ "Validating manifest schema" ]]
+  [[ "$test_output" =~ "Merging domains" ]]
+  [[ "$test_output" =~ "Would register secret" ]]
+  [[ "$test_output" =~ "Simulating deploy" ]]
 }

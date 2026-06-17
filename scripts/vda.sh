@@ -18,6 +18,7 @@ show_help() {
   echo "  factory                    Factory operations (slots, …)"
   echo "  factory-prep               Factory preparation guards"
   echo "  brainstorm                 Brainstorming bridge"
+  echo "  release-notes              Release notes generator from merged PRs"
   echo "  help                       Show this help"
   echo "  version                    Show version"
 }
@@ -59,6 +60,10 @@ main() {
     factory)
       shift
       exec "${SCRIPT_DIR}/vda/factory.sh" "$@"
+      ;;
+    release-notes)
+      shift
+      exec "${SCRIPT_DIR}/vda/release-notes.sh" "$@"
       ;;
     help|--help|-h)
       show_help

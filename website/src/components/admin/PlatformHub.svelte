@@ -7,6 +7,7 @@
   import LogsTab from './ops/LogsTab.svelte';
   import DatenbankTab from './ops/DatenbankTab.svelte';
   import DnsZertTab from './ops/DnsZertTab.svelte';
+  import BackupStatusCard from './platform/BackupStatusCard.svelte';
   export let cluster: string;
 
   let activeTab = 'software';
@@ -79,7 +80,8 @@
     {/if}
   </main>
   
-  <footer class="mt-12 pt-8 border-t border-admin-border grid grid-cols-1 md:grid-cols-3 gap-6">
+  <footer class="mt-12 pt-8 border-t border-admin-border grid grid-cols-1 md:grid-cols-4 gap-6">
+    <BackupStatusCard {cluster} />
     <a href="/admin/software-history" class="p-4 rounded-2xl bg-admin-surface border border-admin-border hover:border-admin-primary/30 transition-all group">
       <h4 class="text-sm font-bold text-white group-hover:text-admin-primary">Software-History</h4>
       <p class="text-xs text-admin-text-mute">Versionsverlauf der Plattform-Komponenten.</p>

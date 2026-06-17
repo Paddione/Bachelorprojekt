@@ -1,0 +1,154 @@
+{
+  // Renovate self-hosted dependency update bot configuration.
+  // Spec: docs/superpowers/specs/2026-06-17-t000898-design.md
+  // Plan: docs/superpowers/plans/2026-06-17-t000898.md
+  // Schema: https://docs.renovatebot.com/renovate-schema.json
+  //
+  // Executed weekly by .github/workflows/renovate.yml (self-hosted GitHub Action).
+  // Runs as a dedicated GitHub App with RENOVATE_TOKEN repo secret.
+
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+
+  // Base recommended configuration from Renovate.
+  "extends": ["config:recommended"],
+
+  // Weekly schedule: Monday morning (Berlin time).
+  "schedule": ["before 9am on monday"],
+  "timezone": "Europe/Berlin",
+
+  // Require releases to be at least 3 days old before proposing an update.
+  // This prevents same-day merges of potentially broken releases.
+  "minimumReleaseAge": "3 days",
+
+  // Paths that Renovate should never touch.
+  "ignorePaths": [
+    "**/node_modules/**",
+    "art-library/**",
+    "scripts/coaching/**",
+    "scripts/knowledge/**",
+    "tests/e2e/**",
+    "tests/unit/**"
+  ],
+
+  // Rate limiting to prevent PR floods on first run.
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2,
+
+  // Enable the Dependency Dashboard issue for visibility.
+  "dependencyDashboard": true,
+
+  // Conventional Commits for CI gate compliance (Required Check).
+  // Renovate will use chore(deps): / fix(deps): prefixes.
+  "semanticCommits": "enabled",
+
+  "packageRules": [
+    // ── npm (pnpm workspaces) ─────────────────────────────────────────────
+
+    // npm minor/patch: grouped per package directory, no automerge.
+    // (patch gets automerge below via a more specific rule.)
+    {
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "npm minor/patch ({{packageFileDir}})",
+      "automerge": false
+    },
+
+    // npm patch (all dep types): automerge.
+    // Overrides the group rule above for patch-only updates.
+    {
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["patch"],
+      "automerge": true
+    },
+
+    // npm devDependencies minor + patch: automerge.
+    // Non-production code — safe to automerge non-major.
+    {
+      "matchManagers": ["npm"],
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+
+    // npm major: never automerge, separate group for review.
+    {
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["major"],
+      "groupName": "npm major updates",
+      "automerge": false
+    },
+
+    // ── Kubernetes / Docker images ─────────────────────────────────────────
+    // Docker base images are managed via the kubernetes manager (reads image
+    // references in k3d/prod manifests).
+
+    // LiveKit image family.
+    {
+      "matchManagers": ["kubernetes"],
+      "matchPackagePatterns": ["^livekit/"],
+      "groupName": "livekit images"
+    },
+
+    // Nextcloud image family.
+    {
+      "matchManagers": ["kubernetes"],
+      "matchPackagePatterns": ["^nextcloud", "^ghcr.io/nextcloud"],
+      "groupName": "nextcloud images"
+    },
+
+    // Keycloak image family.
+    {
+      "matchManagers": ["kubernetes"],
+      "matchPackagePatterns": ["^quay.io/keycloak"],
+      "groupName": "keycloak images"
+    },
+
+    // Kubernetes major: never automerge.
+    {
+      "matchManagers": ["kubernetes"],
+      "matchUpdateTypes": ["major"],
+      "automerge": false
+    },
+
+    // ── GitHub Actions ─────────────────────────────────────────────────────
+
+    // GitHub Actions: pinDigests (SHA-pin) stays enabled, grouped together.
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions digest pins",
+      "pinDigests": true
+    },
+
+    // GitHub Actions major: never automerge.
+    {
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["major"],
+      "automerge": false
+    },
+
+    // ── Disabled packages ──────────────────────────────────────────────────
+
+    // Own ghcr.io images are rebuilt on release via CI, not bumped by Renovate.
+    {
+      "matchPackagePatterns": ["^ghcr.io/paddione/"],
+      "enabled": false
+    },
+
+    // faster-whisper-server is manually pinned.
+    {
+      "matchPackageNames": ["fedirz/faster-whisper-server"],
+      "enabled": false
+    }
+  ],
+
+  // Kubernetes manager: scan image references in k3d and prod manifests.
+  "kubernetes": {
+    "fileMatch": [
+      "^k3d/.+\\.yaml$",
+      "^prod/.+\\.yaml$",
+      "^prod-mentolder/.+\\.yaml$",
+      "^prod-korczewski/.+\\.yaml$",
+      "^prod-fleet/.+\\.yaml$"
+    ]
+  }
+}

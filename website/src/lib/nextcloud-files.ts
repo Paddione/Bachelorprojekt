@@ -195,3 +195,38 @@ export async function deleteFile(filePath: string): Promise<boolean> {
 
 export const PENDING_SIGNATURES_DIR = 'pending-signatures';
 export const SIGNED_DIR = 'signed';
+
+/**
+ * Create a public share link for a file in Nextcloud via the OCS Share API.
+ * The filePath is relative to the admin user's Nextcloud files root
+ * (e.g. "Clients/max.mustermann/report.pdf").
+ */
+export async function createShareLink(filePath: string): Promise<string | null> {
+  try {
+    const safe = posix.normalize('/' + filePath).slice(1);
+    const res = await fetch(`${NC_URL}/ocs/v2.php/apps/files_sharing/api/v1/shares`, {
+      method: 'POST',
+      headers: {
+        Authorization: authHeader(),
+        'OCS-APIRequest': 'true',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Accept: 'application/json',
+      },
+      body: new URLSearchParams({
+        path: safe,
+        shareType: '3',
+        permissions: '1',
+      }).toString(),
+    });
+    if (!res.ok) {
+      console.error('[nextcloud-files] createShareLink failed:', res.status, await res.text());
+      return null;
+    }
+    const data = await res.json();
+    const url = data?.ocs?.data?.url;
+    return typeof url === 'string' ? url : null;
+  } catch (err) {
+    console.error('[nextcloud-files] createShareLink error:', err);
+    return null;
+  }
+}

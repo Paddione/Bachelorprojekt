@@ -1,0 +1,8 @@
+{
+  "title": "Lieferhistorie im /dev-status Dashboard",
+  "description": "Erweitere das Dev-Status Dashboard um eine Lieferhistorie-Komponente, die vergangene Factory-Deployments mit Metriken anzeigt.",
+  "type": "feature",
+  "external_id": "T000726",
+  "brand": "mentolder",
+  "area": "website"
+}

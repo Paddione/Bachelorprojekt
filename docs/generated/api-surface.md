@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-06-17T14:28:46.331Z
+> Generated at 2026-06-17T17:41:11.261Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -250,6 +250,7 @@
 | `/api/admin/rooms` | GET, POST | 🔐 admin | `website/src/pages/api/admin/rooms.ts` |
 | `/api/admin/rooms/{id}` | GET, PUT, POST | 🔐 admin | `website/src/pages/api/admin/rooms/[id].ts` |
 | `/api/admin/rooms/{id}/members` | POST | 🔐 admin | `website/src/pages/api/admin/rooms/[id]/members.ts` |
+| `/api/admin/rooms/{id}/share` | POST | 🔐 admin | `website/src/pages/api/admin/rooms/[id]/share.ts` |
 | `/api/admin/rooms/direct` | POST | 🔐 admin | `website/src/pages/api/admin/rooms/direct.ts` |
 | `/api/admin/seo` | GET | 🔐 admin | `website/src/pages/api/admin/seo/index.ts` |
 | `/api/admin/seo/pages` | GET | 🔐 admin | `website/src/pages/api/admin/seo/pages.ts` |
@@ -385,6 +386,7 @@
 | `/api/portal/questionnaires/{id}/submit` | POST | 🔑 session | `website/src/pages/api/portal/questionnaires/[id]/submit.ts` |
 | `/api/portal/rooms` | GET | 🔑 session | `website/src/pages/api/portal/rooms.ts` |
 | `/api/portal/rooms/{id}/messages` | GET, POST | 🔑 session | `website/src/pages/api/portal/rooms/[id]/messages.ts` |
+| `/api/portal/rooms/{id}/share` | POST | 🔑 session | `website/src/pages/api/portal/rooms/[id]/share.ts` |
 | `/api/portal/rooms/ensure-direct` | POST | 🔑 session | `website/src/pages/api/portal/rooms/ensure-direct.ts` |
 | `/api/portal/sign/{assignmentId}` | POST | 🔑 session | `website/src/pages/api/portal/sign/[assignmentId].ts` |
 | `/api/register` | POST | ❓ unclassified | `website/src/pages/api/register.ts` |

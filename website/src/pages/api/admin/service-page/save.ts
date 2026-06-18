@@ -35,22 +35,32 @@ export const POST: APIRoute = async ({ request, url }) => {
       ...(body.sections ?? []),
     ];
 
+    const prev = idx >= 0 ? existing[idx] : null;
+    const isCatalogLinked = !!(prev?.leistungCategoryId);
+
     const override: ServiceOverride = {
       slug,
       title: body.cardTitle ?? staticSvc?.title ?? slug,
       description: body.cardDescription ?? staticSvc?.description ?? '',
       icon: body.cardIcon ?? staticSvc?.icon ?? '✨',
-      price: body.cardPrice ?? staticSvc?.price ?? '',
       features: body.cardFeatures ?? staticSvc?.features ?? [],
-      hidden: existing[idx]?.hidden ?? false,
+      hidden: prev?.hidden ?? false,
+      // Preserve catalog linkage — strip legacy price/pricing when linked
+      ...(prev?.leistungCategoryId ? { leistungCategoryId: prev.leistungCategoryId } : {}),
+      ...(prev?.headlineKey ? { headlineKey: prev.headlineKey } : {}),
+      ...(prev?.headlinePrefix != null ? { headlinePrefix: prev.headlinePrefix } : {}),
+      ...(isCatalogLinked
+        ? {}
+        : { price: body.cardPrice ?? staticSvc?.price ?? '' }),
       pageContent: {
         headline: body.headline,
         intro: body.intro,
         forWhom: body.forWhom ?? [],
         sections,
-        pricing: body.pricing ?? [],
+        ...(isCatalogLinked
+          ? {}
+          : { pricing: body.pricing ?? [] }),
         faq: body.faq ?? [],
-        // SEO als Felder im pageContent gespeichert
         seoTitle: body.seoTitle || undefined,
         seoDescription: body.seoDescription || undefined,
       },

@@ -233,8 +233,8 @@
     {#each leistungen as cat}
       <div class="p-4 bg-dark rounded-lg border border-dark-lighter space-y-3">
         <div class="grid grid-cols-2 gap-4">
-          <div><label class={labelCls}>Kategorie-Titel</label><input type="text" bind:value={cat.title} class={inputCls} /></div>
-          <div><label class={labelCls}>Icon</label><input type="text" bind:value={cat.icon} class={inputCls} /></div>
+          <div><label class={labelCls}>Kategorie-Titel</label><input type="text" bind:value={cat.title} class={inputCls} onchange={() => { leistungen = [...leistungen]; }} /></div>
+          <div><label class={labelCls}>Icon</label><input type="text" bind:value={cat.icon} class={inputCls} onchange={() => { leistungen = [...leistungen]; }} /></div>
         </div>
         {#each (cat.services??[]) as svc, sIdx}
           <div class="p-3 bg-dark-lighter/30 rounded-lg space-y-2">
@@ -242,14 +242,14 @@
               <button type="button" onclick={() => moveLeistungService(cat,sIdx,-1)} disabled={sIdx===0} class={moveBtnCls}>↑</button>
               <button type="button" onclick={() => moveLeistungService(cat,sIdx,1)} disabled={sIdx===(cat.services?.length??0)-1} class={moveBtnCls}>↓</button>
               <p class="text-xs font-mono text-muted">{svc.key}</p>
-              <label class="ml-auto flex items-center gap-2 cursor-pointer text-xs text-muted"><input type="checkbox" bind:checked={svc.highlight} class="accent-gold" /><span>Hervorheben</span></label>
+              <label class="ml-auto flex items-center gap-2 cursor-pointer text-xs text-muted"><input type="checkbox" bind:checked={svc.highlight} class="accent-gold" onchange={() => { leistungen = [...leistungen]; }} /><span>Hervorheben</span></label>
             </div>
             <div class="grid grid-cols-3 gap-3">
-              <div><label class={labelCls}>Name</label><input type="text" bind:value={svc.name} class={inputCls} /></div>
-              <div><label class={labelCls}>Preis</label><input type="text" bind:value={svc.price} class={inputCls} /></div>
-              <div><label class={labelCls}>Einheit</label><input type="text" bind:value={svc.unit} class={inputCls} /></div>
+              <div><label class={labelCls}>Name</label><input type="text" bind:value={svc.name} class={inputCls} onchange={() => { leistungen = [...leistungen]; }} /></div>
+              <div><label class={labelCls}>Preis</label><input type="text" bind:value={svc.price} class={inputCls} onchange={() => { leistungen = [...leistungen]; }} /></div>
+              <div><label class={labelCls}>Einheit</label><input type="text" bind:value={svc.unit} class={inputCls} onchange={() => { leistungen = [...leistungen]; }} /></div>
             </div>
-            <div><label class={labelCls}>Beschreibung</label><textarea bind:value={svc.desc} rows={2} class="{inputCls} resize-none"></textarea></div>
+            <div><label class={labelCls}>Beschreibung</label><textarea bind:value={svc.desc} rows={2} class="{inputCls} resize-none" onchange={() => { leistungen = [...leistungen]; }}></textarea></div>
           </div>
         {/each}
       </div>

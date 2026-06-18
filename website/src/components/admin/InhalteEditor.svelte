@@ -197,11 +197,17 @@
         {:else if activeSection === 'coaching'}<SchemaEditor schema={schemaFor('service:coaching')!} initialValue={initialData.coaching?.value ?? null} initialVersion={initialData.coaching?.version ?? 0} />
         {:else if activeSection === 'fuehrung-persoenlichkeit'}<SchemaEditor schema={schemaFor('service:fuehrung-persoenlichkeit')!} initialValue={initialData.fuehrung?.value ?? null} initialVersion={initialData.fuehrung?.version ?? 0} />
         {:else if activeSection === '50plus-digital'}
-          <ServicePageSection initialData={initialData['50plus-digital']} slug="50plus-digital" pageLabel="50+ digital" />
+          <ServicePageSection initialData={initialData['50plus-digital']} slug="50plus-digital" pageLabel="50+ digital"
+            isCatalogLinked={initialData['50plus-digital']?.isCatalogLinked}
+            catalogTiers={initialData['50plus-digital']?.catalogTiers ?? []} />
         {:else if activeSection === 'ki-transition'}
-          <ServicePageSection initialData={initialData['ki-transition']} slug="ki-transition" pageLabel="KI-Transition Coaching" />
+          <ServicePageSection initialData={initialData['ki-transition']} slug="ki-transition" pageLabel="KI-Transition Coaching"
+            isCatalogLinked={initialData['ki-transition']?.isCatalogLinked}
+            catalogTiers={initialData['ki-transition']?.catalogTiers ?? []} />
         {:else if activeSection === 'beratung'}
-          <ServicePageSection initialData={initialData.beratung} slug="beratung" pageLabel="Unternehmensberatung" />
+          <ServicePageSection initialData={initialData.beratung} slug="beratung" pageLabel="Unternehmensberatung"
+            isCatalogLinked={initialData.beratung?.isCatalogLinked}
+            catalogTiers={initialData.beratung?.catalogTiers ?? []} />
         {:else if activeSection === 'angebote'}
           <AngeboteSection initialServices={initialData.services} initialLeistungen={initialData.leistungen} initialPriceListUrl={initialData.priceListUrl} staticSlugs={staticServiceSlugs} />
         {:else if activeSection === 'faq'}<FaqSection initialData={initialData.faq} />

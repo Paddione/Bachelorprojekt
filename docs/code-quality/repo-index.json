@@ -2451,7 +2451,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 390,
+      "file_count": 391,
       "files": [
         "scripts/add-whiteboard-library.py",
         "scripts/admin-menu-gate.sh",
@@ -2784,6 +2784,7 @@
         "scripts/process-oidc.mjs",
         "scripts/process-secrets.mjs",
         "scripts/provision-dev-vm.sh",
+        "scripts/read-manifest-field.mjs",
         "scripts/recording-setup.sh",
         "scripts/register-installed-app.mjs",
         "scripts/register-oidc-client.mjs",

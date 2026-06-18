@@ -14,6 +14,7 @@ minimumReleaseAgeExclude:
   - playwright@1.61.0
   - vitest@4.1.9
   - '@anthropic-ai/sdk@0.104.2'
+  - astro@6.4.8
 
 overrides:
   yaml: "^2.8.3"

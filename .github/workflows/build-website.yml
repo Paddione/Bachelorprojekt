@@ -48,13 +48,13 @@ jobs:
           PROD_DOMAIN: mentolder.de
           BRAND_NAME: Mentolder
           CONTACT_EMAIL: info@mentolder.de
-          CONTACT_PHONE: ${{ secrets.CONTACT_PHONE }}
+          CONTACT_PHONE: "+49 151 508 32 601"
           CONTACT_CITY: "L\u00fcneburg, Hamburg und Umgebung"
           CONTACT_NAME: Gerald Korczewski
-          LEGAL_STREET: ${{ secrets.LEGAL_STREET }}
-          LEGAL_ZIP: ${{ secrets.LEGAL_ZIP }}
+          LEGAL_STREET: "Ludwig-Erhard-Str. 18"
+          LEGAL_ZIP: "20459"
           LEGAL_JOBTITLE: Coach und digitaler Begleiter
-          LEGAL_UST_ID: ${{ secrets.LEGAL_UST_ID }}
+          LEGAL_UST_ID: "33/023/05100"
           LEGAL_WEBSITE: mentolder.de
         run: |
           IMAGE="ghcr.io/paddione/mentolder-website"
@@ -87,13 +87,13 @@ jobs:
           PROD_DOMAIN: mentolder.de
           BRAND_NAME: Mentolder
           CONTACT_EMAIL: info@mentolder.de
-          CONTACT_PHONE: ${{ secrets.CONTACT_PHONE }}
+          CONTACT_PHONE: "+49 151 508 32 601"
           CONTACT_CITY: "Lüneburg, Hamburg und Umgebung"
           CONTACT_NAME: Gerald Korczewski
-          LEGAL_STREET: ${{ secrets.LEGAL_STREET }}
-          LEGAL_ZIP: ${{ secrets.LEGAL_ZIP }}
+          LEGAL_STREET: "Ludwig-Erhard-Str. 18"
+          LEGAL_ZIP: "20459"
           LEGAL_JOBTITLE: Coach und digitaler Begleiter
-          LEGAL_UST_ID: ${{ secrets.LEGAL_UST_ID }}
+          LEGAL_UST_ID: "33/023/05100"
           LEGAL_WEBSITE: mentolder.de
           SMTP_USER: mentolder@mailbox.org
           SMTP_HOST: smtp.mailbox.org

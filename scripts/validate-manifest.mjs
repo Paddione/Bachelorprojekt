@@ -33,6 +33,11 @@ try {
     throw new Error(`Field "name" must match pattern ^[a-z0-9-]+$ (got "${doc.name}")`);
   }
 
+  // Title must not contain shell metacharacters
+  if (doc.title && /[$`"'|&;()<>{}[\]\\!#~*? \t\n]/.test(doc.title)) {
+    throw new Error(`Field "title" contains forbidden shell metacharacters (got "${doc.title}")`);
+  }
+
   // Optional domains validation
   if (doc.domains !== undefined) {
     if (!Array.isArray(doc.domains)) {
@@ -59,12 +64,21 @@ try {
     if (!doc.oidc.client_id || typeof doc.oidc.client_id !== 'string') {
       throw new Error('oidc.client_id must be a string');
     }
+    if (/[$`"'|&;()<>{}[\]\\!#~*?\t\n]/.test(doc.oidc.client_id)) {
+      throw new Error(`oidc.client_id contains forbidden shell metacharacters (got "${doc.oidc.client_id}")`);
+    }
     if (!Array.isArray(doc.oidc.redirect_uris)) {
       throw new Error('oidc.redirect_uris must be an array');
     }
     for (const [idx, uri] of doc.oidc.redirect_uris.entries()) {
       if (typeof uri !== 'string') {
         throw new Error(`oidc.redirect_uris[${idx}] must be a string`);
+      }
+      const sanitized = uri.replace(/\$\{[^}]+\}/g, 'placeholder.example.com');
+      try {
+        new URL(sanitized);
+      } catch {
+        throw new Error(`oidc.redirect_uris[${idx}] is not a valid URL (got "${uri}")`);
       }
     }
   }
@@ -77,6 +91,9 @@ try {
     for (const [idx, secret] of doc.secrets.entries()) {
       if (typeof secret !== 'string') {
         throw new Error(`secrets[${idx}] must be a string`);
+      }
+      if (!/^[A-Z][A-Z0-9_]*$/.test(secret)) {
+        throw new Error(`secrets[${idx}] must match pattern ^[A-Z][A-Z0-9_]*$ (got "${secret}")`);
       }
     }
   }

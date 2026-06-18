@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.95.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.95.1...website-v1.95.2) (2026-06-18)
+
+
+### Bug Fixes
+
+* **website:** fix sidekick deploy — broken share.ts import + sidekick UI refinements ([#1839](https://github.com/Paddione/Bachelorprojekt/issues/1839)) ([4f7a7d6](https://github.com/Paddione/Bachelorprojekt/commit/4f7a7d602ef9b0655cdcb56eeb9484166484410b))
+
 ## [1.95.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.95.0...website-v1.95.1) (2026-06-17)
 
 

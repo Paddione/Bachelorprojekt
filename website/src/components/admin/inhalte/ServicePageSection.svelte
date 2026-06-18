@@ -42,10 +42,12 @@
     seoDescription?: string;
   }
 
-  let { initialData, slug, pageLabel }: {
+  let { initialData, slug, pageLabel, isCatalogLinked = false, catalogTiers = [] }: {
     initialData: ServicePageData;
     slug: string;
     pageLabel: string;
+    isCatalogLinked?: boolean;
+    catalogTiers?: Array<{ label: string; price: string; unit: string; highlight: boolean }>;
   } = $props();
 
   let data = $state(JSON.parse(JSON.stringify(initialData)));
@@ -138,7 +140,12 @@
     </div>
     <div>
       <label class={labelCls}>Preis (auf der Karte)</label>
-      <input type="text" bind:value={data.cardPrice} class={inputCls} placeholder="z.B. Ab 60 € / Stunde" />
+      {#if isCatalogLinked}
+        <div class="px-3 py-2 bg-dark-lighter/50 border border-gold/20 rounded-lg text-gold text-sm font-semibold">{data.cardPrice || '—'}</div>
+        <p class="text-xs text-muted mt-1">Abgeleiteter Preis aus dem Katalog. Zum Ändern → <a href="/admin/inhalte?tab=website&section=angebote" class="text-gold hover:underline">Angebote-Tab</a>.</p>
+      {:else}
+        <input type="text" bind:value={data.cardPrice} class={inputCls} placeholder="z.B. Ab 60 € / Stunde" />
+      {/if}
     </div>
     <div>
       <div class="flex justify-between items-center mb-2">
@@ -218,24 +225,37 @@
   <div class={sectionCls}>
     <div class="flex justify-between items-center">
       <h3 class="text-xl font-bold text-light font-serif">Investition</h3>
-      <button onclick={addPricing} class={addBtnCls}>+ Preis</button>
+      {#if !isCatalogLinked}
+        <button onclick={addPricing} class={addBtnCls}>+ Preis</button>
+      {/if}
     </div>
-    {#each data.pricing as p, i}
-      <div class="p-4 bg-dark rounded-lg border border-dark-lighter space-y-2">
-        <div class="grid grid-cols-3 gap-3">
-          <div><label class={labelCls}>Bezeichnung</label><input type="text" bind:value={p.label} class={inputCls} /></div>
-          <div><label class={labelCls}>Preis</label><input type="text" bind:value={p.price} class={inputCls} /></div>
-          <div><label class={labelCls}>Einheit / Hinweis</label><input type="text" bind:value={p.unit} class={inputCls} /></div>
+    {#if isCatalogLinked}
+      <p class="text-xs text-muted mb-3">Preis-Tiers werden aus dem Katalog abgeleitet. Zum Ändern → <a href="/admin/inhalte?tab=website&section=angebote" class="text-gold hover:underline">Angebote-Tab → Leistungskatalog</a>.</p>
+      {#each catalogTiers as tier}
+        <div class="flex items-center gap-3 px-3 py-1.5 bg-dark-lighter/20 rounded text-xs text-muted mb-1">
+          <span class={tier.highlight ? 'text-gold font-semibold' : ''}>{tier.label}</span>
+          <span class="ml-auto font-mono">{tier.price}{tier.unit ? ' ' + tier.unit : ''}</span>
+          {#if tier.highlight}<span class="text-gold text-[10px] border border-gold/30 rounded px-1">Headline</span>{/if}
         </div>
-        <div class="flex items-center justify-between">
-          <label class="flex items-center gap-2 text-xs text-muted cursor-pointer">
-            <input type="checkbox" bind:checked={p.highlight} class="accent-gold" />
-            Hervorheben (Goldrand)
-          </label>
-          <button onclick={() => removePricing(i)} class={removeBtnCls}>Entfernen</button>
+      {/each}
+    {:else}
+      {#each data.pricing as p, i}
+        <div class="p-4 bg-dark rounded-lg border border-dark-lighter space-y-2">
+          <div class="grid grid-cols-3 gap-3">
+            <div><label class={labelCls}>Bezeichnung</label><input type="text" bind:value={p.label} class={inputCls} /></div>
+            <div><label class={labelCls}>Preis</label><input type="text" bind:value={p.price} class={inputCls} /></div>
+            <div><label class={labelCls}>Einheit / Hinweis</label><input type="text" bind:value={p.unit} class={inputCls} /></div>
+          </div>
+          <div class="flex items-center justify-between">
+            <label class="flex items-center gap-2 text-xs text-muted cursor-pointer">
+              <input type="checkbox" bind:checked={p.highlight} class="accent-gold" />
+              Hervorheben (Goldrand)
+            </label>
+            <button onclick={() => removePricing(i)} class={removeBtnCls}>Entfernen</button>
+          </div>
         </div>
-      </div>
-    {/each}
+      {/each}
+    {/if}
   </div>
 
   <!-- CTA -->

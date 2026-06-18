@@ -36,6 +36,12 @@ function serviceToEditorData(svc: any) {
     ctaHref: '/termin',
     seoTitle: (pc as any).seoTitle ?? '',
     seoDescription: (pc as any).seoDescription ?? svc?.description ?? '',
+    isCatalogLinked: !!svc?.leistungCategoryId,
+    catalogTiers: (svc?.leistungCategoryId
+      ? leistungen.find((c: any) => c.id === svc.leistungCategoryId)?.services?.map((r: any) => ({
+          label: r.name ?? '', price: r.price ?? '', unit: r.unit ?? '', highlight: r.highlight ?? false,
+        })) ?? []
+      : []),
   };
 }
 

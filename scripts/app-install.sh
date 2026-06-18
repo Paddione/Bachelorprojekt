@@ -25,6 +25,11 @@ if [[ -z "$APP_NAME" ]]; then
   exit 1
 fi
 
+if [[ ! "$APP_NAME" =~ ^[a-z0-9-]+$ ]]; then
+  echo "❌ Error: APP_NAME must match pattern ^[a-z0-9-]+$ (got \"$APP_NAME\")"
+  exit 1
+fi
+
 APP_DIR="$ROOT_DIR/apps/$APP_NAME"
 MANIFEST_PATH="$APP_DIR/app.yaml"
 
@@ -43,8 +48,8 @@ echo "🔍 Validating manifest schema for $APP_NAME..."
 node "$SCRIPT_DIR/validate-manifest.mjs" "$MANIFEST_PATH"
 
 # 3. Read manifest properties
-TITLE=$(node -e "import YAML from 'yaml'; import fs from 'fs'; console.log(YAML.parse(fs.readFileSync('$MANIFEST_PATH', 'utf8')).title || '$APP_NAME')")
-KUSTOMIZE_PATH_RAW=$(node -e "import YAML from 'yaml'; import fs from 'fs'; console.log(YAML.parse(fs.readFileSync('$MANIFEST_PATH', 'utf8')).kustomize)")
+TITLE=$(node "$SCRIPT_DIR/read-manifest-field.mjs" "$MANIFEST_PATH" "title" "$APP_NAME")
+KUSTOMIZE_PATH_RAW=$(node "$SCRIPT_DIR/read-manifest-field.mjs" "$MANIFEST_PATH" "kustomize")
 KUSTOMIZE_PATH="$ROOT_DIR/$KUSTOMIZE_PATH_RAW"
 
 if [[ ! -d "$KUSTOMIZE_PATH" ]]; then

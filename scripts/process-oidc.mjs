@@ -2,7 +2,7 @@
 import fs from 'fs';
 import path from 'path';
 import YAML from 'yaml';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 
 const [appName, envName, dryRunFlag] = process.argv.slice(2);
 if (!appName || !envName) {
@@ -39,12 +39,12 @@ try {
   } else {
     // 1. Register secret
     console.log(`[OIDC] Registering secret ${secretVarName}...`);
-    execSync(`node scripts/register-secret.mjs "${secretVarName}" "${envName}"`, { stdio: 'inherit' });
+    execFileSync('node', ['scripts/register-secret.mjs', secretVarName, envName], { stdio: 'inherit' });
 
     // 2. Register OIDC client in Keycloak JSON files
     console.log(`[OIDC] Registering OIDC client ${clientId}...`);
     const redirectUrisJson = JSON.stringify(redirectUris);
-    execSync(`node scripts/register-oidc-client.mjs "${clientId}" "${title}" '${redirectUrisJson}' "${secretVarName}"`, { stdio: 'inherit' });
+    execFileSync('node', ['scripts/register-oidc-client.mjs', clientId, title, redirectUrisJson, secretVarName], { stdio: 'inherit' });
   }
 
   process.exit(0);

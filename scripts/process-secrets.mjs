@@ -2,7 +2,7 @@
 import fs from 'fs';
 import path from 'path';
 import YAML from 'yaml';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 
 const [appName, envName, dryRunFlag] = process.argv.slice(2);
 if (!appName || !envName) {
@@ -32,7 +32,7 @@ try {
       console.log(`[SECRETS] Would register secret "${secret}" in schema and environments/.secrets/${envName}.yaml`);
     } else {
       console.log(`[SECRETS] Registering secret ${secret}...`);
-      execSync(`node scripts/register-secret.mjs "${secret}" "${envName}"`, { stdio: 'inherit' });
+      execFileSync('node', ['scripts/register-secret.mjs', secret, envName], { stdio: 'inherit' });
     }
   }
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.95.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.95.2...website-v1.95.3) (2026-06-18)
+
+
+### Bug Fixes
+
+* **admin:** preserve catalog linkage in service-page save + add missing reactivity triggers [T000788] ([#1842](https://github.com/Paddione/Bachelorprojekt/issues/1842)) ([596245d](https://github.com/Paddione/Bachelorprojekt/commit/596245d0ae8f51d4bf5eab6eed7bc19d61004a8c))
+
 ## [1.95.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.95.1...website-v1.95.2) (2026-06-18)
 
 

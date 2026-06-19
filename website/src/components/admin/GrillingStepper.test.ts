@@ -59,6 +59,20 @@ describe('GrillingStepper', () => {
     expect(screen.getByText(QUESTIONNAIRES[QN].sections[0].questions[1].label)).toBeTruthy();
   });
 
+  it('typing an answer does NOT advance to the next question (regression: skip-on-keypress)', async () => {
+    setup(null, null);
+    const first = QUESTIONNAIRES[QN].sections[0].questions[0].label;
+    expect(screen.getByText(first)).toBeTruthy();
+    const ta = screen.getByLabelText('Antwort') as HTMLTextAreaElement;
+    // Simulate typing character by character — each input must keep the same question visible
+    for (const char of ['H', 'He', 'Hel', 'Hell', 'Hello']) {
+      await fireEvent.input(ta, { target: { value: char } });
+      expect(screen.getByText(first)).toBeTruthy();
+    }
+    // After typing, textarea still holds the typed value
+    expect(ta.value).toBe('Hello');
+  });
+
   it('mode toggle switches between step and all mode', async () => {
     setup(null, null);
     const btn = screen.getByTestId('grilling-mode');

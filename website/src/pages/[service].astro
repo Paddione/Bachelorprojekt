@@ -5,9 +5,11 @@ import FAQ from '../components/FAQ.svelte';
 import { getEffectiveServices } from '../lib/content';
 import { config } from '../config/index';
 import { getSiteSetting, getSeoTitle, getSeoOgImage } from '../lib/website-db';
+import { t, getLocaleFromUrl, type Locale } from '../i18n/index';
 
 const BRAND_ID = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 const layoutBrand = BRAND_ID === 'korczewski' ? 'korczewski-kore' : undefined;
+const locale: Locale = (Astro.locals?.locale as Locale) ?? getLocaleFromUrl(Astro.url);
 
 const { service } = Astro.params;
 const { contact } = config;
@@ -113,7 +115,7 @@ const visibleSections = (pc.sections ?? []).filter((s) => s.title !== '__introNo
   </section>
 
   {pc.faq && pc.faq.length > 0 && (
-    <FAQ items={pc.faq} title={pc.faqTitle ?? `H&auml;ufige Fragen zu ${svc.title}`} client:visible />
+    <FAQ items={pc.faq} title={pc.faqTitle ?? `${t(locale, 'faq.title')} zu ${svc.title}`} client:visible />
   )}
 
   {(prevSvc || nextSvc) && (

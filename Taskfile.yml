@@ -265,6 +265,7 @@ tasks:
       - '[ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive'
       - task: test:unit:assert
       - task: test:unit:scripts
+      - task: test:unit:secret-task-guards
       - task: test:unit:changed-manifests
       - task: test:unit:agents
       - task: test:unit:figure-pack
@@ -418,6 +419,11 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/scripts.bats
+
+  test:unit:secret-task-guards:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/secret-task-guards.bats
 
   test:unit:dev-reset:
     internal: true

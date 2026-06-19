@@ -44,7 +44,7 @@ export const POST: APIRoute = async ({ request }) => {
         })),
       ],
       pricing: [
-        { label: body.ctaText, price: staticSvc?.price ?? 'Ab 150 €', highlight: true },
+        { label: body.ctaText, price: staticSvc?.price ?? 'nach Vereinbarung', highlight: true },
       ],
       faq: body.faq,
     };

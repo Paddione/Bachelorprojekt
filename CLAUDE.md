@@ -71,7 +71,22 @@ bash scripts/task-oracle.sh 'run all offline tests'
 bash scripts/task-oracle.sh 'create a fresh k3d cluster'
 ```
 
-Routes to local Ollama (at `localhost:11434`) or local LM Studio (at `localhost:1234`) → Opencode/OpenClaw `task-runner` agent (fallback) → error with `task --list` hint.
+**Agent flags** (for programmatic/automated use):
+- `--dry-run` / `-n` — resolve and print the task command without executing it (safe for pre-flight checks)
+- `--json` — like `--dry-run` but outputs `{"task":"...","env":"...","cmd":"..."}` on stdout
+- `--quiet` / `-q` — suppress diagnostic lines on stderr (useful in pipelines)
+
+```bash
+# Pre-flight: check what would run before committing to it
+bash scripts/vda.sh oracle --dry-run 'deploy website mentolder'
+# → task feature:website ENV=mentolder
+
+# Machine-readable for agent scripts
+bash scripts/vda.sh oracle --json 'run all offline tests'
+# → {"task":"test:all","env":"","cmd":"task test:all"}
+```
+
+Routes to local Ollama (at `localhost:11434`) → Opencode/OpenClaw `task-runner` agent (fallback) → error with `task --list` hint.
 
 ## Architecture
 

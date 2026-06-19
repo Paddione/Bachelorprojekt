@@ -138,7 +138,30 @@ if [[ $# -eq 0 || "${1:-}" == "-i" || "${1:-}" == "--interactive" ]]; then
   exit $?
 fi
 
-GOAL="${*:?Usage: task-oracle.sh '<goal>'}"
+# ── Flag parsing ─────────────────────────────────────────────────────────────
+DRY_RUN=0
+JSON_OUT=0
+QUIET=0
+REMAINING_ARGS=()
+for arg in "$@"; do
+  case "$arg" in
+    --dry-run|-n) DRY_RUN=1 ;;
+    --json)       JSON_OUT=1; DRY_RUN=1 ;;
+    --quiet|-q)   QUIET=1 ;;
+    *)            REMAINING_ARGS+=("$arg") ;;
+  esac
+done
+
+GOAL="${REMAINING_ARGS[*]:?Usage: task-oracle.sh [--dry-run|--json|--quiet] '<goal>'}"
+
+# ── Dry-run / JSON output helper ──────────────────────────────────────────
+emit_dry_run() {
+  local task="$1" env="$2" label="${3:-}" cmd
+  if [[ "${env:-}" == __BOTH__ ]]; then cmd="task ${task} ENV=mentolder && task ${task} ENV=korczewski"; label=both
+  else cmd="task ${task}${env:+ ${env}}"; fi
+  [[ $JSON_OUT -eq 1 ]] && printf '{"task":"%s","env":"%s","cmd":"%s"}\n' "$task" "$label" "$cmd" || echo "$cmd"
+  exit 0
+}
 
 # ── Structured fast-path: skip LLM for "namespace:action [ENV=X]" input ──────
 # Matches e.g. "workspace:deploy ENV=mentolder", "feature:website", "brett:build ENV=both"
@@ -147,7 +170,7 @@ if [[ "$GOAL" =~ $FASTPATH_REGEX ]]; then
   FP_TASK="${BASH_REMATCH[1]}"
   FP_ENV="${BASH_REMATCH[3]}"   # "dev"|"mentolder"|"korczewski"|"both"|""
 
-  REPO_FP="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+  REPO_FP="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
   # Validate task exists in the Taskfile
   set +o pipefail
@@ -168,7 +191,7 @@ if [[ "$GOAL" =~ $FASTPATH_REGEX ]]; then
     ALL_PRODS="${FP_TASK}:all-prods"
     if echo "$VALID_FP" | grep -qxF "$ALL_PRODS"; then
       FP_FINAL="$ALL_PRODS"
-      echo "→ [fast-path] Using :all-prods variant: ${FP_FINAL}" >&2
+      [[ $QUIET -eq 0 ]] && echo "→ [fast-path] Using :all-prods variant: ${FP_FINAL}" >&2
     else
       FP_EXEC_ENV="__BOTH__"
     fi
@@ -177,11 +200,13 @@ if [[ "$GOAL" =~ $FASTPATH_REGEX ]]; then
   fi
 
   TASK_DESC_FP=$(cd "$REPO_FP" && task --summary "$FP_FINAL" 2>/dev/null | sed -n '3p' || true)
-  echo "→ [fast-path] Task: ${FP_FINAL}${FP_EXEC_ENV:+  ${FP_EXEC_ENV}}" >&2
-  [[ -n "$TASK_DESC_FP" ]] && echo "  ${TASK_DESC_FP}" >&2
+  [[ $QUIET -eq 0 ]] && echo "→ [fast-path] Task: ${FP_FINAL}${FP_EXEC_ENV:+  ${FP_EXEC_ENV}}" >&2
+  [[ $QUIET -eq 0 && -n "$TASK_DESC_FP" ]] && echo "  ${TASK_DESC_FP}" >&2
+
+  [[ $DRY_RUN -eq 1 ]] && emit_dry_run "$FP_FINAL" "$FP_EXEC_ENV" "$FP_ENV"
 
   if [[ "${FP_EXEC_ENV:-}" == "__BOTH__" ]]; then
-    echo "→ Running on mentolder then korczewski..." >&2
+    [[ $QUIET -eq 0 ]] && echo "→ Running on mentolder then korczewski..." >&2
     cd "$REPO_FP" && task "$FP_FINAL" ENV=mentolder
     cd "$REPO_FP" && task "$FP_FINAL" ENV=korczewski
   else
@@ -192,7 +217,7 @@ if [[ "$GOAL" =~ $FASTPATH_REGEX ]]; then
 fi
 # ─────────────────────────────────────────────────────────────────────────────
 
-REPO="/home/patrick/Bachelorprojekt"
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 HERMES="${HERMES:-$HOME/.local/bin/hermes}"
 
 # ── Infer target environment from goal keywords ───────────────────────────
@@ -345,11 +370,11 @@ Goal: ${GOAL}"
     NS_TASKS=$(echo "$SELECTED_NS" | while IFS= read -r ns; do
       echo "$ALL_TASKS" | grep "^${ns}:"
     done)
-    echo "→ Namespace(s): $(echo "$SELECTED_NS" | tr '\n' ' ')" >&2
+    [[ $QUIET -eq 0 ]] && echo "→ Namespace(s): $(echo "$SELECTED_NS" | tr '\n' ' ')" >&2
   else
     # Fallback: use all tasks (model gets full list, all 244)
     NS_TASKS="$ALL_TASKS"
-    echo "→ Namespace selection failed — searching all ${#ALL_TASKS} tasks" >&2
+    [[ $QUIET -eq 0 ]] && echo "→ Namespace selection failed — searching all ${#ALL_TASKS} tasks" >&2
   fi
 
   # Format for model: "task:name — description" (no trailing colon)
@@ -391,7 +416,7 @@ Goal: ${GOAL}"
   fi
 
   if [[ -z "$SELECTED" ]]; then
-    echo "→ No task matched. Falling back to OpenClaw." >&2
+    [[ $QUIET -eq 0 ]] && echo "→ No task matched. Falling back to OpenClaw." >&2
   else
     # ── Phase 3: ENV inference + task summary + execution ───────────────
 
@@ -409,7 +434,7 @@ Goal: ${GOAL}"
         ALL_PRODS="${SELECTED}:all-prods"
         if echo "$ALL_TASKS" | grep -qE "^${ALL_PRODS}:"; then
           FINAL_TASK="$ALL_PRODS"
-          echo "→ Using :all-prods variant: ${FINAL_TASK}" >&2
+          [[ $QUIET -eq 0 ]] && echo "→ Using :all-prods variant: ${FINAL_TASK}" >&2
         else
           EXEC_ENV="__BOTH__"
         fi
@@ -418,30 +443,42 @@ Goal: ${GOAL}"
       fi
     fi
 
-    echo "→ Task: ${FINAL_TASK}${EXEC_ENV:+  ${EXEC_ENV}}" >&2
-    [[ -n "$TASK_DESC" ]] && echo "  ${TASK_DESC}" >&2
+    [[ $QUIET -eq 0 ]] && echo "→ Task: ${FINAL_TASK}${EXEC_ENV:+  ${EXEC_ENV}}" >&2
+    [[ $QUIET -eq 0 && -n "$TASK_DESC" ]] && echo "  ${TASK_DESC}" >&2
 
-    # Tail hermes log to stderr during execution
-    tail -fn 0 ~/.hermes/logs/agent.log >&2 2>/dev/null &
-    TAIL_PID=$!
-    trap "kill $TAIL_PID 2>/dev/null || true" EXIT
+    [[ $DRY_RUN -eq 1 ]] && emit_dry_run "$FINAL_TASK" "$EXEC_ENV" "${INFERRED_ENV:-}"
+
+    # Tail hermes log to stderr during execution (skip for quiet/agent mode)
+    TAIL_PID=""
+    if [[ $QUIET -eq 0 ]] && [[ -f ~/.hermes/logs/agent.log ]]; then
+      tail -fn 0 ~/.hermes/logs/agent.log >&2 2>/dev/null &
+      TAIL_PID=$!
+      trap "kill $TAIL_PID 2>/dev/null || true" EXIT
+    fi
 
     if [[ "${EXEC_ENV:-}" == "__BOTH__" ]]; then
-      echo "→ Running on mentolder then korczewski..." >&2
+      [[ $QUIET -eq 0 ]] && echo "→ Running on mentolder then korczewski..." >&2
       cd "$REPO" && task "$FINAL_TASK" ENV=mentolder
       cd "$REPO" && task "$FINAL_TASK" ENV=korczewski
     else
+      # shellcheck disable=SC2086
       cd "$REPO" && task "$FINAL_TASK" ${EXEC_ENV:-}
     fi
     RC=$?
 
-    kill $TAIL_PID 2>/dev/null || true
+    [[ -n "$TAIL_PID" ]] && kill $TAIL_PID 2>/dev/null || true
     trap - EXIT
     exit $RC
   fi
 fi
 
 # ── Fallback: Opencode / OpenClaw (Claude, reliable) ──────────────────────
+# Skip interactive fallback in dry-run mode — just report no match
+if [[ $DRY_RUN -eq 1 ]]; then
+  [[ $JSON_OUT -eq 1 ]] && echo '{"task":null,"env":null,"cmd":null}' || echo "NONE"
+  exit 1
+fi
+
 if curl -sf http://localhost:18789/healthz >/dev/null 2>&1; then
   if command -v opencode &>/dev/null; then
     opencode run --agent task-runner --format json "$GOAL" && exit 0

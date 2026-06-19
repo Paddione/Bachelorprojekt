@@ -144,7 +144,7 @@
         <div class="px-3 py-2 bg-dark-lighter/50 border border-gold/20 rounded-lg text-gold text-sm font-semibold">{data.cardPrice || '—'}</div>
         <p class="text-xs text-muted mt-1">Abgeleiteter Preis aus dem Katalog. Zum Ändern → <a href="/admin/inhalte?tab=website&section=angebote" class="text-gold hover:underline">Angebote-Tab</a>.</p>
       {:else}
-        <input type="text" bind:value={data.cardPrice} class={inputCls} placeholder="z.B. Ab 60 € / Stunde" />
+        <input type="text" bind:value={data.cardPrice} class={inputCls} placeholder="z.B. nach Vereinbarung" />
       {/if}
     </div>
     <div>

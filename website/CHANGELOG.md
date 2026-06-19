@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.99.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.98.0...website-v1.99.0) (2026-06-19)
+
+
+### Features
+
+* **admin:** build container detail page /projekttickets-cockpit [T000950] ([#1878](https://github.com/Paddione/Bachelorprojekt/issues/1878)) ([d614c97](https://github.com/Paddione/Bachelorprojekt/commit/d614c9758407b0fdeb05ac222fabf369c35db9ae))
+
 ## [1.98.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.97.5...website-v1.98.0) (2026-06-19)
 
 

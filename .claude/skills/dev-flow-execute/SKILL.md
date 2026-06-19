@@ -139,7 +139,7 @@ Starte danach **für jedes Element aus `$BATCH_JSON`** einen Subagenten:
 
   Führe aus: Schritt 1.4 bis Schritt 7.5 aus dev-flow-execute (Single-Modus) —
   d.h. Doppelarbeit-Guard, Ticket in_progress, Implementierung via superpowers:executing-plans,
-  lokale Verifikation (task test:changed + freshness:check), Code-Review-Gate,
+  lokale Verifikation (task test:changed; dann task freshness:regenerate + git add <generierte Dateien> + commit + task freshness:check), Code-Review-Gate,
   PR öffnen, CI-Fix-Schleife, Auto-Merge, Ticket abschließen, Plan archivieren,
   Worktree bereinigen.
 
@@ -340,6 +340,28 @@ Spawne den Subagenten:
   - *Feature:* Rufe `superpowers:executing-plans` (in-context, KEIN weiterer Agenten-Fan-out) + `test-driven-development` auf und arbeite den Plan vollständig ab. Aktualisiere nach jedem Meilenstein die Checkbox im Plan (`- [ ] M1` → `- [x] M1`), committe und pushe.
   - *Fix:* Verifiziere zuerst, dass ein failing Test existiert, dann nach Rot-Grün-Prinzip bis grün.
    - Bei Kompilier-/Testfehlern: diagnostiziere und fixe systematisch (Logs lesen, Fehler eingrenzen, Hypothese testen, fixen, Re-Test).
+  - **PFLICHT vor PR-Erstellung — Freshness-Artefakte regenerieren und committen** (sonst schlägt CI mit "stale artifact" fehl; `executing-plans` → `finishing-a-development-branch` überspringt diesen Schritt):
+    ```bash
+    task freshness:regenerate
+    git add \
+      website/src/data/test-inventory.json \
+      website/src/data/route-manifest.json \
+      website/src/lib/learning-assets.generated.json \
+      "website/public/learning-assets/THIRD-PARTY-ASSETS.md" \
+      docs/code-quality/repo-index.json \
+      docs/agent-guide/10-ziele.md \
+      docs/agent-guide/20-werkzeuge.md \
+      docs/agent-guide/30-bausteine.md \
+      docs/agent-guide/maps/goals-map.md \
+      docs/agent-guide/maps/tools-map.md \
+      docs/agent-guide/maps/danger-map.md \
+      website/src/lib/agent-guide.generated.json \
+      website/src/lib/platform-descriptions.generated.json \
+      docs/generated/graph.json \
+      docs/generated/api-map.json \
+      docs/generated/blast-radius.md 2>/dev/null || true
+    git diff --cached --quiet || git commit -m "chore: regenerate freshness artifacts [$TICKET_ID]"
+    ```
   - Erstelle einen PR, durchlaufe die CI-Fix-Schleife bis grün, und merge via Auto-Merge.
   - Schließe das Ticket ab und archiviere den Plan.
 

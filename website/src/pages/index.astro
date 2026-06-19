@@ -26,7 +26,7 @@ const metaDescription = homeDescription ?? config.meta.siteDescription;
 const homeTitle = !isKore
   ? await getSeoTitle(BRAND_ID, 'home').catch(() => null)
   : null;
-const pageTitle = homeTitle ?? config.meta.siteTitle;
+const pageTitle = homeTitle ?? 'Gerald Korczewski – Coach & Mentor';
 
 const homeOgImage = !isKore
   ? await getSeoOgImage(BRAND_ID, 'home').catch(() => null)

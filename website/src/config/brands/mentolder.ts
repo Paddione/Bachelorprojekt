@@ -4,7 +4,7 @@ export const mentolderConfig: BrandConfig = {
   brand: 'mentolder',
   meta: {
     siteTitle: 'mentolder',
-    siteDescription: 'Coaching & digitale Begleitung in Lüneburg und Hamburg – persönlich, erfahren, auf Augenhöhe. Für Führungsperslichkeiten und Menschen in Veränderung.',
+    siteDescription: 'Coaching & digitale Begleitung in Lüneburg und Hamburg – persönlich, erfahren, auf Augenhöhe. Für Führungspersönlichkeiten und Menschen in Veränderung.',
   },
   contact: {
     name: process.env.CONTACT_NAME ?? '',
@@ -64,12 +64,17 @@ export const mentolderConfig: BrandConfig = {
       {
         iconPath: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z',
         title: 'Systemischer Coach',
-        text: 'Nicht nur IT, sondern auch Menschen. Ich verbinde technologisches Verständnis mit Empathie.',
+        text: 'Nicht nur IT, sondern auch Menschen. Ich verbinde technologisches Verständnis mit Empathie – geprägt durch den Brückenschlag zwischen Polizei, Verwaltung und Bürgern.',
       },
       {
         iconPath: 'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z',
         title: 'Generation 50+ aus eigener Erfahrung',
         text: '65 Jahre. Ich kenne die Herausforderungen aus eigener Erfahrung und spreche Ihre Sprache.',
+      },
+      {
+        iconPath: 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z',
+        title: 'Wie ich arbeite',
+        text: 'Ich verbinde analytische Präzision mit echter Beziehungsarbeit. Menschen erleben bei mir zuerst Verständnis und Sicherheit — dadurch entsteht Vertrauen für die Veränderung.',
       },
     ],
     avatarType: 'image',
@@ -91,7 +96,7 @@ export const mentolderConfig: BrandConfig = {
         'Online-Banking & Shopping sicher nutzen',
         'Datenschutz & Sicherheit verstehen – inkl. ChatGPT, Claude, Perplexity',
       ],
-      price: 'Ab 60 € / Stunde',
+      price: 'Ab 60 € Stunde',
       stripeServiceKey: '50plus-digital-einzel',
       pageContent: {
         headline: 'Ihr sicherer Einstieg in die digitale Welt',
@@ -125,7 +130,7 @@ export const mentolderConfig: BrandConfig = {
     {
       slug: 'coaching',
       title: 'Coaching für Führungskräfte und Menschen in Verantwortung',
-      description: 'Ihre Karriere strategisch gestalten. Ich unterstütze erfahrene Führungskräfte bei der beruflichen Neuorientierung.',
+       description: 'Ihre Karriere strategisch gestalten – ob seit Jahren in Verantwortung oder neu in einer Führungsrolle. Ich unterstütze Sie bei der beruflichen Neuorientierung.',
       icon: '🎯',
       features: [
         'Profil-Schärfung & Positionierung',
@@ -133,11 +138,11 @@ export const mentolderConfig: BrandConfig = {
         'Gesprächsvorbereitung (Headhunter, Vorstellungsgespräche)',
         'Sparring auf Augenhöhe',
       ],
-      price: 'Ab 150 € / Session',
+      price: 'Ab 150 € Session',
       stripeServiceKey: 'coaching-session',
       pageContent: {
         headline: 'Ihre Karriere strategisch gestalten',
-        intro: 'Sie möchten Ihre Karriere strategisch weiterentwickeln oder sich neu ausrichten? Ich begleite Sie dabei, Ihre Stärken zu schärfen und sich optimal zu positionieren.',
+        intro: 'Sie möchten Ihre Karriere strategisch weiterentwickeln oder sich neu ausrichten? Ob seit Jahren in Verantwortung oder neu in einer Führungsrolle – ich begleite Sie dabei, Ihre Stärken zu schärfen und sich optimal zu positionieren.',
         forWhom: [
           'Sie sind erfahrene Führungskraft oder neu in der Führungsrolle – und möchten Ihre Karriere gezielt ausrichten.',
           'Sich auf wichtige Gespräche mit Headhuntern vorbereiten',
@@ -151,9 +156,7 @@ export const mentolderConfig: BrandConfig = {
           { title: 'Markt-Positionierung', items: ['Marktanalyse', 'Zielunternehmen recherchieren', 'Anforderungsprofile verstehen', 'Ihr Profil passgenau ausrichten'] },
         ],
         pricing: [
-          { label: 'Einzelsession (90 Min.)', price: '150 €' },
-          { label: 'Paket 6 Sessions', price: '800 €', unit: 'statt 900 €', highlight: true },
-          { label: 'Intensiv-Tag (6 Std.)', price: '500 €' },
+          { label: 'Einzelsession (90 Min.)', price: 'Preise auf Anfrage' },
         ],
         faq: [
           { question: 'Wie lange dauert ein Coaching?', answer: 'Das hängt von Ihrer Situation ab. Manche brauchen nur 2-3 Sessions zur Vorbereitung auf ein Gespräch. Andere buchen ein 6er-Paket für eine komplette Neuausrichtung.' },
@@ -173,7 +176,7 @@ export const mentolderConfig: BrandConfig = {
         'Führen in Veränderungsprozessen',
         'Frauen in Führung gezielt begleiten',
       ],
-      price: 'Ab 150 € / Session',
+      price: 'Ab 150 € Session',
       stripeServiceKey: 'coaching-session',
       pageContent: {
         headline: 'Führen aus der Mitte.',
@@ -240,7 +243,7 @@ export const mentolderConfig: BrandConfig = {
     {
       slug: 'ki-transition',
       title: 'KI-Transition Coaching',
-      description: 'KI verändert Berufsbilder – ich begleite Sie dabei. Für IT-Fachkräfte, Führungsperslichkeiten und Unternehmen in Lüneburg, Hamburg und online.',
+      description: 'KI verändert Berufsbilder – ich begleite Sie dabei. Für IT-Fachkräfte, Führungspersönlichkeiten und Unternehmen in Lüneburg, Hamburg und online.',
       icon: '🤖',
       features: [
         'Standortbestimmung & Kompetenz-Analyse',
@@ -248,7 +251,7 @@ export const mentolderConfig: BrandConfig = {
         'Neuorientierung & Strategie für die KI-Zukunft',
         'Team-Workshops & Change-Begleitung',
       ],
-      price: 'Ab 150 € / Session',
+      price: 'Ab 150 € Session',
       stripeServiceKey: 'coaching-session',
       pageContent: {
         headline: 'Wenn das Vertraute geht – und das Neue wartet.',
@@ -268,13 +271,11 @@ export const mentolderConfig: BrandConfig = {
           { title: 'Für Unternehmen', items: ['Team-Workshops: KI-Readiness', 'Change-Begleitung im Transformationsprozess', 'Führungskräfte-Sparring zum Thema KI', 'Nachhaltige Lernkultur aufbauen'] },
         ],
         pricing: [
-          { label: 'Einzelsession (90 Min.)', price: '150 €', unit: 'pro Session' },
-          { label: 'Paket 6 Sessions', price: '800 €', unit: 'statt 900 €', highlight: true },
-          { label: 'Unternehmen & Teams', price: 'auf Anfrage', unit: 'ab 5 Personen möglich' },
+          { label: 'Einzelsession (90 Min.)', price: 'Preise auf Anfrage' },
         ],
         faq: [],
-        seoTitle: 'KI-Transition Coaching – Orientierung im digitalen Wandel | mentolder.de',
-        seoDescription: 'KI verändert Berufsbilder – ich begleite Sie dabei. Für IT-Fachkräfte, Führungspersonlichkeiten und Unternehmen in Lüneburg, Hamburg und online.',
+        seoTitle: 'KI-Transition Coaching – Zukunft gestalten im digitalen Wandel | mentolder.de',
+        seoDescription: 'KI verändert Berufsbilder – ich begleite Sie dabei. Für IT-Fachkräfte, Führungspersönlichkeiten und Unternehmen in Lüneburg, Hamburg und online.',
       },
     },
   ],
@@ -348,7 +349,7 @@ export const mentolderConfig: BrandConfig = {
     privateText: 'Ich lebe in {city}, bin verheiratet, habe zwei erwachsene Kinder. In meiner Freizeit bin ich viel zu Fuß unterwegs – Bewegung ist für mich Meditation. Und ja, ich bin selbst Teil der Generation 50+ (65 Jahre) – ich weiß also aus eigener Erfahrung, wovon ich spreche.',
     warumdieserName: {
       title: 'Warum dieser Name',
-      text: 'Als ich „mentolder“ kreiert habe, war die Idee simpel: Mentor trifft Older – Erfahrung, die begleitet. Was ich dabei nicht bedacht habe? Dass der Name vielleicht männlich klingen könnte. Er ist es nicht. Ich arbeite mit Führungsperslichkeiten, die etwas bewegen wollen – Frauen wie Männer.',
+      text: 'Als ich „mentolder“ kreiert habe, war die Idee simpel: Mentor trifft Older – Erfahrung, die begleitet. Was ich dabei nicht bedacht habe? Dass der Name vielleicht männlich klingen könnte. Er ist es nicht. Ich arbeite mit Führungspersönlichkeiten, die etwas bewegen wollen – Frauen wie Männer.',
     },
   },
   kontakt: {
@@ -380,7 +381,7 @@ export const mentolderConfig: BrandConfig = {
   i18n: {
     tagline: { de: 'Digital Coaching & Führungskräfte-Beratung', en: 'Digital Coaching & Leadership Consulting' },
     siteDescription: {
-      de: 'Coaching & digitale Begleitung in Lüneburg und Hamburg – persönlich, erfahren, auf Augenhöhe. Für Führungsperslichkeiten und Menschen in Veränderung.',
+      de: 'Coaching & digitale Begleitung in Lüneburg und Hamburg – persönlich, erfahren, auf Augenhöhe. Für Führungspersönlichkeiten und Menschen in Veränderung.',
       en: 'Coaching & digital accompaniment in Lüneburg and Hamburg – personal, experienced, at eye level. For leadership personalities and people in transition.',
     },
     copyright: { de: 'Alle Rechte vorbehalten', en: 'All rights reserved' },

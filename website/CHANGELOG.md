@@ -6,6 +6,7 @@
 ### Bug Fixes
 
 * **website:** add object-list support to SchemaEditor to prevent data corruption [T000946] ([#1867](https://github.com/Paddione/Bachelorprojekt/issues/1867)) ([449e9a0](https://github.com/Paddione/Bachelorprojekt/commit/449e9a0cc0b8e85edd3a7f17372dc6905a50ac72))
+* **website:** fix H&auml;ufige entity bug + wire FAQ i18n on service pages [T000947] ([#1868](https://github.com/Paddione/Bachelorprojekt/issues/1868)) ([571d4be](https://github.com/Paddione/Bachelorprojekt/commit/571d4be1151457d48738156fa99108a636183991))
 
 ## [1.97.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.97.1...website-v1.97.2) (2026-06-19)
 

@@ -2,7 +2,7 @@
 title: Plan — T000931: Agent-Computer-Interface (ACI) mit lokalisiertem Edit/Repair-Loop
 ticket_id: T000931
 domains: [factory]
-status: active
+status: completed
 pr_number: null
 file_locks: [scripts/factory/pipeline.js, scripts/factory/aci.cjs]
 shared_changes: false

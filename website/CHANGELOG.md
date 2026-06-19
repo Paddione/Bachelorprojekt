@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.102.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.102.0...website-v1.102.1) (2026-06-19)
+
+
+### Bug Fixes
+
+* **website:** add multiple-choice chips, all-mode list, and dynamic questionnaire selection [T000737] ([#1895](https://github.com/Paddione/Bachelorprojekt/issues/1895)) ([08c4a36](https://github.com/Paddione/Bachelorprojekt/commit/08c4a36ed404f50355d512f45d1d3fe2c3cfb2a1))
+
 ## [1.102.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.101.0...website-v1.102.0) (2026-06-19)
 
 

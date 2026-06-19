@@ -141,3 +141,14 @@ APP_INSTALL="${PROJECT_DIR}/scripts/app-install.sh"
   run grep -nE 'env-seal\.sh|sealed mirror stale' "$APP_INSTALL"
   assert_success
 }
+
+# ── Finding #6: secrets:sync must warn about un-reconciled workloads ────────
+@test "#6 secrets:sync emits a workload-reconcile reminder" {
+  run bash -c 'sed -n "/^  secrets:sync:/,/^  secrets:install-hooks:/p" "'"${PROJECT_DIR}/Taskfile.yml"'" | grep -ciE "sync-db-passwords|rollout restart|landmine|latent"'
+  refute_output --partial 0
+}
+
+@test "#6 secrets:sync:full companion task exists" {
+  run grep -c 'secrets:sync:full:' "${PROJECT_DIR}/Taskfile.yml"
+  assert_output --partial 1
+}

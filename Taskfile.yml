@@ -1383,6 +1383,26 @@ tasks:
           echo "→ Applying sealed secrets to $ENV ($ENV_CONTEXT) ..."
           kubectl $CTX apply -f "$SEALED"
           echo "✓ $ENV sealed secrets applied"
+          echo "  ⚠ Applied the SealedSecret only — workloads + Postgres still hold the OLD value (latent landmine)."
+          echo "    Reconcile now: task workspace:sync-db-passwords ENV=$ENV && kubectl $CTX -n \"${WORKSPACE_NAMESPACE:-workspace}\" rollout restart deploy"
+          echo "    Or run the full path in one shot: task secrets:sync:full"
+        done
+
+  secrets:sync:full:
+    desc: "Apply SealedSecrets AND reconcile workloads+DB on both prod clusters (apply → sync-db-passwords → rollout restart)."
+    cmds:
+      - task: secrets:sync
+      - task: workspace:sync-db-passwords
+        vars: { ENV: "mentolder" }
+      - task: workspace:sync-db-passwords
+        vars: { ENV: "korczewski" }
+      - |
+        for ENV in mentolder korczewski; do
+          source scripts/env-resolve.sh "$ENV"
+          CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+          NS="${WORKSPACE_NAMESPACE:-workspace}"
+          echo "→ Rolling consumer deployments in $ENV/$NS ..."
+          kubectl $CTX -n "$NS" rollout restart deploy
         done
 
   secrets:install-hooks:

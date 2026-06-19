@@ -28,11 +28,13 @@ beforeEach(() => {
   getSiteSetting.mockReset(); setSiteSetting.mockReset();
 });
 
-it('GET returns primary + fallback with bge-m3 default', async () => {
+it('GET returns primary + fallback + rerankEnabled with bge-m3 default', async () => {
   getSiteSetting.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
   const json = await (await GET({ request: req() } as never)).json();
   expect(json.primary).toBe('bge-m3');
   expect(json.fallback).toBeNull();
+  expect(json).toHaveProperty('rerankEnabled');
+  expect(typeof json.rerankEnabled).toBe('boolean');
 });
 
 it('PUT rejects invalid primary', async () => {

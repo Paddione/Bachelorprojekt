@@ -27,7 +27,8 @@ export const GET: APIRoute = async ({ request }) => {
       getSiteSetting(BRAND, EMBED_PRIMARY_KEY),
       getSiteSetting(BRAND, EMBED_FALLBACK_KEY),
     ]);
-    return json({ primary: primary ?? 'bge-m3', fallback: fallback || null });
+    const rerankEnabled = process.env.LLM_RERANK_ENABLED === 'true';
+    return json({ primary: primary ?? 'bge-m3', fallback: fallback || null, rerankEnabled });
   } catch (err) {
     console.error('[api/admin/ki/embeddings] GET error:', err);
     return json({ error: 'fetch_failed' }, 500);

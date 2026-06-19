@@ -1,0 +1,34 @@
+---
+import { statusLabel, priorityLabel } from '../../lib/tickets/cockpit-labels';
+
+interface Child { id: string; externalId: string | null; title: string; status: string; priority: string; }
+const { children } = Astro.props as { children: Child[] };
+
+const GROUP_ORDER = ['blocked','in_progress','in_review','qa_review','awaiting_deploy',
+                     'triage','planning','plan_staged','backlog','done','archived'];
+const byStatus = new Map<string, Child[]>();
+for (const c of children) {
+  (byStatus.get(c.status) ?? byStatus.set(c.status, []).get(c.status)!).push(c);
+}
+const groups = GROUP_ORDER.filter(s => byStatus.has(s)).map(s => ({ status: s, items: byStatus.get(s)! }));
+const PRIO_CLS: Record<string, string> = { hoch: 'text-red-400', mittel: 'text-yellow-400', niedrig: 'text-green-400' };
+---
+<div class="bg-dark-light rounded-2xl border border-dark-lighter p-6">
+  <h2 class="text-sm font-semibold text-light mb-3 font-serif uppercase tracking-wide">
+    Kind-Tickets ({children.length})
+  </h2>
+  {groups.map(g => (
+    <div class="mb-4 last:mb-0">
+      <h3 class="text-xs text-muted uppercase tracking-wide mb-2">{statusLabel(g.status)} ({g.items.length})</h3>
+      <ul class="space-y-2" role="list">
+        {g.items.map(c => (
+          <li class="flex items-center gap-3 text-sm" role="listitem">
+            <span class="font-mono text-xs text-gold w-32 shrink-0">{c.externalId ?? c.id.slice(0, 8)}</span>
+            <a href={`/admin/tickets/${c.id}`} class="text-light hover:text-gold flex-1 truncate">{c.title}</a>
+            <span class={`text-xs font-semibold ${PRIO_CLS[c.priority] ?? 'text-muted'}`}>{priorityLabel(c.priority)}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  ))}
+</div>

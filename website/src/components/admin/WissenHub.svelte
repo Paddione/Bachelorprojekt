@@ -65,6 +65,36 @@
     if (j.cmd) alert(`Bitte ausführen:\n${j.cmd}`);
     else if (!r.ok) alert(j.message ?? j.error ?? 'Fehler');
   }
+
+  let crawlingIds = $state<Set<string>>(new Set());
+
+  async function startCrawl(id: string, btn: HTMLButtonElement) {
+    btn.disabled = true;
+    btn.textContent = 'Starte…';
+    const r = await fetch(`/api/admin/knowledge/collections/${id}/crawl`, { method: 'POST' });
+    const j = await r.json().catch(() => ({}));
+    if (r.ok) {
+      crawlingIds = new Set([...crawlingIds, id]);
+      pollCrawl(id);
+    } else {
+      btn.disabled = false;
+      btn.textContent = 'Crawl starten';
+      alert(j.error ?? 'Fehler beim Starten des Crawls');
+    }
+  }
+
+  function pollCrawl(id: string) {
+    const interval = setInterval(async () => {
+      const r = await fetch(`/api/admin/knowledge/collections/${id}/crawl`);
+      if (!r.ok) { clearInterval(interval); crawlingIds = new Set([...crawlingIds].filter(x => x !== id)); return; }
+      const j = await r.json();
+      if (!j.running) {
+        clearInterval(interval);
+        crawlingIds = new Set([...crawlingIds].filter(x => x !== id));
+        collections = collections.map(c => c.id === id ? { ...c } : c);
+      }
+    }, 2000);
+  }
 </script>
 
 <div class="wissen-hub">
@@ -143,6 +173,13 @@
               <td>{col.chunk_count}</td>
               <td>{col.last_indexed_at ? new Date(col.last_indexed_at).toLocaleString('de-DE') : '—'}</td>
               <td class="actions">
+                {#if col.source === 'web_crawl'}
+                  {#if crawlingIds.has(col.id)}
+                    <button class="btn-action" disabled>Crawl läuft…</button>
+                  {:else}
+                    <button class="btn-action" onclick={(e) => startCrawl(col.id, e.currentTarget as HTMLButtonElement)}>Crawl starten</button>
+                  {/if}
+                {/if}
                 {#if col.source !== 'pr_history' && col.source !== 'specs_plans' && col.source !== 'claude_md' && col.source !== 'bug_tickets'}
                   <button class="btn-action" onclick={(e) => reindex(col.id, e.currentTarget as HTMLButtonElement)}>Re-index</button>
                   <button class="btn-danger" onclick={() => deleteCollectionById(col.id)}>Löschen</button>

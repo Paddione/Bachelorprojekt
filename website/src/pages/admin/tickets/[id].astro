@@ -174,7 +174,7 @@ function fmtDateTime(d: Date | string | null): string {
 
           {containerDor && <ContainerDorPanel client:load dor={containerDor} />}
 
-          {containerPlan && <TicketPlanPanel client:load plan={containerPlan} renderedHtml={planHtml} />}
+          {containerPlan && <TicketPlanPanel client:load plan={containerPlan} renderedHtml={planHtml} planContent={containerPlan.content ?? ''} />}
 
           {ticket.children.length > 0 && (
             <ContainerChildrenList children={ticket.children} />

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.97.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.97.0...website-v1.97.1) (2026-06-19)
+
+
+### Bug Fixes
+
+* **website:** add crawl trigger button to WissenHub for web_crawl collections [T000948] ([#1862](https://github.com/Paddione/Bachelorprojekt/issues/1862)) ([1fcdc36](https://github.com/Paddione/Bachelorprojekt/commit/1fcdc3691c11b8c4b89003fb5d7bcb38a05b00d2))
+
 ## [1.97.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.96.1...website-v1.97.0) (2026-06-19)
 
 

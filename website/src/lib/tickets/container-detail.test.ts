@@ -224,6 +224,19 @@ describe('getContainerDor', () => {
     expect(d!.dependsOn).toEqual(['T000001']);
     expect(d!.requirementsList).toEqual(['Req 1', 'Req 2']);
     expect(d!.dorScore).toBe(2);
+    expect(d!.lastenheftLocked).toBe(false);
+  });
+
+  it('reports lastenheftLocked=true when the readiness flag is set', async () => {
+    const t = await pool.query(
+      `INSERT INTO tickets.tickets
+         (id, type, brand, title, status, priority, readiness, requirements_list)
+       VALUES ('f-locked','feature','mentolder','Locked Feature','backlog','mittel',
+               '{"lastenheft_locked":true}'::jsonb, ARRAY['Req 1'])
+       RETURNING id`);
+    const d = await getContainerDor('mentolder', t.rows[0].id);
+    expect(d).not.toBeNull();
+    expect(d!.lastenheftLocked).toBe(true);
   });
 
   it('returns null for another brand', async () => {

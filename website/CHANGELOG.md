@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.99.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.99.0...website-v1.99.1) (2026-06-19)
+
+
+### Bug Fixes
+
+* **cockpit:** drop v_cockpit_rollup before recreating to handle column reorders ([#1881](https://github.com/Paddione/Bachelorprojekt/issues/1881)) ([e0b365d](https://github.com/Paddione/Bachelorprojekt/commit/e0b365dfdb955e8fd85fd19e202d11fbb4b69499))
+* **test:** update cockpit-schema test to match CREATE VIEW without OR REPLACE ([b68464c](https://github.com/Paddione/Bachelorprojekt/commit/b68464ce4ecd8b0a42a7fe482421d8bfd6bbc4b1))
+
 ## [1.99.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.98.0...website-v1.99.0) (2026-06-19)
 
 

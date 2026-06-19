@@ -382,7 +382,7 @@ spec:
                   key: IPV64_API_KEY
                   optional: true
             - name: LIVEKIT_PIN_IP_MENTOLDER
-              value: "46.225.125.59"
+              value: "204.168.244.104"
             - name: LIVEKIT_PIN_IP_KORCZEWSKI
               value: "37.27.251.38"
             - name: ANTHROPIC_API_KEY

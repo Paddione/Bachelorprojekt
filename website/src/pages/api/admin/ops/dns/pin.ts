@@ -3,7 +3,7 @@ import https from 'node:https';
 import { getSession, isAdmin } from '../../../../../lib/auth';
 
 const CONFIG: Record<string, { domain: string; pinIp: string }> = {
-  mentolder:  { domain: 'mentolder.de',  pinIp: process.env.LIVEKIT_PIN_IP_MENTOLDER  ?? '46.225.125.59' },
+  mentolder:  { domain: 'mentolder.de',  pinIp: process.env.LIVEKIT_PIN_IP_MENTOLDER  ?? '204.168.244.104' },
   korczewski: { domain: 'korczewski.de', pinIp: process.env.LIVEKIT_PIN_IP_KORCZEWSKI ?? '37.27.251.38' },
 };
 

@@ -4,7 +4,7 @@ ticket_id: T000953
 plan_ref: docs/superpowers/plans/2026-06-20-cockpit-fullscreen-overview.md
 slug: cockpit-fullscreen-overview
 spec_ref: docs/superpowers/specs/2026-06-20-cockpit-fullscreen-overview-design.md
-status: active
+status: completed
 date: 2026-06-20
 authors: [paddione]
 domains: [website]

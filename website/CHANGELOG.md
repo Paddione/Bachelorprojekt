@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.100.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.99.2...website-v1.100.0) (2026-06-19)
+
+
+### Features
+
+* **website:** global PortalSidekick with CockpitSidekickView [T000953] ([#1887](https://github.com/Paddione/Bachelorprojekt/issues/1887)) ([b4b3cc3](https://github.com/Paddione/Bachelorprojekt/commit/b4b3cc379d8644f7eb1624474fdcd24ff8b81b0f))
+
 ## [1.99.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.99.1...website-v1.99.2) (2026-06-19)
 
 

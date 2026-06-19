@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.95.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.95.3...website-v1.95.4) (2026-06-19)
+
+
+### Bug Fixes
+
+* **website:** restore lost mentolder content — typos, missing sections, SEO, pricing ([#1848](https://github.com/Paddione/Bachelorprojekt/issues/1848)) ([5302ff4](https://github.com/Paddione/Bachelorprojekt/commit/5302ff46b3088f813ddaac8bdc3f923becfaaac3))
+
 ## [1.95.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.95.2...website-v1.95.3) (2026-06-18)
 
 

@@ -21,6 +21,7 @@ import ContainerChildrenList from '../../../components/admin/ContainerChildrenLi
 import ContainerRollupHeader from '../../../components/admin/ContainerRollupHeader.svelte';
 import ContainerDorPanel from '../../../components/admin/ContainerDorPanel.svelte';
 import TicketPlanPanel from '../../../components/admin/TicketPlanPanel.svelte';
+import TicketSpecProgress from '../../../components/admin/TicketSpecProgress.svelte';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -159,7 +160,7 @@ function fmtDateTime(d: Date | string | null): string {
             {ticket.description ? (
               <div class="md-body text-light/90" set:html={renderMarkdown(ticket.description)} />
             ) : (
-              <p class="text-sm text-muted italic">Keine Beschreibung.</p>
+              <p class="text-sm text-yellow-300 italic">⚠ Noch leer — keine Beschreibung erfasst.</p>
             )}
             {ticket.url && (
               <p class="text-xs text-muted mt-3">
@@ -167,6 +168,16 @@ function fmtDateTime(d: Date | string | null): string {
               </p>
             )}
           </div>
+
+          {isContainer && containerDor && (<TicketSpecProgress client:load ticket={{ description: ticket.description }} dor={containerDor} hasPlan={containerPlan !== null} hasPr={containerPlan?.prNumber != null} />)}
+
+          {containerDor && <ContainerDorPanel client:load dor={containerDor} />}
+
+          {containerPlan && <TicketPlanPanel client:load plan={containerPlan} renderedHtml={planHtml} />}
+
+          {ticket.children.length > 0 && (
+            <ContainerChildrenList children={ticket.children} />
+          )}
 
           <GrillingStepper
             client:load
@@ -177,14 +188,6 @@ function fmtDateTime(d: Date | string | null): string {
           />
 
           <ProjectQuestionnairesPanel assignments={questionnaireBundles} />
-
-          {containerDor && <ContainerDorPanel client:load dor={containerDor} />}
-
-          {containerPlan && <TicketPlanPanel client:load plan={containerPlan} renderedHtml={planHtml} />}
-
-          {ticket.children.length > 0 && (
-            <ContainerChildrenList children={ticket.children} />
-          )}
 
           {/* Linked tickets */}
           {ticket.links.length > 0 && (

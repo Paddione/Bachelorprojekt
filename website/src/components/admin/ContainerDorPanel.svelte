@@ -33,10 +33,21 @@
   {#if dor.dependsOn.length > 0}
     <p class="text-xs text-muted mb-2">Abhängig von: {dor.dependsOn.join(', ')}</p>
   {/if}
+  <div class="flex items-center justify-between mt-3 mb-1">
+    <h3 class="text-xs text-muted uppercase tracking-wide">
+      {dor.lastenheftLocked ? 'Lastenheft' : 'Pflichtenheft'}
+    </h3>
+    {#if dor.lastenheftLocked}
+      <span class="text-[10px] px-1.5 py-0.5 rounded-full border border-green-800 bg-green-900/40 text-green-300">🔒 verriegelt · KI-bereit</span>
+    {:else}
+      <span class="text-[10px] px-1.5 py-0.5 rounded-full border border-yellow-800 bg-yellow-900/40 text-yellow-300">✏ Entwurf</span>
+    {/if}
+  </div>
   {#if dor.requirementsList.length > 0}
-    <h3 class="text-xs text-muted uppercase tracking-wide mt-3 mb-1">Lastenheft</h3>
     <ul class="list-disc list-inside text-sm text-light/90 space-y-0.5" role="list">
       {#each dor.requirementsList as r}<li role="listitem">{r}</li>{/each}
     </ul>
+  {:else}
+    <p class="text-sm text-yellow-300">⚠ Keine Anforderungen erfasst</p>
   {/if}
 </div>

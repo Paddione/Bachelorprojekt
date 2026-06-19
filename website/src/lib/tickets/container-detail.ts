@@ -1,6 +1,7 @@
 import { pool } from '../website-db';
 import type { RollupMetrics, HealthStatus } from './cockpit-types';
 import { dorScore, DOR_KEYS, type Readiness } from '../planning-office';
+import { isLastenheftLocked } from './lastenheft';
 
 export interface ContainerRollup extends RollupMetrics {
   health: HealthStatus;
@@ -73,6 +74,7 @@ export interface ContainerDor {
   readiness: Readiness;
   dorScore: number;
   requirementsList: string[];
+  lastenheftLocked: boolean;
 }
 
 export async function getContainerDor(
@@ -95,6 +97,7 @@ export async function getContainerDor(
     readiness,
     dorScore: dorScore(readiness),
     requirementsList: r.requirements_list ?? [],
+    lastenheftLocked: isLastenheftLocked(readiness as Record<string, unknown>),
   };
 }
 

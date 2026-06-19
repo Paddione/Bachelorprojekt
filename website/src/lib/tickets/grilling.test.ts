@@ -146,3 +146,30 @@ describe('splitAnswered', () => {
     expect(unanswered.map((q) => q.id)).toEqual(['q2', 'q3', 'q4']);
   });
 });
+
+import { getQuestionnaire } from './grilling';
+
+describe('GrillingQuestion.choices', () => {
+  it('final-grilling-v1 q13 (Test-Typen) exposes choices', () => {
+    const qn = getQuestionnaire('final-grilling-v1')!;
+    const q13 = qn.sections.flatMap((s) => s.questions).find((q) => q.id === 'q13')!;
+    expect(q13.choices).toEqual(['Unit', 'Integration', 'E2E', 'Unit + E2E', 'Alle drei']);
+  });
+  it('coaching-sessions-v1 q4 (Rhythmus) exposes choices', () => {
+    const qn = getQuestionnaire('coaching-sessions-v1')!;
+    const q4 = qn.sections.flatMap((s) => s.questions).find((q) => q.id === 'q4')!;
+    expect(q4.choices).toEqual(['Wöchentlich', 'Alle 2 Wochen', 'Monatlich', 'Bedarfsgesteuert']);
+  });
+  it('a question without choices has choices === undefined', () => {
+    const qn = getQuestionnaire('final-grilling-v1')!;
+    const q1 = qn.sections.flatMap((s) => s.questions).find((q) => q.id === 'q1')!;
+    expect(q1.choices).toBeUndefined();
+  });
+  it('resolveQuestions surfaces choices for registry questions that have them', () => {
+    const resolved = resolveQuestions('final-grilling-v1', QUESTIONNAIRES, null);
+    const q13 = resolved.find((q) => q.id === 'q13')!;
+    expect(q13.choices).toEqual(['Unit', 'Integration', 'E2E', 'Unit + E2E', 'Alle drei']);
+    const q1 = resolved.find((q) => q.id === 'q1')!;
+    expect(q1.choices).toBeUndefined();
+  });
+});

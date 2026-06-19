@@ -12,6 +12,7 @@
   let pinLoading = false;
   let pinResults: string[] = [];
   let pinError: string | null = null;
+  let lastPinIp: string | null = null;
 
   const CLUSTER_LABELS: Record<string, string> = { mentolder: 'mentolder.de', korczewski: 'korczewski.de' };
 
@@ -26,7 +27,7 @@
   }
 
   async function pinDns() {
-    pinLoading = true; pinError = null; pinResults = [];
+    pinLoading = true; pinError = null; pinResults = []; lastPinIp = null;
     try {
       const res = await fetch('/api/admin/ops/dns/pin', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -35,6 +36,7 @@
       const j = await res.json();
       if (!res.ok) { pinError = j.error ?? 'Fehler'; return; }
       pinResults = j.results;
+      lastPinIp = j.pinIp ?? null;
     } catch { pinError = 'Netzwerkfehler'; }
     finally { pinLoading = false; }
   }
@@ -88,7 +90,8 @@
   <div>
     <h3 class="text-sm font-semibold text-gray-200 mb-3">📌 LiveKit DNS-Pinning</h3>
     <p class="text-xs text-gray-400 mb-4">
-      Setzt <code>livekit.*</code> und <code>stream.*</code> DNS-Einträge auf die Pin-Node-IP (mentolder: 46.225.125.59, korczewski: 37.27.251.38).
+      Setzt <code>livekit.*</code> und <code>stream.*</code> DNS-Einträge auf die Pin-Node-IP
+      (siehe Konfiguration <code>LIVEKIT_PIN_IP_MENTOLDER</code> / <code>LIVEKIT_PIN_IP_KORCZEWSKI</code>).
       Nötig nach Node-Wechsel oder IP-Änderung.
     </p>
     <div class="flex flex-wrap gap-3 items-end">
@@ -109,6 +112,7 @@
     {#if pinResults.length > 0}
       <div class="mt-3 bg-gray-900 border border-gray-700 rounded p-3 font-mono text-xs space-y-1">
         {#each pinResults as line}<div class="text-green-300">{line}</div>{/each}
+        {#if lastPinIp}<div class="text-gray-400 mt-1">Pin-IP: {lastPinIp}</div>{/if}
       </div>
     {/if}
   </div>

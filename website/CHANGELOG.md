@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.97.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.97.1...website-v1.97.2) (2026-06-19)
+
+
+### Bug Fixes
+
+* **website:** update LiveKit DNS pin IP from decommissioned node to fleet IP [T000944] ([#1864](https://github.com/Paddione/Bachelorprojekt/issues/1864)) ([4b0ddce](https://github.com/Paddione/Bachelorprojekt/commit/4b0ddce2b677adc8f3ebceed0ac65bc1a3c48e92))
+
 ## [1.97.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.97.0...website-v1.97.1) (2026-06-19)
 
 

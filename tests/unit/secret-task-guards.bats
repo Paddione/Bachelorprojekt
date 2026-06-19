@@ -133,3 +133,11 @@ BACKUP_RESTORE="${PROJECT_DIR}/scripts/backup-restore.sh"
   run bash -c 'sed -n "/workspace:db:restore:/,/db:diagram:/p" "'"${PROJECT_DIR}/Taskfile.yml"'" | grep -c "workspace:sync-db-passwords"'
   assert_output --partial 1
 }
+
+# ── Finding #5: app-install must reseal (or warn) after secret processing ───
+APP_INSTALL="${PROJECT_DIR}/scripts/app-install.sh"
+
+@test "#5 app-install references env-seal after secret processing" {
+  run grep -nE 'env-seal\.sh|sealed mirror stale' "$APP_INSTALL"
+  assert_success
+}

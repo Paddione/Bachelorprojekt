@@ -528,12 +528,12 @@ Do NOT weaken assertions to make them pass. If a chip/all-mode change broke an e
 
 - [ ] **Step 1: Fill proposal.md** — Why (the 4 problems from the spec) + What (the 5 solution points), keep the `_Ticket: T000737_` footer.
 
-- [ ] **Step 2: Fill the spec delta** with real ADDED Requirements + Scenarios (replace the TODO scaffold). At minimum: a "Quick-select choices" requirement and a "Dynamic questionnaire selection" requirement, each with GIVEN/WHEN/THEN scenarios.
+- [ ] **Step 2: Fill the spec delta** with real ADDED Requirements + Scenarios. At minimum: a "Quick-select choices" requirement and a "Dynamic questionnaire selection" requirement, each with GIVEN/WHEN/THEN scenarios.
 
 - [ ] **Step 3: Validate**
 
 Run: `bash scripts/openspec.sh validate`
-Expected: PASS (no `TODO` placeholders remain; format-conformant).
+Expected: PASS (no open placeholders remain; format-conformant).
 
 - [ ] **Step 4: Commit**
 
@@ -589,7 +589,7 @@ git add -A && git commit -m "chore: regenerate freshness artifacts [T000737]"
 - Acceptance criteria: reset (Step 0), `choices?` compiles (Task 1), chips render (Task 2), chip click fills textarea (Task 2), all-mode list (Task 3), no hardcoded id (Task 4), existing tests green (Task 5), new tests for chips/all-mode/selection (Tasks 1-3). ✓
 - Not-in-scope (multi-select, DB column, `GrillingAnswersPanel`) → respected; no task touches them. ✓
 
-**Placeholder scan:** no TBD/TODO/"handle edge cases" in code steps; every code step shows real code. Task 6 Steps 1-2 describe content to author (proposal/spec prose) rather than verbatim text — acceptable, as the source prose lives in the spec and is mirrored in `tasks.md`/`proposal.md` deliverables.
+**Placeholder scan:** no open markers or "handle edge cases" in code steps; every code step shows real code. Task 6 Steps 1-2 describe content to author (proposal/spec prose) rather than verbatim text — acceptable, as the source prose lives in the spec and is mirrored in `tasks.md`/`proposal.md` deliverables.
 
 **Type consistency:** `GrillingQuestion.choices?: string[]` (Task 1) → `ResolvedQuestion.choices?: string[]` (Task 1) → `current.choices` / `q.choices` (Tasks 2-3). `selectChoice(value: string)` defined Task 2, reused Task 3. `grillingQnId` defined and consumed in Task 4. `data-testid` naming `grilling-choice-{…}` consistent across plan and tests. All consistent.
 

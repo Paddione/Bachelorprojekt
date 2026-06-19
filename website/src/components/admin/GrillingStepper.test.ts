@@ -94,9 +94,8 @@ describe('GrillingStepper — Export', () => {
   });
 
   it('clicking Export triggers a blob download', async () => {
-    const createObjectURL = vi.fn(() => 'blob:mock-url');
-    const revokeObjectURL = vi.fn();
-    vi.stubGlobal('URL', { ...URL, createObjectURL, revokeObjectURL });
+    const createObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock-url');
+    vi.spyOn(URL, 'revokeObjectURL').mockReturnValue();
 
     setup({ [QN]: { q1: 'meine Antwort' } }, null);
     const exportBtn = screen.getByText('Export');

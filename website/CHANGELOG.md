@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.97.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.96.1...website-v1.97.0) (2026-06-19)
+
+
+### Features
+
+* **website:** ersetzt alle Festpreise durch "nach Vereinbarung" mit oracle --dry-run support ([#1860](https://github.com/Paddione/Bachelorprojekt/issues/1860)) ([62ded64](https://github.com/Paddione/Bachelorprojekt/commit/62ded64ab52b1237c5aa171bcb23ca46fdd41f6f))
+
 ## [1.96.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.96.0...website-v1.96.1) (2026-06-19)
 
 

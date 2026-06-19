@@ -3553,11 +3553,22 @@ tasks:
         kubectl --context "${ENV_CONTEXT}" -n "$MCP_NS" rollout restart deployment/mcp-auth-proxy
         kubectl --context "${ENV_CONTEXT}" -n "$MCP_NS" rollout status deployment/mcp-auth-proxy --timeout=60s
 
-        echo "MCP tokens rotated"
-        echo ""
-        echo "IMPORTANT: Re-run 'task claude-code:setup -- cluster' and"
-        echo "           'task claude-code:setup -- business' on each machine"
-        echo "           to update the local Claude Code config."
+        TOKEN_VERSION="$(date -u +%Y%m%dT%H%M%SZ)"
+        kubectl --context "${ENV_CONTEXT}" -n "$MCP_NS" annotate deployment/mcp-auth-proxy \
+          "claude-code/token-version=${TOKEN_VERSION}" --overwrite
+
+        {
+          echo "════════════════════════════════════════════════════════════════"
+          echo "⚠ ACTION REQUIRED — MCP tokens rotated to version ${TOKEN_VERSION}"
+          echo "  The server now ONLY accepts the NEW token. Every machine's"
+          echo "  settings.json still holds the OLD token → 401 until re-setup."
+          echo "  Run on EACH machine:"
+          echo "    task claude-code:setup -- cluster"
+          echo "    task claude-code:setup -- business"
+          echo "  Verify the live version: kubectl --context ${ENV_CONTEXT} -n ${MCP_NS} \\"
+          echo "    get deploy mcp-auth-proxy -o jsonpath='{.metadata.annotations.claude-code/token-version}'"
+          echo "════════════════════════════════════════════════════════════════"
+        } >&2
 
   # ─────────────────────────────────────────────
   # Website (Astro + Svelte)

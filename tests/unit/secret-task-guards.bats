@@ -152,3 +152,9 @@ APP_INSTALL="${PROJECT_DIR}/scripts/app-install.sh"
   run grep -c 'secrets:sync:full:' "${PROJECT_DIR}/Taskfile.yml"
   assert_output --partial 1
 }
+
+# ── Finding #7: rotate-tokens must annotate the deployment with a token version
+@test "#7 rotate-tokens stamps a token-version annotation" {
+  run bash -c 'sed -n "/claude-code:rotate-tokens:/,/Website (Astro/p" "'"${PROJECT_DIR}/Taskfile.yml"'" | grep -ciE "token-version|annotate"'
+  refute_output --partial 0
+}

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.102.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.101.0...website-v1.102.0) (2026-06-19)
+
+
+### Features
+
+* **admin:** Ticket-Detail Downloads & Verlauf-Collapse [T000956] ([#1893](https://github.com/Paddione/Bachelorprojekt/issues/1893)) ([a6da764](https://github.com/Paddione/Bachelorprojekt/commit/a6da764166d70caad8b24a05a23c4f182c270821))
+
 ## [1.101.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.100.0...website-v1.101.0) (2026-06-19)
 
 

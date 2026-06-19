@@ -4,7 +4,7 @@
 // Computed on read (no cache in MVP). Brand filtering is applied by callers,
 // not the view, so the view stays a simple per-container aggregate keyed by id.
 export const COCKPIT_ROLLUP_VIEW_SQL = `
-    CREATE OR REPLACE VIEW tickets.v_cockpit_rollup AS
+    CREATE VIEW tickets.v_cockpit_rollup AS
     WITH RECURSIVE descendants AS (
       -- seed: every ticket is a descendant of itself (depth 0)
       SELECT id AS container_id, id AS node_id, type, status
@@ -61,5 +61,7 @@ export const COCKPIT_ROLLUP_VIEW_SQL = `
 `;
 
 export async function ensureCockpitViews(pool: import('pg').Pool): Promise<void> {
+  // DROP first so column additions/reorderings don't fail with CREATE OR REPLACE.
+  await pool.query(`DROP VIEW IF EXISTS tickets.v_cockpit_rollup`);
   await pool.query(COCKPIT_ROLLUP_VIEW_SQL);
 }

@@ -11,6 +11,7 @@
     helpContext = 'portal',
     pendingTickets = 0,
     pendingInbox = 0,
+    pendingContainerCount = 0,
     summary = null,
   }: {
     onNavigate: (view: View) => void;
@@ -20,6 +21,7 @@
     helpContext?: string;
     pendingTickets?: number;
     pendingInbox?: number;
+    pendingContainerCount?: number;
     summary?: { done: number; total: number; pct: number } | null;
   } = $props();
 
@@ -36,13 +38,14 @@
     { id: 'tickets',       no: '01', title: 'Anfragen',           sub: 'Tickets erstellen & bearbeiten', badge: pendingTickets > 0 ? pendingTickets : undefined,       show: isAdmin },
     { id: 'inbox',         no: '02', title: 'Postfach',           sub: 'Nachrichten & Anfragen',         badge: pendingInbox > 0 ? pendingInbox : undefined,           show: isAdmin },
     { id: 'pipeline',      no: '03', title: 'Pipeline',           sub: 'Ticket-Status vorne→hinten',                                                                 show: isAdmin },
-    { id: 'grilling',      no: '04', title: 'Final Grilling',     sub: 'Abschließende Klärungsrunde',                                                                 show: isAdmin },
-    { id: 'questionnaire', no: isAdmin ? '05' : '01', title: 'Fragebögen', sub: 'Aufgaben beantworten', badge: pendingQuestionnaires > 0 ? pendingQuestionnaires : undefined, show: true },
-    { id: 'support',       no: isAdmin ? '06' : '02', title: 'Feedback & Support', sub: 'Fehler melden, Ideen teilen', show: true },
-    { id: 'agent-guide',   no: isAdmin ? '07' : '03', title: 'Agent-Anleitung', sub: progressSub ? `Lernen · ${progressSub}` : 'Lernen, wie alles funktioniert', show: true },
-    { id: 'loslernen',     no: isAdmin ? '08' : '04', title: 'Lernpfad',     sub: progressSub ?? 'Fortschritt verfolgen',            show: true, href: '/portal/loslernen' },
-    { id: 'mediaviewer',   no: isAdmin ? '09' : '05', title: 'Mediaviewer', sub: 'Hilfe- & Onboarding-Videos', show: true },
-    { id: 'help',          no: isAdmin ? '10' : '06', title: 'Hilfe',        sub: 'Kontexthilfe für diese Seite', show: !!helpSection },
+    { id: 'projekttickets',no: '04', title: 'Projekttickets',     sub: 'Container-Ansicht',            badge: pendingContainerCount,                          show: isAdmin, href: '/admin/tickets' },
+    { id: 'grilling',      no: '05', title: 'Final Grilling',     sub: 'Abschließende Klärungsrunde',                                                                 show: isAdmin },
+    { id: 'questionnaire', no: isAdmin ? '06' : '01', title: 'Fragebögen', sub: 'Aufgaben beantworten', badge: pendingQuestionnaires > 0 ? pendingQuestionnaires : undefined, show: true },
+    { id: 'support',       no: isAdmin ? '07' : '02', title: 'Feedback & Support', sub: 'Fehler melden, Ideen teilen', show: true },
+    { id: 'agent-guide',   no: isAdmin ? '08' : '03', title: 'Agent-Anleitung', sub: progressSub ? `Lernen · ${progressSub}` : 'Lernen, wie alles funktioniert', show: true },
+    { id: 'loslernen',     no: isAdmin ? '09' : '04', title: 'Lernpfad',     sub: progressSub ?? 'Fortschritt verfolgen',            show: true, href: '/portal/loslernen' },
+    { id: 'mediaviewer',   no: isAdmin ? '10' : '05', title: 'Mediaviewer', sub: 'Hilfe- & Onboarding-Videos', show: true },
+    { id: 'help',          no: isAdmin ? '11' : '06', title: 'Hilfe',        sub: 'Kontexthilfe für diese Seite', show: !!helpSection },
   ].filter(i => i.show));
 
   let hover = $state<string | null>(null);
@@ -93,7 +96,11 @@
             <span class="sk-item-title">{item.title}</span>
             <span class="sk-item-sub">{item.sub}</span>
           </span>
-          <span class="sk-badge-slot"></span>
+          <span class="sk-badge-slot">
+            {#if item.badge}
+              <span class="sk-brass-badge">{Math.min(99, item.badge)}</span>
+            {/if}
+          </span>
           <span class="sk-arrow" class:sk-arrow--active={hover === item.id} aria-hidden="true">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M5 12h14M13 5l7 7-7 7"/>

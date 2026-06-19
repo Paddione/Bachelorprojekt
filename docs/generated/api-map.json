@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-19T20:23:41.785Z",
+  "generatedAt": "2026-06-19T23:18:47.477Z",
   "endpoints": [
     {
       "path": "/api/admin/angebote/save",
@@ -2367,6 +2367,14 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/tickets/[id]/attachments.ts"
+    },
+    {
+      "path": "/api/admin/tickets/{id}/attachments/{aid}",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/tickets/[id]/attachments/[aid].ts"
     },
     {
       "path": "/api/admin/tickets/{id}/classify",

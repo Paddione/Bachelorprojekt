@@ -87,6 +87,37 @@
     const i = ordered.findIndex((q) => q.id === currentId);
     if (i < ordered.length - 1) currentId = ordered[i + 1].id;
   }
+
+  function exportAnswers() {
+    const qs = resolveQuestions(questionnaireId, QUESTIONNAIRES, meta);
+    const qn = QUESTIONNAIRES[questionnaireId];
+    const title = qn?.title ?? questionnaireId;
+    const lines: string[] = [`# Grilling: ${title}`, ''];
+
+    let currentSection = '';
+    for (const q of qs) {
+      if (q.section && q.section !== currentSection) {
+        currentSection = q.section;
+        lines.push(`## ${currentSection}`, '');
+      }
+      const answer = answers[questionnaireId]?.[q.id] ?? '';
+      lines.push(`**${q.prompt}**`, answer || '(keine Antwort)', '');
+    }
+
+    const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `grilling-${questionnaireId}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  const hasAnswers = $derived(
+    Object.values(answers[questionnaireId] ?? {}).some((v) => v.trim() !== '')
+  );
 </script>
 
 <section class="bg-dark-light rounded-2xl border border-dark-lighter p-6 space-y-4">
@@ -96,9 +127,16 @@
       Frage {Math.min(currentIdx + 1, ordered.length)}/{ordered.length} ·
       {progress.answered} beantwortet · {progress.dismissed} verworfen
     </span>
-    <button type="button" data-testid="grilling-mode" onclick={() => (mode = mode === 'step' ? 'all' : 'step')}>
-      {mode === 'step' ? 'Alle anzeigen' : 'Schritt für Schritt'}
-    </button>
+    <div class="flex gap-2">
+      <button type="button" data-testid="grilling-mode" onclick={() => (mode = mode === 'step' ? 'all' : 'step')}>
+        {mode === 'step' ? 'Alle anzeigen' : 'Schritt für Schritt'}
+      </button>
+      {#if hasAnswers}
+        <button type="button" onclick={exportAnswers} class="text-xs text-gold/80 hover:text-gold border border-gold/30 rounded px-2 py-1">
+          Export
+        </button>
+      {/if}
+    </div>
   </header>
 
   {#if current}

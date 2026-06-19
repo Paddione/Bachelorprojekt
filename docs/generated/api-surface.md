@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-06-19T20:23:41.785Z
+> Generated at 2026-06-19T23:18:47.477Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -293,6 +293,7 @@
 | `/api/admin/tickets` | GET, POST | 🔐 admin | `website/src/pages/api/admin/tickets/index.ts` |
 | `/api/admin/tickets/{id}` | GET, PATCH | 🔐 admin | `website/src/pages/api/admin/tickets/[id].ts` |
 | `/api/admin/tickets/{id}/attachments` | POST | 🔐 admin | `website/src/pages/api/admin/tickets/[id]/attachments.ts` |
+| `/api/admin/tickets/{id}/attachments/{aid}` | GET | 🔐 admin | `website/src/pages/api/admin/tickets/[id]/attachments/[aid].ts` |
 | `/api/admin/tickets/{id}/classify` | POST | 🔐 admin | `website/src/pages/api/admin/tickets/[id]/classify.ts` |
 | `/api/admin/tickets/{id}/comments` | POST | 🔐 admin | `website/src/pages/api/admin/tickets/[id]/comments.ts` |
 | `/api/admin/tickets/{id}/links` | POST, DELETE | 🔐 admin | `website/src/pages/api/admin/tickets/[id]/links.ts` |

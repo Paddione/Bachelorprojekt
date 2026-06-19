@@ -68,6 +68,7 @@ const containerPlan = containerRollup
 const containerDor = containerRollup
   ? await getContainerDor(BRAND, id).catch(() => null) : null;
 const planHtml = containerPlan?.content ? renderMarkdown(containerPlan.content) : '';
+const grillingQnId = Object.keys(ticket.grillingAnswers ?? {}).filter((k) => k !== 'coaching-sessions-v1')[0] ?? 'final-grilling-v1';
 
 const STATUS_CLS: Record<string, string> = {
   triage:      'bg-purple-900/40 text-purple-300 border-purple-800',
@@ -183,7 +184,7 @@ function fmtDateTime(d: Date | string | null): string {
           <GrillingStepper
             client:load
             ticketId={ticket.id}
-            questionnaireId="coaching-sessions-v1"
+            questionnaireId={grillingQnId}
             grillingAnswers={ticket.grillingAnswers ?? null}
             grillingMeta={ticket.grillingMeta ?? null}
           />

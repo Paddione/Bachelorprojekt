@@ -5,6 +5,7 @@
 export interface GrillingQuestion {
   id: string;       // e.g. "q1"
   label: string;    // question text
+  choices?: string[]; // quick-select chips for common answers
 }
 
 export interface GrillingSection {
@@ -44,7 +45,7 @@ export const QUESTIONNAIRES: Record<string, GrillingQuestionnaire> = {
           { id: 'q5', label: 'Welche Komponenten/Dateien sind betroffen?' },
           { id: 'q6', label: 'Gibt es ein Architektur-Diagramm oder eine Spec?' },
           { id: 'q7', label: 'Welche bestehenden Patterns werden wiederverwendet?' },
-          { id: 'q8', label: 'Sind Breaking Changes zu erwarten?' },
+          { id: 'q8', label: 'Sind Breaking Changes zu erwarten?', choices: ['Nein, rückwärtskompatibel', 'Ja, aber kontrolliert', 'Ja, koordinierter Rollout nötig'] },
         ],
       },
       {
@@ -61,7 +62,7 @@ export const QUESTIONNAIRES: Record<string, GrillingQuestionnaire> = {
         id: 's4',
         title: '4. Testing-Strategie',
         questions: [
-          { id: 'q13', label: 'Welche Test-Typen sind nötig? (Unit, Integration, E2E?)' },
+          { id: 'q13', label: 'Welche Test-Typen sind nötig? (Unit, Integration, E2E?)', choices: ['Unit', 'Integration', 'E2E', 'Unit + E2E', 'Alle drei'] },
           { id: 'q14', label: 'Welche bestehenden Tests sind betroffen?' },
           { id: 'q15', label: 'Braucht es neue Test-Fixtures oder Mocks?' },
           { id: 'q16', label: 'Wie wird die Korrektheit verifiziert?' },
@@ -71,10 +72,10 @@ export const QUESTIONNAIRES: Record<string, GrillingQuestionnaire> = {
         id: 's5',
         title: '5. Deployment & Rollout',
         questions: [
-          { id: 'q17', label: 'Welche Umgebungen sind betroffen? (dev, beide Brands?)' },
-          { id: 'q18', label: 'Gibt es einen Rollback-Plan?' },
-          { id: 'q19', label: 'Sind DB-Migrationen, Secrets oder Config-Änderungen nötig?' },
-          { id: 'q20', label: 'Wer reviewt und deployed?' },
+          { id: 'q17', label: 'Welche Umgebungen sind betroffen? (dev, beide Brands?)', choices: ['Nur dev', 'dev + mentolder', 'dev + korczewski', 'Alle Envs (dev + beide Brands)'] },
+          { id: 'q18', label: 'Gibt es einen Rollback-Plan?', choices: ['Ja, reversibel', 'Nein, Forward-only-Migration', 'Nicht nötig (Feature-Flag)'] },
+          { id: 'q19', label: 'Sind DB-Migrationen, Secrets oder Config-Änderungen nötig?', choices: ['Nein', 'Ja, DB-Migration', 'Ja, neue Secrets', 'Ja, Config-Änderungen', 'Mehreres davon'] },
+          { id: 'q20', label: 'Wer reviewt und deployed?', choices: ['Patrick (Self-Review)', 'Factory-Autopass', 'Manuell deployen nötig'] },
         ],
       },
       {
@@ -98,8 +99,8 @@ export const QUESTIONNAIRES: Record<string, GrillingQuestionnaire> = {
         questions: [
           { id: 'q1', label: 'Wie stellst du dir den idealen Einstieg in eine Coaching-Beziehung vor?' },
           { id: 'q2', label: 'Soll es eine Erstsession geben? Wie lang, mit welchem Ziel?' },
-          { id: 'q3', label: 'Wie viele Sessions umfasst ein typisches Coaching bei dir? (feste Anzahl oder offen?)' },
-          { id: 'q4', label: 'In welchem Rhythmus sollen Sessions stattfinden? (wöchentlich, 14-tägig, bedarfsgesteuert?)' },
+          { id: 'q3', label: 'Wie viele Sessions umfasst ein typisches Coaching bei dir? (feste Anzahl oder offen?)', choices: ['3-5 Sessions (kompakt)', '8-10 Sessions (standard)', '12+ Sessions (intensiv)', 'Offen je nach Bedarf'] },
+          { id: 'q4', label: 'In welchem Rhythmus sollen Sessions stattfinden? (wöchentlich, 14-tägig, bedarfsgesteuert?)', choices: ['Wöchentlich', 'Alle 2 Wochen', 'Monatlich', 'Bedarfsgesteuert'] },
         ],
       },
       {
@@ -136,9 +137,9 @@ export const QUESTIONNAIRES: Record<string, GrillingQuestionnaire> = {
         id: 's5',
         title: '5. Timing & Flexibilität',
         questions: [
-          { id: 'q17', label: 'Wie lang sollten Sessions sein? (45 Min, 60 Min, 90 Min?)' },
-          { id: 'q18', label: 'Gibt es Unterschiede zwischen Erst-, Folge- und Abschlusssession?' },
-          { id: 'q19', label: 'Wie flexibel darf der Ablauf sein? (vom Coachee steuerbar oder strukturiert vorgegeben?)' },
+          { id: 'q17', label: 'Wie lang sollten Sessions sein? (45 Min, 60 Min, 90 Min?)', choices: ['45 Minuten', '60 Minuten', '90 Minuten', '120 Minuten'] },
+          { id: 'q18', label: 'Gibt es Unterschiede zwischen Erst-, Folge- und Abschlusssession?', choices: ['Ja, Erst-/Folge-/Abschluss-Session verschieden', 'Nein, gleiche Struktur immer', 'Nur Abschluss-Session anders'] },
+          { id: 'q19', label: 'Wie flexibel darf der Ablauf sein? (vom Coachee steuerbar oder strukturiert vorgegeben?)', choices: ['Sehr strukturiert (vorgegebener Ablauf)', 'Hybrid (Rahmen + Coachee-Steuerung)', 'Offen (Coachee bestimmt)'] },
           { id: 'q20', label: 'Wie gehst du mit akuten Themen um, die nicht auf dem Plan standen?' },
         ],
       },
@@ -270,7 +271,7 @@ export interface GrillingMetaEntry {
   dismissed: string[];
 }
 export type GrillingMeta = Record<string, GrillingMetaEntry>;
-export interface ResolvedQuestion { id: string; prompt: string; section?: string }
+export interface ResolvedQuestion { id: string; prompt: string; section?: string; choices?: string[] }
 
 /** Registry questions (flattened, section title as `section`) ∪ absorbed meta questions.
  *  Registry wins on duplicate id; absorbed-only ids are appended in meta order. */
@@ -285,7 +286,7 @@ export function resolveQuestions(
   if (qn) {
     for (const s of qn.sections) {
       for (const q of s.questions) {
-        out.push({ id: q.id, prompt: q.label, section: s.title });
+        out.push({ id: q.id, prompt: q.label, section: s.title, ...(q.choices ? { choices: q.choices } : {}) });
         seen.add(q.id);
       }
     }

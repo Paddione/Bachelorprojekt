@@ -81,3 +81,27 @@ describe('GrillingStepper', () => {
     expect(btn.textContent).toMatch(/Schritt für Schritt/);
   });
 });
+
+describe('GrillingStepper — Export', () => {
+  it('Export button is not shown when answers is empty', () => {
+    setup(null, null);
+    expect(screen.queryByRole('button', { name: /Export/ })).toBeNull();
+  });
+
+  it('Export button is shown when at least one answer exists', () => {
+    setup({ [QN]: { q1: 'meine Antwort' } }, null);
+    expect(screen.getByRole('button', { name: /Export/ })).toBeTruthy();
+  });
+
+  it('clicking Export triggers a blob download', async () => {
+    const createObjectURL = vi.fn(() => 'blob:mock-url');
+    const revokeObjectURL = vi.fn();
+    vi.stubGlobal('URL', { ...URL, createObjectURL, revokeObjectURL });
+
+    setup({ [QN]: { q1: 'meine Antwort' } }, null);
+    const exportBtn = screen.getByText('Export');
+    await fireEvent.click(exportBtn);
+
+    expect(createObjectURL).toHaveBeenCalled();
+  });
+});

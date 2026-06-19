@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.98.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.97.5...website-v1.98.0) (2026-06-19)
+
+
+### Features
+
+* **website:** unified KI-API configuration — rerank status + sub-components [T000711] ([#1872](https://github.com/Paddione/Bachelorprojekt/issues/1872)) ([95b6886](https://github.com/Paddione/Bachelorprojekt/commit/95b68867d61c58457753c4597196efa952b1887b))
+
 ## [1.97.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.97.4...website-v1.97.5) (2026-06-19)
 
 

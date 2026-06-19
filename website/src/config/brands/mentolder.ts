@@ -372,6 +372,36 @@ export const mentolderConfig: BrandConfig = {
     href: '/termin',
     text: 'Termin buchen',
   },
+  referenzen: {
+    heading: 'Referenzen',
+    subheading: 'Unternehmen und Personen, die mir ihr Vertrauen geschenkt haben.',
+    types: [
+      { id: 'ausbildung', label: 'Ausbildung & Qualifikation' },
+      { id: 'projekte', label: 'Projekte' },
+      { id: 'laufbahn', label: 'Berufliche Stationen' },
+    ],
+    items: [
+      {
+        id: 'brueckenschlag',
+        name: 'Brückenschlag e.V., Lüneburg',
+        url: 'https://www.bs-lg.de',
+        description: 'Systemische Coach-Ausbildung',
+        type: 'ausbildung',
+      },
+      {
+        id: 'digital-cafe',
+        name: 'Digital Café',
+        description: '6-monatiges Projekt in einem Lüneburger Seniorenheim (2023) mit über 50 Teilnehmer/innen – verantwortlich mitgestaltet',
+        type: 'projekte',
+      },
+      {
+        id: 'polizei-hamburg',
+        name: 'Polizei Hamburg',
+        description: 'KI-gestützte Gesichtserkennung + BOS-Digitalfunk – Referenz aus der beruflichen Laufbahn mit ~30 Jahren Führungserfahrung',
+        type: 'laufbahn',
+      },
+    ],
+  },
   features: {
     hasBooking: true,
     hasRegistration: true,

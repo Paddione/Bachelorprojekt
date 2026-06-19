@@ -359,6 +359,10 @@ export const korczewskiConfig: BrandConfig = {
     href: '/kontakt',
     text: 'Anfragen',
   },
+  referenzen: {
+    types: [],
+    items: [],
+  },
   features: {
     hasBooking: true,
     hasRegistration: true,

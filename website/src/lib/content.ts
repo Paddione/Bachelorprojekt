@@ -33,7 +33,9 @@ export async function getPriceListUrl(): Promise<string | null> {
 }
 
 export async function getEffectiveReferenzen(): Promise<ReferenzenConfig> {
-  return (await getReferenzen(BRAND).catch(() => null)) ?? { types: [], items: [] };
+  const db = await getReferenzen(BRAND).catch(() => null);
+  if (db) return db;
+  return config.referenzen ?? { types: [], items: [] };
 }
 
 /**

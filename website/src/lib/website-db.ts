@@ -1,3 +1,5 @@
+import type { ReferenzItem, ReferenzenType, ReferenzenConfig } from '../config/types';
+
 // Meeting Knowledge Pipeline — PostgreSQL client.
 // Writes meeting data, transcripts, and artifacts to the meetings DB.
 // Uses the 'pg' npm package for direct database access.
@@ -1155,29 +1157,9 @@ export async function saveLegalPage(brand: string, pageKey: string, contentHtml:
 }
 
 // ── Referenzen Config ─────────────────────────────────────────────────────────
+// Types re-exported from config/types.ts for backward compatibility.
 
-export interface ReferenzItem {
-  id: string;
-  name: string;
-  url?: string;
-  logoUrl?: string;
-  description?: string;
-  /** Optional type/group ID — must match one of `ReferenzenConfig.types[].id` */
-  type?: string;
-}
-
-export interface ReferenzenType {
-  id: string;
-  label: string;
-}
-
-export interface ReferenzenConfig {
-  heading?: string;
-  subheading?: string;
-  /** Ordered list — display order of groups follows this array. */
-  types: ReferenzenType[];
-  items: ReferenzItem[];
-}
+export type { ReferenzItem, ReferenzenType, ReferenzenConfig } from '../config/types';
 
 export async function initReferenzenTable(): Promise<void> {
   return ensureSchemaOnce('referenzen_config', async () => {

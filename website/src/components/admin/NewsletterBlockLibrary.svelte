@@ -22,7 +22,7 @@
 
   const BLOCK_STARTERS: Record<BlockType, string> = {
     header: `<h1 style="color:#333;font-family:Georgia,serif;">Betreff-Zeile</h1>\n<p style="color:#666;font-family:sans-serif;">Willkommens-/Intro-Satz.</p>`,
-    angebot: `<div style="border:1px solid #ddd;border-radius:8px;padding:20px;margin:16px 0;">\n  <h2 style="color:#333;font-family:sans-serif;margin:0 0 8px;">Angebots-Titel</h2>\n  <p style="color:#555;font-family:sans-serif;font-size:15px;">Kurze Beschreibung des Angebots.</p>\n  <p style="font-family:sans-serif;"><strong>Preis: 0 €</strong></p>\n</div>`,
+    angebot: `<div style="border:1px solid #ddd;border-radius:8px;padding:20px;margin:16px 0;">\n  <h2 style="color:#333;font-family:sans-serif;margin:0 0 8px;">Angebots-Titel</h2>\n  <p style="color:#555;font-family:sans-serif;font-size:15px;">Kurze Beschreibung des Angebots.</p>\n  <p style="font-family:sans-serif;"><strong>Preis: nach Vereinbarung</strong></p>\n</div>`,
     cta: `<div style="text-align:center;margin:24px 0;">\n  <a href="https://LINK" style="background:#b8973a;color:#fff;padding:12px 28px;border-radius:6px;font-family:sans-serif;font-weight:bold;text-decoration:none;display:inline-block;">\n    Jetzt buchen\n  </a>\n</div>`,
     text: `<p style="color:#555;font-family:sans-serif;font-size:16px;line-height:1.6;">\n  Ihr Text hier.\n</p>`,
     footer: `<p style="color:#888;font-family:sans-serif;font-size:14px;margin-top:32px;">\n  Mit freundlichen Grüßen,<br>\n  <strong>Ihr Name</strong>\n</p>`,

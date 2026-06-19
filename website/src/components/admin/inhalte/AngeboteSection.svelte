@@ -36,7 +36,7 @@
   function addSection(svc:ServiceOverride){const pc=ensurePageContent(svc);pc.sections=[...(pc.sections??[]),{title:'Neuer Bereich',items:[]}];services=[...services];}
   function removeSection(svc:ServiceOverride,sIdx:number){if(!svc.pageContent?.sections)return;svc.pageContent.sections=svc.pageContent.sections.filter((_:unknown,i:number)=>i!==sIdx);services=[...services];}
   function moveSection(svc:ServiceOverride,sIdx:number,delta:number){const arr=svc.pageContent?.sections;if(!arr)return;const next=sIdx+delta;if(next<0||next>=arr.length)return;[arr[sIdx],arr[next]]=[arr[next],arr[sIdx]];services=[...services];}
-  function addPricing(svc:ServiceOverride){const pc=ensurePageContent(svc);pc.pricing=[...(pc.pricing??[]),{label:'Neuer Tarif',price:'0 €'}];services=[...services];}
+   function addPricing(svc:ServiceOverride){const pc=ensurePageContent(svc);pc.pricing=[...(pc.pricing??[]),{label:'Neuer Tarif',price:'nach Vereinbarung'}];services=[...services];}
   function removePricing(svc:ServiceOverride,pIdx:number){if(!svc.pageContent?.pricing)return;svc.pageContent.pricing=svc.pageContent.pricing.filter((_:unknown,i:number)=>i!==pIdx);services=[...services];}
   function movePricing(svc:ServiceOverride,pIdx:number,delta:number){const arr=svc.pageContent?.pricing;if(!arr)return;const next=pIdx+delta;if(next<0||next>=arr.length)return;[arr[pIdx],arr[next]]=[arr[next],arr[pIdx]];services=[...services];}
   function moveLeistungService(cat:LeistungCategoryOverride,sIdx:number,delta:number){const arr=cat.services??[];const next=sIdx+delta;if(next<0||next>=arr.length)return;[arr[sIdx],arr[next]]=[arr[next],arr[sIdx]];leistungen=[...leistungen];}

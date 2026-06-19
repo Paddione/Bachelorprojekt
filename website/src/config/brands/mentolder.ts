@@ -96,7 +96,7 @@ export const mentolderConfig: BrandConfig = {
         'Online-Banking & Shopping sicher nutzen',
         'Datenschutz & Sicherheit verstehen – inkl. ChatGPT, Claude, Perplexity',
       ],
-      price: 'Ab 60 € Stunde',
+      price: 'nach Vereinbarung',
       stripeServiceKey: '50plus-digital-einzel',
       pageContent: {
         headline: 'Ihr sicherer Einstieg in die digitale Welt',
@@ -113,15 +113,15 @@ export const mentolderConfig: BrandConfig = {
           { title: 'Dienste', items: ['Online-Banking sicher nutzen', 'Sicher online einkaufen', 'Bezahldienste verstehen', 'Gesundheits-Apps', 'Online-Termine buchen', 'Elektronische Patientenakte'] },
         ],
         pricing: [
-          { label: 'Einzelbegleitung', price: '60 €', unit: 'pro Stunde' },
-          { label: '5er-Paket', price: '270 €', unit: 'statt 300 €', highlight: true },
-          { label: 'Kleine Gruppe', price: '40 €', unit: 'pro Person / Stunde' },
+          { label: 'Einzelbegleitung', price: 'nach Vereinbarung', unit: 'pro Stunde' },
+          { label: '5er-Paket', price: 'nach Vereinbarung', unit: '', highlight: true },
+          { label: 'Kleine Gruppe', price: 'nach Vereinbarung', unit: 'pro Person / Stunde' },
         ],
         faq: [
           { question: 'Ich habe gar keine Vorkenntnisse – ist das ein Problem?', answer: 'Nein, überhaupt nicht! Wir fangen genau da an, wo Sie stehen. Viele meiner Teilnehmer*innen hatten vorher kaum Erfahrung – und haben es trotzdem gelernt.' },
           { question: 'Muss ich meine Geräte mitbringen?', answer: 'Ja, am besten schon! Wir arbeiten mit IHREN Geräten – dann können Sie das Gelernte sofort zuhause umsetzen.' },
           { question: 'Wie lange dauert es, bis ich sicher bin?', answer: 'Das ist sehr individuell. Manche brauchen 3-4 Sessions, andere 10. Sie bestimmen das Tempo.' },
-          { question: 'Was kostet das?', answer: 'Ein Erstgespräch (30 Min.) ist kostenlos. Danach arbeiten wir stundenweise (60 €) oder als Paket. Kleine Gruppen sind günstiger.' },
+          { question: 'Was kostet das?', answer: 'Ein Erstgespräch (30 Min.) ist kostenlos. Danach arbeiten wir nach Vereinbarung.' },
         ],
         seoTitle: '50+ digital – Digitale Begleitung in Lüneburg & Hamburg | mentolder.de',
         seoDescription: 'Digitale Begleitung für Menschen 50+ in Lüneburg und Hamburg. Smartphone, WhatsApp, Online-Banking – Schritt für Schritt, ohne Fachchinesisch, in Ihrem Tempo.',
@@ -138,7 +138,7 @@ export const mentolderConfig: BrandConfig = {
         'Gesprächsvorbereitung (Headhunter, Vorstellungsgespräche)',
         'Sparring auf Augenhöhe',
       ],
-      price: 'Ab 150 € Session',
+      price: 'nach Vereinbarung',
       stripeServiceKey: 'coaching-session',
       pageContent: {
         headline: 'Ihre Karriere strategisch gestalten',
@@ -156,7 +156,7 @@ export const mentolderConfig: BrandConfig = {
           { title: 'Markt-Positionierung', items: ['Marktanalyse', 'Zielunternehmen recherchieren', 'Anforderungsprofile verstehen', 'Ihr Profil passgenau ausrichten'] },
         ],
         pricing: [
-          { label: 'Einzelsession (90 Min.)', price: 'Preise auf Anfrage' },
+          { label: 'Einzelsession (90 Min.)', price: 'nach Vereinbarung' },
         ],
         faq: [
           { question: 'Wie lange dauert ein Coaching?', answer: 'Das hängt von Ihrer Situation ab. Manche brauchen nur 2-3 Sessions zur Vorbereitung auf ein Gespräch. Andere buchen ein 6er-Paket für eine komplette Neuausrichtung.' },
@@ -176,7 +176,7 @@ export const mentolderConfig: BrandConfig = {
         'Führen in Veränderungsprozessen',
         'Frauen in Führung gezielt begleiten',
       ],
-      price: 'Ab 150 € Session',
+      price: 'nach Vereinbarung',
       stripeServiceKey: 'coaching-session',
       pageContent: {
         headline: 'Führen aus der Mitte.',
@@ -201,7 +201,7 @@ export const mentolderConfig: BrandConfig = {
           { title: 'Authentizität', items: ['Führen, ohne sich zu verbiegen'] },
         ],
         pricing: [
-          { label: 'Kostenloses Erstgespräch buchen', price: 'Ab 150 €', highlight: true },
+          { label: 'Kostenloses Erstgespräch buchen', price: 'nach Vereinbarung', highlight: true },
         ],
         faq: [],
       },
@@ -251,7 +251,7 @@ export const mentolderConfig: BrandConfig = {
         'Neuorientierung & Strategie für die KI-Zukunft',
         'Team-Workshops & Change-Begleitung',
       ],
-      price: 'Ab 150 € Session',
+      price: 'nach Vereinbarung',
       stripeServiceKey: 'coaching-session',
       pageContent: {
         headline: 'Wenn das Vertraute geht – und das Neue wartet.',
@@ -271,7 +271,7 @@ export const mentolderConfig: BrandConfig = {
           { title: 'Für Unternehmen', items: ['Team-Workshops: KI-Readiness', 'Change-Begleitung im Transformationsprozess', 'Führungskräfte-Sparring zum Thema KI', 'Nachhaltige Lernkultur aufbauen'] },
         ],
         pricing: [
-          { label: 'Einzelsession (90 Min.)', price: 'Preise auf Anfrage' },
+          { label: 'Einzelsession (90 Min.)', price: 'nach Vereinbarung' },
         ],
         faq: [],
         seoTitle: 'KI-Transition Coaching – Zukunft gestalten im digitalen Wandel | mentolder.de',
@@ -286,9 +286,9 @@ export const mentolderConfig: BrandConfig = {
       icon: '🎯',
       description: 'Für Entscheider in KMU und kommunalen Einrichtungen, die digitalen Wandel gestalten, Teams führen oder persönliche Entwicklungsthemen bearbeiten möchten.',
       services: [
-        { key: 'coaching-einzel', name: 'Einzelstunde (60 Min.)', price: '150 €', unit: '/ Stunde', desc: 'Intensive Einzelsession für Profilschärfung, Gesprächsvorbereitung oder Strategie.' },
-        { key: 'coaching-paket-s', name: 'Paket S — 6 Sessions', price: '840 €', unit: '', desc: '6 Coaching-Sessions. Für gezielte Themen und strukturierte Entwicklung.', highlight: true },
-        { key: 'coaching-paket-m', name: 'Paket M — 12 Sessions', price: '1.560 €', unit: '', desc: '12 Sessions für eine umfassende Neuausrichtung oder tiefergehende Begleitung.' },
+        { key: 'coaching-einzel', name: 'Einzelstunde (60 Min.)', price: 'nach Vereinbarung', unit: '/ Stunde', desc: 'Intensive Einzelsession für Profilschärfung, Gesprächsvorbereitung oder Strategie.' },
+        { key: 'coaching-paket-s', name: 'Paket S — 6 Sessions', price: 'nach Vereinbarung', unit: '', desc: '6 Coaching-Sessions. Für gezielte Themen und strukturierte Entwicklung.', highlight: true },
+        { key: 'coaching-paket-m', name: 'Paket M — 12 Sessions', price: 'nach Vereinbarung', unit: '', desc: '12 Sessions für eine umfassende Neuausrichtung oder tiefergehende Begleitung.' },
       ],
     },
     {
@@ -297,9 +297,9 @@ export const mentolderConfig: BrandConfig = {
       icon: '💻',
       description: 'Für Menschen ab 50, die digitale Alltagstools sicher nutzen und selbständig agieren möchten — ohne Druck, im eigenen Tempo.',
       services: [
-        { key: '50plus-digital-einzel', name: 'Einzelstunde (60 Min.)', price: '60 €', unit: '/ Stunde', desc: 'Individuelle 1:1 Begleitung bei Ihnen zuhause oder in ruhiger Umgebung.' },
-        { key: '50plus-digital-paket-s', name: 'Paket S — 6 Sessions', price: '330 €', unit: '', desc: '6 Stunden individuelle Begleitung. Flexibel planbar.', highlight: true },
-        { key: '50plus-digital-paket-m', name: 'Paket M — 12 Sessions', price: '600 €', unit: '', desc: '12 Stunden für langfristige digitale Begleitung und Sicherheit.' },
+        { key: '50plus-digital-einzel', name: 'Einzelstunde (60 Min.)', price: 'nach Vereinbarung', unit: '/ Stunde', desc: 'Individuelle 1:1 Begleitung bei Ihnen zuhause oder in ruhiger Umgebung.' },
+        { key: '50plus-digital-paket-s', name: 'Paket S — 6 Sessions', price: 'nach Vereinbarung', unit: '', desc: '6 Stunden individuelle Begleitung. Flexibel planbar.', highlight: true },
+        { key: '50plus-digital-paket-m', name: 'Paket M — 12 Sessions', price: 'nach Vereinbarung', unit: '', desc: '12 Stunden für langfristige digitale Begleitung und Sicherheit.' },
       ],
     },
     {
@@ -314,8 +314,8 @@ export const mentolderConfig: BrandConfig = {
   ],
   leistungenPricingHighlight: [
     { label: 'Erstgespräch (30 Min.)', price: 'Kostenlos', note: 'Unverbindlich — kein Verkaufsgespräch', highlight: false },
-    { label: 'Einzelstunde Führungskräfte', price: '150 €', note: 'Netto gem. §19 UStG', highlight: false },
-    { label: 'Einzelstunde 50+ Digital', price: '60 €', note: 'Netto gem. §19 UStG', highlight: true },
+    { label: 'Einzelstunde Führungskräfte', price: 'nach Vereinbarung', note: 'Netto gem. §19 UStG', highlight: false },
+    { label: 'Einzelstunde 50+ Digital', price: 'nach Vereinbarung', note: 'Netto gem. §19 UStG', highlight: true },
   ],
   uebermich: {
     pageHeadline: 'Von der Polizei Hamburg in die digitale Begleitung',

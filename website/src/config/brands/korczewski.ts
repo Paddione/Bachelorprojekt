@@ -113,7 +113,7 @@ export const korczewskiConfig: BrandConfig = {
         'Datenschutzkonformer Einsatz im Unternehmen',
         'Automatisierung von Entwicklungs- und Geschäftsprozessen',
       ],
-      price: '50 € / Stunde',
+      price: 'nach Vereinbarung',
       pageContent: {
         headline: 'KI als echten Hebel einsetzen',
         intro: 'Es gibt einen großen Unterschied zwischen "mal ChatGPT ausprobiert" und KI systematisch in Arbeitsprozesse integriert. Ich zeige Ihnen den zweiten Weg – praxisnah, datenschutzkonform und ohne Vendor-Lock-in.',
@@ -142,9 +142,9 @@ export const korczewskiConfig: BrandConfig = {
           },
         ],
         pricing: [
-          { label: 'Kennenlerngespräch', price: '20 €', unit: '/ 45 Min' },
-          { label: 'KI-Beratung & Strategie', price: '50 €', unit: '/ Stunde', highlight: true },
-          { label: 'Workshop / Team-Session', price: '50 €', unit: '/ Stunde' },
+          { label: 'Kennenlerngespräch', price: 'nach Vereinbarung', unit: '/ 45 Min' },
+          { label: 'KI-Beratung & Strategie', price: 'nach Vereinbarung', unit: '/ Stunde', highlight: true },
+          { label: 'Workshop / Team-Session', price: 'nach Vereinbarung', unit: '/ Stunde' },
         ],
         faq: [
           { question: 'Für wen ist die KI-Beratung gedacht?', answer: 'Für Entwickler, die KI produktiv einsetzen wollen, und für Unternehmen, die KI sicher in Prozesse integrieren möchten. Technische Vorkenntnisse sind kein Muss.' },
@@ -164,7 +164,7 @@ export const korczewskiConfig: BrandConfig = {
         'Security-first Entwicklung',
         'KI-gestützte Entwicklung richtig einsetzen',
       ],
-      price: '50 € / Stunde',
+      price: 'nach Vereinbarung',
       pageContent: {
         headline: 'Software, die funktioniert – und sicher bleibt',
         intro: 'Ich entwickle mit KI als Co-Pilot, nicht als Autopilot. Das bedeutet: schnellere Umsetzung, aber ohne die blinden Flecken zu ignorieren, die KI gerne übersieht – Security, Edge Cases, Wartbarkeit.',
@@ -193,12 +193,12 @@ export const korczewskiConfig: BrandConfig = {
           },
         ],
         pricing: [
-          { label: 'Kennenlerngespräch', price: '20 €', unit: '/ 45 Min', highlight: true },
-          { label: 'Stundensatz', price: '50 €', unit: '/ Stunde' },
+          { label: 'Kennenlerngespräch', price: 'nach Vereinbarung', unit: '/ 45 Min', highlight: true },
+          { label: 'Stundensatz', price: 'nach Vereinbarung', unit: '/ Stunde' },
         ],
         faq: [
           { question: 'Welche Sprachen und Frameworks?', answer: 'Hauptsächlich TypeScript (Node.js, Astro, Svelte) und Go. Für Infrastruktur-nahe Aufgaben YAML, Bash und Kubernetes-Manifeste. Ich wähle nach Problem, nicht nach Hype.' },
-          { question: 'Wie läuft ein Kennenlerngespräch ab?', answer: '45 Minuten, 20 Euro. Wir sprechen über Ihr Projekt oder Problem, ich stelle die richtigen Fragen. Am Ende wissen wir beide, ob eine Zusammenarbeit sinnvoll ist.' },
+          { question: 'Wie läuft ein Kennenlerngespräch ab?', answer: '45 Minuten, nach Vereinbarung. Wir sprechen über Ihr Projekt oder Problem, ich stelle die richtigen Fragen. Am Ende wissen wir beide, ob eine Zusammenarbeit sinnvoll ist.' },
         ],
       },
     },
@@ -214,7 +214,7 @@ export const korczewskiConfig: BrandConfig = {
         'Self-Hosted Open-Source (Nextcloud, Mattermost, Keycloak)',
         'DSGVO-konforme Infrastruktur unter Ihrer Kontrolle',
       ],
-      price: '50 € / Stunde',
+      price: 'nach Vereinbarung',
       pageContent: {
         headline: 'Infrastruktur, die trägt',
         intro: 'Ich betreibe Kubernetes-Cluster in Produktion – multi-tenant, multi-cluster, mit GitOps-Workflows und Security-Härtung. Das ist kein Lernprojekt, sondern gelebte Praxis. Dieses Wissen gebe ich weiter.',
@@ -243,8 +243,8 @@ export const korczewskiConfig: BrandConfig = {
           },
         ],
         pricing: [
-          { label: 'Kennenlerngespräch', price: '20 €', unit: '/ 45 Min', highlight: true },
-          { label: 'Stundensatz', price: '50 €', unit: '/ Stunde' },
+          { label: 'Kennenlerngespräch', price: 'nach Vereinbarung', unit: '/ 45 Min', highlight: true },
+          { label: 'Stundensatz', price: 'nach Vereinbarung', unit: '/ Stunde' },
         ],
         faq: [
           { question: 'Warum Self-Hosted statt Cloud?', answer: 'Weil Sie damit Ihre Daten kontrollieren, Vendor-Lock-ins vermeiden und langfristig Kosten sparen. Und weil DSGVO-Compliance mit eigener Infrastruktur deutlich einfacher wird.' },
@@ -260,10 +260,10 @@ export const korczewskiConfig: BrandConfig = {
       icon: '🧠',
       description: 'KI sinnvoll, sicher und messbar einsetzen – im eigenen Workflow oder im Unternehmen. Nicht als Hype, sondern als konkretes Werkzeug.',
       services: [
-        { key: 'ki-kennenlern', name: 'Kennenlerngespräch', price: '20 €', unit: '/ 45 Min', desc: 'Wir analysieren Ihre Situation und finden heraus, wo KI Ihnen wirklich hilft. Keine Verkaufsshow.' },
-        { key: 'ki-strategie', name: 'KI-Strategie & Tool-Auswahl', price: '50 €', unit: '/ Stunde', desc: 'Claude Code, Cursor, lokale Modelle – ich helfe Ihnen, den richtigen Stack für Ihre Situation zu finden.', highlight: true },
-        { key: 'ki-integration', name: 'KI in Entwicklungsprozessen', price: '50 €', unit: '/ Stunde', desc: 'Code-Generierung, Review und Testing mit KI. Prompt Engineering für Entwickler und Teams.' },
-        { key: 'ki-compliance', name: 'DSGVO-konformer KI-Einsatz', price: '50 €', unit: '/ Stunde', desc: 'Datenschutzkonforme KI-Integration im Unternehmen – welche Tools gehen, welche nicht.' },
+        { key: 'ki-kennenlern', name: 'Kennenlerngespräch', price: 'nach Vereinbarung', unit: '/ 45 Min', desc: 'Wir analysieren Ihre Situation und finden heraus, wo KI Ihnen wirklich hilft. Keine Verkaufsshow.' },
+        { key: 'ki-strategie', name: 'KI-Strategie & Tool-Auswahl', price: 'nach Vereinbarung', unit: '/ Stunde', desc: 'Claude Code, Cursor, lokale Modelle – ich helfe Ihnen, den richtigen Stack für Ihre Situation zu finden.', highlight: true },
+        { key: 'ki-integration', name: 'KI in Entwicklungsprozessen', price: 'nach Vereinbarung', unit: '/ Stunde', desc: 'Code-Generierung, Review und Testing mit KI. Prompt Engineering für Entwickler und Teams.' },
+        { key: 'ki-compliance', name: 'DSGVO-konformer KI-Einsatz', price: 'nach Vereinbarung', unit: '/ Stunde', desc: 'Datenschutzkonforme KI-Integration im Unternehmen – welche Tools gehen, welche nicht.' },
       ],
     },
     {
@@ -272,10 +272,10 @@ export const korczewskiConfig: BrandConfig = {
       icon: '💻',
       description: 'Von der Architektur bis zum produktionsreifen Code. Mit solidem Security-Fundament und KI als Co-Pilot.',
       services: [
-        { key: 'sw-architektur', name: 'Architektur-Beratung', price: '50 €', unit: '/ Stunde', desc: 'Technologie-Stack, Struktur, Skalierbarkeit. Die richtigen Entscheidungen treffen, bevor Code geschrieben wird.' },
-        { key: 'sw-review', name: 'Code-Review & Security', price: '50 €', unit: '/ Stunde', desc: 'Bestehenden Code auf Qualität, Sicherheit und Performance prüfen. OWASP, Auth-Flows, sichere API-Designs.' },
-        { key: 'sw-umsetzung', name: 'Umsetzung', price: '50 €', unit: '/ Stunde', desc: 'TypeScript (Node.js, Astro, Svelte) und Go. REST-APIs, Microservices, CLI-Tools.' },
-        { key: 'sw-pair', name: 'Pair Programming', price: '50 €', unit: '/ Stunde', desc: 'Gemeinsam entwickeln und lernen – wie man KI effektiv und kritisch als Co-Pilot einsetzt.' },
+        { key: 'sw-architektur', name: 'Architektur-Beratung', price: 'nach Vereinbarung', unit: '/ Stunde', desc: 'Technologie-Stack, Struktur, Skalierbarkeit. Die richtigen Entscheidungen treffen, bevor Code geschrieben wird.' },
+        { key: 'sw-review', name: 'Code-Review & Security', price: 'nach Vereinbarung', unit: '/ Stunde', desc: 'Bestehenden Code auf Qualität, Sicherheit und Performance prüfen. OWASP, Auth-Flows, sichere API-Designs.' },
+        { key: 'sw-umsetzung', name: 'Umsetzung', price: 'nach Vereinbarung', unit: '/ Stunde', desc: 'TypeScript (Node.js, Astro, Svelte) und Go. REST-APIs, Microservices, CLI-Tools.' },
+        { key: 'sw-pair', name: 'Pair Programming', price: 'nach Vereinbarung', unit: '/ Stunde', desc: 'Gemeinsam entwickeln und lernen – wie man KI effektiv und kritisch als Co-Pilot einsetzt.' },
       ],
     },
     {
@@ -284,16 +284,16 @@ export const korczewskiConfig: BrandConfig = {
       icon: '☁️',
       description: 'Production-grade Kubernetes, DSGVO-konforme Self-Hosted-Lösungen und GitOps-Workflows – gelebte Praxis, kein Lernprojekt.',
       services: [
-        { key: 'dep-kubernetes', name: 'Kubernetes-Architektur', price: '50 €', unit: '/ Stunde', desc: 'k3s, multi-cluster mit FluxCD, Ingress, TLS, NetworkPolicies, Monitoring – der vollständige Stack.' },
-        { key: 'dep-opensource', name: 'Self-Hosted Open-Source', price: '50 €', unit: '/ Stunde', desc: 'Nextcloud, Mattermost, Keycloak SSO, Vaultwarden & mehr. DSGVO-konform, Ihre Daten, Ihre Kontrolle.' },
-        { key: 'dep-gitops', name: 'GitOps & CI/CD', price: '50 €', unit: '/ Stunde', desc: 'FluxCD für Multi-Cluster-Deployments, GitHub Actions, Kustomize, automatisierte Rollouts.' },
-        { key: 'dep-wartung', name: 'Wartung & Monitoring', price: '50 €', unit: '/ Stunde', desc: 'Prometheus, Grafana, Alerting, Updates, Backups. Damit Sie ruhig schlafen können.' },
+        { key: 'dep-kubernetes', name: 'Kubernetes-Architektur', price: 'nach Vereinbarung', unit: '/ Stunde', desc: 'k3s, multi-cluster mit FluxCD, Ingress, TLS, NetworkPolicies, Monitoring – der vollständige Stack.' },
+        { key: 'dep-opensource', name: 'Self-Hosted Open-Source', price: 'nach Vereinbarung', unit: '/ Stunde', desc: 'Nextcloud, Mattermost, Keycloak SSO, Vaultwarden & mehr. DSGVO-konform, Ihre Daten, Ihre Kontrolle.' },
+        { key: 'dep-gitops', name: 'GitOps & CI/CD', price: 'nach Vereinbarung', unit: '/ Stunde', desc: 'FluxCD für Multi-Cluster-Deployments, GitHub Actions, Kustomize, automatisierte Rollouts.' },
+        { key: 'dep-wartung', name: 'Wartung & Monitoring', price: 'nach Vereinbarung', unit: '/ Stunde', desc: 'Prometheus, Grafana, Alerting, Updates, Backups. Damit Sie ruhig schlafen können.' },
       ],
     },
   ],
   leistungenPricingHighlight: [
-    { label: 'Kennenlerngespräch', price: '20 €', note: '45 Minuten · Situation erfassen & konkrete Ansätze besprechen' },
-    { label: 'Stundensatz', price: '50 €', note: 'Alle Leistungen · Fair & transparent', highlight: true },
+    { label: 'Kennenlerngespräch', price: 'nach Vereinbarung', note: '45 Minuten · Situation erfassen & konkrete Ansätze besprechen' },
+    { label: 'Stundensatz', price: 'nach Vereinbarung', note: 'Alle Leistungen · Fair & transparent', highlight: true },
   ],
   uebermich: {
     pageHeadline: 'IT-Management, Security-Studium, KI seit Tag 1',
@@ -328,7 +328,7 @@ export const korczewskiConfig: BrandConfig = {
   kontakt: {
     intro: 'Egal ob kurze Frage, Kennenlerngespräch oder konkretes Projekt – schreiben Sie mir. Ich antworte in der Regel innerhalb von 24 Stunden.',
     sidebarTitle: 'Kennenlerngespräch',
-    sidebarText: '45 Minuten, 20 Euro. Wir sprechen über Ihre Situation, ich stelle die richtigen Fragen – und am Ende wissen wir beide, ob und wie ich Ihnen helfen kann.',
+    sidebarText: '45 Minuten, nach Vereinbarung. Wir sprechen über Ihre Situation, ich stelle die richtigen Fragen – und am Ende wissen wir beide, ob und wie ich Ihnen helfen kann.',
     sidebarCta: 'Kein Verkaufsgespräch. Nur Klarheit.',
     showPhone: false,
     showSteps: true,
@@ -344,7 +344,7 @@ export const korczewskiConfig: BrandConfig = {
     },
     {
       question: 'Wie läuft ein Kennenlerngespräch ab?',
-      answer: '45 Minuten, 20 Euro. Wir sprechen über Ihre Situation, ich stelle Fragen, Sie stellen Fragen. Am Ende wissen wir beide, ob eine Zusammenarbeit sinnvoll ist – und wenn ja, wie.',
+      answer: '45 Minuten, nach Vereinbarung. Wir sprechen über Ihre Situation, ich stelle Fragen, Sie stellen Fragen. Am Ende wissen wir beide, ob eine Zusammenarbeit sinnvoll ist – und wenn ja, wie.',
     },
     {
       question: 'Warum Self-Hosted statt Cloud?',

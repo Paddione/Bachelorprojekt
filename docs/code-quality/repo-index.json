@@ -2850,7 +2850,7 @@
       "id": "brett",
       "name": "Brett 3D board (CommonJS)",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 343,
+      "file_count": 345,
       "files": [
         "brett/.dockerignore",
         "brett/.gitignore",
@@ -2860,6 +2860,8 @@
         "brett/dev-start.sh",
         "brett/package-lock.json",
         "brett/package.json",
+        "brett/pnpm-lock.yaml",
+        "brett/pnpm-workspace.yaml",
         "brett/public/assets/characters/coachee.figurine.svg",
         "brett/public/assets/characters/coachee.portrait.svg",
         "brett/public/assets/characters/saboteur.svg",

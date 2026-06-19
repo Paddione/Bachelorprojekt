@@ -548,7 +548,7 @@ git commit -m "docs(openspec): fill grilling-ui-multichoice proposal/spec/tasks 
 
 **Files:** possibly `website/src/data/test-inventory.json` (regenerated).
 
-- [ ] **Step 1: Test inventory**
+- [x] **Step 1: Test inventory**
 
 Run: `task test:inventory`
 If `website/src/data/test-inventory.json` changed, commit it:
@@ -556,22 +556,22 @@ If `website/src/data/test-inventory.json` changed, commit it:
 git add website/src/data/test-inventory.json && git commit -m "chore: regenerate test inventory [T000737]"
 ```
 
-- [ ] **Step 2: Changed-scope tests**
+- [x] **Step 2: Changed-scope tests**
 
 Run: `task test:changed`
 Expected: PASS.
 
-- [ ] **Step 3: OpenSpec gate**
+- [x] **Step 3: OpenSpec gate**
 
 Run: `task test:openspec` (≡ `bash scripts/openspec.sh validate`)
 Expected: PASS.
 
-- [ ] **Step 4: Freshness regen + check**
+- [x] **Step 4: Freshness regen + check**
 
 Run: `task freshness:regenerate` then `task freshness:check`
 Expected: S1–S4 ratchet + baseline assertions green. If `freshness:regenerate` produced artefact changes, commit them (resolve any `docs/generated/**` conflicts with `git checkout --ours` per CLAUDE.md).
 
-- [ ] **Step 5: Final commit (if regen produced changes)**
+- [x] **Step 5: Final commit (if regen produced changes)**
 
 ```bash
 git add -A && git commit -m "chore: regenerate freshness artifacts [T000737]"

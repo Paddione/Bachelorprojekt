@@ -24,8 +24,7 @@ const pct       = items.length ? Math.round((doneCount / items.length) * 100) : 
       <h3 class="text-lg font-semibold text-light">Onboarding-Checkliste</h3>
       <p class="text-sm text-muted mt-0.5">{doneCount}/{items.length} Schritte abgeschlossen</p>
     </div>
-    <form method="post" action="/api/admin/onboarding/reset">
-      <input type="hidden" name="keycloakUserId" value={keycloakUserId} />
+    <form method="post" action="/api/portal/onboarding/reset">
       <input type="hidden" name="_back" value={back} />
       <button type="submit"
         class="px-3 py-1.5 text-xs bg-dark border border-dark-lighter text-muted rounded-lg hover:text-light hover:border-gold/40 transition-colors"
@@ -45,7 +44,7 @@ const pct       = items.length ? Math.round((doneCount / items.length) * 100) : 
     {items.map(item => (
       <li class="flex items-center gap-3 p-3 bg-dark rounded-xl border border-dark-lighter"
         data-testid="onboarding-item">
-        <form method="post" action="/api/admin/onboarding/update" class="contents">
+        <form method="post" action="/api/portal/onboarding/update" class="contents">
           <input type="hidden" name="id" value={item.id} />
           <input type="hidden" name="done" value={item.done ? 'false' : 'true'} />
           <input type="hidden" name="_back" value={back} />

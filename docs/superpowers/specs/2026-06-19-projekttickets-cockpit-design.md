@@ -2,7 +2,7 @@
 title: "Projekttickets-Vollansicht im Cockpit + Sidekick-Eintrag"
 date: 2026-06-19
 slug: projekttickets-cockpit
-ticket_id: null
+ticket_id: T000950
 plan_ref: null
 domains: []
 status: draft

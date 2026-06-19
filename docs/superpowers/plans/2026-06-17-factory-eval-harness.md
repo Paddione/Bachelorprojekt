@@ -2,8 +2,8 @@
 title: Plan — T000930: SWE-bench-artige Eval-Harness für die Software Factory
 ticket_id: T000930
 domains: [factory, test]
-status: active
-pr_number: null
+status: completed
+pr_number: 1809
 file_locks: [Taskfile.yml, scripts/factory/eval.mjs]
 shared_changes: false
 batch_id: batch-2026-06-17-planning
@@ -55,8 +55,8 @@ Node.js (`.mjs`, `child_process`, `fs`), Bash, K3d/kubectl (dry-run).
 ## Tasks
 
 ### Task 1 — Golden-Fixtures scaffolden
-- [ ] Ordner `tests/factory-eval/fixtures/` erstellen.
-- [ ] Drei Test-Fixtures basierend auf bereits gelösten Tickets erstellen (z. B. `T000725`, `T000726`, `T000925`):
+- [x] Ordner `tests/factory-eval/fixtures/` erstellen.
+- [x] Drei Test-Fixtures basierend auf bereits gelösten Tickets erstellen (z. B. `T000725`, `T000726`, `T000925`):
   - `tests/factory-eval/fixtures/<id>/ticket.json` (Ticket-Daten).
   - `tests/factory-eval/fixtures/<id>/expected.json` mit:
     ```json
@@ -69,7 +69,7 @@ Node.js (`.mjs`, `child_process`, `fs`), Bash, K3d/kubectl (dry-run).
 - **Acceptance:** Fixture-Dateien existieren und sind valide strukturiert.
 
 ### Task 2 — Runner & Scoring implementieren (`scripts/factory/eval.mjs`)
-- [ ] `scripts/factory/eval.mjs` schreiben.
+- [x] `scripts/factory/eval.mjs` schreiben.
   - Sequenzieller Durchlauf der Fixtures.
   - Nutzt `scripts/worktree-create.sh` zur Workspace-Isolierung.
   - Führt die Factory mit `DRY_RUN=true` aus.
@@ -78,21 +78,21 @@ Node.js (`.mjs`, `child_process`, `fs`), Bash, K3d/kubectl (dry-run).
     - *Scope-Disziplin:* Prüft verbotene Dateien.
     - *Test-Erfolg:* Führt angegebene Tests aus.
   - Erstellt `docs/factory-eval/scorecard-<ts>.json` und `docs/factory-eval/latest.json`.
-- [ ] Task `factory:eval` im `Taskfile.yml` eintragen.
+- [x] Task `factory:eval` im `Taskfile.factory.yml` eintragen (in `Taskfile.yml` via includes eingebunden).
 - **Acceptance:** Running `task factory:eval` erzeugt eine Scorecard-Datei.
 
 ### Task 3 — Diskriminierungs-Verifikation
-- [ ] Einen bewussten Regress einbauen (z. B. die Prompt-Instruktionen der Scout-Phase verzerren) und `task factory:eval` laufen lassen.
+- [x] Einen bewussten Regress einbauen (z. B. die Prompt-Instruktionen der Scout-Phase verzerren) und `task factory:eval` laufen lassen.
 - **Acceptance:** Der Score sinkt reproduzierbar gegenüber der Baseline, was beweist, dass die Harness fehlerhaften Code oder falsche Zuweisungen korrekt erkennt.
 
 ### Task 4 — Unit-Tests & CI-Wiring
-- [ ] Unit-Tests für die Scoring-Logik in `tests/local/FA-SF-58-eval-harness.bats` schreiben (vollständig offline-safe, mockt Factory-Diffeingabe).
+- [x] Unit-Tests für die Scoring-Logik in `tests/local/FA-SF-58-eval-harness.bats` schreiben (vollständig offline-safe, mockt Factory-Diffeingabe).
 - **Acceptance:** `task test:factory` läuft erfolgreich.
 
 ### Task 5 — Finale Verifikation (Pflicht-Gate)
-- [ ] `task test:changed`
-- [ ] `task freshness:regenerate`
-- [ ] `task freshness:check`
+- [x] `task test:changed`
+- [x] `task freshness:regenerate`
+- [x] `task freshness:check`
 - **Acceptance:** Alle Prüfungen grün.
 
 ## Verifikation (zusammengefasst)

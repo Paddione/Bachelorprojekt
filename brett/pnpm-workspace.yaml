@@ -1,0 +1,7 @@
+allowBuilds:
+  core-js: set this to true or false
+  esbuild: set this to true or false
+minimumReleaseAgeExclude:
+  - pg-connection-string@2.14.0
+  - pg-protocol@1.15.0
+  - pg@8.22.0

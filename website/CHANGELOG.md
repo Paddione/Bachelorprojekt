@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.97.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.97.3...website-v1.97.4) (2026-06-19)
+
+
+### Bug Fixes
+
+* **website:** create member-scoped onboarding endpoints to fix silent 403 [T000945] ([#1865](https://github.com/Paddione/Bachelorprojekt/issues/1865)) ([dcbf349](https://github.com/Paddione/Bachelorprojekt/commit/dcbf3497319cfe54ff389413b4d74f234d87745e))
+
 ## [1.97.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.97.2...website-v1.97.3) (2026-06-19)
 
 

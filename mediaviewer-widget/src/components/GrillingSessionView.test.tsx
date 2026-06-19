@@ -27,7 +27,9 @@ describe('GrillingSessionView', () => {
 
   it('shows progress bar', () => {
     render(<GrillingSessionView data={mockData} />);
-    expect(screen.getByText('1/3')).toBeDefined();
+    // Both progress-text (answered/total = 1/3) and nav-pos (currentIndex+1/total = 1/3)
+    // show "1/3" because mockData has one pre-filled existingAnswer.
+    expect(screen.getAllByText('1/3').length).toBeGreaterThanOrEqual(1);
   });
 
   it('displays existing answers pre-filled', () => {

@@ -47,7 +47,7 @@ jobs:
           IMAGE="ghcr.io/paddione/mediaviewer-widget"
           SHA="${{ steps.version.outputs.sha }}"
           docker build \
-            --build-arg VITE_ALLOWED_PARENT_ORIGINS="https://web.mentolder.de,https://web.korczewski.de,http://localhost:4321" \
+            --build-arg VITE_ALLOWED_PARENT_ORIGINS="https://web.mentolder.de,https://web.korczewski.de,http://localhost:4321,http://web.localhost" \
             -t "${IMAGE}:sha-${SHA}" \
             -t "${IMAGE}:latest" \
             -f mediaviewer-widget/Dockerfile \

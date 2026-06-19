@@ -3,7 +3,7 @@ import { COCKPIT_ROLLUP_VIEW_SQL } from './cockpit-schema';
 
 describe('COCKPIT_ROLLUP_VIEW_SQL', () => {
   it('creates the rollup view idempotently', () => {
-    expect(COCKPIT_ROLLUP_VIEW_SQL).toContain('CREATE OR REPLACE VIEW tickets.v_cockpit_rollup');
+    expect(COCKPIT_ROLLUP_VIEW_SQL).toContain('CREATE VIEW tickets.v_cockpit_rollup');
     expect(COCKPIT_ROLLUP_VIEW_SQL).toContain('WITH RECURSIVE');
   });
 

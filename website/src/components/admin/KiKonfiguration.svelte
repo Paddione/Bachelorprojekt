@@ -37,7 +37,7 @@
   let entries = $state<ProviderEntry[]>([]);
   let health = $state<Health[]>([]);
   let env = $state<EnvStatus | null>(null);
-  let embed = $state<{ primary: string; fallback: string | null }>({ primary: 'bge-m3', fallback: null });
+  let embed = $state<{ primary: string; fallback: string | null; rerankEnabled: boolean }>({ primary: 'bge-m3', fallback: null, rerankEnabled: false });
   let loadError = $state('');
   let toast = $state('');
 
@@ -189,7 +189,7 @@
       showToast(body.error ?? 'Speichern fehlgeschlagen');
       return;
     }
-    embed = { primary, fallback };
+    embed = { primary, fallback, rerankEnabled: embed.rerankEnabled };
   }
 
   // Current embedding radio value derived from primary+fallback.
@@ -244,6 +244,7 @@
         </div>
         {#if card.key === 'embed'}
           <p class="meta">Primär: {embed.primary}{embed.fallback ? ` · Fallback: ${embed.fallback}` : ''}</p>
+          <p class="meta rerank">Rerank: {embed.rerankEnabled ? 'aktiv' : 'inaktiv'}</p>
         {:else}
           <p class="meta">{entriesFor(card.key).filter((e) => e.enabled).length} aktiv</p>
           <p class="chain">{chainSummary(card.key)}</p>

@@ -29,33 +29,35 @@ describe('Cockpit shell', () => {
     const retryBtn = await findByRole('button', { name: /wiederholen|retry/i });
     expect(retryBtn).toBeTruthy();
 
-    // Click retry — should reload portfolio successfully
     await fireEvent.click(retryBtn);
-    await waitFor(() => expect(document.querySelector('[data-testid="cockpit-sidebar"]')).toBeTruthy());
+    await waitFor(() => expect(document.querySelector('[data-testid="cockpit-table"]')).toBeTruthy());
   });
-  it('renders the sidebar and table (no lens/mode toggles)', () => {
+
+  it('renders the table (no sidebar, no lens/mode toggles)', () => {
     const { getByTestId, queryByRole } = render(Cockpit,
       { portfolioInitial: portfolioWithFeature, brand: 'mentolder' });
-    expect(getByTestId('cockpit-sidebar')).toBeTruthy();
     expect(getByTestId('cockpit-table')).toBeTruthy();
     expect(queryByRole('button', { name: /karten/i })).toBeNull();
     expect(queryByRole('button', { name: /werkbank/i })).toBeNull();
   });
+
   it('shows the empty state when no products', () => {
     const { getByTestId } = render(Cockpit, { portfolioInitial: { products: [] }, brand: 'mentolder' });
     expect(getByTestId('cockpit-empty')).toBeTruthy();
   });
-  it('loads feature tickets when a sidebar feature is clicked', async () => {
+
+  it('loads feature tickets via event-bridge', async () => {
     vi.spyOn(global, 'fetch').mockResolvedValue(new Response(JSON.stringify({
       feature: portfolioWithFeature.products[0].features[0],
       tickets: [{ id: 't1', extId: 'T1', title: 'Alpha', status: 'open', priority: 'mittel', type: 'task' }],
     }), { status: 200 }));
     const { getByText, getByTestId } = render(Cockpit,
       { portfolioInitial: portfolioWithFeature, brand: 'mentolder' });
-    await fireEvent.click(getByTestId('sidebar-feature'));
+    window.dispatchEvent(new CustomEvent('cockpit:feature-selected', { detail: { extId: 'F1' } }));
     await waitFor(() => expect(getByText('Alpha')).toBeTruthy());
     expect(getByTestId('cockpit-table')).toBeTruthy();
   });
+
   it('opens the create modal from the table + Ticket button', async () => {
     const { getByTestId } = render(Cockpit, { portfolioInitial: portfolioWithFeature, brand: 'mentolder' });
     await fireEvent.click(getByTestId('open-create'));

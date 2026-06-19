@@ -1,7 +1,7 @@
 <script lang="ts">
   import { decideBanner, type BannerDecision } from '../../lib/assistant/sidekick-nudge';
 
-  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'tickets' | 'inbox' | 'pipeline' | 'agent-guide' | 'mediaviewer' | 'grilling';
+  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'tickets' | 'inbox' | 'pipeline' | 'agent-guide' | 'mediaviewer' | 'grilling' | 'cockpit';
 
   let {
     onNavigate,
@@ -38,7 +38,7 @@
     { id: 'tickets',       no: '01', title: 'Anfragen',           sub: 'Tickets erstellen & bearbeiten', badge: pendingTickets > 0 ? pendingTickets : undefined,       show: isAdmin },
     { id: 'inbox',         no: '02', title: 'Postfach',           sub: 'Nachrichten & Anfragen',         badge: pendingInbox > 0 ? pendingInbox : undefined,           show: isAdmin },
     { id: 'pipeline',      no: '03', title: 'Pipeline',           sub: 'Ticket-Status vorne→hinten',                                                                 show: isAdmin },
-    { id: 'projekttickets',no: '04', title: 'Projekttickets',     sub: 'Container-Ansicht',            badge: pendingContainerCount,                          show: isAdmin, href: '/admin/tickets' },
+    { id: 'cockpit',      no: '04', title: 'Projekttickets', sub: 'Container & Features', badge: pendingContainerCount > 0 ? pendingContainerCount : undefined, show: isAdmin },
     { id: 'grilling',      no: '05', title: 'Final Grilling',     sub: 'Abschließende Klärungsrunde',                                                                 show: isAdmin },
     { id: 'questionnaire', no: isAdmin ? '06' : '01', title: 'Fragebögen', sub: 'Aufgaben beantworten', badge: pendingQuestionnaires > 0 ? pendingQuestionnaires : undefined, show: true },
     { id: 'support',       no: isAdmin ? '07' : '02', title: 'Feedback & Support', sub: 'Fehler melden, Ideen teilen', show: true },

@@ -11,10 +11,11 @@
   import PipelineSidekickView from './assistant/PipelineSidekickView.svelte';
   import MediaviewerPanel from './MediaviewerPanel.svelte';
   import GrillingSessionHost from './mediaviewer/GrillingSessionHost.svelte';
+  import CockpitSidekickView from './assistant/CockpitSidekickView.svelte';
   import { resolveHelpVideos } from '../lib/help-videos';
   import { parseNavigateEvent, shouldShowLearnDot } from '../lib/assistant/sidekick-nudge';
 
-  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'tickets' | 'inbox' | 'pipeline' | 'agent-guide' | 'mediaviewer' | 'grilling';
+  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'tickets' | 'inbox' | 'pipeline' | 'agent-guide' | 'mediaviewer' | 'grilling' | 'cockpit';
 
   let {
     helpSection = '',
@@ -76,6 +77,7 @@
     'agent-guide': 'Agent-Anleitung',
     mediaviewer: 'Mediaviewer',
     grilling: 'Final Grilling',
+    cockpit: 'Projekt-Cockpit',
   };
 
   $effect(() => {
@@ -286,6 +288,8 @@
       <MediaviewerPanel {mediaviewerHost} videos={mediaviewerVideos} />
     {:else if view === 'grilling'}
       <GrillingSessionHost {mediaviewerHost} ticketId={currentTicketId ?? ''} />
+    {:else if view === 'cockpit'}
+      <CockpitSidekickView />
     {/if}
   </div>
 </div>

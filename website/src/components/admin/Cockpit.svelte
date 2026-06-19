@@ -4,7 +4,7 @@
   import { ALL_TICKETS_ID } from '../../lib/tickets/cockpit-ids';
   import { cockpitStore, selectFeature, setActiveTicket, initStoreFromUrl, setLoading, setError }
     from '../../lib/stores/cockpitStore';
-  import CockpitSidebar from './CockpitSidebar.svelte';
+
   import CockpitTable from './CockpitTable.svelte';
   import TicketCreateModal from './TicketCreateModal.svelte';
   import TicketDrawer from './TicketDrawer.svelte';
@@ -49,6 +49,20 @@
       if (def) selectFeature(def.extId);
     }
     if ($cockpitStore.selectedFeature) await loadFeature($cockpitStore.selectedFeature);
+  });
+
+  onMount(() => {
+    const onFeatureSelected = (e: Event) => {
+      const extId = (e as CustomEvent<{ extId: string }>).detail?.extId;
+      if (extId) loadFeature(extId);
+    };
+    const onPortfolioMutated = () => loadPortfolio();
+    window.addEventListener('cockpit:feature-selected', onFeatureSelected);
+    window.addEventListener('cockpit:portfolio-mutated', onPortfolioMutated);
+    return () => {
+      window.removeEventListener('cockpit:feature-selected', onFeatureSelected);
+      window.removeEventListener('cockpit:portfolio-mutated', onPortfolioMutated);
+    };
   });
 
   async function loadPortfolio() {
@@ -124,22 +138,16 @@
   {#if portfolio && portfolio.products?.length === 0}
     <EmptyStateCockpit />
   {:else if portfolio}
-    <div class="layout">
-      <CockpitSidebar {portfolio} selectedFeature={$cockpitStore.selectedFeature}
-        onSelectFeature={pickFeature} onFeatureAction={featureAction}
-        onBatchFeatureAction={batchFeatureAction}
-        onMutated={refetch} />
-      <main class="main">
-        {#if $cockpitStore.isLoading}<div class="loading">Lädt …</div>{/if}
-        <CockpitTable
-          feature={currentFeatureNode}
-          tickets={featureData?.tickets ?? []}
-          features={allFeatures}
-          onMutated={refetch}
-          onOpenDrawer={openDrawer}
-          onOpenCreate={() => (createOpen = true)} />
-      </main>
-    </div>
+    <main class="main">
+      {#if $cockpitStore.isLoading}<div class="loading">Lädt …</div>{/if}
+      <CockpitTable
+        feature={currentFeatureNode}
+        tickets={featureData?.tickets ?? []}
+        features={allFeatures}
+        onMutated={refetch}
+        onOpenDrawer={openDrawer}
+        onOpenCreate={() => (createOpen = true)} />
+    </main>
   {/if}
 
   <TicketCreateModal open={createOpen} features={allFeatures}
@@ -154,14 +162,9 @@
 
 <style>
   .cockpit-shell { display: flex; flex-direction: column; gap: 0.75rem; }
-  .layout { display: flex; gap: 1rem; align-items: flex-start; min-height: 60vh; }
-  .main { flex: 1 1 auto; min-width: 0; }
+  .main { flex: 1 1 auto; min-width: 0; width: 100%; }
   .toast.error { background: #ef4444; color: #fff; padding: 0.5rem 0.75rem; border-radius: 6px; font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem; }
   .retry { margin-left: auto; background: rgba(255,255,255,0.2); border: none;
     color: #fff; border-radius: 4px; padding: 0.2rem 0.5rem; cursor: pointer; font-size: 0.8rem; white-space: nowrap; }
   .loading { opacity: 0.7; font-size: 0.85rem; margin-bottom: 0.5rem; }
-
-  @media (max-width: 767px) {
-    .layout { flex-direction: column; gap: 0.5rem; }
-  }
 </style>

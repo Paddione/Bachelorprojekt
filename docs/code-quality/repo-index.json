@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 476,
+      "file_count": 477,
       "files": [
         "tests/.gitignore",
         "tests/batch/batch-gap-analysis.bats",
@@ -430,6 +430,7 @@
         "tests/unit/scripts/software-history-classify.bats",
         "tests/unit/scs-index.bats",
         "tests/unit/scs-search.bats",
+        "tests/unit/secret-task-guards.bats",
         "tests/unit/secrets-sync.bats",
         "tests/unit/shared-db-initdb-selfheal.bats",
         "tests/unit/skill-orchestrator.bats",
@@ -2464,7 +2465,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 391,
+      "file_count": 392,
       "files": [
         "scripts/add-whiteboard-library.py",
         "scripts/admin-menu-gate.sh",
@@ -2854,6 +2855,7 @@
         "scripts/vda/ticket/triage.sh",
         "scripts/vda/ticket/update-status.sh",
         "scripts/verify-deployment.sh",
+        "scripts/wait-for-sealed-secret.sh",
         "scripts/whiteboard-setup.sh",
         "scripts/worktree-create.sh",
         "scripts/wsl-open.sh"

@@ -265,6 +265,7 @@ tasks:
       - '[ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive'
       - task: test:unit:assert
       - task: test:unit:scripts
+      - task: test:unit:secret-task-guards
       - task: test:unit:changed-manifests
       - task: test:unit:agents
       - task: test:unit:figure-pack
@@ -418,6 +419,11 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/scripts.bats
+
+  test:unit:secret-task-guards:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/secret-task-guards.bats
 
   test:unit:dev-reset:
     internal: true
@@ -1377,6 +1383,26 @@ tasks:
           echo "→ Applying sealed secrets to $ENV ($ENV_CONTEXT) ..."
           kubectl $CTX apply -f "$SEALED"
           echo "✓ $ENV sealed secrets applied"
+          echo "  ⚠ Applied the SealedSecret only — workloads + Postgres still hold the OLD value (latent landmine)."
+          echo "    Reconcile now: task workspace:sync-db-passwords ENV=$ENV && kubectl $CTX -n \"${WORKSPACE_NAMESPACE:-workspace}\" rollout restart deploy"
+          echo "    Or run the full path in one shot: task secrets:sync:full"
+        done
+
+  secrets:sync:full:
+    desc: "Apply SealedSecrets AND reconcile workloads+DB on both prod clusters (apply → sync-db-passwords → rollout restart)."
+    cmds:
+      - task: secrets:sync
+      - task: workspace:sync-db-passwords
+        vars: { ENV: "mentolder" }
+      - task: workspace:sync-db-passwords
+        vars: { ENV: "korczewski" }
+      - |
+        for ENV in mentolder korczewski; do
+          source scripts/env-resolve.sh "$ENV"
+          CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+          NS="${WORKSPACE_NAMESPACE:-workspace}"
+          echo "→ Rolling consumer deployments in $ENV/$NS ..."
+          kubectl $CTX -n "$NS" rollout restart deploy
         done
 
   secrets:install-hooks:
@@ -1873,6 +1899,8 @@ tasks:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
         bash scripts/backup-restore.sh restore-table {{.CLI_ARGS}} --context "$ENV_CONTEXT" --namespace "${WORKSPACE_NAMESPACE:-workspace}"
+      - task: workspace:sync-db-passwords
+        vars: { ENV: "{{.ENV}}" }
 
   recovery:unstage:
     desc: "Drop *_recovery DBs + clear staging. ENV=<env> -- <timestamp>"
@@ -1939,6 +1967,8 @@ tasks:
         bash scripts/backup-restore.sh list $ctx_arg
         echo ""
         bash scripts/backup-restore.sh restore {{.CLI_ARGS}} $ctx_arg
+      - task: workspace:sync-db-passwords
+        vars: { ENV: "{{.ENV}}" }
 
   db:diagram:
     desc: Regenerate docs/db-schema-diagram.md from live shared-db
@@ -2170,7 +2200,7 @@ tasks:
       - bash scripts/env-generate.sh --env {{.ENV}} --env-dir environments
 
   env:seal:
-    desc: Encrypt secrets into a SealedSecret manifest
+    desc: "Encrypt secrets into a SealedSecret manifest. NOTE: rotates workspace-secrets only — co-rotate website-secrets (WEBSITE_OIDC_SECRET) separately."
     vars:
       ENV: '{{.ENV | default "mentolder"}}'
     preconditions:
@@ -2421,11 +2451,12 @@ tasks:
                 --dry-run=client -o yaml | kubectl --context "$ENV_CONTEXT" apply -f -
             done
             kubectl --context "$ENV_CONTEXT" apply -f "$sealed"
-            echo "Waiting for SealedSecret to be decrypted..."
-            for i in $(seq 1 30); do
-              kubectl --context "$ENV_CONTEXT" get secret workspace-secrets -n "${_ws_ns}" &>/dev/null && break
-              sleep 1
-            done
+            if ! bash scripts/wait-for-sealed-secret.sh \
+                 --context "$ENV_CONTEXT" --namespace "${_ws_ns}" \
+                 --secret workspace-secrets --timeout 90; then
+              echo "Aborting deploy: workspace-secrets is not present — refusing to continue without credentials." >&2
+              exit 1
+            fi
             # Provision ghcr-pull-secret in the workspace namespace so image pulls succeed.
             _ghcr_pat=$(kubectl --context "$ENV_CONTEXT" get secret workspace-secrets \
               -n "${_ws_ns}" -o jsonpath='{.data.GHCR_PAT}' 2>/dev/null | base64 -d 2>/dev/null || echo "")
@@ -3522,11 +3553,22 @@ tasks:
         kubectl --context "${ENV_CONTEXT}" -n "$MCP_NS" rollout restart deployment/mcp-auth-proxy
         kubectl --context "${ENV_CONTEXT}" -n "$MCP_NS" rollout status deployment/mcp-auth-proxy --timeout=60s
 
-        echo "MCP tokens rotated"
-        echo ""
-        echo "IMPORTANT: Re-run 'task claude-code:setup -- cluster' and"
-        echo "           'task claude-code:setup -- business' on each machine"
-        echo "           to update the local Claude Code config."
+        TOKEN_VERSION="$(date -u +%Y%m%dT%H%M%SZ)"
+        kubectl --context "${ENV_CONTEXT}" -n "$MCP_NS" annotate deployment/mcp-auth-proxy \
+          "claude-code/token-version=${TOKEN_VERSION}" --overwrite
+
+        {
+          echo "════════════════════════════════════════════════════════════════"
+          echo "⚠ ACTION REQUIRED — MCP tokens rotated to version ${TOKEN_VERSION}"
+          echo "  The server now ONLY accepts the NEW token. Every machine's"
+          echo "  settings.json still holds the OLD token → 401 until re-setup."
+          echo "  Run on EACH machine:"
+          echo "    task claude-code:setup -- cluster"
+          echo "    task claude-code:setup -- business"
+          echo "  Verify the live version: kubectl --context ${ENV_CONTEXT} -n ${MCP_NS} \\"
+          echo "    get deploy mcp-auth-proxy -o jsonpath='{.metadata.annotations.claude-code/token-version}'"
+          echo "════════════════════════════════════════════════════════════════"
+        } >&2
 
   # ─────────────────────────────────────────────
   # Website (Astro + Svelte)

@@ -74,6 +74,27 @@ node "$SCRIPT_DIR/process-secrets.mjs" "$APP_NAME" "$ENV" $DRY_ARG
 echo "🔒 Processing OIDC configuration..."
 node "$SCRIPT_DIR/process-oidc.mjs" "$APP_NAME" "$ENV" $DRY_ARG
 
+# 6b. Re-seal so the cluster mirror is not stale.
+#     process-secrets.mjs / process-oidc.mjs only wrote PLAINTEXT + schema; the
+#     committed SealedSecret would otherwise lack the new app secret until a
+#     manual `task env:seal`. Fail-closed: a non-dev install that can't reseal
+#     refuses to deploy a partial app (override APP_INSTALL_SKIP_SEAL=1).
+if [[ "$DRY_RUN" != "true" ]]; then
+  if [[ "${APP_INSTALL_SKIP_SEAL:-0}" == "1" ]]; then
+    echo "⚠ APP_INSTALL_SKIP_SEAL=1 — skipping reseal; sealed mirror may be STALE for $APP_NAME."
+  else
+    echo "🔐 Re-sealing $ENV so the cluster mirror includes the new app secret..."
+    if ! bash "$SCRIPT_DIR/env-seal.sh" --env "$ENV" --env-dir "$ROOT_DIR/environments"; then
+      if [[ "$ENV" != "dev" ]]; then
+        echo "❌ Reseal failed and sealed mirror is now STALE for $ENV — refusing to deploy a partial app." >&2
+        echo "   Fix the seal (cert drift?), then re-run: task app:install -- $APP_NAME ENV=$ENV" >&2
+        exit 1
+      fi
+      echo "⚠ Reseal failed (dev) — continuing; dev uses k3d/secrets.yaml, not the sealed mirror."
+    fi
+  fi
+fi
+
 # 7. Apply Kustomize manifests
 KUBECTL_CMD="kubectl"
 if [[ "$ENV" != "dev" ]]; then

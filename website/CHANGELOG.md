@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.99.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.99.1...website-v1.99.2) (2026-06-19)
+
+
+### Bug Fixes
+
+* **grilling:** prevent skip-on-keypress by tracking current question via stable ID ([#1885](https://github.com/Paddione/Bachelorprojekt/issues/1885)) ([f806cbe](https://github.com/Paddione/Bachelorprojekt/commit/f806cbe476bdcc9dc4ae35708e6efd99b2e22383))
+
 ## [1.99.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.99.0...website-v1.99.1) (2026-06-19)
 
 

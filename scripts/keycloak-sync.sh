@@ -17,6 +17,26 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# ── Fail-closed policy (offline-testable) ─────────────────────────────
+# Non-dev runs (deploy step) must abort on an incomplete sync; dev stays soft.
+# Soft-override KEYCLOAK_SYNC_SOFT=1 downgrades hard-fails to warnings (notfall).
+kc_should_fail_closed() {
+  [[ "${ENV:-dev}" != "dev" && "${KEYCLOAK_SYNC_SOFT:-0}" != "1" ]]
+}
+kc_skip_or_die() {  # $1 = human reason
+  if kc_should_fail_closed; then
+    echo -e "${RED}[KC-SYNC]${NC} FAIL (fail-closed): $1" >&2
+    echo -e "${RED}[KC-SYNC]${NC} Override: KEYCLOAK_SYNC_SOFT=1 task keycloak:sync ENV=${ENV:-dev}" >&2
+    exit 1
+  fi
+  echo -e "${YELLOW}[KC-SYNC]${NC} $1 — Sync wird übersprungen (dev/soft)." >&2
+  exit 0
+}
+
+# Test seam: `source keycloak-sync.sh --_test-source` defines functions then returns
+# before any cluster I/O, so BATS can unit-test the policy offline.
+[[ "${1:-}" == "--_test-source" ]] && return 0 2>/dev/null || true
+
 # ── Environment ───────────────────────────────────────────────────────
 # ENV= env-var wins (Taskfile call site); fall back to a positional brand arg
 # so `bash scripts/keycloak-sync.sh korczewski` resolves correctly (matches
@@ -52,8 +72,7 @@ log "Warte auf Keycloak-Rollout..."
 # shellcheck disable=SC2086
 if ! kubectl $CONTEXT_FLAG rollout status deployment/keycloak \
      -n "$KC_NAMESPACE" --timeout=300s 2>/dev/null; then
-  warn "Keycloak nicht bereit nach 5min — Sync wird übersprungen."
-  exit 0
+  kc_skip_or_die "Keycloak nicht bereit nach 5min"
 fi
 
 # Rollout abgeschlossen, aber der Admin-API-Endpunkt braucht ggf. noch
@@ -68,8 +87,7 @@ for _i in $(seq 1 12); do
   sleep 5
 done
 if [[ $KC_READY -eq 0 ]]; then
-  warn "Keycloak HTTP-Endpunkt antwortet nicht — Sync wird übersprungen."
-  exit 0
+  kc_skip_or_die "Keycloak HTTP-Endpunkt antwortet nicht"
 fi
 
 # ── Admin-Token holen ─────────────────────────────────────────────────
@@ -91,11 +109,9 @@ ADMIN_TOKEN=$(curl -sk \
   | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4 || true)
 
 if [[ -z "$ADMIN_TOKEN" ]]; then
-  warn "Admin-Token nicht erhältlich — Sync wird übersprungen."
   warn "Passwort-Drift erkannt: workspace-secrets-Passwort stimmt nicht mit dem live admin-User überein."
   warn "Lösung: task keycloak:sync-admin-password ENV=${ENV}"
-  warn "Danach erneut: task keycloak:sync ENV=${ENV}"
-  exit 0
+  kc_skip_or_die "Admin-Token nicht erhältlich"
 fi
 
 # ── Realm-Template ConfigMap ─────────────────────────────────────────
@@ -250,6 +266,11 @@ echo ""
 log "Sync abgeschlossen: ${CREATED} erstellt, ${SECRET_UPDATED} secret-aktualisiert, ${SKIPPED} übersprungen, ${GROUPS_CREATED} Gruppen erstellt, ${GROUPS_SKIPPED} Gruppen vorhanden, ${FAILED} fehlgeschlagen."
 
 if [[ $FAILED -gt 0 ]]; then
-  warn "Einige Clients konnten nicht synchronisiert werden."
+  if kc_should_fail_closed; then
+    err "FAIL (fail-closed): ${FAILED} Client(s)/Gruppe(n) konnten nicht synchronisiert werden."
+    err "Override für Notfälle: KEYCLOAK_SYNC_SOFT=1 task keycloak:sync ENV=${ENV}"
+    exit 1
+  fi
+  warn "Einige Clients konnten nicht synchronisiert werden (dev/soft)."
   warn "Manuelle Prüfung: task keycloak:sync ENV=${ENV}"
 fi

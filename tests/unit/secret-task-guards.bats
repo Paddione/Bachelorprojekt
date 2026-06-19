@@ -84,3 +84,22 @@ EOF
     --context fake --namespace workspace --secret workspace-secrets --timeout 2
   assert_success
 }
+
+# ── Finding #2: keycloak-sync.sh must fail-closed in non-dev ────────────────
+KC_SYNC="${PROJECT_DIR}/scripts/keycloak-sync.sh"
+
+@test "#2 kc_should_fail_closed is TRUE for a prod brand without soft-override" {
+  run env -u KEYCLOAK_SYNC_SOFT bash -c \
+    'source "'"$KC_SYNC"'" --_test-source 2>/dev/null; ENV=mentolder kc_should_fail_closed && echo CLOSED'
+  assert_output --partial CLOSED
+}
+
+@test "#2 kc_should_fail_closed is FALSE for ENV=dev (dev ergonomics)" {
+  run bash -c 'source "'"$KC_SYNC"'" --_test-source 2>/dev/null; ENV=dev kc_should_fail_closed && echo CLOSED || echo OPEN'
+  assert_output --partial OPEN
+}
+
+@test "#2 kc_should_fail_closed is FALSE when KEYCLOAK_SYNC_SOFT=1 (override)" {
+  run bash -c 'source "'"$KC_SYNC"'" --_test-source 2>/dev/null; ENV=mentolder KEYCLOAK_SYNC_SOFT=1 kc_should_fail_closed && echo CLOSED || echo OPEN'
+  assert_output --partial OPEN
+}

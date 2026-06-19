@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.97.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.97.4...website-v1.97.5) (2026-06-19)
+
+
+### Bug Fixes
+
+* **website:** repair kontakt page hydration by decoupling PortalSidekick from server-only factory-floor dependency ([#1873](https://github.com/Paddione/Bachelorprojekt/issues/1873)) ([bbd8f77](https://github.com/Paddione/Bachelorprojekt/commit/bbd8f775cd190b895a3854576418df148ff62aab))
+
 ## [1.97.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.97.3...website-v1.97.4) (2026-06-19)
 
 

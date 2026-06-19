@@ -2,8 +2,8 @@
 title: Cockpit-Sidebar → Globaler PortalSidekick — Implementierungsplan
 ticket_id: T000953
 domains: [website, infra, db]
-status: active
-pr_number: null
+status: completed
+pr_number: 1887
 file_locks: []
 shared_changes: false
 batch_id: null

@@ -65,6 +65,14 @@
     saveTimer = setTimeout(() => { void patch({ grillingAnswers: answers }); }, 800);
   }
 
+  function selectChoice(value: string) {
+    if (!current) return;
+    const qn = answers[questionnaireId] ?? {};
+    answers = { ...answers, [questionnaireId]: { ...qn, [current.id]: value } };
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => { void patch({ grillingAnswers: answers }); }, 800);
+  }
+
   function dismiss() {
     if (!current) return;
     const i = ordered.findIndex((q) => q.id === currentId);
@@ -104,6 +112,18 @@
   {#if current}
     {#if current.section}<p class="text-xs uppercase text-muted">{current.section}</p>{/if}
     <p class="font-medium">{current.prompt}</p>
+    {#if current.choices && current.choices.length > 0}
+      <div class="flex flex-wrap gap-2">
+        {#each current.choices as choice}
+          <button
+            type="button"
+            data-testid={`grilling-choice-${choice.replace(/\s/g, '-')}`}
+            onclick={() => selectChoice(choice)}
+            class="rounded-full border px-3 py-1 text-sm transition-colors {answerText === choice ? 'border-gold text-gold' : 'border-dark-lighter text-muted hover:border-gold/60'}"
+          >{choice}</button>
+        {/each}
+      </div>
+    {/if}
     <textarea class="w-full rounded-lg bg-dark border border-dark-lighter p-3" rows="4" aria-label="Antwort" oninput={onInput}>{answerText}</textarea>
     <div class="flex gap-2">
       <button type="button" onclick={prev} disabled={currentIdx <= 0}>Zurück</button>

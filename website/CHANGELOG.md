@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.96.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.95.4...website-v1.96.0) (2026-06-19)
+
+
+### Features
+
+* **website:** add static referenzen fallback for mentolder ([#1850](https://github.com/Paddione/Bachelorprojekt/issues/1850)) ([fdb8b74](https://github.com/Paddione/Bachelorprojekt/commit/fdb8b74bf3884fa6a6685706b88b7576a26aa36a))
+
 ## [1.95.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.95.3...website-v1.95.4) (2026-06-19)
 
 

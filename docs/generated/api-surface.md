@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-06-17T18:34:05.423Z
+> Generated at 2026-06-19T18:22:02.959Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -376,6 +376,8 @@
 | `/api/portal/messages/{threadId}` | GET, POST | 🔑 session | `website/src/pages/api/portal/messages/[threadId].ts` |
 | `/api/portal/nachrichten` | GET | 🔑 session | `website/src/pages/api/portal/nachrichten.ts` |
 | `/api/portal/onboarding/mark-step` | POST | 🔑 session | `website/src/pages/api/portal/onboarding/mark-step.ts` |
+| `/api/portal/onboarding/reset` | POST | 🔑 session | `website/src/pages/api/portal/onboarding/reset.ts` |
+| `/api/portal/onboarding/update` | POST | 🔑 session | `website/src/pages/api/portal/onboarding/update.ts` |
 | `/api/portal/profile/export` | GET | 🔑 session | `website/src/pages/api/portal/profile/export.ts` |
 | `/api/portal/profile/update` | POST | 🔑 session | `website/src/pages/api/portal/profile/update.ts` |
 | `/api/portal/projekte` | GET | 🔑 session | `website/src/pages/api/portal/projekte.ts` |

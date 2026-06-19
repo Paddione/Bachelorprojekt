@@ -120,3 +120,16 @@ ENV_SEAL="${PROJECT_DIR}/scripts/env-seal.sh"
   run bash "$ENV_SEAL" --_test-cert-compare "${SANDBOX}/a.pem" "${SANDBOX}/b.pem"
   assert_failure
 }
+
+# ── Finding #4: restore guidance must point at sync-db-passwords ────────────
+BACKUP_RESTORE="${PROJECT_DIR}/scripts/backup-restore.sh"
+
+@test "#4 backup-restore restore-complete guidance mentions sync-db-passwords" {
+  run grep -n 'sync-db-passwords' "$BACKUP_RESTORE"
+  assert_success
+}
+
+@test "#4 db:restore task chains workspace:sync-db-passwords" {
+  run bash -c 'sed -n "/workspace:db:restore:/,/db:diagram:/p" "'"${PROJECT_DIR}/Taskfile.yml"'" | grep -c "workspace:sync-db-passwords"'
+  assert_output --partial 1
+}

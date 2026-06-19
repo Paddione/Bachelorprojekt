@@ -309,10 +309,10 @@ YAML
     done
 
     echo ""
-    echo "✓ Restore complete. Restart affected services:"
-    for db in "${DBS[@]}"; do
-      echo "  task workspace:restart -- ${db}"
-    done
+    echo "✓ Restore complete. Re-sync role passwords so new pods don't crashloop on auth drift:"
+    echo "  task workspace:sync-db-passwords ENV=<env>   # postStart self-heal does NOT fire on a restore"
+    echo "  then restart affected services: task workspace:restart -- ${DBS[*]}"
+    echo "  (db:restore now chains sync-db-passwords automatically; this is the manual equivalent.)"
     ;;
 
   pvc-list)

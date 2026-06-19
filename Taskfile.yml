@@ -1879,6 +1879,8 @@ tasks:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
         bash scripts/backup-restore.sh restore-table {{.CLI_ARGS}} --context "$ENV_CONTEXT" --namespace "${WORKSPACE_NAMESPACE:-workspace}"
+      - task: workspace:sync-db-passwords
+        vars: { ENV: "{{.ENV}}" }
 
   recovery:unstage:
     desc: "Drop *_recovery DBs + clear staging. ENV=<env> -- <timestamp>"
@@ -1945,6 +1947,8 @@ tasks:
         bash scripts/backup-restore.sh list $ctx_arg
         echo ""
         bash scripts/backup-restore.sh restore {{.CLI_ARGS}} $ctx_arg
+      - task: workspace:sync-db-passwords
+        vars: { ENV: "{{.ENV}}" }
 
   db:diagram:
     desc: Regenerate docs/db-schema-diagram.md from live shared-db

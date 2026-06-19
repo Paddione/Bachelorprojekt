@@ -68,10 +68,7 @@ const containerPlan = containerRollup
 const containerDor = containerRollup
   ? await getContainerDor(BRAND, id).catch(() => null) : null;
 const planHtml = containerPlan?.content ? renderMarkdown(containerPlan.content) : '';
-const grillingQnId = (() => {
-  const existing = Object.keys(ticket.grillingAnswers ?? {}).filter((k) => k !== 'coaching-sessions-v1');
-  return existing[0] ?? 'final-grilling-v1';
-})();
+const grillingQnId = Object.keys(ticket.grillingAnswers ?? {}).filter((k) => k !== 'coaching-sessions-v1')[0] ?? 'final-grilling-v1';
 
 const STATUS_CLS: Record<string, string> = {
   triage:      'bg-purple-900/40 text-purple-300 border-purple-800',

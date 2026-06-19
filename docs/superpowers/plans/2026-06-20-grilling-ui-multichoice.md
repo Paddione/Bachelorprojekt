@@ -50,7 +50,7 @@ depends_on_plans: []
 
 This is a one-off DB write. It is NOT committed and NOT part of the diff. Run it before/independently of the code change so that after the dynamic-selection fix lands, T000737 resolves to `final-grilling-v1` (the stale `coaching-sessions-v1` answer key is gone, so the blacklist-filter falls through to the default).
 
-- [ ] **Step 0.1: Verify current state (read-only)**
+- [x] **Step 0.1: Verify current state (read-only)**
 
 ```bash
 kubectl --context fleet exec -n workspace deploy/shared-db -- \
@@ -59,7 +59,7 @@ kubectl --context fleet exec -n workspace deploy/shared-db -- \
 ```
 Expected: one row for `T000737`, likely `has_answers = t`, `has_meta = t`.
 
-- [ ] **Step 0.2: Reset the garbage data**
+- [x] **Step 0.2: Reset the garbage data**
 
 ```bash
 kubectl --context fleet exec -n workspace deploy/shared-db -- \
@@ -68,7 +68,7 @@ kubectl --context fleet exec -n workspace deploy/shared-db -- \
 ```
 Expected: `UPDATE 1`.
 
-- [ ] **Step 0.3: Confirm**
+- [x] **Step 0.3: Confirm**
 
 ```bash
 kubectl --context fleet exec -n workspace deploy/shared-db -- \
@@ -90,7 +90,7 @@ Expected: both columns `NULL` (empty) for `T000737`.
 **Interfaces:**
 - Produces: `GrillingQuestion.choices?: string[]`; `ResolvedQuestion.choices?: string[]`. `resolveQuestions` copies `q.choices` into resolved objects for registry questions. Consumed by Task 3 (the Svelte component) and asserted by Task 2.
 
-- [ ] **Step 1: Write the failing test (choices read from registry)**
+- [x] **Step 1: Write the failing test (choices read from registry)**
 
 Append to `website/src/lib/tickets/grilling.test.ts` (inside a new `describe`):
 
@@ -123,12 +123,12 @@ describe('GrillingQuestion.choices', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd website && pnpm vitest run src/lib/tickets/grilling.test.ts`
 Expected: FAIL — `q13.choices` is `undefined` (field not yet added) and/or `resolveQuestions` result has no `choices`.
 
-- [ ] **Step 3: Add the `choices` field to the interfaces**
+- [x] **Step 3: Add the `choices` field to the interfaces**
 
 In `website/src/lib/tickets/grilling.ts`, replace the `GrillingQuestion` interface (lines 5-8):
 
@@ -146,7 +146,7 @@ And replace `ResolvedQuestion` (line 273):
 export interface ResolvedQuestion { id: string; prompt: string; section?: string; choices?: string[] }
 ```
 
-- [ ] **Step 4: Add curated choices to `final-grilling-v1`**
+- [x] **Step 4: Add curated choices to `final-grilling-v1`**
 
 In the `final-grilling-v1` block, add a `choices` array to these exact questions (replace each line in place):
 
@@ -169,7 +169,7 @@ In the `final-grilling-v1` block, add a `choices` array to these exact questions
           { id: 'q20', label: 'Wer reviewt und deployed?', choices: ['Patrick (Self-Review)', 'Factory-Autopass', 'Manuell deployen nötig'] },
 ```
 
-- [ ] **Step 5: Add curated choices to `coaching-sessions-v1`**
+- [x] **Step 5: Add curated choices to `coaching-sessions-v1`**
 
 In the `coaching-sessions-v1` block, add a `choices` array to these exact questions (replace each line in place):
 
@@ -189,7 +189,7 @@ In the `coaching-sessions-v1` block, add a `choices` array to these exact questi
           { id: 'q19', label: 'Wie flexibel darf der Ablauf sein? (vom Coachee steuerbar oder strukturiert vorgegeben?)', choices: ['Sehr strukturiert (vorgegebener Ablauf)', 'Hybrid (Rahmen + Coachee-Steuerung)', 'Offen (Coachee bestimmt)'] },
 ```
 
-- [ ] **Step 6: Surface `choices` in `resolveQuestions`**
+- [x] **Step 6: Surface `choices` in `resolveQuestions`**
 
 In `resolveQuestions` (lines 285-292), the registry branch builds resolved objects. Replace the inner push so the registry question's `choices` is carried through:
 
@@ -206,17 +206,17 @@ In `resolveQuestions` (lines 285-292), the registry branch builds resolved objec
 
 (The absorbed-meta branch below stays unchanged — meta questions never have choices.)
 
-- [ ] **Step 7: Run tests to verify they pass**
+- [x] **Step 7: Run tests to verify they pass**
 
 Run: `cd website && pnpm vitest run src/lib/tickets/grilling.test.ts`
 Expected: PASS — all new assertions plus all pre-existing `grilling.test.ts` describes (`isBlankAnswer`, `parseGrillingDoc`, `resolveQuestions`, `questionStatus`, `grillingProgress`, `splitAnswered`) stay green.
 
-- [ ] **Step 8: Verify line budget**
+- [x] **Step 8: Verify line budget**
 
 Run: `wc -l website/src/lib/tickets/grilling.ts`
 Expected: well under ~500 (≈ 327 + interface lines; adding `choices:` inline does not add lines).
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add website/src/lib/tickets/grilling.ts website/src/lib/tickets/grilling.test.ts
@@ -235,7 +235,7 @@ git commit -m "feat(grilling): add choices field to GrillingQuestion + curated c
 - Consumes: `ResolvedQuestion.choices?: string[]` from Task 1 (`current.choices`).
 - Produces: chip buttons with `data-testid="grilling-choice-{choice.replace(/\s/g,'-')}"`; clicking a chip sets the answer text for `current` to the choice (replacing prior input) and triggers the same debounced PATCH as `onInput`. Active chip (when `answerText === choice`) carries a gold border.
 
-- [ ] **Step 1: Write the failing tests (chips render + click sets textarea)**
+- [x] **Step 1: Write the failing tests (chips render + click sets textarea)**
 
 Append to `website/src/components/admin/GrillingStepper.test.ts` (the existing `QN` is `coaching-sessions-v1`; its q1 has no choices, but we navigate to a question that does — q3 is the 3rd question, reachable via two `Weiter` clicks from the first open question). To keep it robust, use `final-grilling-v1` for the chip tests via a dedicated setup:
 
@@ -280,12 +280,12 @@ describe('GrillingStepper choice chips', () => {
 
 (Keep the existing top-of-file imports; only add the `QNS` import and the `setupFinal` helper if they are not already present.)
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd website && pnpm vitest run src/components/admin/GrillingStepper.test.ts`
 Expected: FAIL — `getByTestId('grilling-choice-...')` finds nothing (chips not yet rendered).
 
-- [ ] **Step 3: Add the chip-select handler to the `<script>`**
+- [x] **Step 3: Add the chip-select handler to the `<script>`**
 
 In `GrillingStepper.svelte`, after the `onInput` function (after line 66), add:
 
@@ -299,7 +299,7 @@ In `GrillingStepper.svelte`, after the `onInput` function (after line 66), add:
   }
 ```
 
-- [ ] **Step 4: Render the chips in the `{#if current}` block**
+- [x] **Step 4: Render the chips in the `{#if current}` block**
 
 In the template, insert the chip row between the prompt (`<p class="font-medium">…`, line 106) and the `<textarea>` (line 107):
 
@@ -320,12 +320,12 @@ In the template, insert the chip row between the prompt (`<p class="font-medium"
     <textarea class="w-full rounded-lg bg-dark border border-dark-lighter p-3" rows="4" aria-label="Antwort" oninput={onInput}>{answerText}</textarea>
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `cd website && pnpm vitest run src/components/admin/GrillingStepper.test.ts`
 Expected: PASS — the three new chip tests pass; all six pre-existing `GrillingStepper` tests stay green (chips do not interfere with the `coaching-sessions-v1` q1 first-open-question, which has no choices).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add website/src/components/admin/GrillingStepper.svelte website/src/components/admin/GrillingStepper.test.ts
@@ -344,7 +344,7 @@ git commit -m "feat(grilling): render quick-select choice chips above the answer
 - Consumes: `mode` (`$state<'step'|'all'>`), `all` (`$derived` resolved questions), `answers`, `meta`, `questionStatus`, `onInput`, `selectChoice` from Task 2.
 - Produces: in `mode === 'all'`, one row per question in `all`; answered/dismissed rows visually distinct; `data-testid="grilling-all-list"` on the container so the test can assert the list shows ALL questions, not just the current one.
 
-- [ ] **Step 1: Write the failing test (all-mode shows every question)**
+- [x] **Step 1: Write the failing test (all-mode shows every question)**
 
 Append to `website/src/components/admin/GrillingStepper.test.ts`:
 
@@ -377,12 +377,12 @@ Add `within` to the top-level testing-library import:
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/svelte';
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd website && pnpm vitest run src/components/admin/GrillingStepper.test.ts`
 Expected: FAIL — `getByTestId('grilling-all-list')` finds nothing (all-mode still renders the single-question template).
 
-- [ ] **Step 3: Wrap the template in a `mode` branch and add the all-mode list**
+- [x] **Step 3: Wrap the template in a `mode` branch and add the all-mode list**
 
 Replace the `{#if current} … {:else} … {/if}` template region (lines 104-115) with:
 
@@ -436,17 +436,17 @@ Replace the `{#if current} … {:else} … {/if}` template region (lines 104-115
 
 > Note: the all-mode `<input>`'s `oninput` sets `currentId = q.id` first so `onInput` (which reads `current`) writes to the correct question. The `$effect` re-init guard only fires when `currentId` is empty or not in `all`, so this assignment is safe (q.id is always in `all`).
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `cd website && pnpm vitest run src/components/admin/GrillingStepper.test.ts`
 Expected: PASS — all-mode tests pass; the existing `mode toggle switches between step and all mode` test (which only asserts the button label flips) still passes; all chip and navigation tests stay green.
 
-- [ ] **Step 5: Verify line budget**
+- [x] **Step 5: Verify line budget**
 
 Run: `wc -l website/src/components/admin/GrillingStepper.svelte`
 Expected: well under ~500 (≈ 116 + ~40 lines).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add website/src/components/admin/GrillingStepper.svelte website/src/components/admin/GrillingStepper.test.ts
@@ -464,7 +464,7 @@ git commit -m "feat(grilling): implement all-mode question list in GrillingStepp
 **Interfaces:**
 - Consumes: `ticket.grillingAnswers` (type `GrillingAnswers | null`). Produces: `grillingQnId` passed as `questionnaireId` to `GrillingStepper`.
 
-- [ ] **Step 1: Add the derived questionnaire id to the frontmatter**
+- [x] **Step 1: Add the derived questionnaire id to the frontmatter**
 
 In the `[id].astro` frontmatter (the `---` script block at the top), add this const alongside the other `ticket`-derived locals (e.g. near where `isContainer`/`containerDor` are computed):
 
@@ -475,7 +475,7 @@ const grillingQnId = (() => {
 })();
 ```
 
-- [ ] **Step 2: Use it in the GrillingStepper props**
+- [x] **Step 2: Use it in the GrillingStepper props**
 
 Replace line 185:
 
@@ -487,7 +487,7 @@ with:
             questionnaireId={grillingQnId}
 ```
 
-- [ ] **Step 3: Verify the build compiles + line budget**
+- [x] **Step 3: Verify the build compiles + line budget**
 
 Run: `cd website && pnpm astro check 2>&1 | tail -20` (or `pnpm build` if `astro check` is unavailable)
 Expected: no new type errors referencing `[id].astro` / `grillingQnId`.
@@ -495,7 +495,7 @@ Expected: no new type errors referencing `[id].astro` / `grillingQnId`.
 Run: `wc -l website/src/pages/admin/tickets/[id].astro`
 Expected: ≈ 398 + 4 lines = ~402, comfortably under ~500. (If the project's S1 limit for this file is a hard 400, hoist the IIFE into the existing const block to stay line-neutral — but the documented headroom is ~500.)
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add "website/src/pages/admin/tickets/[id].astro"
@@ -508,12 +508,12 @@ git commit -m "fix(grilling): derive questionnaire id dynamically instead of har
 
 **Files:** none (verification task).
 
-- [ ] **Step 1: Run the website vitest suite**
+- [x] **Step 1: Run the website vitest suite**
 
 Run: `cd website && pnpm vitest run`
 Expected: PASS — entire suite green, in particular `src/lib/tickets/grilling.test.ts` and `src/components/admin/GrillingStepper.test.ts`.
 
-- [ ] **Step 2: If any pre-existing test broke, fix forward**
+- [x] **Step 2: If any pre-existing test broke, fix forward**
 
 Do NOT weaken assertions to make them pass. If a chip/all-mode change broke an existing stepper test, the rendering changed in a way the test legitimately catches — adjust the implementation, not the test, unless the test asserted now-obsolete markup. Re-run until green.
 
@@ -526,16 +526,16 @@ Do NOT weaken assertions to make them pass. If a chip/all-mode change broke an e
 - Modify: `openspec/changes/grilling-ui-multichoice/tasks.md` (mirror of this plan — see separate deliverable)
 - Modify: `openspec/changes/grilling-ui-multichoice/specs/grilling-ui-multichoice.md`
 
-- [ ] **Step 1: Fill proposal.md** — Why (the 4 problems from the spec) + What (the 5 solution points), keep the `_Ticket: T000737_` footer.
+- [x] **Step 1: Fill proposal.md** — Why (the 4 problems from the spec) + What (the 5 solution points), keep the `_Ticket: T000737_` footer.
 
-- [ ] **Step 2: Fill the spec delta** with real ADDED Requirements + Scenarios. At minimum: a "Quick-select choices" requirement and a "Dynamic questionnaire selection" requirement, each with GIVEN/WHEN/THEN scenarios.
+- [x] **Step 2: Fill the spec delta** with real ADDED Requirements + Scenarios. At minimum: a "Quick-select choices" requirement and a "Dynamic questionnaire selection" requirement, each with GIVEN/WHEN/THEN scenarios.
 
-- [ ] **Step 3: Validate**
+- [x] **Step 3: Validate**
 
 Run: `bash scripts/openspec.sh validate`
 Expected: PASS (no open placeholders remain; format-conformant).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add openspec/changes/grilling-ui-multichoice/

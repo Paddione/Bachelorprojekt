@@ -15,6 +15,12 @@ import ProjectQuestionnairesPanel, { type AssignmentBundle } from '../../../comp
 import GrillingStepper from '../../../components/admin/GrillingStepper.svelte';
 import { renderMarkdown } from '../../../lib/markdown';
 import '../../../styles/markdown.css';
+import { statusLabel, typeLabel } from '../../../lib/tickets/cockpit-labels';
+import { getContainerRollup, getTicketPlan, getContainerDor } from '../../../lib/tickets/container-detail';
+import ContainerChildrenList from '../../../components/admin/ContainerChildrenList.astro';
+import ContainerRollupHeader from '../../../components/admin/ContainerRollupHeader.svelte';
+import ContainerDorPanel from '../../../components/admin/ContainerDorPanel.svelte';
+import TicketPlanPanel from '../../../components/admin/TicketPlanPanel.svelte';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -52,10 +58,15 @@ if (ticket.type === 'project') {
   }
 }
 
-const STATUS_LABEL: Record<string, string> = {
-  triage: 'Triage', backlog: 'Backlog', in_progress: 'In Arbeit',
-  in_review: 'Review', blocked: 'Blockiert', done: 'Fertig', archived: 'Archiviert',
-};
+const isContainer = ['project','feature'].includes(ticket.type);
+const containerRollup = isContainer
+  ? await getContainerRollup(BRAND, id).catch(() => null) : null;
+const containerPlan = containerRollup
+  ? await getTicketPlan(BRAND, id).catch(() => null) : null;
+const containerDor = containerRollup
+  ? await getContainerDor(BRAND, id).catch(() => null) : null;
+const planHtml = containerPlan?.content ? renderMarkdown(containerPlan.content) : '';
+
 const STATUS_CLS: Record<string, string> = {
   triage:      'bg-purple-900/40 text-purple-300 border-purple-800',
   backlog:     'bg-slate-900/40 text-slate-300 border-slate-700',
@@ -64,9 +75,6 @@ const STATUS_CLS: Record<string, string> = {
   blocked:     'bg-red-900/40 text-red-300 border-red-800',
   done:        'bg-green-900/40 text-green-300 border-green-800',
   archived:    'bg-dark text-muted border-dark-lighter',
-};
-const TYPE_LABEL: Record<string, string> = {
-  bug: '🐛 Bug', feature: '✨ Feature', task: '📋 Task', project: '📁 Projekt',
 };
 const PRIO_CLS:  Record<string, string> = { hoch: 'text-red-400', mittel: 'text-yellow-400', niedrig: 'text-green-400' };
 const PRIO_ICON: Record<string, string> = { hoch: '▲', mittel: '●', niedrig: '▼' };
@@ -99,10 +107,10 @@ function fmtDateTime(d: Date | string | null): string {
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-3 flex-wrap mb-2">
             <span class="text-xs px-2 py-1 rounded bg-dark-light border border-dark-lighter text-muted whitespace-nowrap">
-              {TYPE_LABEL[ticket.type] ?? ticket.type}
+              {typeLabel(ticket.type)}
             </span>
             <span class={`text-xs px-2 py-0.5 rounded-full border ${STATUS_CLS[ticket.status] ?? ''}`}>
-              {STATUS_LABEL[ticket.status] ?? ticket.status}
+              {statusLabel(ticket.status)}
               {ticket.resolution && ` (${ticket.resolution})`}
             </span>
             <span class={`text-sm font-semibold ${PRIO_CLS[ticket.priority] ?? ''}`}>
@@ -131,6 +139,15 @@ function fmtDateTime(d: Date | string | null): string {
       <div class="mb-6">
         <TicketActionBar client:load ticketId={ticket.id} currentStatus={ticket.status} />
       </div>
+
+      {containerRollup && (
+        <div class="mb-6">
+          <ContainerRollupHeader client:load
+            rollup={containerRollup} status={ticket.status}
+            planBranch={containerPlan?.branch ?? null}
+            prNumber={containerPlan?.prNumber ?? null} />
+        </div>
+      )}
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main column */}
@@ -161,28 +178,12 @@ function fmtDateTime(d: Date | string | null): string {
 
           <ProjectQuestionnairesPanel assignments={questionnaireBundles} />
 
-          {/* Children tree */}
+          {containerDor && <ContainerDorPanel client:load dor={containerDor} />}
+
+          {containerPlan && <TicketPlanPanel client:load plan={containerPlan} renderedHtml={planHtml} />}
+
           {ticket.children.length > 0 && (
-            <div class="bg-dark-light rounded-2xl border border-dark-lighter p-6">
-              <h2 class="text-sm font-semibold text-light mb-3 font-serif uppercase tracking-wide">
-                Kind-Tickets ({ticket.children.length})
-              </h2>
-              <ul class="space-y-2">
-                {ticket.children.map(c => (
-                  <li class="flex items-center gap-3 text-sm">
-                    <span class="font-mono text-xs text-gold w-32 shrink-0">
-                      {c.externalId ?? c.id.slice(0, 8)}
-                    </span>
-                    <a href={`/admin/tickets/${c.id}`} class="text-light hover:text-gold flex-1 truncate">
-                      {c.title}
-                    </a>
-                    <span class={`text-xs px-2 py-0.5 rounded-full border whitespace-nowrap ${STATUS_CLS[c.status] ?? ''}`}>
-                      {STATUS_LABEL[c.status] ?? c.status}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <ContainerChildrenList children={ticket.children} />
           )}
 
           {/* Linked tickets */}

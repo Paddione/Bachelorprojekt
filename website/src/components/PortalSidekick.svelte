@@ -33,6 +33,7 @@
   let view = $state<View>('home');
   let pendingQuestionnaires = $state(0);
   let pendingTickets = $state(0);
+  let pendingContainerCount = $state(0);
   const mediaviewerVideos = $derived(resolveHelpVideos(videovaultHost));
   let inboxPending = $state(0);
   let isMobile = $state(false);
@@ -48,7 +49,7 @@
     shouldShowLearnDot(
       learningSummary,
       helpContext,
-      pendingQuestionnaires > 0 || pendingTickets > 0 || inboxPending > 0,
+      pendingQuestionnaires > 0 || pendingTickets > 0 || inboxPending > 0 || pendingContainerCount > 0,
     )
   );
 
@@ -133,6 +134,14 @@
               inboxPending = id.total ?? 0;
             }
           } catch { /* badge stays 0 */ }
+
+          try {
+            const cRes = await fetch('/api/admin/cockpit/container-count', { credentials: 'same-origin' });
+            if (cRes.ok) {
+              const cd = await cRes.json() as { total?: number };
+              pendingContainerCount = cd.total ?? 0;
+            }
+          } catch { /* badge stays 0 */ }
         }
       } catch { /* widget is optional */ }
     })();
@@ -196,8 +205,8 @@
   aria-label={open ? 'Sidekick schließen' : 'Sidekick öffnen'}
   aria-expanded={open}
 >
-  {#if (pendingQuestionnaires > 0 || pendingTickets > 0 || inboxPending > 0) && !open}
-    <span class="fab-badge">{Math.min(99, pendingQuestionnaires + pendingTickets + inboxPending)}</span>
+  {#if (pendingQuestionnaires > 0 || pendingTickets > 0 || inboxPending > 0 || pendingContainerCount > 0) && !open}
+    <span class="fab-badge">{Math.min(99, pendingQuestionnaires + pendingTickets + inboxPending + pendingContainerCount)}</span>
   {/if}
   {#if showLearnDot}
     <span class="fab-dot" aria-hidden="true"></span>
@@ -256,6 +265,7 @@
         {helpContext}
         {pendingTickets}
         pendingInbox={inboxPending}
+        {pendingContainerCount}
         summary={learningSummary}
       />
     {:else if view === 'support'}

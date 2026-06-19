@@ -49,8 +49,8 @@ Plan: `docs/superpowers/plans/2026-06-20-grilling-ui-multichoice.md` · Ticket: 
 
 ## Task 7: Finale Verifikation (PFLICHT)
 
-- [ ] `task test:inventory` (+ `test-inventory.json` committen falls geändert)
-- [ ] `task test:changed`
-- [ ] `task test:openspec`
-- [ ] `task freshness:regenerate`
-- [ ] `task freshness:check` (S1–S4-Ratchet + Baseline grün)
+- [x] `task test:inventory` (+ `test-inventory.json` committen falls geändert)
+- [x] `task test:changed`
+- [x] `task test:openspec`
+- [x] `task freshness:regenerate`
+- [x] `task freshness:check` (S1–S4-Ratchet + Baseline grün)

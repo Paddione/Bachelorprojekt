@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.97.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.97.2...website-v1.97.3) (2026-06-19)
+
+
+### Bug Fixes
+
+* **website:** add object-list support to SchemaEditor to prevent data corruption [T000946] ([#1867](https://github.com/Paddione/Bachelorprojekt/issues/1867)) ([449e9a0](https://github.com/Paddione/Bachelorprojekt/commit/449e9a0cc0b8e85edd3a7f17372dc6905a50ac72))
+
 ## [1.97.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.97.1...website-v1.97.2) (2026-06-19)
 
 

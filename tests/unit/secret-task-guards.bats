@@ -103,3 +103,20 @@ KC_SYNC="${PROJECT_DIR}/scripts/keycloak-sync.sh"
   run bash -c 'source "'"$KC_SYNC"'" --_test-source 2>/dev/null; ENV=mentolder KEYCLOAK_SYNC_SOFT=1 kc_should_fail_closed && echo CLOSED || echo OPEN'
   assert_output --partial OPEN
 }
+
+# ── Finding #3: env-seal cert-fingerprint compare seam ─────────────────────
+ENV_SEAL="${PROJECT_DIR}/scripts/env-seal.sh"
+
+@test "#3 env-seal --_test-cert-compare exits ZERO for identical certs" {
+  printf 'CERT-A\n' > "${SANDBOX}/a.pem"
+  printf 'CERT-A\n' > "${SANDBOX}/b.pem"
+  run bash "$ENV_SEAL" --_test-cert-compare "${SANDBOX}/a.pem" "${SANDBOX}/b.pem"
+  assert_success
+}
+
+@test "#3 env-seal --_test-cert-compare exits NON-ZERO for drifted certs" {
+  printf 'CERT-A\n' > "${SANDBOX}/a.pem"
+  printf 'CERT-B-DIFFERENT\n' > "${SANDBOX}/b.pem"
+  run bash "$ENV_SEAL" --_test-cert-compare "${SANDBOX}/a.pem" "${SANDBOX}/b.pem"
+  assert_failure
+}

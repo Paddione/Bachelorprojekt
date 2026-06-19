@@ -12,9 +12,7 @@
 #   environments/sealed-secrets/<name>.yaml
 # ═══════════════════════════════════════════════════════════════════
 set -euo pipefail
-
 # ── Globals ──────────────────────────────────────────────────────
-
 ENV_NAME=""
 ENV_DIR="environments"
 FORCE=false
@@ -23,25 +21,20 @@ _TEST_DUP_FILE=""
 _TEST_COMPLETENESS_FILE=""
 _TEST_SCHEMA_FILE=""
 _TEST_COMPLETENESS_ENV_FILE=""
-
+REUSE_CERT=false; _TEST_CERT_A=""; _TEST_CERT_B=""
 # ── Helpers ──────────────────────────────────────────────────────
-
 die() {
   echo "ERROR: $*" >&2
   exit 1
 }
-
 info() {
   echo "INFO: $*"
 }
-
 usage() {
   echo "Usage: $(basename "$0") --env <name> [--env-dir <path>]"
   exit 1
 }
-
 # ── Dev-value scanner ────────────────────────────────────────────
-
 scan_for_dev_values() {
   local secrets_file="$1"
   local schema_file="${2:-}"
@@ -84,11 +77,9 @@ scan_for_dev_values() {
         fi
         [[ "$required" == "true" ]] && is_bad=true
       fi
-
       $is_bad && bad_keys+=("$key")
     fi
   done < "$secrets_file"
-
   if [[ ${#bad_keys[@]} -gt 0 ]]; then
     echo "WARNING: The following secrets appear to contain dev placeholder values:"
     for k in "${bad_keys[@]}"; do
@@ -105,14 +96,11 @@ scan_for_dev_values() {
   fi
   return 0
 }
-
 # ── Duplicate key checker ─────────────────────────────────────────
-
 check_duplicate_keys() {
   local secrets_file="$1"
   [[ ! -f "$secrets_file" ]] && { echo "ERROR: File not found: ${secrets_file}"; return 1; }
   local duplicates=()
-
   while IFS= read -r key; do
     [[ -z "$key" ]] && continue
     duplicates+=("$key")
@@ -122,7 +110,6 @@ check_duplicate_keys() {
       | sort \
       | uniq -d
   )
-
   if [[ ${#duplicates[@]} -gt 0 ]]; then
     # Duplicate keys are always an error — unlike placeholder values, there is no
     # valid reason to force-seal a structurally broken secrets file. Fix by removing
@@ -136,7 +123,6 @@ check_duplicate_keys() {
   fi
   return 0
 }
-
 # schema_keys <file> <section> — extract all "name:" values under a section
 schema_keys() {
   local file="$1" section="$2"
@@ -149,7 +135,6 @@ schema_keys() {
     }
   ' "$file"
 }
-
 # schema_field <file> <section> <key> <field> — get a field for a specific key
 schema_field() {
   local file="$1" section="$2" key="$3" field="$4"
@@ -253,6 +238,8 @@ while [[ $# -gt 0 ]]; do
     --_test-completeness)    _TEST_COMPLETENESS_FILE="$2"; shift 2 ;;
     --_test-schema)          _TEST_SCHEMA_FILE="$2"; shift 2 ;;
     --_test-env-file)        _TEST_COMPLETENESS_ENV_FILE="$2"; shift 2 ;;
+    --reuse-cert)            REUSE_CERT=true; shift ;;
+    --_test-cert-compare)    _TEST_CERT_A="$2"; _TEST_CERT_B="$3"; shift 3 ;;
     *)                  echo "Unknown option: $1"; usage ;;
   esac
 done
@@ -283,6 +270,14 @@ if [[ -n "$_TEST_COMPLETENESS_FILE" ]]; then
     exit 0
   else
     exit 1
+  fi
+fi
+
+if [[ -n "$_TEST_CERT_A" ]]; then
+  if [[ "$(sha256sum < "$_TEST_CERT_A" | cut -d' ' -f1)" == "$(sha256sum < "$_TEST_CERT_B" | cut -d' ' -f1)" ]]; then
+    echo "OK: certs match"; exit 0
+  else
+    echo "DRIFT: certs differ"; exit 1
   fi
 fi
 
@@ -331,6 +326,19 @@ if [[ ! -f "$CERT_FILE" ]]; then
   info "Certificate saved to: ${CERT_FILE}"
 else
   info "Using existing certificate: ${CERT_FILE}"
+  if [[ "$REUSE_CERT" != "true" ]]; then
+    LIVE_CERT=$(mktemp)
+    if kubeseal --controller-name=sealed-secrets --controller-namespace=sealed-secrets --context "$CONTEXT" --fetch-cert > "$LIVE_CERT" 2>/dev/null && [[ -s "$LIVE_CERT" ]]; then
+      if [[ "$(sha256sum < "$CERT_FILE" | cut -d' ' -f1)" != "$(sha256sum < "$LIVE_CERT" | cut -d' ' -f1)" ]]; then
+        rm -f "$LIVE_CERT"
+        die "Sealing cert drift: ${CERT_FILE} != live cluster cert (context ${CONTEXT}). The controller keypair rotated. Run 'task env:fetch-cert ENV=${ENV_NAME}' then re-seal, or pass --reuse-cert to seal against the cached cert anyway."
+      fi
+      info "Cert fingerprint matches live cluster."
+    else
+      echo "WARN: Cluster nicht erreichbar — Cert-Fingerprint NICHT verifiziert; reuse von ${CERT_FILE}." >&2
+    fi
+    rm -f "$LIVE_CERT"
+  fi
 fi
 
 # ── Scan for dev placeholder values ─────────────────────────────
@@ -356,14 +364,10 @@ if [[ -f "$SCHEMA" ]]; then
 else
   info "No schema file found at ${SCHEMA}, skipping completeness check."
 fi
-
 # ── Build temporary K8s Secret manifest ──────────────────────────
-
 TMPDIR=$(mktemp -d)
 trap 'rm -rf "$TMPDIR"' EXIT
-
 SECRET_MANIFEST="${TMPDIR}/secret.yaml"
-
 {
   echo "apiVersion: v1"
   echo "kind: Secret"
@@ -394,13 +398,9 @@ SECRET_MANIFEST="${TMPDIR}/secret.yaml"
     fi
   done < "$SECRETS_FILE"
 } > "$SECRET_MANIFEST"
-
 # ── Seal the secret ──────────────────────────────────────────────
-
 mkdir -p "$SEALED_DIR"
-
 info "Encrypting workspace-secrets with kubeseal..."
-
 kubeseal --cert "$CERT_FILE" \
          --format yaml \
          < "$SECRET_MANIFEST" \

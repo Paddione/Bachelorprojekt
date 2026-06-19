@@ -144,10 +144,15 @@ build_kv_map() {
     | jq -r '.data | to_entries[] | select(.key | endswith("_OIDC_SECRET")) | "\(.key)=\(.value|@base64d)"' 2>/dev/null || true
 
   # WEBSITE_OIDC_SECRET lives in website-secrets (website namespace), not workspace-secrets.
+  # env:seal of workspace-secrets does NOT rotate it — co-rotate website-secrets separately.
   # shellcheck disable=SC2086
-  kubectl $CONTEXT_FLAG get secret website-secrets -n "${WEBSITE_NAMESPACE:-website}" \
+  _website_oidc=$(kubectl $CONTEXT_FLAG get secret website-secrets -n "${WEBSITE_NAMESPACE:-website}" \
     -o json 2>/dev/null \
-    | jq -r '.data | to_entries[] | select(.key | endswith("_OIDC_SECRET")) | "\(.key)=\(.value|@base64d)"' 2>/dev/null || true
+    | jq -r '.data | to_entries[] | select(.key | endswith("_OIDC_SECRET")) | "\(.key)=\(.value|@base64d)"' 2>/dev/null || true)
+  if [ -z "$_website_oidc" ]; then
+    echo -e "${YELLOW}[KC-SYNC]${NC} WEBSITE_OIDC_SECRET aus website-secrets (ns ${WEBSITE_NAMESPACE:-website}) ist leer/missing — Website-SSO-Client wird NICHT mit-synchronisiert. Co-Rotation prüfen." >&2
+  fi
+  printf '%s\n' "$_website_oidc"
 }
 
 KV_MAP=$(build_kv_map)

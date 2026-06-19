@@ -158,3 +158,14 @@ APP_INSTALL="${PROJECT_DIR}/scripts/app-install.sh"
   run bash -c 'sed -n "/claude-code:rotate-tokens:/,/Website (Astro/p" "'"${PROJECT_DIR}/Taskfile.yml"'" | grep -ciE "token-version|annotate"'
   refute_output --partial 0
 }
+
+# ── Finding #9: keycloak-sync warns loudly when website-secrets fetch is empty
+@test "#9 keycloak-sync warns when WEBSITE_OIDC_SECRET is missing" {
+  run grep -ciE 'WEBSITE_OIDC_SECRET.*(leer|empty|fehlt|missing)|website-secrets.*(leer|empty)' "${PROJECT_DIR}/scripts/keycloak-sync.sh"
+  refute_output --partial 0
+}
+
+@test "#9 env:seal desc notes website-secrets co-rotation" {
+  run bash -c 'sed -n "/  env:seal:/,/  env:fetch-cert:/p" "'"${PROJECT_DIR}/Taskfile.yml"'" | grep -ciE "website-secrets|WEBSITE_OIDC"'
+  refute_output --partial 0
+}

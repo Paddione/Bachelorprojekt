@@ -136,3 +136,24 @@ describe('GrillingStepper choice chips', () => {
     expect(screen.queryByTestId(/^grilling-choice-/)).toBeNull();
   });
 });
+
+describe('GrillingStepper all mode', () => {
+  it('shows all questions as a list when mode is "all"', async () => {
+    setup(null, null); // coaching-sessions-v1, 23 questions
+    await fireEvent.click(screen.getByTestId('grilling-mode')); // step -> all
+    const list = screen.getByTestId('grilling-all-list');
+    expect(list).toBeTruthy();
+    // every registry question label is present in all-mode
+    const labels = QUESTIONNAIRES[QN].sections.flatMap((s) => s.questions).map((q) => q.label);
+    for (const label of labels) {
+      expect(within(list).getByText(label)).toBeTruthy();
+    }
+  });
+
+  it('answered questions show their answer preview in all mode', async () => {
+    setup({ [QN]: { q1: 'Meine erste Antwort' } }, null);
+    await fireEvent.click(screen.getByTestId('grilling-mode'));
+    const list = screen.getByTestId('grilling-all-list');
+    expect(within(list).getByText(/Meine erste Antwort/)).toBeTruthy();
+  });
+});

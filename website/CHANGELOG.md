@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.96.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.96.0...website-v1.96.1) (2026-06-19)
+
+
+### Bug Fixes
+
+* **ci:** correct PLZ 20459 and CONTACT_CITY for mentolder impressum ([#1852](https://github.com/Paddione/Bachelorprojekt/issues/1852)) ([37c21c2](https://github.com/Paddione/Bachelorprojekt/commit/37c21c28f3541e0b0af5cfe2e5191b7f501db534))
+
 ## [1.96.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.95.4...website-v1.96.0) (2026-06-19)
 
 

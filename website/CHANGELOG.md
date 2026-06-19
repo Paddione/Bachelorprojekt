@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.101.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.100.0...website-v1.101.0) (2026-06-19)
+
+
+### Features
+
+* **admin:** cockpit fullscreen overview with spec progress and dynamic labels [T000955] ([#1889](https://github.com/Paddione/Bachelorprojekt/issues/1889)) ([eb9ad98](https://github.com/Paddione/Bachelorprojekt/commit/eb9ad98e3e17e4a063145591c185f95fb219a4a0))
+
 ## [1.100.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.99.2...website-v1.100.0) (2026-06-19)
 
 

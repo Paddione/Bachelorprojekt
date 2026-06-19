@@ -143,34 +143,74 @@
 
     {:else if field.type === 'list'}
       <div class="space-y-2">
-        {#each ((value ?? []) as string[]) as item, idx (idx)}
-          <div class="flex gap-2">
-            <input
-              type="text"
-              value={item}
-              oninput={(e) => {
-                const arr = [...(value ?? [])];
-                arr[idx] = (e.target as HTMLInputElement).value;
-                onChange(arr);
-              }}
-              class="{inputCls} flex-1"
-            />
-            <button
-              type="button"
-              onclick={() => {
-                const arr = [...(value ?? [])];
-                arr.splice(idx, 1);
-                onChange(arr);
-              }}
-              class="px-3 py-2 text-xs bg-dark border border-dark-lighter text-red-400 hover:text-red-300 rounded-lg transition-colors"
-            >−</button>
-          </div>
-        {/each}
-        <button
-          type="button"
-          onclick={() => onChange([...(value ?? []), ''])}
-          class="px-3 py-1.5 text-xs bg-dark border border-dark-lighter text-muted hover:text-light hover:border-gold/50 rounded-lg transition-colors"
-        >+ Hinzufügen</button>
+        {#if field.fields}
+          <!-- Object list: each item is a sub-form -->
+          {#each ((value ?? []) as Record<string, any>[]) as item, idx (idx)}
+            <div class="flex gap-2 items-start p-3 bg-dark/50 border border-dark-lighter rounded-lg">
+              <div class="flex-1 space-y-2">
+                {#each (field.fields ?? []) as subField (subField.key)}
+                  {@render fieldRenderer(
+                    subField,
+                    (item ?? {})[subField.key],
+                    (val) => {
+                      const arr = [...(value ?? [])];
+                      arr[idx] = { ...(arr[idx] ?? {}), [subField.key]: val };
+                      onChange(arr);
+                    }
+                  )}
+                {/each}
+              </div>
+              <button
+                type="button"
+                onclick={() => {
+                  const arr = [...(value ?? [])];
+                  arr.splice(idx, 1);
+                  onChange(arr);
+                }}
+                class="px-3 py-2 text-xs bg-dark border border-dark-lighter text-red-400 hover:text-red-300 rounded-lg transition-colors"
+              >−</button>
+            </div>
+          {/each}
+          <button
+            type="button"
+            onclick={() => {
+              const empty: Record<string, any> = {};
+              for (const sf of field.fields ?? []) empty[sf.key] = '';
+              onChange([...(value ?? []), empty]);
+            }}
+            class="px-3 py-1.5 text-xs bg-dark border border-dark-lighter text-muted hover:text-light hover:border-gold/50 rounded-lg transition-colors"
+          >+ Hinzufügen</button>
+        {:else}
+          <!-- Flat string list (existing behavior) -->
+          {#each ((value ?? []) as string[]) as item, idx (idx)}
+            <div class="flex gap-2">
+              <input
+                type="text"
+                value={item}
+                oninput={(e) => {
+                  const arr = [...(value ?? [])];
+                  arr[idx] = (e.target as HTMLInputElement).value;
+                  onChange(arr);
+                }}
+                class="{inputCls} flex-1"
+              />
+              <button
+                type="button"
+                onclick={() => {
+                  const arr = [...(value ?? [])];
+                  arr.splice(idx, 1);
+                  onChange(arr);
+                }}
+                class="px-3 py-2 text-xs bg-dark border border-dark-lighter text-red-400 hover:text-red-300 rounded-lg transition-colors"
+              >−</button>
+            </div>
+          {/each}
+          <button
+            type="button"
+            onclick={() => onChange([...(value ?? []), ''])}
+            class="px-3 py-1.5 text-xs bg-dark border border-dark-lighter text-muted hover:text-light hover:border-gold/50 rounded-lg transition-colors"
+          >+ Hinzufügen</button>
+        {/if}
       </div>
 
     {:else if field.type === 'group'}

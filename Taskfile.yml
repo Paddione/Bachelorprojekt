@@ -2427,11 +2427,12 @@ tasks:
                 --dry-run=client -o yaml | kubectl --context "$ENV_CONTEXT" apply -f -
             done
             kubectl --context "$ENV_CONTEXT" apply -f "$sealed"
-            echo "Waiting for SealedSecret to be decrypted..."
-            for i in $(seq 1 30); do
-              kubectl --context "$ENV_CONTEXT" get secret workspace-secrets -n "${_ws_ns}" &>/dev/null && break
-              sleep 1
-            done
+            if ! bash scripts/wait-for-sealed-secret.sh \
+                 --context "$ENV_CONTEXT" --namespace "${_ws_ns}" \
+                 --secret workspace-secrets --timeout 90; then
+              echo "Aborting deploy: workspace-secrets is not present — refusing to continue without credentials." >&2
+              exit 1
+            fi
             # Provision ghcr-pull-secret in the workspace namespace so image pulls succeed.
             _ghcr_pat=$(kubectl --context "$ENV_CONTEXT" get secret workspace-secrets \
               -n "${_ws_ns}" -o jsonpath='{.data.GHCR_PAT}' 2>/dev/null | base64 -d 2>/dev/null || echo "")

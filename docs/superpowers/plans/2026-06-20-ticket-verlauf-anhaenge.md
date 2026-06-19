@@ -3,7 +3,7 @@ title: Ticket-Detail Downloads & Verlauf-Collapse — Implementierungsplan
 ticket_id: T000956
 domains: [website]
 status: active
-pr_number: null
+pr_number: 1893
 file_locks: []
 shared_changes: false
 batch_id: null

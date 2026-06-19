@@ -1,3 +1,24 @@
+export interface ReferenzItem {
+  id: string;
+  name: string;
+  url?: string;
+  logoUrl?: string;
+  description?: string;
+  type?: string;
+}
+
+export interface ReferenzenType {
+  id: string;
+  label: string;
+}
+
+export interface ReferenzenConfig {
+  heading?: string;
+  subheading?: string;
+  types: ReferenzenType[];
+  items: ReferenzItem[];
+}
+
 export interface ServicePageSection {
   title: string;
   items: string[];
@@ -158,6 +179,7 @@ export interface BrandConfig {
     hasOIDC: boolean;
     hasBilling: boolean;
   };
+  referenzen?: ReferenzenConfig;
   i18n?: {
     tagline?: { de: string; en: string };
     siteDescription?: { de: string; en: string };

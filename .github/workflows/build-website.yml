@@ -49,7 +49,7 @@ jobs:
           BRAND_NAME: Mentolder
           CONTACT_EMAIL: info@mentolder.de
           CONTACT_PHONE: "+49 151 508 32 601"
-          CONTACT_CITY: "L\u00fcneburg, Hamburg und Umgebung"
+          CONTACT_CITY: "Lüneburg, Hamburg und Umgebung"
           CONTACT_NAME: Gerald Korczewski
           LEGAL_STREET: "Ludwig-Erhard-Str. 18"
           LEGAL_ZIP: "20459"

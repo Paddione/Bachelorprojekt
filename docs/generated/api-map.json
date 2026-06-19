@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-19T18:22:02.959Z",
+  "generatedAt": "2026-06-19T20:23:41.785Z",
   "endpoints": [
     {
       "path": "/api/admin/angebote/save",
@@ -770,6 +770,14 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/cockpit/batch.ts"
+    },
+    {
+      "path": "/api/admin/cockpit/container-count",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/cockpit/container-count.ts"
     },
     {
       "path": "/api/admin/cockpit/feature",

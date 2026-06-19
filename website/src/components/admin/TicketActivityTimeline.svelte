@@ -4,6 +4,13 @@
   import { renderMarkdown } from '../../lib/markdown';
   import '../../styles/markdown.css';
   export let entries: TimelineEntry[] = [];
+  export let initialCount: number = 5;
+
+  let expanded = false;
+
+  $: visibleEntries = expanded || entries.length <= initialCount
+    ? entries
+    : entries.slice(0, initialCount);
 
   const FIELD_LABEL: Record<string, string> = {
     status:        'Status',
@@ -49,7 +56,7 @@
 </script>
 
 <ol class="ticket-timeline">
-  {#each entries as e, i (i + '-' + (typeof e.at === 'string' ? e.at : (e.at as Date).toISOString()) + '-' + e.kind)}
+  {#each visibleEntries as e, i (i + '-' + (typeof e.at === 'string' ? e.at : (e.at as Date).toISOString()) + '-' + e.kind)}
     <li class="ticket-timeline-row">
       <span class="ticket-timeline-dot" data-kind={e.kind}></span>
       <div class="ticket-timeline-body">
@@ -107,6 +114,14 @@
   {/if}
 </ol>
 
+{#if entries.length > initialCount}
+  <div class="ticket-timeline-toggle">
+    <button type="button" class="ticket-timeline-expand-btn" on:click={() => (expanded = !expanded)}>
+      {expanded ? 'Weniger anzeigen' : `Alle ${entries.length} Einträge anzeigen`}
+    </button>
+  </div>
+{/if}
+
 <style>
   .ticket-timeline {
     list-style: none; padding: 0; margin: 0;
@@ -146,4 +161,10 @@
   .ticket-timeline-empty { color: var(--mute, #aabbcc); font-size: 13px; padding: 8px 0; }
   a { color: var(--brass, #e8c870); }
   a:hover { text-decoration: underline; }
+  .ticket-timeline-toggle { margin-top: 8px; text-align: center; }
+  .ticket-timeline-expand-btn {
+    font-size: 12px; color: var(--brass, #e8c870); background: none; border: none;
+    cursor: pointer; padding: 4px 8px; border-radius: 4px;
+  }
+  .ticket-timeline-expand-btn:hover { text-decoration: underline; }
 </style>

@@ -1,6 +1,6 @@
 # ═══════════════════════════════════════════════════════════════════
 # Claude Code MCP Auth — Keycloak SSO management (SSE transport)
-# Auth: caller must supply a Keycloak Bearer token on each request.
+# Auth enforced externally (portforward / Traefik ForwardAuth in prod).
 # ═══════════════════════════════════════════════════════════════════
 apiVersion: apps/v1
 kind: Deployment
@@ -32,6 +32,19 @@ spec:
               value: "master"
             - name: OIDC_CLIENT_ID
               value: "admin-cli"
+            # Auth is enforced externally (portforward / Traefik ForwardAuth in prod).
+            # Container-level OIDC check bypassed so MCP clients don't need a KC token.
+            - name: QUARKUS_HTTP_AUTH_PERMISSION_MCP_POLICY
+              value: "permit"
+            - name: QUARKUS_KEYCLOAK_ADMIN_CLIENT_USERNAME
+              value: "admin"
+            - name: QUARKUS_KEYCLOAK_ADMIN_CLIENT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: KEYCLOAK_ADMIN_PASSWORD
+            - name: QUARKUS_KEYCLOAK_ADMIN_CLIENT_GRANT_TYPE
+              value: "PASSWORD"
           securityContext:
             allowPrivilegeEscalation: false
             runAsNonRoot: true

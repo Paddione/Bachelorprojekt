@@ -2,7 +2,10 @@
   "mcpServers": {
     "task-master-ai": {
       "command": "npx",
-      "args": ["-y", "task-master-ai"],
+      "args": [
+        "-y",
+        "task-master-ai"
+      ],
       "env": {
         "OLLAMA_BASE_URL": "http://localhost:11434/api",
         "TASK_MASTER_TOOLS": "all"
@@ -10,7 +13,30 @@
     },
     "openspec": {
       "command": "npx",
-      "args": ["-y", "openspec-mcp"]
+      "args": [
+        "-y",
+        "openspec-mcp"
+      ]
+    },
+    "mcp-kubernetes": {
+      "type": "sse",
+      "url": "http://localhost:18080/sse"
+    },
+    "mcp-browser": {
+      "type": "http",
+      "url": "http://localhost:13000/mcp"
+    },
+    "mcp-postgres": {
+      "type": "http",
+      "url": "http://localhost:13001/mcp"
+    },
+    "mcp-github": {
+      "type": "http",
+      "url": "http://localhost:13002/mcp"
+    },
+    "mcp-keycloak": {
+      "type": "http",
+      "url": "http://localhost:18081/mcp"
     }
   }
 }

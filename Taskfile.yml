@@ -426,6 +426,7 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/scripts.bats
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/session-hub.bats
 
   test:unit:secret-task-guards:
     internal: true

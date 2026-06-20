@@ -2,6 +2,7 @@
 // Uses Mailpit in dev (localhost:1025), real SMTP in prod.
 
 import nodemailer from 'nodemailer';
+import { isE2ETestRequest } from './e2e-marker';
 import { renderNewsletterEmail, renderNewsletterText } from './newsletter-template';
 
 const SMTP_HOST = process.env.SMTP_HOST || 'mailpit.workspace.svc.cluster.local';
@@ -40,7 +41,11 @@ interface SendEmailParams {
   attachments?: EmailAttachment[];
 }
 
-export async function sendEmail(params: SendEmailParams): Promise<boolean> {
+export async function sendEmail(params: SendEmailParams, request?: Request): Promise<boolean> {
+  if (request && isE2ETestRequest(request)) {
+    console.log('[email] E2E test — skipping send to:', params.to, '|', params.subject);
+    return true;
+  }
   try {
     await transporter.sendMail({
       from: params.from ?? `"${FROM_NAME}" <${FROM_EMAIL}>`,
@@ -60,7 +65,7 @@ export async function sendEmail(params: SendEmailParams): Promise<boolean> {
   }
 }
 
-export async function sendRegistrationConfirmation(email: string, name: string): Promise<boolean> {
+export async function sendRegistrationConfirmation(email: string, name: string, request?: Request): Promise<boolean> {
   return sendEmail({
     to: email,
     subject: `Ihre Registrierung bei ${FROM_NAME}`,
@@ -79,10 +84,10 @@ ${FROM_NAME}`,
 <p>Ihre Anfrage wird in Kürze geprüft. Sie erhalten eine separate E-Mail, sobald Ihr Zugang freigeschaltet wurde.</p>
 <p>Bei Fragen erreichen Sie uns unter <a href="mailto:${FROM_EMAIL}">${FROM_EMAIL}</a>${CONTACT_PHONE ? ` oder ${CONTACT_PHONE}` : ''}.</p>
 <p>Mit freundlichen Grüßen<br>${FROM_NAME}</p>`,
-  });
+  }, request);
 }
 
-export async function sendRegistrationApproved(email: string, name: string): Promise<boolean> {
+export async function sendRegistrationApproved(email: string, name: string, request?: Request): Promise<boolean> {
   const loginUrl = PROD_DOMAIN ? `https://web.${PROD_DOMAIN}/` : '';
   return sendEmail({
     to: email,
@@ -100,10 +105,10 @@ ${FROM_NAME}`,
 <p>Sie erhalten in Kürze eine separate E-Mail mit einem Link, um Ihr Passwort festzulegen.</p>
 ${loginUrl ? `<p>Danach können Sie sich unter <a href="${loginUrl}">${loginUrl}</a> einloggen.</p>` : ''}
 <p>Mit freundlichen Grüßen<br>${FROM_NAME}</p>`,
-  });
+  }, request);
 }
 
-export async function sendRegistrationDeclined(email: string, name: string, reason?: string): Promise<boolean> {
+export async function sendRegistrationDeclined(email: string, name: string, reason?: string, request?: Request): Promise<boolean> {
   return sendEmail({
     to: email,
     subject: `Zu Ihrer Registrierung bei ${FROM_NAME}`,
@@ -117,7 +122,7 @@ Falls Sie Fragen haben, kontaktieren Sie uns gerne unter ${FROM_EMAIL}.
 
 Mit freundlichen Grüßen
 ${FROM_NAME}`,
-  });
+  }, request);
 }
 
 export async function sendContactReply(email: string, name: string, replyText: string, threadId?: string): Promise<boolean> {
@@ -140,6 +145,7 @@ ${FROM_NAME}`,
 export async function sendNewsletterConfirmation(
   email: string,
   confirmUrl: string,
+  request?: Request,
 ): Promise<boolean> {
   return sendEmail({
     to: email,
@@ -162,7 +168,7 @@ ${FROM_NAME}`,
 <p style="font-size:12px;color:#888;">Oder kopiere diesen Link: ${confirmUrl}</p>
 <p>Falls du dich nicht angemeldet hast, kannst du diese E-Mail ignorieren.</p>
 <p>Mit freundlichen Grüßen<br>${FROM_NAME}</p>`,
-  });
+  }, request);
 }
 
 export async function sendNewsletterCampaign(params: {
@@ -203,7 +209,7 @@ export async function sendQuestionnaireAssigned(params: {
   clientName: string;
   questionnaireTitle: string;
   portalUrl: string;
-}): Promise<boolean> {
+}, request?: Request): Promise<boolean> {
   return sendEmail({
     to: params.clientEmail,
     subject: `Neuer Fragebogen für Sie: ${params.questionnaireTitle}`,
@@ -220,7 +226,7 @@ ${FROM_NAME}`,
 <p>ein neuer Fragebogen wurde Ihnen zugewiesen: <strong>${params.questionnaireTitle}</strong></p>
 <p><a href="${params.portalUrl}" style="display:inline-block;padding:10px 20px;background:#b8973a;color:#fff;text-decoration:none;border-radius:6px;">Fragebogen ausfüllen</a></p>
 <p>Mit freundlichen Grüßen<br>${FROM_NAME}</p>`,
-  });
+  }, request);
 }
 
 export async function sendQuestionnaireSubmitted(params: {
@@ -228,7 +234,7 @@ export async function sendQuestionnaireSubmitted(params: {
   clientName: string;
   questionnaireTitle: string;
   auswertungUrl: string;
-}): Promise<boolean> {
+}, request?: Request): Promise<boolean> {
   return sendEmail({
     to: params.adminEmail,
     subject: `Fragebogen eingereicht: ${params.questionnaireTitle} — ${params.clientName}`,
@@ -239,7 +245,7 @@ Auswertung: ${params.auswertungUrl}
 ${FROM_NAME}`,
     html: `<p><strong>${params.clientName}</strong> hat den Fragebogen <strong>${params.questionnaireTitle}</strong> ausgefüllt.</p>
 <p><a href="${params.auswertungUrl}">Auswertung ansehen →</a></p>`,
-  });
+  }, request);
 }
 
 export async function sendQuestionnaireDismissed(params: {
@@ -247,7 +253,7 @@ export async function sendQuestionnaireDismissed(params: {
   clientName: string;
   questionnaireTitle: string;
   reason: string;
-}): Promise<boolean> {
+}, request?: Request): Promise<boolean> {
   const reasonLine = params.reason ? `\nGrund: ${params.reason}` : '';
   return sendEmail({
     to: params.adminEmail,
@@ -256,7 +262,7 @@ export async function sendQuestionnaireDismissed(params: {
 
 ${FROM_NAME}`,
     html: `<p><strong>${params.clientName}</strong> hat den Fragebogen <strong>${params.questionnaireTitle}</strong> abgelehnt.</p>${params.reason ? `<p>Grund: ${params.reason}</p>` : ''}`,
-  });
+  }, request);
 }
 
 function formatDe(d: Date): string {

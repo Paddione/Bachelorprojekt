@@ -20,7 +20,7 @@ export const POST: APIRoute = async ({ request }) => {
     externalId: t.external_id,
     reporterEmail: t.reporter_email,
     resolution: body.resolution,
-  });
+  }, request);
   return new Response(JSON.stringify({ ok: true, sent }),
     { headers: { 'Content-Type': 'application/json' } });
 };

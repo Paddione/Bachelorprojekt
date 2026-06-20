@@ -26,7 +26,7 @@ const RESOLUTION_LABELS_DE: Record<string, string> = {
   obsolete:      'nicht mehr relevant',
 };
 
-export async function sendBugCloseEmail(p: CloseEmailParams): Promise<boolean> {
+export async function sendBugCloseEmail(p: CloseEmailParams, request?: Request): Promise<boolean> {
   if (!p.reporterEmail) return false;
   const label = RESOLUTION_LABELS_DE[p.resolution] ?? p.resolution;
 
@@ -54,7 +54,7 @@ ${p.publicStatusUrl ? `<p>Status &amp; Verlauf: <a href="${p.publicStatusUrl}">$
     subject: `[${p.externalId}] Ihre Meldung wurde bearbeitet`,
     text,
     html,
-  });
+  }, request);
 }
 
 export async function sendPublicCommentEmail(p: {

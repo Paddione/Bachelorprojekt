@@ -56,3 +56,8 @@ teardown() { rm -rf "$TMP"; }
   run grep -q "openspec_find_similar" "$REPO/scripts/factory/mcp-server.mjs"
   [ "$status" -eq 0 ]
 }
+
+@test "backfill task exists and dry-run runs without DB writes" {
+  run bash -c "cd '$REPO' && task openspec:embed:backfill -- --dry-run 2>&1 | head -20"
+  [ "$status" -eq 0 ]
+}

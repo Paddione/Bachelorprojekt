@@ -1,4 +1,5 @@
 ---
+title: Active Sessions Hub — Mediaviewer-Panel verlinkt aktive Forms/Brainstorm/Companion
 ticket_id: T000975
 status: plan_staged
 date: 2026-06-20
@@ -35,6 +36,29 @@ depends_on_plans: []
 - **Admin auth pattern (copy verbatim).** API routes use `getSession(request.headers.get('cookie'))` + `isAdmin(session)` from `website/src/lib/auth.ts`, `export const prerender = false`, and `locals.requestLogger.error(...)` for errors. `UserSession` has `{ sub, email, preferred_username }`. Mirror `website/src/pages/api/admin/factory-control.ts`'s `authGuard()` helper.
 - **Out of scope (do NOT implement):** prod/fleet deploy of the sessions oauth2-proxy, WebSocket push, cross-machine session sharing, a standalone `/admin/sessions` page. Polling + the Mediaviewer default view is the MVP.
 - **`.claude/settings.json` is gitignored** (`.gitignore:103`). The SessionStart hook is a documented **local-add** instruction in a committed reference doc — never commit `settings.json` itself.
+
+---
+
+## File Structure
+
+**Neu:**
+- `scripts/session-hub.sh` — Registry + sish-Tunnel CLI
+- `website/src/pages/api/admin/sessions/index.ts` — Admin-API (GET/POST/DELETE)
+- `website/src/components/SessionsListView.svelte` — Session-Karten-UI (10s-Polling)
+- `k3d/dev-stack/oauth2-proxy-sessions.yaml` — Keycloak-Gate für `session-*.${DEV_DOMAIN}`
+- `Taskfile.session.yml` — `session:register`, `session:list`, `session:deregister` Tasks
+- `~/.local/share/bachelorprojekt/active-sessions.json` — Laufzeit-Registry (nicht committet)
+
+**Modifiziert:**
+- `website/src/components/MediaviewerPanel.svelte` — Idle-State → SessionsListView
+- `k3d/realm-workspace-dev.json` — Gruppe `session-hub-access`, Client `session-hub`
+- `k3d/dev-stack/kustomization.yaml` — `oauth2-proxy-sessions.yaml` referenzieren
+- `Taskfile.yml` — `Taskfile.session.yml` includen
+- `environments/schema.yaml` — `SESSION_HUB_OIDC_SECRET` registrieren
+- `environments/.secrets/mentolder.yaml` — Secret eintragen (gitignored)
+- `environments/sealed-secrets/mentolder.yaml` — neu versiegeln
+- `.claude/skills/feature-intake/SKILL.md` — `session-hub.sh start-form` nach HTTP-Server
+- `.claude/skills/references/brainstorm-tunnel-setup.md` — `session-hub.sh register` nach Tunnel
 
 ---
 

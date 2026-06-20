@@ -65,7 +65,7 @@ echo "Surface erkannt: $SURFACE"
 | `brett` | `task dev:redeploy:brett ENV=$ENV` | `app=brett` |
 | `full` | `task dev:deploy ENV=$ENV` | `app=website`, `app=brett` |
 
-> Diese Dev-Cluster-Tabelle ist die Loop-nahe Kopie aus der SSOT [deploy-routing.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/deploy-routing.md) (Abschnitt „Dev-Cluster-Redeploy"). Änderungen am Mapping dort pflegen.
+> Diese Dev-Cluster-Tabelle ist die Loop-nahe Kopie aus der SSOT [deploy-routing](file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#deploy-routing) (Abschnitt „Dev-Cluster-Redeploy"). Änderungen am Mapping dort pflegen.
 
 ---
 

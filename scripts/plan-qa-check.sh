@@ -52,7 +52,7 @@ BASE_URL="${DEEPSEEK_BASE_URL:-$DEEPSEEK_DEFAULT_BASE_URL}"
 
 if [[ -z "$API_KEY" ]]; then
   warn "No DEEPSEEK_API_KEY or ANTHROPIC_API_KEY set — skipping DeepSeek QA (advisory)."
-  info "Manual check: review the plan against .claude/skills/references/plan-quality-gates.md"
+  info "Manual check: review the plan against .claude/skills/references/references.md#plan-quality-gates"
   exit 0
 fi
 

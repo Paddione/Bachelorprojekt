@@ -80,7 +80,7 @@ ABLAUF (führe jeden Schritt aus):
        Phrase "expected: fail" (TDD: Test zuerst schreiben, laufen lassen, Fehlschlag erwarten).
      * STRUCT3: Der finale Verifikations-Task MUSS exakt diese drei Befehle enthalten:
        task test:changed (NICHT test:all), task freshness:regenerate, task freshness:check.
-   - Lies VORHER .claude/skills/references/plan-quality-gates.md und halte den Plan daran:
+   - Lies VORHER .claude/skills/references/references.md#plan-quality-gates und halte den Plan daran:
      wc -l auf jede zu ändernde Datei (S1-Zeilenbudget notieren, bei >~80% des Limits Modul-Split
      einplanen), keine Brand-Domain-Literale in Snippets (S3), pure Helper ohne Import-Zyklen (S2),
      neue Manifeste/Skripte referenzieren (S4).

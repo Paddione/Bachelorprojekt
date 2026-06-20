@@ -28,7 +28,7 @@ PGPOD=$(kubectl get pod -n workspace --context <env> -l app=shared-db -o name | 
 kubectl exec -i "$PGPOD" -n workspace --context <env> -- psql -U postgres -d website < migration.sql
 ```
 
-Details: [`references/mcp-tool-guide.md`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md).
+Details: [`MCP-Tool-Guide`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#mcp-tool-guide).
 
 ---
 

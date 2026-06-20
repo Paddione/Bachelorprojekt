@@ -55,7 +55,7 @@ TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
 ## Schritt 2: Änderungen vornehmen
 
 Setze die Wartung um. Bei mechanischer Arbeit über mehrere Dateien kannst du an einen passend
-provisionierten Subagenten delegieren (siehe [subagent-provisioning.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md) — Chores sind i.d.R. `haiku`/`sonnet`, Effort low).
+provisionierten Subagenten delegieren (siehe [subagent-provisioning](file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#subagent-provisioning) — Chores sind i.d.R. `haiku`/`sonnet`, Effort low).
 
 ## Schritt 3: Verifizieren
 
@@ -66,7 +66,7 @@ task freshness:regenerate   # generierte Artefakte aktuell halten, sonst CI rot
 task freshness:check        # CI-Äquivalent: S1–S4-Ratchet (Zeilenlimits!) gegen baseline.json — fängt das Gate VOR dem Push
 ```
 
-Siehe [dev-flow-gotchas.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md) für TypeScript/pnpm-Gotchas in Worktrees.
+Siehe [dev-flow-gotchas](file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#dev-flow-gotchas) für TypeScript/pnpm-Gotchas in Worktrees.
 
 > **⚠ Freshness-Guard (vor jedem Commit):** Neue Test-Specs, Routen oder Assets ändern generierte Indexdateien (`repo-index.json`, `test-inventory.json`, …). Ohne Regenerierung schlägt CI fehl. Der Pre-commit-Hook erledigt das automatisch nach `task secrets:install-hooks` — ohne Hook: `task freshness:regenerate` manuell ausführen und staged Änderungen mitcommittten.
 
@@ -136,7 +136,7 @@ git branch -D "chore/<slug>"
 ## Schritt 7: Deploy (falls nötig)
 
 Nur wenn die Chore deploybare Pfade berührt — Mapping in
-[deploy-routing.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/deploy-routing.md) (Single Source of Truth).
+[deploy-routing](file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#deploy-routing) (Single Source of Truth).
 
 ---
 

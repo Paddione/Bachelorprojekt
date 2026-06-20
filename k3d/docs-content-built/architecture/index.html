@@ -178,20 +178,20 @@
 <body>
   <div class="header">
     <h1>⬡ Architektur — Living Docs</h1>
-    <span class="meta">Generiert: 2026-06-20T06:09:07.070Z</span>
+    <span class="meta">Generiert: 2026-06-20T06:21:56.151Z</span>
   </div>
 
   <div class="stats">
     <div class="stat">
-      <span class="stat-value">82</span>
+      <span class="stat-value">83</span>
       <span class="stat-label">Services</span>
     </div>
     <div class="stat">
-      <span class="stat-value">1617</span>
+      <span class="stat-value">1696</span>
       <span class="stat-label">Abhängigkeiten</span>
     </div>
     <div class="stat">
-      <span class="stat-value">399</span>
+      <span class="stat-value">400</span>
       <span class="stat-label">API Endpoints</span>
     </div>
   </div>
@@ -232,6 +232,7 @@ flowchart LR
   claude_code_mcp_monolith["claude-code-mcp-monolith"]:::default
   oauth2_proxy_brainstorm["oauth2-proxy-brainstorm"]:::default
   oauth2_proxy_dev["oauth2-proxy-dev"]:::default
+  oauth2_proxy_session_hub["oauth2-proxy-session-hub"]:::default
   shared_db_dev["shared-db-dev"]:::default
   sish["sish"]:::default
   website["website"]:::default
@@ -319,6 +320,7 @@ flowchart LR
   claude_code_mcp_monolith -->|"DATABASE_URL"| website
   oauth2_proxy_brainstorm -->|"command"| keycloak
   oauth2_proxy_dev -->|"command"| traefik
+  oauth2_proxy_session_hub -->|"command"| keycloak
   keycloak -->|"configmap:domain-c…"| brett
   keycloak -->|"configmap:domain-c…"| livekit
   keycloak -->|"configmap:domain-c…"| traefik
@@ -398,6 +400,7 @@ flowchart LR
   traefik -->|"ingress"| claude_code_mcp_monolith
   traefik -->|"ingress"| oauth2_proxy_brainstorm
   traefik -->|"ingress"| sish
+  traefik -->|"ingress"| oauth2_proxy_session_hub
   traefik -->|"ingress"| website
   traefik -->|"ingress"| keycloak
   traefik -->|"ingress"| nextcloud
@@ -431,6 +434,7 @@ flowchart LR
   claude_code_mcp_monolith -->|"selector"| claude_code_mcp_monolith
   oauth2_proxy_brainstorm -->|"selector"| oauth2_proxy_brainstorm
   oauth2_proxy_dev -->|"selector"| oauth2_proxy_dev
+  oauth2_proxy_session_hub -->|"selector"| oauth2_proxy_session_hub
   shared_db_dev_lb -->|"selector"| shared_db_dev
   shared_db_dev -->|"selector"| shared_db_dev
   sish -->|"selector"| sish
@@ -480,6 +484,8 @@ flowchart LR
   oauth2_proxy_brainstorm -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| admin_actions_cleanup
+  admin_actions_cleanup -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| keycloak
   keycloak -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| knowledge_ingest_prs
@@ -551,6 +557,8 @@ flowchart LR
   oauth2_proxy_brainstorm -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| admin_actions_prune
+  admin_actions_prune -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| keycloak
   keycloak -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| knowledge_ingest_prs
@@ -620,6 +628,8 @@ flowchart LR
   oauth2_proxy_brainstorm -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| db_backup
+  db_backup -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| db_backup
   keycloak -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| db_backup
@@ -684,6 +694,8 @@ flowchart LR
   oauth2_proxy_brainstorm -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| brett
+  brett -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| knowledge_ingest_bugs
@@ -743,6 +755,8 @@ flowchart LR
   oauth2_proxy_brainstorm -->|"secret:workspace-s…"| mcp_github
   mcp_github -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| mcp_github
+  mcp_github -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| mcp_github
   mcp_github -->|"secret:workspace-s…"| keycloak
   keycloak -->|"secret:workspace-s…"| mcp_github
   mcp_github -->|"secret:workspace-s…"| knowledge_ingest_prs
@@ -807,6 +821,8 @@ flowchart LR
   oauth2_proxy_brainstorm -->|"secret:workspace-s…"| claude_code_mcp_ops
   claude_code_mcp_ops -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| claude_code_mcp_ops
+  claude_code_mcp_ops -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| claude_code_mcp_ops
   claude_code_mcp_ops -->|"secret:workspace-s…"| keycloak
   keycloak -->|"secret:workspace-s…"| claude_code_mcp_ops
   claude_code_mcp_ops -->|"secret:workspace-s…"| knowledge_ingest_prs
@@ -868,6 +884,8 @@ flowchart LR
   oauth2_proxy_brainstorm -->|"secret:workspace-s…"| billing_dunning_detection
   billing_dunning_detection -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| billing_dunning_detection
+  billing_dunning_detection -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| billing_dunning_detection
   billing_dunning_detection -->|"secret:workspace-s…"| keycloak
   keycloak -->|"secret:workspace-s…"| billing_dunning_detection
   billing_dunning_detection -->|"secret:workspace-s…"| knowledge_ingest_prs
@@ -928,6 +946,8 @@ flowchart LR
   oauth2_proxy_brainstorm -->|"secret:workspace-s…"| monthly_billing
   monthly_billing -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| monthly_billing
+  monthly_billing -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| monthly_billing
   monthly_billing -->|"secret:workspace-s…"| keycloak
   keycloak -->|"secret:workspace-s…"| monthly_billing
   monthly_billing -->|"secret:workspace-s…"| knowledge_ingest_prs
@@ -986,6 +1006,8 @@ flowchart LR
   oauth2_proxy_brainstorm -->|"secret:workspace-s…"| scheduled_publish
   scheduled_publish -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| scheduled_publish
+  scheduled_publish -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| scheduled_publish
   scheduled_publish -->|"secret:workspace-s…"| keycloak
   keycloak -->|"secret:workspace-s…"| scheduled_publish
   scheduled_publish -->|"secret:workspace-s…"| knowledge_ingest_prs
@@ -1042,6 +1064,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| scheduled_publish
   oauth2_proxy_brainstorm -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
+  oauth2_proxy_brainstorm -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
   keycloak -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
   oauth2_proxy_brainstorm -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
@@ -1095,6 +1119,8 @@ flowchart LR
   arena_server -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
   oauth2_proxy_brainstorm -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
+  oauth2_proxy_dev -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| keycloak
   keycloak -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| knowledge_ingest_prs
@@ -1149,6 +1175,59 @@ flowchart LR
   arena_server -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_dev
+  keycloak -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| knowledge_ingest_prs
+  knowledge_ingest_prs -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| knowledge_ingest_bugs
+  knowledge_ingest_bugs -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| knowledge_reindex_all
+  knowledge_reindex_all -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| livekit_server
+  livekit_server -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| livekit_ingress
+  livekit_ingress -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| livekit_egress
+  livekit_egress -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| nextcloud
+  nextcloud -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| notify_unread
+  notify_unread -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| oauth2_proxy_brett
+  oauth2_proxy_brett -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| oauth2_proxy_comfy
+  oauth2_proxy_comfy -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| oauth2_proxy_docs
+  oauth2_proxy_docs -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| oauth2_proxy_mailpit
+  oauth2_proxy_mailpit -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
+  oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| oauth2_proxy_traefik
+  oauth2_proxy_traefik -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| oauth2_proxy_videovault
+  oauth2_proxy_videovault -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| oauth2_proxy_recovery
+  oauth2_proxy_recovery -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| shared_db
+  shared_db -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| spreed_signaling
+  spreed_signaling -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| talk_recording
+  talk_recording -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| vaultwarden
+  vaultwarden -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| videovault
+  videovault -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| whiteboard
+  whiteboard -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| dev_db_refresh
+  dev_db_refresh -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| talk_transcriber
+  talk_transcriber -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| arena_server
+  arena_server -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| ddns_updater
+  ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_session_hub
   keycloak -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| keycloak
   keycloak -->|"secret:workspace-s…"| knowledge_ingest_bugs
@@ -1838,7 +1917,7 @@ flowchart LR
   website -->|"secret:staging-db-…"| shared_db_staging
       </div>
     </div>
-    <p class="diagram-caption">Alle 82 K8s-Services und ihre 1617 Abhängigkeitskanten (env-Refs, initContainer-Waits, Ingress-Backends)</p>
+    <p class="diagram-caption">Alle 83 K8s-Services und ihre 1696 Abhängigkeitskanten (env-Refs, initContainer-Waits, Ingress-Backends)</p>
   </div>
 
   <!-- K8s Topology Tab -->
@@ -1862,6 +1941,7 @@ flowchart TB
     mcp_auth_proxy_dev["mcp-auth-proxy-dev"]
     claude_code_mcp_monolith["claude-code-mcp-monolith"]
     oauth2_proxy_brainstorm["oauth2-proxy-brainstorm"]
+    oauth2_proxy_session_hub["oauth2-proxy-session-hub"]
     shared_db_dev["shared-db-dev"]
     sish["sish"]
     website["website"]
@@ -1959,7 +2039,7 @@ flowchart TB
     <div class="filter-bar">
       <span class="filter-label">Filter:</span>
       <input class="filter-input" type="text" id="api-filter" placeholder="/api/..." oninput="filterApi(this.value)">
-      <span class="filter-label" id="api-count">399 endpoints</span>
+      <span class="filter-label" id="api-count">400 endpoints</span>
     </div>
     <div style="max-height:70vh;overflow-y:auto;border:1px solid var(--ff-border);border-radius:4px;">
       <table>
@@ -3214,6 +3294,11 @@ flowchart TB
       <tr>
       <td><code>/api/admin/service-page/save</code></td>
       <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">POST</code></td>
+      <td style="color:#ef4444">🔐 admin</td>
+    </tr>
+      <tr>
+      <td><code>/api/admin/sessions</code></td>
+      <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">GET</code> <code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">POST</code> <code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">DELETE</code></td>
       <td style="color:#ef4444">🔐 admin</td>
     </tr>
       <tr>

@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"os/exec"
+	"regexp"
+	"strings"
 	"sync"
 
 	"go.opentelemetry.io/otel/attribute"
@@ -11,6 +13,24 @@ import (
 	"github.com/paddione/mcp-task-runner/planner"
 	"github.com/paddione/mcp-task-runner/telemetry"
 )
+
+// argPattern matches safe argument values: alphanumeric, underscore, colon, dot, hyphen, slash.
+var argPattern = regexp.MustCompile(`^[A-Za-z0-9_:.\-/]+$`)
+
+// validateArg rejects empty values, values starting with '-', and values containing characters
+// outside the safe set. This prevents argv flag-smuggling attacks.
+func validateArg(value string) error {
+	if value == "" {
+		return fmt.Errorf("argument must not be empty")
+	}
+	if strings.HasPrefix(value, "-") {
+		return fmt.Errorf("argument %q must not start with '-'", value)
+	}
+	if !argPattern.MatchString(value) {
+		return fmt.Errorf("argument %q contains disallowed characters (allowed: A-Za-z0-9_:./-)", value)
+	}
+	return nil
+}
 
 // Result holds the outcome of a single task run.
 type Result struct {
@@ -24,6 +44,13 @@ type Result struct {
 
 // RunTask executes `task <name> ENV=<env>` and returns a Result with OTel instrumentation.
 func RunTask(ctx context.Context, task, env, taskfilePath string) (Result, error) {
+	if err := validateArg(task); err != nil {
+		return Result{Task: task, Env: env, ExitCode: 1}, fmt.Errorf("invalid task argument: %w", err)
+	}
+	if err := validateArg(env); err != nil {
+		return Result{Task: task, Env: env, ExitCode: 1}, fmt.Errorf("invalid env argument: %w", err)
+	}
+
 	ctx, span := telemetry.NewSpan(ctx, "run_task")
 	defer span.End()
 
@@ -34,7 +61,7 @@ func RunTask(ctx context.Context, task, env, taskfilePath string) (Result, error
 	}
 	span.SetAttributes(attrs...)
 
-	cmd := exec.CommandContext(ctx, "task", "--taskfile", taskfilePath, task, "ENV="+env)
+	cmd := exec.CommandContext(ctx, "task", "--taskfile", taskfilePath, "--", task, "ENV="+env)
 	stdoutPipe, err := cmd.StdoutPipe()
 	if err != nil {
 		return Result{Task: task, Env: env, ExitCode: 1}, fmt.Errorf("stdout pipe: %w", err)

@@ -18,6 +18,12 @@ TICKET_SH="$REPO/scripts/ticket.sh"
 
 die() { echo "ERROR: $*" >&2; exit 1; }
 
+# Best-effort semantic index refresh for a change slug. Never aborts the lifecycle.
+_embed_slug() {
+  local slug="$1"
+  node "$REPO/scripts/openspec-embed.mjs" --slug "$slug" >/dev/null 2>&1 || true
+}
+
 cmd_propose() {
   local slug="${1:-}"; shift || true
   local ticket=""
@@ -55,6 +61,7 @@ cmd_apply() {
   if [[ "${TICKET_OFFLINE:-0}" != "1" ]]; then
     bash "$HERE/openspec-status-map.sh" >/dev/null 2>&1 || true
   fi
+  _embed_slug "$slug"
   echo "applied: $slug (implementable)"
 }
 
@@ -81,6 +88,8 @@ cmd_archive() {
   if [[ "${TICKET_OFFLINE:-0}" != "1" ]]; then
     bash "$HERE/openspec-status-map.sh" >/dev/null 2>&1 || true
   fi
+  # Refresh pgvector index via openspec-embed.mjs (best-effort, never aborts).
+  _embed_slug "$slug"
   echo "archived: $slug -> $dest (delta merged into SSOT)"
 }
 

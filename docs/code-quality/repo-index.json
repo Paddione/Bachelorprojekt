@@ -3384,7 +3384,7 @@
       "id": "assets",
       "name": "Design + art-library assets",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 475,
+      "file_count": 477,
       "files": [
         "art-library/README.md",
         "art-library/_tooling/extract-from-handoff.mjs",
@@ -3730,6 +3730,8 @@
         "assets/design-overviews/kore-design-system/uploads/Kore Brand Assets.html",
         "assets/design-overviews/kore-design-system/weapons.jsx",
         "assets/design-overviews/ops-login.png",
+        "assets/feature-intake/feature-candidates.md",
+        "assets/feature-intake/pm-form-template.html",
         "assets/game/combat-hud.mjs",
         "assets/game/controller.mjs",
         "assets/game/damage.mjs",

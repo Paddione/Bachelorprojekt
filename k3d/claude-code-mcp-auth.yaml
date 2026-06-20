@@ -37,14 +37,14 @@ spec:
             - name: QUARKUS_HTTP_AUTH_PERMISSION_MCP_POLICY
               value: "permit"
             - name: QUARKUS_KEYCLOAK_ADMIN_CLIENT_USERNAME
-              value: "admin"
+              value: admin
             - name: QUARKUS_KEYCLOAK_ADMIN_CLIENT_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: workspace-secrets
                   key: KEYCLOAK_ADMIN_PASSWORD
             - name: QUARKUS_KEYCLOAK_ADMIN_CLIENT_GRANT_TYPE
-              value: "PASSWORD"
+              value: password
           securityContext:
             allowPrivilegeEscalation: false
             runAsNonRoot: true

@@ -1,0 +1,51 @@
+{
+  "title": "Traefik Access Analytics",
+  "uid": "traefik-access",
+  "schemaVersion": 39,
+  "panels": [
+    {
+      "id": 1,
+      "title": "HTTP Status Distribution",
+      "type": "timeseries",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [{
+        "expr": "sum by (DownstreamStatus) (count_over_time({container=\"traefik\"} | json [5m]))",
+        "refId": "A",
+        "legendFormat": "{{DownstreamStatus}}"
+      }]
+    },
+    {
+      "id": 2,
+      "title": "Top 10 Slowest Endpoints",
+      "type": "table",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [{
+        "expr": "topk(10, sum by (RequestPath) (max_over_time({container=\"traefik\"} | json | unwrap RequestDurationMs [1h])))",
+        "refId": "A",
+        "legendFormat": "{{RequestPath}}"
+      }]
+    },
+    {
+      "id": 3,
+      "title": "4xx/5xx Rate",
+      "type": "timeseries",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [
+        {
+          "expr": "sum(rate({container=\"traefik\"} | json | DownstreamStatus =~ \"4..\" [5m]))",
+          "refId": "4xx",
+          "legendFormat": "4xx"
+        },
+        {
+          "expr": "sum(rate({container=\"traefik\"} | json | DownstreamStatus =~ \"5..\" [5m]))",
+          "refId": "5xx",
+          "legendFormat": "5xx"
+        }
+      ],
+      "thresholds": [
+        { "op": "gt", "value": 5, "color": "red" }
+      ]
+    }
+  ],
+  "templating": { "list": [] }
+}

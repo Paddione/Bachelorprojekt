@@ -1,0 +1,37 @@
+{
+  "title": "Log Explorer",
+  "uid": "log-explorer",
+  "schemaVersion": 39,
+  "panels": [
+    {
+      "id": 1,
+      "title": "Live Logs",
+      "type": "logs",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [{
+        "expr": "{namespace=~\"$namespace\", app=~\"$app\", level=~\"$level\", brand=~\"$brand\"}",
+        "refId": "A"
+      }],
+      "options": { "showTime": true, "showLabels": true, "wrapLogMessage": true }
+    },
+    {
+      "id": 2,
+      "title": "Error Rate by App",
+      "type": "timeseries",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [{
+        "expr": "sum by (app) (rate({level=\"error\"}[5m]))",
+        "refId": "A",
+        "legendFormat": "{{app}}"
+      }]
+    }
+  ],
+  "templating": {
+    "list": [
+      { "name": "namespace", "type": "query", "query": "label_values(namespace)", "refresh": 1 },
+      { "name": "app", "type": "query", "query": "label_values(app)", "refresh": 1 },
+      { "name": "level", "type": "query", "query": "label_values(level)", "refresh": 1, "includeAll": true, "default": "All" },
+      { "name": "brand", "type": "query", "query": "label_values(brand)", "refresh": 1, "includeAll": true, "default": "All" }
+    ]
+  }
+}

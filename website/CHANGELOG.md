@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.113.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.113.0...website-v1.113.1) (2026-06-20)
+
+
+### Bug Fixes
+
+* correct ntfy Docker tag to v2.24.0 [T000991] ([#1964](https://github.com/Paddione/Bachelorprojekt/issues/1964)) ([1333c77](https://github.com/Paddione/Bachelorprojekt/commit/1333c7774aad751702d95f3300f6efb2b450833d))
+
 ## [1.113.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.112.0...website-v1.113.0) (2026-06-20)
 
 

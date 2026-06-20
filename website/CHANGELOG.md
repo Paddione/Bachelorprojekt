@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.108.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.108.1...website-v1.108.2) (2026-06-20)
+
+
+### Bug Fixes
+
+* **e2e:** fix FA-16/FA-21/FA-28 test failures + 4× parallel workers ([#1942](https://github.com/Paddione/Bachelorprojekt/issues/1942)) ([bd7767e](https://github.com/Paddione/Bachelorprojekt/commit/bd7767ed613c25899f69c4fc635800bdb2fc26ab))
+
 ## [1.108.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.108.0...website-v1.108.1) (2026-06-20)
 
 

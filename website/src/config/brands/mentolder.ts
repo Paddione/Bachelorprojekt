@@ -78,11 +78,11 @@ export const mentolderConfig: BrandConfig = {
       },
     ],
     avatarType: 'image',
-    avatarSrc: '/gerald.webp',
+    avatarSrc: '/gerald.jpg',
     quote: 'Ich stelle unbequeme Fragen – weil echte Lösungen manchmal unbequeme Wahrheiten brauchen.',
     quoteName: 'Gerald Korczewski',
     timeline: false,
-    identityImage: { src: '/gerald.webp', alt: 'Gerald Korczewski' },
+    identityImage: { src: '/gerald.jpg', alt: 'Gerald Korczewski' },
   },
   services: [
     {

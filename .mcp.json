@@ -33,6 +33,13 @@
     "mcp-github": {
       "type": "http",
       "url": "http://localhost:13002/mcp"
+    },
+    "mcp-task-runner": {
+      "command": "mcp-task-runner",
+      "args": [
+        "--otel-endpoint", "localhost:4317",
+        "--taskfile", "/home/patrick/Bachelorprojekt/Taskfile.yml"
+      ]
     }
   }
 }

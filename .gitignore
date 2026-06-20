@@ -161,3 +161,6 @@ assets-inbox/docs/superpowers/specs/.gaps/
 # Mishap tracker local log (gitignored; use --ticket for persistent records)
 .mishaps.log
 .worktrees/
+
+# mcp-task-runner build artifacts
+mcp-task-runner/bin/

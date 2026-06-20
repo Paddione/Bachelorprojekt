@@ -10,7 +10,7 @@ export const meta = {
 
 const WT = '/tmp/wt-codequality-gates'
 const SPEC = WT + '/docs/superpowers/specs/2026-06-05-codequality-gates-design.md'
-const PLAN = WT + '/docs/superpowers/plans/2026-06-05-codequality-gates-slice-a.md'
+const PLAN = WT + '/openspec/changes/codequality-gates-slice-a/tasks.md'
 
 const WP_RULES = [
   'WRITING-PLANS FORMAT (follow EXACTLY):',
@@ -64,7 +64,7 @@ const GROUNDING = [
   '- The hardened spec: ' + SPEC + ' (the source of truth — honor B1 scan-universe, B2 metric contract, B3 per-gate keys, the Slice A/B split, per-extension S1 limits).',
   '- scripts/agent-guide/load.mjs and validate.mjs (the load/validate pattern to mirror).',
   '- scripts/agent-guide/emit-docs.mjs (an emit pattern) and how ci.yml runs the test-inventory git-diff drift step (grep test-inventory .github/workflows/ci.yml).',
-  '- One recent file in docs/superpowers/plans/ to match format/conventions (e.g. ls -t docs/superpowers/plans/*.md | head).',
+  '- One recent openspec tasks file to match format/conventions (e.g. ls ' + WT + '/openspec/changes/*/tasks.md | head).',
   '- Taskfile.yml task style + root package.json (yaml dep present; where devDependencies go).',
   '- Verify your pinned values against the real tree (git ls-files, wc -l, ls tsconfig.json locations). The plan must be executable as-written against THIS repo.',
   'Do NOT run git commit/push or create the worktree — only write/edit the plan file. Another step commits it.',

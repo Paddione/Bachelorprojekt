@@ -69,7 +69,7 @@ ABLAUF (führe jeden Schritt aus):
 4. Schreibe Spec nach docs/superpowers/specs/${today}-${slug}-design.md
    - Vollständige Markdown-Spec basierend auf Ticket-Beschreibung
    - Kein Brainstorming nötig — Ticket-Beschreibung ist die Quelle
-5. Schreibe Plan nach docs/superpowers/plans/${today}-${slug}.md
+5. Schreibe Plan/Tasks nach openspec/changes/${slug}/tasks.md
    - Vollständiger Implementierungsplan mit Tasks und Checkboxen
    - Nutze writing-plans Konventionen (Ziel, Architektur, Tech-Stack, Tasks)
    - PFLICHT-STRUKTUR (scripts/plan-lint.sh ist ein hartes, fail-closed Gate — diese
@@ -84,20 +84,20 @@ ABLAUF (führe jeden Schritt aus):
      wc -l auf jede zu ändernde Datei (S1-Zeilenbudget notieren, bei >~80% des Limits Modul-Split
      einplanen), keine Brand-Domain-Literale in Snippets (S3), pure Helper ohne Import-Zyklen (S2),
      neue Manifeste/Skripte referenzieren (S4).
-6. Führe aus: bash ${repoRoot}/scripts/plan-frontmatter-hook.sh docs/superpowers/plans/${today}-${slug}.md
-6b. HARTES GATE — bash ${repoRoot}/scripts/plan-lint.sh docs/superpowers/plans/${today}-${slug}.md
+6. Erstelle Verzeichnis: mkdir -p ${repoRoot}/openspec/changes/${slug}
+6b. HARTES GATE — bash ${repoRoot}/scripts/plan-lint.sh openspec/changes/${slug}/tasks.md
     MUSS exit 0 liefern. Bei FAIL: Plan gemäß PFLICHT-STRUKTUR oben nachbessern und erneut linten,
     BIS grün (0 hard). Erst danach committen — ein roter Plan darf NICHT gepusht werden.
-7. Setze shared_changes im Frontmatter auf true wenn der Plan k3d/configmap-domains.yaml,
+7. Setze shared_changes auf true wenn der Plan k3d/configmap-domains.yaml,
    environments/schema.yaml oder k3d/kustomization.yaml ändern muss — sonst false
-8. git add docs/ && git commit -m "chore(batch): spec+plan for ${ticket.external_id}"
+8. git add docs/ openspec/ && git commit -m "chore(batch): spec+plan for ${ticket.external_id}"
 9. git push -u origin ${branch}
 
 Gib zurück (JSON gemäß Schema):
 - ticket_id: "${ticket.external_id}"
 - branch: "${branch}"
 - spec_path: "docs/superpowers/specs/${today}-${slug}-design.md"
-- plan_path: "docs/superpowers/plans/${today}-${slug}.md"
+- plan_path: "openspec/changes/${slug}/tasks.md"
 - shared_changes: true/false (ob der Plan geteilte Dateien ändern muss)`,
       {
         phase:  'Isolated',

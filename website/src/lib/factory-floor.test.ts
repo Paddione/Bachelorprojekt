@@ -56,7 +56,7 @@ vi.mock('pg', () => {
     INSERT INTO tickets.ticket_links (from_id, to_id, kind, pr_number, created_at) VALUES
       ('s1','s1','pr', 1422, now());
     INSERT INTO tickets.ticket_comments (ticket_id, author_label, body, visibility) VALUES
-      ('p1','dev-flow-plan','FACTORY-PLAN-REF branch=feature/staged-eins plan=docs/superpowers/plans/2026-06-10-staged-eins.md','internal');
+      ('p1','dev-flow-plan','FACTORY-PLAN-REF branch=feature/staged-eins plan=openspec/changes/staged-eins/tasks.md','internal');
     INSERT INTO tickets.provider_config (source, tier, priority, provider, model_id, max_concurrent, enabled) VALUES
       ('*', 'sonnet', 1, 'deepseek', 'deepseek-chat', 3, true),
       ('*', 'sonnet', 2, 'ollama', 'qwen3', 2, true);
@@ -163,7 +163,7 @@ describe('factory-floor DAL', () => {
     const staged = await getStaged();
     const p1 = staged.find((s) => s.extId === 'T000490')!;
     expect(p1.branch).toBe('feature/staged-eins');
-    expect(p1.planPath).toBe('docs/superpowers/plans/2026-06-10-staged-eins.md');
+    expect(p1.planPath).toBe('openspec/changes/staged-eins/tasks.md');
   });
 
   it('getStaged yields null branch/planPath when no FACTORY-PLAN-REF exists', async () => {

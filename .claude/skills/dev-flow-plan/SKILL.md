@@ -105,7 +105,7 @@ Wenn das Ticket einen Design-Handoff hat (claude.ai-Design-Session → Bundle-ID
 
 ```bash
 SLUG="<slug>"
-DESIGN_DIR="docs/superpowers/plans/assets/${SLUG}"
+DESIGN_DIR="openspec/changes/${SLUG}/assets"
 mkdir -p "${DESIGN_DIR}/new"
 
 # 1. Design-Assets synchronisieren:
@@ -155,9 +155,7 @@ bash scripts/openspec.sh propose "<slug>" --ticket "<TICKET_EXT_ID>"
 ```
 
 Übertrage den Brainstorming-Output (WARUM + WAS) nach `openspec/changes/<slug>/proposal.md`.
-Der Implementierungsplan wird in **beide** Ziele geschrieben: `openspec/changes/<slug>/tasks.md`
-(Factory-Standard-Input) **und** das Legacy-`docs/superpowers/plans/<date>-<slug>.md` (bis der
-Cutover abgeschlossen ist; der Factory-Resolver fällt darauf zurück).
+Der Implementierungsplan wird **ausschließlich** in `openspec/changes/<slug>/tasks.md` geschrieben.
 
 ### Schritt 3.5: Playwright-Projekt-Gate
 Falls neue E2E-Tests geplant sind, weise das passende Playwright-Projekt zu (siehe [dev-flow-gotchas.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md) für Zuordnungstabelle).
@@ -173,14 +171,14 @@ Statt deinen eigenen Kontext zurückzusetzen (das ließe dich den Faden verliere
    - **Kontext-Injektion** (er hat sonst KEINEN Kontext — gib ihm alles explizit):
      - Absoluter Worktree-Pfad (`pwd`) + Branch-Name; er arbeitet NUR relativ dazu.
      - Spec-Pfad: `docs/superpowers/specs/<date>-<slug>-design.md`
-     - **Design-Bundle** (falls Schritt 1.7 lief): `docs/superpowers/plans/assets/<slug>/` —
+     - **Design-Bundle** (falls Schritt 1.7 lief): `openspec/changes/<slug>/assets/` —
        der Plan MUSS `intent.md` als Design-Quelle referenzieren, die finalen Asset-Zielpfade
        (z. B. unter `website/src/...`) in die Task-`target_files` aufnehmen und die T000756-
        Guardrails (currentColor statt `<img>`, keine Stray-Hex, Export-Vollständigkeit) als
        Acceptance-Kriterien notieren. `new/` enthält nur geprüfte, passende Assets.
      - Ticket-/Grilling-Kontext (`$GRILLING_TICKET_EXT_ID` etc.), falls vorhanden.
      - **CI-/Quality-Gates:** [plan-quality-gates.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-quality-gates.md) — der Subagent MUSS die Datei lesen und den Plan dagegen schreiben: pro zu ändernder Datei `wc -l` UND den Baseline-Wert (`jq -r '."S1:<pfad>".metric // "nicht-baselined"' docs/code-quality/baseline.json`) ermitteln und das S1-Budget gegen die **wirksame Schwelle** notieren — bei schon gebaselineten (gewachsenen) Dateien ist das Budget oft **0** (jede Netto-Zeile trippt das CI-Ratchet), dann zeilenneutral planen oder die Datei in dieser PR **echt verkleinern**; bei >~80 % der Schwelle echten Modul-Split einplanen (kein kosmetisches Zusammenziehen). Dazu: keine Brand-Domain-Literale in Code-Snippets (S3), Helper als pure Module ohne Import-Zyklen (S2), neue Manifeste/Skripte referenzieren statt verwaisen lassen (S4).
-    - **Auftrag:** „Lies die Spec UND `.claude/skills/references/plan-quality-gates.md`. Rufe `superpowers:writing-plans` auf und schreibe den Implementierungsplan nach `docs/superpowers/plans/<date>-<slug>.md`. Schreibe dieselben Tasks zusätzlich nach `openspec/changes/<slug>/tasks.md` (OpenSpec-Format: H2-Operationsheader im Delta, H3-Requirement, H4-Scenario im `specs/<capability>.md`). Der finale Verifikations-Task des Plans MUSS `task test:changed`, `task freshness:regenerate` und `task freshness:check` als Steps enthalten (CI-Äquivalent inkl. S1–S4-Ratchet); nach Test-Änderungen zusätzlich `task test:inventory` + Commit des Inventars. Vor dem Commit: `task test:openspec` (oder `bash scripts/openspec.sh validate`) — muss grün sein. Starte KEINE Implementierung (nur Plan schreiben, dann STOPP). Führe danach `bash scripts/vda.sh frontmatter docs/superpowers/plans/<date>-<slug>.md` aus. Gib den Plan-Pfad und eine 3-Zeilen-Zusammenfassung zurück."
+    - **Auftrag:** „Lies die Spec UND `.claude/skills/references/plan-quality-gates.md`. Rufe `superpowers:writing-plans` auf und schreibe den Implementierungsplan **ausschließlich** nach `openspec/changes/<slug>/tasks.md` (OpenSpec-Format: H2-Operationsheader im Delta, H3-Requirement, H4-Scenario im `specs/<capability>.md`). Der finale Verifikations-Task des Plans MUSS `task test:changed`, `task freshness:regenerate` und `task freshness:check` als Steps enthalten (CI-Äquivalent inkl. S1–S4-Ratchet); nach Test-Änderungen zusätzlich `task test:inventory` + Commit des Inventars. Vor dem Commit: `task test:openspec` (oder `bash scripts/openspec.sh validate`) — muss grün sein. Starte KEINE Implementierung (nur Plan schreiben, dann STOPP). Gib den Plan-Pfad (`openspec/changes/<slug>/tasks.md`) und eine 3-Zeilen-Zusammenfassung zurück."
 
 ### Schritt 3.8: Plan-Qualitäts-Gate (deterministischer Linter + advisory LLM-QA)
 
@@ -188,12 +186,12 @@ Führe ZUERST den deterministischen, fail-closed Linter auf den Plan-Pfad aus, d
 Subagent zurückgegeben hat — das ist das **harte Gate**:
 
 ```bash
-bash scripts/plan-lint.sh docs/superpowers/plans/<date>-<slug>.md
+bash scripts/plan-lint.sh openspec/changes/<slug>/tasks.md
 ```
 
 - **PASS (Exit 0):** weiter — danach optional die advisory LLM-QA (bricht nie):
   ```bash
-  bash scripts/plan-qa-check.sh docs/superpowers/plans/<date>-<slug>.md || true
+  bash scripts/plan-qa-check.sh openspec/changes/<slug>/tasks.md || true
   ```
   Anschließend weiter zu Schritt 4.
 - **FAIL (Exit 1):** der Linter listet die Hard-Fails (F1/F2/STRUCT/P1/B1a). Delegiere
@@ -222,7 +220,7 @@ if [[ -z "${TICKET_EXT_ID:-}" ]]; then
     --brand mentolder \
     --title "Plan: <slug>" \
     --priority mittel \
-    --description "Branch: feature/<slug>"$'\n'"Plan: docs/superpowers/plans/<date>-<slug>.md"$'\n'"Spec: docs/superpowers/specs/<date>-<slug>-design.md"$GRILLING_REF)
+    --description "Branch: feature/<slug>"$'\n'"Plan: openspec/changes/<slug>/tasks.md"$'\n'"Spec: docs/superpowers/specs/<date>-<slug>-design.md"$GRILLING_REF)
 
   TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
   TICKET_UUID=$(echo "$TICKET_RESULT"   | cut -d'|' -f2)
@@ -232,16 +230,12 @@ else
   echo "✅ Wiederverwende bestehendes Ticket $TICKET_EXT_ID"
 fi
 
-sed -i "s/^ticket_id: null$/ticket_id: $TICKET_EXT_ID/" docs/superpowers/plans/<date>-<slug>.md
-
 # Plan in die Kommissionierung stellen: type=feature, status=plan_staged.
 # Read-only sichtbar in /dev-status; wartet auf manuelle Freigabe (-> Factory / -> Manuell).
 ./scripts/ticket.sh stage-plan \
   --id "$TICKET_EXT_ID" \
   --branch "feature/<slug>" \
-  --plan "docs/superpowers/plans/<date>-<slug>.md"
-
-bash scripts/vda.sh frontmatter --activate "docs/superpowers/plans/<date>-<slug>.md"
+  --plan "openspec/changes/<slug>/tasks.md"
 ```
 
 Hänge gesammelte Assets mit `bash scripts/ticket-attach.sh "$TICKET_UUID" <pfade>` an.
@@ -249,7 +243,7 @@ Hänge gesammelte Assets mit `bash scripts/ticket-attach.sh "$TICKET_UUID" <pfad
 ### Schritt 5: Commit & Push — dann STOPP
 ```bash
 # Sicherheitscheck: Branch-Guard [T000321]
-git add docs/superpowers/plans/<date>-<slug>.md
+git add openspec/changes/<slug>/
 git commit -m "chore(plans): stage <slug> for execution [$TICKET_EXT_ID]"
 git push -u origin $(git branch --show-current)
 ```
@@ -261,7 +255,7 @@ annotierbar rendern und im Browser reviewen (additiv/optional; der bestehende
 STOP-Text in Schritt 5 bleibt der Default):
 
 ```bash
-bash scripts/plan-review/plan-review.sh render docs/superpowers/plans/<date>-<slug>.md
+bash scripts/plan-review/plan-review.sh render openspec/changes/<slug>/tasks.md
 ```
 
 Im Browser: Text markieren → annotieren (Durchstreichen/Ersetzen/Einfügen/Kommentar) →
@@ -302,7 +296,7 @@ PLANNING_COUNT=$(kubectl exec -n workspace deploy/shared-db -- psql -U postgres 
 ```
 ✅ Plan bereit: <slug> (Ticket $TICKET_EXT_ID)
    Branch: feature/<slug>
-   Plan: docs/superpowers/plans/<date>-<slug>.md
+   Plan: openspec/changes/<slug>/tasks.md
 
 📋 Kommissionierung (status=plan_staged): $STAGED_COUNT Plan(s)
    • T000xxx [priorität] <titel> — <value_prop>
@@ -319,7 +313,7 @@ PLANNING_COUNT=$(kubectl exec -n workspace deploy/shared-db -- psql -U postgres 
 
 2. **Einzel-Ausführung (Factory):**
    bash scripts/ticket.sh enqueue --id "$TICKET_EXT_ID" \
-     --branch "feature/<slug>" --plan "docs/superpowers/plans/<date>-<slug>.md"
+     --branch "feature/<slug>" --plan "openspec/changes/<slug>/tasks.md"
    → Factory-Dispatcher arbeitet den Plan automatisch ab
 
 3. **Batch-Ausführung (alle staged plans):**
@@ -379,14 +373,12 @@ Schreibe einen automatisierten Test, der den Bug reproduziert und fehlschlägt (
 ### Schritt 4: Plan schreiben
 Rufe `superpowers:writing-plans` auf. Wende das Frontmatter an und trage die Ticket-ID ein. Committe und pushe den Plan.
 
-### Schritt 4.5: Plan stagen + Frontmatter aktivieren (Fix 6)
+### Schritt 4.5: Plan stagen (Fix 6)
 ```bash
 ./scripts/ticket.sh stage-plan \
   --id "$TICKET_EXT_ID" \
   --branch "fix/<slug>" \
-  --plan "docs/superpowers/plans/<date>-<slug>.md"
-
-bash scripts/vda.sh frontmatter --activate "docs/superpowers/plans/<date>-<slug>.md"
+  --plan "openspec/changes/<slug>/tasks.md"
 ```
 Damit ist das Fix-Ticket in der Kommissionierung sichtbar und kann via UI-Knopf oder
 `ticket.sh enqueue` an die Factory übergeben werden.
@@ -395,7 +387,7 @@ Damit ist das Fix-Ticket in der Kommissionierung sichtbar und kann via UI-Knopf 
 
 Füge den failing Test und den Plan hinzu, committe und pushe auf den fix Branch:
 ```bash
-git add tests/ docs/superpowers/plans/<date>-<slug>.md
+git add tests/ openspec/changes/<slug>/tasks.md
 git commit -m "fix(<scope>): add failing test + stage plan [$TICKET_EXT_ID]"
 git push -u origin $(git branch --show-current)
 ```
@@ -420,7 +412,7 @@ PLANNING_COUNT=$(kubectl exec -n workspace deploy/shared-db -- psql -U postgres 
 ```
 ✅ Fix-Plan bereit: <slug> (Ticket $TICKET_EXT_ID)
    Branch: fix/<slug>
-   Plan: docs/superpowers/plans/<date>-<slug>.md
+   Plan: openspec/changes/<slug>/tasks.md
 
 📋 Kommissionierung (status=plan_staged): $STAGED_COUNT Plan(s)
    • T000xxx [priorität] <titel> — <value_prop>
@@ -435,7 +427,7 @@ PLANNING_COUNT=$(kubectl exec -n workspace deploy/shared-db -- psql -U postgres 
 
 2. **Einzel-Ausführung (Factory):**
    bash scripts/ticket.sh enqueue --id "$TICKET_EXT_ID" \
-     --branch "fix/<slug>" --plan "docs/superpowers/plans/<date>-<slug>.md"
+     --branch "fix/<slug>" --plan "openspec/changes/<slug>/tasks.md"
 
 3. **Batch-Ausführung (alle staged plans):**
    Wenn mehrere Pläne bereit sind, können sie parallel via Factory implementiert werden.

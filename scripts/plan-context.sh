@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Emit active plan sections relevant to <role> from docs/superpowers/plans/*.md
-# and OpenSpec SSOT context for files touched vs main (when --with-openspec is passed).
+# Emit active OpenSpec change proposals as plan context, plus OpenSpec SSOT specs for
+# files touched vs main (when --with-openspec is passed).
 # Usage:
 #   scripts/plan-context.sh <role>
 #   scripts/plan-context.sh <role> --with-openspec [<file>...]
@@ -20,25 +20,25 @@ while [[ $# -gt 0 ]]; do
 done
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-PLANS_DIR="$REPO_ROOT/docs/superpowers/plans"
+CHANGES_DIR="$REPO_ROOT/openspec/changes"
 found=0
 
-for plan_file in "$PLANS_DIR"/*.md; do
-    [[ -f "$plan_file" ]] || continue
+for proposal_file in "$CHANGES_DIR"/*/proposal.md; do
+    [[ -f "$proposal_file" ]] || continue
+    slug=$(basename "$(dirname "$proposal_file")")
+    [[ "$slug" == "archive" ]] && continue
 
-    # Extract status from frontmatter (between first pair of ---)
-    status=$(awk 'BEGIN{f=0} /^---/{f++;next} f==1 && /^status:/{print $2; exit}' "$plan_file" | tr -d ' \r')
-    [[ "$status" == "active" ]] || continue
+    title="$slug"
+    tasks_file="$(dirname "$proposal_file")/tasks.md"
 
-    # Extract domains line and check for role
-    domains=$(awk 'BEGIN{f=0} /^---/{f++;next} f==1 && /^domains:/{print; exit}' "$plan_file")
-    [[ "$domains" == *"$ROLE"* ]] || continue
-
-    title=$(awk 'BEGIN{f=0} /^---/{f++;next} f==1 && /^title:/{$1=""; print; exit}' "$plan_file" | sed 's/^ //')
-    echo "### Active plan: $title"
+    echo "### Active proposal: $slug"
     echo
-    # Print body (everything after the closing ---)
-    awk 'BEGIN{n=0} /^---/{n++;next} n>=2{print}' "$plan_file"
+    cat "$proposal_file"
+    if [[ -f "$tasks_file" ]]; then
+        echo
+        echo "#### Implementation tasks"
+        cat "$tasks_file"
+    fi
     echo
     found=$((found+1))
 done
@@ -60,5 +60,5 @@ if [[ $WITH_OPENSPEC -eq 1 ]]; then
 fi
 
 if [[ $found -eq 0 ]]; then
-    exit 0  # no output — orchestrator omits the <active-plans> block
+    exit 0
 fi

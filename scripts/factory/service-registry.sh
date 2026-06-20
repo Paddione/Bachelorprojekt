@@ -42,6 +42,7 @@ declare -A SERVICE_REGISTRY=(
   [k3d/einvoice-sidecar.yaml]="einvoice"
   [k3d/oauth2-proxy-comfy.yaml]="oauth2-proxy"
   [k3d/oauth2-proxy-traefik.yaml]="traefik"
+  [k3d/traefik-config.yaml]="traefik"
   [k3d/traefik-dashboard-dev.yaml]="traefik"
   [k3d/ingress.yaml]="traefik"
   [k3d/claude-code-config.yaml]="claude-code"

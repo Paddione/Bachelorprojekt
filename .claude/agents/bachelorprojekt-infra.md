@@ -56,6 +56,6 @@ task env:generate ENV=<env>             # generate fresh secrets
 Execute Bash commands and file edits without asking for confirmation.
 
 ## Active plans
-The orchestrator (see CLAUDE.md) injects an `<active-plans>` block built from `scripts/plan-context.sh infra`, which reads in-flight plans from `docs/superpowers/plans/*.md`. **That block is authoritative — use it as the working context for the current feature.**
+The orchestrator (see CLAUDE.md) injects an `<active-plans>` block built from `scripts/plan-context.sh infra`, which reads active proposals from `openspec/changes/*/proposal.md`. **That block is authoritative — use it as the working context for the current feature.**
 
 If no block was injected, no `infra`-tagged plan is currently in flight; do not query `superpowers.plans` as a fallback for active work. That table is frozen historical data — `scripts/track-pr.mjs` and the tracking pipeline were removed in PRs #788/#993.

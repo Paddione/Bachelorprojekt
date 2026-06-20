@@ -34,7 +34,7 @@ try {
   }
 
   // Title must not contain shell metacharacters
-  if (doc.title && /[$`"'|&;()<>{}[\]\\!#~*? \t\n]/.test(doc.title)) {
+  if (doc.title && /[$`"'|&;()<>{}[\]\\!#~*?\t\n]/.test(doc.title)) {
     throw new Error(`Field "title" contains forbidden shell metacharacters (got "${doc.title}")`);
   }
 

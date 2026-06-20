@@ -2,10 +2,10 @@
 
 **Ticket:** {external_id}
 **Spec File:** `docs/superpowers/specs/{date}-{slug}-design.md`
-**Design Bundle:** `docs/superpowers/plans/assets/{slug}/` (falls vorhanden — `intent.md`, `new/`)
+**Design Bundle:** `openspec/changes/{slug}/assets/` (falls vorhanden — `intent.md`, `new/`)
 **Timestamp:** {timestamp}
 
-> **Design-Handoff-Quelle:** Existiert `docs/superpowers/plans/assets/{slug}/intent.md` (von
+> **Design-Handoff-Quelle:** Existiert `openspec/changes/{slug}/assets/intent.md` (von
 > dev-flow Schritt 1.7) ODER eine `ASSET available at …`-Zeile aus den Ticket-Attachments
 > (`assets-inbox/`), dann ist DAS die verbindliche Design-Vorlage — nicht frei erfinden.
 > `new/` enthält nur geprüfte, passende Assets. Guardrails beim Verbauen (T000756):

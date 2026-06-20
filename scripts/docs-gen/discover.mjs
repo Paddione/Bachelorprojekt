@@ -15,7 +15,6 @@ import { join, sep, basename } from 'node:path';
 // docs subtrees that are internal process artifacts — never published.
 const DOC_EXCLUDE_PREFIXES = [
   join('docs', 'superpowers', 'specs'),
-  join('docs', 'superpowers', 'plans'),
   join('docs', 'agent-guide', 'maps'), // grep-only repo maps (S3), not a published doc page
 ];
 
@@ -160,8 +159,23 @@ async function discoverDocs(repoRoot, pluginsRoot) {
   return docs;
 }
 
+// openspec/changes/<slug>/{proposal.md,tasks.md} — excluding archive/
+async function discoverOpenspecChanges(repoRoot, pluginsRoot) {
+  const changesDir = join(repoRoot, 'openspec', 'changes');
+  const docs = [];
+  if (!existsSync(changesDir)) return docs;
+  for (const e of await readdir(changesDir, { withFileTypes: true })) {
+    if (!e.isDirectory() || e.name === 'archive') continue;
+    const slugDir = join(changesDir, e.name);
+    for (const md of await listMdFiles(slugDir)) {
+      docs.push(await makeSourceDoc('doc', basename(md, '.md'), md, pluginsRoot));
+    }
+  }
+  return docs;
+}
+
 /**
- * Discover all four source types and return a deterministically sorted SourceDoc[].
+ * Discover all source types and return a deterministically sorted SourceDoc[].
  * @param {{ repoRoot: string, pluginsRoot: string, homeDir: string }} opts
  * @returns {Promise<SourceDoc[]>}
  */
@@ -174,6 +188,7 @@ export async function discoverSources({ repoRoot, pluginsRoot, homeDir }) {
     discoverRepoAgents(repoRoot, pluginsRoot),
     discoverPluginSources(pluginsRoot),
     discoverDocs(repoRoot, pluginsRoot),
+    discoverOpenspecChanges(repoRoot, pluginsRoot),
   ]);
   const all = groups.flat();
   all.sort((a, b) =>

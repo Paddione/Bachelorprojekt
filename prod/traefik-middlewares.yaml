@@ -35,6 +35,26 @@ spec:
       Permissions-Policy: "camera=(self), microphone=(self), geolocation=(), payment=()"
       X-Robots-Tag: "noindex"
 ---
+# ── Security-Header-Variante für eingebettete Widgets (iframe-kompatibel) ──
+# Verwendet für: mediaviewer.${PROD_DOMAIN} (im Admin-Sidekick als iframe)
+# Entfernt X-Frame-Options und setzt CSP frame-ancestors stattdessen,
+# damit der Widget-iframe in web.${PROD_DOMAIN} geladen werden kann.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: mediaviewer-embed-headers
+  namespace: workspace
+spec:
+  headers:
+    customResponseHeaders:
+      X-Frame-Options: ""
+      X-Content-Type-Options: "nosniff"
+      X-XSS-Protection: "1; mode=block"
+      Referrer-Policy: "strict-origin-when-cross-origin"
+      Permissions-Policy: "camera=(self), microphone=(self), geolocation=(), payment=()"
+      X-Robots-Tag: "noindex"
+      Content-Security-Policy: "frame-ancestors 'self' https://web.${PROD_DOMAIN}"
+---
 # ── Rate-Limiting: Keycloak (Brute-Force-Schutz) ──────────────────
 apiVersion: traefik.io/v1alpha1
 kind: Middleware

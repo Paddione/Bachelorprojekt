@@ -46,7 +46,9 @@
 
   function pushGrillingData() {
     if (grillingData) {
-      iframeEl?.contentWindow?.postMessage(buildSetGrillingDataMessage(grillingData), widgetOrigin);
+      // JSON round-trip strips the Svelte 5 reactive proxy before postMessage (structuredClone rejects proxies).
+      const plain = JSON.parse(JSON.stringify(grillingData));
+      iframeEl?.contentWindow?.postMessage(buildSetGrillingDataMessage(plain), widgetOrigin);
     }
   }
 

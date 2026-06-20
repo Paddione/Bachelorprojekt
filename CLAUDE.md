@@ -16,11 +16,11 @@ Before responding to any request, check these signals and delegate to the named 
 > **Agent-Routing-Karten:** Generierte, grepbare Karten unter `docs/agent-guide/maps/` — `goals-map.md` (Intention → Weg → Tier → Guardrails), `tools-map.md`, `danger-map.md`. Quelle: `docs/agent-guide/registry/` (nicht von Hand editieren; via `task agent-guide:maps` regenerieren).
 
 **Before dispatching any agent, inject active plan context:**
-Run `bash scripts/plan-context.sh <role>` and prepend output to the agent prompt wrapped in `<active-plans>` tags. If the script produces no output (no active plans for that role), omit the block entirely.
+Run `bash scripts/plan-context.sh <role> --with-openspec` and prepend output to the agent prompt wrapped in `<active-plans>` tags. If the script produces no output, omit the block entirely. `--with-openspec` auto-loads the SSOT spec(s) for any files changed vs main — omit only when explicitly told to skip OpenSpec context.
 
 ```bash
 # Example orchestrator injection pattern:
-context=$(bash scripts/plan-context.sh infra)
+context=$(bash scripts/plan-context.sh infra --with-openspec)
 if [[ -n "$context" ]]; then
   prompt="<active-plans>\n${context}\n</active-plans>\n\n${task_prompt}"
 fi

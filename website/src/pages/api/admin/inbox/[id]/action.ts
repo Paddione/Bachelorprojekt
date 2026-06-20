@@ -77,7 +77,7 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
 
         await sendPasswordResetEmail(userId);
         // Emails are best-effort — upsertCustomer and inbox update must still succeed
-        sendRegistrationApproved(p.email, fullName).catch(err =>
+        sendRegistrationApproved(p.email, fullName, request).catch(err =>
           locals.requestLogger.error({ err }, '[approve_registration] Failed to send approval email:')
         );
         await upsertCustomer({ name: fullName, email: p.email, phone: p.phone, company: p.company, keycloakUserId: userId });
@@ -89,7 +89,7 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
 
       case 'decline_registration': {
         const p = item.payload as { email: string; firstName: string; lastName: string };
-        await sendRegistrationDeclined(p.email, `${p.firstName} ${p.lastName}`);
+        await sendRegistrationDeclined(p.email, `${p.firstName} ${p.lastName}`, undefined, request);
         await updateInboxItemStatus(id, 'actioned', session.preferred_username);
         return new Response(JSON.stringify({ success: true }), { headers: { 'Content-Type': 'application/json' } });
       }
@@ -134,7 +134,7 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
           subject: `Termin bestätigt: ${p.typeLabel} am ${dateFormatted}`,
           text: `Hallo ${p.name},\n\nIhr Termin wurde bestätigt!\n\n  Typ:     ${p.typeLabel}\n  Datum:   ${dateFormatted}\n  Uhrzeit: ${p.slotDisplay}${room ? `\n\nIhr Meeting-Link:\n${room.url}` : ''}\n\nMit freundlichen Grüßen\n${BRAND_NAME}`,
           html: `<p>Hallo ${p.name},</p><p><strong>Ihr Termin wurde bestätigt!</strong></p><table style="border-collapse:collapse;margin:16px 0"><tr><td style="padding:4px 12px 4px 0;color:#aabbcc">Typ</td><td>${p.typeLabel}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#aabbcc">Datum</td><td>${dateFormatted}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#aabbcc">Uhrzeit</td><td>${p.slotDisplay}</td></tr></table>${meetingLinkHtml}<p>Mit freundlichen Grüßen<br>${BRAND_NAME}</p>`,
-        });
+        }, request);
         statusParts.push('Bestätigungs-E-Mail versendet');
         const customer = await upsertCustomer({ name: p.name, email: p.email, phone: p.phone });
 
@@ -196,7 +196,7 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
           to: p.email,
           subject: `Zu Ihrer Terminanfrage bei ${BRAND_NAME}`,
           text: `Hallo ${p.name},\n\nleider können wir den angefragten Termin (${p.typeLabel} am ${dateFormatted}, ${p.slotDisplay}) nicht bestätigen.\n\nBitte wählen Sie einen alternativen Termin unter https://web.${PROD_DOMAIN}/termin oder kontaktieren Sie uns direkt.\n\nMit freundlichen Grüßen\n${BRAND_NAME}`,
-        });
+        }, request);
         await updateInboxItemStatus(id, 'actioned', session.preferred_username);
         return new Response(JSON.stringify({ success: true }), { headers: { 'Content-Type': 'application/json' } });
       }

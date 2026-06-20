@@ -36,7 +36,7 @@ export const POST: APIRoute = async ({ request, params }) => {
       clientName,
       questionnaireTitle: assignment.template_title,
       reason,
-    }).catch(() => null);
+    }, request).catch(() => null);
   }
 
   return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });

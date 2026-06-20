@@ -62,7 +62,7 @@ export const POST: APIRoute = async ({ request , locals }) => {
   const portalUrl = PROD_DOMAIN
     ? `https://web.${PROD_DOMAIN}/portal/fragebogen/${assignment.id}`
     : `http://web.localhost/portal/fragebogen/${assignment.id}`;
-  await sendQuestionnaireAssigned({ clientEmail: kcUser.email, clientName, questionnaireTitle: tpl.title, portalUrl });
+  await sendQuestionnaireAssigned({ clientEmail: kcUser.email, clientName, questionnaireTitle: tpl.title, portalUrl }, request);
 
   return new Response(JSON.stringify(assignment), { status: 201, headers: { 'Content-Type': 'application/json' } });
 };

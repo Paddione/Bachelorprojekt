@@ -42,7 +42,7 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
       clientName,
       questionnaireTitle: assignment.template_title,
       auswertungUrl,
-    });
+    }, request);
   }
 
   return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });

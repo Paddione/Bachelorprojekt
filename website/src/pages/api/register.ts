@@ -36,7 +36,7 @@ export const POST: APIRoute = async ({ request , locals }) => {
     });
 
     // Confirmation email is best-effort — inbox item is the authoritative record
-    sendRegistrationConfirmation(email, fullName).catch(err =>
+    sendRegistrationConfirmation(email, fullName, request).catch(err =>
       locals.requestLogger.error({ err }, '[register] Failed to send confirmation email:')
     );
 

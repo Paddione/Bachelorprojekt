@@ -60,7 +60,7 @@ export const POST: APIRoute = async ({ request }) => {
     });
   }
 
-  await sendNewsletterConfirmation(email, confirmUrl);
+  await sendNewsletterConfirmation(email, confirmUrl, request);
 
   return new Response(JSON.stringify({ ok: true }), {
     status: 200,

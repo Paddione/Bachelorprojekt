@@ -46,7 +46,7 @@ export const POST: APIRoute = async ({ request , locals }) => {
       to: email,
       subject: `Ihre ${subject} bei ${BRAND_NAME}`,
       text: `Hallo ${name},\n\nwir haben Ihre ${subject} erhalten und werden diese innerhalb von 30 Tagen bearbeiten.\n\nFristdatum: ${deadline}\nRechtsgrundlage: Art. ${articleNum} DSGVO\n\nMit freundlichen Grüßen\n${BRAND_NAME}`,
-    }).catch(err => locals.requestLogger.error({ err }, '[dsgvo-request] Failed to send confirmation email:'));
+    }, request).catch(err => locals.requestLogger.error({ err }, '[dsgvo-request] Failed to send confirmation email:'));
 
     // 3. Admin-Benachrichtigung (best-effort)
     sendAdminNotification({

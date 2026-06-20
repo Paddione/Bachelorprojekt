@@ -34,9 +34,10 @@ test.describe('FA-28: Website-Messaging (internes Chat-System)', { tag: ['@messa
     expect([401, 403]).toContain(res.status());
   });
 
-  // T4: Admin rooms endpoint rejects unauthenticated GET
-  test('T4: GET /api/admin/rooms returns 401 without auth', async ({ request }) => {
-    const res = await request.get(`${BASE}/api/admin/rooms`);
+  // T4: Portal rooms endpoint rejects unauthenticated GET
+  // (Rooms are a portal concept — /api/portal/rooms, not /api/admin/rooms)
+  test('T4: GET /api/portal/rooms returns 401 without auth', async ({ request }) => {
+    const res = await request.get(`${BASE}/api/portal/rooms`);
     expect([401, 403]).toContain(res.status());
   });
 

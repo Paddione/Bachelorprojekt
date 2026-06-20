@@ -89,20 +89,26 @@ export async function recordPayment(p: RecordPaymentInput): Promise<InvoicePayme
     const eurVat = round2(p.amount * tax / gross);
     await client.query('COMMIT');
 
-    await addBooking({
-      brand:       inv.brand,
-      bookingDate: p.paidAt,
-      type:        'income',
-      category:    p.amount < 0 ? 'zahlungseingang_korrektur' : 'zahlungseingang',
-      description: p.amount < 0
-        ? `Zahlungskorrektur ${inv.number}`
-        : `Zahlungseingang ${inv.number}`,
-      netAmount:   eurNet,
-      vatAmount:   eurVat,
-      invoiceId:   p.invoiceId,
-      belegnummer: inv.number,
-      taxMode:     inv.tax_mode,
-    });
+    // EÜR bookkeeping is best-effort — the payment is already committed; a
+    // bookkeeping failure must not roll it back or cause the endpoint to 500.
+    try {
+      await addBooking({
+        brand:       inv.brand,
+        bookingDate: p.paidAt,
+        type:        'income',
+        category:    p.amount < 0 ? 'zahlungseingang_korrektur' : 'zahlungseingang',
+        description: p.amount < 0
+          ? `Zahlungskorrektur ${inv.number}`
+          : `Zahlungseingang ${inv.number}`,
+        netAmount:   eurNet,
+        vatAmount:   eurVat,
+        invoiceId:   p.invoiceId,
+        belegnummer: inv.number,
+        taxMode:     inv.tax_mode,
+      });
+    } catch (bookingErr) {
+      console.error('[recordPayment] EÜR booking failed (payment already committed):', bookingErr);
+    }
 
     // Kursdifferenz: only when invoice is in foreign currency and a different payment rate is provided
     const invCurrency = inv.currency ?? 'EUR';
@@ -112,18 +118,22 @@ export async function recordPayment(p: RecordPaymentInput): Promise<InvoicePayme
       const kdAmount = Math.round(p.amount * rateDiff * 100) / 100;
       if (Math.abs(kdAmount) >= 0.01) {
         const isGain = kdAmount > 0;
-        await addBooking({
-          brand:       inv.brand,
-          bookingDate: p.paidAt,
-          type:        isGain ? 'income' : 'expense',
-          category:    isGain ? 'kursdifferenz_gewinn' : 'kursdifferenz_verlust',
-          description: `Kursdifferenz ${inv.number} (${invCurrency})`,
-          netAmount:   Math.abs(kdAmount),
-          vatAmount:   0,
-          invoiceId:   p.invoiceId,
-          belegnummer: inv.number,
-          taxMode:     inv.tax_mode,
-        });
+        try {
+          await addBooking({
+            brand:       inv.brand,
+            bookingDate: p.paidAt,
+            type:        isGain ? 'income' : 'expense',
+            category:    isGain ? 'kursdifferenz_gewinn' : 'kursdifferenz_verlust',
+            description: `Kursdifferenz ${inv.number} (${invCurrency})`,
+            netAmount:   Math.abs(kdAmount),
+            vatAmount:   0,
+            invoiceId:   p.invoiceId,
+            belegnummer: inv.number,
+            taxMode:     inv.tax_mode,
+          });
+        } catch (kdBookingErr) {
+          console.error('[recordPayment] EÜR Kursdifferenz booking failed:', kdBookingErr);
+        }
       }
     }
 

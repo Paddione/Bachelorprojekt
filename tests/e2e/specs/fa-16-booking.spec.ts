@@ -41,8 +41,8 @@ test.describe('FA-16: Calendar Booking', { tag: ['@booking'] }, () => {
     // /termin redirects to /kontakt?mode=termin
     await expect(page).toHaveURL(/\/kontakt/);
     await expect(page.locator('h1')).toBeVisible();
-    // The "Termin buchen" tab should be expanded
-    await expect(page.getByRole('button', { name: /termin buchen/i })).toBeVisible();
+    // The termin tab is rendered as role="tab" with text "01 — Termin" in ContactHub.svelte
+    await expect(page.getByRole('tab', { name: /termin/i })).toBeVisible();
   });
 
   test('T5: POST /api/booking without data returns 400', async ({ request }) => {

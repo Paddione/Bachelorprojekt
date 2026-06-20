@@ -113,6 +113,7 @@ jobs:
           E2E_ADMIN_PASS: ${{ secrets.E2E_ADMIN_PASS }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           SKIP_DB_PURGE: "1"
+          PLAYWRIGHT_WORKERS: "4"
         run: npx playwright test
 
       # Ingest Playwright JSON into the website's test_runs/test_results +

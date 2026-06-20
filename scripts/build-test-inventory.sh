@@ -14,8 +14,22 @@ for dir in "${REPO_ROOT}/tests/local" "${REPO_ROOT}/tests/prod"; do
     base="$(basename "$f")"
     # was: id="$(echo "$base" | sed -E 's/^(FA|SA|NFA|AK)-([0-9]+).*/\1-\2/')"
     # Extended to accept an optional uppercase sub-tag (e.g. FA-SF-04 → FA-SF-04).
+    # Also supports multi-word uppercase prefixes with digit suffix (e.g. MCP-TASK-RUNNER-001).
     id="$(echo "$base" | sed -E 's/^(FA|SA|NFA|AK)(-[A-Z]+)?-([0-9]+).*/\1\2-\3/')"
-    [[ "$id" == "$base" ]] && continue
+    if [[ "$id" == "$base" ]]; then
+      # Try multi-word uppercase prefix: e.g. MCP-TASK-RUNNER-001
+      id="$(echo "$base" | sed -E 's/^([A-Z][A-Z0-9]*(-[A-Z][A-Z0-9]*)+)-([0-9]+)\..*/\1-\3/')"
+    fi
+    if [[ "$id" == "$base" ]]; then
+      # BATS files whose name does not carry a number may contain @test lines with
+      # structured IDs (e.g. MCP-TASK-RUNNER.bats with "MCP-TASK-RUNNER-001: ...").
+      # Extract those IDs directly from the file and emit one entry per test.
+      rel="${f#${REPO_ROOT}/}"
+      while IFS= read -r test_id; do
+        entries+=("$(jq -nc --arg id "$test_id" --arg path "$rel" --arg category "${test_id%%-*}" --arg tier "$tier" '{id:$id, file:$path, category:$category, kind:"shell", tier:$tier}')")
+      done < <(grep -oP '@test\s+"\K[A-Z][A-Z0-9]*(-[A-Z][A-Z0-9]*)*-[0-9]+(?=:)' "$f" 2>/dev/null || true)
+      continue
+    fi
     rel="${f#${REPO_ROOT}/}"
     entries+=("$(jq -nc --arg id "$id" --arg path "$rel" --arg category "${id%%-*}" --arg tier "$tier" '{id:$id, file:$path, category:$category, kind:"shell", tier:$tier}')")
   done < <(find "$dir" -maxdepth 1 \( -name '*.sh' -o -name '*.bats' \) -print0 | sort -z)

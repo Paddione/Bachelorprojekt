@@ -1,8 +1,7 @@
 #!/usr/bin/env bats
-# tests/spec/mcp-task-runner.bats
-# SSOT: openspec/changes/mcp-task-runner/proposal.md
-#
+# tests/local/MCP-TASK-RUNNER.bats
 # Integration tests for the mcp-task-runner MCP server.
+# Canonical spec: tests/spec/mcp-task-runner.bats (same content).
 # Binary must be installed at /usr/local/bin/mcp-task-runner.
 # Tests use a fake `task` binary via PATH prepend — no real cluster or Taskfile needed.
 
@@ -10,8 +9,6 @@
 setup() {
   load 'test_helper.bash'
 
-  # Resolve absolute paths (BATS_TEST_DIRNAME is not available at file scope)
-  REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
   BINARY="/usr/local/bin/mcp-task-runner"
 
   # Create a minimal Taskfile so --taskfile flag is satisfied

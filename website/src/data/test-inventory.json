@@ -1302,6 +1302,114 @@
     "kind": "shell"
   },
   {
+    "id": "LR-01",
+    "file": "tests/local/learning-db-schema.bats",
+    "category": "LR",
+    "kind": "shell"
+  },
+  {
+    "id": "LR-02",
+    "file": "tests/local/learning-db-schema.bats",
+    "category": "LR",
+    "kind": "shell"
+  },
+  {
+    "id": "LR-03",
+    "file": "tests/local/learning-db-schema.bats",
+    "category": "LR",
+    "kind": "shell"
+  },
+  {
+    "id": "LR-04",
+    "file": "tests/local/learning-db-schema.bats",
+    "category": "LR",
+    "kind": "shell"
+  },
+  {
+    "id": "LR-05",
+    "file": "tests/local/learning-db-schema.bats",
+    "category": "LR",
+    "kind": "shell"
+  },
+  {
+    "id": "LR-06",
+    "file": "tests/local/learning-db-schema.bats",
+    "category": "LR",
+    "kind": "shell"
+  },
+  {
+    "id": "LR-07",
+    "file": "tests/local/learning-db-schema.bats",
+    "category": "LR",
+    "kind": "shell"
+  },
+  {
+    "id": "LR-08",
+    "file": "tests/local/learning-db-schema.bats",
+    "category": "LR",
+    "kind": "shell"
+  },
+  {
+    "id": "LR-09",
+    "file": "tests/local/learning-db-schema.bats",
+    "category": "LR",
+    "kind": "shell"
+  },
+  {
+    "id": "LR-10",
+    "file": "tests/local/learning-db-schema.bats",
+    "category": "LR",
+    "kind": "shell"
+  },
+  {
+    "id": "LR-11",
+    "file": "tests/local/learning-db-schema.bats",
+    "category": "LR",
+    "kind": "shell"
+  },
+  {
+    "id": "LR-12",
+    "file": "tests/local/learning-db-schema.bats",
+    "category": "LR",
+    "kind": "shell"
+  },
+  {
+    "id": "LR-13",
+    "file": "tests/local/learning-db-schema.bats",
+    "category": "LR",
+    "kind": "shell"
+  },
+  {
+    "id": "LR-14",
+    "file": "tests/local/learning-db-schema.bats",
+    "category": "LR",
+    "kind": "shell"
+  },
+  {
+    "id": "MCP-TASK-RUNNER-001",
+    "file": "tests/local/MCP-TASK-RUNNER.bats",
+    "category": "MCP",
+    "kind": "shell"
+  },
+  {
+    "id": "MCP-TASK-RUNNER-002",
+    "file": "tests/local/MCP-TASK-RUNNER.bats",
+    "category": "MCP",
+    "kind": "shell"
+  },
+  {
+    "id": "MCP-TASK-RUNNER-003",
+    "file": "tests/local/MCP-TASK-RUNNER.bats",
+    "category": "MCP",
+    "kind": "shell"
+  },
+  {
+    "id": "MCP-TASK-RUNNER-004",
+    "file": "tests/local/MCP-TASK-RUNNER.bats",
+    "category": "MCP",
+    "kind": "shell"
+  },
+  {
     "id": "NFA-01",
     "file": "tests/local/NFA-01.sh",
     "category": "NFA",

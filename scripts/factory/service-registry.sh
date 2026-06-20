@@ -50,6 +50,7 @@ declare -A SERVICE_REGISTRY=(
   [k3d/claude-code-mcp-github.yaml]="claude-code"
   [k3d/claude-code-mcp-ops.yaml]="claude-code"
   [k3d/claude-code-rbac.yaml]="claude-code"
+  [k3d/sessions-server.yaml]="sessions-server"
   [k3d/pentest-flags.yaml]="pentest"
   [k3d/recovery-browser.yaml]="recovery"
   [k3d/recovery-pvc.yaml]="recovery"

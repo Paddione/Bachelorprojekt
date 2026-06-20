@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-20T05:31:41.521Z",
+  "generatedAt": "2026-06-20T06:01:35.008Z",
   "endpoints": [
     {
       "path": "/api/admin/angebote/save",
@@ -2041,6 +2041,16 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/service-page/save.ts"
+    },
+    {
+      "path": "/api/admin/sessions",
+      "methods": [
+        "GET",
+        "POST",
+        "DELETE"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/sessions/index.ts"
     },
     {
       "path": "/api/admin/shortcuts/create",

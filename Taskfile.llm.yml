@@ -2,6 +2,12 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # Local-first LLM pipeline operations.
 # Included from Taskfile.yml under the "llm" namespace.
+#
+# Post-#895: the in-cluster LiteLLM router Deployment was removed. Apps call
+# the in-cluster gateway Services (`llm-gateway-embed`, `llm-gateway-lmstudio`)
+# directly. `llm:deploy` therefore only applies `k3d/llm-gpu.yaml` (gateway
+# Services+Endpoints). `llm:status` and `llm:test` query those Services via
+# debug-pod `kubectl exec` curls, not a router pod.
 # ─────────────────────────────────────────────────────────────────────────────
 version: "3"
 
@@ -24,7 +30,7 @@ tasks:
       - scripts/llm-pull-models.sh {{.HOST}}
 
   deploy:
-    desc: "Apply llm-gpu Endpoints + llm-router Deployment to ENV={{.ENV}}"
+    desc: "Apply llm-gateway Services + Endpoints (embed + lmstudio) to ENV={{.ENV}}"
     vars:
       ENV: '{{.ENV | default "mentolder"}}'
     cmds:
@@ -33,69 +39,52 @@ tasks:
         : "${LLM_HOST_IP:?LLM_HOST_IP unset — configure in environments/{{.ENV}}.yaml}"
         envsubst '$LLM_HOST_IP' < k3d/llm-gpu.yaml \
           | kubectl --context "$ENV_CONTEXT" -n "${WORKSPACE_NAMESPACE:-workspace}" apply -f -
-        kubectl --context "$ENV_CONTEXT" -n "${WORKSPACE_NAMESPACE:-workspace}" apply -f prod/llm-router.yaml
-        kubectl --context "$ENV_CONTEXT" -n "${WORKSPACE_NAMESPACE:-workspace}" rollout status deployment/llm-router --timeout=120s
-
-  redeploy-router:
-    desc: "Roll the llm-router Deployment (e.g. after config.yaml change). ENV=<env>"
-    vars:
-      ENV: '{{.ENV | default "mentolder"}}'
-    cmds:
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        kubectl --context "$ENV_CONTEXT" -n "${WORKSPACE_NAMESPACE:-workspace}" rollout restart deployment/llm-router
-        kubectl --context "$ENV_CONTEXT" -n "${WORKSPACE_NAMESPACE:-workspace}" rollout status deployment/llm-router --timeout=120s
+        echo "✓ llm-gateway-embed + llm-gateway-lmstudio applied (ENV={{.ENV}})"
 
   status:
-    desc: "Show LLM pipeline status (router pod, gateway endpoints, model availability). ENV=<env>"
+    desc: "Show LLM pipeline status (gateway endpoints, GPU host reachability, model availability). ENV=<env>"
     vars:
       ENV: '{{.ENV | default "mentolder"}}'
     cmds:
       - |
+        set -e
         source scripts/env-resolve.sh "{{.ENV}}"
         ns="${WORKSPACE_NAMESPACE:-workspace}"
-        echo "── llm-router pod ──"
-        kubectl --context "$ENV_CONTEXT" -n "$ns" get deploy/llm-router -o wide
         echo "── llm-gateway endpoints ──"
-        kubectl --context "$ENV_CONTEXT" -n "$ns" get endpoints llm-gateway-embed llm-gateway-rerank llm-gateway-chat
-        echo "── /health ──"
-        kubectl --context "$ENV_CONTEXT" -n "$ns" exec deploy/llm-router -- \
-          curl -fsS http://localhost:4000/health | head -c 500 || true
-
-  logs:
-    desc: "Tail llm-router logs. ENV=<env>"
-    vars:
-      ENV: '{{.ENV | default "mentolder"}}'
-    cmds:
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        kubectl --context "$ENV_CONTEXT" -n "${WORKSPACE_NAMESPACE:-workspace}" logs deploy/llm-router -f --tail=200
+        kubectl --context "$ENV_CONTEXT" -n "$ns" get endpoints llm-gateway-embed llm-gateway-lmstudio
+        echo "── llm-gateway-embed health (TEI) ──"
+        kubectl --context "$ENV_CONTEXT" -n "$ns" run llm-debug-$$ --rm -it --restart=Never \
+          --image=curlimages/curl:8.7.1 --quiet -- \
+          curl -fsS "http://llm-gateway-embed.${ns}.svc.cluster.local:8081/health" || true
+        echo "── llm-gateway-lmstudio models (Windows) ──"
+        kubectl --context "$ENV_CONTEXT" -n "$ns" run llm-debug-$$ --rm -it --restart=Never \
+          --image=curlimages/curl:8.7.1 --quiet -- \
+          curl -fsS "http://llm-gateway-lmstudio.${ns}.svc.cluster.local:1234/v1/models" || true
 
   test:
-    desc: "Smoke-test all four router routes (embed bge-m3, embed voyage, rerank, chat). ENV=<env>"
+    desc: "Smoke-test the gateway Services directly (embed bge-m3 + LM Studio chat). Voyage hits the cloud API. ENV=<env>"
     vars:
       ENV: '{{.ENV | default "mentolder"}}'
     cmds:
       - |
+        set -e
         source scripts/env-resolve.sh "{{.ENV}}"
         ns="${WORKSPACE_NAMESPACE:-workspace}"
-        echo "── bge-m3 embed ──"
-        kubectl --context "$ENV_CONTEXT" -n "$ns" exec deploy/llm-router -- \
-          curl -fsS -X POST http://localhost:4000/v1/embeddings \
+        echo "── bge-m3 embed via llm-gateway-embed ──"
+        kubectl --context "$ENV_CONTEXT" -n "$ns" run llm-debug-$$ --rm -it --restart=Never \
+          --image=curlimages/curl:8.7.1 --quiet -- \
+          curl -fsS -X POST "http://llm-gateway-embed.${ns}.svc.cluster.local:8081/v1/embeddings" \
             -H "Content-Type: application/json" \
             -d '{"model":"bge-m3","input":"hallo welt"}' | jq '.data[0].embedding | length'
-        echo "── voyage-multilingual-2 embed ──"
-        kubectl --context "$ENV_CONTEXT" -n "$ns" exec deploy/llm-router -- \
-          curl -fsS -X POST http://localhost:4000/v1/embeddings \
-            -H "Content-Type: application/json" \
-            -d '{"model":"voyage-multilingual-2","input":"hallo welt"}' | jq '.data[0].embedding | length'
-        echo "── rerank ──"
-        kubectl --context "$ENV_CONTEXT" -n "$ns" exec deploy/llm-router -- \
-          curl -fsS -X POST http://localhost:4000/v1/rerank \
-            -H "Content-Type: application/json" \
-            -d '{"model":"workspace-rerank","query":"capital of germany","documents":["paris","berlin","hamburg"]}' | jq '.results[0]'
-        echo "── chat ──"
-        kubectl --context "$ENV_CONTEXT" -n "$ns" exec deploy/llm-router -- \
-          curl -fsS -X POST http://localhost:4000/v1/chat/completions \
-            -H "Content-Type: application/json" \
-            -d '{"model":"workspace-chat","messages":[{"role":"user","content":"Sag Hallo auf Deutsch."}],"max_tokens":20}' | jq '.choices[0].message.content'
+        echo "── LM Studio chat via llm-gateway-lmstudio ──"
+        # LLM_ROUTER_API_KEY is sealed into website-secrets; pull it for the test
+        KEY=$(kubectl --context "$ENV_CONTEXT" -n "$ns" get secret website-secrets -o jsonpath='{.data.LLM_ROUTER_API_KEY}' 2>/dev/null | base64 -d || echo "")
+        if [[ -z "$KEY" ]]; then
+          echo "  (LLM_ROUTER_API_KEY not found in website-secrets — running chat test unauthenticated)"
+        fi
+        kubectl --context "$ENV_CONTEXT" -n "$ns" run llm-debug-$$ --rm -it --restart=Never \
+          --image=curlimages/curl:8.7.1 --quiet -- \
+          sh -c "curl -fsS -X POST 'http://llm-gateway-lmstudio.${ns}.svc.cluster.local:1234/v1/chat/completions' \
+            -H 'Content-Type: application/json' ${KEY:+-H 'Authorization: Bearer '"$KEY"'} \
+            -d '{\"model\":\"workspace-chat\",\"messages\":[{\"role\":\"user\",\"content\":\"Sag Hallo auf Deutsch.\"}],\"max_tokens\":20}' \
+            | jq '.choices[0].message.content'" || true

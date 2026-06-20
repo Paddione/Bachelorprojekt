@@ -74,9 +74,9 @@ task test:changed
 # Kustomize
 task workspace:validate
 
-# Typecheck (brett + arena-server)
+# Typecheck (brett) + Tests (arena-server uses pnpm)
 npm --prefix brett run typecheck 2>/dev/null || true
-npm --prefix arena-server test 2>/dev/null || true
+pnpm --dir arena-server test 2>/dev/null || true
 ```
 
 ### Phase 5: Rollback (falls nötig)

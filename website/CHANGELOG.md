@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.108.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.107.0...website-v1.108.0) (2026-06-20)
+
+
+### Features
+
+* **factory:** add semantic duplicate check and dynamic feature pool to feature-intake [T000978] ([#1935](https://github.com/Paddione/Bachelorprojekt/issues/1935)) ([9ae6dc8](https://github.com/Paddione/Bachelorprojekt/commit/9ae6dc817ef86b4b51d667753be918baacf4d548))
+
 ## [1.107.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.106.0...website-v1.107.0) (2026-06-20)
 
 

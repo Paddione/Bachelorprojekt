@@ -29,6 +29,12 @@ Never use `tickets.ticket_links` for PR references — it is ticket→ticket onl
 **Enum reference** (closing a ticket with an out-of-set value fails the CHECK constraint):
 `priority ∈ {hoch,mittel,niedrig}` · `severity ∈ {critical,major,minor,trivial}` · `status ∈ {triage,planning,plan_staged,backlog,in_progress,in_review,blocked,qa_review,done,archived}` · `resolution ∈ {fixed,shipped,obsolete}` · `attention_mode ∈ {auto,ai_ready,needs_human}` (default `auto`).
 
+**DB-Zugriff — MCP-Postgres für Reads bevorzugen.** Ist `mcp-postgres` erreichbar
+(`bash scripts/mcp-portforward.sh status`), führe **lesende** SELECTs über `mcp__mcp-postgres__query`
+aus (nur `sql`, read-only). Die `psql()`-Bash-Hilfsfunktion unten ist (a) der **Fallback** für Reads
+ohne aktiven Portforward und (b) der **Pflichtweg für schreibende** Statements (INSERT/UPDATE/DELETE) —
+das MCP-Query-Tool ist read-only. Siehe [`references/mcp-tool-guide.md`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md).
+
 All SQL below assumes:
 ```bash
 PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)

@@ -76,6 +76,11 @@ The **ticket-level** triage is computed across all mishaps in the ticket:
 
 ### 2a. Set up DB access
 
+**DB-Zugriff — MCP-Postgres für Reads bevorzugen.** Bei erreichbarem `mcp-postgres` lese SELECTs via
+`mcp__mcp-postgres__query`. Das `$PSQL`-Konstrukt unten ist der Read-Fallback **und** der Pflichtweg
+für schreibende Statements (INSERT/UPDATE) — das MCP-Query-Tool ist read-only.
+Siehe [`references/mcp-tool-guide.md`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md).
+
 ```bash
 PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)
 PSQL="kubectl exec $PGPOD -n workspace --context fleet -c postgres -- psql -U website -d website"

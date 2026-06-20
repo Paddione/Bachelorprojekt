@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.108.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.108.0...website-v1.108.1) (2026-06-20)
+
+
+### Documentation
+
+* **mcp:** MCP-native tool usage in skills and subagents [T000980] ([#1936](https://github.com/Paddione/Bachelorprojekt/issues/1936)) ([a1af33e](https://github.com/Paddione/Bachelorprojekt/commit/a1af33e15ee59d629fb3cfaa6bf0372476bfb896))
+
 ## [1.108.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.107.0...website-v1.108.0) (2026-06-20)
 
 

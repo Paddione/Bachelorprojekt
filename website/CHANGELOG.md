@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.107.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.106.0...website-v1.107.0) (2026-06-20)
+
+
+### Features
+
+* **website:** implement active sessions hub with CLI, API, UI, and oauth2 gate [T000975] ([#1932](https://github.com/Paddione/Bachelorprojekt/issues/1932)) ([86f0cdb](https://github.com/Paddione/Bachelorprojekt/commit/86f0cdb4c2e25da75a070b9aa15b03fce2974f8b))
+
 ## [1.106.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.105.1...website-v1.106.0) (2026-06-20)
 
 

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-17T02:57:01.582Z",
+  "generatedAt": "2026-06-20T05:40:17.896Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -1643,6 +1643,18 @@
     },
     {
       "from": "admin-actions-cleanup",
+      "to": "claude-code-mcp-auth",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "admin-actions-cleanup",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "admin-actions-cleanup",
       "to": "mcp-github",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -2075,6 +2087,18 @@
     },
     {
       "from": "admin-actions-prune",
+      "to": "claude-code-mcp-auth",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "admin-actions-prune",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "admin-actions-prune",
       "to": "mcp-github",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -2495,6 +2519,18 @@
     },
     {
       "from": "db-backup",
+      "to": "claude-code-mcp-auth",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "db-backup",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "db-backup",
       "to": "mcp-github",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -2903,6 +2939,18 @@
     },
     {
       "from": "brett",
+      "to": "claude-code-mcp-auth",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "brett",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "brett",
       "to": "mcp-github",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -3306,6 +3354,414 @@
     {
       "from": "ddns-updater",
       "to": "brett",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "mcp-github",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-github",
+      "to": "claude-code-mcp-auth",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "claude-code-mcp-ops",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-ops",
+      "to": "claude-code-mcp-auth",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "billing-dunning-detection",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "billing-dunning-detection",
+      "to": "claude-code-mcp-auth",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "monthly-billing",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "monthly-billing",
+      "to": "claude-code-mcp-auth",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "scheduled-publish",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "scheduled-publish",
+      "to": "claude-code-mcp-auth",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "oauth2-proxy-brainstorm",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brainstorm",
+      "to": "claude-code-mcp-auth",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "oauth2-proxy-dev",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-dev",
+      "to": "claude-code-mcp-auth",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "keycloak",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "keycloak",
+      "to": "claude-code-mcp-auth",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "knowledge-ingest-prs",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "knowledge-ingest-prs",
+      "to": "claude-code-mcp-auth",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "knowledge-ingest-bugs",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "knowledge-ingest-bugs",
+      "to": "claude-code-mcp-auth",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "knowledge-reindex-all",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "knowledge-reindex-all",
+      "to": "claude-code-mcp-auth",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "livekit-server",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-server",
+      "to": "claude-code-mcp-auth",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "livekit-ingress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-ingress",
+      "to": "claude-code-mcp-auth",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "claude-code-mcp-auth",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "nextcloud",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "nextcloud",
+      "to": "claude-code-mcp-auth",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "notify-unread",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "notify-unread",
+      "to": "claude-code-mcp-auth",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "oauth2-proxy-brett",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brett",
+      "to": "claude-code-mcp-auth",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "oauth2-proxy-comfy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-comfy",
+      "to": "claude-code-mcp-auth",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "oauth2-proxy-docs",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-docs",
+      "to": "claude-code-mcp-auth",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "oauth2-proxy-mailpit",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mailpit",
+      "to": "claude-code-mcp-auth",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "claude-code-mcp-auth",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "oauth2-proxy-traefik",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-traefik",
+      "to": "claude-code-mcp-auth",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
+      "to": "claude-code-mcp-auth",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "oauth2-proxy-recovery",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-recovery",
+      "to": "claude-code-mcp-auth",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "shared-db",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "shared-db",
+      "to": "claude-code-mcp-auth",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "spreed-signaling",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "spreed-signaling",
+      "to": "claude-code-mcp-auth",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "talk-recording",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "talk-recording",
+      "to": "claude-code-mcp-auth",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "vaultwarden",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "vaultwarden",
+      "to": "claude-code-mcp-auth",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "claude-code-mcp-auth",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "whiteboard",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "whiteboard",
+      "to": "claude-code-mcp-auth",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "claude-code-mcp-auth",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "talk-transcriber",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "talk-transcriber",
+      "to": "claude-code-mcp-auth",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "arena-server",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "arena-server",
+      "to": "claude-code-mcp-auth",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "ddns-updater",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "ddns-updater",
+      "to": "claude-code-mcp-auth",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },

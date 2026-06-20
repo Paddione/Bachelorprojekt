@@ -178,7 +178,7 @@
 <body>
   <div class="header">
     <h1>⬡ Architektur — Living Docs</h1>
-    <span class="meta">Generiert: 2026-06-20T02:13:36.368Z</span>
+    <span class="meta">Generiert: 2026-06-20T05:40:18.030Z</span>
   </div>
 
   <div class="stats">
@@ -187,7 +187,7 @@
       <span class="stat-label">Services</span>
     </div>
     <div class="stat">
-      <span class="stat-value">1617</span>
+      <span class="stat-value">1693</span>
       <span class="stat-label">Abhängigkeiten</span>
     </div>
     <div class="stat">
@@ -466,6 +466,8 @@ flowchart LR
   db_backup -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| admin_actions_cleanup
+  admin_actions_cleanup -->|"secret:workspace-s…"| claude_code_mcp_auth
+  claude_code_mcp_auth -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| mcp_github
   mcp_github -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| claude_code_mcp_ops
@@ -537,6 +539,8 @@ flowchart LR
   db_backup -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| admin_actions_prune
+  admin_actions_prune -->|"secret:workspace-s…"| claude_code_mcp_auth
+  claude_code_mcp_auth -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| mcp_github
   mcp_github -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| claude_code_mcp_ops
@@ -606,6 +610,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| admin_actions_prune
   db_backup -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| db_backup
+  db_backup -->|"secret:workspace-s…"| claude_code_mcp_auth
+  claude_code_mcp_auth -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| mcp_github
   mcp_github -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| claude_code_mcp_ops
@@ -670,6 +676,8 @@ flowchart LR
   arena_server -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| db_backup
+  brett -->|"secret:workspace-s…"| claude_code_mcp_auth
+  claude_code_mcp_auth -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| mcp_github
   mcp_github -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| claude_code_mcp_ops
@@ -731,6 +739,73 @@ flowchart LR
   arena_server -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| brett
+  claude_code_mcp_auth -->|"secret:workspace-s…"| mcp_github
+  mcp_github -->|"secret:workspace-s…"| claude_code_mcp_auth
+  claude_code_mcp_auth -->|"secret:workspace-s…"| claude_code_mcp_ops
+  claude_code_mcp_ops -->|"secret:workspace-s…"| claude_code_mcp_auth
+  claude_code_mcp_auth -->|"secret:workspace-s…"| billing_dunning_detection
+  billing_dunning_detection -->|"secret:workspace-s…"| claude_code_mcp_auth
+  claude_code_mcp_auth -->|"secret:workspace-s…"| monthly_billing
+  monthly_billing -->|"secret:workspace-s…"| claude_code_mcp_auth
+  claude_code_mcp_auth -->|"secret:workspace-s…"| scheduled_publish
+  scheduled_publish -->|"secret:workspace-s…"| claude_code_mcp_auth
+  claude_code_mcp_auth -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
+  oauth2_proxy_brainstorm -->|"secret:workspace-s…"| claude_code_mcp_auth
+  claude_code_mcp_auth -->|"secret:workspace-s…"| oauth2_proxy_dev
+  oauth2_proxy_dev -->|"secret:workspace-s…"| claude_code_mcp_auth
+  keycloak -->|"secret:workspace-s…"| claude_code_mcp_auth
+  claude_code_mcp_auth -->|"secret:workspace-s…"| knowledge_ingest_prs
+  knowledge_ingest_prs -->|"secret:workspace-s…"| claude_code_mcp_auth
+  claude_code_mcp_auth -->|"secret:workspace-s…"| knowledge_ingest_bugs
+  knowledge_ingest_bugs -->|"secret:workspace-s…"| claude_code_mcp_auth
+  claude_code_mcp_auth -->|"secret:workspace-s…"| knowledge_reindex_all
+  knowledge_reindex_all -->|"secret:workspace-s…"| claude_code_mcp_auth
+  claude_code_mcp_auth -->|"secret:workspace-s…"| livekit_server
+  livekit_server -->|"secret:workspace-s…"| claude_code_mcp_auth
+  claude_code_mcp_auth -->|"secret:workspace-s…"| livekit_ingress
+  livekit_ingress -->|"secret:workspace-s…"| claude_code_mcp_auth
+  claude_code_mcp_auth -->|"secret:workspace-s…"| livekit_egress
+  livekit_egress -->|"secret:workspace-s…"| claude_code_mcp_auth
+  claude_code_mcp_auth -->|"secret:workspace-s…"| nextcloud
+  nextcloud -->|"secret:workspace-s…"| claude_code_mcp_auth
+  claude_code_mcp_auth -->|"secret:workspace-s…"| notify_unread
+  notify_unread -->|"secret:workspace-s…"| claude_code_mcp_auth
+  claude_code_mcp_auth -->|"secret:workspace-s…"| oauth2_proxy_brett
+  oauth2_proxy_brett -->|"secret:workspace-s…"| claude_code_mcp_auth
+  claude_code_mcp_auth -->|"secret:workspace-s…"| oauth2_proxy_comfy
+  oauth2_proxy_comfy -->|"secret:workspace-s…"| claude_code_mcp_auth
+  claude_code_mcp_auth -->|"secret:workspace-s…"| oauth2_proxy_docs
+  oauth2_proxy_docs -->|"secret:workspace-s…"| claude_code_mcp_auth
+  claude_code_mcp_auth -->|"secret:workspace-s…"| oauth2_proxy_mailpit
+  oauth2_proxy_mailpit -->|"secret:workspace-s…"| claude_code_mcp_auth
+  claude_code_mcp_auth -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
+  oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| claude_code_mcp_auth
+  claude_code_mcp_auth -->|"secret:workspace-s…"| oauth2_proxy_traefik
+  oauth2_proxy_traefik -->|"secret:workspace-s…"| claude_code_mcp_auth
+  claude_code_mcp_auth -->|"secret:workspace-s…"| oauth2_proxy_videovault
+  oauth2_proxy_videovault -->|"secret:workspace-s…"| claude_code_mcp_auth
+  claude_code_mcp_auth -->|"secret:workspace-s…"| oauth2_proxy_recovery
+  oauth2_proxy_recovery -->|"secret:workspace-s…"| claude_code_mcp_auth
+  claude_code_mcp_auth -->|"secret:workspace-s…"| shared_db
+  shared_db -->|"secret:workspace-s…"| claude_code_mcp_auth
+  claude_code_mcp_auth -->|"secret:workspace-s…"| spreed_signaling
+  spreed_signaling -->|"secret:workspace-s…"| claude_code_mcp_auth
+  claude_code_mcp_auth -->|"secret:workspace-s…"| talk_recording
+  talk_recording -->|"secret:workspace-s…"| claude_code_mcp_auth
+  claude_code_mcp_auth -->|"secret:workspace-s…"| vaultwarden
+  vaultwarden -->|"secret:workspace-s…"| claude_code_mcp_auth
+  claude_code_mcp_auth -->|"secret:workspace-s…"| videovault
+  videovault -->|"secret:workspace-s…"| claude_code_mcp_auth
+  claude_code_mcp_auth -->|"secret:workspace-s…"| whiteboard
+  whiteboard -->|"secret:workspace-s…"| claude_code_mcp_auth
+  claude_code_mcp_auth -->|"secret:workspace-s…"| dev_db_refresh
+  dev_db_refresh -->|"secret:workspace-s…"| claude_code_mcp_auth
+  claude_code_mcp_auth -->|"secret:workspace-s…"| talk_transcriber
+  talk_transcriber -->|"secret:workspace-s…"| claude_code_mcp_auth
+  claude_code_mcp_auth -->|"secret:workspace-s…"| arena_server
+  arena_server -->|"secret:workspace-s…"| claude_code_mcp_auth
+  claude_code_mcp_auth -->|"secret:workspace-s…"| ddns_updater
+  ddns_updater -->|"secret:workspace-s…"| claude_code_mcp_auth
   mcp_github -->|"secret:workspace-s…"| claude_code_mcp_ops
   claude_code_mcp_ops -->|"secret:workspace-s…"| mcp_github
   mcp_github -->|"secret:workspace-s…"| billing_dunning_detection
@@ -1838,7 +1913,7 @@ flowchart LR
   website -->|"secret:staging-db-…"| shared_db_staging
       </div>
     </div>
-    <p class="diagram-caption">Alle 82 K8s-Services und ihre 1617 Abhängigkeitskanten (env-Refs, initContainer-Waits, Ingress-Backends)</p>
+    <p class="diagram-caption">Alle 82 K8s-Services und ihre 1693 Abhängigkeitskanten (env-Refs, initContainer-Waits, Ingress-Backends)</p>
   </div>
 
   <!-- K8s Topology Tab -->

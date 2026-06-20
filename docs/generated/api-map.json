@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-20T14:46:24.331Z",
+  "generatedAt": "2026-06-20T19:16:29.950Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -2947,6 +2947,14 @@
       ],
       "auth": "unclassified",
       "file": "website/src/pages/api/newsletter/unsubscribe.ts"
+    },
+    {
+      "path": "/api/openspec/search",
+      "methods": [
+        "GET"
+      ],
+      "auth": "unclassified",
+      "file": "website/src/pages/api/openspec/search.ts"
     },
     {
       "path": "/api/planning-office",

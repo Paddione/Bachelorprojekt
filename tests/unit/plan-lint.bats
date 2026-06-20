@@ -59,10 +59,11 @@ setup() {
 }
 
 @test "B1 math: residual_budget = threshold - wc -l on a live file" {
-  # plan-context.sh is 64 lines, unbaselined .sh -> 500 - 64 = 436
+  # plan-context.sh is unbaselined .sh -> 500 - wc-l (computed at test time)
+  expected=$((500 - $(wc -l < "$REPO/scripts/plan-context.sh")))
   run env PLAN_LINT_SELFTEST=1 bash "$LINT" residual_budget "scripts/plan-context.sh"
   [ "$status" -eq 0 ]
-  [ "$output" = "436" ]
+  [ "$output" = "$expected" ]
 }
 
 @test "B1a: a self-reported budget contradicting the computed value is a hard fail" {

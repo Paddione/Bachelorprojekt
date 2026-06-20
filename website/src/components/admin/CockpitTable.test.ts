@@ -103,6 +103,11 @@ describe('CockpitTable', () => {
     const { getByTestId } = render(CockpitTable, { feature, tickets, features: [feature] });
     expect(getByTestId('table-header')).toBeTruthy();
   });
+  it('renders an OpenSpec column header', () => {
+    const { getByTestId } = render(CockpitTable, { feature, tickets, features: [feature] });
+    const header = getByTestId('table-header');
+    expect(header.textContent).toMatch(/openspec/i);
+  });
   it('paginates with a load-more button beyond the page size', async () => {
     const many = Array.from({ length: 60 }, (_, i) => ({
       id: `t${i}`, extId: `T${i}`, title: `Item ${i}`, status: 'in_progress', priority: 'mittel', type: 'task',

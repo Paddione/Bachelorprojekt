@@ -535,7 +535,7 @@
       "id": "website",
       "name": "Astro + Svelte website",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 1501,
+      "file_count": 1502,
       "files": [
         "website/.build-trigger",
         "website/.design-sync/NOTES.md",
@@ -1059,6 +1059,7 @@
         "website/src/data/help-videos.json",
         "website/src/data/learning-assets.manifest.json",
         "website/src/data/learning-assets.schema.json",
+        "website/src/data/openspec-status.json",
         "website/src/data/route-manifest.json",
         "website/src/data/test-inventory.json",
         "website/src/db/migrations/20260520_create_assets_schema.sql",
@@ -2472,7 +2473,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 392,
+      "file_count": 393,
       "files": [
         "scripts/add-whiteboard-library.py",
         "scripts/admin-menu-gate.sh",
@@ -2790,6 +2791,7 @@
         "scripts/one-shot/archive/20260518-web-crawl-source.sql",
         "scripts/one-shot/archive/20260519-context7-source.sql",
         "scripts/one-shot/purge-fn-v4.sql",
+        "scripts/openspec-status-map.sh",
         "scripts/openspec.sh",
         "scripts/oracle-bench.sh",
         "scripts/plan-context.sh",

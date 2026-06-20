@@ -119,6 +119,11 @@ habe ich einige Fragen:
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>Warte auf Antworten. Speichere Antworten als <code>docs/superpowers/specs/.gaps/&lt;ticket_id&gt;.md</code> pro Ticket (erstelle das Verzeichnis falls nötig).</p>
 <p>Tickets mit <code>can_proceed: false</code> nach der Q&amp;A-Runde (Beschreibung zu vage, keine Antwort gegeben): markiere als SKIPPED — schließe sie aus <code>TICKETS_JSON</code> aus.</p>
+<blockquote>
+<p><strong>Batch-Klärung:</strong> Pro Ticket die geklärten Q/A mit <code>scripts/ticket.sh grill --id &lt;ext-id&gt; …</code>
+ablegen, bevor die Specs/Pläne generiert werden. Siehe
+<code>.claude/skills/references/grilling-to-ticket.md</code>.</p>
+</blockquote>
 <h3>Schritt 4: Worktree für Batch anlegen</h3>
 <div class="code-wrapper"><pre><code class="language-bash">BATCH_DATE=$(date +%Y-%m-%d)
 BATCH_BRANCH="feature/batch-${BATCH_DATE}-planning"
@@ -137,10 +142,16 @@ bash scripts/batch-workflow-gen.sh "$SCRIPT_PATH"
     tickets: &lt;TICKETS_JSON als Objekt&gt;,
     gap_context: &lt;Map von ticket_id → Inhalt der .gaps-Datei&gt;,
     repo_root: "/home/patrick/Bachelorprojekt",
-    today: &lt;BATCH_DATE&gt;
+    today: &lt;BATCH_DATE&gt;,
+    batch_mode: true,                // aktiviert Parallel-Verarbeitung
+    apiBalance: 4                    // max. Sub-Features (default 4, max 6)
   }
 })
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Nach <code>plan-frontmatter-hook.sh</code> für jeden generierten Plan das <strong>harte Gate</strong> laufen lassen:</p>
+<div class="code-wrapper"><pre><code class="language-bash">bash scripts/plan-lint.sh "$plan_path"   # Exit 1 = Plan verwerfen/nachbessern, nicht stagen
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Pläne mit rotem Linter werden NICHT in die Kommissionierung gestellt (als SKIPPED melden).</p>
 <h3>Schritt 6: Ergebnis berichten</h3>
 <p>Nach Workflow-Abschluss: berichte dem User wie viele Specs+Pläne erfolgreich erstellt wurden, welche übersprungen wurden (SKIPPED), und dass alle fertigen Pläne in der Kommissionierung (<code>/dev-status</code>) unter <code>status=plan_staged</code> auf Freigabe warten.</p>
 <hr>
@@ -189,6 +200,19 @@ Regeln:
 - Maximal 6 Sub-Features — wenn das Feature größer ist, fasse verwandte Teile zusammen
 - Gib einen parent_feature slug (kebab-case, kurz) zurück
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Schritt 2.5: (Optional) Nutze pipeline-decompose.js für KI-Zerlegung</h3>
+<p>Anstatt einen Decompose-Subagenten manuell zu spawne, kann die Factory-Funktion
+<code>decomposeFeature(description, apiBalance)</code> aus <code>scripts/factory/pipeline-decompose.cjs</code>
+die Zerlegung plus Datei-Isolierung automatisch durchführen:</p>
+<div class="code-wrapper"><pre><code class="language-javascript">const D = require('./pipeline-decompose.cjs');
+const subFeatures = await D.decomposeFeature(featureDescription, apiBalance);
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li><code>apiBalance</code> (number, default 4, max 6): maximale Anzahl Sub-Features</li>
+<li>Jedes Sub-Feature erhält eine <strong>disjunkte Dateiliste</strong> (kein Overlap)</li>
+<li>Shared files (<code>configmap-domains.yaml</code>, <code>environments/schema.yaml</code>) werden max. 1 Feature zugewiesen</li>
+<li>Ergibt Zerlegung nur 1 Feature: kein Batch-Modus, direkt single-Feature-Run</li>
+</ul>
 <h3>Schritt 3: Sub-Features als Tickets-Array formatieren</h3>
 <p>Wandle die Sub-Features in das Ticket-Format um das der Workflow erwartet:</p>
 <div class="code-wrapper"><pre><code class="language-json">[
@@ -204,6 +228,7 @@ Regeln:
 <p>Füge <code>depends_on</code> und <code>parent_feature</code> in den <code>gap_context</code> pro Sub-Feature ein.</p>
 <h3>Schritt 4: Workflow starten</h3>
 <p>Identisch zu Modus 1 Schritt 5 — <code>batch-workflow-gen.sh</code> + <code>Workflow({scriptPath, args})</code>.</p>
+<p>Das <code>Workflow</code>-Objekt kann zusätzlich <code>batch_mode: true</code> und <code>apiBalance: &lt;N&gt;</code> enthalten (siehe Modus 1 Schritt 5). Bei <code>batch_mode: true</code> führt <code>pipeline.js</code> die Sub-Features parallel aus und überspringt fehlgeschlagene Sub-Features.</p>
 <hr>
 <h2 id="abgrenzung">Abgrenzung</h2>
 <ul>
@@ -211,6 +236,10 @@ Regeln:
 <li>Fertige Pläne landen in <code>status=plan_staged</code> in der Kommissionierung</li>
 <li>Factory-Übergabe: <code>/dev-status</code> → "→ Factory" Knopf, oder:
 <code>bash scripts/ticket.sh enqueue --id &lt;ext-id&gt; --branch &lt;branch&gt; --plan &lt;plan&gt;</code></li>
+<li><strong>Factory-Integration</strong>: Die Zerlegungs- und Batch-Logik ist in
+<code>scripts/factory/pipeline-decompose.cjs</code> (Helper + <code>assignFiles</code>) und
+<code>scripts/factory/pipeline.js</code> (Batch-Modus) implementiert. Der Skill beschreibt
+das Workflow-Ochestrierungsmuster; die Factory führt es aus.</li>
 </ul>
 </body></html>
 </article>

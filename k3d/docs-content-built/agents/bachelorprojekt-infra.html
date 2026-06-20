@@ -28,7 +28,7 @@
   <div class="page-header-body">
     <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../agents.html">Agents</a> <span class="sep">/</span> <span class="crumb-current">bachelorprojekt-infra</span></nav>
     <h1>bachelorprojekt-infra</h1>
-    <p class="page-desc">Use for Kubernetes manifest work, Kustomize overlays, Taskfile operations, environment management, and sealed secrets in the Bachelorprojekt workspace. Triggers on: k3d/, prod*/, manifest, kustomize, overlay, Taskfile, ENV=, environments/, deploy (when referring to k8s resources).</p>
+    <p class="page-desc">Use for Kubernetes manifest work, Kustomize overlays, Taskfile operations, environment management, sealed secrets, and full workspace deployment (including workspace:setup/post-setup/talk/recording/transcriber) in the Bachelorprojekt workspace. Triggers on: k3d/, prod*/, manifest, kustomize, overlay, Taskfile, ENV=, environments/, deploy (when referring to k8s resources), workspace:setup.</p>
     <div class="page-meta">
       <span class="provenance-badge repo">repo</span>
       <span class="domain-tag">infra</span>
@@ -40,11 +40,12 @@
 <html><head></head><body><div class="toc-box auto-toc">
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#cluster--namespace-layout"><span class="toc-num">1.</span> Cluster &amp; Namespace layout</a></li>
-<li class="toc-item"><a href="#kustomize-layer-cake"><span class="toc-num">2.</span> Kustomize layer cake</a></li>
-<li class="toc-item"><a href="#critical-gotchas"><span class="toc-num">3.</span> Critical gotchas</a></li>
-<li class="toc-item"><a href="#key-commands"><span class="toc-num">4.</span> Key commands</a></li>
-<li class="toc-item"><a href="#autonomous-operation"><span class="toc-num">5.</span> Autonomous operation</a></li>
-<li class="toc-item"><a href="#active-plans"><span class="toc-num">6.</span> Active plans</a></li></ul>
+<li class="toc-item"><a href="#workspace-deploy-workspace-deploy-skill"><span class="toc-num">2.</span> Workspace deploy (workspace-deploy skill)</a></li>
+<li class="toc-item"><a href="#kustomize-layer-cake"><span class="toc-num">3.</span> Kustomize layer cake</a></li>
+<li class="toc-item"><a href="#critical-gotchas"><span class="toc-num">4.</span> Critical gotchas</a></li>
+<li class="toc-item"><a href="#key-commands"><span class="toc-num">5.</span> Key commands</a></li>
+<li class="toc-item"><a href="#autonomous-operation"><span class="toc-num">6.</span> Autonomous operation</a></li>
+<li class="toc-item"><a href="#active-plans"><span class="toc-num">7.</span> Active plans</a></li></ul>
 </div><p>You are an infrastructure specialist for the Bachelorprojekt Kubernetes platform — a self-hosted collaboration suite. Topology is fully consolidated ("Fleet Stage 3", complete as of 2026-05-31): a single unified <strong><code>fleet</code></strong> cluster serves both brands via separate namespaces. The mentolder-standalone cluster has been DECOMMISSIONED — all k3s software uninstalled from gekko-hetzner-2/3/4; those nodes joined fleet as workers.</p>
 <h2 id="cluster--namespace-layout">Cluster &amp; Namespace layout</h2>
 <ul>
@@ -60,6 +61,12 @@
 <li>Always use <code>WORKSPACE_NAMESPACE</code> env var; never hardcode <code>-n workspace</code>.</li>
 <li><strong>Dev cluster:</strong> <code>k3s-1</code> has been permanently <strong>DECOMMISSIONED</strong> (memory corruption 2026-05-31). Dev now runs via local k3d on the WSL host (Proxmox VM 10.0.0.26). Context <code>k3d-mentolder-dev</code>.</li>
 </ul>
+<h2 id="workspace-deploy-workspace-deploy-skill">Workspace deploy (workspace-deploy skill)</h2>
+<p>For full-stack workspace platform deployment beyond base kustomize — post-setup,
+talk/recording/transcriber setup, admin-users, vaultwarden seed — use the
+<code>.claude/skills/workspace-deploy/SKILL.md</code> runbook. It covers the umbrella
+<code>workspace:setup</code> through optional provisioning steps. The infra agent handles
+the kustomize layer; the workspace-deploy skill orchestrates the full sequence.</p>
 <h2 id="kustomize-layer-cake">Kustomize layer cake</h2>
 <ul>
 <li><code>k3d/</code> — base manifests (dev values, placeholder secrets)</li>

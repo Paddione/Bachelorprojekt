@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Alert-E-Mail-Test (synthetisch) — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="./index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./docs.html">Docs</a> <span class="sep">/</span> <span class="crumb-current">Alert-E-Mail-Test (synthetisch)</span></nav>
+    <h1>Alert-E-Mail-Test (synthetisch)</h1>
+    <p class="page-desc"></p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      <span class="domain-tag">test</span>
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Alert-E-Mail-Test (synthetisch)</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#offline-validierung"><span class="toc-num">1.</span> Offline-Validierung</a></li>
+<li class="toc-item"><a href="#live-synthetik-pro-brand-fleet-kontext"><span class="toc-num">2.</span> Live-Synthetik pro Brand (fleet-Kontext)</a></li></ul>
+</div>
+<h2 id="offline-validierung">Offline-Validierung</h2>
+<div class="code-wrapper"><pre><code class="language-bash"># promtool rule check
+yq '.spec' k3d/monitoring/prometheus-rules.yaml &gt; /tmp/r.yaml &amp;&amp; promtool check rules /tmp/r.yaml
+
+# Kustomize-Build (Base + Prod)
+task monitoring:validate
+
+# bats-Suite
+./tests/runner.sh local T000617
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="live-synthetik-pro-brand-fleet-kontext">Live-Synthetik pro Brand (fleet-Kontext)</h2>
+<ol>
+<li><p>Kontext setzen:</p>
+<div class="code-wrapper"><pre><code class="language-bash">kubectl config use-context fleet
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+<li><p>Test-Alert an den Alertmanager senden (Port-forward oder direkt via Service):</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Port-forward zum Alertmanager
+kubectl port-forward -n monitoring svc/monitoring-kube-prometheus-alertmanager 9093:9093 &amp;
+sleep 2
+
+# Test-Alert senden
+curl -X POST http://localhost:9093/api/v2/alerts \
+  -H "Content-Type: application/json" \
+  -d '[{
+    "labels": {
+      "alertname": "TestAlertEmail",
+      "severity": "warning",
+      "namespace": "workspace"
+    },
+    "annotations": {
+      "summary": "Synthetischer Test für E-Mail-Benachrichtigung",
+      "description": "Dieser Alert testet den E-Mail-Versand. Wird nach 1m automatisch gelöscht."
+    },
+    "startsAt": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'",
+    "endsAt": "'$(date -u -d '+1 minute' +%Y-%m-%dT%H:%M:%SZ)'"
+  }]'
+
+kill %1 2&gt;/dev/null || true
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+<li><p><strong>Erwartung:</strong> E-Mail an <code>CONTACT_EMAIL</code> mit Betreff <code>[FIRING] TestAlertEmail ...</code> wird innerhalb weniger Minuten zugestellt.</p>
+</li>
+<li><p><strong>Verifikation:</strong> Posteingang des konfigurierten <code>CONTACT_EMAIL</code> prüfen. Der Alert läuft nach <code>endsAt</code> automatisch ab.</p>
+</li>
+</ol>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="./app.js"></script>
+</body>
+</html>

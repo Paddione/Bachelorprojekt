@@ -184,11 +184,28 @@ kubectl --context &lt;ctx&gt; get nodes -w
 </ol>
 </blockquote>
 <h3>Step 1.0b: Enroll / Provision Proxmox Nodes (Bare-metal / LAN)</h3>
-<p>For bare-metal or LAN environments (like dev1, dev2, dev3), we use Proxmox Automated Installation via an embedded <code>answer.toml</code> to provision nodes cleanly. </p>
-<p>The configuration templates and preparation scripts live in the <code>.proxmox/</code> directory in the project root.</p>
+<p>For bare-metal or LAN environments, we use Proxmox Automated Installation via an embedded <code>answer.toml</code> to provision nodes cleanly.</p>
 <h4>Provisioning Workflow</h4>
 <ol>
-<li><strong>Scaffold config</strong>: Copy <a href="file:///home/patrick/Bachelorprojekt/.proxmox/template.toml">.proxmox/template.toml</a> to <code>answer.toml</code> inside the same directory:<div class="code-wrapper"><pre><code class="language-bash">cp .proxmox/template.toml .proxmox/answer.toml
+<li><strong>Scaffold config</strong>: Create an <code>answer.toml</code> with the following structure:<div class="code-wrapper"><pre><code class="language-toml">[global]
+keyboard = "de"
+country = "de"
+timezone = "Europe/Berlin"
+root-password = "CHANGEME"
+root-ssh-keys = ["ssh-ed25519 AAAA... your-key-here"]
+
+[disk-setup]
+filesystem = "ext4"
+disk-list = ["nvme0n1"]
+
+[network]
+source = "from-answer"
+cidr = "192.168.100.100/24"
+gateway = "192.168.100.1"
+dns = "192.168.100.1"
+
+[network.filter]
+interface-name = "en*"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 </li>
 <li><strong>Customize config</strong>: Edit <code>answer.toml</code> and configure the following:<ul>
@@ -204,46 +221,23 @@ kubectl --context &lt;ctx&gt; get nodes -w
 </li>
 </ul>
 </li>
-<li><strong>Build the Custom ISO</strong>: Execute the preparation script in your WSL environment:<div class="code-wrapper"><pre><code class="language-bash">./.proxmox/prepare-iso.sh
+<li><strong>Build the Custom ISO</strong>: Use the <code>proxmox-auto-install-assistant</code> to prepare a custom ISO:<div class="code-wrapper"><pre><code class="language-bash"># Install required tools
+sudo apt install -y proxmox-auto-install-assistant xorriso curl
+
+# Download the latest Proxmox VE ISO
+curl -LO https://enterprise.proxmox.com/iso/proxmox-ve_9.2-1.iso
+
+# Validate ISO and embed answer.toml
+proxmox-auto-install-assistant validate answer.toml
+proxmox-auto-install-assistant prepare-proxmox-iso proxmox-ve_9.2-1.iso --answer-file answer.toml
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-This script will:<ul>
-<li>Install any missing tools (<code>proxmox-auto-install-assistant</code>, <code>xorriso</code>, <code>curl</code>) if not present.</li>
-<li>Download the latest Proxmox VE 9.2-1 ISO (<code>proxmox-ve_9.2-1.iso</code>) and verify its SHA256.</li>
-<li>Validate the <code>answer.toml</code> format.</li>
-<li>Embed <code>answer.toml</code> into a new <code>proxmox-ve_9.2-1-auto.iso</code>.</li>
-</ul>
 </li>
 <li><strong>Flash the USB Drive</strong>:<ul>
-<li>Open File Explorer in Windows and browse to the WSL network share: <code>\\wsl.localhost\Ubuntu\home\patrick\Bachelorprojekt\.proxmox\</code></li>
-<li>Insert your USB drive and launch <strong>Rufus</strong>.</li>
-<li>Select the USB drive, select the generated <code>proxmox-ve_9.2-1-auto.iso</code>, and click <strong>Start</strong>.</li>
+<li>Insert your USB drive and use <strong>Rufus</strong> (Windows) or <code>dd</code> (Linux).</li>
 <li><strong>CRITICAL</strong>: When prompted by Rufus, choose <strong>DD Image mode</strong> (not ISO mode) to write the image.</li>
 <li>Boot the target hardware from the USB drive to perform a fully unattended installation.</li>
 </ul>
 </li>
-</ol>
-<h4>Clean Node Removal &amp; Cluster Dissolution</h4>
-<p>If you are reinstalling/replacing a node (e.g., <code>dev3</code>) that was part of an existing corosync cluster, the cluster must be dissolved on the remaining nodes before the new node can join:</p>
-<ol>
-<li><strong>Dissolve cluster on surviving nodes</strong> (e.g. <code>dev1</code> and <code>dev2</code>):<div class="code-wrapper"><pre><code class="language-bash"># Stop cluster services
-systemctl stop pve-cluster corosync
-
-# Start cluster filesystem in local/standalone mode to edit
-pmxcfs -l
-
-# Remove corosync configuration
-rm -f /etc/pve/corosync.conf
-rm -rf /etc/corosync/*
-
-# Kill local pmxcfs process to release locks before restarting service
-pkill -9 pmxcfs || true
-rm -f /var/lib/pve-cluster/.pmxcfs.lockfile || true
-
-# Restart cluster filesystem in normal mode
-systemctl start pve-cluster
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-</li>
-<li><strong>Re-cluster</strong>: Create a fresh cluster from the fresh node, and join the standalone nodes back via the web UI (Datacenter → Cluster → Join) or via CLI (<code>pvecm add</code>).</li>
 </ol>
 <h4>Outgoing Mail Rewrite (Postfix canonical maps)</h4>
 <p>Proxmox nodes send automated notifications as <code>root@&lt;hostname&gt;</code> (e.g., <code>root@dev3.local</code> or <code>root@dev2.mentolder.de</code>). External email providers (like <code>mailbox.org</code>) will bounce these due to invalid domains or sender mismatch.</p>

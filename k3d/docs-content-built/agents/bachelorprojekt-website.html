@@ -68,7 +68,11 @@
 </ul>
 <h2 id="deploy-rule-critical">Deploy rule (CRITICAL)</h2>
 <p>Every change to <code>website/src/</code> or <code>website/public/</code> requires a push to <code>main</code> (via PR). In prod, the <code>build-website.yml</code> / <code>build-website-korczewski.yml</code> Actions rebuild the brand image and roll it out automatically (push-based via <code>FLEET_KUBECONFIG</code>; no Flux). For manual rollout/rebuild:</p>
-<div class="code-wrapper"><pre><code class="language-bash">task website:redeploy ENV=mentolder
+<div class="code-wrapper"><pre><code class="language-bash"># Fan-out to both brands (recommended):
+task feature:website
+
+# Per-brand redeploy:
+task website:redeploy ENV=mentolder
 task website:redeploy ENV=korczewski
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p><strong>Only from a clean main branch.</strong> Never deploy from a feature branch.</p>

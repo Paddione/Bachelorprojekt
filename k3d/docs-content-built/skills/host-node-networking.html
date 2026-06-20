@@ -74,7 +74,7 @@ an entry with: <code>type</code> (broken/degraded/suspicious/security/drift), <c
 <p>Interactive flow for provisioning a new server or resetting an existing server in Rescue Mode.</p>
 <blockquote>
 <p>[!NOTE]
-For provisioning/enrolling local bare-metal or LAN nodes using Proxmox Automated Installation (e.g., dev1, dev2, dev3), refer to <strong>Step 1.0b</strong> of the <a href="file:///home/patrick/Bachelorprojekt/.agents/skills/cluster-deployment/SKILL.md#step-10b-enroll--provision-proxmox-nodes-bare-metal--lan">cluster-deployment skill</a>. Config files and prepare scripts are stored in the <a href="file:///home/patrick/Bachelorprojekt/.proxmox/">.proxmox/</a> directory in the project root.</p>
+For provisioning/enrolling local bare-metal or LAN nodes using Proxmox Automated Installation, refer to <strong>Step 1.0b</strong> of the <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/cluster-deployment/SKILL.md#step-10b-enroll--provision-proxmox-nodes-bare-metal--lan">cluster-deployment skill</a>.</p>
 </blockquote>
 <h3>Step 1.0: Authenticate hcloud CLI</h3>
 <p>The Hetzner Cloud API token is stored per-env in <code>environments/.secrets/&lt;env&gt;.yaml</code> as <code>HETZNER_API_KEY</code>.</p>
@@ -274,12 +274,60 @@ Verify with:</p>
 task openclaw:configure  # Writes config pointing to Ollama at 10.10.0.3
 task openclaw:start      # Starts daemon
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Step 4.2: Backup, Restore &amp; Reset</h3>
+<h3>Step 4.2: Operations — Status &amp; Logs</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># Check daemon status
+task openclaw:status
+# Shows: running / stopped, PID, uptime, connected GPU worker, last heartbeat
+
+# View logs (OpenClaw daemon)
+task openclaw:logs
+# Tail: journalctl -u openclaw --since "10 min ago" --no-pager
+
+# Quick connectivity check
+curl -s http://10.10.0.3:11434/api/tags | head -5   # Ollama erreichbar?
+ping -c 2 10.10.0.3                                    # WireGuard-Tunnel aktiv?
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Step 4.3: Backup, Restore &amp; Reset</h3>
 <ul>
 <li><strong>Backup:</strong> <code>task openclaw:backup</code> (snapshots configuration to <code>~/.openclaw</code> archive).</li>
-<li><strong>Restore:</strong> <code>task openclaw:restore</code> (restores config).</li>
+<li><strong>Restore:</strong> <code>task openclaw:restore</code> (restores config from latest backup).</li>
 <li><strong>Wipe:</strong> <code>task openclaw:wipe CONFIRM=yes</code> (destructive reset, requires explicit confirmation).</li>
 </ul>
+<h3>Step 4.4: Troubleshooting</h3>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Cause</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Connection refused</code></td>
+<td>WireGuard tunnel down</td>
+<td><code>sudo wg show</code> — check handshake; <code>ping 10.10.0.3</code> — if unreachable, restart WireGuard</td>
+</tr>
+<tr>
+<td><code>503 Service Unavailable</code></td>
+<td>Ollama not running on GPU host</td>
+<td>SSH to GPU worker: <code>systemctl status ollama</code>; restart: <code>sudo systemctl restart ollama</code></td>
+</tr>
+<tr>
+<td><code>no route to host</code></td>
+<td>GPU host offline or mesh IP changed</td>
+<td>Check WireGuard mesh config in <code>wireguard/wg-mesh-nodes.yaml</code></td>
+</tr>
+<tr>
+<td>Daemon won't start</td>
+<td>Port conflict or stale PID</td>
+<td><code>task openclaw:wipe CONFIRM=yes &amp;&amp; task openclaw:install &amp;&amp; task openclaw:start</code></td>
+</tr>
+<tr>
+<td>Ollama slow / OOM</td>
+<td>GPU memory exhausted</td>
+<td><code>ssh 10.10.0.3 nvidia-smi</code> — check VRAM; reduce model size or restart Ollama</td>
+</tr>
+</tbody></table>
 <hr>
 <h2 id="troubleshooting--common-blockers">Troubleshooting &amp; Common Blockers</h2>
 <table>

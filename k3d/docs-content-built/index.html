@@ -34,17 +34,17 @@
 <div class="hub-tiles">
   <a class="hub-tile" href="./skills.html">
     <span class="hub-tile-label">Skills</span>
-    <span class="hub-tile-count">91</span>
+    <span class="hub-tile-count">98</span>
     <span class="hub-tile-name">Tools &amp; Workflows</span>
   </a>
   <a class="hub-tile" href="./agents.html">
     <span class="hub-tile-label">Agents</span>
-    <span class="hub-tile-count">42</span>
+    <span class="hub-tile-count">56</span>
     <span class="hub-tile-name">Spezialisierte KI-Agents</span>
   </a>
   <a class="hub-tile" href="./docs.html">
     <span class="hub-tile-label">Docs</span>
-    <span class="hub-tile-count">25</span>
+    <span class="hub-tile-count">27</span>
     <span class="hub-tile-name">Handbücher &amp; Referenz</span>
   </a>
 </div>
@@ -108,14 +108,14 @@
     <span class="section-card-title">bachelorprojekt-infra</span>
     <span class="domain-tag">infra</span>
   </span>
-  <span class="section-card-desc">Use for Kubernetes manifest work, Kustomize overlays, Taskfile operations, environment management, and sealed secrets in the Bachelorprojekt workspace. Triggers on: k3d/, prod*/, manifest, kustomize, overlay, Taskfile, ENV=, environments/, deploy (when referring to k8s resources).</span>
+  <span class="section-card-desc">Use for Kubernetes manifest work, Kustomize overlays, Taskfile operations, environment management, sealed secrets, and full workspace deployment (including workspace:setup/post-setup/talk/recording/transcriber) in the Bachelorprojekt workspace. Triggers on: k3d/, prod*/, manifest, kustomize, overlay, Taskfile, ENV=, environments/, deploy (when referring to k8s resources), workspace:setup.</span>
 </a>
 <a class="section-card" href="./agents/bachelorprojekt-ops.html">
   <span class="section-card-head">
     <span class="section-card-title">bachelorprojekt-ops</span>
     <span class="domain-tag">ops</span>
   </span>
-  <span class="section-card-desc">Use for live cluster operations: checking pod status, tailing logs, restarting services, debugging failures, and kubectl operations on the Bachelorprojekt clusters. Triggers on: pod, logs, status, restart, crash, health, kubectl, &quot;what's wrong&quot;, &quot;why is X failing&quot;, &quot;is X running&quot;.</span>
+  <span class="section-card-desc">Use for live cluster operations: checking pod status, tailing logs, restarting services, debugging failures, kubectl operations, and LLM pipeline operations (GPU host status, model management, Ollama/TEI/LiteLLM) on the Bachelorprojekt clusters. Triggers on: pod, logs, status, restart, crash, health, kubectl, &quot;what's wrong&quot;, &quot;why is X failing&quot;, &quot;is X running&quot;, llm:, GPU, Ollama, model, LiveKit.</span>
 </a>
 <a class="section-card" href="./agents/bachelorprojekt-security.html">
   <span class="section-card-head">
@@ -129,7 +129,7 @@
     <span class="section-card-title">bachelorprojekt-test</span>
     <span class="domain-tag">test</span>
   </span>
-  <span class="section-card-desc">Use for running, writing, or debugging tests in the Bachelorprojekt project. Triggers on: test, FA-*, SA-*, NFA-*, AK-*, BATS, Playwright, runner.sh, &quot;test failing&quot;, &quot;test case&quot;, &quot;write a test&quot;.</span>
+  <span class="section-card-desc">Use for running, writing, or debugging tests, and for Software Factory Autopilot lifecycle (automated ticket processing) in the Bachelorprojekt project. Triggers on: test, FA-*, SA-*, NFA-*, AK-*, BATS, Playwright, runner.sh, &quot;test failing&quot;, &quot;test case&quot;, &quot;write a test&quot;, factory:, autopilot, FA-SF.</span>
 </a>
 <a class="section-card" href="./agents/bachelorprojekt-website.html">
   <span class="section-card-head">

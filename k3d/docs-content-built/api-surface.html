@@ -39,7 +39,7 @@
 <article class="doc-body">
 <html><head></head><body><h1>API Surface Map</h1>
 <blockquote>
-<p>Generated at 2026-06-13T04:26:12.757Z</p>
+<p>Generated at 2026-06-19T23:18:47.477Z</p>
 </blockquote>
 <table>
 <thead>
@@ -67,6 +67,12 @@
 <td>POST</td>
 <td>🔐 admin</td>
 <td><code>website/src/pages/api/admin/assets/upload.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/backup-status</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/backup-status.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/admin/billing/{id}</code></td>
@@ -603,6 +609,60 @@
 <td><code>website/src/pages/api/admin/coaching/templates/[id]/versions.ts</code></td>
 </tr>
 <tr>
+<td><code>/api/admin/cockpit/batch</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/cockpit/batch.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/cockpit/container-count</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/cockpit/container-count.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/cockpit/feature</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/cockpit/feature.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/cockpit/feature-action</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/cockpit/feature-action.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/cockpit/feature-actions</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/cockpit/feature-actions.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/cockpit/portfolio</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/cockpit/portfolio.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/cockpit/reorder</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/cockpit/reorder.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/cockpit/reparent</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/cockpit/reparent.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/cockpit/suggest</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/cockpit/suggest.ts</code></td>
+</tr>
+<tr>
 <td><code>/api/admin/components</code></td>
 <td>GET, POST</td>
 <td>🔐 admin</td>
@@ -643,6 +703,12 @@
 <td>GET</td>
 <td>🔐 admin</td>
 <td><code>website/src/pages/api/admin/customers-list.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/delivery-metrics</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/delivery-metrics.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/admin/deployments</code></td>
@@ -771,6 +837,24 @@
 <td><code>website/src/pages/api/admin/faq/save.ts</code></td>
 </tr>
 <tr>
+<td><code>/api/admin/folder-templates/create</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/folder-templates/create.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/folder-templates/delete</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/folder-templates/delete.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/folder-templates/update</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/folder-templates/update.ts</code></td>
+</tr>
+<tr>
 <td><code>/api/admin/followups/create</code></td>
 <td>POST</td>
 <td>🔐 admin</td>
@@ -859,6 +943,36 @@
 <td>POST</td>
 <td>🔐 admin</td>
 <td><code>website/src/pages/api/admin/inhalte/rechnungsvorlagen/save.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/ki/catalog</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/ki/catalog.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/ki/embeddings</code></td>
+<td>GET, PUT</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/ki/embeddings.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/ki/env-status</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/ki/env-status.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/ki/providers</code></td>
+<td>GET, POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/ki/providers.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/ki/providers/{id}</code></td>
+<td>PUT, DELETE</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/ki/providers/[id].ts</code></td>
 </tr>
 <tr>
 <td><code>/api/admin/knowledge/collections</code></td>
@@ -1419,6 +1533,12 @@
 <td><code>website/src/pages/api/admin/rooms/[id]/members.ts</code></td>
 </tr>
 <tr>
+<td><code>/api/admin/rooms/{id}/share</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/rooms/[id]/share.ts</code></td>
+</tr>
+<tr>
 <td><code>/api/admin/rooms/direct</code></td>
 <td>POST</td>
 <td>🔐 admin</td>
@@ -1663,6 +1783,12 @@
 <td>POST</td>
 <td>🔐 admin</td>
 <td><code>website/src/pages/api/admin/tickets/[id]/attachments.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/tickets/{id}/attachments/{aid}</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/tickets/[id]/attachments/[aid].ts</code></td>
 </tr>
 <tr>
 <td><code>/api/admin/tickets/{id}/classify</code></td>
@@ -1953,6 +2079,12 @@
 <td><code>website/src/pages/api/dsgvo-request.ts</code></td>
 </tr>
 <tr>
+<td><code>/api/factory-budget</code></td>
+<td>GET, POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/factory-budget.ts</code></td>
+</tr>
+<tr>
 <td><code>/api/factory-floor</code></td>
 <td>GET</td>
 <td>🔐 admin</td>
@@ -1969,6 +2101,12 @@
 <td>GET</td>
 <td>🔐 admin</td>
 <td><code>website/src/pages/api/factory-floor/[extId]/ci.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/factory-floor/{extId}/deploy</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/factory-floor/[extId]/deploy.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/factory-floor/{extId}/inject</code></td>
@@ -1993,6 +2131,12 @@
 <td>GET</td>
 <td>🔐 admin</td>
 <td><code>website/src/pages/api/factory-metrics.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/factory-observability</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/factory-observability.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/health</code></td>
@@ -2151,6 +2295,18 @@
 <td><code>website/src/pages/api/portal/onboarding/mark-step.ts</code></td>
 </tr>
 <tr>
+<td><code>/api/portal/onboarding/reset</code></td>
+<td>POST</td>
+<td>🔑 session</td>
+<td><code>website/src/pages/api/portal/onboarding/reset.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/portal/onboarding/update</code></td>
+<td>POST</td>
+<td>🔑 session</td>
+<td><code>website/src/pages/api/portal/onboarding/update.ts</code></td>
+</tr>
+<tr>
 <td><code>/api/portal/profile/export</code></td>
 <td>GET</td>
 <td>🔑 session</td>
@@ -2215,6 +2371,12 @@
 <td>GET, POST</td>
 <td>🔑 session</td>
 <td><code>website/src/pages/api/portal/rooms/[id]/messages.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/portal/rooms/{id}/share</code></td>
+<td>POST</td>
+<td>🔑 session</td>
+<td><code>website/src/pages/api/portal/rooms/[id]/share.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/portal/rooms/ensure-direct</code></td>

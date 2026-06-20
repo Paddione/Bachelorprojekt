@@ -28,7 +28,7 @@
   <div class="page-header-body">
     <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">dev-flow-execute</span></nav>
     <h1>dev-flow-execute</h1>
-    <p class="page-desc">Use when on a feature/* or fix/* branch that has a staged plan in docs/superpowers/plans/ ready to implement. Invoke after dev-flow-plan has committed and pushed the plan to the branch.</p>
+    <p class="page-desc">Use when on a feature/* or fix/* branch that has a staged plan in docs/superpowers/plans/ ready to implement. Invoke after dev-flow-plan has committed and pushed the plan to the branch. Also supports batch orchestration of multiple staged plans.</p>
     <div class="page-meta">
       <span class="provenance-badge repo">repo</span>
       
@@ -40,35 +40,173 @@
 <html><head></head><body><h1>dev-flow-execute — Plan-Ausführung &amp; PR</h1><div class="toc-box auto-toc">
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#wann-diese-skill-greift"><span class="toc-num">1.</span> Wann diese Skill greift</a></li>
-<li class="toc-item"><a href="#schritt-1-main-branch-im-haupt-repo-synchronisieren-pull-first"><span class="toc-num">2.</span> Schritt −1: Main-Branch im Haupt-Repo synchronisieren (Pull-First)</a></li>
-<li class="toc-item"><a href="#schritt-0-worktree-konsistenz-pruefen"><span class="toc-num">3.</span> Schritt 0: Worktree-Konsistenz prüfen</a></li>
-<li class="toc-item"><a href="#schritt-05-sync-mit-main--rebase"><span class="toc-num">4.</span> Schritt 0.5: Sync mit main &amp; Rebase</a></li>
-<li class="toc-item"><a href="#schritt-1-plan-finden--ticket-id-extrahieren"><span class="toc-num">5.</span> Schritt 1: Plan finden &amp; Ticket ID extrahieren</a></li>
-<li class="toc-item"><a href="#schritt-14-doppelarbeit-guard--registry-overlap-session-koordination-t000510"><span class="toc-num">6.</span> Schritt 1.4: Doppelarbeit-Guard &amp; Registry-Overlap (Session-Koordination [T000510])</a></li>
-<li class="toc-item"><a href="#schritt-15-ticket-auf-inprogress-setzen-und-touchedfiles-registrieren"><span class="toc-num">7.</span> Schritt 1.5: Ticket auf in_progress setzen und touched_files registrieren</a></li>
-<li class="toc-item"><a href="#schritt-17-visual--textual-assets-laden-visual-handoff"><span class="toc-num">8.</span> Schritt 1.7: Visual &amp; Textual Assets laden (Visual Handoff)</a></li>
-<li class="toc-item"><a href="#schritt-2-implementierung-an-frischen-implementer-subagenten-delegieren"><span class="toc-num">9.</span> Schritt 2: Implementierung an frischen Implementer-Subagenten delegieren</a></li>
-<li class="toc-item"><a href="#schritt-3-lokale-verifikation"><span class="toc-num">10.</span> Schritt 3: Lokale Verifikation</a></li>
-<li class="toc-item"><a href="#schritt-35-admin-menu-placement-gate"><span class="toc-num">11.</span> Schritt 3.5: Admin-Menu Placement Gate</a></li>
-<li class="toc-item"><a href="#schritt-38-code-review-gate-mandatory"><span class="toc-num">12.</span> Schritt 3.8: Code Review Gate (Mandatory)</a></li>
-<li class="toc-item"><a href="#schritt-4-dev-iteration-optional"><span class="toc-num">13.</span> Schritt 4: Dev-Iteration (optional)</a></li>
-<li class="toc-item"><a href="#schritt-5-pr-erstellen"><span class="toc-num">14.</span> Schritt 5: PR erstellen</a></li>
-<li class="toc-item"><a href="#schritt-55-cicd-fix-schleife"><span class="toc-num">15.</span> Schritt 5.5: CI/CD-Fix-Schleife</a></li>
-<li class="toc-item"><a href="#schritt-6-auto-merge-wenn-ci-gruen"><span class="toc-num">16.</span> Schritt 6: Auto-Merge wenn CI grün</a></li>
-<li class="toc-item"><a href="#schritt-65-ticket-abschliessen"><span class="toc-num">17.</span> Schritt 6.5: Ticket abschließen</a></li>
-<li class="toc-item"><a href="#schritt-7-plan-archivieren--datei-loeschen"><span class="toc-num">18.</span> Schritt 7: Plan archivieren &amp; Datei löschen</a></li>
-<li class="toc-item"><a href="#schritt-75-worktree--branch-bereinigen"><span class="toc-num">19.</span> Schritt 7.5: Worktree &amp; Branch bereinigen</a></li>
-<li class="toc-item"><a href="#schritt-8-post-merge-deploy--verify"><span class="toc-num">20.</span> Schritt 8: Post-Merge Deploy &amp; Verify</a></li>
-<li class="toc-item"><a href="#verwandte-skills"><span class="toc-num">21.</span> Verwandte Skills</a></li>
-<li class="toc-item"><a href="#nachbereitung--mishap-report"><span class="toc-num">22.</span> Nachbereitung &amp; Mishap Report</a></li></ul>
+<li class="toc-item"><a href="#modus-erkennung-single-vs-batch"><span class="toc-num">2.</span> Modus-Erkennung: Single vs Batch</a></li>
+<li class="toc-item"><a href="#batch-modus-mehrere-plaene-parallel-orchestrieren"><span class="toc-num">3.</span> Batch-Modus: Mehrere Pläne parallel orchestrieren</a></li>
+<li class="toc-item"><a href="#single-modus-einzelnen-plan-implementieren"><span class="toc-num">4.</span> Single-Modus: Einzelnen Plan implementieren</a></li>
+<li class="toc-item"><a href="#schritt-1-main-branch-im-haupt-repo-synchronisieren-pull-first"><span class="toc-num">5.</span> Schritt −1: Main-Branch im Haupt-Repo synchronisieren (Pull-First)</a></li>
+<li class="toc-item"><a href="#schritt-0-worktree-konsistenz-pruefen"><span class="toc-num">6.</span> Schritt 0: Worktree-Konsistenz prüfen</a></li>
+<li class="toc-item"><a href="#schritt-05-sync-mit-main--rebase"><span class="toc-num">7.</span> Schritt 0.5: Sync mit main &amp; Rebase</a></li>
+<li class="toc-item"><a href="#schritt-1-plan-pfad-aus-der-datenbank-laden-single-source-of-truth"><span class="toc-num">8.</span> Schritt 1: Plan-Pfad aus der Datenbank laden (Single Source of Truth)</a></li>
+<li class="toc-item"><a href="#schritt-14-doppelarbeit-guard--registry-overlap-session-koordination-t000510"><span class="toc-num">9.</span> Schritt 1.4: Doppelarbeit-Guard &amp; Registry-Overlap (Session-Koordination [T000510])</a></li>
+<li class="toc-item"><a href="#schritt-15-ticket-auf-inprogress-setzen-und-touchedfiles-registrieren"><span class="toc-num">10.</span> Schritt 1.5: Ticket auf in_progress setzen und touched_files registrieren</a></li>
+<li class="toc-item"><a href="#schritt-17-visual--textual-assets-laden-visual-handoff"><span class="toc-num">11.</span> Schritt 1.7: Visual &amp; Textual Assets laden (Visual Handoff)</a></li>
+<li class="toc-item"><a href="#schritt-2-implementierung-an-frischen-implementer-subagenten-delegieren"><span class="toc-num">12.</span> Schritt 2: Implementierung an frischen Implementer-Subagenten delegieren</a></li>
+<li class="toc-item"><a href="#schritt-25--lokaler-self-correcting-loop-optional"><span class="toc-num">13.</span> Schritt 2.5 — Lokaler Self-Correcting-Loop (optional)</a></li>
+<li class="toc-item"><a href="#schritt-3-lokale-verifikation"><span class="toc-num">14.</span> Schritt 3: Lokale Verifikation</a></li>
+<li class="toc-item"><a href="#schritt-35-admin-menu-placement-gate"><span class="toc-num">15.</span> Schritt 3.5: Admin-Menu Placement Gate</a></li>
+<li class="toc-item"><a href="#schritt-38-code-review-gate-mandatory"><span class="toc-num">16.</span> Schritt 3.8: Code Review Gate (Mandatory)</a></li>
+<li class="toc-item"><a href="#schritt-4-dev-iteration-optional"><span class="toc-num">17.</span> Schritt 4: Dev-Iteration (optional)</a></li>
+<li class="toc-item"><a href="#schritt-5-pr-erstellen"><span class="toc-num">18.</span> Schritt 5: PR erstellen</a></li>
+<li class="toc-item"><a href="#schritt-55-cicd-fix-schleife"><span class="toc-num">19.</span> Schritt 5.5: CI/CD-Fix-Schleife</a></li>
+<li class="toc-item"><a href="#schritt-6-auto-merge-wenn-ci-gruen"><span class="toc-num">20.</span> Schritt 6: Auto-Merge wenn CI grün</a></li>
+<li class="toc-item"><a href="#schritt-65-ticket-abschliessen"><span class="toc-num">21.</span> Schritt 6.5: Ticket abschließen</a></li>
+<li class="toc-item"><a href="#schritt-7-plan-archivieren--datei-loeschen"><span class="toc-num">22.</span> Schritt 7: Plan archivieren &amp; Datei löschen</a></li>
+<li class="toc-item"><a href="#schritt-75-worktree--branch-bereinigen"><span class="toc-num">23.</span> Schritt 7.5: Worktree &amp; Branch bereinigen</a></li>
+<li class="toc-item"><a href="#schritt-8-post-merge-deploy--verify"><span class="toc-num">24.</span> Schritt 8: Post-Merge Deploy &amp; Verify</a></li>
+<li class="toc-item"><a href="#verwandte-skills"><span class="toc-num">25.</span> Verwandte Skills</a></li>
+<li class="toc-item"><a href="#nachbereitung--mishap-report"><span class="toc-num">26.</span> Nachbereitung &amp; Mishap Report</a></li></ul>
 </div>
 <h2 id="wann-diese-skill-greift">Wann diese Skill greift</h2>
 <p>Du bist auf einem <code>feature/*</code> oder <code>fix/*</code> Branch. <code>dev-flow-plan</code> hat Spec und Plan committed und gepusht. Jetzt soll implementiert werden.</p>
+<p><strong>ODER:</strong> Du willst mehrere staged plans als Batch orchestrieren (Batch-Modus).</p>
 <p><strong>Sage zu Beginn:</strong> "Ich nutze dev-flow-execute zur Plan-Ausführung."</p>
+<hr>
+<h2 id="modus-erkennung-single-vs-batch">Modus-Erkennung: Single vs Batch</h2>
+<p>Prüfe ob ein einzelner Plan oder mehrere Pläne ausgeführt werden sollen:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Wenn TICKET_ID bereits gesetzt ist → direkt Single-Modus, kein Query nötig
+STAGED_PLANS=$(kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -F '|' -c \
+  "SELECT external_id, title, priority, COALESCE(value_prop,'')
+   FROM tickets.tickets WHERE status='plan_staged'
+   ORDER BY planning_rank ASC NULLS LAST, created_at DESC;" 2&gt;/dev/null)
+
+STAGED_COUNT=$(echo "$STAGED_PLANS" | grep -c '|' 2&gt;/dev/null || echo 0)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Entscheidungslogik (kein interaktives <code>read</code> — nutze AskUserQuestion-Tool):</strong></p>
+<ul>
+<li><strong>TICKET_ID bereits im Kontext gesetzt</strong> (z.B. von dev-flow-plan oder User-Angabe) → <code>EXECUTE_MODE="single"</code>, weiter zu Single-Modus.</li>
+<li><strong>STAGED_COUNT == 1</strong> → automatisch Single-Modus; <code>TICKET_ID</code> aus erster Zeile von <code>$STAGED_PLANS</code> extrahieren.</li>
+<li><strong>STAGED_COUNT == 0</strong> → keine staged plans. Frage den User via <code>AskUserQuestion</code>-Tool nach der Ticket-ID, oder weise darauf hin, erst <code>dev-flow-plan</code> auszuführen.</li>
+<li><strong>STAGED_COUNT &gt; 1</strong> → Frage den User via <code>AskUserQuestion</code>-Tool:<ul>
+<li>Frage: „Mehrere staged plans gefunden — wie soll vorgegangen werden?"</li>
+<li>Zeige die Liste (<code>$STAGED_PLANS</code>) im Text vor der Frage.</li>
+<li>Option A: „Single-Modus — einen bestimmten Plan implementieren" → dann konkrete Ticket-ID erfragen.</li>
+<li>Option B: „Batch-Modus — alle staged plans parallel orchestrieren" → <code>EXECUTE_MODE="batch"</code>.</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="batch-modus-mehrere-plaene-parallel-orchestrieren">Batch-Modus: Mehrere Pläne parallel orchestrieren</h2>
+<p>Wenn <code>EXECUTE_MODE="batch"</code>:</p>
+<h3>Batch-Schritt 1: Alle staged plans laden</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># Alle staged plans mit Plan-Referenzen laden
+BATCH_PLANS_JSON=$(kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -F '|' -c \
+  "SELECT external_id, title, priority, COALESCE(value_prop,''), COALESCE(effort,''),
+   array_to_string(areas,','),
+   (SELECT c.body FROM tickets.ticket_comments c
+    WHERE c.ticket_id = t.id AND c.body LIKE 'FACTORY-PLAN-REF %'
+    ORDER BY c.created_at DESC LIMIT 1)
+   FROM tickets.tickets t WHERE status='plan_staged'
+   ORDER BY planning_rank ASC NULLS LAST, created_at DESC;" 2&gt;/dev/null)
+
+# In JSON-Array konvertieren
+BATCH_ITEMS=()
+while IFS='|' read -r ext_id title priority value_prop effort areas plan_ref; do
+  -z &amp;quot;$ext_id&amp;quot; &amp;&amp; continue
+
+  # Plan-Referenz parsen
+  BRANCH=$(echo "$plan_ref" | sed -n 's/.*branch=\([^ ]*\).*/\1/p')
+  PLAN_FILE=$(echo "$plan_ref" | sed -n 's/.*plan=\([^ ]*\).*/\1/p')
+
+  BATCH_ITEMS+=("{
+    \"ticket_id\": \"$ext_id\",
+    \"title\": \"$title\",
+    \"priority\": \"$priority\",
+    \"branch\": \"$BRANCH\",
+    \"plan_file\": \"$PLAN_FILE\"
+  }")
+done &lt;&lt;&lt; "$BATCH_PLANS_JSON"
+
+BATCH_JSON=$(printf '%s\n' "${BATCH_ITEMS[@]}" | jq -s '.')
+BATCH_COUNT=$(echo "$BATCH_JSON" | jq 'length')
+
+echo "📋 Batch-Orchestrierung: $BATCH_COUNT Pläne"
+echo "$BATCH_JSON" | jq -r '.[] | "  • \(.ticket_id) [\(.priority)] \(.title) → \(.branch)"'
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Batch-Schritt 2: Worktrees für alle Pläne vorbereiten</h3>
+<div class="code-wrapper"><pre><code class="language-bash">MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
+WORKTREE_DIR="$MAIN_REPO/tmp/wt-batch-execute-$(date +%s)"
+
+# Für jeden Plan: Worktree erstellen und Plan-Datei validieren
+echo "$BATCH_JSON" | jq -c '.[]' | while read -r item; do
+  TICKET_ID=$(echo "$item" | jq -r '.ticket_id')
+  BRANCH=$(echo "$item" | jq -r '.branch')
+  PLAN_FILE=$(echo "$item" | jq -r '.plan_file')
+
+  WT_PATH="$MAIN_REPO/tmp/wt-execute-$TICKET_ID"
+
+  # Worktree erstellen (falls nicht vorhanden)
+  if ! -d &amp;quot;$WT_PATH&amp;quot;; then
+    bash scripts/worktree-create.sh "$BRANCH" "$WT_PATH" 2&gt;/dev/null || {
+      echo "⚠️  Worktree für $TICKET_ID ($BRANCH) konnte nicht erstellt werden — übersprungen"
+      continue
+    }
+  fi
+
+  # Plan-Datei prüfen
+  if ! -f &amp;quot;$WT_PATH/$PLAN_FILE&amp;quot;; then
+    echo "⚠️  Plan-Datei $PLAN_FILE fehlt in $WT_PATH — übersprungen"
+    continue
+  fi
+
+  echo "✅ Worktree bereit: $TICKET_ID → $WT_PATH"
+done
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Batch-Schritt 3: Parallele Implementierung orchestrieren</h3>
+<p>Setze alle Tickets auf <code>in_progress</code> und spawne für jeden Plan <strong>einen separaten Implementer-Subagenten</strong> via <code>invoke_subagent</code> (Gemini/Antigravity) bzw. <code>Agent</code>-Tool (Claude Code) — alle parallel (d.h. in einer einzigen Antwort mehrere Subagenten-Calls ohne auf das Ergebnis des vorherigen zu warten):</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Tickets auf in_progress setzen (sequentiell, schnell)
+echo "$BATCH_JSON" | jq -r '.[].ticket_id' | while read -r tid; do
+  ./scripts/vda.sh ticket update-status --id "$tid" --status in_progress || true
+done
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Starte danach <strong>für jedes Element aus <code>$BATCH_JSON</code></strong> einen Subagenten:</p>
+<ul>
+<li><strong>Gemini/Antigravity CLI:</strong> call <code>invoke_subagent</code> with <code>TypeName: "self"</code> (or <code>"research"</code>), <code>Role: "Implementer &lt;TICKET_ID&gt;"</code>, and <code>Workspace: "share"</code> (or <code>"inherit"</code>).</li>
+<li><strong>Claude Code CLI:</strong> call <code>Agent</code>-Tool with <code>subagent_type: "general-purpose"</code>, choosing the appropriate model/slot from routing, and setting <code>run_in_background: true</code>.</li>
+</ul>
+<ul>
+<li><strong>Prompt</strong> (Kontext-Injektion, da der Subagent KEINEN Kontext hat):<div class="code-wrapper"><pre><code>/goal Finish dev-flow-execute and merge the PR cleanly.
+
+Du implementierst Ticket &lt;TICKET_ID&gt; im Worktree &lt;WT_PATH&gt; (Branch: &lt;BRANCH&gt;).
+Plan-Datei: &lt;WT_PATH&gt;/&lt;PLAN_FILE&gt;.
+
+Führe aus: Schritt 1.4 bis Schritt 7.5 aus dev-flow-execute (Single-Modus) —
+d.h. Doppelarbeit-Guard, Ticket in_progress, Implementierung via superpowers:executing-plans,
+lokale Verifikation (task test:changed; dann task freshness:regenerate + git add &lt;generierte Dateien&gt; + commit + task freshness:check), Code-Review-Gate,
+PR öffnen, CI-Fix-Schleife, Auto-Merge, Ticket abschließen, Plan archivieren,
+Worktree bereinigen.
+
+Erstelle KEINEN weiteren Batch-Modus. TICKET_ID=$&lt;TICKET_ID&gt;.
+Hauptrepo: &lt;MAIN_REPO&gt;.
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+</ul>
+<p>Nach dem Spawnen aller Subagenten:</p>
+<div class="code-wrapper"><pre><code>✅ Batch-Orchestrierung gestartet: $BATCH_COUNT Implementierungen laufen parallel
+
+📊 Fortschritt verfolgen:
+kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -c \
+  "SELECT external_id, status, title FROM tickets.tickets
+   WHERE external_id IN (&lt;kommagetrennte TICKET_IDs&gt;) ORDER BY status;"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>STOPP</strong> nach Batch-Start. Die Implementierungen laufen parallel. Warte auf die Subagenten-Ergebnisse (du wirst benachrichtigt wenn <code>run_in_background</code>-Agenten fertig sind) oder verfolge den Fortschritt über die DB-Query.</p>
+<hr>
+<h2 id="single-modus-einzelnen-plan-implementieren">Single-Modus: Einzelnen Plan implementieren</h2>
+<p>Wenn <code>EXECUTE_MODE="single"</code>:</p>
 <hr>
 <h2 id="schritt-1-main-branch-im-haupt-repo-synchronisieren-pull-first">Schritt −1: Main-Branch im Haupt-Repo synchronisieren (Pull-First)</h2>
 <p>Synchronisiere <code>main</code> im Haupt-Repo:</p>
 <div class="code-wrapper"><pre><code class="language-bash">bash scripts/agent-lock.sh reap   # Session-Koordination [T000510]: Zombie-Prozesse, stale Worktrees &amp; tote Locks räumen
+bash scripts/agent-msg.sh read --unread   # offene Nachrichten paralleler Sessions sichten [T000882]
 MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
 (cd "$MAIN_REPO" &amp;&amp; git fetch origin main &amp;&amp; git pull --rebase origin main)
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
@@ -90,10 +228,35 @@ git submodule update --init --recursive
 # Falls push fehlschlägt, wende --force-with-lease an
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <hr>
-<h2 id="schritt-1-plan-finden--ticket-id-extrahieren">Schritt 1: Plan finden &amp; Ticket ID extrahieren</h2>
-<p>Finde den neuesten Plan in <code>docs/superpowers/plans/*.md</code> und extrahiere die Ticket-ID:</p>
-<div class="code-wrapper"><pre><code class="language-bash">PLAN_FILE="docs/superpowers/plans/&lt;slug&gt;.md"
-TICKET_ID=$(awk '/^ticket_id:/{print $2; exit}' "$PLAN_FILE")
+<h2 id="schritt-1-plan-pfad-aus-der-datenbank-laden-single-source-of-truth">Schritt 1: Plan-Pfad aus der Datenbank laden (Single Source of Truth)</h2>
+<p>Der Plan-Pfad wird von <code>dev-flow-plan</code> via <code>ticket.sh stage-plan</code> in der Datenbank gespeichert
+(als <code>FACTORY-PLAN-REF branch=&lt;branch&gt; plan=&lt;plan_path&gt;</code> Kommentar). <strong>Niemals</strong> per Glob raten —
+immer die DB als Quelle nutzen, genau wie der Factory-Dispatcher.</p>
+<div class="code-wrapper"><pre><code class="language-bash"># TICKET_ID muss bekannt sein (aus Branch-Name, User-Input, oder ticket.sh get --branch &lt;branch&gt;)
+TICKET_ID="&lt;T-######&gt;"
+
+# Plan-Metadaten aus der Datenbank laden
+TICKET_JSON=$(./scripts/vda.sh ticket get --id "$TICKET_ID")
+PLAN_REF=$(echo "$TICKET_JSON" | jq -r '.plan_ref // empty')
+
+if -z &amp;quot;$PLAN_REF&amp;quot;; then
+  echo "🛑 Kein FACTORY-PLAN-REF für Ticket $TICKET_ID gefunden."
+  echo "   → dev-flow-plan wurde nicht ausgeführt oder stage-plan fehlgeschlagen."
+  exit 1
+fi
+
+# Branch und Plan-Pfad aus dem FACTORY-PLAN-REF parsen
+# Format: "FACTORY-PLAN-REF branch=&lt;branch&gt; plan=&lt;plan_path&gt;"
+BRANCH=$(echo "$PLAN_REF" | sed -n 's/.*branch=\([^ ]*\).*/\1/p')
+PLAN_FILE=$(echo "$PLAN_REF" | sed -n 's/.*plan=\([^ ]*\).*/\1/p')
+
+if -z &amp;quot;$PLAN_FILE&amp;quot; || ! -f &amp;quot;$PLAN_FILE&amp;quot;; then
+  echo "🛑 Plan-Datei '$PLAN_FILE' existiert nicht (Branch: $BRANCH)."
+  echo "   → Worktree prüfen: git worktree list"
+  exit 1
+fi
+
+echo "✅ Plan geladen: $PLAN_FILE (Branch: $BRANCH)"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <hr>
 <h2 id="schritt-14-doppelarbeit-guard--registry-overlap-session-koordination-t000510">Schritt 1.4: Doppelarbeit-Guard &amp; Registry-Overlap (Session-Koordination [T000510])</h2>
@@ -114,7 +277,7 @@ done
 <hr>
 <h2 id="schritt-15-ticket-auf-inprogress-setzen-und-touchedfiles-registrieren">Schritt 1.5: Ticket auf <code>in_progress</code> setzen und touched_files registrieren</h2>
 <p>Falls eine Ticket-ID vorhanden ist, setze das Ticket auf in_progress:</p>
-<div class="code-wrapper"><pre><code class="language-bash">./scripts/ticket.sh update-status --id "$TICKET_ID" --status in_progress
+<div class="code-wrapper"><pre><code class="language-bash">./scripts/vda.sh ticket update-status --id "$TICKET_ID" --status in_progress
 # Live-Floor-Telemetrie (best-effort; --driver devflow; darf den Flow nie stoppen)
 SLUG=$(basename "$PLAN_FILE" .md)
 ./scripts/ticket.sh phase "$TICKET_ID" plan entered --driver devflow --detail "Plan: $SLUG · $TICKET_ID" || true
@@ -135,32 +298,32 @@ SLUG=$(basename "$PLAN_FILE" .md)
 <div class="code-wrapper"><pre><code class="language-bash"># Live-Floor-Telemetrie (best-effort): Implementer-Subagent wird gespawnt
 ./scripts/ticket.sh phase "$TICKET_ID" implement entered --driver devflow --detail "Subagent gestartet" || true
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Statt deinen eigenen Kontext/Modell zurückzusetzen (das ließe dich den Faden verlieren), delegiere die <strong>gesamte Implementierung an EINEN frischen Subagenten</strong> — sauberer Kontext per Konstruktion, <strong>Modell + Effort passend zum Charakter der Plan-Tasks</strong>. Du behältst den vollen Plan-Kontext und verifizierst das Ergebnis anschließend unabhängig.</p>
+<p>Statt deinen eigenen Kontext/Modell zurückzusetzen (das ließe dich den Faden verlieren), delegiere die <strong>gesamte Implementierung an EINEN frischen Subagenten</strong> — sauberer Kontext per Konstruktion. Du behältst den vollen Plan-Kontext und verifizierst das Ergebnis anschließend unabhängig.</p>
 <blockquote>
-<p><strong>Warum EIN Implementer statt <code>superpowers:subagent-driven-development</code>-Fan-out?</strong> Dieser Skill läuft bereits <em>selbst</em> als delegierte Ebene (oft aus einem dev-flow-Orchestrator). Ein zusätzlicher Per-Task-Fan-out wäre <strong>verschachtelte Delegation</strong> → Kontext-Explosion und Synthese-Last (siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md">subagent-provisioning.md</a>, 162k-Prompt-Lehre). Der Implementer ruft <code>superpowers:executing-plans</code> daher <strong>in-context</strong> auf (kein weiterer Agenten-Fan-out). Nur wenn der Plan ausdrücklich viele <strong>voneinander unabhängige</strong> Tasks hat und der Einzel-Implementer am Kontext-Limit scheitert, lohnt der Wechsel auf <code>subagent-driven-development</code> bzw. einen <code>Workflow</code>-Fan-out — bewusste Eskalation, nicht Default.</p>
+<p><strong>Warum EIN Implementer statt <code>superpowers:subagent-driven-development</code>-Fan-out?</strong> Dieser Skill läuft bereits <em>selbst</em> als delegierte Ebene (oft aus einem dev-flow-Orchestrator). Ein zusätzlicher Per-Task-Fan-out wäre <strong>verschachtelte Delegation</strong> $\rightarrow$ Kontext-Explosion und Synthese-Last (siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md">subagent-provisioning.md</a>, 162k-Prompt-Lehre). Der Implementer ruft <code>superpowers:executing-plans</code> daher <strong>in-context</strong> auf (kein weiterer Agenten-Fan-out). Nur wenn der Plan ausdrücklich viele <strong>voneinander unabhängige</strong> Tasks hat und der Einzel-Implementer am Kontext-Limit scheitert, lohnt der Wechsel auf <code>subagent-driven-development</code> bzw. einen <code>Workflow</code>-Fan-out — bewusste Eskalation, nicht Default.</p>
 </blockquote>
-<p>Spawne über das <code>Agent</code>/<code>Task</code>-Tool einen Subagenten, <strong>provisioniert gemäß</strong> <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md">subagent-provisioning.md</a> (Modell · Effort · Kontext):</p>
+<p>Spawne den Subagenten:</p>
 <ul>
-<li><p><strong>Modell — nach Plan-Charakter wählen, nicht pauschal:</strong> mechanisch (Config/Doku/Single-File) → <code>haiku</code>; Standard-Feature/Fix (mehrere Dateien, klarer Plan) → <code>sonnet</code>; komplex/riskant (systemübergreifend, Architektur, Security, DB-/Schema-Migration, Auto-Deploy) → <code>opus</code>. Im Zweifel eine Stufe höher.</p>
-</li>
-<li><p><strong>Provider-Routing (Kosten/Resilienz):</strong> Vor dem Spawnen den Provider routen:</p>
-<div class="code-wrapper"><pre><code class="language-bash">ROUTE=$(bash scripts/factory/route-provider.sh dev-flow-execute sonnet)
+<li><strong>Gemini/Antigravity CLI:</strong> call <code>invoke_subagent</code> with <code>TypeName: "self"</code> (inherits permissions and tools), <code>Role: "Implementer &lt;TICKET_ID&gt;"</code>, and <code>Workspace: "share"</code> (or <code>"inherit"</code>).</li>
+<li><strong>Claude Code CLI:</strong> Spawne über das <code>Agent</code>/<code>Task</code>-Tool einen Subagenten, <strong>provisioniert gemäß</strong> <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md">subagent-provisioning.md</a> (Modell · Effort · Kontext):<ul>
+<li><strong>Modell — nach Plan-Charakter wählen, nicht pauschal:</strong> mechanisch (Config/Doku/Single-File) $\rightarrow$ <code>haiku</code>; Standard-Feature/Fix $\rightarrow$ <code>sonnet</code>; komplex/riskant (systemübergreifend, Architektur, DB-Migration, Auto-Deploy) $\rightarrow$ <code>opus</code>.</li>
+<li><strong>Provider-Routing (Kosten/Resilienz):</strong> Vor dem Spawnen den Provider routen:<div class="code-wrapper"><pre><code class="language-bash">ROUTE=$(bash scripts/factory/route-provider.sh dev-flow-execute sonnet)
 MODEL=$(echo "$ROUTE" | jq -r .modelId)
 SLOT=$(echo "$ROUTE" | jq -r .slotId)
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Subagent mit <code>--model "$MODEL"</code> spawnen. Danach den Slot freigeben:</p>
-<div class="code-wrapper"><pre><code class="language-bash">bash scripts/factory/release-slot.sh "$SLOT" true   # false bei Fehlschlag → Circuit-Breaker
+Subagent mit <code>--model "$MODEL"</code> spawnen. Danach den Slot freigeben:<div class="code-wrapper"><pre><code class="language-bash">bash scripts/factory/release-slot.sh "$SLOT" true   # false bei Fehlschlag → Circuit-Breaker
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p><code>opus</code>/plan-kritische Subagenten IMMER ohne Routing (hardcodiert Anthropic).</p>
+<code>opus</code>/plan-kritische Subagenten IMMER ohne Routing (hardcodiert Anthropic).</li>
+<li><strong>Effort per Prompt-Direktive</strong> (das <code>Agent</code>-Tool kennt keinen Effort-Regler): mechanisch „Arbeite zügig und fokussiert."; komplex/riskant „Ultrathink. Denke sehr gründlich nach."</li>
+<li><code>subagent_type: general-purpose</code>.</li>
+</ul>
 </li>
-<li><p><strong>Effort per Prompt-Direktive</strong> (das <code>Agent</code>-Tool kennt keinen Effort-Regler): mechanisch „Arbeite zügig und fokussiert."; komplex/riskant „Ultrathink. Denke sehr gründlich nach."</p>
-</li>
-<li><p><code>subagent_type: general-purpose</code>.</p>
-</li>
+</ul>
+<ul>
 <li><p><strong>Kontext-Injektion</strong> (er hat sonst KEINEN Kontext — gib ihm alles explizit):</p>
 <ul>
 <li>Absoluter Worktree-Pfad + Branch-Name; er arbeitet NUR relativ dazu.</li>
-<li>Plan-Datei <code>docs/superpowers/plans/&lt;slug&gt;.md</code> + Ticket-ID.</li>
+<li>Plan-Datei <code>$PLAN_FILE</code> (aus Schritt 1, via DB aufgelöst) + Ticket-ID.</li>
 <li>Attachment-Verzeichnis <code>$ATTACHMENT_DIR</code> — bei UI-Arbeit ALLE Bilder/Texte mit dem <code>Read</code>-Tool einlesen.</li>
 </ul>
 </li>
@@ -173,28 +336,99 @@ grep -rl "&lt;modul-stichwort&gt;" tests/unit/ tests/local/
 </li>
 <li><p><strong>Auftrag:</strong></p>
 <ul>
+<li><strong>/goal: Finish dev-flow-execute and merge the PR cleanly.</strong></li>
 <li><em>Feature:</em> Rufe <code>superpowers:executing-plans</code> (in-context, KEIN weiterer Agenten-Fan-out) + <code>test-driven-development</code> auf und arbeite den Plan vollständig ab. Aktualisiere nach jedem Meilenstein die Checkbox im Plan (<code>- [ ] M1</code> → <code>- [x] M1</code>), committe und pushe.</li>
 <li><em>Fix:</em> Verifiziere zuerst, dass ein failing Test existiert, dann nach Rot-Grün-Prinzip bis grün.</li>
-<li>Bei Kompilier-/Testfehlern: starte sofort <code>systematic-debugging</code>.</li>
-<li>Falls Delegations-Tools <code>finishing-a-development-branch</code> aufrufen: Menü mit <code>--no-menu</code> / <code>MENU=skip</code> unterdrücken.</li>
-<li>Erstelle KEINEN PR und merge nicht — stoppe nach grünen Tests und gib eine Zusammenfassung zurück (geänderte Dateien, Test-Status, offene Punkte).</li>
+<li>Bei Kompilier-/Testfehlern: diagnostiziere und fixe systematisch (Logs lesen, Fehler eingrenzen, Hypothese testen, fixen, Re-Test).</li>
+<li><strong>PFLICHT vor PR-Erstellung — Freshness-Artefakte regenerieren und committen</strong> (sonst schlägt CI mit "stale artifact" fehl; <code>executing-plans</code> → <code>finishing-a-development-branch</code> überspringt diesen Schritt):<div class="code-wrapper"><pre><code class="language-bash">task freshness:regenerate
+git add \
+  website/src/data/test-inventory.json \
+  website/src/data/route-manifest.json \
+  website/src/lib/learning-assets.generated.json \
+  "website/public/learning-assets/THIRD-PARTY-ASSETS.md" \
+  docs/code-quality/repo-index.json \
+  docs/agent-guide/10-ziele.md \
+  docs/agent-guide/20-werkzeuge.md \
+  docs/agent-guide/30-bausteine.md \
+  docs/agent-guide/maps/goals-map.md \
+  docs/agent-guide/maps/tools-map.md \
+  docs/agent-guide/maps/danger-map.md \
+  website/src/lib/agent-guide.generated.json \
+  website/src/lib/platform-descriptions.generated.json \
+  docs/generated/graph.json \
+  docs/generated/api-map.json \
+  docs/generated/blast-radius.md 2&gt;/dev/null || true
+git diff --cached --quiet || git commit -m "chore: regenerate freshness artifacts [$TICKET_ID]"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+<li>Erstelle einen PR, durchlaufe die CI-Fix-Schleife bis grün, und merge via Auto-Merge.</li>
+<li>Schließe das Ticket ab und archiviere den Plan.</li>
 </ul>
 </li>
 </ul>
-<p>Nimm das Ergebnis entgegen und mach bei Schritt 3 (unabhängige Verifikation) weiter.</p>
+<p>Der Subagent führt den gesamten dev-flow-execute-Pipeline selbstständig bis zum Merge durch. Du wirst per <code>&lt;task-notification&gt;</code> benachrichtigt, wenn er fertig ist. Fahre dann mit Schritt 8 (Post-Merge Deploy &amp; Verify) fort.</p>
+<hr>
+<h2 id="schritt-25--lokaler-self-correcting-loop-optional">Schritt 2.5 — Lokaler Self-Correcting-Loop (optional)</h2>
+<p>Nach dem Implementer-Subagenten (Schritt 2) <strong>vor</strong> der finalen Verifikation (Schritt 3):</p>
+<div class="code-wrapper"><pre><code class="language-bash">source scripts/factory/build-loop.sh
+source scripts/factory/classify-failure.sh
+source scripts/factory/classify-paths.sh
+
+MAX_LOOP=${FACTORY_BUILD_LOOP_MAX:-3}
+ITER=0
+PREV_HASH=""
+RESULT_FILE=$(mktemp)
+
+# implementer output captured into RESULT_FILE
+while $ITER -lt $MAX_LOOP; do
+  task test:changed &gt; "$RESULT_FILE" 2&gt;&amp;1 || true
+  CLASS=$(classify_failure "$RESULT_FILE")
+  HASH=$(build_loop_sig_hash "$RESULT_FILE")
+  TOUCHED=$(git diff --name-only origin/main...HEAD | tr '\n' ',')
+
+  DECIDE=$(build_loop_decide "$ITER" "$MAX_LOOP" "$PREV_HASH" "$CLASS" "$TOUCHED" "$HASH")
+  DECIDE_ACTION=$(echo "$DECIDE" | sed -n '1p')
+  DECIDE_HASH=$(echo "$DECIDE" | sed -n '2p')
+
+  case "$DECIDE_ACTION" in
+    continue)
+      FEEDBACK=$(build_loop_feedback "$CLASS" "$RESULT_FILE" "")
+      ./scripts/ticket.sh phase "$TICKET_ID" implement loop --driver devflow --detail "iter $((ITER+1))/$MAX_LOOP class=$CLASS" || true
+      # Spawne Korrektur-Subagent mit dem Feedback-Block
+      ITER=$((ITER + 1))
+      PREV_HASH="$DECIDE_HASH"
+      ;;
+    abort:no-progress|abort:max-iterations|abort:escalate-gate)
+      ./scripts/ticket.sh add-comment --id "$TICKET_ID" --body "Build-Loop aborted: $DECIDE_ACTION (class=$CLASS)" || true
+      break
+      ;;
+  esac
+done
+rm -f "$RESULT_FILE"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li>Default <code>MAX_LOOP=3</code>, env <code>FACTORY_BUILD_LOOP_MAX</code> überschreibbar.</li>
+<li>Bei <code>abort:escalate-gate|no-progress|max-iterations</code>: Eskalation (Ticket-Kommentar), <strong>kein</strong> blindes Weiter-Pushen.</li>
+<li><strong>Abgrenzung zu Schritt 5.5:</strong> Dieser Loop ist <strong>vorgelagert</strong> (lokal, vor <code>git push</code>) und reduziert die Last auf die CI-Retry-Schleife — ersetzt sie aber nicht. Schritt 3 (finale Verifikation) bleibt unverändert.</li>
+</ul>
 <hr>
 <h2 id="schritt-3-lokale-verifikation">Schritt 3: Lokale Verifikation</h2>
 <p>Rufe das Skill <strong><code>verification-before-completion</code></strong> auf, um die Verifikation strukturiert zu steuern.</p>
 <div class="code-wrapper"><pre><code class="language-bash"># Live-Floor-Telemetrie (best-effort; --driver devflow; darf den Flow nie stoppen)
 ./scripts/ticket.sh phase "$TICKET_ID" implement done --driver devflow --detail "Implementierung fertig" || true
-./scripts/ticket.sh phase "$TICKET_ID" verify entered --driver devflow --detail "task test:all + freshness" || true
+./scripts/ticket.sh phase "$TICKET_ID" verify entered --driver devflow --detail "task test:changed + freshness" || true
 task workspace:validate
 ./tests/runner.sh local &lt;FA-XX oder SA-XX&gt;
-task test:all
+task test:changed
 task freshness:regenerate
+task freshness:check        # CI-Äquivalent — failt lokal GENAU wie CI (S1–S4-Ratchet + Baseline-Assertion)
 ./scripts/ticket.sh phase "$TICKET_ID" verify done --driver devflow --detail "Tests grün · freshness OK" || true
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p><strong>Wichtig: <code>task freshness:regenerate</code> stellt sicher, dass alle generierten Artefakte (test-inventory.json, route-manifest.json, agent-guide docs/maps, learning-assets, repo-index.json) aktuell sind, bevor committet wird. Andernfalls schlägt CI fehl.</strong></p>
+<p><strong>Wichtig — beide Befehle sind nötig:</strong></p>
+<ul>
+<li><code>task freshness:regenerate</code> aktualisiert die generierten Artefakte (test-inventory.json, route-manifest.json, agent-guide docs/maps, learning-assets, repo-index.json), sonst CI rot.</li>
+<li><code>task freshness:check</code> ist das <strong>CI-Äquivalent</strong> und failt lokal genauso wie CI — insbesondere am <strong>S1-Zeilen-Ratchet</strong> (<code>quality:check</code> gegen <code>docs/code-quality/baseline.json</code>) sowie der Baseline-Key-Count-Assertion. Ohne <code>freshness:check</code> lokal wird eine Zeilen-Limit-Überschreitung erst nach dem Push in CI sichtbar — und du landest im Firefight-Modus.</li>
+</ul>
 <p>Siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md">dev-flow-gotchas.md</a> für TypeScript/pnpm Gotchas in Worktrees.</p>
 <hr>
 <h2 id="schritt-35-admin-menu-placement-gate">Schritt 3.5: Admin-Menu Placement Gate</h2>
@@ -217,10 +451,36 @@ task freshness:regenerate
 </blockquote>
 <h2 id="schritt-5-pr-erstellen">Schritt 5: PR erstellen</h2>
 <div class="code-wrapper"><pre><code class="language-bash"># Branch-Guard prüfen
+BASE_SHA="$(git rev-parse "@{upstream}" 2&gt;/dev/null || git rev-parse origin/main)"
 git add -A
-git commit -m "&lt;type&gt;(&lt;scope&gt;): &lt;subject&gt;" # commitlint regeln beachten (&lt;100 Zeichen body)
+git commit -m "&lt;type&gt;(&lt;scope&gt;): &lt;subject&gt; [&lt;TICKET_ID&gt;]" # commitlint regeln beachten (&lt;100 Zeichen Subject/Header)
 # Closes T000XXX im Body bei Fixes
+
+# Verify commit landed — git-crypt clean filter can cause silent commit failures
+# in worktrees, and an un-chained push would send an empty branch. [T000925]
+HEAD_SHA="$(git rev-parse HEAD)"
+if [ "$HEAD_SHA" = "$BASE_SHA" ]; then
+  echo "FATAL: commit did not land (git-crypt clean filter?). Push aborted." &gt;&amp;2
+  exit 1
+fi
+
+# Validate PR title scope BEFORE creating the PR — prevents a full CI cycle loss
+# when the scope is not in the semantic-PR allowlist (e.g. 'cockpit' instead of 'admin'). [T000925]
+bash scripts/preflight-pr-scope.sh "&lt;type&gt;(&lt;scope&gt;): &lt;subject&gt;"
+if [ $? -ne 0 ]; then
+  echo "FATAL: PR title scope failed preflight — fix the scope and retry." &gt;&amp;2
+  exit 1
+fi
+
+git push -u origin "$(git rev-parse --abbrev-ref HEAD)"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<blockquote>
+<p><strong>Titel nachträglich editieren (REST-Fallback):</strong> <code>gh pr edit --title</code> scheitert
+gelegentlich an einer Projects-Classic-GraphQL-Deprecation. Nutze stattdessen:</p>
+<div class="code-wrapper"><pre><code class="language-bash">gh api -X PATCH "repos/{owner}/{repo}/pulls/&lt;n&gt;" -f title="&lt;neuer Titel&gt;"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Der Preflight (oben) sollte Titel-Edits aber überflüssig machen. [T000925]</p>
+</blockquote>
 <p>Rufe <code>commit-commands:commit-push-pr</code> auf (oder führe <code>gh pr create</code> manuell aus).</p>
 <hr>
 <h2 id="schritt-55-cicd-fix-schleife">Schritt 5.5: CI/CD-Fix-Schleife</h2>
@@ -286,6 +546,13 @@ done
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <hr>
 <h2 id="schritt-6-auto-merge-wenn-ci-gruen">Schritt 6: Auto-Merge wenn CI grün</h2>
+<blockquote>
+<p><strong>Hinweis:</strong> <code>E2E PR</code> ist kein required check (T000722). Auto-Merge wartet nur auf:
+<code>Offline Tests (Manifests, Configs, Unit)</code>, <code>Security Scan</code>, <code>Brett TypeScript</code>,
+<code>Vitest (website + arena-server)</code>, <code>Conventional Commits</code>.
+Ein roter E2E-Check blockiert den Merge NICHT — er erscheint als informativer
+gelber Status im PR. PR-Autor prüft E2E-Ergebnis manuell bei Bedarf.</p>
+</blockquote>
 <div class="code-wrapper"><pre><code class="language-bash"># Merge PR aus dem Haupt-Repo, um Konflikte zu vermeiden
 (cd "$MAIN_REPO" &amp;&amp; gh pr merge --auto --squash --delete-branch)
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
@@ -295,7 +562,10 @@ done
 <div class="code-wrapper"><pre><code class="language-bash">RESOLUTION="shipped" # oder "fixed" bei Fixes
 PR_NUM=$(gh pr view --json number -q '.number')
 
-./scripts/ticket.sh update-status --id "$TICKET_ID" --status qa_review
+# PR-Nummer in ticket_links eintragen, damit der Shipped-Tab sie zeigt (Fix 1):
+./scripts/ticket.sh add-pr-link --id "$TICKET_ID" --pr "$PR_NUM"
+
+./scripts/vda.sh ticket update-status --id "$TICKET_ID" --status qa_review
 # Live-Floor-Telemetrie (best-effort; --driver devflow; darf den Flow nie stoppen)
 ./scripts/ticket.sh phase "$TICKET_ID" deploy done --driver devflow --detail "PR #$PR_NUM merged · deployed" || true
 ./scripts/ticket.sh add-comment --id "$TICKET_ID" --body "PR #$PR_NUM merged. Plan archived to tickets.ticket_plans."
@@ -306,6 +576,9 @@ PR_NUM=$(gh pr view --json number -q '.number')
 <div class="code-wrapper"><pre><code class="language-bash">SLUG="&lt;slug&gt;"
 BRANCH="feature/&lt;slug&gt;" # oder fix/&lt;slug&gt;
 PR_NUM=$(gh pr view --json number -q '.number' 2&gt;/dev/null || echo "")
+
+# Plan-Frontmatter auf completed setzen, BEVOR der Inhalt archiviert wird (Fix 3/4):
+sed -i 's/^status: active$/status: completed/' "$PLAN_FILE"
 
 ./scripts/ticket.sh archive-plan \
   --id "$TICKET_ID" \
@@ -332,8 +605,7 @@ gh pr merge --auto --squash --delete-branch
 <div class="code-wrapper"><pre><code class="language-bash"># Claims freigeben (Session-Koordination [T000510]) — VOR dem Worktree-Remove:
 bash scripts/agent-lock.sh release ticket "$TICKET_ID" 2&gt;/dev/null || true
 bash scripts/agent-lock.sh release branch "&lt;branch&gt;" 2&gt;/dev/null || true
-cd /home/patrick/Bachelorprojekt
-git worktree remove "/tmp/wt-&lt;slug&gt;" --force
+git worktree remove "$MAIN_REPO/tmp/wt-&lt;slug&gt;" --force
 git branch -D "&lt;branch&gt;"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <hr>
@@ -392,6 +664,11 @@ Pfad→Task-Tabelle leben in <a href="file:///home/patrick/Bachelorprojekt/.clau
 Stale-Tree-/Digest-Pin-Footguns. Bei Änderungen am Deploy-Mapping <strong>nur</strong> diese Referenz pflegen.</p>
 <p>Führe danach <code>dev-flow-e2e</code> aus, um E2E-Tests gegen die Live-Umgebung zu schreiben.</p>
 <hr>
+<blockquote>
+<p><strong>Mitten in der Umsetzung blockiert?</strong> Nutzer grillen und die Antworten ans Ticket
+hängen: <code>scripts/ticket.sh grill --id &lt;ext-id&gt; --answer &lt;qid&gt;=&lt;text&gt; …</code>. Siehe
+<code>.claude/skills/references/grilling-to-ticket.md</code>.</p>
+</blockquote>
 <h2 id="verwandte-skills">Verwandte Skills</h2>
 <table>
 <thead>
@@ -418,7 +695,7 @@ Stale-Tree-/Digest-Pin-Footguns. Bei Änderungen am Deploy-Mapping <strong>nur</
 </tr>
 </tbody></table>
 <h2 id="nachbereitung--mishap-report">Nachbereitung &amp; Mishap Report</h2>
-<p>Melde alle aufgetretenen Fehler oder Prozess-Frictionen am Ende des Skills über <code>mishap-tracker</code> (aufrufbar via <code>bash scripts/hooks/mishap-tracker.sh</code>).</p>
+<p>Melde alle aufgetretenen Fehler oder Prozess-Frictionen am Ende des Skills über <code>mishap-tracker</code> (Invoke <code>mishap-tracker</code> with your accumulated MISHAP_LOG).</p>
 </body></html>
 </article>
 

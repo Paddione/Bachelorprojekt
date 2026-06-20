@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Audit-Log Retention — DSGVO-Dokumentation — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="./index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./docs.html">Docs</a> <span class="sep">/</span> <span class="crumb-current">Audit-Log Retention — DSGVO-Dokumentation</span></nav>
+    <h1>Audit-Log Retention — DSGVO-Dokumentation</h1>
+    <p class="page-desc"></p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      <span class="domain-tag">security</span>
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Audit-Log Retention — DSGVO-Dokumentation</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#erfasste-aktionen"><span class="toc-num">1.</span> Erfasste Aktionen</a></li>
+<li class="toc-item"><a href="#datenfelder-auditauditlog"><span class="toc-num">2.</span> Datenfelder (audit.audit_log)</a></li>
+<li class="toc-item"><a href="#retention"><span class="toc-num">3.</span> Retention</a></li>
+<li class="toc-item"><a href="#datensparsamkeit-dsgvo-art-51c"><span class="toc-num">4.</span> Datensparsamkeit (DSGVO Art. 5(1)(c))</a></li>
+<li class="toc-item"><a href="#out-of-scope"><span class="toc-num">5.</span> Out-of-scope</a></li>
+<li class="toc-item"><a href="#pruefpfad"><span class="toc-num">6.</span> Prüfpfad</a></li></ul>
+</div>
+<blockquote>
+<p>Stand: 2026-06-17 | Scope: T000904 | Teams: security, db, ops</p>
+</blockquote>
+<h2 id="erfasste-aktionen">Erfasste Aktionen</h2>
+<h3>Keycloak (realm-seitig, DB-Persistenz)</h3>
+<ul>
+<li>Login-Events (erfolgreich + fehlgeschlagen)</li>
+<li>Admin-Events inkl. Details (Realm-Änderungen, Nutzerverwaltung)</li>
+<li>Einheitlich aktiviert über alle vier Realms (dev, base-prod, mentolder, korczewski)</li>
+</ul>
+<h3>Admin-Backend (<code>audit.audit_log</code>, Tabelle in <code>website</code>-DB)</h3>
+<ul>
+<li>Sicherheitsrelevante Admin-Aktionen (mutierend)</li>
+<li>Instrumentierte Endpoints:<ul>
+<li><code>bug.reopen</code> / <code>bug.archive</code> — Bug-Ticket-Statusänderungen</li>
+<li><code>factory.control</code> — Werkssteuerung (Killswitch, Slot-/Daily-Caps, Dry-Run)</li>
+<li><code>customer.list</code> — Kundenlisten-Abruf</li>
+<li><code>deployment.list</code> — Deployment-Status-Abfrage</li>
+<li><code>brand_starter.read</code> — Brand-Starter-Template-Abruf</li>
+</ul>
+</li>
+</ul>
+<h2 id="datenfelder-auditauditlog">Datenfelder (<code>audit.audit_log</code>)</h2>
+<table>
+<thead>
+<tr>
+<th>Feld</th>
+<th>Herkunft / Bedeutung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>id</code></td>
+<td>Auto-increment (bigserial)</td>
+</tr>
+<tr>
+<td><code>actor_id</code></td>
+<td>Keycloak <code>sub</code> des handelnden Admins</td>
+</tr>
+<tr>
+<td><code>actor_email</code></td>
+<td>E-Mail des Admins (aus OIDC-Session)</td>
+</tr>
+<tr>
+<td><code>action</code></td>
+<td>Sprechender Verb-String (z.B. <code>factory.control</code>)</td>
+</tr>
+<tr>
+<td><code>target_type</code></td>
+<td>Kategorie des Zielobjekts (z.B. <code>bug</code>), optional</td>
+</tr>
+<tr>
+<td><code>target_id</code></td>
+<td>ID des Zielobjekts (z.B. Ticket-ID), optional</td>
+</tr>
+<tr>
+<td><code>ip</code></td>
+<td>Client-IP aus <code>x-forwarded-for</code> (Traefik), <code>inet</code>-Typ</td>
+</tr>
+<tr>
+<td><code>ts</code></td>
+<td>Zeitstempel (default <code>now()</code>)</td>
+</tr>
+<tr>
+<td><code>metadata</code></td>
+<td>JSONB, optionale Zusatzinfo. <strong>Muss secrets-frei sein.</strong></td>
+</tr>
+</tbody></table>
+<h2 id="retention">Retention</h2>
+<h3>Keycloak</h3>
+<ul>
+<li><code>eventsExpiration: 7776000</code> Sekunden = <strong>90 Tage</strong> (einheitlich über alle Realms)</li>
+<li>Keycloak löscht Events automatisch nach Ablauf der Retention</li>
+</ul>
+<h3><code>audit.audit_log</code></h3>
+<ul>
+<li>Retention: <strong>90 Tage</strong> (datenschutzkonform, DSGVO Art. 5(1)(e))</li>
+<li>Pruning-Mechanismus: idempotente SQL-Query (manuell oder via ensure-Script):<div class="code-wrapper"><pre><code class="language-sql">DELETE FROM audit.audit_log WHERE ts &lt; now() - interval '90 days';
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+<li>Kein eigener CronJob in diesem Scope. Wird als dokumentierte manuelle Maßnahme
+und/oder als ensure-Schema-Step bei nachfolgenden Deployments eingebaut.</li>
+</ul>
+<h2 id="datensparsamkeit-dsgvo-art-51c">Datensparsamkeit (DSGVO Art. 5(1)(c))</h2>
+<ul>
+<li>Nur <strong>sicherheitsrelevante</strong> Aktionen werden erfasst (kein flächendeckendes CRUD-Logging).</li>
+<li><code>metadata</code>-Feld: <strong>keine</strong> Klartext-Secrets, Passwörter, Tokens oder personenbezogene
+Daten außer Identifier-Werten (z.B. Ticket-ID, Status-Name). Der Helper
+<code>recordAudit()</code> dokumentiert diese Einschränkung.</li>
+<li>Keine Erfassung von Kunden-Personendaten im Audit-Log.</li>
+</ul>
+<h2 id="out-of-scope">Out-of-scope</h2>
+<ul>
+<li><strong>UI-Ansicht</strong> (<code>/admin/audit</code> o.ä.) — separates Ticket, nicht in T000904.</li>
+<li><strong>Externe SIEM-Anbindung</strong> — nicht in Scope.</li>
+<li><strong>CronJob zur automatischen Bereinigung</strong> — folgt in späterem Ticket.</li>
+</ul>
+<h2 id="pruefpfad">Prüfpfad</h2>
+<ul>
+<li>Der Audit-Trail ist über die Datenbank abfragbar (<code>SELECT * FROM audit.audit_log ORDER BY ts DESC</code>).</li>
+<li>Keycloak-Events sind in der Keycloak-DB einsehbar.</li>
+<li>Bei DSGVO-Auskunftsersuchen oder Sicherheitsvorfällen dient diese Tabelle als
+Nachweis, wer wann welche sicherheitsrelevante Aktion ausgeführt hat.</li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="./app.js"></script>
+</body>
+</html>

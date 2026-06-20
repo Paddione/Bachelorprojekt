@@ -195,19 +195,139 @@ fi
 **Domain-Fragen:**
 - &lt;frage&gt;: &lt;antwort&gt;"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h4>5b — Readiness-Flags aktualisieren</h4>
+<h4>5b — Vollständigkeits-Check (Vorbedingung für Spec-Generierung)</h4>
+<p>Prüfe den Rücklauf auf Vollständigkeit bevor die Spec generiert wird:</p>
+<table>
+<thead>
+<tr>
+<th>Block</th>
+<th>Prüfung</th>
+<th>BLOCK wenn</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Block 1 — Ablauf</td>
+<td>Textarea-Länge</td>
+<td>&lt; 20 Zeichen</td>
+</tr>
+<tr>
+<td>Block 1 — Nutzergruppe</td>
+<td>Feld vorhanden + nicht leer</td>
+<td>Fehlt</td>
+</tr>
+<tr>
+<td>Block 2 — Nicht-Scope</td>
+<td>≥1 Checkbox ODER Freitext</td>
+<td>Beides leer</td>
+</tr>
+<tr>
+<td>Block 3 — Edge Cases</td>
+<td>≥1 Checkbox ODER Freitext</td>
+<td>Beides leer</td>
+</tr>
+<tr>
+<td>Block 5 — Fehlerfall</td>
+<td>Radio ausgewählt</td>
+<td>Nicht gesetzt</td>
+</tr>
+<tr>
+<td>Block 6 — Erfolgsmetrik</td>
+<td>Radio ODER Freitext</td>
+<td>Beides leer</td>
+</tr>
+</tbody></table>
+<p><strong>Bei unvollständigem Rücklauf:</strong></p>
+<p>Gib aus:</p>
+<div class="code-wrapper"><pre><code>⛔ Spec-Generierung blockiert — folgende Blöcke fehlen oder sind leer:
+  • [Liste der fehlenden Blöcke]
+
+→ Bitte das Grilling-Formular erneut öffnen und die markierten Felder ausfüllen:
+  /tmp/grilling-&lt;TICKET_EXT_ID&gt;-&lt;DATUM&gt;.html
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Stoppe hier — führe Schritt 5c NICHT aus.</p>
+<p><strong>Bei vollständigem Rücklauf:</strong> Fahre direkt mit Schritt 5c fort.</p>
+<h4>5c — Spec-Datei generieren und schreiben</h4>
+<p>Destilliere die Grilling-Antworten in eine vollständige Spec. Dateiname:</p>
+<div class="code-wrapper"><pre><code class="language-bash">SPEC_SLUG=$(echo "&lt;Ticket-Titel&gt;" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
+SPEC_FILE="docs/superpowers/specs/$(date +%F)-${SPEC_SLUG}.md"
+# Bei Kollision: SPEC_FILE mit -v2 Suffix
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Schreibe die Datei mit dem <code>Write</code>-Tool nach folgendem Schema (auf Deutsch):</p>
+<div class="code-wrapper"><pre><code class="language-markdown">---
+ticket_id: &lt;TICKET_EXT_ID&gt;
+plan_ref: docs/superpowers/plans/&lt;DATUM&gt;-&lt;SPEC_SLUG&gt;.md
+status: active
+date: &lt;DATUM&gt;
+---
+
+# Spec: &lt;Ticket-Titel&gt;
+
+## Kern-Nutzerflow
+[Prosa aus Block 1 — Schritt-für-Schritt destilliert]
+
+## Akzeptanzkriterien
+[Testbar formuliert aus Blocks 1/3/5/6 — z.B. "Wenn User X tut, erscheint Y"]
+
+## Edge Cases
+[Liste aus Block 3]
+
+## Fehlerfall-Behandlung
+[Aus Block 5]
+
+## Erfolgsmetrik
+[Aus Block 6 — messbar oder beobachtbar]
+
+## Technische Constraints
+[Aus Ticket-Areas + domain-spezifischen Blöcken + depends_on]
+
+## Betroffene Dateien
+[Aus areas abgeleitet — grobe Hinweise]
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Danach den Spec-Inhalt auch als Ticket-Kommentar schreiben:</p>
+<div class="code-wrapper"><pre><code class="language-bash">bash scripts/ticket.sh add-comment \
+  --id &lt;TICKET_EXT_ID&gt; \
+  --author "feature-intake/spec-generator" \
+  --body "## Auto-generierte Spec $(date +%F)
+
+[vollständiger Spec-Inhalt]
+
+---
+*Generiert aus Grilling-Rücklauf via feature-intake/spec-generator*"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h4>5d — Readiness-Flags aktualisieren</h4>
 <p>Setze einen Flag auf <code>true</code> nur wenn die zugehörige Frage tatsächlich beantwortet wurde:</p>
 <div class="code-wrapper"><pre><code class="language-bash">bash scripts/ticket.sh plan-meta set \
   --id &lt;external_id&gt; \
-  --readiness offene_fragen_geklaert=true,abhaengigkeiten_klar=true
+  --readiness offene_fragen_geklaert=true,abhaengigkeiten_klar=true,spec_skizziert=true
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h4>5c — Abhängigkeiten eintragen (wenn konkrete IDs genannt)</h4>
+<h4>5e — Abhängigkeiten eintragen (wenn konkrete IDs genannt)</h4>
 <div class="code-wrapper"><pre><code class="language-bash">bash scripts/ticket.sh plan-meta set \
   --id &lt;external_id&gt; \
   --depends-on T000571,T000573
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h4>5d — Status-Report ausgeben</h4>
-<p>Kurze Zusammenfassung: welche Tickets sind jetzt vollständig readiness-ready (alle 4 Flags true), welche bleiben offen. Tickets mit allen Flags auf <code>true</code> → proaktiv vorschlagen: „T000xxx ist plan-ready → <code>dev-flow-plan</code> starten?"</p>
+<h4>5f — Automatischer Handoff zu dev-flow-plan</h4>
+<p>Nach vollständiger Spec-Generierung übergib direkt an dev-flow-plan — kein STOP, kein manueller Eingriff:</p>
+<div class="code-wrapper"><pre><code class="language-bash">export TICKET_EXT_ID="&lt;TICKET_EXT_ID&gt;"
+# dev-flow-plan erkennt TICKET_EXT_ID und überspringt Ticket-Erstellung
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Sage: "Spec generiert ✓ — übergebe direkt an dev-flow-plan für die Implementierungsplanung."</p>
+<p>Rufe dann <code>dev-flow-plan</code> auf.</p>
+<h4>5g — Abschluss-Report</h4>
+<p>Gib folgende Zusammenfassung aus:</p>
+<div class="code-wrapper"><pre><code>Grilling + Spec-Generierung abgeschlossen für &lt;TICKET_EXT_ID&gt;:
+
+✓ Spec-Material als Kommentar hinterlegt (author: feature-intake/grilling)
+✓ Auto-Spec generiert: docs/superpowers/specs/&lt;dateiname&gt;
+✓ Spec als Ticket-Kommentar hinterlegt (author: feature-intake/spec-generator)
+✓ Readiness-Flags aktualisiert: spec_skizziert=true, offene_fragen_geklaert=true, abhaengigkeiten_klar=true
+✓ Handoff zu dev-flow-plan eingeleitet
+
+[nur wenn noch Flags fehlen:]
+Verbleibende offene Flags:
+  🔴 abhaengigkeiten_klar — noch ausstehend
+  🔴 aufwand_geschaetzt — noch ausstehend
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Zeige welche Tickets jetzt vollständig readiness-ready sind (alle 4 Flags true).</p>
 <hr>
 <h2 id="modus-d-gekkomode--entdeckungs-interview">Modus D: GekkoMode — Entdeckungs-Interview</h2>
 <p><strong>Zweck:</strong> Nicht aus einer vordefinierten Liste wählen, sondern <em>unbekannte</em> Schmerzen und Wünsche von gekko herauskitzeln — offener Entdeckungscharakter. Das Interview generiert Rohideen, die Claude anschließend in vollständige <code>planning</code>-Tickets überführt.</p>
@@ -441,6 +561,11 @@ bash scripts/ticket.sh add-comment \
 # abhaengigkeiten_klar=false (unbekannt aus Interview)
 # aufwand_geschaetzt=false (muss geschätzt werden, es sei denn Zitat gibt Hinweis)
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<blockquote>
+<p><strong>Zusätzlich strukturiert ablegen:</strong> Neben dem Klärungs-Kommentar die Antworten mit
+<code>scripts/ticket.sh grill --id &lt;ext-id&gt; …</code> ans Ticket senden (akkumulierend, panel-fähig).
+Siehe <code>.claude/skills/references/grilling-to-ticket.md</code>.</p>
+</blockquote>
 <h3>Schritt 5 — Abschluss-Report</h3>
 <p>Nach dem Anlegen:</p>
 <div class="code-wrapper"><pre><code>GekkoMode-Ergebnis:
@@ -726,12 +851,18 @@ bash scripts/ticket.sh plan-meta set --id "$TICKET_EXT_ID" \
 <hr>
 <h2 id="uebergabe-an-dev-flow-plan--dev-flow-batch">Übergabe an dev-flow-plan / dev-flow-batch</h2>
 <p>Nach Brainstorm oder Rücklauf, wenn eines oder mehrere Features als nächstes gebaut werden sollen:</p>
-<p><strong>Ein Feature:</strong> Rufe <code>dev-flow-plan</code> direkt auf, übergib Titel + Kern-Nutzen + Priorität als Kontext.</p>
+<p><strong>Ein Feature:</strong> Rufe <code>dev-flow-plan</code> direkt auf und übergib die bestehende Ticket-ID, damit kein Duplikat erstellt wird:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># TICKET_EXT_ID aus dem feature-intake Schritt übernehmen
+export TICKET_EXT_ID="&lt;external_id&gt;"
+
+# dev-flow-plan aufrufen — es erkennt die Variable und wiederverwendet das Ticket
+# (dev-flow-plan prüft: if -z &amp;quot;${TICKET_EXT_ID:-}&amp;quot;; then ... create ... fi)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p><strong>Mehrere Features:</strong> Präsentiere eine sortierte Liste und lass den User wählen oder bestätige die Reihenfolge:</p>
 <div class="code-wrapper"><pre><code>Nächste Features (sortiert: Priorität ↓, Aufwand ↑):
-1. [hoch/klein]  &lt;Titel A&gt; — &lt;Kern-Nutzen&gt;
-2. [hoch/mittel] &lt;Titel B&gt; — &lt;Kern-Nutzen&gt;
-3. [mittel/groß] &lt;Titel C&gt; — &lt;Kern-Nutzen&gt;
+1. [hoch/klein]  T000xxx &lt;Titel A&gt; — &lt;Kern-Nutzen&gt;
+2. [hoch/mittel] T000yyy &lt;Titel B&gt; — &lt;Kern-Nutzen&gt;
+3. [mittel/groß] T000zzz &lt;Titel C&gt; — &lt;Kern-Nutzen&gt;
 
 → Mit welchem soll dev-flow-plan starten?
   (Standard: Nummer 1 — bestätige oder nenne eine andere Nummer)

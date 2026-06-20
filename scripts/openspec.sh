@@ -65,7 +65,7 @@ cmd_archive() {
   [[ -d "$dir" ]] || die "no such change: $slug"
   if [[ "${TICKET_OFFLINE:-0}" != "1" && -f "$dir/.ticket" ]]; then
     local st
-    st="$(bash "$TICKET_SH" get --id "$(cat "$dir/.ticket")" 2>/dev/null | grep -o '"status":"[^"]*"' | head -1 | cut -d'"' -f4 || true)"
+    st="$(bash "$TICKET_SH" get --id "$(cat "$dir/.ticket")" 2>/dev/null | grep -o '"status" *: *"[^"]*"' | head -1 | grep -o '"[^"]*"$' | tr -d '"' || true)"
     [[ "$st" == "done" ]] || die "archive refused: ticket status is '${st:-unknown}', expected 'done'"
   fi
   local dest="$OPENSPEC_ROOT/changes/archive/$(date +%F)-$slug"

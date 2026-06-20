@@ -15,6 +15,6 @@ describe('PortalSidekick — mediaviewer view', () => {
     await fireEvent.click(getByLabelText('Sidekick öffnen'));
     await fireEvent.click(getByText('Mediaviewer'));
     const iframe = getByTitle('Mediaviewer') as HTMLIFrameElement;
-    expect(iframe.getAttribute('src')).toBe('https://mediaviewer.localhost/embed.html');
+    expect(iframe.getAttribute('src')).toBe('https://mediaviewer.localhost/embed.html?v=mediaviewer.localhost');
   });
 });

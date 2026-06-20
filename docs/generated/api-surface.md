@@ -138,10 +138,6 @@
 | `/api/admin/folder-templates/create` | POST | 🔐 admin | `website/src/pages/api/admin/folder-templates/create.ts` |
 | `/api/admin/folder-templates/delete` | POST | 🔐 admin | `website/src/pages/api/admin/folder-templates/delete.ts` |
 | `/api/admin/folder-templates/update` | POST | 🔐 admin | `website/src/pages/api/admin/folder-templates/update.ts` |
-| `/api/admin/followups/create` | POST | 🔐 admin | `website/src/pages/api/admin/followups/create.ts` |
-| `/api/admin/followups/delete` | POST | 🔐 admin | `website/src/pages/api/admin/followups/delete.ts` |
-| `/api/admin/followups/notify` | POST | 🔐 admin | `website/src/pages/api/admin/followups/notify.ts` |
-| `/api/admin/followups/update` | POST | 🔐 admin | `website/src/pages/api/admin/followups/update.ts` |
 | `/api/admin/footer/save` | POST | 🔐 admin | `website/src/pages/api/admin/footer/save.ts` |
 | `/api/admin/fuehrung/save` | POST | 🔐 admin | `website/src/pages/api/admin/fuehrung/save.ts` |
 | `/api/admin/generate-3d` | POST | 🔐 admin | `website/src/pages/api/admin/generate-3d.ts` |

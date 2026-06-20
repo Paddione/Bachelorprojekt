@@ -308,14 +308,6 @@
       "media": false
     },
     {
-      "route": "/admin/followups",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
       "route": "/admin/fragebogen/[assignmentId]",
       "authTier": "admin",
       "brand": "both",
@@ -453,14 +445,6 @@
     },
     {
       "route": "/admin/monitoring",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
-      "route": "/admin/nachrichten",
       "authTier": "admin",
       "brand": "both",
       "dynamic": false,

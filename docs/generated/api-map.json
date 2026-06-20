@@ -1099,38 +1099,6 @@
       "file": "website/src/pages/api/admin/folder-templates/update.ts"
     },
     {
-      "path": "/api/admin/followups/create",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/followups/create.ts"
-    },
-    {
-      "path": "/api/admin/followups/delete",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/followups/delete.ts"
-    },
-    {
-      "path": "/api/admin/followups/notify",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/followups/notify.ts"
-    },
-    {
-      "path": "/api/admin/followups/update",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/followups/update.ts"
-    },
-    {
       "path": "/api/admin/footer/save",
       "methods": [
         "POST"

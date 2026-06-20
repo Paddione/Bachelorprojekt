@@ -12,4 +12,4 @@ Das Platform Control Center weicht visuell vom Cockpit ab: eigener Custom-Header
 - Neue Komponente `CentralizedLoggingPanel.svelte`: 4 Grafana-Dashboard-Karten im 2×2-Grid mit Öffnen-Links
 - Neue Komponente `ObservabilityTab.svelte`: Wrapper — CentralizedLoggingPanel oben, LogsTab darunter
 
-_Ticket: T000000_
+_Ticket: T000967_

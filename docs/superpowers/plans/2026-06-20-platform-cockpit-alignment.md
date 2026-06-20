@@ -1,6 +1,6 @@
 ---
 title: Platform Control Center — Cockpit Visual Alignment + Centralized Logging Integration Implementation Plan
-ticket_id: T000000
+ticket_id: T000967
 plan_ref: docs/superpowers/plans/2026-06-20-platform-cockpit-alignment.md
 status: active
 date: 2026-06-20

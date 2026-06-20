@@ -1,14 +1,14 @@
 {
   "T000737": [
     {
-      "slug": "grilling-ui-multichoice",
-      "status": "plan_staged"
+      "slug": "2026-06-20-grilling-ui-multichoice",
+      "status": "archived"
     }
   ],
   "T000942": [
     {
-      "slug": "final-grilling-mediaviewer",
-      "status": "plan_staged"
+      "slug": "2026-06-20-final-grilling-mediaviewer",
+      "status": "archived"
     }
   ],
   "T000943": [
@@ -47,8 +47,8 @@
   ],
   "T000959": [
     {
-      "slug": "openspec-ticket-status-display",
-      "status": "plan_staged"
+      "slug": "2026-06-20-openspec-ticket-status-display",
+      "status": "archived"
     }
   ]
 }

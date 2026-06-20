@@ -178,16 +178,16 @@
 <body>
   <div class="header">
     <h1>⬡ Architektur — Living Docs</h1>
-    <span class="meta">Generiert: 2026-06-20T14:46:24.368Z</span>
+    <span class="meta">Generiert: 2026-06-20T16:50:11.353Z</span>
   </div>
 
   <div class="stats">
     <div class="stat">
-      <span class="stat-value">84</span>
+      <span class="stat-value">86</span>
       <span class="stat-label">Services</span>
     </div>
     <div class="stat">
-      <span class="stat-value">1698</span>
+      <span class="stat-value">1860</span>
       <span class="stat-label">Abhängigkeiten</span>
     </div>
     <div class="stat">
@@ -262,6 +262,7 @@ flowchart LR
   oauth2_proxy_docs["oauth2-proxy-docs"]:::default
   oauth2_proxy_mailpit["oauth2-proxy-mailpit"]:::default
   oauth2_proxy_mediaviewer["oauth2-proxy-mediaviewer"]:::default
+  oauth2_proxy_studio["oauth2-proxy-studio"]:::default
   oauth2_proxy_traefik["oauth2-proxy-traefik"]:::default
   oauth2_proxy_videovault["oauth2-proxy-videovault"]:::default
   collabora["collabora"]:::default
@@ -272,6 +273,7 @@ flowchart LR
   sessions_server["sessions-server"]:::default
   shared_db["shared-db"]:::db
   shared_db_staging["shared-db-staging"]:::default
+  studio_server["studio-server"]:::default
   nats["nats"]:::default
   spreed_signaling["spreed-signaling"]:::default
   talk_recording["talk-recording"]:::default
@@ -348,6 +350,7 @@ flowchart LR
   oauth2_proxy_docs -->|"command"| keycloak
   oauth2_proxy_mailpit -->|"command"| keycloak
   oauth2_proxy_mediaviewer -->|"command"| keycloak
+  oauth2_proxy_studio -->|"command"| keycloak
   oauth2_proxy_traefik -->|"command"| keycloak
   oauth2_proxy_traefik -->|"command"| traefik
   oauth2_proxy_videovault -->|"command"| keycloak
@@ -364,6 +367,7 @@ flowchart LR
   shared_db -->|"configmap:website-…"| docuseal
   shared_db -->|"configmap:website-…"| whiteboard
   shared_db -->|"configmap:website-…"| arena_server
+  studio_server -->|"KEYCLOAK_ISSUER_ME…"| keycloak
   spreed_signaling -->|"configmap:signalin…"| coturn
   spreed_signaling -->|"configmap:signalin…"| nats
   spreed_signaling -->|"configmap:signalin…"| janus
@@ -412,6 +416,7 @@ flowchart LR
   traefik -->|"ingress"| oauth2_proxy_comfy
   traefik -->|"ingress"| oauth2_proxy_mediaviewer
   traefik -->|"ingress"| oauth2_proxy_videovault
+  traefik -->|"ingress"| oauth2_proxy_studio
   traefik -->|"ingress"| livekit_server
   traefik -->|"ingress"| oauth2_proxy_mailpit
   traefik -->|"ingress"| mailpit
@@ -452,6 +457,7 @@ flowchart LR
   otel_collector -->|"selector"| otel_collector
   nextcloud_redis -->|"selector"| nextcloud_redis
   ntfy -->|"selector"| ntfy
+  oauth2_proxy_studio -->|"selector"| oauth2_proxy_studio
   oauth2_proxy_videovault -->|"selector"| oauth2_proxy_videovault
   collabora -->|"selector"| collabora
   recovery_browser -->|"selector"| recovery_browser
@@ -517,6 +523,8 @@ flowchart LR
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| admin_actions_cleanup
+  admin_actions_cleanup -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| oauth2_proxy_videovault
@@ -524,6 +532,8 @@ flowchart LR
   admin_actions_cleanup -->|"secret:workspace-s…"| oauth2_proxy_recovery
   oauth2_proxy_recovery -->|"secret:workspace-s…"| admin_actions_cleanup
   shared_db -->|"secret:workspace-s…"| admin_actions_cleanup
+  admin_actions_cleanup -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| spreed_signaling
   spreed_signaling -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| talk_recording
@@ -590,6 +600,8 @@ flowchart LR
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| admin_actions_prune
+  admin_actions_prune -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| oauth2_proxy_videovault
@@ -597,6 +609,8 @@ flowchart LR
   admin_actions_prune -->|"secret:workspace-s…"| oauth2_proxy_recovery
   oauth2_proxy_recovery -->|"secret:workspace-s…"| admin_actions_prune
   shared_db -->|"secret:workspace-s…"| admin_actions_prune
+  admin_actions_prune -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| spreed_signaling
   spreed_signaling -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| talk_recording
@@ -659,6 +673,8 @@ flowchart LR
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| db_backup
+  db_backup -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| oauth2_proxy_videovault
@@ -666,6 +682,8 @@ flowchart LR
   db_backup -->|"secret:workspace-s…"| oauth2_proxy_recovery
   oauth2_proxy_recovery -->|"secret:workspace-s…"| db_backup
   shared_db -->|"secret:workspace-s…"| db_backup
+  db_backup -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| spreed_signaling
   spreed_signaling -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| talk_recording
@@ -723,12 +741,16 @@ flowchart LR
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| brett
+  brett -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| oauth2_proxy_recovery
   oauth2_proxy_recovery -->|"secret:workspace-s…"| brett
+  brett -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| spreed_signaling
   spreed_signaling -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| talk_recording
@@ -788,6 +810,8 @@ flowchart LR
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| mcp_github
   mcp_github -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| mcp_github
+  mcp_github -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| mcp_github
   mcp_github -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| mcp_github
   mcp_github -->|"secret:workspace-s…"| oauth2_proxy_videovault
@@ -796,6 +820,8 @@ flowchart LR
   oauth2_proxy_recovery -->|"secret:workspace-s…"| mcp_github
   mcp_github -->|"secret:workspace-s…"| shared_db
   shared_db -->|"secret:workspace-s…"| mcp_github
+  mcp_github -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| mcp_github
   mcp_github -->|"secret:workspace-s…"| spreed_signaling
   spreed_signaling -->|"secret:workspace-s…"| mcp_github
   mcp_github -->|"secret:workspace-s…"| talk_recording
@@ -854,6 +880,8 @@ flowchart LR
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| claude_code_mcp_ops
   claude_code_mcp_ops -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| claude_code_mcp_ops
+  claude_code_mcp_ops -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| claude_code_mcp_ops
   claude_code_mcp_ops -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| claude_code_mcp_ops
   claude_code_mcp_ops -->|"secret:workspace-s…"| oauth2_proxy_videovault
@@ -861,6 +889,8 @@ flowchart LR
   claude_code_mcp_ops -->|"secret:workspace-s…"| oauth2_proxy_recovery
   oauth2_proxy_recovery -->|"secret:workspace-s…"| claude_code_mcp_ops
   shared_db -->|"secret:workspace-s…"| claude_code_mcp_ops
+  claude_code_mcp_ops -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| claude_code_mcp_ops
   claude_code_mcp_ops -->|"secret:workspace-s…"| spreed_signaling
   spreed_signaling -->|"secret:workspace-s…"| claude_code_mcp_ops
   claude_code_mcp_ops -->|"secret:workspace-s…"| talk_recording
@@ -917,6 +947,8 @@ flowchart LR
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| billing_dunning_detection
   billing_dunning_detection -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| billing_dunning_detection
+  billing_dunning_detection -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| billing_dunning_detection
   billing_dunning_detection -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| billing_dunning_detection
   billing_dunning_detection -->|"secret:workspace-s…"| oauth2_proxy_videovault
@@ -925,6 +957,8 @@ flowchart LR
   oauth2_proxy_recovery -->|"secret:workspace-s…"| billing_dunning_detection
   billing_dunning_detection -->|"secret:workspace-s…"| shared_db
   shared_db -->|"secret:workspace-s…"| billing_dunning_detection
+  billing_dunning_detection -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| billing_dunning_detection
   billing_dunning_detection -->|"secret:workspace-s…"| spreed_signaling
   spreed_signaling -->|"secret:workspace-s…"| billing_dunning_detection
   billing_dunning_detection -->|"secret:workspace-s…"| talk_recording
@@ -979,6 +1013,8 @@ flowchart LR
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| monthly_billing
   monthly_billing -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| monthly_billing
+  monthly_billing -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| monthly_billing
   monthly_billing -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| monthly_billing
   monthly_billing -->|"secret:workspace-s…"| oauth2_proxy_videovault
@@ -987,6 +1023,8 @@ flowchart LR
   oauth2_proxy_recovery -->|"secret:workspace-s…"| monthly_billing
   monthly_billing -->|"secret:workspace-s…"| shared_db
   shared_db -->|"secret:workspace-s…"| monthly_billing
+  monthly_billing -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| monthly_billing
   monthly_billing -->|"secret:workspace-s…"| spreed_signaling
   spreed_signaling -->|"secret:workspace-s…"| monthly_billing
   monthly_billing -->|"secret:workspace-s…"| talk_recording
@@ -1039,6 +1077,8 @@ flowchart LR
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| scheduled_publish
   scheduled_publish -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| scheduled_publish
+  scheduled_publish -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| scheduled_publish
   scheduled_publish -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| scheduled_publish
   scheduled_publish -->|"secret:workspace-s…"| oauth2_proxy_videovault
@@ -1047,6 +1087,8 @@ flowchart LR
   oauth2_proxy_recovery -->|"secret:workspace-s…"| scheduled_publish
   scheduled_publish -->|"secret:workspace-s…"| shared_db
   shared_db -->|"secret:workspace-s…"| scheduled_publish
+  scheduled_publish -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| scheduled_publish
   scheduled_publish -->|"secret:workspace-s…"| spreed_signaling
   spreed_signaling -->|"secret:workspace-s…"| scheduled_publish
   scheduled_publish -->|"secret:workspace-s…"| talk_recording
@@ -1096,6 +1138,8 @@ flowchart LR
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
   oauth2_proxy_brainstorm -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
+  oauth2_proxy_brainstorm -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
   oauth2_proxy_brainstorm -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
   oauth2_proxy_brainstorm -->|"secret:workspace-s…"| oauth2_proxy_videovault
@@ -1104,6 +1148,8 @@ flowchart LR
   oauth2_proxy_recovery -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
   oauth2_proxy_brainstorm -->|"secret:workspace-s…"| shared_db
   shared_db -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
+  oauth2_proxy_brainstorm -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
   oauth2_proxy_brainstorm -->|"secret:workspace-s…"| spreed_signaling
   spreed_signaling -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
   oauth2_proxy_brainstorm -->|"secret:workspace-s…"| talk_recording
@@ -1152,6 +1198,8 @@ flowchart LR
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| oauth2_proxy_dev
+  oauth2_proxy_dev -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| oauth2_proxy_videovault
@@ -1160,6 +1208,8 @@ flowchart LR
   oauth2_proxy_recovery -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| shared_db
   shared_db -->|"secret:workspace-s…"| oauth2_proxy_dev
+  oauth2_proxy_dev -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| spreed_signaling
   spreed_signaling -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| talk_recording
@@ -1205,6 +1255,8 @@ flowchart LR
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| oauth2_proxy_session_hub
   oauth2_proxy_session_hub -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| oauth2_proxy_session_hub
   oauth2_proxy_session_hub -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| oauth2_proxy_session_hub
   oauth2_proxy_session_hub -->|"secret:workspace-s…"| oauth2_proxy_videovault
@@ -1213,6 +1265,8 @@ flowchart LR
   oauth2_proxy_recovery -->|"secret:workspace-s…"| oauth2_proxy_session_hub
   oauth2_proxy_session_hub -->|"secret:workspace-s…"| shared_db
   shared_db -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| oauth2_proxy_session_hub
   oauth2_proxy_session_hub -->|"secret:workspace-s…"| spreed_signaling
   spreed_signaling -->|"secret:workspace-s…"| oauth2_proxy_session_hub
   oauth2_proxy_session_hub -->|"secret:workspace-s…"| talk_recording
@@ -1252,10 +1306,12 @@ flowchart LR
   keycloak -->|"secret:workspace-s…"| oauth2_proxy_docs
   keycloak -->|"secret:workspace-s…"| oauth2_proxy_mailpit
   keycloak -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
+  keycloak -->|"secret:workspace-s…"| oauth2_proxy_studio
   keycloak -->|"secret:workspace-s…"| oauth2_proxy_traefik
   keycloak -->|"secret:workspace-s…"| oauth2_proxy_videovault
   keycloak -->|"secret:workspace-s…"| oauth2_proxy_recovery
   keycloak -->|"secret:workspace-s…"| shared_db
+  keycloak -->|"secret:workspace-s…"| studio_server
   keycloak -->|"secret:workspace-s…"| spreed_signaling
   spreed_signaling -->|"secret:workspace-s…"| keycloak
   keycloak -->|"secret:workspace-s…"| talk_recording
@@ -1296,6 +1352,8 @@ flowchart LR
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| knowledge_ingest_prs
+  knowledge_ingest_prs -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| oauth2_proxy_videovault
@@ -1303,6 +1361,8 @@ flowchart LR
   knowledge_ingest_prs -->|"secret:workspace-s…"| oauth2_proxy_recovery
   oauth2_proxy_recovery -->|"secret:workspace-s…"| knowledge_ingest_prs
   shared_db -->|"secret:workspace-s…"| knowledge_ingest_prs
+  knowledge_ingest_prs -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| spreed_signaling
   spreed_signaling -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| talk_recording
@@ -1343,6 +1403,8 @@ flowchart LR
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| knowledge_ingest_bugs
   knowledge_ingest_bugs -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| knowledge_ingest_bugs
+  knowledge_ingest_bugs -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| knowledge_ingest_bugs
   knowledge_ingest_bugs -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| knowledge_ingest_bugs
   knowledge_ingest_bugs -->|"secret:workspace-s…"| oauth2_proxy_videovault
@@ -1350,6 +1412,8 @@ flowchart LR
   knowledge_ingest_bugs -->|"secret:workspace-s…"| oauth2_proxy_recovery
   oauth2_proxy_recovery -->|"secret:workspace-s…"| knowledge_ingest_bugs
   shared_db -->|"secret:workspace-s…"| knowledge_ingest_bugs
+  knowledge_ingest_bugs -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| knowledge_ingest_bugs
   knowledge_ingest_bugs -->|"secret:workspace-s…"| spreed_signaling
   spreed_signaling -->|"secret:workspace-s…"| knowledge_ingest_bugs
   knowledge_ingest_bugs -->|"secret:workspace-s…"| talk_recording
@@ -1388,6 +1452,8 @@ flowchart LR
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| knowledge_reindex_all
+  knowledge_reindex_all -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| oauth2_proxy_videovault
@@ -1395,6 +1461,8 @@ flowchart LR
   knowledge_reindex_all -->|"secret:workspace-s…"| oauth2_proxy_recovery
   oauth2_proxy_recovery -->|"secret:workspace-s…"| knowledge_reindex_all
   shared_db -->|"secret:workspace-s…"| knowledge_reindex_all
+  knowledge_reindex_all -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| spreed_signaling
   spreed_signaling -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| talk_recording
@@ -1429,6 +1497,8 @@ flowchart LR
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| livekit_server
   livekit_server -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| livekit_server
+  livekit_server -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| livekit_server
   livekit_server -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| livekit_server
   livekit_server -->|"secret:workspace-s…"| oauth2_proxy_videovault
@@ -1437,6 +1507,8 @@ flowchart LR
   oauth2_proxy_recovery -->|"secret:workspace-s…"| livekit_server
   livekit_server -->|"secret:workspace-s…"| shared_db
   shared_db -->|"secret:workspace-s…"| livekit_server
+  livekit_server -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| livekit_server
   livekit_server -->|"secret:workspace-s…"| spreed_signaling
   spreed_signaling -->|"secret:workspace-s…"| livekit_server
   livekit_server -->|"secret:workspace-s…"| talk_recording
@@ -1471,6 +1543,8 @@ flowchart LR
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| livekit_ingress
   livekit_ingress -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| livekit_ingress
+  livekit_ingress -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| livekit_ingress
   livekit_ingress -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| livekit_ingress
   livekit_ingress -->|"secret:workspace-s…"| oauth2_proxy_videovault
@@ -1479,6 +1553,8 @@ flowchart LR
   oauth2_proxy_recovery -->|"secret:workspace-s…"| livekit_ingress
   livekit_ingress -->|"secret:workspace-s…"| shared_db
   shared_db -->|"secret:workspace-s…"| livekit_ingress
+  livekit_ingress -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| livekit_ingress
   livekit_ingress -->|"secret:workspace-s…"| spreed_signaling
   spreed_signaling -->|"secret:workspace-s…"| livekit_ingress
   livekit_ingress -->|"secret:workspace-s…"| talk_recording
@@ -1511,6 +1587,8 @@ flowchart LR
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| livekit_egress
   livekit_egress -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| livekit_egress
+  livekit_egress -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| livekit_egress
   livekit_egress -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| livekit_egress
   livekit_egress -->|"secret:workspace-s…"| oauth2_proxy_videovault
@@ -1519,6 +1597,8 @@ flowchart LR
   oauth2_proxy_recovery -->|"secret:workspace-s…"| livekit_egress
   livekit_egress -->|"secret:workspace-s…"| shared_db
   shared_db -->|"secret:workspace-s…"| livekit_egress
+  livekit_egress -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| livekit_egress
   livekit_egress -->|"secret:workspace-s…"| spreed_signaling
   spreed_signaling -->|"secret:workspace-s…"| livekit_egress
   livekit_egress -->|"secret:workspace-s…"| talk_recording
@@ -1549,6 +1629,8 @@ flowchart LR
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| nextcloud
+  nextcloud -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| oauth2_proxy_videovault
@@ -1556,6 +1638,8 @@ flowchart LR
   nextcloud -->|"secret:workspace-s…"| oauth2_proxy_recovery
   oauth2_proxy_recovery -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| shared_db
+  nextcloud -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| nextcloud
   spreed_signaling -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| talk_recording
   nextcloud -->|"secret:workspace-s…"| vaultwarden
@@ -1580,6 +1664,8 @@ flowchart LR
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| notify_unread
   notify_unread -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| notify_unread
+  notify_unread -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| notify_unread
   notify_unread -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| notify_unread
   notify_unread -->|"secret:workspace-s…"| oauth2_proxy_videovault
@@ -1588,6 +1674,8 @@ flowchart LR
   oauth2_proxy_recovery -->|"secret:workspace-s…"| notify_unread
   notify_unread -->|"secret:workspace-s…"| shared_db
   shared_db -->|"secret:workspace-s…"| notify_unread
+  notify_unread -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| notify_unread
   notify_unread -->|"secret:workspace-s…"| spreed_signaling
   spreed_signaling -->|"secret:workspace-s…"| notify_unread
   notify_unread -->|"secret:workspace-s…"| talk_recording
@@ -1614,6 +1702,8 @@ flowchart LR
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| oauth2_proxy_brett
   oauth2_proxy_brett -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| oauth2_proxy_brett
+  oauth2_proxy_brett -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| oauth2_proxy_brett
   oauth2_proxy_brett -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| oauth2_proxy_brett
   oauth2_proxy_brett -->|"secret:workspace-s…"| oauth2_proxy_videovault
@@ -1622,6 +1712,8 @@ flowchart LR
   oauth2_proxy_recovery -->|"secret:workspace-s…"| oauth2_proxy_brett
   oauth2_proxy_brett -->|"secret:workspace-s…"| shared_db
   shared_db -->|"secret:workspace-s…"| oauth2_proxy_brett
+  oauth2_proxy_brett -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| oauth2_proxy_brett
   oauth2_proxy_brett -->|"secret:workspace-s…"| spreed_signaling
   spreed_signaling -->|"secret:workspace-s…"| oauth2_proxy_brett
   oauth2_proxy_brett -->|"secret:workspace-s…"| talk_recording
@@ -1646,6 +1738,8 @@ flowchart LR
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| oauth2_proxy_comfy
+  oauth2_proxy_comfy -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| oauth2_proxy_videovault
@@ -1654,6 +1748,8 @@ flowchart LR
   oauth2_proxy_recovery -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| shared_db
   shared_db -->|"secret:workspace-s…"| oauth2_proxy_comfy
+  oauth2_proxy_comfy -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| spreed_signaling
   spreed_signaling -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| talk_recording
@@ -1676,6 +1772,8 @@ flowchart LR
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| oauth2_proxy_docs
   oauth2_proxy_docs -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| oauth2_proxy_docs
+  oauth2_proxy_docs -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| oauth2_proxy_docs
   oauth2_proxy_docs -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| oauth2_proxy_docs
   oauth2_proxy_docs -->|"secret:workspace-s…"| oauth2_proxy_videovault
@@ -1684,6 +1782,8 @@ flowchart LR
   oauth2_proxy_recovery -->|"secret:workspace-s…"| oauth2_proxy_docs
   oauth2_proxy_docs -->|"secret:workspace-s…"| shared_db
   shared_db -->|"secret:workspace-s…"| oauth2_proxy_docs
+  oauth2_proxy_docs -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| oauth2_proxy_docs
   oauth2_proxy_docs -->|"secret:workspace-s…"| spreed_signaling
   spreed_signaling -->|"secret:workspace-s…"| oauth2_proxy_docs
   oauth2_proxy_docs -->|"secret:workspace-s…"| talk_recording
@@ -1704,6 +1804,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_docs
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| oauth2_proxy_mailpit
+  oauth2_proxy_mailpit -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| oauth2_proxy_mailpit
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| oauth2_proxy_mailpit
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| oauth2_proxy_videovault
@@ -1712,6 +1814,8 @@ flowchart LR
   oauth2_proxy_recovery -->|"secret:workspace-s…"| oauth2_proxy_mailpit
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| shared_db
   shared_db -->|"secret:workspace-s…"| oauth2_proxy_mailpit
+  oauth2_proxy_mailpit -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| oauth2_proxy_mailpit
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| spreed_signaling
   spreed_signaling -->|"secret:workspace-s…"| oauth2_proxy_mailpit
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| talk_recording
@@ -1730,6 +1834,8 @@ flowchart LR
   arena_server -->|"secret:workspace-s…"| oauth2_proxy_mailpit
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_mailpit
+  oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| oauth2_proxy_videovault
@@ -1738,6 +1844,8 @@ flowchart LR
   oauth2_proxy_recovery -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| shared_db
   shared_db -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
+  oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| spreed_signaling
   spreed_signaling -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| talk_recording
@@ -1756,12 +1864,42 @@ flowchart LR
   arena_server -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
+  oauth2_proxy_studio -->|"secret:workspace-s…"| oauth2_proxy_traefik
+  oauth2_proxy_traefik -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| oauth2_proxy_videovault
+  oauth2_proxy_videovault -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| oauth2_proxy_recovery
+  oauth2_proxy_recovery -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| shared_db
+  shared_db -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| spreed_signaling
+  spreed_signaling -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| talk_recording
+  talk_recording -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| vaultwarden
+  vaultwarden -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| videovault
+  videovault -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| whiteboard
+  whiteboard -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| dev_db_refresh
+  dev_db_refresh -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| talk_transcriber
+  talk_transcriber -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| arena_server
+  arena_server -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| ddns_updater
+  ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_studio
   oauth2_proxy_traefik -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| oauth2_proxy_recovery
   oauth2_proxy_recovery -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| shared_db
   shared_db -->|"secret:workspace-s…"| oauth2_proxy_traefik
+  oauth2_proxy_traefik -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| spreed_signaling
   spreed_signaling -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| talk_recording
@@ -1784,6 +1922,8 @@ flowchart LR
   oauth2_proxy_recovery -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| shared_db
   shared_db -->|"secret:workspace-s…"| oauth2_proxy_videovault
+  oauth2_proxy_videovault -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| spreed_signaling
   spreed_signaling -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| talk_recording
@@ -1804,6 +1944,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_recovery -->|"secret:workspace-s…"| shared_db
   shared_db -->|"secret:workspace-s…"| oauth2_proxy_recovery
+  oauth2_proxy_recovery -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| oauth2_proxy_recovery
   oauth2_proxy_recovery -->|"secret:workspace-s…"| spreed_signaling
   spreed_signaling -->|"secret:workspace-s…"| oauth2_proxy_recovery
   oauth2_proxy_recovery -->|"secret:workspace-s…"| talk_recording
@@ -1822,6 +1964,8 @@ flowchart LR
   arena_server -->|"secret:workspace-s…"| oauth2_proxy_recovery
   oauth2_proxy_recovery -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_recovery
+  shared_db -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| shared_db
   shared_db -->|"secret:workspace-s…"| spreed_signaling
   spreed_signaling -->|"secret:workspace-s…"| shared_db
   shared_db -->|"secret:workspace-s…"| talk_recording
@@ -1832,6 +1976,24 @@ flowchart LR
   shared_db -->|"secret:workspace-s…"| talk_transcriber
   shared_db -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| shared_db
+  studio_server -->|"secret:workspace-s…"| spreed_signaling
+  spreed_signaling -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| talk_recording
+  talk_recording -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| vaultwarden
+  vaultwarden -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| videovault
+  videovault -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| whiteboard
+  whiteboard -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| dev_db_refresh
+  dev_db_refresh -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| talk_transcriber
+  talk_transcriber -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| arena_server
+  arena_server -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| ddns_updater
+  ddns_updater -->|"secret:workspace-s…"| studio_server
   spreed_signaling -->|"secret:workspace-s…"| talk_recording
   spreed_signaling -->|"secret:workspace-s…"| vaultwarden
   vaultwarden -->|"secret:workspace-s…"| spreed_signaling
@@ -1920,7 +2082,7 @@ flowchart LR
   website -->|"secret:staging-db-…"| shared_db_staging
       </div>
     </div>
-    <p class="diagram-caption">Alle 84 K8s-Services und ihre 1698 Abhängigkeitskanten (env-Refs, initContainer-Waits, Ingress-Backends)</p>
+    <p class="diagram-caption">Alle 86 K8s-Services und ihre 1860 Abhängigkeitskanten (env-Refs, initContainer-Waits, Ingress-Backends)</p>
   </div>
 
   <!-- K8s Topology Tab -->
@@ -1969,6 +2131,7 @@ flowchart TB
     oauth2_proxy_docs["oauth2-proxy-docs"]
     oauth2_proxy_mailpit["oauth2-proxy-mailpit"]
     oauth2_proxy_mediaviewer["oauth2-proxy-mediaviewer"]
+    oauth2_proxy_studio["oauth2-proxy-studio"]
     oauth2_proxy_traefik["oauth2-proxy-traefik"]
     oauth2_proxy_videovault["oauth2-proxy-videovault"]
     pvc_backup(["pvc-backup"])
@@ -1976,6 +2139,7 @@ flowchart TB
     oauth2_proxy_recovery["oauth2-proxy-recovery"]
     sessions_server["sessions-server"]
     shared_db["shared-db"]
+    studio_server["studio-server"]
     nats["nats"]
     spreed_signaling["spreed-signaling"]
     talk_recording["talk-recording"]

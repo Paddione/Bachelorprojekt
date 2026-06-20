@@ -2473,7 +2473,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 393,
+      "file_count": 394,
       "files": [
         "scripts/add-whiteboard-library.py",
         "scripts/admin-menu-gate.sh",
@@ -2791,6 +2791,7 @@
         "scripts/one-shot/archive/20260518-web-crawl-source.sql",
         "scripts/one-shot/archive/20260519-context7-source.sql",
         "scripts/one-shot/purge-fn-v4.sql",
+        "scripts/openspec-context.sh",
         "scripts/openspec-status-map.sh",
         "scripts/openspec.sh",
         "scripts/oracle-bench.sh",

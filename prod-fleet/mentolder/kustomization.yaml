@@ -9,6 +9,7 @@ kind: Kustomization
 resources:
   - ../../prod-mentolder
   - ../../prod/monitoring
+  - sessions-server.yaml
 components:
   - ../components/fleet-common
 

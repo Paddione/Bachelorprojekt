@@ -33,10 +33,6 @@
     "mcp-github": {
       "type": "http",
       "url": "http://localhost:13002/mcp"
-    },
-    "mcp-keycloak": {
-      "type": "http",
-      "url": "http://localhost:18081/mcp"
     }
   }
 }

@@ -1,10 +1,11 @@
 {
   "$schema": "https://opencode.ai/config.json",
+  "model": "opencode/zen",
   "permission": "allow",
   "mcp": {
     "mcp-k8s": {
-      "type": "remote",
-      "url": "http://localhost:18080/sse",
+      "type": "local",
+      "command": ["/home/patrick/.config/opencode/node_modules/.bin/kubernetes-mcp-server", "--cluster-provider", "kubeconfig"],
       "enabled": true
     },
     "mcp-browser": {
@@ -20,11 +21,6 @@
     "mcp-postgres": {
       "type": "remote",
       "url": "http://localhost:13001/mcp",
-      "enabled": true
-    },
-    "mcp-keycloak": {
-      "type": "remote",
-      "url": "http://localhost:18081/mcp/sse",
       "enabled": true
     },
     "mcp-factory": {

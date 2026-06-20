@@ -9,11 +9,8 @@ data:
   # Credentials are in the claude-code-secrets Secret (default namespace).
   # ════════════════════════════════════════════════════════════════════
 
-  OPENID_PROVIDER_URL: "http://keycloak.workspace.svc.cluster.local:8080/realms/workspace/.well-known/openid-configuration"
-
   MCP_KUBERNETES_URL:   "http://claude-code-mcp-monolith:8080/mcp"
   MCP_POSTGRES_URL:     "http://claude-code-mcp-monolith:3001/mcp"
-  MCP_KEYCLOAK_URL:     "http://claude-code-mcp-monolith:8081/mcp/sse"
   MCP_BROWSER_URL:      "http://claude-code-mcp-monolith:3000/mcp"
   MCP_GITHUB_URL:       "http://claude-code-mcp-monolith:3002/mcp"
 
@@ -21,7 +18,6 @@ data:
   # INTERNAL SERVICE URLS (for direct API calls bypassing MCP)
   # ════════════════════════════════════════════════════════════════════
 
-  KEYCLOAK_INTERNAL_URL:     "http://keycloak.workspace.svc.cluster.local:8080"
   WEBSITE_INTERNAL_URL:      "http://website.website.svc.cluster.local:80"
   WHISPER_URL:               "http://whisper.workspace.svc.cluster.local:8000"
   TRAEFIK_API_URL:           "http://traefik.kube-system.svc.cluster.local:9000/api"
@@ -69,7 +65,7 @@ data:
       - website    → chat rooms, messages, meeting transcripts, inbox items
 
     Usage tips:
-      - Prefer mcp-keycloak MCP for structured Keycloak access.
+      - Keycloak schema available for user/realm/session queries.
       - Use this MCP for raw SQL queries, debugging, or cross-DB aggregations.
       - All connections enforce read-only via transaction_read_only=on.
 
@@ -88,38 +84,6 @@ data:
 
     Setup: Replace GITHUB_PAT placeholder in claude-code-secrets with a real token,
     then: task mcp:set-github-pat -- ghp_yourtoken
-
-  # ════════════════════════════════════════════════════════════════════
-  # GUIDE: mcp-keycloak  (port 8080, SSE transport)
-  # ════════════════════════════════════════════════════════════════════
-  GUIDE_KEYCLOAK: |
-    Image: quay.io/sshaaf/keycloak-mcp-server
-    Transport: SSE → http://claude-code-mcp-monolith:8081/mcp/sse  ← NOTE: SSE, not streamable-http
-    Health: http://claude-code-mcp-monolith:8081/q/health
-    Auth: JWT Bearer token (see below)
-
-    ⚠️  This MCP uses JWT passthrough auth. You MUST obtain a Keycloak token
-    and pass it as "Authorization: Bearer <token>" on every SSE request.
-
-    Get admin token (valid ~60s, re-fetch as needed):
-      curl -s -X POST \
-        http://keycloak.workspace.svc.cluster.local:8080/realms/master/protocol/openid-connect/token \
-        -d "grant_type=password&client_id=admin-cli&username=admin&password=devadmin" \
-        | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])"
-
-    Capabilities (50+ tools):
-      Users:    GET_USERS, CREATE_USER, UPDATE_USER, DELETE_USER, RESET_PASSWORD
-                GET_USER_GROUPS, ADD_USER_TO_GROUP, ADD_ROLE_TO_USER
-      Clients:  GET_CLIENTS, CREATE_CLIENT, DELETE_CLIENT, GENERATE_CLIENT_SECRET
-      Roles:    GET_REALM_ROLES, CREATE_CLIENT_ROLE
-      Groups:   GET_GROUPS, CREATE_GROUP, GET_GROUP_MEMBERS
-      Realms:   GET_REALMS, GET_REALM, CREATE_REALM
-      Auth:     GET_AUTHENTICATION_FLOWS, GET_FLOW_EXECUTIONS
-      IdP:      GET_IDENTITY_PROVIDERS, GET_IDENTITY_PROVIDER_MAPPERS
-
-    Realm in use: workspace (Keycloak, Collabora, Vaultwarden SSO)
-    Admin realm:  master (admin-cli client lives here)
-
   # ════════════════════════════════════════════════════════════════════
   # GUIDE: mcp-browser  (port 3000, streamable-http)
   # ════════════════════════════════════════════════════════════════════

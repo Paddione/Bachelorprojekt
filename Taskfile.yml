@@ -3229,7 +3229,7 @@ tasks:
         kubectl $CTX $NS_FLAG get configmap claude-code-config -o yaml 2>/dev/null | grep "MCP_.*_URL"
 
   mcp:logs:
-    desc: "Tail logs for a container in the MCP monolith (usage: task mcp:logs -- <container>, e.g. postgres|browser|github|keycloak|kubernetes)"
+    desc: "Tail logs for a container in the MCP monolith (usage: task mcp:logs -- <container>, e.g. postgres|browser|github|kubernetes)"
     vars:
       ENV: '{{.ENV | default "mentolder"}}'
     cmds:
@@ -3342,7 +3342,7 @@ tasks:
         OUTPUT="$PROJECT_DIR/settings.json"
 
         # Prefix server names with mcp- to avoid conflicts with local MCP servers
-        envsubst < "$TEMPLATE" | sed 's/"kubernetes"/"mcp-kubernetes"/;s/"postgres"/"mcp-postgres"/;s/"keycloak"/"mcp-keycloak"/;s/"browser"/"mcp-browser"/;s/"github"/"mcp-github"/' > "$OUTPUT"
+        envsubst < "$TEMPLATE" | sed 's/"kubernetes"/"mcp-kubernetes"/;s/"postgres"/"mcp-postgres"/;s/"browser"/"mcp-browser"/;s/"github"/"mcp-github"/' > "$OUTPUT"
         echo "Claude Code settings written to $OUTPUT"
         echo "  Role: $ROLE"
         echo "  MCP endpoint: https://mcp.${PROD_DOMAIN}"
@@ -3469,7 +3469,7 @@ tasks:
         export BUSINESS_TOKEN="$TOKEN"
 
         OUTPUT="claude-code/${ROLE}-export.settings.json"
-        envsubst < "$TEMPLATE" | sed 's/"kubernetes"/"mcp-kubernetes"/;s/"postgres"/"mcp-postgres"/;s/"keycloak"/"mcp-keycloak"/;s/"browser"/"mcp-browser"/;s/"github"/"mcp-github"/' > "$OUTPUT"
+        envsubst < "$TEMPLATE" | sed 's/"kubernetes"/"mcp-kubernetes"/;s/"postgres"/"mcp-postgres"/;s/"browser"/"mcp-browser"/;s/"github"/"mcp-github"/' > "$OUTPUT"
 
         echo "Exported settings to: $OUTPUT"
         echo "  Role: $ROLE"

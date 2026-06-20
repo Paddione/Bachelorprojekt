@@ -82,6 +82,7 @@ s3:
   allowlist_files:
     - k3d/configmap-domains.yaml
     - website/src/pages/sitemap.xml.ts
+    - prod-fleet/mentolder/sessions-server.yaml
 
 s4:
   manifest_globs:

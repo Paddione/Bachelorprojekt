@@ -182,7 +182,7 @@ git commit -m "feat(admin): add OpenSpecProposalsPanel component [T000962]"
 - Consumes: `OpenSpecProposalsPanel` (Default-Export aus Task 1) mit Prop `proposals: Array<{ slug: string; status: string }>`; `ticket.externalId` (Format `"T000962"`, bereits am Ticket-Objekt aus `getTicketDetail()` vorhanden); `website/src/data/openspec-status.json` (Shape `Record<string, Array<{ slug: string; status: string }>>`).
 - Produces: nichts (Endpunkt der Render-Kette).
 
-- [ ] **Step 1: JSON-Import und Komponenten-Import hinzufügen**
+- [x] **Step 1: JSON-Import und Komponenten-Import hinzufügen**
 
 In `website/src/pages/admin/tickets/[id].astro` nach der bestehenden Zeile 25
 (`import TicketAttachmentsPanel from '../../../components/admin/TicketAttachmentsPanel.svelte';`)
@@ -193,7 +193,7 @@ import OpenSpecProposalsPanel from '../../../components/admin/OpenSpecProposalsP
 import openspecStatusMap from '../../../data/openspec-status.json';
 ```
 
-- [ ] **Step 2: Proposals-Lookup als SSR-const hinzufügen**
+- [x] **Step 2: Proposals-Lookup als SSR-const hinzufügen**
 
 Nach dem `if (!ticket) return Astro.redirect('/admin/tickets');`-Block (Zeile ~40) diese Zeile ergänzen:
 
@@ -201,7 +201,7 @@ Nach dem `if (!ticket) return Astro.redirect('/admin/tickets');`-Block (Zeile ~4
 const openspecProposals = (openspecStatusMap as Record<string, Array<{ slug: string; status: string }>>)[ticket.externalId] ?? [];
 ```
 
-- [ ] **Step 3: Conditional render nach TicketAttachmentsPanel einfügen**
+- [x] **Step 3: Conditional render nach TicketAttachmentsPanel einfügen**
 
 In `[id].astro` direkt nach der bestehenden Zeile
 `<TicketAttachmentsPanel client:load ticketId={ticket.id} attachments={ticket.attachments} />`
@@ -213,22 +213,22 @@ In `[id].astro` direkt nach der bestehenden Zeile
           )}
 ```
 
-- [ ] **Step 4: Zeilenbudget prüfen (S1-Ratchet)**
+- [x] **Step 4: Zeilenbudget prüfen (S1-Ratchet)**
 
 Run: `wc -l website/src/pages/admin/tickets/[id].astro`
 Expected: ~337 Zeilen (332 + 5 netto) — unter dem `.astro`-Limit 400.
 
-- [ ] **Step 5: Typecheck und Build-Sanity**
+- [x] **Step 5: Typecheck und Build-Sanity**
 
 Run: `cd website && pnpm exec astro check 2>&1 | tail -20`
 Expected: Keine neuen Errors, die `[id].astro` oder `OpenSpecProposalsPanel` betreffen.
 
-- [ ] **Step 6: Manuelle Verifikation des externalId-Felds (Daten-Sanity)**
+- [x] **Step 6: Manuelle Verifikation des externalId-Felds (Daten-Sanity)**
 
 Run: `node -e "const m=require('./website/src/data/openspec-status.json'); console.log('T000962' in m ? m['T000962'] : 'kein-eintrag-T000962')"`
 Expected: Entweder ein Array von `{slug,status}` (falls T000962 bereits verknüpft ist) oder `kein-eintrag-T000962`. Beide Fälle sind valide — die Komponente rendert nur bei `length > 0`. Der Selbst-Eintrag ist NICHT Voraussetzung für grünes Verhalten.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add "website/src/pages/admin/tickets/[id].astro"

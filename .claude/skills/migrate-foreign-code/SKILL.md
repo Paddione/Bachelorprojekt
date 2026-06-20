@@ -67,7 +67,5 @@ Wiederkehrende technische Muster — je generisches Muster, VideoVault-Beispiel 
 
 Destilliert aus dem VideoVault-Vorhaben (SP1 Split + SP2 Migration) in `~/projects/`:
 `docs/superpowers/specs/2026-06-15-videovault-migration-learnings.md`,
-`docs/superpowers/specs/2026-06-15-videovault-split-design.md`,
-`docs/superpowers/plans/2026-06-15-videovault-split.md`,
-`docs/superpowers/plans/2026-06-15-videovault-migration-2{b,c,d}-*.md`.
+`docs/superpowers/specs/2026-06-15-videovault-split-design.md`.
 Dieser Skill ist die **destillierte, eigenständige Kopie** — kein Live-Link.

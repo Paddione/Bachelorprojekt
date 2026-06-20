@@ -9,17 +9,27 @@ const COLLECTION_SOURCE = 'specs_plans';
 
 function findMarkdownFiles() {
   const files = [];
-  const dirs = [
+  const flatDirs = [
     join(REPO_ROOT, 'docs/superpowers/specs'),
-    join(REPO_ROOT, 'docs/superpowers/plans'),
   ];
-  for (const dir of dirs) {
+  for (const dir of flatDirs) {
     try {
       for (const f of readdirSync(dir)) {
         if (f.endsWith('.md')) files.push(join(dir, f));
       }
     } catch { /* dir may not exist yet */ }
   }
+  // openspec/changes/<slug>/{proposal.md,tasks.md} — recursive, exclude archive/
+  const changesDir = join(REPO_ROOT, 'openspec/changes');
+  try {
+    for (const entry of readdirSync(changesDir, { withFileTypes: true })) {
+      if (!entry.isDirectory() || entry.name === 'archive') continue;
+      const slugDir = join(changesDir, entry.name);
+      for (const f of readdirSync(slugDir)) {
+        if (f.endsWith('.md')) files.push(join(slugDir, f));
+      }
+    }
+  } catch { /* dir may not exist yet */ }
   // Always include CLAUDE.md at repo root
   files.push(join(REPO_ROOT, 'CLAUDE.md'));
   return files;

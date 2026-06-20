@@ -89,7 +89,7 @@ Ensure the embedding backend for the target collection is reachable:
 ```bash
 task knowledge:reindex ENV=mentolder SOURCE=<source>
 ```
-*`SOURCE` can be: `prs` (GitHub interactions), `markdown` (`docs/superpowers/specs` + `docs/superpowers/plans` + root `CLAUDE.md`, per `scripts/knowledge/ingest-markdown.mjs`), `bugs` (tickets database), or `all`.*
+*`SOURCE` can be: `prs` (GitHub interactions), `markdown` (`docs/superpowers/specs` + `openspec/changes` + root `CLAUDE.md`, per `scripts/knowledge/ingest-markdown.mjs`), `bugs` (tickets database), or `all`.*
 
 ### Step 2.3: Verification
 Check that document counts are populated:

@@ -37,7 +37,7 @@
 
 - [ ] {prereq_1}
 - [ ] {prereq_2}
-- [ ] **Design-Bundle gesichtet** (falls UI-Ticket): `docs/superpowers/plans/assets/{slug}/`
+- [ ] **Design-Bundle gesichtet** (falls UI-Ticket): `openspec/changes/{slug}/assets/`
       bzw. `assets-inbox/`-Attachments als Quelle aufnehmen, nicht frei erfinden
 
 ## Notes

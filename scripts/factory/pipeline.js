@@ -290,9 +290,9 @@ if (!isSimple) {
      touch the same file. For each task provide: id, target_files (array),
      acceptance_criteria (array of strings).
 
-     Write the plan to ${REPO}/docs/superpowers/plans/$(date +%F)-${slug}.md
-     (compute YYYY-MM-DD with \`date +%F\`). Then run frontmatter hook:
-     bash ${REPO}/scripts/plan-frontmatter-hook.sh <the-plan-file-you-wrote>
+     Write the plan to ${REPO}/openspec/changes/${slug}/tasks.md
+     (create the directory with mkdir -p ${REPO}/openspec/changes/${slug} first).
+     Do NOT run the frontmatter hook (openspec tasks have no frontmatter).
 
      Return JSON { tasks: [...], plan_path: "<absolute path>" }` + consumeInjections('plan'),
     {

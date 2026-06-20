@@ -83,7 +83,7 @@ If a `SCOUT_WEAK` comment exists, surface it so the user knows why the autopilot
 
 Invoke `dev-flow-plan` for the chosen ticket. It handles worktree setup, brainstorming, spec, and
 plan creation, then commits and pushes the plan to the feature branch and stops. Note the resulting
-`<branch>` and `<plan_path>` (relative repo path, e.g. `docs/superpowers/plans/YYYY-MM-DD-<slug>.md`).
+`<branch>` and `<plan_path>` (relative repo path, e.g. `openspec/changes/<slug>/tasks.md`).
 
 ---
 

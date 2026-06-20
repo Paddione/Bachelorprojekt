@@ -7,7 +7,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-ARCHIVE_DIR="$REPO_ROOT/docs/superpowers/plans/archive"
+ARCHIVE_DIR="$REPO_ROOT/openspec/changes/archive"
 
 [[ -d "$ARCHIVE_DIR" ]] || { echo "No archive dir at $ARCHIVE_DIR — nothing to do."; exit 0; }
 

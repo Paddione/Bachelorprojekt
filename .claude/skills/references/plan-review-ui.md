@@ -11,7 +11,7 @@ channel. No external service, no DB, no network.
 
 1. **Render**
    ```bash
-   bash scripts/plan-review/plan-review.sh render docs/superpowers/plans/<plan.md>
+   bash scripts/plan-review/plan-review.sh render openspec/changes/<slug>/tasks.md
    ```
    → Opens the plan in the Companion board with line-numbered HTML.
 

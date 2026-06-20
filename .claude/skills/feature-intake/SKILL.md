@@ -185,7 +185,7 @@ Schreibe die Datei mit dem `Write`-Tool nach folgendem Schema (auf Deutsch):
 ```markdown
 ---
 ticket_id: <TICKET_EXT_ID>
-plan_ref: docs/superpowers/plans/<DATUM>-<SPEC_SLUG>.md
+plan_ref: openspec/changes/<SPEC_SLUG>/tasks.md
 status: active
 date: <DATUM>
 ---

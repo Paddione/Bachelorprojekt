@@ -2,11 +2,13 @@
   import { buildSetVideosMessage, buildSetModeMessage, buildSetGrillingDataMessage, parseOutbound, type HostOutbound } from '../lib/mediaviewer-bridge';
   import type { HelpVideo } from '../lib/help-videos';
   import type { GrillingSessionData } from '../lib/tickets/final-grilling';
+  import SessionsListView from './SessionsListView.svelte';
 
   let {
     mediaviewerHost,
     videos = [],
     mode = 'video',
+    defaultView = 'sessions',
     grillingData = null,
     onSelect,
     onProgress,
@@ -18,7 +20,8 @@
   }: {
     mediaviewerHost: string;
     videos?: HelpVideo[];
-    mode?: 'video' | 'grilling' | 'brainstorm';
+    mode?: 'video' | 'grilling' | 'brainstorm' | 'idle';
+    defaultView?: 'sessions' | 'empty';
     grillingData?: GrillingSessionData | null;
     onSelect?: (id: string) => void;
     onProgress?: (sec: number) => void;
@@ -35,6 +38,7 @@
   const embedSrc = $derived(`${widgetOrigin}/embed.html?v=${mediaviewerHost}`);
 
   let iframeEl = $state<HTMLIFrameElement | null>(null);
+  let embedUrl = $state<string | null>(null);
 
   const currentSessionType = $derived(grillingData?.questionnaireId ?? 'grilling');
 
@@ -119,16 +123,31 @@
       pushGrillingData();
     }
   });
+
+  $effect(() => {
+    const onOpen = (e: Event) => {
+      const detail = (e as CustomEvent<{ url: string }>).detail;
+      if (detail?.url) embedUrl = detail.url;
+    };
+    window.addEventListener('mediaviewer:open-session', onOpen);
+    return () => window.removeEventListener('mediaviewer:open-session', onOpen);
+  });
 </script>
 
 <div class="mv-panel">
-  <iframe
-    bind:this={iframeEl}
-    src={embedSrc}
-    title="Mediaviewer"
-    allow="autoplay; fullscreen; picture-in-picture"
-    onload={() => { pushMode(); pushVideos(); pushGrillingData(); }}
-  ></iframe>
+  {#if embedUrl}
+    <iframe src={embedUrl} title="Session" allow="fullscreen"></iframe>
+  {:else if mode === 'idle' && defaultView === 'sessions'}
+    <SessionsListView />
+  {:else}
+    <iframe
+      bind:this={iframeEl}
+      src={embedSrc}
+      title="Mediaviewer"
+      allow="autoplay; fullscreen; picture-in-picture"
+      onload={() => { pushMode(); pushVideos(); pushGrillingData(); }}
+    ></iframe>
+  {/if}
 </div>
 
 <style>

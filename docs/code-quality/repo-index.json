@@ -2051,7 +2051,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 425,
+      "file_count": 426,
       "files": [
         "claude-code/gekko-android-mcp-guide.md",
         "claude-code/settings.json",
@@ -2223,6 +2223,7 @@
         "environments/sealed-secrets/fleet-korczewski.yaml",
         "environments/sealed-secrets/fleet-mentolder.yaml",
         "environments/sealed-secrets/korczewski.yaml",
+        "environments/sealed-secrets/mentolder-mcp-keycloak-secret.yaml",
         "environments/sealed-secrets/mentolder.yaml",
         "environments/sealed-secrets/staging.yaml",
         "environments/staging.yaml",

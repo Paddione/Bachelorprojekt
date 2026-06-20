@@ -11,10 +11,12 @@ ROLE="${1:?Usage: plan-context.sh <role> [--with-openspec [<file>...]]}"
 shift
 WITH_OPENSPEC=0
 OPENSPEC_FILES=()
+SEMANTIC_QUERY=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --with-openspec) WITH_OPENSPEC=1; shift ;;
+        --semantic) SEMANTIC_QUERY="$2"; shift 2 ;;
         *) OPENSPEC_FILES+=("$1"); shift ;;
     esac
 done
@@ -61,4 +63,18 @@ fi
 
 if [[ $found -eq 0 ]]; then
     exit 0
+fi
+
+# Optional: semantic neighbours via /api/openspec/search (fallback: grep-only).
+if [[ -n "$SEMANTIC_QUERY" ]]; then
+    base="${OPENSPEC_SEARCH_URL:-http://website.website.svc.cluster.local:4321}"
+    resp="$(curl -fsS --max-time 5 -G "$base/api/openspec/search" \
+              --data-urlencode "q=$SEMANTIC_QUERY" --data-urlencode "limit=3" 2>/dev/null || true)"
+    if [[ -n "$resp" ]]; then
+        echo "### Semantically similar OpenSpec changes"
+        echo
+        echo "$resp" | jq -r '.results[]? | "- **\(.slug)** (\(.ticket_id // "no-ticket"), \(.file_type)): \(.snippet)"' 2>/dev/null || true
+        echo
+        found=$((found+1))
+    fi
 fi

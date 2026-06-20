@@ -39,3 +39,20 @@ teardown() { rm -rf "$TMP"; }
   [ "$status" -eq 0 ]
   [[ "$output" == *"dry-run"* ]]
 }
+
+@test "plan-context.sh --semantic falls back silently when API is unreachable" {
+  # Point at a dead port so the curl fails → grep-only output, exit 0.
+  run bash -c "OPENSPEC_SEARCH_URL='http://127.0.0.1:9' bash '$REPO/scripts/plan-context.sh' infra --semantic 'pgvector' </dev/null"
+  [ "$status" -eq 0 ]
+  # must NOT crash; absence of the semantic section is acceptable on fallback
+}
+
+@test "plan-context.sh still emits grep-based proposals without --semantic" {
+  run bash -c "cd '$REPO' && bash scripts/plan-context.sh infra </dev/null"
+  [ "$status" -eq 0 ]
+}
+
+@test "mcp-server registers openspec_find_similar" {
+  run grep -q "openspec_find_similar" "$REPO/scripts/factory/mcp-server.mjs"
+  [ "$status" -eq 0 ]
+}

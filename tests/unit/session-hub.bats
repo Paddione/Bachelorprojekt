@@ -2,7 +2,7 @@
 setup() {
   export SESSION_HUB_REGISTRY="$BATS_TEST_TMPDIR/active-sessions.json"
   export SESSION_HUB_NO_TUNNEL=1
-  export DEV_DOMAIN="dev.example.test"
+  export SESSION_HUB_DOMAIN="sessions.example.test"
   SCRIPT="$BATS_TEST_DIRNAME/../../scripts/session-hub.sh"
 }
 
@@ -12,7 +12,7 @@ setup() {
   run jq -r '.[0].slug' "$SESSION_HUB_REGISTRY"
   [ "$output" = "foo" ]
   run jq -r '.[0].public_url' "$SESSION_HUB_REGISTRY"
-  [ "$output" = "https://session-foo.dev.example.test" ]
+  [ "$output" = "https://session-foo.sessions.example.test" ]
 }
 
 @test "list prints the registry JSON" {

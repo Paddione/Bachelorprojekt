@@ -64,3 +64,46 @@ describe('TicketRow labels + priorities', () => {
     expect(Array.from(status.options).map((o) => o.textContent)).toContain('In Arbeit');
   });
 });
+
+describe('TicketRow OpenSpec badges', () => {
+  const base = { id: 't1', extId: 'T000959', title: 'Spec Feature', status: 'plan_staged',
+    priority: 'mittel', type: 'task' };
+
+  it('renders no badge when openspecProposals is absent', () => {
+    const { container } = render(TicketRow, { ticket: base });
+    expect(container.querySelectorAll('.os-badge').length).toBe(0);
+  });
+
+  it('renders a SPEC badge for planning status', () => {
+    const ticket = { ...base, openspecProposals: [{ slug: 'my-proposal', status: 'planning' as const }] };
+    const { container } = render(TicketRow, { ticket });
+    const badge = container.querySelector('.os-badge--planning');
+    expect(badge).toBeTruthy();
+    expect(badge!.textContent).toBe('SPEC');
+  });
+
+  it('renders a READY badge for plan_staged status', () => {
+    const ticket = { ...base, openspecProposals: [{ slug: 'my-proposal', status: 'plan_staged' as const }] };
+    const { container } = render(TicketRow, { ticket });
+    const badge = container.querySelector('.os-badge--plan_staged');
+    expect(badge).toBeTruthy();
+    expect(badge!.textContent).toBe('READY');
+  });
+
+  it('renders a DONE badge for archived status', () => {
+    const ticket = { ...base, openspecProposals: [{ slug: 'my-proposal', status: 'archived' as const }] };
+    const { container } = render(TicketRow, { ticket });
+    const badge = container.querySelector('.os-badge--archived');
+    expect(badge).toBeTruthy();
+    expect(badge!.textContent).toBe('DONE');
+  });
+
+  it('renders multiple badges when multiple proposals exist', () => {
+    const ticket = { ...base, openspecProposals: [
+      { slug: 'proposal-a', status: 'planning' as const },
+      { slug: 'proposal-b', status: 'plan_staged' as const },
+    ]};
+    const { container } = render(TicketRow, { ticket });
+    expect(container.querySelectorAll('.os-badge').length).toBe(2);
+  });
+});

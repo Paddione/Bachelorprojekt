@@ -1,6 +1,6 @@
 {
   "generatedFrom": "website/src/pages",
-  "count": 134,
+  "count": 133,
   "routes": [
     {
       "route": "/",
@@ -517,14 +517,6 @@
     },
     {
       "route": "/admin/prompts",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
-      "route": "/admin/raeume",
       "authTier": "admin",
       "brand": "both",
       "dynamic": false,

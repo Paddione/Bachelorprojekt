@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-19T23:18:47.477Z",
+  "generatedAt": "2026-06-20T05:31:41.521Z",
   "endpoints": [
     {
       "path": "/api/admin/angebote/save",
@@ -2001,49 +2001,6 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/referenzen/save.ts"
-    },
-    {
-      "path": "/api/admin/rooms",
-      "methods": [
-        "GET",
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/rooms.ts"
-    },
-    {
-      "path": "/api/admin/rooms/{id}",
-      "methods": [
-        "GET",
-        "PUT",
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/rooms/[id].ts"
-    },
-    {
-      "path": "/api/admin/rooms/{id}/members",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/rooms/[id]/members.ts"
-    },
-    {
-      "path": "/api/admin/rooms/{id}/share",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/rooms/[id]/share.ts"
-    },
-    {
-      "path": "/api/admin/rooms/direct",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/rooms/direct.ts"
     },
     {
       "path": "/api/admin/seo",

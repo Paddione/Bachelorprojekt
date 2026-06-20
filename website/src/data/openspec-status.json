@@ -1,0 +1,54 @@
+{
+  "T000737": [
+    {
+      "slug": "grilling-ui-multichoice",
+      "status": "plan_staged"
+    }
+  ],
+  "T000942": [
+    {
+      "slug": "final-grilling-mediaviewer",
+      "status": "plan_staged"
+    }
+  ],
+  "T000943": [
+    {
+      "slug": "fix-awaiting-deploy-visualization-gaps",
+      "status": "plan_staged"
+    }
+  ],
+  "T000950": [
+    {
+      "slug": "projekttickets-cockpit",
+      "status": "plan_staged"
+    }
+  ],
+  "T000951": [
+    {
+      "slug": "secret-task-mismatch-guards",
+      "status": "plan_staged"
+    }
+  ],
+  "T000953": [
+    {
+      "slug": "cockpit-fullscreen-overview",
+      "status": "plan_staged"
+    },
+    {
+      "slug": "cockpit-sidekick-global",
+      "status": "plan_staged"
+    }
+  ],
+  "T000956": [
+    {
+      "slug": "ticket-verlauf-anhaenge",
+      "status": "plan_staged"
+    }
+  ],
+  "T000959": [
+    {
+      "slug": "openspec-ticket-status-display",
+      "status": "plan_staged"
+    }
+  ]
+}

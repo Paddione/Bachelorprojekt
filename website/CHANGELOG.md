@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.102.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.102.3...website-v1.102.4) (2026-06-20)
+
+
+### Tests
+
+* **sidekick-nudge:** grilling/mediaviewer-Views in parseNavigateEvent-Tests abdecken ([2ad797a](https://github.com/Paddione/Bachelorprojekt/commit/2ad797a8202520d314774fd29973478281251a14))
+
 ## [1.102.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.102.2...website-v1.102.3) (2026-06-20)
 
 

@@ -1,7 +1,7 @@
 {
   "name": "mentolder-website",
   "type": "module",
-  "version": "1.102.3",
+  "version": "1.102.4",
   "private": true,
   "scripts": {
     "dev": "astro dev",

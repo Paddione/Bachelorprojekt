@@ -98,6 +98,10 @@ s4:
     - ".github/workflows/*.yml"
     - "scripts/**/*.sh"
     - "scripts/**/*.mjs"
+    # Skills under .claude/skills/ often reference scripts via `bash scripts/<name>.sh`
+    # (e.g. dev-flow-execute → scripts/devflow-ci-watch.sh). Without this entry,
+    # those scripts are flagged as S4-orphans. Added in T001007.
+    - ".claude/skills/**/*.md"
   allowlist_globs:
     - "k3d/office-stack/**"
     - "k3d/coturn-stack/**"

@@ -66,42 +66,7 @@ fi
 
 Für Tickets mit `offene_fragen_geklaert: false` lade die SSOT-Spec des primären `areas`-Feldes — **nicht alle 35 Specs**, nur die passende(n). Damit basieren die Klärungsfragen in Schritt 2 auf dem echten Spec-Stand statt auf generischen Blanko-Fragen.
 
-**Areas → Spec-Slug Lookup:**
-
-| `areas`-Wert | Spec-Slug(s) |
-|---|---|
-| `brett` | `brett` |
-| `website` | `website-core` |
-| `chat` | `chat-inbox` |
-| `infra` | `workspace-deploy` |
-| `auth` | `auth-sso` |
-| `ai/factory` | `software-factory` |
-| `nextcloud` | `nextcloud-integration` |
-| `database` | `database` |
-| `billing` | `billing-pipeline` |
-| `livekit` | `livekit-integration` |
-| `llm` | `llm-pipeline` |
-| `monitoring` | `monitoring-alerts` |
-| `fleet` | `fleet-operations` |
-| `ci` | `ci-cd` |
-| `newsletter` | `newsletter-system` |
-| `admin` | `admin-cockpit` |
-| `datev` | `datev-export` |
-| `mediaviewer` | `mediaviewer` |
-| `grilling` | `grilling-flow` |
-| `questionnaire` | `questionnaire-system` |
-| `vaultwarden` | `vaultwarden-integration` |
-| `collabora` | `collabora-integration` |
-| `backup` | `backup-pipeline` |
-| `mcp` | `mcp-gateway` |
-| `portal` | `portal` |
-| `sidekick` | `sidekick-assistant` |
-| `planning-office` | `planning-office` |
-| `sessions` | `sessions-server` |
-| `secret-rotation` | `secret-rotation` |
-| `ticket-system` | `ticket-system` |
-| `llm-local` | `llm-local-dev` |
-| `openspec` | `openspec-workflow` |
+**Areas → Spec-Slug Lookup** lebt in [references/spec-slug-lookup.md](references/spec-slug-lookup.md) (35 Zeilen — aus dem SKILL.md extrahiert).
 
 **Abruf-Befehl** (gibt vorformatierten Markdown-Block aus):
 
@@ -452,51 +417,7 @@ Eingereicht von: gekko
 > ```
 > Bereits vorhandene Einträge aus den Kandidaten-Listen entfernen oder als „(bereits geplant: TXXXxxx)" markieren.
 
-**Brett:**
-- Figuren-Animationen / Gesten
-- Board-Export (PNG / PDF)
-- Zuschauer-Modus (read-only)
-- Board-Templates
-- Mobile-Touch-Optimierung
-
-**Website / Content-Hub:**
-- Newsletter-Vorlagen-Bibliothek
-- Vertrags-PDF-Preview
-- Bild-Upload im HTML-Editor
-- Mehrsprachigkeit (DE/EN)
-- SEO-Metadaten-Editor
-
-**Chat / Messaging:**
-- Emoji-Reaktionen
-- Thread-Antworten
-- Datei-Anhänge (>10 MB)
-- Gelesen-Bestätigungen
-- Push-Notifications (PWA)
-
-**Infra / DevEx:**
-- Staging-Umgebung (k3d-isoliert)
-- Performance-Dashboard
-- Alert-Regeln (Grafana)
-- Automated Rollback bei Failed Deploy
-
-**AI / Factory:**
-- Ticket-Auto-Triage (Severity-Erkennung)
-- Factory-Qualitäts-Ratchet (Scout-Output-Bewertung)
-- DeepSeek Scout-Qualität verbessern (touched_files Coverage)
-
-### Areas-Normalisierung (für `--areas`-Parameter)
-
-Formular-Output verwendet deutsche/kapitalisierte Namen — vor `plan-meta set` auf lowercase-Keys normalisieren:
-
-| Formular-Ausgabe | `--areas`-Wert |
-|-----------------|---------------|
-| `Brett` | `brett` |
-| `Website / Content-Hub` | `website` |
-| `Chat / Messaging` | `chat` |
-| `Infra / DevEx` | `infra` |
-| `AI / Factory` | `ai/factory` |
-| `Keycloak / Auth` | `auth` |
-| `Nextcloud / Files` | `nextcloud` |
+**Kandidaten-Listen + Areas-Normalisierung** leben in [references/feature-candidates.md](references/feature-candidates.md) (5 Bereiche × 3-5 Items + 7-Zeilen-Normalisierungstabelle — aus dem SKILL.md extrahiert).
 
 ### Übergabe nach Rücklauf
 

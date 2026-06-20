@@ -165,14 +165,13 @@
 
   $effect(() => {
     const onNavigate = (e: Event) => {
-      const intent = parseNavigateEvent((e as CustomEvent).detail);
+      const detail = (e as CustomEvent).detail;
+      if (typeof detail?.ticketId === 'string') currentTicketId = detail.ticketId;
+      const intent = parseNavigateEvent(detail);
       if (!intent) return;
       open = true;
       view = intent.view;
       pendingJump = intent.jumpTo;
-      if ((e as CustomEvent).detail?.ticketId) {
-        currentTicketId = (e as CustomEvent).detail.ticketId;
-      }
     };
     window.addEventListener('sidekick:navigate', onNavigate);
     return () => window.removeEventListener('sidekick:navigate', onNavigate);

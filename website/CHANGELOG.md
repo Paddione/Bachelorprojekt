@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.105.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.105.0...website-v1.105.1) (2026-06-20)
+
+
+### Tests
+
+* **e2e:** FA-50/FA-51 E2E specs + fix X-Request-ID middleware immutability ([#1921](https://github.com/Paddione/Bachelorprojekt/issues/1921)) ([b0ff33c](https://github.com/Paddione/Bachelorprojekt/commit/b0ff33c8b7702ef783377d574c2e32a801765d45))
+
 ## [1.105.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.104.1...website-v1.105.0) (2026-06-20)
 
 

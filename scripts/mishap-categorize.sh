@@ -22,7 +22,11 @@ _db_update() {
     psql -U "$USER" -d "$DB" -qtA -v ON_ERROR_STOP=1 \
     -v ext_id="$ext_id" \
     -v cat="$category" <<'SQL' 2>/dev/null || true
-UPDATE tickets.tickets SET category = :'cat' WHERE external_id = :'ext_id';
+INSERT INTO tickets.tags (name) VALUES ('kind:' || :'cat') ON CONFLICT (name) DO NOTHING;
+INSERT INTO tickets.ticket_tags (ticket_id, tag_id)
+SELECT id, (SELECT id FROM tickets.tags WHERE name = 'kind:' || :'cat')
+FROM tickets.tickets WHERE external_id = :'ext_id'
+ON CONFLICT DO NOTHING;
 SQL
   echo "mishap-categorize: category='${category}' set for ${ext_id}" >&2
 }

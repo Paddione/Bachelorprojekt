@@ -67,6 +67,16 @@
     return () => window.removeEventListener('resize', handler);
   });
 
+  $effect(() => {
+    const onCockpitToggle = () => {
+      if (helpContext === 'admin') {
+        open = !open;
+      }
+    };
+    window.addEventListener('cockpit:toggle-sidekick', onCockpitToggle);
+    return () => window.removeEventListener('cockpit:toggle-sidekick', onCockpitToggle);
+  });
+
   function checkMobile() {
     isMobile = window.innerWidth < 768;
   }

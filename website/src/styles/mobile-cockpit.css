@@ -1,0 +1,85 @@
+/* website/src/styles/mobile-cockpit.css */
+
+[data-container="cockpit"] {
+  container-type: inline-size;
+  overflow-x: hidden;
+}
+
+/* Touch-Target-Regel: Buttons and roles have minimum interactive dimension of 48px */
+[data-container="cockpit"] button,
+[data-container="cockpit"] [role="button"],
+[data-container="cockpit"] select,
+[data-container="cockpit"] input[type="checkbox"],
+[data-container="cockpit"] input[type="search"] {
+  min-height: 48px;
+  min-width: 48px;
+}
+
+/* Truncation rule with tooltip support */
+.cockpit-ticket-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Container Queries for responsive layout orchestration */
+
+/* Mobile layout: viewport/container <= 480px */
+@container (max-width: 480px) {
+  [data-container="cockpit"] .mobile-toggle {
+    display: inline-flex !important;
+  }
+
+  /* Vertikales Stacking der Ticket-Liste */
+  [data-container="cockpit"] .row-header {
+    display: none !important;
+  }
+
+  [data-container="cockpit"] .row {
+    grid-template-columns: 1fr !important;
+    gap: 0.5rem !important;
+    padding: 0.75rem 0.5rem !important;
+  }
+
+  [data-container="cockpit"] .row > * {
+    width: 100% !important;
+  }
+
+  /* Rollup-Header als gestapelte Karte */
+  [data-container="cockpit"] .rollup-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.75rem !important;
+  }
+}
+
+/* Tablet layout: 481px to 1023px */
+@container (min-width: 481px) and (max-width: 1023px) {
+  [data-container="cockpit"] .mobile-toggle {
+    display: inline-flex !important;
+  }
+}
+
+/* Desktop layout: >= 1024px */
+@container (min-width: 1024px) {
+  [data-container="cockpit"] .mobile-toggle {
+    display: none !important;
+  }
+}
+
+/* Sidekick drawer handling on mobile viewports */
+@media (max-width: 480px) {
+  .drawer {
+    width: 100vw !important;
+  }
+}
+
+/* Fallback for browsers that do not support container-queries */
+@supports not (container-type: inline-size) {
+  [data-container="cockpit"] .cockpit-main {
+    display: block;
+  }
+  [data-container="cockpit"] .mobile-toggle {
+    display: inline-flex;
+  }
+}

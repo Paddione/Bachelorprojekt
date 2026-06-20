@@ -57,10 +57,18 @@ test.describe('FA content-hub: unified editor (AC 4)', { tag: ['@content-hub'] }
     await ctx.close();
   });
 
-  test('restore endpoint rejects unauthenticated requests', async ({ request }) => {
-    const res = await request.post(`${BASE}/api/admin/content/restore`, {
-      data: { contentKey: 'stammdaten', versionId: 1 },
-    });
-    expect([401, 403], 'restore requires auth').toContain(res.status());
+  test('restore endpoint rejects unauthenticated requests', async ({ playwright }) => {
+    // The `mentolder` project ships an admin storageState; use a fresh request
+    // context so the session cookie is NOT sent and the auth gate is actually
+    // exercised. [fix/content-hub-service-page-config]
+    const request = await playwright.request.newContext({ baseURL: BASE, ignoreHTTPSErrors: true });
+    try {
+      const res = await request.post(`/api/admin/content/restore`, {
+        data: { contentKey: 'stammdaten', versionId: 1 },
+      });
+      expect([401, 403], 'restore requires auth').toContain(res.status());
+    } finally {
+      await request.dispose();
+    }
   });
 });

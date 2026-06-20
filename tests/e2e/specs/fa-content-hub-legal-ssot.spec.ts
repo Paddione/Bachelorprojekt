@@ -59,15 +59,28 @@ test.describe('FA content-hub: legal SSOT token resolution', { tag: ['@content-h
     expect(html, 'korczewski impressum contains stammdaten email').toMatch(EMAIL_RE);
   });
 
-  test('save endpoint rejects unauthenticated requests', async ({ request }) => {
-    const res = await request.post(`${MENTOLDER_BASE}/api/admin/content/save`, {
-      data: { contentKey: 'stammdaten', baseVersion: 0, payload: {} },
-    });
-    expect([401, 403], 'save requires auth').toContain(res.status());
+  test('save endpoint rejects unauthenticated requests', async ({ playwright }) => {
+    // The `mentolder` project ships an admin storageState; use a fresh request
+    // context so the session cookie is NOT sent and the auth gate is actually
+    // exercised. [fix/content-hub-service-page-config]
+    const request = await playwright.request.newContext({ baseURL: MENTOLDER_BASE, ignoreHTTPSErrors: true });
+    try {
+      const res = await request.post(`/api/admin/content/save`, {
+        data: { contentKey: 'stammdaten', baseVersion: 0, payload: {} },
+      });
+      expect([401, 403], 'save requires auth').toContain(res.status());
+    } finally {
+      await request.dispose();
+    }
   });
 
-  test('versions endpoint rejects unauthenticated requests', async ({ request }) => {
-    const res = await request.get(`${MENTOLDER_BASE}/api/admin/content/versions?key=stammdaten`);
-    expect([401, 403], 'versions requires auth').toContain(res.status());
+  test('versions endpoint rejects unauthenticated requests', async ({ playwright }) => {
+    const request = await playwright.request.newContext({ baseURL: MENTOLDER_BASE, ignoreHTTPSErrors: true });
+    try {
+      const res = await request.get(`/api/admin/content/versions?key=stammdaten`);
+      expect([401, 403], 'versions requires auth').toContain(res.status());
+    } finally {
+      await request.dispose();
+    }
   });
 });

@@ -319,6 +319,22 @@ EXISTING=$(kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d web
 
 Halte diese Liste im Arbeitsgedächtnis — sie dient später beim Ticket-Anlegen zum Duplikatcheck.
 
+Lade außerdem die indizierten Proposal-Dokumente als dynamischen Feature-Pool:
+
+```bash
+SPEC_POOL=$(kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -F '|' -c \
+  "SELECT d.title, left(kc.text, 300), d.source_uri
+   FROM knowledge.documents d
+   JOIN knowledge.collections c  ON c.id = d.collection_id
+   JOIN knowledge.chunks kc      ON kc.document_id = d.id AND kc.position = 0
+   WHERE c.source = 'specs_plans'
+     AND d.source_uri LIKE 'file:openspec/changes/%/proposal.md'
+   ORDER BY d.created_at DESC
+   LIMIT 30;" 2>/dev/null)
+```
+
+Halte `$SPEC_POOL` im Arbeitsgedächtnis — er wird in Schritt 2 Block 1 als dritte Karten-Gruppe „Aus eigenen Specs" verwendet. Wenn `$SPEC_POOL` leer ist (keine Proposals indiziert), entfällt diese Gruppe; die hardcodierten Einträge bleiben als Fallback.
+
 ### Schritt 2 — Interview-HTML-Formular generieren
 
 Erstelle `/tmp/gekko-interview-<DATUM>.html` mit dem `Write`-Tool. Das Formular ist ein **eigenständiges, backend-freies HTML**, läuft via `file://`.
@@ -346,6 +362,19 @@ Feature-Pool — Bereiche und Einträge:
 | Login | Self-Service Passwort-Reset, Einladungs-Link, Login-Verlauf, Längere Session |
 | Allgemein | Plattformweite Suche, Benachrichtigungs-Zentrale, Performance-Dashboard, Kalender-Integration, To-do-Liste, Android-Widget |
 | AI | KI-Textzusammenfassung, Chat-Bot, Ticket-Auto-Triage, KI schlägt Newsletter vor |
+
+Wenn `$SPEC_POOL` nicht leer ist, rendere in Block 1 zusätzlich eine dritte Karten-Gruppe unterhalb der hardcodierten Pool-Tabelle:
+
+**Karten-Gruppe „Aus eigenen Specs" (dynamisch, nur wenn `$SPEC_POOL` gefüllt):**
+
+- Überschrift: „Aus eigenen Specs" mit `(aus Knowledge-Base)` Badge
+- Eine Karte pro psql-Zeile aus `$SPEC_POOL` (`title | snippet_300 | source_uri`)
+- Karten-Text: `title` als Haupt-Label; erste 100 Zeichen des Snippets grau/klein darunter
+- Bereichs-Tag: „Spec" (neutral)
+- Gleiche Klick-/Auswahl-Logik wie hardcodierte Einträge
+- Würfel-Button mischt NUR in hardcodierten Einträgen; Spec-Karten bleiben vollständig sichtbar
+- `buildMarkdown()` gibt Spec-Karten mit Präfix `[Spec]` aus: `- [Spec] <title>`
+- Wenn `$SPEC_POOL` leer → kein leerer Platzhalter, Gruppe wird nicht gerendert
 
 **Block 2 — Schmerzen**
 
@@ -432,6 +461,34 @@ Pro Schmerz-Nennung + Wunsch aus Block 3 (der noch kein Ticket hat):
 
 ```bash
 # 1. Duplikatcheck gegen $EXISTING — nur anlegen wenn kein ähnlicher Titel
+
+# 2. Semantischer Duplikatcheck via pgvector (neu)
+SEARCH_RESULT=$(task knowledge:search ENV=mentolder \
+  QUERY="<destillierter Titel>" \
+  SOURCE=specs_plans \
+  LIMIT=3 \
+  THRESHOLD=0.65 2>/dev/null || echo '{"results":[]}')
+
+TOP_SCORE=$(echo "$SEARCH_RESULT" | python3 -c \
+  "import json,sys; d=json.load(sys.stdin); r=d.get('results',[]); print(r[0]['score'] if r else 0)" 2>/dev/null || echo 0)
+TOP_TITLE=$(echo "$SEARCH_RESULT" | python3 -c \
+  "import json,sys; d=json.load(sys.stdin); r=d.get('results',[]); print(r[0]['title'] if r else '')" 2>/dev/null || echo "")
+TOP_URI=$(echo "$SEARCH_RESULT" | python3 -c \
+  "import json,sys; d=json.load(sys.stdin); r=d.get('results',[]); print(r[0]['source_uri'] if r else '')" 2>/dev/null || echo "")
+HAS_ERROR=$(echo "$SEARCH_RESULT" | python3 -c \
+  "import json,sys; d=json.load(sys.stdin); print('yes' if d.get('error') else 'no')" 2>/dev/null || echo "yes")
+
+if [ "$HAS_ERROR" = "yes" ]; then
+  echo "⚠️  Semantischer Check übersprungen (VOYAGE_API_KEY fehlt oder Fehler) — Ticket wird trotzdem angelegt."
+elif python3 -c "exit(0 if float('$TOP_SCORE') >= 0.80 else 1)" 2>/dev/null; then
+  echo "🛑 Duplikat wahrscheinlich — Spec \"${TOP_TITLE}\" ähnlich (Score: ${TOP_SCORE})."
+  echo "   Quelle: ${TOP_URI}"
+  echo "   → Ticket NICHT angelegt. Bestehende Spec prüfen oder verknüpfen."
+  # KEIN ticket.sh create — zur nächsten Feature-Nennung
+elif python3 -c "exit(0 if float('$TOP_SCORE') >= 0.65 else 1)" 2>/dev/null; then
+  echo "⚠️  Ähnliche Spec: \"${TOP_TITLE}\" (Score: ${TOP_SCORE}) — Ticket trotzdem anlegen + Hinweis im Kommentar."
+fi
+
 TICKET_RESULT=$(bash scripts/ticket.sh create \
   --type feature \
   --brand mentolder \
@@ -455,8 +512,13 @@ bash scripts/ticket.sh add-comment \
 
 **Originalzitat:** \"<exaktes Zitat aus Interview>\"
 **Kontext:** Primärgerät: <gerät>, Nutzung: <frequenz>
-**Ranking-Position:** <1-5 oder 'unranked'>"
+**Ranking-Position:** <1-5 oder 'unranked'>
+
+$([ "$(python3 -c "exit(0 if float('$TOP_SCORE') >= 0.65 else 1)" 2>/dev/null && echo yes || echo no)" = "yes" ] && echo "**Ähnliche Spec:** \"${TOP_TITLE}\" (Score: ${TOP_SCORE})
+**Spec-Quelle:** ${TOP_URI}")"
 ```
+
+> **Hinweis:** Wenn `TOP_SCORE >= 0.65`, füge in den `add-comment`-Body folgende Zeile ein: `**Ähnliche Spec:** "<TOP_TITLE>" (Score: <TOP_SCORE>)` und `**Spec-Quelle:** <TOP_URI>`.
 
 #### Major-Feature aus Block 4
 
@@ -792,6 +854,21 @@ Wenn das ausgefüllte Markdown zurückkommt (egal ob von Patrick oder gekko):
 2. Erstelle für jedes ausgewählte Feature ein Ticket **mit** plan-meta:
 
 ```bash
+# Semantischer Duplikatcheck via pgvector (wie Modus D)
+SEARCH_RESULT=$(task knowledge:search ENV=mentolder \
+  QUERY="<titel>" SOURCE=specs_plans LIMIT=3 THRESHOLD=0.65 2>/dev/null \
+  || echo '{"results":[]}')
+TOP_SCORE=$(echo "$SEARCH_RESULT" | python3 -c \
+  "import json,sys; d=json.load(sys.stdin); r=d.get('results',[]); print(r[0]['score'] if r else 0)" 2>/dev/null || echo 0)
+TOP_TITLE=$(echo "$SEARCH_RESULT" | python3 -c \
+  "import json,sys; d=json.load(sys.stdin); r=d.get('results',[]); print(r[0]['title'] if r else '')" 2>/dev/null || echo "")
+HAS_ERROR=$(echo "$SEARCH_RESULT" | python3 -c \
+  "import json,sys; d=json.load(sys.stdin); print('yes' if d.get('error') else 'no')" 2>/dev/null || echo "yes")
+
+# Score >= 0.80 → KEIN ticket.sh create, nächstes Feature
+# Score 0.65–0.80 → Advisory + Ticket anlegen (Hinweis im Kommentar)
+# Fehler/fehlender Key → Advisory + Ticket anlegen
+
 # Pro Feature aus dem Rücklauf:
 TICKET_RESULT=$(bash scripts/ticket.sh create \
   --type feature \

@@ -80,5 +80,11 @@
       "slug": "cockpit-direct-ticket-links",
       "status": "plan_staged"
     }
+  ],
+  "T000975": [
+    {
+      "slug": "active-sessions-hub",
+      "status": "plan_staged"
+    }
   ]
 }

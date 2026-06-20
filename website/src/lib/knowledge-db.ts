@@ -191,6 +191,47 @@ export interface NearestChunk {
   page: number | null;
 }
 
+export interface OpenspecHit {
+  slug: string;
+  ticket_id: string | null;
+  section_title: string | null;
+  file_type: string | null;
+  snippet: string;
+  similarity: number;
+}
+
+export async function searchOpenspec(args: {
+  query: string; limit?: number; status?: string; signal?: AbortSignal;
+}): Promise<OpenspecHit[]> {
+  const limit = Math.min(Math.max(args.limit ?? 5, 1), 20);
+  const colRes = await p().query(
+    `SELECT id, embedding_model FROM knowledge.collections WHERE source = 'specs_plans' LIMIT 1`,
+  );
+  if (colRes.rows.length === 0) return [];
+  const { id: collectionId, embedding_model } = colRes.rows[0];
+  const { embedding } = await embedQuery(args.query, {
+    model: embedding_model as EmbeddingModel, purpose: 'query', signal: args.signal,
+  });
+  const params: unknown[] = [vecLiteral(embedding), collectionId];
+  let statusClause = '';
+  if (args.status) { params.push(args.status); statusClause = ` AND kc.metadata->>'status' = $${params.length}`; }
+  params.push(limit);
+  const r = await p().query(
+    `SELECT kc.metadata->>'slug' AS slug,
+            kc.metadata->>'ticket_id' AS ticket_id,
+            kc.metadata->>'section_title' AS section_title,
+            kc.metadata->>'file_type' AS file_type,
+            left(kc.text, 240) AS snippet,
+            1 - (kc.embedding <=> $1) AS similarity
+       FROM knowledge.chunks kc
+      WHERE kc.collection_id = $2${statusClause}
+      ORDER BY kc.embedding <=> $1
+      LIMIT $${params.length}`,
+    params,
+  );
+  return r.rows;
+}
+
 export async function queryNearest(args: {
   collectionIds: string[]; queryText: string; limit?: number; threshold?: number; signal?: AbortSignal;
 }): Promise<NearestChunk[]> {

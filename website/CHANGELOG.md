@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.103.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.103.0...website-v1.103.1) (2026-06-20)
+
+
+### Bug Fixes
+
+* **website:** cache-bust embedSrc to bypass stale X-Frame-Options browser cache ([#1904](https://github.com/Paddione/Bachelorprojekt/issues/1904)) ([31b553d](https://github.com/Paddione/Bachelorprojekt/commit/31b553d90b1d7e77ab53aa6bcecf2f3a94a73a46))
+
 ## [1.103.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.102.4...website-v1.103.0) (2026-06-20)
 
 

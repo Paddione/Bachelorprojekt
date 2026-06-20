@@ -3,7 +3,7 @@ title: Centralized Logging (Pino + Grafana Dashboards) Implementation Plan
 ticket_id: T000964
 domains: [website, infra, db, ops, test, security]
 status: active
-pr_number: null
+pr_number: TBD
 file_locks: []
 shared_changes: false
 batch_id: null
@@ -93,7 +93,7 @@ environments/
   - `export const logger: pino.Logger` — root singleton, `base: { service: 'website' }`, level from `PINO_LOG_LEVEL` env (default `info` in dev).
   - `export function createRequestLogger(fields: { requestId: string; method: string; path: string }): pino.Logger` — returns `logger.child(fields)`.
 
-- [ ] **Step 1: Add dependencies**
+- [x] **Step 1: Add dependencies**
 
 In `website/package.json` `dependencies`, add (keep alphabetical where the file already is):
 
@@ -108,7 +108,7 @@ Then install:
 cd website && pnpm install
 ```
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 Create `website/src/lib/logger.test.ts`:
 
@@ -133,12 +133,12 @@ describe('logger', () => {
 });
 ```
 
-- [ ] **Step 3: Run the test to verify it fails**
+- [x] **Step 3: Run the test to verify it fails**
 
 Run: `cd website && pnpm vitest run src/lib/logger.test.ts`
 Expected: FAIL — `Cannot find module './logger'`.
 
-- [ ] **Step 4: Implement the logger singleton**
+- [x] **Step 4: Implement the logger singleton**
 
 Create `website/src/lib/logger.ts`:
 
@@ -168,12 +168,12 @@ export function createRequestLogger(fields: RequestLogContext): pino.Logger {
 }
 ```
 
-- [ ] **Step 5: Run the test to verify it passes**
+- [x] **Step 5: Run the test to verify it passes**
 
 Run: `cd website && pnpm vitest run src/lib/logger.test.ts`
 Expected: PASS (2 passing).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add website/package.json website/pnpm-lock.yaml website/src/lib/logger.ts website/src/lib/logger.test.ts
@@ -197,7 +197,7 @@ git commit -m "feat(logging): add pino+nanoid and SSR logger singleton [T000964]
   - `App.Locals.requestLogger: import('pino').Logger`
   - `export const onRequest` (Astro middleware) from `website/src/middleware/index.ts`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `website/src/middleware/logging.test.ts`:
 
@@ -239,12 +239,12 @@ describe('loggingMiddleware', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `cd website && pnpm vitest run src/middleware/logging.test.ts`
 Expected: FAIL — `Cannot find module './logging'`.
 
-- [ ] **Step 3: Implement the logging middleware**
+- [x] **Step 3: Implement the logging middleware**
 
 Create `website/src/middleware/logging.ts`:
 
@@ -288,7 +288,7 @@ export async function loggingMiddleware(
 }
 ```
 
-- [ ] **Step 4: Create the middleware entrypoint**
+- [x] **Step 4: Create the middleware entrypoint**
 
 Create `website/src/middleware/index.ts`:
 
@@ -301,7 +301,7 @@ import { loggingMiddleware } from './logging';
 export const onRequest = sequence(loggingMiddleware);
 ```
 
-- [ ] **Step 5: Extend the Locals type**
+- [x] **Step 5: Extend the Locals type**
 
 Confirm where Astro locals are declared:
 
@@ -325,17 +325,17 @@ declare namespace App {
 
 > If an `App.Locals` block already exists, MERGE these two lines into it — do not create a second `namespace App` block (TS will not error, but keep it single-source).
 
-- [ ] **Step 6: Run the test to verify it passes**
+- [x] **Step 6: Run the test to verify it passes**
 
 Run: `cd website && pnpm vitest run src/middleware/logging.test.ts`
 Expected: PASS (3 passing).
 
-- [ ] **Step 7: Typecheck**
+- [x] **Step 7: Typecheck**
 
 Run: `cd website && pnpm astro check 2>&1 | tail -20` (or `pnpm exec tsc --noEmit` if that is the project's check).
 Expected: No new type errors referencing `requestId`/`requestLogger`/`middleware`.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add website/src/middleware/ website/src/env.d.ts
@@ -354,7 +354,7 @@ git commit -m "feat(logging): astro middleware for X-Request-ID + request loggin
 - Consumes: `App.Locals.requestLogger`, `App.Locals.requestId` from Task 2.
 - Produces: the standard error-response shape `{ error: '<CODE>', requestId: string }` reused by Tasks 4.
 
-- [ ] **Step 1: Enumerate the critical routes**
+- [x] **Step 1: Enumerate the critical routes**
 
 ```bash
 cd website && grep -rln "console.error\|console.log" src/pages/api/auth src/pages/api/admin
@@ -362,7 +362,7 @@ cd website && grep -rln "console.error\|console.log" src/pages/api/auth src/page
 
 These are the highest-criticality routes — migrate them first.
 
-- [ ] **Step 2: Write/extend a failing test for the error shape**
+- [x] **Step 2: Write/extend a failing test for the error shape**
 
 Search first for an existing test to extend:
 
@@ -394,12 +394,12 @@ describe('errorResponse', () => {
 });
 ```
 
-- [ ] **Step 3: Run the test to verify it fails**
+- [x] **Step 3: Run the test to verify it fails**
 
 Run: `cd website && pnpm vitest run src/pages/api/_error-contract.test.ts`
 Expected: FAIL — `Cannot find module './_errors'`.
 
-- [ ] **Step 4: Add the shared error helper**
+- [x] **Step 4: Add the shared error helper**
 
 Create `website/src/pages/api/_errors.ts`:
 
@@ -414,12 +414,12 @@ export function errorResponse(code: string, requestId: string, status = 500): Re
 }
 ```
 
-- [ ] **Step 5: Run the test to verify it passes**
+- [x] **Step 5: Run the test to verify it passes**
 
 Run: `cd website && pnpm vitest run src/pages/api/_error-contract.test.ts`
 Expected: PASS (2 passing).
 
-- [ ] **Step 6: Migrate each auth + admin route's catch blocks**
+- [x] **Step 6: Migrate each auth + admin route's catch blocks**
 
 For every `console.error('[...]', err)` in the enumerated files, replace the catch block. Example transform (verbatim pattern):
 
@@ -444,17 +444,17 @@ After (route signature must expose `locals` — `export const POST: APIRoute = a
 
 Add `import { errorResponse } from '../_errors';` (adjust `../` depth per file) at the top of each migrated file. Pick a specific SCREAMING_SNAKE code per route (e.g. `LOGIN_FAILED`, `MAGIC_LINK_FAILED`, `ADMIN_USER_LIST_FAILED`). Keep the stack/`err` in the log only.
 
-- [ ] **Step 7: Verify no console.error remains in auth/admin**
+- [x] **Step 7: Verify no console.error remains in auth/admin**
 
 Run: `cd website && grep -rn "console.error\|console.log" src/pages/api/auth src/pages/api/admin`
 Expected: no matches.
 
-- [ ] **Step 8: Typecheck + run affected tests**
+- [x] **Step 8: Typecheck + run affected tests**
 
 Run: `cd website && pnpm astro check 2>&1 | tail -20 && pnpm vitest run src/pages/api`
 Expected: no new type errors; tests pass.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add website/src/pages/api/_errors.ts website/src/pages/api/_error-contract.test.ts website/src/pages/api/auth website/src/pages/api/admin
@@ -471,7 +471,7 @@ git commit -m "feat(logging): migrate auth+admin API routes to requestLogger + e
 **Interfaces:**
 - Consumes: `errorResponse` (Task 3), `locals.requestLogger`, `locals.requestId`.
 
-- [ ] **Step 1: Migrate billing + factory routes**
+- [x] **Step 1: Migrate billing + factory routes**
 
 ```bash
 cd website && grep -rln "console.error\|console.log" src/pages/api/billing src/pages/api/factory* 2>/dev/null
@@ -479,7 +479,7 @@ cd website && grep -rln "console.error\|console.log" src/pages/api/billing src/p
 
 Apply the same transform as Task 3 Step 6 (route-specific error code, `errorResponse(...)`, `locals.requestLogger.error({ err }, '...')`). For GET routes that take no `locals` yet, change the signature to `async ({ locals }) =>` (or `async ({ request, locals }) =>`).
 
-- [ ] **Step 2: Migrate the remaining bulk routes**
+- [x] **Step 2: Migrate the remaining bulk routes**
 
 ```bash
 cd website && grep -rln "console.error\|console.log" src/pages/api
@@ -487,17 +487,17 @@ cd website && grep -rln "console.error\|console.log" src/pages/api
 
 Work through the remaining files. Each: add the `errorResponse` import (correct relative depth), replace `console.error(..., err)` → `locals.requestLogger.error({ err }, '<context msg>')`, and replace generic 500 bodies with `errorResponse('<CODE>', locals.requestId)`. Where a `console.log` is purely informational, convert to `locals.requestLogger.info({ ... }, '...')` if `locals` is in scope, otherwise `logger.info(...)` importing the root `logger`.
 
-- [ ] **Step 3: Verify the codebase is console-free in api/**
+- [x] **Step 3: Verify the codebase is console-free in api/**
 
 Run: `cd website && grep -rn "console.error\|console.log" src/pages/api`
 Expected: no matches (acceptance criterion 1).
 
-- [ ] **Step 4: Typecheck + full website unit tests**
+- [x] **Step 4: Typecheck + full website unit tests**
 
 Run: `cd website && pnpm astro check 2>&1 | tail -20 && pnpm vitest run`
 Expected: no new type errors; all tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add website/src/pages/api
@@ -515,7 +515,7 @@ git commit -m "feat(logging): migrate remaining API routes to requestLogger [T00
 **Interfaces:**
 - Produces: `PINO_LOG_LEVEL` available to the website pod via `envFrom: configMapRef: website-config`.
 
-- [ ] **Step 1: Add the ConfigMap value**
+- [x] **Step 1: Add the ConfigMap value**
 
 In `k3d/website.yaml`, in the `website-config` ConfigMap `data:` block (near the `# Brand` group), add a literal (NOT an envsubst `${...}` value — keep it literal so the Taskfile envsubst list needs no change):
 
@@ -526,7 +526,7 @@ In `k3d/website.yaml`, in the `website-config` ConfigMap `data:` block (near the
 
 > The prod overlay can later patch this to `warn` per `prod/`; base dev value stays `info`.
 
-- [ ] **Step 2: Register the variable in the schema (single minimal entry)**
+- [x] **Step 2: Register the variable in the schema (single minimal entry)**
 
 In `environments/schema.yaml`, under `env_vars:`, add exactly one entry (schema is already over the soft line budget — add nothing else here):
 
@@ -537,7 +537,7 @@ In `environments/schema.yaml`, under `env_vars:`, add exactly one entry (schema 
     default_dev: "info"
 ```
 
-- [ ] **Step 3: Validate the env schema + manifest**
+- [x] **Step 3: Validate the env schema + manifest**
 
 Run:
 ```bash
@@ -547,7 +547,7 @@ task workspace:validate
 ```
 Expected: both succeed; no missing-variable error for `PINO_LOG_LEVEL`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add k3d/website.yaml environments/schema.yaml
@@ -565,7 +565,7 @@ git commit -m "feat(logging): register PINO_LOG_LEVEL in website-config + schema
 **Interfaces:**
 - Produces: k3s Traefik emits JSON access logs to stdout, keeping the `X-Request-ID` header field.
 
-- [ ] **Step 1: Create the HelmChartConfig**
+- [x] **Step 1: Create the HelmChartConfig**
 
 Create `k3d/traefik-config.yaml`:
 
@@ -588,7 +588,7 @@ spec:
       - "--accesslog.fields.headers.names.X-Request-ID=keep"
 ```
 
-- [ ] **Step 2: Reference it in the base kustomization (S4)**
+- [x] **Step 2: Reference it in the base kustomization (S4)**
 
 Add `traefik-config.yaml` to the `resources:` list in `k3d/kustomization.yaml`. Confirm:
 
@@ -597,12 +597,12 @@ cd /tmp/wt-centralized-logging && grep -n "traefik-config.yaml" k3d/kustomizatio
 ```
 Expected: one match.
 
-- [ ] **Step 3: Validate the build (no orphan)**
+- [x] **Step 3: Validate the build (no orphan)**
 
 Run: `cd /tmp/wt-centralized-logging && task workspace:validate`
 Expected: kustomize build succeeds and includes the `HelmChartConfig`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add k3d/traefik-config.yaml k3d/kustomization.yaml
@@ -620,7 +620,7 @@ git commit -m "feat(logging): traefik JSON access logs with X-Request-ID retaine
 **Interfaces:**
 - Produces: Loki gets a `level` label extracted from JSON logs; `debug` lines dropped.
 
-- [ ] **Step 1: Add the JSON pipeline snippet**
+- [x] **Step 1: Add the JSON pipeline snippet**
 
 In `k3d/monitoring/values/promtail-values.yaml`, under `config.snippets`, add a `pipelineStages` block (sibling to the existing `extraRelabelConfigs`):
 
@@ -639,7 +639,7 @@ In `k3d/monitoring/values/promtail-values.yaml`, under `config.snippets`, add a 
           action: drop
 ```
 
-- [ ] **Step 2: Re-render the Helm output**
+- [x] **Step 2: Re-render the Helm output**
 
 Run:
 ```bash
@@ -647,12 +647,12 @@ cd /tmp/wt-centralized-logging && task loki:render
 ```
 Expected: `k3d/monitoring/promtail-rendered.yaml` (and `loki-rendered.yaml`) regenerated. Review the diff — the `pipelineStages` must appear in the promtail config in the rendered file.
 
-- [ ] **Step 3: Validate monitoring kustomize**
+- [x] **Step 3: Validate monitoring kustomize**
 
 Run: `cd /tmp/wt-centralized-logging && task monitoring:validate` (falls back to `kustomize build k3d/monitoring` if that task name differs — verify with `task -l | grep monitoring`).
 Expected: build succeeds.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add k3d/monitoring/values/promtail-values.yaml k3d/monitoring/promtail-rendered.yaml k3d/monitoring/loki-rendered.yaml
@@ -669,7 +669,7 @@ git commit -m "feat(logging): promtail JSON pipeline (level label + debug drop) 
 **Interfaces:**
 - Produces: Keycloak emits JSON audit/console logs to stdout with `org.keycloak.events` at DEBUG.
 
-- [ ] **Step 1: Add the env vars**
+- [x] **Step 1: Add the env vars**
 
 In `k3d/keycloak.yaml`, in the container `env:` list (alongside `KC_PROXY_HEADERS`), add:
 
@@ -680,7 +680,7 @@ In `k3d/keycloak.yaml`, in the container `env:` list (alongside `KC_PROXY_HEADER
               value: "INFO,org.keycloak.events:DEBUG"
 ```
 
-- [ ] **Step 2: Validate the manifest + line budget**
+- [x] **Step 2: Validate the manifest + line budget**
 
 Run:
 ```bash
@@ -690,7 +690,7 @@ task workspace:validate
 ```
 Expected: under 500 lines; build succeeds.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add k3d/keycloak.yaml
@@ -708,7 +708,7 @@ git commit -m "feat(logging): keycloak JSON console logs + events DEBUG [T000964
 **Interfaces:**
 - Consumes: Loki datasource (already provisioned), the `level` label from Task 7.
 
-- [ ] **Step 1: Create the dashboard JSON**
+- [x] **Step 1: Create the dashboard JSON**
 
 Create `k3d/monitoring/grafana-dashboards/log-explorer.json`. Use the existing `traefik-dashboard.json` as a structural template (same schema version, `__inputs`-free provisioned format). Minimum panels:
 - Template variables (Loki label_values): `namespace`, `app`, `level`, `brand`.
@@ -725,7 +725,7 @@ cd /tmp/wt-centralized-logging && python3 -m json.tool k3d/monitoring/grafana-da
 ```
 Expected: `OK`.
 
-- [ ] **Step 2: Wire the configMapGenerator (S4)**
+- [x] **Step 2: Wire the configMapGenerator (S4)**
 
 In `k3d/monitoring/grafana-dashboards/kustomization.yaml`, append to `configMapGenerator`:
 
@@ -738,12 +738,12 @@ In `k3d/monitoring/grafana-dashboards/kustomization.yaml`, append to `configMapG
         grafana_dashboard: "1"
 ```
 
-- [ ] **Step 3: Validate**
+- [x] **Step 3: Validate**
 
 Run: `cd /tmp/wt-centralized-logging && kustomize build k3d/monitoring/grafana-dashboards > /dev/null && echo OK`
 Expected: `OK`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add k3d/monitoring/grafana-dashboards/log-explorer.json k3d/monitoring/grafana-dashboards/kustomization.yaml
@@ -758,7 +758,7 @@ git commit -m "feat(logging): grafana log-explorer dashboard [T000964]"
 - Create: `k3d/monitoring/grafana-dashboards/api-errors.json`
 - Modify: `k3d/monitoring/grafana-dashboards/kustomization.yaml`
 
-- [ ] **Step 1: Create the dashboard JSON**
+- [x] **Step 1: Create the dashboard JSON**
 
 Create `k3d/monitoring/grafana-dashboards/api-errors.json` (structure mirrors Task 9). Panels:
 - Table: top-10 failed endpoints — `topk(10, sum by (path) (count_over_time({app="website", level="error"} | json | path != "" [1h])))`.
@@ -770,7 +770,7 @@ Validate:
 cd /tmp/wt-centralized-logging && python3 -m json.tool k3d/monitoring/grafana-dashboards/api-errors.json > /dev/null && echo OK
 ```
 
-- [ ] **Step 2: Wire the configMapGenerator**
+- [x] **Step 2: Wire the configMapGenerator**
 
 Append to `k3d/monitoring/grafana-dashboards/kustomization.yaml`:
 
@@ -783,7 +783,7 @@ Append to `k3d/monitoring/grafana-dashboards/kustomization.yaml`:
         grafana_dashboard: "1"
 ```
 
-- [ ] **Step 3: Validate + commit**
+- [x] **Step 3: Validate + commit**
 
 ```bash
 cd /tmp/wt-centralized-logging && kustomize build k3d/monitoring/grafana-dashboards > /dev/null && echo OK
@@ -799,7 +799,7 @@ git commit -m "feat(logging): grafana api-errors dashboard [T000964]"
 - Create: `k3d/monitoring/grafana-dashboards/traefik-access.json`
 - Modify: `k3d/monitoring/grafana-dashboards/kustomization.yaml`
 
-- [ ] **Step 1: Create the dashboard JSON**
+- [x] **Step 1: Create the dashboard JSON**
 
 Create `k3d/monitoring/grafana-dashboards/traefik-access.json`. Panels (data from Traefik JSON access logs collected via container=traefik):
 - HTTP status distribution (2xx/3xx/4xx/5xx) over time — `sum by (DownstreamStatus) (count_over_time({container="traefik"} | json [5m]))` (use the Traefik JSON field name, e.g. `DownstreamStatus`).
@@ -811,7 +811,7 @@ Validate:
 cd /tmp/wt-centralized-logging && python3 -m json.tool k3d/monitoring/grafana-dashboards/traefik-access.json > /dev/null && echo OK
 ```
 
-- [ ] **Step 2: Wire the configMapGenerator**
+- [x] **Step 2: Wire the configMapGenerator**
 
 ```yaml
   - name: grafana-dashboard-traefik-access
@@ -822,7 +822,7 @@ cd /tmp/wt-centralized-logging && python3 -m json.tool k3d/monitoring/grafana-da
         grafana_dashboard: "1"
 ```
 
-- [ ] **Step 3: Validate + commit**
+- [x] **Step 3: Validate + commit**
 
 ```bash
 cd /tmp/wt-centralized-logging && kustomize build k3d/monitoring/grafana-dashboards > /dev/null && echo OK
@@ -838,7 +838,7 @@ git commit -m "feat(logging): grafana traefik-access dashboard [T000964]"
 - Create: `k3d/monitoring/grafana-dashboards/keycloak-audit.json`
 - Modify: `k3d/monitoring/grafana-dashboards/kustomization.yaml`
 
-- [ ] **Step 1: Create the dashboard JSON**
+- [x] **Step 1: Create the dashboard JSON**
 
 Create `k3d/monitoring/grafana-dashboards/keycloak-audit.json`. Panels (data from Keycloak JSON logs, Task 8):
 - Login successes vs failures over time — Loki queries filtering Keycloak event JSON (`{app="keycloak"} | json | type=~"LOGIN.*"`).
@@ -850,7 +850,7 @@ Validate:
 cd /tmp/wt-centralized-logging && python3 -m json.tool k3d/monitoring/grafana-dashboards/keycloak-audit.json > /dev/null && echo OK
 ```
 
-- [ ] **Step 2: Wire the configMapGenerator**
+- [x] **Step 2: Wire the configMapGenerator**
 
 ```yaml
   - name: grafana-dashboard-keycloak-audit
@@ -861,7 +861,7 @@ cd /tmp/wt-centralized-logging && python3 -m json.tool k3d/monitoring/grafana-da
         grafana_dashboard: "1"
 ```
 
-- [ ] **Step 3: Validate the full monitoring build + commit**
+- [x] **Step 3: Validate the full monitoring build + commit**
 
 ```bash
 cd /tmp/wt-centralized-logging && kustomize build k3d/monitoring > /dev/null && echo OK
@@ -875,22 +875,22 @@ git commit -m "feat(logging): grafana keycloak-audit dashboard [T000964]"
 
 **Files:** none (verification + generated-artifact regeneration only).
 
-- [ ] **Step 1: Targeted tests for changed domains**
+- [x] **Step 1: Targeted tests for changed domains**
 
 Run: `cd /tmp/wt-centralized-logging && task test:changed`
 Expected: vitest (website), BATS selection, and `quality:check` (S1–S4 ratchet) all pass.
 
-- [ ] **Step 2: Regenerate freshness artifacts**
+- [x] **Step 2: Regenerate freshness artifacts**
 
 Run: `cd /tmp/wt-centralized-logging && task freshness:regenerate`
 Expected: regenerates test-inventory, repo-index, etc. Commit any changes it produces.
 
-- [ ] **Step 3: Freshness + quality gate (CI equivalent)**
+- [x] **Step 3: Freshness + quality gate (CI equivalent)**
 
 Run: `cd /tmp/wt-centralized-logging && task freshness:check`
 Expected: green — freshness + `quality:check` (S1–S4) + baseline key-count assertion all pass. If a new file trips S1, split it (do NOT add a baseline entry).
 
-- [ ] **Step 4: Test inventory (only if tests changed)**
+- [x] **Step 4: Test inventory (only if tests changed)**
 
 Since this plan adds tests (`logger.test.ts`, `logging.test.ts`, `_error-contract.test.ts`), regenerate and commit the inventory:
 ```bash
@@ -899,12 +899,12 @@ git add website/src/data/test-inventory.json
 git commit -m "chore(test): regenerate test-inventory for logging tests [T000964]"
 ```
 
-- [ ] **Step 5: OpenSpec validation**
+- [x] **Step 5: OpenSpec validation**
 
 Run: `cd /tmp/wt-centralized-logging && bash scripts/openspec.sh validate`
 Expected: the `centralized-logging` change tree validates clean.
 
-- [ ] **Step 6: Final commit (if anything from regenerate is uncommitted)**
+- [x] **Step 6: Final commit (if anything from regenerate is uncommitted)**
 
 ```bash
 cd /tmp/wt-centralized-logging && git status --porcelain

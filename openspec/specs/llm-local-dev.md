@@ -239,7 +239,7 @@ The system SHALL expose the dev MCP monolith at `https://mcp.<DEV_DOMAIN>/{servi
 ---
 
 ### Requirement: LM Studio / Local-First LLM Integration
-<!-- e2e: fa-39-lmstudio-integration.spec.ts -->
+<!-- e2e: fa-55-lmstudio-integration.spec.ts -->
 
 The system SHALL provide a working local-LLM coaching AI endpoint that responds within 30 seconds and does not use Anthropic cloud APIs.
 

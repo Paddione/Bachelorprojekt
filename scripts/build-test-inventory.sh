@@ -50,11 +50,25 @@ for f in "${REPO_ROOT}"/tests/e2e/specs/*.spec.ts; do
 done
 
 TMP_OUT=$(mktemp)
-if printf '%s\n' "${entries[@]}" | jq -s '
-  . as $orig | group_by({id, kind, tier}) | map(select(length > 1 and .[0].kind != "playwright")) as $dupes
+if printf '%s\n' "${entries[@]}" | jq -s --argjson allowPlaywrightDupes false '
+  . as $orig
+  # Per-(id, kind, tier) duplicate check:
+  #   - local + prod are distinct tiers, so the same id may have a shell test in each.
+  #   - shell/BATS may appear at most once per (id, tier).
+  #   - playwright may appear at most once per (id, tier) — if a feature needs a second
+  #     e2e file in the same tier, renumber to a fresh FA-/SA-/NFA-/AK-id.
+  | (group_by({id: .id, kind: .kind, tier: .tier})
+     | map(select(length > 1
+                  or ((.[0].kind == "playwright") and (length > 1) and ($allowPlaywrightDupes == false)))))
+    as $dupes
   | if ($dupes | length) > 0 then
-      "Error: Duplicate test IDs found in inventory:\n" +
-      ($dupes | map(map("  - " + .id + " [" + .kind + "/" + .tier + "] (" + .file + ")") | join("\n")) | join("\n")) + "\n"
+      ("Error: Duplicate test IDs found in inventory (each (id, kind, tier) must appear once):\n"
+       + (reduce $dupes[] as $g ("";
+            . + "  - " + $g[0].id + " [" + $g[0].kind + "/" + $g[0].tier + "] (" + ($g | length | tostring) + " files)\n"
+              + (reduce $g[] as $e ("";
+                  . + "      " + $e.file + "\n"))
+           ))
+       )
       | halt_error(1)
     else
       # Strip the temporary tier field before writing to JSON to keep the schema clean

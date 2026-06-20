@@ -115,7 +115,7 @@ The system SHALL re-serve the form from the stored `source_file` path when `rege
 ---
 
 ### Requirement: Auth-Gating für Admin-Coaching-Sessions-UI
-<!-- e2e: fa-39-coaching-sessions.spec.ts -->
+<!-- e2e: fa-54-coaching-sessions.spec.ts -->
 
 The system SHALL redirect unauthenticated requests away from `/admin/coaching/sessions` and `/admin/coaching/sessions/new`, and SHALL return HTTP 401 or 403 for unauthenticated API calls.
 
@@ -146,7 +146,7 @@ The system SHALL redirect unauthenticated requests away from `/admin/coaching/se
 ---
 
 ### Requirement: Seitenstruktur der Coaching-Sessions-Verwaltung
-<!-- e2e: fa-39-coaching-sessions.spec.ts -->
+<!-- e2e: fa-54-coaching-sessions.spec.ts -->
 
 The system SHALL render the sessions overview with a heading "Coaching-Sessions" and a visible link to create a new session, and the new-session form SHALL expose all required input fields.
 

@@ -1,8 +1,8 @@
-// tests/e2e/specs/fa-30-systemtest-failure-loop.spec.ts
+// tests/e2e/specs/fa-53-systemtest-failure-loop.spec.ts
 //
-// FA-30 — System-test failure loop (Task 7 deliverable).
+// FA-53 — System-test failure loop (Task 7 deliverable).
 //
-// FA-30 v1 verifies the kanban renders. Full loop verification (seed →
+// FA-53 v1 verifies the kanban renders. Full loop verification (seed →
 // fail mark → ticket → retest) is deferred until tests/e2e/ has a
 // fixture-seeding hook — there is no clean way to insert a system-test
 // assignment from outside the test process today, and using the public
@@ -41,7 +41,7 @@ async function loginAsAdmin(page: import('@playwright/test').Page) {
   await page.waitForURL(/\/admin\/systemtest\/board/, { timeout: 20_000 });
 }
 
-test.describe('FA-30: System-test failure loop kanban', () => {
+test.describe('FA-53: System-test failure loop kanban', () => {
   test('T1: /admin/systemtest/board redirects unauthenticated users to login', async ({ page }) => {
     await page.goto(`${BASE}/admin/systemtest/board`);
     // Expect either Keycloak (if SITE_URL/login configured) or the local

@@ -77,10 +77,10 @@ export default defineConfig({
         '**/fa-admin-inbox-delete.spec.ts',     // Löschen escape hatch (2026-05-09)
         '**/fa-admin-live.spec.ts',  // unified live cockpit
         '**/fa-29-*.spec.ts',                   // Projekt-Cockpit E2E (T000752)
-        '**/fa-30-systemtest-failure-loop.spec.ts',  // system-test failure kanban (Task 7)
-        '**/fa-39-coaching-sessions.spec.ts',        // coaching session wizard + auth gates (PR #826)
-        '**/fa-39-lmstudio-integration.spec.ts',     // LM Studio / local-first LLM generate smoke test
-        '**/fa-40-admin-assets.spec.ts',            // central asset management (PR #884)
+        '**/fa-53-systemtest-failure-loop.spec.ts',  // system-test failure kanban (Task 7)
+        '**/fa-54-coaching-sessions.spec.ts',        // coaching session wizard + auth gates (PR #826)
+        '**/fa-55-lmstudio-integration.spec.ts',     // LM Studio / local-first LLM generate smoke test
+        '**/fa-56-admin-assets.spec.ts',            // central asset management (PR #884)
         '**/fa-41-admin-hub.spec.ts',               // unified admin hub (PR #883)
         '**/fa-43-ticket-widget.spec.ts',           // TicketWidgetBar showEdit fix + portal widget regression
         '**/fa-44-platform-health-integrity.spec.ts', // Platform Hub health API — single-cluster probe + Collabora namespace fix
@@ -274,7 +274,7 @@ export default defineConfig({
       name: 'smoke',
       testMatch: [
         '**/integration-smoke.spec.ts',
-        '**/fa-30-arena-banner.spec.ts',      // cross-brand arena banner
+        '**/fa-52-arena-banner.spec.ts',      // cross-brand arena banner
         '**/fa-38-arena-game-client.spec.ts', // game client lobby flow
       ],
       use: {

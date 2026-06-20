@@ -6,7 +6,7 @@ const ADMIN_USER  = process.env.E2E_ADMIN_USER ?? 'paddione';
 const ADMIN_PASS  = process.env.E2E_ADMIN_PASS;
 
 /**
- * FA-39: Coaching-Sessions — Grundfunktionen
+ * FA-54: Coaching-Sessions — Grundfunktionen
  *
  * Prüft: Zugriffskontrolle, Seitenstruktur, Session-Anlage, Wizard-Schritte,
  * Skip-Navigation und Session-Meta-Bearbeitung.
@@ -23,7 +23,7 @@ async function loginAsAdmin(page: import('@playwright/test').Page, returnTo = '/
   await page.waitForURL(url => url.toString().startsWith(BASE), { timeout: 60_000 });
 }
 
-test.describe('FA-39: Coaching-Sessions', () => {
+test.describe('FA-54: Coaching-Sessions', () => {
 
   // ── Auth-Gating ─────────────────────────────────────────────────────────────
   test('T1: /admin/coaching/sessions requires authentication', async ({ page }) => {
@@ -83,7 +83,7 @@ test.describe('FA-39: Coaching-Sessions', () => {
     test('T7: wizard shows 10 step buttons in the progress bar', async ({ page }) => {
       await loginAsAdmin(page, '/admin/coaching/sessions/new');
       await page.waitForURL(/\/new$/, { timeout: 20_000 });
-      await page.locator('#title').fill(`FA-39 E2E ${Date.now()}`);
+      await page.locator('#title').fill(`FA-54 E2E ${Date.now()}`);
       await page.locator('#submit-btn').click();
       await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
 
@@ -96,7 +96,7 @@ test.describe('FA-39: Coaching-Sessions', () => {
     test('T8: wizard step 1 shows Erstanamnese with required inputs and disabled KI button', async ({ page }) => {
       await loginAsAdmin(page, '/admin/coaching/sessions/new');
       await page.waitForURL(/\/new$/, { timeout: 20_000 });
-      await page.locator('#title').fill(`FA-39 E2E T8 ${Date.now()}`);
+      await page.locator('#title').fill(`FA-54 E2E T8 ${Date.now()}`);
       await page.locator('#submit-btn').click();
       await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
 
@@ -109,7 +109,7 @@ test.describe('FA-39: Coaching-Sessions', () => {
     test('T9: KI button enables when required fields are filled', async ({ page }) => {
       await loginAsAdmin(page, '/admin/coaching/sessions/new');
       await page.waitForURL(/\/new$/, { timeout: 20_000 });
-      await page.locator('#title').fill(`FA-39 E2E T9 ${Date.now()}`);
+      await page.locator('#title').fill(`FA-54 E2E T9 ${Date.now()}`);
       await page.locator('#submit-btn').click();
       await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
 
@@ -121,7 +121,7 @@ test.describe('FA-39: Coaching-Sessions', () => {
     test('T10: skip advances wizard to the next step', async ({ page }) => {
       await loginAsAdmin(page, '/admin/coaching/sessions/new');
       await page.waitForURL(/\/new$/, { timeout: 20_000 });
-      await page.locator('#title').fill(`FA-39 E2E T10 ${Date.now()}`);
+      await page.locator('#title').fill(`FA-54 E2E T10 ${Date.now()}`);
       await page.locator('#submit-btn').click();
       await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
 
@@ -133,7 +133,7 @@ test.describe('FA-39: Coaching-Sessions', () => {
     test('T11: back button returns to previous step', async ({ page }) => {
       await loginAsAdmin(page, '/admin/coaching/sessions/new');
       await page.waitForURL(/\/new$/, { timeout: 20_000 });
-      await page.locator('#title').fill(`FA-39 E2E T11 ${Date.now()}`);
+      await page.locator('#title').fill(`FA-54 E2E T11 ${Date.now()}`);
       await page.locator('#submit-btn').click();
       await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
 
@@ -144,7 +144,7 @@ test.describe('FA-39: Coaching-Sessions', () => {
     });
 
     test('T12: session-info box shows title and edit button', async ({ page }) => {
-      const title = `FA-39 Meta ${Date.now()}`;
+      const title = `FA-54 Meta ${Date.now()}`;
       await loginAsAdmin(page, '/admin/coaching/sessions/new');
       await page.waitForURL(/\/new$/, { timeout: 20_000 });
       await page.locator('#title').fill(title);

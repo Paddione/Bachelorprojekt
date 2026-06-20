@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-06-19T23:18:47.477Z
+> Generated at 2026-06-20T05:31:41.521Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -248,11 +248,6 @@
 | `/api/admin/questionnaires/templates/{id}` | GET, PUT, DELETE | 🔐 admin | `website/src/pages/api/admin/questionnaires/templates/[id].ts` |
 | `/api/admin/rechtliches/save` | POST | 🔐 admin | `website/src/pages/api/admin/rechtliches/save.ts` |
 | `/api/admin/referenzen/save` | POST | 🔐 admin | `website/src/pages/api/admin/referenzen/save.ts` |
-| `/api/admin/rooms` | GET, POST | 🔐 admin | `website/src/pages/api/admin/rooms.ts` |
-| `/api/admin/rooms/{id}` | GET, PUT, POST | 🔐 admin | `website/src/pages/api/admin/rooms/[id].ts` |
-| `/api/admin/rooms/{id}/members` | POST | 🔐 admin | `website/src/pages/api/admin/rooms/[id]/members.ts` |
-| `/api/admin/rooms/{id}/share` | POST | 🔐 admin | `website/src/pages/api/admin/rooms/[id]/share.ts` |
-| `/api/admin/rooms/direct` | POST | 🔐 admin | `website/src/pages/api/admin/rooms/direct.ts` |
 | `/api/admin/seo` | GET | 🔐 admin | `website/src/pages/api/admin/seo/index.ts` |
 | `/api/admin/seo/pages` | GET | 🔐 admin | `website/src/pages/api/admin/seo/pages.ts` |
 | `/api/admin/seo/save` | POST | 🔐 admin | `website/src/pages/api/admin/seo/save.ts` |

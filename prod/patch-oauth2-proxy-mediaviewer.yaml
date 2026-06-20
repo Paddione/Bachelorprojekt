@@ -31,6 +31,8 @@ spec:
             - "--pass-authorization-header=true"
             - "--set-xauthrequest=true"
             - "--skip-provider-button=true"
+            - "--skip-auth-route=^/embed\\.html$"
+            - "--skip-auth-route=^/assets/"
             - "--code-challenge-method=S256"
             - "--insecure-oidc-allow-unverified-email=true"
             - "--oidc-extra-audience=mediaviewer-widget"

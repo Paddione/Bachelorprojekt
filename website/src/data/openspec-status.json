@@ -56,5 +56,11 @@
       "slug": "openspec-ticket-detail-view",
       "status": "plan_staged"
     }
+  ],
+  "T000964": [
+    {
+      "slug": "centralized-logging",
+      "status": "plan_staged"
+    }
   ]
 }

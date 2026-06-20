@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.114.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.113.1...website-v1.114.0) (2026-06-20)
+
+
+### Features
+
+* **website:** homepage redesign (B-Workstream) [T001002] ([#1966](https://github.com/Paddione/Bachelorprojekt/issues/1966)) ([256592e](https://github.com/Paddione/Bachelorprojekt/commit/256592e5341ac6d5582cf88d71505974e59fc5e9))
+
 ## [1.113.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.113.0...website-v1.113.1) (2026-06-20)
 
 

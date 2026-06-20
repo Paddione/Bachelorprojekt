@@ -3365,7 +3365,7 @@
       "id": "assets",
       "name": "Design + art-library assets",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 474,
+      "file_count": 475,
       "files": [
         "art-library/README.md",
         "art-library/_tooling/extract-from-handoff.mjs",
@@ -3503,6 +3503,7 @@
         "art-library/sets/mentolder/styles/website.css",
         "art-library/sets/mentolder/ui_kits/website/README.md",
         "art-library/sets/mentolder/ui_kits/website/index.html",
+        "assets/Mentolder/INVENTORY.md",
         "assets/arena/hud-frame.svg",
         "assets/arena/pickup-shield.svg",
         "assets/arena/pickup-speed.svg",

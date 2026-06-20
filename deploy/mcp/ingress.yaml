@@ -81,15 +81,6 @@ spec:
         - name: claude-code-mcp-monolith
           port: 3001
 
-    # ── Keycloak MCP (SSE transport) ──────────────────────────────
-    - kind: Rule
-      match: Host(`mcp.mentolder.de`) && PathPrefix(`/keycloak`)
-      middlewares:
-        - name: mcp-chain
-      services:
-        - name: claude-code-mcp-monolith
-          port: 8081
-
     # ── Browser MCP (Playwright) ──────────────────────────────────
     - kind: Rule
       match: Host(`mcp.mentolder.de`) && PathPrefix(`/browser`)

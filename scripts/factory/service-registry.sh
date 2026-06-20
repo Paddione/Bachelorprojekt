@@ -46,7 +46,6 @@ declare -A SERVICE_REGISTRY=(
   [k3d/traefik-dashboard-dev.yaml]="traefik"
   [k3d/ingress.yaml]="traefik"
   [k3d/claude-code-config.yaml]="claude-code"
-  [k3d/claude-code-mcp-auth.yaml]="claude-code"
   [k3d/claude-code-mcp-browser.yaml]="claude-code"
   [k3d/claude-code-mcp-github.yaml]="claude-code"
   [k3d/claude-code-mcp-ops.yaml]="claude-code"

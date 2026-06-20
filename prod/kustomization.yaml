@@ -176,24 +176,6 @@ patches:
       metadata:
         name: claude-code-mcp-ops
       $patch: delete
-  - target:
-      kind: Deployment
-      name: claude-code-mcp-auth
-    patch: |
-      apiVersion: apps/v1
-      kind: Deployment
-      metadata:
-        name: claude-code-mcp-auth
-      $patch: delete
-  - target:
-      kind: Service
-      name: claude-code-mcp-auth
-    patch: |
-      apiVersion: v1
-      kind: Service
-      metadata:
-        name: claude-code-mcp-auth
-      $patch: delete
   # Override domains
   - path: configmap-domains.yaml
   # Override ingress (add TLS + real hostnames)

@@ -10,7 +10,6 @@ Tabelle zu duplizieren. Die MCP-Server laufen via `scripts/mcp-portforward.sh` (
 |---|---|---|---|
 | `mcp-postgres` | `http://localhost:13001/mcp` | `mcp__mcp-postgres__query` (Param: `sql`) | **Read-only** SQL (SELECT) als `website`-User — Ticket-Pool, staged-plans, planning-Count, Timeline-Reads |
 | `mcp-kubernetes` | `http://localhost:18080/sse` | `mcp__mcp-kubernetes__*` | Strukturierte k8s-Status-/Read-Operationen (Pods, Logs, Describe) |
-| `mcp-keycloak` | `http://localhost:18081/mcp` | `mcp__mcp-keycloak__executeKeycloakOperation` (Params: `operation`, `params`) | Realm-/Client-/User-/Group-Operationen (z. B. `GET_REALMS`, `GET_CLIENTS`) |
 
 > **`mcp__mcp-postgres__query` ist READ-ONLY und nimmt NUR `sql`.** Kein `connectionString`-Argument
 > — die Verbindung ist serverseitig fest (`localhost:13001`, siehe `.mcp.json`). INSERT/UPDATE/DELETE
@@ -36,7 +35,7 @@ der Cluster-Kontext nicht gesetzt → **kubectl-Fallback** (der jeweilige `psql`
 **MCP bevorzugen** (wenn Guard = erreichbar):
 - Read-only SELECTs gegen `tickets.*`, `knowledge.*`, `v_timeline` → `mcp__mcp-postgres__query`
 - k8s-Status/Read (Pod-Liste, Logs, Describe) → `mcp__mcp-kubernetes__*`
-- Keycloak-Realm-/Client-/User-Reads → `mcp__mcp-keycloak__executeKeycloakOperation`
+
 
 **Bleibt kubectl (Pflicht, kein MCP-Äquivalent / fehlende Rechte):**
 - **DDL als `postgres`-Superuser** auf den Schemas `bachelorprojekt`, `coaching`, `knowledge`

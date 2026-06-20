@@ -2,7 +2,7 @@
 title: "Cockpit Direct Ticket Links"
 date: 2026-06-20
 slug: cockpit-direct-ticket-links
-ticket_id: null
+ticket_id: T000968
 plan_ref: null
 status: draft
 areas:

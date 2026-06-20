@@ -127,26 +127,28 @@
     {matched.length} sichtbar · {activeCount} aktiv · {doneCount} erledigt
   </p>
 
-  <div class="row-header" data-testid="table-header" role="row" aria-hidden="true">
-    <span></span><span></span><span>ID</span><span>Titel</span>
-    <span>Status</span><span class="col-prio">Priorität</span>
-    <span class="col-date">Erstellt</span><span class="col-openspec">OpenSpec</span>
-  </div>
+  <div class="table-scroll-container">
+    <div class="row-header" data-testid="table-header" role="row" aria-hidden="true">
+      <span></span><span></span><span>ID</span><span>Titel</span>
+      <span>Status</span><span class="col-prio">Priorität</span>
+      <span class="col-date">Erstellt</span><span class="col-openspec">OpenSpec</span>
+    </div>
 
-  <div class="rows">
-    {#each visible as t (t.id)}
-      <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-      <div role="listitem" on:keydown={(e) => onRowKey(e, t.id)}
-           on:dragover|preventDefault on:drop={() => onDrop(t.id)}>
-        <TicketRow ticket={t} busy={busy[t.id]}
-          selected={$cockpitStore.selectedTickets.has(t.id)}
-          onStatusChange={(d) => patchStatus(d.id, d.status)}
-          onPriorityChange={(d) => patchPriority(d.id, d.priority)}
-          onSelectToggle={(d) => toggleTicketSelection(d.id)}
-          onDragStart={(d) => onDragStart(d.id)} />
-      </div>
-    {/each}
-    {#if visible.length === 0}<p class="empty">Keine Tickets</p>{/if}
+    <div class="rows">
+      {#each visible as t (t.id)}
+        <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+        <div role="listitem" on:keydown={(e) => onRowKey(e, t.id)}
+             on:dragover|preventDefault on:drop={() => onDrop(t.id)}>
+          <TicketRow ticket={t} busy={busy[t.id]}
+            selected={$cockpitStore.selectedTickets.has(t.id)}
+            onStatusChange={(d) => patchStatus(d.id, d.status)}
+            onPriorityChange={(d) => patchPriority(d.id, d.priority)}
+            onSelectToggle={(d) => toggleTicketSelection(d.id)}
+            onDragStart={(d) => onDragStart(d.id)} />
+        </div>
+      {/each}
+      {#if visible.length === 0}<p class="empty">Keine Tickets</p>{/if}
+    </div>
   </div>
 
   {#if matched.length > limit}
@@ -165,6 +167,7 @@
 
 <style>
   .cockpit-table { display: flex; flex-direction: column; gap: 0.5rem; min-height: 0; }
+  .table-scroll-container { overflow-x: auto; width: 100%; }
   .toolbar { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
   .search { flex: 1 1 180px; min-width: 140px; background: var(--admin-bg, #1c1f26);
     border: 1px solid var(--admin-border, #2a2e37); color: inherit; border-radius: 6px; padding: 0.4rem 0.6rem; }

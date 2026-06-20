@@ -1,6 +1,7 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import Cockpit from '../../components/admin/Cockpit.svelte';
+import '../../styles/mobile-cockpit.css';
 import AdminPageHeader from '../../components/admin/ui/AdminPageHeader.svelte';
 import { getSession, isAdmin } from '../../lib/auth';
 import { getPortfolio } from '../../lib/tickets/cockpit-db';
@@ -26,5 +27,7 @@ try {
       description="Ticket-Board, Bugs und Factory-Übersicht"
     />
   </div>
-  <Cockpit {portfolioInitial} {brand} client:load />
+  <div class="cockpit-container" style="width: 100%;">
+    <Cockpit {portfolioInitial} {brand} client:load />
+  </div>
 </AdminLayout>

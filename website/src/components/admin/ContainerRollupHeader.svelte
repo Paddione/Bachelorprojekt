@@ -8,7 +8,7 @@
   const healthColor: Record<string, string> = { green: '#34d399', amber: '#fbbf24', red: '#f87171' };
 </script>
 
-<div class="bg-dark-light rounded-2xl border border-dark-lighter p-6">
+<div class="bg-dark-light rounded-2xl border border-dark-lighter p-6 rollup-header">
   <div class="flex items-center gap-3 mb-3">
     <span class="inline-block w-3 h-3 rounded-full" style={`background:${healthColor[rollup.health] ?? '#fbbf24'}`} aria-hidden="true"></span>
     <span class="text-sm font-semibold text-light font-serif uppercase tracking-wide">Fortschritt</span>

@@ -59,7 +59,7 @@
   <span class="handle" draggable="true" role="button" tabindex="0" aria-label="Reorder (Shift+Up/Down)"
     on:dragstart={handleDragStart}>⋮⋮</span>
   <code class="ext ticket-col-id">{ticket.extId}</code>
-  <a class="title-link" href="/admin/tickets/{ticket.id}">{ticket.title}</a>
+  <a class="title-link cockpit-ticket-title" href="/admin/tickets/{ticket.id}" title={ticket.title}>{ticket.title}</a>
   <select data-testid="status-select" value={ticket.status} on:change={handleStatus} disabled={busy}>
     {#each STATUSES as s}<option value={s}>{statusLabel(s)}</option>{/each}
   </select>

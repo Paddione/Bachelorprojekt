@@ -8,9 +8,12 @@
   import CockpitTable from './CockpitTable.svelte';
   import TicketCreateModal from './TicketCreateModal.svelte';
   import EmptyStateCockpit from './EmptyStateCockpit.svelte';
+  import MobileToggle from './Cockpit/MobileToggle.svelte';
 
   export let portfolioInitial: PortfolioPayload | null = null;
   export let brand: string;
+
+  let sidekickOpen = false;
 
   let portfolio: PortfolioPayload | null = portfolioInitial;
   let featureData: FeatureTickets | null = null;
@@ -54,11 +57,16 @@
       if (extId) loadFeature(extId);
     };
     const onPortfolioMutated = () => loadPortfolio();
+    const onToggleSidekick = () => {
+      sidekickOpen = !sidekickOpen;
+    };
     window.addEventListener('cockpit:feature-selected', onFeatureSelected);
     window.addEventListener('cockpit:portfolio-mutated', onPortfolioMutated);
+    window.addEventListener('cockpit:toggle-sidekick', onToggleSidekick);
     return () => {
       window.removeEventListener('cockpit:feature-selected', onFeatureSelected);
       window.removeEventListener('cockpit:portfolio-mutated', onPortfolioMutated);
+      window.removeEventListener('cockpit:toggle-sidekick', onToggleSidekick);
     };
   });
 
@@ -115,7 +123,8 @@
   }
 </script>
 
-<div class="cockpit-shell" data-brand={brand}>
+<div class="cockpit-shell" data-brand={brand} data-container="cockpit">
+  <MobileToggle open={sidekickOpen} onToggle={() => (sidekickOpen = !sidekickOpen)} />
   {#if $cockpitStore.error}
     <div class="toast error">
       {$cockpitStore.error}

@@ -114,29 +114,7 @@ Setzt einen fertigen Plan um und öffnet einen Pull Request.
 
 **Schutzregeln (Guardrails):** Erst ziehen, dann arbeiten (G-PULL-FIRST), Nie direkt auf main (G-PR-NOT-MAIN)
 
-**Verwandt:** [[dev-flow-plan]], [[dev-flow-iterate]]
-
-## Dev-Iterations-Skill (dev-flow-iterate)
-
-**Skill** · 🟡 **Vorsicht**
-
-Deployt Änderungen ins Dev-Cluster und zeigt Logs – zum schnellen Ausprobieren.
-
-**Wofür?** Shortcut für 'deploy + Logs ansehen + debuggen' im lokalen Dev-Cluster (dev.mentolder.de).
-
-**So startest du:** Nutze ihn nach dev-flow-execute, wenn du etwas im Dev-Cluster live sehen willst.
-
-**Was schiefgehen kann:** Deployment schlägt fehl; Logs zeigen den Fehler. ENV= muss auf dev zeigen.
-
-**Du kannst diesen Prompt kopieren und in Claude Code einfügen:**
-
-```text
-/dev-flow-iterate – deploye ins Dev-Cluster und zeig mir die Logs.
-```
-
-**Schutzregeln (Guardrails):** ENV immer explizit setzen (G-ENV-EXPLICIT), Kubectl-Kontext prüfen (G-CONTEXT-CHECK)
-
-**Verwandt:** [[dev-flow-execute]], [[dev-flow-e2e]]
+**Verwandt:** [[dev-flow-plan]]
 
 ## E2E-Test-Skill (dev-flow-e2e)
 
@@ -158,7 +136,7 @@ Schreibt und führt End-to-End-Tests gegen die Live-Umgebung nach einem Merge au
 
 **Schutzregeln (Guardrails):** ENV immer explizit setzen (G-ENV-EXPLICIT)
 
-**Verwandt:** [[dev-flow-iterate]]
+**Verwandt:** [[dev-flow-execute]]
 
 ## Task-Orakel (task-oracle)
 

@@ -997,8 +997,7 @@
         }
       ],
       "related": [
-        "dev-flow-plan",
-        "dev-flow-iterate"
+        "dev-flow-plan"
       ],
       "links": [],
       "theme": "entwickeln",
@@ -1015,50 +1014,6 @@
         "pr-ci"
       ],
       "init_prompt_de": "/dev-flow-execute – setze den fertigen Plan um und öffne einen PR."
-    },
-    {
-      "id": "dev-flow-iterate",
-      "name_de": "Dev-Iterations-Skill (dev-flow-iterate)",
-      "kind": "skill",
-      "kind_de": "Fertigkeit",
-      "summary_de": "Deployt Änderungen ins Dev-Cluster und zeigt Logs – zum schnellen Ausprobieren.",
-      "what_for_de": "Shortcut für 'deploy + Logs ansehen + debuggen' im lokalen Dev-Cluster (dev.mentolder.de).",
-      "how_to_start_de": "Nutze ihn nach dev-flow-execute, wenn du etwas im Dev-Cluster live sehen willst.",
-      "what_could_go_wrong_de": "Deployment schlägt fehl; Logs zeigen den Fehler. ENV= muss auf dev zeigen.",
-      "danger": "caution",
-      "guardrails": [
-        {
-          "id": "G-ENV-EXPLICIT",
-          "name_de": "ENV immer explizit setzen",
-          "rule_de": "Bei jedem Deploy/Cluster-Befehl ENV= ausdrücklich angeben (z. B. ENV=mentolder).",
-          "why_de": "Ohne ENV= wird 'dev' angenommen und der Befehl trifft heimlich die falsche Umgebung."
-        },
-        {
-          "id": "G-CONTEXT-CHECK",
-          "name_de": "Kubectl-Kontext prüfen",
-          "rule_de": "Vor jeder Cluster-Aktion prüfen, auf welchen Cluster (Kontext) du gerade zeigst.",
-          "why_de": "Der aktive Kontext könnte ein anderer Cluster sein als gedacht."
-        }
-      ],
-      "related": [
-        "dev-flow-execute",
-        "dev-flow-e2e"
-      ],
-      "links": [],
-      "theme": "entwickeln",
-      "aliases_de": [
-        "dev",
-        "iterieren",
-        "ausprobieren",
-        "dev-cluster"
-      ],
-      "common": false,
-      "order": 999,
-      "stages": [
-        "code",
-        "deploy"
-      ],
-      "init_prompt_de": "/dev-flow-iterate – deploye ins Dev-Cluster und zeig mir die Logs."
     },
     {
       "id": "dev-flow-e2e",
@@ -1079,7 +1034,7 @@
         }
       ],
       "related": [
-        "dev-flow-iterate"
+        "dev-flow-execute"
       ],
       "links": [],
       "theme": "testen",
@@ -1923,7 +1878,6 @@
         "toolIds": [
           "dev-flow-chore",
           "dev-flow-execute",
-          "dev-flow-iterate",
           "factory",
           "factory-dispatch"
         ]
@@ -1965,7 +1919,6 @@
           "factory-autopilot"
         ],
         "toolIds": [
-          "dev-flow-iterate",
           "agent-infra",
           "factory",
           "factory-dispatch"

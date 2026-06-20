@@ -42,9 +42,11 @@ Ziele/Werkzeuge sie referenzieren (transitiv) — also ggf. unter mehreren Stufe
 - `dev-flow-chore` — Wartungs-Skill (dev-flow-chore)
 - `dev-flow-e2e` — E2E-Test-Skill (dev-flow-e2e)
 - `dev-flow-execute` — Umsetzungs-Skill (dev-flow-execute)
+- `dev-flow-iterate` — Dev-Iterations-Skill (dev-flow-iterate)
 - `dev-flow-plan` — Planungs-Skill (dev-flow-plan)
 
 **Guardrails (transitiv):**
+- `G-CONTEXT-CHECK` — Kubectl-Kontext prüfen
 - `G-ENV-EXPLICIT` — ENV immer explizit setzen
 - `G-PR-NOT-MAIN` — Nie direkt auf main
 - `G-PULL-FIRST` — Erst ziehen, dann arbeiten

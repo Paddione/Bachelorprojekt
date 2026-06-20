@@ -13,6 +13,7 @@ Die Tier-Emojis (🟢🟡🟠🔴) sind in `danger-map.md` erklärt.
 | dev-flow-chore | Wartungs-Skill (dev-flow-chore) | skill | 🟡 Vorsicht | Erledigt Wartung ohne Verhaltensänderung in einem Rutsch und mergt sie. | G-PR-NOT-MAIN, G-PULL-FIRST | /dev-flow-chore – erledige diese Wartung und merge sie. |
 | dev-flow-e2e | E2E-Test-Skill (dev-flow-e2e) | skill | 🟡 Vorsicht | Schreibt und führt End-to-End-Tests gegen die Live-Umgebung nach einem Merge aus. | G-ENV-EXPLICIT | /dev-flow-e2e – schreibe und führe E2E-Tests gegen die Live-Umgebung aus. |
 | dev-flow-execute | Umsetzungs-Skill (dev-flow-execute) | skill | 🟡 Vorsicht | Setzt einen fertigen Plan um und öffnet einen Pull Request. | G-PR-NOT-MAIN, G-PULL-FIRST | /dev-flow-execute – setze den fertigen Plan um und öffne einen PR. |
+| dev-flow-iterate | Dev-Iterations-Skill (dev-flow-iterate) | skill | 🟡 Vorsicht | Deployt Änderungen ins Dev-Cluster und zeigt Logs – zum schnellen Ausprobieren. | G-CONTEXT-CHECK, G-ENV-EXPLICIT | /dev-flow-iterate – deploye ins Dev-Cluster und zeig mir die Logs. |
 | dev-flow-plan | Planungs-Skill (dev-flow-plan) | skill | 🟡 Vorsicht | Der Startpunkt für jede Änderung: wählt den Pfad und schreibt einen Plan. | G-PULL-FIRST | Ich will etwas ändern – starte die Planung (dev-flow-plan). |
 | superpowers | Superpowers (/superpowers) | skill | 🟢 Sicher | Aktiviert die Skill-Bibliothek: zeigt, wie Claude Skills findet und nutzt. | — | /superpowers |
 

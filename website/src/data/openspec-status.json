@@ -116,5 +116,11 @@
       "slug": "fix-coaching-studio-prod-manifest",
       "status": "plan_staged"
     }
+  ],
+  "T001017": [
+    {
+      "slug": "mcp-task-runner",
+      "status": "plan_staged"
+    }
   ]
 }

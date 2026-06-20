@@ -23,11 +23,11 @@ describe('TicketRow', () => {
     await fireEvent.click(getByTestId('row-checkbox'));
     expect(handler).toHaveBeenCalled();
   });
-  it('dispatches openDrawer on title click', async () => {
-    const handler = vi.fn();
-    const { getByText } = render(TicketRow, { ticket, selected: false, onOpenDrawer: handler });
-    await fireEvent.click(getByText('Task One'));
-    expect(handler).toHaveBeenCalled();
+  it('renders the title as a direct link to the full ticket page', () => {
+    const { getByText } = render(TicketRow, { ticket, selected: false });
+    const link = getByText('Task One') as HTMLAnchorElement;
+    expect(link.tagName).toBe('A');
+    expect(link.getAttribute('href')).toBe('/admin/tickets/t1');
   });
 });
 

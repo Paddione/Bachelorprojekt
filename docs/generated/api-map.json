@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-20T06:01:35.008Z",
+  "generatedAt": "2026-06-20T10:36:10.036Z",
   "endpoints": [
     {
       "path": "/api/admin/angebote/save",
@@ -3210,6 +3210,7 @@
     {
       "path": "/api/tickets/comment",
       "methods": [
+        "OPTIONS",
         "POST"
       ],
       "auth": "unclassified",

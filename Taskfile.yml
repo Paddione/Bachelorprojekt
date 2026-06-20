@@ -39,6 +39,13 @@ includes:
   brainstorm:
     taskfile: ./Taskfile.brainstorm.yml
     dir: .
+
+  # Active Sessions Hub — register/list local dev sessions for the Mediaviewer.
+  # See Taskfile.session.yml + scripts/session-hub.sh.
+  session:
+    taskfile: ./Taskfile.session.yml
+    dir: .
+
   # OpenClaw — personal AI assistant gateway on the WSL host.
   # See Taskfile.openclaw.yml + openclaw/README.md.
   openclaw:
@@ -419,6 +426,7 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/scripts.bats
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/session-hub.bats
 
   test:unit:secret-task-guards:
     internal: true

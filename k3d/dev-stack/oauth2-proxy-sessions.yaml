@@ -1,0 +1,204 @@
+# ═══════════════════════════════════════════════════════════════════
+# OAuth2 Proxy -- Keycloak SSO gate for session-*.${DEV_DOMAIN}
+#
+# Architecture (ForwardAuth mode, NOT full-proxy):
+#   browser -> Traefik (session-hub-auth-route, priority 11)
+#           -> ForwardAuth middleware -> oauth2-proxy-session-hub /oauth2/auth
+#           -> [202 pass] -> sish (routes to the publisher's local service)
+#
+# Wildcard HostRegexp captures session-{slug}.${DEV_DOMAIN}.
+# The oauth2-proxy is in ForwardAuth/reverse-proxy mode (--upstream=static://202).
+#
+# WARNING: NEEDS-HUMAN VERIFICATION before applying to a live cluster:
+#   1. Confirm Keycloak dev-realm has the `session-hub` client + `/session-hub-access` group.
+#   2. Run: task env:seal ENV=mentolder (after adding SESSION_HUB_OIDC_SECRET to .secrets).
+#   3. Smoke-test: un-grouped user must get a 302->Keycloak; /session-hub-access member must load.
+#   4. Verify WSS upgrade passes ForwardAuth.
+# ═══════════════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oauth2-proxy-session-hub
+  labels:
+    app: oauth2-proxy-session-hub
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: oauth2-proxy-session-hub
+  template:
+    metadata:
+      labels:
+        app: oauth2-proxy-session-hub
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: write-cookie-secret
+          image: busybox:1.37
+          imagePullPolicy: Always
+          command: ["/bin/sh", "-c"]
+          args:
+            - printf 'cookie_secret = "%s"\n' "$(printf '%s' "$OAUTH2_PROXY_COOKIE_SECRET" | cut -c1-32)" > /run/config/oauth2-extra.cfg
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 64Mi
+          env:
+            - name: OAUTH2_PROXY_COOKIE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: OAUTH2_PROXY_COOKIE_SECRET
+          volumeMounts:
+            - name: oauth2-config
+              mountPath: /run/config
+      containers:
+        - name: oauth2-proxy
+          image: quay.io/oauth2-proxy/oauth2-proxy:v7.9.0
+          imagePullPolicy: Always
+          args:
+            - --config=/run/config/oauth2-extra.cfg
+            - --provider=keycloak-oidc
+            - --client-id=session-hub
+            - --client-secret=$(SESSION_HUB_OIDC_SECRET)
+            - --redirect-url=http://session-hub.localhost/oauth2/callback
+            - --oidc-issuer-url=http://keycloak.workspace.svc.cluster.local:8080/realms/workspace
+            - --ssl-insecure-skip-verify=true
+            - --skip-oidc-discovery=true
+            - --login-url=http://auth.localhost/realms/workspace/protocol/openid-connect/auth
+            - --redeem-url=http://keycloak.workspace.svc.cluster.local:8080/realms/workspace/protocol/openid-connect/token
+            - --oidc-jwks-url=http://keycloak.workspace.svc.cluster.local:8080/realms/workspace/protocol/openid-connect/certs
+            - --profile-url=http://keycloak.workspace.svc.cluster.local:8080/realms/workspace/protocol/openid-connect/userinfo
+            - --upstream=static://202
+            - --reverse-proxy=true
+            - --http-address=0.0.0.0:4180
+            - --cookie-secure=false
+            - --cookie-name=_oauth2_proxy_session_hub
+            - --email-domain=*
+            - --allowed-group=/session-hub-access
+            - --pass-access-token=true
+            - --pass-authorization-header=true
+            - --set-xauthrequest=true
+            - --skip-provider-button=true
+            - --code-challenge-method=S256
+            - --insecure-oidc-allow-unverified-email=true
+            - --oidc-extra-audience=session-hub
+            - --scope=openid email profile groups
+            - --whitelist-domain=session-hub.localhost
+            - --whitelist-domain=*.${DEV_DOMAIN}
+          env:
+            - name: SESSION_HUB_OIDC_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: SESSION_HUB_OIDC_SECRET
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
+          ports:
+            - containerPort: 4180
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: 4180
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: 4180
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+            requests:
+              memory: 64Mi
+              cpu: "50m"
+            limits:
+              memory: 128Mi
+              cpu: "200m"
+          volumeMounts:
+            - name: oauth2-config
+              mountPath: /run/config
+              readOnly: true
+      volumes:
+        - name: oauth2-config
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: oauth2-proxy-session-hub
+spec:
+  selector:
+    app: oauth2-proxy-session-hub
+  ports:
+    - port: 4180
+      targetPort: 4180
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: session-hub-auth
+spec:
+  forwardAuth:
+    address: http://oauth2-proxy-session-hub.workspace-dev.svc.cluster.local:4180/oauth2/auth
+    trustForwardHeader: true
+    authResponseHeaders:
+      - X-Auth-Request-User
+      - X-Auth-Request-Email
+      - X-Auth-Request-Access-Token
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: session-hub-errors
+spec:
+  errors:
+    status:
+      - "401"
+    service:
+      name: oauth2-proxy-session-hub
+      port: 4180
+    query: "/oauth2/sign_in?rd={url}"
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: session-hub-auth-route
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: HostRegexp(`session-{slug:[a-z0-9-]+}.${DEV_DOMAIN}`) && PathPrefix(`/oauth2`)
+      kind: Rule
+      priority: 20
+      services:
+        - name: oauth2-proxy-session-hub
+          port: 4180
+    - match: HostRegexp(`session-{slug:[a-z0-9-]+}.${DEV_DOMAIN}`)
+      kind: Rule
+      priority: 11
+      middlewares:
+        - name: session-hub-errors
+        - name: session-hub-auth
+      services:
+        - name: sish
+          port: 80

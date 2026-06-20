@@ -74,5 +74,17 @@
       "slug": "2026-06-20-platform-cockpit-alignment",
       "status": "archived"
     }
+  ],
+  "T000968": [
+    {
+      "slug": "cockpit-direct-ticket-links",
+      "status": "plan_staged"
+    }
+  ],
+  "T000975": [
+    {
+      "slug": "active-sessions-hub",
+      "status": "plan_staged"
+    }
   ]
 }

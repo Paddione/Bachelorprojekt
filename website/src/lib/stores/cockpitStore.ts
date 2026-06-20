@@ -5,7 +5,6 @@ export interface OptimisticEdit {
 }
 export interface CockpitState {
   selectedFeature: string | null;
-  activeTicket: string | null;
   selectedTickets: Set<string>;
   optimistic: Record<string, OptimisticEdit>;
   error: string | null;
@@ -21,7 +20,6 @@ const setLs = (k: string, v: string | null): void => {
 
 const initial: CockpitState = {
   selectedFeature: ls('cockpit:feature'),
-  activeTicket: null,
   selectedTickets: new Set<string>(),
   optimistic: {},
   error: null,
@@ -54,9 +52,6 @@ export function selectFeature(extId: string | null): void {
     const n = { ...s, selectedFeature: extId, selectedTickets: new Set<string>() };
     setLs('cockpit:feature', extId); syncUrl(n); return n;
   });
-}
-export function setActiveTicket(id: string | null): void {
-  cockpitStore.update((s) => ({ ...s, activeTicket: id }));
 }
 export function toggleTicketSelection(id: string): void {
   cockpitStore.update((s) => {

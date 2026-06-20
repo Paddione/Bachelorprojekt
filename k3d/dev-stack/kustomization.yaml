@@ -14,6 +14,7 @@ resources:
   - shared-db-dev-lb.yaml
   - oauth2-proxy-dev.yaml
   - oauth2-proxy-brainstorm.yaml
+  - oauth2-proxy-sessions.yaml
   - dev-ingress.yaml
 # images: populated by `task dev:deploy` with concrete tags at apply time.
 # Note: cert-manager.yaml + traefik-tls.yaml are applied OUTSIDE this bundle by

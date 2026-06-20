@@ -7,11 +7,10 @@ beforeEach(() => {
 });
 
 describe('cockpitStore', () => {
-  it('starts with no selected feature and no active ticket', async () => {
+  it('starts with no selected feature and no selected tickets', async () => {
     const m = await import('./cockpitStore');
     const s = get(m.cockpitStore);
     expect(s.selectedFeature).toBeNull();
-    expect(s.activeTicket).toBeNull();
     expect(s.selectedTickets.size).toBe(0);
   });
   it('selectFeature sets selectedFeature and persists to localStorage', async () => {
@@ -26,13 +25,6 @@ describe('cockpitStore', () => {
     m.selectFeature(null);
     expect(get(m.cockpitStore).selectedFeature).toBeNull();
     expect(localStorage.getItem('cockpit:feature')).toBeNull();
-  });
-  it('setActiveTicket sets and clears the drawer target', async () => {
-    const m = await import('./cockpitStore');
-    m.setActiveTicket('t1');
-    expect(get(m.cockpitStore).activeTicket).toBe('t1');
-    m.setActiveTicket(null);
-    expect(get(m.cockpitStore).activeTicket).toBeNull();
   });
   it('toggles ticket selection', async () => {
     const m = await import('./cockpitStore');

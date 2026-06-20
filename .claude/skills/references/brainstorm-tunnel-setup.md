@@ -54,6 +54,16 @@ sleep 1
 task brainstorm:publish -- $PORT >/tmp/brainstorm-publish.log 2>&1
 ```
 
+### Step 4b: Register in the Active Sessions Hub
+
+So the board shows up as a card in the website Mediaviewer:
+
+```bash
+bash scripts/session-hub.sh register \
+  --name "brainstorm" --port "$PORT" --type brainstorm \
+  --title "Brainstorm: $(date +%F)"
+```
+
 ## Step 5: Verify the Tunnel is Live
 
 Wait up to 15 seconds for `https://brainstorm.dev.mentolder.de` to reply:
@@ -154,4 +164,19 @@ https://brainstorm.dev.mentolder.de/?who=AutoBot
 - The `?who=` param is checked **before** `prompt()` — no `handle_dialog` needed.
 - Pre-setting `localStorage` also works if the page is already loaded without a
   URL param (existing behavior, unchanged).
+
+## Active Sessions Hub — SessionStart reap (optional local hook)
+
+`.claude/settings.json` is gitignored (machine-local). To auto-reap dead session
+tunnels at every session start, add locally:
+
+```json
+{ "hooks": { "SessionStart": [ { "hooks": [
+  "bash scripts/session-hub.sh reap"
+] } ] } }
+```
+
+The file is never committed. See `scripts/session-hub.sh reap` for the behavior:
+it drops registry entries whose tunnel PID is no longer alive, preventing stale
+cards in the Mediaviewer.
 

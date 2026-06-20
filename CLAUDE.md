@@ -2,16 +2,20 @@
 
 ## Agent Routing
 
-Before responding to any request, check these signals and delegate to the named agent:
+Before responding to any request, check these signals and delegate to the named agent. The signal lists below mirror the routing table in [`AGENTS.md`](AGENTS.md) — which is the single source of truth (it matches each agent's `description:` frontmatter in `.agents/agents/<name>.md`).
 
-| Signals | Agent | MCP-Primär |
-|---------|-------|------------|
-| `website/`, Astro, Svelte, component, homepage, kore, brand, CSS, UI, frontend, design | `bachelorprojekt-website` | — |
-| pod, logs, status, restart, crash, health, kubectl, "what's wrong", "why is X failing", "is X running" | `bachelorprojekt-ops` | `mcp-kubernetes` (localhost:18080) |
-| `k3d/`, `prod*/`, manifest, kustomize, overlay, Taskfile, `ENV=`, `environments/`, deploy | `bachelorprojekt-infra` | `mcp-kubernetes` (localhost:18080) — nur Status-Checks |
-| test, `FA-*`, `SA-*`, `NFA-*`, `AK-*`, BATS, Playwright, `runner.sh`, test case, "test failing", "write a test" | `bachelorprojekt-test` | `mcp-postgres` (localhost:13001) — Ticket-Queries |
+> **Subagent file layout:** `.claude/agents/bachelorprojekt-*.md` is the canonical source. `.agents/agents` is a directory symlink to `../.claude/agents` — both Claude Code and opencode read the same content via the symlink. Edit files at `.claude/agents/<name>.md` (or its `.agents/agents/<name>.md` alias).
+
+| Signals | Agent | MCP-Primär (Claude Code) |
+|---------|-------|--------------------------|
+| `website/`, Astro, Svelte, component, homepage, kore, mentolder brand, CSS, UI, frontend, design | `bachelorprojekt-website` | — |
+| pod, logs, status, restart, crash, health, kubectl, "what's wrong", "why is X failing", "is X running", `llm:`, GPU, Ollama, model, LiveKit | `bachelorprojekt-ops` | `mcp-kubernetes` (localhost:18080) — Claude-Code-only SSE server, see `mcp-tool-guide.md` |
+| `k3d/`, `prod*/`, manifest, kustomize, overlay, Taskfile, `ENV=`, `environments/`, deploy, `workspace:setup` | `bachelorprojekt-infra` | `mcp-kubernetes` (localhost:18080) — nur Status-Checks (Claude-Code-only) |
+| test, `FA-*`, `SA-*`, `NFA-*`, `AK-*`, `FA-SF`, BATS, Playwright, `runner.sh`, "test failing", "test case", "write a test", `factory:`, autopilot | `bachelorprojekt-test` | `mcp-postgres` (localhost:13001) — Ticket-Queries |
 | database, PostgreSQL, psql, schema, query, backup, restore, tracking, timeline, `bachelorprojekt.features`, `v_timeline` | `bachelorprojekt-db` | `mcp-postgres` (localhost:13001) |
-| SealedSecret, Keycloak realm, OIDC, DSGVO, credentials, rotate, certificate, secret | `bachelorprojekt-security` | `mcp-keycloak` (localhost:18081) |
+| SealedSecret, Keycloak realm, OIDC, DSGVO, credentials, rotate, certificate, secret | `bachelorprojekt-security` | `mcp-keycloak` (localhost:18081) — Claude-Code-only SSE server, see `mcp-tool-guide.md` |
+
+> **MCP-Server names in this table refer to Claude-Code-only SSE servers** configured in `.claude/settings.json` / `.claude/skills/references/mcp-tool-guide.md`. The opencode runtime uses different MCP server names from `.opencode/opencode.jsonc` (`mcp-k8s`, `mcp-postgres`, `mcp-browser`, `mcp-github`, `mcp-factory` — no `mcp-kubernetes` or `mcp-keycloak`). If you are running in opencode, see the `MCP-Schnellweg` block below and the opencode config, not the table above.
 
 > **Agent-Routing-Karten:** Generierte, grepbare Karten unter `docs/agent-guide/maps/` — `goals-map.md` (Intention → Weg → Tier → Guardrails), `tools-map.md`, `danger-map.md`. Quelle: `docs/agent-guide/registry/` (nicht von Hand editieren; via `task agent-guide:maps` regenerieren).
 

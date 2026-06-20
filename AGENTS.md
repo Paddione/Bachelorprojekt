@@ -1,21 +1,23 @@
 # AGENTS.md — High-Signal Reference for OpenCode Sessions
 
-Loaded via `.opencode/opencode.jsonc` and `.agents/settings.json` → `"instructions": ["AGENTS.md"]`. Comprehensive reference: `CLAUDE.md`.
+Loaded via `.opencode/opencode.jsonc` (and its alias `.agents/settings.json`, which is a symlink to it) → `"instructions": ["AGENTS.md"]`. Comprehensive reference: `CLAUDE.md`.
+
+> **Subagent file layout:** `.claude/agents/bachelorprojekt-*.md` is the canonical source. `.agents/agents` is a directory symlink to `../.claude/agents` — both Claude Code and opencode read the same content via the symlink. Edit files at `.claude/agents/<name>.md` (or its `.agents/agents/<name>.md` alias).
 
 ## Agent Routing
 
-Delegates to sub-agents when signals match. Tie-break: prefer domain of files being changed.
+Delegates to sub-agents when signals match. Tie-break: prefer domain of files being changed. The signal lists below are the authoritative routing table; they match each agent's `description:` frontmatter in `.agents/agents/<name>.md`.
 
 | Signals | Agent |
 |---------|-------|
-| `website/`, Astro, Svelte, CSS, UI, frontend, design, kore, brand | `bachelorprojekt-website` |
-| pod, logs, status, restart, crash, health, kubectl, LLM, GPU, Ollama, LiveKit | `bachelorprojekt-ops` |
-| `k3d/`, `prod*/`, manifest, kustomize, Taskfile, `ENV=`, `environments/`, deploy | `bachelorprojekt-infra` |
-| test, BATS, Playwright, `runner.sh`, `FA-*`, `SA-*`, `NFA-*`, `AK-*`, autopilot | `bachelorprojekt-test` |
-| database, PostgreSQL, psql, schema, query, backup, restore | `bachelorprojekt-db` |
-| SealedSecret, Keycloak, OIDC, DSGVO, credential, certificate, secret | `bachelorprojekt-security` |
+| `website/`, Astro, Svelte, component, homepage, kore, mentolder brand, CSS, UI, frontend, design | `bachelorprojekt-website` |
+| pod, logs, status, restart, crash, health, kubectl, "what's wrong", "why is X failing", "is X running", `llm:`, GPU, Ollama, model, LiveKit | `bachelorprojekt-ops` |
+| `k3d/`, `prod*/`, manifest, kustomize, overlay, Taskfile, `ENV=`, `environments/`, deploy, `workspace:setup` | `bachelorprojekt-infra` |
+| test, `FA-*`, `SA-*`, `NFA-*`, `AK-*`, `FA-SF`, BATS, Playwright, `runner.sh`, "test failing", "test case", "write a test", `factory:`, autopilot | `bachelorprojekt-test` |
+| database, PostgreSQL, psql, schema, query, backup, restore, tracking, timeline, `bachelorprojekt.features`, `v_timeline` | `bachelorprojekt-db` |
+| SealedSecret, Keycloak realm, OIDC, DSGVO, credentials, rotate, certificate, secret | `bachelorprojekt-security` |
 
-Before dispatching: `bash scripts/plan-context.sh <role>` → prepend output as `<active-plans>`. Cross-cutting requests stay with orchestrator.
+Before dispatching: `bash scripts/plan-context.sh <role> --with-openspec` → prepend output as `<active-plans>`. Cross-cutting requests stay with orchestrator. The `--with-openspec` flag auto-loads the SSOT spec(s) for any files changed vs `main` — omit only when explicitly told to skip OpenSpec context.
 
 ## Core Commands
 

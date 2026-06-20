@@ -110,5 +110,11 @@
       "slug": "openspec-pgvector",
       "status": "plan_staged"
     }
+  ],
+  "T001009": [
+    {
+      "slug": "fix-coaching-studio-prod-manifest",
+      "status": "plan_staged"
+    }
   ]
 }

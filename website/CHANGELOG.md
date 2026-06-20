@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.111.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.110.0...website-v1.111.0) (2026-06-20)
+
+
+### Features
+
+* **admin:** Filter speichern / Voreinstellungen [T000988] ([#1951](https://github.com/Paddione/Bachelorprojekt/issues/1951)) ([8849e0c](https://github.com/Paddione/Bachelorprojekt/commit/8849e0c6fd4af36dc3f78bf4873581460a61e883))
+
 ## [1.110.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.109.0...website-v1.110.0) (2026-06-20)
 
 

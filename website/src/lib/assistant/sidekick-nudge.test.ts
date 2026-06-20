@@ -45,6 +45,10 @@ describe('parseNavigateEvent', () => {
     expect(parseNavigateEvent({ view: 'agent-guide', jumpTo: 123 }))
       .toEqual({ view: 'agent-guide', jumpTo: null });
   });
+  it('accepts grilling and mediaviewer views', () => {
+    expect(parseNavigateEvent({ view: 'grilling' })).toEqual({ view: 'grilling', jumpTo: null });
+    expect(parseNavigateEvent({ view: 'mediaviewer' })).toEqual({ view: 'mediaviewer', jumpTo: null });
+  });
 });
 
 describe('shouldShowLearnDot', () => {

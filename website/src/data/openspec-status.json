@@ -50,5 +50,11 @@
       "slug": "2026-06-20-openspec-ticket-status-display",
       "status": "archived"
     }
+  ],
+  "T000962": [
+    {
+      "slug": "openspec-ticket-detail-view",
+      "status": "plan_staged"
+    }
   ]
 }

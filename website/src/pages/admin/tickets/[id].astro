@@ -23,6 +23,8 @@ import ContainerDorPanel from '../../../components/admin/ContainerDorPanel.svelt
 import TicketPlanPanel from '../../../components/admin/TicketPlanPanel.svelte';
 import TicketSpecProgress from '../../../components/admin/TicketSpecProgress.svelte';
 import TicketAttachmentsPanel from '../../../components/admin/TicketAttachmentsPanel.svelte';
+import OpenSpecProposalsPanel from '../../../components/admin/OpenSpecProposalsPanel.svelte';
+import openspecStatusMap from '../../../data/openspec-status.json';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -38,6 +40,8 @@ const [ticket, timeline] = await Promise.all([
 ]);
 
 if (!ticket) return Astro.redirect('/admin/tickets');
+
+const openspecProposals = (openspecStatusMap as Record<string, Array<{ slug: string; status: string }>>)[ticket.externalId] ?? [];
 
 let questionnaireBundles: AssignmentBundle[] = [];
 
@@ -231,6 +235,10 @@ function fmtDateTime(d: Date | string | null): string {
           </div>
 
           <TicketAttachmentsPanel client:load ticketId={ticket.id} attachments={ticket.attachments} />
+
+          {openspecProposals.length > 0 && (
+            <OpenSpecProposalsPanel client:load proposals={openspecProposals} />
+          )}
         </div>
 
         {/* Sidebar */}

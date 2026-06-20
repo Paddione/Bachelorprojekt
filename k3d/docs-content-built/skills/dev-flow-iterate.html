@@ -172,10 +172,10 @@ echo "── brett logs ──"
 kubectl logs -l app=brett -n $NS_DEV --context $CTX_DEV --tail=50 2&gt;/dev/null
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h3>3d: Playwright MCP (nur wenn Pods Running)</h3>
-<div class="code-wrapper"><pre><code>browser_navigate         → { url: "$DEV_URL" }
-browser_snapshot         → {}
-browser_take_screenshot  → { filename: "/tmp/dev-iterate-&lt;CYCLE&gt;.png" }
-browser_console_messages → {}
+<div class="code-wrapper"><pre><code>mcp-browser_browser_navigate         → { url: "$DEV_URL" }
+mcp-browser_browser_snapshot         → {}
+mcp-browser_browser_take_screenshot  → { filename: "/tmp/dev-iterate-&lt;CYCLE&gt;.png" }
+mcp-browser_browser_console_messages → {}
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h3>3e: Synthese</h3>
 <p>Lies alle Outputs aus 3c und 3d (Logs, Snapshot, Console-Errors, Screenshot).

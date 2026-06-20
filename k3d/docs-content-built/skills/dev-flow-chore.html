@@ -74,22 +74,70 @@ bash scripts/agent-lock.sh claim branch "chore/&lt;slug&gt;" --worktree "$PWD" -
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>Falls ausnahmsweise inline im main-Checkout gearbeitet wird: zusätzlich <code>claim main-checkout</code> —
 der <code>.githooks/pre-commit</code> sperrt sonst konkurrierende Commits anderer Sessions.</p>
+<p>Lege ein minimales Audit-Ticket an (type=task, status=done — Chores haben keinen Plan,
+nur eine Audit-Spur):</p>
+<div class="code-wrapper"><pre><code class="language-bash">TICKET_RESULT=$(./scripts/ticket.sh create \
+  --type task \
+  --brand mentolder \
+  --title "chore: &lt;slug&gt;" \
+  --status done \
+  --description "Branch: chore/&lt;slug&gt;"$'\n'"Kein Plan — direktes Chore.")
+TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h2 id="schritt-2-aenderungen-vornehmen">Schritt 2: Änderungen vornehmen</h2>
 <p>Setze die Wartung um. Bei mechanischer Arbeit über mehrere Dateien kannst du an einen passend
 provisionierten Subagenten delegieren (siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md">subagent-provisioning.md</a> — Chores sind i.d.R. <code>haiku</code>/<code>sonnet</code>, Effort low).</p>
 <h2 id="schritt-3-verifizieren">Schritt 3: Verifizieren</h2>
 <div class="code-wrapper"><pre><code class="language-bash">task workspace:validate
-task test:all
+task test:changed
 task freshness:regenerate   # generierte Artefakte aktuell halten, sonst CI rot
+task freshness:check        # CI-Äquivalent: S1–S4-Ratchet (Zeilenlimits!) gegen baseline.json — fängt das Gate VOR dem Push
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>Siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md">dev-flow-gotchas.md</a> für TypeScript/pnpm-Gotchas in Worktrees.</p>
 <blockquote>
 <p><strong>⚠ Freshness-Guard (vor jedem Commit):</strong> Neue Test-Specs, Routen oder Assets ändern generierte Indexdateien (<code>repo-index.json</code>, <code>test-inventory.json</code>, …). Ohne Regenerierung schlägt CI fehl. Der Pre-commit-Hook erledigt das automatisch nach <code>task secrets:install-hooks</code> — ohne Hook: <code>task freshness:regenerate</code> manuell ausführen und staged Änderungen mitcommittten.</p>
 </blockquote>
-<h2 id="schritt-4-commit-push--pr">Schritt 4: Commit, Push &amp; PR</h2>
-<div class="code-wrapper"><pre><code class="language-bash">git add -A
-git commit -m "chore(&lt;scope&gt;): &lt;subject&gt;"   # commitlint: Body-Zeilen &lt;100 Zeichen
+<blockquote>
+<p><strong>⚠ S1-Gate-Guard (Chores ohne Plan!):</strong> Chores haben <strong>kein</strong> Zeilenbudget-Planungsschritt. Berührt die Chore Code-Dateien (<code>.ts/.svelte/.astro/.sh/.mjs/...</code>), prüfe vor dem Commit das S1-Ratchet mit <code>task freshness:check</code>. Achtung: Das Ratchet vergleicht gegen den <strong>eingefrorenen Baseline-Wert</strong> in <code>docs/code-quality/baseline.json</code>, nicht nur gegen das statische Limit — eine schon gebaselinete (gewachsene) Datei hat <strong>0 Zeilen Budget</strong>, d.h. schon +1 Zeile macht CI rot. Dann die Datei <strong>echt verkleinern/aufteilen</strong>, nicht kosmetisch Zeilen zusammenziehen (das trippt bei der nächsten Änderung erneut).</p>
+<p><strong>Plan-Linter gibt es für Chores nicht</strong> (kein Plan) — aber das S1-Budget der berührten
+Code-Dateien lässt sich vor dem Commit prüfen: für jede geänderte Datei den Restbudget-Wert
+mit der gleichen Mathematik wie der Linter ermitteln:</p>
+<div class="code-wrapper"><pre><code class="language-bash">for f in $(git diff --name-only); do
+  PLAN_LINT_SELFTEST=1 bash scripts/plan-lint.sh residual_budget "$f" 2&gt;/dev/null \
+    | awk -v f="$f" '{print f": Restbudget "$0}'
+done
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Bei Restbudget ≤ 0 die Datei <strong>echt verkleinern</strong>, nicht kosmetisch zusammenziehen.</p>
+</blockquote>
+<h2 id="schritt-4-commit-push--pr">Schritt 4: Commit, Push &amp; PR</h2>
+<div class="code-wrapper"><pre><code class="language-bash">BASE_SHA="$(git rev-parse "@{upstream}" 2&gt;/dev/null || git rev-parse origin/main)"
+git add -A
+git commit -m "chore(&lt;scope&gt;): &lt;subject&gt; [$TICKET_EXT_ID]"   # commitlint: Body-Zeilen &lt;100 Zeichen
+
+# Verify commit landed — git-crypt clean filter can cause silent commit failures
+# in worktrees, and an un-chained push would send an empty branch. [T000925]
+HEAD_SHA="$(git rev-parse HEAD)"
+if [ "$HEAD_SHA" = "$BASE_SHA" ]; then
+  echo "FATAL: commit did not land (git-crypt clean filter?). Push aborted." &gt;&amp;2
+  exit 1
+fi
+
+# Validate PR title scope BEFORE creating the PR. [T000925]
+bash scripts/preflight-pr-scope.sh "chore(&lt;scope&gt;): &lt;subject&gt; [$TICKET_EXT_ID]"
+if [ $? -ne 0 ]; then
+  echo "FATAL: PR title scope failed preflight — fix the scope and retry." &gt;&amp;2
+  exit 1
+fi
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Die <code>[T000XXX]</code>-Referenz wird von <code>.github/workflows/post-merge.yml</code> gelesen — das Ticket ist
+bereits <code>done</code>, der Status-Update ist ein idempotenter No-op.</p>
+<blockquote>
+<p><strong>Titel nachträglich editieren (REST-Fallback):</strong> <code>gh pr edit --title</code> scheitert
+gelegentlich an einer Projects-Classic-GraphQL-Deprecation. Nutze stattdessen:</p>
+<div class="code-wrapper"><pre><code class="language-bash">gh api -X PATCH "repos/{owner}/{repo}/pulls/&lt;n&gt;" -f title="&lt;neuer Titel&gt;"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Der Preflight (oben) sollte Titel-Edits aber überflüssig machen. [T000925]</p>
+</blockquote>
 <p>Rufe <code>commit-commands:commit-push-pr</code> auf (oder <code>gh pr create</code> manuell).</p>
 <h2 id="schritt-5-merge-wenn-ci-gruen">Schritt 5: Merge wenn CI grün</h2>
 <div class="code-wrapper"><pre><code class="language-bash">MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
@@ -128,7 +176,7 @@ git branch -D "chore/&lt;slug&gt;"
 </tbody></table>
 <h2 id="nachbereitung--mishap-report">Nachbereitung &amp; Mishap Report</h2>
 <p>Melde alle aufgetretenen Fehler oder Prozess-Frictionen am Ende über <code>mishap-tracker</code>
-(<code>bash scripts/hooks/mishap-tracker.sh</code>).</p>
+(Invoke <code>mishap-tracker</code> with your accumulated MISHAP_LOG).</p>
 </body></html>
 </article>
 

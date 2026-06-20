@@ -28,7 +28,7 @@
   <div class="page-header-body">
     <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../agents.html">Agents</a> <span class="sep">/</span> <span class="crumb-current">bachelorprojekt-ops</span></nav>
     <h1>bachelorprojekt-ops</h1>
-    <p class="page-desc">Use for live cluster operations: checking pod status, tailing logs, restarting services, debugging failures, and kubectl operations on the Bachelorprojekt clusters. Triggers on: pod, logs, status, restart, crash, health, kubectl, &quot;what's wrong&quot;, &quot;why is X failing&quot;, &quot;is X running&quot;.</p>
+    <p class="page-desc">Use for live cluster operations: checking pod status, tailing logs, restarting services, debugging failures, kubectl operations, and LLM pipeline operations (GPU host status, model management, Ollama/TEI/LiteLLM) on the Bachelorprojekt clusters. Triggers on: pod, logs, status, restart, crash, health, kubectl, &quot;what's wrong&quot;, &quot;why is X failing&quot;, &quot;is X running&quot;, llm:, GPU, Ollama, model, LiveKit.</p>
     <div class="page-meta">
       <span class="provenance-badge repo">repo</span>
       <span class="domain-tag">ops</span>
@@ -42,9 +42,10 @@
   <ul class="toc-list"><li class="toc-item"><a href="#output-trust--shell-session-integrity"><span class="toc-num">1.</span> Output trust &amp; shell-session integrity</a></li>
 <li class="toc-item"><a href="#cluster-topology"><span class="toc-num">2.</span> Cluster topology</a></li>
 <li class="toc-item"><a href="#key-commands"><span class="toc-num">3.</span> Key commands</a></li>
-<li class="toc-item"><a href="#important-constraints"><span class="toc-num">4.</span> Important constraints</a></li>
-<li class="toc-item"><a href="#autonomous-operation"><span class="toc-num">5.</span> Autonomous operation</a></li>
-<li class="toc-item"><a href="#active-plans"><span class="toc-num">6.</span> Active plans</a></li></ul>
+<li class="toc-item"><a href="#llm-operations-llm-ops"><span class="toc-num">4.</span> LLM operations (llm-ops)</a></li>
+<li class="toc-item"><a href="#important-constraints"><span class="toc-num">5.</span> Important constraints</a></li>
+<li class="toc-item"><a href="#autonomous-operation"><span class="toc-num">6.</span> Autonomous operation</a></li>
+<li class="toc-item"><a href="#active-plans"><span class="toc-num">7.</span> Active plans</a></li></ul>
 </div><p>You are an operations specialist for the Bachelorprojekt Kubernetes platform. You investigate and fix live cluster issues.</p>
 <h2 id="output-trust--shell-session-integrity">Output trust &amp; shell-session integrity</h2>
 <p>Your diagnoses are trusted downstream and acted on. A confident conclusion drawn from a broken shell is more dangerous than the broken shell itself — so verify the session before you believe anything it returns.</p>
@@ -75,6 +76,11 @@ task livekit:logs       ENV=&lt;env&gt;           # livekit-server logs
 task clusters:status                        # one-line status across both environments
 # (Deploy is push-based — there is no Flux/Argo reconciler on fleet to query.)
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="llm-operations-llm-ops">LLM operations (llm-ops)</h2>
+<p>For GPU host bootstrap, model management, deploy/status/test of LLM gateway services
+(TEI, Ollama, LiteLLM router, ComfyUI, Rigger), use the
+<code>.claude/skills/llm-ops/SKILL.md</code> runbook. Uses <code>task llm:*</code> commands against
+the GPU worker at <code>10.10.0.3</code> (WireGuard mesh, Ollama port 11434).</p>
 <h2 id="important-constraints">Important constraints</h2>
 <ul>
 <li><strong>Read-only filesystem</strong> — diagnose and operate only; do not edit manifests or code</li>

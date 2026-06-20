@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>migrate-foreign-code — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">migrate-foreign-code</span></nav>
+    <h1>migrate-foreign-code</h1>
+    <p class="page-desc">Use when bringing an externally-developed app into the Bachelorprojekt platform — decouple it in its origin repo, vendor it, containerize it, move client-only capabilities server-side, and integrate it (Kustomize/Ingress/Keycloak/embed) across both brands. A 6-phase meta-runbook over dev-flow.</p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      <span class="domain-tag">infra</span>
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>migrate-foreign-code — Fremdcode in die Plattform übernehmen</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#wann-diese-skill-greift"><span class="toc-num">1.</span> Wann diese Skill greift</a></li>
+<li class="toc-item"><a href="#schicht-hinweis-ein-meta-runbook-ueber-dev-flow"><span class="toc-num">2.</span> Schicht-Hinweis: ein Meta-Runbook über dev-flow</a></li>
+<li class="toc-item"><a href="#die-6-phasen"><span class="toc-num">3.</span> Die 6 Phasen</a></li>
+<li class="toc-item"><a href="#decision-gates"><span class="toc-num">4.</span> Decision-Gates</a></li>
+<li class="toc-item"><a href="#pattern-katalog"><span class="toc-num">5.</span> Pattern-Katalog</a></li>
+<li class="toc-item"><a href="#verwandte-skills"><span class="toc-num">6.</span> Verwandte Skills</a></li>
+<li class="toc-item"><a href="#quelle-der-learnings"><span class="toc-num">7.</span> Quelle der Learnings</a></li></ul>
+</div>
+<h2 id="wann-diese-skill-greift">Wann diese Skill greift</h2>
+<p>Wenn eine <strong>bestehende, extern entwickelte App</strong> ins Bachelorprojekt übernommen werden soll
+(erste Anwendung: VideoVault). Die Reise ist generisch; der <a href="#pattern-katalog">Pattern-Katalog</a>
+liefert die wiederkehrenden technischen Muster + Stolpersteine.</p>
+<h2 id="schicht-hinweis-ein-meta-runbook-ueber-dev-flow">Schicht-Hinweis: ein Meta-Runbook über dev-flow</h2>
+<p>Dieser Skill ist <strong>operator-getrieben</strong> und <strong>ersetzt dev-flow nicht</strong> — er <strong>sequenziert</strong> es.
+<strong>Jede Phase ist ein eigener <code>dev-flow-plan</code> → <code>dev-flow-execute</code>-Zyklus.</strong> Für die Deploy-/Auth-/
+Secret-Mechanik wird auf die bestehenden Skills verwiesen (siehe <a href="#verwandte-skills">Verwandte Skills</a>),
+nicht dupliziert.</p>
+<h2 id="die-6-phasen">Die 6 Phasen</h2>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Was passiert (generisch)</th>
+<th>VideoVault-Instanz</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>0 · Assess &amp; Decide</strong></td>
+<td>Stack/Build/Daten/Auth inventarisieren; <strong>Migrations-Fitness-Gate</strong></td>
+<td>Zwei Apps, client-first, FSAA-basiert</td>
+</tr>
+<tr>
+<td><strong>1 · Decouple in-place</strong></td>
+<td>God-Module zerlegen, Shared-Packages extrahieren, Verhalten per Characterization-Tests einfrieren — <strong>im Ursprungs-Repo gegen dessen Test-Suite</strong></td>
+<td><code>useVideoManager</code> (1762 Z.) → 3 Hooks; <code>videovault-player</code>-Package</td>
+</tr>
+<tr>
+<td><strong>2 · Vendor</strong></td>
+<td>Code in-repo holen (Dockerfile + CI, Idiom wie <code>website/</code>/<code>brett/</code>); source-only-Package via Alias</td>
+<td>Player-Package + Service vendored</td>
+</tr>
+<tr>
+<td><strong>3 · Containerize</strong></td>
+<td>Multi-Stage-Build (Client + Server → 1 Port); native Deps; neue DB in <code>shared-db</code>; PVC für Zwischendaten</td>
+<td>Slim-Image + ffmpeg via APT</td>
+</tr>
+<tr>
+<td><strong>4 · Server-Capabilities</strong></td>
+<td>Client-only-Backend hinter dem <strong>bestehenden Interface</strong> auf server-resident tauschen (Hybrid via Capability-Signal)</td>
+<td>Server-seitiger Schnitt</td>
+</tr>
+<tr>
+<td><strong>5 · Platform-Integration</strong></td>
+<td>Kustomize/Ingress; host-owned Auth (Keycloak/oauth2-proxy); Embed-Bridge; <code>configmap-domains</code>; <strong>beide Brands</strong></td>
+<td>Companion-Panel im Portal</td>
+</tr>
+</tbody></table>
+<h2 id="decision-gates">Decision-Gates</h2>
+<p>Zwischen jeder Phase ein explizites Gate: <strong>Voraussetzungen erfüllt? · reversibel? · weiter/stopp?</strong>
+Leitprinzip: <strong>erst in-place stabilisieren, dann migrieren</strong>.</p>
+<ul>
+<li><strong>Gate 0→1:</strong> Migrations-Fitness bejaht <strong>und</strong> Ursprungs-Test-Suite grün, bevor entkoppelt wird.</li>
+<li><strong>Gate 1→2:</strong> Grenzen per Characterization-Tests eingefroren; Interfaces extrahiert (ermöglicht Phase 4).</li>
+<li><strong>Gate 3→4:</strong> Server-resident nur wo es Mehrwert bringt — Annahmen (z.B. GPU) per Code-Erkundung
+verifizieren, nicht raten.</li>
+<li><strong>Gate 4→5:</strong> Integration zuletzt, wenn die App als Container eigenständig läuft.</li>
+</ul>
+<h2 id="pattern-katalog">Pattern-Katalog</h2>
+<p>Wiederkehrende technische Muster — je generisches Muster, VideoVault-Beispiel und Stolpersteine:</p>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>Phase(n)</th>
+<th>Inhalt</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a href="references/pattern-vendoring.md">pattern-vendoring</a></td>
+<td>2</td>
+<td>In-Repo-Vendoring-Idiom (Dockerfile + CI, kein committed <code>node_modules</code>)</td>
+</tr>
+<tr>
+<td><a href="references/pattern-multistage-build.md">pattern-multistage-build</a></td>
+<td>3</td>
+<td>Client+Server → ein Runtime-Port; Slim-Image + native Deps</td>
+</tr>
+<tr>
+<td><a href="references/pattern-source-only-package.md">pattern-source-only-package</a></td>
+<td>1, 2</td>
+<td>source-only Package via Alias; Dual-Build; React-Dedup; WASM-Assets</td>
+</tr>
+<tr>
+<td><a href="references/pattern-hybrid-backend.md">pattern-hybrid-backend</a></td>
+<td>4</td>
+<td>Backend-Tausch hinter stabilem Interface via Capability-Signal</td>
+</tr>
+<tr>
+<td><a href="references/pattern-embed-bridge.md">pattern-embed-bridge</a></td>
+<td>5</td>
+<td>postMessage Host↔Widget mit Origin-Validierung; Props+Handle</td>
+</tr>
+<tr>
+<td><a href="references/pattern-data-and-auth.md">pattern-data-and-auth</a></td>
+<td>3, 5</td>
+<td>DB in <code>shared-db</code> + PVC; host-owned Auth; beide Brands</td>
+</tr>
+</tbody></table>
+<h2 id="verwandte-skills">Verwandte Skills</h2>
+<table>
+<thead>
+<tr>
+<th>Skill</th>
+<th>Beziehung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>dev-flow-plan</code> / <code>dev-flow-execute</code></td>
+<td>Pro Phase ein Plan/Execute-Zyklus — der eigentliche Arbeitsmotor</td>
+</tr>
+<tr>
+<td><code>workspace-deploy</code> / <code>cluster-deployment</code></td>
+<td>Phase 3 — Manifeste, DB, PVC, Deploy</td>
+</tr>
+<tr>
+<td><code>keycloak-realm-sync</code></td>
+<td>Phase 5 — OIDC/Realm/Auth</td>
+</tr>
+<tr>
+<td><code>secret-rotation</code></td>
+<td>Phase 5 — Credentials der neuen App</td>
+</tr>
+<tr>
+<td><code>fleet-ops</code></td>
+<td>Phase 3/5 — Cross-Brand-Fan-out (beide Namespaces)</td>
+</tr>
+</tbody></table>
+<h2 id="quelle-der-learnings">Quelle der Learnings</h2>
+<p>Destilliert aus dem VideoVault-Vorhaben (SP1 Split + SP2 Migration) in <code>~/projects/</code>:
+<code>docs/superpowers/specs/2026-06-15-videovault-migration-learnings.md</code>,
+<code>docs/superpowers/specs/2026-06-15-videovault-split-design.md</code>,
+<code>docs/superpowers/plans/2026-06-15-videovault-split.md</code>,
+<code>docs/superpowers/plans/2026-06-15-videovault-migration-2{b,c,d}-*.md</code>.
+Dieser Skill ist die <strong>destillierte, eigenständige Kopie</strong> — kein Live-Link.</p>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>incident-response — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">incident-response</span></nav>
+    <h1>incident-response</h1>
+    <p class="page-desc">Production incident triage, scope, diagnose, fix/rollback, and post-mortem close for the workspace platform. Time-critical — use when a core service is down or degraded.</p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><blockquote>
+<p><strong>Mishap Tracking:</strong> As you execute this skill, maintain a running <code>MISHAP_LOG</code>.
+For every anomaly, unexpected state, broken component, security concern, or
+configuration drift you notice — even if unrelated to the current task — add
+an entry with: <code>type</code> (broken/degraded/suspicious/security/drift), <code>title</code>,
+<code>description</code>, and <code>component</code>. Invoke <code>mishap-tracker</code> at the very end.</p>
+</blockquote>
+<h1>incident-response</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#ticket-model-shared-preamble"><span class="toc-num">1.</span> Ticket model (shared preamble)</a></li>
+<li class="toc-item"><a href="#step-1--scope-the-incident--2-min"><span class="toc-num">2.</span> Step 1 — Scope the Incident (&lt; 2 min)</a></li>
+<li class="toc-item"><a href="#step-2--open-an-incident-ticket"><span class="toc-num">3.</span> Step 2 — Open an Incident Ticket</a></li>
+<li class="toc-item"><a href="#step-3--diagnose"><span class="toc-num">4.</span> Step 3 — Diagnose</a></li>
+<li class="toc-item"><a href="#step-4--fix-or-rollback"><span class="toc-num">5.</span> Step 4 — Fix or Rollback</a></li>
+<li class="toc-item"><a href="#step-5--close--write-post-mortem"><span class="toc-num">6.</span> Step 5 — Close &amp; Write Post-Mortem</a></li>
+<li class="toc-item"><a href="#post-execution-mishap-report"><span class="toc-num">7.</span> Post-Execution: Mishap Report</a></li>
+<li class="toc-item"><a href="#related-skills"><span class="toc-num">8.</span> Related Skills</a></li></ul>
+</div>
+<p>Production incident triage and recovery. Use when a core platform service is down or degraded. For ongoing ticket triage, repo hygiene, or PR management, see <code>ticket-ops</code>.</p>
+<hr>
+<h2 id="ticket-model-shared-preamble">Ticket model (shared preamble)</h2>
+<p>Internal tickets live in <code>tickets.tickets</code> on the <code>mentolder</code> (<code>website</code> DB). Enum reference:</p>
+<p><code>priority ∈ {hoch,mittel,niedrig}</code> · <code>severity ∈ {critical,major,minor,trivial}</code> · <code>status ∈ {triage,planning,plan_staged,backlog,in_progress,in_review,blocked,qa_review,done,archived}</code> · <code>resolution ∈ {fixed,shipped,obsolete}</code></p>
+<p>SQL helper:</p>
+<div class="code-wrapper"><pre><code class="language-bash">PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)
+psql() { kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- psql -U website -d website "$@"; }
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="step-1--scope-the-incident--2-min">Step 1 — Scope the Incident (&lt; 2 min)</h2>
+<p>Determine:</p>
+<ol>
+<li><strong>Affected Service:</strong> Keycloak, Nextcloud, Website, Brett, Arena, Vaultwarden, Docs, LiveKit, or Shared-DB.</li>
+<li><strong>Target Cluster:</strong> <code>mentolder</code> brand (fleet cluster), <code>korczewski</code> brand (fleet cluster), or both.</li>
+<li><strong>Onset Time:</strong> Since when has it been failing? Check git log or deployment status.</li>
+<li><strong>Blast Radius:</strong> All users or a subset of features?</li>
+</ol>
+<h2 id="step-2--open-an-incident-ticket">Step 2 — Open an Incident Ticket</h2>
+<div class="code-wrapper"><pre><code class="language-bash">PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)
+kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- psql -U website -d website -At -c \
+  "INSERT INTO tickets.tickets (type, brand, title, description, status, severity, priority)
+   VALUES ('bug', 'mentolder', 'Incident: &lt;desc&gt;', 'Affected: &lt;svc&gt;\nCluster: &lt;env&gt;\nSymptoms: &lt;symptoms&gt;', 'in_progress', '&lt;critical|major|minor&gt;', 'hoch')
+   RETURNING external_id;"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="step-3--diagnose">Step 3 — Diagnose</h2>
+<ul>
+<li><strong>Pod status:</strong> <code>task workspace:status ENV=mentolder</code> (CrashLoopBackOff, OOMKilled, Pending).</li>
+<li><strong>Logs:</strong> <code>task workspace:logs ENV=&lt;env&gt; -- &lt;service&gt;</code>.</li>
+<li><strong>Recent Deploys:</strong> <code>git log --oneline -10</code>.</li>
+</ul>
+<h2 id="step-4--fix-or-rollback">Step 4 — Fix or Rollback</h2>
+<ul>
+<li><strong>Rollback</strong> (no schema migration introduced): <code>kubectl set image deployment/&lt;svc&gt; &lt;container&gt;=ghcr.io/paddione/workspace-&lt;svc&gt;:&lt;PREV_SHA&gt; -n &lt;ns&gt; --context &lt;ctx&gt;</code></li>
+<li><strong>Fix:</strong> Open a <code>fix/&lt;slug&gt;</code> branch, implement, PR, merge, verify.</li>
+</ul>
+<h2 id="step-5--close--write-post-mortem">Step 5 — Close &amp; Write Post-Mortem</h2>
+<p>Capture the fix PR number (<code>PR_NUM=$(gh pr view &lt;branch-or-num&gt; --json number -q '.number')</code>); for rollback-only, omit the comment.</p>
+<div class="code-wrapper"><pre><code class="language-bash">psql -c \
+  "UPDATE tickets.tickets SET status = 'done', resolution = 'fixed', done_at = now(), notes = COALESCE(notes || E'\n\n', '') || '[incident-response $(date +%Y-%m-%d)] Root cause: &lt;cause&gt;. Fix: &lt;fix&gt;. Duration: &lt;X&gt; min.' WHERE external_id = '&lt;TICKET_EXT_ID&gt;';
+
+   INSERT INTO tickets.ticket_comments (ticket_id, author_label, body, visibility)
+   SELECT id, 'claude-code', 'Resolved by PR #&lt;PR_NUM&gt; (or rollback to &lt;PREV_SHA&gt;).', 'internal'
+   FROM tickets.tickets WHERE external_id = '&lt;TICKET_EXT_ID&gt;';"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="post-execution-mishap-report">Post-Execution: Mishap Report</h2>
+<p>Invoke <code>mishap-tracker</code> with your accumulated <code>MISHAP_LOG</code>.</p>
+<h2 id="related-skills">Related Skills</h2>
+<table>
+<thead>
+<tr>
+<th>Skill</th>
+<th>Relationship</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ticket-ops</code></td>
+<td>Follow-up: PR management, ticket triage for human-fixable items</td>
+</tr>
+<tr>
+<td><code>mishap-tracker</code></td>
+<td>Converts execution mishaps to tickets</td>
+</tr>
+<tr>
+<td><code>fleet-ops</code></td>
+<td>Cross-brand incident handling</td>
+</tr>
+</tbody></table>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

@@ -52,14 +52,22 @@
 Sicherheits-Advisories oder Lockfile-Audits.</p>
 <h2 id="ablauf">Ablauf</h2>
 <h3>Phase 1: Audit — Was ist veraltet?</h3>
-<div class="code-wrapper"><pre><code class="language-bash"># Lockfile-Audit (pnpm)
-cd website &amp;&amp; pnpm audit --json &gt; /tmp/audit.json
+<div class="code-wrapper"><pre><code class="language-bash"># Lockfile-Audit (pnpm — website, arena-server)
+cd website &amp;&amp; pnpm audit --json &gt; /tmp/audit-website.json
+cd arena-server &amp;&amp; pnpm audit --json &gt; /tmp/audit-arena.json
+
+# Lockfile-Audit (npm — brett)
+cd brett &amp;&amp; npm audit --json &gt; /tmp/audit-brett.json 2&gt;/dev/null || true
 
 # Veraltete Pakete anzeigen
-cd website &amp;&amp; pnpm outdated --format json &gt; /tmp/outdated.json
+cd website &amp;&amp; pnpm outdated --format json &gt; /tmp/outdated-website.json
+cd brett &amp;&amp; npm outdated --format json &gt; /tmp/outdated-brett.json 2&gt;/dev/null || true
+cd arena-server &amp;&amp; pnpm outdated --format json &gt; /tmp/outdated-arena.json 2&gt;/dev/null || true
 
 # Deprecation-Warnungen extrahieren
-cd website &amp;&amp; pnpm install 2&gt;&amp;1 | grep -i "deprecat" &gt; /tmp/deprecations.txt
+cd website &amp;&amp; pnpm install 2&gt;&amp;1 | grep -i "deprecat" &gt; /tmp/deprecations-website.txt
+cd brett &amp;&amp; npm install 2&gt;&amp;1 | grep -i "deprecat" &gt; /tmp/deprecations-brett.txt 2&gt;/dev/null || true
+cd arena-server &amp;&amp; pnpm install 2&gt;&amp;1 | grep -i "deprecat" &gt; /tmp/deprecations-arena.txt 2&gt;/dev/null || true
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h3>Phase 2: Klassifizierung</h3>
 <table>
@@ -92,26 +100,45 @@ cd website &amp;&amp; pnpm install 2&gt;&amp;1 | grep -i "deprecat" &gt; /tmp/de
 </tr>
 </tbody></table>
 <h3>Phase 3: Update durchführen</h3>
-<div class="code-wrapper"><pre><code class="language-bash"># Patch/Minor: batch-update
+<div class="code-wrapper"><pre><code class="language-bash"># Patch/Minor: batch-update per workspace
 cd website &amp;&amp; pnpm update --latest --interactive
+cd brett &amp;&amp; npm update 2&gt;/dev/null || true
+cd arena-server &amp;&amp; pnpm update --latest --interactive 2&gt;/dev/null || true
 
-# Major: einzeln prüfen
-pnpm outdated --format json | jq -r '.[] | select(.latest | test("^[0-9]+\\."))'
-# → Jedes Major-Update einzeln: pnpm add &lt;pkg&gt;@latest
+# Major: einzeln prüfen (workspace-übergreifend)
+for dir in website brett arena-server; do
+  [ -f "$dir/package.json" ] || continue
+  echo "=== $dir ==="
+  (cd "$dir" &amp;&amp; (pnpm outdated --format json 2&gt;/dev/null || npm outdated --format json 2&gt;/dev/null) \
+    | jq -r '.[] | select(.latest | test("^[0-9]+\\."))' 2&gt;/dev/null || true)
+done
+# → Jedes Major-Update einzeln: cd &lt;workspace&gt; &amp;&amp; pnpm add &lt;pkg&gt;@latest (oder npm install &lt;pkg&gt;@latest)
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h3>Phase 4: Verifikation</h3>
-<div class="code-wrapper"><pre><code class="language-bash"># Build
+<div class="code-wrapper"><pre><code class="language-bash"># Build per Workspace
 cd website &amp;&amp; pnpm build
+cd brett &amp;&amp; npm run build 2&gt;/dev/null || true
+cd arena-server &amp;&amp; pnpm build 2&gt;/dev/null || true
 
-# Tests
-task test:all
+# Tests (gezielt auf geänderte Domains)
+task test:changed
 
 # Kustomize
 task workspace:validate
+
+# Typecheck (brett + arena-server)
+npm --prefix brett run typecheck 2&gt;/dev/null || true
+npm --prefix arena-server test 2&gt;/dev/null || true
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h3>Phase 5: Rollback (falls nötig)</h3>
-<div class="code-wrapper"><pre><code class="language-bash">git checkout pnpm-lock.yaml
-pnpm install --frozen-lockfile
+<div class="code-wrapper"><pre><code class="language-bash"># Lockfiles pro Workspace zurücksetzen
+git checkout pnpm-lock.yaml package-lock.json 2&gt;/dev/null || git checkout pnpm-lock.yaml
+
+# Neu installieren
+cd website &amp;&amp; pnpm install --frozen-lockfile
+cd brett &amp;&amp; npm ci 2&gt;/dev/null || true
+cd arena-server &amp;&amp; pnpm install --frozen-lockfile 2&gt;/dev/null || true
+
 git commit -m "revert: rollback dependency update"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h2 id="betroffene-pods-pro-workspace">Betroffene Pods pro Workspace</h2>
@@ -119,19 +146,28 @@ git commit -m "revert: rollback dependency update"
 <thead>
 <tr>
 <th>Workspace</th>
+<th>Paketmanager</th>
 <th>Betroffene Deployments</th>
 </tr>
 </thead>
 <tbody><tr>
 <td><code>website/</code></td>
+<td>pnpm</td>
 <td><code>website</code> (website-ns)</td>
 </tr>
 <tr>
 <td><code>brett/</code></td>
+<td>npm</td>
 <td><code>brett</code> (workspace-ns)</td>
 </tr>
 <tr>
+<td><code>arena-server/</code></td>
+<td>pnpm</td>
+<td><code>arena-server</code> (korczewski only)</td>
+</tr>
+<tr>
 <td>Root <code>package.json</code></td>
+<td>—</td>
 <td>Keine (Root-Scripts)</td>
 </tr>
 </tbody></table>
@@ -152,7 +188,7 @@ git commit -m "revert: rollback dependency update"
 </tr>
 </thead>
 <tbody><tr>
-<td><code>pnpm audit</code> zeigt hohe Vulnerabilities</td>
+<td><code>pnpm audit</code> / <code>npm audit</code> zeigt hohe Vulnerabilities</td>
 <td>Advisory-IDs sammeln, einzeln recherchieren (manche sind nur dev, manche irrelevant für unser Deployment)</td>
 </tr>
 <tr>
@@ -161,7 +197,11 @@ git commit -m "revert: rollback dependency update"
 </tr>
 <tr>
 <td>Lockfile-Konflikt nach Rebase</td>
-<td><code>pnpm install --frozen-lockfile</code> → <code>pnpm update</code></td>
+<td><code>pnpm install --frozen-lockfile</code> → <code>pnpm update</code> (bzw. <code>npm ci</code> → <code>npm update</code> für brett)</td>
+</tr>
+<tr>
+<td><code>npm audit</code> schlägt mit <code>E401</code> fehl</td>
+<td>Keine npm-Auth nötig — public packages; <code>--audit-level=none</code> zum Übergehen</td>
 </tr>
 </tbody></table>
 <h2 id="verwandte-skills">Verwandte Skills</h2>

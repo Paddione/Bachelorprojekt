@@ -53,7 +53,7 @@
 <li class="toc-item"><a href="#verwandte-skills"><span class="toc-num">12.</span> Verwandte Skills</a></li></ul>
 </div>
 <h2 id="wann-diese-skill-greift">Wann diese Skill greift</h2>
-<p><code>dev-flow-execute</code> hat fertig implementiert und gemergt. Jetzt soll die implementierte Funktion mit echten Browser-E2E-Tests abgesichert werden. Du brauchst Zugriff auf die Playwright MCP Tools (<code>mcp__plugin_playwright_playwright__browser_*</code>).</p>
+<p><code>dev-flow-execute</code> hat fertig implementiert und gemergt. Jetzt soll die implementierte Funktion mit echten Browser-E2E-Tests abgesichert werden. Du brauchst Zugriff auf die Playwright MCP Tools (<code>mcp-browser_browser_*</code>).</p>
 <p><strong>Sage zu Beginn:</strong> "Ich nutze dev-flow-e2e für Playwright E2E Tests."</p>
 <hr>
 <h2 id="schritt-0-kontext-ermitteln">Schritt 0: Kontext ermitteln</h2>
@@ -73,40 +73,17 @@ gh pr view "$PR_NUM" --json files -q '.files[].path' | sort
 </ul>
 <hr>
 <h2 id="schritt-1-ziel-url-bestimmen">Schritt 1: Ziel-URL bestimmen</h2>
-<table>
-<thead>
-<tr>
-<th>Geänderte Dateien</th>
-<th>Live-URL</th>
-<th>Playwright project</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>website/src/**</code></td>
-<td><code>https://web.mentolder.de</code></td>
-<td><code>website</code></td>
-</tr>
-<tr>
-<td><code>brett/**</code></td>
-<td><code>https://brett.mentolder.de</code></td>
-<td><code>services</code></td>
-</tr>
-<tr>
-<td><code>k3d/nextcloud*.yaml</code></td>
-<td><code>https://files.mentolder.de</code></td>
-<td><code>services</code></td>
-</tr>
-<tr>
-<td><code>k3d/livekit*.yaml</code></td>
-<td><code>https://livekit.mentolder.de</code></td>
-<td><code>services</code></td>
-</tr>
-<tr>
-<td>korczewski-spezifisch (fleet cluster)</td>
-<td><code>https://web.korczewski.de</code></td>
-<td><code>korczewski</code></td>
-</tr>
-</tbody></table>
+<p>| Geänderte Dateien | Live-URL | Playwright project |
+|---|---|---|---|
+| <code>website/src/**</code> | <code>https://web.mentolder.de</code> | <code>website</code> |
+| <code>brett/**</code> | <code>https://brett.mentolder.de</code> | <code>services</code>, <code>brett-mentolder</code> |
+| <code>k3d/nextcloud*.yaml</code> | <code>https://files.mentolder.de</code> | <code>services</code> |
+| <code>k3d/livekit*.yaml</code> | <code>https://livekit.mentolder.de</code> | <code>services</code> |
+| korczewski-spezifisch (fleet cluster) | <code>https://web.korczewski.de</code> | <code>korczewski</code> |
+| Übergreifender Smoke-Test | — | <code>smoke</code> |
+| System-Test (DB, Config, API) | — | <code>systemtest</code> |
+| Unit-Tests | — | <code>unit</code> |
+| Mobile/Responsive | — | <code>ios</code>, <code>android</code> |</p>
 <div class="code-wrapper"><pre><code class="language-bash"># Live-URL für spätere Schritte festlegen
 BASE_URL="https://web.mentolder.de"   # anpassen falls nötig
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
@@ -117,9 +94,9 @@ unter dem Key <code>E2E_TEST_ADMIN_PASSWORD</code> gespeichert. Siehe details in
 <hr>
 <h2 id="schritt-2-live-erkundung-mit-playwright-mcp">Schritt 2: Live-Erkundung mit Playwright MCP</h2>
 <p>Navigiere mit den MCP-Browser-Tools zur implementierten Funktion und verschaffe dir ein vollständiges Bild: welche Seiten, welche API-Endpunkte, welche Auth-Anforderungen.</p>
-<div class="code-wrapper"><pre><code>mcp__plugin_playwright_playwright__browser_navigate → { url: "$BASE_URL/&lt;pfad&gt;" }
-mcp__plugin_playwright_playwright__browser_snapshot  → {}
-mcp__plugin_playwright_playwright__browser_take_screenshot → { filename: "/tmp/e2e-explore-01.png" }
+<div class="code-wrapper"><pre><code>mcp-browser_browser_navigate → { url: "$BASE_URL/&lt;pfad&gt;" }
+mcp-browser_browser_snapshot  → {}
+mcp-browser_browser_take_screenshot → { filename: "/tmp/e2e-explore-01.png" }
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <hr>
 <h2 id="schritt-3-test-spec-schreiben">Schritt 3: Test-Spec schreiben</h2>

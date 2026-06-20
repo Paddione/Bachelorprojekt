@@ -28,7 +28,7 @@
   <div class="page-header-body">
     <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../agents.html">Agents</a> <span class="sep">/</span> <span class="crumb-current">bachelorprojekt-test</span></nav>
     <h1>bachelorprojekt-test</h1>
-    <p class="page-desc">Use for running, writing, or debugging tests in the Bachelorprojekt project. Triggers on: test, FA-*, SA-*, NFA-*, AK-*, BATS, Playwright, runner.sh, &quot;test failing&quot;, &quot;test case&quot;, &quot;write a test&quot;.</p>
+    <p class="page-desc">Use for running, writing, or debugging tests, and for Software Factory Autopilot lifecycle (automated ticket processing) in the Bachelorprojekt project. Triggers on: test, FA-*, SA-*, NFA-*, AK-*, BATS, Playwright, runner.sh, &quot;test failing&quot;, &quot;test case&quot;, &quot;write a test&quot;, factory:, autopilot, FA-SF.</p>
     <div class="page-meta">
       <span class="provenance-badge repo">repo</span>
       <span class="domain-tag">test</span>
@@ -39,14 +39,20 @@
 <article class="doc-body">
 <html><head></head><body><div class="toc-box auto-toc">
   <div class="toc-title">Auf dieser Seite</div>
-  <ul class="toc-list"><li class="toc-item"><a href="#test-categories-and-ids"><span class="toc-num">1.</span> Test categories and IDs</a></li>
-<li class="toc-item"><a href="#permanently-skipped-tests"><span class="toc-num">2.</span> Permanently skipped tests</a></li>
-<li class="toc-item"><a href="#commands"><span class="toc-num">3.</span> Commands</a></li>
-<li class="toc-item"><a href="#cluster-targeting-fleet-stage-3"><span class="toc-num">4.</span> Cluster targeting (Fleet Stage 3)</a></li>
-<li class="toc-item"><a href="#test-file-locations"><span class="toc-num">5.</span> Test file locations</a></li>
-<li class="toc-item"><a href="#autonomous-operation"><span class="toc-num">6.</span> Autonomous operation</a></li>
-<li class="toc-item"><a href="#active-plans"><span class="toc-num">7.</span> Active plans</a></li></ul>
+  <ul class="toc-list"><li class="toc-item"><a href="#software-factory-autopilot-factory-autopilot"><span class="toc-num">1.</span> Software Factory Autopilot (factory-autopilot)</a></li>
+<li class="toc-item"><a href="#test-categories-and-ids"><span class="toc-num">2.</span> Test categories and IDs</a></li>
+<li class="toc-item"><a href="#permanently-skipped-tests"><span class="toc-num">3.</span> Permanently skipped tests</a></li>
+<li class="toc-item"><a href="#commands"><span class="toc-num">4.</span> Commands</a></li>
+<li class="toc-item"><a href="#cluster-targeting-fleet-stage-3"><span class="toc-num">5.</span> Cluster targeting (Fleet Stage 3)</a></li>
+<li class="toc-item"><a href="#test-file-locations"><span class="toc-num">6.</span> Test file locations</a></li>
+<li class="toc-item"><a href="#autonomous-operation"><span class="toc-num">7.</span> Autonomous operation</a></li>
+<li class="toc-item"><a href="#active-plans"><span class="toc-num">8.</span> Active plans</a></li></ul>
 </div><p>You are a test specialist for the Bachelorprojekt platform.</p>
+<h2 id="software-factory-autopilot-factory-autopilot">Software Factory Autopilot (factory-autopilot)</h2>
+<p>The headless timer-driven dispatcher (<code>systemd --user timer</code>, 5‑min tick) that
+autonomously processes backlog tickets. For install/status/uninstall, use the
+<code>.claude/skills/factory-autopilot/SKILL.md</code> runbook. The autopilot is closely
+related to FA tests (FA-SF-* suite) and runs against the same fleet cluster.</p>
 <h2 id="test-categories-and-ids">Test categories and IDs</h2>
 <ul>
 <li><code>FA-01</code>–<code>FA-29</code> — Functional acceptance tests</li>

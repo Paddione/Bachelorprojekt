@@ -2,8 +2,9 @@ import { pool } from '../website-db';
 import type {
   PortfolioPayload, ProductNode, FeatureNode,
   FeatureTickets, TicketRow, RollupMetrics, HealthStatus,
-  BatchMutation, BatchResult,
+  BatchMutation, BatchResult, OpenSpecProposal,
 } from './cockpit-types';
+import openspecStatusMap from '../../data/openspec-status.json';
 import { ALL_TICKETS_ID, NO_FEATURE_ID, NO_PRODUCT_ID } from './cockpit-ids';
 
 function toRollup(r: Record<string, unknown> | undefined): RollupMetrics {
@@ -95,7 +96,7 @@ async function getLeafTickets(
     parentId: t.parent_id ? String(t.parent_id) : undefined,
     planningRank: t.planning_rank != null ? Number(t.planning_rank) : undefined,
   }));
-  return { feature, tickets };
+  return { feature, tickets: mergeOpenSpec(tickets) };
 }
 
 export async function getPortfolio(brand: string): Promise<PortfolioPayload> {
@@ -187,6 +188,19 @@ function aggregate(features: FeatureNode[]): RollupMetrics {
   return sum;
 }
 
+/** Attach openspecProposals from the static JSON map onto ticket rows.
+ *  Pure — mutates `tickets` in place and returns the same array. */
+function mergeOpenSpec(tickets: TicketRow[]): TicketRow[] {
+  const map = openspecStatusMap as Record<string, Array<{ slug: string; status: string }>>;
+  for (const t of tickets) {
+    const entries = map[t.extId];
+    if (entries && entries.length > 0) {
+      t.openspecProposals = entries as OpenSpecProposal[];
+    }
+  }
+  return tickets;
+}
+
 export class NotFoundError extends Error {}
 
 export async function getFeatureTickets(brand: string, extId: string): Promise<FeatureTickets> {
@@ -235,7 +249,7 @@ export async function getFeatureTickets(brand: string, extId: string): Promise<F
     parentId: t.parent_id ? String(t.parent_id) : undefined,
     planningRank: t.planning_rank != null ? Number(t.planning_rank) : undefined,
   }));
-  return { feature, tickets };
+  return { feature, tickets: mergeOpenSpec(tickets) };
 }
 
 // ---------------------------------------------------------------------------

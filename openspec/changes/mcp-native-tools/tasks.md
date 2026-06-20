@@ -13,7 +13,7 @@ depends_on_plans: []
 
 # mcp-native-tools Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:executing-plans` (or `dev-flow-execute`) to implement this plan operation-by-operation. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:executing-plans` (or `dev-flow-execute`) to implement this plan operation-by-operation. Steps use checkbox (`- [x]`) syntax for tracking.
 >
 > **Goal:** Weave the running MCP servers (`mcp-postgres`, `mcp-kubernetes`, `mcp-keycloak`) into skills and the CLAUDE.md agent-routing table so agents prefer the MCP fast-path over `kubectl exec … psql` detours, with `kubectl` kept as the explicit fallback and as the mandatory path for DDL/superuser/write operations.
 >
@@ -67,12 +67,12 @@ The reference SHALL document, for each MCP server, the port, the MCP tool name(s
 - **WHEN** it reads `.claude/skills/references/mcp-tool-guide.md`
 - **THEN** it finds a table mapping server → port → tool name → use case, the guard command, and an explicit "stays kubectl" list (DDL-as-postgres, writes, `kubectl apply`/`rollout`, sealed-secrets/RBAC)
 
-- [ ] **Step 1.0: Verify the guide does not exist yet (pre-condition)**
+- [x] **Step 1.0: Verify the guide does not exist yet (pre-condition)**
 
 Run: `ls .claude/skills/references/mcp-tool-guide.md 2>&1`
 Expected: FAIL — "No such file or directory". If it already exists, inspect and reconcile before writing.
 
-- [ ] **Step 1.1: Write the new reference file**
+- [x] **Step 1.1: Write the new reference file**
 
 Create `.claude/skills/references/mcp-tool-guide.md` with exactly this content:
 
@@ -130,12 +130,12 @@ der Cluster-Kontext nicht gesetzt → **kubectl-Fallback** (der jeweilige `psql`
 - **Sealed Secrets / RBAC / Cluster-Level-Operationen.**
 ````
 
-- [ ] **Step 1.2: Verify the file renders and has the carve-out**
+- [x] **Step 1.2: Verify the file renders and has the carve-out**
 
 Run: `grep -n 'mcp__mcp-postgres__query\|must be owner\|READ-ONLY\|18080/sse\|18081/mcp' .claude/skills/references/mcp-tool-guide.md`
 Expected: matches for the tool name, the DDL "must be owner" carve-out, the READ-ONLY note, and both other endpoints.
 
-- [ ] **Step 1.3: Commit**
+- [x] **Step 1.3: Commit**
 
 ```bash
 git add .claude/skills/references/mcp-tool-guide.md
@@ -159,7 +159,7 @@ The CLAUDE.md agent-routing table SHALL carry a third column `MCP-Primär` so a 
 - **WHEN** it reads the routing table
 - **THEN** the `MCP-Primär` column shows `mcp-postgres (localhost:13001)` for that row
 
-- [ ] **Step 2.1: Replace the table header and rows**
+- [x] **Step 2.1: Replace the table header and rows**
 
 Replace the block at `CLAUDE.md:7-14` (header through the `bachelorprojekt-security` row) with a 3-column version. The `Signals` and `Agent` cells stay byte-identical; only the new `MCP-Primär` column is added:
 
@@ -174,7 +174,7 @@ Replace the block at `CLAUDE.md:7-14` (header through the `bachelorprojekt-secur
 | SealedSecret, Keycloak realm, OIDC, DSGVO, credentials, rotate, certificate, secret | `bachelorprojekt-security` | `mcp-keycloak` (localhost:18081) |
 ```
 
-- [ ] **Step 2.2: Add a one-line pointer to the guide under the table**
+- [x] **Step 2.2: Add a one-line pointer to the guide under the table**
 
 Immediately after the existing "Agent-Routing-Karten" blockquote (`CLAUDE.md:16`), append a new line:
 
@@ -182,12 +182,12 @@ Immediately after the existing "Agent-Routing-Karten" blockquote (`CLAUDE.md:16`
 > **MCP-Schnellweg:** Welcher MCP-Server wann bevorzugt wird (statt `kubectl exec … psql`), steht in [`.claude/skills/references/mcp-tool-guide.md`](.claude/skills/references/mcp-tool-guide.md) — inkl. Portforward-Guard und der kubectl-Pflicht für DDL/Superuser/Writes.
 ```
 
-- [ ] **Step 2.3: Verify the table is well-formed (3 columns, 6 rows)**
+- [x] **Step 2.3: Verify the table is well-formed (3 columns, 6 rows)**
 
 Run: `grep -nA8 '^| Signals | Agent | MCP-Primär |' CLAUDE.md`
 Expected: a header row, a separator row, and exactly 6 agent rows; `bachelorprojekt-website` shows `—`, the three MCP agents show their server+port.
 
-- [ ] **Step 2.4: Commit**
+- [x] **Step 2.4: Commit**
 
 ```bash
 git add CLAUDE.md
@@ -211,7 +211,7 @@ dev-flow-execute SHALL instruct the implementer to use `mcp__mcp-postgres__query
 - **WHEN** the MCP portforward is reachable
 - **THEN** the skill directs it to run the staged-plans SELECT via `mcp__mcp-postgres__query` and only fall back to `kubectl exec … psql` if MCP is down
 
-- [ ] **Step 3.1: Insert MCP directive before the mode-detection block (line 24)**
+- [x] **Step 3.1: Insert MCP directive before the mode-detection block (line 24)**
 
 Find the fenced block beginning at line 22 (`# Wenn TICKET_ID bereits gesetzt ist …`). Immediately **before** that opening ```` ```bash ```` fence, insert this directive (keep the existing block intact below it, then add the fallback label):
 
@@ -229,7 +229,7 @@ _Fallback:_
 
 (The line `_Fallback:_` ends the inserted markdown directly above the existing ```` ```bash ```` fence so the kubectl block reads as the fallback.)
 
-- [ ] **Step 3.2: Insert MCP directive before the batch-load block (line 53)**
+- [x] **Step 3.2: Insert MCP directive before the batch-load block (line 53)**
 
 Before the ```` ```bash ```` fence opening the `BATCH_PLANS_JSON=…` block (line 51), insert:
 
@@ -242,7 +242,7 @@ unten ist der **Fallback**.
 _Fallback:_
 ```
 
-- [ ] **Step 3.3: Insert MCP directive before the progress-tracking block (line 155)**
+- [x] **Step 3.3: Insert MCP directive before the progress-tracking block (line 155)**
 
 The block at lines 155-158 is inside a ```` ``` ```` (plain) fence used as a copy-paste progress hint. Before that fence, insert:
 
@@ -254,12 +254,12 @@ The block at lines 155-158 is inside a ```` ``` ```` (plain) fence used as a cop
 _Fallback:_
 ```
 
-- [ ] **Step 3.4: Verify all three directives landed and fallbacks remain**
+- [x] **Step 3.4: Verify all three directives landed and fallbacks remain**
 
 Run: `grep -nc 'mcp__mcp-postgres__query' .claude/skills/dev-flow-execute/SKILL.md && grep -nc 'kubectl exec -n workspace deploy/shared-db' .claude/skills/dev-flow-execute/SKILL.md`
 Expected: `3` MCP references and the original `3` kubectl blocks both present (MCP added, nothing removed).
 
-- [ ] **Step 3.5: Commit**
+- [x] **Step 3.5: Commit**
 
 ```bash
 git add .claude/skills/dev-flow-execute/SKILL.md
@@ -283,7 +283,7 @@ dev-flow-plan SHALL prefer `mcp__mcp-postgres__query` for the staged-plans list 
 - **WHEN** MCP is reachable
 - **THEN** both the `plan_staged` list and the `COUNT(*) … status='planning'` run via `mcp__mcp-postgres__query`
 
-- [ ] **Step 4.1: Insert MCP directive before the first staged-plans block (line ~280)**
+- [x] **Step 4.1: Insert MCP directive before the first staged-plans block (line ~280)**
 
 Before the ```` ```bash ```` fence containing `STAGED_PLANS=…` (line 281), insert:
 
@@ -299,16 +299,16 @@ unten. Siehe [`references/mcp-tool-guide.md`](file:///home/patrick/Bachelorproje
 _Fallback:_
 ```
 
-- [ ] **Step 4.2: Insert the same directive before the repeated block (line ~397)**
+- [x] **Step 4.2: Insert the same directive before the repeated block (line ~397)**
 
 Before the ```` ```bash ```` fence containing the second `STAGED_PLANS=…` (line 398), insert the **identical** directive from Step 4.1 (this is a deliberate repeat — the two dashboard renders are separate code paths; do not abbreviate to "same as above").
 
-- [ ] **Step 4.3: Verify both directives landed**
+- [x] **Step 4.3: Verify both directives landed**
 
 Run: `grep -nc 'mcp__mcp-postgres__query' .claude/skills/dev-flow-plan/SKILL.md && grep -nc "status='planning'" .claude/skills/dev-flow-plan/SKILL.md`
 Expected: at least `2` MCP references; the two `planning` count queries still present.
 
-- [ ] **Step 4.4: Commit**
+- [x] **Step 4.4: Commit**
 
 ```bash
 git add .claude/skills/dev-flow-plan/SKILL.md
@@ -332,7 +332,7 @@ feature-intake SHALL prefer `mcp__mcp-postgres__query` for the planning-rows, ex
 - **WHEN** MCP is reachable
 - **THEN** the `EXISTING` and `SPEC_POOL` SELECTs run via `mcp__mcp-postgres__query`
 
-- [ ] **Step 5.1: Insert MCP directive before the PLANNING_ROWS block (line 51)**
+- [x] **Step 5.1: Insert MCP directive before the PLANNING_ROWS block (line 51)**
 
 Before the ```` ```bash ```` fence at line 50 (`PLANNING_ROWS=…`), insert:
 
@@ -347,7 +347,7 @@ der kubectl-Block. Siehe [`references/mcp-tool-guide.md`](file:///home/patrick/B
 _Fallback:_
 ```
 
-- [ ] **Step 5.2: Insert MCP directive before the EXISTING + SPEC_POOL blocks (line 314)**
+- [x] **Step 5.2: Insert MCP directive before the EXISTING + SPEC_POOL blocks (line 314)**
 
 Before the ```` ```bash ```` fence at line 313 (`EXISTING=…`), insert a directive covering **both** the EXISTING block (313-318) and the SPEC_POOL block (324-334) that follow:
 
@@ -362,7 +362,7 @@ Belege `EXISTING` und `SPEC_POOL` aus den Ergebnissen. **Fallback:** die zwei ku
 _Fallback:_
 ```
 
-- [ ] **Step 5.3: Insert MCP directive before the candidate-dedup block (line 799)**
+- [x] **Step 5.3: Insert MCP directive before the candidate-dedup block (line 799)**
 
 The block at lines 799-801 is inside a blockquote-fenced ```` ```bash ```` snippet. Before its ```` ```bash ```` fence, insert (as a blockquote line, matching the surrounding `> ` prefix):
 
@@ -372,12 +372,12 @@ The block at lines 799-801 is inside a blockquote-fenced ```` ```bash ```` snipp
 > — sonst der kubectl-Befehl unten (Fallback).
 ```
 
-- [ ] **Step 5.4: Verify directives landed and the four kubectl blocks remain**
+- [x] **Step 5.4: Verify directives landed and the four kubectl blocks remain**
 
 Run: `grep -nc 'mcp__mcp-postgres__query' .claude/skills/feature-intake/SKILL.md && grep -nc 'kubectl exec -n workspace deploy/shared-db' .claude/skills/feature-intake/SKILL.md`
 Expected: at least `3` MCP references (the EXISTING+SPEC_POOL directive covers two queries in one block) and the original `4` kubectl blocks intact.
 
-- [ ] **Step 5.5: Commit**
+- [x] **Step 5.5: Commit**
 
 ```bash
 git add .claude/skills/feature-intake/SKILL.md
@@ -403,7 +403,7 @@ These three skills SHALL state that read SELECTs prefer `mcp__mcp-postgres__quer
 - **WHEN** the agent reads the DB-access note
 - **THEN** it is told writes MUST use the `psql`/`kubectl exec` helper (MCP query is read-only), while read SELECTs prefer MCP
 
-- [ ] **Step 6.1: ticket-ops — add MCP-first note above the helper (before line 32)**
+- [x] **Step 6.1: ticket-ops — add MCP-first note above the helper (before line 32)**
 
 Before the line `All SQL below assumes:` (line 32), insert:
 
@@ -416,7 +416,7 @@ das MCP-Query-Tool ist read-only. Siehe [`references/mcp-tool-guide.md`](file://
 
 ```
 
-- [ ] **Step 6.2: mishap-tracker — add MCP-first note above the PSQL setup (before line 79)**
+- [x] **Step 6.2: mishap-tracker — add MCP-first note above the PSQL setup (before line 79)**
 
 Before the ```` ```bash ```` fence at line 79 (`PGPOD=…` / `PSQL=…`), insert:
 
@@ -428,7 +428,7 @@ Siehe [`references/mcp-tool-guide.md`](file:///home/patrick/Bachelorprojekt/.cla
 
 ```
 
-- [ ] **Step 6.3: incident-response — add MCP-first note above the SQL helper (before line 24)**
+- [x] **Step 6.3: incident-response — add MCP-first note above the SQL helper (before line 24)**
 
 Before the line `SQL helper:` (line 24), insert:
 
@@ -441,12 +441,12 @@ Siehe [`references/mcp-tool-guide.md`](file:///home/patrick/Bachelorprojekt/.cla
 
 ```
 
-- [ ] **Step 6.4: Verify all three notes landed and helpers/writes untouched**
+- [x] **Step 6.4: Verify all three notes landed and helpers/writes untouched**
 
 Run: `for f in ticket-ops mishap-tracker incident-response; do echo "== $f =="; grep -c 'mcp__mcp-postgres__query' .claude/skills/$f/SKILL.md; grep -c 'psql -U website\|psql -U postgres\|INSERT INTO tickets' .claude/skills/$f/SKILL.md; done`
 Expected: each file shows `1` MCP reference; the existing helper/INSERT lines are still present (counts unchanged from before the edit).
 
-- [ ] **Step 6.5: Commit**
+- [x] **Step 6.5: Commit**
 
 ```bash
 git add .claude/skills/ticket-ops/SKILL.md .claude/skills/mishap-tracker/SKILL.md .claude/skills/incident-response/SKILL.md
@@ -470,7 +470,7 @@ database-ops SHALL open with an explicit tool-selection note: DML/SELECT as the 
 - **WHEN** they read the top of database-ops
 - **THEN** they see that DDL-as-postgres MUST use `kubectl exec … psql -U postgres`, while read/DML as `website` can use MCP
 
-- [ ] **Step 7.1: Insert the tool-selection section after the intro line (after line 14)**
+- [x] **Step 7.1: Insert the tool-selection section after the intro line (after line 14)**
 
 After the line ending `…across both brands on the fleet cluster.` (line 14) and before the `---` at line 16, insert:
 
@@ -493,12 +493,12 @@ kubectl exec -i "$PGPOD" -n workspace --context <env> -- psql -U postgres -d web
 Details: [`references/mcp-tool-guide.md`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md).
 ```
 
-- [ ] **Step 7.2: Verify the section landed and the existing DDL warning is intact**
+- [x] **Step 7.2: Verify the section landed and the existing DDL warning is intact**
 
 Run: `grep -n 'Tool-Auswahl: MCP vs kubectl\|mcp__mcp-postgres__query\|must be owner' .claude/skills/database-ops/SKILL.md`
 Expected: the new heading and MCP tool name appear near the top; the original "must be owner" DDL warning (line ~57) is still present further down.
 
-- [ ] **Step 7.3: Commit**
+- [x] **Step 7.3: Commit**
 
 ```bash
 git add .claude/skills/database-ops/SKILL.md
@@ -521,32 +521,32 @@ The change SHALL pass the targeted test, freshness regeneration, and freshness c
 - **WHEN** the CI-equivalent commands run locally
 - **THEN** `task test:changed`, `task freshness:regenerate`, and `task freshness:check` all succeed
 
-- [ ] **Step 8.1: Sanity-check the cross-references and carve-outs across the whole change**
+- [x] **Step 8.1: Sanity-check the cross-references and carve-outs across the whole change**
 
 Run: `grep -rl 'mcp__mcp-postgres__query' .claude/skills/ CLAUDE.md && echo '--- guide linked from at least one skill ---' && grep -rl 'references/mcp-tool-guide.md' .claude/skills/*/SKILL.md CLAUDE.md`
 Expected: the 8 edited files plus the guide appear in the first list; the guide is linked from CLAUDE.md and ≥1 skill (no orphan doc).
 
-- [ ] **Step 8.2: Confirm no write/DDL path was accidentally routed to MCP**
+- [x] **Step 8.2: Confirm no write/DDL path was accidentally routed to MCP**
 
 Run: `grep -rn 'mcp__mcp-postgres__query' .claude/skills/ CLAUDE.md | grep -iE 'INSERT|UPDATE|DELETE|CREATE TABLE|ALTER|DROP'`
 Expected: **no output** (MCP is only ever paired with SELECT/read directives; writes and DDL stay kubectl).
 
-- [ ] **Step 8.3: Run the targeted test suite**
+- [x] **Step 8.3: Run the targeted test suite**
 
 Run: `cd /tmp/wt-mcp-native-tools && task test:changed`
 Expected: PASS (these are `.md`-only changes; quality/S1 gates do not apply to `.md`).
 
-- [ ] **Step 8.4: Regenerate freshness artifacts**
+- [x] **Step 8.4: Regenerate freshness artifacts**
 
 Run: `cd /tmp/wt-mcp-native-tools && task freshness:regenerate`
 Expected: completes; if any generated artifact (e.g. `docs/code-quality/repo-index.json`) changes, stage it in the final commit.
 
-- [ ] **Step 8.5: Run the freshness check (CI equivalent)**
+- [x] **Step 8.5: Run the freshness check (CI equivalent)**
 
 Run: `cd /tmp/wt-mcp-native-tools && task freshness:check`
 Expected: PASS (freshness + `quality:check` S1–S4 ratchet + baseline assertion all green).
 
-- [ ] **Step 8.6: Commit any regenerated artifacts**
+- [x] **Step 8.6: Commit any regenerated artifacts**
 
 ```bash
 git add -A

@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="de" dir="ltr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Mentolder · Präsentation</title>
+<link rel="stylesheet" href="../_ds/mentolder-design-system-019dd170-f0a7-74fa-859f-72037be74c3b/colors_and_type.css"/>
+<link rel="stylesheet" href="../_ds/mentolder-design-system-019dd170-f0a7-74fa-859f-72037be74c3b/system/shared.css"/>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{ background:var(--ink-900); color:var(--fg); font-family:var(--sans); overflow:hidden; }
+  .grain{ position:fixed; inset:0; pointer-events:none; z-index:1; opacity:.5; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.05 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");}
+  :focus-visible{ outline:3px solid var(--brass); outline-offset:3px; }
+
+  .pres{ position:relative; z-index:2; height:100vh; display:flex; flex-direction:column; }
+  .pres-top{ display:flex; align-items:center; justify-content:space-between; padding:26px 48px; }
+  .pres-top .brand-row .name{ font-family:var(--serif); font-size:22px; }
+  .pres-top .brand-row .name .dot{ color:var(--brass); }
+  .lvl-tag{ font-family:var(--mono); font-size:13px; letter-spacing:.18em; text-transform:uppercase; color:var(--brass); }
+
+  .pres-body{ flex:1; display:grid; grid-template-columns:1fr 1fr; gap:0; min-height:0; }
+  .col{ padding:24px 56px; overflow-y:auto; display:flex; flex-direction:column; justify-content:center; }
+  .col.de{ border-inline-end:1px solid var(--line); }
+  .col .lab{ font-family:var(--mono); font-size:13px; letter-spacing:.16em; text-transform:uppercase; color:var(--mute); margin-bottom:30px; display:flex; align-items:center; gap:14px; }
+  .turn{ margin-bottom:40px; }
+  .turn .role{ font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); margin-bottom:12px; }
+  .turn .role.ki{ color:var(--brass); }
+  .turn .text{ font-family:var(--serif); font-weight:300; font-size:30px; line-height:1.4; letter-spacing:-.01em; color:var(--fg); }
+  .turn .text.body{ font-family:var(--sans); font-weight:300; font-size:26px; line-height:1.55; color:var(--fg-soft); }
+  .col.rtl{ direction:rtl; text-align:right; }
+  .col.rtl .text{ font-size:32px; line-height:1.75; }
+
+  .tts{ display:inline-flex; align-items:center; gap:9px; color:var(--brass); font-family:var(--mono); font-size:12px; letter-spacing:.1em; text-transform:uppercase; padding:9px 16px; border-radius:999px; border:1px solid var(--brass-d); background:transparent; cursor:pointer; }
+  .tts:hover{ background:var(--brass-d); }
+  .tts svg{ width:16px; height:16px; }
+
+  .pres-foot{ display:flex; align-items:center; justify-content:space-between; padding:22px 48px; border-top:1px solid var(--line); }
+  .nav-btn{ display:inline-flex; align-items:center; gap:10px; min-height:52px; padding:0 22px; border-radius:999px; border:1px solid var(--line-2); color:var(--fg); background:transparent; font-size:15px; font-weight:600; cursor:pointer; transition:all .2s var(--ease-soft); }
+  .nav-btn:hover{ border-color:var(--brass); color:var(--brass); }
+  .nav-btn svg{ width:18px; height:18px; }
+  .dots{ display:flex; gap:8px; }
+  .dots i{ width:9px; height:9px; border-radius:50%; background:var(--line-2); display:block; }
+  .dots i.on{ background:var(--brass); width:26px; border-radius:999px; }
+  .langtoggle{ display:flex; gap:8px; }
+  .langtoggle button{ min-height:44px; padding:0 16px; border-radius:999px; border:1px solid var(--line-2); color:var(--fg-soft); background:transparent; font-family:var(--mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase; cursor:pointer; }
+  .langtoggle button.on{ border-color:var(--brass); color:var(--brass); background:var(--brass-d); }
+
+  @media (max-width:900px){ .pres-body{ grid-template-columns:1fr; } .col.de{ border-inline-end:none; border-bottom:1px solid var(--line); } .turn .text{ font-size:24px; } }
+</style>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+<div class="pres">
+  <div class="pres-top">
+    <div class="brand-row"><span class="brand-mark dark"></span><span class="name">mentolder<span class="dot">.</span></span></div>
+    <div class="lvl-tag" id="lvlTag">Ebene 01 — Ankommen &amp; Rahmen</div>
+  </div>
+
+  <div class="pres-body">
+    <div class="col de">
+      <div class="lab">Deutsch
+        <button class="tts" onclick="speak(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9v6h4l5 4V5L8 9H4zM17 8a5 5 0 0 1 0 8"/></svg>Vorlesen</button>
+      </div>
+      <div class="turn">
+        <div class="role">Eingabe</div>
+        <div class="text" id="deInput">Platzhalter — der eingegebene Beitrag erscheint hier in großer, ruhiger Schrift.</div>
+      </div>
+      <div class="turn">
+        <div class="role ki">Antwort</div>
+        <div class="text body" id="deAnswer">Platzhalter — die KI-Antwort steht hier, gut lesbar für die Bildschirmfreigabe. Keine Bedienelemente, nur Inhalt.</div>
+      </div>
+    </div>
+
+    <div class="col rtl" id="targetCol" lang="fa">
+      <div class="lab" style="justify-content:flex-start">فارسی
+        <button class="tts" onclick="speak(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9v6h4l5 4V5L8 9H4zM17 8a5 5 0 0 1 0 8"/></svg>خواندن</button>
+      </div>
+      <div class="turn">
+        <div class="role">ورودی</div>
+        <div class="text" id="tgInput">متن نمونه — مشارکت واردشده در اینجا با حروف بزرگ و آرام نمایش داده می‌شود.</div>
+      </div>
+      <div class="turn">
+        <div class="role ki">پاسخ</div>
+        <div class="text body" id="tgAnswer">متن نمونه — پاسخ در اینجا قرار می‌گیرد، خوانا برای اشتراک‌گذاری صفحه. بدون دکمه‌های کنترلی، فقط محتوا.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pres-foot">
+    <button class="nav-btn" id="prev" onclick="step(-1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M11 5l-7 7 7 7"/></svg>Zurück</button>
+    <div class="dots" id="dots"></div>
+    <div class="langtoggle">
+      <button class="on" data-lang="fa" onclick="setLang('fa',this)">فارسی</button>
+      <button data-lang="ar" onclick="setLang('ar',this)">العربية</button>
+      <button data-lang="tr" onclick="setLang('tr',this)">Türkçe</button>
+    </div>
+    <button class="nav-btn" id="next" onclick="step(1)">Weiter<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
+  </div>
+</div>
+
+<script>
+  const LEVELS = ["Ankommen & Rahmen","Anliegen klären","Ist-Situation","Ressourcen & Stärken","Zielbild","Hindernisse & Muster","Perspektivwechsel","Optionen & Wege","Vereinbarungen","Abschluss & Transfer"];
+  const TARGET = {
+    fa:{ name:"فارسی", rtl:true, input:"متن نمونه — مشارکت واردشده در اینجا با حروف بزرگ و آرام نمایش داده می‌شود.", answer:"متن نمونه — پاسخ در اینجا قرار می‌گیرد، خوانا برای اشتراک‌گذاری صفحه.", inLab:"ورودی", outLab:"پاسخ", read:"خواندن" },
+    ar:{ name:"العربية", rtl:true, input:"نص نموذجي — تظهر المساهمة المُدخلة هنا بخط كبير وهادئ.", answer:"نص نموذجي — تظهر الإجابة هنا، واضحة لمشاركة الشاشة.", inLab:"إدخال", outLab:"إجابة", read:"قراءة" },
+    tr:{ name:"Türkçe", rtl:false, input:"Yer tutucu — girilen katkı burada büyük ve sakin bir yazıyla görünür.", answer:"Yer tutucu — yanıt burada, ekran paylaşımı için okunaklı şekilde görünür.", inLab:"Girdi", outLab:"Yanıt", read:"Oku" }
+  };
+  let i = 0, lang = "fa";
+  const dots = document.getElementById('dots');
+  LEVELS.forEach((_,n)=>{ const d=document.createElement('i'); dots.appendChild(d); });
+
+  function render(){
+    document.getElementById('lvlTag').textContent = "Ebene "+String(i+1).padStart(2,'0')+" — "+LEVELS[i];
+    document.getElementById('deInput').textContent = "Platzhalter — Eingabe zu „"+LEVELS[i]+"“ erscheint hier in großer, ruhiger Schrift.";
+    document.getElementById('deAnswer').textContent = "Platzhalter — die KI-Antwort zu „"+LEVELS[i]+"“ steht hier, gut lesbar für die Bildschirmfreigabe.";
+    const t = TARGET[lang];
+    const col = document.getElementById('targetCol');
+    col.dir = t.rtl ? "rtl" : "ltr"; col.lang = lang;
+    col.classList.toggle('rtl', t.rtl);
+    col.querySelector('.lab').childNodes[0].nodeValue = t.name+" ";
+    col.querySelector('.tts').lastChild.nodeValue = t.read;
+    col.querySelectorAll('.role')[0].textContent = t.inLab;
+    col.querySelectorAll('.role')[1].textContent = t.outLab;
+    document.getElementById('tgInput').textContent = t.input;
+    document.getElementById('tgAnswer').textContent = t.answer;
+    [...dots.children].forEach((d,n)=> d.classList.toggle('on', n===i));
+    document.getElementById('prev').style.visibility = i===0 ? "hidden":"visible";
+    document.getElementById('next').style.visibility = i===LEVELS.length-1 ? "hidden":"visible";
+  }
+  function step(d){ i = Math.max(0, Math.min(LEVELS.length-1, i+d)); render(); }
+  function setLang(l, btn){ lang = l; document.querySelectorAll('.langtoggle button').forEach(b=> b.classList.toggle('on', b===btn)); render(); }
+  function speak(btn){ btn.style.background = "var(--brass-d)"; setTimeout(()=> btn.style.background="transparent", 1400); }
+  document.addEventListener('keydown', e=>{ if(e.key==="ArrowRight") step(1); if(e.key==="ArrowLeft") step(-1); });
+  render();
+</script>
+</body>
+</html>

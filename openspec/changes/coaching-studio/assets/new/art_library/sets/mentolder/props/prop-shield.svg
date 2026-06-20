@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="Shield">
+  <defs>
+    <radialGradient id="pg" cx="50%" cy="45%" r="65%"><stop offset="0%" stop-color="#17202e"></stop><stop offset="100%" stop-color="#0b111c"></stop></radialGradient>
+    <filter id="pgrain"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="5"></feTurbulence><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .06 0"></feColorMatrix></filter>
+  </defs>
+  <rect width="200" height="200" fill="url(#pg)"></rect>
+  <rect width="200" height="200" filter="url(#pgrain)" opacity=".4"></rect>
+  <rect x="12" y="12" width="176" height="176" fill="none" stroke="#d7b06a" stroke-opacity=".22"></rect>
+  
+  <path d="M100 30 L150 44 L150 100 Q150 130 100 156 Q50 130 50 100 L50 44 Z" fill="#1d2736" stroke="#d7b06a" stroke-width="2"></path>
+  <path d="M68 76 L100 56 L132 76 L132 84 L100 64 L68 84 Z" fill="#d7b06a" opacity=".85"></path>
+  <circle cx="100" cy="108" r="6" fill="#d7b06a"></circle>
+  <path d="M82 122 L100 142 L118 122 Z" fill="none" stroke="#d7b06a" stroke-width="1.5"></path>
+  <text x="100" y="180" text-anchor="middle" font-family="Geist Mono, monospace" font-size="8" fill="#d7b06a" letter-spacing="2">SCHILD · GRENZE</text>
+
+</svg>

@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Mentolder · Studio Portfolio</title>
+<link rel="stylesheet" href="colors_and_type.css"/>
+<style>
+  body { background: var(--ink-900); color: var(--fg); min-height: 100vh; overflow-x: hidden; font-family: var(--sans); }
+  .grain-fixed {
+    position: fixed; inset: 0; pointer-events: none; z-index: 1;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.08 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    opacity: .55; mix-blend-mode: overlay;
+  }
+  main { position: relative; z-index: 2; max-width: 1280px; margin: 0 auto; padding: 0 28px 120px; }
+
+  /* ============ HERO ============ */
+  .hero { padding: 80px 0 56px; display: grid; grid-template-columns: 1fr auto; gap: 64px; align-items: center; border-bottom: 1px solid var(--line); position: relative; }
+  .hero::before {
+    content: ""; position: absolute; right: -40px; top: 0; width: 480px; height: 480px;
+    background: radial-gradient(circle, oklch(0.80 0.09 75 / .12), transparent 70%);
+    pointer-events: none;
+  }
+  .hero__eyebrow { margin-bottom: 28px; }
+  .hero__title {
+    font-family: var(--serif); font-weight: 350; font-size: 88px; line-height: .98; letter-spacing: -0.025em; color: var(--fg); margin: 0;
+  }
+  .hero__title em { color: var(--brass-2); font-style: italic; font-weight: 400; }
+  .hero__lede { margin-top: 28px; font-size: 17px; line-height: 1.55; color: var(--fg-soft); max-width: 540px; }
+  .hero__meta {
+    margin-top: 40px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;
+    border-top: 1px solid var(--line); padding-top: 24px;
+  }
+  .hero__meta-cell .k { font-family: var(--mono); font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--mute); }
+  .hero__meta-cell .v { font-family: var(--serif); font-size: 22px; color: var(--fg); margin-top: 6px; }
+  .hero__meta-cell .v .u { font-family: var(--mono); font-size: 11px; color: var(--mute); margin-left: 6px; }
+  .hero__meta-cell .v em { font-style: italic; color: var(--brass-2); }
+  .hero__logos { display: flex; flex-direction: column; gap: 24px; align-items: center; }
+  .hero__logos-row { display: flex; gap: 24px; }
+  .hero__logo-box { position: relative; }
+  .hero__logo-box .lab {
+    position: absolute; top: -22px; left: 0; right: 0;
+    font-family: var(--mono); font-size: 10px; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--mute); text-align: center;
+  }
+
+  /* ============ SECTION HEADS ============ */
+  .sec { padding: 96px 0 0; }
+  .sec__head { display: grid; grid-template-columns: 80px 1fr auto; gap: 32px; align-items: end; padding-bottom: 24px; border-bottom: 1px solid var(--line); }
+  .sec__num { font-family: var(--mono); font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--brass); }
+  .sec__title { font-family: var(--serif); font-weight: 400; font-size: 42px; line-height: 1.05; letter-spacing: -.02em; margin: 0; color: var(--fg); }
+  .sec__title em { color: var(--brass-2); font-style: italic; }
+  .sec__hint { font-family: var(--mono); font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--mute); }
+  .sec__body { padding-top: 48px; }
+  .sec__lede { font-size: 16px; line-height: 1.6; color: var(--fg-soft); max-width: 640px; margin: 0 0 40px; }
+  .sec__lede em { color: var(--brass-2); font-style: italic; }
+
+  /* ============ TYPE LOCKUP ============ */
+  .typelock { background: var(--ink-850); border: 1px solid var(--line); border-radius: var(--r-card); padding: 48px; position: relative; overflow: hidden; }
+  .typelock::after {
+    content: ""; position: absolute; top: 0; right: 0; width: 320px; height: 320px;
+    background: radial-gradient(circle, oklch(0.80 0.09 75 / .1), transparent 70%);
+    pointer-events: none;
+  }
+  .typelock__big { font-family: var(--serif); font-size: 96px; line-height: 1; letter-spacing: -.03em; color: var(--fg); }
+  .typelock__big .typelock__m { color: var(--brass); }
+  .typelock__big .typelock__rest { font-style: italic; color: var(--fg-soft); }
+  .typelock__big .typelock__dot { color: var(--brass); }
+  .typelock__sub { margin-top: 16px; font-size: 11px; letter-spacing: .22em; color: var(--mute); }
+  .typelock__divider { margin: 32px 0; height: 1px; background: var(--line-2); }
+  .typelock__row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+  .typelock__sample { margin-top: 12px; }
+
+  /* ============ ARCHETYPE GRID ============ */
+  .ar-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .ar-card { background: var(--ink-850); border: 1px solid var(--line); border-radius: var(--r-card); overflow: hidden; transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease); display: flex; flex-direction: column; }
+  .ar-card:hover { border-color: var(--line-2); box-shadow: var(--shadow-2); }
+  .ar-card__sigil { position: relative; background: var(--ink-800); border-bottom: 1px solid var(--line); }
+  .ar-card__sigil .ar-sigil { display: block; width: 100%; height: 280px; }
+  .ar-card__index { position: absolute; top: 12px; left: 14px; font-size: 10px; letter-spacing: .2em; color: var(--brass); }
+  .ar-card__body { padding: 24px 24px 22px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+  .ar-card__head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .ar-card__name { font-family: var(--serif); font-weight: 400; font-size: 26px; line-height: 1.1; margin: 0; color: var(--fg); letter-spacing: -.015em; }
+  .ar-card__tag { font-size: 9px; letter-spacing: .16em; color: var(--mute); text-align: right; max-width: 12ch; }
+  .ar-card__role { font-size: 10px; letter-spacing: .18em; color: var(--brass); }
+  .ar-card__motto { font-family: var(--serif); font-style: italic; font-size: 17px; color: var(--brass-2); margin: 4px 0 0; }
+  .ar-card__bio { font-size: 13.5px; line-height: 1.55; color: var(--fg-soft); margin: 4px 0 0; }
+  .ar-card__bullets { list-style: none; padding: 0; margin: 6px 0 0; display: grid; gap: 6px; }
+  .ar-card__bullets li { font-size: 12.5px; color: var(--mute); display: flex; align-items: baseline; gap: 10px; line-height: 1.5; }
+  .ar-card__bullets li::before { content: ""; width: 4px; height: 4px; border-radius: 50%; background: var(--brass); display: inline-block; flex: 0 0 auto; transform: translateY(-2px); }
+  .ar-card__foot { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: flex-end; }
+  .ar-card__price .p { font-family: var(--serif); font-size: 22px; color: var(--fg); display: block; letter-spacing: -.015em; }
+  .ar-card__price .u { font-size: 10px; letter-spacing: .14em; color: var(--mute); }
+  .ar-card__swatches { display: flex; gap: 4px; }
+  .ar-card__swatches span { display: block; width: 14px; height: 14px; border-radius: 4px; border: 1px solid var(--line-2); }
+
+  /* ============ PORTRAIT FRAME (Hero ref) ============ */
+  .portrait-board { background: var(--ink-850); border: 1px solid var(--line); border-radius: var(--r-card); padding: 48px; display: grid; grid-template-columns: 460px 1fr; gap: 56px; align-items: center; }
+  .portrait-board .meta h3 { font-family: var(--serif); font-weight: 400; font-size: 32px; letter-spacing: -.015em; margin: 0; }
+  .portrait-board .meta p { color: var(--fg-soft); font-size: 15px; line-height: 1.6; margin-top: 14px; max-width: 44ch; }
+  .portrait-board .meta .mono-list { margin-top: 24px; display: grid; gap: 8px; padding-top: 20px; border-top: 1px solid var(--line); }
+  .portrait-board .meta .mono-list div { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+  .portrait-board .meta .mono-list div .k { color: var(--mute); }
+  .portrait-board .meta .mono-list div .v { color: var(--fg-soft); }
+
+  .portrait-wrap { position: relative; width: 100%; max-width: 460px; isolation: isolate; padding: 0 18px 0 0; }
+  .portrait-wrap .halo { position: absolute; right: -8%; top: 6%; width: 90%; height: 90%; border-radius: 50%; background: radial-gradient(closest-side, oklch(0.80 0.09 75 / .45), oklch(0.80 0.09 75 / 0) 70%); filter: blur(8px); z-index: -1; pointer-events: none; }
+  .portrait-wrap .halo-2 { position: absolute; left: -6%; bottom: 12%; width: 55%; height: 55%; border-radius: 50%; background: radial-gradient(closest-side, oklch(0.60 0.05 250 / .45), transparent 70%); filter: blur(18px); z-index: -1; pointer-events: none; }
+  .portrait-wrap::before { content: ""; position: absolute; right: 2px; top: -16px; bottom: -40px; width: 1px; background: linear-gradient(to bottom, transparent, var(--line-2) 20%, var(--line-2) 80%, transparent); }
+  .portrait { position: relative; width: 100%; aspect-ratio: 4/5; border-radius: 4px; overflow: hidden; background: var(--ink-800); box-shadow: var(--shadow-portrait), inset 0 0 0 1px var(--line-2); }
+  .portrait img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 18%; filter: contrast(1.04) brightness(1.02) sepia(.18) saturate(1.05); }
+  .portrait::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, oklch(0.80 0.09 75 / .10) 0%, oklch(0.80 0.09 75 / 0) 40%, oklch(0.18 0.02 250 / .35) 100%); mix-blend-mode: soft-light; }
+  .portrait::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: linear-gradient(to right, transparent, oklch(0.80 0.09 75 / .7) 30%, oklch(0.80 0.09 75 / .7) 70%, transparent); z-index: 2; }
+  .portrait .tag { position: absolute; left: 14px; top: 14px; z-index: 3; display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--fg); background: rgba(11,17,28,.55); backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,.12); padding: 6px 10px; border-radius: 999px; }
+  .portrait .tag::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--sage); box-shadow: 0 0 0 3px var(--sage-tint); }
+  .portrait-caption { position: relative; margin-top: 18px; display: grid; grid-template-columns: auto 1fr auto; gap: 16px; align-items: center; padding: 14px 4px 0; border-top: 1px solid var(--line); }
+  .portrait-caption .pc-num { font-size: 10px; letter-spacing: .18em; color: var(--brass); text-transform: uppercase; }
+  .portrait-caption .pc-name { font-family: var(--serif); font-size: 16px; color: var(--fg); letter-spacing: -.01em; display: block; }
+  .portrait-caption .pc-role { display: block; font-size: 10px; letter-spacing: .14em; color: var(--mute); text-transform: uppercase; margin-top: 2px; }
+  .portrait-caption .pc-loc { font-size: 10px; letter-spacing: .14em; color: var(--mute); text-transform: uppercase; }
+
+  /* ============ STATS STRIP ============ */
+  .strip { display: grid; grid-template-columns: 1.1fr .9fr; border: 1px solid var(--line); border-radius: var(--r-card); overflow: hidden; background: var(--ink-900); }
+  .strip__stats { display: grid; grid-template-columns: repeat(4, 1fr); border-right: 1px solid var(--line); }
+  .strip__stat { padding: 36px 24px; border-right: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px; }
+  .strip__stat:last-child { border-right: none; }
+  .strip__num { font-family: var(--serif); font-size: 44px; line-height: 1; color: var(--fg); letter-spacing: -.02em; }
+  .strip__num em { color: var(--brass); font-style: normal; }
+  .strip__lab { font-size: 11px; letter-spacing: .14em; color: var(--mute); }
+  .strip__avail { padding: 32px 32px; display: flex; flex-direction: column; justify-content: center; gap: 14px; background: var(--ink-850); }
+  .strip__row { display: flex; align-items: center; gap: 14px; }
+  .strip__pulse { width: 10px; height: 10px; border-radius: 50%; background: var(--sage); box-shadow: 0 0 0 0 var(--sage-tint); animation: m-pulse 2.2s infinite; }
+  @keyframes m-pulse { 0%{box-shadow:0 0 0 0 oklch(0.80 0.06 160 / .6);} 70%{box-shadow:0 0 0 10px oklch(0.80 0.06 160 / 0);} 100%{box-shadow:0 0 0 0 oklch(0.80 0.06 160 / 0);} }
+  .strip__avail-title { font-weight: 600; color: var(--fg); }
+  .strip__avail-sub { color: var(--mute); font-size: 14px; }
+  .strip__slots { display: flex; flex-wrap: wrap; gap: 8px; }
+  .strip__slot { font-size: 12px; padding: 7px 12px; border: 1px solid var(--line-2); border-radius: 999px; color: var(--fg-soft); }
+
+  /* ============ QUOTE CARD ============ */
+  .quote-card { position: relative; padding: 44px 44px 40px; background: radial-gradient(circle at 0% 0%, oklch(0.80 0.09 75 / .12), transparent 50%), var(--ink-800); border: 1px solid var(--line-2); border-radius: var(--r-card); }
+  .quote-card .mark-q { font-family: var(--serif); font-size: 120px; line-height: .5; color: var(--brass); opacity: .4; position: absolute; top: 30px; left: 30px; font-style: italic; }
+  .quote-card blockquote { font-family: var(--serif); font-style: italic; font-size: 26px; line-height: 1.35; color: var(--fg); margin: 32px 0 28px; font-weight: 350; letter-spacing: -.01em; position: relative; z-index: 1; }
+  .quote-byline { display: flex; align-items: center; gap: 14px; padding-top: 20px; border-top: 1px solid var(--line); }
+  .quote-byline .avatar { width: 44px; height: 44px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, var(--brass-2), var(--brass) 45%, #6e5420 100%); display: flex; align-items: center; justify-content: center; font-family: var(--serif); color: var(--ink-900); font-weight: 500; font-size: 16px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.2); }
+  .quote-byline .name { font-weight: 600; color: var(--fg); font-size: 15px; }
+  .quote-byline .role { color: var(--mute); font-size: 13px; }
+
+  /* ============ PALETTE ============ */
+  .palette { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .palette__sw { background: var(--ink-850); border: 1px solid var(--line); border-radius: var(--r-card); padding: 16px; display: flex; flex-direction: column; gap: 12px; transition: border-color var(--dur) var(--ease); }
+  .palette__sw:hover { border-color: var(--line-2); }
+  .palette__chip { height: 88px; border-radius: 10px; border: 1px solid var(--line-2); }
+  .palette__name { font-family: var(--serif); font-size: 18px; color: var(--fg); }
+  .palette__hex { font-size: 11px; color: var(--fg-soft); margin-top: 2px; }
+  .palette__role { font-size: 9px; letter-spacing: .18em; color: var(--mute); margin-top: 8px; }
+
+  /* ============ ICONS ============ */
+  .icons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .icons__cell { background: var(--ink-850); border: 1px solid var(--line); border-radius: var(--r-card); padding: 28px 22px 22px; display: flex; flex-direction: column; align-items: center; gap: 14px; transition: border-color var(--dur) var(--ease); }
+  .icons__cell:hover { border-color: var(--brass); }
+  .icons__art { display: flex; align-items: center; justify-content: center; height: 72px; }
+  .icons__cap { text-align: center; }
+  .icons__name { font-family: var(--serif); font-size: 18px; color: var(--fg); }
+  .icons__id { font-size: 9px; letter-spacing: .2em; color: var(--brass); margin-top: 4px; }
+  .icons__role { font-size: 9px; letter-spacing: .14em; color: var(--mute); margin-top: 4px; text-transform: uppercase; }
+
+  /* ============ SURFACES ============ */
+  .surface { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .surface__cell { border: 1px solid var(--line); border-radius: var(--r-card); overflow: hidden; }
+  .surface__tile { height: 160px; overflow: hidden; border-bottom: 1px solid var(--line); }
+  .surface__tile svg { display: block; width: 100%; height: 100%; }
+  .surface__cap { padding: 12px 16px; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; background: var(--ink-850); }
+  .surface__name { font-family: var(--serif); font-size: 18px; color: var(--fg); }
+  .surface__role { font-size: 9px; letter-spacing: .14em; color: var(--mute); margin-top: 3px; text-transform: uppercase; }
+  .surface__id { font-size: 10px; letter-spacing: .2em; color: var(--mute); align-self: flex-start; }
+
+  /* ============ PROCESS STEPS ============ */
+  .steps-preview { background: var(--ink-850); border: 1px solid var(--line); border-radius: var(--r-card); padding: 56px 44px; }
+  .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; position: relative; }
+  .steps::before { content: ""; position: absolute; left: 0; right: 0; top: 14px; height: 1px; background: linear-gradient(to right, var(--line), var(--brass) 20%, var(--brass) 80%, var(--line)); opacity: .4; }
+  .step { position: relative; padding-top: 40px; }
+  .step__dot { position: absolute; top: 8px; left: 0; width: 14px; height: 14px; border-radius: 50%; background: var(--ink-850); border: 1px solid var(--brass); }
+  .step__dot::after { content: ""; position: absolute; inset: 3px; border-radius: 50%; background: var(--brass); }
+  .step__num { font-size: 10px; letter-spacing: .16em; color: var(--brass); }
+  .step__title { font-family: var(--sans); font-size: 15px; font-weight: 600; margin-top: 4px; color: var(--fg); }
+  .step__body { font-size: 13px; color: var(--mute); margin-top: 4px; line-height: 1.6; }
+
+  /* ============ FOOTER ============ */
+  .foot { margin-top: 96px; padding-top: 32px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
+  .foot__meta { font-family: var(--mono); font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--mute); }
+  .foot__dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--sage); margin-right: 8px; animation: m-pulse 2.2s infinite; }
+
+  /* Logo pulse animations */
+  @keyframes pulse-ring { 0% { opacity: 0.6; r: 28; } 100% { opacity: 0; r: 70; } }
+  @keyframes glow-core { 0%, 100% { opacity: 1; } 50% { opacity: 0.75; } }
+  .pulse-ring-1 { animation: pulse-ring 2.4s ease-out infinite; }
+  .pulse-ring-2 { animation: pulse-ring 2.4s ease-out infinite 0.8s; }
+  .pulse-ring-3 { animation: pulse-ring 2.4s ease-out infinite 1.6s; }
+  .core-glow { animation: glow-core 2.2s ease-in-out infinite; }
+
+  @media (max-width: 980px) {
+    .hero { grid-template-columns: 1fr; }
+    .hero__title { font-size: 56px; }
+    .hero__meta { grid-template-columns: 1fr 1fr; }
+    .ar-grid, .palette, .icons, .surface, .typelock__row { grid-template-columns: 1fr 1fr; }
+    .portrait-board { grid-template-columns: 1fr; }
+    .strip { grid-template-columns: 1fr; }
+    .strip__stats { grid-template-columns: 1fr 1fr; border-right: none; border-bottom: 1px solid var(--line); }
+    .steps { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="grain-fixed"></div>
+<main data-screen-label="Portfolio">
+
+  <!-- ============ HERO ============ -->
+  <section class="hero" data-screen-label="01 Hero">
+    <div class="hero__copy">
+      <div class="eyebrow hero__eyebrow">[ STUDIO · 2026 — A WORK NOTEBOOK ]</div>
+      <h1 class="hero__title">Eine Marke, die <em>wieder</em> verbindet.</h1>
+      <p class="hero__lede">
+        Ein Notizbuch zur Identität von <em>Mentolder</em> — der digitalen Coaching-Praxis von
+        Gerald Korczewski. Das Material aus dem die Homepage, die Drucksachen und die
+        Begleitmaterialien langsam zusammenwachsen.
+      </p>
+      <div class="hero__meta">
+        <div class="hero__meta-cell"><div class="k">Disziplin</div><div class="v">Marke · <em>Web</em> · Druck</div></div>
+        <div class="hero__meta-cell"><div class="k">Angebote</div><div class="v">3<span class="u">Formate</span></div></div>
+        <div class="hero__meta-cell"><div class="k">Marken-Varianten</div><div class="v">2<span class="u">aktiv</span></div></div>
+        <div class="hero__meta-cell"><div class="k">Status</div><div class="v" style="color:var(--brass)"><span class="foot__dot"></span>Im Bau</div></div>
+      </div>
+    </div>
+    <div class="hero__logos">
+      <div class="hero__logos-row">
+        <div class="hero__logo-box"><span class="lab">App Icon · Brass-Mark</span><div id="logo-1"></div></div>
+        <div class="hero__logo-box"><span class="lab">Animated · Brass-Pulse</span><div id="logo-2"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TYPE LOCKUP ============ -->
+  <section class="sec" data-screen-label="02 Marke">
+    <div class="sec__head">
+      <div class="sec__num">[ 01 — Marke ]</div>
+      <h2 class="sec__title">Eine Wortmarke. <em>Ein</em> Akzent. Drei Stimmen.</h2>
+      <div class="sec__hint">SERIF · SANS · MONO</div>
+    </div>
+    <div class="sec__body">
+      <div id="typelock"></div>
+    </div>
+  </section>
+
+  <!-- ============ PORTRAIT FRAME ============ -->
+  <section class="sec" data-screen-label="03 Porträt">
+    <div class="sec__head">
+      <div class="sec__num">[ 02 — Porträt ]</div>
+      <h2 class="sec__title">Ein <em>Gesicht</em>, ruhig gesetzt.</h2>
+      <div class="sec__hint">DUOTONE · WARM · KALT</div>
+    </div>
+    <div class="sec__body">
+      <p class="sec__lede">
+        Der Hero zeigt Gerald in einem editorialen Rahmen — Messing-Halo oben rechts,
+        Stille-Blau unten links, eine dünne Brass-Hairline auf der Bildkante. Das B&W-Original
+        wird mit einem warmen Sepia-Wash und einem soft-light Duotone in die Palette
+        eingebunden. <em>Genauso</em> wird jeder Porträt-Auftritt der Marke gerahmt.
+      </p>
+      <div class="portrait-board">
+        <div id="portrait"></div>
+        <div class="meta">
+          <h3>Gerald Korczewski</h3>
+          <p>
+            65 Jahre. 30+ Jahre Führung bei der Polizei Hamburg. Systemischer Coach.
+            Pionier der ersten Stunde für KI in der deutschen Polizeiarbeit. Heute begleitet
+            er die Generation 50+ in der digitalen Welt — und Führungskräfte vor der
+            nächsten Station.
+          </p>
+          <div class="mono-list">
+            <div><span class="k">Bildquelle</span><span class="v">B&amp;W · Studio</span></div>
+            <div><span class="k">Wash</span><span class="v">Sepia .18 · Soft-Light</span></div>
+            <div><span class="k">Halo</span><span class="v">Messing .45 · Stille-Blau .45</span></div>
+            <div><span class="k">Object-Position</span><span class="v">center 18%</span></div>
+            <div><span class="k">Hairline</span><span class="v">Brass · 1px · Top-Edge</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ARCHETYPES ============ -->
+  <section class="sec" data-screen-label="04 Angebote">
+    <div class="sec__head">
+      <div class="sec__num">[ 03 — Angebote ]</div>
+      <h2 class="sec__title">Drei Formate. <em>Eine</em> Haltung.</h2>
+      <div class="sec__hint">SIGIL · KOPIE · PREIS</div>
+    </div>
+    <div class="sec__body">
+      <p class="sec__lede">
+        Drei Service-Archetypen mit eigener Sigille, Motto und Preisform — gemeinsames
+        Vokabular, klar unterscheidbare Silhouette. Das Sigille ist <em>kein</em> Icon,
+        sondern eine kleine editoriale Komposition: Hairline-Gitter, Messing-Strich, ein Anker.
+      </p>
+      <div id="grid"></div>
+    </div>
+  </section>
+
+  <!-- ============ STATS STRIP ============ -->
+  <section class="sec" data-screen-label="05 Strip">
+    <div class="sec__head">
+      <div class="sec__num">[ 04 — Strip ]</div>
+      <h2 class="sec__title">Glaubwürdigkeit, <em>knapp</em> gesetzt.</h2>
+      <div class="sec__hint">STATS · VERFÜGBARKEIT</div>
+    </div>
+    <div class="sec__body">
+      <p class="sec__lede">
+        Die Stats-Strip-Komposition unter dem Hero. Vier Zahlen, ein Salbei-Puls,
+        vier Slot-Pillen. Wird auch in Newsletter und Drucksachen wiederverwendet.
+      </p>
+      <div id="strip"></div>
+    </div>
+  </section>
+
+  <!-- ============ PALETTE ============ -->
+  <section class="sec" data-screen-label="06 Palette">
+    <div class="sec__head">
+      <div class="sec__num">[ 05 — Palette ]</div>
+      <h2 class="sec__title">Zwölf Farben, <em>jede</em> mit Aufgabe.</h2>
+      <div class="sec__hint">WEB · DRUCK · GEMEINSAM</div>
+    </div>
+    <div class="sec__body">
+      <p class="sec__lede">
+        Tinte und Messing. Salbei für Verfügbarkeit, Stille-Blau für Tiefe, Tonrot
+        nur bei Warnung. Keine Dekoration ohne Grund.
+      </p>
+      <div id="palette"></div>
+    </div>
+  </section>
+
+  <!-- ============ QUOTE ============ -->
+  <section class="sec" data-screen-label="07 Stimme">
+    <div class="sec__head">
+      <div class="sec__num">[ 06 — Stimme ]</div>
+      <h2 class="sec__title">Eine Zeile, <em>ehrlich</em>.</h2>
+      <div class="sec__hint">QUOTE-CARD · KOMPONENTE</div>
+    </div>
+    <div class="sec__body">
+      <p class="sec__lede">
+        Die Quote-Card mit Brass-Halo, Newsreader-Italic, Brass-Avatar.
+      </p>
+      <div id="quote"></div>
+    </div>
+  </section>
+
+  <!-- ============ ICONS ============ -->
+  <section class="sec" data-screen-label="08 Ikonografie">
+    <div class="sec__head">
+      <div class="sec__num">[ 07 — Ikonografie ]</div>
+      <h2 class="sec__title">Sechs <em>Marken</em> für die Begleitung.</h2>
+      <div class="sec__hint">STROKE · 1.4 · BRASS</div>
+    </div>
+    <div class="sec__body">
+      <p class="sec__lede">
+        Schmaler Stroke-Set für Offer-Karten, Newsletter und Drucksachen. Wenig
+        Detail, klare Silhouette, Brass-Linie auf Tinte.
+      </p>
+      <div id="icons"></div>
+    </div>
+  </section>
+
+  <!-- ============ SURFACES ============ -->
+  <section class="sec" data-screen-label="09 Oberflächen">
+    <div class="sec__head">
+      <div class="sec__num">[ 08 — Oberflächen ]</div>
+      <h2 class="sec__title">Sechs <em>Untergründe</em>.</h2>
+      <div class="sec__hint">SURFACE · 240×160</div>
+    </div>
+    <div class="sec__body">
+      <p class="sec__lede">
+        Stimmungsproben für Hintergründe — wie Licht auf den Substraten der Marke
+        liegt: Tinte, Messing-Halo, Stille-Blau, Hairline-Gitter, Duotone-Wash, Salbei-Puls.
+      </p>
+      <div id="surfaces"></div>
+    </div>
+  </section>
+
+  <!-- ============ PROCESS ============ -->
+  <section class="sec" data-screen-label="10 Prozess">
+    <div class="sec__head">
+      <div class="sec__num">[ 09 — Prozess ]</div>
+      <h2 class="sec__title">Vier <em>ruhige</em> Schritte.</h2>
+      <div class="sec__hint">DOT · NUM · TITLE · BODY</div>
+    </div>
+    <div class="sec__body">
+      <p class="sec__lede">
+        Die Zeitleisten-Komponente vom Homepage-Prozess. Vier gleich gewichtete Stops,
+        Brass-Hairline als Spur, Punkte als Halt.
+      </p>
+      <div id="steps"></div>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="foot">
+    <div class="foot__meta"><span class="foot__dot"></span>STUDIO · 2026 · MENTOLDER</div>
+    <div class="foot__meta">PORTFOLIO · V1 · WIP</div>
+  </footer>
+
+</main>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="assets.jsx"></script>
+<script type="text/babel" src="archetypes.jsx"></script>
+<script type="text/babel">
+  const mount = (id, el) => {
+    const node = document.getElementById(id);
+    if (node) ReactDOM.createRoot(node).render(el);
+  };
+  mount("logo-1",   <LogoMark size={140}/>);
+  mount("logo-2",   <LogoBrassPulse size={140}/>);
+  mount("typelock", <TypeLockup/>);
+  mount("portrait", <PortraitFrame/>);
+  mount("grid",     <ArchetypeGrid/>);
+  mount("strip",    <StatsStrip/>);
+  mount("palette",  <PaletteCard/>);
+  mount("quote",    <QuoteCard/>);
+  mount("icons",    <IconGrid/>);
+  mount("surfaces", <SurfaceGrid/>);
+  mount("steps",    <ProcessSteps/>);
+</script>
+</body>
+</html>

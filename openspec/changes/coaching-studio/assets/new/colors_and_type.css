@@ -1,0 +1,214 @@
+/* =====================================================================
+   Mentolder — Colors & Typography
+   The single source of truth for tokens. Mirrors src/styles/global.css
+   from the production website (Astro + Svelte).
+   ===================================================================== */
+
+/* ---------- Webfonts (Google Fonts CDN) -------------------------------- */
+@import url("https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap");
+
+:root {
+  /* ---------- Ink palette (deep navy base, slightly warm) -------------- */
+  --ink-900: #0b111c;        /* page base */
+  --ink-850: #101826;        /* elevated panels (footer, "why" section) */
+  --ink-800: #17202e;        /* cards, quote panel */
+  --ink-750: #1d2736;        /* subtle alternate */
+
+  /* ---------- Foreground / text -------------------------------------- */
+  --fg:      #eef1f3;        /* primary text — warm off-white */
+  --fg-soft: #cdd3d9;        /* body / ledes */
+  --mute:    #8c96a3;        /* captions, meta */
+  --mute-2:  #6a727e;        /* deep meta (footer bottom) */
+
+  /* ---------- Brass accent (primary) --------------------------------- */
+  --brass:   oklch(0.80 0.09 75);            /* CTAs, eyebrows */
+  --brass-2: oklch(0.86 0.09 75);            /* hover, italic accent */
+  --brass-d: oklch(0.80 0.09 75 / .14);      /* tinted fills */
+  --brass-deep: #8a6a2a;                     /* gradient base of brand mark */
+  --brass-hex: #cda260;                      /* approximate hex for non-OKLCH contexts (PDF, email) */
+
+  /* ---------- Sage accent (secondary, calm) -------------------------- */
+  --sage:    oklch(0.80 0.06 160);
+
+  /* ---------- Semantic ----------------------------------------------- */
+  --success: oklch(0.80 0.06 160);
+  --danger:  oklch(0.62 0.18 22);
+  --info:    oklch(0.70 0.10 230);
+
+  /* ---------- Print/Invoice palette (warm paper) --------------------- */
+  --paper:     #f6f3ee;
+  --paper-2:   #efeae1;
+  --paper-ink: #1a2030;
+  --paper-ink-soft: #3a4150;
+  --paper-mute: #6a717e;
+  --paper-line: #d4cfc6;
+
+  /* ---------- Hairlines / dividers ----------------------------------- */
+  --line:   rgba(255, 255, 255, 0.07);
+  --line-2: rgba(255, 255, 255, 0.12);
+
+  /* ---------- Type families ------------------------------------------ */
+  --serif: "Newsreader", "Iowan Old Style", Georgia, serif;
+  --sans:  "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:  "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* ---------- Type scale (semantic) ---------------------------------- */
+  --t-h1-size:   clamp(44px, 6.2vw, 88px);
+  --t-h1-weight: 350;
+  --t-h1-leading: 1.02;
+  --t-h1-tracking: -0.02em;
+
+  --t-h2-size:   clamp(32px, 3.6vw, 48px);
+  --t-h2-weight: 400;
+  --t-h2-leading: 1.1;
+  --t-h2-tracking: -0.02em;
+
+  --t-h3-size:   22px;        /* sans variant */
+  --t-h3-serif-size: 28px;    /* offer-row / editorial variant */
+  --t-h3-weight: 500;
+
+  --t-lede-size: 20px;
+  --t-body-size: 16px;
+  --t-small-size: 14px;
+  --t-eyebrow-size: 11px;
+  --t-eyebrow-tracking: 0.18em;
+
+  /* ---------- Radii --------------------------------------------------- */
+  --radius:    22px;          /* large cards, frames */
+  --radius-md: 12px;          /* fields, smaller cards */
+  --radius-sm: 8px;           /* brand mark, badges */
+  --radius-xs: 4px;           /* portrait frame */
+  --radius-pill: 999px;       /* buttons, pills, slot tags */
+
+  /* ---------- Spacing ------------------------------------------------- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 14px;
+  --space-4: 22px;
+  --space-5: 36px;
+  --space-6: 56px;
+  --space-7: 80px;
+  --space-8: 120px;          /* section vertical rhythm (desktop) */
+
+  /* ---------- Layout -------------------------------------------------- */
+  --maxw: 1240px;
+  --gutter: 40px;
+  --gutter-mobile: 22px;
+
+  /* ---------- Shadows ------------------------------------------------- */
+  /* The system mostly avoids shadows — relies on hairlines + halos.    */
+  --shadow-portrait:
+    0 40px 80px -30px rgba(0, 0, 0, .75),
+    0 2px 0 0 rgba(255, 255, 255, .04),
+    inset 0 0 0 1px var(--line-2);
+  --shadow-card:
+    0 1px 0 0 rgba(255,255,255,.03),
+    inset 0 0 0 1px var(--line);
+
+  /* ---------- Motion -------------------------------------------------- */
+  --ease-soft: cubic-bezier(.22, .61, .36, 1);
+  --ease-out:  cubic-bezier(.2, .8, .2, 1);
+  --dur-fast: 150ms;
+  --dur-base: 200ms;
+  --dur-slow: 500ms;
+  --dur-portrait: 800ms;
+}
+
+/* =====================================================================
+   Semantic typography (apply directly to elements where possible)
+   ===================================================================== */
+html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+
+body {
+  font-family: var(--sans);
+  font-size: var(--t-body-size);
+  line-height: 1.55;
+  letter-spacing: -0.005em;
+  color: var(--fg);
+  background: var(--ink-900);
+}
+
+h1, .t-h1 {
+  font-family: var(--serif);
+  font-size: var(--t-h1-size);
+  font-weight: var(--t-h1-weight);
+  line-height: var(--t-h1-leading);
+  letter-spacing: var(--t-h1-tracking);
+  color: var(--fg);
+  margin: 0;
+}
+h1 em, .t-h1 em { font-style: italic; font-weight: 400; color: var(--brass-2); }
+
+h2, .t-h2 {
+  font-family: var(--serif);
+  font-size: var(--t-h2-size);
+  font-weight: var(--t-h2-weight);
+  line-height: var(--t-h2-leading);
+  letter-spacing: var(--t-h2-tracking);
+  color: var(--fg);
+  margin: 0;
+}
+h2 em, .t-h2 em { font-style: italic; font-weight: 400; color: var(--brass-2); }
+
+h3, .t-h3 {
+  font-family: var(--sans);
+  font-size: var(--t-h3-size);
+  font-weight: var(--t-h3-weight);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+  margin: 0;
+}
+.t-h3-serif {
+  font-family: var(--serif);
+  font-size: var(--t-h3-serif-size);
+  font-weight: 400;
+  letter-spacing: -0.015em;
+}
+
+.t-lede {
+  font-size: var(--t-lede-size);
+  line-height: 1.55;
+  color: var(--fg-soft);
+  max-width: 56ch;
+}
+
+p, .t-body { font-size: var(--t-body-size); color: var(--fg-soft); margin: 0; }
+
+.t-small  { font-size: var(--t-small-size); color: var(--mute); }
+
+.t-eyebrow {
+  font-family: var(--mono);
+  font-size: var(--t-eyebrow-size);
+  letter-spacing: var(--t-eyebrow-tracking);
+  text-transform: uppercase;
+  color: var(--brass);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.t-eyebrow::before {
+  content: ""; width: 22px; height: 1px; background: currentColor; opacity: .8;
+}
+
+.t-kicker {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.t-mono   { font-family: var(--mono); }
+.t-serif  { font-family: var(--serif); }
+.t-sans   { font-family: var(--sans);  }
+
+/* Stat number style */
+.t-stat {
+  font-family: var(--serif);
+  font-size: 44px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--fg);
+}
+.t-stat em { color: var(--brass); font-style: normal; }

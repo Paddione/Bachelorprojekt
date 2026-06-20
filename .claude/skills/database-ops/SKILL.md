@@ -13,6 +13,22 @@ description: Unified runbook for database operations, schema migrations, DDL own
 
 This runbook covers PostgreSQL database schema migrations, permissions management, and backup/restore verification across both brands on the fleet cluster.
 
+## Tool-Auswahl: MCP vs kubectl
+
+**DML/SELECT (als `website`-User):** Bei erreichbarem `mcp-postgres` (`bash scripts/mcp-portforward.sh status`)
+bevorzuge `mcp__mcp-postgres__query` (`localhost:13001`, nur `sql`, read-only). Schreibende DML
+(INSERT/UPDATE/DELETE) bleibt `task workspace:psql` / `kubectl exec` — das MCP-Query-Tool ist read-only.
+
+**DDL als `postgres`-Superuser (Schemas `bachelorprojekt`, `coaching`, `knowledge`):** Pflicht
+`kubectl exec` — MCP-Postgres verbindet als `website` ohne Superuser-Rechte (DDL → „must be owner"):
+
+```bash
+PGPOD=$(kubectl get pod -n workspace --context <env> -l app=shared-db -o name | head -1)
+kubectl exec -i "$PGPOD" -n workspace --context <env> -- psql -U postgres -d website < migration.sql
+```
+
+Details: [`references/mcp-tool-guide.md`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md).
+
 ---
 
 ## ⚠️ Independent Shared Databases

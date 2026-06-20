@@ -141,3 +141,81 @@ mappings:
     spec: openspec-workflow
   - prefix: openspec/
     spec: openspec-workflow
+
+  # Billing / DATEV / Steuer
+  - prefix: website/src/lib/billing
+    spec: billing-pipeline
+  - prefix: website/src/lib/invoice
+    spec: billing-pipeline
+  - prefix: website/src/lib/stripe
+    spec: billing-pipeline
+  - prefix: website/src/api/billing
+    spec: billing-pipeline
+  - prefix: website/src/pages/billing
+    spec: billing-pipeline
+  - prefix: website/src/lib/datev
+    spec: datev-export
+  - prefix: website/src/lib/skr
+    spec: datev-export
+  - prefix: website/src/lib/legal
+    spec: datev-export
+
+  # Newsletter
+  - prefix: website/src/lib/newsletter
+    spec: newsletter-system
+  - prefix: website/src/api/newsletter
+    spec: newsletter-system
+  - prefix: website/src/pages/newsletter
+    spec: newsletter-system
+  - prefix: k3d/newsletter
+    spec: newsletter-system
+
+  # Planning Office
+  - prefix: website/src/lib/planning-office
+    spec: planning-office
+  - prefix: website/src/lib/clarification
+    spec: planning-office
+  - prefix: website/src/pages/planning
+    spec: planning-office
+  - prefix: website/src/api/planning
+    spec: planning-office
+
+  # Sessions Server
+  - prefix: k3d/sessions-server
+    spec: sessions-server
+  - prefix: scripts/session-hub
+    spec: sessions-server
+  - prefix: Taskfile.session
+    spec: sessions-server
+
+  # Fleet Operations
+  - prefix: wireguard/
+    spec: fleet-operations
+  - prefix: scripts/fleet
+    spec: fleet-operations
+  - prefix: scripts/wg-mesh
+    spec: fleet-operations
+  - prefix: prod-fleet/
+    spec: fleet-operations
+
+  # Monitoring / Alerts
+  - prefix: k3d/prometheus
+    spec: monitoring-alerts
+  - prefix: k3d/alertmanager
+    spec: monitoring-alerts
+  - prefix: k3d/grafana
+    spec: monitoring-alerts
+
+  # LLM Local Dev (Openclaw)
+  - prefix: openclaw/
+    spec: llm-local-dev
+  - prefix: Taskfile.openclaw
+    spec: llm-local-dev
+
+  # MCP Gateway
+  - prefix: deploy/mcp/
+    spec: mcp-gateway
+  - prefix: .claude/skills/references/mcp-tool-guide
+    spec: mcp-gateway
+  - prefix: scripts/mcp
+    spec: mcp-gateway

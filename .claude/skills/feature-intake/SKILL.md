@@ -134,10 +134,12 @@ Generiere ein **eigenständiges HTML-Formular** (kein Backend, läuft via `file:
 
 ```bash
 HTML_FILE="/tmp/klaerung-$(date +%F).html"
+# Kein --ticket-id hier: Klärungsformular enthält mehrere Tickets (kein single ticket_id)
 bash scripts/session-hub.sh start-form --file "$HTML_FILE" --name "intake"
+# Zum Aktualisieren: bash scripts/session-hub.sh regen --name intake
 ```
 
-Das Formular ist dann öffentlich erreichbar unter `https://session-intake.sessions.mentolder.de` und erscheint als Karte im Mediaviewer-Panel. Danach **zusätzlich** per `SendUserFile` liefern. Sage: "Ausfüllen → 'Markdown kopieren' → hier einfügen. Oder direkt öffnen: https://session-intake.sessions.mentolder.de"
+Das Formular ist dann öffentlich erreichbar unter `https://session-intake.sessions.mentolder.de` und erscheint als Karte im Mediaviewer-Panel. Das Formular hat einen **„Im Ticket speichern"-Button** — dieser erstellt ein neues Ticket wenn kein `--ticket-id` gesetzt war. Danach **zusätzlich** per `SendUserFile` liefern. Sage: "Ausfüllen → 'Im Ticket speichern' (spart das Kopieren) oder 'Markdown kopieren' → hier einfügen. Oder direkt: https://session-intake.sessions.mentolder.de"
 
 ### Schritt 5 — Antworten verarbeiten (nach Rücklauf)
 
@@ -427,9 +429,10 @@ Dieser Block identifiziert Major-Features die via `dev-flow-batch` zerlegt werde
 
 ```bash
 bash scripts/session-hub.sh start-form --file "/tmp/gekko-<DATUM>.html" --name "gekko"
+# Zum Aktualisieren: bash scripts/session-hub.sh regen --name gekko
 ```
 
-Das Formular ist dann öffentlich erreichbar unter `https://session-gekko.sessions.mentolder.de` und erscheint als Karte im Mediaviewer-Panel. Danach **zusätzlich** per `SendUserFile` liefern. Sage Patrick: „Schick den Link an gekko: https://session-gekko.sessions.mentolder.de — ausfüllen → ‚Markdown kopieren' → dir zurückschicken → du gibst es mir hier."
+Das Formular ist dann öffentlich erreichbar unter `https://session-gekko.sessions.mentolder.de` und erscheint als Karte im Mediaviewer-Panel. Das Formular hat einen **„Im Ticket speichern"-Button** — da kein `--ticket-id` gesetzt wird, erstellt er ein neues Ticket mit dem ausgefüllten Markdown. Danach **zusätzlich** per `SendUserFile` liefern. Sage Patrick: „Schick den Link an gekko: https://session-gekko.sessions.mentolder.de — ausfüllen → ‚Im Ticket speichern' (direkt!) oder ‚Markdown kopieren' → dir zurückschicken."
 
 ### Schritt 4 — Rücklauf verarbeiten
 

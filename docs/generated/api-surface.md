@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-06-20T06:01:35.008Z
+> Generated at 2026-06-20T10:36:10.036Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -397,6 +397,6 @@
 | `/api/stripe/invoice-payment-intent` | POST | ❓ unclassified | `website/src/pages/api/stripe/invoice-payment-intent.ts` |
 | `/api/stripe/webhook` | POST | ❓ unclassified | `website/src/pages/api/stripe/webhook.ts` |
 | `/api/tickets/{id}/readiness` | POST | 🔐 admin | `website/src/pages/api/tickets/[id]/readiness.ts` |
-| `/api/tickets/comment` | POST | ❓ unclassified | `website/src/pages/api/tickets/comment.ts` |
+| `/api/tickets/comment` | OPTIONS, POST | ❓ unclassified | `website/src/pages/api/tickets/comment.ts` |
 | `/api/tickets/graph` | GET | 🔐 admin | `website/src/pages/api/tickets/graph.ts` |
 | `/api/timeline` | GET | ❓ unclassified | `website/src/pages/api/timeline.ts` |

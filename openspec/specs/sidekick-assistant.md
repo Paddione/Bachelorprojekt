@@ -227,3 +227,342 @@ the FAB corner.
 - **GIVEN** `hasNumericBadge = true`
 - **WHEN** `shouldShowLearnDot(summary, 'portal', true)` aufgerufen wird
 - **THEN** gibt die Funktion `false` zurück, da FAB-Ecke bereits belegt ist
+
+---
+
+### Requirement: ClaudeSessionAgent Textantwort und API-Key-Pflicht
+
+The system SHALL return a text response directly from the Claude API when the model responds
+with `stop_reason: 'end_turn'` and a `text` content block, and SHALL throw an error mentioning
+`ANTHROPIC_API_KEY` when neither `kiConfig.apiKey` nor the environment variable is set.
+
+#### Scenario: Claude gibt Textantwort zurück
+
+- **GIVEN** ein `ClaudeSessionAgent` ist instanziiert und `kiConfig.apiKey = 'test-key'`
+- **WHEN** `agent.generate(opts)` aufgerufen wird und die Anthropic-API `{ stop_reason: 'end_turn', content: [{ type: 'text', text: 'Claude-Antwort' }] }` zurückgibt
+- **THEN** ist `result.aiResponse` gleich `'Claude-Antwort'`
+- **AND** `result.provider` ist `'claude'`
+
+#### Scenario: Fehlender API-Key wirft Fehler
+
+- **GIVEN** `kiConfig.apiKey` ist `null` und `process.env.ANTHROPIC_API_KEY` ist nicht gesetzt
+- **WHEN** `agent.generate(opts)` aufgerufen wird
+- **THEN** wird ein Fehler geworfen, dessen Meldung den Begriff `ANTHROPIC_API_KEY` enthält
+
+---
+
+### Requirement: ClaudeSessionAgent Tool-Loop-Limit
+
+The system SHALL execute at most a fixed number of tool-call rounds (MAX_TOOL_ROUNDS) in the
+`ClaudeSessionAgent`, stop the loop when the limit is reached, and return the last available
+text response — or an empty string if no text response was ever produced.
+
+#### Scenario: Tool-Loop endet nach 3 Runden mit Textantwort
+
+- **GIVEN** die Anthropic-API antwortet dreimal mit `stop_reason: 'tool_use'` und beim vierten Aufruf mit `stop_reason: 'end_turn'` und Text `'Finale Antwort'`
+- **WHEN** `agent.generate(opts)` aufgerufen wird
+- **THEN** ist `result.aiResponse` gleich `'Finale Antwort'`
+- **AND** `messages.create` wurde genau 4-mal aufgerufen
+
+#### Scenario: Tool-Loop läuft bis MAX_TOOL_ROUNDS ohne Textantwort
+
+- **GIVEN** die Anthropic-API antwortet bei jedem Aufruf mit `stop_reason: 'tool_use'` und produziert niemals einen `text`-Block
+- **WHEN** `agent.generate(opts)` aufgerufen wird
+- **THEN** wird der Loop nach MAX_TOOL_ROUNDS beendet und `result.aiResponse` ist ein String (ggf. leer), ohne dass ein Fehler geworfen wird
+
+---
+
+### Requirement: LegacySessionAgent Chat-Completions mit History-Prepend
+
+The system SHALL call the provider's chat completion API with the session history prepended
+as conversation turns (system message first, then alternating user/assistant), and SHALL
+return the provider name alongside the text response.
+
+#### Scenario: OpenAI-Anfrage mit korrekter Nachrichten-Reihenfolge
+
+- **GIVEN** ein `LegacySessionAgent` wird mit `provider = 'openai'` und einer History von einem user/assistant-Paar aufgerufen
+- **WHEN** `agent.generate(opts)` aufgerufen wird
+- **THEN** wird `chat.completions.create` mit messages in der Reihenfolge `[system, user(hist), assistant(hist), user(current)]` aufgerufen
+- **AND** `result.aiResponse` enthält den Inhalt aus `choices[0].message.content`
+- **AND** `result.provider` ist `'openai'`
+
+#### Scenario: Mistral-Anfrage mit korrekter Nachrichten-Reihenfolge
+
+- **GIVEN** ein `LegacySessionAgent` wird mit `provider = 'mistral'` konfiguriert
+- **WHEN** `agent.generate(opts)` aufgerufen wird
+- **THEN** wird `chat.complete` mit der History als zweites und drittes Element der messages-Liste aufgerufen
+- **AND** `result.provider` ist `'mistral'`
+
+---
+
+### Requirement: LegacySessionAgent API-Key-Pflicht je Provider
+
+The system SHALL throw an error referencing the provider-specific environment variable name
+when the `kiConfig.apiKey` is null and no fallback environment variable is set.
+
+#### Scenario: Fehlender OpenAI-Key wirft spezifischen Fehler
+
+- **GIVEN** `kiConfig.apiKey` ist `null` und `process.env.OPENAI_API_KEY` ist nicht gesetzt
+- **WHEN** `agent.generate(opts)` mit `provider = 'openai'` aufgerufen wird
+- **THEN** wird ein Fehler geworfen, dessen Meldung `'OPENAI_API_KEY'` enthält
+
+---
+
+### Requirement: Session-History aus akzeptierten und übersprungenen Schritten
+
+The system SHALL build a conversation history exclusively from steps with status `accepted`
+or `skipped`, each represented as a user turn (prompt) followed by an assistant turn (response),
+and SHALL exclude steps with status `generated` or `pending` as well as the current step N itself.
+
+#### Scenario: Accepted- und Skipped-Schritte werden als Turns inkludiert
+
+- **GIVEN** Session hat Schritt 1 (`status = 'accepted'`) und Schritt 2 (`status = 'skipped'`) mit je `aiPrompt` und `aiResponse`
+- **WHEN** `buildSessionHistory(sessionId, 3)` aufgerufen wird
+- **THEN** enthält das Ergebnis 4 Einträge: `[{role:'user', content: prompt1}, {role:'assistant', content: resp1}, {role:'user', content: prompt2}, {role:'assistant', content: resp2}]`
+
+#### Scenario: Generated- und Pending-Schritte werden ausgeschlossen
+
+- **GIVEN** Session hat nur einen Schritt mit `status = 'generated'`
+- **WHEN** `buildSessionHistory(sessionId, 2)` aufgerufen wird
+- **THEN** ist das Ergebnis ein leeres Array
+
+---
+
+### Requirement: getSessionStepTool Datenbankabfrage
+
+The system SHALL return the step data (including `stepName` and `aiResponse`) with `found: true`
+when a step exists in the database, and SHALL return `{ found: false }` when the requested
+step number does not exist.
+
+#### Scenario: Vorhandener Schritt wird gefunden
+
+- **GIVEN** Schritt 1 der Session wurde als `accepted` in die Datenbank geschrieben
+- **WHEN** `getSessionStepTool(sessionId, 1)` aufgerufen wird
+- **THEN** ist `result.found` gleich `true`, `result.stepName` gleich `'Erstanamnese'` und `result.aiResponse` gleich `'antwort'`
+
+#### Scenario: Nicht existierender Schritt gibt found=false zurück
+
+- **GIVEN** Schritt 99 existiert nicht in der Datenbank
+- **WHEN** `getSessionStepTool(sessionId, 99)` aufgerufen wird
+- **THEN** ist `result.found` gleich `false`
+
+---
+
+### Requirement: draftSessionReportTool Report-Assemblierung
+
+The system SHALL assemble a text representation of all accepted session steps (including
+step name and AI response) for use as a report prompt, and SHALL return an error object
+when no accepted steps exist for the given session.
+
+#### Scenario: Kein accepted Step ergibt Fehler-Objekt
+
+- **GIVEN** für eine Session existieren keine Schritte mit `status = 'accepted'`
+- **WHEN** `draftSessionReportTool(sessionId, 'markdown')` aufgerufen wird
+- **THEN** enthält das Ergebnis ein definiertes `error`-Feld
+
+#### Scenario: Accepted Steps werden zu stepsText zusammengebaut
+
+- **GIVEN** Session hat zwei accepted Schritte mit Namen `'S1'`/`'S2'` und Antworten `'r1'`/`'r2'`
+- **WHEN** `draftSessionReportTool(sessionId, 'markdown')` aufgerufen wird
+- **THEN** enthält `result.stepsText` den Schrittname `'S1'` und die Antwort `'r1'`
+
+---
+
+### Requirement: estimateTokens Heuristik
+
+The system SHALL estimate the token count of a string as approximately 1 token per 4 characters.
+
+#### Scenario: Token-Schätzung für bekannten String
+
+- **GIVEN** ein String mit 16 Zeichen
+- **WHEN** `estimateTokens(str)` aufgerufen wird
+- **THEN** wird `4` zurückgegeben
+
+---
+
+## Testszenarien
+
+<!-- merged from BATS unit tests and Playwright e2e tests -->
+
+### Requirement: Sidekick FAB Accessibility and Presence
+<!-- e2e: fa-51-sidekick-navigation.spec.ts -->
+
+The system SHALL render a visible, accessible Floating Action Button (FAB) on every page that
+carries the Sidekick, with `aria-expanded="false"` in the closed state.
+
+#### Scenario: FAB ist auf der Homepage vorhanden und zugänglich *(E2E)*
+- **GIVEN** ein Benutzer ruft die Homepage auf (`/`)
+- **WHEN** die Seite vollständig geladen ist (`networkidle`)
+- **THEN** ist der `button.fab` sichtbar und trägt das Attribut `aria-expanded="false"`
+
+---
+
+### Requirement: Sidekick Panel Open/Close via FAB and Keyboard
+<!-- e2e: fa-51-sidekick-navigation.spec.ts -->
+
+The system SHALL open the Sidekick drawer when the FAB is clicked (setting `aria-expanded="true"`
+and `aria-hidden="false"` on the drawer), SHALL close it on a second FAB interaction, and SHALL
+also close it when the user presses the Escape key.
+
+#### Scenario: Sidekick öffnet sich beim FAB-Klick *(E2E)*
+- **GIVEN** der FAB ist sichtbar und `aria-expanded="false"`
+- **WHEN** der Nutzer auf den FAB klickt
+- **THEN** wird `aria-expanded="true"` am FAB gesetzt
+- **AND** das Drawer-Element `[aria-label="Sidekick"]` wechselt auf `aria-hidden="false"`
+
+#### Scenario: Sidekick schließt sich beim zweiten FAB-Klick (via JS-Dispatch) *(E2E)*
+- **GIVEN** der Sidekick ist geöffnet (`aria-expanded="true"`)
+- **WHEN** ein `click`-Event via `dispatchEvent` direkt am FAB ausgelöst wird (da der offene Drawer den FAB überdeckt)
+- **THEN** wechselt `aria-expanded` wieder auf `"false"`
+
+#### Scenario: Sidekick schließt sich mit der Escape-Taste *(E2E)*
+- **GIVEN** der Sidekick ist geöffnet
+- **WHEN** der Nutzer die Escape-Taste drückt
+- **THEN** wechselt `aria-expanded` am FAB auf `"false"`
+
+---
+
+### Requirement: sidekick:navigate CustomEvent für bekannte Views
+<!-- e2e: fa-51-sidekick-navigation.spec.ts -->
+
+The system SHALL accept a `sidekick:navigate` CustomEvent with a known `view` value (`grilling`,
+`mediaviewer`) without throwing a JavaScript error; unknown views SHALL return `null` and produce
+no navigation.
+
+#### Scenario: Navigation zu View "grilling" löst keinen Fehler aus *(E2E)*
+- **GIVEN** der Sidekick ist geöffnet
+- **WHEN** `window.dispatchEvent(new CustomEvent('sidekick:navigate', { detail: { view: 'grilling', jumpTo: null } }))` aufgerufen wird
+- **THEN** wird kein JavaScript-Fehler geworfen
+
+#### Scenario: Navigation zu View "mediaviewer" löst keinen Fehler aus *(E2E)*
+- **GIVEN** der Sidekick ist geöffnet
+- **WHEN** `window.dispatchEvent(new CustomEvent('sidekick:navigate', { detail: { view: 'mediaviewer', jumpTo: null } }))` aufgerufen wird
+- **THEN** wird kein JavaScript-Fehler geworfen
+
+---
+
+### Requirement: Agent-Anleitung — Titel und Themen-Gruppen
+<!-- e2e: agent-guide-walkthrough.spec.ts -->
+
+The system SHALL render the Agent-Anleitung view inside the Sidekick panel with a visible title,
+all configured theme groups, and all goal/tool cards collapsed by default.
+
+#### Scenario: Agent-Anleitung zeigt Titel beim Öffnen *(E2E)*
+- **GIVEN** der Nutzer öffnet die Agent-Anleitung im Sidekick
+- **WHEN** die Ansicht gerendert wird
+- **THEN** enthält `.sk-title` den Text `"Agent-Anleitung"`
+
+#### Scenario: Alle Themen-Gruppen vorhanden, Karten eingeklappt *(E2E)*
+- **GIVEN** die Agent-Anleitung ist geöffnet
+- **WHEN** die Komponente gerendert wird
+- **THEN** ist die Anzahl der `.ag-group`-Elemente gleich der Anzahl konfigurierter Themen
+- **AND** jede `.ag-card-head` hat `aria-expanded="false"`
+
+---
+
+### Requirement: Agent-Anleitung — Karten expandieren und kollabieren
+<!-- e2e: agent-guide-walkthrough.spec.ts -->
+
+The system SHALL expand an Agent-Anleitung card on click (making the prompt text visible) and
+SHALL collapse it again on a second click.
+
+#### Scenario: Karte lässt sich aus- und wieder einklappen *(E2E)*
+- **GIVEN** die Agent-Anleitung ist geöffnet
+- **WHEN** der Nutzer auf den Card-Header des ersten Ziels klickt (expandieren) und dann erneut klickt (einklappen)
+- **THEN** ist `.ag-prompt-text` nach dem ersten Klick sichtbar und nach dem zweiten Klick ist `aria-expanded="false"` gesetzt
+
+---
+
+### Requirement: Agent-Anleitung — Volltextsuche mit Highlighting
+<!-- e2e: agent-guide-walkthrough.spec.ts -->
+
+The system SHALL activate search filtering after 3 characters are entered, display a match counter,
+auto-expand matched cards, and highlight matching terms; it SHALL handle umlaut folding (e.g.
+"aendern" → "ändern") and alias-based matches (e.g. "passwort" → Sicherheit card).
+
+#### Scenario: Suche ab 3 Zeichen filtert und zeigt Treffer-Zähler *(E2E)*
+- **GIVEN** die Agent-Anleitung ist geöffnet
+- **WHEN** der Nutzer `"daten"` in `.ag-search-input` eingibt
+- **THEN** zeigt `.ag-search-count` einen Text mit `"Treffer"`
+- **AND** eine `.ag-card` mit dem Namen `"Datenbank"` ist sichtbar
+- **AND** mindestens ein `.ag-hl`-Element (Highlighting) ist sichtbar
+
+#### Scenario: Umlaut-Suche "aendern" findet Karte mit "ändern" *(E2E)*
+- **GIVEN** die Agent-Anleitung ist geöffnet
+- **WHEN** der Nutzer `"aendern"` eingibt
+- **THEN** ist ein `.ag-name`-Element mit dem Text `"ändern"` sichtbar
+
+#### Scenario: Alias-Suche "passwort" findet die Sicherheits-Karte *(E2E)*
+- **GIVEN** die Agent-Anleitung ist geöffnet
+- **WHEN** der Nutzer `"passwort"` eingibt
+- **THEN** ist ein `.ag-name`-Element mit dem Text `"Passwort"` sichtbar
+
+---
+
+### Requirement: Agent-Anleitung — Achsen-Umschalter und Tier-Filter
+<!-- e2e: agent-guide-walkthrough.spec.ts -->
+
+The system SHALL allow switching the grouping axis to "Gefahr" (showing tier-based group labels)
+and SHALL support filtering cards by danger tier (e.g. showing only `forbidden` cards with their
+red-stop panels).
+
+#### Scenario: Achsen-Umschalter auf "Gefahr" zeigt Tier-Gruppen *(E2E)*
+- **GIVEN** die Agent-Anleitung ist geöffnet
+- **WHEN** der Nutzer den Button `.ag-axis-btn` mit Text `"Gefahr"` klickt
+- **THEN** ist ein `.ag-group-label` mit Text `"Niemals allein"` sichtbar
+
+#### Scenario: Tier-Filter auf "Verboten" zeigt nur Forbidden-Karten *(E2E)*
+- **GIVEN** die Agent-Anleitung ist geöffnet und der Tier-Filter ist auf `forbidden` gesetzt
+- **WHEN** die erste Forbidden-Karte expandiert wird
+- **THEN** ist `.ag-redstop` sichtbar
+- **AND** `.ag-redstop-who` enthält den Text `"Patrick"`
+- **AND** `.ag-copy` enthält den Text `"Rücksprache"`
+
+---
+
+### Requirement: Skill-Orchestrator Pre/Post Hook-Ausführung
+<!-- bats: skill-orchestrator.bats -->
+
+The system SHALL parse a skill YAML frontmatter and execute the pre-hooks (and only the pre-hooks)
+when invoked with the `pre` argument, and the post-hooks (and only the post-hooks) when invoked
+with `post`. Missing hook scripts SHALL be tolerated without aborting the remaining hooks.
+
+#### Scenario: Orchestrator führt Pre-Hooks aus *(BATS)*
+- **GIVEN** eine Skill-Datei mit `hooks.pre: [test-pre-hook]` und `hooks.post: [test-post-hook]`
+- **WHEN** `skill-orchestrator.sh <skill> pre` aufgerufen wird
+- **THEN** wird `pre-hook-executed` in der Ausgabe angezeigt
+- **AND** `post-hook-executed` erscheint nicht in der Ausgabe
+
+#### Scenario: Orchestrator führt Post-Hooks aus *(BATS)*
+- **GIVEN** dieselbe Skill-Datei
+- **WHEN** `skill-orchestrator.sh <skill> post` aufgerufen wird
+- **THEN** wird `post-hook-executed` angezeigt und `pre-hook-executed` bleibt aus
+
+#### Scenario: Fehlende Hook-Skripte werden toleriert *(BATS)*
+- **GIVEN** die Skill-Datei enthält zusätzlich einen Hook `non-existent-hook`, für den kein Skript existiert
+- **WHEN** `skill-orchestrator.sh <skill> pre` aufgerufen wird
+- **THEN** wird der Prozess mit Exit-Code 0 beendet und die anderen Pre-Hooks werden trotzdem ausgeführt
+
+---
+
+### Requirement: Brainstorm-Extract-Choice — Letzte Nutzerentscheidung lesen
+<!-- bats: brainstorm-extract-choice.bats -->
+
+The system SHALL extract the last `click`-type choice from a session events file and return it
+with exit code 0; it SHALL return exit code 1 when the events file is absent or contains no
+`click`-type choice event.
+
+#### Scenario: Letzter Choice-Event wird extrahiert *(BATS)*
+- **GIVEN** eine Events-Datei mit zwei JSON-Zeilen (Choice A, dann Choice B)
+- **WHEN** `brainstorm-extract-choice.sh <dir>` aufgerufen wird
+- **THEN** wird `B` auf stdout ausgegeben und Exit-Code ist 0
+
+#### Scenario: Fehlende Events-Datei ergibt Exit-Code 1 *(BATS)*
+- **GIVEN** das Verzeichnis enthält keine Events-Datei
+- **WHEN** `brainstorm-extract-choice.sh <dir>` aufgerufen wird
+- **THEN** ist der Exit-Code 1
+
+#### Scenario: Datei ohne Choice-Events ergibt Exit-Code 1 *(BATS)*
+- **GIVEN** die Events-Datei enthält nur einen `scroll`-Event (kein `click`)
+- **WHEN** `brainstorm-extract-choice.sh <dir>` aufgerufen wird
+- **THEN** ist der Exit-Code 1

@@ -2485,7 +2485,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 396,
+      "file_count": 397,
       "files": [
         "scripts/add-whiteboard-library.py",
         "scripts/admin-menu-gate.sh",
@@ -2830,6 +2830,7 @@
         "scripts/rigger_server.py",
         "scripts/seed-admin-shortcuts.sh",
         "scripts/seed-lmstudio-ki-config.mjs",
+        "scripts/session-forms/base.html",
         "scripts/session-hub.sh",
         "scripts/setup-comfyui.sh",
         "scripts/setup.sh",

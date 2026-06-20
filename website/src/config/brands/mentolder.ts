@@ -87,8 +87,8 @@ export const mentolderConfig: BrandConfig = {
   services: [
     {
       slug: '50plus-digital',
-      title: '50+ digital',
-      description: 'Digitale Begleitung für Menschen 50+ in Lüneburg und Hamburg. Smartphone, WhatsApp, Online-Banking – Schritt für Schritt, ohne Fachchinesisch, in Ihrem Tempo.',
+      title: '65+ digital',
+      description: 'Digitale Begleitung für Menschen 65+ in Lüneburg und Hamburg. Smartphone, WhatsApp, Online-Banking – Schritt für Schritt, ohne Fachchinesisch, in Ihrem Tempo.',
       icon: '💻',
       features: [
         'Smartphone, Tablet & Computer Grundlagen',
@@ -113,24 +113,24 @@ export const mentolderConfig: BrandConfig = {
           { title: 'Dienste', items: ['Online-Banking sicher nutzen', 'Sicher online einkaufen', 'Bezahldienste verstehen', 'Gesundheits-Apps', 'Online-Termine buchen', 'Elektronische Patientenakte'] },
         ],
         pricing: [
-          { label: 'Einzelbegleitung', price: 'nach Vereinbarung', unit: 'pro Stunde' },
-          { label: '5er-Paket', price: 'nach Vereinbarung', unit: '', highlight: true },
-          { label: 'Kleine Gruppe', price: 'nach Vereinbarung', unit: 'pro Person / Stunde' },
+          { label: 'Einzelbegleitung', price: 'Auf Anfrage', unit: 'pro Stunde', highlight: false },
+          { label: '5er-Paket', price: 'Auf Anfrage', unit: 'Auf Anfrage', highlight: true },
+          { label: 'Kleine Gruppe', price: 'Auf Anfrage', unit: 'pro Person / Stunde', highlight: false },
         ],
         faq: [
           { question: 'Ich habe gar keine Vorkenntnisse – ist das ein Problem?', answer: 'Nein, überhaupt nicht! Wir fangen genau da an, wo Sie stehen. Viele meiner Teilnehmer*innen hatten vorher kaum Erfahrung – und haben es trotzdem gelernt.' },
           { question: 'Muss ich meine Geräte mitbringen?', answer: 'Ja, am besten schon! Wir arbeiten mit IHREN Geräten – dann können Sie das Gelernte sofort zuhause umsetzen.' },
           { question: 'Wie lange dauert es, bis ich sicher bin?', answer: 'Das ist sehr individuell. Manche brauchen 3-4 Sessions, andere 10. Sie bestimmen das Tempo.' },
-          { question: 'Was kostet das?', answer: 'Ein Erstgespräch (30 Min.) ist kostenlos. Danach arbeiten wir nach Vereinbarung.' },
+          { question: 'Was kostet das?', answer: 'Ein Erstgespräch (30 Min.) ist kostenlos. Danach arbeiten wir stundenweise (auf Anfrage) oder als Paket. Kleine Gruppen sind günstiger.' },
         ],
-        seoTitle: '50+ digital – Digitale Begleitung in Lüneburg & Hamburg | mentolder.de',
-        seoDescription: 'Digitale Begleitung für Menschen 50+ in Lüneburg und Hamburg. Smartphone, WhatsApp, Online-Banking – Schritt für Schritt, ohne Fachchinesisch, in Ihrem Tempo.',
+        seoTitle: '65+ digital – Digitale Begleitung in Lüneburg & Hamburg | mentolder.de',
+        seoDescription: 'Digitale Begleitung für Menschen 65+ in Lüneburg und Hamburg. Smartphone, WhatsApp, Online-Banking – Schritt für Schritt, ohne Fachchinesisch, in Ihrem Tempo.',
       },
     },
     {
       slug: 'coaching',
       title: 'Coaching für Führungskräfte und Menschen in Verantwortung',
-       description: 'Ihre Karriere strategisch gestalten – ob seit Jahren in Verantwortung oder neu in einer Führungsrolle. Ich unterstütze Sie bei der beruflichen Neuorientierung.',
+      description: 'Ihre Karriere strategisch gestalten. Ich unterstütze erfahrene Führungskräfte bei der beruflichen Neuorientierung.',
       icon: '🎯',
       features: [
         'Profil-Schärfung & Positionierung',
@@ -142,7 +142,7 @@ export const mentolderConfig: BrandConfig = {
       stripeServiceKey: 'coaching-session',
       pageContent: {
         headline: 'Ihre Karriere strategisch gestalten',
-        intro: 'Sie möchten Ihre Karriere strategisch weiterentwickeln oder sich neu ausrichten? Ob seit Jahren in Verantwortung oder neu in einer Führungsrolle – ich begleite Sie dabei, Ihre Stärken zu schärfen und sich optimal zu positionieren.',
+        intro: 'Sie möchten Ihre Karriere strategisch weiterentwickeln oder sich neu ausrichten? Ich begleite Sie dabei, Ihre Stärken zu schärfen und sich optimal zu positionieren.',
         forWhom: [
           'Sie sind erfahrene Führungskraft oder neu in der Führungsrolle – und möchten Ihre Karriere gezielt ausrichten.',
           'Sich auf wichtige Gespräche mit Headhuntern vorbereiten',
@@ -156,7 +156,9 @@ export const mentolderConfig: BrandConfig = {
           { title: 'Markt-Positionierung', items: ['Marktanalyse', 'Zielunternehmen recherchieren', 'Anforderungsprofile verstehen', 'Ihr Profil passgenau ausrichten'] },
         ],
         pricing: [
-          { label: 'Einzelsession (90 Min.)', price: 'nach Vereinbarung' },
+          { label: 'Einzelsession (90 Min.)', price: 'nach Vereinbarung', highlight: false },
+          { label: 'Paket 6 Sessions', price: 'nach Vereinbarung', unit: '', highlight: true },
+          { label: 'Intensiv-Tag (6 Std.)', price: 'nach Vereinbarung', highlight: false },
         ],
         faq: [
           { question: 'Wie lange dauert ein Coaching?', answer: 'Das hängt von Ihrer Situation ab. Manche brauchen nur 2-3 Sessions zur Vorbereitung auf ein Gespräch. Andere buchen ein 6er-Paket für eine komplette Neuausrichtung.' },
@@ -271,7 +273,9 @@ export const mentolderConfig: BrandConfig = {
           { title: 'Für Unternehmen', items: ['Team-Workshops: KI-Readiness', 'Change-Begleitung im Transformationsprozess', 'Führungskräfte-Sparring zum Thema KI', 'Nachhaltige Lernkultur aufbauen'] },
         ],
         pricing: [
-          { label: 'Einzelsession (90 Min.)', price: 'nach Vereinbarung' },
+          { label: 'Einzelsession (90 Min.)', price: 'nach Vereinbarung', unit: 'pro Session', highlight: false },
+          { label: 'Paket 6 Sessions', price: 'nach Vereinbarung', unit: '', highlight: true },
+          { label: 'Unternehmen & Teams', price: 'nach Vereinbarung', unit: 'ab 5 Personen möglich', highlight: false },
         ],
         faq: [],
         seoTitle: 'KI-Transition Coaching – Zukunft gestalten im digitalen Wandel | mentolder.de',
@@ -293,9 +297,9 @@ export const mentolderConfig: BrandConfig = {
     },
     {
       id: 'digital-50plus',
-      title: '50+ Digital',
+      title: '65+ digital',
       icon: '💻',
-      description: 'Für Menschen ab 50, die digitale Alltagstools sicher nutzen und selbständig agieren möchten — ohne Druck, im eigenen Tempo.',
+      description: 'Für Menschen ab 65, die digitale Alltagstools sicher nutzen und selbständig agieren möchten — ohne Druck, im eigenen Tempo.',
       services: [
         { key: '50plus-digital-einzel', name: 'Einzelstunde (60 Min.)', price: 'nach Vereinbarung', unit: '/ Stunde', desc: 'Individuelle 1:1 Begleitung bei Ihnen zuhause oder in ruhiger Umgebung.' },
         { key: '50plus-digital-paket-s', name: 'Paket S — 6 Sessions', price: 'nach Vereinbarung', unit: '', desc: '6 Stunden individuelle Begleitung. Flexibel planbar.', highlight: true },

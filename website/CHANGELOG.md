@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.115.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.114.1...website-v1.115.0) (2026-06-20)
+
+
+### Features
+
+* **openspec:** pgvector indexing for specs and plans [T001008] ([#1972](https://github.com/Paddione/Bachelorprojekt/issues/1972)) ([f031cef](https://github.com/Paddione/Bachelorprojekt/commit/f031cef4dc94af1163441b7967f36d518a134d33))
+
+
+### Tests
+
+* **mcp-task-runner:** add BATS integration tests MCP-TASK-RUNNER-001..004 ([62bd087](https://github.com/Paddione/Bachelorprojekt/commit/62bd08779942ae4aafb3316a2ef4a6f4a960d329))
+
 ## [1.114.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.114.0...website-v1.114.1) (2026-06-20)
 
 

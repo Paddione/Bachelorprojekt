@@ -72,6 +72,17 @@ patches:
       metadata:
         name: backup-passphrase
       $patch: delete
+  # Drop dev-placeholder ntfy-tokens — in production this secret is
+  # managed via SealedSecrets.
+  - target:
+      kind: Secret
+      name: ntfy-tokens
+    patch: |
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: ntfy-tokens
+      $patch: delete
   # Drop dev-placeholder vaultwarden-seed-credentials — the file lives in k3d/
   # as an operator template (BW_PASSWORD: CHANGE_ME_AFTER_FIRST_LOGIN). It is
   # not currently referenced by k3d/kustomization.yaml, but this $patch: delete

@@ -358,6 +358,21 @@ env_vars:
     required: false
     default_dev: "info"
 
+  - name: NTFY_BASE_URL
+    required: false
+    default_dev: "http://ntfy.localhost"
+    description: "Public URL of the ntfy push notification server"
+
+  - name: AGENT_PUSH_API
+    required: false
+    default_dev: "http://web.localhost"
+    description: "Base URL of the website settings API for push opt-in checks"
+
+  - name: AGENT_PUSH_LINK_BASE
+    required: false
+    default_dev: "http://web.localhost/admin/tickets"
+    description: "Base URL for generating ticket links in notification messages"
+
 secrets:
   - name: arena_db_password
     description: Password for the arena_app PostgreSQL role
@@ -1076,3 +1091,20 @@ setup_vars:
   - name: PVE_HOSTS
     required: false
     description: "Comma-separated IPs of the Proxmox cluster hosts"
+
+  # ── Agent Push Notification Secrets (T000991) ────────────────────────────────
+  - name: NTFY_TOKEN_OPEncode
+    required: false
+    generate: false
+    default_dev: "tk_opencode_dev_token_32chars_ab"
+    description: "Ntfy access token for opencode notifications (32 chars, starts with tk_)"
+  - name: NTFY_TOKEN_AGY
+    required: false
+    generate: false
+    default_dev: "tk_agy_dev_token_32chars_ab12345"
+    description: "Ntfy access token for agy notifications (32 chars, starts with tk_)"
+  - name: AGENT_PUSH_TOKEN
+    required: false
+    generate: false
+    default_dev: "dev-agent-push-token-1234567890"
+    description: "Bearer token used by scripts/agent-push.sh to authorize with the website settings API"

@@ -13,6 +13,7 @@ resources:
   - keycloak.yaml
   - nextcloud.yaml
   - nextcloud-redis.yaml
+  - ntfy.yaml
   # Nextcloud Talk HPB + Whiteboard
   # NB: coturn + janus (k3d/coturn-stack) and Collabora
   # (k3d/office-stack) are deployed separately via task workspace:office:deploy

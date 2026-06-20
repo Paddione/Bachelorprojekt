@@ -1,0 +1,143 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ntfy-tokens
+  namespace: workspace
+type: Opaque
+stringData:
+  NTFY_TOKEN_OPEncode: "tk_opencode_dev_token_32chars_ab"
+  NTFY_TOKEN_AGY: "tk_agy_dev_token_32chars_ab12345"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ntfy
+  labels:
+    app: ntfy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ntfy
+  template:
+    metadata:
+      labels:
+        app: ntfy
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: ntfy-init
+          image: binwiederhier/ntfy:latest
+          imagePullPolicy: Always
+          command: ["/bin/sh", "-exc"]
+          args:
+            - |
+                cat > /etc/ntfy/server.yml << EOF
+                base-url: https://ntfy.${PROD_DOMAIN}
+                listen-http: ":80"
+                auth-file: /var/lib/ntfy/user.db
+                auth-default-access: deny-all
+                cache-file: /var/lib/ntfy/cache.db
+                behind-proxy: true
+                EOF
+                printf 'dev\ndev\n' | ntfy user add --role=admin opencode || true
+                ntfy token add opencode "${NTFY_TOKEN_OPEncode}" || true
+                printf 'dev\ndev\n' | ntfy user add --role=admin agy || true
+                ntfy token add agy "${NTFY_TOKEN_AGY}" || true
+                echo "ntfy-init: done"
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          env:
+            - name: NTFY_TOKEN_OPEncode
+              valueFrom:
+                secretKeyRef:
+                  name: ntfy-tokens
+                  key: NTFY_TOKEN_OPEncode
+            - name: NTFY_TOKEN_AGY
+              valueFrom:
+                secretKeyRef:
+                  name: ntfy-tokens
+                  key: NTFY_TOKEN_AGY
+          volumeMounts:
+            - name: config
+              mountPath: /etc/ntfy
+            - name: data
+              mountPath: /var/lib/ntfy
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 64Mi
+      containers:
+        - name: ntfy
+          image: binwiederhier/ntfy:latest
+          imagePullPolicy: Always
+          command: ["ntfy", "serve"]
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          ports:
+            - containerPort: 80
+              name: http
+          volumeMounts:
+            - name: config
+              mountPath: /etc/ntfy
+            - name: data
+              mountPath: /var/lib/ntfy
+          resources:
+            requests:
+              memory: 64Mi
+              cpu: "50m"
+            limits:
+              memory: 256Mi
+              cpu: "200m"
+      volumes:
+        - name: config
+          emptyDir: {}
+        - name: data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ntfy
+  labels:
+    app: ntfy
+spec:
+  selector:
+    app: ntfy
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: ntfy
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`ntfy.${PROD_DOMAIN}`)
+      kind: Rule
+      services:
+        - name: ntfy
+          port: 80

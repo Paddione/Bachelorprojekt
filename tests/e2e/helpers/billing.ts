@@ -53,13 +53,8 @@ export async function finalizeInvoiceViaAPI(page: Page, id: string) {
   const res = await page.request.post(`${BASE}/api/admin/billing/${id}/send`, {});
   // 200 = finalized + email sent
   // 502 = finalized but email delivery failed — invoice IS open, test can proceed
-  // 404 = already finalized (or wrong id)
   if (res.status() === 502) {
     // Email failed but invoice was finalized — acceptable for testing.
-    return;
-  }
-  if (res.status() === 404) {
-    // May already be in open status — proceed anyway.
     return;
   }
   expect([200, 201]).toContain(res.status());

@@ -4,7 +4,7 @@
 source "$(dirname "${BASH_SOURCE[0]}")/_ticket-core.sh"
 
 main() {
-  local type="" title="" desc="" brand="mentolder" severity="" priority="mittel" status="triage" attention_mode="" is_test="false"
+  local type="" title="" desc="" brand="mentolder" severity="" priority="mittel" status="triage" attention_mode="" is_test="false" areas=""
   while [[ $# -gt 0 ]]; do case "$1" in
       --type)           type="$2"; shift 2 ;;
       --title)          title="$2"; shift 2 ;;
@@ -14,6 +14,7 @@ main() {
       --priority)       priority="$2"; shift 2 ;;
       --status)         status="$2"; shift 2 ;;
       --attention-mode) attention_mode="$2"; shift 2 ;;
+      --areas)          areas="$2"; shift 2 ;;
       --is-test-data)   is_test="true"; shift ;;
       *)                echo "Unknown create option: $1" >&2; exit 2 ;;
     esac; done
@@ -32,14 +33,48 @@ main() {
     -v sev="$severity" \
     -v prio="$priority" \
     -v attn="$attention_mode" \
-    -v is_test="$is_test" <<'EOF'
-INSERT INTO tickets.tickets (type, brand, title, description, status, severity, priority, attention_mode, is_test_data)
-VALUES (:'type', :'brand', :'title', :'desc', :'status', NULLIF(:'sev', ''), :'prio', COALESCE(NULLIF(:'attn', ''), 'auto'), :'is_test'::boolean)
+    -v is_test="$is_test" \
+    -v areas="$areas" <<'EOF'
+INSERT INTO tickets.tickets (type, brand, title, description, status, severity, priority, attention_mode, is_test_data, areas)
+VALUES (:'type', :'brand', :'title', :'desc', :'status', NULLIF(:'sev', ''), :'prio', COALESCE(NULLIF(:'attn', ''), 'auto'), :'is_test'::boolean, CASE WHEN :'areas'='' THEN NULL ELSE string_to_array(:'areas',',') END)
 RETURNING external_id || '|' || id;
 EOF
 )
   ext_id="${result%%|*}"
   echo "$result"
+
+  # === Triage-Hook (Auto-Triage via Heuristik) ===
+  if [[ -n "$ext_id" && -f "scripts/triage/heuristik.mjs" ]]; then
+    local triage_result=""
+    triage_result=$(node scripts/triage/heuristik.mjs \
+      --title "$title" \
+      --description "$desc" \
+      --areas "$areas" 2>/tmp/triage-error.log) || triage_result=""
+
+    if [[ -n "$triage_result" ]]; then
+      local auto_apply confidence suggested_severity
+      auto_apply=$(echo "$triage_result" | jq -r '.auto_apply' 2>/dev/null || echo "false")
+      confidence=$(echo "$triage_result" | jq -r '.confidence' 2>/dev/null || echo "0")
+      suggested_severity=$(echo "$triage_result" | jq -r '.severity' 2>/dev/null || echo "")
+
+      if [[ "$auto_apply" == "true" && -n "$suggested_severity" ]]; then
+        # >90% Confidence → Severity direkt setzen
+        _exec_sql "$pod" -v ext_id="$ext_id" -v sev="$suggested_severity" <<'EOF' >/dev/null
+UPDATE tickets.tickets SET severity = NULLIF(:'sev', '') WHERE external_id = :'ext_id';
+EOF
+      elif (( $(echo "$confidence >= 0.50" | bc -l 2>/dev/null || echo 0) )) && [[ -n "$suggested_severity" ]]; then
+        # 50–90% → Vorschlag-Comment hinterlegen
+        local pct
+        pct=$(python3 -c "print(f'{float(\"$confidence\")*100:.0f}')" 2>/dev/null || echo "$confidence")
+        _exec_sql "$pod" -v ext_id="$ext_id" -v body="## Vorgeschlagene Severity: ${suggested_severity} (Confidence: ${pct}%)" -v author="auto-triage" -v vis="internal" <<'EOF' >/dev/null
+INSERT INTO tickets.ticket_comments (ticket_id, author_label, body, visibility)
+SELECT id, :'author', :'body', :'vis'
+FROM tickets.tickets WHERE external_id = :'ext_id';
+EOF
+      fi
+    fi
+  fi
+
   if [[ "$type" == "mishap" ]] && [[ -n "$ext_id" ]]; then
     local sdir; sdir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
     "${sdir}/mishap-categorize.sh" "$ext_id" "$title" "$desc" >&2 || true

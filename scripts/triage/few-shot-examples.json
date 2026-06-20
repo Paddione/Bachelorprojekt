@@ -1,0 +1,122 @@
+[
+  {
+    "title": "Mishap collection: 2026-06-20",
+    "description": "--- operations-management — 2026-06-20 06:14 ---\n\n| # | Type | Severity | Priority | Attention | Component |\n|---|---|---|---|---|---|\n| 1 | drift | trivial | niedrig | ai_ready | openspec |\n\n<details>\n<summary>Descriptions</summary>\n\n**1. [drift] OpenSpec ticket ID mismatch for platform-cockpit-ali",
+    "areas": "",
+    "manual_severity": "high"
+  },
+  {
+    "title": "Secret-Task Mismatch-Guards: fail-closed + Reconciler-Verkettung der leichtgewichtigen Pfade",
+    "description": "Härtung aller task-Aktionen, die Secrets verändern, gegen Silent-Mismatches zwischen den Konsistenz-Ebenen (plaintext .secrets → sealed → cert → live workspace-secrets → Consumer-Eigenkopie: Postgres-Rolle/Keycloak-Realm/Nextcloud config.php → laufender Pod).\n\nAudit-Ergebnis: Der kanonische workspac",
+    "areas": "",
+    "manual_severity": "high"
+  },
+  {
+    "title": "Mishap collection: 2026-06-19",
+    "description": "--- ticket-ops — 2026-06-19 21:44 ---\n\n| # | Type | Severity | Priority | Attention | Component |\n|---|---|---|---|---|---|\n| 1 | drift | trivial | niedrig | ai_ready | tickets |\n\n<details>\n<summary>Descriptions</summary>\n\n**1. [drift] T000737 in_progress without ticket_plans row**\nTicket T000737 \"K",
+    "areas": "",
+    "manual_severity": "high"
+  },
+  {
+    "title": "Pipeline-Visualisierung: awaiting_deploy Status-Lücken & Control-Point-Gaps",
+    "description": "## Gefundene Lücken\n\n### Typ-Inkonsistenzen (Tickets divergieren zwischen Modulen)\n1. `awaiting_deploy` fehlt in `transition.ts` API-Gate (kann nicht via /transition Endpoint gesetzt werden)\n2. `awaiting_deploy` fehlt in `cockpit-labels.ts` STATUS_LABELS (kein deutsches Label)\n3. `awaiting_deploy` u",
+    "areas": "",
+    "manual_severity": "high"
+  },
+  {
+    "title": "App-Katalog-Installer: Command Injection in process-oidc/process-secrets/app-install (security-guidance)",
+    "description": "Automatischer Post-Commit-Security-Review (security-guidance) auf Commit 8faaa1c9 (feat infra: declarative app catalog and installer, T000929) fand 3 Command-Injection-Stellen — Manifest-kontrollierte Daten werden in execSync/node -e Shell-Strings interpoliert.\n\n[HIGH] scripts/process-oidc.mjs:47 — ",
+    "areas": "",
+    "manual_severity": "high"
+  },
+  {
+    "title": "Mishap collection: 2026-06-17",
+    "description": "--- operations-management — 2026-06-17 01:52 ---\n\n| # | Type | Severity | Priority | Attention | Component |\n|---|---|---|---|---|---|\n| 1 | broken | major | hoch | needs_human | git/chore |\n| 2 | drift | trivial | niedrig | ai_ready | git/hygiene |\n| 3 | drift | trivial | niedrig | ai_ready | ticke",
+    "areas": "",
+    "manual_severity": "high"
+  },
+  {
+    "title": "BATS test FA-SF-38 fails due to moved observe_prod function",
+    "description": "tests/local/FA-SF-38-canary.bats searches scripts/feature-promote.sh for observe_prod, but the function was moved to scripts/lib/promote-phases.sh.",
+    "areas": "",
+    "manual_severity": "high"
+  },
+  {
+    "title": "k3d configuration files unclassified in service-registry.sh",
+    "description": "Newly added mediaviewer and videovault files were causing test:factory to fail because they were not mapped in scripts/factory/service-registry.sh.",
+    "areas": "",
+    "manual_severity": "low"
+  },
+  {
+    "title": "Factory Tier-2 Observability: Live-Datenpfad verdrahten (Grafana-Deploy + Prometheus-URL + OTLP-Flow)",
+    "description": "Verifikation von T000888 (16.6.2026, beide Brands live geprüft) zeigt: In-App-Dashboard /admin/factory-observability rendert korrekt, aber nur das DB-gestützte Timeline-Panel liefert Daten. Die Prometheus-/OTLP-Hälfte (Per-Feature Cost Breakdown, Provider-Level Metrics) ist live tot, und das 11-Pane",
+    "areas": "",
+    "manual_severity": "high"
+  },
+  {
+    "title": "LiveKit Deployment selector drift — immutable field errors on deploy",
+    "description": "k3d/livekit.yaml manifests use selector app: livekit but running fleet deployments have app: livekit-server, app: livekit-egress, app: livekit-ingress, app: livekit-redis. This causes 'field is immutable' errors during kustomize apply (Deployment.apps livekit-*). Pods run fine (15d uptime) but manif",
+    "areas": "",
+    "manual_severity": "low"
+  },
+  {
+    "title": "'legacy' status not documented in AGENTS.md enum list",
+    "description": "DB CHECK constraint on tickets.status includes 'legacy' as a valid value but AGENTS.md enum documentation omits it. 5 open tickets currently use status='legacy'. The AGENTS.md status enum list needs 'legacy' added. DB constraint reference: CHECK ((status = ANY (ARRAY['triage', 'planning', 'plan_stag",
+    "areas": "",
+    "manual_severity": "low"
+  },
+  {
+    "title": "mediaviewer.mentolder.de streamt nicht bei Portal-Sessions (fleet)",
+    "description": "Streaming-Kette gebrochen: (G2) oauth2-proxy-mediaviewer laeuft mit DEV-Config (redirect-url localhost, cookie-secure=false) statt prod; (G3) MediaviewerPanel ohne videos-Prop; (G4) help-videos.json hart auf videovault.localhost. Plus: Phase-2c (videovault server-side split) mergen inkl. Fix der 2 M",
+    "areas": "",
+    "manual_severity": "high"
+  },
+  {
+    "title": "Freshness [ci skip] commits block PR CI re-run",
+    "description": "When task freshness:regenerate is run to fix a stale-artifact CI failure on a PR branch, the generated commit uses [ci skip] per established convention. This prevents CI from re-running on the new commit, so the PR still shows the old CI failure. A second commit without [ci skip] is needed to trigge",
+    "areas": "",
+    "manual_severity": "low"
+  },
+  {
+    "title": "E2E admin-tickets Seed-Fixture schreibt Test-Zeilen in Produktions-Tracker",
+    "description": "tests/e2e/specs/fa-admin-tickets.spec.ts legt 'PR4 admin-tickets E2E seed'-Zeilen paarweise (~30s Abstand) direkt in die Live-Tabelle tickets.tickets auf mentolder an. 26 insgesamt (24 bereinigt, 2 in diesem Lauf: T000859 + T000860 geschlossen). Test-Seed-Fixture verschmutzt den Produktions-Tracker.",
+    "areas": "",
+    "manual_severity": "low"
+  },
+  {
+    "title": "E2E bug-report-form test legt detaillose Auto-Bug-Tickets im Live-Tracker an",
+    "description": "tests/e2e/specs/fa-26-bug-report-form.spec.ts sendet ein echtes Bug-Report-Formular gegen Live-Prod und erzeugt dadurch das wiederkehrende Ticket 'Automatischer E2E-Test: Seite lädt nicht korrekt.' ohne Diagnose-Inhalt (keine URL, kein Fehlertext, kein Screenshot). 17 Instanzen insgesamt (15 done/ob",
+    "areas": "",
+    "manual_severity": "low"
+  },
+  {
+    "title": "feature/videovault-migration-2b: 19 commits, no PR, no upstream tracking",
+    "description": "Branch has 19 commits ahead of main, remote exists on origin but local has no upstream tracking configured (git branch --set-upstream-to needed). No open PR. No worktree. While work is backed up on GitHub, the lack of PR and tracking means it cannot be merged through normal CI/CD flow and the branch",
+    "areas": "",
+    "manual_severity": "low"
+  },
+  {
+    "title": "Stale local branches without PRs: chore/test-changed-ci and fix/regenerate-npm-lockfile",
+    "description": "Two local branches are ahead of main with no active PRs: chore/test-changed-ci (1 commit: make test:all delegate to test:changed) and fix/regenerate-npm-lockfile (1 commit, linked ticket T000829 already marked done). May be abandoned work that should be cleaned up or revisited.",
+    "areas": "",
+    "manual_severity": "low"
+  },
+  {
+    "title": "PR #1706 merged despite critical AI code review CHANGES_REQUESTED",
+    "description": "PR #1706 (feat(cockpit): feature suggest [T000784]) was merged despite AI code review returning CHANGES_REQUESTED for critical/security issues including SSRF, blocking LLM-call without timeout, N+1 queries, and SQL injection. T000788 was created pre-emptively for follow-up fixes but remains in plann",
+    "areas": "",
+    "manual_severity": "low"
+  },
+  {
+    "title": "Remote branch feature/videovault-2c-fleet deleted without PR — potential lost work",
+    "description": "Remote origin/feature/videovault-2c-fleet was deleted but no corresponding PR was found merged. Branch has 2 commits ahead of main including \"feat(videovault): vendor phase-2c server-side split backend + fleet deploy\" which may overlap with feature/videovault-migration-2b (same commit subject, diffe",
+    "areas": "",
+    "manual_severity": "medium"
+  },
+  {
+    "title": "Projekt-Cockpit zeigt auf Live keine Tickets (verwaiste parent_id=NULL Tickets unsichtbar)",
+    "description": "Root Cause verifiziert auf fleet/prod: ALLE mentolder- und korczewski-Tickets haben parent_id=NULL (komplett flacher Baum: 13 Projekte, 126 Features, 669 Tasks/Bugs). v_cockpit_rollup und getFeatureTickets bauen die Hierarchie ausschliesslich rekursiv ueber parent_id; das Cockpit zeigt Task/Bug-Zeil",
+    "areas": "",
+    "manual_severity": "high"
+  }
+]

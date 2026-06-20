@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.106.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.105.1...website-v1.106.0) (2026-06-20)
+
+
+### Features
+
+* **admin:** render ticket title as direct link to full view [T000968] ([#1929](https://github.com/Paddione/Bachelorprojekt/issues/1929)) ([439fd97](https://github.com/Paddione/Bachelorprojekt/commit/439fd97c7326c93c26bb6f82cc87f1e41930f5e5))
+
 ## [1.105.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.105.0...website-v1.105.1) (2026-06-20)
 
 

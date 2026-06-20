@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.115.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.115.0...website-v1.115.1) (2026-06-20)
+
+
+### Bug Fixes
+
+* **coaching:** resolve coaching studio prod manifest and secret issues [T001009] ([#1981](https://github.com/Paddione/Bachelorprojekt/issues/1981)) ([aa1e021](https://github.com/Paddione/Bachelorprojekt/commit/aa1e02111cebded10cc3e572a7665f337f18c167))
+
 ## [1.115.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.114.1...website-v1.115.0) (2026-06-20)
 
 

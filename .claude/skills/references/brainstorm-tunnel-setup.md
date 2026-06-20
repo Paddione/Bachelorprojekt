@@ -56,13 +56,17 @@ task brainstorm:publish -- $PORT >/tmp/brainstorm-publish.log 2>&1
 
 ### Step 4b: Register in the Active Sessions Hub
 
-So the board shows up as a card in the website Mediaviewer:
+So the board shows up as a card in the website Mediaviewer. This is a live WebSocket board,
+so use `register` (not `start-form` — the board is served via sish, not the sessions-server):
 
 ```bash
 bash scripts/session-hub.sh register \
   --name "brainstorm" --port "$PORT" --type brainstorm \
   --title "Brainstorm: $(date +%F)"
 ```
+
+The Mediaviewer card links to `https://session-brainstorm.sessions.mentolder.de` (registry
+entry only — not served there). The actual interactive board is at `https://brainstorm.dev.mentolder.de`.
 
 ## Step 5: Verify the Tunnel is Live
 

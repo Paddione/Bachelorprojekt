@@ -535,7 +535,7 @@
       "id": "website",
       "name": "Astro + Svelte website",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 1503,
+      "file_count": 1504,
       "files": [
         "website/.build-trigger",
         "website/.design-sync/NOTES.md",
@@ -838,6 +838,7 @@
         "website/src/components/admin/TicketSpecProgress.svelte",
         "website/src/components/admin/WebCrawlSourceModal.svelte",
         "website/src/components/admin/WissenHub.svelte",
+        "website/src/components/admin/__tests__/OpenSpecProposalsPanel.test.ts",
         "website/src/components/admin/aktionen/AktionenTab.svelte",
         "website/src/components/admin/aktionen/AuditLog.svelte",
         "website/src/components/admin/aktionen/BackupsTab.svelte",

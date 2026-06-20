@@ -795,8 +795,13 @@ tasks:
     cmds:
       - bash scripts/build-test-inventory.sh
 
+  openspec:status-map:
+    desc: "Regenerate website/src/data/openspec-status.json from openspec/changes/"
+    cmds:
+      - bash scripts/openspec-status-map.sh
+
   routes:manifest:
-    desc: Regenerate website/src/data/route-manifest.json (page files + brand service slugs → sweep route manifest)
+    desc: Regenerate website/src/data/route-manifest.json (page files + brand service slugs -> sweep route manifest)
     cmds:
       - node scripts/build-route-manifest.mjs
 
@@ -864,6 +869,7 @@ tasks:
       - task: quality:index
       - task: agent-guide:emit
       - task: graph:build    # LAD: K8s graph artifacts
+      - task: openspec:status-map
 
   freshness:check:
     desc: "Fail if any generated artifact is stale or violates invariants (CI gate + local pre-commit safety)"
@@ -877,6 +883,7 @@ tasks:
           website/src/data/route-manifest.json
           website/src/lib/learning-assets.generated.json
           website/public/learning-assets/THIRD-PARTY-ASSETS.md
+          website/src/data/openspec-status.json
           docs/code-quality/repo-index.json
           docs/agent-guide/10-ziele.md
           docs/agent-guide/20-werkzeuge.md

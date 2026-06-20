@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.102.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.102.1...website-v1.102.2) (2026-06-20)
+
+
+### Bug Fixes
+
+* **admin-sidekick:** korrekte mediaviewerHost-Übergabe und DataCloneError-Fix [T000942] ([e57486e](https://github.com/Paddione/Bachelorprojekt/commit/e57486e01f09701da3263beabea2e3da235dc706))
+
 ## [1.102.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.102.0...website-v1.102.1) (2026-06-19)
 
 

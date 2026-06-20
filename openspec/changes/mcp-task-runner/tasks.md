@@ -1,3 +1,10 @@
+---
+ticket_id: T001017
+status: implemented
+date: 2026-06-20
+domains: [infra, mcp, observability]
+---
+
 # Tasks: mcp-task-runner
 
 > MCP-Server für parallele go-task-Ausführung mit OpenTelemetry-Logging.

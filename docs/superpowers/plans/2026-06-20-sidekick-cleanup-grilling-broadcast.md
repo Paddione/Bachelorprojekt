@@ -32,6 +32,25 @@ depends_on_plans: []
 
 ---
 
+## File Structure
+
+| Datei | Änderung | Task |
+|-------|----------|------|
+| `website/src/components/assistant/SidekickHome.svelte` | Modify — Items/Banner/CSS entfernen, renummerieren | Task 1 |
+| `website/src/lib/assistant/sidekick-nudge.ts` | Modify — decideBanner, shouldShowLearnDot, View-Typen entfernen | Task 3 |
+| `website/src/lib/assistant/sidekick-nudge.test.ts` | Test — decideBanner-Tests entfernen, parseNavigateEvent-Tests behalten | Task 3 |
+| `website/src/components/PortalSidekick.svelte` | Modify — Routing, State, Fetches, fab-dot entfernen | Task 2 |
+| `website/src/lib/mediaviewer-bridge.ts` | Modify — brainstorm-Mode, sessionStarted/sessionProgress hinzufügen | Task 4 |
+| `website/src/lib/mediaviewer-bridge.test.ts` | Test — neue Bridge-Typen testen | Task 4 |
+| `website/src/lib/tickets/grilling.ts` | Modify — brainstorm-v1 Questionnaire hinzufügen | Task 5 |
+| `website/src/lib/tickets/grilling.test.ts` | Test — brainstorm-v1 Registrierung/Struktur prüfen | Task 5 |
+| `website/src/components/MediaviewerPanel.svelte` | Modify — dual-channel Session-Broadcast ergänzen | Task 6 |
+| `website/src/components/MediaviewerPanel.test.ts` | Test — CustomEvent-Broadcast prüfen | Task 6 |
+| `website/src/components/mediaviewer/GrillingSessionHost.svelte` | Modify — sessionType-Prop ergänzen | Task 6 |
+| `website/src/data/test-inventory.json` | Generated — regenerieren nach Test-Änderungen | Task 7 |
+
+---
+
 ### Task 1: SidekickHome.svelte — Items, Banner & Nudge-Verdrahtung entfernen
 
 Entfernt die vier Menu-Items, den Lernpfad-Banner und die `decideBanner`-Verdrahtung; renummeriert die verbleibenden Items.
@@ -877,4 +896,4 @@ Expected: sauberes `git status`.
 
 **Typ-Konsistenz:** `currentSessionType` (Task 6) ↔ `sessionType`-Feld in Broadcast-Payloads; `buildSetModeMessage('brainstorm', …)` (Task 4) ↔ `mode: 'brainstorm'` in `HostInbound` (Task 4); `buildGrillingSessionData(ticket, sessionType)` (Task 6) ↔ optionales zweites Arg in `final-grilling.ts`. Konsistent. ✓
 
-**Placeholder-Scan:** Keine TBD/TODO; alle Code-Steps zeigen vollständigen Code. ✓
+**Placeholder-Scan:** Alle Code-Steps zeigen vollständigen, ausführbaren Code — keine offenen Lücken. ✓

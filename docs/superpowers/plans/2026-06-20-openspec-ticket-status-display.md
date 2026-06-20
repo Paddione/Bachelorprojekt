@@ -68,7 +68,7 @@ depends_on_plans: []
 - No arguments required; `OPENSPEC_ROOT` env var overrides the default `$REPO/openspec`
 - Exit 0 always (no required OpenSpec changes is valid); writes `{}` when no changes found
 
-- [ ] **Step 1: Write the script**
+- [x] **Step 1: Write the script**
 
 Create `/tmp/wt-openspec-ticket-status/scripts/openspec-status-map.sh`:
 
@@ -134,13 +134,13 @@ mv "$TMP" "$OUT"
 echo "openspec-status-map: wrote $OUT"
 ```
 
-- [ ] **Step 2: Make the script executable**
+- [x] **Step 2: Make the script executable**
 
 ```bash
 chmod +x /tmp/wt-openspec-ticket-status/scripts/openspec-status-map.sh
 ```
 
-- [ ] **Step 3: Run the script and inspect the output**
+- [x] **Step 3: Run the script and inspect the output**
 
 ```bash
 cd /tmp/wt-openspec-ticket-status
@@ -159,7 +159,7 @@ Expected output: a JSON object with at least `T000959` key (current proposal exi
 
 (Other existing proposals may appear too — that is correct.)
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 cd /tmp/wt-openspec-ticket-status
@@ -178,7 +178,7 @@ git commit -m "feat(openspec): add openspec-status-map.sh generator script [T000
 - Consumes: `scripts/openspec-status-map.sh` (Task 1)
 - Produces: `task openspec:status-map` command; `task freshness:regenerate` now also regenerates the OpenSpec map; `freshness:check` fails when map is stale
 
-- [ ] **Step 1: Add `openspec:status-map` task**
+- [x] **Step 1: Add `openspec:status-map` task**
 
 Find the `test:inventory` task block (around line 794 in `Taskfile.yml`) and add the new task nearby (in the `openspec:*` namespace or near `test:*`). Insert after the `test:inventory` task:
 
@@ -189,7 +189,7 @@ Find the `test:inventory` task block (around line 794 in `Taskfile.yml`) and add
       - bash scripts/openspec-status-map.sh
 ```
 
-- [ ] **Step 2: Wire into `freshness:regenerate`**
+- [x] **Step 2: Wire into `freshness:regenerate`**
 
 In the `freshness:regenerate` task's `cmds` list (around line 861), add a call to `openspec:status-map` after the existing tasks:
 
@@ -211,7 +211,7 @@ The updated `freshness:regenerate.cmds` should look like:
       - task: openspec:status-map
 ```
 
-- [ ] **Step 3: Add `openspec-status.json` to `freshness:check` FILES list**
+- [x] **Step 3: Add `openspec-status.json` to `freshness:check` FILES list**
 
 In the `freshness:check` task's inline shell block (around line 875), add the new file to the `FILES` variable (one entry per line, same pattern as existing entries):
 
@@ -221,7 +221,7 @@ In the `freshness:check` task's inline shell block (around line 875), add the ne
 
 The updated FILES block should include that line alongside the existing entries.
 
-- [ ] **Step 4: Verify freshness:regenerate runs without error**
+- [x] **Step 4: Verify freshness:regenerate runs without error**
 
 ```bash
 cd /tmp/wt-openspec-ticket-status
@@ -230,7 +230,7 @@ task freshness:regenerate
 
 Expected: no errors; `website/src/data/openspec-status.json` is regenerated.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /tmp/wt-openspec-ticket-status
@@ -249,7 +249,7 @@ git commit -m "feat(openspec): wire openspec-status-map into freshness lifecycle
 - Consumes: `scripts/openspec-status-map.sh` (Task 1)
 - The map regeneration is best-effort (not run when `TICKET_OFFLINE=1` is set, since that signals a non-repo CI test environment)
 
-- [ ] **Step 1: Add map-regeneration call to `cmd_propose()`**
+- [x] **Step 1: Add map-regeneration call to `cmd_propose()`**
 
 In `scripts/openspec.sh`, locate the end of `cmd_propose()` (the line `echo "proposed: $dir (ticket $ticket, status planning)"`). Add the map regeneration **before** the echo line:
 
@@ -260,7 +260,7 @@ In `scripts/openspec.sh`, locate the end of `cmd_propose()` (the line `echo "pro
   echo "proposed: $dir (ticket $ticket, status planning)"
 ```
 
-- [ ] **Step 2: Add map-regeneration call to `cmd_apply()`**
+- [x] **Step 2: Add map-regeneration call to `cmd_apply()`**
 
 Locate the end of `cmd_apply()` (the line `echo "applied: $slug (implementable)"`). Add before it:
 
@@ -271,7 +271,7 @@ Locate the end of `cmd_apply()` (the line `echo "applied: $slug (implementable)"
   echo "applied: $slug (implementable)"
 ```
 
-- [ ] **Step 3: Add map-regeneration call to `cmd_archive()`**
+- [x] **Step 3: Add map-regeneration call to `cmd_archive()`**
 
 Locate the end of `cmd_archive()` (the line `echo "archived: $slug -> $dest (delta merged into SSOT)"`). Add before it:
 
@@ -282,7 +282,7 @@ Locate the end of `cmd_archive()` (the line `echo "archived: $slug -> $dest (del
   echo "archived: $slug -> $dest (delta merged into SSOT)"
 ```
 
-- [ ] **Step 4: Test that TICKET_OFFLINE suppresses the map call**
+- [x] **Step 4: Test that TICKET_OFFLINE suppresses the map call**
 
 ```bash
 cd /tmp/wt-openspec-ticket-status
@@ -294,7 +294,7 @@ echo "Exit: $?"
 
 Expected: `openspec validate: OK` (no map regeneration side-effect).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /tmp/wt-openspec-ticket-status
@@ -313,7 +313,7 @@ git commit -m "feat(openspec): auto-regenerate status map after propose/apply/ar
 - Produces: `TicketRow.openspecProposals?: Array<{ slug: string; status: 'planning' | 'plan_staged' | 'archived' }>`
 - This optional field carries zero overhead when no proposals exist (field simply absent)
 
-- [ ] **Step 1: Add `OpenSpecProposal` type and extend `TicketRow`**
+- [x] **Step 1: Add `OpenSpecProposal` type and extend `TicketRow`**
 
 In `website/src/lib/tickets/cockpit-types.ts`, add after the `HealthStatus` type declaration (after line 4):
 
@@ -353,7 +353,7 @@ export interface TicketRow {
 }
 ```
 
-- [ ] **Step 2: Verify TypeScript compiles**
+- [x] **Step 2: Verify TypeScript compiles**
 
 ```bash
 cd /tmp/wt-openspec-ticket-status/website
@@ -362,7 +362,7 @@ npx tsc --noEmit 2>&1 | head -20
 
 Expected: no errors.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 cd /tmp/wt-openspec-ticket-status
@@ -382,7 +382,7 @@ git commit -m "feat(cockpit): add OpenSpecProposal type and openspecProposals fi
 - The static import is resolved at build time (Astro SSR) — same pattern as `traceability.ts` importing `test-inventory.json`
 - `mergeOpenSpec(tickets, map)` is a pure function (no DB calls) that sets `openspecProposals` on matching rows
 
-- [ ] **Step 1: Add import of the JSON map**
+- [x] **Step 1: Add import of the JSON map**
 
 At the top of `website/src/lib/tickets/cockpit-db.ts`, add after the existing imports:
 
@@ -393,7 +393,7 @@ import openspecStatusMap from '../../data/openspec-status.json';
 
 Note: `OpenSpecProposal` is already in `cockpit-types.ts` after Task 4. The JSON import relies on `resolveJsonModule: true` in `website/tsconfig.json` (already set).
 
-- [ ] **Step 2: Add `mergeOpenSpec` helper function**
+- [x] **Step 2: Add `mergeOpenSpec` helper function**
 
 Add this pure helper function after the `aggregate` function (around line 188 in the original file):
 
@@ -412,7 +412,7 @@ function mergeOpenSpec(tickets: TicketRow[]): TicketRow[] {
 }
 ```
 
-- [ ] **Step 3: Call `mergeOpenSpec` in `getLeafTickets` and `getFeatureTickets`**
+- [x] **Step 3: Call `mergeOpenSpec` in `getLeafTickets` and `getFeatureTickets`**
 
 In `getLeafTickets` (around line 92), change the return statement from:
 
@@ -438,7 +438,7 @@ to:
   return { feature, tickets: mergeOpenSpec(tickets) };
 ```
 
-- [ ] **Step 4: Verify TypeScript compiles**
+- [x] **Step 4: Verify TypeScript compiles**
 
 ```bash
 cd /tmp/wt-openspec-ticket-status/website
@@ -447,7 +447,7 @@ npx tsc --noEmit 2>&1 | head -20
 
 Expected: no errors.
 
-- [ ] **Step 5: Run the existing cockpit unit tests to confirm nothing is broken**
+- [x] **Step 5: Run the existing cockpit unit tests to confirm nothing is broken**
 
 ```bash
 cd /tmp/wt-openspec-ticket-status/website
@@ -456,7 +456,7 @@ npx vitest run src/lib/tickets/ 2>&1 | tail -20
 
 Expected: all tests pass.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 cd /tmp/wt-openspec-ticket-status
@@ -479,11 +479,11 @@ git commit -m "feat(cockpit): merge openspec status map onto TicketRow in cockpi
 - Badge labels: `planning` → `SPEC`, `plan_staged` → `READY`, `archived` → `DONE`
 - Badges occupy an additional grid cell that is hidden on mobile (`display: none` at `max-width: 767px`)
 
-- [ ] **Step 1: Extend the TicketRow import**
+- [x] **Step 1: Extend the TicketRow import**
 
 In `website/src/components/admin/TicketRow.svelte`, the import at line 3 already imports `TicketRow as TicketRowT` from `cockpit-types`. No change needed — `openspecProposals` is already part of `TicketRowT` after Task 4.
 
-- [ ] **Step 2: Add the badge cell to the template**
+- [x] **Step 2: Add the badge cell to the template**
 
 In the template section of `TicketRow.svelte`, after the `<span class="created ticket-col-created">` element (line 75), add:
 
@@ -499,7 +499,7 @@ In the template section of `TicketRow.svelte`, after the `<span class="created t
   </span>
 ```
 
-- [ ] **Step 3: Update the row grid layout to include the new cell**
+- [x] **Step 3: Update the row grid layout to include the new cell**
 
 In the `<style>` section of `TicketRow.svelte`, change the `.row` `grid-template-columns` from:
 
@@ -517,7 +517,7 @@ to:
 
 (Eight columns: checkbox | handle | ext-id | title | status | priority | created | openspec)
 
-- [ ] **Step 4: Add badge styles**
+- [x] **Step 4: Add badge styles**
 
 In the `<style>` section, add after the `.created` rule:
 
@@ -530,7 +530,7 @@ In the `<style>` section, add after the `.created` rule:
   .os-badge--archived   { background: #374151; color: #9ca3af; }
 ```
 
-- [ ] **Step 5: Hide the openspec column on mobile**
+- [x] **Step 5: Hide the openspec column on mobile**
 
 In the existing `@media (max-width: 767px)` block, add `TicketRow.svelte`'s current mobile rule:
 
@@ -542,7 +542,7 @@ In the existing `@media (max-width: 767px)` block, add `TicketRow.svelte`'s curr
   }
 ```
 
-- [ ] **Step 6: Write failing tests for badge rendering**
+- [x] **Step 6: Write failing tests for badge rendering**
 
 In `website/src/components/admin/TicketRow.test.ts`, add a new test suite at the end of the file:
 
@@ -591,7 +591,7 @@ describe('TicketRow OpenSpec badges', () => {
 });
 ```
 
-- [ ] **Step 7: Run the failing tests to confirm they fail**
+- [x] **Step 7: Run the failing tests to confirm they fail**
 
 ```bash
 cd /tmp/wt-openspec-ticket-status/website
@@ -600,7 +600,7 @@ npx vitest run src/components/admin/TicketRow.test.ts 2>&1 | tail -30
 
 Expected: the new `OpenSpec badges` suite fails with `querySelectorAll('.os-badge')` returning 0 (template not yet updated).
 
-- [ ] **Step 8: Confirm the full test suite passes after implementing**
+- [x] **Step 8: Confirm the full test suite passes after implementing**
 
 After applying all changes from Steps 2–5 above:
 
@@ -611,7 +611,7 @@ npx vitest run src/components/admin/TicketRow.test.ts 2>&1 | tail -20
 
 Expected: all tests pass, including the new `OpenSpec badges` suite.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 cd /tmp/wt-openspec-ticket-status
@@ -631,7 +631,7 @@ git commit -m "feat(cockpit): render OpenSpec proposal badges in TicketRow [T000
 - Consumes: the grid layout change from Task 6 (TicketRow now has 8 columns)
 - The header row must stay in sync with the row grid (both use 8 columns on desktop, 4 on mobile)
 
-- [ ] **Step 1: Write the failing test first**
+- [x] **Step 1: Write the failing test first**
 
 In `website/src/components/admin/CockpitTable.test.ts`, add at the end of the `CockpitTable` describe block (before the closing `}`):
 
@@ -643,7 +643,7 @@ In `website/src/components/admin/CockpitTable.test.ts`, add at the end of the `C
   });
 ```
 
-- [ ] **Step 2: Run the failing test to confirm it fails**
+- [x] **Step 2: Run the failing test to confirm it fails**
 
 ```bash
 cd /tmp/wt-openspec-ticket-status/website
@@ -652,7 +652,7 @@ npx vitest run src/components/admin/CockpitTable.test.ts --reporter=verbose 2>&1
 
 Expected: FAIL — "expected string to match /openspec/i" (header does not yet contain "OpenSpec").
 
-- [ ] **Step 3: Update the header row in `CockpitTable.svelte`**
+- [x] **Step 3: Update the header row in `CockpitTable.svelte`**
 
 In the template, locate the `div.row-header` block (around line 131–134):
 
@@ -673,7 +673,7 @@ Change to:
   </div>
 ```
 
-- [ ] **Step 4: Update `.row-header` grid-template-columns in `CockpitTable.svelte`**
+- [x] **Step 4: Update `.row-header` grid-template-columns in `CockpitTable.svelte`**
 
 In the `<style>` section, find the `.row-header` rule (around line 182–185). Change the `grid-template-columns` from 7 columns to 8:
 
@@ -684,7 +684,7 @@ In the `<style>` section, find the `.row-header` rule (around line 182–185). C
     color: var(--admin-text-mute, #9ca3af); position: sticky; top: 0; background: var(--admin-surface, #14171d); z-index: 1; }
 ```
 
-- [ ] **Step 5: Update the mobile `@media` block in `CockpitTable.svelte`**
+- [x] **Step 5: Update the mobile `@media` block in `CockpitTable.svelte`**
 
 In the existing `@media (max-width: 767px)` block (around line 192–195), add `col-openspec` to the hidden columns:
 
@@ -695,7 +695,7 @@ In the existing `@media (max-width: 767px)` block (around line 192–195), add `
   }
 ```
 
-- [ ] **Step 6: Run the full CockpitTable test suite to confirm all tests pass**
+- [x] **Step 6: Run the full CockpitTable test suite to confirm all tests pass**
 
 ```bash
 cd /tmp/wt-openspec-ticket-status/website
@@ -704,7 +704,7 @@ npx vitest run src/components/admin/CockpitTable.test.ts 2>&1 | tail -20
 
 Expected: all tests pass, including the new "renders an OpenSpec column header" test.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 cd /tmp/wt-openspec-ticket-status
@@ -723,7 +723,7 @@ git commit -m "feat(cockpit): add OpenSpec column header to CockpitTable [T00095
 - Consumes: `website/src/data/openspec-status.json` (Task 1) read via `jq`
 - The skill is a markdown document read by an AI agent — the changes are prose + shell snippets, not compiled code
 
-- [ ] **Step 1: Add OpenSpec status block after the SQL query in Step 1.1**
+- [x] **Step 1: Add OpenSpec status block after the SQL query in Step 1.1**
 
 In `.claude/skills/ticket-ops/SKILL.md`, locate the end of the `### Step 1.1: Fetch Open Tickets` block (after the SQL code block, before `### Step 1.2`). Insert the following new section between Step 1.1 and Step 1.2:
 
@@ -758,7 +758,7 @@ T000738 | Unbekanntes Feature    | backlog      | niedrig | —
 Use `get_openspec_status "$ext_id"` per row and display `—` when the result is empty.
 ```
 
-- [ ] **Step 2: Verify SKILL.md is still valid markdown (no broken headers)**
+- [x] **Step 2: Verify SKILL.md is still valid markdown (no broken headers)**
 
 ```bash
 grep -n "^###" /tmp/wt-openspec-ticket-status/.claude/skills/ticket-ops/SKILL.md
@@ -766,7 +766,7 @@ grep -n "^###" /tmp/wt-openspec-ticket-status/.claude/skills/ticket-ops/SKILL.md
 
 Expected: sections appear in order: `Step 1.1`, `Step 1.1b`, `Step 1.2`, `Step 2.1`, etc.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 cd /tmp/wt-openspec-ticket-status

@@ -535,7 +535,7 @@
       "id": "website",
       "name": "Astro + Svelte website",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 1502,
+      "file_count": 1503,
       "files": [
         "website/.build-trigger",
         "website/.design-sync/NOTES.md",
@@ -806,6 +806,7 @@
         "website/src/components/admin/MarkdownEditor.svelte",
         "website/src/components/admin/NewsletterAdmin.svelte",
         "website/src/components/admin/NewsletterBlockLibrary.svelte",
+        "website/src/components/admin/OpenSpecProposalsPanel.svelte",
         "website/src/components/admin/PlatformHub.svelte",
         "website/src/components/admin/ProjectCreateForm.astro",
         "website/src/components/admin/ProjectMeetingsTab.astro",

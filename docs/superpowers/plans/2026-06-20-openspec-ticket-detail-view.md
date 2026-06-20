@@ -246,27 +246,27 @@ git commit -m "feat(admin): render OpenSpecProposalsPanel in ticket detail view 
 - Consumes: das Ergebnis aus Task 1 + Task 2.
 - Produces: grüne CI-Gates (S1–S4-Ratchet, Freshness, Tests).
 
-- [ ] **Step 0: Vitest-Smoke-Test aus Task 1 / Step 0 wiederholen — jetzt PASS erwartet**
+- [x] **Step 0: Vitest-Smoke-Test aus Task 1 / Step 0 wiederholen — jetzt PASS erwartet**
 
 Run: `cd website && npx vitest run src/components/admin/__tests__/OpenSpecProposalsPanel.test.ts`
 Expected: PASS — beide Tests grün: leeres Array rendert keine `<li>`-Elemente, und Slug `test-proposal` erscheint als „Test Proposal" im DOM. Verify it passes before proceeding.
 
-- [ ] **Step 1: Gezielte Tests für geänderte Domains**
+- [x] **Step 1: Gezielte Tests für geänderte Domains**
 
 Run: `task test:changed`
 Expected: PASS (vitest `--changed` + BATS-Selection + `quality:check`). Da keine bestehende Test-Datei berührt wird, prüfen ob ein Snapshot-/Komponenten-Test betroffen ist — falls ja, mit den oben gezeigten Komponenten-Eigenschaften abgleichen.
 
-- [ ] **Step 2: Generierte Artefakte regenerieren**
+- [x] **Step 2: Generierte Artefakte regenerieren**
 
 Run: `task freshness:regenerate`
 Expected: Aktualisiert `test-inventory`, `repo-index` etc. Etwaige Diffs an generierten Dateien mitcommitten (siehe Step 5).
 
-- [ ] **Step 3: CI-Äquivalent Freshness + Quality-Ratchet**
+- [x] **Step 3: CI-Äquivalent Freshness + Quality-Ratchet**
 
 Run: `task freshness:check`
 Expected: PASS — insbesondere der S1-Ratchet gegen `docs/code-quality/baseline.json` (Datei `[id].astro` darf 400 nicht überschreiten und ist nicht baselined) und die Baseline-Key-Count-Assertion (keine neuen Baseline-Einträge).
 
-- [ ] **Step 4: OpenSpec-Change-Tree validieren**
+- [x] **Step 4: OpenSpec-Change-Tree validieren**
 
 Run: `task test:openspec`
 Expected: PASS — der `openspec/`-Change-Tree (inkl. `openspec/changes/openspec-ticket-detail-view/`) ist gültig.

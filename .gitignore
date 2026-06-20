@@ -160,3 +160,4 @@ assets-inbox/docs/superpowers/specs/.gaps/
 
 # Mishap tracker local log (gitignored; use --ticket for persistent records)
 .mishaps.log
+.worktrees/

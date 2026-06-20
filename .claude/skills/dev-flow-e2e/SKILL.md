@@ -1,6 +1,7 @@
 ---
 name: dev-flow-e2e
 description: Use to write and run Playwright E2E tests against the live environment for a newly merged and deployed change.
+agent: bachelorprojekt-test
 ---
 
 # dev-flow-e2e — Playwright E2E Tests schreiben & ausführen

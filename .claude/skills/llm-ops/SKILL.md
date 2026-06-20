@@ -1,6 +1,7 @@
 ---
 name: llm-ops
 description: LLM pipeline operations — GPU host bootstrap, model management, deploy/status/test of LLM gateway services (TEI embed, LM Studio chat) plus ComfyUI and Rigger across dev and fleet clusters.
+agent: bachelorprojekt-ops
 ---
 
 > **Mishap Tracking:** As you execute this skill, maintain a running `MISHAP_LOG`.

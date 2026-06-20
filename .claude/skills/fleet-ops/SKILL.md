@@ -1,6 +1,7 @@
 ---
 name: fleet-ops
 description: Use when deploying, verifying, or operating across both brands simultaneously — mentolder and korczewski, both on the unified fleet cluster. Covers task feature:* fan-out, the feature:promote dev→prod flow with smoke gate and auto-rollback, cross-brand schema changes, cluster status checks, the push-based deploy model (no GitOps reconciler on fleet), and the constraint that each brand has its own independent shared-db and sealed-secrets.
+agent: bachelorprojekt-infra
 ---
 
 # fleet-ops — Cross-Brand Operations (mentolder + korczewski on fleet)

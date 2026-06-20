@@ -1,6 +1,7 @@
 ---
 name: mishap-tracker
 description: Shared utility — batches all execution mishaps into a single aggregate ticket. Reuses an existing open "Mishap collection" ticket if one exists; creates a new one otherwise. Each mishap is individually classified within the aggregate.
+agent: bachelorprojekt-ops
 ---
 
 # mishap-tracker

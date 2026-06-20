@@ -1,6 +1,7 @@
 ---
 name: keycloak-realm-sync
 description: Use when Keycloak realm configuration needs to be reconciled — OIDC client settings, realm JSON changes, group mappings, mapper configuration, or SSO login failures that stem from realm drift. Covers running keycloak:sync, post-sync verification, and testing SSO flows.
+agent: bachelorprojekt-security
 ---
 
 > **Mishap Tracking:** As you execute this skill, maintain a running `MISHAP_LOG`.

@@ -6,6 +6,14 @@
 
 > **Für Agenten:** Schnelle Routing-Karten (Intention → Weg → Tier → Guardrails) unter `docs/agent-guide/maps/` — `goals-map.md`, `tools-map.md`, `danger-map.md`. Generiert aus `docs/agent-guide/registry/`.
 
+## Subagent dispatch (Skill → Agent)
+
+Each skill's `SKILL.md` frontmatter carries an optional `agent:` field that tells the orchestrator which `.claude/agents/<name>.md` config to splice into a subagent before spawning it. The full protocol (recipe + current mapping table) lives in `AGENTS.md` → "Skill Dispatch Protocol". Quick reference:
+
+- Skills with `agent:` → dispatched as a subagent via `task` with `subagent_type: "general"` (isolated context window, own domain knowledge).
+- Skills without `agent:` → loaded inline in the main session (workflow/orchestrator skills that span multiple agents or hold state).
+- New skill: pick an agent from the routing table, add `agent: bachelorprojekt-<role>` to frontmatter, add a row to the AGENTS.md table.
+
 ---
 
 ## Development Flow (sequential pipeline)

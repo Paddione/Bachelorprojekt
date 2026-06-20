@@ -1,6 +1,7 @@
 ---
 name: host-node-networking
 description: Unified runbook for host node provisioning (Hetzner, cloud-init, Rescue Mode), WireGuard mesh network layout, host firewalls (UFW rules), LiveKit WebRTC networking (DNS pinning, ICE candidates), and WSL OpenClaw local gateway operations.
+agent: bachelorprojekt-infra
 ---
 
 > **Mishap Tracking:** As you execute this skill, maintain a running `MISHAP_LOG`.

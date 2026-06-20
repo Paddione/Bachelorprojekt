@@ -1,6 +1,7 @@
 ---
 name: dev-flow-iterate
 description: Use to run deployments, view logs, and troubleshoot issues iteratively against a dev k3d cluster.
+agent: bachelorprojekt-ops
 category: devflow
 ---
 

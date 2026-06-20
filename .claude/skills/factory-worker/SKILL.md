@@ -1,6 +1,7 @@
 ---
 name: factory-worker
 description: Interactive Software-Factory worker. Invoke via /factory-worker-on when DeepSeek-Scout produced weak output (SCOUT_WEAK) or tickets sit in planning with no committed plan, and a human needs to scout + plan them so the autopilot can build them. Yields one autopilot parallel slot while active.
+agent: bachelorprojekt-test
 ---
 
 > **Mishap Tracking:** As you execute this skill, maintain a running `MISHAP_LOG`.

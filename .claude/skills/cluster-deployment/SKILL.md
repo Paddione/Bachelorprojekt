@@ -1,6 +1,7 @@
 ---
 name: cluster-deployment
 description: Unified runbook for environment deployment, cluster creation, deployment assistance, gap analysis, and dev.mentolder.de stack operations.
+agent: bachelorprojekt-infra
 ---
 
 > **Mishap Tracking:** As you execute this skill, maintain a running `MISHAP_LOG`.

@@ -1,6 +1,7 @@
 ---
 name: secret-rotation
 description: Use when rotating secrets across clusters — DB passwords, API keys, sealed-secrets keypair refresh after a cluster reset, claude-code tokens, or generating/sealing a new env. Covers the mandatory ordering that prevents silent overwrite of production secrets.
+agent: bachelorprojekt-security
 ---
 
 > **Mishap Tracking:** As you execute this skill, maintain a running `MISHAP_LOG`.

@@ -123,7 +123,7 @@ category: devflow                  # optional — existing field
 ```
 
 - **Skill HAS `agent:`** → orchestrator MUST dispatch as a subagent. Load `.claude/agents/<agent>.md`, splice its body as the system prompt, append the skill body + the user's request, and spawn `task` with `subagent_type: "general"`. The subagent owns the work in an isolated context window.
-- **Skill has NO `agent:`** → workflow/orchestrator skill. Load inline in the main session (current behavior). These are coordination skills (`dev-flow-plan`, `dev-flow-execute`, `dev-flow-chore`, `dev-flow-batch`, `dev-flow-e2e`-meta, `feature-intake`, `migrate-foreign-code`, `operations-management`, `ticket-ops`, `update-dependencies`, `knowledge-management`, `using-git-worktrees`) that need to span multiple agents or hold persistent state across handoffs.
+- **Skill has NO `agent:`** → workflow/orchestrator skill. Load inline in the main session (current behavior). These are coordination skills (`dev-flow-plan`, `dev-flow-execute`, `dev-flow-chore`, `dev-flow-batch`, `dev-flow-e2e`-meta, `migrate-foreign-code`, `operations-management`, `ticket-ops`, `update-dependencies`, `knowledge-management`, `using-git-worktrees`) that need to span multiple agents or hold persistent state across handoffs. `feature-intake` ist seit 2026-06-21 ein opencode-Command (`/feature-intake`), nicht mehr ein Skill.
 
 ### Dispatch recipe
 
@@ -158,7 +158,7 @@ The subagent returns its result; the orchestrator relays it back. The subagent s
 | `mishap-tracker` | `bachelorprojekt-ops` | Anomalies on live systems → ops triage |
 | `secret-rotation` | `bachelorprojekt-security` | Sealing order, `env-resolve.sh` source-not-execute |
 | `workspace-deploy` | `bachelorprojekt-infra` | Full workspace:setup umbrella + post-setup |
-| _inline (no agent)_ | _main session_ | `dev-flow-plan`, `dev-flow-execute`, `dev-flow-chore`, `dev-flow-batch`, `feature-intake`, `migrate-foreign-code`, `operations-management`, `ticket-ops`, `update-dependencies`, `knowledge-management`, `using-git-worktrees` |
+| _inline (no agent)_ | _main session_ | `dev-flow-plan`, `dev-flow-execute`, `dev-flow-chore`, `dev-flow-batch`, `migrate-foreign-code`, `operations-management`, `ticket-ops`, `update-dependencies`, `knowledge-management`, `using-git-worktrees` |
 
 When a new skill is added: pick an agent from the routing table, add `agent: bachelorprojekt-<role>` to frontmatter, and add a row to this table. (Optional follow-up: add a `task skills:validate` that asserts every `agent:` value resolves to an existing `.claude/agents/<name>.md` and that every agent has at least one skill referring to it — currently no such gate exists.)
 

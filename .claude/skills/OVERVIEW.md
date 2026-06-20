@@ -30,9 +30,9 @@ Each skill's `SKILL.md` frontmatter carries an optional `agent:` field that tell
 
 ## Feature Discovery (vorgelagert zur Pipeline)
 
-| Skill | When to use |
+| Command | When to use |
 |---|---|
-| `feature-intake` | **Vor `dev-flow-plan`** — Feature-Ideen entdecken, brainstormen oder sammeln (z.B. Fragebogen an gekko), bevor geplant wird. Kein Teil der dev-flow-Pipeline; speist `dev-flow-plan`. |
+| `/feature-intake` | **Vor `dev-flow-plan`** — `/feature-intake` (opencode-Command) generiert ein frisches HTML-Formular, dedupliziert Feature-Kandidaten gegen den aktuellen Ticket-Backlog und liefert es via Session-Hub. Für Patrick oder gekko zum Ausfüllen auf einen Klick. Kein Teil der dev-flow-Pipeline; speist `dev-flow-plan`. Assets unter `assets/feature-intake/`. |
 
 ---
 
@@ -134,7 +134,7 @@ unabhängiger Beweis ist. Stufen 3+4 prüfen andere Dimensionen (Review-Qualitä
 
 ```mermaid
 graph TD
-    FI[feature-intake] -.->|vorgelagert| DP
+    FI[/feature-intake] -.->|vorgelagert| DP
 
     subgraph "Dev-Flow Pipeline (sequentiell)"
         DP[dev-flow-plan] -->|feature/fix| DE[dev-flow-execute]

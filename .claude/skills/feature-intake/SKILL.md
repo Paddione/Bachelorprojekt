@@ -16,7 +16,7 @@ Dieser Skill ist dem `dev-flow-plan` **vorgelagert**: er sammelt Feature-Ideen u
 | **HTML-Formular** | Auswahl + Priorisierung neuer Ideen per Klick — **für Patrick oder gekko** | HTML-Formular → ausgefülltes Markdown → `dev-flow-plan` |
 | **GekkoMode** | Offenes Entdeckungs-Interview mit gekko — Schmerzen + Wünsche herauskitzeln | Interview-HTML-Formular → strukturierter Rücklauf → neue `planning`-Tickets |
 
-**Standard-Annahme:** Patrick füllt lieber ein **HTML-Formular** aus als inline zu tippen (siehe Memory „Grilling via HTML form"). Im Zweifel **generiere das Formular**, starte den **Session-Hub** (`bash scripts/session-hub.sh start-form`) und liefere es zusätzlich per `SendUserFile`. Die URL `https://session-feature-intake.${DEV_DOMAIN}` erscheint als Karte im Mediaviewer — immer, in allen Modi.
+**Standard-Annahme:** Patrick füllt lieber ein **HTML-Formular** aus als inline zu tippen (siehe Memory „Grilling via HTML form"). Im Zweifel **generiere das Formular**, starte den **Session-Hub** (`bash scripts/session-hub.sh start-form`) und liefere es zusätzlich per `SendUserFile`. Die URL `https://session-intake.sessions.mentolder.de` erscheint als Karte im Mediaviewer — immer, in allen Modi.
 
 ---
 
@@ -103,7 +103,7 @@ Für jedes Ticket prüfe die Readiness-Flags und leite daraus konkrete Fragen ab
 
 Generiere ein **eigenständiges HTML-Formular** (kein Backend, läuft via `file://`) direkt mit dem `Write`-Tool — **nicht** das pm-form-template.html kopieren (das ist Modus B). Dieses Formular wird **dynamisch aus den Ticket-Daten** aufgebaut.
 
-**Datei:** `/tmp/planungsbuero-klaerung-<DATUM>.html`
+**Datei:** `/tmp/klaerung-<DATUM>.html`
 
 **Formular-Struktur pro Ticket-Section:**
 ```
@@ -130,13 +130,14 @@ Generiere ein **eigenständiges HTML-Formular** (kein Backend, läuft via `file:
 
 ### Schritt 4 — Formular liefern
 
-**Immer:** Session-Hub starten (HTTP-Server + sish-Tunnel + automatischer Pod-Sync → Mediaviewer-Karte):
+**Immer:** Session-Hub starten (lokaler HTTP-Server + fleet-Upload → sessions.mentolder.de + Mediaviewer-Karte):
 
 ```bash
-bash scripts/session-hub.sh start-form --file "$HTML_FILE" --name "feature-intake"
+HTML_FILE="/tmp/klaerung-$(date +%F).html"
+bash scripts/session-hub.sh start-form --file "$HTML_FILE" --name "intake"
 ```
 
-Das Formular ist dann erreichbar unter `https://session-feature-intake.${DEV_DOMAIN}` (Keycloak-Gruppe `/session-hub-access`) und erscheint als Karte im Mediaviewer-Panel. Danach **zusätzlich** per `SendUserFile` liefern. Sage: "Ausfüllen → 'Markdown kopieren' → hier einfügen. Oder direkt öffnen: https://session-feature-intake.${DEV_DOMAIN}"
+Das Formular ist dann öffentlich erreichbar unter `https://session-intake.sessions.mentolder.de` und erscheint als Karte im Mediaviewer-Panel. Danach **zusätzlich** per `SendUserFile` liefern. Sage: "Ausfüllen → 'Markdown kopieren' → hier einfügen. Oder direkt öffnen: https://session-intake.sessions.mentolder.de"
 
 ### Schritt 5 — Antworten verarbeiten (nach Rücklauf)
 
@@ -353,7 +354,7 @@ Halte `$SPEC_POOL` im Arbeitsgedächtnis — er wird in Schritt 2 Block 1 als dr
 
 ### Schritt 2 — Interview-HTML-Formular generieren
 
-Erstelle `/tmp/gekko-interview-<DATUM>.html` mit dem `Write`-Tool. Das Formular ist ein **eigenständiges, backend-freies HTML**, läuft via `file://`.
+Erstelle `/tmp/gekko-<DATUM>.html` mit dem `Write`-Tool. Das Formular ist ein **eigenständiges, backend-freies HTML**, läuft via `file://`.
 
 **Formular-Design:** Dark Theme (`#0d1117` / `#c9d1d9`), große Schrift, viel Weißraum. Überschrift: „Hey gekko — was brauchst du?" Introtext: „5 Minuten. Keine falschen Antworten. Deine Inputs landen direkt im Planungsbüro."
 
@@ -422,13 +423,13 @@ Dieser Block identifiziert Major-Features die via `dev-flow-batch` zerlegt werde
 
 ### Schritt 3 — Formular liefern
 
-**Immer:** Session-Hub starten (HTTP-Server + sish-Tunnel + automatischer Pod-Sync → Mediaviewer-Karte):
+**Immer:** Session-Hub starten (lokaler HTTP-Server + fleet-Upload → sessions.mentolder.de + Mediaviewer-Karte):
 
 ```bash
-bash scripts/session-hub.sh start-form --file "/tmp/gekko-interview-<DATUM>.html" --name "gekko-interview"
+bash scripts/session-hub.sh start-form --file "/tmp/gekko-<DATUM>.html" --name "gekko"
 ```
 
-Das Formular ist dann erreichbar unter `https://session-gekko-interview.${DEV_DOMAIN}` (Keycloak-Gruppe `/session-hub-access`) und erscheint als Karte im Mediaviewer-Panel. Danach **zusätzlich** per `SendUserFile` liefern. Sage Patrick: „Schick den Link an gekko: https://session-gekko-interview.${DEV_DOMAIN} — ausfüllen → ‚Markdown kopieren' → dir zurückschicken → du gibst es mir hier."
+Das Formular ist dann öffentlich erreichbar unter `https://session-gekko.sessions.mentolder.de` und erscheint als Karte im Mediaviewer-Panel. Danach **zusätzlich** per `SendUserFile` liefern. Sage Patrick: „Schick den Link an gekko: https://session-gekko.sessions.mentolder.de — ausfüllen → ‚Markdown kopieren' → dir zurückschicken → du gibst es mir hier."
 
 ### Schritt 4 — Rücklauf verarbeiten
 
@@ -744,7 +745,7 @@ Danach: direkt zu **`dev-flow-plan`** für den gewählten Kandidaten.
 Es gibt ein fertiges, getestetes Template: **`.claude/skills/feature-intake/pm-form-template.html`** (selbst-enthalten, dark theme, Bereich-Chips → Feature-Listen → Prio/Aufwand-Dropdowns → robuster "Markdown kopieren"-Button mit Fallback-Textfeld).
 
 ```bash
-cp .claude/skills/feature-intake/pm-form-template.html /tmp/feature-intake-$(date +%F).html
+cp .claude/skills/feature-intake/pm-form-template.html /tmp/intake-$(date +%F).html
 ```
 
 Dann **nur den `FEATURES`-Block anpassen** (JS-Objekt im `<script>`): die Kandidaten-Listen aktualisieren, falls neue Projektbereiche/Tickets relevant sind (siehe „Vorausgefüllte Feature-Kandidaten" unten). Layout/Copy-Logik nicht neu erfinden.
@@ -753,17 +754,17 @@ Dann **nur den `FEATURES`-Block anpassen** (JS-Objekt im `<script>`): die Kandid
 
 ### Schritt 2 — An den Empfänger liefern
 
-**Immer zuerst:** Session-Hub starten (HTTP-Server + sish-Tunnel + automatischer Pod-Sync → Mediaviewer-Karte):
+**Immer zuerst:** Session-Hub starten (lokaler HTTP-Server + fleet-Upload → sessions.mentolder.de + Mediaviewer-Karte):
 
 ```bash
-HTML_FILE="/tmp/feature-intake-$(date +%F).html"
-bash scripts/session-hub.sh start-form --file "$HTML_FILE" --name "feature-intake"
+HTML_FILE="/tmp/intake-$(date +%F).html"
+bash scripts/session-hub.sh start-form --file "$HTML_FILE" --name "intake"
 ```
 
-Das Formular erscheint als Karte im Mediaviewer-Panel unter `https://session-feature-intake.${DEV_DOMAIN}`. Danach **zusätzlich** per `SendUserFile` liefern.
+Das Formular erscheint als Karte im Mediaviewer-Panel unter `https://session-intake.sessions.mentolder.de`. Danach **zusätzlich** per `SendUserFile` liefern.
 
-- **Empfänger Patrick (Standard):** Sag ihm: „Ausfüllen → ‚Markdown kopieren' → hier einfügen. Oder direkt im Browser: https://session-feature-intake.${DEV_DOMAIN}"
-- **Empfänger gekko:** Sage Patrick: „Schick den Link an gekko: https://session-feature-intake.${DEV_DOMAIN} — ausfüllen → ‚Markdown kopieren' → dir zurückschicken."
+- **Empfänger Patrick (Standard):** Sag ihm: „Ausfüllen → ‚Markdown kopieren' → hier einfügen. Oder direkt im Browser: https://session-intake.sessions.mentolder.de"
+- **Empfänger gekko:** Sage Patrick: „Schick den Link an gekko: https://session-intake.sessions.mentolder.de — ausfüllen → ‚Markdown kopieren' → dir zurückschicken."
 
 ### Formular-Anforderungen
 

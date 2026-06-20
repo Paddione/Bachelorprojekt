@@ -4,6 +4,8 @@
 declare namespace App {
   interface Locals {
     locale?: 'de' | 'en';
+    requestId: string;
+    requestLogger: import('pino').Logger;
   }
 }
 

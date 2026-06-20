@@ -10,7 +10,7 @@ resources:
   - ../../prod-mentolder
   - ../../prod/monitoring
   - sessions-server.yaml
-  - studio.yaml
+  - studio-ingress.yaml
 components:
   - ../components/fleet-common
 
@@ -23,6 +23,7 @@ components:
 # mentolder wrapper (NOT fleet-common — korczewski has no equivalents, so a shared
 # delete would error). The harmless *.localhost dev IngressRoutes are left intact.
 patches:
+  - path: studio-patch.yaml
   # NOTE: the dev SSO/TLS edge (workspace-ingress-dev, workspace-dev-wildcard-tls
   # Certificate, oauth2-proxy-dev Service/Deployment/Middleware) is no longer
   # rendered by prod-mentolder — it moved into the self-contained k3d dev stack

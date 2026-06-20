@@ -66,6 +66,9 @@ env_vars:
   LLM_EMBED_URL: "http://llm-gateway-embed.workspace-staging.svc.cluster.local:8081"
   # System-test failure loop disabled on staging
   SYSTEMTEST_LOOP_ENABLED: "false"
+  STUDIO_DOMAIN: studio.staging.korczewski.de
+  STUDIO_IMAGE: ghcr.io/paddione/studio-server
+  STUDIO_IMAGE_DIGEST: sha256:3fb082d01ee1679ccbe75831e7badc66f51fae8995afa5283da03eb4d349e7f3
   # Dev stack omitted
   DEV_SSH_ALLOWLIST: ""
   PUSHOVER_TOKEN: ""

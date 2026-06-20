@@ -99,14 +99,22 @@ KC_ADMIN_PASS=$(kubectl $CONTEXT_FLAG get secret workspace-secrets \
 
 log "Hole Admin-Token von ${KC_URL}..."
 # --data-urlencode escapes special chars (& # + =) that otherwise corrupt the form body.
-ADMIN_TOKEN=$(curl -sk \
-  -X POST "${KC_URL}/realms/master/protocol/openid-connect/token" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  --data-urlencode "grant_type=password" \
-  --data-urlencode "client_id=admin-cli" \
-  --data-urlencode "username=admin" \
-  --data-urlencode "password=${KC_ADMIN_PASS}" \
-  | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4 || true)
+ADMIN_TOKEN=""
+for _retry in $(seq 1 6); do
+  ADMIN_TOKEN=$(curl -sk \
+    -X POST "${KC_URL}/realms/master/protocol/openid-connect/token" \
+    -H "Content-Type: application/x-www-form-urlencoded" \
+    --data-urlencode "grant_type=password" \
+    --data-urlencode "client_id=admin-cli" \
+    --data-urlencode "username=admin" \
+    --data-urlencode "password=${KC_ADMIN_PASS}" \
+    | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4 || true)
+  if [[ -n "$ADMIN_TOKEN" ]]; then
+    break
+  fi
+  warn "Admin-Token nicht erhalten (Versuch ${_retry}/6)... Warte 5s..."
+  sleep 5
+done
 
 if [[ -z "$ADMIN_TOKEN" ]]; then
   warn "Passwort-Drift erkannt: workspace-secrets-Passwort stimmt nicht mit dem live admin-User überein."
@@ -141,7 +149,7 @@ build_kv_map() {
   # shellcheck disable=SC2086
   kubectl $CONTEXT_FLAG get secret workspace-secrets -n "$KC_NAMESPACE" \
     -o json 2>/dev/null \
-    | jq -r '.data | to_entries[] | select(.key | endswith("_OIDC_SECRET")) | "\(.key)=\(.value|@base64d)"' 2>/dev/null || true
+    | jq -r '.data | to_entries[] | select(.key | endswith("_OIDC_SECRET") or endswith("_OIDC_CLIENT_SECRET")) | "\(.key)=\(.value|@base64d)"' 2>/dev/null || true
 
   # WEBSITE_OIDC_SECRET lives in website-secrets (website namespace), not workspace-secrets.
   # env:seal of workspace-secrets does NOT rotate it — co-rotate website-secrets separately.

@@ -4,6 +4,7 @@ _Ticket: T000962 · Plan: `docs/superpowers/plans/2026-06-20-openspec-ticket-det
 
 ## Task 1: OpenSpecProposalsPanel.svelte erstellen
 
+- [ ] Step 0 (TDD): Schreibe `website/src/components/admin/__tests__/OpenSpecProposalsPanel.test.ts` und führe `npx vitest run ...` aus — erwartet: FAIL (Datei existiert noch nicht)
 - [ ] Create `website/src/components/admin/OpenSpecProposalsPanel.svelte` (Prop `proposals: Array<{ slug: string; status: string }>`)
 - [ ] Status-Badge farbcodiert: `planning` grau, `plan_staged` gold, `archived` grün, Fallback grau
 - [ ] Slug → Titel-Case (`slug.replace(/-/g, ' ')` + Capitalize), GitHub-Link `.../openspec/changes/{slug}/proposal.md`
@@ -19,6 +20,7 @@ _Ticket: T000962 · Plan: `docs/superpowers/plans/2026-06-20-openspec-ticket-det
 
 ## Task 3: Verifikation (CI-Äquivalent — PFLICHT)
 
+- [ ] Step 0: Wiederhole `npx vitest run src/components/admin/__tests__/OpenSpecProposalsPanel.test.ts` — erwartet: PASS (beide Tests grün)
 - [ ] `task test:changed`
 - [ ] `task freshness:regenerate`
 - [ ] `task freshness:check`

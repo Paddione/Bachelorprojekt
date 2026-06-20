@@ -21,6 +21,14 @@ depends_on_plans: []
 
 **Tech Stack:** Astro 5 (SSR-Frontmatter), Svelte 5 (`$props()` runes), TailwindCSS (bestehende `dark`/`gold`-Design-Tokens), statischer JSON-Import.
 
+## File Structure
+
+| Datei | Aktion | Zeilen (aktuell → nach PR) |
+|-------|--------|---------------------------|
+| `website/src/components/admin/OpenSpecProposalsPanel.svelte` | NEU | 0 → ~80 |
+| `website/src/pages/admin/tickets/[id].astro` | ERWEITERT | 332 → ~337 |
+| `openspec/changes/openspec-ticket-detail-view/tasks.md` | SYNC | — |
+
 ## Global Constraints
 
 - **S1 Zeilenlimits (Ratchet gegen Baseline):**
@@ -50,6 +58,33 @@ depends_on_plans: []
 - Consumes: nichts (reine Präsentations-Komponente).
 - Produces: Default-Export Svelte-Komponente mit Prop-Signatur
   `{ proposals: Array<{ slug: string; status: string }> }`. Wird in Task 2 von `[id].astro` als `<OpenSpecProposalsPanel client:load proposals={openspecProposals} />` konsumiert.
+
+- [ ] **Step 0 (TDD): Minimalen Vitest-Smoke-Test schreiben und FAIL verifizieren**
+
+Erstelle `website/src/components/admin/__tests__/OpenSpecProposalsPanel.test.ts` mit folgendem Inhalt:
+
+```typescript
+import { render } from '@testing-library/svelte';
+import { describe, it, expect } from 'vitest';
+import OpenSpecProposalsPanel from '../OpenSpecProposalsPanel.svelte';
+
+describe('OpenSpecProposalsPanel', () => {
+  it('rendert nichts bei leerem proposals-Array', () => {
+    const { container } = render(OpenSpecProposalsPanel, { props: { proposals: [] } });
+    expect(container.querySelector('li')).toBeNull();
+  });
+
+  it('zeigt den Slug im DOM an', () => {
+    const { getByText } = render(OpenSpecProposalsPanel, {
+      props: { proposals: [{ slug: 'test-proposal', status: 'planning' }] },
+    });
+    expect(getByText(/test proposal/i)).toBeTruthy();
+  });
+});
+```
+
+Run: `cd website && npx vitest run src/components/admin/__tests__/OpenSpecProposalsPanel.test.ts`
+Expected: FAIL — Datei `OpenSpecProposalsPanel.svelte` existiert noch nicht, daher schlägt der Import fehl.
 
 - [ ] **Step 1: Komponente schreiben**
 
@@ -211,10 +246,15 @@ git commit -m "feat(admin): render OpenSpecProposalsPanel in ticket detail view 
 - Consumes: das Ergebnis aus Task 1 + Task 2.
 - Produces: grüne CI-Gates (S1–S4-Ratchet, Freshness, Tests).
 
+- [ ] **Step 0: Vitest-Smoke-Test aus Task 1 / Step 0 wiederholen — jetzt PASS erwartet**
+
+Run: `cd website && npx vitest run src/components/admin/__tests__/OpenSpecProposalsPanel.test.ts`
+Expected: PASS — beide Tests grün: leeres Array rendert keine `<li>`-Elemente, und Slug `test-proposal` erscheint als „Test Proposal" im DOM. Verify it passes before proceeding.
+
 - [ ] **Step 1: Gezielte Tests für geänderte Domains**
 
 Run: `task test:changed`
-Expected: PASS (vitest `--changed` + BATS-Selection + `quality:check`). Da keine bestehende Test-Datei berührt wird, prüfen ob ein Snapshot-/Komponenten-Test betroffen ist — falls ja, mit den oben gezeigten Komponenten-Eigenschaften abgleichen. Keine neue Test-Datei anlegen (read-only Präsentations-Panel; Verhalten ist durch `astro check` + S1–S4 abgedeckt).
+Expected: PASS (vitest `--changed` + BATS-Selection + `quality:check`). Da keine bestehende Test-Datei berührt wird, prüfen ob ein Snapshot-/Komponenten-Test betroffen ist — falls ja, mit den oben gezeigten Komponenten-Eigenschaften abgleichen.
 
 - [ ] **Step 2: Generierte Artefakte regenerieren**
 
@@ -252,7 +292,7 @@ Hinweis bei Rebase-Konflikten in generierten Artefakten (`docs/generated/**`, `d
 - Spec „Akzeptanzkriterien 1–4" → Task 2 (conditional render + Panel sichtbar/unsichtbar), Task 1 (Badge-Farben), Task 3 (`freshness:regenerate`/`freshness:check`/`test:changed`/`test:openspec`).
 - Spec „Non-Goals" (kein Drawer, kein proposal.md-Parsing, keine CRUD, kein admin.ts-Touch) → eingehalten: nur Vollansicht, nur JSON-Import, read-only, admin.ts unberührt.
 
-**Placeholder-Scan:** Kein TBD/TODO/„handle edge cases" — jeder Code-Step enthält vollständigen Code; jeder Run-Step ein exaktes Kommando mit erwartetem Ergebnis.
+**Placeholder-Scan:** Keine offenen Platzhalter (`TBD`/`TODO`/`FIXME`) — jeder Code-Step enthält vollständigen Code; jeder Run-Step ein exaktes Kommando mit erwartetem Ergebnis.
 
 **Typ-Konsistenz:** Prop-Typ `Array<{ slug: string; status: string }>` identisch in Task 1 (Komponenten-Signatur), Task 2 (Lookup-`const` + Cast von `openspec-status.json`) und Global Constraints. Komponenten-Helfer (`badgeClass`, `statusLabel`, `titleFromSlug`, `proposalUrl`) sind ausschließlich komponenten-intern und konsistent benannt.
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.102.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.102.2...website-v1.102.3) (2026-06-20)
+
+
+### Bug Fixes
+
+* **sidekick:** grilling/mediaviewer-Views in KNOWN_VIEWS ergänzen [T000942] ([0faf3e0](https://github.com/Paddione/Bachelorprojekt/commit/0faf3e07af3a98dc745d1460e29edbc70094c80a))
+
 ## [1.102.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.102.1...website-v1.102.2) (2026-06-20)
 
 

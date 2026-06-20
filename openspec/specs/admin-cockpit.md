@@ -392,7 +392,7 @@ exposed in the sidebar navGroups, ensuring they remain reachable from the platfo
 <!-- merged from BATS unit tests and Playwright e2e tests -->
 
 ### Requirement: Admin-Bereichs-Authentifizierungs-Gate
-<!-- bats: admin-nav.bats | e2e: fa-41-admin-hub.spec.ts, fa-admin-settings.spec.ts, fa-admin-inhalte.spec.ts, fa-admin-monitoring.spec.ts, fa-40-admin-assets.spec.ts, dashboard-art.spec.ts -->
+<!-- bats: admin-nav.bats | e2e: fa-41-admin-hub.spec.ts, fa-admin-settings.spec.ts, fa-admin-inhalte.spec.ts, fa-admin-monitoring.spec.ts, fa-56-admin-assets.spec.ts, dashboard-art.spec.ts -->
 
 The system SHALL deny access to all admin pages and APIs for unauthenticated or non-admin requests.
 

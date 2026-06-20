@@ -744,12 +744,6 @@
     "kind": "playwright"
   },
   {
-    "id": "FA-21",
-    "file": "tests/e2e/specs/fa-21-invoice-lifecycle.spec.ts",
-    "category": "FA",
-    "kind": "playwright"
-  },
-  {
     "id": "FA-22",
     "file": "tests/local/FA-22.sh",
     "category": "FA",
@@ -835,19 +829,7 @@
   },
   {
     "id": "FA-30",
-    "file": "tests/e2e/specs/fa-30-arena-banner.spec.ts",
-    "category": "FA",
-    "kind": "playwright"
-  },
-  {
-    "id": "FA-30",
     "file": "tests/e2e/specs/fa-30-einvoice.spec.ts",
-    "category": "FA",
-    "kind": "playwright"
-  },
-  {
-    "id": "FA-30",
-    "file": "tests/e2e/specs/fa-30-systemtest-failure-loop.spec.ts",
     "category": "FA",
     "kind": "playwright"
   },
@@ -948,28 +930,10 @@
     "kind": "playwright"
   },
   {
-    "id": "FA-39",
-    "file": "tests/e2e/specs/fa-39-coaching-sessions.spec.ts",
-    "category": "FA",
-    "kind": "playwright"
-  },
-  {
-    "id": "FA-39",
-    "file": "tests/e2e/specs/fa-39-lmstudio-integration.spec.ts",
-    "category": "FA",
-    "kind": "playwright"
-  },
-  {
     "id": "FA-40",
     "file": "tests/local/FA-40.sh",
     "category": "FA",
     "kind": "shell"
-  },
-  {
-    "id": "FA-40",
-    "file": "tests/e2e/specs/fa-40-admin-assets.spec.ts",
-    "category": "FA",
-    "kind": "playwright"
   },
   {
     "id": "FA-40",
@@ -1040,6 +1004,36 @@
   {
     "id": "FA-51",
     "file": "tests/e2e/specs/fa-51-sidekick-navigation.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-52",
+    "file": "tests/e2e/specs/fa-52-arena-banner.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-53",
+    "file": "tests/e2e/specs/fa-53-systemtest-failure-loop.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-54",
+    "file": "tests/e2e/specs/fa-54-coaching-sessions.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-55",
+    "file": "tests/e2e/specs/fa-55-lmstudio-integration.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-56",
+    "file": "tests/e2e/specs/fa-56-admin-assets.spec.ts",
     "category": "FA",
     "kind": "playwright"
   },

@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 const BASE = process.env.WEBSITE_URL || 'https://web.mentolder.de';
 
-test.describe('FA-40: Admin Assets — central asset management', () => {
+test.describe('FA-56: Admin Assets — central asset management', () => {
   // ── Auth-Gating ────────────────────────────────────────────────
   test('T1: /admin/assets requires authentication', async ({ page }) => {
     await page.goto(`${BASE}/admin/assets`);

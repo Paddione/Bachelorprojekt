@@ -8,7 +8,7 @@ const KORCZ_PW   = process.env.KORCZ_PW!;
 const MENTOLDER_HOME  = 'https://web.mentolder.de/';
 const KORCZEWSKI_HOME = 'https://web.korczewski.de/';
 
-test.describe('FA-30 · Arena banner is cross-brand @smoke', () => {
+test.describe('FA-52 · Arena banner is cross-brand @smoke', () => {
 
   test('admin opens lobby on mentolder → banner appears on both brands', async ({ browser }) => {
     // Requires MENTOLDER_ADMIN_USER + MENTOLDER_ADMIN_PW to log into web.mentolder.de.

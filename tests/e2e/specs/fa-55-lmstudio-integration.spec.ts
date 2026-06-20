@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { assertAuthenticatedReachable } from '../lib/health-assertions';
 
 /**
- * FA-39-LMStudio: LM Studio / local-first LLM integration test
+ * FA-55-LMStudio: LM Studio / local-first LLM integration test
  *
  * Tests that the coaching-session "KI befragen" (AI generate) endpoint works
  * end-to-end against the live mentolder cluster, where the LLM gateway stack
@@ -40,7 +40,7 @@ async function loginAsAdmin(page: import('@playwright/test').Page, returnTo = '/
 
 // ── API-level tests (no browser needed) ─────────────────────────────────────
 
-test.describe('FA-39-LMStudio: KI provider config & generate API', () => {
+test.describe('FA-55-LMStudio: KI provider config & generate API', () => {
   test.beforeEach(async ({ request }, testInfo) => {
     await assertAuthenticatedReachable(
       request,
@@ -113,7 +113,7 @@ test.describe('FA-39-LMStudio: KI provider config & generate API', () => {
   test('T3: POST /api/admin/coaching/sessions creates a session', async ({ page }) => {
     await loginAsAdmin(page, '/admin/coaching/sessions');
 
-    const title = `FA-39-LMStudio E2E ${Date.now()}`;
+    const title = `FA-55-LMStudio E2E ${Date.now()}`;
     const res = await page.request.post(`${BASE}/api/admin/coaching/sessions`, {
       data: { title, mode: 'prep' },
     });
@@ -130,7 +130,7 @@ test.describe('FA-39-LMStudio: KI provider config & generate API', () => {
 
     // Create a fresh session for this test so T4 is independent of T3
     const titleRes = await page.request.post(`${BASE}/api/admin/coaching/sessions`, {
-      data: { title: `FA-39-LMStudio T4 ${Date.now()}`, mode: 'prep' },
+      data: { title: `FA-55-LMStudio T4 ${Date.now()}`, mode: 'prep' },
     });
     expect([200, 201], `Session creation failed: ${titleRes.status()}`).toContain(titleRes.status());
     const { session } = await titleRes.json() as { session: { id: string } };
@@ -170,7 +170,7 @@ test.describe('FA-39-LMStudio: KI provider config & generate API', () => {
     await loginAsAdmin(page, '/admin/coaching/sessions');
 
     const titleRes = await page.request.post(`${BASE}/api/admin/coaching/sessions`, {
-      data: { title: `FA-39-LMStudio T5 ${Date.now()}`, mode: 'prep' },
+      data: { title: `FA-55-LMStudio T5 ${Date.now()}`, mode: 'prep' },
     });
     expect([200, 201]).toContain(titleRes.status());
     const { session } = await titleRes.json() as { session: { id: string } };
@@ -198,7 +198,7 @@ test.describe('FA-39-LMStudio: KI provider config & generate API', () => {
 
 // ── Browser wizard flow ──────────────────────────────────────────────────────
 
-test.describe('FA-39-LMStudio: SessionWizard browser flow', () => {
+test.describe('FA-55-LMStudio: SessionWizard browser flow', () => {
   test.beforeEach(async ({ request }, testInfo) => {
     await assertAuthenticatedReachable(
       request,
@@ -212,7 +212,7 @@ test.describe('FA-39-LMStudio: SessionWizard browser flow', () => {
     await loginAsAdmin(page, '/admin/coaching/sessions/new');
     await page.waitForURL(/\/admin\/coaching\/sessions\/new$/, { timeout: 30_000 });
 
-    const title = `FA-39-LMStudio T6 ${Date.now()}`;
+    const title = `FA-55-LMStudio T6 ${Date.now()}`;
     await page.locator('#title').fill(title);
     await page.locator('#submit-btn').click();
     await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
@@ -236,7 +236,7 @@ test.describe('FA-39-LMStudio: SessionWizard browser flow', () => {
     await loginAsAdmin(page, '/admin/coaching/sessions/new');
     await page.waitForURL(/\/admin\/coaching\/sessions\/new$/, { timeout: 30_000 });
 
-    await page.locator('#title').fill(`FA-39-LMStudio T7 ${Date.now()}`);
+    await page.locator('#title').fill(`FA-55-LMStudio T7 ${Date.now()}`);
     await page.locator('#submit-btn').click();
     await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
 

@@ -2017,7 +2017,7 @@ The system SHALL display the service catalog on the `/leistungen` page with book
 ---
 
 ### Requirement: FA-21 PR-A: Invoice Lifecycle (Partial/Full Payment)
-<!-- source: fa-21-invoice-lifecycle.spec.ts -->
+<!-- source: fa-21-billing.spec.ts -->
 
 The system SHALL manage invoice payment lifecycle correctly by transitioning status from open to partially paid to fully paid upon successive payment posts, and SHALL reject payment amounts that exceed the outstanding invoice balance.
 
@@ -2255,8 +2255,8 @@ The system SHALL protect all messaging API endpoints from unauthenticated access
 
 ---
 
-### Requirement: FA-30 · Arena banner is cross-brand
-<!-- source: fa-30-arena-banner.spec.ts -->
+### Requirement: FA-52 · Arena banner is cross-brand
+<!-- source: fa-52-arena-banner.spec.ts -->
 
 The system SHALL propagate an arena lobby banner created on one brand (mentolder) to a logged-in viewer on a second brand (korczewski) within seconds, and SHALL persist the per-lobby dismissal state across page reloads.
 
@@ -2294,8 +2294,8 @@ The system SHALL provide the einvoice-sidecar service with reachable HTTP endpoi
 
 ---
 
-### Requirement: FA-30: System-test failure loop kanban
-<!-- source: fa-30-systemtest-failure-loop.spec.ts -->
+### Requirement: FA-53: System-test failure loop kanban
+<!-- source: fa-53-systemtest-failure-loop.spec.ts -->
 
 The system SHALL provide an authenticated admin kanban board for tracking system-test failures with four defined columns, protect the board and its API from unauthenticated access, and return a canonical JSON shape from the board API endpoint.
 
@@ -2477,8 +2477,8 @@ The system SHALL expose a `/healthz` endpoint on the arena server that returns `
 
 ---
 
-### Requirement: FA-39: Coaching-Sessions
-<!-- source: fa-39-coaching-sessions.spec.ts -->
+### Requirement: FA-54: Coaching-Sessions
+<!-- source: fa-54-coaching-sessions.spec.ts -->
 
 The system SHALL enforce authentication on all coaching-session pages and API endpoints, render the session overview and creation form with the correct structure, and provide a 10-step wizard with navigation, field-driven KI button activation, and session meta display.
 

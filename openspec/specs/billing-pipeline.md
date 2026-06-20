@@ -327,7 +327,7 @@ The system SHALL return HTTP 401 or 403 for all admin billing and bookkeeping AP
 ---
 
 ### Requirement: Invoice Lifecycle — Partial and Full Payment via UI and API
-<!-- e2e: fa-21-invoice-lifecycle.spec.ts -->
+<!-- e2e: fa-21-billing.spec.ts -->
 
 The system SHALL transition an invoice from `open` to `partially_paid` after a partial payment and to `paid` after the remaining balance is settled; the admin invoice list SHALL reflect these status changes.
 

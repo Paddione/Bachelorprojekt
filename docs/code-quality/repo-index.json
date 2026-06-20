@@ -2485,7 +2485,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 395,
+      "file_count": 396,
       "files": [
         "scripts/add-whiteboard-library.py",
         "scripts/admin-menu-gate.sh",
@@ -2757,6 +2757,7 @@
         "scripts/knowledge/package-lock.json",
         "scripts/knowledge/package.json",
         "scripts/knowledge/reindex.sh",
+        "scripts/knowledge/search-similar.mjs",
         "scripts/lib/export.sh",
         "scripts/lib/google-import.sh",
         "scripts/lib/keycloak-helpers.sh",

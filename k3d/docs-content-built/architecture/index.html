@@ -178,7 +178,7 @@
 <body>
   <div class="header">
     <h1>⬡ Architektur — Living Docs</h1>
-    <span class="meta">Generiert: 2026-06-20T06:24:48.762Z</span>
+    <span class="meta">Generiert: 2026-06-20T08:55:23.991Z</span>
   </div>
 
   <div class="stats">
@@ -216,7 +216,6 @@ flowchart LR
   admin_actions_prune["admin-actions-prune"]:::default
   db_backup["db-backup"]:::default
   brett["brett"]:::default
-  claude_code_mcp_auth["claude-code-mcp-auth"]:::default
   mcp_browser["mcp-browser"]:::default
   mcp_github["mcp-github"]:::default
   claude_code_mcp_ops["claude-code-mcp-ops"]:::default
@@ -269,6 +268,7 @@ flowchart LR
   recovery_browser["recovery-browser"]:::default
   oauth2_proxy_recovery["oauth2-proxy-recovery"]:::default
   sealed_secrets_controller["sealed-secrets-controller"]:::default
+  sessions_server["sessions-server"]:::default
   shared_db["shared-db"]:::db
   shared_db_staging["shared-db-staging"]:::default
   nats["nats"]:::default
@@ -307,7 +307,6 @@ flowchart LR
   brett -->|"DATABASE_URL"| shared_db
   brett -->|"DATABASE_URL"| website
   brett -->|"KEYCLOAK_URL"| keycloak
-  claude_code_mcp_auth -->|"KC_URL"| keycloak
   claude_code_mcp_ops -->|"command"| shared_db
   claude_code_mcp_ops -->|"command"| website
   billing_dunning_detection -->|"command"| website
@@ -424,7 +423,7 @@ flowchart LR
   traefik -->|"ingress"| old_webspace
   traefik -->|"ingress"| bachelorprojekt
   traefik -->|"ingress"| arena_server
-  claude_code_mcp_auth -->|"selector"| claude_code_mcp_auth
+  traefik -->|"ingress"| sessions_server
   mcp_browser -->|"selector"| mcp_browser
   mcp_github -->|"selector"| mcp_github
   claude_code_mcp_ops -->|"selector"| claude_code_mcp_ops
@@ -455,6 +454,7 @@ flowchart LR
   recovery_browser -->|"selector"| recovery_browser
   oauth2_proxy_recovery -->|"selector"| oauth2_proxy_recovery
   sealed_secrets_controller -->|"selector"| sealed_secrets_controller
+  sessions_server -->|"selector"| sessions_server
   shared_db_staging -->|"selector"| shared_db_staging
   nats -->|"selector"| nats
   spreed_signaling -->|"selector"| spreed_signaling
@@ -1931,7 +1931,6 @@ flowchart TB
     admin_actions_prune(["admin-actions-prune"])
     db_backup(["db-backup"])
     brett["brett"]
-    claude_code_mcp_auth["claude-code-mcp-auth"]
     mcp_browser["mcp-browser"]
     mcp_github["mcp-github"]
     claude_code_mcp_ops["claude-code-mcp-ops"]
@@ -1971,6 +1970,7 @@ flowchart TB
     pvc_backup(["pvc-backup"])
     recovery_browser["recovery-browser"]
     oauth2_proxy_recovery["oauth2-proxy-recovery"]
+    sessions_server["sessions-server"]
     shared_db["shared-db"]
     nats["nats"]
     spreed_signaling["spreed-signaling"]

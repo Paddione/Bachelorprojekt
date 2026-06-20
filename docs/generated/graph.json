@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-20T06:16:40.084Z",
+  "generatedAt": "2026-06-20T08:55:23.829Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -24,12 +24,6 @@
       "namespace": "mentolder",
       "type": "Deployment",
       "name": "brett"
-    },
-    {
-      "id": "claude-code-mcp-auth",
-      "namespace": "mentolder",
-      "type": "Deployment",
-      "name": "claude-code-mcp-auth"
     },
     {
       "id": "mcp-browser",
@@ -344,6 +338,12 @@
       "name": "sealed-secrets-controller"
     },
     {
+      "id": "sessions-server",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "sessions-server"
+    },
+    {
       "id": "shared-db",
       "namespace": "mentolder",
       "type": "Deployment",
@@ -595,12 +595,6 @@
       "from": "brett",
       "to": "website",
       "via": "env:WEBSITE_INTERNAL_URL",
-      "kind": "env"
-    },
-    {
-      "from": "claude-code-mcp-auth",
-      "to": "keycloak",
-      "via": "env:KC_URL",
       "kind": "env"
     },
     {
@@ -1390,10 +1384,10 @@
       "kind": "ingress"
     },
     {
-      "from": "claude-code-mcp-auth",
-      "to": "claude-code-mcp-auth",
-      "via": "selector",
-      "kind": "selector"
+      "from": "traefik",
+      "to": "sessions-server",
+      "via": "ingress",
+      "kind": "ingress"
     },
     {
       "from": "mcp-browser",
@@ -1572,6 +1566,12 @@
     {
       "from": "sealed-secrets-controller",
       "to": "sealed-secrets-controller",
+      "via": "selector",
+      "kind": "selector"
+    },
+    {
+      "from": "sessions-server",
+      "to": "sessions-server",
       "via": "selector",
       "kind": "selector"
     },

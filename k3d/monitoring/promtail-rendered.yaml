@@ -12,6 +12,7 @@ metadata:
     app.kubernetes.io/version: "3.5.1"
     app.kubernetes.io/managed-by: Helm
 automountServiceAccountToken: true
+
 ---
 # Source: promtail/templates/secret.yaml
 apiVersion: v1
@@ -43,7 +44,14 @@ stringData:
       # See also https://github.com/grafana/loki/blob/master/production/ksonnet/promtail/scrape_config.libsonnet for reference
       - job_name: kubernetes-pods
         pipeline_stages:
-          - cri: {}
+          - json:
+              expressions:
+                level: level
+          - labels:
+              level: null
+          - match:
+              action: drop
+              selector: '{level="debug"}'
         kubernetes_sd_configs:
           - role: pod
         relabel_configs:
@@ -129,6 +137,8 @@ stringData:
     
     tracing:
       enabled: false
+    
+
 ---
 # Source: promtail/templates/clusterrole.yaml
 kind: ClusterRole
@@ -154,6 +164,7 @@ rules:
       - get
       - watch
       - list
+
 ---
 # Source: promtail/templates/clusterrolebinding.yaml
 kind: ClusterRoleBinding
@@ -174,6 +185,7 @@ roleRef:
   kind: ClusterRole
   name: promtail
   apiGroup: rbac.authorization.k8s.io
+
 ---
 # Source: promtail/templates/daemonset.yaml
 apiVersion: apps/v1
@@ -200,7 +212,7 @@ spec:
         app.kubernetes.io/name: promtail
         app.kubernetes.io/instance: promtail
       annotations:
-        checksum/config: d4568be04e96263c0a0c12dfce7faca7028a6449ffdf24b0baafb8c6c9f22885
+        checksum/config: 7c49ec33413df356b96e3d96fa53d4900190b49de9581a39f4a34f1147346ee0
     spec:
       serviceAccountName: promtail
       automountServiceAccountToken: true

@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-06-20T05:31:41.521Z
+> Generated at 2026-06-20T06:01:35.008Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -253,6 +253,7 @@
 | `/api/admin/seo/save` | POST | 🔐 admin | `website/src/pages/api/admin/seo/save.ts` |
 | `/api/admin/seo/upload-og-image` | POST | 🔐 admin | `website/src/pages/api/admin/seo/upload-og-image.ts` |
 | `/api/admin/service-page/save` | POST | 🔐 admin | `website/src/pages/api/admin/service-page/save.ts` |
+| `/api/admin/sessions` | GET, POST, DELETE | 🔐 admin | `website/src/pages/api/admin/sessions/index.ts` |
 | `/api/admin/shortcuts/create` | POST | 🔐 admin | `website/src/pages/api/admin/shortcuts/create.ts` |
 | `/api/admin/shortcuts/delete` | DELETE | 🔐 admin | `website/src/pages/api/admin/shortcuts/delete.ts` |
 | `/api/admin/shortcuts/fetch-title` | GET | 🔐 admin | `website/src/pages/api/admin/shortcuts/fetch-title.ts` |

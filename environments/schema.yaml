@@ -602,6 +602,12 @@ secrets:
     generate: true
     length: 40
 
+  - name: SESSION_HUB_OIDC_SECRET
+    required: false
+    generate: true
+    length: 64
+    description: "OIDC client secret for the session-hub oauth2-proxy (Keycloak confidential client `session-hub`). Gates session-*.${DEV_DOMAIN} behind the /session-hub-access group."
+
   - name: TRAEFIK_OIDC_SECRET
     required: true
     generate: true

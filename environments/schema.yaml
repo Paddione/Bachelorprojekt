@@ -215,10 +215,11 @@ env_vars:
     default_dev: "studio-server"
     description: "Image (image:tag, image@digest) for the studio-server Deployment. workspace:deploy uses :latest; prod pins to digest."
 
-  - name: STUDIO_DB_URL
-    required: false
-    default_dev: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db:5432/website?sslmode=disable"
-    description: "Connection URL for the studio-server (shared-db `website` database, schema-prefixed as `studio.*`)."
+  - name: STUDIO_IMAGE_DIGEST
+    required: true
+    default_dev: "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+    validate: "^sha256:[a-f0-9]{64}$"
+    description: "Image digest (sha256:...) for the production studio-server image."
 
   - name: WHISPER_URL
     required: false
@@ -395,6 +396,10 @@ env_vars:
     default_dev: "info"
 
 secrets:
+  - name: STUDIO_DB_URL
+    required: false
+    default_dev: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db:5432/website?sslmode=disable"
+    description: "Connection URL for the studio-server (shared-db `website` database, schema-prefixed as `studio.*`)."
   - name: arena_db_password
     description: Password for the arena_app PostgreSQL role
     required: false

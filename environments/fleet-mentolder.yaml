@@ -66,6 +66,9 @@ env_vars:
   LLM_ROUTER_URL: "http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234"
   LLM_EMBED_URL: "http://llm-gateway-embed.workspace.svc.cluster.local:8081"
   ARENA_WS_URL: https://arena-ws.mentolder.de
+  STUDIO_DOMAIN: studio.mentolder.de
+  STUDIO_IMAGE: ghcr.io/paddione/studio-server
+  STUDIO_IMAGE_DIGEST: sha256:3fb082d01ee1679ccbe75831e7badc66f51fae8995afa5283da03eb4d349e7f3
   # Dev stack intentionally omitted — dev migration is Phase 2c.
   DEV_SSH_ALLOWLIST: ""
   PUSHOVER_TOKEN: ""

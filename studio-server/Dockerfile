@@ -19,7 +19,7 @@ RUN npx tsc -p tsconfig.json && npx tsc -p tsconfig.web.json && npx vite build
 FROM ${NODE_IMAGE} AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
-RUN useradd --uid 1000 --create-home --shell /bin/bash node
+# node user already exists in base image node:22
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/package.json ./package.json

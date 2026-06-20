@@ -42,7 +42,10 @@ for var in \
     BRETT_OIDC_SECRET \
     COMFY_OIDC_SECRET \
     DEV_DOMAIN \
-    DEV_WORKSPACE_OIDC_SECRET; do
+    DEV_WORKSPACE_OIDC_SECRET \
+    MEDIAVIEWER_OIDC_CLIENT_SECRET \
+    RECOVERY_OIDC_SECRET \
+    VIDEOVAULT_OIDC_SECRET; do
   eval val="\$${$${var}:-}"
   if [ -z "$val" ]; then
     echo "[import-entrypoint] WARNUNG: $${var} ist nicht gesetzt!"

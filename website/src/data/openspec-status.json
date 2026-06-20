@@ -92,5 +92,11 @@
       "slug": "active-sessions-hub",
       "status": "plan_staged"
     }
+  ],
+  "none": [
+    {
+      "slug": "mcp-native-tools",
+      "status": "plan_staged"
+    }
   ]
 }

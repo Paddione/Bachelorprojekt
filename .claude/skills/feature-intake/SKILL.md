@@ -47,6 +47,15 @@ User will JETZT frei mitdenken / Cluster live durchgehen?
 
 ### Schritt 1 — Tickets laden
 
+**MCP-Schnellweg (read-only).** Wenn `mcp-postgres` erreichbar, lade die planning-Tickets via
+`mcp__mcp-postgres__query`:
+> `sql:` `SELECT external_id, title, priority, COALESCE(value_prop,''), COALESCE(effort,''), array_to_string(areas,','), COALESCE(description,''), readiness::text, COALESCE(array_to_string(depends_on,','),'') FROM tickets.tickets WHERE status='planning' ORDER BY planning_rank ASC NULLS LAST, created_at DESC;`
+
+Belege `PLANNING_ROWS` aus dem Ergebnis (leeres Ergebnis → Modus C entfällt, wie unten). **Fallback:**
+der kubectl-Block. Siehe [`references/mcp-tool-guide.md`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md).
+
+_Fallback:_
+
 ```bash
 PLANNING_ROWS=$(kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -F '|' -c \
 "SELECT external_id, title, priority, COALESCE(value_prop,''), COALESCE(effort,''),
@@ -309,6 +318,15 @@ Zeige welche Tickets jetzt vollständig readiness-ready sind (alle 4 Flags true)
 **Sage:** "Ich erstelle ein Entdeckungs-Interview-Formular für gekko."
 
 ### Schritt 1 — Bestehende Tickets laden (Duplikatschutz)
+
+**MCP-Schnellweg (read-only) — beide Reads.** Wenn `mcp-postgres` erreichbar, hole sie via
+`mcp__mcp-postgres__query`:
+> bestehende Tickets — `sql:` `SELECT external_id, title, status FROM tickets.tickets WHERE status NOT IN ('done','archived') ORDER BY created_at DESC LIMIT 60;`
+> Spec-Pool — `sql:` `SELECT d.title, left(kc.text, 300), d.source_uri FROM knowledge.documents d JOIN knowledge.collections c ON c.id = d.collection_id JOIN knowledge.chunks kc ON kc.document_id = d.id AND kc.position = 0 WHERE c.source = 'specs_plans' AND d.source_uri LIKE 'file:openspec/changes/%/proposal.md' ORDER BY d.created_at DESC LIMIT 30;`
+
+Belege `EXISTING` und `SPEC_POOL` aus den Ergebnissen. **Fallback:** die zwei kubectl-Blöcke unten.
+
+_Fallback:_
 
 ```bash
 EXISTING=$(kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -F '|' -c \
@@ -794,6 +812,10 @@ Eingereicht von: gekko
 
 ### Vorausgefüllte Feature-Kandidaten je Bereich
 
+> **MCP-Schnellweg (read-only):** `mcp__mcp-postgres__query` mit
+> `sql:` `SELECT external_id, title, status FROM tickets.tickets WHERE status NOT IN ('done','archived') ORDER BY created_at DESC LIMIT 40;`
+> — sonst der kubectl-Befehl unten (Fallback).
+>
 > **Vor der Formular-Generierung:** Prüfe, welche Kandidaten bereits als Ticket existieren, um Duplikate zu vermeiden:
 > ```bash
 > kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -c \

@@ -6,6 +6,7 @@
 ### Features
 
 * **admin:** Ticket-Status Bulk-Änderung [T000989] ([#1950](https://github.com/Paddione/Bachelorprojekt/issues/1950)) ([67c9d8f](https://github.com/Paddione/Bachelorprojekt/commit/67c9d8fe06f01f75198039b635aaf6d2ec1d9116))
+* **cockpit:** inline DoR/Lastenheft editor in ticket detail [T000990] ([#1952](https://github.com/Paddione/Bachelorprojekt/issues/1952)) ([5e8b73c](https://github.com/Paddione/Bachelorprojekt/commit/5e8b73cd8bcccea94fd1cf0dad29bfa85be3793f))
 * **website:** Brainstorm-Session-Vorlagen [T000993] ([#1955](https://github.com/Paddione/Bachelorprojekt/issues/1955)) ([c07eb6d](https://github.com/Paddione/Bachelorprojekt/commit/c07eb6d6ecd44505b2c9dcbce4e30e9334d13476))
 * **website:** History / Archiv vergangener Sessions [T000994] ([#1956](https://github.com/Paddione/Bachelorprojekt/issues/1956)) ([1da6039](https://github.com/Paddione/Bachelorprojekt/commit/1da603963cbd185e47a024be1375c188b6336914))
 

@@ -20,6 +20,7 @@
   { "path": "/api/newsletter/confirm", "methods": ["GET"], "reason": "baseline — not individually audited" },
   { "path": "/api/newsletter/subscribe", "methods": ["POST"], "reason": "baseline — not individually audited" },
   { "path": "/api/newsletter/unsubscribe", "methods": ["GET"], "reason": "baseline — not individually audited" },
+  { "path": "/api/openspec/search", "methods": ["GET"], "reason": "public OpenSpec change search; knowledge-base pgvector query (added in #1972, allowlist entry missed)" },
   { "path": "/api/poll/{id}", "methods": ["GET"], "reason": "baseline — not individually audited" },
   { "path": "/api/poll/{id}/answer", "methods": ["POST"], "reason": "baseline — not individually audited" },
   { "path": "/api/poll/{id}/results", "methods": ["GET"], "reason": "baseline — not individually audited" },

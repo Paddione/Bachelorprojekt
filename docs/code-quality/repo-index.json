@@ -2539,7 +2539,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 400,
+      "file_count": 403,
       "files": [
         "scripts/add-whiteboard-library.py",
         "scripts/admin-menu-gate.sh",
@@ -2655,6 +2655,9 @@
         "scripts/dev-cluster-autostart.sh",
         "scripts/dev-db-refresh.sh",
         "scripts/dev-reset.sh",
+        "scripts/devflow-build-loop.sh",
+        "scripts/devflow-ci-watch.sh",
+        "scripts/devflow-post-merge-deploy.sh",
         "scripts/discover-versions.sh",
         "scripts/docs-configmap-apply.sh",
         "scripts/docs-gen/build-smoke.test.mjs",

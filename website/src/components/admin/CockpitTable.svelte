@@ -130,7 +130,8 @@
 
   <div class="row-header" data-testid="table-header" role="row" aria-hidden="true">
     <span></span><span></span><span>ID</span><span>Titel</span>
-    <span>Status</span><span class="col-prio">Priorität</span><span class="col-date">Erstellt</span>
+    <span>Status</span><span class="col-prio">Priorität</span>
+    <span class="col-date">Erstellt</span><span class="col-openspec">OpenSpec</span>
   </div>
 
   <div class="rows">
@@ -179,7 +180,7 @@
   .feature-title { margin: 0; font-size: 1rem; font-weight: 600; display: flex; align-items: baseline; gap: 0.4rem; flex-wrap: wrap; }
   .feature-meta { font-size: 0.72rem; font-weight: 400; color: var(--admin-text-mute, #9ca3af); }
   .counts { margin: 0; font-size: 0.72rem; color: var(--admin-text-mute, #9ca3af); }
-  .row-header { display: grid; grid-template-columns: auto auto auto 1fr auto auto auto;
+  .row-header { display: grid; grid-template-columns: auto auto auto 1fr auto auto auto auto;
     gap: 0.5rem; align-items: center; padding: 0.25rem 0.5rem; border-bottom: 1px solid var(--admin-border, #2a2e37);
     border-left: 3px solid transparent; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.04em;
     color: var(--admin-text-mute, #9ca3af); position: sticky; top: 0; background: var(--admin-surface, #14171d); z-index: 1; }
@@ -190,7 +191,7 @@
   .more:hover { color: var(--admin-text, #e5e7eb); }
 
   @media (max-width: 767px) {
-    .row-header .col-prio, .row-header .col-date { display: none; }
+    .row-header .col-prio, .row-header .col-date, .row-header .col-openspec { display: none; }
     .row-header { grid-template-columns: auto auto 1fr auto; }
   }
 </style>

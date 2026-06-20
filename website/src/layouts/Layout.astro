@@ -33,7 +33,8 @@ const pathname = Astro.url.pathname;
 const basePath = locale === 'en' ? pathname.replace(/^\/en/, '') || '/' : pathname;
 const enPath = basePath === '/' ? '/en/' : `/en${basePath}`;
 const dePath = basePath;
-const siteDomain = isKore ? 'https://web.korczewski.de' : 'https://web.mentolder.de';
+const prodDomain = process.env.PUBLIC_PROD_DOMAIN ?? process.env.PROD_DOMAIN ?? '';
+const siteDomain = prodDomain ? `https://web.${prodDomain}` : '';
 ---
 
 <!doctype html>
@@ -56,7 +57,7 @@ const siteDomain = isKore ? 'https://web.korczewski.de' : 'https://web.mentolder
         <meta property="og:type" content="website" />
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
-        <meta property="og:url" content={`https://web.korczewski.de${Astro.url.pathname}`} />
+        <meta property="og:url" content={`${siteDomain}${Astro.url.pathname}`} />
         <meta property="og:image" content={effectiveOgImage} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
@@ -69,7 +70,7 @@ const siteDomain = isKore ? 'https://web.korczewski.de' : 'https://web.mentolder
         <meta property="og:type" content="website" />
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
-        <meta property="og:url" content={`https://web.mentolder.de${Astro.url.pathname}`} />
+        <meta property="og:url" content={`${siteDomain}${Astro.url.pathname}`} />
         <meta property="og:image" content={effectiveOgImage} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />

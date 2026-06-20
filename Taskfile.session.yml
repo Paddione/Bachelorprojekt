@@ -1,0 +1,41 @@
+# Taskfile.session.yml
+# ------------------------------------------------------------------------------
+# Active Sessions Hub -- register / list / deregister local dev sessions that the
+# website Mediaviewer surfaces. Wraps scripts/session-hub.sh. Tunnels go over the
+# dev-stack sish broker (k3d loadbalancer host port 2222) as
+# session-<slug>.${DEV_DOMAIN}. [T000975]
+# ------------------------------------------------------------------------------
+version: "3"
+
+vars:
+  ENV: mentolder
+
+tasks:
+  list:
+    desc: "[session] Print the active-sessions JSON registry"
+    cmds:
+      - bash scripts/session-hub.sh list
+
+  register:
+    desc: "[session] Register a listening port. Usage: task session:register -- --name foo --port 8080 --type brainstorm --title 'Foo'"
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        bash scripts/session-hub.sh register {{.CLI_ARGS}}
+
+  start-form:
+    desc: "[session] Serve an HTML file + tunnel + register. Usage: task session:start-form -- --file /tmp/foo.html --name foo"
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        bash scripts/session-hub.sh start-form {{.CLI_ARGS}}
+
+  deregister:
+    desc: "[session] Kill pids + drop a session. Usage: task session:deregister -- --name foo"
+    cmds:
+      - bash scripts/session-hub.sh deregister {{.CLI_ARGS}}
+
+  reap:
+    desc: "[session] Drop registry entries whose tunnel pid is dead"
+    cmds:
+      - bash scripts/session-hub.sh reap

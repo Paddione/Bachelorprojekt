@@ -190,3 +190,161 @@ The system SHALL expose `GET /api/admin/inbox/count` that returns `{ counts: Rec
 - **GIVEN** a non-admin or unauthenticated request
 - **WHEN** `GET /api/admin/inbox/count` is called
 - **THEN** the system responds HTTP 403
+
+---
+
+## Testszenarien
+
+<!-- merged from Playwright e2e tests -->
+
+### Requirement: All messaging API endpoints require authentication
+<!-- e2e: fa-01-messaging.spec.ts | e2e: fa-28-messaging.spec.ts -->
+
+The system SHALL reject unauthenticated requests to all portal and admin messaging endpoints with HTTP 401 or 403.
+
+#### Scenario: Portal rooms endpoint rejects unauthenticated GET *(E2E)*
+- **GIVEN** no valid session cookie
+- **WHEN** `GET /api/portal/rooms` is called
+- **THEN** the system responds HTTP 401 or 403
+
+#### Scenario: Portal nachrichten endpoint rejects unauthenticated GET *(E2E)*
+- **GIVEN** no valid session cookie
+- **WHEN** `GET /api/portal/nachrichten` is called
+- **THEN** the system responds HTTP 401 or 403
+
+#### Scenario: Ensure-direct room endpoint rejects unauthenticated POST *(E2E)*
+- **GIVEN** no valid session cookie
+- **WHEN** `POST /api/portal/rooms/ensure-direct` is called with `{ targetCustomerId: 'test' }`
+- **THEN** the system responds HTTP 401 or 403
+
+#### Scenario: Room messages endpoint rejects unauthenticated GET *(E2E)*
+- **GIVEN** no valid session cookie
+- **WHEN** `GET /api/portal/rooms/999/messages` is called
+- **THEN** the system responds HTTP 401 or 403
+
+#### Scenario: Portal messages endpoint rejects unauthenticated GET *(E2E)*
+- **GIVEN** no valid session cookie
+- **WHEN** `GET /api/portal/messages` is called
+- **THEN** the system responds HTTP 401
+
+#### Scenario: Admin messages endpoint rejects unauthenticated GET *(E2E)*
+- **GIVEN** no valid session cookie
+- **WHEN** `GET /api/admin/messages` is called
+- **THEN** the system responds HTTP 401 or 403
+
+#### Scenario: Admin rooms endpoint rejects unauthenticated GET *(E2E)*
+- **GIVEN** no valid session cookie
+- **WHEN** `GET /api/admin/rooms` is called
+- **THEN** the system responds HTTP 401 or 403
+
+#### Scenario: Portal messages POST with empty body rejected without auth *(E2E)*
+- **GIVEN** no valid session cookie
+- **WHEN** `POST /api/portal/messages` is called with an empty JSON body
+- **THEN** the system responds HTTP 400, 401, or 403
+
+---
+
+### Requirement: Portal chat UI is inaccessible without authentication
+<!-- e2e: fa-01-messaging.spec.ts | e2e: fa-28-messaging.spec.ts -->
+
+The system SHALL redirect or block unauthenticated users attempting to access portal messaging pages.
+
+#### Scenario: Portal nachrichten section redirects unauthenticated users *(E2E)*
+- **GIVEN** no valid session
+- **WHEN** the user navigates to `/portal?section=nachrichten`
+- **THEN** the user is redirected away from `/portal`
+
+#### Scenario: Portal root redirects unauthenticated user away from chat *(E2E)*
+- **GIVEN** no valid session
+- **WHEN** the user navigates to `/portal`
+- **THEN** the user is either redirected to Keycloak/login, or if still on `/portal` the chat compose UI ("Nachrichten senden") is not rendered
+
+---
+
+### Requirement: Admin inbox renders two-pane UI with all item types
+<!-- e2e: fa-admin-inbox.spec.ts -->
+
+The system SHALL render the admin inbox with a sidebar listing all six item types plus "Alle", and auto-select the first item when the list is non-empty.
+
+#### Scenario: Inbox app root and sidebar are visible *(E2E)*
+- **GIVEN** an authenticated admin session at `/admin/inbox`
+- **WHEN** the page loads
+- **THEN** `[data-testid="inbox-app"]` and `[data-testid="inbox-sidebar"]` are visible, and the sidebar contains exactly 7 `[data-testid="inbox-sidebar-item"]` entries (Alle + 6 types)
+
+#### Scenario: Empty detail placeholder shown when no item selected *(E2E)*
+- **GIVEN** an authenticated admin at `/admin/inbox?status=archived` with no items in the list
+- **WHEN** the page loads
+- **THEN** `[data-testid="inbox-detail-empty"]` is visible
+
+#### Scenario: Status tabs update URL query parameter *(E2E)*
+- **GIVEN** an authenticated admin on `/admin/inbox`
+- **WHEN** each status tab (`pending`, `done`, `archived`) is clicked
+- **THEN** the URL updates to `?status=<status>` and the list re-renders
+
+#### Scenario: Sidebar type filter narrows list rows *(E2E)*
+- **GIVEN** an authenticated admin on `/admin/inbox` with items in the list
+- **WHEN** a non-"Alle" sidebar type is clicked
+- **THEN** the number of visible `[data-testid="inbox-list-row"]` items does not exceed the baseline count; clicking "Alle" restores all rows
+
+---
+
+### Requirement: Admin inbox delete escape hatch removes rows regardless of status
+<!-- e2e: fa-admin-inbox-delete.spec.ts -->
+
+The system SHALL allow admins to hard-delete any inbox item via the Löschen button regardless of its current status (`pending`, `actioned`, or `archived`).
+
+#### Scenario: Seeded test row can be deleted via Löschen button *(E2E)*
+- **GIVEN** an authenticated admin and a `contact` inbox row seeded with `is_test_data=true` via `POST /api/contact` (X-E2E-Test header)
+- **WHEN** the admin selects the row and clicks `[data-testid="inbox-action-delete"]`, then confirms the dialog
+- **THEN** the row disappears from `[data-testid="inbox-list"]` and a subsequent `GET /api/admin/inbox?status=pending` no longer contains the seeded item
+
+#### Scenario: Delete button is present on archived rows *(E2E)*
+- **GIVEN** an authenticated admin on `/admin/inbox?status=archived` with at least one archived row
+- **WHEN** the admin selects an archived row
+- **THEN** `[data-testid="inbox-action-delete"]` is visible and enabled
+
+---
+
+### Requirement: Bug resolution notifies reporter via email
+<!-- e2e: fa-bugs-notifications.spec.ts -->
+
+The system SHALL send a notification email to the original bug reporter when an admin resolves the ticket, with a subject containing the ticket ID.
+
+#### Scenario: Reporter receives close-mail when admin resolves ticket *(E2E)*
+- **GIVEN** a bug report submitted via `POST /api/bug-report` (no auth required), yielding a ticket ID
+- **WHEN** an authenticated admin calls `POST /api/admin/bugs/resolve` with the ticket ID and a resolution note
+- **THEN** Mailpit (or the SMTP relay) delivers an email to the reporter's address with a subject containing the ticket ID
+
+#### Scenario: Bug resolve endpoint requires admin authentication *(E2E)*
+- **GIVEN** no valid admin session
+- **WHEN** `POST /api/admin/bugs/resolve` is called with a ticket ID and resolution note
+- **THEN** the system responds HTTP 401 or 403
+
+---
+
+### Requirement: LLM workspace-chat roundtrip returns coherent German text
+<!-- e2e: fa-37-workspace-chat.spec.ts -->
+
+The system SHALL route chat completion requests through the LLM router and return non-empty, non-error German text responses within 90 seconds.
+
+#### Scenario: Chat completions return sensible German text *(E2E)*
+- **GIVEN** `LLM_ROUTER_URL` or `LLM_HOST_IP` is set and the LLM router is reachable
+- **WHEN** `POST /v1/chat/completions` is called with a ~200-token German prompt (model `qwen2.5:14b`)
+- **THEN** the response is HTTP 200, `choices` is a non-empty array, and the first choice's content is longer than 30 characters and does not contain "error"
+
+#### Scenario: Stream mode returns HTTP 200 without 5xx *(E2E)*
+- **GIVEN** the LLM router is reachable
+- **WHEN** `POST /v1/chat/completions` is called with `stream: true`
+- **THEN** the response status is HTTP 200
+
+---
+
+### Requirement: System-Test 3 Kommunikation walkthrough succeeds
+<!-- e2e: systemtest-03-kommunikation.spec.ts -->
+
+The system SHALL successfully complete all steps of System-Test 3 (Kommunikation — Chat-Widget, Inbox & E-Mail) when walked via the automated systemtest runner.
+
+#### Scenario: All Kommunikation systemtest steps complete *(E2E)*
+- **GIVEN** an admin session and the website is reachable
+- **WHEN** the systemtest runner walks all steps of template 3
+- **THEN** all steps complete without error within 180 seconds

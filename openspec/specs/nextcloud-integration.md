@@ -156,3 +156,293 @@ to start (HTTP 503) on world-readable data directories.
 - **GIVEN** der `notify_push`-Sidecar läuft und das Binary ist unter `apps/notify_push/bin/<arch>/notify_push` verfügbar
 - **WHEN** ein Client eine Dateiänderung auslöst
 - **THEN** leitet Apache `/push/` via Proxy an `localhost:7867` weiter, so dass iOS/Desktop-Clients Push-Benachrichtigungen erhalten
+
+---
+
+### Requirement: Admin Path ACL Bypass
+
+The system SHALL allow administrators to access any Nextcloud file path without restriction,
+stripping any leading slash from the returned normalized path.
+
+#### Scenario: Admin greift auf fremden Client-Ordner zu
+
+- **GIVEN** ein Nutzer hat `isAdmin: true`
+- **WHEN** `assertPathAllowed('Clients/other/file.pdf', { isAdmin: true, username: 'admin' })` aufgerufen wird
+- **THEN** gibt die Funktion `'Clients/other/file.pdf'` zurück ohne Fehler
+
+#### Scenario: Admin-Pfad mit führendem Slash
+
+- **GIVEN** ein Nutzer hat `isAdmin: true`
+- **WHEN** `assertPathAllowed('/some/random/path', { isAdmin: true, username: 'admin' })` aufgerufen wird
+- **THEN** gibt die Funktion `'some/random/path'` zurück (führender Slash wird entfernt)
+
+---
+
+### Requirement: Customer Path Restriction to Own Client Folder
+
+The system SHALL restrict non-admin users to paths within their own client folder
+(`Clients/<username>/`) and SHALL throw an error matching `/Zugriff.*verweigert|Pfad.*nicht.*erlaubt|not allowed/`
+when a path outside that folder is requested.
+
+#### Scenario: Kunde greift auf eigenen Ordner zu
+
+- **GIVEN** ein Nutzer hat `isAdmin: false` und `username: 'max.mustermann'`
+- **WHEN** `assertPathAllowed('Clients/max.mustermann/report.pdf', ...)` aufgerufen wird
+- **THEN** gibt die Funktion `'Clients/max.mustermann/report.pdf'` zurück ohne Fehler
+
+#### Scenario: Kunde greift auf fremden Client-Ordner zu
+
+- **GIVEN** ein Nutzer hat `isAdmin: false` und `username: 'max.mustermann'`
+- **WHEN** `assertPathAllowed('Clients/other/report.pdf', ...)` aufgerufen wird
+- **THEN** wirft die Funktion einen Fehler der auf `/Zugriff.*verweigert|Pfad.*nicht.*erlaubt|not allowed/` passt
+
+---
+
+### Requirement: Path Traversal Prevention
+
+The system SHALL reject any path containing traversal sequences (`../`) for non-admin users,
+preventing access to files outside the Nextcloud data directory.
+
+#### Scenario: Einfacher Traversal-Versuch
+
+- **GIVEN** ein Nutzer hat `isAdmin: false` und `username: 'max.mustermann'`
+- **WHEN** `assertPathAllowed('../etc/passwd', ...)` aufgerufen wird
+- **THEN** wirft die Funktion einen Fehler (beliebige Fehlermeldung)
+
+#### Scenario: Traversal innerhalb eines erlaubten Basispfads
+
+- **GIVEN** ein Nutzer hat `isAdmin: false` und `username: 'max.mustermann'`
+- **WHEN** `assertPathAllowed('Clients/max.mustermann/../../etc', ...)` aufgerufen wird
+- **THEN** wirft die Funktion einen Fehler, obwohl der Pfad mit dem eigenen Ordner beginnt
+
+---
+
+### Requirement: Empty and Whitespace-Only Path Rejection
+
+The system SHALL reject empty strings and paths consisting solely of whitespace characters,
+throwing an error before any path normalization or ACL check occurs.
+
+#### Scenario: Leerer Pfad
+
+- **GIVEN** ein Nutzer hat `isAdmin: false` und `username: 'max.mustermann'`
+- **WHEN** `assertPathAllowed('', ...)` aufgerufen wird
+- **THEN** wirft die Funktion einen Fehler
+
+#### Scenario: Pfad aus nur Leerzeichen
+
+- **GIVEN** ein Nutzer hat `isAdmin: false` und `username: 'max.mustermann'`
+- **WHEN** `assertPathAllowed('  ', ...)` aufgerufen wird
+- **THEN** wirft die Funktion einen Fehler
+
+---
+
+### Requirement: Path Normalization
+
+The system SHALL normalize file paths by collapsing consecutive slashes into a single slash
+before performing ACL checks and returning the canonical path.
+
+#### Scenario: Doppelter Slash im Pfad wird normalisiert
+
+- **GIVEN** ein Nutzer hat `isAdmin: false` und `username: 'max.mustermann'`
+- **WHEN** `assertPathAllowed('Clients/max.mustermann//report.pdf', ...)` aufgerufen wird
+- **THEN** gibt die Funktion `'Clients/max.mustermann/report.pdf'` zurück (doppelter Slash entfernt)
+
+---
+
+### Requirement: Username Validation
+
+The system SHALL validate Nextcloud usernames against the pattern `[a-zA-Z0-9._@-]+`,
+throwing an `Invalid username` error for any username containing characters outside this set.
+
+#### Scenario: Gültiger Benutzername
+
+- **GIVEN** ein Benutzername enthält nur Buchstaben, Zahlen und die Zeichen `.`, `_`, `@`, `-`
+- **WHEN** `getClientFolderPath(username)` aufgerufen wird
+- **THEN** gibt die Funktion den Pfad `Clients/<username>/` zurück ohne Fehler
+
+#### Scenario: Ungültiger Benutzername mit Sonderzeichen
+
+- **GIVEN** ein Benutzername enthält ein nicht erlaubtes Sonderzeichen (z. B. `/`, `<`, Leerzeichen)
+- **WHEN** `getClientFolderPath(username)` aufgerufen wird
+- **THEN** wirft die Funktion einen Fehler mit der Meldung `Invalid username: <username>`
+
+---
+
+### Requirement: WORKSPACE_NAMESPACE Namespace Targeting
+
+The system SHALL use `${WORKSPACE_NAMESPACE:-workspace}` (never the hardcoded string `-n workspace`) in every Taskfile task and script that touches workspace resources, so that korczewski-targeted operations land in `workspace-korczewski` and not silently in mentolder's `workspace` namespace.
+
+#### Scenario: Post-Setup für korczewski-Brand
+
+- **GIVEN** `ENV=korczewski` ist gesetzt und `env-resolve.sh` hat `WORKSPACE_NAMESPACE=workspace-korczewski` exportiert
+- **WHEN** `task workspace:post-setup ENV=korczewski` ausgeführt wird (z. B. OIDC-Redirects, Talk-Signaling konfigurieren)
+- **THEN** werden alle `kubectl` Aufrufe gegen `-n workspace-korczewski` ausgeführt
+- **AND** der `workspace` Namespace (mentolder) bleibt unverändert
+
+#### Scenario: Neuer Task berührt workspace-Ressourcen
+
+- **GIVEN** ein neuer Taskfile-Task wird hinzugefügt, der `kubectl` Befehle auf Namespace-Ressourcen ausführt
+- **WHEN** der Task implementiert wird
+- **THEN** verwendet er `${WORKSPACE_NAMESPACE:-workspace}` (oder `${NAMESPACE:-${WORKSPACE_NAMESPACE:-workspace}}` in Scripts) als Namespace-Referenz
+- **AND** er sourcet `env-resolve.sh` vor dem ersten `kubectl`-Aufruf, damit `WORKSPACE_NAMESPACE` korrekt gesetzt ist
+
+---
+
+### Requirement: Explicit ENV= for All Env-Sensitive Deploys
+
+The system SHALL require an explicit `ENV=` parameter for all environment-sensitive tasks (`workspace:deploy`, `workspace:post-setup`, `workspace:talk-setup`, `docs:deploy`, etc.); tasks SHALL default to `ENV=dev` when unset, and the kubectl-context mismatch check SHALL only run when `ENV != dev`, so that a missing `ENV=` with the wrong active context silently targets whatever cluster is current.
+
+#### Scenario: Deploy ohne ENV=-Angabe
+
+- **GIVEN** der Entwickler führt `task workspace:deploy` ohne `ENV=` aus
+- **WHEN** der Task die aktive kubectl-Context prüft
+- **THEN** verwendet der Task `ENV=dev` als Default und deployt in den k3d-Dev-Cluster (kein Kontext-Mismatch-Check greift)
+- **AND** es wird kein Warn-Fehler für falschen Produktions-Kontext ausgelöst
+
+#### Scenario: Nextcloud OIDC-Konfiguration auf fleet für mentolder
+
+- **GIVEN** der Operator will die Nextcloud OIDC-Konfiguration auf dem fleet-Cluster für mentolder aktualisieren
+- **WHEN** `task workspace:post-setup ENV=mentolder` ausgeführt wird
+- **THEN** wird `ENV=mentolder` (Alias `fleet-mentolder`) zum fleet-Kontext aufgelöst und die Konfiguration in `workspace` geschrieben
+- **AND** das Weglassen von `ENV=mentolder` hätte den Dev-k3d-Cluster verändert, ohne Fehlermeldung
+
+---
+
+### Requirement: Cross-Cutting Changes Apply to Both Brand Namespaces
+
+The system SHALL apply cross-cutting changes (DB password rotation, OIDC client configuration, Nextcloud schema migrations) explicitly to both `workspace` (mentolder) and `workspace-korczewski` (korczewski) namespaces on the fleet cluster, because both brands share a single fleet cluster but run as independent per-namespace deployments with no automatic cross-namespace propagation.
+
+#### Scenario: OIDC-Client-Anpassung für beide Brands
+
+- **GIVEN** eine Änderung an der Keycloak OIDC-Client-Konfiguration für Nextcloud wird durchgeführt (z. B. Redirect-URL hinzufügen)
+- **WHEN** `task workspace:post-setup ENV=mentolder` und anschließend `task workspace:post-setup ENV=korczewski` ausgeführt werden
+- **THEN** ist die OIDC-Konfiguration in beiden Namespaces (`workspace` und `workspace-korczewski`) konsistent aktualisiert
+- **AND** ein einzelner `ENV=mentolder`-Aufruf allein hinterließe den korczewski-Namespace mit der alten Konfiguration
+
+#### Scenario: Mergen auf main deployt nicht automatisch
+
+- **GIVEN** ein PR mit einer Nextcloud-Konfigurationsänderung wird auf `main` gemergt
+- **WHEN** der Merge abgeschlossen ist
+- **THEN** werden KEINE Änderungen automatisch auf den fleet-Cluster ausgerollt (kein GitOps-Reconciler vorhanden)
+- **AND** der Operator muss explizit `task workspace:deploy ENV=mentolder` und `task workspace:deploy ENV=korczewski` ausführen, um beide Brands zu aktualisieren
+
+---
+
+### Requirement: Cross-Brand Shared Infrastructure Isolation
+
+The system SHALL maintain strict namespace-level isolation between brands (`workspace` for mentolder, `workspace-korczewski` for korczewski) on the shared fleet cluster, even though both brands share cluster-level infrastructure (cert-manager, Sealed Secrets controller, shared-db, Keycloak realm); each brand's Nextcloud instance SHALL operate exclusively within its own namespace and SHALL NOT access resources of the other brand's namespace.
+
+#### Scenario: Shared-DB mit namespace-getrennten Nextcloud-Instanzen
+
+- **GIVEN** beide Brands teilen sich dieselbe `shared-db` PostgreSQL-Instanz auf dem fleet-Cluster
+- **WHEN** Nextcloud (mentolder, Namespace `workspace`) und Nextcloud (korczewski, Namespace `workspace-korczewski`) gleichzeitig laufen
+- **THEN** greift jede Instanz ausschließlich auf ihre eigene Datenbank (`nextcloud` vs. `nextcloud_korczewski` o. ä.) zu
+- **AND** ein Datenbankpasswort-Wechsel muss in beiden Namespaces via SealedSecret (`environments/sealed-secrets/mentolder.yaml` und `korczewski.yaml`) durchgeführt werden
+
+#### Scenario: Keycloak-Realm-Konfiguration je Brand
+
+- **GIVEN** Keycloak als zentraler OIDC-Provider läuft auf dem fleet-Cluster ohne Brand-spezifische Trennung auf Cluster-Ebene
+- **WHEN** OIDC-Clients für Nextcloud konfiguriert werden
+- **THEN** erhält jede Brand-Instanz einen eigenen OIDC-Client mit brand-spezifischen `redirect_uris` (z. B. `https://cloud.mentolder.de` vs. `https://cloud.korczewski.de`)
+- **AND** ein Token, der für mentolder ausgestellt wurde, wird von der korczewski-Nextcloud-Instanz abgelehnt
+
+---
+
+## Testszenarien
+
+<!-- merged from Playwright e2e tests -->
+
+### Requirement: Talk UI Accessibility
+<!-- e2e: fa-03-video.spec.ts | e2e: fa-ios-talk.spec.ts -->
+
+The system SHALL serve the Nextcloud Talk (`/apps/spreed`) interface reachably for authenticated users and redirect unauthenticated users to the login flow (Nextcloud login page or Keycloak OIDC auto-redirect).
+
+#### Scenario: Talk-Oberfläche öffnen *(E2E)*
+- **GIVEN** `TEST_NC_URL` ist gesetzt und Nextcloud ist erreichbar
+- **WHEN** ein nicht authentifizierter Browser `/apps/spreed` (oder Fallback `/index.php/apps/spreed`) aufruft
+- **THEN** ist eines der Elemente `[data-app-id="spreed"]`, `.app-spreed`, `#body-login`, `[data-login-form]`, `.pf-v5-c-login__main`, `#kc-form-login` sichtbar (Talk-App oder Login-Redirect)
+
+#### Scenario: Talk-Link ohne Login aufrufbar (Gast) *(E2E)*
+- **GIVEN** ein frischer Browser-Kontext ohne gespeicherte Session und `TEST_NC_URL` ist gesetzt
+- **WHEN** der Browser `/apps/spreed` aufruft
+- **THEN** ist einer der Selektoren `#body-login`, `[data-login-form]`, `.pf-v5-c-login__main`, `#kc-form-login`, `h2` sichtbar — die URL ist erreichbar und wird korrekt behandelt (kein 5xx)
+
+---
+
+### Requirement: HPB Signaling Server Availability
+<!-- e2e: fa-03-video.spec.ts -->
+
+The system SHALL expose the spreed-signaling HTTP API at `/api/v1/welcome` and return a JSON response with a `version` field, confirming the HPB backend is alive and the NATS connection is healthy.
+
+#### Scenario: HPB Signaling-Server erreichbar *(E2E)*
+- **GIVEN** `TEST_SIGNALING_URL` ist gesetzt und NATS-Backend läuft
+- **WHEN** `GET <SIGNALING_URL>/api/v1/welcome` aufgerufen wird
+- **THEN** antwortet der Server mit HTTP 200 und einem JSON-Body, der das Feld `version` enthält
+
+---
+
+### Requirement: notify_push Push Endpoint
+<!-- e2e: fa-ios-talk.spec.ts -->
+
+The system SHALL expose the `notify_push` daemon at `/push` on the Nextcloud domain; the endpoint SHALL respond with HTTP 200, 400, or 405 (not 5xx), confirming the push daemon is alive and the Apache proxy to `localhost:7867` is active.
+
+#### Scenario: notify_push endpoint antwortet *(E2E)*
+- **GIVEN** `TEST_NC_URL` ist gesetzt und der `notify_push`-Sidecar läuft
+- **WHEN** `GET <NC_URL>/push` aufgerufen wird
+- **THEN** antwortet der Server mit einem der Statuscodes 200, 400 oder 405 (kein 5xx)
+
+---
+
+### Requirement: Talk Responsive Layout for Mobile (iOS/WebKit)
+<!-- e2e: fa-ios-talk.spec.ts -->
+
+The system SHALL render the Nextcloud Talk interface without horizontal overflow on iPhone viewport sizes (WebKit), so that mobile clients can use Talk without horizontal scrolling.
+
+#### Scenario: Talk Viewport passt für iPhone (responsive layout) *(E2E)*
+- **GIVEN** `TEST_NC_URL` ist gesetzt und ein WebKit-Browser mit iPhone-Viewport-Größe wird verwendet
+- **WHEN** `/apps/spreed` aufgerufen wird
+- **THEN** ist `document.documentElement.scrollWidth` nicht größer als `clientWidth + 10px` (kein horizontales Scrollen)
+
+---
+
+### Requirement: File Attachment API Authentication
+<!-- e2e: fa-04-files.spec.ts -->
+
+The system SHALL protect all project file attachment endpoints (`/api/portal/projekte`, `/api/admin/projekte/attachments/upload`, `/api/admin/projekte/attachments/delete`, `/api/admin/projekte/create`) with authentication, returning HTTP 401 or 403 for unauthenticated requests.
+
+#### Scenario: Projektliste erfordert Authentifizierung *(E2E)*
+- **GIVEN** kein Authentifizierungs-Token ist im Request enthalten
+- **WHEN** `GET /api/portal/projekte` aufgerufen wird
+- **THEN** antwortet der Server mit HTTP 401 oder 403
+
+#### Scenario: Datei-Upload erfordert Admin-Authentifizierung *(E2E)*
+- **GIVEN** kein Admin-Token ist im Request enthalten
+- **WHEN** `POST /api/admin/projekte/attachments/upload` aufgerufen wird
+- **THEN** antwortet der Server mit HTTP 401 oder 403
+
+#### Scenario: Datei-Löschen erfordert Admin-Authentifizierung *(E2E)*
+- **GIVEN** kein Admin-Token ist im Request enthalten
+- **WHEN** `POST /api/admin/projekte/attachments/delete` aufgerufen wird
+- **THEN** antwortet der Server mit HTTP 401 oder 403
+
+#### Scenario: Projekt-Anlegen erfordert Admin-Authentifizierung *(E2E)*
+- **GIVEN** kein Admin-Token ist im Request enthalten
+- **WHEN** `POST /api/admin/projekte/create` aufgerufen wird
+- **THEN** antwortet der Server mit HTTP 401 oder 403
+
+#### Scenario: Portal-Projekte-Sektion leitet nicht authentifizierte Nutzer um *(E2E)*
+- **GIVEN** kein Nutzer ist eingeloggt
+- **WHEN** die Seite `/portal?section=projekte` aufgerufen wird
+- **THEN** leitet der Browser den Nutzer weg von `/portal` (Redirect zur Login-Seite oder ähnlichem)
+
+---
+
+### Requirement: Communication System Test (Systemtest-03)
+<!-- e2e: systemtest-03-kommunikation.spec.ts -->
+
+The system SHALL complete all steps of System-Test 3 (Kommunikation) — covering the Chat-Widget, Inbox, and E-Mail flows — and submit the test results successfully.
+
+#### Scenario: Alle Kommunikations-Systemtest-Schritte abschließen *(E2E)*
+- **GIVEN** ein Admin-Passwort ist als Umgebungsvariable gesetzt (`ADMIN_PASSWORD`)
+- **WHEN** der Systemtest-Runner alle 5 Schritte von Template 3 (Chat-Widget, Inbox, E-Mail) durchläuft
+- **THEN** werden alle Schritte erfolgreich ausgeführt und das Systemtest-Formular abgesendet

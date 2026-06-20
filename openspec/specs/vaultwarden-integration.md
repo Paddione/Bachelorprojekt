@@ -176,3 +176,56 @@ Secret (`VAULTWARDEN_ADMIN_TOKEN`) gesichert.
 - **WHEN** jemand `/admin` im Browser aufruft
 - **THEN** verlangt Vaultwarden den hashed Admin-Token als Zugangscode
 - **AND** ohne gültigen Token ist das Admin-Panel nicht zugänglich, auch wenn der Ingress erreichbar ist
+
+---
+
+## Testszenarien
+
+<!-- merged from Playwright e2e tests -->
+
+### Requirement: Vaultwarden UI Erreichbarkeit und Login-Page
+<!-- e2e: fa-23-vaultwarden.spec.ts -->
+
+The system SHALL serve the Vaultwarden web vault login page with HTTP 200 and provide the required UI elements (email input, SSO button) for user authentication.
+
+#### Scenario: Login-Seite lädt erfolgreich *(E2E)*
+- **GIVEN** Vaultwarden ist unter `VAULT_URL` (Standard: `http://vault.localhost`) deployt
+- **WHEN** ein Browser die Root-URL aufruft
+- **THEN** antwortet der Server mit HTTP 200
+
+#### Scenario: E-Mail-Eingabefeld vorhanden *(E2E)*
+- **GIVEN** die Vaultwarden Angular-App ist geladen
+- **WHEN** die Login-Seite vollständig gerendert ist
+- **THEN** ist ein E-Mail-Eingabefeld (`input[type="email"]` oder `input[formcontrolname="email"]`) im DOM vorhanden und attached
+
+#### Scenario: SSO-Schaltfläche sichtbar *(E2E)*
+- **GIVEN** die Vaultwarden Login-Seite ist geöffnet
+- **WHEN** der SSO-Only-Modus aktiv ist
+- **THEN** ist eine SSO-Schaltfläche (Text "SSO", "Single Sign-On" oder "Enterprise") sichtbar, über die der OIDC-Login-Flow initiiert werden kann
+
+#### Scenario: Health-Endpoint erreichbar *(E2E)*
+- **GIVEN** der Vaultwarden-Pod läuft
+- **WHEN** `/alive` aufgerufen wird
+- **THEN** antwortet der Endpunkt mit HTTP 200 (Liveness-Check bestanden)
+
+---
+
+### Requirement: Keycloak Passwort-Policy und Klartext-Schutz
+<!-- e2e: sa-03-passwords.spec.ts -->
+
+The system SHALL enforce a Keycloak password policy that includes at minimum a length rule and an additional hardening rule (specialChars, digits, upperCase, or lowerCase), and SHALL never log passwords in plaintext.
+
+#### Scenario: Passwort-Policy enthält Längen-Regel *(E2E)*
+- **GIVEN** Keycloak Admin-Credentials (`KC_ADMIN_PASS`) sind verfügbar
+- **WHEN** die Realm-Konfiguration für `workspace` via Admin-API abgefragt wird
+- **THEN** ist `passwordPolicy` gesetzt und enthält die Regel `length`
+
+#### Scenario: Passwort-Policy enthält Härtungs-Regel *(E2E)*
+- **GIVEN** Keycloak Admin-Credentials (`KC_ADMIN_PASS`) sind verfügbar
+- **WHEN** die `passwordPolicy` des Realms `workspace` ausgelesen wird
+- **THEN** enthält sie mindestens eine Härtungs-Regel (`specialChars`, `digits`, `upperCase` oder `lowerCase`)
+
+#### Scenario: Keycloak OIDC-Discovery erreichbar *(E2E)*
+- **GIVEN** Keycloak läuft unter `KEYCLOAK_URL` (Standard: `http://auth.localhost`)
+- **WHEN** der Well-Known-Endpunkt `/realms/workspace/.well-known/openid-configuration` abgerufen wird
+- **THEN** antwortet Keycloak mit HTTP 200 und einer JSON-Antwort, die `issuer` und `token_endpoint` enthält

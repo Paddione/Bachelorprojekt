@@ -47,3 +47,36 @@ setup() {
   run jq -r '.[] | select(.slug=="dup") | .port' "$SESSION_HUB_REGISTRY"
   [ "$output" = "2" ]
 }
+
+@test "start-form --ticket-id stores ticket_id in registry and injects placeholder" {
+  local tmphtml="$BATS_TEST_TMPDIR/form.html"
+  printf '<html><body data-ticket-id="__SESSION_TICKET_ID__">test</body></html>' > "$tmphtml"
+  run bash "$SCRIPT" start-form --file "$tmphtml" --name tkform --ticket-id T000123
+  [ "$status" -eq 0 ]
+  run jq -r '.[] | select(.slug=="tkform") | .ticket_id' "$SESSION_HUB_REGISTRY"
+  [ "$output" = "T000123" ]
+}
+
+@test "start-form stores source_file path in registry" {
+  local tmphtml="$BATS_TEST_TMPDIR/srcform.html"
+  printf '<html><body>no placeholders</body></html>' > "$tmphtml"
+  run bash "$SCRIPT" start-form --file "$tmphtml" --name srcform
+  [ "$status" -eq 0 ]
+  run jq -r '.[] | select(.slug=="srcform") | .source_file' "$SESSION_HUB_REGISTRY"
+  [ "$output" = "$tmphtml" ]
+}
+
+@test "regen re-uploads from stored source_file" {
+  local tmphtml="$BATS_TEST_TMPDIR/regenform.html"
+  printf '<html><body data-ticket-id="__SESSION_TICKET_ID__">v1</body></html>' > "$tmphtml"
+  bash "$SCRIPT" start-form --file "$tmphtml" --name regentest --ticket-id T000999
+  run bash "$SCRIPT" regen --name regentest
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"done"* ]]
+}
+
+@test "regen fails when source_file is missing" {
+  bash "$SCRIPT" register --name noregen --port 19999 --type form --title "no src"
+  run bash "$SCRIPT" regen --name noregen
+  [ "$status" -ne 0 ]
+}

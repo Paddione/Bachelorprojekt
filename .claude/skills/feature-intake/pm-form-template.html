@@ -13,7 +13,10 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; padding: 2rem; }
   h1 { font-size: 1.4rem; color: var(--accent); margin-bottom: .25rem; }
-  .subtitle { color: var(--muted); font-size: .85rem; margin-bottom: 2rem; }
+  .subtitle { color: var(--muted); font-size: .85rem; margin-bottom: .4rem; }
+  .form-meta { color: var(--muted); font-size: .75rem; margin-bottom: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap; }
+  .form-meta code { font-size: .72rem; background: var(--surface); padding: .1rem .35rem; border-radius: 3px; }
+  .ticket-badge { background: var(--accent); color: white; font-size: .72rem; padding: .15rem .45rem; border-radius: 3px; font-weight: 600; }
   .section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; margin-bottom: 1.25rem; }
   .section h2 { font-size: 1rem; margin-bottom: 1rem; letter-spacing: .04em; text-transform: uppercase; color: var(--accent); }
   .area-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: .5rem; }
@@ -34,22 +37,37 @@
   .comment-row textarea::placeholder { color: var(--muted); }
   textarea#freitext { width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: .6rem .75rem; font-size: .9rem; min-height: 80px; resize: vertical; }
   input#submitter { width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: .5rem .75rem; font-size: .9rem; }
-  .btn { display: inline-block; padding: .7rem 1.5rem; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: opacity .15s; }
+  .btn-row { display: flex; justify-content: center; gap: .75rem; flex-wrap: wrap; margin-top: 1.5rem; }
+  .btn { display: inline-block; padding: .7rem 1.4rem; border: none; border-radius: 8px; font-size: .95rem; font-weight: 600; cursor: pointer; transition: opacity .15s, background .2s; }
+  .btn:disabled { opacity: .55; cursor: not-allowed; }
   .btn-primary { background: var(--accent); color: white; }
-  .btn-primary:hover { opacity: .85; }
-  .toast { position: fixed; bottom: 1.5rem; right: 1.5rem; background: var(--green); color: #111; padding: .75rem 1.25rem; border-radius: 8px; font-weight: 600; display: none; }
+  .btn-primary:hover:not(:disabled) { opacity: .85; }
+  .btn-save { background: #16a34a; color: white; }
+  .btn-save:hover:not(:disabled) { opacity: .85; }
+  .toast { position: fixed; bottom: 1.5rem; right: 1.5rem; background: var(--green); color: #111; padding: .75rem 1.25rem; border-radius: 8px; font-weight: 600; display: none; max-width: 320px; word-break: break-word; }
   .toast.show { display: block; }
+  .toast.toast-error { background: var(--danger); color: white; }
   .prio-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
   .prio-kritisch { background: var(--danger); }
   .prio-hoch { background: #fb923c; }
   .prio-mittel { background: #facc15; }
   .prio-niedrig { background: var(--muted); }
+  #fallbackOut { width: 100%; min-height: 180px; background: var(--bg); color: var(--text); border: 1px solid var(--accent); border-radius: 6px; padding: .6rem .75rem; font-family: ui-monospace, monospace; font-size: .82rem; resize: vertical; }
 </style>
 </head>
-<body>
+<body
+  data-ticket-id="__SESSION_TICKET_ID__"
+  data-api-url="__SESSION_API_URL__"
+  data-generated-at="__SESSION_GENERATED_AT__"
+>
 
 <h1>📋 Feature-Intake</h1>
-<p class="subtitle">Bachelorprojekt · Wähle Features aus, setze Prioritäten — dann "Markdown kopieren" und an Patrick schicken.</p>
+<p class="subtitle">Bachelorprojekt · Wähle Features aus, setze Prioritäten — dann „Markdown kopieren" oder direkt „Im Ticket speichern".</p>
+<div class="form-meta">
+  <span>Generiert: <strong id="genAt">__SESSION_GENERATED_AT__</strong></span>
+  <span id="ticketBadge" style="display:none">Ticket: <span class="ticket-badge" id="ticketRef">__SESSION_TICKET_ID__</span></span>
+  <span>Aktualisieren: <code>bash scripts/session-hub.sh regen --name intake</code></span>
+</div>
 
 <div class="section">
   <h2>Dein Name</h2>
@@ -73,17 +91,18 @@
   <textarea id="freitext" placeholder="z.B. Export-Funktion für Brett-Sessions als PDF&#10;Dunkelmodus für das Kunden-Frontend&#10;..."></textarea>
 </div>
 
-<div style="text-align:center;margin-top:1.5rem">
+<div class="btn-row">
   <button class="btn btn-primary" onclick="copyMarkdown()">📋 Markdown kopieren</button>
+  <button class="btn btn-save" id="saveBtn" onclick="saveToTicket()">💾 Im Ticket speichern</button>
 </div>
 
-<div class="section" id="fallbackSection" style="display:none">
+<div class="section" id="fallbackSection" style="display:none;margin-top:1.25rem">
   <h2>Markdown — manuell kopieren</h2>
-  <p style="color:var(--muted);font-size:.82rem;margin-bottom:.5rem">Automatisches Kopieren hat nicht geklappt (passiert manchmal bei lokalen Dateien). Markiere den Text unten und kopiere ihn von Hand (Strg/Cmd + C).</p>
-  <textarea id="fallbackOut" readonly style="width:100%;min-height:180px;background:var(--bg);color:var(--text);border:1px solid var(--accent);border-radius:6px;padding:.6rem .75rem;font-family:ui-monospace,monospace;font-size:.82rem;resize:vertical"></textarea>
+  <p style="color:var(--muted);font-size:.82rem;margin-bottom:.5rem">Automatisches Kopieren hat nicht geklappt (passiert manchmal bei lokalen Dateien). Markiere den Text unten und kopiere ihn (Strg/Cmd + C).</p>
+  <textarea id="fallbackOut" readonly></textarea>
 </div>
 
-<div class="toast" id="toast">✓ In Zwischenablage kopiert!</div>
+<div class="toast" id="toast"></div>
 
 <script>
 const AREAS = [
@@ -158,6 +177,15 @@ const FEATURES = {
 const PRIO_OPTIONS = ['Kritisch','Hoch','Mittel','Niedrig'];
 const AUFWAND_OPTIONS = ['Klein (≤1d)','Mittel (2-4d)','Groß (≥1W)'];
 
+// Init: show ticket badge if associated
+(function() {
+  const tid = document.body.dataset.ticketId || '';
+  if (tid) {
+    document.getElementById('ticketBadge').style.display = '';
+    document.getElementById('ticketRef').textContent = tid;
+  }
+})();
+
 // Render area chips
 const areaGrid = document.getElementById('areaGrid');
 AREAS.forEach(area => {
@@ -204,7 +232,8 @@ function updateBlocks() {
   });
 }
 
-function copyMarkdown() {
+// Builds and returns the markdown string. Returns null and shows alert if empty.
+function buildMarkdown() {
   const name = document.getElementById('submitter').value.trim() || 'Unbekannt';
   const today = new Date().toISOString().slice(0,10);
   const lines = [`## Feature-Intake: ${today}`, `Eingereicht von: ${name}`, ''];
@@ -245,40 +274,89 @@ function copyMarkdown() {
 
   if (lines.length <= 3) {
     alert('Bitte mindestens ein Feature auswählen oder eine freie Idee eintragen.');
-    return;
+    return null;
   }
 
-  const md = lines.join('\n');
+  return lines.join('\n');
+}
 
-  // Fallback-Textfeld immer befüllen, damit der Output nie verloren geht
+function showToast(msg, isError) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isError ? ' toast-error' : '');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function copyMarkdown() {
+  const md = buildMarkdown();
+  if (!md) return;
+
   const out = document.getElementById('fallbackOut');
   out.value = md;
 
-  const showToast = () => {
-    const t = document.getElementById('toast');
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 2500);
-  };
   const showFallback = () => {
     document.getElementById('fallbackSection').style.display = 'block';
-    out.focus();
-    out.select();
+    out.focus(); out.select();
     out.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
 
-  // 1. moderner Clipboard-API-Weg
   if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(md).then(showToast).catch(() => {
-      // 2. Fallback: execCommand('copy') über das Textfeld
-      out.style.display = 'block';
-      document.getElementById('fallbackSection').style.display = 'block';
-      out.focus(); out.select();
-      let ok = false;
-      try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
-      ok ? showToast() : showFallback();
-    });
+    navigator.clipboard.writeText(md)
+      .then(() => showToast('✓ In Zwischenablage kopiert!', false))
+      .catch(() => {
+        document.getElementById('fallbackSection').style.display = 'block';
+        out.focus(); out.select();
+        let ok = false;
+        try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+        ok ? showToast('✓ Kopiert!', false) : showFallback();
+      });
   } else {
     showFallback();
+  }
+}
+
+async function saveToTicket() {
+  const md = buildMarkdown();
+  if (!md) return;
+
+  const ticketId = document.body.dataset.ticketId || '';
+  const apiUrl = document.body.dataset.apiUrl || 'https://web.mentolder.de/api/tickets/comment';
+
+  const btn = document.getElementById('saveBtn');
+  const origText = btn.textContent;
+  btn.textContent = '⏳ Speichern…';
+  btn.disabled = true;
+
+  try {
+    const payload = { comment: md };
+    if (ticketId) payload.ticketId = ticketId;
+
+    const res = await fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (res.ok) {
+      const label = ticketId ? `✓ In ${ticketId} gespeichert` : '✓ Neues Ticket erstellt';
+      btn.textContent = label;
+      btn.style.background = 'var(--green)';
+      btn.style.color = '#111';
+      showToast(label, false);
+    } else {
+      const data = await res.json().catch(() => ({}));
+      const msg = `✗ ${data.error || res.statusText || res.status}`;
+      btn.textContent = msg;
+      btn.style.background = 'var(--danger)';
+      showToast(msg, true);
+    }
+    setTimeout(() => { btn.textContent = origText; btn.disabled = false; btn.style.background = ''; btn.style.color = ''; }, 3500);
+  } catch (e) {
+    const msg = '✗ Netzwerkfehler — Website erreichbar?';
+    btn.textContent = msg;
+    btn.style.background = 'var(--danger)';
+    showToast(msg, true);
+    setTimeout(() => { btn.textContent = origText; btn.disabled = false; btn.style.background = ''; }, 3500);
   }
 }
 </script>

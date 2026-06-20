@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<!-- Kanonisches Base-Template für alle Session-Forms.
+     Platzhalter werden von scripts/session-hub.sh start-form ersetzt:
+       __SESSION_TICKET_ID__   → Ticket-ID (z.B. T000975), leer wenn kein Ticket
+       __SESSION_API_URL__     → API-URL (default: https://web.mentolder.de/api/tickets/comment)
+       __SESSION_GENERATED_AT__ → ISO-Zeitstempel des Uploads
+       __FORM_NAME__           → Form-Slug (für regen-Hinweis)
+     Form-spezifische Platzhalter:
+       __FORM_TITLE__          → Seitentitel + h1
+       __FORM_ICON__           → Emoji vor dem Titel
+       __FORM_SUBTITLE__       → Kurzbeschreibung
+     Inhalt: ersetze <!-- FORM_CONTENT --> und <!-- FORM_SCRIPT --> mit form-spezifischem Code.
+     Anforderung an FORM_SCRIPT: muss buildMarkdown() -> string|null definieren. -->
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>__FORM_TITLE__ — Bachelorprojekt</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --border: #2e3244;
+    --accent: #6c7bff; --green: #4ade80; --text: #e2e8f0;
+    --muted: #8892a4; --danger: #f87171;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; padding: 2rem; max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 1.4rem; color: var(--accent); margin-bottom: .25rem; }
+  .subtitle { color: var(--muted); font-size: .85rem; margin-bottom: .4rem; }
+  .form-meta { color: var(--muted); font-size: .75rem; margin-bottom: 1.75rem; display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+  .form-meta code { font-size: .72rem; background: var(--surface); padding: .1rem .35rem; border-radius: 3px; border: 1px solid var(--border); }
+  .ticket-badge { background: var(--accent); color: white; font-size: .72rem; padding: .15rem .45rem; border-radius: 3px; font-weight: 600; }
+  .section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; margin-bottom: 1.25rem; }
+  .section h2 { font-size: 1rem; margin-bottom: 1rem; letter-spacing: .04em; text-transform: uppercase; color: var(--accent); }
+  .muted { color: var(--muted); font-size: .85rem; }
+  label { cursor: pointer; }
+  input[type=checkbox], input[type=radio] { accent-color: var(--accent); }
+  textarea, input[type=text] { background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: .5rem .75rem; font-size: .9rem; width: 100%; }
+  textarea { resize: vertical; min-height: 72px; }
+  textarea:focus, input:focus { outline: none; border-color: var(--accent); }
+  select { background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 4px; padding: .25rem .4rem; font-size: .78rem; }
+  select:focus { outline: none; border-color: var(--accent); }
+  .btn-row { display: flex; justify-content: center; gap: .75rem; flex-wrap: wrap; margin-top: 1.75rem; }
+  .btn { display: inline-block; padding: .7rem 1.4rem; border: none; border-radius: 8px; font-size: .95rem; font-weight: 600; cursor: pointer; transition: opacity .15s, background .2s; }
+  .btn:disabled { opacity: .55; cursor: not-allowed; }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover:not(:disabled) { opacity: .85; }
+  .btn-save { background: #16a34a; color: white; }
+  .btn-save:hover:not(:disabled) { opacity: .85; }
+  .toast { position: fixed; bottom: 1.5rem; right: 1.5rem; padding: .75rem 1.25rem; border-radius: 8px; font-weight: 600; display: none; max-width: 320px; word-break: break-word; z-index: 999; }
+  .toast.show { display: block; background: var(--green); color: #111; }
+  .toast.show.toast-error { background: var(--danger); color: white; }
+  #fallbackOut { width: 100%; min-height: 180px; background: var(--bg); color: var(--text); border: 1px solid var(--accent); border-radius: 6px; padding: .6rem .75rem; font-family: ui-monospace, monospace; font-size: .82rem; resize: vertical; }
+</style>
+</head>
+<body
+  data-ticket-id="__SESSION_TICKET_ID__"
+  data-api-url="__SESSION_API_URL__"
+  data-generated-at="__SESSION_GENERATED_AT__"
+>
+
+<header style="margin-bottom:1rem">
+  <h1>__FORM_ICON__ __FORM_TITLE__</h1>
+  <p class="subtitle">__FORM_SUBTITLE__</p>
+  <div class="form-meta">
+    <span>Generiert: <strong id="genAt">__SESSION_GENERATED_AT__</strong></span>
+    <span id="ticketBadge" style="display:none">Ticket: <span class="ticket-badge" id="ticketRef"></span></span>
+    <span>Aktualisieren: <code>bash scripts/session-hub.sh regen --name __FORM_NAME__</code></span>
+  </div>
+</header>
+
+<!-- FORM_CONTENT -->
+
+<div class="btn-row">
+  <button class="btn btn-primary" onclick="copyMarkdown()">📋 Markdown kopieren</button>
+  <button class="btn btn-save" id="saveBtn" onclick="saveToTicket()">💾 Im Ticket speichern</button>
+</div>
+
+<div class="section" id="fallbackSection" style="display:none;margin-top:1.25rem">
+  <h2>Markdown — manuell kopieren</h2>
+  <p class="muted" style="margin-bottom:.5rem">Automatisches Kopieren hat nicht geklappt. Markiere den Text unten (Strg/Cmd + A) und kopiere ihn (Strg/Cmd + C).</p>
+  <textarea id="fallbackOut" readonly></textarea>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// Shared runtime — executed before form-specific script so buildMarkdown() can be called.
+
+(function initMeta() {
+  const tid = document.body.dataset.ticketId || '';
+  if (tid) {
+    document.getElementById('ticketBadge').style.display = '';
+    document.getElementById('ticketRef').textContent = tid;
+  }
+})();
+
+function showToast(msg, isError) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isError ? ' toast-error' : '');
+  clearTimeout(t._tid);
+  t._tid = setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+function copyMarkdown() {
+  const md = buildMarkdown();
+  if (md == null) return;
+
+  const out = document.getElementById('fallbackOut');
+  out.value = md;
+
+  const showFallback = () => {
+    document.getElementById('fallbackSection').style.display = 'block';
+    out.focus(); out.select();
+    out.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(md)
+      .then(() => showToast('✓ In Zwischenablage kopiert!', false))
+      .catch(() => {
+        document.getElementById('fallbackSection').style.display = 'block';
+        out.focus(); out.select();
+        let ok = false;
+        try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+        ok ? showToast('✓ Kopiert!', false) : showFallback();
+      });
+  } else {
+    showFallback();
+  }
+}
+
+async function saveToTicket() {
+  const md = buildMarkdown();
+  if (md == null) return;
+
+  const ticketId = document.body.dataset.ticketId || '';
+  const apiUrl = document.body.dataset.apiUrl || 'https://web.mentolder.de/api/tickets/comment';
+
+  const btn = document.getElementById('saveBtn');
+  const origText = btn.textContent;
+  btn.textContent = '⏳ Speichern…';
+  btn.disabled = true;
+
+  try {
+    const payload = { comment: md };
+    if (ticketId) payload.ticketId = ticketId;
+
+    const res = await fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (res.ok) {
+      const label = ticketId ? `✓ In ${ticketId} gespeichert` : '✓ Neues Ticket erstellt';
+      btn.textContent = label;
+      btn.style.cssText = 'background:var(--green);color:#111';
+      showToast(label, false);
+    } else {
+      const data = await res.json().catch(() => ({}));
+      const msg = `✗ ${data.error || res.status}`;
+      btn.textContent = msg;
+      btn.style.cssText = 'background:var(--danger);color:white';
+      showToast(msg, true);
+    }
+    setTimeout(() => { btn.textContent = origText; btn.disabled = false; btn.style.cssText = ''; }, 3500);
+  } catch (e) {
+    const msg = '✗ Netzwerkfehler — Website erreichbar?';
+    btn.textContent = msg;
+    btn.style.cssText = 'background:var(--danger);color:white';
+    showToast(msg, true);
+    setTimeout(() => { btn.textContent = origText; btn.disabled = false; btn.style.cssText = ''; }, 3500);
+  }
+}
+
+// FORM_SCRIPT — form-specific code goes here (must define buildMarkdown()).
+// Example minimal implementation:
+// function buildMarkdown() {
+//   const val = document.getElementById('myInput').value.trim();
+//   if (!val) { alert('Bitte Eingabe ausfüllen.'); return null; }
+//   return `## Formular-Rücklauf\n\n${val}`;
+// }
+</script>
+</body>
+</html>

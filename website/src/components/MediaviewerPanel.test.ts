@@ -21,7 +21,7 @@ describe('MediaviewerPanel', () => {
     const { getByTitle } = render(MediaviewerPanel, { mediaviewerHost: 'mediaviewer.localhost', videos });
     const iframe = getByTitle('Mediaviewer') as HTMLIFrameElement;
     expect(iframe.tagName).toBe('IFRAME');
-    expect(iframe.getAttribute('src')).toBe('https://mediaviewer.localhost/embed.html');
+    expect(iframe.getAttribute('src')).toBe('https://mediaviewer.localhost/embed.html?v=mediaviewer.localhost');
   });
 
   it('posts setVideos to the iframe once it has loaded', async () => {

@@ -30,7 +30,9 @@
   } = $props();
 
   const widgetOrigin = $derived(`https://${mediaviewerHost}`);
-  const embedSrc = $derived(`${widgetOrigin}/embed.html`);
+  // Cache-buster forces a fresh server response, bypassing any browser-cached response
+  // that still has the old X-Frame-Options: SAMEORIGIN security header.
+  const embedSrc = $derived(`${widgetOrigin}/embed.html?v=${mediaviewerHost}`);
 
   let iframeEl = $state<HTMLIFrameElement | null>(null);
 

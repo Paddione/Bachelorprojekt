@@ -3,7 +3,7 @@ title: Centralized Logging (Pino + Grafana Dashboards) Implementation Plan
 ticket_id: T000964
 domains: [website, infra, db, ops, test, security]
 status: active
-pr_number: TBD
+pr_number: 1913
 file_locks: []
 shared_changes: false
 batch_id: null

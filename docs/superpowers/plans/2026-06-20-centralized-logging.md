@@ -1,6 +1,6 @@
 ---
 title: Centralized Logging (Pino + Grafana Dashboards) Implementation Plan
-ticket_id: null
+ticket_id: T000964
 domains: [website, infra, db, ops, test, security]
 status: active
 pr_number: null
@@ -45,6 +45,39 @@ depends_on_plans: []
 - Dashboards live in `k3d/monitoring/grafana-dashboards/` and are wired via `configMapGenerator` with `labels: grafana_dashboard: "1"` + `generatorOptions.disableNameSuffixHash: true`. The `grafana-dashboards` dir is already referenced from `k3d/monitoring/kustomization.yaml`.
 - Promtail is Helm-rendered: edit `k3d/monitoring/values/promtail-values.yaml`, then run `task loki:render` to regenerate `k3d/monitoring/promtail-rendered.yaml` (commit both).
 - 140 API files contain `console.error`/`console.log`. Migrate by criticality: auth → admin → billing/factory → bulk.
+
+---
+
+## File Structure
+
+```
+website/
+  package.json                              # +pino, +nanoid
+  src/
+    lib/
+      logger.ts                             # NEU: Pino-Singleton
+    middleware/
+      index.ts                              # NEU: Astro-Middleware-Einstiegspunkt
+      logging.ts                            # NEU: X-Request-ID + Request-Logging
+    pages/api/**/*.ts                       # MODIFY: console.error → requestLogger (~140 Dateien)
+
+k3d/
+  traefik-config.yaml                       # NEU: HelmChartConfig Traefik JSON Access-Logs
+  keycloak.yaml                             # MODIFY: +KC_LOG_CONSOLE_FORMAT=json
+  monitoring/
+    values/
+      promtail-values.yaml                  # MODIFY: +JSON-Pipeline-Stages
+    promtail-rendered.yaml                  # REGENERIERT via task loki:render
+    grafana-dashboards/
+      log-explorer.json                     # NEU: Haupt-Log-Explorer Dashboard
+      api-errors.json                       # NEU: API Error Tracker Dashboard
+      traefik-access.json                   # NEU: Traefik Access Analytics Dashboard
+      keycloak-audit.json                   # NEU: Keycloak Audit Trail Dashboard
+    kustomization.yaml                      # MODIFY: +traefik-config.yaml in resources
+
+environments/
+  schema.yaml                               # MODIFY: +PINO_LOG_LEVEL (1 Eintrag)
+```
 
 ---
 

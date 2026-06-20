@@ -53,10 +53,17 @@ export function selectFeature(extId: string | null): void {
     setLs('cockpit:feature', extId); syncUrl(n); return n;
   });
 }
+export const MAX_BULK_SELECT = 10;
+
 export function toggleTicketSelection(id: string): void {
   cockpitStore.update((s) => {
     const next = new Set(s.selectedTickets);
-    next.has(id) ? next.delete(id) : next.add(id);
+    if (next.has(id)) {
+      next.delete(id);
+    } else {
+      if (next.size >= MAX_BULK_SELECT) return s;
+      next.add(id);
+    }
     return { ...s, selectedTickets: next };
   });
 }

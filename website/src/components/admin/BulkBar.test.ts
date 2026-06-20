@@ -11,6 +11,15 @@ describe('BulkBar', () => {
     const { getByText } = render(BulkBar, { selectedIds: ['a', 'b', 'c'] });
     expect(getByText(/3 .* ausgewählt/i)).toBeTruthy();
   });
+  it('shows cap hint when selection has 10 tickets', () => {
+    const ids = Array.from({ length: 10 }, (_, i) => `t${i}`);
+    const { getByTestId } = render(BulkBar, { selectedIds: ids });
+    expect(getByTestId('bulk-cap-hint')).toBeTruthy();
+  });
+  it('hides cap hint when selection has less than 10 tickets', () => {
+    const { queryByTestId } = render(BulkBar, { selectedIds: ['a', 'b', 'c'] });
+    expect(queryByTestId('bulk-cap-hint')).toBeNull();
+  });
   it('dispatches bulkStatus on status change', async () => {
     const onBulkStatus = vi.fn();
     const { getByTestId } = render(BulkBar, { selectedIds: ['a', 'b'], onBulkStatus });

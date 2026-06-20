@@ -28,10 +28,27 @@ describe('cockpitStore', () => {
   });
   it('toggles ticket selection', async () => {
     const m = await import('./cockpitStore');
+    m.clearSelection();
     m.toggleTicketSelection('T1');
     expect(get(m.cockpitStore).selectedTickets.has('T1')).toBe(true);
     m.toggleTicketSelection('T1');
     expect(get(m.cockpitStore).selectedTickets.has('T1')).toBe(false);
+  });
+  it('caps ticket selection at 10', async () => {
+    const m = await import('./cockpitStore');
+    m.clearSelection();
+    for (let i = 0; i < 10; i++) {
+      m.toggleTicketSelection(`T${i}`);
+    }
+    expect(get(m.cockpitStore).selectedTickets.size).toBe(10);
+    // Try adding the 11th ticket
+    m.toggleTicketSelection('T10');
+    expect(get(m.cockpitStore).selectedTickets.size).toBe(10);
+    expect(get(m.cockpitStore).selectedTickets.has('T10')).toBe(false);
+    // Can still remove an existing ticket
+    m.toggleTicketSelection('T0');
+    expect(get(m.cockpitStore).selectedTickets.size).toBe(9);
+    expect(get(m.cockpitStore).selectedTickets.has('T0')).toBe(false);
   });
   it('applies + rolls back optimistic edits', async () => {
     const m = await import('./cockpitStore');

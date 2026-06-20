@@ -51,6 +51,35 @@ WHERE status NOT IN ('done', 'archived')
 ORDER BY priority DESC NULLS LAST, created_at ASC;
 ```
 
+### Step 1.1b: Load OpenSpec Status Map
+
+After fetching tickets, enrich the triage view with OpenSpec proposal status. The map is pre-generated and committed in the repo:
+
+```bash
+OMAP_FILE="$REPO/website/src/data/openspec-status.json"
+# Regenerate if the file is missing (e.g. freshly cloned worktree without freshness:regenerate)
+if [[ ! -f "$OMAP_FILE" ]]; then
+  bash "$REPO/scripts/openspec-status-map.sh"
+fi
+
+get_openspec_status() {
+  local ext_id="$1"
+  jq -r --arg id "$ext_id" '.[$id] // [] | map("\(.status):\(.slug)") | join(", ")' \
+    "$OMAP_FILE" 2>/dev/null || echo ""
+}
+```
+
+When displaying the triage table, append the OpenSpec status column. Example output format:
+
+```
+T000953 | Cockpit Fullscreen     | plan_staged | hoch    | READY (cockpit-fullscreen-overview)
+T000959 | OpenSpec Status Badge  | plan_staged | mittel  | READY (openspec-ticket-status-display)
+T000943 | Awaiting-Deploy Gaps   | planning    | mittel  | SPEC (fix-awaiting-deploy-visualization-gaps)
+T000738 | Unbekanntes Feature    | backlog      | niedrig | —
+```
+
+Use `get_openspec_status "$ext_id"` per row and display `—` when the result is empty.
+
 ### Step 1.2: Categorization Flow
 1. **Already Resolved:** Mark `done` + `fixed`, cite the PR in notes.
 2. **Obsolete:** Mark `done` + `obsolete` (e.g. decommissioned services).

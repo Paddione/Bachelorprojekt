@@ -108,9 +108,11 @@ SLUG="<slug>"
 DESIGN_DIR="docs/superpowers/plans/assets/${SLUG}"
 mkdir -p "${DESIGN_DIR}/new"
 
-# 1. Bundle in new/ synchronisieren (DesignSync-Tool ist deferred → erst Schema laden):
-#    ToolSearch select:DesignSync  →  dann /design-sync mit Ziel ${DESIGN_DIR}/new
-#    (Bundle-ID vom User; .tar.gz: chats/chat1.md = Intent, project/ = SVGs)
+# 1. Design-Assets synchronisieren:
+#    ⚠ /design-sync macht UPLOAD (Repo → claude.ai), nicht Download.
+#    Für Download: Bundle manuell entpacken (Bundle-ID vom User erfragen)
+#    oder separates Tool nutzen. .tar.gz enthält: chats/chat1.md = Intent, project/ = SVGs.
+#    Ziel: ${DESIGN_DIR}/new/
 
 # 2. Intent extrahieren:  cp <bundle>/chats/chat1.md "${DESIGN_DIR}/intent.md"
 ```
@@ -140,7 +142,7 @@ Rufe `superpowers:brainstorming` auf. Nutze das visual Board auf `https://brains
 Ergebnis: Spec-Datei in `docs/superpowers/specs/<date>-<slug>-design.md`.
 Nach dem Schreiben der Spec das Frontmatter setzen (siehe
 `docs/superpowers/specs/spec-frontmatter-standard.md`):
-`bash scripts/plan-frontmatter-hook.sh --spec docs/superpowers/specs/<date>-<slug>-design.md`
+`bash scripts/vda.sh frontmatter --spec docs/superpowers/specs/<date>-<slug>-design.md`
 und `ticket_id`/`plan_ref` ausfüllen sobald Ticket-ID und Plan-Pfad feststehen.
 
 ### Schritt 3.1: OpenSpec-Change anlegen
@@ -178,7 +180,7 @@ Statt deinen eigenen Kontext zurückzusetzen (das ließe dich den Faden verliere
        Acceptance-Kriterien notieren. `new/` enthält nur geprüfte, passende Assets.
      - Ticket-/Grilling-Kontext (`$GRILLING_TICKET_EXT_ID` etc.), falls vorhanden.
      - **CI-/Quality-Gates:** [plan-quality-gates.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-quality-gates.md) — der Subagent MUSS die Datei lesen und den Plan dagegen schreiben: pro zu ändernder Datei `wc -l` UND den Baseline-Wert (`jq -r '."S1:<pfad>".metric // "nicht-baselined"' docs/code-quality/baseline.json`) ermitteln und das S1-Budget gegen die **wirksame Schwelle** notieren — bei schon gebaselineten (gewachsenen) Dateien ist das Budget oft **0** (jede Netto-Zeile trippt das CI-Ratchet), dann zeilenneutral planen oder die Datei in dieser PR **echt verkleinern**; bei >~80 % der Schwelle echten Modul-Split einplanen (kein kosmetisches Zusammenziehen). Dazu: keine Brand-Domain-Literale in Code-Snippets (S3), Helper als pure Module ohne Import-Zyklen (S2), neue Manifeste/Skripte referenzieren statt verwaisen lassen (S4).
-    - **Auftrag:** „Lies die Spec UND `.claude/skills/references/plan-quality-gates.md`. Rufe `superpowers:writing-plans` auf und schreibe den Implementierungsplan nach `docs/superpowers/plans/<date>-<slug>.md`. Schreibe dieselben Tasks zusätzlich nach `openspec/changes/<slug>/tasks.md` (OpenSpec-Format: H2-Operationsheader im Delta, H3-Requirement, H4-Scenario im `specs/<capability>.md`). Der finale Verifikations-Task des Plans MUSS `task test:changed`, `task freshness:regenerate` und `task freshness:check` als Steps enthalten (CI-Äquivalent inkl. S1–S4-Ratchet); nach Test-Änderungen zusätzlich `task test:inventory` + Commit des Inventars. Vor dem Commit: `task test:openspec` (oder `bash scripts/openspec.sh validate`) — muss grün sein. Starte KEINE Implementierung (nur Plan schreiben, dann STOPP). Führe danach `bash scripts/plan-frontmatter-hook.sh docs/superpowers/plans/<date>-<slug>.md` aus. Gib den Plan-Pfad und eine 3-Zeilen-Zusammenfassung zurück."
+    - **Auftrag:** „Lies die Spec UND `.claude/skills/references/plan-quality-gates.md`. Rufe `superpowers:writing-plans` auf und schreibe den Implementierungsplan nach `docs/superpowers/plans/<date>-<slug>.md`. Schreibe dieselben Tasks zusätzlich nach `openspec/changes/<slug>/tasks.md` (OpenSpec-Format: H2-Operationsheader im Delta, H3-Requirement, H4-Scenario im `specs/<capability>.md`). Der finale Verifikations-Task des Plans MUSS `task test:changed`, `task freshness:regenerate` und `task freshness:check` als Steps enthalten (CI-Äquivalent inkl. S1–S4-Ratchet); nach Test-Änderungen zusätzlich `task test:inventory` + Commit des Inventars. Vor dem Commit: `task test:openspec` (oder `bash scripts/openspec.sh validate`) — muss grün sein. Starte KEINE Implementierung (nur Plan schreiben, dann STOPP). Führe danach `bash scripts/vda.sh frontmatter docs/superpowers/plans/<date>-<slug>.md` aus. Gib den Plan-Pfad und eine 3-Zeilen-Zusammenfassung zurück."
 
 ### Schritt 3.8: Plan-Qualitäts-Gate (deterministischer Linter + advisory LLM-QA)
 
@@ -239,7 +241,7 @@ sed -i "s/^ticket_id: null$/ticket_id: $TICKET_EXT_ID/" docs/superpowers/plans/<
   --branch "feature/<slug>" \
   --plan "docs/superpowers/plans/<date>-<slug>.md"
 
-bash scripts/plan-frontmatter-hook.sh --activate "docs/superpowers/plans/<date>-<slug>.md"
+bash scripts/vda.sh frontmatter --activate "docs/superpowers/plans/<date>-<slug>.md"
 ```
 
 Hänge gesammelte Assets mit `bash scripts/ticket-attach.sh "$TICKET_UUID" <pfade>` an.
@@ -384,7 +386,7 @@ Rufe `superpowers:writing-plans` auf. Wende das Frontmatter an und trage die Tic
   --branch "fix/<slug>" \
   --plan "docs/superpowers/plans/<date>-<slug>.md"
 
-bash scripts/plan-frontmatter-hook.sh --activate "docs/superpowers/plans/<date>-<slug>.md"
+bash scripts/vda.sh frontmatter --activate "docs/superpowers/plans/<date>-<slug>.md"
 ```
 Damit ist das Fix-Ticket in der Kommissionierung sichtbar und kann via UI-Knopf oder
 `ticket.sh enqueue` an die Factory übergeben werden.

@@ -1,6 +1,7 @@
 ---
 name: database-ops
 description: Unified runbook for database operations, schema migrations, DDL ownership rules, and safe backup/restore audits.
+agent: bachelorprojekt-db
 ---
 
 > **Mishap Tracking:** As you execute this skill, maintain a running `MISHAP_LOG`.

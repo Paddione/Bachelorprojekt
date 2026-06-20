@@ -1,6 +1,7 @@
 ---
 name: incident-response
 description: Production incident triage, scope, diagnose, fix/rollback, and post-mortem close for the workspace platform. Time-critical — use when a core service is down or degraded.
+agent: bachelorprojekt-ops
 ---
 
 > **Mishap Tracking:** As you execute this skill, maintain a running `MISHAP_LOG`.

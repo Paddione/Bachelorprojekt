@@ -1,6 +1,7 @@
 ---
 name: workspace-deploy
 description: Full-stack workspace platform deployment — umbrella workspace:setup, post-setup, talk/recording/transcriber, optional admin-users and vaultwarden seed. Covers every service that doesn't ship via base kustomization alone.
+agent: bachelorprojekt-infra
 ---
 
 > **Mishap Tracking:** As you execute this skill, maintain a running `MISHAP_LOG`.

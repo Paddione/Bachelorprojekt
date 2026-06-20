@@ -1,6 +1,7 @@
 ---
 name: factory-autopilot
 description: Software Factory Autopilot lifecycle — install, status, uninstall the headless dispatcher (systemd timer-driven pipeline.js orchestrator) that autonomously processes backlog tickets.
+agent: bachelorprojekt-test
 ---
 
 > **Mishap Tracking:** As you execute this skill, maintain a running `MISHAP_LOG`.

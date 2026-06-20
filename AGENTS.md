@@ -109,6 +109,59 @@ bash scripts/agent-lock.sh list    # see who is doing what
 
 Session messaging: `bash scripts/agent-msg.sh read --unread` (incoming), `bash scripts/agent-msg.sh post "msg"` (broadcast to live sessions).
 
+## Skill Dispatch Protocol
+
+Every skill in `.claude/skills/<name>/SKILL.md` declares its dispatch target in the YAML frontmatter:
+
+```yaml
+---
+name: <skill-name>
+description: ...
+agent: bachelorprojekt-<role>     # optional — see below
+category: devflow                  # optional — existing field
+---
+```
+
+- **Skill HAS `agent:`** → orchestrator MUST dispatch as a subagent. Load `.claude/agents/<agent>.md`, splice its body as the system prompt, append the skill body + the user's request, and spawn `task` with `subagent_type: "general"`. The subagent owns the work in an isolated context window.
+- **Skill has NO `agent:`** → workflow/orchestrator skill. Load inline in the main session (current behavior). These are coordination skills (`dev-flow-plan`, `dev-flow-execute`, `dev-flow-chore`, `dev-flow-batch`, `dev-flow-e2e`-meta, `feature-intake`, `migrate-foreign-code`, `operations-management`, `ticket-ops`, `update-dependencies`, `knowledge-management`, `using-git-worktrees`) that need to span multiple agents or hold persistent state across handoffs.
+
+### Dispatch recipe
+
+```bash
+# 1. Read the agent config (system prompt for the subagent)
+AGENT_BODY=$(cat .claude/agents/bachelorprojekt-<role>.md)   # strip YAML frontmatter
+SKILL_BODY=$(cat .claude/skills/<name>/SKILL.md | tail -n +5)   # strip frontmatter
+
+# 2. Orchestrator spawns a `task` call with subagent_type="general" and:
+#    system:  <AGENT_BODY>            ← domain knowledge, commands, gotchas
+#    prompt:  <SKILL_BODY>\n\n---\n\n<user request>
+```
+
+The subagent returns its result; the orchestrator relays it back. The subagent sees only its agent instructions + the skill + the request — no orchestrator noise.
+
+### Current skill → agent map
+
+| Skill | Agent | Why subagent |
+|-------|-------|--------------|
+| `arena-brett-deploy` | `bachelorprojekt-infra` | Kustomize/proto-drift details, prod context rules |
+| `cluster-deployment` | `bachelorprojekt-infra` | `fleet`-only context, k3d base, overlay cake |
+| `database-ops` | `bachelorprojekt-db` | PostgreSQL `shared-db` topology, password-drift warning |
+| `dev-flow-e2e` | `bachelorprojekt-test` | FA-/SA-/NFA- test IDs, runner.sh, permanently-skipped set |
+| `dev-flow-iterate` | `bachelorprojekt-ops` | Pod/log/restart discipline (shell-session integrity rules) |
+| `factory-autopilot` | `bachelorprojekt-test` | Headless dispatcher lifecycle + FA-SF test context |
+| `factory-worker` | `bachelorprojekt-test` | Same factory domain as `factory-autopilot` |
+| `fleet-ops` | `bachelorprojekt-infra` | Cross-brand kustomize fan-out, no-GitOps push model |
+| `host-node-networking` | `bachelorprojekt-infra` | Hetzner/WireGuard/provisioning tooling |
+| `incident-response` | `bachelorprojekt-ops` | Diagnose-first, fail-loud output-trust rules |
+| `keycloak-realm-sync` | `bachelorprojekt-security` | SealedSecret + realm JSON per-namespace rules |
+| `llm-ops` | `bachelorprojekt-ops` | GPU/Ollama/TEI/LiteLLM ops on fleet |
+| `mishap-tracker` | `bachelorprojekt-ops` | Anomalies on live systems → ops triage |
+| `secret-rotation` | `bachelorprojekt-security` | Sealing order, `env-resolve.sh` source-not-execute |
+| `workspace-deploy` | `bachelorprojekt-infra` | Full workspace:setup umbrella + post-setup |
+| _inline (no agent)_ | _main session_ | `dev-flow-plan`, `dev-flow-execute`, `dev-flow-chore`, `dev-flow-batch`, `feature-intake`, `migrate-foreign-code`, `operations-management`, `ticket-ops`, `update-dependencies`, `knowledge-management`, `using-git-worktrees` |
+
+When a new skill is added: pick an agent from the routing table, add `agent: bachelorprojekt-<role>` to frontmatter, and add a row to this table. (Optional follow-up: add a `task skills:validate` that asserts every `agent:` value resolves to an existing `.claude/agents/<name>.md` and that every agent has at least one skill referring to it — currently no such gate exists.)
+
 ## Important References
 
 - `CLAUDE.md` — authoritative comprehensive reference (task lists, topology details, all footguns)

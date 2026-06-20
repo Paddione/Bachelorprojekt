@@ -1,6 +1,7 @@
 ---
 name: arena-brett-deploy
 description: Use when building, deploying, or debugging the arena-server (korczewski-only WebSocket game server) or brett (3D multiplayer game), including proto-drift copy step, CORS configuration, and deploy constraints unique to each service.
+agent: bachelorprojekt-infra
 ---
 
 # arena-brett-deploy — Arena & Brett Deployment

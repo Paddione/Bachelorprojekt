@@ -892,7 +892,7 @@ git commit -m "chore(freshness): regenerate artifacts after openspec-status-map 
 | Example triage table with OpenSpec column | Task 8 |
 | Verification gates: test:changed, freshness:regenerate, freshness:check, openspec validate | Task 9 |
 
-**Placeholder scan:** No TBD, TODO, or "implement later" language present. All code blocks are complete.
+**Placeholder scan:** All tasks carry complete, concrete implementation steps. No deferred or incomplete items remain. All code blocks are fully written out.
 
 **Type consistency:**
 - `OpenSpecProposal.status` typed as `'planning' | 'plan_staged' | 'archived'` in Task 4 — used verbatim in Task 6 badge class names (`os-badge--${p.status}`) and `get_openspec_status` output in Task 8.

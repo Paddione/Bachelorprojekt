@@ -1,4 +1,4 @@
-import { readFile, writeFile, mkdir, rename } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, rename, readdir } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { homedir } from 'node:os';
 
@@ -127,3 +127,104 @@ export async function purgeOldSessions({ maxAgeDays = 30 }: { maxAgeDays?: numbe
 
   return { purged: toPurge.length, warnings };
 }
+
+export interface ArchivedSession {
+  id: string;
+  slug: string;
+  type: string;
+  title: string;
+  date: string;
+  participants: string[];
+  owner: string;
+  content_available: boolean;
+}
+
+export async function listArchivedSessions({
+  viewer,
+  isAdmin,
+  offset = 0,
+  limit = 50,
+  type
+}: {
+  viewer: string;
+  isAdmin: boolean;
+  offset?: number;
+  limit?: number;
+  type?: string;
+}): Promise<{ items: ArchivedSession[]; total: number; hasMore: boolean }> {
+  const archiveDir = getArchiveDir();
+  let files: string[] = [];
+  try {
+    files = await readdir(archiveDir);
+  } catch (err: any) {
+    if (err.code === 'ENOENT') {
+      return { items: [], total: 0, hasMore: false };
+    }
+    throw err;
+  }
+
+  const metaFiles = files.filter(f => f.endsWith('.meta.json'));
+  const sessions: ArchivedSession[] = [];
+
+  for (const file of metaFiles) {
+    try {
+      const raw = await readFile(join(archiveDir, file), 'utf8');
+      const parsed = JSON.parse(raw);
+      if (
+        !parsed ||
+        typeof parsed !== 'object' ||
+        typeof parsed.id !== 'string' ||
+        typeof parsed.slug !== 'string' ||
+        typeof parsed.owner !== 'string'
+      ) {
+        continue;
+      }
+      sessions.push(parsed as ArchivedSession);
+    } catch {
+      // Skip corrupt sidecars
+      continue;
+    }
+  }
+
+  // Visibility check: admin sees all, non-admin only own
+  let filtered = sessions.filter(s => {
+    if (isAdmin) return true;
+    return s.owner === viewer;
+  });
+
+  // Type filter
+  if (type) {
+    filtered = filtered.filter(s => s.type === type);
+  }
+
+  // Sort by date chronologically descending (latest first)
+  filtered.sort((a, b) => {
+    const timeA = new Date(a.date).getTime();
+    const timeB = new Date(b.date).getTime();
+    return timeB - timeA;
+  });
+
+  const total = filtered.length;
+  const sliced = filtered.slice(offset, offset + limit);
+  const hasMore = offset + limit < total;
+
+  return {
+    items: sliced,
+    total,
+    hasMore
+  };
+}
+
+export async function getArchivedMarkdown(id: string): Promise<string | null> {
+  if (!/^[a-z0-9-]+$/.test(id)) {
+    return null;
+  }
+  const archiveDir = getArchiveDir();
+  const filePath = join(archiveDir, `${id}.md`);
+  try {
+    return await readFile(filePath, 'utf8');
+  } catch (err: any) {
+    return null;
+  }
+}
+

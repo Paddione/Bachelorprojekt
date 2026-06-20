@@ -107,7 +107,7 @@ Tickets mit `can_proceed: false` nach der Q&A-Runde (Beschreibung zu vage, keine
 
 > **Batch-Klärung:** Pro Ticket die geklärten Q/A mit `scripts/ticket.sh grill --id <ext-id> …`
 > ablegen, bevor die Specs/Pläne generiert werden. Siehe
-> `.claude/skills/references/grilling-to-ticket.md`.
+> `.claude/skills/references/references.md#grilling-to-ticket`.
 
 ### Schritt 4: Worktree für Batch anlegen
 

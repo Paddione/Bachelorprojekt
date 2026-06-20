@@ -25,7 +25,7 @@ Prüfe ob ein einzelner Plan oder mehrere Pläne ausgeführt werden sollen:
 > `sql:` `SELECT external_id, title, priority, COALESCE(value_prop,'') FROM tickets.tickets WHERE status='plan_staged' ORDER BY planning_rank ASC NULLS LAST, created_at DESC;`
 
 Setze `STAGED_PLANS` aus dem MCP-Ergebnis. **Fallback** (MCP nicht erreichbar / kein Portforward) —
-der kubectl-Block unten. Details: [`references/mcp-tool-guide.md`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md).
+der kubectl-Block unten. Details: [`MCP-Tool-Guide`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#mcp-tool-guide).
 
 _Fallback:_
 
@@ -328,11 +328,11 @@ ATTACHMENT_DIR="/tmp/ticket-attachments-$TICKET_ID"
 
 Statt deinen eigenen Kontext/Modell zurückzusetzen (das ließe dich den Faden verlieren), delegiere die **gesamte Implementierung an EINEN frischen Subagenten** — sauberer Kontext per Konstruktion. Du behältst den vollen Plan-Kontext und verifizierst das Ergebnis anschließend unabhängig.
 
-> **Warum EIN Implementer statt `superpowers:subagent-driven-development`-Fan-out?** Dieser Skill läuft bereits *selbst* als delegierte Ebene (oft aus einem dev-flow-Orchestrator). Ein zusätzlicher Per-Task-Fan-out wäre **verschachtelte Delegation** $\rightarrow$ Kontext-Explosion und Synthese-Last (siehe [subagent-provisioning.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md), 162k-Prompt-Lehre). Der Implementer ruft `superpowers:executing-plans` daher **in-context** auf (kein weiterer Agenten-Fan-out). Nur wenn der Plan ausdrücklich viele **voneinander unabhängige** Tasks hat und der Einzel-Implementer am Kontext-Limit scheitert, lohnt der Wechsel auf `subagent-driven-development` bzw. einen `Workflow`-Fan-out — bewusste Eskalation, nicht Default.
+> **Warum EIN Implementer statt `superpowers:subagent-driven-development`-Fan-out?** Dieser Skill läuft bereits *selbst* als delegierte Ebene (oft aus einem dev-flow-Orchestrator). Ein zusätzlicher Per-Task-Fan-out wäre **verschachtelte Delegation** $\rightarrow$ Kontext-Explosion und Synthese-Last (siehe [subagent-provisioning](file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#subagent-provisioning), 162k-Prompt-Lehre). Der Implementer ruft `superpowers:executing-plans` daher **in-context** auf (kein weiterer Agenten-Fan-out). Nur wenn der Plan ausdrücklich viele **voneinander unabhängige** Tasks hat und der Einzel-Implementer am Kontext-Limit scheitert, lohnt der Wechsel auf `subagent-driven-development` bzw. einen `Workflow`-Fan-out — bewusste Eskalation, nicht Default.
 
 Spawne den Subagenten:
 * **Gemini/Antigravity CLI:** call `invoke_subagent` with `TypeName: "self"` (inherits permissions and tools), `Role: "Implementer <TICKET_ID>"`, and `Workspace: "share"` (or `"inherit"`).
-* **Claude Code CLI:** Spawne über das `Agent`/`Task`-Tool einen Subagenten, **provisioniert gemäß** [subagent-provisioning.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md) (Modell · Effort · Kontext):
+* **Claude Code CLI:** Spawne über das `Agent`/`Task`-Tool einen Subagenten, **provisioniert gemäß** [subagent-provisioning](file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#subagent-provisioning) (Modell · Effort · Kontext):
   * **Modell — nach Plan-Charakter wählen, nicht pauschal:** mechanisch (Config/Doku/Single-File) $\rightarrow$ `haiku`; Standard-Feature/Fix $\rightarrow$ `sonnet`; komplex/riskant (systemübergreifend, Architektur, DB-Migration, Auto-Deploy) $\rightarrow$ `opus`.
   * **Provider-Routing (Kosten/Resilienz):** Vor dem Spawnen den Provider routen:
     ```bash
@@ -433,7 +433,7 @@ task freshness:check        # CI-Äquivalent — failt lokal GENAU wie CI (S1–
 - `task freshness:regenerate` aktualisiert die generierten Artefakte (test-inventory.json, route-manifest.json, agent-guide docs/maps, learning-assets, repo-index.json), sonst CI rot.
 - `task freshness:check` ist das **CI-Äquivalent** und failt lokal genauso wie CI — insbesondere am **S1-Zeilen-Ratchet** (`quality:check` gegen `docs/code-quality/baseline.json`) sowie der Baseline-Key-Count-Assertion. Ohne `freshness:check` lokal wird eine Zeilen-Limit-Überschreitung erst nach dem Push in CI sichtbar — und du landest im Firefight-Modus.
 
-Siehe [dev-flow-gotchas.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md) für TypeScript/pnpm Gotchas in Worktrees.
+Siehe [dev-flow-gotchas](file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#dev-flow-gotchas) für TypeScript/pnpm Gotchas in Worktrees.
 
 ---
 
@@ -602,7 +602,7 @@ git branch -D "<branch>"
 bash scripts/devflow-post-merge-deploy.sh "$TICKET_ID"
 ```
 
-**Deploy-Mapping (Single Source of Truth):** Pfad→Task-Tabelle und Pod-Verify-Schleife leben in [deploy-routing.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/deploy-routing.md). Bei Änderungen am Deploy-Mapping **nur** diese Referenz pflegen.
+**Deploy-Mapping (Single Source of Truth):** Pfad→Task-Tabelle und Pod-Verify-Schleife leben in [deploy-routing](file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#deploy-routing). Bei Änderungen am Deploy-Mapping **nur** diese Referenz pflegen.
 
 Führe danach `dev-flow-e2e` aus, um E2E-Tests gegen die Live-Umgebung zu schreiben.
 
@@ -611,7 +611,7 @@ Führe danach `dev-flow-e2e` aus, um E2E-Tests gegen die Live-Umgebung zu schrei
 
 > **Mitten in der Umsetzung blockiert?** Nutzer grillen und die Antworten ans Ticket
 > hängen: `scripts/ticket.sh grill --id <ext-id> --answer <qid>=<text> …`. Siehe
-> `.claude/skills/references/grilling-to-ticket.md`.
+> `.claude/skills/references/references.md#grilling-to-ticket`.
 
 ## Verwandte Skills
 

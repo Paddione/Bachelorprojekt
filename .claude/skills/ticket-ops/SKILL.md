@@ -33,7 +33,7 @@ Never use `tickets.ticket_links` for PR references — it is ticket→ticket onl
 (`bash scripts/mcp-portforward.sh status`), führe **lesende** SELECTs über `mcp__mcp-postgres__query`
 aus (nur `sql`, read-only). Die `psql()`-Bash-Hilfsfunktion unten ist (a) der **Fallback** für Reads
 ohne aktiven Portforward und (b) der **Pflichtweg für schreibende** Statements (INSERT/UPDATE/DELETE) —
-das MCP-Query-Tool ist read-only. Siehe [`references/mcp-tool-guide.md`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md).
+das MCP-Query-Tool ist read-only. Siehe [`MCP-Tool-Guide`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#mcp-tool-guide).
 
 All SQL below assumes:
 ```bash

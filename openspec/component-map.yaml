@@ -215,7 +215,7 @@ mappings:
   # MCP Gateway
   - prefix: deploy/mcp/
     spec: mcp-gateway
-  - prefix: .claude/skills/references/mcp-tool-guide
+  - prefix: .claude/skills/references/references.md
     spec: mcp-gateway
   - prefix: scripts/mcp
     spec: mcp-gateway

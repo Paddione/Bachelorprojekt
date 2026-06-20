@@ -231,5 +231,5 @@ lässt sich mit **einem** geteilten Helper an ein Ticket senden:
 `scripts/ticket.sh grill --id <ext-id> (--json | --answers-file | --answer qid=text ...)`.
 Schreibt akkumulierend in `tickets.tickets.grilling_answers` (forward-kompatibel mit dem
 T000737-Panel) + optionalem Timeline-Kommentar. Vollständige How-to:
-`.claude/skills/references/grilling-to-ticket.md`. Skill-Autoren: NICHT pro SKILL.md
+`.claude/skills/references/references.md#grilling-to-ticket`. Skill-Autoren: NICHT pro SKILL.md
 neu erfinden — die Referenz verlinken.

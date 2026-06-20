@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, fireEvent, waitFor } from '@testing-library/svelte';
 import CockpitTable from './CockpitTable.svelte';
+import { cockpitStore } from '../../lib/stores/cockpitStore';
 
 const feature = { id: 'f1', extId: 'F1', title: 'F1', priority: 'mittel', health: 'amber' as const,
   rollup: { total: 2, done: 0, blocked: 0, inProgress: 0, open: 2, pctDone: 0 } };
@@ -9,7 +10,17 @@ const tickets = [
   { id: 't2', extId: 'T2', title: 'Beta', status: 'in_progress', priority: 'hoch', type: 'task' },
 ];
 
-beforeEach(() => vi.restoreAllMocks());
+beforeEach(() => {
+  vi.restoreAllMocks();
+  cockpitStore.set({
+    selectedFeature: null,
+    selectedTickets: new Set(),
+    optimistic: {},
+    error: null,
+    isLoading: false,
+    filter: { status: [], area: [], brand: [] },
+  });
+});
 
 describe('CockpitTable', () => {
   it('blocks concurrent patchStatus mutations on the same ticket (busy guard)', async () => {

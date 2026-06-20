@@ -76,6 +76,7 @@ tmp/
 # ── Misc ────────────────────────────────────────
 .git_corrupt/
 docs-site/
+node_modules
 node_modules/
 *.tmp
 *.bak

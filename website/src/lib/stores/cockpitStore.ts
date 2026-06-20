@@ -1,14 +1,20 @@
 import { writable, derived, get } from 'svelte/store';
+import type { CockpitFilterState } from '../cockpit-presets';
 
 export interface OptimisticEdit {
-  ticketId: string; field: string; oldValue: unknown; newValue: unknown;
+  ticketId: string;
+  field: string;
+  oldValue: unknown;
+  newValue: unknown;
 }
+
 export interface CockpitState {
   selectedFeature: string | null;
   selectedTickets: Set<string>;
   optimistic: Record<string, OptimisticEdit>;
   error: string | null;
   isLoading: boolean;
+  filter: CockpitFilterState;
 }
 
 const ls = (k: string): string | null =>
@@ -24,6 +30,7 @@ const initial: CockpitState = {
   optimistic: {},
   error: null,
   isLoading: false,
+  filter: { status: [], area: [], brand: [] },
 };
 
 export const cockpitStore = writable<CockpitState>(initial);
@@ -67,9 +74,11 @@ export function toggleTicketSelection(id: string): void {
     return { ...s, selectedTickets: next };
   });
 }
+
 export function clearSelection(): void {
   cockpitStore.update((s) => ({ ...s, selectedTickets: new Set<string>() }));
 }
+
 export function applyOptimistic(ticketId: string, field: string, newValue: unknown, oldValue: unknown): () => void {
   const key = `${ticketId}:${field}`;
   cockpitStore.update((s) => ({
@@ -77,11 +86,18 @@ export function applyOptimistic(ticketId: string, field: string, newValue: unkno
   }));
   return () => rollbackOptimistic(ticketId, field);
 }
+
 export function rollbackOptimistic(ticketId: string, field: string): void {
   const key = `${ticketId}:${field}`;
   cockpitStore.update((s) => { const { [key]: _drop, ...rest } = s.optimistic; return { ...s, optimistic: rest }; });
 }
+
 export function clearOptimistic(ticketId: string, field: string): void { rollbackOptimistic(ticketId, field); }
 export function setError(error: string | null): void { cockpitStore.update((s) => ({ ...s, error })); }
 export function setLoading(isLoading: boolean): void { cockpitStore.update((s) => ({ ...s, isLoading })); }
+
+export function setFilter(filter: CockpitFilterState): void {
+  cockpitStore.update((s) => ({ ...s, filter }));
+}
+
 export { get };

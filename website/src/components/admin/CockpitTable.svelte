@@ -6,10 +6,13 @@
   import TicketRow from './TicketRow.svelte';
   import BulkBar from './BulkBar.svelte';
   import BulkToast from './BulkToast.svelte';
+  import FilterBar from './Cockpit/FilterBar.svelte';
+  import type { CockpitFilterState } from '../../lib/cockpit-presets';
 
   export let feature: FeatureNode | null = null;
   export let tickets: TicketRowT[] = [];
   export let features: FeatureNode[] = [];
+  export let brand = 'mentolder';
   export let onMutated: (() => void) | undefined = undefined;
   export let onOpenCreate: (() => void) | undefined = undefined;
 
@@ -37,11 +40,30 @@
   $: matched = tickets.filter((t) => {
     const matchSearch = !q ||
       t.title.toLowerCase().includes(q) || t.extId.toLowerCase().includes(q);
-    const matchStatus =
-      statusFilter === '' ? true :
-      statusFilter === 'active' ? !isTerminal(t.status) :
-      t.status === statusFilter;
-    return matchSearch && matchStatus;
+
+    const storeFilter = $cockpitStore.filter;
+
+    let matchStatus = true;
+    if (storeFilter && storeFilter.status && storeFilter.status.length > 0) {
+      matchStatus = storeFilter.status.includes(t.status);
+    } else {
+      matchStatus =
+        statusFilter === '' ? true :
+        statusFilter === 'active' ? !isTerminal(t.status) :
+        t.status === statusFilter;
+    }
+
+    let matchArea = true;
+    if (storeFilter && storeFilter.area && storeFilter.area.length > 0) {
+      matchArea = !!t.component && storeFilter.area.some(a => a.toLowerCase() === t.component?.toLowerCase());
+    }
+
+    let matchBrand = true;
+    if (storeFilter && storeFilter.brand && storeFilter.brand.length > 0) {
+      matchBrand = storeFilter.brand.includes(brand);
+    }
+
+    return matchSearch && matchStatus && matchArea && matchBrand;
   });
   // Cap the rendered DOM — a feature can hold hundreds of tickets.
   $: visible = matched.slice(0, limit);
@@ -49,6 +71,29 @@
   $: doneCount = tickets.length - activeCount;
   // Reset to the first page whenever the filter or search term changes.
   $: { void search; void statusFilter; limit = PAGE; }
+
+  $: {
+    const storeStatus = $cockpitStore.filter?.status;
+    if (storeStatus && storeStatus.length > 0) {
+      statusFilter = storeStatus[0];
+    }
+  }
+
+  function handleApplyPreset(state: CockpitFilterState) {
+    cockpitStore.update((s) => ({ ...s, filter: state }));
+  }
+
+  function selectStatus(val: string) {
+    statusFilter = val;
+    cockpitStore.update((s) => ({
+      ...s,
+      filter: {
+        status: val ? [val] : [],
+        area: [],
+        brand: []
+      }
+    }));
+  }
 
   async function patchStatus(id: string, status: string) {
     if (busy[id]) return;
@@ -129,11 +174,13 @@
     <div class="chips" role="group" aria-label="Status-Filter">
       {#each CHIPS as c}
         <button class="chip" class:active={statusFilter === c.value}
-          data-testid="status-chip" on:click={() => (statusFilter = c.value)}>{c.label}</button>
+          data-testid="status-chip" on:click={() => selectStatus(c.value)}>{c.label}</button>
       {/each}
     </div>
     <button class="create" data-testid="open-create" on:click={() => onOpenCreate?.()}>+ Ticket</button>
   </div>
+
+  <FilterBar currentFilter={$cockpitStore.filter} onApplyPreset={handleApplyPreset} />
 
   {#if feature}
     <h2 class="feature-title" data-testid="feature-title">

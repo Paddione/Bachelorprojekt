@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.112.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.111.0...website-v1.112.0) (2026-06-20)
+
+
+### Features
+
+* **tickets:** Ticket-Auto-Triage (Severity-Erkennung) [T000992] ([#1954](https://github.com/Paddione/Bachelorprojekt/issues/1954)) ([d4f7e98](https://github.com/Paddione/Bachelorprojekt/commit/d4f7e98ea9c0bcf73034c450c15b02eba232d515))
+
 ## [1.111.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.110.0...website-v1.111.0) (2026-06-20)
 
 

@@ -26,7 +26,11 @@ export default defineConfig({
         test: {
           name: 'node',
           environment: 'node',
-          include: ['src/**/*.{test,spec}.ts', 'tests/**/*.{test,spec}.ts', '../scripts/**/*.test.mjs'],
+          include: [
+            'src/**/*.{test,spec}.ts',
+            'tests/**/*.{test,spec}.ts',
+            '../scripts/openspec-embed.test.mjs',
+          ],
           exclude: ['node_modules/**', 'dist/**', ...COMPONENT_TESTS],
           globals: true,
           env: { VOYAGE_API_KEY: 'test-key' },

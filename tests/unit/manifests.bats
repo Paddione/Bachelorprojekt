@@ -162,8 +162,13 @@ all_images() {
 
 @test "all images have explicit tags or digests" {
   local untagged
-  # Images must have : (tag) or @ (digest)
-  untagged=$(all_images | grep -vE '[:@]' || true)
+  # Images must have : (tag) or @ (digest).
+  # Skip envsubst placeholders like ${STUDIO_IMAGE} — k3d/studio.yaml uses
+  # these for envsubst at deploy time (dev expands via configmap; prod overlay
+  # replaces the deployment with a digest-pinned copy). kustomize itself does
+  # not expand env vars, so the literal ${...} survives into the rendered
+  # output and would otherwise look "untagged".
+  untagged=$(all_images | grep -vE '[:@]' | grep -vE '^\$\{' || true)
   if [[ -n "$untagged" ]]; then
     echo "Untagged images: ${untagged}"
     return 1

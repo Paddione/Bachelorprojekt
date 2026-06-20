@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.109.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.108.2...website-v1.109.0) (2026-06-20)
+
+
+### Features
+
+* **admin:** implement cockpit mobile view support [T000987] ([#1948](https://github.com/Paddione/Bachelorprojekt/issues/1948)) ([f86f74f](https://github.com/Paddione/Bachelorprojekt/commit/f86f74f8848e52c209dd95156bbea3081e987727))
+
 ## [1.108.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.108.1...website-v1.108.2) (2026-06-20)
 
 

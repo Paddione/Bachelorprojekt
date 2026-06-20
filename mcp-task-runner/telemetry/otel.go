@@ -32,11 +32,13 @@ func Init(ctx context.Context, endpoint string) (func(), error) {
 		return func() {}, nil
 	}
 
+	// Fail-open pattern: Create trace exporter, check for error before using it
 	traceExp, err := otlptracegrpc.New(ctx, otlptracegrpc.WithGRPCConn(conn))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "otel: trace exporter: %v\n", err)
 		return func() {}, nil
 	}
+	// Only create and register TracerProvider if exporter creation succeeded
 	tp := sdktrace.NewTracerProvider(sdktrace.WithBatcher(traceExp))
 	otel.SetTracerProvider(tp)
 	tracer = tp.Tracer("mcp-task-runner")

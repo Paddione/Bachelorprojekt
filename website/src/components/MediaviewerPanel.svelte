@@ -3,6 +3,9 @@
   import type { HelpVideo } from '../lib/help-videos';
   import type { GrillingSessionData } from '../lib/tickets/final-grilling';
   import SessionsListView from './SessionsListView.svelte';
+  import SessionsHistory from './sessions/SessionsHistory.svelte';
+
+  let sessionsTab = $state<'active' | 'history'>('active');
 
   let {
     mediaviewerHost,
@@ -138,7 +141,31 @@
   {#if embedUrl}
     <iframe src={embedUrl} title="Session" allow="fullscreen"></iframe>
   {:else if mode === 'idle' && defaultView === 'sessions'}
-    <SessionsListView />
+    <div class="idle-sessions-container">
+      <div class="tabs">
+        <button
+          type="button"
+          class="tab-btn"
+          class:active={sessionsTab === 'active'}
+          onclick={() => sessionsTab = 'active'}
+        >
+          Aktive Sessions
+        </button>
+        <button
+          type="button"
+          class="tab-btn"
+          class:active={sessionsTab === 'history'}
+          onclick={() => sessionsTab = 'history'}
+        >
+          History
+        </button>
+      </div>
+      {#if sessionsTab === 'active'}
+        <SessionsListView />
+      {:else}
+        <SessionsHistory />
+      {/if}
+    </div>
   {:else}
     <iframe
       bind:this={iframeEl}
@@ -156,6 +183,41 @@
     display: flex;
     min-height: 0;
     background: #0b111c;
+  }
+  .idle-sessions-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #0f172a;
+    color: #f8fafc;
+    padding: 1rem;
+    overflow-y: auto;
+  }
+  .tabs {
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: 1px solid #334155;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .tab-btn {
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border-radius: 4px;
+    transition: all 0.2s;
+  }
+  .tab-btn:hover {
+    color: #f8fafc;
+    background: #1e293b;
+  }
+  .tab-btn.active {
+    color: #38bdf8;
+    background: #1e293b;
   }
   iframe {
     flex: 1;

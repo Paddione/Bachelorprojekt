@@ -59,7 +59,7 @@ depends_on_plans: []
 - Produces: Default-Export Svelte-Komponente mit Prop-Signatur
   `{ proposals: Array<{ slug: string; status: string }> }`. Wird in Task 2 von `[id].astro` als `<OpenSpecProposalsPanel client:load proposals={openspecProposals} />` konsumiert.
 
-- [ ] **Step 0 (TDD): Minimalen Vitest-Smoke-Test schreiben und FAIL verifizieren**
+- [x] **Step 0 (TDD): Minimalen Vitest-Smoke-Test schreiben und FAIL verifizieren**
 
 Erstelle `website/src/components/admin/__tests__/OpenSpecProposalsPanel.test.ts` mit folgendem Inhalt:
 
@@ -86,7 +86,7 @@ describe('OpenSpecProposalsPanel', () => {
 Run: `cd website && npx vitest run src/components/admin/__tests__/OpenSpecProposalsPanel.test.ts`
 Expected: FAIL — Datei `OpenSpecProposalsPanel.svelte` existiert noch nicht, daher schlägt der Import fehl.
 
-- [ ] **Step 1: Komponente schreiben**
+- [x] **Step 1: Komponente schreiben**
 
 Datei `website/src/components/admin/OpenSpecProposalsPanel.svelte` mit folgendem exakten Inhalt:
 
@@ -154,17 +154,17 @@ Datei `website/src/components/admin/OpenSpecProposalsPanel.svelte` mit folgendem
 </div>
 ```
 
-- [ ] **Step 2: Typecheck der Komponente**
+- [x] **Step 2: Typecheck der Komponente**
 
 Run: `cd website && pnpm exec svelte-check --tsconfig ./tsconfig.json --threshold error 2>&1 | tail -20`
 Expected: Kein Error, der `OpenSpecProposalsPanel.svelte` betrifft (vorbestehende Warnungen anderer Dateien ignorieren).
 
-- [ ] **Step 3: Zeilenbudget prüfen**
+- [x] **Step 3: Zeilenbudget prüfen**
 
 Run: `wc -l website/src/components/admin/OpenSpecProposalsPanel.svelte`
 Expected: ~70–80 Zeilen — deutlich unter dem `.svelte`-Limit 500.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add website/src/components/admin/OpenSpecProposalsPanel.svelte

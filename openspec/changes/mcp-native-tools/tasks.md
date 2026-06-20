@@ -1,6 +1,6 @@
 ---
 title: Tasks: mcp-native-tools
-ticket_id: null
+ticket_id: T000980
 domains: [website, infra, db, ops, test, security]
 status: active
 pr_number: null
@@ -11,13 +11,28 @@ parent_feature: null
 depends_on_plans: []
 ---
 
-# Tasks: mcp-native-tools
+# mcp-native-tools Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:executing-plans` (or `dev-flow-execute`) to implement this plan operation-by-operation. Steps use checkbox (`- [ ]`) syntax for tracking.
 >
 > **Goal:** Weave the running MCP servers (`mcp-postgres`, `mcp-kubernetes`, `mcp-keycloak`) into skills and the CLAUDE.md agent-routing table so agents prefer the MCP fast-path over `kubectl exec … psql` detours, with `kubectl` kept as the explicit fallback and as the mandatory path for DDL/superuser/write operations.
 >
 > **Architecture:** Pure documentation edits across 8 existing `.md` files plus one new reference doc. No code, no manifests, no tests change. Each edited skill gets an MCP-first directive *before* its existing `psql`/`kubectl` block; the existing block is relabeled as the fallback. A single new reference (`mcp-tool-guide.md`) is the SSOT for ports, tool names, the guard pattern, and the kubectl-only carve-outs; skills link to it instead of repeating prose.
+
+## File Structure
+
+**New files:**
+- `.claude/skills/references/mcp-tool-guide.md` — SSOT: MCP server table, portforward guard, kubectl carve-outs
+
+**Modified files (doc-only edits, no S1 limit for `.md`):**
+- `CLAUDE.md` — agent-routing table: new `MCP-Primär` column + guide pointer
+- `.claude/skills/dev-flow-execute/SKILL.md` — MCP fast-path before 3 staged-plans queries
+- `.claude/skills/dev-flow-plan/SKILL.md` — MCP fast-path before 2 staged-plans + planning-count queries
+- `.claude/skills/feature-intake/SKILL.md` — MCP fast-path before 3 ticket-pool queries
+- `.claude/skills/ticket-ops/SKILL.md` — MCP-first note above psql helper
+- `.claude/skills/mishap-tracker/SKILL.md` — MCP-first note above PSQL setup
+- `.claude/skills/incident-response/SKILL.md` — MCP-first note above SQL helper
+- `.claude/skills/database-ops/SKILL.md` — Tool-Auswahl section (MCP vs kubectl boundary)
 
 ## Global Constraints
 
@@ -51,6 +66,11 @@ The reference SHALL document, for each MCP server, the port, the MCP tool name(s
 - **GIVEN** an agent needs to run a database read, a k8s status check, or a Keycloak realm op
 - **WHEN** it reads `.claude/skills/references/mcp-tool-guide.md`
 - **THEN** it finds a table mapping server → port → tool name → use case, the guard command, and an explicit "stays kubectl" list (DDL-as-postgres, writes, `kubectl apply`/`rollout`, sealed-secrets/RBAC)
+
+- [ ] **Step 1.0: Verify the guide does not exist yet (pre-condition)**
+
+Run: `ls .claude/skills/references/mcp-tool-guide.md 2>&1`
+Expected: FAIL — "No such file or directory". If it already exists, inspect and reconcile before writing.
 
 - [ ] **Step 1.1: Write the new reference file**
 

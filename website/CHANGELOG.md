@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.114.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.114.0...website-v1.114.1) (2026-06-20)
+
+
+### Bug Fixes
+
+* **content-hub:** use service_page_config table for per-slug page content ([#1944](https://github.com/Paddione/Bachelorprojekt/issues/1944)) ([f424fe5](https://github.com/Paddione/Bachelorprojekt/commit/f424fe5d43d7e3afdfabc3a22ce8874dcc89d9f9))
+
 ## [1.114.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.113.1...website-v1.114.0) (2026-06-20)
 
 

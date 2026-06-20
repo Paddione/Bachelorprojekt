@@ -37,6 +37,9 @@ cmd_propose() {
   if [[ "${TICKET_OFFLINE:-0}" != "1" ]]; then
     bash "$TICKET_SH" update-status --id "$ticket" --status planning >/dev/null
   fi
+  if [[ "${TICKET_OFFLINE:-0}" != "1" ]]; then
+    bash "$HERE/openspec-status-map.sh" >/dev/null 2>&1 || true
+  fi
   echo "proposed: $dir (ticket $ticket, status planning)"
 }
 
@@ -48,6 +51,9 @@ cmd_apply() {
   [[ -f "$dir/tasks.md" ]] || die "change '$slug' has no tasks.md (not implementable)"
   if [[ "${TICKET_OFFLINE:-0}" != "1" && -f "$dir/.ticket" ]]; then
     bash "$TICKET_SH" update-status --id "$(cat "$dir/.ticket")" --status plan_staged >/dev/null
+  fi
+  if [[ "${TICKET_OFFLINE:-0}" != "1" ]]; then
+    bash "$HERE/openspec-status-map.sh" >/dev/null 2>&1 || true
   fi
   echo "applied: $slug (implementable)"
 }
@@ -72,6 +78,9 @@ cmd_archive() {
   fi
   mkdir -p "$(dirname "$dest")"
   mv "$dir" "$dest"
+  if [[ "${TICKET_OFFLINE:-0}" != "1" ]]; then
+    bash "$HERE/openspec-status-map.sh" >/dev/null 2>&1 || true
+  fi
   echo "archived: $slug -> $dest (delta merged into SSOT)"
 }
 

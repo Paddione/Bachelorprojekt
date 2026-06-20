@@ -204,6 +204,27 @@ env_vars:
     default_dev: "videovault.localhost"
     description: "Public host of the VideoVault service (e.g. videovault.korczewski.de)"
 
+  - name: STUDIO_DOMAIN
+    required: true
+    default_dev: "studio.localhost"
+    validate: "^[a-z0-9.-]+$"
+    description: "Public host of the Coaching Studio service (T001002). Dev: studio.localhost; prod: studio.${PROD_DOMAIN}."
+
+  - name: STUDIO_IMAGE
+    required: true
+    default_dev: "studio-server"
+    description: "Image (image:tag, image@digest) for the studio-server Deployment. workspace:deploy uses :latest; prod pins to digest."
+
+  - name: STUDIO_DB_URL
+    required: false
+    default_dev: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db:5432/website?sslmode=disable"
+    description: "Connection URL for the studio-server (shared-db `website` database, schema-prefixed as `studio.*`)."
+
+  - name: WHISPER_URL
+    required: false
+    default_dev: "http://whisper.workspace.svc.cluster.local:8000"
+    description: "In-cluster faster-whisper endpoint for coach-mic transcription."
+
   - name: RECOVER_DOMAIN
     required: true
     default_dev: "recover.localhost"
@@ -658,6 +679,12 @@ secrets:
     generate: true
     length: 48
     description: "Keycloak OIDC client secret for the videovault oauth2-proxy"
+
+  - name: STUDIO_OIDC_SECRET
+    required: true
+    generate: true
+    length: 40
+    description: "Keycloak OIDC client secret for the Coaching Studio oauth2-proxy (T001002). Gates studio.${PROD_DOMAIN} behind the /coach-access realm group."
 
   - name: COMFY_OIDC_SECRET
     required: true

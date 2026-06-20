@@ -33,6 +33,9 @@ resources:
   - mail-ingressroute-dev.yaml
   # Brett SSO gateway
   - oauth2-proxy-brett.yaml
+  # Coaching Studio (T001002) — studio.${PROD_DOMAIN} + studio.localhost
+  - studio.yaml
+  - oauth2-proxy-studio.yaml
   # ComfyUI SSO gateway
   - oauth2-proxy-comfy.yaml
   # Backup (SA-07)

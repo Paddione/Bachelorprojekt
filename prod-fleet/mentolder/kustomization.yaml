@@ -10,6 +10,7 @@ resources:
   - ../../prod-mentolder
   - ../../prod/monitoring
   - sessions-server.yaml
+  - studio.yaml
 components:
   - ../components/fleet-common
 

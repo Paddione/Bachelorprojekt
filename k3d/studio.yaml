@@ -1,0 +1,96 @@
+# ═══════════════════════════════════════════════════════════════════
+# Coaching Studio server — Express + Vite/React SPA
+# Persists to shared-db (website DB) under the `studio` schema.
+# Uses in-cluster LLM router (LM Studio OpenAI-compatible) + faster-whisper.
+# See openspec/changes/coaching-studio/ (T001002)
+# ═══════════════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: studio-server
+  labels:
+    app: studio-server
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: studio-server
+  template:
+    metadata:
+      labels:
+        app: studio-server
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      imagePullSecrets:
+        - name: ghcr-pull-secret
+      containers:
+        - name: studio-server
+          image: ${STUDIO_IMAGE}
+          imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
+          env:
+            - name: PORT
+              value: "8092"
+            - name: STUDIO_DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: STUDIO_DB_URL
+            - name: KEYCLOAK_ISSUER_MENTOLDER
+              value: "http://keycloak:8080/realms/workspace"
+            - name: LLM_ROUTER_URL
+              value: "${LLM_ROUTER_URL:-http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234}"
+            - name: WHISPER_URL
+              value: "${WHISPER_URL:-http://whisper.workspace.svc.cluster.local:8000}"
+            - name: LOG_LEVEL
+              value: "info"
+          ports:
+            - containerPort: 8092
+          readinessProbe:
+            httpGet: { path: /healthz, port: 8092 }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /healthz, port: 8092 }
+            initialDelaySeconds: 15
+            periodSeconds: 30
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: "100m"
+            limits:
+              memory: 512Mi
+              cpu: "500m"
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: studio-server
+  labels:
+    app: studio-server
+spec:
+  selector:
+    app: studio-server
+  ports:
+    - port: 80
+      targetPort: 8092

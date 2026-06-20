@@ -4284,6 +4284,23 @@ export async function initEurTables(): Promise<void> {
   eurTablesReady = true;
 }
 
+// ─── Service-page content store (per-slug) ────────────────────────────────────
+
+async function initServicePageConfigTable(): Promise<void> {
+  return ensureSchemaOnce('service_page_config', async () => {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS service_page_config (
+        brand        TEXT NOT NULL REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT,
+        slug         TEXT NOT NULL,
+        page_content JSONB,
+        version      INTEGER NOT NULL DEFAULT 0,
+        updated_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+        PRIMARY KEY (brand, slug)
+      )
+    `);
+  });
+}
+
 // ─── Content-Store accessors (T000306) ────────────────────────────────────────
 
 export interface ContentRead { value: any | null; version: number }
@@ -4330,8 +4347,9 @@ async function liveRead(
         : { value: null, version: 0 };
     }
     case 'service': {
+      await initServicePageConfigTable();
       const r = await client.query(
-        'SELECT page_content, version FROM service_config WHERE brand=$1 AND slug=$2',
+        'SELECT page_content, version FROM service_page_config WHERE brand=$1 AND slug=$2',
         [brand, ref.storeKey],
       );
       return r.rows.length
@@ -4375,9 +4393,10 @@ async function liveWrite(
       );
       return;
     case 'service':
+      await initServicePageConfigTable();
       await client.query(
-        `INSERT INTO service_config (brand, slug, page_content, version) VALUES ($1,$2,$3,$4)
-         ON CONFLICT (brand, slug) DO UPDATE SET page_content=$3, version=$4`,
+        `INSERT INTO service_page_config (brand, slug, page_content, version, updated_at) VALUES ($1,$2,$3,$4,now())
+         ON CONFLICT (brand, slug) DO UPDATE SET page_content=$3, version=$4, updated_at=now()`,
         [brand, ref.storeKey, JSON.stringify(value), version],
       );
       return;

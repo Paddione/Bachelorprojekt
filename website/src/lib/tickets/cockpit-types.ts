@@ -3,6 +3,13 @@
 
 export type HealthStatus = 'green' | 'amber' | 'red';
 
+export type OpenSpecStatus = 'planning' | 'plan_staged' | 'archived';
+
+export interface OpenSpecProposal {
+  slug: string;
+  status: OpenSpecStatus;
+}
+
 export interface RollupMetrics {
   total: number;
   done: number;
@@ -57,6 +64,7 @@ export interface TicketRow {
   description?: string;
   component?: string;
   createdAt?: string;
+  openspecProposals?: OpenSpecProposal[];
 }
 
 export interface FeatureTickets {

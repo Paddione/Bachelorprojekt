@@ -15,7 +15,7 @@ import { generateMeetingInsights } from '../../../lib/claude';
 //   customerName, customerEmail, meetingType,
 //   transcript?, artifacts?, roomToken?
 // }
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   let customerName = '';
   const errors: string[] = [];
   const results: string[] = [];
@@ -224,7 +224,7 @@ export const POST: APIRoute = async ({ request }) => {
     );
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error('Finalize meeting error:', err);
+    locals.requestLogger.error({ err }, 'Finalize meeting error:');
     return new Response(
       JSON.stringify({ error: 'Interner Serverfehler.', detail: msg }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }

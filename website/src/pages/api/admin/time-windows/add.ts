@@ -4,7 +4,7 @@ import { addFreeTimeWindow } from '../../../../lib/website-db';
 
 const BRAND = process.env.BRAND || 'mentolder';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
   if (!isAdmin(session)) return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { 'Content-Type': 'application/json' } });
@@ -20,7 +20,7 @@ export const POST: APIRoute = async ({ request }) => {
     const id = await addFreeTimeWindow(BRAND, date, winStart, winEnd);
     return new Response(JSON.stringify({ id }), { status: 200, headers: { 'Content-Type': 'application/json' } });
   } catch (err) {
-    console.error('[time-windows/add]', err);
+    locals.requestLogger.error({ err }, '[time-windows/add]');
     return new Response(JSON.stringify({ error: 'Interner Serverfehler.' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
 };

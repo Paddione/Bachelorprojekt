@@ -21,7 +21,7 @@ const json = (body: unknown, status = 200) =>
 
 export const prerender = false;
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return json({ error: 'unauthorized' }, 401);
 
@@ -143,7 +143,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     return json({ book: bookRes.rows[0] });
   } catch (err) {
-    console.error('[upload] book ingestion failed:', err);
+    locals.requestLogger.error({ err }, '[upload] book ingestion failed:');
     const msg = err instanceof Error ? err.message : 'internal error';
     if (msg.includes('voyage') && msg.includes('429')) {
       return json({ error: 'Embedding-Dienst überlastet — bitte in 60 Sekunden erneut versuchen.' }, 429);

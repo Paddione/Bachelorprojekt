@@ -45,7 +45,7 @@ export interface BoardResponse {
   undelivered: number;
 }
 
-export const GET: APIRoute = async ({ request }) => {
+export const GET: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) {
     return new Response(JSON.stringify({ error: 'unauthorized' }), {
@@ -89,7 +89,7 @@ export const GET: APIRoute = async ({ request }) => {
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error('[admin/systemtest/board] query failed:', msg);
+    locals.requestLogger.error({ msg }, '[admin/systemtest/board] query failed:');
     return new Response(JSON.stringify({ error: 'board query failed' }), {
       status: 500,
       headers: { 'content-type': 'application/json' },

@@ -5,7 +5,7 @@ import { updateCustomerCrm, CUSTOMER_STATUSES, type CustomerStatus } from '../..
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return json({ error: 'Unauthorized' }, 401);
 
@@ -31,7 +31,7 @@ export const POST: APIRoute = async ({ request }) => {
     customer_status: body.customer_status,
     acquisition_source: body.acquisition_source,
     tags: body.tags,
-  }).catch((e) => { console.error('[update-crm] db error', e); return false; });
+  }).catch((e) => { locals.requestLogger.error({ e }, '[update-crm] db error'); return false; });
   if (!ok) return json({ error: 'Kein Kundenprofil gefunden oder Speichern fehlgeschlagen.' }, 404);
 
   return json({ ok: true });

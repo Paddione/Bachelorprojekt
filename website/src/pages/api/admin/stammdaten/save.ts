@@ -5,7 +5,7 @@ import type { Stammdaten } from '../../../../lib/website-db';
 
 // Persists the brand master-data (name, role, contact, address, UStId, …) as a
 // JSON site_setting. Hero, footer, Kontakt and Impressum read these at render.
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response('Forbidden', { status: 403 });
 
@@ -24,7 +24,7 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     await setJsonSetting(BRAND, STAMMDATEN_KEY, body);
   } catch (err) {
-    console.error('[stammdaten/save] DB error:', err);
+    locals.requestLogger.error({ err }, '[stammdaten/save] DB error:');
     return new Response(JSON.stringify({ error: 'DB error' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
   return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });

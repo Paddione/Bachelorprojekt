@@ -4,7 +4,7 @@ import { searchCode, searchCodeAugmented } from '../../lib/codesearch-db';
 
 export const prerender = false;
 
-export const GET: APIRoute = async ({ request, url }) => {
+export const GET: APIRoute = async ({ request, url , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
@@ -40,7 +40,7 @@ export const GET: APIRoute = async ({ request, url }) => {
         headers: { 'content-type': 'application/json' },
       });
     }
-    console.error('[api/codesearch]', err);
+    locals.requestLogger.error({ err }, '[api/codesearch]');
     return new Response(JSON.stringify({ error: 'search failed' }), {
       status: 500,
       headers: { 'content-type': 'application/json' },

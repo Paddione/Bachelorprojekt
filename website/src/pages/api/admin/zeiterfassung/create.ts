@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { createTimeEntry } from '../../../../lib/website-db';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response(null, { status: 403 });
 
@@ -47,7 +47,7 @@ export const POST: APIRoute = async ({ request }) => {
       entryDate: entryDate || undefined,
     });
   } catch (err) {
-    console.error('[api/zeiterfassung/create]', err);
+    locals.requestLogger.error({ err }, '[api/zeiterfassung/create]');
     const dest = back || '/admin/zeiterfassung';
     return new Response(null, {
       status: 302,

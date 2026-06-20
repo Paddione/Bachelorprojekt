@@ -8,7 +8,7 @@ function jsonError(msg: string, status: number) {
   });
 }
 
-export const DELETE: APIRoute = async ({ request }) => {
+export const DELETE: APIRoute = async ({ request , locals }) => {
   const cronSecret = request.headers.get('X-Cron-Secret');
   const isCron = !!cronSecret && cronSecret === process.env.CRON_SECRET;
   const session = await getSession(request.headers.get('cookie'));
@@ -89,7 +89,7 @@ export const DELETE: APIRoute = async ({ request }) => {
       client.release();
     }
   } catch (err) {
-    console.error('[testdata/purge]', err);
+    locals.requestLogger.error({ err }, '[testdata/purge]');
     return jsonError('Fehler beim Löschen der Testdaten', 500);
   }
 };

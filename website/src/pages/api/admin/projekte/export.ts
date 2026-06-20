@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { exportProjectsFlat } from '../../../../lib/website-db';
 
-export const GET: APIRoute = async ({ request, url }) => {
+export const GET: APIRoute = async ({ request, url , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response(null, { status: 403 });
 
@@ -12,7 +12,7 @@ export const GET: APIRoute = async ({ request, url }) => {
   try {
     rows = await exportProjectsFlat(brand);
   } catch (err) {
-    console.error('[projekte/export]', err);
+    locals.requestLogger.error({ err }, '[projekte/export]');
     return new Response('Datenbankfehler', { status: 500 });
   }
 

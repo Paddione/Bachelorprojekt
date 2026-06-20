@@ -4,7 +4,7 @@ import { deleteProjectAttachmentRecord } from '../../../../../lib/website-db';
 import { deleteFile } from '../../../../../lib/nextcloud-files';
 import { siteRedirect } from '../../../../../lib/redirect';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response(null, { status: 403 });
 
@@ -18,10 +18,10 @@ export const POST: APIRoute = async ({ request }) => {
     const ncPath = await deleteProjectAttachmentRecord(id);
     if (ncPath) {
       // Best-effort: don't fail the request if Nextcloud delete errors
-      deleteFile(ncPath).catch(err => console.error('[attachments/delete] nc', err));
+      deleteFile(ncPath).catch(err => locals.requestLogger.error({ err }, '[attachments/delete] nc'));
     }
   } catch (err) {
-    console.error('[attachments/delete] db', err);
+    locals.requestLogger.error({ err }, '[attachments/delete] db');
     return siteRedirect(`${back}?error=Fehler+beim+Löschen`);
   }
 

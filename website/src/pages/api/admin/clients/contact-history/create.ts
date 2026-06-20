@@ -5,7 +5,7 @@ import { addContactHistoryEntry, CONTACT_TYPES, type ContactType } from '../../.
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return json({ error: 'Unauthorized' }, 401);
 
@@ -33,7 +33,7 @@ export const POST: APIRoute = async ({ request }) => {
     content: body.content?.trim(),
     direction: body.direction,
     adminId: session.sub,
-  }).catch((e) => { console.error('[contact-history/create] db error', e); return null; });
+  }).catch((e) => { locals.requestLogger.error({ e }, '[contact-history/create] db error'); return null; });
   if (!entry) return json({ error: 'Speichern fehlgeschlagen.' }, 500);
 
   return json({ ok: true, entry });

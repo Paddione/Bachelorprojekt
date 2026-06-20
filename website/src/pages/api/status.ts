@@ -18,7 +18,7 @@ function isRateLimited(ip: string): boolean {
   return false;
 }
 
-export const GET: APIRoute = async ({ request }) => {
+export const GET: APIRoute = async ({ request , locals }) => {
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim()
     ?? request.headers.get('x-real-ip')
     ?? 'unknown';
@@ -61,7 +61,7 @@ export const GET: APIRoute = async ({ request }) => {
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (err) {
-    console.error('[status] DB lookup failed:', err);
+    locals.requestLogger.error({ err }, '[status] DB lookup failed:');
     return new Response(
       JSON.stringify({ error: 'Interner Serverfehler.' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }

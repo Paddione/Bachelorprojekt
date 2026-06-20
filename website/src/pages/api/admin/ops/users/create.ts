@@ -7,7 +7,7 @@ import { sanitizeForLog } from '../../../../../lib/sanitize';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session) return new Response(JSON.stringify({ error: 'Bitte erneut anmelden' }), { status: 401 });
   if (!isAdmin(session)) return new Response(JSON.stringify({ error: 'Keine Berechtigung' }), { status: 403 });
@@ -58,7 +58,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
     const msg = sanitizeForLog((err as Error).message);
     if (actionId !== null) await finishAction(platformPool, actionId, { status: 'failed', error: msg }).catch(() => {});
-    console.error('[ops/users/create]', err);
+    locals.requestLogger.error({ err }, '[ops/users/create]');
     return new Response(JSON.stringify({ error: 'Anlage fehlgeschlagen: ' + msg.slice(0, 200) }), { status: 500 });
   }
 };

@@ -3,7 +3,7 @@ import { getSession, isAdmin } from '../../../../../lib/auth';
 import { getProjectAttachment } from '../../../../../lib/website-db';
 import { downloadFile } from '../../../../../lib/nextcloud-files';
 
-export const GET: APIRoute = async ({ request, url }) => {
+export const GET: APIRoute = async ({ request, url , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response(null, { status: 403 });
 
@@ -14,7 +14,7 @@ export const GET: APIRoute = async ({ request, url }) => {
   try {
     attachment = await getProjectAttachment(id);
   } catch (err) {
-    console.error('[attachments/download] db', err);
+    locals.requestLogger.error({ err }, '[attachments/download] db');
     return new Response('Internal error', { status: 500 });
   }
 
@@ -24,7 +24,7 @@ export const GET: APIRoute = async ({ request, url }) => {
   try {
     buffer = await downloadFile(attachment.ncPath);
   } catch (err) {
-    console.error('[attachments/download] nc', err);
+    locals.requestLogger.error({ err }, '[attachments/download] nc');
     return new Response('Download failed', { status: 502 });
   }
 

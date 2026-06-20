@@ -7,7 +7,7 @@ import { checkRateLimit, getClientIp } from '../../lib/rate-limit';
 const BRAND_NAME = process.env.BRAND_NAME || 'Workspace';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const ip = getClientIp(request);
   if (!checkRateLimit(`dsgvo:${ip}`, 3, 3_600_000)) {
     return new Response(JSON.stringify({ error: 'Zu viele Anfragen. Bitte warten Sie eine Stunde.' }), {
@@ -46,7 +46,7 @@ export const POST: APIRoute = async ({ request }) => {
       to: email,
       subject: `Ihre ${subject} bei ${BRAND_NAME}`,
       text: `Hallo ${name},\n\nwir haben Ihre ${subject} erhalten und werden diese innerhalb von 30 Tagen bearbeiten.\n\nFristdatum: ${deadline}\nRechtsgrundlage: Art. ${articleNum} DSGVO\n\nMit freundlichen Grüßen\n${BRAND_NAME}`,
-    }).catch(err => console.error('[dsgvo-request] Failed to send confirmation email:', err));
+    }).catch(err => locals.requestLogger.error({ err }, '[dsgvo-request] Failed to send confirmation email:'));
 
     // 3. Admin-Benachrichtigung (best-effort)
     sendAdminNotification({
@@ -54,13 +54,13 @@ export const POST: APIRoute = async ({ request }) => {
       subject: `[DSGVO] ${subject} von ${name}`,
       text: `${subject}\n\nName: ${name}\nE-Mail: ${email}\nEingegangen: ${new Date().toLocaleString('de-DE')}\nFrist: ${deadline}\n\nBitte bearbeiten Sie diese Anfrage innerhalb von 30 Tagen gemäß Art. ${articleNum} DSGVO.`,
       replyTo: email,
-    }).catch(err => console.error('[dsgvo-request] Failed to send admin notification:', err));
+    }).catch(err => locals.requestLogger.error({ err }, '[dsgvo-request] Failed to send admin notification:'));
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200, headers: { 'Content-Type': 'application/json' },
     });
   } catch (err) {
-    console.error('[dsgvo-request] Error:', err);
+    locals.requestLogger.error({ err }, '[dsgvo-request] Error:');
     return new Response(JSON.stringify({ error: 'Interner Fehler.' }), {
       status: 500, headers: { 'Content-Type': 'application/json' },
     });

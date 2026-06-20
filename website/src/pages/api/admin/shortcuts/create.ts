@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { createAdminShortcut } from '../../../../lib/website-db';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) {
     return new Response(JSON.stringify({ error: 'Forbidden' }), {
@@ -43,7 +43,7 @@ export const POST: APIRoute = async ({ request }) => {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (err) {
-    console.error('[shortcuts/create]', err);
+    locals.requestLogger.error({ err }, '[shortcuts/create]');
     return new Response(JSON.stringify({ error: 'DB error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },

@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { deleteAdminShortcut } from '../../../../lib/website-db';
 
-export const DELETE: APIRoute = async ({ request }) => {
+export const DELETE: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) {
     return new Response(JSON.stringify({ error: 'Forbidden' }), {
@@ -35,7 +35,7 @@ export const DELETE: APIRoute = async ({ request }) => {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (err) {
-    console.error('[shortcuts/delete]', err);
+    locals.requestLogger.error({ err }, '[shortcuts/delete]');
     return new Response(JSON.stringify({ error: 'DB error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },

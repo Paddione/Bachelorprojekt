@@ -16,7 +16,7 @@ const TYPE_LABELS: Record<string, string> = {
   termin: 'Termin vor Ort',
 };
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const ip = getClientIp(request);
   if (!checkRateLimit(`booking:${ip}`, 5, 60_000)) {
     return new Response(JSON.stringify({ error: 'Zu viele Anfragen. Bitte warten Sie einen Moment.' }), {
@@ -105,7 +105,7 @@ export const POST: APIRoute = async ({ request }) => {
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (err) {
-    console.error('Booking error:', err);
+    locals.requestLogger.error({ err }, 'Booking error:');
     return new Response(
       JSON.stringify({ error: 'Interner Serverfehler.' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }

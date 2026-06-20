@@ -14,7 +14,7 @@ const BRAND_NAME = process.env.BRAND_NAME || 'Workspace';
 const PROD_DOMAIN = process.env.PROD_DOMAIN || '';
 const SITE_URL   = process.env.SITE_URL || '';
 
-export const POST: APIRoute = async ({ request, params }) => {
+export const POST: APIRoute = async ({ request, params , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
@@ -78,7 +78,7 @@ export const POST: APIRoute = async ({ request, params }) => {
         await sendPasswordResetEmail(userId);
         // Emails are best-effort — upsertCustomer and inbox update must still succeed
         sendRegistrationApproved(p.email, fullName).catch(err =>
-          console.error('[approve_registration] Failed to send approval email:', err)
+          locals.requestLogger.error({ err }, '[approve_registration] Failed to send approval email:')
         );
         await upsertCustomer({ name: fullName, email: p.email, phone: p.phone, company: p.company, keycloakUserId: userId });
         await updateInboxItemStatus(id, 'actioned', session.preferred_username);
@@ -144,7 +144,7 @@ export const POST: APIRoute = async ({ request, params }) => {
           scheduledAt: meetingStart,
           talkRoomToken: room?.token ?? undefined,
           projectId: p.projectId ?? undefined,
-        }).catch(err => { console.error('[approve_booking] Failed to create meeting record:', err); return null; });
+        }).catch(err => { locals.requestLogger.error({ err }, '[approve_booking] Failed to create meeting record:'); return null; });
 
         // Auto-post the systemisches Brett link into the new Talk room (idempotent).
         try {
@@ -154,7 +154,7 @@ export const POST: APIRoute = async ({ request, params }) => {
             await sendChatMessage(room.token, `🎯 Systemisches Brett für diese Sitzung: ${url}`);
           }
         } catch (err) {
-          console.error('[brett] auto-post failed (non-fatal):', err);
+          locals.requestLogger.error({ err }, '[brett] auto-post failed (non-fatal):');
         }
 
         const svcKey = (p.serviceKey ?? p.leistungKey) as ServiceKey | undefined;
@@ -167,7 +167,7 @@ export const POST: APIRoute = async ({ request, params }) => {
               statusParts.push(`Rechnung erstellt: ${invoice.number}`);
               if (calEvent) {
                 await setBookingInvoice(calEvent.uid, brand, invoice.id, invoice.number, invoice.amountDue).catch(err =>
-                  console.error('[approve_booking] Failed to link invoice to booking:', err)
+                  locals.requestLogger.error({ err }, '[approve_booking] Failed to link invoice to booking:')
                 );
               }
             }
@@ -176,7 +176,7 @@ export const POST: APIRoute = async ({ request, params }) => {
             // Talk room, calendar event, and confirmation email are already
             // committed at this point. Log it and surface a status hint so the
             // caller still gets HTTP 200 with details.
-            console.error('[approve_booking] Failed to create billing invoice:', err);
+            locals.requestLogger.error({ err }, '[approve_booking] Failed to create billing invoice:');
             statusParts.push('Rechnung konnte nicht erstellt werden (siehe Logs)');
           }
         }
@@ -257,7 +257,7 @@ export const POST: APIRoute = async ({ request, params }) => {
         return new Response(JSON.stringify({ error: `Unbekannte Aktion: ${action}` }), { status: 400 });
     }
   } catch (err) {
-    console.error(`[inbox action ${action}] id=${id}`, err);
+    locals.requestLogger.error({ err }, '[inbox action ${action}] id=${id}');
     return new Response(JSON.stringify({ error: 'Interner Serverfehler.' }), { status: 500 });
   }
 };

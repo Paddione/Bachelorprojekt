@@ -3,7 +3,7 @@ import { getSession, isAdmin } from '../../../../lib/auth';
 import { resolveBugTicket } from '../../../../lib/website-db';
 import { buildBackUrl, buildErrorUrl } from './_helpers';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) {
     return new Response(null, { status: 403 });
@@ -50,7 +50,7 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     await resolveBugTicket(ticketId, resolutionNote, { label: session.preferred_username });
   } catch (err) {
-    console.error('[bugs/resolve] DB error:', err);
+    locals.requestLogger.error({ err }, '[bugs/resolve] DB error:');
     if (isJson) {
       return new Response(JSON.stringify({ error: 'Datenbankfehler' }), { status: 500 });
     }

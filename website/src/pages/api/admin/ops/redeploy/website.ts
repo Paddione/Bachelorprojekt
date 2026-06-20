@@ -9,7 +9,7 @@ const CLUSTERS = ['mentolder', 'korczewski'] as const;
 type Cluster = typeof CLUSTERS[number];
 const NS: Record<Cluster, string> = { mentolder: 'website', korczewski: 'website-korczewski' };
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session) return new Response(JSON.stringify({ error: 'Bitte erneut anmelden' }), { status: 401 });
   if (!isAdmin(session)) return new Response(JSON.stringify({ error: 'Keine Berechtigung für diese Aktion' }), { status: 403 });
@@ -48,7 +48,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (actionId !== null) {
       await finishAction(platformPool, actionId, { status: 'failed', error: msg }).catch(() => {});
     }
-    console.error('[ops/redeploy/website]', err);
+    locals.requestLogger.error({ err }, '[ops/redeploy/website]');
     return new Response(JSON.stringify({ error: `Aktion fehlgeschlagen: ${msg.slice(0, 200)}` }), { status: 500 });
   }
 };

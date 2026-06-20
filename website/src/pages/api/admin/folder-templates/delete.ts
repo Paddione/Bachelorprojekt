@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { deleteTemplate } from '../../../../lib/folder-templates-db';
 
-export const POST: APIRoute = async ({ request, redirect }) => {
+export const POST: APIRoute = async ({ request, redirect , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response(null, { status: 403 });
 
@@ -18,7 +18,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
       return redirect('/admin/einstellungen/ordner-templates?error=Standard-Template+kann+nicht+gel%F6scht+werden', 303);
     }
   } catch (err) {
-    console.error('[folder-templates/delete]', err);
+    locals.requestLogger.error({ err }, '[folder-templates/delete]');
     return redirect('/admin/einstellungen/ordner-templates?error=DB-Fehler', 303);
   }
 

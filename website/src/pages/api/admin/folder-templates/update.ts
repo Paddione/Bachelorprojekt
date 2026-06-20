@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { updateTemplate, validateStructure } from '../../../../lib/folder-templates-db';
 
-export const POST: APIRoute = async ({ request, redirect }) => {
+export const POST: APIRoute = async ({ request, redirect , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response(null, { status: 403 });
 
@@ -24,7 +24,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
   try {
     await updateTemplate(brand, id, { name, folders: validation.folders!, isDefault });
   } catch (err) {
-    console.error('[folder-templates/update]', err);
+    locals.requestLogger.error({ err }, '[folder-templates/update]');
     return redirect('/admin/einstellungen/ordner-templates?error=DB-Fehler', 303);
   }
 

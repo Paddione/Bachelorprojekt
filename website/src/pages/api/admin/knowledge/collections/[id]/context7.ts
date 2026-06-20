@@ -6,14 +6,14 @@ import { getCollection } from '../../../../../../lib/knowledge-db';
 
 const activeIngests = new Set<string>();
 
-export const POST: APIRoute = async ({ request, params }) => {
+export const POST: APIRoute = async ({ request, params , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response('Unauthorized', { status: 401 });
 
   const id = params.id!;
 
   const c = await getCollection(id);
-  if (!c) return new Response(JSON.stringify({ error: 'not_found' }), { status: 404 });
+  if (!c) return errorResponse('not_found', locals.requestId, 404);
   if (c.source !== 'context7_docs') {
     return new Response(
       JSON.stringify({ error: 'Nur context7_docs-Sammlungen können über diesen Endpunkt indiziert werden' }),
@@ -61,9 +61,9 @@ export const POST: APIRoute = async ({ request, params }) => {
   child.on('close', (code: number | null) => {
     activeIngests.delete(id);
     if (code !== 0) {
-      console.error(`[context7] ${id} exited with code ${code}`);
+      locals.requestLogger.error(`[context7] ${id} exited with code ${code}`);
     } else {
-      console.log(`[context7] ${id} completed successfully`);
+      locals.requestLogger.info(`[context7] ${id} completed successfully`);
     }
   });
 
@@ -73,7 +73,7 @@ export const POST: APIRoute = async ({ request, params }) => {
   );
 };
 
-export const GET: APIRoute = async ({ request, params }) => {
+export const GET: APIRoute = async ({ request, params , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response('Unauthorized', { status: 401 });
   const id = params.id!;

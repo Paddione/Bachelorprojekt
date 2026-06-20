@@ -28,7 +28,7 @@ function jsonError(status: number, error: string) {
   });
 }
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session) return jsonError(401, 'Unauthorized');
   if (!isAdmin(session)) return jsonError(403, 'Forbidden');
@@ -84,7 +84,7 @@ export const POST: APIRoute = async ({ request }) => {
       });
       if (!result) calendarPersisted = false;
     } catch (err) {
-      console.error('[admin/meetings/create] CalDAV persist failed:', err);
+      locals.requestLogger.error({ err }, '[admin/meetings/create] CalDAV persist failed:');
       calendarPersisted = false;
     }
 
@@ -101,7 +101,7 @@ export const POST: APIRoute = async ({ request }) => {
       brand: BRAND_NAME,
     }), { status: 200, headers: { 'Content-Type': 'application/json' } });
   } catch (err) {
-    console.error('[api/admin/meetings/create]', err);
+    locals.requestLogger.error({ err }, '[api/admin/meetings/create]');
     return jsonError(500, 'Interner Serverfehler beim Anlegen des Meetings.');
   }
 };

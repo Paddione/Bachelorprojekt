@@ -4,7 +4,7 @@ import { createProject } from '../../../../lib/website-db';
 import { siteRedirect } from '../../../../lib/redirect';
 import { getTemplate, materializeTemplate } from '../../../../lib/folder-templates-db';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response(null, { status: 403 });
 
@@ -29,7 +29,7 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     id = await createProject({ brand, name, description, notes, startDate, dueDate, status, priority, customerId, adminId });
   } catch (err) {
-    console.error('[projekte/create]', err);
+    locals.requestLogger.error({ err }, '[projekte/create]');
     return siteRedirect('/admin/projekte?error=Datenbankfehler');
   }
 

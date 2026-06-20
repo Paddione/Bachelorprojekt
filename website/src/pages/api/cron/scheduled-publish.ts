@@ -9,15 +9,15 @@ import {
 
 const CRON_SECRET = process.env.CRON_SECRET ?? '';
 
-export const GET: APIRoute = async ({ request }) => {
+export const GET: APIRoute = async ({ request , locals }) => {
   const auth = request.headers.get('authorization') ?? '';
   if (!CRON_SECRET || auth !== `Bearer ${CRON_SECRET}`) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+    return errorResponse('Unauthorized', locals.requestId, 401);
   }
 
   try {
     const reset = await resetStaleSendingCampaigns();
-    if (reset > 0) console.log(`[scheduled-publish] reset ${reset} stale sending campaigns`);
+    if (reset > 0) locals.requestLogger.info(`[scheduled-publish] reset ${reset} stale sending campaigns`);
 
     const dueIds = await listDueCampaignIds();
     let processed = 0;
@@ -42,12 +42,12 @@ export const GET: APIRoute = async ({ request }) => {
       }
     }
 
-    console.log(`[scheduled-publish] processed=${processed} sent=${sent} errors=${errors.length}`);
+    locals.requestLogger.info(`[scheduled-publish] processed=${processed} sent=${sent} errors=${errors.length}`);
     return new Response(JSON.stringify({ processed, sent, errors }), {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (err) {
-    console.error('[scheduled-publish]', err);
-    return new Response(JSON.stringify({ error: 'Internal error' }), { status: 500 });
+    locals.requestLogger.error({ err }, '[scheduled-publish]');
+    return errorResponse('Internal error', locals.requestId);
   }
 };

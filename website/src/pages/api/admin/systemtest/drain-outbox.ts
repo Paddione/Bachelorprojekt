@@ -14,7 +14,7 @@ import { drainOutbox } from '../../../../lib/systemtest/cleanup';
 import { runReconciler } from '../../../../lib/systemtest/reconciler';
 import { ensureQuestionnaireSchemaOnce } from '../../../../lib/questionnaire-db';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const cronSecret = request.headers.get('X-Cron-Secret');
   const session = await getSession(request.headers.get('cookie'));
   const isCron = !!cronSecret && cronSecret === process.env.CRON_SECRET;
@@ -37,7 +37,7 @@ export const POST: APIRoute = async ({ request }) => {
     );
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
-    console.error('[systemtest/drain-outbox] failed:', msg);
+    locals.requestLogger.error({ msg }, '[systemtest/drain-outbox] failed:');
     return new Response(JSON.stringify({ error: msg }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },

@@ -7,7 +7,7 @@ import { randomUUID } from 'node:crypto';
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response(null, { status: 403 });
 
@@ -34,7 +34,7 @@ export const POST: APIRoute = async ({ request }) => {
     await uploadFile(ncPath, buffer, mimeType);
     await createProjectAttachment({ projectId, filename: file.name, ncPath, mimeType, fileSize: file.size });
   } catch (err) {
-    console.error('[attachments/upload]', err);
+    locals.requestLogger.error({ err }, '[attachments/upload]');
     return siteRedirect(`${back}?error=Upload+fehlgeschlagen`);
   }
 

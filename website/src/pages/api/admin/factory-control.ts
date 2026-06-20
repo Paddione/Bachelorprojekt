@@ -64,7 +64,7 @@ function authGuard(session: Awaited<ReturnType<typeof getSession>>): Response | 
   return null;
 }
 
-export const GET: APIRoute = async ({ request }) => {
+export const GET: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   const guard = authGuard(session);
   if (guard) return guard;
@@ -76,7 +76,7 @@ export const GET: APIRoute = async ({ request }) => {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (err) {
-    console.error('[api/admin/factory-control] GET error:', err);
+    locals.requestLogger.error({ err }, '[api/admin/factory-control] GET error:');
     return new Response(JSON.stringify({ error: 'fetch_failed' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
@@ -84,7 +84,7 @@ export const GET: APIRoute = async ({ request }) => {
   }
 };
 
-export const PATCH: APIRoute = async ({ request }) => {
+export const PATCH: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   const guard = authGuard(session);
   if (guard) return guard;
@@ -138,7 +138,7 @@ export const PATCH: APIRoute = async ({ request }) => {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (err) {
-    console.error('[api/admin/factory-control] PATCH error:', err);
+    locals.requestLogger.error({ err }, '[api/admin/factory-control] PATCH error:');
     return new Response(JSON.stringify({ error: 'update_failed' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },

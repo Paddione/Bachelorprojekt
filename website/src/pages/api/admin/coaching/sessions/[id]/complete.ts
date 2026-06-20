@@ -6,7 +6,7 @@ import { pool } from '../../../../../../lib/website-db';
 
 export const prerender = false;
 
-export const POST: APIRoute = async ({ request, params }) => {
+export const POST: APIRoute = async ({ request, params , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response('Unauthorized', { status: 401 });
 
@@ -45,7 +45,7 @@ Maximal 600 Wörter. Konkret und handlungsorientiert.`,
       });
       report = msg.content.filter((b): b is Anthropic.TextBlock => b.type === 'text').map(b => b.text).join('');
     } catch (err) {
-      console.error('[coaching/complete] Report generation failed:', err);
+      locals.requestLogger.error({ err }, '[coaching/complete] Report generation failed:');
     }
   }
 

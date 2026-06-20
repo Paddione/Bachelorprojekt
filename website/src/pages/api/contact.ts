@@ -16,7 +16,7 @@ const TYPE_LABELS: Record<string, string> = {
   feedback: 'Feedback',
 };
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const ip = getClientIp(request);
   if (!checkRateLimit(`contact:${ip}`, 5, 60_000)) {
     return new Response(JSON.stringify({ error: 'Zu viele Anfragen. Bitte warten Sie einen Moment.' }), {
@@ -57,14 +57,14 @@ export const POST: APIRoute = async ({ request }) => {
       replyTo: email,
       text: `Neue Anfrage über das Kontaktformular auf ${BRAND_NAME}.\n\nName: ${name}\nE-Mail: ${email}${phoneInfo}\nTyp: ${typeLabel}\n\nNachricht:\n${message}`,
       html: `<p><strong>Neue Anfrage über das Kontaktformular auf ${BRAND_NAME}.</strong></p><p>Name: ${name}<br>E-Mail: <a href="mailto:${email}">${email}</a>${phone ? `<br>Telefon: ${phone}` : ''}<br>Typ: ${typeLabel}</p><p><strong>Nachricht:</strong><br>${message.replace(/\n/g, '<br>')}</p>`,
-    }).catch(err => console.error('[contact] Failed to send admin notification:', err));
+    }).catch(err => locals.requestLogger.error({ err }, '[contact] Failed to send admin notification:'));
 
     return new Response(
       JSON.stringify({ success: true }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (err) {
-    console.error('Contact form error:', err);
+    locals.requestLogger.error({ err }, 'Contact form error:');
     return new Response(
       JSON.stringify({ error: 'Interner Serverfehler.' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }

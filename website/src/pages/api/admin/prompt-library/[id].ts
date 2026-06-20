@@ -14,7 +14,7 @@ function json(body: unknown, status = 200): Response {
   });
 }
 
-export const PUT: APIRoute = async ({ request, params }) => {
+export const PUT: APIRoute = async ({ request, params , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return json({ error: 'Unauthorized' }, 401);
 
@@ -48,12 +48,12 @@ export const PUT: APIRoute = async ({ request, params }) => {
     });
     return json({ prompt });
   } catch (err) {
-    console.error('[api/admin/prompt-library/[id]] update error:', err);
+    locals.requestLogger.error({ err }, '[api/admin/prompt-library/[id]] update error:');
     return json({ error: 'update failed' }, 500);
   }
 };
 
-export const DELETE: APIRoute = async ({ request, params }) => {
+export const DELETE: APIRoute = async ({ request, params , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return json({ error: 'Unauthorized' }, 401);
 

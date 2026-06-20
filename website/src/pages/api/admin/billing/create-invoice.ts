@@ -3,7 +3,7 @@ import { getSession, isAdmin } from '../../../../lib/auth';
 import { createInvoice, type InvoiceLine } from '../../../../lib/native-billing';
 import { getCustomerByEmail, createCustomer } from '../../../../lib/native-billing';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response('Unauthorized', { status: 401 });
 
@@ -49,7 +49,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     return new Response(JSON.stringify({ success: true, data: invoice }), { status: 200 });
   } catch (err: any) {
-    console.error('[api/admin/billing/create-invoice]', err);
+    locals.requestLogger.error({ err }, '[api/admin/billing/create-invoice]');
     return new Response(JSON.stringify({ error: err.message || 'Internal Server Error' }), { status: 500 });
   }
 };

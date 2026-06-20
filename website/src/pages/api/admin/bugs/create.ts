@@ -14,7 +14,7 @@ function jsonError(message: string, status: number): Response {
   });
 }
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) {
     return jsonError('Nicht autorisiert', 401);
@@ -53,9 +53,9 @@ export const POST: APIRoute = async ({ request }) => {
       return jsonError('Ticket konnte nicht erstellt werden', 500);
     }
     ticketId = inserted.ticketId;
-    void autoTriage(inserted.id, BRAND).catch(err => console.error('[autoTriage]', err));
+    void autoTriage(inserted.id, BRAND).catch(err => locals.requestLogger.error({ err }, '[autoTriage]'));
   } catch (err) {
-    console.error('[bugs/create] DB error:', err);
+    locals.requestLogger.error({ err }, '[bugs/create] DB error:');
     return jsonError('Datenbankfehler', 500);
   }
 

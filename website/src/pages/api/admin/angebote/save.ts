@@ -9,7 +9,7 @@ function parseJson<T>(raw: string | null, fallback: T): T {
   try { return JSON.parse(raw) as T; } catch { return fallback; }
 }
 
-export const POST: APIRoute = async ({ request, redirect }) => {
+export const POST: APIRoute = async ({ request, redirect , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response('Forbidden', { status: 403 });
 
@@ -53,7 +53,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
         setSiteSetting(BRAND, 'price_list_url', body.priceListUrl ?? ''),
       ]);
     } catch (err) {
-      console.error('[angebote/save] DB error:', err);
+      locals.requestLogger.error({ err }, '[angebote/save] DB error:');
       return new Response(JSON.stringify({ error: 'DB error' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
     }
     return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });

@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { updateFollowUp } from '../../../../lib/website-db';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response(null, { status: 403 });
 
@@ -22,7 +22,7 @@ export const POST: APIRoute = async ({ request }) => {
       reason: reason || undefined,
     });
   } catch (err) {
-    console.error('[api/followups/update]', err);
+    locals.requestLogger.error({ err }, '[api/followups/update]');
     return new Response(null, {
       status: 302,
       headers: { Location: `${back || '/admin/followups'}?error=${encodeURIComponent('Datenbankfehler')}` },

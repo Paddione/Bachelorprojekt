@@ -5,7 +5,7 @@ import type { UebermichContent } from '../../../../lib/website-db';
 
 const BRAND = process.env.BRAND || 'mentolder';
 
-export const POST: APIRoute = async ({ request, redirect }) => {
+export const POST: APIRoute = async ({ request, redirect , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response('Forbidden', { status: 403 });
 
@@ -19,7 +19,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     try {
       await saveUebermichContent(BRAND, body);
     } catch (err) {
-      console.error('[uebermich/save] DB error:', err);
+      locals.requestLogger.error({ err }, '[uebermich/save] DB error:');
       return new Response(JSON.stringify({ error: 'DB error' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
     }
     return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });

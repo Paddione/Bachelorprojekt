@@ -8,14 +8,14 @@ const deny = () => new Response(JSON.stringify({ error: 'Unauthorized' }),
 const json = (o: unknown, status = 200) => new Response(JSON.stringify(o),
   { status, headers: { 'content-type': 'application/json' } });
 
-export const GET: APIRoute = async ({ request }) => {
+export const GET: APIRoute = async ({ request , locals }) => {
   const s = await getSession(request.headers.get('cookie'));
   if (!s || !isAdmin(s)) return deny();
   try { return json({ items: await listOffice() }); }
-  catch (e) { console.error('[api/planning-office GET]', e); return json({ error: 'fetch_failed' }, 500); }
+  catch (e) { locals.requestLogger.error({ e }, '[api/planning-office GET]'); return json({ error: 'fetch_failed' }, 500); }
 };
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const s = await getSession(request.headers.get('cookie'));
   if (!s || !isAdmin(s)) return deny();
   try {
@@ -27,15 +27,15 @@ export const POST: APIRoute = async ({ request }) => {
       priority: b.priority, effort: b.effort, areas: Array.isArray(b.areas) ? b.areas : undefined,
     });
     return json({ extId }, 201);
-  } catch (e) { console.error('[api/planning-office POST]', e); return json({ error: 'create_failed' }, 500); }
+  } catch (e) { locals.requestLogger.error({ e }, '[api/planning-office POST]'); return json({ error: 'create_failed' }, 500); }
 };
 
 // Löscht alle nicht-gepinnten Ideen — vor jedem neuen Generierungslauf aufrufen.
-export const DELETE: APIRoute = async ({ request }) => {
+export const DELETE: APIRoute = async ({ request , locals }) => {
   const s = await getSession(request.headers.get('cookie'));
   if (!s || !isAdmin(s)) return deny();
   try {
     const deleted = await cleanupEphemeral();
     return json({ deleted });
-  } catch (e) { console.error('[api/planning-office DELETE]', e); return json({ error: 'cleanup_failed' }, 500); }
+  } catch (e) { locals.requestLogger.error({ e }, '[api/planning-office DELETE]'); return json({ error: 'cleanup_failed' }, 500); }
 };

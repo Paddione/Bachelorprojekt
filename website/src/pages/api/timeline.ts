@@ -3,7 +3,7 @@ import { listTimeline } from '../../lib/website-db';
 
 export const prerender = false;
 
-export const GET: APIRoute = async ({ url }) => {
+export const GET: APIRoute = async ({ url , locals }) => {
   const limit    = parseInt(url.searchParams.get('limit') ?? '20', 10);
   const offset   = parseInt(url.searchParams.get('offset') ?? '0', 10);
   const category = url.searchParams.get('cat')   ?? undefined;
@@ -16,7 +16,7 @@ export const GET: APIRoute = async ({ url }) => {
       headers: { 'content-type': 'application/json', 'cache-control': 'public, max-age=30' },
     });
   } catch (err) {
-    console.error('[api/timeline]', err);
+    locals.requestLogger.error({ err }, '[api/timeline]');
     return new Response(JSON.stringify({ rows: [], error: 'fetch_failed' }), {
       status: 200,
       headers: { 'content-type': 'application/json' },

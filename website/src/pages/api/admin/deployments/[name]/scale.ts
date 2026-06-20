@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { createK8sClient } from '../../../../../lib/k8s';
 import { getSession, isAdmin } from '../../../../../lib/auth';
 
-export const POST: APIRoute = async ({ request, params }) => {
+export const POST: APIRoute = async ({ request, params , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
@@ -60,7 +60,7 @@ export const POST: APIRoute = async ({ request, params }) => {
     });
   } catch (error: any) {
     const msg: string = error.message ?? 'Unknown error';
-    console.error('[deployments/scale]', msg);
+    locals.requestLogger.error({ msg }, '[deployments/scale]');
     const status = /K8s API 404/.test(msg) ? 404
       : /K8s API 403/.test(msg) ? 403
       : 500;

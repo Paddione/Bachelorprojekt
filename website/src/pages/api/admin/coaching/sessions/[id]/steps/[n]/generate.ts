@@ -9,7 +9,7 @@ import { pool } from '../../../../../../../../lib/website-db';
 
 export const prerender = false;
 
-export const POST: APIRoute = async ({ request, params }) => {
+export const POST: APIRoute = async ({ request, params , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response('Unauthorized', { status: 401 });
 
@@ -119,7 +119,7 @@ export const POST: APIRoute = async ({ request, params }) => {
         });
         await writer.write(encoder.encode(`data: ${JSON.stringify({ done: true, step, aiPrompt: anonymizedUserPrompt, durationMs })}\n\n`));
       } catch (err) {
-        console.error('[coaching/generate] stream error', err);
+        locals.requestLogger.error({ err }, '[coaching/generate] stream error');
         await writer.write(encoder.encode(`data: ${JSON.stringify({ error: 'Stream-Fehler' })}\n\n`));
       } finally {
         await writer.close();
@@ -144,7 +144,7 @@ export const POST: APIRoute = async ({ request, params }) => {
     });
     aiResponse = result.aiResponse;
   } catch (err) {
-    console.error('[coaching/generate]', err);
+    locals.requestLogger.error({ err }, '[coaching/generate]');
     return new Response(JSON.stringify({ error: 'KI-Anfrage fehlgeschlagen' }), { status: 502, headers: { 'content-type': 'application/json' } });
   }
 

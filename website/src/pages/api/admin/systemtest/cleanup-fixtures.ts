@@ -13,7 +13,7 @@ import { getSession, isAdmin } from '../../../../lib/auth';
 import { purgeFixturesFor, purgeExpiredMagicTokens } from '../../../../lib/systemtest/cleanup';
 import { ensureQuestionnaireSchemaOnce } from '../../../../lib/questionnaire-db';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const cronSecret = request.headers.get('X-Cron-Secret');
   const session = await getSession(request.headers.get('cookie'));
   const isCron = !!cronSecret && cronSecret === process.env.CRON_SECRET;
@@ -36,7 +36,7 @@ export const POST: APIRoute = async ({ request }) => {
     );
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
-    console.error('[systemtest/cleanup-fixtures] failed:', msg);
+    locals.requestLogger.error({ msg }, '[systemtest/cleanup-fixtures] failed:');
     return new Response(JSON.stringify({ error: msg }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },

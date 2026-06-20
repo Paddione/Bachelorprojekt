@@ -6,7 +6,7 @@ export const prerender = false;
 const json = (o: unknown, status = 200) => new Response(JSON.stringify(o),
   { status, headers: { 'content-type': 'application/json' } });
 
-export const POST: APIRoute = async ({ request, params }) => {
+export const POST: APIRoute = async ({ request, params , locals }) => {
   const s = await getSession(request.headers.get('cookie'));
   if (!s || !isAdmin(s)) return json({ error: 'Unauthorized' }, 401);
   try {
@@ -14,5 +14,5 @@ export const POST: APIRoute = async ({ request, params }) => {
     const res = await promoteItem(params.extId!, b?.override === true);
     if (!res.ok) return json({ error: res.reason }, res.reason === 'not_found' ? 404 : 409);
     return json({ ok: true });
-  } catch (e) { console.error('[api/planning-office promote]', e); return json({ error: 'promote_failed' }, 500); }
+  } catch (e) { locals.requestLogger.error({ e }, '[api/planning-office promote]'); return json({ error: 'promote_failed' }, 500); }
 };

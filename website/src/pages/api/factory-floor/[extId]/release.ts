@@ -7,7 +7,7 @@ export const prerender = false;
 const json = (o: unknown, status = 200) => new Response(JSON.stringify(o),
   { status, headers: { 'content-type': 'application/json' } });
 
-export const POST: APIRoute = async ({ request, params }) => {
+export const POST: APIRoute = async ({ request, params , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return json({ error: 'Unauthorized' }, 401);
 
@@ -20,7 +20,7 @@ export const POST: APIRoute = async ({ request, params }) => {
     if (!ok) return json({ error: 'not_staged' }, 409);
     return json({ ok: true });
   } catch (err) {
-    console.error('[api/factory-floor/[extId]/release]', err);
+    locals.requestLogger.error({ err }, '[api/factory-floor/[extId]/release]');
     return json({ error: 'release_failed' }, 500);
   }
 };

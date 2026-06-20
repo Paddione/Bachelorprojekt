@@ -6,7 +6,7 @@ export const prerender = false;
 const json = (o: unknown, status = 200) => new Response(JSON.stringify(o),
   { status, headers: { 'content-type': 'application/json' } });
 
-export const PATCH: APIRoute = async ({ request, params }) => {
+export const PATCH: APIRoute = async ({ request, params , locals }) => {
   const s = await getSession(request.headers.get('cookie'));
   if (!s || !isAdmin(s)) return json({ error: 'Unauthorized' }, 401);
   const extId = params.extId!;
@@ -26,5 +26,5 @@ export const PATCH: APIRoute = async ({ request, params }) => {
       pinned: typeof b.pinned === 'boolean' ? b.pinned : undefined,
     });
     return ok ? json({ ok: true }) : json({ error: 'not_found_or_noop' }, 404);
-  } catch (e) { console.error('[api/planning-office PATCH]', e); return json({ error: 'patch_failed' }, 500); }
+  } catch (e) { locals.requestLogger.error({ e }, '[api/planning-office PATCH]'); return json({ error: 'patch_failed' }, 500); }
 };

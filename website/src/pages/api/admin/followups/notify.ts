@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { getDueFollowUps } from '../../../../lib/website-db';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response(null, { status: 403 });
 
@@ -11,7 +11,7 @@ export const POST: APIRoute = async ({ request }) => {
     return Response.json({ sent: false, message: 'Keine fälligen Follow-ups.' });
   }
 
-  console.log(`[followups] ${due.length} due follow-up(s)`);
+  locals.requestLogger.info(`[followups] ${due.length} due follow-up(s)`);
 
   return Response.json({ sent: true, count: due.length });
 };

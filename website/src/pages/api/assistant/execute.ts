@@ -9,7 +9,7 @@ import '../../../lib/assistant/actions/portal/index';
 const json = (b: unknown, s = 200) =>
   new Response(JSON.stringify(b), { status: s, headers: { 'content-type': 'application/json' } });
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session) return json({ error: 'unauthorized' }, 401);
 
@@ -28,7 +28,7 @@ export const POST: APIRoute = async ({ request }) => {
     const msg = err instanceof Error ? err.message : 'execute failed';
     if (msg.startsWith('unknown action')) return json({ error: msg }, 404);
     if (msg.includes('not allowed')) return json({ error: msg }, 403);
-    console.error('[assistant/execute] error:', err);
+    locals.requestLogger.error({ err }, '[assistant/execute] error:');
     return json({ error: 'internal' }, 500);
   }
 };

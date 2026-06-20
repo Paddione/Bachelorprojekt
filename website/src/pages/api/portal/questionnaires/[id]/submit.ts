@@ -9,7 +9,7 @@ import { sendQuestionnaireSubmitted } from '../../../../../lib/email';
 const PROD_DOMAIN = process.env.PROD_DOMAIN || '';
 const ADMIN_EMAIL = process.env.CONTACT_EMAIL || process.env.FROM_EMAIL || '';
 
-export const POST: APIRoute = async ({ request, params }) => {
+export const POST: APIRoute = async ({ request, params , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session) return new Response('Unauthorized', { status: 401 });
 
@@ -26,10 +26,10 @@ export const POST: APIRoute = async ({ request, params }) => {
 
   await updateQAssignment(assignment.id, { status: 'submitted' });
   await updateTestStatuses(assignment.id).catch((err: unknown) =>
-    console.error('[submit] updateTestStatuses failed:', err),
+    locals.requestLogger.error({ err }, '[submit] updateTestStatuses failed:'),
   );
   await autoEvaluateQAssignment(assignment.id).catch((err: unknown) =>
-    console.error('[submit] autoEvaluateQAssignment failed:', err),
+    locals.requestLogger.error({ err }, '[submit] autoEvaluateQAssignment failed:'),
   );
 
   const auswertungUrl = PROD_DOMAIN

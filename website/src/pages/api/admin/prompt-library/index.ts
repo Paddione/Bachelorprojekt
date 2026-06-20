@@ -14,7 +14,7 @@ function json(body: unknown, status = 200): Response {
   });
 }
 
-export const GET: APIRoute = async ({ request, url }) => {
+export const GET: APIRoute = async ({ request, url , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return json({ error: 'Unauthorized' }, 401);
   // The compose-box dropdown only wants active templates; the admin manager
@@ -24,7 +24,7 @@ export const GET: APIRoute = async ({ request, url }) => {
   return json({ prompts });
 };
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return json({ error: 'Unauthorized' }, 401);
 
@@ -52,7 +52,7 @@ export const POST: APIRoute = async ({ request }) => {
     });
     return json({ prompt }, 201);
   } catch (err) {
-    console.error('[api/admin/prompt-library] create error:', err);
+    locals.requestLogger.error({ err }, '[api/admin/prompt-library] create error:');
     return json({ error: 'create failed' }, 500);
   }
 };

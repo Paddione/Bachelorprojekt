@@ -7,7 +7,7 @@ import {
 } from '../../../lib/stripe-billing';
 import type { ServiceKey } from '../../../lib/stripe-billing';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   try {
     const body = await request.json();
     const {
@@ -66,7 +66,7 @@ export const POST: APIRoute = async ({ request }) => {
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (err) {
-    console.error('Billing error:', err);
+    locals.requestLogger.error({ err }, 'Billing error:');
     return new Response(
       JSON.stringify({ error: 'Interner Serverfehler.' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }

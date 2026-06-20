@@ -20,7 +20,7 @@ interface UnreadRow {
   message_ids: number[];
 }
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   // Bearer token check
   const auth = request.headers.get('authorization') ?? '';
   if (CRON_SECRET && auth !== `Bearer ${CRON_SECRET}`) {
@@ -117,12 +117,12 @@ export const POST: APIRoute = async ({ request }) => {
       client.release();
     }
 
-    console.log(`[notify-unread] Sent ${emailsSent} notification emails`);
+    locals.requestLogger.info(`[notify-unread] Sent ${emailsSent} notification emails`);
     return new Response(JSON.stringify({ emailsSent }), {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (err) {
-    console.error('[notify-unread]', err);
-    return new Response(JSON.stringify({ error: 'Internal error' }), { status: 500 });
+    locals.requestLogger.error({ err }, '[notify-unread]');
+    return errorResponse('Internal error', locals.requestId);
   }
 };

@@ -3,7 +3,7 @@ import { getAvailableSlots } from '../../../lib/caldav';
 
 // Returns available booking slots as JSON.
 // Optional query params: ?from=2026-04-07, ?durationMin=30
-export const GET: APIRoute = async ({ url }) => {
+export const GET: APIRoute = async ({ url , locals }) => {
   try {
     const fromParam = url.searchParams.get('from');
     const fromDate = fromParam ? new Date(fromParam) : undefined;
@@ -21,7 +21,7 @@ export const GET: APIRoute = async ({ url }) => {
       },
     });
   } catch (err) {
-    console.error('Slots API error:', err);
+    locals.requestLogger.error({ err }, 'Slots API error:');
     return new Response(
       JSON.stringify({ error: 'Termine konnten nicht geladen werden.' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }

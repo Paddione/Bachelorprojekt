@@ -65,9 +65,9 @@
 
   function levelClass(line: string) {
     const l = line.toLowerCase();
-    if (l.includes('error') || l.includes('fatal') || l.includes('err ')) return 'text-red-400';
-    if (l.includes('warn')) return 'text-yellow-400';
-    return 'text-green-300';
+    if (l.includes('error') || l.includes('fatal') || l.includes('err ')) return 'log-error';
+    if (l.includes('warn')) return 'log-warn';
+    return 'log-info';
   }
 
   $: filteredLines = filter ? lines.filter(l => l.toLowerCase().includes(filter.toLowerCase())) : lines;
@@ -80,35 +80,35 @@
   <!-- Controls -->
   <div class="flex flex-wrap gap-3 items-end">
     <div>
-      <label class="text-xs text-gray-400 block mb-1">Namespace</label>
+      <label class="ctl-label block mb-1">Namespace</label>
       <select bind:value={ns} on:change={loadPods}
-        class="bg-gray-700 border border-gray-600 rounded px-2 py-1.5 text-sm text-white">
+        class="field rounded px-2 py-1.5 text-sm">
         {#each NAMESPACES as n}<option value={n.id}>{n.label}</option>{/each}
       </select>
     </div>
     <div>
-      <label class="text-xs text-gray-400 block mb-1">Pod</label>
-      <select bind:value={selectedPod} class="bg-gray-700 border border-gray-600 rounded px-2 py-1.5 text-sm text-white">
+      <label class="ctl-label block mb-1">Pod</label>
+      <select bind:value={selectedPod} class="field rounded px-2 py-1.5 text-sm">
         {#each pods as p}<option value={p.name}>{p.name}</option>{/each}
       </select>
     </div>
     <div>
-      <label class="text-xs text-gray-400 block mb-1">Container</label>
-      <select bind:value={selectedContainer} class="bg-gray-700 border border-gray-600 rounded px-2 py-1.5 text-sm text-white">
+      <label class="ctl-label block mb-1">Container</label>
+      <select bind:value={selectedContainer} class="field rounded px-2 py-1.5 text-sm">
         {#each (pods.find(p => p.name === selectedPod)?.containers ?? []) as c}<option value={c}>{c}</option>{/each}
       </select>
     </div>
     <div>
-      <label class="text-xs text-gray-400 block mb-1">Letzte Zeilen</label>
-      <select bind:value={tail} class="bg-gray-700 border border-gray-600 rounded px-2 py-1.5 text-sm text-white">
+      <label class="ctl-label block mb-1">Letzte Zeilen</label>
+      <select bind:value={tail} class="field rounded px-2 py-1.5 text-sm">
         {#each [50, 100, 200, 500] as n}<option value={n}>{n}</option>{/each}
       </select>
     </div>
     {#if streaming}
-      <button on:click={stopStream} class="px-3 py-1.5 text-sm bg-red-600 hover:bg-red-700 text-white rounded">Stop</button>
+      <button on:click={stopStream} class="btn-danger px-3 py-1.5 text-sm rounded">Stop</button>
     {:else}
       <button on:click={startStream} disabled={!selectedPod}
-        class="px-3 py-1.5 text-sm bg-green-700 hover:bg-green-600 disabled:opacity-50 text-white rounded">
+        class="btn-success px-3 py-1.5 text-sm disabled:opacity-50 rounded">
         Live-Stream starten
       </button>
     {/if}
@@ -117,24 +117,64 @@
   <!-- Filter + auto-scroll -->
   <div class="flex gap-3 items-center">
     <input bind:value={filter} placeholder="Filter..."
-      class="flex-1 max-w-xs bg-gray-700 border border-gray-600 rounded px-3 py-1.5 text-sm text-white" />
-    <label class="flex items-center gap-2 text-xs text-gray-400 cursor-pointer">
+      class="field flex-1 max-w-xs rounded px-3 py-1.5 text-sm" />
+    <label class="flex items-center gap-2 text-xs cursor-pointer ctl-label">
       <input type="checkbox" bind:checked={autoScroll} class="rounded" />
       Auto-Scroll
     </label>
-    <span class="text-xs text-gray-500">{lines.length} Zeilen</span>
+    <span class="text-xs count-label">{lines.length} Zeilen</span>
   </div>
 
   <!-- Log output -->
   <div bind:this={logEl}
-    class="bg-gray-950 border border-gray-700 rounded-lg p-3 h-96 overflow-y-auto font-mono text-xs leading-relaxed">
+    class="log-box rounded-lg p-3 h-96 overflow-y-auto font-mono text-xs leading-relaxed">
     {#if lines.length === 0}
-      <p class="text-gray-600">{streaming ? 'Warte auf Logs...' : 'Stream starten um Logs anzuzeigen.'}</p>
+      <p class="empty-hint">{streaming ? 'Warte auf Logs...' : 'Stream starten um Logs anzuzeigen.'}</p>
     {/if}
     {#each filteredLines as line}
       <div class="{levelClass(line)} break-all">{line}</div>
     {/each}
   </div>
 
-  {#if podsError}<p class="text-red-400 text-xs">{podsError}</p>{/if}
+  {#if podsError}<p class="log-error text-xs">{podsError}</p>{/if}
 </div>
+
+<style>
+  .ctl-label {
+    color: var(--admin-text-mute);
+  }
+  .count-label {
+    color: var(--admin-text-mute);
+  }
+  .empty-hint {
+    color: var(--admin-text-mute);
+  }
+  .field {
+    background: var(--admin-sidebar-bg);
+    border: 1px solid var(--admin-border);
+    color: var(--admin-text);
+  }
+  .log-box {
+    background: var(--admin-bg);
+    border: 1px solid var(--admin-border);
+  }
+  .btn-danger {
+    background: var(--admin-danger);
+    color: var(--admin-bg);
+    border: none;
+  }
+  .btn-success {
+    background: var(--admin-success);
+    color: var(--admin-bg);
+    border: none;
+  }
+  .log-error {
+    color: var(--admin-danger);
+  }
+  .log-warn {
+    color: var(--admin-warning);
+  }
+  .log-info {
+    color: var(--admin-success);
+  }
+</style>

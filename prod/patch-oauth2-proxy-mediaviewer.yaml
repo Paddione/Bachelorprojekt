@@ -24,6 +24,7 @@ spec:
             - "--upstream=http://mediaviewer-widget:80"
             - "--http-address=0.0.0.0:4180"
             - "--cookie-secure=true"
+            - "--cookie-samesite=none"
             - "--cookie-name=_oauth2_proxy_mediaviewer"
             - "--email-domain=*"
             - "--pass-access-token=true"

@@ -154,6 +154,45 @@ export const QUESTIONNAIRES: Record<string, GrillingQuestionnaire> = {
       },
     ],
   },
+  'brainstorm-v1': {
+    id: 'brainstorm-v1',
+    title: 'Brainstorm-Session — Feature-Vorklärung',
+    sections: [
+      {
+        id: 's1',
+        title: '1. Problemstellung',
+        questions: [
+          { id: 'q1', label: 'Welches konkrete Problem oder Bedürfnis adressiert diese Idee?' },
+          { id: 'q2', label: 'Wer ist betroffen und wie äußert sich das Problem heute?' },
+        ],
+      },
+      {
+        id: 's2',
+        title: '2. Lösungsansätze',
+        questions: [
+          { id: 'q3', label: 'Welche möglichen Lösungswege siehst du?' },
+          { id: 'q4', label: 'Welcher Ansatz ist der vielversprechendste und warum?', choices: ['Kleinster Eingriff (MVP)', 'Vollständige Lösung', 'Schrittweiser Rollout', 'Noch unklar'] },
+          { id: 'q5', label: 'Welche bestehenden Patterns oder Komponenten lassen sich wiederverwenden?' },
+        ],
+      },
+      {
+        id: 's3',
+        title: '3. Risiken & Unbekannte',
+        questions: [
+          { id: 'q6', label: 'Was sind die größten Risiken oder offenen Fragen?' },
+          { id: 'q7', label: 'Welche Annahmen müssen vor der Umsetzung validiert werden?' },
+        ],
+      },
+      {
+        id: 's4',
+        title: '4. Nächste Schritte',
+        questions: [
+          { id: 'q8', label: 'Was ist der kleinste sinnvolle erste Schritt?' },
+          { id: 'q9', label: 'Was muss als Nächstes entschieden oder recherchiert werden?' },
+        ],
+      },
+    ],
+  },
 };
 
 export function getQuestionnaire(id: string): GrillingQuestionnaire | undefined {

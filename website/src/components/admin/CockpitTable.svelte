@@ -5,6 +5,7 @@
   import * as actions from '../../lib/tickets/cockpit-table-actions';
   import TicketRow from './TicketRow.svelte';
   import BulkBar from './BulkBar.svelte';
+  import BulkToast from './BulkToast.svelte';
 
   export let feature: FeatureNode | null = null;
   export let tickets: TicketRowT[] = [];
@@ -15,6 +16,7 @@
   let busy: Record<string, boolean> = {};
   let dragId: string | null = null;
   let search = '';
+  let toastResult: any = null;
   // Default to "active" so the ~97% done tickets don't drown the few open ones.
   let statusFilter = 'active';
   const PAGE = 50;
@@ -101,6 +103,23 @@
   async function runBatch(mutation: Record<string, unknown>, ids: string[]) {
     if (await actions.runBatch(ids, mutation)) { clearSelection(); onMutated?.(); }
   }
+  async function runBulkStatus(d: { ids: string[]; status: string }) {
+    const r = await actions.bulkStatusChange(d.ids, d.status);
+    if (r.ok) {
+      toastResult = { ...r.body, status: d.status };
+      clearSelection();
+      onMutated?.();
+    }
+  }
+  async function handleUndo(token: string) {
+    const r = await actions.undoBulkStatus(token);
+    if (r.ok) {
+      toastResult = null;
+      onMutated?.();
+    } else {
+      toastResult = { ...toastResult, failed: (toastResult?.failed || 0) + 1 };
+    }
+  }
 </script>
 
 <section class="cockpit-table" data-testid="cockpit-table">
@@ -156,11 +175,12 @@
   {/if}
 
   <BulkBar selectedIds={selectedIds} {features}
-    onBulkStatus={(d) => runBatch({ status: d.status }, d.ids)}
+    onBulkStatus={runBulkStatus}
     onBulkPriority={(d) => runBatch({ priority: d.priority }, d.ids)}
     onBulkReparent={(d) => runBatch({ parentId: d.parentId }, d.ids)}
     onBulkEnqueue={(d) => runBatch({ enqueue: true }, d.ids)}
     onClear={clearSelection} />
+  <BulkToast result={toastResult} onUndo={handleUndo} onDismiss={() => toastResult = null} />
 </section>
 
 <style>

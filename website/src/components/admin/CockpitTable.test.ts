@@ -66,14 +66,14 @@ describe('CockpitTable', () => {
     await waitFor(() => expect(spy).toHaveBeenCalledWith(
       '/api/admin/tickets/t1/transition', expect.objectContaining({ method: 'POST' })));
   });
-  it('bulk-changes status via batch endpoint', async () => {
-    const spy = vi.spyOn(global, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }));
+  it('bulk-changes status via bulk-status endpoint', async () => {
+    const spy = vi.spyOn(global, 'fetch').mockResolvedValue(new Response('{"changed":[],"skipped":[],"failed":[]}', { status: 200 }));
     const { getAllByTestId, getByTestId } = render(CockpitTable, { feature, tickets: tickets.map(t => ({...t})), features: [feature] });
     await fireEvent.click(getAllByTestId('row-checkbox')[0]);
     await fireEvent.click(getAllByTestId('row-checkbox')[1]);
     await fireEvent.change(getByTestId('bulk-status'), { target: { value: 'done' } });
     await waitFor(() => expect(spy).toHaveBeenCalledWith(
-      '/api/admin/cockpit/batch', expect.objectContaining({ method: 'POST' })));
+      '/api/admin/tickets/bulk-status', expect.objectContaining({ method: 'POST' })));
   });
   it('reorders via keyboard Shift+ArrowDown and POSTs reorder', async () => {
     const spy = vi.spyOn(global, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }));

@@ -86,3 +86,25 @@ export async function createTicket(p: CreatePayload): Promise<CreateResult> {
   }
   return { ok: true, body };
 }
+
+export async function bulkStatusChange(
+  ticketIds: string[], status: string): Promise<{ ok: boolean; body?: any }> {
+  const res = await fetch('/api/admin/tickets/bulk-status', {
+    method: 'POST', headers: JSON_HEADERS, credentials: 'same-origin',
+    body: JSON.stringify({ ticketIds, status }),
+  });
+  let body: any;
+  try { body = await res.json(); } catch { body = undefined; }
+  return { ok: res.ok, body };
+}
+
+export async function undoBulkStatus(
+  undoToken: string): Promise<{ ok: boolean; body?: any }> {
+  const res = await fetch('/api/admin/tickets/bulk-status/undo', {
+    method: 'POST', headers: JSON_HEADERS, credentials: 'same-origin',
+    body: JSON.stringify({ undoToken }),
+  });
+  let body: any;
+  try { body = await res.json(); } catch { body = undefined; }
+  return { ok: res.ok, body };
+}

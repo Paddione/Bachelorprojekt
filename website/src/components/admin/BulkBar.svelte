@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import type { FeatureNode } from '../../lib/tickets/cockpit-types';
+  import { MAX_BULK_SELECT } from '../../lib/stores/cockpitStore';
   export let selectedIds: string[] = [];
   export let features: FeatureNode[] = [];
   // Svelte 5 callback props for testing
@@ -44,6 +45,9 @@
 {#if selectedIds.length > 0}
   <div class="bulk-bar" data-testid="bulk-bar" role="toolbar" tabindex="0" on:keydown={onKey}>
     <span>{selectedIds.length} Tickets ausgewählt</span>
+    {#if selectedIds.length >= MAX_BULK_SELECT}
+      <span class="cap" data-testid="bulk-cap-hint">Max. 10 Tickets</span>
+    {/if}
     <select data-testid="bulk-status" on:change={onStatus}>
       <option value="" selected>Status …</option>
       {#each STATUSES as s}<option value={s}>{s}</option>{/each}
@@ -64,5 +68,6 @@
 <style>
   .bulk-bar { position: sticky; bottom: 0; display: flex; gap: 0.5rem; align-items: center;
     padding: 0.5rem 0.75rem; background: #1c1f26; border-top: 1px solid #2a2e37; }
+  .cap { color: #f87171; font-weight: 600; font-size: 0.75rem; background: rgba(239, 68, 68, 0.1); padding: 0.125rem 0.375rem; border-radius: 4px; border: 1px solid rgba(239, 68, 68, 0.2); }
   .clear { margin-left: auto; }
 </style>

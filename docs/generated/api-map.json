@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-20T10:36:10.036Z",
+  "generatedAt": "2026-06-20T14:07:20.626Z",
   "endpoints": [
     {
       "path": "/api/admin/angebote/save",
@@ -1515,6 +1515,14 @@
       "file": "website/src/pages/api/admin/onboarding/update.ts"
     },
     {
+      "path": "/api/admin/openspec/save-proposal",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/openspec/save-proposal.ts"
+    },
+    {
       "path": "/api/admin/ops/ai/reindex",
       "methods": [
         "POST"
@@ -2021,6 +2029,47 @@
       "file": "website/src/pages/api/admin/sessions/index.ts"
     },
     {
+      "path": "/api/admin/sessions/history",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/sessions/history/index.ts"
+    },
+    {
+      "path": "/api/admin/sessions/history/{id}",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/sessions/history/[id].ts"
+    },
+    {
+      "path": "/api/admin/sessions/purge",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/sessions/purge.ts"
+    },
+    {
+      "path": "/api/admin/sessions/templates",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/sessions/templates/index.ts"
+    },
+    {
+      "path": "/api/admin/sessions/templates/{id}",
+      "methods": [
+        "DELETE"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/sessions/templates/[id].ts"
+    },
+    {
       "path": "/api/admin/shortcuts/create",
       "methods": [
         "POST"
@@ -2351,6 +2400,22 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/tickets/[id]/triage.ts"
+    },
+    {
+      "path": "/api/admin/tickets/bulk-status",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/tickets/bulk-status.ts"
+    },
+    {
+      "path": "/api/admin/tickets/bulk-status/undo",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/tickets/bulk-status/undo.ts"
     },
     {
       "path": "/api/admin/time-windows/add",

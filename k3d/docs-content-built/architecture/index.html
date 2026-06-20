@@ -178,7 +178,7 @@
 <body>
   <div class="header">
     <h1>⬡ Architektur — Living Docs</h1>
-    <span class="meta">Generiert: 2026-06-20T10:36:10.081Z</span>
+    <span class="meta">Generiert: 2026-06-20T14:07:20.675Z</span>
   </div>
 
   <div class="stats">
@@ -191,7 +191,7 @@
       <span class="stat-label">Abhängigkeiten</span>
     </div>
     <div class="stat">
-      <span class="stat-value">396</span>
+      <span class="stat-value">404</span>
       <span class="stat-label">API Endpoints</span>
     </div>
   </div>
@@ -2039,7 +2039,7 @@ flowchart TB
     <div class="filter-bar">
       <span class="filter-label">Filter:</span>
       <input class="filter-input" type="text" id="api-filter" placeholder="/api/..." oninput="filterApi(this.value)">
-      <span class="filter-label" id="api-count">396 endpoints</span>
+      <span class="filter-label" id="api-count">404 endpoints</span>
     </div>
     <div style="max-height:70vh;overflow-y:auto;border:1px solid var(--ff-border);border-radius:4px;">
       <table>
@@ -2972,6 +2972,11 @@ flowchart TB
       <td style="color:#ef4444">🔐 admin</td>
     </tr>
       <tr>
+      <td><code>/api/admin/openspec/save-proposal</code></td>
+      <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">POST</code></td>
+      <td style="color:#ef4444">🔐 admin</td>
+    </tr>
+      <tr>
       <td><code>/api/admin/ops/ai/reindex</code></td>
       <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">POST</code></td>
       <td style="color:#ef4444">🔐 admin</td>
@@ -3282,6 +3287,31 @@ flowchart TB
       <td style="color:#ef4444">🔐 admin</td>
     </tr>
       <tr>
+      <td><code>/api/admin/sessions/history</code></td>
+      <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">GET</code></td>
+      <td style="color:#ef4444">🔐 admin</td>
+    </tr>
+      <tr>
+      <td><code>/api/admin/sessions/history/{id}</code></td>
+      <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">GET</code></td>
+      <td style="color:#ef4444">🔐 admin</td>
+    </tr>
+      <tr>
+      <td><code>/api/admin/sessions/purge</code></td>
+      <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">POST</code></td>
+      <td style="color:#ef4444">🔐 admin</td>
+    </tr>
+      <tr>
+      <td><code>/api/admin/sessions/templates</code></td>
+      <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">GET</code> <code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">POST</code></td>
+      <td style="color:#ef4444">🔐 admin</td>
+    </tr>
+      <tr>
+      <td><code>/api/admin/sessions/templates/{id}</code></td>
+      <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">DELETE</code></td>
+      <td style="color:#ef4444">🔐 admin</td>
+    </tr>
+      <tr>
       <td><code>/api/admin/shortcuts/create</code></td>
       <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">POST</code></td>
       <td style="color:#ef4444">🔐 admin</td>
@@ -3483,6 +3513,16 @@ flowchart TB
     </tr>
       <tr>
       <td><code>/api/admin/tickets/{id}/triage</code></td>
+      <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">POST</code></td>
+      <td style="color:#ef4444">🔐 admin</td>
+    </tr>
+      <tr>
+      <td><code>/api/admin/tickets/bulk-status</code></td>
+      <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">POST</code></td>
+      <td style="color:#ef4444">🔐 admin</td>
+    </tr>
+      <tr>
+      <td><code>/api/admin/tickets/bulk-status/undo</code></td>
       <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">POST</code></td>
       <td style="color:#ef4444">🔐 admin</td>
     </tr>

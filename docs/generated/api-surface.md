@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-06-20T10:36:10.036Z
+> Generated at 2026-06-20T14:07:20.626Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -188,6 +188,7 @@
 | `/api/admin/newsletter/subscribers/{id}` | DELETE | 🔐 admin | `website/src/pages/api/admin/newsletter/subscribers/[id].ts` |
 | `/api/admin/onboarding/reset` | POST | 🔐 admin | `website/src/pages/api/admin/onboarding/reset.ts` |
 | `/api/admin/onboarding/update` | POST | 🔐 admin | `website/src/pages/api/admin/onboarding/update.ts` |
+| `/api/admin/openspec/save-proposal` | POST | 🔐 admin | `website/src/pages/api/admin/openspec/save-proposal.ts` |
 | `/api/admin/ops/ai/reindex` | POST | 🔐 admin | `website/src/pages/api/admin/ops/ai/reindex.ts` |
 | `/api/admin/ops/audit/log` | GET | 🔐 admin | `website/src/pages/api/admin/ops/audit/log.ts` |
 | `/api/admin/ops/backup/list` | GET | 🔐 admin | `website/src/pages/api/admin/ops/backup/list.ts` |
@@ -250,6 +251,11 @@
 | `/api/admin/seo/upload-og-image` | POST | 🔐 admin | `website/src/pages/api/admin/seo/upload-og-image.ts` |
 | `/api/admin/service-page/save` | POST | 🔐 admin | `website/src/pages/api/admin/service-page/save.ts` |
 | `/api/admin/sessions` | GET, POST, DELETE | 🔐 admin | `website/src/pages/api/admin/sessions/index.ts` |
+| `/api/admin/sessions/history` | GET | 🔐 admin | `website/src/pages/api/admin/sessions/history/index.ts` |
+| `/api/admin/sessions/history/{id}` | GET | 🔐 admin | `website/src/pages/api/admin/sessions/history/[id].ts` |
+| `/api/admin/sessions/purge` | POST | 🔐 admin | `website/src/pages/api/admin/sessions/purge.ts` |
+| `/api/admin/sessions/templates` | GET, POST | 🔐 admin | `website/src/pages/api/admin/sessions/templates/index.ts` |
+| `/api/admin/sessions/templates/{id}` | DELETE | 🔐 admin | `website/src/pages/api/admin/sessions/templates/[id].ts` |
 | `/api/admin/shortcuts/create` | POST | 🔐 admin | `website/src/pages/api/admin/shortcuts/create.ts` |
 | `/api/admin/shortcuts/delete` | DELETE | 🔐 admin | `website/src/pages/api/admin/shortcuts/delete.ts` |
 | `/api/admin/shortcuts/fetch-title` | GET | 🔐 admin | `website/src/pages/api/admin/shortcuts/fetch-title.ts` |
@@ -291,6 +297,8 @@
 | `/api/admin/tickets/{id}/links` | POST, DELETE | 🔐 admin | `website/src/pages/api/admin/tickets/[id]/links.ts` |
 | `/api/admin/tickets/{id}/transition` | POST | 🔐 admin | `website/src/pages/api/admin/tickets/[id]/transition.ts` |
 | `/api/admin/tickets/{id}/triage` | POST | 🔐 admin | `website/src/pages/api/admin/tickets/[id]/triage.ts` |
+| `/api/admin/tickets/bulk-status` | POST | 🔐 admin | `website/src/pages/api/admin/tickets/bulk-status.ts` |
+| `/api/admin/tickets/bulk-status/undo` | POST | 🔐 admin | `website/src/pages/api/admin/tickets/bulk-status/undo.ts` |
 | `/api/admin/time-windows/add` | POST | 🔐 admin | `website/src/pages/api/admin/time-windows/add.ts` |
 | `/api/admin/time-windows/remove` | DELETE | 🔐 admin | `website/src/pages/api/admin/time-windows/remove.ts` |
 | `/api/admin/transcription` | GET, POST | 🔐 admin | `website/src/pages/api/admin/transcription/index.ts` |

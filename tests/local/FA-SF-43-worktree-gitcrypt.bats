@@ -28,7 +28,7 @@
   [ "$status" -ne 0 ]
   run grep -Eq 'docs/superpowers/specs/\$\(date \+%F\)-\$\{slug\}-design\.md' scripts/factory/pipeline.js
   [ "$status" -eq 0 ]
-  run grep -Eq 'docs/superpowers/plans/\$\(date \+%F\)-\$\{slug\}\.md' scripts/factory/pipeline.js
+  run grep -Eq 'openspec/changes/\$\{slug\}/tasks\.md' scripts/factory/pipeline.js
   [ "$status" -eq 0 ]
 }
 

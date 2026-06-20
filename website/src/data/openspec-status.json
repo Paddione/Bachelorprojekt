@@ -1,4 +1,10 @@
 {
+  "T000000": [
+    {
+      "slug": "platform-cockpit-alignment",
+      "status": "plan_staged"
+    }
+  ],
   "T000737": [
     {
       "slug": "2026-06-20-grilling-ui-multichoice",

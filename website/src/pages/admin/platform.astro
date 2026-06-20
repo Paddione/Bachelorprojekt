@@ -9,11 +9,36 @@ if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
 if (!isAdmin(session)) return Astro.redirect('/admin');
 
 const brandId = (process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder').toLowerCase();
+
+// Grafana base URL is derived from PROD_DOMAIN (no new env var). Dev falls back to
+// the in-cluster *.localhost host. Never hardcode a brand domain here (S3).
+const grafanaUrl = process.env.PROD_DOMAIN
+  ? `https://grafana.${process.env.PROD_DOMAIN}`
+  : 'http://grafana.localhost';
 ---
 
-<AdminLayout title="Plattform Hub">
-  <div style="max-width:72rem; margin:0 auto; padding:1.5rem 1.5rem 0;">
-    <AdminPageHeader title="Plattform Hub" />
+<AdminLayout title="Platform Control Center">
+  <div style="max-width:88rem; margin:0 auto; padding:1.5rem 1.5rem 0;">
+    <AdminPageHeader
+      title="Platform Control Center"
+      description="Zentralisierte Steuerung der Multicluster-Infrastruktur"
+    >
+      <span slot="actions" class="cluster-badge">{brandId} node</span>
+    </AdminPageHeader>
   </div>
-  <PlatformHub client:load cluster={brandId} />
+  <PlatformHub client:load cluster={brandId} {grafanaUrl} />
 </AdminLayout>
+
+<style>
+  .cluster-badge {
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    background: var(--admin-primary-muted);
+    border: 1px solid var(--admin-border-bright);
+    color: var(--admin-primary);
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+</style>

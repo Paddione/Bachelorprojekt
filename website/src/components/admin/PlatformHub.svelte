@@ -4,11 +4,13 @@
   import HealthTab from './platform/HealthTab.svelte';
   import AktionenTab from './aktionen/AktionenTab.svelte';
   import DienstTab from './ops/DienstTab.svelte';
-  import LogsTab from './ops/LogsTab.svelte';
+  import ObservabilityTab from './ops/ObservabilityTab.svelte';
   import DatenbankTab from './ops/DatenbankTab.svelte';
   import DnsZertTab from './ops/DnsZertTab.svelte';
   import BackupStatusCard from './platform/BackupStatusCard.svelte';
+
   export let cluster: string;
+  export let grafanaUrl: string;
 
   let activeTab = 'software';
 
@@ -18,32 +20,24 @@
     { id: 'health', label: 'Integrität', premium: true },
     { id: 'dienste', label: 'Dienste' },
     { id: 'aktionen', label: 'Aktionen' },
-    { id: 'logs', label: 'Logs' },
+    { id: 'logs', label: 'Observability' },
     { id: 'db', label: 'Datenbank' },
     { id: 'dns', label: 'Netzwerk' }
   ];
 </script>
 
 <div class="p-6 max-w-7xl mx-auto">
-  <header class="mb-10">
-    <div class="flex items-center gap-3 mb-2">
-      <span class="px-2 py-0.5 rounded-full bg-admin-primary/10 border border-admin-primary/20 text-[10px] font-bold text-admin-primary uppercase tracking-wider">{cluster} node</span>
-      <h1 class="text-4xl font-extrabold text-white tracking-tight">Platform Control Center</h1>
-    </div>
-    <p class="text-admin-text-mute">Zentralisierte Steuerung der Multicluster-Infrastruktur.</p>
-  </header>
-
-  <div style="overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px;">
-    <div class="flex gap-1 p-1 bg-admin-sidebar-bg backdrop-blur-xl border border-admin-border rounded-2xl w-fit mb-8" style="flex-wrap: nowrap;">
+  <div class="tab-scroll">
+    <div class="tab-bar">
       {#each tabs as tab}
         <button
           on:click={() => activeTab = tab.id}
-          class="px-5 py-2 rounded-xl text-sm font-bold transition-all {activeTab === tab.id ? 'bg-admin-primary text-admin-bg shadow-lg' : 'text-admin-text-mute hover:text-white'}"
-          style="white-space: nowrap; min-height: 44px;"
+          class="tab"
+          class:tab-active={activeTab === tab.id}
         >
           {tab.label}
           {#if tab.premium}
-            <span class="ml-1 text-[8px] opacity-50">✨</span>
+            <span class="tab-premium">✨</span>
           {/if}
         </button>
       {/each}
@@ -66,9 +60,7 @@
         <AktionenTab {cluster} />
       </div>
     {:else if activeTab === 'logs'}
-      <div class="admin-card">
-        <LogsTab {cluster} />
-      </div>
+      <ObservabilityTab {cluster} {grafanaUrl} />
     {:else if activeTab === 'db'}
       <div class="admin-card">
         <DatenbankTab {cluster} />
@@ -96,3 +88,47 @@
     </a>
   </footer>
 </div>
+
+<style>
+  .tab-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+  }
+  .tab-bar {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.25rem;
+    width: fit-content;
+    margin-bottom: 2rem;
+    padding: 0.25rem;
+    border-radius: 1rem;
+    background: var(--admin-sidebar-bg);
+    border: 1px solid var(--admin-border);
+  }
+  .tab {
+    white-space: nowrap;
+    min-height: 44px;
+    padding: 0.5rem 1.25rem;
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--admin-text-mute);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: color 0.2s ease, background 0.2s ease;
+  }
+  .tab:hover {
+    color: var(--admin-text);
+  }
+  .tab-active {
+    background: var(--admin-primary);
+    color: var(--admin-bg);
+  }
+  .tab-premium {
+    margin-left: 0.25rem;
+    font-size: 0.5rem;
+    opacity: 0.5;
+  }
+</style>

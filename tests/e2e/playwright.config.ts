@@ -89,6 +89,8 @@ export default defineConfig({
         '**/agent-guide-walkthrough.spec.ts',        // in-app Agent-Anleitung E2E (public, no auth)
         '**/fa-m3-*.spec.ts',                        // M3 onboarding flow
         '**/fa-admin-backup-ops.spec.ts',            // admin backup ops auth guards
+        '**/fa-50-*.spec.ts',                        // request correlation / X-Request-ID (T000964)
+        '**/fa-51-*.spec.ts',                        // sidekick navigation + grilling/mediaviewer views (T000965)
       ],
       use: {
         ...devices['Desktop Chrome'],

@@ -1,10 +1,4 @@
 {
-  "T000000": [
-    {
-      "slug": "platform-cockpit-alignment",
-      "status": "plan_staged"
-    }
-  ],
   "T000737": [
     {
       "slug": "2026-06-20-grilling-ui-multichoice",
@@ -73,6 +67,12 @@
     {
       "slug": "sidekick-cleanup-grilling-broadcast",
       "status": "plan_staged"
+    }
+  ],
+  "T000967": [
+    {
+      "slug": "2026-06-20-platform-cockpit-alignment",
+      "status": "archived"
     }
   ]
 }

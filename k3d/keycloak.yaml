@@ -70,6 +70,10 @@ spec:
               value: "true"
             - name: KC_PROXY_HEADERS
               value: xforwarded
+            - name: KC_LOG_CONSOLE_FORMAT
+              value: "json"
+            - name: KC_LOG_LEVEL
+              value: "INFO,org.keycloak.events:DEBUG"
             - name: KEYCLOAK_ADMIN
               value: admin
             - name: KEYCLOAK_ADMIN_PASSWORD

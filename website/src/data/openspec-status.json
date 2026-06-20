@@ -98,5 +98,11 @@
       "slug": "cockpit-dor-inline-editor",
       "status": "plan_staged"
     }
+  ],
+  "T001002": [
+    {
+      "slug": "coaching-studio",
+      "status": "plan_staged"
+    }
   ]
 }

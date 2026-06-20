@@ -1,0 +1,136 @@
+---
+import SlotWidget from './SlotWidget.astro';
+import type { DaySlots } from '../lib/caldav';
+
+interface Stat {
+  value: string;
+  label: string;
+}
+
+interface Props {
+  stats: Stat[];
+  /** Pre-fetched first available day from getAvailableSlots(). */
+  nextDay?: DaySlots | null;
+  /** All-day slots fallback (when no `nextDay` is known). */
+  availableDays?: DaySlots[];
+  eyebrow?: string;
+}
+
+const {
+  stats,
+  nextDay = null,
+  eyebrow = 'Kennzahlen',
+} = Astro.props;
+---
+
+<section class="strip" role="region" aria-label={eyebrow}>
+  <div class="stats" aria-label="Kennzahlen">
+    {stats.map((stat) => (
+      <div class="stat">
+        <span class="stat-num" set:html={stat.value.replace(/([+]|KI|K8s|B\.Sc\.)/, '<em>$1</em>')}></span>
+        <span class="stat-lab">{stat.label}</span>
+      </div>
+    ))}
+  </div>
+
+  {nextDay
+    ? <SlotWidget day={nextDay} />
+    : (
+      <div class="availability-placeholder">
+        <p class="placeholder-text">
+          <a href="/termin" class="placeholder-link">Termine ansehen →</a>
+        </p>
+      </div>
+    )
+  }
+</section>
+
+<style>
+  .strip {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-right: 1px solid var(--line);
+  }
+
+  .stat {
+    padding: 38px 28px;
+    border-right: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .stat:last-child {
+    border-right: none;
+  }
+
+  .stat-num {
+    font-family: var(--serif);
+    font-size: 44px;
+    line-height: 1;
+    color: var(--fg);
+    letter-spacing: -0.02em;
+  }
+
+  /* em inside stat value = brass accent, non-italic */
+  .stat-num :global(em) {
+    color: var(--brass);
+    font-style: normal;
+  }
+
+  .stat-lab {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--mute);
+  }
+
+  .availability-placeholder {
+    padding: 32px 40px;
+    display: flex;
+    align-items: center;
+  }
+
+  .placeholder-text {
+    color: var(--mute);
+    font-size: 14px;
+    margin: 0;
+  }
+
+  .placeholder-link {
+    color: var(--brass);
+    text-decoration: none;
+  }
+
+  .placeholder-link:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 960px) {
+    .strip {
+      grid-template-columns: 1fr;
+    }
+
+    .stats {
+      border-right: none;
+      border-bottom: 1px solid var(--line);
+    }
+  }
+
+  @media (max-width: 720px) {
+    .stats {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .stat:nth-child(2) {
+      border-right: none;
+    }
+  }
+</style>

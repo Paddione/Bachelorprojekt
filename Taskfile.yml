@@ -2524,6 +2524,7 @@ tasks:
           ENVSUBST_VARS="$ENVSUBST_VARS \$KC_USER1_USERNAME \$KC_USER1_EMAIL \$KC_USER2_USERNAME \$KC_USER2_EMAIL"
           ENVSUBST_VARS="$ENVSUBST_VARS \$BRETT_DOMAIN"
           ENVSUBST_VARS="$ENVSUBST_VARS \$LIVEKIT_DOMAIN \$STREAM_DOMAIN \$RECOVER_DOMAIN \$OTEL_DOMAIN"
+          ENVSUBST_VARS="$ENVSUBST_VARS \$STUDIO_DOMAIN \$STUDIO_IMAGE \$STUDIO_DB_URL \$WHISPER_URL"
           ENVSUBST_VARS="$ENVSUBST_VARS \$WORKSPACE_NAMESPACE \$WEBSITE_NAMESPACE"
           ENVSUBST_VARS="$ENVSUBST_VARS \$SYSTEMTEST_LOOP_ENABLED"
           ENVSUBST_VARS="$ENVSUBST_VARS \$LLM_HOST_IP \$LLM_ENABLED \$LLM_RERANK_ENABLED \$LLM_ROUTER_URL \$LLM_EMBED_URL"
@@ -2644,6 +2645,7 @@ tasks:
         ENVSUBST_VARS="$ENVSUBST_VARS \$KC_USER1_USERNAME \$KC_USER1_EMAIL \$KC_USER2_USERNAME \$KC_USER2_EMAIL"
         ENVSUBST_VARS="$ENVSUBST_VARS \$BRETT_DOMAIN"
         ENVSUBST_VARS="$ENVSUBST_VARS \$LIVEKIT_DOMAIN \$STREAM_DOMAIN \$RECOVER_DOMAIN"
+        ENVSUBST_VARS="$ENVSUBST_VARS \$STUDIO_DOMAIN \$STUDIO_IMAGE \$STUDIO_DB_URL \$WHISPER_URL"
         ENVSUBST_VARS="$ENVSUBST_VARS \$WORKSPACE_NAMESPACE \$WEBSITE_NAMESPACE"
         ENVSUBST_VARS="$ENVSUBST_VARS \$SYSTEMTEST_LOOP_ENABLED"
         ENVSUBST_VARS="$ENVSUBST_VARS \$LLM_HOST_IP \$LLM_ENABLED \$LLM_RERANK_ENABLED \$LLM_ROUTER_URL \$LLM_EMBED_URL"
@@ -4099,6 +4101,45 @@ tasks:
           envsubst "\$WORKSPACE_NAMESPACE" < prod-korczewski/migrations-arena.yaml | kubectl $CTX_ARG apply -f -
           kubectl $CTX_ARG -n "$WORKSPACE_NAMESPACE" rollout restart deployment/arena-server || true
       - echo "✓ arena deployed to {{.ENV}}"
+
+  studio:build:
+    desc: "Build studio-server image and (in dev) import into k3d (T001002)"
+    cmds:
+      - docker build -t ${STUDIO_IMAGE:-studio-server}:latest studio-server/
+      - |
+          if [ "{{.ENV}}" = "dev" ] || [ "{{.ENV}}" = "" ]; then
+            k3d image import ${STUDIO_IMAGE:-studio-server}:latest -c ${CLUSTER_NAME:-k3d-dev} || true
+          fi
+      - echo "✓ studio image built"
+
+  studio:push:
+    desc: "Push studio-server image to ghcr.io (T001002)"
+    deps: [studio:build]
+    cmds:
+      - docker push ${STUDIO_IMAGE:-studio-server}:latest
+      - echo "✓ Pushed ${STUDIO_IMAGE:-studio-server}:latest"
+
+  studio:deploy:
+    desc: "Build, push, and roll out studio-server (mentolder-only for MVP; T001002)"
+    cmds:
+      - |
+          if [ "{{.ENV}}" = "korczewski" ]; then
+            echo "studio-server is mentolder-only for MVP. Skipping."
+            exit 0
+          fi
+          if [ "{{.ENV}}" = "dev" ] || [ "{{.ENV}}" = "" ]; then
+            task studio:build
+          else
+            task studio:push
+          fi
+      - |
+          source scripts/env-resolve.sh "{{.ENV}}"
+          CTX_ARG=""
+          if [ -n "$ENV_CONTEXT" ]; then CTX_ARG="--context $ENV_CONTEXT"; fi
+          # workspace:deploy already applies k3d/studio.yaml + oauth2-proxy-studio.yaml
+          # (envsubst renders PROD_DOMAIN/STUDIO_IMAGE); just force a rollout here.
+          kubectl $CTX_ARG -n "${WORKSPACE_NAMESPACE:-workspace}" rollout restart deployment/studio-server || true
+      - echo "✓ studio deployed to {{.ENV}}"
 
   arena:sync:
     desc: "Fast-sync arena-server src to the running pod and rebuild (ENV=dev|korczewski|...)"

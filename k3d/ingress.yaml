@@ -135,3 +135,13 @@ spec:
                 name: oauth2-proxy-videovault
                 port:
                   number: 4180
+    - host: studio.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: oauth2-proxy-studio
+                port:
+                  number: 4180

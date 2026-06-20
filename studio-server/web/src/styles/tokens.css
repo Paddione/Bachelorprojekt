@@ -1,0 +1,73 @@
+@import url("https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap");
+
+:root {
+  --ink-900: #0b111c;
+  --ink-850: #101826;
+  --ink-800: #17202e;
+  --ink-750: #1d2736;
+
+  --fg:      #eef1f3;
+  --fg-soft: #cdd3d9;
+  --mute:    #8c96a3;
+  --mute-2:  #6a727e;
+
+  --brass:   oklch(0.80 0.09 75);
+  --brass-2: oklch(0.86 0.09 75);
+  --brass-d: oklch(0.80 0.09 75 / .14);
+  --brass-deep: #8a6a2a;
+  --brass-hex: #cda260;
+
+  --sage:    oklch(0.80 0.06 160);
+
+  --line:   rgba(255, 255, 255, 0.07);
+  --line-2: rgba(255, 255, 255, 0.12);
+
+  --serif: "Newsreader", "Iowan Old Style", Georgia, serif;
+  --sans:  "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:  "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  --t-h1-size:   clamp(44px, 6.2vw, 88px);
+  --t-h1-weight: 350;
+  --t-h1-leading: 1.02;
+
+  --t-h2-size:   clamp(32px, 3.6vw, 48px);
+  --t-h2-weight: 400;
+
+  --t-lede-size: 20px;
+  --t-body-size: 16px;
+
+  --radius:    22px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --radius-xs: 4px;
+  --radius-pill: 999px;
+
+  --ease-soft: cubic-bezier(.22, .61, .36, 1);
+  --dur-base: 200ms;
+}
+
+@theme {
+  --color-ink-900: var(--ink-900);
+  --color-ink-850: var(--ink-850);
+  --color-ink-800: var(--ink-800);
+  --color-ink-750: var(--ink-750);
+  --color-fg: var(--fg);
+  --color-fg-soft: var(--fg-soft);
+  --color-mute: var(--mute);
+  --color-mute-2: var(--mute-2);
+  --color-brass: var(--brass);
+  --color-brass-2: var(--brass-2);
+  --color-brass-d: var(--brass-d);
+  --color-sage: var(--sage);
+}
+
+html, body { margin: 0; padding: 0; background: var(--ink-900); color: var(--fg); }
+body { font-family: var(--sans); font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+
+button { font: inherit; color: inherit; cursor: pointer; background: none; border: none; }
+input, select, textarea { font: inherit; }
+a { color: inherit; text-decoration: none; }
+::selection { background: var(--brass-d); }
+
+:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; border-radius: 2px; }
+:focus:not(:focus-visible) { outline: none; }

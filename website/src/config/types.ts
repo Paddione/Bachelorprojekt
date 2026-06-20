@@ -50,7 +50,7 @@ export interface HomepageService {
   description: string;
   icon: string;
   /** Optional symbol id within the brand SVG sprite (e.g. `icon-50plus-digital`).
-   *  When set, ServiceCard renders an inline `<svg><use href=".../icons.svg#<id>"/></svg>`
+   *  When set, ServiceRow renders an inline `<svg><use href=".../icons.svg#<id>"/></svg>`
    *  using `currentColor` stroke. Falls back to the emoji `icon` field when absent. */
   iconSpriteId?: string;
   features: string[];

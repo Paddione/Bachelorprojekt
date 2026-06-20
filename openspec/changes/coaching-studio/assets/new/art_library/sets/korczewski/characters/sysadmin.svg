@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 320" width="240" height="320" role="img" aria-label="Sysadmin">
+  <defs>
+    <radialGradient id="gk" cx="50%" cy="40%" r="65%"><stop offset="0%" stop-color="#1c1428"></stop><stop offset="100%" stop-color="#120D1C"></stop></radialGradient>
+    <filter id="grainK"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="7"></feTurbulence><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .07 0"></feColorMatrix></filter>
+  </defs>
+  <rect x="0" y="0" width="240" height="320" fill="url(#gk)"></rect>
+  <rect x="0" y="0" width="240" height="320" filter="url(#grainK)" opacity=".6"></rect>
+  <rect x="14" y="14" width="212" height="292" fill="none" stroke="#7a8b4f" stroke-opacity=".35"></rect>
+  <g stroke="#C8F76A" stroke-opacity=".55" stroke-width="1" fill="none">
+    <path d="M14 24 L14 14 L24 14"></path><path d="M226 24 L226 14 L216 14"></path>
+    <path d="M14 296 L14 306 L24 306"></path><path d="M226 296 L226 306 L216 306"></path>
+  </g>
+  
+  <g fill="#4c4d5b">
+    <path d="M82 84 Q120 44 158 84 L166 138 Q160 146 152 144 L88 144 Q80 146 74 138 Z"></path>
+    <path d="M74 144 L66 280 L174 280 L166 144 Z"></path>
+    <path d="M84 168 L72 222 L96 232 L110 200 Z"></path>
+    <path d="M156 168 L168 222 L144 232 L130 200 Z"></path>
+  </g>
+  <ellipse cx="120" cy="108" rx="24" ry="20" fill="#120D1C"></ellipse>
+  <rect x="100" y="106" width="14" height="6" rx="1.5" fill="#2a1f3a" stroke="#7a8b4f" stroke-width="0.8"></rect>
+  <rect x="126" y="106" width="14" height="6" rx="1.5" fill="#2a1f3a" stroke="#7a8b4f" stroke-width="0.8"></rect>
+  <line x1="114" y1="109" x2="126" y2="109" stroke="#7a8b4f" stroke-width="0.8"></line>
+  <circle cx="107" cy="109" r="1.4" fill="#C8F76A" opacity=".9"></circle>
+  <circle cx="133" cy="109" r="1.4" fill="#C8F76A" opacity=".9"></circle>
+  <rect x="92" y="208" width="56" height="32" rx="2" fill="#2a1f3a" stroke="#7a8b4f" stroke-width="0.8"></rect>
+  <rect x="96" y="212" width="48" height="22" fill="#120D1C"></rect>
+  <line x1="100" y1="218" x2="120" y2="218" stroke="#C8F76A" stroke-width="0.6" opacity=".9"></line>
+  <line x1="100" y1="222" x2="138" y2="222" stroke="#7a8b4f" stroke-width="0.6"></line>
+  <line x1="100" y1="226" x2="130" y2="226" stroke="#7a8b4f" stroke-width="0.6"></line>
+  <text x="120" y="296" text-anchor="middle" font-family="Geist Mono, monospace" font-size="9" fill="#7a8b4f" letter-spacing="2">SYSADMIN · OPERATOR</text>
+
+</svg>

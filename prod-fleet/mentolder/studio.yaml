@@ -1,0 +1,53 @@
+# ═══════════════════════════════════════════════════════════════════
+# Coaching Studio — prod overlay for mentolder brand on the fleet
+# cluster. Pins image-digest, prod-issuer, prod TLS, and node-affinity
+# for fleet pk nodes. (T001002)
+# ═══════════════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: studio-server
+  labels:
+    app: studio-server
+spec:
+  template:
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values: [pk-hetzner-4, pk-hetzner-6, pk-hetzner-8]
+      containers:
+        - name: studio-server
+          image: ${STUDIO_IMAGE}@${STUDIO_IMAGE_DIGEST}
+          env:
+            - name: KEYCLOAK_ISSUER_MENTOLDER
+              value: "${KEYCLOAK_ISSUER_MENTOLDER}"
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: workspace-ingress-studio
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: "${WORKSPACE_NAMESPACE}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE}-hsts-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-security-headers@kubernetescrd"
+spec:
+  tls:
+    - hosts:
+        - studio.${PROD_DOMAIN}
+      secretName: ${TLS_SECRET_NAME}
+  rules:
+    - host: studio.${PROD_DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: oauth2-proxy-studio
+                port:
+                  number: 4180

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="Barrier">
+  <defs>
+    <radialGradient id="pg" cx="50%" cy="45%" r="65%"><stop offset="0%" stop-color="#17202e"></stop><stop offset="100%" stop-color="#0b111c"></stop></radialGradient>
+    <filter id="pgrain"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="5"></feTurbulence><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .06 0"></feColorMatrix></filter>
+  </defs>
+  <rect width="200" height="200" fill="url(#pg)"></rect>
+  <rect width="200" height="200" filter="url(#pgrain)" opacity=".4"></rect>
+  <rect x="12" y="12" width="176" height="176" fill="none" stroke="#d7b06a" stroke-opacity=".22"></rect>
+  
+  <g fill="#1d2736" stroke="#d7b06a" stroke-opacity=".4" stroke-width="0.8">
+    <rect x="34" y="42" width="44" height="22"></rect><rect x="78" y="42" width="48" height="22"></rect><rect x="126" y="42" width="40" height="22"></rect>
+    <rect x="34" y="64" width="32" height="22"></rect><rect x="66" y="64" width="50" height="22"></rect><rect x="116" y="64" width="50" height="22"></rect>
+    <rect x="34" y="86" width="48" height="22"></rect><rect x="82" y="86" width="46" height="22"></rect><rect x="128" y="86" width="38" height="22"></rect>
+    <rect x="34" y="108" width="40" height="22"></rect><rect x="74" y="108" width="44" height="22"></rect><rect x="118" y="108" width="48" height="22"></rect>
+    <rect x="34" y="130" width="50" height="22"></rect><rect x="84" y="130" width="38" height="22"></rect><rect x="122" y="130" width="44" height="22"></rect>
+  </g>
+  <path d="M82 42 L78 64 L86 86 L78 108 L84 130 L78 152" stroke="#0b111c" stroke-width="2" fill="none"></path>
+  <text x="100" y="172" text-anchor="middle" font-family="Geist Mono, monospace" font-size="8" fill="#d7b06a" letter-spacing="2">BLOCKADE</text>
+
+</svg>

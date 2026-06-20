@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 80" width="360" height="80">
+  <defs>
+    <linearGradient id="lll-brass" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#d7b06a"></stop>
+      <stop offset="100%" stop-color="#7a5a1a"></stop>
+    </linearGradient>
+  </defs>
+  <rect width="360" height="80" fill="#ede6d8"></rect>
+  <rect x="16" y="20" width="40" height="40" rx="10" fill="none" stroke="url(#lll-brass)" stroke-width="2"></rect>
+  <text x="36" y="52" text-anchor="middle" font-family="Newsreader, Georgia, serif" font-weight="500" font-size="30" fill="url(#lll-brass)">m</text>
+  <text x="76" y="52" font-family="Newsreader, Georgia, serif" font-weight="400" font-size="30" fill="#0b111c" letter-spacing="-0.5">mentolder</text>
+  <text x="282" y="52" font-family="Newsreader, Georgia, serif" font-weight="500" font-size="30" fill="url(#lll-brass)">.</text>
+</svg>

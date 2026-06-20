@@ -33,7 +33,8 @@
         ]
       },
       "groups": [
-        "/session-hub-access"
+        "/session-hub-access",
+        "/coach-access"
       ]
     },
     {
@@ -53,7 +54,8 @@
         ]
       },
       "groups": [
-        "/session-hub-access"
+        "/session-hub-access",
+        "/coach-access"
       ]
     }
   ],
@@ -424,6 +426,71 @@
             "access.token.claim": "true",
             "claim.name": "preferred_username",
             "jsonType.label": "String"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "studio",
+      "name": "Coaching Studio",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${STUDIO_OIDC_SECRET}",
+      "redirectUris": [
+        "http://studio.localhost/oauth2/callback"
+      ],
+      "webOrigins": [
+        "http://studio.localhost"
+      ],
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "attributes": {
+        "oidc.ciba.grant.enabled": "false",
+        "oauth2.device.authorization.grant.enabled": "false",
+        "backchannel.logout.session.required": "true"
+      },
+      "protocolMappers": [
+        {
+          "name": "email",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "userinfo.token.claim": "true",
+            "user.attribute": "email",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "email",
+            "jsonType.label": "String"
+          }
+        },
+        {
+          "name": "username",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "userinfo.token.claim": "true",
+            "user.attribute": "username",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "preferred_username",
+            "jsonType.label": "String"
+          }
+        },
+        {
+          "name": "audience-studio",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "studio",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
           }
         }
       ]
@@ -876,6 +943,14 @@
     {
       "name": "session-hub-access",
       "path": "/session-hub-access",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "coach-access",
+      "path": "/coach-access",
       "attributes": {},
       "realmRoles": [],
       "clientRoles": {},

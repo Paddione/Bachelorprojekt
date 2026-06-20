@@ -19,8 +19,8 @@
       ]
     },
     "mcp-kubernetes": {
-      "type": "sse",
-      "url": "http://localhost:18080/sse"
+      "type": "http",
+      "url": "http://localhost:18080/mcp"
     },
     "mcp-browser": {
       "type": "http",

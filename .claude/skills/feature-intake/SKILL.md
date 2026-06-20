@@ -1,20 +1,19 @@
 ---
 name: feature-intake
-description: Use when the user wants to discover, brainstorm, or collect features before planning, OR when the user wants to clarify open questions on existing Planungsbüro tickets. Triggers on: "was könnten wir als nächstes bauen", "schick gekko einen Fragebogen", "feature-ideen sammeln", "klär die offenen Fragen im Planungsbüro", "planungsbüro tickets klären", "plan-ready machen", "offene Fragen", "gekkomode", "frag gekko", "interview gekko", "was braucht gekko", "gekko befragen", or any pre-planning feature-discovery or ticket-clarification session.
+description: Use when the user wants to collect or select features via form before planning, OR when the user wants to clarify open questions on existing Planungsbüro tickets. Triggers on: "was könnten wir als nächstes bauen", "schick gekko einen Fragebogen", "feature-ideen sammeln", "klär die offenen Fragen im Planungsbüro", "planungsbüro tickets klären", "plan-ready machen", "offene Fragen", or any pre-planning feature-discovery or ticket-clarification session.
 ---
 
-# feature-intake — Feature-Entdeckung, PM-Fragebogen & Planungsbüro-Klärung
+# feature-intake — PM-Fragebogen & Planungsbüro-Klärung
 
 ## Überblick
 
-Dieser Skill ist dem `dev-flow-plan` **vorgelagert**: er sammelt Feature-Ideen und überführt sie in plan-ready Tickets. Vier Modi:
+Dieser Skill ist dem `dev-flow-plan` **vorgelagert**: er sammelt Feature-Ideen und überführt sie in plan-ready Tickets. Drei Modi:
 
 | Modus | Wann | Ergebnis |
 |-------|------|---------|
 | **Planungsbüro-Klärung** | Bestehende `planning`-Tickets haben offene Fragen / fehlende Readiness-Flags | HTML-Klärungsformular pro Ticket → Antworten ins Ticket schreiben |
 | **Brainstorm** | User will jetzt live mitreden / frei ideieren | Strukturierte Feature-Liste → direkt zu `dev-flow-plan` |
 | **HTML-Formular** | Auswahl + Priorisierung neuer Ideen per Klick — **für Patrick oder gekko** | HTML-Formular → ausgefülltes Markdown → `dev-flow-plan` |
-| **GekkoMode** | Offenes Entdeckungs-Interview mit gekko — Schmerzen + Wünsche herauskitzeln | Interview-HTML-Formular → strukturierter Rücklauf → neue `planning`-Tickets |
 
 **Standard-Annahme:** Patrick füllt lieber ein **HTML-Formular** aus als inline zu tippen (siehe Memory „Grilling via HTML form"). Im Zweifel **generiere das Formular**, starte den **Session-Hub** (`bash scripts/session-hub.sh start-form`) und liefere es zusätzlich per `SendUserFile`. Die URL `https://session-intake.sessions.mentolder.de` erscheint als Karte im Mediaviewer — immer, in allen Modi.
 
@@ -23,20 +22,13 @@ Dieser Skill ist dem `dev-flow-plan` **vorgelagert**: er sammelt Feature-Ideen u
 ## Modus-Wahl
 
 ```
-User nennt "gekkomode" / "frag gekko" / "interview gekko" / "was braucht gekko"
-  → GekkoMode (Modus D) — PRIORITÄT vor B und A
-
 User spricht von "Planungsbüro", "klären", "offene Fragen", "plan-ready",
 "Readiness", oder will bestehende planning-Tickets vorbereiten?
   → Planungsbüro-Klärung (Modus C) — PRIORITÄT vor B und A
 
-User will Features nur auswählen + priorisieren (wenig tippen),
-ODER "schick gekko einen Fragebogen" / "PM soll entscheiden" / "mach mir ein Formular"
-  OHNE Entdeckungscharakter (Ideen bereits bekannt)?
+Sonst (Features auswählen + priorisieren, bekannte Ideen, wenig tippen,
+ODER "schick gekko einen Fragebogen" / "PM soll entscheiden" / "mach mir ein Formular"):
   → HTML-Formular-Modus (Modus B) — Empfänger = Patrick oder gekko
-
-User will JETZT frei mitdenken / Cluster live durchgehen?
-  → Brainstorm-Modus (Modus A)
 ```
 
 ---
@@ -70,6 +62,63 @@ if [[ -z "$PLANNING_ROWS" ]]; then
 fi
 ```
 
+### Schritt 1.5 — Spec-Kontext pro Ticket laden (lazy, nur wenn nötig)
+
+Für Tickets mit `offene_fragen_geklaert: false` lade die SSOT-Spec des primären `areas`-Feldes — **nicht alle 35 Specs**, nur die passende(n). Damit basieren die Klärungsfragen in Schritt 2 auf dem echten Spec-Stand statt auf generischen Blanko-Fragen.
+
+**Areas → Spec-Slug Lookup:**
+
+| `areas`-Wert | Spec-Slug(s) |
+|---|---|
+| `brett` | `brett` |
+| `website` | `website-core` |
+| `chat` | `chat-inbox` |
+| `infra` | `workspace-deploy` |
+| `auth` | `auth-sso` |
+| `ai/factory` | `software-factory` |
+| `nextcloud` | `nextcloud-integration` |
+| `database` | `database` |
+| `billing` | `billing-pipeline` |
+| `livekit` | `livekit-integration` |
+| `llm` | `llm-pipeline` |
+| `monitoring` | `monitoring-alerts` |
+| `fleet` | `fleet-operations` |
+| `ci` | `ci-cd` |
+| `newsletter` | `newsletter-system` |
+| `admin` | `admin-cockpit` |
+| `datev` | `datev-export` |
+| `mediaviewer` | `mediaviewer` |
+| `grilling` | `grilling-flow` |
+| `questionnaire` | `questionnaire-system` |
+| `vaultwarden` | `vaultwarden-integration` |
+| `collabora` | `collabora-integration` |
+| `backup` | `backup-pipeline` |
+| `mcp` | `mcp-gateway` |
+| `portal` | `portal` |
+| `sidekick` | `sidekick-assistant` |
+| `planning-office` | `planning-office` |
+| `sessions` | `sessions-server` |
+| `secret-rotation` | `secret-rotation` |
+| `ticket-system` | `ticket-system` |
+| `llm-local` | `llm-local-dev` |
+| `openspec` | `openspec-workflow` |
+
+**Abruf-Befehl** (gibt vorformatierten Markdown-Block aus):
+
+```bash
+# areas-Wert des Tickets → Slug auflösen → Spec laden
+# Beispiel: areas="website,chat" → SPEC_SLUGS="website-core chat-inbox"
+SPEC_SLUGS="<aufgelöste Slugs aus Lookup-Tabelle>"
+
+SPEC_CONTEXT=$(bash scripts/openspec-context.sh --specs $SPEC_SLUGS 2>/dev/null || echo "")
+```
+
+**Regeln:**
+- Nur laden wenn `offene_fragen_geklaert: false` — sonst nicht nötig
+- Bei mehreren `areas`: nur die **ersten 1-2 Slugs** laden (Kontextbudget schonen)
+- Leerer Output (kein Match) → statische Fragen aus Schritt 2 als Fallback
+- `$SPEC_CONTEXT` enthält die Requirements & Scenarios der Spec → in Schritt 2 nutzen, um ticket-spezifische Fragen abzuleiten: "Welche Scenarios sind in diesem Ticket noch nicht abgedeckt?"
+
 ### Schritt 2 — Offene Fragen pro Ticket ableiten
 
 Für jedes Ticket prüfe die Readiness-Flags und leite daraus konkrete Fragen ab:
@@ -86,6 +135,8 @@ Für jedes Ticket prüfe die Readiness-Flags und leite daraus konkrete Fragen ab
 > **Wichtig:** Nur diese exakten Schlüssel in `--readiness` verwenden — `ticket.sh` parst sie als freeform JSON, falsch geschriebene Keys werden stillschweigend ignoriert.
 
 #### Domain-spezifische Fragen nach `areas`
+
+> **Wenn `$SPEC_CONTEXT` befüllt ist (aus Schritt 1.5):** Leite die Fragen primär aus den Scenarios der Spec ab — "Welches Scenario fehlt noch für dieses Ticket?". Die statischen Fragen unten sind der **Fallback** wenn kein Spec-Kontext geladen wurde.
 
 **brett:** Welche Benutzerrollen sind betroffen? Soll das Feature auf Mobilgeräten vollständig funktionieren? Wie verhält sich das Feature bei Verbindungsunterbrechungen? Gibt es Abhängigkeiten zu bestehenden Brett-Figuren oder Board-States?
 
@@ -300,445 +351,6 @@ Zeige welche Tickets jetzt vollständig readiness-ready sind (alle 4 Flags true)
 
 ---
 
-## Modus D: GekkoMode — Entdeckungs-Interview
-
-**Zweck:** Nicht aus einer vordefinierten Liste wählen, sondern *unbekannte* Schmerzen und Wünsche von gekko herauskitzeln — offener Entdeckungscharakter. Das Interview generiert Rohideen, die Claude anschließend in vollständige `planning`-Tickets überführt.
-
-**Bekannter Kontext über gekko (nicht abfragen):**
-- Nutzt die Plattform täglich
-- Primärgerät: Android-Smartphone → Handy-Usability ist implizit hochpriorisiert
-- Deadlines sind nebensächlich — kein Deadline-Block im Formular
-- Kein DocuSeal — Verträge werden intern selbst gebaut, also kein DocuSeal-Fieldset
-
-**Formular-Leitprinzipien:**
-- Kein "Was nutzt du aktiv?"-Filter (Block-1 ist weggefallen) — alle Schmerz-Bereiche direkt zeigen
-- Kein Ranking-Block — Priorität wird beim Ticket-Anlegen von Claude abgeleitet, nicht von gekko bewertet
-- Kein Kontext-/Timing-Block
-- Kernfokus: **Feature-Vorschläge mit Würfeln** + **Schmerz-Freitext** + **Wunschzettel**
-
-**Sage:** "Ich erstelle ein Entdeckungs-Interview-Formular für gekko."
-
-### Schritt 1 — Bestehende Tickets laden (Duplikatschutz)
-
-**MCP-Schnellweg (read-only) — beide Reads.** Wenn `mcp-postgres` erreichbar, hole sie via
-`mcp__mcp-postgres__query`:
-> bestehende Tickets — `sql:` `SELECT external_id, title, status FROM tickets.tickets WHERE status NOT IN ('done','archived') ORDER BY created_at DESC LIMIT 60;`
-> Spec-Pool — `sql:` `SELECT d.title, left(kc.text, 300), d.source_uri FROM knowledge.documents d JOIN knowledge.collections c ON c.id = d.collection_id JOIN knowledge.chunks kc ON kc.document_id = d.id AND kc.position = 0 WHERE c.source = 'specs_plans' AND d.source_uri LIKE 'file:openspec/changes/%/proposal.md' ORDER BY d.created_at DESC LIMIT 30;`
-
-Belege `EXISTING` und `SPEC_POOL` aus den Ergebnissen. **Fallback:** die zwei kubectl-Blöcke unten.
-
-_Fallback:_
-
-```bash
-EXISTING=$(kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -F '|' -c \
-  "SELECT external_id, title, status FROM tickets.tickets
-   WHERE status NOT IN ('done','archived')
-   ORDER BY created_at DESC LIMIT 60;" 2>/dev/null)
-```
-
-Halte diese Liste im Arbeitsgedächtnis — sie dient später beim Ticket-Anlegen zum Duplikatcheck.
-
-Lade außerdem die indizierten Proposal-Dokumente als dynamischen Feature-Pool:
-
-```bash
-SPEC_POOL=$(kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -F '|' -c \
-  "SELECT d.title, left(kc.text, 300), d.source_uri
-   FROM knowledge.documents d
-   JOIN knowledge.collections c  ON c.id = d.collection_id
-   JOIN knowledge.chunks kc      ON kc.document_id = d.id AND kc.position = 0
-   WHERE c.source = 'specs_plans'
-     AND d.source_uri LIKE 'file:openspec/changes/%/proposal.md'
-   ORDER BY d.created_at DESC
-   LIMIT 30;" 2>/dev/null)
-```
-
-Halte `$SPEC_POOL` im Arbeitsgedächtnis — er wird in Schritt 2 Block 1 als dritte Karten-Gruppe „Aus eigenen Specs" verwendet. Wenn `$SPEC_POOL` leer ist (keine Proposals indiziert), entfällt diese Gruppe; die hardcodierten Einträge bleiben als Fallback.
-
-### Schritt 2 — Interview-HTML-Formular generieren
-
-Erstelle `/tmp/gekko-<DATUM>.html` mit dem `Write`-Tool. Das Formular ist ein **eigenständiges, backend-freies HTML**, läuft via `file://`.
-
-**Formular-Design:** Dark Theme (`#0d1117` / `#c9d1d9`), große Schrift, viel Weißraum. Überschrift: „Hey gekko — was brauchst du?" Introtext: „5 Minuten. Keine falschen Antworten. Deine Inputs landen direkt im Planungsbüro."
-
-#### Formular-Blöcke (genau diese 3, keine anderen)
-
-**Block 1 — Feature-Vorschläge mit Würfeln**
-
-- Zeige **12 zufällige Features** aus einem großen Pool (~60 Einträge) als anklickbare Karten
-- Jede Karte: Bereichs-Tag + Feature-Text, Klick = auswählen/abwählen
-- **„🎲 Neu würfeln"-Button**: lädt 12 neue Karten aus dem Pool — bereits ausgewählte Karten bleiben erhalten und werden als Chips unterhalb angezeigt
-- Auswahlzähler: „Ausgewählt: N"
-
-Feature-Pool — Bereiche und Einträge:
-
-| Bereich | Beispiel-Einträge |
-|---------|------------------|
-| Brett | Board-Export PNG/PDF, Touch-Drag Android, Figuren-Animationen, Gruppen-Lobby, Zuschauer-Modus, Board-Templates, Verbindungslinien, Figuren filtern, Undo/Redo, Board-Kommentare, Board teilen (Link), Offline-Modus |
-| Website | Bild-Upload im Editor, Newsletter-Vorlagen, Referenzen-Galerie, SEO-Editor, Zeitgesteuertes Veröffentlichen, Vertrags-PDF-Preview, Kontaktformular-Admin, Mehrsprachigkeit DE/EN, Bewertungs-Modul, Content-Kalender |
-| Chat | Push-Notifications Android, Emoji-Reaktionen, Thread-Antworten, Datei-Anhänge >10 MB, Gelesen-Bestätigungen, Sprachnachrichten, Nachrichten bearbeiten, DMs, @mention, Link-Vorschau, Kanal-Archiv, Videoanruf |
-| Nextcloud | Auto-Backup Ordner, Gemeinsames Bearbeiten stabil, Offline Mobile, Ordner-Freigabe vereinfachen, Bilder-Sync |
-| Vaultwarden | Android Autofill zuverlässiger, Import aus anderem Manager, Ordner teilen, Passwort-Stärke-Bericht |
-| Login | Self-Service Passwort-Reset, Einladungs-Link, Login-Verlauf, Längere Session |
-| Allgemein | Plattformweite Suche, Benachrichtigungs-Zentrale, Performance-Dashboard, Kalender-Integration, To-do-Liste, Android-Widget |
-| AI | KI-Textzusammenfassung, Chat-Bot, Ticket-Auto-Triage, KI schlägt Newsletter vor |
-
-Wenn `$SPEC_POOL` nicht leer ist, rendere in Block 1 zusätzlich eine dritte Karten-Gruppe unterhalb der hardcodierten Pool-Tabelle:
-
-**Karten-Gruppe „Aus eigenen Specs" (dynamisch, nur wenn `$SPEC_POOL` gefüllt):**
-
-- Überschrift: „Aus eigenen Specs" mit `(aus Knowledge-Base)` Badge
-- Eine Karte pro psql-Zeile aus `$SPEC_POOL` (`title | snippet_300 | source_uri`)
-- Karten-Text: `title` als Haupt-Label; erste 100 Zeichen des Snippets grau/klein darunter
-- Bereichs-Tag: „Spec" (neutral)
-- Gleiche Klick-/Auswahl-Logik wie hardcodierte Einträge
-- Würfel-Button mischt NUR in hardcodierten Einträgen; Spec-Karten bleiben vollständig sichtbar
-- `buildMarkdown()` gibt Spec-Karten mit Präfix `[Spec]` aus: `- [Spec] <title>`
-- Wenn `$SPEC_POOL` leer → kein leerer Platzhalter, Gruppe wird nicht gerendert
-
-**Block 2 — Schmerzen**
-
-Alle Bereiche direkt anzeigen (kein Filter). Bereich **DocuSeal weglassen** — wird intern selbst gebaut.
-
-Bereiche: Brett (2 Fragen inkl. Handy), Website / Admin (2), Chat (1), Vaultwarden (1), Nextcloud (1), Keycloak / Login (1)
-
-**Block 3 — Wunschzettel**
-
-Drei Freitext-Felder: „Sofort hätte ich…", „In 6 Monaten…", „Vermisse von anderen Apps…"
-
-**Block 4 — Große Vision (Major-Feature)**
-
-Ein Freitext-Feld mit Leitfrage: „Wenn du die Plattform komplett neu erfinden könntest — was wäre anders?"
-
-Darunter eine Checkbox: „Ich bin offen, dass dieses Feature in mehrere unabhängige Teile zerlegt und parallel entwickelt wird."
-
-Dieser Block identifiziert Major-Features die via `dev-flow-batch` zerlegt werden können.
-
-**[FOOTER]** „Markdown kopieren"-Button + Fallback-Textarea
-
-#### Technische Anforderungen
-
-- Kein Block-1-Filter, kein Ranking, kein Kontext-Block
-- Feature-Karten: `display:grid`, anklickbar, selected-State via CSS-Klasse
-- Würfel-Button: Fisher-Yates shuffle auf verbleibenden Pool-Einträgen
-- `buildMarkdown()` erzeugt das Ausgabeformat (siehe unten)
-- `navigator.clipboard` mit `document.execCommand('copy')` Fallback-Textarea
-
-### Schritt 3 — Formular liefern
-
-**Immer:** Session-Hub starten (lokaler HTTP-Server + fleet-Upload → sessions.mentolder.de + Mediaviewer-Karte):
-
-```bash
-bash scripts/session-hub.sh start-form --file "/tmp/gekko-<DATUM>.html" --name "gekko"
-# Zum Aktualisieren: bash scripts/session-hub.sh regen --name gekko
-```
-
-Das Formular ist dann öffentlich erreichbar unter `https://session-gekko.sessions.mentolder.de` und erscheint als Karte im Mediaviewer-Panel. Das Formular hat einen **„Im Ticket speichern"-Button** — da kein `--ticket-id` gesetzt wird, erstellt er ein neues Ticket mit dem ausgefüllten Markdown. Danach **zusätzlich** per `SendUserFile` liefern. Sage Patrick: „Schick den Link an gekko: https://session-gekko.sessions.mentolder.de — ausfüllen → ‚Im Ticket speichern' (direkt!) oder ‚Markdown kopieren' → dir zurückschicken."
-
-### Schritt 4 — Rücklauf verarbeiten
-
-Wenn das ausgefüllte Markdown zurückkommt:
-
-#### Markdown-Ausgabeformat (was der Button erzeugt)
-
-```markdown
-## GekkoMode Interview: <Datum>
-Eingereicht von: gekko
-
-### Block 1 — Ausgewählte Feature-Vorschläge
-- [Brett] Touch-Drag & Drop auf Android verbessern
-- [Chat] Push-Notifications auf Android (PWA)
-- [Website] Bild-Upload direkt im HTML-Editor
-
-### Block 2 — Schmerzen
-
-**Brett:**
-- Nervt: "Figuren lassen sich nicht gruppieren"
-- Handy-Problem: "Buttons zu klein, kein Touch-Drag"
-
-**Website / Admin:**
-- Umständlich: "Newsletter-Bilder muss ich extern hochladen"
-- Zeigen will: "Referenzen-Galerie fehlt"
-
-**Chat:**
-- Greift auf anderes Tool zurück weil: "Datei-Anhänge > 5 MB"
-
-**Vaultwarden:**
-- Bremst Nutzung: "Android Autofill klappt nicht immer"
-
-**Nextcloud:**
-- Manuell statt automatisch: "Ordner-Struktur händisch anlegen"
-
-**Keycloak / Login:**
-- Probleme ignoriert: "Token läuft nach 30 min ab, nervt"
-
-### Block 3 — Wunschzettel
-- Sofort: "Brett auf Handy benutzbar machen"
-- In 6 Monaten: "Newsletter komplett in der Plattform"
-- Vermisse: "Notion-ähnliche Datenbanken"
-
-### Block 4 — Große Vision
-- Vision: "Eine App für alles — Brett, Chat, Dateien, Verträge in einem Flow"
-- Parallel-Entwicklung: ✓ (Checkbox gesetzt)
-```
-
-#### Tickets anlegen
-
-Pro Schmerz-Nennung + Wunsch aus Block 3 (der noch kein Ticket hat):
-
-```bash
-# 1. Duplikatcheck gegen $EXISTING — nur anlegen wenn kein ähnlicher Titel
-
-# 2. Semantischer Duplikatcheck via pgvector (neu)
-SEARCH_RESULT=$(task knowledge:search ENV=mentolder \
-  QUERY="<destillierter Titel>" \
-  SOURCE=specs_plans \
-  LIMIT=3 \
-  THRESHOLD=0.65 2>/dev/null || echo '{"results":[]}')
-
-TOP_SCORE=$(echo "$SEARCH_RESULT" | python3 -c \
-  "import json,sys; d=json.load(sys.stdin); r=d.get('results',[]); print(r[0]['score'] if r else 0)" 2>/dev/null || echo 0)
-TOP_TITLE=$(echo "$SEARCH_RESULT" | python3 -c \
-  "import json,sys; d=json.load(sys.stdin); r=d.get('results',[]); print(r[0]['title'] if r else '')" 2>/dev/null || echo "")
-TOP_URI=$(echo "$SEARCH_RESULT" | python3 -c \
-  "import json,sys; d=json.load(sys.stdin); r=d.get('results',[]); print(r[0]['source_uri'] if r else '')" 2>/dev/null || echo "")
-HAS_ERROR=$(echo "$SEARCH_RESULT" | python3 -c \
-  "import json,sys; d=json.load(sys.stdin); print('yes' if d.get('error') else 'no')" 2>/dev/null || echo "yes")
-
-if [ "$HAS_ERROR" = "yes" ]; then
-  echo "⚠️  Semantischer Check übersprungen (VOYAGE_API_KEY fehlt oder Fehler) — Ticket wird trotzdem angelegt."
-elif python3 -c "exit(0 if float('$TOP_SCORE') >= 0.80 else 1)" 2>/dev/null; then
-  echo "🛑 Duplikat wahrscheinlich — Spec \"${TOP_TITLE}\" ähnlich (Score: ${TOP_SCORE})."
-  echo "   Quelle: ${TOP_URI}"
-  echo "   → Ticket NICHT angelegt. Bestehende Spec prüfen oder verknüpfen."
-  # KEIN ticket.sh create — zur nächsten Feature-Nennung
-elif python3 -c "exit(0 if float('$TOP_SCORE') >= 0.65 else 1)" 2>/dev/null; then
-  echo "⚠️  Ähnliche Spec: \"${TOP_TITLE}\" (Score: ${TOP_SCORE}) — Ticket trotzdem anlegen + Hinweis im Kommentar."
-fi
-
-TICKET_RESULT=$(bash scripts/ticket.sh create \
-  --type feature \
-  --brand mentolder \
-  --title "<destillierter Titel>" \
-  --priority <hoch|mittel|niedrig — abgeleitet aus Ranking+Intensität der Nennung> \
-  --description "<Originalzitat aus dem Interview in Anführungszeichen>" \
-  --status planning)
-
-TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
-
-bash scripts/ticket.sh plan-meta set --id "$TICKET_EXT_ID" \
-  --value-prop "<kern-nutzen für gekko>" \
-  --effort <klein|mittel|gross> \
-  --areas <normalisierter-areas-key>
-
-# Originalzitat als Kommentar hinterlegen
-bash scripts/ticket.sh add-comment \
-  --id "$TICKET_EXT_ID" \
-  --author "feature-intake/gekkomode" \
-  --body "## GekkoMode-Rücklauf $(date +%F)
-
-**Originalzitat:** \"<exaktes Zitat aus Interview>\"
-**Kontext:** Primärgerät: <gerät>, Nutzung: <frequenz>
-**Ranking-Position:** <1-5 oder 'unranked'>
-
-$([ "$(python3 -c "exit(0 if float('$TOP_SCORE') >= 0.65 else 1)" 2>/dev/null && echo yes || echo no)" = "yes" ] && echo "**Ähnliche Spec:** \"${TOP_TITLE}\" (Score: ${TOP_SCORE})
-**Spec-Quelle:** ${TOP_URI}")"
-```
-
-> **Hinweis:** Wenn `TOP_SCORE >= 0.65`, füge in den `add-comment`-Body folgende Zeile ein: `**Ähnliche Spec:** "<TOP_TITLE>" (Score: <TOP_SCORE>)` und `**Spec-Quelle:** <TOP_URI>`.
-
-#### Major-Feature aus Block 4
-
-Wenn Block 4 "Große Vision" ausgefüllt ist und die "Parallel-Entwicklung"-Checkbox gesetzt:
-
-```bash
-# Major-Feature-Ticket mit speziellem Kommentar
-TICKET_RESULT=$(bash scripts/ticket.sh create \
-  --type feature \
-  --brand mentolder \
-  --title "<destillierte Vision>" \
-  --priority hoch \
-  --description "<Vision-Text aus Block 4>" \
-  --status planning)
-
-TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
-
-bash scripts/ticket.sh plan-meta set --id "$TICKET_EXT_ID" \
-  --value-prop "<Hauptnutzen der Vision>" \
-  --effort gross \
-  --areas <bereich>
-
-bash scripts/ticket.sh add-comment \
-  --id "$TICKET_EXT_ID" \
-  --author "feature-intake/gekkomode" \
-  --body "## Major-Feature aus GekkoMode $(date +%F)
-
-**Vision:** \"<exakte Vision aus Block 4>\"
-**Parallel-Entwicklung:** ✓ (vom User bestätigt)
-**Nächster Schritt:** via dev-flow-batch in Sub-Features zerlegen"
-```
-
-Nach dem Anlegen aller Tickets: Schlage vor, das Major-Feature via `dev-flow-batch` zu zerlegen.
-
-#### Priorisierungslogik für `--priority`
-
-Kein Ranking-Block — Claude leitet Priorität aus Kombination folgender Signale ab:
-
-| Signal | Priorität |
-|--------|-----------|
-| Feature aus Block 1 ausgewählt **und** passendes Schmerz-Zitat in Block 2 | `hoch` |
-| Feature aus Block 1 ausgewählt, aber kein Schmerz-Zitat | `mittel` |
-| Schmerz-Zitat in Block 2 ohne passende Block-1-Auswahl | `mittel` |
-| Nur Wunschzettel-Nennung (Block 3), kein Schmerz | `niedrig` |
-| Feature betrifft Handy / Android-Usability | Upgrade um eine Stufe (bekannter Kontext) |
-
-#### Readiness-Flags für GekkoMode-Tickets
-
-GekkoMode-Tickets starten mit partieller Readiness — setze direkt was bekannt ist:
-
-```bash
-bash scripts/ticket.sh plan-meta set --id "$TICKET_EXT_ID" \
-  --readiness offene_fragen_geklaert=true
-# spec_skizziert=false (muss Patrick noch verfeinern)
-# abhaengigkeiten_klar=false (unbekannt aus Interview)
-# aufwand_geschaetzt=false (muss geschätzt werden, es sei denn Zitat gibt Hinweis)
-```
-
-> **Zusätzlich strukturiert ablegen:** Neben dem Klärungs-Kommentar die Antworten mit
-> `scripts/ticket.sh grill --id <ext-id> …` ans Ticket senden (akkumulierend, panel-fähig).
-> Siehe `.claude/skills/references/grilling-to-ticket.md`.
-
-### Schritt 5 — Abschluss-Report
-
-Nach dem Anlegen:
-
-```
-GekkoMode-Ergebnis:
-  Neue Tickets: <n>
-  Duplikate übersprungen: <m> (bereits als TXXXxxx vorhanden)
-
-Neu angelegt:
-  • T000xxx [hoch] <Titel> — "<Originalzitat>"
-  • T000xxx [mittel] <Titel> — "<Originalzitat>"
-
-🏗️ Major-Feature erkannt:
-  • T000xxx [hoch/gross] <Vision-Titel>
-    → via dev-flow-batch in Sub-Features zerlegen?
-
-Deadline-Flag: T000xxx erwartet bis <datum> (aus Block 5)
-
-→ Planungsbüro öffnen? Oder direkt T000xxx zu dev-flow-plan?
-→ Major-Feature via dev-flow-batch starten?
-```
-
----
-
-## Modus A: Interaktiver Brainstorm
-
-**Sage:** "Ich führe einen Feature-Brainstorm durch."
-
-### Schritt 1 — Kontext laden
-
-Lies die planning-Tickets und offene Backlog-Einträge (nicht alle open-Tickets):
-```bash
-bash scripts/ticket.sh list --status planning --limit 20 2>/dev/null | head -40 || true
-bash scripts/ticket.sh list --status backlog  --limit 10 2>/dev/null | head -20 || true
-```
-
-### Schritt 1.5 — Major-Feature-Frage
-
-Bevor du in die Ideation gehst, frage:
-
-```
-Möchtest du auch Major-Features in Betracht ziehen? Das sind große Features
-die in 2-6 unabhängige Sub-Features zerlegt und parallel entwickelt werden
-können (z.B. "Komplette Plattform-Überholung", "Neues Abrechnungssystem",
-"Mobile-First Redesign"). Die Sub-Features werden via dev-flow-batch parallel
-geplant und können unabhängig voneinander deployed werden.
-
-→ Ja, zeig mir Major-Feature-Ideen
-→ Nein, nur einzelne Features
-```
-
-Wenn **Ja**: Präsentiere nach den normalen Clustern einen zusätzlichen Block:
-
-```
-🏗️ Major-Feature-Kandidaten (zerlegbar in 2-6 Sub-Features):
-
-• Plattform-Modernisierung — Neues UI-Framework, API v2, Mobile-First
-  → Sub-Features: UI-Redesign, API-Migration, Responsive-Layout, PWA-Shell
-
-• Billing-Revolution — Abo-Modelle, Usage-Based, Invoice-Automation
-  → Sub-Features: Abo-Engine, Usage-Tracking, Invoice-Gen, Payment-Integration
-
-• Collaboration-Suite — Echtzeit-Edit, Comments, Presence, Versioning
-  → Sub-Features: CRDT-Editor, Comment-System, Presence-Indicator, Version-History
-
-→ Interessiert dich ein Major-Feature? Welches?
-```
-
-Nutze diese Major-Feature-Vorlagen als Inspiration, aber passe sie an den Projekt-Kontext an. Wenn der User ein eigenes Major-Feature beschreibt, zerlege es in Sub-Features.
-
-### Schritt 2 — Ideation-Runden
-
-Präsentiere Feature-Kandidaten in Clustern. Pro Cluster eine kurze Frage:
-
-```
-Cluster: [Bereich, z.B. "Brett / Gruppenarbeit"]
-Kandidaten:
-  • <Feature A> — <Nutzen in einem Satz>
-  • <Feature B> — <Nutzen in einem Satz>
-
-→ Welche davon sind interessant? Gibt es Varianten oder andere Ideen?
-```
-
-Nutze bekannte Projektbereiche als Cluster-Vorlage:
-- **Brett** (3D-Board, Gruppenarbeit, Figuren, Animation)
-- **Website / Content-Hub** (Newsletter, Verträge, CMS)
-- **Chat / Messaging** (Kanäle, Notifications, Media)
-- **Infra / DevEx** (CI, Factory, Monitoring, Deployment)
-- **Keycloak / Auth** (SSO, Rollen, Onboarding)
-- **Nextcloud / Files** (Kollaboration, Office, Backup)
-- **AI / Factory** (Autopilot, Code-Review, Dispatcher)
-
-### Schritt 3 — Priorisieren
-
-Für jeden ausgewählten Kandidaten:
-```
-Feature: <Titel>
-Typ: feature | fix | task
-Brand: mentolder | korczewski | beide
-Priorität: kritisch | hoch | mittel | niedrig
-Aufwand (geschätzt): klein (≤1d) | mittel (2-4d) | groß (≥1W)
-Kern-Nutzen: <ein Satz>
-Abhängigkeiten: <andere Tickets/Features, falls bekannt>
-```
-
-### Schritt 4 — Tickets erstellen (optional, auf Anfrage)
-
-Lege ein neues Ticket mit `status=planning` an (statt `triage`), damit es im
-Planungsbüro landet:
-
-```bash
-bash scripts/ticket.sh create \
-  --type <typ> \
-  --brand <brand> \
-  --title "<titel>" \
-  --priority <prio> \
-  --description "<beschreibung>" \
-  --status planning
-```
-
-Nach dem Anlegen die Büro-Metadaten setzen:
-
-```bash
-bash scripts/ticket.sh plan-meta set --id <ext-id> \
-  --value-prop "<kern-nutzen>" --effort <klein|mittel|gross> --areas <Bereich>
-```
-
-Danach: direkt zu **`dev-flow-plan`** für den gewählten Kandidaten.
-
----
-
 ## Modus B: HTML-Formular (für Patrick oder gekko)
 
 **Sage:** "Ich generiere ein HTML-Formular zum Ausfüllen." (Bei Empfänger gekko: "… für gekko.")
@@ -937,7 +549,7 @@ bash scripts/ticket.sh plan-meta set --id "$TICKET_EXT_ID" \
 
 ## Übergabe an dev-flow-plan / dev-flow-batch
 
-Nach Brainstorm oder Rücklauf, wenn eines oder mehrere Features als nächstes gebaut werden sollen:
+Nach Rücklauf, wenn eines oder mehrere Features als nächstes gebaut werden sollen:
 
 **Ein Feature:** Rufe `dev-flow-plan` direkt auf und übergib die bestehende Ticket-ID, damit kein Duplikat erstellt wird:
 
@@ -967,7 +579,7 @@ auf `k3d/configmap-domains.yaml` und `environments/schema.yaml` (siehe CLAUDE.md
 
 ### Major-Feature → dev-flow-batch
 
-Wenn ein **Major-Feature** ausgewählt wurde (aus Schritt 1.5 oder Block 4 GekkoMode):
+Wenn ein **Major-Feature** erkannt wurde (Major-Feature-Sektion in Modus B):
 
 ```
 🏗️ Major-Feature erkannt: <Titel>
@@ -978,18 +590,4 @@ Die Sub-Features können unabhängig voneinander deployed werden.
 → dev-flow-batch starten? (zerlegt das Feature und plant alle Sub-Features parallel)
 ```
 
-Wenn der User bestätigt, rufe `dev-flow-batch` auf mit dem Major-Feature als Argument:
-
-```
-dev-flow-batch "<Major-Feature Beschreibung>"
-```
-
-Der Batch-Skill:
-1. Zerlegt das Feature in ≤6 Sub-Features (Decompose-Subagent)
-2. Erstellt für jedes Sub-Feature einen eigenen Branch + Spec + Plan (parallel)
-3. Alle fertigen Pläne landen in `status=plan_staged` in der Kommissionierung
-4. Factory kann die Sub-Features parallel implementieren
-
-**Größenordnung:** Ein Major-Feature kann 2-6 Wochen Arbeit umfassen, verteilt auf
-parallele Workstreams. Beispiel: "Plattform-Modernisierung" = 4 Sub-Features × ~1 Woche
-= 1 Woche real (bei voller Parallelität).
+Wenn der User bestätigt: `dev-flow-batch "<Major-Feature Beschreibung>"` aufrufen.

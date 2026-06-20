@@ -121,7 +121,15 @@ Generiere ein **eigenständiges HTML-Formular** (kein Backend, läuft via `file:
 
 ### Schritt 4 — Formular liefern
 
-Liefere die Datei per `SendUserFile`. Sage: "Ausfüllen → ‚Markdown kopieren' → hier einfügen."
+Liefere die Datei per `SendUserFile`. Sage: "Ausfüllen → 'Markdown kopieren' → hier einfügen."
+
+Wenn das Formular zusätzlich für gekko über den Mediaviewer erreichbar sein soll, registriere es im Active Sessions Hub (startet HTTP-Server + sish-Tunnel + Registry-Eintrag):
+
+```bash
+bash scripts/session-hub.sh start-form --file "$HTML_FILE" --name "feature-intake"
+```
+
+Die Session erscheint dann als Karte im Mediaviewer-Panel und unter `https://session-feature-intake.${DEV_DOMAIN}` (Keycloak-Gruppe `/session-hub-access`).
 
 ### Schritt 5 — Antworten verarbeiten (nach Rücklauf)
 

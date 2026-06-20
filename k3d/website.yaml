@@ -27,6 +27,8 @@ data:
   VAULT_EXTERNAL_URL: "${VAULT_EXTERNAL_URL}"
   WHITEBOARD_EXTERNAL_URL: "${WHITEBOARD_EXTERNAL_URL}"
   BUG_REPORT_CHANNEL: "bugs"
+  # Logging
+  PINO_LOG_LEVEL: "info"
   # Keycloak
   KEYCLOAK_URL: "http://keycloak.${WORKSPACE_NAMESPACE}.svc.cluster.local:8080"
   KEYCLOAK_REALM: "workspace"

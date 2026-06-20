@@ -353,6 +353,11 @@ env_vars:
     default_dev: ""
     description: "Comma-separated CIDR list allowed to reach :2222 on the dev node. Empty means deny-all from public Internet."
 
+  - name: PINO_LOG_LEVEL
+    description: Pino log level for the website SSR logger (info in dev, warn in prod)
+    required: false
+    default_dev: "info"
+
 secrets:
   - name: arena_db_password
     description: Password for the arena_app PostgreSQL role

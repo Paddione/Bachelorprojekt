@@ -104,5 +104,11 @@
       "slug": "coaching-studio",
       "status": "plan_staged"
     }
+  ],
+  "T001008": [
+    {
+      "slug": "openspec-pgvector",
+      "status": "plan_staged"
+    }
   ]
 }

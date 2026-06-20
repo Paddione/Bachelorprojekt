@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.113.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.112.0...website-v1.113.0) (2026-06-20)
+
+
+### Features
+
+* **ops:** Agent-Push für opencode/agy-Session-Events via ntfy [T000991] ([#1962](https://github.com/Paddione/Bachelorprojekt/issues/1962)) ([dd1133a](https://github.com/Paddione/Bachelorprojekt/commit/dd1133a4384e94086be4bf8da2ae55d8d1199845))
+
 ## [1.112.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.111.0...website-v1.112.0) (2026-06-20)
 
 

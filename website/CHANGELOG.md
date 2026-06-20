@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.104.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.103.1...website-v1.104.0) (2026-06-20)
+
+
+### Features
+
+* **admin:** add OpenSpecProposalsPanel to ticket detail view [T000962] ([#1911](https://github.com/Paddione/Bachelorprojekt/issues/1911)) ([2eb2cfb](https://github.com/Paddione/Bachelorprojekt/commit/2eb2cfb03a5f089d4ffb98467bde483e48627b40))
+* **ops:** centralized logging with pino + grafana dashboards [T000964] ([#1913](https://github.com/Paddione/Bachelorprojekt/issues/1913)) ([d72cd19](https://github.com/Paddione/Bachelorprojekt/commit/d72cd19a17d37b6520800b5864afd6fbfc950d87))
+
 ## [1.103.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.103.0...website-v1.103.1) (2026-06-20)
 
 

@@ -1,0 +1,32 @@
+# sessions.mentolder.de — Wildcard-Cert + IngressRoute für session-<slug>.sessions.mentolder.de
+# Benutzer setzt: *.sessions.mentolder.de CNAME mentolder.de (oder fleet-IP direkt).
+# Cert wird via DNS-01 (ipv64-Webhook) automatisch ausgestellt.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: sessions-wildcard
+  namespace: workspace
+spec:
+  secretName: sessions-wildcard-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+    - "*.sessions.mentolder.de"
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: sessions-server
+  namespace: workspace
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: HostRegexp(`^session-[a-z0-9-]+\.sessions\.mentolder\.de$`)
+      services:
+        - name: sessions-server
+          port: 80
+  tls:
+    secretName: sessions-wildcard-tls

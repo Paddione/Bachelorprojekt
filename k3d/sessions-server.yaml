@@ -1,0 +1,77 @@
+# Sessions Server — statischer nginx für session-<slug>.sessions.mentolder.de
+# Dateien landen via kubectl cp in /srv/sessions/<slug>/index.html.
+# IngressRoute + Certificate nur im prod-fleet/mentolder/ Overlay.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sessions-server-nginx
+  namespace: workspace
+data:
+  default.conf: |
+    server {
+        listen 80;
+        server_name ~^session-(?<slug>[a-z0-9-]+)\.sessions\.mentolder\.de$;
+        root /srv/sessions/$slug;
+        index index.html;
+        try_files $uri /index.html =404;
+        add_header X-Session-Slug $slug always;
+    }
+    server {
+        listen 80 default_server;
+        return 404;
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sessions-server
+  namespace: workspace
+  labels:
+    app: sessions-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sessions-server
+  template:
+    metadata:
+      labels:
+        app: sessions-server
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: nginx-conf
+              mountPath: /etc/nginx/conf.d
+            - name: sessions
+              mountPath: /srv/sessions
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+      volumes:
+        - name: nginx-conf
+          configMap:
+            name: sessions-server-nginx
+        - name: sessions
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sessions-server
+  namespace: workspace
+  labels:
+    app: sessions-server
+spec:
+  selector:
+    app: sessions-server
+  ports:
+    - port: 80
+      targetPort: 80

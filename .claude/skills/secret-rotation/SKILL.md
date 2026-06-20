@@ -196,10 +196,9 @@ kubectl apply -f environments/sealed-secrets/<env>.yaml --context <ctx>
 - Before `task workspace:deploy ENV=<env>` — ensures secrets exist before services start
 - After cluster reset + re-seal — re-applies all sealed files
 
-**Cross-brand:** Works for the currently active `ENV`. Run for each brand:
+**Cross-brand:** `secrets:sync` has no `ENV` var — it loops both brands internally:
 ```bash
-task secrets:sync        # applies to ENV=mentolder (default)
-task secrets:sync ENV=korczewski
+task secrets:sync        # applies to BOTH ENV=mentolder and ENV=korczewski
 ```
 
 **Troubleshooting:**

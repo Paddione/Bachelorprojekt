@@ -27,11 +27,16 @@ Reconcile Keycloak realm configuration from the checked-in realm JSON files. Cov
 
 ## Realm JSON locations
 
-| Env | File |
-|---|---|
-| dev | `k3d/realm-workspace-dev.json` |
-| mentolder | `prod-mentolder/realm-workspace-mentolder.json` |
-| korczewski | `prod-korczewski/realm-workspace-korczewski.json` (applied to fleet cluster, namespace `workspace-korczewski`) |
+| Env | File | Used by |
+|---|---|---|
+| dev | `k3d/realm-workspace-dev.json` | ConfigMap `realm-template` (k3d base) |
+| mentolder | `prod-mentolder/realm-workspace-mentolder.json` | `scripts/register-oidc-client.mjs` only (brand-specific OIDC client additions) |
+| korczewski | `prod-korczewski/realm-workspace-korczewski.json` | `scripts/register-oidc-client.mjs` only |
+| prod base | `prod/realm-workspace-prod.json` | **Live source of truth** — `prod/kustomization.yaml` `configMapGenerator` builds ConfigMap `realm-template` from this file |
+
+> **Source of truth for `task keycloak:sync`:** The `realm-template` ConfigMap (rendered from `prod/realm-workspace-prod.json` by kustomize). `keycloak-sync.sh` reads `kubectl get cm realm-template -o jsonpath='{.data.realm-workspace\.json}'` and pushes clients to the Keycloak Admin API. The `prod-mentolder/` and `prod-korczewski/` files are **not** used by the live deploy — they are templates for `register-oidc-client.mjs` to add brand-specific clients (e.g. an OIDC client that only exists on one brand). Editing only those files will NOT show up after a redeploy — for cluster-wide changes, edit `prod/realm-workspace-prod.json`.
+>
+> **TODO (drift):** The `prod-mentolder/` and `prod-korczewski/` directories are the legacy standalone-cluster paths. Per AGENTS.md, prod overlays belong in `prod-fleet/mentolder/` and `prod-fleet/korczewski/`. Move the realm files and update `register-oidc-client.mjs` paths in a follow-up chore.
 
 **Never edit realm state directly in the Keycloak admin UI without also updating the JSON.** The sync overwrites UI changes that aren't in the JSON.
 

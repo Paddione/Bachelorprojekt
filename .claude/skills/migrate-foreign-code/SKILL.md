@@ -65,7 +65,8 @@ Wiederkehrende technische Muster — je generisches Muster, VideoVault-Beispiel 
 
 ## Quelle der Learnings
 
-Destilliert aus dem VideoVault-Vorhaben (SP1 Split + SP2 Migration) in `~/projects/`:
-`docs/superpowers/specs/2026-06-15-videovault-migration-learnings.md`,
-`docs/superpowers/specs/2026-06-15-videovault-split-design.md`.
-Dieser Skill ist die **destillierte, eigenständige Kopie** — kein Live-Link.
+Destilliert aus dem VideoVault-Vorhaben (SP1 Split + SP2 Migration) in `~/projects/`.
+Die ursprünglichen Spec-Dateien (`docs/superpowers/specs/2026-06-15-videovault-*.md`) waren als
+Quell-Learnings referenziert, sind aktuell aber nicht im Repo eingecheckt — die Patterns leben
+in den Referenz-Dokumenten oben weiter. Wenn die Original-Specs nachgereicht werden, hier wieder
+verlinken.

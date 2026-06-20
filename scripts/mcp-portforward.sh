@@ -2,46 +2,84 @@
 set -euo pipefail
 
 ACTION="${1:-start}"
-PIDFILE="/tmp/mcp-portforward.pids"
+PIDFILE_MONOLITH="/tmp/mcp-portforward-monolith.pid"
+PIDFILE_KEYCLOAK="/tmp/mcp-portforward-keycloak.pid"
+
+start_monolith() {
+  if [ -f "$PIDFILE_MONOLITH" ] && kill -0 "$(cat "$PIDFILE_MONOLITH")" 2>/dev/null; then
+    echo "Monolith port-forward already running (PID $(cat "$PIDFILE_MONOLITH"))"
+    return
+  fi
+  nohup kubectl --context k3d-korczewski-dev port-forward \
+    -n workspace-korczewski-dev svc/claude-code-mcp-monolith \
+    18080:8080 13000:3000 13001:3001 13002:3002 \
+    >> /tmp/mcp-portforward.log 2>&1 &
+  echo $! > "$PIDFILE_MONOLITH"
+  echo "  Monolith started (PID $(cat "$PIDFILE_MONOLITH"))"
+}
+
+start_keycloak() {
+  if [ -f "$PIDFILE_KEYCLOAK" ] && kill -0 "$(cat "$PIDFILE_KEYCLOAK")" 2>/dev/null; then
+    echo "Keycloak port-forward already running (PID $(cat "$PIDFILE_KEYCLOAK"))"
+    return
+  fi
+  nohup kubectl --context fleet port-forward \
+    -n workspace svc/claude-code-mcp-auth \
+    18081:8080 \
+    >> /tmp/mcp-portforward.log 2>&1 &
+  echo $! > "$PIDFILE_KEYCLOAK"
+  echo "  Keycloak (fleet) started (PID $(cat "$PIDFILE_KEYCLOAK"))"
+}
 
 if [ "$ACTION" = "start" ]; then
   echo "Starting MCP port-forwards..."
-  nohup kubectl port-forward -n default svc/claude-code-mcp-monolith \
-    18080:8080 18081:8081 13000:3000 13001:3001 13002:3002 \
-    > /tmp/mcp-portforward.log 2>&1 &
-  echo $! > "$PIDFILE"
+  start_monolith
+  start_keycloak
   sleep 2
-  echo "MCP port-forwards started (PID $(cat "$PIDFILE"))"
-  echo "  k8s:      http://localhost:18080/mcp"
-  echo "  keycloak: http://localhost:18081/mcp/sse"
+  echo "MCP port-forwards ready:"
+  echo "  k8s:      http://localhost:18080/mcp  (also /sse)"
   echo "  browser:  http://localhost:13000/mcp"
   echo "  postgres: http://localhost:13001/mcp"
   echo "  github:   http://localhost:13002/mcp"
+  echo "  keycloak: http://localhost:18081/mcp/sse  (fleet)"
 
 elif [ "$ACTION" = "stop" ]; then
-  if [ -f "$PIDFILE" ]; then
-    kill "$(cat "$PIDFILE")" 2>/dev/null || true
-    rm -f "$PIDFILE"
-    echo "MCP port-forwards stopped"
-  else
-    pkill -f "port-forward.*claude-code-mcp-monolith" 2>/dev/null || echo "No MCP port-forwards running"
-  fi
+  for pidfile in "$PIDFILE_MONOLITH" "$PIDFILE_KEYCLOAK"; do
+    if [ -f "$pidfile" ]; then
+      pid=$(cat "$pidfile")
+      kill "$pid" 2>/dev/null && echo "Stopped PID $pid" || true
+      rm -f "$pidfile"
+    fi
+  done
+  pkill -f "port-forward.*claude-code-mcp-monolith" 2>/dev/null || true
+  pkill -f "port-forward.*claude-code-mcp-auth" 2>/dev/null || true
+  echo "MCP port-forwards stopped"
 
 elif [ "$ACTION" = "status" ]; then
-  PF_PIDS=$(pgrep -f "port-forward.*claude-code-mcp-monolith" 2>/dev/null || true)
-  if [ -n "$PF_PIDS" ]; then
-    echo "MCP port-forwards running (PIDs: $PF_PIDS)"
-    for port in 18080 18081 13000 13001 13002; do
-      if ss -tlnp "sport = :$port" 2>/dev/null | grep -q LISTEN; then
-        echo "  :$port — OK"
-      else
-        echo "  :$port — DOWN"
-      fi
-    done
-  else
-    echo "MCP port-forwards NOT running"
-    echo "  Start with: $0 start"
-  fi
+  echo "=== MCP Port-Forward Status ==="
+  for port in 18080 13000 13001 13002 18081; do
+    if ss -tlnp 2>/dev/null | grep -q ":${port} "; then
+      echo "  :$port -- LISTENING"
+    else
+      echo "  :$port -- DOWN"
+    fi
+  done
+  echo ""
+  echo "=== Endpoint Health ==="
+  for name_port_path in "k8s:18080:/mcp" "browser:13000:/mcp" "postgres:13001:/mcp" "github:13002:/mcp"; do
+    name="${name_port_path%%:*}"
+    rest="${name_port_path#*:}"
+    port="${rest%%:*}"
+    path="${rest#*:}"
+    code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 3 \
+      -X POST -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" \
+      -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}}}' \
+      "http://localhost:${port}${path}" 2>/dev/null || echo "ERR")
+    [ "$code" = "200" ] && status="OK" || status="FAIL (HTTP $code)"
+    echo "  ${name} (localhost:${port}): ${status}"
+  done
+  kc_code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 3 "http://localhost:18081/q/health" 2>/dev/null || echo "ERR")
+  echo "  keycloak/fleet (localhost:18081): HTTP $kc_code"
 
 else
   echo "Usage: $0 {start|stop|status}"

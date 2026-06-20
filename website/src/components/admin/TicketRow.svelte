@@ -9,7 +9,6 @@
   export let onStatusChange: ((detail: { id: string; status: string }) => void) | undefined = undefined;
   export let onPriorityChange: ((detail: { id: string; priority: string }) => void) | undefined = undefined;
   export let onSelectToggle: ((detail: { id: string }) => void) | undefined = undefined;
-  export let onOpenDrawer: ((detail: { ticket: TicketRowT }) => void) | undefined = undefined;
   export let onDragStart: ((detail: { id: string; event: DragEvent }) => void) | undefined = undefined;
 
   const dispatch = createEventDispatcher();
@@ -36,11 +35,6 @@
     onSelectToggle?.(detail);
     dispatch('selectToggle', detail);
   }
-  function handleOpenDrawer() {
-    const detail = { ticket };
-    onOpenDrawer?.(detail);
-    dispatch('openDrawer', detail);
-  }
   function handleDragStart(e: DragEvent) {
     e.dataTransfer?.setData('text/plain', ticket.id);
     const detail = { id: ticket.id, event: e };
@@ -65,7 +59,7 @@
   <span class="handle" draggable="true" role="button" tabindex="0" aria-label="Reorder (Shift+Up/Down)"
     on:dragstart={handleDragStart}>⋮⋮</span>
   <code class="ext ticket-col-id">{ticket.extId}</code>
-  <button class="title-link" on:click={handleOpenDrawer}>{ticket.title}</button>
+  <a class="title-link" href="/admin/tickets/{ticket.id}">{ticket.title}</a>
   <select data-testid="status-select" value={ticket.status} on:change={handleStatus} disabled={busy}>
     {#each STATUSES as s}<option value={s}>{statusLabel(s)}</option>{/each}
   </select>
@@ -95,7 +89,8 @@
   .row.prio-hoch    { border-left-color: #f97316; }
   .row.prio-kritisch{ border-left-color: #ef4444; }
   .handle { cursor: grab; opacity: 0.5; }
-  .title-link { background: none; border: none; color: inherit; cursor: pointer; text-align: left; padding: 0; }
+  .title-link { color: inherit; text-decoration: none; cursor: pointer; }
+  .title-link:hover { text-decoration: underline; }
   .ext { opacity: 0.6; font-size: 0.75rem; font-family: var(--font-mono, monospace); }
   .created { opacity: 0.6; font-size: 0.72rem; white-space: nowrap; }
   .os-badges { display: flex; gap: 0.25rem; align-items: center; }

@@ -10,7 +10,6 @@
   export let tickets: TicketRowT[] = [];
   export let features: FeatureNode[] = [];
   export let onMutated: (() => void) | undefined = undefined;
-  export let onOpenDrawer: ((detail: { ticket: TicketRowT }) => void) | undefined = undefined;
   export let onOpenCreate: (() => void) | undefined = undefined;
 
   let busy: Record<string, boolean> = {};
@@ -144,8 +143,7 @@
           onStatusChange={(d) => patchStatus(d.id, d.status)}
           onPriorityChange={(d) => patchPriority(d.id, d.priority)}
           onSelectToggle={(d) => toggleTicketSelection(d.id)}
-          onDragStart={(d) => onDragStart(d.id)}
-          onOpenDrawer={(d) => onOpenDrawer?.(d)} />
+          onDragStart={(d) => onDragStart(d.id)} />
       </div>
     {/each}
     {#if visible.length === 0}<p class="empty">Keine Tickets</p>{/if}

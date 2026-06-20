@@ -82,12 +82,6 @@ describe('CockpitTable', () => {
     await waitFor(() => expect(spy).toHaveBeenCalledWith(
       '/api/admin/cockpit/reorder', expect.objectContaining({ method: 'POST' })));
   });
-  it('opens the drawer via row title click', async () => {
-    const onOpenDrawer = vi.fn();
-    const { getByText } = render(CockpitTable, { feature, tickets, features: [feature], onOpenDrawer });
-    await fireEvent.click(getByText('Alpha'));
-    expect(onOpenDrawer).toHaveBeenCalled();
-  });
   it('hides done tickets by default and reveals them via "Alle"', async () => {
     const withDone = [
       { id: 't1', extId: 'T1', title: 'Alpha', status: 'in_progress', priority: 'mittel', type: 'task' },

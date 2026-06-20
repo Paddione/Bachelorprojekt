@@ -1,13 +1,12 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import type { PortfolioPayload, FeatureTickets, TicketRow, FeatureNode } from '../../lib/tickets/cockpit-types';
+  import type { PortfolioPayload, FeatureTickets, FeatureNode } from '../../lib/tickets/cockpit-types';
   import { ALL_TICKETS_ID } from '../../lib/tickets/cockpit-ids';
-  import { cockpitStore, selectFeature, setActiveTicket, initStoreFromUrl, setLoading, setError }
+  import { cockpitStore, selectFeature, initStoreFromUrl, setLoading, setError }
     from '../../lib/stores/cockpitStore';
 
   import CockpitTable from './CockpitTable.svelte';
   import TicketCreateModal from './TicketCreateModal.svelte';
-  import TicketDrawer from './TicketDrawer.svelte';
   import EmptyStateCockpit from './EmptyStateCockpit.svelte';
 
   export let portfolioInitial: PortfolioPayload | null = null;
@@ -15,8 +14,6 @@
 
   let portfolio: PortfolioPayload | null = portfolioInitial;
   let featureData: FeatureTickets | null = null;
-  let drawerTicket: TicketRow | null = null;
-  let drawerOpen = false;
   let createOpen = false;
 
   $: allFeatures = portfolio?.products?.flatMap((p) => p.features) ?? [];
@@ -95,11 +92,6 @@
     await loadPortfolio();
   }
 
-  function openDrawer(detail: { ticket: TicketRow }) {
-    drawerTicket = detail.ticket; drawerOpen = true; setActiveTicket(detail.ticket.id);
-  }
-  function closeDrawer() { drawerOpen = false; setActiveTicket(null); }
-
   async function featureAction(featureId: string, action: string, value?: boolean | string) {
     try {
       const res = await fetch('/api/admin/cockpit/feature-action', {
@@ -145,7 +137,6 @@
         tickets={featureData?.tickets ?? []}
         features={allFeatures}
         onMutated={refetch}
-        onOpenDrawer={openDrawer}
         onOpenCreate={() => (createOpen = true)} />
     </main>
   {/if}
@@ -155,9 +146,6 @@
     defaultFeatureId={currentFeatureNode?.id ?? null}
     onClose={() => (createOpen = false)}
     onCreated={refetch} />
-
-  <TicketDrawer ticket={drawerTicket} open={drawerOpen}
-    onClose={closeDrawer} onMutated={refetch} />
 </div>
 
 <style>

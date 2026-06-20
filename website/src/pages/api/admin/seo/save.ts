@@ -4,7 +4,7 @@ import { setSiteSetting } from '../../../../lib/website-db';
 
 const BRAND = process.env.BRAND || 'mentolder';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response('Unauthorized', { status: 401 });
 
@@ -55,7 +55,7 @@ export const POST: APIRoute = async ({ request }) => {
       }
     }
   } catch (err) {
-    console.error('[seo/save] DB error:', err);
+    locals.requestLogger.error({ err }, '[seo/save] DB error:');
     return new Response(JSON.stringify({ error: 'DB error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },

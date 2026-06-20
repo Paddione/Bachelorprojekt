@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
 import { pool, initBillingTables } from '../../../../../lib/website-db';
 
-export const POST: APIRoute = async ({ request, params }) => {
+export const POST: APIRoute = async ({ request, params , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response('Unauthorized', { status: 401 });
   try {
@@ -14,7 +14,7 @@ export const POST: APIRoute = async ({ request, params }) => {
     );
     return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
   } catch (err) {
-    console.error('[billing/discard]', err);
+    locals.requestLogger.error({ err }, '[billing/discard]');
     return new Response('Internal Server Error', { status: 500 });
   }
 };

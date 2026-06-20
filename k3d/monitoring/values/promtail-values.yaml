@@ -16,6 +16,15 @@ config:
         regex: ".*"
         target_label: brand
         replacement: "mentolder"
+    pipelineStages:
+      - json:
+          expressions:
+            level: level
+      - labels:
+          level:
+      - match:
+          selector: '{level="debug"}'
+          action: drop
 
 tolerations:
   - operator: Exists

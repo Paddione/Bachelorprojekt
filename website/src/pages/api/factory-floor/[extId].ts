@@ -4,7 +4,7 @@ import { getTicketDetail } from '../../../lib/factory-floor';
 
 export const prerender = false;
 
-export const GET: APIRoute = async ({ request, params }) => {
+export const GET: APIRoute = async ({ request, params , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
@@ -23,7 +23,7 @@ export const GET: APIRoute = async ({ request, params }) => {
       status: 200, headers: { 'content-type': 'application/json' },
     });
   } catch (err) {
-    console.error('[api/factory-floor/[extId]]', err);
+    locals.requestLogger.error({ err }, '[api/factory-floor/[extId]]');
     return new Response(JSON.stringify({ error: 'fetch_failed' }), {
       status: 500, headers: { 'content-type': 'application/json' },
     });

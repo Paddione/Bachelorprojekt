@@ -4,7 +4,7 @@ import { sendRegistrationConfirmation } from '../../lib/email';
 import { sendAdminNotification } from '../../lib/notifications';
 import { checkRateLimit, getClientIp } from '../../lib/rate-limit';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const ip = getClientIp(request);
   if (!checkRateLimit(`register:${ip}`, 5, 60_000)) {
     return new Response(JSON.stringify({ error: 'Zu viele Anfragen. Bitte warten Sie einen Moment.' }), {
@@ -37,21 +37,21 @@ export const POST: APIRoute = async ({ request }) => {
 
     // Confirmation email is best-effort — inbox item is the authoritative record
     sendRegistrationConfirmation(email, fullName).catch(err =>
-      console.error('[register] Failed to send confirmation email:', err)
+      locals.requestLogger.error({ err }, '[register] Failed to send confirmation email:')
     );
 
     sendAdminNotification({
       type: 'registration',
       subject: `[Neue Registrierung] ${fullName}`,
       text: `Neue Registrierungsanfrage eingegangen.\n\nName: ${fullName}\nE-Mail: ${email}\n\nZum Bearbeiten: /admin/inbox`,
-    }).catch(err => console.error('[register] Failed to send admin notification:', err));
+    }).catch(err => locals.requestLogger.error({ err }, '[register] Failed to send admin notification:'));
 
     return new Response(
       JSON.stringify({ success: true }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (err) {
-    console.error('Registration error:', err);
+    locals.requestLogger.error({ err }, 'Registration error:');
     return new Response(
       JSON.stringify({ error: 'Interner Serverfehler.' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }

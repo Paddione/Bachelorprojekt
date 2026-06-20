@@ -8,7 +8,7 @@ import { sendQuestionnaireAssigned } from '../../../../lib/email';
 const PROD_DOMAIN = process.env.PROD_DOMAIN || '';
 const BRAND = process.env.BRAND || 'mentolder';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response('Unauthorized', { status: 401 });
 
@@ -48,7 +48,7 @@ export const POST: APIRoute = async ({ request }) => {
       priority: 'mittel',
       customerId: customer.id,
     }).catch((err) => {
-      console.error('[assign] project creation failed, continuing without project_id:', err);
+      locals.requestLogger.error({ err }, '[assign] project creation failed, continuing without project_id:');
       return null;
     });
   }

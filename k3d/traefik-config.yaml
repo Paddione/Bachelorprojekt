@@ -1,0 +1,13 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    additionalArguments:
+      - "--accesslog=true"
+      - "--accesslog.format=json"
+      - "--accesslog.fields.defaultmode=keep"
+      - "--accesslog.fields.headers.defaultmode=drop"
+      - "--accesslog.fields.headers.names.X-Request-ID=keep"

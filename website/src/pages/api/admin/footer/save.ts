@@ -6,7 +6,7 @@ import type { FooterConfig } from '../../../../lib/website-db';
 // Persists the editable footer (columns + copyright) as a JSON site_setting.
 // Contact data and the auto-generated Angebote column are resolved at render
 // time, so only columns/copyright are stored here.
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response('Forbidden', { status: 403 });
 
@@ -25,7 +25,7 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     await setJsonSetting(BRAND, FOOTER_KEY, body);
   } catch (err) {
-    console.error('[footer/save] DB error:', err);
+    locals.requestLogger.error({ err }, '[footer/save] DB error:');
     return new Response(JSON.stringify({ error: 'DB error' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
   return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });

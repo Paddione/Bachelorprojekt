@@ -5,7 +5,7 @@ import type { KoreFlags } from '../../../../lib/website-db';
 
 // Persists the Kore (korczewski) homepage feature toggles as a JSON
 // site_setting. Currently just the timeline switch.
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response('Forbidden', { status: 403 });
 
@@ -24,7 +24,7 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     await setJsonSetting(BRAND, KORE_FLAGS_KEY, { timeline: !!body.timeline });
   } catch (err) {
-    console.error('[kore-flags/save] DB error:', err);
+    locals.requestLogger.error({ err }, '[kore-flags/save] DB error:');
     return new Response(JSON.stringify({ error: 'DB error' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
   return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });

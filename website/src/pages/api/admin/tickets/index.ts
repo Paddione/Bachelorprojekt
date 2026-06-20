@@ -9,7 +9,7 @@ import { autoTriage } from '../../../../lib/ticket-triage';
 
 const BRAND = (): string => process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 
-export const GET: APIRoute = async ({ request, url }) => {
+export const GET: APIRoute = async ({ request, url , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response(null, { status: 403 });
 
@@ -37,7 +37,7 @@ export const GET: APIRoute = async ({ request, url }) => {
   });
 };
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response(null, { status: 403 });
 
@@ -74,13 +74,13 @@ export const POST: APIRoute = async ({ request }) => {
       estimateMinutes: typeof body.estimateMinutes === 'number' ? body.estimateMinutes : undefined,
       actor: { label: session.preferred_username },
     });
-    void autoTriage(id, BRAND()).catch(err => console.error('[autoTriage]', err));
+    void autoTriage(id, BRAND()).catch(err => locals.requestLogger.error({ err }, '[autoTriage]'));
     return new Response(JSON.stringify({ ok: true, id }), {
       status: 200, headers: { 'Content-Type': 'application/json' },
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'create failed';
-    console.error('[api/admin/tickets POST]', err);
+    locals.requestLogger.error({ err }, '[api/admin/tickets POST]');
     return new Response(JSON.stringify({ error: msg }), { status: 400 });
   }
 };

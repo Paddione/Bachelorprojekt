@@ -43,19 +43,19 @@ function parseNew(body: Record<string, unknown>): { error: string } | { value: N
   };
 }
 
-export const GET: APIRoute = async ({ request }) => {
+export const GET: APIRoute = async ({ request , locals }) => {
   const blocked = await guard(request);
   if (blocked) return blocked;
   try {
     const [entries, health] = await Promise.all([listProviders(), listHealth()]);
     return json({ entries, health });
   } catch (err) {
-    console.error('[api/admin/ki/providers] GET error:', err);
+    locals.requestLogger.error({ err }, '[api/admin/ki/providers] GET error:');
     return json({ error: 'fetch_failed' }, 500);
   }
 };
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const blocked = await guard(request);
   if (blocked) return blocked;
   let body: Record<string, unknown>;
@@ -72,7 +72,7 @@ export const POST: APIRoute = async ({ request }) => {
     if ((err as { code?: string }).code === '23505') {
       return json({ error: 'Diese (source, tier, priority)-Kombination existiert bereits.' }, 409);
     }
-    console.error('[api/admin/ki/providers] POST error:', err);
+    locals.requestLogger.error({ err }, '[api/admin/ki/providers] POST error:');
     return json({ error: 'create_failed' }, 500);
   }
 };

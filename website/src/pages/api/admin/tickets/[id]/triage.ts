@@ -4,7 +4,7 @@ import { runTriage } from '../../../../../lib/ticket-triage';
 
 const BRAND = (): string => process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 
-export const POST: APIRoute = async ({ request, params }) => {
+export const POST: APIRoute = async ({ request, params , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response(null, { status: 403 });
 
@@ -24,7 +24,7 @@ export const POST: APIRoute = async ({ request, params }) => {
       reasoning: result.reasoning,
     }), { status: 200, headers: { 'Content-Type': 'application/json' } });
   } catch (err) {
-    console.error('[api/admin/tickets/[id]/triage]', err);
+    locals.requestLogger.error({ err }, '[api/admin/tickets/[id]/triage]');
     return new Response(JSON.stringify({ error: 'Triage fehlgeschlagen' }), { status: 500 });
   }
 };

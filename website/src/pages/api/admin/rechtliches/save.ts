@@ -5,7 +5,7 @@ import { saveLegalPage } from '../../../../lib/website-db';
 const PAGES = ['impressum-zusatz', 'datenschutz', 'agb', 'barrierefreiheit'] as const;
 type LegalKey = typeof PAGES[number];
 
-export const POST: APIRoute = async ({ request, redirect }) => {
+export const POST: APIRoute = async ({ request, redirect , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response('Forbidden', { status: 403 });
 
@@ -21,7 +21,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     try {
       await Promise.all(PAGES.map(key => saveLegalPage(BRAND, key, body[key] ?? '')));
     } catch (err) {
-      console.error('[rechtliches/save] DB error:', err);
+      locals.requestLogger.error({ err }, '[rechtliches/save] DB error:');
       return new Response(JSON.stringify({ error: 'DB error' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
     }
     return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });

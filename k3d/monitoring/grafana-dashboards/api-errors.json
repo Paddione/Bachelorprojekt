@@ -1,0 +1,44 @@
+{
+  "title": "API Error Tracker",
+  "uid": "api-errors",
+  "schemaVersion": 39,
+  "panels": [
+    {
+      "id": 1,
+      "title": "Top 10 Failing Endpoints",
+      "type": "table",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [{
+        "expr": "topk(10, sum by (path) (count_over_time({app=\"website\", level=\"error\"} | json | path != \"\" [1h])))",
+        "refId": "A",
+        "legendFormat": "{{path}}"
+      }],
+      "options": { "showHeader": true }
+    },
+    {
+      "id": 2,
+      "title": "Error Frequency per Route",
+      "type": "timeseries",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [{
+        "expr": "sum by (path) (rate({app=\"website\", level=\"error\"} | json | path != \"\" [5m]))",
+        "refId": "A",
+        "legendFormat": "{{path}}"
+      }]
+    },
+    {
+      "id": 3,
+      "title": "Search by Request ID",
+      "type": "text",
+      "options": {
+        "content": "To find logs for a specific request, use Loki Explore with:\n\n`{app=\"website\"} | json | requestId=\"<id>\"`\n\nThe request ID is returned in the `X-Request-ID` response header and included in every API error response as JSON field `requestId`.",
+        "mode": "markdown"
+      }
+    }
+  ],
+  "templating": {
+    "list": [
+      { "name": "path", "type": "query", "query": "label_values({app=\"website\"} | json, path)", "refresh": 1, "includeAll": true, "default": "All" }
+    ]
+  }
+}

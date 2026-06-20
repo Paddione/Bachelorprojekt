@@ -22,6 +22,7 @@ import coachingProject from '../../../../lib/systemtest-seeds/coaching-project';
 import livestreamViewer from '../../../../lib/systemtest-seeds/livestream-viewer';
 import type { SeedFn, SeedRole } from '../../../../lib/systemtest/seed-context';
 
+
 const REGISTRY: Record<string, SeedFn> = {
   'auth-only': authOnly,
   'booking-flow': bookingFlow,
@@ -48,7 +49,7 @@ function hashLockKey(a: string, b: string): number {
   return h;
 }
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) {
     return jsonError('Unauthorized', 401);
@@ -146,7 +147,7 @@ export const POST: APIRoute = async ({ request }) => {
       await keycloak.deleteUser(uid).catch(() => {});
     }
     const msg = e instanceof Error ? e.message : String(e);
-    console.error('[systemtest/seed] seed failed:', msg);
+    locals.requestLogger.error({ msg }, '[systemtest/seed] seed failed:');
     return jsonError(`seed failed: ${msg}`, 500);
   } finally {
     client.release();

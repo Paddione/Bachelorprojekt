@@ -9,7 +9,7 @@ import { updateUserAttribute } from '../../../../lib/keycloak';
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session) return json({ error: 'Unauthorized' }, 401);
 
@@ -24,19 +24,19 @@ export const POST: APIRoute = async ({ request }) => {
   if (!valid.ok) return json({ error: valid.error }, 400);
 
   const result = await updateCustomerProfile(session.sub, input).catch((e) => {
-    console.error('[profile/update] db error', e); return null;
+    locals.requestLogger.error({ e }, '[profile/update] db error'); return null;
   });
   if (!result) return json({ error: 'Speichern fehlgeschlagen.' }, 500);
 
   if (input.phone) {
     await updateUserAttribute(session.sub, 'phoneNumber', input.phone)
-      .catch((e) => console.error('[profile/update] kc sync failed', e));
+      .catch((e) => locals.requestLogger.error({ e }, '[profile/update] kc sync failed'));
   }
 
   await addContactHistoryEntry({
     keycloakUserId: session.sub, contactType: 'note',
     subject: 'profile_update', direction: 'inbound',
-  }).catch((e) => console.error('[profile/update] history log failed', e));
+  }).catch((e) => locals.requestLogger.error({ e }, '[profile/update] history log failed'));
 
   return json({ ok: true, updatedAt: result.updatedAt });
 };

@@ -6,7 +6,7 @@ import { config } from '../../../../config/index';
 
 const BRAND = process.env.BRAND || 'mentolder';
 
-export const POST: APIRoute = async ({ request, url }) => {
+export const POST: APIRoute = async ({ request, url , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response('Forbidden', { status: 403 });
 
@@ -71,7 +71,7 @@ export const POST: APIRoute = async ({ request, url }) => {
 
     await saveServiceConfig(BRAND, existing);
   } catch (err) {
-    console.error('[service-page/save] DB error:', err);
+    locals.requestLogger.error({ err }, '[service-page/save] DB error:');
     return new Response(JSON.stringify({ error: 'DB error' }), {
       status: 500, headers: { 'Content-Type': 'application/json' },
     });

@@ -16,7 +16,7 @@ const json = (o: unknown, status = 200) =>
     headers: { 'content-type': 'application/json' },
   });
 
-export const PATCH: APIRoute = async ({ request, params }) => {
+export const PATCH: APIRoute = async ({ request, params , locals }) => {
   const s = await getSession(request.headers.get('cookie'));
   if (!s || !isAdmin(s))
     return json({ error: 'Unauthorized' }, 401);
@@ -53,7 +53,7 @@ export const PATCH: APIRoute = async ({ request, params }) => {
   } catch (e) {
     if (e instanceof Error && e.message === 'lastenheft_empty')
       return json({ error: 'lastenheft_empty' }, 422);
-    console.error('[api/admin/planungsbuero PATCH]', e);
+    locals.requestLogger.error({ e }, '[api/admin/planungsbuero PATCH]');
     return json({ error: 'patch_failed' }, 500);
   }
 };

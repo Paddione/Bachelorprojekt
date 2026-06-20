@@ -5,7 +5,7 @@ import type { FaqItem } from '../../../../lib/website-db';
 
 const BRAND = process.env.BRAND || 'mentolder';
 
-export const POST: APIRoute = async ({ request, redirect }) => {
+export const POST: APIRoute = async ({ request, redirect , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response('Forbidden', { status: 403 });
 
@@ -19,7 +19,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     try {
       await saveFaqContent(BRAND, items);
     } catch (err) {
-      console.error('[faq/save] DB error:', err);
+      locals.requestLogger.error({ err }, '[faq/save] DB error:');
       return new Response(JSON.stringify({ error: 'DB error' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
     }
     return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });

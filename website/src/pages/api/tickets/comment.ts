@@ -14,7 +14,7 @@ function jsonError(message: string, status: number): Response {
   });
 }
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const ip = getClientIp(request);
   if (!checkRateLimit(`ticket-comment:${ip}`, 5, 60_000)) {
     return jsonError('Zu viele Anfragen. Bitte warten Sie einen Moment.', 429);
@@ -56,13 +56,13 @@ export const POST: APIRoute = async ({ request }) => {
         priority: 'niedrig',
         actor: { label: 'Portal-Nutzer' },
       });
-      void autoTriage(newTicketId, BRAND).catch(err => console.error('[autoTriage]', err));
+      void autoTriage(newTicketId, BRAND).catch(err => locals.requestLogger.error({ err }, '[autoTriage]'));
     }
     return new Response(JSON.stringify({ ok: true }), {
       status: 200, headers: { 'Content-Type': 'application/json' },
     });
   } catch (err) {
-    console.error('[api/tickets/comment]', err);
+    locals.requestLogger.error({ err }, '[api/tickets/comment]');
     return jsonError('Interner Fehler. Bitte versuchen Sie es erneut.', 500);
   }
 };

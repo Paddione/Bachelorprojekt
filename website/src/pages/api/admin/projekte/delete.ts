@@ -3,7 +3,7 @@ import { getSession, isAdmin } from '../../../../lib/auth';
 import { deleteProject } from '../../../../lib/website-db';
 import { siteRedirect } from '../../../../lib/redirect';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response(null, { status: 403 });
 
@@ -18,7 +18,7 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     await deleteProject(id);
   } catch (err) {
-    console.error('[projekte/delete]', err);
+    locals.requestLogger.error({ err }, '[projekte/delete]');
     return siteRedirect(`${back}?error=Datenbankfehler`);
   }
 

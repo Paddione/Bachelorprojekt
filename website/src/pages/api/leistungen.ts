@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getEffectiveLeistungen } from '../../lib/content';
 
-export const GET: APIRoute = async () => {
+export const GET: APIRoute = async ({ locals }) => {
   try {
     const cats = await getEffectiveLeistungen();
     const flat = cats.flatMap(cat =>
@@ -17,7 +17,7 @@ export const GET: APIRoute = async () => {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (err) {
-    console.error('[GET /api/leistungen] error:', err);
+    locals.requestLogger.error({ err }, '[GET /api/leistungen] error:');
     return new Response(JSON.stringify({ error: 'Interner Serverfehler.' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },

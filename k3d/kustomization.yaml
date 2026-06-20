@@ -26,6 +26,7 @@ resources:
   - oauth2-proxy-docs.yaml
   # Traefik dashboard SSO gateway
   - oauth2-proxy-traefik.yaml
+  - traefik-config.yaml
   - traefik-dashboard-dev.yaml
   # Mailpit SSO gateway
   - oauth2-proxy-mailpit.yaml

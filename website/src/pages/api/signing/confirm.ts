@@ -25,7 +25,7 @@ import {
  * 5. Posts confirmation to Mattermost.
  * 6. Returns { success: true, hash: "<sha256>" }.
  */
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   // --- Authentication ---
   const cookieHeader = request.headers.get('cookie');
   const session = await getSession(cookieHeader);
@@ -122,7 +122,7 @@ export const POST: APIRoute = async ({ request }) => {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (err) {
-    console.error('[signing/confirm] Unexpected error:', err);
+    locals.requestLogger.error({ err }, '[signing/confirm] Unexpected error:');
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },

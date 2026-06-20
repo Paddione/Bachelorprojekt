@@ -6,7 +6,7 @@ export const prerender = false;
 const json = (o: unknown, status = 200) => new Response(JSON.stringify(o),
   { status, headers: { 'content-type': 'application/json' } });
 
-export const POST: APIRoute = async ({ request, params }) => {
+export const POST: APIRoute = async ({ request, params , locals }) => {
   const s = await getSession(request.headers.get('cookie'));
   if (!s || !isAdmin(s)) return json({ error: 'Unauthorized' }, 401);
   const extId = params.extId!;
@@ -34,7 +34,7 @@ export const POST: APIRoute = async ({ request, params }) => {
     const ok = await clarifyItem(extId, commentBody, readinessUpdates, { dependsOn, effort });
     return ok ? json({ ok: true }) : json({ error: 'not_found' }, 404);
   } catch (e) {
-    console.error('[api/planning-office clarify]', e);
+    locals.requestLogger.error({ e }, '[api/planning-office clarify]');
     return json({ error: 'clarify_failed' }, 500);
   }
 };

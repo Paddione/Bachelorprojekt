@@ -4,7 +4,7 @@ import { listFactoryMetrics, listActiveFeatures, listActiveFlags } from '../../l
 
 export const prerender = false;
 
-export const GET: APIRoute = async ({ request }) => {
+export const GET: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
@@ -26,7 +26,7 @@ export const GET: APIRoute = async ({ request }) => {
       { status: 200, headers: { 'content-type': 'application/json' } },
     );
   } catch (err) {
-    console.error('[api/factory-metrics]', err);
+    locals.requestLogger.error({ err }, '[api/factory-metrics]');
     return new Response(JSON.stringify({ error: 'fetch_failed' }), {
       status: 500,
       headers: { 'content-type': 'application/json' },

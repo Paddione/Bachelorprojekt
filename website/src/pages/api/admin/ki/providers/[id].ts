@@ -52,7 +52,7 @@ function parsePatch(body: Record<string, unknown>): { error: string } | { patch:
   return { patch };
 }
 
-export const PUT: APIRoute = async ({ request, params }) => {
+export const PUT: APIRoute = async ({ request, params , locals }) => {
   const blocked = await guard(request);
   if (blocked) return blocked;
   const id = Number(params.id);
@@ -73,12 +73,12 @@ export const PUT: APIRoute = async ({ request, params }) => {
     if ((err as { code?: string }).code === '23505') {
       return json({ error: 'Diese (source, tier, priority)-Kombination existiert bereits.' }, 409);
     }
-    console.error('[api/admin/ki/providers/[id]] PUT error:', err);
+    locals.requestLogger.error({ err }, '[api/admin/ki/providers/[id]] PUT error:');
     return json({ error: 'update_failed' }, 500);
   }
 };
 
-export const DELETE: APIRoute = async ({ request, params }) => {
+export const DELETE: APIRoute = async ({ request, params , locals }) => {
   const blocked = await guard(request);
   if (blocked) return blocked;
   const id = Number(params.id);
@@ -100,7 +100,7 @@ export const DELETE: APIRoute = async ({ request, params }) => {
     if (!ok) return json({ error: 'not_found' }, 404);
     return json({ ok: true });
   } catch (err) {
-    console.error('[api/admin/ki/providers/[id]] DELETE error:', err);
+    locals.requestLogger.error({ err }, '[api/admin/ki/providers/[id]] DELETE error:');
     return json({ error: 'delete_failed' }, 500);
   }
 };

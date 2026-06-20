@@ -1,0 +1,51 @@
+{
+  "title": "Keycloak Audit Trail",
+  "uid": "keycloak-audit",
+  "schemaVersion": 39,
+  "panels": [
+    {
+      "id": 1,
+      "title": "Login Success vs Failure",
+      "type": "timeseries",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [
+        {
+          "expr": "sum(rate({app=\"keycloak\"} | json | type=~\"LOGIN.*\" [5m]))",
+          "refId": "login_total",
+          "legendFormat": "login_total"
+        },
+        {
+          "expr": "sum(rate({app=\"keycloak\"} | json | type=\"LOGIN_ERROR\" [5m]))",
+          "refId": "login_error",
+          "legendFormat": "login_error"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Failed Authentications",
+      "type": "table",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [{
+        "expr": "{app=\"keycloak\"} | json | type=\"LOGIN_ERROR\"",
+        "refId": "A",
+        "legendFormat": ""
+      }]
+    },
+    {
+      "id": 3,
+      "title": "Unusual Activity Alert",
+      "type": "timeseries",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [{
+        "expr": "sum(count_over_time({app=\"keycloak\"} | json | type=\"LOGIN_ERROR\" [5m]))",
+        "refId": "A",
+        "legendFormat": "errors_per_5m"
+      }],
+      "thresholds": [
+        { "op": "gt", "value": 5, "color": "red" }
+      ]
+    }
+  ],
+  "templating": { "list": [] }
+}

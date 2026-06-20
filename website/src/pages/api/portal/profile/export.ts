@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { getSession } from '../../../../lib/auth';
 import { collectCustomerDsgvoData } from '../../../../lib/customer-crm-db';
 
-export const GET: APIRoute = async ({ request }) => {
+export const GET: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
@@ -11,7 +11,7 @@ export const GET: APIRoute = async ({ request }) => {
   }
 
   const data = await collectCustomerDsgvoData(session.sub).catch((e) => {
-    console.error('[profile/export] db error', e); return null;
+    locals.requestLogger.error({ e }, '[profile/export] db error'); return null;
   });
   if (!data) {
     return new Response(JSON.stringify({ error: 'Export fehlgeschlagen.' }), {

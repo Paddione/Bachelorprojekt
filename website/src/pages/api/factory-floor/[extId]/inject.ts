@@ -13,7 +13,7 @@ function json(body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
 }
 
-export const POST: APIRoute = async ({ request, params }) => {
+export const POST: APIRoute = async ({ request, params , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return json({ error: 'Unauthorized' }, 401);
 
@@ -54,7 +54,7 @@ export const POST: APIRoute = async ({ request, params }) => {
     if (!created) return json({ error: 'ticket not found' }, 404);
     return json({ ok: true, id: created.id }, 201);
   } catch (err) {
-    console.error('[api/factory-floor/[extId]/inject]', err);
+    locals.requestLogger.error({ err }, '[api/factory-floor/[extId]/inject]');
     return json({ error: 'insert_failed' }, 500);
   }
 };

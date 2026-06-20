@@ -4,7 +4,7 @@ import { reopenBugTicket } from '../../../../lib/website-db';
 import { pool } from '../../../../lib/website-db';
 import { recordAudit, clientIpFromRequest } from '../../../../lib/audit-log';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
@@ -31,7 +31,7 @@ export const POST: APIRoute = async ({ request }) => {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (err: any) {
-    console.error('[bugs/reopen] DB error:', err);
+    locals.requestLogger.error({ err }, '[bugs/reopen] DB error:');
     const status = err.message?.includes('not found') ? 404 : 500;
     return new Response(JSON.stringify({ error: err.message ?? 'DB error' }), { status });
   }

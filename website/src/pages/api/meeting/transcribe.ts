@@ -6,7 +6,7 @@ import { transcribeAudio, formatTranscript } from '../../../lib/whisper';
 // Sends to faster-whisper, posts result to the customer's Mattermost channel.
 //
 // Multipart form: file (audio), channelId (optional), customerName (optional)
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
@@ -48,7 +48,7 @@ export const POST: APIRoute = async ({ request }) => {
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (err) {
-    console.error('Transcription upload error:', err);
+    locals.requestLogger.error({ err }, 'Transcription upload error:');
     return new Response(
       JSON.stringify({ error: 'Interner Serverfehler.' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }

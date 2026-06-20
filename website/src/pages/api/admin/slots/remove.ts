@@ -4,7 +4,7 @@ import { removeSlotFromWhitelist } from '../../../../lib/website-db';
 
 const BRAND = process.env.BRAND_NAME || 'mentolder';
 
-export const DELETE: APIRoute = async ({ request }) => {
+export const DELETE: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
@@ -45,7 +45,7 @@ export const DELETE: APIRoute = async ({ request }) => {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (err) {
-    console.error('[api/admin/slots/remove]', err);
+    locals.requestLogger.error({ err }, '[api/admin/slots/remove]');
     return new Response(JSON.stringify({ error: 'Datenbankfehler' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },

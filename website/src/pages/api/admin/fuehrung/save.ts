@@ -8,7 +8,7 @@ import type { FuehrungContent } from '../../../../lib/fuehrung-content';
 const BRAND = process.env.BRAND || 'mentolder';
 const SLUG = 'fuehrung-persoenlichkeit';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response('Forbidden', { status: 403 });
 
@@ -68,7 +68,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     await saveServiceConfig(BRAND, existing);
   } catch (err) {
-    console.error('[fuehrung/save] DB error:', err);
+    locals.requestLogger.error({ err }, '[fuehrung/save] DB error:');
     return new Response(JSON.stringify({ error: 'DB error' }), {
       status: 500, headers: { 'Content-Type': 'application/json' },
     });

@@ -12,7 +12,7 @@ export interface EnrichedMember extends MemberLearningSummary {
   lastName: string | null;
 }
 
-export const GET: APIRoute = async ({ request }) => {
+export const GET: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
@@ -37,7 +37,7 @@ export const GET: APIRoute = async ({ request }) => {
     members = result.members;
     totalCount = result.totalCount;
   } catch (err) {
-    console.error('[api/admin/members/list] DB error:', err);
+    locals.requestLogger.error({ err }, '[api/admin/members/list] DB error:');
     return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
       status: 500, headers: { 'Content-Type': 'application/json' },
     });

@@ -6,7 +6,7 @@ import {
 } from '../../../../lib/website-db';
 import { createMonthlyDraftInvoices } from '../../../../lib/stripe-billing';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const cronSecret  = request.headers.get('X-Cron-Secret');
   const session     = await getSession(request.headers.get('cookie'));
   const isCron      = !!cronSecret && cronSecret === process.env.CRON_SECRET;
@@ -56,7 +56,7 @@ export const POST: APIRoute = async ({ request }) => {
         skipped++;
       }
     } catch (err) {
-      console.error(`[billing] Failed for customer ${group.customerId}:`, err);
+      locals.requestLogger.error({ err }, '[billing] Failed for customer ${group.customerId}:');
       skipped++;
     }
   }

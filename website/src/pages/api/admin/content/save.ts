@@ -10,7 +10,7 @@ function json(status: number, body: unknown) {
   return new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
 }
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response('Unauthorized', { status: 401 });
 
@@ -28,7 +28,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (e instanceof ContentConflictError) {
       return json(409, { currentVersion: e.currentVersion, currentValue: e.currentValue });
     }
-    console.error('content save failed', e);
+    locals.requestLogger.error({ e }, 'content save failed');
     return json(500, { error: 'save failed' });
   }
 };

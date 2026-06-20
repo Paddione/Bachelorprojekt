@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { updateAdminShortcut } from '../../../../lib/website-db';
 
-export const PATCH: APIRoute = async ({ request }) => {
+export const PATCH: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) {
     return new Response(JSON.stringify({ error: 'Forbidden' }), {
@@ -52,7 +52,7 @@ export const PATCH: APIRoute = async ({ request }) => {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (err: any) {
-    console.error('[shortcuts/update]', err);
+    locals.requestLogger.error({ err }, '[shortcuts/update]');
     return new Response(JSON.stringify({ error: err.message ?? 'DB error' }), { status: 500 });
   }
 };

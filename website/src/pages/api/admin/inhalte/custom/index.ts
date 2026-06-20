@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
 import { listCustomSections, createCustomSection } from '../../../../../lib/website-db';
 
-export const GET: APIRoute = async ({ request }) => {
+export const GET: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session) return new Response('Unauthorized', { status: 401 });
   if (!isAdmin(session)) return new Response('Forbidden', { status: 403 });
@@ -10,12 +10,12 @@ export const GET: APIRoute = async ({ request }) => {
     const sections = await listCustomSections();
     return new Response(JSON.stringify(sections), { headers: { 'Content-Type': 'application/json' } });
   } catch (err) {
-    console.error('[inhalte/custom GET] DB error:', err);
+    locals.requestLogger.error({ err }, '[inhalte/custom GET] DB error:');
     return new Response(JSON.stringify({ error: 'DB error' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
 };
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session) return new Response('Unauthorized', { status: 401 });
   if (!isAdmin(session)) return new Response('Forbidden', { status: 403 });
@@ -42,7 +42,7 @@ export const POST: APIRoute = async ({ request }) => {
     if ((err as { code?: string }).code === '23505') {
       return new Response(JSON.stringify({ error: 'slug already exists' }), { status: 409, headers: { 'Content-Type': 'application/json' } });
     }
-    console.error('[inhalte/custom POST] DB error:', err);
+    locals.requestLogger.error({ err }, '[inhalte/custom POST] DB error:');
     return new Response(JSON.stringify({ error: 'DB error' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
 };

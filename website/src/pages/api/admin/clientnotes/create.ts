@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { createClientNote } from '../../../../lib/website-db';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response(null, { status: 403 });
 
@@ -21,7 +21,7 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     await createClientNote(userId, content);
   } catch (err) {
-    console.error('[api/clientnotes/create]', err);
+    locals.requestLogger.error({ err }, '[api/clientnotes/create]');
     return new Response(null, {
       status: 302,
       headers: { Location: `${back || '/admin'}?error=${encodeURIComponent('Datenbankfehler')}` },

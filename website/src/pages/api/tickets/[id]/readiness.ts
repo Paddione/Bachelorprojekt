@@ -5,7 +5,7 @@ import { updateSuccessorReadiness } from '../../../../lib/ticket-readiness';
 
 export const prerender = false;
 
-export const POST: APIRoute = async ({ request, params }) => {
+export const POST: APIRoute = async ({ request, params , locals }) => {
   const s = await getSession(request.headers.get('cookie'));
   if (!s || !isAdmin(s)) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
@@ -46,7 +46,7 @@ export const POST: APIRoute = async ({ request, params }) => {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (e) {
-    console.error('[api/tickets/readiness]', e);
+    locals.requestLogger.error({ e }, '[api/tickets/readiness]');
     return new Response(JSON.stringify({ error: 'update_failed' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },

@@ -15,7 +15,7 @@ const TYPE_LABELS: Record<string, string> = {
   termin: 'Termin vor Ort',
 };
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
   if (!isAdmin(session)) return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { 'Content-Type': 'application/json' } });
@@ -95,7 +95,7 @@ export const POST: APIRoute = async ({ request }) => {
           attendeeName: clientName,
         });
       } catch (err) {
-        console.error('[admin/bookings/create] CalDAV persist failed:', err);
+        locals.requestLogger.error({ err }, '[admin/bookings/create] CalDAV persist failed:');
         // Non-fatal: inbox item is the source of truth, calendar entry is
         // a convenience. Admin can still approve via inbox to retry.
       }
@@ -118,11 +118,11 @@ export const POST: APIRoute = async ({ request }) => {
         ? `Admin-Buchung/Rückruf eingetragen.\n\nKunde: ${clientName} (${clientEmail})\nTyp: Rückruf${phone ? `\nTelefon: ${phone}` : ''}${message ? `\n\nAnmerkungen:\n${message}` : ''}`
         : `Admin-Buchung eingetragen.\n\nKunde: ${clientName} (${clientEmail})\nTyp: ${typeLabel}\nDatum: ${dateFormatted}\nUhrzeit: ${slotDisplay}${leistungKey ? `\nLeistung: ${leistungKey}` : ''}${projectId ? `\nProjekt: ${projectId}` : ''}${message ? `\n\nAnmerkungen:\n${message}` : ''}`,
       replyTo: clientEmail,
-    }).catch(err => console.error('[admin/bookings/create] Failed to send admin notification:', err));
+    }).catch(err => locals.requestLogger.error({ err }, '[admin/bookings/create] Failed to send admin notification:'));
 
     return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
   } catch (err) {
-    console.error('[api/admin/bookings/create]', err);
+    locals.requestLogger.error({ err }, '[api/admin/bookings/create]');
     return new Response(JSON.stringify({ error: 'Interner Serverfehler.' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
 };

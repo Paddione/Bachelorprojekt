@@ -16,7 +16,7 @@ const json = (o: unknown, status = 200) =>
     headers: { 'content-type': 'application/json' },
   });
 
-export const GET: APIRoute = async ({ request }) => {
+export const GET: APIRoute = async ({ request , locals }) => {
   const s = await getSession(request.headers.get('cookie'));
   if (!s || !isAdmin(s)) return deny();
   try {
@@ -28,7 +28,7 @@ export const GET: APIRoute = async ({ request }) => {
     ).length;
     return json({ items, stats: { planning, ready, blocked } });
   } catch (e) {
-    console.error('[api/admin/planungsbuero GET]', e);
+    locals.requestLogger.error({ e }, '[api/admin/planungsbuero GET]');
     return json({ error: 'fetch_failed' }, 500);
   }
 };

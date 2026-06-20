@@ -1,15 +1,16 @@
 import type { APIRoute } from 'astro';
 import { exchangeCode, isAdmin, setSessionCookie } from '../../../lib/auth';
+import { errorResponse } from '../_errors';
 
 // Keycloak redirects here after successful login.
 // Exchanges the authorization code for tokens and creates a session.
-export const GET: APIRoute = async ({ url }) => {
+export const GET: APIRoute = async ({ url, locals }) => {
   const code = url.searchParams.get('code');
   const rawState = url.searchParams.get('state') || '/';
   const error = url.searchParams.get('error');
 
   if (error) {
-    console.error('[auth] OIDC error:', error, url.searchParams.get('error_description'));
+    locals.requestLogger.error({ error, description: url.searchParams.get('error_description') }, '[auth] OIDC error:');
     return new Response(null, {
       status: 302,
       headers: { Location: '/?auth_error=1' },

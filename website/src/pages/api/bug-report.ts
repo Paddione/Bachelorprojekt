@@ -24,7 +24,7 @@ function jsonError(message: string, status: number): Response {
   );
 }
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const ip = getClientIp(request);
   if (!checkRateLimit(`bug-report:${ip}`, 10, 60_000)) {
     return jsonError('Zu viele Anfragen. Bitte warten Sie einen Moment.', 429);
@@ -90,7 +90,7 @@ export const POST: APIRoute = async ({ request }) => {
     const ticketId = inserted.ticketId;
 
     await linkReporterByEmail(email).catch(err =>
-      console.error('[bug-report] reporter-link failed:', err));
+      locals.requestLogger.error({ err }, '[bug-report] reporter-link failed:'));
 
     await createInboxItem({
       type: 'bug',
@@ -114,7 +114,7 @@ export const POST: APIRoute = async ({ request }) => {
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (err) {
-    console.error('Bug report error:', err);
+    locals.requestLogger.error({ err }, 'Bug report error:');
     return jsonError('Interner Serverfehler. Bitte versuchen Sie es später erneut.', 500);
   }
 };

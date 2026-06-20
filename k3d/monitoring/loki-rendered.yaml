@@ -11,6 +11,7 @@ metadata:
     app.kubernetes.io/instance: loki
     app.kubernetes.io/version: "3.6.7"
 automountServiceAccountToken: true
+
 ---
 # Source: loki/templates/config.yaml
 apiVersion: v1
@@ -106,6 +107,7 @@ data:
       use_thanos_objstore: false
     tracing:
       enabled: false
+
 ---
 # Source: loki/templates/runtime-configmap.yaml
 apiVersion: v1
@@ -121,6 +123,7 @@ metadata:
 data:
   runtime-config.yaml: |
     {}
+
 ---
 # Source: loki/templates/backend/clusterrole.yaml
 kind: ClusterRole
@@ -136,6 +139,7 @@ rules:
 - apiGroups: [""] # "" indicates the core API group
   resources: ["configmaps", "secrets"]
   verbs: ["get", "watch", "list"]
+
 ---
 # Source: loki/templates/backend/clusterrolebinding.yaml
 kind: ClusterRoleBinding
@@ -180,6 +184,7 @@ spec:
     app.kubernetes.io/name: loki
     app.kubernetes.io/instance: loki
     app.kubernetes.io/part-of: memberlist
+
 ---
 # Source: loki/templates/single-binary/service-headless.yaml
 apiVersion: v1
@@ -205,6 +210,7 @@ spec:
   selector:
     app.kubernetes.io/name: loki
     app.kubernetes.io/instance: loki
+
 ---
 # Source: loki/templates/single-binary/service.yaml
 apiVersion: v1
@@ -233,6 +239,7 @@ spec:
     app.kubernetes.io/name: loki
     app.kubernetes.io/instance: loki
     app.kubernetes.io/component: single-binary
+
 ---
 # Source: loki/templates/single-binary/statefulset.yaml
 apiVersion: apps/v1

@@ -21,6 +21,30 @@ configMapGenerator:
     options:
       labels:
         grafana_dashboard: "1"
+  - name: grafana-dashboard-log-explorer
+    files:
+      - log-explorer.json
+    options:
+      labels:
+        grafana_dashboard: "1"
+  - name: grafana-dashboard-api-errors
+    files:
+      - api-errors.json
+    options:
+      labels:
+        grafana_dashboard: "1"
+  - name: grafana-dashboard-traefik-access
+    files:
+      - traefik-access.json
+    options:
+      labels:
+        grafana_dashboard: "1"
+  - name: grafana-dashboard-keycloak-audit
+    files:
+      - keycloak-audit.json
+    options:
+      labels:
+        grafana_dashboard: "1"
 
 generatorOptions:
   disableNameSuffixHash: true

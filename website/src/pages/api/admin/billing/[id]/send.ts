@@ -5,12 +5,13 @@ import { generateInvoicePdf, type InvoicePdfSeller } from '../../../../../lib/in
 import { generateFacturX } from '../../../../../lib/einvoice/factur-x';
 import { sendEmail } from '../../../../../lib/email';
 import { pool, getSiteSetting, initBillingTables } from '../../../../../lib/website-db';
+import { errorResponse } from '../../../_errors';
 
 function interpolate(t: string, vars: Record<string, string>) {
   return t.replace(/\{\{(\w+)\}\}/g, (_, k) => vars[k] ?? '');
 }
 
-export const POST: APIRoute = async ({ request, params }) => {
+export const POST: APIRoute = async ({ request, params , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response('Unauthorized', { status: 401 });
   await initBillingTables();
@@ -175,7 +176,7 @@ export const POST: APIRoute = async ({ request, params }) => {
       },
     });
   } catch (err) {
-    console.error('[billing/send] PDF/XML generation failed', err);
+    locals.requestLogger.error({ err }, '[billing/send] PDF/XML generation failed');
     return new Response('PDF generation failed', { status: 500 });
   }
 
@@ -232,9 +233,8 @@ export const POST: APIRoute = async ({ request, params }) => {
   });
 
   if (!sent) {
-    console.error('[billing/send] Email delivery failed for invoice', finalized.number);
-    return new Response(JSON.stringify({ ok: false, number: finalized.number, error: 'Email delivery failed — invoice is finalized, please resend manually.' }),
-      { status: 502, headers: { 'Content-Type': 'application/json' } });
+    locals.requestLogger.error({ invoiceNumber: finalized.number }, '[billing/send] Email delivery failed for invoice');
+    return errorResponse('EMAIL_DELIVERY_FAILED', locals.requestId, 502);
   }
 
   return new Response(JSON.stringify({ ok: true, number: finalized.number }), {

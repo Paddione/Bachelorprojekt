@@ -3,7 +3,7 @@ import { getSession, isAdmin } from '../../../../../lib/auth';
 import { pool, initBillingTables } from '../../../../../lib/website-db';
 import { getInvoice, createInvoice, type InvoiceLine } from '../../../../../lib/native-billing';
 
-export const POST: APIRoute = async ({ params, request }) => {
+export const POST: APIRoute = async ({ params, request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response('Unauthorized', { status: 401 });
 
@@ -63,7 +63,7 @@ export const POST: APIRoute = async ({ params, request }) => {
 
     return new Response(JSON.stringify({ success: true, data: finalInvoice }), { status: 200 });
   } catch (err: any) {
-    console.error('[finalize-from-prepayment]', err);
+    locals.requestLogger.error({ err }, '[finalize-from-prepayment]');
     return new Response(JSON.stringify({ error: err.message || 'Internal Server Error' }), { status: 500 });
   }
 };

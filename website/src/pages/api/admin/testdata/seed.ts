@@ -11,7 +11,7 @@ function jsonError(msg: string, status: number) {
   });
 }
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return jsonError('Nicht autorisiert', 401);
 
@@ -120,7 +120,7 @@ export const POST: APIRoute = async ({ request }) => {
       created: { customers: 2, billingCustomers: 1, invoices: invoiceCount, meetings: 2, bookings: 2 },
     }), { status: 201, headers: { 'Content-Type': 'application/json' } });
   } catch (err) {
-    console.error('[testdata/seed]', err);
+    locals.requestLogger.error({ err }, '[testdata/seed]');
     return jsonError('Fehler beim Anlegen der Testdaten', 500);
   }
 };

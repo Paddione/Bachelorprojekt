@@ -19,7 +19,7 @@ async function guard(request: Request): Promise<Response | null> {
   return null;
 }
 
-export const GET: APIRoute = async ({ request }) => {
+export const GET: APIRoute = async ({ request , locals }) => {
   const blocked = await guard(request);
   if (blocked) return blocked;
   try {
@@ -30,12 +30,12 @@ export const GET: APIRoute = async ({ request }) => {
     const rerankEnabled = process.env.LLM_RERANK_ENABLED === 'true';
     return json({ primary: primary ?? 'bge-m3', fallback: fallback || null, rerankEnabled });
   } catch (err) {
-    console.error('[api/admin/ki/embeddings] GET error:', err);
+    locals.requestLogger.error({ err }, '[api/admin/ki/embeddings] GET error:');
     return json({ error: 'fetch_failed' }, 500);
   }
 };
 
-export const PUT: APIRoute = async ({ request }) => {
+export const PUT: APIRoute = async ({ request , locals }) => {
   const blocked = await guard(request);
   if (blocked) return blocked;
   let body: Record<string, unknown>;
@@ -55,7 +55,7 @@ export const PUT: APIRoute = async ({ request }) => {
     await setSiteSetting(BRAND, EMBED_FALLBACK_KEY, fallback ? String(fallback) : '');
     return json({ ok: true });
   } catch (err) {
-    console.error('[api/admin/ki/embeddings] PUT error:', err);
+    locals.requestLogger.error({ err }, '[api/admin/ki/embeddings] PUT error:');
     return json({ error: 'update_failed' }, 500);
   }
 };

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-20T08:55:23.829Z",
+  "generatedAt": "2026-06-20T14:46:24.259Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -264,6 +264,12 @@
       "namespace": "mentolder",
       "type": "CronJob",
       "name": "notify-unread"
+    },
+    {
+      "id": "ntfy",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "ntfy"
     },
     {
       "id": "oauth2-proxy-brett",
@@ -1343,6 +1349,12 @@
     },
     {
       "from": "traefik",
+      "to": "ntfy",
+      "via": "ingress",
+      "kind": "ingress"
+    },
+    {
+      "from": "traefik",
       "to": "collabora",
       "via": "ingress",
       "kind": "ingress"
@@ -1536,6 +1548,12 @@
     {
       "from": "nextcloud-redis",
       "to": "nextcloud-redis",
+      "via": "selector",
+      "kind": "selector"
+    },
+    {
+      "from": "ntfy",
+      "to": "ntfy",
       "via": "selector",
       "kind": "selector"
     },

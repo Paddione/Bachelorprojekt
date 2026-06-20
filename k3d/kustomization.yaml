@@ -54,6 +54,8 @@ resources:
   - brett.yaml
   # Mediaviewer Widget
   - mediaviewer-widget.yaml
+  # Agent-Push ntfy-Server (T000991)
+  - ntfy.yaml
   - oauth2-proxy-mediaviewer.yaml
   # Sessions Server (session-<slug>.sessions.mentolder.de)
   - sessions-server.yaml

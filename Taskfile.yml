@@ -324,7 +324,13 @@ tasks:
       - task: test:unit:factory-scout-quality
       - task: test:unit:factory-scout-drift
       - task: test:unit:dev-reset
+      - task: test:unit:agent-push
 
+
+  test:unit:agent-push:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/agent-push.bats
 
   test:unit:build-graph:
     internal: true
@@ -2524,6 +2530,7 @@ tasks:
           ENVSUBST_VARS="$ENVSUBST_VARS \$COMFY_HOST_IP \$COMFY_PORT"
           ENVSUBST_VARS="$ENVSUBST_VARS \$RIGGER_HOST_IP \$RIGGER_PORT"
           ENVSUBST_VARS="$ENVSUBST_VARS \$ARENA_WS_URL \$ARENA_IMAGE"
+          ENVSUBST_VARS="$ENVSUBST_VARS \$NTFY_BASE_URL \$AGENT_PUSH_API \$AGENT_PUSH_LINK_BASE"
           ENVSUBST_VARS="$ENVSUBST_VARS \$DEV_DOMAIN \$DEV_NODE \$DEV_WEBSITE_HOST \$DEV_BRETT_HOST"
           # arena-server image: workspace:deploy uses :latest; arena:deploy pins to digest.
           export ARENA_IMAGE="${ARENA_IMAGE:-ghcr.io/paddione/arena-server:latest}"
@@ -2643,6 +2650,7 @@ tasks:
         ENVSUBST_VARS="$ENVSUBST_VARS \$COMFY_HOST_IP \$COMFY_PORT"
         ENVSUBST_VARS="$ENVSUBST_VARS \$RIGGER_HOST_IP \$RIGGER_PORT"
         ENVSUBST_VARS="$ENVSUBST_VARS \$ARENA_WS_URL \$ARENA_IMAGE"
+        ENVSUBST_VARS="$ENVSUBST_VARS \$NTFY_BASE_URL \$AGENT_PUSH_API \$AGENT_PUSH_LINK_BASE"
         ENVSUBST_VARS="$ENVSUBST_VARS \$DEV_DOMAIN \$DEV_NODE \$DEV_WEBSITE_HOST \$DEV_BRETT_HOST"
         export ARENA_IMAGE="${ARENA_IMAGE:-ghcr.io/paddione/arena-server:latest}"
         export DEV_DOMAIN="${DEV_DOMAIN:-}"

@@ -87,6 +87,17 @@ patches:
       metadata:
         name: vaultwarden-seed-credentials
       $patch: delete
+  # Drop dev-placeholder ntfy-tokens — in production this secret is
+  # managed via SealedSecrets.
+  - target:
+      kind: Secret
+      name: ntfy-tokens
+    patch: |
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: ntfy-tokens
+      $patch: delete
   # Drop k3d-only localhost ingresses — production uses per-service ingresses
   # in prod/ingress.yaml with real domains and TLS.
   - target:

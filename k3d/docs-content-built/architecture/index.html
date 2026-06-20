@@ -178,20 +178,20 @@
 <body>
   <div class="header">
     <h1>⬡ Architektur — Living Docs</h1>
-    <span class="meta">Generiert: 2026-06-20T14:07:20.675Z</span>
+    <span class="meta">Generiert: 2026-06-20T14:20:18.063Z</span>
   </div>
 
   <div class="stats">
     <div class="stat">
-      <span class="stat-value">83</span>
+      <span class="stat-value">84</span>
       <span class="stat-label">Services</span>
     </div>
     <div class="stat">
-      <span class="stat-value">1696</span>
+      <span class="stat-value">1698</span>
       <span class="stat-label">Abhängigkeiten</span>
     </div>
     <div class="stat">
-      <span class="stat-value">404</span>
+      <span class="stat-value">405</span>
       <span class="stat-label">API Endpoints</span>
     </div>
   </div>
@@ -256,6 +256,7 @@ flowchart LR
   nextcloud_redis["nextcloud-redis"]:::default
   nextcloud["nextcloud"]:::default
   notify_unread["notify-unread"]:::default
+  ntfy["ntfy"]:::default
   oauth2_proxy_brett["oauth2-proxy-brett"]:::default
   oauth2_proxy_comfy["oauth2-proxy-comfy"]:::default
   oauth2_proxy_docs["oauth2-proxy-docs"]:::default
@@ -416,6 +417,7 @@ flowchart LR
   traefik -->|"ingress"| mailpit
   traefik -->|"ingress"| monitoring_grafana
   traefik -->|"ingress"| otel_collector
+  traefik -->|"ingress"| ntfy
   traefik -->|"ingress"| collabora
   traefik -->|"ingress"| oauth2_proxy_recovery
   traefik -->|"ingress"| oauth2_proxy_traefik
@@ -449,6 +451,7 @@ flowchart LR
   loki -->|"selector"| loki
   otel_collector -->|"selector"| otel_collector
   nextcloud_redis -->|"selector"| nextcloud_redis
+  ntfy -->|"selector"| ntfy
   oauth2_proxy_videovault -->|"selector"| oauth2_proxy_videovault
   collabora -->|"selector"| collabora
   recovery_browser -->|"selector"| recovery_browser
@@ -1917,7 +1920,7 @@ flowchart LR
   website -->|"secret:staging-db-…"| shared_db_staging
       </div>
     </div>
-    <p class="diagram-caption">Alle 83 K8s-Services und ihre 1696 Abhängigkeitskanten (env-Refs, initContainer-Waits, Ingress-Backends)</p>
+    <p class="diagram-caption">Alle 84 K8s-Services und ihre 1698 Abhängigkeitskanten (env-Refs, initContainer-Waits, Ingress-Backends)</p>
   </div>
 
   <!-- K8s Topology Tab -->
@@ -1960,6 +1963,7 @@ flowchart TB
     nextcloud_redis["nextcloud-redis"]
     nextcloud["nextcloud"]
     notify_unread(["notify-unread"])
+    ntfy["ntfy"]
     oauth2_proxy_brett["oauth2-proxy-brett"]
     oauth2_proxy_comfy["oauth2-proxy-comfy"]
     oauth2_proxy_docs["oauth2-proxy-docs"]
@@ -2039,7 +2043,7 @@ flowchart TB
     <div class="filter-bar">
       <span class="filter-label">Filter:</span>
       <input class="filter-input" type="text" id="api-filter" placeholder="/api/..." oninput="filterApi(this.value)">
-      <span class="filter-label" id="api-count">404 endpoints</span>
+      <span class="filter-label" id="api-count">405 endpoints</span>
     </div>
     <div style="max-height:70vh;overflow-y:auto;border:1px solid var(--ff-border);border-radius:4px;">
       <table>
@@ -2051,6 +2055,11 @@ flowchart TB
       </tr>
     </thead>
     <tbody>
+      <tr>
+      <td><code>/api/admin/agent-push/settings</code></td>
+      <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">GET</code> <code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">POST</code></td>
+      <td style="color:#ef4444">🔐 admin</td>
+    </tr>
       <tr>
       <td><code>/api/admin/angebote/save</code></td>
       <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">POST</code></td>

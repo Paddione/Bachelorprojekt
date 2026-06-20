@@ -1,6 +1,15 @@
 {
-  "generatedAt": "2026-06-20T14:07:20.626Z",
+  "generatedAt": "2026-06-20T14:20:18.024Z",
   "endpoints": [
+    {
+      "path": "/api/admin/agent-push/settings",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/agent-push/settings.ts"
+    },
     {
       "path": "/api/admin/angebote/save",
       "methods": [

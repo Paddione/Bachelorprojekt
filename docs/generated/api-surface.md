@@ -1,9 +1,10 @@
 # API Surface Map
 
-> Generated at 2026-06-20T14:07:20.626Z
+> Generated at 2026-06-20T14:20:18.024Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
+| `/api/admin/agent-push/settings` | GET, POST | 🔐 admin | `website/src/pages/api/admin/agent-push/settings.ts` |
 | `/api/admin/angebote/save` | POST | 🔐 admin | `website/src/pages/api/admin/angebote/save.ts` |
 | `/api/admin/assets` | GET | 🔐 admin | `website/src/pages/api/admin/assets.ts` |
 | `/api/admin/assets/upload` | POST | 🔐 admin | `website/src/pages/api/admin/assets/upload.ts` |

@@ -134,6 +134,7 @@ Services: Traefik → Keycloak (OIDC), Nextcloud+Talk, Collabora, Talk-HPB+cotur
 GitHub Actions (`.github/workflows/ci.yml`) runs on every PR:
 - Offline tests: `task test:all` (BATS unit tests, kustomize manifest structure, Taskfile dry-run)
 - **Test inventory check**: re-runs `task test:inventory` and fails the job if `website/src/data/test-inventory.json` differs from the committed version — regenerate it locally and commit alongside any test additions.
+- **BATS convention (tests/spec/)**: New `@test` entries belong in `tests/spec/<spec-slug>.bats` (one file per OpenSpec SSOT spec in `openspec/specs/`). Do NOT create new ticket-numbered files (`FA-SF-42.bats`). If the spec file doesn't exist yet, create it (see `tests/spec/software-factory.bats` as template). Fallback for cross-cutting tests without a clear spec: `tests/unit/`.
 - **Release notes**: Generate structured release notes from merged PRs via `bash scripts/vda.sh release-notes generate` or `task release:notes` (LLM/DeepSeek-gestützt mit deterministischem Fallback). Publish to GitHub Release body with `publish-github` or prepend to `CHANGELOG.md` with `publish-changelog`.
 - Systembrett template validation (`scripts/tests/systembrett-template.test.sh`)
 - Security scan: image-pin advisory + hardcoded-secret detection in `k3d/*.yaml`

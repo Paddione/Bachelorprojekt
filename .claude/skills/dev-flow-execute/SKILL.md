@@ -351,13 +351,19 @@ Spawne den Subagenten:
   - Absoluter Worktree-Pfad + Branch-Name; er arbeitet NUR relativ dazu.
   - Plan-Datei `$PLAN_FILE` (aus Schritt 1, via DB aufgelöst) + Ticket-ID.
   - Attachment-Verzeichnis `$ATTACHMENT_DIR` — bei UI-Arbeit ALLE Bilder/Texte mit dem `Read`-Tool einlesen.
-- **⚠️ BATS-Pflicht (kein neues File ohne Prüfung):**
-  Bevor du eine neue `.bats`-Datei erstellst, suche erst in `tests/unit/` nach einer thematisch passenden bestehenden Datei und erweitere diese stattdessen:
+- **⚠️ BATS-Pflicht — Konvention: ein File pro OpenSpec-Spec:**
+  Neue `@test`-Einträge gehören in `tests/spec/<spec-slug>.bats` (die Spec zum Feature/Fix aus `openspec/specs/`).
+  Reihenfolge:
+  1. **Spec-Slug ermitteln:** Welche OpenSpec-Spec (`openspec/specs/*.md`) deckt das zu testende Verhalten ab?
+  2. **Spec-File prüfen/anlegen:** Existiert `tests/spec/<spec-slug>.bats`? Falls ja → `@test`-Block einfügen. Falls nein → neue Datei anlegen (Vorlage: `tests/spec/software-factory.bats`).
+  3. **Fallback:** Für übergreifende Tests ohne Spec-Zuordnung → passende Datei in `tests/unit/` erweitern.
   ```bash
-  # Beispiel: testest du ein Script → scripts.bats; Ticket-Logik → tickets-*.bats; Website → website-*.bats
-  grep -rl "<modul-stichwort>" tests/unit/ tests/local/
+  # Spec-Slug herausfinden:
+  ls openspec/specs/          # alle SSOT-Specs
+  ls tests/spec/              # bereits konsolidierte Spec-Dateien
+  # @test in tests/spec/<slug>.bats einfügen, nicht neue tests/local/FA-XY-*.bats Datei
   ```
-  **Neue `.bats`-Datei nur wenn:** das zu testende Modul hat bisher NULL Testabdeckung UND kein thematisch verwandter Dateiname existiert. In allen anderen Fällen: `@test`-Block in die passende bestehende Datei einfügen. Ziel: die Gesamtzahl der `.bats`-Dateien in `tests/unit/` sinkt oder bleibt konstant.
+  **Ziel:** Die Gesamtzahl der `.bats`-Dateien in `tests/local/` sinkt oder bleibt konstant. Ticket-nummerierte Dateien (`FA-SF-42.bats`) sind Legacy — nicht neu anlegen.
 
 - **Auftrag:**
   - **/goal: Finish dev-flow-execute and merge the PR cleanly.**

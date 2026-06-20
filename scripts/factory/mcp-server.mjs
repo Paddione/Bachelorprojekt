@@ -54,6 +54,26 @@ server.tool('factory_recent', 'Show last N factory run comments from ticket_comm
   return { content: [{ type: 'text', text: psqlJSON(sql) }] }
 })
 
+server.tool('openspec_find_similar',
+  'Findet semantisch ähnliche OpenSpec Changes zu einer Suchanfrage (wraps /api/openspec/search)',
+  { query: z.string().describe('Suchanfrage'),
+    limit: z.number().optional().describe('Default 5'),
+    status: z.string().optional().describe('Filter: planning | plan_staged | archived') },
+  async ({ query, limit, status }) => {
+    const base = process.env.OPENSPEC_SEARCH_URL || 'http://website.website.svc.cluster.local:4321'
+    const u = new URL(`${base}/api/openspec/search`)
+    u.searchParams.set('q', query)
+    if (limit) u.searchParams.set('limit', String(limit))
+    if (status) u.searchParams.set('status', status)
+    try {
+      const r = await fetch(u, { signal: AbortSignal.timeout(8000) })
+      const text = await r.text()
+      return { content: [{ type: 'text', text }], isError: !r.ok }
+    } catch (e) {
+      return { content: [{ type: 'text', text: `error: ${e.message}` }], isError: true }
+    }
+  })
+
   return server
 }
 

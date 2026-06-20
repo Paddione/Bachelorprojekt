@@ -740,6 +740,20 @@ tasks:
     desc: "Archive a done change + merge its delta into the SSOT. Usage: task openspec:archive -- <slug>"
     cmds:
       - bash scripts/openspec.sh archive {{.CLI_ARGS}}
+  openspec:embed:backfill:
+    desc: "Re-index all active openspec changes (status planning|plan_staged) into pgvector. Usage: task openspec:embed:backfill [-- --dry-run]"
+    cmds:
+      - |
+        set -e
+        for d in openspec/changes/*/; do
+          slug="$(basename "$d")"
+          [ "$slug" = "archive" ] && continue
+          [ -f "$d/tasks.md" ] || continue
+          st="$(sed -n 's/^status:[[:space:]]*//p' "$d/tasks.md" | head -1)"
+          case "$st" in planning|plan_staged) ;; *) continue ;; esac
+          echo "backfill: $slug (status=$st)"
+          node scripts/openspec-embed.mjs --slug "$slug" {{.CLI_ARGS}}
+        done
   openspec:validate:
     desc: "Validate the openspec/ tree (same as test:openspec)."
     cmds:

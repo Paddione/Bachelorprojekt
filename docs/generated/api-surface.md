@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-06-20T14:46:24.331Z
+> Generated at 2026-06-20T19:16:29.950Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -365,6 +365,7 @@
 | `/api/newsletter/confirm` | GET | ❓ unclassified | `website/src/pages/api/newsletter/confirm.ts` |
 | `/api/newsletter/subscribe` | POST | ❓ unclassified | `website/src/pages/api/newsletter/subscribe.ts` |
 | `/api/newsletter/unsubscribe` | GET | ❓ unclassified | `website/src/pages/api/newsletter/unsubscribe.ts` |
+| `/api/openspec/search` | GET | ❓ unclassified | `website/src/pages/api/openspec/search.ts` |
 | `/api/planning-office` | GET, POST, DELETE | 🔐 admin | `website/src/pages/api/planning-office/index.ts` |
 | `/api/planning-office/{extId}` | PATCH | 🔐 admin | `website/src/pages/api/planning-office/[extId].ts` |
 | `/api/planning-office/{extId}/clarify` | POST | 🔐 admin | `website/src/pages/api/planning-office/[extId]/clarify.ts` |

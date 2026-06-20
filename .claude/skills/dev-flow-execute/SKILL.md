@@ -19,6 +19,16 @@ Du bist auf einem `feature/*` oder `fix/*` Branch. `dev-flow-plan` hat Spec und 
 
 Prüfe ob ein einzelner Plan oder mehrere Pläne ausgeführt werden sollen:
 
+**DB-Abfragen — MCP-Schnellweg bevorzugen.** Ist `mcp-postgres` erreichbar (Guard:
+`bash scripts/mcp-portforward.sh status`), nutze das `mcp__mcp-postgres__query`-Tool direkt
+(nur `sql`, read-only):
+> `sql:` `SELECT external_id, title, priority, COALESCE(value_prop,'') FROM tickets.tickets WHERE status='plan_staged' ORDER BY planning_rank ASC NULLS LAST, created_at DESC;`
+
+Setze `STAGED_PLANS` aus dem MCP-Ergebnis. **Fallback** (MCP nicht erreichbar / kein Portforward) —
+der kubectl-Block unten. Details: [`references/mcp-tool-guide.md`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md).
+
+_Fallback:_
+
 ```bash
 # Wenn TICKET_ID bereits gesetzt ist → direkt Single-Modus, kein Query nötig
 STAGED_PLANS=$(kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -F '|' -c \
@@ -47,6 +57,13 @@ STAGED_COUNT=$(echo "$STAGED_PLANS" | grep -c '|' 2>/dev/null || echo 0)
 Wenn `EXECUTE_MODE="batch"`:
 
 ### Batch-Schritt 1: Alle staged plans laden
+
+**MCP-Schnellweg (read-only SELECT).** Wenn `mcp-postgres` erreichbar, hole dieselbe Zeilen-Menge
+via `mcp__mcp-postgres__query` (`sql:` = die SELECT-Anweisung aus dem Block unten, ohne das
+`kubectl exec … -t -A -F '|'`-Gerüst) und parse das Ergebnis in `BATCH_ITEMS`. Der `kubectl`-Block
+unten ist der **Fallback**.
+
+_Fallback:_
 
 ```bash
 # Alle staged plans mit Plan-Referenzen laden
@@ -148,6 +165,13 @@ Starte danach **für jedes Element aus `$BATCH_JSON`** einen Subagenten:
   ```
 
 Nach dem Spawnen aller Subagenten:
+
+**Fortschritt per MCP (read-only).** `mcp__mcp-postgres__query` mit
+`sql:` `SELECT external_id, status, title FROM tickets.tickets WHERE external_id IN (<TICKET_IDs>) ORDER BY status;`
+— sonst der kubectl-Befehl unten.
+
+_Fallback:_
+
 ```
 ✅ Batch-Orchestrierung gestartet: $BATCH_COUNT Implementierungen laufen parallel
 

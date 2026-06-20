@@ -21,6 +21,12 @@ Internal tickets live in `tickets.tickets` on the `mentolder` (`website` DB). En
 
 `priority ∈ {hoch,mittel,niedrig}` · `severity ∈ {critical,major,minor,trivial}` · `status ∈ {triage,planning,plan_staged,backlog,in_progress,in_review,blocked,qa_review,done,archived}` · `resolution ∈ {fixed,shipped,obsolete}`
 
+**DB-Zugriff — MCP-Postgres für Reads bevorzugen.** Bei erreichbarem `mcp-postgres` lese SELECTs via
+`mcp__mcp-postgres__query`. Die `psql()`-Funktion unten ist der Read-Fallback; **schreibende**
+Statements (z. B. das `INSERT INTO tickets.tickets` in Schritt 2) bleiben Pflicht über
+`psql`/`kubectl exec`, da das MCP-Query-Tool read-only ist.
+Siehe [`references/mcp-tool-guide.md`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md).
+
 SQL helper:
 ```bash
 PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)

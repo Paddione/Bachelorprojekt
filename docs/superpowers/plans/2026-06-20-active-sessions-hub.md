@@ -15,7 +15,7 @@ depends_on_plans: []
 
 # Active Sessions Hub Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Surface every running local dev session (HTML forms, brainstorm boards, visual companions) as clickable cards in the website Mediaviewer panel, reachable for external users (gekko) via Keycloak-gated sish tunnels.
 
@@ -72,12 +72,12 @@ depends_on_plans: []
 **Interfaces:**
 - Produces: a `SESSION_HUB_OIDC_SECRET` key inside the `workspace-secrets` Secret after deploy — consumed by Task 4's oauth2-proxy and Task 2's realm client `secret` field.
 
-- [ ] **Step 1: Read the existing secrets file to find the BRAINSTORM_OIDC_SECRET line**
+- [x] **Step 1: Read the existing secrets file to find the BRAINSTORM_OIDC_SECRET line**
 
 Run: `grep -n "BRAINSTORM_OIDC_SECRET" environments/.secrets/mentolder.yaml`
 Expected: a line like `  BRAINSTORM_OIDC_SECRET: "<hex>"` under a `setup_vars:` / secret-values block. Note the indentation and surrounding block.
 
-- [ ] **Step 2: Generate a 32-byte hex secret and add it next to BRAINSTORM_OIDC_SECRET**
+- [x] **Step 2: Generate a 32-byte hex secret and add it next to BRAINSTORM_OIDC_SECRET**
 
 ```bash
 SECRET=$(openssl rand -hex 32)
@@ -92,7 +92,7 @@ Edit `environments/.secrets/mentolder.yaml`: add, with the **same indentation** 
 
 Never paste this value into a commit, the plan, or chat. The `.secrets/` file is gitignored.
 
-- [ ] **Step 3: Register the var in environments/schema.yaml**
+- [x] **Step 3: Register the var in environments/schema.yaml**
 
 Find the `BRAINSTORM_OIDC_SECRET` entry:
 
@@ -106,7 +106,7 @@ Copy that entry's exact shape and add a sibling immediately after it. Example sh
     description: "OIDC client secret for the session-hub oauth2-proxy (Keycloak confidential client `session-hub`). Gates session-*.${DEV_DOMAIN} behind the /session-hub-access group."
 ```
 
-- [ ] **Step 4: Validate schema, then seal**
+- [x] **Step 4: Validate schema, then seal**
 
 ```bash
 task env:validate ENV=mentolder
@@ -118,7 +118,7 @@ Expected: `env:validate` passes (no "unknown var" / "missing var"); `env:seal` r
 Run: `grep -c "SESSION_HUB_OIDC_SECRET" environments/sealed-secrets/mentolder.yaml`
 Expected: `1`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add environments/schema.yaml environments/sealed-secrets/mentolder.yaml
@@ -140,7 +140,7 @@ git commit -m "feat(secrets): add SESSION_HUB_OIDC_SECRET for session-hub oauth2
 
 > **Note on usernames:** the realm `users` array uses `Paddione` (capital P) and `gekko`. Both currently have `"groups": null`. The brainstorm client uses `http://brainstorm.localhost/oauth2/callback` — mirror the `.localhost` form (S3-safe; not a brand domain).
 
-- [ ] **Step 1: Add the session-hub client (mirror the brainstorm client)**
+- [x] **Step 1: Add the session-hub client (mirror the brainstorm client)**
 
 Run: `jq '.clients[] | select(.clientId=="brainstorm")' k3d/realm-workspace-dev.json`
 
@@ -156,7 +156,7 @@ Edit the JSON with a real editor (preserve formatting). After editing, validate 
 Run: `jq '.clients[] | select(.clientId=="session-hub") | {clientId, redirectUris, publicClient, standardFlowEnabled}' k3d/realm-workspace-dev.json`
 Expected: prints the new client with `publicClient: false`, `standardFlowEnabled: true`.
 
-- [ ] **Step 2: Add the /session-hub-access group**
+- [x] **Step 2: Add the /session-hub-access group**
 
 Copy the `brainstorm-access` group object:
 
@@ -167,7 +167,7 @@ Add a sibling in `groups` with `name: "session-hub-access"`, `path: "/session-hu
 Run: `jq '.groups[] | select(.name=="session-hub-access") | .path' k3d/realm-workspace-dev.json`
 Expected: `"/session-hub-access"`
 
-- [ ] **Step 3: Add Paddione + gekko to the group**
+- [x] **Step 3: Add Paddione + gekko to the group**
 
 For each of the two `users` entries (`Paddione`, `gekko`), set their `groups` to include `/session-hub-access`. Since both are currently `null`, set:
 
@@ -184,12 +184,12 @@ Paddione: ["/session-hub-access"]
 gekko: ["/session-hub-access"]
 ```
 
-- [ ] **Step 4: Full-file JSON validity gate**
+- [x] **Step 4: Full-file JSON validity gate**
 
 Run: `jq empty k3d/realm-workspace-dev.json && echo "VALID JSON"`
 Expected: `VALID JSON` (no parse error).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add k3d/realm-workspace-dev.json
@@ -209,7 +209,7 @@ git commit -m "feat(keycloak): add session-hub client + session-hub-access group
 
 > **Style:** follow `scripts/agent-lock.sh` — `#!/usr/bin/env bash`, `set -uo pipefail`, a header comment block ending in `[T000975]`, `_`-prefixed helpers, a `case "$cmd" in … esac` dispatcher at the bottom, and a `usage()` that lists subcommands. Use `jq` for all registry mutation (atomic write to a `.tmp` then `mv`). Keep the file under ~400 lines (limit 500).
 
-- [ ] **Step 1: Write the BATS test first**
+- [x] **Step 1: Write the BATS test first**
 
 Create `tests/unit/session-hub.bats`:
 
@@ -268,12 +268,12 @@ setup() {
 }
 ```
 
-- [ ] **Step 2: Run the test, confirm it fails (script missing)**
+- [x] **Step 2: Run the test, confirm it fails (script missing)**
 
 Run: `bats tests/unit/session-hub.bats`
 Expected: FAIL — `scripts/session-hub.sh` does not exist / `No such file`.
 
-- [ ] **Step 3: Write scripts/session-hub.sh**
+- [x] **Step 3: Write scripts/session-hub.sh**
 
 ```bash
 #!/usr/bin/env bash
@@ -453,7 +453,7 @@ main() {
 main "$@"
 ```
 
-- [ ] **Step 4: Make executable, run the tests, confirm they pass**
+- [x] **Step 4: Make executable, run the tests, confirm they pass**
 
 ```bash
 chmod +x scripts/session-hub.sh
@@ -461,12 +461,12 @@ bats tests/unit/session-hub.bats
 ```
 Expected: all 5 tests PASS.
 
-- [ ] **Step 5: Line-budget check**
+- [x] **Step 5: Line-budget check**
 
 Run: `wc -l scripts/session-hub.sh`
 Expected: < 500 (target < ~420). If over, extract the `cmd_*` dispatch help text — do not cosmetically collapse.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/session-hub.sh tests/unit/session-hub.bats
@@ -487,7 +487,7 @@ git commit -m "feat(session-hub): add session-hub.sh registry + tunnel CLI [T000
 
 > **S3:** the in-cluster oauth2-proxy URLs use `.localhost` literals (like brainstorm — these are not brand domains). The public host appears only via the `${DEV_DOMAIN}` envsubst variable, which `task dev:deploy` substitutes at apply time (it pipes the kustomize output through `envsubst '$DEV_DOMAIN …'`). Do not write `*.mentolder.de` literally anywhere.
 
-- [ ] **Step 1: Create the manifest (adapt oauth2-proxy-brainstorm.yaml)**
+- [x] **Step 1: Create the manifest (adapt oauth2-proxy-brainstorm.yaml)**
 
 Start from `k3d/dev-stack/oauth2-proxy-brainstorm.yaml` and produce `k3d/dev-stack/oauth2-proxy-sessions.yaml` with these substitutions:
 - All `brainstorm` → `session-hub` in resource names/labels/Service (`oauth2-proxy-session-hub`).
@@ -531,7 +531,7 @@ spec:
 
 Keep the top-of-file `⚠️ NEEDS-HUMAN VERIFICATION` comment block, adapted to session-hub (mention `task env:seal ENV=mentolder` after adding `SESSION_HUB_OIDC_SECRET`, and the `/session-hub-access` group). Set priority `11` so it beats the sish-catchall (`priority: 1`) but is distinct from brainstorm's `10`.
 
-- [ ] **Step 2: Add to the kustomization**
+- [x] **Step 2: Add to the kustomization**
 
 Edit `k3d/dev-stack/kustomization.yaml`, add under `resources:` after `oauth2-proxy-brainstorm.yaml`:
 
@@ -539,7 +539,7 @@ Edit `k3d/dev-stack/kustomization.yaml`, add under `resources:` after `oauth2-pr
   - oauth2-proxy-sessions.yaml
 ```
 
-- [ ] **Step 3: Kustomize build gate (S4 — manifest must be referenced & parse)**
+- [x] **Step 3: Kustomize build gate (S4 — manifest must be referenced & parse)**
 
 ```bash
 DEV_DOMAIN=dev.example.test kubectl kustomize k3d/dev-stack/ \
@@ -548,12 +548,12 @@ DEV_DOMAIN=dev.example.test kubectl kustomize k3d/dev-stack/ \
 ```
 Expected: a count > 0 (the Deployment/Service/Middleware names render). If `kubectl kustomize` errors with "file not referenced" or YAML parse failure, fix before continuing.
 
-- [ ] **Step 4: Confirm no brand-domain literal slipped in (S3 self-check)**
+- [x] **Step 4: Confirm no brand-domain literal slipped in (S3 self-check)**
 
 Run: `grep -nE 'mentolder\.de|korczewski\.de' k3d/dev-stack/oauth2-proxy-sessions.yaml | grep -v '^[0-9]*:#' || echo "S3 OK — no brand literals outside comments"`
 Expected: `S3 OK — no brand literals outside comments`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add k3d/dev-stack/oauth2-proxy-sessions.yaml k3d/dev-stack/kustomization.yaml
@@ -572,7 +572,7 @@ git commit -m "feat(dev-stack): add oauth2-proxy gate for session-*.\${DEV_DOMAI
 - Consumes: `scripts/session-hub.sh` (Task 3).
 - Produces: `task session:register`, `task session:list`, `task session:deregister`, `task session:reap`, `task session:start-form` — thin wrappers passing `{{.CLI_ARGS}}` to the script.
 
-- [ ] **Step 1: Create Taskfile.session.yml**
+- [x] **Step 1: Create Taskfile.session.yml**
 
 ```yaml
 # Taskfile.session.yml
@@ -618,7 +618,7 @@ tasks:
       - bash scripts/session-hub.sh reap
 ```
 
-- [ ] **Step 2: Wire the include into Taskfile.yml**
+- [x] **Step 2: Wire the include into Taskfile.yml**
 
 Edit `Taskfile.yml`. After the `brainstorm:` include block (around line 40), add:
 
@@ -630,7 +630,7 @@ Edit `Taskfile.yml`. After the `brainstorm:` include block (around line 40), add
     dir: .
 ```
 
-- [ ] **Step 3: Verify tasks resolve (dry-run)**
+- [x] **Step 3: Verify tasks resolve (dry-run)**
 
 ```bash
 task session:list --dry-run
@@ -638,7 +638,7 @@ task session:reap --dry-run
 ```
 Expected: both print the resolved command (`bash scripts/session-hub.sh …`) without error. If `task` reports "task not found", the include is mis-wired.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add Taskfile.session.yml Taskfile.yml
@@ -659,7 +659,7 @@ git commit -m "feat(taskfile): add session:* tasks wrapping session-hub.sh [T000
 
 > **Registry access from the website:** the website runs in-cluster and cannot see the operator's `~/.local/share`. Read the path from `process.env.SESSION_HUB_REGISTRY` with a default of `~/.local/share/bachelorprojekt/active-sessions.json` (expanded via `os.homedir()`). When the file is absent, return an **empty list** (not a 500) — a missing registry just means "no sessions". POST/DELETE shell out to `scripts/session-hub.sh` via `child_process.execFile` **only when `SESSION_HUB_REGISTRY_WRITABLE === 'true'`** (default off in prod); otherwise return `501 not_implemented`. This keeps the MVP read-only in-cluster and avoids a silent no-op.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `website/src/pages/api/admin/sessions/index.test.ts`:
 
@@ -723,12 +723,12 @@ describe('GET /api/admin/sessions', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test, confirm it fails (module missing)**
+- [x] **Step 2: Run the test, confirm it fails (module missing)**
 
 Run: `cd website && npx vitest run src/pages/api/admin/sessions/index.test.ts`
 Expected: FAIL — cannot resolve `./index`.
 
-- [ ] **Step 3: Write the API route**
+- [x] **Step 3: Write the API route**
 
 ```ts
 import type { APIRoute } from 'astro';
@@ -831,17 +831,17 @@ export const DELETE: APIRoute = async ({ request, locals }) => {
 };
 ```
 
-- [ ] **Step 4: Run the tests, confirm they pass**
+- [x] **Step 4: Run the tests, confirm they pass**
 
 Run: `cd website && npx vitest run src/pages/api/admin/sessions/index.test.ts`
 Expected: all 4 tests PASS.
 
-- [ ] **Step 5: Line-budget check**
+- [x] **Step 5: Line-budget check**
 
 Run: `wc -l website/src/pages/api/admin/sessions/index.ts`
 Expected: < 600 (target ~150). 
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add website/src/pages/api/admin/sessions/index.ts website/src/pages/api/admin/sessions/index.test.ts
@@ -862,7 +862,7 @@ git commit -m "feat(api): add /api/admin/sessions registry endpoint [T000975]"
 
 > **Svelte 5 runes** (`$state`, `$effect`). No hardcoded host — every URL comes from `session.public_url`. Poll every 10s via `setInterval`; clean up in the `$effect` return. Keep < ~300 lines.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `website/src/components/SessionsListView.test.ts`:
 
@@ -911,12 +911,12 @@ describe('SessionsListView', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test, confirm it fails (component missing)**
+- [x] **Step 2: Run the test, confirm it fails (component missing)**
 
 Run: `cd website && npx vitest run src/components/SessionsListView.test.ts`
 Expected: FAIL — cannot resolve `./SessionsListView.svelte`.
 
-- [ ] **Step 3: Write the component**
+- [x] **Step 3: Write the component**
 
 ```svelte
 <script lang="ts">
@@ -1012,12 +1012,12 @@ Expected: FAIL — cannot resolve `./SessionsListView.svelte`.
 </style>
 ```
 
-- [ ] **Step 4: Run the tests, confirm they pass**
+- [x] **Step 4: Run the tests, confirm they pass**
 
 Run: `cd website && npx vitest run src/components/SessionsListView.test.ts`
 Expected: all 3 tests PASS. (If `@testing-library/svelte` is not present, check `website/package.json` — these tests follow the existing component-test convention; align the imports with a neighboring `*.svelte.test.ts`/`*.test.ts` that already renders a component.)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add website/src/components/SessionsListView.svelte website/src/components/SessionsListView.test.ts
@@ -1037,7 +1037,7 @@ git commit -m "feat(website): add SessionsListView mediaviewer card list [T00097
 
 > The current component always renders the widget iframe. Add: a new `'idle'` value to the `mode` prop union, a new `defaultView` prop (default `'sessions'`), an internal `embedUrl` state, and a window listener for `mediaviewer:open-session`. Keep the existing widget/grilling behavior untouched. Net add is small (~40 lines) — well within budget.
 
-- [ ] **Step 1: Add the props and state**
+- [x] **Step 1: Add the props and state**
 
 In the `$props()` destructuring, extend the `mode` union and add `defaultView`:
 
@@ -1060,7 +1060,7 @@ Add internal state near `let iframeEl = $state…`:
 
 (Place the `import` with the other imports at the top of the `<script>`.)
 
-- [ ] **Step 2: Add the open-session listener**
+- [x] **Step 2: Add the open-session listener**
 
 Add a new `$effect` alongside the existing ones:
 
@@ -1075,7 +1075,7 @@ Add a new `$effect` alongside the existing ones:
   });
 ```
 
-- [ ] **Step 3: Branch the template**
+- [x] **Step 3: Branch the template**
 
 Replace the single `<div class="mv-panel">…</div>` body with a three-way branch (embed-from-session → idle-sessions → existing widget iframe):
 
@@ -1099,17 +1099,17 @@ Replace the single `<div class="mv-panel">…</div>` body with a three-way branc
 
 (The widget iframe binding `bind:this={iframeEl}` stays in the `{:else}` branch so all existing postMessage effects keep working when a video/grilling session is active.)
 
-- [ ] **Step 4: Build / type-check gate**
+- [x] **Step 4: Build / type-check gate**
 
 Run: `cd website && npx svelte-check --tsconfig ./tsconfig.json --threshold error 2>&1 | tail -20`
 Expected: no new errors referencing `MediaviewerPanel.svelte` (the `mode='idle'`, `defaultView`, `embedUrl`, `SessionsListView` additions type-check). If `svelte-check` isn't wired, run `cd website && npm run build` and confirm it compiles.
 
-- [ ] **Step 5: Line-budget check**
+- [x] **Step 5: Line-budget check**
 
 Run: `wc -l website/src/components/MediaviewerPanel.svelte`
 Expected: < 500 (≈ 190 after the additions).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add website/src/components/MediaviewerPanel.svelte
@@ -1131,7 +1131,7 @@ git commit -m "feat(website): show active sessions in MediaviewerPanel idle stat
 
 > `.md` files have no S1 line limit. **Do not create or commit `.claude/settings.json`** — `.gitignore:103` ignores it; the hook is a documented manual local-add (consistent with the existing CLAUDE.md "Optionaler SessionStart-Reaper" pattern).
 
-- [ ] **Step 1: feature-intake — register the form after delivery**
+- [x] **Step 1: feature-intake — register the form after delivery**
 
 In `.claude/skills/feature-intake/SKILL.md`, find "### Schritt 4 — Formular liefern" (around line 122). After the existing `SendUserFile` sentence, add:
 
@@ -1147,7 +1147,7 @@ Die Session erscheint dann als Karte im Mediaviewer-Panel und unter `https://ses
 
 (Use `$HTML_FILE` / `${DEV_DOMAIN}` placeholders — no brand-domain literal.)
 
-- [ ] **Step 2: brainstorm-tunnel-setup — register after publish**
+- [x] **Step 2: brainstorm-tunnel-setup — register after publish**
 
 In `.claude/skills/references/brainstorm-tunnel-setup.md`, after "Step 4: Kill stale tunnels & Publish" (the `task brainstorm:publish` block), add:
 
@@ -1163,7 +1163,7 @@ bash scripts/session-hub.sh register \
 ```
 ````
 
-- [ ] **Step 3: Document the SessionStart hook (local-add)**
+- [x] **Step 3: Document the SessionStart hook (local-add)**
 
 In `.claude/skills/references/brainstorm-tunnel-setup.md`, append a new section:
 
@@ -1183,7 +1183,7 @@ Merge this into any existing `SessionStart` hooks rather than overwriting them
 (e.g. the agent-lock reaper documented in CLAUDE.md).
 ````
 
-- [ ] **Step 4: Doc-link sanity (no broken intra-repo paths) + S3 self-check**
+- [x] **Step 4: Doc-link sanity (no broken intra-repo paths) + S3 self-check**
 
 Run:
 ```bash
@@ -1192,7 +1192,7 @@ grep -nE 'mentolder\.de|korczewski\.de' .claude/skills/feature-intake/SKILL.md |
 ```
 Expected: the `session-hub.sh` references appear in both files; no brand-domain literal added (the `${DEV_DOMAIN}` placeholder is used). (`.claude/**` is outside the S3-scanned paths, but keep it clean for copy-paste safety.)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add .claude/skills/feature-intake/SKILL.md .claude/skills/references/brainstorm-tunnel-setup.md
@@ -1209,28 +1209,28 @@ git commit -m "docs(skills): wire session-hub register into intake + brainstorm 
 
 > This is the mandatory final gate from `plan-quality-gates.md`. Run each step; every command must succeed before the PR.
 
-- [ ] **Step 1: Targeted tests for changed domains**
+- [x] **Step 1: Targeted tests for changed domains**
 
 ```bash
 task test:changed
 ```
 Expected: PASS — runs vitest `--changed` (picks up the new API + component tests), the BATS selection (picks up `tests/unit/session-hub.bats`), and `quality:check`.
 
-- [ ] **Step 2: Manifest validation (the new dev-stack manifest)**
+- [x] **Step 2: Manifest validation (the new dev-stack manifest)**
 
 ```bash
 DEV_DOMAIN=dev.example.test kubectl kustomize k3d/dev-stack/ >/dev/null && echo "kustomize OK"
 ```
 Expected: `kustomize OK`.
 
-- [ ] **Step 3: OpenSpec validation**
+- [x] **Step 3: OpenSpec validation**
 
 ```bash
 task test:openspec
 ```
 Expected: PASS — `openspec/changes/active-sessions-hub/` (proposal + tasks + spec delta) validates.
 
-- [ ] **Step 4: Regenerate freshness artifacts (test-inventory, repo-index, …)**
+- [x] **Step 4: Regenerate freshness artifacts (test-inventory, repo-index, …)**
 
 ```bash
 task test:inventory
@@ -1238,14 +1238,14 @@ task freshness:regenerate
 ```
 Expected: regenerates `website/src/data/test-inventory.json` (now including the new tests) and other generated artifacts. Stage whatever changed.
 
-- [ ] **Step 5: Freshness + quality ratchet (CI equivalent — S1–S4 + baseline assertion)**
+- [x] **Step 5: Freshness + quality ratchet (CI equivalent — S1–S4 + baseline assertion)**
 
 ```bash
 task freshness:check
 ```
 Expected: PASS — confirms no S1 line-limit regressions, no S2 import cycles, no S3 brand-domain literals, no S4 orphans, and that `baseline.json` key count did not grow. If S3 fails, re-check Task 4/9 for a literal `*.mentolder.de`. If S4 fails, re-check Task 4 (kustomization ref) and Task 5 (Taskfile include).
 
-- [ ] **Step 6: Commit regenerated artifacts**
+- [x] **Step 6: Commit regenerated artifacts**
 
 ```bash
 git add website/src/data/test-inventory.json docs/code-quality/ docs/generated/ 2>/dev/null || true

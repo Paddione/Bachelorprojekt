@@ -1,20 +1,28 @@
 schema: spec-driven
 
-# Project context (optional)
-# This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+context: |
+  Stack: Astro 5 + Svelte 5, Node.js 22, TypeScript, PostgreSQL 16, Kubernetes/k3s (k3d lokal)
+  Auth: Keycloak OIDC (SSO für alle Services — Website, Nextcloud, Vaultwarden, DocuSeal, Claude Code)
+  Multi-brand: mentolder (namespace: workspace), korczewski (namespace: workspace-korczewski), beide auf Fleet-Cluster
+  CI: GitHub Actions — Offline-Tests (BATS + Kustomize), Security Scan, Vitest, Playwright E2E (nightly)
+  Conventions: Conventional Commits, squash-merge, Branches: feature/* fix/* chore/*
+  Deploy: push-basiert via `task workspace:deploy ENV=<brand>` — kein GitOps-Reconciler
+  Testing: BATS (unit), Playwright (E2E), task test:all = CI-Gate
+  Services: Traefik, Keycloak, Nextcloud+Talk, Collabora, Vaultwarden, DocuSeal, LiveKit, Website, Brett, Sidekick, Software-Factory
+  LLM: lokaler GPU-Host (RTX 5070 Ti) via Ollama + TEI — beide Brands geteilt, kollektions-isoliert
+  Secrets: SealedSecrets (prod) / k3d/secrets.yaml (dev)
+  OpenSpec-Komponenten: admin-cockpit, auth-sso, backup-pipeline, brett, chat-inbox, ci-cd,
+    collabora-integration, database, grilling-flow, livekit-integration, llm-pipeline,
+    mediaviewer, nextcloud-integration, openspec-workflow, portal, questionnaire-system,
+    secret-rotation, secret-rotation-guards, sidekick-assistant, software-factory,
+    ticket-system, vaultwarden-integration, website-core, workspace-deploy
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+rules:
+  proposal:
+    - Schreibe Requirements auf Deutsch, Scenarios auf Englisch (GIVEN/WHEN/THEN)
+    - Jede Requirement-ID eindeutig und sprechend (z.B. REQ-COCKPIT-AUTH-001)
+    - Non-Goals explizit benennen wenn Abgrenzung wichtig
+    - Delta-Specs referenzieren den SSOT-Spec der betroffenen Komponente
+  tasks:
+    - Aufgaben auf max. 2 Stunden Aufwand begrenzen
+    - Jeden Task einem konkreten Dateipfad zuordnen wenn möglich

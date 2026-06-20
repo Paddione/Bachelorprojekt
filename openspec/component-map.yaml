@@ -1,0 +1,143 @@
+# openspec/component-map.yaml
+# Maps file path prefixes (glob-style) to SSOT spec slugs in openspec/specs/.
+# Used by scripts/openspec-context.sh to auto-load relevant specs when planning changes.
+# Keep entries sorted by prefix length (longest first) for correct precedence.
+
+mappings:
+  # Website — Admin-Bereich
+  - prefix: website/src/pages/admin
+    spec: admin-cockpit
+  - prefix: website/src/components/CockpitApp
+    spec: admin-cockpit
+  - prefix: website/src/components/Cockpit
+    spec: admin-cockpit
+  - prefix: website/src/api/admin/cockpit
+    spec: admin-cockpit
+
+  # Website — Chat / Inbox
+  - prefix: website/src/components/Inbox
+    spec: chat-inbox
+  - prefix: website/src/components/Chat
+    spec: chat-inbox
+  - prefix: website/src/api/admin/chat
+    spec: chat-inbox
+
+  # Website — Grilling / Questionnaire
+  - prefix: website/src/components/Grilling
+    spec: grilling-flow
+  - prefix: website/src/components/Questionnaire
+    spec: questionnaire-system
+  - prefix: website/src/api/admin/questionnaire
+    spec: questionnaire-system
+
+  # Website — Portal / Sidekick
+  - prefix: website/src/components/Sidekick
+    spec: sidekick-assistant
+  - prefix: website/src/components/Portal
+    spec: portal
+  - prefix: website/src/pages/portal
+    spec: portal
+
+  # Website — Mediaviewer
+  - prefix: website/src/components/Mediaviewer
+    spec: mediaviewer
+  - prefix: website/src/components/MediaviewerPanel
+    spec: mediaviewer
+  - prefix: k3d/mediaviewer-widget
+    spec: mediaviewer
+
+  # Website — Core / Auth
+  - prefix: website/src/lib/auth
+    spec: auth-sso
+  - prefix: website/src/middleware
+    spec: auth-sso
+  - prefix: website/src/pages/login
+    spec: auth-sso
+  - prefix: website/src/pages/logout
+    spec: auth-sso
+  - prefix: website/src
+    spec: website-core
+
+  # Kubernetes — Kern-Services
+  - prefix: k3d/livekit
+    spec: livekit-integration
+  - prefix: prod/livekit
+    spec: livekit-integration
+  - prefix: k3d/nextcloud
+    spec: nextcloud-integration
+  - prefix: k3d/collabora
+    spec: collabora-integration
+  - prefix: k3d/office-stack
+    spec: collabora-integration
+  - prefix: k3d/vaultwarden
+    spec: vaultwarden-integration
+  - prefix: k3d/brett
+    spec: brett
+  - prefix: brett/
+    spec: brett
+
+  # Deploy / Infra
+  - prefix: k3d/
+    spec: workspace-deploy
+  - prefix: prod/
+    spec: workspace-deploy
+  - prefix: prod-fleet/
+    spec: workspace-deploy
+  - prefix: prod-mentolder/
+    spec: workspace-deploy
+  - prefix: prod-korczewski/
+    spec: workspace-deploy
+  - prefix: Taskfile
+    spec: workspace-deploy
+  - prefix: environments/
+    spec: workspace-deploy
+
+  # Datenbank
+  - prefix: scripts/db
+    spec: database
+  - prefix: scripts/migrate
+    spec: database
+  - prefix: website/src/lib/db
+    spec: database
+  - prefix: website/src/db
+    spec: database
+
+  # Backup
+  - prefix: scripts/backup
+    spec: backup-pipeline
+  - prefix: k3d/backup
+    spec: backup-pipeline
+
+  # Auth / Secrets
+  - prefix: scripts/keycloak
+    spec: auth-sso
+  - prefix: environments/sealed-secrets
+    spec: secret-rotation
+  - prefix: scripts/rotate
+    spec: secret-rotation
+
+  # CI/CD
+  - prefix: .github/workflows
+    spec: ci-cd
+  - prefix: scripts/tests
+    spec: ci-cd
+  - prefix: tests/
+    spec: ci-cd
+
+  # LLM Pipeline
+  - prefix: website/src/lib/llm
+    spec: llm-pipeline
+  - prefix: website/src/lib/embeddings
+    spec: llm-pipeline
+  - prefix: k3d/llm
+    spec: llm-pipeline
+
+  # Ticket-System / Software-Factory
+  - prefix: scripts/ticket
+    spec: ticket-system
+  - prefix: scripts/factory
+    spec: software-factory
+  - prefix: scripts/openspec
+    spec: openspec-workflow
+  - prefix: openspec/
+    spec: openspec-workflow

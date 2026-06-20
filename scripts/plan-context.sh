@@ -1,10 +1,24 @@
 #!/usr/bin/env bash
 # Emit active plan sections relevant to <role> from docs/superpowers/plans/*.md
-# Usage: scripts/plan-context.sh <role>
+# and OpenSpec SSOT context for files touched vs main (when --with-openspec is passed).
+# Usage:
+#   scripts/plan-context.sh <role>
+#   scripts/plan-context.sh <role> --with-openspec [<file>...]
 # Output: markdown block ready to wrap in <active-plans>...</active-plans>
 set -euo pipefail
 
-ROLE="${1:?Usage: plan-context.sh <role>}"
+ROLE="${1:?Usage: plan-context.sh <role> [--with-openspec [<file>...]]}"
+shift
+WITH_OPENSPEC=0
+OPENSPEC_FILES=()
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --with-openspec) WITH_OPENSPEC=1; shift ;;
+        *) OPENSPEC_FILES+=("$1"); shift ;;
+    esac
+done
+
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 PLANS_DIR="$REPO_ROOT/docs/superpowers/plans"
 found=0
@@ -28,6 +42,22 @@ for plan_file in "$PLANS_DIR"/*.md; do
     echo
     found=$((found+1))
 done
+
+# Optional: append OpenSpec SSOT context for touched components
+if [[ $WITH_OPENSPEC -eq 1 ]]; then
+    openspec_out=""
+    if [[ ${#OPENSPEC_FILES[@]} -gt 0 ]]; then
+        openspec_out=$(bash "$REPO_ROOT/scripts/openspec-context.sh" "${OPENSPEC_FILES[@]}" 2>/dev/null || true)
+    else
+        openspec_out=$(bash "$REPO_ROOT/scripts/openspec-context.sh" 2>/dev/null || true)
+    fi
+    if [[ -n "$openspec_out" ]]; then
+        echo "### OpenSpec SSOT context"
+        echo
+        echo "$openspec_out"
+        found=$((found+1))
+    fi
+fi
 
 if [[ $found -eq 0 ]]; then
     exit 0  # no output — orchestrator omits the <active-plans> block

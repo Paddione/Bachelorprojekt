@@ -3,6 +3,7 @@ set -euo pipefail
 
 ACTION="${1:-start}"
 PIDFILE_MONOLITH="/tmp/mcp-portforward-monolith.pid"
+PIDFILE_OTEL="/tmp/mcp-portforward-otel.pid"
 
 start_monolith() {
   if [ -f "$PIDFILE_MONOLITH" ] && kill -0 "$(cat "$PIDFILE_MONOLITH")" 2>/dev/null; then
@@ -17,18 +18,33 @@ start_monolith() {
   echo "  Monolith started (PID $(cat "$PIDFILE_MONOLITH"))"
 }
 
+start_otel() {
+  if [ -f "$PIDFILE_OTEL" ] && kill -0 "$(cat "$PIDFILE_OTEL")" 2>/dev/null; then
+    echo "OTel port-forward already running (PID $(cat "$PIDFILE_OTEL"))"
+    return
+  fi
+  nohup kubectl --context k3d-korczewski-dev port-forward \
+    -n monitoring svc/otel-collector \
+    4317:4317 \
+    >> /tmp/mcp-portforward.log 2>&1 &
+  echo $! > "$PIDFILE_OTEL"
+  echo "  OTel started (PID $(cat "$PIDFILE_OTEL"))"
+}
+
 if [ "$ACTION" = "start" ]; then
   echo "Starting MCP port-forwards..."
   start_monolith
+  start_otel
   sleep 2
   echo "MCP port-forwards ready:"
   echo "  k8s:      http://localhost:18080/mcp  (also /sse)"
   echo "  browser:  http://localhost:13000/mcp"
   echo "  postgres: http://localhost:13001/mcp"
   echo "  github:   http://localhost:13002/mcp"
+  echo "  otel:     grpc://localhost:4317"
 
 elif [ "$ACTION" = "stop" ]; then
-  for pidfile in "$PIDFILE_MONOLITH"; do
+  for pidfile in "$PIDFILE_MONOLITH" "$PIDFILE_OTEL"; do
     if [ -f "$pidfile" ]; then
       pid=$(cat "$pidfile")
       kill "$pid" 2>/dev/null && echo "Stopped PID $pid" || true
@@ -36,11 +52,12 @@ elif [ "$ACTION" = "stop" ]; then
     fi
   done
   pkill -f "port-forward.*claude-code-mcp-monolith" 2>/dev/null || true
+  pkill -f "port-forward.*otel-collector" 2>/dev/null || true
   echo "MCP port-forwards stopped"
 
 elif [ "$ACTION" = "status" ]; then
   echo "=== MCP Port-Forward Status ==="
-  for port in 18080 13000 13001 13002; do
+  for port in 18080 13000 13001 13002 4317; do
     if ss -tlnp 2>/dev/null | grep -q ":${port} "; then
       echo "  :$port -- LISTENING"
     else
@@ -61,6 +78,12 @@ elif [ "$ACTION" = "status" ]; then
     [ "$code" = "200" ] && status="OK" || status="FAIL (HTTP $code)"
     echo "  ${name} (localhost:${port}): ${status}"
   done
+  # OTel uses gRPC, not HTTP — just check socket
+  if ss -tlnp 2>/dev/null | grep -q ":4317 "; then
+    echo "  otel (localhost:4317): LISTENING"
+  else
+    echo "  otel (localhost:4317): DOWN"
+  fi
 
 else
   echo "Usage: $0 {start|stop|status}"

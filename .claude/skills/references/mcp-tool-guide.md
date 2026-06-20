@@ -10,6 +10,7 @@ Tabelle zu duplizieren. Die MCP-Server laufen via `scripts/mcp-portforward.sh` (
 |---|---|---|---|
 | `mcp-postgres` | `http://localhost:13001/mcp` | `mcp__mcp-postgres__query` (Param: `sql`) | **Read-only** SQL (SELECT) als `website`-User — Ticket-Pool, staged-plans, planning-Count, Timeline-Reads |
 | `mcp-kubernetes` | `http://localhost:18080/sse` | `mcp__mcp-kubernetes__*` | Strukturierte k8s-Status-/Read-Operationen (Pods, Logs, Describe) |
+| `mcp-task-runner` | stdio (local binary) | `plan_tasks`, `run_task`, `execute_plan` | go-task parallel ausführen + OTel-Logging; OTel via `localhost:4317` (portforward) |
 
 > **`mcp__mcp-postgres__query` ist READ-ONLY und nimmt NUR `sql`.** Kein `connectionString`-Argument
 > — die Verbindung ist serverseitig fest (`localhost:13001`, siehe `.mcp.json`). INSERT/UPDATE/DELETE

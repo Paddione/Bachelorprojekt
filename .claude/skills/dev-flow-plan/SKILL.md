@@ -276,6 +276,16 @@ Details siehe [plan-review-ui.md](file:///home/patrick/Bachelorprojekt/.claude/s
 
 Prüfe ob weitere Pläne in der Kommissionierung warten und zeige dem User die Batch-Ausführungsoptionen:
 
+**MCP-Schnellweg (read-only).** Wenn `mcp-postgres` erreichbar (`bash scripts/mcp-portforward.sh status`),
+führe beide Reads via `mcp__mcp-postgres__query` aus:
+> staged plans — `sql:` `SELECT external_id, title, priority, COALESCE(value_prop,'') FROM tickets.tickets WHERE status='plan_staged' ORDER BY planning_rank ASC NULLS LAST, created_at DESC;`
+> planning-Count — `sql:` `SELECT COUNT(*) FROM tickets.tickets WHERE status='planning';`
+
+Belege `STAGED_PLANS` bzw. `PLANNING_COUNT` aus den MCP-Ergebnissen. **Fallback:** der kubectl-Block
+unten. Siehe [`references/mcp-tool-guide.md`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md).
+
+_Fallback:_
+
 ```bash
 # Alle staged plans abrufen (status=plan_staged)
 STAGED_PLANS=$(kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -F '|' -c \
@@ -393,6 +403,16 @@ git push -u origin $(git branch --show-current)
 ```
 
 ### Schritt 6: Batch-Status prüfen und Ausführungsoptionen anzeigen
+
+**MCP-Schnellweg (read-only).** Wenn `mcp-postgres` erreichbar (`bash scripts/mcp-portforward.sh status`),
+führe beide Reads via `mcp__mcp-postgres__query` aus:
+> staged plans — `sql:` `SELECT external_id, title, priority, COALESCE(value_prop,'') FROM tickets.tickets WHERE status='plan_staged' ORDER BY planning_rank ASC NULLS LAST, created_at DESC;`
+> planning-Count — `sql:` `SELECT COUNT(*) FROM tickets.tickets WHERE status='planning';`
+
+Belege `STAGED_PLANS` bzw. `PLANNING_COUNT` aus den MCP-Ergebnissen. **Fallback:** der kubectl-Block
+unten. Siehe [`references/mcp-tool-guide.md`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md).
+
+_Fallback:_
 
 ```bash
 STAGED_PLANS=$(kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -F '|' -c \

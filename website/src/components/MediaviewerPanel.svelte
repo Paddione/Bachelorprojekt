@@ -18,7 +18,7 @@
   }: {
     mediaviewerHost: string;
     videos?: HelpVideo[];
-    mode?: 'video' | 'grilling';
+    mode?: 'video' | 'grilling' | 'brainstorm';
     grillingData?: GrillingSessionData | null;
     onSelect?: (id: string) => void;
     onProgress?: (sec: number) => void;
@@ -35,6 +35,23 @@
   const embedSrc = $derived(`${widgetOrigin}/embed.html?v=${mediaviewerHost}`);
 
   let iframeEl = $state<HTMLIFrameElement | null>(null);
+
+  const currentSessionType = $derived(grillingData?.questionnaireId ?? 'grilling');
+
+  function broadcastSession(payload: Record<string, unknown>) {
+    // Layer 1 — BroadcastChannel (cross-tab). Fail-soft: not all runtimes/jsdom have it.
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        const ch = new BroadcastChannel('session-events');
+        ch.postMessage(payload);
+        ch.close();
+      }
+    } catch { /* fail-soft: cross-tab broadcast is best-effort */ }
+    // Layer 2 — same-page CustomEvent for Svelte components on this page.
+    try {
+      window.dispatchEvent(new CustomEvent('session:event', { detail: payload }));
+    } catch { /* fail-soft */ }
+  }
 
   function pushVideos() {
     if (mode === 'video') {
@@ -60,9 +77,18 @@
       case 'progress': onProgress?.(msg.sec); return;
       case 'ended': onEnded?.(msg.id); return;
       case 'error': onError?.(msg.id, msg.message); return;
-      case 'grillingAnswer': onGrillingAnswer?.(msg.questionId, msg.answer); return;
-      case 'grillingDismiss': onGrillingDismiss?.(msg.questionId); return;
-      case 'grillingComplete': onGrillingComplete?.(msg.answers); return;
+      case 'grillingAnswer':
+        broadcastSession({ type: 'grillingAnswer', sessionType: currentSessionType, questionId: msg.questionId, answer: msg.answer });
+        onGrillingAnswer?.(msg.questionId, msg.answer);
+        return;
+      case 'grillingDismiss':
+        broadcastSession({ type: 'grillingDismiss', sessionType: currentSessionType, questionId: msg.questionId });
+        onGrillingDismiss?.(msg.questionId);
+        return;
+      case 'grillingComplete':
+        broadcastSession({ type: 'grillingComplete', sessionType: currentSessionType, answers: msg.answers });
+        onGrillingComplete?.(msg.answers);
+        return;
     }
   }
 

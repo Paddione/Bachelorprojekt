@@ -108,4 +108,26 @@ describe('MediaviewerPanel', () => {
     }));
     expect(onSelect).not.toHaveBeenCalled();
   });
+
+  it('broadcasts a session:event CustomEvent when the widget posts grillingAnswer', () => {
+    const onGrillingAnswer = vi.fn();
+    const onSession = vi.fn();
+    window.addEventListener('session:event', onSession);
+    render(MediaviewerPanel, {
+      mediaviewerHost: 'mediaviewer.localhost',
+      videos,
+      mode: 'grilling',
+      grillingData: mockGrillingData,
+      onGrillingAnswer,
+    });
+    window.dispatchEvent(new MessageEvent('message', {
+      data: { type: 'grillingAnswer', questionId: 'q1', answer: 'Yes' },
+      origin: 'https://mediaviewer.localhost',
+    }));
+    expect(onGrillingAnswer).toHaveBeenCalledWith('q1', 'Yes');
+    expect(onSession).toHaveBeenCalledTimes(1);
+    const detail = (onSession.mock.calls[0][0] as CustomEvent).detail;
+    expect(detail).toMatchObject({ type: 'grillingAnswer', sessionType: 'final-grilling-v1', questionId: 'q1', answer: 'Yes' });
+    window.removeEventListener('session:event', onSession);
+  });
 });

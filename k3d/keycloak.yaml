@@ -162,6 +162,36 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: BRAINSTORM_OIDC_SECRET
+            - name: MEDIAVIEWER_OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: MEDIAVIEWER_OIDC_CLIENT_SECRET
+            - name: RECOVERY_OIDC_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: RECOVERY_OIDC_SECRET
+            - name: VIDEOVAULT_OIDC_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: VIDEOVAULT_OIDC_SECRET
+            - name: DEV_WORKSPACE_OIDC_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: DEV_WORKSPACE_OIDC_SECRET
+            - name: DEV_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: DEV_DOMAIN
+            - name: RECOVER_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: RECOVER_DOMAIN
             - name: TZ
               value: Europe/Berlin
           ports:

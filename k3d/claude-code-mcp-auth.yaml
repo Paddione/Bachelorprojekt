@@ -1,6 +1,8 @@
 # ═══════════════════════════════════════════════════════════════════
-# Claude Code MCP Auth — Keycloak SSO management (SSE transport)
+# Claude Code MCP Auth — Keycloak SSO management (Streamable-HTTP)
 # Auth enforced externally (portforward / Traefik ForwardAuth in prod).
+# Uses dedicated service-account client with CLIENT_CREDENTIALS grant;
+# no admin password, only: view-users, manage-users, query-users, view-realm.
 # ═══════════════════════════════════════════════════════════════════
 apiVersion: apps/v1
 kind: Deployment
@@ -31,20 +33,23 @@ spec:
             - name: KC_REALM
               value: "master"
             - name: OIDC_CLIENT_ID
-              value: "admin-cli"
+              value: "claude-code-mcp"
             # Auth is enforced externally (portforward / Traefik ForwardAuth in prod).
-            # Container-level OIDC check bypassed so MCP clients don't need a KC token.
+            # Container-level OIDC check bypassed; access controlled at network layer.
             - name: QUARKUS_HTTP_AUTH_PERMISSION_MCP_POLICY
               value: "permit"
-            - name: QUARKUS_KEYCLOAK_ADMIN_CLIENT_USERNAME
-              value: admin
-            - name: QUARKUS_KEYCLOAK_ADMIN_CLIENT_PASSWORD
+            # Dedicated service account with minimal realm roles (no admin password).
+            # Quarkus property: quarkus.keycloak.admin-client.client-id
+            - name: QUARKUS_KEYCLOAK_ADMIN_CLIENT_CLIENT_ID
+              value: "claude-code-mcp"
+            # Quarkus property: quarkus.keycloak.admin-client.client-secret
+            - name: QUARKUS_KEYCLOAK_ADMIN_CLIENT_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: workspace-secrets
-                  key: KEYCLOAK_ADMIN_PASSWORD
+                  name: claude-code-mcp-secret
+                  key: MCP_KEYCLOAK_CLIENT_SECRET
             - name: QUARKUS_KEYCLOAK_ADMIN_CLIENT_GRANT_TYPE
-              value: password
+              value: "CLIENT_CREDENTIALS"
           securityContext:
             allowPrivilegeEscalation: false
             runAsNonRoot: true
@@ -77,3 +82,28 @@ spec:
   ports:
     - port: 8080
       targetPort: 8080
+---
+# NetworkPolicy: restrict ingress to claude-code-mcp-auth.
+# Allows only: pods with app=claude-code label (in-cluster consumers)
+# + kube-system (kube-apiserver proxies kubectl port-forward traffic).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: claude-code-mcp-auth
+  labels:
+    app: claude-code
+spec:
+  podSelector:
+    matchLabels:
+      app: claude-code-mcp-auth
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: claude-code
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system

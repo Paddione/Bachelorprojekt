@@ -1,7 +1,5 @@
 <script lang="ts">
-  import { decideBanner, type BannerDecision } from '../../lib/assistant/sidekick-nudge';
-
-  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'tickets' | 'inbox' | 'pipeline' | 'agent-guide' | 'mediaviewer' | 'grilling' | 'cockpit';
+  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'agent-guide' | 'mediaviewer' | 'grilling' | 'cockpit';
 
   let {
     onNavigate,
@@ -9,43 +7,28 @@
     pendingQuestionnaires = 0,
     helpSection = '',
     helpContext = 'portal',
-    pendingTickets = 0,
-    pendingInbox = 0,
     pendingContainerCount = 0,
-    summary = null,
   }: {
     onNavigate: (view: View) => void;
     onClose?: () => void;
     pendingQuestionnaires?: number;
     helpSection?: string;
     helpContext?: string;
-    pendingTickets?: number;
-    pendingInbox?: number;
     pendingContainerCount?: number;
-    summary?: { done: number; total: number; pct: number } | null;
   } = $props();
-
-  const banner = $derived<BannerDecision | null>(decideBanner(summary));
-  const progressSub = $derived(
-    summary && summary.total > 0 ? `${summary.done}/${summary.total} gelernt` : null
-  );
 
   const isAdmin = $derived(helpContext === 'admin');
 
   type Item = { id: View; no: string; title: string; sub: string; badge?: number; show?: boolean; href?: string };
 
   const items = $derived<Item[]>([
-    { id: 'tickets',       no: '01', title: 'Anfragen',           sub: 'Tickets erstellen & bearbeiten', badge: pendingTickets > 0 ? pendingTickets : undefined,       show: isAdmin },
-    { id: 'inbox',         no: '02', title: 'Postfach',           sub: 'Nachrichten & Anfragen',         badge: pendingInbox > 0 ? pendingInbox : undefined,           show: isAdmin },
-    { id: 'pipeline',      no: '03', title: 'Pipeline',           sub: 'Ticket-Status vorne→hinten',                                                                 show: isAdmin },
-    { id: 'cockpit',      no: '04', title: 'Projekttickets', sub: 'Container & Features', badge: pendingContainerCount > 0 ? pendingContainerCount : undefined, show: isAdmin },
-    { id: 'grilling',      no: '05', title: 'Final Grilling',     sub: 'Abschließende Klärungsrunde',                                                                 show: isAdmin },
-    { id: 'questionnaire', no: isAdmin ? '06' : '01', title: 'Fragebögen', sub: 'Aufgaben beantworten', badge: pendingQuestionnaires > 0 ? pendingQuestionnaires : undefined, show: true },
-    { id: 'support',       no: isAdmin ? '07' : '02', title: 'Feedback & Support', sub: 'Fehler melden, Ideen teilen', show: true },
-    { id: 'agent-guide',   no: isAdmin ? '08' : '03', title: 'Agent-Anleitung', sub: progressSub ? `Lernen · ${progressSub}` : 'Lernen, wie alles funktioniert', show: true },
-    { id: 'loslernen',     no: isAdmin ? '09' : '04', title: 'Lernpfad',     sub: progressSub ?? 'Fortschritt verfolgen',            show: true, href: '/portal/loslernen' },
-    { id: 'mediaviewer',   no: isAdmin ? '10' : '05', title: 'Mediaviewer', sub: 'Hilfe- & Onboarding-Videos', show: true },
-    { id: 'help',          no: isAdmin ? '11' : '06', title: 'Hilfe',        sub: 'Kontexthilfe für diese Seite', show: !!helpSection },
+    { id: 'cockpit',      no: '01', title: 'Projekttickets', sub: 'Container & Features', badge: pendingContainerCount > 0 ? pendingContainerCount : undefined, show: isAdmin },
+    { id: 'grilling',      no: '02', title: 'Final Grilling',     sub: 'Abschließende Klärungsrunde', show: isAdmin },
+    { id: 'questionnaire', no: isAdmin ? '03' : '01', title: 'Fragebögen', sub: 'Aufgaben beantworten', badge: pendingQuestionnaires > 0 ? pendingQuestionnaires : undefined, show: true },
+    { id: 'support',       no: isAdmin ? '04' : '02', title: 'Feedback & Support', sub: 'Fehler melden, Ideen teilen', show: true },
+    { id: 'agent-guide',   no: isAdmin ? '05' : '03', title: 'Agent-Anleitung', sub: 'Lernen, wie alles funktioniert', show: true },
+    { id: 'mediaviewer',   no: isAdmin ? '06' : '04', title: 'Mediaviewer', sub: 'Hilfe- & Onboarding-Videos', show: true },
+    { id: 'help',          no: isAdmin ? '07' : '05', title: 'Hilfe',        sub: 'Kontexthilfe für diese Seite', show: !!helpSection },
   ].filter(i => i.show));
 
   let hover = $state<string | null>(null);
@@ -64,18 +47,7 @@
     <p class="sk-sub">Kein Skript, kein Bot — direkter Zugang zu Tickets, Nachrichten und Kontexthilfe.</p>
   </div>
 
-  {#if banner}
-    {#if banner.cta}
-      <button type="button" class="sk-banner sk-banner--{banner.kind}" onclick={() => { onClose?.(); window.location.href = '/portal/loslernen'; }}>
-        <span class="sk-banner-label">{banner.label}</span>
-        <span class="sk-banner-arrow" aria-hidden="true">→</span>
-      </button>
-    {:else}
-      <div class="sk-banner sk-banner--done" role="status">
-        <span class="sk-banner-label">{banner.label}</span>
-      </div>
-    {/if}
-  {/if}
+
 
   <!-- Numbered item list -->
   <div class="sk-list" role="list">
@@ -328,27 +300,4 @@
     .sk-headline { font-size: 26px; }
     .sk-row { padding: 18px; grid-template-columns: 36px 1fr auto 28px; }
   }
-
-  .sk-banner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    width: calc(100% - 44px);
-    margin: 4px 22px 0;
-    padding: 12px 16px;
-    border-radius: 10px;
-    border: 1px solid var(--brass, #b8860b);
-    background: oklch(0.80 0.09 75 / 0.08);
-    color: var(--fg);
-    font-size: 14px;
-    cursor: pointer;
-    text-align: left;
-    transition: background 180ms var(--ease-out, ease);
-  }
-  .sk-banner:hover { background: oklch(0.80 0.09 75 / 0.16); }
-  .sk-banner--done { cursor: default; opacity: 0.85; }
-  .sk-banner-label { font-family: var(--serif); }
-  .sk-banner-arrow { color: var(--brass, #b8860b); }
-  @media (max-width: 480px) { .sk-banner { width: calc(100% - 36px); margin: 4px 18px 0; } }
 </style>

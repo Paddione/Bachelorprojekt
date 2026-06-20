@@ -5,17 +5,14 @@
   import SupportView from './assistant/SupportView.svelte';
   import QuestionnaireView from './assistant/QuestionnaireView.svelte';
   import HelpView from './assistant/HelpView.svelte';
-  import TicketSidekickView from './assistant/TicketSidekickView.svelte';
-  import InboxSidekickView from './assistant/InboxSidekickView.svelte';
   import AgentGuideView from './assistant/AgentGuideView.svelte';
-  import PipelineSidekickView from './assistant/PipelineSidekickView.svelte';
   import MediaviewerPanel from './MediaviewerPanel.svelte';
   import GrillingSessionHost from './mediaviewer/GrillingSessionHost.svelte';
   import CockpitSidekickView from './assistant/CockpitSidekickView.svelte';
   import { resolveHelpVideos } from '../lib/help-videos';
-  import { parseNavigateEvent, shouldShowLearnDot } from '../lib/assistant/sidekick-nudge';
+  import { parseNavigateEvent } from '../lib/assistant/sidekick-nudge';
 
-  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'tickets' | 'inbox' | 'pipeline' | 'agent-guide' | 'mediaviewer' | 'grilling' | 'cockpit';
+  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'agent-guide' | 'mediaviewer' | 'grilling' | 'cockpit';
 
   let {
     helpSection = '',
@@ -33,26 +30,12 @@
   let expanded = $state(false);
   let view = $state<View>('home');
   let pendingQuestionnaires = $state(0);
-  let pendingTickets = $state(0);
   let pendingContainerCount = $state(0);
   const mediaviewerVideos = $derived(resolveHelpVideos(videovaultHost));
-  let inboxPending = $state(0);
   let isMobile = $state(false);
   let currentTicketId = $state<string | null>(null);
 
-  // Summary-driven nudge (fail-soft: stays null if the fetch fails → no badge/dot).
-  let learningSummary = $state<{ done: number; total: number; pct: number } | null>(null);
   let pendingJump = $state<string | null>(null);
-  // FAB attention dot: derive from the pure helper + the local drawer-open state.
-  // hasNumericBadge mirrors the FAB badge condition so the dot never doubles up with a count.
-  const showLearnDot = $derived(
-    !open &&
-    shouldShowLearnDot(
-      learningSummary,
-      helpContext,
-      pendingQuestionnaires > 0 || pendingTickets > 0 || inboxPending > 0 || pendingContainerCount > 0,
-    )
-  );
 
   // User identity for header / avatar
   let userGivenName = $state('');
@@ -71,9 +54,6 @@
     support: 'Feedback & Support',
     questionnaire: 'Fragebögen',
     help: 'Hilfe',
-    tickets: 'Anfragen',
-    inbox: 'Postfach',
-    pipeline: 'Pipeline',
     'agent-guide': 'Agent-Anleitung',
     mediaviewer: 'Mediaviewer',
     grilling: 'Final Grilling',
@@ -104,14 +84,6 @@
         userGivenName = data.user?.givenName ?? '';
         userFamilyName = data.user?.familyName ?? '';
 
-        try {
-          const sRes = await fetch('/api/portal/learning/summary');
-          if (sRes.ok) {
-            const s = await sRes.json() as { done?: number; total?: number; pct?: number };
-            learningSummary = { done: s.done ?? 0, total: s.total ?? 0, pct: s.pct ?? 0 };
-          }
-        } catch { /* fail-soft: no badge/banner */ }
-
         const qRes = await fetch('/api/portal/questionnaires');
         if (qRes.ok) {
           const qs = await qRes.json() as Array<{ status: string }>;
@@ -122,22 +94,6 @@
 
         if (helpContext === 'admin') {
           try {
-            const tRes = await fetch('/api/admin/tickets?limit=1&status=open', { credentials: 'same-origin' });
-            if (tRes.ok) {
-              const td = await tRes.json() as { total?: number };
-              pendingTickets = td.total ?? 0;
-            }
-          } catch { /* badge stays 0 */ }
-
-          try {
-            const iRes = await fetch('/api/admin/inbox/count', { credentials: 'same-origin' });
-            if (iRes.ok) {
-              const id = await iRes.json() as { total?: number };
-              inboxPending = id.total ?? 0;
-            }
-          } catch { /* badge stays 0 */ }
-
-          try {
             const cRes = await fetch('/api/admin/cockpit/container-count', { credentials: 'same-origin' });
             if (cRes.ok) {
               const cd = await cRes.json() as { total?: number };
@@ -147,20 +103,6 @@
         }
       } catch { /* widget is optional */ }
     })();
-  });
-
-  $effect(() => {
-    const refresh = async () => {
-      try {
-        const r = await fetch('/api/portal/learning/summary');
-        if (r.ok) {
-          const s = await r.json() as { done?: number; total?: number; pct?: number };
-          learningSummary = { done: s.done ?? 0, total: s.total ?? 0, pct: s.pct ?? 0 };
-        }
-      } catch { /* fail-soft */ }
-    };
-    window.addEventListener('learning:updated', refresh);
-    return () => window.removeEventListener('learning:updated', refresh);
   });
 
   $effect(() => {
@@ -206,11 +148,8 @@
   aria-label={open ? 'Sidekick schließen' : 'Sidekick öffnen'}
   aria-expanded={open}
 >
-  {#if (pendingQuestionnaires > 0 || pendingTickets > 0 || inboxPending > 0 || pendingContainerCount > 0) && !open}
-    <span class="fab-badge">{Math.min(99, pendingQuestionnaires + pendingTickets + inboxPending + pendingContainerCount)}</span>
-  {/if}
-  {#if showLearnDot}
-    <span class="fab-dot" aria-hidden="true"></span>
+  {#if (pendingQuestionnaires > 0 || pendingContainerCount > 0) && !open}
+    <span class="fab-badge">{Math.min(99, pendingQuestionnaires + pendingContainerCount)}</span>
   {/if}
   {#if open}
     <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" aria-hidden="true">
@@ -264,10 +203,7 @@
         {pendingQuestionnaires}
         {helpSection}
         {helpContext}
-        {pendingTickets}
-        pendingInbox={inboxPending}
         {pendingContainerCount}
-        summary={learningSummary}
       />
     {:else if view === 'support'}
       <SupportView onCloseView={() => { view = 'home'; }} />
@@ -277,12 +213,6 @@
       <HelpView section={helpSection} context={helpContext} />
     {:else if view === 'agent-guide'}
       <AgentGuideView jumpTo={pendingJump} />
-    {:else if view === 'tickets'}
-      <TicketSidekickView onClose={closeDrawer} />
-    {:else if view === 'inbox'}
-      <InboxSidekickView onClose={closeDrawer} />
-    {:else if view === 'pipeline'}
-      <PipelineSidekickView onClose={closeDrawer} />
     {:else if view === 'mediaviewer'}
       <MediaviewerPanel {mediaviewerHost} videos={mediaviewerVideos} />
     {:else if view === 'grilling'}
@@ -348,17 +278,7 @@
     box-shadow: 0 0 0 2px #0f1623;
   }
 
-  .fab-dot {
-    position: absolute;
-    top: -2px;
-    right: -2px;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: oklch(0.83 0.09 75);
-    box-shadow: 0 0 0 2px #0f1623;
-    pointer-events: none;
-  }
+
 
   .drawer {
     position: fixed;

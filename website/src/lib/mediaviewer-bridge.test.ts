@@ -28,6 +28,9 @@ describe('buildSetModeMessage', () => {
   it('builds setMode for grilling mode with ticketId', () => {
     expect(buildSetModeMessage('grilling', 'T000001')).toEqual({ type: 'setMode', mode: 'grilling', ticketId: 'T000001' });
   });
+  it('builds setMode for brainstorm mode with ticketId', () => {
+    expect(buildSetModeMessage('brainstorm', 'T000001')).toEqual({ type: 'setMode', mode: 'brainstorm', ticketId: 'T000001' });
+  });
 });
 
 describe('buildSetGrillingDataMessage', () => {
@@ -57,6 +60,20 @@ describe('parseOutbound', () => {
   it('accepts grillingComplete', () => {
     expect(parseOutbound({ type: 'grillingComplete', answers: { q1: 'Yes' } }))
       .toEqual({ type: 'grillingComplete', answers: { q1: 'Yes' } });
+  });
+  it('accepts sessionStarted', () => {
+    expect(parseOutbound({ type: 'sessionStarted', sessionType: 'brainstorm-v1', sessionId: 's1' }))
+      .toEqual({ type: 'sessionStarted', sessionType: 'brainstorm-v1', sessionId: 's1' });
+    expect(parseOutbound({ type: 'sessionStarted', sessionType: 'brainstorm-v1' }))
+      .toEqual({ type: 'sessionStarted', sessionType: 'brainstorm-v1' });
+  });
+  it('accepts sessionProgress', () => {
+    expect(parseOutbound({ type: 'sessionProgress', sessionType: 'brainstorm-v1', answeredCount: 2, totalCount: 9 }))
+      .toEqual({ type: 'sessionProgress', sessionType: 'brainstorm-v1', answeredCount: 2, totalCount: 9 });
+  });
+  it('rejects sessionStarted without sessionType and sessionProgress with non-numeric counts', () => {
+    expect(parseOutbound({ type: 'sessionStarted' })).toBeNull();
+    expect(parseOutbound({ type: 'sessionProgress', sessionType: 'b', answeredCount: 'x', totalCount: 9 })).toBeNull();
   });
   it('returns null for unknown types', () => {
     expect(parseOutbound({ type: 'setVideos', videos: [] })).toBeNull();

@@ -173,3 +173,22 @@ describe('GrillingQuestion.choices', () => {
     expect(q1.choices).toBeUndefined();
   });
 });
+
+describe('brainstorm-v1 questionnaire', () => {
+  it('is registered with id brainstorm-v1', () => {
+    const qn = getQuestionnaire('brainstorm-v1');
+    expect(qn).toBeDefined();
+    expect(qn?.id).toBe('brainstorm-v1');
+  });
+  it('has 4 sections covering problem/solutions/risks/next-steps', () => {
+    const qn = QUESTIONNAIRES['brainstorm-v1'];
+    expect(qn.sections).toHaveLength(4);
+  });
+  it('resolves to 8-10 questions with unique ids', () => {
+    const qs = resolveQuestions('brainstorm-v1', QUESTIONNAIRES, null);
+    expect(qs.length).toBeGreaterThanOrEqual(8);
+    expect(qs.length).toBeLessThanOrEqual(10);
+    const ids = qs.map(q => q.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+});

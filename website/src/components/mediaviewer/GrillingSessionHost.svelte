@@ -5,9 +5,11 @@
   let {
     mediaviewerHost,
     ticketId,
+    sessionType = 'final-grilling-v1',
   }: {
     mediaviewerHost: string;
     ticketId: string;
+    sessionType?: string;
   } = $props();
 
   let grillingData = $state<GrillingSessionData | null>(null);
@@ -28,7 +30,7 @@
           grilling_answers?: Record<string, Record<string, string>>;
           attachments?: Array<{ filename: string; url: string; mimetype: string }>;
         };
-        grillingData = buildGrillingSessionData(ticket);
+        grillingData = buildGrillingSessionData(ticket, sessionType);
       } catch (e) {
         error = e instanceof Error ? e.message : 'Unbekannter Fehler';
       } finally {
@@ -45,7 +47,7 @@
         credentials: 'same-origin',
         body: JSON.stringify({
           grilling_answers: {
-            'final-grilling-v1': {
+            [sessionType]: {
               [questionId]: answer,
             },
           },
@@ -65,7 +67,7 @@
         credentials: 'same-origin',
         body: JSON.stringify({
           grilling_answers: {
-            'final-grilling-v1': answers,
+            [sessionType]: answers,
           },
         }),
       });

@@ -31,6 +31,9 @@ export async function loggingMiddleware(
   else if (statusCode >= 400) requestLogger.warn(logFields);
   else requestLogger.info(logFields);
 
-  response.headers.set(REQUEST_ID_HEADER, requestId);
-  return response;
+  // Clone headers before mutating — Astro's Node.js adapter may return a
+  // Response whose headers are immutable (already committed to the stream).
+  const headers = new Headers(response.headers);
+  headers.set(REQUEST_ID_HEADER, requestId);
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
 }

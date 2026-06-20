@@ -1032,6 +1032,18 @@
     "kind": "playwright"
   },
   {
+    "id": "FA-50",
+    "file": "tests/e2e/specs/fa-50-request-correlation.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-51",
+    "file": "tests/e2e/specs/fa-51-sidekick-navigation.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
     "id": "FA-AR-01",
     "file": "tests/local/FA-AR-01-filter-diff.bats",
     "category": "FA",

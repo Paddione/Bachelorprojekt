@@ -7,7 +7,7 @@ export type HostInbound =
   | { type: 'play' }
   | { type: 'pause' }
   | { type: 'seek'; sec: number }
-  | { type: 'setMode'; mode: 'video' | 'grilling'; ticketId?: string }
+  | { type: 'setMode'; mode: 'video' | 'grilling' | 'brainstorm'; ticketId?: string }
   | { type: 'setGrillingData'; data: GrillingSessionData };
 
 export type HostOutbound =
@@ -17,13 +17,15 @@ export type HostOutbound =
   | { type: 'error'; id: string; message: string }
   | { type: 'grillingAnswer'; questionId: string; answer: string }
   | { type: 'grillingDismiss'; questionId: string }
-  | { type: 'grillingComplete'; answers: Record<string, string> };
+  | { type: 'grillingComplete'; answers: Record<string, string> }
+  | { type: 'sessionStarted'; sessionType: string; sessionId?: string }
+  | { type: 'sessionProgress'; sessionType: string; answeredCount: number; totalCount: number };
 
 export function buildSetVideosMessage(videos: HelpVideo[]): HostInbound {
   return { type: 'setVideos', videos };
 }
 
-export function buildSetModeMessage(mode: 'video' | 'grilling', ticketId?: string): HostInbound {
+export function buildSetModeMessage(mode: 'video' | 'grilling' | 'brainstorm', ticketId?: string): HostInbound {
   return { type: 'setMode', mode, ...(ticketId ? { ticketId } : {}) };
 }
 
@@ -59,6 +61,14 @@ export function parseOutbound(data: unknown): HostOutbound | null {
     case 'grillingComplete':
       return typeof data.answers === 'object' && data.answers !== null
         ? { type: 'grillingComplete', answers: data.answers as Record<string, string> }
+        : null;
+    case 'sessionStarted':
+      return typeof data.sessionType === 'string'
+        ? { type: 'sessionStarted', sessionType: data.sessionType, ...(typeof data.sessionId === 'string' ? { sessionId: data.sessionId } : {}) }
+        : null;
+    case 'sessionProgress':
+      return typeof data.sessionType === 'string' && typeof data.answeredCount === 'number' && typeof data.totalCount === 'number'
+        ? { type: 'sessionProgress', sessionType: data.sessionType, answeredCount: data.answeredCount, totalCount: data.totalCount }
         : null;
     default:
       return null;

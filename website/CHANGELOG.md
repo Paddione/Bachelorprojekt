@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.105.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.104.1...website-v1.105.0) (2026-06-20)
+
+
+### Features
+
+* **admin:** visual alignment + logging dashboards for platform control center [T000967] ([#1918](https://github.com/Paddione/Bachelorprojekt/issues/1918)) ([329bc8c](https://github.com/Paddione/Bachelorprojekt/commit/329bc8c143fdaa673d23bd6a321aee5f63120312))
+
 ## [1.104.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.104.0...website-v1.104.1) (2026-06-20)
 
 

@@ -2,8 +2,9 @@
   import { onMount } from 'svelte';
   import type { PortfolioPayload, FeatureTickets, FeatureNode } from '../../lib/tickets/cockpit-types';
   import { ALL_TICKETS_ID } from '../../lib/tickets/cockpit-ids';
-  import { cockpitStore, selectFeature, initStoreFromUrl, setLoading, setError }
+  import { cockpitStore, selectFeature, initStoreFromUrl, setLoading, setError, setFilter }
     from '../../lib/stores/cockpitStore';
+  import { parsePresetFromUrl } from '../../lib/cockpit-presets';
 
   import CockpitTable from './CockpitTable.svelte';
   import TicketCreateModal from './TicketCreateModal.svelte';
@@ -18,6 +19,7 @@
   let portfolio: PortfolioPayload | null = portfolioInitial;
   let featureData: FeatureTickets | null = null;
   let createOpen = false;
+  let presetError = '';
 
   $: allFeatures = portfolio?.products?.flatMap((p) => p.features) ?? [];
   $: currentFeatureNode = allFeatures.find((f) => f.extId === $cockpitStore.selectedFeature) ?? null;
@@ -34,7 +36,15 @@
   }
 
   onMount(async () => {
-    if (typeof window !== 'undefined') initStoreFromUrl(new URL(window.location.href).searchParams);
+    if (typeof window !== 'undefined') {
+      initStoreFromUrl(new URL(window.location.href).searchParams);
+      const urlState = parsePresetFromUrl(window.location.search);
+      if (urlState) {
+        setFilter(urlState);
+      } else if (window.location.search.includes('preset=')) {
+        presetError = 'Preset ungültig';
+      }
+    }
     if (!portfolio) await loadPortfolio();
     // Auto-select a feature when there is none, OR when the persisted/URL
     // selection no longer exists in the portfolio (e.g. a stale localStorage
@@ -135,6 +145,11 @@
       {/if}
     </div>
   {/if}
+  {#if presetError}
+    <div class="toast error" data-testid="preset-error">
+      {presetError}
+    </div>
+  {/if}
 
   {#if portfolio && portfolio.products?.length === 0}
     <EmptyStateCockpit />
@@ -145,6 +160,7 @@
         feature={currentFeatureNode}
         tickets={featureData?.tickets ?? []}
         features={allFeatures}
+        brand={brand}
         onMutated={refetch}
         onOpenCreate={() => (createOpen = true)} />
     </main>

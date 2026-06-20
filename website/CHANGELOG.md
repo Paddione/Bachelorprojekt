@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.104.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.104.0...website-v1.104.1) (2026-06-20)
+
+
+### Code Refactoring
+
+* **website:** clean up sidekick menu and implement session broadcast [T000965] ([#1916](https://github.com/Paddione/Bachelorprojekt/issues/1916)) ([1ab969b](https://github.com/Paddione/Bachelorprojekt/commit/1ab969bf912ce2138a8e81c04a302baa4313b8f1))
+
 ## [1.104.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.103.1...website-v1.104.0) (2026-06-20)
 
 

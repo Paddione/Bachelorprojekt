@@ -100,7 +100,7 @@ MOCK
   [[ "$output" == *"Sonstige"* ]]
 }
 
-@test "categorize: DB UPDATE called with correct category" {
+@test "categorize: DB INSERT called with correct category (kind tag)" {
   _categorize_setup
   run bash "$MOCKDIR/mishap-categorize.sh" "T005" \
     "API 429 rate limit timeout" \
@@ -109,7 +109,7 @@ MOCK
   [ "$status" -eq 0 ]
   [[ "$output" == *"API-Fehler"* ]]
   if [[ -f "$CAPFILE" ]]; then
-    grep -q "UPDATE tickets.tickets SET category" "$CAPFILE"
-    grep -q "ext_id" "$CAPFILE"
+    grep -q "INSERT INTO tickets.tags" "$CAPFILE"
+    grep -q "INSERT INTO tickets.ticket_tags" "$CAPFILE"
   fi
 }

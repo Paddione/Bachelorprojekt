@@ -13,6 +13,25 @@ Bei jeder Anfrage in diesem Repo, die etwas verändern will.
 
 ---
 
+## Position im Git-Kreislauf
+
+```
+    ┌──────────────────────────────────────────────────────────┐
+    ▼                                                          │
+[ main ]                                                       │
+    │                                                          │
+    ├─► [branch + spec + plan] ── DIESER SKILL ── AUSSTIEG ──►│
+    │         (feature / fix)         pushed                   │
+    │                                                          │
+    └─► [chore direkt] ── dev-flow-chore ──────────────────────┘
+```
+
+**EINSTIEG:** `main` — synchronisiert, sauberer Stand  
+**AUSSTIEG:** Feature/Fix-Branch mit committiertem Plan auf Remote gepusht, Ticket `plan_staged`  
+**Nächster Schritt:** `dev-flow-execute` — liest Plan aus DB und implementiert
+
+---
+
 ## Schritt −3: Deep Grilling (optional)
 
 Wenn das Feature komplex oder unklar ist, frage den User nach einer Grilling-Session (siehe [dev-flow-gotchas](file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#dev-flow-gotchas) für den Fragenkatalog).
@@ -101,7 +120,7 @@ Verwende einen Code-Explorer Subagenten, um die Code-Pfade und Architektur vor d
 
 ### Schritt 1.7: Design-Bundle co-lokalisieren (nur Design-/UI-Tickets)
 
-Wenn das Ticket einen Design-Handoff hat (claude.ai-Design-Session → Bundle-ID), ziehe das Bundle **direkt neben den Plan** in den Branch, damit sowohl `dev-flow-execute` als auch die Factory (liest den Branch via `git show` + Reuse-Worktree) Intent **und** Assets auf Platte haben. Andernfalls überspringe diesen Schritt.
+Wenn das Ticket einen Design-Handoff hat (claude.ai-Design-Session → Bundle-ID), ziehe das Bundle **direkt neben den Plan** in den Branch, damit `dev-flow-execute` Intent **und** Assets auf Platte hat. Andernfalls überspringe diesen Schritt.
 
 ```bash
 SLUG="<slug>"
@@ -124,8 +143,7 @@ und **Export-Vollständigkeit** (Anzahl gelieferter Dateien vs. im Intent spezif
 Alt-Assets werden **nicht** mitkopiert — der Abgleich passiert in-place gegen die echte
 Repo-Datei (`git diff` / `Read` der Live-Datei) erst beim Verbauen, nicht als Plan-Ballast.
 
-Zusätzlich die Schlüsseldateien ans Ticket hängen (autonome Factory-Design-Phase materialisiert
-Attachments nach `assets-inbox/`):
+Zusätzlich die Schlüsseldateien ans Ticket hängen:
 ```bash
 bash scripts/ticket-attach.sh "$TICKET_UUID" "${DESIGN_DIR}/intent.md" "${DESIGN_DIR}"/new/*.svg
 ```
@@ -230,8 +248,7 @@ else
   echo "✅ Wiederverwende bestehendes Ticket $TICKET_EXT_ID"
 fi
 
-# Plan in die Kommissionierung stellen: type=feature, status=plan_staged.
-# Read-only sichtbar in /dev-status; wartet auf manuelle Freigabe (-> Factory / -> Manuell).
+# Plan stagen: Branch + Plan-Pfad im Ticket verankern (Single Source of Truth für dev-flow-execute).
 ./scripts/ticket.sh stage-plan \
   --id "$TICKET_EXT_ID" \
   --branch "feature/<slug>" \
@@ -272,13 +289,7 @@ bash scripts/plan-review/plan-review.sh result
 
 Details siehe [plan-review-ui](file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#plan-review-ui).
 
-### Schritt 6.5: Batch-Status prüfen und Ausführungsoptionen anzeigen
-
-Lade `STAGED_PLANS` + `PLANNING_COUNT` (MCP-Schnellweg oder kubectl-Fallback) und gib die
-Ausführungsoptionen aus — Format und Empfehlung sind identisch zum Fix-Pfad. Vollständige
-Logik + Output-Template: [references/plan-batch-status.md](references/plan-batch-status.md).
-
-**STOPP** nach dem Ausgabe-Block.
+**STOPP.** Branch, Spec und Plan sind committed und gepusht. Nächster Schritt: `dev-flow-execute` aufrufen.
 
 ---
 
@@ -329,8 +340,7 @@ Rufe `superpowers:writing-plans` auf. Wende das Frontmatter an und trage die Tic
   --branch "fix/<slug>" \
   --plan "openspec/changes/<slug>/tasks.md"
 ```
-Damit ist das Fix-Ticket in der Kommissionierung sichtbar und kann via UI-Knopf oder
-`ticket.sh enqueue` an die Factory übergeben werden.
+Damit ist das Fix-Ticket als `plan_staged` in der DB verankert und für `dev-flow-execute` bereit.
 
 ### Schritt 5: Commit & Push
 
@@ -341,9 +351,7 @@ git commit -m "fix(<scope>): add failing test + stage plan [$TICKET_EXT_ID]"
 git push -u origin $(git branch --show-current)
 ```
 
-### Schritt 6: Batch-Status prüfen und Ausführungsoptionen anzeigen
-
-Identische Logik wie Feature-Pfad Schritt 6.5 — siehe [references/plan-batch-status.md](references/plan-batch-status.md). **STOPP** nach dem Ausgabe-Block.
+**STOPP.** Failing Test, Spec und Plan sind committed und gepusht. Nächster Schritt: `dev-flow-execute` aufrufen.
 
 ---
 
@@ -355,6 +363,19 @@ und gemergt. In Schritt 0 für Chores sofort `dev-flow-chore` aufrufen und hier 
 ---
 
 
+## Übergabe an dev-flow-execute
+
+**Zustand bei STOPP:**
+- Branch `feature/<slug>` oder `fix/<slug>` auf Remote gepusht
+- Plan `openspec/changes/<slug>/tasks.md` committed
+- Ticket status = `plan_staged`
+- Branch-Lock aktiv (andere Sessions sehen diesen Branch als belegt)
+
+**Nächster Schritt im Kreislauf:** `dev-flow-execute` aufrufen.  
+Der Skill liest den Plan automatisch aus der DB (`FACTORY-PLAN-REF` Kommentar) — kein manuelle Pfad-Übergabe nötig.
+
+---
+
 ## Verwandte Skills
 
 | Skill | Beziehung |
@@ -362,8 +383,8 @@ und gemergt. In Schritt 0 für Chores sofort `dev-flow-chore` aufrufen und hier 
 | `using-git-worktrees` | Hintergrund — ersetzt durch `scripts/worktree-create.sh` (git-crypt-safe) |
 | `superpowers:brainstorming` | Aufgerufen in Schritt 3 — Intent/Design klären |
 | `superpowers:writing-plans` | Aufgerufen vom Plan-Subagenten (Schritt 3.7) |
-| `dev-flow-execute` | Folge — implementiert den erstellten Plan |
-| `dev-flow-chore` | Geschwister — Chores statt Features/Fixes |
+| `dev-flow-execute` | **Nachfolger im Kreislauf** — implementiert den erstellten Plan |
+| `dev-flow-chore` | Geschwister — Chores statt Features/Fixes (direkter Kurzschluss) |
 | `mishap-tracker` | Abschluss — protokolliert Frictions |
 
 ## Nachbereitung & Mishap Report

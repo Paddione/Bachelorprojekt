@@ -14,13 +14,6 @@
         "Authorization": "Bearer ${CLUSTER_TOKEN}"
       }
     },
-    "keycloak": {
-      "type": "url",
-      "url": "https://mcp.${PROD_DOMAIN}/keycloak/mcp/sse",
-      "headers": {
-        "Authorization": "Bearer ${CLUSTER_TOKEN}"
-      }
-    },
     "browser": {
       "type": "url",
       "url": "https://mcp.${PROD_DOMAIN}/browser/mcp",

@@ -15,6 +15,25 @@ einem Rutsch erledigt und gemergt. Für Features/Fixes stattdessen `dev-flow-pla
 
 ---
 
+## Position im Git-Kreislauf
+
+```
+    ┌────────────────────────────────────────────────────┐
+    ▼                                                    │
+[ main ]                                                 │
+    │                                                    │
+    └──► [branch] ──► [ändern + testen] ──► [PR+merge] ──► AUSSTIEG
+              DIESER SKILL (Kurzschluss — kein Plan-Handoff)   │
+                                                               │
+                                    zurück zu [ main ] ────────┘
+```
+
+**EINSTIEG:** `main` — synchronisiert, sauberer Stand  
+**AUSSTIEG:** PR gemergt zu `main`, Worktree bereinigt, Kreislauf geschlossen  
+**Kurzschluss:** kein Zwischenstopp bei `dev-flow-execute` — Chores sind einzügig
+
+---
+
 ## Schritt 0: Reaper & Pull-First
 
 ```bash
@@ -137,6 +156,18 @@ git branch -D "chore/<slug>"
 
 Nur wenn die Chore deploybare Pfade berührt — Mapping in
 [deploy-routing](file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#deploy-routing) (Single Source of Truth).
+
+---
+
+## Übergabe — Kreislauf geschlossen
+
+**Zustand nach Schritt 6:**
+- `main` enthält die gemergten Änderungen (squash commit)
+- Worktree `/tmp/wt-<slug>` gelöscht, Branch `chore/<slug>` gelöscht
+- Ticket status = `done` (wurde beim Anlegen bereits gesetzt)
+- Branch-Lock freigegeben
+
+**Kreislauf zurück zu `main`** — nächste Arbeit startet mit `dev-flow-plan` oder erneutem `dev-flow-chore`.
 
 ---
 

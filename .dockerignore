@@ -1,5 +1,6 @@
 # Exclude large directories not needed for Docker build
 website/node_modules
+mentolder-web/node_modules
 website/dist
 website/.env
 website/.env.*

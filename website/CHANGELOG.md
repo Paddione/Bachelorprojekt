@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.123.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.122.0...website-v1.123.0) (2026-06-21)
+
+
+### Features
+
+* **website:** add sidekick AI-quality widget [T001065] ([#2038](https://github.com/Paddione/Bachelorprojekt/issues/2038)) ([de82973](https://github.com/Paddione/Bachelorprojekt/commit/de8297380f629fc319caae14d048793008f9ca45))
+
 ## [1.122.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.121.0...website-v1.122.0) (2026-06-21)
 
 

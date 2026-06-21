@@ -1,0 +1,16 @@
+# prod/pocket-id-pvc.yaml — Pocket ID data PVC (prod-only)
+# Declared as a prod-overlay resource because the dev cluster uses an
+# emptyDir for /app/data (saves a PV slot on k3d). The prod patch
+# (`prod/patch-pocket-id.yaml`) swaps the emptyDir for this PVC.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pocket-id-data
+  labels:
+    app: pocket-id
+spec:
+  storageClassName: local-path
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 1Gi

@@ -53,6 +53,9 @@ env_vars:
   WEBSITE_HOST: web.korczewski.de
   WEBSITE_SITE_URL: "https://web.korczewski.de"
   KEYCLOAK_FRONTEND_URL: "https://auth.korczewski.de"
+  POCKET_ID_FRONTEND_URL: "https://id.korczewski.de"
+  POCKET_ID_URL: "http://pocket-id:1411"
+  KEYCLOAK_FRONTEND_URL: "https://auth.korczewski.de"
   # System-test failure loop master kill-switch (Task 10).
   SYSTEMTEST_LOOP_ENABLED: "true"
   LLM_HOST_IP: "192.168.100.10"

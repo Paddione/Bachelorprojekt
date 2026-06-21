@@ -4,6 +4,7 @@ metadata:
   name: domain-config
 data:
   KC_DOMAIN: "auth.${PROD_DOMAIN}"
+  POCKET_ID_DOMAIN: "id.${PROD_DOMAIN}"
   NC_DOMAIN: "files.${PROD_DOMAIN}"
   MEET_DOMAIN: "files.${PROD_DOMAIN}/index.php/apps/spreed/"
   COLLABORA_DOMAIN: "office.${PROD_DOMAIN}"

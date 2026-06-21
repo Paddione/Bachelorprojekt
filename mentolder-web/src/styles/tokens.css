@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+@theme {
+  /* Ink-Skala (Hintergrund) */
+  --color-ink-900: #0b111c;
+  --color-ink-850: #101826;
+  --color-ink-800: #17202e;
+  --color-ink-750: #1d2736;
+
+  /* Vordergrund */
+  --color-fg: #eef1f3;
+  --color-fg-soft: #cdd3d9;
+  --color-mute: #8c96a3;
+  --color-mute-2: #6a727e;
+
+  /* Akzentfarben */
+  --color-brass: oklch(0.80 0.09 75);
+  --color-brass-2: oklch(0.86 0.09 75);
+  --color-brass-d: oklch(0.80 0.09 75 / 0.14);
+  --color-sage: oklch(0.80 0.06 160);
+
+  /* Linien */
+  --color-line: rgba(255, 255, 255, 0.07);
+  --color-line-2: rgba(255, 255, 255, 0.12);
+
+  /* Typografie */
+  --font-serif: "Newsreader", "Iowan Old Style", Georgia, serif;
+  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Layout */
+  --radius-card: 22px;
+}

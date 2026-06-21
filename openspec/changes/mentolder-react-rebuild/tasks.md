@@ -42,6 +42,9 @@ mentolder-web/
 
 ## Aufgabe 1: Projekt-Setup
 
+- [x] **M1 — Setup (Blocker für alle):** Vite + React 19 + TypeScript strict + Tailwind v4
+  Scaffold mit mentolder-Design-Tokens. `pnpm tsc --noEmit` und `pnpm run build` grün.
+
 **Ziel:** Vite + React 19 + TypeScript + Tailwind v4 Scaffold mit mentolder-Design-Tokens.
 
 **Implementierung:**
@@ -92,6 +95,8 @@ npm install -D tailwindcss @tailwindcss/vite
 
 ## Aufgabe 2: Design-Assets generieren (Claude-Prompts)
 
+- [x] **M1:** favicon.svg, hero-halo.svg und 6 Icon-SVGs (fuehrung/digitalisierung/team/strategie/kommunikation/resilienz) — stroke-only, 24×24 viewBox, als `?react`-Komponenten via `vite-plugin-svgr` registriert.
+
 **Ziel:** SVG-Assets für Hero-Halo, Icons, Favicon via Claude generieren.
 Fertige Prompts stehen in `design-system.md` (Abschnitt „Was du Claude für Assets fragen kannst").
 
@@ -111,6 +116,8 @@ Fertige Prompts stehen in `design-system.md` (Abschnitt „Was du Claude für As
 ---
 
 ## Aufgabe 3: KickerBar-Komponente
+
+- [x] **M2:** KickerBar.tsx mit Brass-Linie, Sage-Dots, Mono-Text — Parts-Array Support.
 
 **Ziel:** Extrahierte Kicker-Leiste (Brass-Bar + Sage-Dot + Mono-Text) als wiederverwendbare
 React-Komponente.
@@ -148,6 +155,8 @@ export function KickerBar({ parts }: KickerBarProps) {
 
 ## Aufgabe 4: Hero-Komponente
 
+- [x] **M2:** Hero.tsx + Portrait.tsx — H1 mit `em`-Italic in Brass-2, Kicker-Reveal + H1-Reveal via Framer Motion, CTA-Buttons, hero-halo.svg Background + CSS radial-gradient. Responsive (≤960px 1-spaltig).
+
 **Ziel:** Port von `Hero.svelte` — pixel-perfect nach aktuellem Design.
 
 **Dateien:**
@@ -184,6 +193,8 @@ Newsreader Italic für Initiale (entspricht aktuellem Svelte-`Portrait.svelte`).
 
 ## Aufgabe 5: ServiceCard + ServiceRow
 
+- [x] **M2:** ServiceCard.tsx (Brass-Top-Border, Hover-Lift via Framer Motion) + ServiceRow.tsx (3-Spalten-Grid Desktop / 1-Spaltig Mobile) + IconRegistry (6 Stroke-Icons).
+
 **Ziel:** 3 Coaching-Service-Karten mit Brass-Top-Border und Hover-Lift.
 
 **Dateien:**
@@ -216,6 +227,8 @@ Icons aus `assets/icons/` als React-Komponenten (`<IconFuehrung />`).
 
 ## Aufgabe 6: WhyMeStats
 
+- [x] **M3:** WhyMeStats.tsx mit CountUp-Hook + `useInView` (once: true), Newsreader 44px, em-Tags in Brass.
+
 **Ziel:** Stat-Zähler-Sektion (z.B. „30+ Jahre Erfahrung") mit AnimatedCounter beim Scroll-Enter.
 
 **Dateien:**
@@ -234,6 +247,8 @@ horizontal, Divider via `border-line`.
 ---
 
 ## Aufgabe 7: FAQ-Accordion
+
+- [x] **M3:** FAQ.tsx mit `AnimatePresence` + `motion.div` Height-Transition, Keyboard-zugänglich (Enter/Space), mehrere gleichzeitig offen, Brass-Chevron.
 
 **Ziel:** Akkordeon-FAQ mit Framer Motion Höhen-Animation.
 
@@ -254,6 +269,8 @@ Tastatur-zugänglich: `role="button"`, `aria-expanded`, `Enter`/`Space` öffnen.
 ---
 
 ## Aufgabe 8: Kontaktformular
+
+- [x] **M3:** ContactForm.tsx mit react-hook-form + zodResolver + Zod-Schema, Formspree-POST mit Mailto-Fallback wenn `VITE_FORMSPREE_ENDPOINT` fehlt. Inline-Validierungsfehler, Success/Error-States, DSGVO-Consent-Checkbox.
 
 **Ziel:** Validiertes Kontaktformular mit Formspree-Backend.
 
@@ -284,6 +301,8 @@ Error-State: Roter Fehlerhinweis pro Feld (inline, kein Alert).
 
 ## Aufgabe 9: Footer + Navigation
 
+- [x] **M4:** Footer.tsx (Brand-Spalte, Kontakt, Angebote, Rechtliches) + Navigation.tsx (sticky, backdrop-blur, mobile Sheet, NavLink-Active-State in Brass).
+
 **Ziel:** Minimaler Footer (Copyright, Links) und Desktop-Topnav.
 
 **Dateien:**
@@ -302,6 +321,8 @@ Navigation: Sticky Top, `backdrop-blur`, aktiver Link in Brass-Farbe via `useMat
 ---
 
 ## Aufgabe 10: Routing + Pages + OG-Meta
+
+- [x] **M4:** App.tsx mit React Router v7 (`<Routes>` für `/`, `/kontakt`, `/impressum`, `/datenschutz`, 404), PageMeta.tsx für dynamische Title/Description/OG/Canonical, alle 4 Pages verdrahtet, ScrollToTop bei Route-Wechsel.
 
 **Ziel:** SPA-Routing mit React Router v7, alle 4 Seiten verdrahtet, OG-Tags via `react-helmet`.
 
@@ -331,6 +352,8 @@ in `design-system.md` Abschnitt „3. OG-Image Template").
 ---
 
 ## Aufgabe 11: Verifikation
+
+- [x] **M5:** `pnpm tsc --noEmit` 0 Errors · `pnpm run build` erzeugt `dist/` · `task workspace:validate`, `task test:changed`, `task freshness:regenerate`, `task freshness:check` grün.
 
 **Implementierung:**
 

@@ -1,0 +1,79 @@
+@import "./tokens.css";
+
+:root {
+  /* CSS Custom Properties (mirror tokens.css) — used by component-level inline styles
+     and any non-Tailwind utility. */
+  --ink-900: #0b111c;
+  --ink-850: #101826;
+  --ink-800: #17202e;
+  --ink-750: #1d2736;
+  --fg: #eef1f3;
+  --fg-soft: #cdd3d9;
+  --mute: #8c96a3;
+  --mute-2: #6a727e;
+  --brass: oklch(0.80 0.09 75);
+  --brass-2: oklch(0.86 0.09 75);
+  --brass-d: oklch(0.80 0.09 75 / 0.14);
+  --sage: oklch(0.80 0.06 160);
+  --line: rgba(255, 255, 255, 0.07);
+  --line-2: rgba(255, 255, 255, 0.12);
+  --serif: "Newsreader", "Iowan Old Style", Georgia, serif;
+  --sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --maxw: 1240px;
+  --radius: 22px;
+}
+
+html,
+body {
+  background: var(--ink-900);
+  color: var(--fg);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "ss01", "cv11";
+  text-rendering: optimizeLegibility;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Selection */
+::selection {
+  background: var(--brass);
+  color: var(--ink-900);
+}
+
+/* Focus ring */
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+/* Newsreader italics get the brass-2 treatment in headings */
+h1 em,
+h2 em {
+  font-style: italic;
+  color: var(--brass-2);
+}

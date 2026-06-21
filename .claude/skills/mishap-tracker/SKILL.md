@@ -10,6 +10,28 @@ Batches all execution mishaps into **one aggregate ticket** rather than creating
 
 Called as the final step of runbook skills that maintain a `MISHAP_LOG`.
 
+## Mishap melden (via ticket-mcp)
+
+Statt direkt ein Ticket zu erstellen, nutze das `report_mishap` MCP-Tool.
+Der Buffer sammelt Mishaps — bei 3 Einträgen wird automatisch ein Bundle-Ticket
+mit `attention_mode: ai_ready` angelegt das im nächsten Factory-Tick verarbeitet wird.
+
+Für jeden Mishap im MISHAP_LOG aufrufen:
+
+```
+mcp__ticket-mcp__report_mishap({
+  title: "<titel>",
+  description: "<beschreibung>",
+  component: "<komponente>",
+  type: "<broken|degraded|suspicious|security|drift>",
+  brand: "<brand>"
+})
+```
+
+**Rückmeldung auswerten:**
+- "2/3 bis zum automatischen Bundle-Ticket" → weitere Mishaps sammeln
+- "Bundle-Ticket angelegt: T000xxx" → Ticket existiert, Factory-Tick übernimmt
+
 ---
 
 ## Input

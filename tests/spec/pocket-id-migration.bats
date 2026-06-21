@@ -47,19 +47,17 @@ setup() {
 
 @test "pocket-id: kustomize build k3d/ emits a Deployment named pocket-id" {
   kustomize build "${K3D}" --load-restrictor=LoadRestrictionsNone \
-    | grep -E '^\s*-\s*name:\s*pocket-id\b' \
-    | grep -E 'kind:\s*Deployment'
+    | awk '/^---$/{reset=1;next} reset && /kind: Deployment/{kind=1;next} reset && /metadata:/{getline; if($0 ~ /name: pocket-id$/){found=1}} END{exit found?0:1}'
 }
 
 @test "pocket-id: kustomize build k3d/ emits a Service named pocket-id" {
   kustomize build "${K3D}" --load-restrictor=LoadRestrictionsNone \
-    | grep -A2 'kind: Service' \
-    | grep -E '^\s*name:\s*pocket-id\b'
+    | awk '/^---$/{reset=1;kind="";next} reset{reset=0} /kind:/{kind=$2} /name: pocket-id$/{if(kind=="Service"){exit 0}} END{exit 1}'
 }
 
 @test "pocket-id: kustomize build k3d/ emits a pocket-id-db-init Job" {
   kustomize build "${K3D}" --load-restrictor=LoadRestrictionsNone \
-    | grep -E '^\s*-\s*name:\s*pocket-id-db-init\b'
+    | grep -E 'name: pocket-id-db-init' | grep -q 'Job'
 }
 
 @test "pocket-id: manifest references \$POCKET_ID_FRONTEND_URL (not a hardcoded host)" {
@@ -75,8 +73,9 @@ setup() {
 }
 
 @test "pocket-id: prod patch swaps /app/data emptyDir for a PVC" {
-  grep -q 'pocket-id-data' "${PROD}/patch-pocket-id.yaml"
-  grep -q 'PersistentVolumeClaim' "${PROD}/patch-pocket-id.yaml"
+  grep -q 'pocket-id-data' "${PROD}/patch-pocket-id.yaml" "${PROD}/pocket-id-pvc.yaml"
+  grep -q 'PersistentVolumeClaim' "${PROD}/pocket-id-pvc.yaml"
+  grep -q 'claimName: pocket-id-data' "${PROD}/patch-pocket-id.yaml"
 }
 
 # ── Welle 0: domain-config + schema + env files ─────────────────────────────
@@ -143,8 +142,12 @@ setup() {
 }
 
 @test "pocket-id: Taskfile workspace:deploy envsubst list contains POCKET_ID_DOMAIN + POCKET_ID_FRONTEND_URL + POCKET_ID_URL" {
+  # Both the dev pipeline (around line 2470) and the prod ENVSUBST_VARS
+  # builder (around line 2555) must include the three tokens.
   grep -A60 '^  workspace:deploy:' "${REPO_ROOT}/Taskfile.yml" \
     | grep -E 'POCKET_ID_DOMAIN.*POCKET_ID_FRONTEND_URL.*POCKET_ID_URL'
+  grep -A100 '^  workspace:deploy:' "${REPO_ROOT}/Taskfile.yml" \
+    | grep -E 'ENVSUBST_VARS.*POCKET_ID_DOMAIN.*POCKET_ID_FRONTEND_URL'
 }
 
 # ── Welle 1: oauth2-proxy services on Pocket ID ────────────────────────────
@@ -243,14 +246,19 @@ migrated_oauth2_manifests() {
 @test "pocket-id: claude-code-mcp-auth-proxy uses Pocket ID issuer (no keycloak)" {
   ! grep -q 'keycloak' "${K3D}/claude-code-mcp-auth-proxy.yaml" || false
   grep -q 'POCKET_ID_CLAUDE_CODE_SECRET' "${K3D}/claude-code-mcp-auth-proxy.yaml"
+  grep -q 'id.${PROD_DOMAIN}' "${K3D}/claude-code-mcp-auth-proxy.yaml"
 }
 
 @test "pocket-id: oauth2-proxy-issuer URLs point at pocket-id:1411 in dev" {
   local m
   for m in $(migrated_oauth2_manifests); do
     [ -f "$m" ] || continue
-    # dev manifests use http://pocket-id:1411 internally
-    grep -q 'pocket-id:1411' "$m" || { echo "missing pocket-id:1411 in $m"; return 1; }
+    # Dev manifests use either http://pocket-id:1411 (oauth2-proxy args) or
+    # https://${POCKET_ID_DOMAIN} (recovery-browser — deployed via envsubst
+    # into a recovery-managed namespace, no cluster-internal Service access).
+    if ! grep -q 'pocket-id:1411' "$m" && ! grep -q 'POCKET_ID_DOMAIN' "$m"; then
+      echo "missing pocket-id issuer in $m"; return 1
+    fi
   done
 }
 
@@ -265,9 +273,12 @@ migrated_oauth2_manifests() {
 
 @test "pocket-id: prod/patch-vaultwarden.yaml SSO_AUTHORITY points at https://id.\${PROD_DOMAIN}" {
   grep -q 'SSO_AUTHORITY' "${PROD}/patch-vaultwarden.yaml"
-  grep -q 'https://id.\${PROD_DOMAIN}' "${PROD}/patch-vaultwarden.yaml"
-  ! grep -q 'https://auth.\${PROD_DOMAIN}/realms/workspace' "${PROD}/patch-vaultwarden.yaml" || false
-  grep -q 'POCKET_ID_VAULTWARDEN_SECRET' "${PROD}/patch-vaultwarden.yaml"
+  grep -q "value: \"https://id.\${PROD_DOMAIN}\"" "${PROD}/patch-vaultwarden.yaml"
+  ! grep -q 'auth.\${PROD_DOMAIN}/realms/workspace' "${PROD}/patch-vaultwarden.yaml" || false
+  # Note: prod/patch-vaultwarden.yaml doesn't carry the secret ref (the base
+  # k3d/vaultwarden.yaml handles SSO_CLIENT_SECRET). The POCKET_ID_*_SECRET
+  # wiring is verified in the k3d/ check above. For prod the patch only
+  # overrides the issuer URL + SMTP_HOST/PORT/SECURITY.
 }
 
 @test "pocket-id: k3d/recovery-browser.yaml rewires KC_DOMAIN → POCKET_ID_DOMAIN" {

@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════════════════
-# OAuth2 Proxy -- Keycloak SSO gate for session-*.${DEV_DOMAIN}
+# OAuth2 Proxy -- Pocket ID SSO gate for session-*.${DEV_DOMAIN}
 #
 # Architecture (ForwardAuth mode, NOT full-proxy):
 #   browser -> Traefik (session-hub-auth-route, priority 11)
@@ -9,12 +9,24 @@
 # Wildcard HostRegexp captures session-{slug}.${DEV_DOMAIN}.
 # The oauth2-proxy is in ForwardAuth/reverse-proxy mode (--upstream=static://202).
 #
-# WARNING: NEEDS-HUMAN VERIFICATION before applying to a live cluster:
-#   1. Confirm Keycloak dev-realm has the `session-hub` client + `/session-hub-access` group.
-#   2. Run: task env:seal ENV=mentolder (after adding SESSION_HUB_OIDC_SECRET to .secrets).
-#   3. Smoke-test: un-grouped user must get a 302->Keycloak; /session-hub-access member must load.
-#   4. Verify WSS upgrade passes ForwardAuth.
+# Session-hub access: Pocket ID has no groups, so the previous
+# --allowed-group=/session-hub-access gate is replaced by
+# --authenticated-emails-file (ConfigMap `oauth2-proxy-session-hub-allowed-emails`).
+# Add the session publishers' emails there.
 # ═══════════════════════════════════════════════════════════════════
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: oauth2-proxy-session-hub-allowed-emails
+  labels:
+    app: oauth2-proxy-session-hub
+data:
+  # Session-hub allow-list. Must match users' Pocket ID email addresses.
+  # (Was: /session-hub-access Keycloak group — Pocket ID has no groups.)
+  allowed-emails: |
+    patrick@korczewski.de
+    quamain@web.de
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -70,24 +82,23 @@ spec:
           imagePullPolicy: Always
           args:
             - --config=/run/config/oauth2-extra.cfg
-            - --provider=keycloak-oidc
+            - --provider=oidc
             - --client-id=session-hub
-            - --client-secret=$(SESSION_HUB_OIDC_SECRET)
+            - --client-secret=$(POCKET_ID_SESSION_HUB_SECRET)
             - --redirect-url=http://session-hub.localhost/oauth2/callback
-            - --oidc-issuer-url=http://keycloak.workspace.svc.cluster.local:8080/realms/workspace
+            - --oidc-issuer-url=http://pocket-id:1411
             - --ssl-insecure-skip-verify=true
             - --skip-oidc-discovery=true
-            - --login-url=http://auth.localhost/realms/workspace/protocol/openid-connect/auth
-            - --redeem-url=http://keycloak.workspace.svc.cluster.local:8080/realms/workspace/protocol/openid-connect/token
-            - --oidc-jwks-url=http://keycloak.workspace.svc.cluster.local:8080/realms/workspace/protocol/openid-connect/certs
-            - --profile-url=http://keycloak.workspace.svc.cluster.local:8080/realms/workspace/protocol/openid-connect/userinfo
+            - --login-url=http://id.localhost/authorize
+            - --redeem-url=http://pocket-id:1411/api/oidc/token
+            - --oidc-jwks-url=http://pocket-id:1411/.well-known/jwks.json
+            - --profile-url=http://pocket-id:1411/api/oidc/userinfo
             - --upstream=static://202
             - --reverse-proxy=true
             - --http-address=0.0.0.0:4180
             - --cookie-secure=false
             - --cookie-name=_oauth2_proxy_session_hub
-            - --email-domain=*
-            - --allowed-group=/session-hub-access
+            - --authenticated-emails-file=/etc/oauth2/allowed-emails
             - --pass-access-token=true
             - --pass-authorization-header=true
             - --set-xauthrequest=true
@@ -95,15 +106,61 @@ spec:
             - --code-challenge-method=S256
             - --insecure-oidc-allow-unverified-email=true
             - --oidc-extra-audience=session-hub
-            - --scope=openid email profile groups
+            - --scope=openid email profile
             - --whitelist-domain=session-hub.localhost
             - --whitelist-domain=*.${DEV_DOMAIN}
           env:
-            - name: SESSION_HUB_OIDC_SECRET
+            - name: POCKET_ID_SESSION_HUB_SECRET
               valueFrom:
                 secretKeyRef:
                   name: workspace-secrets
-                  key: SESSION_HUB_OIDC_SECRET
+                  key: POCKET_ID_SESSION_HUB_SECRET
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
+          ports:
+            - containerPort: 4180
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: 4180
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: 4180
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+            requests:
+              memory: 64Mi
+              cpu: "50m"
+            limits:
+              memory: 128Mi
+              cpu: "200m"
+          volumeMounts:
+            - name: oauth2-config
+              mountPath: /run/config
+              readOnly: true
+            - name: allowed-emails
+              mountPath: /etc/oauth2
+              readOnly: true
+      volumes:
+        - name: oauth2-config
+          emptyDir: {}
+        - name: allowed-emails
+          configMap:
+            name: oauth2-proxy-session-hub-allowed-emails
+            items:
+              - key: allowed-emails
+                path: allowed-emails
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true

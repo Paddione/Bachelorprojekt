@@ -1,6 +1,6 @@
 # ═══════════════════════════════════════════════════════════════════
 # Vaultwarden — self-hosted Bitwarden-compatible password manager
-# SSO via Keycloak OIDC; database on shared PostgreSQL
+# SSO via Pocket ID OIDC; database on shared PostgreSQL
 # ═══════════════════════════════════════════════════════════════════
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -91,7 +91,7 @@ spec:
                 configMapKeyRef:
                   name: domain-config
                   key: VAULT_DOMAIN
-            # ── SSO via Keycloak ──────────────────────────────────
+            # ── SSO via Pocket ID ──────────────────────────────────
             # Bitwarden/Vaultwarden speichert Accounts nach E-Mail; der Master-
             # Passwort-Flow ist unvermeidbar (Vault-Verschlüsselung). SSO hier
             # ersetzt nur das Login-Passwort — die E-Mail wird aus dem OIDC-
@@ -110,16 +110,16 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: workspace-secrets
-                  key: VAULTWARDEN_OIDC_SECRET
+                  key: POCKET_ID_VAULTWARDEN_SECRET
             - name: SSO_AUTHORITY
-              value: "http://keycloak:8080/realms/workspace"
+              value: "http://pocket-id:1411"
             - name: SIGNUPS_ALLOWED
               value: "true"
-            - name: KC_DOMAIN
+            - name: POCKET_ID_DOMAIN
               valueFrom:
                 configMapKeyRef:
                   name: domain-config
-                  key: KC_DOMAIN
+                  key: POCKET_ID_DOMAIN
             # ── SMTP via Mailpit (dev) ────────────────────────────
             - name: SMTP_HOST
               value: "mailpit"

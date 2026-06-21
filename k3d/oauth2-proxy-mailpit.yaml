@@ -1,5 +1,5 @@
 # k3d/oauth2-proxy-mailpit.yaml
-# OAuth2 Proxy — Keycloak SSO gateway for Mailpit (mail.<domain>)
+# OAuth2 Proxy — Pocket ID SSO gateway for Mailpit (mail.<domain>)
 # ForwardAuth mode: authenticates via /oauth2/auth (202/401). Traefik's
 # errors middleware redirects 401s to /oauth2/sign_in.
 # Access is restricted to the emails listed in authenticated-emails-file.
@@ -10,7 +10,7 @@ metadata:
   labels:
     app: mailpit
 data:
-  # Admin allow-list. Must match users' Keycloak email addresses.
+  # Admin allow-list. Must match users' Pocket ID email addresses.
   allowed-emails: |
     patrick@korczewski.de
     quamain@web.de
@@ -70,17 +70,17 @@ spec:
           imagePullPolicy: Always
           args:
             - --config=/run/config/oauth2-extra.cfg
-            - --provider=keycloak-oidc
+            - --provider=oidc
             - --client-id=mailpit-admin
-            - --client-secret=$(MAIL_OIDC_SECRET)
+            - --client-secret=$(POCKET_ID_MAIL_SECRET)
             - --redirect-url=http://mail.localhost/oauth2/callback
-            - --oidc-issuer-url=http://keycloak:8080/realms/workspace
+            - --oidc-issuer-url=http://pocket-id:1411
             - --ssl-insecure-skip-verify=true
             - --skip-oidc-discovery=true
-            - --login-url=http://auth.localhost/realms/workspace/protocol/openid-connect/auth
-            - --redeem-url=http://keycloak:8080/realms/workspace/protocol/openid-connect/token
-            - --oidc-jwks-url=http://keycloak:8080/realms/workspace/protocol/openid-connect/certs
-            - --profile-url=http://keycloak:8080/realms/workspace/protocol/openid-connect/userinfo
+            - --login-url=http://id.localhost/authorize
+            - --redeem-url=http://pocket-id:1411/api/oidc/token
+            - --oidc-jwks-url=http://pocket-id:1411/.well-known/jwks.json
+            - --profile-url=http://pocket-id:1411/api/oidc/userinfo
             - --upstream=static://202
             - --reverse-proxy=true
             - --http-address=0.0.0.0:4180
@@ -96,11 +96,11 @@ spec:
             - --scope=openid email profile
             - --whitelist-domain=mail.localhost
           env:
-            - name: MAIL_OIDC_SECRET
+            - name: POCKET_ID_MAIL_SECRET
               valueFrom:
                 secretKeyRef:
                   name: workspace-secrets
-                  key: MAIL_OIDC_SECRET
+                  key: POCKET_ID_MAIL_SECRET
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true

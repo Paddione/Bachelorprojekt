@@ -13,7 +13,7 @@ depends_on_plans: []
 # Tasks: Pocket ID Migration (T001068)
 
 - [x] Welle 0: Pocket ID deployen & konfigurieren (k3d/pocket-id.yaml, schema, envsubst)
-- [ ] Welle 1: 12 oauth2-proxy-Services auf Pocket ID umschwenken (config-only)
+- [x] Welle 1: 12 oauth2-proxy-Services auf Pocket ID umschwenken (config-only)
 - [ ] Welle 2: Custom-Integrationen (Website identity.ts, Nextcloud, Grafana, Brett)
 - [ ] Welle 3: Keycloak Shutdown (nach 14+7 Tagen Beobachtung)
 - [ ] Testing: BATS pocket-id-migration.bats + E2E-Tests erweitern

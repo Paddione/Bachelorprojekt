@@ -4,6 +4,7 @@ import { registerListTools } from './tools/list.js';
 import { registerTriageTools } from './tools/triage.js';
 import { registerPlanningTools } from './tools/planning.js';
 import { registerLifecycleTools } from './tools/lifecycle.js';
+import { registerMishapTools } from './tools/mishap.js';
 
 const server = new McpServer({
   name: 'ticket-mcp',
@@ -14,6 +15,7 @@ registerListTools(server);
 registerTriageTools(server);
 registerPlanningTools(server);
 registerLifecycleTools(server);
+registerMishapTools(server);
 
 const transport = new StdioServerTransport();
 await server.connect(transport);

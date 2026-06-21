@@ -52,7 +52,7 @@ Tippe **Add** / **Hinzufügen**.
 
 ---
 
-## Schritt 3 — Die anderen vier Server hinzufügen
+## Schritt 3 — Die anderen drei Server hinzufügen
 
 Genauso wie Schritt 2, aber mit anderen Daten.
 **Der Token ist jedes Mal derselbe** — nur Name und URL ändern sich:
@@ -60,7 +60,6 @@ Genauso wie Schritt 2, aber mit anderen Daten.
 | Name | Server URL |
 |---|---|
 | `Postgres` | `https://mcp.mentolder.de/postgres/mcp` |
-| `Keycloak` | `https://mcp.mentolder.de/keycloak/mcp/sse` |
 | `Browser` | `https://mcp.mentolder.de/browser/mcp` |
 | `GitHub` | `https://mcp.mentolder.de/github/mcp` |
 
@@ -73,7 +72,7 @@ Bei jedem: **Bearer Token** auswählen, **denselben Token** einfügen,
 
 Geh zurück in einen normalen Chat in der App. Tippe auf das
 **Werkzeug-Symbol** unten neben dem Texteingabefeld 🛠️ — du solltest
-deine 5 Connectors aufgelistet sehen, jeder mit einem Schalter.
+deine 4 Connectors aufgelistet sehen, jeder mit einem Schalter.
 
 Schreib zum Testen:
 

@@ -129,10 +129,22 @@
       "status": "plan_staged"
     }
   ],
+  "T001033": [
+    {
+      "slug": "art-library-webapp-integration",
+      "status": "plan_staged"
+    }
+  ],
+  "T001034": [
+    {
+      "slug": "mentolder-homepage-hifi-redesign",
+      "status": "planning"
+    }
+  ],
   "TBD": [
     {
-      "slug": "ticket-mcp",
-      "status": "plan_staged"
+      "slug": "2026-06-21-ticket-mcp",
+      "status": "archived"
     }
   ]
 }

@@ -1,5 +1,58 @@
 # Changelog
 
+## [1.120.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.119.0...website-v1.120.0) (2026-06-21)
+
+
+### Features
+
+* **website:** Coaching Studio aus Design-System-Vorlage implementieren [T001054] ([#2028](https://github.com/Paddione/Bachelorprojekt/issues/2028)) ([094b39c](https://github.com/Paddione/Bachelorprojekt/commit/094b39c9d9ba2473044b281a0c3d7a9c3883222c))
+
+## [1.119.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.118.0...website-v1.119.0) (2026-06-21)
+
+
+### Features
+
+* **website:** ServiceRow-Layout, Nav-CTA, Prozessschritte und visuelle Verbesserungen ([#2020](https://github.com/Paddione/Bachelorprojekt/issues/2020)) ([510a720](https://github.com/Paddione/Bachelorprojekt/commit/510a720e6037d1ab8e0cf6aba624c16ded07194b))
+
+## [1.118.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.117.1...website-v1.118.0) (2026-06-21)
+
+
+### Features
+
+* **ticket-mcp:** Go-Rewrite mit HTTP-Transport [T001043] ([581a747](https://github.com/Paddione/Bachelorprojekt/commit/581a74743f7ec2ddb9b481aa460c5cda734da3bf))
+
+## [1.117.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.117.0...website-v1.117.1) (2026-06-21)
+
+
+### Bug Fixes
+
+* **coaching:** ILIKE-Suche korrigiert (ESCAPE-Fehler → 302/404) ([#2015](https://github.com/Paddione/Bachelorprojekt/issues/2015)) ([c93f350](https://github.com/Paddione/Bachelorprojekt/commit/c93f350f90927870469a36b4902298ac97c5d875))
+
+## [1.117.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.116.0...website-v1.117.0) (2026-06-21)
+
+
+### Features
+
+* **website:** add brainstorm session templates with clone-and-edit [T000993] ([#2012](https://github.com/Paddione/Bachelorprojekt/issues/2012)) ([0760e71](https://github.com/Paddione/Bachelorprojekt/commit/0760e7182bac65242ee51ae6ccdebf508cda2861))
+* **website:** Mentolder Homepage hifi-Redesign [T001034] ([#2004](https://github.com/Paddione/Bachelorprojekt/issues/2004)) ([0e70a95](https://github.com/Paddione/Bachelorprojekt/commit/0e70a95e177fc432bc6f5a408a7d5dfa9b947f64))
+
+
+### Bug Fixes
+
+* **website:** deduplicate icons.svg, brand-aware art-library API, add BATS regression [T001033] ([#2011](https://github.com/Paddione/Bachelorprojekt/issues/2011)) ([f68c63e](https://github.com/Paddione/Bachelorprojekt/commit/f68c63e30ee4ca5ce1f7fea556c08f7100cbf827))
+
+
+### Tests
+
+* **e2e:** Homepage hifi-Redesign E2E-Tests (FA-57) [T001034] ([#2009](https://github.com/Paddione/Bachelorprojekt/issues/2009)) ([2dd1961](https://github.com/Paddione/Bachelorprojekt/commit/2dd196147c08a632e64e9546294c189114b710a7))
+
+## [1.116.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.115.1...website-v1.116.0) (2026-06-21)
+
+
+### Features
+
+* **website:** integrate art library webapp [T001033] ([#2002](https://github.com/Paddione/Bachelorprojekt/issues/2002)) ([269c6db](https://github.com/Paddione/Bachelorprojekt/commit/269c6db4698dc853e98195ffdfd09ff8b7849888))
+
 ## [1.115.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.115.0...website-v1.115.1) (2026-06-20)
 
 

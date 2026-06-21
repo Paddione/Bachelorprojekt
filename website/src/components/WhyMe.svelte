@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import QuoteCard from './QuoteCard.svelte';
 
   interface WhyMePoint {
@@ -17,9 +18,31 @@
   }
 
   let { headline, intro, points, quote, quoteName, quoteRole = '' }: Props = $props();
+
+  let sectionEl = $state<HTMLElement | null>(null);
+
+  onMount(() => {
+    if (!sectionEl) return;
+    if (typeof IntersectionObserver === 'undefined') {
+      sectionEl.classList.add('reveal', 'visible');
+      return;
+    }
+    sectionEl.classList.add('reveal');
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          sectionEl!.classList.add('visible');
+          obs.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
+    obs.observe(sectionEl);
+    return () => obs.disconnect();
+  });
 </script>
 
-<section class="why section" id="ueber" aria-labelledby="why-heading">
+<section class="why section" id="ueber" aria-labelledby="why-heading" bind:this={sectionEl}>
   <div class="wrap">
     <div class="why-grid">
       <!-- Left: text + points -->
@@ -117,6 +140,20 @@
     border-top: 1px solid var(--line);
     display: flex;
     flex-direction: column;
+    position: relative;
+  }
+
+  /* Brass vertical connector through number column */
+  .points::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 27px; /* center of the 56px number column */
+    width: 1px;
+    background: linear-gradient(to bottom, var(--brass) 0%, transparent 100%);
+    opacity: 0.25;
+    pointer-events: none;
   }
 
   .point {
@@ -135,6 +172,10 @@
     letter-spacing: 0.14em;
     text-transform: uppercase;
     padding-top: 6px;
+    position: relative;
+    z-index: 1;
+    background: var(--ink-850);
+    padding-bottom: 2px;
   }
 
   .point h4 {
@@ -161,6 +202,10 @@
     .why-grid {
       grid-template-columns: 1fr;
       gap: 56px;
+    }
+
+    .points::before {
+      display: none;
     }
 
     .section {

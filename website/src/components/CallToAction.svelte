@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { t, type Locale } from '../i18n/index';
 
   interface Props {
@@ -30,9 +31,31 @@
   const effectiveTitleEmphasis = $derived(titleEmphasis ?? t(locale, 'cta.title-emphasis'));
   const effectiveSubtitle = $derived(subtitle ?? t(locale, 'cta.subtitle'));
   const effectivePrimaryText = $derived(primaryText ?? t(locale, 'cta.primary'));
+
+  let sectionEl = $state<HTMLElement | null>(null);
+
+  onMount(() => {
+    if (!sectionEl) return;
+    if (typeof IntersectionObserver === 'undefined') {
+      sectionEl.classList.add('reveal', 'visible');
+      return;
+    }
+    sectionEl.classList.add('reveal');
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          sectionEl!.classList.add('visible');
+          obs.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
+    obs.observe(sectionEl);
+    return () => obs.disconnect();
+  });
 </script>
 
-<section class="cta" id="termin" aria-labelledby="cta-heading">
+<section class="cta" id="termin" aria-labelledby="cta-heading" bind:this={sectionEl}>
   <div class="glow" aria-hidden="true"></div>
   <div class="wrap">
     <p class="eyebrow">{effectiveEyebrow}</p>
@@ -66,7 +89,7 @@
   .glow {
     position: absolute;
     inset: 0;
-    background: radial-gradient(ellipse at 50% 100%, oklch(0.80 0.09 75 / .16), transparent 60%);
+    background: radial-gradient(ellipse at 50% 100%, oklch(0.80 0.09 75 / .22), transparent 75%);
     pointer-events: none;
   }
 
@@ -157,6 +180,7 @@
   .btn-primary:hover {
     background: var(--brass-2);
     transform: translateY(-1px);
+    box-shadow: 0 0 28px oklch(0.80 0.09 75 / 0.45);
   }
 
   .btn-ghost {

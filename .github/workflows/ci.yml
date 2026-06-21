@@ -245,6 +245,7 @@ jobs:
             recovery
             openspec
             mentolder-web
+            skills
           # Ticket references like [T000436] can extend subject length
           subjectPattern: ^.{1,200}$
           subjectPatternError: |

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   interface Props {
     num: string;
     title: string;
@@ -30,19 +31,41 @@
     href,
     icon,
     iconSpriteId,
-    iconSpriteBrand = 'korczewski',
+    iconSpriteBrand,
   }: Props = $props();
 
   // Split price on "/" to extract unit if not provided
   const [priceMain, priceUnitFallback] = price.split('/').map(s => s.trim());
   const displayUnit = priceUnit ?? priceUnitFallback ?? '';
+
+  let offerEl = $state<HTMLDivElement | null>(null);
+
+  onMount(() => {
+    if (!offerEl) return;
+    if (typeof IntersectionObserver === 'undefined') {
+      offerEl.classList.add('reveal', 'visible');
+      return;
+    }
+    offerEl.classList.add('reveal');
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          offerEl!.classList.add('visible');
+          obs.disconnect();
+        }
+      },
+      { threshold: 0.15 }
+    );
+    obs.observe(offerEl);
+    return () => obs.disconnect();
+  });
 </script>
 
-<div class="offer">
+<div class="offer" bind:this={offerEl}>
   <span class="no" aria-hidden="true">{num}</span>
 
   <div class="title-col">
-    {#if iconSpriteId}
+    {#if iconSpriteId && iconSpriteBrand}
       <svg class="row-icon" viewBox="0 0 24 24" aria-hidden="true">
         <use href={`/brand/${iconSpriteBrand}/icons.svg#${iconSpriteId}`}></use>
       </svg>
@@ -89,7 +112,7 @@
     align-items: start;
     padding: 36px 0;
     border-top: 1px solid var(--line);
-    transition: background 0.25s ease;
+    transition: border-color 0.25s ease, background 0.25s ease;
     position: relative;
   }
 
@@ -98,7 +121,9 @@
   }
 
   .offer:hover {
-    background: linear-gradient(to right, transparent, rgba(232,200,112,.03) 40%, transparent);
+    border-top-color: var(--brass);
+    border-top-width: 2px;
+    background: linear-gradient(to right, transparent, var(--brass-d) 40%, transparent);
   }
 
   .no {

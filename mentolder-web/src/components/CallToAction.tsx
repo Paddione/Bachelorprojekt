@@ -31,7 +31,7 @@ export function CallToAction({
         aria-hidden="true"
         style={{
           background:
-            'radial-gradient(ellipse at 50% 100%, oklch(0.80 0.09 75 / .16), transparent 60%)',
+            'radial-gradient(ellipse at 50% 100%, oklch(0.80 0.09 75 / .22), transparent 60%)',
         }}
       />
       <div className="max-w-[760px] mx-auto px-10 text-center relative z-[1] max-md:px-[22px]">
@@ -91,7 +91,7 @@ export function CallToAction({
           transition: transform .2s ease, background .2s ease, border-color .2s ease, color .2s ease;
         }
         .btn-primary { background: var(--brass); color: var(--ink-900); }
-        .btn-primary:hover { background: var(--brass-2); transform: translateY(-1px); }
+        .btn-primary:hover { background: var(--brass-2); transform: translateY(-1px); box-shadow: 0 0 28px oklch(0.80 0.09 75 / 0.45); }
         .btn-ghost { color: var(--fg); border: 1px solid var(--line-2); background: transparent; }
         .btn-ghost:hover { border-color: var(--brass); color: var(--brass); }
         h2 em { font-style: italic; font-weight: 400; color: var(--brass-2); }

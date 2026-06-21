@@ -226,6 +226,17 @@ describe('listSessions paginiert', () => {
     expect(result.total).toBe(3);
     expect(result.sessions).toHaveLength(3);
   });
+
+  it('sucht Sessions per Titel (q-Parameter)', async () => {
+    const brand = 'test-search-brand';
+    await createSession(pool, { brand, title: 'Coaching Alpha', mode: 'live', createdBy: 'c' });
+    await createSession(pool, { brand, title: 'Coaching Beta', mode: 'live', createdBy: 'c' });
+    await createSession(pool, { brand, title: 'Anderes Thema', mode: 'live', createdBy: 'c' });
+    const found = await listSessions(pool, brand, { q: 'Coaching' });
+    expect(found.total).toBe(2);
+    expect(found.sessions.every(s => s.title.includes('Coaching'))).toBe(true);
+  });
+
 });
 
 describe('updateSessionFields', () => {

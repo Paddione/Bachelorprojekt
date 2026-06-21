@@ -325,12 +325,18 @@ tasks:
       - task: test:unit:factory-scout-drift
       - task: test:unit:dev-reset
       - task: test:unit:agent-push
+      - task: test:unit:sessions-purge
 
 
   test:unit:agent-push:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/agent-push.bats
+
+  test:unit:sessions-purge:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/sessions-purge.bats
 
   test:unit:build-graph:
     internal: true
@@ -4969,4 +4975,12 @@ tasks:
     desc: "Validate an app manifest against the schema. Usage: task app:validate -- <app-name>"
     cmds:
       - node scripts/validate-manifest.mjs apps/{{.CLI_ARGS}}/app.yaml
+
+  # ─────────────────────────────────────────────
+  # ticket-mcp Go Binary
+  # ─────────────────────────────────────────────
+  ticket-mcp:build:
+    desc: "Build the ticket-mcp Go binary (scripts/ticket-mcp/ticket-mcp-go)"
+    cmds:
+      - make -C scripts/ticket-mcp/go build
 

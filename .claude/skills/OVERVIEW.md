@@ -1,6 +1,8 @@
 # Skills Overview
 
-26 project-local skills (25 in `.claude/skills/<name>/` + 1 in `.claude/skills/superpowers/using-git-worktrees/`) grouped by domain. Each skill has its own `SKILL.md` with full runbook details. Invoke any skill by its name.
+12 project-local skills (11 in `.claude/skills/<name>/` + 1 in `.claude/skills/superpowers/using-git-worktrees/`) grouped by domain. Each skill has its own `SKILL.md` with full runbook details. Invoke any skill by its name.
+
+> **Konsolidierung (2026-06-21):** 7 Infra/Ops-Skills wurden in `infra-ops` zusammengeführt (nur bei explizitem Bedarf aufrufen). `update-dependencies` läuft als biweekly Cloud-Routine (https://claude.ai/code/routines/trig_01GiuyN6KP5iMcVUSvBQMKyQ). Die archivierten SKILL.md-Dateien haben kein `description`-Feld mehr und triggern nicht auto-matisch.
 
 > **Wartung:** Diese Anzahl stimmt mit `find .claude/skills -name SKILL.md | wc -l` und mit der `<available_skills>`-Liste des OpenCode-Loaders überein. Wenn ein Skill hinzukommt oder entfernt wird, hier nachziehen.
 
@@ -23,9 +25,7 @@ Each skill's `SKILL.md` frontmatter carries an optional `agent:` field that tell
 | [`dev-flow-plan`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-plan.html) | **Entry point** for feature/fix changes — runs brainstorming, creates spec + plan, commits to branch, then **stops**. Routes chores to [`dev-flow-chore`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-chore.html). |
 | [`dev-flow-chore`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-chore.html) | Maintenance with no behavior change (docs, dep bumps, config, CI) — executes and merges **inline**, no plan/execute handoff. |
 | [`dev-flow-execute`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-execute.html) | After [`dev-flow-plan`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-plan.html) has pushed a staged plan — implements, verifies, opens PR, merges, deploys. |
-| [`dev-flow-iterate`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-iterate.html) | **Sub-routine of [`dev-flow-execute`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-execute.html)** (Schritt 4) + standalone dev-cluster loop — deploys a surface, browses with Playwright MCP, tails logs, applies small fixes. **Not** an alternative to execute. |
 | [`dev-flow-e2e`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-e2e.html) | After [`dev-flow-execute`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-execute.html) has merged and deployed — writes + runs Playwright E2E tests against live environment. |
-| [`dev-flow-batch`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-batch.html) | **Batch variant** of [`dev-flow-plan`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-plan.html) — plans multiple `status=planning` tickets in parallel (Modus 1) or splits a single large feature into parallel sub-plans (Modus 2). Routes through the same `Workflow` orchestration that the Factory uses. |
 
 ---
 
@@ -42,14 +42,6 @@ Each skill's `SKILL.md` frontmatter carries an optional `agent:` field that tell
 | Skill | When to use |
 |---|---|
 | [`git-workflow`](.claude/skills/git-workflow/SKILL.md) | **Immer beim Committen, Pushen oder PR-Erstellen** — vollständiger Lifecycle: pull-first, Conventional Commits + Ticket-ID, Freshness Guard, Commit-Verifikation (git-crypt), PR-Scope-Preflight, CI-Fix-Loop, Auto-Merge `--squash --delete-branch`, Worktree-Cleanup. |
-
----
-
-## Migration (Fremdcode → Plattform)
-
-| Skill | When to use |
-|---|---|
-| [`migrate-foreign-code`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/migrate-foreign-code.html) | Eine bestehende, externe App ins Bachelorprojekt übernehmen — 6-Phasen-Reise (entkoppeln → vendoren → containerisieren → server-side → integrieren) über [`dev-flow`](https://github.com/Paddione/Bachelorprojekt/search?q=dev-flow&type=code), mit Pattern-Katalog. Operator-getrieben; sequenziert dev-flow, ersetzt es nicht. |
 
 ---
 
@@ -111,7 +103,6 @@ unabhängiger Beweis ist. Stufen 3+4 prüfen andere Dimensionen (Review-Qualitä
 
 | Skill | When to use |
 |---|---|
-| [`arena-brett-deploy`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/arena-brett-deploy.html) | Build, push, and deploy arena-server (korczewski brand on fleet only) or brett (both brands on the fleet cluster). Covers proto-drift copy step. |
 | [`workspace-deploy`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/workspace-deploy.html) | Full-stack workspace platform deployment — umbrella `workspace:setup`, post-setup, talk/recording/transcriber setup, optional admin-users and vaultwarden seed. Every service that doesn't ship via base kustomize alone. |
 | [`llm-ops`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/llm-ops.html) | LLM pipeline operations — GPU host bootstrap, model management, deploy/status/test of LLM gateway services (TEI, Ollama, LiteLLM router, ComfyUI, Rigger). |
 
@@ -133,8 +124,6 @@ unabhängiger Beweis ist. Stufen 3+4 prüfen andere Dimensionen (Review-Qualitä
 | [`incident-response`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/incident-response.html) | Production incident triage & recovery — scope, diagnose, fix/rollback, post-mortem. Use when a core service is down or degraded. |
 | [`ticket-ops`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/ticket-ops.html) | Daily operations — DB ticket triage, stale worktrees/branches, PR merge→close workflow, GitHub issue intake. Non-incident operational work. |
 | [`update-dependencies`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/update-dependencies.html) | Update workspace packages, fix deprecation warnings, and handle security audits/Major version bumps across all directories. |
-| [`factory-autopilot`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/factory-autopilot.html) | Software Factory Autopilot lifecycle — install, status, uninstall the headless timer-driven dispatcher that autonomously processes backlog tickets. |
-| [`factory-worker`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/factory-worker.html) | **Interactive counterpart to [`factory-autopilot`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/factory-autopilot.html)** — `/factory-worker-on` yields one autopilot slot so a human can scout + plan SCOUT_WEAK or un-planned tickets via [`dev-flow-plan`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-plan.html), then hand back to the autopilot. |
 | [`mishap-tracker`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/mishap-tracker.html) | **End-of-skill routine** — batches accumulated `MISHAP_LOG` entries from runbook skills into a single aggregate `tickets.tickets` row. Reuses an open "Mishap collection" ticket if one exists. |
 
 ---
@@ -148,10 +137,7 @@ graph TD
     subgraph "Dev-Flow Pipeline (sequentiell)"
         DP[dev-flow-plan] -->|feature/fix| DE[dev-flow-execute]
         DP -->|chore| DC[dev-flow-chore]
-        DP -->|batch| DFB[dev-flow-batch]
-        DE -->|Schritt 4 Sub-Routine| DI[dev-flow-iterate]
         DE --> DEE[dev-flow-e2e]
-        DFB --> DP
     end
 
     subgraph "superpowers (Disziplin-Schicht)"
@@ -171,16 +157,7 @@ graph TD
     DE --> RCR
 
     subgraph "Runbooks (eigenständig)"
-        CD[cluster-deployment]
-        DO[database-ops]
-        HN[host-node-networking]
-        SR[secret-rotation]
-        KR[keycloak-realm-sync]
-        AD[arena-brett-deploy]
-        UD[update-dependencies]
-        WD[workspace-deploy]
-        LO[llm-ops]
-        FA[factory-autopilot]
+        IO[infra-ops §1-7]
     end
 
     subgraph "Support"
@@ -190,35 +167,15 @@ graph TD
         TO[ticket-ops]
     end
 
-    subgraph "Factory (Software-Fabrik)"
-        FA[factory-autopilot]
-        FW[factory-worker]
-    end
-
-    FA -.->|Gegenstück| FW
-
-    DP --> CD
-    DE --> DO
-    DE --> SR
-    DE --> KR
-    DE --> AD
-    DE --> WD
-    DI --> DO
-    DI --> HN
-    DEE --> CD
+    DP --> IO
+    DE --> IO
+    DEE --> IO
 
     OM --> IR
     OM --> TO
     IR --> MT
     TO --> MT
-    CD -.-> OM
-    DO -.-> OM
-    SR -.-> OM
-    KR -.-> OM
-    LO -.-> HN
-    WD -.-> LO
-
-    UD -.-> CD
+    IO -.-> OM
 ```
 
 **Legende:**
@@ -230,12 +187,13 @@ graph TD
 | Start | Verlauf | Ergebnis |
 |-------|---------|----------|
 | Feature entwickeln | [`dev-flow-plan`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-plan.html) → [`dev-flow-execute`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-execute.html) → [`dev-flow-e2e`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-e2e.html) | Gemergetes + getestetes Feature |
-| Mehrere Features parallel planen | [`dev-flow-batch`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-batch.html) (Modus 1) → [`dev-flow-execute`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-execute.html) (pro Sub-Feature) | Mehrere Pläne auf einmal in `plan_staged` |
 | Wartung (Chore) | [`dev-flow-chore`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-chore.html) (inline) | Gemergte Wartung ohne Plan-Handoff |
-| Cluster aufsetzen | [`cluster-deployment`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/cluster-deployment.html) → [`secret-rotation`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/secret-rotation.html) | Produktions-Cluster |
-| DB-Migration | [`database-ops`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/database-ops.html) → [`dev-flow-execute`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-execute.html) (Schema-Change) | Gemergte Migration |
-| Secret rotieren | [`secret-rotation`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/secret-rotation.html) → [`cluster-deployment`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/cluster-deployment.html) (Fan-out Deploy, Phase 5) | Rotierte Secrets |
-| Abhängigkeiten updaten | [`update-dependencies`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/update-dependencies.html) → [`cluster-deployment`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/cluster-deployment.html) (Test-Deploy) | Aktualisierte Packages |
+| Cluster aufsetzen / Workspace deployen | `infra-ops` §1–2 | Produktions-Cluster + alle Services |
+| DB-Migration / Backup | `infra-ops` §7 + `dev-flow-execute` (Schema-Change) | Gemergte Migration |
+| Secret rotieren | `infra-ops` §6 | Rotierte Secrets |
+| Keycloak / SSO | `infra-ops` §4 | Reconcilter Realm |
+| LLM / GPU | `infra-ops` §5 | GPU-Pipeline operativ |
+| Abhängigkeiten updaten | Biweekly Cloud-Routine (auto) | Aktualisierte Packages per PR |
 
 ## Cross-Cutting: Grilling → Ticket
 

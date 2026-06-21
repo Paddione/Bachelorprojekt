@@ -24,11 +24,6 @@
       "url": "http://localhost:13002/mcp",
       "enabled": true
     },
-    "mcp-factory": {
-      "type": "remote",
-      "url": "http://localhost:13003/mcp",
-      "enabled": true
-    },
     // ── Stdio-Server (lokale Prozesse) ────────────────────────────────────
     "task-master-ai": {
       "type": "local",

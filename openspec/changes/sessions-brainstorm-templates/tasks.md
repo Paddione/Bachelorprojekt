@@ -13,6 +13,17 @@ parent_feature: null
 depends_on_plans: []
 ---
 
+# Tasks: Sessions-Brainstorm-Templates (T000993)
+
+- [ ] Task 1: DB-Migration sessions.templates — Tabelle + 5 Default-Seeds (beide Namespaces)
+- [ ] Task 2: website/src/lib/sessions/templates.ts — CRUD-Logik + Hardcoded-Fallback (Test-First)
+- [ ] Task 3: API-Routen GET/POST/DELETE für Templates (admin-guarded)
+- [ ] Task 4: TemplatePicker.svelte — Auswahl-UI mit Default-Badge + Clone-Button
+- [ ] Task 5: SessionStart.svelte — Template-Flow Integration
+- [ ] Task 6: Verifikation — task test:changed + task freshness:regenerate + task freshness:check
+
+---
+
 # Sessions: Brainstorm-Session-Vorlagen — Implementation Plan
 
 > **shared_changes: true** — Die DB-Migration `sessions.templates` gilt für beide

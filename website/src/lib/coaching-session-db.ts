@@ -174,7 +174,7 @@ export async function listSessions(
     whereParts.push(`s.archived_at IS NULL`);
   }
   if (searchPattern) {
-    whereParts.push(`(s.title ILIKE $${p} ESCAPE '\\\\' OR s.client_name ILIKE $${p} ESCAPE '\\\\')`);
+    whereParts.push(`(s.title ILIKE $${p} OR s.client_name ILIKE $${p})`);
     baseParams.push(searchPattern);
     p++;
   }

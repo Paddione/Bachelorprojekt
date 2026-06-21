@@ -35,6 +35,7 @@
     border: 1px solid var(--line-2);
     border-radius: var(--radius);
     overflow: hidden;
+    box-shadow: 0 8px 40px oklch(0.80 0.09 75 / 0.08);
   }
 
   .mark-q {
@@ -42,7 +43,7 @@
     font-size: 120px;
     line-height: 0.5;
     color: var(--brass);
-    opacity: 0.4;
+    opacity: 0.6;
     position: absolute;
     top: 30px;
     left: 30px;
@@ -54,7 +55,7 @@
   blockquote {
     font-family: var(--serif);
     font-style: italic;
-    font-size: 26px;
+    font-size: clamp(22px, 2.8vw, 30px);
     line-height: 1.35;
     color: var(--fg);
     margin: 32px 0 28px;

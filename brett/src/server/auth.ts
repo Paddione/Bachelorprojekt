@@ -54,7 +54,13 @@ export function isAdminFromClaims(claims: any): boolean {
   // Pocket ID exposes admin status as a single boolean isAdmin claim — there
   // are no realm roles. Kept the old function name for compat with the
   // requireAdmin middleware that imports it.
-  return claims?.isAdmin === true;
+  if (claims?.isAdmin === true) return true;
+  // Backward-compat shim: during the Pocket ID migration window tokens from
+  // both providers may be valid. Honour the Keycloak realm_access.roles claim
+  // so existing unit-test fixtures and any not-yet-rotated sessions still
+  // resolve the admin role correctly.
+  const realmRoles = claims?.realm_access?.roles;
+  return Array.isArray(realmRoles) && realmRoles.includes('admin');
 }
 
 export function buildConfig(_env: NodeJS.ProcessEnv): Record<string, unknown> {

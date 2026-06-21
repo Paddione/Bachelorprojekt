@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.121.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.120.0...website-v1.121.0) (2026-06-21)
+
+
+### Features
+
+* **security:** hybrid auth model for korczewski monolith [T001022] ([#2016](https://github.com/Paddione/Bachelorprojekt/issues/2016)) ([e4d29c8](https://github.com/Paddione/Bachelorprojekt/commit/e4d29c81d32ed1c45f1d70f096bd41693100f20e))
+
 ## [1.120.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.119.0...website-v1.120.0) (2026-06-21)
 
 

@@ -64,6 +64,7 @@ const {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    min-width: 0;
   }
 
   .stat:last-child {
@@ -74,8 +75,10 @@ const {
     font-family: var(--serif);
     font-size: 44px;
     line-height: 1;
-    color: var(--fg);
+    color: var(--brass);
     letter-spacing: -0.02em;
+    min-width: 0;
+    word-break: break-word;
   }
 
   /* em inside stat value = brass accent, non-italic */

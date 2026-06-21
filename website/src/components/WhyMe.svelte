@@ -23,6 +23,10 @@
 
   onMount(() => {
     if (!sectionEl) return;
+    if (typeof IntersectionObserver === 'undefined') {
+      sectionEl.classList.add('reveal', 'visible');
+      return;
+    }
     sectionEl.classList.add('reveal');
     const obs = new IntersectionObserver(
       ([entry]) => {

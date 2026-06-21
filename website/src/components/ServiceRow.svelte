@@ -42,6 +42,10 @@
 
   onMount(() => {
     if (!offerEl) return;
+    if (typeof IntersectionObserver === 'undefined') {
+      offerEl.classList.add('reveal', 'visible');
+      return;
+    }
     offerEl.classList.add('reveal');
     const obs = new IntersectionObserver(
       ([entry]) => {

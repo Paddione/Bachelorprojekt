@@ -81,6 +81,7 @@ export default defineConfig({
         '**/fa-54-coaching-sessions.spec.ts',        // coaching session wizard + auth gates (PR #826)
         '**/fa-55-lmstudio-integration.spec.ts',     // LM Studio / local-first LLM generate smoke test
         '**/fa-56-admin-assets.spec.ts',            // central asset management (PR #884)
+        '**/fa-57-homepage-hifi-redesign.spec.ts', // Homepage hifi-Redesign Sektionen [T001034]
         '**/fa-41-admin-hub.spec.ts',               // unified admin hub (PR #883)
         '**/fa-43-ticket-widget.spec.ts',           // TicketWidgetBar showEdit fix + portal widget regression
         '**/fa-44-platform-health-integrity.spec.ts', // Platform Hub health API — single-cluster probe + Collabora namespace fix

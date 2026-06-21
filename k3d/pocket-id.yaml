@@ -147,8 +147,8 @@ spec:
               memory: "64Mi"
       containers:
         - name: pocket-id
-          image: stonith404/pocket-id:latest
-          imagePullPolicy: Always
+          image: stonith404/pocket-id:v2.9.0
+          imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
             runAsNonRoot: true

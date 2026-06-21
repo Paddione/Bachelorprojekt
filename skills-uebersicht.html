@@ -344,6 +344,25 @@ body::after {
   word-break: break-all;
   letter-spacing: -0.01em;
 }
+.skill-card .skill-name a {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px dotted transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+.skill-card .skill-name a:hover {
+  color: var(--accent-strong);
+  border-bottom-color: var(--accent);
+}
+.skill-card .skill-name a::after {
+  content: ' ↗';
+  font-size: 0.7em;
+  color: var(--text-dim);
+  margin-left: 0.15em;
+}
+.skill-card .skill-name a:hover::after {
+  color: var(--accent);
+}
 
 .skill-card .skill-desc {
   font-size: 0.85rem;
@@ -521,7 +540,7 @@ body::after {
 
   <!-- Footer -->
   <footer class="footer">
-    Bachelorprojekt · Stand Juni 2026 · Klick auf 〈📋〉 kopiert den Skill-Namen
+    Bachelorprojekt · Stand 21. Juni 2026 · Klick auf 〈📋〉 kopiert den Skill-Namen
   </footer>
 
 </div>
@@ -541,20 +560,20 @@ const categories = [
     icon: '⚡',
     iconClass: 'process',
     skills: [
-      ['superpowers:brainstorming', 'Vor jeder kreativen Arbeit — Anforderungen, Design & User-Intent erkunden'],
-      ['superpowers:test-driven-development', 'Test-first: roter Test → grüner Test → Refactoring vor jeder Implementierung'],
-      ['superpowers:writing-plans', 'Mehrschrittige Implementierungspläne aus Specs erstellen'],
-      ['superpowers:executing-plans', 'Plan in isolierter Session mit Review-Checkpoints abarbeiten'],
-      ['superpowers:subagent-driven-development', 'Plan mit unabhängigen Tasks parallel per Subagenten umsetzen'],
-      ['superpowers:dispatching-parallel-agents', '2+ unabhängige Aufgaben parallel ausführen'],
-      ['superpowers:using-git-worktrees', 'Isolation via git worktree vor Plan-Implementierung'],
-      ['superpowers:systematic-debugging', 'Strukturierte Fehlersuche statt Ad-hoc-Fixes'],
-      ['superpowers:verification-before-completion', 'Ergebnisse verifizieren, bevor etwas als fertig gemeldet wird'],
-      ['superpowers:requesting-code-review', 'Review anfordern bei Task-Abschluss, großen Features oder vor Merge'],
-      ['superpowers:receiving-code-review', 'Review-Feedback technisch prüfen statt blind übernehmen'],
-      ['superpowers:finishing-a-development-branch', 'Strukturierte Merge/PR/Aufräum-Entscheidung nach Implementierung'],
-      ['superpowers:writing-skills', 'Neue Skills erstellen, editieren oder vor Deployment verifizieren'],
-      ['superpowers:using-superpowers', 'Start jeder Conversation — legt fest, wie Skills gefunden werden'],
+      ['superpowers:brainstorming', 'Vor jeder kreativen Arbeit — Anforderungen, Design & User-Intent erkunden', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/superpowers--brainstorming.html'],
+      ['superpowers:test-driven-development', 'Test-first: roter Test → grüner Test → Refactoring vor jeder Implementierung', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/superpowers--test-driven-development.html'],
+      ['superpowers:writing-plans', 'Mehrschrittige Implementierungspläne aus Specs erstellen', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/superpowers--writing-plans.html'],
+      ['superpowers:executing-plans', 'Plan in isolierter Session mit Review-Checkpoints abarbeiten', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/superpowers--executing-plans.html'],
+      ['superpowers:subagent-driven-development', 'Plan mit unabhängigen Tasks parallel per Subagenten umsetzen', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/superpowers--subagent-driven-development.html'],
+      ['superpowers:dispatching-parallel-agents', '2+ unabhängige Aufgaben parallel ausführen', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/superpowers--dispatching-parallel-agents.html'],
+      ['superpowers:using-git-worktrees', 'Isolation via git worktree vor Plan-Implementierung', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/using-git-worktrees.html'],
+      ['superpowers:systematic-debugging', 'Strukturierte Fehlersuche statt Ad-hoc-Fixes', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/superpowers--systematic-debugging.html'],
+      ['superpowers:verification-before-completion', 'Ergebnisse verifizieren, bevor etwas als fertig gemeldet wird', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/superpowers--verification-before-completion.html'],
+      ['superpowers:requesting-code-review', 'Review anfordern bei Task-Abschluss, großen Features oder vor Merge', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/superpowers--requesting-code-review.html'],
+      ['superpowers:receiving-code-review', 'Review-Feedback technisch prüfen statt blind übernehmen', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/superpowers--receiving-code-review.html'],
+      ['superpowers:finishing-a-development-branch', 'Strukturierte Merge/PR/Aufräum-Entscheidung nach Implementierung', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/superpowers--finishing-a-development-branch.html'],
+      ['superpowers:writing-skills', 'Neue Skills erstellen, editieren oder vor Deployment verifizieren', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/superpowers--writing-skills.html'],
+      ['superpowers:using-superpowers', 'Start jeder Conversation — legt fest, wie Skills gefunden werden', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/superpowers--using-superpowers.html'],
     ]
   },
   {
@@ -563,10 +582,12 @@ const categories = [
     icon: '🏗️',
     iconClass: 'devflow',
     skills: [
-      ['dev-flow-plan', 'Entwicklungsweg wählen, Brainstorming, Spec + Plan, committen & pushen'],
-      ['dev-flow-execute', 'Implementierung ausführen, verifizieren, PR erstellen (auf Branch mit Plan)'],
-      ['dev-flow-iterate', 'Iterativ gegen k3d-Cluster entwickeln — Deploy, Logs, Fehler beheben'],
-      ['dev-flow-e2e', 'Playwright E2E-Tests nach Deployment schreiben & ausführen'],
+      ['dev-flow-plan', 'Entwicklungsweg wählen, Brainstorming, Spec + Plan, committen & pushen', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-plan.html'],
+      ['dev-flow-execute', 'Implementierung ausführen, verifizieren, PR erstellen (auf Branch mit Plan)', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-execute.html'],
+      ['dev-flow-chore', 'Wartung inline ausführen & mergen (Docs, Deps, Config, CI) — kein Plan/Execute-Handoff', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-chore.html'],
+      ['dev-flow-iterate', 'Iterativ gegen k3d-Cluster entwickeln — Deploy, Logs, Fehler beheben', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-iterate.html'],
+      ['dev-flow-e2e', 'Playwright E2E-Tests nach Deployment schreiben & ausführen', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-e2e.html'],
+      ['dev-flow-batch', 'Mehrere status=planning Tickets parallel planen (Modus 1) oder großes Feature in Sub-Pläne zerlegen (Modus 2)', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-batch.html'],
     ]
   },
   {
@@ -575,16 +596,18 @@ const categories = [
     icon: '☸️',
     iconClass: 'infra',
     skills: [
-      ['cluster-deployment', 'Cluster-Erstellung, Deployment, Gap-Analyse, dev.mentolder.de Stack'],
-      ['fleet-ops', 'Mandantenübergreifend deployen/verifizieren — Fan-out, Promotion, Smoke-Gates'],
-      ['host-node-networking', 'Hetzner-Provisioning, WireGuard-Mesh, UFW, LiveKit-Networking, WSL-Gateway'],
-      ['operations-management', 'Incident Response, Ticket-Management, Repo-Hygiene, PR-Triage, CI/CD-Merge'],
-      ['secret-rotation', 'Secrets rotieren — DB-Passwörter, API-Keys, Sealed-Secrets nach Cluster-Reset'],
-      ['keycloak-realm-sync', 'Keycloak-Realm abgleichen — OIDC-Clients, Gruppen, Realm-JSON, SSO-Fehler'],
-      ['arena-brett-deploy', 'Arena-Server (WebSocket) oder Brett (3D-Multiplayer) bauen & deployen'],
-      ['database-ops', 'DB-Operationen, Schema-Migrationen, DDL-Ownership, Backup/Restore-Audits'],
-      ['knowledge-management', 'Knowledge-Base, Embedding-Pipelines, TEI vs Voyage, Crawler-Management'],
-      ['mishap-tracker', 'MISHAP_LOG aus anderen Skills in tickets.tickets-Einträge konvertieren'],
+      ['cluster-deployment', 'Cluster-Erstellung, Deployment, Gap-Analyse, dev.mentolder.de Stack', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/cluster-deployment.html'],
+      ['fleet-ops', 'Mandantenübergreifend deployen/verifizieren — Fan-out, Promotion, Smoke-Gates', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/fleet-ops.html'],
+      ['host-node-networking', 'Hetzner-Provisioning, WireGuard-Mesh, UFW, LiveKit-Networking, WSL-Gateway', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/host-node-networking.html'],
+      ['operations-management', 'Incident Response, Ticket-Management, Repo-Hygiene, PR-Triage, CI/CD-Merge', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/operations-management.html'],
+      ['secret-rotation', 'Secrets rotieren — DB-Passwörter, API-Keys, Sealed-Secrets nach Cluster-Reset', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/secret-rotation.html'],
+      ['keycloak-realm-sync', 'Keycloak-Realm abgleichen — OIDC-Clients, Gruppen, Realm-JSON, SSO-Fehler', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/keycloak-realm-sync.html'],
+      ['arena-brett-deploy', 'Arena-Server (WebSocket) oder Brett (3D-Multiplayer) bauen & deployen', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/arena-brett-deploy.html'],
+      ['database-ops', 'DB-Operationen, Schema-Migrationen, DDL-Ownership, Backup/Restore-Audits', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/database-ops.html'],
+      ['knowledge-management', 'Knowledge-Base, Embedding-Pipelines, TEI vs Voyage, Crawler-Management', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/knowledge-management.html'],
+      ['mishap-tracker', 'MISHAP_LOG aus anderen Skills in tickets.tickets-Einträge konvertieren', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/mishap-tracker.html'],
+      ['factory-autopilot', 'Headless Software-Factory Autopilot — install, status, uninstall des Timer-gesteuerten Dispatchers', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/factory-autopilot.html'],
+      ['factory-worker', 'Interaktiver Factory-Worker (/factory-worker-on) — Gegensück zum Autopilot für SCOUT_WEAK-Tickets', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/factory-worker.html'],
     ]
   },
   {
@@ -593,7 +616,7 @@ const categories = [
     icon: '📦',
     iconClass: 'utils',
     skills: [
-      ['update-dependencies', 'Paket-Updates — Deprecation-Audit, Major-Bumps, Lockfile, Rollback, EOL-Check'],
+      ['update-dependencies', 'Paket-Updates — Deprecation-Audit, Major-Bumps, Lockfile, Rollback, EOL-Check', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/update-dependencies.html'],
     ]
   },
   {
@@ -602,14 +625,14 @@ const categories = [
     icon: '🔌',
     iconClass: 'plugin',
     skills: [
-      ['plugin-dev:plugin-structure', 'Plugin-Verzeichnislayout, Manifest, Auto-Discovery, Architektur'],
-      ['plugin-dev:create-plugin', 'Geführter End-to-End-Workflow für neue Plugins'],
-      ['plugin-dev:agent-development', 'Subagent — System-Prompt, Trigger, Frontmatter, Tools'],
-      ['plugin-dev:command-development', 'Slash-Command — YAML-Frontmatter, Argumente, Bash, Interaktivität'],
-      ['plugin-dev:skill-development', 'Skill — Struktur, Progressive-Disclosure, Trigger-Optimierung'],
-      ['plugin-dev:hook-development', 'Hooks (PreToolUse, PostToolUse, Stop, etc.) — Event-Automatisierung'],
-      ['plugin-dev:mcp-integration', 'MCP-Server in Plugins integrieren (SSE, stdio, HTTP, WebSocket)'],
-      ['plugin-dev:plugin-settings', 'Plugin-Konfiguration via .local.md mit YAML-Frontmatter'],
+      ['plugin-dev:plugin-structure', 'Plugin-Verzeichnislayout, Manifest, Auto-Discovery, Architektur', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/plugin-dev--plugin-structure.html'],
+      ['plugin-dev:create-plugin', 'Geführter End-to-End-Workflow für neue Plugins', 'https://github.com/Paddione/Bachelorprojekt/search?q=plugin-dev%3Acreate-plugin&type=code'],
+      ['plugin-dev:agent-development', 'Subagent — System-Prompt, Trigger, Frontmatter, Tools', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/plugin-dev--agent-development.html'],
+      ['plugin-dev:command-development', 'Slash-Command — YAML-Frontmatter, Argumente, Bash, Interaktivität', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/plugin-dev--command-development.html'],
+      ['plugin-dev:skill-development', 'Skill — Struktur, Progressive-Disclosure, Trigger-Optimierung', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/plugin-dev--skill-development.html'],
+      ['plugin-dev:hook-development', 'Hooks (PreToolUse, PostToolUse, Stop, etc.) — Event-Automatisierung', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/plugin-dev--hook-development.html'],
+      ['plugin-dev:mcp-integration', 'MCP-Server in Plugins integrieren (SSE, stdio, HTTP, WebSocket)', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/plugin-dev--mcp-integration.html'],
+      ['plugin-dev:plugin-settings', 'Plugin-Konfiguration via .local.md mit YAML-Frontmatter', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/plugin-dev--plugin-settings.html'],
     ]
   },
   {
@@ -618,12 +641,12 @@ const categories = [
     icon: '🔍',
     iconClass: 'quality',
     skills: [
-      ['code-review:code-review', 'PR reviewen — Korrektheits-Bugs, Wiederverwendung, Vereinfachung'],
-      ['pr-review-toolkit:review-pr', 'Umfassender PR-Review mit spezialisierten Agenten'],
-      ['commit-commands:commit', 'Git-Commit erstellen'],
-      ['commit-commands:commit-push-pr', 'Commit → Push → PR öffnen als ein Workflow'],
-      ['commit-commands:clean_gone', '[gone]-Branches und zugehörige Worktrees aufräumen'],
-      ['codequality-gates-sliceA-plan', 'Slice-A-Implementierungsplan für Codequality-Gates'],
+      ['code-review:code-review', 'PR reviewen — Korrektheits-Bugs, Wiederverwendung, Vereinfachung', 'https://github.com/Paddione/Bachelorprojekt/search?q=code-review%3Acode-review&type=code'],
+      ['pr-review-toolkit:review-pr', 'Umfassender PR-Review mit spezialisierten Agenten', 'https://github.com/Paddione/Bachelorprojekt/search?q=pr-review-toolkit%3Areview-pr&type=code'],
+      ['commit-commands:commit', 'Git-Commit erstellen', 'https://github.com/Paddione/Bachelorprojekt/search?q=commit-commands%3Acommit&type=code'],
+      ['commit-commands:commit-push-pr', 'Commit → Push → PR öffnen als ein Workflow', 'https://github.com/Paddione/Bachelorprojekt/search?q=commit-commands%3Acommit-push-pr&type=code'],
+      ['commit-commands:clean_gone', '[gone]-Branches und zugehörige Worktrees aufräumen', 'https://github.com/Paddione/Bachelorprojekt/search?q=commit-commands%3Aclean_gone&type=code'],
+      ['codequality-gates-sliceA-plan', 'Slice-A-Implementierungsplan für Codequality-Gates', 'https://github.com/Paddione/Bachelorprojekt/search?q=codequality-gates-sliceA-plan&type=code'],
     ]
   },
   {
@@ -632,7 +655,7 @@ const categories = [
     icon: '🤖',
     iconClass: 'utils',
     skills: [
-      ['agent-sdk-dev:new-sdk-app', 'Neue Claude Agent SDK App erstellen und einrichten'],
+      ['agent-sdk-dev:new-sdk-app', 'Neue Claude Agent SDK App erstellen und einrichten', 'https://github.com/Paddione/Bachelorprojekt/search?q=agent-sdk-dev%3Anew-sdk-app&type=code'],
     ]
   },
   {
@@ -641,7 +664,7 @@ const categories = [
     icon: '🎨',
     iconClass: 'frontend',
     skills: [
-      ['frontend-design:frontend-design', 'Produktionsreife Frontend-Interfaces — kreativ, unverwechselbar, kein KI-Einheitslook'],
+      ['frontend-design:frontend-design', 'Produktionsreife Frontend-Interfaces — kreativ, unverwechselbar, kein KI-Einheitslook', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/frontend-design--frontend-design.html'],
     ]
   },
   {
@@ -650,12 +673,12 @@ const categories = [
     icon: '🌐',
     iconClass: 'browser',
     skills: [
-      ['chrome-devtools-mcp:chrome-devtools', 'Debugging & Browser-Automatisierung via MCP'],
-      ['chrome-devtools-mcp:chrome-devtools-cli', 'Shell-Skripte für Browser-Automatisierung'],
-      ['chrome-devtools-mcp:a11y-debugging', 'Accessibility-Audit — HTML, ARIA, Fokus, Tastatur, Kontrast'],
-      ['chrome-devtools-mcp:debug-optimize-lcp', 'Largest Contentful Paint (LCP) debuggen & optimieren'],
-      ['chrome-devtools-mcp:memory-leak-debugging', 'Memory-Leaks in JavaScript/Node.js diagnostizieren'],
-      ['chrome-devtools-mcp:troubleshooting', 'Verbindungsprobleme mit Chrome DevTools MCP beheben'],
+      ['chrome-devtools-mcp:chrome-devtools', 'Debugging & Browser-Automatisierung via MCP', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/chrome-devtools-mcp--chrome-devtools.html'],
+      ['chrome-devtools-mcp:chrome-devtools-cli', 'Shell-Skripte für Browser-Automatisierung', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/chrome-devtools-mcp--chrome-devtools-cli.html'],
+      ['chrome-devtools-mcp:a11y-debugging', 'Accessibility-Audit — HTML, ARIA, Fokus, Tastatur, Kontrast', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/chrome-devtools-mcp--a11y-debugging.html'],
+      ['chrome-devtools-mcp:debug-optimize-lcp', 'Largest Contentful Paint (LCP) debuggen & optimieren', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/chrome-devtools-mcp--debug-optimize-lcp.html'],
+      ['chrome-devtools-mcp:memory-leak-debugging', 'Memory-Leaks in JavaScript/Node.js diagnostizieren', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/chrome-devtools-mcp--memory-leak-debugging.html'],
+      ['chrome-devtools-mcp:troubleshooting', 'Verbindungsprobleme mit Chrome DevTools MCP beheben', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/chrome-devtools-mcp--troubleshooting.html'],
     ]
   },
   {
@@ -664,22 +687,22 @@ const categories = [
     icon: '🤗',
     iconClass: 'hf',
     skills: [
-      ['huggingface-skills:hf-cli', 'hf CLI — Modelle, Datasets, Spaces, Buckets, Paper, Jobs'],
-      ['huggingface-skills:huggingface-best', 'Bestes Modell für Aufgabe finden (Benchmark-Vergleich)'],
-      ['huggingface-skills:huggingface-local-models', 'Modelle lokal mit llama.cpp/GGUF ausführen'],
-      ['huggingface-skills:huggingface-llm-trainer', 'LLMs mit TRL/Unsloth auf HF Jobs trainieren/finetunen'],
-      ['huggingface-skills:huggingface-vision-trainer', 'Vision-Modelle trainieren (Detection, Classification, SAM)'],
-      ['huggingface-skills:train-sentence-transformers', 'Sentence-Transformer — Bi-Encoder, Cross-Encoder, Sparse'],
-      ['huggingface-skills:huggingface-datasets', 'HF Dataset Viewer API — Metadaten, Paginierung, Filter'],
-      ['huggingface-skills:huggingface-spaces', 'Apps auf HF Spaces — Gradio, Docker, Static, ZeroGPU'],
-      ['huggingface-skills:huggingface-gradio', 'Gradio Web-UIs in Python bauen'],
-      ['huggingface-skills:huggingface-zerogpu', 'ZeroGPU-Code-Konstraints (@spaces.GPU, Pickle-Isolation)'],
-      ['huggingface-skills:huggingface-papers', 'HF Paper-Seiten lesen, arXiv via API abrufen'],
-      ['huggingface-skills:huggingface-paper-publisher', 'Research-Paper auf HF Hub publizieren'],
-      ['huggingface-skills:huggingface-community-evals', 'Modelle lokal mit inspect-ai/lighteval evaluieren'],
-      ['huggingface-skills:huggingface-tool-builder', 'Wiederverwendbare Skripte für HF-API-Daten'],
-      ['huggingface-skills:huggingface-trackio', 'ML-Training mit Trackio tracken & visualisieren'],
-      ['huggingface-skills:transformers-js', 'Transformers.js — ML-Modelle in JavaScript/TypeScript'],
+      ['huggingface-skills:hf-cli', 'hf CLI — Modelle, Datasets, Spaces, Buckets, Paper, Jobs', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/huggingface-skills--hf-cli.html'],
+      ['huggingface-skills:huggingface-best', 'Bestes Modell für Aufgabe finden (Benchmark-Vergleich)', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/huggingface-skills--huggingface-best.html'],
+      ['huggingface-skills:huggingface-local-models', 'Modelle lokal mit llama.cpp/GGUF ausführen', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/huggingface-skills--huggingface-local-models.html'],
+      ['huggingface-skills:huggingface-llm-trainer', 'LLMs mit TRL/Unsloth auf HF Jobs trainieren/finetunen', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/huggingface-skills--huggingface-llm-trainer.html'],
+      ['huggingface-skills:huggingface-vision-trainer', 'Vision-Modelle trainieren (Detection, Classification, SAM)', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/huggingface-skills--huggingface-vision-trainer.html'],
+      ['huggingface-skills:train-sentence-transformers', 'Sentence-Transformer — Bi-Encoder, Cross-Encoder, Sparse', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/huggingface-skills--train-sentence-transformers.html'],
+      ['huggingface-skills:huggingface-datasets', 'HF Dataset Viewer API — Metadaten, Paginierung, Filter', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/huggingface-skills--huggingface-datasets.html'],
+      ['huggingface-skills:huggingface-spaces', 'Apps auf HF Spaces — Gradio, Docker, Static, ZeroGPU', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/huggingface-skills--huggingface-spaces.html'],
+      ['huggingface-skills:huggingface-gradio', 'Gradio Web-UIs in Python bauen', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/huggingface-skills--huggingface-gradio.html'],
+      ['huggingface-skills:huggingface-zerogpu', 'ZeroGPU-Code-Konstraints (@spaces.GPU, Pickle-Isolation)', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/huggingface-skills--huggingface-zerogpu.html'],
+      ['huggingface-skills:huggingface-papers', 'HF Paper-Seiten lesen, arXiv via API abrufen', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/huggingface-skills--huggingface-papers.html'],
+      ['huggingface-skills:huggingface-paper-publisher', 'Research-Paper auf HF Hub publizieren', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/huggingface-skills--huggingface-paper-publisher.html'],
+      ['huggingface-skills:huggingface-community-evals', 'Modelle lokal mit inspect-ai/lighteval evaluieren', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/huggingface-skills--huggingface-community-evals.html'],
+      ['huggingface-skills:huggingface-tool-builder', 'Wiederverwendbare Skripte für HF-API-Daten', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/huggingface-skills--huggingface-tool-builder.html'],
+      ['huggingface-skills:huggingface-trackio', 'ML-Training mit Trackio tracken & visualisieren', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/huggingface-skills--huggingface-trackio.html'],
+      ['huggingface-skills:transformers-js', 'Transformers.js — ML-Modelle in JavaScript/TypeScript', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/huggingface-skills--transformers-js.html'],
     ]
   },
   {
@@ -688,25 +711,25 @@ const categories = [
     icon: '🛠️',
     iconClass: 'utils',
     skills: [
-      ['deep-research', 'Tiefgehende Recherche — Websuche, Quellen, adversarial, zitierter Report'],
-      ['skill-creator:skill-creator', 'Skills erstellen, editieren, optimieren, evaluieren, Benchmark-Analyse'],
-      ['loop', 'Wiederkehrender Task in Intervallen (z.B. /loop 5m /check-deploy)'],
-      ['hookify:hookify', 'Hooks aus Conversation-Analyse oder expliziten Anweisungen erstellen'],
-      ['hookify:configure', 'Hookify-Regeln interaktiv ein-/ausschalten'],
-      ['hookify:list', 'Alle konfigurierten Hookify-Regeln auflisten'],
-      ['hookify:help', 'Hilfe zum Hookify-Plugin'],
-      ['hookify:writing-rules', 'Hookify-Regel-Syntax und -Patterns'],
-      ['remember:remember', 'Session-Status für saubere Fortsetzung speichern'],
-      ['verify', 'Code-Änderung durch Ausführen der App verifizieren'],
-      ['feature-dev:feature-dev', 'Geführte Feature-Entwicklung mit Codebase-Verständnis'],
-      ['init', 'Neue CLAUDE.md mit Codebase-Dokumentation initialisieren'],
-      ['review', 'Pull Request reviewen'],
-      ['security-review', 'Security-Review der pending Changes auf aktuellem Branch'],
-      ['simplify', 'Code auf Wiederverwendung, Vereinfachung, Effizienz prüfen'],
-      ['fewer-permission-prompts', 'Transcripts scannen, Allowlist für read-only Befehle erstellen'],
-      ['claude-api', 'Claude API / Anthropic SDK Referenz — Modelle, Pricing, Tokens, Caching'],
-      ['keybindings-help', 'Tastaturkürzel anpassen — Keybindings, Chord-Shortcuts'],
-      ['update-config', 'CLI-Konfiguration via settings.json — Permissions, Env-Vars, Hooks'],
+      ['deep-research', 'Tiefgehende Recherche — Websuche, Quellen, adversarial, zitierter Report', 'https://github.com/Paddione/Bachelorprojekt/search?q=deep-research&type=code'],
+      ['skill-creator:skill-creator', 'Skills erstellen, editieren, optimieren, evaluieren, Benchmark-Analyse', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/skill-creator--skill-creator.html'],
+      ['loop', 'Wiederkehrender Task in Intervallen (z.B. /loop 5m /check-deploy)', 'https://github.com/Paddione/Bachelorprojekt/search?q=loop&type=code'],
+      ['hookify:hookify', 'Hooks aus Conversation-Analyse oder expliziten Anweisungen erstellen', 'https://github.com/Paddione/Bachelorprojekt/search?q=hookify%3Ahookify&type=code'],
+      ['hookify:configure', 'Hookify-Regeln interaktiv ein-/ausschalten', 'https://github.com/Paddione/Bachelorprojekt/search?q=hookify%3Aconfigure&type=code'],
+      ['hookify:list', 'Alle konfigurierten Hookify-Regeln auflisten', 'https://github.com/Paddione/Bachelorprojekt/search?q=hookify%3Alist&type=code'],
+      ['hookify:help', 'Hilfe zum Hookify-Plugin', 'https://github.com/Paddione/Bachelorprojekt/search?q=hookify%3Ahelp&type=code'],
+      ['hookify:writing-rules', 'Hookify-Regel-Syntax und -Patterns', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/hookify--writing-rules.html'],
+      ['remember:remember', 'Session-Status für saubere Fortsetzung speichern', 'https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/remember--remember.html'],
+      ['verify', 'Code-Änderung durch Ausführen der App verifizieren', 'https://github.com/Paddione/Bachelorprojekt/search?q=verify&type=code'],
+      ['feature-dev:feature-dev', 'Geführte Feature-Entwicklung mit Codebase-Verständnis', 'https://github.com/Paddione/Bachelorprojekt/search?q=feature-dev%3Afeature-dev&type=code'],
+      ['init', 'Neue CLAUDE.md mit Codebase-Dokumentation initialisieren', 'https://github.com/Paddione/Bachelorprojekt/search?q=init&type=code'],
+      ['review', 'Pull Request reviewen', 'https://github.com/Paddione/Bachelorprojekt/search?q=review&type=code'],
+      ['security-review', 'Security-Review der pending Changes auf aktuellem Branch', 'https://github.com/Paddione/Bachelorprojekt/search?q=security-review&type=code'],
+      ['simplify', 'Code auf Wiederverwendung, Vereinfachung, Effizienz prüfen', 'https://github.com/Paddione/Bachelorprojekt/search?q=simplify&type=code'],
+      ['fewer-permission-prompts', 'Transcripts scannen, Allowlist für read-only Befehle erstellen', 'https://github.com/Paddione/Bachelorprojekt/search?q=fewer-permission-prompts&type=code'],
+      ['claude-api', 'Claude API / Anthropic SDK Referenz — Modelle, Pricing, Tokens, Caching', 'https://github.com/Paddione/Bachelorprojekt/search?q=claude-api&type=code'],
+      ['keybindings-help', 'Tastaturkürzel anpassen — Keybindings, Chord-Shortcuts', 'https://github.com/Paddione/Bachelorprojekt/search?q=keybindings-help&type=code'],
+      ['update-config', 'CLI-Konfiguration via settings.json — Permissions, Env-Vars, Hooks', 'https://github.com/Paddione/Bachelorprojekt/search?q=update-config&type=code'],
     ]
   },
 ];
@@ -740,11 +763,12 @@ categories.forEach((cat, ci) => {
     <div class="skill-grid">
       ${cat.skills.map((s, si) => {
         const idx = totalSkills + si;
+        const href = s[2] || '#';
         return `
           <div class="skill-card" data-search="${s[0].toLowerCase()} ${s[1].toLowerCase()} ${cat.title.toLowerCase()}" style="animation-delay:${idx * 0.02}s">
             <div class="card-dot"></div>
             <div class="card-body">
-              <div class="skill-name">${s[0]}</div>
+              <div class="skill-name"><a href="${href}" target="_blank" rel="noopener">${s[0]}</a></div>
               <div class="skill-desc">${s[1]}</div>
             </div>
             <button class="copy-btn" title="Skill-Namen kopieren" data-skill="${s[0]}">

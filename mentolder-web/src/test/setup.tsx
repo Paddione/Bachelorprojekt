@@ -1,8 +1,19 @@
 import '@testing-library/jest-dom';
 
-vi.mock('*.svg?react', () => {
-  const MockSvg = ({ className, 'aria-hidden': ariaHidden }: { className?: string; 'aria-hidden'?: boolean; focusable?: string }) =>
-    <svg className={className} aria-hidden={ariaHidden} data-testid="svg-mock" />;
-  MockSvg.displayName = 'MockSvg';
-  return { default: MockSvg };
+class MockIntersectionObserver implements IntersectionObserver {
+  readonly root: Element | Document | null = null;
+  readonly rootMargin: string = '0px';
+  readonly thresholds: readonly number[] = [0];
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+  takeRecords(): IntersectionObserverEntry[] { return []; }
+}
+
+Object.defineProperty(window, 'IntersectionObserver', {
+  writable: true,
+  configurable: true,
+  value: MockIntersectionObserver,
 });
+
+// SVG ?react mock handled via vitest.config.ts resolve.alias to src/test/svg-stub.tsx

@@ -9,8 +9,9 @@ export default defineConfig({
     css: true,
   },
   resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
+    alias: [
+      { find: /^.*\.svg\?react$/, replacement: path.resolve(__dirname, './src/test/svg-stub.tsx') },
+      { find: '@', replacement: path.resolve(__dirname, './src') },
+    ],
   },
 });

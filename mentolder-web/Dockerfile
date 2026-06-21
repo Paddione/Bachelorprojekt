@@ -2,10 +2,7 @@
 FROM node:22-alpine AS build
 WORKDIR /app
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
-COPY mentolder-web/package.json mentolder-web/pnpm-lock.yaml mentolder-web/.npmrc mentolder-web/pnpm-workspace.yaml ./
-RUN pnpm install --frozen-lockfile
+RUN corepack enable && corepack prepare pnpm@10 --activate
 
 COPY mentolder-web/ .
 
@@ -15,7 +12,7 @@ COPY mentolder-web/ .
 ARG VITE_FORMSPREE_ENDPOINT=""
 ENV VITE_FORMSPREE_ENDPOINT=${VITE_FORMSPREE_ENDPOINT}
 
-RUN pnpm run build
+RUN pnpm install --frozen-lockfile && pnpm run build
 
 # ── Runtime stage ─────────────────────────────────────────────────
 FROM nginx:1.27-alpine AS runtime

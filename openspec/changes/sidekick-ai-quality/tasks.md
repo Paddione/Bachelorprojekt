@@ -311,7 +311,7 @@ git commit -m "feat(website): add ai-metrics middleware (withAiMetrics + logAiCa
 
 Hinweis: Der bestehende `try { response = await client.messages.create({...}) } catch { setProviderCooldown(...); throw err }`-Block bleibt erhalten. Wir wrappen nur den `create()`-Aufruf, damit Latenz/Tokens auch im Fehlerfall (Cooldown-Pfad) erfasst werden.
 
-- [ ] **Step 1: Import ergänzen**
+- [x] **Step 1: Import ergänzen**
 
 Oben in `llm.ts` zu den Imports hinzufügen:
 
@@ -319,7 +319,7 @@ Oben in `llm.ts` zu den Imports hinzufügen:
 import { withAiMetrics } from '../ai-metrics';
 ```
 
-- [ ] **Step 2: `messages.create()` wrappen**
+- [x] **Step 2: `messages.create()` wrappen**
 
 Ersetze (aktuell `llm.ts:90-103`):
 
@@ -366,17 +366,17 @@ durch:
 
 (`Anthropic.Message` trägt `usage: { input_tokens, output_tokens }` — passt zum `withAiMetrics`-Generic ohne Cast.)
 
-- [ ] **Step 3: Typecheck + bestehende llm-Tests**
+- [x] **Step 3: Typecheck + bestehende llm-Tests**
 
 Run: `cd website && npx vitest run src/lib/assistant/ 2>&1 | tail -20`
 Expected: PASS (keine Regression). Falls kein dedizierter llm-Test existiert, mindestens `npx astro check --minimal` für diese Datei grün.
 
-- [ ] **Step 4: S1-Budget prüfen**
+- [x] **Step 4: S1-Budget prüfen**
 
 Run: `wc -l website/src/lib/assistant/llm.ts`
 Expected: < 600 (Start 111, +~4 Zeilen).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add website/src/lib/assistant/llm.ts

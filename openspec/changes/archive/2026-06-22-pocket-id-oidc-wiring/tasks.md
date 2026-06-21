@@ -2,7 +2,7 @@
 title: "Pocket ID OIDC-Wiring Fix — dev secrets + client seed job (T001087)"
 ticket_id: T001087
 domains: [infra, security]
-status: plan_staged
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="mentolder">
+  <rect x="0" y="0" width="32" height="32" rx="7" fill="#101826"/>
+  <text x="16" y="22" text-anchor="middle" fill="#eef1f3" font-family="Geist, ui-sans-serif, system-ui, sans-serif" font-weight="700" font-size="20" letter-spacing="-0.5">m</text>
+  <rect x="9" y="25" width="14" height="2" rx="1" fill="oklch(0.80 0.09 75)"/>
+</svg>

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" preserveAspectRatio="xMidYMid slice" role="presentation" aria-hidden="true">
+  <defs>
+    <radialGradient id="brass" cx="0.78" cy="0.18" r="0.42" fx="0.78" fy="0.18">
+      <stop offset="0%" stop-color="oklch(0.80 0.09 75 / 0.16)"/>
+      <stop offset="55%" stop-color="oklch(0.80 0.09 75 / 0.04)"/>
+      <stop offset="100%" stop-color="oklch(0.80 0.09 75 / 0)"/>
+    </radialGradient>
+    <radialGradient id="ink" cx="0.18" cy="0.78" r="0.5" fx="0.18" fy="0.78">
+      <stop offset="0%" stop-color="oklch(0.60 0.05 250 / 0.32)"/>
+      <stop offset="55%" stop-color="oklch(0.60 0.05 250 / 0.06)"/>
+      <stop offset="100%" stop-color="oklch(0.60 0.05 250 / 0)"/>
+    </radialGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="14"/>
+    </filter>
+  </defs>
+  <rect width="1600" height="900" fill="#0b111c"/>
+  <g filter="url(#soft)">
+    <rect width="1600" height="900" fill="url(#brass)"/>
+    <rect width="1600" height="900" fill="url(#ink)"/>
+  </g>
+</svg>

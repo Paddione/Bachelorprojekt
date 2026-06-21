@@ -102,6 +102,9 @@ s4:
     # (e.g. dev-flow-execute → scripts/devflow-ci-watch.sh). Without this entry,
     # those scripts are flagged as S4-orphans. Added in T001007.
     - ".claude/skills/**/*.md"
+    # AGENTS.md is the canonical reference for agent coordination scripts (agent-lock.sh,
+    # agent-msg.sh, agent-escalate.sh). Added in T001049.
+    - "AGENTS.md"
   allowlist_globs:
     - "k3d/office-stack/**"
     - "k3d/coturn-stack/**"

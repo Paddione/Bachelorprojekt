@@ -125,7 +125,7 @@ git commit -m "feat(website): add ai_call_log table migration [T001065]"
   - `function withAiMetrics<T>(fn: () => Promise<T & { usage?: { input_tokens?: number; output_tokens?: number } }>, meta: AiCallMeta): Promise<T>` — wrapt Anthropic-Calls, extrahiert `usage`, ruft `logAiCall` auf, rethrowt `fn()`-Fehler.
 - Consumes: eigener `pg`-Pool (kein Import von `assistant/llm.ts`).
 
-- [ ] **Step 1: Failing test schreiben**
+- [x] **Step 1: Failing test schreiben**
 
 ```typescript
 // website/src/lib/ai-metrics.test.ts

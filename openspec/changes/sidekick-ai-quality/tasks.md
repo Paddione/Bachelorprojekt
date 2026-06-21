@@ -993,12 +993,12 @@ git commit -m "feat(website): register ai-quality sidekick view in navigation [T
 
 Hinweis: Vor dem Editieren bestehende `maintenance:*`-Tasks in `Taskfile.yml` ansehen, um Connection-Pattern (psql via kubectl exec, ENV-Auflösung, `WORKSPACE_NAMESPACE`) zu übernehmen. Der Cleanup nutzt dasselbe Muster wie andere `maintenance`-Cleanups.
 
-- [ ] **Step 1: bestehendes maintenance-Pattern finden**
+- [x] **Step 1: bestehendes maintenance-Pattern finden**
 
 Run: `grep -n "maintenance:" Taskfile.yml | head -20`
 Expected: zeigt vorhandene `maintenance:*`-Tasks + `maintenance:all` (als Vorlage für DB-Connection und Einhängung).
 
-- [ ] **Step 2: Task ergänzen**
+- [x] **Step 2: Task ergänzen**
 
 Im `Taskfile.yml` einen Task analog zu den bestehenden `maintenance:*`-Cleanups hinzufügen, der folgendes SQL gegen die website-DB ausführt (DB-Connection-Pattern aus Step 1 übernehmen):
 
@@ -1008,12 +1008,12 @@ DELETE FROM ai_call_log WHERE ts < NOW() - INTERVAL '90 days';
 
 Und `maintenance:ai-log-cleanup` zu den `cmds`/`deps` von `maintenance:all` hinzufügen (analog zu den anderen Cleanup-Tasks dort).
 
-- [ ] **Step 3: Dry-run Validierung**
+- [x] **Step 3: Dry-run Validierung**
 
 Run: `task --dry maintenance:ai-log-cleanup 2>&1 | tail -10 || bash scripts/task-oracle.sh --dry-run 'cleanup ai call log'`
 Expected: Task wird aufgelöst (kein „task not found"), zeigt das DELETE-Kommando.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add Taskfile.yml

@@ -1,9 +1,9 @@
 ---
 title: React Homepage Block-System (react.mentolder.de)
 date: 2026-06-21
-status: draft
+status: plan_staged
 domains: [website]
-ticket_id:
+ticket_id: T001056
 plan_ref: openspec/changes/react-homepage-blocks/tasks.md
 ---
 

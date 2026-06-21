@@ -21,10 +21,11 @@ function Chevron({ open }: { open: boolean }) {
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
-      className="w-5 h-5 text-brass flex-shrink-0"
+      className="w-5 h-5 flex-shrink-0"
       style={{
+        color: open ? 'var(--brass)' : 'var(--mute)',
         transform: `rotate(${open ? 180 : 0}deg)`,
-        transition: 'transform 0.3s ease',
+        transition: 'transform 0.3s ease, color 0.2s ease',
       }}
     >
       <path d="M19 9l-7 7-7-7" />

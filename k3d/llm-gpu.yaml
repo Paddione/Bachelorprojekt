@@ -1,38 +1,26 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# llm-gpu: external GPU peer (TEI embed, LM Studio chat)
+# llm-gpu: external GPU peer — LM Studio + TEI
 #
-# The GPU box runs on the wg-mesh overlay (prod) or via Docker bridge (dev/k3d).
-# ${LLM_HOST_IP} is filled by envsubst at deploy time from environments/<env>.yaml.
-# Dev default: 172.17.0.1 (Docker bridge gateway → WSL2 host).
+# LM Studio (Windows) läuft auf port 1234. K8s-Pods können den Docker-Bridge-
+# Host (172.17.0.1 in dev, wg-mesh IP in prod) erreichen, aber nicht Tailscale
+# oder Windows-localhost direkt. Deshalb leitet ein WSL-socat
+# 0.0.0.0:11234 → 127.0.0.1:1234 (LM Studio via mirrored networking).
+#
+# Modelle im LM Studio:
+#   text-embedding-bge-m3          → /v1/embeddings
+#   text-embedding-bge-reranker-v2-m3  → /v1/rerank  (via llm-gateway-rerank)
+#   text-embedding-nomic-embed-text-v1.5 → /v1/embeddings
+#   qwen/qwen3.5-9b                → /v1/chat/completions  (coding)
+#   google/gemma-4-12b-qat         → /v1/chat/completions  (chat)
+#
+# TEI (Docker — läuft als Fallback für rerank falls LM Studio das nicht hat):
+#   llm-gateway-tei-embed  :8081  (bge-m3 via TEI, optional)
+#   llm-gateway-tei-rerank :8083  (bge-reranker-v2-m3 via TEI)
+#
+# ${LLM_HOST_IP}: 172.17.0.1 (dev k3d) | wg-mesh IP (prod fleet)
 # ─────────────────────────────────────────────────────────────────────────────
 
-# ── Embeddings (TEI bge-m3) ──────────────────────────────────────────────────
-apiVersion: v1
-kind: Service
-metadata:
-  name: llm-gateway-embed
-  labels:
-    app: llm-gateway
-spec:
-  ports:
-    - name: http
-      port: 8081
-      targetPort: 8081
----
-apiVersion: v1
-kind: Endpoints
-metadata:
-  name: llm-gateway-embed
-  labels:
-    app: llm-gateway
-subsets:
-  - addresses:
-      - ip: ${LLM_HOST_IP}
-    ports:
-      - name: http
-        port: 8081
----
-# ── Chat (LM Studio — Windows, OpenAI-compatible) ─────────────────────────────
+# ── LM Studio — alle Modelle auf port 1234 (Windows, kein socat) ─────────────
 apiVersion: v1
 kind: Service
 metadata:
@@ -42,7 +30,7 @@ metadata:
 spec:
   ports:
     - name: http
-      port: 1234
+      port: 11234
       targetPort: 1234
 ---
 apiVersion: v1
@@ -57,3 +45,55 @@ subsets:
     ports:
       - name: http
         port: 1234
+---
+# ── TEI Embeddings (Fallback — bge-m3 via Docker TEI) ───────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-gateway-tei-embed
+  labels:
+    app: llm-gateway
+spec:
+  ports:
+    - name: http
+      port: 8081
+      targetPort: 8081
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: llm-gateway-tei-embed
+  labels:
+    app: llm-gateway
+subsets:
+  - addresses:
+      - ip: ${LLM_HOST_IP}
+    ports:
+      - name: http
+        port: 8081
+---
+# ── TEI Reranking (bge-reranker-v2-m3, port 8083) ───────────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-gateway-tei-rerank
+  labels:
+    app: llm-gateway
+spec:
+  ports:
+    - name: http
+      port: 8083
+      targetPort: 8083
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: llm-gateway-tei-rerank
+  labels:
+    app: llm-gateway
+subsets:
+  - addresses:
+      - ip: ${LLM_HOST_IP}
+    ports:
+      - name: http
+        port: 8083

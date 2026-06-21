@@ -21,8 +21,8 @@ function p(): Pool {
 
 export function __setPoolForTests(testPool: Pool): void { _pool = testPool; }
 
-const EMBED_URL = process.env.LLM_EMBED_URL ?? 'http://llm-gateway-embed.workspace.svc.cluster.local:8081';
-const EMBED_MODEL = 'bge-m3';
+const EMBED_URL = process.env.LLM_EMBED_URL ?? 'http://llm-gateway-lmstudio.workspace.svc.cluster.local:11234';
+const EMBED_MODEL = process.env.LLM_EMBED_MODEL ?? 'text-embedding-bge-m3';
 
 function vecLiteral(v: number[]): string {
   return `[${v.join(',')}]`;

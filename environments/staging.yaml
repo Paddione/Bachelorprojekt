@@ -62,8 +62,8 @@ env_vars:
   LLM_HOST_IP: ""
   COMFY_HOST_IP: ""
   COMFY_PORT: ""
-  LLM_ROUTER_URL: "http://llm-gateway-lmstudio.workspace-staging.svc.cluster.local:1234"
-  LLM_EMBED_URL: "http://llm-gateway-embed.workspace-staging.svc.cluster.local:8081"
+  LLM_ROUTER_URL: "http://llm-gateway-lmstudio.workspace-staging.svc.cluster.local:11234"
+  LLM_EMBED_URL: "http://llm-gateway-lmstudio.workspace-staging.svc.cluster.local:11234"
   # System-test failure loop disabled on staging
   SYSTEMTEST_LOOP_ENABLED: "false"
   STUDIO_DOMAIN: studio.staging.korczewski.de

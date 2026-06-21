@@ -7,8 +7,8 @@ import pg from 'pg';
 const { Pool } = pg;
 
 const REPO_ROOT = resolve(import.meta.dirname ?? process.cwd(), '..');
-const EMBED_URL = process.env.LLM_EMBED_URL ?? 'http://llm-gateway-embed.workspace.svc.cluster.local:8081';
-const EMBED_MODEL = 'bge-m3';
+const EMBED_URL = process.env.LLM_EMBED_URL ?? 'http://llm-gateway-lmstudio.workspace.svc.cluster.local:11234';
+const EMBED_MODEL = process.env.LLM_EMBED_MODEL ?? 'text-embedding-bge-m3';
 const EMBED_DIM = 1024;
 const CHUNK_MAX_TOKENS = 512;
 const CHUNK_OVERLAP = 64;

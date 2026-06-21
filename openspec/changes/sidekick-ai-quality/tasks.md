@@ -73,9 +73,9 @@ Taskfile.yml                                                 # MODIFY — mainte
 **Interfaces:**
 - Produces: Tabelle `public.ai_call_log` mit Spalten `id, ts, workflow, model, prompt_tokens, completion_tokens, latency_ms, error, user_sub, metadata` + Indizes `ai_call_log_ts`, `ai_call_log_workflow`.
 
-Hinweis: Bestehende Migrations unter `website/migrations/` sind reine SQL-Dateien (Muster: `20260617_create_audit_log.sql`). Diese Datei folgt demselben Muster (idempotent via `IF NOT EXISTS`).
+  Hinweis: Bestehende Migrations unter `website/src/db/migrations/` sind reine SQL-Dateien (Muster: `20260617_create_audit_log.sql`). Diese Datei folgt demselben Muster (idempotent via `IF NOT EXISTS`).
 
-- [ ] **Step 1: Migration schreiben**
+- [x] **Step 1: Migration schreiben**
 
 ```sql
 -- website/migrations/20260621_create_ai_call_log.sql
@@ -96,15 +96,15 @@ CREATE INDEX IF NOT EXISTS ai_call_log_ts       ON ai_call_log (ts DESC);
 CREATE INDEX IF NOT EXISTS ai_call_log_workflow ON ai_call_log (workflow, ts DESC);
 ```
 
-- [ ] **Step 2: Syntaxprüfung (lokal, ohne Cluster)**
+- [x] **Step 2: Syntaxprüfung (lokal, ohne Cluster)**
 
-Run: `psql --version >/dev/null 2>&1 && echo "psql vorhanden" ; grep -c "CREATE" website/migrations/20260621_create_ai_call_log.sql`
+Run: `psql --version >/dev/null 2>&1 && echo "psql vorhanden" ; grep -c "CREATE" website/src/db/migrations/20260621_create_ai_call_log.sql`
 Expected: Ausgabe `3` (1× Tabelle, 2× Index). (Falls lokal eine Test-DB existiert, optional `psql ... -f` gegen sie laufen lassen — sonst genügt die Strukturprüfung.)
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
-git add website/migrations/20260621_create_ai_call_log.sql
+git add website/src/db/migrations/20260621_create_ai_call_log.sql
 git commit -m "feat(website): add ai_call_log table migration [T001065]"
 ```
 

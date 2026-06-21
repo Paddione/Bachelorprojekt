@@ -10,6 +10,18 @@ parent_feature: null
 depends_on_plans: []
 ---
 
+# Tasks: Agent-Push-Notifications (T000991)
+
+- [ ] Task 1: ntfy-Deployment + Schema-Registrierung (k3d/ntfy.yaml, environments/schema.yaml)
+- [ ] Task 2: scripts/agent-push.sh — universeller Push-Hook (Event → Opt-in-Check → ntfy POST)
+- [ ] Task 3: opencode-Session-Hooks (.opencode/hooks/session-start.sh + session-end.sh)
+- [ ] Task 4: agy-Task-Lifecycle-Hook (.agy/hooks/task-event.sh)
+- [ ] Task 5: website Opt-in lib + Settings-API + DB-Migration (agent-push-settings.ts + API-Route)
+- [ ] Task 6: website UI AgentPushSettings.svelte — Toggle pro Quelle
+- [ ] Task 7: Verifikation — task test:changed + task freshness:regenerate + task freshness:check
+
+---
+
 # Agent-Push-Notifications — Implementation Plan
 
 Sendet opencode- und agy-Session-Events als HTTP-POST an einen self-hosted ntfy-Server, sodass Patrick

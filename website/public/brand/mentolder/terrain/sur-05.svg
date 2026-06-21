@@ -1,0 +1,19 @@
+<svg viewBox="0 0 240 160" width="240" height="160" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sur5" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#e8c878" stop-opacity="0.18"/>
+      <stop offset="40%" stop-color="#8a8a8a" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#1a2436" stop-opacity="0.6"/>
+    </linearGradient>
+  </defs>
+  <rect width="240" height="160" fill="#3c4452"/>
+  <rect width="240" height="160" fill="url(#sur5)"/>
+  <circle cx="29" cy="19" r="0.4" fill="#fff" opacity="0.15"/>
+  <circle cx="58" cy="57" r="0.4" fill="#fff" opacity="0.15"/>
+  <circle cx="87" cy="38" r="0.4" fill="#fff" opacity="0.15"/>
+  <circle cx="116" cy="95" r="0.4" fill="#fff" opacity="0.15"/>
+  <circle cx="145" cy="19" r="0.4" fill="#fff" opacity="0.15"/>
+  <circle cx="174" cy="76" r="0.4" fill="#fff" opacity="0.15"/>
+  <circle cx="203" cy="133" r="0.4" fill="#fff" opacity="0.15"/>
+  <circle cx="232" cy="57" r="0.4" fill="#fff" opacity="0.15"/>
+</svg>

@@ -113,7 +113,7 @@ test('clicking a card opens the side panel with palette swatches', async ({ brow
   }
 });
 
-test('mentolder context shows empty-state (no art library)', async ({ browser }) => {
+test('mentolder context shows a populated art library', async ({ browser }) => {
   if (!hasAuthState()) { test.skip(); return; }
 
   const MENTOLDER_URL = (process.env.MENTOLDER_ADMIN_URL ?? 'https://web.mentolder.de/admin').replace(/\/$/, '');
@@ -121,17 +121,15 @@ test('mentolder context shows empty-state (no art library)', async ({ browser })
   const page = await ctx.newPage();
   try {
     await page.goto(MENTOLDER_URL, { waitUntil: 'domcontentloaded' });
-    // If redirected to auth, this test cannot run without mentolder credentials
     const redirected = page.url().includes('auth.') || page.url().includes('realms/workspace');
     if (redirected) { test.skip(); return; }
     const artBtn = page.locator('button, a').filter({ hasText: /Art Library|Bibliothek/i }).first();
     const hasArtTab = await artBtn.isVisible({ timeout: 5_000 }).catch(() => false);
     if (!hasArtTab) { test.skip(); return; }
     await artBtn.click();
-    await expect(page.locator('.art-empty')).toContainText(
-      /No art library configured|Keine Kunstbibliothek/,
-      { timeout: 6_000 },
-    );
+    await page.waitForSelector('.art-grid', { timeout: 8_000 });
+    expect(await page.locator('.art-card').count()).toBeGreaterThan(0);
+    await expect(page.locator('.art-empty')).toHaveCount(0);
   } finally {
     await ctx.close();
   }

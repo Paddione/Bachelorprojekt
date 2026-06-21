@@ -3,6 +3,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 import AdminPageHeader from '../../components/admin/ui/AdminPageHeader.svelte';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import AssetGallery from '../../components/admin/AssetGallery.svelte';
+import ArtLibrary from '../../components/admin/ArtLibrary.svelte';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -12,6 +13,34 @@ if (!isAdmin(session)) return Astro.redirect('/admin');
 <AdminLayout title="Assets">
   <div style="max-width:72rem; margin:0 auto; padding:1.5rem 1.5rem 0;">
     <AdminPageHeader title="Assets" />
+    <nav class="assets-tabs" role="tablist">
+      <button type="button" class="assets-tab is-active" data-tab="generated">Assets</button>
+      <button type="button" class="assets-tab" data-tab="art">Art Library</button>
+    </nav>
   </div>
-  <AssetGallery client:load />
+
+  <div data-tabpanel="generated">
+    <AssetGallery client:load />
+  </div>
+  <div data-tabpanel="art" hidden>
+    <ArtLibrary client:visible />
+  </div>
+
+  <script is:inline>
+    document.querySelectorAll('.assets-tab').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const tab = btn.getAttribute('data-tab');
+        document.querySelectorAll('.assets-tab').forEach((b) => b.classList.toggle('is-active', b === btn));
+        document.querySelectorAll('[data-tabpanel]').forEach((p) => {
+          p.hidden = p.getAttribute('data-tabpanel') !== tab;
+        });
+      });
+    });
+  </script>
+
+  <style>
+    .assets-tabs { display: flex; gap: 0.5rem; margin: 1rem 0 0.5rem; }
+    .assets-tab { padding: 0.45rem 0.9rem; border: 1px solid var(--border, #2a3343); border-radius: 0.5rem; background: transparent; color: inherit; cursor: pointer; }
+    .assets-tab.is-active { background: var(--accent, #d7b06a); color: #0b111c; }
+  </style>
 </AdminLayout>

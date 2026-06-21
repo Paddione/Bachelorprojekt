@@ -10,6 +10,16 @@ parent_feature: null
 depends_on_plans: []
 ---
 
+# Tasks: AI-Ticket-Auto-Triage (T000992)
+
+- [ ] Task 1: scripts/triage/few-shot-examples.json — 20 kalibrierte Trainings-Tickets
+- [ ] Task 2: scripts/triage/heuristik.mjs — Regelwerk + Keyword-Matching + Confidence-Score
+- [ ] Task 3: Triage-Hook in scripts/vda/ticket/create.sh integrieren (Post-Create-Trigger)
+- [ ] Task 4: website/src/lib/tickets/triage-display.ts + Unit-Tests (Vorschlag-Comment-Rendering)
+- [ ] Task 5: Verifikation — task test:changed + task freshness:regenerate + task freshness:check
+
+---
+
 # AI: Ticket-Auto-Triage — Implementation Plan
 
 Heuristik-basierte Severity-Erkennung beim Ticket-Create. Neues Ticket →

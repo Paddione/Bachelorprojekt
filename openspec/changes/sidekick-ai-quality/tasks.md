@@ -909,7 +909,7 @@ git commit -m "feat(website): add AiQualitySidekickView component [T001065]"
 - Consumes: `AiQualitySidekickView.svelte` (Task 6); `parseNavigateEvent` muss `'ai-quality'` als gültige View akzeptieren.
 - Produces: View ist über Home-Menü (Item `08 KI-Qualität`) erreichbar; `{#if view === 'ai-quality'}`-Branch rendert die Komponente.
 
-- [ ] **Step 1: `sidekick-nudge.ts` — View-Typ + KNOWN_VIEWS erweitern**
+- [x] **Step 1: `sidekick-nudge.ts` — View-Typ + KNOWN_VIEWS erweitern**
 
 ```typescript
 export type SidekickView =
@@ -920,13 +920,13 @@ const KNOWN_VIEWS: ReadonlySet<string> = new Set([
 ]);
 ```
 
-- [ ] **Step 2: Test für parseNavigateEvent ergänzen (falls Testdatei existiert)**
+- [x] **Step 2: Test für parseNavigateEvent ergänzen (falls Testdatei existiert)**
 
 Run: `ls website/src/lib/assistant/sidekick-nudge.test.ts 2>/dev/null && echo exists || echo none`
 
 Falls `exists`: einen Case ergänzen, der `parseNavigateEvent({ view: 'ai-quality', jumpTo: null })` als gültig (`{ view: 'ai-quality', jumpTo: null }`) erwartet. Falls `none`: überspringen (kein neuer Test nötig — Typ-Erweiterung genügt).
 
-- [ ] **Step 3: `SidekickHome.svelte` — View-Typ + Menü-Item mit Badge**
+- [x] **Step 3: `SidekickHome.svelte` — View-Typ + Menü-Item mit Badge**
 
 Im `type View`-Alias (Zeile ~2) `'ai-quality'` ergänzen:
 
@@ -947,7 +947,7 @@ Im `items`-Array (nach dem letzten Admin-Item) hinzufügen. `aiErrorCount` als o
 
 (Die `no`-Nummer `08` an die bestehende Sequenz anpassen, falls die letzte Nummer abweicht — Implementierer prüft die vorhandenen `no:`-Werte und nimmt die nächste freie.)
 
-- [ ] **Step 4: `PortalSidekick.svelte` — Import + Branch**
+- [x] **Step 4: `PortalSidekick.svelte` — Import + Branch**
 
 Import oben (bei den anderen `...SidekickView`-Imports, ~Zeile 11):
 
@@ -964,17 +964,17 @@ Im View-Switch (nach dem `cockpit`-Branch, ~Zeile 231) ergänzen:
 
 (Exakte `{#if}`/`{:else if}`-Struktur an die vorhandene Kette anpassen — neuer Zweig vor dem schließenden `{/if}`.)
 
-- [ ] **Step 5: Astro check + bestehende Sidekick-Tests**
+- [x] **Step 5: Astro check + bestehende Sidekick-Tests**
 
 Run: `cd website && npx vitest run src/lib/assistant/ src/components/assistant/ 2>&1 | tail -20 && npx astro check --minimal 2>&1 | grep -iE "ai-quality|AiQuality|PortalSidekick|SidekickHome" || echo "keine Navigations-Fehler"`
 Expected: Tests PASS, `keine Navigations-Fehler`.
 
-- [ ] **Step 6: S1-Budgets prüfen**
+- [x] **Step 6: S1-Budgets prüfen**
 
 Run: `wc -l website/src/lib/assistant/sidekick-nudge.ts website/src/components/assistant/SidekickHome.svelte website/src/components/PortalSidekick.svelte`
 Expected: sidekick-nudge < 600, SidekickHome < 500 (Start 303), PortalSidekick < 500 (Start 362).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add website/src/lib/assistant/sidekick-nudge.ts website/src/components/assistant/SidekickHome.svelte website/src/components/PortalSidekick.svelte

@@ -1,7 +1,6 @@
-# Enable Keycloak OIDC on Grafana in prod. The OIDC client_secret + admin
-# password come from the `grafana-oidc` SealedSecret. Auth URLs use the
-# mentolder realm (operator is admin in both realms). Brand-specific host is
-# patched per-overlay in prod-fleet/*.
+# Enable Pocket ID OIDC on Grafana in prod. The OIDC client_secret + admin
+# password come from the `grafana-oidc` SealedSecret. Pocket ID has no groups
+# — the role-attribute-path keys on the boolean isAdmin claim (T000972).
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -16,24 +15,24 @@ spec:
             - name: GF_AUTH_GENERIC_OAUTH_ENABLED
               value: "true"
             - name: GF_AUTH_GENERIC_OAUTH_NAME
-              value: "Keycloak"
+              value: "Pocket ID"
             - name: GF_AUTH_GENERIC_OAUTH_CLIENT_ID
               value: "grafana"
             - name: GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
                   name: grafana-oidc
-                  key: GRAFANA_OIDC_SECRET
+                  key: POCKET_ID_GRAFANA_SECRET
             - name: GF_AUTH_GENERIC_OAUTH_SCOPES
               value: "openid email profile"
             - name: GF_AUTH_GENERIC_OAUTH_AUTH_URL
-              value: "https://auth.mentolder.de/realms/workspace/protocol/openid-connect/auth"
+              value: "https://id.${PROD_DOMAIN}/authorize"
             - name: GF_AUTH_GENERIC_OAUTH_TOKEN_URL
-              value: "https://auth.mentolder.de/realms/workspace/protocol/openid-connect/token"
+              value: "https://id.${PROD_DOMAIN}/api/oidc/token"
             - name: GF_AUTH_GENERIC_OAUTH_API_URL
-              value: "https://auth.mentolder.de/realms/workspace/protocol/openid-connect/userinfo"
+              value: "https://id.${PROD_DOMAIN}/api/oidc/userinfo"
             - name: GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH
-              value: "contains(groups[*], 'workspace-admins') && 'Admin' || 'Viewer'"
+              value: "isAdmin && 'Admin' || 'Viewer'"
             - name: GF_SECURITY_ADMIN_PASSWORD
               valueFrom:
                 secretKeyRef:

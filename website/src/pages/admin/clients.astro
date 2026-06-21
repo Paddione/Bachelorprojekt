@@ -4,8 +4,8 @@ import AdminPageHeader from '../../components/admin/ui/AdminPageHeader.svelte';
 import AdminTabs from '../../components/admin/ui/AdminTabs.svelte';
 import AdminBadge from '../../components/admin/ui/AdminBadge.svelte';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
-import { listUsers } from '../../lib/keycloak';
-import type { KcUser } from '../../lib/keycloak';
+import { listUsers } from '../../lib/identity';
+import type { KcUser } from '../../lib/identity';
 import { listAllCustomers, listPendingEnrollments } from '../../lib/website-db';
 import type { PendingEnrollment } from '../../lib/website-db';
 

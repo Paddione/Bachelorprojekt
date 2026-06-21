@@ -7,17 +7,17 @@ let oidcConfig: Configuration | null = null;
 
 export async function getOidcClient(): Promise<Configuration> {
   if (oidcConfig) return oidcConfig;
-  const kcUrl       = process.env.KEYCLOAK_URL || 'http://keycloak.workspace.svc.cluster.local:8080';
-  const kcPublicUrl = process.env.KEYCLOAK_PUBLIC_URL || '';
-  const kcRealm     = process.env.KEYCLOAK_REALM || 'workspace';
+  const piUrl       = process.env.POCKET_ID_URL || 'http://pocket-id.workspace.svc.cluster.local:1411';
+  const piPublicUrl = process.env.POCKET_ID_FRONTEND_URL || '';
   const clientId    = process.env.BRETT_KC_CLIENT_ID || 'brett-app';
-  const clientSecret = process.env.BRETT_OIDC_SECRET || '';
+  const clientSecret = process.env.POCKET_ID_BRETT_SECRET || process.env.BRETT_OIDC_SECRET || '';
 
-  const internalUrl = new URL(`${kcUrl}/realms/${kcRealm}`);
-  // When KEYCLOAK_PUBLIC_URL is set, openid-client validates the discovered issuer
-  // against the public URL while customFetch routes the actual request to the
-  // cluster-internal endpoint (avoids issuer mismatch with RFC-compliant v6).
-  const issuerUrl = kcPublicUrl ? new URL(`${kcPublicUrl}/realms/${kcRealm}`) : internalUrl;
+  const internalUrl = new URL(piUrl);
+  // When POCKET_ID_FRONTEND_URL is set, openid-client validates the discovered
+  // issuer against the public URL while customFetch routes the actual request
+  // to the cluster-internal endpoint (avoids issuer mismatch with
+  // RFC-compliant v6).
+  const issuerUrl = piPublicUrl ? new URL(piPublicUrl) : internalUrl;
 
   const isClusterHttp = internalUrl.protocol === 'http:' &&
     (internalUrl.hostname === 'localhost' || internalUrl.hostname === '127.0.0.1' || internalUrl.hostname.endsWith('.svc.cluster.local'));
@@ -27,7 +27,7 @@ export async function getOidcClient(): Promise<Configuration> {
 
   const opts: Record<string | symbol, unknown> = {};
   if (isClusterHttp) opts.execute = [allowInsecureRequests];
-  if (kcPublicUrl && kcPublicUrl !== kcUrl) {
+  if (piPublicUrl && piPublicUrl !== piUrl) {
     opts[customFetch] = (input: Parameters<typeof fetch>[0], init?: RequestInit) => {
       const href = typeof input === 'string' ? input : input instanceof URL ? input.href : (input as { url: string }).url;
       const u = new URL(href);
@@ -51,7 +51,10 @@ export async function getOidcClient(): Promise<Configuration> {
 }
 
 export function isAdminFromClaims(claims: any): boolean {
-  return Array.isArray(claims?.realm_access?.roles) && claims.realm_access.roles.includes('admin');
+  // Pocket ID exposes admin status as a single boolean isAdmin claim — there
+  // are no realm roles. Kept the old function name for compat with the
+  // requireAdmin middleware that imports it.
+  return claims?.isAdmin === true;
 }
 
 export function buildConfig(_env: NodeJS.ProcessEnv): Record<string, unknown> {
@@ -64,7 +67,7 @@ export function resolveBrand(env: NodeJS.ProcessEnv): string {
 
 export function boardAuthRedirect(req: any, env: NodeJS.ProcessEnv): string | null {
   if (req.session && req.session.userId) return null;
-  const e2eSecret = env.BRETT_OIDC_SECRET;
+  const e2eSecret = env.POCKET_ID_BRETT_SECRET || env.BRETT_OIDC_SECRET;
   if (e2eSecret && typeof req.header === 'function' && req.header('x-e2e-secret') === e2eSecret) return null;
   const returnTo = encodeURIComponent(req.path || '/');
   return `/auth/login?returnTo=${returnTo}`;
@@ -72,7 +75,7 @@ export function boardAuthRedirect(req: any, env: NodeJS.ProcessEnv): string | nu
 
 export function requireAdmin(req: Request, res: Response, next: NextFunction): void {
   if ((req as any).session?.isAdmin) return next();
-  const e2eSecret = process.env.BRETT_OIDC_SECRET;
+  const e2eSecret = process.env.POCKET_ID_BRETT_SECRET || process.env.BRETT_OIDC_SECRET;
   if (e2eSecret && req.header('x-e2e-secret') === e2eSecret) return next();
   res.status(403).json({ error: 'forbidden' });
 }
@@ -101,7 +104,7 @@ export function sanitizeReturnTo(raw: any): string {
  */
 export function requireSession(req: Request, res: Response, next: NextFunction): void {
   if ((req as any).session?.userId) return next();
-  const e2eSecret = process.env.BRETT_OIDC_SECRET;
+  const e2eSecret = process.env.POCKET_ID_BRETT_SECRET || process.env.BRETT_OIDC_SECRET;
   if (e2eSecret && req.header('x-e2e-secret') === e2eSecret) return next();
   res.status(401).json({ error: 'unauthenticated' });
 }
@@ -117,7 +120,7 @@ export function requireLeiterOrAdmin(
       const roles = getRoomRoles(roomToken);
       if (roles?.[session.userId] === 'leiter') return next();
     }
-    const e2eSecret = process.env.BRETT_OIDC_SECRET;
+    const e2eSecret = process.env.POCKET_ID_BRETT_SECRET || process.env.BRETT_OIDC_SECRET;
     if (e2eSecret && req.header('x-e2e-secret') === e2eSecret) return next();
     res.status(403).json({ error: 'forbidden' });
   };

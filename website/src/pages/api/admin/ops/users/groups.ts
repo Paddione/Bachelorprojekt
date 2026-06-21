@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
-import { listGroups } from '../../../../../lib/keycloak';
+import { listGroups } from '../../../../../lib/identity';
 import { sanitizeForLog } from '../../../../../lib/sanitize';
 
 export const GET: APIRoute = async ({ request }) => {

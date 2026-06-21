@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
-import { createUser as kcCreateUser, assignUserToGroups, sendPasswordResetEmail } from '../../../../../lib/keycloak';
+import { createUser as kcCreateUser, assignUserToGroups, sendPasswordResetEmail } from '../../../../../lib/identity';
 import { platformPool } from '../../../../../lib/website-db';
 import { startAction, finishAction, ConcurrentActionError } from '../../../../../lib/admin-actions';
 import { sanitizeForLog } from '../../../../../lib/sanitize';

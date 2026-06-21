@@ -153,6 +153,12 @@
       "status": "archived"
     }
   ],
+  "T001068": [
+    {
+      "slug": "pocket-id-migration",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-ticket-mcp",

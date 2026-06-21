@@ -5,7 +5,7 @@ metadata:
   labels: { app: claude-code }
 data:
   oauth2-proxy.cfg: |
-    provider = "keycloak-oidc"
+    provider = "oidc"
     client_id = "claude-code-mcp-monolith"
     client_secret = ""
     cookie_name = "mcp_kc_session"
@@ -16,7 +16,7 @@ data:
     upstreams = [ "http://localhost:80" ]
     skip_auth_regex = [ "^/svc/" ]   # token-validated path bypasses oauth2-proxy
     scope = "openid email profile"
-    oidc_issuer_url = "https://keycloak.${PROD_DOMAIN}/realms/workspace"
+    oidc_issuer_url = "https://id.${PROD_DOMAIN}"
     redirect_url = "https://mcp.${PROD_DOMAIN}/oauth2/callback"
     pass_access_token = true
     set_xauthrequest = true
@@ -99,7 +99,7 @@ spec:
         - name: OAUTH2_PROXY_CLIENT_SECRET
           valueFrom:
             secretKeyRef:
-              key: MCP_KEYCLOAK_CLIENT_SECRET
+              key: POCKET_ID_CLAUDE_CODE_SECRET
               name: workspace-secrets
         - name: OAUTH2_PROXY_COOKIE_SECRET
           valueFrom:

@@ -4,7 +4,7 @@
 //   - Keycloak's action-token API requires server-side trusted clients,
 //     a custom token-action handler in the realm, and a redirect-URI allow-list
 //     per client — none of which are configured here. The Keycloak helper in
-//     `lib/keycloak.ts` already exposes only the bits we use (createUser,
+//     `lib/identity.ts` already exposes only the bits we use (createUser,
 //     deleteUser, role mappings, password-reset emails). Adding action-token
 //     support would mean realm + client config drift across all environments.
 //   - The session store in `lib/auth.ts` is a plain `web_sessions` JSONB

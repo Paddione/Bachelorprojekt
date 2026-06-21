@@ -11,7 +11,7 @@ spec:
             - name: DOMAIN
               value: "https://vault.${PROD_DOMAIN}"
             - name: SSO_AUTHORITY
-              value: "https://auth.${PROD_DOMAIN}/realms/workspace"
+              value: "https://id.${PROD_DOMAIN}"
             - name: SMTP_HOST
               value: "${SMTP_HOST}"
             - name: SMTP_PORT

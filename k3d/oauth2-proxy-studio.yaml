@@ -1,8 +1,24 @@
 # ═══════════════════════════════════════════════════════════════════
-# OAuth2 Proxy — Keycloak SSO gateway for Coaching Studio
+# OAuth2 Proxy — Pocket ID SSO gateway for Coaching Studio
 # Authenticates via OIDC, then forwards to studio-server:80.
 # Mirrors oauth2-proxy-brett.yaml. (T001002)
+# Coach allow-list: Pocket ID has no groups, so the previous
+# --allowed-group=/coach-access gate is replaced by --authenticated-emails-file
+# (ConfigMap `oauth2-proxy-studio-allowed-emails`). Add coach emails there.
 # ═══════════════════════════════════════════════════════════════════
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: oauth2-proxy-studio-allowed-emails
+  labels:
+    app: studio-server
+data:
+  # Coach allow-list. Must match users' Pocket ID email addresses.
+  # (Was: /coach-access Keycloak group — Pocket ID has no groups.)
+  allowed-emails: |
+    patrick@korczewski.de
+    quamain@web.de
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -58,22 +74,22 @@ spec:
           imagePullPolicy: Always
           args:
             - --config=/run/config/oauth2-extra.cfg
-            - --provider=keycloak-oidc
+            - --provider=oidc
             - --client-id=studio
-            - --client-secret=$(STUDIO_OIDC_SECRET)
+            - --client-secret=$(POCKET_ID_STUDIO_SECRET)
             - --redirect-url=http://studio.localhost/oauth2/callback
-            - --oidc-issuer-url=http://keycloak:8080/realms/workspace
+            - --oidc-issuer-url=http://pocket-id:1411
             - --ssl-insecure-skip-verify=true
             - --skip-oidc-discovery=true
-            - --login-url=http://auth.localhost/realms/workspace/protocol/openid-connect/auth
-            - --redeem-url=http://keycloak:8080/realms/workspace/protocol/openid-connect/token
-            - --oidc-jwks-url=http://keycloak:8080/realms/workspace/protocol/openid-connect/certs
-            - --profile-url=http://keycloak:8080/realms/workspace/protocol/openid-connect/userinfo
+            - --login-url=http://id.localhost/authorize
+            - --redeem-url=http://pocket-id:1411/api/oidc/token
+            - --oidc-jwks-url=http://pocket-id:1411/.well-known/jwks.json
+            - --profile-url=http://pocket-id:1411/api/oidc/userinfo
             - --upstream=http://studio-server:80
             - --http-address=0.0.0.0:4180
             - --cookie-secure=false
             - --cookie-name=_oauth2_proxy_studio
-            - --email-domain=*
+            - --authenticated-emails-file=/etc/oauth2/allowed-emails
             - --pass-access-token=true
             - --pass-authorization-header=true
             - --set-xauthrequest=true
@@ -83,11 +99,11 @@ spec:
             - --oidc-extra-audience=studio
             - --scope=openid email profile
           env:
-            - name: STUDIO_OIDC_SECRET
+            - name: POCKET_ID_STUDIO_SECRET
               valueFrom:
                 secretKeyRef:
                   name: workspace-secrets
-                  key: STUDIO_OIDC_SECRET
+                  key: POCKET_ID_STUDIO_SECRET
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
@@ -122,9 +138,18 @@ spec:
             - name: oauth2-config
               mountPath: /run/config
               readOnly: true
+            - name: allowed-emails
+              mountPath: /etc/oauth2
+              readOnly: true
       volumes:
         - name: oauth2-config
           emptyDir: {}
+        - name: allowed-emails
+          configMap:
+            name: oauth2-proxy-studio-allowed-emails
+            items:
+              - key: allowed-emails
+                path: allowed-emails
 ---
 apiVersion: v1
 kind: Service

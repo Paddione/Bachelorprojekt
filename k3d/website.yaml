@@ -57,6 +57,8 @@ data:
   NEXTCLOUD_ADMIN_USER: "admin"
   NEXTCLOUD_CALDAV_USER: "admin"
   KEYCLOAK_FRONTEND_URL: "${KEYCLOAK_FRONTEND_URL}"
+  POCKET_ID_FRONTEND_URL: "${POCKET_ID_FRONTEND_URL}"
+  POCKET_ID_URL: "${POCKET_ID_URL}"
   TRAEFIK_EXTERNAL_URL: "${TRAEFIK_EXTERNAL_URL}"
   MAIL_EXTERNAL_URL: "${MAIL_EXTERNAL_URL}"
   # Portal admin
@@ -250,6 +252,16 @@ spec:
                 secretKeyRef:
                   name: website-secrets
                   key: WEBSITE_OIDC_SECRET
+            - name: POCKET_ID_WEBSITE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: POCKET_ID_WEBSITE_SECRET
+            - name: POCKET_ID_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: POCKET_ID_API_KEY
             - name: SMTP_PASS
               valueFrom:
                 secretKeyRef:

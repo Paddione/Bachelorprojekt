@@ -7,7 +7,7 @@ vi.mock('../../../../lib/auth', () => ({
   isAdmin: vi.fn(),
 }));
 
-vi.mock('../../../../lib/keycloak', () => ({
+vi.mock('../../../../lib/identity', () => ({
   createUser: vi.fn(),
   deleteUser: vi.fn().mockResolvedValue(true),
   setUserPassword: vi.fn().mockResolvedValue(true),
@@ -15,7 +15,7 @@ vi.mock('../../../../lib/keycloak', () => ({
 
 import { POST } from './seed';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import * as keycloak from '../../../../lib/keycloak';
+import * as keycloak from '../../../../lib/identity';
 import { pool } from '../../../../lib/website-db';
 import { ensureSystemtestSchema } from '../../../../lib/systemtest/db';
 

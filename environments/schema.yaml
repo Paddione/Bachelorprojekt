@@ -262,6 +262,16 @@ env_vars:
     required: true
     default_dev: "http://auth.localhost"
 
+  - name: POCKET_ID_FRONTEND_URL
+    required: false
+    default_dev: "http://id.localhost"
+    description: "Public URL of the Pocket ID web UI / OIDC issuer (id.<domain> in prod)."
+
+  - name: POCKET_ID_URL
+    required: false
+    default_dev: "http://pocket-id:1411"
+    description: "Cluster-internal URL of the Pocket ID service (pocket-id:1411). Used by website/brett/nextcloud/grafana as the OIDC discovery base."
+
   - name: KC_DOMAIN
     required: false
     default_dev: "auth.localhost"
@@ -678,6 +688,134 @@ secrets:
     generate: true
     length: 64
     description: "OIDC client secret for the session-hub oauth2-proxy (Keycloak confidential client `session-hub`). Gates session-*.${DEV_DOMAIN} behind the /session-hub-access group."
+
+  # ─────────────────────────────────────────────────────────────────
+  # Pocket ID OIDC client secrets (T001068) — supersede the *_OIDC_SECRET
+  # keys above once each service is migrated. The old keys remain in the
+  # schema through Welle 2 so both providers can be in-flight concurrently
+  # (Keycloak still powers auth.<domain> until Welle 3 drops it).
+  # Welle 3 cleanup removes the old *_OIDC_SECRET keys.
+  # ─────────────────────────────────────────────────────────────────
+  - name: POCKET_ID_API_KEY
+    required: false
+    generate: true
+    length: 64
+    description: "Bearer token for the Pocket ID Admin REST API. Used by the website's identity.ts (User-CRD operations) and any other in-cluster admin caller."
+    extra_namespaces:
+      - namespace: website
+        secret: website-secrets
+
+  - name: POCKET_ID_DB_PASSWORD
+    required: false
+    generate: true
+    length: 32
+    description: "Postgres role password for the `pocket_id` DB inside shared-db."
+
+  - name: POCKET_ID_MAIL_SECRET
+    required: false
+    generate: true
+    length: 40
+    description: "OIDC client secret for the `mailpit-admin` Pocket ID client (oauth2-proxy-mailpit)."
+
+  - name: POCKET_ID_TRAEFIK_SECRET
+    required: false
+    generate: true
+    length: 40
+    description: "OIDC client secret for the `traefik-dashboard` Pocket ID client (oauth2-proxy-traefik)."
+
+  - name: POCKET_ID_COMFY_SECRET
+    required: false
+    generate: true
+    length: 40
+    description: "OIDC client secret for the `comfy` Pocket ID client (oauth2-proxy-comfy)."
+
+  - name: POCKET_ID_MEDIAVIEWER_SECRET
+    required: false
+    generate: true
+    length: 40
+    description: "OIDC client secret for the `mediaviewer-widget` Pocket ID client (oauth2-proxy-mediaviewer)."
+
+  - name: POCKET_ID_VIDEOVAULT_SECRET
+    required: false
+    generate: true
+    length: 40
+    description: "OIDC client secret for the `videovault` Pocket ID client (oauth2-proxy-videovault)."
+
+  - name: POCKET_ID_STUDIO_SECRET
+    required: false
+    generate: true
+    length: 40
+    description: "OIDC client secret for the `studio` Pocket ID client (oauth2-proxy-studio). Pocket ID has no groups — the studio coach allow-list moves to --authenticated-emails-file."
+
+  - name: POCKET_ID_DOCS_SECRET
+    required: false
+    generate: true
+    length: 40
+    description: "OIDC client secret for the `docs` Pocket ID client (oauth2-proxy-docs)."
+
+  - name: POCKET_ID_VAULTWARDEN_SECRET
+    required: false
+    generate: true
+    length: 40
+    description: "OIDC client secret for the `vaultwarden` Pocket ID client (vaultwarden SSO_CLIENT_SECRET + oauth2-proxy-vaultwarden if present)."
+
+  - name: POCKET_ID_RECOVERY_SECRET
+    required: false
+    generate: true
+    length: 40
+    description: "OIDC client secret for the `recovery` Pocket ID client (oauth2-proxy-recovery in k3d/recovery-browser.yaml)."
+
+  - name: POCKET_ID_CLAUDE_CODE_SECRET
+    required: false
+    generate: true
+    length: 40
+    description: "OIDC client secret for the `claude-code-mcp-monolith` Pocket ID client (claude-code-mcp-auth-proxy)."
+
+  - name: POCKET_ID_NEXTCLOUD_SECRET
+    required: false
+    generate: true
+    length: 40
+    description: "OIDC client secret for the `nextcloud` Pocket ID client (nextcloud_oidc_login plugin)."
+
+  - name: POCKET_ID_GRAFANA_SECRET
+    required: false
+    generate: true
+    length: 40
+    description: "OIDC client secret for the `grafana` Pocket ID client (GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET)."
+    extra_namespaces:
+      - namespace: monitoring
+        secret: grafana-oidc
+
+  - name: POCKET_ID_WEBSITE_SECRET
+    required: false
+    generate: true
+    length: 40
+    description: "OIDC client secret for the `website` Pocket ID client (website's auth.ts)."
+    extra_namespaces:
+      - namespace: website
+        secret: website-secrets
+
+  - name: POCKET_ID_BRETT_SECRET
+    required: false
+    generate: true
+    length: 40
+    description: "OIDC client secret for the `brett` Pocket ID client (brett's oauth2-proxy + native OIDC)."
+    extra_namespaces:
+      - namespace: website
+        secret: website-secrets
+
+  # POCKET_ID_BRAINSTORM_SECRET is dev-only (brainstorm.dev.mentolder.de; no prod broker).
+  - name: POCKET_ID_BRAINSTORM_SECRET
+    required: false
+    generate: true
+    length: 40
+
+  # POCKET_ID_SESSION_HUB_SECRET is dev-only.
+  - name: POCKET_ID_SESSION_HUB_SECRET
+    required: false
+    generate: true
+    length: 64
+    description: "OIDC client secret for the session-hub oauth2-proxy (Pocket ID confidential client `session-hub`). Pocket ID has no groups — gating moves to --authenticated-emails-file."
 
   - name: SESSIONS_CRON_TOKEN
     required: false

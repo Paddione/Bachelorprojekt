@@ -15,7 +15,7 @@
 import type { APIRoute } from 'astro';
 import { pool } from '../../../../lib/website-db';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import * as keycloak from '../../../../lib/keycloak';
+import * as keycloak from '../../../../lib/identity';
 import authOnly from '../../../../lib/systemtest-seeds/auth-only';
 import bookingFlow from '../../../../lib/systemtest-seeds/booking-flow';
 import coachingProject from '../../../../lib/systemtest-seeds/coaching-project';

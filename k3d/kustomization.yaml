@@ -97,6 +97,10 @@ resources:
   - claude-code-mcp-auth-proxy.yaml
   # Pentest Flags (CTF)
   - pentest-flags.yaml
+  # Pocket ID — passkey-first OIDC provider, replaces Keycloak for new
+  # OIDC clients (Welle 0 of T001068). Keycloak stays on auth.<domain>
+  # for the Welle 1-2 transition; Welle 3 drops it.
+  - pocket-id.yaml
   # Netzwerksicherheit (L3)
   - network-policies.yaml
   # Ingress

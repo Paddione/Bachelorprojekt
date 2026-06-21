@@ -9,17 +9,17 @@ spec:
         - name: oauth2-proxy
           args:
             - "--config=/run/config/oauth2-extra.cfg"
-            - "--provider=keycloak-oidc"
+            - "--provider=oidc"
             - "--client-id=comfy"
-            - "--client-secret=$(COMFY_OIDC_SECRET)"
+            - "--client-secret=$(POCKET_ID_COMFY_SECRET)"
             - "--redirect-url=https://comfy.${PROD_DOMAIN}/oauth2/callback"
-            - "--oidc-issuer-url=https://auth.${PROD_DOMAIN}/realms/workspace"
+            - "--oidc-issuer-url=https://id.${PROD_DOMAIN}"
             - "--ssl-insecure-skip-verify=true"
             - "--skip-oidc-discovery=true"
-            - "--login-url=https://auth.${PROD_DOMAIN}/realms/workspace/protocol/openid-connect/auth"
-            - "--redeem-url=http://keycloak:8080/realms/workspace/protocol/openid-connect/token"
-            - "--oidc-jwks-url=http://keycloak:8080/realms/workspace/protocol/openid-connect/certs"
-            - "--profile-url=http://keycloak:8080/realms/workspace/protocol/openid-connect/userinfo"
+            - "--login-url=https://id.${PROD_DOMAIN}/authorize"
+            - "--redeem-url=https://id.${PROD_DOMAIN}/api/oidc/token"
+            - "--oidc-jwks-url=https://id.${PROD_DOMAIN}/.well-known/jwks.json"
+            - "--profile-url=https://id.${PROD_DOMAIN}/api/oidc/userinfo"
             - "--upstream=http://comfy-gateway:8189"
             - "--http-address=0.0.0.0:4180"
             - "--cookie-secure=true"
@@ -34,8 +34,8 @@ spec:
             - "--oidc-extra-audience=comfy"
             - "--scope=openid email profile"
           env:
-            - name: COMFY_OIDC_SECRET
+            - name: POCKET_ID_COMFY_SECRET
               valueFrom:
                 secretKeyRef:
                   name: workspace-secrets
-                  key: COMFY_OIDC_SECRET
+                  key: POCKET_ID_COMFY_SECRET

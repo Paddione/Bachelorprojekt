@@ -8,7 +8,7 @@
 //
 // Adaptations from the original plan:
 //   - The plan's KeycloakAdminClient included `mintActionToken`, which does
-//     not exist in `lib/keycloak.ts`. We drop that abstraction here — seed
+//     not exist in `lib/identity.ts`. We drop that abstraction here — seed
 //     modules import directly from `../keycloak` (createUser/deleteUser) and
 //     mint magic-links via the homegrown `auth/magic-link` table-based flow.
 //   - role enum is widened to match the existing `test_role` column values
@@ -19,7 +19,7 @@ import type { CreateUserParams } from '../keycloak';
 
 export type SeedRole = 'admin' | 'coach' | 'customer' | 'guest' | 'user';
 
-/** Subset of `lib/keycloak` re-exposed via SeedContext so seed modules can
+/** Subset of `lib/identity` re-exposed via SeedContext so seed modules can
  *  call into the same admin API the rest of the website uses. We keep the
  *  shape minimal — anything else seed modules need they import directly. */
 export interface SeedKeycloakClient {

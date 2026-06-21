@@ -40,6 +40,9 @@
         "--otel-endpoint", "localhost:4317",
         "--taskfile", "/home/patrick/Bachelorprojekt/Taskfile.yml"
       ]
+    },
+    "ticket-mcp": {
+      "command": "/home/patrick/Bachelorprojekt/scripts/ticket-mcp/ticket-mcp-go"
     }
   }
 }

@@ -37,10 +37,3 @@ spec:
             limits:
               memory: 128Mi
               cpu: "200m"
-          volumeMounts:
-            - name: data
-              mountPath: /app/data
-      volumes:
-        - name: data
-          persistentVolumeClaim:
-            claimName: pocket-id-data

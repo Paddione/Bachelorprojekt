@@ -18,9 +18,6 @@ resources:
   - ingress.yaml
   - traefik-dashboard.yaml
   - mail-ingressroute.yaml
-  # Pocket ID PVC (T001068) — emptyDir in dev, PVC in prod. Declared in
-  # prod/ (not k3d/) so the dev cluster doesn't allocate a PV for it.
-  - pocket-id-pvc.yaml
 
 # Production ConfigMaps (override base realm + OIDC, add scripts from deploy.sh)
 configMapGenerator:
@@ -228,5 +225,7 @@ patches:
           regex: "^https://([^/]+)/?$"
           replacement: "https://$1/dashboard/"
           permanent: false
-  # Pocket ID prod overlay (T001068 Welle 0): websecure + TLS + PVC + resource limits.
+  # Pocket ID prod overlay (T001068 Welle 0): websecure + TLS + resource limits.
+  # The PVC is now in the base (k3d/pocket-id.yaml) — k3d's local-path provisioner
+  # also serves dev. This keeps the strategic-merge patch single-purpose.
   - path: patch-pocket-id.yaml

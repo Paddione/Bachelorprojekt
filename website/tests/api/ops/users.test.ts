@@ -4,7 +4,7 @@ vi.mock('../../../src/lib/auth', () => ({
   getSession: vi.fn(async () => ({ preferred_username: 'paddione', realmRoles: ['admin'] })),
   isAdmin: vi.fn(() => true),
 }));
-vi.mock('../../../src/lib/keycloak', () => ({
+vi.mock('../../../src/lib/identity', () => ({
   listUsers: vi.fn(async () => [{ id: 'u1', username: 'gekko', email: 'g@example.com', firstName: 'Gekko', lastName: 'K.', groups: ['admin'] }]),
   listGroups: vi.fn(async () => [{ id: 'g1', name: 'admin' }, { id: 'g2', name: 'coach' }]),
   createUser: vi.fn(async () => ({ success: true, userId: 'u-new' })),
@@ -46,7 +46,7 @@ describe('POST /api/admin/ops/users/create', () => {
   it('creates user + sends invite by default', async () => {
     const res = await createUserHandler({ request: adminReq({ firstName: 'X', lastName: 'Y', email: 'x@y.de', groupIds: ['g2'] }) } as any);
     expect(res.status).toBe(200);
-    const kc = await import('../../../src/lib/keycloak');
+    const kc = await import('../../../src/lib/identity');
     expect(kc.createUser).toHaveBeenCalled();
   });
 
@@ -61,8 +61,8 @@ describe('POST /api/admin/ops/users/create', () => {
   });
 
   it('returns partial_success when invite email fails', async () => {
-    const kc = await import('../../../src/lib/keycloak');
-    (kc.sendPasswordResetEmail as any).mockRejectedValueOnce(new Error('smtp down'));
+    const pi = await import('../../../src/lib/identity');
+    (pi.sendPasswordResetEmail as any).mockRejectedValueOnce(new Error('smtp down'));
     const res = await createUserHandler({ request: adminReq({ firstName: 'X', lastName: 'Y', email: 'x@y.de', groupIds: ['g2'], sendInvite: true }) } as any);
     expect(res.status).toBe(200);
     const json = await res.json();

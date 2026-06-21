@@ -2,7 +2,7 @@
 title: "Pocket ID Migration — Keycloak ersetzen durch Pocket ID"
 ticket_id: T001068
 domains: [auth, infra, website, ops]
-status: plan_staged
+status: completed
 file_locks: []
 shared_changes: true
 batch_id: null

@@ -87,6 +87,8 @@ jobs:
       - name: Mark ticket done
         id: close
         if: success()
+        env:
+          FLEET_KUBECONFIG: ${{ secrets.FLEET_KUBECONFIG }}
         run: |
           set -euo pipefail
           TICKET_ID="$(git log -1 --pretty=%B | grep -oE 'T[0-9]{6}' | head -1 || true)"

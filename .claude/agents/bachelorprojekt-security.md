@@ -21,6 +21,17 @@ task workspace:deploy ENV=<env> # applies SealedSecret before manifests
 - `scripts/env-resolve.sh` must be **sourced**, never executed: `source scripts/env-resolve.sh "$ENV"`
 - SealedSecrets on base Secrets (office-stack, coturn-stack) need `sealedsecrets.bitnami.com/managed: "true"` annotation or the sealed block silently fails
 
+## Secrets-Dateiarchitektur
+
+Die vollständige Dokumentation der `.secrets/`-Datei-Topologie, der Fleet-Sync-Regel und
+der kanonischen Sektionsstruktur steht in:
+→ `docs/superpowers/references/secrets-architecture.md`
+
+**Wichtigste Regel:** `fleet-mentolder.yaml` und `fleet-korczewski.yaml` sind die
+einzigen aktiven Prod-Dateien. Legacy-Dateien (`mentolder.yaml`, `korczewski.yaml`)
+existieren nur als Referenz für den decommissionten Standalone-Cluster.
+Jeder neue Secret-Block muss in die fleet-Dateien (außer `legacy_only: true`).
+
 ## Keycloak realm files
 - Dev: `k3d/realm-workspace-dev.json`
 - Prod mentolder: `prod-mentolder/realm-workspace-mentolder.json`

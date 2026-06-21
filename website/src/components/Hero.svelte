@@ -99,6 +99,7 @@
     pointer-events: none;
     overflow: hidden;
     z-index: 0;
+    animation: halo-in 0.6s ease-out both;
   }
 
   .bg-halo::before {
@@ -140,6 +141,7 @@
   .hero-copy {
     display: flex;
     flex-direction: column;
+    animation: fade-up 0.5s 0.1s ease-out both;
   }
 
   .kicker-row {
@@ -150,7 +152,7 @@
     font-size: 11px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--mute);
+    color: var(--fg-soft);
     margin-bottom: 26px;
   }
 
@@ -261,6 +263,12 @@
 
     .wrap {
       padding: 0 22px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bg-halo, .hero-copy {
+      animation: none;
     }
   }
 </style>

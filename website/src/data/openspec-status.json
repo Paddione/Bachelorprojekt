@@ -129,6 +129,12 @@
       "status": "planning"
     }
   ],
+  "T001034": [
+    {
+      "slug": "mentolder-homepage-hifi-redesign",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "ticket-mcp",

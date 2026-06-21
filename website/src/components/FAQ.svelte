@@ -52,10 +52,9 @@
             id="faq-answer-{i}"
             role="region"
             aria-label={item.question}
-            hidden={openIndex !== i}
-            class="faq-answer"
+            class="faq-answer {openIndex === i ? 'open' : ''}"
           >
-            {item.answer}
+            <div class="faq-answer-inner">{item.answer}</div>
           </div>
         </div>
       {/each}
@@ -132,22 +131,35 @@
   .faq-chevron {
     width: 20px;
     height: 20px;
-    color: var(--brass);
+    color: var(--mute);
     flex-shrink: 0;
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, color 0.25s ease;
   }
 
   .faq-chevron.open {
     transform: rotate(180deg);
+    color: var(--brass);
   }
 
   .faq-answer {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s ease;
+    overflow: hidden;
+  }
+
+  .faq-answer.open {
+    grid-template-rows: 1fr;
+  }
+
+  .faq-answer-inner {
+    min-height: 0; /* required for grid-template-rows trick */
     padding: 0 24px 20px;
+    padding-top: 16px;
     font-size: 15px;
     line-height: 1.6;
     color: var(--mute);
     border-top: 1px solid var(--line);
-    padding-top: 16px;
     margin-top: -1px;
   }
 

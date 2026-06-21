@@ -24,7 +24,7 @@ import { ensureFolder, uploadFile } from '../../../lib/nextcloud-files';
 //   participants?: Array<{ displayName, email, uid }>,    // non-bot room members
 //   resources?: Array<{ type, name, storagePath, timestamp }>  // files from meeting window
 // }
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, locals }) => {
   let body: {
     roomToken?: string;
     transcriptText?: string;
@@ -61,7 +61,7 @@ export const POST: APIRoute = async ({ request }) => {
     // The transcriber bot passes roomName + participants from the Nextcloud DB.
     const firstParticipant = participants.find(p => p.email) ?? participants[0];
     if (!firstParticipant) {
-      console.warn(`[save-transcript] no meeting and no participant metadata for roomToken=${roomToken}`);
+      locals.requestLogger.warn({ roomToken }, '[save-transcript] no meeting and no participant metadata');
       return json({ error: 'Meeting not found for this room token' }, 404);
     }
 
@@ -69,7 +69,7 @@ export const POST: APIRoute = async ({ request }) => {
     const customerName = firstParticipant.displayName || firstParticipant.uid;
     const meetingTypeName = roomName || 'Talk-Session';
 
-    console.info(`[save-transcript] auto-creating meeting for roomToken=${roomToken}, customer=${customerName}`);
+    locals.requestLogger.info({ roomToken, customer: customerName }, '[save-transcript] auto-creating meeting');
     const customer = await upsertCustomer({ name: customerName, email: customerEmail });
     const created = await createMeeting({
       customerId: customer.id,
@@ -81,7 +81,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (!meeting) {
       return json({ error: 'Failed to create meeting record' }, 500);
     }
-    console.info(`[save-transcript] auto-created meeting ${created.id}`);
+    locals.requestLogger.info({ meetingId: created.id }, '[save-transcript] auto-created meeting');
   }
 
   if (['transcribed', 'finalized'].includes(meeting.status)) {

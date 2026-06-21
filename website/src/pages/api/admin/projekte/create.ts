@@ -40,12 +40,12 @@ export const POST: APIRoute = async ({ request , locals }) => {
       if (tmpl) {
         const result = await materializeTemplate(id, tmpl.structure.folders);
         if (result.failed.length > 0) {
-          console.warn('[projekte/create] folder creation failed for some paths:', result.failed);
+          locals.requestLogger.warn({ failed: result.failed }, '[projekte/create] folder creation failed for some paths');
           foldersWarn = true;
         }
       }
     } catch (err) {
-      console.warn('[projekte/create] template materialization error:', err);
+      locals.requestLogger.warn({ err }, '[projekte/create] template materialization error');
       foldersWarn = true;
     }
   }

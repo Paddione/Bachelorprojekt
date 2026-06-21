@@ -6,7 +6,7 @@ import { resolveServiceUrl } from '../../../../lib/platform-links';
 
 export const prerender = false;
 
-export const GET: APIRoute = async ({ request }) => {
+export const GET: APIRoute = async ({ request, locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
@@ -20,7 +20,7 @@ export const GET: APIRoute = async ({ request }) => {
     try {
       k8s = await createK8sClient();
     } catch (e) {
-      console.warn('[api/admin/platform/software] k8s client init failed:', (e as Error).message);
+      locals.requestLogger.warn({ err: e }, '[api/admin/platform/software] k8s client init failed');
     }
 
     const currentCluster = process.env.BRAND_ID || 'mentolder';

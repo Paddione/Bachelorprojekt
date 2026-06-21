@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { getEnabled, getAll, setEnabled } from '../../../../lib/agent-push-settings';
+import { errorResponse } from '../../_errors';
 
 export const prerender = false;
 
@@ -22,7 +23,7 @@ async function checkAuth(request: Request): Promise<boolean> {
   return false;
 }
 
-export const GET: APIRoute = async ({ request }) => {
+export const GET: APIRoute = async ({ request, locals }) => {
   if (!(await checkAuth(request))) {
     return new Response('Unauthorized', { status: 401 });
   }
@@ -43,15 +44,12 @@ export const GET: APIRoute = async ({ request }) => {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (err: any) {
-    console.error('Error in agent-push settings GET:', err);
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    locals.requestLogger.error({ err }, '[agent-push settings GET]');
+    return errorResponse('AGENT_PUSH_SETTINGS_GET_FAILED', locals.requestId, 500);
   }
 };
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, locals }) => {
   if (!(await checkAuth(request))) {
     return new Response('Unauthorized', { status: 401 });
   }
@@ -73,10 +71,7 @@ export const POST: APIRoute = async ({ request }) => {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (err: any) {
-    console.error('Error in agent-push settings POST:', err);
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    locals.requestLogger.error({ err }, '[agent-push settings POST]');
+    return errorResponse('AGENT_PUSH_SETTINGS_POST_FAILED', locals.requestId, 500);
   }
 };

@@ -19,11 +19,12 @@ show_help() {
 }
 
 main() {
-  local id="" priority="" severity="" status="" component="" suggest="false" apply="false" no_comment="false"
+  local id="" priority="" severity="" status="" component="" type="" attention_mode="" suggest="false" apply="false" no_comment="false"
 
   while [[ $# -gt 0 ]]; do case "$1" in
     --id) id="$2"; shift 2 ;; --priority) priority="$2"; shift 2 ;; --severity) severity="$2"; shift 2 ;;
     --status) status="$2"; shift 2 ;; --component) component="$2"; shift 2 ;;
+    --type) type="$2"; shift 2 ;; --attention-mode) attention_mode="$2"; shift 2 ;;
     --suggest) suggest="true"; shift ;; --apply) apply="true"; shift ;; --no-comment) no_comment="true"; shift ;;
     -h|--help) show_help; exit 0 ;; *) vda_error "Unknown triage option: $1"; exit 2 ;;
   esac; done
@@ -40,6 +41,12 @@ main() {
   fi
   if [[ -n "$status" ]] && ! [[ " $_VALID_STATUSES " == *" ${status,,} "* ]]; then
     vda_error "Invalid status: $status (triage|planning|plan_staged|backlog|in_progress|in_review|qa_review|awaiting_deploy|blocked|done|archived)"; exit 2
+  fi
+  if [[ -n "$type" ]] && ! [[ " bug feature task project " == *" ${type,,} "* ]]; then
+    vda_error "Invalid type: $type (bug|feature|task|project)"; exit 2
+  fi
+  if [[ -n "$attention_mode" ]] && ! [[ " auto ai_ready needs_human " == *" ${attention_mode,,} "* ]]; then
+    vda_error "Invalid attention_mode: $attention_mode (auto|ai_ready|needs_human)"; exit 2
   fi
 
   if [[ "$apply" == "true" || "${VDA_NONINTERACTIVE:-0}" == "1" || ! -t 0 ]]; then
@@ -88,12 +95,12 @@ SQL
     vda_confirm "Apply triage?" || { vda_warn "Cancelled"; exit 0; }
   fi
 
-  _exec_sql "$pod" -v ext_id="$id" -v p="$priority" -v s="$severity" -v st="$status" -v c="$component" <<'SQL' >/dev/null
-UPDATE tickets.tickets SET priority=:'p', severity=:'s', status=:'st', component=NULLIF(:'c','') WHERE external_id=:'ext_id';
+  _exec_sql "$pod" -v ext_id="$id" -v p="$priority" -v s="$severity" -v st="$status" -v c="$component" -v tp="$type" -v attn="$attention_mode" <<'SQL' >/dev/null
+UPDATE tickets.tickets SET priority=:'p', severity=:'s', status=:'st', component=NULLIF(:'c',''), type=COALESCE(NULLIF(:'tp',''), type), attention_mode=COALESCE(NULLIF(:'attn',''), attention_mode) WHERE external_id=:'ext_id';
 SQL
 
   if [[ "$no_comment" != "true" ]]; then
-    local body; body="Triage: priority=${priority}, severity=${severity}, status=${status}"
+    local body; body="Triage: priority=${priority}, severity=${severity}, status=${status}, type=${type:-unchanged}, attention_mode=${attention_mode:-unchanged}"
     [[ -n "$component" ]] && body+=", component=${component}"
     _exec_sql "$pod" -v ext_id="$id" -v body="$body" <<'SQL' >/dev/null
 INSERT INTO tickets.ticket_comments (ticket_id, author_label, body, visibility) SELECT id, 'triage', :'body', 'internal' FROM tickets.tickets WHERE external_id=:'ext_id';

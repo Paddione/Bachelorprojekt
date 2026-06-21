@@ -16,3 +16,9 @@ setup() {
   run env BRAND=unknown-brand bash "$REPO/scripts/ticket.sh" list
   [ "$status" -eq 2 ]
 }
+
+@test "ticket.sh backfill-id --dry-resolve exits 0" {
+  run bash "$REPO/scripts/ticket.sh" backfill-id --brand mentolder
+  [ "$status" -eq 0 ]
+  echo "$output" | grep -q "DRY-RESOLVE"
+}

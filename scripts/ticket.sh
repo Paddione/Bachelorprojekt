@@ -684,9 +684,20 @@ cmd_list() {
   main "$@"
 }
 
+cmd_backfill_id() {
+  source "$(dirname "${BASH_SOURCE[0]}")/vda/ticket/backfill-id.sh"
+  main "$@"
+}
+
+cmd_triage() {
+  export VDA_NONINTERACTIVE=1
+  source "$(dirname "${BASH_SOURCE[0]}")/vda/ticket/triage.sh"
+  main "$@"
+}
+
 if [[ $# -lt 1 ]]; then
   echo "Usage: $0 <command> [options]" >&2
-  echo "Commands: create, update-status, add-comment, add-pr-link, grill, archive-plan, get-attachments, get, set-touched-files, set-scout-drift, set-pipeline-slot, release-slot, touch, enqueue, stage-plan, retry-count, factory-control, dryrun-mark, dryrun-check, feature-flag, phase, inject, get-injections, plan-meta, lastenheft, list" >&2
+  echo "Commands: create, update-status, add-comment, add-pr-link, grill, archive-plan, get-attachments, get, set-touched-files, set-scout-drift, set-pipeline-slot, release-slot, touch, enqueue, stage-plan, retry-count, factory-control, dryrun-mark, dryrun-check, feature-flag, phase, inject, get-injections, plan-meta, lastenheft, list, backfill-id, triage" >&2
   exit 1
 fi
 cmd="$1"; shift
@@ -705,6 +716,8 @@ case "$cmd" in
   release-slot)      cmd_release_slot "$@" ;;
   touch)             cmd_touch "$@" ;;
   list)              cmd_list "$@" ;;
+  backfill-id)       cmd_backfill_id "$@" ;;
+  triage)            cmd_triage "$@" ;;
   enqueue)           cmd_enqueue "$@" ;;
   stage-plan)        cmd_stage_plan "$@" ;;
   retry-count)       cmd_retry_count "$@" ;;

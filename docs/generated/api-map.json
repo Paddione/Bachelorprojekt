@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-21T06:26:31.473Z",
+  "generatedAt": "2026-06-21T14:54:52.725Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -9,6 +9,14 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/agent-push/settings.ts"
+    },
+    {
+      "path": "/api/admin/ai-quality",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/ai-quality.ts"
     },
     {
       "path": "/api/admin/angebote/save",

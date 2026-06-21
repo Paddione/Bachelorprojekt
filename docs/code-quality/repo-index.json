@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 490,
+      "file_count": 491,
       "files": [
         "tests/.gitignore",
         "tests/batch/batch-gap-analysis.bats",
@@ -443,6 +443,7 @@
         "tests/unit/secret-task-guards.bats",
         "tests/unit/secrets-sync.bats",
         "tests/unit/session-hub.bats",
+        "tests/unit/sessions-purge.bats",
         "tests/unit/shared-db-initdb-selfheal.bats",
         "tests/unit/skill-orchestrator.bats",
         "tests/unit/staging.bats",
@@ -2578,7 +2579,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 430,
+      "file_count": 431,
       "files": [
         "scripts/add-whiteboard-library.py",
         "scripts/admin-menu-gate.sh",
@@ -2932,6 +2933,7 @@
         "scripts/seed-lmstudio-ki-config.mjs",
         "scripts/session-forms/base.html",
         "scripts/session-hub.sh",
+        "scripts/sessions-purge.sh",
         "scripts/setup-comfyui.sh",
         "scripts/setup.sh",
         "scripts/skill-orchestrator.sh",

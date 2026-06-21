@@ -679,6 +679,11 @@ secrets:
     length: 64
     description: "OIDC client secret for the session-hub oauth2-proxy (Keycloak confidential client `session-hub`). Gates session-*.${DEV_DOMAIN} behind the /session-hub-access group."
 
+  - name: SESSIONS_CRON_TOKEN
+    required: false
+    sealed: true
+    description: "Shared secret for the sessions-purge cronjob to call POST /api/admin/sessions/purge via X-Cron-Token header. [T000994]"
+
   - name: TRAEFIK_OIDC_SECRET
     required: true
     generate: true

@@ -95,3 +95,46 @@ spec:
                     DELETE FROM public.admin_actions
                     WHERE created_at < now() - interval '90 days';
                   "
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: sessions-purge
+  namespace: workspace
+  labels:
+    app: cronjobs
+spec:
+  schedule: "0 4 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 3600
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: sessions-purge
+              image: curlimages/curl:8.7.1
+              resources:
+                requests:
+                  cpu: "50m"
+                  memory: "64Mi"
+                limits:
+                  cpu: "200m"
+                  memory: "128Mi"
+              env:
+                - name: SESSIONS_CRON_TOKEN
+                  valueFrom: { secretKeyRef: { name: workspace-secrets, key: SESSIONS_CRON_TOKEN } }
+              command:
+                - sh
+                - -c
+                - |
+                  set -e
+                  echo "sessions-purge: starting at $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+                  curl -fsS -X POST \
+                    http://website.workspace.svc.cluster.local:80/api/admin/sessions/purge \
+                    -H "X-Cron-Token: $SESSIONS_CRON_TOKEN" \
+                    --max-time 30
+                  echo "sessions-purge: done"

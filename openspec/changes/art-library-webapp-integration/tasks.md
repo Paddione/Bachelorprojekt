@@ -88,6 +88,17 @@ depends_on_plans: []
 - Consumes: nichts aus früheren Tasks.
 - Produces: das Verhalten „Sprite wird nur gerendert, wenn `iconSpriteId` UND `iconSpriteBrand` gesetzt sind". `index.astro` füllt beide weiterhin.
 
+- [ ] **Step 0: Failing-Test (Red) — Assets noch nicht materialisiert**
+
+  Bevor Assets und Sprite existieren, müssen diese Tests FEHLSCHLAGEN. Das zeigt, dass die Implementierung in Tasks 2–9 tatsächlich etwas ändert (TDD-Red-Schritt).
+
+  Run:
+  ```bash
+  test -d website/public/brand/mentolder/characters && echo "EXISTS — unexpected!" && exit 1 || echo "OK: characters dir not yet present (expected FAIL)"
+  test -f website/public/brand/mentolder/icons.svg && echo "EXISTS — unexpected!" && exit 1 || echo "OK: icons.svg not yet present (expected FAIL)"
+  ```
+  Expected: **Exit 1 erwartet** — beide `test`-Befehle schlagen fehl (Verzeichnis/Datei existiert noch nicht). Dieser Schritt ist der Red-Zustand; er wird nach Task 2 und Task 3 grün. Falls das Verzeichnis bereits existiert, ist dieser Schritt zu überspringen und der Plan-Fortschritt ab Task 3 fortzusetzen.
+
 - [ ] **Step 1: Datei lesen, Ist-Zustand bestätigen**
 
 Run: `sed -n '28,50p' website/src/components/ServiceRow.svelte`

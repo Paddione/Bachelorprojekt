@@ -161,10 +161,6 @@
   ],
   "TBD": [
     {
-      "slug": "secrets-deploy-automation",
-      "status": "plan_staged"
-    },
-    {
       "slug": "2026-06-21-secrets-deploy-automation",
       "status": "archived"
     },

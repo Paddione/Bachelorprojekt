@@ -2,7 +2,7 @@
 title: "Secrets Deploy Automation — Fleet-Vollständigkeits-Guard + Auto-Deploy"
 ticket_id: null
 domains: [security, infra, ops]
-status: plan_staged
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

@@ -1,6 +1,8 @@
 # Skills Overview
 
-18 project-local skills (17 in `.claude/skills/<name>/` + 1 in `.claude/skills/superpowers/using-git-worktrees/`) grouped by domain. Each skill has its own `SKILL.md` with full runbook details. Invoke any skill by its name.
+12 project-local skills (11 in `.claude/skills/<name>/` + 1 in `.claude/skills/superpowers/using-git-worktrees/`) grouped by domain. Each skill has its own `SKILL.md` with full runbook details. Invoke any skill by its name.
+
+> **Konsolidierung (2026-06-21):** 7 Infra/Ops-Skills wurden in `infra-ops` zusammengeführt (nur bei explizitem Bedarf aufrufen). `update-dependencies` läuft als biweekly Cloud-Routine (https://claude.ai/code/routines/trig_01GiuyN6KP5iMcVUSvBQMKyQ). Die archivierten SKILL.md-Dateien haben kein `description`-Feld mehr und triggern nicht auto-matisch.
 
 > **Wartung:** Diese Anzahl stimmt mit `find .claude/skills -name SKILL.md | wc -l` und mit der `<available_skills>`-Liste des OpenCode-Loaders überein. Wenn ein Skill hinzukommt oder entfernt wird, hier nachziehen.
 
@@ -155,14 +157,7 @@ graph TD
     DE --> RCR
 
     subgraph "Runbooks (eigenständig)"
-        CD[cluster-deployment]
-        DO[database-ops]
-        HN[host-node-networking]
-        SR[secret-rotation]
-        KR[keycloak-realm-sync]
-        UD[update-dependencies]
-        WD[workspace-deploy]
-        LO[llm-ops]
+        IO[infra-ops §1-7]
     end
 
     subgraph "Support"
@@ -172,25 +167,15 @@ graph TD
         TO[ticket-ops]
     end
 
-    DP --> CD
-    DE --> DO
-    DE --> SR
-    DE --> KR
-    DE --> WD
-    DEE --> CD
+    DP --> IO
+    DE --> IO
+    DEE --> IO
 
     OM --> IR
     OM --> TO
     IR --> MT
     TO --> MT
-    CD -.-> OM
-    DO -.-> OM
-    SR -.-> OM
-    KR -.-> OM
-    LO -.-> HN
-    WD -.-> LO
-
-    UD -.-> CD
+    IO -.-> OM
 ```
 
 **Legende:**
@@ -203,10 +188,12 @@ graph TD
 |-------|---------|----------|
 | Feature entwickeln | [`dev-flow-plan`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-plan.html) → [`dev-flow-execute`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-execute.html) → [`dev-flow-e2e`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-e2e.html) | Gemergetes + getestetes Feature |
 | Wartung (Chore) | [`dev-flow-chore`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-chore.html) (inline) | Gemergte Wartung ohne Plan-Handoff |
-| Cluster aufsetzen | [`cluster-deployment`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/cluster-deployment.html) → [`secret-rotation`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/secret-rotation.html) | Produktions-Cluster |
-| DB-Migration | [`database-ops`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/database-ops.html) → [`dev-flow-execute`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-execute.html) (Schema-Change) | Gemergte Migration |
-| Secret rotieren | [`secret-rotation`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/secret-rotation.html) → [`cluster-deployment`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/cluster-deployment.html) (Fan-out Deploy, Phase 5) | Rotierte Secrets |
-| Abhängigkeiten updaten | [`update-dependencies`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/update-dependencies.html) → [`cluster-deployment`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/cluster-deployment.html) (Test-Deploy) | Aktualisierte Packages |
+| Cluster aufsetzen / Workspace deployen | `infra-ops` §1–2 | Produktions-Cluster + alle Services |
+| DB-Migration / Backup | `infra-ops` §7 + `dev-flow-execute` (Schema-Change) | Gemergte Migration |
+| Secret rotieren | `infra-ops` §6 | Rotierte Secrets |
+| Keycloak / SSO | `infra-ops` §4 | Reconcilter Realm |
+| LLM / GPU | `infra-ops` §5 | GPU-Pipeline operativ |
+| Abhängigkeiten updaten | Biweekly Cloud-Routine (auto) | Aktualisierte Packages per PR |
 
 ## Cross-Cutting: Grilling → Ticket
 

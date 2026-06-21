@@ -1,4 +1,77 @@
-# Tasks: pocket-id-migration
+---
+title: "Pocket ID Migration — Keycloak ersetzen durch Pocket ID"
+ticket_id: T001068
+domains: [auth, infra, website, ops]
+status: plan_staged
+file_locks: []
+shared_changes: true
+batch_id: null
+parent_feature: null
+depends_on_plans: []
+---
+
+# Tasks: Pocket ID Migration (T001068)
+
+- [ ] Welle 0: Pocket ID deployen & konfigurieren (k3d/pocket-id.yaml, schema, envsubst)
+- [ ] Welle 1: 12 oauth2-proxy-Services auf Pocket ID umschwenken (config-only)
+- [ ] Welle 2: Custom-Integrationen (Website identity.ts, Nextcloud, Grafana, Brett)
+- [ ] Welle 3: Keycloak Shutdown (nach 14+7 Tagen Beobachtung)
+- [ ] Testing: BATS pocket-id-migration.bats + E2E-Tests erweitern
+- [ ] Final Verification: task test:changed + freshness + inventory
+
+---
+
+# Pocket ID Migration — Implementation Plan
+
+Keycloak wird durch zwei unabhängige Pocket ID Instanzen (`id.mentolder.de` / `id.korczewski.de`) ersetzt. Treiber: Wartungslast (~512 MB RAM → ~50 MB, kein Realm-/Mapper-System mehr). Migration in 4 sequenziellen Wellen mit Rollback-Option bis Welle 3.
+
+**Spec:** `docs/superpowers/specs/2026-06-21-pocket-id-migration-design.md`
+
+---
+
+## File Structure
+
+```
+k3d/pocket-id.yaml                                     ← NEU: Deployment + Service + IngressRoute + DB-Init-Job
+prod/patch-pocket-id.yaml                              ← NEU: HTTPS, Hostname, PVC, Resource-Limits
+k3d/kustomization.yaml                                 ← pocket-id.yaml in resources aufnehmen
+prod/kustomization.yaml                                ← patch-pocket-id.yaml in patches aufnehmen
+k3d/configmap-domains.yaml                             ← POCKET_ID_DOMAIN ergänzen
+environments/schema.yaml                               ← 19 neue POCKET_ID_* Secrets + 2 Env-Vars
+environments/dev.yaml                                  ← POCKET_ID_FRONTEND_URL + POCKET_ID_URL
+environments/fleet-mentolder.yaml                      ← POCKET_ID_FRONTEND_URL + POCKET_ID_URL
+environments/fleet-korczewski.yaml                     ← POCKET_ID_FRONTEND_URL + POCKET_ID_URL
+Taskfile.yml                                           ← envsubst-Listen um POCKET_ID_* erweitern
+k3d/oauth2-proxy-mailpit.yaml                          ← Welle 1
+k3d/oauth2-proxy-traefik.yaml                          ← Welle 1
+k3d/oauth2-proxy-comfy.yaml                            ← Welle 1
+k3d/dev-stack/oauth2-proxy-brainstorm.yaml             ← Welle 1
+k3d/dev-stack/oauth2-proxy-sessions.yaml               ← Welle 1
+k3d/oauth2-proxy-mediaviewer.yaml                      ← Welle 1
+k3d/oauth2-proxy-videovault.yaml                       ← Welle 1
+k3d/oauth2-proxy-studio.yaml                           ← Welle 1
+k3d/docs.yaml                                          ← Welle 1
+k3d/oauth2-proxy-vaultwarden.yaml                      ← Welle 1
+k3d/recovery-browser.yaml                              ← Welle 1
+k3d/claude-code-mcp-auth-proxy.yaml                    ← Welle 1
+website/src/lib/auth.ts                                ← Welle 2
+website/src/lib/identity.ts                            ← NEU: Pocket ID Admin API
+k3d/website.yaml                                       ← Welle 2
+k3d/nextcloud-oidc-dev.php                             ← Welle 2
+prod/nextcloud-oidc-prod.php                           ← Welle 2
+prod/monitoring/grafana-oidc-patch.yaml                ← Welle 2
+k3d/monitoring/grafana-oidc-secret.yaml                ← Welle 2
+k3d/oauth2-proxy-brett.yaml                            ← Welle 2
+brett/src/server/auth.ts                               ← Welle 2
+tests/spec/pocket-id-migration.bats                    ← NEU: run first to verify they fail
+tests/e2e/specs/systemtest-01-auth.spec.ts             ← URL-Assertions auf Pocket ID
+tests/e2e/specs/sa-02-auth.spec.ts                     ← URL-Assertions auf Pocket ID
+tests/e2e/specs/fa-15-oidc.spec.ts                     ← URL-Assertions auf Pocket ID
+website/src/data/test-inventory.json                   ← regenerieren nach Test-Änderungen
+```
+
+---
+
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -338,6 +411,12 @@
 ## Testing
 
 ### Requirement: Migration has automated coverage
+
+#### Scenario: Write tests first — run them to verify they fail before Welle 0
+
+- [ ] Write `tests/spec/pocket-id-migration.bats` skeleton with all planned `@test` cases, then `bats tests/spec/pocket-id-migration.bats` — to verify they fail (Pocket ID not yet deployed). Confirms the tests detect the missing state before migration begins.
+- [ ] target_files: [`tests/spec/pocket-id-migration.bats`]
+- **Acceptance:** `bats tests/spec/pocket-id-migration.bats` exits non-zero before Welle 0; exits zero after Welle 2 is deployed.
 
 #### Scenario: New BATS spec validates the Pocket ID config surface
 

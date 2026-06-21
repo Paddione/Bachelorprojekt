@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.118.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.117.1...website-v1.118.0) (2026-06-21)
+
+
+### Features
+
+* **ticket-mcp:** Go-Rewrite mit HTTP-Transport [T001043] ([581a747](https://github.com/Paddione/Bachelorprojekt/commit/581a74743f7ec2ddb9b481aa460c5cda734da3bf))
+
 ## [1.117.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.117.0...website-v1.117.1) (2026-06-21)
 
 

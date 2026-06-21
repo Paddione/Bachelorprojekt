@@ -1,0 +1,25 @@
+<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg" class="ch-figurine">
+  <defs>
+    <radialGradient id="fig50-bg" cx="70%" cy="35%" r="80%">
+      <stop offset="0%" stop-color="#d7b06a" stop-opacity="0.20"/>
+      <stop offset="100%" stop-color="#0b111c" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="fig50-brass" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#f0d28c"/>
+      <stop offset="100%" stop-color="#8a6a2a"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="200" rx="8" fill="#101826"/>
+  <rect width="120" height="200" rx="8" fill="url(#fig50-bg)"/>
+  <line x1="40" y1="0" x2="40" y2="200" stroke="rgba(255,255,255,0.10)" stroke-width="0.5"/>
+  <line x1="80" y1="0" x2="80" y2="200" stroke="rgba(255,255,255,0.10)" stroke-width="0.5"/>
+  <line x1="0" y1="67" x2="120" y2="67" stroke="rgba(255,255,255,0.10)" stroke-width="0.5"/>
+  <line x1="0" y1="133" x2="120" y2="133" stroke="rgba(255,255,255,0.10)" stroke-width="0.5"/>
+  <g transform="translate(60,100)" fill="none" stroke="url(#fig50-brass)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M-18,-34 L12,-34"/>
+    <path d="M-18,-34 L-18,-5"/>
+    <path d="M-18,-5 Q-1,-12 12,-1 Q16,11 5,20 Q-8,27 -18,22"/>
+  </g>
+  <circle cx="96" cy="68" r="3" fill="#f0d28c" opacity="0.8"/>
+  <text x="10" y="186" font-family='"Geist Mono", monospace' font-size="7" letter-spacing="1.5" fill="#a8c9b0" opacity="0.6">50+</text>
+</svg>

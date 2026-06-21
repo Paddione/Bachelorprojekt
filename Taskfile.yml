@@ -316,7 +316,6 @@ tasks:
       - task: test:unit:ticket-graph
       - task: test:unit:T000668-graph-api
       - task: test:unit:factory-blocked
-      - task: test:unit:factory-mcp
       - task: test:unit:readiness-webhook
       - task: test:unit:staging
       - task: test:unit:api-auth-gate
@@ -377,12 +376,6 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/factory-scout-drift.bats
-
-  test:unit:factory-mcp:
-    internal: true
-    cmds:
-      - '[ -d scripts/factory/node_modules ] || npm install --prefix scripts/factory --silent'
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/factory/mcp-server.bats
 
   test:unit:readiness-webhook:
     internal: true
@@ -1208,12 +1201,11 @@ tasks:
       - 'echo "   kubectl:  already configured for cluster ''{{.CLUSTER_NAME}}''"'
 
   workspace:up:
-    desc: "Full automated setup: Cluster -> MVP -> Office -> MCP -> Post-config"
+    desc: "Full automated setup: Cluster -> MVP -> Office -> Post-config"
     cmds:
       - task: cluster:create
       - task: workspace:deploy
       - task: workspace:office:deploy
-      - task: mcp:deploy
       - task: workspace:post-setup
       - task: workspace:talk-setup
       - task: workspace:recording-setup
@@ -1223,7 +1215,7 @@ tasks:
       - 'echo "  Optional → task workspace:admin-users-setup   (provision SSO admin users in Keycloak)"'
 
   workspace:setup:
-    desc: "Full deploy on existing cluster: preflight -> deploy -> office -> mcp -> post-config (ENV=dev|mentolder|korczewski)"
+    desc: "Full deploy on existing cluster: preflight -> deploy -> office -> post-config (ENV=dev|mentolder|korczewski)"
     vars:
       ENV: '{{.ENV | default "dev"}}'
     cmds:
@@ -1231,8 +1223,6 @@ tasks:
       - task: workspace:deploy
         vars: { ENV: "{{.ENV}}" }
       - task: workspace:office:deploy
-        vars: { ENV: "{{.ENV}}" }
-      - task: mcp:deploy
         vars: { ENV: "{{.ENV}}" }
       - task: workspace:post-setup
         vars: { ENV: "{{.ENV}}" }
@@ -1727,7 +1717,6 @@ tasks:
       - task: workspace:office:sync-secret
         vars: { ENV: "{{.ENV}}" }
       - 'echo ""'
-      - 'echo "  Next → task mcp:deploy ENV={{.ENV}}"'
 
   workspace:recording-setup:
     desc: "Configure Nextcloud Talk recording backend (ENV=dev|mentolder|korczewski)"
@@ -2307,7 +2296,7 @@ tasks:
           | kubectl --context fleet apply --server-side --force-conflicts -f -
 
   fleet:deploy:brand:
-    desc: "Deploy ONE brand's core stack to fleet: workspace:deploy + mcp:deploy + post-setup. Talk/office wiring is deferred to the shared-services + per-brand talk phase. Usage: task fleet:deploy:brand BRAND=fleet-korczewski"
+    desc: "Deploy ONE brand's core stack to fleet: workspace:deploy + post-setup. Talk/office wiring is deferred to the shared-services + per-brand talk phase. Usage: task fleet:deploy:brand BRAND=fleet-korczewski"
     requires:
       vars: [BRAND]
     cmds:
@@ -2315,15 +2304,13 @@ tasks:
       # context=fleet and overlay=prod-fleet/<brand>, so the full prod deploy
       # path (SealedSecret, ns labels, shared-db ordering, envsubst, separately
       # applied CronJobs) runs unchanged against the fleet cluster.
-      # mcp:deploy + post-setup are the core post-deploy steps that are safe
-      # WITHOUT coturn. The Talk wiring phase is deferred to its own brand task
-      # because it requires the shared coturn/Janus (fleet:shared-services) to exist.
+      # post-setup is the core post-deploy step that is safe WITHOUT coturn.
+      # The Talk wiring phase is deferred to its own brand task because it
+      # requires the shared coturn/Janus (fleet:shared-services) to exist.
       # SKIP_TALK_SETUP=true stops workspace:deploy from running its embedded
       # coturn sync + Talk wiring (which hard-fails before coturn exists).
       - task: workspace:deploy
         vars: { ENV: "{{.BRAND}}", SKIP_TALK_SETUP: "true" }
-      - task: mcp:deploy
-        vars: { ENV: "{{.BRAND}}" }
       - task: workspace:post-setup
         vars: { ENV: "{{.BRAND}}" }
 
@@ -3190,218 +3177,6 @@ tasks:
       - task: docs:deploy
     silent: false
 
-  # ─────────────────────────────────────────────
-  # Claude Code MCP Servers
-  # ─────────────────────────────────────────────
-  mcp:select:
-    desc: Interactive MCP server selector (pick env + servers → .mcp.json)
-    cmds:
-      - scripts/mcp-select.sh
-
-  mcp:deploy:
-    desc: Deploy all Claude Code MCP pods (core + apps + auth)
-    vars:
-      ENV: '{{.ENV | default "dev"}}'
-    preconditions:
-      - sh: kubectl cluster-info > /dev/null 2>&1
-        msg: "No cluster running. Run 'task cluster:create' first."
-    cmds:
-      - 'echo "Deploying Claude Code MCP monolith (ENV={{.ENV}})..."'
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        # Pull runtime secrets from workspace-secrets so claude-code-secrets stays in sync.
-        # Falls back to placeholders on a fresh cluster before workspace-secrets exists.
-        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
-        NS="${WORKSPACE_NAMESPACE:-workspace}"
-        # korczewski/dev → deploy/mcp-korczewski/ (workspace-korczewski ns); mentolder → deploy/mcp/ (default ns)
-        if [ "{{.ENV}}" = "korczewski" ] || [ "{{.ENV}}" = "dev" ]; then
-          OVERLAY="deploy/mcp-korczewski"
-          MCP_NS="$NS"
-        else
-          OVERLAY="deploy/mcp"
-          MCP_NS="default"
-        fi
-        SHARED_DB_PASSWORD=$(kubectl $CTX get secret workspace-secrets -n "$NS" \
-          -o jsonpath='{.data.SHARED_DB_PASSWORD}' 2>/dev/null | base64 -d || echo "devshareddb")
-        GITHUB_PAT=$(kubectl $CTX get secret workspace-secrets -n "$NS" \
-          -o jsonpath='{.data.GITHUB_PAT}' 2>/dev/null | base64 -d || echo "ghp_placeholder")
-        KEYCLOAK_ADMIN_PASSWORD=$(kubectl $CTX get secret workspace-secrets -n "$NS" \
-          -o jsonpath='{.data.KEYCLOAK_ADMIN_PASSWORD}' 2>/dev/null | base64 -d || echo "admin")
-        export SHARED_DB_PASSWORD GITHUB_PAT KEYCLOAK_ADMIN_PASSWORD
-        kustomize build "$OVERLAY" | envsubst "\$PROD_DOMAIN \$INFRA_NAMESPACE \$TLS_SECRET_NAME \$SHARED_DB_PASSWORD \$GITHUB_PAT \$KEYCLOAK_ADMIN_PASSWORD" | kubectl $CTX apply -f -
-        # Create mcp-tokens only on first deploy — never overwrite real tokens
-        if ! kubectl $CTX get secret mcp-tokens -n "$MCP_NS" &>/dev/null; then
-          kubectl $CTX -n "$MCP_NS" create secret generic mcp-tokens \
-            --from-literal="CLUSTER_TOKEN=dev-cluster-token-placeholder" \
-            --from-literal="BUSINESS_TOKEN=dev-business-token-placeholder"
-          echo "⚠ mcp-tokens created in $MCP_NS with placeholders — run 'task claude-code:rotate-tokens ENV={{.ENV}}' to set real tokens"
-        fi
-      - 'echo "Waiting for pods to roll out..."'
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
-        if [ "{{.ENV}}" = "korczewski" ] || [ "{{.ENV}}" = "dev" ]; then
-          MCP_NS="${WORKSPACE_NAMESPACE:-workspace-korczewski}"
-        else
-          MCP_NS="default"
-        fi
-        kubectl $CTX -n "$MCP_NS" rollout status deployment/claude-code-mcp-monolith --timeout=300s
-        kubectl $CTX -n "$MCP_NS" rollout status deployment/mcp-auth-proxy --timeout=120s
-      - 'echo "✓ MCP monolith deployed (1 pod + auth proxy)"'
-      - task: mcp:status
-        vars:
-          ENV: '{{.ENV}}'
-      - 'echo ""'
-      - 'echo "  Next → task workspace:post-setup ENV={{.ENV}}"'
-
-  mcp:status:
-    desc: Show status of all Claude Code MCP pods and containers
-    vars:
-      ENV: '{{.ENV | default "mentolder"}}'
-    cmds:
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
-        if [ "{{.ENV}}" = "korczewski" ] || [ "{{.ENV}}" = "dev" ]; then
-          NS_FLAG="-n ${WORKSPACE_NAMESPACE:-workspace-korczewski}"
-        else
-          NS_FLAG="-n default"
-        fi
-        echo "=== MCP Pods ($NS_FLAG) ==="
-        kubectl $CTX $NS_FLAG get pods -l 'app in (claude-code-mcp-monolith,mcp-auth-proxy)' -o wide
-        echo ""
-        echo "=== Container Status (per pod) ==="
-        for pod in $(kubectl $CTX $NS_FLAG get pods -l 'app in (claude-code-mcp-monolith,mcp-auth-proxy)' --field-selector=status.phase=Running -o name 2>/dev/null); do
-          echo "  $pod:"
-          kubectl $CTX $NS_FLAG get $pod -o jsonpath='{range .status.containerStatuses[*]}    {.name}: ready={.ready} restarts={.restartCount}{"\n"}{end}' 2>/dev/null || true
-          echo
-        done
-        echo ""
-        echo "=== MCP Endpoints ==="
-        kubectl $CTX $NS_FLAG get configmap claude-code-config -o yaml 2>/dev/null | grep "MCP_.*_URL"
-
-  mcp:logs:
-    desc: "Tail logs for a container in the MCP monolith (usage: task mcp:logs -- <container>, e.g. postgres|browser|github|kubernetes)"
-    vars:
-      ENV: '{{.ENV | default "mentolder"}}'
-    cmds:
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
-        if [ "{{.ENV}}" = "korczewski" ] || [ "{{.ENV}}" = "dev" ]; then
-          NS_FLAG="-n ${WORKSPACE_NAMESPACE:-workspace-korczewski}"
-        else
-          NS_FLAG="-n default"
-        fi
-        CONTAINER="{{.CLI_ARGS}}"
-        if [ -z "$CONTAINER" ]; then
-          kubectl $CTX $NS_FLAG logs deployment/claude-code-mcp-monolith -f --tail=50 --all-containers
-        else
-          kubectl $CTX $NS_FLAG logs deployment/claude-code-mcp-monolith -c "$CONTAINER" -f --tail=50
-        fi
-
-  mcp:restart:
-    desc: "Restart the MCP monolith pod"
-    vars:
-      ENV: '{{.ENV | default "mentolder"}}'
-    cmds:
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
-        if [ "{{.ENV}}" = "korczewski" ] || [ "{{.ENV}}" = "dev" ]; then
-          NS_FLAG="-n ${WORKSPACE_NAMESPACE:-workspace-korczewski}"
-        else
-          NS_FLAG="-n default"
-        fi
-        kubectl $CTX $NS_FLAG rollout restart deployment/claude-code-mcp-monolith
-        kubectl $CTX $NS_FLAG rollout status deployment/claude-code-mcp-monolith --timeout=120s
-
-  mcp:portforward:
-    desc: "Start/stop/status kubectl port-forwards for the MCP monolith (start|stop|status)"
-    vars:
-      ACTION: '{{.ACTION | default "start"}}'
-    cmds:
-      - bash scripts/mcp-portforward.sh {{.ACTION}}
-
-  mcp:set-github-pat:
-    desc: Update GITHUB_PAT in claude-code-secrets
-    vars:
-      ENV: '{{.ENV | default "mentolder"}}'
-    cmds:
-      - |
-        if [ -z "{{.CLI_ARGS}}" ]; then
-          echo "Usage: task mcp:set-github-pat -- ghp_yourtoken"
-          exit 1
-        fi
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
-        if [ "{{.ENV}}" = "korczewski" ] || [ "{{.ENV}}" = "dev" ]; then
-          NS="-n ${WORKSPACE_NAMESPACE:-workspace-korczewski}"
-        else
-          NS="-n default"
-        fi
-        kubectl $CTX $NS patch secret claude-code-secrets --type='json' -p='[{"op":"replace","path":"/data/GITHUB_PAT","value":"'$(echo -n "{{.CLI_ARGS}}" | base64 -w0)'"}]'
-        kubectl $CTX $NS rollout restart deployment/claude-code-mcp-monolith
-        kubectl $CTX $NS rollout status deployment/claude-code-mcp-monolith --timeout=300s
-        echo "✓ GitHub PAT updated and claude-code-mcp-monolith restarted"
-
-  # ─────────────────────────────────────────────
-  # Claude Code Setup
-  # ─────────────────────────────────────────────
-  claude-code:setup:
-    desc: "Generate Claude Code settings.json (usage: task claude-code:setup -- cluster|business)"
-    vars:
-      ENV: '{{.ENV | default "mentolder"}}'
-    cmds:
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        ROLE="{{.CLI_ARGS}}"
-        if [ "$ROLE" != "cluster" ] && [ "$ROLE" != "business" ]; then
-          echo "Usage: task claude-code:setup -- cluster|business"
-          echo ""
-          echo "  cluster  -- All 10 MCP servers, full ops access (for platform admin)"
-          echo "  business -- All 10 MCP servers, business access (for business user)"
-          exit 1
-        fi
-
-        TEMPLATE="claude-code/settings.json"
-        if [ ! -f "$TEMPLATE" ]; then
-          echo "ERROR: Template $TEMPLATE not found"
-          exit 1
-        fi
-
-        # Read token from k8s Secret (production context)
-        if [ "{{.ENV}}" = "korczewski" ] || [ "{{.ENV}}" = "dev" ]; then
-          MCP_NS="${WORKSPACE_NAMESPACE:-workspace-korczewski}"
-        else
-          MCP_NS="default"
-        fi
-        TOKEN_KEY="$(echo ${ROLE} | tr '[:lower:]' '[:upper:]')_TOKEN"
-        TOKEN=$(kubectl --context "${ENV_CONTEXT}" -n "$MCP_NS" get secret mcp-tokens -o jsonpath="{.data.${TOKEN_KEY}}" 2>/dev/null | base64 -d)
-        if [ -z "$TOKEN" ]; then
-          echo "ERROR: Could not read ${TOKEN_KEY} from mcp-tokens Secret"
-          echo "Deploy MCP first: task mcp:deploy ENV={{.ENV}}"
-          exit 1
-        fi
-
-        export CLUSTER_TOKEN="$TOKEN"
-        export BUSINESS_TOKEN="$TOKEN"
-
-        # Write to project-level settings (won't overwrite global config)
-        PROJECT_DIR="$HOME/.claude/projects/-home-patrick-Bachelorprojekt"
-        mkdir -p "$PROJECT_DIR"
-        OUTPUT="$PROJECT_DIR/settings.json"
-
-        # Prefix server names with mcp- to avoid conflicts with local MCP servers
-        envsubst < "$TEMPLATE" | sed 's/"kubernetes"/"mcp-kubernetes"/;s/"postgres"/"mcp-postgres"/;s/"browser"/"mcp-browser"/;s/"github"/"mcp-github"/' > "$OUTPUT"
-        echo "Claude Code settings written to $OUTPUT"
-        echo "  Role: $ROLE"
-        echo "  MCP endpoint: https://mcp.${PROD_DOMAIN}"
-        echo ""
-        echo "Configured servers:"
-        python3 -c "import json,sys; [print(f'  - {k}') for k in json.load(open(sys.argv[1]))['mcpServers']]" "$OUTPUT"
-
   gemini:sync:
     desc: "Mirror .claude/agents and .claude/skills into .gemini/ (per-worktree; .gemini/* is gitignored)"
     cmds:
@@ -3419,223 +3194,6 @@ tasks:
           cp -aL "$src"/. "$dst"/
         done
         echo "✓ .gemini/agents and .gemini/skills mirrored from .claude/ ($(find .gemini/agents .gemini/skills -type f | wc -l) files)"
-
-  gemini:setup:
-    desc: "Generate Gemini CLI settings.json (usage: task gemini:setup -- cluster|business)"
-    deps: [gemini:sync]
-    vars:
-      ENV: '{{.ENV | default "dev"}}'
-      PREFIX: '{{.PREFIX | default ""}}'
-    cmds:
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        ROLE="{{.CLI_ARGS}}"
-        if [ "$ROLE" != "cluster" ] && [ "$ROLE" != "business" ]; then
-          ROLE="cluster"
-        fi
-
-        # Read token from k8s Secret
-        context_flag=""
-        [ "{{.ENV}}" != "dev" ] && context_flag="--context $ENV_CONTEXT"
-        if [ "{{.ENV}}" = "korczewski" ]; then
-          MCP_NS="${WORKSPACE_NAMESPACE:-workspace-korczewski}"
-        else
-          MCP_NS="default"
-        fi
-
-        TOKEN_KEY="$(echo ${ROLE} | tr '[:lower:]' '[:upper:]')_TOKEN"
-        TOKEN=$(kubectl $context_flag -n "$MCP_NS" get secret mcp-tokens -o jsonpath="{.data.${TOKEN_KEY}}" 2>/dev/null | base64 -d)
-        
-        if [ -z "$TOKEN" ]; then
-          echo "ERROR: Could not read ${TOKEN_KEY} from mcp-tokens Secret"
-          echo "Deploy MCP first: task mcp:deploy ENV={{.ENV}}"
-          exit 1
-        fi
-
-        DOMAIN_NAME="${ENV_DOMAIN}"
-        [ "$DOMAIN_NAME" = "localhost" ] && DOMAIN_NAME="mcp.localhost" || DOMAIN_NAME="mcp.${DOMAIN_NAME}"
-
-        SETTINGS_FILE="$HOME/.gemini/settings.json"
-        mkdir -p "$(dirname "$SETTINGS_FILE")"
-
-        # Generate and merge settings using external scripts
-        export DOMAIN="$DOMAIN_NAME"
-        export TOKEN="$TOKEN"
-        export PREFIX="{{.PREFIX}}"
-        python3 scripts/gemini-mcp-gen.py | python3 scripts/gemini-settings-merge.py "$SETTINGS_FILE"
-
-        echo "Gemini CLI settings updated in $SETTINGS_FILE"
-        echo "  Role: $ROLE"
-        echo "  MCP endpoint: https://${DOMAIN_NAME}"
-        echo ""
-        echo "Configured servers:"
-        python3 -c "import json,sys; [print(f'  - {k}') for k in json.load(open(sys.argv[1]))['mcpServers']]" "$SETTINGS_FILE"
-
-  gemini:setup:all:
-    desc: "Generate Gemini CLI settings.json for all environments (dev, korczewski, mentolder)"
-    cmds:
-      - task: gemini:setup
-        vars: { ENV: "dev", PREFIX: "dev-" }
-      - task: gemini:setup
-        vars: { ENV: "korczewski", PREFIX: "kor-" }
-      - task: gemini:setup
-        vars: { ENV: "mentolder", PREFIX: "men-" }
-
-  claude-code:export:
-    desc: "Export a ready-to-use settings.json for another user (usage: task claude-code:export -- cluster|business)"
-    vars:
-      ENV: '{{.ENV | default "mentolder"}}'
-    cmds:
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        ROLE="{{.CLI_ARGS}}"
-        if [ "$ROLE" != "cluster" ] && [ "$ROLE" != "business" ]; then
-          echo "Usage: task claude-code:export -- cluster|business"
-          echo ""
-          echo "  cluster  -- All 10 MCP servers, full ops access (for platform admin)"
-          echo "  business -- All 10 MCP servers, business access (for business user)"
-          exit 1
-        fi
-
-        TEMPLATE="claude-code/settings.json"
-        if [ ! -f "$TEMPLATE" ]; then
-          echo "ERROR: Template $TEMPLATE not found"
-          exit 1
-        fi
-
-        # Read token from k8s Secret (production context)
-        if [ "{{.ENV}}" = "korczewski" ] || [ "{{.ENV}}" = "dev" ]; then
-          MCP_NS="${WORKSPACE_NAMESPACE:-workspace-korczewski}"
-        else
-          MCP_NS="default"
-        fi
-        TOKEN_KEY="$(echo ${ROLE} | tr '[:lower:]' '[:upper:]')_TOKEN"
-        TOKEN=$(kubectl --context "${ENV_CONTEXT}" -n "$MCP_NS" get secret mcp-tokens -o jsonpath="{.data.${TOKEN_KEY}}" 2>/dev/null | base64 -d)
-        if [ -z "$TOKEN" ]; then
-          echo "ERROR: Could not read ${TOKEN_KEY} from mcp-tokens Secret"
-          echo "Deploy MCP first: task mcp:deploy ENV={{.ENV}}"
-          exit 1
-        fi
-
-        export CLUSTER_TOKEN="$TOKEN"
-        export BUSINESS_TOKEN="$TOKEN"
-
-        OUTPUT="claude-code/${ROLE}-export.settings.json"
-        envsubst < "$TEMPLATE" | sed 's/"kubernetes"/"mcp-kubernetes"/;s/"postgres"/"mcp-postgres"/;s/"browser"/"mcp-browser"/;s/"github"/"mcp-github"/' > "$OUTPUT"
-
-        echo "Exported settings to: $OUTPUT"
-        echo "  Role: $ROLE"
-        echo "  MCP endpoint: https://mcp.${PROD_DOMAIN}"
-        echo ""
-        echo "Send this file to the user. They should place it at:"
-        echo "  ~/.claude/settings.json"
-        echo ""
-        echo "Or import it with:"
-        echo "  mkdir -p ~/.claude && cp ${ROLE}-export.settings.json ~/.claude/settings.json"
-
-  claude-code:invite:
-    desc: "Print claude mcp add commands for a user (usage: task claude-code:invite -- cluster|business)"
-    vars:
-      ENV: '{{.ENV | default "mentolder"}}'
-    cmds:
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        ROLE="{{.CLI_ARGS}}"
-        if [ "$ROLE" != "cluster" ] && [ "$ROLE" != "business" ]; then
-          echo "Usage: task claude-code:invite -- cluster|business"
-          echo ""
-          echo "  cluster  -- All 10 MCP servers, full ops access (for platform admin)"
-          echo "  business -- All 10 MCP servers, business access (for business user)"
-          exit 1
-        fi
-
-        TEMPLATE="claude-code/settings.json"
-        if [ ! -f "$TEMPLATE" ]; then
-          echo "ERROR: Template $TEMPLATE not found"
-          exit 1
-        fi
-
-        # Read token from k8s Secret (production context)
-        if [ "{{.ENV}}" = "korczewski" ] || [ "{{.ENV}}" = "dev" ]; then
-          MCP_NS="${WORKSPACE_NAMESPACE:-workspace-korczewski}"
-        else
-          MCP_NS="default"
-        fi
-        TOKEN_KEY="$(echo ${ROLE} | tr '[:lower:]' '[:upper:]')_TOKEN"
-        TOKEN=$(kubectl --context "${ENV_CONTEXT}" -n "$MCP_NS" get secret mcp-tokens -o jsonpath="{.data.${TOKEN_KEY}}" 2>/dev/null | base64 -d)
-        if [ -z "$TOKEN" ]; then
-          echo "ERROR: Could not read ${TOKEN_KEY} from mcp-tokens Secret"
-          echo "Deploy MCP first: task mcp:deploy ENV={{.ENV}}"
-          exit 1
-        fi
-
-        DOMAIN="${PROD_DOMAIN}"
-
-        # Parse template and generate commands
-        SERVERS=$(python3 -c "
-        import json, sys
-        with open(sys.argv[1]) as f:
-            servers = json.load(f)['mcpServers']
-        for name, cfg in servers.items():
-            url = cfg['url'].replace('\${PROD_DOMAIN}', sys.argv[2]).replace('\${MCP_TOKEN}', sys.argv[3])
-            server_json = json.dumps({'type': 'url', 'url': url, 'headers': {'Authorization': f'Bearer {sys.argv[3]}'}})
-            print(f'mcp-{name}|{server_json}')
-        " "$TEMPLATE" "$DOMAIN" "$TOKEN")
-
-        echo "================================================================"
-        echo "  Claude Code MCP Setup Commands (${ROLE})"
-        echo "================================================================"
-        echo ""
-        echo "Run these commands on the target machine (works on any OS):"
-        echo ""
-        echo "$SERVERS" | while IFS='|' read -r NAME JSON; do
-          echo "claude mcp add-json -s user \"$NAME\" '$JSON'"
-          echo ""
-        done
-        echo "================================================================"
-        echo ""
-        echo "To verify:  claude mcp list"
-        echo "To remove:  claude mcp remove <name>"
-
-  claude-code:rotate-tokens:
-    desc: "Generate new MCP access tokens and update the Secret (ENV=mentolder|korczewski)"
-    vars:
-      ENV: '{{.ENV | default "mentolder"}}'
-    cmds:
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        if [ "{{.ENV}}" = "korczewski" ]; then
-          MCP_NS="${WORKSPACE_NAMESPACE:-workspace-korczewski}"
-        else
-          MCP_NS="default"
-        fi
-        NEW_CLUSTER=$(openssl rand -hex 32)
-        NEW_BUSINESS=$(openssl rand -hex 32)
-
-        kubectl --context "${ENV_CONTEXT}" -n "$MCP_NS" delete secret mcp-tokens 2>/dev/null || true
-        kubectl --context "${ENV_CONTEXT}" -n "$MCP_NS" create secret generic mcp-tokens \
-          --from-literal="CLUSTER_TOKEN=$NEW_CLUSTER" \
-          --from-literal="BUSINESS_TOKEN=$NEW_BUSINESS"
-
-        kubectl --context "${ENV_CONTEXT}" -n "$MCP_NS" rollout restart deployment/mcp-auth-proxy
-        kubectl --context "${ENV_CONTEXT}" -n "$MCP_NS" rollout status deployment/mcp-auth-proxy --timeout=60s
-
-        TOKEN_VERSION="$(date -u +%Y%m%dT%H%M%SZ)"
-        kubectl --context "${ENV_CONTEXT}" -n "$MCP_NS" annotate deployment/mcp-auth-proxy \
-          "claude-code/token-version=${TOKEN_VERSION}" --overwrite
-
-        {
-          echo "════════════════════════════════════════════════════════════════"
-          echo "⚠ ACTION REQUIRED — MCP tokens rotated to version ${TOKEN_VERSION}"
-          echo "  The server now ONLY accepts the NEW token. Every machine's"
-          echo "  settings.json still holds the OLD token → 401 until re-setup."
-          echo "  Run on EACH machine:"
-          echo "    task claude-code:setup -- cluster"
-          echo "    task claude-code:setup -- business"
-          echo "  Verify the live version: kubectl --context ${ENV_CONTEXT} -n ${MCP_NS} \\"
-          echo "    get deploy mcp-auth-proxy -o jsonpath='{.metadata.annotations.claude-code/token-version}'"
-          echo "════════════════════════════════════════════════════════════════"
-        } >&2
 
   # ─────────────────────────────────────────────
   # Website (Astro + Svelte)

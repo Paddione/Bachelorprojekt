@@ -5,9 +5,8 @@
 #   - upstream loops back to the cluster Traefik `web` entrypoint with Host
 #     preserved, so host-based routing reaches mcp-dev / website-dev / brett-dev
 #     (replaces the old 127.0.0.1:18080 host-port and the dead 10.0.0.20 VIP)
-# The MCP path prefixes are skip-auth'd so token-auth MCP clients bypass the
-# browser OIDC dance; the real control there is the dev-side ForwardAuth
-# (mcp-auth-proxy-dev).
+# The /api/mcp path prefixes are skip-auth'd so token-auth MCP clients bypass
+# the browser OIDC dance.
 # ════════════════════════════════════════════════════════════════════════════
 apiVersion: apps/v1
 kind: Deployment

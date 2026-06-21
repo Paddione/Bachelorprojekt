@@ -9,10 +9,11 @@
   import MediaviewerPanel from './MediaviewerPanel.svelte';
   import GrillingSessionHost from './mediaviewer/GrillingSessionHost.svelte';
   import CockpitSidekickView from './assistant/CockpitSidekickView.svelte';
+  import AiQualitySidekickView from './assistant/AiQualitySidekickView.svelte';
   import { resolveHelpVideos } from '../lib/help-videos';
   import { parseNavigateEvent } from '../lib/assistant/sidekick-nudge';
 
-  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'agent-guide' | 'mediaviewer' | 'grilling' | 'cockpit';
+  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'agent-guide' | 'mediaviewer' | 'grilling' | 'cockpit' | 'ai-quality';
 
   let {
     helpSection = '',
@@ -31,6 +32,7 @@
   let view = $state<View>('home');
   let pendingQuestionnaires = $state(0);
   let pendingContainerCount = $state(0);
+  let aiErrorCount = $state(0);
   const mediaviewerVideos = $derived(resolveHelpVideos(videovaultHost));
   let isMobile = $state(false);
   let currentTicketId = $state<string | null>(null);
@@ -58,6 +60,7 @@
     mediaviewer: 'Mediaviewer',
     grilling: 'Final Grilling',
     cockpit: 'Projekt-Cockpit',
+    'ai-quality': 'KI-Qualität',
   };
 
   $effect(() => {
@@ -108,6 +111,13 @@
             if (cRes.ok) {
               const cd = await cRes.json() as { total?: number };
               pendingContainerCount = cd.total ?? 0;
+            }
+          } catch { /* badge stays 0 */ }
+          try {
+            const aRes = await fetch('/api/admin/ai-quality', { credentials: 'same-origin' });
+            if (aRes.ok) {
+              const ad = await aRes.json() as { recentErrors?: unknown[] };
+              aiErrorCount = Array.isArray(ad.recentErrors) ? ad.recentErrors.length : 0;
             }
           } catch { /* badge stays 0 */ }
         }
@@ -214,6 +224,7 @@
         {helpSection}
         {helpContext}
         {pendingContainerCount}
+        {aiErrorCount}
       />
     {:else if view === 'support'}
       <SupportView onCloseView={() => { view = 'home'; }} />
@@ -229,6 +240,8 @@
       <GrillingSessionHost {mediaviewerHost} ticketId={currentTicketId ?? ''} />
     {:else if view === 'cockpit'}
       <CockpitSidekickView />
+    {:else if view === 'ai-quality'}
+      <AiQualitySidekickView />
     {/if}
   </div>
 </div>

@@ -30,4 +30,7 @@ describe('parseNavigateEvent', () => {
     expect(parseNavigateEvent({ view: 'grilling' })).toEqual({ view: 'grilling', jumpTo: null });
     expect(parseNavigateEvent({ view: 'mediaviewer' })).toEqual({ view: 'mediaviewer', jumpTo: null });
   });
+  it('accepts the ai-quality view', () => {
+    expect(parseNavigateEvent({ view: 'ai-quality', jumpTo: null })).toEqual({ view: 'ai-quality', jumpTo: null });
+  });
 });

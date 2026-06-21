@@ -4986,3 +4986,26 @@ tasks:
     cmds:
       - make -C scripts/ticket-mcp/go build
 
+  # ─────────────────────────────────────────────
+  # Maintenance — periodic cleanups
+  # ─────────────────────────────────────────────
+  maintenance:ai-log-cleanup:
+    desc: "Delete ai_call_log rows older than 90 days. Usage: task maintenance:ai-log-cleanup [-- ENV=dev|mentolder|korczewski]"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        kubectl $CTX exec -n "$NS" deploy/shared-db -- \
+          psql -U website -d website -c "DELETE FROM ai_call_log WHERE ts < NOW() - INTERVAL '90 days';"
+
+  maintenance:all:
+    desc: "Run all maintenance tasks. Usage: task maintenance:all [-- ENV=dev|mentolder|korczewski]"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - task: maintenance:ai-log-cleanup
+        vars: { ENV: '{{.ENV}}' }
+

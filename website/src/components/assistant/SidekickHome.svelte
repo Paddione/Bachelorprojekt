@@ -1,5 +1,5 @@
 <script lang="ts">
-  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'agent-guide' | 'mediaviewer' | 'grilling' | 'cockpit';
+  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'agent-guide' | 'mediaviewer' | 'grilling' | 'cockpit' | 'ai-quality';
 
   let {
     onNavigate,
@@ -8,6 +8,7 @@
     helpSection = '',
     helpContext = 'portal',
     pendingContainerCount = 0,
+    aiErrorCount = 0,
   }: {
     onNavigate: (view: View) => void;
     onClose?: () => void;
@@ -15,6 +16,7 @@
     helpSection?: string;
     helpContext?: string;
     pendingContainerCount?: number;
+    aiErrorCount?: number;
   } = $props();
 
   const isAdmin = $derived(helpContext === 'admin');
@@ -24,11 +26,12 @@
   const items = $derived<Item[]>([
     { id: 'cockpit',      no: '01', title: 'Projekttickets', sub: 'Container & Features', badge: pendingContainerCount > 0 ? pendingContainerCount : undefined, show: isAdmin },
     { id: 'grilling',      no: '02', title: 'Final Grilling',     sub: 'Abschließende Klärungsrunde', show: isAdmin },
-    { id: 'questionnaire', no: isAdmin ? '03' : '01', title: 'Fragebögen', sub: 'Aufgaben beantworten', badge: pendingQuestionnaires > 0 ? pendingQuestionnaires : undefined, show: true },
-    { id: 'support',       no: isAdmin ? '04' : '02', title: 'Feedback & Support', sub: 'Fehler melden, Ideen teilen', show: true },
-    { id: 'agent-guide',   no: isAdmin ? '05' : '03', title: 'Agent-Anleitung', sub: 'Lernen, wie alles funktioniert', show: true },
-    { id: 'mediaviewer',   no: isAdmin ? '06' : '04', title: 'Mediaviewer', sub: 'Hilfe- & Onboarding-Videos', show: true },
-    { id: 'help',          no: isAdmin ? '07' : '05', title: 'Hilfe',        sub: 'Kontexthilfe für diese Seite', show: !!helpSection },
+    { id: 'ai-quality',    no: '03', title: 'KI-Qualität', sub: 'Latenz · Kosten · Fehler', badge: aiErrorCount > 0 ? aiErrorCount : undefined, show: isAdmin },
+    { id: 'questionnaire', no: isAdmin ? '04' : '01', title: 'Fragebögen', sub: 'Aufgaben beantworten', badge: pendingQuestionnaires > 0 ? pendingQuestionnaires : undefined, show: true },
+    { id: 'support',       no: isAdmin ? '05' : '02', title: 'Feedback & Support', sub: 'Fehler melden, Ideen teilen', show: true },
+    { id: 'agent-guide',   no: isAdmin ? '06' : '03', title: 'Agent-Anleitung', sub: 'Lernen, wie alles funktioniert', show: true },
+    { id: 'mediaviewer',   no: isAdmin ? '07' : '04', title: 'Mediaviewer', sub: 'Hilfe- & Onboarding-Videos', show: true },
+    { id: 'help',          no: isAdmin ? '08' : '05', title: 'Hilfe',        sub: 'Kontexthilfe für diese Seite', show: !!helpSection },
   ].filter(i => i.show));
 
   let hover = $state<string | null>(null);

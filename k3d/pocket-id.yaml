@@ -1,6 +1,6 @@
 # ═══════════════════════════════════════════════════════════════════
 # Pocket ID — passkey-first OIDC identity provider
-# Replaces Keycloak for the workspace tenants. Image: stonith404/pocket-id.
+# Replaces Keycloak for the workspace tenants. Image: ghcr.io/pocket-id/pocket-id.
 # Container port 1411. Cluster-internal Service: http://pocket-id:1411.
 # Public hostname: ${POCKET_ID_DOMAIN} (id.localhost in dev, id.${PROD_DOMAIN} in prod).
 # ═══════════════════════════════════════════════════════════════════
@@ -147,7 +147,7 @@ spec:
               memory: "64Mi"
       containers:
         - name: pocket-id
-          image: stonith404/pocket-id:v2.9.0
+          image: ghcr.io/pocket-id/pocket-id:v2.9.0
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false

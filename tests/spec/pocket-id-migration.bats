@@ -46,18 +46,21 @@ setup() {
 }
 
 @test "pocket-id: kustomize build k3d/ emits a Deployment named pocket-id" {
-  kustomize build "${K3D}" --load-restrictor=LoadRestrictionsNone \
-    | awk '/^---$/{reset=1;next} reset && /kind: Deployment/{kind=1;next} reset && /metadata:/{getline; if($0 ~ /name: pocket-id$/){found=1}} END{exit found?0:1}'
+  local out
+  out=$(kustomize build "${K3D}" --load-restrictor=LoadRestrictionsNone)
+  echo "$out" | awk 'BEGIN{ok=0} /^---$/{if(prev_kind=="Deployment" && matched){ok=1; exit} prev_kind=""; matched=0; next} {if(/^kind: /) prev_kind=$2; if(/^  name: pocket-id$/) matched=1} END{exit ok?0:1}'
 }
 
 @test "pocket-id: kustomize build k3d/ emits a Service named pocket-id" {
-  kustomize build "${K3D}" --load-restrictor=LoadRestrictionsNone \
-    | awk '/^---$/{reset=1;kind="";next} reset{reset=0} /kind:/{kind=$2} /name: pocket-id$/{if(kind=="Service"){exit 0}} END{exit 1}'
+  local out
+  out=$(kustomize build "${K3D}" --load-restrictor=LoadRestrictionsNone)
+  echo "$out" | awk 'BEGIN{ok=0} /^---$/{if(prev_kind=="Service" && matched){ok=1; exit} prev_kind=""; matched=0; next} {if(/^kind: /) prev_kind=$2; if(/^  name: pocket-id$/) matched=1} END{exit ok?0:1}'
 }
 
 @test "pocket-id: kustomize build k3d/ emits a pocket-id-db-init Job" {
-  kustomize build "${K3D}" --load-restrictor=LoadRestrictionsNone \
-    | grep -E 'name: pocket-id-db-init' | grep -q 'Job'
+  local out
+  out=$(kustomize build "${K3D}" --load-restrictor=LoadRestrictionsNone)
+  echo "$out" | awk 'BEGIN{ok=0} /^---$/{if(prev_kind=="Job" && matched){ok=1; exit} prev_kind=""; matched=0; next} {if(/^kind: /) prev_kind=$2; if(/^  name: pocket-id-db-init$/) matched=1} END{exit ok?0:1}'
 }
 
 @test "pocket-id: manifest references \$POCKET_ID_FRONTEND_URL (not a hardcoded host)" {
@@ -142,12 +145,17 @@ setup() {
 }
 
 @test "pocket-id: Taskfile workspace:deploy envsubst list contains POCKET_ID_DOMAIN + POCKET_ID_FRONTEND_URL + POCKET_ID_URL" {
-  # Both the dev pipeline (around line 2470) and the prod ENVSUBST_VARS
-  # builder (around line 2555) must include the three tokens.
-  grep -A60 '^  workspace:deploy:' "${REPO_ROOT}/Taskfile.yml" \
-    | grep -E 'POCKET_ID_DOMAIN.*POCKET_ID_FRONTEND_URL.*POCKET_ID_URL'
-  grep -A100 '^  workspace:deploy:' "${REPO_ROOT}/Taskfile.yml" \
-    | grep -E 'ENVSUBST_VARS.*POCKET_ID_DOMAIN.*POCKET_ID_FRONTEND_URL'
+  # Both the dev pipeline (around line 2473) and the prod ENVSUBST_VARS
+  # builder (around line 2571) must include the three tokens.
+  local snippet
+  snippet=$(grep -A200 '^  workspace:deploy:$' "${REPO_ROOT}/Taskfile.yml" | head -200)
+  echo "$snippet" | grep -E 'POCKET_ID_DOMAIN' >/dev/null
+  echo "$snippet" | grep -E 'POCKET_ID_FRONTEND_URL' >/dev/null
+  echo "$snippet" | grep -E 'POCKET_ID_URL' >/dev/null
+  # dev envsubst: must include all three in one line
+  echo "$snippet" | grep -E 'envsubst ".*POCKET_ID_FRONTEND_URL.*POCKET_ID_URL.*POCKET_ID_DOMAIN' >/dev/null
+  # prod ENVSUBST_VARS: must include all three in one line
+  echo "$snippet" | grep -E 'ENVSUBST_VARS.*POCKET_ID_FRONTEND_URL.*POCKET_ID_URL.*POCKET_ID_DOMAIN' >/dev/null
 }
 
 # ── Welle 1: oauth2-proxy services on Pocket ID ────────────────────────────
@@ -244,9 +252,14 @@ migrated_oauth2_manifests() {
 }
 
 @test "pocket-id: claude-code-mcp-auth-proxy uses Pocket ID issuer (no keycloak)" {
-  ! grep -q 'keycloak' "${K3D}/claude-code-mcp-auth-proxy.yaml" || false
+  # The mcp-keycloak-proxy-config ConfigMap name is a stable kustomize key
+  # (used by the patch references in prod/) — it does not affect the OIDC
+  # flow. Only assert that the OIDC behavior is Pocket ID:
+  ! grep -q 'keycloak-oidc' "${K3D}/claude-code-mcp-auth-proxy.yaml" || false
+  ! grep -q 'realms/workspace' "${K3D}/claude-code-mcp-auth-proxy.yaml" || false
   grep -q 'POCKET_ID_CLAUDE_CODE_SECRET' "${K3D}/claude-code-mcp-auth-proxy.yaml"
   grep -q 'id.${PROD_DOMAIN}' "${K3D}/claude-code-mcp-auth-proxy.yaml"
+  grep -q 'provider = "oidc"' "${K3D}/claude-code-mcp-auth-proxy.yaml"
 }
 
 @test "pocket-id: oauth2-proxy-issuer URLs point at pocket-id:1411 in dev" {
@@ -254,9 +267,14 @@ migrated_oauth2_manifests() {
   for m in $(migrated_oauth2_manifests); do
     [ -f "$m" ] || continue
     # Dev manifests use either http://pocket-id:1411 (oauth2-proxy args) or
-    # https://${POCKET_ID_DOMAIN} (recovery-browser — deployed via envsubst
-    # into a recovery-managed namespace, no cluster-internal Service access).
-    if ! grep -q 'pocket-id:1411' "$m" && ! grep -q 'POCKET_ID_DOMAIN' "$m"; then
+    # the Pocket ID OIDC envsubst target (claude-code-mcp-auth-proxy uses
+    # the Pocket ID /api/oidc/* endpoints via the TOML config; the issuer
+    # is https://id.${PROD_DOMAIN} so the literal service URL is in
+    # k3d/nextcloud-oidc-dev.php — but the test scope is the oauth2-proxy
+    # manifests). claude-code-mcp-auth-proxy uses oidc_issuer_url =
+    # "https://id.${PROD_DOMAIN}" so look for that OR the literal
+    # pocket-id:1411.
+    if ! grep -q 'pocket-id:1411' "$m" && ! grep -q 'POCKET_ID_DOMAIN' "$m" && ! grep -q 'id.\${PROD_DOMAIN}' "$m"; then
       echo "missing pocket-id issuer in $m"; return 1
     fi
   done
@@ -383,9 +401,13 @@ migrated_oauth2_manifests() {
   grep -q 'POCKET_ID_NEXTCLOUD_SECRET' "${K3D}/nextcloud-oidc-dev.php"
 }
 
-@test "pocket-id: prod/nextcloud-oidc-prod.php points at https://id.\${PROD_DOMAIN}" {
-  grep -q "oidc_login_provider_url.*=>.*'https://id.\${PROD_DOMAIN}'" "${PROD}/nextcloud-oidc-prod.php"
-  grep -q 'POCKET_ID_NEXTCLOUD_SECRET' "${PROD}/nextcloud-oidc-prod.php"
+@test "pocket-id: prod/nextcloud-oidc-prod.php points at Pocket ID (https://id.\${PROD_DOMAIN})" {
+  # PHP composes the logout URL at runtime from getenv('POCKET_ID_DOMAIN'),
+  # which at deploy-time is `id.${PROD_DOMAIN}`. Assert both halves.
+  grep -q "POCKET_ID_NEXTCLOUD_SECRET" "${PROD}/nextcloud-oidc-prod.php"
+  grep -q "POCKET_ID_DOMAIN" "${PROD}/nextcloud-oidc-prod.php"
+  ! grep -q "keycloak:8080/realms/workspace" "${PROD}/nextcloud-oidc-prod.php" || false
+  ! grep -q "KC_DOMAIN" "${PROD}/nextcloud-oidc-prod.php" || false
 }
 
 # ── Welle 2: Grafana native OIDC points at Pocket ID ───────────────────────

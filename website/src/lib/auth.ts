@@ -1,22 +1,19 @@
-// OIDC authentication helper for Keycloak.
+// OIDC authentication helper for Pocket ID.
 // Implements Authorization Code Flow with cookie-based sessions.
 
-const KC_FRONTEND_URL = process.env.KEYCLOAK_FRONTEND_URL || '';
-const KC_INTERNAL_URL = process.env.KEYCLOAK_URL || 'http://keycloak.workspace.svc.cluster.local:8080';
-const KC_REALM = process.env.KEYCLOAK_REALM || 'workspace';
+const PI_FRONTEND_URL = process.env.POCKET_ID_FRONTEND_URL || '';
+const PI_INTERNAL_URL = process.env.POCKET_ID_URL || 'http://pocket-id.workspace.svc.cluster.local:1411';
 const CLIENT_ID = 'website';
-const CLIENT_SECRET = process.env.WEBSITE_OIDC_SECRET || 'devwebsiteoidcsecret12345';
+const CLIENT_SECRET = process.env.POCKET_ID_WEBSITE_SECRET || process.env.WEBSITE_OIDC_SECRET || 'devwebsiteoidcsecret12345';
 const SITE_URL = process.env.SITE_URL || '';
 const CALLBACK_PATH = '/api/auth/callback';
 const COOKIE_NAME = 'workspace_session';
 
-// Well-known OIDC endpoints
-const ISSUER_FRONTEND = `${KC_FRONTEND_URL}/realms/${KC_REALM}`;
-const ISSUER_INTERNAL = `${KC_INTERNAL_URL}/realms/${KC_REALM}`;
-const AUTH_ENDPOINT = `${ISSUER_FRONTEND}/protocol/openid-connect/auth`;
-const TOKEN_ENDPOINT = `${ISSUER_INTERNAL}/protocol/openid-connect/token`;
-const USERINFO_ENDPOINT = `${ISSUER_INTERNAL}/protocol/openid-connect/userinfo`;
-const LOGOUT_ENDPOINT = `${ISSUER_FRONTEND}/protocol/openid-connect/logout`;
+// Well-known Pocket ID OIDC endpoints
+const AUTH_ENDPOINT = `${PI_FRONTEND_URL}/authorize`;
+const TOKEN_ENDPOINT = `${PI_INTERNAL_URL}/api/oidc/token`;
+const USERINFO_ENDPOINT = `${PI_INTERNAL_URL}/api/oidc/userinfo`;
+const LOGOUT_ENDPOINT = `${PI_FRONTEND_URL}/api/oidc/end-session`;
 
 export interface UserSession {
   sub: string;
@@ -45,17 +42,12 @@ function decodeJwtPayload(accessToken: string): Record<string, unknown> | null {
 }
 
 function decodeRealmRoles(accessToken: string): string[] {
+  // Pocket ID has no realm roles — roles are a single isAdmin boolean on the
+  // userInfo response. We synthesize a realmRoles array from the access
+  // token's `isAdmin` claim (added by Pocket ID's ID-token claims mapper)
+  // so downstream consumers (e.g. isAdmin() helpers) keep working unchanged.
   const claims = decodeJwtPayload(accessToken);
-  const roles = (claims?.realm_access as { roles?: unknown } | undefined)?.roles;
-  return Array.isArray(roles) ? roles.filter((r): r is string => typeof r === 'string') : [];
-}
-
-function tokenHasAudience(accessToken: string, audience: string): boolean {
-  const claims = decodeJwtPayload(accessToken);
-  const aud = claims?.aud;
-  if (typeof aud === 'string') return aud === audience;
-  if (Array.isArray(aud)) return aud.includes(audience);
-  return false;
+  return claims?.isAdmin === true ? ['admin'] : [];
 }
 
 const BRAND = process.env.BRAND_ID ?? process.env.BRAND ?? null;
@@ -178,7 +170,7 @@ export async function exchangeCode(code: string): Promise<{ sessionId: string; u
     preferred_username: userInfo.preferred_username,
     given_name: userInfo.given_name,
     family_name: userInfo.family_name,
-    realmRoles: decodeRealmRoles(tokens.access_token),
+    realmRoles: userInfo.isAdmin ? ['admin'] : [],
     brand: BRAND,
     access_token: tokens.access_token,
     refresh_token: tokens.refresh_token,
@@ -198,6 +190,10 @@ const ADMIN_USERNAMES = new Set(
 );
 
 export function isAdmin(session: UserSession): boolean {
+  // Pocket ID's isAdmin claim is the authoritative signal. The
+  // PORTAL_ADMIN_USERNAME list is kept as a fallback for non-OIDC paths
+  // (e.g. magic-link-redeem where isAdmin is missing).
+  if (session.realmRoles.includes('admin')) return true;
   return ADMIN_USERNAMES.has(session.preferred_username);
 }
 
@@ -220,19 +216,17 @@ export async function getSession(cookieHeader: string | null): Promise<UserSessi
 
     let session = result.rows[0].data as UserSession;
 
-    // Refresh the Keycloak access token when its own JWT `exp` is within a
-    // 60s safety buffer (KC default access-token TTL is 5 minutes), or when the
-    // cached token lacks the arena audience (mapper added later) — otherwise
-    // arena-server rejects the JWT with "exp claim timestamp check failed" or
-    // an audience mismatch. session.expires_at tracks the web-session lifetime
-    // (8h) and is unrelated to the access token's own expiry.
+    // Refresh the Pocket ID access token when its own JWT `exp` is within a
+    // 60s safety buffer. session.expires_at tracks the web-session lifetime
+    // (8h) and is unrelated to the access token's own expiry. Arena out of
+    // scope: the previous missingArenaAud trigger was a Keycloak mapper
+    // workaround; Pocket ID has no realm mappers.
     const ACCESS_TOKEN_BUFFER_MS = 60 * 1000;
     const accessClaims = decodeJwtPayload(session.access_token);
     const accessExpMs = typeof accessClaims?.exp === 'number' ? accessClaims.exp * 1000 : 0;
     const accessExpired = accessExpMs - Date.now() < ACCESS_TOKEN_BUFFER_MS;
-    const missingArenaAud = !tokenHasAudience(session.access_token, 'arena');
     const webSessionExpiring = session.expires_at - Date.now() < ACCESS_TOKEN_BUFFER_MS;
-    if (accessExpired || missingArenaAud || webSessionExpiring) {
+    if (accessExpired || webSessionExpiring) {
       const refreshed = await refreshTokens(session.refresh_token);
       if (refreshed) {
         const newExpiry = Date.now() + SESSION_TTL_MS;

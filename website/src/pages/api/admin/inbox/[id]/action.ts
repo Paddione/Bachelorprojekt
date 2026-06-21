@@ -2,7 +2,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
 import { getInboxItem, updateInboxItemStatus, deleteInboxItem } from '../../../../../lib/messaging-db';
-import { createUser, sendPasswordResetEmail } from '../../../../../lib/keycloak';
+import { createUser, sendPasswordResetEmail } from '../../../../../lib/identity';
 import { createCalendarEvent } from '../../../../../lib/caldav';
 import { createTalkRoom, inviteGuestByEmail, sendChatMessage } from '../../../../../lib/talk';
 import { sendRegistrationApproved, sendRegistrationDeclined, sendEmail } from '../../../../../lib/email';
@@ -63,7 +63,7 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
         // If user already exists (e.g. partial failure on prior attempt), look up the existing user
         // so we can still send the password reset and complete the approval.
         if (!result.success && result.error?.includes('bereits')) {
-          const { listUsers } = await import('../../../../../lib/keycloak');
+          const { listUsers } = await import('../../../../../lib/identity');
           const allUsers = await listUsers();
           const existing = allUsers.find(u => u.email?.toLowerCase() === p.email.toLowerCase());
           if (existing) {

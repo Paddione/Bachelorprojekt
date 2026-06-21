@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { assignRealmRole } from '../../../../lib/keycloak';
-import type { KcRole } from '../../../../lib/keycloak';
+import { assignRealmRole } from '../../../../lib/identity';
+import type { KcRole } from '../../../../lib/identity';
 
 export const POST: APIRoute = async ({ request }) => {
   const session = await getSession(request.headers.get('cookie'));

@@ -1,6 +1,6 @@
 // tests/e2e/specs/systemtest-01-auth.spec.ts
 //
-// Walks System-Test 1 (Authentifizierung & SSO — Keycloak). 6 steps; step 3
+// Walks System-Test 1 (Authentifizierung & SSO — Pocket ID). 6 steps; step 3
 // requires a second browser profile and is auto-marked 'teilweise' from the
 // seed's agent_notes.
 //
@@ -16,7 +16,7 @@ import {
   ensureAdminPasswordOrSkip,
 } from '../lib/systemtest-runner';
 
-test.describe('System-Test 1: Authentifizierung & SSO', () => {
+test.describe('System-Test 1: Authentifizierung & SSO (Pocket ID)', () => {
   test.beforeEach(({}, info) => ensureAdminPasswordOrSkip(info));
   test.setTimeout(180_000);
 

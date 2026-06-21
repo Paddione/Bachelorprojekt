@@ -2,8 +2,8 @@ import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { listMembersLearningSummary } from '../../../../lib/learning-db';
 import type { MemberLearningSummary } from '../../../../lib/learning-db';
-import { listUsers } from '../../../../lib/keycloak';
-import type { KcUser } from '../../../../lib/keycloak';
+import { listUsers } from '../../../../lib/identity';
+import type { KcUser } from '../../../../lib/identity';
 
 export interface EnrichedMember extends MemberLearningSummary {
   preferred_username: string | null;

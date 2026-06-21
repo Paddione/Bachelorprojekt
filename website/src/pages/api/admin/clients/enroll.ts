@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { getCustomerFullById, upsertCustomer } from '../../../../lib/website-db';
-import { createUser, sendPasswordResetEmail, listUsers } from '../../../../lib/keycloak';
+import { createUser, sendPasswordResetEmail, listUsers } from '../../../../lib/identity';
 
 export const POST: APIRoute = async ({ request }) => {
   const session = await getSession(request.headers.get('cookie'));

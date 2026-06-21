@@ -4,7 +4,7 @@ import { getCustomerByKeycloakId } from '../../../../lib/website-db';
 import {
   validateProfileInput, updateCustomerProfile, addContactHistoryEntry, type ProfileInput,
 } from '../../../../lib/customer-crm-db';
-import { updateUserAttribute } from '../../../../lib/keycloak';
+import { updateUserAttribute } from '../../../../lib/identity';
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });

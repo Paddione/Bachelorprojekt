@@ -1,8 +1,8 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
-import { getUserById, getUserRealmRoles, listRealmRoles } from '../../lib/keycloak';
-import type { KcRole } from '../../lib/keycloak';
+import { getUserById, getUserRealmRoles, listRealmRoles } from '../../lib/identity';
+import type { KcRole } from '../../lib/identity';
 import BookingsTab from '../../components/portal/BookingsTab.astro';
 import InvoicesTab from '../../components/portal/InvoicesTab.astro';
 import ClientNotesTab from '../../components/portal/ClientNotesTab.astro';

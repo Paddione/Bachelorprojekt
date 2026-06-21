@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { getUserById } from '../../../../lib/keycloak';
+import { getUserById } from '../../../../lib/identity';
 import {
   getSubscriberByEmail,
   createSubscriber,

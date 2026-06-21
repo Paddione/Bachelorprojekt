@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, getSessionId, getLogoutUrl, clearSessionCookie } from '../../../lib/auth';
-import { deleteUser } from '../../../lib/keycloak';
+import { deleteUser } from '../../../lib/identity';
 
 export const POST: APIRoute = async ({ request }) => {
   const cookieHeader = request.headers.get('cookie');

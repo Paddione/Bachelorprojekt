@@ -2,15 +2,17 @@ import { test, expect } from '@playwright/test';
 
 const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
-test.describe('FA-15: OIDC Website Login', () => {
-  test('T1: /api/auth/login redirects to Keycloak', async ({ request }) => {
+test.describe('FA-15: OIDC Website Login (Pocket ID)', () => {
+  test('T1: /api/auth/login redirects to Pocket ID', async ({ request }) => {
     const res = await request.get(`${BASE}/api/auth/login`, {
       maxRedirects: 0,
     });
     expect(res.status()).toBe(302);
     const location = res.headers()['location'] || '';
-    expect(location).toContain('openid-connect/auth');
+    // Pocket ID's authorization endpoint is /authorize
+    expect(location).toMatch(/^https?:\/\/[^\/]+\/authorize(\?|$)/);
     expect(location).toContain('client_id=website');
+    expect(location).toContain('response_type=code');
   });
 
   test('T2: /api/auth/me returns unauthenticated when no session', async ({ request }) => {
@@ -25,6 +27,9 @@ test.describe('FA-15: OIDC Website Login', () => {
       maxRedirects: 0,
     });
     expect(res.status()).toBe(302);
+    const location = res.headers()['location'] || '';
+    // Pocket ID's end-session endpoint is /api/oidc/end-session
+    expect(location).toMatch(/\/api\/oidc\/end-session(\?|$)/);
   });
 
   test('T4: Nav shows Anmelden when not logged in', async ({ page }) => {

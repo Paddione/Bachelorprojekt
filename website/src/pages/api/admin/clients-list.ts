@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../lib/auth';
-import { listUsers } from '../../../lib/keycloak';
+import { listUsers } from '../../../lib/identity';
 
 export interface ClientOption {
   id: string;

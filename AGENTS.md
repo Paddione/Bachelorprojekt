@@ -109,6 +109,20 @@ bash scripts/agent-lock.sh list    # see who is doing what
 
 Session messaging: `bash scripts/agent-msg.sh read --unread` (incoming), `bash scripts/agent-msg.sh post "msg"` (broadcast to live sessions).
 
+## Escalation Protocol (when stuck)
+
+If a subagent cannot continue — missing context, ambiguous target, unresolvable error, or unsafe action without confirmation:
+
+```bash
+bash scripts/agent-escalate.sh \
+  --agent "bachelorprojekt-<role>" \
+  --reason "<what is blocking you>" \
+  --tried  "<what you attempted>" \
+  --needs  "<what would unblock you>"
+```
+
+The script posts to the session-message channel and emits a structured `=== AGENT ESCALATION ===` block. **Orchestrators** that see this block should re-dispatch with the missing context in `<active-plans>` tags or ask the user before retrying. Never guess ambiguous `ENV=` targets, secret values, or destructive operations.
+
 ## Skill Dispatch Protocol
 
 Every skill in `.claude/skills/<name>/SKILL.md` declares its dispatch target in the YAML frontmatter:

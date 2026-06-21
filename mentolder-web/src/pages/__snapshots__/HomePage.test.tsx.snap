@@ -1,0 +1,264 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`HomePage Null-Diff baseline > renders the full page identically to the pre-refactor snapshot > homepage-full-page 1`] = `
+<section
+  aria-label="Hero-Bereich"
+  class="relative pt-[76px] pb-[120px] border-b border-line"
+>
+  <div
+    aria-hidden="true"
+    class="absolute inset-0 pointer-events-none overflow-hidden z-0"
+  >
+    <img
+      alt=""
+      aria-hidden="true"
+      class="absolute right-[-20%] top-[-30%] w-[90vw] h-[90vw] max-w-none object-cover pointer-events-none"
+      src="/src/assets/hero-halo.svg"
+      style="filter: blur(10px);"
+    />
+    <div
+      class="absolute left-[-30%] bottom-[-40%] w-[80vw] h-[80vw] pointer-events-none"
+      style="background: radial-gradient(closest-side, oklch(0.60 0.05 250 / .25), transparent 70%);"
+    />
+  </div>
+  <div
+    class="wrap relative z-[2]"
+  >
+    <div
+      class="grid"
+    >
+      <div
+        class="hero-copy flex flex-col"
+      >
+        <div
+          style="opacity: 0; transform: translateY(8px);"
+        >
+          <div
+            aria-label="Kategorien"
+            class="flex items-center gap-[14px] font-mono text-[11px] tracking-[0.14em] uppercase text-mute mb-[26px]"
+          >
+            <span
+              aria-hidden="true"
+              class="w-[44px] h-px bg-brass opacity-70 flex-shrink-0"
+            />
+            <span
+              class="flex items-center gap-[14px]"
+            >
+              <span>
+                Digital Coach
+              </span>
+            </span>
+            <span
+              class="flex items-center gap-[14px]"
+            >
+              <span
+                aria-hidden="true"
+                class="w-[5px] h-[5px] rounded-full bg-sage flex-shrink-0"
+              />
+              <span>
+                Führungskräfte-Mentor
+              </span>
+            </span>
+          </div>
+        </div>
+        <h1
+          class="font-serif font-light leading-[1.02] text-fg m-0"
+          style="font-size: clamp(44px, 6.2vw, 88px); letter-spacing: -0.02em; opacity: 0; transform: translateY(16px);"
+        >
+          Menschen, Prozesse und Technik
+           
+          <em>
+            der Mensch und Technologie wieder verbindet.
+          </em>
+        </h1>
+        <p
+          class="lede mt-5 text-[18px] leading-[1.6] text-fg-soft max-w-[52ch]"
+        >
+          Mit 30+ Jahren Führungserfahrung begleite ich Menschen und Organisationen bei der digitalen Transformation — praxisnah, empathisch und auf Augenhöhe.
+        </p>
+        <div
+          aria-label="Aktionen"
+          class="hero-cta flex flex-wrap gap-[14px] mt-9"
+          role="group"
+        >
+          <a
+            class="btn-primary"
+            data-discover="true"
+            href="/kontakt"
+          >
+            Kostenloses Erstgespräch
+            <svg
+              aria-hidden="true"
+              class="w-[14px] h-[14px]"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 14 14"
+            >
+              <path
+                d="M2 7h10M8 3l4 4-4 4"
+              />
+            </svg>
+          </a>
+          <a
+            class="btn-ghost"
+            href="/#angebote"
+          >
+            Angebote ansehen
+          </a>
+        </div>
+      </div>
+      <div
+        class="hero-portrait flex items-end justify-end"
+      >
+        <div
+          aria-label="Portrait von Gerald Korczewski, Digital Coach & Mentor"
+          class="relative w-full max-w-[460px] ml-auto isolate pr-[18px] "
+          role="img"
+        >
+          <span
+            aria-hidden="true"
+            class="absolute right-[2px] top-[-16px] bottom-[-40px] w-px pointer-events-none"
+            style="background: linear-gradient(to bottom, transparent, var(--line-2) 20%, var(--line-2) 80%, transparent);"
+          />
+          <div
+            aria-hidden="true"
+            class="absolute right-[-8%] top-[6%] w-[90%] h-[90%] rounded-full pointer-events-none z-[-1]"
+            style="background: radial-gradient(closest-side, oklch(0.80 0.09 75 / .45), transparent 70%); filter: blur(8px);"
+          />
+          <div
+            aria-hidden="true"
+            class="absolute left-[-6%] bottom-[12%] w-[55%] h-[55%] rounded-full pointer-events-none z-[-1]"
+            style="background: radial-gradient(closest-side, oklch(0.60 0.05 250 / .45), transparent 70%); filter: blur(18px);"
+          />
+          <div
+            class="relative w-full aspect-[4/5] rounded bg-ink-800 overflow-hidden"
+            style="box-shadow: 0 40px 80px -30px rgba(0,0,0,.75), 0 2px 0 0 rgba(255,255,255,.04), inset 0 0 0 1px var(--line-2); opacity: 0; transform: translateY(18px);"
+          >
+            <div
+              aria-hidden="true"
+              class="absolute inset-0 flex items-center justify-center bg-ink-800"
+            >
+              <div
+                class="w-[220px] h-[220px] rounded-full flex items-center justify-center"
+                style="background: radial-gradient(circle at 30% 30%, var(--brass-2), var(--brass) 55%, #8a6a2a 100%); box-shadow: inset 0 0 0 1px rgba(255,255,255,.2), 0 20px 60px rgba(0,0,0,.4);"
+              >
+                <span
+                  class="font-serif text-[64px] font-normal text-ink-900"
+                  style="letter-spacing: -0.02em; user-select: none;"
+                >
+                  GK
+                </span>
+              </div>
+            </div>
+            <div
+              aria-hidden="true"
+              class="absolute left-0 right-0 top-0 h-px z-[2] pointer-events-none"
+              style="background: linear-gradient(to right, transparent, oklch(0.80 0.09 75 / .7) 30%, oklch(0.80 0.09 75 / .7) 70%, transparent);"
+            />
+            <div
+              aria-label="Anno 2026 · Lüneburg"
+              class="absolute left-[14px] top-[14px] z-[3] flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase text-fg px-[10px] py-[6px] rounded-full"
+              style="background: rgba(11, 17, 28, 0.55); border: 1px solid rgba(255, 255, 255, 0.12);"
+            >
+              <span
+                aria-hidden="true"
+                class="w-[6px] h-[6px] rounded-full bg-sage flex-shrink-0"
+                style="box-shadow: 0 0 0 3px oklch(0.80 0.06 160 / .18);"
+              />
+              Anno 2026 · Lüneburg
+            </div>
+          </div>
+          <div
+            class="relative mt-[18px] grid grid-cols-[auto_1fr_auto] gap-4 items-center pt-[14px] px-1 border-t border-line"
+          >
+            <span
+              class="font-mono text-[10px] tracking-[0.18em] text-brass uppercase"
+            >
+              GK · 01
+            </span>
+            <div
+              class="flex flex-col gap-[2px]"
+            >
+              <span
+                class="font-serif text-base text-fg"
+                style="letter-spacing: -0.01em;"
+              >
+                Gerald Korczewski
+              </span>
+              <span
+                class="font-mono text-[10px] tracking-[0.14em] text-mute uppercase"
+              >
+                Digital Coach & Mentor
+              </span>
+            </div>
+            <span
+              class="font-mono text-[10px] tracking-[0.14em] text-mute uppercase text-right"
+            >
+              Lüneburg · DE
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <style>
+    
+        .wrap {
+          max-width: var(--maxw);
+          margin: 0 auto;
+          padding: 0 40px;
+        }
+        .grid {
+          display: grid;
+          grid-template-columns: 1.15fr 0.85fr;
+          gap: 64px;
+          align-items: end;
+        }
+        .btn-primary,
+        .btn-ghost {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          padding: 14px 22px;
+          border-radius: 999px;
+          font-family: var(--sans);
+          font-size: 14px;
+          font-weight: 600;
+          text-decoration: none;
+          transition: transform .2s ease, background .2s ease, border-color .2s ease, color .2s ease;
+        }
+        .btn-primary {
+          background: var(--brass);
+          color: var(--ink-900);
+        }
+        .btn-primary:hover {
+          background: var(--brass-2);
+          transform: translateY(-1px);
+        }
+        .btn-ghost {
+          color: var(--fg);
+          border: 1px solid var(--line-2);
+          background: transparent;
+        }
+        .btn-ghost:hover {
+          border-color: var(--brass);
+          color: var(--brass);
+        }
+        h1 em {
+          font-style: italic;
+          font-weight: 400;
+          color: var(--brass-2);
+        }
+        @media (max-width: 960px) {
+          section { padding: 56px 0 80px; }
+          .grid { grid-template-columns: 1fr; gap: 56px; }
+          .hero-portrait { justify-content: center; }
+          .wrap { padding: 0 22px; }
+        }
+      
+  </style>
+</section>
+`;

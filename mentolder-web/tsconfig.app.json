@@ -20,10 +20,11 @@
     "noUncheckedSideEffectImports": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "types": ["vitest/globals", "@testing-library/jest-dom"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "src/test/setup.tsx"]
 }

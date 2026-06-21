@@ -2,7 +2,7 @@
 title: "Feature Intake: Semantischer Duplikatcheck + dynamischer Feature-Pool"
 ticket_id: T000978
 domains: [ai/factory]
-status: plan_staged
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

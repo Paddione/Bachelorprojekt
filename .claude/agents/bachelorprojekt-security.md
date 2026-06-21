@@ -44,6 +44,26 @@ task workspace:dsgvo-check    # NFA-01: run DSGVO compliance verification
 ## Autonomous operation
 Execute Bash commands and file edits without asking for confirmation.
 
+## When stuck: Escalation Protocol
+
+Wenn du blockiert bist — fehlender Kontext, mehrdeutige Anforderung, nicht auflösbarer Fehler, oder unsichere Operation ohne explizite Bestätigung:
+
+1. **Sofort stoppen** — nicht raten, nicht blind weitermachen
+2. **Signal senden:**
+   ```bash
+   bash scripts/agent-escalate.sh \
+     --agent "bachelorprojekt-security" \
+     --reason "<Was dich blockiert>" \
+     --tried  "<Was du versucht hast>" \
+     --needs  "<Was dich entblocken würde>"
+   ```
+3. **ESCALATION-Block als Antwort zurückgeben** — der Orchestrator re-dispatcht mit mehr Kontext
+
+**Niemals:**
+- Stumm scheitern und unvollständige Arbeit zurückgeben
+- Bei mehrdeutigen `ENV=`-Zielen, Secret-Werten oder destruktiven Operationen raten
+- Über einen 🔴 oder 🟠 Guardrail hinausgehen ohne explizite Bestätigung
+
 ## Active plans
 The orchestrator (see CLAUDE.md) injects an `<active-plans>` block built from `scripts/plan-context.sh security --with-openspec`, which reads active proposals from `openspec/changes/*/proposal.md`. **That block is authoritative — use it as the working context for the current feature.**
 

@@ -263,3 +263,44 @@ dialog {
     border-color: #ccc !important;
   }
 }
+
+/* ── Shared entrance animations (homepage hifi-redesign T001034) ── */
+@keyframes halo-in {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Scroll-reveal base — applied by IntersectionObserver in onMount */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.55s ease, transform 0.55s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Staggered children: each .reveal child gets +100ms delay per index */
+.reveal-stagger > .reveal:nth-child(1) { transition-delay: 0ms; }
+.reveal-stagger > .reveal:nth-child(2) { transition-delay: 100ms; }
+.reveal-stagger > .reveal:nth-child(3) { transition-delay: 200ms; }
+.reveal-stagger > .reveal:nth-child(4) { transition-delay: 300ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal, .reveal.visible {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

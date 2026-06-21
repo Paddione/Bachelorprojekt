@@ -122,5 +122,11 @@
       "slug": "feature-intake-knowledge-search",
       "status": "plan_staged"
     }
+  ],
+  "TBD": [
+    {
+      "slug": "ticket-mcp",
+      "status": "plan_staged"
+    }
   ]
 }

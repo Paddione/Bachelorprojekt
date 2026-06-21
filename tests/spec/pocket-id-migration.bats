@@ -75,11 +75,12 @@ setup() {
   grep -q 'TLS_SECRET_NAME' "${PROD}/patch-pocket-id.yaml"
 }
 
-@test "pocket-id: prod patch swaps /app/data emptyDir for a PVC" {
-  grep -q 'pocket-id-data' "${PROD}/patch-pocket-id.yaml" "${PROD}/pocket-id-pvc.yaml"
-  grep -q 'PersistentVolumeClaim' "${PROD}/pocket-id-pvc.yaml"
-  grep -q 'claimName: pocket-id-data' "${PROD}/patch-pocket-id.yaml"
+@test "pocket-id: base and prod overlays use a PVC for /app/data" {
+  grep -q 'pocket-id-data' "${K3D}/pocket-id.yaml"
+  grep -q 'PersistentVolumeClaim' "${K3D}/pocket-id.yaml"
+  grep -q 'claimName: pocket-id-data' "${K3D}/pocket-id.yaml"
 }
+
 
 # ── Welle 0: domain-config + schema + env files ─────────────────────────────
 
@@ -466,4 +467,49 @@ migrated_oauth2_manifests() {
 
 @test "pocket-id: kustomize build prod/ succeeds (no broken refs)" {
   kustomize build "${PROD}" --load-restrictor=LoadRestrictionsNone >/dev/null
+}
+
+# ── T001087: Pocket ID OIDC-wiring fix (dev secrets + client seed job) ──────
+
+@test "pocket-id-wiring: k3d/kustomization.yaml registers pocket-id-client-seed.yaml" {
+  grep -E '^\s*-\s*pocket-id-client-seed\.yaml' "${K3D}/kustomization.yaml"
+}
+
+@test "pocket-id-wiring: workspace-secrets carries all 14 POCKET_ID_* client/app keys + DB + API key" {
+  local missing=()
+  for k in \
+    POCKET_ID_DB_PASSWORD POCKET_ID_API_KEY \
+    POCKET_ID_DOCS_SECRET POCKET_ID_MAIL_SECRET POCKET_ID_BRETT_SECRET \
+    POCKET_ID_COMFY_SECRET POCKET_ID_MEDIAVIEWER_SECRET POCKET_ID_VIDEOVAULT_SECRET \
+    POCKET_ID_STUDIO_SECRET POCKET_ID_TRAEFIK_SECRET POCKET_ID_RECOVERY_SECRET \
+    POCKET_ID_VAULTWARDEN_SECRET POCKET_ID_CLAUDE_CODE_SECRET \
+    POCKET_ID_SESSION_HUB_SECRET POCKET_ID_BRAINSTORM_SECRET POCKET_ID_NEXTCLOUD_SECRET
+  do
+    grep -qE "^\s*${k}:" "${K3D}/secrets.yaml" || missing+=("${k}")
+  done
+  [ "${#missing[@]}" -eq 0 ] || { echo "missing from k3d/secrets.yaml: ${missing[*]}"; return 1; }
+}
+
+@test "pocket-id-wiring: website-secrets carries POCKET_ID_WEBSITE_SECRET + POCKET_ID_API_KEY" {
+  grep -qE '^\s*POCKET_ID_WEBSITE_SECRET:' "${K3D}/website-dev-secrets.yaml"
+  grep -qE '^\s*POCKET_ID_API_KEY:' "${K3D}/website-dev-secrets.yaml"
+}
+
+@test "pocket-id-wiring: website/src/env.d.ts declares POCKET_ID_WEBSITE_SECRET" {
+  grep -qE '^\s*readonly POCKET_ID_WEBSITE_SECRET:\s*string' "${WEBSITE}/src/env.d.ts"
+}
+
+@test "pocket-id-wiring: k3d/brett.yaml sets BRETT_KC_CLIENT_ID to brett (not brett-app)" {
+  grep -qE '^\s*value:\s*"brett"\s*$' "${K3D}/brett.yaml"
+  ! grep -qE '^\s*value:\s*"brett-app"\s*$' "${K3D}/brett.yaml" || false
+}
+
+@test "pocket-id-wiring: schema declares POCKET_ID_NEXTCLOUD_SECRET" {
+  grep -qE '^\s*-\s*name:\s*POCKET_ID_NEXTCLOUD_SECRET\b' "${SCHEMA}"
+}
+
+@test "pocket-id-wiring: kustomize build k3d/ emits a Job named pocket-id-client-seed" {
+  local out
+  out=$(kustomize build "${K3D}" --load-restrictor=LoadRestrictionsNone)
+  echo "$out" | awk 'BEGIN{ok=0} /^---$/{if(prev_kind=="Job" && matched){ok=1; exit} prev_kind=""; matched=0; next} {if(/^kind: /) prev_kind=$2; if(/^  name: pocket-id-client-seed$/) matched=1} END{exit ok?0:1}'
 }

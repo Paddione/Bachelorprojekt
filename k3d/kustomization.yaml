@@ -94,6 +94,8 @@ resources:
   # OIDC clients (Welle 0 of T001068). Keycloak stays on auth.<domain>
   # for the Welle 1-2 transition; Welle 3 drops it.
   - pocket-id.yaml
+  # OIDC client seed Job (T001087) — idempotently registers the 16 clients
+  - pocket-id-client-seed.yaml
   # Netzwerksicherheit (L3)
   - network-policies.yaml
   # Ingress

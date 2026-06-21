@@ -67,7 +67,7 @@ spec:
             - name: KEYCLOAK_REALM
               value: "workspace"
             - name: BRETT_KC_CLIENT_ID
-              value: "brett-app"
+              value: "brett"
             - name: BRETT_OIDC_SECRET
               valueFrom:
                 secretKeyRef:

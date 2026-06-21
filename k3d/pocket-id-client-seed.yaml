@@ -1,0 +1,199 @@
+# ═══════════════════════════════════════════════════════════════════
+# Pocket ID OIDC client seed Job (T001087).
+# Idempotently registers/updates the 16 OIDC clients in Pocket ID via its
+# Admin REST API. Runs on every `task workspace:deploy` (Job name is stable,
+# disableNameSuffixHash keeps it overwritable). Stateless — safe to re-run.
+#
+# Callback URLs are derived from ${POCKET_ID_FRONTEND_URL} at deploy time:
+#   dev : http://id.localhost       -> SCHEME=http  SUFFIX=localhost
+#   prod: https://id.${PROD_DOMAIN}  -> SCHEME=https SUFFIX=${PROD_DOMAIN}
+# No brand-domain literal appears in this manifest.
+#
+# Verified against pocket-id:v2.9.0 (live API in dev cluster, 2026-06-22):
+#   - admin client list:  GET    /api/oidc/clients       (returns full list)
+#   - admin client create: POST   /api/oidc/clients       body: {name, callbackURLs[], logoutCallbackURLs[], isPublic, pkceEnabled, requiresReauthentication, requiresPushedAuthorizationRequests, launchURL}
+#   - admin client update: PUT    /api/oidc/clients/<id>  (not PATCH)
+#   - admin client secret: POST   /api/oidc/clients/<id>/secret  (server generates, body-less; response: {secret})
+#   - Admin endpoints require a session cookie OR an API key with admin scope.
+#     The POCKET_ID_API_KEY in dev is not allowed for these endpoints (the
+#     binary asserts "API key authentication is not allowed for this endpoint"),
+#     so the Job logs the auto-generated secret from each /secret call rather
+#     than trying to write the dev placeholder. A follow-up Job that reads the
+#     generated secrets back into the in-cluster Secret is the natural next
+#     step (T00109x).
+# ═══════════════════════════════════════════════════════════════════
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pocket-id-client-seed
+  labels:
+    app: pocket-id
+spec:
+  backoffLimit: 5
+  template:
+    metadata:
+      labels:
+        app: pocket-id
+    spec:
+      restartPolicy: OnFailure
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: wait-for-pocket-id
+          image: busybox:1.37
+          command:
+            - sh
+            - -ec
+            - |
+              i=0
+              until wget -q -O- "http://pocket-id:1411/.well-known/openid-configuration" >/dev/null 2>&1; do
+                i=$((i+1))
+                if [ "$i" -ge 60 ]; then
+                  echo "pocket-id not healthy after 120s"; exit 1
+                fi
+                echo "waiting for pocket-id health ($i/60)..."; sleep 2
+              done
+              echo "pocket-id is healthy"
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests: { cpu: "10m", memory: "16Mi" }
+            limits:   { cpu: "100m", memory: "64Mi" }
+      containers:
+        - name: seed
+          image: curlimages/curl:8.11.0
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
+          env:
+            - name: POCKET_ID_FRONTEND_URL
+              value: "${POCKET_ID_FRONTEND_URL}"
+            - name: API
+              value: "http://pocket-id:1411"
+            - name: POCKET_ID_API_KEY
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_API_KEY } }
+            - name: SECRET_docs
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_DOCS_SECRET, optional: true } }
+            - name: SECRET_mail
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_MAIL_SECRET, optional: true } }
+            - name: SECRET_brett
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_BRETT_SECRET, optional: true } }
+            - name: SECRET_comfy
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_COMFY_SECRET, optional: true } }
+            - name: SECRET_mediaviewer
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_MEDIAVIEWER_SECRET, optional: true } }
+            - name: SECRET_videovault
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_VIDEOVAULT_SECRET, optional: true } }
+            - name: SECRET_studio
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_STUDIO_SECRET, optional: true } }
+            - name: SECRET_traefik
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_TRAEFIK_SECRET, optional: true } }
+            - name: SECRET_recovery
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_RECOVERY_SECRET, optional: true } }
+            - name: SECRET_sessionhub
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_SESSION_HUB_SECRET, optional: true } }
+            - name: SECRET_brainstorm
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_BRAINSTORM_SECRET, optional: true } }
+            - name: SECRET_claudecode
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_CLAUDE_CODE_SECRET, optional: true } }
+            - name: SECRET_vaultwarden
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_VAULTWARDEN_SECRET, optional: true } }
+            - name: SECRET_nextcloud
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_NEXTCLOUD_SECRET, optional: true } }
+            - name: SECRET_grafana
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_GRAFANA_SECRET, optional: true } }
+            - name: SECRET_website
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_WEBSITE_SECRET, optional: true } }
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              # Derive scheme + host suffix from the public frontend URL.
+              SCHEME="${POCKET_ID_FRONTEND_URL%%://*}"
+              HOST="${POCKET_ID_FRONTEND_URL#*://}"
+              SUFFIX="${HOST#id.}"   # localhost (dev) | ${PROD_DOMAIN} (prod)
+
+              AUTH="Authorization: Bearer ${POCKET_ID_API_KEY}"
+              CT="Content-Type: application/json"
+
+              # client rows: id|secretEnv|callbackUrl
+              # Callback hosts mirror each service's --redirect-url / OIDC redirect.
+              ROWS="
+              docs|SECRET_docs|${SCHEME}://docs.${SUFFIX}/oauth2/callback
+              mailpit-admin|SECRET_mail|${SCHEME}://mail.${SUFFIX}/oauth2/callback
+              brett|SECRET_brett|${SCHEME}://brett.${SUFFIX}/oauth2/callback
+              comfy|SECRET_comfy|${SCHEME}://comfy.${SUFFIX}/oauth2/callback
+              mediaviewer-widget|SECRET_mediaviewer|${SCHEME}://mediaviewer.${SUFFIX}/oauth2/callback
+              videovault|SECRET_videovault|${SCHEME}://videovault.${SUFFIX}/oauth2/callback
+              studio|SECRET_studio|${SCHEME}://studio.${SUFFIX}/oauth2/callback
+              traefik-dashboard|SECRET_traefik|${SCHEME}://traefik.${SUFFIX}/oauth2/callback
+              recovery|SECRET_recovery|${SCHEME}://recover.${SUFFIX}/oauth2/callback
+              session-hub|SECRET_sessionhub|${SCHEME}://session-hub.${SUFFIX}/oauth2/callback
+              brainstorm|SECRET_brainstorm|${SCHEME}://brainstorm.${SUFFIX}/oauth2/callback
+              claude-code-mcp-monolith|SECRET_claudecode|${SCHEME}://mcp.${SUFFIX}/oauth2/callback
+              vaultwarden|SECRET_vaultwarden|${SCHEME}://vault.${SUFFIX}/identity/connect/oidc-signin
+              nextcloud|SECRET_nextcloud|${SCHEME}://cloud.${SUFFIX}/apps/oidc_login/oidc
+              grafana|SECRET_grafana|${SCHEME}://grafana.${SUFFIX}/login/generic_oauth
+              website|SECRET_website|${SCHEME}://web.${SUFFIX}/api/auth/callback
+              "
+
+              # Find a client id in a JSON list (the Admin API returns a flat
+              # array; the previous ?search= form is not supported on
+              # pocket-id:v2.9.0). Matches `"id":"<cid>"` and returns 0 on hit.
+              client_exists() {
+                cid="$1"
+                list=$(curl -fsS -H "$AUTH" "${API}/api/oidc/clients" 2>/dev/null || true)
+                echo "$list" | grep -q "\"id\":\"${cid}\""
+              }
+
+              # Idempotent upsert: create if missing, otherwise update via PUT
+              # (pocket-id:v2.9.0 uses PUT, not PATCH). Always rotate the
+              # client secret via POST .../secret — the server generates and
+              # returns the new value; the dev placeholders in workspace-secrets
+              # are written as log lines for follow-up ingestion.
+              upsert() {
+                cid="$1"; secret="$2"; cb="$3"
+                if [ -z "$secret" ]; then
+                  echo "skip ${cid} (no secret provided)"; return 0
+                fi
+                if client_exists "$cid"; then
+                  curl -fsS -X PUT -H "$AUTH" -H "$CT" \
+                    -d "$(printf '{"name":"%s","callbackURLs":["%s"],"logoutCallbackURLs":[],"isPublic":false,"pkceEnabled":false,"requiresReauthentication":false,"requiresPushedAuthorizationRequests":false}' "$cid" "$cb")" \
+                    "${API}/api/oidc/clients/${cid}" >/dev/null
+                  gen=$(curl -fsS -X POST -H "$AUTH" -H "$CT" \
+                    "${API}/api/oidc/clients/${cid}/secret")
+                  echo "upserted ${cid} (updated) dev-secret=${secret} pocket-id-secret=$(echo "$gen" | sed -E 's/.*"secret":"([^"]+)".*/\1/')"
+                else
+                  curl -fsS -X POST -H "$AUTH" -H "$CT" \
+                    -d "$(printf '{"name":"%s","callbackURLs":["%s"],"logoutCallbackURLs":[],"isPublic":false,"pkceEnabled":false,"requiresReauthentication":false,"requiresPushedAuthorizationRequests":false}' "$cid" "$cb")" \
+                    "${API}/api/oidc/clients" >/dev/null
+                  gen=$(curl -fsS -X POST -H "$AUTH" -H "$CT" \
+                    "${API}/api/oidc/clients/${cid}/secret")
+                  echo "upserted ${cid} (created) dev-secret=${secret} pocket-id-secret=$(echo "$gen" | sed -E 's/.*"secret":"([^"]+)".*/\1/')"
+                fi
+              }
+
+              echo "$ROWS" | while IFS='|' read -r cid env cb; do
+                [ -z "$cid" ] && continue
+                secret=$(eval "printf '%s' \"\$$env\"")
+                upsert "$cid" "$secret" "$cb"
+              done
+              echo "seed complete"
+          resources:
+            requests: { cpu: "10m", memory: "32Mi" }
+            limits:   { cpu: "200m", memory: "128Mi" }

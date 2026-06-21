@@ -18,6 +18,7 @@ interface ImportMetaEnv {
   readonly KEYCLOAK_ADMIN_PASSWORD: string;
   // OIDC client
   readonly WEBSITE_OIDC_SECRET: string;
+  readonly POCKET_ID_WEBSITE_SECRET: string;
   // SMTP
   readonly SMTP_HOST: string;
   readonly SMTP_PORT: string;

@@ -148,7 +148,6 @@ After rotation, users must re-run `task claude-code:setup -- <role>` to get fres
 Verify the proxy is healthy:
 ```bash
 task mcp:status
-task mcp:logs -- keycloak
 ```
 
 ---

@@ -13,9 +13,9 @@ Before responding to any request, check these signals and delegate to the named 
 | `k3d/`, `prod*/`, manifest, kustomize, overlay, Taskfile, `ENV=`, `environments/`, deploy, `workspace:setup` | `bachelorprojekt-infra` | `mcp-kubernetes` (localhost:18080) — nur Status-Checks (Claude-Code-only) |
 | test, `FA-*`, `SA-*`, `NFA-*`, `AK-*`, `FA-SF`, BATS, Playwright, `runner.sh`, "test failing", "test case", "write a test", `factory:`, autopilot | `bachelorprojekt-test` | `mcp-postgres` (localhost:13001) — Ticket-Queries |
 | database, PostgreSQL, psql, schema, query, backup, restore, tracking, timeline, `bachelorprojekt.features`, `v_timeline` | `bachelorprojekt-db` | `mcp-postgres` (localhost:13001) |
-| SealedSecret, Keycloak realm, OIDC, DSGVO, credentials, rotate, certificate, secret | `bachelorprojekt-security` | `mcp-keycloak` (localhost:18081) — Claude-Code-only SSE server, see `references.md#mcp-tool-guide` |
+| SealedSecret, Keycloak realm, OIDC, DSGVO, credentials, rotate, certificate, secret | `bachelorprojekt-security` | — |
 
-> **MCP-Server names in this table refer to Claude-Code-only SSE servers** configured in `.claude/settings.json` / `.claude/skills/references/references.md#mcp-tool-guide`. The opencode runtime uses different MCP server names from `.opencode/opencode.jsonc` (`mcp-k8s`, `mcp-postgres`, `mcp-browser`, `mcp-github`, `mcp-factory` — no `mcp-kubernetes` or `mcp-keycloak`). If you are running in opencode, see the `MCP-Schnellweg` block below and the opencode config, not the table above.
+> **MCP-Server names in this table refer to Claude-Code-only SSE servers** configured in `.claude/settings.json` / `.claude/skills/references/references.md#mcp-tool-guide`. The opencode runtime uses different MCP server names from `.opencode/opencode.jsonc` (`mcp-k8s`, `mcp-postgres`, `mcp-browser`, `mcp-github`, `mcp-factory` — no `mcp-kubernetes`). If you are running in opencode, see the `MCP-Schnellweg` block below and the opencode config, not the table above.
 
 > **Agent-Routing-Karten:** Generierte, grepbare Karten unter `docs/agent-guide/maps/` — `goals-map.md` (Intention → Weg → Tier → Guardrails), `tools-map.md`, `danger-map.md`. Quelle: `docs/agent-guide/registry/` (nicht von Hand editieren; via `task agent-guide:maps` regenerieren).
 

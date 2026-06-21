@@ -1,6 +1,7 @@
 #!/usr/bin/env bats
 # ═══════════════════════════════════════════════════════════════════
 # env-resolve.bats — Tests for scripts/env-resolve.sh
+# last-touched: 2026-06-21 (automated maintenance — CI trigger)
 # ═══════════════════════════════════════════════════════════════════
 # Verifies that sourcing env-resolve.sh exports the expected variables
 # with the correct values, including values defined via YAML line

@@ -4,16 +4,17 @@ import { runTicket } from '../lib/run-ticket.js';
 export function registerListTools(server) {
   server.tool(
     'list_tickets',
-    'Listet Tickets gefiltert nach Status, Typ, Brand oder fehlender ID.',
+    'Listet Tickets gefiltert nach Status, Typ, Brand oder fehlender ID. Standard-Limit 200 Zeilen; mit --limit erhöhbar (max 1000).',
     {
       brand: z.string().optional().describe('mentolder oder korczewski (default: mentolder)'),
       status: z.string().optional().describe('z.B. triage, planning, plan_staged, backlog'),
       type: z.string().optional().describe('bug, feature, task, project'),
       attention_mode: z.string().optional().describe('auto, ai_ready, needs_human'),
       missing_id: z.boolean().optional().describe('Nur Tickets ohne external_id zurückgeben'),
+      limit: z.number().int().min(1).max(1000).optional().describe('Maximale Anzahl Ergebnisse (default: 200)'),
     },
-    async ({ brand = 'mentolder', status, type, attention_mode, missing_id }) => {
-      const args = ['list', '--brand', brand];
+    async ({ brand = 'mentolder', status, type, attention_mode, missing_id, limit = 200 }) => {
+      const args = ['list', '--brand', brand, '--limit', String(limit)];
       if (status) args.push('--status', status);
       if (type) args.push('--type', type);
       if (attention_mode) args.push('--attention-mode', attention_mode);
@@ -39,15 +40,16 @@ export function registerListTools(server) {
 
   server.tool(
     'export_tickets',
-    'Exportiert Tickets als JSON oder Markdown (gleiche Filter wie list_tickets).',
+    'Exportiert Tickets als JSON oder Markdown (gleiche Filter wie list_tickets). Default-Limit 200; max 1000. Ohne Filter empfiehlt sich ein Status-Filter, um den Kontextverbrauch gering zu halten.',
     {
       brand: z.string().optional(),
       status: z.string().optional(),
       type: z.string().optional(),
       format: z.enum(['json', 'markdown']).optional().describe('json (default) oder markdown'),
+      limit: z.number().int().min(1).max(1000).optional().describe('Maximale Anzahl Ergebnisse (default: 200)'),
     },
-    async ({ brand = 'mentolder', status, type, format = 'json' }) => {
-      const args = ['list', '--brand', brand];
+    async ({ brand = 'mentolder', status, type, format = 'json', limit = 200 }) => {
+      const args = ['list', '--brand', brand, '--limit', String(limit)];
       if (status) args.push('--status', status);
       if (type) args.push('--type', type);
 

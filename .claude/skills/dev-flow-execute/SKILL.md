@@ -27,6 +27,25 @@ Du bist auf einem `feature/*` oder `fix/*` Branch. `dev-flow-plan` hat Spec und 
 ```
 
 **EINSTIEG:** Feature/Fix-Branch mit `plan_staged` Ticket — von `dev-flow-plan` übergeben  
+**AUSSTIEG:** PR gemergt zu `main`, Worktree bereinigt, Ticket `qa_review`, Kreislauf geschlossen  
+**Voraussetzung:** `dev-flow-plan` hat `FACTORY-PLAN-REF` Kommentar im Ticket hinterlegt
+
+---
+
+## Modus-Erkennung: Single vs Batch
+
+```
+    ┌─────────────────────────────────────────────────────────────┐
+    ▼                                                             │
+[ main ]                                                          │
+    │                                                             │
+    └──► [branch + plan committed] ──► [implement] ──► [PR+merge] ──► AUSSTIEG
+              (von dev-flow-plan)       DIESER SKILL              │
+                                                                  │
+                                        zurück zu [ main ] ───────┘
+```
+
+**EINSTIEG:** Feature/Fix-Branch mit `plan_staged` Ticket — von `dev-flow-plan` übergeben  
 **AUSSTIEG:** PR gemergt zu `main`, Worktree bereinigt, Ticket `qa_review`, OpenSpec archiviert, Kreislauf geschlossen  
 **Voraussetzung:** `dev-flow-plan` hat Branch + Plan-Pfad via `ticket.sh stage-plan` in der DB verankert
 

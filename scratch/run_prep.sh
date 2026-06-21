@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-set -euo pipefail
-FACTORY_DAILY_DEPLOY_CAP=5 FACTORY_GLOBAL_CAP=3 bash /home/patrick/Bachelorprojekt/scripts/vda/factory-prep.sh

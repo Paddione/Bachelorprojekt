@@ -1,9 +1,20 @@
 import { readFileSync, writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const REPO_ROOT = path.resolve(fileURLToPath(import.meta.url), '../../../..');
-export const DEFAULT_BUFFER_PATH = path.join(REPO_ROOT, '.git', 'mishap-buffer.json');
+
+function resolveGitCommonDir() {
+  try {
+    const dir = execFileSync('git', ['rev-parse', '--git-common-dir'], { cwd: REPO_ROOT, encoding: 'utf8' }).trim();
+    return path.resolve(REPO_ROOT, dir);
+  } catch {
+    return path.join(REPO_ROOT, '.git');
+  }
+}
+
+export const DEFAULT_BUFFER_PATH = path.join(resolveGitCommonDir(), 'mishap-buffer.json');
 
 export function readBuffer(bufferPath = DEFAULT_BUFFER_PATH) {
   try {

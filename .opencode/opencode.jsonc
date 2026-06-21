@@ -24,11 +24,6 @@
       "url": "http://localhost:13002/mcp",
       "enabled": true
     },
-    "mcp-factory": {
-      "type": "remote",
-      "url": "http://localhost:13003/mcp",
-      "enabled": true
-    },
     // ── Stdio-Server (lokale Prozesse) ────────────────────────────────────
     "task-master-ai": {
       "type": "local",
@@ -50,8 +45,8 @@
       "enabled": true
     },
     "ticket-mcp": {
-      "type": "remote",
-      "url": "http://localhost:13004/mcp",
+      "type": "local",
+      "command": ["node", "/home/patrick/Bachelorprojekt/scripts/ticket-mcp/server.js"],
       "enabled": true
     }
   },

@@ -4,7 +4,7 @@ WORKDIR /app
 
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
-COPY mentolder-web/package.json mentolder-web/pnpm-lock.yaml ./
+COPY mentolder-web/package.json mentolder-web/pnpm-lock.yaml mentolder-web/.npmrc ./
 RUN pnpm install --frozen-lockfile
 
 COPY mentolder-web/ .

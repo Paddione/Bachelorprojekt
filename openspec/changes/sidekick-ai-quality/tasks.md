@@ -498,7 +498,7 @@ const PRICE_PER_1K_EUR: Record<string, { input: number; output: number }> = {
 };
 ```
 
-- [ ] **Step 1: Failing test schreiben**
+- [x] **Step 1: Failing test schreiben**
 
 ```typescript
 // website/src/pages/api/admin/ai-quality.test.ts
@@ -561,12 +561,12 @@ describe('GET /api/admin/ai-quality', () => {
 });
 ```
 
-- [ ] **Step 2: Test laufen lassen — muss fehlschlagen**
+- [x] **Step 2: Test laufen lassen — muss fehlschlagen**
 
 Run: `cd website && npx vitest run src/pages/api/admin/ai-quality.test.ts`
 Expected: FAIL — `Cannot find module './ai-quality'`.
 
-- [ ] **Step 3: Endpoint implementieren**
+- [x] **Step 3: Endpoint implementieren**
 
 ```typescript
 // website/src/pages/api/admin/ai-quality.ts
@@ -702,17 +702,17 @@ export const GET: APIRoute = async ({ request }) => {
 };
 ```
 
-- [ ] **Step 4: Test laufen lassen — muss bestehen**
+- [x] **Step 4: Test laufen lassen — muss bestehen**
 
 Run: `cd website && npx vitest run src/pages/api/admin/ai-quality.test.ts`
 Expected: PASS (3 tests).
 
-- [ ] **Step 5: S1-Budget prüfen**
+- [x] **Step 5: S1-Budget prüfen**
 
 Run: `wc -l website/src/pages/api/admin/ai-quality.ts`
 Expected: < 600.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add website/src/pages/api/admin/ai-quality.ts website/src/pages/api/admin/ai-quality.test.ts

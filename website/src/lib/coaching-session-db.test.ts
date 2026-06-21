@@ -226,6 +226,26 @@ describe('listSessions paginiert', () => {
     expect(result.total).toBe(3);
     expect(result.sessions).toHaveLength(3);
   });
+
+  it('sucht Sessions per Titel (q-Parameter)', async () => {
+    const brand = 'test-search-brand';
+    await createSession(pool, { brand, title: 'Coaching Alpha', mode: 'live', createdBy: 'c' });
+    await createSession(pool, { brand, title: 'Coaching Beta', mode: 'live', createdBy: 'c' });
+    await createSession(pool, { brand, title: 'Anderes Thema', mode: 'live', createdBy: 'c' });
+    const found = await listSessions(pool, brand, { q: 'Coaching' });
+    expect(found.total).toBe(2);
+    expect(found.sessions.every(s => s.title.includes('Coaching'))).toBe(true);
+  });
+
+  it('sucht Sessions mit Sonderzeichen im Titel (%, _)', async () => {
+    const brand = 'test-special-brand';
+    await createSession(pool, { brand, title: '100% Sicher', mode: 'live', createdBy: 'c' });
+    await createSession(pool, { brand, title: 'Platz_halter', mode: 'live', createdBy: 'c' });
+    await createSession(pool, { brand, title: 'Normal', mode: 'live', createdBy: 'c' });
+    const found = await listSessions(pool, brand, { q: '100%' });
+    expect(found.total).toBe(1);
+    expect(found.sessions[0]?.title).toBe('100% Sicher');
+  });
 });
 
 describe('updateSessionFields', () => {

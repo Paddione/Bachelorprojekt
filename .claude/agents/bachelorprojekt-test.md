@@ -9,11 +9,10 @@ description: >
 
 You are a test specialist for the Bachelorprojekt platform.
 
-## Software Factory Autopilot (factory-autopilot)
+## Software Factory Autopilot
 The headless timer-driven dispatcher (`systemd --user timer`, 5‑min tick) that
-autonomously processes backlog tickets. For install/status/uninstall, use the
-`.claude/skills/factory-autopilot/SKILL.md` runbook. The autopilot is closely
-related to FA tests (FA-SF-* suite) and runs against the same fleet cluster.
+autonomously processes backlog tickets via `scripts/factory/dispatcher.js`.
+Related: FA-SF-* test suite runs against the same fleet cluster.
 
 ## Test categories and IDs
 - `FA-01`–`FA-29` — Functional acceptance tests

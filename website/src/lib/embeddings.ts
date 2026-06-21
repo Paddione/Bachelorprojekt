@@ -1,3 +1,5 @@
+import { logAiCall } from './ai-metrics';
+
 const VOYAGE_URL = 'https://api.voyageai.com/v1/embeddings';
 const VOYAGE_MODEL = 'voyage-multilingual-2';
 const VOYAGE_BATCH = 128;
@@ -129,6 +131,7 @@ export async function embedQuery(text: string, opts: EmbedOpts = {}): Promise<Em
 
 export async function embedBatch(texts: string[], opts: EmbedOpts = {}): Promise<BatchResult> {
   const purpose: EmbeddingPurpose = opts.purpose ?? 'index';
+  const _start = Date.now();
   const out: number[][] = [];
   let totalTokens = 0;
   for (let i = 0; i < texts.length; i += VOYAGE_BATCH) {
@@ -160,6 +163,13 @@ export async function embedBatch(texts: string[], opts: EmbedOpts = {}): Promise
       totalTokens += r.tokens;
     }
   }
+  void logAiCall({
+    workflow: 'embedding',
+    model: opts.model ?? 'bge-m3',
+    latencyMs: Date.now() - _start,
+    promptTokens: totalTokens,
+    metadata: { batch_size: texts.length },
+  });
   return { embeddings: out, tokens: totalTokens };
 }
 

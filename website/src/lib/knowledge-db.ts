@@ -1,6 +1,7 @@
 import { Pool } from 'pg';
 import dns from 'dns';
 import { embedQuery, type EmbeddingModel } from './embeddings';
+import { logAiCall } from './ai-metrics';
 
 export class MixedEmbeddingModelError extends Error {
   constructor(models: string[]) {
@@ -239,6 +240,7 @@ export async function queryNearest(args: {
   const thresh = args.threshold ?? 0.65;
 
   if (args.collectionIds.length === 0) return [];
+  const _start = Date.now();
 
   const placeholders = args.collectionIds.map((_, i) => `$${i + 1}`).join(',');
   const modelsRes = await p().query(
@@ -269,7 +271,7 @@ export async function queryNearest(args: {
       LIMIT $3`,
     [vecLiteral(embedding), args.collectionIds, limit],
   );
-  return r.rows
+  const chunks = r.rows
     .filter((row: { score: number }) => row.score >= thresh)
     .map((row: { id: string; text: string; collection_id: string; document_id: string; score: number; book_title: string | null; collection_name: string; page: number | null }) => ({
       id: row.id,
@@ -281,6 +283,12 @@ export async function queryNearest(args: {
       collectionName: row.collection_name,
       page: row.page,
     }));
+  void logAiCall({
+    workflow: 'rag_search',
+    latencyMs: Date.now() - _start,
+    metadata: { chunk_count: chunks.length, threshold: thresh, collection_count: args.collectionIds.length },
+  });
+  return chunks;
 }
 
 export async function mergeCollections(args: {

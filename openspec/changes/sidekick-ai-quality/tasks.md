@@ -399,7 +399,7 @@ git commit -m "feat(website): instrument coaching chat with withAiMetrics [T0010
 
 Hinweis: Beide Funktionen liefern NICHT die Anthropic-`usage`-Form, daher `logAiCall()` (explizit) statt `withAiMetrics`. Instrumentierung muss minimal sein — Start/Stop-Zeit + ein `void logAiCall(...)` am Erfolgs-Return, kein Code-Umbau.
 
-- [ ] **Step 1: `knowledge-db.ts` — Import + Instrumentierung in `queryNearest`**
+- [x] **Step 1: `knowledge-db.ts` — Import + Instrumentierung in `queryNearest`**
 
 Import oben ergänzen:
 
@@ -421,7 +421,7 @@ In `queryNearest` (am Funktionsanfang `const _start = Date.now();` direkt nach d
 
 (Falls das aktuelle `return` ein inline-`.map()` ist, das Mapping unverändert in `const chunks = ...` umbenennen — keine Logikänderung. `_start` wird als erste Zeile nach der `if (args.collectionIds.length === 0) return [];`-Zeile gesetzt; der Early-Return für leere Collections wird NICHT geloggt.)
 
-- [ ] **Step 2: `embeddings.ts` — Import + Instrumentierung in `embedBatch`**
+- [x] **Step 2: `embeddings.ts` — Import + Instrumentierung in `embedBatch`**
 
 Import oben ergänzen:
 
@@ -444,17 +444,17 @@ In `embedBatch` Start-Zeit messen und am Erfolgs-Return loggen. Der bestehende f
 
 `const _start = Date.now();` als erste Zeile der Funktion (nach `const purpose = ...`).
 
-- [ ] **Step 3: Bestehende Tests laufen lassen (Regression)**
+- [x] **Step 3: Bestehende Tests laufen lassen (Regression)**
 
 Run: `cd website && npx vitest run src/lib/knowledge-db.test.ts src/lib/tickets-embed.test.ts 2>&1 | tail -20`
 Expected: PASS. (Die Tests mocken Pool/embed — `logAiCall` schluckt seine eigenen DB-Fehler, darf die Tests also nicht brechen. Falls ein Test wegen des neuen `pg`-Pool-Imports in `ai-metrics` bricht, in der jeweiligen Testdatei `vi.mock('./ai-metrics', () => ({ logAiCall: vi.fn() }))` ergänzen.)
 
-- [ ] **Step 4: S1-Budget prüfen (knowledge-db ist eng!)**
+- [x] **Step 4: S1-Budget prüfen (knowledge-db ist eng!)**
 
 Run: `wc -l website/src/lib/knowledge-db.ts website/src/lib/embeddings.ts`
 Expected: `knowledge-db.ts` < 600 (Start 464 + ~5 Zeilen = ~469, weit unter Ceiling, aber kein Umbau). `embeddings.ts` < 600.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add website/src/lib/knowledge-db.ts website/src/lib/embeddings.ts

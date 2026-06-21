@@ -7,7 +7,7 @@
 //
 // Offline lint:  node --check scripts/factory/provision.js
 // Unit tests:    node --test scripts/factory/provision.test.mjs
-// Spec:          docs/superpowers/specs/2026-06-05-software-factory-phase3-design.md:166-183
+// Spec:          openspec/changes/software-factory-phase3/proposal.md (historisch archiviert)
 //
 // Axes:
 //   model   — (complexity × role) → tier. simple→haiku, medium→sonnet, complex→opus.

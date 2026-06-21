@@ -5,7 +5,7 @@
 > unified `fleet` cluster (3 CP pk-hetzner-4/6/8, 3 workers gekko-hetzner-2/3/4).
 > This document is retained as a historical reference only.
 
-Spec: `docs/superpowers/specs/2026-05-30-fleet-stage2-dns-cutover-design.md`
+Spec: (historisch archiviert: `docs/superpowers/specs/2026-05-30-fleet-stage2-dns-cutover-design.md`)
 Order: **fleet platform deploy** → **mentolder** (data copy + reversible DNS flip) →
 same-day soak → **korczewski** (fresh deploy + DNS cleanup).
 

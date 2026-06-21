@@ -245,8 +245,8 @@ if (!isSimple) {
      Liveness: \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`.
      Write a design spec for "${A.title}" following ARCH/GOALS/RISKS/DECISIONS structure.
      For medium/complex, include a "try to refute this design" section.
-     Save the spec to: ${REPO}/docs/superpowers/specs/$(date +%F)-${slug}-design.md
-     (compute YYYY-MM-DD with \`date +%F\` — do NOT use a literal "undefined").
+     Save the spec to: ${REPO}/openspec/changes/${slug}/proposal.md
+     (create the directory first with mkdir -p if needed).
      Then attach it: bash ${REPO}/scripts/ticket-attach.sh <uuid> <specfile>
      Return the spec file path (just the absolute path, nothing else).` + consumeInjections('design'),
     { label: 'design', phase: 'Design' },

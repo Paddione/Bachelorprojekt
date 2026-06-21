@@ -7,7 +7,7 @@ status: active
 
 # Implementation Plan: cockpit-bulk-status
 
-> Ticket: T000989 · Spec: `docs/superpowers/specs/2026-06-20-cockpit-bulk-status.md`
+> Ticket: T000989 · Spec: `openspec/changes/cockpit-bulk-status/proposal.md`
 > Brand-Scope: mentolder (erstmal). Batch-Limit 10 (code-Konstante, nicht user-facing).
 > Grounding: BulkBar + Checkbox-Auswahl + generisches `/api/admin/cockpit/batch` existieren
 > bereits; dieser Plan baut den dedizierten Status-Bulk-Flow mit Limit, Concurrent-Change-Guard,

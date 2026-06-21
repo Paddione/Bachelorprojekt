@@ -176,7 +176,7 @@ if (scout.complexity !== 'simple') {
     Feature: ${args.title}
     Scout report: ${JSON.stringify(scout)}
 
-    Write spec to docs/superpowers/specs/<date>-<slug>-design.md
+    Write spec to openspec/changes/<slug>/proposal.md
     Fill out the design-template.md format.
   `, { schema: DESIGN_SCHEMA, phase: 'Design' })
 

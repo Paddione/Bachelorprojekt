@@ -21,7 +21,7 @@ verlinken gezielt per Section-Anchor auf den passenden Abschnitt.
 
 Wenn ein dev-flow-Skill Arbeit an einen frischen Subagenten delegiert, wähle **nicht** pauschal ein
 Modell — provisioniere den **passenden** Subagenten entlang dreier Achsen. (Gleiche Logik wie die
-Software-Factory-`provision()` aus `docs/superpowers/specs/2026-06-05-software-factory-phase3-design.md`.)
+Software-Factory-`provision()` (historisch archiviert).)
 
 Leitsatz: **Korrektheit vor Kosten.** Im Zweifel eine Stufe höher (Modell) bzw. mehr Effort.
 

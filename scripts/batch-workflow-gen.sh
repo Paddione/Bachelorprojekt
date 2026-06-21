@@ -66,7 +66,7 @@ ABLAUF (führe jeden Schritt aus):
 2. Lege Worktree an:
    bash scripts/worktree-create.sh ${branch} /tmp/wt-batch-${slug}
 3. cd /tmp/wt-batch-${slug}
-4. Schreibe Spec nach docs/superpowers/specs/${today}-${slug}-design.md
+4. Schreibe Spec/Proposal nach openspec/changes/${slug}/proposal.md
    - Vollständige Markdown-Spec basierend auf Ticket-Beschreibung
    - Kein Brainstorming nötig — Ticket-Beschreibung ist die Quelle
 5. Schreibe Plan/Tasks nach openspec/changes/${slug}/tasks.md
@@ -90,13 +90,13 @@ ABLAUF (führe jeden Schritt aus):
     BIS grün (0 hard). Erst danach committen — ein roter Plan darf NICHT gepusht werden.
 7. Setze shared_changes auf true wenn der Plan k3d/configmap-domains.yaml,
    environments/schema.yaml oder k3d/kustomization.yaml ändern muss — sonst false
-8. git add docs/ openspec/ && git commit -m "chore(batch): spec+plan for ${ticket.external_id}"
+8. git add openspec/ && git commit -m "chore(batch): spec+plan for ${ticket.external_id}"
 9. git push -u origin ${branch}
 
 Gib zurück (JSON gemäß Schema):
 - ticket_id: "${ticket.external_id}"
 - branch: "${branch}"
-- spec_path: "docs/superpowers/specs/${today}-${slug}-design.md"
+- spec_path: "openspec/changes/${slug}/proposal.md"
 - plan_path: "openspec/changes/${slug}/tasks.md"
 - shared_changes: true/false (ob der Plan geteilte Dateien ändern muss)`,
       {

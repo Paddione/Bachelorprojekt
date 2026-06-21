@@ -40,9 +40,9 @@ steps:
     label: "writing-plans skill"
     description: "Turns a spec into a committed, task-structured implementation plan."
     writes:
-      files: ["docs/superpowers/plans/*.md"]
+      files: ["openspec/changes/*/tasks.md"]
     reads:
-      files: ["docs/superpowers/specs/*.md"]
+      files: ["openspec/changes/*/proposal.md"]
     gaps: []
 
   - id: using-git-worktrees
@@ -59,7 +59,7 @@ steps:
     description: "Orchestrates path-choice, worktree setup, brainstorming, spec and plan, then creates a ticket."
     writes:
       tables: ["tickets.tickets", "tickets.ticket_comments"]
-      files: ["docs/superpowers/plans/*.md"]
+      files: ["openspec/changes/*/tasks.md"]
     reads:
       tables: ["tickets.tickets"]
     gaps: []
@@ -77,7 +77,7 @@ steps:
         - "bachelorprojekt.features"
     reads:
       tables: ["tickets.tickets"]
-      files: ["docs/superpowers/plans/*.md"]
+      files: ["openspec/changes/*/tasks.md"]
     gaps:
       - type: workflow-to-db
         explanation: "ticket_plans table archived only on merge — in-flight execution state is invisible to the DB."
@@ -87,7 +87,7 @@ steps:
     label: "plan-context.sh"
     description: "Reads active plan frontmatter and injects it into sub-agent prompts."
     reads:
-      files: ["docs/superpowers/plans/*.md"]
+      files: ["openspec/changes/*/tasks.md"]
     writes: {}
     gaps: []
 
@@ -96,9 +96,9 @@ steps:
     label: "plan-frontmatter-hook.sh"
     description: "Adds required frontmatter (domains, status) to newly created plan files."
     writes:
-      files: ["docs/superpowers/plans/*.md"]
+      files: ["openspec/changes/*/tasks.md"]
     reads:
-      files: ["docs/superpowers/plans/*.md"]
+      files: ["openspec/changes/*/tasks.md"]
     gaps: []
 
   - id: tdd-failing-test
@@ -185,9 +185,9 @@ steps:
     label: "track-plans.yml"
     description: "GitHub Action: updates plan frontmatter status on merge."
     writes:
-      files: ["docs/superpowers/plans/*.md"]
+      files: ["openspec/changes/*/tasks.md"]
     reads:
-      files: ["docs/superpowers/plans/*.md"]
+      files: ["openspec/changes/*/tasks.md"]
     gaps: []
 
   - id: tracking-import-cron

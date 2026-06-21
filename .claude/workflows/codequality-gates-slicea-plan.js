@@ -9,7 +9,7 @@ export const meta = {
 }
 
 const WT = '/tmp/wt-codequality-gates'
-const SPEC = WT + '/docs/superpowers/specs/2026-06-05-codequality-gates-design.md'
+const SPEC = WT + '/openspec/changes/codequality-gates-slice-a/proposal.md'
 const PLAN = WT + '/openspec/changes/codequality-gates-slice-a/tasks.md'
 
 const WP_RULES = [

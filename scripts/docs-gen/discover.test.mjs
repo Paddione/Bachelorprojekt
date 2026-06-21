@@ -49,9 +49,7 @@ test('discoverSources: finds repo skill, repo agent, doc; excludes specs; missin
     // an included doc
     await mkdir(join(root, 'docs/website'), { recursive: true });
     await writeFile(join(root, 'docs/website/overview.md'), '# Overview\n');
-    // an EXCLUDED doc under specs
-    await mkdir(join(root, 'docs/superpowers/specs'), { recursive: true });
-    await writeFile(join(root, 'docs/superpowers/specs/internal.md'), '# Internal spec\n');
+    // (docs/superpowers/ has been removed — no exclusion needed for it anymore)
     // openspec/changes/<slug>/ files are INCLUDED (not excluded)
     await mkdir(join(root, 'openspec/changes/test-change'), { recursive: true });
     await writeFile(join(root, 'openspec/changes/test-change/tasks.md'), '# Test Change Tasks\n');
@@ -72,7 +70,6 @@ test('discoverSources: finds repo skill, repo agent, doc; excludes specs; missin
     assert.ok(paths.includes(join(root, '.claude/agents/bachelorprojekt-db.md')), 'repo agent found');
     assert.ok(paths.includes(join(root, 'docs/website/overview.md')), 'doc found');
     // excluded
-    assert.ok(!paths.includes(join(root, 'docs/superpowers/specs/internal.md')), 'specs excluded');
     assert.ok(paths.includes(join(root, 'openspec/changes/test-change/tasks.md')), 'openspec changes included');
     assert.ok(!paths.includes(join(root, 'docs/agent-guide/maps/goals-map.md')), 'agent-guide maps excluded');
 

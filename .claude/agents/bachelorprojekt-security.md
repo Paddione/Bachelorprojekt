@@ -25,7 +25,7 @@ task workspace:deploy ENV=<env> # applies SealedSecret before manifests
 
 Die vollständige Dokumentation der `.secrets/`-Datei-Topologie, der Fleet-Sync-Regel und
 der kanonischen Sektionsstruktur steht in:
-→ `docs/superpowers/references/secrets-architecture.md`
+→ `.claude/skills/references/secrets-architecture.md`
 
 **Wichtigste Regel:** `fleet-mentolder.yaml` und `fleet-korczewski.yaml` sind die
 einzigen aktiven Prod-Dateien. Legacy-Dateien (`mentolder.yaml`, `korczewski.yaml`)

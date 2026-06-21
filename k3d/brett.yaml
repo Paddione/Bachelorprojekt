@@ -1,7 +1,7 @@
 # ═══════════════════════════════════════════════════════════════════
 # Brett — 3D systemic-board pod. Static HTML + REST + WebSocket sync.
 # Persists to shared-db (website DB). Single replica by design (in-memory
-# rooms map). See docs/superpowers/specs/2026-04-25-systemisches-brett-design.md
+# rooms map). See brett/README.md for architecture overview.
 # ═══════════════════════════════════════════════════════════════════
 apiVersion: apps/v1
 kind: Deployment

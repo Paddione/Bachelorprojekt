@@ -1,7 +1,7 @@
 # Design: {feature_title}
 
 **Ticket:** {external_id}
-**Spec File:** `docs/superpowers/specs/{date}-{slug}-design.md`
+**Spec File:** `openspec/changes/{slug}/proposal.md`
 **Design Bundle:** `openspec/changes/{slug}/assets/` (falls vorhanden — `intent.md`, `new/`)
 **Timestamp:** {timestamp}
 

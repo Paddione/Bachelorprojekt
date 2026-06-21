@@ -227,13 +227,13 @@ The system SHALL, before claiming a slot for any candidate ticket, verify that a
 The system SHALL, before advancing a feature into implementation, verify that the target branch exists on `origin` and that the plan file is present on that branch. Missing arguments, unknown branches, or missing plan files each produce a distinct JSON error reason with exit code 1.
 
 #### Scenario: Branch und Plan-Datei vorhanden
-- **GIVEN** Branch `feature/has-plan` existiert auf `origin` und `docs/superpowers/plans/test-plan.md` ist committet
-- **WHEN** `readiness-check.sh feature/has-plan docs/superpowers/plans/test-plan.md` aufgerufen wird
+- **GIVEN** Branch `feature/has-plan` existiert auf `origin` und `openspec/changes/test-feature/tasks.md` ist committet
+- **WHEN** `readiness-check.sh feature/has-plan openspec/changes/test-feature/tasks.md` aufgerufen wird
 - **THEN** Exit 0; Ausgabe enthält `"ready":true` und `"reason":"ok"`
 
 #### Scenario: Plan-Datei fehlt auf dem Branch
-- **GIVEN** Branch `feature/has-plan` existiert auf `origin`, aber `docs/superpowers/plans/missing.md` ist nicht committet
-- **WHEN** `readiness-check.sh feature/has-plan docs/superpowers/plans/missing.md` aufgerufen wird
+- **GIVEN** Branch `feature/has-plan` existiert auf `origin`, aber `openspec/changes/missing-feature/tasks.md` ist nicht committet
+- **WHEN** `readiness-check.sh feature/has-plan openspec/changes/missing-feature/tasks.md` aufgerufen wird
 - **THEN** Exit 1; Ausgabe enthält `"ready":false` und `"no_plan_on_branch"`
 
 ---
@@ -250,7 +250,7 @@ The system SHALL compute the Jaccard distance between the planned (`P`) and actu
 #### Scenario: Partielle Überlappung
 - **GIVEN** `P = ['a.ts', 'b.ts']` und `A = ['a.ts', 'c.ts']` (|Schnittmenge|=1, |Vereinigung|=3)
 - **WHEN** `jaccardDistance(P, A)` berechnet wird
-- **THEN** Ergebnis ≈ 0.6667; `filterNoise` entfernt zusätzlich `docs/superpowers/plans/*.md`, `docs/superpowers/specs/*.md` und `website/src/data/test-inventory.json`
+- **THEN** Ergebnis ≈ 0.6667; `filterNoise` entfernt zusätzlich `openspec/changes/*/tasks.md`, `openspec/changes/*/proposal.md` und `website/src/data/test-inventory.json`
 
 ---
 
@@ -791,7 +791,7 @@ The system SHALL compute the Jaccard distance between the planned (`P`) and actu
 #### Scenario: filterNoise entfernt docs/generated/**, repo-index.json, test-inventory.json, Plan/Spec-Markdown *(BATS)*
 - **GIVEN** Arrays mit Mix aus relevanten und generierten Pfaden
 - **WHEN** `filterNoise([...])` ausgeführt wird
-- **THEN** `docs/generated/x.md`, `docs/code-quality/repo-index.json`, `website/src/data/test-inventory.json`, `docs/superpowers/plans/p.md`, `docs/superpowers/specs/s.md` werden entfernt; `src/a.ts` bleibt erhalten; `null`-Input gibt `[]` zurück
+- **THEN** `docs/generated/x.md`, `docs/code-quality/repo-index.json`, `website/src/data/test-inventory.json`, `openspec/changes/slug/tasks.md`, `openspec/changes/slug/proposal.md` werden entfernt; `src/a.ts` bleibt erhalten; `null`-Input gibt `[]` zurück
 
 ---
 

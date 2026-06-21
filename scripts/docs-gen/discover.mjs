@@ -14,7 +14,6 @@ import { join, sep, basename } from 'node:path';
 
 // docs subtrees that are internal process artifacts — never published.
 const DOC_EXCLUDE_PREFIXES = [
-  join('docs', 'superpowers', 'specs'),
   join('docs', 'agent-guide', 'maps'), // grep-only repo maps (S3), not a published doc page
 ];
 

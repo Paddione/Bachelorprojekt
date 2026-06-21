@@ -1,7 +1,7 @@
 // tests/e2e/specs/fa-admin-inbox.spec.ts
 //
 // FA-admin-inbox — Playwright coverage for the rework of /admin/inbox
-// as defined in docs/superpowers/specs/2026-05-08-admin-inbox-rework-design.md.
+// as defined in the original admin-inbox-rework design spec (historically archived).
 //
 // Selectors come VERBATIM from spec §10 (the contract shared with the
 // implementation agent). Do not invent new selectors here.

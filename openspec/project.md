@@ -34,5 +34,4 @@ because the files are already conformant — kept cheap by the `task test:opensp
 | active | `in_progress` / `in_review` / `qa_review` / `awaiting_deploy` |
 | archived | `done` (= deployed + verified in prod) |
 
-**Cutover:** new work from 2026-06-16 uses `openspec/`. The 211 legacy specs + 35 plans under
-`docs/superpowers/` stay as a historical archive and are NOT migrated.
+**Cutover:** new work from 2026-06-16 uses `openspec/`. Legacy specs + plans from `docs/superpowers/` have been removed (T001079); 4 reference docs moved to `.claude/skills/references/`.

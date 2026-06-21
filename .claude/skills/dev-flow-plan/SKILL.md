@@ -157,10 +157,10 @@ Starte den Companion-Server und Tunnel **bevor** `superpowers:brainstorming` auf
 
 ### Schritt 3: Brainstorming ⚡ IMMER — kein Überspringen
 Rufe `superpowers:brainstorming` auf. Nutze das visual Board auf `https://brainstorm.dev.mentolder.de`.
-Ergebnis: Spec-Datei in `docs/superpowers/specs/<date>-<slug>-design.md`.
+Ergebnis: Spec/Brainstorming-Output wird nach `openspec/changes/<slug>/proposal.md` übertragen.
 Nach dem Schreiben der Spec das Frontmatter setzen (siehe
-`docs/superpowers/specs/spec-frontmatter-standard.md`):
-`bash scripts/vda.sh frontmatter --spec docs/superpowers/specs/<date>-<slug>-design.md`
+`openspec/changes/<slug>/proposal.md`):
+`bash scripts/vda.sh frontmatter --spec openspec/changes/<slug>/proposal.md`
 und `ticket_id`/`plan_ref` ausfüllen sobald Ticket-ID und Plan-Pfad feststehen.
 
 ### Schritt 3.1: OpenSpec-Change anlegen
@@ -188,7 +188,7 @@ Statt deinen eigenen Kontext zurückzusetzen (das ließe dich den Faden verliere
    - `subagent_type: general-purpose`.
    - **Kontext-Injektion** (er hat sonst KEINEN Kontext — gib ihm alles explizit):
      - Absoluter Worktree-Pfad (`pwd`) + Branch-Name; er arbeitet NUR relativ dazu.
-     - Spec-Pfad: `docs/superpowers/specs/<date>-<slug>-design.md`
+     - Spec-Pfad: `openspec/changes/<slug>/proposal.md`
      - **Design-Bundle** (falls Schritt 1.7 lief): `openspec/changes/<slug>/assets/` —
        der Plan MUSS `intent.md` als Design-Quelle referenzieren, die finalen Asset-Zielpfade
        (z. B. unter `website/src/...`) in die Task-`target_files` aufnehmen und die T000756-
@@ -238,7 +238,7 @@ if [[ -z "${TICKET_EXT_ID:-}" ]]; then
     --brand mentolder \
     --title "Plan: <slug>" \
     --priority mittel \
-    --description "Branch: feature/<slug>"$'\n'"Plan: openspec/changes/<slug>/tasks.md"$'\n'"Spec: docs/superpowers/specs/<date>-<slug>-design.md"$GRILLING_REF)
+    --description "Branch: feature/<slug>"$'\n'"Plan: openspec/changes/<slug>/tasks.md"$'\n'"Spec: openspec/changes/<slug>/proposal.md"$GRILLING_REF)
 
   TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
   TICKET_UUID=$(echo "$TICKET_RESULT"   | cut -d'|' -f2)
@@ -335,7 +335,7 @@ Starte den Companion-Server und Tunnel **bevor** `superpowers:brainstorming` auf
 ### Schritt 2.8: Brainstorming ⚡ IMMER — kein Überspringen
 Rufe `superpowers:brainstorming` auf. Nutze das visual Board auf `https://brainstorm.dev.mentolder.de`.
 Fokus: Root-Cause-Analyse, Fix-Ansatz, betroffene Subsysteme, Edge-Cases.
-Ergebnis: Spec-Datei in `docs/superpowers/specs/<date>-<slug>-design.md`.
+Ergebnis: Spec/Brainstorming-Output wird nach `openspec/changes/<slug>/proposal.md` übertragen.
 Der Brainstorming-Output informiert sowohl den failing Test (Schritt 3) als auch den Plan (Schritt 4) —
 kein Test schreiben, bevor Root-Cause und Fix-Ansatz im Board geklärt sind.
 

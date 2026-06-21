@@ -100,7 +100,7 @@ args: { timestamp }
 ## 📋 Phase 3: Full Auto-Pilot (geplant)
 
 Feature-Request → Deploytes Feature ohne menschliche Intervention.
-Siehe Spec `docs/superpowers/specs/2026-06-01-software-factory-design.md` Abschnitt 7.
+Siehe openspec/specs/software-factory.md (bzw. historisch: `docs/superpowers/specs/2026-06-01-software-factory-design.md` Abschnitt 7).
 
 ## Templates ✅
 

@@ -221,14 +221,14 @@ DeepSeek für den Fall, dass die grep/find-Discovery zu wenige Dateien findet.
 | `SCOUT_DRIFT_THRESHOLD` | `0.9` | Warn-Schwelle für Drift-Score |
 
 **Referenzen:**
-- Spec: `docs/superpowers/specs/2026-06-17-t000901-design.md`
-- Plan: `docs/superpowers/plans/2026-06-17-t000901.md`
+- Spec: (historisch archiviert: `docs/superpowers/specs/2026-06-17-t000901-design.md`)
+- Plan: (historisch archiviert: `docs/superpowers/plans/2026-06-17-t000901.md`)
 
 ## Verwandte Dokumente
 
-- Spec: `docs/superpowers/specs/2026-06-01-software-factory-design.md`
-- Plan: `docs/superpowers/plans/2026-06-05-software-factory-phase1.md`
-- Usage Guide: `docs/superpowers/references/factory-usage.md`
+- Spec: (historisch archiviert: `docs/superpowers/specs/2026-06-01-software-factory-design.md`)
+- Plan: (historisch archiviert: `docs/superpowers/plans/2026-06-05-software-factory-phase1.md`)
+- Usage Guide: `.claude/skills/references/factory-usage.md`
 - Vorhaben: T000413, Ticket: T000420
 
 ## D5 Proof: Observed Runtime Fixes

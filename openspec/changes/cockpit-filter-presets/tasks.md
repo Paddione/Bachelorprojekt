@@ -7,7 +7,7 @@ status: planning
 
 # Implementation Plan: cockpit-filter-presets
 
-> Ticket: T000988 · Spec: `docs/superpowers/specs/2026-06-20-cockpit-filter-presets.md`
+> Ticket: T000988 · Spec: `openspec/changes/cockpit-filter-presets/proposal.md`
 > Brand: mentolder · Speicher: localStorage (keine DB, kein Multi-Device-Sync)
 
 ## File Structure

@@ -20,7 +20,7 @@ depends_on_plans: []
 
 **Tech Stack:** Bash, BATS, yq (already in CI), python3 + PyYAML (schema parsing), kubectl, GitHub Actions YAML.
 
-Source spec: `docs/superpowers/specs/2026-06-21-secrets-deploy-automation-design.md`.
+Source spec: `(historisch archiviert: docs/superpowers/specs/2026-06-21-secrets-deploy-automation-design.md)`.
 
 ## Global Constraints
 
@@ -40,7 +40,7 @@ Source spec: `docs/superpowers/specs/2026-06-21-secrets-deploy-automation-design
 .github/workflows/deploy-sealed-secrets.yml          ← NEW: GitHub Action (validate → deploy → notify)
 environments/schema.yaml                              ← MODIFY: legacy_only: true on 12 WG-mesh keys; add 3 MCP_KEYCLOAK_* entries
 tests/spec/fleet-operations.bats                      ← NEW: BATS fleet-completeness guard (~75 lines)
-docs/superpowers/references/secrets-architecture.md   ← NEW: Reference doc (topology, lifecycle, sync rule)
+.claude/skills/references/secrets-architecture.md   ← NEW: Reference doc (topology, lifecycle, sync rule)
 .claude/agents/bachelorprojekt-security.md            ← MODIFY: add §Secrets-Dateiarchitektur section
 website/src/data/test-inventory.json                  ← MODIFY: regenerated after new BATS tests
 ```
@@ -49,7 +49,7 @@ S1 pre-flight (non-baselined):
 - `.github/workflows/deploy-sealed-secrets.yml` → new, target ~100 lines
 - `environments/schema.yaml` → 1315 lines, non-baselined; adding ~15 lines is safe
 - `tests/spec/fleet-operations.bats` → new, target ~75 lines
-- `docs/superpowers/references/secrets-architecture.md` → new, target ~100 lines
+- `.claude/skills/references/secrets-architecture.md` → new, target ~100 lines
 - `.claude/agents/bachelorprojekt-security.md` → 70 lines, non-baselined; adding ~14 lines
 
 ---
@@ -294,10 +294,10 @@ S1 pre-flight (non-baselined):
 
 ---
 
-## Task 3: Referenzdokument `docs/superpowers/references/secrets-architecture.md`
+## Task 3: Referenzdokument `.claude/skills/references/secrets-architecture.md`
 
 **Files:**
-- Create: `docs/superpowers/references/secrets-architecture.md`
+- Create: `.claude/skills/references/secrets-architecture.md`
 
 **Interfaces:**
 - Produces: human- and agent-readable reference; consumed by Task 4 (Security Agent).
@@ -305,7 +305,7 @@ S1 pre-flight (non-baselined):
 
 - [ ] **Step 1: Create the reference document**
 
-  Write `docs/superpowers/references/secrets-architecture.md` with these sections:
+  Write `.claude/skills/references/secrets-architecture.md` with these sections:
 
   **Section: Datei-Topologie** — a 4-row table (columns: Datei · Status · Produziert · Referenziert von) with:
   - `environments/.secrets/fleet-mentolder.yaml` → Aktiv (Prod) → `sealed-secrets/fleet-mentolder.yaml` → `environments/fleet-mentolder.yaml` (secrets_ref)
@@ -339,8 +339,8 @@ S1 pre-flight (non-baselined):
 - [ ] **Step 2: Verify the file**
 
   ```bash
-  wc -l /home/patrick/Bachelorprojekt/docs/superpowers/references/secrets-architecture.md
-  head -3 /home/patrick/Bachelorprojekt/docs/superpowers/references/secrets-architecture.md
+  wc -l /home/patrick/Bachelorprojekt/.claude/skills/references/secrets-architecture.md
+  head -3 /home/patrick/Bachelorprojekt/.claude/skills/references/secrets-architecture.md
   ```
 
   Expected: ~90–115 lines, starts with `# Secrets-Architektur`.
@@ -349,7 +349,7 @@ S1 pre-flight (non-baselined):
 
   ```bash
   cd /home/patrick/Bachelorprojekt
-  git add docs/superpowers/references/secrets-architecture.md
+  git add .claude/skills/references/secrets-architecture.md
   git commit -m "docs(secrets): add secrets-architecture reference (topology, fleet-sync rule, lifecycle)"
   ```
 
@@ -361,7 +361,7 @@ S1 pre-flight (non-baselined):
 - Modify: `.claude/agents/bachelorprojekt-security.md` (currently 70 lines → ~84 lines)
 
 **Interfaces:**
-- Consumes: `docs/superpowers/references/secrets-architecture.md` (Task 3).
+- Consumes: `.claude/skills/references/secrets-architecture.md` (Task 3).
 - Produces: Updated agent file routing security agents to the architecture reference.
 
 - [ ] **Step 1: Insert section after the `## SealedSecrets lifecycle` code block**
@@ -373,7 +373,7 @@ S1 pre-flight (non-baselined):
 
   Die vollständige Dokumentation der `.secrets/`-Datei-Topologie, der Fleet-Sync-Regel
   und der kanonischen Sektionsstruktur steht in:
-  → `docs/superpowers/references/secrets-architecture.md`
+  → `.claude/skills/references/secrets-architecture.md`
 
   **Wichtigste Regel:** `fleet-mentolder.yaml` und `fleet-korczewski.yaml` sind die
   einzigen aktiven Prod-Dateien. Legacy-Dateien (`mentolder.yaml`, `korczewski.yaml`)

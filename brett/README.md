@@ -2,7 +2,6 @@
 
 3D systemic-constellation board served from a single Node.js pod. Static HTML + WebSocket sync + REST snapshots, all on port 3000.
 
-For the full design rationale and API contract see [`docs/superpowers/specs/2026-04-25-systemisches-brett-design.md`](../docs/superpowers/specs/2026-04-25-systemisches-brett-design.md).
 
 ## Local dev
 

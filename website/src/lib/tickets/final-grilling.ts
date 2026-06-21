@@ -26,7 +26,7 @@ const STATIC_SUGGESTIONS: Record<string, string[]> = {
   q3: ['Keine bekannten Abhängigkeiten', 'Frontend + Backend betroffen', 'Abhängig von: (Ticket-ID)'],
   q4: ['Entwickler (intern)', 'Endnutzer', 'Admin-Rolle', 'Beide Brands (mentolder + korczewski)'],
   q5: ['website/src/', 'k3d/', 'scripts/', 'mediaviewer-widget/'],
-  q6: ['Spec vorhanden (docs/superpowers/specs/)', 'Plan vorhanden (openspec/changes/<slug>/tasks.md)', 'Kein Diagramm nötig'],
+  q6: ['Spec vorhanden (openspec/changes/<slug>/proposal.md)', 'Plan vorhanden (openspec/changes/<slug>/tasks.md)', 'Kein Diagramm nötig'],
   q7: ['Svelte-Komponenten-Pattern', 'Astro-Page-Template', 'API-Route-Pattern', 'Kustomize-Overlay-Pattern'],
   q8: ['Keine Breaking Changes', 'API-Breaking-Change (Versionierung prüfen)', 'DB-Schemamigration nötig'],
   q9: ['Leere/fehlende Eingabe', 'Concurrent Updates / Race Condition', 'Netzwerk-Timeout', 'Ungültiger State'],

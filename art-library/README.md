@@ -17,5 +17,3 @@ served at the URL path `/art-library/`). Pods boot fine without it (`optional: t
 3. Run `node art-library/_tooling/validate-manifest.mjs`.
 4. Wire the set into the relevant overlay's `configMapGenerator`.
 
-See `docs/superpowers/specs/2026-05-04-art-library-design.md` for the
-design rationale.

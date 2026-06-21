@@ -9,9 +9,7 @@ const COLLECTION_SOURCE = 'specs_plans';
 
 function findMarkdownFiles() {
   const files = [];
-  const flatDirs = [
-    join(REPO_ROOT, 'docs/superpowers/specs'),
-  ];
+  const flatDirs = [];
   for (const dir of flatDirs) {
     try {
       for (const f of readdirSync(dir)) {

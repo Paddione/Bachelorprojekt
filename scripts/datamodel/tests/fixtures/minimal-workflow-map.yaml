@@ -17,7 +17,7 @@ steps:
     description: "Orchestrates path-choice + worktree + plan + ticket."
     writes:
       tables: ["tickets.tickets"]
-      files: ["docs/superpowers/plans/*.md"]
+      files: ["openspec/changes/*/tasks.md"]
     reads: {}
     gaps: []
   - id: tracking-import

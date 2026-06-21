@@ -1,8 +1,6 @@
 name: Renovate
 
 # Self-hosted Renovate dependency update bot.
-# Spec:  docs/superpowers/specs/2026-06-17-t000898-design.md
-# Plan:  docs/superpowers/plans/2026-06-17-t000898.md
 # Setup: A dedicated GitHub App token must be stored as repo secret RENOVATE_TOKEN.
 #        See PR description for setup steps. Without the secret, this workflow fails.
 #

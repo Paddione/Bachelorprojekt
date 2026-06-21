@@ -28,7 +28,7 @@ Sendet opencode- und agy-Session-Events als HTTP-POST an einen self-hosted ntfy-
 die Notifications auf seinem Android-Smartphone via ntfy-App erhält. Opt-in pro Quelle (opencode / agy),
 default aus. DSGVO-konform: Topic-Auth, keine sensiblen Ticket-Inhalte im Body.
 
-**Spec:** `docs/superpowers/specs/2026-06-20-agent-push-notifications.md`
+**Spec:** `openspec/changes/agent-push-notifications/proposal.md`
 
 ---
 

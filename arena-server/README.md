@@ -1,7 +1,6 @@
 # arena-server
 
 Authoritative game server for the Arena last-man-standing match. See
-`docs/superpowers/specs/2026-05-11-arena-design.md` for the design.
 
 ## Local development
 

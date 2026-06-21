@@ -1,6 +1,6 @@
 # Korczewski Visual Design Brief
 
-**Companion to:** `docs/superpowers/specs/2026-05-09-korczewski-as-mentolder-template-design.md`
+**Original spec:** (historisch archiviert: `docs/superpowers/specs/2026-05-09-korczewski-as-mentolder-template-design.md`)
 **Live mockup:** open `mockup.html` in any browser
 **Live site (current):** https://web.korczewski.de/
 

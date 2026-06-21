@@ -25,7 +25,7 @@ depends_on_plans: []
 
 Keycloak wird durch zwei unabhängige Pocket ID Instanzen (`id.mentolder.de` / `id.korczewski.de`) ersetzt. Treiber: Wartungslast (~512 MB RAM → ~50 MB, kein Realm-/Mapper-System mehr). Migration in 4 sequenziellen Wellen mit Rollback-Option bis Welle 3.
 
-**Spec:** `docs/superpowers/specs/2026-06-21-pocket-id-migration-design.md`
+**Spec:** (historisch archiviert: `docs/superpowers/specs/2026-06-21-pocket-id-migration-design.md`)
 
 ---
 
@@ -90,7 +90,7 @@ website/src/data/test-inventory.json                   ← regenerieren nach Tes
 - All new secrets are named `POCKET_ID_*`. Keep every existing `KEYCLOAK_*` / `*_OIDC_SECRET` secret in place until Welle 3 (parallel operation requires both).
 - Client IDs registered in Pocket ID stay **identical** to the Keycloak client IDs (e.g. `mailpit-admin`, `website`, `grafana`) so consumer config changes stay minimal.
 - No brand-domain literals in manifests or code — use `${PROD_DOMAIN}` / `${POCKET_ID_DOMAIN}` (manifests) or `process.env.POCKET_ID_URL` / `POCKET_ID_FRONTEND_URL` (code). Dev literal is `id.localhost`.
-- Every new `${VAR}` in a manifest MUST be registered in `environments/schema.yaml` AND added to the `envsubst` list of every Taskfile task that renders that manifest (see `docs/superpowers/references/envsubst-variable-management.md`).
+- Every new `${VAR}` in a manifest MUST be registered in `environments/schema.yaml` AND added to the `envsubst` list of every Taskfile task that renders that manifest (see `.claude/skills/references/envsubst-variable-management.md`).
 - `scripts/env-resolve.sh` is **sourced, never executed**.
 - Cross-cutting changes apply to **both** namespaces (`workspace` and `workspace-korczewski`) explicitly — there is no GitOps reconciler.
 - **Arena is out of scope** (separate ticket, blocked on `korczewski-monolith-keycloak-auth`).

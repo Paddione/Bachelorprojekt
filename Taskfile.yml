@@ -25,7 +25,7 @@ includes:
       NS_PROD: workspace-korczewski
       CLUSTER_NAME: korczewski-dev
   # Staging on-demand — per-branch isolated k3d namespaces.
-  # See Taskfile.staging.yml + docs/superpowers/specs/2026-06-11-staging-on-demand-design.md.
+  # See Taskfile.staging.yml for staging on-demand configuration.
   staging:
     taskfile: ./Taskfile.staging.yml
     dir: .
@@ -52,7 +52,7 @@ includes:
     taskfile: ./Taskfile.openclaw.yml
     dir: .
   # Software Factory — Phase 1 pipeline documentation wrapper.
-  # See scripts/factory/pipeline.js + docs/superpowers/references/factory-usage.md.
+  # See scripts/factory/pipeline.js + .claude/skills/references/factory-usage.md.
   factory:
     taskfile: ./Taskfile.factory.yml
     dir: .
@@ -3080,7 +3080,7 @@ tasks:
     cmds:
       - |
         if [[ -z "{{.PLAN}}" ]]; then
-          echo "Usage: task plan:qa PLAN=docs/superpowers/plans/<file>.md" >&2
+          echo "Usage: task plan:qa PLAN=openspec/changes/<slug>/tasks.md" >&2
           exit 1
         fi
         bash scripts/plan-qa-check.sh "{{.PLAN}}"

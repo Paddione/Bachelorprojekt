@@ -15,10 +15,10 @@ Multi-phase audit of the `shared-db` on both `mentolder` and `korczewski` cluste
 - 0 DROP candidates qualified — Module 2 (runtime stats) gated out by recent postgres restart (3.5d uptime, needs ≥30d)
 
 ## Spec
-[`docs/superpowers/specs/2026-05-23-db-audit-phase5-design.md`](../../superpowers/specs/2026-05-23-db-audit-phase5-design.md)
+(historisch archiviert: `docs/superpowers/specs/2026-05-23-db-audit-phase5-design.md`)
 
 ## Plan
-[`docs/superpowers/plans/2026-05-23-db-audit-phase5.md`](../../superpowers/plans/2026-05-23-db-audit-phase5.md)
+(historisch archiviert: `docs/superpowers/plans/2026-05-23-db-audit-phase5.md`)
 
 ## Ticket
 [T000150](https://web.mentolder.de/admin/bugs)

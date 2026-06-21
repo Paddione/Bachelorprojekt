@@ -80,7 +80,7 @@ Fällt der GPU-Host aus:
 - `voyage-multilingual-2`-Collections: **nicht betroffen** (Voyage-API ist Cloud-basiert, unabhängig vom GPU-Host).
 - Chat-class-Anfragen: **fallen zurück auf Anthropic** (pro Call, via llm-router Timeout nach 30s).
 
-Siehe auch: CLAUDE.md § "Local-first LLM pipeline", `docs/superpowers/plans/archive/2026-05-10-local-llm-pipeline.md`.
+Siehe auch: CLAUDE.md § "Local-first LLM pipeline" (historisch: `docs/superpowers/plans/archive/2026-05-10-local-llm-pipeline.md`).
 
 ---
 

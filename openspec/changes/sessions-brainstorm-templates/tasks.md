@@ -4,7 +4,7 @@ ticket_id: T000993
 domains: [website, db]
 status: active
 date: 2026-06-20
-spec_ref: docs/superpowers/specs/2026-06-20-sessions-brainstorm-templates.md
+spec_ref: openspec/changes/sessions-brainstorm-templates/proposal.md
 openspec_ref: openspec/changes/sessions-brainstorm-templates/
 file_locks: []
 shared_changes: true

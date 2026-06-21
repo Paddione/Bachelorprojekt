@@ -2,14 +2,14 @@
 ticket_id: T000993
 status: archived
 date: 2026-06-20
-spec_ref: docs/superpowers/specs/2026-06-20-sessions-brainstorm-templates.md
+spec_ref: openspec/changes/sessions-brainstorm-templates/proposal.md
 openspec_ref: openspec/changes/sessions-brainstorm-templates/
 ---
 
 # Proposal: sessions-brainstorm-templates
 
 _Ticket: T000993_
-_Spec: docs/superpowers/specs/2026-06-20-sessions-brainstorm-templates.md_
+_Spec: openspec/changes/sessions-brainstorm-templates/proposal.md_
 
 ## Why
 

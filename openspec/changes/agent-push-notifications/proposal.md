@@ -4,7 +4,7 @@ status: planning
 title: "Proposal: agent-push-notifications"
 date: 2026-06-20
 plan_ref: openspec/changes/agent-push-notifications/tasks.md
-spec_ref: docs/superpowers/specs/2026-06-20-agent-push-notifications.md
+spec_ref: openspec/changes/agent-push-notifications/proposal.md
 ---
 
 # Proposal: agent-push-notifications

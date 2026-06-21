@@ -8,7 +8,7 @@ date: 2026-06-20
 
 # Proposal: Cockpit: Ticket-Status Bulk-Änderung
 
-> Quelle: `docs/superpowers/specs/2026-06-20-cockpit-bulk-status.md` (T000989).
+> Quelle: Spec T000989 (historisch archiviert; Inhalt in diesem Proposal übernommen).
 > Dieser Proposal übernimmt die Spec inhaltlich und gleicht die Dateipfade
 > an die reale Codebase ab (siehe "Datei-Mapping (Grounding)" unten).
 

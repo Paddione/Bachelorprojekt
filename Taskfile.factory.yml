@@ -35,7 +35,7 @@ tasks:
         echo "Primitives:     slots.sh queue.sh schedule.sh watchdog.sh metrics.sh (BRAND=<brand>)"
 
   enqueue:
-    desc: "Hand a planned ticket to the Software Factory queue. Usage: task factory:enqueue -- T000123 feature/<slug> docs/superpowers/plans/<file>.md"
+    desc: "Hand a planned ticket to the Software Factory queue. Usage: task factory:enqueue -- T000123 feature/<slug> openspec/changes/<slug>/tasks.md"
     cmds:
       - bash scripts/ticket.sh enqueue --id {{index .MATCH 0}} --branch {{index .MATCH 1}} --plan {{index .MATCH 2}}
     vars:

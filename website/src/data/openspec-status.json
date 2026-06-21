@@ -123,6 +123,12 @@
       "status": "plan_staged"
     }
   ],
+  "T001033": [
+    {
+      "slug": "art-library-webapp-integration",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "ticket-mcp",

@@ -67,11 +67,12 @@ kubectl apply -f environments/sealed-secrets/fleet-korczewski.yaml
 - `--server-side` nicht nötig (SealedSecrets sind keine Kustomize-Overlays)
 - Beide Brands immer deployen (idempotentes Apply ist sicher)
 
-#### Job `notify` (needs: deploy, if: success)
+#### Job `notify` (needs: deploy, `continue-on-error: true`)
 - Extrahiert SHA des Merge-Commits
 - Fragt ticket-mcp nach dem offenen `awaiting_deploy`-Ticket das `branch`/`SHA` enthält
 - Postet Kommentar: `"✅ SealedSecrets deployed [SHA] at [timestamp] (mentolder + korczewski)"`
-- **Kein `awaiting_deploy`-Ticket gefunden → Warnung im Log, kein Job-Fehler** (stilles fail-open)
+- **`continue-on-error: true` auf Job-Ebene** — `scripts/ticket.sh` nutzt `kubectl exec` auf den postgres-Pod; schlägt dieser fehl (Pod-Restart, Netzwerk-Blip), bleibt der Deploy-Job grün und der Workflow insgesamt erfolgreich.
+- Kein `awaiting_deploy`-Ticket gefunden → Warnung im Log
 
 **Verwendete GitHub Secrets:** nur `FLEET_KUBECONFIG` (bereits vorhanden). `scripts/ticket.sh` nutzt `kubectl exec` auf den postgres-Pod — kein separates Token nötig, kubeconfig reicht für Deploy + Ticket-Kommentar.
 
@@ -103,34 +104,41 @@ secrets:
 
 #### BATS-Test `tests/spec/fleet-operations.bats`
 
-Neuer Test `"fleet-* secret files contain all non-legacy keys from their legacy counterparts"`:
+Neuer Test `"fleet-* sealed secrets contain all non-legacy keys from their legacy counterparts"`:
 
 ```bash
-# Pseudocode
+# CI-safe: liest ausschließlich committed sealed-secrets/*.yaml — nie .secrets/* (gitignoriert).
+# spec.encryptedData-Keys sind im SealedSecret-YAML im Klartext lesbar; Werte bleiben verschlüsselt.
+
 legacy_only_keys=$(python3 -c "
-import yaml
+import yaml, sys
 schema = yaml.safe_load(open('environments/schema.yaml'))
 print('\n'.join(
   s['name'] for s in schema.get('secrets', [])
   if s.get('legacy_only', False)
-))
-")
+))")
 
 for pair in "mentolder:fleet-mentolder" "korczewski:fleet-korczewski"; do
   legacy="${pair%%:*}"
   fleet="${pair##*:}"
-  missing=$(python3 scripts/check-fleet-completeness.py \
-    "environments/.secrets/${legacy}.yaml" \
-    "environments/.secrets/${fleet}.yaml" \
-    "${legacy_only_keys}")
-  [[ -z "$missing" ]] || fail "Keys fehlen in ${fleet}.yaml: $missing"
+
+  legacy_keys=$(yq '.spec.encryptedData | keys | .[]' \
+    "environments/sealed-secrets/${legacy}.yaml" | sort)
+  fleet_keys=$(yq '.spec.encryptedData | keys | .[]' \
+    "environments/sealed-secrets/${fleet}.yaml"  | sort)
+
+  missing=""
+  while IFS= read -r key; do
+    echo "$legacy_only_keys" | grep -qxF "$key" && continue
+    echo "$fleet_keys"       | grep -qxF "$key" && continue
+    missing="${missing} ${key}"
+  done <<< "$legacy_keys"
+
+  [[ -z "$missing" ]] || fail "Keys fehlen in sealed-secrets/${fleet}.yaml:${missing}"
 done
 ```
 
-**Helper-Skript** `scripts/check-fleet-completeness.py`:
-- Liest beide YAML-Dateien
-- Gibt Keys zurück die in legacy sind, nicht `legacy_only`, und nicht in fleet
-- Exit 0 = vollständig, stdout = fehlende Keys
+**Kein Helper-Skript nötig** — `yq` ist in der CI-Umgebung verfügbar (wird bereits in anderen Tests genutzt).
 
 **Test läuft in `task test:all`** (offline, keine Cluster-Verbindung nötig).
 
@@ -217,7 +225,7 @@ Jeder neue Secret-Block muss in die fleet-Dateien.
 
 ## Akzeptanzkriterien
 
-1. `task test:all` schlägt fehl wenn `fleet-mentolder.yaml` einen Key aus `mentolder.yaml` vermisst (der nicht `legacy_only: true` ist)
+1. `task test:all` schlägt fehl wenn `sealed-secrets/fleet-mentolder.yaml` einen Key aus `sealed-secrets/mentolder.yaml` vermisst (der nicht `legacy_only: true` in `schema.yaml` ist) — Test liest ausschließlich committed Dateien, läuft CI-safe ohne `.secrets/`-Plaintext
 2. Nach Merge eines PRs der `fleet-*.yaml` ändert: Action deployt automatisch beide Brands
 3. Das `awaiting_deploy`-Ticket bekommt einen Deploy-Kommentar mit SHA und Timestamp
 4. `bachelorprojekt-security`-Agent referenziert `secrets-architecture.md` und kennt die Fleet-Sync-Regel

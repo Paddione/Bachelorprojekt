@@ -45,14 +45,6 @@ Each skill's `SKILL.md` frontmatter carries an optional `agent:` field that tell
 
 ---
 
-## Migration (Fremdcode → Plattform)
-
-| Skill | When to use |
-|---|---|
-| [`migrate-foreign-code`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/migrate-foreign-code.html) | Eine bestehende, externe App ins Bachelorprojekt übernehmen — 6-Phasen-Reise (entkoppeln → vendoren → containerisieren → server-side → integrieren) über [`dev-flow`](https://github.com/Paddione/Bachelorprojekt/search?q=dev-flow&type=code), mit Pattern-Katalog. Operator-getrieben; sequenziert dev-flow, ersetzt es nicht. |
-
----
-
 ## Schicht-Kontrakt: dev-flow orchestriert, superpowers liefert Disziplin
 
 Die `dev-flow-*`-Skills sind **projektspezifische Orchestratoren**. Sie rufen die generischen

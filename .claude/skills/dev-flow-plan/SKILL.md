@@ -13,6 +13,25 @@ Bei jeder Anfrage in diesem Repo, die etwas verändern will.
 
 ---
 
+## Position im Git-Kreislauf
+
+```
+    ┌──────────────────────────────────────────────────────────┐
+    ▼                                                          │
+[ main ]                                                       │
+    │                                                          │
+    ├─► [branch + spec + plan] ── DIESER SKILL ── AUSSTIEG ──►│
+    │         (feature / fix)         pushed                   │
+    │                                                          │
+    └─► [chore direkt] ── dev-flow-chore ──────────────────────┘
+```
+
+**EINSTIEG:** `main` — synchronisiert, sauberer Stand  
+**AUSSTIEG:** Feature/Fix-Branch mit committiertem Plan auf Remote gepusht, Ticket `plan_staged`  
+**Nächster Schritt:** `dev-flow-execute` — liest Plan aus DB und implementiert
+
+---
+
 ## Schritt −3: Deep Grilling (optional)
 
 Wenn das Feature komplex oder unklar ist, frage den User nach einer Grilling-Session (siehe [dev-flow-gotchas](file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#dev-flow-gotchas) für den Fragenkatalog).
@@ -355,6 +374,19 @@ und gemergt. In Schritt 0 für Chores sofort `dev-flow-chore` aufrufen und hier 
 ---
 
 
+## Übergabe an dev-flow-execute
+
+**Zustand bei STOPP:**
+- Branch `feature/<slug>` oder `fix/<slug>` auf Remote gepusht
+- Plan `openspec/changes/<slug>/tasks.md` committed
+- Ticket status = `plan_staged`
+- Branch-Lock aktiv (andere Sessions sehen diesen Branch als belegt)
+
+**Nächster Schritt im Kreislauf:** `dev-flow-execute` aufrufen.  
+Der Skill liest den Plan automatisch aus der DB (`FACTORY-PLAN-REF` Kommentar) — kein manuelle Pfad-Übergabe nötig.
+
+---
+
 ## Verwandte Skills
 
 | Skill | Beziehung |
@@ -362,8 +394,8 @@ und gemergt. In Schritt 0 für Chores sofort `dev-flow-chore` aufrufen und hier 
 | `using-git-worktrees` | Hintergrund — ersetzt durch `scripts/worktree-create.sh` (git-crypt-safe) |
 | `superpowers:brainstorming` | Aufgerufen in Schritt 3 — Intent/Design klären |
 | `superpowers:writing-plans` | Aufgerufen vom Plan-Subagenten (Schritt 3.7) |
-| `dev-flow-execute` | Folge — implementiert den erstellten Plan |
-| `dev-flow-chore` | Geschwister — Chores statt Features/Fixes |
+| `dev-flow-execute` | **Nachfolger im Kreislauf** — implementiert den erstellten Plan |
+| `dev-flow-chore` | Geschwister — Chores statt Features/Fixes (direkter Kurzschluss) |
 | `mishap-tracker` | Abschluss — protokolliert Frictions |
 
 ## Nachbereitung & Mishap Report

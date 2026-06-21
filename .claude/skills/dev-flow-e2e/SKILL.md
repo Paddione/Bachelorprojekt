@@ -14,6 +14,23 @@ agent: bachelorprojekt-test
 
 ---
 
+## Position im Git-Kreislauf
+
+```
+    ┌──────────────────────────────────────────────────────────────────┐
+    ▼                                                                  │
+[ main ] ←── merge ←── PR ←── implement ←── [plan committed]          │
+    │                                                                  │
+    └──► [E2E Tests schreiben + committen] ──► [push] ──► AUSSTIEG ───┘
+              DIESER SKILL (post-merge)
+```
+
+**EINSTIEG:** `main` nach Merge — Feature deployed auf Live-Umgebung  
+**AUSSTIEG:** E2E-Spec committed + gepusht auf neuen `test/*`-Branch oder direkt auf `main`-Nachfolger  
+**Voraussetzung:** `dev-flow-execute` Schritt 8 (Post-Merge Deploy) abgeschlossen, Live-URL erreichbar
+
+---
+
 ## Schritt 0: Kontext ermitteln
 
 Finde heraus, was implementiert wurde:
@@ -150,10 +167,15 @@ git diff website/src/data/test-inventory.json
 
 ## Schritt 7: Commit & Push
 
+Folge den Commit-Konventionen aus `git-workflow` (Conventional Commits, Freshness Guard, Scope-Preflight):
+
 ```bash
 git add tests/e2e/specs/<neu>.spec.ts
 git add tests/e2e/playwright.config.ts
 git add website/src/data/test-inventory.json
+
+# Scope-Preflight (Pflicht) [T000925]
+bash scripts/preflight-pr-scope.sh "test(<scope>): add E2E tests for <feature> [$TICKET_ID]"
 
 git commit -m "test(<scope>): add E2E tests for <feature> [$TICKET_ID]"
 git push
@@ -175,10 +197,22 @@ cd tests/e2e/ && SKIP_DB_PURGE=1 WEBSITE_URL=https://web.mentolder.de ./node_mod
 1. **Mishap Report**: Melde am Ende dieses Skills alle aufgetretenen Fehler über `mishap-tracker`.
 2. **Operations**: Fahre danach mit `operations-management` fort, um den Status des zugehörigen PRs oder Tickets zu überwachen.
 
+## Übergabe — Kreislauf geschlossen
+
+**Zustand nach Schritt 7:**
+- E2E-Spec `tests/e2e/specs/<neu>.spec.ts` committed + gepusht
+- `website/src/data/test-inventory.json` aktualisiert
+- Tests laufen lokal grün gegen Live-URL
+
+**Kreislauf zurück zu `main`** via normalem PR-Merge (oder direkter Push wenn Branch-Protection es erlaubt). Nächste Arbeit startet mit `dev-flow-plan`.
+
+---
+
 ## Verwandte Skills
 
 | Skill | Beziehung |
 |-------|-----------|
-| `dev-flow-execute` | Voraussetzung — Feature muss deployt sein |
-| `cluster-deployment` | Querschnitt — Cross-Brand-Tests (Phase 5) |
+| `dev-flow-execute` | **Vorgänger im Kreislauf** — Feature muss deployt sein |
+| `git-workflow` | Commit/Push-Konventionen für Schritt 7 (Freshness Guard, Scope-Preflight) |
+| `cluster-deployment` | Querschnitt — Cross-Brand-Tests |
 | `mishap-tracker` | Abschluss — protokolliert Frictions |

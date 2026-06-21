@@ -15,6 +15,25 @@ Du bist auf einem `feature/*` oder `fix/*` Branch. `dev-flow-plan` hat Spec und 
 
 ---
 
+## Position im Git-Kreislauf
+
+```
+    ┌─────────────────────────────────────────────────────────────┐
+    ▼                                                             │
+[ main ]                                                          │
+    │                                                             │
+    └──► [branch + plan committed] ──► [implement] ──► [PR+merge] ──► AUSSTIEG
+              (von dev-flow-plan)       DIESER SKILL              │
+                                                                  │
+                                        zurück zu [ main ] ───────┘
+```
+
+**EINSTIEG:** Feature/Fix-Branch mit `plan_staged` Ticket — von `dev-flow-plan` übergeben  
+**AUSSTIEG:** PR gemergt zu `main`, Worktree bereinigt, Ticket `qa_review`, Kreislauf geschlossen  
+**Voraussetzung:** `dev-flow-plan` hat `FACTORY-PLAN-REF` Kommentar im Ticket hinterlegt
+
+---
+
 ## Modus-Erkennung: Single vs Batch
 
 Prüfe ob ein einzelner Plan oder mehrere Pläne ausgeführt werden sollen:
@@ -613,11 +632,24 @@ Führe danach `dev-flow-e2e` aus, um E2E-Tests gegen die Live-Umgebung zu schrei
 > hängen: `scripts/ticket.sh grill --id <ext-id> --answer <qid>=<text> …`. Siehe
 > `.claude/skills/references/references.md#grilling-to-ticket`.
 
+## Übergabe — Kreislauf geschlossen
+
+**Zustand nach Schritt 8:**
+- `main` enthält die gemergten Änderungen (squash commit)
+- Worktree `/tmp/wt-<slug>` gelöscht, Branch `feature/<slug>` gelöscht
+- Ticket status = `qa_review`
+- Branch-Lock und Ticket-Lock freigegeben
+- Deployed (falls `devflow-post-merge-deploy.sh` Pfad-Treffer)
+
+**Kreislauf zurück zu `main`** — nächste Arbeit startet mit `dev-flow-plan` von einem frischen `git pull`.
+
+---
+
 ## Verwandte Skills
 
 | Skill | Beziehung |
 |-------|-----------|
-| `dev-flow-plan` | Voraussetzung — liefert den Implementierungsplan |
+| `dev-flow-plan` | **Vorgänger im Kreislauf** — liefert Branch + committiertem Plan |
 | `dev-flow-iterate` | Alternative — inkrementelle Dev-Iteration |
 | `dev-flow-e2e` | Folge — schreibt E2E-Tests nach Deploy |
 | `mishap-tracker` | Abschluss — protokolliert Frictions |

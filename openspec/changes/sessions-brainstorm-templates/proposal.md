@@ -1,6 +1,6 @@
 ---
 ticket_id: T000993
-status: planning
+status: archived
 date: 2026-06-20
 spec_ref: docs/superpowers/specs/2026-06-20-sessions-brainstorm-templates.md
 openspec_ref: openspec/changes/sessions-brainstorm-templates/

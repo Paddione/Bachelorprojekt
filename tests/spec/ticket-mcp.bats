@@ -12,6 +12,12 @@ setup() {
   echo "$output" | grep -q "DRY-RESOLVE"
 }
 
+@test "ticket.sh list accepts --limit flag" {
+  run bash "$REPO/scripts/ticket.sh" list --brand mentolder --limit 50
+  [ "$status" -eq 0 ]
+  echo "$output" | grep -q "DRY-RESOLVE"
+}
+
 @test "ticket.sh list rejects unknown brand (via BRAND env)" {
   run env BRAND=unknown-brand bash "$REPO/scripts/ticket.sh" list
   [ "$status" -eq 2 ]

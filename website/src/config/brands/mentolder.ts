@@ -78,7 +78,7 @@ export const mentolderConfig: BrandConfig = {
       },
     ],
     avatarType: 'image',
-    avatarSrc: '/gerald.jpg',
+    avatarSrc: '/brand/mentolder/characters/leadership.portrait.svg',
     quote: 'Ich stelle unbequeme Fragen – weil echte Lösungen manchmal unbequeme Wahrheiten brauchen.',
     quoteName: 'Gerald Korczewski',
     timeline: false,
@@ -90,6 +90,7 @@ export const mentolderConfig: BrandConfig = {
       title: '65+ digital',
       description: 'Digitale Begleitung für Menschen 65+ in Lüneburg und Hamburg. Smartphone, WhatsApp, Online-Banking – Schritt für Schritt, ohne Fachchinesisch, in Ihrem Tempo.',
       icon: '💻',
+      iconSpriteId: 'prop-compass',
       features: [
         'Smartphone, Tablet & Computer Grundlagen',
         'WhatsApp, Email & Videocalls',
@@ -132,6 +133,7 @@ export const mentolderConfig: BrandConfig = {
       title: 'Coaching für Führungskräfte und Menschen in Verantwortung',
       description: 'Ihre Karriere strategisch gestalten. Ich unterstütze erfahrene Führungskräfte bei der beruflichen Neuorientierung.',
       icon: '🎯',
+      iconSpriteId: 'prop-handshake',
       features: [
         'Profil-Schärfung & Positionierung',
         'Karriere-Strategie entwickeln',
@@ -172,6 +174,7 @@ export const mentolderConfig: BrandConfig = {
       title: 'Führung & Persönlichkeit',
       description: 'Gute Führung beginnt nicht mit Methoden. Sie beginnt mit Haltung. Für Führungskräfte, die verstehen wollen, wer sie als Führungsperson sind – und wer sie sein möchten.',
       icon: '🦭',
+      iconSpriteId: 'prop-chat',
       features: [
         'Standortbestimmung als Führungsperson',
         'Führungsstil entwickeln & stärken',
@@ -213,6 +216,7 @@ export const mentolderConfig: BrandConfig = {
       title: 'Unternehmensberatung',
       description: 'Digitale Transformation & KI-Strategie für Mittelstand, Verwaltung und kritische Infrastrukturen – mit 40 Jahren Praxis. Lüneburg & Hamburg.',
       icon: '🏢',
+      iconSpriteId: 'prop-briefcase',
       features: [
         'Analyse & digitale Strategie',
         'Change Management & Teamschulungen',
@@ -247,6 +251,7 @@ export const mentolderConfig: BrandConfig = {
       title: 'KI-Transition Coaching',
       description: 'KI verändert Berufsbilder – ich begleite Sie dabei. Für IT-Fachkräfte, Führungspersönlichkeiten und Unternehmen in Lüneburg, Hamburg und online.',
       icon: '🤖',
+      iconSpriteId: 'prop-spark',
       features: [
         'Standortbestimmung & Kompetenz-Analyse',
         'Strukturierter Unlearning-Prozess',

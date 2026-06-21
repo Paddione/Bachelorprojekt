@@ -18,3 +18,17 @@ REPO="${BATS_TEST_DIRNAME}/../.."
     [ "$status" -eq 0 ]
   done
 }
+
+@test "mentolder set has at least one character, prop, terrain, and logo" {
+  manifest="${REPO}/art-library/sets/mentolder/manifest.json"
+  for kind in character prop terrain logo; do
+    run jq -e --arg k "$kind" '.assets | map(select(.kind == $k)) | length >= 1' "$manifest"
+    [ "$status" -eq 0 ]
+  done
+}
+
+@test "mentolder manifest declares at least 19 assets" {
+  manifest="${REPO}/art-library/sets/mentolder/manifest.json"
+  run jq -e '.assets | length >= 19' "$manifest"
+  [ "$status" -eq 0 ]
+}

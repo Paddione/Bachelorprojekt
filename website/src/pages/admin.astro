@@ -51,30 +51,18 @@ function fmtCurrency(n: number): string {
 }
 
 const ncBase      = (process.env.NEXTCLOUD_EXTERNAL_URL ?? '').replace(/\/$/, '');
-const docsUrl     = process.env.DOCS_URL ?? '';
-const authUrl     = process.env.AUTH_EXTERNAL_URL ?? '';
 const vaultUrl    = process.env.VAULT_EXTERNAL_URL ?? '';
-const wbUrl       = process.env.WHITEBOARD_EXTERNAL_URL ?? '';
-const mailUrl     = process.env.MAIL_EXTERNAL_URL ?? '';
-const bretDomain  = process.env.BRETT_DOMAIN ?? '';
-const bretUrl     = bretDomain ? `https://${bretDomain}` : '';
 const adminLinks = [
-  { href: '/admin/inbox',                                        label: 'Inbox',      icon: icons.inbox,    color: 'oklch(0.80 0.09 75)' },
+  { href: '/admin/inbox',                    label: 'Inbox',      icon: icons.inbox,    color: 'oklch(0.80 0.09 75)' },
+  { href: '/admin/coaching/sessions',        label: 'Sitzungen',  icon: icons.clipboard, color: '#a78bfa' },
   ...(ncBase ? [
     { href: `${ncBase}/apps/files/`,    label: 'Dateien',  icon: icons.folder,   color: '#38bdf8' },
     { href: `${ncBase}/apps/calendar/`, label: 'Kalender', icon: icons.calendar, color: 'oklch(0.80 0.09 75)' },
-    { href: `${ncBase}/apps/contacts/`, label: 'Kontakte', icon: icons.contacts, color: '#2dd4bf' },
-    { href: `${ncBase}/apps/spreed/`,   label: 'Talk',     icon: icons.video,    color: '#a78bfa' },
   ] : []),
-  ...(bretUrl  ? [{ href: bretUrl,                               label: 'Brett',      icon: icons.brett,    color: '#a78bfa' }] : []),
-  ...(BRAND === 'korczewski' ? [{ href: '/portal/arena',         label: 'Arena',      icon: icons.arena,    color: '#818cf8' }] : []),
-  { href: '/admin/rechnungen',                                   label: 'Abrechnung', icon: icons.receipt,  color: '#34d399' },
-  ...(vaultUrl ? [{ href: vaultUrl,                              label: 'Passwörter', icon: icons.lock,     color: '#34d399' }] : []),
-  ...(authUrl  ? [{ href: `${authUrl}/admin/workspace/console/`, label: 'Keycloak',   icon: icons.key,      color: '#818cf8' }] : []),
-  ...(docsUrl  ? [{ href: docsUrl,                               label: 'Docs',       icon: icons.book,     color: '#38bdf8' }] : []),
-  { href: '/admin/monitoring',                                   label: 'Monitoring', icon: icons.dashboard, color: 'oklch(0.80 0.09 75)' },
-  { href: '/admin/wissen',                                       label: 'Wissensbasis', icon: icons.book,    color: '#a78bfa' },
-  ...(mailUrl  ? [{ href: mailUrl,                               label: 'Mailpit',    icon: icons.mail,     color: '#2dd4bf' }] : []),
+  { href: '/admin/rechnungen',               label: 'Abrechnung', icon: icons.receipt,  color: '#34d399' },
+  ...(vaultUrl ? [{ href: vaultUrl,          label: 'Passwörter', icon: icons.lock,     color: '#34d399' }] : []),
+  { href: '/admin/wissen',                   label: 'Wissensbasis', icon: icons.book,   color: '#a78bfa' },
+  ...(BRAND === 'korczewski' ? [{ href: '/portal/arena', label: 'Arena', icon: icons.arena, color: '#818cf8' }] : []),
 ];
 
 const now = new Date();

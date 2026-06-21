@@ -148,14 +148,14 @@ Zusätzlich die Schlüsseldateien ans Ticket hängen:
 bash scripts/ticket-attach.sh "$TICKET_UUID" "${DESIGN_DIR}/intent.md" "${DESIGN_DIR}"/new/*.svg
 ```
 
-### Schritt 2: Brainstorming Visual Companion Tunnel
-Starte den Companion-Server und Tunnel. Detaillierte Befehle und Fehlerbehebungen findest du in [Brainstorm-Tunnel-Setup](file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#brainstorm-tunnel-setup).
+### Schritt 2: Brainstorming Visual Companion Tunnel ⚡ PFLICHT — immer starten
+Starte den Companion-Server und Tunnel **bevor** `superpowers:brainstorming` aufgerufen wird. Detaillierte Befehle und Fehlerbehebungen findest du in [Brainstorm-Tunnel-Setup](file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#brainstorm-tunnel-setup).
 ```bash
 # Lese die Anleitung und führe sie aus:
 # View: .claude/skills/references/references.md#brainstorm-tunnel-setup
 ```
 
-### Schritt 3: Brainstorming
+### Schritt 3: Brainstorming ⚡ IMMER — kein Überspringen
 Rufe `superpowers:brainstorming` auf. Nutze das visual Board auf `https://brainstorm.dev.mentolder.de`.
 Ergebnis: Spec-Datei in `docs/superpowers/specs/<date>-<slug>-design.md`.
 Nach dem Schreiben der Spec das Frontmatter setzen (siehe
@@ -325,6 +325,20 @@ bash scripts/agent-lock.sh claim branch "fix/<slug>" --worktree "$PWD" --label d
 ```
 Exit 1 = eine lebende Session arbeitet schon daran → koordinieren, nicht duplizieren.
 
+### Schritt 2.7: Brainstorming Visual Companion Tunnel ⚡ PFLICHT — immer starten
+Starte den Companion-Server und Tunnel **bevor** `superpowers:brainstorming` aufgerufen wird. Detaillierte Befehle und Fehlerbehebungen findest du in [Brainstorm-Tunnel-Setup](file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#brainstorm-tunnel-setup).
+```bash
+# Lese die Anleitung und führe sie aus:
+# View: .claude/skills/references/references.md#brainstorm-tunnel-setup
+```
+
+### Schritt 2.8: Brainstorming ⚡ IMMER — kein Überspringen
+Rufe `superpowers:brainstorming` auf. Nutze das visual Board auf `https://brainstorm.dev.mentolder.de`.
+Fokus: Root-Cause-Analyse, Fix-Ansatz, betroffene Subsysteme, Edge-Cases.
+Ergebnis: Spec-Datei in `docs/superpowers/specs/<date>-<slug>-design.md`.
+Der Brainstorming-Output informiert sowohl den failing Test (Schritt 3) als auch den Plan (Schritt 4) —
+kein Test schreiben, bevor Root-Cause und Fix-Ansatz im Board geklärt sind.
+
 ### Schritt 3: Failing Test schreiben
 Schreibe einen automatisierten Test, der den Bug reproduziert und fehlschlägt (PASS/FAIL rot-grün Prinzip). Dies ist eine **harte Voraussetzung** für den Fix-Pfad.
 
@@ -381,7 +395,7 @@ Der Skill liest den Plan automatisch aus der DB (`FACTORY-PLAN-REF` Kommentar) �
 | Skill | Beziehung |
 |-------|-----------|
 | `using-git-worktrees` | Hintergrund — ersetzt durch `scripts/worktree-create.sh` (git-crypt-safe) |
-| `superpowers:brainstorming` | Aufgerufen in Schritt 3 — Intent/Design klären |
+| `superpowers:brainstorming` | **IMMER** aufgerufen — Feature-Pfad Schritt 3, Fix-Pfad Schritt 2.8 |
 | `superpowers:writing-plans` | Aufgerufen vom Plan-Subagenten (Schritt 3.7) |
 | `dev-flow-execute` | **Nachfolger im Kreislauf** — implementiert den erstellten Plan |
 | `dev-flow-chore` | Geschwister — Chores statt Features/Fixes (direkter Kurzschluss) |

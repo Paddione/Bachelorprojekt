@@ -141,6 +141,12 @@
       "status": "planning"
     }
   ],
+  "T001056": [
+    {
+      "slug": "react-homepage-blocks",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-ticket-mcp",

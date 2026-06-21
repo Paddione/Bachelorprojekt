@@ -190,12 +190,12 @@ describe('logAiCall', () => {
 });
 ```
 
-- [ ] **Step 2: Test laufen lassen — muss fehlschlagen**
+- [x] **Step 2: Test laufen lassen — muss fehlschlagen**
 
 Run: `cd website && npx vitest run src/lib/ai-metrics.test.ts`
 Expected: FAIL — `Cannot find module './ai-metrics'`.
 
-- [ ] **Step 3: `ai-metrics.ts` implementieren**
+- [x] **Step 3: `ai-metrics.ts` implementieren**
 
 ```typescript
 // website/src/lib/ai-metrics.ts
@@ -281,17 +281,17 @@ export async function withAiMetrics<T>(
 }
 ```
 
-- [ ] **Step 4: Test laufen lassen — muss bestehen**
+- [x] **Step 4: Test laufen lassen — muss bestehen**
 
 Run: `cd website && npx vitest run src/lib/ai-metrics.test.ts`
 Expected: PASS (4 tests).
 
-- [ ] **Step 5: S1-Budget prüfen**
+- [x] **Step 5: S1-Budget prüfen**
 
 Run: `wc -l website/src/lib/ai-metrics.ts`
 Expected: deutlich < 600.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add website/src/lib/ai-metrics.ts website/src/lib/ai-metrics.test.ts

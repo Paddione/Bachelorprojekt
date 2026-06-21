@@ -48,6 +48,11 @@
       "type": "local",
       "command": ["mcp-task-runner", "--otel-endpoint", "localhost:4317", "--taskfile", "/home/patrick/Bachelorprojekt/Taskfile.yml"],
       "enabled": true
+    },
+    "ticket-mcp": {
+      "type": "local",
+      "command": ["node", "/home/patrick/Bachelorprojekt/scripts/ticket-mcp/server.js"],
+      "enabled": true
     }
   },
   "plugin": ["@mailshieldai/opencode-canvas"],

@@ -50,8 +50,8 @@
       "enabled": true
     },
     "ticket-mcp": {
-      "type": "local",
-      "command": ["node", "/home/patrick/Bachelorprojekt/scripts/ticket-mcp/server.js"],
+      "type": "remote",
+      "url": "http://localhost:13004/mcp",
       "enabled": true
     }
   },

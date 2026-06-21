@@ -41,6 +41,7 @@ if [ "$ACTION" = "start" ]; then
   echo "  browser:  http://localhost:13000/mcp"
   echo "  postgres: http://localhost:13001/mcp"
   echo "  github:   http://localhost:13002/mcp"
+  echo "  ticket:   http://localhost:13004/mcp"
   echo "  otel:     grpc://localhost:4317"
 
 elif [ "$ACTION" = "stop" ]; then
@@ -57,7 +58,7 @@ elif [ "$ACTION" = "stop" ]; then
 
 elif [ "$ACTION" = "status" ]; then
   echo "=== MCP Port-Forward Status ==="
-  for port in 18080 13000 13001 13002 4317; do
+  for port in 18080 13000 13001 13002 13004 4317; do
     if ss -tlnp 2>/dev/null | grep -q ":${port} "; then
       echo "  :$port -- LISTENING"
     else
@@ -66,7 +67,7 @@ elif [ "$ACTION" = "status" ]; then
   done
   echo ""
   echo "=== Endpoint Health ==="
-  for name_port_path in "k8s:18080:/mcp" "browser:13000:/mcp" "postgres:13001:/mcp" "github:13002:/mcp"; do
+  for name_port_path in "k8s:18080:/mcp" "browser:13000:/mcp" "postgres:13001:/mcp" "github:13002:/mcp" "ticket:13004:/mcp"; do
     name="${name_port_path%%:*}"
     rest="${name_port_path#*:}"
     port="${rest%%:*}"

@@ -4970,3 +4970,11 @@ tasks:
     cmds:
       - node scripts/validate-manifest.mjs apps/{{.CLI_ARGS}}/app.yaml
 
+  # ─────────────────────────────────────────────
+  # ticket-mcp Go Binary
+  # ─────────────────────────────────────────────
+  ticket-mcp:build:
+    desc: "Build the ticket-mcp Go binary (scripts/ticket-mcp/ticket-mcp-go)"
+    cmds:
+      - make -C scripts/ticket-mcp/go build
+

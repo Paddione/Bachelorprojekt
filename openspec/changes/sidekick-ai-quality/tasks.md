@@ -3,6 +3,11 @@ title: "Sidekick AI-Quality Widget"
 ticket_id: T001065
 domains: [website]
 status: plan_staged
+file_locks: []
+shared_changes: false
+batch_id: null
+parent_feature: null
+depends_on_plans: []
 ---
 
 # Sidekick AI-Quality Widget — Implementation Plan

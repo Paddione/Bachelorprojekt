@@ -1,3 +1,10 @@
+---
+ticket_id: null
+plan_ref: null
+status: active
+date: 2026-06-21
+---
+
 # Sidekick AI-Quality Widget — Design Spec
 
 **Datum:** 2026-06-21  

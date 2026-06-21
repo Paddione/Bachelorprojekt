@@ -155,6 +155,10 @@
   ],
   "TBD": [
     {
+      "slug": "pocket-id-migration",
+      "status": "plan_staged"
+    },
+    {
       "slug": "2026-06-21-ticket-mcp",
       "status": "archived"
     }

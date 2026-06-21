@@ -19,6 +19,12 @@
   $: discardedCount = features.filter(f => f.discarded).length;
   $: majorCount = features.filter(f => f.majorFeature).length;
 
+  // Nur signifikante Vorschläge anzeigen: nextStep=true UND impact nicht niedrig
+  $: significantSuggestions = suggestions.filter(
+    s => s.nextStep && s.impact !== 'niedrig'
+  );
+  $: filteredOutCount = suggestions.length - significantSuggestions.length;
+
   function titleFor(featureId: string): string {
     return features.find(f => f.extId === featureId)?.title ?? featureId;
   }
@@ -74,13 +80,11 @@
   </div>
 </div>
 
-{#if suggestions.length > 0}
+{#if significantSuggestions.length > 0}
   <ul class="suggestion-list" data-testid="suggestion-list">
-    {#each suggestions as s (s.featureId)}
-      <li class="suggestion" class:next={s.nextStep}>
-        <span class="s-flag" title={s.nextStep ? 'Als nächster Schritt empfohlen' : 'Nicht für nächsten Schritt'}>
-          {s.nextStep ? '▶' : '·'}
-        </span>
+    {#each significantSuggestions as s (s.featureId)}
+      <li class="suggestion next">
+        <span class="s-flag" title="Als nächster Schritt empfohlen">▶</span>
         <span class="s-title">{titleFor(s.featureId)}</span>
         {#if s.impact}
           <span class="impact impact-{s.impact}" title="Geschätzter Nutzen">{s.impact}</span>
@@ -89,6 +93,15 @@
       </li>
     {/each}
   </ul>
+  {#if filteredOutCount > 0}
+    <p class="filtered-hint" data-testid="filtered-hint">
+      {filteredOutCount} weitere {filteredOutCount === 1 ? 'Vorschlag' : 'Vorschläge'} mit niedrigem Impact oder nicht für nächsten Schritt ausgeblendet.
+    </p>
+  {/if}
+{:else if suggestions.length > 0}
+  <p class="filtered-hint" data-testid="filtered-hint">
+    Keine signifikanten Vorschläge — alle {suggestions.length} gefilterten Einträge haben niedrigen Impact oder nextStep=false.
+  </p>
 {/if}
 
 <style>
@@ -130,4 +143,5 @@
   .impact-hoch { background: rgba(16,185,129,.15); color: #34d399; }
   .impact-mittel { background: rgba(245,158,11,.15); color: #fbbf24; }
   .impact-niedrig { background: #2a2e37; color: #9ca3af; }
+  .filtered-hint { margin: 0.35rem 0 0; font-size: 0.72rem; color: #6b7280; font-style: italic; padding: 0 0.4rem; }
 </style>

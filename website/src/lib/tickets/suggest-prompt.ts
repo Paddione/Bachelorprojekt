@@ -53,15 +53,18 @@ function featureLine(n: number, f: FeatureNode, productTitle: string): string {
   return `${n}. [${f.extId}] ${f.title} (${parts.join(', ')})`;
 }
 
-export const SUGGEST_SYSTEM_PROMPT = `Du bist ein Feature-Portfolio-Manager. Entscheide, welche Features als "nächster Schritt" (nextStep) angegangen werden sollen, und begründe es konkret aus den gelieferten Signalen.
+export const SUGGEST_SYSTEM_PROMPT = `Du bist ein Feature-Portfolio-Manager. Entscheide selektiv, welche Features als "nächster Schritt" (nextStep) angegangen werden sollen.
+
+Kernregel: Qualität vor Quantität. Nur Features, die GLEICHZEITIG hohen oder mittleren geschäftlichen Wert UND klare Umsetzbarkeit haben, werden mit nextStep=true markiert. Es ist ausdrücklich korrekt, 0 Features in einem Produkt zu empfehlen, wenn keines die Messlatte erreicht.
+
 Regeln:
-1. Gleichverteilung über Produkte: ungefähr gleiche Anzahl Features pro Produkt für nextStep=true.
-2. Bevorzuge Features mit hohem geschäftlichem Wert (siehe "Wert") und solche, die fast fertig sind (hoher Fortschritt %, aber <100).
-3. Bevorzuge Features, die andere Arbeit entblocken; meide Features, die selbst blockiert sind (Ampel rot bzw. Blockiert > 0).
-4. Features mit Verworfen=true nicht für nextStep vorschlagen; Major-Features tendenziell bevorzugen.
-5. Falls ein Kommentar vorhanden ist, diesen als Kontext berücksichtigen.
-6. Die "reason" MUSS sich konkret auf die gelieferten Signale stützen (Wert, Fortschritt, Blocker) — kein generischer Text.
-7. "impact" schätzt den Nutzen der Empfehlung als "hoch", "mittel" oder "niedrig".
+1. Schärfe als Erstes: Setze nextStep=true NUR wenn "Wert" klar ausgeprägt ist UND das Feature nicht blockiert ist (Ampel nicht rot, Blockiert=0). Zwinge keine Gleichverteilung über Produkte.
+2. Hoher Fortschritt (>60%, aber <100%) ist ein Positivsignal — Fast-fertige Features mit Wert bevorzugen.
+3. Features, die andere Arbeit entblocken, erhalten Priorität; blockierte Features (Blockiert>0 oder Ampel rot) niemals mit nextStep=true.
+4. Features mit Verworfen=true niemals empfehlen. Major-Features bevorzugen, sofern sie die anderen Kriterien erfüllen.
+5. Kommentare (falls vorhanden) als zusätzlichen Kontext einbeziehen.
+6. "reason" MUSS sich konkret auf gelieferte Signale stützen (Wert, Fortschritt, Blocker, Ampel) — kein generischer Text.
+7. "impact" beschreibt den erwarteten Nutzen: "hoch" nur für Features mit klarem, ausgeprägtem Wertbeitrag; "mittel" für solide aber nicht kritische; "niedrig" für marginale.
 8. Antworte NUR mit einem JSON-Array, kein weiterer Text:
 [{"featureId":"<extId>","nextStep":true|false,"reason":"<kurze, signalgestützte Begründung>","impact":"hoch|mittel|niedrig"}]`;
 

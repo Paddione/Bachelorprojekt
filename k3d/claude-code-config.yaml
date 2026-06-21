@@ -11,3 +11,6 @@ data:
   MCP_MEETINGS_URL: "http://claude-code-mcp-ops:3002/mcp"
   MCP_BROWSER_URL: "http://mcp-browser:3000/mcp"
   MCP_GITHUB_URL: "http://mcp-github:3002/mcp"
+  MCP_KEYCLOAK_CLIENT_ID: "claude-code-mcp-monolith"
+  MCP_KEYCLOAK_REALM_URL: "https://keycloak.${PROD_DOMAIN}/realms/workspace"
+  MCP_KEYCLOAK_AUDIENCE: "claude-code-mcp-monolith"

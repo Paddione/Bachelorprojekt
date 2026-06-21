@@ -155,3 +155,37 @@ spec:
                 name: oauth2-proxy-studio
                 port:
                   number: 4180
+    - host: mcp.dev.localhost
+      http:
+        paths:
+          - path: /api/mcp/user
+            pathType: Prefix
+            backend:
+              service:
+                name: mcp-auth-proxy
+                port:
+                  number: 80
+          - path: /oauth2
+            pathType: Prefix
+            backend:
+              service:
+                name: mcp-auth-proxy
+                port:
+                  number: 80
+    - host: mcp.localhost
+      http:
+        paths:
+          - path: /api/mcp/user
+            pathType: Prefix
+            backend:
+              service:
+                name: mcp-auth-proxy
+                port:
+                  number: 80
+          - path: /oauth2
+            pathType: Prefix
+            backend:
+              service:
+                name: mcp-auth-proxy
+                port:
+                  number: 80

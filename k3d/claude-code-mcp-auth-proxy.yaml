@@ -1,0 +1,150 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mcp-keycloak-proxy-config
+  labels: { app: claude-code }
+data:
+  oauth2-proxy.cfg: |
+    provider = "keycloak-oidc"
+    client_id = "claude-code-mcp-monolith"
+    client_secret = ""
+    cookie_name = "mcp_kc_session"
+    cookie_secure = true
+    cookie_httponly = true
+    cookie_samesite = "lax"
+    email_domains = [ "*" ]
+    upstreams = [ "http://localhost:80" ]
+    skip_auth_regex = [ "^/svc/" ]   # token-validated path bypasses oauth2-proxy
+    scope = "openid email profile"
+    oidc_issuer_url = "https://keycloak.${PROD_DOMAIN}/realms/workspace"
+    redirect_url = "https://mcp.${PROD_DOMAIN}/oauth2/callback"
+    pass_access_token = true
+    set_xauthrequest = true
+    set_authorization_header = true
+    pass_user_headers = true
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-auth-proxy
+  labels:
+    app: mcp-auth-proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mcp-auth-proxy
+  template:
+    metadata:
+      labels:
+        app: mcp-auth-proxy
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-location
+                operator: In
+                values:
+                - hetzner
+      containers:
+      - name: nginx
+        image: nginx:1.27-alpine-perl
+        imagePullPolicy: Always
+        env:
+        - name: CLUSTER_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: CLUSTER_TOKEN
+              name: mcp-tokens
+        - name: BUSINESS_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: BUSINESS_TOKEN
+              name: mcp-tokens
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /etc/nginx/nginx.conf
+          name: config
+          subPath: nginx.conf
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 80
+          initialDelaySeconds: 2
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            memory: 64Mi
+          requests:
+            cpu: 10m
+            memory: 16Mi
+      - name: oauth2-proxy
+        image: quay.io/oauth2-proxy/oauth2-proxy:v7.6.0
+        imagePullPolicy: IfNotPresent
+        args:
+        - --config=/etc/oauth2-proxy/oauth2-proxy.cfg
+        env:
+        - name: OAUTH2_PROXY_CLIENT_ID
+          value: "claude-code-mcp-monolith"
+        - name: OAUTH2_PROXY_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: MCP_KEYCLOAK_CLIENT_SECRET
+              name: workspace-secrets
+        - name: OAUTH2_PROXY_COOKIE_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: OAUTH2_PROXY_COOKIE_SECRET
+              name: workspace-secrets
+        ports:
+        - containerPort: 4180
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: 4180
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: 4180
+          initialDelaySeconds: 2
+          periodSeconds: 5
+        resources:
+          limits:
+            memory: 64Mi
+          requests:
+            cpu: 10m
+            memory: 16Mi
+        volumeMounts:
+        - mountPath: /etc/oauth2-proxy/
+          name: oauth2-config
+      volumes:
+      - name: config
+        configMap:
+          name: mcp-auth-proxy-config
+      - name: oauth2-config
+        configMap:
+          name: mcp-keycloak-proxy-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcp-auth-proxy
+spec:
+  selector:
+    app: mcp-auth-proxy
+  ports:
+  - port: 80
+    targetPort: 80

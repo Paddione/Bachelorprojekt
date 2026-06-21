@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { getSession, isAdmin } from '../../../lib/auth';
 
-const BRAND = 'mentolder';
+const BRAND = (process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder').toLowerCase();
 const MANIFEST_PATH = resolve(process.cwd(), '..', 'art-library', 'sets', BRAND, 'manifest.json');
 
 function toPublicUrl(flat: string): string {

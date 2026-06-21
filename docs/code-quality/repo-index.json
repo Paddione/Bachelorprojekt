@@ -349,6 +349,7 @@
         "tests/runner.sh",
         "tests/scripts/admin-menu-gate.bats",
         "tests/scripts/helper-collab-mock-runner.mjs",
+        "tests/spec/art-library-webapp.bats",
         "tests/spec/mcp-task-runner.bats",
         "tests/spec/openspec-embedding.bats",
         "tests/spec/software-factory.bats",

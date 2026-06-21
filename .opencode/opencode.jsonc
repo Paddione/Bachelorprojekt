@@ -3,9 +3,10 @@
   "model": "opencode/zen",
   "permission": "allow",
   "mcp": {
-    "mcp-k8s": {
-      "type": "local",
-      "command": ["/home/patrick/.config/opencode/node_modules/.bin/kubernetes-mcp-server", "--cluster-provider", "kubeconfig"],
+    // ── Monolith HTTP-Endpunkte (via scripts/mcp-portforward.sh) ──────────
+    "mcp-kubernetes": {
+      "type": "remote",
+      "url": "http://localhost:18080/mcp",
       "enabled": true
     },
     "mcp-browser": {
@@ -13,19 +14,39 @@
       "url": "http://localhost:13000/mcp",
       "enabled": true
     },
-    "mcp-github": {
-      "type": "remote",
-      "url": "http://localhost:13002/mcp",
-      "enabled": true
-    },
     "mcp-postgres": {
       "type": "remote",
       "url": "http://localhost:13001/mcp",
       "enabled": true
     },
+    "mcp-github": {
+      "type": "remote",
+      "url": "http://localhost:13002/mcp",
+      "enabled": true
+    },
     "mcp-factory": {
       "type": "remote",
       "url": "http://localhost:13003/mcp",
+      "enabled": true
+    },
+    // ── Stdio-Server (lokale Prozesse) ────────────────────────────────────
+    "task-master-ai": {
+      "type": "local",
+      "command": ["npx", "-y", "task-master-ai"],
+      "environment": {
+        "OLLAMA_BASE_URL": "http://localhost:11434/api",
+        "TASK_MASTER_TOOLS": "all"
+      },
+      "enabled": true
+    },
+    "openspec": {
+      "type": "local",
+      "command": ["npx", "-y", "openspec-mcp"],
+      "enabled": true
+    },
+    "mcp-task-runner": {
+      "type": "local",
+      "command": ["mcp-task-runner", "--otel-endpoint", "localhost:4317", "--taskfile", "/home/patrick/Bachelorprojekt/Taskfile.yml"],
       "enabled": true
     }
   },

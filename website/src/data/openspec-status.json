@@ -25,8 +25,8 @@
   ],
   "T000950": [
     {
-      "slug": "projekttickets-cockpit",
-      "status": "plan_staged"
+      "slug": "2026-06-21-projekttickets-cockpit",
+      "status": "archived"
     }
   ],
   "T000951": [
@@ -37,12 +37,12 @@
   ],
   "T000953": [
     {
-      "slug": "cockpit-fullscreen-overview",
-      "status": "plan_staged"
+      "slug": "2026-06-21-cockpit-fullscreen-overview",
+      "status": "archived"
     },
     {
-      "slug": "cockpit-sidekick-global",
-      "status": "plan_staged"
+      "slug": "2026-06-21-cockpit-sidekick-global",
+      "status": "archived"
     }
   ],
   "T000956": [
@@ -59,20 +59,20 @@
   ],
   "T000962": [
     {
-      "slug": "openspec-ticket-detail-view",
-      "status": "plan_staged"
+      "slug": "2026-06-21-openspec-ticket-detail-view",
+      "status": "archived"
     }
   ],
   "T000964": [
     {
-      "slug": "centralized-logging",
-      "status": "plan_staged"
+      "slug": "2026-06-21-centralized-logging",
+      "status": "archived"
     }
   ],
   "T000965": [
     {
-      "slug": "sidekick-cleanup-grilling-broadcast",
-      "status": "plan_staged"
+      "slug": "2026-06-21-sidekick-cleanup-grilling-broadcast",
+      "status": "archived"
     }
   ],
   "T000967": [
@@ -83,20 +83,20 @@
   ],
   "T000968": [
     {
-      "slug": "cockpit-direct-ticket-links",
-      "status": "plan_staged"
+      "slug": "2026-06-21-cockpit-direct-ticket-links",
+      "status": "archived"
     }
   ],
   "T000975": [
     {
-      "slug": "active-sessions-hub",
-      "status": "plan_staged"
+      "slug": "2026-06-21-active-sessions-hub",
+      "status": "archived"
     }
   ],
   "T000990": [
     {
-      "slug": "cockpit-dor-inline-editor",
-      "status": "plan_staged"
+      "slug": "2026-06-21-cockpit-dor-inline-editor",
+      "status": "archived"
     }
   ],
   "T001002": [
@@ -107,8 +107,8 @@
   ],
   "T001008": [
     {
-      "slug": "openspec-pgvector",
-      "status": "plan_staged"
+      "slug": "2026-06-21-openspec-pgvector",
+      "status": "archived"
     }
   ],
   "T001009": [
@@ -119,8 +119,8 @@
   ],
   "T001017": [
     {
-      "slug": "mcp-task-runner",
-      "status": "plan_staged"
+      "slug": "2026-06-21-mcp-task-runner",
+      "status": "archived"
     }
   ]
 }

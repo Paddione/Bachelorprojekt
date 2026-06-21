@@ -1,0 +1,14 @@
+# active-sessions-hub
+
+
+<!-- merged from change delta active-sessions-hub.md on 2026-06-21 -->
+
+### Requirement: TODO
+
+The system SHALL …
+
+#### Scenario: TODO
+
+- **GIVEN** …
+- **WHEN** …
+- **THEN** …

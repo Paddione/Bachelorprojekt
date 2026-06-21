@@ -1,0 +1,136 @@
+.md-hero {
+  position: relative;
+  padding: 76px 0 120px;
+  border-bottom: 1px solid var(--md-line, rgba(255, 255, 255, 0.07));
+  background-color: var(--md-ink-900, #0b111c);
+  overflow: hidden;
+}
+
+.md-hero__halo {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.md-hero__halo::before {
+  content: "";
+  position: absolute;
+  right: -20%;
+  top: -30%;
+  width: 90vw;
+  height: 90vw;
+  background: radial-gradient(closest-side, oklch(0.80 0.09 75 / 0.11), transparent 70%);
+  filter: blur(10px);
+}
+
+.md-hero__halo::after {
+  content: "";
+  position: absolute;
+  left: -30%;
+  bottom: -40%;
+  width: 80vw;
+  height: 80vw;
+  background: radial-gradient(closest-side, oklch(0.60 0.05 250 / 0.25), transparent 70%);
+}
+
+.md-hero__wrap {
+  max-width: var(--md-maxw, 1240px);
+  margin: 0 auto;
+  padding: 0 40px;
+  position: relative;
+  z-index: 2;
+}
+
+.md-hero__grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 64px;
+  align-items: end;
+}
+
+.md-hero__copy {
+  display: flex;
+  flex-direction: column;
+}
+
+.md-kicker {
+  margin-bottom: 26px;
+}
+
+.md-hero__h1 {
+  font-family: var(--md-serif, "Newsreader", Georgia, serif);
+  font-size: clamp(44px, 6.2vw, 88px);
+  font-weight: 300;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  color: var(--md-fg, #eef1f3);
+  margin: 0;
+}
+
+.md-hero__h1 em {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--md-brass-2, oklch(0.86 0.09 75));
+}
+
+.md-hero__lede {
+  font-size: 18px;
+  line-height: 1.6;
+  color: var(--md-fg-soft, #cdd3d9);
+  max-width: 52ch;
+  margin-top: 20px;
+}
+
+.md-hero__cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 36px;
+}
+
+.md-hero__portrait-wrap {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+}
+
+.md-hero__portrait {
+  width: 280px;
+  height: 340px;
+  border-radius: 20px 20px 80px 20px;
+  background: var(--md-ink-800, #17202e);
+  border: 1px solid oklch(0.80 0.09 75 / 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 0 8px oklch(0.80 0.09 75 / 0.06);
+}
+
+.md-hero__initials {
+  font-family: var(--md-serif, "Newsreader", Georgia, serif);
+  font-style: italic;
+  font-size: 72px;
+  font-weight: 400;
+  color: oklch(0.86 0.09 75);
+  line-height: 1;
+}
+
+@media (max-width: 960px) {
+  .md-hero {
+    padding: 56px 0 80px;
+  }
+
+  .md-hero__grid {
+    grid-template-columns: 1fr;
+    gap: 56px;
+  }
+
+  .md-hero__portrait-wrap {
+    justify-content: center;
+  }
+
+  .md-hero__wrap {
+    padding: 0 22px;
+  }
+}

@@ -75,7 +75,10 @@ describe('embeddings client — router mode (LLM_ENABLED=true)', () => {
     expect(String(url)).toBe('http://llm-router.test:4000/v1/embeddings');
     expect((init as RequestInit).headers).toMatchObject({ 'X-LLM-Purpose': 'query' });
     const body = JSON.parse((init as RequestInit).body as string);
-    expect(body.model).toBe('bge-m3');
+    // LM Studio port migration: bge-m3 is routed via resolveModelId() to the
+    // upstream model name `text-embedding-bge-m3`. TEI ignores the model field,
+    // LM Studio routes by it.
+    expect(body.model).toBe('text-embedding-bge-m3');
   });
 
   test('routes voyage-multilingual-2 model through the router (no direct voyage call)', async () => {

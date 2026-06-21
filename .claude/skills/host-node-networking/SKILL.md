@@ -132,5 +132,5 @@ After completing all steps in this skill, invoke `mishap-tracker` with your accu
 | Skill | Beziehung |
 |-------|-----------|
 | `cluster-deployment` | Querschnitt — Node-Provisionierung |
-| `fleet-ops` | Querschnitt — Fleet-WireGuard-Mesh |
+| `cluster-deployment` | Querschnitt — Fleet-WireGuard-Mesh (Phase 5) |
 | `mishap-tracker` | Abschluss — protokolliert Frictions |

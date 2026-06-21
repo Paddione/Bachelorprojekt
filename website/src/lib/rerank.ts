@@ -14,16 +14,16 @@ export async function rerankCandidates(
   if (!rerankerUrl) return docs.map(doc => ({ doc, score: 0 }));
 
   try {
-    const r = await fetch(`${rerankerUrl}/v1/rerank`, {
+    const r = await fetch(`${rerankerUrl}/rerank`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'workspace-rerank', query, documents: docs }),
+      body: JSON.stringify({ query, texts: docs }),
       signal: opts.signal,
     });
     if (!r.ok) return docs.map(doc => ({ doc, score: 0 }));
-    const j = await r.json() as { results: Array<{ index: number; relevance_score: number }> };
-    return j.results
-      .map(({ index, relevance_score }) => ({ doc: docs[index], score: relevance_score }))
+    const j = await r.json() as Array<{ index: number; score: number }>;
+    return j
+      .map(({ index, score }) => ({ doc: docs[index], score }))
       .sort((a, b) => b.score - a.score);
   } catch {
     return docs.map(doc => ({ doc, score: 0 }));

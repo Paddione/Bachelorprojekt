@@ -157,6 +157,11 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: COMFY_OIDC_SECRET
+            - name: GRAFANA_OIDC_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: GRAFANA_OIDC_SECRET
             - name: BRAINSTORM_OIDC_SECRET
               valueFrom:
                 secretKeyRef:

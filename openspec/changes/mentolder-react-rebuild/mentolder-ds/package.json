@@ -1,0 +1,35 @@
+{
+  "name": "mentolder-ds",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/mentolder-ds.umd.cjs",
+  "module": "./dist/mentolder-ds.es.js",
+  "exports": {
+    ".": {
+      "import": "./dist/mentolder-ds.es.js",
+      "require": "./dist/mentolder-ds.umd.cjs"
+    },
+    "./style.css": "./dist/style.css"
+  },
+  "scripts": {
+    "build": "vite build && tsc --emitDeclarationOnly --declaration --outDir dist/types"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.7",
+    "vite-plugin-dts": "^4.3.0"
+  },
+  "allowScripts": {
+    "esbuild@0.25.12": true
+  }
+}

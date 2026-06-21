@@ -55,9 +55,14 @@ env_vars:
   COMFY_HOST_IP: "192.168.100.10"
   COMFY_PORT: "8189"
   LLM_ENABLED: "true"
-  LLM_RERANK_ENABLED: "false"
+  LLM_RERANK_ENABLED: "true"
+  LLM_RERANKER_URL: "http://llm-gateway-tei-rerank.workspace.svc.cluster.local:8083"
   LLM_ROUTER_URL: "http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234"
-  LLM_EMBED_URL: "http://llm-gateway-embed.workspace.svc.cluster.local:8081"
+  LLM_EMBED_URL: "http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234"
+  LLM_CHAT_MODEL: "google/gemma-4-12b-qat"
+  LLM_CODING_MODEL: "qwen/qwen3.5-9b"
+  LLM_EMBED_MODEL: "text-embedding-bge-m3"
+  LLM_EMBED_MODEL_NOMIC: "text-embedding-nomic-embed-text-v1.5"
   ARENA_WS_URL: https://arena-ws.mentolder.de
   STUDIO_DOMAIN: studio.mentolder.de
   STUDIO_IMAGE: ghcr.io/paddione/studio-server

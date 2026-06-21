@@ -203,11 +203,16 @@ else
         pass "All required secret keys present in SealedSecret"
       fi
 
-      # Check sealed setup_vars (KC_USER*_PASSWORD)
+      # Check sealed setup_vars (KC_USER*_PASSWORD and other required sealed vars)
+      # Only flag as error if the setup_var is both sealed: true AND required: true.
+      # Optional sealed setup_vars (required: false) are skipped — environments like
+      # staging do not need WG mesh keys, PVE SSH keys, etc.
       while IFS= read -r key; do
         [[ -z "$key" ]] && continue
         is_sealed=$(schema_field "setup_vars" "$key" "sealed")
         [[ "$is_sealed" != "true" ]] && continue
+        is_required=$(schema_field "setup_vars" "$key" "required")
+        [[ "$is_required" != "true" ]] && continue
         if ! echo "$sealed" | grep -qx "$key"; then
           fail "SealedSecret missing sealed setup_var: ${key}"
         else

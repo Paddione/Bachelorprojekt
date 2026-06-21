@@ -106,7 +106,7 @@ patches:
         template:
           spec:
             containers:
-              - name: shared-db
+              - name: postgres
                 resources:
                   requests:
                     cpu: "100m"

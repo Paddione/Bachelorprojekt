@@ -280,9 +280,39 @@ env_vars:
 
   - name: LLM_RERANK_ENABLED
     required: true
-    default_dev: "false"
-    description: "If true, knowledge query path reranks results via LLM_RERANKER_URL. Reranker service is not deployed; keep false."
+    default_dev: "true"
+    description: "If true, knowledge query path reranks results via LLM_RERANKER_URL (TEI bge-reranker-v2-m3 on port 8083)."
     validate: "^(true|false)$"
+
+  - name: LLM_RERANKER_URL
+    required: false
+    default_dev: "http://llm-gateway-tei-rerank:8083"
+    description: "Base URL of the TEI reranker service (used when LLM_RERANK_ENABLED=true)."
+
+  - name: LLM_LMSTUDIO_URL
+    required: false
+    default_dev: "http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234"
+    description: "Cluster-internal URL of LM Studio (all models via OpenAI-compat API). direkt auf port 1234."
+
+  - name: LLM_CHAT_MODEL
+    required: false
+    default_dev: "google/gemma-4-12b-qat"
+    description: "LM Studio model ID for general chat completions."
+
+  - name: LLM_CODING_MODEL
+    required: false
+    default_dev: "qwen/qwen3.5-9b"
+    description: "LM Studio model ID for coding tasks."
+
+  - name: LLM_EMBED_MODEL
+    required: false
+    default_dev: "text-embedding-bge-m3"
+    description: "LM Studio model ID for embeddings (used when LLM_EMBED_URL points to LM Studio)."
+
+  - name: LLM_EMBED_MODEL_NOMIC
+    required: false
+    default_dev: "text-embedding-nomic-embed-text-v1.5"
+    description: "LM Studio model ID for nomic embeddings (English-optimised alternative)."
 
   - name: COMFY_HOST_IP
     required: false
@@ -307,12 +337,12 @@ env_vars:
   - name: LLM_ROUTER_URL
     required: true
     default_dev: "http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234"
-    description: "Cluster-internal URL of the Windows LM Studio chat backend. Namespace-aware (workspace vs workspace-korczewski)."
+    description: "Cluster-internal URL of LM Studio chat backend (direkt port 1234). Namespace-aware."
 
   - name: LLM_EMBED_URL
     required: true
-    default_dev: "http://llm-gateway-embed.workspace.svc.cluster.local:8081"
-    description: "Cluster-internal URL of the TEI bge-m3 embed service. Namespace-aware (workspace vs workspace-korczewski)."
+    default_dev: "http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234"
+    description: "Cluster-internal URL for embeddings — LM Studio port 1234 (bge-m3 or nomic via /v1/embeddings)."
 
   # ─────────────────────────────────────────────────────────────────
   # Collabora (office-stack) — all five derived from PROD_DOMAIN inside

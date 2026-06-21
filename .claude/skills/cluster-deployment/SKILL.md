@@ -1,6 +1,6 @@
 ---
 name: cluster-deployment
-description: Unified runbook for environment deployment, cluster creation, deployment assistance, gap analysis, and dev.mentolder.de stack operations.
+description: Unified runbook for environment deployment, cluster creation, deployment assistance, gap analysis, dev.mentolder.de stack operations, and cross-brand fleet operations (fan-out deploys, feature:promote smoke gate, SealedSecrets/Keycloak per-brand independence).
 agent: bachelorprojekt-infra
 ---
 
@@ -296,6 +296,96 @@ task dev:_materialise-secrets
 
 ---
 
+## Phase 5 — Cross-Brand Fleet Operations (mentolder + korczewski)
+
+Both brands run on the **single unified `fleet` k3s cluster** (Fleet Stage 3, 2026-05-31). They share cluster infrastructure (Traefik, cert-manager, sealed-secrets controller) but have **independent** `shared-db` instances and sealed secrets per namespace.
+
+| Brand | Cluster context | Namespace | Domain |
+|---|---|---|---|
+| mentolder | `fleet` | `workspace` | `web.mentolder.de` |
+| korczewski | `fleet` | `workspace-korczewski` | `web.korczewski.de` |
+
+### Fan-Out Deploy Commands
+
+```bash
+task feature:deploy        # workspace:deploy + post-setup on BOTH brands
+task feature:website       # Rebuild + roll Astro website on BOTH brands
+task feature:brett         # Rebuild + roll brett on BOTH brands
+task feature:livekit       # Re-pin LiveKit DNS on BOTH brands
+task workspace:verify:all-prods  # Smoke probes on BOTH brands
+task clusters:status       # One-line status across both
+```
+
+Use `task workspace:deploy ENV=mentolder` + `ENV=korczewski` sequentially when finer control is needed.
+
+> **`feature:deploy` does NOT deploy every service.** It runs `workspace:deploy` + post-setup + verify only. Collabora, CoTURN/Janus, the website, and arena each deploy by their own task.
+
+### Promotion with Smoke Gate (`feature:promote`)
+
+`task feature:promote` is the dev → prod flow for service-image changes (website, brett, arena, docs):
+
+1. **Build-once-deploy-many** — one image tag (`promote-<sha>-<epoch>`) built once, then `kubectl set image` applies it to dev and prod. Exception: `website` is brand-baked (one image per brand).
+2. **Playwright smoke gate** between dev and prod. Failure aborts before any prod rollout.
+3. **Auto-rollback** — every `kubectl set image` gated by `rollout status`; failure runs `rollout undo` on that deployment only.
+
+```bash
+DRY_RUN=1 SERVICE=docs TARGET=both task feature:promote  # dry-run first
+SERVICE=docs TARGET=both task feature:promote
+```
+
+| Service | dev stage? | TARGET behavior |
+|---|---|---|
+| `website` | yes | `both` builds two brand images |
+| `brett` | yes | one image shared across clusters |
+| `arena` | korczewski-only | `TARGET=mentolder` rejected; `TARGET=both` → korczewski |
+| `docs` | no | always both, `TARGET` ignored |
+
+**Smoke spec override:** `SMOKE_GREP="fa-46-brett-skins" task feature:promote`. File overrides in `tests/e2e/smoke/<service>.txt`. Useful knobs: `DRY_RUN=1`, `PROMOTE_TAG=v1.2.3`, `ROLLBACK_TIMEOUT=300s`.
+
+**Do NOT use `feature:promote` for:** manifest/kustomize changes, schema migrations, or first-time service deploys — use the full `task <svc>:deploy ENV=…` for those.
+
+### Cross-Brand Schema / DB Changes
+
+Each namespace has its own `shared-db`. Migrations must run on **both**:
+
+```bash
+task workspace:psql ENV=mentolder -- website < scripts/datamodel/<migration>.sql
+task workspace:psql ENV=korczewski -- website < scripts/datamodel/<migration>.sql
+```
+
+**DB password rotation** never propagates automatically — reseal and sync both brands:
+
+```bash
+task env:seal ENV=mentolder && task env:seal ENV=korczewski
+task secrets:sync
+```
+
+### SealedSecrets Per-Brand Independence
+
+Secrets are namespace-scoped — a secret sealed for `workspace` won't apply to `workspace-korczewski`.
+
+```bash
+task env:fetch-cert ENV=mentolder && task env:fetch-cert ENV=korczewski
+task env:seal ENV=mentolder && task env:seal ENV=korczewski
+```
+
+### Keycloak Realm Per-Brand Independence
+
+OIDC client changes (redirect URIs, mappers, group memberships) must be applied to both realms:
+
+```bash
+task keycloak:sync ENV=mentolder
+task keycloak:sync ENV=korczewski
+```
+
+### Korczewski-Specific Constraints
+
+- Arena runs **korczewski only** — `task arena:deploy ENV=mentolder` exits with an explanation.
+- Website namespace is `website-korczewski`, not `website`.
+- DB role password drift: after re-sealing, run `task workspace:sync-db-passwords ENV=korczewski`.
+
+---
+
 ## Phase 4 — Snapshot Maintenance
 
 After any `k3s` version bump in `environments/versions.yaml`, rebuild the Hetzner worker snapshot so scaling nodes stay in sync with fresh nodes.
@@ -331,6 +421,9 @@ grep HETZNER_WORKER_SNAPSHOT_ID environments/<env>.yaml
 | **Missing ingress** | `check-connectivity` shows ✗ / 404 for one host | That service's deploy pass was skipped — `office.` → `workspace:office:deploy`; `web.` → `website:deploy`; `arena-ws.` → `arena:deploy ENV=korczewski`; base hosts → re-run `workspace:deploy` |
 | **Collabora / Talk video fails** | `office.` 404 or call won't connect | Office + coturn are NOT in the base kustomization — run `workspace:office:deploy` **and** `workspace:coturn:deploy ENV=<env>` (prod) |
 | **LiveKit ICE fails ~66%** | stream/livekit intermittently unreachable | DNS not pinned to the pin-node — `task livekit:dns-pin ENV=<env> APPLY=true` |
+| **SealedSecret not decrypting (workspace-korczewski)** | Sealed with wrong cert (mentolder cert used) | `task env:fetch-cert ENV=korczewski` → `task env:seal ENV=korczewski` |
+| **Post-setup writes to wrong namespace** | Script hardcodes `-n workspace` | Use `task workspace:post-setup ENV=korczewski` — it exports `WORKSPACE_NAMESPACE=workspace-korczewski` |
+| **Schema change only on one brand** | Forgot to apply to second shared-db | Run migration against both `ENV=mentolder` and `ENV=korczewski` explicitly |
 
 ---
 
@@ -342,8 +435,9 @@ After completing all steps in this skill, invoke `mishap-tracker` with your accu
 
 | Skill | Beziehung |
 |-------|-----------|
-| `fleet-ops` | Querschnitt — nach Deployment beide Brands prüfen |
 | `secret-rotation` | Folge — Secrets nach Cluster-Reset rotieren |
+| `keycloak-realm-sync` | Querschnitt — Realm-Sync auf beiden Brands |
+| `database-ops` | Querschnitt — Cross-Brand DB-Operationen |
 | `host-node-networking` | Querschnitt — Netzwerk bei Node-Problemen |
 | `operations-management` | Querschnitt — PRs/CI/Issues |
 | `mishap-tracker` | Abschluss — protokolliert Frictions |

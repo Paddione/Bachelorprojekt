@@ -180,5 +180,5 @@ cd tests/e2e/ && SKIP_DB_PURGE=1 WEBSITE_URL=https://web.mentolder.de ./node_mod
 | Skill | Beziehung |
 |-------|-----------|
 | `dev-flow-execute` | Voraussetzung — Feature muss deployt sein |
-| `fleet-ops` | Querschnitt — Cross-Brand-Tests |
+| `cluster-deployment` | Querschnitt — Cross-Brand-Tests (Phase 5) |
 | `mishap-tracker` | Abschluss — protokolliert Frictions |

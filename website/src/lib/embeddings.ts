@@ -32,7 +32,15 @@ const voyageKey = () => {
 };
 
 const isLlmEnabled = () => process.env.LLM_ENABLED === 'true';
-const embedUrl = () => process.env.LLM_EMBED_URL ?? 'http://llm-gateway-embed.workspace.svc.cluster.local:8081';
+const embedUrl = () => process.env.LLM_EMBED_URL ?? 'http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234';
+
+// Maps internal model type to the actual model ID sent to the API.
+// TEI ignores this field; LM Studio routes by it.
+const MODEL_ID_MAP: Record<string, string> = {
+  'bge-m3': process.env.LLM_EMBED_MODEL ?? 'text-embedding-bge-m3',
+  'voyage-multilingual-2': 'voyage-multilingual-2',
+};
+const resolveModelId = (m: string) => MODEL_ID_MAP[m] ?? m;
 
 function isNetworkError(err: unknown, signal?: AbortSignal): boolean {
   if (!(err instanceof Error)) return false;
@@ -74,7 +82,7 @@ async function callRouter(inputs: string[], opts: Required<Pick<EmbedOpts, 'mode
     const r = await fetch(`${embedUrl()}/v1/embeddings`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-LLM-Purpose': opts.purpose },
-      body: JSON.stringify({ model: opts.model, input: inputs }),
+      body: JSON.stringify({ model: resolveModelId(opts.model), input: inputs }),
       signal: opts.signal,
     });
     if (r.ok) {

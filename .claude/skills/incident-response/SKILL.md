@@ -90,4 +90,4 @@ Invoke `mishap-tracker` with your accumulated `MISHAP_LOG`.
 |-------|--------------|
 | `ticket-ops` | Follow-up: PR management, ticket triage for human-fixable items |
 | `mishap-tracker` | Converts execution mishaps to tickets |
-| `fleet-ops` | Cross-brand incident handling |
+| `cluster-deployment` | Cross-brand incident handling (Phase 5) |

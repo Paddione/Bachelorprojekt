@@ -86,8 +86,7 @@ unabhängiger Beweis ist. Stufen 3+4 prüfen andere Dimensionen (Review-Qualitä
 | Skill | When to use |
 |---|---|
 | [`host-node-networking`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/host-node-networking.html) | Host server provisioning (Hetzner, cloud-init, Rescue Mode resets), WireGuard mesh network topology ("netplan"), host UFW firewall ports, LiveKit WebRTC networking, and WSL OpenClaw local gateway setup. |
-| [`cluster-deployment`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/cluster-deployment.html) | Stand up a brand-new Kubernetes environment, deploy resources, diagnose cluster degraded state (gap analysis), or operate the dev.mentolder.de stack. |
-| [`fleet-ops`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/fleet-ops.html) | Cross-cluster fan-out operations: `task feature:*`, schema changes, Keycloak sync, and the **push-based deploy model** (no GitOps reconciler) across both brands on the fleet cluster. |
+| [`cluster-deployment`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/cluster-deployment.html) | Stand up a brand-new Kubernetes environment, deploy resources, diagnose cluster degraded state (gap analysis), or operate the dev.mentolder.de stack. Also covers cross-brand fleet operations: `task feature:*` fan-out, `feature:promote` smoke gate, SealedSecrets/Keycloak per-brand independence (Phase 5). |
 
 ---
 
@@ -114,7 +113,6 @@ unabhängiger Beweis ist. Stufen 3+4 prüfen andere Dimensionen (Review-Qualitä
 
 | Skill | When to use |
 |---|---|
-| [`knowledge-management`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/knowledge-management.html) | Manage knowledge base ingestion (PDF/EPUB books), classifier LLMs, general indexing ([`prs`](https://github.com/Paddione/Bachelorprojekt/search?q=prs&type=code), [`markdown`](https://github.com/Paddione/Bachelorprojekt/search?q=markdown&type=code), [`bugs`](https://github.com/Paddione/Bachelorprojekt/search?q=bugs&type=code)), web crawling, and vector space isolation rules. |
 | [`database-ops`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/database-ops.html) | PostgreSQL schema migrations, default permission grants, automated backups audit, and safe restore verification. |
 
 ---
@@ -166,12 +164,10 @@ graph TD
 
     subgraph "Runbooks (eigenständig)"
         CD[cluster-deployment]
-        FO[fleet-ops]
         DO[database-ops]
         HN[host-node-networking]
         SR[secret-rotation]
         KR[keycloak-realm-sync]
-        KM[knowledge-management]
         AD[arena-brett-deploy]
         UD[update-dependencies]
         WD[workspace-deploy]
@@ -194,7 +190,6 @@ graph TD
     FA -.->|Gegenstück| FW
 
     DP --> CD
-    DP --> FO
     DE --> DO
     DE --> SR
     DE --> KR
@@ -202,7 +197,6 @@ graph TD
     DE --> WD
     DI --> DO
     DI --> HN
-    DEE --> FO
     DEE --> CD
 
     OM --> IR
@@ -210,7 +204,6 @@ graph TD
     IR --> MT
     TO --> MT
     CD -.-> OM
-    FO -.-> OM
     DO -.-> OM
     SR -.-> OM
     KR -.-> OM
@@ -218,7 +211,6 @@ graph TD
     WD -.-> LO
 
     UD -.-> CD
-    UD -.-> FO
 ```
 
 **Legende:**
@@ -232,9 +224,9 @@ graph TD
 | Feature entwickeln | [`dev-flow-plan`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-plan.html) → [`dev-flow-execute`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-execute.html) → [`dev-flow-e2e`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-e2e.html) | Gemergetes + getestetes Feature |
 | Mehrere Features parallel planen | [`dev-flow-batch`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-batch.html) (Modus 1) → [`dev-flow-execute`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-execute.html) (pro Sub-Feature) | Mehrere Pläne auf einmal in `plan_staged` |
 | Wartung (Chore) | [`dev-flow-chore`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-chore.html) (inline) | Gemergte Wartung ohne Plan-Handoff |
-| Cluster aufsetzen | [`cluster-deployment`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/cluster-deployment.html) → [`fleet-ops`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/fleet-ops.html) → [`secret-rotation`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/secret-rotation.html) | Produktions-Cluster |
+| Cluster aufsetzen | [`cluster-deployment`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/cluster-deployment.html) → [`secret-rotation`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/secret-rotation.html) | Produktions-Cluster |
 | DB-Migration | [`database-ops`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/database-ops.html) → [`dev-flow-execute`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-execute.html) (Schema-Change) | Gemergte Migration |
-| Secret rotieren | [`secret-rotation`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/secret-rotation.html) → [`fleet-ops`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/fleet-ops.html) (Deploy) | Rotierte Secrets |
+| Secret rotieren | [`secret-rotation`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/secret-rotation.html) → [`cluster-deployment`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/cluster-deployment.html) (Fan-out Deploy, Phase 5) | Rotierte Secrets |
 | Abhängigkeiten updaten | [`update-dependencies`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/update-dependencies.html) → [`cluster-deployment`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/cluster-deployment.html) (Test-Deploy) | Aktualisierte Packages |
 
 ## Cross-Cutting: Grilling → Ticket

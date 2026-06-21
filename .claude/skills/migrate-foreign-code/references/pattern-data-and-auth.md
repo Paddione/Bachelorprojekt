@@ -25,4 +25,4 @@ Schnitt-Zwischendaten; Auth durch den Workspace-Host (Keycloak); Auslieferung in
 - **Beide Namespaces nicht vergessen:** ein Roll-out nur in `workspace` lässt den korczewski-Brand
   ohne DB/OIDC zurück. Das gilt für jede cross-cutting Änderung.
 - **Mechanik nicht duplizieren — routen:** für OIDC-/Realm-Arbeit auf `keycloak-realm-sync`, für
-  Credentials auf `secret-rotation`, für den Cross-Brand-Fan-out auf `fleet-ops` verweisen.
+  Credentials auf `secret-rotation`, für den Cross-Brand-Fan-out auf `cluster-deployment` (Phase 5) verweisen.

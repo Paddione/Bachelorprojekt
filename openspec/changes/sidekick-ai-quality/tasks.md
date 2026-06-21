@@ -1034,29 +1034,29 @@ Akzeptanzkriterien-Mapping (Spec §6):
 5. Kein LLM-Call scheitert wegen Logging → fire-and-forget Garantie (Task 2, getestet)
 6. `task test:changed` + `task freshness:check` grün → diese Task
 
-- [ ] **Step 1: Geänderte Tests laufen lassen**
+- [x] **Step 1: Geänderte Tests laufen lassen**
 
 Run: `task test:changed`
 Expected: PASS — alle neuen/betroffenen Vitest-Suites grün (ai-metrics, ai-quality, knowledge-db, sidekick-nudge, assistant-Komponenten).
 
-- [ ] **Step 2: Freshness-Artefakte regenerieren**
+- [x] **Step 2: Freshness-Artefakte regenerieren**
 
 Run: `task freshness:regenerate`
 Expected: regeneriert generierte Artefakte (test-inventory etc.) — committet Änderungen mit aufnehmen, falls welche entstehen.
 
-- [ ] **Step 3: Freshness-Gate prüfen**
+- [x] **Step 3: Freshness-Gate prüfen**
 
 Run: `task freshness:check`
 Expected: PASS — keine Drift zwischen committeten und regenerierten Artefakten.
 
-- [ ] **Step 4: Etwaige Freshness-Änderungen committen**
+- [x] **Step 4: Etwaige Freshness-Änderungen committen**
 
 ```bash
 git add -A
 git commit -m "chore(website): regenerate freshness artifacts for ai-quality [T001065]" || echo "nichts zu committen"
 ```
 
-- [ ] **Step 5: Alle S1-Budgets final bestätigen**
+- [x] **Step 5: Alle S1-Budgets final bestätigen**
 
 Run:
 ```bash

@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mentolder-web
+  labels:
+    app: mentolder-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mentolder-web
+  template:
+    metadata:
+      labels:
+        app: mentolder-web
+    spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      imagePullSecrets:
+        - name: ghcr-pull-secret
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      containers:
+        - name: mentolder-web
+          image: ghcr.io/paddione/mentolder-web:latest
+          imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+              add: [NET_BIND_SERVICE, CHOWN, SETUID, SETGID]
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet: { path: /, port: 80 }
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /, port: 80 }
+            initialDelaySeconds: 5
+            periodSeconds: 30
+          resources:
+            requests: { cpu: 10m, memory: 32Mi }
+            limits: { cpu: 100m, memory: 64Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mentolder-web
+  labels:
+    app: mentolder-web
+spec:
+  selector:
+    app: mentolder-web
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80

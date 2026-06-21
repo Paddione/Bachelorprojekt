@@ -161,6 +161,10 @@
   ],
   "TBD": [
     {
+      "slug": "secrets-deploy-automation",
+      "status": "plan_staged"
+    },
+    {
       "slug": "2026-06-21-ticket-mcp",
       "status": "archived"
     }

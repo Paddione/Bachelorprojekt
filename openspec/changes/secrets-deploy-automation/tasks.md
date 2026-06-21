@@ -1,10 +1,10 @@
 ---
-title: "Secrets Deploy Automation"
+title: "Secrets Deploy Automation — Fleet-Vollständigkeits-Guard + Auto-Deploy"
 ticket_id: null
-domains: [security, infra]
-status: active
+domains: [security, infra, ops]
+status: plan_staged
 file_locks: []
-shared_changes: true
+shared_changes: false
 batch_id: null
 parent_feature: null
 depends_on_plans: []
@@ -12,19 +12,25 @@ depends_on_plans: []
 
 # Secrets Deploy Automation — Implementation Plan
 
-Closes the security gap discovered on 2026-06-21: 18 `POCKET_ID_*` secrets were
-sealed into the **legacy** files (`mentolder.yaml`, `korczewski.yaml`) instead of
-the **active fleet** files (`fleet-mentolder.yaml`, `fleet-korczewski.yaml`). The
-fleet files are the only ones the cluster reads. Four independent deliverables ship
-in one PR:
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-1. GitHub Action auto-deploying fleet SealedSecrets on merge.
-2. A `legacy_only` schema flag + an offline BATS guard that fails CI when a fleet
-   file is missing a non-legacy key its legacy counterpart has.
-3. A secrets-architecture reference document.
-4. A `bachelorprojekt-security` agent section pointing at that reference.
+**Goal:** Prevent a repeat of the 2026-06-21 incident where 18 `POCKET_ID_*` secrets were sealed into legacy files instead of the active fleet files, by adding a CI guard, an auto-deploy GitHub Action, a reference document, and an updated Security Agent.
+
+**Architecture:** Four independent deliverables land in one PR: (1) a new GitHub Action that auto-deploys `sealed-secrets/fleet-*.yaml` after merge to main, (2) a `legacy_only: true` annotation in `environments/schema.yaml` plus a BATS test that verifies fleet files are a superset of legacy files (minus legacy-only keys), (3) a new reference document documenting the secrets file topology, and (4) a one-paragraph addition to the `bachelorprojekt-security` agent pointing at that document.
+
+**Tech Stack:** Bash, BATS, yq (already in CI), python3 + PyYAML (schema parsing), kubectl, GitHub Actions YAML.
 
 Source spec: `docs/superpowers/specs/2026-06-21-secrets-deploy-automation-design.md`.
+
+## Global Constraints
+
+- No brand-domain literals (`mentolder.de`, `korczewski.de`) in any code or YAML — use file paths and abstract names only.
+- `scripts/check-fleet-completeness.py` must NOT be created — inline `yq` + `python3` inside the BATS test only.
+- `continue-on-error: true` must appear at **job level** on the `notify` job (not inside a step).
+- BATS test reads only `environments/sealed-secrets/*.yaml` — never `.secrets/*.yaml` (gitignored, absent in CI).
+- `yq` used for key extraction; `python3` only for YAML schema parsing.
+- All new files referenced in this plan — no orphaned artefacts.
+- S1 size: all five new/modified files are non-baselined. Keep each file focused.
 
 ## File Structure
 

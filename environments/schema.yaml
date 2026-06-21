@@ -891,6 +891,21 @@ secrets:
     generate: true
     length: 48
 
+  # MCP Keycloak (korczewski-legacy — replaced by Pocket ID, T001068)
+  - name: MCP_KEYCLOAK_CLIENT_ID
+    required: false
+    legacy_only: true
+    description: "DECOMMISSIONED — replaced by Pocket ID (T001068)"
+  - name: MCP_KEYCLOAK_CLIENT_SECRET
+    required: false
+    sealed: true
+    legacy_only: true
+    description: "DECOMMISSIONED — replaced by Pocket ID (T001068)"
+  - name: MCP_KEYCLOAK_REALM_URL
+    required: false
+    legacy_only: true
+    description: "DECOMMISSIONED — replaced by Pocket ID (T001068)"
+
   # External service keys (user-provided)
   - name: GITHUB_PAT
     required: false
@@ -1188,46 +1203,58 @@ setup_vars:
   - name: WG_MESH_GEKKO2_PRIVATE_KEY
     required: false
     sealed: true
+    legacy_only: true
     description: "wg-mesh private key for gekko-hetzner-2"
   - name: WG_MESH_GEKKO2_PUBLIC_KEY
     required: false
+    legacy_only: true
     description: "wg-mesh public key for gekko-hetzner-2 (non-sensitive, committed in wireguard/wg-mesh-nodes.yaml)"
   - name: WG_MESH_GEKKO3_PRIVATE_KEY
     required: false
     sealed: true
+    legacy_only: true
     description: "wg-mesh private key for gekko-hetzner-3"
   - name: WG_MESH_GEKKO3_PUBLIC_KEY
     required: false
+    legacy_only: true
     description: "wg-mesh public key for gekko-hetzner-3"
   - name: WG_MESH_GEKKO4_PRIVATE_KEY
     required: false
     sealed: true
+    legacy_only: true
     description: "wg-mesh private key for gekko-hetzner-4"
   - name: WG_MESH_GEKKO4_PUBLIC_KEY
     required: false
+    legacy_only: true
     description: "wg-mesh public key for gekko-hetzner-4"
   # DECOMMISSIONED: mentolder-standalone Proxmox home-LAN workers (wg-mesh 192.168.100.20-22, port 51821)
   # k3s-1/2/3 VMs decommissioned 2026-05-31 — keys retained for potential reuse of Proxmox hosts.
   - name: WG_MESH_K3S1_PRIVATE_KEY
     required: false
     sealed: true
+    legacy_only: true
     description: "DECOMMISSIONED — wg-mesh private key for k3s-1 (Proxmox vmid=100, wg_ip 192.168.100.20)"
   - name: WG_MESH_K3S1_PUBLIC_KEY
     required: false
+    legacy_only: true
     description: "DECOMMISSIONED — wg-mesh public key for k3s-1"
   - name: WG_MESH_K3S2_PRIVATE_KEY
     required: false
     sealed: true
+    legacy_only: true
     description: "wg-mesh private key for k3s-2 (Proxmox vmid=200, wg_ip 192.168.100.21)"
   - name: WG_MESH_K3S2_PUBLIC_KEY
     required: false
+    legacy_only: true
     description: "wg-mesh public key for k3s-2"
   - name: WG_MESH_K3S3_PRIVATE_KEY
     required: false
     sealed: true
+    legacy_only: true
     description: "wg-mesh private key for k3s-3 (Proxmox vmid=300, wg_ip 192.168.100.22)"
   - name: WG_MESH_K3S3_PUBLIC_KEY
     required: false
+    legacy_only: true
     description: "wg-mesh public key for k3s-3"
   # korczewski cluster
   - name: WG_MESH_PK4_PRIVATE_KEY

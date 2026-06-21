@@ -130,7 +130,7 @@ Erzeugt Embeddings für die semantische Suche; nur verfügbar, solange der GPU-H
 
 🟡 **Vorsicht**
 
-Daemon auf dem WSL-GPU-Host; nutzt lokale Modelle über Ollama, ohne Cloud.
+Daemon auf dem WSL-GPU-Host; nutzt lokale Modelle über LM Studio, ohne Cloud.
 
 ### 📡 LiveKit Server
 

@@ -534,7 +534,7 @@ non-empty `kinds`, and no brand-domain literals embedded in the catalog data.
 
 - **GIVEN** `local-lmstudio` und `local-ollama` sind im Katalog eingetragen
 - **WHEN** ihre Eigenschaften geprüft werden
-- **THEN** haben beide `apiKeyEnv: undefined`, `perRowApiKey: false` und `defaultBaseUrl` zeigt auf `localhost` (Port 1234 bzw. 11434)
+- **THEN** haben beide `apiKeyEnv: undefined`, `perRowApiKey: false` und `defaultBaseUrl` zeigt auf `localhost` (Port 1234 für LM Studio)
 
 ---
 
@@ -646,7 +646,7 @@ prompt usage as a best-effort fire-and-forget POST without propagating network e
 The system SHALL abort the `llm:deploy` task and refuse to start embedding or chat
 services when `LLM_ENABLED=true` but `LLM_HOST_IP` is not set in
 `environments/<env>.yaml`, because all three GPU gateway Services
-(`llm-gateway-embed:8081`, `llm-gateway-rerank:8082`, `llm-gateway-chat:11434`)
+(`llm-gateway-lmstudio:1234`, `llm-gateway-tei-embed:8081`, `llm-gateway-tei-rerank:8083`)
 point at `${LLM_HOST_IP}` and an unset value silently routes all LLM traffic to an
 unreachable endpoint.
 
@@ -660,7 +660,7 @@ unreachable endpoint.
 
 - **GIVEN** `LLM_ENABLED=true` und `LLM_HOST_IP` ist auf die wg-mesh-IP des GPU-Hosts gesetzt (z. B. `10.10.0.3`)
 - **WHEN** der Task `llm:deploy` ausgeführt wird
-- **THEN** werden die Services `llm-gateway-embed`, `llm-gateway-rerank` und `llm-gateway-chat` mit der korrekten IP deployt
+- **THEN** werden die Services `llm-gateway-lmstudio`, `llm-gateway-tei-embed` und `llm-gateway-tei-rerank` mit der korrekten IP deployt
 
 ---
 

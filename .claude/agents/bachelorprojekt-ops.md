@@ -44,7 +44,7 @@ task clusters:status                        # one-line status across both enviro
 For GPU host bootstrap, model management, deploy/status/test of LLM gateway services
 (TEI, Ollama, LiteLLM router, ComfyUI, Rigger), use the
 `.claude/skills/llm-ops/SKILL.md` runbook. Uses `task llm:*` commands against
-the GPU worker at `10.10.0.3` (WireGuard mesh, Ollama port 11434).
+the GPU worker at `10.10.0.3` (WireGuard mesh, LM Studio port 1234).
 
 ## Important constraints
 - **Read-only filesystem** — diagnose and operate only; do not edit manifests or code

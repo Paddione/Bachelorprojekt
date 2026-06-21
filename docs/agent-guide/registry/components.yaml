@@ -221,9 +221,9 @@
   name: "OpenClaw"
   emoji: "🦅"
   sensitivity: caution
-  placeholder_en: "OpenClaw AI assistant daemon on WSL GPU host (talks to Ollama 10.10.0.3:11434/v1)"
-  summary_de: "Ein lokaler KI-Assistent-Dienst auf dem GPU-Rechner (spricht direkt mit Ollama)."
-  what_for_de: "Daemon auf dem WSL-GPU-Host; nutzt lokale Modelle über Ollama, ohne Cloud."
+  placeholder_en: "OpenClaw AI assistant daemon on WSL GPU host (talks to LM Studio 10.10.0.3:1234/v1)"
+  summary_de: "Ein lokaler KI-Assistent-Dienst auf dem GPU-Rechner (spricht direkt mit LM Studio)."
+  what_for_de: "Daemon auf dem WSL-GPU-Host; nutzt lokale Modelle über LM Studio, ohne Cloud."
   url: null
   links: []
 - slug: livekit

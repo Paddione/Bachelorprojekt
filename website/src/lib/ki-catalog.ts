@@ -75,7 +75,7 @@ export const KI_CATALOG: InterfaceDef[] = [
       { id: 'qwen2.5', label: 'Qwen 2.5' },
       { id: 'llama3.1', label: 'Llama 3.1' },
     ],
-    defaultBaseUrl: 'http://llm-gateway-chat.workspace.svc.cluster.local:11434/v1',
+    defaultBaseUrl: 'http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234/v1',
     supportsParams: COMMON_PARAMS,
   },
   {

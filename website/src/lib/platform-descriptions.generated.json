@@ -77,8 +77,8 @@
       "en": "Text Embeddings Inference — bge-m3 via GPU host on wg-mesh (llm-gateway-embed Service)"
     },
     "openclaw": {
-      "de": "Ein lokaler KI-Assistent-Dienst auf dem GPU-Rechner (spricht direkt mit Ollama).",
-      "en": "OpenClaw AI assistant daemon on WSL GPU host (talks to Ollama 10.10.0.3:11434/v1)"
+      "de": "Ein lokaler KI-Assistent-Dienst auf dem GPU-Rechner (spricht direkt mit LM Studio).",
+      "en": "OpenClaw AI assistant daemon on WSL GPU host (talks to LM Studio 10.10.0.3:1234/v1)"
     },
     "livekit": {
       "de": "Der WebRTC-Server für Live-Video und Streaming (z. B. Bühnen-Übertragungen).",

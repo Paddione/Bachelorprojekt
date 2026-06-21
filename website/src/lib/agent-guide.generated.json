@@ -1697,7 +1697,7 @@
       "kind": "software",
       "name": "OpenClaw",
       "emoji": "🦅",
-      "summary_de": "Ein lokaler KI-Assistent-Dienst auf dem GPU-Rechner (spricht direkt mit Ollama).",
+      "summary_de": "Ein lokaler KI-Assistent-Dienst auf dem GPU-Rechner (spricht direkt mit LM Studio).",
       "sensitivity": "caution",
       "url": null
     },

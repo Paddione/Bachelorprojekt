@@ -16,7 +16,7 @@ depends_on_plans: []
 
 **Goal:** Prevent a repeat of the 2026-06-21 incident where 18 `POCKET_ID_*` secrets were sealed into legacy files instead of the active fleet files, by adding a CI guard, an auto-deploy GitHub Action, a reference document, and an updated Security Agent.
 
-**Architecture:** Four independent deliverables land in one PR: (1) a new GitHub Action that auto-deploys `sealed-secrets/fleet-*.yaml` after merge to main, (2) a `legacy_only: true` annotation in `environments/schema.yaml` plus a BATS test that verifies fleet files are a superset of legacy files (minus legacy-only keys), (3) a new reference document documenting the secrets file topology, and (4) a one-paragraph addition to the `bachelorprojekt-security` agent pointing at that document.
+**Architecture:** Four independent deliverables land in one PR: (1) a new GitHub Action that auto-deploys `sealed-secrets/fleet-*.yaml` after merge to main, (2) a `legacy_only: true` annotation in `environments/schema.yaml` plus a BATS test that verifies fleet files are a superset of legacy files (minus legacy-only keys), (3) a new reference document documenting the secrets file topology, and (4) a paragraph addition to the `bachelorprojekt-security` agent pointing at that document.
 
 **Tech Stack:** Bash, BATS, yq (already in CI), python3 + PyYAML (schema parsing), kubectl, GitHub Actions YAML.
 
@@ -28,46 +28,398 @@ Source spec: `docs/superpowers/specs/2026-06-21-secrets-deploy-automation-design
 - `scripts/check-fleet-completeness.py` must NOT be created — inline `yq` + `python3` inside the BATS test only.
 - `continue-on-error: true` must appear at **job level** on the `notify` job (not inside a step).
 - BATS test reads only `environments/sealed-secrets/*.yaml` — never `.secrets/*.yaml` (gitignored, absent in CI).
-- `yq` used for key extraction; `python3` only for YAML schema parsing.
+- `yq` for key extraction; `python3` only for YAML schema parsing.
 - All new files referenced in this plan — no orphaned artefacts.
 - S1 size: all five new/modified files are non-baselined. Keep each file focused.
 
+---
+
 ## File Structure
 
-New files:
+```
+.github/workflows/deploy-sealed-secrets.yml          ← NEW: GitHub Action (validate → deploy → notify)
+environments/schema.yaml                              ← MODIFY: legacy_only: true on 12 WG-mesh keys; add 3 MCP_KEYCLOAK_* entries
+tests/spec/fleet-operations.bats                      ← NEW: BATS fleet-completeness guard (~75 lines)
+docs/superpowers/references/secrets-architecture.md   ← NEW: Reference doc (topology, lifecycle, sync rule)
+.claude/agents/bachelorprojekt-security.md            ← MODIFY: add §Secrets-Dateiarchitektur section
+website/src/data/test-inventory.json                  ← MODIFY: regenerated after new BATS tests
+```
 
-| File | Purpose | Ext / S1 budget |
-|---|---|---|
-| `.github/workflows/deploy-sealed-secrets.yml` | Auto-deploy fleet SealedSecrets on merge | `.yml` — ungated (S1 limit 0), new file |
-| `tests/spec/fleet-operations.bats` | Offline fleet-completeness guard | `.bats` — limit 300, new file, ~70 lines |
-| `docs/superpowers/references/secrets-architecture.md` | Secrets file-topology reference | `.md` — ungated, new file |
-
-Changed files:
-
-| File | Change | Ext / S1 budget |
-|---|---|---|
-| `environments/schema.yaml` | Add `legacy_only: true` to decommissioned keys; add 3 new `MCP_KEYCLOAK_*` legacy entries | `.yaml` — ungated (S1 limit 0), no budget concern |
-| `.claude/agents/bachelorprojekt-security.md` | Add `## Secrets-Dateiarchitektur` section | `.md` — ungated, no budget concern |
-
-S1 pre-flight: `.yml`, `.yaml`, `.md`, `.bats` are all **ungated** extensions
-(`_ext_limit` returns 0; none appear in `docs/code-quality/baseline.json`). The
-only line-budgeted file is `tests/spec/fleet-operations.bats` (`.bats`, static
-limit 300) — the test is ~70 lines, far under budget. No split/shrink needed.
+S1 pre-flight (non-baselined):
+- `.github/workflows/deploy-sealed-secrets.yml` → new, target ~100 lines
+- `environments/schema.yaml` → 1315 lines, non-baselined; adding ~15 lines is safe
+- `tests/spec/fleet-operations.bats` → new, target ~75 lines
+- `docs/superpowers/references/secrets-architecture.md` → new, target ~100 lines
+- `.claude/agents/bachelorprojekt-security.md` → 70 lines, non-baselined; adding ~14 lines
 
 ---
 
-## Task 1: GitHub Action `deploy-sealed-secrets.yml`
+## Task 1: Schema — `legacy_only: true` Annotation
 
-**Dateien:** `.github/workflows/deploy-sealed-secrets.yml`
+**Files:**
+- Modify: `environments/schema.yaml` (WG GEKKO/K3S entries at lines ~1188–1231; MCP_KEYCLOAK entries near other Keycloak secrets)
 
-**Pattern source:** `build-website.yml` (kubeconfig base64-decode into `~/.kube/config`,
-`curl` kubectl install). This workflow does NOT build images, NOT run kustomize, NOT
-run envsubst — it only verifies and applies two committed SealedSecret YAMLs.
+**Interfaces:**
+- Produces: `legacy_only: true` flag on keys in `environments/schema.yaml`; consumed by Task 2 BATS test via `python3 -c "import yaml ..."`.
 
-**Steps:**
-- [x] Create `.github/workflows/deploy-sealed-secrets.yml` with `name: Deploy Sealed Secrets`.
-- [x] Trigger block:
+- [ ] **Step 1: Identify all legacy-only keys by diffing sealed-secrets files**
+
+  ```bash
+  cd /home/patrick/Bachelorprojekt
+  yq '.spec.encryptedData | keys | .[]' environments/sealed-secrets/mentolder.yaml | sort > /tmp/legacy-m.txt
+  yq '.spec.encryptedData | keys | .[]' environments/sealed-secrets/fleet-mentolder.yaml | sort > /tmp/fleet-m.txt
+  echo "=== Keys in mentolder.yaml but NOT in fleet-mentolder.yaml ===" && comm -23 /tmp/legacy-m.txt /tmp/fleet-m.txt
+  yq '.spec.encryptedData | keys | .[]' environments/sealed-secrets/korczewski.yaml | sort > /tmp/legacy-k.txt
+  yq '.spec.encryptedData | keys | .[]' environments/sealed-secrets/fleet-korczewski.yaml | sort > /tmp/fleet-k.txt
+  echo "=== Keys in korczewski.yaml but NOT in fleet-korczewski.yaml ===" && comm -23 /tmp/legacy-k.txt /tmp/fleet-k.txt
+  ```
+
+  The output should match these two groups:
+  - **WG Mesh (12 keys):** `WG_MESH_GEKKO2_PRIVATE_KEY`, `WG_MESH_GEKKO2_PUBLIC_KEY`, `WG_MESH_GEKKO3_PRIVATE_KEY`, `WG_MESH_GEKKO3_PUBLIC_KEY`, `WG_MESH_GEKKO4_PRIVATE_KEY`, `WG_MESH_GEKKO4_PUBLIC_KEY`, `WG_MESH_K3S1_PRIVATE_KEY`, `WG_MESH_K3S1_PUBLIC_KEY`, `WG_MESH_K3S2_PRIVATE_KEY`, `WG_MESH_K3S2_PUBLIC_KEY`, `WG_MESH_K3S3_PRIVATE_KEY`, `WG_MESH_K3S3_PUBLIC_KEY`
+  - **MCP Keycloak (3 keys, korczewski-legacy):** `MCP_KEYCLOAK_CLIENT_ID`, `MCP_KEYCLOAK_CLIENT_SECRET`, `MCP_KEYCLOAK_REALM_URL`
+
+  If the diff shows additional keys NOT in these two groups, those keys must be re-sealed into fleet files — do NOT mark them `legacy_only`.
+
+- [ ] **Step 2: Add `legacy_only: true` to the 12 WG Mesh GEKKO/K3S entries**
+
+  For each entry at lines ~1188–1231, add `legacy_only: true` after `required: false`. Example for GEKKO2 (apply same pattern to GEKKO3, GEKKO4, K3S1, K3S2, K3S3 — both `_PRIVATE_KEY` and `_PUBLIC_KEY`):
+
   ```yaml
+  # BEFORE:
+    - name: WG_MESH_GEKKO2_PRIVATE_KEY
+      required: false
+      sealed: true
+      description: "wg-mesh private key for gekko-hetzner-2"
+
+  # AFTER:
+    - name: WG_MESH_GEKKO2_PRIVATE_KEY
+      required: false
+      legacy_only: true
+      sealed: true
+      description: "wg-mesh private key for gekko-hetzner-2 (decommissioned standalone cluster node)"
+  ```
+
+- [ ] **Step 3: Add MCP_KEYCLOAK_* entries to schema**
+
+  Check: `grep -n "MCP_KEYCLOAK" environments/schema.yaml`
+
+  If no results, locate `grep -n "KEYCLOAK_ADMIN_PASSWORD" environments/schema.yaml` and insert after that block:
+
+  ```yaml
+  # MCP Keycloak (korczewski-legacy — replaced by Pocket ID, T001068)
+  - name: MCP_KEYCLOAK_CLIENT_ID
+    required: false
+    legacy_only: true
+    description: "DECOMMISSIONED — MCP Keycloak OIDC client ID, replaced by Pocket ID (T001068)"
+  - name: MCP_KEYCLOAK_CLIENT_SECRET
+    required: false
+    legacy_only: true
+    sealed: true
+    description: "DECOMMISSIONED — MCP Keycloak OIDC client secret, replaced by Pocket ID (T001068)"
+  - name: MCP_KEYCLOAK_REALM_URL
+    required: false
+    legacy_only: true
+    description: "DECOMMISSIONED — MCP Keycloak realm URL, replaced by Pocket ID (T001068)"
+  ```
+
+  If `MCP_KEYCLOAK_*` did NOT appear in the `comm` diff from Step 1, skip this step.
+
+- [ ] **Step 4: Verify schema parses cleanly**
+
+  ```bash
+  cd /home/patrick/Bachelorprojekt
+  python3 -c "
+  import yaml
+  schema = yaml.safe_load(open('environments/schema.yaml'))
+  legacy = [s['name'] for s in schema.get('secrets', []) if s.get('legacy_only', False)]
+  print(f'legacy_only keys found: {len(legacy)}')
+  for k in sorted(legacy): print(' ', k)
+  "
+  ```
+
+  Expected: prints all 12 WG-mesh keys minimum. No `yaml.scanner.ScannerError`.
+
+- [ ] **Step 5: Commit**
+
+  ```bash
+  cd /home/patrick/Bachelorprojekt
+  git add environments/schema.yaml
+  git commit -m "feat(secrets): annotate decommissioned WG-mesh + MCP_KEYCLOAK keys as legacy_only"
+  ```
+
+---
+
+## Task 2: BATS Guard — Fleet-Vollständigkeits-Test
+
+**Files:**
+- Create: `tests/spec/fleet-operations.bats`
+
+**Interfaces:**
+- Consumes: `environments/sealed-secrets/{mentolder,korczewski,fleet-mentolder,fleet-korczewski}.yaml` (committed, CI-safe); `environments/schema.yaml` via `python3`.
+- Produces: 3 BATS tests registered in `task test:all` and `test-inventory.json`.
+
+- [ ] **Step 1: Write the test first (TDD red phase — before Task 1 schema annotation)**
+
+  ```bash
+  # Write the file (Step 2 below), then run:
+  cd /home/patrick/Bachelorprojekt
+  tests/unit/lib/bats-core/bin/bats tests/spec/fleet-operations.bats
+  ```
+
+  Expected at this point: **FAIL** — completeness tests report WG-mesh / MCP_KEYCLOAK keys missing from fleet. This proves the guard catches the gap. If tests pass immediately (fleet files already corrected), proceed — the schema annotation is still needed for ongoing guard correctness.
+
+- [ ] **Step 2: Create `tests/spec/fleet-operations.bats`**
+
+  Write the file with this exact content:
+
+  ```bash
+  #!/usr/bin/env bats
+  # tests/spec/fleet-operations.bats
+  # SSOT: openspec/changes/secrets-deploy-automation/tasks.md
+  #
+  # Guards fleet sealed-secret completeness:
+  # every key in a legacy sealed-secrets file must appear in the corresponding
+  # fleet file, UNLESS the key has legacy_only: true in environments/schema.yaml.
+  #
+  # CI-safe: reads only committed environments/sealed-secrets/*.yaml
+  # (never .secrets/* — gitignored, absent in CI).
+  # spec.encryptedData key names are plaintext in SealedSecret YAML; encrypted
+  # values are never read — no plaintext secrets exposed.
+  #
+  # Prerequisites: yq >= 4.x, python3 + PyYAML (both available in CI).
+  #
+  # Run: tests/unit/lib/bats-core/bin/bats tests/spec/fleet-operations.bats
+  # or:  task test:unit SPEC=fleet-operations
+
+  REPO_ROOT="${REPO_ROOT:-$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)}"
+  SEALED="${REPO_ROOT}/environments/sealed-secrets"
+  SCHEMA="${REPO_ROOT}/environments/schema.yaml"
+
+  setup() {
+    load 'test_helper'
+  }
+
+  @test "fleet-mentolder: sealed secrets contain all non-legacy keys from mentolder (legacy)" {
+    _assert_fleet_complete "mentolder" "fleet-mentolder"
+  }
+
+  @test "fleet-korczewski: sealed secrets contain all non-legacy keys from korczewski (legacy)" {
+    _assert_fleet_complete "korczewski" "fleet-korczewski"
+  }
+
+  @test "schema.yaml: all legacy_only keys have required: false" {
+    local violations
+    violations=$(python3 -c "
+  import yaml, sys
+  schema = yaml.safe_load(open('${SCHEMA}'))
+  bad = [s['name'] for s in schema.get('secrets', [])
+         if s.get('legacy_only') and s.get('required', False)]
+  if bad:
+      print('\n'.join(bad))
+      sys.exit(1)
+  " 2>&1) || fail "legacy_only keys must not have required: true:\n${violations}"
+  }
+
+  _assert_fleet_complete() {
+    local legacy="$1" fleet="$2"
+    local legacy_file="${SEALED}/${legacy}.yaml"
+    local fleet_file="${SEALED}/${fleet}.yaml"
+
+    command -v yq      >/dev/null || skip "yq not available"
+    command -v python3 >/dev/null || skip "python3 not available"
+
+    [ -f "$legacy_file" ] || skip "Legacy file ${legacy}.yaml not present"
+    [ -f "$fleet_file"  ] || skip "Fleet file ${fleet}.yaml not present"
+
+    local legacy_only_keys
+    legacy_only_keys=$(python3 -c "
+  import yaml
+  schema = yaml.safe_load(open('${SCHEMA}'))
+  print('\n'.join(s['name'] for s in schema.get('secrets', []) if s.get('legacy_only', False)))
+  ")
+
+    local legacy_keys fleet_keys
+    legacy_keys=$(yq '.spec.encryptedData | keys | .[]' "$legacy_file" | sort)
+    fleet_keys=$(yq  '.spec.encryptedData | keys | .[]' "$fleet_file"  | sort)
+
+    local missing=""
+    while IFS= read -r key; do
+      [[ -z "$key" ]] && continue
+      echo "$legacy_only_keys" | grep -qxF "$key" && continue
+      echo "$fleet_keys"       | grep -qxF "$key" && continue
+      missing="${missing} ${key}"
+    done <<< "$legacy_keys"
+
+    [[ -z "$missing" ]] \
+      || fail "Keys in sealed-secrets/${legacy}.yaml missing from sealed-secrets/${fleet}.yaml (not marked legacy_only):${missing}"
+  }
+  ```
+
+- [ ] **Step 3: Run tests after Task 1 is complete (green phase)**
+
+  ```bash
+  cd /home/patrick/Bachelorprojekt
+  tests/unit/lib/bats-core/bin/bats tests/spec/fleet-operations.bats
+  ```
+
+  Expected: all 3 tests pass. If still failing, the fleet file has a genuine gap — re-seal (`task env:seal ENV=fleet-mentolder` / `fleet-korczewski`) and commit. Do NOT add `legacy_only: true` to hide a real gap.
+
+- [ ] **Step 4: Verify `task test:all` includes the new tests**
+
+  ```bash
+  cd /home/patrick/Bachelorprojekt
+  task test:all 2>&1 | grep -E "fleet-operations|PASSED|FAILED" | head -20
+  ```
+
+  Expected: all 3 `fleet-operations` tests appear and show `PASSED`.
+
+- [ ] **Step 5: Regenerate test inventory**
+
+  ```bash
+  cd /home/patrick/Bachelorprojekt
+  task test:inventory
+  git diff --stat website/src/data/test-inventory.json
+  ```
+
+  Expected: 3 new fleet-operations test IDs in `test-inventory.json`.
+
+- [ ] **Step 6: Commit**
+
+  ```bash
+  cd /home/patrick/Bachelorprojekt
+  git add tests/spec/fleet-operations.bats website/src/data/test-inventory.json
+  git commit -m "test(secrets): BATS guard for fleet sealed-secret completeness"
+  ```
+
+---
+
+## Task 3: Referenzdokument `docs/superpowers/references/secrets-architecture.md`
+
+**Files:**
+- Create: `docs/superpowers/references/secrets-architecture.md`
+
+**Interfaces:**
+- Produces: human- and agent-readable reference; consumed by Task 4 (Security Agent).
+- No code interfaces — documentation only.
+
+- [ ] **Step 1: Create the reference document**
+
+  Write `docs/superpowers/references/secrets-architecture.md` with these sections:
+
+  **Section: Datei-Topologie** — a 4-row table (columns: Datei · Status · Produziert · Referenziert von) with:
+  - `environments/.secrets/fleet-mentolder.yaml` → Aktiv (Prod) → `sealed-secrets/fleet-mentolder.yaml` → `environments/fleet-mentolder.yaml` (secrets_ref)
+  - `environments/.secrets/fleet-korczewski.yaml` → Aktiv (Prod) → `sealed-secrets/fleet-korczewski.yaml` → `environments/fleet-korczewski.yaml` (secrets_ref)
+  - `environments/.secrets/mentolder.yaml` → Legacy (decommissioned standalone cluster) → `sealed-secrets/mentolder.yaml` → `environments/mentolder.yaml` (nicht mehr deployed)
+  - `environments/.secrets/korczewski.yaml` → Legacy (decommissioned standalone cluster) → `sealed-secrets/korczewski.yaml` → `environments/korczewski.yaml` (nicht mehr deployed)
+
+  **Section: Fleet-Sync-Regel** — the rule that any new secret block must land in fleet files unless `legacy_only: true`; note the BATS guard in `tests/spec/fleet-operations.bats` enforces it automatically.
+
+  **Section: `legacy_only: true` — was es bedeutet** — explains the two current cases:
+  - WG-Mesh-Keys for decommissioned nodes (GEKKO2/3/4, K3S1/2/3): joined fleet cluster 2026-05-31 as workers; WG config managed via `wireguard/wg-mesh-nodes.yaml`
+  - MCP Keycloak secrets: replaced by Pocket ID (T001068)
+
+  **Section: Sealed-Secrets-Lifecycle** — ASCII diagram:
+  ```
+  .secrets/fleet-*.yaml  →  task env:seal ENV=fleet-*  →  sealed-secrets/fleet-*.yaml
+         ↓                                                          ↓
+    (gitignored)                                            git commit + push
+                                                                    ↓
+                                                          PR merge → GitHub Action
+                                                  (.github/workflows/deploy-sealed-secrets.yml)
+                                                                    ↓
+                                                      kubectl apply auf fleet-Cluster (idempotent)
+  ```
+
+  **Section: Kanonische Sektionsstruktur (15 Abschnitte)** — the ordered 15-item list from the spec (spec heading says "14" but enumerates 15; use 15):
+  1. Externe API-Keys, 2. Backup & Speicher, 3. E-Mail (SMTP), 4. Datenbankpasswörter, 5. Admin-Zugangsdaten, 6. Session- & Signing-Secrets, 7. Pocket ID OIDC-Secrets (T001068), 8. Keycloak OIDC-Secrets (legacy), 9. LiveKit, 10. Brett, 11. Arena (korczewski only), 12. DB Connection Strings, 13. SSH-Schlüssel, 14. WireGuard-Mesh, 15. Dev-only Overrides
+
+  **Section: Auto-Deploy via GitHub Action** — describes the three-job workflow (validate / deploy / notify), only `FLEET_KUBECONFIG` required.
+
+- [ ] **Step 2: Verify the file**
+
+  ```bash
+  wc -l /home/patrick/Bachelorprojekt/docs/superpowers/references/secrets-architecture.md
+  head -3 /home/patrick/Bachelorprojekt/docs/superpowers/references/secrets-architecture.md
+  ```
+
+  Expected: ~90–115 lines, starts with `# Secrets-Architektur`.
+
+- [ ] **Step 3: Commit**
+
+  ```bash
+  cd /home/patrick/Bachelorprojekt
+  git add docs/superpowers/references/secrets-architecture.md
+  git commit -m "docs(secrets): add secrets-architecture reference (topology, fleet-sync rule, lifecycle)"
+  ```
+
+---
+
+## Task 4: Security-Agent — `## Secrets-Dateiarchitektur` Section
+
+**Files:**
+- Modify: `.claude/agents/bachelorprojekt-security.md` (currently 70 lines → ~84 lines)
+
+**Interfaces:**
+- Consumes: `docs/superpowers/references/secrets-architecture.md` (Task 3).
+- Produces: Updated agent file routing security agents to the architecture reference.
+
+- [ ] **Step 1: Insert section after the `## SealedSecrets lifecycle` code block**
+
+  Locate the closing triple-backtick of the `## SealedSecrets lifecycle` code block (the ` ``` ` after `task workspace:deploy ENV=<env>`). Insert the following immediately after that closing backtick, before `## Critical rules`:
+
+  ```markdown
+  ## Secrets-Dateiarchitektur
+
+  Die vollständige Dokumentation der `.secrets/`-Datei-Topologie, der Fleet-Sync-Regel
+  und der kanonischen Sektionsstruktur steht in:
+  → `docs/superpowers/references/secrets-architecture.md`
+
+  **Wichtigste Regel:** `fleet-mentolder.yaml` und `fleet-korczewski.yaml` sind die
+  einzigen aktiven Prod-Dateien. Legacy-Dateien (`mentolder.yaml`, `korczewski.yaml`)
+  existieren nur als Referenz für den decommissionten Standalone-Cluster.
+  Jeder neue Secret-Block muss in die fleet-Dateien, **nicht** in die Legacy-Dateien.
+
+  Der CI-Guard (`tests/spec/fleet-operations.bats`) erzwingt diese Regel automatisch.
+  Schlägt er fehl, fleet-Dateien neu sealen und pushen.
+  ```
+
+- [ ] **Step 2: Verify frontmatter is intact**
+
+  ```bash
+  head -8 /home/patrick/Bachelorprojekt/.claude/agents/bachelorprojekt-security.md
+  ```
+
+  Expected: `---`, `name: bachelorprojekt-security`, `description:` block, closing `---` all present.
+
+- [ ] **Step 3: Commit**
+
+  ```bash
+  cd /home/patrick/Bachelorprojekt
+  git add .claude/agents/bachelorprojekt-security.md
+  git commit -m "chore(agents): add secrets-architecture reference to bachelorprojekt-security"
+  ```
+
+---
+
+## Task 5: GitHub Action `deploy-sealed-secrets.yml`
+
+**Files:**
+- Create: `.github/workflows/deploy-sealed-secrets.yml`
+
+**Interfaces:**
+- Triggers: push to `main` when `environments/sealed-secrets/fleet-mentolder.yaml` or `fleet-korczewski.yaml` changes; also `workflow_dispatch`.
+- Consumes: GitHub secret `FLEET_KUBECONFIG` (already present — used identically by `build-website.yml` and `post-merge.yml`).
+- Produces: Applied SealedSecrets on fleet cluster + ticket comment.
+
+**Pattern source:** `build-website.yml` and `post-merge.yml` for kubeconfig setup (`base64 -d` into `~/.kube/config`). This workflow does NOT build images, NOT run kustomize, NOT envsubst — it only verifies and applies two committed SealedSecret YAMLs.
+
+- [ ] **Step 1: Create `.github/workflows/deploy-sealed-secrets.yml`**
+
+  Write with this exact content:
+
+  ```yaml
+  name: Deploy SealedSecrets (fleet)
+
   on:
     push:
       branches: [main]
@@ -76,207 +428,256 @@ run envsubst — it only verifies and applies two committed SealedSecret YAMLs.
         - 'environments/sealed-secrets/fleet-korczewski.yaml'
         - '.github/workflows/deploy-sealed-secrets.yml'
     workflow_dispatch:
+      inputs:
+        reason:
+          description: 'Manual trigger reason'
+          required: false
+
+  permissions:
+    contents: read
+
+  jobs:
+    validate:
+      name: Validate SealedSecrets against live cluster cert
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+
+        - name: Install kubectl and kubeseal
+          run: |
+            curl -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" \
+              -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
+            KUBESEAL_VERSION="0.27.0"
+            curl -sSL "https://github.com/bitnami-labs/sealed-secrets/releases/download/v${KUBESEAL_VERSION}/kubeseal-${KUBESEAL_VERSION}-linux-amd64.tar.gz" \
+              | tar -xz -C /usr/local/bin kubeseal && chmod +x /usr/local/bin/kubeseal
+
+        - name: Set up kubeconfig
+          env:
+            KUBECONFIG_DATA: ${{ secrets.FLEET_KUBECONFIG }}
+          run: |
+            mkdir -p "$HOME/.kube"
+            echo "$KUBECONFIG_DATA" | base64 -d > "$HOME/.kube/config"
+            chmod 600 "$HOME/.kube/config"
+            echo "KUBECONFIG=$HOME/.kube/config" >> "$GITHUB_ENV"
+
+        - name: Verify fleet-mentolder SealedSecret against cluster cert
+          run: |
+            kubeseal --verify \
+              --controller-name=sealed-secrets \
+              --controller-namespace=sealed-secrets \
+              -f environments/sealed-secrets/fleet-mentolder.yaml
+
+        - name: Verify fleet-korczewski SealedSecret against cluster cert
+          run: |
+            kubeseal --verify \
+              --controller-name=sealed-secrets \
+              --controller-namespace=sealed-secrets \
+              -f environments/sealed-secrets/fleet-korczewski.yaml
+
+    deploy:
+      name: Apply SealedSecrets to fleet cluster
+      runs-on: ubuntu-latest
+      needs: validate
+      steps:
+        - uses: actions/checkout@v4
+
+        - name: Install kubectl
+          run: |
+            curl -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" \
+              -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
+
+        - name: Set up kubeconfig
+          env:
+            KUBECONFIG_DATA: ${{ secrets.FLEET_KUBECONFIG }}
+          run: |
+            mkdir -p "$HOME/.kube"
+            echo "$KUBECONFIG_DATA" | base64 -d > "$HOME/.kube/config"
+            chmod 600 "$HOME/.kube/config"
+            echo "KUBECONFIG=$HOME/.kube/config" >> "$GITHUB_ENV"
+
+        - name: Apply fleet-mentolder SealedSecret
+          run: kubectl apply -f environments/sealed-secrets/fleet-mentolder.yaml
+
+        - name: Apply fleet-korczewski SealedSecret
+          run: kubectl apply -f environments/sealed-secrets/fleet-korczewski.yaml
+
+    notify:
+      name: Post deploy comment to ticket
+      runs-on: ubuntu-latest
+      needs: deploy
+      continue-on-error: true
+      steps:
+        - uses: actions/checkout@v4
+
+        - name: Install kubectl
+          run: |
+            curl -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" \
+              -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
+
+        - name: Set up kubeconfig
+          env:
+            KUBECONFIG_DATA: ${{ secrets.FLEET_KUBECONFIG }}
+          run: |
+            mkdir -p "$HOME/.kube"
+            echo "$KUBECONFIG_DATA" | base64 -d > "$HOME/.kube/config"
+            chmod 600 "$HOME/.kube/config"
+            echo "KUBECONFIG=$HOME/.kube/config" >> "$GITHUB_ENV"
+
+        - name: Post deploy comment to awaiting_deploy ticket
+          run: |
+            TICKET_ID="$(git log -1 --pretty=%B | grep -oE 'T[0-9]{6}' | head -1 || true)"
+            SHA="$(git rev-parse --short HEAD)"
+            TIMESTAMP="$(date -u '+%Y-%m-%d %H:%M UTC')"
+            if [[ -z "$TICKET_ID" ]]; then
+              echo "No T###### in merge commit — skipping ticket comment."
+              exit 0
+            fi
+            export TICKET_CTX=fleet BRAND=mentolder
+            bash scripts/ticket.sh add-comment \
+              --id "$TICKET_ID" \
+              --body "SealedSecrets deployed [${SHA}] at ${TIMESTAMP} (fleet-mentolder + fleet-korczewski)" \
+              --author "deploy-bot" \
+              || echo "WARNING: ticket comment failed (non-fatal — workflow succeeds via continue-on-error)"
   ```
-- [x] Job `validate` (runs-on `ubuntu-latest`, `permissions: { contents: read }`):
-  - [x] `actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5`.
-  - [x] Install kubectl + kubeseal via pinned `curl` downloads into `/usr/local/bin`
-    (kubectl pin `v1.31.0` mirrors `build-website.yml`; kubeseal from the
-    `bitnami-labs/sealed-secrets` GitHub release tarball, e.g. `v0.27.x`, `chmod +x`).
-  - [x] Decode kubeconfig:
-    ```bash
-    mkdir -p ~/.kube
-    echo "$KUBECONFIG_DATA" | base64 -d > ~/.kube/config
-    chmod 600 ~/.kube/config
-    ```
-    with `env: { KUBECONFIG_DATA: ${{ secrets.FLEET_KUBECONFIG }} }`.
-  - [x] Verify both files against the live controller cert (fail-fast on drift):
-    ```bash
-    kubeseal --verify -f environments/sealed-secrets/fleet-mentolder.yaml
-    kubeseal --verify -f environments/sealed-secrets/fleet-korczewski.yaml
-    ```
-    `--verify` reads the live cert via the active kubeconfig context; a cert-drift
-    non-zero exit blocks the `deploy` job from running.
-- [x] Job `deploy` (`needs: validate`, same kubeconfig setup, same kubectl install):
-  - [x] Idempotent apply of both brands:
-    ```bash
-    kubectl apply -f environments/sealed-secrets/fleet-mentolder.yaml
-    kubectl apply -f environments/sealed-secrets/fleet-korczewski.yaml
-    ```
-  - [x] No `--server-side` (SealedSecrets are single CRs, not kustomize overlays).
-  - [x] Export the merge SHA for the notify job:
-    ```bash
-    echo "DEPLOY_SHA=$(git rev-parse --short HEAD)" >> "$GITHUB_ENV"
-    ```
-- [x] Job `notify` (`needs: deploy`, **`continue-on-error: true` at job level**, same
-  kubeconfig setup — `scripts/ticket.sh` uses `kubectl exec` on the postgres pod):
-  - [x] Find the open `awaiting_deploy` ticket and post a deploy comment via
-    `bash scripts/ticket.sh comment <ticket-id> "..."`. Confirm the exact
-    `scripts/ticket.sh` subcommand + argument order during implementation
-    (`scripts/ticket.sh --help`); if a query-by-status subcommand is unavailable,
-    fall back to the ticket-mcp `list_tickets` status filter via `kubectl exec`.
-  - [x] Comment body: `"✅ SealedSecrets deployed ${DEPLOY_SHA} at $(date -u +%FT%TZ) (mentolder + korczewski)"`.
-  - [x] If no `awaiting_deploy` ticket is found: log a warning, exit 0 (job stays green).
-  - [x] Rationale comment in the YAML: `continue-on-error` keeps the workflow green if
-    the postgres pod is mid-restart so the deploy is not falsely reported as failed.
-- [x] **Secrets used:** only `${{ secrets.FLEET_KUBECONFIG }}` (already configured for
-  `build-website.yml`). No separate ticket token — kubeconfig covers deploy + comment.
-- [x] S4 note: workflow files are not subject to the kustomization/Taskfile orphan check
-  (only `k3d/*.yaml` and `scripts/*`). The `workflow_dispatch` trigger gives a manual
-  re-run path.
 
----
+- [ ] **Step 2: Verify YAML syntax**
 
-## Task 2: Schema `legacy_only` flag + offline BATS guard
-
-**Dateien:** `environments/schema.yaml`, `tests/spec/fleet-operations.bats`
-
-**Steps (schema):**
-- [x] In `environments/schema.yaml`, add `legacy_only: true` to every decommissioned
-  WireGuard-mesh key already present in the `secrets:` block (preserve existing
-  `required`/`sealed`/`description` fields, only append the new flag):
-  - [x] `WG_MESH_GEKKO2_PRIVATE_KEY`, `WG_MESH_GEKKO2_PUBLIC_KEY`
-  - [x] `WG_MESH_GEKKO3_PRIVATE_KEY`, `WG_MESH_GEKKO3_PUBLIC_KEY`
-  - [x] `WG_MESH_GEKKO4_PRIVATE_KEY`, `WG_MESH_GEKKO4_PUBLIC_KEY`
-  - [x] `WG_MESH_K3S1_PRIVATE_KEY`, `WG_MESH_K3S1_PUBLIC_KEY`
-  - [x] `WG_MESH_K3S2_PRIVATE_KEY`, `WG_MESH_K3S2_PUBLIC_KEY`
-  - [x] `WG_MESH_K3S3_PRIVATE_KEY`, `WG_MESH_K3S3_PUBLIC_KEY`
-- [x] Add 3 **new** `MCP_KEYCLOAK_*` secret entries (they are NOT yet in schema.yaml but
-  exist in `sealed-secrets/korczewski.yaml`; without a schema entry the new guard cannot
-  classify them as legacy). Place them near a logically related secrets section with a
-  comment `# MCP Keycloak (korczewski-legacy — replaced by Pocket ID, T001068)`:
-  ```yaml
-  - name: MCP_KEYCLOAK_CLIENT_ID
-    required: false
-    legacy_only: true
-    description: "DECOMMISSIONED — replaced by Pocket ID (T001068)"
-  - name: MCP_KEYCLOAK_CLIENT_SECRET
-    required: false
-    sealed: true
-    legacy_only: true
-    description: "DECOMMISSIONED — replaced by Pocket ID (T001068)"
-  - name: MCP_KEYCLOAK_REALM_URL
-    required: false
-    legacy_only: true
-    description: "DECOMMISSIONED — replaced by Pocket ID (T001068)"
+  ```bash
+  python3 -c "
+  import yaml
+  yaml.safe_load(open('/home/patrick/Bachelorprojekt/.github/workflows/deploy-sealed-secrets.yml'))
+  print('YAML OK')
+  "
   ```
-- [x] Verify the new `legacy_only` optional field does not break consumers:
-  `task env:validate` should still pass (verify in the final task). `scripts/env-resolve.sh`
-  consumers are unaffected — `legacy_only` is purely additive metadata.
 
-**Steps (BATS guard) — write the failing test FIRST (TDD):**
-- [x] Create `tests/spec/fleet-operations.bats` with the standard header
-  (`#!/usr/bin/env bats`, `# tests/spec/fleet-operations.bats`, SSOT comment pointing at
-  a fleet-operations spec, and `load test_helper` per the `tests/spec/test_helper.bash`
-  convention so the shared `fail` helper is available).
-- [x] Add `@test "fleet-* sealed secrets contain all non-legacy keys from their legacy counterparts"`:
-  - [x] Collect `legacy_only` keys from the schema (CI-safe, reads only committed files):
-    ```bash
-    legacy_only_keys=$(python3 -c "
-    import yaml
-    schema = yaml.safe_load(open('environments/schema.yaml'))
-    print('\n'.join(
-      s['name'] for s in schema.get('secrets', [])
-      if s.get('legacy_only', False)
-    ))")
-    ```
-  - [x] For each `legacy:fleet` pair, diff `.spec.encryptedData` key sets with `yq`
-    (key names are plaintext in the SealedSecret YAML; values stay encrypted):
-    ```bash
-    for pair in "mentolder:fleet-mentolder" "korczewski:fleet-korczewski"; do
-      legacy="${pair%%:*}"; fleet="${pair##*:}"
-      legacy_keys=$(yq '.spec.encryptedData | keys | .[]' "environments/sealed-secrets/${legacy}.yaml" | sort)
-      fleet_keys=$(yq '.spec.encryptedData | keys | .[]'  "environments/sealed-secrets/${fleet}.yaml"  | sort)
-      missing=""
-      while IFS= read -r key; do
-        [[ -z "$key" ]] && continue
-        echo "$legacy_only_keys" | grep -qxF "$key" && continue
-        echo "$fleet_keys"       | grep -qxF "$key" && continue
-        missing="${missing} ${key}"
-      done <<< "$legacy_keys"
-      [[ -z "$missing" ]] || fail "Keys missing in sealed-secrets/${fleet}.yaml:${missing}"
-    done
-    ```
-  - [x] No helper script — `yq` and `python3` are available in the CI image (already used
-    by other BATS tests). Add a `command -v yq` / `command -v python3` guard that `skip`s
-    cleanly if either is absent, so the suite degrades rather than erroring.
-- [x] **Failing-test checkpoint:** before applying any schema `legacy_only` flags, run
-  `bats tests/spec/fleet-operations.bats` — **expected: fail** (because the legacy files
-  currently hold `MCP_KEYCLOAK_*` / decommissioned keys not present in fleet and not yet
-  flagged `legacy_only`). This proves the guard actually catches the gap. Then complete
-  the schema flagging in this task and re-run — **expected: pass**. If it still fails,
-  the reported `missing` keys reveal a genuine fleet-sync gap to either seal into fleet
-  or flag `legacy_only` (a real finding, not a test bug).
-- [x] S4 note: BATS files in `tests/spec/` are auto-discovered by `runner.sh` / `task
-  test:all`; no manual registration needed. Regenerate the test inventory (final task).
+  Expected: `YAML OK`.
+
+- [ ] **Step 3: Verify `continue-on-error: true` is at job level**
+
+  ```bash
+  grep -n "continue-on-error" /home/patrick/Bachelorprojekt/.github/workflows/deploy-sealed-secrets.yml
+  ```
+
+  Expected: one match under `notify:` job (between `needs: deploy` and `steps:`), not inside any `run:` block.
+
+- [ ] **Step 4: Commit**
+
+  ```bash
+  cd /home/patrick/Bachelorprojekt
+  git add .github/workflows/deploy-sealed-secrets.yml
+  git commit -m "feat(ci): auto-deploy fleet SealedSecrets after merge to main"
+  ```
 
 ---
 
-## Task 3: Secrets-architecture reference document
+## Task 6: Final Verification
 
-**Dateien:** `docs/superpowers/references/secrets-architecture.md`
+**Files:**
+- Modify: `website/src/data/test-inventory.json` (if not already committed in Task 2)
 
-**Steps:**
-- [x] Create `docs/superpowers/references/secrets-architecture.md`.
-- [x] Section "Datei-Topologie": a table with columns *Datei · Status · Produziert ·
-  Referenziert von* covering the four `.secrets/` files — fleet-mentolder /
-  fleet-korczewski marked **Aktiv (Prod)**, mentolder / korczewski marked **Legacy
-  (decommissioned standalone cluster)**. Use the `secrets_ref` chain
-  (`.secrets/fleet-*.yaml` → `sealed-secrets/fleet-*.yaml` ← `environments/fleet-*.yaml`)
-  exactly as in the spec table. No brand-domain literals (use file paths / placeholders).
-- [x] Section "Fleet-Sync-Regel": the rule that any new secret block added to a legacy
-  file MUST be mirrored into its fleet counterpart unless the key carries
-  `legacy_only: true` in `environments/schema.yaml`; note the CI guard
-  (`tests/spec/fleet-operations.bats`) enforces it automatically.
-- [x] Section "Kanonische Sektionsstruktur (15 Abschnitte)": the ordered list of the 15
-  canonical sections all four `.secrets/` files follow (the spec lists them 1–15 — note
-  the spec heading says "14" but enumerates 15; use the enumerated 15-item list and title
-  the section "15 Abschnitte" for accuracy).
-- [x] Section "Sealed-Secrets-Lifecycle": the ASCII lifecycle diagram
-  (`.secrets/fleet-*` → `task env:seal` → `sealed-secrets/fleet-*` → commit/push → PR
-  merge → GitHub Action → `kubectl apply` on fleet) from the spec.
-- [x] Aim for the 15-section canonical structure + topology + sync rule + lifecycle =
-  the "15 Abschnitte" referenced in the spec; keep it a reference doc (no executable
-  snippets that hardcode hostnames).
+**Interfaces:**
+- Consumes: all prior tasks completed.
+- Produces: green `task test:all`, up-to-date inventory, passing freshness, valid openspec tree.
+
+- [ ] **Step 1: Run full test suite**
+
+  ```bash
+  cd /home/patrick/Bachelorprojekt
+  task test:all
+  ```
+
+  Expected: all tests pass including the 3 new `fleet-operations` BATS tests.
+
+- [ ] **Step 2: Ensure test inventory is current**
+
+  ```bash
+  cd /home/patrick/Bachelorprojekt
+  task test:inventory
+  git diff --stat website/src/data/test-inventory.json
+  ```
+
+  If diff is non-empty:
+
+  ```bash
+  git add website/src/data/test-inventory.json
+  git commit -m "chore: update test-inventory after fleet-operations BATS tests"
+  ```
+
+- [ ] **Step 3: Regenerate freshness artifacts**
+
+  ```bash
+  cd /home/patrick/Bachelorprojekt
+  task freshness:regenerate
+  ```
+
+  Expected: completes without error.
+
+- [ ] **Step 4: Check freshness**
+
+  ```bash
+  cd /home/patrick/Bachelorprojekt
+  task freshness:check
+  ```
+
+  Expected: green. If conflict on generated artifact, resolve with `git checkout --ours <file>` per CLAUDE.md.
+
+- [ ] **Step 5: Validate OpenSpec change tree**
+
+  ```bash
+  cd /home/patrick/Bachelorprojekt
+  task openspec:validate 2>/dev/null || bash scripts/openspec.sh validate
+  ```
+
+  Expected: `secrets-deploy-automation` change passes validation.
+
+- [ ] **Step 6: Commit freshness artifacts if changed**
+
+  ```bash
+  cd /home/patrick/Bachelorprojekt
+  git status
+  git add docs/generated/ k3d/docs-content-built/architecture/index.html 2>/dev/null || true
+  git diff --cached --stat
+  git commit -m "chore: regenerate freshness artifacts" \
+    || echo "No freshness changes to commit"
+  ```
 
 ---
 
-## Task 4: Security-agent reference section
+## Self-Review
 
-**Dateien:** `.claude/agents/bachelorprojekt-security.md`
+### Spec coverage
 
-**Steps:**
-- [x] Insert a new `## Secrets-Dateiarchitektur` section into
-  `.claude/agents/bachelorprojekt-security.md` (place it after the existing
-  `## SealedSecrets lifecycle` / `## Critical rules` area, before `## Keycloak realm files`,
-  so it sits with the other secrets guidance).
-- [x] Content: a pointer to `docs/superpowers/references/secrets-architecture.md` plus the
-  single most important rule — `fleet-mentolder.yaml` and `fleet-korczewski.yaml` are the
-  only active Prod files; legacy files (`mentolder.yaml`, `korczewski.yaml`) exist only as
-  reference for the decommissioned standalone cluster; every new secret block must land in
-  the fleet files (unless `legacy_only: true`).
-- [x] No brand-domain literals; refer to files/paths only (S3-safe — `.md` agent files are
-  outside the S3 scope `k3d/ prod*/ website/src/` anyway, but keep it clean).
+| Spec requirement | Plan task |
+|---|---|
+| GitHub Action: auto-deploy SealedSecrets after merge | Task 5 |
+| Job sequence: validate → deploy → notify | Task 5 (three separate jobs with `needs:`) |
+| `kubeseal --verify` against live cert in validate job | Task 5 Step 1 |
+| `notify` job: `continue-on-error: true` at job level | Task 5 Step 1 (YAML) + Step 3 (verified by grep) |
+| `notify` uses `scripts/ticket.sh add-comment` via kubeconfig | Task 5 Step 1 |
+| Schema: `legacy_only: true` on 12 WG GEKKO/K3S keys | Task 1 Step 2 |
+| Schema: add MCP_KEYCLOAK_* entries with `legacy_only: true` | Task 1 Step 3 |
+| BATS guard reads only `sealed-secrets/*.yaml`, never `.secrets/` | Task 2 Step 2 (code comment + implementation) |
+| BATS reads `spec.encryptedData` key names via `yq` | Task 2 Step 2 |
+| BATS uses `python3` only for schema parsing | Task 2 Step 2 |
+| TDD: write failing test before schema annotation | Task 2 Step 1 |
+| No separate helper script | Task 2 (inline `_assert_fleet_complete` BATS function) |
+| Reference doc: topology table | Task 3 Step 1 |
+| Reference doc: Fleet-Sync-Regel | Task 3 Step 1 |
+| Reference doc: 15-section canonical structure | Task 3 Step 1 |
+| Reference doc: lifecycle diagram | Task 3 Step 1 |
+| Reference doc: auto-deploy section | Task 3 Step 1 |
+| Security-Agent: new `## Secrets-Dateiarchitektur` section | Task 4 Step 1 |
+| Final: `task test:all` | Task 6 Step 1 |
+| Final: `task test:inventory` + commit | Task 6 Step 2 |
+| Final: `task freshness:regenerate` + `task freshness:check` | Task 6 Steps 3–4 |
+| Final: `task openspec:validate` | Task 6 Step 5 |
+| No brand-domain literals in code | All tasks confirmed |
+| S1 budget: all non-baselined | File Structure section |
 
----
+### Placeholder scan
 
-## Task 5: Verification & gates
+No TBD, TODO, "similar to Task N", or "add appropriate error handling" patterns found. All code blocks contain complete runnable content.
 
-**Dateien:** (no production code — runs the CI-equivalent gate suite)
+### Type/name consistency
 
-**Steps:**
-- [x] `task env:validate` — confirm the new `legacy_only` flag + `MCP_KEYCLOAK_*` entries
-  don't break schema validation.
-- [x] `bats tests/spec/fleet-operations.bats` — **expected: pass** now that the schema is
-  flagged (the earlier checkpoint in Task 2 expected: fail before flagging).
-- [x] `task test:changed` — targeted tests for the changed domains (BATS selection + quality).
-- [x] `task test:all` — full offline suite incl. the new fleet-operations guard (it must
-  run offline; confirm no live-cluster dependency).
-- [x] `task test:inventory` — regenerate `website/src/data/test-inventory.json` after the
-  BATS addition and commit it (CI fails on drift).
-- [x] `task freshness:regenerate` — refresh generated artefacts.
-- [x] `task freshness:check` — CI-equivalent freshness + `quality:check` (S1–S4 ratchet) +
-  baseline key-count assertion. Resolve generated-artifact conflicts with
-  `git checkout --ours` per CLAUDE.md if a freshness regen collides.
-- [x] `bash scripts/openspec.sh validate` — validate the `openspec/` change tree.
-- [x] Confirm the new workflow YAML parses (`actionlint .github/workflows/deploy-sealed-secrets.yml`
-  if available, otherwise `python3 -c "import yaml,sys; yaml.safe_load(open(sys.argv[1]))" .github/workflows/deploy-sealed-secrets.yml`).
+BATS helper `_assert_fleet_complete` is defined and called within the same file (Task 2). `scripts/ticket.sh add-comment` interface verified against `scripts/ticket.sh` header line 7: `add-comment --id <external_id> --body <body> [--author <author_label>]`. No cross-task type mismatches.

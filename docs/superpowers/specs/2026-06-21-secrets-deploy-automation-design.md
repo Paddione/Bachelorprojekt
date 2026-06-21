@@ -1,6 +1,6 @@
 ---
-ticket_id: null
-plan_ref: null
+ticket_id: T001078
+plan_ref: openspec/changes/secrets-deploy-automation/tasks.md
 status: active
 date: 2026-06-21
 ---

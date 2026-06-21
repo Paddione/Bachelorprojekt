@@ -1,6 +1,6 @@
 # Skills Overview
 
-25 project-local skills (24 in `.claude/skills/<name>/` + 1 in `.claude/skills/superpowers/using-git-worktrees/`) grouped by domain. Each skill has its own `SKILL.md` with full runbook details. Invoke any skill by its name.
+26 project-local skills (25 in `.claude/skills/<name>/` + 1 in `.claude/skills/superpowers/using-git-worktrees/`) grouped by domain. Each skill has its own `SKILL.md` with full runbook details. Invoke any skill by its name.
 
 > **Wartung:** Diese Anzahl stimmt mit `find .claude/skills -name SKILL.md | wc -l` und mit der `<available_skills>`-Liste des OpenCode-Loaders überein. Wenn ein Skill hinzukommt oder entfernt wird, hier nachziehen.
 
@@ -34,6 +34,14 @@ Each skill's `SKILL.md` frontmatter carries an optional `agent:` field that tell
 | Command | When to use |
 |---|---|
 | `/feature-intake` | **Vor [`dev-flow-plan`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-plan.html)** — `/feature-intake` (opencode-Command) generiert ein frisches HTML-Formular, dedupliziert Feature-Kandidaten gegen den aktuellen Ticket-Backlog und liefert es via Session-Hub. Für Patrick oder gekko zum Ausfüllen auf einen Klick. Kein Teil der dev-flow-Pipeline; speist [`dev-flow-plan`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-plan.html). Assets unter `assets/feature-intake/`. |
+
+---
+
+## Git Lifecycle
+
+| Skill | When to use |
+|---|---|
+| [`git-workflow`](.claude/skills/git-workflow/SKILL.md) | **Immer beim Committen, Pushen oder PR-Erstellen** — vollständiger Lifecycle: pull-first, Conventional Commits + Ticket-ID, Freshness Guard, Commit-Verifikation (git-crypt), PR-Scope-Preflight, CI-Fix-Loop, Auto-Merge `--squash --delete-branch`, Worktree-Cleanup. |
 
 ---
 

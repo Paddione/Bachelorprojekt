@@ -1,17 +1,17 @@
 # syntax=docker/dockerfile:1.7
-FROM node:20-alpine AS deps
+FROM node:22-alpine AS deps
 WORKDIR /app
 COPY package.json pnpm-lock.yaml* ./
 RUN corepack enable && corepack prepare pnpm@9.15.3 --activate && pnpm install --frozen-lockfile
 
-FROM node:20-alpine AS build
+FROM node:22-alpine AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY package.json tsconfig.json ./
 COPY src ./src
 RUN corepack enable && corepack prepare pnpm@9.15.3 --activate && pnpm run build && pnpm prune --prod
 
-FROM node:20-alpine AS runtime
+FROM node:22-alpine AS runtime
 WORKDIR /app
 
 # Enable pnpm for in-pod builds (arena:sync) and add procps for pkill

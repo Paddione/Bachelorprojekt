@@ -4,7 +4,7 @@
 # Base: node:20-bookworm-slim (native ffprobe + build-essential for canvas).
 
 # ── Build stage ───────────────────────────────────────────────
-FROM node:20-bookworm-slim AS build
+FROM node:22-bookworm-slim AS build
 WORKDIR /app
 
 RUN apt-get update \
@@ -35,7 +35,7 @@ COPY VideoVault/drizzle.config.ts ./
 RUN npm run build
 
 # ── Runtime stage ─────────────────────────────────────────────
-FROM node:20-bookworm-slim AS runtime
+FROM node:22-bookworm-slim AS runtime
 WORKDIR /app
 
 RUN apt-get update \

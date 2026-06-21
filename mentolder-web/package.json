@@ -31,9 +31,6 @@
     "vite-plugin-svgr": "^5.2.0"
   },
   "engines": {
-    "node": ">=20"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": ["esbuild"]
+    "node": ">=22"
   }
 }

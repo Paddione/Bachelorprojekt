@@ -20,13 +20,13 @@ describe('rerank client', () => {
   });
 
   test('returns docs sorted descending by score on happy path', async () => {
-    global.fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({
-      results: [
-        { index: 1, relevance_score: 0.9 },
-        { index: 0, relevance_score: 0.4 },
-        { index: 2, relevance_score: 0.1 },
-      ],
-    }), { status: 200 }));
+    // LM Studio port migration: rerank endpoint serves the bare array with
+    // {index, score} (no `results` wrapper, no `relevance_score` field).
+    global.fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify([
+      { index: 1, score: 0.9 },
+      { index: 0, score: 0.4 },
+      { index: 2, score: 0.1 },
+    ]), { status: 200 }));
     const out = await rerankCandidates('q', ['a', 'b', 'c']);
     expect(out).toEqual([
       { doc: 'b', score: 0.9 },

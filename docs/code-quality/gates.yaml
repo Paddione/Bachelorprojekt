@@ -101,6 +101,9 @@ s4:
     # Skills under .claude/skills/ often reference scripts via `bash scripts/<name>.sh`
     # (e.g. dev-flow-execute → scripts/devflow-ci-watch.sh). Without this entry,
     # those scripts are flagged as S4-orphans. Added in T001007.
+    # Agent reference docs (moved from docs/superpowers/references/ in T001079):
+    - ".claude/skills/references/*.md"
+    - ".claude/agents/*.md"
     - ".claude/skills/**/*.md"
     # AGENTS.md is the canonical reference for agent coordination scripts (agent-lock.sh,
     # agent-msg.sh, agent-escalate.sh). Added in T001049.

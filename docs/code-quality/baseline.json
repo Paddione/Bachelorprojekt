@@ -594,6 +594,22 @@
     "detail": "hardcoded host: web.mentolder.de",
     "frozen_at": "8b581ebe"
   },
+  "S4:scripts/agent-push.sh": {
+    "metric": 1,
+    "note": "was only referenced by docs/superpowers/specs/ (deleted T001079)"
+  },
+  "S4:scripts/api-auth-check.test.mjs": {
+    "metric": 1,
+    "note": "was only referenced by docs/superpowers/specs/ (deleted T001079)"
+  },
+  "S4:scripts/batch-gap-analysis.sh": {
+    "metric": 1,
+    "note": "was only referenced by docs/superpowers/specs/ (deleted T001079)"
+  },
+  "S4:scripts/batch-workflow-gen.sh": {
+    "metric": 1,
+    "note": "was only referenced by docs/superpowers/specs/ (deleted T001079)"
+  },
   "S4:scripts/build-srgb-icc.mjs": {
     "gate": "S4",
     "path": "scripts/build-srgb-icc.mjs",
@@ -629,6 +645,10 @@
     "detail": "no reference to 'enroll-korczewski.sh' in any configured source",
     "frozen_at": "8b581ebe"
   },
+  "S4:scripts/fix-archive-plan-status.sh": {
+    "metric": 1,
+    "note": "was only referenced by docs/superpowers/specs/ (deleted T001079)"
+  },
   "S4:scripts/migrate-bugs-to-tickets.mjs": {
     "gate": "S4",
     "path": "scripts/migrate-bugs-to-tickets.mjs",
@@ -650,12 +670,20 @@
     "detail": "no reference to 'migrate-content-versions.mjs' in any configured source",
     "frozen_at": "8b581ebe"
   },
+  "S4:scripts/migrate-docs-style.mjs": {
+    "metric": 1,
+    "note": "was only referenced by docs/superpowers/specs/ (deleted T001079)"
+  },
   "S4:scripts/migrate-projects-to-tickets.mjs": {
     "gate": "S4",
     "path": "scripts/migrate-projects-to-tickets.mjs",
     "metric": 1,
     "detail": "no reference to 'migrate-projects-to-tickets.mjs' in any configured source",
     "frozen_at": "c0831873"
+  },
+  "S4:scripts/openspec-embed.test.mjs": {
+    "metric": 1,
+    "note": "was only referenced by docs/superpowers/specs/ (deleted T001079)"
   },
   "S4:scripts/oracle-bench.sh": {
     "gate": "S4",
@@ -670,6 +698,22 @@
     "metric": 1,
     "detail": "no reference to 'preflight-pr-scope.sh' in any configured source",
     "frozen_at": "c0831873"
+  },
+  "S4:scripts/provision-dev-vm.sh": {
+    "metric": 1,
+    "note": "was only referenced by docs/superpowers/specs/ (deleted T001079)"
+  },
+  "S4:scripts/seed-lmstudio-ki-config.mjs": {
+    "metric": 1,
+    "note": "was only referenced by docs/superpowers/specs/ (deleted T001079)"
+  },
+  "S4:scripts/sessions-purge.sh": {
+    "metric": 1,
+    "note": "was only referenced by docs/superpowers/specs/ (deleted T001079)"
+  },
+  "S4:scripts/setup-comfyui.sh": {
+    "metric": 1,
+    "note": "was only referenced by docs/superpowers/specs/ (deleted T001079)"
   },
   "S4:scripts/skill-orchestrator.sh": {
     "gate": "S4",

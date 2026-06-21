@@ -126,11 +126,9 @@ spec:
     - protocol: TCP
       port: 8081
     - protocol: TCP
-      port: 8082
+      port: 8083
     - protocol: TCP
       port: 8189
-    - protocol: TCP
-      port: 11434
   - to:
     - ipBlock:
         cidr: 10.13.14.0/24
@@ -140,11 +138,9 @@ spec:
     - protocol: TCP
       port: 8081
     - protocol: TCP
-      port: 8082
+      port: 8083
     - protocol: TCP
       port: 8189
-    - protocol: TCP
-      port: 11434
 ---
 # Pod-zu-Pod-Kommunikation innerhalb des workspace-Namespace (Eingang) erlauben
 apiVersion: networking.k8s.io/v1

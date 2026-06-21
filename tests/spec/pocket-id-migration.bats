@@ -75,11 +75,12 @@ setup() {
   grep -q 'TLS_SECRET_NAME' "${PROD}/patch-pocket-id.yaml"
 }
 
-@test "pocket-id: prod patch swaps /app/data emptyDir for a PVC" {
-  grep -q 'pocket-id-data' "${PROD}/patch-pocket-id.yaml" "${PROD}/pocket-id-pvc.yaml"
-  grep -q 'PersistentVolumeClaim' "${PROD}/pocket-id-pvc.yaml"
-  grep -q 'claimName: pocket-id-data' "${PROD}/patch-pocket-id.yaml"
+@test "pocket-id: base and prod overlays use a PVC for /app/data" {
+  grep -q 'pocket-id-data' "${K3D}/pocket-id.yaml"
+  grep -q 'PersistentVolumeClaim' "${K3D}/pocket-id.yaml"
+  grep -q 'claimName: pocket-id-data' "${K3D}/pocket-id.yaml"
 }
+
 
 # ── Welle 0: domain-config + schema + env files ─────────────────────────────
 

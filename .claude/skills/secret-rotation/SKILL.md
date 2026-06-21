@@ -242,7 +242,7 @@ cleanly with "No mishaps found."
 | Skill | Beziehung |
 |-------|-----------|
 | `cluster-deployment` | Voraussetzung — Cluster muss laufen |
-| `fleet-ops` | Folge — nach Rotation beide Brands deployen |
+| `cluster-deployment` | Folge — nach Rotation beide Brands deployen (Phase 5) |
 | `database-ops` | Querschnitt — DB-Passwort-Rotation |
 | `keycloak-realm-sync` | Querschnitt — OIDC-Client-Secrets |
 | `mishap-tracker` | Abschluss — protokolliert Frictions |

@@ -124,7 +124,7 @@ Prüfe vor jedem Update:
 | Skill | Beziehung |
 |-------|-----------|
 | `cluster-deployment` | Folge — Test-Deploy nach Major-Bump |
-| `fleet-ops` | Folge — Cross-Brand-Verifikation |
+| `cluster-deployment` | Folge — Cross-Brand-Verifikation (Phase 5) |
 | `mishap-tracker` | Abschluss — protokolliert Frictions |
 
 ## Mishap Tracking

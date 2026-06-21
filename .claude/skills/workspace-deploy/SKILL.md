@@ -255,8 +255,7 @@ task workspace:vaultwarden:seed-logs ENV=<env>
 
 | Skill | Beziehung |
 |-------|-----------|
-| `cluster-deployment` | Voraussetzung — Cluster muss stehen |
-| `fleet-ops` | Querschnitt — Cross-Brand-Fan-out |
+| `cluster-deployment` | Voraussetzung — Cluster muss stehen; Cross-Brand-Fan-out (Phase 5) |
 | `llm-ops` | Voraussetzung — Transcriber braucht GPU/LLM |
 | `secret-rotation` | Querschnitt — Secrets nach Deploy rotieren |
 | `mishap-tracker` | Abschluss — protokolliert Frictions |

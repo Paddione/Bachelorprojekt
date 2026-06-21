@@ -262,3 +262,8 @@ The env var is `BRAND` in the Kubernetes ConfigMap (`k3d/website.yaml`) and `BRA
 - **Node.js Version requirements:** Enforced via `.nvmrc` and `engines` in `package.json` (requires Node.js >= 22.13.0 for pnpm 11 compatibility).
 - See [WSL-BOOTSTRAP.md](file:///home/patrick/Bachelorprojekt/docs/WSL-BOOTSTRAP.md) for more details.
 
+### Arena & Brett
+- **Arena is korczewski-only.** `task arena:deploy ENV=mentolder` exits early with an explanation — arena lives only in `workspace-korczewski`. Never attempt to deploy it to mentolder.
+- **Proto-drift copy is CI-enforced.** `arena-server/src/proto/messages.ts` and `website/src/components/arena/shared/lobbyTypes.ts` must be byte-identical. After any change to `messages.ts`: `cp arena-server/src/proto/messages.ts website/src/components/arena/shared/lobbyTypes.ts` and commit both. The CI job `arena-proto-drift` is the gate — failing it blocks the PR.
+- **Arena CORS allows both website origins.** Even though arena is korczewski-only, `wss://arena-ws.korczewski.de` must accept CORS from both `https://web.mentolder.de` and `https://web.korczewski.de`. Both websites point at it. Don't remove the mentolder origin from the allow-list.
+

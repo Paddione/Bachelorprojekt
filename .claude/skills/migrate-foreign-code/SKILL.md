@@ -61,7 +61,7 @@ Wiederkehrende technische Muster — je generisches Muster, VideoVault-Beispiel 
 | `workspace-deploy` / `cluster-deployment` | Phase 3 — Manifeste, DB, PVC, Deploy |
 | `keycloak-realm-sync` | Phase 5 — OIDC/Realm/Auth |
 | `secret-rotation` | Phase 5 — Credentials der neuen App |
-| `fleet-ops` | Phase 3/5 — Cross-Brand-Fan-out (beide Namespaces) |
+| `cluster-deployment` | Phase 3/5 — Cross-Brand-Fan-out, Phase 5 (beide Namespaces) |
 
 ## Quelle der Learnings
 

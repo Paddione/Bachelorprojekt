@@ -214,5 +214,5 @@ cleanly with "No mishaps found."
 | Skill | Beziehung |
 |-------|-----------|
 | `secret-rotation` | Querschnitt — OIDC-Client-Secrets |
-| `fleet-ops` | Querschnitt — Cross-Brand Realm-Sync |
+| `cluster-deployment` | Querschnitt — Cross-Brand Realm-Sync (Phase 5) |
 | `mishap-tracker` | Abschluss — protokolliert Frictions |

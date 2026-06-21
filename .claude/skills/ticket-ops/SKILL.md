@@ -187,5 +187,5 @@ After completing all steps in this skill, invoke `mishap-tracker` with your accu
 | `incident-response` | Time-critical incidents — different workflow |
 | `mishap-tracker` | Converts execution mishaps to tickets |
 | `dev-flow-execute` | Takes AI-fixable tickets to implementation |
-| `fleet-ops` | Cross-brand issues |
+| `cluster-deployment` | Cross-brand issues (Phase 5) |
 | `database-ops` | DB-related tickets |

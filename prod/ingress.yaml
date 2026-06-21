@@ -267,6 +267,30 @@ spec:
                 port:
                   number: 4180
 ---
+# ── mentolder React-Site (react.PROD_DOMAIN) — öffentlich ─────
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: workspace-ingress-mentolder-web
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: "${WORKSPACE_NAMESPACE}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE}-hsts-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-security-headers@kubernetescrd"
+spec:
+  tls:
+    - hosts:
+        - react.${PROD_DOMAIN}
+      secretName: ${TLS_SECRET_NAME}
+  rules:
+    - host: react.${PROD_DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: mentolder-web
+                port:
+                  number: 80
+---
 # ── VideoVault — SSO via oauth2-proxy ──────────────────────────
 apiVersion: networking.k8s.io/v1
 kind: Ingress

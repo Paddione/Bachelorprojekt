@@ -178,16 +178,16 @@
 <body>
   <div class="header">
     <h1>⬡ Architektur — Living Docs</h1>
-    <span class="meta">Generiert: 2026-06-20T19:24:35.783Z</span>
+    <span class="meta">Generiert: 2026-06-21T05:05:40.777Z</span>
   </div>
 
   <div class="stats">
     <div class="stat">
-      <span class="stat-value">86</span>
+      <span class="stat-value">87</span>
       <span class="stat-label">Services</span>
     </div>
     <div class="stat">
-      <span class="stat-value">1860</span>
+      <span class="stat-value">1862</span>
       <span class="stat-label">Abhängigkeiten</span>
     </div>
     <div class="stat">
@@ -248,6 +248,7 @@ flowchart LR
   livekit_egress["livekit-egress"]:::default
   mailpit["mailpit"]:::default
   mediaviewer_widget["mediaviewer-widget"]:::default
+  mentolder_web["mentolder-web"]:::default
   monitoring_grafana["monitoring-grafana"]:::default
   monitoring_kube_state_metrics["monitoring-kube-state-metrics"]:::default
   monitoring_operator["monitoring-operator"]:::default
@@ -411,6 +412,7 @@ flowchart LR
   traefik -->|"ingress"| whiteboard
   traefik -->|"ingress"| spreed_signaling
   traefik -->|"ingress"| vaultwarden
+  traefik -->|"ingress"| mentolder_web
   traefik -->|"ingress"| oauth2_proxy_docs
   traefik -->|"ingress"| oauth2_proxy_brett
   traefik -->|"ingress"| oauth2_proxy_comfy
@@ -449,6 +451,7 @@ flowchart LR
   einvoice_sidecar -->|"selector"| einvoice_sidecar
   mailpit -->|"selector"| mailpit
   mediaviewer_widget -->|"selector"| mediaviewer_widget
+  mentolder_web -->|"selector"| mentolder_web
   monitoring_kube_state_metrics -->|"selector"| monitoring_kube_state_metrics
   monitoring_operator -->|"selector"| monitoring_operator
   loki_memberlist -->|"selector"| loki
@@ -2082,7 +2085,7 @@ flowchart LR
   website -->|"secret:staging-db-…"| shared_db_staging
       </div>
     </div>
-    <p class="diagram-caption">Alle 86 K8s-Services und ihre 1860 Abhängigkeitskanten (env-Refs, initContainer-Waits, Ingress-Backends)</p>
+    <p class="diagram-caption">Alle 87 K8s-Services und ihre 1862 Abhängigkeitskanten (env-Refs, initContainer-Waits, Ingress-Backends)</p>
   </div>
 
   <!-- K8s Topology Tab -->
@@ -2122,6 +2125,7 @@ flowchart TB
     livekit_egress["livekit-egress"]
     mailpit["mailpit"]
     mediaviewer_widget["mediaviewer-widget"]
+    mentolder_web["mentolder-web"]
     nextcloud_redis["nextcloud-redis"]
     nextcloud["nextcloud"]
     notify_unread(["notify-unread"])

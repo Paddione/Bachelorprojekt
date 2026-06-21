@@ -74,6 +74,16 @@ spec:
                 name: vaultwarden
                 port:
                   number: 80
+    - host: react.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: mentolder-web
+                port:
+                  number: 80
 ---
 
 # ─── Interne Tools (Docs, Brett — oauth2-proxy-protected) ────────

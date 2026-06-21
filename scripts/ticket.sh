@@ -679,9 +679,14 @@ _readiness_to_json() {
   echo "{$out}"
 }
 
+cmd_list() {
+  source "$(dirname "${BASH_SOURCE[0]}")/vda/ticket/list.sh"
+  main "$@"
+}
+
 if [[ $# -lt 1 ]]; then
   echo "Usage: $0 <command> [options]" >&2
-  echo "Commands: create, update-status, add-comment, add-pr-link, grill, archive-plan, get-attachments, get, set-touched-files, set-scout-drift, set-pipeline-slot, release-slot, touch, enqueue, stage-plan, retry-count, factory-control, dryrun-mark, dryrun-check, feature-flag, phase, inject, get-injections, plan-meta, lastenheft" >&2
+  echo "Commands: create, update-status, add-comment, add-pr-link, grill, archive-plan, get-attachments, get, set-touched-files, set-scout-drift, set-pipeline-slot, release-slot, touch, enqueue, stage-plan, retry-count, factory-control, dryrun-mark, dryrun-check, feature-flag, phase, inject, get-injections, plan-meta, lastenheft, list" >&2
   exit 1
 fi
 cmd="$1"; shift
@@ -699,6 +704,7 @@ case "$cmd" in
   set-pipeline-slot) cmd_set_pipeline_slot "$@" ;;
   release-slot)      cmd_release_slot "$@" ;;
   touch)             cmd_touch "$@" ;;
+  list)              cmd_list "$@" ;;
   enqueue)           cmd_enqueue "$@" ;;
   stage-plan)        cmd_stage_plan "$@" ;;
   retry-count)       cmd_retry_count "$@" ;;

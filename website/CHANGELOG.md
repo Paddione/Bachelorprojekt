@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.125.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.124.0...website-v1.125.0) (2026-06-21)
+
+
+### Features
+
+* **cockpit:** filter suggestion bar to significant features only ([99637a4](https://github.com/Paddione/Bachelorprojekt/commit/99637a4f11d5f409099da05822f5ddbcaeb0ea45))
+
 ## [1.124.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.123.0...website-v1.124.0) (2026-06-21)
 
 

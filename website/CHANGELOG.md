@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.124.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.123.0...website-v1.124.0) (2026-06-21)
+
+
+### Features
+
+* **security:** migrate from Keycloak to Pocket ID [T001068] ([#2042](https://github.com/Paddione/Bachelorprojekt/issues/2042)) ([1fe5859](https://github.com/Paddione/Bachelorprojekt/commit/1fe5859de2c014b047448a738b663332beb7bc9f))
+
+
+### Bug Fixes
+
+* **infra:** Pocket ID OIDC-Wiring — dev secrets + client seed job [T001087] ([#2053](https://github.com/Paddione/Bachelorprojekt/issues/2053)) ([7398dde](https://github.com/Paddione/Bachelorprojekt/commit/7398dde45263258eb02fc9a9dc0d8af6a6fb215c))
+
 ## [1.123.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.122.0...website-v1.123.0) (2026-06-21)
 
 

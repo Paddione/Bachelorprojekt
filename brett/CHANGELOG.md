@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.34.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.33.0...brett-v0.34.0) (2026-06-21)
+
+
+### Features
+
+* **security:** migrate from Keycloak to Pocket ID [T001068] ([#2042](https://github.com/Paddione/Bachelorprojekt/issues/2042)) ([1fe5859](https://github.com/Paddione/Bachelorprojekt/commit/1fe5859de2c014b047448a738b663332beb7bc9f))
+
 ## [0.33.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.32.0...brett-v0.33.0) (2026-06-14)
 
 

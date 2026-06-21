@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.122.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.121.0...website-v1.122.0) (2026-06-21)
+
+
+### Features
+
+* **mentolder-web:** react homepage block-system P1 [T001056] ([#2034](https://github.com/Paddione/Bachelorprojekt/issues/2034)) ([2bb6f22](https://github.com/Paddione/Bachelorprojekt/commit/2bb6f228db330d648d68e8f42e9fda963ea4a9c1))
+
 ## [1.121.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.120.0...website-v1.121.0) (2026-06-21)
 
 

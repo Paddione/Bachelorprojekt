@@ -1,0 +1,82 @@
+name: Build & Deploy mentolder-web
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'mentolder-web/**'
+      - '.github/workflows/build-mentolder-web.yml'
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy (react.mentolder.de)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda  # v4.1.0
+        with:
+          version: 10
+
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444  # v5
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+          cache-dependency-path: mentolder-web/pnpm-lock.yaml
+
+      - name: Typecheck
+        run: |
+          cd mentolder-web
+          pnpm install --frozen-lockfile
+          pnpm run typecheck
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9  # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get short SHA
+        id: version
+        run: echo "sha=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Build & push Docker image
+        env:
+          VITE_FORMSPREE_ENDPOINT: ${{ secrets.MENTOLDER_WEB_FORMSPREE_ENDPOINT }}
+          SHA_TAG: ${{ steps.version.outputs.sha }}
+        run: |
+          IMAGE="ghcr.io/paddione/mentolder-web"
+
+          docker build \
+            --build-arg VITE_FORMSPREE_ENDPOINT="${VITE_FORMSPREE_ENDPOINT}" \
+            --tag "${IMAGE}:latest" \
+            --tag "${IMAGE}:${SHA_TAG}" \
+            --file mentolder-web/Dockerfile \
+            .
+
+          docker push "${IMAGE}:latest"
+          docker push "${IMAGE}:${SHA_TAG}"
+
+      - name: Deploy to fleet (react.mentolder.de)
+        env:
+          KUBECONFIG_DATA: ${{ secrets.FLEET_KUBECONFIG }}
+          SHA_TAG: ${{ steps.version.outputs.sha }}
+        run: |
+          curl -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" \
+            -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
+          mkdir -p ~/.kube
+          echo "$KUBECONFIG_DATA" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+          # Pin to exact SHA — forces rollout of the freshly built image
+          kubectl set image deployment/mentolder-web \
+            "mentolder-web=ghcr.io/paddione/mentolder-web:${SHA_TAG}" \
+            -n workspace
+          kubectl rollout status deployment/mentolder-web -n workspace --timeout=120s

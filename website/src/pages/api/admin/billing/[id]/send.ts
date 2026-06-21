@@ -37,7 +37,7 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
 
   const cityParts = (s.invoice_sender_city ?? '').trim();
   if (!cityParts) {
-    console.warn('[billing/send] invoice_sender_city not configured for brand', brand);
+    locals.requestLogger.warn({ brand }, '[billing/send] invoice_sender_city not configured');
   }
   const seller: InvoicePdfSeller = {
     name:       s.invoice_sender_name,

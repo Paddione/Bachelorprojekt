@@ -5,7 +5,7 @@ import { pool } from '../../../../../lib/website-db';
 
 export const prerender = false;
 
-export const GET: APIRoute = async ({ request }) => {
+export const GET: APIRoute = async ({ request, locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) {
     return new Response('Unauthorized', { status: 401 });
@@ -16,7 +16,7 @@ export const GET: APIRoute = async ({ request }) => {
     books = await listBooks(pool);
   } catch (err) {
     // coaching schema may not exist on this cluster yet — return empty list
-    console.warn('[api/admin/coaching/books] listBooks failed:', err instanceof Error ? err.message : err);
+    locals.requestLogger.warn({ err }, '[api/admin/coaching/books] listBooks failed');
   }
   return new Response(JSON.stringify({ books }), {
     status: 200,

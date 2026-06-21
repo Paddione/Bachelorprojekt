@@ -60,7 +60,6 @@ patches:
   # placement-independently (mirrors prod-mentolder). [T000403]
   - path: patch-data-pvc-storage.yaml
   - path: patch-cronjob-urls.yaml
-  - path: patch-mcp-config.yaml
 
   # ── Standalone korczewski node placement ──────────────────────
   # Base manifests pin certain workloads to the mentolder Hetzner CPs

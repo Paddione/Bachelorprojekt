@@ -30,7 +30,6 @@
     - "prod-korczewski/**"
     - "environments/**"
     - "k3s/**"
-    - "deploy/**"
     - "wireguard/**"
     - "docker/**"
     - "mcp-browser/**"

@@ -765,12 +765,6 @@ secrets:
     length: 40
     description: "OIDC client secret for the `recovery` Pocket ID client (oauth2-proxy-recovery in k3d/recovery-browser.yaml)."
 
-  - name: POCKET_ID_CLAUDE_CODE_SECRET
-    required: false
-    generate: true
-    length: 40
-    description: "OIDC client secret for the `claude-code-mcp-monolith` Pocket ID client (claude-code-mcp-auth-proxy)."
-
   - name: POCKET_ID_NEXTCLOUD_SECRET
     required: false
     generate: true
@@ -880,7 +874,7 @@ secrets:
       - namespace: monitoring
         secret: otel-collector-auth
 
-  # Claude Code
+  # Claude Code WebUI authentication
   - name: CLAUDE_CODE_OIDC_SECRET
     required: true
     generate: true
@@ -890,21 +884,6 @@ secrets:
     required: true
     generate: true
     length: 48
-
-  # MCP Keycloak (korczewski-legacy — replaced by Pocket ID, T001068)
-  - name: MCP_KEYCLOAK_CLIENT_ID
-    required: false
-    legacy_only: true
-    description: "DECOMMISSIONED — replaced by Pocket ID (T001068)"
-  - name: MCP_KEYCLOAK_CLIENT_SECRET
-    required: false
-    sealed: true
-    legacy_only: true
-    description: "DECOMMISSIONED — replaced by Pocket ID (T001068)"
-  - name: MCP_KEYCLOAK_REALM_URL
-    required: false
-    legacy_only: true
-    description: "DECOMMISSIONED — replaced by Pocket ID (T001068)"
 
   # External service keys (user-provided)
   - name: GITHUB_PAT

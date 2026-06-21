@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 
 const links: ReadonlyArray<{ to: string; label: string }> = [
@@ -12,18 +12,8 @@ const BRAND_NAME = (import.meta.env.VITE_BRAND_NAME ?? 'mentolder').toLowerCase(
 const LOCATION_LABEL = import.meta.env.VITE_CONTACT_CITY ?? 'Lüneburg';
 
 export function Navigation() {
-  const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
-
-  useEffect(() => {
-    function onScroll() {
-      setScrolled(window.scrollY > 12);
-    }
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
 
   useEffect(() => {
     setMobileOpen(false);
@@ -31,14 +21,14 @@ export function Navigation() {
 
   return (
     <header
-      className={`sticky top-0 z-50 border-b transition-colors duration-200 ${
-        scrolled
-          ? 'bg-ink-900/80 backdrop-blur-md border-line'
-          : 'bg-ink-900/0 border-transparent'
-      }`}
+      className="sticky top-0 z-50 border-b border-line/60 backdrop-saturate-110"
+      style={{
+        background: 'linear-gradient(to bottom, rgba(11,17,28,0.92), rgba(11,17,28,0.72))',
+        backdropFilter: 'blur(14px) saturate(1.1)',
+      }}
       aria-label="Hauptnavigation"
     >
-      <div className="nav-wrap max-w-[1240px] mx-auto px-10 max-md:px-[22px] flex items-center justify-between gap-6 h-[68px]">
+      <div className="nav-wrap max-w-[1240px] mx-auto px-10 max-md:px-[22px] flex items-center justify-between gap-6 h-[72px]">
         {/* Brand mark */}
         <Link
           to="/"
@@ -65,7 +55,7 @@ export function Navigation() {
 
         {/* Desktop nav */}
         <nav
-          className="hidden md:flex items-center gap-7"
+          className="hidden md:flex items-center gap-[34px]"
           aria-label="Hauptmenü"
         >
           {links.map((link) => (
@@ -87,9 +77,27 @@ export function Navigation() {
         </nav>
 
         <div className="hidden md:flex items-center gap-4">
-          <span className="font-mono text-[10px] tracking-[0.18em] uppercase text-mute-2">
+          <span className="font-mono text-[11px] letter-spacing-[0.06em] text-mute">
             {LOCATION_LABEL}
           </span>
+          <Link
+            to="/kontakt"
+            className="inline-flex items-center gap-2 no-underline text-ink-900 font-medium"
+            style={{
+              fontSize: '13px',
+              padding: '10px 16px',
+              borderRadius: '999px',
+              background: 'var(--brass)',
+              transition: 'background 0.2s ease',
+            }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = 'var(--brass-2)'; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = 'var(--brass)'; }}
+          >
+            Erstgespräch
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-[12px] h-[12px]" aria-hidden="true">
+              <path d="M2 7h10M8 3l4 4-4 4" />
+            </svg>
+          </Link>
         </div>
 
         {/* Mobile menu button */}

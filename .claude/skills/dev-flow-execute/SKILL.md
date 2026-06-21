@@ -1,6 +1,6 @@
 ---
 name: dev-flow-execute
-description: Use when on a feature/* or fix/* branch that has a staged plan in openspec/changes/ ready to implement. Invoke after dev-flow-plan has committed and pushed the plan to the branch. Also supports batch orchestration of multiple staged plans.
+description: Use when on a feature/* or fix/* branch that has a staged plan in openspec/changes/ ready to implement. Invoke after dev-flow-plan has committed and pushed the plan to the branch.
 ---
 
 # dev-flow-execute — Plan-Ausführung & PR
@@ -8,8 +8,6 @@ description: Use when on a feature/* or fix/* branch that has a staged plan in o
 ## Wann diese Skill greift
 
 Du bist auf einem `feature/*` oder `fix/*` Branch. `dev-flow-plan` hat Spec und Plan committed und gepusht. Jetzt soll implementiert werden.
-
-**ODER:** Du willst mehrere staged plans als Batch orchestrieren (Batch-Modus).
 
 **Sage zu Beginn:** "Ich nutze dev-flow-execute zur Plan-Ausführung."
 
@@ -29,184 +27,24 @@ Du bist auf einem `feature/*` oder `fix/*` Branch. `dev-flow-plan` hat Spec und 
 ```
 
 **EINSTIEG:** Feature/Fix-Branch mit `plan_staged` Ticket — von `dev-flow-plan` übergeben  
-**AUSSTIEG:** PR gemergt zu `main`, Worktree bereinigt, Ticket `qa_review`, Kreislauf geschlossen  
-**Voraussetzung:** `dev-flow-plan` hat `FACTORY-PLAN-REF` Kommentar im Ticket hinterlegt
+**AUSSTIEG:** PR gemergt zu `main`, Worktree bereinigt, Ticket `qa_review`, OpenSpec archiviert, Kreislauf geschlossen  
+**Voraussetzung:** `dev-flow-plan` hat Branch + Plan-Pfad via `ticket.sh stage-plan` in der DB verankert
 
 ---
 
-## Modus-Erkennung: Single vs Batch
+## Ticket-ID ermitteln
 
-Prüfe ob ein einzelner Plan oder mehrere Pläne ausgeführt werden sollen:
-
-**DB-Abfragen — MCP-Schnellweg bevorzugen.** Ist `mcp-postgres` erreichbar (Guard:
-`bash scripts/mcp-portforward.sh status`), nutze das `mcp__mcp-postgres__query`-Tool direkt
-(nur `sql`, read-only):
-> `sql:` `SELECT external_id, title, priority, COALESCE(value_prop,'') FROM tickets.tickets WHERE status='plan_staged' ORDER BY planning_rank ASC NULLS LAST, created_at DESC;`
-
-Setze `STAGED_PLANS` aus dem MCP-Ergebnis. **Fallback** (MCP nicht erreichbar / kein Portforward) —
-der kubectl-Block unten. Details: [`MCP-Tool-Guide`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#mcp-tool-guide).
-
-_Fallback:_
+Falls `TICKET_ID` nicht bereits im Kontext gesetzt ist (z.B. vom User oder aus dem Branch-Namen ableitbar):
 
 ```bash
-# Wenn TICKET_ID bereits gesetzt ist → direkt Single-Modus, kein Query nötig
-STAGED_PLANS=$(kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -F '|' -c \
-  "SELECT external_id, title, priority, COALESCE(value_prop,'')
-   FROM tickets.tickets WHERE status='plan_staged'
-   ORDER BY planning_rank ASC NULLS LAST, created_at DESC;" 2>/dev/null)
-
-STAGED_COUNT=$(echo "$STAGED_PLANS" | grep -c '|' 2>/dev/null || echo 0)
+# Plan-Metadaten aus der DB holen (MCP-Schnellweg wenn mcp-postgres erreichbar):
+# sql: SELECT external_id, title FROM tickets.tickets WHERE status='plan_staged' ORDER BY planning_rank ASC NULLS LAST, created_at DESC LIMIT 10;
+# Fallback:
+kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -F '|' -c \
+  "SELECT external_id, title FROM tickets.tickets WHERE status='plan_staged' ORDER BY planning_rank ASC NULLS LAST, created_at DESC LIMIT 10;"
 ```
 
-**Entscheidungslogik (kein interaktives `read` — nutze AskUserQuestion-Tool):**
-
-- **TICKET_ID bereits im Kontext gesetzt** (z.B. von dev-flow-plan oder User-Angabe) → `EXECUTE_MODE="single"`, weiter zu Single-Modus.
-- **STAGED_COUNT == 1** → automatisch Single-Modus; `TICKET_ID` aus erster Zeile von `$STAGED_PLANS` extrahieren.
-- **STAGED_COUNT == 0** → keine staged plans. Frage den User via `AskUserQuestion`-Tool nach der Ticket-ID, oder weise darauf hin, erst `dev-flow-plan` auszuführen.
-- **STAGED_COUNT > 1** → Frage den User via `AskUserQuestion`-Tool:
-  - Frage: „Mehrere staged plans gefunden — wie soll vorgegangen werden?"
-  - Zeige die Liste (`$STAGED_PLANS`) im Text vor der Frage.
-  - Option A: „Single-Modus — einen bestimmten Plan implementieren" → dann konkrete Ticket-ID erfragen.
-  - Option B: „Batch-Modus — alle staged plans parallel orchestrieren" → `EXECUTE_MODE="batch"`.
-
----
-
-## Batch-Modus: Mehrere Pläne parallel orchestrieren
-
-Wenn `EXECUTE_MODE="batch"`:
-
-### Batch-Schritt 1: Alle staged plans laden
-
-**MCP-Schnellweg (read-only SELECT).** Wenn `mcp-postgres` erreichbar, hole dieselbe Zeilen-Menge
-via `mcp__mcp-postgres__query` (`sql:` = die SELECT-Anweisung aus dem Block unten, ohne das
-`kubectl exec … -t -A -F '|'`-Gerüst) und parse das Ergebnis in `BATCH_ITEMS`. Der `kubectl`-Block
-unten ist der **Fallback**.
-
-_Fallback:_
-
-```bash
-# Alle staged plans mit Plan-Referenzen laden
-BATCH_PLANS_JSON=$(kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -F '|' -c \
-  "SELECT external_id, title, priority, COALESCE(value_prop,''), COALESCE(effort,''),
-   array_to_string(areas,','),
-   (SELECT c.body FROM tickets.ticket_comments c
-    WHERE c.ticket_id = t.id AND c.body LIKE 'FACTORY-PLAN-REF %'
-    ORDER BY c.created_at DESC LIMIT 1)
-   FROM tickets.tickets t WHERE status='plan_staged'
-   ORDER BY planning_rank ASC NULLS LAST, created_at DESC;" 2>/dev/null)
-
-# In JSON-Array konvertieren
-BATCH_ITEMS=()
-while IFS='|' read -r ext_id title priority value_prop effort areas plan_ref; do
-  [[ -z "$ext_id" ]] && continue
-
-  # Plan-Referenz parsen
-  BRANCH=$(echo "$plan_ref" | sed -n 's/.*branch=\([^ ]*\).*/\1/p')
-  PLAN_FILE=$(echo "$plan_ref" | sed -n 's/.*plan=\([^ ]*\).*/\1/p')
-
-  BATCH_ITEMS+=("{
-    \"ticket_id\": \"$ext_id\",
-    \"title\": \"$title\",
-    \"priority\": \"$priority\",
-    \"branch\": \"$BRANCH\",
-    \"plan_file\": \"$PLAN_FILE\"
-  }")
-done <<< "$BATCH_PLANS_JSON"
-
-BATCH_JSON=$(printf '%s\n' "${BATCH_ITEMS[@]}" | jq -s '.')
-BATCH_COUNT=$(echo "$BATCH_JSON" | jq 'length')
-
-echo "📋 Batch-Orchestrierung: $BATCH_COUNT Pläne"
-echo "$BATCH_JSON" | jq -r '.[] | "  • \(.ticket_id) [\(.priority)] \(.title) → \(.branch)"'
-```
-
-### Batch-Schritt 2: Worktrees für alle Pläne vorbereiten
-
-```bash
-MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
-WORKTREE_DIR="$MAIN_REPO/tmp/wt-batch-execute-$(date +%s)"
-
-# Für jeden Plan: Worktree erstellen und Plan-Datei validieren
-echo "$BATCH_JSON" | jq -c '.[]' | while read -r item; do
-  TICKET_ID=$(echo "$item" | jq -r '.ticket_id')
-  BRANCH=$(echo "$item" | jq -r '.branch')
-  PLAN_FILE=$(echo "$item" | jq -r '.plan_file')
-
-  WT_PATH="$MAIN_REPO/tmp/wt-execute-$TICKET_ID"
-
-  # Worktree erstellen (falls nicht vorhanden)
-  if [[ ! -d "$WT_PATH" ]]; then
-    bash scripts/worktree-create.sh "$BRANCH" "$WT_PATH" 2>/dev/null || {
-      echo "⚠️  Worktree für $TICKET_ID ($BRANCH) konnte nicht erstellt werden — übersprungen"
-      continue
-    }
-  fi
-
-  # Plan-Datei prüfen
-  if [[ ! -f "$WT_PATH/$PLAN_FILE" ]]; then
-    echo "⚠️  Plan-Datei $PLAN_FILE fehlt in $WT_PATH — übersprungen"
-    continue
-  fi
-
-  echo "✅ Worktree bereit: $TICKET_ID → $WT_PATH"
-done
-```
-
-### Batch-Schritt 3: Parallele Implementierung orchestrieren
-
-Setze alle Tickets auf `in_progress` und spawne für jeden Plan **einen separaten Implementer-Subagenten** via `invoke_subagent` (Gemini/Antigravity) bzw. `Agent`-Tool (Claude Code) — alle parallel (d.h. in einer einzigen Antwort mehrere Subagenten-Calls ohne auf das Ergebnis des vorherigen zu warten):
-
-```bash
-# Tickets auf in_progress setzen (sequentiell, schnell)
-echo "$BATCH_JSON" | jq -r '.[].ticket_id' | while read -r tid; do
-  ./scripts/vda.sh ticket update-status --id "$tid" --status in_progress || true
-done
-```
-
-Starte danach **für jedes Element aus `$BATCH_JSON`** einen Subagenten:
-* **Gemini/Antigravity CLI:** call `invoke_subagent` with `TypeName: "self"` (or `"research"`), `Role: "Implementer <TICKET_ID>"`, and `Workspace: "share"` (or `"inherit"`).
-* **Claude Code CLI:** call `Agent`-Tool with `subagent_type: "general-purpose"`, choosing the appropriate model/slot from routing, and setting `run_in_background: true`.
-- **Prompt** (Kontext-Injektion, da der Subagent KEINEN Kontext hat):
-  ```
-  /goal Finish dev-flow-execute and merge the PR cleanly.
-
-  Du implementierst Ticket <TICKET_ID> im Worktree <WT_PATH> (Branch: <BRANCH>).
-  Plan-Datei: <WT_PATH>/<PLAN_FILE>.
-
-  Führe aus: Schritt 1.4 bis Schritt 7.5 aus dev-flow-execute (Single-Modus) —
-  d.h. Doppelarbeit-Guard, Ticket in_progress, Implementierung via superpowers:executing-plans,
-  lokale Verifikation (task test:changed; dann task freshness:regenerate + git add <generierte Dateien> + commit + task freshness:check), Code-Review-Gate,
-  PR öffnen, CI-Fix-Schleife, Auto-Merge, Ticket abschließen, Plan archivieren,
-  Worktree bereinigen.
-
-  Erstelle KEINEN weiteren Batch-Modus. TICKET_ID=$<TICKET_ID>.
-  Hauptrepo: <MAIN_REPO>.
-  ```
-
-Nach dem Spawnen aller Subagenten:
-
-**Fortschritt per MCP (read-only).** `mcp__mcp-postgres__query` mit
-`sql:` `SELECT external_id, status, title FROM tickets.tickets WHERE external_id IN (<TICKET_IDs>) ORDER BY status;`
-— sonst der kubectl-Befehl unten.
-
-_Fallback:_
-
-```
-✅ Batch-Orchestrierung gestartet: $BATCH_COUNT Implementierungen laufen parallel
-
-📊 Fortschritt verfolgen:
-kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -c \
-  "SELECT external_id, status, title FROM tickets.tickets
-   WHERE external_id IN (<kommagetrennte TICKET_IDs>) ORDER BY status;"
-```
-
-**STOPP** nach Batch-Start. Die Implementierungen laufen parallel. Warte auf die Subagenten-Ergebnisse (du wirst benachrichtigt wenn `run_in_background`-Agenten fertig sind) oder verfolge den Fortschritt über die DB-Query.
-
----
-
-## Single-Modus: Einzelnen Plan implementieren
-
-Wenn `EXECUTE_MODE="single"`:
+Bei mehreren staged plans den User via `AskUserQuestion`-Tool nach der gewünschten Ticket-ID fragen.
 
 ---
 
@@ -251,8 +89,8 @@ git submodule update --init --recursive
 ## Schritt 1: Plan-Pfad aus der Datenbank laden (Single Source of Truth)
 
 Der Plan-Pfad wird von `dev-flow-plan` via `ticket.sh stage-plan` in der Datenbank gespeichert
-(als `FACTORY-PLAN-REF branch=<branch> plan=<plan_path>` Kommentar). **Niemals** per Glob raten —
-immer die DB als Quelle nutzen, genau wie der Factory-Dispatcher.
+(als `FACTORY-PLAN-REF branch=<branch> plan=<plan_path>` Kommentar im Ticket). **Niemals** per Glob raten —
+immer die DB als Quelle nutzen.
 
 ```bash
 # TICKET_ID muss bekannt sein (aus Branch-Name, User-Input, oder ticket.sh get --branch <branch>)
@@ -316,7 +154,7 @@ SLUG=$(basename "$PLAN_FILE" .md)
 ./scripts/ticket.sh phase "$TICKET_ID" plan entered --driver devflow --detail "Plan: $SLUG · $TICKET_ID" || true
 ```
 
-Falls der Plan die berührten Dateien kennt, registriere sie für die Conflict-Gate (damit ein paralleler Factory-Lauf die Kollision sieht):
+Falls der Plan die berührten Dateien kennt, registriere sie für die Conflict-Gate (parallele Sessions sehen die Kollision via `agent-collision.sh`):
 
 ```bash
 ./scripts/ticket.sh set-touched-files --id "$TICKET_ID" --files "<comma-separated-paths>"
@@ -353,17 +191,6 @@ Spawne den Subagenten:
 * **Gemini/Antigravity CLI:** call `invoke_subagent` with `TypeName: "self"` (inherits permissions and tools), `Role: "Implementer <TICKET_ID>"`, and `Workspace: "share"` (or `"inherit"`).
 * **Claude Code CLI:** Spawne über das `Agent`/`Task`-Tool einen Subagenten, **provisioniert gemäß** [subagent-provisioning](file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#subagent-provisioning) (Modell · Effort · Kontext):
   * **Modell — nach Plan-Charakter wählen, nicht pauschal:** mechanisch (Config/Doku/Single-File) $\rightarrow$ `haiku`; Standard-Feature/Fix $\rightarrow$ `sonnet`; komplex/riskant (systemübergreifend, Architektur, DB-Migration, Auto-Deploy) $\rightarrow$ `opus`.
-  * **Provider-Routing (Kosten/Resilienz):** Vor dem Spawnen den Provider routen:
-    ```bash
-    ROUTE=$(bash scripts/factory/route-provider.sh dev-flow-execute sonnet)
-    MODEL=$(echo "$ROUTE" | jq -r .modelId)
-    SLOT=$(echo "$ROUTE" | jq -r .slotId)
-    ```
-    Subagent mit `--model "$MODEL"` spawnen. Danach den Slot freigeben:
-    ```bash
-    bash scripts/factory/release-slot.sh "$SLOT" true   # false bei Fehlschlag → Circuit-Breaker
-    ```
-    `opus`/plan-kritische Subagenten IMMER ohne Routing (hardcodiert Anthropic).
   * **Effort per Prompt-Direktive** (das `Agent`-Tool kennt keinen Effort-Regler): mechanisch „Arbeite zügig und fokussiert."; komplex/riskant „Ultrathink. Denke sehr gründlich nach."
   * `subagent_type: general-purpose`.
 - **Kontext-Injektion** (er hat sonst KEINEN Kontext — gib ihm alles explizit):
@@ -567,18 +394,19 @@ PR_NUM=$(gh pr view --json number -q '.number')
 
 ---
 
-## Schritt 7: Plan archivieren & Datei löschen
+## Schritt 7: Plan & OpenSpec archivieren
 
-Übertrage den Plan in die Datenbank und lösche die lokale Datei:
+Zwei Schritte: (1) `tasks.md` nach postgres, (2) den gesamten OpenSpec-Change-Ordner ins Archiv.
 
 ```bash
 SLUG="<slug>"
 BRANCH="feature/<slug>" # oder fix/<slug>
 PR_NUM=$(gh pr view --json number -q '.number' 2>/dev/null || echo "")
 
-# Plan-Frontmatter auf completed setzen, BEVOR der Inhalt archiviert wird (Fix 3/4):
+# 1. Plan-Frontmatter auf completed setzen, BEVOR der Inhalt archiviert wird:
 sed -i 's/^status: active$/status: completed/' "$PLAN_FILE"
 
+# 2. tasks.md → postgres (tickets.ticket_plans)
 ./scripts/ticket.sh archive-plan \
   --id "$TICKET_ID" \
   --slug "$SLUG" \
@@ -586,16 +414,19 @@ sed -i 's/^status: active$/status: completed/' "$PLAN_FILE"
   --plan-file "$PLAN_FILE" \
   --pr "$PR_NUM"
 
-# Plan lokal löschen und Änderungen via PR committen
-rm "$PLAN_FILE"
-git add "$PLAN_FILE"
-git commit -m "chore(plans): archive $SLUG → postgres [$TICKET_ID]"
+# 3. OpenSpec-Change archivieren: openspec/changes/<slug>/ → openspec/changes/archive/<date>-<slug>/
+#    Verschiebt proposal.md, tasks.md, specs/, assets/ ins Archiv und aktualisiert den SSOT-Delta.
+bash scripts/openspec.sh archive "$SLUG"
+# Alternativ: task openspec:archive -- "$SLUG"
 
-# Archiver-Branch anlegen und mergen (wegen Branch-Protection)
+# 4. Archivierung committen und via PR mergen (wegen Branch-Protection)
+git add openspec/changes/ openspec/changes/archive/
+git commit -m "chore(plans): archive $SLUG → postgres + openspec/archive [$TICKET_ID]"
+
 ARCHIVE_BRANCH="chore/plan-archive-${SLUG//\//-}"
 git checkout -b "$ARCHIVE_BRANCH"
 git push -u origin "$ARCHIVE_BRANCH"
-gh pr create --title "chore(plans): archive $SLUG → postgres [$TICKET_ID]" --base main
+gh pr create --title "chore(plans): archive $SLUG → postgres + openspec/archive [$TICKET_ID]" --base main
 gh pr merge --auto --squash --delete-branch
 ```
 

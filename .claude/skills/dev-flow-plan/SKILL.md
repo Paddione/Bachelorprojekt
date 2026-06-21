@@ -120,7 +120,7 @@ Verwende einen Code-Explorer Subagenten, um die Code-Pfade und Architektur vor d
 
 ### Schritt 1.7: Design-Bundle co-lokalisieren (nur Design-/UI-Tickets)
 
-Wenn das Ticket einen Design-Handoff hat (claude.ai-Design-Session → Bundle-ID), ziehe das Bundle **direkt neben den Plan** in den Branch, damit sowohl `dev-flow-execute` als auch die Factory (liest den Branch via `git show` + Reuse-Worktree) Intent **und** Assets auf Platte haben. Andernfalls überspringe diesen Schritt.
+Wenn das Ticket einen Design-Handoff hat (claude.ai-Design-Session → Bundle-ID), ziehe das Bundle **direkt neben den Plan** in den Branch, damit `dev-flow-execute` Intent **und** Assets auf Platte hat. Andernfalls überspringe diesen Schritt.
 
 ```bash
 SLUG="<slug>"
@@ -143,8 +143,7 @@ und **Export-Vollständigkeit** (Anzahl gelieferter Dateien vs. im Intent spezif
 Alt-Assets werden **nicht** mitkopiert — der Abgleich passiert in-place gegen die echte
 Repo-Datei (`git diff` / `Read` der Live-Datei) erst beim Verbauen, nicht als Plan-Ballast.
 
-Zusätzlich die Schlüsseldateien ans Ticket hängen (autonome Factory-Design-Phase materialisiert
-Attachments nach `assets-inbox/`):
+Zusätzlich die Schlüsseldateien ans Ticket hängen:
 ```bash
 bash scripts/ticket-attach.sh "$TICKET_UUID" "${DESIGN_DIR}/intent.md" "${DESIGN_DIR}"/new/*.svg
 ```
@@ -249,8 +248,7 @@ else
   echo "✅ Wiederverwende bestehendes Ticket $TICKET_EXT_ID"
 fi
 
-# Plan in die Kommissionierung stellen: type=feature, status=plan_staged.
-# Read-only sichtbar in /dev-status; wartet auf manuelle Freigabe (-> Factory / -> Manuell).
+# Plan stagen: Branch + Plan-Pfad im Ticket verankern (Single Source of Truth für dev-flow-execute).
 ./scripts/ticket.sh stage-plan \
   --id "$TICKET_EXT_ID" \
   --branch "feature/<slug>" \
@@ -291,13 +289,7 @@ bash scripts/plan-review/plan-review.sh result
 
 Details siehe [plan-review-ui](file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#plan-review-ui).
 
-### Schritt 6.5: Batch-Status prüfen und Ausführungsoptionen anzeigen
-
-Lade `STAGED_PLANS` + `PLANNING_COUNT` (MCP-Schnellweg oder kubectl-Fallback) und gib die
-Ausführungsoptionen aus — Format und Empfehlung sind identisch zum Fix-Pfad. Vollständige
-Logik + Output-Template: [references/plan-batch-status.md](references/plan-batch-status.md).
-
-**STOPP** nach dem Ausgabe-Block.
+**STOPP.** Branch, Spec und Plan sind committed und gepusht. Nächster Schritt: `dev-flow-execute` aufrufen.
 
 ---
 
@@ -348,8 +340,7 @@ Rufe `superpowers:writing-plans` auf. Wende das Frontmatter an und trage die Tic
   --branch "fix/<slug>" \
   --plan "openspec/changes/<slug>/tasks.md"
 ```
-Damit ist das Fix-Ticket in der Kommissionierung sichtbar und kann via UI-Knopf oder
-`ticket.sh enqueue` an die Factory übergeben werden.
+Damit ist das Fix-Ticket als `plan_staged` in der DB verankert und für `dev-flow-execute` bereit.
 
 ### Schritt 5: Commit & Push
 
@@ -360,9 +351,7 @@ git commit -m "fix(<scope>): add failing test + stage plan [$TICKET_EXT_ID]"
 git push -u origin $(git branch --show-current)
 ```
 
-### Schritt 6: Batch-Status prüfen und Ausführungsoptionen anzeigen
-
-Identische Logik wie Feature-Pfad Schritt 6.5 — siehe [references/plan-batch-status.md](references/plan-batch-status.md). **STOPP** nach dem Ausgabe-Block.
+**STOPP.** Failing Test, Spec und Plan sind committed und gepusht. Nächster Schritt: `dev-flow-execute` aufrufen.
 
 ---
 

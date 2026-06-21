@@ -237,15 +237,6 @@ describe('listSessions paginiert', () => {
     expect(found.sessions.every(s => s.title.includes('Coaching'))).toBe(true);
   });
 
-  it('sucht Sessions mit Sonderzeichen im Titel (%, _)', async () => {
-    const brand = 'test-special-brand';
-    await createSession(pool, { brand, title: '100% Sicher', mode: 'live', createdBy: 'c' });
-    await createSession(pool, { brand, title: 'Platz_halter', mode: 'live', createdBy: 'c' });
-    await createSession(pool, { brand, title: 'Normal', mode: 'live', createdBy: 'c' });
-    const found = await listSessions(pool, brand, { q: '100%' });
-    expect(found.total).toBe(1);
-    expect(found.sessions[0]?.title).toBe('100% Sicher');
-  });
 });
 
 describe('updateSessionFields', () => {

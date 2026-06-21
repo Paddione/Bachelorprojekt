@@ -178,16 +178,16 @@
 <body>
   <div class="header">
     <h1>⬡ Architektur — Living Docs</h1>
-    <span class="meta">Generiert: 2026-06-21T06:26:31.514Z</span>
+    <span class="meta">Generiert: 2026-06-21T10:50:53.424Z</span>
   </div>
 
   <div class="stats">
     <div class="stat">
-      <span class="stat-value">87</span>
+      <span class="stat-value">88</span>
       <span class="stat-label">Services</span>
     </div>
     <div class="stat">
-      <span class="stat-value">1862</span>
+      <span class="stat-value">1945</span>
       <span class="stat-label">Abhängigkeiten</span>
     </div>
     <div class="stat">
@@ -214,6 +214,7 @@ flowchart LR
   classDef auth fill:#1a1a1a,stroke:#8b5cf6,color:#8b5cf6
   admin_actions_cleanup["admin-actions-cleanup"]:::default
   admin_actions_prune["admin-actions-prune"]:::default
+  sessions_purge["sessions-purge"]:::default
   db_backup["db-backup"]:::default
   brett["brett"]:::default
   mcp_browser["mcp-browser"]:::default
@@ -303,6 +304,7 @@ flowchart LR
   admin_actions_cleanup -->|"PGUSER"| website
   admin_actions_prune -->|"PGHOST"| shared_db
   admin_actions_prune -->|"PGUSER"| website
+  sessions_purge -->|"command"| website
   db_backup -->|"command"| shared_db
   db_backup -->|"command"| keycloak
   db_backup -->|"command"| nextcloud
@@ -478,6 +480,8 @@ flowchart LR
   arena_server -->|"selector"| arena_server
   admin_actions_cleanup -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| admin_actions_cleanup
+  admin_actions_cleanup -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| brett
@@ -555,6 +559,8 @@ flowchart LR
   arena_server -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| admin_actions_cleanup
+  admin_actions_prune -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| brett
@@ -632,6 +638,84 @@ flowchart LR
   arena_server -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| admin_actions_prune
+  sessions_purge -->|"secret:workspace-s…"| db_backup
+  db_backup -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| brett
+  brett -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| mcp_github
+  mcp_github -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| claude_code_mcp_ops
+  claude_code_mcp_ops -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| billing_dunning_detection
+  billing_dunning_detection -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| monthly_billing
+  monthly_billing -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| scheduled_publish
+  scheduled_publish -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
+  oauth2_proxy_brainstorm -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| oauth2_proxy_dev
+  oauth2_proxy_dev -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| keycloak
+  keycloak -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| knowledge_ingest_prs
+  knowledge_ingest_prs -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| knowledge_ingest_bugs
+  knowledge_ingest_bugs -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| knowledge_reindex_all
+  knowledge_reindex_all -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| livekit_server
+  livekit_server -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| livekit_ingress
+  livekit_ingress -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| livekit_egress
+  livekit_egress -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| nextcloud
+  nextcloud -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| notify_unread
+  notify_unread -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| oauth2_proxy_brett
+  oauth2_proxy_brett -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| oauth2_proxy_comfy
+  oauth2_proxy_comfy -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| oauth2_proxy_docs
+  oauth2_proxy_docs -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| oauth2_proxy_mailpit
+  oauth2_proxy_mailpit -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
+  oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| oauth2_proxy_traefik
+  oauth2_proxy_traefik -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| oauth2_proxy_videovault
+  oauth2_proxy_videovault -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| oauth2_proxy_recovery
+  oauth2_proxy_recovery -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| shared_db
+  shared_db -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| spreed_signaling
+  spreed_signaling -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| talk_recording
+  talk_recording -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| vaultwarden
+  vaultwarden -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| videovault
+  videovault -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| whiteboard
+  whiteboard -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| dev_db_refresh
+  dev_db_refresh -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| talk_transcriber
+  talk_transcriber -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| arena_server
+  arena_server -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| ddns_updater
+  ddns_updater -->|"secret:workspace-s…"| sessions_purge
   db_backup -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| mcp_github
@@ -2085,7 +2169,7 @@ flowchart LR
   website -->|"secret:staging-db-…"| shared_db_staging
       </div>
     </div>
-    <p class="diagram-caption">Alle 87 K8s-Services und ihre 1862 Abhängigkeitskanten (env-Refs, initContainer-Waits, Ingress-Backends)</p>
+    <p class="diagram-caption">Alle 88 K8s-Services und ihre 1945 Abhängigkeitskanten (env-Refs, initContainer-Waits, Ingress-Backends)</p>
   </div>
 
   <!-- K8s Topology Tab -->
@@ -2097,6 +2181,7 @@ flowchart TB
   subgraph mentolder["workspace (mentolder)"]
     admin_actions_cleanup(["admin-actions-cleanup"])
     admin_actions_prune(["admin-actions-prune"])
+    sessions_purge(["sessions-purge"])
     db_backup(["db-backup"])
     brett["brett"]
     mcp_browser["mcp-browser"]

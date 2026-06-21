@@ -53,19 +53,19 @@ depends_on_plans: []
 - Consumes: die aktive Registry aus `SESSION_HUB_REGISTRY` (Default `~/.local/share/bachelorprojekt/active-sessions.json`); `SESSIONS_ARCHIVE_DIR` (Default `~/.local/share/bachelorprojekt/sessions-archive/`); ein Registry-Eintrag-Shape `{slug,type,title,port,public_url,local_url,started_at}` (T000975).
 - Produces: archivierte Flat-Files (`<id>.md` + `<id>.meta.json`) und eine bereinigte Registry-JSON. `id` = `${slug}-${startedAtSanitized}`.
 
-- [ ] **Step 1: Failing-Test `archive.test.ts` anlegen**
+- [x] **Step 1: Failing-Test `archive.test.ts` anlegen**
 
 Testfälle für `purgeOldSessions`:
 1. Registry mit zwei Entries (einer 31 Tage alt via `started_at`, einer 5 Tage alt) → Purge entfernt den alten Entry aus der JSON, schreibt `<id>.md` + `<id>.meta.json` ins Archiv-Dir, gibt `{purged:1, warnings:[]}` zurück. Der junge Entry bleibt.
 2. Korrupte JSON (`}{not json`) → Rückgabe `{purged:0, warnings:['corrupt-registry']}`, Archiv-Dir unverändert, keine Exception.
 3. Entry ohne erreichbares Markdown (lokale URL tot) → Meta-Sidecar mit `content_available:false`, `<id>.md` enthält Platzhalter „Inhalt nicht verfügbar", Entry wird dennoch gepurged.
 
-- [ ] **Step 2: Test ausführen**
+- [x] **Step 2: Test ausführen**
 
 Run: `cd website && npx vitest run src/lib/sessions/archive.test.ts`
 Expected: FAIL — Modul `./archive` fehlt.
 
-- [ ] **Step 3: `archive.ts` implementieren**
+- [x] **Step 3: `archive.ts` implementieren**
 
 Export `purgeOldSessions({ maxAgeDays = 30 }): Promise<{purged:number, warnings:string[]}>`:
 - Registry-Datei atomar lesen (`.tmp`+`mv`-Pattern wie `scripts/session-hub.sh`). Bei Parse-Fehler → Warning `'corrupt-registry'`, Return `{purged:0, warnings:['corrupt-registry']}` ohne Wurf.
@@ -73,17 +73,17 @@ Export `purgeOldSessions({ maxAgeDays = 30 }): Promise<{purged:number, warnings:
 - Bereinigte Registry (ohne gepurgte Entries) atomar zurückschreiben.
 - Pure Node `fs/promises` + `fetch`; keine Shell-Aufrufe. Keep under ~600 Zeilen.
 
-- [ ] **Step 4: Test ausführen — muss PASS sein**
+- [x] **Step 4: Test ausführen — muss PASS sein**
 
 Run: `cd website && npx vitest run src/lib/sessions/archive.test.ts`
 Expected: PASS — alle 3 Testfälle grün.
 
-- [ ] **Step 5: Zeilen-Budget-Check**
+- [x] **Step 5: Zeilen-Budget-Check**
 
 Run: `wc -l website/src/lib/sessions/archive.ts`
 Expected: < 600 (Ziel < ~250). Falls darüber, Meta-Sidecar-Logik in `website/src/lib/sessions/archive-meta.ts` auslagern.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add website/src/lib/sessions/archive.ts website/src/lib/sessions/archive.test.ts
@@ -102,7 +102,7 @@ git commit -m "feat(sessions): add archive.ts purgeOldSessions with flat-file ar
 - Consumes: das Archiv-Dir aus Task 1 (`SESSIONS_ARCHIVE_DIR`); den aktuellen Nutzer aus `getSession` (`preferred_username`) und `isAdmin`.
 - Produces: `listArchivedSessions({ viewer, isAdmin, offset, limit, type? })` → `{items: ArchivedSession[], total, hasMore}`. `getArchivedMarkdown(id)` → `string | null`. `ArchivedSession` = `{id,slug,type,title,date,participants,owner,content_available}`.
 
-- [ ] **Step 1: Failing-Tests ergänzen**
+- [x] **Step 1: Failing-Tests ergänzen**
 
 1. Drei archivierte Sessions (owner `gekko`, `gekko`, `paddione`) → `listArchivedSessions({viewer:'gekko', isAdmin:false, offset:0, limit:50})` liefert genau die zwei `gekko`-Einträge, `total:2`, `hasMore:false`.
 2. Selbes Archiv mit `isAdmin:true` → alle drei, `total:3`.
@@ -110,22 +110,22 @@ git commit -m "feat(sessions): add archive.ts purgeOldSessions with flat-file ar
 4. 60 Entries, `limit:50, offset:0` → 50 Items, `hasMore:true`; `offset:50` → 10 Items, `hasMore:false`.
 5. `getArchivedMarkdown(id)` liefert den Markdown-String; unbekannte `id` → `null`; nicht lesbare Datei (Permission) → `null`.
 
-- [ ] **Step 2: Test ausführen**
+- [x] **Step 2: Test ausführen**
 
 Run: `cd website && npx vitest run src/lib/sessions/archive.test.ts`
 Expected: FAIL — `listArchivedSessions` / `getArchivedMarkdown` nicht exportiert.
 
-- [ ] **Step 3: Implementieren**
+- [x] **Step 3: Implementieren**
 
 - `listArchivedSessions`: Archiv-Dir lesen, alle `*.meta.json` parsen (Parse-Fehler einzelner Sidecars überspringen, nicht abbrechen). Sichtbarkeits-Filter: `isAdmin` → alle; sonst nur `owner === viewer`. Optionalen `type`-Filter anwenden. Nach `date` absteigend sortieren. `offset`/`limit` slicen, `hasMore = offset+limit < total`. Korruptes Sidecar → Eintrag überspringen.
 - `getArchivedMarkdown(id)`: `<id>.md` lesen; bei `ENOENT` oder Permission-Fehler → `null`. Pfad-Traversal verhindern (`id` darf nur `[a-z0-9-]`).
 
-- [ ] **Step 4: Test ausführen — muss PASS sein**
+- [x] **Step 4: Test ausführen — muss PASS sein**
 
 Run: `cd website && npx vitest run src/lib/sessions/archive.test.ts`
 Expected: PASS — alle Task-1- und Task-2-Tests grün.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add website/src/lib/sessions/archive.ts website/src/lib/sessions/archive.test.ts
@@ -146,35 +146,35 @@ git commit -m "feat(sessions): add listArchivedSessions + getArchivedMarkdown wi
 - Consumes: `getSession`/`isAdmin` aus `../../../../lib/auth` (Tiefe prüfen: `api/admin/sessions/history/index.ts` → vier `../` nach `src/lib`); `listArchivedSessions`/`getArchivedMarkdown`/`purgeOldSessions` aus `../../../../../lib/sessions/archive`.
 - Produces: `GET /api/admin/sessions/history?offset=&limit=&type=` → `{items,total,hasMore}` (401 anon, 403 nur wenn weder Admin noch eigener Nutzer — hier: jeder authentifizierte Nutzer darf seine eigenen sehen, Admin alle); `GET /api/admin/sessions/history/[id]` → `text/markdown` oder 404; `POST /api/admin/sessions/purge` → `{purged, warnings}` (Admin-Cookie ODER `X-Cron-Token === process.env.SESSIONS_CRON_TOKEN`).
 
-- [ ] **Step 1: Failing-Test `history/index.test.ts` anlegen**
+- [x] **Step 1: Failing-Test `history/index.test.ts` anlegen**
 
 1. Anon → 401; authentifiziert nicht-Admin (`gekko`) → 200, nur eigene Items; Admin → 200, alle Items.
 2. `?offset=0&limit=2` mit 5 Mock-Entries → `items.length===2`, `hasMore===true`, `total===5`.
 3. `?type=form` → nur Form-Typ.
 4. Registry-/Archiv-Pfad via `SESSIONS_ARCHIVE_DIR` auf Temp-Dir zeigen.
 
-- [ ] **Step 2: Test ausführen**
+- [x] **Step 2: Test ausführen**
 
 Run: `cd website && npx vitest run src/pages/api/admin/sessions/history/index.test.ts`
 Expected: FAIL — Modul `./index` fehlt.
 
-- [ ] **Step 3: Endpunkte implementieren**
+- [x] **Step 3: Endpunkte implementieren**
 
 - `history/index.ts`: `getSession` → 401 wenn null. `viewer = session.preferred_username`. `listArchivedSessions({viewer, isAdmin:isAdmin(session), offset, limit, type})`. Query-Params parseInt mit Defaults `offset=0, limit=50` (`limit` max 50).
 - `history/[id].ts`: `id` gegen `^[a-z0-9-]+$` validieren (Traversal-Schutz). `getArchivedMarkdown(id)` → 200 `text/markdown` oder 404. Auth-Guard wie oben (Admin oder Owner — Owner via Meta-Lookup: wenn nicht Admin, nur响应 wenn `meta.owner === viewer`).
 - `purge.ts`: Admin-Cookie (`isAdmin`) ODER Header `X-Cron-Token` gleich `process.env.SESSIONS_CRON_TOKEN` (konstanten Vergleich, Token unset → Cron-Pfad deaktiviert, nur Admin). Bei Erfolg `{purged, warnings}` zurück; Fehler → 500 mit `requestLogger.error`.
 
-- [ ] **Step 4: Test ausführen — muss PASS sein**
+- [x] **Step 4: Test ausführen — muss PASS sein**
 
 Run: `cd website && npx vitest run src/pages/api/admin/sessions/history/index.test.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Zeilen-Budget-Check je Endpunkt**
+- [x] **Step 5: Zeilen-Budget-Check je Endpunkt**
 
 Run: `wc -l website/src/pages/api/admin/sessions/history/index.ts website/src/pages/api/admin/sessions/history/[id].ts website/src/pages/api/admin/sessions/purge.ts`
 Expected: jeweils < 600 (Ziel je < ~120).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add website/src/pages/api/admin/sessions/history/ website/src/pages/api/admin/sessions/purge.ts
@@ -193,7 +193,7 @@ git commit -m "feat(api): add sessions history + purge endpoints [T000994]"
 - Consumes: `GET /api/admin/sessions/history?offset=&limit=&type=` und `GET /api/admin/sessions/history/[id]`.
 - Produces: chronologische Kartenliste (Typ-Icon, Titel, Datum, Teilnehmer); Typ-Filter-Dropdown; „Mehr laden"-Button (Pagination 50); Klick öffnet Markdown in einem Read-Only-Panel. Svelte 5 Runes (`$state`, `$effect`).
 
-- [ ] **Step 1: Failing-Test `SessionsHistory.test.ts` anlegen**
+- [x] **Step 1: Failing-Test `SessionsHistory.test.ts` anlegen**
 
 1. Mock `fetch` liefert 2 Items → Komponente rendert beide Karten mit Titel + Datum.
 2. Klick auf eine Karte → `fetch` nach `/api/admin/sessions/history/<id>` wird gerufen und Markdown-Panel zeigt den Inhalt (read-only).
@@ -201,12 +201,12 @@ git commit -m "feat(api): add sessions history + purge endpoints [T000994]"
 4. „Mehr laden" mit `hasMore:true` → weiterer Fetch mit `offset=50`.
 5. Leere Liste → „Keine vergangenen Sessions" Hinweis.
 
-- [ ] **Step 2: Test ausführen**
+- [x] **Step 2: Test ausführen**
 
 Run: `cd website && npx vitest run src/components/sessions/SessionsHistory.test.ts`
 Expected: FAIL — Komponente `./SessionsHistory.svelte` fehlt.
 
-- [ ] **Step 3: Komponente implementieren**
+- [x] **Step 3: Komponente implementieren**
 
 - `$state items, loading, error, offset, hasMore, typeFilter, selectedMarkdown, selectedId`.
 - `load(reset=false)`: Fetch `/api/admin/sessions/history?offset=${offset}&limit=50${typeFilter?'&type='+typeFilter:''}`; bei `reset` Items ersetzen, sonst anhängen; `hasMore` aus Response.
@@ -215,17 +215,17 @@ Expected: FAIL — Komponente `./SessionsHistory.svelte` fehlt.
 - Template: Filter-Dropdown, Karten-Liste (`<ul>`), „Mehr laden"-Button (nur wenn `hasMore`), Markdown-Panel (`<pre>`/`<article>` read-only, schließbar).
 - `$effect`-Cleanup für Fetch-Abbrüche (AbortController).
 
-- [ ] **Step 4: Test ausführen — muss PASS sein**
+- [x] **Step 4: Test ausführen — muss PASS sein**
 
 Run: `cd website && npx vitest run src/components/sessions/SessionsHistory.test.ts`
 Expected: PASS — alle 5 Testfälle grün.
 
-- [ ] **Step 5: Zeilen-Budget-Check**
+- [x] **Step 5: Zeilen-Budget-Check**
 
 Run: `wc -l website/src/components/sessions/SessionsHistory.svelte`
 Expected: < 500 (Ziel < ~300).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add website/src/components/sessions/SessionsHistory.svelte website/src/components/sessions/SessionsHistory.test.ts
@@ -243,25 +243,25 @@ git commit -m "feat(sessions): add SessionsHistory list UI with filter + paginat
 - Consumes: `SessionsHistory` aus Task 4.
 - Produces: ein Umschalter zwischen „Aktive Sessions" und „History" im Idle-State; bei Auswahl „History" wird `SessionsHistory` gerendert.
 
-- [ ] **Step 1: Tab-State + Import ergänzen**
+- [x] **Step 1: Tab-State + Import ergänzen**
 
 Im `<script lang="ts">`: `import SessionsHistory from './sessions/SessionsHistory.svelte';` (Import-Pfad an die bestehende Struktur anpassen — Komponente liegt unter `sessions/`). Neuer `$state sessionsTab: 'active' | 'history' = 'active'` (oder ein Toggle-Boolean, falls der bestehende Idle-Branch nur eine View kennt).
 
-- [ ] **Step 2: Template-Branch erweitern**
+- [x] **Step 2: Template-Branch erweitern**
 
 Im Idle-Branch (dort wo `SessionsListView` aus T000975 gerendert wird) einen Tab-Umschalter ergänzen und den `{:else if}`-Zweig `sessionsTab === 'history'` → `<SessionsHistory />` hinzufügen. Bestehende Widget/Grilling/Embed-Branches bleiben unangetastet.
 
-- [ ] **Step 3: Build/Type-Check-Gate**
+- [x] **Step 3: Build/Type-Check-Gate**
 
 Run: `cd website && npx svelte-check --tsconfig ./tsconfig.json --threshold error 2>&1 | tail -20`
 Expected: keine neuen Fehler in `MediaviewerPanel.svelte`. Falls `svelte-check` nicht verdrahtet: `cd website && npm run build` muss kompilieren.
 
-- [ ] **Step 4: Zeilen-Budget-Check**
+- [x] **Step 4: Zeilen-Budget-Check**
 
 Run: `wc -l website/src/components/MediaviewerPanel.svelte`
 Expected: < 500 (≈ 210 nach Ergänzungen).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add website/src/components/MediaviewerPanel.svelte
@@ -282,19 +282,19 @@ git commit -m "feat(sessions): wire SessionsHistory tab into MediaviewerPanel id
 
 > Stil: folgt `scripts/session-hub.sh` — `#!/usr/bin/env bash`, `set -uo pipefail`, Header-Kommentar mit `[T000994]`, `usage()`. Keep < 500 Zeilen.
 
-- [ ] **Step 1: BATS-Test anlegen (gemockter curl)**
+- [x] **Step 1: BATS-Test anlegen (gemockter curl)**
 
 `tests/unit/sessions-purge.bats`:
 - `SESSIONS_CRON_TOKEN` gesetzt, `curl` via `PATH`-Stub auf ein Skript, das HTTP 200 + JSON simuliert → Aufruf Exit 0, stdout enthält `"purged":`.
 - Token fehlt → Exit ≠ 0, stderr-Hinweis.
 - curl liefert HTTP 500 → Exit ≠ 0.
 
-- [ ] **Step 2: Test ausführen**
+- [x] **Step 2: Test ausführen**
 
 Run: `bats tests/unit/sessions-purge.bats`
 Expected: FAIL — `scripts/sessions-purge.sh` fehlt.
 
-- [ ] **Step 3: Script implementieren**
+- [x] **Step 3: Script implementieren**
 
 ```bash
 #!/usr/bin/env bash
@@ -308,7 +308,7 @@ resp=$(curl -fsS -X POST "$URL" -H "X-Cron-Token: $TOKEN" --max-time 30) || {
 printf '%s\n' "$resp"
 ```
 
-- [ ] **Step 4: Ausführbar machen, Tests ausführen**
+- [x] **Step 4: Ausführbar machen, Tests ausführen**
 
 ```bash
 chmod +x scripts/sessions-purge.sh
@@ -316,7 +316,7 @@ bats tests/unit/sessions-purge.bats
 ```
 Expected: PASS — alle Tests grün.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/sessions-purge.sh tests/unit/sessions-purge.bats
@@ -335,15 +335,15 @@ git commit -m "feat(sessions): add sessions-purge.sh cron wrapper [T000994]"
 **Interfaces:**
 - Produces: ein neues SealedSecret-Feld `SESSIONS_CRON_TOKEN`, das vom CronJob (Task 8) und vom Purge-Endpoint (Task 3) konsumiert wird.
 
-- [ ] **Step 1: Schema-Eintrag**
+- [x] **Step 1: Schema-Eintrag**
 
 In `environments/schema.yaml` einen Eintrag für `SESSIONS_CRON_TOKEN` ergänzen (`secret: true`, Beschreibung: „Shared secret for the sessions-purge cronjob to call POST /api/admin/sessions/purge via X-Cron-Token header."). Schema-Struktur an bestehende Einträge (z.B. `SESSION_HUB_OIDC_SECRET`) anpassen.
 
-- [ ] **Step 2: Plaintext-Secret befüllen (je Env)**
+- [x] **Step 2: Plaintext-Secret befüllen (je Env)**
 
 Für jedes Env (mentolder, korczewski): `SESSIONS_CRON_TOKEN` in `environments/.secrets/<env>.yaml` setzen — Zufallswert via `openssl rand -hex 32`. Datei ist gitignored.
 
-- [ ] **Step 3: Validieren + versiegeln**
+- [x] **Step 3: Validieren + versiegeln**
 
 ```bash
 task env:validate ENV=mentolder
@@ -356,7 +356,7 @@ Expected: `1`
 
 Analog für `ENV=korczewski`.
 
-- [ ] **Step 4: Commit (nur versiegelte Datei + Schema)**
+- [x] **Step 4: Commit (nur versiegelte Datei + Schema)**
 
 ```bash
 git add environments/schema.yaml environments/sealed-secrets/mentolder.yaml environments/sealed-secrets/korczewski.yaml
@@ -378,7 +378,7 @@ git commit -m "feat(secrets): add SESSIONS_CRON_TOKEN for sessions-purge cronjob
 
 > S3: im CronJob nur in-cluster Service-Names (`website.workspace.svc.cluster.local`) — keine Brand-Domain-Literale.
 
-- [ ] **Step 1: CronJob-Document anhängen**
+- [x] **Step 1: CronJob-Document anhängen**
 
 An das Ende von `k3d/admin-actions-cronjobs.yaml` (nach dem letzten `---`-Block von `admin-actions-prune`) einen weiteren `---`-Block anfügen, der `admin-actions-prune` als Vorlage nutzt und folgende Änderungen vornimmt:
 - `metadata.name: sessions-purge`
@@ -388,19 +388,19 @@ An das Ende von `k3d/admin-actions-cronjobs.yaml` (nach dem letzten `---`-Block 
 - `command`: `sh -c` mit `curl -fsS -X POST http://website.workspace.svc.cluster.local:80/api/admin/sessions/purge -H "X-Cron-Token: $SESSIONS_CRON_TOKEN" --max-time 30` (plus `set -e` und Hinweis-Log).
 - Resources analog den bestehenden CronJobs (`50m/64Mi` requests, `200m/128Mi` limits).
 
-- [ ] **Step 2: Kustomize-Build-Gate (S4 — Manifest referenziert & parsebar)**
+- [x] **Step 2: Kustomize-Build-Gate (S4 — Manifest referenziert & parsebar)**
 
 ```bash
 kubectl kustomize k3d/ 2>/dev/null | grep -c "sessions-purge"
 ```
 Expected: Zähler > 0 (der neue CronJob rendert). Falls `kubectl kustomize` fehlschlägt (YAML-Parse-Fehler oder nicht referenziert), vor Fortfahren korrigieren — prüfen, dass `k3d/admin-actions-cronjobs.yaml` in der jeweiligen `kustomization.yaml` unter `resources:` gelistet ist (bestehende Einbindung unverändert lassen).
 
-- [ ] **Step 3: S3-Self-Check — keine Brand-Domain-Literale**
+- [x] **Step 3: S3-Self-Check — keine Brand-Domain-Literale**
 
 Run: `grep -nE 'mentolder\.de|korczewski\.de' k3d/admin-actions-cronjobs.yaml | grep -v '^[0-9]*:#' || echo "S3 OK — keine Brand-Literale außerhalb Kommentare"`
 Expected: `S3 OK — keine Brand-Literale außerhalb Kommentare`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add k3d/admin-actions-cronjobs.yaml
@@ -417,28 +417,28 @@ git commit -m "feat(infra): add sessions-purge cronjob to admin-actions-cronjobs
 
 > Zwingendes Schluss-Gate. Jeder Befehl muss grün sein, bevor der PR öffnet.
 
-- [ ] **Step 1: Zielgerichtete Tests für die geänderten Domains**
+- [x] **Step 1: Zielgerichtete Tests für die geänderten Domains**
 
 ```bash
 task test:changed
 ```
 Expected: PASS — Vitest `--changed` (pickt `archive.test.ts`, `history/index.test.ts`, `SessionsHistory.test.ts`), die BATS-Auswahl (`tests/unit/sessions-purge.bats`) und `quality:check`.
 
-- [ ] **Step 2: Frische generierte Artefakte aktualisieren**
+- [x] **Step 2: Frische generierte Artefakte aktualisieren**
 
 ```bash
 task freshness:regenerate
 ```
 Expected: regeneriert `website/src/data/test-inventory.json` (inkl. der neuen Tests) und weitere generierte Artefakte. Geänderte Artefakte stagen.
 
-- [ ] **Step 3: Frische- + Qualitäts-Ratchet (CI-Äquivalent — S1–S4 + Baseline-Assertion)**
+- [x] **Step 3: Frische- + Qualitäts-Ratchet (CI-Äquivalent — S1–S4 + Baseline-Assertion)**
 
 ```bash
 task freshness:check
 ```
 Expected: PASS — keine S1-Zeilenlimit-Regressionen, keine S2-Import-Zyklen, keine S3-Brand-Domain-Literale (Task 8 S3-Self-Check nochmal gegen das gebaute Manifest), keine S4-Orphans, `baseline.json`-Key-Count nicht gewachsen. Falls S3 fehlschlägt, Task 8 auf Brand-Literale re-checken. Falls S4 fehlschlägt, `kustomization.yaml`-Referenz re-checken.
 
-- [ ] **Step 4: Regenerierte Artefakte committen**
+- [x] **Step 4: Regenerierte Artefakte committen**
 
 ```bash
 git add website/src/data/test-inventory.json docs/code-quality/ docs/generated/ 2>/dev/null || true

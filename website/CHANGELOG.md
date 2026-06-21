@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.117.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.117.0...website-v1.117.1) (2026-06-21)
+
+
+### Bug Fixes
+
+* **coaching:** ILIKE-Suche korrigiert (ESCAPE-Fehler → 302/404) ([#2015](https://github.com/Paddione/Bachelorprojekt/issues/2015)) ([c93f350](https://github.com/Paddione/Bachelorprojekt/commit/c93f350f90927870469a36b4902298ac97c5d875))
+
 ## [1.117.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.116.0...website-v1.117.0) (2026-06-21)
 
 

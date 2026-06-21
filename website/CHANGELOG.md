@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.119.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.118.0...website-v1.119.0) (2026-06-21)
+
+
+### Features
+
+* **website:** ServiceRow-Layout, Nav-CTA, Prozessschritte und visuelle Verbesserungen ([#2020](https://github.com/Paddione/Bachelorprojekt/issues/2020)) ([510a720](https://github.com/Paddione/Bachelorprojekt/commit/510a720e6037d1ab8e0cf6aba624c16ded07194b))
+
 ## [1.118.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.117.1...website-v1.118.0) (2026-06-21)
 
 

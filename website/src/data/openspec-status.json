@@ -117,6 +117,12 @@
       "status": "archived"
     }
   ],
+  "T001022": [
+    {
+      "slug": "korczewski-monolith-keycloak-auth",
+      "status": "plan_staged"
+    }
+  ],
   "T001025": [
     {
       "slug": "feature-intake-knowledge-search",

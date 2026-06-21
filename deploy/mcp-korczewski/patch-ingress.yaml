@@ -50,3 +50,13 @@ spec:
       services:
         - name: claude-code-mcp-monolith
           port: 3002
+    - kind: Rule
+      match: Host(`mcp.korczewski.de`) && PathPrefix(`/api/mcp/user`)
+      services:
+        - name: mcp-auth-proxy
+          port: 80
+    - kind: Rule
+      match: Host(`mcp.korczewski.de`) && PathPrefix(`/oauth2`)
+      services:
+        - name: mcp-auth-proxy
+          port: 80

@@ -94,6 +94,7 @@ resources:
   - claude-code-mcp-ops.yaml
   - claude-code-mcp-browser.yaml
   - claude-code-mcp-github.yaml
+  - claude-code-mcp-auth-proxy.yaml
   # Pentest Flags (CTF)
   - pentest-flags.yaml
   # Netzwerksicherheit (L3)
@@ -117,6 +118,9 @@ configMapGenerator:
   - name: nextcloud-extra-config
     files:
       - zz-extra.config.php=nextcloud-extra-config.php
+  - name: mcp-auth-proxy-config
+    files:
+      - nginx.conf=mcp-auth-proxy-nginx.conf
 
 generatorOptions:
   disableNameSuffixHash: true

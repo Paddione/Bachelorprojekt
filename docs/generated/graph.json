@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-21T10:50:53.308Z",
+  "generatedAt": "2026-06-21T07:52:29.698Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -14,12 +14,6 @@
       "name": "admin-actions-prune"
     },
     {
-      "id": "sessions-purge",
-      "namespace": "mentolder",
-      "type": "CronJob",
-      "name": "sessions-purge"
-    },
-    {
       "id": "db-backup",
       "namespace": "mentolder",
       "type": "CronJob",
@@ -30,6 +24,12 @@
       "namespace": "mentolder",
       "type": "Deployment",
       "name": "brett"
+    },
+    {
+      "id": "mcp-auth-proxy",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "mcp-auth-proxy"
     },
     {
       "id": "mcp-browser",
@@ -568,12 +568,6 @@
       "kind": "env"
     },
     {
-      "from": "sessions-purge",
-      "to": "website",
-      "via": "command",
-      "kind": "command"
-    },
-    {
       "from": "db-backup",
       "to": "shared-db",
       "via": "command",
@@ -632,6 +626,12 @@
       "to": "website",
       "via": "env:WEBSITE_INTERNAL_URL",
       "kind": "env"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "keycloak",
+      "via": "configmap:mcp-keycloak-proxy-config",
+      "kind": "configmap"
     },
     {
       "from": "claude-code-mcp-ops",
@@ -1373,6 +1373,12 @@
     },
     {
       "from": "traefik",
+      "to": "mcp-auth-proxy",
+      "via": "ingress",
+      "kind": "ingress"
+    },
+    {
+      "from": "traefik",
       "to": "livekit-server",
       "via": "ingress",
       "kind": "ingress"
@@ -1454,6 +1460,12 @@
       "to": "sessions-server",
       "via": "ingress",
       "kind": "ingress"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "mcp-auth-proxy",
+      "via": "selector",
+      "kind": "selector"
     },
     {
       "from": "mcp-browser",
@@ -1727,18 +1739,6 @@
     },
     {
       "from": "admin-actions-cleanup",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "admin-actions-cleanup",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "admin-actions-cleanup",
       "to": "db-backup",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -1763,6 +1763,18 @@
     },
     {
       "from": "admin-actions-cleanup",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "admin-actions-cleanup",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "admin-actions-cleanup",
       "to": "mcp-github",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -2207,18 +2219,6 @@
     },
     {
       "from": "admin-actions-prune",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "admin-actions-prune",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "admin-actions-prune",
       "to": "db-backup",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -2243,6 +2243,18 @@
     },
     {
       "from": "admin-actions-prune",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "admin-actions-prune",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "admin-actions-prune",
       "to": "mcp-github",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -2686,481 +2698,25 @@
       "kind": "secret"
     },
     {
-      "from": "sessions-purge",
+      "from": "db-backup",
+      "to": "brett",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "brett",
       "to": "db-backup",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },
     {
       "from": "db-backup",
-      "to": "sessions-purge",
+      "to": "mcp-auth-proxy",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },
     {
-      "from": "sessions-purge",
-      "to": "brett",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "brett",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "mcp-github",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "mcp-github",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "claude-code-mcp-ops",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "claude-code-mcp-ops",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "billing-dunning-detection",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "billing-dunning-detection",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "monthly-billing",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "monthly-billing",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "scheduled-publish",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "scheduled-publish",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "oauth2-proxy-brainstorm",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-brainstorm",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "oauth2-proxy-dev",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-dev",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "oauth2-proxy-session-hub",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-session-hub",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "knowledge-ingest-prs",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "knowledge-ingest-prs",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "knowledge-ingest-bugs",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "knowledge-ingest-bugs",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "knowledge-reindex-all",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "knowledge-reindex-all",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "livekit-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "livekit-server",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "livekit-ingress",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "livekit-ingress",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "livekit-egress",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "livekit-egress",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "nextcloud",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "nextcloud",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "notify-unread",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "notify-unread",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "oauth2-proxy-brett",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-brett",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "oauth2-proxy-comfy",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-comfy",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "oauth2-proxy-docs",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-docs",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "oauth2-proxy-mailpit",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-mailpit",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "oauth2-proxy-mediaviewer",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-mediaviewer",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "oauth2-proxy-studio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-studio",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "oauth2-proxy-traefik",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-traefik",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "oauth2-proxy-videovault",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-videovault",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "oauth2-proxy-recovery",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-recovery",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "shared-db",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "shared-db",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "studio-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "studio-server",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "spreed-signaling",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "spreed-signaling",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "talk-recording",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "talk-recording",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "vaultwarden",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "vaultwarden",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "videovault",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "videovault",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "whiteboard",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "whiteboard",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "talk-transcriber",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "talk-transcriber",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "ddns-updater",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "ddns-updater",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "db-backup",
-      "to": "brett",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "brett",
+      "from": "mcp-auth-proxy",
       "to": "db-backup",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -3611,6 +3167,18 @@
     },
     {
       "from": "brett",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "brett",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "brett",
       "to": "mcp-github",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -4054,6 +3622,450 @@
       "kind": "secret"
     },
     {
+      "from": "mcp-auth-proxy",
+      "to": "mcp-github",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-github",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "claude-code-mcp-ops",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-ops",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "billing-dunning-detection",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "billing-dunning-detection",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "monthly-billing",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "monthly-billing",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "scheduled-publish",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "scheduled-publish",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "oauth2-proxy-brainstorm",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brainstorm",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "oauth2-proxy-dev",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-dev",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "oauth2-proxy-session-hub",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-session-hub",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "keycloak",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "keycloak",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "knowledge-ingest-prs",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "knowledge-ingest-prs",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "knowledge-ingest-bugs",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "knowledge-ingest-bugs",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "knowledge-reindex-all",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "knowledge-reindex-all",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "livekit-server",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-server",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "livekit-ingress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-ingress",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "nextcloud",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "nextcloud",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "notify-unread",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "notify-unread",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "oauth2-proxy-brett",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brett",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "oauth2-proxy-comfy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-comfy",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "oauth2-proxy-docs",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-docs",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "oauth2-proxy-mailpit",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mailpit",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "oauth2-proxy-studio",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-studio",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "oauth2-proxy-traefik",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-traefik",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "oauth2-proxy-recovery",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-recovery",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "shared-db",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "shared-db",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "studio-server",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "studio-server",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "spreed-signaling",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "spreed-signaling",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "talk-recording",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "talk-recording",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "vaultwarden",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "vaultwarden",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "whiteboard",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "whiteboard",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "talk-transcriber",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "talk-transcriber",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "arena-server",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "arena-server",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "ddns-updater",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "ddns-updater",
+      "to": "mcp-auth-proxy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "mcp-github",
       "to": "claude-code-mcp-ops",
       "via": "secret:workspace-secrets",
@@ -12043,6 +12055,18 @@
       "from": "ddns-updater",
       "to": "arena-server",
       "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy",
+      "to": "mcp-auth-proxy-dev",
+      "via": "secret:mcp-tokens",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-auth-proxy-dev",
+      "to": "mcp-auth-proxy",
+      "via": "secret:mcp-tokens",
       "kind": "secret"
     },
     {

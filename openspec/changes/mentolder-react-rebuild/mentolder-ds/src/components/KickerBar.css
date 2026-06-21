@@ -1,0 +1,31 @@
+.md-kicker {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-family: var(--md-mono, "Geist Mono", ui-monospace, monospace);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--md-mute, #8c96a3);
+}
+
+.md-kicker__bar {
+  flex: 0 0 44px;
+  height: 1px;
+  background: var(--md-brass, oklch(0.80 0.09 75));
+  opacity: 0.7;
+  display: block;
+}
+
+.md-kicker__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--md-sage, oklch(0.80 0.06 160));
+  flex-shrink: 0;
+  display: block;
+}
+
+.md-kicker__text {
+  white-space: nowrap;
+}

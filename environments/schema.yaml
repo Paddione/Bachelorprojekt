@@ -291,8 +291,8 @@ env_vars:
 
   - name: LLM_LMSTUDIO_URL
     required: false
-    default_dev: "http://llm-gateway-lmstudio.workspace.svc.cluster.local:11234"
-    description: "Cluster-internal URL of LM Studio (all models via OpenAI-compat API). socat tunnels port 11234 → 1234."
+    default_dev: "http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234"
+    description: "Cluster-internal URL of LM Studio (all models via OpenAI-compat API). direkt auf port 1234."
 
   - name: LLM_CHAT_MODEL
     required: false
@@ -336,13 +336,13 @@ env_vars:
 
   - name: LLM_ROUTER_URL
     required: true
-    default_dev: "http://llm-gateway-lmstudio.workspace.svc.cluster.local:11234"
-    description: "Cluster-internal URL of LM Studio chat backend (port 11234 via socat). Namespace-aware."
+    default_dev: "http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234"
+    description: "Cluster-internal URL of LM Studio chat backend (direkt port 1234). Namespace-aware."
 
   - name: LLM_EMBED_URL
     required: true
-    default_dev: "http://llm-gateway-lmstudio.workspace.svc.cluster.local:11234"
-    description: "Cluster-internal URL for embeddings — LM Studio port 11234 (bge-m3 or nomic via /v1/embeddings)."
+    default_dev: "http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234"
+    description: "Cluster-internal URL for embeddings — LM Studio port 1234 (bge-m3 or nomic via /v1/embeddings)."
 
   # ─────────────────────────────────────────────────────────────────
   # Collabora (office-stack) — all five derived from PROD_DOMAIN inside

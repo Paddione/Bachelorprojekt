@@ -1,0 +1,30 @@
+.md-stat-block {
+  display: flex;
+  gap: 48px;
+  flex-wrap: wrap;
+}
+
+.md-stat-block__item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.md-stat-block__value {
+  font-family: var(--md-serif, "Newsreader", Georgia, serif);
+  font-size: 44px;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--md-fg, #eef1f3);
+}
+
+.md-stat-block__value em,
+.md-stat-block__value span {
+  color: var(--md-brass, oklch(0.80 0.09 75));
+}
+
+.md-stat-block__label {
+  font-size: 13px;
+  color: var(--md-mute, #8c96a3);
+  letter-spacing: 0.02em;
+}

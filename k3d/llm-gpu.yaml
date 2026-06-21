@@ -1,10 +1,9 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # llm-gpu: external GPU peer — LM Studio + TEI
 #
-# LM Studio (Windows) läuft auf port 1234. K8s-Pods können den Docker-Bridge-
-# Host (172.17.0.1 in dev, wg-mesh IP in prod) erreichen, aber nicht Tailscale
-# oder Windows-localhost direkt. Deshalb leitet ein WSL-socat
-# 0.0.0.0:11234 → 127.0.0.1:1234 (LM Studio via mirrored networking).
+# LM Studio (Windows) läuft auf port 1234. K8s-Pods erreichen den Host
+# direkt via wg-mesh IP (prod) oder Docker-Bridge 172.17.0.1 (dev k3d).
+# Kein socat nötig — Service-Port ist 1234 (kein Proxy-Port mehr).
 #
 # Modelle im LM Studio:
 #   text-embedding-bge-m3          → /v1/embeddings
@@ -30,7 +29,7 @@ metadata:
 spec:
   ports:
     - name: http
-      port: 11234
+      port: 1234
       targetPort: 1234
 ---
 apiVersion: v1

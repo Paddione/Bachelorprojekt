@@ -32,7 +32,7 @@ const voyageKey = () => {
 };
 
 const isLlmEnabled = () => process.env.LLM_ENABLED === 'true';
-const embedUrl = () => process.env.LLM_EMBED_URL ?? 'http://llm-gateway-lmstudio.workspace.svc.cluster.local:11234';
+const embedUrl = () => process.env.LLM_EMBED_URL ?? 'http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234';
 
 // Maps internal model type to the actual model ID sent to the API.
 // TEI ignores this field; LM Studio routes by it.

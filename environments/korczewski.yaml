@@ -60,8 +60,8 @@ env_vars:
   COMFY_PORT: "8189"
   LLM_ENABLED: "true"
   LLM_RERANK_ENABLED: "false"
-  LLM_ROUTER_URL: "http://llm-gateway-lmstudio.workspace-korczewski.svc.cluster.local:11234"
-  LLM_EMBED_URL: "http://llm-gateway-lmstudio.workspace-korczewski.svc.cluster.local:11234"
+  LLM_ROUTER_URL: "http://llm-gateway-lmstudio.workspace-korczewski.svc.cluster.local:1234"
+  LLM_EMBED_URL: "http://llm-gateway-lmstudio.workspace-korczewski.svc.cluster.local:1234"
   ARENA_WS_URL: https://arena-ws.korczewski.de
   STUDIO_DOMAIN: studio.korczewski.de
   STUDIO_IMAGE: ghcr.io/paddione/studio-server

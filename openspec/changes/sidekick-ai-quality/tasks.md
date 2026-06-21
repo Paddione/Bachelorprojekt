@@ -732,7 +732,7 @@ git commit -m "feat(website): add GET /api/admin/ai-quality endpoint [T001065]"
 
 Hinweis: Vor dem Schreiben `CockpitSidekickView.svelte` als Vorlage öffnen, um Svelte-5-Runes-Stil, Lade-/Fehlerzustände und CSS-Konventionen zu übernehmen.
 
-- [ ] **Step 1: Komponente implementieren**
+- [x] **Step 1: Komponente implementieren**
 
 ```svelte
 <!-- website/src/components/assistant/AiQualitySidekickView.svelte -->
@@ -879,17 +879,17 @@ Hinweis: Vor dem Schreiben `CockpitSidekickView.svelte` als Vorlage öffnen, um 
 </style>
 ```
 
-- [ ] **Step 2: Astro check (Komponente kompiliert)**
+- [x] **Step 2: Astro check (Komponente kompiliert)**
 
 Run: `cd website && npx astro check --minimal 2>&1 | grep -i "ai-quality\|AiQuality" || echo "keine AiQuality-Fehler"`
 Expected: `keine AiQuality-Fehler`.
 
-- [ ] **Step 3: S1-Budget prüfen**
+- [x] **Step 3: S1-Budget prüfen**
 
 Run: `wc -l website/src/components/assistant/AiQualitySidekickView.svelte`
 Expected: < 500.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add website/src/components/assistant/AiQualitySidekickView.svelte

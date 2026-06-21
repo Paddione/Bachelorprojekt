@@ -1,10 +1,4 @@
 {
-  "NEW": [
-    {
-      "slug": "feature-intake-knowledge-search",
-      "status": "plan_staged"
-    }
-  ],
   "T000737": [
     {
       "slug": "2026-06-20-grilling-ui-multichoice",
@@ -121,6 +115,12 @@
     {
       "slug": "2026-06-21-mcp-task-runner",
       "status": "archived"
+    }
+  ],
+  "T001025": [
+    {
+      "slug": "feature-intake-knowledge-search",
+      "status": "plan_staged"
     }
   ]
 }

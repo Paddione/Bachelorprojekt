@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.117.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.116.0...website-v1.117.0) (2026-06-21)
+
+
+### Features
+
+* **website:** add brainstorm session templates with clone-and-edit [T000993] ([#2012](https://github.com/Paddione/Bachelorprojekt/issues/2012)) ([0760e71](https://github.com/Paddione/Bachelorprojekt/commit/0760e7182bac65242ee51ae6ccdebf508cda2861))
+* **website:** Mentolder Homepage hifi-Redesign [T001034] ([#2004](https://github.com/Paddione/Bachelorprojekt/issues/2004)) ([0e70a95](https://github.com/Paddione/Bachelorprojekt/commit/0e70a95e177fc432bc6f5a408a7d5dfa9b947f64))
+
+
+### Bug Fixes
+
+* **website:** deduplicate icons.svg, brand-aware art-library API, add BATS regression [T001033] ([#2011](https://github.com/Paddione/Bachelorprojekt/issues/2011)) ([f68c63e](https://github.com/Paddione/Bachelorprojekt/commit/f68c63e30ee4ca5ce1f7fea556c08f7100cbf827))
+
+
+### Tests
+
+* **e2e:** Homepage hifi-Redesign E2E-Tests (FA-57) [T001034] ([#2009](https://github.com/Paddione/Bachelorprojekt/issues/2009)) ([2dd1961](https://github.com/Paddione/Bachelorprojekt/commit/2dd196147c08a632e64e9546294c189114b710a7))
+
 ## [1.116.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.115.1...website-v1.116.0) (2026-06-21)
 
 

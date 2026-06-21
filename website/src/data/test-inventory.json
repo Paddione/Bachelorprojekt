@@ -1038,6 +1038,12 @@
     "kind": "playwright"
   },
   {
+    "id": "FA-57",
+    "file": "tests/e2e/specs/fa-57-homepage-hifi-redesign.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
     "id": "FA-AR-01",
     "file": "tests/local/FA-AR-01-filter-diff.bats",
     "category": "FA",

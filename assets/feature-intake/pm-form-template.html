@@ -52,6 +52,14 @@
   .prio-hoch { background: #fb923c; }
   .prio-mittel { background: #facc15; }
   .prio-niedrig { background: var(--muted); }
+  .spec-pool-block { margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--border); }
+  .spec-pool-block h3 { font-size: .9rem; color: var(--text); margin-bottom: .6rem; display: flex; align-items: center; gap: .5rem; }
+  .spec-pool-block h3 .badge { font-size: .65rem; background: var(--accent); color: white; padding: .1rem .4rem; border-radius: 3px; text-transform: uppercase; letter-spacing: .04em; }
+  .spec-pool-card { display: grid; grid-template-columns: 1fr auto auto; align-items: start; gap: .5rem; padding: .4rem 0; border-bottom: 1px solid var(--border); }
+  .spec-pool-card:last-child { border-bottom: none; }
+  .spec-pool-card .spec-title { font-size: .9rem; }
+  .spec-pool-card .spec-snippet { display: block; color: var(--muted); font-size: .75rem; margin-top: .15rem; }
+  .spec-pool-card .spec-tag { font-size: .65rem; background: var(--surface); color: var(--muted); padding: .1rem .4rem; border-radius: 3px; align-self: center; }
   #fallbackOut { width: 100%; min-height: 180px; background: var(--bg); color: var(--text); border: 1px solid var(--accent); border-radius: 6px; padding: .6rem .75rem; font-family: ui-monospace, monospace; font-size: .82rem; resize: vertical; }
 </style>
 </head>
@@ -83,6 +91,11 @@
   <h2>2 · Features auswählen &amp; priorisieren</h2>
   <p style="color:var(--muted);font-size:.85rem;margin-bottom:.75rem">Wähle Bereiche oben aus, um Feature-Listen zu sehen.</p>
   <div id="featureBlocks"></div>
+  <div class="spec-pool-block" id="specPoolBlock" style="display:none">
+    <h3>📚 Aus eigenen Specs <span class="badge">aus Knowledge-Base</span></h3>
+    <p style="color:var(--muted);font-size:.78rem;margin-bottom:.5rem">Indizierte OpenSpec-Proposals (pgvector) — als zusätzliche Ideen-Pool.</p>
+    <div id="specPoolCards"></div>
+  </div>
 </div>
 
 <div class="section">
@@ -232,6 +245,45 @@ function updateBlocks() {
   });
 }
 
+function renderSpecPool() {
+  const pool = (typeof window !== 'undefined' && window.SPEC_POOL) || [];
+  const block = document.getElementById('specPoolBlock');
+  const cards = document.getElementById('specPoolCards');
+  if (!block || !cards) return;
+  if (!Array.isArray(pool) || pool.length === 0) {
+    block.style.display = 'none';
+    cards.innerHTML = '';
+    return;
+  }
+  block.style.display = '';
+  cards.innerHTML = pool.map((s, i) => `
+    <div class="spec-pool-card">
+      <label class="spec-title">
+        <input type="checkbox" data-role="spec" data-spec-idx="${i}">
+        ${escapeHtml(s.title || '(ohne Titel)')}
+        ${s.snippet ? `<span class="spec-snippet">${escapeHtml(s.snippet)}</span>` : ''}
+      </label>
+      <span class="spec-tag">Spec</span>
+      ${s.uri ? `<a href="${escapeAttr(s.uri)}" target="_blank" rel="noopener" style="color:var(--muted);font-size:.7rem">Quelle</a>` : '<span></span>'}
+    </div>
+  `).join('');
+}
+
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function escapeAttr(s) {
+  return escapeHtml(s);
+}
+
+document.addEventListener('DOMContentLoaded', renderSpecPool);
+
 // Builds and returns the markdown string. Returns null and shows alert if empty.
 function buildMarkdown() {
   const name = document.getElementById('submitter').value.trim() || 'Unbekannt';
@@ -264,6 +316,21 @@ function buildMarkdown() {
     byPrio[p].forEach(l => lines.push(l));
     lines.push('');
   });
+
+  // Spec pool items (third card group "Aus eigenen Specs") — prefix with [Spec]
+  const specPool = (typeof window !== 'undefined' && window.SPEC_POOL) || [];
+  const specChecked = Array.from(document.querySelectorAll('input[data-role="spec"]:checked'))
+    .map(cb => specPool[Number(cb.dataset.specIdx)])
+    .filter(Boolean);
+  if (specChecked.length > 0) {
+    lines.push('### Aus eigenen Specs (Knowledge-Base)');
+    specChecked.forEach(s => {
+      let line = `- [Spec] **${s.title}**`;
+      if (s.uri) line += ` | Quelle: ${s.uri}`;
+      lines.push(line);
+    });
+    lines.push('');
+  }
 
   const freitext = document.getElementById('freitext').value.trim();
   if (freitext) {

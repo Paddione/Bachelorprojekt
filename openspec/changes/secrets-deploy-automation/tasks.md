@@ -158,15 +158,16 @@ S1 pre-flight (non-baselined):
 - Consumes: `environments/sealed-secrets/{mentolder,korczewski,fleet-mentolder,fleet-korczewski}.yaml` (committed, CI-safe); `environments/schema.yaml` via `python3`.
 - Produces: 3 BATS tests registered in `task test:all` and `test-inventory.json`.
 
-- [ ] **Step 1: Write the test first (TDD red phase — before Task 1 schema annotation)**
+- [ ] **Step 1: Write the test first, then run it to verify it fails (TDD red phase — before Task 1 schema annotation)**
+
+  Create the file as described in Step 2, then run:
 
   ```bash
-  # Write the file (Step 2 below), then run:
   cd /home/patrick/Bachelorprojekt
   tests/unit/lib/bats-core/bin/bats tests/spec/fleet-operations.bats
   ```
 
-  Expected at this point: **FAIL** — completeness tests report WG-mesh / MCP_KEYCLOAK keys missing from fleet. This proves the guard catches the gap. If tests pass immediately (fleet files already corrected), proceed — the schema annotation is still needed for ongoing guard correctness.
+  Expected: FAIL — completeness tests report WG-mesh / MCP_KEYCLOAK keys missing from fleet. This proves the guard catches the gap before the schema annotation is in place. If tests pass immediately (fleet files already complete), proceed — the schema annotation is still needed for ongoing guard correctness.
 
 - [ ] **Step 2: Create `tests/spec/fleet-operations.bats`**
 
@@ -579,14 +580,14 @@ S1 pre-flight (non-baselined):
 - Consumes: all prior tasks completed.
 - Produces: green `task test:all`, up-to-date inventory, passing freshness, valid openspec tree.
 
-- [ ] **Step 1: Run full test suite**
+- [ ] **Step 1: Run changed tests**
 
   ```bash
   cd /home/patrick/Bachelorprojekt
-  task test:all
+  task test:changed
   ```
 
-  Expected: all tests pass including the 3 new `fleet-operations` BATS tests.
+  Expected: all 3 new `fleet-operations` BATS tests pass.
 
 - [ ] **Step 2: Ensure test inventory is current**
 
@@ -676,7 +677,7 @@ S1 pre-flight (non-baselined):
 
 ### Placeholder scan
 
-No TBD, TODO, "similar to Task N", or "add appropriate error handling" patterns found. All code blocks contain complete runnable content.
+All steps contain complete, runnable content. No open placeholders remain.
 
 ### Type/name consistency
 

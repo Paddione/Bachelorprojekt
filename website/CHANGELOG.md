@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.116.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.115.1...website-v1.116.0) (2026-06-21)
+
+
+### Features
+
+* **website:** integrate art library webapp [T001033] ([#2002](https://github.com/Paddione/Bachelorprojekt/issues/2002)) ([269c6db](https://github.com/Paddione/Bachelorprojekt/commit/269c6db4698dc853e98195ffdfd09ff8b7849888))
+
 ## [1.115.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.115.0...website-v1.115.1) (2026-06-20)
 
 

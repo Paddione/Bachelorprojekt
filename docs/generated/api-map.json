@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-20T19:16:29.950Z",
+  "generatedAt": "2026-06-21T06:26:31.473Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -17,6 +17,14 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/angebote/save.ts"
+    },
+    {
+      "path": "/api/admin/art-library",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/art-library.ts"
     },
     {
       "path": "/api/admin/assets",

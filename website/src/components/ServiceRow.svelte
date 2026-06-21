@@ -31,7 +31,7 @@
     href,
     icon,
     iconSpriteId,
-    iconSpriteBrand = 'korczewski',
+    iconSpriteBrand,
   }: Props = $props();
 
   // Split price on "/" to extract unit if not provided
@@ -61,7 +61,7 @@
   <span class="no" aria-hidden="true">{num}</span>
 
   <div class="title-col">
-    {#if iconSpriteId}
+    {#if iconSpriteId && iconSpriteBrand}
       <svg class="row-icon" viewBox="0 0 24 24" aria-hidden="true">
         <use href={`/brand/${iconSpriteBrand}/icons.svg#${iconSpriteId}`}></use>
       </svg>

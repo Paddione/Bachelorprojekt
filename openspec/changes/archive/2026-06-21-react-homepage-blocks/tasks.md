@@ -2,7 +2,7 @@
 title: "React Homepage Block-System (P1 — block-getriebenes Rendering, Null-Diff)"
 ticket_id: T001056
 domains: [website]
-status: plan_staged
+status: completed
 ---
 
 # react-homepage-blocks — Implementation Plan

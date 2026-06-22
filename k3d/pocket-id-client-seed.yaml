@@ -5,8 +5,8 @@
 # disableNameSuffixHash keeps it overwritable). Stateless — safe to re-run.
 #
 # Callback URLs are derived from ${POCKET_ID_FRONTEND_URL} at deploy time:
-#   dev : http://id.localhost       -> SCHEME=http  SUFFIX=localhost
-#   prod: https://id.${PROD_DOMAIN}  -> SCHEME=https SUFFIX=${PROD_DOMAIN}
+#   dev : http://auth.localhost       -> SCHEME=http  SUFFIX=localhost
+#   prod: https://auth.${PROD_DOMAIN}  -> SCHEME=https SUFFIX=${PROD_DOMAIN}
 # No brand-domain literal appears in this manifest.
 #
 # Verified against pocket-id:v2.9.0 (live API in dev cluster, 2026-06-22):
@@ -124,7 +124,7 @@ spec:
             - -ec
             - |
               # Derive scheme + host suffix from the public frontend URL.
-              # dev:  http://id.localhost   → SUFFIX=localhost
+              # dev:  http://auth.localhost   → SUFFIX=localhost
               # prod: https://auth.${PROD_DOMAIN} → SUFFIX=${PROD_DOMAIN}
               SCHEME="${POCKET_ID_FRONTEND_URL%%://*}"
               HOST="${POCKET_ID_FRONTEND_URL#*://}"

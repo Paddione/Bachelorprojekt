@@ -20,13 +20,6 @@
     "detail": "648 lines > 600 limit (.py)",
     "frozen_at": "8b581ebe"
   },
-  "S1:pentest-dashboard/app.py": {
-    "gate": "S1",
-    "path": "pentest-dashboard/app.py",
-    "metric": 923,
-    "detail": "923 lines > 600 limit (.py)",
-    "frozen_at": "8b581ebe"
-  },
   "S1:scripts/backup-restore.sh": {
     "gate": "S1",
     "path": "scripts/backup-restore.sh",
@@ -65,8 +58,8 @@
   "S1:website/src/components/Navigation.svelte": {
     "gate": "S1",
     "path": "website/src/components/Navigation.svelte",
-    "metric": 719,
-    "detail": "719 lines > 500 limit (.svelte)",
+    "metric": 538,
+    "detail": "538 lines > 500 limit (.svelte)",
     "frozen_at": "8b581ebe"
   },
   "S1:website/src/components/admin/NewsletterAdmin.svelte": {
@@ -205,8 +198,8 @@
   "S1:website/src/pages/admin/rechnungen.astro": {
     "gate": "S1",
     "path": "website/src/pages/admin/rechnungen.astro",
-    "metric": 591,
-    "detail": "591 lines > 400 limit (.astro)",
+    "metric": 590,
+    "detail": "590 lines > 400 limit (.astro)",
     "frozen_at": "8b581ebe"
   },
   "S1:website/src/pages/admin/systemtest/board.astro": {
@@ -241,35 +234,35 @@
     "gate": "S2",
     "path": "website",
     "metric": 2,
-    "detail": "cycle in website: src/lib/questionnaire-db.ts \u2192 src/lib/compute-scores.ts",
+    "detail": "cycle in website: src/lib/questionnaire-db.ts → src/lib/compute-scores.ts",
     "frozen_at": "8b581ebe"
   },
   "S2:website:src/lib/invoice-pdf.ts|src/lib/native-billing.ts": {
     "gate": "S2",
     "path": "website",
     "metric": 2,
-    "detail": "cycle in website: src/lib/invoice-pdf.ts \u2192 src/lib/native-billing.ts",
+    "detail": "cycle in website: src/lib/invoice-pdf.ts → src/lib/native-billing.ts",
     "frozen_at": "8b581ebe"
   },
   "S2:website:src/lib/tickets-db.ts|src/lib/website-db.ts": {
     "gate": "S2",
     "path": "website",
     "metric": 2,
-    "detail": "cycle in website: src/lib/tickets-db.ts \u2192 src/lib/website-db.ts",
+    "detail": "cycle in website: src/lib/tickets-db.ts → src/lib/website-db.ts",
     "frozen_at": "8b581ebe"
   },
   "S2:website:src/lib/tickets/reporter-link.ts|src/lib/tickets/transition.ts|src/lib/website-db.ts": {
     "gate": "S2",
     "path": "website",
     "metric": 3,
-    "detail": "cycle in website: src/lib/website-db.ts \u2192 src/lib/tickets/transition.ts \u2192 src/lib/tickets/reporter-link.ts",
+    "detail": "cycle in website: src/lib/website-db.ts → src/lib/tickets/transition.ts → src/lib/tickets/reporter-link.ts",
     "frozen_at": "8b581ebe"
   },
   "S2:website:src/lib/tickets/transition.ts|src/lib/website-db.ts": {
     "gate": "S2",
     "path": "website",
     "metric": 2,
-    "detail": "cycle in website: src/lib/website-db.ts \u2192 src/lib/tickets/transition.ts",
+    "detail": "cycle in website: src/lib/website-db.ts → src/lib/tickets/transition.ts",
     "frozen_at": "8b581ebe"
   },
   "S3:k3d/dev-stack/oauth2-proxy-dev.yaml:brainstorm.mentolder.de": {
@@ -291,27 +284,6 @@
     "path": "k3d/dev-stack/traefik-wildcard-ingress.yaml",
     "metric": 1,
     "detail": "hardcoded host: brainstorm.mentolder.de",
-    "frozen_at": "8b581ebe"
-  },
-  "S3:k3d/realm-workspace-dev.json:grafana.korczewski.de": {
-    "gate": "S3",
-    "path": "k3d/realm-workspace-dev.json",
-    "metric": 1,
-    "detail": "hardcoded host: grafana.korczewski.de",
-    "frozen_at": "8b581ebe"
-  },
-  "S3:k3d/realm-workspace-dev.json:grafana.mentolder.de": {
-    "gate": "S3",
-    "path": "k3d/realm-workspace-dev.json",
-    "metric": 1,
-    "detail": "hardcoded host: grafana.mentolder.de",
-    "frozen_at": "8b581ebe"
-  },
-  "S3:prod-fleet/staging/realm-workspace-staging.json:staging.korczewski.de": {
-    "gate": "S3",
-    "path": "prod-fleet/staging/realm-workspace-staging.json",
-    "metric": 1,
-    "detail": "hardcoded host: staging.korczewski.de",
     "frozen_at": "8b581ebe"
   },
   "S3:prod-fleet/website-mentolder/website-ingress-web.yaml:web.mentolder.de": {
@@ -377,74 +349,11 @@
     "detail": "hardcoded host: brett.korczewski.de",
     "frozen_at": "8b581ebe"
   },
-  "S3:prod-korczewski/realm-workspace-korczewski.json:brett.korczewski.de": {
-    "gate": "S3",
-    "path": "prod-korczewski/realm-workspace-korczewski.json",
-    "metric": 1,
-    "detail": "hardcoded host: brett.korczewski.de",
-    "frozen_at": "8b581ebe"
-  },
-  "S3:prod-korczewski/realm-workspace-korczewski.json:mediaviewer.korczewski.de": {
-    "gate": "S3",
-    "path": "prod-korczewski/realm-workspace-korczewski.json",
-    "metric": 1,
-    "detail": "hardcoded host: mediaviewer.korczewski.de",
-    "frozen_at": "8b581ebe"
-  },
-  "S3:prod-korczewski/realm-workspace-korczewski.json:videovault.korczewski.de": {
-    "gate": "S3",
-    "path": "prod-korczewski/realm-workspace-korczewski.json",
-    "metric": 1,
-    "detail": "hardcoded host: videovault.korczewski.de",
-    "frozen_at": "8b581ebe"
-  },
-  "S3:prod-korczewski/realm-workspace-korczewski.json:web.korczewski.de": {
-    "gate": "S3",
-    "path": "prod-korczewski/realm-workspace-korczewski.json",
-    "metric": 1,
-    "detail": "hardcoded host: web.korczewski.de",
-    "frozen_at": "8b581ebe"
-  },
   "S3:prod-mentolder/kustomization.yaml:brett.mentolder.de": {
     "gate": "S3",
     "path": "prod-mentolder/kustomization.yaml",
     "metric": 1,
     "detail": "hardcoded host: brett.mentolder.de",
-    "frozen_at": "8b581ebe"
-  },
-  "S3:prod-mentolder/realm-workspace-mentolder.json:brett.mentolder.de": {
-    "gate": "S3",
-    "path": "prod-mentolder/realm-workspace-mentolder.json",
-    "metric": 1,
-    "detail": "hardcoded host: brett.mentolder.de",
-    "frozen_at": "8b581ebe"
-  },
-  "S3:prod-mentolder/realm-workspace-mentolder.json:mediaviewer.mentolder.de": {
-    "gate": "S3",
-    "path": "prod-mentolder/realm-workspace-mentolder.json",
-    "metric": 1,
-    "detail": "hardcoded host: mediaviewer.mentolder.de",
-    "frozen_at": "8b581ebe"
-  },
-  "S3:prod-mentolder/realm-workspace-mentolder.json:videovault.mentolder.de": {
-    "gate": "S3",
-    "path": "prod-mentolder/realm-workspace-mentolder.json",
-    "metric": 1,
-    "detail": "hardcoded host: videovault.mentolder.de",
-    "frozen_at": "8b581ebe"
-  },
-  "S3:prod-mentolder/realm-workspace-mentolder.json:web.korczewski.de": {
-    "gate": "S3",
-    "path": "prod-mentolder/realm-workspace-mentolder.json",
-    "metric": 1,
-    "detail": "hardcoded host: web.korczewski.de",
-    "frozen_at": "8b581ebe"
-  },
-  "S3:prod-mentolder/realm-workspace-mentolder.json:web.mentolder.de": {
-    "gate": "S3",
-    "path": "prod-mentolder/realm-workspace-mentolder.json",
-    "metric": 1,
-    "detail": "hardcoded host: web.mentolder.de",
     "frozen_at": "8b581ebe"
   },
   "S3:prod/cloud-init-dev-vm.yaml:dev.mentolder.de": {
@@ -468,34 +377,6 @@
     "detail": "hardcoded host: signaling.mentolder.de",
     "frozen_at": "8b581ebe"
   },
-  "S3:prod/monitoring/grafana-oidc-patch.yaml:auth.mentolder.de": {
-    "gate": "S3",
-    "path": "prod/monitoring/grafana-oidc-patch.yaml",
-    "metric": 1,
-    "detail": "hardcoded host: auth.mentolder.de",
-    "frozen_at": "8b581ebe"
-  },
-  "S3:prod/realm-workspace-prod.json:files.korczewski.de": {
-    "gate": "S3",
-    "path": "prod/realm-workspace-prod.json",
-    "metric": 1,
-    "detail": "hardcoded host: files.korczewski.de",
-    "frozen_at": "8b581ebe"
-  },
-  "S3:prod/realm-workspace-prod.json:vault.korczewski.de": {
-    "gate": "S3",
-    "path": "prod/realm-workspace-prod.json",
-    "metric": 1,
-    "detail": "hardcoded host: vault.korczewski.de",
-    "frozen_at": "8b581ebe"
-  },
-  "S3:prod/realm-workspace-prod.json:web.korczewski.de": {
-    "gate": "S3",
-    "path": "prod/realm-workspace-prod.json",
-    "metric": 1,
-    "detail": "hardcoded host: web.korczewski.de",
-    "frozen_at": "8b581ebe"
-  },
   "S3:website/src/components/admin/inhalte/AngeboteSection.svelte:files.mentolder.de": {
     "gate": "S3",
     "path": "website/src/components/admin/inhalte/AngeboteSection.svelte",
@@ -508,20 +389,6 @@
     "path": "website/src/db/migrations/20260522_fix_platform_assets_status.sql",
     "metric": 1,
     "detail": "hardcoded host: brainstorm.mentolder.de",
-    "frozen_at": "8b581ebe"
-  },
-  "S3:website/src/layouts/Layout.astro:web.korczewski.de": {
-    "gate": "S3",
-    "path": "website/src/layouts/Layout.astro",
-    "metric": 1,
-    "detail": "hardcoded host: web.korczewski.de",
-    "frozen_at": "8b581ebe"
-  },
-  "S3:website/src/layouts/Layout.astro:web.mentolder.de": {
-    "gate": "S3",
-    "path": "website/src/layouts/Layout.astro",
-    "metric": 1,
-    "detail": "hardcoded host: web.mentolder.de",
     "frozen_at": "8b581ebe"
   },
   "S3:website/src/lib/agent-guide.generated.json:brainstorm.mentolder.de": {
@@ -663,13 +530,6 @@
     "metric": 1,
     "detail": "no reference to 'oracle-bench.sh' in any configured source",
     "frozen_at": "8b581ebe"
-  },
-  "S4:scripts/preflight-pr-scope.sh": {
-    "gate": "S4",
-    "path": "scripts/preflight-pr-scope.sh",
-    "metric": 1,
-    "detail": "no reference to 'preflight-pr-scope.sh' in any configured source",
-    "frozen_at": "c0831873"
   },
   "S4:scripts/skill-orchestrator.sh": {
     "gate": "S4",

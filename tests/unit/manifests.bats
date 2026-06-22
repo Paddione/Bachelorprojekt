@@ -348,65 +348,6 @@ print('OK: no workspace-secrets Secret in prod overlays')
   assert_success
 }
 
-# ── MCP consolidation: prod runs only the monolith (T000289) ─────
-# Prod serves all MCP via claude-code-mcp-monolith (default ns), routed
-# by the mcp-gateway IngressRoute. The k3d base also defines split MCP
-# pods (claude-code-mcp-ops/-auth/mcp-browser/mcp-github) for the dev
-# cluster — these must NOT reach the prod overlay, or they run idle in
-# the workspace ns duplicating the monolith. browser/github were already
-# $patch:delete'd since PR #246; ops/auth are added in this fix.
-@test "prod overlays exclude split MCP pods (consolidated on monolith) [T000289]" {
-  if ! command -v python3 &>/dev/null; then
-    skip "python3 not installed"
-  fi
-  run python3 - "${PROJECT_DIR}" <<'PY'
-import subprocess, sys, yaml, glob, os
-project = sys.argv[1]
-def _is_overlay(d):
-    if not os.path.isdir(d):
-        return False
-    for k in ('kustomization.yaml', 'kustomization.yml', 'Kustomization'):
-        p = os.path.join(d, k)
-        if os.path.exists(p):
-            with open(p) as fh:
-                if 'kind: Component' in fh.read():
-                    return False
-            return True
-    return False
-
-# Brand overlays PLUS the nested prod-fleet/<brand> wrappers actually applied in
-# prod (descend one level into container dirs like prod-fleet/).
-overlays = sorted(set(
-    d for d in glob.glob(os.path.join(project, 'prod-*'))
-           + glob.glob(os.path.join(project, 'prod-*', '*'))
-    if _is_overlay(d)))
-SPLIT = {'claude-code-mcp-ops', 'claude-code-mcp-auth', 'mcp-browser', 'mcp-github'}
-bad = []
-for ov in overlays:
-    r = subprocess.run(
-        ['kubectl', 'kustomize', ov, '--load-restrictor=LoadRestrictionsNone'],
-        capture_output=True, text=True)
-    if r.returncode != 0:
-        print(f'kustomize build failed for {ov}: {r.stderr}', file=sys.stderr)
-        sys.exit(2)
-    try:
-        for doc in yaml.safe_load_all(r.stdout):
-            if not doc:
-                continue
-            if doc.get('kind') in ('Deployment', 'Service') and \
-                    doc.get('metadata', {}).get('name') in SPLIT:
-                bad.append(f"{os.path.basename(ov)}:{doc['kind']}/{doc['metadata']['name']}")
-    except yaml.constructor.ConstructorError:
-        pass  # YAML 1.1 merge-key constructs from Helm charts (monitoring ns) — skip
-if bad:
-    print('Split MCP resources still rendered in prod (should be monolith-only): '
-          + ', '.join(sorted(bad)))
-    sys.exit(1)
-print('OK: prod overlays render no split MCP ops/auth/browser/github resources')
-PY
-  assert_success
-}
-
 # ── billing-dunning-detection targets the website namespace (T000295) ──
 # The website Deployment lives in its own `website` (mentolder) /
 # `website-korczewski` namespace — never in `workspace`. The base

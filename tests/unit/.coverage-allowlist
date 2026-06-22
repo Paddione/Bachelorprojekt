@@ -11,12 +11,10 @@ backup-restore-recovery
 brainstorm-dev-host
 dev-build-safety
 dev-cluster-autostart
-dev-mcp-route
 keycloak-entrypoint-escaping
 knowledge-ingest-bugs-schema
 knowledge-ingest-manifest
 knowledge-ingest-schema
-mcp-supergateway-stateful
 recovery-browser-manifest
 test-docs-content
 tickets-migration

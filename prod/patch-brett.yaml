@@ -8,5 +8,5 @@ spec:
       containers:
         - name: brett
           env:
-            - name: KEYCLOAK_PUBLIC_URL
+            - name: POCKET_ID_PUBLIC_URL
               value: "https://auth.${PROD_DOMAIN}"

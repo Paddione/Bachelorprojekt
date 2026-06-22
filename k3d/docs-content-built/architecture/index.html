@@ -178,7 +178,7 @@
 <body>
   <div class="header">
     <h1>⬡ Architektur — Living Docs</h1>
-    <span class="meta">Generiert: 2026-06-21T22:53:37.880Z</span>
+    <span class="meta">Generiert: 2026-06-22T00:01:57.540Z</span>
   </div>
 
   <div class="stats">
@@ -187,7 +187,7 @@
       <span class="stat-label">Services</span>
     </div>
     <div class="stat">
-      <span class="stat-value">1686</span>
+      <span class="stat-value">1683</span>
       <span class="stat-label">Abhängigkeiten</span>
     </div>
     <div class="stat">
@@ -308,7 +308,6 @@ flowchart LR
   db_backup -->|"command"| website
   brett -->|"DATABASE_URL"| shared_db
   brett -->|"DATABASE_URL"| website
-  brett -->|"KEYCLOAK_URL"| keycloak
   billing_dunning_detection -->|"command"| website
   monthly_billing -->|"command"| website
   scheduled_publish -->|"command"| website
@@ -370,7 +369,6 @@ flowchart LR
   videovault -->|"DATABASE_URL"| shared_db
   website -->|"SESSIONS_DATABASE_…"| shared_db
   website -->|"LIVEKIT_SERVICE_URL"| livekit_server
-  website -->|"configmap:website-…"| keycloak
   website -->|"configmap:website-…"| nextcloud
   website -->|"configmap:website-…"| brett
   website -->|"configmap:website-…"| livekit
@@ -391,7 +389,7 @@ flowchart LR
   traefik -->|"ingress"| sish
   traefik -->|"ingress"| oauth2_proxy_session_hub
   traefik -->|"ingress"| website
-  traefik -->|"ingress"| keycloak
+  traefik -->|"ingress"| pocket_id
   traefik -->|"ingress"| nextcloud
   traefik -->|"ingress"| whiteboard
   traefik -->|"ingress"| spreed_signaling
@@ -410,7 +408,6 @@ flowchart LR
   traefik -->|"ingress"| otel_collector
   traefik -->|"ingress"| ntfy
   traefik -->|"ingress"| collabora
-  traefik -->|"ingress"| pocket_id
   traefik -->|"ingress"| oauth2_proxy_recovery
   traefik -->|"ingress"| oauth2_proxy_traefik
   traefik -->|"ingress"| apiinternal
@@ -748,6 +745,7 @@ flowchart LR
   scheduled_publish -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| brett
+  brett -->|"secret:workspace-s…"| keycloak
   brett -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| knowledge_ingest_bugs
@@ -1916,7 +1914,7 @@ flowchart LR
   website -->|"secret:staging-db-…"| shared_db_staging
       </div>
     </div>
-    <p class="diagram-caption">Alle 84 K8s-Services und ihre 1686 Abhängigkeitskanten (env-Refs, initContainer-Waits, Ingress-Backends)</p>
+    <p class="diagram-caption">Alle 84 K8s-Services und ihre 1683 Abhängigkeitskanten (env-Refs, initContainer-Waits, Ingress-Backends)</p>
   </div>
 
   <!-- K8s Topology Tab -->

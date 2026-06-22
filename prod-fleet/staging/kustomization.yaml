@@ -19,11 +19,7 @@ resources:
 components:
   - ../components/fleet-common
 
-configMapGenerator:
-  - name: realm-template
-    behavior: replace
-    files:
-      - realm-workspace.json=realm-workspace-staging.json
+# realm-template removed — Keycloak decommissioned
 generatorOptions:
   disableNameSuffixHash: true
 

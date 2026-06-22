@@ -19,12 +19,8 @@ resources:
   # a whisper backend, and whisper only lives on korczewski.
   - talk-transcriber.yaml
 
-# Override realm with korczewski-specific config
+# realm-template removed — Keycloak decommissioned
 configMapGenerator:
-  - name: realm-template
-    behavior: replace
-    files:
-      - realm-workspace.json=realm-workspace-korczewski.json
   - name: nextcloud-extra-config
     behavior: replace
     files:
@@ -130,8 +126,8 @@ patches:
             containers:
               - name: brett
                 env:
-                  - name: KEYCLOAK_URL
-                    value: "http://keycloak.workspace-korczewski.svc.cluster.local:8080"
+                  - name: POCKET_ID_URL
+                    value: "http://pocket-id.workspace-korczewski.svc.cluster.local:1411"
                   - name: BRETT_PUBLIC_URL
                     value: "https://brett.korczewski.de"
                   - name: WEBSITE_INTERNAL_URL

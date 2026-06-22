@@ -340,16 +340,16 @@ spec:
     - port: 5432
       protocol: TCP
 ---
-# keycloak: allow ingress from website namespace (OIDC token exchange + userinfo)
+# pocket-id: allow ingress from website namespace (OIDC token exchange + userinfo + Admin API)
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: allow-website-to-keycloak-ingress
+  name: allow-website-to-pocket-id-ingress
 spec:
   podSelector:
     matchLabels:
-      app: keycloak
+      app: pocket-id
   policyTypes:
   - Ingress
   ingress:
@@ -358,7 +358,7 @@ spec:
         matchLabels:
           kubernetes.io/metadata.name: ${WEBSITE_NAMESPACE}
     ports:
-    - port: 8080
+    - port: 1411
       protocol: TCP
 ---
 # nextcloud: allow ingress from website namespace (CalDAV, Files, Talk integration)

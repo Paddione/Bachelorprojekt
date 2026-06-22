@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-21T22:53:37.773Z",
+  "generatedAt": "2026-06-22T00:01:57.440Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -599,12 +599,6 @@
     },
     {
       "from": "brett",
-      "to": "keycloak",
-      "via": "env:KEYCLOAK_URL",
-      "kind": "env"
-    },
-    {
-      "from": "brett",
       "to": "website",
       "via": "env:WEBSITE_INTERNAL_URL",
       "kind": "env"
@@ -1055,12 +1049,6 @@
     },
     {
       "from": "website",
-      "to": "keycloak",
-      "via": "configmap:website-config",
-      "kind": "configmap"
-    },
-    {
-      "from": "website",
       "to": "nextcloud",
       "via": "configmap:website-config",
       "kind": "configmap"
@@ -1199,7 +1187,7 @@
     },
     {
       "from": "traefik",
-      "to": "keycloak",
+      "to": "pocket-id",
       "via": "ingress",
       "kind": "ingress"
     },
@@ -1308,12 +1296,6 @@
     {
       "from": "traefik",
       "to": "collabora",
-      "via": "ingress",
-      "kind": "ingress"
-    },
-    {
-      "from": "traefik",
-      "to": "pocket-id",
       "via": "ingress",
       "kind": "ingress"
     },

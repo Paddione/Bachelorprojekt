@@ -1,8 +1,9 @@
 # ═══════════════════════════════════════════════════════════════════
 # Pocket ID — passkey-first OIDC identity provider
-# Replaces Keycloak for the workspace tenants. Image: ghcr.io/pocket-id/pocket-id.
+# Keycloak fully replaced — Pocket ID now owns the auth.* domain.
 # Container port 1411. Cluster-internal Service: http://pocket-id:1411.
-# Public hostname: ${POCKET_ID_DOMAIN} (id.localhost in dev, id.${PROD_DOMAIN} in prod).
+# Public hostname: ${POCKET_ID_DOMAIN} (auth.localhost in dev, auth.${PROD_DOMAIN} in prod).
+# POCKET_ID_FRONTEND_URL is set to https://auth.${PROD_DOMAIN} in prod env files.
 # ═══════════════════════════════════════════════════════════════════
 ---
 # DB-init Job — idempotently creates the `pocket_id` database + role on

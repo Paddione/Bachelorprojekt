@@ -17,12 +17,8 @@ resources:
   - whisper.yaml
   - talk-transcriber.yaml
 
-# Override realm with mentolder-specific config
+# realm-template removed — Keycloak decommissioned
 configMapGenerator:
-  - name: realm-template
-    behavior: replace
-    files:
-      - realm-workspace.json=realm-workspace-mentolder.json
   # ── dev.mentolder.de — mount scripts/dev-db-refresh.sh as ConfigMap ──
   - name: dev-db-refresh-script
     namespace: workspace

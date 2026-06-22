@@ -102,8 +102,8 @@ all_images() {
   [[ "$output" -ge 1 ]]
 }
 
-@test "deployment: keycloak exists" {
-  grep -q 'name: keycloak' "$RENDERED"
+@test "deployment: pocket-id exists (replaced keycloak)" {
+  grep -q 'name: pocket-id' "$RENDERED"
   grep -q 'kind: Deployment' "$RENDERED"
 }
 
@@ -193,8 +193,8 @@ all_images() {
 
 # ── ConfigMaps ───────────────────────────────────────────────────
 
-@test "configmap: realm-template exists" {
-  grep -q 'name: realm-template' "$RENDERED"
+@test "configmap: pocket-id-data PVC exists (replaced realm-template)" {
+  grep -q 'name: pocket-id-data' "$RENDERED"
 }
 
 @test "configmap: nextcloud-oidc-config exists" {
@@ -208,7 +208,7 @@ all_images() {
 # ── Services ─────────────────────────────────────────────────────
 
 @test "service for each core deployment exists" {
-  for svc in keycloak nextcloud shared-db vaultwarden mailpit; do
+  for svc in pocket-id nextcloud shared-db vaultwarden mailpit; do
     grep -qE "kind: Service" "$RENDERED" || {
       echo "No Service kind found"
       return 1

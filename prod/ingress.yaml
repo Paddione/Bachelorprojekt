@@ -26,7 +26,7 @@ spec:
                 port:
                   number: 443
 ---
-# ── Keycloak (SSO) — Rate-Limiting Brute-Force-Schutz ──────────────
+# ── Pocket ID (Auth / SSO) — Rate-Limiting ──────────────────────────
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -46,9 +46,9 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: keycloak
+                name: pocket-id
                 port:
-                  number: 8080
+                  number: 1411
 ---
 # ── Nextcloud (Dateien) ─────────────────────────────────────────────
 apiVersion: networking.k8s.io/v1

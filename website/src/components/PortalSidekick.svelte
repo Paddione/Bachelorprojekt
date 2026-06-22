@@ -10,10 +10,13 @@
   import GrillingSessionHost from './mediaviewer/GrillingSessionHost.svelte';
   import CockpitSidekickView from './assistant/CockpitSidekickView.svelte';
   import AiQualitySidekickView from './assistant/AiQualitySidekickView.svelte';
+  import LogsSidekickView from './assistant/LogsSidekickView.svelte';
   import { resolveHelpVideos } from '../lib/help-videos';
   import { parseNavigateEvent } from '../lib/assistant/sidekick-nudge';
+  import { registerBrowserLogCapture } from '../lib/logging/browser-collector';
+  import { addEntry } from '../lib/logging/log-store';
 
-  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'agent-guide' | 'mediaviewer' | 'grilling' | 'cockpit' | 'ai-quality';
+  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'agent-guide' | 'mediaviewer' | 'grilling' | 'cockpit' | 'ai-quality' | 'logs';
 
   let {
     helpSection = '',
@@ -61,7 +64,15 @@
     grilling: 'Final Grilling',
     cockpit: 'Projekt-Cockpit',
     'ai-quality': 'KI-Qualität',
+    logs: 'Logs',
   };
+
+  // Capture client-side errors into the central log bus (admin sessions only),
+  // registered once at mount so failures anywhere in the app reach the widget.
+  $effect(() => {
+    if (helpContext !== 'admin') return;
+    return registerBrowserLogCapture(addEntry);
+  });
 
   $effect(() => {
     checkMobile();
@@ -242,6 +253,8 @@
       <CockpitSidekickView />
     {:else if view === 'ai-quality'}
       <AiQualitySidekickView />
+    {:else if view === 'logs'}
+      <LogsSidekickView />
     {/if}
   </div>
 </div>

@@ -58,6 +58,12 @@ s1:
     # queries across all features. Splitting it would require carefully managing the
     # single PostgreSQL pool. Accepted as a long-term refactoring target.
     - "website/src/lib/website-db.ts"
+    # GLTFLoader.js is a vendored Three.js loader (MIT) shipped as a single
+    # monolithic browser bundle. Cannot be reasonably split; vendor file.
+    - "brett/public/lib/GLTFLoader.js"
+    # scripts/ticket.sh is a sanctioned single-file CLI (735 lines) — the plan
+    # explicitly lists it as "low priority, do not split" (G-RH01 Batch 1).
+    - "scripts/ticket.sh"
 
 s2:
   graphs:

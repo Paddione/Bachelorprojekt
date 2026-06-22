@@ -6,13 +6,6 @@
     "detail": "669 lines > 500 limit (.mjs)",
     "frozen_at": "8b581ebe"
   },
-  "S1:brett/public/lib/GLTFLoader.js": {
-    "gate": "S1",
-    "path": "brett/public/lib/GLTFLoader.js",
-    "metric": 3629,
-    "detail": "3629 lines > 600 limit (.js)",
-    "frozen_at": "8b581ebe"
-  },
   "S1:k3d/talk-transcriber/app.py": {
     "gate": "S1",
     "path": "k3d/talk-transcriber/app.py",
@@ -39,13 +32,6 @@
     "path": "scripts/env-seal.sh",
     "metric": 520,
     "detail": "520 lines > 500 limit (.sh)",
-    "frozen_at": "8b581ebe"
-  },
-  "S1:scripts/ticket.sh": {
-    "gate": "S1",
-    "path": "scripts/ticket.sh",
-    "metric": 735,
-    "detail": "735 lines > 500 limit (.sh)",
     "frozen_at": "8b581ebe"
   },
   "S1:website/src/components/BookingForm.svelte": {

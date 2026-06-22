@@ -39,7 +39,7 @@
 
 import type { Pool } from 'pg';
 
-import * as keycloak from '../keycloak';
+import * as keycloak from '../identity';
 import { openFailureTicket } from './failure-bridge';
 import { openTestRunFailureTicket } from './test-run-bridge';
 
@@ -52,8 +52,10 @@ import { openTestRunFailureTicket } from './test-run-bridge';
  *   - `auth.users` / `bookings.bookings` are legacy; some envs may carry them
  *     because earlier prototypes seeded them. Both have `is_test_data` columns
  *     when present (see `ensureSystemtestSchema`).
- *   - `keycloak.users` is a virtual marker — the actual user lives in Keycloak
- *     itself. `purgeFixturesFor` calls `keycloak.deleteUser(rowId)` for these.
+ *   - `keycloak.users` is a virtual marker (table_name kept for backward-compat
+ *     with already-tracked fixtures) — the actual user lives in the identity
+ *     provider (Pocket ID). `purgeFixturesFor` calls `keycloak.deleteUser(rowId)`
+ *     (the `keycloak` alias now points at `../identity`) for these.
  *   - `tickets.tickets` is rare but valid (a seed module may insert a bug-
  *     ticket fixture; see `coaching-project.ts`). Has `is_test_data`.
  *   - `questionnaire_assignments` has `is_test_data`.

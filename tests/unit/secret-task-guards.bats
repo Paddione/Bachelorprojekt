@@ -85,24 +85,13 @@ EOF
   assert_success
 }
 
-# ── Finding #2: keycloak-sync.sh must fail-closed in non-dev ────────────────
-KC_SYNC="${PROJECT_DIR}/scripts/keycloak-sync.sh"
-
-@test "#2 kc_should_fail_closed is TRUE for a prod brand without soft-override" {
-  run env -u KEYCLOAK_SYNC_SOFT bash -c \
-    'source "'"$KC_SYNC"'" --_test-source 2>/dev/null; ENV=mentolder kc_should_fail_closed && echo CLOSED'
-  assert_output --partial CLOSED
-}
-
-@test "#2 kc_should_fail_closed is FALSE for ENV=dev (dev ergonomics)" {
-  run bash -c 'source "'"$KC_SYNC"'" --_test-source 2>/dev/null; ENV=dev kc_should_fail_closed && echo CLOSED || echo OPEN'
-  assert_output --partial OPEN
-}
-
-@test "#2 kc_should_fail_closed is FALSE when KEYCLOAK_SYNC_SOFT=1 (override)" {
-  run bash -c 'source "'"$KC_SYNC"'" --_test-source 2>/dev/null; ENV=mentolder KEYCLOAK_SYNC_SOFT=1 kc_should_fail_closed && echo CLOSED || echo OPEN'
-  assert_output --partial OPEN
-}
+# ── Finding #2: keycloak-sync.sh fail-closed guard — REMOVED ────────────────
+# The keycloak-sync.sh script was archived in the Pocket ID migration (T001068,
+# Welle 3 — Keycloak shutdown). Its fail-closed guard (kc_should_fail_closed)
+# no longer exists, so these tests were dropped rather than left to assert
+# against a non-existent script (which passed only by accident — `source` of a
+# missing file silently leaves the function undefined). See
+# docs/archive/keycloak-realms/keycloak-sync.sh for the retired implementation.
 
 # ── Finding #3: env-seal cert-fingerprint compare seam ─────────────────────
 ENV_SEAL="${PROJECT_DIR}/scripts/env-seal.sh"
@@ -153,12 +142,10 @@ APP_INSTALL="${PROJECT_DIR}/scripts/app-install.sh"
   assert_output --partial 1
 }
 
-# ── Finding #9: keycloak-sync warns loudly when website-secrets fetch is empty
-@test "#9 keycloak-sync warns when WEBSITE_OIDC_SECRET is missing" {
-  run grep -ciE 'WEBSITE_OIDC_SECRET.*(leer|empty|fehlt|missing)|website-secrets.*(leer|empty)' "${PROJECT_DIR}/scripts/keycloak-sync.sh"
-  refute_output --partial 0
-}
-
+# ── Finding #9: env:seal reminds about website-secrets co-rotation ──────────
+# (The companion keycloak-sync.sh warning test was dropped with Finding #2 —
+#  the script was archived in the Pocket ID migration. website-secrets still
+#  needs co-rotation because it now carries POCKET_ID_API_KEY / POCKET_ID_*.)
 @test "#9 env:seal desc notes website-secrets co-rotation" {
   run bash -c 'sed -n "/  env:seal:/,/  env:fetch-cert:/p" "'"${PROJECT_DIR}/Taskfile.yml"'" | grep -ciE "website-secrets|WEBSITE_OIDC"'
   refute_output --partial 0

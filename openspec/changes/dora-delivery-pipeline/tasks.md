@@ -1051,7 +1051,7 @@ git commit -m "feat(api): /api/admin/dora-metrics unified DORA endpoint (isAdmin
 
 > Svelte 5 runes (`$state`, `$effect`). MTTR `median === null` → „n/a"-Karte. Leere Fenster crashen nicht. CFR-Karte trägt explizit den Hinweis „(Proxy)". DF-Karte-Label „Merges nach main". Keine Brand-Domain-Literale (S3) — PR-/Host-Bezug entfällt; nur Zahlen.
 
-- [ ] **Step 1: Den fehlschlagenden Test schreiben**
+- [x] **Step 1: Den fehlschlagenden Test schreiben**
 
 Create `website/src/components/admin/DoraDashboard.test.ts`:
 
@@ -1102,12 +1102,12 @@ describe('DoraDashboard', () => {
 });
 ```
 
-- [ ] **Step 2: Test laufen lassen, Fehlschlag bestätigen**
+- [x] **Step 2: Test laufen lassen, Fehlschlag bestätigen**
 
 Run: `cd website && npx vitest run src/components/admin/DoraDashboard.test.ts`
 Expected: FAIL — `Cannot find module './DoraDashboard.svelte'`.
 
-- [ ] **Step 3: Komponente schreiben**
+- [x] **Step 3: Komponente schreiben**
 
 Create `website/src/components/admin/DoraDashboard.svelte`:
 
@@ -1213,17 +1213,17 @@ Create `website/src/components/admin/DoraDashboard.svelte`:
 </style>
 ```
 
-- [ ] **Step 4: Test laufen lassen, grün bestätigen**
+- [x] **Step 4: Test laufen lassen, grün bestätigen**
 
 Run: `cd website && npx vitest run src/components/admin/DoraDashboard.test.ts`
 Expected: alle 4 Tests PASS. (Falls `@testing-library/svelte` fehlt, einen benachbarten `*.test.ts`, der eine Svelte-Komponente rendert, als Import-Vorlage prüfen.)
 
-- [ ] **Step 5: Budget-Check**
+- [x] **Step 5: Budget-Check**
 
 Run: `wc -l website/src/components/admin/DoraDashboard.svelte`
 Expected: < 500 (≈ 130).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add website/src/components/admin/DoraDashboard.svelte website/src/components/admin/DoraDashboard.test.ts

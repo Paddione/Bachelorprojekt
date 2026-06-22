@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 
 const links: ReadonlyArray<{ to: string; label: string }> = [
-  { to: '/#angebote', label: 'Angebote' },
+  { to: '/leistungen', label: 'Leistungen' },
   { to: '/ueber-mich', label: 'Über mich' },
   { to: '/referenzen', label: 'Referenzen' },
   { to: '/kontakt', label: 'Kontakt' },

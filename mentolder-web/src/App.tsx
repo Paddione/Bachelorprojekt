@@ -6,6 +6,10 @@ import { HomePage } from './pages/HomePage';
 import { KontaktPage } from './pages/KontaktPage';
 import { ImpressumPage } from './pages/ImpressumPage';
 import { DatenschutzPage } from './pages/DatenschutzPage';
+import { UeberMichPage } from './pages/UeberMichPage';
+import { LeistungenPage } from './pages/LeistungenPage';
+import { LeistungDetailPage } from './pages/LeistungDetailPage';
+import { ReferenzenPage } from './pages/ReferenzenPage';
 
 function ScrollToTop() {
   const { pathname, hash } = useLocation();
@@ -33,6 +37,10 @@ export default function App() {
           <Route path="/kontakt" element={<KontaktPage />} />
           <Route path="/impressum" element={<ImpressumPage />} />
           <Route path="/datenschutz" element={<DatenschutzPage />} />
+          <Route path="/ueber-mich" element={<UeberMichPage />} />
+          <Route path="/leistungen" element={<LeistungenPage />} />
+          <Route path="/leistungen/:slug" element={<LeistungDetailPage />} />
+          <Route path="/referenzen" element={<ReferenzenPage />} />
           <Route
             path="*"
             element={

@@ -224,11 +224,10 @@ all_images() {
 }
 
 # ── RBAC ─────────────────────────────────────────────────────────
-
-@test "claude-code RBAC resources exist" {
-  grep -q 'claude-code' "$RENDERED"
-  grep -qE 'kind: (Role|ClusterRole|RoleBinding|ServiceAccount)' "$RENDERED"
-}
+# The "claude-code RBAC resources exist" test was removed: the claude-code MCP
+# stack (deployment, RBAC, oauth2-proxy) was decommissioned with the MCP
+# monolith (PRs #2052 / #2061), so `claude-code` is no longer in the k3d render.
+# It was the only RBAC in the base, hence no replacement assertion.
 
 # ── HPA ──────────────────────────────────────────────────────────
 

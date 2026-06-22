@@ -289,7 +289,7 @@ git commit -m "feat(factory): pipeline closes ticket done/shipped on merge + gat
 - Consumes: `$TICKET_ID`, `$PR_NUM`, `$RESOLUTION`.
 - Produces: devflow-Tickets schließen wie Factory-Tickets auf `done · resolution=shipped` und emittieren `phase deploy done --driver devflow`. KEIN `qa_review` mehr. (`.md` hat kein S1-Limit.)
 
-- [ ] **Step 1: Schritt 6.5 umschreiben**
+- [x] **Step 1: Schritt 6.5 umschreiben**
 
 Ersetze in `.claude/skills/dev-flow-execute/SKILL.md` den `qa_review`-Aufruf (Zeile ~408) und ergänze das Gate-Event. Vorher:
 
@@ -312,14 +312,14 @@ Nachher:
 
 (`$RESOLUTION` ist bereits in Schritt 6.5 gesetzt: `RESOLUTION="shipped"` / `"fixed"` bei Fixes — Zeile ~402. `add-pr-link` bleibt davor unverändert.)
 
-- [ ] **Step 2: AUSSTIEG- und „Kreislauf"-Texte aktualisieren**
+- [x] **Step 2: AUSSTIEG- und „Kreislauf"-Texte aktualisieren**
 
 Ersetze die drei `qa_review`-Erwähnungen im Prosa-Text:
 - Zeile ~30: `Ticket \`qa_review\`` → `Ticket \`done/shipped\``
 - Zeile ~49: `Ticket \`qa_review\`` → `Ticket \`done/shipped\``
 - Zeile ~490: `- Ticket status = \`qa_review\`` → `- Ticket status = \`done\` (resolution=shipped)`
 
-- [ ] **Step 3: FA-SF-22 SKILL-Test grün + keine `qa_review`-Reste**
+- [x] **Step 3: FA-SF-22 SKILL-Test grün + keine `qa_review`-Reste**
 
 ```bash
 bats tests/spec/software-factory.bats -f "FA-SF-22: dev-flow-execute"
@@ -327,7 +327,7 @@ grep -n "qa_review" .claude/skills/dev-flow-execute/SKILL.md || echo "OK — kei
 ```
 Expected: SKILL-Test PASS; `grep` findet keine `qa_review`-Vorkommen mehr (oder nur in einem expliziten „retired"-Erklärsatz, falls bewusst dokumentiert — dann den FA-SF-22-SKILL-Test entsprechend so halten, dass er nur die `update-status … --status qa_review`-Schreibstelle verbietet, nicht jede Erwähnung).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add .claude/skills/dev-flow-execute/SKILL.md

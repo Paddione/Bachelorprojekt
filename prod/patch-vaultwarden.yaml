@@ -11,7 +11,7 @@ spec:
             - name: DOMAIN
               value: "https://vault.${PROD_DOMAIN}"
             - name: SSO_AUTHORITY
-              value: "https://id.${PROD_DOMAIN}"
+              value: "https://auth.${PROD_DOMAIN}"
             - name: SMTP_HOST
               value: "${SMTP_HOST}"
             - name: SMTP_PORT

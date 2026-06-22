@@ -68,15 +68,15 @@ Prerequisites: Docker, k3d, kubectl, `task` (go-task).
 Never look up or hardcode task commands. Use the task oracle instead:
 
 ```bash
-bash scripts/task-oracle.sh '<goal in plain English>'
+bash scripts/vda.sh oracle '<goal in plain English>'
 ```
 
 Examples:
 ```bash
-bash scripts/task-oracle.sh 'deploy website to mentolder and korczewski brands'
-bash scripts/task-oracle.sh 'show pod status for mentolder'
-bash scripts/task-oracle.sh 'run all offline tests'
-bash scripts/task-oracle.sh 'create a fresh k3d cluster'
+bash scripts/vda.sh oracle 'deploy website to mentolder and korczewski brands'
+bash scripts/vda.sh oracle 'show pod status for mentolder'
+bash scripts/vda.sh oracle 'run all offline tests'
+bash scripts/vda.sh oracle 'create a fresh k3d cluster'
 ```
 
 **Agent flags** (for programmatic/automated use):

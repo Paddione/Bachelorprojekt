@@ -5,6 +5,8 @@
     savePreset,
     deletePreset,
     buildShareUrl,
+    isLocalStorageAvailable,
+    quotaEvictedFlag,
     type CockpitFilterState,
     type Preset
   } from '../../../lib/cockpit-presets';
@@ -23,6 +25,7 @@
   let showSaveDialog = $state(false);
   let newPresetName = $state('');
   let toastMsg = $state('');
+  let isPrivate = $state(false);
 
   function refreshPresets() {
     presets = loadPresets();
@@ -30,6 +33,10 @@
 
   onMount(() => {
     refreshPresets();
+    isPrivate = !isLocalStorageAvailable();
+    if (quotaEvictedFlag) {
+      showToast('Älteste Presets wurden entfernt (Speicher voll)');
+    }
   });
 
   function toggleDropdown() {
@@ -128,6 +135,12 @@
     </div>
   {/if}
 </div>
+
+{#if isPrivate}
+  <div class="private-banner" data-testid="private-banner">
+    ⚠️ Presets nur für diese Session (Private/Incognito-Modus)
+  </div>
+{/if}
 
 {#if showSaveDialog}
   <div class="modal-overlay" onclick={() => (showSaveDialog = false)} role="presentation">
@@ -344,5 +357,15 @@
 
   .modal-btn.cancel:hover {
     background: #30363d;
+  }
+
+  .private-banner {
+    width: 100%;
+    background: #d29922;
+    color: #0d1117;
+    padding: 0.35rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
   }
 </style>

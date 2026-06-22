@@ -53,6 +53,7 @@ env_vars:
   # Pinned to pk-hetzner-4 (fleet node) — livekit/stream/turn all resolve here.
   LIVEKIT_PIN_IP: "204.168.244.104"
   STREAM_DOMAIN: stream.mentolder.de
+  NEXTCLOUD_DB_HOST: nextcloud-db.workspace.svc.cluster.local
   WEBSITE_HOST: web.mentolder.de
   WEBSITE_SITE_URL: "https://web.mentolder.de"
   KEYCLOAK_FRONTEND_URL: "https://auth.mentolder.de"

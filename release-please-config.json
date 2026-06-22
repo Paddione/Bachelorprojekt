@@ -50,7 +50,7 @@
     "k3d/docs-content": {
       "release-type": "simple",
       "package-name": "docs",
-      "changelog-path": "CHANGELOG.md",
+      "changelog-path": "k3d/docs-content-built/CHANGELOG.html",
       "changelog-sections": [
         {"type": "feat", "section": "Features", "hidden": false},
         {"type": "fix", "section": "Bug Fixes", "hidden": false},

@@ -22,7 +22,6 @@ scan:
     - mcp-browser
     - claude-code
     - openclaw
-    - pentest-dashboard
   ignore_globs:
     - "k3d/docs-content-built/**"
     - "website/src/lib/system-test-seed-data.ts"

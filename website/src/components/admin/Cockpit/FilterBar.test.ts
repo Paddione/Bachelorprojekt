@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, fireEvent } from '@testing-library/svelte';
 import FilterBar from './FilterBar.svelte';
-import { DEFAULT_PRESETS, savePreset, loadPresets } from '../../../lib/cockpit-presets';
+import { DEFAULT_PRESETS, savePreset, loadPresets, quotaEvictedFlag } from '../../../lib/cockpit-presets';
 
 describe('FilterBar Component', () => {
   beforeEach(() => {
@@ -86,4 +86,22 @@ describe('FilterBar Component', () => {
     expect(presets[3].name).toBe('New Saved Preset');
     expect(presets[3].state).toEqual(currentFilter);
   });
+
+  it('shows private mode banner when localStorage is unavailable', async () => {
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('SecurityError');
+    });
+
+    const { getByTestId } = render(FilterBar, {
+      currentFilter: { status: [], area: [], brand: [] },
+      onApplyPreset: () => {},
+    });
+
+    const banner = getByTestId('private-banner');
+    expect(banner).toBeTruthy();
+    expect(banner.textContent).toContain('Private');
+
+    vi.restoreAllMocks();
+  });
+
 });

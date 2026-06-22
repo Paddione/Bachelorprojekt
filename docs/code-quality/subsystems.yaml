@@ -67,9 +67,4 @@
   owner_agent: bachelorprojekt-website
   test_location: art-library/_tooling/
   purpose: Design overviews, game art, art-library tooling.
-- id: pentest
-  name: Pentest dashboard
-  paths: ["pentest-dashboard/**"]
-  owner_agent: bachelorprojekt-security
-  test_location: pentest-dashboard/
-  purpose: Security tooling dashboard.
+

@@ -145,7 +145,6 @@ spec:
               recovery|SECRET_recovery|${SCHEME}://recover.${SUFFIX}/oauth2/callback
               session-hub|SECRET_sessionhub|${SCHEME}://session-hub.${SUFFIX}/oauth2/callback
               brainstorm|SECRET_brainstorm|${SCHEME}://brainstorm.${SUFFIX}/oauth2/callback
-              claude-code-mcp-monolith|SECRET_claudecode|${SCHEME}://mcp.${SUFFIX}/oauth2/callback
               vaultwarden|SECRET_vaultwarden|${SCHEME}://vault.${SUFFIX}/identity/connect/oidc-signin
               nextcloud|SECRET_nextcloud|${SCHEME}://cloud.${SUFFIX}/apps/oidc_login/oidc
               grafana|SECRET_grafana|${SCHEME}://grafana.${SUFFIX}/login/generic_oauth

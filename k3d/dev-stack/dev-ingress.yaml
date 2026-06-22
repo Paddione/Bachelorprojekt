@@ -19,8 +19,7 @@ metadata:
     # *.dev wildcard would outrank the per-host website-dev/brett-dev Ingresses
     # (Traefik rule-length priority) on that loopback hop and bounce authed
     # traffic back to oauth2-proxy forever. Restricting to websecure means the
-    # loopback `web` table is resolved purely by the per-host Ingresses + the
-    # mcp-dev IngressRoute (priority 100). [T000363]
+    # loopback `web` table is resolved purely by the per-host Ingresses. [T000363]
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
 spec:
   tls:

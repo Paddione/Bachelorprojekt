@@ -3,10 +3,10 @@
 # [T000363] Adapted from prod-mentolder/oauth2-proxy-dev.yaml:
 #   - runs as an ordinary in-cluster pod (NO hostNetwork / nodeSelector / hostPort)
 #   - upstream loops back to the cluster Traefik `web` entrypoint with Host
-#     preserved, so host-based routing reaches mcp-dev / website-dev / brett-dev
+#     preserved, so host-based routing reaches website-dev / brett-dev
 #     (replaces the old 127.0.0.1:18080 host-port and the dead 10.0.0.20 VIP)
-# The /api/mcp path prefixes are skip-auth'd so token-auth MCP clients bypass
-# the browser OIDC dance.
+# The /api/(kubernetes|postgres|github|browser) paths are skip-auth'd so local
+# CLI MCP clients bypass the browser OIDC dance.
 # ════════════════════════════════════════════════════════════════════════════
 apiVersion: apps/v1
 kind: Deployment
@@ -83,7 +83,7 @@ spec:
             - --oidc-issuer-url=https://auth.${PROD_DOMAIN}/realms/workspace
             - --redirect-url=https://${DEV_DOMAIN}/oauth2/callback
             # Loop back to the in-cluster Traefik web entrypoint; Host preserved
-            # so Traefik routes by host to mcp-dev / website-dev / brett-dev.
+            # so Traefik routes by host to website-dev / brett-dev.
             - --upstream=http://traefik.kube-system.svc.cluster.local:80
             - --http-address=0.0.0.0:4181
             - --reverse-proxy=true
@@ -101,9 +101,8 @@ spec:
             - --insecure-oidc-allow-unverified-email=true
             - --scope=openid email profile
             - --keycloak-group=/dev-access
-            # Bypass the OIDC gate for the dev MCP path prefixes so token-auth
-            # MCP clients (which cannot do the browser OIDC dance) reach the
-            # k3d cluster. The real control is the dev-side ForwardAuth.
+            # Bypass the OIDC gate for local CLI MCP server paths so token-auth
+            # MCP clients reach the k3d cluster. The real control is ForwardAuth.
             - --skip-auth-route=^/(kubernetes|postgres|github|browser)(/|$)
           ports:
             - containerPort: 4181

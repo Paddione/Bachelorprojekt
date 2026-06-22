@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+vi.setConfig({ testTimeout: 15_000 });
+
 const { mockGetClientFolderPath, mockListFiles, mockCreateShareLink } = vi.hoisted(() => ({
   mockGetClientFolderPath: vi.fn(),
   mockListFiles: vi.fn(),

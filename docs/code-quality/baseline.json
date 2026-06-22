@@ -111,13 +111,6 @@
     "detail": "923 lines > 600 limit (.ts)",
     "frozen_at": "8b581ebe"
   },
-  "S1:website/src/lib/questionnaire-db.ts": {
-    "gate": "S1",
-    "path": "website/src/lib/questionnaire-db.ts",
-    "metric": 1227,
-    "detail": "1227 lines > 600 limit (.ts)",
-    "frozen_at": "8b581ebe"
-  },
   "S1:website/src/lib/tickets-db.ts": {
     "gate": "S1",
     "path": "website/src/lib/tickets-db.ts",
@@ -214,13 +207,6 @@
     "path": "website/tests/api.test.mjs",
     "metric": 592,
     "detail": "592 lines > 500 limit (.mjs)",
-    "frozen_at": "8b581ebe"
-  },
-  "S2:website:src/lib/compute-scores.ts|src/lib/questionnaire-db.ts": {
-    "gate": "S2",
-    "path": "website",
-    "metric": 2,
-    "detail": "cycle in website: src/lib/questionnaire-db.ts → src/lib/compute-scores.ts",
     "frozen_at": "8b581ebe"
   },
   "S2:website:src/lib/invoice-pdf.ts|src/lib/native-billing.ts": {

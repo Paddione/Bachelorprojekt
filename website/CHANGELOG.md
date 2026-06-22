@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.127.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.127.0...website-v1.127.1) (2026-06-22)
+
+
+### Bug Fixes
+
+* **website:** add missing errorResponse import in scheduled-publish cron ([#2078](https://github.com/Paddione/Bachelorprojekt/issues/2078)) ([a8ce2d8](https://github.com/Paddione/Bachelorprojekt/commit/a8ce2d8e9e501cb8c83dcbd1c06628bb5c9eba92))
+
 ## [1.127.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.126.0...website-v1.127.0) (2026-06-22)
 
 

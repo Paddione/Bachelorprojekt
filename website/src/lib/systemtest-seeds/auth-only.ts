@@ -1,14 +1,16 @@
-// Auth-only seed: creates a Keycloak test user with a deterministic password,
-// tracks the user in `questionnaire_test_fixtures` (table_name='keycloak.users'
-// — Keycloak owns user accounts in this codebase, there is no `auth.users`
-// SQL table), and mints a homegrown magic-link to the questionnaire URL.
+// Auth-only seed: creates an identity-provider (Pocket ID) test user with a
+// deterministic password, tracks the user in `questionnaire_test_fixtures`
+// (table_name='keycloak.users' — the IdP owns user accounts in this codebase,
+// there is no `auth.users` SQL table; the marker is kept as-is for backward
+// compat with already-tracked fixtures), and mints a homegrown magic-link to
+// the questionnaire URL.
 //
 // Tracked under `keycloak.users` rather than `auth.users` because the
 // cleanup CronJob (Task 8) will dispatch on `table_name` and call
-// `keycloak.deleteUser()` for these rows.
+// `deleteUser()` (from `../identity`) for these rows.
 
 import type { SeedFn } from '../systemtest/seed-context';
-import { setUserPassword } from '../keycloak';
+import { setUserPassword } from '../identity';
 import { mintMagicLink } from '../auth/magic-link';
 
 const authOnly: SeedFn = async (ctx) => {

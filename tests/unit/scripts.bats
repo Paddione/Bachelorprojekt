@@ -95,10 +95,10 @@ load test_helper
 }
 
 # ── Config Files ─────────────────────────────────────────────────
-
-# realm-workspace-dev.json (Keycloak dev realm) was removed when Keycloak was
-# replaced by Pocket ID (PRs #2042/#2057). The obsolete JSON-validity test was
-# removed here — the file no longer exists in k3d/.
+# The "realm-workspace-dev.json is valid JSON" test was removed: the Keycloak
+# realm JSONs were archived to docs/archive/keycloak-realms/ in the Pocket ID
+# migration (T001068, Welle 3 — Keycloak shutdown). There is no longer a
+# k3d/realm-workspace-dev.json to validate.
 
 @test "nextcloud-oidc-dev.php has valid PHP syntax" {
   if command -v php &>/dev/null; then

@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.127.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.126.0...website-v1.127.0) (2026-06-22)
+
+
+### Features
+
+* **website:** central logging sidekick widget with shared log bus ([#2070](https://github.com/Paddione/Bachelorprojekt/issues/2070)) ([ddf9254](https://github.com/Paddione/Bachelorprojekt/commit/ddf92548af7957784923270d2c12a94f46beed2e))
+
+## [1.126.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.125.1...website-v1.126.0) (2026-06-22)
+
+
+### Features
+
+* **auth:** Welle 3 — Keycloak Shutdown cleanup ([bade9bb](https://github.com/Paddione/Bachelorprojekt/commit/bade9bb0ee44bd7966f5c7873781e6ec5eb31b6b))
+
+
+### Bug Fixes
+
+* **auth:** add KcUser compat type to identity.ts (pre-existing TS gap) ([fd22ff8](https://github.com/Paddione/Bachelorprojekt/commit/fd22ff84e550403cf9e7dd52d1bd40c472f41f89))
+
+
+### Tests
+
+* **auth:** drop stale Keycloak test refs after Pocket ID migration [T001068] ([#2071](https://github.com/Paddione/Bachelorprojekt/issues/2071)) ([a7007d2](https://github.com/Paddione/Bachelorprojekt/commit/a7007d2f3ad54af5bb29b636161c07b8e2f79194))
+
 ## [1.125.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.125.0...website-v1.125.1) (2026-06-22)
 
 

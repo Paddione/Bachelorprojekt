@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-21T14:54:52.725Z",
+  "generatedAt": "2026-06-22T07:14:56.523Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -1666,6 +1666,14 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/ops/restore.ts"
+    },
+    {
+      "path": "/api/admin/ops/server-logs/stream",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/ops/server-logs/stream.ts"
     },
     {
       "path": "/api/admin/ops/users/create",

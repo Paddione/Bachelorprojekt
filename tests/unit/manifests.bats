@@ -224,9 +224,10 @@ all_images() {
 }
 
 # ── RBAC ─────────────────────────────────────────────────────────
-# claude-code/MCP RBAC was decommissioned from the k3d base (MCP monolith removal,
-# PRs #2052/#2061 — agents now use kubectl/gh/psql directly). The obsolete
-# "claude-code RBAC resources exist" test was removed here.
+# The "claude-code RBAC resources exist" test was removed: the claude-code MCP
+# stack (deployment, RBAC, oauth2-proxy) was decommissioned with the MCP
+# monolith (PRs #2052 / #2061), so `claude-code` is no longer in the k3d render.
+# It was the only RBAC in the base, hence no replacement assertion.
 
 # ── HPA ──────────────────────────────────────────────────────────
 

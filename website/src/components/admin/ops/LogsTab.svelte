@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, onDestroy, tick } from 'svelte';
+  import { levelClassFromText } from '../../../lib/logging/log-format';
 
   export let cluster: string = 'mentolder';
 
@@ -61,13 +62,6 @@
 
   function stopStream() {
     es?.close(); es = null; streaming = false;
-  }
-
-  function levelClass(line: string) {
-    const l = line.toLowerCase();
-    if (l.includes('error') || l.includes('fatal') || l.includes('err ')) return 'log-error';
-    if (l.includes('warn')) return 'log-warn';
-    return 'log-info';
   }
 
   $: filteredLines = filter ? lines.filter(l => l.toLowerCase().includes(filter.toLowerCase())) : lines;
@@ -132,7 +126,7 @@
       <p class="empty-hint">{streaming ? 'Warte auf Logs...' : 'Stream starten um Logs anzuzeigen.'}</p>
     {/if}
     {#each filteredLines as line}
-      <div class="{levelClass(line)} break-all">{line}</div>
+      <div class="{levelClassFromText(line)} break-all">{line}</div>
     {/each}
   </div>
 

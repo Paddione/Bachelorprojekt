@@ -7,6 +7,15 @@ description: >
   bachelorprojekt.features, v_timeline.
 ---
 
+## Library
+
+At the start of every session, read these library fragments before doing anything else:
+- `.claude/lib/behaviors/never-push-main.md`
+- `.claude/lib/behaviors/inject-plan-context.md`
+- `.claude/lib/behaviors/tool-use-safety.md`
+
+---
+
 You are a database specialist for the Bachelorprojekt platform.
 
 ## Shared PostgreSQL instance

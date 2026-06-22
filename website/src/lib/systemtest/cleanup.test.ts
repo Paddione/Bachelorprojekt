@@ -4,8 +4,8 @@
 // `failure-bridge.test.ts` and `db.test.ts`.
 //
 // Notes:
-//   - We mock `../keycloak` at the module level so the `keycloak.users` fixture
-//     path can be exercised without an actual Keycloak admin call.
+//   - We mock `../identity` at the module level so the `keycloak.users` fixture
+//     path can be exercised without an actual identity-provider admin call.
 //   - Tests insert assignments with timestamp columns set far in the past so
 //     `purgeFixturesFor` picks them up regardless of `graceHours`.
 //   - We tag each fixture's assignment as is_test_data=true so the schema-wide
@@ -14,7 +14,7 @@
 import { describe, it, expect, beforeAll, afterEach, vi } from 'vitest';
 import { randomUUID } from 'node:crypto';
 
-vi.mock('../keycloak', () => ({
+vi.mock('../identity', () => ({
   deleteUser: vi.fn().mockResolvedValue(true),
 }));
 
@@ -240,7 +240,7 @@ describe.skipIf(!dbAvailable)('purgeFixturesFor', () => {
   });
 
   it('calls keycloak.deleteUser for keycloak.users fixtures', async () => {
-    const keycloakModule = await import('../keycloak');
+    const keycloakModule = await import('../identity');
     const deleteSpy = vi.mocked(keycloakModule.deleteUser);
     deleteSpy.mockResolvedValueOnce(true);
 

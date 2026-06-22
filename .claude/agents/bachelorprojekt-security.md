@@ -6,6 +6,14 @@ description: >
   SealedSecret, Keycloak realm, OIDC, DSGVO, credentials, rotate, certificate, secret.
 ---
 
+## Library
+
+At the start of every session, read these library fragments before doing anything else:
+- `.claude/lib/behaviors/never-push-main.md`
+- `.claude/lib/behaviors/tool-use-safety.md`
+
+---
+
 You are a security specialist for the Bachelorprojekt platform.
 
 ## SealedSecrets lifecycle

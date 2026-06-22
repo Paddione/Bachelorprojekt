@@ -9,13 +9,13 @@
 // Adaptations from the original plan:
 //   - The plan's KeycloakAdminClient included `mintActionToken`, which does
 //     not exist in `lib/identity.ts`. We drop that abstraction here — seed
-//     modules import directly from `../keycloak` (createUser/deleteUser) and
+//     modules import directly from `../identity` (createUser/deleteUser) and
 //     mint magic-links via the homegrown `auth/magic-link` table-based flow.
 //   - role enum is widened to match the existing `test_role` column values
 //     (`admin` | `user`) plus the broader plan vocabulary; modules may treat
 //     anything other than `admin` as a customer-shaped role.
 import type { PoolClient } from 'pg';
-import type { CreateUserParams } from '../keycloak';
+import type { CreateUserParams } from '../identity';
 
 export type SeedRole = 'admin' | 'coach' | 'customer' | 'guest' | 'user';
 

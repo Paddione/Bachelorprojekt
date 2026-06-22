@@ -147,13 +147,13 @@ const labelCls  = 'block text-xs text-muted mb-1';
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
         {[
           { label: 'Gesamt',     value: stats.total,        cls: 'border-dark-lighter' },
-          { label: 'Aktiv',      value: stats.aktiv,        cls: 'border-yellow-800' },
-          { label: 'Überfällig', value: stats.ueberfaellig, cls: stats.ueberfaellig > 0 ? 'border-red-800' : 'border-dark-lighter' },
-          { label: 'Erledigt',   value: stats.erledigt,     cls: 'border-green-800' },
+          { label: 'Aktiv',      value: stats.aktiv,        cls: 'border-yellow-800/70' },
+          { label: 'Überfällig', value: stats.ueberfaellig, cls: stats.ueberfaellig > 0 ? 'border-red-700/70' : 'border-dark-lighter' },
+          { label: 'Erledigt',   value: stats.erledigt,     cls: 'border-green-800/70' },
         ].map(s => (
-          <div class={`p-4 bg-dark-light rounded-xl border ${s.cls}`}>
-            <div class="text-2xl font-bold text-light">{s.value}</div>
-            <div class="text-xs text-muted mt-0.5">{s.label}</div>
+          <div class={`p-5 bg-dark-light rounded-xl border ${s.cls} flex flex-col`}>
+            <div class="text-3xl font-bold text-light tabular-nums">{s.value}</div>
+            <div class="text-xs text-muted uppercase tracking-wide">{s.label}</div>
           </div>
         ))}
       </div>
@@ -221,17 +221,17 @@ const labelCls  = 'block text-xs text-muted mb-1';
       <div class="bg-dark-light rounded-2xl border border-dark-lighter overflow-hidden mb-10">
         <table class="w-full">
           <thead>
-            <tr class="border-b border-dark-lighter">
-              <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Projekt</th>
-              <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Kunde</th>
-              <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Status</th>
-              <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Prio</th>
-              <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Erfasst</th>
-              <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Start</th>
-              <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Fälligkeit</th>
-              <th class="text-center px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">TP</th>
-              <th class="text-center px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Aufg.</th>
-              <th class="text-right px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Aktionen</th>
+            <tr class="border-b border-dark-lighter bg-dark/40">
+              <th class="text-left px-4 py-3 text-xs text-muted/70 uppercase tracking-wider font-semibold">Projekt</th>
+              <th class="text-left px-4 py-3 text-xs text-muted/70 uppercase tracking-wider font-semibold">Kunde</th>
+              <th class="text-left px-4 py-3 text-xs text-muted/70 uppercase tracking-wider font-semibold">Status</th>
+              <th class="text-left px-4 py-3 text-xs text-muted/70 uppercase tracking-wider font-semibold">Prio</th>
+              <th class="text-left px-4 py-3 text-xs text-muted/70 uppercase tracking-wider font-semibold">Erfasst</th>
+              <th class="text-left px-4 py-3 text-xs text-muted/70 uppercase tracking-wider font-semibold">Start</th>
+              <th class="text-left px-4 py-3 text-xs text-muted/70 uppercase tracking-wider font-semibold">Fällig</th>
+              <th class="text-center px-4 py-3 text-xs text-muted/70 uppercase tracking-wider font-semibold">TP</th>
+              <th class="text-center px-4 py-3 text-xs text-muted/70 uppercase tracking-wider font-semibold">Aufg.</th>
+              <th class="text-right px-4 py-3 text-xs text-muted/70 uppercase tracking-wider font-semibold">Aktionen</th>
             </tr>
           </thead>
           <tbody>
@@ -244,9 +244,9 @@ const labelCls  = 'block text-xs text-muted mb-1';
             ) : projects.map(p => {
               const isOverdue = p.dueDate && new Date(p.dueDate) < today && !['erledigt','archiviert'].includes(p.status);
               return (
-                <tr class={`border-b border-dark-lighter/50 hover:bg-dark/30 transition-colors ${p.status === 'archiviert' ? 'opacity-40' : ''}`}>
-                  <td class="px-4 py-3">
-                    <a href={`/admin/projekte/${p.id}`} class="text-light hover:text-gold font-medium text-sm transition-colors">
+                <tr class={`border-b border-dark-lighter/50 hover:bg-white/[.025] transition-colors ${p.status === 'archiviert' ? 'opacity-40' : ''}`}>
+                  <td class="px-4 py-3.5">
+                    <a href={`/admin/projekte/${p.id}`} class="text-light hover:text-gold font-semibold text-sm transition-colors">
                       {p.name}
                     </a>
                     {p.description && <p class="text-xs text-muted mt-0.5 max-w-[220px] truncate">{p.description}</p>}

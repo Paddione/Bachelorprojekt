@@ -1,4 +1,8 @@
-import type { QDimension, QAnswerOption, QAnswer, QAssignment } from './questionnaire-db.ts';
+// website/src/lib/compute-scores.ts
+// Pure scoring logic — no DB access, no imports from sibling lib modules.
+// Consumers fetch their own data and pass it to computeScores().
+
+import type { QDimension, QAnswerOption, QAnswer } from './questionnaire-db/types.ts';
 
 export interface DimensionScore {
   dimension_id: string;
@@ -53,30 +57,4 @@ export function computeScores(
       level,
     };
   }).sort((a, b) => a.position - b.position);
-}
-
-export async function getDisplayScores(assignment: QAssignment): Promise<DimensionScore[]> {
-  const {
-    listArchivedScores, listQDimensions, listQAnswerOptionsForTemplate, listQAnswers,
-  } = await import('./questionnaire-db');
-
-  if (assignment.status === 'archived') {
-    const snap = await listArchivedScores(assignment.id);
-    return snap.map((s) => ({
-      dimension_id: s.dimension_id,
-      name: s.dimension_name,
-      position: 0,
-      raw_score: s.final_score,
-      final_score: s.final_score,
-      threshold_mid: s.threshold_mid,
-      threshold_high: s.threshold_high,
-      level: s.level,
-    }));
-  }
-  const [dims, opts, answers] = await Promise.all([
-    listQDimensions(assignment.template_id),
-    listQAnswerOptionsForTemplate(assignment.template_id),
-    listQAnswers(assignment.id),
-  ]);
-  return computeScores(dims, opts, answers);
 }

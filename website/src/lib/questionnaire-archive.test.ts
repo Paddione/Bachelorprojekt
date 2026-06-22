@@ -6,7 +6,7 @@ import {
   listArchivedScores, listEvidenceByAssignment,
 } from './questionnaire-db';
 import { archiveQAssignment, reassignQAssignment } from './questionnaire-db';
-import { getDisplayScores } from './compute-scores';
+import { getDisplayScores } from './questionnaire-display';
 import { randomUUID } from 'crypto';
 
 const dbAvailable = !!(

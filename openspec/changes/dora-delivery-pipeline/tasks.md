@@ -396,7 +396,7 @@ git commit -m "docs(claude): document Merge=Abschluss lifecycle (retire awaiting
 
 > Reine Mapping-/Sichtbarkeits-Helfer — KEINE SQL, KEIN `pool`-Import (S2: pures Modul, kein DB-/API-Rück-Import). Die SQL bleibt in factory-floor.ts; nur die Row→Item-Abbildung und die Lane-Sichtbarkeits-Regel ziehen hierher um.
 
-- [ ] **Step 1: Den fehlschlagenden Test schreiben**
+- [x] **Step 1: Den fehlschlagenden Test schreiben**
 
 Create `website/src/lib/factory-floor-lanes.test.ts`:
 
@@ -436,12 +436,12 @@ describe('factory-floor-lanes', () => {
 });
 ```
 
-- [ ] **Step 2: Test laufen lassen, Fehlschlag bestätigen**
+- [x] **Step 2: Test laufen lassen, Fehlschlag bestätigen**
 
 Run: `cd website && npx vitest run src/lib/factory-floor-lanes.test.ts`
 Expected: FAIL — `Cannot find module './factory-floor-lanes'`.
 
-- [ ] **Step 3: Modul schreiben**
+- [x] **Step 3: Modul schreiben**
 
 Create `website/src/lib/factory-floor-lanes.ts`:
 
@@ -500,17 +500,17 @@ export function isAwaitingDeployLaneVisible(items: AwaitingDeployItem[]): boolea
 }
 ```
 
-- [ ] **Step 4: Test laufen lassen, grün bestätigen**
+- [x] **Step 4: Test laufen lassen, grün bestätigen**
 
 Run: `cd website && npx vitest run src/lib/factory-floor-lanes.test.ts`
 Expected: alle 5 Tests PASS.
 
-- [ ] **Step 5: Budget-Check**
+- [x] **Step 5: Budget-Check**
 
 Run: `wc -l website/src/lib/factory-floor-lanes.ts`
 Expected: < 600 (≈ 55).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add website/src/lib/factory-floor-lanes.ts website/src/lib/factory-floor-lanes.test.ts

@@ -1,6 +1,6 @@
 ---
-ticket_id: null
-plan_ref: null
+ticket_id: T001092
+plan_ref: openspec/changes/dora-delivery-pipeline/tasks.md
 status: active
 date: 2026-06-22
 ---

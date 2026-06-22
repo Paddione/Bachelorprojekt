@@ -39,7 +39,7 @@
 
 import type { Pool } from 'pg';
 
-import * as keycloak from '../keycloak';
+import * as keycloak from '../identity';
 import { openFailureTicket } from './failure-bridge';
 import { openTestRunFailureTicket } from './test-run-bridge';
 

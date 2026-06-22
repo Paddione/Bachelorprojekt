@@ -8,7 +8,7 @@
 // `keycloak.deleteUser()` for these rows.
 
 import type { SeedFn } from '../systemtest/seed-context';
-import { setUserPassword } from '../keycloak';
+import { setUserPassword } from '../identity';
 import { mintMagicLink } from '../auth/magic-link';
 
 const authOnly: SeedFn = async (ctx) => {

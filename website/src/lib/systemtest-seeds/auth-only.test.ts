@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeAll, vi } from 'vitest';
 
-// Mock keycloak admin module BEFORE importing the seed (which imports
-// `../keycloak` for setUserPassword). The mocked module only needs to
-// expose what auth-only touches.
-vi.mock('../keycloak', () => ({
+// Mock the identity (Pocket ID) module BEFORE importing the seed (which
+// imports `../identity` for setUserPassword). The mocked module only needs
+// to expose what auth-only touches.
+vi.mock('../identity', () => ({
   setUserPassword: vi.fn().mockResolvedValue(true),
 }));
 
@@ -76,7 +76,7 @@ describe.skipIf(!dbAvailable)('auth-only seed', () => {
   });
 
   it('cleans up the Keycloak user when password setting fails', async () => {
-    const { setUserPassword } = await import('../keycloak');
+    const { setUserPassword } = await import('../identity');
     vi.mocked(setUserPassword).mockResolvedValueOnce(false);
 
     const client = await pool.connect();

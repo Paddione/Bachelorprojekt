@@ -14,7 +14,7 @@
 import { describe, it, expect, beforeAll, afterEach, vi } from 'vitest';
 import { randomUUID } from 'node:crypto';
 
-vi.mock('../keycloak', () => ({
+vi.mock('../identity', () => ({
   deleteUser: vi.fn().mockResolvedValue(true),
 }));
 
@@ -240,7 +240,7 @@ describe.skipIf(!dbAvailable)('purgeFixturesFor', () => {
   });
 
   it('calls keycloak.deleteUser for keycloak.users fixtures', async () => {
-    const keycloakModule = await import('../keycloak');
+    const keycloakModule = await import('../identity');
     const deleteSpy = vi.mocked(keycloakModule.deleteUser);
     deleteSpy.mockResolvedValueOnce(true);
 

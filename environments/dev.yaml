@@ -25,7 +25,7 @@ env_vars:
   ARENA_WS_URL: http://arena.localhost
   MEDIAVIEWER_HOST: mediaviewer.localhost
   VIDEOVAULT_DOMAIN: videovault.localhost
-  POCKET_ID_FRONTEND_URL: "http://id.localhost"
+  POCKET_ID_FRONTEND_URL: "http://auth.localhost"
   POCKET_ID_URL: "http://pocket-id:1411"
   NEXTCLOUD_DB_HOST: nextcloud-db.workspace.svc.cluster.local
 

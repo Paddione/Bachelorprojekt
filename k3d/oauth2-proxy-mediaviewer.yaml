@@ -64,7 +64,7 @@ spec:
             - --oidc-issuer-url=http://pocket-id:1411
             - --ssl-insecure-skip-verify=true
             - --skip-oidc-discovery=true
-            - --login-url=http://id.localhost/authorize
+            - --login-url=http://auth.localhost/authorize
             - --redeem-url=http://pocket-id:1411/api/oidc/token
             - --oidc-jwks-url=http://pocket-id:1411/.well-known/jwks.json
             - --profile-url=http://pocket-id:1411/api/oidc/userinfo

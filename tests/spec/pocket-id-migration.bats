@@ -85,10 +85,10 @@ setup() {
 # ── Welle 0: domain-config + schema + env files ─────────────────────────────
 
 @test "pocket-id: configmap-domains.yaml carries POCKET_ID_DOMAIN (dev literal)" {
-  grep -E '^\s*POCKET_ID_DOMAIN:\s*"id\.localhost"' "${K3D}/configmap-domains.yaml"
+  grep -E '^\s*POCKET_ID_DOMAIN:\s*"auth\.localhost"' "${K3D}/configmap-domains.yaml"
 }
 
-@test "pocket-id: schema declares all 17 POCKET_ID_* secrets" {
+@test "pocket-id: schema declares all 16 POCKET_ID_* secrets" {
   local missing=()
   for s in \
     POCKET_ID_API_KEY \
@@ -102,7 +102,6 @@ setup() {
     POCKET_ID_DOCS_SECRET \
     POCKET_ID_VAULTWARDEN_SECRET \
     POCKET_ID_RECOVERY_SECRET \
-    POCKET_ID_CLAUDE_CODE_SECRET \
     POCKET_ID_NEXTCLOUD_SECRET \
     POCKET_ID_GRAFANA_SECRET \
     POCKET_ID_WEBSITE_SECRET \
@@ -127,22 +126,22 @@ setup() {
   grep -E '^\s*POCKET_ID_URL:' "${ENV}/dev.yaml"
 }
 
-@test "pocket-id: mentolder env file sets POCKET_ID_FRONTEND_URL=https://id.mentolder.de" {
-  grep -E '^\s*POCKET_ID_FRONTEND_URL:\s*"https://id\.mentolder\.de"' "${ENV}/mentolder.yaml"
+@test "pocket-id: mentolder env file sets POCKET_ID_FRONTEND_URL=https://auth.mentolder.de" {
+  grep -E '^\s*POCKET_ID_FRONTEND_URL:\s*"https://auth\.mentolder\.de"' "${ENV}/mentolder.yaml"
   grep -E '^\s*POCKET_ID_URL:' "${ENV}/mentolder.yaml"
 }
 
-@test "pocket-id: korczewski env file sets POCKET_ID_FRONTEND_URL=https://id.korczewski.de" {
-  grep -E '^\s*POCKET_ID_FRONTEND_URL:\s*"https://id\.korczewski\.de"' "${ENV}/korczewski.yaml"
+@test "pocket-id: korczewski env file sets POCKET_ID_FRONTEND_URL=https://auth.korczewski.de" {
+  grep -E '^\s*POCKET_ID_FRONTEND_URL:\s*"https://auth\.korczewski\.de"' "${ENV}/korczewski.yaml"
   grep -E '^\s*POCKET_ID_URL:' "${ENV}/korczewski.yaml"
 }
 
-@test "pocket-id: fleet-mentolder env file sets POCKET_ID_FRONTEND_URL=https://id.mentolder.de" {
-  grep -E '^\s*POCKET_ID_FRONTEND_URL:\s*"https://id\.mentolder\.de"' "${ENV}/fleet-mentolder.yaml"
+@test "pocket-id: fleet-mentolder env file sets POCKET_ID_FRONTEND_URL=https://auth.mentolder.de" {
+  grep -E '^\s*POCKET_ID_FRONTEND_URL:\s*"https://auth\.mentolder\.de"' "${ENV}/fleet-mentolder.yaml"
 }
 
-@test "pocket-id: fleet-korczewski env file sets POCKET_ID_FRONTEND_URL=https://id.korczewski.de" {
-  grep -E '^\s*POCKET_ID_FRONTEND_URL:\s*"https://id\.korczewski\.de"' "${ENV}/fleet-korczewski.yaml"
+@test "pocket-id: fleet-korczewski env file sets POCKET_ID_FRONTEND_URL=https://auth.korczewski.de" {
+  grep -E '^\s*POCKET_ID_FRONTEND_URL:\s*"https://auth\.korczewski\.de"' "${ENV}/fleet-korczewski.yaml"
 }
 
 @test "pocket-id: Taskfile workspace:deploy envsubst list contains POCKET_ID_DOMAIN + POCKET_ID_FRONTEND_URL + POCKET_ID_URL" {
@@ -176,9 +175,10 @@ migrated_oauth2_manifests() {
     "${K3D}/oauth2-proxy-studio.yaml" \
     "${K3D}/oauth2-proxy-docs.yaml" \
     "${K3D}/dev-stack/oauth2-proxy-brainstorm.yaml" \
-    "${K3D}/dev-stack/oauth2-proxy-sessions.yaml" \
-    "${K3D}/claude-code-mcp-auth-proxy.yaml"
+    "${K3D}/dev-stack/oauth2-proxy-sessions.yaml"
 }
+# Note: claude-code-mcp-auth-proxy.yaml was removed with the MCP monolith
+# decommission (#2052/#2061) and is no longer part of the migrated set.
 
 @test "pocket-id: oauth2-proxy manifests use --provider=oidc (no keycloak-oidc)" {
   local m bad=()
@@ -252,30 +252,18 @@ migrated_oauth2_manifests() {
   ! grep -q 'SESSION_HUB_OIDC_SECRET' "${K3D}/dev-stack/oauth2-proxy-sessions.yaml" || false
 }
 
-@test "pocket-id: claude-code-mcp-auth-proxy uses Pocket ID issuer (no keycloak)" {
-  # The mcp-keycloak-proxy-config ConfigMap name is a stable kustomize key
-  # (used by the patch references in prod/) — it does not affect the OIDC
-  # flow. Only assert that the OIDC behavior is Pocket ID:
-  ! grep -q 'keycloak-oidc' "${K3D}/claude-code-mcp-auth-proxy.yaml" || false
-  ! grep -q 'realms/workspace' "${K3D}/claude-code-mcp-auth-proxy.yaml" || false
-  grep -q 'POCKET_ID_CLAUDE_CODE_SECRET' "${K3D}/claude-code-mcp-auth-proxy.yaml"
-  grep -q 'id.${PROD_DOMAIN}' "${K3D}/claude-code-mcp-auth-proxy.yaml"
-  grep -q 'provider = "oidc"' "${K3D}/claude-code-mcp-auth-proxy.yaml"
-}
+# The "claude-code-mcp-auth-proxy uses Pocket ID issuer" test was removed:
+# k3d/claude-code-mcp-auth-proxy.yaml was deleted with the MCP monolith
+# decommission (#2052/#2061), so there is no manifest left to assert against.
 
 @test "pocket-id: oauth2-proxy-issuer URLs point at pocket-id:1411 in dev" {
   local m
   for m in $(migrated_oauth2_manifests); do
     [ -f "$m" ] || continue
-    # Dev manifests use either http://pocket-id:1411 (oauth2-proxy args) or
-    # the Pocket ID OIDC envsubst target (claude-code-mcp-auth-proxy uses
-    # the Pocket ID /api/oidc/* endpoints via the TOML config; the issuer
-    # is https://id.${PROD_DOMAIN} so the literal service URL is in
-    # k3d/nextcloud-oidc-dev.php — but the test scope is the oauth2-proxy
-    # manifests). claude-code-mcp-auth-proxy uses oidc_issuer_url =
-    # "https://id.${PROD_DOMAIN}" so look for that OR the literal
-    # pocket-id:1411.
-    if ! grep -q 'pocket-id:1411' "$m" && ! grep -q 'POCKET_ID_DOMAIN' "$m" && ! grep -q 'id.\${PROD_DOMAIN}' "$m"; then
+    # Dev manifests use the in-cluster service http://pocket-id:1411 for the
+    # OIDC redeem/jwks/profile endpoints; the browser-facing --login-url uses
+    # ${POCKET_ID_DOMAIN} (auth.localhost in dev, auth.${PROD_DOMAIN} in prod).
+    if ! grep -q 'pocket-id:1411' "$m" && ! grep -q 'POCKET_ID_DOMAIN' "$m" && ! grep -q 'auth.\${PROD_DOMAIN}' "$m"; then
       echo "missing pocket-id issuer in $m"; return 1
     fi
   done
@@ -290,9 +278,9 @@ migrated_oauth2_manifests() {
   ! grep -q 'VAULTWARDEN_OIDC_SECRET' "${K3D}/vaultwarden.yaml" || false
 }
 
-@test "pocket-id: prod/patch-vaultwarden.yaml SSO_AUTHORITY points at https://id.\${PROD_DOMAIN}" {
+@test "pocket-id: prod/patch-vaultwarden.yaml SSO_AUTHORITY points at https://auth.\${PROD_DOMAIN}" {
   grep -q 'SSO_AUTHORITY' "${PROD}/patch-vaultwarden.yaml"
-  grep -q "value: \"https://id.\${PROD_DOMAIN}\"" "${PROD}/patch-vaultwarden.yaml"
+  grep -q "value: \"https://auth.\${PROD_DOMAIN}\"" "${PROD}/patch-vaultwarden.yaml"
   ! grep -q 'auth.\${PROD_DOMAIN}/realms/workspace' "${PROD}/patch-vaultwarden.yaml" || false
   # Note: prod/patch-vaultwarden.yaml doesn't carry the secret ref (the base
   # k3d/vaultwarden.yaml handles SSO_CLIENT_SECRET). The POCKET_ID_*_SECRET
@@ -319,11 +307,11 @@ migrated_oauth2_manifests() {
   [ "${#missing[@]}" -eq 0 ] || { echo "no POCKET_ID_*_SECRET in: ${missing[*]}"; return 1; }
 }
 
-@test "pocket-id: prod oauth2-proxy patches point oidc-issuer-url at https://id.\${PROD_DOMAIN}" {
+@test "pocket-id: prod oauth2-proxy patches point oidc-issuer-url at https://auth.\${PROD_DOMAIN}" {
   local m
   for m in "${PROD}"/patch-oauth2-proxy-*.yaml; do
     [ -f "$m" ] || continue
-    if ! grep -q 'oidc-issuer-url=https://id.\${PROD_DOMAIN}' "$m"; then
+    if ! grep -q 'oidc-issuer-url=https://auth.\${PROD_DOMAIN}' "$m"; then
       echo "prod patch $m still has old issuer URL"; return 1
     fi
   done
@@ -383,9 +371,10 @@ migrated_oauth2_manifests() {
   [ "$remaining" -eq 0 ]
 }
 
-@test "pocket-id: keycloak.ts still exists (compat shim for Welle 3 transition)" {
-  [ -f "${WEBSITE}/src/lib/keycloak.ts" ]
-}
+# The "keycloak.ts still exists (compat shim for Welle 3 transition)" test was
+# removed: Welle 3 completed and website/src/lib/keycloak.ts was deleted (its
+# public surface lives on in website/src/lib/identity.ts). The transition the
+# shim guarded is over.
 
 @test "pocket-id: k3d/website.yaml exposes POCKET_ID_FRONTEND_URL + POCKET_ID_URL + POCKET_ID_API_KEY" {
   grep -q 'POCKET_ID_FRONTEND_URL' "${K3D}/website.yaml"
@@ -402,9 +391,9 @@ migrated_oauth2_manifests() {
   grep -q 'POCKET_ID_NEXTCLOUD_SECRET' "${K3D}/nextcloud-oidc-dev.php"
 }
 
-@test "pocket-id: prod/nextcloud-oidc-prod.php points at Pocket ID (https://id.\${PROD_DOMAIN})" {
+@test "pocket-id: prod/nextcloud-oidc-prod.php points at Pocket ID (https://auth.\${PROD_DOMAIN})" {
   # PHP composes the logout URL at runtime from getenv('POCKET_ID_DOMAIN'),
-  # which at deploy-time is `id.${PROD_DOMAIN}`. Assert both halves.
+  # which at deploy-time is `auth.${PROD_DOMAIN}`. Assert both halves.
   grep -q "POCKET_ID_NEXTCLOUD_SECRET" "${PROD}/nextcloud-oidc-prod.php"
   grep -q "POCKET_ID_DOMAIN" "${PROD}/nextcloud-oidc-prod.php"
   ! grep -q "keycloak:8080/realms/workspace" "${PROD}/nextcloud-oidc-prod.php" || false
@@ -413,10 +402,10 @@ migrated_oauth2_manifests() {
 
 # ── Welle 2: Grafana native OIDC points at Pocket ID ───────────────────────
 
-@test "pocket-id: prod/monitoring/grafana-oidc-patch.yaml points at id.\${PROD_DOMAIN}" {
-  grep -q 'https://id.\${PROD_DOMAIN}/authorize' "${PROD}/monitoring/grafana-oidc-patch.yaml"
-  grep -q 'https://id.\${PROD_DOMAIN}/api/oidc/token' "${PROD}/monitoring/grafana-oidc-patch.yaml"
-  grep -q 'https://id.\${PROD_DOMAIN}/api/oidc/userinfo' "${PROD}/monitoring/grafana-oidc-patch.yaml"
+@test "pocket-id: prod/monitoring/grafana-oidc-patch.yaml points at auth.\${PROD_DOMAIN}" {
+  grep -q 'https://auth.\${PROD_DOMAIN}/authorize' "${PROD}/monitoring/grafana-oidc-patch.yaml"
+  grep -q 'https://auth.\${PROD_DOMAIN}/api/oidc/token' "${PROD}/monitoring/grafana-oidc-patch.yaml"
+  grep -q 'https://auth.\${PROD_DOMAIN}/api/oidc/userinfo' "${PROD}/monitoring/grafana-oidc-patch.yaml"
   grep -q 'POCKET_ID_GRAFANA_SECRET' "${PROD}/monitoring/grafana-oidc-patch.yaml"
   ! grep -q 'GF_AUTH_GENERIC_OAUTH_AUTH_URL.*auth.mentolder' "${PROD}/monitoring/grafana-oidc-patch.yaml" || false
 }

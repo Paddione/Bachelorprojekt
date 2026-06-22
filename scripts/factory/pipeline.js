@@ -642,9 +642,12 @@ const deploy = await agent(
          bash ${REPO}/scripts/ticket.sh add-comment --id ${A.ticket_id} \
            --body "$(printf 'Factory retry %s/2 (class=%s)\n--- diff ---\n%s\n--- ci log tail ---\n%s' "$RC" "$CLASS" "$(git diff HEAD~1 --shortstat)" "$(tail -30 /tmp/factory-ci-${A.ticket_id}.log)")"
          Then re-run CI from (a).
-      If RC -ge 2 or a gate failed: bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status blocked; add-comment "CI red after retries"; return.
+      If RC -ge 2 or a gate failed: bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status blocked; bash ${REPO}/scripts/ticket.sh phase ${A.ticket_id} verify blocked --driver factory --detail "gate=ci result=fail" || true; add-comment "CI red after retries"; return.
    4. gh pr merge "$PR" --squash --delete-branch --auto
-   5. bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status qa_review
+   5. PR_NUM=$(gh pr view "$PR" --json number -q '.number' 2>/dev/null || echo "$PR")
+      bash ${REPO}/scripts/ticket.sh add-pr-link --id ${A.ticket_id} --pr "$PR_NUM" || true
+      bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status done --resolution shipped
+      bash ${REPO}/scripts/ticket.sh phase ${A.ticket_id} verify done --driver factory --detail "gate=ci result=pass" || true
       bash ${REPO}/scripts/ticket.sh archive-plan --id ${A.ticket_id} --slug ${slug} --branch ${WORK_BRANCH} --plan-file ${planFilePath ?? resolveTaskSource(slug, REPO)}
    5b. bash ${REPO}/scripts/ticket.sh feature-flag set --brand mentolder --key ${slug} --enabled false --set-by factory
        bash ${REPO}/scripts/ticket.sh feature-flag set --brand korczewski --key ${slug} --enabled false --set-by factory
@@ -696,8 +699,10 @@ if (canaryRed.length) {
 }
 
 const { status: deployStatus, reason: deployReason } = decideDeployTransition({ isWebsite: slug?.includes('website') ?? false, deployOutput: deploy })
-phaseEvent('deploy', deployStatus === 'blocked' ? 'blocked' : 'done', deployStatus === 'awaiting_deploy' ? 'merged; awaiting deploy' : 'PR merged')
-if (deployStatus === 'awaiting_deploy') { await agent(`bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status awaiting_deploy`, { label: 'status:awaiting_deploy', phase: 'Deploy' }) }
+// Merge = Abschluss (T001092): the agent prompt (step 5) already set the ticket to
+// done/shipped after the confirmed auto-merge. The Deploy phase-event records the
+// merge; there is no separate awaiting_deploy resting state on the happy path.
+phaseEvent('deploy', deployStatus === 'blocked' ? 'blocked' : 'done', deployStatus === 'blocked' ? 'deploy blocked' : 'PR merged · done/shipped')
 if (_msgBridge) _msgBridge.broadcast(`factory-pipeline: ${A.ticket_id} finished (${deployStatus})`, 'factory')
 return { status: deployStatus, reason: deployReason, pr: deploy, reviews: reviews.length, tasks: tasks.length, implemented: implemented.length }
 } finally { if (WORK_BRANCH || WORK_WT) { try { await agent(`bash ${REPO}/scripts/factory/cleanup.sh --branch '${WORK_BRANCH}' --worktree '${WORK_WT}'`, { label: 'cleanup' }) } catch (_) {} } } }

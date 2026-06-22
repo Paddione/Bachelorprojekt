@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.127.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.126.0...website-v1.127.0) (2026-06-22)
+
+
+### Features
+
+* **website:** central logging sidekick widget with shared log bus ([#2070](https://github.com/Paddione/Bachelorprojekt/issues/2070)) ([ddf9254](https://github.com/Paddione/Bachelorprojekt/commit/ddf92548af7957784923270d2c12a94f46beed2e))
+
 ## [1.126.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.125.1...website-v1.126.0) (2026-06-22)
 
 

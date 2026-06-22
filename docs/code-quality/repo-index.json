@@ -3923,18 +3923,6 @@
         "assets/grilling-brett-admin-panel/Brett Design System/ui_kits/mayhem/mayhem.css",
         "assets/grilling-brett-admin-panel/Brett Design System/uploads/plan.md"
       ]
-    },
-    {
-      "id": "pentest",
-      "name": "Pentest dashboard",
-      "owner_agent": "bachelorprojekt-security",
-      "file_count": 4,
-      "files": [
-        "pentest-dashboard/app.py",
-        "pentest-dashboard/requirements.txt",
-        "pentest-dashboard/run.sh",
-        "pentest-dashboard/static/index.html"
-      ]
     }
   ]
 }

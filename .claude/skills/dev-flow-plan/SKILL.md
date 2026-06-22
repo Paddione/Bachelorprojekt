@@ -35,6 +35,9 @@ Bei jeder Anfrage in diesem Repo, die etwas verändern will.
 ## Schritt −3: Deep Grilling (optional)
 
 Wenn das Feature komplex oder unklar ist, frage den User nach einer Grilling-Session (siehe [dev-flow-gotchas](file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#dev-flow-gotchas) für den Fragenkatalog).
+
+**Nutze `lavish` für die Q/A-Session:** Erstelle `.lavish/<slug>-grilling.html` mit den Fragen als interaktivem Formular (Input-Playbook), öffne es mit `npx -y lavish-axi .lavish/<slug>-grilling.html` und poll auf Antworten. So kann der User strukturiert antworten, annotieren und Feedback geben.
+
 Falls durchgeführt, erstelle das Grilling-Ticket mit dem CLI-Helper:
 
 ```bash
@@ -148,15 +151,11 @@ Zusätzlich die Schlüsseldateien ans Ticket hängen:
 bash scripts/ticket-attach.sh "$TICKET_UUID" "${DESIGN_DIR}/intent.md" "${DESIGN_DIR}"/new/*.svg
 ```
 
-### Schritt 2: Brainstorming Visual Companion Tunnel ⚡ PFLICHT — immer starten
-Starte den Companion-Server und Tunnel **bevor** `superpowers:brainstorming` aufgerufen wird. Detaillierte Befehle und Fehlerbehebungen findest du in [Brainstorm-Tunnel-Setup](file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#brainstorm-tunnel-setup).
-```bash
-# Lese die Anleitung und führe sie aus:
-# View: .claude/skills/references/references.md#brainstorm-tunnel-setup
-```
+### Schritt 2: Lavish-Board starten ⚡ PFLICHT — vor Brainstorming
+Erstelle `.lavish/<slug>-brainstorm.html` (Sections: Intent, Constraints, Trade-offs, Entscheidungen) und öffne es mit `npx -y lavish-axi .lavish/<slug>-brainstorm.html`. Dieses Board dient als visuelles Arbeitsblatt während des Brainstormings.
 
 ### Schritt 3: Brainstorming ⚡ IMMER — kein Überspringen
-Rufe `superpowers:brainstorming` auf. Nutze das visual Board auf `https://brainstorm.dev.mentolder.de`.
+Rufe `superpowers:brainstorming` auf. Nutze das `lavish`-Board (aus Schritt 2) für visuelle Dokumentation und strukturiertes Feedback.
 Ergebnis: Spec-Datei in `docs/superpowers/specs/<date>-<slug>-design.md`.
 Nach dem Schreiben der Spec das Frontmatter setzen (siehe
 `docs/superpowers/specs/spec-frontmatter-standard.md`):
@@ -325,15 +324,11 @@ bash scripts/agent-lock.sh claim branch "fix/<slug>" --worktree "$PWD" --label d
 ```
 Exit 1 = eine lebende Session arbeitet schon daran → koordinieren, nicht duplizieren.
 
-### Schritt 2.7: Brainstorming Visual Companion Tunnel ⚡ PFLICHT — immer starten
-Starte den Companion-Server und Tunnel **bevor** `superpowers:brainstorming` aufgerufen wird. Detaillierte Befehle und Fehlerbehebungen findest du in [Brainstorm-Tunnel-Setup](file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#brainstorm-tunnel-setup).
-```bash
-# Lese die Anleitung und führe sie aus:
-# View: .claude/skills/references/references.md#brainstorm-tunnel-setup
-```
+### Schritt 2.7: Lavish-Board starten ⚡ PFLICHT — vor Brainstorming
+Erstelle `.lavish/<slug>-brainstorm.html` (Sections: Root-Cause, Fix-Ansatz, Subsysteme, Edge-Cases) und öffne es mit `npx -y lavish-axi .lavish/<slug>-brainstorm.html`.
 
 ### Schritt 2.8: Brainstorming ⚡ IMMER — kein Überspringen
-Rufe `superpowers:brainstorming` auf. Nutze das visual Board auf `https://brainstorm.dev.mentolder.de`.
+Rufe `superpowers:brainstorming` auf. Nutze das `lavish`-Board für visuelle Root-Cause-Dokumentation.
 Fokus: Root-Cause-Analyse, Fix-Ansatz, betroffene Subsysteme, Edge-Cases.
 Ergebnis: Spec-Datei in `docs/superpowers/specs/<date>-<slug>-design.md`.
 Der Brainstorming-Output informiert sowohl den failing Test (Schritt 3) als auch den Plan (Schritt 4) —

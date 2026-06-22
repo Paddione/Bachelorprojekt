@@ -12,7 +12,7 @@ verlinken gezielt per Section-Anchor auf den passenden Abschnitt.
 4. [dev-flow Gotchas & Knowledge Base](#dev-flow-gotchas) — T000xxx-Referenz
 5. [Deploy-Routing (SSOT)](#deploy-routing) — Pfad → Deploy-Task
 6. [MCP-Tool-Guide](#mcp-tool-guide) — MCP-Schnellweg vs. kubectl-Fallback
-7. [Brainstorming Visual Companion Tunnel Setup](#brainstorm-tunnel-setup)
+7. [Brainstorming Visual Companion Tunnel Setup](#brainstorm-tunnel-setup) *(deprecated — jetzt lavish)*
 8. [Grilling → Ticket](#grilling-to-ticket) — Q/A-Antworten ans Ticket senden
 9. [gh-axi — GitHub CLI Wrapper](#gh-axi) — Bevorzugter GitHub-Client für alle Agents
 
@@ -411,7 +411,9 @@ der Cluster-Kontext nicht gesetzt → **kubectl-Fallback** (der jeweilige `psql`
 
 ## Brainstorm-Tunnel-Setup
 
-This guide details how to start and publish the Visual Companion brainstorming tunnel.
+> **⚠️ DEPRECATED** — Brainstorming und Grilling nutzen jetzt `lavish` (`npx -y lavish-axi`). Der Tunnel-Stack (sish, superpowers-Plugin-Server, ssh-Forward) wird nicht mehr gestartet. Diese Sektion ist nur noch als historische Referenz erhalten.
+
+This guide details how to start and publish the Visual Companion brainstorming tunnel (legacy).
 
 ### Step 1: Ensure wss:// and collab patches are applied
 

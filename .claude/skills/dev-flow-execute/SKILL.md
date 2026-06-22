@@ -478,7 +478,7 @@ Führe danach `dev-flow-e2e` aus, um E2E-Tests gegen die Live-Umgebung zu schrei
 ---
 
 
-> **Mitten in der Umsetzung blockiert?** Nutzer grillen und die Antworten ans Ticket
+> **Mitten in der Umsetzung blockiert?** Nutzer mit `lavish` grillen — erstelle `.lavish/<slug>-grilling.html` (Input-Playbook) und poll auf Antworten. Danach die Antworten ans Ticket
 > hängen: `scripts/ticket.sh grill --id <ext-id> --answer <qid>=<text> …`. Siehe
 > `.claude/skills/references/references.md#grilling-to-ticket`.
 

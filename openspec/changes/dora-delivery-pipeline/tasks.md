@@ -531,7 +531,7 @@ git commit -m "feat(floor): extract pure lane mapping + visibility helpers [T001
 
 > S1: factory-floor.ts ist 580/600 → ~20 Budget. Diese Task ersetzt die inline-Interfaces + inline-`.map()`-Bodies durch Importe/Delegation (netto ≤ ~10 Zeilen Zuwachs durch das eine neue Payload-Feld). Wenn `wc -l` danach ≥ 595, eine weitere Hilfsfunktion (z. B. `parsePlanRef`) nach `factory-floor-lanes.ts` ziehen — KEINE kosmetische Verdichtung.
 
-- [ ] **Step 1: Interfaces durch Re-Export ersetzen**
+- [x] **Step 1: Interfaces durch Re-Export ersetzen**
 
 Entferne die zwei inline-Interface-Deklarationen in `factory-floor.ts` (Zeile ~93-94):
 
@@ -547,7 +547,7 @@ import { mapShippedRow, mapAwaitingRow, isAwaitingDeployLaneVisible } from './fa
 export type { ShippedItem, AwaitingDeployItem } from './factory-floor-lanes';
 ```
 
-- [ ] **Step 2: `getShipped()` Mapping delegieren**
+- [x] **Step 2: `getShipped()` Mapping delegieren**
 
 Ersetze in `getShipped()` (Zeile ~263-268) den `r.rows.map((row: any) => ({ … }))`-Body durch:
 
@@ -555,7 +555,7 @@ Ersetze in `getShipped()` (Zeile ~263-268) den `r.rows.map((row: any) => ({ … 
   return r.rows.map((row: any) => mapShippedRow(row));
 ```
 
-- [ ] **Step 3: `getAwaitingDeploy()` Mapping delegieren**
+- [x] **Step 3: `getAwaitingDeploy()` Mapping delegieren**
 
 Ersetze in `getAwaitingDeploy()` (Zeile ~291-296) den `r.rows.map((row: any) => ({ … }))`-Body durch:
 
@@ -563,7 +563,7 @@ Ersetze in `getAwaitingDeploy()` (Zeile ~291-296) den `r.rows.map((row: any) => 
   return r.rows.map((row: any) => mapAwaitingRow(row));
 ```
 
-- [ ] **Step 4: `awaitingDeployVisible` zum Payload hinzufügen**
+- [x] **Step 4: `awaitingDeployVisible` zum Payload hinzufügen**
 
 In `interface FloorPayload` (Zeile ~107-121), nach `awaitingDeploy: AwaitingDeployItem[];`, ergänze:
 
@@ -577,7 +577,7 @@ In `getFloor()` (Zeile ~428-434), im zurückgegebenen Objekt, ergänze das Feld 
     awaitingDeployVisible: isAwaitingDeployLaneVisible(awaitingDeploy),
 ```
 
-- [ ] **Step 5: Budget-Check + Typecheck**
+- [x] **Step 5: Budget-Check + Typecheck**
 
 ```bash
 wc -l website/src/lib/factory-floor.ts
@@ -586,7 +586,7 @@ cd website && npx svelte-check --tsconfig ./tsconfig.json --threshold error 2>&1
 ```
 Expected: `wc -l` ≤ ~590 (Budget gehalten; falls ≥ 595, weitere Funktion auslagern); keine neuen Typfehler in `factory-floor.ts`. Falls ein `factory-floor.test.ts` existiert, weiter grün (die Mapper liefern identische Shapes).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add website/src/lib/factory-floor.ts

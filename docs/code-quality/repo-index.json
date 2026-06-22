@@ -2151,7 +2151,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 417,
+      "file_count": 419,
       "files": [
         "claude-code/gekko-android-mcp-guide.md",
         "claude-code/settings.json",
@@ -2553,7 +2553,9 @@
         "prod/patch-oauth2-proxy-docs.yaml",
         "prod/patch-oauth2-proxy-mailpit.yaml",
         "prod/patch-oauth2-proxy-mediaviewer.yaml",
+        "prod/patch-oauth2-proxy-studio.yaml",
         "prod/patch-oauth2-proxy-traefik.yaml",
+        "prod/patch-oauth2-proxy-videovault.yaml",
         "prod/patch-pocket-id.yaml",
         "prod/patch-shared-db.yaml",
         "prod/patch-signaling-backend.yaml",

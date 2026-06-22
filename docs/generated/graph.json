@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-22T00:01:57.440Z",
+  "generatedAt": "2026-06-22T04:43:56.043Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -1458,18 +1458,6 @@
     {
       "from": "ntfy",
       "to": "ntfy",
-      "via": "selector",
-      "kind": "selector"
-    },
-    {
-      "from": "oauth2-proxy-studio",
-      "to": "oauth2-proxy-studio",
-      "via": "selector",
-      "kind": "selector"
-    },
-    {
-      "from": "oauth2-proxy-videovault",
-      "to": "oauth2-proxy-videovault",
       "via": "selector",
       "kind": "selector"
     },

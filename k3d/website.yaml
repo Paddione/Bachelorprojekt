@@ -245,6 +245,11 @@ spec:
                 secretKeyRef:
                   name: website-secrets
                   key: CRON_SECRET
+            - name: SESSIONS_CRON_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: SESSIONS_CRON_TOKEN
             # WEBSITE_OIDC_SECRET (Keycloak) removed — Pocket ID is now the auth provider
             - name: POCKET_ID_WEBSITE_SECRET
               valueFrom:

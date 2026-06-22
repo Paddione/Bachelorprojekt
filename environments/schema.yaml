@@ -713,6 +713,11 @@ secrets:
       - namespace: website
         secret: website-secrets
 
+  - name: POCKET_ID_ENCRYPTION_KEY
+    required: false
+    sealed: true
+    description: "AES encryption key (64-char hex / 32 bytes) used by Pocket ID to encrypt the JWT private key and other sensitive data at rest in the DB. Changing this key requires deleting the jwt_private_key.json from the kv table so Pocket ID can regenerate it."
+
   - name: POCKET_ID_DB_PASSWORD
     required: false
     generate: true
@@ -823,6 +828,9 @@ secrets:
     required: false
     sealed: true
     description: "Shared secret for the sessions-purge cronjob to call POST /api/admin/sessions/purge via X-Cron-Token header. [T000994]"
+    extra_namespaces:
+      - namespace: website
+        secret: website-secrets
 
   # DEPRECATED Keycloak OIDC secrets — all proxies now use POCKET_ID_*_SECRET.
   # Kept required:false so existing SealedSecrets still deserialize. Drop after reseal.
@@ -885,7 +893,7 @@ secrets:
   - name: CLAUDE_CODE_OIDC_SECRET
     required: false
     generate: false
-    description: "DEPRECATED — Claude Code uses POCKET_ID_CLAUDE_CODE_SECRET now (or Pocket ID client `claude-code-mcp-monolith`)."
+    description: "DEPRECATED — no longer used; kept for schema validation compat."
 
   - name: CLAUDE_CODE_WEBUI_SECRET_KEY
     required: true

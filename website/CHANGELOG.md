@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.127.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.127.1...website-v1.127.2) (2026-06-22)
+
+
+### Bug Fixes
+
+* **website:** entferne letztes [@ts-ignore](https://github.com/ts-ignore) in rechnungen.astro [T001105] ([#2081](https://github.com/Paddione/Bachelorprojekt/issues/2081)) ([9c70fd7](https://github.com/Paddione/Bachelorprojekt/commit/9c70fd79c2ff2a8a1f2bb5936c23356179b18e4c))
+
 ## [1.127.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.127.0...website-v1.127.1) (2026-06-22)
 
 

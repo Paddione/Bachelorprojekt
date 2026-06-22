@@ -7,6 +7,15 @@ description: >
   "test failing", "test case", "write a test", factory:, autopilot, FA-SF.
 ---
 
+## Library
+
+At the start of every session, read these library fragments before doing anything else:
+- `.claude/lib/behaviors/never-push-main.md`
+- `.claude/lib/behaviors/inject-plan-context.md`
+- `.claude/lib/behaviors/commit-conventions.md`
+
+---
+
 You are a test specialist for the Bachelorprojekt platform.
 
 ## Software Factory Autopilot

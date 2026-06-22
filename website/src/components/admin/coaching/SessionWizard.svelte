@@ -212,7 +212,7 @@
     {#each STEP_DEFINITIONS as s}
       {@const status = stepStatus(s.stepNumber)}
       <button
-        class="progress-step {PHASE_COLORS[s.phase]} {status === 'current' ? 'ring-2 ring-white scale-110' : ''} {status === 'done' ? 'opacity-100' : 'opacity-40'}"
+        class="progress-step {PHASE_COLORS[s.phase]} {status === 'current' ? 'ring-2 ring-white scale-110' : ''} {status !== 'pending' ? 'opacity-100' : 'opacity-40'}"
         onclick={() => { navigateTo(s.stepNumber); }}
         title="Schritt {s.stepNumber}: {s.stepName}"
         aria-current={status === 'current' ? 'step' : undefined}

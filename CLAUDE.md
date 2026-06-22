@@ -21,6 +21,8 @@ Before responding to any request, check these signals and delegate to the named 
 
 > **MCP-Schnellweg:** Welcher MCP-Server wann bevorzugt wird (statt `kubectl exec … psql`), steht in [`.claude/skills/references/references.md#mcp-tool-guide`](.claude/skills/references/references.md#mcp-tool-guide) — inkl. Portforward-Guard und der kubectl-Pflicht für DDL/Superuser/Writes.
 
+> **gh-axi:** Bevorzugter GitHub-CLI-Wrapper für alle Agents (`gh-axi` statt `gh`). Kommando-Referenz: [`.claude/skills/references/references.md#gh-axi`](.claude/skills/references/references.md#gh-axi).
+
 **Before dispatching any agent, inject active plan context:**
 Run `bash scripts/plan-context.sh <role> --with-openspec` and prepend output to the agent prompt wrapped in `<active-plans>` tags. If the script produces no output, omit the block entirely. `--with-openspec` auto-loads the SSOT spec(s) for any files changed vs main — omit only when explicitly told to skip OpenSpec context.
 

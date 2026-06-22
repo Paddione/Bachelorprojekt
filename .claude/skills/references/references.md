@@ -14,6 +14,7 @@ verlinken gezielt per Section-Anchor auf den passenden Abschnitt.
 6. [MCP-Tool-Guide](#mcp-tool-guide) — MCP-Schnellweg vs. kubectl-Fallback
 7. [Brainstorming Visual Companion Tunnel Setup](#brainstorm-tunnel-setup)
 8. [Grilling → Ticket](#grilling-to-ticket) — Q/A-Antworten ans Ticket senden
+9. [gh-axi — GitHub CLI Wrapper](#gh-axi) — Bevorzugter GitHub-Client für alle Agents
 
 ---
 
@@ -655,3 +656,29 @@ Strukturierter Coaching-Fragebogen aus Datei (forward-kompatibel mit dem Panel):
 scripts/ticket.sh grill --id T000812 --questionnaire coaching-sessions-v1 \
   --answers-file /tmp/coaching-answers.json
 ```
+
+---
+
+## gh-axi — GitHub CLI Wrapper {#gh-axi}
+
+`gh-axi` ist ein Ergonomie-Wrapper um die `gh` CLI. **Alle Agents sollen `gh-axi` statt `gh` direkt verwenden**, sofern ein passendes Sub-Kommando existiert.
+
+Binary: `~/.npm-global/bin/gh-axi`  
+Repo-Kontext: wird automatisch aus dem aktuellen Git-Checkout abgeleitet (kein `-R` nötig).
+
+### Kommando-Referenz
+
+```bash
+gh-axi                           # Dashboard — Live-Zustand, keine Args nötig
+gh-axi issue list                # Issues im aktuellen Repo auflisten
+gh-axi issue subissue list 16    # Sub-Issues für Issue #16
+gh-axi pr view 42                # Pull Request #42 ansehen
+gh-axi run list -R owner/repo    # Workflow-Runs für ein bestimmtes Repo
+gh-axi run view 123456 --job 789012        # Einzelnen Job innerhalb eines Runs inspizieren
+gh-axi run view --job 789012 --log-failed  # Fehlgeschlagene Log-Zeilen für einen Job
+gh-axi setup hooks               # Optionale Agent-Session-Hooks installieren
+```
+
+### Wann `gh` statt `gh-axi`
+
+`gh-axi` deckt die häufigen read/view-Flows ab. Für Operationen ohne `gh-axi`-Pendant (z. B. `gh pr create`, `gh pr merge`, `gh api`) direkt `gh` nutzen — die SessionStart-Hook-Ausgabe zeigt den verfügbaren Befehlssatz.

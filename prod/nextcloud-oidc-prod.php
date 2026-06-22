@@ -9,7 +9,7 @@
 $CONFIG = [
   'oidc_login_provider_url'      => 'http://pocket-id:1411',
   'oidc_login_client_id'         => 'nextcloud',
-  'oidc_login_client_secret'     => getenv('POCKET_ID_NEXTCLOUD_SECRET') ?: getenv('NEXTCLOUD_OIDC_SECRET'),
+  'oidc_login_client_secret'     => getenv('POCKET_ID_NEXTCLOUD_SECRET'),
   'oidc_login_auto_redirect'     => true,
   'oidc_login_logout_url'        => 'https://' . getenv('POCKET_ID_DOMAIN') . '/api/oidc/end-session?client_id=nextcloud&post_logout_redirect_uri=' . urlencode('https://' . getenv('NC_DOMAIN')),
   'oidc_login_button_text'       => 'Anmelden',

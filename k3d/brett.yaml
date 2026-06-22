@@ -62,17 +62,15 @@ spec:
                   key: WEBSITE_DB_PASSWORD
             - name: DATABASE_URL
               value: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db:5432/website?sslmode=disable"
-            - name: KEYCLOAK_URL
-              value: "http://keycloak.workspace.svc.cluster.local:8080"
-            - name: KEYCLOAK_REALM
-              value: "workspace"
-            - name: BRETT_KC_CLIENT_ID
+            - name: POCKET_ID_URL
+              value: "http://pocket-id:1411"
+            - name: BRETT_CLIENT_ID
               value: "brett"
             - name: BRETT_OIDC_SECRET
               valueFrom:
                 secretKeyRef:
                   name: workspace-secrets
-                  key: BRETT_OIDC_SECRET
+                  key: POCKET_ID_BRETT_SECRET
             - name: BRETT_PUBLIC_URL
               value: "https://brett.localhost"
             - name: WEBSITE_INTERNAL_URL

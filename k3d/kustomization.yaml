@@ -10,7 +10,7 @@ resources:
   - shared-db.yaml
   - website-schema.yaml
   # Kerndienste
-  - keycloak.yaml
+  # keycloak.yaml — REMOVED: Keycloak replaced by Pocket ID (auth.* domain)
   - nextcloud.yaml
   - nextcloud-redis.yaml
   # Nextcloud Talk HPB + Whiteboard
@@ -105,12 +105,7 @@ resources:
 
 # ConfigMaps aus lokalen Dateien (dev-spezifisch)
 configMapGenerator:
-  - name: realm-template
-    files:
-      - realm-workspace.json=realm-workspace-dev.json
-  - name: keycloak-import-script
-    files:
-      - import-entrypoint.sh=realm-import-entrypoint.sh
+  # realm-template and keycloak-import-script removed — Keycloak decommissioned
   - name: nextcloud-oidc-config
     files:
       - oidc.config.php=nextcloud-oidc-dev.php

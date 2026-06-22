@@ -1,10 +1,8 @@
 # prod/patch-pocket-id.yaml — prod overlay for Pocket ID
-# Three patches applied via kustomize strategic-merge:
-#   1. IngressRoute → websecure + TLS + Host(`id.${PROD_DOMAIN}`)
-#   2. Volume `data` (emptyDir in base) → persistentVolumeClaim
-#   3. Container resource limits lifted (Pocket ID writes OIDC client
-#      config to /app/data on every change; PVC guarantees persistence
-#      across pod restarts and rolling deploys).
+# Patches applied via kustomize strategic-merge:
+#   1. IngressRoute → websecure + TLS + Host(`auth.${PROD_DOMAIN}`)
+#      (Pocket ID moved to auth.* after Keycloak decommission)
+#   2. Container resource limits for prod sizing.
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
@@ -14,7 +12,7 @@ spec:
     - websecure
   routes:
     - kind: Rule
-      match: Host(`id.${PROD_DOMAIN}`)
+      match: Host(`auth.${PROD_DOMAIN}`)
       services:
         - name: pocket-id
           port: 1411

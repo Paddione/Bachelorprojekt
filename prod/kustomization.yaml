@@ -19,20 +19,13 @@ resources:
   - traefik-dashboard.yaml
   - mail-ingressroute.yaml
 
-# Production ConfigMaps (override base realm + OIDC, add scripts from deploy.sh)
+# Production ConfigMaps (override base OIDC config)
+# realm-template and keycloak-import-script removed — Keycloak decommissioned
 configMapGenerator:
-  - name: realm-template
-    behavior: replace
-    files:
-      - realm-workspace.json=realm-workspace-prod.json
   - name: nextcloud-oidc-config
     behavior: replace
     files:
       - oidc.config.php=nextcloud-oidc-prod.php
-  - name: keycloak-import-script
-    behavior: replace
-    files:
-      - import-entrypoint.sh
 generatorOptions:
   disableNameSuffixHash: true
 
@@ -132,7 +125,7 @@ patches:
   # Override ingress (add TLS + real hostnames)
   - path: ingress.yaml
   - path: patch-nextcloud.yaml
-  - path: patch-keycloak.yaml
+  # patch-keycloak.yaml removed — Keycloak decommissioned
   # Production SMTP and service config
   - path: patch-vaultwarden.yaml
   - path: patch-oauth2-proxy-docs.yaml

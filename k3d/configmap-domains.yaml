@@ -3,7 +3,8 @@ kind: ConfigMap
 metadata:
   name: domain-config
 data:
-  KC_DOMAIN: "auth.localhost"
+  # Pocket ID is the auth provider — domain is auth.* (was Keycloak's slot)
+  POCKET_ID_DOMAIN: "auth.localhost"
   NC_DOMAIN: "files.localhost"
   MEET_DOMAIN: "files.localhost/index.php/apps/spreed/"
   SIGNALING_DOMAIN: "signaling.localhost"
@@ -12,7 +13,6 @@ data:
   VAULT_DOMAIN: "vault.localhost"
   MAIL_DOMAIN: "mail.localhost"
   DOCS_DOMAIN: "docs.localhost"
-  POCKET_ID_DOMAIN: "id.localhost"
   RECOVER_DOMAIN: "recover.localhost"
   WEB_DOMAIN: "web.localhost"
   TRAEFIK_DOMAIN: "traefik.localhost"
@@ -24,10 +24,8 @@ data:
   TLS_SECRET_NAME: "workspace-wildcard-tls"
   TURN_PUBLIC_IP: "127.0.0.1"
   TURN_NODE: "k3d-dev-server-0"
-  KC_USER1_USERNAME: "admin"
-  KC_USER1_EMAIL: "admin@localhost"
-  KC_USER2_USERNAME: ""
-  KC_USER2_EMAIL: ""
+  ADMIN_USERNAME: "admin"
+  ADMIN_EMAIL: "admin@localhost"
   BRETT_DOMAIN: "brett.localhost"
   BRAINSTORM_DOMAIN: "brainstorm.localhost"
   AI_DOMAIN: "ai.localhost"

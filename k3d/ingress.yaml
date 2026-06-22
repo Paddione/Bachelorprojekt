@@ -19,9 +19,9 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: keycloak
+                name: pocket-id
                 port:
-                  number: 8080
+                  number: 1411
 
     # ── Nextcloud (Dateien) ──────────────────────────────────────────
     - host: files.localhost

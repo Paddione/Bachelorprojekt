@@ -162,22 +162,22 @@ spec:
             # Reverse proxy: trust in-cluster pod/service CIDRs (RFC1918)
             - name: TRUSTED_PROXIES
               value: "10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 127.0.0.1/32"
-            # OIDC-Variablen für oidc.config.php
-            - name: KC_DOMAIN
+            # OIDC-Variablen für oidc.config.php (Pocket ID)
+            - name: POCKET_ID_DOMAIN
               valueFrom:
                 configMapKeyRef:
                   name: domain-config
-                  key: KC_DOMAIN
+                  key: POCKET_ID_DOMAIN
             - name: NC_DOMAIN
               valueFrom:
                 configMapKeyRef:
                   name: domain-config
                   key: NC_DOMAIN
-            - name: NEXTCLOUD_OIDC_SECRET
+            - name: POCKET_ID_NEXTCLOUD_SECRET
               valueFrom:
                 secretKeyRef:
                   name: workspace-secrets
-                  key: NEXTCLOUD_OIDC_SECRET
+                  key: POCKET_ID_NEXTCLOUD_SECRET
             - name: SIGNALING_DOMAIN
               valueFrom:
                 configMapKeyRef:

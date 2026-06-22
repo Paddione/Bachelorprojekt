@@ -13,22 +13,22 @@ const renderAt = (path: string) =>
 describe('Routing', () => {
   it('renders ueber-mich page at /ueber-mich', () => {
     renderAt('/ueber-mich');
-    expect(screen.getByTestId('ueber-mich-page')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Mein Weg/i })).toBeInTheDocument();
   });
 
   it('renders leistungen page at /leistungen', () => {
     renderAt('/leistungen');
-    expect(screen.getByTestId('leistungen-page')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Was ich anbiete/i })).toBeInTheDocument();
   });
 
   it('renders leistung detail at /leistungen/fuehrung', () => {
     renderAt('/leistungen/fuehrung');
-    expect(screen.getByTestId('leistung-detail-page')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Alle Leistungen/i })).toBeInTheDocument();
   });
 
   it('renders referenzen page at /referenzen', () => {
     renderAt('/referenzen');
-    expect(screen.getByTestId('referenzen-page')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /die mir vertrauen/i })).toBeInTheDocument();
   });
 });
 

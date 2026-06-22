@@ -108,37 +108,36 @@ function fmtDateTime(d: Date | string | null): string {
     <div class="max-w-6xl mx-auto px-6">
 
       {/* Breadcrumb */}
-      <nav class="text-sm text-muted mb-4">
-        <a href="/admin/tickets" class="hover:text-gold">Tickets</a>
-        <span class="mx-2">/</span>
-        <span class="font-mono text-gold">{ticket.externalId ?? ticket.id.slice(0, 8)}</span>
+      <nav class="text-sm mb-6 flex items-center gap-2">
+        <a href="/admin/tickets" class="text-muted hover:text-gold transition-colors">Tickets</a>
+        <span class="text-muted/30 select-none">›</span>
+        <span class="font-mono text-xs bg-gold/10 text-gold px-2 py-0.5 rounded">{ticket.externalId ?? ticket.id.slice(0, 8)}</span>
       </nav>
 
       {/* Header */}
       <div class="mb-6 flex items-start gap-4 flex-wrap">
         <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-3 flex-wrap mb-2">
-            <span class="text-xs px-2 py-1 rounded bg-dark-light border border-dark-lighter text-muted whitespace-nowrap">
+          <div class="flex items-center gap-2.5 flex-wrap mb-3">
+            <span class="text-xs px-2.5 py-1 rounded-full bg-dark border border-dark-lighter/80 text-muted/80 whitespace-nowrap font-medium">
               {typeLabel(ticket.type)}
             </span>
-            <span class={`text-xs px-2 py-0.5 rounded-full border ${STATUS_CLS[ticket.status] ?? ''}`}>
-              {statusLabel(ticket.status)}
-              {ticket.resolution && ` (${ticket.resolution})`}
+            <span class={`text-xs px-3 py-1 rounded-full border font-semibold whitespace-nowrap ${STATUS_CLS[ticket.status] ?? ''}`}>
+              {statusLabel(ticket.status)}{ticket.resolution ? ` · ${ticket.resolution}` : ''}
             </span>
-            <span class={`text-sm font-semibold ${PRIO_CLS[ticket.priority] ?? ''}`}>
+            <span class={`text-sm font-bold ${PRIO_CLS[ticket.priority] ?? ''}`}>
               {PRIO_ICON[ticket.priority]} {ticket.priority}
             </span>
             {ticket.severity && (
-              <span class="text-xs px-2 py-0.5 rounded bg-dark border border-dark-lighter text-muted">
+              <span class="text-xs px-2 py-0.5 rounded-full bg-dark border border-dark-lighter text-muted/80">
                 {ticket.severity}
               </span>
             )}
           </div>
-          <h1 class="text-2xl font-bold text-light font-serif">{ticket.title}</h1>
+          <h1 class="text-2xl font-bold text-light font-serif leading-snug">{ticket.title}</h1>
           {ticket.tagNames.length > 0 && (
-            <div class="flex flex-wrap gap-1 mt-2">
+            <div class="flex flex-wrap gap-1.5 mt-2.5">
               {ticket.tagNames.map(tag => (
-                <span class="text-[10px] px-1.5 py-0.5 rounded bg-dark border border-dark-lighter text-muted">
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-dark border border-dark-lighter/60 text-muted/70">
                   {tag}
                 </span>
               ))}
@@ -167,7 +166,7 @@ function fmtDateTime(d: Date | string | null): string {
 
           {/* Description */}
           <div class="bg-dark-light rounded-2xl border border-dark-lighter p-6">
-            <h2 class="text-sm font-semibold text-light mb-2 font-serif uppercase tracking-wide">Beschreibung</h2>
+            <h2 class="text-xs font-semibold text-muted uppercase tracking-widest mb-3 pb-2 border-b border-dark-lighter/50">Beschreibung</h2>
             {ticket.description ? (
               <div class="md-body text-light/90" set:html={renderMarkdown(ticket.description)} />
             ) : (
@@ -205,7 +204,7 @@ function fmtDateTime(d: Date | string | null): string {
           {/* Linked tickets */}
           {ticket.links.length > 0 && (
             <div class="bg-dark-light rounded-2xl border border-dark-lighter p-6">
-              <h2 class="text-sm font-semibold text-light mb-3 font-serif uppercase tracking-wide">
+              <h2 class="text-xs font-semibold text-muted uppercase tracking-widest mb-3 pb-2 border-b border-dark-lighter/50">
                 Verknüpfungen ({ticket.links.length})
               </h2>
               <ul class="space-y-2">
@@ -237,7 +236,7 @@ function fmtDateTime(d: Date | string | null): string {
 
           {/* Activity timeline */}
           <div class="bg-dark-light rounded-2xl border border-dark-lighter p-6">
-            <h2 class="text-sm font-semibold text-light mb-3 font-serif uppercase tracking-wide">Verlauf</h2>
+            <h2 class="text-xs font-semibold text-muted uppercase tracking-widest mb-3 pb-2 border-b border-dark-lighter/50">Verlauf</h2>
             <TicketActivityTimeline client:load entries={timeline} />
           </div>
 
@@ -253,58 +252,58 @@ function fmtDateTime(d: Date | string | null): string {
           <div class="bg-dark-light rounded-2xl border border-dark-lighter p-5 text-sm">
             <dl class="space-y-3">
               <div>
-                <dt class="text-xs text-muted uppercase tracking-wide mb-0.5">Erstellt</dt>
+                <dt class="text-[10px] text-muted/70 uppercase tracking-widest mb-0.5">Erstellt</dt>
                 <dd class="text-light">{fmtDateTime(ticket.createdAt)}</dd>
               </div>
               <div>
-                <dt class="text-xs text-muted uppercase tracking-wide mb-0.5">Aktualisiert</dt>
+                <dt class="text-[10px] text-muted/70 uppercase tracking-widest mb-0.5">Aktualisiert</dt>
                 <dd class="text-light">{fmtDateTime(ticket.updatedAt)}</dd>
               </div>
               {ticket.startDate && (
                 <div>
-                  <dt class="text-xs text-muted uppercase tracking-wide mb-0.5">Start</dt>
+                  <dt class="text-[10px] text-muted/70 uppercase tracking-widest mb-0.5">Start</dt>
                   <dd class="text-light">{fmt(ticket.startDate)}</dd>
                 </div>
               )}
               {ticket.dueDate && (
                 <div>
-                  <dt class="text-xs text-muted uppercase tracking-wide mb-0.5">Fällig</dt>
+                  <dt class="text-[10px] text-muted/70 uppercase tracking-widest mb-0.5">Fällig</dt>
                   <dd class="text-light">{fmt(ticket.dueDate)}</dd>
                 </div>
               )}
               {ticket.assigneeLabel && (
                 <div>
-                  <dt class="text-xs text-muted uppercase tracking-wide mb-0.5">Zuständig</dt>
+                  <dt class="text-[10px] text-muted/70 uppercase tracking-widest mb-0.5">Zuständig</dt>
                   <dd class="text-light">{ticket.assigneeLabel}</dd>
                 </div>
               )}
               {ticket.customerLabel && (
                 <div>
-                  <dt class="text-xs text-muted uppercase tracking-wide mb-0.5">Kunde</dt>
+                  <dt class="text-[10px] text-muted/70 uppercase tracking-widest mb-0.5">Kunde</dt>
                   <dd class="text-light">{ticket.customerLabel}</dd>
                 </div>
               )}
               {ticket.reporterEmail && (
                 <div>
-                  <dt class="text-xs text-muted uppercase tracking-wide mb-0.5">Reporter</dt>
+                  <dt class="text-[10px] text-muted/70 uppercase tracking-widest mb-0.5">Reporter</dt>
                   <dd class="text-light truncate">{ticket.reporterEmail}</dd>
                 </div>
               )}
               {ticket.component && (
                 <div>
-                  <dt class="text-xs text-muted uppercase tracking-wide mb-0.5">Komponente</dt>
+                  <dt class="text-[10px] text-muted/70 uppercase tracking-widest mb-0.5">Komponente</dt>
                   <dd class="text-light">{ticket.component}</dd>
                 </div>
               )}
               {ticket.thesisTag && (
                 <div>
-                  <dt class="text-xs text-muted uppercase tracking-wide mb-0.5">Thesis-Tag</dt>
+                  <dt class="text-[10px] text-muted/70 uppercase tracking-widest mb-0.5">Thesis-Tag</dt>
                   <dd class="text-light font-mono">{ticket.thesisTag}</dd>
                 </div>
               )}
               {ticket.parentId && (
                 <div>
-                  <dt class="text-xs text-muted uppercase tracking-wide mb-0.5">Parent</dt>
+                  <dt class="text-[10px] text-muted/70 uppercase tracking-widest mb-0.5">Parent</dt>
                   <dd>
                     <a href={`/admin/tickets/${ticket.parentId}`} class="text-gold hover:underline">
                       Parent öffnen
@@ -316,7 +315,7 @@ function fmtDateTime(d: Date | string | null): string {
           </div>
 
           <div class="bg-dark-light rounded-2xl border border-dark-lighter p-5 text-sm">
-            <h3 class="text-xs text-muted uppercase tracking-wide mb-2">Watcher ({ticket.watchers.length})</h3>
+            <h3 class="text-[10px] text-muted/70 uppercase tracking-widest mb-2 pb-1.5 border-b border-dark-lighter/40">Watcher ({ticket.watchers.length})</h3>
             {ticket.watchers.length === 0 ? (
               <p class="text-muted italic text-xs">Keine Watcher.</p>
             ) : (

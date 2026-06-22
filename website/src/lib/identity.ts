@@ -144,9 +144,18 @@ export async function updateUser(userId: string, params: {
 
 // Roles/groups compat shim. Pocket ID's only role signal is the boolean
 // isAdmin on the user — there is no enumerable realm/role/groups system.
-// The shim preserves the legacy KcRole / KcGroup types and the function
-// names that the admin UI uses so it can be repointed with a single
+// The shim preserves the legacy KcUser / KcRole / KcGroup types and the
+// function names that the admin UI uses so it can be repointed with a single
 // import-path change.
+
+export interface KcUser {
+  id: string;
+  username: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  enabled: boolean;
+}
 
 export interface KcRole {
   id: string;

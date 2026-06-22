@@ -124,9 +124,11 @@ spec:
             - -ec
             - |
               # Derive scheme + host suffix from the public frontend URL.
+              # dev:  http://id.localhost   → SUFFIX=localhost
+              # prod: https://auth.${PROD_DOMAIN} → SUFFIX=${PROD_DOMAIN}
               SCHEME="${POCKET_ID_FRONTEND_URL%%://*}"
               HOST="${POCKET_ID_FRONTEND_URL#*://}"
-              SUFFIX="${HOST#id.}"   # localhost (dev) | ${PROD_DOMAIN} (prod)
+              SUFFIX="${HOST#*.}"   # strips first subdomain (id./auth.) regardless of prefix
 
               AUTH="Authorization: Bearer ${POCKET_ID_API_KEY}"
               CT="Content-Type: application/json"

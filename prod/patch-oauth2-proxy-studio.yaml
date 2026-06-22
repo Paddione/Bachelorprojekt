@@ -1,6 +1,6 @@
 # prod/patch-oauth2-proxy-studio.yaml — prod overlay for oauth2-proxy-studio
 # Replaces the dev localhost URLs with the real prod domain + HTTPS.
-# --authenticated-emails-file is retained from the base (allows only coach emails).
+# --authenticated-emails-file is retained (allows only coach emails).
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -17,6 +17,7 @@ spec:
             - "--client-secret=$(POCKET_ID_STUDIO_SECRET)"
             - "--redirect-url=https://studio.${PROD_DOMAIN}/oauth2/callback"
             - "--oidc-issuer-url=https://auth.${PROD_DOMAIN}"
+            - "--ssl-insecure-skip-verify=true"
             - "--skip-oidc-discovery=true"
             - "--login-url=https://auth.${PROD_DOMAIN}/authorize"
             - "--redeem-url=https://auth.${PROD_DOMAIN}/api/oidc/token"

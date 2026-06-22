@@ -6,6 +6,7 @@ import {
   resetStaleSendingCampaigns,
   sendCampaignById,
 } from '../../../lib/newsletter-db';
+import { errorResponse } from '../_errors';
 
 const CRON_SECRET = process.env.CRON_SECRET ?? '';
 

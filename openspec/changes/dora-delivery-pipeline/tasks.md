@@ -345,12 +345,12 @@ git commit -m "docs(skill): dev-flow-execute closes done/shipped on merge, drop 
 - Consumes: nichts.
 - Produces: Doku, die das vereinheitlichte Lifecycle beschreibt (Merge=Abschluss, `awaiting_deploy`/`qa_review` retired aus Happy-Path, Enum nicht-destruktiv erhalten, Watchdog bleibt). (`.md` hat kein S1-Limit.)
 
-- [ ] **Step 1: Abschnitt finden**
+- [x] **Step 1: Abschnitt finden**
 
 Run: `grep -n "awaiting_deploy\|merge ≠ prod\|Domain conventions" CLAUDE.md`
 Expected: u.a. der Abschnitt `### Domain conventions: awaiting_deploy status`.
 
-- [ ] **Step 2: Abschnitt umschreiben**
+- [x] **Step 2: Abschnitt umschreiben**
 
 Ersetze den `awaiting_deploy`-Abschnitt durch eine Beschreibung des neuen Modells, z. B.:
 
@@ -367,7 +367,7 @@ Sonderfälle, Watchdog-Sicherheitsnetz `awaiting_deploy > 24h`). Es gibt keine s
 
 Passe verbleibende „merge ≠ prod"-Lane-Erwähnungen entsprechend an (Hinweis: Floor blendet die `awaiting_deploy`-Lane jetzt leer aus — siehe Scheibe B).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add CLAUDE.md

@@ -1,9 +1,13 @@
 <script lang="ts">
-  export let invoiceId: string;
-  export let invoiceNumber: string;
-  export let outstanding: number;
-  export let onClose: () => void;
-  export let onSaved: () => void;
+  type Props = {
+    invoiceId: string;
+    invoiceNumber: string;
+    outstanding: number;
+    onClose: () => void;
+    onSaved: () => void;
+  };
+
+  const { invoiceId, invoiceNumber, outstanding, onClose, onSaved }: Props = $props();
 
   let paidAt = new Date().toISOString().split('T')[0];
   let amount = outstanding;

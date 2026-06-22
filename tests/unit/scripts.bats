@@ -96,9 +96,9 @@ load test_helper
 
 # ── Config Files ─────────────────────────────────────────────────
 
-@test "realm-workspace-dev.json is valid JSON" {
-  python3 -c "import json; json.load(open('${PROJECT_DIR}/k3d/realm-workspace-dev.json'))"
-}
+# realm-workspace-dev.json (Keycloak dev realm) was removed when Keycloak was
+# replaced by Pocket ID (PRs #2042/#2057). The obsolete JSON-validity test was
+# removed here — the file no longer exists in k3d/.
 
 @test "nextcloud-oidc-dev.php has valid PHP syntax" {
   if command -v php &>/dev/null; then

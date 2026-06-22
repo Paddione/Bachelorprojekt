@@ -224,11 +224,9 @@ all_images() {
 }
 
 # ── RBAC ─────────────────────────────────────────────────────────
-
-@test "claude-code RBAC resources exist" {
-  grep -q 'claude-code' "$RENDERED"
-  grep -qE 'kind: (Role|ClusterRole|RoleBinding|ServiceAccount)' "$RENDERED"
-}
+# claude-code/MCP RBAC was decommissioned from the k3d base (MCP monolith removal,
+# PRs #2052/#2061 — agents now use kubectl/gh/psql directly). The obsolete
+# "claude-code RBAC resources exist" test was removed here.
 
 # ── HPA ──────────────────────────────────────────────────────────
 

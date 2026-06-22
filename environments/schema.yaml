@@ -262,12 +262,7 @@ env_vars:
     required: true
     default_dev: "http://web.localhost"
 
-  # KEYCLOAK_FRONTEND_URL retained for backwards-compat with sealed secrets that still carry
-  # the key; no longer injected into manifests. Will be dropped in a future cleanup.
-  - name: KEYCLOAK_FRONTEND_URL
-    required: false
-    default_dev: "http://auth.localhost"
-    description: "DEPRECATED — was Keycloak public URL. Pocket ID now owns auth.* via POCKET_ID_FRONTEND_URL."
+  # KEYCLOAK_FRONTEND_URL removed — Keycloak decommissioned (pocket-id-migration Welle 3, 2026-06-22).
 
   - name: POCKET_ID_FRONTEND_URL
     required: true
@@ -279,10 +274,7 @@ env_vars:
     default_dev: "http://pocket-id:1411"
     description: "Cluster-internal URL of the Pocket ID service (pocket-id:1411). Used by website/brett/nextcloud/grafana as the OIDC discovery base."
 
-  - name: KC_DOMAIN
-    required: false
-    default_dev: "auth.localhost"
-    description: "DEPRECATED — was Keycloak hostname. Now resolves to Pocket ID (same auth.* domain). Retained for scripts/vaultwarden-seed-job that still reference it."
+  # KC_DOMAIN removed — Keycloak decommissioned (pocket-id-migration Welle 3, 2026-06-22).
 
   - name: LLM_HOST_IP
     required: false
@@ -458,20 +450,11 @@ secrets:
     generate: true
     length: 32
 
-  # DEPRECATED — Keycloak removed. Retained so existing SealedSecrets that still carry
-  # these keys continue to deserialize cleanly. Safe to drop from new envs / after reseal.
-  - name: KEYCLOAK_DB_PASSWORD
-    required: false
-    generate: false
-    description: "DEPRECATED — Keycloak decommissioned. Key retained for SealedSecret backwards-compat."
-
-  - name: KEYCLOAK_ADMIN_PASSWORD
-    required: false
-    generate: false
-    description: "DEPRECATED — Keycloak decommissioned. Key retained for SealedSecret backwards-compat."
-    extra_namespaces:
-      - namespace: website
-        secret: website-secrets
+  # KEYCLOAK_DB_PASSWORD and KEYCLOAK_ADMIN_PASSWORD removed — Keycloak decommissioned
+  # (pocket-id-migration Welle 3, 2026-06-22). Point of no return reached — do NOT
+  # re-seal or re-add. The Keycloak Postgres DBs must be dropped manually via:
+  #   kubectl exec deploy/shared-db -n workspace -- psql -U postgres -c "DROP DATABASE IF EXISTS keycloak;"
+  #   kubectl exec deploy/shared-db -n workspace-korczewski -- psql -U postgres -c "DROP DATABASE IF EXISTS keycloak;"
 
   - name: NEXTCLOUD_DB_PASSWORD
     required: true
@@ -494,12 +477,7 @@ secrets:
         secret: website-secrets
         dest_key: NEXTCLOUD_CALDAV_PASSWORD
 
-  # DEPRECATED — Keycloak OIDC secrets. Nextcloud/Vaultwarden/etc. now use POCKET_ID_*_SECRET.
-  # Retained so existing SealedSecrets deserialize cleanly. Drop after reseal.
-  - name: NEXTCLOUD_OIDC_SECRET
-    required: false
-    generate: false
-    description: "DEPRECATED — Nextcloud OIDC now uses POCKET_ID_NEXTCLOUD_SECRET (Pocket ID)."
+  # NEXTCLOUD_OIDC_SECRET removed — Keycloak decommissioned (pocket-id-migration Welle 3, 2026-06-22).
 
   # ─────────────────────────────────────────────────────────────────
   # Variables intentionally NOT in this schema (audit allowlist)
@@ -618,11 +596,7 @@ secrets:
     generate: true
     length: 48
 
-  # DEPRECATED — Vaultwarden now uses POCKET_ID_VAULTWARDEN_SECRET. Kept for SealedSecret compat.
-  - name: VAULTWARDEN_OIDC_SECRET
-    required: false
-    generate: false
-    description: "DEPRECATED — Vaultwarden SSO uses POCKET_ID_VAULTWARDEN_SECRET now."
+  # VAULTWARDEN_OIDC_SECRET removed — Keycloak decommissioned (pocket-id-migration Welle 3, 2026-06-22).
 
   - name: WEBSITE_DB_PASSWORD
     required: true
@@ -632,14 +606,7 @@ secrets:
       - namespace: website
         secret: website-secrets
 
-  # DEPRECATED — website now uses POCKET_ID_WEBSITE_SECRET. Retained for SealedSecret compat.
-  - name: WEBSITE_OIDC_SECRET
-    required: false
-    generate: false
-    description: "DEPRECATED — website OIDC now uses POCKET_ID_WEBSITE_SECRET (Pocket ID)."
-    extra_namespaces:
-      - namespace: website
-        secret: website-secrets
+  # WEBSITE_OIDC_SECRET removed — Keycloak decommissioned (pocket-id-migration Welle 3, 2026-06-22).
 
   - name: RECORDING_SECRET
     required: true
@@ -678,29 +645,9 @@ secrets:
     required: true
     generate: false
 
-  # DEPRECATED — docs/recovery proxies now use POCKET_ID_*_SECRET. Kept for SealedSecret compat.
-  - name: DOCS_OIDC_SECRET
-    required: false
-    generate: false
-    description: "DEPRECATED — docs proxy uses POCKET_ID_DOCS_SECRET now."
-
-  - name: RECOVERY_OIDC_SECRET
-    required: false
-    generate: false
-    description: "DEPRECATED — recovery proxy uses POCKET_ID_RECOVERY_SECRET now."
-
-  # BRAINSTORM_OIDC_SECRET is dev-only (brainstorm.dev.mentolder.de; no prod broker).
-  # required:false so prod env:validate doesn't demand it; generate:true keeps dev auto-gen.
-  - name: BRAINSTORM_OIDC_SECRET
-    required: false
-    generate: true
-    length: 40
-
-  - name: SESSION_HUB_OIDC_SECRET
-    required: false
-    generate: true
-    length: 64
-    description: "OIDC client secret for the session-hub oauth2-proxy (Keycloak confidential client `session-hub`). Gates session-*.${DEV_DOMAIN} behind the /session-hub-access group."
+  # DOCS_OIDC_SECRET, RECOVERY_OIDC_SECRET, BRAINSTORM_OIDC_SECRET, SESSION_HUB_OIDC_SECRET
+  # removed — Keycloak decommissioned (pocket-id-migration Welle 3, 2026-06-22).
+  # POCKET_ID_* equivalents are below.
 
   # ─────────────────────────────────────────────────────────────────
   # Pocket ID OIDC client secrets (T001068) — supersede the *_OIDC_SECRET
@@ -837,30 +784,9 @@ secrets:
       - namespace: website
         secret: website-secrets
 
-  # DEPRECATED Keycloak OIDC secrets — all proxies now use POCKET_ID_*_SECRET.
-  # Kept required:false so existing SealedSecrets still deserialize. Drop after reseal.
-  - name: TRAEFIK_OIDC_SECRET
-    required: false
-    generate: false
-    description: "DEPRECATED — traefik proxy uses POCKET_ID_TRAEFIK_SECRET now."
-
-  - name: MAIL_OIDC_SECRET
-    required: false
-    generate: false
-    description: "DEPRECATED — mailpit proxy uses POCKET_ID_MAIL_SECRET now."
-
-  - name: BRETT_OIDC_SECRET
-    required: false
-    generate: false
-    description: "DEPRECATED — brett proxy uses POCKET_ID_BRETT_SECRET now."
-    extra_namespaces:
-      - namespace: website
-        secret: website-secrets
-
-  - name: MEDIAVIEWER_OIDC_CLIENT_SECRET
-    required: false
-    generate: false
-    description: "DEPRECATED — mediaviewer proxy uses POCKET_ID_MEDIAVIEWER_SECRET now."
+  # TRAEFIK_OIDC_SECRET, MAIL_OIDC_SECRET, BRETT_OIDC_SECRET, MEDIAVIEWER_OIDC_CLIENT_SECRET
+  # removed — Keycloak decommissioned (pocket-id-migration Welle 3, 2026-06-22).
+  # POCKET_ID_* equivalents are above.
 
   - name: VIDEOVAULT_DB_PASSWORD
     required: true
@@ -868,20 +794,9 @@ secrets:
     length: 48
     description: "Password for the videovault PostgreSQL role in shared-db"
 
-  - name: VIDEOVAULT_OIDC_SECRET
-    required: false
-    generate: false
-    description: "DEPRECATED — videovault proxy uses POCKET_ID_VIDEOVAULT_SECRET now."
-
-  - name: STUDIO_OIDC_SECRET
-    required: false
-    generate: false
-    description: "DEPRECATED — studio proxy uses POCKET_ID_STUDIO_SECRET now."
-
-  - name: COMFY_OIDC_SECRET
-    required: false
-    generate: false
-    description: "DEPRECATED — comfy proxy uses POCKET_ID_COMFY_SECRET now."
+  # VIDEOVAULT_OIDC_SECRET, STUDIO_OIDC_SECRET, COMFY_OIDC_SECRET
+  # removed — Keycloak decommissioned (pocket-id-migration Welle 3, 2026-06-22).
+  # POCKET_ID_* equivalents are above.
 
   # Software Factory OTel collector bearer token (per-brand, manually provisioned).
   # Sealed into the monitoring ns as the otel-collector-auth Secret (key
@@ -894,11 +809,7 @@ secrets:
       - namespace: monitoring
         secret: otel-collector-auth
 
-  # Claude Code WebUI authentication — DEPRECATED: now uses POCKET_ID client
-  - name: CLAUDE_CODE_OIDC_SECRET
-    required: false
-    generate: false
-    description: "DEPRECATED — no longer used; kept for schema validation compat."
+  # CLAUDE_CODE_OIDC_SECRET removed — Keycloak decommissioned (pocket-id-migration Welle 3, 2026-06-22).
 
   - name: CLAUDE_CODE_WEBUI_SECRET_KEY
     required: true
@@ -1096,13 +1007,7 @@ secrets:
       - namespace: monitoring
         secret: alertmanager-pushover
 
-  - name: GRAFANA_OIDC_SECRET
-    required: false
-    generate: false
-    description: "DEPRECATED — Grafana uses POCKET_ID_GRAFANA_SECRET now. Kept for SealedSecret compat."
-    extra_namespaces:
-      - namespace: monitoring
-        secret: grafana-oidc
+  # GRAFANA_OIDC_SECRET removed — Keycloak decommissioned (pocket-id-migration Welle 3, 2026-06-22).
 
   - name: GRAFANA_ADMIN_PASSWORD
     required: true

@@ -611,7 +611,6 @@ tasks:
         tests/unit/tickets-plan-staged-migration.bats
         tests/unit/env-resolve.bats
         tests/unit/env-validate.bats
-        tests/unit/keycloak-sync.bats
         tests/unit/planning-office.bats
         tests/unit/planungsbuero-stats.bats
         tests/unit/ticket-triage.bats
@@ -2809,96 +2808,8 @@ tasks:
         fi
         echo "✓ DB passwords synced (ENV={{.ENV}}, ns=$NS)"
 
-  keycloak:sync:
-    desc: "Sync OIDC clients + secrets von realm-template → Keycloak Admin API (ENV=dev|mentolder|korczewski)"
-    vars:
-      ENV: '{{.ENV | default "dev"}}'
-    cmds:
-      - ENV={{.ENV}} bash scripts/keycloak-sync.sh
-
-  keycloak:ensure-mappers:
-    desc: "Idempotent upsert of protocol mappers that secret-only sync misses (currently: website→audience-arena). ENV=dev|mentolder|korczewski."
-    vars:
-      ENV: '{{.ENV | default "dev"}}'
-    cmds:
-      - ENV={{.ENV}} bash scripts/keycloak-ensure-mappers.sh
-
-  keycloak:sync-admin-password:
-    desc: "Reset Keycloak admin password to match workspace-secrets (uses KC bootstrap admin backdoor, Keycloak 26+). ENV=dev|mentolder|korczewski"
-    vars:
-      ENV: '{{.ENV | default "dev"}}'
-    cmds:
-      - |
-        set -euo pipefail
-        source scripts/env-resolve.sh "{{.ENV}}"
-        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
-        NS="${WORKSPACE_NAMESPACE:-workspace}"
-        KC_URL="https://auth.${PROD_DOMAIN}"
-        [[ "{{.ENV}}" == "dev" ]] && KC_URL="http://auth.localhost"
-
-        DESIRED_PASS=$(kubectl $CTX get secret workspace-secrets -n "$NS" \
-          -o jsonpath='{.data.KEYCLOAK_ADMIN_PASSWORD}' 2>/dev/null | base64 -d || echo "")
-        if [[ -z "$DESIRED_PASS" ]]; then
-          echo "ERROR: KEYCLOAK_ADMIN_PASSWORD not found in workspace-secrets/$NS" >&2; exit 1
-        fi
-
-        TOKEN=$(curl -sk -X POST "${KC_URL}/realms/master/protocol/openid-connect/token" \
-          --data-urlencode "grant_type=password" \
-          --data-urlencode "client_id=admin-cli" \
-          --data-urlencode "username=admin" \
-          --data-urlencode "password=${DESIRED_PASS}" \
-          | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4 || true)
-
-        if [[ -n "$TOKEN" ]]; then
-          echo "✓ Keycloak admin password already matches workspace-secrets — no action needed."
-          exit 0
-        fi
-
-        echo "Admin password mismatch — resetting via KC 26 bootstrap admin..."
-        BOOT_PASS="KcReset$(date +%s)$(openssl rand -hex 4)!"
-
-        kubectl $CTX set env deployment/keycloak -n "$NS" \
-          KC_BOOTSTRAP_ADMIN_USERNAME=kc-recovery-admin \
-          KC_BOOTSTRAP_ADMIN_PASSWORD="${BOOT_PASS}"
-        echo "Waiting for Keycloak rollout with recovery admin..."
-        kubectl $CTX rollout status deployment/keycloak -n "$NS" --timeout=180s
-
-        for i in $(seq 1 20); do
-          curl -sk --max-time 5 "${KC_URL}/realms/master" | grep -q '"realm"' && break; sleep 5
-        done
-
-        BOOT_TOKEN=$(curl -sk -X POST "${KC_URL}/realms/master/protocol/openid-connect/token" \
-          --data-urlencode "grant_type=password" \
-          --data-urlencode "client_id=admin-cli" \
-          --data-urlencode "username=kc-recovery-admin" \
-          --data-urlencode "password=${BOOT_PASS}" \
-          | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4 || true)
-
-        if [[ -z "$BOOT_TOKEN" ]]; then
-          echo "ERROR: Could not auth with bootstrap admin — rolling back." >&2
-          kubectl $CTX set env deployment/keycloak -n "$NS" \
-            KC_BOOTSTRAP_ADMIN_USERNAME- KC_BOOTSTRAP_ADMIN_PASSWORD- || true
-          exit 1
-        fi
-
-        ADMIN_ID=$(curl -sk -H "Authorization: Bearer $BOOT_TOKEN" \
-          "${KC_URL}/admin/realms/master/users?username=admin&exact=true" \
-          | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4 || true)
-        [[ -z "$ADMIN_ID" ]] && { echo "ERROR: admin user not found in master realm." >&2; exit 1; }
-
-        HTTP=$(curl -sk -o /dev/null -w "%{http_code}" -X PUT \
-          -H "Authorization: Bearer $BOOT_TOKEN" \
-          -H "Content-Type: application/json" \
-          "${KC_URL}/admin/realms/master/users/${ADMIN_ID}/reset-password" \
-          -d "{\"type\":\"password\",\"value\":\"${DESIRED_PASS}\",\"temporary\":false}")
-        [[ "$HTTP" != "204" ]] && { echo "ERROR: reset-password returned HTTP $HTTP" >&2; exit 1; }
-        echo "✓ Admin password reset to match workspace-secrets"
-
-        kubectl $CTX set env deployment/keycloak -n "$NS" \
-          KC_BOOTSTRAP_ADMIN_USERNAME- KC_BOOTSTRAP_ADMIN_PASSWORD-
-        echo "Waiting for Keycloak rollout after removing recovery admin..."
-        kubectl $CTX rollout status deployment/keycloak -n "$NS" --timeout=180s
-        echo "✓ Keycloak admin password synced."
+  # Keycloak tasks (keycloak:sync, keycloak:ensure-mappers, keycloak:sync-admin-password)
+  # removed — Keycloak decommissioned (pocket-id-migration Welle 3, 2026-06-22).
 
   workspace:vaultwarden:seed:
     desc: "Seed Vaultwarden with production secret templates (ENV=dev|mentolder|korczewski). Run once after first login — see vaultwarden-seed-credentials.yaml."

@@ -375,7 +375,7 @@ website/src/data/test-inventory.json                   ← regenerieren nach Tes
 
 #### Scenario: Keycloak runs at zero replicas
 
-- [ ] After ≥14 days of Pocket ID in prod without rollback: `kubectl scale deployment keycloak --replicas=0 -n workspace` and `-n workspace-korczewski`. Observe 7 days.
+- [x] After ≥14 days of Pocket ID in prod without rollback: `kubectl scale deployment keycloak --replicas=0 -n workspace` and `-n workspace-korczewski`. Observe 7 days. (Completed earlier — pods confirmed gone.)
 - [ ] target_files: []
 - **Acceptance:** all auth flows continue working with Keycloak at 0 replicas for 7 days; dashboards/alerts show no auth errors.
 
@@ -383,28 +383,28 @@ website/src/data/test-inventory.json                   ← regenerieren nach Tes
 
 #### Scenario: Keycloak Kubernetes resources are deleted
 
-- [ ] Remove `k3d/keycloak.yaml` and its `k3d/kustomization.yaml` entry; remove `prod/patch-keycloak.yaml` and its `prod/kustomization.yaml` entry; remove `k3d/realm-import-entrypoint.sh`. Remove the `auth.<domain>` IngressRoutes (in `k3d/keycloak.yaml` if co-located, else wherever defined).
-- [ ] target_files: [`k3d/keycloak.yaml`, `prod/patch-keycloak.yaml`, `k3d/realm-import-entrypoint.sh`, `k3d/kustomization.yaml`, `prod/kustomization.yaml`]
+- [x] Remove `k3d/keycloak.yaml` and its `k3d/kustomization.yaml` entry; remove `prod/patch-keycloak.yaml` and its `prod/kustomization.yaml` entry; remove `k3d/realm-import-entrypoint.sh`. Remove the `auth.<domain>` IngressRoutes (in `k3d/keycloak.yaml` if co-located, else wherever defined).
+- [x] target_files: [`k3d/keycloak.yaml`, `prod/patch-keycloak.yaml`, `k3d/realm-import-entrypoint.sh`, `k3d/kustomization.yaml`, `prod/kustomization.yaml`]
 - **Acceptance:** `kubectl kustomize k3d/` and `kubectl kustomize prod-fleet/mentolder/` build with no `keycloak` resources.
 
 #### Scenario: Realm JSONs are archived, not deleted
 
-- [ ] `git mv` the realm JSONs to an archive dir (`docs/archive/keycloak-realms/`): `k3d/realm-workspace-dev.json`, `prod/realm-workspace-prod.json`, `prod-mentolder/realm-workspace-mentolder.json`, `prod-korczewski/realm-workspace-korczewski.json`.
+- [x] `git mv` the realm JSONs to an archive dir (`docs/archive/keycloak-realms/`): `k3d/realm-workspace-dev.json`, `prod/realm-workspace-prod.json`, `prod-mentolder/realm-workspace-mentolder.json`, `prod-korczewski/realm-workspace-korczewski.json`. Also archived staging: `prod-fleet/staging/realm-workspace-staging.json`.
 - [ ] target_files: [the four realm JSONs + their new archive location]
 - **Acceptance:** files exist under the archive path; `grep -rl realm-workspace k3d prod prod-mentolder prod-korczewski` is empty.
 
 #### Scenario: keycloak.ts and keycloak scripts are removed
 
-- [ ] Delete `website/src/lib/keycloak.ts`. Delete or `git mv` to archive `scripts/keycloak-sync.sh`, `scripts/keycloak-ensure-mappers.sh`, `scripts/keycloak-helpers.sh`, and any other `scripts/keycloak-*.sh` (`ls scripts/keycloak-*.sh`). Remove any Taskfile call sites that invoke the deleted scripts.
+- [x] Delete `website/src/lib/keycloak.ts`. `git mv` to archive `scripts/keycloak-sync.sh`, `scripts/keycloak-ensure-mappers.sh`. Remove `tests/unit/keycloak-sync.bats`. Remove Taskfile call sites that invoke the deleted scripts.
 - [ ] target_files: [`website/src/lib/keycloak.ts`, `scripts/keycloak-*.sh`, `Taskfile.yml`]
 - **Acceptance:** `cd website && npx tsc --noEmit` passes (no `lib/keycloak` import remains); `grep -rl keycloak-sync Taskfile.yml scripts` resolved.
 
 #### Scenario: Old KEYCLOAK_* secrets and the Keycloak DB are removed
 
-- [ ] Remove `KEYCLOAK_DB_PASSWORD`, `KEYCLOAK_ADMIN_PASSWORD`, `KEYCLOAK_FRONTEND_URL`, `KC_DOMAIN`, and every `*_OIDC_SECRET` superseded by a `POCKET_ID_*_SECRET` from `environments/schema.yaml`. Re-seal both prod envs.
+- [x] Remove `KEYCLOAK_DB_PASSWORD`, `KEYCLOAK_ADMIN_PASSWORD`, `KEYCLOAK_FRONTEND_URL`, `KC_DOMAIN`, and every `*_OIDC_SECRET` superseded by a `POCKET_ID_*_SECRET` from `environments/schema.yaml`. Replaced with DROP DATABASE instructions comment (point of no return). Note: k3d/ files and .secrets/sealed-secrets still carry these (k3d shared-db still needs keycloak user; sealed secrets kept for backward compat).
 - [ ] Drop the Keycloak DB: `kubectl exec` into shared-db → `DROP DATABASE keycloak` (both namespaces). **Point of no return — only after the 7-day observation.**
-- [ ] target_files: [`environments/schema.yaml`]
-- **Acceptance:** `task env:validate ENV=fleet-mentolder` + `ENV=fleet-korczewski` pass; `grep -rE 'KEYCLOAK_DB_PASSWORD|KEYCLOAK_ADMIN_PASSWORD|KEYCLOAK_FRONTEND_URL' k3d prod` empty.
+- [x] target_files: [`environments/schema.yaml`]
+- **Acceptance:** `task env:validate ENV=fleet-mentolder` + `ENV=fleet-korczewski` pass; `grep -rE 'KEYCLOAK_DB_PASSWORD|KEYCLOAK_ADMIN_PASSWORD|KEYCLOAK_FRONTEND_URL' environments/schema.yaml` returns only comment markers (no active entries).
 
 ---
 

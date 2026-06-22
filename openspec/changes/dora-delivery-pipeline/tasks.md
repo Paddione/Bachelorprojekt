@@ -213,7 +213,7 @@ git commit -m "feat(factory): deploy-transition resolves to done on merge (decou
 
 > Achtung FA-SF-20: NICHT entfernen — `feature:`, `ENV=mentolder`/`ENV=korczewski`, `ticket.sh touch` (≥6), die sechs `phase('…')`-Meta-Einträge, `ToolSearch select:PushNotification` (≥2), `consumeInjections` (≥7). Nur die Status-Schreibstellen ändern.
 
-- [ ] **Step 1: `qa_review`-Schreibstelle (Schritt 5) durch done/shipped ersetzen**
+- [x] **Step 1: `qa_review`-Schreibstelle (Schritt 5) durch done/shipped ersetzen**
 
 Finde im Deploy-Prompt-Template (um Zeile 647):
 
@@ -234,7 +234,7 @@ Ersetze die `qa_review`-Zeile (und ergänze PR-Link + Gate-Event) durch:
 
 (Der `add-pr-link` setzt einen `kind='pr'`-Link, den `getShipped()` und die DORA-Query lesen; `update-status --resolution shipped` ist bereits unterstützt — siehe `scripts/vda/ticket/update-status.sh`. Der `verify`-Gate-Event ist fire-and-forget.)
 
-- [ ] **Step 2: CI-rot-Pfad (Schritt b/d) um Gate-Fail-Event ergänzen (optional, additiv)**
+- [x] **Step 2: CI-rot-Pfad (Schritt b/d) um Gate-Fail-Event ergänzen (optional, additiv)**
 
 Im Self-Healing-Loop, im Block, der bei erschöpften Retries blockt (Zeile ~645), ergänze nach `update-status … --status blocked` einen Gate-Event:
 
@@ -242,7 +242,7 @@ Im Self-Healing-Loop, im Block, der bei erschöpften Retries blockt (Zeile ~645)
       If RC -ge 2 or a gate failed: bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status blocked; bash ${REPO}/scripts/ticket.sh phase ${A.ticket_id} verify blocked --driver factory --detail "gate=ci result=fail" || true; add-comment "CI red after retries"; return.
 ```
 
-- [ ] **Step 3: `awaiting_deploy`-Schreibstelle (Zeile ~698-700) entfernen**
+- [x] **Step 3: `awaiting_deploy`-Schreibstelle (Zeile ~698-700) entfernen**
 
 Ersetze:
 
@@ -262,7 +262,7 @@ const { status: deployStatus, reason: deployReason } = decideDeployTransition({ 
 phaseEvent('deploy', deployStatus === 'blocked' ? 'blocked' : 'done', deployStatus === 'blocked' ? 'deploy blocked' : 'PR merged · done/shipped')
 ```
 
-- [ ] **Step 4: node --check + FA-SF-20 + FA-SF-22 pipeline-Tests grün**
+- [x] **Step 4: node --check + FA-SF-20 + FA-SF-22 pipeline-Tests grün**
 
 ```bash
 node --check scripts/factory/pipeline.js
@@ -271,7 +271,7 @@ bats tests/spec/software-factory.bats -f "FA-SF-22: pipeline"
 ```
 Expected: `node --check` Exit 0; ALLE FA-SF-20-Tests weiter PASS (Struktur-Invarianten gewahrt); die drei FA-SF-22-pipeline-Tests (no awaiting_deploy, no qa_review, closes with done/shipped) jetzt PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/factory/pipeline.js

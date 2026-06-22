@@ -9,7 +9,6 @@
 declare -A SERVICE_REGISTRY=(
   [k3d/brett.yaml]="brett"
   [k3d/oauth2-proxy-brett.yaml]="brett"
-  [k3d/keycloak.yaml]="keycloak"
   [k3d/nextcloud.yaml]="nextcloud"
   [k3d/nextcloud-redis.yaml]="nextcloud"
   [k3d/shared-db.yaml]="shared-db"
@@ -67,6 +66,13 @@ declare -A SERVICE_REGISTRY=(
   [k3d/oauth2-proxy-videovault.yaml]="videovault"
   [k3d/videovault-uploads-pvc.yaml]="videovault"
   [k3d/videovault.yaml]="videovault"
+  # Pocket ID migration (#2042/#2057) + new services — classified to match app: labels
+  [k3d/pocket-id.yaml]="pocket-id"
+  [k3d/pocket-id-client-seed.yaml]="pocket-id"
+  [k3d/studio.yaml]="studio-server"
+  [k3d/oauth2-proxy-studio.yaml]="studio-server"
+  [k3d/mentolder-web.yaml]="mentolder-web"
+  [k3d/ntfy.yaml]="ntfy"
 )
 
 # Infra: namespace/network/secrets/controller — ALWAYS full-deploy, never partial.

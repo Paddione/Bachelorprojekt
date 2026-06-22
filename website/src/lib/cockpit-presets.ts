@@ -23,14 +23,14 @@ export const DEFAULT_PRESETS: Preset[] = [
   {
     id: 'default-planning',
     name: 'Planning',
-    state: { status: ['planning'], area: [], brand: [] },
+    state: { status: ['planning', 'plan_staged'], area: [], brand: [] },
     isDefault: true,
     createdAt: 0,
   },
   {
     id: 'default-deploy',
     name: 'Deploy',
-    state: { status: ['deploy'], area: [], brand: [] },
+    state: { status: ['awaiting_deploy'], area: [], brand: [] },
     isDefault: true,
     createdAt: 0,
   },

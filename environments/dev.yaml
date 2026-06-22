@@ -27,6 +27,7 @@ env_vars:
   VIDEOVAULT_DOMAIN: videovault.localhost
   POCKET_ID_FRONTEND_URL: "http://id.localhost"
   POCKET_ID_URL: "http://pocket-id:1411"
+  NEXTCLOUD_DB_HOST: nextcloud-db.workspace.svc.cluster.local
 
 # Dev secrets: generated from schema defaults at deploy time.
 secrets_mode: plaintext

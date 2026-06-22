@@ -345,7 +345,7 @@ spec:
             # lists rooms the configured admin is a participant of, which misses
             # most ongoing calls). Read-only query against oc_talk_rooms.
             - name: NEXTCLOUD_DB_HOST
-              value: "nextcloud-db.${WORKSPACE_NAMESPACE}.svc.cluster.local"
+              value: "${NEXTCLOUD_DB_HOST}"
             - name: NEXTCLOUD_DB_PASSWORD
               valueFrom:
                 secretKeyRef:

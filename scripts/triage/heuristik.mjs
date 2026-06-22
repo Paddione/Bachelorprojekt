@@ -29,12 +29,16 @@ function loadFewShot() {
   }
 }
 
+function wordBoundaryRegex(keyword) {
+  return new RegExp(`\\b${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+}
+
 function scoreText(text) {
-  const lc = (text || '').toLowerCase();
+  const t = text || '';
   return {
-    criticalHits: CRITICAL_KEYWORDS.filter(k => lc.includes(k)).length,
-    highHits:     HIGH_KEYWORDS.filter(k => lc.includes(k)).length,
-    mediumHits:   MEDIUM_KEYWORDS.filter(k => lc.includes(k)).length,
+    criticalHits: CRITICAL_KEYWORDS.filter(k => wordBoundaryRegex(k).test(t)).length,
+    highHits:     HIGH_KEYWORDS.filter(k => wordBoundaryRegex(k).test(t)).length,
+    mediumHits:   MEDIUM_KEYWORDS.filter(k => wordBoundaryRegex(k).test(t)).length,
   };
 }
 

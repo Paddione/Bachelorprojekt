@@ -38,6 +38,8 @@ env_vars:
   TURN_PUBLIC_IP: "204.168.244.104"
   TURN_NODE: "pk-hetzner-4"
   NEXTCLOUD_EXTERNAL_URL: "https://files.staging.korczewski.de"
+  NEXTCLOUD_DB_HOST: nextcloud-db.workspace.svc.cluster.local
+  POCKET_ID_FRONTEND_URL: "https://auth.staging.korczewski.de"
   DOCS_URL: "https://docs.staging.korczewski.de"
   AUTH_EXTERNAL_URL: "https://auth.staging.korczewski.de"
   VAULT_EXTERNAL_URL: "https://vault.staging.korczewski.de"

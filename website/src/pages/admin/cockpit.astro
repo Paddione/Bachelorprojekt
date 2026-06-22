@@ -5,7 +5,6 @@ import '../../styles/mobile-cockpit.css';
 import AdminPageHeader from '../../components/admin/ui/AdminPageHeader.svelte';
 import { getSession, isAdmin } from '../../lib/auth';
 import { getPortfolio } from '../../lib/tickets/cockpit-db';
-import { parsePresetFromUrl, decodeState } from '../../lib/cockpit-presets';
 
 const BRAND = (): string => process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 

@@ -10,7 +10,7 @@ Delegates to sub-agents when signals match. Tie-break: prefer domain of files be
 
 | Signals | Agent |
 |---------|-------|
-| `website/`, Astro, Svelte, component, homepage, kore, mentolder brand, CSS, UI, frontend, design | `bachelorprojekt-website` |
+| `website/`, Astro, Svelte, component, homepage, korczewski, mentolder brand, CSS, UI, frontend, design | `bachelorprojekt-website` |
 | pod, logs, status, restart, crash, health, kubectl, "what's wrong", "why is X failing", "is X running", `llm:`, GPU, Ollama, model, LiveKit | `bachelorprojekt-ops` |
 | `k3d/`, `prod*/`, manifest, kustomize, overlay, Taskfile, `ENV=`, `environments/`, deploy, `workspace:setup` | `bachelorprojekt-infra` |
 | test, `FA-*`, `SA-*`, `NFA-*`, `AK-*`, `FA-SF`, BATS, Playwright, `runner.sh`, "test failing", "test case", "write a test", `factory:`, autopilot | `bachelorprojekt-test` |
@@ -27,6 +27,9 @@ bash scripts/vda.sh oracle '<goal in plain English>'
 
 # Dev cluster (k3d, default ENV=dev)
 task cluster:create && task workspace:deploy && task workspace:office:deploy && task workspace:post-setup
+
+# Full prod-style deploy (umbrella — includes preflight + talk/recording/transcriber)
+task workspace:setup ENV=dev   # or ENV=mentolder / ENV=korczewski
 
 # Pre-commit gate
 task test:changed   # smart selection: only tests relevant to changed files. Also gated by `.githooks/pre-commit`
@@ -60,7 +63,7 @@ task feature:deploy  # fan-out to both brands
 - **Centralized domains**: `k3d/configmap-domains.yaml` — never hardcode hostnames.
 - **Secrets flow**: plaintext `environments/.secrets/<env>.yaml` → `task env:seal ENV=<env>` → committed SealedSecret.
 - Cross-cutting DB/OIDC changes apply to **both** namespaces.
-- **Website uses `pnpm`**; root, brett, arena-server use `npm`. The website has its own Postgres dependency (via `DATABASE_URL`).
+- **Website uses `pnpm`**; root, brett, arena-server use `npm` for install/CI. The website has its own Postgres dependency (via `DATABASE_URL`). Note: `brett/` and `arena-server/` also ship a `pnpm-lock.yaml` + `pnpm-workspace.yaml`; these are **not** used at runtime but are read by Renovate's pnpm manager for dependency update checks.
 
 ## Package Managers & Lockfiles
 
@@ -68,8 +71,8 @@ task feature:deploy  # fan-out to both brands
 |------|---------|----------|
 | Root (scripts, docs-gen) | `npm` | `package-lock.json` |
 | `website/` | `pnpm` | `website/pnpm-lock.yaml` |
-| `brett/` | `npm` | `brett/package-lock.json` |
-| `arena-server/` | `npm` | `arena-server/package-lock.json` |
+| `brett/` | `npm` | `brett/package-lock.json` (+ `pnpm-lock.yaml` + `pnpm-workspace.yaml` for Renovate) |
+| `arena-server/` | `npm` | `arena-server/package-lock.json` (+ `pnpm-lock.yaml` + `pnpm-workspace.yaml` for Renovate) |
 
 ## Quality Gates
 
@@ -137,7 +140,7 @@ category: devflow                  # optional — existing field
 ```
 
 - **Skill HAS `agent:`** → orchestrator MUST dispatch as a subagent. Load `.claude/agents/<agent>.md`, splice its body as the system prompt, append the skill body + the user's request, and spawn `task` with `subagent_type: "general"`. The subagent owns the work in an isolated context window.
-- **Skill has NO `agent:`** → workflow/orchestrator skill. Load inline in the main session (current behavior). These are coordination skills (`dev-flow-plan`, `dev-flow-execute`, `dev-flow-chore`, `dev-flow-batch`, `dev-flow-e2e`-meta, `migrate-foreign-code`, `operations-management`, `ticket-ops`, `update-dependencies`, `knowledge-management`, `using-git-worktrees`) that need to span multiple agents or hold persistent state across handoffs. `feature-intake` ist seit 2026-06-21 ein opencode-Command (`/feature-intake`), nicht mehr ein Skill.
+- **Skill has NO `agent:`** → workflow/orchestrator skill. Load inline in the main session (current behavior). These are coordination skills (`dev-flow-plan`, `dev-flow-execute`, `dev-flow-chore`, `operations-management`, `ticket-ops`, `update-dependencies`, `lavish`, `mishap-tracker`, `using-git-worktrees`) that need to span multiple agents or hold persistent state across handoffs. `feature-intake` ist seit 2026-06-21 ein opencode-Command (`/feature-intake`), nicht mehr ein Skill.
 
 ### Dispatch recipe
 
@@ -155,18 +158,13 @@ The subagent returns its result; the orchestrator relays it back. The subagent s
 
 ### Current skill → agent map
 
+Only skills with an explicit `agent:` field in their SKILL.md frontmatter are dispatched as subagents. The rest are coordination skills loaded inline. As of 2026-06-22, exactly three skills declare an `agent:` field:
+
 | Skill | Agent | Why subagent |
 |-------|-------|--------------|
-| `cluster-deployment` | `bachelorprojekt-infra` | `fleet`-only context, k3d base, overlay cake |
-| `database-ops` | `bachelorprojekt-db` | PostgreSQL `shared-db` topology, password-drift warning |
 | `dev-flow-e2e` | `bachelorprojekt-test` | FA-/SA-/NFA- test IDs, runner.sh, permanently-skipped set |
-| `host-node-networking` | `bachelorprojekt-infra` | Hetzner/WireGuard/provisioning tooling |
 | `incident-response` | `bachelorprojekt-ops` | Diagnose-first, fail-loud output-trust rules |
-| `keycloak-realm-sync` | `bachelorprojekt-security` | SealedSecret + realm JSON per-namespace rules |
-| `llm-ops` | `bachelorprojekt-ops` | GPU/Ollama/TEI/LiteLLM ops on fleet |
-| `secret-rotation` | `bachelorprojekt-security` | Sealing order, `env-resolve.sh` source-not-execute |
-| `workspace-deploy` | `bachelorprojekt-infra` | Full workspace:setup umbrella + post-setup |
-| _inline (no agent)_ | _main session_ | `dev-flow-plan`, `dev-flow-execute`, `dev-flow-chore`, `dev-flow-e2e`-meta, `mishap-tracker`, `operations-management`, `ticket-ops`, `update-dependencies`, `using-git-worktrees` |
+| `infra-ops` | `bachelorprojekt-infra` | `fleet`-only context, k3d base, overlay cake — consolidates the archived `cluster-deployment`, `database-ops`, `host-node-networking`, `keycloak-realm-sync`, `llm-ops`, `secret-rotation`, `workspace-deploy` skills (see `infra-ops` for the umbrella runbook) |
 
 When a new skill is added: pick an agent from the routing table, add `agent: bachelorprojekt-<role>` to frontmatter, and add a row to this table. (Optional follow-up: add a `task skills:validate` that asserts every `agent:` value resolves to an existing `.claude/agents/<name>.md` and that every agent has at least one skill referring to it — currently no such gate exists.)
 

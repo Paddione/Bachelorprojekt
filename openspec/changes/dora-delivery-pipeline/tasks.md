@@ -606,12 +606,12 @@ git commit -m "refactor(floor): delegate lane mapping to factory-floor-lanes + a
 
 > S1 sehr knapp (~8 Zeilen). Nur den bestehenden Render-Zweig der AwaitingDeploy-Lane mit `{#if floor.awaitingDeployVisible}` umschließen (netto +1 `{#if}` / +1 `{/if}` ≈ 0 effektiv, da die Lane-Zeilen bestehen bleiben). KEIN neuer Markup-Block, KEINE Verdichtung anderswo.
 
-- [ ] **Step 1: Render-Zweig der AwaitingDeploy-Lane finden**
+- [x] **Step 1: Render-Zweig der AwaitingDeploy-Lane finden**
 
 Run: `grep -n "AwaitingDeployLane\|awaitingDeploy" website/src/components/FactoryFloor.svelte`
 Expected: die Stelle, an der `<AwaitingDeployLane … />` mit `floor.awaitingDeploy` gerendert wird.
 
-- [ ] **Step 2: Konditionale Sichtbarkeit umsetzen**
+- [x] **Step 2: Konditionale Sichtbarkeit umsetzen**
 
 Umschließe den vorhandenen `<AwaitingDeployLane … />`-Aufruf (Markup unverändert lassen) mit dem neuen Flag. Beispiel (an die echte Struktur anpassen):
 
@@ -623,7 +623,7 @@ Umschließe den vorhandenen `<AwaitingDeployLane … />`-Aufruf (Markup unverän
 
 (Falls die Lane heute bedingungslos gerendert wird, ersetze ein evtl. vorhandenes `{#if floor.awaitingDeploy.length}` durch `{#if floor.awaitingDeployVisible}` — netto 0 Zeilen.)
 
-- [ ] **Step 3: Budget-Check + Typecheck/Build-Gate**
+- [x] **Step 3: Budget-Check + Typecheck/Build-Gate**
 
 ```bash
 wc -l website/src/components/FactoryFloor.svelte
@@ -631,7 +631,7 @@ cd website && npx svelte-check --tsconfig ./tsconfig.json --threshold error 2>&1
 ```
 Expected: `wc -l` ≤ 500 (Budget gehalten); keine neuen Typfehler. Wenn ≥ 500: NICHT verdichten — den AwaitingDeploy-Render-Block in eine kleine Unterkomponente auslagern (eigener Commit) und dort kapseln.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add website/src/components/FactoryFloor.svelte

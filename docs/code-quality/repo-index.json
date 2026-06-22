@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 490,
+      "file_count": 491,
       "files": [
         "tests/.gitignore",
         "tests/batch/batch-gap-analysis.bats",
@@ -359,6 +359,7 @@
         "tests/spec/software-factory.bats",
         "tests/spec/test_helper.bash",
         "tests/spec/ticket-mcp.bats",
+        "tests/spec/ts-suppression.bats",
         "tests/sql/software-history.sql",
         "tests/unit/.coverage-allowlist",
         "tests/unit/T000617-alert-rules.bats",

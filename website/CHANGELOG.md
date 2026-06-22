@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.125.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.125.0...website-v1.125.1) (2026-06-22)
+
+
+### Bug Fixes
+
+* **security:** remove --ssl-insecure-skip-verify from oauth2-proxy prod patches ([#2062](https://github.com/Paddione/Bachelorprojekt/issues/2062)) ([0960a94](https://github.com/Paddione/Bachelorprojekt/commit/0960a94c8be2175470bf7060b33d26480bf21e21))
+
 ## [1.125.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.124.0...website-v1.125.0) (2026-06-21)
 
 

@@ -186,7 +186,7 @@ export async function exchangeCode(code: string): Promise<{ sessionId: string; u
 }
 
 const ADMIN_USERNAMES = new Set(
-  (process.env.PORTAL_ADMIN_USERNAME || 'admin').split(',').map(s => s.trim()).filter(Boolean)
+  (process.env.PORTAL_ADMIN_USERNAME || 'admin').split(',').map(s => s.trim().toLowerCase()).filter(Boolean)
 );
 
 export function isAdmin(session: UserSession): boolean {
@@ -194,7 +194,7 @@ export function isAdmin(session: UserSession): boolean {
   // PORTAL_ADMIN_USERNAME list is kept as a fallback for non-OIDC paths
   // (e.g. magic-link-redeem where isAdmin is missing).
   if (session.realmRoles.includes('admin')) return true;
-  return ADMIN_USERNAMES.has(session.preferred_username);
+  return ADMIN_USERNAMES.has(session.preferred_username.toLowerCase());
 }
 
 export async function getSession(cookieHeader: string | null): Promise<UserSession | null> {

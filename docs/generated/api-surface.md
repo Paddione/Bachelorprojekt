@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-06-21T14:54:52.725Z
+> Generated at 2026-06-22T07:14:56.523Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -207,6 +207,7 @@
 | `/api/admin/ops/redeploy/docs` | POST | 🔐 admin | `website/src/pages/api/admin/ops/redeploy/docs.ts` |
 | `/api/admin/ops/redeploy/website` | POST | 🔐 admin | `website/src/pages/api/admin/ops/redeploy/website.ts` |
 | `/api/admin/ops/restore` | POST | 🔐 admin | `website/src/pages/api/admin/ops/restore.ts` |
+| `/api/admin/ops/server-logs/stream` | GET | 🔐 admin | `website/src/pages/api/admin/ops/server-logs/stream.ts` |
 | `/api/admin/ops/users/create` | POST | 🔐 admin | `website/src/pages/api/admin/ops/users/create.ts` |
 | `/api/admin/ops/users/groups` | GET | 🔐 admin | `website/src/pages/api/admin/ops/users/groups.ts` |
 | `/api/admin/ops/users/list` | GET | 🔐 admin | `website/src/pages/api/admin/ops/users/list.ts` |

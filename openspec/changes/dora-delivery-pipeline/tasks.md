@@ -861,7 +861,7 @@ git commit -m "feat(dora): pure 4-metric DORA computation (DF, lead time, CFR, M
 
 > Query vereint **alle** geschlossenen Tickets (`status='done'`, JEDER Driver) — nicht nur devflow (G3). Merges = Feature-/Task-Tickets `done` mit verknüpftem gemergten PR. Bug-Rows separat (`type='bug'`, `done`). `reverted` aus `pr_events.status='reverted'`. `driver` aus dem jüngsten `factory_phase_events.driver` (oder NULL). Auth-Muster verbatim aus `delivery-metrics.ts:54-61`.
 
-- [ ] **Step 1: Den fehlschlagenden Test schreiben**
+- [x] **Step 1: Den fehlschlagenden Test schreiben**
 
 Create `website/src/pages/api/admin/dora-metrics.test.ts`:
 
@@ -919,12 +919,12 @@ describe('GET /api/admin/dora-metrics', () => {
 });
 ```
 
-- [ ] **Step 2: Test laufen lassen, Fehlschlag bestätigen**
+- [x] **Step 2: Test laufen lassen, Fehlschlag bestätigen**
 
 Run: `cd website && npx vitest run src/pages/api/admin/dora-metrics.test.ts`
 Expected: FAIL — `Cannot find module './dora-metrics'`.
 
-- [ ] **Step 3: API-Route schreiben**
+- [x] **Step 3: API-Route schreiben**
 
 Create `website/src/pages/api/admin/dora-metrics.ts`:
 
@@ -1020,17 +1020,17 @@ export const GET: APIRoute = async ({ request, locals }) => {
 
 > Hinweis zur Bug-MTTR-Quelle: Der schließende PR eines Bugs wird über den `ticket_links kind='fixes'`-Self-Link (`pr_number`) → `pr_events.merged_at` gefunden. Das ist die **PR-Anheftung** des Bug-Tickets selbst (nicht „behebt-Bug"-Semantik) — exakt wie in den Global Constraints / §5 verlangt.
 
-- [ ] **Step 4: Test laufen lassen, grün bestätigen**
+- [x] **Step 4: Test laufen lassen, grün bestätigen**
 
 Run: `cd website && npx vitest run src/pages/api/admin/dora-metrics.test.ts`
 Expected: alle 3 Tests PASS.
 
-- [ ] **Step 5: Budget-Check**
+- [x] **Step 5: Budget-Check**
 
 Run: `wc -l website/src/pages/api/admin/dora-metrics.ts`
 Expected: < 600 (≈ 105).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add website/src/pages/api/admin/dora-metrics.ts website/src/pages/api/admin/dora-metrics.test.ts

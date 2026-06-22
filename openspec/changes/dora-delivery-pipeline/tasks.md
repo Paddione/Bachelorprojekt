@@ -1244,12 +1244,12 @@ git commit -m "feat(dora): DoraDashboard.svelte — 4 metric cards + driver brea
 
 > Auth-/Layout-Muster aus einer bestehenden `/admin/*.astro` mit `AdminLayout` kopieren (z. B. `website/src/pages/admin/architektur.astro` als Vorlage öffnen). S3: keine Brand-Domains.
 
-- [ ] **Step 1: Vorlage-Seite ansehen**
+- [x] **Step 1: Vorlage-Seite ansehen**
 
 Run: `sed -n '1,30p' website/src/pages/admin/architektur.astro`
 Expected: das `getSession`/`isAdmin`-Redirect-Frontmatter + `<AdminLayout>`-Wrapper + `client:load`-Komponenten-Einbindung. Dieses Muster verbatim übernehmen.
 
-- [ ] **Step 2: dora.astro schreiben**
+- [x] **Step 2: dora.astro schreiben**
 
 Create `website/src/pages/admin/dora.astro` (Auth-Frontmatter exakt an die Vorlage anpassen — die folgende Struktur spiegelt das übliche Muster):
 
@@ -1280,7 +1280,7 @@ if (!session || !isAdmin(session)) {
 
 > Passe `import`-Tiefen, das `AdminLayout`-Prop-Set (`title`/`active`/o. Ä.) und das Redirect-Ziel exakt an die Vorlage `architektur.astro` an — nicht raten, kopieren.
 
-- [ ] **Step 3: Nav-Eintrag in AdminLayout (Infrastruktur-Gruppe)**
+- [x] **Step 3: Nav-Eintrag in AdminLayout (Infrastruktur-Gruppe)**
 
 In `website/src/layouts/AdminLayout.astro`, in der `Infrastruktur`-Gruppe (um Zeile 105-112), füge nach dem `Dev Status`-Eintrag (Zeile ~106) hinzu:
 
@@ -1290,7 +1290,7 @@ In `website/src/layouts/AdminLayout.astro`, in der `Infrastruktur`-Gruppe (um Ze
 
 (Alternativ in die `matches`-Liste des bestehenden `Dev Status`-Eintrags `/admin/dora` aufnehmen, falls eine eigene Nav-Zeile das ~43-Budget gefährdet — dann ist es netto 0 Zeilen und trotzdem S4-erreichbar.)
 
-- [ ] **Step 4: Budget-Check + Build-Gate**
+- [x] **Step 4: Budget-Check + Build-Gate**
 
 ```bash
 wc -l website/src/layouts/AdminLayout.astro
@@ -1298,7 +1298,7 @@ cd website && npx svelte-check --tsconfig ./tsconfig.json --threshold error 2>&1
 ```
 Expected: `AdminLayout.astro` ≤ 400 (Budget gehalten); keine neuen Typfehler. Falls `svelte-check` nicht verfügbar: `cd website && npm run build` und auf erfolgreiche Kompilierung prüfen.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add website/src/pages/admin/dora.astro website/src/layouts/AdminLayout.astro

@@ -16,11 +16,10 @@ setup() {
   [ "$status" -eq 0 ]
 }
 
-@test "fleet:deploy:brand runs mcp:deploy and post-setup but NOT talk-setup" {
+@test "fleet:deploy:brand runs workspace:deploy and post-setup but NOT talk-setup" {
   # Extract the fleet:deploy:brand block (until the next top-level task at same indent)
   block="$(awk '/^  fleet:deploy:brand:/{f=1} f&&/^  [a-z].*:$/&&!/fleet:deploy:brand:/{if(seen)exit} f{print; seen=1}' "$TASKFILE")"
   echo "$block" | grep -q 'workspace:deploy'
-  echo "$block" | grep -q 'mcp:deploy'
   echo "$block" | grep -q 'workspace:post-setup'
   ! echo "$block" | grep -q 'talk-setup'
 }

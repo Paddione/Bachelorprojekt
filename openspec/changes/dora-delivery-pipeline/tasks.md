@@ -660,7 +660,7 @@ git commit -m "feat(floor): hide empty awaiting_deploy lane (merge=done) [T00109
 
 > Definitionen (Global Constraints): DF = Merges nach main; Lead Time = `mergedAt − createdAt` Median+Mean; CFR = `(reverts + bugs)/merges` als Proxy; MTTR = Median(`mergedAt − createdAt`) nur für `type='bug'`-Rows, „null"/n/a wenn keine. `driverBreakdown` zählt distinct Merges je Driver. Mixed-Driver-Ticket wird einmal gezählt (Aufrufer liefert distinct ticketId-Rows).
 
-- [ ] **Step 1: Den fehlschlagenden Test schreiben**
+- [x] **Step 1: Den fehlschlagenden Test schreiben**
 
 Create `website/src/lib/dora-metrics.test.ts`:
 
@@ -749,12 +749,12 @@ describe('computeDora', () => {
 });
 ```
 
-- [ ] **Step 2: Test laufen lassen, Fehlschlag bestätigen**
+- [x] **Step 2: Test laufen lassen, Fehlschlag bestätigen**
 
 Run: `cd website && npx vitest run src/lib/dora-metrics.test.ts`
 Expected: FAIL — `Cannot find module './dora-metrics'`.
 
-- [ ] **Step 3: Modul schreiben**
+- [x] **Step 3: Modul schreiben**
 
 Create `website/src/lib/dora-metrics.ts`:
 
@@ -830,17 +830,17 @@ export function computeDora(
 }
 ```
 
-- [ ] **Step 4: Test laufen lassen, grün bestätigen**
+- [x] **Step 4: Test laufen lassen, grün bestätigen**
 
 Run: `cd website && npx vitest run src/lib/dora-metrics.test.ts`
 Expected: alle Tests PASS.
 
-- [ ] **Step 5: Budget-Check**
+- [x] **Step 5: Budget-Check**
 
 Run: `wc -l website/src/lib/dora-metrics.ts`
 Expected: < 600 (≈ 75).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add website/src/lib/dora-metrics.ts website/src/lib/dora-metrics.test.ts

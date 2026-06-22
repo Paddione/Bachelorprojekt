@@ -92,7 +92,7 @@ Jeder Task erbt diesen Abschnitt implizit. Werte stammen aus der Design-Spec §S
 
 > TDD: Diese Tests MÜSSEN jetzt FEHLSCHLAGEN (der heutige Code setzt `awaiting_deploy`/`qa_review`). Sie sind grep-/`node -e`-Assertions auf die Skript-/SKILL-Logik (offline, kein Cluster), passend zum bestehenden FA-SF-20-Stil.
 
-- [ ] **Step 1: Die fehlschlagenden Tests schreiben**
+- [x] **Step 1: Die fehlschlagenden Tests schreiben**
 
 Füge in `tests/spec/software-factory.bats` nach dem letzten FA-SF-20-Test (vor dem `# ── FA-SF-21` Block, ~Zeile 566) ein:
 
@@ -145,12 +145,12 @@ DEPLOY_TRANSITION="scripts/factory/deploy-transition.cjs"
 }
 ```
 
-- [ ] **Step 2: Tests laufen lassen, Fehlschlag bestätigen**
+- [x] **Step 2: Tests laufen lassen, Fehlschlag bestätigen**
 
 Run: `bats tests/spec/software-factory.bats -f "FA-SF-22"`
 Expected: FAIL — `FA-SF-22: decideDeployTransition returns done …` (heute liefert es `awaiting_deploy`), `… no longer writes an awaiting_deploy …` (pipeline.js:700 schreibt es), `… closes with done/shipped` (fehlt), und der SKILL-Test schlägt fehl (SKILL.md:408 setzt `qa_review`). Die `transition.ts`-Retain-Tests dürfen SCHON grün sein (Enum-Werte sind vorhanden) — das ist beabsichtigt (Regressionsschutz gegen destruktives Löschen).
 
-- [ ] **Step 3: Commit (rote Tests)**
+- [x] **Step 3: Commit (rote Tests)**
 
 ```bash
 git add tests/spec/software-factory.bats

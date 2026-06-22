@@ -168,7 +168,7 @@ git commit -m "test(factory): failing FA-SF-22 — merge=done, no awaiting_deplo
 - Consumes: `ctx = { isWebsite: boolean, deployOutput: string }` (unverändert).
 - Produces: `decideDeployTransition(ctx)` gibt bei sauberem Merge `{ status: 'done', reason: 'merged' }` zurück (vorher `{ status: 'awaiting_deploy', reason: 'merged-not-deployed' }`); Block-Signal weiter `{ status: 'blocked', reason: 'deploy-guard' }`. `isWebsite` ist nun irrelevant für den Erfolgspfad (beide → `done`), bleibt aber als Parameter erhalten (Aufrufer in pipeline.js übergibt ihn weiterhin). Konsumiert von pipeline.js:698 (Task 3).
 
-- [ ] **Step 1: Funktion anpassen**
+- [x] **Step 1: Funktion anpassen**
 
 Ersetze in `scripts/factory/deploy-transition.cjs` den Erfolgs-Zweig. Vorher (Ist):
 
@@ -188,12 +188,12 @@ Nachher:
 
 (Der `BLOCK:`/`deploy-guard`-Zweig bleibt unverändert oben in der Funktion.)
 
-- [ ] **Step 2: FA-SF-22 decideDeployTransition-Tests grün**
+- [x] **Step 2: FA-SF-22 decideDeployTransition-Tests grün**
 
 Run: `bats tests/spec/software-factory.bats -f "FA-SF-22: decideDeployTransition"`
 Expected: PASS (beide: `done` bei sauberem Merge, `blocked` bei Guard-Signal).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add scripts/factory/deploy-transition.cjs

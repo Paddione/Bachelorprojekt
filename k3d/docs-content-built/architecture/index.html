@@ -178,7 +178,7 @@
 <body>
   <div class="header">
     <h1>⬡ Architektur — Living Docs</h1>
-    <span class="meta">Generiert: 2026-06-22T04:43:56.182Z</span>
+    <span class="meta">Generiert: 2026-06-22T06:41:15.830Z</span>
   </div>
 
   <div class="stats">
@@ -187,7 +187,7 @@
       <span class="stat-label">Services</span>
     </div>
     <div class="stat">
-      <span class="stat-value">1681</span>
+      <span class="stat-value">1602</span>
       <span class="stat-label">Abhängigkeiten</span>
     </div>
     <div class="stat">
@@ -231,7 +231,6 @@ flowchart LR
   website["website"]:::default
   docs["docs"]:::default
   einvoice_sidecar["einvoice-sidecar"]:::default
-  keycloak["keycloak"]:::auth
   knowledge_ingest_prs["knowledge-ingest-prs"]:::default
   knowledge_ingest_markdown["knowledge-ingest-markdown"]:::default
   knowledge_ingest_bugs["knowledge-ingest-bugs"]:::default
@@ -293,6 +292,7 @@ flowchart LR
   shared_db_dev_lb["shared-db-dev-lb"]:::default
   loki_memberlist["loki-memberlist"]:::default
   loki_headless["loki-headless"]:::default
+  keycloak["keycloak"]:::auth
   tracking["tracking"]:::default
   docuseal["docuseal"]:::default
   livekit["livekit"]:::default
@@ -315,9 +315,6 @@ flowchart LR
   systemtest_purge_all -->|"command"| website
   systemtest_outbox -->|"command"| website
   oauth2_proxy_dev -->|"command"| traefik
-  keycloak -->|"configmap:domain-c…"| brett
-  keycloak -->|"configmap:domain-c…"| livekit
-  keycloak -->|"configmap:domain-c…"| traefik
   knowledge_ingest_prs -->|"PGHOST"| shared_db
   knowledge_ingest_prs -->|"PGDATABASE"| website
   knowledge_ingest_markdown -->|"configmap:knowledg…"| shared_db
@@ -465,8 +462,6 @@ flowchart LR
   scheduled_publish -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| admin_actions_cleanup
-  admin_actions_cleanup -->|"secret:workspace-s…"| keycloak
-  keycloak -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| knowledge_ingest_bugs
@@ -538,8 +533,6 @@ flowchart LR
   scheduled_publish -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| admin_actions_prune
-  admin_actions_prune -->|"secret:workspace-s…"| keycloak
-  keycloak -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| knowledge_ingest_bugs
@@ -609,8 +602,6 @@ flowchart LR
   scheduled_publish -->|"secret:workspace-s…"| sessions_purge
   sessions_purge -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| sessions_purge
-  sessions_purge -->|"secret:workspace-s…"| keycloak
-  keycloak -->|"secret:workspace-s…"| sessions_purge
   sessions_purge -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| sessions_purge
   sessions_purge -->|"secret:workspace-s…"| knowledge_ingest_bugs
@@ -679,7 +670,6 @@ flowchart LR
   scheduled_publish -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| db_backup
-  keycloak -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| knowledge_ingest_bugs
@@ -743,7 +733,6 @@ flowchart LR
   scheduled_publish -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| brett
-  brett -->|"secret:workspace-s…"| keycloak
   brett -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| knowledge_ingest_bugs
@@ -802,8 +791,6 @@ flowchart LR
   scheduled_publish -->|"secret:workspace-s…"| billing_dunning_detection
   billing_dunning_detection -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| billing_dunning_detection
-  billing_dunning_detection -->|"secret:workspace-s…"| keycloak
-  keycloak -->|"secret:workspace-s…"| billing_dunning_detection
   billing_dunning_detection -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| billing_dunning_detection
   billing_dunning_detection -->|"secret:workspace-s…"| knowledge_ingest_bugs
@@ -866,8 +853,6 @@ flowchart LR
   scheduled_publish -->|"secret:workspace-s…"| monthly_billing
   monthly_billing -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| monthly_billing
-  monthly_billing -->|"secret:workspace-s…"| keycloak
-  keycloak -->|"secret:workspace-s…"| monthly_billing
   monthly_billing -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| monthly_billing
   monthly_billing -->|"secret:workspace-s…"| knowledge_ingest_bugs
@@ -928,8 +913,6 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| monthly_billing
   scheduled_publish -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| scheduled_publish
-  scheduled_publish -->|"secret:workspace-s…"| keycloak
-  keycloak -->|"secret:workspace-s…"| scheduled_publish
   scheduled_publish -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| scheduled_publish
   scheduled_publish -->|"secret:workspace-s…"| knowledge_ingest_bugs
@@ -988,8 +971,6 @@ flowchart LR
   arena_server -->|"secret:workspace-s…"| scheduled_publish
   scheduled_publish -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| scheduled_publish
-  oauth2_proxy_dev -->|"secret:workspace-s…"| keycloak
-  keycloak -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| knowledge_ingest_bugs
@@ -1048,61 +1029,6 @@ flowchart LR
   arena_server -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_dev
-  keycloak -->|"secret:workspace-s…"| knowledge_ingest_prs
-  knowledge_ingest_prs -->|"secret:workspace-s…"| keycloak
-  keycloak -->|"secret:workspace-s…"| knowledge_ingest_bugs
-  knowledge_ingest_bugs -->|"secret:workspace-s…"| keycloak
-  keycloak -->|"secret:workspace-s…"| knowledge_reindex_all
-  knowledge_reindex_all -->|"secret:workspace-s…"| keycloak
-  keycloak -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| keycloak
-  keycloak -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| keycloak
-  keycloak -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| keycloak
-  keycloak -->|"secret:workspace-s…"| nextcloud
-  nextcloud -->|"secret:workspace-s…"| keycloak
-  keycloak -->|"secret:workspace-s…"| notify_unread
-  notify_unread -->|"secret:workspace-s…"| keycloak
-  keycloak -->|"secret:workspace-s…"| oauth2_proxy_brett
-  oauth2_proxy_brett -->|"secret:workspace-s…"| keycloak
-  keycloak -->|"secret:workspace-s…"| oauth2_proxy_comfy
-  oauth2_proxy_comfy -->|"secret:workspace-s…"| keycloak
-  keycloak -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| keycloak
-  keycloak -->|"secret:workspace-s…"| oauth2_proxy_mailpit
-  oauth2_proxy_mailpit -->|"secret:workspace-s…"| keycloak
-  keycloak -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
-  oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| keycloak
-  keycloak -->|"secret:workspace-s…"| oauth2_proxy_studio
-  oauth2_proxy_studio -->|"secret:workspace-s…"| keycloak
-  keycloak -->|"secret:workspace-s…"| oauth2_proxy_traefik
-  oauth2_proxy_traefik -->|"secret:workspace-s…"| keycloak
-  keycloak -->|"secret:workspace-s…"| oauth2_proxy_videovault
-  oauth2_proxy_videovault -->|"secret:workspace-s…"| keycloak
-  keycloak -->|"secret:workspace-s…"| pocket_id
-  pocket_id -->|"secret:workspace-s…"| keycloak
-  keycloak -->|"secret:workspace-s…"| oauth2_proxy_recovery
-  oauth2_proxy_recovery -->|"secret:workspace-s…"| keycloak
-  keycloak -->|"secret:workspace-s…"| shared_db
-  keycloak -->|"secret:workspace-s…"| studio_server
-  keycloak -->|"secret:workspace-s…"| spreed_signaling
-  spreed_signaling -->|"secret:workspace-s…"| keycloak
-  keycloak -->|"secret:workspace-s…"| talk_recording
-  talk_recording -->|"secret:workspace-s…"| keycloak
-  keycloak -->|"secret:workspace-s…"| vaultwarden
-  vaultwarden -->|"secret:workspace-s…"| keycloak
-  keycloak -->|"secret:workspace-s…"| videovault
-  videovault -->|"secret:workspace-s…"| keycloak
-  keycloak -->|"secret:workspace-s…"| whiteboard
-  whiteboard -->|"secret:workspace-s…"| keycloak
-  keycloak -->|"secret:workspace-s…"| dev_db_refresh
-  dev_db_refresh -->|"secret:workspace-s…"| keycloak
-  keycloak -->|"secret:workspace-s…"| talk_transcriber
-  talk_transcriber -->|"secret:workspace-s…"| keycloak
-  keycloak -->|"secret:workspace-s…"| arena_server
-  keycloak -->|"secret:workspace-s…"| ddns_updater
-  ddns_updater -->|"secret:workspace-s…"| keycloak
   knowledge_ingest_prs -->|"secret:workspace-s…"| knowledge_ingest_bugs
   knowledge_ingest_bugs -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| knowledge_reindex_all
@@ -1912,7 +1838,7 @@ flowchart LR
   website -->|"secret:staging-db-…"| shared_db_staging
       </div>
     </div>
-    <p class="diagram-caption">Alle 84 K8s-Services und ihre 1681 Abhängigkeitskanten (env-Refs, initContainer-Waits, Ingress-Backends)</p>
+    <p class="diagram-caption">Alle 84 K8s-Services und ihre 1602 Abhängigkeitskanten (env-Refs, initContainer-Waits, Ingress-Backends)</p>
   </div>
 
   <!-- K8s Topology Tab -->
@@ -1935,7 +1861,6 @@ flowchart TB
     website["website"]
     docs["docs"]
     einvoice_sidecar["einvoice-sidecar"]
-    keycloak["keycloak"]
     knowledge_ingest_prs(["knowledge-ingest-prs"])
     knowledge_ingest_markdown(["knowledge-ingest-markdown"])
     knowledge_ingest_bugs(["knowledge-ingest-bugs"])
@@ -1984,6 +1909,7 @@ flowchart TB
     shared_db_dev_lb["shared-db-dev-lb"]
     loki_memberlist["loki-memberlist"]
     loki_headless["loki-headless"]
+    keycloak["keycloak"]
     tracking["tracking"]
     docuseal["docuseal"]
     livekit["livekit"]

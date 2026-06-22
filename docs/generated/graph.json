@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-22T04:43:56.043Z",
+  "generatedAt": "2026-06-22T06:41:15.723Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -114,12 +114,6 @@
       "namespace": "mentolder",
       "type": "Deployment",
       "name": "einvoice-sidecar"
-    },
-    {
-      "id": "keycloak",
-      "namespace": "mentolder",
-      "type": "Deployment",
-      "name": "keycloak"
     },
     {
       "id": "knowledge-ingest-prs",
@@ -488,6 +482,12 @@
       "name": "loki-headless"
     },
     {
+      "id": "keycloak",
+      "namespace": "mentolder",
+      "type": "Service",
+      "name": "keycloak"
+    },
+    {
       "id": "tracking",
       "namespace": "mentolder",
       "type": "Service",
@@ -644,24 +644,6 @@
       "to": "traefik",
       "via": "command",
       "kind": "command"
-    },
-    {
-      "from": "keycloak",
-      "to": "brett",
-      "via": "configmap:domain-config",
-      "kind": "configmap"
-    },
-    {
-      "from": "keycloak",
-      "to": "livekit",
-      "via": "configmap:domain-config",
-      "kind": "configmap"
-    },
-    {
-      "from": "keycloak",
-      "to": "traefik",
-      "via": "configmap:domain-config",
-      "kind": "configmap"
     },
     {
       "from": "knowledge-ingest-prs",
@@ -1643,18 +1625,6 @@
     },
     {
       "from": "admin-actions-cleanup",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "admin-actions-cleanup",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "admin-actions-cleanup",
       "to": "knowledge-ingest-prs",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -2087,18 +2057,6 @@
     },
     {
       "from": "admin-actions-prune",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "admin-actions-prune",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "admin-actions-prune",
       "to": "knowledge-ingest-prs",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -2519,18 +2477,6 @@
     },
     {
       "from": "sessions-purge",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
       "to": "knowledge-ingest-prs",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -2939,18 +2885,6 @@
     },
     {
       "from": "db-backup",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "db-backup",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "db-backup",
       "to": "knowledge-ingest-prs",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -3347,18 +3281,6 @@
     },
     {
       "from": "brett",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "brett",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "brett",
       "to": "knowledge-ingest-prs",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -3743,18 +3665,6 @@
     },
     {
       "from": "billing-dunning-detection",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "billing-dunning-detection",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "billing-dunning-detection",
       "to": "knowledge-ingest-prs",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -4127,18 +4037,6 @@
     },
     {
       "from": "monthly-billing",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "monthly-billing",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "monthly-billing",
       "to": "knowledge-ingest-prs",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -4499,18 +4397,6 @@
     },
     {
       "from": "scheduled-publish",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "scheduled-publish",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "scheduled-publish",
       "to": "knowledge-ingest-prs",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -4859,18 +4745,6 @@
     },
     {
       "from": "oauth2-proxy-dev",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "oauth2-proxy-dev",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-dev",
       "to": "knowledge-ingest-prs",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -5214,354 +5088,6 @@
     {
       "from": "ddns-updater",
       "to": "oauth2-proxy-dev",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "knowledge-ingest-prs",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "knowledge-ingest-prs",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "knowledge-ingest-bugs",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "knowledge-ingest-bugs",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "knowledge-reindex-all",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "knowledge-reindex-all",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "livekit-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "livekit-server",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "livekit-ingress",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "livekit-ingress",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "livekit-egress",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "livekit-egress",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "nextcloud",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "nextcloud",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "notify-unread",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "notify-unread",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "oauth2-proxy-brett",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-brett",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "oauth2-proxy-comfy",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-comfy",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "oauth2-proxy-docs",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-docs",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "oauth2-proxy-mailpit",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-mailpit",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "oauth2-proxy-mediaviewer",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-mediaviewer",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "oauth2-proxy-studio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-studio",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "oauth2-proxy-traefik",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-traefik",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "oauth2-proxy-videovault",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-videovault",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "pocket-id",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "pocket-id",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "oauth2-proxy-recovery",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-recovery",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "shared-db",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "shared-db",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "studio-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "studio-server",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "spreed-signaling",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "spreed-signaling",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "talk-recording",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "talk-recording",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "vaultwarden",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "vaultwarden",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "videovault",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "videovault",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "whiteboard",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "whiteboard",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "talk-transcriber",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "talk-transcriber",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "keycloak",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "keycloak",
-      "to": "ddns-updater",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "ddns-updater",
-      "to": "keycloak",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },

@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>bright-data-best-practices — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">bright-data-best-practices</span></nav>
+    <h1>bright-data-best-practices</h1>
+    <p class="page-desc">Build production-ready Bright Data integrations with best practices baked in. Reference documentation for developers using coding assistants (Claude Code, Cursor, etc.) to implement web scraping, search, browser automation, and structured data extraction. Covers Web Unlocker API, SERP API, Web Scraper API, and Browser API (Scraping Browser).</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">brightdata-plugin</span> <span class="pv-ver">1.8.0</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>CLI Setup Reference</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#choosing-the-right-api"><span class="toc-num">1.</span> Choosing the Right API</a></li>
+<li class="toc-item"><a href="#authentication-pattern-all-apis"><span class="toc-num">2.</span> Authentication Pattern (All APIs)</a></li>
+<li class="toc-item"><a href="#web-unlocker-api"><span class="toc-num">3.</span> Web Unlocker API</a></li>
+<li class="toc-item"><a href="#serp-api"><span class="toc-num">4.</span> SERP API</a></li>
+<li class="toc-item"><a href="#web-scraper-api"><span class="toc-num">5.</span> Web Scraper API</a></li>
+<li class="toc-item"><a href="#browser-api-scraping-browser"><span class="toc-num">6.</span> Browser API (Scraping Browser)</a></li>
+<li class="toc-item"><a href="#detailed-references"><span class="toc-num">7.</span> Detailed References</a></li>
+<li class="toc-item"><a href="#related-skills"><span class="toc-num">8.</span> Related Skills</a></li></ul>
+</div>
+<p>Install, authentication, and troubleshooting for the Bright Data CLI (<code>bdata</code>) are documented in a single canonical place:</p>
+<p>→ <a href="references/cli-setup.md"><code>references/cli-setup.md</code></a></p>
+<p>Consult it before any task that shells out to <code>bdata</code>.</p>
+<h1>Bright Data APIs</h1>
+<p>Bright Data provides infrastructure for web data extraction at scale. Four primary APIs cover different use cases — always pick the most specific tool for the job.</p>
+<h2 id="choosing-the-right-api">Choosing the Right API</h2>
+<table>
+<thead>
+<tr>
+<th>Use Case</th>
+<th>API</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Scrape any webpage by URL (no interaction)</td>
+<td>Web Unlocker</td>
+<td>HTTP-based, auto-bypasses bot detection, cheapest</td>
+</tr>
+<tr>
+<td>Google / Bing / Yandex search results</td>
+<td>SERP API</td>
+<td>Specialized for SERP extraction, returns structured data</td>
+</tr>
+<tr>
+<td>Structured data from Amazon, LinkedIn, Instagram, TikTok, etc.</td>
+<td>Web Scraper API</td>
+<td>Pre-built scrapers, no parsing needed</td>
+</tr>
+<tr>
+<td>Click, scroll, fill forms, run JS, intercept XHR</td>
+<td>Browser API</td>
+<td>Full browser automation</td>
+</tr>
+<tr>
+<td>Puppeteer / Playwright / Selenium automation</td>
+<td>Browser API</td>
+<td>Connects via CDP/WebDriver</td>
+</tr>
+<tr>
+<td>Route your own HTTP client through a raw proxy (DC/ISP/Residential/Mobile)</td>
+<td>Proxy networks</td>
+<td>When you need direct proxy access with your own request logic instead of a managed API — see the <code>proxy.md</code> skill</td>
+</tr>
+</tbody></table>
+<h2 id="authentication-pattern-all-apis">Authentication Pattern (All APIs)</h2>
+<p>All APIs share the same authentication model. The env vars below apply to direct REST API integrations — if you are using the <code>bdata</code> CLI, <code>bdata login</code> handles all of these automatically (see <a href="references/cli-setup.md"><code>references/cli-setup.md</code></a>).</p>
+<div class="code-wrapper"><pre><code class="language-bash">export BRIGHTDATA_API_KEY="your-api-key"         # From Control Panel &gt; Account Settings
+export BRIGHTDATA_UNLOCKER_ZONE="zone-name"       # Web Unlocker zone name
+export BRIGHTDATA_SERP_ZONE="serp-zone-name"      # SERP API zone name
+export BROWSER_AUTH="brd-customer-ID-zone-NAME:PASSWORD"  # Browser API credentials
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>REST API authentication header for Web Unlocker and SERP API:</p>
+<div class="code-wrapper"><pre><code>Authorization: Bearer YOUR_API_KEY
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="web-unlocker-api">Web Unlocker API</h2>
+<p>HTTP-based scraping proxy. Best for simple page fetches without browser interaction.</p>
+<p><strong>Endpoint:</strong> <code>POST https://api.brightdata.com/request</code></p>
+<div class="code-wrapper"><pre><code class="language-python">import requests
+
+response = requests.post(
+    "https://api.brightdata.com/request",
+    headers={"Authorization": f"Bearer {API_KEY}"},
+    json={
+        "zone": "YOUR_ZONE_NAME",
+        "url": "https://example.com/product/123",
+        "format": "raw"
+    }
+)
+html = response.text
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Key Parameters</h3>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>zone</code></td>
+<td>string</td>
+<td>Zone name (required)</td>
+</tr>
+<tr>
+<td><code>url</code></td>
+<td>string</td>
+<td>Target URL with <code>http://</code> or <code>https://</code> (required)</td>
+</tr>
+<tr>
+<td><code>format</code></td>
+<td>string</td>
+<td><code>"raw"</code> (HTML) or <code>"json"</code> (structured wrapper) (required)</td>
+</tr>
+<tr>
+<td><code>method</code></td>
+<td>string</td>
+<td>HTTP verb, default <code>"GET"</code></td>
+</tr>
+<tr>
+<td><code>country</code></td>
+<td>string</td>
+<td>2-letter ISO for geo-targeting (e.g., <code>"us"</code>, <code>"de"</code>)</td>
+</tr>
+<tr>
+<td><code>data_format</code></td>
+<td>string</td>
+<td>Transform: <code>"markdown"</code> or <code>"screenshot"</code></td>
+</tr>
+<tr>
+<td><code>async</code></td>
+<td>boolean</td>
+<td><code>true</code> for async mode</td>
+</tr>
+</tbody></table>
+<h3>Quick Patterns</h3>
+<div class="code-wrapper"><pre><code class="language-python"># Get markdown (best for LLM input)
+response = requests.post(
+    "https://api.brightdata.com/request",
+    headers={"Authorization": f"Bearer {API_KEY}"},
+    json={"zone": ZONE, "url": url, "format": "raw", "data_format": "markdown"}
+)
+
+# Geo-targeted request
+json={"zone": ZONE, "url": url, "format": "raw", "country": "de"}
+
+# Screenshot for debugging
+json={"zone": ZONE, "url": url, "format": "raw", "data_format": "screenshot"}
+
+# Async for bulk processing
+json={"zone": ZONE, "url": url, "format": "raw", "async": True}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Critical rule:</strong> Never use Web Unlocker with Puppeteer, Playwright, Selenium, or anti-detect browsers. Use Browser API instead.</p>
+<p>See <strong><a href="references/web-unlocker.md">references/web-unlocker.md</a></strong> for complete reference including proxy interface, special headers, async flow, features, and billing.</p>
+<hr>
+<h2 id="serp-api">SERP API</h2>
+<p>Structured search engine result extraction for Google, Bing, Yandex, DuckDuckGo.</p>
+<p><strong>Endpoint:</strong> <code>POST https://api.brightdata.com/request</code> (same as Web Unlocker)</p>
+<div class="code-wrapper"><pre><code class="language-python">response = requests.post(
+    "https://api.brightdata.com/request",
+    headers={"Authorization": f"Bearer {API_KEY}"},
+    json={
+        "zone": "YOUR_SERP_ZONE",
+        "url": "https://www.google.com/search?q=python+web+scraping&amp;brd_json=1&amp;gl=us&amp;hl=en",
+        "format": "raw"
+    }
+)
+data = response.json()
+for result in data.get("organic", []):
+    print(result["rank"], result["title"], result["link"])
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Essential Google URL Parameters</h3>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>q</code></td>
+<td>Search query</td>
+<td><code>q=python+web+scraping</code></td>
+</tr>
+<tr>
+<td><code>brd_json</code></td>
+<td>Parsed JSON output</td>
+<td><code>brd_json=1</code> (always use for data pipelines)</td>
+</tr>
+<tr>
+<td><code>gl</code></td>
+<td>Country for search</td>
+<td><code>gl=us</code></td>
+</tr>
+<tr>
+<td><code>hl</code></td>
+<td>Language</td>
+<td><code>hl=en</code></td>
+</tr>
+<tr>
+<td><code>start</code></td>
+<td>Pagination offset</td>
+<td><code>start=10</code> (page 2), <code>start=20</code> (page 3)</td>
+</tr>
+<tr>
+<td><code>tbm</code></td>
+<td>Search type</td>
+<td><code>tbm=nws</code> (news), <code>tbm=isch</code> (images), <code>tbm=vid</code> (videos)</td>
+</tr>
+<tr>
+<td><code>brd_mobile</code></td>
+<td>Device</td>
+<td><code>brd_mobile=1</code> (mobile), <code>brd_mobile=ios</code></td>
+</tr>
+<tr>
+<td><code>brd_browser</code></td>
+<td>Browser</td>
+<td><code>brd_browser=chrome</code></td>
+</tr>
+<tr>
+<td><code>brd_ai_overview</code></td>
+<td>Trigger AI Overview</td>
+<td><code>brd_ai_overview=2</code></td>
+</tr>
+<tr>
+<td><code>uule</code></td>
+<td>Encoded geo location</td>
+<td>for precise location targeting</td>
+</tr>
+</tbody></table>
+<p><strong>Note:</strong> <code>num</code> parameter is <strong>deprecated</strong> as of September 2025. Use <code>start</code> for pagination.</p>
+<h3>Parsed JSON Response Structure</h3>
+<div class="code-wrapper"><pre><code class="language-json">{
+  "organic": [{"rank": 1, "global_rank": 1, "title": "...", "link": "...", "description": "..."}],
+  "paid": [],
+  "people_also_ask": [],
+  "knowledge_graph": {},
+  "related_searches": [],
+  "general": {"results_cnt": 1240000000, "query": "..."}
+}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Bing Key Parameters</h3>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>q</code></td>
+<td>Search query</td>
+</tr>
+<tr>
+<td><code>setLang</code></td>
+<td>Language (prefer 4-letter: <code>en-US</code>)</td>
+</tr>
+<tr>
+<td><code>cc</code></td>
+<td>Country code</td>
+</tr>
+<tr>
+<td><code>first</code></td>
+<td>Pagination (increment by 10: 1, 11, 21...)</td>
+</tr>
+<tr>
+<td><code>safesearch</code></td>
+<td><code>off</code>, <code>moderate</code>, <code>strict</code></td>
+</tr>
+<tr>
+<td><code>brd_mobile</code></td>
+<td>Device type</td>
+</tr>
+</tbody></table>
+<h3>Async for Bulk SERP</h3>
+<div class="code-wrapper"><pre><code class="language-python"># Submit
+response = requests.post(
+    "https://api.brightdata.com/request",
+    params={"async": "1"},
+    headers={"Authorization": f"Bearer {API_KEY}"},
+    json={"zone": SERP_ZONE, "url": "https://www.google.com/search?q=test&amp;brd_json=1", "format": "raw"}
+)
+response_id = response.headers.get("x-response-id")
+
+# Retrieve (retrieve calls are NOT billed)
+result = requests.get(
+    "https://api.brightdata.com/serp/get_result",
+    params={"response_id": response_id},
+    headers={"Authorization": f"Bearer {API_KEY}"}
+)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Billing:</strong> Pay per 1,000 successful requests only. Async retrieve calls are not billed.</p>
+<p>See <strong><a href="references/serp-api.md">references/serp-api.md</a></strong> for complete reference including Maps, Trends, Reviews, Lens, Hotels, Flights parameters.</p>
+<hr>
+<h2 id="web-scraper-api">Web Scraper API</h2>
+<p>Pre-built scrapers for structured data extraction from 100+ platforms. No parsing logic needed.</p>
+<p><strong>Sync Endpoint:</strong> <code>POST https://api.brightdata.com/datasets/v3/scrape</code>
+<strong>Async Endpoint:</strong> <code>POST https://api.brightdata.com/datasets/v3/trigger</code></p>
+<div class="code-wrapper"><pre><code class="language-python"># Sync (up to 20 URLs, returns immediately)
+response = requests.post(
+    "https://api.brightdata.com/datasets/v3/scrape",
+    params={"dataset_id": "YOUR_DATASET_ID", "format": "json"},
+    headers={"Authorization": f"Bearer {API_KEY}"},
+    json={"input": [{"url": "https://www.amazon.com/dp/B09X7M8TBQ"}]}
+)
+
+if response.status_code == 200:
+    data = response.json()  # Results ready
+elif response.status_code == 202:
+    snapshot_id = response.json()["snapshot_id"]  # Poll for completion
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Parameters</h3>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>dataset_id</code></td>
+<td>string</td>
+<td>Scraper identifier from the Scraper Library (required)</td>
+</tr>
+<tr>
+<td><code>format</code></td>
+<td>string</td>
+<td><code>json</code> (default), <code>ndjson</code>, <code>jsonl</code>, <code>csv</code></td>
+</tr>
+<tr>
+<td><code>custom_output_fields</code></td>
+<td>string</td>
+<td>Pipe-separated fields: <code>url|title|price</code></td>
+</tr>
+<tr>
+<td><code>include_errors</code></td>
+<td>boolean</td>
+<td>Include error info in results</td>
+</tr>
+</tbody></table>
+<h3>Request Body</h3>
+<div class="code-wrapper"><pre><code class="language-json">{
+  "input": [
+    { "url": "https://www.amazon.com/dp/B09X7M8TBQ" },
+    { "url": "https://www.amazon.com/dp/B0B7CTCPKN" }
+  ]
+}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Poll for Async Results</h3>
+<div class="code-wrapper"><pre><code class="language-python">import time
+
+# Trigger
+snapshot_id = requests.post(
+    "https://api.brightdata.com/datasets/v3/trigger",
+    params={"dataset_id": DATASET_ID, "format": "json"},
+    headers={"Authorization": f"Bearer {API_KEY}"},
+    json={"input": [{"url": u} for u in urls]}
+).json()["snapshot_id"]
+
+# Poll
+while True:
+    status = requests.get(
+        f"https://api.brightdata.com/datasets/v3/progress/{snapshot_id}",
+        headers={"Authorization": f"Bearer {API_KEY}"}
+    ).json()["status"]
+
+    if status == "ready": break
+    if status == "failed": raise Exception("Job failed")
+    time.sleep(10)
+
+# Download
+data = requests.get(
+    f"https://api.brightdata.com/datasets/v3/snapshot/{snapshot_id}",
+    params={"format": "json"},
+    headers={"Authorization": f"Bearer {API_KEY}"}
+).json()
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Progress status values:</strong> <code>starting</code> → <code>running</code> → <code>ready</code> | <code>failed</code>
+<strong>Data retention:</strong> 30 days.
+<strong>Billing:</strong> Per delivered record. Invalid input URLs that fail are still billable.</p>
+<p>See <strong><a href="references/web-scraper-api.md">references/web-scraper-api.md</a></strong> for complete reference including scraper types, output formats, delivery options, and billing details.</p>
+<hr>
+<h2 id="browser-api-scraping-browser">Browser API (Scraping Browser)</h2>
+<p>Full browser automation via CDP/WebDriver. Handles CAPTCHA, fingerprinting, and anti-bot detection automatically.</p>
+<p><strong>Connection:</strong></p>
+<ul>
+<li>Playwright/Puppeteer: <code>wss://${AUTH}@brd.superproxy.io:9222</code></li>
+<li>Selenium: <code>https://${AUTH}@brd.superproxy.io:9515</code></li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-javascript">const { chromium } = require("playwright-core");
+
+const AUTH = process.env.BROWSER_AUTH;
+const browser = await chromium.connectOverCDP(`wss://${AUTH}@brd.superproxy.io:9222`);
+const page = await browser.newPage();
+page.setDefaultNavigationTimeout(120000); // Always set to 2 minutes
+
+await page.goto("https://example.com", { waitUntil: "domcontentloaded" });
+const html = await page.content();
+await browser.close();
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<div class="code-wrapper"><pre><code class="language-python">from playwright.async_api import async_playwright
+
+async with async_playwright() as p:
+    browser = await p.chromium.connect_over_cdp(f"wss://{AUTH}@brd.superproxy.io:9222")
+    page = await browser.new_page()
+    page.set_default_navigation_timeout(120000)
+    await page.goto("https://example.com", wait_until="domcontentloaded")
+    html = await page.content()
+    await browser.close()
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Custom CDP Functions</h3>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Captcha.solve</code></td>
+<td>Manually trigger CAPTCHA solving</td>
+</tr>
+<tr>
+<td><code>Captcha.setAutoSolve</code></td>
+<td>Enable/disable auto CAPTCHA solving</td>
+</tr>
+<tr>
+<td><code>Proxy.setLocation</code></td>
+<td>Set precise geo location (call BEFORE goto)</td>
+</tr>
+<tr>
+<td><code>Proxy.useSession</code></td>
+<td>Maintain same IP across sessions</td>
+</tr>
+<tr>
+<td><code>Emulation.setDevice</code></td>
+<td>Apply device profile (iPhone 14, etc.)</td>
+</tr>
+<tr>
+<td><code>Emulation.getSupportedDevices</code></td>
+<td>List available device profiles</td>
+</tr>
+<tr>
+<td><code>Unblocker.enableAdBlock</code></td>
+<td>Block ads to save bandwidth</td>
+</tr>
+<tr>
+<td><code>Unblocker.disableAdBlock</code></td>
+<td>Re-enable ads</td>
+</tr>
+<tr>
+<td><code>Input.type</code></td>
+<td>Fast text input for bulk form filling</td>
+</tr>
+<tr>
+<td><code>Browser.addCertificate</code></td>
+<td>Install client SSL cert for session</td>
+</tr>
+<tr>
+<td><code>Page.inspect</code></td>
+<td>Get DevTools debug URL for live session</td>
+</tr>
+</tbody></table>
+<div class="code-wrapper"><pre><code class="language-javascript">// CDP session pattern for custom functions
+const client = await page.target().createCDPSession();
+
+// CAPTCHA solve with timeout
+const result = await client.send("Captcha.solve", { timeout: 30000 });
+
+// Precise geo location (must be before goto)
+await client.send("Proxy.setLocation", {
+  latitude: 37.7749,
+  longitude: -122.4194,
+  distance: 10,
+  strict: true
+});
+
+// Block unnecessary resources
+await client.send("Network.setBlockedURLs", { urls: ["*google-analytics*", "*.ads.*"] });
+
+// Device emulation
+await client.send("Emulation.setDevice", { deviceName: "iPhone 14" });
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Session Rules</h3>
+<ul>
+<li><strong>One initial navigation per session</strong> — new URL = new session</li>
+<li><strong>Idle timeout:</strong> 5 minutes</li>
+<li><strong>Max duration:</strong> 30 minutes</li>
+</ul>
+<h3>Geolocation</h3>
+<ul>
+<li>Country-level: append <code>-country-us</code> to credentials username</li>
+<li>EU-wide: append <code>-country-eu</code> (routes through 29+ European countries)</li>
+<li>Precise: use <code>Proxy.setLocation</code> CDP command (before navigation)</li>
+</ul>
+<h3>Error Codes</h3>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Issue</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>407</code></td>
+<td>Wrong port</td>
+<td>Playwright/Puppeteer → <code>9222</code>, Selenium → <code>9515</code></td>
+</tr>
+<tr>
+<td><code>403</code></td>
+<td>Bad auth</td>
+<td>Check credentials format and zone type</td>
+</tr>
+<tr>
+<td><code>503</code></td>
+<td>Service scaling</td>
+<td>Wait 1 minute, reconnect</td>
+</tr>
+</tbody></table>
+<p><strong>Billing:</strong> Traffic-based only. Block images/CSS/fonts to reduce costs.</p>
+<p>See <strong><a href="references/browser-api.md">references/browser-api.md</a></strong> for complete reference including all CDP functions, bandwidth optimization, CAPTCHA patterns, and debugging.</p>
+<hr>
+<h2 id="detailed-references">Detailed References</h2>
+<ul>
+<li><strong><a href="references/web-unlocker.md">references/web-unlocker.md</a></strong> — Web Unlocker: full parameter list, proxy interface, special headers, async flow, features, billing, anti-patterns</li>
+<li><strong><a href="references/serp-api.md">references/serp-api.md</a></strong> — SERP API: all Google params (Maps, Trends, Reviews, Lens, Hotels, Flights), Bing params, parsed JSON structure, async, billing</li>
+<li><strong><a href="references/web-scraper-api.md">references/web-scraper-api.md</a></strong> — Web Scraper API: sync vs async, all parameters, polling, scraper types, output formats, billing</li>
+<li><strong><a href="references/browser-api.md">references/browser-api.md</a></strong> — Browser API: connection strings, session rules, all CDP functions, geo-targeting, bandwidth optimization, CAPTCHA, debugging, error codes</li>
+</ul>
+<h2 id="related-skills">Related Skills</h2>
+<ul>
+<li><strong><code>brightdata-proxy</code></strong> — For routing requests through Bright Data's raw proxy networks (Datacenter, ISP, Residential, Mobile) with your own HTTP client instead of a managed API. Covers network/IP-pool selection, the <code>brd-customer-...</code> username format, targeting &amp; sticky-session params, SSL CA setup for Residential/Mobile, and integrations for cURL, Python (requests/httpx/aiohttp/Scrapy), Node (fetch/axios), Playwright, Puppeteer, and Selenium. Hand off to it whenever the task is raw proxy access rather than Web Unlocker / SERP / Web Scraper / Browser API. Escalation order when proxies hit consistent blocks: raw proxy → Web Unlocker → Browser API → Web Scraper API.</li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

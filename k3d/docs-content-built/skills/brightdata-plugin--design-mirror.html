@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>design-mirror — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">design-mirror</span></nav>
+    <h1>design-mirror</h1>
+    <p class="page-desc">Replicate the visual style of any website and apply it to your existing codebase. Use this skill whenever the user wants to match a site's design, mirror a UI aesthetic, make their app look like another site, or replicate a specific visual style from a URL. Trigger on phrases like 'make it look like', 'match the design of', 'copy the style from', 'I want my app to look like X', 'mirror this design', 'inspired by [url]', or any time the user points at a website and says they want their frontend to match it.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">brightdata-plugin</span> <span class="pv-ver">1.8.0</span></span>
+      <span class="domain-tag">website</span>
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Design Mirror</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#what-this-skill-does"><span class="toc-num">1.</span> What This Skill Does</a></li>
+<li class="toc-item"><a href="#setup"><span class="toc-num">2.</span> Setup</a></li>
+<li class="toc-item"><a href="#step-by-step-process"><span class="toc-num">3.</span> Step-by-Step Process</a></li>
+<li class="toc-item"><a href="#key-principles"><span class="toc-num">4.</span> Key Principles</a></li>
+<li class="toc-item"><a href="#what-to-do-when"><span class="toc-num">5.</span> What to Do When...</a></li></ul>
+</div>
+<p>Capture the visual design language of any website and apply it to your existing codebase — colors, typography, spacing, layout rhythm, component shapes, and overall aesthetic — all extracted live via Bright Data's Web Unlocker.</p>
+<h2 id="what-this-skill-does">What This Skill Does</h2>
+<ol>
+<li><strong>Capture</strong> — Screenshot + HTML scrape the inspiration site via Bright Data</li>
+<li><strong>Extract</strong> — Identify the full design system: colors, fonts, spacing scale, border radii, shadows, component patterns</li>
+<li><strong>Analyze</strong> — Study the screenshot visually and the CSS structurally to understand the design language</li>
+<li><strong>Apply</strong> — Translate that design system into the user's existing codebase (their framework, their components)</li>
+</ol>
+<p>You are not copying content or functionality. You're understanding the <em>design language</em> — the palette, the type scale, the card shapes, the hover states, the overall aesthetic feel.</p>
+<blockquote>
+<p><strong>Important:</strong> This skill is for design inspiration and learning — extracting publicly visible design tokens (colors, fonts, spacing) to inform your own UI work. Always use it respectfully and in accordance with the terms of service of the sites you reference.</p>
+</blockquote>
+<h2 id="setup">Setup</h2>
+<p>Requires:</p>
+<ul>
+<li><code>BRIGHTDATA_API_KEY</code> — from <a href="https://brightdata.com/cp">brightdata.com/cp</a> → Account Settings</li>
+<li><code>BRIGHTDATA_UNLOCKER_ZONE</code> — create an Unlocker zone at brightdata.com/cp</li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-bash">export BRIGHTDATA_API_KEY="your-api-key"
+export BRIGHTDATA_UNLOCKER_ZONE="your-zone-name"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="step-by-step-process">Step-by-Step Process</h2>
+<h3>Step 1: Capture the Inspiration Site</h3>
+<p>Run both captures in parallel — screenshot (for visual analysis) and HTML scrape (for CSS extraction):</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Screenshot (save as PNG)
+bash scripts/screenshot.sh "https://inspiration-site.com" "/tmp/target_screenshot.png"
+
+# HTML + CSS scrape
+bash scripts/scrape_html.sh "https://inspiration-site.com" "/tmp/target_page.html"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Read <code>references/capture-guide.md</code> for how to extract CSS from the raw HTML and handle common issues.</p>
+<h3>Step 2: Analyze the Design System</h3>
+<p>After capturing, analyze both in parallel:</p>
+<p><strong>Visual analysis (screenshot):</strong> Read the PNG image and identify:</p>
+<ul>
+<li>Primary, secondary, accent colors</li>
+<li>Background colors (page bg, card bg, surface hierarchy)</li>
+<li>Typography: font families visible, size hierarchy (h1 → body → caption)</li>
+<li>Layout: is it centered/constrained-width? Grid? Sidebar?</li>
+<li>Card/container shapes: border radius size, shadow style (hard, soft, none, colored)</li>
+<li>Button styles: pill, rectangle, ghost, gradient?</li>
+<li>Navigation: sticky? Glass/blur effect? Dark or light?</li>
+<li>Overall mood: dark, light, minimal, brutalist, glassmorphism, corporate, startup?</li>
+</ul>
+<p><strong>CSS analysis (HTML):</strong> Extract from <code>&lt;style&gt;</code> tags and inline styles:</p>
+<ul>
+<li>CSS custom properties (<code>:root { --color-... }</code>) — publicly declared design tokens</li>
+<li>Font imports (<code>@import</code> from Google Fonts, etc.)</li>
+<li>Tailwind config if present</li>
+<li>Repeated class patterns that reveal the spacing scale</li>
+</ul>
+<p>Read <code>references/css-extraction.md</code> for the extraction playbook.</p>
+<h3>Step 3: Build the Design Token Map</h3>
+<p>Produce a structured design token map before touching any code:</p>
+<div class="code-wrapper"><pre><code>DESIGN TOKENS FROM [site]
+==========================
+Colors:
+  --bg-primary: #0a0a0f      (page background)
+  --bg-surface: #13131a      (card/panel background)
+  --text-primary: #ffffff
+  --text-muted: #8888aa
+  --accent: #7c3aed          (primary CTA color)
+  --accent-hover: #6d28d9
+  --border: rgba(255,255,255,0.08)
+
+Typography:
+  --font-heading: 'Inter', sans-serif
+  --font-body: 'Inter', sans-serif
+  font-scale: 12/14/16/20/24/32/48px
+  heading-weight: 700
+  body-weight: 400
+
+Spacing:
+  base-unit: 8px
+  scale: 4/8/12/16/24/32/48/64px
+
+Borders &amp; Shadows:
+  --radius-sm: 6px
+  --radius-md: 12px
+  --radius-lg: 20px
+  --shadow: 0 4px 24px rgba(0,0,0,0.4)
+
+Special effects:
+  glass-blur: backdrop-filter: blur(16px)
+  gradient: linear-gradient(135deg, #7c3aed, #2563eb)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Show this token map to the user before proceeding. It's the foundation — if it's wrong, the output will be wrong.</p>
+<h3>Step 4: Understand the User's Codebase</h3>
+<p>Before writing any code, read the relevant parts of their codebase:</p>
+<ul>
+<li>What framework? (React, Vue, Next.js, plain HTML?)</li>
+<li>What styling approach? (Tailwind, CSS modules, styled-components, plain CSS?)</li>
+<li>Where are global styles defined? (globals.css, theme.ts, tailwind.config.js?)</li>
+<li>What components need restyling? (ask the user if unclear)</li>
+</ul>
+<p>Do not rewrite everything — surgical precision. Apply the design tokens to the existing structure.</p>
+<h3>Step 5: Apply the Design</h3>
+<p>The application strategy depends on their stack:</p>
+<p><strong>If Tailwind:</strong> Update <code>tailwind.config.js</code> with the new color palette, font family, border radius scale. Add custom CSS variables for anything Tailwind can't handle natively.</p>
+<p><strong>If CSS/CSS Modules:</strong> Create or update a <code>:root</code> variables block in globals.css. Update component stylesheets to use the new variables.</p>
+<p><strong>If styled-components/Emotion:</strong> Update the theme object. Replace hardcoded color/spacing values with theme tokens.</p>
+<p><strong>In all cases:</strong></p>
+<ul>
+<li>Apply colors, typography, and spacing globally first</li>
+<li>Then tackle component-level details (buttons, cards, nav) one at a time</li>
+<li>Preserve all existing functionality and layout structure — only visual properties change</li>
+<li>Add any special effects (glass blur, gradients, animations) that define the inspiration site's character</li>
+</ul>
+<p>Read <code>references/apply-guide.md</code> for framework-specific implementation patterns.</p>
+<h3>Step 6: Show the Before/After</h3>
+<p>After applying changes, clearly present:</p>
+<ul>
+<li>Which files were modified</li>
+<li>The design token mapping (source → what you set it to)</li>
+<li>Any special effects added</li>
+<li>What the user should check visually (hover states, dark/light mode, mobile)</li>
+</ul>
+<p>If the user has a dev server running, remind them to check it. Offer to iterate on specific components.</p>
+<h2 id="key-principles">Key Principles</h2>
+<p><strong>Design language, not markup.</strong> The inspiration site's HTML structure and content are theirs. You're extracting the <em>design language</em> — how colors relate, how spacing flows, what gives the site its character — to apply as your own creative foundation.</p>
+<p><strong>Design tokens first, code second.</strong> Rushing to apply colors before understanding the full system leads to inconsistent results. Always build the token map first.</p>
+<p><strong>Ask about scope.</strong> "Apply the design everywhere" vs "just make the homepage feel like it" vs "only restyle the navbar" are very different jobs. Clarify before proceeding.</p>
+<p><strong>Don't break what works.</strong> The user's components work. Only change visual properties. If you're uncertain whether a change might break layout, err on the side of caution and flag it.</p>
+<p><strong>Iterative is fine.</strong> It's often better to get the foundation right (colors, type, spacing) and let the user review before tackling component-level details.</p>
+<h2 id="what-to-do-when">What to Do When...</h2>
+<p><strong>The site uses a design system (Material, shadcn, etc.):</strong> Identify it, tell the user, and ask if they want to adopt the same system or just extract the visual tokens.</p>
+<p><strong>The CSS is minified/obfuscated:</strong> Fall back to the screenshot + visual analysis. You can still extract colors, spacing, and shapes from visual inspection.</p>
+<p><strong>The inspiration site is JS-rendered and the HTML scrape comes back mostly empty:</strong> Note this to the user — the screenshot will still work for visual analysis, but CSS extraction will be limited. You can still infer most tokens visually.</p>
+<p><strong>The user's codebase uses a component library (shadcn, Chakra, MUI):</strong> Apply the design by customizing the library's theme/config rather than overriding individual components.</p>
+<p><strong>Multiple pages need to match:</strong> Use the homepage for overall design tokens, but offer to check inner pages (e.g., <code>/pricing</code>, <code>/docs</code>) if the user wants to match a specific page's look.</p>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

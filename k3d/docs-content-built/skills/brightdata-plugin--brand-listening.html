@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>brand-listening — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">brand-listening</span></nav>
+    <h1>brand-listening</h1>
+    <p class="page-desc">Social listening and brand reputation research using Bright Data's web scraping infrastructure. Collects what real people are saying about a brand, product, or person across Reddit, X/Twitter, Instagram, TikTok, YouTube, news, and review sites — then classifies sentiment, clusters themes, and delivers a cited digest with actionable recommendations. Use this skill when the user wants to know what people are saying about their brand, monitor social media mentions, gauge public sentiment, track online reputation, find complaints or advocacy, measure buzz around a launch, or do social listening / brand monitoring / sentiment analysis. Also use when the user mentions brand mentions, brand health, reputation tracking, or &quot;what's the internet saying about us&quot;.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">brightdata-plugin</span> <span class="pv-ver">1.8.0</span></span>
+      <span class="domain-tag">ops</span>
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Brand Listening</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#prerequisites"><span class="toc-num">1.</span> Prerequisites</a></li>
+<li class="toc-item"><a href="#core-workflow"><span class="toc-num">2.</span> Core Workflow</a></li>
+<li class="toc-item"><a href="#data-collection-rules"><span class="toc-num">3.</span> Data Collection Rules</a></li>
+<li class="toc-item"><a href="#platform-modules"><span class="toc-num">4.</span> Platform Modules</a></li>
+<li class="toc-item"><a href="#choosing-what-to-collect"><span class="toc-num">5.</span> Choosing What to Collect</a></li>
+<li class="toc-item"><a href="#sentiment-themes--output"><span class="toc-num">6.</span> Sentiment, Themes &amp; Output</a></li>
+<li class="toc-item"><a href="#output-quality-standards"><span class="toc-num">7.</span> Output Quality Standards</a></li></ul>
+</div>
+<p>Find out what people are <em>actually</em> saying about a brand across social platforms, news, and reviews — powered by live web data, not stale training knowledge. Combines the Bright Data CLI (<code>bdata</code>) for collection with a sentiment + theme analysis layer to deliver a cited, actionable digest.</p>
+<p><strong>Never answer brand-sentiment questions from training knowledge alone.</strong> Public sentiment changes daily. Always collect live mentions first, then classify and synthesize.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<ol>
+<li>Bright Data CLI installed:<div class="code-wrapper"><pre><code class="language-bash">curl -fsSL https://cli.brightdata.com/install.sh | bash
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+<li>One-time login completed:<div class="code-wrapper"><pre><code class="language-bash">bdata login    # or: bdata login --device  (SSH / headless)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+</ol>
+<p>Verify before collecting:</p>
+<div class="code-wrapper"><pre><code class="language-bash">if ! command -v bdata &gt;/dev/null 2&gt;&amp;1; then
+    echo "bdata CLI not installed — see skills/bright-data-best-practices/references/cli-setup.md"
+elif ! bdata zones &gt;/dev/null 2&gt;&amp;1; then
+    echo "bdata not authenticated — run: bdata login"
+fi
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Halt and route to setup if either check fails.</p>
+<h2 id="core-workflow">Core Workflow</h2>
+<ol>
+<li><strong>Clarify scope</strong> — Which brand/product/person? Which platforms? What time window (default: last 30 days)? What does the user want to <em>do</em> with it (general health check, launch monitoring, complaint triage, advocacy hunting)?</li>
+<li><strong>Discover, then collect</strong> — Use <code>bdata search</code> to find where the brand is being discussed, then <code>bdata pipelines</code> to pull structured mentions from each platform. Parallelize independent calls.</li>
+<li><strong>Normalize</strong> — Collapse every raw result into the single mention schema in <a href="references/sentiment-and-output.md">references/sentiment-and-output.md</a> before any analysis.</li>
+<li><strong>Classify &amp; cluster</strong> — Assign sentiment per mention (with a reason), then group mentions into themes. Follow the sentiment guardrails — never inflate either side.</li>
+<li><strong>Deliver</strong> — Produce the cited digest (Output A), optionally with the structured dataset (Output B). Every report ends with a "So what — recommendations" section.</li>
+</ol>
+<h2 id="data-collection-rules">Data Collection Rules</h2>
+<ul>
+<li><strong>Discovery first.</strong> You rarely have the right URLs up front. Run <code>bdata search "&lt;brand&gt; site:reddit.com" --json</code> (and per-platform variants) to find threads, profiles, and articles, <em>then</em> feed those URLs to pipelines.</li>
+<li><strong>Prefer <code>bdata pipelines</code></strong> over <code>bdata scrape</code> whenever a pipeline exists for the platform — pipelines return clean structured JSON (author, date, engagement, text).</li>
+<li><strong>Always pass <code>--json</code></strong> when you need to parse or pipe output.</li>
+<li><strong>Be cost-efficient</strong> — a standard sweep is ~6–12 <code>bdata</code> calls, not 50. Pull the highest-signal threads/profiles, not everything.</li>
+<li><strong>Parallelize</strong> independent calls across multiple Bash tool calls in one response.</li>
+<li><strong>Every mention needs a source URL.</strong> No unattributed quotes, ever.</li>
+<li><strong>Never fabricate sentiment or fill gaps.</strong> If a platform returns nothing, report it in "Gaps &amp; caveats".</li>
+</ul>
+<h2 id="platform-modules">Platform Modules</h2>
+<p>Pick the platforms that fit the brand. Consumer/cultural brands skew TikTok/Instagram/Reddit; B2B/SaaS skews Reddit/X/review sites; local businesses skew Google Maps reviews.</p>
+<h3>Reddit — honest, unfiltered sentiment</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># Discover relevant threads
+bdata search "&lt;brand&gt; site:reddit.com" --json
+bdata search "&lt;brand&gt; review reddit" --json
+
+# Pull structured post + comment data from the threads found
+bdata pipelines reddit_posts "&lt;reddit-thread-url&gt;" --json -o reddit.json
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Reddit is the single best source for candid opinions brand channels hide. Prioritize it.</p>
+<h3>X / Twitter — real-time reaction</h3>
+<div class="code-wrapper"><pre><code class="language-bash">bdata search "&lt;brand&gt;" --json                      # find recent discussion
+bdata pipelines x_posts "&lt;x-profile-or-post-url&gt;" --json -o x.json
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Instagram — brand aesthetics, comments, advocacy</h3>
+<div class="code-wrapper"><pre><code class="language-bash">bdata pipelines instagram_posts "https://www.instagram.com/&lt;brand&gt;/" --json -o ig_posts.json
+bdata pipelines instagram_comments "&lt;instagram-post-url&gt;" --json -o ig_comments.json
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>TikTok — cultural relevance, viral sentiment</h3>
+<div class="code-wrapper"><pre><code class="language-bash">bdata pipelines tiktok_posts "https://www.tiktok.com/@&lt;brand&gt;" --json -o tt_posts.json
+bdata pipelines tiktok_comments "&lt;tiktok-video-url&gt;" --json -o tt_comments.json
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>YouTube — reviews, tutorials, long-form opinion (comments are gold)</h3>
+<div class="code-wrapper"><pre><code class="language-bash">bdata search "&lt;brand&gt; review youtube" --json
+bdata pipelines youtube_videos "&lt;video-url&gt;" --json -o yt_videos.json
+bdata pipelines youtube_comments "&lt;video-url&gt;" 100 --json -o yt_comments.json   # url + num_comments
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Reviews — structured customer sentiment</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># App-based products
+bdata pipelines google_play_store "&lt;play-store-url&gt;" --json -o play.json
+bdata pipelines apple_app_store "&lt;app-store-url&gt;" --json -o appstore.json
+
+# Local / physical businesses
+bdata pipelines google_maps_reviews "&lt;maps-url&gt;" 90 --json -o gmaps.json   # url + days_limit
+
+# Facebook page reviews
+bdata pipelines facebook_company_reviews "&lt;fb-page-url&gt;" 50 --json -o fb_reviews.json   # url + num
+
+# SaaS / software — discover then scrape (no pipeline)
+bdata search "&lt;brand&gt; site:g2.com" --json
+bdata search "&lt;brand&gt; site:capterra.com" --json
+bdata scrape "&lt;g2-or-capterra-url&gt;"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>News &amp; press — coverage and tone</h3>
+<div class="code-wrapper"><pre><code class="language-bash">bdata search "&lt;brand&gt;" --json                  # general SERP, scan for news
+bdata scrape "&lt;article-url&gt;"                    # pull full article text for tone
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<blockquote>
+<p><strong>Pipeline names change.</strong> Always confirm with <code>bdata pipelines list</code> before hardcoding a type. Names are inconsistent across platforms (<code>tiktok_posts</code> plural, <code>reddit_posts</code> plural, <code>x_posts</code>). The <code>data-feeds</code> skill has the verified list.</p>
+</blockquote>
+<h2 id="choosing-what-to-collect">Choosing What to Collect</h2>
+<table>
+<thead>
+<tr>
+<th>User says...</th>
+<th>Collect from</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>"What are people saying about us / my brand"</td>
+<td>Reddit + X + reviews + news (broad sweep)</td>
+</tr>
+<tr>
+<td>"How did our launch land" / "buzz around X"</td>
+<td>TikTok + Instagram + X + YouTube (recency-focused)</td>
+</tr>
+<tr>
+<td>"Find complaints / what people hate"</td>
+<td>Reddit + reviews (G2/Capterra/app stores) + YouTube comments</td>
+</tr>
+<tr>
+<td>"Who's advocating for us / fans"</td>
+<td>Instagram + TikTok + X (high-engagement positive posts)</td>
+</tr>
+<tr>
+<td>"Reputation / sentiment over time"</td>
+<td>Same sources, two windows — compare prior vs current</td>
+</tr>
+<tr>
+<td>Local business reputation</td>
+<td>Google Maps reviews + Facebook reviews</td>
+</tr>
+</tbody></table>
+<h2 id="sentiment-themes--output">Sentiment, Themes &amp; Output</h2>
+<p>Read <a href="references/sentiment-and-output.md">references/sentiment-and-output.md</a> for:</p>
+<ul>
+<li>The <strong>normalized mention record</strong> schema (use it as the row shape for both analysis and the dataset output).</li>
+<li>The <strong>sentiment method + guardrails</strong> (classify from text as written; sarcasm/ambiguous → <code>mixed</code>; always report counts <em>and</em> percentages with the denominator).</li>
+<li><strong>Theme clustering</strong> — where the actionable insight lives.</li>
+<li><strong>Output templates</strong> — A (digest report), B (structured dataset), C (both).</li>
+</ul>
+<h2 id="output-quality-standards">Output Quality Standards</h2>
+<ol>
+<li><strong>Every mention has a source URL</strong> — no unattributed claims.</li>
+<li><strong>Facts separate from interpretation</strong> — the quote is the fact; your sentiment label is interpretation. Keep them distinct.</li>
+<li><strong>Percentages always carry N</strong> — "61% positive of 142 classified mentions", never a bare percentage.</li>
+<li><strong>Be honest about gaps</strong> — list platforms that returned nothing this window. Note small samples that can't generalize.</li>
+<li><strong>Date-stamp everything</strong> — "Data collected on <date> · window: last <n> days".</n></date></li>
+<li><strong>End with "So what"</strong> — every report closes with 2–4 actionable recommendations, each grounded in a theme from the data. Raw mentions without interpretation are not a deliverable.</li>
+</ol>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

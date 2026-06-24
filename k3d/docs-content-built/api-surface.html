@@ -39,7 +39,7 @@
 <article class="doc-body">
 <html><head></head><body><h1>API Surface Map</h1>
 <blockquote>
-<p>Generated at 2026-06-19T23:18:47.477Z</p>
+<p>Generated at 2026-06-22T07:14:56.523Z</p>
 </blockquote>
 <table>
 <thead>
@@ -51,10 +51,28 @@
 </tr>
 </thead>
 <tbody><tr>
+<td><code>/api/admin/agent-push/settings</code></td>
+<td>GET, POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/agent-push/settings.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/ai-quality</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/ai-quality.ts</code></td>
+</tr>
+<tr>
 <td><code>/api/admin/angebote/save</code></td>
 <td>POST</td>
 <td>🔐 admin</td>
 <td><code>website/src/pages/api/admin/angebote/save.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/art-library</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/art-library.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/admin/assets</code></td>
@@ -855,30 +873,6 @@
 <td><code>website/src/pages/api/admin/folder-templates/update.ts</code></td>
 </tr>
 <tr>
-<td><code>/api/admin/followups/create</code></td>
-<td>POST</td>
-<td>🔐 admin</td>
-<td><code>website/src/pages/api/admin/followups/create.ts</code></td>
-</tr>
-<tr>
-<td><code>/api/admin/followups/delete</code></td>
-<td>POST</td>
-<td>🔐 admin</td>
-<td><code>website/src/pages/api/admin/followups/delete.ts</code></td>
-</tr>
-<tr>
-<td><code>/api/admin/followups/notify</code></td>
-<td>POST</td>
-<td>🔐 admin</td>
-<td><code>website/src/pages/api/admin/followups/notify.ts</code></td>
-</tr>
-<tr>
-<td><code>/api/admin/followups/update</code></td>
-<td>POST</td>
-<td>🔐 admin</td>
-<td><code>website/src/pages/api/admin/followups/update.ts</code></td>
-</tr>
-<tr>
 <td><code>/api/admin/footer/save</code></td>
 <td>POST</td>
 <td>🔐 admin</td>
@@ -1179,6 +1173,12 @@
 <td><code>website/src/pages/api/admin/onboarding/update.ts</code></td>
 </tr>
 <tr>
+<td><code>/api/admin/openspec/save-proposal</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/openspec/save-proposal.ts</code></td>
+</tr>
+<tr>
 <td><code>/api/admin/ops/ai/reindex</code></td>
 <td>POST</td>
 <td>🔐 admin</td>
@@ -1267,6 +1267,12 @@
 <td>POST</td>
 <td>🔐 admin</td>
 <td><code>website/src/pages/api/admin/ops/restore.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/ops/server-logs/stream</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/ops/server-logs/stream.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/admin/ops/users/create</code></td>
@@ -1515,36 +1521,6 @@
 <td><code>website/src/pages/api/admin/referenzen/save.ts</code></td>
 </tr>
 <tr>
-<td><code>/api/admin/rooms</code></td>
-<td>GET, POST</td>
-<td>🔐 admin</td>
-<td><code>website/src/pages/api/admin/rooms.ts</code></td>
-</tr>
-<tr>
-<td><code>/api/admin/rooms/{id}</code></td>
-<td>GET, PUT, POST</td>
-<td>🔐 admin</td>
-<td><code>website/src/pages/api/admin/rooms/[id].ts</code></td>
-</tr>
-<tr>
-<td><code>/api/admin/rooms/{id}/members</code></td>
-<td>POST</td>
-<td>🔐 admin</td>
-<td><code>website/src/pages/api/admin/rooms/[id]/members.ts</code></td>
-</tr>
-<tr>
-<td><code>/api/admin/rooms/{id}/share</code></td>
-<td>POST</td>
-<td>🔐 admin</td>
-<td><code>website/src/pages/api/admin/rooms/[id]/share.ts</code></td>
-</tr>
-<tr>
-<td><code>/api/admin/rooms/direct</code></td>
-<td>POST</td>
-<td>🔐 admin</td>
-<td><code>website/src/pages/api/admin/rooms/direct.ts</code></td>
-</tr>
-<tr>
 <td><code>/api/admin/seo</code></td>
 <td>GET</td>
 <td>🔐 admin</td>
@@ -1573,6 +1549,42 @@
 <td>POST</td>
 <td>🔐 admin</td>
 <td><code>website/src/pages/api/admin/service-page/save.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/sessions</code></td>
+<td>GET, POST, DELETE</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/sessions/index.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/sessions/history</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/sessions/history/index.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/sessions/history/{id}</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/sessions/history/[id].ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/sessions/purge</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/sessions/purge.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/sessions/templates</code></td>
+<td>GET, POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/sessions/templates/index.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/sessions/templates/{id}</code></td>
+<td>DELETE</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/sessions/templates/[id].ts</code></td>
 </tr>
 <tr>
 <td><code>/api/admin/shortcuts/create</code></td>
@@ -1819,6 +1831,18 @@
 <td>POST</td>
 <td>🔐 admin</td>
 <td><code>website/src/pages/api/admin/tickets/[id]/triage.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/tickets/bulk-status</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/tickets/bulk-status.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/tickets/bulk-status/undo</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/tickets/bulk-status/undo.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/admin/time-windows/add</code></td>
@@ -2211,6 +2235,12 @@
 <td><code>website/src/pages/api/newsletter/unsubscribe.ts</code></td>
 </tr>
 <tr>
+<td><code>/api/openspec/search</code></td>
+<td>GET</td>
+<td>❓ unclassified</td>
+<td><code>website/src/pages/api/openspec/search.ts</code></td>
+</tr>
+<tr>
 <td><code>/api/planning-office</code></td>
 <td>GET, POST, DELETE</td>
 <td>🔐 admin</td>
@@ -2458,7 +2488,7 @@
 </tr>
 <tr>
 <td><code>/api/tickets/comment</code></td>
-<td>POST</td>
+<td>OPTIONS, POST</td>
 <td>❓ unclassified</td>
 <td><code>website/src/pages/api/tickets/comment.ts</code></td>
 </tr>

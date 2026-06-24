@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>KI-API Prod-Migrationen (T000711) Implementation Plan — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="./index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./docs.html">Docs</a> <span class="sep">/</span> <span class="crumb-current">KI-API Prod-Migrationen (T000711) Implementation Plan</span></nav>
+    <h1>KI-API Prod-Migrationen (T000711) Implementation Plan</h1>
+    <p class="page-desc"></p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      <span class="domain-tag">infra</span>
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>KI-API Prod-Migrationen (T000711) Implementation Plan</h1>
+<blockquote>
+<p><strong>For agentic workers:</strong> REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (<code>- [ ]</code>) syntax for tracking.</p>
+</blockquote>
+<p><strong>Goal:</strong> Zwei SQL-Migrationen auf beiden Prod-Brand-Datenbanken (mentolder + korczewski) ausführen, damit die Coaching-Auswahl im Dashboard für T000711 funktioniert.</p>
+<p><strong>Architecture:</strong> Beide Migrationen sind idempotent und müssen nacheinander ausgeführt werden: erst Schema-Erweiterung (<code>provider-config-unify</code>), dann Daten-Migration (<code>coaching-data-migrate</code>). Sie laufen direkt gegen die <code>shared-db</code>-Pods im <code>fleet</code>-Cluster via <code>kubectl exec</code>.</p>
+<p><strong>Tech Stack:</strong> kubectl (context: <code>fleet</code>), psql, <code>scripts/factory/lib.sh</code> (factory_resolve / factory_psql), Bash.</p>
+<h2 id="global-constraints">Global Constraints</h2>
+<ul>
+<li>kubectl context immer <code>fleet</code> — niemals einen anderen Context nutzen</li>
+<li>mentolder → Namespace <code>workspace</code>, korczewski → Namespace <code>workspace-korczewski</code></li>
+<li>Migrationen sind idempotent (IF NOT EXISTS / ON CONFLICT DO NOTHING) — sie können sicher mehrfach laufen</li>
+<li>Reihenfolge: 1. <code>provider-config-unify.sql</code>, 2. <code>coaching-data-migrate.sql</code></li>
+<li>Auf beiden Brands ausführen: erst mentolder, dann korczewski</li>
+<li>Kein Code-Change, kein PR nötig — nur Ops</li>
+</ul>
+<hr>
+<h3>Task 1: Verbindungscheck und Vorbedingungen prüfen</h3>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Read: <code>scripts/factory/lib.sh</code> (factory_resolve + factory_psql — bereits bekannt, kein Edit)</li>
+<li>Read: <code>scripts/migrations/2026-06-14-provider-config-unify.sql</code></li>
+<li>Read: <code>scripts/migrations/2026-06-14-coaching-data-migrate.sql</code></li>
+</ul>
+<p><strong>Interfaces:</strong></p>
+<ul>
+<li><p>Konsumiert: <code>FACTORY_CTX=fleet</code>, <code>BRAND=mentolder|korczewski</code></p>
+</li>
+<li><p>Produziert: Bestätigung dass shared-db-Pods erreichbar sind</p>
+</li>
+<li><p><input disabled="" type="checkbox"> <strong>Step 1: fleet-Context aktivieren</strong></p>
+</li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-bash">kubectl config use-context fleet
+kubectl config current-context  # muss "fleet" ausgeben
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Erwartung: <code>fleet</code></p>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 2: mentolder shared-db-Pod prüfen</strong></li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-bash">kubectl get pod -n workspace --context fleet \
+  -l 'app in (shared-db, shared-db-dev)' \
+  -o wide
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Erwartung: Ein Pod mit Status <code>Running</code>. Name wird für später gemerkt.</p>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 3: korczewski shared-db-Pod prüfen</strong></li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-bash">kubectl get pod -n workspace-korczewski --context fleet \
+  -l 'app in (shared-db, shared-db-dev)' \
+  -o wide
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Erwartung: Ein Pod mit Status <code>Running</code>.</p>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 4: mentolder DB-Verbindung testen</strong></li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-bash">BRAND=mentolder bash -c '
+  source scripts/factory/lib.sh
+  factory_resolve
+  factory_psql &lt;&lt;EOF
+SELECT current_database(), current_user, current_schema();
+EOF
+'
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Erwartung: Ausgabe enthält <code>website</code>, <code>website</code>, (kein Fehler).</p>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 5: korczewski DB-Verbindung testen</strong></li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-bash">BRAND=korczewski bash -c '
+  source scripts/factory/lib.sh
+  factory_resolve
+  factory_psql &lt;&lt;EOF
+SELECT current_database(), current_user, current_schema();
+EOF
+'
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Erwartung: Ausgabe enthält <code>website</code>, <code>website</code>, (kein Fehler).</p>
+<hr>
+<h3>Task 2: Schema-Migration auf mentolder ausführen</h3>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Execute: <code>scripts/migrations/2026-06-14-provider-config-unify.sql</code> gegen <code>workspace</code> (mentolder)</li>
+</ul>
+<p><strong>Interfaces:</strong></p>
+<ul>
+<li><p>Konsumiert: laufender mentolder shared-db-Pod aus Task 1</p>
+</li>
+<li><p>Produziert: <code>tickets.provider_config</code> mit neuen Spalten + Indices</p>
+</li>
+<li><p><input disabled="" type="checkbox"> <strong>Step 1: Aktuellen Schema-Stand prüfen (Pre-Check)</strong></p>
+</li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-bash">BRAND=mentolder bash -c '
+  source scripts/factory/lib.sh
+  factory_resolve
+  factory_psql &lt;&lt;EOF
+SELECT column_name FROM information_schema.columns
+WHERE table_schema = '"'"'tickets'"'"' AND table_name = '"'"'provider_config'"'"'
+ORDER BY ordinal_position;
+EOF
+'
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Notiere, welche Spalten bereits vorhanden sind.</p>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 2: Schema-Migration ausführen</strong></li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-bash">BRAND=mentolder bash -c '
+  source scripts/factory/lib.sh
+  factory_resolve
+  factory_psql &lt; scripts/migrations/2026-06-14-provider-config-unify.sql
+'
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Erwartung: Kein Fehler, Migration läuft durch (COMMIT ohne ERROR).</p>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 3: Neue Spalten verifizieren</strong></li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-bash">BRAND=mentolder bash -c '
+  source scripts/factory/lib.sh
+  factory_resolve
+  factory_psql &lt;&lt;EOF
+SELECT column_name FROM information_schema.columns
+WHERE table_schema = '"'"'tickets'"'"' AND table_name = '"'"'provider_config'"'"'
+  AND column_name IN ('"'"'brand'"'"', '"'"'is_active'"'"', '"'"'display_name'"'"',
+                       '"'"'api_key'"'"', '"'"'temperature'"'"', '"'"'enabled_fields'"'"')
+ORDER BY column_name;
+EOF
+'
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Erwartung: Alle 6 Spalten werden aufgelistet.</p>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 4: Index auf coaching-brand_provider prüfen</strong></li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-bash">BRAND=mentolder bash -c '
+  source scripts/factory/lib.sh
+  factory_resolve
+  factory_psql &lt;&lt;EOF
+SELECT indexname FROM pg_indexes
+WHERE tablename = '"'"'provider_config'"'"' AND schemaname = '"'"'tickets'"'"'
+  AND indexname LIKE '"'"'provider_config_coaching%'"'"';
+EOF
+'
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Erwartung: <code>provider_config_coaching_brand_provider</code> und <code>provider_config_coaching_active</code> erscheinen.</p>
+<hr>
+<h3>Task 3: Daten-Migration auf mentolder ausführen</h3>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Execute: <code>scripts/migrations/2026-06-14-coaching-data-migrate.sql</code> gegen <code>workspace</code> (mentolder)</li>
+</ul>
+<p><strong>Interfaces:</strong></p>
+<ul>
+<li><p>Konsumiert: Schema aus Task 2 (Spalten <code>brand</code>, <code>source</code>, <code>tier</code> etc. in <code>tickets.provider_config</code>)</p>
+</li>
+<li><p>Produziert: Daten aus <code>coaching.ki_config</code> → <code>tickets.provider_config</code>, Mapping-Tabelle, neue FK</p>
+</li>
+<li><p><input disabled="" type="checkbox"> <strong>Step 1: Anzahl bestehender Coaching-Einträge prüfen (Pre-Check)</strong></p>
+</li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-bash">BRAND=mentolder bash -c '
+  source scripts/factory/lib.sh
+  factory_resolve
+  factory_psql &lt;&lt;EOF
+SELECT COUNT(*) AS ki_config_count FROM coaching.ki_config;
+SELECT COUNT(*) AS provider_config_coaching_count
+FROM tickets.provider_config WHERE source = '"'"'coaching'"'"';
+EOF
+'
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Notiere die Anzahlen.</p>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 2: Daten-Migration ausführen</strong></li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-bash">BRAND=mentolder bash -c '
+  source scripts/factory/lib.sh
+  factory_resolve
+  factory_psql &lt; scripts/migrations/2026-06-14-coaching-data-migrate.sql
+'
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Erwartung: Kein Fehler, COMMIT ohne ERROR.</p>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 3: Migrationserfolg verifizieren</strong></li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-bash">BRAND=mentolder bash -c '
+  source scripts/factory/lib.sh
+  factory_resolve
+  factory_psql &lt;&lt;EOF
+SELECT COUNT(*) AS migrated FROM tickets.provider_config WHERE source = '"'"'coaching'"'"';
+SELECT COUNT(*) AS mapped FROM coaching.ki_config_id_map;
+SELECT COUNT(*) AS sessions_remapped
+  FROM coaching.sessions s
+  JOIN tickets.provider_config p ON p.id = s.ki_config_id
+  WHERE p.source = '"'"'coaching'"'"';
+EOF
+'
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Erwartung: <code>migrated</code> ≥ 1, <code>mapped</code> = <code>migrated</code>, <code>sessions_remapped</code> ≥ 0 (kann 0 sein wenn keine Sessions existieren).</p>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 4: FK-Constraint prüfen</strong></li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-bash">BRAND=mentolder bash -c '
+  source scripts/factory/lib.sh
+  factory_resolve
+  factory_psql &lt;&lt;EOF
+SELECT conname, contype FROM pg_constraint
+WHERE conname = '"'"'sessions_ki_config_id_fkey'"'"'
+  AND conrelid = '"'"'coaching.sessions'"'"'::regclass;
+EOF
+'
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Erwartung: <code>sessions_ki_config_id_fkey</code> mit <code>contype = f</code> (Foreign Key).</p>
+<hr>
+<h3>Task 4: Schema-Migration auf korczewski ausführen</h3>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Execute: <code>scripts/migrations/2026-06-14-provider-config-unify.sql</code> gegen <code>workspace-korczewski</code></li>
+</ul>
+<p><strong>Interfaces:</strong></p>
+<ul>
+<li><p>Konsumiert: laufender korczewski shared-db-Pod aus Task 1</p>
+</li>
+<li><p>Produziert: gleicher Schema-Stand wie mentolder</p>
+</li>
+<li><p><input disabled="" type="checkbox"> <strong>Step 1: Schema-Migration auf korczewski ausführen</strong></p>
+</li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-bash">BRAND=korczewski bash -c '
+  source scripts/factory/lib.sh
+  factory_resolve
+  factory_psql &lt; scripts/migrations/2026-06-14-provider-config-unify.sql
+'
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Erwartung: Kein Fehler, COMMIT ohne ERROR.</p>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 2: Neue Spalten auf korczewski verifizieren</strong></li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-bash">BRAND=korczewski bash -c '
+  source scripts/factory/lib.sh
+  factory_resolve
+  factory_psql &lt;&lt;EOF
+SELECT column_name FROM information_schema.columns
+WHERE table_schema = '"'"'tickets'"'"' AND table_name = '"'"'provider_config'"'"'
+  AND column_name IN ('"'"'brand'"'"', '"'"'is_active'"'"', '"'"'display_name'"'"',
+                       '"'"'api_key'"'"', '"'"'temperature'"'"', '"'"'enabled_fields'"'"')
+ORDER BY column_name;
+EOF
+'
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Erwartung: Alle 6 Spalten erscheinen.</p>
+<hr>
+<h3>Task 5: Daten-Migration auf korczewski ausführen</h3>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Execute: <code>scripts/migrations/2026-06-14-coaching-data-migrate.sql</code> gegen <code>workspace-korczewski</code></li>
+</ul>
+<p><strong>Interfaces:</strong></p>
+<ul>
+<li><p>Konsumiert: Schema aus Task 4 (korczewski)</p>
+</li>
+<li><p>Produziert: Daten-Migration vollständig auf beiden Brands</p>
+</li>
+<li><p><input disabled="" type="checkbox"> <strong>Step 1: Daten-Migration auf korczewski ausführen</strong></p>
+</li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-bash">BRAND=korczewski bash -c '
+  source scripts/factory/lib.sh
+  factory_resolve
+  factory_psql &lt; scripts/migrations/2026-06-14-coaching-data-migrate.sql
+'
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Erwartung: Kein Fehler, COMMIT ohne ERROR.</p>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 2: Migrationserfolg auf korczewski verifizieren</strong></li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-bash">BRAND=korczewski bash -c '
+  source scripts/factory/lib.sh
+  factory_resolve
+  factory_psql &lt;&lt;EOF
+SELECT COUNT(*) AS migrated FROM tickets.provider_config WHERE source = '"'"'coaching'"'"';
+SELECT COUNT(*) AS mapped FROM coaching.ki_config_id_map;
+EOF
+'
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Erwartung: <code>migrated</code> ≥ 0 (korczewski kann weniger Daten haben), <code>mapped</code> = <code>migrated</code>.</p>
+<hr>
+<h3>Task 6: End-to-End-Funktionsprüfung im Browser</h3>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Test via Browser: <code>https://web.mentolder.de/admin/dashboard</code> (Coaching-Tab)</li>
+<li>Test via Browser: <code>https://web.korczewski.de/admin/dashboard</code> (Coaching-Tab)</li>
+</ul>
+<p><strong>Interfaces:</strong></p>
+<ul>
+<li><p>Konsumiert: vollständig migrierte DBs aus Tasks 2–5</p>
+</li>
+<li><p>Produziert: Bestätigung dass Coaching-Auswahl im Dashboard funktioniert</p>
+</li>
+<li><p><input disabled="" type="checkbox"> <strong>Step 1: mentolder Coaching-Dashboard prüfen</strong></p>
+</li>
+</ul>
+<ol>
+<li>Browser öffnen: <code>https://web.mentolder.de/admin/dashboard</code></li>
+<li>Als Admin einloggen (via Pocket ID)</li>
+<li>Coaching-Tab öffnen</li>
+<li>Sicherstellen, dass vorhandene Coaching-Provider geladen werden (keine leere Liste oder 500-Error)</li>
+</ol>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 2: korczewski Coaching-Dashboard prüfen</strong></li>
+</ul>
+<ol>
+<li>Browser öffnen: <code>https://web.korczewski.de/admin/dashboard</code></li>
+<li>Als Admin einloggen</li>
+<li>Coaching-Tab öffnen</li>
+<li>Sicherstellen, dass die Coaching-Auswahl funktioniert</li>
+</ol>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 3: Ticket T000711 auf awaiting_deploy setzen (bereits gemergt)</strong></li>
+</ul>
+<p>Da der Code (PR #1651) bereits gemergt und deployed ist und die Migrationen jetzt laufen, Ticket schliessen:</p>
+<div class="code-wrapper"><pre><code class="language-bash">bash scripts/ticket.sh comment T000711 "Migrationen erfolgreich auf mentolder und korczewski ausgeführt. Coaching-Dashboard verifiziert."
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Falls Ticket-Status noch nicht <code>done</code>: Status auf <code>done</code> setzen via Admin-Cockpit oder ticket.sh.</p>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="./app.js"></script>
+</body>
+</html>

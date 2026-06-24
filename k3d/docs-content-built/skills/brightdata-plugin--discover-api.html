@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>discover-api — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">discover-api</span></nav>
+    <h1>discover-api</h1>
+    <p class="page-desc">Use Bright Data's Discover API — intent-ranked, AI-relevance-scored web search
+at scale (not keyword SERP). Trigger a discovery job and retrieve ranked results
+(link, title, description, relevance_score) with optional parsed page content.
+Use when the user wants semantic/intent-based web search, &quot;find pages about
+&lt;topic&gt; that match &lt;goal&gt;&quot;, web-grounded retrieval for an LLM, or results
+filtered by relevance rather than raw keyword rank. Covers the REST API
+(POST/GET /discover), the CLI (`bdata discover`), and the Python/JS SDKs
+(`client.discover`), including the standard/zeroRanking/deep/fast modes. This is
+the foundation skill for `live-research` and `rag-pipeline`. For keyword SERP use
+`search`; for structured platform data use `data-feeds`.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">brightdata-plugin</span> <span class="pv-ver">1.8.0</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Bright Data — Discover API</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#how-it-works-async-trigger--poll"><span class="toc-num">1.</span> How it works (async: trigger → poll)</a></li>
+<li class="toc-item"><a href="#pick-your-surface"><span class="toc-num">2.</span> Pick your surface</a></li>
+<li class="toc-item"><a href="#parameters-rest-body--authoritative-superset"><span class="toc-num">3.</span> Parameters (REST body — authoritative superset)</a></li>
+<li class="toc-item"><a href="#modes-choose-by-goal"><span class="toc-num">4.</span> Modes (choose by goal)</a></li>
+<li class="toc-item"><a href="#result-shape"><span class="toc-num">5.</span> Result shape</a></li>
+<li class="toc-item"><a href="#verification-gate"><span class="toc-num">6.</span> Verification gate</a></li>
+<li class="toc-item"><a href="#red-flags"><span class="toc-num">7.</span> Red flags</a></li>
+<li class="toc-item"><a href="#references"><span class="toc-num">8.</span> References</a></li>
+<li class="toc-item"><a href="#related-skills"><span class="toc-num">9.</span> Related skills</a></li></ul>
+</div>
+<p>Discover is <strong>intent-ranked semantic web search</strong>. You give it a <code>query</code> plus an
+<code>intent</code>, and it returns results scored by AI relevance — optionally with the full
+parsed page content. It is the right primitive when result <em>quality/relevance</em>
+matters more than raw keyword rank, and the building block for retrieval (RAG),
+research, and knowledge-base pipelines.</p>
+<p><strong>Discover vs. the neighbors:</strong></p>
+<ul>
+<li>Keyword "what ranks for X" SERP → use the <strong><code>search</code></strong> skill (<code>bdata search</code>).</li>
+<li>Structured data from a known platform (Amazon/LinkedIn/…) → use <strong><code>data-feeds</code></strong>.</li>
+<li>A whole research brief or a RAG/search pipeline on top of Discover → use
+<strong><code>live-research</code></strong> or <strong><code>rag-pipeline</code></strong> (both call this API).</li>
+</ul>
+<h2 id="how-it-works-async-trigger--poll">How it works (async: trigger → poll)</h2>
+<ol>
+<li><strong>Trigger</strong> a job → you get a <code>task_id</code>.</li>
+<li><strong>Poll</strong> with the <code>task_id</code> until <code>status</code> is <code>"done"</code> (intermediate: <code>"processing"</code>).</li>
+<li>Read <code>results[]</code>.</li>
+</ol>
+<p>The CLI and SDKs do the trigger+poll for you; the raw REST flow is shown below for
+when you need parameters the wrappers don't expose (notably <code>mode</code>).</p>
+<h2 id="pick-your-surface">Pick your surface</h2>
+<table>
+<thead>
+<tr>
+<th>You are…</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>In a terminal, one-off or scripted</td>
+<td>CLI: <code>bdata discover</code></td>
+</tr>
+<tr>
+<td>Writing Node/TS code</td>
+<td>JS SDK: <code>client.discover()</code> — see <code>js-sdk-best-practices</code></td>
+</tr>
+<tr>
+<td>Writing Python code</td>
+<td>Python SDK: <code>client.discover()</code> — see <code>python-sdk-best-practices</code></td>
+</tr>
+<tr>
+<td>Need <code>mode</code> (deep/fast/zeroRanking) or <code>include_images</code></td>
+<td><strong>Raw REST</strong> (wrappers don't expose these yet)</td>
+</tr>
+</tbody></table>
+<h3>CLI — <code>bdata discover</code></h3>
+<p>Setup gate first:</p>
+<div class="code-wrapper"><pre><code class="language-bash">command -v bdata &gt;/dev/null 2&gt;&amp;1 || echo "CLI missing — see bright-data-best-practices/references/cli-setup.md"
+bdata zones &gt;/dev/null 2&gt;&amp;1 || echo "not authenticated — run: bdata login"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<div class="code-wrapper"><pre><code class="language-bash"># Intent-ranked discovery, JSON
+bdata discover "enterprise LLM platforms" \
+  --intent "vendor pages with pricing" \
+  --num-results 15 --json --pretty
+
+# With parsed page content in one pass (for RAG / research)
+bdata discover "webhook retry best practices" \
+  --include-content --num-results 10 -o results.json
+
+# Date-bounded
+bdata discover "react server components" \
+  --start-date 2025-01-01 --end-date 2025-12-31 --num-results 20 --json
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Results live at <code>.results[]</code>; each has <code>title</code>, <code>link</code>, <code>description</code>,
+<code>relevance_score</code>, and <code>content</code> when <code>--include-content</code>. Full CLI flag list:
+<a href="../search/references/flags.md"><code>search</code> skill → <code>references/flags.md</code></a>.</p>
+<h3>SDK (one line each)</h3>
+<div class="code-wrapper"><pre><code class="language-javascript">// JS — see js-sdk-best-practices for all options.
+// VERIFIED v1.1.0: discover() returns a WRAPPER { success, data:[...], totalResults, cost, taskId, ... }
+const res = await client.discover('Tesla battery tech', { intent: 'EV battery breakthroughs', numResults: 10, includeContent: true });
+const rows = res.data;   // ← rows are in .data (NOT a bare array, NOT .results)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<div class="code-wrapper"><pre><code class="language-python"># Python — see python-sdk-best-practices (confirm whether rows come back directly, under .data, or .results)
+out = client.discover(query="Tesla battery tech", intent="EV battery breakthroughs")
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Raw REST (full control, incl. <code>mode</code>)</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># 1) Trigger
+task_id=$(curl -s -X POST https://api.brightdata.com/discover \
+  -H "Authorization: Bearer $BRIGHTDATA_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"query":"post-quantum cryptography adoption","intent":"enterprise migration guides","mode":"deep","num_results":20,"include_content":true}' \
+  | jq -r '.task_id')
+
+# 2) Poll until done
+while :; do
+  resp=$(curl -s "https://api.brightdata.com/discover?task_id=$task_id" -H "Authorization: Bearer $BRIGHTDATA_API_TOKEN")
+  [ "$(echo "$resp" | jq -r '.status')" = "done" ] &amp;&amp; break
+  sleep 3
+done
+echo "$resp" | jq '.results'
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="parameters-rest-body--authoritative-superset">Parameters (REST body — authoritative superset)</h2>
+<p><code>query</code> is required; everything else is optional. The CLI/SDK expose a subset
+(see <code>references/api-reference.md</code> for the exact per-surface matrix).</p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Default</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>query</code></td>
+<td>string</td>
+<td>—</td>
+<td>required, ≤ 1500 chars</td>
+</tr>
+<tr>
+<td><code>intent</code></td>
+<td>string</td>
+<td>—</td>
+<td>goal descriptor, ≤ 3000 chars; <strong>strongly recommended</strong> — drives ranking</td>
+</tr>
+<tr>
+<td><code>mode</code></td>
+<td>enum</td>
+<td><code>standard</code></td>
+<td><code>standard</code> | <code>zeroRanking</code> | <code>deep</code> | <code>fast</code> (REST-only)</td>
+</tr>
+<tr>
+<td><code>num_results</code></td>
+<td>int</td>
+<td>—</td>
+<td><strong>1–20</strong>; ignored in <code>zeroRanking</code></td>
+</tr>
+<tr>
+<td><code>filter_keywords</code></td>
+<td>string[]</td>
+<td>—</td>
+<td>exact keywords that must appear</td>
+</tr>
+<tr>
+<td><code>include_content</code></td>
+<td>bool</td>
+<td><code>false</code></td>
+<td>parsed page/PDF content (PDF ≤ 50 MB, 30s); unsupported in <code>zeroRanking</code></td>
+</tr>
+<tr>
+<td><code>include_images</code></td>
+<td>bool</td>
+<td><code>false</code></td>
+<td>image array (REST-only)</td>
+</tr>
+<tr>
+<td><code>format</code></td>
+<td>enum</td>
+<td><code>json</code></td>
+<td><code>json</code> | <code>md</code> (SDK accepts only <code>json</code>)</td>
+</tr>
+<tr>
+<td><code>country</code></td>
+<td>string</td>
+<td><code>US</code></td>
+<td>2-letter ISO</td>
+</tr>
+<tr>
+<td><code>city</code></td>
+<td>string</td>
+<td>—</td>
+<td>SERP city targeting</td>
+</tr>
+<tr>
+<td><code>language</code></td>
+<td>string</td>
+<td><code>en</code></td>
+<td>31 languages</td>
+</tr>
+<tr>
+<td><code>start_date</code> / <code>end_date</code></td>
+<td>string</td>
+<td>—</td>
+<td><code>YYYY-MM-DD</code> (REST-only)</td>
+</tr>
+<tr>
+<td><code>remove_duplicates</code></td>
+<td>bool</td>
+<td><code>true</code></td>
+<td>dedupe results (REST-only)</td>
+</tr>
+</tbody></table>
+<h2 id="modes-choose-by-goal">Modes (choose by goal)</h2>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>What it does</th>
+<th>Use for</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>standard</code> <em>(default)</em></td>
+<td>balanced depth + AI ranking</td>
+<td>general intent search</td>
+</tr>
+<tr>
+<td><code>deep</code></td>
+<td>exhaustive, broader search; slower</td>
+<td><strong><code>live-research</code></strong>, comprehensive topic coverage</td>
+</tr>
+<tr>
+<td><code>fast</code></td>
+<td>optimized for low latency</td>
+<td>time-sensitive / interactive</td>
+</tr>
+<tr>
+<td><code>zeroRanking</code></td>
+<td>no AI ranking, max raw volume; ignores <code>num_results</code>, no <code>include_content</code></td>
+<td>bulk corpus collection for <strong><code>rag-pipeline</code></strong></td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><code>mode</code> is currently <strong>REST-only</strong> — the CLI and SDKs don't expose it. For <code>deep</code>
+coverage via the CLI/SDK, approximate with a high <code>num_results</code> + a sharp
+<code>intent</code>; for true <code>deep</code>/<code>zeroRanking</code>, use the raw REST flow above.</p>
+</blockquote>
+<h2 id="result-shape">Result shape</h2>
+<p><strong>REST + CLI</strong> (verified) — rows live under <strong><code>results</code></strong>:</p>
+<div class="code-wrapper"><pre><code class="language-json">{
+  "status": "done",
+  "duration_seconds": 12.4,
+  "timestamp": "2026-06-08T08:36:55.709Z",
+  "results": [
+    { "link": "https://…", "title": "…", "description": "…",
+      "relevance_score": 0.87, "content": "…(when --include-content)…" }
+  ]
+}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>JS SDK</strong> (verified v1.1.0) — rows live under <strong><code>data</code></strong>, inside a wrapper:</p>
+<div class="code-wrapper"><pre><code class="language-js">{ success: true, data: [ {link, title, description, relevance_score, content?} ],
+  totalResults, cost, taskId, query, intent, durationSeconds, triggerSentAt, dataFetchedAt }
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>⚠️ <strong>Cross-surface gotcha:</strong> REST/CLI return rows under <code>.results</code>; the JS SDK
+returns them under <code>.data</code> (and wraps everything in <code>{success, ...}</code> — check
+<code>success</code> before reading <code>data</code>). Don't assume one shape across surfaces.</p>
+<p><code>relevance_score</code> is a float (snake_case). Higher = more relevant to <code>intent</code>.
+<code>content</code> is plain text by default (Markdown when REST <code>format=md</code>). <strong>A high
+<code>relevance_score</code> does not guarantee good content</strong> — pages can be 404 stubs or
+nav-only; gate on content length + "not found"/block-page signatures before use.</p>
+<h2 id="verification-gate">Verification gate</h2>
+<ol>
+<li><strong>Trigger returned a <code>task_id</code></strong> (REST: <code>status:"ok"</code>). No id → check auth / that Discover is enabled on the account (403 if disabled).</li>
+<li><strong>Polled to <code>status:"done"</code></strong> before reading — never read <code>results</code> while <code>processing</code>.</li>
+<li><strong><code>results[]</code> non-empty</strong> — if empty, the query/intent is too narrow; loosen and retry. Don't claim success on empty.</li>
+<li><strong><code>include_content</code> bodies aren't block pages</strong> — grep <code>content</code> for <code>captcha</code>, <code>Just a moment</code>, <code>Access Denied</code>, <code>cf-browser-verification</code> (same list as <code>scrape</code>). Drop poisoned rows.</li>
+<li><strong>Relevance sanity</strong> — if top <code>relevance_score</code>s are low or off-topic, sharpen <code>intent</code> (not just <code>query</code>).</li>
+</ol>
+<h2 id="red-flags">Red flags</h2>
+<ul>
+<li>Passing only <code>query</code> with no <code>intent</code> — you lose the whole point (intent ranking). Always give an intent.</li>
+<li>Treating Discover as keyword SERP — for "what ranks for X", use <code>search</code>.</li>
+<li>Setting <code>num_results</code> &gt; 20 — capped at 20; for more, run multiple targeted queries and dedup (see <code>live-research</code>).</li>
+<li>Using <code>zeroRanking</code> then expecting <code>include_content</code> or <code>num_results</code> to apply — they don't.</li>
+<li>Reading results before <code>status:"done"</code>.</li>
+<li>Treating an intermittent <code>success:false</code> (SDK) / empty <code>results</code> (REST/CLI) as a hard error — it's often transient; <strong>retry once</strong> with backoff first (see <code>references/api-reference.md</code> → Transient failures).</li>
+<li>Fabricating <code>relevance_score</code> or <code>content</code> when a call fails — report the failure instead.</li>
+</ul>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="references/api-reference.md"><code>references/api-reference.md</code></a> — full REST endpoint spec, the exact param matrix per surface (REST vs CLI vs JS SDK vs Python SDK), error codes, and limits.</li>
+</ul>
+<h2 id="related-skills">Related skills</h2>
+<ul>
+<li><strong><code>live-research</code></strong> — multi-query Discover → dedup → synthesized cited brief.</li>
+<li><strong><code>rag-pipeline</code></strong> — Discover (<code>include_content</code>) → chunk → embed → retrieve.</li>
+<li><strong><code>search</code></strong> — keyword SERP (<code>bdata search</code>) when you don't need intent ranking.</li>
+<li><strong><code>js-sdk-best-practices</code> / <code>python-sdk-best-practices</code></strong> — <code>client.discover()</code> option details.</li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>rag-pipeline — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">rag-pipeline</span></nav>
+    <h1>rag-pipeline</h1>
+    <p class="page-desc">Build a RAG (retrieval-augmented generation) pipeline or a custom search engine
+on top of Bright Data's Discover API — using intent-ranked web results + parsed
+page content as the retrieval/ingestion layer for an LLM or vector store. Use
+when the user wants to &quot;build a RAG pipeline&quot;, &quot;add web search to my LLM/agent&quot;,
+&quot;ground my model in live web data&quot;, &quot;build a search engine over the web&quot;,
+&quot;ingest web content into a vector DB / knowledge base&quot;, or &quot;give my chatbot
+retrieval&quot;. Covers both live retrieval (Discover at query time as a web-grounded
+retriever) and ingestion (Discover → chunk → embed → vector store → retrieve).
+Built on the `discover-api` skill. For a one-off written report use
+`live-research`; for raw markdown of specific known URLs use `scrape`.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">brightdata-plugin</span> <span class="pv-ver">1.8.0</span></span>
+      <span class="domain-tag">ops</span>
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Bright Data — RAG / Search-Engine Pipeline</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#two-architectures--choose-first"><span class="toc-num">1.</span> Two architectures — choose first</a></li>
+<li class="toc-item"><a href="#live-retrieval-web-grounded-answers"><span class="toc-num">2.</span> Live retrieval (web-grounded answers)</a></li>
+<li class="toc-item"><a href="#ingestion-build-a-vector-knowledge-base--search-engine"><span class="toc-num">3.</span> Ingestion (build a vector knowledge base / search engine)</a></li>
+<li class="toc-item"><a href="#design-rules"><span class="toc-num">4.</span> Design rules</a></li>
+<li class="toc-item"><a href="#verification-gate"><span class="toc-num">5.</span> Verification gate</a></li>
+<li class="toc-item"><a href="#red-flags"><span class="toc-num">6.</span> Red flags</a></li>
+<li class="toc-item"><a href="#references"><span class="toc-num">7.</span> References</a></li>
+<li class="toc-item"><a href="#related-skills"><span class="toc-num">8.</span> Related skills</a></li></ul>
+</div>
+<p>Use Discover as the <strong>retrieval layer</strong> for an LLM app or a custom search engine.
+Discover already returns <em>intent-ranked, relevance-scored</em> results with parsed
+page <code>content</code>, so it does the "search + fetch + clean" stage of RAG for you. This
+is a <em>code/architecture</em> skill built on the <strong><code>discover-api</code></strong> skill — read that
+for API mechanics (trigger/poll, modes, params, limits).</p>
+<p>Pick the right neighbor: a written brief → <code>live-research</code>; markdown of specific
+URLs you already have → <code>scrape</code>; structured platform records → <code>data-feeds</code>.</p>
+<h2 id="two-architectures--choose-first">Two architectures — choose first</h2>
+<div class="code-wrapper"><pre><code>Does the corpus change every query, or is it a stable knowledge base?
+
+  ├── Per-query, always-fresh ("ground each answer in live web data")
+  │     → LIVE RETRIEVAL: Discover(include_content) at query time → top-k → LLM
+  │       Pros: always current, no storage. Cons: per-query latency + cost.
+  │
+  └── Reused across many queries ("build a knowledge base / search engine")
+        → INGESTION: Discover(include_content) → chunk → embed → vector store
+          then at query time: embed query → vector search → (rerank) → LLM
+          Pros: fast queries, cacheable. Cons: can go stale (re-ingest on a schedule).
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Many systems do both: an ingested base for breadth + a live Discover call for
+freshness, merged before the LLM.</p>
+<h2 id="live-retrieval-web-grounded-answers">Live retrieval (web-grounded answers)</h2>
+<p>Pattern: on each user question, run Discover with a sharp <code>intent</code>, take the
+top-k by <code>relevance_score</code>, and pass their <code>content</code> as context to the LLM. The
+LLM cites the <code>link</code>s.</p>
+<div class="code-wrapper"><pre><code class="language-javascript">import { bdclient } from '@brightdata/sdk';
+const client = new bdclient(); // BRIGHTDATA_API_TOKEN
+
+async function retrieve(question, k = 6) {
+  const res = await client.discover(question, {
+    intent: `authoritative sources that directly answer: ${question}`,
+    includeContent: true,
+    numResults: Math.min(k * 2, 20),  // over-fetch, then trim
+  });
+  // NOTE: the JS SDK returns a WRAPPER object, not a bare array:
+  //   { success, data: [ {link,title,description,relevance_score,content?} ], totalResults, cost, taskId, ... }
+  // The result rows are in `.data` (CLI/REST use `.results` instead — see discover-api).
+  if (!res.success) throw new Error(`discover failed: ${res.error ?? 'unknown'}`);
+  return (res.data ?? [])
+    .filter(r =&gt; r.content &amp;&amp; !/just a moment|captcha|access denied|not found/i.test(r.content) &amp;&amp; r.content.length &gt; 200)
+    .sort((a, b) =&gt; b.relevance_score - a.relevance_score)
+    .slice(0, k);
+}
+// → build a prompt from sources[].content, ask the LLM to answer WITH [n] citations to sources[].link
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Full prompt-assembly + citation pattern: <a href="references/code.md"><code>references/code.md</code></a>.</p>
+<h2 id="ingestion-build-a-vector-knowledge-base--search-engine">Ingestion (build a vector knowledge base / search engine)</h2>
+<p>Pattern: discover broadly (high volume — <code>zeroRanking</code> via REST is ideal here),
+chunk each page's <code>content</code>, embed the chunks, upsert into a vector store with the
+source URL as metadata. At query time: embed the query, vector-search, optionally
+rerank, then feed to the LLM.</p>
+<p>Stages: <strong>discover → dedup → chunk → embed → upsert</strong> (ingest), then
+<strong>embed query → search → rerank → generate</strong> (serve). Provider-agnostic code for
+both stages, including chunking and metadata, is in
+<a href="references/code.md"><code>references/code.md</code></a>.</p>
+<p>For bulk corpus building, prefer the raw REST <code>"mode":"zeroRanking"</code> flow (max raw
+results, no ranking) from the <code>discover-api</code> skill — but note it ignores
+<code>num_results</code> and <strong>does not support <code>include_content</code></strong>, so you fetch content
+separately (Discover <code>standard</code>/<code>deep</code> with content, or the <code>scrape</code> skill).</p>
+<h2 id="design-rules">Design rules</h2>
+<ul>
+<li><strong>Store provenance.</strong> Every chunk keeps its source <code>link</code> (and ideally title +
+<code>relevance_score</code>). RAG without citations is unverifiable.</li>
+<li><strong>Chunk for the model, not the page.</strong> ~500–1500 tokens with overlap; split on
+headings/paragraphs, not mid-sentence.</li>
+<li><strong>Validate <code>content</code> before embedding.</strong> Skip block pages and empty bodies
+(oversized PDFs return null content). Embedding garbage poisons retrieval.</li>
+<li><strong>Over-fetch then trim by <code>relevance_score</code>.</strong> Discover's score is a strong prior
+for top-k selection before (or instead of) a reranker.</li>
+<li><strong>Re-ingest on a schedule</strong> if freshness matters — web content drifts. The
+ingested base goes stale; live retrieval doesn't.</li>
+<li><strong>Cap and dedup.</strong> <code>num_results</code> ≤ 20 per call; dedup by normalized URL across
+calls so one article via three aggregators isn't triple-weighted.</li>
+<li><strong>Keep the embedder/vector store pluggable.</strong> Discover is the retrieval source;
+the embedding model and vector DB are your choice — don't hardwire one.</li>
+</ul>
+<h2 id="verification-gate">Verification gate</h2>
+<ol>
+<li><strong>Retrieval returns non-empty, on-topic chunks</strong> for a known test query (eyeball top-k links).</li>
+<li><strong>No block-page / empty <code>content</code></strong> made it into the index — spot-check stored chunks.</li>
+<li><strong>Citations resolve</strong> — every <code>[n]</code> the LLM emits maps to a real source <code>link</code> in the retrieved set.</li>
+<li><strong>Freshness is honored</strong> — if the app promises current data, confirm live retrieval (or a recent re-ingest), not a stale index.</li>
+<li><strong>Grounding check</strong> — answers are supported by retrieved content, not the model's prior; test with a question whose answer only exists in a retrieved page.</li>
+</ol>
+<h2 id="red-flags">Red flags</h2>
+<ul>
+<li>Building an ingestion pipeline when the user needs <em>fresh</em> answers (use live retrieval), or hammering Discover live when a cached index would do.</li>
+<li>Embedding <code>content</code> without filtering block pages / nulls.</li>
+<li>Dropping source URLs — you can't cite or refresh what you didn't store.</li>
+<li>Treating <code>num_results</code> as unlimited (cap 20) or expecting <code>include_content</code> under <code>zeroRanking</code>.</li>
+<li>Letting the LLM answer from training data — enforce "answer only from provided sources; if absent, say so."</li>
+<li>One giant chunk per page (kills retrieval precision) or mid-sentence splits.</li>
+</ul>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="references/code.md"><code>references/code.md</code></a> — runnable JS + Python for both architectures: live retrieval with prompt+citation assembly, and the full ingestion pipeline (discover → dedup → chunk → embed → upsert → query), with a provider-agnostic embedder/vector-store interface.</li>
+</ul>
+<h2 id="related-skills">Related skills</h2>
+<ul>
+<li><strong><code>discover-api</code></strong> — the retrieval API (trigger/poll, modes, <code>include_content</code>, limits). Read first.</li>
+<li><strong><code>live-research</code></strong> — one-off synthesized report instead of a standing system.</li>
+<li><strong><code>scrape</code></strong> — fetch markdown for specific URLs you already have.</li>
+<li><strong><code>js-sdk-best-practices</code> / <code>python-sdk-best-practices</code></strong> — <code>client.discover()</code> option details and batch patterns.</li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

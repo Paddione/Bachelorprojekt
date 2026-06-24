@@ -28,7 +28,7 @@
   <div class="page-header-body">
     <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">update-dependencies</span></nav>
     <h1>update-dependencies</h1>
-    <p class="page-desc">Systematische Aktualisierung von Paketen und Frameworks — Deprecation-Audit, Major-Bumps, Lockfile-Audit, Rollback-Strategie und EOL-Check über alle Workspaces hinweg.</p>
+    <p class="page-desc"></p>
     <div class="page-meta">
       <span class="provenance-badge repo">repo</span>
       
@@ -37,37 +37,26 @@
 </header>
 
 <article class="doc-body">
-<html><head></head><body><h1>update-dependencies — Paketaktualisierung</h1><div class="toc-box auto-toc">
+<html><head></head><body><h1>ARCHIVIERT → biweekly Scheduled Routine</h1><div class="toc-box auto-toc">
   <div class="toc-title">Auf dieser Seite</div>
-  <ul class="toc-list"><li class="toc-item"><a href="#wann-diese-skill-greift"><span class="toc-num">1.</span> Wann diese Skill greift</a></li>
-<li class="toc-item"><a href="#ablauf"><span class="toc-num">2.</span> Ablauf</a></li>
-<li class="toc-item"><a href="#betroffene-pods-pro-workspace"><span class="toc-num">3.</span> Betroffene Pods pro Workspace</a></li>
-<li class="toc-item"><a href="#eol-check"><span class="toc-num">4.</span> EOL-Check</a></li>
-<li class="toc-item"><a href="#haeufige-blocker"><span class="toc-num">5.</span> Häufige Blocker</a></li>
-<li class="toc-item"><a href="#verwandte-skills"><span class="toc-num">6.</span> Verwandte Skills</a></li>
-<li class="toc-item"><a href="#mishap-tracking"><span class="toc-num">7.</span> Mishap Tracking</a></li></ul>
+  <ul class="toc-list"><li class="toc-item"><a href="#ablauf-referenz"><span class="toc-num">1.</span> Ablauf (Referenz)</a></li>
+<li class="toc-item"><a href="#eol-check"><span class="toc-num">2.</span> EOL-Check</a></li>
+<li class="toc-item"><a href="#verwandte-skills"><span class="toc-num">3.</span> Verwandte Skills</a></li></ul>
 </div>
-<h2 id="wann-diese-skill-greift">Wann diese Skill greift</h2>
-<p>Bei Anfragen zu Paket-Updates, Deprecation-Warnungen, Major-Versionssprüngen,
-Sicherheits-Advisories oder Lockfile-Audits.</p>
-<h2 id="ablauf">Ablauf</h2>
-<h3>Phase 1: Audit — Was ist veraltet?</h3>
-<div class="code-wrapper"><pre><code class="language-bash"># Lockfile-Audit (pnpm — website, arena-server)
-cd website &amp;&amp; pnpm audit --json &gt; /tmp/audit-website.json
+<p>Dieser Skill wird <strong>nicht mehr auto-getriggert</strong>.
+Er läuft alle 2 Wochen als geplante Cloud-Routine (CronCreate).</p>
+<p>Für sofortige manuelle Ausführung: Skill explizit aufrufen.</p>
+<h2 id="ablauf-referenz">Ablauf (Referenz)</h2>
+<h3>Phase 1: Audit</h3>
+<div class="code-wrapper"><pre><code class="language-bash">cd website &amp;&amp; pnpm audit --json &gt; /tmp/audit-website.json
 cd arena-server &amp;&amp; pnpm audit --json &gt; /tmp/audit-arena.json
-
-# Lockfile-Audit (npm — brett)
 cd brett &amp;&amp; npm audit --json &gt; /tmp/audit-brett.json 2&gt;/dev/null || true
 
-# Veraltete Pakete anzeigen
 cd website &amp;&amp; pnpm outdated --format json &gt; /tmp/outdated-website.json
 cd brett &amp;&amp; npm outdated --format json &gt; /tmp/outdated-brett.json 2&gt;/dev/null || true
 cd arena-server &amp;&amp; pnpm outdated --format json &gt; /tmp/outdated-arena.json 2&gt;/dev/null || true
 
-# Deprecation-Warnungen extrahieren
 cd website &amp;&amp; pnpm install 2&gt;&amp;1 | grep -i "deprecat" &gt; /tmp/deprecations-website.txt
-cd brett &amp;&amp; npm install 2&gt;&amp;1 | grep -i "deprecat" &gt; /tmp/deprecations-brett.txt 2&gt;/dev/null || true
-cd arena-server &amp;&amp; pnpm install 2&gt;&amp;1 | grep -i "deprecat" &gt; /tmp/deprecations-arena.txt 2&gt;/dev/null || true
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h3>Phase 2: Klassifizierung</h3>
 <table>
@@ -85,7 +74,7 @@ cd arena-server &amp;&amp; pnpm install 2&gt;&amp;1 | grep -i "deprecat" &gt; /t
 </tr>
 <tr>
 <td>Minor (x.Y.z)</td>
-<td>Auto-Update + Tests + manueller Smoke-Test</td>
+<td>Auto-Update + Tests + Smoke-Test</td>
 <td>Mittel</td>
 </tr>
 <tr>
@@ -95,115 +84,31 @@ cd arena-server &amp;&amp; pnpm install 2&gt;&amp;1 | grep -i "deprecat" &gt; /t
 </tr>
 <tr>
 <td>Security Advisory</td>
-<td>Sofort patchen, unabhängig von anderem</td>
+<td>Sofort patchen</td>
 <td>Kritisch</td>
 </tr>
 </tbody></table>
-<h3>Phase 3: Update durchführen</h3>
-<div class="code-wrapper"><pre><code class="language-bash"># Patch/Minor: batch-update per workspace
-cd website &amp;&amp; pnpm update --latest --interactive
+<h3>Phase 3: Update</h3>
+<div class="code-wrapper"><pre><code class="language-bash">cd website &amp;&amp; pnpm update --latest --interactive
 cd brett &amp;&amp; npm update 2&gt;/dev/null || true
 cd arena-server &amp;&amp; pnpm update --latest --interactive 2&gt;/dev/null || true
-
-# Major: einzeln prüfen (workspace-übergreifend)
-for dir in website brett arena-server; do
-  [ -f "$dir/package.json" ] || continue
-  echo "=== $dir ==="
-  (cd "$dir" &amp;&amp; (pnpm outdated --format json 2&gt;/dev/null || npm outdated --format json 2&gt;/dev/null) \
-    | jq -r '.[] | select(.latest | test("^[0-9]+\\."))' 2&gt;/dev/null || true)
-done
-# → Jedes Major-Update einzeln: cd &lt;workspace&gt; &amp;&amp; pnpm add &lt;pkg&gt;@latest (oder npm install &lt;pkg&gt;@latest)
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h3>Phase 4: Verifikation</h3>
-<div class="code-wrapper"><pre><code class="language-bash"># Build per Workspace
-cd website &amp;&amp; pnpm build
-cd brett &amp;&amp; npm run build 2&gt;/dev/null || true
-cd arena-server &amp;&amp; pnpm build 2&gt;/dev/null || true
-
-# Tests (gezielt auf geänderte Domains)
+<div class="code-wrapper"><pre><code class="language-bash">cd website &amp;&amp; pnpm build
 task test:changed
-
-# Kustomize
 task workspace:validate
-
-# Typecheck (brett + arena-server)
-npm --prefix brett run typecheck 2&gt;/dev/null || true
-npm --prefix arena-server test 2&gt;/dev/null || true
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Phase 5: Rollback (falls nötig)</h3>
-<div class="code-wrapper"><pre><code class="language-bash"># Lockfiles pro Workspace zurücksetzen
-git checkout pnpm-lock.yaml package-lock.json 2&gt;/dev/null || git checkout pnpm-lock.yaml
-
-# Neu installieren
+<h3>Phase 5: Rollback</h3>
+<div class="code-wrapper"><pre><code class="language-bash">git checkout pnpm-lock.yaml package-lock.json 2&gt;/dev/null || git checkout pnpm-lock.yaml
 cd website &amp;&amp; pnpm install --frozen-lockfile
-cd brett &amp;&amp; npm ci 2&gt;/dev/null || true
-cd arena-server &amp;&amp; pnpm install --frozen-lockfile 2&gt;/dev/null || true
-
-git commit -m "revert: rollback dependency update"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h2 id="betroffene-pods-pro-workspace">Betroffene Pods pro Workspace</h2>
-<table>
-<thead>
-<tr>
-<th>Workspace</th>
-<th>Paketmanager</th>
-<th>Betroffene Deployments</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>website/</code></td>
-<td>pnpm</td>
-<td><code>website</code> (website-ns)</td>
-</tr>
-<tr>
-<td><code>brett/</code></td>
-<td>npm</td>
-<td><code>brett</code> (workspace-ns)</td>
-</tr>
-<tr>
-<td><code>arena-server/</code></td>
-<td>pnpm</td>
-<td><code>arena-server</code> (korczewski only)</td>
-</tr>
-<tr>
-<td>Root <code>package.json</code></td>
-<td>—</td>
-<td>Keine (Root-Scripts)</td>
-</tr>
-</tbody></table>
 <h2 id="eol-check">EOL-Check</h2>
-<p>Prüfe vor jedem Update:</p>
 <ul>
-<li><strong>Node.js</strong>: <code>node --version</code> → Mindestens aktive LTS (≥22.x)</li>
-<li><strong>pnpm</strong>: <code>pnpm --version</code> → Mindestens 9.x</li>
-<li><strong>PostgreSQL</strong>: <code>SELECT version()</code> → Mindestens 16.x (pgvector-Kompatibilität)</li>
-<li><strong>k3s</strong>: <code>kubectl version --short</code> → Innerhalb der Support-Window</li>
+<li><strong>Node.js</strong>: <code>node --version</code> → ≥22.x (aktive LTS)</li>
+<li><strong>pnpm</strong>: <code>pnpm --version</code> → ≥9.x</li>
+<li><strong>PostgreSQL</strong>: <code>SELECT version()</code> → ≥16.x</li>
+<li><strong>k3s</strong>: innerhalb Support-Window</li>
 </ul>
-<h2 id="haeufige-blocker">Häufige Blocker</h2>
-<table>
-<thead>
-<tr>
-<th>Problem</th>
-<th>Lösung</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>pnpm audit</code> / <code>npm audit</code> zeigt hohe Vulnerabilities</td>
-<td>Advisory-IDs sammeln, einzeln recherchieren (manche sind nur dev, manche irrelevant für unser Deployment)</td>
-</tr>
-<tr>
-<td>Major-Bump bricht Build</td>
-<td>Migration-Docs des Pakets lesen, Breaking-Changes-Liste durchgehen</td>
-</tr>
-<tr>
-<td>Lockfile-Konflikt nach Rebase</td>
-<td><code>pnpm install --frozen-lockfile</code> → <code>pnpm update</code> (bzw. <code>npm ci</code> → <code>npm update</code> für brett)</td>
-</tr>
-<tr>
-<td><code>npm audit</code> schlägt mit <code>E401</code> fehl</td>
-<td>Keine npm-Auth nötig — public packages; <code>--audit-level=none</code> zum Übergehen</td>
-</tr>
-</tbody></table>
 <h2 id="verwandte-skills">Verwandte Skills</h2>
 <table>
 <thead>
@@ -213,21 +118,14 @@ git commit -m "revert: rollback dependency update"
 </tr>
 </thead>
 <tbody><tr>
-<td><code>cluster-deployment</code></td>
+<td><code>infra-ops §1</code></td>
 <td>Folge — Test-Deploy nach Major-Bump</td>
 </tr>
 <tr>
-<td><code>fleet-ops</code></td>
-<td>Folge — Cross-Brand-Verifikation</td>
-</tr>
-<tr>
 <td><code>mishap-tracker</code></td>
-<td>Abschluss — protokolliert Frictions</td>
+<td>Abschluss</td>
 </tr>
 </tbody></table>
-<h2 id="mishap-tracking">Mishap Tracking</h2>
-<p>Alle aufgetretenen Fehler, Blockaden oder Prozess-Friction über <code>mishap-tracker</code>
-protokollieren.</p>
 </body></html>
 </article>
 

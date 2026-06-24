@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>mentolder Design-System — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="./index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./docs.html">Docs</a> <span class="sep">/</span> <span class="crumb-current">mentolder Design-System</span></nav>
+    <h1>mentolder Design-System</h1>
+    <p class="page-desc"></p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      <span class="domain-tag">website</span>
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>mentolder Design-System</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#farb-tokens"><span class="toc-num">1.</span> Farb-Tokens</a></li>
+<li class="toc-item"><a href="#typografie"><span class="toc-num">2.</span> Typografie</a></li>
+<li class="toc-item"><a href="#spacing--layout"><span class="toc-num">3.</span> Spacing &amp; Layout</a></li>
+<li class="toc-item"><a href="#komponenten-tokens"><span class="toc-num">4.</span> Komponenten-Tokens</a></li>
+<li class="toc-item"><a href="#tailwind-v4-theme-konfiguration"><span class="toc-num">5.</span> Tailwind v4 Theme-Konfiguration</a></li>
+<li class="toc-item"><a href="#was-du-claude-fuer-assets-fragen-kannst"><span class="toc-num">6.</span> Was du Claude für Assets fragen kannst</a></li></ul>
+</div>
+<p>Extrahiert aus <code>website/src/styles/global.css</code> und den Svelte-Komponenten.
+Einsatzbereit als CSS Custom Properties + Tailwind v4 Theme.</p>
+<hr>
+<h2 id="farb-tokens">Farb-Tokens</h2>
+<h3>Hintergrund (Ink-Skala)</h3>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>HEX</th>
+<th>Verwendung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>--ink-900</code></td>
+<td><code>#0b111c</code></td>
+<td>Page-Background, tiefste Ebene</td>
+</tr>
+<tr>
+<td><code>--ink-850</code></td>
+<td><code>#101826</code></td>
+<td>Surface (Cards, Panels)</td>
+</tr>
+<tr>
+<td><code>--ink-800</code></td>
+<td><code>#17202e</code></td>
+<td>Surface Hover, erhöhte Ebene</td>
+</tr>
+<tr>
+<td><code>--ink-750</code></td>
+<td><code>#1d2736</code></td>
+<td>Tooltips, Popovers</td>
+</tr>
+</tbody></table>
+<h3>Vordergrund</h3>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Wert</th>
+<th>Verwendung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>--fg</code></td>
+<td><code>#eef1f3</code></td>
+<td>Primärer Text</td>
+</tr>
+<tr>
+<td><code>--fg-soft</code></td>
+<td><code>#cdd3d9</code></td>
+<td>Body-Text, Beschreibungen</td>
+</tr>
+<tr>
+<td><code>--mute</code></td>
+<td><code>#8c96a3</code></td>
+<td>Placeholder, Metadaten</td>
+</tr>
+<tr>
+<td><code>--mute-2</code></td>
+<td><code>#6a727e</code></td>
+<td>Disabled, sehr gedämpft</td>
+</tr>
+</tbody></table>
+<h3>Akzentfarben</h3>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Wert (oklch)</th>
+<th>HEX-Näherung</th>
+<th>Verwendung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>--brass</code></td>
+<td><code>oklch(0.80 0.09 75)</code></td>
+<td><code>#c9a96e</code></td>
+<td>Primary-CTA, Kicker-Bar, Emphasis-Text</td>
+</tr>
+<tr>
+<td><code>--brass-2</code></td>
+<td><code>oklch(0.86 0.09 75)</code></td>
+<td><code>#d9be8a</code></td>
+<td>Hover-Zustand von Brass</td>
+</tr>
+<tr>
+<td><code>--brass-d</code></td>
+<td><code>oklch(0.80 0.09 75 / 0.14)</code></td>
+<td>rgba-Variante</td>
+<td>Brass-Hintergründe, Glassmorphism</td>
+</tr>
+<tr>
+<td><code>--sage</code></td>
+<td><code>oklch(0.80 0.06 160)</code></td>
+<td><code>#8db8a4</code></td>
+<td>Separator-Dots, sekundäre Highlights</td>
+</tr>
+</tbody></table>
+<h3>Linien &amp; Borders</h3>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Wert</th>
+<th>Verwendung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>--line</code></td>
+<td><code>rgba(255,255,255, 0.07)</code></td>
+<td>Subtile Divider</td>
+</tr>
+<tr>
+<td><code>--line-2</code></td>
+<td><code>rgba(255,255,255, 0.12)</code></td>
+<td>Sichtbare Borders (Cards, Inputs)</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="typografie">Typografie</h2>
+<h3>Font-Familien</h3>
+<div class="code-wrapper"><pre><code class="language-css">--font-serif: "Newsreader", "Iowan Old Style", Georgia, serif;
+--font-sans:  "Geist", ui-sans-serif, system-ui, sans-serif;
+--font-mono:  "Geist Mono", ui-monospace, Menlo, monospace;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Google Fonts Import:</strong></p>
+<div class="code-wrapper"><pre><code class="language-html">&lt;link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300;1,6..72,400&amp;display=swap" rel="stylesheet"&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Geist</strong> via <code>npm install geist</code> (Vercel) oder CDN.</p>
+<h3>Typografie-Skala</h3>
+<table>
+<thead>
+<tr>
+<th>Element</th>
+<th>Font</th>
+<th>Size</th>
+<th>Weight</th>
+<th>Eigenheit</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>H1 Hero</td>
+<td>Newsreader</td>
+<td><code>clamp(44px, 6.2vw, 88px)</code></td>
+<td>300</td>
+<td><code>letter-spacing: -0.02em</code>, em-Tags italic in <code>--brass-2</code></td>
+</tr>
+<tr>
+<td>H2 Section</td>
+<td>Newsreader</td>
+<td><code>28px</code></td>
+<td>400</td>
+<td></td>
+</tr>
+<tr>
+<td>Kicker</td>
+<td>Geist Mono</td>
+<td><code>11px</code></td>
+<td>500</td>
+<td><code>letter-spacing: 0.14em</code>, UPPERCASE</td>
+</tr>
+<tr>
+<td>Body / Lede</td>
+<td>Geist</td>
+<td><code>18px</code></td>
+<td>400</td>
+<td><code>line-height: 1.6</code></td>
+</tr>
+<tr>
+<td>Body klein</td>
+<td>Geist</td>
+<td><code>16px</code></td>
+<td>400</td>
+<td></td>
+</tr>
+<tr>
+<td>Label / Meta</td>
+<td>Geist Mono</td>
+<td><code>11px</code></td>
+<td>400</td>
+<td></td>
+</tr>
+<tr>
+<td>Stat-Zahl</td>
+<td>Newsreader</td>
+<td><code>44px</code></td>
+<td>—</td>
+<td><code>em</code>-Tags in <code>--brass</code></td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="spacing--layout">Spacing &amp; Layout</h2>
+<div class="code-wrapper"><pre><code class="language-css">--maxw:   1240px;  /* Max Content-Breite */
+--radius: 22px;    /* Border-Radius für Cards/Buttons */
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Padding-Konventionen:</strong></p>
+<ul>
+<li>Section vertikal: <code>76px 0 120px</code> (Desktop), <code>56px 0 80px</code> (Mobile ≤960px)</li>
+<li>Wrap horizontal: <code>40px</code> (Desktop), <code>22px</code> (Mobile)</li>
+<li>Grid-Gap Hero: <code>64px</code> (Desktop), <code>56px</code> (Mobile, einspaltig)</li>
+</ul>
+<hr>
+<h2 id="komponenten-tokens">Komponenten-Tokens</h2>
+<h3>Button (Primary)</h3>
+<div class="code-wrapper"><pre><code class="language-css">background: var(--brass);
+color: var(--ink-900);
+padding: 14px 22px;
+border-radius: 999px; /* Pill */
+font-size: 14px;
+font-weight: 600;
+
+/* Hover */
+background: var(--brass-2);
+transform: translateY(-1px);
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Button (Ghost)</h3>
+<div class="code-wrapper"><pre><code class="language-css">color: var(--fg);
+border: 1px solid var(--line-2);
+background: transparent;
+
+/* Hover */
+border-color: var(--brass);
+color: var(--brass);
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Card</h3>
+<div class="code-wrapper"><pre><code class="language-css">background: var(--ink-850);
+border: 1px solid var(--line-2);
+border-radius: var(--radius);
+border-top: 2px solid var(--brass); /* Brass-Top-Akzent */
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Kicker-Bar (Section-Label)</h3>
+<div class="code-wrapper"><pre><code class="language-css">/* Horizontale Linie */
+.bar {
+  width: 44px;
+  height: 1px;
+  background: var(--brass);
+  opacity: 0.7;
+}
+/* Separator-Dot */
+.dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--sage);
+}
+/* Text */
+font-family: var(--font-mono);
+font-size: 11px;
+letter-spacing: 0.14em;
+text-transform: uppercase;
+color: var(--mute);
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Hero Halo (Background-Effekt)</h3>
+<div class="code-wrapper"><pre><code class="language-css">/* Rechts-oben: Brass-Glow */
+background: radial-gradient(
+  closest-side,
+  oklch(0.80 0.09 75 / .11),
+  transparent 70%
+);
+filter: blur(10px);
+width: 90vw; height: 90vw;
+right: -20%; top: -30%;
+
+/* Links-unten: Blaugrau-Glow */
+background: radial-gradient(
+  closest-side,
+  oklch(0.60 0.05 250 / .25),
+  transparent 70%
+);
+width: 80vw; height: 80vw;
+left: -30%; bottom: -40%;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="tailwind-v4-theme-konfiguration">Tailwind v4 Theme-Konfiguration</h2>
+<div class="code-wrapper"><pre><code class="language-css">/* tailwind.config — CSS-Layer in main.css */
+@import "tailwindcss";
+
+@theme {
+  /* Farben */
+  --color-ink-900: #0b111c;
+  --color-ink-850: #101826;
+  --color-ink-800: #17202e;
+  --color-ink-750: #1d2736;
+  --color-fg: #eef1f3;
+  --color-fg-soft: #cdd3d9;
+  --color-mute: #8c96a3;
+  --color-mute-2: #6a727e;
+  --color-brass: oklch(0.80 0.09 75);
+  --color-brass-2: oklch(0.86 0.09 75);
+  --color-brass-d: oklch(0.80 0.09 75 / 0.14);
+  --color-sage: oklch(0.80 0.06 160);
+  --color-line: rgba(255,255,255,0.07);
+  --color-line-2: rgba(255,255,255,0.12);
+
+  /* Fonts */
+  --font-serif: "Newsreader", Georgia, serif;
+  --font-sans: "Geist", ui-sans-serif, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, monospace;
+
+  /* Layout */
+  --radius: 22px;
+  --max-w: 1240px;
+}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="was-du-claude-fuer-assets-fragen-kannst">Was du Claude für Assets fragen kannst</h2>
+<h3>1. SVG Hero-Halo</h3>
+<div class="code-wrapper"><pre><code>Erstelle eine SVG-Datei (1600×900, viewBox="0 0 1600 900") als 
+Hero-Hintergrund für mentolder.de im Dark-Style (#0b111c).
+
+Zwei radiale Gradienten:
+- Rechts oben: oklch(0.80 0.09 75 / 0.11) → transparent (Brass-Glow, 900px Radius)
+- Links unten: oklch(0.60 0.05 250 / 0.25) → transparent (Blaugrau-Glow, 800px Radius)
+
+Als exportierbare SVG mit &lt;defs&gt; und &lt;radialGradient&gt; Elementen.
+Kein Fill außer den Gradienten. Für Web optimiert (keine überflüssigen Attribute).
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>2. SVG Icons (Coaching-Themen)</h3>
+<div class="code-wrapper"><pre><code>Erstelle 6 SVG-Icons, 24×24, viewBox="0 0 24 24", stroke="currentColor",
+strokeWidth="1.5", fill="none", strokeLinecap="round", strokeLinejoin="round".
+
+Icons für: Führung, Digitalisierung, Team, Strategie, Kommunikation, Resilienz.
+Minimalistischer Stil (kein filled, kein dickes Stroke).
+Ausgabe: eine SVG-Datei pro Icon, Dateiname: icon-fuehrung.svg, etc.
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>3. OG-Image Template (React-Komponente für @vercel/og)</h3>
+<div class="code-wrapper"><pre><code>Erstelle eine React-Komponente für @vercel/og (ImageResponse) als 
+OG-Image-Template für mentolder.de:
+
+- Größe: 1200×630px
+- Hintergrund: Gradient #0b111c → #17202e (links nach rechts)
+- Links: Wortmarke "mentolder" in Geist, 48px, #eef1f3
+- Mitte: Brass-Trennlinie (vertical, 1px, oklch(0.80 0.09 75))
+- Rechts: Dynamischer Titel (prop), Newsreader Italic, 36px, #d9be8a
+- Unten rechts: Tagline "Digital Coach &amp; Führungskräfte-Mentor", 14px, #8c96a3
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>4. Favicon (SVG)</h3>
+<div class="code-wrapper"><pre><code>Erstelle ein SVG-Favicon (32×32) für mentolder.de:
+- Buchstabe "m" in Geist Sans, lowercase, Bold
+- Hintergrund: Rounded Square, #101826
+- Textfarbe: #eef1f3
+- Brass-Unterstrich: 2px, oklch(0.80 0.09 75), unter dem "m"
+Exportiere als favicon.svg (skaliert von 16–512px korrekt).
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>5. Portrait-Placeholder-Komponente</h3>
+<div class="code-wrapper"><pre><code>React-Komponente &lt;AvatarPlaceholder initials="BM" size={200} /&gt;:
+- Hintergrund: #17202e
+- Border: 1px solid oklch(0.80 0.09 75 / 0.3)
+- Border-Radius: 50% (Kreis)
+- Innen: feinere Brass-Ring (oklch(0.80 0.09 75 / 0.12), 8px inset)
+- Initiale: Newsreader Italic, 72px, oklch(0.86 0.09 75)
+Kein Bild-Tag, rein CSS + Text.
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="./app.js"></script>
+</body>
+</html>

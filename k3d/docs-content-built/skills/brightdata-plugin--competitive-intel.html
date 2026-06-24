@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>competitive-intel — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">competitive-intel</span></nav>
+    <h1>competitive-intel</h1>
+    <p class="page-desc">Real-time competitive intelligence and market research using Bright Data's web scraping infrastructure. Analyzes competitors' pricing, features, reviews, hiring patterns, content strategy, and market positioning with live web data. Use this skill when the user wants to analyze competitors, compare products, monitor pricing changes, track market trends, research a market landscape, build competitive battlecards, find positioning opportunities, or conduct any form of competitive or market research. Also use when the user mentions competitor analysis, market intelligence, competitive landscape, win/loss analysis, or wants to understand what competitors are doing.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">brightdata-plugin</span> <span class="pv-ver">1.8.0</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Competitive Intelligence</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#prerequisites"><span class="toc-num">1.</span> Prerequisites</a></li>
+<li class="toc-item"><a href="#core-workflow"><span class="toc-num">2.</span> Core Workflow</a></li>
+<li class="toc-item"><a href="#data-collection-rules"><span class="toc-num">3.</span> Data Collection Rules</a></li>
+<li class="toc-item"><a href="#analysis-modules"><span class="toc-num">4.</span> Analysis Modules</a></li>
+<li class="toc-item"><a href="#multi-module-analysis"><span class="toc-num">5.</span> Multi-Module Analysis</a></li>
+<li class="toc-item"><a href="#choosing-the-right-module"><span class="toc-num">6.</span> Choosing the Right Module</a></li>
+<li class="toc-item"><a href="#output-quality-standards"><span class="toc-num">7.</span> Output Quality Standards</a></li></ul>
+</div>
+<p>Real-time competitive intelligence powered by live web data. Combines Bright Data CLI (<code>bdata</code>) for data collection with strategic analysis frameworks to deliver actionable competitive insights — not stale training knowledge.</p>
+<p><strong>Never answer competitive questions from training knowledge alone.</strong> Always gather live data first using <code>bdata</code> commands, then analyze and synthesize.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<ol>
+<li>Bright Data CLI installed:<div class="code-wrapper"><pre><code class="language-bash">curl -fsSL https://cli.brightdata.com/install.sh | bash
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+<li>One-time login completed:<div class="code-wrapper"><pre><code class="language-bash">bdata login
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+</ol>
+<p>That's it. No env vars, no zone config, no API keys to manage.</p>
+<h2 id="core-workflow">Core Workflow</h2>
+<p>For every competitive intelligence request, follow this workflow:</p>
+<ol>
+<li><strong>Clarify scope</strong> — Which competitors? What specifically does the user want to know? Select the right module(s).</li>
+<li><strong>Gather live data</strong> — Run <code>bdata</code> commands. Parallelize independent calls. Prefer <code>bdata pipelines</code> (structured JSON) over <code>bdata scrape</code> (raw markdown) when a pipeline exists.</li>
+<li><strong>Analyze</strong> — Apply the appropriate strategic framework. Read <a href="references/analysis-frameworks.md">references/analysis-frameworks.md</a> for SWOT, Porter's Five Forces, positioning matrices, and more.</li>
+<li><strong>Format output</strong> — Use the report templates from <a href="references/output-templates.md">references/output-templates.md</a>.</li>
+<li><strong>Deliver actionable insights</strong> — Every report MUST end with a "Strategic Recommendations" section. Never deliver raw data without interpretation.</li>
+</ol>
+<h2 id="data-collection-rules">Data Collection Rules</h2>
+<ul>
+<li><strong>Always use <code>--json</code> flag</strong> when you need to pipe or parse <code>bdata</code> output programmatically</li>
+<li><strong>Prefer <code>bdata pipelines</code></strong> over <code>bdata scrape</code> whenever a pipeline type exists for the target platform — pipelines return clean structured JSON</li>
+<li><strong>Be cost-efficient</strong> — A snapshot should use 3-8 <code>bdata</code> calls, not 50. Scrape what you need.</li>
+<li><strong>Parallelize</strong> — Run independent <code>bdata</code> calls in parallel using multiple Bash tool calls in a single response</li>
+<li><strong>Handle failures gracefully</strong> — If a page is gated or returns empty, say so and try the fallback. Never hallucinate data to fill gaps.</li>
+<li><strong>Cite every data point</strong> — Include source URLs for everything. Users must be able to verify.</li>
+</ul>
+<p>For the full mapping of intelligence needs to <code>bdata</code> commands, read <a href="references/data-source-guide.md">references/data-source-guide.md</a>.</p>
+<p>For interpreting raw data as strategic signals, read <a href="references/industry-signals.md">references/industry-signals.md</a>.</p>
+<hr>
+<h2 id="analysis-modules">Analysis Modules</h2>
+<h3>1. Competitor Snapshot</h3>
+<p><strong>When to use</strong>: User asks to analyze, profile, or understand a specific competitor.</p>
+<p><strong>Data gathering</strong>:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Step 1: Discover competitor's website and recent news
+bdata search "[competitor name]" --json
+
+# Step 2: Scrape key pages (run in parallel)
+bdata scrape [competitor-url]              # Homepage — positioning, messaging
+bdata scrape [competitor-url]/pricing      # Pricing tiers and model
+bdata scrape [competitor-url]/about        # Team, mission, history (try /about, /about-us, /company)
+
+# Step 3: Structured data enrichment (if URLs available)
+bdata pipelines crunchbase_company "[crunchbase-url]"       # Funding, investors, employee count
+bdata pipelines linkedin_company_profile "[linkedin-url]"   # Employee count, growth, locations
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Analysis</strong>: Synthesize into a structured profile. Identify positioning, target audience, key claims, strengths, and vulnerabilities. Compare to user's product if context is available.</p>
+<p><strong>Output</strong>: Use the Competitor Snapshot template from <a href="references/output-templates.md">references/output-templates.md</a>.</p>
+<hr>
+<h3>2. Pricing Intelligence</h3>
+<p><strong>When to use</strong>: User wants to compare pricing, understand pricing models, or find pricing positioning opportunities.</p>
+<p><strong>Data gathering</strong>:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Scrape pricing pages for each competitor (run in parallel)
+bdata scrape [competitor-a-url]/pricing
+bdata scrape [competitor-b-url]/pricing
+bdata scrape [competitor-c-url]/pricing
+
+# For e-commerce products
+bdata pipelines amazon_product "[amazon-url]"
+bdata pipelines walmart_product "[walmart-url]"
+
+# Supplementary: third-party pricing breakdowns
+bdata search "[competitor] pricing review" --json
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Analysis</strong>: Extract plan names, prices, feature lists, and limits from each page. Normalize into a comparison matrix. Identify pricing model types (per-seat, usage-based, freemium, enterprise-only). Flag positioning signals and recommend opportunities.</p>
+<p><strong>Output</strong>: Use the Pricing Intelligence template from <a href="references/output-templates.md">references/output-templates.md</a>.</p>
+<hr>
+<h3>3. Review Intelligence</h3>
+<p><strong>When to use</strong>: User wants to understand customer sentiment, find competitor pain points, or identify exploitable gaps.</p>
+<p><strong>Data gathering</strong>:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Find review pages via search
+bdata search "[competitor] site:g2.com" --json
+bdata search "[competitor] site:capterra.com" --json
+
+# Scrape review pages
+bdata scrape [g2-url]
+bdata scrape [capterra-url]
+
+# Structured review data (use when direct URLs are available)
+bdata pipelines google_maps_reviews "[google-maps-url]" 30
+bdata pipelines amazon_product_reviews "[amazon-url]"
+bdata pipelines google_play_store "[play-store-url]"
+bdata pipelines apple_app_store "[app-store-url]"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Analysis</strong>: Categorize sentiment (positive/neutral/negative). Extract top praised features, top complaints, and feature requests. Identify comparison mentions ("switched from X", "better than Y"). Complaints are the user's positioning opportunity.</p>
+<p><strong>Output</strong>: Use the Review Intelligence template from <a href="references/output-templates.md">references/output-templates.md</a>.</p>
+<hr>
+<h3>4. Hiring Signal Analysis</h3>
+<p><strong>When to use</strong>: User wants to infer a competitor's strategic direction from their hiring patterns.</p>
+<p><strong>Data gathering</strong>:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Find LinkedIn company page
+bdata search "[competitor] linkedin company" --json
+
+# Get structured job listings
+bdata pipelines linkedin_job_listings "[linkedin-company-url]"
+
+# Fallback: scrape careers page directly
+bdata search "[competitor] careers" --json
+bdata scrape [careers-url]
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Analysis</strong>: Categorize roles by department. Analyze hiring velocity (scaling vs. stable vs. contracting). Identify technology signals from job descriptions. Look for geographic expansion signals. Interpret seniority mix (hiring leaders = new initiative; hiring ICs = scaling existing).</p>
+<p><strong>Output</strong>: Use the Hiring Signal Analysis template from <a href="references/output-templates.md">references/output-templates.md</a>.</p>
+<hr>
+<h3>5. Content &amp; SEO Battle</h3>
+<p><strong>When to use</strong>: User wants to understand competitors' content strategy or search positioning for specific keywords.</p>
+<p><strong>Data gathering</strong>:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Check SERP rankings for target keywords (run in parallel)
+bdata search "[keyword 1]" --json
+bdata search "[keyword 2]" --json
+bdata search "[keyword 3]" --json
+
+# Estimate competitor's indexed content
+bdata search "site:[competitor.com]" --json
+
+# Scrape blog/content pages
+bdata scrape [competitor-url]/blog
+bdata scrape [top-ranking-article-url]
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Analysis</strong>: Map which competitors rank for which keywords. Estimate content volume and publishing frequency. Identify topic clusters each competitor invests in. Find content gaps — topics nobody covers well that the user could own.</p>
+<p><strong>Output</strong>: Use the Content &amp; SEO Battle template from <a href="references/output-templates.md">references/output-templates.md</a>.</p>
+<hr>
+<h3>6. Market Landscape Map</h3>
+<p><strong>When to use</strong>: User wants to understand all players in a market, find white space, or map the competitive landscape.</p>
+<p><strong>Data gathering</strong>:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Discover players via multiple search queries (run in parallel)
+bdata search "[industry] companies" --json
+bdata search "best [product category] tools" --json
+bdata search "[product category] alternatives" --json
+
+# Scrape category/comparison pages
+bdata scrape [g2-category-url]
+
+# Quick snapshot of each discovered competitor
+bdata scrape [competitor-1-url]
+bdata scrape [competitor-2-url]
+# ... for each key player (limit to top 8-10)
+
+# Enrich key players with funding/size data
+bdata pipelines crunchbase_company "[crunchbase-url]"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Analysis</strong>: Categorize players by tier (enterprise, mid-market, SMB, open-source). Build a positioning map (e.g., price vs. feature breadth). Identify white space — underserved segments or positioning no one owns. Note market trends, recent entrants, and consolidation signals.</p>
+<p><strong>Output</strong>: Use the Market Landscape Map template from <a href="references/output-templates.md">references/output-templates.md</a>.</p>
+<hr>
+<h2 id="multi-module-analysis">Multi-Module Analysis</h2>
+<p>When the user asks for a comprehensive competitive analysis (e.g., "full battlecard", "deep dive", "board meeting prep"), combine multiple modules:</p>
+<ol>
+<li>Start with <strong>Competitor Snapshot</strong> for each competitor</li>
+<li>Add <strong>Pricing Intelligence</strong> for comparison</li>
+<li>Add <strong>Review Intelligence</strong> for customer sentiment</li>
+<li>Optionally add <strong>Hiring Signals</strong> and <strong>Content &amp; SEO</strong> for strategic depth</li>
+<li>Wrap everything in the <strong>Executive Summary</strong> template from <a href="references/output-templates.md">references/output-templates.md</a></li>
+</ol>
+<p>For full battlecards, use the <strong>Competitive Battlecard</strong> template.</p>
+<h2 id="choosing-the-right-module">Choosing the Right Module</h2>
+<table>
+<thead>
+<tr>
+<th>User says...</th>
+<th>Module to use</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>"Analyze [competitor]", "Tell me about [company]"</td>
+<td>Competitor Snapshot</td>
+</tr>
+<tr>
+<td>"Compare pricing", "How much does [X] cost"</td>
+<td>Pricing Intelligence</td>
+</tr>
+<tr>
+<td>"What do customers think", "Reviews of [X]", "Pain points"</td>
+<td>Review Intelligence</td>
+</tr>
+<tr>
+<td>"What are they hiring for", "Job postings", "Where are they expanding"</td>
+<td>Hiring Signal Analysis</td>
+</tr>
+<tr>
+<td>"How do they rank", "Their content strategy", "SEO"</td>
+<td>Content &amp; SEO Battle</td>
+</tr>
+<tr>
+<td>"Who are the players", "Market landscape", "Competitive landscape"</td>
+<td>Market Landscape Map</td>
+</tr>
+<tr>
+<td>"Full battlecard", "Deep competitive analysis", "Board prep"</td>
+<td>Multi-Module (combine all)</td>
+</tr>
+</tbody></table>
+<h2 id="output-quality-standards">Output Quality Standards</h2>
+<ol>
+<li><strong>Every data point must have a source URL</strong> — no unattributed claims</li>
+<li><strong>Separate facts from analysis</strong> — clearly distinguish scraped data from Claude's interpretation</li>
+<li><strong>End with "So What?"</strong> — every report must have actionable strategic recommendations</li>
+<li><strong>Be honest about gaps</strong> — if data is unavailable, say so. Never fill gaps with training knowledge presented as live data.</li>
+<li><strong>Date-stamp the analysis</strong> — include "Data collected on [date]" so users know freshness</li>
+</ol>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

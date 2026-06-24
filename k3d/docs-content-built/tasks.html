@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Tasks: ticket-verlauf-anhaenge — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="./index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./docs.html">Docs</a> <span class="sep">/</span> <span class="crumb-current">Tasks: ticket-verlauf-anhaenge</span></nav>
+    <h1>Tasks: ticket-verlauf-anhaenge</h1>
+    <p class="page-desc"></p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Tasks: ticket-verlauf-anhaenge</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#feature-a--verlauf-collapse"><span class="toc-num">1.</span> Feature A — Verlauf-Collapse</a></li>
+<li class="toc-item"><a href="#feature-b--ticketattachmentspanel-neu"><span class="toc-num">2.</span> Feature B — TicketAttachmentsPanel (neu)</a></li>
+<li class="toc-item"><a href="#feature-c--binary-download-endpoint"><span class="toc-num">3.</span> Feature C — Binary-Download-Endpoint</a></li>
+<li class="toc-item"><a href="#feature-d--frageboegen-export"><span class="toc-num">4.</span> Feature D — Fragebögen-Export</a></li>
+<li class="toc-item"><a href="#feature-e--plan-download"><span class="toc-num">5.</span> Feature E — Plan-Download</a></li>
+<li class="toc-item"><a href="#verifikation"><span class="toc-num">6.</span> Verifikation</a></li></ul>
+</div>
+<h2 id="feature-a--verlauf-collapse">Feature A — Verlauf-Collapse</h2>
+<h3><code>TicketActivityTimeline.svelte</code></h3>
+<ul>
+<li><input disabled="" type="checkbox"> <code>initialCount: number = 5</code> Prop hinzufügen (Svelte-4-Syntax beibehalten: <code>export let</code>)</li>
+<li><input disabled="" type="checkbox"> <code>let expanded = false</code> reaktive Variable hinzufügen</li>
+<li><input disabled="" type="checkbox"> <code>$: visibleEntries</code> Derived anlegen (<code>entries.slice(0, initialCount)</code> wenn nicht expanded)</li>
+<li><input disabled="" type="checkbox"> Template: <code>{#each entries ...}</code> → <code>{#each visibleEntries ...}</code></li>
+<li><input disabled="" type="checkbox"> Collapse-Button nach <code>&lt;/ol&gt;</code> einfügen (<code>{#if entries.length &gt; initialCount}</code>)</li>
+<li><input disabled="" type="checkbox"> CSS-Klassen für Toggle-Button in <code>&lt;style&gt;</code> ergänzen</li>
+</ul>
+<h3><code>TicketActivityTimeline.test.ts</code> (neu)</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Test: Default 5 Einträge sichtbar bei 10 Einträgen</li>
+<li><input disabled="" type="checkbox"> Test: Alle Einträge nach Klick auf Expand-Button</li>
+<li><input disabled="" type="checkbox"> Test: "Weniger anzeigen" Button erscheint nach Expand</li>
+<li><input disabled="" type="checkbox"> Test: Kein Button wenn Einträge ≤ initialCount</li>
+<li><input disabled="" type="checkbox"> Test: Default funktioniert ohne explizites initialCount</li>
+</ul>
+<h2 id="feature-b--ticketattachmentspanel-neu">Feature B — TicketAttachmentsPanel (neu)</h2>
+<h3><code>TicketAttachmentsPanel.svelte</code> (neue Datei)</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Props: <code>ticketId: string</code>, <code>attachments: Array&lt;{id, filename, mimeType, fileSize, hasDataUrl}&gt;</code></li>
+<li><input disabled="" type="checkbox"> Anhang-Liste rendern mit Download-<code>&lt;a href="/api/admin/tickets/{ticketId}/attachments/{id}"&gt;</code> + <code>download</code>-Attribut (nur wenn <code>hasDataUrl === true</code>)</li>
+<li><input disabled="" type="checkbox"> Upload-Button öffnet <code>&lt;dialog&gt;</code> via <code>bind:this</code> + <code>dialogEl?.showModal()</code></li>
+<li><input disabled="" type="checkbox"> <code>&lt;form onsubmit={handleUpload}&gt;</code> mit <code>fetch POST</code> und <code>location.reload()</code> bei Erfolg</li>
+<li><input disabled="" type="checkbox"> <code>uploadError</code> als <code>$state&lt;string&gt;</code> mit Fehleranzeige</li>
+<li><input disabled="" type="checkbox"> <code>fmtSize()</code> Hilfsfunktion für B/KB/MB</li>
+</ul>
+<h3><code>TicketAttachmentsPanel.test.ts</code> (neue Datei)</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Test: "Keine Anhänge" bei leerem Array</li>
+<li><input disabled="" type="checkbox"> Test: Download-Link wenn <code>hasDataUrl === true</code></li>
+<li><input disabled="" type="checkbox"> Test: Kein Link wenn <code>hasDataUrl === false</code></li>
+<li><input disabled="" type="checkbox"> Test: Größenformatierung (B, KB, MB)</li>
+<li><input disabled="" type="checkbox"> Test: Count im Header</li>
+</ul>
+<h3><code>[id].astro</code> — Anhänge-Block ersetzen</h3>
+<ul>
+<li><input disabled="" type="checkbox"> <code>import TicketAttachmentsPanel</code> hinzufügen</li>
+<li><input disabled="" type="checkbox"> Anhänge-Block (~28 Zeilen) durch <code>&lt;TicketAttachmentsPanel client:load .../&gt;</code> (1 Zeile) ersetzen</li>
+<li><input disabled="" type="checkbox"> Upload-<code>&lt;dialog&gt;</code> (Zeilen ~345–366) entfernen</li>
+<li><input disabled="" type="checkbox"> Upload-Script-Handler aus <code>&lt;script&gt;</code> entfernen (nur unlink-Handler bleibt)</li>
+<li><input disabled="" type="checkbox"> Zeilenzahl prüfen: <code>wc -l [id].astro</code> → ≤ 395</li>
+</ul>
+<h2 id="feature-c--binary-download-endpoint">Feature C — Binary-Download-Endpoint</h2>
+<h3><code>website/src/pages/api/admin/tickets/[id]/attachments/[aid].ts</code> (neue Datei)</h3>
+<ul>
+<li><input disabled="" type="checkbox"> <code>GET</code> APIRoute mit Admin-Auth-Guard (<code>getSession</code> + <code>isAdmin</code>)</li>
+<li><input disabled="" type="checkbox"> Inline-DB-Query: <code>SELECT data_url, filename, mime_type FROM tickets.ticket_attachments JOIN tickets.tickets ... WHERE a.id=$1 AND a.ticket_id=$2 AND t.brand=$3 AND a.data_url IS NOT NULL</code></li>
+<li><input disabled="" type="checkbox"> 403 bei fehlendem Admin-Recht, 404 wenn nicht gefunden</li>
+<li><input disabled="" type="checkbox"> Base64-Decode: <code>Buffer.from(data_url.slice(commaIdx+1), 'base64')</code></li>
+<li><input disabled="" type="checkbox"> Response-Header: <code>Content-Type</code>, <code>Content-Disposition: attachment; filename*=UTF-8''...</code>, <code>Cache-Control: private, no-store</code></li>
+<li><input disabled="" type="checkbox"> <strong>Kein Import aus <code>lib/tickets/admin.ts</code></strong> (Budget=0 dort)</li>
+</ul>
+<h2 id="feature-d--frageboegen-export">Feature D — Fragebögen-Export</h2>
+<h3><code>GrillingStepper.svelte</code></h3>
+<ul>
+<li><input disabled="" type="checkbox"> <code>exportAnswers()</code> Funktion: iteriert über <code>resolveQuestions(...)</code>, formatiert als <code># Grilling: &lt;title&gt;\n## &lt;Section&gt;\n**&lt;Frage&gt;**\n&lt;Antwort&gt;\n</code></li>
+<li><input disabled="" type="checkbox"> <code>const hasAnswers = $derived(...)</code> — prüft ob mindestens eine Antwort nicht leer</li>
+<li><input disabled="" type="checkbox"> Export-Button im Header (<code>{#if hasAnswers}</code>) mit <code>onclick={exportAnswers}</code></li>
+<li><input disabled="" type="checkbox"> Blob-Download via <code>URL.createObjectURL(new Blob([text], { type: 'text/plain' }))</code>, Dateiname: <code>grilling-{questionnaireId}.txt</code></li>
+</ul>
+<h3><code>GrillingStepper.test.ts</code> (erweitern)</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Test: Export-Button nicht sichtbar bei leeren Antworten</li>
+<li><input disabled="" type="checkbox"> Test: Export-Button sichtbar wenn mindestens eine Antwort vorhanden</li>
+<li><input disabled="" type="checkbox"> Test: Klick auf Export triggert Blob-Download (<code>URL.createObjectURL</code> aufgerufen, <code>&lt;a&gt;.click()</code> ausgeführt)</li>
+</ul>
+<h2 id="feature-e--plan-download">Feature E — Plan-Download</h2>
+<h3><code>TicketPlanPanel.svelte</code></h3>
+<ul>
+<li><input disabled="" type="checkbox"> Neue optionale Prop <code>planContent: string = ''</code> (Svelte-5-<code>$props()</code> — ganzen Script-Block auf Runes migrieren)</li>
+<li><input disabled="" type="checkbox"> <code>downloadPlan()</code> Funktion: <code>new Blob([planContent], { type: 'text/markdown' })</code>, Dateiname <code>plan-{plan.slug}.md</code></li>
+<li><input disabled="" type="checkbox"> Download-Button im Panel-Header (<code>{#if planContent}</code>) mit <code>onclick={downloadPlan}</code></li>
+</ul>
+<h3><code>TicketPlanPanel.test.ts</code> (neue Datei)</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Test: Slug und PR-Link werden gerendert</li>
+<li><input disabled="" type="checkbox"> Test: Download-Button sichtbar wenn <code>planContent</code> nicht leer</li>
+<li><input disabled="" type="checkbox"> Test: Download-Button nicht sichtbar wenn <code>planContent</code> leer</li>
+<li><input disabled="" type="checkbox"> Test: Klick löst Blob-Download aus (Typ <code>text/markdown</code>)</li>
+</ul>
+<h3><code>[id].astro</code> — planContent Prop ergänzen</h3>
+<ul>
+<li><input disabled="" type="checkbox"> <code>&lt;TicketPlanPanel ... planContent={containerPlan.content ?? ''} /&gt;</code> ergänzen</li>
+</ul>
+<h2 id="verifikation">Verifikation</h2>
+<ul>
+<li><input disabled="" type="checkbox"> <code>task test:changed</code> grün</li>
+<li><input disabled="" type="checkbox"> <code>task freshness:regenerate</code></li>
+<li><input disabled="" type="checkbox"> <code>task freshness:check</code> grün (S1–S4 Ratchet, Baseline-Key-Count unverändert)</li>
+<li><input disabled="" type="checkbox"> <code>task test:inventory</code> (falls neue Tests hinzugekommen)</li>
+<li><input disabled="" type="checkbox"> <code>npx tsc --noEmit</code> in <code>website/</code> — keine Fehler</li>
+<li><input disabled="" type="checkbox"> <code>wc -l [id].astro</code> ≤ 395 (deutlich unter 400-Limit)</li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="./app.js"></script>
+</body>
+</html>

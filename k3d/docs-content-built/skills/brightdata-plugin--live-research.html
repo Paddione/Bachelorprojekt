@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>live-research — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">live-research</span></nav>
+    <h1>live-research</h1>
+    <p class="page-desc">Produce a deep, multi-source, cited research brief on a topic from live web
+data using Bright Data's Discover API (intent-ranked web search + parsed page
+content). Use when the user wants &quot;live research&quot;, to &quot;research &lt;topic&gt; deeply&quot;,
+&quot;research the latest on&quot;, &quot;write a report on&quot;, &quot;give me a briefing / literature
+review / market scan&quot;, &quot;find and synthesize everything about&quot;, or otherwise
+wants a synthesized, source-grounded answer rather than a list of links. Decomposes the question into multiple intent-ranked Discover
+queries, pulls page content, deduplicates and ranks by relevance, then
+synthesizes a structured brief with inline citations. Built on the
+`discover-api` skill. For competitor-specific intel use `competitive-intel`;
+for social/brand sentiment use `brand-listening`; for a retrieval *system* (not
+a one-off report) use `rag-pipeline`.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">brightdata-plugin</span> <span class="pv-ver">1.8.0</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Bright Data — Live Research</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#setup-gate"><span class="toc-num">1.</span> Setup gate</a></li>
+<li class="toc-item"><a href="#the-method"><span class="toc-num">2.</span> The method</a></li>
+<li class="toc-item"><a href="#quality-bar"><span class="toc-num">3.</span> Quality bar</a></li>
+<li class="toc-item"><a href="#red-flags"><span class="toc-num">4.</span> Red flags</a></li>
+<li class="toc-item"><a href="#references"><span class="toc-num">5.</span> References</a></li>
+<li class="toc-item"><a href="#related-skills"><span class="toc-num">6.</span> Related skills</a></li></ul>
+</div>
+<p>Turn one research question into a <strong>cited, synthesized brief</strong> by fanning out
+intent-ranked Discover queries, reading the best sources, and writing up findings
+with inline citations. This is a <em>workflow</em> on top of the <strong><code>discover-api</code></strong> skill
+— read that for the API mechanics, modes, and parameters.</p>
+<p>Use this when the deliverable is <em>understanding</em> (a report/briefing), not a link
+list (that's <code>search</code>/<code>discover-api</code>) and not a standing system (that's
+<code>rag-pipeline</code>).</p>
+<h2 id="setup-gate">Setup gate</h2>
+<p>Discover must be reachable. Quick check (CLI path):</p>
+<div class="code-wrapper"><pre><code class="language-bash">command -v bdata &gt;/dev/null 2&gt;&amp;1 || echo "CLI missing — see bright-data-best-practices/references/cli-setup.md"
+bdata zones &gt;/dev/null 2&gt;&amp;1 || echo "not authenticated — run: bdata login"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>(SDK/REST paths just need <code>BRIGHTDATA_API_TOKEN</code>.)</p>
+<h2 id="the-method">The method</h2>
+<h3>Step 1 — Scope the question (do this first, don't skip)</h3>
+<p>If the question is broad or ambiguous, ask 2–3 clarifying questions before
+spending API calls: time horizon, geography/market, depth, and what decision the
+research supports. A sharp scope is what makes the <code>intent</code> parameters good.</p>
+<h3>Step 2 — Decompose into sub-questions</h3>
+<p>Break the topic into 4–8 angles (definitions, key players, mechanisms, evidence,
+counter-evidence, recent developments, risks). Each angle becomes one Discover
+call with its own tailored <code>intent</code>. This beats one broad query — <code>num_results</code>
+is capped at 20, so coverage comes from <em>breadth of queries</em>, not one big call.</p>
+<h3>Step 3 — Run Discover per angle (in parallel), with content</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># one call per angle; --include-content so you read sources in the same pass
+bdata discover "stablecoin regulation 2026" \
+  --intent "recent regulatory actions and proposed legislation, primary sources" \
+  --include-content --num-results 15 -o angle_regulation.json &amp;
+
+bdata discover "stablecoin reserve transparency" \
+  --intent "audits, attestations, reserve composition disclosures" \
+  --include-content --num-results 15 -o angle_reserves.json &amp;
+wait
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>For <em>maximum</em> coverage on a hard topic, use the raw REST flow with <code>"mode":"deep"</code>
+(see <code>discover-api</code>) — <code>deep</code> is exhaustive but slower and REST-only.</p>
+<h3>Step 4 — Merge, dedup, rank, quality-gate</h3>
+<ul>
+<li>Each <code>bdata discover -o</code> file is an object <code>{status, results: [...]}</code> — <strong>flatten <code>.results[]</code></strong> from every file before merging.</li>
+<li><strong>Dedup by URL</strong> (normalize: strip query/fragment, lowercase host).</li>
+<li>Sort by <code>relevance_score</code> desc.</li>
+<li><strong>Quality-gate the content</strong> (a high <code>relevance_score</code> can still be a 404 stub or a nav-only page): drop rows where <code>content</code> is <code>null</code>, matches a block-page signature, is shorter than ~200 chars, or looks like "not found".</li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-bash"># VERIFIED: this is the correct merge. `jq -s 'add | unique_by(.link)'` does NOT work —
+# each file is {results:[...]}, so you must flatten .results[] first.
+jq -s '
+  [ .[].results[] ]                                   # flatten results from all files
+  | unique_by(.link)                                  # dedup by URL
+  | map(select(
+      .content != null
+      and (.content | length) &gt; 200                   # drop empty / 404 stubs
+      and ((.content | test("just a moment|captcha|access denied|cf-browser|page not found|post not found"; "i")) | not)
+    ))
+  | sort_by(-.relevance_score)
+' angle_*.json &gt; corpus.json
+echo "kept $(jq length corpus.json) sources"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Or just run the helper</strong> (same logic, tested): <code>scripts/merge_corpus.sh -o corpus.json angle_*.json</code>
+(<code>-m &lt;n&gt;</code> sets the min content length). Copying the jq by hand is error-prone — prefer the script.</p>
+<blockquote>
+<p>Note: with <code>--include-content</code>, the leading part of <code>content</code> is usually page
+nav/boilerplate (menus, logos). When extracting claims (Step 5), skip past the
+chrome to the article body.</p>
+</blockquote>
+<h3>Step 5 — Read &amp; extract claims</h3>
+<p>From each kept source's <code>content</code>, pull the specific claims, numbers, dates, and
+quotes that answer a sub-question. Track which URL each claim came from — you'll
+cite it.</p>
+<h3>Step 6 — Synthesize the brief</h3>
+<p>Write the structured brief (template in <code>references/brief-template.md</code>). Every
+non-obvious claim gets an inline citation <code>[n]</code> mapping to a numbered source list.
+Note disagreements between sources rather than averaging them away.</p>
+<h3>Step 7 — Verify before delivering</h3>
+<ul>
+<li>Every claim traceable to a source in the list? (no orphan claims)</li>
+<li>Conflicting sources surfaced, not hidden?</li>
+<li>Gaps named explicitly ("no primary source found for X")?</li>
+<li>Recency stated — when was this collected, how fresh are the sources?</li>
+</ul>
+<h2 id="quality-bar">Quality bar</h2>
+<ul>
+<li><strong>Breadth via queries, depth via content.</strong> Many sharp <code>intent</code>s &gt; one vague query.</li>
+<li><strong>Cite everything.</strong> A research brief with uncited claims is an opinion. Map each <code>[n]</code> to a real URL from the corpus.</li>
+<li><strong>Prefer primary sources.</strong> Rank filings/docs/announcements over aggregators when <code>relevance_score</code> is comparable.</li>
+<li><strong>Surface dissent.</strong> If sources conflict, say so and attribute both sides.</li>
+<li><strong>Name the gaps.</strong> "Couldn't find …" is a finding, not a failure to hide.</li>
+</ul>
+<h2 id="red-flags">Red flags</h2>
+<ul>
+<li>One broad Discover call and calling it "live research" — decompose into angles.</li>
+<li>Writing claims from memory/training data instead of from retrieved <code>content</code> — every claim must come from the corpus.</li>
+<li>Fabricating citations or <code>relevance_score</code>s — if a call failed, report the gap.</li>
+<li>Ignoring <code>--include-content</code> and just listing links — that's <code>discover-api</code>, not research.</li>
+<li>Averaging away contradictions between sources.</li>
+<li>Forgetting to dedup — the same article via 3 aggregators inflates apparent consensus.</li>
+</ul>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="references/brief-template.md"><code>references/brief-template.md</code></a> — the output structure (exec summary, findings per sub-question, contradictions, gaps, numbered sources) and a worked citation example.</li>
+<li><a href="scripts/merge_corpus.sh"><code>scripts/merge_corpus.sh</code></a> — Step 4 as a tested one-liner: flatten <code>.results[]</code> across angle files, dedup by URL, quality-gate (null/short/404/block-page), sort by <code>relevance_score</code>.</li>
+</ul>
+<h2 id="related-skills">Related skills</h2>
+<ul>
+<li><strong><code>discover-api</code></strong> — the underlying API (modes, params, trigger/poll). Read first.</li>
+<li><strong><code>rag-pipeline</code></strong> — when the user wants a reusable retrieval <em>system</em>, not a one-time report.</li>
+<li><strong><code>competitive-intel</code></strong> — competitor-focused research (pricing, hiring, positioning).</li>
+<li><strong><code>brand-listening</code></strong> — social/sentiment research across Reddit/X/TikTok/etc.</li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

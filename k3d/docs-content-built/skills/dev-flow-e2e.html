@@ -40,21 +40,33 @@
 <html><head></head><body><h1>dev-flow-e2e — Playwright E2E Tests schreiben &amp; ausführen</h1><div class="toc-box auto-toc">
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#wann-diese-skill-greift"><span class="toc-num">1.</span> Wann diese Skill greift</a></li>
-<li class="toc-item"><a href="#schritt-0-kontext-ermitteln"><span class="toc-num">2.</span> Schritt 0: Kontext ermitteln</a></li>
-<li class="toc-item"><a href="#schritt-1-ziel-url-bestimmen"><span class="toc-num">3.</span> Schritt 1: Ziel-URL bestimmen</a></li>
-<li class="toc-item"><a href="#schritt-2-live-erkundung-mit-playwright-mcp"><span class="toc-num">4.</span> Schritt 2: Live-Erkundung mit Playwright MCP</a></li>
-<li class="toc-item"><a href="#schritt-3-test-spec-schreiben"><span class="toc-num">5.</span> Schritt 3: Test-Spec schreiben</a></li>
-<li class="toc-item"><a href="#schritt-4-spec-registrieren"><span class="toc-num">6.</span> Schritt 4: Spec registrieren</a></li>
-<li class="toc-item"><a href="#schritt-5-tests-ausfuehren-und-verifizieren"><span class="toc-num">7.</span> Schritt 5: Tests ausführen und verifizieren</a></li>
-<li class="toc-item"><a href="#schritt-6-test-inventory-aktualisieren"><span class="toc-num">8.</span> Schritt 6: Test-Inventory aktualisieren</a></li>
-<li class="toc-item"><a href="#schritt-7-commit--push"><span class="toc-num">9.</span> Schritt 7: Commit &amp; Push</a></li>
-<li class="toc-item"><a href="#schritt-8-e2e-smoke-auf-live-optional-anstossen"><span class="toc-num">10.</span> Schritt 8: E2E Smoke auf Live optional anstoßen</a></li>
-<li class="toc-item"><a href="#schritt-9-beendigung-und-nachbereitung"><span class="toc-num">11.</span> Schritt 9: Beendigung und Nachbereitung</a></li>
-<li class="toc-item"><a href="#verwandte-skills"><span class="toc-num">12.</span> Verwandte Skills</a></li></ul>
+<li class="toc-item"><a href="#position-im-git-kreislauf"><span class="toc-num">2.</span> Position im Git-Kreislauf</a></li>
+<li class="toc-item"><a href="#schritt-0-kontext-ermitteln"><span class="toc-num">3.</span> Schritt 0: Kontext ermitteln</a></li>
+<li class="toc-item"><a href="#schritt-1-ziel-url-bestimmen"><span class="toc-num">4.</span> Schritt 1: Ziel-URL bestimmen</a></li>
+<li class="toc-item"><a href="#schritt-2-live-erkundung-mit-playwright-mcp"><span class="toc-num">5.</span> Schritt 2: Live-Erkundung mit Playwright MCP</a></li>
+<li class="toc-item"><a href="#schritt-3-test-spec-schreiben"><span class="toc-num">6.</span> Schritt 3: Test-Spec schreiben</a></li>
+<li class="toc-item"><a href="#schritt-4-spec-registrieren"><span class="toc-num">7.</span> Schritt 4: Spec registrieren</a></li>
+<li class="toc-item"><a href="#schritt-5-tests-ausfuehren-und-verifizieren"><span class="toc-num">8.</span> Schritt 5: Tests ausführen und verifizieren</a></li>
+<li class="toc-item"><a href="#schritt-6-test-inventory-aktualisieren"><span class="toc-num">9.</span> Schritt 6: Test-Inventory aktualisieren</a></li>
+<li class="toc-item"><a href="#schritt-7-commit--push"><span class="toc-num">10.</span> Schritt 7: Commit &amp; Push</a></li>
+<li class="toc-item"><a href="#schritt-8-e2e-smoke-auf-live-optional-anstossen"><span class="toc-num">11.</span> Schritt 8: E2E Smoke auf Live optional anstoßen</a></li>
+<li class="toc-item"><a href="#schritt-9-beendigung-und-nachbereitung"><span class="toc-num">12.</span> Schritt 9: Beendigung und Nachbereitung</a></li>
+<li class="toc-item"><a href="#uebergabe--kreislauf-geschlossen"><span class="toc-num">13.</span> Übergabe — Kreislauf geschlossen</a></li>
+<li class="toc-item"><a href="#verwandte-skills"><span class="toc-num">14.</span> Verwandte Skills</a></li></ul>
 </div>
 <h2 id="wann-diese-skill-greift">Wann diese Skill greift</h2>
 <p><code>dev-flow-execute</code> hat fertig implementiert und gemergt. Jetzt soll die implementierte Funktion mit echten Browser-E2E-Tests abgesichert werden. Du brauchst Zugriff auf die Playwright MCP Tools (<code>mcp-browser_browser_*</code>).</p>
 <p><strong>Sage zu Beginn:</strong> "Ich nutze dev-flow-e2e für Playwright E2E Tests."</p>
+<hr>
+<h2 id="position-im-git-kreislauf">Position im Git-Kreislauf</h2>
+<div class="code-wrapper"><pre><code>    ┌──────────────────────────────────────────────────────────────────┐
+    ▼                                                                  │
+[ main ] ←── merge ←── PR ←── implement ←── [plan committed]          │
+    │                                                                  │
+    └──► [E2E Tests schreiben + committen] ──► [push] ──► AUSSTIEG ───┘
+              DIESER SKILL (post-merge)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>EINSTIEG:</strong> <code>main</code> nach Merge — Feature deployed auf Live-Umgebung<br><strong>AUSSTIEG:</strong> E2E-Spec committed + gepusht auf neuen <code>test/*</code>-Branch oder direkt auf <code>main</code>-Nachfolger<br><strong>Voraussetzung:</strong> <code>dev-flow-execute</code> Schritt 8 (Post-Merge Deploy) abgeschlossen, Live-URL erreichbar</p>
 <hr>
 <h2 id="schritt-0-kontext-ermitteln">Schritt 0: Kontext ermitteln</h2>
 <p>Finde heraus, was implementiert wurde:</p>
@@ -90,7 +102,7 @@ BASE_URL="https://web.mentolder.de"   # anpassen falls nötig
 <h3>Credentials: korczewski-Projekt</h3>
 <p>Das <code>korczewski</code>-Projekt verwendet einen dedizierten <code>test-admin</code>-User auf dem
 Korczewski-Keycloak. Das Passwort ist in <code>environments/.secrets/korczewski.yaml</code>
-unter dem Key <code>E2E_TEST_ADMIN_PASSWORD</code> gespeichert. Siehe details in <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md">dev-flow-gotchas.md</a>.</p>
+unter dem Key <code>E2E_TEST_ADMIN_PASSWORD</code> gespeichert. Siehe details in <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#dev-flow-gotchas">dev-flow-gotchas</a>.</p>
 <hr>
 <h2 id="schritt-2-live-erkundung-mit-playwright-mcp">Schritt 2: Live-Erkundung mit Playwright MCP</h2>
 <p>Navigiere mit den MCP-Browser-Tools zur implementierten Funktion und verschaffe dir ein vollständiges Bild: welche Seiten, welche API-Endpunkte, welche Auth-Anforderungen.</p>
@@ -152,7 +164,7 @@ testMatch: [
 <hr>
 <h2 id="schritt-5-tests-ausfuehren-und-verifizieren">Schritt 5: Tests ausführen und verifizieren</h2>
 <blockquote>
-<p><strong>Wichtig:</strong> Details zu setup, working directory und global Setup/Purge Bypässen (<code>SKIP_DB_PURGE=1</code>) findest du in <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md#t000218">dev-flow-gotchas.md</a>.</p>
+<p><strong>Wichtig:</strong> Details zu setup, working directory und global Setup/Purge Bypässen (<code>SKIP_DB_PURGE=1</code>) findest du in <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#t000218">dev-flow-gotchas</a>.</p>
 </blockquote>
 <div class="code-wrapper"><pre><code class="language-bash"># E2E Tests ausführen
 cd tests/e2e/ &amp;&amp; -x ./node_modules/.bin/playwright || npm ci
@@ -168,9 +180,13 @@ git diff website/src/data/test-inventory.json
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <hr>
 <h2 id="schritt-7-commit--push">Schritt 7: Commit &amp; Push</h2>
+<p>Folge den Commit-Konventionen aus <code>git-workflow</code> (Conventional Commits, Freshness Guard, Scope-Preflight):</p>
 <div class="code-wrapper"><pre><code class="language-bash">git add tests/e2e/specs/&lt;neu&gt;.spec.ts
 git add tests/e2e/playwright.config.ts
 git add website/src/data/test-inventory.json
+
+# Scope-Preflight (Pflicht) [T000925]
+bash scripts/preflight-pr-scope.sh "test(&lt;scope&gt;): add E2E tests for &lt;feature&gt; [$TICKET_ID]"
 
 git commit -m "test(&lt;scope&gt;): add E2E tests for &lt;feature&gt; [$TICKET_ID]"
 git push
@@ -186,6 +202,15 @@ git push
 <li><strong>Mishap Report</strong>: Melde am Ende dieses Skills alle aufgetretenen Fehler über <code>mishap-tracker</code>.</li>
 <li><strong>Operations</strong>: Fahre danach mit <code>operations-management</code> fort, um den Status des zugehörigen PRs oder Tickets zu überwachen.</li>
 </ol>
+<h2 id="uebergabe--kreislauf-geschlossen">Übergabe — Kreislauf geschlossen</h2>
+<p><strong>Zustand nach Schritt 7:</strong></p>
+<ul>
+<li>E2E-Spec <code>tests/e2e/specs/&lt;neu&gt;.spec.ts</code> committed + gepusht</li>
+<li><code>website/src/data/test-inventory.json</code> aktualisiert</li>
+<li>Tests laufen lokal grün gegen Live-URL</li>
+</ul>
+<p><strong>Kreislauf zurück zu <code>main</code></strong> via normalem PR-Merge (oder direkter Push wenn Branch-Protection es erlaubt). Nächste Arbeit startet mit <code>dev-flow-plan</code>.</p>
+<hr>
 <h2 id="verwandte-skills">Verwandte Skills</h2>
 <table>
 <thead>
@@ -196,10 +221,14 @@ git push
 </thead>
 <tbody><tr>
 <td><code>dev-flow-execute</code></td>
-<td>Voraussetzung — Feature muss deployt sein</td>
+<td><strong>Vorgänger im Kreislauf</strong> — Feature muss deployt sein</td>
 </tr>
 <tr>
-<td><code>fleet-ops</code></td>
+<td><code>git-workflow</code></td>
+<td>Commit/Push-Konventionen für Schritt 7 (Freshness Guard, Scope-Preflight)</td>
+</tr>
+<tr>
+<td><code>cluster-deployment</code></td>
 <td>Querschnitt — Cross-Brand-Tests</td>
 </tr>
 <tr>

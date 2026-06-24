@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>price-comparison — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">price-comparison</span></nav>
+    <h1>price-comparison</h1>
+    <p class="page-desc">Shopping price comparison using Bright Data's web scraping infrastructure. Finds where a product is sold, for how much, and whether it's in stock — across Amazon, Walmart, eBay, Best Buy, Google Shopping, and any retailer URL — then ranks the offers into a single buy-recommendation table. Use this skill when the user wants to compare prices, find the cheapest place to buy something, do a price check, see &quot;how much does X cost on Amazon vs Walmart&quot;, track an item's price, or decide where to buy a product. Handles product names, ASINs, and direct URLs, and is region-aware (country affects price, availability, and which retailers apply). This is consumer purchase-decision research — for analyzing a competitor's pricing *strategy*, use competitive-intel instead.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">brightdata-plugin</span> <span class="pv-ver">1.8.0</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Price Comparison</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#prerequisites"><span class="toc-num">1.</span> Prerequisites</a></li>
+<li class="toc-item"><a href="#core-workflow"><span class="toc-num">2.</span> Core Workflow</a></li>
+<li class="toc-item"><a href="#data-collection-rules"><span class="toc-num">3.</span> Data Collection Rules</a></li>
+<li class="toc-item"><a href="#retailer-modules"><span class="toc-num">4.</span> Retailer Modules</a></li>
+<li class="toc-item"><a href="#region-handling"><span class="toc-num">5.</span> Region Handling</a></li>
+<li class="toc-item"><a href="#output"><span class="toc-num">6.</span> Output</a></li>
+<li class="toc-item"><a href="#output-quality-standards"><span class="toc-num">7.</span> Output Quality Standards</a></li></ul>
+</div>
+<p>Find the best place to actually buy a product — lowest price, in stock, from a
+reputable seller — using live retailer data, not stale training knowledge.
+Combines the Bright Data CLI (<code>bdata</code>) for collection with a normalization +
+ranking layer to deliver a single cited comparison table and a clear buy
+recommendation.</p>
+<p><strong>Never quote prices from training knowledge.</strong> Prices and stock change hourly.
+Always pull live data first, then compare. If a source fails, say so — never
+fill a price gap with a guess.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<ol>
+<li>Bright Data CLI installed:<div class="code-wrapper"><pre><code class="language-bash">curl -fsSL https://cli.brightdata.com/install.sh | bash
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+<li>One-time login completed:<div class="code-wrapper"><pre><code class="language-bash">bdata login    # or: bdata login --device  (SSH / headless)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+</ol>
+<p>Verify before collecting:</p>
+<div class="code-wrapper"><pre><code class="language-bash">if ! command -v bdata &gt;/dev/null 2&gt;&amp;1; then
+    echo "bdata CLI not installed — see skills/bright-data-best-practices/references/cli-setup.md"
+elif ! bdata zones &gt;/dev/null 2&gt;&amp;1; then
+    echo "bdata not authenticated — run: bdata login"
+fi
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Halt and route to setup if either check fails.</p>
+<h2 id="core-workflow">Core Workflow</h2>
+<ol>
+<li><strong>Clarify scope</strong> — <em>What</em> product (name, ASIN, or URL)? <em>Which</em> retailers
+(default: Amazon + Google Shopping)? <em>Which</em> country/region (default: US —
+it changes price, currency, availability, and which retailers apply)? What
+matters beyond price (reviews, shipping/Prime, new vs refurbished)?</li>
+<li><strong>Resolve, then collect</strong> — If you only have a product name, use
+<code>amazon_product_search</code> and <code>bdata search --type shopping</code> to resolve it to
+concrete product URLs/offers, <em>then</em> pull each retailer's structured data.
+Parallelize independent calls.</li>
+<li><strong>Normalize</strong> — Collapse every result into the single offer schema in
+<a href="references/output-and-pricing.md">references/output-and-pricing.md</a> before
+comparing. Convert all prices to one currency and note the rate + date used.</li>
+<li><strong>Rank &amp; flag</strong> — Sort by total landed cost (price + shipping). Flag
+out-of-stock, refurbished/used, and third-party-seller offers — a lower
+price that's unavailable or used is not the winner by default.</li>
+<li><strong>Deliver</strong> — Produce the comparison table (Output A), then the explicit
+"Best buy" recommendation. Every report names the cheapest <em>in-stock</em> option
+and any meaningful trade-offs.</li>
+</ol>
+<h2 id="data-collection-rules">Data Collection Rules</h2>
+<ul>
+<li><strong>Resolve names to URLs first.</strong> You rarely have clean URLs up front. Use
+<code>amazon_product_search "&lt;query&gt;" "https://www.amazon.com"</code> and
+<code>bdata search "&lt;product&gt;" --type shopping --json</code> to find the exact items,
+<em>then</em> feed those URLs to product pipelines.</li>
+<li><strong>Prefer pipelines over scraping for supported retailers.</strong> Amazon, Walmart,
+eBay, Best Buy, Google Shopping all have structured pipelines that return
+clean price/availability/rating JSON. Never <code>bdata scrape amazon.com</code> — Amazon
+blocks scrapers; the pipeline bypasses that reliably.</li>
+<li><strong>Always pass <code>--json</code></strong> when you need to parse or compare output.</li>
+<li><strong>Be cost-efficient</strong> — a standard comparison is ~3–8 <code>bdata</code> calls, not 50.
+Pull the offers the user asked about, not every seller on the page.</li>
+<li><strong>Parallelize</strong> independent calls across multiple Bash tool calls in one
+response — don't wait for Amazon before starting Walmart.</li>
+<li><strong>Every price needs a source URL and a collection timestamp.</strong> No
+unattributed or undated prices, ever.</li>
+<li><strong>Never fabricate a price or fill gaps.</strong> If a retailer returns nothing,
+report it in "Gaps &amp; caveats".</li>
+</ul>
+<h2 id="retailer-modules">Retailer Modules</h2>
+<p>Pick the retailers that fit the product and region. US electronics → Amazon +
+Best Buy + Walmart + Google Shopping; marketplace/used → eBay; non-US → confirm
+the local Amazon domain and add region-relevant retailers.</p>
+<h3>Amazon — by URL or ASIN</h3>
+<div class="code-wrapper"><pre><code class="language-bash">bdata pipelines amazon_product "https://www.amazon.com/dp/&lt;ASIN&gt;" --json -o amazon.json
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Returns price, <code>final_price</code>, title, availability, rating, review count, ASIN,
+seller, images. Use the right domain for the region (<code>amazon.com</code>, <code>amazon.de</code>,
+<code>amazon.co.uk</code>, …).</p>
+<h3>Amazon — discover by keyword (when you only have a name)</h3>
+<div class="code-wrapper"><pre><code class="language-bash">bdata pipelines amazon_product_search "iPhone 17 Pro 256GB" "https://www.amazon.com" --json -o amzn_search.json
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Resolve the right ASIN/URL from the results, then call <code>amazon_product</code> on it.</p>
+<h3>Walmart / eBay / Best Buy — by product URL</h3>
+<div class="code-wrapper"><pre><code class="language-bash">bdata pipelines walmart_product "https://www.walmart.com/ip/&lt;ID&gt;" --json -o walmart.json
+bdata pipelines ebay_product     "https://www.ebay.com/itm/&lt;ID&gt;"   --json -o ebay.json
+bdata pipelines bestbuy_products "https://www.bestbuy.com/site/&lt;ID&gt;.p" --json -o bestbuy.json
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Google Shopping — cross-retailer overview</h3>
+<div class="code-wrapper"><pre><code class="language-bash">bdata pipelines google_shopping "&lt;google-shopping-product-url&gt;" --json -o gshopping.json
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Best for a fast multi-seller view once you have a Shopping product URL. To
+<em>find</em> that URL (and a quick price spread) from a name, use SERP shopping:</p>
+<div class="code-wrapper"><pre><code class="language-bash">bdata search "iPhone 17 Pro 256GB" --type shopping --country us --json
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Unknown / local retailer — scrape the page</h3>
+<div class="code-wrapper"><pre><code class="language-bash">bdata scrape "https://retailer.example/product-page"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Then extract price, currency, and stock from the markdown. Use this for local
+retailers without a dedicated pipeline (e.g. regional electronics chains).</p>
+<blockquote>
+<p><strong>Pipeline names are inconsistent</strong> (<code>amazon_product</code> singular,
+<code>bestbuy_products</code> plural, <code>walmart_product</code>). Confirm with the type list
+before hardcoding — the <code>data-feeds</code> skill has the verified list, and
+keyword/multi-arg pipelines (<code>amazon_product_search</code>) take
+<code>&lt;keyword&gt; &lt;domain_url&gt;</code>, not a single URL.</p>
+</blockquote>
+<h2 id="region-handling">Region Handling</h2>
+<ul>
+<li><strong>Country changes everything</strong> — price, currency, stock, and which retailers
+exist. Always confirm the region before running; default US only if the user
+doesn't say.</li>
+<li><strong>Pass <code>--country &lt;code&gt;</code></strong> to <code>bdata search</code> for localized SERP/shopping
+results (e.g. <code>--country il</code> for Israel, <code>de</code>, <code>uk</code>).</li>
+<li><strong>Use the local Amazon domain</strong> in product URLs. Many regions (e.g. Israel)
+buy via <code>amazon.com</code> with international shipping <em>and</em> via local chains —
+cover both and label shipping/import implications.</li>
+<li><strong>Normalize currencies</strong> to one display currency, state the rate and the date
+you used, and keep each offer's original-currency price in the dataset.</li>
+</ul>
+<h2 id="output">Output</h2>
+<p>Read <a href="references/output-and-pricing.md">references/output-and-pricing.md</a> for:</p>
+<ul>
+<li>The <strong>normalized offer record</strong> schema (row shape for both the table and the
+dataset output).</li>
+<li><strong>Total-cost ranking</strong> rules (price + shipping + import/tax where known;
+in-stock and condition gates before declaring a winner).</li>
+<li><strong>Currency normalization</strong> conventions.</li>
+<li><strong>Output templates</strong> — A (comparison table + recommendation), B (structured
+dataset), C (both).</li>
+</ul>
+<h2 id="output-quality-standards">Output Quality Standards</h2>
+<ol>
+<li><strong>Every price has a source URL and a timestamp</strong> — no undated, unattributed
+prices.</li>
+<li><strong>Always show availability next to price</strong> — a cheaper out-of-stock offer is
+not the winner. Flag refurbished/used/third-party explicitly.</li>
+<li><strong>Name one "Best buy"</strong> — the cheapest <em>in-stock, comparable-condition</em>
+option, with the runner-up and why someone might pick it instead.</li>
+<li><strong>Be honest about gaps</strong> — list retailers that returned nothing or were
+gated this run. Note when a price looks stale or is a "from" range.</li>
+<li><strong>State currency and region</strong> — "$ USD · region: US" or the rate used for
+conversions.</li>
+<li><strong>Never estimate a missing price.</strong> Report the gap; don't fill it.</li>
+</ol>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

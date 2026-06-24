@@ -65,6 +65,11 @@ an entry with: <code>type</code> (broken/degraded/suspicious/security/drift), <c
 <p>Never use <code>tickets.ticket_links</code> for PR references — it is ticket→ticket only (<code>to_id</code> is <code>NOT NULL</code>, <code>kind ∈ blocks|blocked_by|duplicate_of|relates_to|fixes|fixed_by</code>).</p>
 <p><strong>Enum reference</strong> (closing a ticket with an out-of-set value fails the CHECK constraint):
 <code>priority ∈ {hoch,mittel,niedrig}</code> · <code>severity ∈ {critical,major,minor,trivial}</code> · <code>status ∈ {triage,planning,plan_staged,backlog,in_progress,in_review,blocked,qa_review,done,archived}</code> · <code>resolution ∈ {fixed,shipped,obsolete}</code> · <code>attention_mode ∈ {auto,ai_ready,needs_human}</code> (default <code>auto</code>).</p>
+<p><strong>DB-Zugriff — MCP-Postgres für Reads bevorzugen.</strong> Ist <code>mcp-postgres</code> erreichbar
+(<code>bash scripts/mcp-portforward.sh status</code>), führe <strong>lesende</strong> SELECTs über <code>mcp__mcp-postgres__query</code>
+aus (nur <code>sql</code>, read-only). Die <code>psql()</code>-Bash-Hilfsfunktion unten ist (a) der <strong>Fallback</strong> für Reads
+ohne aktiven Portforward und (b) der <strong>Pflichtweg für schreibende</strong> Statements (INSERT/UPDATE/DELETE) —
+das MCP-Query-Tool ist read-only. Siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#mcp-tool-guide"><code>MCP-Tool-Guide</code></a>.</p>
 <p>All SQL below assumes:</p>
 <div class="code-wrapper"><pre><code class="language-bash">PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)
 psql() { kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- psql -U website -d website "$@"; }
@@ -81,6 +86,27 @@ FROM tickets.tickets
 WHERE status NOT IN ('done', 'archived')
 ORDER BY priority DESC NULLS LAST, created_at ASC;
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Step 1.1b: Load OpenSpec Status Map</h3>
+<p>After fetching tickets, enrich the triage view with OpenSpec proposal status. The map is pre-generated and committed in the repo:</p>
+<div class="code-wrapper"><pre><code class="language-bash">OMAP_FILE="$REPO/website/src/data/openspec-status.json"
+# Regenerate if the file is missing (e.g. freshly cloned worktree without freshness:regenerate)
+if ! -f &amp;quot;$OMAP_FILE&amp;quot;; then
+  bash "$REPO/scripts/openspec-status-map.sh"
+fi
+
+get_openspec_status() {
+  local ext_id="$1"
+  jq -r --arg id "$ext_id" '.[$id] // [] | map("\(.status):\(.slug)") | join(", ")' \
+    "$OMAP_FILE" 2&gt;/dev/null || echo ""
+}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>When displaying the triage table, append the OpenSpec status column. Example output format:</p>
+<div class="code-wrapper"><pre><code>T000953 | Cockpit Fullscreen     | plan_staged | hoch    | READY (cockpit-fullscreen-overview)
+T000959 | OpenSpec Status Badge  | plan_staged | mittel  | READY (openspec-ticket-status-display)
+T000943 | Awaiting-Deploy Gaps   | planning    | mittel  | SPEC (fix-awaiting-deploy-visualization-gaps)
+T000738 | Unbekanntes Feature    | backlog      | niedrig | —
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Use <code>get_openspec_status "$ext_id"</code> per row and display <code>—</code> when the result is empty.</p>
 <h3>Step 1.2: Categorization Flow</h3>
 <ol>
 <li><strong>Already Resolved:</strong> Mark <code>done</code> + <code>fixed</code>, cite the PR in notes.</li>
@@ -185,8 +211,8 @@ TICKET_ID=$(printf '%s %s' "$TITLE" "$BRANCH" | grep -oiE 'T[0-9]{6}' | head -1 
 <td>Takes AI-fixable tickets to implementation</td>
 </tr>
 <tr>
-<td><code>fleet-ops</code></td>
-<td>Cross-brand issues</td>
+<td><code>cluster-deployment</code></td>
+<td>Cross-brand issues (Phase 5)</td>
 </tr>
 <tr>
 <td><code>database-ops</code></td>

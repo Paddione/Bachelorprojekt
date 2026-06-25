@@ -13,12 +13,13 @@ minimumReleaseAgeExclude:
   - playwright-core@1.61.0 || 1.61.1
   - playwright@1.61.0 || 1.61.1
   - vitest@4.1.9
-  - '@anthropic-ai/sdk@0.104.2 || 0.105.0'
+  - '@anthropic-ai/sdk@0.104.2 || 0.105.0 || 0.106.0'
   - livekit-server-sdk@2.15.5
   - pg-connection-string@2.14.0
   - pg-protocol@1.15.0
   - pg@8.22.0
   - svelte@5.56.4
+  - livekit-client@2.20.0
 
 overrides:
   yaml: "^2.8.3"

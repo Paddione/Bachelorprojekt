@@ -13,7 +13,7 @@
     "test:unit": "vitest run"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.105.0",
+    "@anthropic-ai/sdk": "^0.106.0",
     "@astrojs/check": "^0.9.9",
     "@astrojs/node": "^10.1.1",
     "@astrojs/react": "^5.0.5",
@@ -30,7 +30,7 @@
     "chart.js": "^4.5.1",
     "d3": "^7.9.0",
     "epub2": "^3.0.2",
-    "livekit-client": "^2.19.2",
+    "livekit-client": "^2.20.0",
     "livekit-server-sdk": "^2.15.5",
     "nanoid": "^5.0.9",
     "nodemailer": "^8.0.8",

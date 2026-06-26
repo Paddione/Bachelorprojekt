@@ -4,8 +4,7 @@
 # Prerequisites (one-time manual setup):
 #   1. npm install  (run once inside brett/)
 #   2. Register https://brett-dev.korczewski.de/callback as a valid redirect URI
-#      in the 'brett-app' OIDC client via the korczewski Keycloak admin UI:
-#      https://keycloak.korczewski.de/admin → workspace realm → Clients → brett-app
+#      in the 'brett-app' OIDC client (Pocket ID → Applications → brett-app)
 #   3. Ensure the korczewski dev sish stack is running (port 32224 on korczewski.de)
 #
 # Usage: run from repo root
@@ -53,10 +52,9 @@ kubectl port-forward svc/shared-db 5432:5432 \
   >/tmp/brett-dev-pf-db.log 2>&1 &
 PF_DB_PID=$!
 
-kubectl port-forward svc/keycloak 8080:8080 \
-  -n workspace-korczewski --context fleet \
-  >/tmp/brett-dev-pf-kc.log 2>&1 &
-PF_KC_PID=$!
+# keycloak port-forward removed — Keycloak decommissioned (pocket-id-migration),
+# Pocket ID is reachable via Traefik IngressRoute, no port-forward needed.
+
 
 # ── cleanup trap ──────────────────────────────────────────────────────────────
 SISH_PID=""
@@ -65,7 +63,6 @@ cleanup() {
   echo "[brett-dev] shutting down..."
   [[ -n "$SISH_PID" ]] && kill "$SISH_PID" 2>/dev/null || true
   kill "$PF_DB_PID" 2>/dev/null || true
-  kill "$PF_KC_PID" 2>/dev/null || true
 }
 trap cleanup INT TERM EXIT
 
@@ -77,12 +74,7 @@ if ! kill -0 "$PF_DB_PID" 2>/dev/null; then
   cat /tmp/brett-dev-pf-db.log >&2
   exit 1
 fi
-if ! kill -0 "$PF_KC_PID" 2>/dev/null; then
-  echo "ERROR: Keycloak port-forward failed to start. Log:" >&2
-  cat /tmp/brett-dev-pf-kc.log >&2
-  exit 1
-fi
-echo "[brett-dev] port-forwards alive (DB :5432, Keycloak :8080)"
+echo "[brett-dev] port-forwards alive (DB :5432)"
 
 # ── sish tunnel ───────────────────────────────────────────────────────────────
 echo "[brett-dev] opening sish tunnel → https://brett-dev.korczewski.de ..."

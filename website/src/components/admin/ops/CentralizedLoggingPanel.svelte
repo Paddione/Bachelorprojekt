@@ -18,11 +18,6 @@
       title: 'Traefik Access Analytics',
       description: 'HTTP-Status-Verteilung, langsame Endpunkte, 4xx/5xx-Rate.',
     },
-    {
-      uid: 'keycloak-audit',
-      title: 'Keycloak Audit Trail',
-      description: 'Login-Events und fehlgeschlagene Authentifizierungen.',
-    },
   ];
 </script>
 

@@ -62,7 +62,6 @@ const adminLinks = [
   { href: '/admin/rechnungen',               label: 'Abrechnung', icon: icons.receipt,  color: '#34d399' },
   ...(vaultUrl ? [{ href: vaultUrl,          label: 'Passwörter', icon: icons.lock,     color: '#34d399' }] : []),
   { href: '/admin/wissen',                   label: 'Wissensbasis', icon: icons.book,   color: '#a78bfa' },
-  ...(BRAND === 'korczewski' ? [{ href: '/portal/arena', label: 'Arena', icon: icons.arena, color: '#818cf8' }] : []),
 ];
 
 const now = new Date();

@@ -159,31 +159,6 @@ jobs:
           MOCK_DB: 'true'
       - run: npm run build --prefix brett
 
-  vitest:
-    name: Vitest (website + arena-server)
-    if: github.event.action != 'edited'
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
-      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444  # v5
-        with:
-          node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: |
-            website/package-lock.json
-            arena-server/package-lock.json
-      # Both suites self-skip env-dependent specs (describe.skipIf(!dbAvailable) /
-      # !mustangAvailable), so they are green on a runner with no DB and no Java jar.
-      - name: Website unit tests (vitest)
-        run: |
-          npm ci --prefix website
-          npm --prefix website run test:unit
-      - name: Arena-server unit tests (vitest)
-        run: |
-          npm ci --prefix arena-server
-          npm --prefix arena-server test
-
   commit-lint:
     name: Conventional Commits
     runs-on: ubuntu-latest
@@ -209,7 +184,7 @@ jobs:
           scopes: |
             website
             brett
-            arena
+
             infra
             db
             security

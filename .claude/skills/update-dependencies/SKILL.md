@@ -18,12 +18,10 @@ Für sofortige manuelle Ausführung: Skill explizit aufrufen.
 
 ```bash
 cd website && pnpm audit --json > /tmp/audit-website.json
-cd arena-server && pnpm audit --json > /tmp/audit-arena.json
 cd brett && npm audit --json > /tmp/audit-brett.json 2>/dev/null || true
 
 cd website && pnpm outdated --format json > /tmp/outdated-website.json
 cd brett && npm outdated --format json > /tmp/outdated-brett.json 2>/dev/null || true
-cd arena-server && pnpm outdated --format json > /tmp/outdated-arena.json 2>/dev/null || true
 
 cd website && pnpm install 2>&1 | grep -i "deprecat" > /tmp/deprecations-website.txt
 ```
@@ -42,7 +40,6 @@ cd website && pnpm install 2>&1 | grep -i "deprecat" > /tmp/deprecations-website
 ```bash
 cd website && pnpm update --latest --interactive
 cd brett && npm update 2>/dev/null || true
-cd arena-server && pnpm update --latest --interactive 2>/dev/null || true
 ```
 
 ### Phase 4: Verifikation

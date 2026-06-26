@@ -15,7 +15,6 @@ const subsystems = [
   { id: 'scripts-infra', paths: ['scripts/**'] },
   { id: 'infra-manifests', paths: ['k3d/**', 'prod/**', 'prod-fleet/**', 'prod-mentolder/**', 'prod-korczewski/**'] },
   { id: 'brett', paths: ['brett/**'] },
-  { id: 'arena-server', paths: ['arena-server/**'] },
 ];
 
 const sampleBaseline = {

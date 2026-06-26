@@ -21,7 +21,7 @@ svc_image_repo() {
         korczewski) echo "ghcr.io/paddione/korczewski-website" ;;
       esac ;;
     brett) echo "ghcr.io/paddione/workspace-brett" ;;
-    arena) echo "ghcr.io/paddione/arena-server" ;;
+
     docs)  echo "ghcr.io/paddione/workspace-docs" ;;
   esac
 }
@@ -30,7 +30,6 @@ svc_deployment() {
   case "$1" in
     website) echo "website" ;;
     brett)   echo "brett" ;;
-    arena)   echo "arena-server" ;;
     docs)    echo "docs" ;;
   esac
 }
@@ -55,7 +54,6 @@ default_smoke_grep() {
   case "$1" in
     website) echo 'fa-fragebogen|.*-auth-setup|fa-07-' ;;
     brett)   echo 'brett-duel-mode|fa-27-brett' ;;
-    arena)   echo 'nfa-10-arena|fa-28-arena|fa-29-arena' ;;
     docs)    echo '' ;;
   esac
 }
@@ -174,7 +172,6 @@ promote_phase_build() {
   case "$svc" in
     website) run docker build -t "$full" "${REPO}/website/" >&2 ;;
     brett)   run docker build -t "$full" "${REPO}/brett/" >&2 ;;
-    arena)   run docker build -t "$full" "${REPO}/arena-server/" >&2 ;;
     docs)
       run node "${REPO}/scripts/build-docs.mjs" >&2
       run docker build -t "$full" -f "${REPO}/scripts/docs.Dockerfile" "${REPO}" >&2

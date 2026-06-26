@@ -108,7 +108,6 @@ const navSections: { label?: string; items: NavItem[] }[] = [
       { href: '/admin/meetings',                      label: 'Meetings',     icon: 'video' },
       { href: '/admin/einstellungen/benachrichtigungen', label: 'Einstellungen', icon: 'settings', matches: ['/admin/einstellungen/'] },
       { href: BRETT_URL,                              label: 'Systembrett',  icon: 'brett', external: true },
-      ...(isKore ? [{ href: '/admin/arena',           label: 'Arena',        icon: 'arena' }] : []),
       { href: '/admin/live',                          label: 'Live-Stream',  icon: 'broadcast', matches: ['/admin/live', '/admin/stream'] },
     ],
   },

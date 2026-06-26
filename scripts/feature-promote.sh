@@ -6,7 +6,7 @@
 #   bash scripts/feature-promote.sh                  # prompts for SERVICE & TARGET
 #
 # Inputs:
-#   SERVICE             website | brett | arena | docs
+#   SERVICE             website | brett | docs
 #   TARGET              mentolder | korczewski | both
 #   PROMOTE_TAG         override the auto-generated image tag
 #   SMOKE_GREP          override the Playwright --grep pattern for this run
@@ -44,9 +44,6 @@
 #    scope here).
 #
 # ── Per-service quirks ───────────────────────────────────────────────────────
-#   - arena: korczewski-only (TARGET=mentolder rejected; TARGET=both → korczewski).
-#            Migrations & bootstrap Job are NOT promoted; run `task arena:deploy
-#            ENV=korczewski` for those before/after as needed.
 #   - docs:  no dev stage; image deploys straight to both prods via set-image
 #            on both clusters. TARGET=both is implied.
 
@@ -72,7 +69,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib/promote-phases.sh"
 echo "═══ Promote ${SERVICE} → ${TARGET}  tag=${PROMOTE_TAG} ═══"
 
 # Phase 1 — build + push.
-# website builds per-brand; brett/arena/docs share one image across clusters.
+# website builds per-brand; brett/docs share one image across clusters.
 declare -A IMG
 echo ""
 echo "▶ Phase 1/4 — build + push"

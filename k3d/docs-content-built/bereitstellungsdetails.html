@@ -293,14 +293,7 @@
 <li><strong>Image-Tag:</strong> <code>:latest</code></li>
 <li><strong>Produktions-URLs:</strong> Erreichbar innerhalb der Nextcloud-Oberfläche.</li>
 </ul>
-<h3>4.11 Arena (<code>arena</code>)</h3>
-<ul>
-<li><strong>Beschreibung:</strong> Der Multiplayer-Spielserver (WebSocket-Backend), der exklusiv für das 3D-Spiel der Marke Korczewski genutzt wird.</li>
-<li><strong>K8s-Deployment-Name:</strong> <code>arena-server</code></li>
-<li><strong>K8s-Namespace:</strong> <code>workspace-korczewski</code> (nur für die Marke Korczewski aktiv)</li>
-<li><strong>Image-Tag:</strong> <code>:latest</code></li>
-<li><strong>Produktions-URLs:</strong> <code>arena-ws.korczewski.de</code></li>
-</ul>
+
 <h3>4.12 Documentation (<code>docs</code>)</h3>
 <ul>
 <li><strong>Beschreibung:</strong> Eine statische Dokumentations-Webseite (Docsify), die das Admin- und Benutzerhandbuch bereitstellt.</li>
@@ -394,13 +387,7 @@
 <li><strong>K8s-Namespace:</strong> <code>workspace</code></li>
 <li><strong>Produktions-URLs:</strong> <code>brainstorm.mentolder.de</code></li>
 </ul>
-<h3>4.28 Arena Server (<code>arena-server</code>)</h3>
-<ul>
-<li><strong>Beschreibung:</strong> Der exklusive 3D-Mehrspieler-WebSocket-Spielserver für die Marke Korczewski, der Logins über Keycloak-JSON-Web-Tokens (JWT) beider Marken validiert.</li>
-<li><strong>K8s-Deployment-Name:</strong> <code>arena-server</code></li>
-<li><strong>K8s-Namespace:</strong> <code>workspace-korczewski</code></li>
-<li><strong>Image-Tag:</strong> <code>:latest</code></li>
-</ul>
+
 <hr>
 <h2 id="5-dokumentations-abdeckung-des-repositories">5. Dokumentations-Abdeckung des Repositories</h2>
 <p>Damit kein Teil des Projekts und des Repositories unbeleuchtet bleibt, ordnet die folgende Tabelle jedem Ordner und jeder Datei im Repository das zuständige Hilfe-Dokument zu:</p>
@@ -466,11 +453,6 @@
 <td><strong><code>brett/</code></strong></td>
 <td>Node.js Service für das kollaborative 3D-Aufstellungsboard</td>
 <td><a href="systembrett.html">Systembrett-Doku</a></td>
-</tr>
-<tr>
-<td><strong><code>arena-server/</code></strong></td>
-<td>Multiplayer-WebSocket-Spielserver für die Marke Korczewski</td>
-<td><a href="arena.html">Arena-Dokumentation</a></td>
 </tr>
 <tr>
 <td><strong><code>claude-code/</code></strong></td>

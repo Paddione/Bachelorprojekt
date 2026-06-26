@@ -1,6 +1,6 @@
 {
   "generatedFrom": "website/src/pages",
-  "count": 132,
+  "count": 130,
   "routes": [
     {
       "route": "/",
@@ -69,14 +69,6 @@
     },
     {
       "route": "/admin/architektur",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
-      "route": "/admin/arena",
       "authTier": "admin",
       "brand": "both",
       "dynamic": false,
@@ -991,14 +983,6 @@
       "brand": "both",
       "dynamic": false,
       "excludeFromSweep": false,
-      "media": false
-    },
-    {
-      "route": "/portal/arena",
-      "authTier": "portal",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": true,
       "media": false
     },
     {

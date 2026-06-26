@@ -44,7 +44,6 @@ const REPO_SKILL_CATEGORIES = {
   'dev-flow-iterate': 'dev-workflow',
   'dev-flow-e2e': 'dev-workflow',
   'using-git-worktrees': 'dev-workflow',
-  'arena-brett-deploy': 'bachelorprojekt-infra',
   'cluster-deployment': 'bachelorprojekt-infra',
   'database-ops': 'bachelorprojekt-infra',
   'fleet-ops': 'bachelorprojekt-infra',

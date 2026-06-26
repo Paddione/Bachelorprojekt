@@ -54,10 +54,6 @@ DEPLOYMENTS=(
   "website:${WEB_NS}"
 )
 
-if [[ "$BRAND" == "korczewski" ]]; then
-  DEPLOYMENTS+=("arena-server:${WS_NS}")
-fi
-
 for entry in "${DEPLOYMENTS[@]}"; do
   deploy="${entry%%:*}"
   ns="${entry##*:}"

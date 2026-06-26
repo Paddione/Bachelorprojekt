@@ -178,20 +178,20 @@
 <body>
   <div class="header">
     <h1>⬡ Architektur — Living Docs</h1>
-    <span class="meta">Generiert: 2026-06-26T21:16:28.849Z</span>
+    <span class="meta">Generiert: 2026-06-26T21:55:01.404Z</span>
   </div>
 
   <div class="stats">
     <div class="stat">
-      <span class="stat-value">84</span>
+      <span class="stat-value">83</span>
       <span class="stat-label">Services</span>
     </div>
     <div class="stat">
-      <span class="stat-value">1600</span>
+      <span class="stat-value">1521</span>
       <span class="stat-label">Abhängigkeiten</span>
     </div>
     <div class="stat">
-      <span class="stat-value">409</span>
+      <span class="stat-value">401</span>
       <span class="stat-label">API Endpoints</span>
     </div>
   </div>
@@ -281,7 +281,6 @@ flowchart LR
   dev_db_refresh["dev-db-refresh"]:::default
   talk_transcriber["talk-transcriber"]:::default
   whisper["whisper"]:::default
-  arena_server["arena-server"]:::default
   ddns_updater["ddns-updater"]:::default
   traefik["traefik"]:::ingress
   oauth2_proxy_brainstorm["oauth2-proxy-brainstorm"]:::default
@@ -348,7 +347,6 @@ flowchart LR
   shared_db -->|"configmap:website-…"| tracking
   shared_db -->|"configmap:website-…"| docuseal
   shared_db -->|"configmap:website-…"| whiteboard
-  shared_db -->|"configmap:website-…"| arena_server
   studio_server -->|"KEYCLOAK_ISSUER_ME…"| keycloak
   spreed_signaling -->|"configmap:signalin…"| coturn
   spreed_signaling -->|"configmap:signalin…"| nats
@@ -373,8 +371,6 @@ flowchart LR
   dev_db_refresh -->|"SOURCE_PGHOST"| shared_db
   talk_transcriber -->|"NC_DB_HOST"| shared_db
   talk_transcriber -->|"NC_DB_NAME"| nextcloud
-  arena_server -->|"annotation"| shared_db
-  arena_server -->|"annotation"| keycloak
   ddns_updater -->|"command"| livekit
   ddns_updater -->|"command"| coturn
   ddns_updater -->|"command"| janus
@@ -408,7 +404,6 @@ flowchart LR
   traefik -->|"ingress"| apiinternal
   traefik -->|"ingress"| old_webspace
   traefik -->|"ingress"| bachelorprojekt
-  traefik -->|"ingress"| arena_server
   traefik -->|"ingress"| sessions_server
   coturn -->|"selector"| coturn
   janus -->|"selector"| janus
@@ -443,7 +438,6 @@ flowchart LR
   whiteboard -->|"selector"| whiteboard
   talk_transcriber -->|"selector"| talk_transcriber
   whisper -->|"selector"| whisper
-  arena_server -->|"selector"| arena_server
   admin_actions_cleanup -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| sessions_purge
@@ -513,8 +507,6 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| admin_actions_cleanup
-  admin_actions_cleanup -->|"secret:workspace-s…"| arena_server
-  arena_server -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_prune -->|"secret:workspace-s…"| sessions_purge
@@ -584,8 +576,6 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| admin_actions_prune
-  admin_actions_prune -->|"secret:workspace-s…"| arena_server
-  arena_server -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| admin_actions_prune
   sessions_purge -->|"secret:workspace-s…"| db_backup
@@ -654,8 +644,6 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| sessions_purge
   sessions_purge -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| sessions_purge
-  sessions_purge -->|"secret:workspace-s…"| arena_server
-  arena_server -->|"secret:workspace-s…"| sessions_purge
   sessions_purge -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| sessions_purge
   db_backup -->|"secret:workspace-s…"| brett
@@ -719,8 +707,6 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| db_backup
-  db_backup -->|"secret:workspace-s…"| arena_server
-  arena_server -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| db_backup
   brett -->|"secret:workspace-s…"| billing_dunning_detection
@@ -779,8 +765,6 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| brett
-  brett -->|"secret:workspace-s…"| arena_server
-  arena_server -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| brett
   billing_dunning_detection -->|"secret:workspace-s…"| monthly_billing
@@ -843,8 +827,6 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| billing_dunning_detection
   billing_dunning_detection -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| billing_dunning_detection
-  billing_dunning_detection -->|"secret:workspace-s…"| arena_server
-  arena_server -->|"secret:workspace-s…"| billing_dunning_detection
   billing_dunning_detection -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| billing_dunning_detection
   monthly_billing -->|"secret:workspace-s…"| scheduled_publish
@@ -905,8 +887,6 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| monthly_billing
   monthly_billing -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| monthly_billing
-  monthly_billing -->|"secret:workspace-s…"| arena_server
-  arena_server -->|"secret:workspace-s…"| monthly_billing
   monthly_billing -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| monthly_billing
   scheduled_publish -->|"secret:workspace-s…"| oauth2_proxy_dev
@@ -965,8 +945,6 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| scheduled_publish
   scheduled_publish -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| scheduled_publish
-  scheduled_publish -->|"secret:workspace-s…"| arena_server
-  arena_server -->|"secret:workspace-s…"| scheduled_publish
   scheduled_publish -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| scheduled_publish
   oauth2_proxy_dev -->|"secret:workspace-s…"| knowledge_ingest_prs
@@ -1023,8 +1001,6 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| oauth2_proxy_dev
-  oauth2_proxy_dev -->|"secret:workspace-s…"| arena_server
-  arena_server -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_dev
   knowledge_ingest_prs -->|"secret:workspace-s…"| knowledge_ingest_bugs
@@ -1078,8 +1054,6 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| knowledge_ingest_prs
-  knowledge_ingest_prs -->|"secret:workspace-s…"| arena_server
-  arena_server -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_bugs -->|"secret:workspace-s…"| knowledge_reindex_all
@@ -1131,8 +1105,6 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| knowledge_ingest_bugs
   knowledge_ingest_bugs -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| knowledge_ingest_bugs
-  knowledge_ingest_bugs -->|"secret:workspace-s…"| arena_server
-  arena_server -->|"secret:workspace-s…"| knowledge_ingest_bugs
   knowledge_ingest_bugs -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| knowledge_ingest_bugs
   knowledge_reindex_all -->|"secret:workspace-s…"| livekit_server
@@ -1182,8 +1154,6 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| knowledge_reindex_all
-  knowledge_reindex_all -->|"secret:workspace-s…"| arena_server
-  arena_server -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| knowledge_reindex_all
   livekit_server -->|"secret:workspace-s…"| livekit_ingress
@@ -1230,8 +1200,6 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| livekit_server
   livekit_server -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| arena_server
-  arena_server -->|"secret:workspace-s…"| livekit_server
   livekit_server -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| livekit_server
   livekit_ingress -->|"secret:workspace-s…"| livekit_egress
@@ -1278,8 +1246,6 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| livekit_ingress
   livekit_ingress -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| arena_server
-  arena_server -->|"secret:workspace-s…"| livekit_ingress
   livekit_ingress -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| livekit_ingress
   livekit_egress -->|"secret:workspace-s…"| nextcloud
@@ -1324,8 +1290,6 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| livekit_egress
   livekit_egress -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| arena_server
-  arena_server -->|"secret:workspace-s…"| livekit_egress
   livekit_egress -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| livekit_egress
   nextcloud -->|"secret:workspace-s…"| notify_unread
@@ -1363,8 +1327,6 @@ flowchart LR
   nextcloud -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| talk_transcriber
-  nextcloud -->|"secret:workspace-s…"| arena_server
-  arena_server -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| nextcloud
   notify_unread -->|"secret:workspace-s…"| oauth2_proxy_brett
@@ -1405,8 +1367,6 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| notify_unread
   notify_unread -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| notify_unread
-  notify_unread -->|"secret:workspace-s…"| arena_server
-  arena_server -->|"secret:workspace-s…"| notify_unread
   notify_unread -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| notify_unread
   oauth2_proxy_brett -->|"secret:workspace-s…"| oauth2_proxy_comfy
@@ -1445,8 +1405,6 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| oauth2_proxy_brett
   oauth2_proxy_brett -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| oauth2_proxy_brett
-  oauth2_proxy_brett -->|"secret:workspace-s…"| arena_server
-  arena_server -->|"secret:workspace-s…"| oauth2_proxy_brett
   oauth2_proxy_brett -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_brett
   oauth2_proxy_comfy -->|"secret:workspace-s…"| oauth2_proxy_docs
@@ -1483,8 +1441,6 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| oauth2_proxy_comfy
-  oauth2_proxy_comfy -->|"secret:workspace-s…"| arena_server
-  arena_server -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_docs -->|"secret:workspace-s…"| oauth2_proxy_mailpit
@@ -1519,8 +1475,6 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| oauth2_proxy_docs
   oauth2_proxy_docs -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| arena_server
-  arena_server -->|"secret:workspace-s…"| oauth2_proxy_docs
   oauth2_proxy_docs -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_docs
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
@@ -1553,8 +1507,6 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| oauth2_proxy_mailpit
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| oauth2_proxy_mailpit
-  oauth2_proxy_mailpit -->|"secret:workspace-s…"| arena_server
-  arena_server -->|"secret:workspace-s…"| oauth2_proxy_mailpit
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_mailpit
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| oauth2_proxy_studio
@@ -1585,8 +1537,6 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
-  oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| arena_server
-  arena_server -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_studio -->|"secret:workspace-s…"| oauth2_proxy_traefik
@@ -1615,8 +1565,6 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| oauth2_proxy_studio
   oauth2_proxy_studio -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| oauth2_proxy_studio
-  oauth2_proxy_studio -->|"secret:workspace-s…"| arena_server
-  arena_server -->|"secret:workspace-s…"| oauth2_proxy_studio
   oauth2_proxy_studio -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_studio
   oauth2_proxy_traefik -->|"secret:workspace-s…"| oauth2_proxy_videovault
@@ -1643,8 +1591,6 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| oauth2_proxy_traefik
-  oauth2_proxy_traefik -->|"secret:workspace-s…"| arena_server
-  arena_server -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_videovault -->|"secret:workspace-s…"| pocket_id
@@ -1669,8 +1615,6 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| oauth2_proxy_videovault
-  oauth2_proxy_videovault -->|"secret:workspace-s…"| arena_server
-  arena_server -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_videovault
   pocket_id -->|"secret:workspace-s…"| oauth2_proxy_recovery
@@ -1692,8 +1636,6 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| pocket_id
   pocket_id -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| pocket_id
-  pocket_id -->|"secret:workspace-s…"| arena_server
-  arena_server -->|"secret:workspace-s…"| pocket_id
   pocket_id -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| pocket_id
   oauth2_proxy_recovery -->|"secret:workspace-s…"| shared_db
@@ -1714,8 +1656,6 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| oauth2_proxy_recovery
   oauth2_proxy_recovery -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| oauth2_proxy_recovery
-  oauth2_proxy_recovery -->|"secret:workspace-s…"| arena_server
-  arena_server -->|"secret:workspace-s…"| oauth2_proxy_recovery
   oauth2_proxy_recovery -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_recovery
   shared_db -->|"secret:workspace-s…"| studio_server
@@ -1744,8 +1684,6 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| studio_server
   studio_server -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| studio_server
-  studio_server -->|"secret:workspace-s…"| arena_server
-  arena_server -->|"secret:workspace-s…"| studio_server
   studio_server -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| studio_server
   spreed_signaling -->|"secret:workspace-s…"| talk_recording
@@ -1759,8 +1697,6 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| spreed_signaling
   spreed_signaling -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| spreed_signaling
-  spreed_signaling -->|"secret:workspace-s…"| arena_server
-  arena_server -->|"secret:workspace-s…"| spreed_signaling
   spreed_signaling -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| spreed_signaling
   talk_recording -->|"secret:workspace-s…"| vaultwarden
@@ -1773,8 +1709,6 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| talk_recording
   talk_recording -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| talk_recording
-  talk_recording -->|"secret:workspace-s…"| arena_server
-  arena_server -->|"secret:workspace-s…"| talk_recording
   talk_recording -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| talk_recording
   vaultwarden -->|"secret:workspace-s…"| videovault
@@ -1785,8 +1719,6 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| vaultwarden
   vaultwarden -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| vaultwarden
-  vaultwarden -->|"secret:workspace-s…"| arena_server
-  arena_server -->|"secret:workspace-s…"| vaultwarden
   vaultwarden -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| vaultwarden
   videovault -->|"secret:workspace-s…"| whiteboard
@@ -1795,30 +1727,20 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| videovault
   videovault -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| videovault
-  videovault -->|"secret:workspace-s…"| arena_server
-  arena_server -->|"secret:workspace-s…"| videovault
   videovault -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| videovault
   whiteboard -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| whiteboard
-  whiteboard -->|"secret:workspace-s…"| arena_server
-  arena_server -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| whiteboard
   dev_db_refresh -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| dev_db_refresh
-  dev_db_refresh -->|"secret:workspace-s…"| arena_server
-  arena_server -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| dev_db_refresh
-  talk_transcriber -->|"secret:workspace-s…"| arena_server
-  arena_server -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| talk_transcriber
-  arena_server -->|"secret:workspace-s…"| ddns_updater
-  ddns_updater -->|"secret:workspace-s…"| arena_server
   systemtest_cleanup -->|"secret:website-sec…"| systemtest_purge_all
   systemtest_purge_all -->|"secret:website-sec…"| systemtest_cleanup
   systemtest_cleanup -->|"secret:website-sec…"| systemtest_outbox
@@ -1836,7 +1758,7 @@ flowchart LR
   website -->|"secret:staging-db-…"| shared_db_staging
       </div>
     </div>
-    <p class="diagram-caption">Alle 84 K8s-Services und ihre 1600 Abhängigkeitskanten (env-Refs, initContainer-Waits, Ingress-Backends)</p>
+    <p class="diagram-caption">Alle 83 K8s-Services und ihre 1521 Abhängigkeitskanten (env-Refs, initContainer-Waits, Ingress-Backends)</p>
   </div>
 
   <!-- K8s Topology Tab -->
@@ -1944,7 +1866,6 @@ flowchart TB
     tests_results_retention(["tests-results-retention"])
     tls_sync(["tls-sync"])
     dev_db_refresh(["dev-db-refresh"])
-    arena_server["arena-server"]
   end
   subgraph kube_system["kube-system"]
     coredns["coredns"]
@@ -1959,7 +1880,7 @@ flowchart TB
     <div class="filter-bar">
       <span class="filter-label">Filter:</span>
       <input class="filter-input" type="text" id="api-filter" placeholder="/api/..." oninput="filterApi(this.value)">
-      <span class="filter-label" id="api-count">409 endpoints</span>
+      <span class="filter-label" id="api-count">401 endpoints</span>
     </div>
     <div style="max-height:70vh;overflow-y:auto;border:1px solid var(--ff-border);border-radius:4px;">
       <table>
@@ -3505,46 +3426,6 @@ flowchart TB
       <td><code>/api/admin/zeiterfassung/export</code></td>
       <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">GET</code></td>
       <td style="color:#ef4444">🔐 admin</td>
-    </tr>
-      <tr>
-      <td><code>/api/arena/1v3</code></td>
-      <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">POST</code></td>
-      <td style="color:#6b7280">? session</td>
-    </tr>
-      <tr>
-      <td><code>/api/arena/active</code></td>
-      <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">GET</code></td>
-      <td style="color:#6b7280">? unclassified</td>
-    </tr>
-      <tr>
-      <td><code>/api/arena/duel</code></td>
-      <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">POST</code></td>
-      <td style="color:#6b7280">? session</td>
-    </tr>
-      <tr>
-      <td><code>/api/arena/lobby</code></td>
-      <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">GET</code></td>
-      <td style="color:#6b7280">? session</td>
-    </tr>
-      <tr>
-      <td><code>/api/arena/matches</code></td>
-      <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">GET</code></td>
-      <td style="color:#6b7280">? session</td>
-    </tr>
-      <tr>
-      <td><code>/api/arena/solo</code></td>
-      <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">POST</code></td>
-      <td style="color:#6b7280">? session</td>
-    </tr>
-      <tr>
-      <td><code>/api/arena/start</code></td>
-      <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">POST</code></td>
-      <td style="color:#6b7280">? session</td>
-    </tr>
-      <tr>
-      <td><code>/api/arena/token</code></td>
-      <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">POST</code></td>
-      <td style="color:#6b7280">? session</td>
     </tr>
       <tr>
       <td><code>/api/assets/{...path}</code></td>

@@ -118,9 +118,19 @@
   name: "Arena"
   emoji: "🎮"
   sensitivity: caution
-  placeholder_en: "Multiplayer game server"
-  summary_de: "Der Mehrspieler-Spielserver (nur Marke korczewski)."
-  what_for_de: "WebSocket-Spielserver für das 3D-Mehrspieler-Spiel der Marke korczewski."
+  placeholder_en: "Multiplayer game server (decommissioned)"
+  summary_de: "Der Mehrspieler-Spielserver (decommissioned)."
+  what_for_de: "WebSocket-Spielserver für das 3D-Mehrspieler-Spiel der Marke korczewski (decommissioned 2026-06)."
+  url: null
+  links: []
+- slug: arena-server
+  kind: software
+  name: "Arena Server"
+  emoji: "🎮"
+  sensitivity: caution
+  placeholder_en: "Multiplayer 3D game server — decommissioned"
+  summary_de: "Der 3D-Mehrspieler-Spielserver (decommissioned 2026-06)."
+  what_for_de: "WebSocket-Spielserver; validiert JWTs aus beiden Keycloak-Realms (decommissioned 2026-06)."
   url: null
   links: []
 - slug: docs
@@ -298,16 +308,7 @@
   what_for_de: "Reverse-SSH-Tunnel (sish); macht das lokale Companion-Board von außen erreichbar."
   url: null
   links: []
-- slug: arena-server
-  kind: software
-  name: "Arena Server"
-  emoji: "🎮"
-  sensitivity: caution
-  placeholder_en: "Multiplayer 3D game server (korczewski only) — JWT validated from both Keycloak realms"
-  summary_de: "Der 3D-Mehrspieler-Spielserver (nur korczewski); prüft Logins aus beiden Keycloak-Welten."
-  what_for_de: "WebSocket-Spielserver der Marke korczewski; validiert JWTs aus beiden Keycloak-Realms."
-  url: null
-  links: []
+
 # ── Hardware ──────────────────────────────────────────────────────────────────
 # NOTE: roles below reflect the CURRENT fleet topology (pk-* = control-plane,
 # gekko-* = workers). name / placeholder_en / summary_de / what_for_de are all

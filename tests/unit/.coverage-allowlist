@@ -29,7 +29,7 @@ tickets-transition
 coaching-json-ingest
 #
 # --- Currently FAILS offline: asserts every schema secret exists in k3d/secrets.yaml,
-# --- but arena_db_password / TRACKING_DB_URL / ANTHROPIC_API_KEY / DEV_* are absent there.
+# --- but TRACKING_DB_URL / ANTHROPIC_API_KEY / DEV_* are absent there.
 # --- Excluded pending triage of whether that is intentional dev-vs-prod secret drift.
 secrets-sync
 #

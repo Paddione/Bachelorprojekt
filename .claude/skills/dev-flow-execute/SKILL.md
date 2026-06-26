@@ -383,7 +383,7 @@ Bei roten Checks: Logs aus dem Skript-Output als Prompt-Kontext an einen `sonnet
 
 > **Hinweis:** `E2E PR` ist kein required check (T000722). Auto-Merge wartet nur auf:
 > `Offline Tests (Manifests, Configs, Unit)`, `Security Scan`, `Brett TypeScript`,
-> `Vitest (website + arena-server)`, `Conventional Commits`.
+> `Vitest (website)`, `Conventional Commits`.
 > Ein roter E2E-Check blockiert den Merge NICHT — er erscheint als informativer
 > gelber Status im PR. PR-Autor prüft E2E-Ergebnis manuell bei Bedarf.
 

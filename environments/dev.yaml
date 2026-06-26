@@ -22,7 +22,7 @@ env_vars:
   LLM_EMBED_MODEL: "text-embedding-bge-m3"
   LLM_EMBED_MODEL_NOMIC: "text-embedding-nomic-embed-text-v1.5"
   LLM_HOST_IP: "172.17.0.1"
-  ARENA_WS_URL: http://arena.localhost
+
   MEDIAVIEWER_HOST: mediaviewer.localhost
   VIDEOVAULT_DOMAIN: videovault.localhost
   POCKET_ID_FRONTEND_URL: "http://auth.localhost"

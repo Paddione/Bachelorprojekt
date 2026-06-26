@@ -152,7 +152,7 @@
       <div class="grid grid-cols-2 gap-4">
         <div class="field">
           <label>Komponente {isTriage ? '(erforderlich für AI)' : ''}</label>
-          <input list="components-list" bind:value={component} disabled={busy} placeholder="z.B. arena, website..." />
+          <input list="components-list" bind:value={component} disabled={busy} placeholder="z.B. website, brett..." />
           <datalist id="components-list">
             {#each components as c}
               <option value={c} />

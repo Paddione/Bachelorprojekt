@@ -90,7 +90,6 @@ kubectl patch storageclass longhorn -p '{"metadata":{"annotations":{"storageclas
 task workspace:setup ENV=<env>
 task workspace:coturn:deploy ENV=<env>
 task website:deploy ENV=<env>
-task arena:deploy ENV=korczewski  # korczewski only
 task workspace:admin-users-setup ENV=<env>
 task workspace:vaultwarden:seed ENV=<env>
 task workspace:check-connectivity ENV=<env>
@@ -153,7 +152,6 @@ task workspace:setup ENV=<env>
 # Prod-only stacks danach:
 task workspace:coturn:deploy ENV=<env>
 task website:deploy ENV=<env>
-task arena:deploy ENV=korczewski
 
 # Optional one-time:
 task workspace:admin-users-setup ENV=<env>
@@ -213,7 +211,6 @@ task workspace:vaultwarden:seed-logs ENV=<env> # Logs prüfen
 | Collabora | `office.<domain>` | `workspace:office:deploy` |
 | CoTURN | UDP TURN/STUN | `workspace:coturn:deploy` (prod only) |
 | Website | `web.<domain>` | `website:deploy` |
-| Arena (korczewski) | `arena-ws.korczewski.de` | `arena:deploy ENV=korczewski` |
 
 ---
 

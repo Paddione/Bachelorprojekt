@@ -63,7 +63,7 @@ task feature:deploy  # fan-out to both brands
 - **Centralized domains**: `k3d/configmap-domains.yaml` — never hardcode hostnames.
 - **Secrets flow**: plaintext `environments/.secrets/<env>.yaml` → `task env:seal ENV=<env>` → committed SealedSecret.
 - Cross-cutting DB/OIDC changes apply to **both** namespaces.
-- **Website uses `pnpm`**; root, brett, arena-server use `npm` for install/CI. The website has its own Postgres dependency (via `DATABASE_URL`). Note: `brett/` and `arena-server/` also ship a `pnpm-lock.yaml` + `pnpm-workspace.yaml`; these are **not** used at runtime but are read by Renovate's pnpm manager for dependency update checks.
+- **Website uses `pnpm`**; root and brett use `npm` for install/CI. The website has its own Postgres dependency (via `DATABASE_URL`). Note: `brett/` also ships a `pnpm-lock.yaml` + `pnpm-workspace.yaml`; these are **not** used at runtime but are read by Renovate's pnpm manager for dependency update checks.
 
 ## Package Managers & Lockfiles
 
@@ -72,7 +72,7 @@ task feature:deploy  # fan-out to both brands
 | Root (scripts, docs-gen) | `npm` | `package-lock.json` |
 | `website/` | `pnpm` | `website/pnpm-lock.yaml` |
 | `brett/` | `npm` | `brett/package-lock.json` (+ `pnpm-lock.yaml` + `pnpm-workspace.yaml` for Renovate) |
-| `arena-server/` | `npm` | `arena-server/package-lock.json` (+ `pnpm-lock.yaml` + `pnpm-workspace.yaml` for Renovate) |
+
 
 ## Quality Gates
 
@@ -82,8 +82,7 @@ task feature:deploy  # fan-out to both brands
 - **`task test:unit`** — all BATS unit tests (root scripts) + factory bats.
 - **Brett**: `npm run typecheck --prefix brett && npm test --prefix brett && npm run build --prefix brett`
 - **Website**: `npm --prefix website run test:unit` (vitest)
-- **Arena**: `npm --prefix arena-server test` (vitest)
-- **Arena proto-drift guard**: `arena-server/src/proto/messages.ts` and `website/src/components/arena/shared/lobbyTypes.ts` must be byte-identical.
+
 - PR titles: Conventional Commits with `[T000XXX]` tag. Scopes defined in `ci.yml`.
 
 ## Critical Footguns

@@ -41,8 +41,12 @@
       "en": "Collaborative drawing"
     },
     "arena": {
-      "de": "Der Mehrspieler-Spielserver (nur Marke korczewski).",
-      "en": "Multiplayer game server"
+      "de": "Der Mehrspieler-Spielserver (decommissioned).",
+      "en": "Multiplayer game server (decommissioned)"
+    },
+    "arena-server": {
+      "de": "Der 3D-Mehrspieler-Spielserver (decommissioned 2026-06).",
+      "en": "Multiplayer 3D game server — decommissioned"
     },
     "docs": {
       "de": "Die Anleitungen und Handbücher der Plattform (die Doku-Seite).",
@@ -107,10 +111,6 @@
     "brainstorm": {
       "de": "Ein sicherer Tunnel, der das lokale Brainstorming-Board unter brainstorm.mentolder.de erreichbar macht.",
       "en": "Reverse-SSH tunnel endpoint for brainstorm.mentolder.de"
-    },
-    "arena-server": {
-      "de": "Der 3D-Mehrspieler-Spielserver (nur korczewski); prüft Logins aus beiden Keycloak-Welten.",
-      "en": "Multiplayer 3D game server (korczewski only) — JWT validated from both Keycloak realms"
     }
   },
   "hardware": {

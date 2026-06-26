@@ -119,7 +119,7 @@ Statische Limits (Stand 2026-06, verbindlich ist `gates.yaml` → `s1.limits`):
 
 ### S2 — Import-Zyklen
 
-Keine neuen Zyklen in den Graphen `website`, `arena-server`, `e2e` (tsconfig-basiert).
+Keine neuen Zyklen in den Graphen `website`, `e2e` (tsconfig-basiert).
 Helper-Module als **pure Module** ohne Rück-Import auf DB-/API-Schichten planen.
 
 ### S3 — Hardcodierte Hostnamen
@@ -256,11 +256,9 @@ This section aggregates known operational issues, gotchas, and workarounds for t
 
 ### [T000245] fresh worktree node_modules missing
 **Context**: Node modules are not checked in, and worktrees are clean.
-**Rule**: Run `npm ci --prefix brett` or `pnpm install --frozen-lockfile` inside `arena-server` before running tests or compilation within a fresh worktree.
+**Rule**: Run `npm ci --prefix brett` before running tests or compilation within a fresh worktree.
 
-### [T000254] lockfile mismatch after package add
-**Context**: Changing `package.json` in `arena-server` causes `pnpm install --frozen-lockfile` to fail.
-**Rule**: Run `pnpm install` without flags first to update the lockfile, then commit `pnpm-lock.yaml`.
+
 
 ### [T000214] openclaw approvals get JSON parsing
 **Context**: `openclaw approvals get` returns tab-delimited text, not JSON.

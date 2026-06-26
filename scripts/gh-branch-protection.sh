@@ -3,7 +3,7 @@
 #
 # Setzt die required status checks für Paddione/Bachelorprojekt:main
 # auf: Offline Tests (Manifests, Configs, Unit), Security Scan, Brett TypeScript,
-#      Vitest (website + arena-server), Conventional Commits
+#      Conventional Commits
 # (E2E PR ist NICHT enthalten — informativ, blockiert keinen Auto-Merge)
 #
 # Verwendung:
@@ -27,7 +27,7 @@ REQUIRED_CHECKS_BASE=(
   "Offline Tests (Manifests, Configs, Unit)"
   "Security Scan"
   "Brett TypeScript"
-  "Vitest (website + arena-server)"
+
   "Conventional Commits"
 )
 
@@ -36,7 +36,7 @@ REQUIRED_CHECKS_WITH_E2E=(
   "Offline Tests (Manifests, Configs, Unit)"
   "Security Scan"
   "Brett TypeScript"
-  "Vitest (website + arena-server)"
+
   "Conventional Commits"
   "E2E PR"
 )

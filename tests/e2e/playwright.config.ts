@@ -163,8 +163,6 @@ export default defineConfig({
         '**/fa-35-*.spec.ts',    // LLM MixedEmbeddingModelError
         '**/fa-36-*.spec.ts',    // Rerank-Endpunkt
         '**/fa-37-*.spec.ts',    // workspace-chat Roundtrip
-        '**/fa-39-arena-db.spec.ts',        // Arena DB-Schema und Service-Health
-        '**/fa-40-arena-spectator.spec.ts', // Arena Spectator-join Smoke
         '**/fa-livekit.spec.ts', // LiveKit / Livestream auth-gating
         '**/sa-01-*.spec.ts',    // Transportverschlüsselung (TLS + security headers)
         '**/sa-02-*.spec.ts',    // Authentication (wrong password → Keycloak error)
@@ -229,16 +227,6 @@ export default defineConfig({
       },
     },
 
-    // ── arena-mentolder-setup: seeds mentolder portal auth state ───
-    {
-      name: 'arena-mentolder-setup',
-      testMatch: '**/arena-mentolder-auth-setup.spec.ts',
-      use: {
-        ...devices['Desktop Chrome'],
-        ignoreHTTPSErrors: true,
-      },
-    },
-
     // ── korczewski-setup: seeds auth state for korczewski tests ─────
     // Runs before `korczewski` via the `dependencies` field.
     // Performs real OIDC login and writes .auth/korczewski-*.json.
@@ -275,8 +263,6 @@ export default defineConfig({
       name: 'smoke',
       testMatch: [
         '**/integration-smoke.spec.ts',
-        '**/fa-52-arena-banner.spec.ts',      // cross-brand arena banner
-        '**/fa-38-arena-game-client.spec.ts', // game client lobby flow
       ],
       use: {
         ...devices['Desktop Chrome'],
@@ -298,13 +284,12 @@ export default defineConfig({
 
     // ── android: Pixel 5 Chromium (mobile, touch, 393×851) ───────
     // Run: playwright test --project=android
-    // Covers Brett and Arena mobile layout + tap-target compliance.
+    // Covers Brett mobile layout + tap-target compliance.
     {
       name: 'android',
-      dependencies: ['brett-mentolder-setup', 'arena-mentolder-setup'],
+      dependencies: ['brett-mentolder-setup'],
       testMatch: [
         '**/brett-mobile.spec.ts',
-        '**/arena-mobile.spec.ts',
       ],
       use: {
         ...devices['Pixel 5'],

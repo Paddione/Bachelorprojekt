@@ -95,7 +95,6 @@ graph TB
 - `environments/` — Per-Env Config + SealedSecrets
 - `website/` — Astro + Svelte (Brand-aware: mentolder + korczewski)
 - `brett/` — Node.js Systembrett-Service
-- `arena-server/` — Multiplayer-Backend (nur korczewski)
 - `scripts/`, `tests/`, `claude-code/`, `k3d/docs-content/`
 
 ## Tests

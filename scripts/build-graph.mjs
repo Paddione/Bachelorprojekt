@@ -37,7 +37,6 @@ const KNOWN_SERVICES = [
   'spreed-signaling',
   'janus-gateway',
   'livekit-server',
-  'arena-server',
   'recovery-browser',
   'nats',
   'janus',

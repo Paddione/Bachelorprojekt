@@ -44,7 +44,7 @@ export function classifyAuthTier(route) {
 }
 
 /** Routes whose subtree is unsafe/non-deterministic to sweep. */
-const EXCLUDE_PREFIXES = ['/portal/arena', '/admin/systemtest', '/admin/brett'];
+const EXCLUDE_PREFIXES = ['/admin/systemtest', '/admin/brett'];
 function isExcluded(route) {
   return EXCLUDE_PREFIXES.some((p) => route === p || route.startsWith(p + '/'));
 }

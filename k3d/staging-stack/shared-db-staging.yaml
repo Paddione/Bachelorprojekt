@@ -120,9 +120,6 @@ spec:
                   ELSE
                     EXECUTE format('ALTER ROLE website WITH PASSWORD %L', '$WEBSITE_DB_PASSWORD');
                   END IF;
-                  IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='arena_app') THEN
-                    CREATE ROLE arena_app NOLOGIN;
-                  END IF;
                 END \$\$;
                 SELECT 'CREATE DATABASE website OWNER website'
                   WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname='website')

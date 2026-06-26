@@ -158,7 +158,7 @@ export async function verifyGlobalNav(
       continue;
     }
     if (expected.excludeFromSweep) {
-      // Excluded routes (arena/systemtest/brett) are intentionally not navigated.
+      // Excluded routes (systemtest/brett) are intentionally not navigated.
       continue;
     }
 

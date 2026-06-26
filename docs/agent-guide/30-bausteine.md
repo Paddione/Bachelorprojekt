@@ -76,7 +76,13 @@ Kollaboratives Whiteboard für Skizzen und Ideen, direkt in Nextcloud.
 
 🟡 **Vorsicht**
 
-WebSocket-Spielserver für das 3D-Mehrspieler-Spiel der Marke korczewski.
+WebSocket-Spielserver für das 3D-Mehrspieler-Spiel der Marke korczewski (decommissioned 2026-06).
+
+### 🎮 Arena Server
+
+🟡 **Vorsicht**
+
+WebSocket-Spielserver; validiert JWTs aus beiden Keycloak-Realms (decommissioned 2026-06).
 
 ### 📚 Documentation
 
@@ -173,12 +179,6 @@ Model-Context-Protocol-Proxy: gibt KI-Agenten kontrollierten Zugriff auf Cluster
 🟡 **Vorsicht**
 
 Reverse-SSH-Tunnel (sish); macht das lokale Companion-Board von außen erreichbar.
-
-### 🎮 Arena Server
-
-🟡 **Vorsicht**
-
-WebSocket-Spielserver der Marke korczewski; validiert JWTs aus beiden Keycloak-Realms.
 
 ## Hardware
 

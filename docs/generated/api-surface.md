@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-06-22T07:14:56.523Z
+> Generated at 2026-06-26T21:55:01.366Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -311,14 +311,6 @@
 | `/api/admin/zeiterfassung/create` | POST | 🔐 admin | `website/src/pages/api/admin/zeiterfassung/create.ts` |
 | `/api/admin/zeiterfassung/delete` | POST | 🔐 admin | `website/src/pages/api/admin/zeiterfassung/delete.ts` |
 | `/api/admin/zeiterfassung/export` | GET | 🔐 admin | `website/src/pages/api/admin/zeiterfassung/export.ts` |
-| `/api/arena/1v3` | POST | 🔑 session | `website/src/pages/api/arena/1v3.ts` |
-| `/api/arena/active` | GET | ❓ unclassified | `website/src/pages/api/arena/active.ts` |
-| `/api/arena/duel` | POST | 🔑 session | `website/src/pages/api/arena/duel.ts` |
-| `/api/arena/lobby` | GET | 🔑 session | `website/src/pages/api/arena/lobby.ts` |
-| `/api/arena/matches` | GET | 🔑 session | `website/src/pages/api/arena/matches.ts` |
-| `/api/arena/solo` | POST | 🔑 session | `website/src/pages/api/arena/solo.ts` |
-| `/api/arena/start` | POST | 🔑 session | `website/src/pages/api/arena/start.ts` |
-| `/api/arena/token` | POST | 🔑 session | `website/src/pages/api/arena/token.ts` |
 | `/api/assets/{...path}` | GET | ❓ unclassified | `website/src/pages/api/assets/[...path].ts` |
 | `/api/assistant/chat` | POST | 🔐 admin | `website/src/pages/api/assistant/chat.ts` |
 | `/api/assistant/dismiss` | POST | 🔑 session | `website/src/pages/api/assistant/dismiss.ts` |

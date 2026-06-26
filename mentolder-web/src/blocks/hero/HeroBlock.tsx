@@ -8,8 +8,9 @@ export function HeroBlock(props: HeroProps) {
       titleEmphasis={props.titleEmphasis}
       subtitle={props.subtitle}
       tagline={props.tagline}
-      avatarType={props.avatarType === 'initials' ? 'initials' : 'initials'}
+      avatarType={props.avatarType}
       avatarInitials={props.avatarInitials}
+      avatarSrc={props.avatarSrc}
       personName={props.personName}
       personRole={props.personRole}
     />

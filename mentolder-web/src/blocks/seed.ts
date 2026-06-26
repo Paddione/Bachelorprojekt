@@ -8,14 +8,14 @@ export const homepageSeed: HomepageBlocksDocumentType = {
       type: 'hero',
       props: {
         title: 'Digital Coach & Führungskräfte-Mentor –',
-        titleEmphasis: 'praxisnah. Strukturiert. Auf Augenhöhe.',
+        titleEmphasis: 'der Mensch und Technologie wieder verbindet.',
         subtitle:
           'Ich kenne beide Welten: 40 Jahre etablierte Strukturen UND modernste KI-Tools. Ich weiß, wie Veränderung in komplexen Organisationen wirklich funktioniert.',
-        tagline: 'Coaching · Digitale Begleitung · KI-Transition',
-        avatarType: 'initials',
-        avatarInitials: 'GK',
+        tagline: 'Praxisnah. Strukturiert. Auf Augenhöhe.',
+        avatarType: 'image',
+        avatarSrc: '/brand/mentolder/characters/leadership.portrait.svg',
         personName: 'Gerald Korczewski',
-        personRole: 'Coach und digitaler Begleiter',
+        personRole: 'Digital Coach & Mentor',
       },
     },
     {
@@ -24,7 +24,7 @@ export const homepageSeed: HomepageBlocksDocumentType = {
       props: {
         items: [
           { value: '30+', target: 30, label: 'Jahre Führungserfahrung' },
-          { value: '50+', label: 'Begleitete Teilnehmer' },
+          { value: '65+', label: 'Begleitete Teilnehmer' },
           { value: '40', target: 40, label: 'Jahre Praxis in IT & Sicherheit' },
           { value: 'KI', label: 'Pionier der ersten Stunde' },
         ],
@@ -42,8 +42,8 @@ export const homepageSeed: HomepageBlocksDocumentType = {
             id: '50plus-digital',
             title: '65+ digital',
             description:
-              'Digitale Begleitung für Menschen 65+ in Lüneburg und Hamburg. Smartphone, WhatsApp, Online-Banking – Schritt für Schritt, ohne Fachchinesisch.',
-            features: ['Smartphone & Tablet Grundlagen', 'WhatsApp & Videocalls', 'Online-Banking & Shopping sicher nutzen'],
+              'Digitale Begleitung für Menschen 65+ in Lüneburg und Hamburg. Smartphone, WhatsApp, Online-Banking – Schritt für Schritt, ohne Fachchinesisch, in Ihrem Tempo.',
+            features: ['Smartphone, Tablet & Computer Grundlagen', 'WhatsApp, Email & Videocalls', 'Online-Banking & Shopping sicher nutzen', 'Datenschutz & Sicherheit verstehen – inkl. ChatGPT, Claude, Perplexity'],
             price: 'nach Vereinbarung',
             priceUnit: '',
             href: '/leistungen/50plus-digital',
@@ -51,10 +51,10 @@ export const homepageSeed: HomepageBlocksDocumentType = {
           },
           {
             id: 'coaching',
-            title: 'Coaching für Führungskräfte',
+            title: 'Coaching für Führungskräfte und Menschen in Verantwortung',
             description:
               'Ihre Karriere strategisch gestalten. Ich unterstütze erfahrene Führungskräfte bei der beruflichen Neuorientierung.',
-            features: ['Profil-Schärfung & Positionierung', 'Karriere-Strategie', 'Sparring auf Augenhöhe'],
+            features: ['Profil-Schärfung & Positionierung', 'Karriere-Strategie entwickeln', 'Gesprächsvorbereitung (Headhunter, Vorstellungsgespräche)', 'Sparring auf Augenhöhe'],
             price: 'nach Vereinbarung',
             priceUnit: '',
             href: '/leistungen/coaching',
@@ -64,8 +64,8 @@ export const homepageSeed: HomepageBlocksDocumentType = {
             id: 'fuehrung-persoenlichkeit',
             title: 'Führung & Persönlichkeit',
             description:
-              'Gute Führung beginnt nicht mit Methoden. Sie beginnt mit Haltung. Für Führungskräfte, die ihren eigenen Stil stärken wollen.',
-            features: ['Standortbestimmung als Führungsperson', 'Führungsstil entwickeln', 'Authentizität stärken'],
+              'Gute Führung beginnt nicht mit Methoden. Sie beginnt mit Haltung. Für Führungskräfte, die verstehen wollen, wer sie als Führungsperson sind – und wer sie sein möchten.',
+            features: ['Standortbestimmung als Führungsperson', 'Führungsstil entwickeln & stärken', 'Führen in Veränderungsprozessen', 'Frauen in Führung gezielt begleiten'],
             price: 'nach Vereinbarung',
             priceUnit: '',
             href: '/leistungen/fuehrung-persoenlichkeit',
@@ -75,8 +75,8 @@ export const homepageSeed: HomepageBlocksDocumentType = {
             id: 'beratung',
             title: 'Unternehmensberatung',
             description:
-              'Digitale Transformation & KI-Strategie für Mittelstand, Verwaltung und kritische Infrastrukturen – mit 40 Jahren Praxis.',
-            features: ['Analyse & digitale Strategie', 'Change Management', 'Umsetzungsbegleitung'],
+              'Digitale Transformation & KI-Strategie für Mittelstand, Verwaltung und kritische Infrastrukturen – mit 40 Jahren Praxis. Lüneburg & Hamburg.',
+            features: ['Analyse & digitale Strategie', 'Change Management & Teamschulungen', 'Umsetzungsbegleitung & Prozessoptimierung', 'Nachhaltige interne Kompetenz aufbauen'],
             price: 'nach Vereinbarung',
             priceUnit: '',
             href: '/leistungen/beratung',
@@ -86,8 +86,8 @@ export const homepageSeed: HomepageBlocksDocumentType = {
             id: 'ki-transition',
             title: 'KI-Transition Coaching',
             description:
-              'KI verändert Berufsbilder – ich begleite Sie dabei. Für IT-Fachkräfte, Führungspersönlichkeiten und Unternehmen.',
-            features: ['Standortbestimmung & Kompetenz-Analyse', 'Unlearning-Prozess', 'Neuorientierung & Strategie'],
+              'KI verändert Berufsbilder – ich begleite Sie dabei. Für IT-Fachkräfte, Führungsperslichkeiten und Unternehmen in Lüneburg, Hamburg und online.',
+            features: ['Standortbestimmung & Kompetenz-Analyse', 'Strukturierter Unlearning-Prozess', 'Neuorientierung & Strategie für die KI-Zukunft', 'Team-Workshops & Change-Begleitung'],
             price: 'nach Vereinbarung',
             priceUnit: '',
             href: '/leistungen/ki-transition',
@@ -104,7 +104,7 @@ export const homepageSeed: HomepageBlocksDocumentType = {
         intro: {
           prefix: 'Ich kenne beide Welten: ',
           emphasis: '40 Jahre etablierte Strukturen',
-          suffix: ' UND modernste KI-Tools.',
+          suffix: ' UND modernste KI-Tools. Ich weiß, wie Veränderung in komplexen Organisationen wirklich funktioniert.',
         },
         points: [
           {
@@ -116,12 +116,8 @@ export const homepageSeed: HomepageBlocksDocumentType = {
             text: 'Nicht nur IT, sondern auch Menschen. Ich verbinde technologisches Verständnis mit Empathie – geprägt durch den Brückenschlag zwischen Polizei, Verwaltung und Bürgern.',
           },
           {
-            title: 'Generation 65+ aus eigener Erfahrung',
+            title: 'Generation 65+ digital aus eigener Erfahrung',
             text: '65 Jahre. Ich kenne die Herausforderungen aus eigener Erfahrung und spreche Ihre Sprache.',
-          },
-          {
-            title: 'Wie ich arbeite',
-            text: 'Ich verbinde analytische Präzision mit echter Beziehungsarbeit. Menschen erleben bei mir zuerst Verständnis und Sicherheit — dadurch entsteht Vertrauen für die Veränderung.',
           },
         ],
         quote:
@@ -138,24 +134,24 @@ export const homepageSeed: HomepageBlocksDocumentType = {
         headline: 'Vier ruhige Schritte.',
         steps: [
           {
-            num: '01',
+            num: '01 — Erstgespräch',
             title: 'Kennenlernen',
-            text: 'Kostenloses 30-Minuten-Erstgespräch. Wir klären: Wo stehen Sie? Was ist Ihre größte Herausforderung?',
+            text: '30 Minuten, kostenlos. Wir klären Ihre Situation und Ihre Herausforderung.',
           },
           {
-            num: '02',
-            title: 'Ziele definieren',
-            text: 'Wir definieren gemeinsam klare Ziele, den Rahmen der Zusammenarbeit und den ersten Schritt.',
+            num: '02 — Klarheit',
+            title: 'Zieldefinition',
+            text: 'Gemeinsam entscheiden wir: Was ist das richtige Format, was der richtige Rahmen?',
           },
           {
-            num: '03',
-            title: 'Gemeinsam arbeiten',
-            text: 'Sessions, Workshops oder Beratung — wie vereinbart, in Ihrem Tempo.',
+            num: '03 — Begleitung',
+            title: 'Arbeitsphase',
+            text: 'Individuelle Sessions in Ihrem Tempo – online oder vor Ort in Lüneburg und Umgebung.',
           },
           {
-            num: '04',
+            num: '04 — Transfer',
             title: 'Nachhaltigkeit',
-            text: 'Was wir erarbeiten, gehört Ihnen. Kein Dauermandat — ich ziele auf Ihre Selbstständigkeit.',
+            text: 'Was Sie hier lernen, bleibt bei Ihnen. Nicht als Wissen, sondern als Haltung.',
           },
         ],
       },
@@ -174,12 +170,12 @@ export const homepageSeed: HomepageBlocksDocumentType = {
           {
             question: 'Wie läuft ein Coaching ab?',
             answer:
-              'Wir starten mit einem kostenlosen Erstgespräch (30–45 Min.), um Ihre Situation zu verstehen. Danach arbeiten wir in individuellen Sessions an Ihren Zielen – online oder vor Ort.',
+              'Wir starten mit einem kostenlosen Erstgespräch (30-45 Min.), um Ihre Situation zu verstehen. Danach arbeiten wir in individuellen Sessions an Ihren Zielen – online oder vor Ort.',
           },
           {
             question: 'Arbeiten Sie auch online?',
             answer:
-              'Ja! Coaching und Beratung funktionieren hervorragend online per Video. 65+ digital biete ich bevorzugt vor Ort in Lüneburg und Hamburg an.',
+              'Ja! Coaching und Beratung funktionieren hervorragend online per Video. 65+ digital biete ich bevorzugt vor Ort in Hamburg an.',
           },
           {
             question: 'Was kostet ein Erstgespräch?',
@@ -189,7 +185,7 @@ export const homepageSeed: HomepageBlocksDocumentType = {
           {
             question: 'Was unterscheidet Sie von anderen Coaches?',
             answer:
-              'Ich komme aus 30+ Jahren Führungspraxis bei der Polizei Hamburg. Ich kenne beide Seiten des Tisches, bin direkt und ehrlich – und verstehe die Herausforderungen der Generation 65+ aus eigener Erfahrung.',
+              'Ich komme aus 30+ Jahren Führungspraxis bei der Polizei Hamburg. Ich kenne beide Seiten des Tisches, bin direkt und ehrlich – und verstehe die Herausforderungen der Generation 65+ digital aus eigener Erfahrung.',
           },
         ],
       },
@@ -198,12 +194,12 @@ export const homepageSeed: HomepageBlocksDocumentType = {
       id: 'cta',
       type: 'cta',
       props: {
-        eyebrow: 'Bereit?',
-        title: 'Kostenloses Erstgespräch',
-        titleEmphasis: 'jetzt buchen.',
+        eyebrow: 'Kostenloses Erstgespräch',
+        title: 'In 30 Minuten wissen wir,',
+        titleEmphasis: 'ob es passt.',
         subtitle:
-          '30 Minuten, kostenlos und unverbindlich. Wir klären, ob und wie eine Zusammenarbeit passt.',
-        primaryText: 'Termin vereinbaren',
+          'Kein Verkaufsgespräch. Kein Druck. Nur Klarheit. Wo stehen Sie – und wie könnte eine Zusammenarbeit konkret aussehen?',
+        primaryText: 'Termin vorschlagen',
         primaryHref: '/kontakt',
         secondaryText: 'info@mentolder.de',
         secondaryHref: 'mailto:info@mentolder.de',

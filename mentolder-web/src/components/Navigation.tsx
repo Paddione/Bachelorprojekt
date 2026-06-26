@@ -2,14 +2,14 @@ import { useState, useEffect } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 
 const links: ReadonlyArray<{ to: string; label: string }> = [
-  { to: '/leistungen', label: 'Leistungen' },
+  { to: '/#angebote', label: 'Angebote' },
   { to: '/ueber-mich', label: 'Über mich' },
   { to: '/referenzen', label: 'Referenzen' },
   { to: '/kontakt', label: 'Kontakt' },
 ];
 
 const BRAND_NAME = (import.meta.env.VITE_BRAND_NAME ?? 'mentolder').toLowerCase();
-const LOCATION_LABEL = import.meta.env.VITE_CONTACT_CITY ?? 'Lüneburg';
+const LOCATION_LABEL = import.meta.env.VITE_NAV_LOCATION ?? 'Lüneburg, Hamburg und Umgebung · DE';
 
 export function Navigation() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -58,22 +58,30 @@ export function Navigation() {
           className="hidden md:flex items-center gap-[34px]"
           aria-label="Hauptmenü"
         >
-          {links.map((link) => (
-            <NavLink
-              key={link.to}
-              to={link.to}
-              className={({ isActive }) =>
-                `text-[14px] font-medium no-underline transition-colors ${
-                  isActive
-                    ? 'text-brass'
-                    : 'text-fg-soft hover:text-fg'
-                }`
-              }
-              end={link.to === '/'}
-            >
-              {link.label}
-            </NavLink>
-          ))}
+          {links.map((link) =>
+            link.to.startsWith('/#') ? (
+              <a
+                key={link.to}
+                href={link.to}
+                className="text-[14px] font-medium no-underline transition-colors text-fg-soft hover:text-fg"
+              >
+                {link.label}
+              </a>
+            ) : (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                className={({ isActive }) =>
+                  `text-[14px] font-medium no-underline transition-colors ${
+                    isActive ? 'text-brass' : 'text-fg-soft hover:text-fg'
+                  }`
+                }
+                end
+              >
+                {link.label}
+              </NavLink>
+            )
+          )}
         </nav>
 
         <div className="hidden md:flex items-center gap-4">
@@ -93,7 +101,7 @@ export function Navigation() {
             onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = 'var(--brass-2)'; }}
             onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = 'var(--brass)'; }}
           >
-            Erstgespräch
+            Kostenloses Erstgespräch
             <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-[12px] h-[12px]" aria-hidden="true">
               <path d="M2 7h10M8 3l4 4-4 4" />
             </svg>
@@ -118,16 +126,27 @@ export function Navigation() {
       {mobileOpen && (
         <div className="md:hidden border-t border-line bg-ink-900/95 backdrop-blur-md">
           <nav className="px-[22px] py-4 flex flex-col gap-1" aria-label="Mobiles Hauptmenü">
-            {links.map((link) => (
-              <Link
-                key={link.to}
-                to={link.to}
-                className="py-3 px-2 rounded text-fg-soft hover:text-fg no-underline font-medium text-[15px]"
-                onClick={() => setMobileOpen(false)}
-              >
-                {link.label}
-              </Link>
-            ))}
+            {links.map((link) =>
+              link.to.startsWith('/#') ? (
+                <a
+                  key={link.to}
+                  href={link.to}
+                  className="py-3 px-2 rounded text-fg-soft hover:text-fg no-underline font-medium text-[15px]"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  {link.label}
+                </a>
+              ) : (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className="py-3 px-2 rounded text-fg-soft hover:text-fg no-underline font-medium text-[15px]"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  {link.label}
+                </Link>
+              )
+            )}
           </nav>
         </div>
       )}

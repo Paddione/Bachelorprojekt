@@ -16,8 +16,9 @@ const heroProps = z.object({
   titleEmphasis: z.string(),
   subtitle: z.string(),
   tagline: z.string(),
-  avatarType: z.literal('initials'),
-  avatarInitials: z.string(),
+  avatarType: z.enum(['initials', 'image']),
+  avatarInitials: z.string().optional(),
+  avatarSrc: z.string().optional(),
   personName: z.string(),
   personRole: z.string(),
 });

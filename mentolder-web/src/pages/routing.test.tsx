@@ -33,13 +33,13 @@ describe('Routing', () => {
 });
 
 describe('Navigation', () => {
-  it('contains a link to /leistungen', () => {
+  it('contains a link to /#angebote', () => {
     renderAt('/');
-    expect(screen.getByRole('link', { name: 'Leistungen' })).toHaveAttribute('href', '/leistungen');
+    expect(screen.getByRole('link', { name: 'Angebote' })).toHaveAttribute('href', '/#angebote');
   });
 
-  it('does not contain the old /#angebote link', () => {
+  it('does not contain a "Leistungen" label in the primary navigation', () => {
     renderAt('/');
-    expect(screen.queryByRole('link', { name: 'Angebote' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Leistungen' })).not.toBeInTheDocument();
   });
 });

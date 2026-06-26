@@ -83,7 +83,8 @@ task feature:deploy  # fan-out to both brands
 - **Brett**: `npm run typecheck --prefix brett && npm test --prefix brett && npm run build --prefix brett`
 - **Website**: `npm --prefix website run test:unit` (vitest)
 
-- PR titles: Conventional Commits with `[T000XXX]` tag. Scopes defined in `ci.yml`.
+- PR titles: Conventional Commits with `[T000XXX]` tag. Scopes defined in `ci.yml`. The `[T000XXX]` check is **advisory only** (`ci.yml:229`) — it logs a `⚠️` but never blocks the merge; the OpenSpec spec `openspec/specs/ci-cd.md:62` documents this contract.
+- **release-please PRs are exempt from the `[T000XXX]` rule.** They aggregate multiple features/fixes and have no single owning ticket; the per-package ticket refs are listed in the PR body. The branch ref always starts with `release-please--` (e.g. `release-please--branches--main`), so if the tag check is ever hardened to a hard fail, gate it on `if: github.event.pull_request.head.ref !~ '^release-please--'`. If the release-please branch diverges from main (e.g. because chore commits merged after the release branch was created), auto-merge stalls with `mergeStateStatus: UNKNOWN` — resolve by merging main into the release-please branch in a worktree (`git merge origin/main`) and pushing; the release commit applies cleanly because chore commits don't touch the version files.
 
 ## Critical Footguns
 

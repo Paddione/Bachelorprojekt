@@ -13,7 +13,7 @@ export const homepageSeed: HomepageBlocksDocumentType = {
           'Ich kenne beide Welten: 40 Jahre etablierte Strukturen UND modernste KI-Tools. Ich weiß, wie Veränderung in komplexen Organisationen wirklich funktioniert.',
         tagline: 'Praxisnah. Strukturiert. Auf Augenhöhe.',
         avatarType: 'image',
-        avatarSrc: '/brand/mentolder/characters/leadership.portrait.svg',
+        avatarSrc: '/gerald.jpg',
         personName: 'Gerald Korczewski',
         personRole: 'Digital Coach & Mentor',
       },
@@ -86,7 +86,7 @@ export const homepageSeed: HomepageBlocksDocumentType = {
             id: 'ki-transition',
             title: 'KI-Transition Coaching',
             description:
-              'KI verändert Berufsbilder – ich begleite Sie dabei. Für IT-Fachkräfte, Führungsperslichkeiten und Unternehmen in Lüneburg, Hamburg und online.',
+              'KI verändert Berufsbilder – ich begleite Sie dabei. Für IT-Fachkräfte, Führungspersönlichkeiten und Unternehmen in Lüneburg, Hamburg und online.',
             features: ['Standortbestimmung & Kompetenz-Analyse', 'Strukturierter Unlearning-Prozess', 'Neuorientierung & Strategie für die KI-Zukunft', 'Team-Workshops & Change-Begleitung'],
             price: 'nach Vereinbarung',
             priceUnit: '',
@@ -113,7 +113,7 @@ export const homepageSeed: HomepageBlocksDocumentType = {
           },
           {
             title: 'Systemischer Coach',
-            text: 'Nicht nur IT, sondern auch Menschen. Ich verbinde technologisches Verständnis mit Empathie – geprägt durch den Brückenschlag zwischen Polizei, Verwaltung und Bürgern.',
+            text: 'Nicht nur IT, sondern auch Menschen. Ich verbinde technologisches Verständnis mit Empathie.',
           },
           {
             title: 'Generation 65+ digital aus eigener Erfahrung',
@@ -201,8 +201,8 @@ export const homepageSeed: HomepageBlocksDocumentType = {
           'Kein Verkaufsgespräch. Kein Druck. Nur Klarheit. Wo stehen Sie – und wie könnte eine Zusammenarbeit konkret aussehen?',
         primaryText: 'Termin vorschlagen',
         primaryHref: '/kontakt',
-        secondaryText: 'info@mentolder.de',
-        secondaryHref: 'mailto:info@mentolder.de',
+        secondaryText: 'mail@mentolder.de',
+        secondaryHref: 'mailto:mail@mentolder.de',
       },
     },
   ],

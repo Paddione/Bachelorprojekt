@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.128.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.127.2...website-v1.128.0) (2026-06-26)
+
+
+### Features
+
+* **website:** measure delivery pipeline + admin DORA dashboard [T001092] ([#2095](https://github.com/Paddione/Bachelorprojekt/issues/2095)) ([dd76c01](https://github.com/Paddione/Bachelorprojekt/commit/dd76c01a5ccd8c437e54b2c6dc29527d3c9ab655))
+
 ## [1.127.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.127.1...website-v1.127.2) (2026-06-22)
 
 

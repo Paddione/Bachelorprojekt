@@ -49,12 +49,6 @@
   owner_agent: bachelorprojekt-website
   test_location: brett/
   purpose: Node.js 3D systemic-constellation board + mayhem game.
-- id: arena-server
-  name: Arena WebSocket game server (TS)
-  paths: ["arena-server/**"]
-  owner_agent: bachelorprojekt-infra
-  test_location: arena-server/src/
-  purpose: Korczewski-only authoritative game server.
 - id: openclaw
   name: OpenClaw WSL gateway config
   paths: ["openclaw/**"]

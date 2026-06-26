@@ -99,7 +99,7 @@ jobs:
           SMTP_HOST: smtp.mailbox.org
           SMTP_PORT: "587"
           SMTP_SECURE: "false"
-          SMTP_FROM: info@mentolder.de
+          SMTP_FROM: mentolder@mailbox.org
           AUTH_EXTERNAL_URL: https://auth.mentolder.de
           NEXTCLOUD_EXTERNAL_URL: https://files.mentolder.de
           DOCS_URL: https://docs.mentolder.de
@@ -113,15 +113,15 @@ jobs:
           CLUSTER_ENV: fleet-mentolder
 
           LLM_ENABLED: "true"
-          LLM_RERANK_ENABLED: "false"
+          LLM_RERANK_ENABLED: "true"
           LLM_ROUTER_URL: http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234
-          LLM_EMBED_URL: http://llm-gateway-embed.workspace.svc.cluster.local:8081
+          LLM_EMBED_URL: http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234
           WEBSITE_IMAGE: mentolder-website
           WEBSITE_NAMESPACE: website
           WORKSPACE_NAMESPACE: workspace
-          SYSTEMTEST_LOOP_ENABLED: "false"
-          COMFY_HOST_IP: ""
-          COMFY_PORT: ""
+          SYSTEMTEST_LOOP_ENABLED: "true"
+          COMFY_HOST_IP: "192.168.100.10"
+          COMFY_PORT: "8189"
           RIGGER_PORT: "8190"
           POCKET_ID_FRONTEND_URL: https://auth.mentolder.de
           POCKET_ID_URL: http://pocket-id.workspace.svc.cluster.local:1411

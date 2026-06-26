@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-22T06:41:15.723Z",
+  "generatedAt": "2026-06-26T21:16:28.718Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -557,12 +557,6 @@
     },
     {
       "from": "db-backup",
-      "to": "keycloak",
-      "via": "command",
-      "kind": "command"
-    },
-    {
-      "from": "db-backup",
       "to": "nextcloud",
       "via": "command",
       "kind": "command"
@@ -872,12 +866,6 @@
       "to": "recovery-browser",
       "via": "command",
       "kind": "command"
-    },
-    {
-      "from": "shared-db",
-      "to": "keycloak",
-      "via": "configmap:shared-db-init",
-      "kind": "configmap"
     },
     {
       "from": "shared-db",

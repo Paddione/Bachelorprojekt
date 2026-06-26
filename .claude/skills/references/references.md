@@ -358,8 +358,8 @@ kubectl --context fleet get pods -n workspace-korczewski | grep -v Running
 ## MCP-Tool-Guide
 
 SSOT für die MCP-native Tool-Nutzung in Skills und Subagents. Skills verlinken hierher statt die
-Tabelle zu duplizieren. Die MCP-Server laufen via `scripts/mcp-portforward.sh` (Portforward auf
-`localhost`), registriert in `.mcp.json`.
+Tabelle zu duplizieren. Die MCP-Server sind via MCP-Client direkt erreichbar (registriert in
+`.mcp.json`).
 
 ### Server → Port → Tool → Anwendungsfall
 
@@ -373,11 +373,16 @@ Tabelle zu duplizieren. Die MCP-Server laufen via `scripts/mcp-portforward.sh` (
 > — die Verbindung ist serverseitig fest (`localhost:13001`, siehe `.mcp.json`). INSERT/UPDATE/DELETE
 > gehen NICHT über dieses Tool.
 
-### Portforward-Guard (vor MCP-Nutzung prüfen)
+### Verfügbarkeits-Check (vor MCP-Nutzung prüfen)
 
+Das MCP-Tool ist direkt verfügbar, wenn der MCP-Server läuft. Prüfe mit einem einfachen Query:
+
+```sql
+-- via MCP-Client: SELECT 1 AS ok
+```
+
+Alternativ per curl auf den SSE-Endpoint (z.B. `mcp-postgres` auf Port 13001):
 ```bash
-bash scripts/mcp-portforward.sh status
-# oder gezielt nur postgres:
 curl -s --max-time 2 -o /dev/null -w '%{http_code}' \
   -X POST -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" \
   -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"hc","version":"1"}}}' \
@@ -385,8 +390,8 @@ curl -s --max-time 2 -o /dev/null -w '%{http_code}' \
 # 200 → MCP erreichbar; alles andere → kubectl-Fallback nutzen
 ```
 
-Wenn der Portforward nicht läuft: `bash scripts/mcp-portforward.sh start`. Schlägt das fehl oder ist
-der Cluster-Kontext nicht gesetzt → **kubectl-Fallback** (der jeweilige `psql`-/`kubectl`-Block im Skill).
+Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **kubectl-Fallback**
+(der jeweilige `psql`-/`kubectl`-Block im Skill).
 
 ### Wann MCP, wann kubectl
 

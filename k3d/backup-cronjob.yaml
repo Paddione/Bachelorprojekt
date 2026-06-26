@@ -48,11 +48,6 @@ spec:
               image: pgvector/pgvector:0.8.0-pg16
               imagePullPolicy: IfNotPresent
               env:
-                - name: KEYCLOAK_DB_PASSWORD
-                  valueFrom:
-                    secretKeyRef:
-                      name: workspace-secrets
-                      key: KEYCLOAK_DB_PASSWORD
                 - name: NEXTCLOUD_DB_PASSWORD
                   valueFrom:
                     secretKeyRef:
@@ -127,9 +122,8 @@ spec:
                   mkdir -p "$${BACKUP_DIR}"
 
                   # Dump all databases (all on shared-db instance)
-                  for db in keycloak nextcloud vaultwarden website; do
+                  for db in nextcloud vaultwarden website; do
                     case "$${db}" in
-                      keycloak)    PASS="$${KEYCLOAK_DB_PASSWORD}" ;;
                       nextcloud)   PASS="$${NEXTCLOUD_DB_PASSWORD}" ;;
                       vaultwarden) PASS="$${VAULTWARDEN_DB_PASSWORD}" ;;
                       website)     PASS="$${WEBSITE_DB_PASSWORD}" ;;

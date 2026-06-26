@@ -51,13 +51,10 @@
   }
 
   // Map registry file_path to a public URL if one exists in the website build.
-  // branding/* → /brand/*, arena/* → /arena/*
+  // branding/* → /brand/*
   function publicUrl(filePath: string): string | null {
     if (filePath.startsWith('branding/')) {
       return '/' + filePath.replace(/^branding\//, 'brand/');
-    }
-    if (filePath.startsWith('arena/')) {
-      return '/' + filePath;
     }
     return null;
   }

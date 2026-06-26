@@ -1597,7 +1597,16 @@
       "kind": "software",
       "name": "Arena",
       "emoji": "🎮",
-      "summary_de": "Der Mehrspieler-Spielserver (nur Marke korczewski).",
+      "summary_de": "Der Mehrspieler-Spielserver (decommissioned).",
+      "sensitivity": "caution",
+      "url": null
+    },
+    "arena-server": {
+      "slug": "arena-server",
+      "kind": "software",
+      "name": "Arena Server",
+      "emoji": "🎮",
+      "summary_de": "Der 3D-Mehrspieler-Spielserver (decommissioned 2026-06).",
       "sensitivity": "caution",
       "url": null
     },
@@ -1763,15 +1772,6 @@
       "name": "Brainstorm Sish",
       "emoji": "🌀",
       "summary_de": "Ein sicherer Tunnel, der das lokale Brainstorming-Board unter brainstorm.mentolder.de erreichbar macht.",
-      "sensitivity": "caution",
-      "url": null
-    },
-    "arena-server": {
-      "slug": "arena-server",
-      "kind": "software",
-      "name": "Arena Server",
-      "emoji": "🎮",
-      "summary_de": "Der 3D-Mehrspieler-Spielserver (nur korczewski); prüft Logins aus beiden Keycloak-Welten.",
       "sensitivity": "caution",
       "url": null
     },

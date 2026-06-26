@@ -76,8 +76,7 @@ Vollständige Task-Referenz siehe [CLAUDE.md](CLAUDE.md#common-commands).
 - **Test-Inventory-Check** — `website/src/data/test-inventory.json` muss zur Test-Liste passen
 - **Systembrett-Template-Validierung** (`scripts/tests/systembrett-template.test.sh`)
 - **Security-Scan** — Image-Pin-Hinweise + Hardcoded-Secret-Erkennung in `k3d/*.yaml`
-- **arena-server** Build + Unit-/Integration-Tests (pnpm, Postgres Service-Container)
-- **Arena-Protokoll-Drift-Guard** — `arena-server/src/proto/messages.ts` und `website/src/components/arena/shared/lobbyTypes.ts` müssen byte-identisch sein
+
 
 Nicht in CI (lokal bei Bedarf): `yamllint`, `shellcheck`, `kubeconform`. Frühere Doku behauptete das fälschlich.
 

@@ -16,7 +16,4 @@ echo "→ Syncing assets/branding/ → website/public/brand/"
 # No --delete: only a subset of brand files live in assets/branding/
 rsync -a assets/branding/ website/public/brand/
 
-echo "→ Syncing assets/arena/ → website/public/arena/"
-rsync -a assets/arena/ website/public/arena/
-
 echo "✓ assets:sync complete"

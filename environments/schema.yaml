@@ -4,9 +4,6 @@
 version: 1
 
 env_vars:
-  - name: ARENA_WS_URL
-    description: Public URL of the arena WebSocket endpoint
-    required: false
   - name: PROD_DOMAIN
     required: true
     default_dev: "localhost"
@@ -445,12 +442,6 @@ secrets:
     required: false
     default_dev: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db:5432/website?sslmode=disable"
     description: "Connection URL for the studio-server (shared-db `website` database, schema-prefixed as `studio.*`)."
-  - name: arena_db_password
-    description: Password for the arena_app PostgreSQL role
-    required: false
-  - name: arena_db_url
-    description: Connection URL for arena-server (korczewski shared-db)
-    required: false
   - name: SHARED_DB_PASSWORD
     required: true
     generate: true
@@ -514,10 +505,6 @@ secrets:
   #                          (k3d/backup-cronjob.yaml — `backup-config` CM)
   #      BRAND               (k3d/knowledge-ingest-cronjob.yaml — hardcoded
   #                           value: "mentolder" in the env: block)
-  #      ARENA_DB_PASSWORD   (prod-korczewski/migrations-arena.yaml — injected
-  #                           via secretKeyRef from workspace-secrets; the
-  #                           shell script reads the container env, not envsubst)
-  #
   # 4. Vaultwarden seed-job aliases (set inside the script from *_DOMAIN
   #    pod env vars; the manifest is NOT envsubst-substituted, only
   #    namespace-sed-rewritten in workspace:vaultwarden:seed):
@@ -526,8 +513,6 @@ secrets:
   #
   # 5. Taskfile-derived deploy-time variables (computed or pinned in the
   #    task body, passed directly to envsubst — not stored in environments/):
-  #      ARENA_IMAGE         (prod-korczewski/arena.yaml — set to either
-  #                           :latest or a pinned digest in arena:deploy)
   #      COLLABORA_INGRESS_MIDDLEWARES
   #                          (k3d/office-stack/ingress.yaml — computed from
   #                           WORKSPACE_NAMESPACE in workspace:office:deploy)

@@ -6,7 +6,6 @@ scan:
     - tests
     - scripts
     - brett
-    - arena-server
     - assets
     - art-library
     - k3d
@@ -69,8 +68,6 @@ s2:
   graphs:
     - id: website
       tsconfig: website/tsconfig.json
-    - id: arena-server
-      tsconfig: arena-server/tsconfig.json
     - id: e2e
       tsconfig: tests/e2e/tsconfig.json
 

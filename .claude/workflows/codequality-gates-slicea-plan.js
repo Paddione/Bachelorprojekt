@@ -39,7 +39,7 @@ const SLICE_A_SCOPE = [
   '  - validate.mjs    (fail-closed: owner ∈ 6 routing agents, no duplicate path-glob ownership, paths resolve, gates.yaml valid)',
   '  - emit-index.mjs  (scan-universe = git ls-files ∩ code_roots − ignore_globs; file-level cross-check: each tracked code file ∈ exactly ONE subsystem else throw; writes repo-index.json deterministically)',
   '  - gates/s1-filesize.mjs  (tracked files over per-extension limit; key S1:<path>, metric=lines)',
-  '  - gates/s2-cycles.mjs    (madge --circular per TS graph: website (website/tsconfig.json), arena-server, tests/e2e; key S2:<graph>:<canonical-sorted-cycle>, metric=member count). Decide: if a graph has no cycles, return pass.',
+  '  - gates/s2-cycles.mjs    (madge --circular per TS graph: website (website/tsconfig.json), tests/e2e; key S2:<graph>:<canonical-sorted-cycle>, metric=member count). Decide: if a graph has no cycles, return pass.',
   '  - gates/s3-hostnames.mjs (hardcoded hostnames outside k3d/configmap-domains.yaml, scoped to gates.yaml dirs; key S3:<path>:<host>, metric=1)',
   '  - gates/s4-orphans.mjs   (manifests/scripts with no reference in the configured sources INCLUDING transitive source/bash calls within scripts/; key S4:<path>, metric=1). If S4 is too noisy to make green, the plan may scope it down — but state the decision explicitly.',
   '  - check.mjs       (load baseline, run all gates/*, aggregate JSON; CI-blocking set = (current keys ∉ baseline) ∪ (keys ∈ both with current.metric > baseline.metric); exit≠0 only when that set is non-empty)',
@@ -56,7 +56,7 @@ const MUST_PIN = [
   '- per-extension S1 limits (.astro/.ts/.svelte/.sh/.mjs/...). Measure current tracked files >limit so the freeze baseline is known and finite; optionally an S1 ignore-list for generated/seed files (e.g. website/src/lib/system-test-seed-data.ts).',
   '- S3 scope dirs (k3d/, prod*/, website/src/ — NOT docs/, tests/, *-content-built/, *.md), the "hardcoded" definition (string literal, not comment), and a seeded allowlist. Note real prod domains live in environments/*.yaml + prod overlays; configmap-domains.yaml holds only *.localhost.',
   '- S4 reference-source resolution incl. transitive source/bash within scripts/, plus an allowlist for deliberately-separately-deployed manifests (office/coturn). Or scope S4 down with a stated rationale.',
-  '- madge per-graph invocation (website with website/tsconfig.json, arena-server, tests/e2e; brett is CommonJS-JS, not a TS graph).',
+  '- madge per-graph invocation (website with website/tsconfig.json, tests/e2e; brett is CommonJS-JS, not a TS graph).',
 ].join('\n')
 
 const GROUNDING = [

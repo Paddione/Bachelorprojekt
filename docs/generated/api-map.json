@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-22T07:14:56.523Z",
+  "generatedAt": "2026-06-26T21:55:01.366Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -2514,70 +2514,6 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/zeiterfassung/export.ts"
-    },
-    {
-      "path": "/api/arena/1v3",
-      "methods": [
-        "POST"
-      ],
-      "auth": "session",
-      "file": "website/src/pages/api/arena/1v3.ts"
-    },
-    {
-      "path": "/api/arena/active",
-      "methods": [
-        "GET"
-      ],
-      "auth": "unclassified",
-      "file": "website/src/pages/api/arena/active.ts"
-    },
-    {
-      "path": "/api/arena/duel",
-      "methods": [
-        "POST"
-      ],
-      "auth": "session",
-      "file": "website/src/pages/api/arena/duel.ts"
-    },
-    {
-      "path": "/api/arena/lobby",
-      "methods": [
-        "GET"
-      ],
-      "auth": "session",
-      "file": "website/src/pages/api/arena/lobby.ts"
-    },
-    {
-      "path": "/api/arena/matches",
-      "methods": [
-        "GET"
-      ],
-      "auth": "session",
-      "file": "website/src/pages/api/arena/matches.ts"
-    },
-    {
-      "path": "/api/arena/solo",
-      "methods": [
-        "POST"
-      ],
-      "auth": "session",
-      "file": "website/src/pages/api/arena/solo.ts"
-    },
-    {
-      "path": "/api/arena/start",
-      "methods": [
-        "POST"
-      ],
-      "auth": "session",
-      "file": "website/src/pages/api/arena/start.ts"
-    },
-    {
-      "path": "/api/arena/token",
-      "methods": [
-        "POST"
-      ],
-      "auth": "session",
-      "file": "website/src/pages/api/arena/token.ts"
     },
     {
       "path": "/api/assets/{...path}",

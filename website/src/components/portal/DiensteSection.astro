@@ -15,7 +15,6 @@ const services = [
     { href: `${ncBase}/apps/contacts/`,   label: 'Kontakte',   desc: 'Adressbuch',                 icon: '👥' },
     { href: `${ncBase}/apps/spreed/`,     label: 'Talk',       desc: 'Video & Gruppen-Chat',       icon: '🎥' },
   ] : []),
-  ...(isKore ? [{ href: '/portal/arena', label: 'Arena',      desc: 'Multiplayer Gaming',         icon: '⚔️' }] : []),
   ...(bretUrl ? [{ href: bretUrl, label: 'Brett',      desc: 'Systemisches Brett (3D)',   icon: '🪄' }] : []),
   ...(vaultUrl ? [{ href: vaultUrl, label: 'Passwörter',  desc: 'Vaultwarden Safe',       icon: '🔒' }] : []),
 ];

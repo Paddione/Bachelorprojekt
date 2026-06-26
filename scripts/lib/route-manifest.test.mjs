@@ -125,10 +125,9 @@ test('buildManifest: tier split admin=68 portal=9 public=22 over page files', ()
   assert.equal(publicLiterals + serviceContributes, 22, 'public tier page files incl /[service]');
 });
 
-test('buildManifest: excludeFromSweep flags set for arena/systemtest/brett', () => {
+test('buildManifest: excludeFromSweep flags set for systemtest/brett', () => {
   const manifest = buildManifest(PAGES, FIXTURE_BRANDS);
   const find = (route) => manifest.routes.find((r) => r.route === route);
-  assert.equal(find('/portal/arena')?.excludeFromSweep, true);
   // NB: the systemtest subtree is a directory (admin/systemtest/board.astro) — the
   // real page route is /admin/systemtest/board, excluded via the /admin/systemtest
   // prefix. (Plan pinned a stale /admin/systemtest literal; reconciled to reality.)

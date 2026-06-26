@@ -64,7 +64,7 @@ test('runS2 THROWS (fail closed) when a graph dir is missing instead of reportin
   );
 });
 
-test('real-tree S2 counts are unchanged: website=4, arena-server=0, e2e=0', () => {
+test('real-tree S2 counts are unchanged: website=4, e2e=0', () => {
   // Frozen-baseline guard: the hardening must not perturb the live counts.
   // ticket-readiness.ts uses Pool DI (no import of website-db.ts), so no new cycle.
   // T001108: the questionnaire-db.ts → compute-scores.ts cycle was eliminated
@@ -76,7 +76,6 @@ test('real-tree S2 counts are unchanged: website=4, arena-server=0, e2e=0', () =
     byGraph[id] = (byGraph[id] || 0) + 1;
   }
   assert.equal(byGraph.website ?? 0, 4);
-  assert.equal(byGraph['arena-server'] ?? 0, 0);
   assert.equal(byGraph.e2e ?? 0, 0);
   assert.equal(res.violations.length, 4);
 });

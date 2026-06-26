@@ -1,5 +1,4 @@
 [
-  { "path": "/api/arena/active", "methods": ["GET"], "reason": "baseline — not individually audited" },
   { "path": "/api/assets/{...path}", "methods": ["GET"], "reason": "baseline — not individually audited" },
   { "path": "/api/auth/login", "methods": ["GET"], "reason": "baseline — not individually audited" },
   { "path": "/api/auth/logout", "methods": ["GET"], "reason": "baseline — not individually audited" },

@@ -45,22 +45,12 @@ EINSTELLUNGEN_TABS="$PROJECT_DIR/website/src/components/AdminEinstellungenTabs.a
   assert_output "0"
 }
 
-@test "AdminLayout: /admin/arena in navGroups conditionally" {
-  run grep -c "'/admin/arena'" "$ADMIN_LAYOUT"
-  assert_output "1"
-}
-
 @test "AdminLayout: Einstellungen uses settings icon not bell" {
   run grep -c "label: 'Einstellungen'.*icon: 'bell'" "$ADMIN_LAYOUT"
   assert_output "0"
 }
 
 # ── Portal nav ────────────────────────────────────────────────────
-
-@test "PortalLayout: arena not in navItems" {
-  run grep -c "id: 'arena'" "$PORTAL_LAYOUT"
-  assert_output "0"
-}
 
 @test "PortalLayout: buchung present in navItems" {
   run grep -c "id: 'buchung'" "$PORTAL_LAYOUT"

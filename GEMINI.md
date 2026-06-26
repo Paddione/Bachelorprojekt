@@ -15,7 +15,6 @@ Kubernetes-based self-hosted collaboration platform (bachelor thesis). Beide Mar
 *   **DocuSeal:** E-Signature
 *   **Whiteboard / Brett (Systembrett):** Kollaborative Tools
 *   **LiveKit (Server + Ingress + Egress):** Streaming + Recording
-*   **Arena (nur korczewski):** Multiplayer-Backend, von beiden Brands genutzt
 *   **Website:** Astro + Svelte (Brand-aware: mentolder + korczewski via `BRAND_ID`)
 *   **Claude Code MCP Monolith:** AI-Tooling
 *   **Traefik:** Ingress Controller
@@ -87,7 +86,7 @@ Mehrere Agenten-Sessions teilen ein `.git`/denselben Checkout. `scripts/agent-lo
 2.  **Manifest Location:** All base Kubernetes manifests reside in `k3d/`. Production is applied via the `prod-fleet/mentolder/` and `prod-fleet/korczewski/` overlays — each wraps the legacy `prod-mentolder/` / `prod-korczewski/` brand overlay plus the shared `prod/` patches.
 3.  **Kustomize:** Kustomize is the primary tool for orchestrating Kubernetes manifests.
 4.  **Git Workflow:** Changes must be made via Pull Requests. No direct pushes to `main`.
-5.  **CI Enforcement:** `task test:all` (BATS unit tests, kustomize manifest dry-run, Taskfile lint), test-inventory drift guard, image-pin/secret scan, and the arena protocol-drift guard must pass before merging. `yamllint`/`shellcheck`/`kubeconform` are NOT in CI — run locally if you want them.
+5.  **CI Enforcement:** `task test:all` (BATS unit tests, kustomize manifest dry-run, Taskfile lint), test-inventory drift guard, image-pin/secret scan must pass before merging. `yamllint`/`shellcheck`/`kubeconform` are NOT in CI — run locally if you want them.
 6.  **Centralized Domains:** Domain configuration is centralized in `k3d/configmap-domains.yaml`. Hardcoded hostnames in manifests are forbidden.
 7.  **Secrets Management:** Development secrets are in `k3d/secrets.yaml`. **Never commit real credentials.** Production uses Sealed Secrets.
 8.  **Testing:** Automated tests (Bash + Playwright + BATS) are run locally via `./tests/runner.sh local`.

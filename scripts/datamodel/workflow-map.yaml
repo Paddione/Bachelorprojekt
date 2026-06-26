@@ -288,18 +288,6 @@ steps:
       - type: workflow-to-db
         explanation: "pgvector embeddings land in a separate vector DB collection — the schema mapping is external to shared-db."
 
-  - id: arena-gameplay
-    family: app
-    label: "Arena gameplay"
-    description: "Player joins an arena game; lobby and match state persisted by arena-server."
-    writes:
-      tables: ["public.web_sessions"]
-    reads:
-      tables: ["public.web_sessions"]
-    gaps:
-      - type: workflow-to-db
-        explanation: "Arena match state is held in-memory by arena-server and never written to shared-db."
-
   - id: brett-snapshot-save
     family: app
     label: "Brett snapshot save"

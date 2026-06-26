@@ -79,25 +79,5 @@ spec:
       ports:
         - port: 8080
           protocol: TCP
----
-# arena-server: allow ingress from website-korczewski so the website pod can
-# query healthz or communicate internally.
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: allow-website-korczewski-to-arena-server-ingress
-spec:
-  podSelector:
-    matchLabels:
-      app: arena-server
-  policyTypes:
-    - Ingress
-  ingress:
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: website-korczewski
-      ports:
-        - port: 8090
-          protocol: TCP
+
 

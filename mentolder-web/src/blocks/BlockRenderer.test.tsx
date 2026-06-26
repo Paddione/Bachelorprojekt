@@ -9,17 +9,17 @@ const renderWithRouter = (ui: React.ReactNode) =>
 describe('BlockRenderer', () => {
   it('renders seed by default (no document prop)', () => {
     renderWithRouter(<BlockRenderer />);
-    expect(screen.getByText('Menschen, Prozesse und Technik')).toBeInTheDocument();
-    expect(screen.getByText('Dr. M. Albers')).toBeInTheDocument();
+    expect(screen.getByText('praxisnah. Strukturiert. Auf Augenhöhe.')).toBeInTheDocument();
+    expect(screen.getAllByText('Gerald Korczewski')[0]).toBeInTheDocument();
   });
 
   it('renders all 7 sections from the committed seed', () => {
     renderWithRouter(<BlockRenderer />);
-    expect(screen.getByText('Jahre Führung')).toBeInTheDocument();
-    expect(screen.getByText('Drei Wege, mit mir zu arbeiten.')).toBeInTheDocument();
-    expect(screen.getByText('Warum mit mir?')).toBeInTheDocument();
-    expect(screen.getByText("So geht's los")).toBeInTheDocument();
-    expect(screen.getByText('Häufige Fragen')).toBeInTheDocument();
+    expect(screen.getByText('Jahre Führungserfahrung')).toBeInTheDocument();
+    expect(screen.getAllByText('Meine Angebote')[0]).toBeInTheDocument();
+    expect(screen.getByText('Warum ich?')).toBeInTheDocument();
+    expect(screen.getByText('So arbeiten wir')).toBeInTheDocument();
+    expect(screen.getByText('Häufig gestellte Fragen')).toBeInTheDocument();
     expect(screen.getByText('Bereit?')).toBeInTheDocument();
   });
 
@@ -45,7 +45,7 @@ describe('BlockRenderer', () => {
     };
     renderWithRouter(<BlockRenderer document={mismatched} />);
     expect(screen.queryByText('SHOULD-NOT-RENDER')).not.toBeInTheDocument();
-    expect(screen.getByText('Dr. M. Albers')).toBeInTheDocument();
+    expect(screen.getByText('Warum ich?')).toBeInTheDocument();
   });
 
   it('falls back to seed on invalid document (safeParse fails)', () => {
@@ -54,6 +54,6 @@ describe('BlockRenderer', () => {
       blocks: [{ id: 'bad', type: 'no-such-type', props: {} }],
     } as unknown as Parameters<typeof BlockRenderer>[0] extends { document?: infer D } ? D : never;
     renderWithRouter(<BlockRenderer document={invalid} />);
-    expect(screen.getByText('Dr. M. Albers')).toBeInTheDocument();
+    expect(screen.getAllByText('Meine Angebote')[0]).toBeInTheDocument();
   });
 });

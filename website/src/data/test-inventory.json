@@ -36,18 +36,6 @@
     "kind": "playwright"
   },
   {
-    "id": "E2E:arena-mentolder-auth-setup",
-    "file": "tests/e2e/specs/arena-mentolder-auth-setup.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
-    "id": "E2E:arena-mobile",
-    "file": "tests/e2e/specs/arena-mobile.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
     "id": "E2E:brett-art",
     "file": "tests/e2e/specs/brett-art.spec.ts",
     "category": "E2E",
@@ -404,12 +392,6 @@
   {
     "id": "E2E:mentolder-auth-setup",
     "file": "tests/e2e/specs/mentolder-auth-setup.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
-    "id": "E2E:nfa-infra-health-sweep",
-    "file": "tests/e2e/specs/nfa-infra-health-sweep.spec.ts",
     "category": "E2E",
     "kind": "playwright"
   },
@@ -912,36 +894,6 @@
     "kind": "playwright"
   },
   {
-    "id": "FA-38",
-    "file": "tests/e2e/specs/fa-38-arena-game-client.spec.ts",
-    "category": "FA",
-    "kind": "playwright"
-  },
-  {
-    "id": "FA-39",
-    "file": "tests/local/FA-39.sh",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-39",
-    "file": "tests/e2e/specs/fa-39-arena-db.spec.ts",
-    "category": "FA",
-    "kind": "playwright"
-  },
-  {
-    "id": "FA-40",
-    "file": "tests/local/FA-40.sh",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-40",
-    "file": "tests/e2e/specs/fa-40-arena-spectator.spec.ts",
-    "category": "FA",
-    "kind": "playwright"
-  },
-  {
     "id": "FA-41",
     "file": "tests/e2e/specs/fa-41-admin-hub.spec.ts",
     "category": "FA",
@@ -972,12 +924,6 @@
     "kind": "playwright"
   },
   {
-    "id": "FA-46",
-    "file": "tests/e2e/specs/fa-46-lernpfad-cta.spec.ts",
-    "category": "FA",
-    "kind": "playwright"
-  },
-  {
     "id": "FA-47",
     "file": "tests/e2e/specs/fa-47-brett-figure-pack-assets.spec.ts",
     "category": "FA",
@@ -1004,12 +950,6 @@
   {
     "id": "FA-51",
     "file": "tests/e2e/specs/fa-51-sidekick-navigation.spec.ts",
-    "category": "FA",
-    "kind": "playwright"
-  },
-  {
-    "id": "FA-52",
-    "file": "tests/e2e/specs/fa-52-arena-banner.spec.ts",
     "category": "FA",
     "kind": "playwright"
   },
@@ -1542,12 +1482,6 @@
     "kind": "shell"
   },
   {
-    "id": "NFA-10",
-    "file": "tests/e2e/specs/nfa-10-arena-health-perf.spec.ts",
-    "category": "NFA",
-    "kind": "playwright"
-  },
-  {
     "id": "NFA-11",
     "file": "tests/local/NFA-11.sh",
     "category": "NFA",
@@ -1576,12 +1510,6 @@
     "file": "tests/local/NFA-13.sh",
     "category": "NFA",
     "kind": "shell"
-  },
-  {
-    "id": "NFA-13",
-    "file": "tests/e2e/specs/nfa-13-fleet-unified-cluster.spec.ts",
-    "category": "NFA",
-    "kind": "playwright"
   },
   {
     "id": "NFA-14",
@@ -1712,48 +1640,6 @@
   {
     "id": "SA-10",
     "file": "tests/e2e/specs/sa-10-mcp-forwardauth.spec.ts",
-    "category": "SA",
-    "kind": "playwright"
-  },
-  {
-    "id": "SA-11",
-    "file": "tests/local/SA-11.bats",
-    "category": "SA",
-    "kind": "shell"
-  },
-  {
-    "id": "SA-11",
-    "file": "tests/e2e/specs/sa-11-arena-nonadmin.spec.ts",
-    "category": "SA",
-    "kind": "playwright"
-  },
-  {
-    "id": "SA-12",
-    "file": "tests/local/SA-12.bats",
-    "category": "SA",
-    "kind": "shell"
-  },
-  {
-    "id": "SA-12",
-    "file": "tests/e2e/specs/sa-12-korczewski-jwt.spec.ts",
-    "category": "SA",
-    "kind": "playwright"
-  },
-  {
-    "id": "SA-13",
-    "file": "tests/local/SA-13.bats",
-    "category": "SA",
-    "kind": "shell"
-  },
-  {
-    "id": "SA-13",
-    "file": "tests/e2e/specs/sa-13-untrusted-jwt.spec.ts",
-    "category": "SA",
-    "kind": "playwright"
-  },
-  {
-    "id": "SA-15",
-    "file": "tests/e2e/specs/sa-15-cross-cluster-health.spec.ts",
     "category": "SA",
     "kind": "playwright"
   },

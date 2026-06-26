@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-26T21:16:28.718Z",
+  "generatedAt": "2026-06-26T21:55:01.294Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -414,12 +414,6 @@
       "namespace": "mentolder",
       "type": "Deployment",
       "name": "whisper"
-    },
-    {
-      "id": "arena-server",
-      "namespace": "${WORKSPACE_NAMESPACE}",
-      "type": "Deployment",
-      "name": "arena-server"
     },
     {
       "id": "ddns-updater",
@@ -916,12 +910,6 @@
       "kind": "configmap"
     },
     {
-      "from": "shared-db",
-      "to": "arena-server",
-      "via": "configmap:website-schema",
-      "kind": "configmap"
-    },
-    {
       "from": "studio-server",
       "to": "keycloak",
       "via": "env:KEYCLOAK_ISSUER_MENTOLDER",
@@ -1088,18 +1076,6 @@
       "to": "nextcloud",
       "via": "env:NC_DB_USER",
       "kind": "env"
-    },
-    {
-      "from": "arena-server",
-      "to": "shared-db",
-      "via": "annotation",
-      "kind": "annotation"
-    },
-    {
-      "from": "arena-server",
-      "to": "keycloak",
-      "via": "annotation",
-      "kind": "annotation"
     },
     {
       "from": "ddns-updater",
@@ -1296,12 +1272,6 @@
     {
       "from": "traefik",
       "to": "bachelorprojekt",
-      "via": "ingress",
-      "kind": "ingress"
-    },
-    {
-      "from": "traefik",
-      "to": "arena-server",
       "via": "ingress",
       "kind": "ingress"
     },
@@ -1510,12 +1480,6 @@
       "kind": "selector"
     },
     {
-      "from": "arena-server",
-      "to": "arena-server",
-      "via": "selector",
-      "kind": "selector"
-    },
-    {
       "from": "admin-actions-cleanup",
       "to": "admin-actions-prune",
       "via": "secret:workspace-secrets",
@@ -1931,18 +1895,6 @@
     },
     {
       "from": "talk-transcriber",
-      "to": "admin-actions-cleanup",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "admin-actions-cleanup",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
       "to": "admin-actions-cleanup",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -2369,18 +2321,6 @@
     },
     {
       "from": "admin-actions-prune",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "admin-actions-prune",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "admin-actions-prune",
       "to": "ddns-updater",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -2789,18 +2729,6 @@
     },
     {
       "from": "sessions-purge",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
       "to": "ddns-updater",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -3197,18 +3125,6 @@
     },
     {
       "from": "db-backup",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "db-backup",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "db-backup",
       "to": "ddns-updater",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -3593,18 +3509,6 @@
     },
     {
       "from": "brett",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "brett",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "brett",
       "to": "ddns-updater",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -3977,18 +3881,6 @@
     },
     {
       "from": "billing-dunning-detection",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "billing-dunning-detection",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "billing-dunning-detection",
       "to": "ddns-updater",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -4349,18 +4241,6 @@
     },
     {
       "from": "monthly-billing",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "monthly-billing",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "monthly-billing",
       "to": "ddns-updater",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -4709,18 +4589,6 @@
     },
     {
       "from": "scheduled-publish",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "scheduled-publish",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "scheduled-publish",
       "to": "ddns-updater",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -5057,18 +4925,6 @@
     },
     {
       "from": "oauth2-proxy-dev",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "oauth2-proxy-dev",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-dev",
       "to": "ddns-updater",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -5393,18 +5249,6 @@
     },
     {
       "from": "knowledge-ingest-prs",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "knowledge-ingest-prs",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "knowledge-ingest-prs",
       "to": "ddns-updater",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -5717,18 +5561,6 @@
     },
     {
       "from": "knowledge-ingest-bugs",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "knowledge-ingest-bugs",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "knowledge-ingest-bugs",
       "to": "ddns-updater",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -6029,18 +5861,6 @@
     },
     {
       "from": "knowledge-reindex-all",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "knowledge-reindex-all",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "knowledge-reindex-all",
       "to": "ddns-updater",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -6329,18 +6149,6 @@
     },
     {
       "from": "livekit-server",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "livekit-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "livekit-server",
       "to": "ddns-updater",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -6617,18 +6425,6 @@
     },
     {
       "from": "livekit-ingress",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "livekit-ingress",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "livekit-ingress",
       "to": "ddns-updater",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -6893,18 +6689,6 @@
     },
     {
       "from": "livekit-egress",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "livekit-egress",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "livekit-egress",
       "to": "ddns-updater",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7157,18 +6941,6 @@
     },
     {
       "from": "nextcloud",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "nextcloud",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "nextcloud",
       "to": "ddns-updater",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7409,18 +7181,6 @@
     },
     {
       "from": "notify-unread",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "notify-unread",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "notify-unread",
       "to": "ddns-updater",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7649,18 +7409,6 @@
     },
     {
       "from": "oauth2-proxy-brett",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "oauth2-proxy-brett",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-brett",
       "to": "ddns-updater",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7877,18 +7625,6 @@
     },
     {
       "from": "oauth2-proxy-comfy",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "oauth2-proxy-comfy",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-comfy",
       "to": "ddns-updater",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -8093,18 +7829,6 @@
     },
     {
       "from": "oauth2-proxy-docs",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "oauth2-proxy-docs",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-docs",
       "to": "ddns-updater",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -8297,18 +8021,6 @@
     },
     {
       "from": "oauth2-proxy-mailpit",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "oauth2-proxy-mailpit",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-mailpit",
       "to": "ddns-updater",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -8489,18 +8201,6 @@
     },
     {
       "from": "oauth2-proxy-mediaviewer",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "oauth2-proxy-mediaviewer",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-mediaviewer",
       "to": "ddns-updater",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -8669,18 +8369,6 @@
     },
     {
       "from": "oauth2-proxy-studio",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "oauth2-proxy-studio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-studio",
       "to": "ddns-updater",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -8837,18 +8525,6 @@
     },
     {
       "from": "oauth2-proxy-traefik",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "oauth2-proxy-traefik",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-traefik",
       "to": "ddns-updater",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -8993,18 +8669,6 @@
     },
     {
       "from": "oauth2-proxy-videovault",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "oauth2-proxy-videovault",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-videovault",
       "to": "ddns-updater",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -9137,18 +8801,6 @@
     },
     {
       "from": "pocket-id",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "pocket-id",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "pocket-id",
       "to": "ddns-updater",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -9269,18 +8921,6 @@
     },
     {
       "from": "oauth2-proxy-recovery",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "oauth2-proxy-recovery",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-recovery",
       "to": "ddns-updater",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -9389,18 +9029,6 @@
     },
     {
       "from": "shared-db",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "shared-db",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "shared-db",
       "to": "ddns-updater",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -9497,18 +9125,6 @@
     },
     {
       "from": "studio-server",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "studio-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "studio-server",
       "to": "ddns-updater",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -9593,18 +9209,6 @@
     },
     {
       "from": "spreed-signaling",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "spreed-signaling",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "spreed-signaling",
       "to": "ddns-updater",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -9677,18 +9281,6 @@
     },
     {
       "from": "talk-recording",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "talk-recording",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "talk-recording",
       "to": "ddns-updater",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -9749,18 +9341,6 @@
     },
     {
       "from": "vaultwarden",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "vaultwarden",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "vaultwarden",
       "to": "ddns-updater",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -9809,18 +9389,6 @@
     },
     {
       "from": "videovault",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "videovault",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "videovault",
       "to": "ddns-updater",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -9857,18 +9425,6 @@
     },
     {
       "from": "whiteboard",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "whiteboard",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "whiteboard",
       "to": "ddns-updater",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -9893,18 +9449,6 @@
     },
     {
       "from": "dev-db-refresh",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
       "to": "ddns-updater",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -9917,18 +9461,6 @@
     },
     {
       "from": "talk-transcriber",
-      "to": "arena-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "talk-transcriber",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "talk-transcriber",
       "to": "ddns-updater",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -9936,18 +9468,6 @@
     {
       "from": "ddns-updater",
       "to": "talk-transcriber",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "arena-server",
-      "to": "ddns-updater",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "ddns-updater",
-      "to": "arena-server",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },

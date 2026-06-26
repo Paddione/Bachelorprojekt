@@ -178,7 +178,7 @@
 <body>
   <div class="header">
     <h1>⬡ Architektur — Living Docs</h1>
-    <span class="meta">Generiert: 2026-06-22T18:49:16.969Z</span>
+    <span class="meta">Generiert: 2026-06-26T21:16:28.849Z</span>
   </div>
 
   <div class="stats">
@@ -187,7 +187,7 @@
       <span class="stat-label">Services</span>
     </div>
     <div class="stat">
-      <span class="stat-value">1602</span>
+      <span class="stat-value">1600</span>
       <span class="stat-label">Abhängigkeiten</span>
     </div>
     <div class="stat">
@@ -302,7 +302,6 @@ flowchart LR
   admin_actions_prune -->|"PGUSER"| website
   sessions_purge -->|"command"| website
   db_backup -->|"command"| shared_db
-  db_backup -->|"command"| keycloak
   db_backup -->|"command"| nextcloud
   db_backup -->|"command"| vaultwarden
   db_backup -->|"command"| website
@@ -342,7 +341,6 @@ flowchart LR
   pvc_backup -->|"command"| nextcloud
   pvc_backup -->|"command"| vaultwarden
   oauth2_proxy_recovery -->|"command"| recovery_browser
-  shared_db -->|"configmap:shared-d…"| keycloak
   shared_db -->|"configmap:shared-d…"| nextcloud
   shared_db -->|"configmap:shared-d…"| vaultwarden
   shared_db -->|"configmap:shared-d…"| website
@@ -1838,7 +1836,7 @@ flowchart LR
   website -->|"secret:staging-db-…"| shared_db_staging
       </div>
     </div>
-    <p class="diagram-caption">Alle 84 K8s-Services und ihre 1602 Abhängigkeitskanten (env-Refs, initContainer-Waits, Ingress-Backends)</p>
+    <p class="diagram-caption">Alle 84 K8s-Services und ihre 1600 Abhängigkeitskanten (env-Refs, initContainer-Waits, Ingress-Backends)</p>
   </div>
 
   <!-- K8s Topology Tab -->

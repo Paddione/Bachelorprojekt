@@ -27,7 +27,7 @@ Du bist auf einem `feature/*` oder `fix/*` Branch. `dev-flow-plan` hat Spec und 
 ```
 
 **EINSTIEG:** Feature/Fix-Branch mit `plan_staged` Ticket — von `dev-flow-plan` übergeben  
-**AUSSTIEG:** PR gemergt zu `main`, Worktree bereinigt, Ticket `qa_review`, Kreislauf geschlossen  
+**AUSSTIEG:** PR gemergt zu `main`, Worktree bereinigt, Ticket `done/shipped`, Kreislauf geschlossen  
 **Voraussetzung:** `dev-flow-plan` hat `FACTORY-PLAN-REF` Kommentar im Ticket hinterlegt
 
 ---
@@ -46,7 +46,7 @@ Du bist auf einem `feature/*` oder `fix/*` Branch. `dev-flow-plan` hat Spec und 
 ```
 
 **EINSTIEG:** Feature/Fix-Branch mit `plan_staged` Ticket — von `dev-flow-plan` übergeben  
-**AUSSTIEG:** PR gemergt zu `main`, Worktree bereinigt, Ticket `qa_review`, OpenSpec archiviert, Kreislauf geschlossen  
+**AUSSTIEG:** PR gemergt zu `main`, Worktree bereinigt, Ticket `done/shipped`, OpenSpec archiviert, Kreislauf geschlossen  
 **Voraussetzung:** `dev-flow-plan` hat Branch + Plan-Pfad via `ticket.sh stage-plan` in der DB verankert
 
 ---
@@ -405,9 +405,12 @@ PR_NUM=$(gh pr view --json number -q '.number')
 # PR-Nummer in ticket_links eintragen, damit der Shipped-Tab sie zeigt (Fix 1):
 ./scripts/ticket.sh add-pr-link --id "$TICKET_ID" --pr "$PR_NUM"
 
-./scripts/vda.sh ticket update-status --id "$TICKET_ID" --status qa_review
-# Live-Floor-Telemetrie (best-effort; --driver devflow; darf den Flow nie stoppen)
-./scripts/ticket.sh phase "$TICKET_ID" deploy done --driver devflow --detail "PR #$PR_NUM merged · deployed" || true
+# Merge = Abschluss (T001092): grüner Auto-Merge nach main schließt das Ticket direkt.
+# Prod-Deploy (Schritt 8) ist entkoppelt und ändert den Ticket-Status NICHT.
+./scripts/vda.sh ticket update-status --id "$TICKET_ID" --status done --resolution "$RESOLUTION"
+# Quality-Gate-Outcome + Live-Floor-Telemetrie (best-effort; --driver devflow; nie blockierend)
+./scripts/ticket.sh phase "$TICKET_ID" verify done --driver devflow --detail "gate=ci result=pass" || true
+./scripts/ticket.sh phase "$TICKET_ID" deploy done --driver devflow --detail "PR #$PR_NUM merged · done/shipped" || true
 ./scripts/ticket.sh add-comment --id "$TICKET_ID" --body "PR #$PR_NUM merged. Plan archived to tickets.ticket_plans."
 ```
 
@@ -487,7 +490,7 @@ Führe danach `dev-flow-e2e` aus, um E2E-Tests gegen die Live-Umgebung zu schrei
 **Zustand nach Schritt 8:**
 - `main` enthält die gemergten Änderungen (squash commit)
 - Worktree `/tmp/wt-<slug>` gelöscht, Branch `feature/<slug>` gelöscht
-- Ticket status = `qa_review`
+- Ticket status = `done` (resolution=shipped)
 - Branch-Lock und Ticket-Lock freigegeben
 - Deployed (falls `devflow-post-merge-deploy.sh` Pfad-Treffer)
 

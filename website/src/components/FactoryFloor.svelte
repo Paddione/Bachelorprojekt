@@ -391,7 +391,9 @@
         {/if}
       </div>
 
-      <AwaitingDeployLane items={data.awaitingDeploy ?? []} {mobileColIndex} />
+      {#if data?.awaitingDeployVisible}
+        <AwaitingDeployLane items={data.awaitingDeploy ?? []} {mobileColIndex} />
+      {/if}
 
       <ShippedColumn
         shipped={data.shipped}

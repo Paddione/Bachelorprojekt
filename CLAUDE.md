@@ -53,8 +53,17 @@ Specifications are written in the OpenSpec format under `openspec/`.
 * `task openspec:archive -- <slug>`: Archive a completed proposal and merge its delta into the SSOT.
 * `task openspec:validate`: Dry-run validation of the `openspec/` change tree (fail-closed CI gate).
 
-### Domain conventions: awaiting_deploy status
-A transition state for tickets that are merged to `main` but not yet deployed to production (the "merge ≠ prod" lane on the dashboard cockpit). Used to prevent premature closure.
+### Domain conventions: Merge = Abschluss (T001092)
+
+Ein Ticket wird bei **grünem Auto-Merge nach `main` direkt geschlossen** (`done · resolution=shipped`) —
+einheitlich für Factory (`pipeline.js`) und dev-flow-execute (inkl. Batches). Der Prod-Deploy ist
+**entkoppelt** (push-based) und ändert den Ticket-Status NICHT. `awaiting_deploy` und `qa_review` sind
+**aus dem Happy-Path entfernt**, bleiben aber als Enum-Werte gültig (historische Zeilen, manuelle
+Sonderfälle, Watchdog-Sicherheitsnetz `awaiting_deploy > 24h`). Es gibt keine separate
+„gemergt-aber-noch-nicht-live"-Ruhestufe mehr; Closure trackt **Merge**, nicht Prod-Live. Der Factory-Floor
+blendet die `awaiting_deploy`-Lane jetzt leer aus (sie rendert nur noch bei manuell zurückgehaltenen Tickets).
+Quality-Gate-Ergebnisse werden als `verify`-Phase-Events (`tickets.factory_phase_events`, strukturiertes
+`detail`) erfasst.
 
 ## Project Overview
 

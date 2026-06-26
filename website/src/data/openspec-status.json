@@ -165,6 +165,12 @@
       "status": "archived"
     }
   ],
+  "T001092": [
+    {
+      "slug": "dora-delivery-pipeline",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

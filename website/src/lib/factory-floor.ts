@@ -4,6 +4,9 @@
 // factory-metrics.ts is intentionally left untouched; this is a separate module.
 import { pool } from './website-db';
 import { officeCount } from './planning-office';
+import { mapShippedRow, mapAwaitingRow, isAwaitingDeployLaneVisible } from './factory-floor-lanes';
+import type { ShippedItem, AwaitingDeployItem } from './factory-floor-lanes';
+export type { ShippedItem, AwaitingDeployItem } from './factory-floor-lanes';
 
 
 export const PHASE_ORDER = ['scout', 'design', 'plan', 'implement', 'verify', 'deploy'] as const;
@@ -90,8 +93,6 @@ export interface HallItem {
   ciStatus: 'success' | 'pending' | 'failure' | null;
   phaseProgress: PhaseProgressSegment[];
 }
-export interface ShippedItem { extId: string; title: string; doneAt: string | null; prNumber: number | null; }
-export interface AwaitingDeployItem { extId: string; title: string; mergedAt: string | null; prNumber: number | null; }
 export interface StagedItem {
   extId: string; title: string; priority: string;
   branch: string | null; planPath: string | null; createdAt: string | null;
@@ -111,6 +112,7 @@ export interface FloorPayload {
   hall: HallItem[];
   shipped: ShippedItem[];
   awaitingDeploy: AwaitingDeployItem[];
+  awaitingDeployVisible: boolean;
   staged: StagedItem[];
   providerHealth: ProviderStatus[];
   officeWaiting: number;
@@ -260,12 +262,7 @@ export async function getShipped(limit = 8): Promise<ShippedItem[]> {
       LIMIT $1::int`,
     [limit],
   );
-  return r.rows.map((row: any) => ({
-    extId: row.external_id,
-    title: row.title,
-    doneAt: row.done_at ? new Date(row.done_at).toISOString() : null,
-    prNumber: row.pr_number ?? null,
-  }));
+  return r.rows.map((row: any) => mapShippedRow(row));
 }
 
 /** Tickets merged to main but not yet deployed to fleet (the "merge ≠ prod" lane). */
@@ -288,12 +285,7 @@ export async function getAwaitingDeploy(limit = 12): Promise<AwaitingDeployItem[
       LIMIT $1::int`,
     [limit],
   );
-  return r.rows.map((row: any) => ({
-    extId: row.external_id,
-    title: row.title,
-    mergedAt: row.updated_at ? new Date(row.updated_at).toISOString() : null,
-    prNumber: row.pr_number ?? null,
-  }));
+  return r.rows.map((row: any) => mapAwaitingRow(row));
 }
 
 /** Plan_staged features (Kommissionierung) with branch/plan parsed from the latest
@@ -426,7 +418,9 @@ export async function getFloor(slotsCap: number): Promise<FloorPayload> {
     getProviderHealth(),
   ]);
   return {
-    control, metrics, loadingDock, hall, shipped, awaitingDeploy, staged, providerHealth,
+    control, metrics, loadingDock, hall, shipped, awaitingDeploy,
+    awaitingDeployVisible: isAwaitingDeployLaneVisible(awaitingDeploy),
+    staged, providerHealth,
     officeWaiting, stagedWaiting: staged.length,
     planningCount,
     attention: buildAttention(hall, providerHealth),

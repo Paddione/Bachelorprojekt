@@ -4,7 +4,9 @@ function decideDeployTransition(ctx) {
   if (/BLOCK:|deploy-guard|"status":\s*"blocked"|status:\s*'blocked'/.test(out)) {
     return { status: 'blocked', reason: 'deploy-guard' };
   }
-  if (ctx.isWebsite) return { status: 'done' };
-  return { status: 'awaiting_deploy', reason: 'merged-not-deployed' };
+  // Merge = Abschluss (T001092): a clean auto-merge to main closes the ticket
+  // directly as done/shipped. Prod-deploy is decoupled (push-based) and does NOT
+  // gate closure. isWebsite no longer changes the outcome — both close as done.
+  return { status: 'done', reason: 'merged' };
 }
 module.exports = { decideDeployTransition };

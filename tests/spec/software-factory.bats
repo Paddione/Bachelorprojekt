@@ -564,6 +564,53 @@ PIPELINE_SCRIPT="scripts/factory/pipeline.js"
   run grep -q "assets-inbox" "$PIPELINE_SCRIPT"; [ "$status" -eq 0 ]
 }
 
+# ── FA-SF-22-merge-equals-done (T001092) ──────────────────────────#
+# Kern-Invariante: grüner Auto-Merge → Ticket direkt done/shipped.
+# awaiting_deploy/qa_review verlassen den Happy-Path (Enum bleibt gültig).
+DEPLOY_TRANSITION="scripts/factory/deploy-transition.cjs"
+
+@test "FA-SF-22: decideDeployTransition returns done (never awaiting_deploy) on a clean merge" {
+  run node -e "const {decideDeployTransition}=require('./scripts/factory/deploy-transition.cjs'); const r=decideDeployTransition({isWebsite:false, deployOutput:'PR #123 merged'}); process.stdout.write(r.status)"
+  [ "$status" -eq 0 ]
+  [ "$output" = "done" ]
+}
+
+@test "FA-SF-22: decideDeployTransition still blocks on a deploy-guard signal" {
+  run node -e "const {decideDeployTransition}=require('./scripts/factory/deploy-transition.cjs'); const r=decideDeployTransition({isWebsite:false, deployOutput:'BLOCK: WORK_BRANCH'}); process.stdout.write(r.status)"
+  [ "$status" -eq 0 ]
+  [ "$output" = "blocked" ]
+}
+
+@test "FA-SF-22: pipeline.js Deploy phase no longer writes an awaiting_deploy status transition" {
+  # The happy-path must not call update-status --status awaiting_deploy.
+  run grep -Eq "update-status[^\n]*--status[[:space:]]+awaiting_deploy" "$PIPELINE_SCRIPT"
+  [ "$status" -ne 0 ]
+}
+
+@test "FA-SF-22: pipeline.js Deploy phase no longer writes a qa_review status transition" {
+  run grep -Eq "update-status[^\n]*--status[[:space:]]+qa_review" "$PIPELINE_SCRIPT"
+  [ "$status" -ne 0 ]
+}
+
+@test "FA-SF-22: pipeline.js closes the ticket with --status done --resolution shipped" {
+  run bash -c "grep -Eq -- '--status[[:space:]]+done' \"$PIPELINE_SCRIPT\" && grep -Eq -- '--resolution[[:space:]]+shipped' \"$PIPELINE_SCRIPT\""
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-22: dev-flow-execute SKILL closes with done/shipped, not qa_review" {
+  SKILL=".claude/skills/dev-flow-execute/SKILL.md"
+  run grep -Eq -- "--status[[:space:]]+done[^\n]*--resolution[[:space:]]+|--resolution[^\n]*--status[[:space:]]+done" "$SKILL"
+  [ "$status" -eq 0 ]
+  run grep -Eq -- "update-status[^\n]*--status[[:space:]]+qa_review" "$SKILL"
+  [ "$status" -ne 0 ]
+}
+
+@test "FA-SF-22: transition.ts retains awaiting_deploy + qa_review in VALID_STATUSES (non-destructive)" {
+  TS="website/src/lib/tickets/transition.ts"
+  run grep -q "awaiting_deploy" "$TS"; [ "$status" -eq 0 ]
+  run grep -q "qa_review" "$TS"; [ "$status" -eq 0 ]
+}
+
 # ── FA-SF-21-ticket-cli ─────────────────────────────────────────#
 # FA-SF-21: offline arg-validation contract for the new ticket.sh subcommands.
 

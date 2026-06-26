@@ -1,6 +1,6 @@
 {
   "generatedFrom": "website/src/pages",
-  "count": 130,
+  "count": 131,
   "routes": [
     {
       "route": "/",
@@ -229,6 +229,14 @@
     },
     {
       "route": "/admin/dokumente",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/dora",
       "authTier": "admin",
       "brand": "both",
       "dynamic": false,

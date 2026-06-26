@@ -1,0 +1,21 @@
+---
+export const prerender = false;
+
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
+import DoraDashboard from '../../components/admin/DoraDashboard.svelte';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+if (!isAdmin(session)) return Astro.redirect('/admin');
+---
+
+<AdminLayout title="DORA — Delivery-Pipeline">
+  <section class="dora-page">
+    <DoraDashboard client:load />
+  </section>
+</AdminLayout>
+
+<style>
+  .dora-page { padding: 1.5rem; }
+</style>

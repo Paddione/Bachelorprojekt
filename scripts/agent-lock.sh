@@ -199,6 +199,7 @@ cmd_reap() {
 cmd_guard_precommit() {
   [ -n "${AGENT_LOCK_FORCE:-}" ] && return 0
   local f; f="$(_lock_file main-checkout)"
+  _with_lock
   [ -f "$f" ] || return 0
   _reapable "$f" && return 0
   [ "$(_lock_field "$f" owner_sid)" = "$(_my_sid)" ] && return 0

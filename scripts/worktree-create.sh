@@ -104,6 +104,11 @@ if [ -d "$MAIN_ROOT/node_modules" ] && [ ! -e "$WT_PATH/node_modules" ]; then
     ln -s "$MAIN_ROOT/node_modules" "$WT_PATH/node_modules"
     echo "worktree-create: linked node_modules → $MAIN_ROOT/node_modules" >&2
 fi
+# website uses pnpm — symlink its node_modules too so worktree skips full reinstall
+if [ -d "$MAIN_ROOT/website/node_modules" ] && [ ! -e "$WT_PATH/website/node_modules" ]; then
+    ln -s "$MAIN_ROOT/website/node_modules" "$WT_PATH/website/node_modules"
+    echo "worktree-create: linked website/node_modules → $MAIN_ROOT/website/node_modules" >&2
+fi
 
 _ok=1   # reached a clean finish — disarm the rollback trap
 if [ "$BRANCH_EXISTS" -eq 1 ]; then

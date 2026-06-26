@@ -40,23 +40,38 @@
 <html><head></head><body><h1>dev-flow-plan — Pfad-Wahl, Brainstorming &amp; Plan</h1><div class="toc-box auto-toc">
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#wann-diese-skill-greift"><span class="toc-num">1.</span> Wann diese Skill greift</a></li>
-<li class="toc-item"><a href="#schritt-3-deep-grilling-optional"><span class="toc-num">2.</span> Schritt −3: Deep Grilling (optional)</a></li>
-<li class="toc-item"><a href="#schritt-2-main-branch-sync-pull-first"><span class="toc-num">3.</span> Schritt −2: Main-Branch sync (Pull-First)</a></li>
-<li class="toc-item"><a href="#schritt-1-reaper--stale-worktree-audit"><span class="toc-num">4.</span> Schritt −1: Reaper &amp; Stale-Worktree-Audit</a></li>
-<li class="toc-item"><a href="#schritt-0-pfad-bestimmen"><span class="toc-num">5.</span> Schritt 0: Pfad bestimmen</a></li>
-<li class="toc-item"><a href="#feature-pfad"><span class="toc-num">6.</span> Feature-Pfad</a></li>
-<li class="toc-item"><a href="#fix-pfad"><span class="toc-num">7.</span> Fix-Pfad</a></li>
-<li class="toc-item"><a href="#chore-pfad"><span class="toc-num">8.</span> Chore-Pfad</a></li>
-<li class="toc-item"><a href="#verwandte-skills"><span class="toc-num">9.</span> Verwandte Skills</a></li>
-<li class="toc-item"><a href="#nachbereitung--mishap-report"><span class="toc-num">10.</span> Nachbereitung &amp; Mishap Report</a></li></ul>
+<li class="toc-item"><a href="#position-im-git-kreislauf"><span class="toc-num">2.</span> Position im Git-Kreislauf</a></li>
+<li class="toc-item"><a href="#schritt-3-deep-grilling-optional"><span class="toc-num">3.</span> Schritt −3: Deep Grilling (optional)</a></li>
+<li class="toc-item"><a href="#schritt-2-main-branch-sync-pull-first"><span class="toc-num">4.</span> Schritt −2: Main-Branch sync (Pull-First)</a></li>
+<li class="toc-item"><a href="#schritt-1-reaper--stale-worktree-audit"><span class="toc-num">5.</span> Schritt −1: Reaper &amp; Stale-Worktree-Audit</a></li>
+<li class="toc-item"><a href="#schritt-0-pfad-bestimmen"><span class="toc-num">6.</span> Schritt 0: Pfad bestimmen</a></li>
+<li class="toc-item"><a href="#feature-pfad"><span class="toc-num">7.</span> Feature-Pfad</a></li>
+<li class="toc-item"><a href="#fix-pfad"><span class="toc-num">8.</span> Fix-Pfad</a></li>
+<li class="toc-item"><a href="#chore-pfad"><span class="toc-num">9.</span> Chore-Pfad</a></li>
+<li class="toc-item"><a href="#uebergabe-an-dev-flow-execute"><span class="toc-num">10.</span> Übergabe an dev-flow-execute</a></li>
+<li class="toc-item"><a href="#verwandte-skills"><span class="toc-num">11.</span> Verwandte Skills</a></li>
+<li class="toc-item"><a href="#nachbereitung--mishap-report"><span class="toc-num">12.</span> Nachbereitung &amp; Mishap Report</a></li></ul>
 </div>
 <h2 id="wann-diese-skill-greift">Wann diese Skill greift</h2>
 <p>Bei jeder Anfrage in diesem Repo, die etwas verändern will.</p>
 <p><strong>Sage zu Beginn:</strong> "Ich nutze dev-flow-plan für Pfad-Wahl und Planung."</p>
 <hr>
+<h2 id="position-im-git-kreislauf">Position im Git-Kreislauf</h2>
+<div class="code-wrapper"><pre><code>    ┌──────────────────────────────────────────────────────────┐
+    ▼                                                          │
+[ main ]                                                       │
+    │                                                          │
+    ├─► [branch + spec + plan] ── DIESER SKILL ── AUSSTIEG ──►│
+    │         (feature / fix)         pushed                   │
+    │                                                          │
+    └─► [chore direkt] ── dev-flow-chore ──────────────────────┘
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>EINSTIEG:</strong> <code>main</code> — synchronisiert, sauberer Stand<br><strong>AUSSTIEG:</strong> Feature/Fix-Branch mit committiertem Plan auf Remote gepusht, Ticket <code>plan_staged</code><br><strong>Nächster Schritt:</strong> <code>dev-flow-execute</code> — liest Plan aus DB und implementiert</p>
+<hr>
 <h2 id="schritt-3-deep-grilling-optional">Schritt −3: Deep Grilling (optional)</h2>
-<p>Wenn das Feature komplex oder unklar ist, frage den User nach einer Grilling-Session (siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md">dev-flow-gotchas.md</a> für den Fragenkatalog).
-Falls durchgeführt, erstelle das Grilling-Ticket mit dem CLI-Helper:</p>
+<p>Wenn das Feature komplex oder unklar ist, frage den User nach einer Grilling-Session (siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#dev-flow-gotchas">dev-flow-gotchas</a> für den Fragenkatalog).</p>
+<p><strong>Nutze <code>lavish</code> für die Q/A-Session:</strong> Erstelle <code>.lavish/&lt;slug&gt;-grilling.html</code> mit den Fragen als interaktivem Formular (Input-Playbook), öffne es mit <code>npx -y lavish-axi .lavish/&lt;slug&gt;-grilling.html</code> und poll auf Antworten. So kann der User strukturiert antworten, annotieren und Feedback geben.</p>
+<p>Falls durchgeführt, erstelle das Grilling-Ticket mit dem CLI-Helper:</p>
 <div class="code-wrapper"><pre><code class="language-bash">TICKET_RESULT=$(./scripts/ticket.sh create \
   --type task \
   --brand mentolder \
@@ -72,7 +87,7 @@ export GRILLING_TICKET_UUID=$(echo "$TICKET_RESULT"   | cut -d'|' -f2)
 <p><strong>Strukturierte Q/A persistieren:</strong> Nach dem Deep-Grilling die Antworten zusätzlich
 ans Ticket senden — <code>scripts/ticket.sh grill --id &lt;ext-id&gt; --answer &lt;qid&gt;=&lt;text&gt; …</code>
 (akkumulierend, erscheint später im T000737-Panel). Siehe
-<code>.claude/skills/references/grilling-to-ticket.md</code>.</p>
+<code>.claude/skills/references/references.md#grilling-to-ticket</code>.</p>
 </blockquote>
 <hr>
 <h2 id="schritt-2-main-branch-sync-pull-first">Schritt −2: Main-Branch sync (Pull-First)</h2>
@@ -105,6 +120,70 @@ git worktree list
 <p>Diese Skill plant nur (Feature/Fix) und stoppt vor der Umsetzung. Die Umsetzung übernimmt
 <code>dev-flow-execute</code>. Chores laufen vollständig in <code>dev-flow-chore</code>.</p>
 </blockquote>
+<h3>Artefakt-Ebene: braucht der Request ein PRD davor?</h3>
+<p>Die feature/fix/chore-Wahl oben ist die <em>Pfad</em>-Wahl durch diese Skill. Davor steht die
+<em>Artefakt</em>-Wahl: die meisten Requests steigen direkt auf Change-Proposal-Ebene ein (Feature-Pfad
+→ Schritt 3.1 <code>openspec.sh propose</code>). Ein PRD ist das <strong>schwerste</strong> Artefakt und nur für
+Epic-große Arbeit gedacht — ein PRD pro Feature kollabiert die Abstraktionsebenen und erzeugt
+Mehrfach-SSOT.</p>
+<table>
+<thead>
+<tr>
+<th>Gestalt der Arbeit</th>
+<th>Artefakt</th>
+<th>Bei dir konkret</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Großes, unscharfes Produktziel, viele Features</td>
+<td><strong>PRD</strong></td>
+<td><code>parse_prd</code> (task-master) — Bootstrap/Epic-Zerlegung</td>
+</tr>
+<tr>
+<td>Architektur-/Technologieentscheidung</td>
+<td><strong>ADR</strong></td>
+<td><code>manage_adr</code> / OpenSpec</td>
+</tr>
+<tr>
+<td><em>Ein</em> konkretes Feature, Intent klar</td>
+<td><strong>Change-Proposal</strong></td>
+<td><code>bash scripts/openspec.sh propose "&lt;slug&gt;" --ticket &lt;id&gt;</code> (Feature-Pfad, Schritt 3.1)</td>
+</tr>
+<tr>
+<td>Feature, aber Design noch offen</td>
+<td><strong>Brainstorming → Spec</strong></td>
+<td>diese Skill, Feature-Pfad</td>
+</tr>
+<tr>
+<td>Wartung, kein Verhaltenswechsel</td>
+<td><strong>Chore-Ticket</strong></td>
+<td><code>dev-flow-chore</code></td>
+</tr>
+<tr>
+<td>Regression</td>
+<td><strong>Fix + failing test</strong></td>
+<td>diese Skill, Fix-Pfad</td>
+</tr>
+</tbody></table>
+<p><strong>Checkliste — PRD davor, oder direkt <code>openspec:propose</code>?</strong></p>
+<p>PRD davorschalten, wenn MINDESTENS EINE zutrifft:</p>
+<ul>
+<li><strong>Mehrere Capabilities</strong> — der Request zerfällt in &gt;1 OpenSpec-Change (Epic).</li>
+<li><strong>„Warum" strittig</strong> — Problem/Zielgruppe/Erfolgsmetrik offen, nicht nur das „Wie".</li>
+<li><strong>Neues Teilprodukt/Service</strong> — net-new Surface, keine bestehende Spec zum Anknüpfen.</li>
+<li><strong>Cross-Brand/Cross-Subsystem</strong> mit echtem Priorisierungsbedarf.</li>
+</ul>
+<p>Direkt <code>openspec:propose</code> (kein PRD), wenn ALLE zutreffen:</p>
+<ul>
+<li>Genau <strong>eine</strong> Capability betroffen.</li>
+<li>Intent klar, nur das „Wie" offen → klärt das Brainstorming (Schritt 3) ohnehin.</li>
+<li>Es gibt eine bestehende Spec in <code>openspec/specs/</code>, in die der Delta einfließt (oder klar genau eine neue).</li>
+</ul>
+<blockquote>
+<p><strong>Faustregel:</strong> PRD nur, wenn die Arbeit größer ist als ein einzelner Change — sonst Overhead.
+Im PRD-Fall: <code>parse_prd</code> → N Tickets/Changes → für <em>jeden</em> Change wieder dieser normale Pfad.
+Das PRD bleibt <strong>Upstream-Kontext, wird nie SSOT</strong> (die konsolidierte <code>openspec/specs/</code>-Spec ist SSOT).</p>
+</blockquote>
 <hr>
 <h2 id="feature-pfad">Feature-Pfad</h2>
 <h3>Schritt 1: Worktree anlegen</h3>
@@ -121,14 +200,16 @@ bash scripts/agent-lock.sh claim branch "feature/&lt;slug&gt;" --worktree "$PWD"
 <h3>Schritt 1.6: Codebase-Exploration</h3>
 <p>Verwende einen Code-Explorer Subagenten, um die Code-Pfade und Architektur vor dem Brainstorming zu analysieren.</p>
 <h3>Schritt 1.7: Design-Bundle co-lokalisieren (nur Design-/UI-Tickets)</h3>
-<p>Wenn das Ticket einen Design-Handoff hat (claude.ai-Design-Session → Bundle-ID), ziehe das Bundle <strong>direkt neben den Plan</strong> in den Branch, damit sowohl <code>dev-flow-execute</code> als auch die Factory (liest den Branch via <code>git show</code> + Reuse-Worktree) Intent <strong>und</strong> Assets auf Platte haben. Andernfalls überspringe diesen Schritt.</p>
+<p>Wenn das Ticket einen Design-Handoff hat (claude.ai-Design-Session → Bundle-ID), ziehe das Bundle <strong>direkt neben den Plan</strong> in den Branch, damit <code>dev-flow-execute</code> Intent <strong>und</strong> Assets auf Platte hat. Andernfalls überspringe diesen Schritt.</p>
 <div class="code-wrapper"><pre><code class="language-bash">SLUG="&lt;slug&gt;"
-DESIGN_DIR="docs/superpowers/plans/assets/${SLUG}"
+DESIGN_DIR="openspec/changes/${SLUG}/assets"
 mkdir -p "${DESIGN_DIR}/new"
 
-# 1. Bundle in new/ synchronisieren (DesignSync-Tool ist deferred → erst Schema laden):
-#    ToolSearch select:DesignSync  →  dann /design-sync mit Ziel ${DESIGN_DIR}/new
-#    (Bundle-ID vom User; .tar.gz: chats/chat1.md = Intent, project/ = SVGs)
+# 1. Design-Assets synchronisieren:
+#    ⚠ /design-sync macht UPLOAD (Repo → claude.ai), nicht Download.
+#    Für Download: Bundle manuell entpacken (Bundle-ID vom User erfragen)
+#    oder separates Tool nutzen. .tar.gz enthält: chats/chat1.md = Intent, project/ = SVGs.
+#    Ziel: ${DESIGN_DIR}/new/
 
 # 2. Intent extrahieren:  cp &lt;bundle&gt;/chats/chat1.md "${DESIGN_DIR}/intent.md"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
@@ -138,21 +219,17 @@ SVG vor dem Ablegen prüfen und <strong>unpassende verwerfen</strong> (NICHT mit
 und <strong>Export-Vollständigkeit</strong> (Anzahl gelieferter Dateien vs. im Intent spezifizierte).
 Alt-Assets werden <strong>nicht</strong> mitkopiert — der Abgleich passiert in-place gegen die echte
 Repo-Datei (<code>git diff</code> / <code>Read</code> der Live-Datei) erst beim Verbauen, nicht als Plan-Ballast.</p>
-<p>Zusätzlich die Schlüsseldateien ans Ticket hängen (autonome Factory-Design-Phase materialisiert
-Attachments nach <code>assets-inbox/</code>):</p>
+<p>Zusätzlich die Schlüsseldateien ans Ticket hängen:</p>
 <div class="code-wrapper"><pre><code class="language-bash">bash scripts/ticket-attach.sh "$TICKET_UUID" "${DESIGN_DIR}/intent.md" "${DESIGN_DIR}"/new/*.svg
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Schritt 2: Brainstorming Visual Companion Tunnel</h3>
-<p>Starte den Companion-Server und Tunnel. Detaillierte Befehle und Fehlerbehebungen findest du in <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/brainstorm-tunnel-setup.md">brainstorm-tunnel-setup.md</a>.</p>
-<div class="code-wrapper"><pre><code class="language-bash"># Lese die Anleitung und führe sie aus:
-# View: .claude/skills/references/brainstorm-tunnel-setup.md
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Schritt 3: Brainstorming</h3>
-<p>Rufe <code>superpowers:brainstorming</code> auf. Nutze das visual Board auf <code>https://brainstorm.dev.mentolder.de</code>.
+<h3>Schritt 2: Lavish-Board starten ⚡ PFLICHT — vor Brainstorming</h3>
+<p>Erstelle <code>.lavish/&lt;slug&gt;-brainstorm.html</code> (Sections: Intent, Constraints, Trade-offs, Entscheidungen) und öffne es mit <code>npx -y lavish-axi .lavish/&lt;slug&gt;-brainstorm.html</code>. Dieses Board dient als visuelles Arbeitsblatt während des Brainstormings.</p>
+<h3>Schritt 3: Brainstorming ⚡ IMMER — kein Überspringen</h3>
+<p>Rufe <code>superpowers:brainstorming</code> auf. Nutze das <code>lavish</code>-Board (aus Schritt 2) für visuelle Dokumentation und strukturiertes Feedback.
 Ergebnis: Spec-Datei in <code>docs/superpowers/specs/&lt;date&gt;-&lt;slug&gt;-design.md</code>.
 Nach dem Schreiben der Spec das Frontmatter setzen (siehe
 <code>docs/superpowers/specs/spec-frontmatter-standard.md</code>):
-<code>bash scripts/plan-frontmatter-hook.sh --spec docs/superpowers/specs/&lt;date&gt;-&lt;slug&gt;-design.md</code>
+<code>bash scripts/vda.sh frontmatter --spec docs/superpowers/specs/&lt;date&gt;-&lt;slug&gt;-design.md</code>
 und <code>ticket_id</code>/<code>plan_ref</code> ausfüllen sobald Ticket-ID und Plan-Pfad feststehen.</p>
 <h3>Schritt 3.1: OpenSpec-Change anlegen</h3>
 <p>Lege den OpenSpec-Change-Ordner an (seedet <code>proposal.md</code> + <code>tasks.md</code> + Delta-Skeleton und
@@ -160,42 +237,40 @@ setzt den Ticket-Status auf <code>planning</code>):</p>
 <div class="code-wrapper"><pre><code class="language-bash">bash scripts/openspec.sh propose "&lt;slug&gt;" --ticket "&lt;TICKET_EXT_ID&gt;"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>Übertrage den Brainstorming-Output (WARUM + WAS) nach <code>openspec/changes/&lt;slug&gt;/proposal.md</code>.
-Der Implementierungsplan wird in <strong>beide</strong> Ziele geschrieben: <code>openspec/changes/&lt;slug&gt;/tasks.md</code>
-(Factory-Standard-Input) <strong>und</strong> das Legacy-<code>docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md</code> (bis der
-Cutover abgeschlossen ist; der Factory-Resolver fällt darauf zurück).</p>
+Der Implementierungsplan wird <strong>ausschließlich</strong> in <code>openspec/changes/&lt;slug&gt;/tasks.md</code> geschrieben.</p>
 <h3>Schritt 3.5: Playwright-Projekt-Gate</h3>
-<p>Falls neue E2E-Tests geplant sind, weise das passende Playwright-Projekt zu (siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md">dev-flow-gotchas.md</a> für Zuordnungstabelle).</p>
+<p>Falls neue E2E-Tests geplant sind, weise das passende Playwright-Projekt zu (siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#dev-flow-gotchas">dev-flow-gotchas</a> für Zuordnungstabelle).</p>
 <h3>Schritt 3.7: Plan-Erstellung an einen passend provisionierten Subagenten delegieren</h3>
 <p>Statt deinen eigenen Kontext zurückzusetzen (das ließe dich den Faden verlieren), committe die Spec und delegiere das Plan-Schreiben an einen <strong>frischen Subagenten</strong> — der hat per Konstruktion einen sauberen Kontext und bekommt ein <strong>zur Plan-Komplexität passendes Modell + Effort</strong>. Du selbst behältst den vollen Brainstorming-Kontext.</p>
 <ol>
 <li>Committe und pushe die Spec-Datei auf den Feature-Branch.</li>
-<li>Spawne über das <code>Agent</code>/<code>Task</code>-Tool einen Subagenten, <strong>provisioniert gemäß</strong> <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md">subagent-provisioning.md</a> (Modell · Effort · Kontext):<ul>
+<li>Spawne über das <code>Agent</code>/<code>Task</code>-Tool einen Subagenten, <strong>provisioniert gemäß</strong> <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#subagent-provisioning">subagent-provisioning</a> (Modell · Effort · Kontext):<ul>
 <li><strong>Modell:</strong> Plan-Schreiben ist reasoning-lastige Meta-Arbeit → Default <code>model: opus</code>. Bei trivialem (chore-artigem) Plan genügt <code>sonnet</code>.</li>
 <li><strong>Effort:</strong> Default high — beginne den Prompt mit „Ultrathink. Denke sehr gründlich nach." (das <code>Agent</code>-Tool kennt nur <code>model</code>, keinen Effort-Regler — Effort wird im Prompt vermittelt). <strong>Bei großen multi-subsystem-Specs → ultra:</strong> statt eines Einzel-Agenten das <code>Workflow</code>-Tool nutzen (parallele Plan-Segment-Autoren gegen einen geteilten Interface-Contract + abschließende Self-Review), siehe Rubrik.</li>
 <li><code>subagent_type: general-purpose</code>.</li>
 <li><strong>Kontext-Injektion</strong> (er hat sonst KEINEN Kontext — gib ihm alles explizit):<ul>
 <li>Absoluter Worktree-Pfad (<code>pwd</code>) + Branch-Name; er arbeitet NUR relativ dazu.</li>
 <li>Spec-Pfad: <code>docs/superpowers/specs/&lt;date&gt;-&lt;slug&gt;-design.md</code></li>
-<li><strong>Design-Bundle</strong> (falls Schritt 1.7 lief): <code>docs/superpowers/plans/assets/&lt;slug&gt;/</code> —
+<li><strong>Design-Bundle</strong> (falls Schritt 1.7 lief): <code>openspec/changes/&lt;slug&gt;/assets/</code> —
 der Plan MUSS <code>intent.md</code> als Design-Quelle referenzieren, die finalen Asset-Zielpfade
 (z. B. unter <code>website/src/...</code>) in die Task-<code>target_files</code> aufnehmen und die T000756-
 Guardrails (currentColor statt <code>&lt;img&gt;</code>, keine Stray-Hex, Export-Vollständigkeit) als
 Acceptance-Kriterien notieren. <code>new/</code> enthält nur geprüfte, passende Assets.</li>
 <li>Ticket-/Grilling-Kontext (<code>$GRILLING_TICKET_EXT_ID</code> etc.), falls vorhanden.</li>
-<li><strong>CI-/Quality-Gates:</strong> <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-quality-gates.md">plan-quality-gates.md</a> — der Subagent MUSS die Datei lesen und den Plan dagegen schreiben: pro zu ändernder Datei <code>wc -l</code> UND den Baseline-Wert (<code>jq -r '."S1:&lt;pfad&gt;".metric // "nicht-baselined"' docs/code-quality/baseline.json</code>) ermitteln und das S1-Budget gegen die <strong>wirksame Schwelle</strong> notieren — bei schon gebaselineten (gewachsenen) Dateien ist das Budget oft <strong>0</strong> (jede Netto-Zeile trippt das CI-Ratchet), dann zeilenneutral planen oder die Datei in dieser PR <strong>echt verkleinern</strong>; bei &gt;~80 % der Schwelle echten Modul-Split einplanen (kein kosmetisches Zusammenziehen). Dazu: keine Brand-Domain-Literale in Code-Snippets (S3), Helper als pure Module ohne Import-Zyklen (S2), neue Manifeste/Skripte referenzieren statt verwaisen lassen (S4).</li>
+<li><strong>CI-/Quality-Gates:</strong> <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#plan-quality-gates">plan-quality-gates</a> — der Subagent MUSS die Datei lesen und den Plan dagegen schreiben: pro zu ändernder Datei <code>wc -l</code> UND den Baseline-Wert (<code>jq -r '."S1:&lt;pfad&gt;".metric // "nicht-baselined"' docs/code-quality/baseline.json</code>) ermitteln und das S1-Budget gegen die <strong>wirksame Schwelle</strong> notieren — bei schon gebaselineten (gewachsenen) Dateien ist das Budget oft <strong>0</strong> (jede Netto-Zeile trippt das CI-Ratchet), dann zeilenneutral planen oder die Datei in dieser PR <strong>echt verkleinern</strong>; bei &gt;~80 % der Schwelle echten Modul-Split einplanen (kein kosmetisches Zusammenziehen). Dazu: keine Brand-Domain-Literale in Code-Snippets (S3), Helper als pure Module ohne Import-Zyklen (S2), neue Manifeste/Skripte referenzieren statt verwaisen lassen (S4).</li>
 </ul>
 </li>
-<li><strong>Auftrag:</strong> „Lies die Spec UND <code>.claude/skills/references/plan-quality-gates.md</code>. Rufe <code>superpowers:writing-plans</code> auf und schreibe den Implementierungsplan nach <code>docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md</code>. Schreibe dieselben Tasks zusätzlich nach <code>openspec/changes/&lt;slug&gt;/tasks.md</code> (OpenSpec-Format: H2-Operationsheader im Delta, H3-Requirement, H4-Scenario im <code>specs/&lt;capability&gt;.md</code>). Der finale Verifikations-Task des Plans MUSS <code>task test:changed</code>, <code>task freshness:regenerate</code> und <code>task freshness:check</code> als Steps enthalten (CI-Äquivalent inkl. S1–S4-Ratchet); nach Test-Änderungen zusätzlich <code>task test:inventory</code> + Commit des Inventars. Vor dem Commit: <code>task test:openspec</code> (oder <code>bash scripts/openspec.sh validate</code>) — muss grün sein. Starte KEINE Implementierung (nur Plan schreiben, dann STOPP). Führe danach <code>bash scripts/plan-frontmatter-hook.sh docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md</code> aus. Gib den Plan-Pfad und eine 3-Zeilen-Zusammenfassung zurück."</li>
+<li><strong>Auftrag:</strong> „Lies die Spec UND <code>.claude/skills/references/references.md#plan-quality-gates</code>. Rufe <code>superpowers:writing-plans</code> auf und schreibe den Implementierungsplan <strong>ausschließlich</strong> nach <code>openspec/changes/&lt;slug&gt;/tasks.md</code> (OpenSpec-Format: H2-Operationsheader im Delta, H3-Requirement, H4-Scenario im <code>specs/&lt;capability&gt;.md</code>). Der finale Verifikations-Task des Plans MUSS <code>task test:changed</code>, <code>task freshness:regenerate</code> und <code>task freshness:check</code> als Steps enthalten (CI-Äquivalent inkl. S1–S4-Ratchet); nach Test-Änderungen zusätzlich <code>task test:inventory</code> + Commit des Inventars. Vor dem Commit: <code>task test:openspec</code> (oder <code>bash scripts/openspec.sh validate</code>) — muss grün sein. Starte KEINE Implementierung (nur Plan schreiben, dann STOPP). Gib den Plan-Pfad (<code>openspec/changes/&lt;slug&gt;/tasks.md</code>) und eine 3-Zeilen-Zusammenfassung zurück."</li>
 </ul>
 </li>
 </ol>
 <h3>Schritt 3.8: Plan-Qualitäts-Gate (deterministischer Linter + advisory LLM-QA)</h3>
 <p>Führe ZUERST den deterministischen, fail-closed Linter auf den Plan-Pfad aus, den der
 Subagent zurückgegeben hat — das ist das <strong>harte Gate</strong>:</p>
-<div class="code-wrapper"><pre><code class="language-bash">bash scripts/plan-lint.sh docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md
+<div class="code-wrapper"><pre><code class="language-bash">bash scripts/plan-lint.sh openspec/changes/&lt;slug&gt;/tasks.md
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <ul>
-<li><strong>PASS (Exit 0):</strong> weiter — danach optional die advisory LLM-QA (bricht nie):<div class="code-wrapper"><pre><code class="language-bash">bash scripts/plan-qa-check.sh docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md || true
+<li><strong>PASS (Exit 0):</strong> weiter — danach optional die advisory LLM-QA (bricht nie):<div class="code-wrapper"><pre><code class="language-bash">bash scripts/plan-qa-check.sh openspec/changes/&lt;slug&gt;/tasks.md || true
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 Anschließend weiter zu Schritt 4.</li>
 <li><strong>FAIL (Exit 1):</strong> der Linter listet die Hard-Fails (F1/F2/STRUCT/P1/B1a). Delegiere
@@ -203,7 +278,7 @@ erneut an einen Plan-Subagenten (Schritt 3.7) mit den Hard-Fails als Korrektur-H
 bis <code>plan-lint.sh</code> PASS liefert. KEIN Weitergehen mit rotem Linter.</li>
 </ul>
 <h3>Schritt 4: Plan prüfen &amp; übernehmen</h3>
-<p>Du behältst deinen vollen Brainstorming-Kontext: lies den vom Subagenten zurückgegebenen Plan und prüfe ihn gegen die im Brainstorming getroffenen Entscheidungen. Prüfe zusätzlich die Gate-Konformität (Checkliste in <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-quality-gates.md">plan-quality-gates.md</a>): S1-Budgets gegen die <strong>wirksame Schwelle</strong> (Baseline-Wert falls gebaselined, sonst Limit) pro Datei notiert — und bei Budget≈0 ein echter Verkleinerungs-/Split-Schritt statt kosmetischem Zusammenziehen? Finaler Verifikations-Task enthält <code>task test:changed</code> + <code>task freshness:regenerate</code> + <code>task freshness:check</code>? Keine Brand-Domain-Literale in den Code-Snippets? Bei Lücken oder Abweichungen delegiere erneut (Schritt 3.7) mit konkreten Korrektur-Hinweisen. Erst wenn der Plan passt, weiter zu Schritt 4.5.</p>
+<p>Du behältst deinen vollen Brainstorming-Kontext: lies den vom Subagenten zurückgegebenen Plan und prüfe ihn gegen die im Brainstorming getroffenen Entscheidungen. Prüfe zusätzlich die Gate-Konformität (Checkliste in <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#plan-quality-gates">plan-quality-gates</a>): S1-Budgets gegen die <strong>wirksame Schwelle</strong> (Baseline-Wert falls gebaselined, sonst Limit) pro Datei notiert — und bei Budget≈0 ein echter Verkleinerungs-/Split-Schritt statt kosmetischem Zusammenziehen? Finaler Verifikations-Task enthält <code>task test:changed</code> + <code>task freshness:regenerate</code> + <code>task freshness:check</code>? Keine Brand-Domain-Literale in den Code-Snippets? Bei Lücken oder Abweichungen delegiere erneut (Schritt 3.7) mit konkreten Korrektur-Hinweisen. Erst wenn der Plan passt, weiter zu Schritt 4.5.</p>
 <h3>Schritt 4.5: Ticket anlegen oder wiederverwenden</h3>
 <p>Prüfe ob ein bestehendes Ticket-ID übergeben wurde (z.B. von <code>feature-intake</code>):</p>
 <div class="code-wrapper"><pre><code class="language-bash"># Falls TICKET_EXT_ID bereits gesetzt ist (von feature-intake oder User-Input),
@@ -220,7 +295,7 @@ if -z &amp;quot;${TICKET_EXT_ID:-}&amp;quot;; then
     --brand mentolder \
     --title "Plan: &lt;slug&gt;" \
     --priority mittel \
-    --description "Branch: feature/&lt;slug&gt;"$'\n'"Plan: docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md"$'\n'"Spec: docs/superpowers/specs/&lt;date&gt;-&lt;slug&gt;-design.md"$GRILLING_REF)
+    --description "Branch: feature/&lt;slug&gt;"$'\n'"Plan: openspec/changes/&lt;slug&gt;/tasks.md"$'\n'"Spec: docs/superpowers/specs/&lt;date&gt;-&lt;slug&gt;-design.md"$GRILLING_REF)
 
   TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
   TICKET_UUID=$(echo "$TICKET_RESULT"   | cut -d'|' -f2)
@@ -230,21 +305,16 @@ else
   echo "✅ Wiederverwende bestehendes Ticket $TICKET_EXT_ID"
 fi
 
-sed -i "s/^ticket_id: null$/ticket_id: $TICKET_EXT_ID/" docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md
-
-# Plan in die Kommissionierung stellen: type=feature, status=plan_staged.
-# Read-only sichtbar in /dev-status; wartet auf manuelle Freigabe (-&gt; Factory / -&gt; Manuell).
+# Plan stagen: Branch + Plan-Pfad im Ticket verankern (Single Source of Truth für dev-flow-execute).
 ./scripts/ticket.sh stage-plan \
   --id "$TICKET_EXT_ID" \
   --branch "feature/&lt;slug&gt;" \
-  --plan "docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md"
-
-bash scripts/plan-frontmatter-hook.sh --activate "docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md"
+  --plan "openspec/changes/&lt;slug&gt;/tasks.md"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>Hänge gesammelte Assets mit <code>bash scripts/ticket-attach.sh "$TICKET_UUID" &lt;pfade&gt;</code> an.</p>
 <h3>Schritt 5: Commit &amp; Push — dann STOPP</h3>
 <div class="code-wrapper"><pre><code class="language-bash"># Sicherheitscheck: Branch-Guard [T000321]
-git add docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md
+git add openspec/changes/&lt;slug&gt;/
 git commit -m "chore(plans): stage &lt;slug&gt; for execution [$TICKET_EXT_ID]"
 git push -u origin $(git branch --show-current)
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
@@ -252,7 +322,7 @@ git push -u origin $(git branch --show-current)
 <p>Bevor du den Plan committest und Ausführungsoptionen anzeigst, kannst du den Plan
 annotierbar rendern und im Browser reviewen (additiv/optional; der bestehende
 STOP-Text in Schritt 5 bleibt der Default):</p>
-<div class="code-wrapper"><pre><code class="language-bash">bash scripts/plan-review/plan-review.sh render docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md
+<div class="code-wrapper"><pre><code class="language-bash">bash scripts/plan-review/plan-review.sh render openspec/changes/&lt;slug&gt;/tasks.md
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>Im Browser: Text markieren → annotieren (Durchstreichen/Ersetzen/Einfügen/Kommentar) →
 ✓ Approve oder ↺ Änderungen anfordern. Danach das Ergebnis einlesen:</p>
@@ -264,59 +334,8 @@ STOP-Text in Schritt 5 bleibt der Default):</p>
 Annotationen als Änderungsauftrag an einen Plan-Schreib-Agenten übergeben,
 1 Revisions-Runde, dann erneut rendern und reviewen. Wiederhole bis approve.</li>
 </ul>
-<p>Details siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-review-ui.md">plan-review-ui.md</a>.</p>
-<h3>Schritt 6.5: Batch-Status prüfen und Ausführungsoptionen anzeigen</h3>
-<p>Prüfe ob weitere Pläne in der Kommissionierung warten und zeige dem User die Batch-Ausführungsoptionen:</p>
-<div class="code-wrapper"><pre><code class="language-bash"># Alle staged plans abrufen (status=plan_staged)
-STAGED_PLANS=$(kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -F '|' -c \
-  "SELECT external_id, title, priority, COALESCE(value_prop,''), COALESCE(effort,''),
-   array_to_string(areas,','), COALESCE(depends_on::text,'{}')
-   FROM tickets.tickets WHERE status='plan_staged'
-   ORDER BY planning_rank ASC NULLS LAST, created_at DESC;" 2&gt;/dev/null)
-
-STAGED_COUNT=$(echo "$STAGED_PLANS" | grep -c '|' || echo 0)
-
-# Alle planning tickets (noch nicht geplant)
-PLANNING_COUNT=$(kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -c \
-  "SELECT COUNT(*) FROM tickets.tickets WHERE status='planning';" 2&gt;/dev/null)
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p><strong>STOPP.</strong> Informiere den User über den aktuellen Plan-Status und die Batch-Ausführungsoptionen:</p>
-<div class="code-wrapper"><pre><code>✅ Plan bereit: &lt;slug&gt; (Ticket $TICKET_EXT_ID)
-   Branch: feature/&lt;slug&gt;
-   Plan: docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md
-
-📋 Kommissionierung (status=plan_staged): $STAGED_COUNT Plan(s)
-   • T000xxx [priorität] &lt;titel&gt; — &lt;value_prop&gt;
-   • T000yyy [priorität] &lt;titel&gt; — &lt;value_prop&gt;
-   ...
-
-📝 Planungsbüro (status=planning): $PLANNING_COUNT Ticket(s) warten auf Planung
-
-🚀 Ausführungsoptionen:
-
-1. **Einzel-Ausführung (Manuell):**
-   dev-flow-execute auf feature/&lt;slug&gt; aufrufen
-   → Implementiert nur diesen einen Plan
-
-2. **Einzel-Ausführung (Factory):**
-   bash scripts/ticket.sh enqueue --id "$TICKET_EXT_ID" \
-     --branch "feature/&lt;slug&gt;" --plan "docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md"
-   → Factory-Dispatcher arbeitet den Plan automatisch ab
-
-3. **Batch-Ausführung (alle staged plans):**
-   Wenn mehrere Pläne bereit sind, können sie parallel via Factory implementiert werden:
-   - UI: In /dev-status alle staged plans auswählen → "→ Factory (Batch)"
-   - CLI: Für jeden staged plan:
-     bash scripts/ticket.sh enqueue --id &lt;ext_id&gt; --branch &lt;branch&gt; --plan &lt;plan&gt;
-   → Factory-Dispatcher verarbeitet alle Pläne parallel (Plan-Reuse, kein Neu-Planen)
-
-4. **Batch-Ausführung (mit dev-flow-batch):**
-   Wenn weitere planning-Tickets existieren und du erst alle planen willst:
-   dev-flow-batch aufrufen → plant alle status=planning Tickets parallel
-   → Danach alle fertigen Pläne via Option 3 an Factory übergeben
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p><strong>Empfehlung:</strong> Wenn nur dieser eine Plan fertig ist → Option 2 (Factory einzeln). Wenn mehrere Pläne fertig sind → Option 3 (Batch via Factory). Wenn noch planning-Tickets warten → Option 4 (erst dev-flow-batch, dann Factory).</p>
-<p>STOPP danach.</p>
+<p>Details siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#plan-review-ui">plan-review-ui</a>.</p>
+<p><strong>STOPP.</strong> Branch, Spec und Plan sind committed und gepusht. Nächster Schritt: <code>dev-flow-execute</code> aufrufen.</p>
 <hr>
 <h2 id="fix-pfad">Fix-Pfad</h2>
 <h3>Schritt 1: T-###### Ticket</h3>
@@ -343,66 +362,47 @@ cd /tmp/wt-&lt;slug&gt;
 bash scripts/agent-lock.sh claim branch "fix/&lt;slug&gt;" --worktree "$PWD" --label dev-flow-plan
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>Exit 1 = eine lebende Session arbeitet schon daran → koordinieren, nicht duplizieren.</p>
+<h3>Schritt 2.7: Lavish-Board starten ⚡ PFLICHT — vor Brainstorming</h3>
+<p>Erstelle <code>.lavish/&lt;slug&gt;-brainstorm.html</code> (Sections: Root-Cause, Fix-Ansatz, Subsysteme, Edge-Cases) und öffne es mit <code>npx -y lavish-axi .lavish/&lt;slug&gt;-brainstorm.html</code>.</p>
+<h3>Schritt 2.8: Brainstorming ⚡ IMMER — kein Überspringen</h3>
+<p>Rufe <code>superpowers:brainstorming</code> auf. Nutze das <code>lavish</code>-Board für visuelle Root-Cause-Dokumentation.
+Fokus: Root-Cause-Analyse, Fix-Ansatz, betroffene Subsysteme, Edge-Cases.
+Ergebnis: Spec-Datei in <code>docs/superpowers/specs/&lt;date&gt;-&lt;slug&gt;-design.md</code>.
+Der Brainstorming-Output informiert sowohl den failing Test (Schritt 3) als auch den Plan (Schritt 4) —
+kein Test schreiben, bevor Root-Cause und Fix-Ansatz im Board geklärt sind.</p>
 <h3>Schritt 3: Failing Test schreiben</h3>
 <p>Schreibe einen automatisierten Test, der den Bug reproduziert und fehlschlägt (PASS/FAIL rot-grün Prinzip). Dies ist eine <strong>harte Voraussetzung</strong> für den Fix-Pfad.</p>
+<p><strong>Wo:</strong> In <code>tests/spec/&lt;spec-slug&gt;.bats</code> (Spec zu diesem Fix aus <code>openspec/specs/</code>), nicht in eine neue <code>tests/local/FA-XY-*.bats</code> Ticket-Datei. Falls <code>tests/spec/&lt;spec-slug&gt;.bats</code> noch nicht existiert, anlegen (Vorlage: <code>tests/spec/software-factory.bats</code>).</p>
 <h3>Schritt 4: Plan schreiben</h3>
 <p>Rufe <code>superpowers:writing-plans</code> auf. Wende das Frontmatter an und trage die Ticket-ID ein. Committe und pushe den Plan.</p>
-<h3>Schritt 4.5: Plan stagen + Frontmatter aktivieren (Fix 6)</h3>
+<h3>Schritt 4.5: Plan stagen (Fix 6)</h3>
 <div class="code-wrapper"><pre><code class="language-bash">./scripts/ticket.sh stage-plan \
   --id "$TICKET_EXT_ID" \
   --branch "fix/&lt;slug&gt;" \
-  --plan "docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md"
-
-bash scripts/plan-frontmatter-hook.sh --activate "docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md"
+  --plan "openspec/changes/&lt;slug&gt;/tasks.md"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Damit ist das Fix-Ticket in der Kommissionierung sichtbar und kann via UI-Knopf oder
-<code>ticket.sh enqueue</code> an die Factory übergeben werden.</p>
+<p>Damit ist das Fix-Ticket als <code>plan_staged</code> in der DB verankert und für <code>dev-flow-execute</code> bereit.</p>
 <h3>Schritt 5: Commit &amp; Push</h3>
 <p>Füge den failing Test und den Plan hinzu, committe und pushe auf den fix Branch:</p>
-<div class="code-wrapper"><pre><code class="language-bash">git add tests/ docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md
+<div class="code-wrapper"><pre><code class="language-bash">git add tests/ openspec/changes/&lt;slug&gt;/tasks.md
 git commit -m "fix(&lt;scope&gt;): add failing test + stage plan [$TICKET_EXT_ID]"
 git push -u origin $(git branch --show-current)
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Schritt 6: Batch-Status prüfen und Ausführungsoptionen anzeigen</h3>
-<div class="code-wrapper"><pre><code class="language-bash">STAGED_PLANS=$(kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -F '|' -c \
-  "SELECT external_id, title, priority, COALESCE(value_prop,''), COALESCE(effort,''),
-   array_to_string(areas,',')
-   FROM tickets.tickets WHERE status='plan_staged'
-   ORDER BY planning_rank ASC NULLS LAST, created_at DESC;" 2&gt;/dev/null)
-
-STAGED_COUNT=$(echo "$STAGED_PLANS" | grep -c '|' || echo 0)
-
-PLANNING_COUNT=$(kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -c \
-  "SELECT COUNT(*) FROM tickets.tickets WHERE status='planning';" 2&gt;/dev/null)
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p><strong>STOPP.</strong> Informiere den User:</p>
-<div class="code-wrapper"><pre><code>✅ Fix-Plan bereit: &lt;slug&gt; (Ticket $TICKET_EXT_ID)
-   Branch: fix/&lt;slug&gt;
-   Plan: docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md
-
-📋 Kommissionierung (status=plan_staged): $STAGED_COUNT Plan(s)
-   • T000xxx [priorität] &lt;titel&gt; — &lt;value_prop&gt;
-   ...
-
-📝 Planungsbüro (status=planning): $PLANNING_COUNT Ticket(s) warten auf Planung
-
-🚀 Ausführungsoptionen:
-
-1. **Einzel-Ausführung (Manuell):**
-   dev-flow-execute auf fix/&lt;slug&gt; aufrufen
-
-2. **Einzel-Ausführung (Factory):**
-   bash scripts/ticket.sh enqueue --id "$TICKET_EXT_ID" \
-     --branch "fix/&lt;slug&gt;" --plan "docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md"
-
-3. **Batch-Ausführung (alle staged plans):**
-   Wenn mehrere Pläne bereit sind, können sie parallel via Factory implementiert werden.
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>STOPP danach.</p>
+<p><strong>STOPP.</strong> Failing Test, Spec und Plan sind committed und gepusht. Nächster Schritt: <code>dev-flow-execute</code> aufrufen.</p>
 <hr>
 <h2 id="chore-pfad">Chore-Pfad</h2>
 <p>Ausgelagert nach <code>dev-flow-chore</code> — Chores brauchen keinen Plan und werden dort direkt ausgeführt
 und gemergt. In Schritt 0 für Chores sofort <code>dev-flow-chore</code> aufrufen und hier stoppen.</p>
+<hr>
+<h2 id="uebergabe-an-dev-flow-execute">Übergabe an dev-flow-execute</h2>
+<p><strong>Zustand bei STOPP:</strong></p>
+<ul>
+<li>Branch <code>feature/&lt;slug&gt;</code> oder <code>fix/&lt;slug&gt;</code> auf Remote gepusht</li>
+<li>Plan <code>openspec/changes/&lt;slug&gt;/tasks.md</code> committed</li>
+<li>Ticket status = <code>plan_staged</code></li>
+<li>Branch-Lock aktiv (andere Sessions sehen diesen Branch als belegt)</li>
+</ul>
+<p><strong>Nächster Schritt im Kreislauf:</strong> <code>dev-flow-execute</code> aufrufen.<br>Der Skill liest den Plan automatisch aus der DB (<code>FACTORY-PLAN-REF</code> Kommentar) — kein manuelle Pfad-Übergabe nötig.</p>
 <hr>
 <h2 id="verwandte-skills">Verwandte Skills</h2>
 <table>
@@ -418,7 +418,7 @@ und gemergt. In Schritt 0 für Chores sofort <code>dev-flow-chore</code> aufrufe
 </tr>
 <tr>
 <td><code>superpowers:brainstorming</code></td>
-<td>Aufgerufen in Schritt 3 — Intent/Design klären</td>
+<td><strong>IMMER</strong> aufgerufen — Feature-Pfad Schritt 3, Fix-Pfad Schritt 2.8</td>
 </tr>
 <tr>
 <td><code>superpowers:writing-plans</code></td>
@@ -426,11 +426,11 @@ und gemergt. In Schritt 0 für Chores sofort <code>dev-flow-chore</code> aufrufe
 </tr>
 <tr>
 <td><code>dev-flow-execute</code></td>
-<td>Folge — implementiert den erstellten Plan</td>
+<td><strong>Nachfolger im Kreislauf</strong> — implementiert den erstellten Plan</td>
 </tr>
 <tr>
 <td><code>dev-flow-chore</code></td>
-<td>Geschwister — Chores statt Features/Fixes</td>
+<td>Geschwister — Chores statt Features/Fixes (direkter Kurzschluss)</td>
 </tr>
 <tr>
 <td><code>mishap-tracker</code></td>

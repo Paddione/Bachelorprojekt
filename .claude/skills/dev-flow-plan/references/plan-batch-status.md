@@ -5,7 +5,7 @@ Beide Pfade hatten ~50 Zeilen identische Logik — in diese Referenz zusammengef
 
 ## 1. Status laden
 
-**MCP-Schnellweg (read-only).** Wenn `mcp-postgres` erreichbar (`bash scripts/mcp-portforward.sh status`),
+**MCP-Schnellweg (read-only).** Wenn `mcp-postgres` erreichbar (MCP-Tool direkt nutzbar — `SELECT 1`),
 führe beide Reads via `mcp__mcp-postgres__query` aus:
 > staged plans — `sql:` `SELECT external_id, title, priority, COALESCE(value_prop,'') FROM tickets.tickets WHERE status='plan_staged' ORDER BY planning_rank ASC NULLS LAST, created_at DESC;`
 > planning-Count — `sql:` `SELECT COUNT(*) FROM tickets.tickets WHERE status='planning';`

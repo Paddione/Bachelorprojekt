@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>scraper-studio — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">scraper-studio</span></nav>
+    <h1>scraper-studio</h1>
+    <p class="page-desc">Build and run AI-generated Bright Data scrapers from the terminal via `bdata scraper create` and `bdata scraper run`. Use this skill whenever the user wants to generate a scraper from a natural-language description, build a custom scraper without writing code, turn a URL + plain-English description into a reusable scraper, run an existing Bright Data collector against a URL, or batch-scrape a list of URLs through one collector. Triggers on phrases like 'build me a scraper for', 'create a scraper that extracts', 'generate a scraper from a description', 'turn this URL into a scraper', 'run this scraper on', 'run my collector', 'batch scrape', 'scrape these URLs', 'scrape a list of URLs', 'competitive pricing table', 'scraper studio', `scraper create`, `scraper run`, `--urls`, `--input-file`, `collector_id`, `automate_template`, or `/dca/`. Covers the AI flow (template create → trigger AI generation → poll progress), the single-URL run flow (async + poll by default, `--sync` for fast pages), the multi-URL batch flow (`--urls` / `--input-file` → one `/dca/trigger` call with array body), and the silent auto-fallback to the batch endpoint when a URL expands past the realtime page limit. Requires the Bright Data CLI.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">brightdata-plugin</span> <span class="pv-ver">1.8.0</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Bright Data — Scraper Studio</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#setup-gate-run-first"><span class="toc-num">1.</span> Setup gate (run first)</a></li>
+<li class="toc-item"><a href="#pick-your-path"><span class="toc-num">2.</span> Pick your path</a></li>
+<li class="toc-item"><a href="#action-1--scraper-create"><span class="toc-num">3.</span> Action 1 — scraper create</a></li>
+<li class="toc-item"><a href="#action-2--scraper-run"><span class="toc-num">4.</span> Action 2 — scraper run</a></li>
+<li class="toc-item"><a href="#action-3--scraper-heal"><span class="toc-num">5.</span> Action 3 — scraper heal</a></li>
+<li class="toc-item"><a href="#action-4--scraper-approve"><span class="toc-num">6.</span> Action 4 — scraper approve</a></li>
+<li class="toc-item"><a href="#full-create-then-run-workflow"><span class="toc-num">7.</span> Full create-then-run workflow</a></li>
+<li class="toc-item"><a href="#common-mistakes"><span class="toc-num">8.</span> Common mistakes</a></li>
+<li class="toc-item"><a href="#troubleshooting"><span class="toc-num">9.</span> Troubleshooting</a></li>
+<li class="toc-item"><a href="#reference-files"><span class="toc-num">10.</span> Reference files</a></li></ul>
+</div>
+<p>Build a scraper from natural language, then run it. Two commands live in this skill:</p>
+<ul>
+<li><strong><code>bdata scraper create &lt;url&gt; &lt;description&gt;</code></strong> — describe what you want in plain English; Bright Data's AI Flow generates a scraper template and returns a <code>collector_id</code>.</li>
+<li><strong><code>bdata scraper run &lt;collector_id&gt; &lt;url&gt;</code></strong> — run that collector (or any existing one from the Bright Data web UI) against a URL and get the extracted data back.</li>
+</ul>
+<p><strong>The bridge between the two is <code>collector_id</code>.</strong> It is printed by <code>create</code> and consumed by <code>run</code>. Always save it.</p>
+<p>For pre-built scrapers on platforms like Amazon, LinkedIn, TikTok, Instagram, YouTube, Reddit, etc., <strong>stop and use the <a href="../data-feeds/SKILL.md"><code>data-feeds</code></a> skill instead</strong> — those scrapers already exist, are faster, cheaper, and more reliable than building a new one. Use Scraper Studio when no pre-built scraper covers the target site, or when the user wants a custom shape of output for an existing platform.</p>
+<h2 id="setup-gate-run-first">Setup gate (run first)</h2>
+<div class="code-wrapper"><pre><code class="language-bash">if ! command -v bdata &gt;/dev/null 2&gt;&amp;1; then
+    echo "bdata CLI not installed — see bright-data-best-practices/references/cli-setup.md"
+elif ! bdata zones &gt;/dev/null 2&gt;&amp;1; then
+    echo "bdata not authenticated — run: bdata login  (or: bdata login --device for SSH)"
+fi
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Halt and route to setup if either check fails. Both commands require an authenticated CLI.</p>
+<h2 id="pick-your-path">Pick your path</h2>
+<table>
+<thead>
+<tr>
+<th>Situation</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>User describes data they want from a URL, no scraper exists yet</td>
+<td><code>bdata scraper create &lt;url&gt; "&lt;description&gt;"</code> → save the <code>collector_id</code></td>
+</tr>
+<tr>
+<td>User has a <code>collector_id</code> and wants data from one URL</td>
+<td><code>bdata scraper run &lt;collector_id&gt; &lt;url&gt;</code> (default async + poll)</td>
+</tr>
+<tr>
+<td>User has a <code>collector_id</code> and wants data from many URLs</td>
+<td><code>bdata scraper run &lt;collector_id&gt; --urls "u1,u2,..."</code> or <code>--input-file urls.txt</code> (single batch call)</td>
+</tr>
+<tr>
+<td>Page is small and you want fast feedback (≤ ~50 s, single URL)</td>
+<td><code>bdata scraper run … --sync</code></td>
+</tr>
+<tr>
+<td>Scraper ran but returned wrong / empty / partial data</td>
+<td>inspect the output, then <code>bdata scraper heal &lt;collector_id&gt; "&lt;what's wrong&gt;"</code> → review preview → approve → re-run to verify</td>
+</tr>
+<tr>
+<td>Site is a known platform (Amazon, LinkedIn, TikTok, …)</td>
+<td><strong>stop — use <code>data-feeds</code> skill</strong></td>
+</tr>
+<tr>
+<td>You want SERP / discovery, not extraction</td>
+<td><strong>use <code>search</code> skill</strong></td>
+</tr>
+<tr>
+<td>You want a one-off raw page fetch</td>
+<td><strong>use <code>scrape</code> skill</strong></td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="action-1--scraper-create">Action 1 — <code>scraper create</code></h2>
+<p>Generate a scraper from a URL + plain-English description.</p>
+<div class="code-wrapper"><pre><code class="language-bash">bdata scraper create &lt;url&gt; "&lt;description&gt;" [--name &lt;name&gt;] \
+    [--deliver-webhook &lt;url&gt;] [--timeout &lt;seconds&gt;] \
+    [--json | --pretty] [-o &lt;path&gt;] [--timing] [-k &lt;api-key&gt;]
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>The description is the most important input. A good description names every field you want and any conditions on how to find them. See <a href="references/prompts.md">references/prompts.md</a> for examples of strong vs. weak descriptions.</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Minimal
+bdata scraper create https://example.com/product/1 \
+    "Extract title, price, currency, image URL, and availability \
+     from this product page. If the price has a strike-through \
+     original price, capture both as price and original_price."
+
+# Save the full AI output for inspection
+bdata scraper create https://example.com/product/1 \
+    "Extract title, price, and image URL" \
+    --name product-scraper-v1 \
+    --pretty -o create.json
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>What happens under the hood</h3>
+<p><code>create</code> chains three Bright Data API calls — surface this to the user so they can debug from logs:</p>
+<ol>
+<li><strong><code>POST /dca/collector</code></strong> — creates an empty scraper template with a stub webhook delivery target (<code>https://example.com/webhook</code> by default). Returns a <code>collector_id</code> like <code>c_mp3tuab31lswoxvpws</code>.</li>
+<li><strong><code>POST /dca/collectors/{collector_id}/automate_template</code></strong> — triggers Bright Data's AI Flow with the description + URL.</li>
+<li><strong><code>GET .../automate_template/progress</code></strong> (polled) — waits for <code>status: "done"</code>. Generation typically takes <strong>5–10 minutes</strong> for moderately complex pages.</li>
+</ol>
+<h3>Critical: hold the <code>collector_id</code></h3>
+<p>Every failure path in <code>create</code> (AI trigger fails, polling times out, generation finishes with <code>status: "failed"</code>) <strong>still leaves a partially-built collector</strong> at the printed <code>collector_id</code>. Always tell the user the id is recoverable — they can:</p>
+<ul>
+<li>Open <code>https://brightdata.com/cp/scrapers/{collector_id}</code> to finish or inspect it in the web UI.</li>
+<li>Re-trigger generation programmatically against the same id.</li>
+<li>Delete it from the UI if they want a clean slate.</li>
+</ul>
+<p>Never claim "create failed, start over" without surfacing the <code>collector_id</code> from the response.</p>
+<h3><code>--timeout</code> — default 600 s</h3>
+<p>AI generation can run 5–10 min for complex pages. If the page is simple, the default is plenty. For an elaborate description on a heavy site, raise it:</p>
+<div class="code-wrapper"><pre><code class="language-bash">bdata scraper create https://complex-site.com/page \
+    "Extract all 30 fields …" \
+    --timeout 1200
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>On <code>Timeout after N seconds waiting for AI generation</code>, the <code>collector_id</code> is still printed. Re-check progress in the web UI rather than re-running <code>create</code> (which builds a new collector).</p>
+<h3><code>--deliver-webhook</code> — placeholder by default</h3>
+<p>The CLI sets a stub webhook (<code>https://example.com/webhook</code>). This satisfies the API contract but <strong>does not deliver anything</strong>. For CLI use, leave the stub — you'll fetch results synchronously via <code>scraper run</code>. The real delivery target can be reconfigured in the <a href="https://brightdata.com/cp/scrapers">Bright Data web UI</a> if the user wants webhook delivery for production runs.</p>
+<hr>
+<h2 id="action-2--scraper-run">Action 2 — <code>scraper run</code></h2>
+<p>Execute a scraper against one or more URLs.</p>
+<div class="code-wrapper"><pre><code class="language-bash">bdata scraper run &lt;collector_id&gt; [url] \
+    [--urls "u1,u2,..." | --input-file &lt;path&gt;] \
+    [--sync [--sync-timeout 25-50]] \
+    [--timeout &lt;seconds&gt;] [--name &lt;name&gt;] [--version &lt;version&gt;] \
+    [--json | --pretty] [-o &lt;path&gt;] [--timing] [-k &lt;api-key&gt;]
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Pick exactly one input source:</strong> positional <code>&lt;url&gt;</code>, <code>--urls</code>, or <code>--input-file</code>. Combining them errors with <code>only one input source</code>.</p>
+<p>Multi-URL routes through <code>/dca/trigger</code> as a single API call with an array body — the canonical pattern from the <a href="https://github.com/brightdata/bright-data-scraper-studio-nodejs-project">Scraper Studio Node</a> and <a href="https://github.com/brightdata/bright-data-scraper-studio-python-project">Python</a> reference projects (<code>triggerWithUrls</code> / <code>trigger_with_urls</code>). One snapshot, one poll loop, one merged result array. <strong>Do not hand-roll a <code>for url in $(cat urls.txt); do bdata scraper run ...</code> loop</strong> — that's N API calls for what should be one.</p>
+<h3>Choosing the run mode</h3>
+<div class="code-wrapper"><pre><code>                ┌─────────────────────────────────────────────────┐
+                │ Expected to finish in ≤ ~50 seconds?            │
+                └─────────────────────────────────────────────────┘
+                 yes                                       no
+                  │                                         │
+                  ▼                                         ▼
+       ┌──────────────────────┐                ┌────────────────────────┐
+       │   --sync             │                │  default (no flag)     │
+       │   /dca/crawl         │                │  trigger_immediate +   │
+       │   one-shot, 25–50 s  │                │  poll get_result       │
+       └──────────────────────┘                └────────────────────────┘
+                  │
+                  │  on 202 timeout: response_id is printed —
+                  │  re-run WITHOUT --sync to poll for it
+                  ▼
+            (cleanly fall back to async)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Endpoint</th>
+<th>When to use</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Default (single URL, async + poll)</strong></td>
+<td><code>/dca/trigger_immediate</code> → poll <code>/dca/get_result</code></td>
+<td>Anything you expect to take more than ~50 s, anything paginated, anything you're not sure about. This is the safe default for one URL.</td>
+</tr>
+<tr>
+<td><strong><code>--sync</code> (single URL)</strong></td>
+<td><code>/dca/crawl</code></td>
+<td>Single-page extractions you expect to complete in under 50 s. Faster path: one request, no polling. <strong>Incompatible with multi-URL</strong> — <code>/dca/crawl</code> accepts only one URL.</td>
+</tr>
+<tr>
+<td><strong>Multi-URL (<code>--urls</code> / <code>--input-file</code>)</strong></td>
+<td><code>/dca/trigger</code> (array body) → poll <code>/dca/dataset</code></td>
+<td>2+ URLs through the same collector. One API call, one snapshot ID, one merged result array. Use the longer <code>--timeout</code> (default 3600s) for big batches.</td>
+</tr>
+</tbody></table>
+<div class="code-wrapper"><pre><code class="language-bash"># Default — async + poll (recommended for most cases)
+bdata scraper run c_mp3tuab31lswoxvpws https://www.amazon.com/dp/B08N5WRWNW
+
+# Pretty-printed, saved to disk
+bdata scraper run c_mp3tuab31lswoxvpws https://www.amazon.com/dp/B08N5WRWNW \
+    --pretty -o product.json
+
+# Sync mode for a fast page
+bdata scraper run c_mp3tuab31lswoxvpws https://example.com/p/1 --sync
+
+# Sync with a tighter server timeout
+bdata scraper run c_mp3tuab31lswoxvpws https://example.com/p/1 \
+    --sync --sync-timeout 30
+
+# Multi-URL via comma-separated list — one batch call
+bdata scraper run c_mp3tuab31lswoxvpws \
+    --urls "https://example.com/p/1,https://example.com/p/2,https://example.com/p/3" \
+    --pretty -o products.json
+
+# Multi-URL via file (one URL per line; # comments and blanks ignored)
+bdata scraper run c_mp3tuab31lswoxvpws --input-file urls.txt -o products.json
+
+# Multi-URL via JSON array
+echo '["https://example.com/p/1","https://example.com/p/2"]' &gt; urls.json
+bdata scraper run c_mp3tuab31lswoxvpws --input-file urls.json
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3><code>--sync-timeout</code> is bounded to 25–50</h3>
+<p>Anything outside that range exits with <code>--sync-timeout must be between 25 and 50 seconds</code>. Default is 50. Use values &lt; 50 only when you want to fail fast and fall back to async on slow pages.</p>
+<h3><code>--sync</code> timeout recovery</h3>
+<p>If <code>/dca/crawl</code> server-side times out, it returns 202 with <code>{"error":"crawl_results_timeout","response_id":"r_late_..."}</code>. The CLI surfaces the <code>response_id</code> and exits with a "Re-run without --sync" message. Do exactly that — drop <code>--sync</code> and re-run the same command; the default async path will poll <code>/dca/get_result</code> for the existing <code>response_id</code>. <strong>Do not</strong> treat sync timeout as a hard failure.</p>
+<h3>Silent auto-fallback to batch (paginated / large pages)</h3>
+<p>When a single URL expands to more pages than the realtime job limit allows (paginated listings, infinite scroll, "all reviews" pages, etc.), the realtime endpoints return an error like:</p>
+<div class="code-wrapper"><pre><code>Request generated 501 pages and exceeded realtime job limit of 51 pages
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>The CLI detects this and <strong>automatically falls back</strong> to the batch flow (<code>/dca/trigger</code> → poll <code>/dca/dataset</code>). A one-line notice is printed. No flag is needed. Batch jobs use a longer poll interval (10 s) and a longer default timeout (1 hour).</p>
+<p>If the user only sees the notice and a long wait, that is expected — large jobs take time. Do not "fix" the fallback by switching APIs or restructuring the scraper; let it run.</p>
+<h3><code>--name</code> and <code>--version</code></h3>
+<ul>
+<li><code>--name &lt;name&gt;</code> — tag this run in the Bright Data dashboard. Useful when you're scripting many runs and want to find one later.</li>
+<li><code>--version &lt;version&gt;</code> — pin a specific scraper version (commonly <code>dev</code> when iterating in the web UI). Omit to use the latest published version.</li>
+</ul>
+<hr>
+<h2 id="action-3--scraper-heal">Action 3 — <code>scraper heal</code></h2>
+<p>Fix an existing scraper <strong>in place</strong> when it ran but returned wrong, empty, or partial data. The scraper's <code>collector_id</code> stays the same — it is improved, not replaced.</p>
+<div class="code-wrapper"><pre><code class="language-bash">bdata scraper heal &lt;collector_id&gt; "&lt;what's wrong&gt;" [--url &lt;verify-url&gt;] \
+    [--timeout &lt;seconds&gt;] [--max-retries &lt;n&gt;] [--no-retry] \
+    [--json | --pretty] [-o &lt;path&gt;] [--timing] [-k &lt;api-key&gt;]
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>You are the detector.</strong> The CLI never decides on its own that a scraper is broken — you inspect the run output and decide. A heal is slow and billable, so only heal when the data is actually wrong, not just legitimately empty.</p>
+<p>The <code>&lt;prompt&gt;</code> is required and is the most important input. Name exactly what is wrong and what the correct output should be: <em>"The price field returns null — the selector moved into a <code>&lt;span data-testid=...&gt;</code>. Capture price and currency again."</em> Vague prompts ("fix it") produce vague heals. The prompt is capped at 1000 characters.</p>
+<h3>What happens under the hood</h3>
+<ol>
+<li><strong><code>POST /dca/collectors/{collector_id}/refactor_template</code></strong> with <code>{prompt, custom_input: []}</code> — triggers the AI self-healing job.</li>
+<li><strong><code>GET .../refactor_template/progress</code></strong> (polled) — waits for <code>status: "done"</code>, same job shape and timing as <code>automate_template</code>.</li>
+</ol>
+<h3>Output + the verify loop</h3>
+<p><code>heal</code> (without <code>--auto-approve</code>) usually ends at an <strong>approval gate</strong> rather
+than completing immediately. The response carries <code>status: "awaiting_approval"</code>
+with two key fields:</p>
+<ul>
+<li><code>preview_result</code> — sample rows the fixed scraper would produce, so you can
+judge whether the fix is correct before committing it.</li>
+<li><code>diff_summary</code> — a summary of what changed in the template.</li>
+<li><code>next_step</code> — points at <code>bdata scraper approve &lt;collector_id&gt;</code> to commit
+(or <code>--reject</code> to discard).</li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-json">{
+  "collector_id": "c_mp3tuab31lswoxvpws",
+  "status": "awaiting_approval",
+  "preview_result": [{"price": "29.99", "currency": "USD"}],
+  "diff_summary": "Updated price selector from .price to span[data-testid='price']",
+  "next_step": "bdata scraper approve c_mp3tuab31lswoxvpws"
+}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Review <code>preview_result</code>, then run <code>bdata scraper approve &lt;collector_id&gt;</code> to
+commit the fix — or pass <code>--reject</code> to discard it and re-heal with a sharper
+prompt. <code>approve</code> polls to <code>done</code> and hands back a <code>next_step</code> =
+<code>bdata scraper run &lt;id&gt; &lt;url&gt;</code> to verify.</p>
+<p>Pass <code>--url &lt;verify-url&gt;</code> to <code>heal</code> so the approve and run steps are concrete.
+The full self-healing loop is now:</p>
+<div class="code-wrapper"><pre><code>run → inspect → heal → review preview → approve → run → verify
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>To skip the gate entirely, use <code>heal --auto-approve</code> — it approves automatically
+and polls through to <code>done</code>.</p>
+<h3>Failure is non-destructive</h3>
+<p>If a heal fails (429 cap exhausted, timeout, terminal <code>failed</code>), the existing scraper is <strong>unchanged and still works</strong> as it did before. The CLI says so and prints the <code>collector_id</code>. Unlike a failed <code>create</code>, nothing half-built is left behind.</p>
+<hr>
+<h2 id="action-4--scraper-approve">Action 4 — <code>scraper approve</code></h2>
+<p>A <code>scraper heal</code> (without <code>--auto-approve</code>) stops at an approval gate:
+<code>status: "awaiting_approval"</code>, with <code>preview_result</code> (sample rows the fixed
+scraper would produce) and a <code>diff_summary</code>. Review the preview, then commit
+the fix:</p>
+<div class="code-wrapper"><pre><code class="language-bash">bdata scraper approve &lt;collector_id&gt; [--reject] [--url &lt;verify-url&gt;] \
+    [--timeout &lt;seconds&gt;] [--json | --pretty] [-o &lt;path&gt;] [-k &lt;api-key&gt;]
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li>Approves by default (<code>POST /dca/collectors/{id}/resume_automation_job {"message": true}</code>), then polls to <code>done</code> and hands back a
+<code>next_step</code> = <code>bdata scraper run &lt;id&gt; &lt;url&gt;</code> to verify.</li>
+<li><code>--reject</code> sends <code>{"message": false}</code> to discard the proposed fix; re-heal
+with a sharper prompt to try again.</li>
+<li>If a heal needs multiple approvals, <code>approve</code> may stop at
+<code>awaiting_approval</code> again — just run it again.</li>
+</ul>
+<p><code>awaiting_approval</code> is <strong>not</strong> a failure — it means the fix is ready and
+waiting for your decision.</p>
+<hr>
+<h2 id="full-create-then-run-workflow">Full create-then-run workflow</h2>
+<p>Capture the <code>collector_id</code> cleanly with <code>jq</code>, then chain into <code>run</code> with the multi-URL batch path:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># 1. Create the scraper, save the AI output, extract the collector_id
+bdata scraper create https://example.com/product/1 \
+    "Extract title, price, currency, image URL, and availability" \
+    --pretty -o create.json
+
+# 2. Pull the collector_id (or copy from the human-readable summary)
+COLLECTOR_ID=$(jq -r '.collector_id // .id' create.json)
+echo "Built: $COLLECTOR_ID"
+
+# 3. Run it on every URL in one batch — single API call, merged result array
+bdata scraper run "$COLLECTOR_ID" --input-file urls.txt \
+    --pretty -o out/results.json
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Do not</strong> wrap <code>bdata scraper run</code> in a <code>for url in $(cat urls.txt); do ... done</code> loop — that's N API calls and N snapshots. Use <code>--input-file urls.txt</code> (or <code>--urls "..."</code>) instead; the CLI POSTs all of them to <code>/dca/trigger</code> in a single array body and returns one merged result array.</p>
+<p>For more end-to-end recipes (batch input file shapes, error recovery, web-UI handoff), see <a href="references/recipes.md">references/recipes.md</a>.</p>
+<hr>
+<h2 id="common-mistakes">Common mistakes</h2>
+<ol>
+<li><p><strong>Inventing command names.</strong> The commands are exactly <code>bdata scraper create</code> and <code>bdata scraper run</code>. There is no <code>bdata generate</code>, no <code>bdata scrape-batch</code>, no <code>bdata data</code>, no <code>bdata build</code>. If you're tempted to use one of those, you're hallucinating — run <code>bdata scraper --help</code> to verify.</p>
+</li>
+<li><p><strong>Re-running <code>create</code> after a timeout.</strong> Generation creates a fresh collector every time. If polling times out, the half-built collector is still printed in the error output. Resume it in the web UI or wait and re-poll — don't burn another collector.</p>
+</li>
+<li><p><strong>Defaulting to <code>--sync</code> for everything.</strong> Sync caps at 50 s server-side. Any paginated page or heavy SPA will time out. Default async is the right choice unless you specifically know the page is small.</p>
+</li>
+<li><p><strong>Skipping Scraper Studio for known platforms.</strong> If the target is Amazon, LinkedIn, TikTok, Instagram, YouTube, Reddit, etc., the <a href="../data-feeds/SKILL.md"><code>data-feeds</code></a> skill exposes pre-built scrapers that are faster, cheaper, and more reliable. Only build a custom scraper when no pre-built one exists for the site, or when the user explicitly wants a custom output shape.</p>
+</li>
+<li><p><strong>Treating sync timeout as failure.</strong> A <code>--sync</code> 202 timeout returns a valid <code>response_id</code> — the job is still running on the backend. Re-run the same command without <code>--sync</code> to pick it up.</p>
+</li>
+<li><p><strong>Throwing away <code>collector_id</code> / <code>response_id</code> on error.</strong> The CLI prints them in every failure path on purpose. Both are recoverable via the API and the web UI. Always surface them to the user.</p>
+</li>
+<li><p><strong>Trying to disable the batch auto-fallback.</strong> It has no flag. The fallback is the correct behavior when a URL expands past the realtime page limit. Let it run.</p>
+</li>
+<li><p><strong>Hand-rolling a <code>for url in $(cat urls.txt); do bdata scraper run ...</code> loop.</strong> That's N API calls, N snapshot IDs, and N poll loops for what the API natively treats as one batch. Use <code>--input-file urls.txt</code> or <code>--urls "u1,u2,..."</code> — the CLI posts the whole array to <code>/dca/trigger</code> in a single request and returns one merged result array. This mirrors the canonical <code>triggerWithUrls</code> / <code>trigger_with_urls</code> helpers from the Scraper Studio reference SDKs.</p>
+</li>
+<li><p><strong>Vague descriptions in <code>create</code>.</strong> A description like "scrape the page" produces a generic scraper. Name every field, name conditions ("if there's a sale price, capture both"), name disambiguators ("the price near the title, not in the recommendations sidebar"). See <a href="references/prompts.md">references/prompts.md</a>.</p>
+</li>
+<li><p><strong>Re-running <code>create</code> to fix a broken scraper.</strong> That builds a <em>new</em>
+   collector and orphans the old one. To fix an existing scraper, use
+   <code>bdata scraper heal &lt;collector_id&gt; "&lt;what's wrong&gt;"</code> — it mutates the
+   scraper in place so your saved <code>collector_id</code> keeps working and improves.</p>
+</li>
+<li><p><strong>Treating <code>awaiting_approval</code> as a failure.</strong> It is the normal end state
+of a heal — the fix is computed and waiting for your decision. Review
+<code>preview_result</code>, then <code>bdata scraper approve &lt;id&gt;</code> (or <code>--reject</code>). Use
+<code>heal --auto-approve</code> to skip the gate.</p>
+</li>
+</ol>
+<hr>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Cause</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>bdata: command not found</code></td>
+<td>CLI not installed</td>
+<td>See <a href="../brightdata-cli/SKILL.md"><code>brightdata-cli</code></a> for install.</td>
+</tr>
+<tr>
+<td><code>Invalid or expired API key</code></td>
+<td>Not logged in</td>
+<td><code>bdata login</code> (or <code>bdata login --device</code> for SSH).</td>
+</tr>
+<tr>
+<td><code>create</code> returns no <code>id</code></td>
+<td>API call failed before template was created</td>
+<td>Check <code>--timing</code> output for the failing request; verify network and account status.</td>
+</tr>
+<tr>
+<td><code>Timeout after 600 seconds waiting for AI generation</code></td>
+<td>Page is complex; default poll exceeded</td>
+<td>The <code>collector_id</code> is still printed. Open it in the web UI; or re-run with <code>--timeout 1200</code>.</td>
+</tr>
+<tr>
+<td><code>status: "failed"</code> from progress poll</td>
+<td>AI Flow couldn't build the template</td>
+<td>Improve the description — be more specific about fields and selectors. Try again with a cleaner URL (e.g. a canonical product page, not a search result).</td>
+</tr>
+<tr>
+<td><code>--sync</code> 202 with <code>crawl_results_timeout</code></td>
+<td>Page took &gt; sync server cap</td>
+<td>Re-run <strong>without</strong> <code>--sync</code> to poll <code>/dca/get_result</code> for the printed <code>response_id</code>.</td>
+</tr>
+<tr>
+<td><code>--sync-timeout must be between 25 and 50 seconds</code></td>
+<td>Out-of-range value</td>
+<td>Use a value in <code>[25, 50]</code>.</td>
+</tr>
+<tr>
+<td><code>Request generated N pages and exceeded realtime job limit</code></td>
+<td>URL expanded too far</td>
+<td>This is <strong>handled automatically</strong> — wait for the batch fallback notice and let it poll.</td>
+</tr>
+<tr>
+<td>No data returned, just <code>[]</code> or <code>{}</code></td>
+<td>Selectors didn't match</td>
+<td>The scraper template ran but extracted nothing. Open <code>https://brightdata.com/cp/scrapers/{collector_id}</code> to inspect/edit; or rebuild with a tighter description.</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="reference-files">Reference files</h2>
+<ul>
+<li><strong><a href="references/prompts.md">references/prompts.md</a></strong> — How to write a description for <code>scraper create</code> that the AI Flow can act on. Examples of strong vs. weak descriptions, field-listing patterns, and conditional rules.</li>
+<li><strong><a href="references/recipes.md">references/recipes.md</a></strong> — End-to-end recipes: capture <code>collector_id</code> from create, batch run a list of URLs, handle sync→async fallback, recover from a failed create, list scrapers from the dashboard.</li>
+<li><strong><a href="references/api-flow.md">references/api-flow.md</a></strong> — Exact REST endpoints, payloads, and status sentinels the CLI uses (<code>/dca/collector</code>, <code>/dca/collectors/{id}/automate_template</code>, <code>/dca/trigger_immediate</code>, <code>/dca/get_result</code>, <code>/dca/crawl</code>, <code>/dca/trigger</code>, <code>/dca/dataset</code>). Read this when debugging unexpected CLI output or when the user wants to hit the API directly.</li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>data-feeds — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">data-feeds</span></nav>
+    <h1>data-feeds</h1>
+    <p class="page-desc">Extract structured data from 40+ supported platforms (Amazon, LinkedIn, Instagram, TikTok, Facebook, YouTube, Reddit, and more) via the Bright Data CLI (`bdata pipelines`). Use when the user wants clean JSON from a known platform URL rather than raw HTML. Hands off to `scrape` for unsupported URLs and to `search` when target URLs must be discovered first. Requires the Bright Data CLI; proactively guides install + login if missing.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">brightdata-plugin</span> <span class="pv-ver">1.8.0</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Bright Data — Data Feeds (Pipelines)</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#setup-gate-run-first"><span class="toc-num">1.</span> Setup gate (run first)</a></li>
+<li class="toc-item"><a href="#supported-pipeline-types-verified-2026-04-19"><span class="toc-num">2.</span> Supported pipeline types (verified 2026-04-19)</a></li>
+<li class="toc-item"><a href="#pick-your-path"><span class="toc-num">3.</span> Pick your path</a></li>
+<li class="toc-item"><a href="#keyword--and-multi-arg-pipelines-do-not-take-a-single-url"><span class="toc-num">4.</span> Keyword- and multi-arg pipelines (do NOT take a single URL)</a></li>
+<li class="toc-item"><a href="#action"><span class="toc-num">5.</span> Action</a></li>
+<li class="toc-item"><a href="#verification-gate"><span class="toc-num">6.</span> Verification gate</a></li>
+<li class="toc-item"><a href="#red-flags"><span class="toc-num">7.</span> Red flags</a></li>
+<li class="toc-item"><a href="#references"><span class="toc-num">8.</span> References</a></li></ul>
+</div>
+<p>Extract structured data from supported platforms via <code>bdata pipelines</code>. One call, clean JSON, no scraping logic. For unsupported URLs, hand off to <code>scrape</code>. To find target URLs first, hand off to <code>search</code>.</p>
+<h2 id="setup-gate-run-first">Setup gate (run first)</h2>
+<div class="code-wrapper"><pre><code class="language-bash">if ! command -v bdata &gt;/dev/null 2&gt;&amp;1; then
+    echo "bdata CLI not installed — see bright-data-best-practices/references/cli-setup.md"
+elif ! bdata zones &gt;/dev/null 2&gt;&amp;1; then
+    echo "bdata not authenticated — run: bdata login  (or: bdata login --device for SSH)"
+fi
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Halt and route to <code>skills/bright-data-best-practices/references/cli-setup.md</code> if either check fails.</p>
+<h2 id="supported-pipeline-types-verified-2026-04-19">Supported pipeline types (verified 2026-04-19)</h2>
+<p><strong>Always verify with <code>bdata pipelines list</code> before hardcoding names</strong> — they change. Current 43 types:</p>
+<p><code>amazon_product</code>, <code>amazon_product_reviews</code>, <code>amazon_product_search</code>, <code>apple_app_store</code>, <code>bestbuy_products</code>, <code>booking_hotel_listings</code>, <code>crunchbase_company</code>, <code>ebay_product</code>, <code>etsy_products</code>, <code>facebook_company_reviews</code>, <code>facebook_events</code>, <code>facebook_marketplace_listings</code>, <code>facebook_posts</code>, <code>github_repository_file</code>, <code>google_maps_reviews</code>, <code>google_play_store</code>, <code>google_shopping</code>, <code>homedepot_products</code>, <code>instagram_comments</code>, <code>instagram_posts</code>, <code>instagram_profiles</code>, <code>instagram_reels</code>, <code>linkedin_company_profile</code>, <code>linkedin_job_listings</code>, <code>linkedin_people_search</code>, <code>linkedin_person_profile</code>, <code>linkedin_posts</code>, <code>reddit_posts</code>, <code>reuter_news</code>, <code>tiktok_comments</code>, <code>tiktok_posts</code>, <code>tiktok_profiles</code>, <code>tiktok_shop</code>, <code>walmart_product</code>, <code>walmart_seller</code>, <code>x_posts</code>, <code>yahoo_finance_business</code>, <code>youtube_comments</code>, <code>youtube_profiles</code>, <code>youtube_videos</code>, <code>zara_products</code>, <code>zillow_properties_listing</code>, <code>zoominfo_company_profile</code></p>
+<p><strong>Naming note:</strong> inconsistent across platforms. <code>amazon_product</code> (singular), <code>tiktok_profiles</code> (plural), <code>linkedin_person_profile</code> (not <code>linkedin_profile</code>). Always copy from <code>bdata pipelines list</code>.</p>
+<h2 id="pick-your-path">Pick your path</h2>
+<table>
+<thead>
+<tr>
+<th>Situation</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Know the platform + have URL(s)</td>
+<td><code>bdata pipelines &lt;type&gt; &lt;url&gt;</code></td>
+</tr>
+<tr>
+<td>Don't know which pipeline fits</td>
+<td><code>bdata pipelines list</code> first</td>
+</tr>
+<tr>
+<td>Pipeline takes keyword or multi-arg input</td>
+<td>See "Keyword- and multi-arg pipelines" below</td>
+</tr>
+<tr>
+<td>Multiple URLs on the same pipeline type</td>
+<td>shell loop with parallelism cap (see <code>references/patterns.md</code>)</td>
+</tr>
+<tr>
+<td>Long job (reviews, company employees, big post feeds)</td>
+<td>raise <code>--timeout 1800</code></td>
+</tr>
+<tr>
+<td>URL is on an unsupported platform</td>
+<td><strong>stop — hand off to <code>scrape</code></strong></td>
+</tr>
+<tr>
+<td>Need to find URLs first</td>
+<td><strong>hand off to <code>search</code></strong></td>
+</tr>
+</tbody></table>
+<h2 id="keyword--and-multi-arg-pipelines-do-not-take-a-single-url">Keyword- and multi-arg pipelines (do NOT take a single URL)</h2>
+<p>A few pipelines take non-URL or multi-positional inputs. Invoke with no args to see the exact usage line from the CLI:</p>
+<table>
+<thead>
+<tr>
+<th>Pipeline</th>
+<th>Args</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>amazon_product_search</code></td>
+<td><code>&lt;keyword&gt; &lt;domain_url&gt;</code> — e.g., <code>"running shoes" https://www.amazon.com</code></td>
+</tr>
+<tr>
+<td><code>linkedin_people_search</code></td>
+<td><code>&lt;url&gt; &lt;first_name&gt; &lt;last_name&gt;</code> — search a company/school/URL for a named person</td>
+</tr>
+<tr>
+<td><code>facebook_company_reviews</code></td>
+<td><code>&lt;url&gt; [num_reviews]</code> — optional num_reviews defaults to <code>10</code></td>
+</tr>
+<tr>
+<td><code>google_maps_reviews</code></td>
+<td><code>&lt;url&gt; [days_limit]</code> — optional days_limit defaults to <code>3</code></td>
+</tr>
+<tr>
+<td><code>youtube_comments</code></td>
+<td><code>&lt;url&gt; [num_comments]</code> — optional num_comments defaults to <code>10</code></td>
+</tr>
+</tbody></table>
+<p>All other 37 pipelines take a single URL.</p>
+<h2 id="action">Action</h2>
+<p>Core commands:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># List available pipeline types (source of truth)
+bdata pipelines list
+
+# Amazon product
+bdata pipelines amazon_product \
+    "https://www.amazon.com/dp/B08N5WRWNW" \
+    --format json --pretty -o product.json
+
+# Amazon product reviews (slower — reviews can be hundreds)
+bdata pipelines amazon_product_reviews \
+    "https://www.amazon.com/dp/B08N5WRWNW" \
+    --timeout 1200 -o reviews.json
+
+# Amazon product search (keyword + domain URL)
+bdata pipelines amazon_product_search \
+    "noise cancelling headphones" "https://www.amazon.com" \
+    --format json --pretty -o search.json
+
+# LinkedIn person profile
+bdata pipelines linkedin_person_profile \
+    "https://www.linkedin.com/in/example" -o person.json
+
+# LinkedIn company
+bdata pipelines linkedin_company_profile \
+    "https://www.linkedin.com/company/example" -o company.json
+
+# LinkedIn people search (url + first + last name)
+bdata pipelines linkedin_people_search \
+    "https://www.linkedin.com/company/example" "Jane" "Doe" \
+    -o people.json
+
+# Instagram posts
+bdata pipelines instagram_posts \
+    "https://www.instagram.com/example/" -o posts.json
+
+# Google Maps reviews (url + days_limit, default 3)
+bdata pipelines google_maps_reviews \
+    "https://maps.google.com/?cid=1234567890" 90 -o reviews.json
+
+# YouTube comments (url + num_comments, default 10)
+bdata pipelines youtube_comments \
+    "https://www.youtube.com/watch?v=abc123" 100 -o yt-comments.json
+
+# NDJSON for big feeds (one record per line)
+bdata pipelines linkedin_posts "https://www.linkedin.com/in/example" \
+    --format ndjson -o posts.ndjson
+
+# Raise polling timeout for long jobs
+bdata pipelines amazon_product_reviews "&lt;url&gt;" --timeout 1800 -o out.json
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Full flag reference + full type table: <a href="references/flags.md"><code>references/flags.md</code></a>.</p>
+<h2 id="verification-gate">Verification gate</h2>
+<ol>
+<li><p><strong>JSON parses cleanly:</strong> <code>jq . &lt;output&gt;</code> returns 0 (or for <code>--format ndjson</code>, each line parses).</p>
+</li>
+<li><p><strong>Record count matches expected.</strong> One URL usually = one record, <em>but</em> reviews/posts/comments pipelines return arrays sized by what the platform shows. Always check:</p>
+<div class="code-wrapper"><pre><code class="language-bash">jq 'length' out.json                       # top-level array count
+# OR
+jq 'if type == "array" then length else 1 end' out.json
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+<li><p><strong>No top-level error:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">jq -e 'if type == "object" then has("error") | not else true end' out.json \
+    || { echo "pipeline reported error"; exit 1; }
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+<li><p><strong>No per-record error:</strong> for array results, ensure no record has an <code>error</code> field:</p>
+<div class="code-wrapper"><pre><code class="language-bash">jq -e 'if type == "array" then map(has("error")) | any | not else true end' out.json \
+    || echo "WARN: one or more records have error fields"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Partial failures are silent — this check is non-optional.</p>
+</li>
+<li><p><strong>Core fields present</strong> for the pipeline type (examples):</p>
+<ul>
+<li><code>amazon_product</code> → <code>.title</code> + <code>.price</code> (or <code>.final_price</code>)</li>
+<li><code>linkedin_person_profile</code> → <code>.name</code> + <code>.headline</code> (or <code>.position</code>)</li>
+<li><code>instagram_posts</code> → <code>.caption</code> or <code>.description</code> + <code>.url</code> or <code>.post_id</code></li>
+<li><code>youtube_videos</code> → <code>.title</code> + <code>.video_id</code> or <code>.url</code></li>
+</ul>
+<p>Spot-check with <code>jq keys</code> on the first record to learn the exact schema.</p>
+</li>
+<li><p><strong>On failure:</strong> double <code>--timeout</code> and retry once. If still failing, <code>bdata pipelines list</code> to confirm the type name hasn't changed.</p>
+</li>
+</ol>
+<h2 id="red-flags">Red flags</h2>
+<ul>
+<li>Using <code>bdata scrape</code> on Amazon/LinkedIn/TikTok/etc. when <code>bdata pipelines &lt;type&gt;</code> returns structured fields in one call. Loses structure and costs more time.</li>
+<li>Looping <code>bdata pipelines</code> for large jobs without rate-limiting — each call can trigger a long-running pipeline on the server. Cap parallelism at 2–3.</li>
+<li>Claiming success without the record-count + per-record error check. Partial failures are silent in pipeline output.</li>
+<li>Hardcoding pipeline type names (<code>amazon_products</code> with an <code>s</code>, <code>linkedin_profile</code> without <code>_person_</code>, etc.) — they're inconsistent across platforms. Always copy from <code>bdata pipelines list</code>.</li>
+<li>Using a tight <code>--timeout</code> on pipelines that legitimately take 5–15 minutes (reviews, company employees, big post feeds). Default 600s is a floor for small inputs; raise for long ones.</li>
+<li>Calling a keyword- or multi-arg pipeline (<code>amazon_product_search</code>, <code>linkedin_people_search</code>, <code>google_maps_reviews</code>, <code>facebook_company_reviews</code>, <code>youtube_comments</code>) with URL-only args — will fail with <code>"Usage: ..."</code>. Always check <code>bdata pipelines &lt;type&gt;</code> error output when in doubt.</li>
+<li>Passing a <code>pages_to_search</code> third arg to <code>amazon_product_search</code> — it's hardcoded to <code>1</code> by the CLI and extra args are ignored.</li>
+</ul>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="references/flags.md"><code>references/flags.md</code></a> — full <code>pipelines</code> flags + complete table of all 43 types with input shapes.</li>
+<li><a href="references/patterns.md"><code>references/patterns.md</code></a> — sync timeout tuning, shell-loop batching with parallelism cap, partial-failure detection, keyword-shaped pipeline cheatsheet, legacy <code>curl</code> fallback, shared verification checklist.</li>
+<li><a href="references/examples.md"><code>references/examples.md</code></a> — (1) single Amazon product, (2) batch LinkedIn companies, (3) long reviews job with raised timeout, (4) mixed-platform workflow calling <code>pipelines list</code> first, (5) keyword-shaped <code>amazon_product_search</code>.</li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

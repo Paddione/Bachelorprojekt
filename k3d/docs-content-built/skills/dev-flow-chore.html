@@ -40,23 +40,37 @@
 <html><head></head><body><h1>dev-flow-chore — Wartung direkt ausführen &amp; mergen</h1><div class="toc-box auto-toc">
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#wann-diese-skill-greift"><span class="toc-num">1.</span> Wann diese Skill greift</a></li>
-<li class="toc-item"><a href="#schritt-0-reaper--pull-first"><span class="toc-num">2.</span> Schritt 0: Reaper &amp; Pull-First</a></li>
-<li class="toc-item"><a href="#schritt-05-wiederkehrend-oder-einmalig"><span class="toc-num">3.</span> Schritt 0.5: Wiederkehrend oder einmalig?</a></li>
-<li class="toc-item"><a href="#schritt-1-worktree-anlegen--claimen"><span class="toc-num">4.</span> Schritt 1: Worktree anlegen &amp; claimen</a></li>
-<li class="toc-item"><a href="#schritt-2-aenderungen-vornehmen"><span class="toc-num">5.</span> Schritt 2: Änderungen vornehmen</a></li>
-<li class="toc-item"><a href="#schritt-3-verifizieren"><span class="toc-num">6.</span> Schritt 3: Verifizieren</a></li>
-<li class="toc-item"><a href="#schritt-4-commit-push--pr"><span class="toc-num">7.</span> Schritt 4: Commit, Push &amp; PR</a></li>
-<li class="toc-item"><a href="#schritt-5-merge-wenn-ci-gruen"><span class="toc-num">8.</span> Schritt 5: Merge wenn CI grün</a></li>
-<li class="toc-item"><a href="#schritt-6-worktree--branch-bereinigen"><span class="toc-num">9.</span> Schritt 6: Worktree &amp; Branch bereinigen</a></li>
-<li class="toc-item"><a href="#schritt-7-deploy-falls-noetig"><span class="toc-num">10.</span> Schritt 7: Deploy (falls nötig)</a></li>
-<li class="toc-item"><a href="#verwandte-skills"><span class="toc-num">11.</span> Verwandte Skills</a></li>
-<li class="toc-item"><a href="#nachbereitung--mishap-report"><span class="toc-num">12.</span> Nachbereitung &amp; Mishap Report</a></li></ul>
+<li class="toc-item"><a href="#position-im-git-kreislauf"><span class="toc-num">2.</span> Position im Git-Kreislauf</a></li>
+<li class="toc-item"><a href="#schritt-0-reaper--pull-first"><span class="toc-num">3.</span> Schritt 0: Reaper &amp; Pull-First</a></li>
+<li class="toc-item"><a href="#schritt-05-wiederkehrend-oder-einmalig"><span class="toc-num">4.</span> Schritt 0.5: Wiederkehrend oder einmalig?</a></li>
+<li class="toc-item"><a href="#schritt-1-worktree-anlegen--claimen"><span class="toc-num">5.</span> Schritt 1: Worktree anlegen &amp; claimen</a></li>
+<li class="toc-item"><a href="#schritt-2-aenderungen-vornehmen"><span class="toc-num">6.</span> Schritt 2: Änderungen vornehmen</a></li>
+<li class="toc-item"><a href="#schritt-3-verifizieren"><span class="toc-num">7.</span> Schritt 3: Verifizieren</a></li>
+<li class="toc-item"><a href="#schritt-4-commit-push--pr"><span class="toc-num">8.</span> Schritt 4: Commit, Push &amp; PR</a></li>
+<li class="toc-item"><a href="#schritt-5-merge-wenn-ci-gruen"><span class="toc-num">9.</span> Schritt 5: Merge wenn CI grün</a></li>
+<li class="toc-item"><a href="#schritt-6-worktree--branch-bereinigen"><span class="toc-num">10.</span> Schritt 6: Worktree &amp; Branch bereinigen</a></li>
+<li class="toc-item"><a href="#schritt-7-deploy-falls-noetig"><span class="toc-num">11.</span> Schritt 7: Deploy (falls nötig)</a></li>
+<li class="toc-item"><a href="#uebergabe--kreislauf-geschlossen"><span class="toc-num">12.</span> Übergabe — Kreislauf geschlossen</a></li>
+<li class="toc-item"><a href="#verwandte-skills"><span class="toc-num">13.</span> Verwandte Skills</a></li>
+<li class="toc-item"><a href="#nachbereitung--mishap-report"><span class="toc-num">14.</span> Nachbereitung &amp; Mishap Report</a></li></ul>
 </div>
 <h2 id="wann-diese-skill-greift">Wann diese Skill greift</h2>
 <p>Eine <strong>Chore</strong>: Wartung ohne Verhaltensänderung — Doku, Dependency-Bumps, Config/Rename, CI-Tweaks,
 Aufräumen. Chores brauchen <strong>keinen</strong> Plan und <strong>keinen</strong> <code>dev-flow-execute</code>-Handoff: sie werden in
 einem Rutsch erledigt und gemergt. Für Features/Fixes stattdessen <code>dev-flow-plan</code> nutzen.</p>
 <p><strong>Sage zu Beginn:</strong> "Ich nutze dev-flow-chore und führe die Wartung direkt aus."</p>
+<hr>
+<h2 id="position-im-git-kreislauf">Position im Git-Kreislauf</h2>
+<div class="code-wrapper"><pre><code>    ┌────────────────────────────────────────────────────┐
+    ▼                                                    │
+[ main ]                                                 │
+    │                                                    │
+    └──► [branch] ──► [ändern + testen] ──► [PR+merge] ──► AUSSTIEG
+              DIESER SKILL (Kurzschluss — kein Plan-Handoff)   │
+                                                               │
+                                    zurück zu [ main ] ────────┘
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>EINSTIEG:</strong> <code>main</code> — synchronisiert, sauberer Stand<br><strong>AUSSTIEG:</strong> PR gemergt zu <code>main</code>, Worktree bereinigt, Kreislauf geschlossen<br><strong>Kurzschluss:</strong> kein Zwischenstopp bei <code>dev-flow-execute</code> — Chores sind einzügig</p>
 <hr>
 <h2 id="schritt-0-reaper--pull-first">Schritt 0: Reaper &amp; Pull-First</h2>
 <div class="code-wrapper"><pre><code class="language-bash">bash scripts/agent-lock.sh reap   # Session-Koordination [T000510]: Zombies/stale Worktrees/tote Locks räumen
@@ -86,14 +100,14 @@ TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h2 id="schritt-2-aenderungen-vornehmen">Schritt 2: Änderungen vornehmen</h2>
 <p>Setze die Wartung um. Bei mechanischer Arbeit über mehrere Dateien kannst du an einen passend
-provisionierten Subagenten delegieren (siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md">subagent-provisioning.md</a> — Chores sind i.d.R. <code>haiku</code>/<code>sonnet</code>, Effort low).</p>
+provisionierten Subagenten delegieren (siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#subagent-provisioning">subagent-provisioning</a> — Chores sind i.d.R. <code>haiku</code>/<code>sonnet</code>, Effort low).</p>
 <h2 id="schritt-3-verifizieren">Schritt 3: Verifizieren</h2>
 <div class="code-wrapper"><pre><code class="language-bash">task workspace:validate
 task test:changed
 task freshness:regenerate   # generierte Artefakte aktuell halten, sonst CI rot
 task freshness:check        # CI-Äquivalent: S1–S4-Ratchet (Zeilenlimits!) gegen baseline.json — fängt das Gate VOR dem Push
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md">dev-flow-gotchas.md</a> für TypeScript/pnpm-Gotchas in Worktrees.</p>
+<p>Siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#dev-flow-gotchas">dev-flow-gotchas</a> für TypeScript/pnpm-Gotchas in Worktrees.</p>
 <blockquote>
 <p><strong>⚠ Freshness-Guard (vor jedem Commit):</strong> Neue Test-Specs, Routen oder Assets ändern generierte Indexdateien (<code>repo-index.json</code>, <code>test-inventory.json</code>, …). Ohne Regenerierung schlägt CI fehl. Der Pre-commit-Hook erledigt das automatisch nach <code>task secrets:install-hooks</code> — ohne Hook: <code>task freshness:regenerate</code> manuell ausführen und staged Änderungen mitcommittten.</p>
 </blockquote>
@@ -151,7 +165,17 @@ git branch -D "chore/&lt;slug&gt;"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h2 id="schritt-7-deploy-falls-noetig">Schritt 7: Deploy (falls nötig)</h2>
 <p>Nur wenn die Chore deploybare Pfade berührt — Mapping in
-<a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/deploy-routing.md">deploy-routing.md</a> (Single Source of Truth).</p>
+<a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#deploy-routing">deploy-routing</a> (Single Source of Truth).</p>
+<hr>
+<h2 id="uebergabe--kreislauf-geschlossen">Übergabe — Kreislauf geschlossen</h2>
+<p><strong>Zustand nach Schritt 6:</strong></p>
+<ul>
+<li><code>main</code> enthält die gemergten Änderungen (squash commit)</li>
+<li>Worktree <code>/tmp/wt-&lt;slug&gt;</code> gelöscht, Branch <code>chore/&lt;slug&gt;</code> gelöscht</li>
+<li>Ticket status = <code>done</code> (wurde beim Anlegen bereits gesetzt)</li>
+<li>Branch-Lock freigegeben</li>
+</ul>
+<p><strong>Kreislauf zurück zu <code>main</code></strong> — nächste Arbeit startet mit <code>dev-flow-plan</code> oder erneutem <code>dev-flow-chore</code>.</p>
 <hr>
 <h2 id="verwandte-skills">Verwandte Skills</h2>
 <table>

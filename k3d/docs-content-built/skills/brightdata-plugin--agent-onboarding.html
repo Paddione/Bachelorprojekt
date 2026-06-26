@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>agent-onboarding — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">agent-onboarding</span></nav>
+    <h1>agent-onboarding</h1>
+    <p class="page-desc">Onboard an agent to Bright Data. Use when a coding agent first
+encounters Bright Data — for live web work (search, scrape,
+structured data), for wiring Bright Data into product code, for
+installing the agent skill bundle, or for getting an API key. One
+install command sets up the CLI, agent skills, and authentication.
+Routes the reader to the right path: live tools, app integration,
+MCP, auth-only, or direct REST without any install.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">brightdata-plugin</span> <span class="pv-ver">1.8.0</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Bright Data — Agent Onboarding</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#install"><span class="toc-num">1.</span> Install</a></li>
+<li class="toc-item"><a href="#install-agent-skills-optional-recommended"><span class="toc-num">2.</span> Install agent skills (optional, recommended)</a></li>
+<li class="toc-item"><a href="#choose-your-path"><span class="toc-num">3.</span> Choose your path</a></li>
+<li class="toc-item"><a href="#path-a--live-web-tools-cli"><span class="toc-num">4.</span> Path A — Live web tools (CLI)</a></li>
+<li class="toc-item"><a href="#path-b--integrate-bright-data-into-an-app"><span class="toc-num">5.</span> Path B — Integrate Bright Data into an app</a></li>
+<li class="toc-item"><a href="#path-m--mcp-server-llm-tool-layer"><span class="toc-num">6.</span> Path M — MCP server (LLM tool layer)</a></li>
+<li class="toc-item"><a href="#path-c--get-an-api-key-auth-only"><span class="toc-num">7.</span> Path C — Get an API key (auth only)</a></li>
+<li class="toc-item"><a href="#path-d--use-bright-data-without-installing-anything"><span class="toc-num">8.</span> Path D — Use Bright Data without installing anything</a></li>
+<li class="toc-item"><a href="#after-onboarding--where-to-go-next"><span class="toc-num">9.</span> After onboarding — where to go next</a></li></ul>
+</div>
+<p>Bright Data gives agents reliable access to the open web: SERP results
+that look like a real browser, clean markdown from any URL (with
+CAPTCHA + JS handled), structured datasets for 40+ platforms (Amazon,
+LinkedIn, Instagram, TikTok, YouTube, Reddit, Crunchbase, …), and a
+Browser API for pages that need real interaction.</p>
+<p>This skill is the entry point. Read it once, pick a path, then hand
+off to the narrower skill that owns that path.</p>
+<h2 id="install">Install</h2>
+<p>One command installs the CLI <strong>and</strong> the agent skills, and walks the
+human through OAuth in the browser:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># macOS / Linux — fastest install
+curl -fsSL https://cli.brightdata.com/install.sh | bash
+
+# Cross-platform (or if you don't want the install script)
+npm install -g @brightdata/cli
+
+# One-off, no install
+npx --yes --package @brightdata/cli brightdata &lt;command&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Requires Node.js &gt;= 20. After install, both <code>brightdata</code> and <code>bdata</code>
+(shorthand) are available.</p>
+<p>Then authenticate <strong>once</strong>:</p>
+<div class="code-wrapper"><pre><code class="language-bash">bdata login
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>This single command:</p>
+<ol>
+<li>Opens the browser for OAuth (or use <code>bdata login --device</code> on
+headless / SSH machines)</li>
+<li>Saves the API key locally — you never need to paste a token again</li>
+<li>Auto-creates the required proxy zones (<code>cli_unlocker</code>,
+<code>cli_browser</code>)</li>
+<li>Sets sensible default configuration</li>
+</ol>
+<p>For non-interactive setups you can pass the key directly:</p>
+<div class="code-wrapper"><pre><code class="language-bash">bdata login --api-key &lt;key&gt;
+# or
+export BRIGHTDATA_API_KEY=&lt;key&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Verify the install before doing real work:</p>
+<div class="code-wrapper"><pre><code class="language-bash">bdata version
+bdata config            # confirms auth + zones
+bdata zones             # should list cli_unlocker, cli_browser
+bdata budget            # confirms account + balance
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>If any of these fail, route to Path C (auth) before continuing.</p>
+<h2 id="install-agent-skills-optional-recommended">Install agent skills (optional, recommended)</h2>
+<p>The CLI ships an installer that drops Bright Data skills directly into
+your coding agent's skill directory:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Interactive picker — choose skills + target agent
+bdata skill add
+
+# Install a specific skill
+bdata skill add scrape
+bdata skill add data-feeds
+bdata skill add competitive-intel
+
+# See everything available
+bdata skill list
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>These are the skills you'll hand off to from the paths below
+(<code>scrape</code>, <code>search</code>, <code>data-feeds</code>, <code>scraper-builder</code>,
+<code>brightdata-cli</code>, <code>bright-data-mcp</code>, …).</p>
+<h2 id="choose-your-path">Choose your path</h2>
+<p>All paths share the same install + auth above. The difference is what
+you do next.</p>
+<table>
+<thead>
+<tr>
+<th>Situation</th>
+<th>Path</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Need web data <strong>during this session</strong></td>
+<td><strong>Path A</strong> — live CLI tools</td>
+</tr>
+<tr>
+<td>Need to <strong>add Bright Data to app code</strong></td>
+<td><strong>Path B</strong> — SDK / REST integration</td>
+</tr>
+<tr>
+<td>Want a <strong>drop-in tool layer for an LLM agent</strong></td>
+<td><strong>Path M</strong> — MCP server</td>
+</tr>
+<tr>
+<td>Need an <strong>API key first</strong></td>
+<td><strong>Path C</strong> — auth only</td>
+</tr>
+<tr>
+<td>Don't want to install anything</td>
+<td><strong>Path D</strong> — REST API directly</td>
+</tr>
+</tbody></table>
+<p>If your task spans paths, do them in order: auth → live tools to
+explore → app integration once the shape is known.</p>
+<hr>
+<h2 id="path-a--live-web-tools-cli">Path A — Live web tools (CLI)</h2>
+<p>Use this when the agent itself needs web data right now: discovering
+URLs, fetching clean content, pulling structured records from a known
+platform, or running a quick competitive scan.</p>
+<p>After install + login, hand off to the narrower skills:</p>
+<ul>
+<li><code>brightdata-cli</code> — overall command surface (<code>scrape</code>, <code>search</code>,
+<code>pipelines</code>, <code>status</code>, <code>zones</code>, <code>budget</code>, <code>config</code>)</li>
+<li><code>search</code> — discovery via <code>bdata search</code> (Google / Bing / Yandex
+SERP, structured JSON)</li>
+<li><code>scrape</code> — clean content from a known URL via <code>bdata scrape</code>
+(markdown / HTML / JSON / screenshot)</li>
+<li><code>data-feeds</code> — structured records from 40+ supported platforms via
+<code>bdata pipelines &lt;type&gt;</code> (Amazon, LinkedIn, Instagram, TikTok,
+YouTube, Reddit, Crunchbase, Google Maps, …)</li>
+<li><code>competitive-intel</code> — packaged competitor / pricing / review /
+hiring / SEO analyses on top of the CLI</li>
+<li><code>seo-audit</code> — sitemap-stratified live SEO audits</li>
+</ul>
+<p>Default flow for live web work:</p>
+<ol>
+<li><strong>Search first</strong> when you need discovery
+<code>bdata search "query" --json</code></li>
+<li><strong>Pipelines next</strong> if the target is a supported platform — you get
+structured JSON with no parsing
+<code>bdata pipelines amazon_product "https://amazon.com/dp/..."</code></li>
+<li><strong>Scrape</strong> when you have a URL and no platform pipeline applies
+<code>bdata scrape "https://example.com" -f markdown</code></li>
+<li><strong>Browser API</strong> only when the page truly needs clicks, forms, or
+login (see the <code>brightdata-cli</code> skill for <code>bdata browser</code> and the
+<code>bright-data-best-practices</code> browser-api reference)</li>
+</ol>
+<p>When the task shifts from "fetch data now" to "wire this into an
+app," switch to Path B.</p>
+<hr>
+<h2 id="path-b--integrate-bright-data-into-an-app">Path B — Integrate Bright Data into an app</h2>
+<p>Use this when you're building an application, agent, or workflow that
+calls Bright Data from code and needs <code>BRIGHTDATA_API_KEY</code> (and a
+zone) in <code>.env</code> or runtime config.</p>
+<p>The required question on this path is:</p>
+<blockquote>
+<p><strong>What should Bright Data do in the product?</strong></p>
+</blockquote>
+<p>Use the answer to pick the API:</p>
+<table>
+<thead>
+<tr>
+<th>Job in product</th>
+<th>API</th>
+<th>Skill</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Fetch a single page as markdown / HTML / JSON</td>
+<td>Web Unlocker</td>
+<td><code>bright-data-best-practices</code> → <code>web-unlocker.md</code></td>
+</tr>
+<tr>
+<td>Search engine results in structured JSON</td>
+<td>SERP API</td>
+<td><code>bright-data-best-practices</code> → <code>serp-api.md</code></td>
+</tr>
+<tr>
+<td>Structured records from supported platforms</td>
+<td>Web Scraper API</td>
+<td><code>bright-data-best-practices</code> → <code>web-scraper-api.md</code></td>
+</tr>
+<tr>
+<td>JS-heavy / interactive pages with Playwright/Puppeteer</td>
+<td>Browser API</td>
+<td><code>bright-data-best-practices</code> → <code>browser-api.md</code></td>
+</tr>
+<tr>
+<td>Build a custom scraper for an arbitrary site</td>
+<td>All four, picked by site shape</td>
+<td><code>scraper-builder</code></td>
+</tr>
+</tbody></table>
+<h3>Pick a stack</h3>
+<ul>
+<li><p><strong>Python</strong> → use the official SDK</p>
+<div class="code-wrapper"><pre><code class="language-bash">pip install brightdata-sdk
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Hand off to <code>python-sdk-best-practices</code> for client setup
+(async/sync), platform scrapers, SERP, datasets, Browser API, and
+error handling.</p>
+</li>
+<li><p><strong>Node / TypeScript / shell / other</strong> → call the REST API directly
+(Path D below has the endpoints), or use the CLI as a library via
+<code>npx @brightdata/cli</code>.</p>
+</li>
+<li><p><strong>LLM tool layer (Claude, ChatGPT, etc.)</strong> → use the MCP server
+(Path M).</p>
+</li>
+</ul>
+<h3>Set credentials</h3>
+<div class="code-wrapper"><pre><code class="language-dotenv">BRIGHTDATA_API_KEY=...
+BRIGHTDATA_UNLOCKER_ZONE=cli_unlocker   # created automatically by `bdata login`
+BRIGHTDATA_SERP_ZONE=cli_unlocker       # or a dedicated SERP zone
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>If you don't have a key yet, do Path C first.</p>
+<h3>Smoke test before writing real code</h3>
+<p>Always run one real Bright Data request before scaling up integration
+work — catches auth, zone, and quota issues before they hide inside
+your app's error paths.</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Web Unlocker via REST
+curl -sS https://api.brightdata.com/request \
+  -H "Authorization: Bearer $BRIGHTDATA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com",
+    "zone": "'"$BRIGHTDATA_UNLOCKER_ZONE"'",
+    "format": "raw",
+    "data_format": "markdown"
+  }' | head -40
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>If this prints clean markdown, you're wired up. If not, check the
+zone name and key.</p>
+<hr>
+<h2 id="path-m--mcp-server-llm-tool-layer">Path M — MCP server (LLM tool layer)</h2>
+<p>Use this when the consumer is an LLM agent that should call Bright
+Data as tools (e.g., Claude Code, ChatGPT desktop, custom agent
+loops). The MCP server exposes 60+ tools — search, scrape, structured
+data per platform, browser automation — over a single URL.</p>
+<p>Connect with:</p>
+<div class="code-wrapper"><pre><code>https://mcp.brightdata.com/mcp?token=YOUR_BRIGHTDATA_API_TOKEN
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Optional URL parameters:</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>pro=1</code></td>
+<td>Enable all 60+ Pro tools</td>
+</tr>
+<tr>
+<td><code>groups=&lt;name&gt;</code></td>
+<td>Enable a tool group (<code>social</code>, <code>ecommerce</code>, <code>business</code>, <code>finance</code>, <code>research</code>, <code>app_stores</code>, <code>travel</code>, <code>browser</code>, <code>advanced_scraping</code>)</td>
+</tr>
+<tr>
+<td><code>tools=&lt;names&gt;</code></td>
+<td>Enable a specific tool list, comma-separated</td>
+</tr>
+</tbody></table>
+<p>Hand off to the <code>bright-data-mcp</code> skill for tool selection, tool-group
+auto-enabling, and workflow patterns. That skill explicitly replaces
+WebFetch / WebSearch with Bright Data MCP equivalents.</p>
+<hr>
+<h2 id="path-c--get-an-api-key-auth-only">Path C — Get an API key (auth only)</h2>
+<p>Use this when the human still needs to sign up, sign in, or generate
+a key. Skip this path if <code>bdata config</code> already shows an authenticated
+account, or if <code>BRIGHTDATA_API_KEY</code> is already set in the environment.</p>
+<blockquote>
+<p><strong>Free tier — no card needed to start.</strong> Every new account gets
+<strong>5,000 free credits per month</strong> (~$7.50), shared across <strong>Unlocker
+API</strong>, <strong>SERP API</strong>, <strong>Web Scraper API</strong>, and <strong>Scraper Studio</strong> — 1
+credit per request (Scraper Studio: 1 per page load). Credits reset on
+the 1st and don't roll over. With no deposited funds, a <strong>hard stop</strong>
+applies when they run out (no surprise charges). Proxy products and the
+<strong>Browser API are not covered</strong> by monthly credits — those use separate
+trial credit ($2 for 7 days, +$5 for 30 days after adding a payment
+method). Custom-PAYG and pre-commit plans are not eligible.
+Docs: <a href="https://docs.brightdata.com/general/account/billing-and-pricing/free-tier">https://docs.brightdata.com/general/account/billing-and-pricing/free-tier</a></p>
+</blockquote>
+<h3>Easiest: use the CLI's OAuth flow</h3>
+<div class="code-wrapper"><pre><code class="language-bash">bdata login            # browser-based OAuth
+bdata login --device   # headless / SSH (device-code flow)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>This handles signup-or-signin, key generation, zone creation, and
+local config in one step. Prefer this over manual flows.</p>
+<h3>Manual: dashboard</h3>
+<p>If the human prefers the web UI:</p>
+<ol>
+<li>Go to <a href="https://brightdata.com/cp">https://brightdata.com/cp</a> (sign up if needed)</li>
+<li>Create a <strong>Web Unlocker zone</strong> ("Add" → "Unlocker zone")</li>
+<li>Copy the API key from the dashboard</li>
+<li>Save it where the rest of the app reads secrets:</li>
+</ol>
+<div class="code-wrapper"><pre><code class="language-bash">echo "BRIGHTDATA_API_KEY=..." &gt;&gt; .env
+echo "BRIGHTDATA_UNLOCKER_ZONE=&lt;zone-name&gt;" &gt;&gt; .env
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Verify</h3>
+<div class="code-wrapper"><pre><code class="language-bash">bdata budget    # any successful response means the key works
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>If verification fails, the key is wrong, the zone is wrong, or the
+account has no active subscription — surface the error to the human
+rather than guessing.</p>
+<hr>
+<h2 id="path-d--use-bright-data-without-installing-anything">Path D — Use Bright Data without installing anything</h2>
+<p>Use this when the environment can't run <code>npm</code> / <code>curl | bash</code>, or
+when you only need one or two requests and don't want the CLI / SDK.
+Works for both live agent work and app integration.</p>
+<p>You still need an API key and a zone. Two ways to get them:</p>
+<ul>
+<li><strong>Human pastes it in</strong> — if a key already exists, set
+<code>BRIGHTDATA_API_KEY=...</code> and <code>BRIGHTDATA_UNLOCKER_ZONE=...</code> in the
+environment</li>
+<li><strong>Browser flow</strong> — do Path C; the dashboard issues both</li>
+</ul>
+<p><strong>Base URL:</strong> <code>https://api.brightdata.com</code>
+<strong>Auth header:</strong> <code>Authorization: Bearer $BRIGHTDATA_API_KEY</code></p>
+<h3>Core endpoints</h3>
+<div class="code-wrapper"><pre><code class="language-http"># Web Unlocker — clean content from any URL
+POST /request
+{
+  "url": "https://target.com",
+  "zone": "&lt;unlocker-zone&gt;",
+  "format": "raw",
+  "data_format": "markdown"   // or "html", "screenshot", "parsed_light"
+}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<div class="code-wrapper"><pre><code class="language-http"># SERP API — structured search results
+# Use the same /request endpoint with a SERP zone and a search URL,
+# adding `brd_json=1` to receive parsed JSON instead of raw HTML.
+POST /request
+{
+  "url": "https://www.google.com/search?q=web+scraping&amp;brd_json=1",
+  "zone": "&lt;serp-zone&gt;",
+  "format": "raw"
+}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<div class="code-wrapper"><pre><code class="language-http"># Web Scraper API — structured data for 40+ platforms (async)
+POST /datasets/v3/trigger?dataset_id=&lt;id&gt;
+[ { "url": "https://amazon.com/dp/B09V3KXJPB" } ]
+
+# then poll
+GET  /datasets/v3/snapshot/&lt;snapshot_id&gt;?format=json
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>For the full parameter surface (special headers like
+<code>x-unblock-expect</code>, async response IDs, dataset progress states,
+Browser API CDP commands), read the <code>bright-data-best-practices</code>
+skill — its references are the source of truth for REST-level work.</p>
+<h3>Documentation</h3>
+<ul>
+<li>Product docs: <a href="https://docs.brightdata.com">https://docs.brightdata.com</a></li>
+<li>LLM-friendly docs index: <a href="https://docs.brightdata.com/llms.txt">https://docs.brightdata.com/llms.txt</a></li>
+<li>Dashboard (zones, keys, billing): <a href="https://brightdata.com/cp">https://brightdata.com/cp</a></li>
+</ul>
+<hr>
+<h2 id="after-onboarding--where-to-go-next">After onboarding — where to go next</h2>
+<p>Once the agent is set up, route the work to the narrowest skill that
+fits. Quick map:</p>
+<table>
+<thead>
+<tr>
+<th>User says…</th>
+<th>Skill</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>"scrape this URL" / "get this page"</td>
+<td><code>scrape</code></td>
+</tr>
+<tr>
+<td>"search Google for…" / "find URLs about…"</td>
+<td><code>search</code></td>
+</tr>
+<tr>
+<td>"get Amazon / LinkedIn / Instagram / TikTok / YouTube / Reddit data"</td>
+<td><code>data-feeds</code></td>
+</tr>
+<tr>
+<td>"build a scraper for <site>"</site></td>
+<td><code>scraper-builder</code></td>
+</tr>
+<tr>
+<td>"analyze my competitor" / "compare pricing"</td>
+<td><code>competitive-intel</code></td>
+</tr>
+<tr>
+<td>"audit SEO" / "rank check" / "schema check"</td>
+<td><code>seo-audit</code></td>
+</tr>
+<tr>
+<td>"write Bright Data code in Python"</td>
+<td><code>python-sdk-best-practices</code></td>
+</tr>
+<tr>
+<td>"plug Bright Data into my LLM agent"</td>
+<td><code>bright-data-mcp</code></td>
+</tr>
+<tr>
+<td>"use the CLI" / "run from terminal"</td>
+<td><code>brightdata-cli</code></td>
+</tr>
+<tr>
+<td>"debug a Browser API session"</td>
+<td><code>brd-browser-debug</code></td>
+</tr>
+</tbody></table>
+<p>When in doubt, prefer the more specific skill: <code>data-feeds</code> over
+<code>scrape</code> for supported platforms, <code>scraper-builder</code> over <code>scrape</code> for
+multi-page extraction, <code>bright-data-mcp</code> over <code>brightdata-cli</code> when
+the consumer is an LLM agent rather than a human at a terminal.</p>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

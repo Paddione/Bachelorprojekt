@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>brightdata-cli — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">brightdata-cli</span></nav>
+    <h1>brightdata-cli</h1>
+    <p class="page-desc">Guide for using the Bright Data CLI (`brightdata` / `bdata`) to scrape websites, search the web, extract structured data from 40+ platforms, manage proxy zones, and check account budget. Use this skill whenever the user wants to scrape a URL, search Google/Bing/Yandex, extract data from Amazon/LinkedIn/Instagram/TikTok/YouTube/Reddit or any other platform, check their Bright Data balance or zones, or do anything involving web data collection from the terminal. Also trigger when the user mentions brightdata, bdata, web scraping CLI, SERP API, or wants to install Bright Data skills into their coding agent.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">brightdata-plugin</span> <span class="pv-ver">1.8.0</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Bright Data CLI</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#installation"><span class="toc-num">1.</span> Installation</a></li>
+<li class="toc-item"><a href="#first-time-setup"><span class="toc-num">2.</span> First-Time Setup</a></li>
+<li class="toc-item"><a href="#command-reference"><span class="toc-num">3.</span> Command Reference</a></li>
+<li class="toc-item"><a href="#quick-command-overview"><span class="toc-num">4.</span> Quick Command Overview</a></li>
+<li class="toc-item"><a href="#how-to-use-each-command"><span class="toc-num">5.</span> How to Use Each Command</a></li>
+<li class="toc-item"><a href="#output-modes"><span class="toc-num">6.</span> Output Modes</a></li>
+<li class="toc-item"><a href="#chaining-commands"><span class="toc-num">7.</span> Chaining Commands</a></li>
+<li class="toc-item"><a href="#environment-variables"><span class="toc-num">8.</span> Environment Variables</a></li>
+<li class="toc-item"><a href="#troubleshooting"><span class="toc-num">9.</span> Troubleshooting</a></li>
+<li class="toc-item"><a href="#key-design-principles"><span class="toc-num">10.</span> Key Design Principles</a></li></ul>
+</div>
+<p>The Bright Data CLI (<code>brightdata</code> or <code>bdata</code>) gives you full access to Bright Data's web data platform from the terminal. It handles authentication, proxy zones, anti-bot bypass, CAPTCHA solving, and JavaScript rendering automatically — the user just needs to log in once.</p>
+<h2 id="installation">Installation</h2>
+<p>If the CLI is not installed yet, guide the user:</p>
+<p><strong>macOS / Linux:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">curl -fsSL https://cli.brightdata.com/install.sh | bash
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Windows or manual install (any platform):</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">npm install -g @brightdata/cli
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Without installing (one-off usage):</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">npx --yes --package @brightdata/cli brightdata &lt;command&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Requires Node.js &gt;= 20. After install, both <code>brightdata</code> and <code>bdata</code> (shorthand) are available.</p>
+<h2 id="first-time-setup">First-Time Setup</h2>
+<p>Before anything else, check if the user is authenticated. If they haven't logged in yet, guide them through the one-time setup:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># One-time login — opens the browser for OAuth, then everything is automatic
+bdata login
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>This single command:</p>
+<ol>
+<li>Opens the browser for secure OAuth authentication</li>
+<li>Saves the API key locally (never needs to be entered again)</li>
+<li>Auto-creates required proxy zones (<code>cli_unlocker</code>, <code>cli_browser</code>)</li>
+<li>Sets default configuration</li>
+</ol>
+<p>After login, every subsequent command works without any manual intervention.</p>
+<p>For headless/SSH environments where no browser is available:</p>
+<div class="code-wrapper"><pre><code class="language-bash">bdata login --device
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>For direct API key authentication (non-interactive):</p>
+<div class="code-wrapper"><pre><code class="language-bash">bdata login --api-key &lt;key&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>To verify setup is complete, run:</p>
+<div class="code-wrapper"><pre><code class="language-bash">bdata config
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="command-reference">Command Reference</h2>
+<p>Read <a href="references/commands.md">references/commands.md</a> for the full command reference with all flags, options, and examples for every command.</p>
+<p>Read <a href="references/pipelines.md">references/pipelines.md</a> for the complete list of 40+ pipeline types (Amazon, LinkedIn, Instagram, TikTok, YouTube, Reddit, and more) with their specific parameters.</p>
+<h2 id="quick-command-overview">Quick Command Overview</h2>
+<p><code>bdata</code> is the shorthand for <code>brightdata</code>. Both work identically.</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>bdata scrape &lt;url&gt;</code></td>
+<td>Scrape any URL as markdown, HTML, JSON, or screenshot</td>
+</tr>
+<tr>
+<td><code>bdata search "&lt;query&gt;"</code></td>
+<td>Search Google/Bing/Yandex with structured results</td>
+</tr>
+<tr>
+<td><code>bdata pipelines &lt;type&gt; [params]</code></td>
+<td>Extract structured data from 40+ platforms</td>
+</tr>
+<tr>
+<td><code>bdata pipelines list</code></td>
+<td>List all 40+ available pipeline types</td>
+</tr>
+<tr>
+<td><code>bdata status &lt;job-id&gt;</code></td>
+<td>Check async job status</td>
+</tr>
+<tr>
+<td><code>bdata zones</code></td>
+<td>List proxy zones</td>
+</tr>
+<tr>
+<td><code>bdata budget</code></td>
+<td>View account balance and costs</td>
+</tr>
+<tr>
+<td><code>bdata skill add</code></td>
+<td>Install AI agent skills</td>
+</tr>
+<tr>
+<td><code>bdata skill list</code></td>
+<td>List available skills</td>
+</tr>
+<tr>
+<td><code>bdata config</code></td>
+<td>View/set configuration</td>
+</tr>
+<tr>
+<td><code>bdata login</code></td>
+<td>Authenticate with Bright Data</td>
+</tr>
+<tr>
+<td><code>bdata version</code></td>
+<td>Show CLI version and system info</td>
+</tr>
+</tbody></table>
+<h2 id="how-to-use-each-command">How to Use Each Command</h2>
+<h3>Scraping</h3>
+<p>Scrape any URL with automatic bot bypass, CAPTCHA handling, and JS rendering:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Default: returns clean markdown
+bdata scrape https://example.com
+
+# Get raw HTML
+bdata scrape https://example.com -f html
+
+# Get structured JSON
+bdata scrape https://example.com -f json
+
+# Take a screenshot
+bdata scrape https://example.com -f screenshot -o page.png
+
+# Geo-targeted scrape from the US
+bdata scrape https://amazon.com --country us
+
+# Save to file
+bdata scrape https://example.com -o page.md
+
+# Async mode for heavy pages
+bdata scrape https://example.com --async
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Searching</h3>
+<p>Search engines with structured JSON output (Google returns parsed organic results, ads, People Also Ask, and related searches):</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Google search with formatted table
+bdata search "web scraping best practices"
+
+# Get raw JSON for piping
+bdata search "typescript tutorials" --json
+
+# Search Bing
+bdata search "bright data pricing" --engine bing
+
+# Localized search
+bdata search "restaurants berlin" --country de --language de
+
+# News search
+bdata search "AI regulation" --type news
+
+# Extract just URLs
+bdata search "open source tools" --json | jq -r '.organic[].link'
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Pipelines (Structured Data Extraction)</h3>
+<p>Extract structured data from 40+ platforms. These trigger async jobs that poll until results are ready:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># LinkedIn profile
+bdata pipelines linkedin_person_profile "https://linkedin.com/in/username"
+
+# Amazon product
+bdata pipelines amazon_product "https://amazon.com/dp/B09V3KXJPB"
+
+# Instagram profile
+bdata pipelines instagram_profiles "https://instagram.com/username"
+
+# Amazon search
+bdata pipelines amazon_product_search "laptop" "https://amazon.com"
+
+# YouTube comments (top 50)
+bdata pipelines youtube_comments "https://youtube.com/watch?v=..." 50
+
+# Google Maps reviews (last 7 days)
+bdata pipelines google_maps_reviews "https://maps.google.com/..." 7
+
+# Output as CSV
+bdata pipelines amazon_product "https://amazon.com/dp/..." --format csv -o product.csv
+
+# List all available pipeline types
+bdata pipelines list
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Checking Status</h3>
+<p>For async jobs (from <code>--async</code> scrapes or pipelines):</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Quick status check
+bdata status &lt;job-id&gt;
+
+# Wait until complete
+bdata status &lt;job-id&gt; --wait
+
+# With custom timeout
+bdata status &lt;job-id&gt; --wait --timeout 300
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Budget &amp; Zones</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># Quick account balance
+bdata budget
+
+# Detailed balance with pending charges
+bdata budget balance
+
+# All zones cost/bandwidth
+bdata budget zones
+
+# Specific zone costs
+bdata budget zone my_zone
+
+# Date range filter
+bdata budget zones --from 2024-01-01T00:00:00 --to 2024-02-01T00:00:00
+
+# List all zones
+bdata zones
+
+# Zone details
+bdata zones info cli_unlocker
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Configuration</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># View all config
+bdata config
+
+# Set defaults
+bdata config set default_zone_unlocker my_zone
+bdata config set default_format json
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Installing AI Agent Skills</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># Interactive picker — choose skills and target agents
+bdata skill add
+
+# Install a specific skill
+bdata skill add scrape
+
+# List available skills
+bdata skill list
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="output-modes">Output Modes</h2>
+<p>Every command supports multiple output formats:</p>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><em>(none)</em></td>
+<td>Human-readable formatted output with colors</td>
+</tr>
+<tr>
+<td><code>--json</code></td>
+<td>Compact JSON to stdout</td>
+</tr>
+<tr>
+<td><code>--pretty</code></td>
+<td>Indented JSON to stdout</td>
+</tr>
+<tr>
+<td><code>-o &lt;path&gt;</code></td>
+<td>Write to file (format auto-detected from extension)</td>
+</tr>
+</tbody></table>
+<p>When piped (stdout is not a TTY), colors and spinners are automatically disabled.</p>
+<h2 id="chaining-commands">Chaining Commands</h2>
+<p>The CLI is pipe-friendly:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Search → extract first URL → scrape it
+bdata search "top open source projects" --json \
+  | jq -r '.organic[0].link' \
+  | xargs bdata scrape
+
+# Scrape and view with markdown reader
+bdata scrape https://docs.github.com | glow -
+
+# Amazon product data to CSV
+bdata pipelines amazon_product "https://amazon.com/dp/xxx" --format csv &gt; product.csv
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="environment-variables">Environment Variables</h2>
+<p>These override stored configuration:</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>BRIGHTDATA_API_KEY</code></td>
+<td>API key (skips login entirely)</td>
+</tr>
+<tr>
+<td><code>BRIGHTDATA_UNLOCKER_ZONE</code></td>
+<td>Default Web Unlocker zone</td>
+</tr>
+<tr>
+<td><code>BRIGHTDATA_SERP_ZONE</code></td>
+<td>Default SERP zone</td>
+</tr>
+<tr>
+<td><code>BRIGHTDATA_POLLING_TIMEOUT</code></td>
+<td>Polling timeout in seconds</td>
+</tr>
+</tbody></table>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<table>
+<thead>
+<tr>
+<th>Error</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CLI not found</td>
+<td>Install with <code>npm i -g @brightdata/cli</code> or <code>curl -fsSL https://cli.brightdata.com/install.sh | bash</code></td>
+</tr>
+<tr>
+<td>"No Web Unlocker zone specified"</td>
+<td><code>bdata config set default_zone_unlocker &lt;zone&gt;</code> or re-run <code>bdata login</code></td>
+</tr>
+<tr>
+<td>"Invalid or expired API key"</td>
+<td><code>bdata login</code></td>
+</tr>
+<tr>
+<td>"Access denied"</td>
+<td>Check zone permissions in the Bright Data control panel</td>
+</tr>
+<tr>
+<td>"Rate limit exceeded"</td>
+<td>Wait and retry, or use <code>--async</code> for large jobs</td>
+</tr>
+<tr>
+<td>Async job timeout</td>
+<td>Increase with <code>--timeout 1200</code> or <code>BRIGHTDATA_POLLING_TIMEOUT=1200</code></td>
+</tr>
+</tbody></table>
+<h2 id="key-design-principles">Key Design Principles</h2>
+<ul>
+<li><strong>One-time auth</strong>: After <code>bdata login</code>, everything is automatic. No tokens to manage, no keys to pass.</li>
+<li><strong>Zones auto-created</strong>: Login creates <code>cli_unlocker</code> and <code>cli_browser</code> zones automatically.</li>
+<li><strong>Smart defaults</strong>: Markdown output, auto-detected formats from file extensions, colors only in TTY.</li>
+<li><strong>Pipe-friendly</strong>: JSON output + jq for automation. Colors/spinners disabled in pipes.</li>
+<li><strong>Async support</strong>: Heavy jobs can run in background with <code>--async</code> + <code>status --wait</code>.</li>
+<li><strong>npm package</strong>: <code>@brightdata/cli</code> — install globally or use via <code>npx</code>.</li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>brd-browser-debug — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">brd-browser-debug</span></nav>
+    <h1>brd-browser-debug</h1>
+    <p class="page-desc">Debug Bright Data Scraping Browser sessions using the Browser Sessions API. Use this skill when the user encounters a Bright Data browser session error, puppeteer stack trace, failed scraper run, or asks about session bandwidth, duration, captchas, or connection issues. Also use when a Bright Data scraper produces unexpected results such as empty data, 0 items found, missing products, or fewer results than expected — session data can reveal whether the issue is network/proxy-side (blocks, captchas, redirects, timeouts) or client-side (selectors, extraction logic). Triggers on phrases like 'why did my session fail', 'debug my bright data session', 'check my scraping browser sessions', 'how much bandwidth did my scraper use', 'got 0 results', 'found 0', 'scraper returned empty', 'scraper not working', 'script didn't work', or when a Bright Data error code or brd.superproxy.io stack trace appears in the conversation. Requires BRIGHTDATA_API_KEY environment variable.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">brightdata-plugin</span> <span class="pv-ver">1.8.0</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Bright Data — Browser Session Debugger</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#setup"><span class="toc-num">1.</span> Setup</a></li>
+<li class="toc-item"><a href="#usage"><span class="toc-num">2.</span> Usage</a></li>
+<li class="toc-item"><a href="#features"><span class="toc-num">3.</span> Features</a></li>
+<li class="toc-item"><a href="#diagnosing-failed-sessions"><span class="toc-num">4.</span> Diagnosing Failed Sessions</a></li></ul>
+</div>
+<p>Diagnose Bright Data Scraping Browser sessions using the Browser Sessions API. Fetches live session data and performs smart triage: error diagnosis, bandwidth analysis, captcha reporting, and pattern detection across recent sessions.</p>
+<h2 id="setup">Setup</h2>
+<p><strong>Set your API key:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">export BRIGHTDATA_API_KEY="your-api-key"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Get a key from <a href="https://brightdata.com/cp/setting/users">Bright Data Dashboard → API Tokens</a>.</p>
+<p>No zone configuration needed — zone is returned as a field in session data.</p>
+<h2 id="usage">Usage</h2>
+<h3>List &amp; triage recent sessions</h3>
+<p>Invoked as <code>/brd-browser-debug</code> with no arguments.</p>
+<p><strong>API reference:</strong> <a href="https://docs.brightdata.com/api-reference/browser-api/get-sessions">GET /browser_sessions</a></p>
+<h4>Fetching sessions</h4>
+<p>Start with a single call using <code>limit=100</code> (the maximum) sorted by most recent:</p>
+<div class="code-wrapper"><pre><code>GET https://api.brightdata.com/browser_sessions?limit=100&amp;sort=timestamp&amp;order=desc
+Authorization: Bearer $BRIGHTDATA_API_KEY
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Pagination:</strong> The response includes <code>total</code>, <code>has_more</code>, and <code>next_offset</code>. If <code>has_more</code> is true and the analysis requires more data (e.g. bandwidth outlier detection needs a larger sample), fetch the next page using <code>offset=&lt;next_offset&gt;</code>. Continue until you have enough data or <code>has_more</code> is false.</p>
+<p><strong>Available filters</strong> — apply when the user specifies a scope:</p>
+<ul>
+<li><code>status=failed|finished|running</code> — narrow to a specific session state</li>
+<li><code>api_name=&lt;zone&gt;</code> — filter to a specific Bright Data zone</li>
+<li><code>target_url=&lt;domain&gt;</code> — filter by target domain (e.g. <code>ksp.co.il</code>)</li>
+<li><code>start_date</code> / <code>end_date</code> — ISO 8601 datetime range</li>
+<li><code>sort=timestamp|duration|bandwidth</code> with <code>order=asc|desc</code></li>
+</ul>
+<p>If the user asks about a specific zone, date range, or domain — apply the relevant filter rather than fetching all sessions and filtering client-side.</p>
+<h4>Triage steps</h4>
+<ol>
+<li>Present a <strong>health summary</strong>: <code>total</code> from the response, counts of finished / failed / running.</li>
+<li><strong>Most recent session</strong> — always highlight it regardless of status (same detail level as single-session mode).</li>
+<li><strong>Failed sessions</strong> — for each failure: session ID, timestamp, duration, bandwidth, then reason about the cause using the signals in the Diagnosing Failed Sessions section below.</li>
+<li><strong>Pattern detection</strong> — if 3+ sessions share the same <code>error.code</code>, call it a systemic issue:<blockquote>
+<p>"3 sessions failed with <code>custom_headers</code> — you are overriding a header Bright Data forbids. Remove <code>page.setExtraHTTPHeaders()</code> from your code."</p>
+</blockquote>
+</li>
+<li><strong>Bandwidth outliers</strong> — group sessions by <code>target_url</code> domain. For each domain with 3+ sessions, calculate the median bandwidth. Flag any session whose bandwidth exceeds 2× the median for that domain as an outlier, and note if it was a failed session that burned unusually high bandwidth before dying.</li>
+<li><strong>Captcha activity</strong> — report how many sessions hit captchas and whether they were solved.</li>
+<li>Close with a <strong>one-line verdict</strong>: the most important finding and the most impactful fix.</li>
+</ol>
+<h3>Inspect a single session</h3>
+<p>Invoked as <code>/brd-browser-debug &lt;session_id&gt;</code>.</p>
+<p><strong>API reference:</strong> <a href="https://docs.brightdata.com/api-reference/browser-api/get-session">GET /browser_sessions/{session_id}</a></p>
+<ol>
+<li><p>Call:</p>
+<div class="code-wrapper"><pre><code>GET https://api.brightdata.com/browser_sessions/&lt;session_id&gt;
+Authorization: Bearer $BRIGHTDATA_API_KEY
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Returns 404 if the session ID is not found — tell the user and stop.</p>
+</li>
+<li><p>Present a <strong>deep-dive</strong> using the response fields:</p>
+<ul>
+<li><strong>Status</strong> (<code>status</code>): <code>running</code> / <code>finished</code> / <code>failed</code></li>
+<li><strong>Zone</strong> (<code>api_name</code>): the Bright Data zone that handled the session</li>
+<li><strong>Timestamp</strong> (<code>timestamp</code>): ISO 8601 — show in local-friendly format</li>
+<li><strong>Duration</strong> (<code>duration</code>): seconds (nullable) — flag if &lt; 2 s on failure (session barely started)</li>
+<li><strong>Bandwidth</strong> (<code>bandwidth</code>): convert bytes → MB</li>
+<li><strong>Navigations</strong> (<code>navigations</code>): flag if 0 (nothing was loaded)</li>
+<li><strong>Captcha</strong> (<code>captcha</code>): one of <code>solved</code> / <code>none</code> / <code>detected</code> / <code>failed</code> — <code>detected</code> means a challenge appeared but was not solved; <code>failed</code> means solving was attempted but unsuccessful</li>
+<li><strong>Route</strong>: <code>target_url</code> → <code>end_url</code> — note significant drift (different domain, login wall, error page)</li>
+<li><strong>Error</strong> (<code>error.code</code> + <code>error.message</code>): reason about the cause using the signals in Diagnosing Failed Sessions below</li>
+</ul>
+</li>
+<li><p>Close with a <strong>one-line verdict</strong>.</p>
+</li>
+</ol>
+<h3>Auto-detect from conversation context</h3>
+<p>When a Bright Data browser issue appears in the conversation — including puppeteer stack traces, error codes, mention of <code>brd.superproxy.io</code>, the user describing a session failure, OR a scraper producing empty/unexpected results (e.g. "Found 0 categories", "Got 0 products", fewer items than expected):</p>
+<ul>
+<li>If a session ID is visible in the output → run <strong>single-session</strong> deep-dive on it.</li>
+<li>If no session ID is visible → run <strong>list &amp; triage</strong>, filtering by the relevant target domain. Highlight the most recent session as the likely culprit.</li>
+<li>Cross-reference the error or unexpected behavior seen in the conversation with what the API returns. A session that finished successfully with normal bandwidth but the scraper got 0 results points to a client-side selector/extraction bug, not a proxy issue.</li>
+</ul>
+<h2 id="features">Features</h2>
+<ul>
+<li><strong>Smart triage</strong>: automatically groups sessions by failure pattern, not just lists them</li>
+<li><strong>Dynamic bandwidth outliers</strong>: compares sessions per domain using median, flags sessions exceeding 2× the median</li>
+<li><strong>Captcha reporting</strong>: shows captcha hit rate and solve rate</li>
+<li><strong>Error reasoning</strong>: reads session signals holistically to infer what went wrong</li>
+<li><strong>Zero config</strong>: reads API key from env var, no zone setup needed</li>
+</ul>
+<h2 id="diagnosing-failed-sessions">Diagnosing Failed Sessions</h2>
+<p>Do not rely on the error code alone. Cross-reference all available session signals to reason about what went wrong:</p>
+<ul>
+<li><strong>Duration + navigations</strong>: a session that failed in &lt; 2 s with 0 navigations never got past the connection phase — likely a configuration or auth issue. A session that ran for minutes before failing points to a runtime problem (blocked mid-scrape, idle timeout, network drop).</li>
+<li><strong>Bandwidth relative to other sessions</strong>: a failed session that consumed bandwidth similar to successful ones likely reached the target but failed during extraction. A failed session with near-zero bandwidth never loaded anything.</li>
+<li><strong>Captcha field</strong>: if <code>captcha</code> is <code>detected</code> but not <code>solved</code>, the session was stopped by an unsolved challenge — suggest enabling captcha solving on the zone.</li>
+<li><strong>target_url vs end_url</strong>: significant drift (different domain, login page, error page) means the session was redirected away from the intended target.</li>
+<li><strong>error.message</strong>: use the raw message text as-is to describe what happened — do not guess or invent meaning beyond what the message says. If the cause is unclear, direct the user to <a href="https://help.brightdata.com">Bright Data support</a>.</li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

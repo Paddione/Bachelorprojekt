@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>brightdata-sdk-js — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">brightdata-sdk-js</span></nav>
+    <h1>brightdata-sdk-js</h1>
+    <p class="page-desc">Web data extraction and discovery using the Bright Data JavaScript/TypeScript
+SDK (`@brightdata/sdk`). Use when the user is working in Node.js/TypeScript and
+asks to &quot;scrape&quot;, &quot;get data from&quot;, &quot;extract&quot;, &quot;search for&quot;, or &quot;find&quot;
+information from websites. Also use when the user mentions specific platforms
+like Amazon, LinkedIn, Instagram, Facebook, TikTok, YouTube, Reddit, Pinterest,
+ChatGPT, Perplexity, or DigiKey, or asks for &quot;bulk data&quot;, &quot;historical data&quot;, or
+&quot;dataset&quot; from JS. Covers scraping, SERP search, AI discovery, datasets,
+browser automation, and Scraper Studio. For Python, use brightdata-sdk; for the
+terminal CLI, use brightdata-cli.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">brightdata-plugin</span> <span class="pv-ver">1.8.0</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Bright Data JavaScript SDK</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#setup-gate-do-first"><span class="toc-num">1.</span> Setup gate (do first)</a></li>
+<li class="toc-item"><a href="#service-selection-decide-first-then-look-up-the-method"><span class="toc-num">2.</span> Service Selection (decide first, then look up the method)</a></li>
+<li class="toc-item"><a href="#-key-differences-from-the-python-sdk"><span class="toc-num">3.</span> ⚠️ Key differences from the Python SDK</a></li>
+<li class="toc-item"><a href="#method-names-verify-before-asserting"><span class="toc-num">4.</span> Method Names: Verify Before Asserting</a></li>
+<li class="toc-item"><a href="#useful-standalone-methods"><span class="toc-num">5.</span> Useful standalone methods</a></li>
+<li class="toc-item"><a href="#gotchas"><span class="toc-num">6.</span> Gotchas</a></li>
+<li class="toc-item"><a href="#error-handling"><span class="toc-num">7.</span> Error handling</a></li>
+<li class="toc-item"><a href="#examples"><span class="toc-num">8.</span> Examples</a></li>
+<li class="toc-item"><a href="#troubleshooting"><span class="toc-num">9.</span> Troubleshooting</a></li>
+<li class="toc-item"><a href="#when-to-load-references"><span class="toc-num">10.</span> When to load references</a></li></ul>
+</div>
+<p>Access web data through a unified Node.js/TypeScript SDK (<code>@brightdata/sdk</code>). One
+client, several services: web unlocking (<code>scrapeUrl</code>), platform scraping
+(<code>scrape.&lt;platform&gt;</code>), SERP search (<code>search.google/bing/yandex</code>), AI discovery
+(<code>discover</code>), datasets, browser automation, and Scraper Studio.</p>
+<p><strong>Requires Node.js ≥ 20.</strong> Ships ESM + CommonJS with full TypeScript types. The
+client is exported as <code>bdclient</code> (lowercase — not a typo).</p>
+<h2 id="setup-gate-do-first">Setup gate (do first)</h2>
+<div class="code-wrapper"><pre><code class="language-bash">npm install @brightdata/sdk     # or: pnpm add / yarn add
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>The client reads the <code>BRIGHTDATA_API_TOKEN</code> env var, or you pass <code>{ apiKey }</code>.
+Get a token at <a href="https://brightdata.com/cp/setting/users">https://brightdata.com/cp/setting/users</a>.</p>
+<div class="code-wrapper"><pre><code class="language-javascript">// ESM (package.json "type": "module", or .mjs)
+import { bdclient } from '@brightdata/sdk';
+
+// CommonJS (.cjs / "type": "commonjs")
+const { bdclient } = require('@brightdata/sdk');
+
+const client = new bdclient();             // reads BRIGHTDATA_API_TOKEN
+// const client = new bdclient({ apiKey: '...' });
+try {
+  const html = await client.scrapeUrl('https://example.com');
+} finally {
+  await client.close();                    // always close (or `await using`)
+}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><code>await using client = new bdclient()</code> (TS 5.2+ / Node ≥20) auto-closes at scope end.</p>
+<h2 id="service-selection-decide-first-then-look-up-the-method">Service Selection (decide first, then look up the method)</h2>
+<p>Pick the service BEFORE reaching for a specific method. Most routing mistakes
+come from skipping this step and pattern-matching on keywords.</p>
+<div class="code-wrapper"><pre><code>Have a URL?
+  ├── On a supported platform (Amazon, LinkedIn, Facebook, Instagram, YouTube,
+  │   TikTok, Reddit, Pinterest, ChatGPT, Perplexity, DigiKey)?
+  │     → Platform scraping: client.scrape.&lt;platform&gt;.&lt;method&gt;(urls, opts?)
+  │
+  ├── Generic page (no dedicated platform scraper)?
+  │     → Web unlocker: client.scrapeUrl(url, { dataFormat: 'markdown' })
+  │
+  └── Need login / JS / click-scroll-fill / CAPTCHA / multi-step nav?
+        → Browser API: client.browser.getConnectUrl() (connect via Playwright)
+
+No URL?
+  ├── Want entities matching natural-language criteria
+  │   ("find AI startups in Berlin", "competitors of Acme")?
+  │     → Discover: client.discover(query, { intent })
+  │
+  ├── Want web pages / search-result links ("search Google for X")?
+  │     → SERP: client.search.google(query) [or .bing / .yandex]
+  │
+  ├── Want to search WITHIN a platform ("Amazon products by keyword",
+  │   "LinkedIn jobs", "Instagram reels by profile")?
+  │     → Platform discovery: client.scrape.&lt;platform&gt;.discover*(filters)
+  │       or amazon.productSearch(...)  (NOTE: client.search is SERP-only here)
+  │
+  └── Want bulk/historical data at scale?
+        → Datasets: client.datasets.&lt;name&gt;.query(filter) → .download(snapshotId)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Edge cases:</p>
+<ul>
+<li>Supported-platform URL BUT user mentions login/click/scroll/JS → Browser API (the interaction trumps the platform).</li>
+<li>Supported-platform scrape returns 403/blocked → fall back to <code>client.scrapeUrl()</code> (web unlocker).</li>
+<li>"Find/research who are X" with a URL alongside ("competitors of acme.com") → still Discover; the URL is context, not the scrape target.</li>
+</ul>
+<h2 id="-key-differences-from-the-python-sdk">⚠️ Key differences from the Python SDK</h2>
+<p>If you know the Python SDK (<code>brightdata-sdk</code>), the JS surface differs — do not
+port names blindly:</p>
+<table>
+<thead>
+<tr>
+<th>Concept</th>
+<th>Python</th>
+<th>JavaScript</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Client</td>
+<td><code>SyncBrightDataClient</code> / <code>BrightDataClient</code></td>
+<td><code>bdclient</code> (single, all async)</td>
+</tr>
+<tr>
+<td>Web unlocker</td>
+<td><code>client.scrape_url(url=...)</code></td>
+<td><code>client.scrapeUrl(url, opts)</code></td>
+</tr>
+<tr>
+<td>Platform search</td>
+<td><code>client.search.amazon.products(...)</code></td>
+<td><strong>none</strong> — use <code>scrape.amazon.productSearch</code> / <code>discover*</code></td>
+</tr>
+<tr>
+<td><code>client.search</code></td>
+<td>SERP <strong>and</strong> platform search</td>
+<td><strong>SERP only</strong> (google/bing/yandex)</td>
+</tr>
+<tr>
+<td>Batch</td>
+<td><code>*_trigger</code> methods + <code>job.wait()</code></td>
+<td>pass a <code>string[]</code> to one call, or <code>*Trigger</code> + <code>job.wait()</code></td>
+</tr>
+<tr>
+<td>Naming</td>
+<td><code>snake_case</code></td>
+<td><code>camelCase</code></td>
+</tr>
+<tr>
+<td>Datasets</td>
+<td><code>client.datasets.amazon_products</code></td>
+<td><code>client.datasets.amazonProducts</code></td>
+</tr>
+</tbody></table>
+<h2 id="method-names-verify-before-asserting">Method Names: Verify Before Asserting</h2>
+<p>Before claiming a platform method exists/doesn't exist, <strong>consult
+<code>references/scrapers.md</code></strong> — it lists every platform's verified methods. The SDK
+ships TypeScript types, so in a typed project you can also let the compiler/editor
+confirm a method exists.</p>
+<p>Each platform exposes up to three method styles (see <code>references/scrapers.md</code>):</p>
+<ul>
+<li><strong><code>collect&lt;Thing&gt;(input, opts?)</code></strong> — returns the rows directly (<code>object[]</code>).</li>
+<li><strong><code>&lt;thing&gt;(input, opts?)</code></strong> — orchestrated (trigger → poll → download); returns <code>{ data, status, rowCount }</code>. <strong>Default to this.</strong></li>
+<li><strong><code>discover&lt;Thing&gt;By&lt;X&gt;(filters, opts?)</code></strong> — find items by keyword/category/URL filter instead of by direct URL.</li>
+</ul>
+<p><strong>Likely hallucinations</strong> (do NOT write these — verify in <code>references/scrapers.md</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Wrong</th>
+<th>Right</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>client.search.amazon.products(...)</code></td>
+<td><code>client.scrape.amazon.productSearch(...)</code> (no platform search router in JS)</td>
+</tr>
+<tr>
+<td><code>client.scrape.linkedin.people(...)</code></td>
+<td><code>client.scrape.linkedin.profiles(urls)</code></td>
+</tr>
+<tr>
+<td><code>client.scrape.chatgpt...</code></td>
+<td><code>client.scrape.chatGPT...</code> (camelCase G+T)</td>
+</tr>
+<tr>
+<td><code>client.datasets.amazon_products</code></td>
+<td><code>client.datasets.amazonProducts</code></td>
+</tr>
+<tr>
+<td><code>BrightDataClient</code> / <code>new BdClient()</code></td>
+<td><code>bdclient</code> (all lowercase)</td>
+</tr>
+</tbody></table>
+<h2 id="useful-standalone-methods">Useful standalone methods</h2>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>client.scrapeUrl(url | url[], opts?)</code></td>
+<td>Web unlocker — any URL → html / markdown / json / screenshot. Pass an array for parallel batch.</td>
+</tr>
+<tr>
+<td><code>client.search.google(q | q[], opts?)</code></td>
+<td>SERP results (also <code>.bing</code>, <code>.yandex</code>). Array = batch.</td>
+</tr>
+<tr>
+<td><code>client.discover(query, { intent })</code></td>
+<td>AI-ranked entity/page discovery.</td>
+</tr>
+<tr>
+<td><code>client.discoverTrigger(query, opts?)</code></td>
+<td>Non-blocking discover → <code>Job</code> with <code>.wait()</code> / <code>.fetch()</code>.</td>
+</tr>
+<tr>
+<td><code>client.datasets.list()</code></td>
+<td>List all available datasets at runtime.</td>
+</tr>
+<tr>
+<td><code>client.scraperStudio.run(collectorId, { input })</code></td>
+<td>Run a custom Scraper Studio collector.</td>
+</tr>
+<tr>
+<td><code>client.browser.getConnectUrl({ country })</code></td>
+<td>CDP WebSocket URL for Playwright/Puppeteer/Selenium.</td>
+</tr>
+<tr>
+<td><code>client.listZones()</code></td>
+<td>List active Bright Data zones.</td>
+</tr>
+<tr>
+<td><code>client.saveResults(data, { filename, format })</code></td>
+<td>Write results to a file.</td>
+</tr>
+<tr>
+<td><code>client.close()</code></td>
+<td>Close HTTP connections. Always call when done.</td>
+</tr>
+</tbody></table>
+<h2 id="gotchas">Gotchas</h2>
+<ul>
+<li><strong>Always <code>await client.close()</code></strong> (or <code>await using</code>). The client holds a keep-alive transport; leaking it hangs the process.</li>
+<li><strong><code>client.search</code> is SERP-only</strong> (google/bing/yandex). To search <em>within</em> a platform, use that platform's <code>discover*</code> / <code>productSearch</code> scraper methods — there is no <code>client.search.amazon</code>.</li>
+<li><strong><code>chatGPT</code> is camelCase</strong> on <code>client.scrape</code> — <code>client.scrape.chatGPT.search(...)</code>, not <code>.chatgpt</code>.</li>
+<li><strong>Batch: pass an array, don't loop.</strong> <code>scrapeUrl([...urls])</code> and <code>search.google([...queries])</code> run in parallel internally. For platform scrapers with many inputs, prefer the orchestrated method with an array, or the <code>*Trigger</code> + <code>job.wait()</code> pattern (see <code>references/advanced.md</code>). Don't wrap blocking calls in <code>Promise.all</code> of single-item calls — you'll fight the rate limiter.</li>
+<li><strong>Orchestrated methods block for minutes.</strong> <code>products</code>/<code>profiles</code>/etc. trigger a job and poll until ready (often 2–10 min). Don't set tiny <code>pollTimeout</code>s; tune via <code>{ pollInterval, pollTimeout }</code>. Defaults are calibrated.</li>
+<li><strong>Datasets are historical/bulk, not live.</strong> Need current data → use platform scrapers or <code>scrapeUrl</code>. <code>query()</code> returns a <code>snapshotId</code>; <code>download()</code> blocks until the snapshot is ready.</li>
+<li><strong>Web unlocker fallback on 403.</strong> If a platform scraper is blocked, retry the URL through <code>client.scrapeUrl()</code>.</li>
+<li><strong>Don't add your own retry loop.</strong> The transport already retries network/timeout errors with backoff; double-retrying wastes credits. Tune <code>timeout</code> / <code>rateLimit</code> on the constructor instead.</li>
+<li><strong>Cost hierarchy (cheapest first):</strong> datasets → SERP → platform scrapers → web unlocker → discover → Scraper Studio → Browser API. Prefer the cheapest service that satisfies the request.</li>
+</ul>
+<h2 id="error-handling">Error handling</h2>
+<p>All errors extend <code>BRDError</code>. Import the specific classes to branch:</p>
+<div class="code-wrapper"><pre><code class="language-javascript">import { bdclient, ValidationError, AuthenticationError, BRDError } from '@brightdata/sdk';
+
+try {
+  const data = await client.scrape.amazon.products(['https://www.amazon.com/dp/B0D77BX8Y4']);
+} catch (err) {
+  if (err instanceof AuthenticationError) { /* bad/expired token */ }
+  else if (err instanceof ValidationError) { /* bad input */ }
+  else if (err instanceof BRDError) { /* any SDK error */ }
+  else throw err;
+}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Classes: <code>BRDError</code> (base), <code>ValidationError</code>, <code>AuthenticationError</code>, <code>ZoneError</code>,
+<code>NetworkError</code>, <code>NetworkTimeoutError</code>, <code>TimeoutError</code>, <code>APIError</code>,
+<code>DataNotReadyError</code>, <code>FSError</code>.</p>
+<h2 id="examples">Examples</h2>
+<h3>Scrape a generic page as markdown</h3>
+<div class="code-wrapper"><pre><code class="language-javascript">const md = await client.scrapeUrl('https://example.com/article', { dataFormat: 'markdown' });
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Get an Amazon product (orchestrated — default)</h3>
+<div class="code-wrapper"><pre><code class="language-javascript">const res = await client.scrape.amazon.products(['https://www.amazon.com/dp/B0D77BX8Y4']);
+console.log(res.status, res.rowCount, res.data);
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>SERP, batched</h3>
+<div class="code-wrapper"><pre><code class="language-javascript">const results = await client.search.google(['best running shoes', 'best trail shoes'], { country: 'us' });
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Find entities (Discover)</h3>
+<div class="code-wrapper"><pre><code class="language-javascript">const startups = await client.discover('AI startups in Berlin', {
+  intent: 'early-stage machine-learning companies',
+  numResults: 10,
+});
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Bulk/historical via datasets</h3>
+<div class="code-wrapper"><pre><code class="language-javascript">const ds = client.datasets;
+const snapshotId = await ds.instagramProfiles.query({ url: 'https://www.instagram.com/natgeo/' }, { records_limit: 50 });
+// download() blocks until the snapshot is ready
+const rows = await ds.instagramProfiles.download(snapshotId);
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<ul>
+<li><strong><code>AuthenticationError</code> / 401</strong> — token missing or invalid. Check <code>BRIGHTDATA_API_TOKEN</code> or the <code>apiKey</code> option.</li>
+<li><strong>403 / blocked</strong> — site blocked the scraper. Retry the URL via <code>client.scrapeUrl()</code> (web unlocker).</li>
+<li><strong>Timeout</strong> — increase <code>timeout</code> (constructor, 1000–300000 ms) or the orchestrated <code>pollTimeout</code>; do not lower it.</li>
+<li><strong>"Dataset not found"</strong> — call <code>client.datasets.list()</code>; dataset names are camelCase (<code>amazonProducts</code>, <code>linkedinProfiles</code>).</li>
+<li><strong>Process hangs after work finishes</strong> — you forgot <code>await client.close()</code>.</li>
+<li><strong>SSL/proxy errors in sandboxes</strong> — see <code>references/advanced.md</code> for zone/SSL options.</li>
+<li><strong>Rate-limit errors</strong> — set <code>{ rateLimit, ratePeriod }</code> on the constructor, or batch via arrays / the trigger pattern instead of <code>Promise.all</code>.</li>
+</ul>
+<h2 id="when-to-load-references">When to load references</h2>
+<ul>
+<li><code>references/scrapers.md</code> — when the user names <strong>Amazon, LinkedIn, Facebook, Instagram, YouTube, TikTok, Reddit, Pinterest, ChatGPT, Perplexity, DigiKey</strong> — verified per-platform method tables (collect / orchestrated / discover) and the <code>scrapeUrl</code> web-unlocker options.</li>
+<li><code>references/search.md</code> — SERP engines (<code>search.google/bing/yandex</code>) and the Discover API (<code>discover</code> / <code>discoverTrigger</code>), with all options.</li>
+<li><code>references/datasets-overview.md</code> — dataset names, the <code>query → getStatus → download</code> lifecycle, and filters.</li>
+<li><code>references/advanced.md</code> — constructor options &amp; env vars, batch/trigger orchestration, Browser API (Playwright/Puppeteer), Scraper Studio, error classes, and zones/SSL.</li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

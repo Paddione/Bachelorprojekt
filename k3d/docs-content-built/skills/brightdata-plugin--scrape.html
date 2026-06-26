@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>scrape — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">scrape</span></nav>
+    <h1>scrape</h1>
+    <p class="page-desc">Scrape web content as clean markdown/HTML/JSON via the Bright Data CLI (`bdata scrape`). Use when the user wants to fetch a page, extract content from a list of URLs, or crawl paginated listings. Hands off to `data-feeds` for supported platforms (Amazon, LinkedIn, TikTok, Instagram, YouTube, Reddit, etc.) and to `search` when URLs must be discovered first. Requires the Bright Data CLI; proactively guides install + login if missing.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">brightdata-plugin</span> <span class="pv-ver">1.8.0</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Bright Data — Scrape</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#setup-gate-run-first"><span class="toc-num">1.</span> Setup gate (run first)</a></li>
+<li class="toc-item"><a href="#pick-your-path"><span class="toc-num">2.</span> Pick your path</a></li>
+<li class="toc-item"><a href="#action"><span class="toc-num">3.</span> Action</a></li>
+<li class="toc-item"><a href="#verification-gate-run-before-claiming-success"><span class="toc-num">4.</span> Verification gate (run before claiming success)</a></li>
+<li class="toc-item"><a href="#red-flags"><span class="toc-num">5.</span> Red flags</a></li>
+<li class="toc-item"><a href="#references"><span class="toc-num">6.</span> References</a></li></ul>
+</div>
+<p>Get clean content (markdown, HTML, JSON, screenshot) from one or more URLs via the Bright Data CLI. This skill owns the "fetch raw or lightly-structured content" job. For platform-specific structured data (Amazon, LinkedIn, TikTok, etc.), <strong>stop and use <code>data-feeds</code> instead</strong> — you'll get clean JSON without selector logic.</p>
+<h2 id="setup-gate-run-first">Setup gate (run first)</h2>
+<p>Before any scrape, verify the CLI is installed and authenticated:</p>
+<div class="code-wrapper"><pre><code class="language-bash">if ! command -v bdata &gt;/dev/null 2&gt;&amp;1; then
+    echo "bdata CLI not installed — see bright-data-best-practices/references/cli-setup.md"
+elif ! bdata zones &gt;/dev/null 2&gt;&amp;1; then
+    echo "bdata not authenticated — run: bdata login  (or: bdata login --device for SSH)"
+fi
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>If either check fails, halt and route the user to <code>skills/bright-data-best-practices/references/cli-setup.md</code>. Do not attempt the legacy <code>curl</code> fallback silently — ask the user first.</p>
+<h2 id="pick-your-path">Pick your path</h2>
+<table>
+<thead>
+<tr>
+<th>Situation</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Single URL</td>
+<td><code>bdata scrape &lt;url&gt; -f markdown</code></td>
+</tr>
+<tr>
+<td>Small list (≤ ~20 URLs)</td>
+<td>shell loop, 1 at a time (see <code>references/patterns.md</code>)</td>
+</tr>
+<tr>
+<td>Larger list (dozens+)</td>
+<td><code>xargs -P 4</code> with parallelism cap (see <code>references/patterns.md</code>)</td>
+</tr>
+<tr>
+<td>Paginated listing</td>
+<td>scrape page 1 → extract next-page URL → append → repeat (see <code>references/examples.md</code>)</td>
+</tr>
+<tr>
+<td>JS-heavy / login-gated / interaction-required</td>
+<td>escalate to <code>bdata browser</code> (see <code>brightdata-cli</code> skill)</td>
+</tr>
+<tr>
+<td>Amazon, LinkedIn, TikTok, Instagram, YouTube, Reddit, …</td>
+<td><strong>stop — hand off to <code>data-feeds</code></strong></td>
+</tr>
+<tr>
+<td>No URL yet, just a topic</td>
+<td><strong>hand off to <code>search</code></strong></td>
+</tr>
+</tbody></table>
+<h2 id="action">Action</h2>
+<p>Core commands:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Clean markdown (default)
+bdata scrape "https://example.com/article" -f markdown -o article.md
+
+# Raw HTML (when you need the DOM)
+bdata scrape "https://example.com" -f html -o page.html
+
+# Structured JSON (when the Unlocker returns parsed fields)
+bdata scrape "https://example.com" -f json --pretty -o page.json
+
+# Visual snapshot (saves PNG)
+bdata scrape "https://example.com" -f screenshot -o page.png
+
+# Geo-targeted (override the exit country)
+bdata scrape "https://example.com" --country de -f markdown
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Full flag reference: <a href="references/flags.md"><code>references/flags.md</code></a>.</p>
+<h2 id="verification-gate-run-before-claiming-success">Verification gate (run before claiming success)</h2>
+<ol>
+<li><strong>Non-empty output:</strong> <code>test -s "$out_path"</code> — or, for stdout, at least 200 bytes of content.</li>
+<li><strong>Not a block page</strong> — grep the output for any of these signatures (case-insensitive):<ul>
+<li><code>Access Denied</code></li>
+<li><code>Just a moment</code></li>
+<li><code>Attention Required</code></li>
+<li><code>Checking your browser</code></li>
+<li><code>captcha</code></li>
+<li><code>cf-browser-verification</code></li>
+<li><code>cloudflare</code> <em>(with &lt; 2KB total body)</em></li>
+</ul>
+</li>
+<li><strong>Expected markers present</strong> for the task: e.g., a product page should contain a price pattern (<code>\$\d</code>); an article should contain at least one <code>&lt;h1&gt;</code> or <code># </code> heading.</li>
+<li><strong>On failure, escalation ladder:</strong><ul>
+<li>Retry with a different <code>--country</code> (e.g., <code>--country de</code> if the origin site is US)</li>
+<li>Escalate to <code>bdata browser</code> for full JS rendering (hand off to <code>brightdata-cli</code> skill)</li>
+</ul>
+</li>
+</ol>
+<p>Do not report success until all checks above pass.</p>
+<h2 id="red-flags">Red flags</h2>
+<ul>
+<li>Claiming success without inspecting the output.</li>
+<li>Silencing errors with <code>2&gt;/dev/null</code> — you'll miss auth failures and rate-limit errors.</li>
+<li>Running <code>bdata scrape</code> on Amazon/LinkedIn/TikTok/Instagram/YouTube/Reddit URLs — these are supported by <code>data-feeds</code> and return structured data directly. Scraping loses the structure.</li>
+<li>Scraping the same URL repeatedly in the same task — cache the first result.</li>
+<li>Looping <code>bdata scrape</code> sequentially for large lists instead of using <code>xargs -P 4</code> (or similar) with a parallelism cap.</li>
+<li>Using <code>curl</code> against <code>api.brightdata.com</code> directly — legacy path; only when the CLI isn't available.</li>
+</ul>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="references/flags.md"><code>references/flags.md</code></a> — every flag with when-to-use notes.</li>
+<li><a href="references/patterns.md"><code>references/patterns.md</code></a> — shell-loop batching, <code>xargs</code> parallelism, pagination recipe, retry/backoff, block-page recovery chain, legacy <code>curl</code> fallback.</li>
+<li><a href="references/examples.md"><code>references/examples.md</code></a> — (1) single page → markdown, (2) batch a list of URLs with parallelism cap, (3) paginated listing, (4) block-page recovery.</li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

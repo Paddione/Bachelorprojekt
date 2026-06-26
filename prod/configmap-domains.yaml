@@ -4,6 +4,8 @@ metadata:
   name: domain-config
 data:
   # Pocket ID is the auth provider — auth.${PROD_DOMAIN} (was Keycloak's slot)
+  # KC_DOMAIN points to the auth provider (Pocket ID, was Keycloak)
+  KC_DOMAIN: "auth.${PROD_DOMAIN}"
   POCKET_ID_DOMAIN: "auth.${PROD_DOMAIN}"
   NC_DOMAIN: "files.${PROD_DOMAIN}"
   MEET_DOMAIN: "files.${PROD_DOMAIN}/index.php/apps/spreed/"

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>brightdata-sdk — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">brightdata-sdk</span></nav>
+    <h1>brightdata-sdk</h1>
+    <p class="page-desc">Web data extraction and discovery using the Bright Data Python SDK.
+Use when user asks to &quot;scrape&quot;, &quot;get data from&quot;, &quot;extract&quot;, &quot;search for&quot;,
+or &quot;find&quot; information from websites. Also use when user mentions specific
+platforms like Amazon, LinkedIn, Instagram, Facebook, TikTok, YouTube,
+Reddit, Pinterest, Zillow, Crunchbase, or DigiKey, or asks for &quot;bulk data&quot;,
+&quot;historical data&quot;, or &quot;dataset&quot;. Covers scraping, searching, datasets,
+and browser automation.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">brightdata-plugin</span> <span class="pv-ver">1.8.0</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Bright Data SDK</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#service-selection-decide-first-then-look-up-the-specific-method"><span class="toc-num">1.</span> Service Selection (decide first, then look up the specific method)</a></li>
+<li class="toc-item"><a href="#method-names-verify-before-asserting"><span class="toc-num">2.</span> Method Names: Verify Before Asserting</a></li>
+<li class="toc-item"><a href="#useful-standalone-methods"><span class="toc-num">3.</span> Useful Standalone Methods</a></li>
+<li class="toc-item"><a href="#how-to-handle-requests"><span class="toc-num">4.</span> How to Handle Requests</a></li>
+<li class="toc-item"><a href="#gotchas"><span class="toc-num">5.</span> Gotchas</a></li>
+<li class="toc-item"><a href="#examples"><span class="toc-num">6.</span> Examples</a></li>
+<li class="toc-item"><a href="#troubleshooting"><span class="toc-num">7.</span> Troubleshooting</a></li>
+<li class="toc-item"><a href="#when-to-load-references"><span class="toc-num">8.</span> When to Load References</a></li></ul>
+</div>
+<p>Access web data through a unified Python SDK. One client, eight service categories: platform scraping, platform search, web search (SERP), AI-powered discovery, datasets, web unlocking, browser automation, and scraper studio.</p>
+<p>Always use the client as a context manager. In synchronous environments (scripts, notebooks, Claude Code), use <code>SyncBrightDataClient</code>. In async environments, use <code>BrightDataClient</code>. Both use the same method names — the sync client wraps calls automatically. Note: the sync client currently has limited platform coverage — see the sync compatibility note in <code>references/scrapers.md</code> for details. For unsupported platforms or the datasets API, use the async client (<code>BrightDataClient</code>).</p>
+<h2 id="service-selection-decide-first-then-look-up-the-specific-method">Service Selection (decide first, then look up the specific method)</h2>
+<p>Use this decision tree to pick the right service BEFORE reaching for any specific method. Most routing failures come from skipping this step and pattern-matching on user keywords instead.</p>
+<div class="code-wrapper"><pre><code>Have a URL?
+  ├── On a supported platform (Amazon, LinkedIn, Facebook, Instagram, YouTube,
+  │   TikTok, Reddit, ChatGPT, Perplexity, Pinterest, DigiKey)?
+  │     → Platform scraping: client.scrape.&lt;platform&gt;.&lt;method&gt;(url=...)
+  │
+  ├── Generic page (not on any supported platform)?
+  │     → Web unlocker: client.scrape_url(url=...)
+  │
+  └── Need login / JavaScript / click-scroll-fill / CAPTCHA / multi-step navigation?
+        → Browser API: client.browser.get_connect_url() (then connect with Playwright)
+
+No URL?
+  ├── Want entities matching natural-language criteria
+  │   ("find AI startups in Berlin", "competitors of Acme Corp", "people who worked at X")?
+  │     → Discover: client.discover(query=..., intent=...)
+  │
+  ├── Want web pages / articles / search-result links
+  │   ("search Google for X", "find pages about Y")?
+  │     → SERP: client.search.google(query=...) [or .bing / .yandex]
+  │
+  ├── Want to search WITHIN a specific platform
+  │   ("find products on Amazon", "TikTok videos by hashtag", "Pinterest pins about recipes")?
+  │     → Platform search: client.search.&lt;platform&gt;.&lt;method&gt;(...)
+  │
+  └── Want bulk historical data at scale
+      ("all LinkedIn companies in tech", "historical Amazon prices", "every Zillow listing in Texas")?
+        → Datasets: client.datasets.&lt;name&gt;(filter=...) (then .download(snapshot_id))
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Edge cases:</p>
+<ul>
+<li>URL on supported platform BUT user explicitly mentions login/click/scroll/JS → Browser API (the interaction trumps the platform).</li>
+<li>URL on supported platform BUT scraper returns 403/blocked → fall back to <code>client.scrape_url()</code> (web unlocker).</li>
+<li>"Find/research/who are X" with a URL alongside (e.g., "find competitors of acme.com") → still Discover; the URL is context, not the scrape target.</li>
+</ul>
+<h2 id="method-names-verify-before-asserting">Method Names: Verify Before Asserting</h2>
+<p>Before claiming any platform method exists, doesn't exist, or asserting a platform isn't supported, you MUST consult <code>references/scrapers.md</code> first. Past evals show the model has hallucinated method names (e.g., <code>client.scrape.linkedin.people</code> — does NOT exist; use <code>.profiles</code>) and falsely claimed platforms unsupported (e.g., Pinterest is supported via both <code>client.scrape.pinterest</code> and <code>client.search.pinterest</code>).</p>
+<p><strong>Rule:</strong> load <code>references/scrapers.md</code> before naming any specific platform method. The reference file lists every platform, every method signature, and the sync/async availability matrix. Verify, don't assume. If you've already loaded <code>references/scrapers.md</code> in this session, consult what's in context — no need to reload.</p>
+<p><strong>Known hallucinations</strong> (these names do NOT exist in the SDK — the model has invented them in past evals):</p>
+<table>
+<thead>
+<tr>
+<th>Hallucinated</th>
+<th>Correct replacement</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>client.scrape.linkedin.people(...)</code></td>
+<td><code>client.scrape.linkedin.profiles(url=...)</code></td>
+</tr>
+<tr>
+<td><code>client.scrape.instagram.users(...)</code></td>
+<td><code>client.scrape.instagram.profiles(url=...)</code></td>
+</tr>
+<tr>
+<td><code>client.list_datasets()</code></td>
+<td><code>client.datasets.list()</code></td>
+</tr>
+<tr>
+<td><code>asyncio.gather(*[client.scrape.X.&lt;quick&gt;(...) for ...])</code></td>
+<td>Trigger pattern — see Batch gotcha</td>
+</tr>
+</tbody></table>
+<p>This list grows as new hallucinations are observed in evals. If you're tempted to write a method name that "feels right" but you haven't seen in <code>references/scrapers.md</code>, treat it as a likely hallucination — load the reference and verify.</p>
+<h2 id="useful-standalone-methods">Useful Standalone Methods</h2>
+<p>Methods that don't belong to any specific workflow — easy to overlook because they're not tied to a platform or a routing decision. The model has hallucinated some of these (<code>client.list_datasets()</code> instead of <code>client.datasets.list()</code>); use the canonical names below.</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>client.datasets.list()</code></td>
+<td>List all 310+ datasets at runtime. Do NOT use <code>dir()</code> or introspection — use this method.</td>
+</tr>
+<tr>
+<td><code>client.discover(query=, intent=)</code></td>
+<td>AI-ranked entity search (companies, people, products). See Service Selection above.</td>
+</tr>
+<tr>
+<td><code>client.scrape_url(url=...)</code></td>
+<td>Web unlocker for any URL. Use for sites without a dedicated platform scraper.</td>
+</tr>
+<tr>
+<td><code>client.browser.get_connect_url()</code></td>
+<td>CDP WebSocket URL for Playwright / Puppeteer / Selenium.</td>
+</tr>
+<tr>
+<td><code>client.list_zones()</code></td>
+<td>List active Bright Data zones.</td>
+</tr>
+<tr>
+<td><code>client.delete_zone(name)</code></td>
+<td>Remove a zone.</td>
+</tr>
+<tr>
+<td><code>client.test_connection()</code></td>
+<td>Verify the API token works.</td>
+</tr>
+<tr>
+<td><code>client.get_account_info()</code></td>
+<td>Usage, quotas, active zones.</td>
+</tr>
+</tbody></table>
+<h2 id="how-to-handle-requests">How to Handle Requests</h2>
+<h3>Exploring capabilities</h3>
+<p>If the user wants to know what's available or asks "what can this do?", describe these 8 categories. Each follows the template: <strong>Name</strong> — what it does — example invocation — when to use.</p>
+<ol>
+<li><p><strong>Platform scraping</strong> — extract structured data from 11 supported platforms by URL. <code>client.scrape.&lt;platform&gt;.&lt;method&gt;(url=...)</code> (platforms: Amazon, LinkedIn, Facebook, Instagram, YouTube, TikTok, Reddit, ChatGPT, Perplexity, Pinterest, DigiKey). Use when the user has a URL on a supported platform and wants structured fields (price, profile data, post engagement, etc.).</p>
+</li>
+<li><p><strong>Platform search</strong> — search within a specific platform by keyword/profile/filter. <code>client.search.&lt;platform&gt;.&lt;method&gt;(...)</code>. Use for "find products on Amazon by keyword", "discover TikTok videos by hashtag", "find Pinterest pins about recipes" — i.e., the user wants to search WITHIN a platform but doesn't have a specific URL.</p>
+</li>
+<li><p><strong>Web search (SERP)</strong> — get structured search engine results (titles, links, snippets, rankings). <code>client.search.google(query=...)</code> (or <code>.bing</code> / <code>.yandex</code>). Use for "search Google for X", "find pages/articles about Y", "look up news on Z" — i.e., the user wants web pages, not entities.</p>
+</li>
+<li><p><strong>Discover (AI-powered)</strong> — <code>client.discover(query=..., intent=...)</code> to find entities (companies, people, products, places) matching natural-language criteria. Use for "find AI startups in Berlin", "competitors of Acme Corp", "people who worked at Stripe", "research the SaaS pricing landscape" — i.e., the user wants a list of entities matching a description, not web pages.</p>
+</li>
+<li><p><strong>Datasets</strong> — access 310+ pre-built datasets with historical/bulk data at scale. <code>client.datasets.&lt;name&gt;(filter=...)</code> (then <code>.download(snapshot_id)</code>). Use for "bulk LinkedIn company data", "historical Amazon prices for electronics", "all Zillow listings in Texas" — i.e., the user wants many records at once, not live data on one page.</p>
+</li>
+<li><p><strong>Web unlocker</strong> — scrape any URL with anti-bot bypass for sites without a dedicated platform scraper. <code>client.scrape_url(url=...)</code>. Use when the URL is on a generic website (no dedicated scraper) or as fallback when a platform scraper returns 403/blocked.</p>
+</li>
+<li><p><strong>Browser API</strong> — connect to a remote browser via CDP (Chrome DevTools Protocol) for real-browser interaction. <code>client.browser.get_connect_url()</code> (then connect with Playwright/Puppeteer). Use for login flows, JavaScript-heavy single-page apps, click/scroll/fill interactions, CAPTCHA — i.e., anything requiring a real browser session. Most expensive option; use only when simpler methods can't accomplish the task.</p>
+</li>
+<li><p><strong>Scraper Studio</strong> — run pre-built or custom scraping templates configured in the Bright Data dashboard. <code>client.scraper_studio.run(collector="c_xxx", input={...})</code>. Use when the user provides a collector ID for a template not covered by platform scrapers.</p>
+</li>
+</ol>
+<p>Offer to load the relevant reference file for details on any category.</p>
+<h3>Data extraction from a specific URL</h3>
+<p>The user has a URL and wants structured data from it.</p>
+<p>If the URL is from a supported platform (Amazon, LinkedIn, Facebook, Instagram, YouTube, TikTok, Reddit, ChatGPT, Perplexity, Pinterest, DigiKey — see <code>references/scrapers.md</code> for the full list and available methods):</p>
+<ul>
+<li>Use <code>client.scrape.&lt;platform&gt;.&lt;method&gt;(url=...)</code></li>
+<li>Read <code>references/scrapers.md</code> for available methods per platform</li>
+</ul>
+<p>If the URL is from an unsupported platform or a generic website:</p>
+<ul>
+<li>Use <code>client.scrape_url(url=...)</code> for raw page data with anti-bot bypass</li>
+<li>Read <code>references/advanced.md</code> for web unlocker options</li>
+</ul>
+<p>If the user has MULTIPLE URLs (batch):</p>
+<ul>
+<li>Use BrightDataClient and trigger methods (<code>_trigger</code> suffix) to avoid sequential blocking</li>
+<li>Fire all triggers first, then collect results with <code>job.wait()</code> and <code>job.to_result()</code></li>
+<li>Read <code>references/advanced.md</code> for batch execution patterns</li>
+</ul>
+<h3>Research or discovery without a specific URL</h3>
+<p>The user wants to find information but doesn't have a starting URL.</p>
+<p>For web search results (links, snippets, rankings):</p>
+<ul>
+<li>Use <code>client.search.google(query=...)</code>, <code>client.search.bing(query=...)</code>, or <code>client.search.yandex(query=...)</code></li>
+<li>Read <code>references/search.md</code> for available search engines and parameters</li>
+</ul>
+<p>For platform-specific search (find products on Amazon, profiles on LinkedIn, videos on YouTube, etc.):</p>
+<ul>
+<li>Use <code>client.search.&lt;platform&gt;.&lt;method&gt;(...)</code></li>
+<li>Read <code>references/scrapers.md</code> — search methods are listed under each platform</li>
+</ul>
+<p>For deeper discovery (find companies, people, or entities matching criteria):</p>
+<ul>
+<li>Use <code>client.discover(query=..., intent=...)</code></li>
+<li>The Discover API requires an intent phrase, not just keywords</li>
+<li>Read <code>references/search.md</code> for discover API details</li>
+</ul>
+<h3>Bulk or historical data needs</h3>
+<p>The user asks for "bulk data", "historical data", "database", "list of", or wants data at scale without scraping individual pages.</p>
+<ul>
+<li>Use <code>client.datasets.list()</code> at runtime to discover available datasets</li>
+<li>Read <code>references/datasets-overview.md</code> for dataset categories and usage patterns</li>
+<li>Create a filtered snapshot: <code>snapshot_id = client.datasets.&lt;name&gt;(filter={...})</code></li>
+<li>Download data: <code>data = client.datasets.&lt;name&gt;.download(snapshot_id)</code> (default format is jsonl; also supports json, csv)</li>
+<li>Snapshots take time to build — download blocks until ready (up to 5 minutes)</li>
+</ul>
+<h3>Multi-step research workflow</h3>
+<p>The user has a broad research goal (e.g., "research competitors in Berlin").</p>
+<p>Step 1: Find sources</p>
+<ul>
+<li><code>client.discover(query=..., intent=...)</code> for entity-level discovery</li>
+<li>OR <code>client.search.google(query=...)</code> for web search results</li>
+</ul>
+<p>Step 2: Extract data from discovered sources</p>
+<ul>
+<li><code>client.scrape.&lt;platform&gt;.&lt;method&gt;(url=...)</code> on each discovered URL</li>
+<li>Use trigger methods for batch processing if many URLs</li>
+</ul>
+<p>Step 3: Optionally enrich with bulk data</p>
+<ul>
+<li>Check <code>client.datasets</code> for historical context on the entities found</li>
+</ul>
+<h3>Interactive web tasks</h3>
+<p>The user needs login, clicking, scrolling, form filling, or JavaScript execution.</p>
+<ul>
+<li>Use <code>client.browser.get_connect_url()</code> to get a CDP WebSocket URL</li>
+<li>Connect with Playwright, Puppeteer, or another CDP client</li>
+<li>This is the most expensive option — only use when simpler methods cannot accomplish the task</li>
+<li>Read <code>references/advanced.md</code> for browser API details</li>
+</ul>
+<h3>Scraper Studio templates</h3>
+<p>The user wants to use a pre-built or custom scraping template.</p>
+<ul>
+<li>Use <code>client.scraper_studio.run(collector="c_xxx", input={...})</code></li>
+<li>Requires a collector ID — the user must provide this or know which template to use</li>
+<li>Read <code>references/advanced.md</code> for scraper studio details</li>
+</ul>
+<h2 id="gotchas">Gotchas</h2>
+<h3>Browser API is a last resort, not a default</h3>
+<p><strong>Default:</strong> For pages on a supported platform (Amazon products, LinkedIn profiles, Instagram posts/reels, etc.) → use the platform scraper.</p>
+<p><strong>Override:</strong> User explicitly mentions one of the following → comply with the browser-API request (it IS the right tool):
+login, sign-in, click, scroll, fill, type, JavaScript execution, CAPTCHA, screenshot, PDF generation, multi-step navigation.</p>
+<p><strong>Counter-override:</strong> User requests browser API for a page that does NOT need any of the above AND the URL is on a supported platform → DO NOT comply. Show the platform scraper code and explain the cost/speed difference (~10x cheaper, ~30s vs ~5min).</p>
+<div class="code-wrapper"><pre><code class="language-python"># WRONG (browser when scraper would do):
+cdp_url = client.browser.get_connect_url()
+browser = await playwright.chromium.connect_over_cdp(cdp_url)
+page = await browser.new_page()
+await page.goto("https://amazon.com/dp/B09V3KXJPB")
+# ↑ scraper is ~10x cheaper, ~30s vs ~5min, returns structured data not raw HTML
+
+# RIGHT (use the platform scraper):
+result = await client.scrape.amazon.products(url="https://amazon.com/dp/B09V3KXJPB")
+
+# RIGHT — legitimate browser-API case (the user mentions login):
+# User said "log into Amazon and check my recent orders"
+cdp_url = client.browser.get_connect_url(country="us")
+browser = await playwright.chromium.connect_over_cdp(cdp_url)
+page = await browser.new_page()
+await page.goto("https://amazon.com/login")
+await page.fill("#ap_email", username)
+# ... etc — browser is the right tool here.
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li>Datasets return HISTORICAL data, not live/real-time data. If the user needs current data, use platform scrapers or web unlocker instead.</li>
+<li>The Discover API requires an INTENT (natural language description of what you're looking for), not just a keyword. Rephrase bare keywords like "restaurants" into intent phrases like "find Italian restaurants with outdoor seating in downtown Austin."</li>
+<li>When a scraper returns 403 or is blocked, try <code>client.scrape_url()</code> (web unlocker) as fallback — it handles anti-bot protections.</li>
+<li>Always prefer the cheapest service that satisfies the request. Cost hierarchy (cheapest first): datasets → SERP → platform scrapers → web unlocker → discover → scraper studio → browser API.</li>
+<li>Always use the client as a context manager. Never create multiple client instances — reuse one client across all operations in a session.</li>
+<li>Each scraper supports 3 execution patterns: quick (blocks until result), trigger (returns job immediately), manual (trigger + status + fetch). Default to quick unless the user needs batch processing or non-blocking execution.</li>
+<li>Quick methods block for several minutes depending on platform and page complexity. Do NOT set short timeouts — the SDK defaults are calibrated per platform. Expect 2-10 minutes for most operations.</li>
+<li>The SDK auto-retries network errors and timeouts (3 retries, exponential backoff). Do NOT add your own retry logic on top — it will double-retry and waste API credits.</li>
+<li>Dataset operations return a <code>snapshot_id</code>, not data directly. Snapshots go through a lifecycle: scheduled → building → ready. Use <code>.download(snapshot_id)</code> which blocks until the snapshot is ready. Supported download formats: json, jsonl, csv.</li>
+</ul>
+<h3>For batch operations (many URLs), use the trigger pattern</h3>
+<p><strong>Why:</strong> Quick methods (e.g., <code>client.scrape.amazon.products</code>) block for 2-10 minutes each waiting for the scrape to complete. Even with the default 10 req/s rate limit, <code>asyncio.gather</code> of 200 quick calls = 200 × ~5 minutes / 10 (rate limit) = <strong>~100 minutes of blocked execution</strong>. The trigger pattern fires the request and returns a job; you collect results in parallel when they're ready.</p>
+<div class="code-wrapper"><pre><code class="language-python"># WRONG (anti-pattern, even with rate_limit respected):
+results = await asyncio.gather(*[
+    client.scrape.amazon.products(url=u) for u in urls
+])  # ↑ each call blocks ~5min; total ~100min for 200 URLs
+
+# RIGHT (trigger pattern):
+jobs = [await client.scrape.amazon.products_trigger(url=u) for u in urls]
+for job in jobs:
+    await job.wait(timeout=600)
+results = [await job.to_result() for job in jobs]
+# ↑ total time ≈ longest single scrape ≈ 5-10 min, regardless of N
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Rate limit (10 req/s default) keeps the trigger fires sequential; the parallelism happens during the wait phase, which is just status polling and is cheap. Do NOT use <code>asyncio.gather</code> to fire triggers in parallel either — you'll hit the rate limiter.</p>
+<ul>
+<li>In synchronous environments (scripts, notebooks, Claude Code), use <code>SyncBrightDataClient</code>. In async environments, use <code>BrightDataClient</code>. Both use the SAME method names — the only difference is that async calls need <code>await</code>. Do NOT use <code>_sync</code> suffix methods with <code>SyncBrightDataClient</code>. Note: the sync client has limited platform coverage. Sync scraping supports: Amazon, LinkedIn, Instagram, Facebook, ChatGPT, Pinterest. Sync search supports: Google, Bing, Yandex, Amazon, LinkedIn, Instagram, ChatGPT, Pinterest. For TikTok, YouTube, Reddit, Perplexity, DigiKey scrapers/search and the datasets API, use the async client.</li>
+<li>Platform search methods (e.g., <code>client.search.amazon.products()</code>) are different from platform scrapers (e.g., <code>client.scrape.amazon.products()</code>). Search finds items by keyword. Scrape extracts data from a specific URL.</li>
+</ul>
+<h2 id="examples">Examples</h2>
+<h3>"Get me reviews for this Amazon product"</h3>
+<p>Use <code>client.scrape.amazon.reviews(url="&lt;the_url&gt;")</code>.
+Returns structured review data: rating, text, date, reviewer name.
+Quick method — blocks until complete (up to ~4 minutes).</p>
+<h3>"Find AI startups in Berlin"</h3>
+<p>Step 1: <code>client.discover(query="AI startups in Berlin", intent="find technology companies")</code>
+Returns a list of matching entities with URLs and metadata.</p>
+<p>Step 2: For each result with a URL, optionally scrape deeper data:
+<code>client.scrape.linkedin.companies(url=...)</code> or <code>client.scrape_url(url=...)</code>.</p>
+<h3>"I need historical pricing data for electronics"</h3>
+<p>Step 1: <code>client.datasets.list()</code> to find relevant datasets.</p>
+<p>Step 2: Create a filtered snapshot:
+<code>snapshot_id = client.datasets.amazon_products(filter={"name": "category", "operator": "=", "value": "Electronics"}, records_limit=1000)</code></p>
+<p>Step 3: Download the data:
+<code>data = client.datasets.amazon_products.download(snapshot_id)</code></p>
+<p>Note: Download blocks while the snapshot builds (up to 5 minutes). Default format is jsonl (also supports json, csv). This is historical/bulk data, not live prices. Returns a list of records.</p>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<ul>
+<li><strong>401 Unauthorized</strong>: API token is invalid or expired. Check the token passed to the client constructor.</li>
+<li><strong>403 Forbidden / Blocked</strong>: The target site blocked the request. Try <code>client.scrape_url()</code> (web unlocker) as fallback, or use a different scraper method.</li>
+<li><strong>Timeout</strong>: Do not lower the timeout — increase it. Some operations take several minutes. Platform-specific defaults are already optimized.</li>
+<li><strong>"Dataset not found"</strong>: Use <code>client.datasets.list()</code> to see available datasets. Dataset attribute names are snake_case (e.g., <code>amazon_products</code>, <code>linkedin_profiles</code>).</li>
+<li><strong>SSL/Proxy errors in sandboxed environments</strong>: Pass <code>ssl_verify=False</code> to the client constructor to skip SSL verification, or use <code>ssl_ca_cert='/path/to/cert.pem'</code> for custom certificate handling.</li>
+<li><strong>Rate limit errors</strong>: Reduce concurrency. Default limit is 10 requests/second. Use sequential calls or trigger methods for batch work.</li>
+</ul>
+<h2 id="when-to-load-references">When to Load References</h2>
+<ul>
+<li>Read <code>references/scrapers.md</code> when the user mentions <strong>Amazon, LinkedIn, Facebook, Instagram, YouTube, TikTok, Reddit, ChatGPT, Perplexity, Pinterest, DigiKey</strong> or other specific platforms — to see available scraper methods, search methods, and parameters for that platform.</li>
+<li>Read <code>references/search.md</code> when the user asks to <strong>"find", "search", "discover", "research", "look up"</strong> something without mentioning a specific platform — to see SERP engines and Discover API options.</li>
+<li>Read <code>references/datasets-overview.md</code> when the user asks for <strong>"bulk data", "historical data", "database", "list of", "dataset"</strong> or wants data at scale — to see dataset categories and how to discover specific datasets at runtime.</li>
+<li>Read <code>references/advanced.md</code> when the user needs <strong>batch processing of multiple URLs, non-blocking execution, browser automation, JavaScript execution, login/session handling, custom scraping templates, or when simpler methods have failed</strong> — to see execution patterns, batch workflows, Web Unlocker, Browser API, and Scraper Studio details.</li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

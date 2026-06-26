@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>brightdata-proxy — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">brightdata-proxy</span></nav>
+    <h1>brightdata-proxy</h1>
+    <p class="page-desc">Generate working code that routes HTTP requests through Bright Data proxy networks (Datacenter, ISP, Residential, Mobile) and help users decide which network and IP pool type to use (shared pool, shared IPs, or dedicated IPs). Use this skill whenever the user mentions Bright Data, brightdata.com, BD proxies, brd.superproxy.io, geo.brdtest.com, a brd-customer- proxy username, a Bright Data zone, the superproxy host, or wants to scrape or route requests through Bright Data — including questions about proxy URL format, country or session or IP or sticky-session targeting, SSL certificate setup for residential or mobile proxies, KYC verification, ignoring SSL errors, choosing between shared pool and shared IPs and dedicated IPs, or integrating Bright Data into Python requests/httpx/aiohttp, Node fetch/axios, Playwright, Puppeteer, Selenium, or Scrapy.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">brightdata-plugin</span> <span class="pv-ver">1.8.0</span></span>
+      <span class="domain-tag">test</span>
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Bright Data Proxy</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#quick-reference-canonical-facts"><span class="toc-num">1.</span> Quick reference (canonical facts)</a></li>
+<li class="toc-item"><a href="#bundled-tools-in-this-skill"><span class="toc-num">2.</span> Bundled tools (in this skill)</a></li>
+<li class="toc-item"><a href="#decision-1-which-proxy-network"><span class="toc-num">3.</span> Decision 1: which proxy network?</a></li>
+<li class="toc-item"><a href="#decision-2-which-ip-pool-type-datacenter-and-isp"><span class="toc-num">4.</span> Decision 2: which IP pool type? (Datacenter and ISP)</a></li>
+<li class="toc-item"><a href="#proxy-url-format--authentication"><span class="toc-num">5.</span> Proxy URL format &amp; authentication</a></li>
+<li class="toc-item"><a href="#username-parameters-targeting-rotation-session"><span class="toc-num">6.</span> Username parameters (targeting, rotation, session)</a></li>
+<li class="toc-item"><a href="#session-and-rotation-patterns"><span class="toc-num">7.</span> Session and rotation patterns</a></li>
+<li class="toc-item"><a href="#core-code-patterns"><span class="toc-num">8.</span> Core code patterns</a></li>
+<li class="toc-item"><a href="#residential--mobile-network-access"><span class="toc-num">9.</span> Residential &amp; Mobile network access</a></li>
+<li class="toc-item"><a href="#testing--debugging"><span class="toc-num">10.</span> Testing &amp; debugging</a></li>
+<li class="toc-item"><a href="#when-the-user-hasnt-set-up-a-zone-yet"><span class="toc-num">11.</span> When the user hasn't set up a zone yet</a></li>
+<li class="toc-item"><a href="#reference-files"><span class="toc-num">12.</span> Reference files</a></li></ul>
+</div>
+<p>Generate working code and configuration for Bright Data's four proxy networks. This skill covers usage and integration — it does <strong>not</strong> walk users through control-panel UI setup. If the user hasn't created a zone yet, tell them to sign up at <a href="https://brightdata.com">https://brightdata.com</a> and use the in-app proxy creation helper (the control panel guides them through zone type, pool type, and credentials interactively — that's the right surface for setup, not this skill).</p>
+<h2 id="quick-reference-canonical-facts">Quick reference (canonical facts)</h2>
+<p>These are the values to use in generated code. They are easy to hallucinate wrong, so anchor on them.</p>
+<ul>
+<li><strong>Proxy host</strong>: <code>brd.superproxy.io</code></li>
+<li><strong>HTTP/HTTPS proxy port</strong>: <code>33335</code> (current, paired with the <strong>new</strong> SSL CA — expires Sept 2034)<ul>
+<li>Legacy port <code>22225</code> exists for the old CA (expires Sept 2026, deprecated). Use 33335 unless the user explicitly says otherwise.</li>
+</ul>
+</li>
+<li><strong>SOCKS5 port</strong>: <code>22228</code></li>
+<li><strong>Username format</strong>: <code>brd-customer-CUSTOMER_ID-zone-ZONE_NAME</code> plus optional <code>-key-value</code> parameters appended (see Targeting below).</li>
+<li><strong>Password</strong>: the zone password from the control panel (not the account password).</li>
+<li><strong>Test endpoint</strong> (use in code samples, not against real targets): <code>https://geo.brdtest.com/mygeo.json</code> — returns exit IP, country, city, and ASN as JSON.</li>
+<li><strong>SSL CA</strong>: bundled with this skill at <code>assets/brightdata_proxy_ca.crt</code> (Bright Data Proxy Root CA, valid until Sept 2034). Generated code should reference this path, not tell the user to go download it. The public download is at <code>https://brightdata.com/static/brightdata_proxy_ca.zip</code> if they ever need to fetch it independently.</li>
+</ul>
+<p>The line <code>https://brightdata.com/cp/zones/proxy_examples</code> in the control panel shows live, account-specific code samples for every framework — point the user there for ground truth when uncertain.</p>
+<h2 id="bundled-tools-in-this-skill">Bundled tools (in this skill)</h2>
+<ul>
+<li><strong><code>assets/brightdata_proxy_ca.crt</code></strong> — the Bright Data Root CA. Use this in <code>verify=</code>, <code>--cacert</code>, <code>ca:</code>, or <code>NODE_EXTRA_CA_CERTS</code> instead of having the user download it.</li>
+<li><strong><code>scripts/smoke_test.sh</code></strong> — cURL-based credential smoke test. Run <code>./smoke_test.sh CUSTOMER_ID ZONE_NAME ZONE_PASSWORD [COUNTRY] [SESSION_ID]</code> (or set <code>BD_CUSTOMER_ID</code>/<code>BD_ZONE</code>/<code>BD_PASSWORD</code> env vars). Auto-locates the bundled CA, returns parsed JSON geo, distinct exit codes for auth vs HTTP vs network failure. Recommend this as the first thing the user runs after creating a zone.</li>
+<li><strong><code>scripts/proxy_tester.html</code></strong> — single-file browser diagnostic. User configures their browser or OS proxy with the credentials, opens the file locally (or serves it from anywhere), and sees a live readout of their current exit IP/geo. Has a baseline-save feature so they can compare pre-proxy vs post-proxy exits visually. Credentials live in <code>sessionStorage</code> only — nothing is uploaded.</li>
+</ul>
+<hr>
+<h2 id="decision-1-which-proxy-network">Decision 1: which proxy network?</h2>
+<p>If the user hasn't said which network they're on, ask once, then proceed. Quick rubric:</p>
+<table>
+<thead>
+<tr>
+<th>Network</th>
+<th>When to recommend</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Datacenter</strong></td>
+<td>Cheapest, fastest. Use for unprotected targets (news sites, public APIs, light scraping, account management at low scale, geo-bypass on permissive sites).</td>
+</tr>
+<tr>
+<td><strong>ISP</strong></td>
+<td>Static IPs that look residential to the destination. Best for long-lived sessions, account management on protected platforms, anything where IP reputation matters but you want speed and stability.</td>
+</tr>
+<tr>
+<td><strong>Residential</strong></td>
+<td>Real-user IPs from a 100M+ pool. Default choice when datacenter and ISP get blocked. Best success rate on hard targets. Pay-per-GB; slower. Requires SSL cert or KYC (see Residential/Mobile network access below).</td>
+</tr>
+<tr>
+<td><strong>Mobile</strong></td>
+<td>3G/4G/5G mobile carrier IPs. Most expensive. Use only when the target is extreme (Instagram, TikTok, some banking). Same network-access requirements as Residential.</td>
+</tr>
+</tbody></table>
+<p>Default reach order when the user is unsure: Datacenter → Residential. ISP and Mobile are deliberate choices for specific needs.</p>
+<h2 id="decision-2-which-ip-pool-type-datacenter-and-isp">Decision 2: which IP pool type? (Datacenter and ISP)</h2>
+<p>Bright Data sells Datacenter and ISP traffic in three IP-allocation modes. The user picks this when they create the zone in the control panel.</p>
+<table>
+<thead>
+<tr>
+<th>Pool type</th>
+<th>What it is</th>
+<th>When to recommend</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Shared pool</strong> (also called "pay-per-GB" or "unlimited")</td>
+<td>Pull random IPs from a huge shared pool. No fixed IPs allocated to you. Pay per GB of traffic.</td>
+<td>Default for high-volume rotating scraping. You don't care which IP you get, you just want a fresh one frequently.</td>
+</tr>
+<tr>
+<td><strong>Shared IPs</strong></td>
+<td>A fixed set of N IPs leased to you, but shared with other Bright Data customers. Cheaper than dedicated.</td>
+<td>Mid-budget. You want some IP stability but not exclusivity. Useful when the target accepts moderately-warm IPs.</td>
+</tr>
+<tr>
+<td><strong>Dedicated IPs</strong></td>
+<td>A fixed set of N IPs leased exclusively to you. No other customer uses them. Highest cost per IP.</td>
+<td>Account management on platforms that fingerprint IPs heavily, anything needing a clean reputation you control, anything where another customer's bad behavior on a shared IP would burn you.</td>
+</tr>
+</tbody></table>
+<p>For Residential and Mobile the equivalent of "dedicated" is <strong>dedicated gIPs</strong> (groups of IPs) selected via the <code>-gip-</code> parameter — not the same as DC/ISP dedicated. Don't confuse the two.</p>
+<hr>
+<h2 id="proxy-url-format--authentication">Proxy URL format &amp; authentication</h2>
+<p>The username carries all per-request configuration. The general form:</p>
+<div class="code-wrapper"><pre><code>brd-customer-CUSTOMER_ID-zone-ZONE_NAME[-param1-value1][-param2-value2]...
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Composed into a proxy URL it looks like:</p>
+<div class="code-wrapper"><pre><code>http://brd-customer-CUSTOMER_ID-zone-ZONE_NAME[-PARAMS]:ZONE_PASSWORD@brd.superproxy.io:33335
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Notes:</p>
+<ul>
+<li>The scheme is <code>http://</code> even for HTTPS targets — that's the proxy's own scheme, not the destination's.</li>
+<li>Always URL-encode the password if it contains special characters.</li>
+<li>Parameters are appended to the username with hyphens — they are <strong>not</strong> query-string params on the URL.</li>
+<li>Zone name cannot be changed after creation; the user has to make a new zone if they want a different name.</li>
+</ul>
+<h2 id="username-parameters-targeting-rotation-session">Username parameters (targeting, rotation, session)</h2>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Applies to</th>
+<th>What it does</th>
+<th>Example suffix on username</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>-country-XX</code></td>
+<td>All networks</td>
+<td>ISO country code (2-letter, lowercase). <code>eu</code> = random EU country.</td>
+<td><code>-country-us</code></td>
+</tr>
+<tr>
+<td><code>-state-XX</code></td>
+<td><strong>Residential, Mobile only</strong></td>
+<td>US state, 2-letter, requires <code>-country-us</code></td>
+<td><code>-country-us-state-ny</code></td>
+</tr>
+<tr>
+<td><code>-city-NAME</code></td>
+<td><strong>Residential, Mobile only</strong></td>
+<td>City, no spaces (<code>sanfrancisco</code>), requires country</td>
+<td><code>-country-us-city-sanfrancisco</code></td>
+</tr>
+<tr>
+<td><code>-zip-NNNNN</code></td>
+<td><strong>Residential, Mobile only</strong></td>
+<td>US zip, 5 digits</td>
+<td><code>-country-us-zip-37501</code></td>
+</tr>
+<tr>
+<td><code>-asn-NNNNN</code></td>
+<td><strong>Residential, Mobile only</strong></td>
+<td>Target a specific ASN</td>
+<td><code>-asn-56386</code></td>
+</tr>
+<tr>
+<td><code>-os-X</code></td>
+<td><strong>Residential only</strong></td>
+<td><code>windows</code>, <code>macos</code>, <code>android</code></td>
+<td><code>-os-windows</code></td>
+</tr>
+<tr>
+<td><code>-carrier-X</code></td>
+<td><strong>Mobile only</strong></td>
+<td>Specific carrier (e.g. <code>-carrier-dt</code>)</td>
+<td><code>-carrier-dt</code></td>
+</tr>
+<tr>
+<td><code>-session-STRING</code></td>
+<td>All</td>
+<td>Sticky session — same session ID returns the same exit IP for the session's lifetime. Use a random string per logical "user session" to implement rotation.</td>
+<td><code>-session-abc12345</code></td>
+</tr>
+<tr>
+<td><code>-ip-A.B.C.D</code></td>
+<td>Zones with <strong>dedicated IPs</strong> only</td>
+<td>Pin to a specific allocated IP</td>
+<td><code>-ip-1.2.3.4</code></td>
+</tr>
+<tr>
+<td><code>-gip-NAME</code></td>
+<td><strong>Dedicated Residential or Mobile</strong> only</td>
+<td>Pin to a specific gIP group</td>
+<td><code>-gip-us_7922_fl_hollywood_0</code></td>
+</tr>
+<tr>
+<td><code>-dns-local</code> / <code>-dns-remote</code></td>
+<td>All</td>
+<td><code>remote</code> = resolve DNS at the proxy peer (default for residential); <code>local</code> = resolve on super proxy</td>
+<td><code>-dns-remote</code></td>
+</tr>
+<tr>
+<td><code>-const</code></td>
+<td>Residential, Mobile</td>
+<td>Bind to the same peer; if peer is unavailable, return 502 "no peer available" instead of switching</td>
+<td><code>-const</code></td>
+</tr>
+<tr>
+<td><code>-direct</code></td>
+<td>All</td>
+<td>Force the request from the super proxy itself (skip peer routing). Rarely needed.</td>
+<td><code>-direct</code></td>
+</tr>
+<tr>
+<td><code>-c_tag-VALUE</code></td>
+<td>All</td>
+<td>Custom tag echoed back in response headers, for correlating req/resp at scale</td>
+<td><code>-c_tag-job42-row7</code></td>
+</tr>
+</tbody></table>
+<p><strong>Critical constraint</strong>: Datacenter and ISP zones only support <strong>country</strong> targeting. State, city, zip, ASN, OS, and carrier targeting are Residential/Mobile-only. Don't generate code that puts <code>-city-</code> on a DC or ISP zone — it will silently fail or 400.</p>
+<h2 id="session-and-rotation-patterns">Session and rotation patterns</h2>
+<ul>
+<li><strong>Want a fresh IP on every request?</strong> Omit <code>-session-</code>. The super proxy hands you a new peer each request.</li>
+<li><strong>Want to keep the same IP across a multi-step flow (login → action → action)?</strong> Generate a random <code>session_id</code> once and reuse it: <code>-session-{session_id}</code>. New value = new IP.</li>
+<li><strong>Idle session timeouts</strong> (lose the IP if idle too long, per Bright Data docs): Datacenter ~1 min, Residential ~5 min, ISP ~7 min, Mobile ~10 min. For longer-than-timeout flows, send a keep-alive request or accept that the IP will rotate.</li>
+<li><strong>Maximum control</strong>: dedicated IPs zone + <code>-ip-A.B.C.D</code> to pin every request to a specific allocated IP. No randomness.</li>
+</ul>
+<hr>
+<h2 id="core-code-patterns">Core code patterns</h2>
+<h3>cURL (for testing/debugging)</h3>
+<div class="code-wrapper"><pre><code class="language-bash">curl --proxy brd.superproxy.io:33335 \
+  --proxy-user 'brd-customer-CUSTOMER_ID-zone-ZONE_NAME:ZONE_PASSWORD' \
+  --cacert ./assets/brightdata_proxy_ca.crt \
+  'https://geo.brdtest.com/mygeo.json'
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>(For Datacenter and ISP zones, the <code>--cacert</code> flag is optional. For Residential and Mobile it's required unless the user has system-installed the CA or completed KYC — see "Residential &amp; Mobile network access" below.)</p>
+<p>To bypass cert verification entirely (only OK if user has chosen the "ignore SSL errors" path):</p>
+<div class="code-wrapper"><pre><code class="language-bash">curl -k --proxy brd.superproxy.io:33335 \
+  --proxy-user 'brd-customer-CUSTOMER_ID-zone-ZONE_NAME:ZONE_PASSWORD' \
+  'https://geo.brdtest.com/mygeo.json'
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Python — <code>requests</code></h3>
+<div class="code-wrapper"><pre><code class="language-python">import requests
+
+CUSTOMER_ID = "your_customer_id"
+ZONE_NAME = "your_zone_name"
+ZONE_PASSWORD = "your_zone_password"
+
+proxy_user = f"brd-customer-{CUSTOMER_ID}-zone-{ZONE_NAME}"
+proxy_url = f"http://{proxy_user}:{ZONE_PASSWORD}@brd.superproxy.io:33335"
+
+proxies = {"http": proxy_url, "https": proxy_url}
+
+# Preferred: verify TLS using the bundled Bright Data CA
+resp = requests.get(
+    "https://geo.brdtest.com/mygeo.json",
+    proxies=proxies,
+    verify="./assets/brightdata_proxy_ca.crt",  # path to bundled cert
+    timeout=30,
+)
+print(resp.json())
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Country targeting:</p>
+<div class="code-wrapper"><pre><code class="language-python">proxy_user = f"brd-customer-{CUSTOMER_ID}-zone-{ZONE_NAME}-country-us"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Sticky session (rotate per logical user, same IP within a session):</p>
+<div class="code-wrapper"><pre><code class="language-python">import secrets
+session_id = secrets.token_hex(8)
+proxy_user = f"brd-customer-{CUSTOMER_ID}-zone-{ZONE_NAME}-country-us-session-{session_id}"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Rotation across many requests — give each request its own session ID:</p>
+<div class="code-wrapper"><pre><code class="language-python">import secrets, requests
+
+def proxy_for_request():
+    sid = secrets.token_hex(8)
+    user = f"brd-customer-{CUSTOMER_ID}-zone-{ZONE_NAME}-session-{sid}"
+    url = f"http://{user}:{ZONE_PASSWORD}@brd.superproxy.io:33335"
+    return {"http": url, "https": url}
+
+for target in targets:
+    requests.get(target, proxies=proxy_for_request(), verify=CA_PATH, timeout=30)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Node.js — undici / fetch (Node 18+)</h3>
+<div class="code-wrapper"><pre><code class="language-js">import { fetch, ProxyAgent } from 'undici';
+
+const CUSTOMER_ID = 'your_customer_id';
+const ZONE_NAME = 'your_zone_name';
+const ZONE_PASSWORD = 'your_zone_password';
+
+const proxyUser = `brd-customer-${CUSTOMER_ID}-zone-${ZONE_NAME}`;
+const proxyUrl = `http://${proxyUser}:${ZONE_PASSWORD}@brd.superproxy.io:33335`;
+
+const agent = new ProxyAgent(proxyUrl);
+
+const res = await fetch('https://geo.brdtest.com/mygeo.json', { dispatcher: agent });
+console.log(await res.json());
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>For CA verification on Node, set <code>NODE_EXTRA_CA_CERTS=/path/to/brightdata_proxy_ca.crt</code> in the environment, or pass a custom <code>Agent</code> with <code>ca</code> set. To bypass cert checks (last resort): <code>NODE_TLS_REJECT_UNAUTHORIZED=0</code>.</p>
+<h3>Node.js — axios with https-proxy-agent</h3>
+<div class="code-wrapper"><pre><code class="language-js">import axios from 'axios';
+import { HttpsProxyAgent } from 'https-proxy-agent';
+
+const proxyUrl = `http://brd-customer-${CUSTOMER_ID}-zone-${ZONE_NAME}:${ZONE_PASSWORD}@brd.superproxy.io:33335`;
+const agent = new HttpsProxyAgent(proxyUrl);
+
+const res = await axios.get('https://geo.brdtest.com/mygeo.json', {
+  httpAgent: agent,
+  httpsAgent: agent,
+  proxy: false, // important: tell axios to use our agent, not its own proxy logic
+});
+console.log(res.data);
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>For framework integrations (Playwright, Puppeteer, Selenium, Scrapy, httpx, aiohttp) and additional patterns, see <code>references/code-templates.md</code>.</p>
+<hr>
+<h2 id="residential--mobile-network-access">Residential &amp; Mobile network access</h2>
+<p>Residential and Mobile have a network access policy that Datacenter and ISP don't. The user must pick <strong>one</strong> of these three before requests will succeed against arbitrary HTTPS targets:</p>
+<ol>
+<li><strong>Use the Bright Data CA certificate</strong> (preferred — what most users should do). The cert is already bundled in this skill at <code>assets/brightdata_proxy_ca.crt</code>. Two ways to apply it:<ul>
+<li><strong>Load it in code</strong> for each request (no system install needed). For Python <code>requests</code>: <code>verify="./assets/brightdata_proxy_ca.crt"</code>. For cURL: <code>--cacert ./assets/brightdata_proxy_ca.crt</code>. For Node: set <code>NODE_EXTRA_CA_CERTS=./assets/brightdata_proxy_ca.crt</code> env var or pass a custom Agent with <code>ca</code>. This is the cleanest path and what we recommend by default in generated code.</li>
+<li><strong>System-install the cert</strong> (Windows / macOS Keychain / Linux <code>update-ca-certificates</code> / iOS / Android). Needed when using third-party tools that don't expose a CA-cert option. Copy the bundled <code>assets/brightdata_proxy_ca.crt</code> to the appropriate trust store, restart the app afterward. Public mirror at <code>https://brightdata.com/static/brightdata_proxy_ca.zip</code> if the user prefers to grab it independently.</li>
+</ul>
+</li>
+<li><strong>KYC verification</strong>. Submit identity verification in the Bright Data control panel. After approval, the cert is no longer required for native proxy access.</li>
+<li><strong>Ignore SSL errors</strong> (last resort, not recommended for production). In Python: <code>requests.get(..., verify=False)</code>. In Node: <code>rejectUnauthorized: false</code> or <code>NODE_TLS_REJECT_UNAUTHORIZED=0</code>. In cURL: <code>-k</code>. This works but loses end-to-end encryption guarantees against MITM — fine for throwaway testing, bad for anything handling credentials or PII.</li>
+</ol>
+<p>Generated code for Residential/Mobile should default to path 1a (load CA in code) with the cert path as a placeholder the user fills in. Mention path 2 and 3 as alternatives, briefly.</p>
+<p>For Datacenter and ISP, none of this is required — they don't enforce the network access policy.</p>
+<hr>
+<h2 id="testing--debugging">Testing &amp; debugging</h2>
+<p>Before scraping a real target, confirm the proxy works. Two bundled tools cover this end-to-end:</p>
+<p><strong>1. Command-line smoke test</strong> — <code>scripts/smoke_test.sh</code>:</p>
+<div class="code-wrapper"><pre><code class="language-bash">./scripts/smoke_test.sh CUSTOMER_ID ZONE_NAME ZONE_PASSWORD
+# with optional country and sticky session:
+./scripts/smoke_test.sh CUSTOMER_ID ZONE_NAME ZONE_PASSWORD us my-session-1
+
+# or via env vars:
+BD_CUSTOMER_ID=xxx BD_ZONE=yyy BD_PASSWORD=zzz ./scripts/smoke_test.sh
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>It hits <code>geo.brdtest.com/mygeo.json</code> through the zone and returns the parsed JSON (IP, country, city, ASN). Exit codes distinguish auth failure (2) from HTTP error (3), so it's also fine to script around.</p>
+<p><strong>2. Browser diagnostic</strong> — <code>scripts/proxy_tester.html</code>:</p>
+<p>Open the file in a browser. It continuously polls the geo endpoint and displays exit IP/country/city/ASN. Fill in your zone credentials and it generates the exact proxy config string to paste into your browser or OS proxy settings. The "Save as baseline" button captures your pre-proxy IP so you can visually confirm the proxy is active (the status flips to green and shows the before→after change). Useful when explaining to teammates that the proxy is working, or for debugging "is my browser actually going through the proxy" questions.</p>
+<p>For ad-hoc one-liners, the raw cURL works too:</p>
+<div class="code-wrapper"><pre><code class="language-bash">curl --proxy brd.superproxy.io:33335 \
+  --proxy-user 'brd-customer-CUSTOMER_ID-zone-ZONE_NAME:ZONE_PASSWORD' \
+  --cacert ./assets/brightdata_proxy_ca.crt \
+  'https://geo.brdtest.com/mygeo.json'
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Expected: JSON with <code>ip</code>, <code>country</code>, <code>asn</code>, <code>geo</code>. If you see this, auth and routing are working. <strong>Do not</strong> test against Google, Bing, or other search engines directly — Bright Data blocks direct search-engine access on the proxy networks. Use the SERP API for that.</p>
+<p>Common errors and what they mean (high-signal subset):</p>
+<ul>
+<li><strong>407 Proxy Authentication Required</strong>: wrong username structure or wrong zone password. Double-check <code>brd-customer-</code> prefix and <code>-zone-</code> segment. The customer ID is from the control panel, not your email.</li>
+<li><strong>502 "no peer available"</strong>: usually from <code>-const</code> or <code>-ip-</code> to an IP that's offline. Drop <code>-const</code> or pick a different IP.</li>
+<li><strong>403 from the destination</strong> (not from Bright Data): the destination blocked the proxy IP. Try Residential, add a sticky session, slow down request rate, or use Web Unlocker API.</li>
+<li><strong>TLS / certificate errors on Residential/Mobile</strong>: you skipped the network-access setup. Install the cert (or load it in code), or fall back to <code>verify=False</code> for the moment.</li>
+<li><strong>Targeting silently ignored</strong> on DC/ISP: you used <code>-city-</code> or <code>-state-</code> on a DC/ISP zone. They only honor <code>-country-</code>.</li>
+</ul>
+<p>For any specific Bright Data error code not covered above, look it up in the full catalog: <a href="https://docs.brightdata.com/proxy-networks/errorCatalog">https://docs.brightdata.com/proxy-networks/errorCatalog</a>. Inspect the response headers for the precise code — Bright Data is transitioning from the legacy <code>x-brd-err-code</code> header to the RFC 9209 standard <code>Proxy-Status</code> header, so generated debugging code should check both. Codes follow a <code>category_number</code> shape that tells you which layer failed at a glance: <code>client_*</code> (auth or request shape, e.g. <code>client_10000</code>), <code>policy_*</code> (Bright Data policy block, e.g. <code>policy_20050</code>), <code>target_*</code> (destination-side failure, e.g. <code>target_40011</code>), and the like.</p>
+<hr>
+<h2 id="when-the-user-hasnt-set-up-a-zone-yet">When the user hasn't set up a zone yet</h2>
+<p>Don't try to script the control-panel flow or call account-management APIs to create zones for them — those flows are interactive and account-specific. Instead, say:</p>
+<blockquote>
+<p>Sign up at <a href="https://brightdata.com">https://brightdata.com</a> (new accounts get $2 trial credit for 7 days, plus a $5 bonus for 30 days after adding a payment method — note proxy products are billed separately and are <strong>not</strong> covered by the monthly free credits). Once you're in, click <strong>Proxies &amp; Scraping</strong> → <strong>Add</strong> and the in-app helper will walk you through choosing the network, the pool type, and naming the zone. When it finishes, copy the <strong>customer ID</strong>, <strong>zone name</strong>, and <strong>zone password</strong> from the zone's overview page and paste them in here — I'll generate the code.</p>
+</blockquote>
+<p>The control panel's <code>proxy_examples</code> page (<a href="https://brightdata.com/cp/zones/proxy_examples">https://brightdata.com/cp/zones/proxy_examples</a>) also has live, account-specific snippets for many languages and frameworks — use it as a sanity check if anything in this skill seems out of date.</p>
+<hr>
+<h2 id="reference-files">Reference files</h2>
+<ul>
+<li><code>references/code-templates.md</code> — full working code for Playwright, Puppeteer, Selenium (modern auth-extension approach + SeleniumWire fallback), Scrapy, httpx, aiohttp, and a few language variants. Read this when the user asks about a specific framework that isn't covered above.</li>
+<li><code>references/troubleshooting.md</code> — extended error catalog and debugging recipes. Read when the user reports an error or unexpected behavior.</li>
+<li><code>assets/brightdata_proxy_ca.crt</code> — Bright Data Proxy Root CA (port 33335, expires Sept 2034). Reference this path in any generated code that uses Residential or Mobile zones.</li>
+<li><code>scripts/smoke_test.sh</code> — cURL credential smoke test (see Testing section).</li>
+<li><code>scripts/proxy_tester.html</code> — single-file browser diagnostic (see Testing section).</li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

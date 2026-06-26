@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>git-workflow — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">git-workflow</span></nav>
+    <h1>git-workflow</h1>
+    <p class="page-desc">Use whenever committing, pushing, creating a PR, or finishing work on any branch. Covers the complete repo-specific git lifecycle: pull-first, commit conventions, freshness guard, commit verification, PR creation with scope preflight, CI fix loop, auto-merge, and worktree cleanup.</p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Git Workflow — vollständiger Lifecycle für dieses Repo</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#schritt-0--pull-first"><span class="toc-num">1.</span> Schritt 0 — Pull-First</a></li>
+<li class="toc-item"><a href="#schritt-1--freshness-guard-vor-dem-commit"><span class="toc-num">2.</span> Schritt 1 — Freshness Guard (vor dem Commit)</a></li>
+<li class="toc-item"><a href="#schritt-2--commit"><span class="toc-num">3.</span> Schritt 2 — Commit</a></li>
+<li class="toc-item"><a href="#schritt-3--push"><span class="toc-num">4.</span> Schritt 3 — Push</a></li>
+<li class="toc-item"><a href="#schritt-4--pr-erstellung"><span class="toc-num">5.</span> Schritt 4 — PR-Erstellung</a></li>
+<li class="toc-item"><a href="#schritt-5--ci-fix-loop"><span class="toc-num">6.</span> Schritt 5 — CI Fix Loop</a></li>
+<li class="toc-item"><a href="#schritt-6--merge"><span class="toc-num">7.</span> Schritt 6 — Merge</a></li>
+<li class="toc-item"><a href="#schritt-7--post-merge-cleanup-worktrees"><span class="toc-num">8.</span> Schritt 7 — Post-Merge Cleanup (Worktrees)</a></li>
+<li class="toc-item"><a href="#quick-reference"><span class="toc-num">9.</span> Quick-Reference</a></li>
+<li class="toc-item"><a href="#haeufige-fehler"><span class="toc-num">10.</span> Häufige Fehler</a></li>
+<li class="toc-item"><a href="#verwandte-skills"><span class="toc-num">11.</span> Verwandte Skills</a></li></ul>
+</div>
+<p><strong>Sage zu Beginn:</strong> "Ich nutze git-workflow für den Commit/PR-Ablauf."</p>
+<hr>
+<h2 id="schritt-0--pull-first">Schritt 0 — Pull-First</h2>
+<p>Vor jedem Commit / jeder Branch-Aktion sicherstellen, dass <code>origin/main</code> aktuell ist:</p>
+<div class="code-wrapper"><pre><code class="language-bash">git fetch origin main
+if git diff --quiet HEAD; then
+  git pull --rebase origin main
+else
+  git stash
+  git pull --rebase origin main
+  git stash pop
+  # Konflikte? Dem User anzeigen und klären.
+fi
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="schritt-1--freshness-guard-vor-dem-commit">Schritt 1 — Freshness Guard (vor dem Commit)</h2>
+<p>CI schlägt mit "stale artifact" fehl, wenn generierte Indexdateien veraltet sind.</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Regeneriert: docs/code-quality/repo-index.json, website/src/data/test-inventory.json, etc.
+task freshness:regenerate
+
+# Frisch erzeugte Änderungen sofort stagen
+git add -p   # oder: git add docs/code-quality/ website/src/data/
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<blockquote>
+<p>Der Pre-commit-Hook erledigt das automatisch, wenn <code>task secrets:install-hooks</code> gelaufen ist.
+Ohne Hook: immer manuell ausführen, wenn <code>.ts/.svelte/.astro/.sh/.mjs</code>-Dateien geändert wurden.</p>
+</blockquote>
+<p><strong>S1-Ratchet-Check</strong> (wenn Code-Dateien berührt wurden):</p>
+<div class="code-wrapper"><pre><code class="language-bash">task freshness:check    # Schlägt fehl, wenn eine Datei das Zeilenbudget überschreitet
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Falls rot: Datei wirklich verkleinern (nicht kosmetisch Zeilen zusammenziehen).</p>
+<hr>
+<h2 id="schritt-2--commit">Schritt 2 — Commit</h2>
+<h3>Conventional Commits — Pflichtformat</h3>
+<div class="code-wrapper"><pre><code>&lt;type&gt;(&lt;scope&gt;): &lt;subject&gt; [&lt;TICKET_EXT_ID&gt;]
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li><strong>Header ≤ 100 Zeichen</strong> (commitlint-Regel)</li>
+<li><code>type</code>: <code>feat</code>, <code>fix</code>, <code>chore</code>, <code>docs</code>, <code>test</code>, <code>refactor</code>, <code>perf</code>, <code>ci</code></li>
+<li><code>scope</code>: betroffenes Modul / Verzeichnis (z. B. <code>website</code>, <code>k3d</code>, <code>scripts</code>, <code>keycloak</code>)</li>
+<li><code>TICKET_EXT_ID</code>: z. B. <code>T001026</code> — <strong>immer anhängen</strong> wenn ein Ticket existiert</li>
+<li>Body-Zeilen ebenfalls &lt; 100 Zeichen</li>
+</ul>
+<p>Beispiele:</p>
+<div class="code-wrapper"><pre><code>feat(website): add React mentolder rebuild [T001026]
+fix(keycloak): rotate stale oauth2-proxy secret [T000950]
+chore(k3d): bump TEI embed port 9081 [T000978]
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Commit ausführen</h3>
+<div class="code-wrapper"><pre><code class="language-bash">BASE_SHA="$(git rev-parse HEAD)"
+
+git add &lt;spezifische Dateien&gt;   # NIEMALS git add -A blindlings (schützt vor .env-Leaks)
+
+git commit -m "&lt;type&gt;(&lt;scope&gt;): &lt;subject&gt; [&lt;TICKET_EXT_ID&gt;]"
+
+# Commit-Verifikation — git-crypt clean filter kann in Worktrees still scheitern [T000925]
+HEAD_SHA="$(git rev-parse HEAD)"
+if [ "$HEAD_SHA" = "$BASE_SHA" ]; then
+  echo "FATAL: Commit ist nicht gelandet (git-crypt clean filter?). Push abgebrochen." &gt;&amp;2
+  exit 1
+fi
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="schritt-3--push">Schritt 3 — Push</h2>
+<div class="code-wrapper"><pre><code class="language-bash">git push -u origin "$(git rev-parse --abbrev-ref HEAD)"
+# Bei rejected (non-fast-forward im selben Feature-Branch):
+# git push --force-with-lease   — NUR für eigene Feature-Branches, NIEMALS für main
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="schritt-4--pr-erstellung">Schritt 4 — PR-Erstellung</h2>
+<h3>Scope-Preflight (Pflicht vor <code>gh pr create</code>) [T000925]</h3>
+<div class="code-wrapper"><pre><code class="language-bash">bash scripts/preflight-pr-scope.sh "&lt;type&gt;(&lt;scope&gt;): &lt;subject&gt; [&lt;TICKET_EXT_ID&gt;]"
+# Schlägt fehl bei ungültigem Scope → korrigieren, dann erneut prüfen
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<blockquote>
+<p><strong>Titel nachträglich editieren (REST-Fallback):</strong> <code>gh pr edit --title</code> scheitert
+gelegentlich an einer Projects-Classic-GraphQL-Deprecation. Stattdessen:</p>
+<div class="code-wrapper"><pre><code class="language-bash">gh api -X PATCH "repos/{owner}/{repo}/pulls/&lt;n&gt;" -f title="&lt;neuer Titel&gt;"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</blockquote>
+<h3>PR anlegen</h3>
+<div class="code-wrapper"><pre><code class="language-bash">gh pr create \
+  --title "&lt;type&gt;(&lt;scope&gt;): &lt;subject&gt; [&lt;TICKET_EXT_ID&gt;]" \
+  --body "$(cat &lt;&lt;'EOF'
+## Summary
+- &lt;was wurde geändert&gt;
+- &lt;warum&gt;
+
+## Test Plan
+- [ ] &lt;manuell überprüft / CI grün&gt;
+
+🤖 [T&lt;TICKET_EXT_ID&gt;]
+EOF
+)"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="schritt-5--ci-fix-loop">Schritt 5 — CI Fix Loop</h2>
+<p>Nachdem der PR gepusht ist: CI überwachen und Fehler beheben <strong>bevor</strong> gemergt wird.</p>
+<p>Detaillierte Checkliste: <a href="../references/ci-fix-loop.md">references/ci-fix-loop.md</a></p>
+<p>Kurzfassung:</p>
+<ol>
+<li><code>gh pr checks &lt;n&gt; --watch</code> — warten bis alle Required Checks grün sind</li>
+<li>Bei Fehler: Log lesen, lokal fixen, committen, pushen — Loop wiederholen</li>
+<li>Bei <code>CONFLICTING</code> PR-Status: <code>git fetch origin main &amp;&amp; git rebase origin/main</code> → push</li>
+</ol>
+<blockquote>
+<p><strong>Hinweis:</strong> <code>CONFLICTING</code>-Status unterdrückt CI-Runs komplett — kein "CI läuft noch",
+sondern "CI startet nie". Diagnose: <code>gh pr view &lt;n&gt; --json mergeStateStatus</code>.</p>
+</blockquote>
+<hr>
+<h2 id="schritt-6--merge">Schritt 6 — Merge</h2>
+<div class="code-wrapper"><pre><code class="language-bash">MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
+(cd "$MAIN_REPO" &amp;&amp; gh pr merge --auto --squash --delete-branch)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li><strong>Immer <code>--squash</code></strong> — hält <code>main</code>-History sauber (Entwicklungsregel)</li>
+<li><strong>Immer <code>--delete-branch</code></strong> — Branch-Leichen vermeiden</li>
+<li><strong><code>--auto</code></strong> — mergt automatisch wenn alle Required Checks grün sind</li>
+</ul>
+<hr>
+<h2 id="schritt-7--post-merge-cleanup-worktrees">Schritt 7 — Post-Merge Cleanup (Worktrees)</h2>
+<p>Nur wenn in einem <code>/tmp/wt-*</code>-Worktree gearbeitet wurde:</p>
+<div class="code-wrapper"><pre><code class="language-bash">WORKTREE_PATH="$(git rev-parse --show-toplevel)"
+MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
+
+cd "$MAIN_REPO"
+git worktree remove "$WORKTREE_PATH"
+git worktree prune
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Agent-Lock freigeben:</p>
+<div class="code-wrapper"><pre><code class="language-bash">bash scripts/agent-lock.sh release ticket "&lt;TICKET_EXT_ID&gt;"
+bash scripts/agent-lock.sh release branch "&lt;branch-name&gt;"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="quick-reference">Quick-Reference</h2>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Was</th>
+<th>Wann</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td><code>git pull --rebase</code></td>
+<td>Immer als erstes</td>
+</tr>
+<tr>
+<td>1</td>
+<td><code>task freshness:regenerate</code></td>
+<td>Wenn Code-Dateien geändert wurden</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Conventional Commit ≤100 Zeichen + Ticket-ID</td>
+<td>Jeder Commit</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Commit-Verifikation (HEAD_SHA != BASE_SHA)</td>
+<td>Nach jedem Commit in Worktrees</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>git push -u origin &lt;branch&gt;</code></td>
+<td>Einmalig, danach plain <code>git push</code></td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>bash scripts/preflight-pr-scope.sh</code> + <code>gh pr create</code></td>
+<td>Einmal pro PR</td>
+</tr>
+<tr>
+<td>5</td>
+<td>CI Fix Loop</td>
+<td>Bis alle Required Checks grün</td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>gh pr merge --auto --squash --delete-branch</code></td>
+<td>Wenn CI grün</td>
+</tr>
+<tr>
+<td>7</td>
+<td><code>git worktree remove</code> + <code>agent-lock release</code></td>
+<td>Nur bei Worktree-Arbeit</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="haeufige-fehler">Häufige Fehler</h2>
+<table>
+<thead>
+<tr>
+<th>Fehler</th>
+<th>Diagnose</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Commit landet nicht (git-crypt)</td>
+<td><code>git rev-parse HEAD == BASE_SHA</code></td>
+<td><code>git status</code>, dann erneut committen</td>
+</tr>
+<tr>
+<td>CI startet nie</td>
+<td><code>gh pr view &lt;n&gt; --json mergeStateStatus</code> → <code>CONFLICTING</code></td>
+<td><code>git rebase origin/main</code></td>
+</tr>
+<tr>
+<td>Stale artifact in CI</td>
+<td><code>task freshness:check</code> lokal rot</td>
+<td><code>task freshness:regenerate &amp;&amp; git add &amp;&amp; git commit</code></td>
+</tr>
+<tr>
+<td>S1 Ratchet über Budget</td>
+<td><code>task freshness:check</code> schlägt fehl</td>
+<td>Datei wirklich verkleinern</td>
+</tr>
+<tr>
+<td>PR-Scope invalid</td>
+<td><code>preflight-pr-scope.sh</code> Exit 1</td>
+<td>Scope korrigieren, neu prüfen</td>
+</tr>
+<tr>
+<td>Falscher Cluster gedeployt</td>
+<td><code>ENV=</code> vergessen gesetzt</td>
+<td>Immer <code>ENV=mentolder</code> / <code>ENV=korczewski</code> explizit</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="verwandte-skills">Verwandte Skills</h2>
+<table>
+<thead>
+<tr>
+<th>Skill</th>
+<th>Beziehung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>superpowers:using-git-worktrees</code></td>
+<td>Worktree korrekt anlegen (git-crypt-safe)</td>
+</tr>
+<tr>
+<td><code>superpowers:finishing-a-development-branch</code></td>
+<td>Optionen nach Implementierung</td>
+</tr>
+<tr>
+<td><code>dev-flow-chore</code></td>
+<td>Chore-Ablauf (nutzt diesen Skill intern)</td>
+</tr>
+<tr>
+<td><code>dev-flow-execute</code></td>
+<td>Feature/Fix-Ablauf (nutzt diesen Skill intern)</td>
+</tr>
+</tbody></table>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

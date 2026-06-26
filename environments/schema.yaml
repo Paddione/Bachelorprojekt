@@ -274,6 +274,12 @@ env_vars:
     default_dev: "http://pocket-id:1411"
     description: "Cluster-internal URL of the Pocket ID service (pocket-id:1411). Used by website/brett/nextcloud/grafana as the OIDC discovery base."
 
+  - name: POCKET_ID_DOMAIN
+    required: true
+    default_dev: "auth.localhost"
+    validate: "^[a-z0-9.-]+$"
+    description: "Public hostname of the Pocket ID OIDC issuer (auth.<domain> or id.<domain>). Used for Traefik IngressRoute matching, oauth2-proxy issuer URLs, and OIDC endpoint construction."
+
   # KC_DOMAIN removed — Keycloak decommissioned (pocket-id-migration Welle 3, 2026-06-22).
 
   - name: LLM_HOST_IP

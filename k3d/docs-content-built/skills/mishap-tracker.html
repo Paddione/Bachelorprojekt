@@ -41,14 +41,14 @@
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#input"><span class="toc-num">1.</span> Input</a></li>
 <li class="toc-item"><a href="#step-0-verify-before-creating-false-positive-guard"><span class="toc-num">2.</span> Step 0: Verify Before Creating (False-Positive Guard)</a></li>
-<li class="toc-item"><a href="#step-1-individual-mishap-classification"><span class="toc-num">3.</span> Step 1: Individual Mishap Classification</a></li>
-<li class="toc-item"><a href="#step-2-find-or-create-aggregate-ticket"><span class="toc-num">4.</span> Step 2: Find or Create Aggregate Ticket</a></li>
-<li class="toc-item"><a href="#step-3-append-to-aggregate-ticket"><span class="toc-num">5.</span> Step 3: Append to Aggregate Ticket</a></li>
-<li class="toc-item"><a href="#step-4-fallback--manual-creation"><span class="toc-num">6.</span> Step 4: Fallback — Manual Creation</a></li>
+<li class="toc-item"><a href="#step-1-mishap-typ-klassifikation"><span class="toc-num">3.</span> Step 1: Mishap-Typ Klassifikation</a></li>
+<li class="toc-item"><a href="#step-2-mishaps-via-ticket-mcp-melden"><span class="toc-num">4.</span> Step 2: Mishaps via ticket-mcp melden</a></li>
+<li class="toc-item"><a href="#step-3-buffer-am-ende-flushen"><span class="toc-num">5.</span> Step 3: Buffer am Ende flushen</a></li>
+<li class="toc-item"><a href="#step-4-fallback--kein-ticket-mcp-erreichbar"><span class="toc-num">6.</span> Step 4: Fallback — Kein ticket-mcp erreichbar</a></li>
 <li class="toc-item"><a href="#step-5-summary"><span class="toc-num">7.</span> Step 5: Summary</a></li>
 <li class="toc-item"><a href="#verwandte-skills"><span class="toc-num">8.</span> Verwandte Skills</a></li></ul>
 </div>
-<p>Batches all execution mishaps into <strong>one aggregate ticket</strong> rather than creating N individual tickets. If an open "Mishap collection" ticket already exists, new mishaps are appended to it. Otherwise a new collection is created.</p>
+<p>Batches all execution mishaps into <strong>one aggregate ticket</strong> rather than creating N individual tickets.</p>
 <p>Called as the final step of runbook skills that maintain a <code>MISHAP_LOG</code>.</p>
 <hr>
 <h2 id="input">Input</h2>
@@ -59,11 +59,10 @@
 <li><code>description</code>: What was observed and why it matters</li>
 <li><code>component</code>: Affected subsystem (e.g., <code>kubeconfig</code>, <code>repo/chore/…</code>, <code>skills/&lt;name&gt;</code>)</li>
 </ul>
-<p>Calling skill <strong>must</strong> export <code>SKILL_NAME</code> (e.g. <code>SKILL_NAME=operations-management</code>) for batch labeling.</p>
-<p>If the log is empty or no mishaps were found, report that and stop — nothing to track.</p>
+<p>If the log is empty, report that and stop — nothing to track.</p>
 <hr>
 <h2 id="step-0-verify-before-creating-false-positive-guard">Step 0: Verify Before Creating (False-Positive Guard)</h2>
-<p>Before including any mishap, verify the claim with a concrete check:</p>
+<p>Before reporting any mishap, verify the claim with a concrete check:</p>
 <table>
 <thead>
 <tr>
@@ -77,7 +76,7 @@
 </tr>
 <tr>
 <td><code>broken</code> (file missing/stale)</td>
-<td><code>ls</code> or <code>git show HEAD:&lt;file&gt;</code> to confirm the file is actually absent or stale</td>
+<td><code>ls</code> or <code>git show HEAD:&lt;file&gt;</code> to confirm absence</td>
 </tr>
 <tr>
 <td><code>drift</code> (version mismatch)</td>
@@ -85,27 +84,25 @@
 </tr>
 <tr>
 <td><code>suspicious</code> (unexpected state)</td>
-<td>Run the command that would reveal the state and confirm it</td>
+<td>Run the command that reveals the state and confirm it</td>
 </tr>
 <tr>
 <td><code>process</code></td>
-<td>These are observations, not assertions — no verification needed</td>
+<td>Observations, not assertions — no verification needed</td>
 </tr>
 <tr>
 <td><code>security</code></td>
-<td>These are always created without suppression</td>
+<td>Always report without suppression</td>
 </tr>
 </tbody></table>
-<p><strong>If verification contradicts the observation:</strong> drop the mishap entry and log <code>[mishap-tracker] SKIP &lt;title&gt; — verified false positive: &lt;reason&gt;</code>.</p>
-<p><strong>If verification is not feasible in context</strong> (e.g. no cluster access): include the mishap but add <code>[UNVERIFIED — &lt;reason&gt;]</code> to its description.</p>
+<p><strong>If verification contradicts the observation:</strong> drop the mishap and log <code>[mishap-tracker] SKIP &lt;title&gt; — verified false positive: &lt;reason&gt;</code>.</p>
+<p><strong>If verification is not feasible</strong> (e.g. no cluster access): include the mishap but add <code>[UNVERIFIED — &lt;reason&gt;]</code> to its description.</p>
 <hr>
-<h2 id="step-1-individual-mishap-classification">Step 1: Individual Mishap Classification</h2>
-<p>Each mishap type maps to its own triage values — these are used in the per-mishap listing within the aggregate:</p>
+<h2 id="step-1-mishap-typ-klassifikation">Step 1: Mishap-Typ Klassifikation</h2>
 <table>
 <thead>
 <tr>
 <th>Mishap type</th>
-<th>maps-to type</th>
 <th>Severity</th>
 <th>Priority</th>
 <th>Attention mode</th>
@@ -113,201 +110,84 @@
 </thead>
 <tbody><tr>
 <td><code>broken</code></td>
-<td><code>bug</code></td>
 <td><code>major</code></td>
 <td><code>hoch</code></td>
 <td><code>needs_human</code></td>
 </tr>
 <tr>
 <td><code>security</code></td>
-<td><code>bug</code></td>
 <td><code>critical</code></td>
 <td><code>hoch</code></td>
 <td><code>needs_human</code></td>
 </tr>
 <tr>
 <td><code>degraded</code></td>
-<td><code>bug</code></td>
 <td><code>minor</code></td>
 <td><code>mittel</code></td>
 <td><code>needs_human</code></td>
 </tr>
 <tr>
 <td><code>suspicious</code></td>
-<td><code>task</code></td>
 <td><code>minor</code></td>
 <td><code>mittel</code></td>
 <td><code>ai_ready</code></td>
 </tr>
 <tr>
 <td><code>drift</code></td>
-<td><code>task</code></td>
 <td><code>trivial</code></td>
 <td><code>niedrig</code></td>
 <td><code>ai_ready</code></td>
 </tr>
 <tr>
 <td><code>process</code></td>
-<td><code>task</code></td>
 <td><code>trivial</code></td>
 <td><code>niedrig</code></td>
 <td><code>ai_ready</code></td>
 </tr>
 </tbody></table>
-<p>For <code>process</code> mishaps, always set <code>component = 'skills/&lt;skill-name&gt;'</code>.</p>
-<h3>Aggregate Ticket Triage</h3>
-<p>The <strong>ticket-level</strong> triage is computed across all mishaps in the ticket:</p>
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Rule</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>type</code></td>
-<td><code>bug</code> if any mishap maps to <code>bug</code>; else <code>task</code></td>
-</tr>
-<tr>
-<td><code>severity</code></td>
-<td>worst across all: <code>critical &gt; major &gt; minor &gt; trivial</code></td>
-</tr>
-<tr>
-<td><code>priority</code></td>
-<td>worst across all: <code>hoch &gt; mittel &gt; niedrig</code></td>
-</tr>
-<tr>
-<td><code>attention_mode</code></td>
-<td><code>needs_human</code> if any mishap maps to <code>needs_human</code>; else <code>ai_ready</code></td>
-</tr>
-</tbody></table>
+<p>For <code>process</code> mishaps, set <code>component = 'skills/&lt;skill-name&gt;'</code>.</p>
 <hr>
-<h2 id="step-2-find-or-create-aggregate-ticket">Step 2: Find or Create Aggregate Ticket</h2>
-<h3>2a. Set up DB access</h3>
-<div class="code-wrapper"><pre><code class="language-bash">PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)
-PSQL="kubectl exec $PGPOD -n workspace --context fleet -c postgres -- psql -U website -d website"
+<h2 id="step-2-mishaps-via-ticket-mcp-melden">Step 2: Mishaps via ticket-mcp melden</h2>
+<p>Für jeden verifizierten Mishap im MISHAP_LOG:</p>
+<div class="code-wrapper"><pre><code>mcp__ticket-mcp__report_mishap({
+  title: "&lt;titel&gt;",
+  description: "&lt;beschreibung&gt;",
+  component: "&lt;komponente&gt;",
+  type: "&lt;broken|degraded|suspicious|security|drift|process&gt;",
+  brand: "&lt;brand&gt;"
+})
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>2b. Look for existing open mishap collection</h3>
-<div class="code-wrapper"><pre><code class="language-bash">EXISTING=$($PSQL -At -c \
-  "SELECT external_id, severity, priority, attention_mode::text
-   FROM tickets.tickets
-   WHERE status NOT IN ('done', 'archived')
-     AND title LIKE 'Mishap collection:%'
-   ORDER BY created_at DESC LIMIT 1;")
-
-if [ -n "$EXISTING" ]; then
-  COLLECT_ID=$(echo "$EXISTING" | cut -d'|' -f1)
-  COLLECT_SEV=$(echo "$EXISTING" | cut -d'|' -f2)
-  COLLECT_PRIO=$(echo "$EXISTING" | cut -d'|' -f3)
-  COLLECT_ATTN=$(echo "$EXISTING" | cut -d'|' -f4)
-else
-  COLLECT_ID=""
-fi
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<hr>
-<h2 id="step-3-append-to-aggregate-ticket">Step 3: Append to Aggregate Ticket</h2>
-<h3>3a. Build the batch block</h3>
-<p>Format all mishaps of this execution into a single markdown block:</p>
-<div class="code-wrapper"><pre><code>--- ${SKILL_NAME} — $(date +%Y-%m-%d\ %H:%M) ---
-
-| # | Type | Severity | Priority | Attention | Component |
-|---|---|---|---|---|---|
-| 1 | broken | major | hoch | needs_human | &lt;component&gt; |
-| 2 | drift | trivial | niedrig | ai_ready | &lt;component&gt; |
-
-&lt;details&gt;
-&lt;summary&gt;Descriptions&lt;/summary&gt;
-
-**1. [broken] &lt;title&gt;**
-&lt;description&gt; [UNVERIFIED — &lt;reason&gt;]
-
-**2. [drift] &lt;title&gt;**
-&lt;description&gt;
-&lt;/details&gt;
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Also compute the aggregate triage across <strong>all current mishaps</strong> (the new batch only, if appending):</p>
+<p><strong>Rückmeldung auswerten:</strong></p>
 <ul>
-<li><code>BATCH_TYPE</code>: <code>bug</code> if any mishap is <code>broken</code>/<code>security</code>/<code>degraded</code>; else <code>task</code></li>
-<li><code>BATCH_SEV</code>: worst severity in the batch</li>
-<li><code>BATCH_PRIO</code>: worst priority in the batch</li>
-<li><code>BATCH_ATTN</code>: <code>needs_human</code> if any; else <code>ai_ready</code></li>
+<li><code>"2/3 bis zum automatischen Bundle-Ticket"</code> → weiter melden, Buffer sammelt</li>
+<li><code>"Bundle-Ticket angelegt: T000xxx"</code> → Ticket existiert, Factory-Tick übernimmt</li>
 </ul>
-<h3>3b. Insert or append</h3>
-<p><strong>New ticket</strong> (no existing collection):</p>
-<div class="code-wrapper"><pre><code class="language-bash">TITLE="Mishap collection: $(date +%Y-%m-%d)"
-NEW_ID=$($PSQL -At -c \
-  "INSERT INTO tickets.tickets (type, brand, title, description, severity, priority, attention_mode, status, component)
-   VALUES ('$BATCH_TYPE', 'mentolder', '$TITLE', '$(echo "$BATCH_BLOCK" | sed "s/'/''/g")', '$BATCH_SEV', '$BATCH_PRIO', '$BATCH_ATTN', 'triage', 'mishap-tracker')
-   RETURNING external_id;")
-echo "Created mishap collection ticket: $NEW_ID"
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p><strong>Existing ticket</strong> (append) — update description &amp; triage, add a comment:</p>
-<div class="code-wrapper"><pre><code class="language-bash"># Compute combined triage (worst of existing + new batch)
-COMBINED_SEV=$($PSQL -At -c \
-  "SELECT CASE
-    WHEN severity = 'critical' OR '$BATCH_SEV' = 'critical' THEN 'critical'
-    WHEN severity = 'major'    OR '$BATCH_SEV' = 'major'    THEN 'major'
-    WHEN severity = 'minor'    OR '$BATCH_SEV' = 'minor'    THEN 'minor'
-    ELSE 'trivial'
-  END FROM tickets.tickets WHERE external_id = '$COLLECT_ID';")
-
-COMBINED_PRIO=$($PSQL -At -c \
-  "SELECT CASE
-    WHEN priority = 'hoch'   OR '$BATCH_PRIO' = 'hoch'   THEN 'hoch'
-    WHEN priority = 'mittel' OR '$BATCH_PRIO' = 'mittel' THEN 'mittel'
-    ELSE 'niedrig'
-  END FROM tickets.tickets WHERE external_id = '$COLLECT_ID';")
-
-COMBINED_ATTN=$($PSQL -At -c \
-  "SELECT CASE
-    WHEN attention_mode::text = 'needs_human' OR '$BATCH_ATTN' = 'needs_human' THEN 'needs_human'
-    ELSE 'ai_ready'
-  END FROM tickets.tickets WHERE external_id = '$COLLECT_ID';")
-
-$PSQL -At -c \
-  "UPDATE tickets.tickets
-   SET description = description || E'\n\n' || '$(echo "$BATCH_BLOCK" | sed "s/'/''/g")',
-       severity = '$COMBINED_SEV',
-       priority = '$COMBINED_PRIO',
-       attention_mode = '$COMBINED_ATTN',
-       type = CASE WHEN '$BATCH_TYPE' = 'bug' OR type = 'bug' THEN 'bug' ELSE 'task' END
-   WHERE external_id = '$COLLECT_ID';
-
-   INSERT INTO tickets.ticket_comments (ticket_id, author_label, body, visibility)
-   SELECT id, 'mishap-tracker', 'Appended ${MISHAP_COUNT} mishaps from ${SKILL_NAME}.', 'internal'
-   FROM tickets.tickets WHERE external_id = '$COLLECT_ID';"
-
-echo "Appended $MISHAP_COUNT mishaps to $COLLECT_ID"
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>3c. Auto-categorize (new tickets only)</h3>
-<p>If a new ticket was created, run auto-categorization:</p>
-<div class="code-wrapper"><pre><code class="language-bash">bash scripts/mishap-categorize.sh "$NEW_ID" "Mishap collection" "$BATCH_BLOCK"
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>For existing tickets, categorization already ran — skip.</p>
 <hr>
-<h2 id="step-4-fallback--manual-creation">Step 4: Fallback — Manual Creation</h2>
-<p>If the database is unreachable (no pod, wrong context, connection refused), output a single formatted block for manual entry at <code>https://web.mentolder.de/admin/bugs</code>:</p>
-<div class="code-wrapper"><pre><code>--- Mishap collection ($(date +%Y-%m-%d)) ---
-
-Aggregate triage: type=&lt;aggregate_type&gt; severity=&lt;aggregate_severity&gt; priority=&lt;aggregate_priority&gt; attention=&lt;aggregate_attention&gt;
-
-Entries:
-  [&lt;type&gt;] &lt;title&gt;
-  Severity: &lt;severity&gt; | Priority: &lt;priority&gt; | Attention: &lt;attention_mode&gt; | Component: &lt;component&gt;
-  &lt;description&gt;
-
-  [&lt;type&gt;] &lt;title&gt;
-  ...
+<h2 id="step-3-buffer-am-ende-flushen">Step 3: Buffer am Ende flushen</h2>
+<p>Nach dem letzten <code>report_mishap</code>-Aufruf immer prüfen, ob noch Einträge im Buffer liegen:</p>
+<div class="code-wrapper"><pre><code>mcp__ticket-mcp__get_mishap_buffer()
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Wenn Einträge vorhanden und weniger als 3 (kein Auto-Trigger):</p>
+<div class="code-wrapper"><pre><code>mcp__ticket-mcp__flush_mishap_buffer({ brand: "&lt;brand&gt;" })
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Dies erzwingt ein Bundle-Ticket auch bei 1–2 Einträgen, damit am Session-Ende nichts verloren geht.</p>
+<hr>
+<h2 id="step-4-fallback--kein-ticket-mcp-erreichbar">Step 4: Fallback — Kein ticket-mcp erreichbar</h2>
+<p>Falls der MCP-Server nicht antwortet, einen formatierten Block ausgeben für manuelle Eingabe unter <code>https://web.mentolder.de/admin/bugs</code>:</p>
+<div class="code-wrapper"><pre><code>--- Mishap-Report ---
+Typ | Titel | Komponente | Beschreibung
+&lt;type&gt; | &lt;title&gt; | &lt;component&gt; | &lt;description&gt;
+...
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <hr>
 <h2 id="step-5-summary">Step 5: Summary</h2>
 <p>Report:</p>
 <ul>
-<li>Whether a new ticket was created or mishaps were appended to an existing one</li>
-<li>The external_id of the collection ticket</li>
-<li>Total mishap count in this batch</li>
-<li>If fallback was used, note that tickets need manual creation</li>
+<li>Anzahl gemeldeter Mishaps</li>
+<li>Ob ein Bundle-Ticket ausgelöst wurde (und welches <code>T000xxx</code>)</li>
+<li>Ob Buffer-Flush am Ende nötig war</li>
 </ul>
+<hr>
 <h2 id="verwandte-skills">Verwandte Skills</h2>
 <table>
 <thead>

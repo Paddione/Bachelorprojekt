@@ -45,18 +45,7 @@ exports[`HomePage Null-Diff baseline > renders the full page identically to the 
               class="flex items-center gap-[14px]"
             >
               <span>
-                Digital Coach
-              </span>
-            </span>
-            <span
-              class="flex items-center gap-[14px]"
-            >
-              <span
-                aria-hidden="true"
-                class="w-[5px] h-[5px] rounded-full bg-sage flex-shrink-0"
-              />
-              <span>
-                Führungskräfte-Mentor
+                Praxisnah. Strukturiert. Auf Augenhöhe.
               </span>
             </span>
           </div>
@@ -65,7 +54,7 @@ exports[`HomePage Null-Diff baseline > renders the full page identically to the 
           class="font-serif font-light leading-[1.02] text-fg m-0"
           style="font-size: clamp(44px, 6.2vw, 88px); letter-spacing: -0.02em; opacity: 0; transform: translateY(16px);"
         >
-          Menschen, Prozesse und Technik
+          Digital Coach & Führungskräfte-Mentor –
            
           <em>
             der Mensch und Technologie wieder verbindet.
@@ -74,7 +63,7 @@ exports[`HomePage Null-Diff baseline > renders the full page identically to the 
         <p
           class="lede mt-5 text-[18px] leading-[1.6] text-fg-soft max-w-[52ch]"
         >
-          Mit 30+ Jahren Führungserfahrung begleite ich Menschen und Organisationen bei der digitalen Transformation — praxisnah, empathisch und auf Augenhöhe.
+          Ich kenne beide Welten: 40 Jahre etablierte Strukturen UND modernste KI-Tools. Ich weiß, wie Veränderung in komplexen Organisationen wirklich funktioniert.
         </p>
         <div
           aria-label="Aktionen"
@@ -137,22 +126,18 @@ exports[`HomePage Null-Diff baseline > renders the full page identically to the 
             class="relative w-full aspect-[4/5] rounded bg-ink-800 overflow-hidden"
             style="box-shadow: 0 40px 80px -30px rgba(0,0,0,.75), 0 2px 0 0 rgba(255,255,255,.04), inset 0 0 0 1px var(--line-2); opacity: 0; transform: translateY(18px);"
           >
+            <img
+              alt="Gerald Korczewski, Digital Coach & Mentor"
+              class="absolute inset-0 w-full h-full object-cover"
+              loading="lazy"
+              src="/brand/mentolder/characters/leadership.portrait.svg"
+              style="object-position: center 18%; filter: contrast(1.04) brightness(1.02) sepia(.18) saturate(1.05);"
+            />
             <div
               aria-hidden="true"
-              class="absolute inset-0 flex items-center justify-center bg-ink-800"
-            >
-              <div
-                class="w-[220px] h-[220px] rounded-full flex items-center justify-center"
-                style="background: radial-gradient(circle at 30% 30%, var(--brass-2), var(--brass) 55%, #8a6a2a 100%); box-shadow: inset 0 0 0 1px rgba(255,255,255,.2), 0 20px 60px rgba(0,0,0,.4);"
-              >
-                <span
-                  class="font-serif text-[64px] font-normal text-ink-900"
-                  style="letter-spacing: -0.02em; user-select: none;"
-                >
-                  GK
-                </span>
-              </div>
-            </div>
+              class="absolute inset-0 pointer-events-none mix-blend-soft-light"
+              style="background: linear-gradient(180deg, oklch(0.80 0.09 75 / .10) 0%, transparent 40%, oklch(0.18 0.02 250 / .35) 100%);"
+            />
             <div
               aria-hidden="true"
               class="absolute left-0 right-0 top-0 h-px z-[2] pointer-events-none"

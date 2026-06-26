@@ -25,31 +25,30 @@ describe('homepage seed', () => {
     ]);
   });
 
-  it('includes the inline testimonial (Dr. M. Albers)', async () => {
+  it('includes the author quote (Gerald Korczewski)', async () => {
     const { homepageSeed } = await import('./seed');
     const whyMe = homepageSeed.blocks.find((b: { type: string }) => b.type === 'whyMe');
     const props = whyMe!.props as { quoteName: string; quoteRole: string };
-    expect(props.quoteName).toBe('Dr. M. Albers');
-    expect(props.quoteRole).toContain('CTO');
+    expect(props.quoteName).toBe('Gerald Korczewski');
+    expect(props.quoteRole).toContain('Coach');
   });
 
-  it('has inline WhyMe points (not content.ts version)', async () => {
+  it('has inline WhyMe points matching the mentolder brand', async () => {
     const { homepageSeed } = await import('./seed');
     const whyMe = homepageSeed.blocks.find((b: { type: string }) => b.type === 'whyMe');
     const points = (whyMe!.props as { points: Array<{ title: string }> }).points;
-    expect(points).toHaveLength(4);
-    expect(points[0].title).toBe('30+ Jahre Führungserfahrung');
-    expect(points[1].title).toBe('Technik trifft Empathie');
-    expect(points[2].title).toBe('Pragmatismus statt Hype');
-    expect(points[3].title).toBe('Diskretion ist selbstverständlich');
+    expect(points).toHaveLength(3);
+    expect(points[0].title).toBe('Erste deutsche Polizeibehörde mit KI');
+    expect(points[1].title).toBe('Systemischer Coach');
+    expect(points[2].title).toBe('Generation 65+ digital aus eigener Erfahrung');
   });
 
-  it('uses structured intro with emphasis at correct position', async () => {
+  it('uses structured intro with "beide Welten" emphasis', async () => {
     const { homepageSeed } = await import('./seed');
     const whyMe = homepageSeed.blocks.find((b: { type: string }) => b.type === 'whyMe');
     const intro = (whyMe!.props as { intro: { prefix: string; emphasis: string; suffix: string } }).intro;
-    expect(intro.prefix).toBe('Ich ');
-    expect(intro.emphasis).toBe('verbinde');
-    expect(intro.suffix).toContain('technische Tiefe');
+    expect(intro.prefix).toBe('Ich kenne beide Welten: ');
+    expect(intro.emphasis).toBe('40 Jahre etablierte Strukturen');
+    expect(intro.suffix).toContain('KI-Tools');
   });
 });

@@ -43,8 +43,9 @@ export function CallToAction({
           id="cta-heading"
           className="font-serif font-normal text-fg leading-[1.1] m-0"
           style={{
-            fontSize: 'clamp(28px, 3.6vw, 48px)',
+            fontSize: 'clamp(36px, 4.6vw, 60px)',
             letterSpacing: '-0.02em',
+            fontWeight: 350,
           }}
         >
           {title}

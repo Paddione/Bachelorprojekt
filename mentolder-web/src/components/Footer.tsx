@@ -4,20 +4,23 @@ const BRAND_NAME = (import.meta.env.VITE_BRAND_NAME ?? 'mentolder').toLowerCase(
 const EMAIL = import.meta.env.VITE_CONTACT_EMAIL ?? 'mail@mentolder.de';
 const PHONE = import.meta.env.VITE_CONTACT_PHONE ?? '';
 const CITY = import.meta.env.VITE_CONTACT_CITY ?? 'Lüneburg';
-const TAGLINE = 'Digital Coach & Führungskräfte-Mentor';
+const TAGLINE = 'Digital Coaching & Führungskräfte-Beratung';
 
 const serviceLinks = [
-  { label: 'Coaching & 1:1', href: '/angebote/coaching' },
-  { label: 'Führungs-Coaching', href: '/angebote/fuehrung' },
-  { label: 'Digitale Transformation', href: '/angebote/digitalisierung' },
-  { label: 'Workshops & Vorträge', href: '/angebote/workshops' },
+  { label: '65+ digital', href: '/leistungen/50plus-digital' },
+  { label: 'Coaching für Führungskräfte und Menschen in Verantwortung', href: '/leistungen/coaching' },
+  { label: 'Führung & Persönlichkeit', href: '/leistungen/fuehrung-persoenlichkeit' },
+  { label: 'Unternehmensberatung', href: '/leistungen/beratung' },
+  { label: 'KI-Transition Coaching', href: '/leistungen/ki-transition' },
 ];
 
 const rechtLinks = [
+  { label: 'Referenzen', href: '/referenzen' },
   { label: 'Impressum', href: '/impressum' },
   { label: 'Datenschutz', href: '/datenschutz' },
-  { label: 'Barrierefreiheit', href: '/barrierefreiheit' },
+  { label: 'Meine Daten', href: '/meine-daten' },
   { label: 'AGB', href: '/agb' },
+  { label: 'Barrierefreiheit', href: '/barrierefreiheit' },
 ];
 
 export function Footer() {

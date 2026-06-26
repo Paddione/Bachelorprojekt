@@ -10,6 +10,9 @@ import { UeberMichPage } from './pages/UeberMichPage';
 import { LeistungenPage } from './pages/LeistungenPage';
 import { LeistungDetailPage } from './pages/LeistungDetailPage';
 import { ReferenzenPage } from './pages/ReferenzenPage';
+import { BarrierefreiheitPage } from './pages/BarrierefreiheitPage';
+import { AgbPage } from './pages/AgbPage';
+import { MeineDatenPage } from './pages/MeineDatenPage';
 
 function ScrollToTop() {
   const { pathname, hash } = useLocation();
@@ -41,6 +44,9 @@ export default function App() {
           <Route path="/leistungen" element={<LeistungenPage />} />
           <Route path="/leistungen/:slug" element={<LeistungDetailPage />} />
           <Route path="/referenzen" element={<ReferenzenPage />} />
+          <Route path="/barrierefreiheit" element={<BarrierefreiheitPage />} />
+          <Route path="/agb" element={<AgbPage />} />
+          <Route path="/meine-daten" element={<MeineDatenPage />} />
           <Route
             path="*"
             element={

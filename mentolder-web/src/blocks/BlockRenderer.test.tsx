@@ -9,8 +9,8 @@ const renderWithRouter = (ui: React.ReactNode) =>
 describe('BlockRenderer', () => {
   it('renders seed by default (no document prop)', () => {
     renderWithRouter(<BlockRenderer />);
-    expect(screen.getByText('praxisnah. Strukturiert. Auf Augenhöhe.')).toBeInTheDocument();
     expect(screen.getAllByText('Gerald Korczewski')[0]).toBeInTheDocument();
+    expect(screen.getAllByText('Meine Angebote')[0]).toBeInTheDocument();
   });
 
   it('renders all 7 sections from the committed seed', () => {
@@ -20,7 +20,7 @@ describe('BlockRenderer', () => {
     expect(screen.getByText('Warum ich?')).toBeInTheDocument();
     expect(screen.getByText('So arbeiten wir')).toBeInTheDocument();
     expect(screen.getByText('Häufig gestellte Fragen')).toBeInTheDocument();
-    expect(screen.getByText('Bereit?')).toBeInTheDocument();
+    expect(screen.getAllByText('Kostenloses Erstgespräch').length).toBeGreaterThan(0);
   });
 
   it('falls back to seed on schemaVersion mismatch (999)', () => {

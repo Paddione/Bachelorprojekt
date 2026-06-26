@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { StatsBlock } from './StatsBlock';
 
 const items = [
@@ -10,7 +11,11 @@ const items = [
 
 describe('StatsBlock', () => {
   it('renders all stat items', () => {
-    render(<StatsBlock items={items} />);
+    render(
+      <MemoryRouter>
+        <StatsBlock items={items} />
+      </MemoryRouter>,
+    );
     expect(screen.getByText('Jahre Führung')).toBeInTheDocument();
     expect(screen.getByText('Schwerpunkt')).toBeInTheDocument();
     expect(screen.getByText('Cloud-Native')).toBeInTheDocument();

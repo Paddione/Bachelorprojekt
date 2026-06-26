@@ -1,17 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
-import { motion, useInView } from 'framer-motion';
+import { useInView } from 'framer-motion';
+import { Link } from 'react-router-dom';
 
 export interface Stat {
-  /** Display value, e.g. "30+" or "KI" or "B.Sc.". */
   value: string;
-  /** Number to count up to. If absent, we try to parse `value` as a number. */
   target?: number;
   label: string;
 }
 
 interface WhyMeStatsProps {
   stats: Stat[];
-  /** Optional duration in ms. */
   duration?: number;
 }
 
@@ -32,7 +30,6 @@ function CountUp({ target, duration }: { target: number; duration: number }) {
     const start = performance.now();
     const tick = (now: number) => {
       const t = Math.min(1, (now - start) / duration);
-      // ease-out cubic
       const eased = 1 - Math.pow(1 - t, 3);
       setValue(Math.round(target * eased));
       if (t < 1) raf = requestAnimationFrame(tick);
@@ -51,40 +48,52 @@ function CountUp({ target, duration }: { target: number; duration: number }) {
 export function WhyMeStats({ stats, duration = 1200 }: WhyMeStatsProps) {
   return (
     <section
-      className="border-b border-line"
+      className="border-b border-line grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr]"
       role="region"
       aria-label="Kennzahlen"
     >
-      <div className="grid grid-cols-2 md:grid-cols-4">
-        {stats.map((stat, i) => {
+      {/* Stats left column */}
+      <div
+        className="grid grid-cols-2 sm:grid-cols-4 md:border-r border-line border-b md:border-b-0"
+        aria-label="Kennzahlen"
+      >
+        {stats.map((stat) => {
           const target = parseTarget(stat);
           const hasNumber = target > 0;
+          const suffix = stat.value.replace(/[\d]/g, '').trim();
           return (
-            <motion.div
+            <div
               key={stat.label}
-              initial={{ opacity: 0, y: 12 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.4 }}
-              transition={{ duration: 0.5, delay: i * 0.05, ease: [0.22, 1, 0.36, 1] }}
-              className="px-7 py-9 flex flex-col gap-2 border-b md:border-b-0 md:border-r border-line last:border-r-0"
+              className="flex flex-col gap-2 border-r border-line last:border-r-0 px-7 py-[38px]"
             >
               <span
-                className="font-serif text-[44px] leading-[1] text-fg"
-                style={{ letterSpacing: '-0.02em' }}
+                className="font-serif leading-[1] text-brass"
+                style={{ fontSize: '44px', letterSpacing: '-0.02em' }}
               >
-                {hasNumber ? <CountUp target={target} duration={duration} /> : stat.value}
-                {hasNumber && stat.value.replace(/[\d]/g, '').trim() && (
-                  <em className="text-brass not-italic ml-0.5">
-                    {stat.value.replace(/[\d]/g, '').trim()}
-                  </em>
+                {hasNumber ? (
+                  <>
+                    <CountUp target={target} duration={duration} />
+                    {suffix && <em className="not-italic">{suffix}</em>}
+                  </>
+                ) : (
+                  stat.value
                 )}
               </span>
               <span className="font-mono text-[11px] tracking-[0.14em] uppercase text-mute">
                 {stat.label}
               </span>
-            </motion.div>
+            </div>
           );
         })}
+      </div>
+
+      {/* Availability placeholder right column */}
+      <div className="flex items-center px-10 py-8 max-md:px-[22px]">
+        <p className="text-mute text-[14px] m-0">
+          <Link to="/kontakt" className="text-brass no-underline hover:underline">
+            Termine ansehen →
+          </Link>
+        </p>
       </div>
     </section>
   );

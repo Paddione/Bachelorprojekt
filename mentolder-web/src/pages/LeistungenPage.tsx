@@ -16,10 +16,10 @@ export function LeistungenPage() {
             className="font-serif font-light text-fg leading-[1.05] m-0"
             style={{ fontSize: 'clamp(40px, 5.4vw, 72px)', letterSpacing: '-0.02em' }}
           >
-            Was ich anbiete — <em>und was es kostet.</em>
+            Leistungen & Preise
           </h1>
           <p className="text-[18px] leading-[1.6] text-fg-soft mt-5 max-w-[52ch]">
-            Kein Kleingedrucktes. Alle Formate, alle Preise — transparent.
+            Alle Angebote auf einen Blick. Wählen Sie das passende Format und nehmen Sie Kontakt auf.
           </p>
         </div>
       </section>
@@ -39,8 +39,12 @@ export function LeistungenPage() {
           >
             Kostenloses Erstgespräch
           </h2>
-          <p className="text-fg-soft text-[15px] m-0 mb-6">
+          <p className="text-fg-soft text-[15px] m-0 mb-2">
             30 Minuten · kostenlos & unverbindlich
+          </p>
+          <p className="text-fg-soft text-[14px] m-0 mb-6 max-w-[40ch] mx-auto">
+            Wir klären gemeinsam, ob und wie ich Sie unterstützen kann.
+            Kein Verkaufsgespräch — ein ehrliches Kennenlernen.
           </p>
           <Link
             to="/kontakt"
@@ -107,14 +111,17 @@ export function LeistungenPage() {
 
       {/* Preishinweis */}
       <div className="max-w-[1240px] mx-auto px-10 max-md:px-[22px] py-8 border-t border-line">
+        <p className="font-mono text-[12px] text-mute m-0 mb-2">
+          Alle Preise sind Nettopreise gemäß § 19 UStG — kein Ausweis von Umsatzsteuer.
+        </p>
         <p className="font-mono text-[12px] text-mute m-0">
-          Alle Preise sind Nettopreise gem. §19 UStG. Kein Ausweis von Umsatzsteuer.{' '}
+          Für Unternehmenskunden (ab 3 Personen) erstelle ich gerne ein individuelles Angebot.{' '}
           <Link
             to="/kontakt"
             className="text-brass no-underline"
             style={{ borderBottom: '1px solid oklch(0.80 0.09 75 / .4)' }}
           >
-            Individuelles Angebot anfragen →
+            Anfrage stellen →
           </Link>
         </p>
       </div>

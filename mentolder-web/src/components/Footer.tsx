@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 const BRAND_NAME = (import.meta.env.VITE_BRAND_NAME ?? 'mentolder').toLowerCase();
 const EMAIL = import.meta.env.VITE_CONTACT_EMAIL ?? 'mail@mentolder.de';
 const PHONE = import.meta.env.VITE_CONTACT_PHONE ?? '';
-const CITY = import.meta.env.VITE_CONTACT_CITY ?? 'Lüneburg';
+const CITY = import.meta.env.VITE_CONTACT_CITY ?? 'Hamburg';
 const TAGLINE = 'Digital Coaching & Führungskräfte-Beratung';
 
 const serviceLinks = [

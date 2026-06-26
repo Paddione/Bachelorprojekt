@@ -1,5 +1,6 @@
 {
   "name": "workspace-brett",
+  "engines": { "node": ">=22.13.0" },
   "version": "0.34.0",
   "private": true,
   "main": "src/server/index.ts",

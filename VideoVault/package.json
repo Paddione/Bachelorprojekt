@@ -1,5 +1,6 @@
 {
   "name": "mediavault",
+  "engines": { "node": ">=22.13.0" },
   "version": "2.0.0",
   "description": "Personal media library for videos, audiobooks, and ebooks",
   "type": "module",

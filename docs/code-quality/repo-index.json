@@ -535,7 +535,7 @@
       "id": "website",
       "name": "Astro + Svelte website",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 1590,
+      "file_count": 1589,
       "files": [
         "website/.build-trigger",
         "website/.design-sync/NOTES.md",
@@ -585,7 +585,6 @@
         "website/docs/superpowers/specs/2026-04-10-document-signing-design.md",
         "website/docs/superpowers/specs/2026-04-10-meeting-history-design.md",
         "website/docs/superpowers/specs/2026-04-10-slot-widget-design.md",
-        "website/package-lock.json",
         "website/package.json",
         "website/pnpm-lock.yaml",
         "website/pnpm-workspace.yaml",
@@ -2550,7 +2549,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 428,
+      "file_count": 429,
       "files": [
         "scripts/add-whiteboard-library.py",
         "scripts/admin-menu-gate.sh",
@@ -2801,6 +2800,7 @@
         "scripts/gen-platform-descriptions.mjs",
         "scripts/gh-branch-protection.sh",
         "scripts/git-crypt-guard.sh",
+        "scripts/health-goals-check.sh",
         "scripts/hetzner/cloud-init-server.yaml.tmpl",
         "scripts/hetzner/cloud-init.yaml.tmpl",
         "scripts/hetzner/generate-wg-conf.sh",

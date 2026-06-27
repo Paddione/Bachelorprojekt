@@ -1,0 +1,27 @@
+/* _card.css — shared foundation-card layout. Injected into every card (local build input). */
+body.ds-card { background: var(--ink-900); color: var(--fg); font-family: var(--sans);
+  margin: 0; padding: 48px; -webkit-font-smoothing: antialiased; }
+.ds-wrap { max-width: 1000px; margin: 0 auto; }
+.ds-head { margin: 0 0 28px; }
+.ds-head .t-eyebrow { color: var(--brass); }
+.ds-head h1 { font-size: 34px; line-height: 1.1; margin: 8px 0 6px; }
+.ds-head p { color: var(--fg-soft); max-width: 64ch; }
+.ds-grid { display: grid; gap: 16px; }
+.cols-2 { grid-template-columns: repeat(2,1fr); } .cols-3 { grid-template-columns: repeat(3,1fr); }
+.cols-4 { grid-template-columns: repeat(4,1fr); } .cols-5 { grid-template-columns: repeat(5,1fr); }
+.swatch { border: 1px solid var(--line-2); border-radius: var(--radius-md); overflow: hidden; }
+.swatch .fill { height: 92px; }
+.swatch .meta { padding: 11px 13px; background: var(--ink-850); display: flex; flex-direction: column; gap: 3px; }
+.swatch .nm { font: 500 14px/1.2 var(--sans); color: var(--fg); }
+.swatch .vl { font: 400 11px/1.3 var(--mono); color: var(--mute); }
+.swatch .ro { font: 400 12px/1.4 var(--sans); color: var(--fg-soft); }
+.scale-row { display: flex; align-items: center; gap: 18px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.scale-row .lab { width: 120px; font: 400 12px/1.3 var(--mono); color: var(--mute); flex: none; }
+.bar { height: 14px; background: var(--brass); border-radius: var(--radius-pill); }
+.tile { display: grid; place-items: center; background: var(--ink-800); border: 1px solid var(--line-2); min-height: 92px; }
+.icon-cell { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 18px;
+  background: var(--ink-850); border: 1px solid var(--line); border-radius: var(--radius-md); }
+.icon-cell svg { width: 30px; height: 30px; color: var(--brass); fill: currentColor; }
+.cap { font: 400 11px/1.3 var(--mono); color: var(--mute); }
+.kpill { display: inline-block; padding: 4px 10px; border-radius: var(--radius-pill);
+  border: 1px solid var(--line-2); font: 500 11px/1 var(--mono); color: var(--fg-soft); }

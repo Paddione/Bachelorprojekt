@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.132.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.131.0...website-v1.132.0) (2026-06-27)
+
+
+### Features
+
+* **website:** ESLint 9 flat-config + 0-warning gate [T001204] ([#2146](https://github.com/Paddione/Bachelorprojekt/issues/2146)) ([b0b0b61](https://github.com/Paddione/Bachelorprojekt/commit/b0b0b619fc8b7aa17db9d76cfa8ace2aeee0e082))
+
 ## [1.131.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.130.0...website-v1.131.0) (2026-06-27)
 
 

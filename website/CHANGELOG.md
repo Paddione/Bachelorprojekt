@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.134.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.134.2...website-v1.134.3) (2026-06-27)
+
+
+### Bug Fixes
+
+* **dev-flow:** mishap-bundle (3 Einträge) [T001242] ([#2195](https://github.com/Paddione/Bachelorprojekt/issues/2195)) ([28dfc5a](https://github.com/Paddione/Bachelorprojekt/commit/28dfc5afdda437c7720a8016a01981f9c20579b2))
+
 ## [1.134.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.134.1...website-v1.134.2) (2026-06-27)
 
 

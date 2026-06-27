@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.134.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.134.3...website-v1.134.4) (2026-06-27)
+
+
+### Bug Fixes
+
+* **dev-flow:** mishap-bundle agent-lock + dev-flow-plan + dev-flow-execute [T001268] ([#2198](https://github.com/Paddione/Bachelorprojekt/issues/2198)) ([2dadf57](https://github.com/Paddione/Bachelorprojekt/commit/2dadf57ed07e50978d0febfae5155430714e1369))
+
 ## [1.134.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.134.2...website-v1.134.3) (2026-06-27)
 
 

@@ -301,6 +301,12 @@
       "status": "archived"
     }
   ],
+  "T001269": [
+    {
+      "slug": "t001269-mishap-bundle-skills-dev-flow-execute-repo-worktree-state-ticket-mcp",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

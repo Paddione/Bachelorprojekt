@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.133.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.133.3...website-v1.133.4) (2026-06-27)
+
+
+### Performance
+
+* **ci:** BuildKit layer caching for image build workflows [T001229] ([#2164](https://github.com/Paddione/Bachelorprojekt/issues/2164)) ([5775bc1](https://github.com/Paddione/Bachelorprojekt/commit/5775bc1b8616ce333ace1713f135252973ed3f51))
+
 ## [1.133.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.133.2...website-v1.133.3) (2026-06-27)
 
 

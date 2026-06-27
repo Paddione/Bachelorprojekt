@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.34.1](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.34.0...brett-v0.34.1) (2026-06-27)
+
+
+### Performance
+
+* **ci:** BuildKit layer caching for image build workflows [T001229] ([#2164](https://github.com/Paddione/Bachelorprojekt/issues/2164)) ([5775bc1](https://github.com/Paddione/Bachelorprojekt/commit/5775bc1b8616ce333ace1713f135252973ed3f51))
+
 ## [0.34.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.33.0...brett-v0.34.0) (2026-06-21)
 
 

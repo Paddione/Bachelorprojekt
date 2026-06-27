@@ -535,7 +535,7 @@
       "id": "website",
       "name": "Astro + Svelte website",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 1589,
+      "file_count": 1590,
       "files": [
         "website/.build-trigger",
         "website/.design-sync/NOTES.md",
@@ -585,6 +585,7 @@
         "website/docs/superpowers/specs/2026-04-10-document-signing-design.md",
         "website/docs/superpowers/specs/2026-04-10-meeting-history-design.md",
         "website/docs/superpowers/specs/2026-04-10-slot-widget-design.md",
+        "website/package-lock.json",
         "website/package.json",
         "website/pnpm-lock.yaml",
         "website/pnpm-workspace.yaml",

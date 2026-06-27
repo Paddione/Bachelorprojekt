@@ -70,9 +70,9 @@ im Code — Origins kommen aus Env (`VITE_WEBSITE_ORIGIN`, `REACT_APP_ORIGIN`); 
 
 ## Task 2: Website — CORS-Allowlist-Helper
 
-- [ ] `website/src/lib/cors.test.ts`: erlaubte Origin → echte `Access-Control-Allow-Origin` + `Allow-Credentials: true` + `Vary: Origin`; fremde Origin → keine Header; `OPTIONS` → Preflight-Antwort. Lauf → expected: FAIL.
-- [ ] `website/src/lib/cors.ts`: `corsHeaders(origin)` + `handlePreflight(request)` gegen `REACT_APP_ORIGIN` (Komma-separierbar), fail-closed.
-- [ ] Tests → grün. Commit.
+- [x] `website/src/lib/cors.test.ts`: erlaubte Origin → echte `Access-Control-Allow-Origin` + `Allow-Credentials: true` + `Vary: Origin`; fremde Origin → keine Header; `OPTIONS` → Preflight-Antwort. Lauf → expected: FAIL.
+- [x] `website/src/lib/cors.ts`: `corsHeaders(origin)` + `handlePreflight(request)` gegen `REACT_APP_ORIGIN` (Komma-separierbar), fail-closed.
+- [x] Tests → grün. Commit.
 
 ## Task 3: Website — `/api/auth/me` CORS + Callback returnTo-Allowlist
 

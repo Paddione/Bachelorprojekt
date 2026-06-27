@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 490,
+      "file_count": 491,
       "files": [
         "tests/.gitignore",
         "tests/batch/batch-gap-analysis.bats",
@@ -337,6 +337,7 @@
         "tests/spec/ci-cd.bats",
         "tests/spec/coverage-gate.bats",
         "tests/spec/dev-flow-chore-ticket-ops-mishaps.bats",
+        "tests/spec/dev-flow-plan-ticket-sh-mishaps.bats",
         "tests/spec/docker-build-speedup.bats",
         "tests/spec/env-seal-empty-value-keys.bats",
         "tests/spec/fleet-operations.bats",

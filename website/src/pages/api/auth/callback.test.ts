@@ -73,6 +73,16 @@ describe('callback returnTo allowlist', () => {
     expect(res.headers.get('Location')).toBe('/admin');
   });
 
+  it('rejects a backslash-authority path (/\\evil.com) — browsers normalize \\ to /', async () => {
+    const res = await call('/\\evil.com');
+    expect(res.headers.get('Location')).toBe('/admin');
+  });
+
+  it('rejects /\\/evil.com', async () => {
+    const res = await call('/\\/evil.com');
+    expect(res.headers.get('Location')).toBe('/admin');
+  });
+
   it('rejects a returnTo whose host matches the allowlist but scheme is javascript:', async () => {
     const res = await call('javascript:alert(1)//react.example.test');
     expect(res.headers.get('Location')).toBe('/admin');

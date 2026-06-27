@@ -33,6 +33,9 @@ export function resolveReturnTo(rawState: string, fallback: string): string {
   if (
     rawState.startsWith('/') &&
     !rawState.startsWith('//') &&
+    // Browsers normalize backslashes to forward slashes in the authority
+    // position, so "/\evil.com" → "//evil.com" → off-site. Reject any backslash.
+    !rawState.includes('\\') &&
     !rawState.includes('\n') &&
     !rawState.includes('\r')
   ) {
@@ -41,7 +44,9 @@ export function resolveReturnTo(rawState: string, fallback: string): string {
   try {
     const u = new URL(rawState);
     if ((u.protocol === 'https:' || u.protocol === 'http:') && allowedReturnOrigins().includes(u.origin)) {
-      return rawState;
+      // Return the normalized URL (URL parsing strips tab/CR/LF) so the two
+      // branches can't diverge — never echo the raw, unnormalized input.
+      return u.href;
     }
   } catch { /* not a parseable absolute URL */ }
   return fallback;

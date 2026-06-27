@@ -1,9 +1,18 @@
 # dev-flow-plan
 
+## Purpose
+
+Der `dev-flow-plan`-Skill orchestriert den Plan-Lifecycle im Software-Factory-Kreislauf:
+vom Triage-Ticket über Brainstorming und Spec-Erstellung bis zum gestageten Plan, der
+anschließend von `dev-flow-execute` umgesetzt wird. Diese SSOT-Spec dokumentiert die
+harten Anforderungen an Subagent-Prompts, Change-Seeds und Ticket-CLI-Operationen, die
+sicherstellen, dass der Plan-Lint-Gate schon beim ersten Anlauf PASS liefert und die
+Cluster-Schreibpfade offline-safe sind.
+
+## Requirements
 
 <!-- merged from change delta dev-flow-plan.md on 2026-06-27 -->
 # Spec Delta: dev-flow-plan-ticket-sh-mishaps
-
 
 ### Requirement: dev-flow-plan Step 3.7 prompt enumerates plan-lint hard rules
 

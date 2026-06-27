@@ -932,36 +932,12 @@ tasks:
       - task: freshness:graph-check
       # --- Phase 2: code-quality gate (baseline ratchet) ---
       - task: quality:check
-      # --- Phase 3: baseline count assertion ---
+      # --- Phase 3: baseline count assertion (hardened, T001155) ---
+      # Blocks new baseline.json keys unless PR body contains [baseline-allow:<reason>].
       - |
-        pr_count=$(jq 'keys | length' docs/code-quality/baseline.json)
-        main_count=$(git show origin/main:docs/code-quality/baseline.json 2>/dev/null | jq 'keys | length' || echo "$pr_count")
-        echo "PR baseline keys: ${pr_count}, main baseline keys: ${main_count}"
-        if (( pr_count > main_count )); then
-          # Detect if main itself has unbaselined violations by counting keys in the
-          # current scan that are NOT in main's committed baseline. If main is already
-          # broken (stale baseline), allow baseline growth on this branch as a fix.
-          delta=$(( pr_count - main_count ))
-          main_baseline_tmp=$(mktemp)
-          git show origin/main:docs/code-quality/baseline.json > "$main_baseline_tmp" 2>/dev/null || echo '{}' > "$main_baseline_tmp"
-          main_blocking=$(node -e "
-            const current = JSON.parse(require('fs').readFileSync('docs/code-quality/baseline.json','utf8'));
-            const mainBase = JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'));
-            const blocking = Object.keys(current).filter(k => !mainBase[k]).length;
-            process.stdout.write(String(blocking));
-          " "$main_baseline_tmp" 2>/dev/null || echo "0")
-          rm -f "$main_baseline_tmp"
-          echo "Delta: +${delta} keys; new-vs-main keys in our baseline: ${main_blocking}"
-          if (( delta <= main_blocking )); then
-            echo "✓ baseline growth (${main_count} → ${pr_count}) freezes ${main_blocking} pre-existing main violation(s)"
-          else
-            echo "ERROR: baseline.json grew on this branch (${main_count} → ${pr_count} keys)."
-            echo "  New violations were added. Fix them or run 'task quality:baseline:freeze' only"
-            echo "  if you intentionally introduced a known-acceptable violation and it was reviewed."
-            exit 1
-          fi
-        else
-          echo "✓ baseline key-count is stable or shrinking (${main_count} → ${pr_count})"
+        if ! node scripts/code-quality/baseline-key-count-assertion.mjs; then
+          echo "ERROR: baseline.json guard failed. See scripts/code-quality/baseline-key-count-assertion.mjs"
+          exit 1
         fi
       # --- Phase 4: route-manifest invariants ---
       - |

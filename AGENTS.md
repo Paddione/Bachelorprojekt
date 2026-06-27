@@ -98,6 +98,7 @@ task feature:deploy  # fan-out to both brands
 - **`docs:sync` does NOT work** — container rootfs is read-only. Deploy via `task docs:deploy`.
 - **Task collision on Ubuntu**: `apt install task` installs taskwarrior, not go-task. Use `snap install task --classic`.
 - **Pre-commit blocks main-checkout commits** when another session holds the `main-checkout` lock. Use worktrees (`scripts/worktree-create.sh`) for isolation.
+- **Commit signing (G-SEC05).** Every new dev host must run `bash scripts/setup-dev-env.sh` once — it generates (or reuses) `~/.ssh/id_ed25519`, sets `commit.gpgsign=true` + `gpg.format=ssh` + `gpg.ssh.allowedSignersFile`, and writes a sanity-check commit. Re-run is idempotent; pass `--check` to verify. Upload the public key to GitHub as a *Signing Key* (https://github.com/settings/keys) so the "Verified" badge renders. The Software Factory dispatcher's `~/.config/factory/autopilot.env` host must also have run this script — otherwise the dispatcher's `git commit` calls land unsigned and the `G-SEC05` health gate (`scripts/health-goals-check.sh`) regresses by one N per commit.
 
 ## Agent Coordination
 

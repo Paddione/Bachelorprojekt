@@ -38,7 +38,13 @@ Wenn das Feature komplex oder unklar ist, frage den User nach einer Grilling-Ses
 
 **Nutze `lavish` für die Q/A-Session:** Erstelle `.lavish/<slug>-grilling.html` mit den Fragen als interaktivem Formular (Input-Playbook), öffne es mit `npx -y lavish-axi .lavish/<slug>-grilling.html` und poll auf Antworten. So kann der User strukturiert antworten, annotieren und Feedback geben.
 
-Falls durchgeführt, erstelle das Grilling-Ticket mit dem CLI-Helper:
+Falls durchgeführt, erstelle das Grilling-Ticket — **MCP-first** (`ticket-mcp`). Der zurückgegebene Text ist `external_id|uuid` (identisch zu `ticket.sh create`): `external_id` = Feld 1 (`cut -d'|' -f1`), `uuid` = Feld 2.
+
+> `mcp__ticket-mcp__create_ticket({ type: "task", brand: "mentolder", title: "Grilling: <kurzer-titel>", priority: "mittel", description: "FUNKTIONALE ANFORDERUNGEN:\n<requirements>\n\nASSETS ZU BESCHAFFEN:\n<assets-todo>" })`
+
+Setze `GRILLING_TICKET_EXT_ID` (Feld 1) und `GRILLING_TICKET_UUID` (Feld 2) aus der Rückgabe.
+
+Fallback (ticket-mcp nicht erreichbar):
 
 ```bash
 TICKET_RESULT=$(./scripts/ticket.sh create \
@@ -254,7 +260,19 @@ Du behältst deinen vollen Brainstorming-Kontext: lies den vom Subagenten zurüc
 
 ### Schritt 4.5: Ticket anlegen oder wiederverwenden
 
-Prüfe ob ein bestehendes Ticket-ID übergeben wurde (z.B. von `feature-intake`):
+Prüfe ob ein bestehendes Ticket-ID übergeben wurde (z.B. von `feature-intake`).
+
+**MCP-first** (`ticket-mcp`) — wenn noch kein `TICKET_EXT_ID` gesetzt ist, ein neues Ticket anlegen. Rückgabe ist `external_id|uuid`: Feld 1 (`cut -d'|' -f1`) = `TICKET_EXT_ID`, Feld 2 = `TICKET_UUID`.
+
+> `mcp__ticket-mcp__create_ticket({ type: "task", brand: "mentolder", title: "Plan: <slug>", priority: "mittel", description: "Branch: feature/<slug>\nPlan: openspec/changes/<slug>/tasks.md\nSpec: docs/superpowers/specs/<date>-<slug>-design.md\n<grilling-ref>" })`
+
+Bei vorhandenem Ticket stattdessen die UUID lesen: `mcp__ticket-mcp__get_ticket({ id: "$TICKET_EXT_ID" })` → `.id` ist die UUID.
+
+Plan stagen (Branch + Plan-Pfad im Ticket verankern — SSOT für dev-flow-execute) — **MCP-first**:
+
+> `mcp__ticket-mcp__stage_plan({ id: "$TICKET_EXT_ID", branch: "feature/<slug>", plan: "openspec/changes/<slug>/tasks.md" })`
+
+Fallback (ticket-mcp nicht erreichbar):
 
 ```bash
 # Falls TICKET_EXT_ID bereits gesetzt ist (von feature-intake oder User-Input),
@@ -329,7 +347,12 @@ Details siehe [plan-review-ui](file:///home/patrick/Bachelorprojekt/.claude/skil
 ## Fix-Pfad
 
 ### Schritt 1: T-###### Ticket
-Frage den User nach der Ticket-ID. Falls keins vorhanden ist, lege ein neues Ticket an:
+Frage den User nach der Ticket-ID. Falls keins vorhanden ist, lege ein neues Ticket an — **MCP-first** (`ticket-mcp`, Rückgabe `external_id|uuid`: Feld 1 = `TICKET_EXT_ID`, Feld 2 = `TICKET_UUID`):
+
+> `mcp__ticket-mcp__create_ticket({ type: "bug", brand: "mentolder", title: "<titel>", description: "<beschreibung>", status: "triage", severity: "<critical|major|minor|trivial>", priority: "hoch" })`
+
+Fallback (ticket-mcp nicht erreichbar):
+
 ```bash
 TICKET_RESULT=$(./scripts/ticket.sh create \
   --type bug \
@@ -377,12 +400,20 @@ Schreibe einen automatisierten Test, der den Bug reproduziert und fehlschlägt (
 Rufe `superpowers:writing-plans` auf. Wende das Frontmatter an und trage die Ticket-ID ein. Committe und pushe den Plan.
 
 ### Schritt 4.5: Plan stagen (Fix 6)
+
+**MCP-first** (`ticket-mcp`):
+
+> `mcp__ticket-mcp__stage_plan({ id: "$TICKET_EXT_ID", branch: "fix/<slug>", plan: "openspec/changes/<slug>/tasks.md" })`
+
+Fallback (ticket-mcp nicht erreichbar):
+
 ```bash
 ./scripts/ticket.sh stage-plan \
   --id "$TICKET_EXT_ID" \
   --branch "fix/<slug>" \
   --plan "openspec/changes/<slug>/tasks.md"
 ```
+
 Damit ist das Fix-Ticket als `plan_staged` in der DB verankert und für `dev-flow-execute` bereit.
 
 ### Schritt 5: Commit & Push

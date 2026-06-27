@@ -55,10 +55,13 @@ Du bist auf einem `feature/*` oder `fix/*` Branch. `dev-flow-plan` hat Spec und 
 
 Falls `TICKET_ID` nicht bereits im Kontext gesetzt ist (z.B. vom User oder aus dem Branch-Namen ableitbar):
 
+Plan-Metadaten aus der DB holen — **MCP-first** (`mcp-postgres`, READ-ONLY, nimmt nur `sql`):
+
+> `mcp__mcp-postgres__query({ sql: "SELECT external_id, title FROM tickets.tickets WHERE status='plan_staged' ORDER BY planning_rank ASC NULLS LAST, created_at DESC LIMIT 10;" })`
+
+Fallback (mcp-postgres nicht erreichbar — Verfügbarkeits-Guard siehe [`mcp-tool-guide.md`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md)):
+
 ```bash
-# Plan-Metadaten aus der DB holen (MCP-Schnellweg wenn mcp-postgres erreichbar):
-# sql: SELECT external_id, title FROM tickets.tickets WHERE status='plan_staged' ORDER BY planning_rank ASC NULLS LAST, created_at DESC LIMIT 10;
-# Fallback:
 kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -F '|' -c \
   "SELECT external_id, title FROM tickets.tickets WHERE status='plan_staged' ORDER BY planning_rank ASC NULLS LAST, created_at DESC LIMIT 10;"
 ```
@@ -164,16 +167,25 @@ done
 
 ## Schritt 1.5: Ticket auf `in_progress` setzen und touched_files registrieren
 
-Falls eine Ticket-ID vorhanden ist, setze das Ticket auf in_progress:
+Falls eine Ticket-ID vorhanden ist, setze das Ticket auf in_progress — **MCP-first** (`ticket-mcp`):
+
+> `mcp__ticket-mcp__transition_status({ id: "$TICKET_ID", status: "in_progress" })`
+> `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "plan", state: "entered", driver: "devflow", detail: "Plan: <slug> · $TICKET_ID" })`
+
+Fallback (ticket-mcp nicht erreichbar; Live-Floor-Telemetrie ist best-effort und darf den Flow nie stoppen):
 
 ```bash
 ./scripts/vda.sh ticket update-status --id "$TICKET_ID" --status in_progress
-# Live-Floor-Telemetrie (best-effort; --driver devflow; darf den Flow nie stoppen)
 SLUG=$(basename "$PLAN_FILE" .md)
 ./scripts/ticket.sh phase "$TICKET_ID" plan entered --driver devflow --detail "Plan: $SLUG · $TICKET_ID" || true
 ```
 
-Falls der Plan die berührten Dateien kennt, registriere sie für die Conflict-Gate (parallele Sessions sehen die Kollision via `agent-collision.sh`):
+Falls der Plan die berührten Dateien kennt, registriere sie für die Conflict-Gate (parallele Sessions sehen die Kollision via `agent-collision.sh`) — **MCP-first**:
+
+> `mcp__ticket-mcp__set_touched_files({ id: "$TICKET_ID", files: "<comma-separated-paths>" })`
+> `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "plan", state: "done", driver: "devflow", detail: "Plan geladen · Assets folgen" })`
+
+Fallback:
 
 ```bash
 ./scripts/ticket.sh set-touched-files --id "$TICKET_ID" --files "<comma-separated-paths>"
@@ -184,7 +196,11 @@ Falls der Plan die berührten Dateien kennt, registriere sie für die Conflict-G
 
 ## Schritt 1.7: Visual & Textual Assets laden (Visual Handoff)
 
-Falls eine Ticket-ID vorhanden ist, lade alle Anhänge (wie Screenshots, Logdateien, Mockups) herunter:
+Falls eine Ticket-ID vorhanden ist, lade alle Anhänge (wie Screenshots, Logdateien, Mockups) herunter — **MCP-first** (`ticket-mcp`):
+
+> `mcp__ticket-mcp__get_attachments({ id: "$TICKET_ID", out_dir: "/tmp/ticket-attachments-$TICKET_ID" })`
+
+Fallback (ticket-mcp nicht erreichbar):
 
 ```bash
 ATTACHMENT_DIR="/tmp/ticket-attachments-$TICKET_ID"
@@ -197,8 +213,13 @@ ATTACHMENT_DIR="/tmp/ticket-attachments-$TICKET_ID"
 
 ## Schritt 2: Implementierung an frischen Implementer-Subagenten delegieren
 
+Live-Floor-Telemetrie (best-effort): Implementer-Subagent wird gespawnt — **MCP-first**:
+
+> `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "implement", state: "entered", driver: "devflow", detail: "Subagent gestartet" })`
+
+Fallback:
+
 ```bash
-# Live-Floor-Telemetrie (best-effort): Implementer-Subagent wird gespawnt
 ./scripts/ticket.sh phase "$TICKET_ID" implement entered --driver devflow --detail "Subagent gestartet" || true
 ```
 
@@ -282,15 +303,31 @@ bash scripts/devflow-build-loop.sh "$TICKET_ID"
 
 Rufe das Skill **`verification-before-completion`** auf, um die Verifikation strukturiert zu steuern.
 
+Phasen-Telemetrie (best-effort) — **MCP-first** (`ticket-mcp`):
+
+> `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "implement", state: "done", driver: "devflow", detail: "Implementierung fertig" })`
+> `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "verify", state: "entered", driver: "devflow", detail: "task test:changed + freshness" })`
+
+Verifikation ausführen:
+
 ```bash
-# Live-Floor-Telemetrie (best-effort; --driver devflow; darf den Flow nie stoppen)
-./scripts/ticket.sh phase "$TICKET_ID" implement done --driver devflow --detail "Implementierung fertig" || true
-./scripts/ticket.sh phase "$TICKET_ID" verify entered --driver devflow --detail "task test:changed + freshness" || true
 task workspace:validate
 ./tests/runner.sh local <FA-XX oder SA-XX>
 task test:changed
 task freshness:regenerate
 task freshness:check        # CI-Äquivalent — failt lokal GENAU wie CI (S1–S4-Ratchet + Baseline-Assertion)
+```
+
+Nach grünen Tests — **MCP-first**:
+
+> `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "verify", state: "done", driver: "devflow", detail: "Tests grün · freshness OK" })`
+
+Fallback (ticket-mcp nicht erreichbar; Telemetrie ist best-effort und darf den Flow nie stoppen):
+
+```bash
+./scripts/ticket.sh phase "$TICKET_ID" implement done --driver devflow --detail "Implementierung fertig" || true
+./scripts/ticket.sh phase "$TICKET_ID" verify entered --driver devflow --detail "task test:changed + freshness" || true
+# nach den Tests:
 ./scripts/ticket.sh phase "$TICKET_ID" verify done --driver devflow --detail "Tests grün · freshness OK" || true
 ```
 
@@ -443,19 +480,26 @@ done
 
 Falls eine Ticket-ID vorhanden ist, schließe das Ticket:
 
+PR-Nummer ermitteln (falls nicht aus Schritt 6.4 bekannt):
+
 ```bash
 RESOLUTION="shipped" # oder "fixed" bei Fixes
-# PR_NUM wurde in Schritt 6.4 bereits ermittelt; hier nur falls separat aufgerufen:
 : "${PR_NUM:=$(gh pr view --json number -q '.number' 2>/dev/null || echo "")}"
+```
 
-# PR-Nummer in ticket_links eintragen, damit der Shipped-Tab sie zeigt (Fix 1):
+Abschluss-Lifecycle — **MCP-first** (`ticket-mcp`). Merge = Abschluss (T001092): Schritt 6.4 hat bestätigt, dass der PR gemergt ist; der Prod-Deploy (Schritt 8) ist entkoppelt und ändert den Ticket-Status NICHT.
+
+> `mcp__ticket-mcp__add_pr_link({ id: "$TICKET_ID", pr: "$PR_NUM" })`
+> `mcp__ticket-mcp__transition_status({ id: "$TICKET_ID", status: "done", resolution: "<shipped|fixed>" })`
+> `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "verify", state: "done", driver: "devflow", detail: "gate=ci result=pass" })`
+> `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "deploy", state: "done", driver: "devflow", detail: "PR #$PR_NUM merged · done/shipped" })`
+> `mcp__ticket-mcp__add_comment({ id: "$TICKET_ID", body: "PR #$PR_NUM merged. Plan archived to tickets.ticket_plans." })`
+
+Fallback (ticket-mcp nicht erreichbar; die Phasen-Events sind best-effort und nie blockierend):
+
+```bash
 ./scripts/ticket.sh add-pr-link --id "$TICKET_ID" --pr "$PR_NUM"
-
-# Merge = Abschluss (T001092): Schritt 6.4 hat bestätigt, dass der PR gemergt ist;
-# Ticket kann jetzt sauber auf done gehen. Prod-Deploy (Schritt 8) ist entkoppelt
-# und ändert den Ticket-Status NICHT.
 ./scripts/vda.sh ticket update-status --id "$TICKET_ID" --status done --resolution "$RESOLUTION"
-# Quality-Gate-Outcome + Live-Floor-Telemetrie (best-effort; --driver devflow; nie blockierend)
 ./scripts/ticket.sh phase "$TICKET_ID" verify done --driver devflow --detail "gate=ci result=pass" || true
 ./scripts/ticket.sh phase "$TICKET_ID" deploy done --driver devflow --detail "PR #$PR_NUM merged · done/shipped" || true
 ./scripts/ticket.sh add-comment --id "$TICKET_ID" --body "PR #$PR_NUM merged. Plan archived to tickets.ticket_plans."
@@ -474,17 +518,26 @@ PR_NUM=$(gh pr view --json number -q '.number' 2>/dev/null || echo "")
 
 # 1. Plan-Frontmatter auf completed setzen, BEVOR der Inhalt archiviert wird:
 sed -i 's/^status: active$/status: completed/' "$PLAN_FILE"
+```
 
-# 2. tasks.md → postgres (tickets.ticket_plans)
+2. tasks.md → postgres (`tickets.ticket_plans`) — **MCP-first** (`ticket-mcp`):
+
+> `mcp__ticket-mcp__archive_plan({ id: "$TICKET_ID", slug: "$SLUG", branch: "$BRANCH", plan_file: "$PLAN_FILE", pr: "$PR_NUM" })`
+
+Fallback (ticket-mcp nicht erreichbar):
+
+```bash
 ./scripts/ticket.sh archive-plan \
   --id "$TICKET_ID" \
   --slug "$SLUG" \
   --branch "$BRANCH" \
   --plan-file "$PLAN_FILE" \
   --pr "$PR_NUM"
+```
 
-# 3. OpenSpec-Change archivieren: openspec/changes/<slug>/ → openspec/changes/archive/<date>-<slug>/
-#    Verschiebt proposal.md, tasks.md, specs/, assets/ ins Archiv und aktualisiert den SSOT-Delta.
+3. OpenSpec-Change archivieren: `openspec/changes/<slug>/` → `openspec/changes/archive/<date>-<slug>/`. Verschiebt proposal.md, tasks.md, specs/, assets/ ins Archiv und aktualisiert den SSOT-Delta.
+
+```bash
 bash scripts/openspec.sh archive "$SLUG"
 # Alternativ: task openspec:archive -- "$SLUG"
 

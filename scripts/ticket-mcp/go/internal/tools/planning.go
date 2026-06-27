@@ -115,9 +115,9 @@ func RegisterPlanningTools(s *server.MCPServer) {
 			mcp.WithDescription("Convenience: setzt alle Pflichtfelder für ein Feature-Ticket in einem Call und transitioniert zu planning. Führt intern set_plan_meta + alle Readiness-Flags + transition_status(planning) aus."),
 			mcp.WithString("id", mcp.Description("external_id z.B. T000123"), mcp.Required()),
 			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)")),
-			mcp.WithString("priority", mcp.Description("wird nicht an ticket.sh durchgereicht (Node-Kompatibilität)"),
+			mcp.WithString("priority", mcp.Description("wird nicht an ticket.sh plan-meta durchgereicht (das Verb akzeptiert priority/severity nicht)"),
 				mcp.Enum("hoch", "mittel", "niedrig")),
-			mcp.WithString("severity", mcp.Description("wird nicht an ticket.sh durchgereicht (Node-Kompatibilität)"),
+			mcp.WithString("severity", mcp.Description("wird nicht an ticket.sh plan-meta durchgereicht (das Verb akzeptiert priority/severity nicht)"),
 				mcp.Enum("critical", "major", "minor", "trivial")),
 			mcp.WithString("attention_mode", mcp.Description("auto, ai_ready, needs_human"),
 				mcp.Enum("auto", "ai_ready", "needs_human")),
@@ -151,8 +151,7 @@ func RegisterPlanningTools(s *server.MCPServer) {
 			var logLines []string
 			env := map[string]string{"BRAND": brand}
 
-			// priority and severity are accepted by the schema but NOT passed to ticket.sh
-			// This matches Node behavior exactly — they are declared but silently ignored.
+			// priority/severity are declared for caller convenience but plan-meta does not accept them, so they are intentionally not forwarded.
 
 			metaArgs := []string{"plan-meta", "set", "--id", id}
 			if valueProp != "" {

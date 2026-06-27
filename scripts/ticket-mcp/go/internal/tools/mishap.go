@@ -102,6 +102,32 @@ func classifyBundle(entries []MishapEntry) MishapBundle {
 	}
 }
 
+// createMishapBundleTicket creates one bundled task ticket from the given
+// entries via ticket.sh create and returns the parsed external_id.
+func createMishapBundleTicket(bundle []MishapEntry, brand string) (string, error) {
+	c := classifyBundle(bundle)
+	out, err := runner.RunTicket([]string{
+		"create",
+		"--type", "task",
+		"--brand", brand,
+		"--title", c.Title,
+		"--description", c.Description,
+		"--status", "triage",
+		"--severity", c.Severity,
+		"--priority", c.Priority,
+		"--attention-mode", "ai_ready",
+		"--areas", c.Areas,
+	}, map[string]string{"BRAND": brand})
+	if err != nil {
+		return "", err
+	}
+	ext := strings.TrimSpace(out)
+	if i := strings.Index(ext, "|"); i >= 0 {
+		ext = ext[:i]
+	}
+	return ext, nil
+}
+
 func RegisterMishapTools(s *server.MCPServer) {
 	s.AddTool(
 		mcp.NewTool("report_mishap",
@@ -113,7 +139,7 @@ func RegisterMishapTools(s *server.MCPServer) {
 			mcp.WithString("description", mcp.Description("Ausführliche Beschreibung"), mcp.Required()),
 			mcp.WithString("component", mcp.Description("Betroffene Komponente z.B. auth, chat, infra"), mcp.Required()),
 			mcp.WithString("type", mcp.Description("Mishap-Typ (broken/security → severity major)"),
-				mcp.Enum("broken", "degraded", "suspicious", "security", "drift"),
+				mcp.Enum("broken", "degraded", "suspicious", "security", "drift", "process"),
 				mcp.Required(),
 			),
 			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)")),
@@ -129,7 +155,7 @@ func RegisterMishapTools(s *server.MCPServer) {
 				brand = "mentolder"
 			}
 
-			validTypes := []string{"broken", "degraded", "suspicious", "security", "drift"}
+			validTypes := []string{"broken", "degraded", "suspicious", "security", "drift", "process"}
 			if !slices.Contains(validTypes, mtype) {
 				return mcp.NewToolResultError(fmt.Sprintf("Ungültiger Typ: %s. Erlaubt: %s", mtype, strings.Join(validTypes, ", "))), nil
 			}
@@ -151,21 +177,7 @@ func RegisterMishapTools(s *server.MCPServer) {
 				)), nil
 			}
 
-			bundle := buffer[:MISHAP_TRIGGER]
-			classified := classifyBundle(bundle)
-
-			ticketResult, err := runner.RunTicket([]string{
-				"create",
-				"--type", "task",
-				"--brand", brand,
-				"--title", classified.Title,
-				"--description", classified.Description,
-				"--status", "triage",
-				"--severity", classified.Severity,
-				"--priority", classified.Priority,
-				"--attention-mode", "ai_ready",
-				"--areas", classified.Areas,
-			}, map[string]string{"BRAND": brand})
+			extID, err := createMishapBundleTicket(buffer[:MISHAP_TRIGGER], brand)
 			if err != nil {
 				writeBuffer(buffer)
 				return nil, err
@@ -173,15 +185,51 @@ func RegisterMishapTools(s *server.MCPServer) {
 
 			writeBuffer(buffer[MISHAP_TRIGGER:])
 
-			extID := strings.TrimSpace(ticketResult)
-			if idx := strings.Index(extID, "|"); idx >= 0 {
-				extID = extID[:idx]
-			}
-
 			return mcp.NewToolResultText(fmt.Sprintf(
 				"Bundle-Ticket angelegt: %s\nBuffer geleert. Verbleibende Mishaps: %d\n\nTicket landet im nächsten Factory-Tick (attention_mode=ai_ready).",
 				extID, len(buffer)-MISHAP_TRIGGER,
 			)), nil
+		},
+	)
+
+	s.AddTool(
+		mcp.NewTool("get_mishap_buffer",
+			mcp.WithDescription("Zeigt den aktuellen Inhalt des Mishap-Buffers (noch nicht zu Tickets gebündelt)."),
+		),
+		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			buffer := readBuffer()
+			if len(buffer) == 0 {
+				return mcp.NewToolResultText("Mishap-Buffer ist leer."), nil
+			}
+			var lines []string
+			for i, e := range buffer {
+				lines = append(lines, fmt.Sprintf("%d. [%s] %s (%s) — %s", i+1, e.Type, e.Title, e.Component, e.ReportedAt))
+			}
+			return mcp.NewToolResultText(fmt.Sprintf("Buffer: %d/%d Einträge\n\n%s", len(buffer), MISHAP_TRIGGER, strings.Join(lines, "\n"))), nil
+		},
+	)
+
+	s.AddTool(
+		mcp.NewTool("flush_mishap_buffer",
+			mcp.WithDescription("Erzwingt ein Bundle-Ticket aus dem aktuellen Buffer — auch bei <3 Einträgen (Session-Ende)."),
+			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)")),
+		),
+		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			a := getArgs(req)
+			brand, _ := a["brand"].(string)
+			if brand == "" {
+				brand = "mentolder"
+			}
+			buffer := readBuffer()
+			if len(buffer) == 0 {
+				return mcp.NewToolResultText("Mishap-Buffer ist leer — nichts zu flushen."), nil
+			}
+			ext, err := createMishapBundleTicket(buffer, brand)
+			if err != nil {
+				return nil, err
+			}
+			writeBuffer([]MishapEntry{})
+			return mcp.NewToolResultText(fmt.Sprintf("Bundle-Ticket angelegt: %s (%d Mishaps)\nBuffer geleert.", ext, len(buffer))), nil
 		},
 	)
 }

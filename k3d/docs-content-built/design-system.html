@@ -10,19 +10,24 @@
 <link rel="stylesheet" href="./style.css">
 </head>
 <body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
 <header class="site-header">
   <a class="site-header-brand" href="./index.html">
     <span class="site-mark" aria-hidden="true">◆</span>
     <span class="site-wordmark">Dokumentation</span>
   </a>
 </header>
-<div id="search-overlay">
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
   <div id="search-box">
-    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
-    <div id="search-results"></div>
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
   </div>
 </div>
 <div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Handbücher</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./readme.html">AI-Agent Operating Guide — Registry (SSOT)</a></li><li class="sidebar-item"><a href="./readme.html">DB Audit Phase 5 — 2026-05-23</a></li><li class="sidebar-item"><a href="./readme.html">dev.mentolder.de — Operator Runbook</a></li><li class="sidebar-item"><a href="./readme.html">Korczewski Visual Design Brief</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Architektur &amp; Bausteine</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./30-bausteine.html">Bausteine — Was läuft auf der Plattform?</a></li><li class="sidebar-item"><a href="./bereitstellungsdetails.html">Bereitstellungsdetails und Server-Topologie</a></li><li class="sidebar-item"><a href="./db-schema.html">Shared DB — Schema Reference &amp; Normalization Audit</a></li><li class="sidebar-item"><a href="./00-anleitung.html">Was will ich tun?</a></li><li class="sidebar-item"><a href="./20-werkzeuge.html">Werkzeuge — Tools und Agents</a></li><li class="sidebar-item"><a href="./10-ziele.html">Ziele — Was will ich tun?</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Audits &amp; Reports</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./2026-06-20-active-sessions-hub.html">Active Sessions Hub — Mediaviewer-Panel verlinkt aktive Forms/Brainstorm/Companion</a></li><li class="sidebar-item"><a href="./2026-06-22-agent-library.html">Agent Library Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-22-bats-coverage-batch1.html">BATS Coverage Expansion — Batch 1 (G-RH03) Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-20-cockpit-direct-ticket-links.html">Cockpit Direct Ticket Links — TicketDrawer entfernen, Titel als Navigationslinks</a></li><li class="sidebar-item"><a href="./2026-06-07-dataflow-dataleak.html">Dataflow &amp; Datenleck-Audit — 2026-06-07</a></li><li class="sidebar-item"><a href="./findings.html">DB Audit Phase 5 — Findings</a></li><li class="sidebar-item"><a href="./2026-06-07-e2e-reachability-test-quality.html">E2E Reachability &amp; Test-Quality-Audit — 2026-06-07</a></li><li class="sidebar-item"><a href="./2026-06-22-ki-api-prod-migrations.html">KI-API Prod-Migrationen (T000711) Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-20-mcp-task-runner.html">MCP Task Runner Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-27-mentolder-brand-foundations-design-system.html">mentolder — Brand Foundations Design System</a></li><li class="sidebar-item"><a href="./2026-06-22-mentolder-web-unterseiten.html">mentolder-web Unterseiten Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-22-s1-violations-batch1.html">S1-Frozen-Violations Reduction — Batch 1 (G-RH01) Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-21-ticket-mcp.html">ticket-mcp Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-22-ts-suppression-elimination.html">TypeScript-Suppressionen eliminieren (G-RH02) Implementation Plan</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Entscheidungen</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./decision-log.html">Phase 5 DROP Decision Log</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">Referenz</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./tasks.html">Agent-Push-Notifications für opencode/agy-Sessions</a></li><li class="sidebar-item"><a href="./tasks.html">AI: Ticket-Auto-Triage (Severity-Erkennung)</a></li><li class="sidebar-item"><a href="./alert-email-test.html">Alert-E-Mail-Test (synthetisch)</a></li><li class="sidebar-item"><a href="./api-surface.html">API Surface Map</a></li><li class="sidebar-item"><a href="./tasks.html">Art Library Webapp Integration</a></li><li class="sidebar-item"><a href="./audit-log-retention.html">Audit-Log Retention — DSGVO-Dokumentation</a></li><li class="sidebar-item"><a href="./blast-radius.html">Blast-Radius-Report</a></li><li class="sidebar-item"><a href="./brainstorm-bridge-wsl.html">Brainstorm-Bridge (WSL) — Visuals &amp; Auswahl an den Nutzer kommunizieren</a></li><li class="sidebar-item"><a href="./tasks.html">Cockpit Mobile-View Implementation Plan</a></li><li class="sidebar-item"><a href="./tasks.html">Cockpit: Filter speichern / Voreinstellungen</a></li><li class="sidebar-item"><a href="./tasks.html">env-seal.sh: empty-value Keys in extra_namespaces korrekt verarbeiten (G-CD01 Root-Cause)</a></li><li class="sidebar-item"><a href="./envsubst-variable-management.html">envsubst Variable Management — Referenz</a></li><li class="sidebar-item"><a href="./tasks.html">Feature Intake: Semantischer Duplikatcheck + dynamischer Feature-Pool</a></li><li class="sidebar-item"><a href="./fleet-stage2-cutover-runbook.html">Fleet Stage 2 — Cutover Runbook</a></li><li class="sidebar-item"><a href="./fleet-2026-05-31-what-changed.html">Fleet-Konsolidierung — was sich am 2026-05-31 geändert hat</a></li><li class="sidebar-item"><a href="./tasks.html">G-CD01: korczewski-Deploy-Lane — stale SealedSecret reparieren + Drift-Prevention</a></li><li class="sidebar-item"><a href="./tasks.html">G-CD02: post-merge.yml Race-Guard härten (93% → ≥95%)</a></li><li class="sidebar-item"><a href="./tasks.html">G-CQ03: ESLint in website/ einrichten + Warnings auf 0</a></li><li class="sidebar-item"><a href="./tasks.html">G-CQ08: Dead-Code/unused exports in website/src via knip messen + −50%</a></li><li class="sidebar-item"><a href="./tasks.html">G-DEP02: Veraltete Major-Deps (website) 9 → ≤3</a></li><li class="sidebar-item"><a href="./tasks.html">G-FE01: a11y axe-Violations (Kern-Routen beider Marken) auf 0 crit/serious</a></li><li class="sidebar-item"><a href="./tasks.html">G-FE02: Client-JS-Bundle messen + Budget (kein Netto-Zuwachs/Release)</a></li><li class="sidebar-item"><a href="./tasks.html">G-IMG02: Fremd-Image-Versions-Drift vereinheitlichen (busybox/curl)</a></li><li class="sidebar-item"><a href="./proposal.html">G-RH01: S1-Frozen-Violations Batch 1 — baseline.json 98→≤30</a></li><li class="sidebar-item"><a href="./tasks.html">G-RH01: S1-Frozen-Violations Batch 1 — baseline.json 98→≤30</a></li><li class="sidebar-item"><a href="./proposal.html">G-RH03: BATS Coverage Batch 1 — OpenSpec 17%→23%</a></li><li class="sidebar-item"><a href="./tasks.html">G-RH03: BATS Coverage Batch 1 — OpenSpec 17%→23%</a></li><li class="sidebar-item"><a href="./tasks.html">Implementation Plan: cockpit-bulk-status</a></li><li class="sidebar-item sidebar-item--active"><a href="./design-system.html" aria-current="page">mentolder Design-System</a></li><li class="sidebar-item"><a href="./tasks.html">mentolder.de Website-Frontend in React neu aufbauen</a></li><li class="sidebar-item"><a href="./tasks.html">Messbare Delivery-Pipeline + DORA-Dashboard</a></li><li class="sidebar-item"><a href="./tasks.html">Pocket ID Migration — Keycloak ersetzen durch Pocket ID</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: agent-push-notifications</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: AI: Ticket-Auto-Triage (Severity-Erkennung)</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: art-library-webapp-integration</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: cockpit-bulk-status</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: cockpit-filter-presets</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: cockpit-mobile-view</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: dora-delivery-pipeline</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: env-seal-empty-value-keys</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: Feature Intake + Knowledge-Graph-Anreicherung</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-cd01-korczewski-secret-drift</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-cd02-post-merge-race-guard</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-cq03-eslint-website</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-cq08-knip-dead-code</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-dep02-major-deps-website (G-DEP02)</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-fe01-a11y-axe-violations</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-fe02-bundle-budget</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: img02-image-drift (G-IMG02)</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: Mentolder Homepage — hifi-Redesign in Astro+Svelte</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: mentolder.de Website-Frontend in React neu aufbauen</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: pocket-id-migration</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: ticket-mcp Go-Rewrite mit HTTP-Transport [T001043]</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: ticket-verlauf-anhaenge</a></li><li class="sidebar-item"><a href="./secrets-architecture.html">Secrets-Dateiarchitektur</a></li><li class="sidebar-item"><a href="./shared-infrastructure-security.html">Shared Infrastructure Security — Cross-Brand Analysis</a></li><li class="sidebar-item"><a href="./overview.html">Skills Overview</a></li><li class="sidebar-item"><a href="./factory-usage.html">Software Factory — Usage Guide</a></li><li class="sidebar-item"><a href="./systemtest-fragebogen.html">Systemtest-Protokoll — Workspace Collaboration Platform</a></li><li class="sidebar-item"><a href="./tasks.html">Tasks: ticket-verlauf-anhaenge</a></li><li class="sidebar-item"><a href="./tasks.html">ticket-mcp Go-Rewrite mit HTTP-Transport</a></li><li class="sidebar-item"><a href="./wsl-bootstrap.html">WSL Bootstrapping Gotchas</a></li></ul></details>
+</aside>
   <main id="main">
 <header class="page-header">
   <div class="page-header-body">
@@ -40,17 +45,33 @@
 <html><head></head><body><h1>mentolder Design-System</h1><div class="toc-box auto-toc">
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#farb-tokens"><span class="toc-num">1.</span> Farb-Tokens</a></li>
+<li class="toc-item toc-item--h3"><a href="#hintergrund-ink-skala"><span class="toc-num">–</span> Hintergrund (Ink-Skala)</a></li>
+<li class="toc-item toc-item--h3"><a href="#vordergrund"><span class="toc-num">–</span> Vordergrund</a></li>
+<li class="toc-item toc-item--h3"><a href="#akzentfarben"><span class="toc-num">–</span> Akzentfarben</a></li>
+<li class="toc-item toc-item--h3"><a href="#linien--borders"><span class="toc-num">–</span> Linien &amp; Borders</a></li>
 <li class="toc-item"><a href="#typografie"><span class="toc-num">2.</span> Typografie</a></li>
+<li class="toc-item toc-item--h3"><a href="#font-familien"><span class="toc-num">–</span> Font-Familien</a></li>
+<li class="toc-item toc-item--h3"><a href="#typografie-skala"><span class="toc-num">–</span> Typografie-Skala</a></li>
 <li class="toc-item"><a href="#spacing--layout"><span class="toc-num">3.</span> Spacing &amp; Layout</a></li>
 <li class="toc-item"><a href="#komponenten-tokens"><span class="toc-num">4.</span> Komponenten-Tokens</a></li>
+<li class="toc-item toc-item--h3"><a href="#button-primary"><span class="toc-num">–</span> Button (Primary)</a></li>
+<li class="toc-item toc-item--h3"><a href="#button-ghost"><span class="toc-num">–</span> Button (Ghost)</a></li>
+<li class="toc-item toc-item--h3"><a href="#card"><span class="toc-num">–</span> Card</a></li>
+<li class="toc-item toc-item--h3"><a href="#kicker-bar-section-label"><span class="toc-num">–</span> Kicker-Bar (Section-Label)</a></li>
+<li class="toc-item toc-item--h3"><a href="#hero-halo-background-effekt"><span class="toc-num">–</span> Hero Halo (Background-Effekt)</a></li>
 <li class="toc-item"><a href="#tailwind-v4-theme-konfiguration"><span class="toc-num">5.</span> Tailwind v4 Theme-Konfiguration</a></li>
-<li class="toc-item"><a href="#was-du-claude-fuer-assets-fragen-kannst"><span class="toc-num">6.</span> Was du Claude für Assets fragen kannst</a></li></ul>
+<li class="toc-item"><a href="#was-du-claude-fuer-assets-fragen-kannst"><span class="toc-num">6.</span> Was du Claude für Assets fragen kannst</a></li>
+<li class="toc-item toc-item--h3"><a href="#1-svg-hero-halo"><span class="toc-num">–</span> 1. SVG Hero-Halo</a></li>
+<li class="toc-item toc-item--h3"><a href="#2-svg-icons-coaching-themen"><span class="toc-num">–</span> 2. SVG Icons (Coaching-Themen)</a></li>
+<li class="toc-item toc-item--h3"><a href="#3-og-image-template-react-komponente-fuer-vercelog"><span class="toc-num">–</span> 3. OG-Image Template (React-Komponente für @vercel/og)</a></li>
+<li class="toc-item toc-item--h3"><a href="#4-favicon-svg"><span class="toc-num">–</span> 4. Favicon (SVG)</a></li>
+<li class="toc-item toc-item--h3"><a href="#5-portrait-placeholder-komponente"><span class="toc-num">–</span> 5. Portrait-Placeholder-Komponente</a></li></ul>
 </div>
 <p>Extrahiert aus <code>website/src/styles/global.css</code> und den Svelte-Komponenten.
 Einsatzbereit als CSS Custom Properties + Tailwind v4 Theme.</p>
 <hr>
 <h2 id="farb-tokens">Farb-Tokens</h2>
-<h3>Hintergrund (Ink-Skala)</h3>
+<h3 id="hintergrund-ink-skala">Hintergrund (Ink-Skala)</h3>
 <table>
 <thead>
 <tr>
@@ -80,7 +101,7 @@ Einsatzbereit als CSS Custom Properties + Tailwind v4 Theme.</p>
 <td>Tooltips, Popovers</td>
 </tr>
 </tbody></table>
-<h3>Vordergrund</h3>
+<h3 id="vordergrund">Vordergrund</h3>
 <table>
 <thead>
 <tr>
@@ -110,7 +131,7 @@ Einsatzbereit als CSS Custom Properties + Tailwind v4 Theme.</p>
 <td>Disabled, sehr gedämpft</td>
 </tr>
 </tbody></table>
-<h3>Akzentfarben</h3>
+<h3 id="akzentfarben">Akzentfarben</h3>
 <table>
 <thead>
 <tr>
@@ -145,7 +166,7 @@ Einsatzbereit als CSS Custom Properties + Tailwind v4 Theme.</p>
 <td>Separator-Dots, sekundäre Highlights</td>
 </tr>
 </tbody></table>
-<h3>Linien &amp; Borders</h3>
+<h3 id="linien--borders">Linien &amp; Borders</h3>
 <table>
 <thead>
 <tr>
@@ -167,7 +188,7 @@ Einsatzbereit als CSS Custom Properties + Tailwind v4 Theme.</p>
 </tbody></table>
 <hr>
 <h2 id="typografie">Typografie</h2>
-<h3>Font-Familien</h3>
+<h3 id="font-familien">Font-Familien</h3>
 <div class="code-wrapper"><pre><code class="language-css">--font-serif: "Newsreader", "Iowan Old Style", Georgia, serif;
 --font-sans:  "Geist", ui-sans-serif, system-ui, sans-serif;
 --font-mono:  "Geist Mono", ui-monospace, Menlo, monospace;
@@ -176,7 +197,7 @@ Einsatzbereit als CSS Custom Properties + Tailwind v4 Theme.</p>
 <div class="code-wrapper"><pre><code class="language-html">&lt;link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300;1,6..72,400&amp;display=swap" rel="stylesheet"&gt;
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p><strong>Geist</strong> via <code>npm install geist</code> (Vercel) oder CDN.</p>
-<h3>Typografie-Skala</h3>
+<h3 id="typografie-skala">Typografie-Skala</h3>
 <table>
 <thead>
 <tr>
@@ -250,7 +271,7 @@ Einsatzbereit als CSS Custom Properties + Tailwind v4 Theme.</p>
 </ul>
 <hr>
 <h2 id="komponenten-tokens">Komponenten-Tokens</h2>
-<h3>Button (Primary)</h3>
+<h3 id="button-primary">Button (Primary)</h3>
 <div class="code-wrapper"><pre><code class="language-css">background: var(--brass);
 color: var(--ink-900);
 padding: 14px 22px;
@@ -262,7 +283,7 @@ font-weight: 600;
 background: var(--brass-2);
 transform: translateY(-1px);
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Button (Ghost)</h3>
+<h3 id="button-ghost">Button (Ghost)</h3>
 <div class="code-wrapper"><pre><code class="language-css">color: var(--fg);
 border: 1px solid var(--line-2);
 background: transparent;
@@ -271,13 +292,13 @@ background: transparent;
 border-color: var(--brass);
 color: var(--brass);
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Card</h3>
+<h3 id="card">Card</h3>
 <div class="code-wrapper"><pre><code class="language-css">background: var(--ink-850);
 border: 1px solid var(--line-2);
 border-radius: var(--radius);
 border-top: 2px solid var(--brass); /* Brass-Top-Akzent */
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Kicker-Bar (Section-Label)</h3>
+<h3 id="kicker-bar-section-label">Kicker-Bar (Section-Label)</h3>
 <div class="code-wrapper"><pre><code class="language-css">/* Horizontale Linie */
 .bar {
   width: 44px;
@@ -298,7 +319,7 @@ letter-spacing: 0.14em;
 text-transform: uppercase;
 color: var(--mute);
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Hero Halo (Background-Effekt)</h3>
+<h3 id="hero-halo-background-effekt">Hero Halo (Background-Effekt)</h3>
 <div class="code-wrapper"><pre><code class="language-css">/* Rechts-oben: Brass-Glow */
 background: radial-gradient(
   closest-side,
@@ -352,7 +373,7 @@ left: -30%; bottom: -40%;
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <hr>
 <h2 id="was-du-claude-fuer-assets-fragen-kannst">Was du Claude für Assets fragen kannst</h2>
-<h3>1. SVG Hero-Halo</h3>
+<h3 id="1-svg-hero-halo">1. SVG Hero-Halo</h3>
 <div class="code-wrapper"><pre><code>Erstelle eine SVG-Datei (1600×900, viewBox="0 0 1600 900") als 
 Hero-Hintergrund für mentolder.de im Dark-Style (#0b111c).
 
@@ -363,7 +384,7 @@ Zwei radiale Gradienten:
 Als exportierbare SVG mit &lt;defs&gt; und &lt;radialGradient&gt; Elementen.
 Kein Fill außer den Gradienten. Für Web optimiert (keine überflüssigen Attribute).
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>2. SVG Icons (Coaching-Themen)</h3>
+<h3 id="2-svg-icons-coaching-themen">2. SVG Icons (Coaching-Themen)</h3>
 <div class="code-wrapper"><pre><code>Erstelle 6 SVG-Icons, 24×24, viewBox="0 0 24 24", stroke="currentColor",
 strokeWidth="1.5", fill="none", strokeLinecap="round", strokeLinejoin="round".
 
@@ -371,7 +392,7 @@ Icons für: Führung, Digitalisierung, Team, Strategie, Kommunikation, Resilienz
 Minimalistischer Stil (kein filled, kein dickes Stroke).
 Ausgabe: eine SVG-Datei pro Icon, Dateiname: icon-fuehrung.svg, etc.
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>3. OG-Image Template (React-Komponente für @vercel/og)</h3>
+<h3 id="3-og-image-template-react-komponente-fuer-vercelog">3. OG-Image Template (React-Komponente für @vercel/og)</h3>
 <div class="code-wrapper"><pre><code>Erstelle eine React-Komponente für @vercel/og (ImageResponse) als 
 OG-Image-Template für mentolder.de:
 
@@ -382,7 +403,7 @@ OG-Image-Template für mentolder.de:
 - Rechts: Dynamischer Titel (prop), Newsreader Italic, 36px, #d9be8a
 - Unten rechts: Tagline "Digital Coach &amp; Führungskräfte-Mentor", 14px, #8c96a3
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>4. Favicon (SVG)</h3>
+<h3 id="4-favicon-svg">4. Favicon (SVG)</h3>
 <div class="code-wrapper"><pre><code>Erstelle ein SVG-Favicon (32×32) für mentolder.de:
 - Buchstabe "m" in Geist Sans, lowercase, Bold
 - Hintergrund: Rounded Square, #101826
@@ -390,7 +411,7 @@ OG-Image-Template für mentolder.de:
 - Brass-Unterstrich: 2px, oklch(0.80 0.09 75), unter dem "m"
 Exportiere als favicon.svg (skaliert von 16–512px korrekt).
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>5. Portrait-Placeholder-Komponente</h3>
+<h3 id="5-portrait-placeholder-komponente">5. Portrait-Placeholder-Komponente</h3>
 <div class="code-wrapper"><pre><code>React-Komponente &lt;AvatarPlaceholder initials="BM" size={200} /&gt;:
 - Hintergrund: #17202e
 - Border: 1px solid oklch(0.80 0.09 75 / 0.3)
@@ -402,7 +423,9 @@ Kein Bild-Tag, rein CSS + Text.
 </body></html>
 </article>
 
+<nav class="prevnext" aria-label="Seitennavigation"><a class="prevnext-link prevnext-prev" href="./tasks.html"><span class="prevnext-label">← Zurück</span><span class="prevnext-title">Implementation Plan: cockpit-bulk-status</span></a><a class="prevnext-link prevnext-next" href="./tasks.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">mentolder.de Website-Frontend in React neu aufbauen</span></a></nav>
   </main>
+</div>
 </div>
 <footer class="site-footer">
   <span>Workspace MVP — generierte Dokumentation</span>

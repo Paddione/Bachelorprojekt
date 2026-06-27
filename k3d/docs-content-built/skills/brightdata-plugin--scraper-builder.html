@@ -10,19 +10,24 @@
 <link rel="stylesheet" href="../style.css">
 </head>
 <body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
 <header class="site-header">
   <a class="site-header-brand" href="../index.html">
     <span class="site-mark" aria-hidden="true">◆</span>
     <span class="site-wordmark">Dokumentation</span>
   </a>
 </header>
-<div id="search-overlay">
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
   <div id="search-box">
-    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
-    <div id="search-results"></div>
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
   </div>
 </div>
 <div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Dev-Workflow</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-architect.html">code-architect</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-architect.html">code-architect</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-explorer.html">code-explorer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-explorer.html">code-explorer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/code-simplifier--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--comment-analyzer.html">comment-analyzer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--comment-analyzer.html">comment-analyzer</a></li><li class="sidebar-item"><a href="../skills/dev-flow-e2e.html">dev-flow-e2e</a></li><li class="sidebar-item"><a href="../skills/dev-flow-execute.html">dev-flow-execute</a></li><li class="sidebar-item"><a href="../skills/dev-flow-plan.html">dev-flow-plan</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--pr-test-analyzer.html">pr-test-analyzer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--pr-test-analyzer.html">pr-test-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--silent-failure-hunter.html">Silent Failure Hunter</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--silent-failure-hunter.html">silent-failure-hunter</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--type-design-analyzer.html">type-design-analyzer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--type-design-analyzer.html">type-design-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Bachelorprojekt-Infra</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/cluster-deployment.html">cluster-deployment</a></li><li class="sidebar-item"><a href="../skills/database-ops.html">database-ops</a></li><li class="sidebar-item"><a href="../skills/host-node-networking.html">host-node-networking</a></li><li class="sidebar-item"><a href="../skills/keycloak-realm-sync.html">keycloak-realm-sync</a></li><li class="sidebar-item"><a href="../skills/mishap-tracker.html">mishap-tracker</a></li><li class="sidebar-item"><a href="../skills/operations-management.html">operations-management</a></li><li class="sidebar-item"><a href="../skills/secret-rotation.html">secret-rotation</a></li><li class="sidebar-item"><a href="../skills/update-dependencies.html">update-dependencies</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">KI / ML</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Plugin- &amp; Skill-Bau</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../agents/plugin-dev--agent-creator.html">agent-creator</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--agent-creator.html">agent-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--agent-development.html">agent-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--agent-development.html">agent-development</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-py.html">agent-sdk-verifier-py</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-py.html">agent-sdk-verifier-py</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-ts.html">agent-sdk-verifier-ts</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-ts.html">agent-sdk-verifier-ts</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--command-development.html">command-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--command-development.html">command-development</a></li><li class="sidebar-item"><a href="../agents/hookify--conversation-analyzer.html">conversation-analyzer</a></li><li class="sidebar-item"><a href="../agents/hookify--conversation-analyzer.html">conversation-analyzer</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--hook-development.html">hook-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--hook-development.html">hook-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--mcp-integration.html">mcp-integration</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--mcp-integration.html">mcp-integration</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-settings.html">plugin-settings</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-settings.html">plugin-settings</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-structure.html">plugin-structure</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-structure.html">plugin-structure</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--plugin-validator.html">plugin-validator</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--plugin-validator.html">plugin-validator</a></li><li class="sidebar-item"><a href="../skills/skill-creator--skill-creator.html">skill-creator</a></li><li class="sidebar-item"><a href="../skills/skill-creator--skill-creator.html">skill-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--skill-development.html">skill-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--skill-development.html">skill-development</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--skill-reviewer.html">skill-reviewer</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--skill-reviewer.html">skill-reviewer</a></li><li class="sidebar-item"><a href="../skills/hookify--writing-rules.html">writing-hookify-rules</a></li><li class="sidebar-item"><a href="../skills/hookify--writing-rules.html">writing-hookify-rules</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Browser &amp; Debugging</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers-chrome--browsing.html">browsing</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">MCP &amp; API</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/postman--agent-ready-apis.html">agent-ready-apis</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-app.html">build-mcp-app</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-app.html">build-mcp-app</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-server.html">build-mcp-server</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-server.html">build-mcp-server</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcpb.html">build-mcpb</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcpb.html">build-mcpb</a></li><li class="sidebar-item"><a href="../skills/postman--generate-spec.html">generate-spec</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--mcp-cli.html">mcp-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-cli.html">postman-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-context.html">postman-context</a></li><li class="sidebar-item"><a href="../skills/postman--postman-knowledge.html">postman-knowledge</a></li><li class="sidebar-item"><a href="../skills/postman--run-collection.html">run-collection</a></li><li class="sidebar-item"><a href="../skills/postman--send-request.html">send-request</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">Claude Code &amp; Tooling</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/brightdata-plugin--agent-onboarding.html">agent-onboarding</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brand-listening.html">brand-listening</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brd-browser-debug.html">brd-browser-debug</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-best-practices.html">bright-data-best-practices</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-mcp.html">bright-data-mcp</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brightdata-cli.html">brightdata-cli</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--proxy.html">brightdata-proxy</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--python-sdk-best-practices.html">brightdata-sdk</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--js-sdk-best-practices.html">brightdata-sdk-js</a></li><li class="sidebar-item"><a href="../skills/claude-code-setup--claude-automation-recommender.html">claude-automation-recommender</a></li><li class="sidebar-item"><a href="../skills/claude-md-management--claude-md-improver.html">claude-md-improver</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--competitive-intel.html">competitive-intel</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--data-feeds.html">data-feeds</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--design-mirror.html">design-mirror</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/dev-flow-chore.html">dev-flow-chore</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--developing-claude-code-plugins.html">developing-claude-code-plugins</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--discover-api.html">discover-api</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--finding-duplicate-functions.html">finding-duplicate-functions</a></li><li class="sidebar-item"><a href="../skills/frontend-design--frontend-design.html">frontend-design</a></li><li class="sidebar-item"><a href="../skills/frontend-design--frontend-design.html">frontend-design</a></li><li class="sidebar-item"><a href="../skills/git-workflow.html">git-workflow</a></li><li class="sidebar-item"><a href="../skills/incident-response.html">incident-response</a></li><li class="sidebar-item"><a href="../skills/infra-ops.html">infra-ops</a></li><li class="sidebar-item"><a href="../skills/lavish.html">lavish</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--live-research.html">live-research</a></li><li class="sidebar-item"><a href="../skills/llm-ops.html">llm-ops</a></li><li class="sidebar-item"><a href="../skills/playground--playground.html">playground</a></li><li class="sidebar-item"><a href="../skills/playground--playground.html">playground</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--price-comparison.html">price-comparison</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--rag-pipeline.html">rag-pipeline</a></li><li class="sidebar-item"><a href="../skills/references.html">references</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scrape.html">scrape</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/brightdata-plugin--scraper-builder.html" aria-current="page">scraper-builder</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-studio.html">scraper-studio</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--search.html">search</a></li><li class="sidebar-item"><a href="../skills/sourcegraph--searching-sourcegraph.html">searching-sourcegraph</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--seo-audit.html">seo-audit</a></li><li class="sidebar-item"><a href="../skills/ticket-ops.html">ticket-ops</a></li><li class="sidebar-item"><a href="../skills/braintrust--troubleshoot-braintrust-mcp.html">troubleshoot-braintrust-mcp</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--using-tmux-for-interactive-commands.html">using-tmux-for-interactive-commands</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--windows-vm.html">windows-vm</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--working-with-claude-code.html">working-with-claude-code</a></li><li class="sidebar-item"><a href="../skills/workspace-deploy.html">workspace-deploy</a></li></ul></details>
+</aside>
   <main id="main">
 <header class="page-header">
   <div class="page-header-body">
@@ -43,14 +48,36 @@
 <li class="toc-item"><a href="#how-this-skill-works"><span class="toc-num">2.</span> How This Skill Works</a></li>
 <li class="toc-item"><a href="#phase-1-understand-the-target"><span class="toc-num">3.</span> Phase 1: Understand the Target</a></li>
 <li class="toc-item"><a href="#phase-2-check-for-pre-built-scrapers"><span class="toc-num">4.</span> Phase 2: Check for Pre-Built Scrapers</a></li>
+<li class="toc-item toc-item--h3"><a href="#if-a-pre-built-scraper-exists"><span class="toc-num">–</span> If a pre-built scraper exists</a></li>
+<li class="toc-item toc-item--h3"><a href="#if-no-pre-built-scraper-exists"><span class="toc-num">–</span> If no pre-built scraper exists</a></li>
 <li class="toc-item"><a href="#phase-3-site-reconnaissance"><span class="toc-num">5.</span> Phase 3: Site Reconnaissance</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-3a-fetch-the-page-html"><span class="toc-num">–</span> Step 3a: Fetch the page HTML</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-3b-analyze-the-html-structure"><span class="toc-num">–</span> Step 3b: Analyze the HTML structure</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-3c-decide-the-extraction-approach"><span class="toc-num">–</span> Step 3c: Decide the extraction approach</a></li>
 <li class="toc-item"><a href="#phase-4-build-the-extractor"><span class="toc-num">6.</span> Phase 4: Build the Extractor</a></li>
+<li class="toc-item toc-item--h3"><a href="#approach-a-web-unlocker--html-parsing"><span class="toc-num">–</span> Approach A: Web Unlocker + HTML Parsing</a></li>
+<li class="toc-item toc-item--h3"><a href="#approach-b-web-unlocker--direct-api-extraction"><span class="toc-num">–</span> Approach B: Web Unlocker + Direct API Extraction</a></li>
+<li class="toc-item toc-item--h3"><a href="#approach-c-browser-api--playwright"><span class="toc-num">–</span> Approach C: Browser API + Playwright</a></li>
+<li class="toc-item toc-item--h3"><a href="#approach-d-browser-api-for-infinite-scroll"><span class="toc-num">–</span> Approach D: Browser API for Infinite Scroll</a></li>
 <li class="toc-item"><a href="#phase-5-handle-pagination"><span class="toc-num">7.</span> Phase 5: Handle Pagination</a></li>
+<li class="toc-item toc-item--h3"><a href="#pattern-1-url-based-pagination-most-common"><span class="toc-num">–</span> Pattern 1: URL-Based Pagination (most common)</a></li>
+<li class="toc-item toc-item--h3"><a href="#pattern-2-next-page-link-pagination"><span class="toc-num">–</span> Pattern 2: Next-Page Link Pagination</a></li>
+<li class="toc-item toc-item--h3"><a href="#pattern-3-concurrent-bulk-scraping"><span class="toc-num">–</span> Pattern 3: Concurrent Bulk Scraping</a></li>
+<li class="toc-item toc-item--h3"><a href="#pattern-4-cursortoken-based-pagination-apis"><span class="toc-num">–</span> Pattern 4: Cursor/Token-Based Pagination (APIs)</a></li>
 <li class="toc-item"><a href="#phase-6-assemble-the-complete-scraper"><span class="toc-num">8.</span> Phase 6: Assemble the Complete Scraper</a></li>
+<li class="toc-item toc-item--h3"><a href="#template-complete-scraper-script"><span class="toc-num">–</span> Template: Complete Scraper Script</a></li>
 <li class="toc-item"><a href="#decision-reference-api-selection-quick-guide"><span class="toc-num">9.</span> Decision Reference: API Selection Quick Guide</a></li>
 <li class="toc-item"><a href="#common-pitfalls-to-avoid"><span class="toc-num">10.</span> Common Pitfalls to Avoid</a></li>
 <li class="toc-item"><a href="#examples"><span class="toc-num">11.</span> Examples</a></li>
+<li class="toc-item toc-item--h3"><a href="#example-1-e-commerce-product-scraper-pre-built-exists"><span class="toc-num">–</span> Example 1: E-commerce product scraper (pre-built exists)</a></li>
+<li class="toc-item toc-item--h3"><a href="#example-2-custom-site-scraper-no-pre-built"><span class="toc-num">–</span> Example 2: Custom site scraper (no pre-built)</a></li>
+<li class="toc-item toc-item--h3"><a href="#example-3-js-heavy-site-browser-api-needed"><span class="toc-num">–</span> Example 3: JS-heavy site (Browser API needed)</a></li>
 <li class="toc-item"><a href="#troubleshooting"><span class="toc-num">12.</span> Troubleshooting</a></li>
+<li class="toc-item toc-item--h3"><a href="#web-unlocker-returns-empty-or-blocked-page"><span class="toc-num">–</span> Web Unlocker returns empty or blocked page</a></li>
+<li class="toc-item toc-item--h3"><a href="#selectors-work-locally-but-fail-in-production"><span class="toc-num">–</span> Selectors work locally but fail in production</a></li>
+<li class="toc-item toc-item--h3"><a href="#scraper-returns-duplicate-items-across-pages"><span class="toc-num">–</span> Scraper returns duplicate items across pages</a></li>
+<li class="toc-item toc-item--h3"><a href="#browser-api-session-times-out"><span class="toc-num">–</span> Browser API session times out</a></li>
+<li class="toc-item toc-item--h3"><a href="#api-returns-401-unauthorized"><span class="toc-num">–</span> API returns 401 Unauthorized</a></li>
 <li class="toc-item"><a href="#reference-files"><span class="toc-num">13.</span> Reference Files</a></li></ul>
 </div>
 <p>You are building a production-ready web scraper for the user. Your job is to guide them from "I want data from site X" to a working, robust scraper that handles real-world challenges like pagination, dynamic content, anti-bot protection, and data parsing.</p>
@@ -87,7 +114,7 @@
      https://api.brightdata.com/datasets/list
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>This returns every available scraper with its <code>dataset_id</code> and name. Search the results for the target domain. You can also browse the full documentation index at <code>https://docs.brightdata.com/llms.txt</code> to discover scraper-specific docs and supported parameters.</p>
-<h3>If a pre-built scraper exists</h3>
+<h3 id="if-a-pre-built-scraper-exists">If a pre-built scraper exists</h3>
 <p>Use the Web Scraper API or Python SDK platform-specific scrapers. This gives you structured JSON with no parsing code needed.</p>
 <p><strong>Python SDK approach (preferred):</strong></p>
 <div class="code-wrapper"><pre><code class="language-python">from brightdata import BrightDataClient
@@ -110,12 +137,12 @@ async with BrightDataClient() as client:
     data = await job.fetch()
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>Skip to Phase 5 (pagination/orchestration) if the user needs multi-page scraping with a pre-built scraper.</p>
-<h3>If no pre-built scraper exists</h3>
+<h3 id="if-no-pre-built-scraper-exists">If no pre-built scraper exists</h3>
 <p>Continue to Phase 3 — you need to analyze the site and build a custom scraper.</p>
 <hr>
 <h2 id="phase-3-site-reconnaissance">Phase 3: Site Reconnaissance</h2>
 <p>This is the critical step that separates reliable scrapers from brittle ones. You need to understand the site's structure before writing extraction code.</p>
-<h3>Step 3a: Fetch the page HTML</h3>
+<h3 id="step-3a-fetch-the-page-html">Step 3a: Fetch the page HTML</h3>
 <p>Use Web Unlocker to get the raw HTML. This tells you whether the content is server-rendered or client-rendered, and gives you the actual DOM to analyze.</p>
 <div class="code-wrapper"><pre><code class="language-python">import requests
 import os
@@ -137,7 +164,7 @@ html = response.text
 <p>Or use the scrape skill's shell script:</p>
 <div class="code-wrapper"><pre><code class="language-bash">bash skills/scrape/scripts/scrape.sh "https://target-site.com/page"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Step 3b: Analyze the HTML structure</h3>
+<h3 id="step-3b-analyze-the-html-structure">Step 3b: Analyze the HTML structure</h3>
 <p>Read <a href="references/site-analysis-guide.md">references/site-analysis-guide.md</a> for the detailed analysis playbook.</p>
 <p>Look at the fetched HTML and determine:</p>
 <ol>
@@ -163,7 +190,7 @@ html = response.text
 <li><p><strong>Check for hidden APIs.</strong> Many modern sites load data via XHR/fetch calls to internal APIs. If you see structured JSON endpoints in the page source or network activity, hitting those directly through Web Unlocker is often cleaner than parsing HTML.</p>
 </li>
 </ol>
-<h3>Step 3c: Decide the extraction approach</h3>
+<h3 id="step-3c-decide-the-extraction-approach">Step 3c: Decide the extraction approach</h3>
 <p>Based on your analysis:</p>
 <table>
 <thead>
@@ -204,7 +231,7 @@ html = response.text
 <hr>
 <h2 id="phase-4-build-the-extractor">Phase 4: Build the Extractor</h2>
 <p>Now write the actual extraction code. The approach depends on Phase 3's decision.</p>
-<h3>Approach A: Web Unlocker + HTML Parsing</h3>
+<h3 id="approach-a-web-unlocker--html-parsing">Approach A: Web Unlocker + HTML Parsing</h3>
 <p>Best for static sites or sites with server-rendered HTML. This is the cheapest and fastest approach.</p>
 <div class="code-wrapper"><pre><code class="language-python">import requests
 import os
@@ -250,7 +277,7 @@ products = parse_products(html)
 <li>Wrap individual field extraction in try/except so one bad item doesn't kill the whole scrape</li>
 <li>Normalize prices (strip currency symbols, convert to float) in a separate step</li>
 </ul>
-<h3>Approach B: Web Unlocker + Direct API Extraction</h3>
+<h3 id="approach-b-web-unlocker--direct-api-extraction">Approach B: Web Unlocker + Direct API Extraction</h3>
 <p>When you discover the site loads data from a JSON API endpoint, hit it directly. This is the cleanest approach — no HTML parsing needed.</p>
 <div class="code-wrapper"><pre><code class="language-python">import requests
 import json
@@ -272,7 +299,7 @@ def fetch_api(api_url: str) -&gt; dict:
 data = fetch_api("https://example.com/api/products?page=1&amp;limit=50")
 products = data["results"]  # Already structured!
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Approach C: Browser API + Playwright</h3>
+<h3 id="approach-c-browser-api--playwright">Approach C: Browser API + Playwright</h3>
 <p>Use when the site requires JavaScript rendering, interaction (clicks, scrolls, form fills), or has aggressive anti-bot measures.</p>
 <div class="code-wrapper"><pre><code class="language-python">import asyncio
 from playwright.async_api import async_playwright
@@ -318,7 +345,7 @@ async def scrape_with_browser(url: str) -&gt; str:
 <li>Block images, CSS, fonts to reduce bandwidth costs</li>
 <li>Use <code>page.evaluate()</code> for bulk extraction — it's faster than individual selector calls</li>
 </ul>
-<h3>Approach D: Browser API for Infinite Scroll</h3>
+<h3 id="approach-d-browser-api-for-infinite-scroll">Approach D: Browser API for Infinite Scroll</h3>
 <p>For sites that load more content when you scroll down.</p>
 <div class="code-wrapper"><pre><code class="language-python">async def scrape_infinite_scroll(url: str, max_items: int = 100) -&gt; list:
     """Scrape a page with infinite scroll."""
@@ -359,7 +386,7 @@ async def scrape_with_browser(url: str) -&gt; str:
 <h2 id="phase-5-handle-pagination">Phase 5: Handle Pagination</h2>
 <p>Most scraping tasks involve multiple pages. The approach depends on the pagination type.</p>
 <p>Read <a href="references/pagination-patterns.md">references/pagination-patterns.md</a> for detailed pagination strategies.</p>
-<h3>Pattern 1: URL-Based Pagination (most common)</h3>
+<h3 id="pattern-1-url-based-pagination-most-common">Pattern 1: URL-Based Pagination (most common)</h3>
 <p>Pages are accessed via URL parameters like <code>?page=2</code> or <code>?offset=20</code>.</p>
 <div class="code-wrapper"><pre><code class="language-python">import time
 
@@ -382,7 +409,7 @@ def scrape_all_pages(base_url: str, max_pages: int = 50) -&gt; list[dict]:
 
     return all_items
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Pattern 2: Next-Page Link Pagination</h3>
+<h3 id="pattern-2-next-page-link-pagination">Pattern 2: Next-Page Link Pagination</h3>
 <p>Follow "next" links found in the HTML.</p>
 <div class="code-wrapper"><pre><code class="language-python">def scrape_with_next_links(start_url: str) -&gt; list[dict]:
     """Follow next-page links to scrape all pages."""
@@ -408,7 +435,7 @@ def scrape_all_pages(base_url: str, max_pages: int = 50) -&gt; list[dict]:
 
     return all_items
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Pattern 3: Concurrent Bulk Scraping</h3>
+<h3 id="pattern-3-concurrent-bulk-scraping">Pattern 3: Concurrent Bulk Scraping</h3>
 <p>When you have many URLs (50+), <strong>always use concurrent requests with a semaphore</strong> — never fetch them one-by-one in a sequential loop. Read <a href="references/concurrency-guide.md">references/concurrency-guide.md</a> for the full concurrency playbook including per-site tuning, multi-site parallelism, and retry strategies.</p>
 <div class="code-wrapper"><pre><code class="language-python">import asyncio
 import aiohttp
@@ -443,7 +470,7 @@ async def scrape_pages_concurrent(urls: list[str]) -&gt; list[dict]:
 urls = [f"https://example.com/products?page={i}" for i in range(1, 51)]
 items = asyncio.run(scrape_pages_concurrent(urls))
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Pattern 4: Cursor/Token-Based Pagination (APIs)</h3>
+<h3 id="pattern-4-cursortoken-based-pagination-apis">Pattern 4: Cursor/Token-Based Pagination (APIs)</h3>
 <p>Some APIs use cursor tokens instead of page numbers.</p>
 <div class="code-wrapper"><pre><code class="language-python">def scrape_with_cursor(api_base: str) -&gt; list[dict]:
     """Handle cursor-based API pagination."""
@@ -477,7 +504,7 @@ items = asyncio.run(scrape_pages_concurrent(urls))
 <li><strong>Error handling</strong> — retries, logging, graceful failures</li>
 </ol>
 <p><strong>Important:</strong> If the user has more than ~50 URLs to scrape, the scraper <strong>must</strong> use concurrent requests — not a sequential loop. See <a href="references/concurrency-guide.md">references/concurrency-guide.md</a> for the complete concurrent scraper template and tuning guidelines.</p>
-<h3>Template: Complete Scraper Script</h3>
+<h3 id="template-complete-scraper-script">Template: Complete Scraper Script</h3>
 <div class="code-wrapper"><pre><code class="language-python">#!/usr/bin/env python3
 """
 Scraper for [SITE NAME] - [DESCRIPTION]
@@ -667,7 +694,7 @@ if __name__ == "__main__":
 </ol>
 <hr>
 <h2 id="examples">Examples</h2>
-<h3>Example 1: E-commerce product scraper (pre-built exists)</h3>
+<h3 id="example-1-e-commerce-product-scraper-pre-built-exists">Example 1: E-commerce product scraper (pre-built exists)</h3>
 <p>User says: "Build a scraper for Amazon product pages, I have a list of 200 ASINs"</p>
 <p>Actions:</p>
 <ol>
@@ -678,7 +705,7 @@ if __name__ == "__main__":
 <li>No HTML parsing needed — data comes pre-structured</li>
 </ol>
 <p>Result: Complete Python script with async batch scraping, progress logging, JSON output.</p>
-<h3>Example 2: Custom site scraper (no pre-built)</h3>
+<h3 id="example-2-custom-site-scraper-no-pre-built">Example 2: Custom site scraper (no pre-built)</h3>
 <p>User says: "I need to scrape all job listings from jobs.customsite.com including pagination"</p>
 <p>Actions:</p>
 <ol>
@@ -690,7 +717,7 @@ if __name__ == "__main__":
 <li>Build complete scraper with fetcher + parser + paginator</li>
 </ol>
 <p>Result: Complete Python script using Web Unlocker + BeautifulSoup with URL-based pagination.</p>
-<h3>Example 3: JS-heavy site (Browser API needed)</h3>
+<h3 id="example-3-js-heavy-site-browser-api-needed">Example 3: JS-heavy site (Browser API needed)</h3>
 <p>User says: "Scrape product prices from a React SPA that loads data on scroll"</p>
 <p>Actions:</p>
 <ol>
@@ -703,19 +730,19 @@ if __name__ == "__main__":
 <p>Result: Async Playwright script with Browser API, infinite scroll handling, bandwidth optimization.</p>
 <hr>
 <h2 id="troubleshooting">Troubleshooting</h2>
-<h3>Web Unlocker returns empty or blocked page</h3>
+<h3 id="web-unlocker-returns-empty-or-blocked-page">Web Unlocker returns empty or blocked page</h3>
 <p><strong>Cause:</strong> Site requires JavaScript rendering or has aggressive bot detection.
 <strong>Solution:</strong> Escalate to Browser API. Also try adding <code>data_format: "markdown"</code> to see if the content is there but in a different format.</p>
-<h3>Selectors work locally but fail in production</h3>
+<h3 id="selectors-work-locally-but-fail-in-production">Selectors work locally but fail in production</h3>
 <p><strong>Cause:</strong> Site serves different HTML to different regions or user agents.
 <strong>Solution:</strong> Add <code>country</code> parameter to Web Unlocker request to target the same region. Verify selectors on the actual HTML returned by the API, not browser DevTools.</p>
-<h3>Scraper returns duplicate items across pages</h3>
+<h3 id="scraper-returns-duplicate-items-across-pages">Scraper returns duplicate items across pages</h3>
 <p><strong>Cause:</strong> Pagination logic is wrapping around or site uses inconsistent pagination.
 <strong>Solution:</strong> Track seen item IDs in a set. Break when duplicates appear. Verify the pagination URL pattern is correct.</p>
-<h3>Browser API session times out</h3>
+<h3 id="browser-api-session-times-out">Browser API session times out</h3>
 <p><strong>Cause:</strong> Navigation timeout too short or site is slow to unblock.
 <strong>Solution:</strong> Always set <code>set_default_navigation_timeout(120_000)</code>. Use <code>wait_until="domcontentloaded"</code> not <code>networkidle</code>. Check if the site requires premium domains enabled on your zone.</p>
-<h3>API returns 401 Unauthorized</h3>
+<h3 id="api-returns-401-unauthorized">API returns 401 Unauthorized</h3>
 <p><strong>Cause:</strong> Missing or invalid <code>BRIGHTDATA_API_KEY</code> environment variable.
 <strong>Solution:</strong> Verify the key is set: <code>echo $BRIGHTDATA_API_KEY</code>. Get a fresh key from <code>https://brightdata.com/cp/setting/users</code>.</p>
 <hr>
@@ -729,7 +756,9 @@ if __name__ == "__main__":
 </body></html>
 </article>
 
+<nav class="prevnext" aria-label="Seitennavigation"><a class="prevnext-link prevnext-prev" href="../skills/brightdata-plugin--scrape.html"><span class="prevnext-label">← Zurück</span><span class="prevnext-title">scrape</span></a><a class="prevnext-link prevnext-next" href="../skills/brightdata-plugin--scraper-studio.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">scraper-studio</span></a></nav>
   </main>
+</div>
 </div>
 <footer class="site-footer">
   <span>Workspace MVP — generierte Dokumentation</span>

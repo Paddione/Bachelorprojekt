@@ -10,16 +10,17 @@
 <link rel="stylesheet" href="./style.css">
 </head>
 <body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
 <header class="site-header">
   <a class="site-header-brand" href="./index.html">
     <span class="site-mark" aria-hidden="true">◆</span>
     <span class="site-wordmark">Dokumentation</span>
   </a>
 </header>
-<div id="search-overlay">
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
   <div id="search-box">
-    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
-    <div id="search-results"></div>
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
   </div>
 </div>
 <div id="app">
@@ -28,7 +29,7 @@
   <div class="page-header-body">
     <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <span class="crumb-current">Docs</span></nav>
     <h1>Docs</h1>
-    <p class="page-desc">67 Seiten</p>
+    <p class="page-desc">88 Seiten</p>
   </div>
 </header>
 <h2 class="doc-group-header">Handbücher</h2>
@@ -172,6 +173,13 @@
   </span>
   <span class="section-card-desc">2026 06 20 Mcp Task Runner</span>
 </a>
+<a class="section-card" href="./2026-06-27-mentolder-brand-foundations-design-system.html">
+  <span class="section-card-head">
+    <span class="section-card-title">mentolder — Brand Foundations Design System</span>
+    <span class="provenance-badge repo">repo</span><span class="domain-tag">website</span>
+  </span>
+  <span class="section-card-desc">2026 06 27 Mentolder Brand Foundations Design System</span>
+</a>
 <a class="section-card" href="./2026-06-22-mentolder-web-unterseiten.html">
   <span class="section-card-head">
     <span class="section-card-title">mentolder-web Unterseiten Implementation Plan</span>
@@ -283,6 +291,13 @@
   </span>
   <span class="section-card-desc">Tasks</span>
 </a>
+<a class="section-card" href="./tasks.html">
+  <span class="section-card-head">
+    <span class="section-card-title">env-seal.sh: empty-value Keys in extra_namespaces korrekt verarbeiten (G-CD01 Root-Cause)</span>
+    <span class="provenance-badge repo">repo</span><span class="domain-tag">infra</span>
+  </span>
+  <span class="section-card-desc">Tasks</span>
+</a>
 <a class="section-card" href="./envsubst-variable-management.html">
   <span class="section-card-head">
     <span class="section-card-title">envsubst Variable Management — Referenz</span>
@@ -310,6 +325,62 @@
     <span class="provenance-badge repo">repo</span><span class="domain-tag">infra</span>
   </span>
   <span class="section-card-desc">Fleet 2026 05 31 What Changed</span>
+</a>
+<a class="section-card" href="./tasks.html">
+  <span class="section-card-head">
+    <span class="section-card-title">G-CD01: korczewski-Deploy-Lane — stale SealedSecret reparieren + Drift-Prevention</span>
+    <span class="provenance-badge repo">repo</span><span class="domain-tag">infra</span>
+  </span>
+  <span class="section-card-desc">Tasks</span>
+</a>
+<a class="section-card" href="./tasks.html">
+  <span class="section-card-head">
+    <span class="section-card-title">G-CD02: post-merge.yml Race-Guard härten (93% → ≥95%)</span>
+    <span class="provenance-badge repo">repo</span>
+  </span>
+  <span class="section-card-desc">Tasks</span>
+</a>
+<a class="section-card" href="./tasks.html">
+  <span class="section-card-head">
+    <span class="section-card-title">G-CQ03: ESLint in website/ einrichten + Warnings auf 0</span>
+    <span class="provenance-badge repo">repo</span><span class="domain-tag">website</span>
+  </span>
+  <span class="section-card-desc">Tasks</span>
+</a>
+<a class="section-card" href="./tasks.html">
+  <span class="section-card-head">
+    <span class="section-card-title">G-CQ08: Dead-Code/unused exports in website/src via knip messen + −50%</span>
+    <span class="provenance-badge repo">repo</span><span class="domain-tag">website</span>
+  </span>
+  <span class="section-card-desc">Tasks</span>
+</a>
+<a class="section-card" href="./tasks.html">
+  <span class="section-card-head">
+    <span class="section-card-title">G-DEP02: Veraltete Major-Deps (website) 9 → ≤3</span>
+    <span class="provenance-badge repo">repo</span><span class="domain-tag">website</span>
+  </span>
+  <span class="section-card-desc">Tasks</span>
+</a>
+<a class="section-card" href="./tasks.html">
+  <span class="section-card-head">
+    <span class="section-card-title">G-FE01: a11y axe-Violations (Kern-Routen beider Marken) auf 0 crit/serious</span>
+    <span class="provenance-badge repo">repo</span><span class="domain-tag">website</span>
+  </span>
+  <span class="section-card-desc">Tasks</span>
+</a>
+<a class="section-card" href="./tasks.html">
+  <span class="section-card-head">
+    <span class="section-card-title">G-FE02: Client-JS-Bundle messen + Budget (kein Netto-Zuwachs/Release)</span>
+    <span class="provenance-badge repo">repo</span><span class="domain-tag">website</span>
+  </span>
+  <span class="section-card-desc">Tasks</span>
+</a>
+<a class="section-card" href="./tasks.html">
+  <span class="section-card-head">
+    <span class="section-card-title">G-IMG02: Fremd-Image-Versions-Drift vereinheitlichen (busybox/curl)</span>
+    <span class="provenance-badge repo">repo</span><span class="domain-tag">infra</span>
+  </span>
+  <span class="section-card-desc">Tasks</span>
 </a>
 <a class="section-card" href="./proposal.html">
   <span class="section-card-head">
@@ -356,6 +427,13 @@
 <a class="section-card" href="./tasks.html">
   <span class="section-card-head">
     <span class="section-card-title">mentolder.de Website-Frontend in React neu aufbauen</span>
+    <span class="provenance-badge repo">repo</span><span class="domain-tag">website</span>
+  </span>
+  <span class="section-card-desc">Tasks</span>
+</a>
+<a class="section-card" href="./tasks.html">
+  <span class="section-card-head">
+    <span class="section-card-title">Messbare Delivery-Pipeline + DORA-Dashboard</span>
     <span class="provenance-badge repo">repo</span><span class="domain-tag">website</span>
   </span>
   <span class="section-card-desc">Tasks</span>
@@ -418,7 +496,77 @@
 </a>
 <a class="section-card" href="./proposal.html">
   <span class="section-card-head">
+    <span class="section-card-title">Proposal: dora-delivery-pipeline</span>
+    <span class="provenance-badge repo">repo</span>
+  </span>
+  <span class="section-card-desc">Proposal</span>
+</a>
+<a class="section-card" href="./proposal.html">
+  <span class="section-card-head">
+    <span class="section-card-title">Proposal: env-seal-empty-value-keys</span>
+    <span class="provenance-badge repo">repo</span>
+  </span>
+  <span class="section-card-desc">Proposal</span>
+</a>
+<a class="section-card" href="./proposal.html">
+  <span class="section-card-head">
     <span class="section-card-title">Proposal: Feature Intake + Knowledge-Graph-Anreicherung</span>
+    <span class="provenance-badge repo">repo</span>
+  </span>
+  <span class="section-card-desc">Proposal</span>
+</a>
+<a class="section-card" href="./proposal.html">
+  <span class="section-card-head">
+    <span class="section-card-title">Proposal: g-cd01-korczewski-secret-drift</span>
+    <span class="provenance-badge repo">repo</span><span class="domain-tag">security</span>
+  </span>
+  <span class="section-card-desc">Proposal</span>
+</a>
+<a class="section-card" href="./proposal.html">
+  <span class="section-card-head">
+    <span class="section-card-title">Proposal: g-cd02-post-merge-race-guard</span>
+    <span class="provenance-badge repo">repo</span>
+  </span>
+  <span class="section-card-desc">Proposal</span>
+</a>
+<a class="section-card" href="./proposal.html">
+  <span class="section-card-head">
+    <span class="section-card-title">Proposal: g-cq03-eslint-website</span>
+    <span class="provenance-badge repo">repo</span><span class="domain-tag">website</span>
+  </span>
+  <span class="section-card-desc">Proposal</span>
+</a>
+<a class="section-card" href="./proposal.html">
+  <span class="section-card-head">
+    <span class="section-card-title">Proposal: g-cq08-knip-dead-code</span>
+    <span class="provenance-badge repo">repo</span>
+  </span>
+  <span class="section-card-desc">Proposal</span>
+</a>
+<a class="section-card" href="./proposal.html">
+  <span class="section-card-head">
+    <span class="section-card-title">Proposal: g-dep02-major-deps-website (G-DEP02)</span>
+    <span class="provenance-badge repo">repo</span><span class="domain-tag">website</span>
+  </span>
+  <span class="section-card-desc">Proposal</span>
+</a>
+<a class="section-card" href="./proposal.html">
+  <span class="section-card-head">
+    <span class="section-card-title">Proposal: g-fe01-a11y-axe-violations</span>
+    <span class="provenance-badge repo">repo</span>
+  </span>
+  <span class="section-card-desc">Proposal</span>
+</a>
+<a class="section-card" href="./proposal.html">
+  <span class="section-card-head">
+    <span class="section-card-title">Proposal: g-fe02-bundle-budget</span>
+    <span class="provenance-badge repo">repo</span>
+  </span>
+  <span class="section-card-desc">Proposal</span>
+</a>
+<a class="section-card" href="./proposal.html">
+  <span class="section-card-head">
+    <span class="section-card-title">Proposal: img02-image-drift (G-IMG02)</span>
     <span class="provenance-badge repo">repo</span>
   </span>
   <span class="section-card-desc">Proposal</span>

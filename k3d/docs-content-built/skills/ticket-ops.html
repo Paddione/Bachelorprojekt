@@ -10,28 +10,33 @@
 <link rel="stylesheet" href="../style.css">
 </head>
 <body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
 <header class="site-header">
   <a class="site-header-brand" href="../index.html">
     <span class="site-mark" aria-hidden="true">◆</span>
     <span class="site-wordmark">Dokumentation</span>
   </a>
 </header>
-<div id="search-overlay">
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
   <div id="search-box">
-    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
-    <div id="search-results"></div>
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
   </div>
 </div>
 <div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Dev-Workflow</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-architect.html">code-architect</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-architect.html">code-architect</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-explorer.html">code-explorer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-explorer.html">code-explorer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/code-simplifier--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--comment-analyzer.html">comment-analyzer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--comment-analyzer.html">comment-analyzer</a></li><li class="sidebar-item"><a href="../skills/dev-flow-e2e.html">dev-flow-e2e</a></li><li class="sidebar-item"><a href="../skills/dev-flow-execute.html">dev-flow-execute</a></li><li class="sidebar-item"><a href="../skills/dev-flow-plan.html">dev-flow-plan</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--pr-test-analyzer.html">pr-test-analyzer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--pr-test-analyzer.html">pr-test-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--silent-failure-hunter.html">Silent Failure Hunter</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--silent-failure-hunter.html">silent-failure-hunter</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--type-design-analyzer.html">type-design-analyzer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--type-design-analyzer.html">type-design-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Bachelorprojekt-Infra</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/cluster-deployment.html">cluster-deployment</a></li><li class="sidebar-item"><a href="../skills/database-ops.html">database-ops</a></li><li class="sidebar-item"><a href="../skills/host-node-networking.html">host-node-networking</a></li><li class="sidebar-item"><a href="../skills/keycloak-realm-sync.html">keycloak-realm-sync</a></li><li class="sidebar-item"><a href="../skills/mishap-tracker.html">mishap-tracker</a></li><li class="sidebar-item"><a href="../skills/operations-management.html">operations-management</a></li><li class="sidebar-item"><a href="../skills/secret-rotation.html">secret-rotation</a></li><li class="sidebar-item"><a href="../skills/update-dependencies.html">update-dependencies</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">KI / ML</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Plugin- &amp; Skill-Bau</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../agents/plugin-dev--agent-creator.html">agent-creator</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--agent-creator.html">agent-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--agent-development.html">agent-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--agent-development.html">agent-development</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-py.html">agent-sdk-verifier-py</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-py.html">agent-sdk-verifier-py</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-ts.html">agent-sdk-verifier-ts</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-ts.html">agent-sdk-verifier-ts</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--command-development.html">command-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--command-development.html">command-development</a></li><li class="sidebar-item"><a href="../agents/hookify--conversation-analyzer.html">conversation-analyzer</a></li><li class="sidebar-item"><a href="../agents/hookify--conversation-analyzer.html">conversation-analyzer</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--hook-development.html">hook-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--hook-development.html">hook-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--mcp-integration.html">mcp-integration</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--mcp-integration.html">mcp-integration</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-settings.html">plugin-settings</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-settings.html">plugin-settings</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-structure.html">plugin-structure</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-structure.html">plugin-structure</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--plugin-validator.html">plugin-validator</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--plugin-validator.html">plugin-validator</a></li><li class="sidebar-item"><a href="../skills/skill-creator--skill-creator.html">skill-creator</a></li><li class="sidebar-item"><a href="../skills/skill-creator--skill-creator.html">skill-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--skill-development.html">skill-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--skill-development.html">skill-development</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--skill-reviewer.html">skill-reviewer</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--skill-reviewer.html">skill-reviewer</a></li><li class="sidebar-item"><a href="../skills/hookify--writing-rules.html">writing-hookify-rules</a></li><li class="sidebar-item"><a href="../skills/hookify--writing-rules.html">writing-hookify-rules</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Browser &amp; Debugging</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers-chrome--browsing.html">browsing</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">MCP &amp; API</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/postman--agent-ready-apis.html">agent-ready-apis</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-app.html">build-mcp-app</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-app.html">build-mcp-app</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-server.html">build-mcp-server</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-server.html">build-mcp-server</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcpb.html">build-mcpb</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcpb.html">build-mcpb</a></li><li class="sidebar-item"><a href="../skills/postman--generate-spec.html">generate-spec</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--mcp-cli.html">mcp-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-cli.html">postman-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-context.html">postman-context</a></li><li class="sidebar-item"><a href="../skills/postman--postman-knowledge.html">postman-knowledge</a></li><li class="sidebar-item"><a href="../skills/postman--run-collection.html">run-collection</a></li><li class="sidebar-item"><a href="../skills/postman--send-request.html">send-request</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">Claude Code &amp; Tooling</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/brightdata-plugin--agent-onboarding.html">agent-onboarding</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brand-listening.html">brand-listening</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brd-browser-debug.html">brd-browser-debug</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-best-practices.html">bright-data-best-practices</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-mcp.html">bright-data-mcp</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brightdata-cli.html">brightdata-cli</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--proxy.html">brightdata-proxy</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--python-sdk-best-practices.html">brightdata-sdk</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--js-sdk-best-practices.html">brightdata-sdk-js</a></li><li class="sidebar-item"><a href="../skills/claude-code-setup--claude-automation-recommender.html">claude-automation-recommender</a></li><li class="sidebar-item"><a href="../skills/claude-md-management--claude-md-improver.html">claude-md-improver</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--competitive-intel.html">competitive-intel</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--data-feeds.html">data-feeds</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--design-mirror.html">design-mirror</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/dev-flow-chore.html">dev-flow-chore</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--developing-claude-code-plugins.html">developing-claude-code-plugins</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--discover-api.html">discover-api</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--finding-duplicate-functions.html">finding-duplicate-functions</a></li><li class="sidebar-item"><a href="../skills/frontend-design--frontend-design.html">frontend-design</a></li><li class="sidebar-item"><a href="../skills/frontend-design--frontend-design.html">frontend-design</a></li><li class="sidebar-item"><a href="../skills/git-workflow.html">git-workflow</a></li><li class="sidebar-item"><a href="../skills/incident-response.html">incident-response</a></li><li class="sidebar-item"><a href="../skills/infra-ops.html">infra-ops</a></li><li class="sidebar-item"><a href="../skills/lavish.html">lavish</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--live-research.html">live-research</a></li><li class="sidebar-item"><a href="../skills/llm-ops.html">llm-ops</a></li><li class="sidebar-item"><a href="../skills/playground--playground.html">playground</a></li><li class="sidebar-item"><a href="../skills/playground--playground.html">playground</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--price-comparison.html">price-comparison</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--rag-pipeline.html">rag-pipeline</a></li><li class="sidebar-item"><a href="../skills/references.html">references</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scrape.html">scrape</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-builder.html">scraper-builder</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-studio.html">scraper-studio</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--search.html">search</a></li><li class="sidebar-item"><a href="../skills/sourcegraph--searching-sourcegraph.html">searching-sourcegraph</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--seo-audit.html">seo-audit</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/ticket-ops.html" aria-current="page">ticket-ops</a></li><li class="sidebar-item"><a href="../skills/braintrust--troubleshoot-braintrust-mcp.html">troubleshoot-braintrust-mcp</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--using-tmux-for-interactive-commands.html">using-tmux-for-interactive-commands</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--windows-vm.html">windows-vm</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--working-with-claude-code.html">working-with-claude-code</a></li><li class="sidebar-item"><a href="../skills/workspace-deploy.html">workspace-deploy</a></li></ul></details>
+</aside>
   <main id="main">
 <header class="page-header">
   <div class="page-header-body">
     <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">ticket-ops</span></nav>
     <h1>ticket-ops</h1>
-    <p class="page-desc">Daily operations — database ticket triage, repository hygiene (stale worktrees/branches), GitHub PR merge-and-close workflow, and GitHub issue intake. Use for non-incident operational work.</p>
+    <p class="page-desc">Use for non-incident operational ticket work — triaging open tickets for completeness/missing info, asking the user for info that needs human input, planning parallel work across tickets, repository hygiene (stale worktrees/branches), and GitHub PR merge-and-close. Triggers — &quot;triage tickets&quot;, &quot;what can I work on&quot;, &quot;plan parallel work&quot;, &quot;what's missing on these tickets&quot;, stale branches, merge PRs.</p>
     <div class="page-meta">
       <span class="provenance-badge repo">repo</span>
-      <span class="domain-tag">db</span>
+      
     </div>
   </div>
 </header>
@@ -46,13 +51,43 @@ an entry with: <code>type</code> (broken/degraded/suspicious/security/drift), <c
 </blockquote>
 <h1>ticket-ops</h1><div class="toc-box auto-toc">
   <div class="toc-title">Auf dieser Seite</div>
-  <ul class="toc-list"><li class="toc-item"><a href="#ticket-model--github-linkage-read-first"><span class="toc-num">1.</span> Ticket model &amp; GitHub linkage (read first)</a></li>
-<li class="toc-item"><a href="#phase-1--database-ticket-management"><span class="toc-num">2.</span> Phase 1 — Database Ticket Management</a></li>
-<li class="toc-item"><a href="#phase-2--repository-hygiene--pr-triage"><span class="toc-num">3.</span> Phase 2 — Repository Hygiene &amp; PR Triage</a></li>
-<li class="toc-item"><a href="#post-execution-mishap-report"><span class="toc-num">4.</span> Post-Execution: Mishap Report</a></li>
-<li class="toc-item"><a href="#related-skills"><span class="toc-num">5.</span> Related Skills</a></li></ul>
+  <ul class="toc-list"><li class="toc-item"><a href="#workflow-at-a-glance"><span class="toc-num">1.</span> Workflow at a glance</a></li>
+<li class="toc-item"><a href="#ticket-model--github-linkage-read-first"><span class="toc-num">2.</span> Ticket model &amp; GitHub linkage (read first)</a></li>
+<li class="toc-item"><a href="#phase-1--completeness-triage"><span class="toc-num">3.</span> Phase 1 — Completeness Triage</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-11-fetch-open-tickets-enriched"><span class="toc-num">–</span> Step 1.1: Fetch open tickets (enriched)</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-12-compute-the-missing-list-per-ticket"><span class="toc-num">–</span> Step 1.2: Compute the missing[] list per ticket</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-13-load-openspec-status--render-the-triage-table"><span class="toc-num">–</span> Step 1.3: Load OpenSpec status &amp; render the triage table</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-14-classify-resolution--completeness"><span class="toc-num">–</span> Step 1.4: Classify (resolution × completeness)</a></li>
+<li class="toc-item"><a href="#phase-2--human-clarification-round"><span class="toc-num">4.</span> Phase 2 — Human Clarification Round</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-21-select-the-ask-set-filtered-capped"><span class="toc-num">–</span> Step 2.1: Select the ask-set (filtered, capped)</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-22-derive-the-questions"><span class="toc-num">–</span> Step 2.2: Derive the questions</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-23-ask-via-askuserquestion"><span class="toc-num">–</span> Step 2.3: Ask via AskUserQuestion</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-24-write-answers-back-to-the-db"><span class="toc-num">–</span> Step 2.4: Write answers back to the DB</a></li>
+<li class="toc-item"><a href="#phase-3--parallelization-masterplan"><span class="toc-num">5.</span> Phase 3 — Parallelization Masterplan</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-31-build-the-dependency-graph"><span class="toc-num">–</span> Step 3.1: Build the dependency graph</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-32-topologically-sort-into-waves"><span class="toc-num">–</span> Step 3.2: Topologically sort into waves</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-33-route-each-ticket-plan-vs-execute"><span class="toc-num">–</span> Step 3.3: Route each ticket (plan vs. execute)</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-34-present-the-masterplan"><span class="toc-num">–</span> Step 3.4: Present the masterplan</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-35-dispatch-wave-1-after-the-user-approves"><span class="toc-num">–</span> Step 3.5: Dispatch wave 1 (after the user approves)</a></li>
+<li class="toc-item"><a href="#phase-4--repository-hygiene--pr-triage"><span class="toc-num">6.</span> Phase 4 — Repository Hygiene &amp; PR Triage</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-41-stale-git-worktrees"><span class="toc-num">–</span> Step 4.1: Stale Git Worktrees</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-42-stale-branches"><span class="toc-num">–</span> Step 4.2: Stale Branches</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-43-github-pr-triage--close-the-linked-ticket"><span class="toc-num">–</span> Step 4.3: GitHub PR Triage → close the linked ticket</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-44-github-issue-intake-rare"><span class="toc-num">–</span> Step 4.4: GitHub Issue Intake (rare)</a></li>
+<li class="toc-item"><a href="#software-factory-queue-mcp-first"><span class="toc-num">7.</span> Software-Factory-Queue (MCP-first)</a></li>
+<li class="toc-item"><a href="#post-execution-mishap-report"><span class="toc-num">8.</span> Post-Execution: Mishap Report</a></li>
+<li class="toc-item"><a href="#related-skills"><span class="toc-num">9.</span> Related Skills</a></li></ul>
 </div>
 <p>Day-to-day ticket management, repository hygiene, and PR lifecycle. For time-critical production incidents, use <code>incident-response</code> instead.</p>
+<h2 id="workflow-at-a-glance">Workflow at a glance</h2>
+<p>A full ticket-ops pass runs four phases in order. Phases 1–3 are the <strong>triage → clarify → parallel-plan</strong> pipeline; Phase 4 is housekeeping.</p>
+<ol>
+<li><strong>Completeness triage</strong> — fetch every open ticket, compute <em>what each is missing</em>, classify.</li>
+<li><strong>Human clarification</strong> — for the filtered subset that needs human input, ask the user the missing questions (batched), write answers back to the DB.</li>
+<li><strong>Parallelization masterplan</strong> — build the dependency graph over the now-ready tickets, sort into waves, surface conflicts, and (on approval) dispatch wave 1 in parallel.</li>
+<li><strong>Repository hygiene &amp; PR triage</strong> — stale worktrees/branches, merge green PRs, close linked tickets.</li>
+</ol>
+<p>For a narrow request ("just merge the green PRs"), jump straight to the relevant phase. For "triage everything / what can I work on in parallel", run 1 → 2 → 3 in sequence.</p>
 <hr>
 <h2 id="ticket-model--github-linkage-read-first">Ticket model &amp; GitHub linkage (read first)</h2>
 <p>The internal Postgres tracker — <code>tickets.tickets</code> on <code>mentolder</code> (<code>website</code> DB) — is the <strong>single source of truth for issues</strong>. This repo does <strong>not</strong> use GitHub Issues (<code>gh issue</code>); the website admin at <code>https://web.mentolder.de/admin/bugs</code> is the UI over the same table. If a GitHub issue ever does appear, treat it as intake (see GitHub Issue Intake): copy it into a <code>tickets.tickets</code> row, then close the GitHub issue referencing the new <code>external_id</code>.</p>
@@ -62,14 +97,21 @@ an entry with: <code>type</code> (broken/degraded/suspicious/security/drift), <c
 <li><code>tickets.ticket_plans.pr_number</code> (written when a plan is archived by <code>dev-flow-execute</code>),</li>
 <li>a closing row in <code>tickets.ticket_comments</code> (<code>PR #N merged …</code>).</li>
 </ul>
-<p>Never use <code>tickets.ticket_links</code> for PR references — it is ticket→ticket only (<code>to_id</code> is <code>NOT NULL</code>, <code>kind ∈ blocks|blocked_by|duplicate_of|relates_to|fixes|fixed_by</code>).</p>
-<p><strong>Enum reference</strong> (closing a ticket with an out-of-set value fails the CHECK constraint):
+<p><strong>Ticket-to-ticket dependencies</strong> live in two places — read <strong>both</strong> in Phase 3:</p>
+<ul>
+<li><code>tickets.tickets.depends_on</code> — a <code>text[]</code> of blocking <code>external_id</code>s on the row itself.</li>
+<li><code>tickets.ticket_links</code> — normalised edges (<code>to_id</code> is <code>NOT NULL</code>, <code>kind ∈ blocks|blocked_by|duplicate_of|relates_to|fixes|fixed_by</code>). Never use <code>ticket_links</code> for PR references — it is ticket→ticket only.</li>
+</ul>
+<p><strong>Enum reference</strong> (closing/updating a ticket with an out-of-set value fails the CHECK constraint):
 <code>priority ∈ {hoch,mittel,niedrig}</code> · <code>severity ∈ {critical,major,minor,trivial}</code> · <code>status ∈ {triage,planning,plan_staged,backlog,in_progress,in_review,blocked,qa_review,done,archived}</code> · <code>resolution ∈ {fixed,shipped,obsolete}</code> · <code>attention_mode ∈ {auto,ai_ready,needs_human}</code> (default <code>auto</code>).</p>
-<p><strong>DB-Zugriff — MCP-Postgres für Reads bevorzugen.</strong> Ist <code>mcp-postgres</code> erreichbar
-(<code>bash scripts/mcp-portforward.sh status</code>), führe <strong>lesende</strong> SELECTs über <code>mcp__mcp-postgres__query</code>
-aus (nur <code>sql</code>, read-only). Die <code>psql()</code>-Bash-Hilfsfunktion unten ist (a) der <strong>Fallback</strong> für Reads
-ohne aktiven Portforward und (b) der <strong>Pflichtweg für schreibende</strong> Statements (INSERT/UPDATE/DELETE) —
-das MCP-Query-Tool ist read-only. Siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#mcp-tool-guide"><code>MCP-Tool-Guide</code></a>.</p>
+<p><strong>Definition of Readiness (DoR)</strong> — the completeness model for <code>type='feature'</code> ideas, stored in the <code>readiness</code> JSONB column. Four boolean flags; all four true = "ready" (<code>dorScore = 4</code>):
+<code>spec_skizziert</code> (spec sketched) · <code>offene_fragen_geklaert</code> (open questions clarified) · <code>abhaengigkeiten_klar</code> (dependencies clear) · <code>aufwand_geschaetzt</code> (effort estimated).
+This mirrors <code>website/src/lib/planning-office.ts</code> (<code>DOR_KEYS</code>, <code>dorScore</code>) and the admin "Planungsbüro" UI — keep the two consistent; the skill is the SQL view of the same model.</p>
+<p><strong>DB-Zugriff — MCP-Postgres für Reads bevorzugen.</strong> Das <code>mcp-postgres</code> MCP-Tool (<code>mcp__mcp-postgres__query</code>)
+ist read-only und direkt verfügbar, wenn der MCP-Server läuft (einfach mit <code>SELECT 1</code> testen).
+Die <code>psql()</code>-Bash-Hilfsfunktion unten ist der <strong>Fallback</strong> für Reads bei fehlendem MCP-Zugriff
+und der <strong>Pflichtweg für schreibende</strong> Statements (INSERT/UPDATE/DELETE) — das MCP-Query-Tool ist
+read-only. Siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md"><code>MCP-Tool-Guide</code></a>.</p>
 <p>All SQL below assumes:</p>
 <div class="code-wrapper"><pre><code class="language-bash">PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)
 psql() { kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- psql -U website -d website "$@"; }
@@ -78,52 +120,167 @@ psql() { kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- psql 
 <p>⚠️ <strong>Warning on tickets.ticket_plans</strong>: When querying this table, never run <code>SELECT *</code> or retrieve the <code>content</code> column without filtering by a specific ticket/slug. The <code>content</code> column stores large plan markdown files, and querying the entire table will transfer megabytes over <code>kubectl exec</code>, causing connection timeouts. Always query metadata columns (e.g. <code>id</code>, <code>ticket_id</code>, <code>slug</code>, <code>branch</code>, <code>pr_number</code>, <code>archived_at</code>) or filter explicitly.</p>
 </blockquote>
 <hr>
-<h2 id="phase-1--database-ticket-management">Phase 1 — Database Ticket Management</h2>
-<p>Fetch, triage, and resolve open tickets in the tickets database on <code>mentolder</code>.</p>
-<h3>Step 1.1: Fetch Open Tickets</h3>
-<div class="code-wrapper"><pre><code class="language-sql">SELECT external_id, title, status, priority, severity, type, attention_mode, created_at::date, description
+<h2 id="phase-1--completeness-triage">Phase 1 — Completeness Triage</h2>
+<p>Fetch every open ticket and compute, per ticket, <strong>what is missing</strong> before it can be worked. This is a two-tier rubric: a lightweight field check for <em>all</em> tickets, plus the DoR check for planning-stage features.</p>
+<h3 id="step-11-fetch-open-tickets-enriched">Step 1.1: Fetch open tickets (enriched)</h3>
+<p><strong>MCP-first</strong> (<code>mcp-postgres</code>, read-only): pass the query below to <code>mcp__mcp-postgres__query({ sql: "…" })</code>. Fallback: <code>psql -c "&lt;query&gt;"</code> via the <code>psql()</code> helper above.</p>
+<div class="code-wrapper"><pre><code class="language-sql">SELECT external_id, title, type, status, priority, severity, component, areas,
+       depends_on, attention_mode, planning_rank, readiness,
+       COALESCE(length(trim(description)),0) AS desc_len, created_at::date
 FROM tickets.tickets
-WHERE status NOT IN ('done', 'archived')
-ORDER BY priority DESC NULLS LAST, created_at ASC;
+WHERE status NOT IN ('done','archived')
+ORDER BY CASE priority WHEN 'hoch' THEN 1 WHEN 'mittel' THEN 2 WHEN 'niedrig' THEN 3 ELSE 4 END,
+         created_at ASC;
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Step 1.1b: Load OpenSpec Status Map</h3>
-<p>After fetching tickets, enrich the triage view with OpenSpec proposal status. The map is pre-generated and committed in the repo:</p>
+<h3 id="step-12-compute-the-missing-list-per-ticket">Step 1.2: Compute the <code>missing[]</code> list per ticket</h3>
+<p><strong>Tier A — every ticket</strong> (a NULL/empty here is a gap):</p>
+<ul>
+<li><code>priority IS NULL</code> → <code>priority</code></li>
+<li><code>type = 'bug' AND severity IS NULL</code> → <code>severity</code></li>
+<li><code>desc_len &lt; 30</code> → <code>description</code> (too thin to act on)</li>
+<li><code>component IS NULL AND (areas IS NULL OR areas = '{}')</code> → <code>area/component</code></li>
+</ul>
+<p><strong>Tier B — only <code>type='feature' AND status='planning'</code></strong> — for each DoR flag not <code>true</code> in <code>readiness</code>, add <code>dor:&lt;flag&gt;</code>. <code>dorScore &lt; 4</code> ⇒ incomplete. (A feature can also still hit Tier-A gaps.)</p>
+<p>A ticket with an empty <code>missing[]</code> is <strong>ready</strong>. <em>Do not touch <code>in_progress</code> tickets referencing a live plan branch.</em></p>
+<h3 id="step-13-load-openspec-status--render-the-triage-table">Step 1.3: Load OpenSpec status &amp; render the triage table</h3>
 <div class="code-wrapper"><pre><code class="language-bash">OMAP_FILE="$REPO/website/src/data/openspec-status.json"
-# Regenerate if the file is missing (e.g. freshly cloned worktree without freshness:regenerate)
-if ! -f &amp;quot;$OMAP_FILE&amp;quot;; then
-  bash "$REPO/scripts/openspec-status-map.sh"
-fi
-
-get_openspec_status() {
-  local ext_id="$1"
-  jq -r --arg id "$ext_id" '.[$id] // [] | map("\(.status):\(.slug)") | join(", ")' \
-    "$OMAP_FILE" 2&gt;/dev/null || echo ""
-}
+-f &amp;quot;$OMAP_FILE&amp;quot; || bash "$REPO/scripts/openspec-status-map.sh"   # regen if missing
+get_openspec_status() { jq -r --arg id "$1" '.[$id] // [] | map("\(.status):\(.slug)") | join(", ")' "$OMAP_FILE" 2&gt;/dev/null || echo ""; }
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>When displaying the triage table, append the OpenSpec status column. Example output format:</p>
-<div class="code-wrapper"><pre><code>T000953 | Cockpit Fullscreen     | plan_staged | hoch    | READY (cockpit-fullscreen-overview)
-T000959 | OpenSpec Status Badge  | plan_staged | mittel  | READY (openspec-ticket-status-display)
-T000943 | Awaiting-Deploy Gaps   | planning    | mittel  | SPEC (fix-awaiting-deploy-visualization-gaps)
-T000738 | Unbekanntes Feature    | backlog      | niedrig | —
+<p>Render one row per ticket with a <code>missing[]</code> column (use <code>get_openspec_status "$ext_id"</code>, <code>—</code> when empty):</p>
+<div class="code-wrapper"><pre><code>T000953 | Cockpit Fullscreen   | plan_staged | hoch    | DoR 4/4 | —              | READY
+T000959 | Status-Badge         | planning    | mittel  | DoR 2/4 | spec, aufwand  | READY (openspec…)
+T000738 | Unbekanntes Feature  | backlog     | niedrig | —       | description    | needs_human?
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Use <code>get_openspec_status "$ext_id"</code> per row and display <code>—</code> when the result is empty.</p>
-<h3>Step 1.2: Categorization Flow</h3>
-<ol>
-<li><strong>Already Resolved:</strong> Mark <code>done</code> + <code>fixed</code>, cite the PR in notes.</li>
-<li><strong>Obsolete:</strong> Mark <code>done</code> + <code>obsolete</code> (e.g. decommissioned services).</li>
-<li><strong>AI-Fixable:</strong> Set <code>attention_mode = 'ai_ready'</code>. Do <strong>not</strong> push fixes straight to <code>main</code> — hand the ticket to <code>dev-flow-plan</code> / <code>dev-flow-execute</code>, which opens a <code>fix/tNNNN-…</code> branch, PRs it, and closes the ticket on merge. Trivial one-liners may PR directly, but still merge via PR.</li>
-<li><strong>Human Needed:</strong> Set <code>attention_mode = 'needs_human'</code> and add a clear question/ask in the ticket notes.</li>
-</ol>
-<p><em>Note: Do not touch <code>in_progress</code> tickets referencing a live plan branch.</em></p>
+<h3 id="step-14-classify-resolution--completeness">Step 1.4: Classify (resolution × completeness)</h3>
+<ul>
+<li><strong>Already resolved</strong> (PR merged, work shipped): mark <code>done</code> + <code>fixed</code> (or <code>shipped</code> for features), cite the PR.</li>
+<li><strong>Obsolete</strong> (e.g. decommissioned service): mark <code>done</code> + <code>obsolete</code>.</li>
+<li><strong>Ready</strong> (<code>missing[]</code> empty): eligible for the Phase 3 masterplan. If it is an AI-fixable feature/bug with no human decisions left, set <code>attention_mode='ai_ready'</code>.</li>
+<li><strong>Incomplete</strong> (<code>missing[]</code> non-empty): if the gaps are AI-fillable (e.g. auto-triage can guess priority/severity/component), fill them and re-check. If a gap genuinely needs your judgement, set <code>attention_mode='needs_human'</code> — it becomes a candidate for Phase 2.</li>
+</ul>
+<p><em>Phase-1 writes are bookkeeping only</em> — <code>attention_mode</code>, and <code>done</code>/<code>obsolete</code> for tickets with <strong>cited</strong> merge/decommission evidence. Anything ambiguous is left untouched and surfaces as a Phase-2 question. The only approval-gated action in this whole skill is the wave-1 dispatch in Step 3.5.</p>
 <hr>
-<h2 id="phase-2--repository-hygiene--pr-triage">Phase 2 — Repository Hygiene &amp; PR Triage</h2>
-<h3>Step 2.1: Stale Git Worktrees</h3>
+<h2 id="phase-2--human-clarification-round">Phase 2 — Human Clarification Round</h2>
+<p>Ask the user for the missing info that only a human can supply, <strong>batched</strong> and <strong>filtered</strong> so the session stays focused.</p>
+<h3 id="step-21-select-the-ask-set-filtered-capped">Step 2.1: Select the ask-set (filtered, capped)</h3>
+<p>Eligible = <code>missing[]</code> non-empty <strong>AND</strong> ( <code>attention_mode = 'needs_human'</code> <strong>OR</strong> <code>priority = 'hoch'</code> <strong>OR</strong> <code>planning_rank = 0</code> ).
+(<code>planning_rank = 0</code> is the explicitly <strong>promoted next-candidate</strong> — <code>planning-office.ts::promoteItem</code> sets it; <code>NULL</code>/large ranks mean <em>not</em> promoted.)
+Process at most <strong>~6 tickets per round</strong>, highest priority first. Any eligible ticket beyond the cap is listed explicitly as <strong>DEFERRED</strong> in your summary — never silently dropped.</p>
+<h3 id="step-22-derive-the-questions">Step 2.2: Derive the questions</h3>
+<p>Mirror <code>website/src/lib/clarification-questions.ts</code> (<code>deriveSections</code>) — the source of truth. Map each gap to a concrete question:</p>
+<table>
+<thead>
+<tr>
+<th>Gap</th>
+<th>Question(s)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>dor:abhaengigkeiten_klar</code></td>
+<td>Welche Tickets müssen vorher fertig sein? Externe Dienste nötig (DB-Schema / Sealed-Secret / OIDC-Client)?</td>
+</tr>
+<tr>
+<td><code>dor:spec_skizziert</code></td>
+<td>Kern-Flow / Hauptablauf? Was ist explizit NICHT im Scope?</td>
+</tr>
+<tr>
+<td><code>dor:offene_fragen_geklaert</code></td>
+<td>Bereichsspezifisch nach <code>areas</code> — brett (Rollen/Mobile/Disconnect), website (Routen/Auth), chat (Realtime/Scope), infra (Brands/Deploy), auth (Flow/Claims), ai (Modell-Klasse/Fallback). Keine <code>areas</code> → generisch: offene Fragen + Akzeptanzkriterium.</td>
+</tr>
+<tr>
+<td><code>dor:aufwand_geschaetzt</code></td>
+<td>Aufwand: klein / mittel / gross?</td>
+</tr>
+<tr>
+<td><code>priority</code> / <code>severity</code></td>
+<td>Priorität (hoch/mittel/niedrig)? Severity (critical/major/minor/trivial)?</td>
+</tr>
+<tr>
+<td><code>area/component</code></td>
+<td>Welcher Bereich/Component ist betroffen?</td>
+</tr>
+</tbody></table>
+<h3 id="step-23-ask-via-askuserquestion">Step 2.3: Ask via <code>AskUserQuestion</code></h3>
+<p>One <code>AskUserQuestion</code> round per ticket (≤4 questions per call — split into multiple calls if a ticket has more), in priority order. Use the radio/checkbox option sets from <code>clarification-questions.ts</code> where they exist; free-text otherwise. If you are running without the <code>AskUserQuestion</code> tool (e.g. dispatched as a subagent), fall back to one consolidated plain-text question per ticket.</p>
+<h3 id="step-24-write-answers-back-to-the-db">Step 2.4: Write answers back to the DB</h3>
+<p><strong>MCP-first</strong> (<code>ticket-mcp</code> lifecycle, where a wrapper exists — these shell out to <code>ticket.sh</code>, the sanctioned write path, NOT via the read-only <code>mcp-postgres</code>): set DoR flags via <code>set_readiness_flag</code> (one per flag) or <code>prepare_feature</code>; set effort/areas/depends_on via <code>set_plan_meta</code>; append the clarification comment via <code>add_comment</code>.</p>
+<blockquote>
+<p><code>mcp__ticket-mcp__set_readiness_flag({ id: "T000XXX", flag: "spec_skizziert", value: true })</code>
+<code>mcp__ticket-mcp__set_plan_meta({ id: "T000XXX", effort: "mittel", depends_on: "T000YYY" })</code>
+<code>mcp__ticket-mcp__add_comment({ id: "T000XXX", body: "## Klärungsrunde …" })</code></p>
+</blockquote>
+<p>Fallback / bulk path (ticket-mcp nicht erreichbar, oder für Felder ohne Wrapper wie ein direkter <code>priority</code>-Set + eine einzelne JSONB-Readiness-Merge): Writes go through <code>psql()</code> (the MCP query tool is read-only). Per ticket, set the now-satisfied DoR flags via a JSONB merge (never clobber other flags), update the answered fields, and append a clarification comment:</p>
+<div class="code-wrapper"><pre><code class="language-bash">psql -c "
+UPDATE tickets.tickets
+   SET readiness   = COALESCE(readiness,'{}'::jsonb) || '{\"spec_skizziert\":true,\"aufwand_geschaetzt\":true}'::jsonb,
+       effort      = 'mittel',
+       depends_on  = ARRAY['T000YYY'],
+       priority    = 'hoch',
+       updated_at  = now()
+ WHERE external_id = 'T000XXX';
+INSERT INTO tickets.ticket_comments (ticket_id, author_label, body, visibility)
+SELECT id, 'claude-code',
+       E'## Klärungsrunde $(date +%F)\n| Frage | Antwort |\n|---|---|\n| Kern-Flow | … |\n| Aufwand | mittel |',
+       'internal'
+  FROM tickets.tickets WHERE external_id = 'T000XXX';"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>After write-back, re-run the Tier-A/Tier-B check on those tickets — the ones now at <code>missing[] = []</code> join the ready set for Phase 3.</p>
+<hr>
+<h2 id="phase-3--parallelization-masterplan">Phase 3 — Parallelization Masterplan</h2>
+<p>Take the <strong>ready</strong> tickets (empty <code>missing[]</code>, AI-actionable) and plan the maximum safe parallelism.</p>
+<h3 id="step-31-build-the-dependency-graph">Step 3.1: Build the dependency graph</h3>
+<p>Edges come from two sources — merge both:</p>
+<ul>
+<li><code>depends_on</code> array (already fetched in 1.1): <code>B.depends_on = [A]</code> ⇒ edge <code>A → B</code>.</li>
+<li><code>ticket_links</code>:<div class="code-wrapper"><pre><code class="language-sql">SELECT f.external_id AS a, t.external_id AS b, l.kind
+FROM tickets.ticket_links l
+JOIN tickets.tickets f ON f.id = l.from_id
+JOIN tickets.tickets t ON t.id = l.to_id
+WHERE l.kind IN ('blocks','blocked_by');
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<code>kind='blocks'</code> ⇒ <code>a → b</code> (a must finish first). <code>kind='blocked_by'</code> ⇒ <code>b → a</code>.</li>
+</ul>
+<p><strong>Soft conflict edges:</strong> two ready tickets that share any <code>areas</code> entry have a file-collision risk → they may not sit in the <strong>same</strong> wave (serialise them). This is conservative by design (the approved heuristic); flag it rather than hide it.</p>
+<h3 id="step-32-topologically-sort-into-waves">Step 3.2: Topologically sort into waves</h3>
+<ul>
+<li><strong>Wave N</strong> = every ready ticket whose hard dependencies are all satisfied by waves <code>&lt; N</code> <strong>and</strong> which has no <code>areas</code> conflict with another ticket already placed in wave N.</li>
+<li><strong>Maximise wave width</strong> (the goal is "as much in parallel as possible") subject to those two constraints.</li>
+<li>Order ties by <code>priority</code> (hoch &gt; mittel &gt; niedrig), then smaller <code>effort</code> first (quick wins).</li>
+</ul>
+<h3 id="step-33-route-each-ticket-plan-vs-execute">Step 3.3: Route each ticket (plan vs. execute)</h3>
+<p>The dev-flow contract splits the parallel unit:</p>
+<ul>
+<li><code>status = 'plan_staged'</code> (a plan already exists) → <strong>execution wave</strong>: dispatch <code>dev-flow-execute</code>.</li>
+<li><code>attention_mode = 'ai_ready'</code> / DoR-complete feature <strong>without</strong> a staged plan → <strong>planning wave</strong>: dispatch <code>dev-flow-plan</code> (creates + pushes the plan, then stops). These feed future execution waves; do not pretend they execute now.</li>
+<li><strong>Any other ready ticket</strong> (e.g. <code>backlog</code>/<code>triage</code>, no plan, <code>ai_ready</code> not yet set) → also a <strong>planning wave</strong> (<code>dev-flow-plan</code>). No ready ticket is left without a route.</li>
+</ul>
+<h3 id="step-34-present-the-masterplan">Step 3.4: Present the masterplan</h3>
+<div class="code-wrapper"><pre><code>WELLE 1  (parallel · keine offenen Abh.)
+  T000953  Cockpit Fullscreen   hoch   area:website  plan_staged → execute (wt-A)
+  T000801  DB-Index Backfill    hoch   area:db       plan_staged → execute (wt-B)
+WELLE 2  (nach T000953)
+  T000959  Status-Badge         mittel area:website  ai_ready    → plan    (wt-C)  ⊳ depends T000953
+⚠ KONFLIKT: T000953 &amp; T000961 beide area:website/admin → seriell (T000961 → Welle 2)
+DEFERRED (needs_human, ungeklärt): T000738
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3 id="step-35-dispatch-wave-1-after-the-user-approves">Step 3.5: Dispatch wave 1 (after the user approves)</h3>
+<p>For each wave-1 ticket, in parallel (use <code>dispatching-parallel-agents</code>):</p>
+<ol>
+<li><code>bash scripts/agent-lock.sh claim ticket &lt;ext-id&gt; --branch &lt;b&gt; --worktree &lt;wt&gt; --label ticket-ops</code> (skip/coordinate on exit 1 — a live session already owns it).</li>
+<li>Create the worktree: <code>bash scripts/worktree-create.sh &lt;branch&gt; tmp/wt-&lt;slug&gt;</code>.</li>
+<li>Hand to <code>dev-flow-execute</code> (plan_staged) or <code>dev-flow-plan</code> (unplanned) inside that worktree.</li>
+</ol>
+<p>Merge = Abschluss: each ticket closes on its own green auto-merge; the masterplan tracks dispatch, not prod-live.</p>
+<hr>
+<h2 id="phase-4--repository-hygiene--pr-triage">Phase 4 — Repository Hygiene &amp; PR Triage</h2>
+<h3 id="step-41-stale-git-worktrees">Step 4.1: Stale Git Worktrees</h3>
 <p>List worktrees: <code>git worktree list</code>.
 Verify if the branch is merged: <code>git log main..&lt;branch&gt; --oneline</code> (empty means fully merged).
 Remove stale worktrees:</p>
 <div class="code-wrapper"><pre><code class="language-bash">git worktree remove &lt;path&gt; --force
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Step 2.2: Stale Branches</h3>
+<h3 id="step-42-stale-branches">Step 4.2: Stale Branches</h3>
 <p>Prune local and remote branches:</p>
 <div class="code-wrapper"><pre><code class="language-bash"># Safe batch-delete merged local branches
 git branch --merged main | grep -v 'main' | xargs git branch -d
@@ -148,7 +305,7 @@ git for-each-ref --format='%(refname:short) %(upstream:track)' refs/heads \
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>Only <code>-D</code> (force) works here — <code>-d</code> will refuse because git does not see the squash-merged history.</p>
 </blockquote>
-<h3>Step 2.3: GitHub PR Triage → close the linked ticket</h3>
+<h3 id="step-43-github-pr-triage--close-the-linked-ticket">Step 4.3: GitHub PR Triage → close the linked ticket</h3>
 <p>List open PRs:</p>
 <div class="code-wrapper"><pre><code class="language-bash">gh pr list --state open --json number,title,headRefName,statusCheckRollup,reviewDecision,isDraft,mergeStateStatus
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
@@ -168,7 +325,12 @@ TICKET_ID=$(printf '%s %s' "$TITLE" "$BRANCH" | grep -oiE 'T[0-9]{6}' | head -1 
 </blockquote>
 <p>Use <code>--auto</code> instead when CI is still running — GitHub merges once checks pass.</p>
 </li>
-<li><p><strong>Close the ticket once <code>mergedAt</code> is set</strong> (only if <code>$TICKET_ID</code> was found; <code>resolution</code>: <code>fixed</code> for <code>fix/*</code>, <code>shipped</code> for <code>feature/*</code>):</p>
+<li><p><strong>Close the ticket once <code>mergedAt</code> is set</strong> (only if <code>$TICKET_ID</code> was found; <code>resolution</code>: <code>fixed</code> for <code>fix/*</code>, <code>shipped</code> for <code>feature/*</code>) — <strong>MCP-first</strong> (<code>ticket-mcp</code> lifecycle; the wrappers write via <code>ticket.sh</code>, not via the read-only <code>mcp-postgres</code>):</p>
+<blockquote>
+<p><code>mcp__ticket-mcp__transition_status({ id: "$TICKET_ID", status: "done", resolution: "&lt;fixed|shipped&gt;" })</code>
+<code>mcp__ticket-mcp__add_comment({ id: "$TICKET_ID", body: "PR #&lt;number&gt; merged." })</code></p>
+</blockquote>
+<p>Fallback (ticket-mcp nicht erreichbar — direkte Writes über <code>psql</code>):</p>
 <div class="code-wrapper"><pre><code class="language-bash">psql -c \
   "UPDATE tickets.tickets SET status='done', resolution='fixed', done_at=now()
    WHERE external_id='$TICKET_ID' AND status &lt;&gt; 'done';
@@ -181,12 +343,27 @@ TICKET_ID=$(printf '%s %s' "$TITLE" "$BRANCH" | grep -oiE 'T[0-9]{6}' | head -1 
 <li><p><strong>CI Failures:</strong> Diagnose failed checks with <code>gh pr checks &lt;number&gt;</code>. Do not merge red PRs. If the failure is a known flake, re-run; otherwise leave the PR open and (if it has a ticket) leave the ticket <code>in_progress</code>.</p>
 </li>
 </ul>
-<h3>Step 2.4: GitHub Issue Intake (rare)</h3>
+<h3 id="step-44-github-issue-intake-rare">Step 4.4: GitHub Issue Intake (rare)</h3>
 <p>This repo tracks issues in Postgres, not GitHub. If <code>gh issue list --state open</code> returns anything, funnel it in rather than working it on GitHub:</p>
 <ol>
 <li>Create a <code>tickets.tickets</code> row from the issue (<code>type</code>, <code>brand</code>, <code>title</code>, <code>description</code>, <code>status='triage'</code>).</li>
 <li><code>gh issue close &lt;n&gt; --comment "Tracked internally as &lt;external_id&gt;."</code></li>
 </ol>
+<hr>
+<h2 id="software-factory-queue-mcp-first">Software-Factory-Queue (MCP-first)</h2>
+<p>Für Factory-Queue-Status und manuelles Anstoßen die <code>factory-mcp</code>-Tools bevorzugen (HTTP-Daemon auf <code>127.0.0.1:13003</code>). <strong>Verfügbarkeits-Guard zuerst:</strong> <code>curl -sf --max-time 2 http://127.0.0.1:13003/health</code> — bei Erfolg MCP, sonst Skript-Fallback.</p>
+<p><strong>MCP-first</strong> (<code>factory-mcp</code>):</p>
+<blockquote>
+<p><code>mcp__factory-mcp__factory_status()</code> — Queue-Tiefe + ob gerade ein Tick läuft
+<code>mcp__factory-mcp__factory_queue()</code> — wartende Tickets (backlog + plan_staged)
+<code>mcp__factory-mcp__factory_trigger()</code> — sofortigen Factory-Tick auslösen
+<code>mcp__factory-mcp__factory_enqueue({ ticket_id: "T000XXX" })</code> · <code>mcp__factory-mcp__factory_recent({ limit: 10 })</code></p>
+</blockquote>
+<p>Fallback (Daemon <code>:13003</code> nicht erreichbar):</p>
+<ul>
+<li>Status/Queue → <code>mcp__mcp-postgres__query</code> bzw. <code>psql</code> SELECT auf <code>tickets.tickets WHERE status IN ('backlog','plan_staged')</code>.</li>
+<li>Tick auslösen → <code>bash scripts/factory/wakeup.sh</code>.</li>
+</ul>
 <hr>
 <h2 id="post-execution-mishap-report">Post-Execution: Mishap Report</h2>
 <p>After completing all steps in this skill, invoke <code>mishap-tracker</code> with your accumulated <code>MISHAP_LOG</code>. If no mishaps were found, <code>mishap-tracker</code> exits cleanly.</p>
@@ -203,16 +380,24 @@ TICKET_ID=$(printf '%s %s' "$TITLE" "$BRANCH" | grep -oiE 'T[0-9]{6}' | head -1 
 <td>Time-critical incidents — different workflow</td>
 </tr>
 <tr>
-<td><code>mishap-tracker</code></td>
-<td>Converts execution mishaps to tickets</td>
+<td><code>dispatching-parallel-agents</code></td>
+<td>Phase 3 wave-1 fan-out across ready tickets</td>
+</tr>
+<tr>
+<td><code>using-git-worktrees</code></td>
+<td>Isolated worktrees for parallel dispatch</td>
+</tr>
+<tr>
+<td><code>dev-flow-plan</code></td>
+<td>Planning-wave tickets (ai_ready, no staged plan)</td>
 </tr>
 <tr>
 <td><code>dev-flow-execute</code></td>
-<td>Takes AI-fixable tickets to implementation</td>
+<td>Execution-wave tickets (plan_staged)</td>
 </tr>
 <tr>
-<td><code>cluster-deployment</code></td>
-<td>Cross-brand issues (Phase 5)</td>
+<td><code>mishap-tracker</code></td>
+<td>Converts execution mishaps to tickets</td>
 </tr>
 <tr>
 <td><code>database-ops</code></td>
@@ -222,7 +407,9 @@ TICKET_ID=$(printf '%s %s' "$TITLE" "$BRANCH" | grep -oiE 'T[0-9]{6}' | head -1 
 </body></html>
 </article>
 
+<nav class="prevnext" aria-label="Seitennavigation"><a class="prevnext-link prevnext-prev" href="../skills/brightdata-plugin--seo-audit.html"><span class="prevnext-label">← Zurück</span><span class="prevnext-title">seo-audit</span></a><a class="prevnext-link prevnext-next" href="../skills/braintrust--troubleshoot-braintrust-mcp.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">troubleshoot-braintrust-mcp</span></a></nav>
   </main>
+</div>
 </div>
 <footer class="site-footer">
   <span>Workspace MVP — generierte Dokumentation</span>

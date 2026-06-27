@@ -10,19 +10,24 @@
 <link rel="stylesheet" href="../style.css">
 </head>
 <body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
 <header class="site-header">
   <a class="site-header-brand" href="../index.html">
     <span class="site-mark" aria-hidden="true">◆</span>
     <span class="site-wordmark">Dokumentation</span>
   </a>
 </header>
-<div id="search-overlay">
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
   <div id="search-box">
-    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
-    <div id="search-results"></div>
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
   </div>
 </div>
 <div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Dev-Workflow</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-architect.html">code-architect</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-architect.html">code-architect</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-explorer.html">code-explorer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-explorer.html">code-explorer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/code-simplifier--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--comment-analyzer.html">comment-analyzer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--comment-analyzer.html">comment-analyzer</a></li><li class="sidebar-item"><a href="../skills/dev-flow-e2e.html">dev-flow-e2e</a></li><li class="sidebar-item"><a href="../skills/dev-flow-execute.html">dev-flow-execute</a></li><li class="sidebar-item"><a href="../skills/dev-flow-plan.html">dev-flow-plan</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--pr-test-analyzer.html">pr-test-analyzer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--pr-test-analyzer.html">pr-test-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--silent-failure-hunter.html">Silent Failure Hunter</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--silent-failure-hunter.html">silent-failure-hunter</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--type-design-analyzer.html">type-design-analyzer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--type-design-analyzer.html">type-design-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Bachelorprojekt-Infra</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/cluster-deployment.html">cluster-deployment</a></li><li class="sidebar-item"><a href="../skills/database-ops.html">database-ops</a></li><li class="sidebar-item"><a href="../skills/host-node-networking.html">host-node-networking</a></li><li class="sidebar-item"><a href="../skills/keycloak-realm-sync.html">keycloak-realm-sync</a></li><li class="sidebar-item"><a href="../skills/mishap-tracker.html">mishap-tracker</a></li><li class="sidebar-item"><a href="../skills/operations-management.html">operations-management</a></li><li class="sidebar-item"><a href="../skills/secret-rotation.html">secret-rotation</a></li><li class="sidebar-item"><a href="../skills/update-dependencies.html">update-dependencies</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">KI / ML</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">Plugin- &amp; Skill-Bau</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../agents/plugin-dev--agent-creator.html">agent-creator</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--agent-creator.html">agent-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--agent-development.html">agent-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--agent-development.html">agent-development</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-py.html">agent-sdk-verifier-py</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-py.html">agent-sdk-verifier-py</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-ts.html">agent-sdk-verifier-ts</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-ts.html">agent-sdk-verifier-ts</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--command-development.html">command-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--command-development.html">command-development</a></li><li class="sidebar-item"><a href="../agents/hookify--conversation-analyzer.html">conversation-analyzer</a></li><li class="sidebar-item"><a href="../agents/hookify--conversation-analyzer.html">conversation-analyzer</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--hook-development.html">hook-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--hook-development.html">hook-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--mcp-integration.html">mcp-integration</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--mcp-integration.html">mcp-integration</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-settings.html">plugin-settings</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-settings.html">plugin-settings</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-structure.html">plugin-structure</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-structure.html">plugin-structure</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--plugin-validator.html">plugin-validator</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--plugin-validator.html">plugin-validator</a></li><li class="sidebar-item"><a href="../skills/skill-creator--skill-creator.html">skill-creator</a></li><li class="sidebar-item"><a href="../skills/skill-creator--skill-creator.html">skill-creator</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/plugin-dev--skill-development.html" aria-current="page">skill-development</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/plugin-dev--skill-development.html" aria-current="page">skill-development</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--skill-reviewer.html">skill-reviewer</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--skill-reviewer.html">skill-reviewer</a></li><li class="sidebar-item"><a href="../skills/hookify--writing-rules.html">writing-hookify-rules</a></li><li class="sidebar-item"><a href="../skills/hookify--writing-rules.html">writing-hookify-rules</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Browser &amp; Debugging</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers-chrome--browsing.html">browsing</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">MCP &amp; API</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/postman--agent-ready-apis.html">agent-ready-apis</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-app.html">build-mcp-app</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-app.html">build-mcp-app</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-server.html">build-mcp-server</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-server.html">build-mcp-server</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcpb.html">build-mcpb</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcpb.html">build-mcpb</a></li><li class="sidebar-item"><a href="../skills/postman--generate-spec.html">generate-spec</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--mcp-cli.html">mcp-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-cli.html">postman-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-context.html">postman-context</a></li><li class="sidebar-item"><a href="../skills/postman--postman-knowledge.html">postman-knowledge</a></li><li class="sidebar-item"><a href="../skills/postman--run-collection.html">run-collection</a></li><li class="sidebar-item"><a href="../skills/postman--send-request.html">send-request</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Claude Code &amp; Tooling</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/brightdata-plugin--agent-onboarding.html">agent-onboarding</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brand-listening.html">brand-listening</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brd-browser-debug.html">brd-browser-debug</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-best-practices.html">bright-data-best-practices</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-mcp.html">bright-data-mcp</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brightdata-cli.html">brightdata-cli</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--proxy.html">brightdata-proxy</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--python-sdk-best-practices.html">brightdata-sdk</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--js-sdk-best-practices.html">brightdata-sdk-js</a></li><li class="sidebar-item"><a href="../skills/claude-code-setup--claude-automation-recommender.html">claude-automation-recommender</a></li><li class="sidebar-item"><a href="../skills/claude-md-management--claude-md-improver.html">claude-md-improver</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--competitive-intel.html">competitive-intel</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--data-feeds.html">data-feeds</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--design-mirror.html">design-mirror</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/dev-flow-chore.html">dev-flow-chore</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--developing-claude-code-plugins.html">developing-claude-code-plugins</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--discover-api.html">discover-api</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--finding-duplicate-functions.html">finding-duplicate-functions</a></li><li class="sidebar-item"><a href="../skills/frontend-design--frontend-design.html">frontend-design</a></li><li class="sidebar-item"><a href="../skills/frontend-design--frontend-design.html">frontend-design</a></li><li class="sidebar-item"><a href="../skills/git-workflow.html">git-workflow</a></li><li class="sidebar-item"><a href="../skills/incident-response.html">incident-response</a></li><li class="sidebar-item"><a href="../skills/infra-ops.html">infra-ops</a></li><li class="sidebar-item"><a href="../skills/lavish.html">lavish</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--live-research.html">live-research</a></li><li class="sidebar-item"><a href="../skills/llm-ops.html">llm-ops</a></li><li class="sidebar-item"><a href="../skills/playground--playground.html">playground</a></li><li class="sidebar-item"><a href="../skills/playground--playground.html">playground</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--price-comparison.html">price-comparison</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--rag-pipeline.html">rag-pipeline</a></li><li class="sidebar-item"><a href="../skills/references.html">references</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scrape.html">scrape</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-builder.html">scraper-builder</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-studio.html">scraper-studio</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--search.html">search</a></li><li class="sidebar-item"><a href="../skills/sourcegraph--searching-sourcegraph.html">searching-sourcegraph</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--seo-audit.html">seo-audit</a></li><li class="sidebar-item"><a href="../skills/ticket-ops.html">ticket-ops</a></li><li class="sidebar-item"><a href="../skills/braintrust--troubleshoot-braintrust-mcp.html">troubleshoot-braintrust-mcp</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--using-tmux-for-interactive-commands.html">using-tmux-for-interactive-commands</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--windows-vm.html">windows-vm</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--working-with-claude-code.html">working-with-claude-code</a></li><li class="sidebar-item"><a href="../skills/workspace-deploy.html">workspace-deploy</a></li></ul></details>
+</aside>
   <main id="main">
 <header class="page-header">
   <div class="page-header-body">
@@ -40,16 +45,45 @@
 <html><head></head><body><h1>Skill Development for Claude Code Plugins</h1><div class="toc-box auto-toc">
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#about-skills"><span class="toc-num">1.</span> About Skills</a></li>
+<li class="toc-item toc-item--h3"><a href="#what-skills-provide"><span class="toc-num">–</span> What Skills Provide</a></li>
+<li class="toc-item toc-item--h3"><a href="#anatomy-of-a-skill"><span class="toc-num">–</span> Anatomy of a Skill</a></li>
+<li class="toc-item toc-item--h3"><a href="#progressive-disclosure-design-principle"><span class="toc-num">–</span> Progressive Disclosure Design Principle</a></li>
 <li class="toc-item"><a href="#skill-creation-process"><span class="toc-num">2.</span> Skill Creation Process</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-1-understanding-the-skill-with-concrete-examples"><span class="toc-num">–</span> Step 1: Understanding the Skill with Concrete Examples</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-2-planning-the-reusable-skill-contents"><span class="toc-num">–</span> Step 2: Planning the Reusable Skill Contents</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-3-create-skill-structure"><span class="toc-num">–</span> Step 3: Create Skill Structure</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-4-edit-the-skill"><span class="toc-num">–</span> Step 4: Edit the Skill</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-5-validate-and-test"><span class="toc-num">–</span> Step 5: Validate and Test</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-6-iterate"><span class="toc-num">–</span> Step 6: Iterate</a></li>
 <li class="toc-item"><a href="#plugin-specific-considerations"><span class="toc-num">3.</span> Plugin-Specific Considerations</a></li>
+<li class="toc-item toc-item--h3"><a href="#skill-location-in-plugins"><span class="toc-num">–</span> Skill Location in Plugins</a></li>
+<li class="toc-item toc-item--h3"><a href="#auto-discovery"><span class="toc-num">–</span> Auto-Discovery</a></li>
+<li class="toc-item toc-item--h3"><a href="#no-packaging-needed"><span class="toc-num">–</span> No Packaging Needed</a></li>
+<li class="toc-item toc-item--h3"><a href="#testing-in-plugins"><span class="toc-num">–</span> Testing in Plugins</a></li>
 <li class="toc-item"><a href="#examples-from-plugin-dev"><span class="toc-num">4.</span> Examples from Plugin-Dev</a></li>
 <li class="toc-item"><a href="#progressive-disclosure-in-practice"><span class="toc-num">5.</span> Progressive Disclosure in Practice</a></li>
+<li class="toc-item toc-item--h3"><a href="#what-goes-in-skillmd"><span class="toc-num">–</span> What Goes in SKILL.md</a></li>
+<li class="toc-item toc-item--h3"><a href="#what-goes-in-references"><span class="toc-num">–</span> What Goes in references/</a></li>
+<li class="toc-item toc-item--h3"><a href="#what-goes-in-examples"><span class="toc-num">–</span> What Goes in examples/</a></li>
+<li class="toc-item toc-item--h3"><a href="#what-goes-in-scripts"><span class="toc-num">–</span> What Goes in scripts/</a></li>
 <li class="toc-item"><a href="#writing-style-requirements"><span class="toc-num">6.</span> Writing Style Requirements</a></li>
+<li class="toc-item toc-item--h3"><a href="#imperativeinfinitive-form"><span class="toc-num">–</span> Imperative/Infinitive Form</a></li>
+<li class="toc-item toc-item--h3"><a href="#third-person-in-description"><span class="toc-num">–</span> Third-Person in Description</a></li>
+<li class="toc-item toc-item--h3"><a href="#objective-instructional-language"><span class="toc-num">–</span> Objective, Instructional Language</a></li>
 <li class="toc-item"><a href="#validation-checklist"><span class="toc-num">7.</span> Validation Checklist</a></li>
 <li class="toc-item"><a href="#common-mistakes-to-avoid"><span class="toc-num">8.</span> Common Mistakes to Avoid</a></li>
+<li class="toc-item toc-item--h3"><a href="#mistake-1-weak-trigger-description"><span class="toc-num">–</span> Mistake 1: Weak Trigger Description</a></li>
+<li class="toc-item toc-item--h3"><a href="#mistake-2-too-much-in-skillmd"><span class="toc-num">–</span> Mistake 2: Too Much in SKILL.md</a></li>
+<li class="toc-item toc-item--h3"><a href="#mistake-3-second-person-writing"><span class="toc-num">–</span> Mistake 3: Second Person Writing</a></li>
+<li class="toc-item toc-item--h3"><a href="#mistake-4-missing-resource-references"><span class="toc-num">–</span> Mistake 4: Missing Resource References</a></li>
 <li class="toc-item"><a href="#quick-reference"><span class="toc-num">9.</span> Quick Reference</a></li>
+<li class="toc-item toc-item--h3"><a href="#minimal-skill"><span class="toc-num">–</span> Minimal Skill</a></li>
+<li class="toc-item toc-item--h3"><a href="#standard-skill-recommended"><span class="toc-num">–</span> Standard Skill (Recommended)</a></li>
+<li class="toc-item toc-item--h3"><a href="#complete-skill"><span class="toc-num">–</span> Complete Skill</a></li>
 <li class="toc-item"><a href="#best-practices-summary"><span class="toc-num">10.</span> Best Practices Summary</a></li>
 <li class="toc-item"><a href="#additional-resources"><span class="toc-num">11.</span> Additional Resources</a></li>
+<li class="toc-item toc-item--h3"><a href="#study-these-skills"><span class="toc-num">–</span> Study These Skills</a></li>
+<li class="toc-item toc-item--h3"><a href="#reference-files"><span class="toc-num">–</span> Reference Files</a></li>
 <li class="toc-item"><a href="#implementation-workflow"><span class="toc-num">12.</span> Implementation Workflow</a></li></ul>
 </div>
 <p>This skill provides guidance for creating effective skills for Claude Code plugins.</p>
@@ -58,14 +92,14 @@
 specialized knowledge, workflows, and tools. Think of them as "onboarding guides" for specific
 domains or tasks—they transform Claude from a general-purpose agent into a specialized agent
 equipped with procedural knowledge that no model can fully possess.</p>
-<h3>What Skills Provide</h3>
+<h3 id="what-skills-provide">What Skills Provide</h3>
 <ol>
 <li>Specialized workflows - Multi-step procedures for specific domains</li>
 <li>Tool integrations - Instructions for working with specific file formats or APIs</li>
 <li>Domain expertise - Company-specific knowledge, schemas, business logic</li>
 <li>Bundled resources - Scripts, references, and assets for complex and repetitive tasks</li>
 </ol>
-<h3>Anatomy of a Skill</h3>
+<h3 id="anatomy-of-a-skill">Anatomy of a Skill</h3>
 <p>Every skill consists of a required SKILL.md file and optional bundled resources:</p>
 <div class="code-wrapper"><pre><code>skill-name/
 ├── SKILL.md (required)
@@ -107,7 +141,7 @@ equipped with procedural knowledge that no model can fully possess.</p>
 <li><strong>Use cases</strong>: Templates, images, icons, boilerplate code, fonts, sample documents that get copied or modified</li>
 <li><strong>Benefits</strong>: Separates output resources from documentation, enables Claude to use files without loading them into context</li>
 </ul>
-<h3>Progressive Disclosure Design Principle</h3>
+<h3 id="progressive-disclosure-design-principle">Progressive Disclosure Design Principle</h3>
 <p>Skills use a three-level loading system to manage context efficiently:</p>
 <ol>
 <li><strong>Metadata (name + description)</strong> - Always in context (~100 words)</li>
@@ -117,7 +151,7 @@ equipped with procedural knowledge that no model can fully possess.</p>
 <p>*Unlimited because scripts can be executed without reading into context window.</p>
 <h2 id="skill-creation-process">Skill Creation Process</h2>
 <p>To create a skill, follow the "Skill Creation Process" in order, skipping steps only if there is a clear reason why they are not applicable.</p>
-<h3>Step 1: Understanding the Skill with Concrete Examples</h3>
+<h3 id="step-1-understanding-the-skill-with-concrete-examples">Step 1: Understanding the Skill with Concrete Examples</h3>
 <p>Skip this step only when the skill's usage patterns are already clearly understood. It remains valuable even when working with an existing skill.</p>
 <p>To create an effective skill, clearly understand concrete examples of how the skill will be used. This understanding can come from either direct user examples or generated examples that are validated with user feedback.</p>
 <p>For example, when building an image-editor skill, relevant questions include:</p>
@@ -129,7 +163,7 @@ equipped with procedural knowledge that no model can fully possess.</p>
 </ul>
 <p>To avoid overwhelming users, avoid asking too many questions in a single message. Start with the most important questions and follow up as needed for better effectiveness.</p>
 <p>Conclude this step when there is a clear sense of the functionality the skill should support.</p>
-<h3>Step 2: Planning the Reusable Skill Contents</h3>
+<h3 id="step-2-planning-the-reusable-skill-contents">Step 2: Planning the Reusable Skill Contents</h3>
 <p>To turn concrete examples into an effective skill, analyze each example by:</p>
 <ol>
 <li>Considering how to execute on the example from scratch</li>
@@ -157,13 +191,13 @@ equipped with procedural knowledge that no model can fully possess.</p>
 <li><code>references/patterns.md</code> for detailed hook patterns to avoid bloating SKILL.md</li>
 </ol>
 <p>To establish the skill's contents, analyze each concrete example to create a list of the reusable resources to include: scripts, references, and assets.</p>
-<h3>Step 3: Create Skill Structure</h3>
+<h3 id="step-3-create-skill-structure">Step 3: Create Skill Structure</h3>
 <p>For Claude Code plugins, create the skill directory structure:</p>
 <div class="code-wrapper"><pre><code class="language-bash">mkdir -p plugin-name/skills/skill-name/{references,examples,scripts}
 touch plugin-name/skills/skill-name/SKILL.md
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p><strong>Note:</strong> Unlike the generic skill-creator which uses <code>init_skill.py</code>, plugin skills are created directly in the plugin's <code>skills/</code> directory with a simpler manual structure.</p>
-<h3>Step 4: Edit the Skill</h3>
+<h3 id="step-4-edit-the-skill">Step 4: Edit the Skill</h3>
 <p>When editing the (newly-created or existing) skill, remember that the skill is being created for another instance of Claude to use. Focus on including information that would be beneficial and non-obvious to Claude. Consider what procedural knowledge, domain-specific details, or reusable assets would help another Claude instance execute these tasks more effectively.</p>
 <h4>Start with Reusable Skill Contents</h4>
 <p>To begin implementation, start with the reusable resources identified above: <code>scripts/</code>, <code>references/</code>, and <code>assets/</code> files. Note that this step may require user input. For example, when implementing a <code>brand-guidelines</code> skill, the user may need to provide brand assets or templates to store in <code>assets/</code>, or documentation to store in <code>references/</code>.</p>
@@ -212,7 +246,7 @@ For detailed patterns and techniques, consult:
 Working examples in `examples/`:
 - **`example-script.sh`** - Working example
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Step 5: Validate and Test</h3>
+<h3 id="step-5-validate-and-test">Step 5: Validate and Test</h3>
 <p><strong>For plugin skills, validation is different from generic skills:</strong></p>
 <ol>
 <li><strong>Check structure</strong>: Skill directory in <code>plugin-name/skills/skill-name/</code></li>
@@ -228,7 +262,7 @@ Working examples in `examples/`:
 <div class="code-wrapper"><pre><code>Ask: "Review my skill and check if it follows best practices"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>The skill-reviewer agent will check description quality, content organization, and progressive disclosure.</p>
-<h3>Step 6: Iterate</h3>
+<h3 id="step-6-iterate">Step 6: Iterate</h3>
 <p>After testing the skill, users may request improvements. Often this happens right after using the skill, with fresh context of how the skill performed.</p>
 <p><strong>Iteration workflow:</strong></p>
 <ol>
@@ -246,7 +280,7 @@ Working examples in `examples/`:
 <li>Add edge case handling</li>
 </ul>
 <h2 id="plugin-specific-considerations">Plugin-Specific Considerations</h2>
-<h3>Skill Location in Plugins</h3>
+<h3 id="skill-location-in-plugins">Skill Location in Plugins</h3>
 <p>Plugin skills live in the plugin's <code>skills/</code> directory:</p>
 <div class="code-wrapper"><pre><code>my-plugin/
 ├── .claude-plugin/
@@ -260,7 +294,7 @@ Working examples in `examples/`:
         ├── examples/
         └── scripts/
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Auto-Discovery</h3>
+<h3 id="auto-discovery">Auto-Discovery</h3>
 <p>Claude Code automatically discovers skills:</p>
 <ul>
 <li>Scans <code>skills/</code> directory</li>
@@ -269,9 +303,9 @@ Working examples in `examples/`:
 <li>Loads SKILL.md body when skill triggers</li>
 <li>Loads references/examples when needed</li>
 </ul>
-<h3>No Packaging Needed</h3>
+<h3 id="no-packaging-needed">No Packaging Needed</h3>
 <p>Plugin skills are distributed as part of the plugin, not as separate ZIP files. Users get skills when they install the plugin.</p>
-<h3>Testing in Plugins</h3>
+<h3 id="testing-in-plugins">Testing in Plugins</h3>
 <p>Test skills by installing plugin locally:</p>
 <div class="code-wrapper"><pre><code class="language-bash"># Test with --plugin-dir
 cc --plugin-dir /path/to/plugin
@@ -304,7 +338,7 @@ cc --plugin-dir /path/to/plugin
 </ul>
 <p>Each demonstrates progressive disclosure and strong triggering.</p>
 <h2 id="progressive-disclosure-in-practice">Progressive Disclosure in Practice</h2>
-<h3>What Goes in SKILL.md</h3>
+<h3 id="what-goes-in-skillmd">What Goes in SKILL.md</h3>
 <p><strong>Include (always loaded when skill triggers):</strong></p>
 <ul>
 <li>Core concepts and overview</li>
@@ -314,7 +348,7 @@ cc --plugin-dir /path/to/plugin
 <li>Most common use cases</li>
 </ul>
 <p><strong>Keep under 3,000 words, ideally 1,500-2,000 words</strong></p>
-<h3>What Goes in references/</h3>
+<h3 id="what-goes-in-references">What Goes in references/</h3>
 <p><strong>Move to references/ (loaded as needed):</strong></p>
 <ul>
 <li>Detailed patterns and advanced techniques</li>
@@ -324,7 +358,7 @@ cc --plugin-dir /path/to/plugin
 <li>Extensive examples and walkthroughs</li>
 </ul>
 <p><strong>Each reference file can be large (2,000-5,000+ words)</strong></p>
-<h3>What Goes in examples/</h3>
+<h3 id="what-goes-in-examples">What Goes in examples/</h3>
 <p><strong>Working code examples:</strong></p>
 <ul>
 <li>Complete, runnable scripts</li>
@@ -333,7 +367,7 @@ cc --plugin-dir /path/to/plugin
 <li>Real-world usage examples</li>
 </ul>
 <p><strong>Users can copy and adapt these directly</strong></p>
-<h3>What Goes in scripts/</h3>
+<h3 id="what-goes-in-scripts">What Goes in scripts/</h3>
 <p><strong>Utility scripts:</strong></p>
 <ul>
 <li>Validation tools</li>
@@ -343,7 +377,7 @@ cc --plugin-dir /path/to/plugin
 </ul>
 <p><strong>Should be executable and documented</strong></p>
 <h2 id="writing-style-requirements">Writing Style Requirements</h2>
-<h3>Imperative/Infinitive Form</h3>
+<h3 id="imperativeinfinitive-form">Imperative/Infinitive Form</h3>
 <p>Write using verb-first instructions, not second person:</p>
 <p><strong>Correct (imperative):</strong></p>
 <div class="code-wrapper"><pre><code>To create a hook, define the event type.
@@ -355,7 +389,7 @@ Validate settings before use.
 You need to configure the MCP server.
 You must validate settings before use.
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Third-Person in Description</h3>
+<h3 id="third-person-in-description">Third-Person in Description</h3>
 <p>The frontmatter description must use third person:</p>
 <p><strong>Correct:</strong></p>
 <div class="code-wrapper"><pre><code class="language-yaml">description: This skill should be used when the user asks to "create X", "configure Y"...
@@ -364,7 +398,7 @@ You must validate settings before use.
 <div class="code-wrapper"><pre><code class="language-yaml">description: Use this skill when you want to create X...
 description: Load this skill when user asks...
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Objective, Instructional Language</h3>
+<h3 id="objective-instructional-language">Objective, Instructional Language</h3>
 <p>Focus on what to do, not who should do it:</p>
 <p><strong>Correct:</strong></p>
 <div class="code-wrapper"><pre><code>Parse the frontmatter using sed.
@@ -416,7 +450,7 @@ The user might validate values...
 <li><input disabled="" type="checkbox"> References load when needed</li>
 </ul>
 <h2 id="common-mistakes-to-avoid">Common Mistakes to Avoid</h2>
-<h3>Mistake 1: Weak Trigger Description</h3>
+<h3 id="mistake-1-weak-trigger-description">Mistake 1: Weak Trigger Description</h3>
 <p>❌ <strong>Bad:</strong></p>
 <div class="code-wrapper"><pre><code class="language-yaml">description: Provides guidance for working with hooks.
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
@@ -425,7 +459,7 @@ The user might validate values...
 <div class="code-wrapper"><pre><code class="language-yaml">description: This skill should be used when the user asks to "create a hook", "add a PreToolUse hook", "validate tool use", or mentions hook events. Provides comprehensive hooks API guidance.
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p><strong>Why good:</strong> Third person, specific phrases, concrete scenarios</p>
-<h3>Mistake 2: Too Much in SKILL.md</h3>
+<h3 id="mistake-2-too-much-in-skillmd">Mistake 2: Too Much in SKILL.md</h3>
 <p>❌ <strong>Bad:</strong></p>
 <div class="code-wrapper"><pre><code>skill-name/
 └── SKILL.md  (8,000 words - everything in one file)
@@ -439,7 +473,7 @@ The user might validate values...
     └── advanced.md (3,700 words)
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p><strong>Why good:</strong> Progressive disclosure, detailed content loaded only when needed</p>
-<h3>Mistake 3: Second Person Writing</h3>
+<h3 id="mistake-3-second-person-writing">Mistake 3: Second Person Writing</h3>
 <p>❌ <strong>Bad:</strong></p>
 <div class="code-wrapper"><pre><code class="language-markdown">You should start by reading the configuration file.
 You need to validate the input.
@@ -452,7 +486,7 @@ Validate the input before processing.
 Use the grep tool to search for patterns.
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p><strong>Why good:</strong> Imperative form, direct instructions</p>
-<h3>Mistake 4: Missing Resource References</h3>
+<h3 id="mistake-4-missing-resource-references">Mistake 4: Missing Resource References</h3>
 <p>❌ <strong>Bad:</strong></p>
 <div class="code-wrapper"><pre><code class="language-markdown"># SKILL.md
 
@@ -477,12 +511,12 @@ Use the grep tool to search for patterns.
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p><strong>Why good:</strong> Claude knows where to find additional information</p>
 <h2 id="quick-reference">Quick Reference</h2>
-<h3>Minimal Skill</h3>
+<h3 id="minimal-skill">Minimal Skill</h3>
 <div class="code-wrapper"><pre><code>skill-name/
 └── SKILL.md
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>Good for: Simple knowledge, no complex resources needed</p>
-<h3>Standard Skill (Recommended)</h3>
+<h3 id="standard-skill-recommended">Standard Skill (Recommended)</h3>
 <div class="code-wrapper"><pre><code>skill-name/
 ├── SKILL.md
 ├── references/
@@ -491,7 +525,7 @@ Use the grep tool to search for patterns.
     └── working-example.sh
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>Good for: Most plugin skills with detailed documentation</p>
-<h3>Complete Skill</h3>
+<h3 id="complete-skill">Complete Skill</h3>
 <div class="code-wrapper"><pre><code>skill-name/
 ├── SKILL.md
 ├── references/
@@ -528,7 +562,7 @@ Use the grep tool to search for patterns.
 <li>Skip validation</li>
 </ul>
 <h2 id="additional-resources">Additional Resources</h2>
-<h3>Study These Skills</h3>
+<h3 id="study-these-skills">Study These Skills</h3>
 <p>Plugin-dev's skills demonstrate best practices:</p>
 <ul>
 <li><code>../hook-development/</code> - Progressive disclosure, utilities</li>
@@ -538,7 +572,7 @@ Use the grep tool to search for patterns.
 <li><code>../command-development/</code> - Clear critical concepts</li>
 <li><code>../plugin-structure/</code> - Good organization</li>
 </ul>
-<h3>Reference Files</h3>
+<h3 id="reference-files">Reference Files</h3>
 <p>For complete skill-creator methodology:</p>
 <ul>
 <li><strong><code>references/skill-creator-original.md</code></strong> - Full original skill-creator content</li>
@@ -564,7 +598,9 @@ Use the grep tool to search for patterns.
 </body></html>
 </article>
 
+<nav class="prevnext" aria-label="Seitennavigation"><a class="prevnext-link prevnext-prev" href="../skills/plugin-dev--skill-development.html"><span class="prevnext-label">← Zurück</span><span class="prevnext-title">skill-development</span></a><a class="prevnext-link prevnext-next" href="../agents/plugin-dev--skill-reviewer.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">skill-reviewer</span></a></nav>
   </main>
+</div>
 </div>
 <footer class="site-footer">
   <span>Workspace MVP — generierte Dokumentation</span>

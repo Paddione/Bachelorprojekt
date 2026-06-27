@@ -10,19 +10,24 @@
 <link rel="stylesheet" href="../style.css">
 </head>
 <body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
 <header class="site-header">
   <a class="site-header-brand" href="../index.html">
     <span class="site-mark" aria-hidden="true">◆</span>
     <span class="site-wordmark">Dokumentation</span>
   </a>
 </header>
-<div id="search-overlay">
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
   <div id="search-box">
-    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
-    <div id="search-results"></div>
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
   </div>
 </div>
 <div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Bachelorprojekt</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../agents/bachelorprojekt-db.html">bachelorprojekt-db</a></li><li class="sidebar-item"><a href="../agents/bachelorprojekt-infra.html">bachelorprojekt-infra</a></li><li class="sidebar-item"><a href="../agents/bachelorprojekt-ops.html">bachelorprojekt-ops</a></li><li class="sidebar-item"><a href="../agents/bachelorprojekt-security.html">bachelorprojekt-security</a></li><li class="sidebar-item"><a href="../agents/bachelorprojekt-test.html">bachelorprojekt-test</a></li><li class="sidebar-item"><a href="../agents/bachelorprojekt-website.html">bachelorprojekt-website</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Dev-Workflow</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-architect.html">code-architect</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-architect.html">code-architect</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-explorer.html">code-explorer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-explorer.html">code-explorer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/code-simplifier--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--comment-analyzer.html">comment-analyzer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--comment-analyzer.html">comment-analyzer</a></li><li class="sidebar-item"><a href="../skills/dev-flow-e2e.html">dev-flow-e2e</a></li><li class="sidebar-item"><a href="../skills/dev-flow-execute.html">dev-flow-execute</a></li><li class="sidebar-item"><a href="../skills/dev-flow-plan.html">dev-flow-plan</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--pr-test-analyzer.html">pr-test-analyzer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--pr-test-analyzer.html">pr-test-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--silent-failure-hunter.html">Silent Failure Hunter</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--silent-failure-hunter.html">silent-failure-hunter</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--type-design-analyzer.html">type-design-analyzer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--type-design-analyzer.html">type-design-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Plugin- &amp; Skill-Bau</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../agents/plugin-dev--agent-creator.html">agent-creator</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--agent-creator.html">agent-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--agent-development.html">agent-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--agent-development.html">agent-development</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-py.html">agent-sdk-verifier-py</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-py.html">agent-sdk-verifier-py</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-ts.html">agent-sdk-verifier-ts</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-ts.html">agent-sdk-verifier-ts</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--command-development.html">command-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--command-development.html">command-development</a></li><li class="sidebar-item"><a href="../agents/hookify--conversation-analyzer.html">conversation-analyzer</a></li><li class="sidebar-item"><a href="../agents/hookify--conversation-analyzer.html">conversation-analyzer</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--hook-development.html">hook-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--hook-development.html">hook-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--mcp-integration.html">mcp-integration</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--mcp-integration.html">mcp-integration</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-settings.html">plugin-settings</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-settings.html">plugin-settings</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-structure.html">plugin-structure</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-structure.html">plugin-structure</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--plugin-validator.html">plugin-validator</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--plugin-validator.html">plugin-validator</a></li><li class="sidebar-item"><a href="../skills/skill-creator--skill-creator.html">skill-creator</a></li><li class="sidebar-item"><a href="../skills/skill-creator--skill-creator.html">skill-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--skill-development.html">skill-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--skill-development.html">skill-development</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--skill-reviewer.html">skill-reviewer</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--skill-reviewer.html">skill-reviewer</a></li><li class="sidebar-item"><a href="../skills/hookify--writing-rules.html">writing-hookify-rules</a></li><li class="sidebar-item"><a href="../skills/hookify--writing-rules.html">writing-hookify-rules</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">Sonstige</summary><ul class="sidebar-list"><li class="sidebar-item sidebar-item--active"><a href="../agents/postman--readiness-analyzer.html" aria-current="page">API Readiness Analyzer</a></li><li class="sidebar-item"><a href="../agents/superpowers-chrome--browser-user.html">browser-user</a></li></ul></details>
+</aside>
   <main id="main">
 <header class="page-header">
   <div class="page-header-body">
@@ -41,8 +46,22 @@
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#1-role"><span class="toc-num">1.</span> 1. Role</a></li>
 <li class="toc-item"><a href="#2-the-8-pillars"><span class="toc-num">2.</span> 2. The 8 Pillars</a></li>
+<li class="toc-item toc-item--h3"><a href="#scoring"><span class="toc-num">–</span> Scoring</a></li>
 <li class="toc-item"><a href="#3-the-48-checks"><span class="toc-num">3.</span> 3. The 48 Checks</a></li>
+<li class="toc-item toc-item--h3"><a href="#metadata-meta"><span class="toc-num">–</span> Metadata (META)</a></li>
+<li class="toc-item toc-item--h3"><a href="#errors-err"><span class="toc-num">–</span> Errors (ERR)</a></li>
+<li class="toc-item toc-item--h3"><a href="#introspection-intro"><span class="toc-num">–</span> Introspection (INTRO)</a></li>
+<li class="toc-item toc-item--h3"><a href="#naming-name"><span class="toc-num">–</span> Naming (NAME)</a></li>
+<li class="toc-item toc-item--h3"><a href="#predictability-pred"><span class="toc-num">–</span> Predictability (PRED)</a></li>
+<li class="toc-item toc-item--h3"><a href="#documentation-doc"><span class="toc-num">–</span> Documentation (DOC)</a></li>
+<li class="toc-item toc-item--h3"><a href="#performance-perf"><span class="toc-num">–</span> Performance (PERF)</a></li>
+<li class="toc-item toc-item--h3"><a href="#discoverability-disc"><span class="toc-num">–</span> Discoverability (DISC)</a></li>
 <li class="toc-item"><a href="#4-workflow"><span class="toc-num">4.</span> 4. Workflow</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-0-pre-flight-check"><span class="toc-num">–</span> Step 0: Pre-flight Check</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-1-discover"><span class="toc-num">–</span> Step 1: Discover</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-2-analyze"><span class="toc-num">–</span> Step 2: Analyze</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-3-present-results"><span class="toc-num">–</span> Step 3: Present Results</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-4-offer-next-steps"><span class="toc-num">–</span> Step 4: Offer Next Steps</a></li>
 <li class="toc-item"><a href="#5-fixing-issues"><span class="toc-num">5.</span> 5. Fixing Issues</a></li>
 <li class="toc-item"><a href="#6-postman-mcp-integration"><span class="toc-num">6.</span> 6. Postman MCP Integration</a></li>
 <li class="toc-item"><a href="#7-tone"><span class="toc-num">7.</span> 7. Tone</a></li>
@@ -103,7 +122,7 @@
 <td>Agents need to find and connect to the API</td>
 </tr>
 </tbody></table>
-<h3>Scoring</h3>
+<h3 id="scoring">Scoring</h3>
 <p>Each check has a severity level with weights:</p>
 <ul>
 <li><strong>Critical</strong> (4x) — Blocks agent usage entirely</li>
@@ -114,7 +133,7 @@
 <p><strong>Agent Ready = score of 70% or higher with zero critical failures.</strong></p>
 <hr>
 <h2 id="3-the-48-checks">3. The 48 Checks</h2>
-<h3>Metadata (META)</h3>
+<h3 id="metadata-meta">Metadata (META)</h3>
 <ol>
 <li><strong>META_001</strong> Every operation has an <code>operationId</code> (Critical)</li>
 <li><strong>META_002</strong> Every operation has a <code>summary</code> (High)</li>
@@ -123,7 +142,7 @@
 <li><strong>META_005</strong> Operations are grouped with tags (Medium)</li>
 <li><strong>META_006</strong> Tags have descriptions (Low)</li>
 </ol>
-<h3>Errors (ERR)</h3>
+<h3 id="errors-err">Errors (ERR)</h3>
 <ol start="7">
 <li><strong>ERR_001</strong> 4xx error responses defined for each endpoint (Critical)</li>
 <li><strong>ERR_002</strong> Error response schemas include a machine-readable error identifier and human-readable message (Critical)</li>
@@ -132,7 +151,7 @@
 <li><strong>ERR_005</strong> Error examples provided (Medium)</li>
 <li><strong>ERR_006</strong> Retry-After header documented for 429/503 (Medium)</li>
 </ol>
-<h3>Introspection (INTRO)</h3>
+<h3 id="introspection-intro">Introspection (INTRO)</h3>
 <ol start="13">
 <li><strong>INTRO_001</strong> All parameters have <code>type</code> defined (Critical)</li>
 <li><strong>INTRO_002</strong> Required fields are marked (Critical)</li>
@@ -141,7 +160,7 @@
 <li><strong>INTRO_005</strong> Request body examples provided (High)</li>
 <li><strong>INTRO_006</strong> Response body examples provided (Medium)</li>
 </ol>
-<h3>Naming (NAME)</h3>
+<h3 id="naming-name">Naming (NAME)</h3>
 <ol start="19">
 <li><strong>NAME_001</strong> Consistent casing in paths (kebab-case preferred) (High)</li>
 <li><strong>NAME_002</strong> RESTful path patterns (nouns, not verbs) (High)</li>
@@ -150,7 +169,7 @@
 <li><strong>NAME_005</strong> Consistent property naming convention (Medium)</li>
 <li><strong>NAME_006</strong> No abbreviations in public-facing names (Low)</li>
 </ol>
-<h3>Predictability (PRED)</h3>
+<h3 id="predictability-pred">Predictability (PRED)</h3>
 <ol start="25">
 <li><strong>PRED_001</strong> All responses have schemas defined (Critical)</li>
 <li><strong>PRED_002</strong> Consistent response envelope pattern (High)</li>
@@ -159,7 +178,7 @@
 <li><strong>PRED_005</strong> Consistent ID format across resources (Medium)</li>
 <li><strong>PRED_006</strong> Nullable fields explicitly marked (Medium)</li>
 </ol>
-<h3>Documentation (DOC)</h3>
+<h3 id="documentation-doc">Documentation (DOC)</h3>
 <ol start="31">
 <li><strong>DOC_001</strong> Authentication documented in security schemes (Critical)</li>
 <li><strong>DOC_002</strong> Auth requirements per endpoint (High)</li>
@@ -168,7 +187,7 @@
 <li><strong>DOC_005</strong> External documentation links provided (Low)</li>
 <li><strong>DOC_006</strong> Terms of service and contact info (Low)</li>
 </ol>
-<h3>Performance (PERF)</h3>
+<h3 id="performance-perf">Performance (PERF)</h3>
 <ol start="37">
 <li><strong>PERF_001</strong> Rate limit headers documented in response schemas (High)</li>
 <li><strong>PERF_002</strong> Cache headers documented in response schemas (Medium)</li>
@@ -177,7 +196,7 @@
 <li><strong>PERF_005</strong> Partial response support (fields parameter) documented (Low)</li>
 <li><strong>PERF_006</strong> Webhook/async patterns documented for long-running operations (Low)</li>
 </ol>
-<h3>Discoverability (DISC)</h3>
+<h3 id="discoverability-disc">Discoverability (DISC)</h3>
 <ol start="43">
 <li><strong>DISC_001</strong> OpenAPI 3.0+ used (High)</li>
 <li><strong>DISC_002</strong> Server URLs defined (Critical)</li>
@@ -188,7 +207,7 @@
 </ol>
 <hr>
 <h2 id="4-workflow">4. Workflow</h2>
-<h3>Step 0: Pre-flight Check</h3>
+<h3 id="step-0-pre-flight-check">Step 0: Pre-flight Check</h3>
 <ol>
 <li><strong>Find the spec</strong> — Look for OpenAPI files in the project (<code>**/openapi.{json,yaml,yml}</code>, <code>**/swagger.{json,yaml,yml}</code>, <code>**/*-api.{json,yaml,yml}</code>). If none found, ask the user.</li>
 <li><strong>Validate the spec</strong> — Confirm it's parseable YAML/JSON with at least <code>info</code> and <code>paths</code>. If invalid, report errors and stop.</li>
@@ -198,14 +217,14 @@
 </ul>
 </li>
 </ol>
-<h3>Step 1: Discover</h3>
+<h3 id="step-1-discover">Step 1: Discover</h3>
 <p>Find specs in the project and from Postman (if MCP available):</p>
 <ul>
 <li>Local files: <code>**/openapi.{json,yaml,yml}</code>, <code>**/swagger.*</code>, <code>**/*-api.*</code></li>
 <li>Postman: <code>getAllSpecs</code> + <code>getSpecDefinition</code></li>
 </ul>
 <p>If multiple specs found, list them and ask which to analyze.</p>
-<h3>Step 2: Analyze</h3>
+<h3 id="step-2-analyze">Step 2: Analyze</h3>
 <p>Read the spec and evaluate all 48 checks. For each check:</p>
 <ol>
 <li>Examine the relevant parts of the spec</li>
@@ -219,7 +238,7 @@
 <li>Per pillar: <code>sum(weighted_scores) / sum(applicable_weights) * 100</code></li>
 <li>Overall: <code>sum(all_weighted_scores) / sum(all_applicable_weights) * 100</code></li>
 </ul>
-<h3>Step 3: Present Results</h3>
+<h3 id="step-3-present-results">Step 3: Present Results</h3>
 <p><strong>Overall Score and Verdict:</strong></p>
 <div class="code-wrapper"><pre><code>Score: 67/100
 Verdict: NOT AGENT-READY (need 70+ with no critical failures)
@@ -241,7 +260,7 @@ For each fix, include:</p>
 <li>Why it matters for agents (concrete failure scenario)</li>
 <li>How to fix it (specific code example from their spec)</li>
 </ol>
-<h3>Step 4: Offer Next Steps</h3>
+<h3 id="step-4-offer-next-steps">Step 4: Offer Next Steps</h3>
 <ol>
 <li><strong>"Want me to fix these?"</strong> — Walk through fixes one by one, editing the spec directly</li>
 <li><strong>"Run again after fixes"</strong> — Re-analyze and show score improvement</li>
@@ -324,7 +343,9 @@ For each fix, include:</p>
 </body></html>
 </article>
 
+<nav class="prevnext" aria-label="Seitennavigation"><span class="prevnext-spacer"></span><a class="prevnext-link prevnext-next" href="../agents/superpowers-chrome--browser-user.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">browser-user</span></a></nav>
   </main>
+</div>
 </div>
 <footer class="site-footer">
   <span>Workspace MVP — generierte Dokumentation</span>

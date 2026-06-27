@@ -10,19 +10,24 @@
 <link rel="stylesheet" href="./style.css">
 </head>
 <body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
 <header class="site-header">
   <a class="site-header-brand" href="./index.html">
     <span class="site-mark" aria-hidden="true">◆</span>
     <span class="site-wordmark">Dokumentation</span>
   </a>
 </header>
-<div id="search-overlay">
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
   <div id="search-box">
-    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
-    <div id="search-results"></div>
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
   </div>
 </div>
 <div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Handbücher</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./readme.html">AI-Agent Operating Guide — Registry (SSOT)</a></li><li class="sidebar-item"><a href="./readme.html">DB Audit Phase 5 — 2026-05-23</a></li><li class="sidebar-item"><a href="./readme.html">dev.mentolder.de — Operator Runbook</a></li><li class="sidebar-item"><a href="./readme.html">Korczewski Visual Design Brief</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">Architektur &amp; Bausteine</summary><ul class="sidebar-list"><li class="sidebar-item sidebar-item--active"><a href="./30-bausteine.html" aria-current="page">Bausteine — Was läuft auf der Plattform?</a></li><li class="sidebar-item"><a href="./bereitstellungsdetails.html">Bereitstellungsdetails und Server-Topologie</a></li><li class="sidebar-item"><a href="./db-schema.html">Shared DB — Schema Reference &amp; Normalization Audit</a></li><li class="sidebar-item"><a href="./00-anleitung.html">Was will ich tun?</a></li><li class="sidebar-item"><a href="./20-werkzeuge.html">Werkzeuge — Tools und Agents</a></li><li class="sidebar-item"><a href="./10-ziele.html">Ziele — Was will ich tun?</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Audits &amp; Reports</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./2026-06-20-active-sessions-hub.html">Active Sessions Hub — Mediaviewer-Panel verlinkt aktive Forms/Brainstorm/Companion</a></li><li class="sidebar-item"><a href="./2026-06-22-agent-library.html">Agent Library Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-22-bats-coverage-batch1.html">BATS Coverage Expansion — Batch 1 (G-RH03) Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-20-cockpit-direct-ticket-links.html">Cockpit Direct Ticket Links — TicketDrawer entfernen, Titel als Navigationslinks</a></li><li class="sidebar-item"><a href="./2026-06-07-dataflow-dataleak.html">Dataflow &amp; Datenleck-Audit — 2026-06-07</a></li><li class="sidebar-item"><a href="./findings.html">DB Audit Phase 5 — Findings</a></li><li class="sidebar-item"><a href="./2026-06-07-e2e-reachability-test-quality.html">E2E Reachability &amp; Test-Quality-Audit — 2026-06-07</a></li><li class="sidebar-item"><a href="./2026-06-22-ki-api-prod-migrations.html">KI-API Prod-Migrationen (T000711) Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-20-mcp-task-runner.html">MCP Task Runner Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-27-mentolder-brand-foundations-design-system.html">mentolder — Brand Foundations Design System</a></li><li class="sidebar-item"><a href="./2026-06-22-mentolder-web-unterseiten.html">mentolder-web Unterseiten Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-22-s1-violations-batch1.html">S1-Frozen-Violations Reduction — Batch 1 (G-RH01) Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-21-ticket-mcp.html">ticket-mcp Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-22-ts-suppression-elimination.html">TypeScript-Suppressionen eliminieren (G-RH02) Implementation Plan</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Entscheidungen</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./decision-log.html">Phase 5 DROP Decision Log</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Referenz</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./tasks.html">Agent-Push-Notifications für opencode/agy-Sessions</a></li><li class="sidebar-item"><a href="./tasks.html">AI: Ticket-Auto-Triage (Severity-Erkennung)</a></li><li class="sidebar-item"><a href="./alert-email-test.html">Alert-E-Mail-Test (synthetisch)</a></li><li class="sidebar-item"><a href="./api-surface.html">API Surface Map</a></li><li class="sidebar-item"><a href="./tasks.html">Art Library Webapp Integration</a></li><li class="sidebar-item"><a href="./audit-log-retention.html">Audit-Log Retention — DSGVO-Dokumentation</a></li><li class="sidebar-item"><a href="./blast-radius.html">Blast-Radius-Report</a></li><li class="sidebar-item"><a href="./brainstorm-bridge-wsl.html">Brainstorm-Bridge (WSL) — Visuals &amp; Auswahl an den Nutzer kommunizieren</a></li><li class="sidebar-item"><a href="./tasks.html">Cockpit Mobile-View Implementation Plan</a></li><li class="sidebar-item"><a href="./tasks.html">Cockpit: Filter speichern / Voreinstellungen</a></li><li class="sidebar-item"><a href="./tasks.html">env-seal.sh: empty-value Keys in extra_namespaces korrekt verarbeiten (G-CD01 Root-Cause)</a></li><li class="sidebar-item"><a href="./envsubst-variable-management.html">envsubst Variable Management — Referenz</a></li><li class="sidebar-item"><a href="./tasks.html">Feature Intake: Semantischer Duplikatcheck + dynamischer Feature-Pool</a></li><li class="sidebar-item"><a href="./fleet-stage2-cutover-runbook.html">Fleet Stage 2 — Cutover Runbook</a></li><li class="sidebar-item"><a href="./fleet-2026-05-31-what-changed.html">Fleet-Konsolidierung — was sich am 2026-05-31 geändert hat</a></li><li class="sidebar-item"><a href="./tasks.html">G-CD01: korczewski-Deploy-Lane — stale SealedSecret reparieren + Drift-Prevention</a></li><li class="sidebar-item"><a href="./tasks.html">G-CD02: post-merge.yml Race-Guard härten (93% → ≥95%)</a></li><li class="sidebar-item"><a href="./tasks.html">G-CQ03: ESLint in website/ einrichten + Warnings auf 0</a></li><li class="sidebar-item"><a href="./tasks.html">G-CQ08: Dead-Code/unused exports in website/src via knip messen + −50%</a></li><li class="sidebar-item"><a href="./tasks.html">G-DEP02: Veraltete Major-Deps (website) 9 → ≤3</a></li><li class="sidebar-item"><a href="./tasks.html">G-FE01: a11y axe-Violations (Kern-Routen beider Marken) auf 0 crit/serious</a></li><li class="sidebar-item"><a href="./tasks.html">G-FE02: Client-JS-Bundle messen + Budget (kein Netto-Zuwachs/Release)</a></li><li class="sidebar-item"><a href="./tasks.html">G-IMG02: Fremd-Image-Versions-Drift vereinheitlichen (busybox/curl)</a></li><li class="sidebar-item"><a href="./proposal.html">G-RH01: S1-Frozen-Violations Batch 1 — baseline.json 98→≤30</a></li><li class="sidebar-item"><a href="./tasks.html">G-RH01: S1-Frozen-Violations Batch 1 — baseline.json 98→≤30</a></li><li class="sidebar-item"><a href="./proposal.html">G-RH03: BATS Coverage Batch 1 — OpenSpec 17%→23%</a></li><li class="sidebar-item"><a href="./tasks.html">G-RH03: BATS Coverage Batch 1 — OpenSpec 17%→23%</a></li><li class="sidebar-item"><a href="./tasks.html">Implementation Plan: cockpit-bulk-status</a></li><li class="sidebar-item"><a href="./design-system.html">mentolder Design-System</a></li><li class="sidebar-item"><a href="./tasks.html">mentolder.de Website-Frontend in React neu aufbauen</a></li><li class="sidebar-item"><a href="./tasks.html">Messbare Delivery-Pipeline + DORA-Dashboard</a></li><li class="sidebar-item"><a href="./tasks.html">Pocket ID Migration — Keycloak ersetzen durch Pocket ID</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: agent-push-notifications</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: AI: Ticket-Auto-Triage (Severity-Erkennung)</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: art-library-webapp-integration</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: cockpit-bulk-status</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: cockpit-filter-presets</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: cockpit-mobile-view</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: dora-delivery-pipeline</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: env-seal-empty-value-keys</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: Feature Intake + Knowledge-Graph-Anreicherung</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-cd01-korczewski-secret-drift</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-cd02-post-merge-race-guard</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-cq03-eslint-website</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-cq08-knip-dead-code</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-dep02-major-deps-website (G-DEP02)</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-fe01-a11y-axe-violations</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-fe02-bundle-budget</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: img02-image-drift (G-IMG02)</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: Mentolder Homepage — hifi-Redesign in Astro+Svelte</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: mentolder.de Website-Frontend in React neu aufbauen</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: pocket-id-migration</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: ticket-mcp Go-Rewrite mit HTTP-Transport [T001043]</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: ticket-verlauf-anhaenge</a></li><li class="sidebar-item"><a href="./secrets-architecture.html">Secrets-Dateiarchitektur</a></li><li class="sidebar-item"><a href="./shared-infrastructure-security.html">Shared Infrastructure Security — Cross-Brand Analysis</a></li><li class="sidebar-item"><a href="./overview.html">Skills Overview</a></li><li class="sidebar-item"><a href="./factory-usage.html">Software Factory — Usage Guide</a></li><li class="sidebar-item"><a href="./systemtest-fragebogen.html">Systemtest-Protokoll — Workspace Collaboration Platform</a></li><li class="sidebar-item"><a href="./tasks.html">Tasks: ticket-verlauf-anhaenge</a></li><li class="sidebar-item"><a href="./tasks.html">ticket-mcp Go-Rewrite mit HTTP-Transport</a></li><li class="sidebar-item"><a href="./wsl-bootstrap.html">WSL Bootstrapping Gotchas</a></li></ul></details>
+</aside>
   <main id="main">
 <header class="page-header">
   <div class="page-header-body">
@@ -40,7 +45,44 @@
 <!-- DO NOT EDIT — generated by scripts/agent-guide/emit-docs.mjs --><html><head></head><body><h1>Bausteine — Was läuft auf der Plattform?</h1><div class="toc-box auto-toc">
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#software"><span class="toc-num">1.</span> Software</a></li>
-<li class="toc-item"><a href="#hardware"><span class="toc-num">2.</span> Hardware</a></li></ul>
+<li class="toc-item toc-item--h3"><a href="#-website"><span class="toc-num">–</span> 🌐 Website</a></li>
+<li class="toc-item toc-item--h3"><a href="#-keycloak"><span class="toc-num">–</span> 🔑 Keycloak</a></li>
+<li class="toc-item toc-item--h3"><a href="#-nextcloud"><span class="toc-num">–</span> ☁️ Nextcloud</a></li>
+<li class="toc-item toc-item--h3"><a href="#-collabora"><span class="toc-num">–</span> 📄 Collabora</a></li>
+<li class="toc-item toc-item--h3"><a href="#-vaultwarden"><span class="toc-num">–</span> 🔒 Vaultwarden</a></li>
+<li class="toc-item toc-item--h3"><a href="#-talk-hpb"><span class="toc-num">–</span> 📡 Talk HPB</a></li>
+<li class="toc-item toc-item--h3"><a href="#-brett"><span class="toc-num">–</span> 🧩 Brett</a></li>
+<li class="toc-item toc-item--h3"><a href="#-mailpit"><span class="toc-num">–</span> 📬 Mailpit</a></li>
+<li class="toc-item toc-item--h3"><a href="#-docuseal"><span class="toc-num">–</span> 📝 DocuSeal</a></li>
+<li class="toc-item toc-item--h3"><a href="#-whiteboard"><span class="toc-num">–</span> 🎨 Whiteboard</a></li>
+<li class="toc-item toc-item--h3"><a href="#-arena"><span class="toc-num">–</span> 🎮 Arena</a></li>
+<li class="toc-item toc-item--h3"><a href="#-arena-server"><span class="toc-num">–</span> 🎮 Arena Server</a></li>
+<li class="toc-item toc-item--h3"><a href="#-documentation"><span class="toc-num">–</span> 📚 Documentation</a></li>
+<li class="toc-item toc-item--h3"><a href="#-postgresql-16"><span class="toc-num">–</span> 🐘 PostgreSQL 16</a></li>
+<li class="toc-item toc-item--h3"><a href="#-traefik"><span class="toc-num">–</span> 🔀 Traefik</a></li>
+<li class="toc-item toc-item--h3"><a href="#-sealed-secrets"><span class="toc-num">–</span> 🔐 Sealed Secrets</a></li>
+<li class="toc-item toc-item--h3"><a href="#-cert-manager"><span class="toc-num">–</span> 📜 cert-manager</a></li>
+<li class="toc-item toc-item--h3"><a href="#-k3s--k3d"><span class="toc-num">–</span> ☸️ k3s / k3d</a></li>
+<li class="toc-item toc-item--h3"><a href="#-wireguard-wg-mesh"><span class="toc-num">–</span> 🔗 WireGuard (wg-mesh)</a></li>
+<li class="toc-item toc-item--h3"><a href="#-tei-text-embeddings"><span class="toc-num">–</span> 🦾 TEI (Text Embeddings)</a></li>
+<li class="toc-item toc-item--h3"><a href="#-openclaw"><span class="toc-num">–</span> 🦅 OpenClaw</a></li>
+<li class="toc-item toc-item--h3"><a href="#-livekit-server"><span class="toc-num">–</span> 📡 LiveKit Server</a></li>
+<li class="toc-item toc-item--h3"><a href="#-livekit-ingress"><span class="toc-num">–</span> 📺 LiveKit Ingress</a></li>
+<li class="toc-item toc-item--h3"><a href="#-livekit-egress"><span class="toc-num">–</span> 🔴 LiveKit Egress</a></li>
+<li class="toc-item toc-item--h3"><a href="#-whisper"><span class="toc-num">–</span> 🎙️ Whisper</a></li>
+<li class="toc-item toc-item--h3"><a href="#-talk-transcriber"><span class="toc-num">–</span> 📝 Talk Transcriber</a></li>
+<li class="toc-item toc-item--h3"><a href="#-mcp-monolith"><span class="toc-num">–</span> 🤖 MCP Monolith</a></li>
+<li class="toc-item toc-item--h3"><a href="#-brainstorm-sish"><span class="toc-num">–</span> 🌀 Brainstorm Sish</a></li>
+<li class="toc-item"><a href="#hardware"><span class="toc-num">2.</span> Hardware</a></li>
+<li class="toc-item toc-item--h3"><a href="#-gekko-worker-1"><span class="toc-num">–</span> 🖥️ Gekko Worker 1</a></li>
+<li class="toc-item toc-item--h3"><a href="#-gekko-worker-2"><span class="toc-num">–</span> 🖥️ Gekko Worker 2</a></li>
+<li class="toc-item toc-item--h3"><a href="#-gekko-worker-3"><span class="toc-num">–</span> 🖥️ Gekko Worker 3</a></li>
+<li class="toc-item toc-item--h3"><a href="#-k3s-1"><span class="toc-num">–</span> 🏠 k3s-1</a></li>
+<li class="toc-item toc-item--h3"><a href="#-k3s-2"><span class="toc-num">–</span> 🏠 k3s-2</a></li>
+<li class="toc-item toc-item--h3"><a href="#-k3s-3"><span class="toc-num">–</span> 🏠 k3s-3</a></li>
+<li class="toc-item toc-item--h3"><a href="#-pk-cp-1"><span class="toc-num">–</span> 🖥️ PK CP 1</a></li>
+<li class="toc-item toc-item--h3"><a href="#-pk-cp-2"><span class="toc-num">–</span> 🖥️ PK CP 2</a></li>
+<li class="toc-item toc-item--h3"><a href="#-pk-cp-3"><span class="toc-num">–</span> 🖥️ PK CP 3</a></li></ul>
 </div>
 <blockquote>
 <p>Diese Seite wird automatisch aus der Registry erzeugt
@@ -48,122 +90,124 @@
 Zurück zur Übersicht: <a href="./00-anleitung.html" class="xref">00-anleitung</a>.</p>
 </blockquote>
 <h2 id="software">Software</h2>
-<h3>🌐 Website</h3>
+<h3 id="-website">🌐 Website</h3>
 <p>🟡 <strong>Vorsicht</strong></p>
 <p>Das mit Astro + Svelte gebaute Frontend (die Web-Oberfläche). Öffentliche Seite plus eingeloggtes Kundenportal.</p>
-<h3>🔑 Keycloak</h3>
+<h3 id="-keycloak">🔑 Keycloak</h3>
 <p>🔴 <strong>Niemals allein</strong></p>
 <p>Keycloak prüft, wer du bist (über OIDC) und meldet dich bei Nextcloud, Vaultwarden u. a. an. Herzstück der Sicherheit.</p>
-<h3>☁️ Nextcloud</h3>
+<h3 id="-nextcloud">☁️ Nextcloud</h3>
 <p>🟠 <strong>Nur mit Hilfe</strong></p>
 <p>Wie eine eigene Dropbox + Office + Kalender, komplett auf eigenen Servern (DSGVO-konform).</p>
-<h3>📄 Collabora</h3>
+<h3 id="-collabora">📄 Collabora</h3>
 <p>🟡 <strong>Vorsicht</strong></p>
 <p>Die Online-Office-Suite, die Nextcloud-Dateien bearbeitbar macht (vergleichbar mit Office im Web).</p>
-<h3>🔒 Vaultwarden</h3>
+<h3 id="-vaultwarden">🔒 Vaultwarden</h3>
 <p>🔴 <strong>Niemals allein</strong></p>
 <p>Verwaltet Zugangsdaten zentral und verschlüsselt; per Bitwarden-Apps nutzbar.</p>
-<h3>📡 Talk HPB</h3>
+<h3 id="-talk-hpb">📡 Talk HPB</h3>
 <p>🟡 <strong>Vorsicht</strong></p>
 <p>High-Performance-Backend für Talk; ohne ihn brechen Gruppen-Videoanrufe zusammen.</p>
-<h3>🧩 Brett</h3>
+<h3 id="-brett">🧩 Brett</h3>
 <p>🟡 <strong>Vorsicht</strong></p>
 <p>Interaktives 3D-Board (Systembrett) für Aufstellungen, im Browser bedienbar.</p>
-<h3>📬 Mailpit</h3>
+<h3 id="-mailpit">📬 Mailpit</h3>
 <p>🟢 <strong>Sicher</strong></p>
 <p>Nur zum Ausprobieren: zeigt verschickte Mails an, ohne sie an echte Empfänger zu senden.</p>
-<h3>📝 DocuSeal</h3>
+<h3 id="-docuseal">📝 DocuSeal</h3>
 <p>🟡 <strong>Vorsicht</strong></p>
 <p>Versendet Dokumente zur rechtssicheren elektronischen Unterschrift.</p>
-<h3>🎨 Whiteboard</h3>
+<h3 id="-whiteboard">🎨 Whiteboard</h3>
 <p>🟢 <strong>Sicher</strong></p>
 <p>Kollaboratives Whiteboard für Skizzen und Ideen, direkt in Nextcloud.</p>
-<h3>🎮 Arena</h3>
+<h3 id="-arena">🎮 Arena</h3>
 <p>🟡 <strong>Vorsicht</strong></p>
-<p>WebSocket-Spielserver für das 3D-Mehrspieler-Spiel der Marke korczewski.</p>
-<h3>📚 Documentation</h3>
+<p>WebSocket-Spielserver für das 3D-Mehrspieler-Spiel der Marke korczewski (decommissioned 2026-06).</p>
+<h3 id="-arena-server">🎮 Arena Server</h3>
+<p>🟡 <strong>Vorsicht</strong></p>
+<p>WebSocket-Spielserver; validiert JWTs aus beiden Keycloak-Realms (decommissioned 2026-06).</p>
+<h3 id="-documentation">📚 Documentation</h3>
 <p>🟢 <strong>Sicher</strong></p>
 <p>Statische Doku-Webseite mit Benutzer- und Admin-Handbuch.</p>
-<h3>🐘 PostgreSQL 16</h3>
+<h3 id="-postgresql-16">🐘 PostgreSQL 16</h3>
 <p>🔴 <strong>Niemals allein</strong></p>
 <p>Gemeinsamer Datenbank-Server für Website, Keycloak, Nextcloud u. v. m. Pro Marke eigene Instanz.</p>
-<h3>🔀 Traefik</h3>
+<h3 id="-traefik">🔀 Traefik</h3>
 <p>🟠 <strong>Nur mit Hilfe</strong></p>
 <p>Ingress-Controller: verteilt eingehenden Verkehr (Routing) und terminiert TLS.</p>
-<h3>🔐 Sealed Secrets</h3>
+<h3 id="-sealed-secrets">🔐 Sealed Secrets</h3>
 <p>🔴 <strong>Niemals allein</strong></p>
 <p>Wandelt Secrets in verschlüsselte 'SealedSecrets', die gefahrlos eingecheckt werden können.</p>
-<h3>📜 cert-manager</h3>
+<h3 id="-cert-manager">📜 cert-manager</h3>
 <p>🟠 <strong>Nur mit Hilfe</strong></p>
 <p>Automatisiert TLS-Zertifikate, damit alle Domains gültiges HTTPS haben.</p>
-<h3>☸️ k3s / k3d</h3>
+<h3 id="-k3s--k3d">☸️ k3s / k3d</h3>
 <p>🔴 <strong>Niemals allein</strong></p>
 <p>Leichtgewichtige Kubernetes-Variante (k3s in Prod, k3d lokal). Trägt alle Workloads.</p>
-<h3>🔗 WireGuard (wg-mesh)</h3>
+<h3 id="-wireguard-wg-mesh">🔗 WireGuard (wg-mesh)</h3>
 <p>🟠 <strong>Nur mit Hilfe</strong></p>
 <p>WireGuard-Overlay: sichere Pod-zu-Pod- und Knoten-zu-Knoten-Verbindung über das Internet.</p>
-<h3>🦾 TEI (Text Embeddings)</h3>
+<h3 id="-tei-text-embeddings">🦾 TEI (Text Embeddings)</h3>
 <p>🟡 <strong>Vorsicht</strong></p>
 <p>Erzeugt Embeddings für die semantische Suche; nur verfügbar, solange der GPU-Host läuft.</p>
-<h3>🦅 OpenClaw</h3>
+<h3 id="-openclaw">🦅 OpenClaw</h3>
 <p>🟡 <strong>Vorsicht</strong></p>
 <p>Daemon auf dem WSL-GPU-Host; nutzt lokale Modelle über LM Studio, ohne Cloud.</p>
-<h3>📡 LiveKit Server</h3>
+<h3 id="-livekit-server">📡 LiveKit Server</h3>
 <p>🟠 <strong>Nur mit Hilfe</strong></p>
 <p>Echtzeit-Video-Server; läuft im Host-Netz und ist an einen festen Knoten gebunden.</p>
-<h3>📺 LiveKit Ingress</h3>
+<h3 id="-livekit-ingress">📺 LiveKit Ingress</h3>
 <p>🟡 <strong>Vorsicht</strong></p>
 <p>Eingangstor für externe Streams (z. B. aus OBS) in eine LiveKit-Übertragung.</p>
-<h3>🔴 LiveKit Egress</h3>
+<h3 id="-livekit-egress">🔴 LiveKit Egress</h3>
 <p>🟡 <strong>Vorsicht</strong></p>
 <p>Zeichnet LiveKit-Räume auf, damit sie später angesehen werden können.</p>
-<h3>🎙️ Whisper</h3>
+<h3 id="-whisper">🎙️ Whisper</h3>
 <p>🟡 <strong>Vorsicht</strong></p>
 <p>Speech-to-Text-Modell; Grundlage für automatische Gesprächs-Mitschriften.</p>
-<h3>📝 Talk Transcriber</h3>
+<h3 id="-talk-transcriber">📝 Talk Transcriber</h3>
 <p>🟡 <strong>Vorsicht</strong></p>
 <p>Bot, der Talk-Anrufe live mitschreibt und als Text ablegt.</p>
-<h3>🤖 MCP Monolith</h3>
+<h3 id="-mcp-monolith">🤖 MCP Monolith</h3>
 <p>🟠 <strong>Nur mit Hilfe</strong></p>
 <p>Model-Context-Protocol-Proxy: gibt KI-Agenten kontrollierten Zugriff auf Cluster-Werkzeuge.</p>
-<h3>🌀 Brainstorm Sish</h3>
+<h3 id="-brainstorm-sish">🌀 Brainstorm Sish</h3>
 <p>🟡 <strong>Vorsicht</strong></p>
 <p>Reverse-SSH-Tunnel (sish); macht das lokale Companion-Board von außen erreichbar.</p>
-<h3>🎮 Arena Server</h3>
-<p>🟡 <strong>Vorsicht</strong></p>
-<p>WebSocket-Spielserver der Marke korczewski; validiert JWTs aus beiden Keycloak-Realms.</p>
 <h2 id="hardware">Hardware</h2>
-<h3>🖥️ Gekko Worker 1</h3>
+<h3 id="-gekko-worker-1">🖥️ Gekko Worker 1</h3>
 <p>🟠 <strong>Nur mit Hilfe</strong></p>
 <p>Einer der drei Worker-Knoten des Fleet-Clusters (gekko-Reihe), Standort Helsinki.</p>
-<h3>🖥️ Gekko Worker 2</h3>
+<h3 id="-gekko-worker-2">🖥️ Gekko Worker 2</h3>
 <p>🟠 <strong>Nur mit Hilfe</strong></p>
 <p>Zweiter Worker-Knoten des Fleet-Clusters (gekko-Reihe), Standort Helsinki.</p>
-<h3>🖥️ Gekko Worker 3</h3>
+<h3 id="-gekko-worker-3">🖥️ Gekko Worker 3</h3>
 <p>🟠 <strong>Nur mit Hilfe</strong></p>
 <p>Dritter Worker-Knoten des Fleet-Clusters (gekko-Reihe).</p>
-<h3>🏠 k3s-1</h3>
+<h3 id="-k3s-1">🏠 k3s-1</h3>
 <p>🟠 <strong>Nur mit Hilfe</strong></p>
 <p>Stillgelegt; die Dev-Umgebung (Kontext k3d-mentolder-dev) läuft heute lokal auf dem WSL-Host, nicht mehr hier.</p>
-<h3>🏠 k3s-2</h3>
+<h3 id="-k3s-2">🏠 k3s-2</h3>
 <p>🟠 <strong>Nur mit Hilfe</strong></p>
 <p>Lokaler Knoten zuhause.</p>
-<h3>🏠 k3s-3</h3>
+<h3 id="-k3s-3">🏠 k3s-3</h3>
 <p>🟠 <strong>Nur mit Hilfe</strong></p>
 <p>Lokaler Knoten zuhause.</p>
-<h3>🖥️ PK CP 1</h3>
+<h3 id="-pk-cp-1">🖥️ PK CP 1</h3>
 <p>🟠 <strong>Nur mit Hilfe</strong></p>
 <p>Einer der drei Steuer-Knoten des Fleet-Clusters (pk-Reihe), Standort Helsinki; LiveKit ist hier per Node-Affinität verankert.</p>
-<h3>🖥️ PK CP 2</h3>
+<h3 id="-pk-cp-2">🖥️ PK CP 2</h3>
 <p>🟠 <strong>Nur mit Hilfe</strong></p>
 <p>Steuer-Knoten des Fleet-Clusters (pk-Reihe), Helsinki.</p>
-<h3>🖥️ PK CP 3</h3>
+<h3 id="-pk-cp-3">🖥️ PK CP 3</h3>
 <p>🟠 <strong>Nur mit Hilfe</strong></p>
 <p>Steuer-Knoten des Fleet-Clusters (pk-Reihe), Helsinki.</p>
 </body></html>
 </article>
 
+<nav class="prevnext" aria-label="Seitennavigation"><span class="prevnext-spacer"></span><a class="prevnext-link prevnext-next" href="./bereitstellungsdetails.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">Bereitstellungsdetails und Server-Topologie</span></a></nav>
   </main>
+</div>
 </div>
 <footer class="site-footer">
   <span>Workspace MVP — generierte Dokumentation</span>

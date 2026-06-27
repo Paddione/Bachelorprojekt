@@ -10,19 +10,24 @@
 <link rel="stylesheet" href="../style.css">
 </head>
 <body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
 <header class="site-header">
   <a class="site-header-brand" href="../index.html">
     <span class="site-mark" aria-hidden="true">◆</span>
     <span class="site-wordmark">Dokumentation</span>
   </a>
 </header>
-<div id="search-overlay">
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
   <div id="search-box">
-    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
-    <div id="search-results"></div>
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
   </div>
 </div>
 <div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Dev-Workflow</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-architect.html">code-architect</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-architect.html">code-architect</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-explorer.html">code-explorer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-explorer.html">code-explorer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/code-simplifier--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--comment-analyzer.html">comment-analyzer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--comment-analyzer.html">comment-analyzer</a></li><li class="sidebar-item"><a href="../skills/dev-flow-e2e.html">dev-flow-e2e</a></li><li class="sidebar-item"><a href="../skills/dev-flow-execute.html">dev-flow-execute</a></li><li class="sidebar-item"><a href="../skills/dev-flow-plan.html">dev-flow-plan</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--pr-test-analyzer.html">pr-test-analyzer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--pr-test-analyzer.html">pr-test-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--silent-failure-hunter.html">Silent Failure Hunter</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--silent-failure-hunter.html">silent-failure-hunter</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--type-design-analyzer.html">type-design-analyzer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--type-design-analyzer.html">type-design-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Bachelorprojekt-Infra</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/cluster-deployment.html">cluster-deployment</a></li><li class="sidebar-item"><a href="../skills/database-ops.html">database-ops</a></li><li class="sidebar-item"><a href="../skills/host-node-networking.html">host-node-networking</a></li><li class="sidebar-item"><a href="../skills/keycloak-realm-sync.html">keycloak-realm-sync</a></li><li class="sidebar-item"><a href="../skills/mishap-tracker.html">mishap-tracker</a></li><li class="sidebar-item"><a href="../skills/operations-management.html">operations-management</a></li><li class="sidebar-item"><a href="../skills/secret-rotation.html">secret-rotation</a></li><li class="sidebar-item"><a href="../skills/update-dependencies.html">update-dependencies</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">KI / ML</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html" aria-current="page">huggingface-paper-publisher</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html" aria-current="page">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Plugin- &amp; Skill-Bau</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../agents/plugin-dev--agent-creator.html">agent-creator</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--agent-creator.html">agent-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--agent-development.html">agent-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--agent-development.html">agent-development</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-py.html">agent-sdk-verifier-py</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-py.html">agent-sdk-verifier-py</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-ts.html">agent-sdk-verifier-ts</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-ts.html">agent-sdk-verifier-ts</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--command-development.html">command-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--command-development.html">command-development</a></li><li class="sidebar-item"><a href="../agents/hookify--conversation-analyzer.html">conversation-analyzer</a></li><li class="sidebar-item"><a href="../agents/hookify--conversation-analyzer.html">conversation-analyzer</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--hook-development.html">hook-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--hook-development.html">hook-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--mcp-integration.html">mcp-integration</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--mcp-integration.html">mcp-integration</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-settings.html">plugin-settings</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-settings.html">plugin-settings</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-structure.html">plugin-structure</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-structure.html">plugin-structure</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--plugin-validator.html">plugin-validator</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--plugin-validator.html">plugin-validator</a></li><li class="sidebar-item"><a href="../skills/skill-creator--skill-creator.html">skill-creator</a></li><li class="sidebar-item"><a href="../skills/skill-creator--skill-creator.html">skill-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--skill-development.html">skill-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--skill-development.html">skill-development</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--skill-reviewer.html">skill-reviewer</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--skill-reviewer.html">skill-reviewer</a></li><li class="sidebar-item"><a href="../skills/hookify--writing-rules.html">writing-hookify-rules</a></li><li class="sidebar-item"><a href="../skills/hookify--writing-rules.html">writing-hookify-rules</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Browser &amp; Debugging</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers-chrome--browsing.html">browsing</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">MCP &amp; API</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/postman--agent-ready-apis.html">agent-ready-apis</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-app.html">build-mcp-app</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-app.html">build-mcp-app</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-server.html">build-mcp-server</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-server.html">build-mcp-server</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcpb.html">build-mcpb</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcpb.html">build-mcpb</a></li><li class="sidebar-item"><a href="../skills/postman--generate-spec.html">generate-spec</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--mcp-cli.html">mcp-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-cli.html">postman-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-context.html">postman-context</a></li><li class="sidebar-item"><a href="../skills/postman--postman-knowledge.html">postman-knowledge</a></li><li class="sidebar-item"><a href="../skills/postman--run-collection.html">run-collection</a></li><li class="sidebar-item"><a href="../skills/postman--send-request.html">send-request</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Claude Code &amp; Tooling</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/brightdata-plugin--agent-onboarding.html">agent-onboarding</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brand-listening.html">brand-listening</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brd-browser-debug.html">brd-browser-debug</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-best-practices.html">bright-data-best-practices</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-mcp.html">bright-data-mcp</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brightdata-cli.html">brightdata-cli</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--proxy.html">brightdata-proxy</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--python-sdk-best-practices.html">brightdata-sdk</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--js-sdk-best-practices.html">brightdata-sdk-js</a></li><li class="sidebar-item"><a href="../skills/claude-code-setup--claude-automation-recommender.html">claude-automation-recommender</a></li><li class="sidebar-item"><a href="../skills/claude-md-management--claude-md-improver.html">claude-md-improver</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--competitive-intel.html">competitive-intel</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--data-feeds.html">data-feeds</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--design-mirror.html">design-mirror</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/dev-flow-chore.html">dev-flow-chore</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--developing-claude-code-plugins.html">developing-claude-code-plugins</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--discover-api.html">discover-api</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--finding-duplicate-functions.html">finding-duplicate-functions</a></li><li class="sidebar-item"><a href="../skills/frontend-design--frontend-design.html">frontend-design</a></li><li class="sidebar-item"><a href="../skills/frontend-design--frontend-design.html">frontend-design</a></li><li class="sidebar-item"><a href="../skills/git-workflow.html">git-workflow</a></li><li class="sidebar-item"><a href="../skills/incident-response.html">incident-response</a></li><li class="sidebar-item"><a href="../skills/infra-ops.html">infra-ops</a></li><li class="sidebar-item"><a href="../skills/lavish.html">lavish</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--live-research.html">live-research</a></li><li class="sidebar-item"><a href="../skills/llm-ops.html">llm-ops</a></li><li class="sidebar-item"><a href="../skills/playground--playground.html">playground</a></li><li class="sidebar-item"><a href="../skills/playground--playground.html">playground</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--price-comparison.html">price-comparison</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--rag-pipeline.html">rag-pipeline</a></li><li class="sidebar-item"><a href="../skills/references.html">references</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scrape.html">scrape</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-builder.html">scraper-builder</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-studio.html">scraper-studio</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--search.html">search</a></li><li class="sidebar-item"><a href="../skills/sourcegraph--searching-sourcegraph.html">searching-sourcegraph</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--seo-audit.html">seo-audit</a></li><li class="sidebar-item"><a href="../skills/ticket-ops.html">ticket-ops</a></li><li class="sidebar-item"><a href="../skills/braintrust--troubleshoot-braintrust-mcp.html">troubleshoot-braintrust-mcp</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--using-tmux-for-interactive-commands.html">using-tmux-for-interactive-commands</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--windows-vm.html">windows-vm</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--working-with-claude-code.html">working-with-claude-code</a></li><li class="sidebar-item"><a href="../skills/workspace-deploy.html">workspace-deploy</a></li></ul></details>
+</aside>
   <main id="main">
 <header class="page-header">
   <div class="page-header-body">
@@ -43,7 +48,26 @@
 <li class="toc-item"><a href="#1-paper-page-management"><span class="toc-num">2.</span> 1. Paper Page Management</a></li>
 <li class="toc-item"><a href="#2-link-papers-to-artifacts"><span class="toc-num">3.</span> 2. Link Papers to Artifacts</a></li>
 <li class="toc-item"><a href="#3-research-article-creation"><span class="toc-num">4.</span> 3. Research Article Creation</a></li>
-<li class="toc-item"><a href="#4-metadata-management"><span class="toc-num">5.</span> 4. Metadata Management</a></li></ul>
+<li class="toc-item"><a href="#4-metadata-management"><span class="toc-num">5.</span> 4. Metadata Management</a></li>
+<li class="toc-item toc-item--h3"><a href="#prerequisites"><span class="toc-num">–</span> Prerequisites</a></li>
+<li class="toc-item toc-item--h3"><a href="#method-1-index-paper-from-arxiv"><span class="toc-num">–</span> Method 1: Index Paper from arXiv</a></li>
+<li class="toc-item toc-item--h3"><a href="#method-2-link-paper-to-modeldataset"><span class="toc-num">–</span> Method 2: Link Paper to Model/Dataset</a></li>
+<li class="toc-item toc-item--h3"><a href="#method-3-claim-authorship"><span class="toc-num">–</span> Method 3: Claim Authorship</a></li>
+<li class="toc-item toc-item--h3"><a href="#method-4-manage-paper-visibility"><span class="toc-num">–</span> Method 4: Manage Paper Visibility</a></li>
+<li class="toc-item toc-item--h3"><a href="#method-5-create-research-article"><span class="toc-num">–</span> Method 5: Create Research Article</a></li>
+<li class="toc-item toc-item--h3"><a href="#paper-template-structure"><span class="toc-num">–</span> Paper Template Structure</a></li>
+<li class="toc-item toc-item--h3"><a href="#commands-reference"><span class="toc-num">–</span> Commands Reference</a></li>
+<li class="toc-item toc-item--h3"><a href="#yaml-metadata-format"><span class="toc-num">–</span> YAML Metadata Format</a></li>
+<li class="toc-item toc-item--h3"><a href="#integration-examples"><span class="toc-num">–</span> Integration Examples</a></li>
+<li class="toc-item toc-item--h3"><a href="#best-practices"><span class="toc-num">–</span> Best Practices</a></li>
+<li class="toc-item toc-item--h3"><a href="#advanced-usage"><span class="toc-num">–</span> Advanced Usage</a></li>
+<li class="toc-item toc-item--h3"><a href="#error-handling"><span class="toc-num">–</span> Error Handling</a></li>
+<li class="toc-item toc-item--h3"><a href="#troubleshooting"><span class="toc-num">–</span> Troubleshooting</a></li>
+<li class="toc-item toc-item--h3"><a href="#resources-and-references"><span class="toc-num">–</span> Resources and References</a></li>
+<li class="toc-item toc-item--h3"><a href="#integration-with-tfreres-research-template"><span class="toc-num">–</span> Integration with tfrere's Research Template</a></li>
+<li class="toc-item toc-item--h3"><a href="#common-patterns"><span class="toc-num">–</span> Common Patterns</a></li>
+<li class="toc-item toc-item--h3"><a href="#api-integration"><span class="toc-num">–</span> API Integration</a></li>
+<li class="toc-item toc-item--h3"><a href="#future-enhancements"><span class="toc-num">–</span> Future Enhancements</a></li></ul>
 </div>
 <p>This skill provides comprehensive tools for AI engineers and researchers to publish, manage, and link research papers on the Hugging Face Hub. It streamlines the workflow from paper creation to publication, including integration with arXiv, model/dataset linking, and authorship management.</p>
 <h2 id="integration-with-hf-ecosystem">Integration with HF Ecosystem</h2>
@@ -98,7 +122,7 @@ manual environment setup.</p>
 </ul>
 <h1>Usage Instructions</h1>
 <p>The skill includes Python scripts in <code>scripts/</code> for paper publishing operations.</p>
-<h3>Prerequisites</h3>
+<h3 id="prerequisites">Prerequisites</h3>
 <ul>
 <li>Run scripts with <code>uv run</code> (dependencies are resolved from the script header)</li>
 <li>Set <code>HF_TOKEN</code> environment variable with Write-access token</li>
@@ -109,7 +133,7 @@ file.</strong>
 Before running any script, first <code>cd</code> to that directory or use the full
 path.</p>
 </blockquote>
-<h3>Method 1: Index Paper from arXiv</h3>
+<h3 id="method-1-index-paper-from-arxiv">Method 1: Index Paper from arXiv</h3>
 <p>Add a paper to Hugging Face Paper Pages from arXiv.</p>
 <p><strong>Basic Usage:</strong></p>
 <div class="code-wrapper"><pre><code class="language-bash">uv run scripts/paper_manager.py index \
@@ -121,7 +145,7 @@ path.</p>
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p><strong>Direct URL Access:</strong>
 You can also visit <code>https://huggingface.co/papers/{arxiv-id}</code> directly to index a paper.</p>
-<h3>Method 2: Link Paper to Model/Dataset</h3>
+<h3 id="method-2-link-paper-to-modeldataset">Method 2: Link Paper to Model/Dataset</h3>
 <p>Add paper references to model or dataset README with proper YAML metadata.</p>
 <p><strong>Add to Model Card:</strong></p>
 <div class="code-wrapper"><pre><code class="language-bash">uv run scripts/paper_manager.py link \
@@ -157,7 +181,7 @@ You can also visit <code>https://huggingface.co/papers/{arxiv-id}</code> directl
 <li>The Paper Page shows all models/datasets citing this paper</li>
 <li>Papers are discoverable through filters and search</li>
 </ol>
-<h3>Method 3: Claim Authorship</h3>
+<h3 id="method-3-claim-authorship">Method 3: Claim Authorship</h3>
 <p>Verify your authorship on papers published on Hugging Face.</p>
 <p><strong>Start Claim Process:</strong></p>
 <div class="code-wrapper"><pre><code class="language-bash">uv run scripts/paper_manager.py claim \
@@ -175,7 +199,7 @@ You can also visit <code>https://huggingface.co/papers/{arxiv-id}</code> directl
 <div class="code-wrapper"><pre><code class="language-bash">uv run scripts/paper_manager.py check-authorship \
   --arxiv-id "2301.12345"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Method 4: Manage Paper Visibility</h3>
+<h3 id="method-4-manage-paper-visibility">Method 4: Manage Paper Visibility</h3>
 <p>Control which verified papers appear on your public profile.</p>
 <p><strong>List Your Papers:</strong></p>
 <div class="code-wrapper"><pre><code class="language-bash">uv run scripts/paper_manager.py list-my-papers
@@ -187,7 +211,7 @@ You can also visit <code>https://huggingface.co/papers/{arxiv-id}</code> directl
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p><strong>Manage in Settings:</strong>
 Navigate to your account settings → Papers section to toggle "Show on profile" for each paper.</p>
-<h3>Method 5: Create Research Article</h3>
+<h3 id="method-5-create-research-article">Method 5: Create Research Article</h3>
 <p>Generate a professional markdown-based research paper using modern templates.</p>
 <p><strong>Create from Template:</strong></p>
 <div class="code-wrapper"><pre><code class="language-bash">uv run scripts/paper_manager.py create \
@@ -216,7 +240,7 @@ Navigate to your account settings → Papers section to toggle "Show on profile"
   --output "paper.html" \
   --style "modern"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Paper Template Structure</h3>
+<h3 id="paper-template-structure">Paper Template Structure</h3>
 <p><strong>Standard Research Paper Sections:</strong></p>
 <div class="code-wrapper"><pre><code class="language-markdown">---
 title: Your Paper Title
@@ -263,7 +287,7 @@ Summary and future work...
 <li>Citation management</li>
 <li>Author affiliation linking</li>
 </ul>
-<h3>Commands Reference</h3>
+<h3 id="commands-reference">Commands Reference</h3>
 <p><strong>Index Paper:</strong></p>
 <div class="code-wrapper"><pre><code class="language-bash">uv run scripts/paper_manager.py index --arxiv-id "2301.12345"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
@@ -308,7 +332,7 @@ Summary and future work...
 <p><strong>Search Papers:</strong></p>
 <div class="code-wrapper"><pre><code class="language-bash">uv run scripts/paper_manager.py search --query "transformer attention"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>YAML Metadata Format</h3>
+<h3 id="yaml-metadata-format">YAML Metadata Format</h3>
 <p>When linking papers to models or datasets, proper YAML frontmatter is required:</p>
 <p><strong>Model Card Example:</strong></p>
 <div class="code-wrapper"><pre><code class="language-yaml">---
@@ -357,7 +381,7 @@ Dataset introduced in [Our Paper](https://arxiv.org/abs/2301.12345).
 For more details, see the [paper page](https://huggingface.co/papers/2301.12345).
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>The Hub automatically extracts arXiv IDs from these links and creates <code>arxiv:2301.12345</code> tags.</p>
-<h3>Integration Examples</h3>
+<h3 id="integration-examples">Integration Examples</h3>
 <p><strong>Workflow 1: Publish New Research</strong></p>
 <div class="code-wrapper"><pre><code class="language-bash"># 1. Create research article
 uv run scripts/paper_manager.py create \
@@ -424,7 +448,7 @@ uv run scripts/paper_manager.py link \
 # - Add formatted citation
 # - Preserve existing content
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Best Practices</h3>
+<h3 id="best-practices">Best Practices</h3>
 <ol>
 <li><p><strong>Paper Indexing</strong></p>
 <ul>
@@ -462,7 +486,7 @@ uv run scripts/paper_manager.py link \
 </ul>
 </li>
 </ol>
-<h3>Advanced Usage</h3>
+<h3 id="advanced-usage">Advanced Usage</h3>
 <p><strong>Batch Link Papers:</strong></p>
 <div class="code-wrapper"><pre><code class="language-bash"># Link multiple papers to one repository
 for arxiv_id in "2301.12345" "2302.67890" "2303.11111"; do
@@ -490,7 +514,7 @@ uv run scripts/paper_manager.py validate \
   --repo-id "username/model-name" \
   --repo-type "model"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Error Handling</h3>
+<h3 id="error-handling">Error Handling</h3>
 <ul>
 <li><strong>Paper Not Found</strong>: arXiv ID doesn't exist or isn't indexed yet</li>
 <li><strong>Permission Denied</strong>: HF_TOKEN lacks write access to repository</li>
@@ -499,7 +523,7 @@ uv run scripts/paper_manager.py validate \
 <li><strong>Already Claimed</strong>: Another user has claimed authorship</li>
 <li><strong>Rate Limiting</strong>: Too many API requests in short time</li>
 </ul>
-<h3>Troubleshooting</h3>
+<h3 id="troubleshooting">Troubleshooting</h3>
 <p><strong>Issue</strong>: "Paper not found on Hugging Face"</p>
 <ul>
 <li><strong>Solution</strong>: Visit <code>hf.co/papers/{arxiv-id}</code> to trigger indexing</li>
@@ -520,7 +544,7 @@ uv run scripts/paper_manager.py validate \
 <ul>
 <li><strong>Solution</strong>: Check markdown syntax and YAML frontmatter format</li>
 </ul>
-<h3>Resources and References</h3>
+<h3 id="resources-and-references">Resources and References</h3>
 <ul>
 <li><strong>Hugging Face Paper Pages</strong>: <a href="https://huggingface.co/papers">hf.co/papers</a></li>
 <li><strong>Model Cards Guide</strong>: <a href="https://huggingface.co/docs/hub/en/model-cards">hf.co/docs/hub/model-cards</a></li>
@@ -528,7 +552,7 @@ uv run scripts/paper_manager.py validate \
 <li><strong>Research Article Template</strong>: <a href="https://huggingface.co/spaces/tfrere/research-article-template">tfrere/research-article-template</a></li>
 <li><strong>arXiv Format Guide</strong>: <a href="https://arxiv.org/help/submit">arxiv.org/help/submit</a></li>
 </ul>
-<h3>Integration with tfrere's Research Template</h3>
+<h3 id="integration-with-tfreres-research-template">Integration with tfrere's Research Template</h3>
 <p>This skill complements <a href="https://huggingface.co/spaces/tfrere/research-article-template">tfrere's research article template</a> by providing:</p>
 <ul>
 <li>Automated paper indexing workflows</li>
@@ -537,7 +561,7 @@ uv run scripts/paper_manager.py validate \
 <li>Citation generation utilities</li>
 </ul>
 <p>You can use tfrere's template for writing, then use this skill to publish and link the paper on Hugging Face Hub.</p>
-<h3>Common Patterns</h3>
+<h3 id="common-patterns">Common Patterns</h3>
 <p><strong>Pattern 1: New Paper Publication</strong></p>
 <div class="code-wrapper"><pre><code class="language-bash"># Write → Publish → Index → Link
 uv run scripts/paper_manager.py create --template modern --output paper.md
@@ -557,7 +581,7 @@ uv run scripts/paper_manager.py claim --arxiv-id "2301.12345"
 uv run scripts/paper_manager.py list-my-papers
 uv run scripts/paper_manager.py toggle-visibility --arxiv-id "2301.12345" --show true
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>API Integration</h3>
+<h3 id="api-integration">API Integration</h3>
 <p><strong>Python Script Example:</strong></p>
 <div class="code-wrapper"><pre><code class="language-python">from scripts.paper_manager import PaperManager
 
@@ -578,7 +602,7 @@ pm.link_paper(
 status = pm.check_paper("2301.12345")
 print(status)
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Future Enhancements</h3>
+<h3 id="future-enhancements">Future Enhancements</h3>
 <p>Planned features for future versions:</p>
 <ul>
 <li>Support for non-arXiv papers (conference proceedings, journals)</li>
@@ -592,7 +616,9 @@ print(status)
 </body></html>
 </article>
 
+<nav class="prevnext" aria-label="Seitennavigation"><a class="prevnext-link prevnext-prev" href="../skills/huggingface-skills--huggingface-paper-publisher.html"><span class="prevnext-label">← Zurück</span><span class="prevnext-title">huggingface-paper-publisher</span></a><a class="prevnext-link prevnext-next" href="../skills/huggingface-skills--huggingface-papers.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">huggingface-papers</span></a></nav>
   </main>
+</div>
 </div>
 <footer class="site-footer">
   <span>Workspace MVP — generierte Dokumentation</span>

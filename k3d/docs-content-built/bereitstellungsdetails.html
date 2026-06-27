@@ -10,19 +10,24 @@
 <link rel="stylesheet" href="./style.css">
 </head>
 <body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
 <header class="site-header">
   <a class="site-header-brand" href="./index.html">
     <span class="site-mark" aria-hidden="true">◆</span>
     <span class="site-wordmark">Dokumentation</span>
   </a>
 </header>
-<div id="search-overlay">
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
   <div id="search-box">
-    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
-    <div id="search-results"></div>
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
   </div>
 </div>
 <div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Handbücher</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./readme.html">AI-Agent Operating Guide — Registry (SSOT)</a></li><li class="sidebar-item"><a href="./readme.html">DB Audit Phase 5 — 2026-05-23</a></li><li class="sidebar-item"><a href="./readme.html">dev.mentolder.de — Operator Runbook</a></li><li class="sidebar-item"><a href="./readme.html">Korczewski Visual Design Brief</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">Architektur &amp; Bausteine</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./30-bausteine.html">Bausteine — Was läuft auf der Plattform?</a></li><li class="sidebar-item sidebar-item--active"><a href="./bereitstellungsdetails.html" aria-current="page">Bereitstellungsdetails und Server-Topologie</a></li><li class="sidebar-item"><a href="./db-schema.html">Shared DB — Schema Reference &amp; Normalization Audit</a></li><li class="sidebar-item"><a href="./00-anleitung.html">Was will ich tun?</a></li><li class="sidebar-item"><a href="./20-werkzeuge.html">Werkzeuge — Tools und Agents</a></li><li class="sidebar-item"><a href="./10-ziele.html">Ziele — Was will ich tun?</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Audits &amp; Reports</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./2026-06-20-active-sessions-hub.html">Active Sessions Hub — Mediaviewer-Panel verlinkt aktive Forms/Brainstorm/Companion</a></li><li class="sidebar-item"><a href="./2026-06-22-agent-library.html">Agent Library Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-22-bats-coverage-batch1.html">BATS Coverage Expansion — Batch 1 (G-RH03) Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-20-cockpit-direct-ticket-links.html">Cockpit Direct Ticket Links — TicketDrawer entfernen, Titel als Navigationslinks</a></li><li class="sidebar-item"><a href="./2026-06-07-dataflow-dataleak.html">Dataflow &amp; Datenleck-Audit — 2026-06-07</a></li><li class="sidebar-item"><a href="./findings.html">DB Audit Phase 5 — Findings</a></li><li class="sidebar-item"><a href="./2026-06-07-e2e-reachability-test-quality.html">E2E Reachability &amp; Test-Quality-Audit — 2026-06-07</a></li><li class="sidebar-item"><a href="./2026-06-22-ki-api-prod-migrations.html">KI-API Prod-Migrationen (T000711) Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-20-mcp-task-runner.html">MCP Task Runner Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-27-mentolder-brand-foundations-design-system.html">mentolder — Brand Foundations Design System</a></li><li class="sidebar-item"><a href="./2026-06-22-mentolder-web-unterseiten.html">mentolder-web Unterseiten Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-22-s1-violations-batch1.html">S1-Frozen-Violations Reduction — Batch 1 (G-RH01) Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-21-ticket-mcp.html">ticket-mcp Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-22-ts-suppression-elimination.html">TypeScript-Suppressionen eliminieren (G-RH02) Implementation Plan</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Entscheidungen</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./decision-log.html">Phase 5 DROP Decision Log</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Referenz</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./tasks.html">Agent-Push-Notifications für opencode/agy-Sessions</a></li><li class="sidebar-item"><a href="./tasks.html">AI: Ticket-Auto-Triage (Severity-Erkennung)</a></li><li class="sidebar-item"><a href="./alert-email-test.html">Alert-E-Mail-Test (synthetisch)</a></li><li class="sidebar-item"><a href="./api-surface.html">API Surface Map</a></li><li class="sidebar-item"><a href="./tasks.html">Art Library Webapp Integration</a></li><li class="sidebar-item"><a href="./audit-log-retention.html">Audit-Log Retention — DSGVO-Dokumentation</a></li><li class="sidebar-item"><a href="./blast-radius.html">Blast-Radius-Report</a></li><li class="sidebar-item"><a href="./brainstorm-bridge-wsl.html">Brainstorm-Bridge (WSL) — Visuals &amp; Auswahl an den Nutzer kommunizieren</a></li><li class="sidebar-item"><a href="./tasks.html">Cockpit Mobile-View Implementation Plan</a></li><li class="sidebar-item"><a href="./tasks.html">Cockpit: Filter speichern / Voreinstellungen</a></li><li class="sidebar-item"><a href="./tasks.html">env-seal.sh: empty-value Keys in extra_namespaces korrekt verarbeiten (G-CD01 Root-Cause)</a></li><li class="sidebar-item"><a href="./envsubst-variable-management.html">envsubst Variable Management — Referenz</a></li><li class="sidebar-item"><a href="./tasks.html">Feature Intake: Semantischer Duplikatcheck + dynamischer Feature-Pool</a></li><li class="sidebar-item"><a href="./fleet-stage2-cutover-runbook.html">Fleet Stage 2 — Cutover Runbook</a></li><li class="sidebar-item"><a href="./fleet-2026-05-31-what-changed.html">Fleet-Konsolidierung — was sich am 2026-05-31 geändert hat</a></li><li class="sidebar-item"><a href="./tasks.html">G-CD01: korczewski-Deploy-Lane — stale SealedSecret reparieren + Drift-Prevention</a></li><li class="sidebar-item"><a href="./tasks.html">G-CD02: post-merge.yml Race-Guard härten (93% → ≥95%)</a></li><li class="sidebar-item"><a href="./tasks.html">G-CQ03: ESLint in website/ einrichten + Warnings auf 0</a></li><li class="sidebar-item"><a href="./tasks.html">G-CQ08: Dead-Code/unused exports in website/src via knip messen + −50%</a></li><li class="sidebar-item"><a href="./tasks.html">G-DEP02: Veraltete Major-Deps (website) 9 → ≤3</a></li><li class="sidebar-item"><a href="./tasks.html">G-FE01: a11y axe-Violations (Kern-Routen beider Marken) auf 0 crit/serious</a></li><li class="sidebar-item"><a href="./tasks.html">G-FE02: Client-JS-Bundle messen + Budget (kein Netto-Zuwachs/Release)</a></li><li class="sidebar-item"><a href="./tasks.html">G-IMG02: Fremd-Image-Versions-Drift vereinheitlichen (busybox/curl)</a></li><li class="sidebar-item"><a href="./proposal.html">G-RH01: S1-Frozen-Violations Batch 1 — baseline.json 98→≤30</a></li><li class="sidebar-item"><a href="./tasks.html">G-RH01: S1-Frozen-Violations Batch 1 — baseline.json 98→≤30</a></li><li class="sidebar-item"><a href="./proposal.html">G-RH03: BATS Coverage Batch 1 — OpenSpec 17%→23%</a></li><li class="sidebar-item"><a href="./tasks.html">G-RH03: BATS Coverage Batch 1 — OpenSpec 17%→23%</a></li><li class="sidebar-item"><a href="./tasks.html">Implementation Plan: cockpit-bulk-status</a></li><li class="sidebar-item"><a href="./design-system.html">mentolder Design-System</a></li><li class="sidebar-item"><a href="./tasks.html">mentolder.de Website-Frontend in React neu aufbauen</a></li><li class="sidebar-item"><a href="./tasks.html">Messbare Delivery-Pipeline + DORA-Dashboard</a></li><li class="sidebar-item"><a href="./tasks.html">Pocket ID Migration — Keycloak ersetzen durch Pocket ID</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: agent-push-notifications</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: AI: Ticket-Auto-Triage (Severity-Erkennung)</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: art-library-webapp-integration</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: cockpit-bulk-status</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: cockpit-filter-presets</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: cockpit-mobile-view</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: dora-delivery-pipeline</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: env-seal-empty-value-keys</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: Feature Intake + Knowledge-Graph-Anreicherung</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-cd01-korczewski-secret-drift</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-cd02-post-merge-race-guard</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-cq03-eslint-website</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-cq08-knip-dead-code</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-dep02-major-deps-website (G-DEP02)</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-fe01-a11y-axe-violations</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-fe02-bundle-budget</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: img02-image-drift (G-IMG02)</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: Mentolder Homepage — hifi-Redesign in Astro+Svelte</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: mentolder.de Website-Frontend in React neu aufbauen</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: pocket-id-migration</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: ticket-mcp Go-Rewrite mit HTTP-Transport [T001043]</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: ticket-verlauf-anhaenge</a></li><li class="sidebar-item"><a href="./secrets-architecture.html">Secrets-Dateiarchitektur</a></li><li class="sidebar-item"><a href="./shared-infrastructure-security.html">Shared Infrastructure Security — Cross-Brand Analysis</a></li><li class="sidebar-item"><a href="./overview.html">Skills Overview</a></li><li class="sidebar-item"><a href="./factory-usage.html">Software Factory — Usage Guide</a></li><li class="sidebar-item"><a href="./systemtest-fragebogen.html">Systemtest-Protokoll — Workspace Collaboration Platform</a></li><li class="sidebar-item"><a href="./tasks.html">Tasks: ticket-verlauf-anhaenge</a></li><li class="sidebar-item"><a href="./tasks.html">ticket-mcp Go-Rewrite mit HTTP-Transport</a></li><li class="sidebar-item"><a href="./wsl-bootstrap.html">WSL Bootstrapping Gotchas</a></li></ul></details>
+</aside>
   <main id="main">
 <header class="page-header">
   <div class="page-header-body">
@@ -40,16 +45,52 @@
 <html><head></head><body><h1>Bereitstellungsdetails und Server-Topologie</h1><div class="toc-box auto-toc">
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#1-netzwerk--und-server-topologie-fleet-cluster"><span class="toc-num">1.</span> 1. Netzwerk- und Server-Topologie (Fleet Cluster)</a></li>
+<li class="toc-item toc-item--h3"><a href="#11-produktions-server-hetzner-helsinki"><span class="toc-num">–</span> 1.1 Produktions-Server (Hetzner Helsinki)</a></li>
+<li class="toc-item toc-item--h3"><a href="#12-entwicklungs--und-testumgebung-local-dev--k3d-auf-wsl-host"><span class="toc-num">–</span> 1.2 Entwicklungs- und Testumgebung (Local Dev / k3d auf WSL-Host)</a></li>
+<li class="toc-item toc-item--h3"><a href="#13-gpu-host-ki-bereitstellung-fuer-transkription--embeddings"><span class="toc-num">–</span> 1.3 GPU-Host (KI-Bereitstellung für Transkription &amp; Embeddings)</a></li>
+<li class="toc-item toc-item--h3"><a href="#14-vpn-netzwerke-wireguard-mesh--fleet"><span class="toc-num">–</span> 1.4 VPN-Netzwerke (WireGuard Mesh &amp; Fleet)</a></li>
 <li class="toc-item"><a href="#2-benutzerkonten-und-zugangsdaten-usernames"><span class="toc-num">2.</span> 2. Benutzerkonten und Zugangsdaten (Usernames)</a></li>
+<li class="toc-item toc-item--h3"><a href="#21-ssh-systembenutzer"><span class="toc-num">–</span> 2.1 SSH-Systembenutzer</a></li>
+<li class="toc-item toc-item--h3"><a href="#22-keycloak-sso--oidc-benutzer-vordefinierte-konten"><span class="toc-num">–</span> 2.2 Keycloak SSO / OIDC-Benutzer (Vordefinierte Konten)</a></li>
 <li class="toc-item"><a href="#3-ssh-schluessel-public-keys"><span class="toc-num">3.</span> 3. SSH-Schlüssel (Public Keys)</a></li>
+<li class="toc-item toc-item--h3"><a href="#pve-host-schluessel-proxmox-virtualisierung"><span class="toc-num">–</span> PVE Host-Schlüssel (Proxmox-Virtualisierung)</a></li>
+<li class="toc-item toc-item--h3"><a href="#personenbezogene-ssh-schluessel"><span class="toc-num">–</span> Personenbezogene SSH-Schlüssel</a></li>
 <li class="toc-item"><a href="#4-detaillierte-erklaerung-aller-software-dienste-im-platform-hub"><span class="toc-num">4.</span> 4. Detaillierte Erklärung aller Software-Dienste im Platform-Hub</a></li>
+<li class="toc-item toc-item--h3"><a href="#41-website-website"><span class="toc-num">–</span> 4.1 Website (website)</a></li>
+<li class="toc-item toc-item--h3"><a href="#42-keycloak-keycloak"><span class="toc-num">–</span> 4.2 Keycloak (keycloak)</a></li>
+<li class="toc-item toc-item--h3"><a href="#43-nextcloud-nextcloud"><span class="toc-num">–</span> 4.3 Nextcloud (nextcloud)</a></li>
+<li class="toc-item toc-item--h3"><a href="#44-collabora-collabora"><span class="toc-num">–</span> 4.4 Collabora (collabora)</a></li>
+<li class="toc-item toc-item--h3"><a href="#45-vaultwarden-vaultwarden"><span class="toc-num">–</span> 4.5 Vaultwarden (vaultwarden)</a></li>
+<li class="toc-item toc-item--h3"><a href="#46-talk-hpb-nextcloud-talk-hpb"><span class="toc-num">–</span> 4.6 Talk HPB (nextcloud-talk-hpb)</a></li>
+<li class="toc-item toc-item--h3"><a href="#47-brett-brett"><span class="toc-num">–</span> 4.7 Brett (brett)</a></li>
+<li class="toc-item toc-item--h3"><a href="#48-mailpit-mailpit"><span class="toc-num">–</span> 4.8 Mailpit (mailpit)</a></li>
+<li class="toc-item toc-item--h3"><a href="#49-docuseal-docuseal"><span class="toc-num">–</span> 4.9 DocuSeal (docuseal)</a></li>
+<li class="toc-item toc-item--h3"><a href="#410-whiteboard-whiteboard"><span class="toc-num">–</span> 4.10 Whiteboard (whiteboard)</a></li>
+<li class="toc-item toc-item--h3"><a href="#411-arena-arena"><span class="toc-num">–</span> 4.11 Arena (arena)</a></li>
+<li class="toc-item toc-item--h3"><a href="#412-documentation-docs"><span class="toc-num">–</span> 4.12 Documentation (docs)</a></li>
+<li class="toc-item toc-item--h3"><a href="#413-postgresql-16-postgresql"><span class="toc-num">–</span> 4.13 PostgreSQL 16 (postgresql)</a></li>
+<li class="toc-item toc-item--h3"><a href="#414-traefik-traefik"><span class="toc-num">–</span> 4.14 Traefik (traefik)</a></li>
+<li class="toc-item toc-item--h3"><a href="#415-sealed-secrets-sealed-secrets"><span class="toc-num">–</span> 4.15 Sealed Secrets (sealed-secrets)</a></li>
+<li class="toc-item toc-item--h3"><a href="#416-cert-manager-cert-manager"><span class="toc-num">–</span> 4.16 cert-manager (cert-manager)</a></li>
+<li class="toc-item toc-item--h3"><a href="#417-k3s--k3d-k3s"><span class="toc-num">–</span> 4.17 k3s / k3d (k3s)</a></li>
+<li class="toc-item toc-item--h3"><a href="#418-wireguard-wireguard"><span class="toc-num">–</span> 4.18 WireGuard (wireguard)</a></li>
+<li class="toc-item toc-item--h3"><a href="#419-tei-tei"><span class="toc-num">–</span> 4.19 TEI (tei)</a></li>
+<li class="toc-item toc-item--h3"><a href="#420-openclaw-openclaw"><span class="toc-num">–</span> 4.20 OpenClaw (openclaw)</a></li>
+<li class="toc-item toc-item--h3"><a href="#421-livekit-server-livekit"><span class="toc-num">–</span> 4.21 LiveKit Server (livekit)</a></li>
+<li class="toc-item toc-item--h3"><a href="#422-livekit-ingress-livekit-ingress"><span class="toc-num">–</span> 4.22 LiveKit Ingress (livekit-ingress)</a></li>
+<li class="toc-item toc-item--h3"><a href="#423-livekit-egress-livekit-egress"><span class="toc-num">–</span> 4.23 LiveKit Egress (livekit-egress)</a></li>
+<li class="toc-item toc-item--h3"><a href="#424-whisper-whisper"><span class="toc-num">–</span> 4.24 Whisper (whisper)</a></li>
+<li class="toc-item toc-item--h3"><a href="#425-talk-transcriber-talk-transcriber"><span class="toc-num">–</span> 4.25 Talk Transcriber (talk-transcriber)</a></li>
+<li class="toc-item toc-item--h3"><a href="#426-mcp-monolith-mcp"><span class="toc-num">–</span> 4.26 MCP Monolith (mcp)</a></li>
+<li class="toc-item toc-item--h3"><a href="#427-brainstorm-sish-brainstorm"><span class="toc-num">–</span> 4.27 Brainstorm Sish (brainstorm)</a></li>
+<li class="toc-item toc-item--h3"><a href="#428-arena-server-arena-server"><span class="toc-num">–</span> 4.28 Arena Server (arena-server)</a></li>
 <li class="toc-item"><a href="#5-dokumentations-abdeckung-des-repositories"><span class="toc-num">5.</span> 5. Dokumentations-Abdeckung des Repositories</a></li></ul>
 </div>
 <p>Diese Dokumentation beschreibt die vollständigen Bereitstellungsdetails (Deployment-Details), IP-Adressen, Benutzernamen, SSH-Schlüssel (Public Keys) und die Architektur aller Services (Dienste) im Platform-Hub der Workspace-Plattform.</p>
 <hr>
 <h2 id="1-netzwerk--und-server-topologie-fleet-cluster">1. Netzwerk- und Server-Topologie (Fleet Cluster)</h2>
 <p>Die gesamte Produktion der Plattform wurde am 31.05.2026 konsolidiert. Alle Dienste der beiden Marken <strong>Mentolder</strong> (Domain: <code>mentolder.de</code>) und <strong>Korczewski</strong> (Domain: <code>korczewski.de</code>) laufen auf einem einzigen, gemeinsamen Kubernetes-Cluster namens <strong><code>fleet</code></strong>.</p>
-<h3>1.1 Produktions-Server (Hetzner Helsinki)</h3>
+<h3 id="11-produktions-server-hetzner-helsinki">1.1 Produktions-Server (Hetzner Helsinki)</h3>
 <p>Der Cluster besteht aus drei Control-Plane-Knoten (Steuerungsknoten) und drei Worker-Knoten (Arbeitsknoten).</p>
 <table>
 <thead>
@@ -106,7 +147,7 @@
 </tbody></table>
 <p><em>Hinweis:</em> Der API-Server des Clusters ist direkt über die IP des Knotens <code>pk-hetzner-4</code> unter Port <code>6443</code> erreichbar (<code>204.168.244.104:6443</code>). Die alten, separaten Standalone-Cluster-Kontexte sind stillgelegt.</p>
 <hr>
-<h3>1.2 Entwicklungs- und Testumgebung (Local Dev / k3d auf WSL-Host)</h3>
+<h3 id="12-entwicklungs--und-testumgebung-local-dev--k3d-auf-wsl-host">1.2 Entwicklungs- und Testumgebung (Local Dev / k3d auf WSL-Host)</h3>
 <blockquote>
 <p><strong>Hinweis:</strong> Das geplante <code>devc</code>-3-Knoten-k3s-HA-Cluster wurde nie gebaut (shelved 2026-05-30). Die lokale Entwicklung findet auf einem k3d-Cluster (lokales Test-Kubernetes in Docker) auf dem WSL-Host / Proxmox-VM <code>dev-vm</code> statt. Kontext: <code>k3d-mentolder-dev</code>.</p>
 </blockquote>
@@ -151,7 +192,7 @@
 </tbody></table>
 <p><em>Hinweis:</em> <code>dev-vm</code> ist der Nachfolger des alten <code>k3s-1</code> Heimservers. Sie läuft als Proxmox-Gast-VM (VMID <code>9002</code>) auf dem Server-Knoten <code>10.0.0.25</code>.</p>
 <hr>
-<h3>1.3 GPU-Host (KI-Bereitstellung für Transkription &amp; Embeddings)</h3>
+<h3 id="13-gpu-host-ki-bereitstellung-fuer-transkription--embeddings">1.3 GPU-Host (KI-Bereitstellung für Transkription &amp; Embeddings)</h3>
 <p>Für rechenintensive KI-Aufgaben wie Spracherkennung (Whisper) und Vektorisierung von Texten (Embeddings) ist eine lokale Workstation mit einer NVIDIA RTX 5070 Ti Grafikkarte (16 GB VRAM) über das WireGuard-VPN angebunden.</p>
 <ul>
 <li><strong>Lokale IP im Windows-Subsystem (WSL2):</strong> <code>10.10.0.3</code> (befindet sich hinter einer FritzBox-NAT)</li>
@@ -164,7 +205,7 @@
 <li><strong>Netzwerkintegration:</strong> Der GPU-Host leitet Anfragen über <code>iptables</code> (Linux-Firewall) an den lokalen Ollama-Dienst weiter. Die Kubernetes-Services (z. B. <code>llm-gateway-embed:8081</code> und <code>llm-gateway-chat:11434</code>) greifen über die WireGuard-IP auf diesen Rechner zu.</li>
 </ul>
 <hr>
-<h3>1.4 VPN-Netzwerke (WireGuard Mesh &amp; Fleet)</h3>
+<h3 id="14-vpn-netzwerke-wireguard-mesh--fleet">1.4 VPN-Netzwerke (WireGuard Mesh &amp; Fleet)</h3>
 <p>Drei verschlüsselte VPN-Netze (Virtual Private Network) verbinden die Server sicher untereinander:</p>
 <ol>
 <li><strong><code>wg-fleet</code> (Bereich <code>10.20.0.0/24</code>):</strong> Verbindet die sechs Hetzner-Server des Produktions-Clusters über den Port <code>51820</code>. Alle Anwendungs-Daten fließen verschlüsselt durch dieses Netz.</li>
@@ -174,13 +215,13 @@
 <hr>
 <h2 id="2-benutzerkonten-und-zugangsdaten-usernames">2. Benutzerkonten und Zugangsdaten (Usernames)</h2>
 <p>Beim Betrieb des Repositories und der Server werden folgende administrative Konten verwendet:</p>
-<h3>2.1 SSH-Systembenutzer</h3>
+<h3 id="21-ssh-systembenutzer">2.1 SSH-Systembenutzer</h3>
 <ul>
 <li><strong><code>root</code></strong>: Administrativer Hauptnutzer auf allen Hetzner-Servern (<code>pk-*</code> und <code>gekko-*</code>) sowie den Proxmox-Hosts (<code>pve</code>, <code>pve2</code>, <code>pve3</code>).</li>
 <li><strong><code>devops</code></strong>: War Standard-SSH-Benutzer auf den VM-Knoten (<code>devc-2</code>, <code>devc-3</code>) — diese wurden nie gebaut (shelved 2026-05-30).</li>
 <li><strong><code>gekko</code></strong>: Standard-Benutzer auf dem alten <code>k3s-1</code> Heimserver sowie auf der neuen <code>dev-vm</code> (<code>DEV_SSH_USER</code>).</li>
 </ul>
-<h3>2.2 Keycloak SSO / OIDC-Benutzer (Vordefinierte Konten)</h3>
+<h3 id="22-keycloak-sso--oidc-benutzer-vordefinierte-konten">2.2 Keycloak SSO / OIDC-Benutzer (Vordefinierte Konten)</h3>
 <ul>
 <li><strong><code>paddione</code></strong> (<code>patrick@korczewski.de</code>): Haupt-Administrator-Konto, berechtigt für alle Bereiche.</li>
 <li><strong><code>gekko</code></strong> (<code>quamain@web.de</code>): Test- und Entwicklerkonto.</li>
@@ -188,7 +229,7 @@
 <hr>
 <h2 id="3-ssh-schluessel-public-keys">3. SSH-Schlüssel (Public Keys)</h2>
 <p>Die folgenden öffentlichen SSH-Schlüssel sind in den Konfigurationsdateien des Repositories hinterlegt und erlauben den Zugriff auf die Server-Ressourcen:</p>
-<h3>PVE Host-Schlüssel (Proxmox-Virtualisierung)</h3>
+<h3 id="pve-host-schluessel-proxmox-virtualisierung">PVE Host-Schlüssel (Proxmox-Virtualisierung)</h3>
 <ul>
 <li><strong><code>PVE_SSH_PUBLIC_KEY</code> (root@pve):</strong>
 <code>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCcVmcn2U3Ds/yWSC46oxiZjNMjQfqUDFTzFau8Glv0FSEgy9WipbHuKoms+/NU3ELdTMtvWdhHq02cdoS1nlDvBNHWkCz4XS2/L+D7XmDIbhWgdjTu77BA5itQf1s7rhQhy5aN9Bo/itDJOX3U8YN+4EHiUQS6p40y9ATcSf/FzhaZ8/5UrsNAdpvqEMlHT1E6+8UHmlq76IojhWCIPTqSbmOcKfWtrSreqUwpz6nrC1G2MF4KZ+bLqOh4vv8a4knUCrsE9xrKpl//jEmCNgWDBBpx1+4q/kKbBUCNTH73iJBKXV26HiG4kDS66idbJ5ePfHetl/c6h0k60yGnN7gvt53qLdo1fIKdLO7azmGbKQG+TQcTH6mwvl1irhQb0GbbtgwALGblR3r8M2wLsjFXhKoYPM45DTqQ37D0E/yNWklwStMbzkpwocn2V5Z5w6dtzLJ5wmm/FnnP0ugyvFfrSGdMGKZm/x6NdbVugY4yrRJ+5uU0kAg18O4NaG/calJX6g8yODqhb0kyoFuYBnkiUCx5E1q2KeOrKcXBIC4T2dB3vQXB4sYzD0cYItMJk7g53OXEDtMVmiSmPHkqJNT8ZLxv3EtL2HElqEkOKcnWlclU154GEqIElhVXiIhIVs9YSeGs6pVR8ltbEAQfQIakZ+79hNwy0TakGCzTgl4fMQ== root@pve</code></li>
@@ -197,7 +238,7 @@
 <li><strong><code>PVE3_SSH_PUBLIC_KEY</code> (root@dev2 ehem. pve3):</strong>
 <code>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDAJAf6e0K/SdlaKCxPVyP8rCZqOVz3M8NZUL4W8jSMzL3JqlcjNeSeUfoO9nfbHyI3QfDQPmvkpHY9JBa+e2A5Plj1MIC4DDvvgcY1eJL4j5gJ+2fQXyG6c1l2r5yEPs5wWn8vGuR8540d1Y93VDq90Zg+lJ6ON0vosuQ9jUyuGo7DIwwBN8vhBYiSN6XdeDlIJG2HVSJftbCREXC5u9fDH4J1Y0sNEkeua9vNZsC3BAAviylwBMFUYaB2TVKLyFOI5xGiZxKHio1H49S5b2gHHaOWor+I4byIBNibCS8LCeB/q8a99MnCHqMQT/jilwuq1RWorIrjVF0PX011s0Ddw+dA5iq0R2UH+htDkjJXdcXUYQEuBUMX/mBDkyiqSshCDDZfGvjm47YZTzt4bGYEKhBI/pPygi4MhSRN+TvWpngFWjxcSy4LEowTNePJx6CB17DwnVhBnQdHygCIZ8iHgvsgbVZgV0gO1He8zteZFPV7OjPANm4xSOim5vTSzpWwVvLhk9wv2sOURz4JY7mbtIPryFqNSbWI0B/4zMFH87YFQ7IfD7r5JhoqZRIaplJDRJWFrnLXXWjWS07vNWAcDS9AMNM9spPce65f8HlvaTjAcznVmzxW75ig5znFFAfi+SyVwWRhQ7fhuRZMnbOzqVwl1VINz7FGyJKOUoIvMw== root@pve3</code></li>
 </ul>
-<h3>Personenbezogene SSH-Schlüssel</h3>
+<h3 id="personenbezogene-ssh-schluessel">Personenbezogene SSH-Schlüssel</h3>
 <ul>
 <li><strong><code>PATRICK_SSH_PUBLIC_KEY</code> (<a href="mailto:patrick@korczewski.de">patrick@korczewski.de</a>):</strong>
 <code>ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFN75CnuOz7YXaJipTFxWMVDgm35heu64JKN1QL+Z84+ patrick@korczewski.de</code></li>
@@ -208,7 +249,7 @@
 <hr>
 <h2 id="4-detaillierte-erklaerung-aller-software-dienste-im-platform-hub">4. Detaillierte Erklärung aller Software-Dienste im Platform-Hub</h2>
 <p>Jeder hier beschriebene Service läuft als K8s-Workload (Kubernetes Deployment) im Namespace <code>workspace</code> (für die Marke Mentolder) oder <code>workspace-korczewski</code> (für die Marke Korczewski), sofern nicht anders angegeben.</p>
-<h3>4.1 Website (<code>website</code>)</h3>
+<h3 id="41-website-website">4.1 Website (<code>website</code>)</h3>
 <ul>
 <li><strong>Beschreibung:</strong> Die Benutzeroberfläche (Astro + Svelte), die die öffentliche Homepage sowie das geschützte Kundenportal darstellt. Sie liest direkt aus der Shared-Database und kommuniziert mit Keycloak für die Benutzeranmeldung.</li>
 <li><strong>K8s-Deployment-Name:</strong> <code>website</code></li>
@@ -216,7 +257,7 @@
 <li><strong>Image:</strong> <code>website:latest</code> (wird bei jedem CI-Durchlauf neu gebaut)</li>
 <li><strong>Produktions-URLs:</strong> <code>web.mentolder.de</code>, <code>web.korczewski.de</code></li>
 </ul>
-<h3>4.2 Keycloak (<code>keycloak</code>)</h3>
+<h3 id="42-keycloak-keycloak">4.2 Keycloak (<code>keycloak</code>)</h3>
 <ul>
 <li><strong>Beschreibung:</strong> Der zentrale SSO-Dienst (Single Sign-On). Er regelt die Authentifizierung über OIDC (OpenID Connect). Alle anderen Dienste (Nextcloud, Vaultwarden, DocuSeal, Systembrett) leiten Benutzer zur Anmeldung an Keycloak weiter.</li>
 <li><strong>K8s-Deployment-Name:</strong> <code>keycloak</code></li>
@@ -225,7 +266,7 @@
 <li><strong>Image-Tag:</strong> <code>:22.0</code> (ausgeliefert via Bitnami Keycloak-Chart)</li>
 <li><strong>Produktions-URLs:</strong> <code>auth.mentolder.de</code>, <code>auth.korczewski.de</code></li>
 </ul>
-<h3>4.3 Nextcloud (<code>nextcloud</code>)</h3>
+<h3 id="43-nextcloud-nextcloud">4.3 Nextcloud (<code>nextcloud</code>)</h3>
 <ul>
 <li><strong>Beschreibung:</strong> Das Kernstück für Kollaboration. Stellt Datei-Speicher, Kalender, Kontakte und Office-Integration bereit. Beinhaltet auch die Erweiterung "Nextcloud Talk" für Audio/Video-Konferenzen.</li>
 <li><strong>K8s-Deployment-Name:</strong> <code>nextcloud</code></li>
@@ -234,7 +275,7 @@
 <li><strong>Image-Tag:</strong> <code>:29</code> (Nextcloud-Basis)</li>
 <li><strong>Produktions-URLs:</strong> <code>files.mentolder.de</code>, <code>files.korczewski.de</code></li>
 </ul>
-<h3>4.4 Collabora (<code>collabora</code>)</h3>
+<h3 id="44-collabora-collabora">4.4 Collabora (<code>collabora</code>)</h3>
 <ul>
 <li><strong>Beschreibung:</strong> Ein Online-Office-Server. Er wird über das WOPI-Protokoll in Nextcloud eingebunden und erlaubt das kollaborative Editieren von Word-, Excel- und PowerPoint-Dateien direkt im Browser.</li>
 <li><strong>K8s-Deployment-Name:</strong> <code>collabora</code></li>
@@ -242,7 +283,7 @@
 <li><strong>Image-Tag:</strong> <code>:latest</code> (Collabora Online Development Edition)</li>
 <li><strong>Produktions-URLs:</strong> <code>office.mentolder.de</code>, <code>office.korczewski.de</code></li>
 </ul>
-<h3>4.5 Vaultwarden (<code>vaultwarden</code>)</h3>
+<h3 id="45-vaultwarden-vaultwarden">4.5 Vaultwarden (<code>vaultwarden</code>)</h3>
 <ul>
 <li><strong>Beschreibung:</strong> Ein leichtgewichtiger, Bitwarden-kompatibler Passwort-Tresor. Ermöglicht Teams das sichere Verwalten und Teilen von Anmeldedaten und Passwörtern.</li>
 <li><strong>K8s-Deployment-Name:</strong> <code>vaultwarden</code></li>
@@ -251,7 +292,7 @@
 <li><strong>Image-Tag:</strong> <code>:latest</code></li>
 <li><strong>Produktions-URLs:</strong> <code>vault.mentolder.de</code>, <code>vault.korczewski.de</code></li>
 </ul>
-<h3>4.6 Talk HPB (<code>nextcloud-talk-hpb</code>)</h3>
+<h3 id="46-talk-hpb-nextcloud-talk-hpb">4.6 Talk HPB (<code>nextcloud-talk-hpb</code>)</h3>
 <ul>
 <li><strong>Beschreibung:</strong> Das High-Performance-Backend für Nextcloud Talk. Es beinhaltet den Janus WebRTC Gateway (Video-Streaming-Server), NATS (Messaging-System) und den Signaling-Server. Ermöglicht stabile Gruppen-Anrufe.</li>
 <li><strong>K8s-Deployment-Name:</strong> <code>talk-hpb</code></li>
@@ -259,7 +300,7 @@
 <li><strong>Image-Tag:</strong> <code>:latest</code></li>
 <li><strong>Produktions-URLs:</strong> Internal routing via Traefik.</li>
 </ul>
-<h3>4.7 Brett (<code>brett</code>)</h3>
+<h3 id="47-brett-brett">4.7 Brett (<code>brett</code>)</h3>
 <ul>
 <li><strong>Beschreibung:</strong> Ein interaktives, kollaboratives 3D-Systembrett (Systemic Constellation Board) zur Simulation von Aufstellungen im Browser.</li>
 <li><strong>K8s-Deployment-Name:</strong> <code>brett</code></li>
@@ -268,7 +309,7 @@
 <li><strong>Image-Tag:</strong> <code>:latest</code></li>
 <li><strong>Produktions-URLs:</strong> <code>brett.mentolder.de</code>, <code>brett.korczewski.de</code></li>
 </ul>
-<h3>4.8 Mailpit (<code>mailpit</code>)</h3>
+<h3 id="48-mailpit-mailpit">4.8 Mailpit (<code>mailpit</code>)</h3>
 <ul>
 <li><strong>Beschreibung:</strong> Ein SMTP-Test-Mailserver. Er fängt alle ausgehenden E-Mails der Plattform in der Entwicklungsumgebung ab und stellt eine Weboberfläche bereit, um diese zu inspizieren. Echte E-Mails werden nicht versendet.</li>
 <li><strong>K8s-Deployment-Name:</strong> <code>mailpit</code></li>
@@ -276,7 +317,7 @@
 <li><strong>Image-Tag:</strong> <code>:latest</code></li>
 <li><strong>Produktions-URLs:</strong> <code>mail.mentolder.de</code>, <code>mail.korczewski.de</code> (SSO-geschützt)</li>
 </ul>
-<h3>4.9 DocuSeal (<code>docuseal</code>)</h3>
+<h3 id="49-docuseal-docuseal">4.9 DocuSeal (<code>docuseal</code>)</h3>
 <ul>
 <li><strong>Beschreibung:</strong> Ein eigenständiger Dienst zum digitalen Signieren und Verwalten von Dokumenten (PDF-Verträge) mit fortgeschrittener elektronischer Signatur.</li>
 <li><strong>K8s-Deployment-Name:</strong> <code>docuseal</code></li>
@@ -285,7 +326,7 @@
 <li><strong>Image-Tag:</strong> <code>:latest</code></li>
 <li><strong>Produktions-URLs:</strong> <code>sign.mentolder.de</code>, <code>sign.korczewski.de</code></li>
 </ul>
-<h3>4.10 Whiteboard (<code>whiteboard</code>)</h3>
+<h3 id="410-whiteboard-whiteboard">4.10 Whiteboard (<code>whiteboard</code>)</h3>
 <ul>
 <li><strong>Beschreibung:</strong> Eine kollaborative Zeichen-Tafel (basierend auf Spacedeck), die direkt als Nextcloud-App in die Cloud-Umgebung integriert ist.</li>
 <li><strong>K8s-Deployment-Name:</strong> <code>whiteboard</code></li>
@@ -293,8 +334,15 @@
 <li><strong>Image-Tag:</strong> <code>:latest</code></li>
 <li><strong>Produktions-URLs:</strong> Erreichbar innerhalb der Nextcloud-Oberfläche.</li>
 </ul>
-
-<h3>4.12 Documentation (<code>docs</code>)</h3>
+<h3 id="411-arena-arena">4.11 Arena (<code>arena</code>)</h3>
+<ul>
+<li><strong>Beschreibung:</strong> Der Multiplayer-Spielserver (WebSocket-Backend), der exklusiv für das 3D-Spiel der Marke Korczewski genutzt wird.</li>
+<li><strong>K8s-Deployment-Name:</strong> <code>arena-server</code></li>
+<li><strong>K8s-Namespace:</strong> <code>workspace-korczewski</code> (nur für die Marke Korczewski aktiv)</li>
+<li><strong>Image-Tag:</strong> <code>:latest</code></li>
+<li><strong>Produktions-URLs:</strong> <code>arena-ws.korczewski.de</code></li>
+</ul>
+<h3 id="412-documentation-docs">4.12 Documentation (<code>docs</code>)</h3>
 <ul>
 <li><strong>Beschreibung:</strong> Eine statische Dokumentations-Webseite (Docsify), die das Admin- und Benutzerhandbuch bereitstellt.</li>
 <li><strong>K8s-Deployment-Name:</strong> <code>docs</code></li>
@@ -302,7 +350,7 @@
 <li><strong>Image-Tag:</strong> <code>:latest</code> (wird via <code>task docs:deploy</code> neu gebaut)</li>
 <li><strong>Produktions-URLs:</strong> <code>docs.mentolder.de</code>, <code>docs.korczewski.de</code></li>
 </ul>
-<h3>4.13 PostgreSQL 16 (<code>postgresql</code>)</h3>
+<h3 id="413-postgresql-16-postgresql">4.13 PostgreSQL 16 (<code>postgresql</code>)</h3>
 <ul>
 <li><strong>Beschreibung:</strong> Der zentrale relationale Datenbank-Server der Plattform. Pro Marke läuft eine eigene PostgreSQL-Instanz im jeweiligen Namespace. Der Zugriff erfolgt über interne Kubernetes-DNS-Namen (<code>shared-db</code>).</li>
 <li><strong>K8s-Deployment-Name:</strong> <code>shared-db</code></li>
@@ -310,84 +358,90 @@
 <li><strong>Image-Tag:</strong> <code>:16</code> (PostgreSQL 16)</li>
 <li><strong>Speicherklasse:</strong> Longhorn (verteilter, redundanter Speicher)</li>
 </ul>
-<h3>4.14 Traefik (<code>traefik</code>)</h3>
+<h3 id="414-traefik-traefik">4.14 Traefik (<code>traefik</code>)</h3>
 <ul>
 <li><strong>Beschreibung:</strong> Der Kubernetes-Ingress-Controller. Er empfängt alle externen HTTP/HTTPS-Anfragen der Plattform, leitet sie an die zuständigen Services weiter und übernimmt die Verschlüsselung (TLS-Terminierung).</li>
 <li><strong>K8s-DaemonSet:</strong> Läuft im Namespace <code>kube-system</code> als Systemkomponente.</li>
 <li><strong>Image-Tag:</strong> <code>:latest</code></li>
 </ul>
-<h3>4.15 Sealed Secrets (<code>sealed-secrets</code>)</h3>
+<h3 id="415-sealed-secrets-sealed-secrets">4.15 Sealed Secrets (<code>sealed-secrets</code>)</h3>
 <ul>
 <li><strong>Beschreibung:</strong> Der Bitnami Sealed Secrets Controller. Er ermöglicht das sichere Speichern von Passwörtern und API-Schlüsseln im öffentlichen Git-Repository, indem er sie asymmetrisch verschlüsselt. Nur der Controller im Cluster kann sie wieder entschlüsseln.</li>
 <li><strong>K8s-Deployment:</strong> Läuft im Namespace <code>sealed-secrets</code>.</li>
 <li><strong>Image-Tag:</strong> <code>:latest</code></li>
 </ul>
-<h3>4.16 cert-manager (<code>cert-manager</code>)</h3>
+<h3 id="416-cert-manager-cert-manager">4.16 cert-manager (<code>cert-manager</code>)</h3>
 <ul>
 <li><strong>Beschreibung:</strong> Automatisiert das Ausstellen und Erneuern von SSL/TLS-Zertifikaten über Let's Encrypt mittels der DNS-01-Challenge (über den DNS-Anbieter ipv64.de).</li>
 <li><strong>K8s-Deployment:</strong> Läuft im Namespace <code>cert-manager</code> (3 separate Pods).</li>
 </ul>
-<h3>4.17 k3s / k3d (<code>k3s</code>)</h3>
+<h3 id="417-k3s--k3d-k3s">4.17 k3s / k3d (<code>k3s</code>)</h3>
 <ul>
 <li><strong>Beschreibung:</strong> Die zugrundeliegende leichtgewichtige Kubernetes-Distribution. <code>k3s</code> läuft in der Produktion auf den Hetzner-Servern; <code>k3d</code> simuliert ein k3s-Cluster lokal in Docker für Entwicklungszwecke.</li>
 </ul>
-<h3>4.18 WireGuard (<code>wireguard</code>)</h3>
+<h3 id="418-wireguard-wireguard">4.18 WireGuard (<code>wireguard</code>)</h3>
 <ul>
 <li><strong>Beschreibung:</strong> Das verschlüsselte Peer-to-Peer-VPN-Netzwerk (Virtual Private Network). Ermöglicht die sichere Kommunikation zwischen den Cloud-Knoten und externen Hosts (wie dem GPU-Rechner).</li>
 </ul>
-<h3>4.19 TEI (<code>tei</code>)</h3>
+<h3 id="419-tei-tei">4.19 TEI (<code>tei</code>)</h3>
 <ul>
 <li><strong>Beschreibung:</strong> Text Embeddings Inference (Text-Vektorisierung). Dienst zur Generierung von Text-Embeddings (Modell: <code>bge-m3</code>) für die semantische Suche. Läuft auf dem GPU-Host und wird als ClusterIP-Service <code>llm-gateway-embed</code> in Kubernetes bereitgestellt (nur Mentolder).</li>
 </ul>
-<h3>4.20 OpenClaw (<code>openclaw</code>)</h3>
+<h3 id="420-openclaw-openclaw">4.20 OpenClaw (<code>openclaw</code>)</h3>
 <ul>
 <li><strong>Beschreibung:</strong> Ein lokaler KI-Assistent-Dienst (Daemon), der direkt auf dem Windows/WSL2-GPU-Host läuft und mit Ollama kommuniziert. Er wird über das <code>openclaw</code>-CLI verwaltet.</li>
 </ul>
-<h3>4.21 LiveKit Server (<code>livekit</code>)</h3>
+<h3 id="421-livekit-server-livekit">4.21 LiveKit Server (<code>livekit</code>)</h3>
 <ul>
 <li><strong>Beschreibung:</strong> Echtzeit-Audio- und Video-Server (WebRTC) für interaktive Video-Streams. Läuft im Host-Netzwerk (<code>hostNetwork: true</code>) und ist aus Performance-Gründen fest an den Knoten <code>pk-hetzner-4</code> (bzw. im Dev-Fall <code>gekko-hetzner-3</code>) gebunden.</li>
 <li><strong>K8s-Deployment-Name:</strong> <code>livekit-server</code></li>
 <li><strong>K8s-Namespace:</strong> <code>workspace</code></li>
 <li><strong>Produktions-URLs:</strong> <code>livekit.mentolder.de</code>, <code>livekit.korczewski.de</code></li>
 </ul>
-<h3>4.22 LiveKit Ingress (<code>livekit-ingress</code>)</h3>
+<h3 id="422-livekit-ingress-livekit-ingress">4.22 LiveKit Ingress (<code>livekit-ingress</code>)</h3>
 <ul>
 <li><strong>Beschreibung:</strong> Video-Eingangsschnittstelle. Empfängt externe Video-Feeds (z. B. RTMP-Stream aus OBS) und leitet sie in einen LiveKit-Raum weiter.</li>
 <li><strong>K8s-Deployment-Name:</strong> <code>livekit-ingress</code></li>
 <li><strong>K8s-Namespace:</strong> <code>workspace</code></li>
 </ul>
-<h3>4.23 LiveKit Egress (<code>livekit-egress</code>)</h3>
+<h3 id="423-livekit-egress-livekit-egress">4.23 LiveKit Egress (<code>livekit-egress</code>)</h3>
 <ul>
 <li><strong>Beschreibung:</strong> Video-Ausgangsschnittstelle. Zeichnet LiveKit-Sitzungen auf und speichert sie als Videodatei im Backup-Speicher ab.</li>
 <li><strong>K8s-Deployment-Name:</strong> <code>livekit-egress</code></li>
 <li><strong>K8s-Namespace:</strong> <code>workspace</code></li>
 </ul>
-<h3>4.24 Whisper (<code>whisper</code>)</h3>
+<h3 id="424-whisper-whisper">4.24 Whisper (<code>whisper</code>)</h3>
 <ul>
 <li><strong>Beschreibung:</strong> Ein Spracherkennungsmodell (OpenAI Whisper), welches auf dem GPU-Host ausgeführt wird. Es wandelt gesprochene Sprache aus Audioaufnahmen in Text um.</li>
 <li><strong>K8s-Deployment-Name:</strong> <code>whisper</code></li>
 <li><strong>K8s-Namespace:</strong> <code>workspace</code></li>
 </ul>
-<h3>4.25 Talk Transcriber (<code>talk-transcriber</code>)</h3>
+<h3 id="425-talk-transcriber-talk-transcriber">4.25 Talk Transcriber (<code>talk-transcriber</code>)</h3>
 <ul>
 <li><strong>Beschreibung:</strong> Ein Nextcloud Talk Bot, der an laufenden Video-Gesprächen teilnimmt, die Audiospur an den Whisper-Dienst sendet und ein Live-Transkript (Gesprächs-Mitschrift) im Chat ablegt.</li>
 <li><strong>K8s-Deployment-Name:</strong> <code>talk-transcriber</code></li>
 <li><strong>K8s-Namespace:</strong> <code>workspace</code></li>
 </ul>
-<h3>4.26 MCP Monolith (<code>mcp</code>)</h3>
+<h3 id="426-mcp-monolith-mcp">4.26 MCP Monolith (<code>mcp</code>)</h3>
 <ul>
 <li><strong>Beschreibung:</strong> Model Context Protocol Proxy (Claude Code MCP-Server). Ermöglicht dem KI-Coding-Assistenten Claude Code den sicheren, kontrollierten Zugriff auf Cluster-Ressourcen und -Werkzeuge.</li>
 <li><strong>K8s-Deployment-Name:</strong> <code>claude-code-mcp-auth</code> / <code>claude-code-mcp-ops</code></li>
 <li><strong>K8s-Namespace:</strong> <code>workspace</code> (nur Mentolder)</li>
 </ul>
-<h3>4.27 Brainstorm Sish (<code>brainstorm</code>)</h3>
+<h3 id="427-brainstorm-sish-brainstorm">4.27 Brainstorm Sish (<code>brainstorm</code>)</h3>
 <ul>
 <li><strong>Beschreibung:</strong> Ein SSH-Tunnel-Server (sish), der es Entwicklern erlaubt, lokale Entwicklungs-Webseiten oder Whiteboards über einen sicheren SSH-Reverse-Tunnel im Internet erreichbar zu machen.</li>
 <li><strong>K8s-Deployment-Name:</strong> <code>brainstorm-sish</code></li>
 <li><strong>K8s-Namespace:</strong> <code>workspace</code></li>
 <li><strong>Produktions-URLs:</strong> <code>brainstorm.mentolder.de</code></li>
 </ul>
-
+<h3 id="428-arena-server-arena-server">4.28 Arena Server (<code>arena-server</code>)</h3>
+<ul>
+<li><strong>Beschreibung:</strong> Der exklusive 3D-Mehrspieler-WebSocket-Spielserver für die Marke Korczewski, der Logins über Keycloak-JSON-Web-Tokens (JWT) beider Marken validiert.</li>
+<li><strong>K8s-Deployment-Name:</strong> <code>arena-server</code></li>
+<li><strong>K8s-Namespace:</strong> <code>workspace-korczewski</code></li>
+<li><strong>Image-Tag:</strong> <code>:latest</code></li>
+</ul>
 <hr>
 <h2 id="5-dokumentations-abdeckung-des-repositories">5. Dokumentations-Abdeckung des Repositories</h2>
 <p>Damit kein Teil des Projekts und des Repositories unbeleuchtet bleibt, ordnet die folgende Tabelle jedem Ordner und jeder Datei im Repository das zuständige Hilfe-Dokument zu:</p>
@@ -455,6 +509,11 @@
 <td><a href="systembrett.html">Systembrett-Doku</a></td>
 </tr>
 <tr>
+<td><strong><code>arena-server/</code></strong></td>
+<td>Multiplayer-WebSocket-Spielserver für die Marke Korczewski</td>
+<td><a href="arena.html">Arena-Dokumentation</a></td>
+</tr>
+<tr>
 <td><strong><code>claude-code/</code></strong></td>
 <td>MCP Monolith Konfigurationen für den Claude Code Agenten</td>
 <td><a href="claude-code.html">Claude-Code Integration</a></td>
@@ -498,7 +557,9 @@
 </body></html>
 </article>
 
+<nav class="prevnext" aria-label="Seitennavigation"><a class="prevnext-link prevnext-prev" href="./30-bausteine.html"><span class="prevnext-label">← Zurück</span><span class="prevnext-title">Bausteine — Was läuft auf der Plattform?</span></a><a class="prevnext-link prevnext-next" href="./db-schema.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">Shared DB — Schema Reference &amp; Normalization Audit</span></a></nav>
   </main>
+</div>
 </div>
 <footer class="site-footer">
   <span>Workspace MVP — generierte Dokumentation</span>

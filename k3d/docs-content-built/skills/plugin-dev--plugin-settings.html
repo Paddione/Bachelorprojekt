@@ -10,19 +10,24 @@
 <link rel="stylesheet" href="../style.css">
 </head>
 <body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
 <header class="site-header">
   <a class="site-header-brand" href="../index.html">
     <span class="site-mark" aria-hidden="true">◆</span>
     <span class="site-wordmark">Dokumentation</span>
   </a>
 </header>
-<div id="search-overlay">
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
   <div id="search-box">
-    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
-    <div id="search-results"></div>
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
   </div>
 </div>
 <div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Dev-Workflow</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-architect.html">code-architect</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-architect.html">code-architect</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-explorer.html">code-explorer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-explorer.html">code-explorer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/code-simplifier--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--comment-analyzer.html">comment-analyzer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--comment-analyzer.html">comment-analyzer</a></li><li class="sidebar-item"><a href="../skills/dev-flow-e2e.html">dev-flow-e2e</a></li><li class="sidebar-item"><a href="../skills/dev-flow-execute.html">dev-flow-execute</a></li><li class="sidebar-item"><a href="../skills/dev-flow-plan.html">dev-flow-plan</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--pr-test-analyzer.html">pr-test-analyzer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--pr-test-analyzer.html">pr-test-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--silent-failure-hunter.html">Silent Failure Hunter</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--silent-failure-hunter.html">silent-failure-hunter</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--type-design-analyzer.html">type-design-analyzer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--type-design-analyzer.html">type-design-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Bachelorprojekt-Infra</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/cluster-deployment.html">cluster-deployment</a></li><li class="sidebar-item"><a href="../skills/database-ops.html">database-ops</a></li><li class="sidebar-item"><a href="../skills/host-node-networking.html">host-node-networking</a></li><li class="sidebar-item"><a href="../skills/keycloak-realm-sync.html">keycloak-realm-sync</a></li><li class="sidebar-item"><a href="../skills/mishap-tracker.html">mishap-tracker</a></li><li class="sidebar-item"><a href="../skills/operations-management.html">operations-management</a></li><li class="sidebar-item"><a href="../skills/secret-rotation.html">secret-rotation</a></li><li class="sidebar-item"><a href="../skills/update-dependencies.html">update-dependencies</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">KI / ML</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">Plugin- &amp; Skill-Bau</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../agents/plugin-dev--agent-creator.html">agent-creator</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--agent-creator.html">agent-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--agent-development.html">agent-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--agent-development.html">agent-development</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-py.html">agent-sdk-verifier-py</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-py.html">agent-sdk-verifier-py</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-ts.html">agent-sdk-verifier-ts</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-ts.html">agent-sdk-verifier-ts</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--command-development.html">command-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--command-development.html">command-development</a></li><li class="sidebar-item"><a href="../agents/hookify--conversation-analyzer.html">conversation-analyzer</a></li><li class="sidebar-item"><a href="../agents/hookify--conversation-analyzer.html">conversation-analyzer</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--hook-development.html">hook-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--hook-development.html">hook-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--mcp-integration.html">mcp-integration</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--mcp-integration.html">mcp-integration</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/plugin-dev--plugin-settings.html" aria-current="page">plugin-settings</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/plugin-dev--plugin-settings.html" aria-current="page">plugin-settings</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-structure.html">plugin-structure</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-structure.html">plugin-structure</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--plugin-validator.html">plugin-validator</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--plugin-validator.html">plugin-validator</a></li><li class="sidebar-item"><a href="../skills/skill-creator--skill-creator.html">skill-creator</a></li><li class="sidebar-item"><a href="../skills/skill-creator--skill-creator.html">skill-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--skill-development.html">skill-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--skill-development.html">skill-development</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--skill-reviewer.html">skill-reviewer</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--skill-reviewer.html">skill-reviewer</a></li><li class="sidebar-item"><a href="../skills/hookify--writing-rules.html">writing-hookify-rules</a></li><li class="sidebar-item"><a href="../skills/hookify--writing-rules.html">writing-hookify-rules</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Browser &amp; Debugging</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers-chrome--browsing.html">browsing</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">MCP &amp; API</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/postman--agent-ready-apis.html">agent-ready-apis</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-app.html">build-mcp-app</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-app.html">build-mcp-app</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-server.html">build-mcp-server</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-server.html">build-mcp-server</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcpb.html">build-mcpb</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcpb.html">build-mcpb</a></li><li class="sidebar-item"><a href="../skills/postman--generate-spec.html">generate-spec</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--mcp-cli.html">mcp-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-cli.html">postman-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-context.html">postman-context</a></li><li class="sidebar-item"><a href="../skills/postman--postman-knowledge.html">postman-knowledge</a></li><li class="sidebar-item"><a href="../skills/postman--run-collection.html">run-collection</a></li><li class="sidebar-item"><a href="../skills/postman--send-request.html">send-request</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Claude Code &amp; Tooling</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/brightdata-plugin--agent-onboarding.html">agent-onboarding</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brand-listening.html">brand-listening</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brd-browser-debug.html">brd-browser-debug</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-best-practices.html">bright-data-best-practices</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-mcp.html">bright-data-mcp</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brightdata-cli.html">brightdata-cli</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--proxy.html">brightdata-proxy</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--python-sdk-best-practices.html">brightdata-sdk</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--js-sdk-best-practices.html">brightdata-sdk-js</a></li><li class="sidebar-item"><a href="../skills/claude-code-setup--claude-automation-recommender.html">claude-automation-recommender</a></li><li class="sidebar-item"><a href="../skills/claude-md-management--claude-md-improver.html">claude-md-improver</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--competitive-intel.html">competitive-intel</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--data-feeds.html">data-feeds</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--design-mirror.html">design-mirror</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/dev-flow-chore.html">dev-flow-chore</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--developing-claude-code-plugins.html">developing-claude-code-plugins</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--discover-api.html">discover-api</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--finding-duplicate-functions.html">finding-duplicate-functions</a></li><li class="sidebar-item"><a href="../skills/frontend-design--frontend-design.html">frontend-design</a></li><li class="sidebar-item"><a href="../skills/frontend-design--frontend-design.html">frontend-design</a></li><li class="sidebar-item"><a href="../skills/git-workflow.html">git-workflow</a></li><li class="sidebar-item"><a href="../skills/incident-response.html">incident-response</a></li><li class="sidebar-item"><a href="../skills/infra-ops.html">infra-ops</a></li><li class="sidebar-item"><a href="../skills/lavish.html">lavish</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--live-research.html">live-research</a></li><li class="sidebar-item"><a href="../skills/llm-ops.html">llm-ops</a></li><li class="sidebar-item"><a href="../skills/playground--playground.html">playground</a></li><li class="sidebar-item"><a href="../skills/playground--playground.html">playground</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--price-comparison.html">price-comparison</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--rag-pipeline.html">rag-pipeline</a></li><li class="sidebar-item"><a href="../skills/references.html">references</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scrape.html">scrape</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-builder.html">scraper-builder</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-studio.html">scraper-studio</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--search.html">search</a></li><li class="sidebar-item"><a href="../skills/sourcegraph--searching-sourcegraph.html">searching-sourcegraph</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--seo-audit.html">seo-audit</a></li><li class="sidebar-item"><a href="../skills/ticket-ops.html">ticket-ops</a></li><li class="sidebar-item"><a href="../skills/braintrust--troubleshoot-braintrust-mcp.html">troubleshoot-braintrust-mcp</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--using-tmux-for-interactive-commands.html">using-tmux-for-interactive-commands</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--windows-vm.html">windows-vm</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--working-with-claude-code.html">working-with-claude-code</a></li><li class="sidebar-item"><a href="../skills/workspace-deploy.html">workspace-deploy</a></li></ul></details>
+</aside>
   <main id="main">
 <header class="page-header">
   <div class="page-header-body">
@@ -41,15 +46,45 @@
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#overview"><span class="toc-num">1.</span> Overview</a></li>
 <li class="toc-item"><a href="#file-structure"><span class="toc-num">2.</span> File Structure</a></li>
+<li class="toc-item toc-item--h3"><a href="#basic-template"><span class="toc-num">–</span> Basic Template</a></li>
+<li class="toc-item toc-item--h3"><a href="#example-plugin-state-file"><span class="toc-num">–</span> Example: Plugin State File</a></li>
 <li class="toc-item"><a href="#reading-settings-files"><span class="toc-num">3.</span> Reading Settings Files</a></li>
+<li class="toc-item toc-item--h3"><a href="#from-hooks-bash-scripts"><span class="toc-num">–</span> From Hooks (Bash Scripts)</a></li>
+<li class="toc-item toc-item--h3"><a href="#from-commands"><span class="toc-num">–</span> From Commands</a></li>
+<li class="toc-item toc-item--h3"><a href="#from-agents"><span class="toc-num">–</span> From Agents</a></li>
 <li class="toc-item"><a href="#parsing-techniques"><span class="toc-num">4.</span> Parsing Techniques</a></li>
+<li class="toc-item toc-item--h3"><a href="#extract-frontmatter"><span class="toc-num">–</span> Extract Frontmatter</a></li>
+<li class="toc-item toc-item--h3"><a href="#read-individual-fields"><span class="toc-num">–</span> Read Individual Fields</a></li>
+<li class="toc-item toc-item--h3"><a href="#read-markdown-body"><span class="toc-num">–</span> Read Markdown Body</a></li>
 <li class="toc-item"><a href="#common-patterns"><span class="toc-num">5.</span> Common Patterns</a></li>
+<li class="toc-item toc-item--h3"><a href="#pattern-1-temporarily-active-hooks"><span class="toc-num">–</span> Pattern 1: Temporarily Active Hooks</a></li>
+<li class="toc-item toc-item--h3"><a href="#pattern-2-agent-state-management"><span class="toc-num">–</span> Pattern 2: Agent State Management</a></li>
+<li class="toc-item toc-item--h3"><a href="#pattern-3-configuration-driven-behavior"><span class="toc-num">–</span> Pattern 3: Configuration-Driven Behavior</a></li>
 <li class="toc-item"><a href="#creating-settings-files"><span class="toc-num">6.</span> Creating Settings Files</a></li>
+<li class="toc-item toc-item--h3"><a href="#from-commands"><span class="toc-num">–</span> From Commands</a></li>
+<li class="toc-item toc-item--h3"><a href="#template-generation"><span class="toc-num">–</span> Template Generation</a></li>
 <li class="toc-item"><a href="#best-practices"><span class="toc-num">7.</span> Best Practices</a></li>
+<li class="toc-item toc-item--h3"><a href="#file-naming"><span class="toc-num">–</span> File Naming</a></li>
+<li class="toc-item toc-item--h3"><a href="#gitignore"><span class="toc-num">–</span> Gitignore</a></li>
+<li class="toc-item toc-item--h3"><a href="#defaults"><span class="toc-num">–</span> Defaults</a></li>
+<li class="toc-item toc-item--h3"><a href="#validation"><span class="toc-num">–</span> Validation</a></li>
+<li class="toc-item toc-item--h3"><a href="#restart-requirement"><span class="toc-num">–</span> Restart Requirement</a></li>
 <li class="toc-item"><a href="#security-considerations"><span class="toc-num">8.</span> Security Considerations</a></li>
+<li class="toc-item toc-item--h3"><a href="#sanitize-user-input"><span class="toc-num">–</span> Sanitize User Input</a></li>
+<li class="toc-item toc-item--h3"><a href="#validate-file-paths"><span class="toc-num">–</span> Validate File Paths</a></li>
+<li class="toc-item toc-item--h3"><a href="#permissions"><span class="toc-num">–</span> Permissions</a></li>
 <li class="toc-item"><a href="#real-world-examples"><span class="toc-num">9.</span> Real-World Examples</a></li>
+<li class="toc-item toc-item--h3"><a href="#multi-agent-swarm-plugin"><span class="toc-num">–</span> multi-agent-swarm Plugin</a></li>
+<li class="toc-item toc-item--h3"><a href="#ralph-loop-plugin"><span class="toc-num">–</span> ralph-loop Plugin</a></li>
 <li class="toc-item"><a href="#quick-reference"><span class="toc-num">10.</span> Quick Reference</a></li>
+<li class="toc-item toc-item--h3"><a href="#file-location"><span class="toc-num">–</span> File Location</a></li>
+<li class="toc-item toc-item--h3"><a href="#frontmatter-parsing"><span class="toc-num">–</span> Frontmatter Parsing</a></li>
+<li class="toc-item toc-item--h3"><a href="#body-parsing"><span class="toc-num">–</span> Body Parsing</a></li>
+<li class="toc-item toc-item--h3"><a href="#quick-exit-pattern"><span class="toc-num">–</span> Quick Exit Pattern</a></li>
 <li class="toc-item"><a href="#additional-resources"><span class="toc-num">11.</span> Additional Resources</a></li>
+<li class="toc-item toc-item--h3"><a href="#reference-files"><span class="toc-num">–</span> Reference Files</a></li>
+<li class="toc-item toc-item--h3"><a href="#example-files"><span class="toc-num">–</span> Example Files</a></li>
+<li class="toc-item toc-item--h3"><a href="#utility-scripts"><span class="toc-num">–</span> Utility Scripts</a></li>
 <li class="toc-item"><a href="#implementation-workflow"><span class="toc-num">12.</span> Implementation Workflow</a></li></ul>
 </div>
 <h2 id="overview">Overview</h2>
@@ -63,7 +98,7 @@
 <li>Lifecycle: User-managed (not in git, should be in <code>.gitignore</code>)</li>
 </ul>
 <h2 id="file-structure">File Structure</h2>
-<h3>Basic Template</h3>
+<h3 id="basic-template">Basic Template</h3>
 <div class="code-wrapper"><pre><code class="language-markdown">---
 enabled: true
 setting1: value1
@@ -80,7 +115,7 @@ This markdown body can contain:
 - Prompts to feed back to Claude
 - Documentation or notes
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Example: Plugin State File</h3>
+<h3 id="example-plugin-state-file">Example: Plugin State File</h3>
 <p><strong>.claude/my-plugin.local.md:</strong></p>
 <div class="code-wrapper"><pre><code class="language-markdown">---
 enabled: true
@@ -96,7 +131,7 @@ This plugin is configured for standard validation mode.
 Contact @team-lead with questions.
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h2 id="reading-settings-files">Reading Settings Files</h2>
-<h3>From Hooks (Bash Scripts)</h3>
+<h3 id="from-hooks-bash-scripts">From Hooks (Bash Scripts)</h3>
 <p><strong>Pattern: Check existence and parse frontmatter</strong></p>
 <div class="code-wrapper"><pre><code class="language-bash">#!/bin/bash
 set -euo pipefail
@@ -128,7 +163,7 @@ if &amp;quot;$STRICT_MODE&amp;quot; == &amp;quot;true&amp;quot;; then
 fi
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>See <code>examples/read-settings-hook.sh</code> for complete working example.</p>
-<h3>From Commands</h3>
+<h3 id="from-commands">From Commands</h3>
 <p>Commands can read settings files to customize behavior:</p>
 <div class="code-wrapper"><pre><code class="language-markdown">---
 description: Process data with plugin
@@ -144,7 +179,7 @@ Steps:
 4. Apply settings to processing logic
 5. Execute with configured behavior
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>From Agents</h3>
+<h3 id="from-agents">From Agents</h3>
 <p>Agents can reference settings in their instructions:</p>
 <div class="code-wrapper"><pre><code class="language-markdown">---
 name: configured-agent
@@ -158,11 +193,11 @@ If present, parse YAML frontmatter and adapt behavior according to:
 - Additional configuration fields
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h2 id="parsing-techniques">Parsing Techniques</h2>
-<h3>Extract Frontmatter</h3>
+<h3 id="extract-frontmatter">Extract Frontmatter</h3>
 <div class="code-wrapper"><pre><code class="language-bash"># Extract everything between --- markers
 FRONTMATTER=$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' "$FILE")
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Read Individual Fields</h3>
+<h3 id="read-individual-fields">Read Individual Fields</h3>
 <p><strong>String fields:</strong></p>
 <div class="code-wrapper"><pre><code class="language-bash">VALUE=$(echo "$FRONTMATTER" | grep '^field_name:' | sed 's/field_name: *//' | sed 's/^"\(.*\)"$/\1/')
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
@@ -174,13 +209,13 @@ FRONTMATTER=$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' "$FILE")
 <div class="code-wrapper"><pre><code class="language-bash">MAX=$(echo "$FRONTMATTER" | grep '^max_value:' | sed 's/max_value: *//')
 # Use: if $MAX -gt 100; then
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Read Markdown Body</h3>
+<h3 id="read-markdown-body">Read Markdown Body</h3>
 <p>Extract content after second <code>---</code>:</p>
 <div class="code-wrapper"><pre><code class="language-bash"># Get everything after closing ---
 BODY=$(awk '/^---$/{i++; next} i&gt;=2' "$FILE")
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h2 id="common-patterns">Common Patterns</h2>
-<h3>Pattern 1: Temporarily Active Hooks</h3>
+<h3 id="pattern-1-temporarily-active-hooks">Pattern 1: Temporarily Active Hooks</h3>
 <p>Use settings file to control hook activation:</p>
 <div class="code-wrapper"><pre><code class="language-bash">#!/bin/bash
 STATE_FILE=".claude/security-scan.local.md"
@@ -202,7 +237,7 @@ fi
 # ...
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p><strong>Use case:</strong> Enable/disable hooks without editing hooks.json (requires restart).</p>
-<h3>Pattern 2: Agent State Management</h3>
+<h3 id="pattern-2-agent-state-management">Pattern 2: Agent State Management</h3>
 <p>Store agent-specific state and configuration:</p>
 <p><strong>.claude/multi-agent-swarm.local.md:</strong></p>
 <div class="code-wrapper"><pre><code class="language-markdown">---
@@ -230,7 +265,7 @@ COORDINATOR=$(echo "$FRONTMATTER" | grep '^coordinator_session:' | sed 's/coordi
 # Send notification to coordinator
 tmux send-keys -t "$COORDINATOR" "Agent $AGENT_NAME completed task" Enter
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Pattern 3: Configuration-Driven Behavior</h3>
+<h3 id="pattern-3-configuration-driven-behavior">Pattern 3: Configuration-Driven Behavior</h3>
 <p><strong>.claude/my-plugin.local.md:</strong></p>
 <div class="code-wrapper"><pre><code class="language-markdown">---
 validation_level: strict
@@ -260,7 +295,7 @@ case "$LEVEL" in
 esac
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h2 id="creating-settings-files">Creating Settings Files</h2>
-<h3>From Commands</h3>
+<h3 id="from-commands">From Commands</h3>
 <p>Commands can create settings files:</p>
 <div class="code-wrapper"><pre><code class="language-markdown"># Setup Command
 
@@ -271,7 +306,7 @@ Steps:
 4. Inform user that settings are saved
 5. Remind user to restart Claude Code for hooks to recognize changes
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Template Generation</h3>
+<h3 id="template-generation">Template Generation</h3>
 <p>Provide template in plugin README:</p>
 <div class="code-wrapper"><pre><code class="language-markdown">## Configuration
 
@@ -292,7 +327,7 @@ Your settings are active.
 After creating or editing, restart Claude Code for changes to take effect.
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h2 id="best-practices">Best Practices</h2>
-<h3>File Naming</h3>
+<h3 id="file-naming">File Naming</h3>
 <p>✅ <strong>DO:</strong></p>
 <ul>
 <li>Use <code>.claude/plugin-name.local.md</code> format</li>
@@ -305,13 +340,13 @@ After creating or editing, restart Claude Code for changes to take effect.
 <li>Use inconsistent naming</li>
 <li>Use <code>.md</code> without <code>.local</code> (might be committed)</li>
 </ul>
-<h3>Gitignore</h3>
+<h3 id="gitignore">Gitignore</h3>
 <p>Always add to <code>.gitignore</code>:</p>
 <div class="code-wrapper"><pre><code class="language-gitignore">.claude/*.local.md
 .claude/*.local.json
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>Document this in plugin README.</p>
-<h3>Defaults</h3>
+<h3 id="defaults">Defaults</h3>
 <p>Provide sensible defaults when settings file doesn't exist:</p>
 <div class="code-wrapper"><pre><code class="language-bash">if ! -f &amp;quot;$STATE_FILE&amp;quot;; then
   # Use defaults
@@ -322,7 +357,7 @@ else
   # ...
 fi
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Validation</h3>
+<h3 id="validation">Validation</h3>
 <p>Validate settings values:</p>
 <div class="code-wrapper"><pre><code class="language-bash">MAX=$(echo "$FRONTMATTER" | grep '^max_value:' | sed 's/max_value: *//')
 
@@ -332,7 +367,7 @@ if ! [[ "$MAX" =~ ^[0-9]+$ ]] || $MAX -lt 1 || $MAX -gt 100; then
   MAX=10  # Use default
 fi
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Restart Requirement</h3>
+<h3 id="restart-requirement">Restart Requirement</h3>
 <p><strong>Important:</strong> Settings changes require Claude Code restart.</p>
 <p>Document in your README:</p>
 <div class="code-wrapper"><pre><code class="language-markdown">## Changing Settings
@@ -345,7 +380,7 @@ After editing `.claude/my-plugin.local.md`:
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>Hooks cannot be hot-swapped within a session.</p>
 <h2 id="security-considerations">Security Considerations</h2>
-<h3>Sanitize User Input</h3>
+<h3 id="sanitize-user-input">Sanitize User Input</h3>
 <p>When writing settings files from user input:</p>
 <div class="code-wrapper"><pre><code class="language-bash"># Escape quotes in user input
 SAFE_VALUE=$(echo "$USER_INPUT" | sed 's/"/\\"/g')
@@ -357,7 +392,7 @@ user_setting: "$SAFE_VALUE"
 ---
 EOF
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Validate File Paths</h3>
+<h3 id="validate-file-paths">Validate File Paths</h3>
 <p>If settings contain file paths:</p>
 <div class="code-wrapper"><pre><code class="language-bash">FILE_PATH=$(echo "$FRONTMATTER" | grep '^data_file:' | sed 's/data_file: *//')
 
@@ -367,7 +402,7 @@ if &amp;quot;$FILE_PATH&amp;quot; == *&amp;quot;..&amp;quot;*; then
   exit 2
 fi
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Permissions</h3>
+<h3 id="permissions">Permissions</h3>
 <p>Settings files should be:</p>
 <ul>
 <li>Readable by user only (<code>chmod 600</code>)</li>
@@ -375,7 +410,7 @@ fi
 <li>Not shared between users</li>
 </ul>
 <h2 id="real-world-examples">Real-World Examples</h2>
-<h3>multi-agent-swarm Plugin</h3>
+<h3 id="multi-agent-swarm-plugin">multi-agent-swarm Plugin</h3>
 <p><strong>.claude/multi-agent-swarm.local.md:</strong></p>
 <div class="code-wrapper"><pre><code class="language-markdown">---
 agent_name: auth-implementation
@@ -399,7 +434,7 @@ Coordinate with auth-agent on shared types.
 <li>Sends notifications to coordinator if enabled</li>
 <li>Allows quick activation/deactivation via <code>enabled: true/false</code></li>
 </ul>
-<h3>ralph-loop Plugin</h3>
+<h3 id="ralph-loop-plugin">ralph-loop Plugin</h3>
 <p><strong>.claude/ralph-loop.local.md:</strong></p>
 <div class="code-wrapper"><pre><code class="language-markdown">---
 iteration: 1
@@ -419,42 +454,42 @@ Make sure tests pass after each fix.
 <li>Updates iteration count on each loop</li>
 </ul>
 <h2 id="quick-reference">Quick Reference</h2>
-<h3>File Location</h3>
+<h3 id="file-location">File Location</h3>
 <div class="code-wrapper"><pre><code>project-root/
 └── .claude/
     └── plugin-name.local.md
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Frontmatter Parsing</h3>
+<h3 id="frontmatter-parsing">Frontmatter Parsing</h3>
 <div class="code-wrapper"><pre><code class="language-bash"># Extract frontmatter
 FRONTMATTER=$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' "$FILE")
 
 # Read field
 VALUE=$(echo "$FRONTMATTER" | grep '^field:' | sed 's/field: *//' | sed 's/^"\(.*\)"$/\1/')
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Body Parsing</h3>
+<h3 id="body-parsing">Body Parsing</h3>
 <div class="code-wrapper"><pre><code class="language-bash"># Extract body (after second ---)
 BODY=$(awk '/^---$/{i++; next} i&gt;=2' "$FILE")
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Quick Exit Pattern</h3>
+<h3 id="quick-exit-pattern">Quick Exit Pattern</h3>
 <div class="code-wrapper"><pre><code class="language-bash">if ! -f &amp;quot;.claude/my-plugin.local.md&amp;quot;; then
   exit 0  # Not configured
 fi
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h2 id="additional-resources">Additional Resources</h2>
-<h3>Reference Files</h3>
+<h3 id="reference-files">Reference Files</h3>
 <p>For detailed implementation patterns:</p>
 <ul>
 <li><strong><code>references/parsing-techniques.md</code></strong> - Complete guide to parsing YAML frontmatter and markdown bodies</li>
 <li><strong><code>references/real-world-examples.md</code></strong> - Deep dive into multi-agent-swarm and ralph-loop implementations</li>
 </ul>
-<h3>Example Files</h3>
+<h3 id="example-files">Example Files</h3>
 <p>Working examples in <code>examples/</code>:</p>
 <ul>
 <li><strong><code>read-settings-hook.sh</code></strong> - Hook that reads and uses settings</li>
 <li><strong><code>create-settings-command.md</code></strong> - Command that creates settings file</li>
 <li><strong><code>example-settings.md</code></strong> - Template settings file</li>
 </ul>
-<h3>Utility Scripts</h3>
+<h3 id="utility-scripts">Utility Scripts</h3>
 <p>Development tools in <code>scripts/</code>:</p>
 <ul>
 <li><strong><code>validate-settings.sh</code></strong> - Validate settings file structure</li>
@@ -475,7 +510,9 @@ fi
 </body></html>
 </article>
 
+<nav class="prevnext" aria-label="Seitennavigation"><a class="prevnext-link prevnext-prev" href="../skills/plugin-dev--plugin-settings.html"><span class="prevnext-label">← Zurück</span><span class="prevnext-title">plugin-settings</span></a><a class="prevnext-link prevnext-next" href="../skills/plugin-dev--plugin-structure.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">plugin-structure</span></a></nav>
   </main>
+</div>
 </div>
 <footer class="site-footer">
   <span>Workspace MVP — generierte Dokumentation</span>

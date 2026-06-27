@@ -3,9 +3,31 @@
 // validateRegistry -> loadRegistry -> render 3 pure templates -> write docs/agent-guide/maps/*.md.
 // No YAML parsing of its own: it depends on S1's scripts/agent-guide/load.mjs.
 
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile, rename } from 'node:fs/promises';
+import { randomBytes } from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+
+/**
+ * Atomically write `body` to `dest` via tmp-file + rename.
+ * Prevents readers (concurrent git checkout, hooks, watchers) from observing
+ * a half-written or empty file when this emitter is interrupted mid-write.
+ * The previous non-atomic writeFile truncated dest to 0 bytes before writing,
+ * so any concurrent reader that opened dest after the truncate but before the
+ * write finished saw an empty file. Now: tmp lives next to dest, rename(2) is
+ * atomic on POSIX so dest jumps from old content to new content in one step.
+ */
+async function atomicWriteFile(dest, body) {
+  const tmp = `${dest}.${randomBytes(6).toString('hex')}.tmp`;
+  try {
+    await writeFile(tmp, body, 'utf8');
+    await rename(tmp, dest);
+  } catch (err) {
+    // Best-effort cleanup of the tmp on failure; ignore ENOENT (already gone).
+    try { await rename(tmp, dest); } catch { /* ignore */ }
+    throw err;
+  }
+}
 
 // S1's shared reader (merged): the single YAML parse is routed through load.mjs.
 // loadRegistry returns the five arrays; tierFor/toolById/guardrailById are module-level
@@ -243,7 +265,7 @@ export async function emitAll({ registryDir, mapsDir, repoRoot, validate }) {
   await mkdir(mapsDir, { recursive: true });
   for (const f of files) {
     const dest = join(mapsDir, f.name);
-    await writeFile(dest, f.body, 'utf8');
+    await atomicWriteFile(dest, f.body);
     console.log(`Wrote ${f.count} ${f.unit} to ${dest}`);
   }
 }

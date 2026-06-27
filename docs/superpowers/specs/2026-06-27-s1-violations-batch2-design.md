@@ -1,5 +1,5 @@
 ---
-ticket_id: T001108
+ticket_id: T001155
 plan_ref: openspec/changes/s1-violations-batch2/tasks.md
 status: active
 date: 2026-06-27
@@ -8,7 +8,7 @@ date: 2026-06-27
 # Design Spec: s1-violations-batch2 (G-RH01 Wave 2)
 
 **Datum:** 2026-06-27
-**Ticket:** T001108 (Folge von Batch 1, gemergt in #2083)
+**Ticket:** T001155 (Folge von Batch 1: T001108, gemergt in #2083)
 **Branch:** feature/s1-frozen-paydown
 **Status:** approved
 **Slug:** `s1-violations-batch2`

@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/svelte';
 import GrillingStepper from './GrillingStepper.svelte';
-import { QUESTIONNAIRES } from '../../lib/tickets/grilling';
+import { QUESTIONNAIRES, type GrillingAnswers, type GrillingMeta } from '../../lib/tickets/grilling';
 
 const QN = 'coaching-sessions-v1';
 
-function setup(answers: any = null, meta: any = null) {
+function setup(answers: GrillingAnswers | null = null, meta: GrillingMeta | null = null) {
   return render(GrillingStepper, {
     props: { ticketId: 't1', questionnaireId: QN, grillingAnswers: answers, grillingMeta: meta },
   });
@@ -105,7 +105,7 @@ describe('GrillingStepper — Export', () => {
   });
 });
 
-function setupFinal(answers: any = null, meta: any = null) {
+function setupFinal(answers: GrillingAnswers | null = null, meta: GrillingMeta | null = null) {
   return render(GrillingStepper, {
     props: { ticketId: 't1', questionnaireId: 'final-grilling-v1', grillingAnswers: answers, grillingMeta: meta },
   });

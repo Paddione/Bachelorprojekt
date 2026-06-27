@@ -15,14 +15,14 @@ describe('GET /api/admin/dora-metrics', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('401 when not admin', async () => {
-    (getSession as any).mockResolvedValue(null);
+    vi.mocked(getSession).mockResolvedValue(null);
     const res = await GET({ request: mkReq(), locals } as any);
     expect(res.status).toBe(401);
   });
 
   it('returns DORA metrics for an admin', async () => {
-    (getSession as any).mockResolvedValue({ preferred_username: 'admin', sub: 'a', email: 'a@x' });
-    (isAdmin as any).mockReturnValue(true);
+    vi.mocked(getSession).mockResolvedValue({ preferred_username: 'admin', sub: 'a', email: 'a@x' });
+    vi.mocked(isAdmin).mockReturnValue(true);
     // first query = merges, second = bugs (order matches the route's Promise.all)
     (pool.query as any)
       .mockResolvedValueOnce({ rows: [
@@ -41,8 +41,8 @@ describe('GET /api/admin/dora-metrics', () => {
   });
 
   it('returns 500 on a query failure (logged, not thrown)', async () => {
-    (getSession as any).mockResolvedValue({ preferred_username: 'admin', sub: 'a', email: 'a@x' });
-    (isAdmin as any).mockReturnValue(true);
+    vi.mocked(getSession).mockResolvedValue({ preferred_username: 'admin', sub: 'a', email: 'a@x' });
+    vi.mocked(isAdmin).mockReturnValue(true);
     (pool.query as any).mockRejectedValue(new Error('db down'));
     const res = await GET({ request: mkReq(), locals } as any);
     expect(res.status).toBe(500);

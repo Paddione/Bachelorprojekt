@@ -74,14 +74,14 @@ describe('SessionsHistory', () => {
 
   it('shows Load More button if hasMore is true and fetches offset 50', async () => {
     // Override fetch mock to return hasMore: true
-    (fetch as any).mockResolvedValue({
+    vi.mocked(fetch).mockResolvedValue({
       ok: true,
       json: async () => ({
         items: sampleHistory.items,
         total: 52,
         hasMore: true
       })
-    });
+    } as Response);
 
     const { getByRole } = render(SessionsHistory);
     
@@ -95,14 +95,14 @@ describe('SessionsHistory', () => {
   });
 
   it('renders empty state if no archived sessions', async () => {
-    (fetch as any).mockResolvedValue({
+    vi.mocked(fetch).mockResolvedValue({
       ok: true,
       json: async () => ({
         items: [],
         total: 0,
         hasMore: false
       })
-    });
+    } as Response);
 
     const { getByText } = render(SessionsHistory);
     await waitFor(() => {

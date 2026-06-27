@@ -152,7 +152,7 @@ describe('cockpit-presets pure logic', () => {
     const p1 = savePreset('Oldest', filterState);
     // Mock setItem to throw QuotaExceededError on next save unless we have reduced size
     let callCount = 0;
-    const storeMock = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (this: any, key, value) {
+    const storeMock = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (this: Storage, key, value) {
       callCount++;
       if (callCount === 1) {
         const err = new DOMException('The quota has been exceeded.', 'QuotaExceededError');

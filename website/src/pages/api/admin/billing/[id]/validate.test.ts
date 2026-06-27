@@ -7,25 +7,26 @@ vi.mock('../../../../../lib/auth', () => ({
 
 const mockQuery = vi.fn();
 vi.mock('../../../../../lib/website-db', () => ({
-  pool: { query: (...args: any[]) => mockQuery(...args) },
+  pool: { query: (...args: unknown[]) => mockQuery(...args) },
 }));
 
 const mockValidate = vi.fn();
 vi.mock('../../../../../lib/einvoice/sidecar-client', () => ({
   createSidecarClient: vi.fn().mockReturnValue({
-    validate: (...args: any[]) => mockValidate(...args),
+    validate: (...args: unknown[]) => mockValidate(...args),
   }),
   sidecarBaseUrlFromEnv: vi.fn().mockReturnValue('http://sidecar'),
 }));
 
 import { getSession, isAdmin } from '../../../../../lib/auth';
+import type { UserSession } from '../../../../../lib/auth';
 import { POST } from './validate';
 
-const mockSession = { user: { id: 'admin1' } };
+const mockSession = { user: { id: 'admin1' } } as unknown as UserSession;
 
 describe('POST /api/admin/billing/[id]/validate', () => {
   beforeEach(() => {
-    vi.mocked(getSession).mockResolvedValue(mockSession as any);
+    vi.mocked(getSession).mockResolvedValue(mockSession);
     vi.mocked(isAdmin).mockReturnValue(true);
     mockQuery.mockReset();
     mockValidate.mockReset();

@@ -112,7 +112,7 @@ describe('GET /cockpit/feature', () => {
 // ---------------------------------------------------------------------------
 // Task 9: POST /cockpit/reorder
 // ---------------------------------------------------------------------------
-const post = (route: any, body: unknown) => route({
+const post = (route: (args: { request: Request }) => Promise<Response>, body: unknown) => route({
   request: new Request('http://x', { method: 'POST', headers: { cookie: 'sid=1' }, body: JSON.stringify(body) }),
 } as any);
 
@@ -324,7 +324,7 @@ describe('POST /cockpit/suggest', () => {
     // Only F1 (valid) and F2 (valid, impact niedrig) should remain; empty featureId, missing featureId dropped;
     // F3 has invalid impact which should be dropped but item still valid
     expect(body.suggestions.length).toBeGreaterThanOrEqual(3);
-    expect(body.suggestions.every((s: any) => s.featureId && s.featureId.length > 0)).toBe(true);
+    expect(body.suggestions.every((s: { featureId?: string }) => s.featureId && s.featureId.length > 0)).toBe(true);
   });
 
   it('504 when LLM call times out (B1)', async () => {
@@ -390,7 +390,7 @@ describe('POST /cockpit/feature-actions', () => {
     const body = await res.json();
     expect(body.ok).toBe(true);
     expect(body.results).toHaveLength(2);
-    expect(body.results.every((r: any) => r.success)).toBe(true);
+    expect(body.results.every((r: { success: boolean }) => r.success)).toBe(true);
     expect(mocks.setFeatureAction).toHaveBeenCalledTimes(2);
     expect(mocks.setFeatureAction).toHaveBeenCalledWith('mentolder', 'f1', 'next_step', true);
     expect(mocks.setFeatureAction).toHaveBeenCalledWith('mentolder', 'f2', 'discard', true);

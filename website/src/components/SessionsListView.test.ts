@@ -35,7 +35,7 @@ describe('SessionsListView', () => {
   });
 
   it('shows an empty state when there are no sessions', async () => {
-    (fetch as any).mockResolvedValue({ ok: true, json: async () => ({ sessions: [] }) });
+    vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify({ sessions: [] }), { status: 200, headers: { 'content-type': 'application/json' } }));
     const { getByText } = render(SessionsListView);
     await waitFor(() => expect(getByText(/Keine aktiven Sessions/i)).toBeTruthy());
   });

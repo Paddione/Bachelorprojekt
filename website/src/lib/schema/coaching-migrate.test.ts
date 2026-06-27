@@ -42,8 +42,8 @@ describe('migrateCoachingKiConfig', () => {
     const { rows } = await pool.query(
       `SELECT brand, provider, model_id, is_active, api_key, temperature FROM tickets.provider_config WHERE source='coaching' ORDER BY provider`,
     );
-    expect(rows.map((r: any) => r.provider)).toEqual(['claude', 'openai']);
-    const claude = rows.find((r: any) => r.provider === 'claude');
+    expect(rows.map((r: { provider: string }) => r.provider)).toEqual(['claude', 'openai']);
+    const claude = rows.find((r: { provider: string }) => r.provider === 'claude');
     expect(claude.is_active).toBe(true);
     expect(claude.api_key).toBe('sk-1');
     expect(claude.model_id).toBe('claude-haiku');

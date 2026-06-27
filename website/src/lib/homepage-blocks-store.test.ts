@@ -4,14 +4,18 @@ let poolQuery: ReturnType<typeof vi.fn>;
 let clientQuery: ReturnType<typeof vi.fn>;
 let clientRelease: ReturnType<typeof vi.fn>;
 
+type PgMock = { poolQuery: ReturnType<typeof vi.fn>; clientQuery: ReturnType<typeof vi.fn>; release: ReturnType<typeof vi.fn> };
+type TestGlobals = { __pgMock?: PgMock };
+const testGlobals = globalThis as unknown as TestGlobals;
+
 vi.mock('pg', () => {
   const _poolQuery = vi.fn();
   const _clientQuery = vi.fn();
   const _release = vi.fn();
-  function Pool(this: any) {
+  function Pool(this: { query: ReturnType<typeof vi.fn>; connect: () => Promise<{ query: ReturnType<typeof vi.fn>; release: ReturnType<typeof vi.fn> }> }) {
     this.query = _poolQuery;
     this.connect = async () => ({ query: _clientQuery, release: _release });
-    (globalThis as any).__pgMock = { poolQuery: _poolQuery, clientQuery: _clientQuery, release: _release };
+    (globalThis as unknown as TestGlobals).__pgMock = { poolQuery: _poolQuery, clientQuery: _clientQuery, release: _release };
   }
   return { default: { Pool } };
 });
@@ -38,7 +42,7 @@ const validDoc = {
 };
 
 beforeEach(() => {
-  const m = (globalThis as any).__pgMock;
+  const m = testGlobals.__pgMock!;
   poolQuery = m.poolQuery;
   clientQuery = m.clientQuery;
   clientRelease = m.release;

@@ -11,14 +11,15 @@ vi.mock('../../../../../lib/invoice-payments', () => ({
 }));
 
 import { getSession, isAdmin } from '../../../../../lib/auth';
+import type { UserSession } from '../../../../../lib/auth';
 import { listPayments, recordPayment } from '../../../../../lib/invoice-payments';
 import { GET, POST } from './payments';
 
-const mockSession = { sub: 'admin1', email: 'admin@test.de', name: 'Admin', preferred_username: 'admin' };
+const mockSession = { sub: 'admin1', email: 'admin@test.de', name: 'Admin', preferred_username: 'admin' } as unknown as UserSession;
 
 describe('GET /api/admin/billing/[id]/payments', () => {
   beforeEach(() => {
-    vi.mocked(getSession).mockResolvedValue(mockSession as any);
+    vi.mocked(getSession).mockResolvedValue(mockSession);
     vi.mocked(isAdmin).mockReturnValue(true);
   });
 
@@ -39,7 +40,7 @@ describe('GET /api/admin/billing/[id]/payments', () => {
 
 describe('POST /api/admin/billing/[id]/payments', () => {
   beforeEach(() => {
-    vi.mocked(getSession).mockResolvedValue(mockSession as any);
+    vi.mocked(getSession).mockResolvedValue(mockSession);
     vi.mocked(isAdmin).mockReturnValue(true);
     vi.mocked(recordPayment).mockClear();
   });

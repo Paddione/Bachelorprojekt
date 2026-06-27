@@ -2,13 +2,17 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // ─── pg mock (must be hoisted before any pool import) ──────────────────────
 let poolQuery: ReturnType<typeof vi.fn>;
+type TestGlobals = {
+  __pgMock?: { poolQuery: ReturnType<typeof vi.fn> };
+  __embeddingsMock?: { embedBatch: ReturnType<typeof vi.fn>; embedQuery: ReturnType<typeof vi.fn> };
+};
 vi.mock('pg', () => {
   const _poolQuery = vi.fn();
-  function Pool(this: any) {
+  function Pool(this: { query: ReturnType<typeof vi.fn>; connect: () => Promise<{ query: ReturnType<typeof vi.fn>; release: ReturnType<typeof vi.fn> }> }) {
     this.query = _poolQuery;
     this.connect = async () => ({ query: _poolQuery, release: vi.fn() });
   }
-  (globalThis as any).__pgMock = { poolQuery: _poolQuery };
+  (globalThis as unknown as TestGlobals).__pgMock = { poolQuery: _poolQuery };
   return { default: { Pool }, Pool };
 });
 
@@ -19,7 +23,7 @@ vi.mock('./embeddings', async (orig) => {
   const actual = await orig<typeof import('./embeddings')>();
   const _embedBatch = vi.fn();
   const _embedQuery = vi.fn();
-  (globalThis as any).__embeddingsMock = { embedBatch: _embedBatch, embedQuery: _embedQuery };
+  (globalThis as unknown as TestGlobals).__embeddingsMock = { embedBatch: _embedBatch, embedQuery: _embedQuery };
   return { ...actual, embedBatch: _embedBatch, embedQuery: _embedQuery };
 });
 
@@ -29,9 +33,10 @@ import { embedTicket, findSimilarTickets, backfillTicketEmbeddings } from './tic
 import { MixedEmbeddingModelError } from './tickets-db';
 
 beforeEach(() => {
-  poolQuery = (globalThis as any).__pgMock.poolQuery;
-  embedBatch = (globalThis as any).__embeddingsMock.embedBatch;
-  embedQuery = (globalThis as any).__embeddingsMock.embedQuery;
+  const g = globalThis as unknown as TestGlobals;
+  poolQuery = g.__pgMock!.poolQuery;
+  embedBatch = g.__embeddingsMock!.embedBatch;
+  embedQuery = g.__embeddingsMock!.embedQuery;
   poolQuery.mockReset();
   embedBatch.mockReset();
   embedQuery.mockReset();
@@ -64,7 +69,7 @@ describe('embedTicket', () => {
 
     expect(embedBatch).toHaveBeenCalledTimes(1);
     expect(n).toBeGreaterThanOrEqual(1);
-    const insert = poolQuery.mock.calls.find((c: any[]) => /INSERT INTO tickets\.ticket_embeddings/.test(c[0]));
+    const insert = poolQuery.mock.calls.find((c: unknown[]) => /INSERT INTO tickets\.ticket_embeddings/.test(c[0] as string));
     expect(insert).toBeTruthy();
     expect(insert![0]).toMatch(/embedding_model/);
     // bound params include chunk_type 'summary' and model 'bge-m3'

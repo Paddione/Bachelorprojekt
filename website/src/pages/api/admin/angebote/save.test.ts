@@ -34,7 +34,7 @@ beforeEach(() => {
 
 describe('POST /api/admin/angebote/save — catalog link persistence', () => {
   beforeEach(() => {
-    vi.mocked(getSession).mockResolvedValue({ user: { sub: 'admin' } } as any);
+    vi.mocked(getSession).mockResolvedValue({ user: { sub: 'admin' } } as never);
     vi.mocked(isAdmin).mockReturnValue(true);
     vi.mocked(saveServiceConfig).mockResolvedValue(undefined);
     vi.mocked(saveLeistungenConfig).mockResolvedValue(undefined);

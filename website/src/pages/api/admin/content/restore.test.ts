@@ -34,7 +34,7 @@ it('returns 401 when not authenticated', async () => {
 });
 
 it('returns 404 for unknown versionId', async () => {
-  vi.mocked(getSession).mockResolvedValue({ user: { sub: 'admin' } } as any);
+  vi.mocked(getSession).mockResolvedValue({ user: { sub: 'admin' } } as never);
   vi.mocked(isAdmin).mockReturnValue(true);
   vi.mocked(listVersions).mockResolvedValue([{ id: 99, editor: 'x', createdAt: new Date(), snapshot: {} }]);
   const res = await POST({ request: jsonReq({ contentKey: 'kontakt', versionId: 1 }) } as any);
@@ -42,7 +42,7 @@ it('returns 404 for unknown versionId', async () => {
 });
 
 it('restores version by writing snapshot value with current live version as base', async () => {
-  vi.mocked(getSession).mockResolvedValue({ user: { sub: 'admin' }, email: 'admin@x.de' } as any);
+  vi.mocked(getSession).mockResolvedValue({ user: { sub: 'admin' }, email: 'admin@x.de' } as never);
   vi.mocked(isAdmin).mockReturnValue(true);
   vi.mocked(listVersions).mockResolvedValue([{ id: 5, editor: 'x', createdAt: new Date(), snapshot: { value: { footerEmail: 'old@b.de' }, version: 1 } }]);
   vi.mocked(readContent).mockResolvedValue({ value: { footerEmail: 'new@b.de' }, version: 3 });

@@ -7,17 +7,18 @@ vi.mock('../../../../../lib/auth', () => ({
 
 const mockQuery = vi.fn();
 vi.mock('../../../../../lib/website-db', () => ({
-  pool: { query: (...args: any[]) => mockQuery(...args) },
+  pool: { query: (...args: unknown[]) => mockQuery(...args) },
 }));
 
 import { getSession, isAdmin } from '../../../../../lib/auth';
+import type { UserSession } from '../../../../../lib/auth';
 import { GET } from './xrechnung.xml';
 
-const mockSession = { user: { id: 'admin1' } };
+const mockSession = { user: { id: 'admin1' } } as unknown as UserSession;
 
 describe('GET /api/billing/invoice/[id]/xrechnung.xml', () => {
   beforeEach(() => {
-    vi.mocked(getSession).mockResolvedValue(mockSession as any);
+    vi.mocked(getSession).mockResolvedValue(mockSession);
     vi.mocked(isAdmin).mockReturnValue(true);
     mockQuery.mockReset();
   });

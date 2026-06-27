@@ -11,9 +11,10 @@ vi.mock('../../../../lib/datev-extf', () => ({
 }));
 
 import { getSession, isAdmin } from '../../../../lib/auth';
+import type { UserSession } from '../../../../lib/auth';
 import { GET } from './datev-export';
 
-const mockSession = { userId: 'admin', email: 'admin@test.de' };
+const mockSession = { userId: 'admin', email: 'admin@test.de' } as unknown as UserSession;
 
 function makeRequest(params: Record<string, string> = {}): Request {
   const url = new URL('http://localhost/api/admin/billing/datev-export');
@@ -23,7 +24,7 @@ function makeRequest(params: Record<string, string> = {}): Request {
 
 describe('GET /api/admin/billing/datev-export', () => {
   beforeEach(() => {
-    vi.mocked(getSession).mockResolvedValue(mockSession as any);
+    vi.mocked(getSession).mockResolvedValue(mockSession);
     vi.mocked(isAdmin).mockReturnValue(true);
   });
 
@@ -61,7 +62,7 @@ import { sendEmail } from '../../../../lib/email';
 
 describe('POST /api/admin/billing/datev-email', () => {
   beforeEach(() => {
-    vi.mocked(getSession).mockResolvedValue(mockSession as any);
+    vi.mocked(getSession).mockResolvedValue(mockSession);
     vi.mocked(isAdmin).mockReturnValue(true);
   });
 

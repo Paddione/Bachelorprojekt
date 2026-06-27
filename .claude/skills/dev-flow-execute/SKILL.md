@@ -167,6 +167,11 @@ done
 
 ## Schritt 1.5: Ticket auf `in_progress` setzen und touched_files registrieren
 
+> **Optional:** Wenn der Plan via `dev-flow-plan` auf `plan_staged` steht, kannst du vor diesem
+> Schritt `/opsx:apply <slug>` aufrufen — das ist die upstream-Variante von `task openspec:apply`,
+> die den OpenSpec-Change in den Apply-Modus überführt. Fallback wenn die upstream-CLI nicht
+> installiert ist: `task openspec:apply -- <slug>`.
+
 Falls eine Ticket-ID vorhanden ist, setze das Ticket auf in_progress — **MCP-first** (`ticket-mcp`):
 
 > `mcp__ticket-mcp__transition_status({ id: "$TICKET_ID", status: "in_progress" })`

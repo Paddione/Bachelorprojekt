@@ -110,7 +110,7 @@ Wähle einen der Pfade (Feature/Fix/Chore) basierend auf der Anfrage und kläre 
 
 Die feature/fix/chore-Wahl oben ist die *Pfad*-Wahl durch diese Skill. Davor steht die
 *Artefakt*-Wahl: die meisten Requests steigen direkt auf Change-Proposal-Ebene ein (Feature-Pfad
-→ Schritt 3.1 `openspec.sh propose`). Ein PRD ist das **schwerste** Artefakt und nur für
+→ Schritt 3.1 `/opsx:propose`). Ein PRD ist das **schwerste** Artefakt und nur für
 Epic-große Arbeit gedacht — ein PRD pro Feature kollabiert die Abstraktionsebenen und erzeugt
 Mehrfach-SSOT.
 
@@ -118,7 +118,7 @@ Mehrfach-SSOT.
 |---|---|---|
 | Großes, unscharfes Produktziel, viele Features | **PRD** | `parse_prd` (task-master) — Bootstrap/Epic-Zerlegung |
 | Architektur-/Technologieentscheidung | **ADR** | `manage_adr` / OpenSpec |
-| *Ein* konkretes Feature, Intent klar | **Change-Proposal** | `bash scripts/openspec.sh propose "<slug>" --ticket <id>` (Feature-Pfad, Schritt 3.1) |
+| *Ein* konkretes Feature, Intent klar | **Change-Proposal** | `/opsx:propose <slug>` (Feature-Pfad, Schritt 3.1) |
 | Feature, aber Design noch offen | **Brainstorming → Spec** | diese Skill, Feature-Pfad |
 | Wartung, kein Verhaltenswechsel | **Chore-Ticket** | `dev-flow-chore` |
 | Regression | **Fix + failing test** | diese Skill, Fix-Pfad |
@@ -199,7 +199,9 @@ Delta-Skeleton, setzt Ticket-Status auf `planning`). Merke den Repo-Root für Sc
 # Repo-Root für späteres Verschieben der Artefakte festhalten
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 
-bash scripts/openspec.sh propose "<slug>" --ticket "<TICKET_EXT_ID>"
+/opsx:propose <slug>     # upstream OpenSpec command (preferred)
+# Fallback (older harness without upstream CLI):
+# bash scripts/openspec.sh propose "<slug>" --ticket "<TICKET_EXT_ID>"
 ```
 
 Übertrage den Brainstorming-Output (WARUM + WAS) nach `openspec/changes/<slug>/proposal.md`.

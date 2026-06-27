@@ -15,7 +15,8 @@
     "test:api": "node tests/api.test.mjs",
     "test:unit": "vitest run",
     "lint": "eslint . --max-warnings 0",
-    "lint:fix": "eslint . --max-warnings 0 --fix"
+    "lint:fix": "eslint . --max-warnings 0 --fix",
+    "knip": "knip"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.106.0",
@@ -72,6 +73,7 @@
     "eslint-plugin-svelte": "^3.20.0",
     "globals": "^17.7.0",
     "jsdom": "^29.1.1",
+    "knip": "^5.88.1",
     "pg-mem": "^3.0.14",
     "tailwindcss": "^4.3.1",
     "tsx": "^4.22.3",

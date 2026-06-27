@@ -1,0 +1,11 @@
+{
+  "tool": "knip",
+  "scope": "website/src",
+  "unused_before": 422,
+  "unused_after": 422,
+  "breakdown": {
+    "files": 53,
+    "exports": 111,
+    "types": 258
+  }
+}

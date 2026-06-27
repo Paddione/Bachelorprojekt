@@ -152,10 +152,6 @@
   }
 </script>
 
-<!-- TODO T000667: Kantenlabels (kind) als <text> sichtbar ab zoom > 1.2
-     graph.json edges enthalten bereits edge.kind wenn T000667 gemergt ist.
-     Implementation: d3.select('.edge-label').attr('visibility', zoom > 1.2 ? 'visible' : 'hidden') -->
-
 <div class="canvas-root">
   <svg bind:this={svgEl} class="graph-svg">
     <defs>

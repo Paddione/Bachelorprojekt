@@ -82,6 +82,17 @@ func TestClassifyBundleEmptyComponents(t *testing.T) {
 	}
 }
 
+func TestClassifyBundleProcessType(t *testing.T) {
+	entries := []MishapEntry{
+		{Title: "Skill misfire", Description: "wrong order", Component: "skills/dev-flow", Type: "process", ReportedAt: "2026-06-27T10:00:00Z"},
+		{Title: "Doc drift", Description: "stale ref", Component: "skills/infra-ops", Type: "process", ReportedAt: "2026-06-27T10:01:00Z"},
+	}
+	b := classifyBundle(entries)
+	if b.Severity != "minor" || b.Priority != "mittel" {
+		t.Errorf("process-only bundle should be minor/mittel, got %s/%s", b.Severity, b.Priority)
+	}
+}
+
 func TestMishapEntryJSON(t *testing.T) {
 	entry := MishapEntry{
 		Title: "Test", Description: "Desc", Component: "comp", Type: "broken", ReportedAt: "2026-06-21T10:00:00Z",

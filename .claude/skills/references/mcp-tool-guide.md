@@ -1,56 +1,118 @@
 # MCP-Tool-Guide
 
 SSOT für die MCP-native Tool-Nutzung in Skills und Subagents. Skills verlinken hierher statt die
-Tabelle zu duplizieren. Die MCP-Server sind via MCP-Client direkt erreichbar (registriert in
-`.mcp.json`).
+Tabellen zu duplizieren. Pro Server: **Tools · Wann bevorzugen · Fallback**. Die mechanische
+CI-Guard `tests/spec/mcp-tooling.bats` prüft, dass (1) jeder skill-kritische `ticket.sh`-Verb einen
+`ticket-mcp`-Wrapper hat und (2) **jedes** im Go-Quellcode exponierte `ticket-mcp`-Tool hier gelistet
+ist. Wer ein Tool ergänzt/entfernt, pflegt diese Datei mit — sonst wird CI rot.
 
-### Server → Port → Tool → Anwendungsfall
+Registriert in `.mcp.json` (Claude Code) und `.opencode/opencode.jsonc` (opencode).
 
-| MCP-Server | Endpoint | Tool / Prefix | Anwendungsfall |
-|---|---|---|---|
-| `mcp-postgres` | `http://localhost:13001/mcp` | `mcp__mcp-postgres__query` (Param: `sql`) | **Read-only** SQL (SELECT) als `website`-User — Ticket-Pool, staged-plans, planning-Count, Timeline-Reads |
-| `mcp-kubernetes` | `http://localhost:18080/sse` | `mcp__mcp-kubernetes__*` | Strukturierte k8s-Status-/Read-Operationen (Pods, Logs, Describe) |
-| `mcp-task-runner` | stdio (local binary) | `plan_tasks`, `run_task`, `execute_plan` | go-task parallel ausführen + OTel-Logging; OTel via `localhost:4317` (portforward) |
+---
+
+## Globale Invarianten (gelten für ALLE Server)
 
 > **`mcp__mcp-postgres__query` ist READ-ONLY und nimmt NUR `sql`.** Kein `connectionString`-Argument
-> — die Verbindung ist serverseitig fest (`localhost:13001`, siehe `.mcp.json`). INSERT/UPDATE/DELETE
+> — die Verbindung ist serverseitig fest (`localhost:13001`, als `website`-User). INSERT/UPDATE/DELETE
 > gehen NICHT über dieses Tool.
 
-### Verfügbarkeits-Check (vor MCP-Nutzung prüfen)
+> **Writes/DDL/Superuser bleiben kubectl.** Schreibende SQL (INSERT/UPDATE/DELETE/UPSERT), DDL als
+> `postgres`-Superuser und sämtliche Cluster-Mutationen (`kubectl apply`, `rollout restart`, scale,
+> delete, Sealed Secrets, RBAC) laufen über `kubectl exec … psql` bzw. `kubectl`, **nie** über ein
+> MCP-Read-Tool. Ticket-Lifecycle-Writes gehen über die `ticket-mcp`-Wrapper (die shellen zu
+> `ticket.sh`, dem sanktionierten Write-Pfad) — nicht über `mcp-postgres`.
 
-Das MCP-Tool ist direkt verfügbar, wenn der MCP-Server läuft. Prüfe mit einem einfachen Query:
+### Verfügbarkeits-Check (Portforward-Guard — vor MCP-Nutzung prüfen)
 
-```sql
--- via MCP-Client: SELECT 1 AS ok
-```
+Das MCP-Tool ist direkt verfügbar, wenn der Server läuft. Schneller Health-Check (Beispiel
+`mcp-postgres` auf `:13001`, `factory-mcp` auf `:13003` mit `/health`):
 
-Alternativ per curl auf den SSE-Endpoint (z.B. `mcp-postgres` auf Port 13001):
 ```bash
+# Generischer JSON-RPC-Probe (mcp-postgres/-kubernetes/-browser/-github):
 curl -s --max-time 2 -o /dev/null -w '%{http_code}' \
   -X POST -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" \
   -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"hc","version":"1"}}}' \
   http://localhost:13001/mcp
-# 200 → MCP erreichbar; alles andere → kubectl-Fallback nutzen
+# 200 → MCP erreichbar; alles andere → Skript-/kubectl-Fallback nutzen.
+
+# factory-mcp hat einen dedizierten Health-Endpoint:
+curl -sf --max-time 2 http://127.0.0.1:13003/health && echo " → factory-mcp up"
 ```
 
-Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **kubectl-Fallback**
-(der jeweilige `psql`-/`kubectl`-Block im Skill).
+Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **Fallback** (der jeweilige
+`psql`-/`kubectl`-/Skript-Block im Skill).
 
-### Wann MCP, wann kubectl
+---
 
-**MCP bevorzugen** (wenn Guard = erreichbar):
-- Read-only SELECTs gegen `tickets.*`, `knowledge.*`, `v_timeline` → `mcp__mcp-postgres__query`
-- k8s-Status/Read (Pod-Liste, Logs, Describe) → `mcp__mcp-kubernetes__*`
+## `mcp-postgres` — Read-only SQL
 
+- **Endpoint:** `http://localhost:13001/mcp`
+- **Tool:** `mcp__mcp-postgres__query` (Param: **nur** `sql`)
+- **Wann bevorzugen:** Read-only SELECTs gegen `tickets.*`, `knowledge.*`, `v_timeline` — Ticket-Pool,
+  staged-plans, planning-Count, Timeline-/DoR-Reads.
+- **Fallback:** `psql -c "<SELECT>"` via `kubectl exec … -c postgres -- psql -U website -d website`.
+- ⚠️ `tickets.ticket_plans`: nie `SELECT *` oder die `content`-Spalte über die ganze Tabelle (MB-Transfer
+  über `kubectl exec` → Timeout). Immer Metadaten (`id`, `ticket_id`, `slug`, `branch`, `pr_number`,
+  `archived_at`) oder gezielt nach `ticket_id`/`slug` filtern.
 
-**Bleibt kubectl (Pflicht, kein MCP-Äquivalent / fehlende Rechte):**
-- **DDL als `postgres`-Superuser** auf den Schemas `bachelorprojekt`, `coaching`, `knowledge`
-  (Tabellen-Owner = `postgres`). MCP-Postgres verbindet als `website` ohne Superuser-Rechte → DDL
-  schlägt mit „must be owner" fehl. Pflicht:
-  ```bash
-  PGPOD=$(kubectl get pod -n workspace --context <env> -l app=shared-db -o name | head -1)
-  kubectl exec -i "$PGPOD" -n workspace --context <env> -- psql -U postgres -d website < migration.sql
-  ```
-- **Schreibende SQL** (INSERT/UPDATE/DELETE/UPSERT) — `mcp__mcp-postgres__query` ist read-only → kubectl.
-- **`kubectl apply` / `kubectl rollout restart`** und sonstige Manifest-Mutationen.
-- **Sealed Secrets / RBAC / Cluster-Level-Operationen.**
+## `mcp-kubernetes` — k8s-Status/Read
+
+- **Endpoint:** `http://localhost:18080/mcp`
+- **Tools (Auswahl):** `mcp__mcp-kubernetes__pods_list_in_namespace`, `pods_list`, `pods_log`,
+  `pods_get`, `resources_get`, `resources_list`, `events_list`, `namespaces_list`.
+- **Wann bevorzugen:** strukturierte Status-/Read-Operationen (Pod-Liste, Logs, Describe, Events).
+- **Fallback:** `task workspace:status` / `task workspace:logs` bzw. `kubectl get/logs/describe`.
+- **Mutations bleiben kubectl:** `pods_delete`, `resources_create_or_update`, `resources_scale`,
+  `resources_delete` existieren, aber Manifest-Mutationen laufen bewusst über `kubectl apply` /
+  Taskfile-Deploys (siehe globale Invariante).
+
+## `ticket-mcp` — Ticket-Lifecycle (Go-Adapter über `ticket.sh`)
+
+- **Transport:** lokales Go-Binary `scripts/ticket-mcp/ticket-mcp-go` (stdio; optional HTTP via
+  `TICKET_MCP_HTTP=1` auf `:13004`). Dünne Adapter — `ticket.sh` ist die Business-Logik-SSOT.
+- **Wann bevorzugen:** alle Ticket-Reads + Lifecycle-Writes (die Wrapper shellen zu `ticket.sh`).
+- **Fallback:** der jeweilige `./scripts/ticket.sh <verb>` / `./scripts/vda.sh ticket <verb>`-Aufruf.
+
+**Alle Tools (Go-SSOT — diese Liste deckt den Guardrail ab):**
+
+| Gruppe | Tools |
+|---|---|
+| List/Get | `list_tickets`, `get_ticket`, `export_tickets`, `backfill_ticket_id` |
+| Triage/Planning | `triage_ticket`, `set_plan_meta`, `set_readiness_flag`, `prepare_feature` |
+| Lifecycle | `transition_status`, `add_comment`, `update_fields` |
+| Workflow | `record_phase_event`, `record_grill_answers`, `stage_plan`, `create_ticket`, `enqueue_ticket`, `set_touched_files`, `get_attachments`, `archive_plan`, `add_pr_link` |
+| Mishap | `report_mishap`, `get_mishap_buffer`, `flush_mishap_buffer` |
+
+> `create_ticket` gibt `external_id|uuid` zurück (Skills parsen `cut -d'|' -f1`). `record_phase_event`
+> ist positional (`phase <id> <phase> <state>`); `get_attachments` braucht `out_dir`; `archive_plan`
+> braucht `slug`+`branch`+`plan_file`. `report_mishap` akzeptiert `type ∈ {broken, degraded,
+> suspicious, security, drift, process}`.
+
+## `factory-mcp` — Software-Factory (HTTP, Daemon erforderlich)
+
+- **Endpoint:** `http://localhost:13003/mcp` (StreamableHTTP), Health: `GET http://127.0.0.1:13003/health`.
+- **Tools:** `factory_status`, `factory_queue`, `factory_enqueue`, `factory_trigger`, `factory_recent`,
+  `openspec_find_similar`.
+- **Wann bevorzugen:** Factory-Queue-Status, Backlog-Übersicht, manuelles Anstoßen eines Ticks,
+  OpenSpec-Ähnlichkeitssuche. **Voraussetzung:** der Daemon `:13003` läuft (Health-Guard zuerst).
+- **Fallback (Daemon down):** Status/Queue → `mcp__mcp-postgres__query`/`psql` auf
+  `tickets.tickets WHERE status IN ('backlog','plan_staged')`; Tick → `bash scripts/factory/wakeup.sh`.
+
+## `mcp-task-runner` — go-task-Ausführung + OTel
+
+- **Transport:** lokales Binary (`mcp-task-runner`), OTel-Endpoint `localhost:4317`.
+- **Tools:** `plan_tasks`, `run_task`, `execute_plan`.
+- **Wann bevorzugen:** go-task-Targets parallel ausführen mit strukturiertem OTel-Logging.
+- **Fallback:** `task <target>` direkt in der Shell.
+
+## `task-master-ai` — optional/verfügbar (kein Skill-Logik-Pfad)
+
+- **Transport:** `npx -y task-master-ai` (lokal).
+- **Wann:** **optional** für PRD-Parsing/Komplexitätsanalyse. **Keine** Skill-Logik hängt daran —
+  nur als verfügbares Werkzeug gelistet. OpenSpec ist der SSOT-Plan-Workflow, nicht task-master-ai.
+
+## `mcp-browser` — Playwright (unverändert)
+
+- **Endpoint:** `http://localhost:13000/mcp`.
+- **Tools:** `mcp__mcp-browser__browser_*` (navigate, click, snapshot, evaluate, …).
+- **Wann:** Browser-Automation/E2E-Inspektion. Unangetastet von der MCP↔Skill-Integration.

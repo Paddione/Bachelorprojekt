@@ -1,0 +1,13 @@
+{
+  "name": "mentolder — Brand Foundations",
+  "projectId": null,
+  "localDir": "design-system",
+  "uploadGlobs": ["cards/**"],
+  "tokenSource": "website/public/brand/mentolder/colors_and_type.css",
+  "cards": [
+    "colors-surfaces", "colors-text", "colors-brass", "colors-sage-semantic", "colors-paper-print",
+    "type-families", "type-scale", "type-editorial",
+    "spacing-scale", "radius-scale", "elevation-shadows",
+    "motion-easing", "icons-sheet", "brand-logo"
+  ]
+}

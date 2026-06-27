@@ -111,6 +111,7 @@ export function HomepageEditorPage() {
   // Live preview is collapsed by default; admins opt in via the header toggle.
   const [previewOpen, setPreviewOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [previewFullscreen, setPreviewFullscreen] = useState(false);
 
   // Load the current document once the admin gate is satisfied.
   useEffect(() => {
@@ -184,77 +185,118 @@ export function HomepageEditorPage() {
     setConfirmOpen(false);
   };
 
+  useEffect(() => {
+    if (!previewFullscreen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setPreviewFullscreen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [previewFullscreen]);
+
   return (
-    <section className="pt-[80px] pb-[120px] max-w-[1240px] mx-auto px-10 max-md:px-[22px]">
-      <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
-        <h1 className="font-serif font-light text-fg m-0" style={{ fontSize: 'clamp(28px, 4vw, 44px)' }}>
-          Edit Homepage
-        </h1>
-        <div className="flex items-center gap-3">
+    <>
+      {previewFullscreen && (
+        <div
+          className="fixed inset-0 z-50 bg-[var(--ink-950,#0a0a0f)] overflow-auto"
+          role="dialog"
+          aria-label="Vollbild-Vorschau"
+        >
           <button
             type="button"
-            onClick={() => setPreviewOpen((v) => !v)}
-            aria-expanded={previewOpen}
-            className="rounded-full border border-line-2 px-4 py-2.5 text-[14px] font-medium text-fg"
+            onClick={() => setPreviewFullscreen(false)}
+            className="fixed top-4 right-4 z-10 flex items-center gap-1.5 rounded-full bg-ink-900/80 border border-line/60 px-3 py-1.5 text-[13px] text-fg-soft hover:text-fg backdrop-blur-sm"
+            aria-label="Vollbild schließen"
           >
-            {previewOpen ? 'Vorschau ausblenden' : 'Vorschau einblenden'}
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+            Schließen
           </button>
-          <button
-            type="button"
-            onClick={() => setConfirmOpen(true)}
-            disabled={saving || !hasChanges}
-            className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-ink-900 font-medium disabled:opacity-60"
-            style={{ background: 'var(--brass)' }}
-          >
-            Speichern
-          </button>
+          <BlockRenderer document={doc} />
         </div>
-      </div>
-
-      <StatusBanner status={status} />
-
-      <div>
-        {doc.blocks.map((block, index) => {
-          const fields = fieldsForBlock(block.type);
-          return (
-            <div
-              key={block.id}
-              className={previewOpen ? 'grid grid-cols-1 lg:grid-cols-2 gap-8 items-start mb-6' : 'mb-6'}
-            >
-              <section className="rounded-lg border border-line/60 p-4">
-                <h2 className="text-[15px] font-semibold text-fg mb-3">
-                  {BLOCK_LABELS[block.type] ?? block.type}
-                </h2>
-                {fields.length === 0 && <p className="text-[13px] text-mute">Kein editierbares Feld.</p>}
-                {fields.map((f) => (
-                  <FieldInput
-                    key={f.key}
-                    def={f}
-                    value={getAtPath(block.props as any, f.key)}
-                    onChange={(v) => updateBlockProps(index, setAtPath(block.props as any, f.key, v))}
-                  />
-                ))}
-              </section>
-
-              {previewOpen && (
-                <div className="self-start rounded-lg border border-line/60 overflow-hidden">
-                  <BlockRenderer document={{ schemaVersion: doc.schemaVersion, blocks: [block] }} />
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {confirmOpen && (
-        <SaveConfirmDialog
-          changedBlocks={changedBlocks}
-          saving={saving}
-          onConfirm={handleConfirm}
-          onCancel={() => setConfirmOpen(false)}
-        />
       )}
-    </section>
+
+      <section className="pt-[80px] pb-[120px] max-w-[1240px] mx-auto px-10 max-md:px-[22px]">
+        <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
+          <h1 className="font-serif font-light text-fg m-0" style={{ fontSize: 'clamp(28px, 4vw, 44px)' }}>
+            Edit Homepage
+          </h1>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setPreviewFullscreen(true)}
+              className="flex items-center gap-1.5 rounded-full border border-line-2 px-4 py-2.5 text-[14px] font-medium text-fg"
+              aria-label="Vollbild-Vorschau öffnen"
+            >
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path d="M1 5V1h4M9 1h4v4M13 9v4H9M5 13H1V9" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Vollbild
+            </button>
+            <button
+              type="button"
+              onClick={() => setPreviewOpen((v) => !v)}
+              aria-expanded={previewOpen}
+              className="rounded-full border border-line-2 px-4 py-2.5 text-[14px] font-medium text-fg"
+            >
+              {previewOpen ? 'Vorschau ausblenden' : 'Vorschau einblenden'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmOpen(true)}
+              disabled={saving || !hasChanges}
+              className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-ink-900 font-medium disabled:opacity-60"
+              style={{ background: 'var(--brass)' }}
+            >
+              Speichern
+            </button>
+          </div>
+        </div>
+
+        <StatusBanner status={status} />
+
+        <div>
+          {doc.blocks.map((block, index) => {
+            const fields = fieldsForBlock(block.type);
+            return (
+              <div
+                key={block.id}
+                className={previewOpen ? 'grid grid-cols-1 lg:grid-cols-2 gap-8 items-start mb-6' : 'mb-6'}
+              >
+                <section className="rounded-lg border border-line/60 p-4">
+                  <h2 className="text-[15px] font-semibold text-fg mb-3">
+                    {BLOCK_LABELS[block.type] ?? block.type}
+                  </h2>
+                  {fields.length === 0 && <p className="text-[13px] text-mute">Kein editierbares Feld.</p>}
+                  {fields.map((f) => (
+                    <FieldInput
+                      key={f.key}
+                      def={f}
+                      value={getAtPath(block.props as any, f.key)}
+                      onChange={(v) => updateBlockProps(index, setAtPath(block.props as any, f.key, v))}
+                    />
+                  ))}
+                </section>
+
+                {previewOpen && (
+                  <div className="self-start rounded-lg border border-line/60 overflow-hidden">
+                    <BlockRenderer document={{ schemaVersion: doc.schemaVersion, blocks: [block] }} />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {confirmOpen && (
+          <SaveConfirmDialog
+            changedBlocks={changedBlocks}
+            saving={saving}
+            onConfirm={handleConfirm}
+            onCancel={() => setConfirmOpen(false)}
+          />
+        )}
+      </section>
+    </>
   );
 }
 

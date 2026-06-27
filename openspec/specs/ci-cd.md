@@ -498,6 +498,48 @@ feedback SHALL run these tools locally before pushing, as they are not enforced 
 
 ---
 
+### Requirement: Post-merge Freshness-Regenerierung ohne externe GPG-Action
+
+The system SHALL regenerate stale artifacts after every push to `main` and commit them using
+the native `github-actions[bot]` identity — WITHOUT any external GPG-signing action
+(`crazy-max/ghaction-import-gpg` or equivalent). GPG-signing SHALL NOT be configured in
+`freshness-regen.yml`; the bot commit uses unsigned commits via the standard git user.name/email config.
+
+#### Scenario: G-CI01-A: freshness-regen.yml enthält keinen GPG-Action-Verweis *(BATS)*
+
+- **GIVEN** `.github/workflows/freshness-regen.yml` ist vorhanden
+- **WHEN** die Datei auf `ghaction-import-gpg` durchsucht wird
+- **THEN** enthält die Datei keinen solchen Verweis — der GPG-Schritt ist vollständig entfernt
+
+---
+
+### Requirement: Website Dockerfile verwendet pnpm als Package-Manager
+
+The system SHALL build the website Docker image using pnpm@10 (`pnpm install --frozen-lockfile`)
+instead of npm ci, referencing `pnpm-lock.yaml` for reproducible installs. The build SHALL use
+`pnpm build` and `pnpm prune --prod` instead of their npm equivalents.
+`website/package-lock.json` SHALL NOT exist; `website/pnpm-lock.yaml` SHALL exist.
+
+#### Scenario: G-CI01-B: Dockerfile COPY-Zeile referenziert pnpm-lock.yaml *(BATS)*
+
+- **GIVEN** `website/Dockerfile` ist vorhanden
+- **WHEN** die COPY-Zeile für das Lockfile geprüft wird
+- **THEN** referenziert sie `pnpm-lock.yaml` — kein `package-lock.json`
+
+#### Scenario: G-CI01-C: Dockerfile nutzt pnpm install --frozen-lockfile *(BATS)*
+
+- **GIVEN** `website/Dockerfile` ist vorhanden
+- **WHEN** die Datei auf den Install-Befehl geprüft wird
+- **THEN** enthält sie `pnpm install --frozen-lockfile` — kein `npm ci`
+
+#### Scenario: G-CI01-D: pnpm-lock.yaml existiert; package-lock.json existiert nicht *(BATS)*
+
+- **GIVEN** das `website/`-Verzeichnis ist ausgecheckt
+- **WHEN** die Lockfile-Dateien geprüft werden
+- **THEN** existiert `website/pnpm-lock.yaml` und `website/package-lock.json` existiert NICHT
+
+---
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->

@@ -53,14 +53,6 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Import GPG key for commit signing
-        if: steps.diff.outputs.changed == 'true'
-        uses: crazy-max/ghaction-import-gpg@d46b8ef5e6e7b4d1a8ef73f09f7a7d5e26fccc07  # v6.3.0
-        with:
-          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-          git_user_signingkey: true
-          git_commit_gpgsign: true
-
       - name: Commit and push if changed
         if: steps.diff.outputs.changed == 'true'
         env:

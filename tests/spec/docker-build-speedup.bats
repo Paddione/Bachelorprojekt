@@ -55,3 +55,16 @@
   ! grep -rqE 'paddione/(mentolder|korczewski)-website' \
       .github/workflows environments
 }
+
+# ── Phase 3: amd64-only ────────────────────────────────────────────────────
+@test "P3: transcriber baut amd64-only ohne QEMU" {
+  grep -qE '^\s*platforms:\s*linux/amd64\s*$' .github/workflows/build-transcriber.yml
+  ! grep -q 'linux/arm64' .github/workflows/build-transcriber.yml
+  ! grep -q 'setup-qemu-action' .github/workflows/build-transcriber.yml
+}
+
+@test "P3: collabora baut amd64-only ohne QEMU" {
+  grep -qE '^\s*platforms:\s*linux/amd64\s*$' .github/workflows/build-collabora.yml
+  ! grep -q 'linux/arm64' .github/workflows/build-collabora.yml
+  ! grep -q 'setup-qemu-action' .github/workflows/build-collabora.yml
+}

@@ -23,7 +23,8 @@ const editTemplate = editId ? templates.find(t => t.id === editId) : null;
 <AdminLayout title="Ordner-Templates">
   <AdminEinstellungenTabs current={Astro.url.pathname} />
   <div style="padding: 2rem; max-width: 800px;">
-<AdminPageHeader title="Ordner-Templates" />
+    <AdminPageHeader title="Ordner-Templates" />
+    <p style="color: var(--fg-soft); margin-bottom: 1.5rem;">
       Vordefinierte Ordnerstrukturen, die bei der Projektanlage automatisch im Nextcloud angelegt werden.
     </p>
 

@@ -31,9 +31,7 @@ function barColor(status: string) {
 <AdminLayout title="Steuerauswertung">
   <div style="padding:2rem;max-width:760px;">
     <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:0.25rem;">
-<AdminPageHeader title="Steuerauswertung {year}" />
-        Modus ändern →
-      </a>
+      <AdminPageHeader title="Steuerauswertung {year}" />
     </div>
     <p style="color:var(--mute);font-size:0.875rem;margin-bottom:1.5rem;">
       Aktueller Modus: <strong style="color:var(--fg);">{taxMode === 'kleinunternehmer' ? '§ 19 UStG (Kleinunternehmer)' : 'Regelbesteuerung'}</strong>

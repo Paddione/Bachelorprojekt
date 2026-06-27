@@ -185,10 +185,8 @@ const headerLabel = view === 'week'
 
       <div class="mb-8 flex items-center justify-between gap-4 flex-wrap">
         <div>
-<AdminPageHeader title="Kalender" />
-            {headerLabel}
-            &mdash; {tasks.length} Aufgaben &middot; {projects.length} Projekte &middot; {bookings.length} Termine &middot; {meetings.length} Meetings
-          </p>
+          <AdminPageHeader title="Kalender" />
+          <p>{headerLabel} &mdash; {tasks.length} Aufgaben &middot; {projects.length} Projekte &middot; {bookings.length} Termine &middot; {meetings.length} Meetings</p>
         </div>
 
         <!-- View toggle (Monats- / Wochenansicht) -->

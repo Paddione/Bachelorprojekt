@@ -223,172 +223,88 @@
     "detail": "cycle in website: src/lib/website-db.ts → src/lib/tickets/transition.ts",
     "frozen_at": "8b581ebe"
   },
-  "S3:k3d/dev-stack/oauth2-proxy-dev.yaml:brainstorm.mentolder.de": {
-    "gate": "S3",
-    "path": "k3d/dev-stack/oauth2-proxy-dev.yaml",
+  "S4:scripts/build-srgb-icc.mjs": {
+    "gate": "S4",
+    "path": "scripts/build-srgb-icc.mjs",
     "metric": 1,
-    "detail": "hardcoded host: brainstorm.mentolder.de",
+    "detail": "no reference to 'build-srgb-icc.mjs' in any configured source",
     "frozen_at": "8b581ebe"
   },
-  "S3:k3d/dev-stack/sish.yaml:brainstorm.mentolder.de": {
-    "gate": "S3",
-    "path": "k3d/dev-stack/sish.yaml",
+  "S4:scripts/cicd-kubeconfig-gen.sh": {
+    "gate": "S4",
+    "path": "scripts/cicd-kubeconfig-gen.sh",
     "metric": 1,
-    "detail": "hardcoded host: brainstorm.mentolder.de",
+    "detail": "no reference to 'cicd-kubeconfig-gen.sh' in any configured source",
     "frozen_at": "8b581ebe"
   },
-  "S3:k3d/dev-stack/traefik-wildcard-ingress.yaml:brainstorm.mentolder.de": {
-    "gate": "S3",
-    "path": "k3d/dev-stack/traefik-wildcard-ingress.yaml",
+  "S4:scripts/docs-configmap-apply.sh": {
+    "gate": "S4",
+    "path": "scripts/docs-configmap-apply.sh",
     "metric": 1,
-    "detail": "hardcoded host: brainstorm.mentolder.de",
+    "detail": "no reference to 'docs-configmap-apply.sh' in any configured source",
+    "frozen_at": "c0831873"
+  },
+  "S4:scripts/e2e-bot-setup.sh": {
+    "gate": "S4",
+    "path": "scripts/e2e-bot-setup.sh",
+    "metric": 1,
+    "detail": "no reference to 'e2e-bot-setup.sh' in any configured source",
     "frozen_at": "8b581ebe"
   },
-  "S3:prod-fleet/website-mentolder/website-ingress-web.yaml:web.mentolder.de": {
-    "gate": "S3",
-    "path": "prod-fleet/website-mentolder/website-ingress-web.yaml",
+  "S4:scripts/enroll-korczewski.sh": {
+    "gate": "S4",
+    "path": "scripts/enroll-korczewski.sh",
     "metric": 1,
-    "detail": "hardcoded host: web.mentolder.de",
+    "detail": "no reference to 'enroll-korczewski.sh' in any configured source",
     "frozen_at": "8b581ebe"
   },
-  "S3:prod-korczewski/ddns-updater.yaml:livekit.korczewski.de": {
-    "gate": "S3",
-    "path": "prod-korczewski/ddns-updater.yaml",
+  "S4:scripts/migrate-bugs-to-tickets.mjs": {
+    "gate": "S4",
+    "path": "scripts/migrate-bugs-to-tickets.mjs",
     "metric": 1,
-    "detail": "hardcoded host: livekit.korczewski.de",
+    "detail": "no reference to 'migrate-bugs-to-tickets.mjs' in any configured source",
+    "frozen_at": "c0831873"
+  },
+  "S4:scripts/migrate-content-hub-ssot.mjs": {
+    "gate": "S4",
+    "path": "scripts/migrate-content-hub-ssot.mjs",
+    "metric": 1,
+    "detail": "no reference to 'migrate-content-hub-ssot.mjs' in any configured source",
     "frozen_at": "8b581ebe"
   },
-  "S3:prod-korczewski/ddns-updater.yaml:stream.korczewski.de": {
-    "gate": "S3",
-    "path": "prod-korczewski/ddns-updater.yaml",
+  "S4:scripts/migrate-content-versions.mjs": {
+    "gate": "S4",
+    "path": "scripts/migrate-content-versions.mjs",
     "metric": 1,
-    "detail": "hardcoded host: stream.korczewski.de",
+    "detail": "no reference to 'migrate-content-versions.mjs' in any configured source",
     "frozen_at": "8b581ebe"
   },
-  "S3:prod-korczewski/ddns-updater.yaml:turn.korczewski.de": {
-    "gate": "S3",
-    "path": "prod-korczewski/ddns-updater.yaml",
+  "S4:scripts/migrate-projects-to-tickets.mjs": {
+    "gate": "S4",
+    "path": "scripts/migrate-projects-to-tickets.mjs",
     "metric": 1,
-    "detail": "hardcoded host: turn.korczewski.de",
+    "detail": "no reference to 'migrate-projects-to-tickets.mjs' in any configured source",
+    "frozen_at": "c0831873"
+  },
+  "S4:scripts/oracle-bench.sh": {
+    "gate": "S4",
+    "path": "scripts/oracle-bench.sh",
+    "metric": 1,
+    "detail": "no reference to 'oracle-bench.sh' in any configured source",
     "frozen_at": "8b581ebe"
   },
-  "S3:prod-korczewski/kustomization.yaml:brett.korczewski.de": {
-    "gate": "S3",
-    "path": "prod-korczewski/kustomization.yaml",
+  "S4:scripts/skill-orchestrator.sh": {
+    "gate": "S4",
+    "path": "scripts/skill-orchestrator.sh",
     "metric": 1,
-    "detail": "hardcoded host: brett.korczewski.de",
+    "detail": "no reference to 'skill-orchestrator.sh' in any configured source",
     "frozen_at": "8b581ebe"
   },
-  "S3:prod-mentolder/kustomization.yaml:brett.mentolder.de": {
-    "gate": "S3",
-    "path": "prod-mentolder/kustomization.yaml",
+  "S4:scripts/tickets-sunset-audit.mjs": {
+    "gate": "S4",
+    "path": "scripts/tickets-sunset-audit.mjs",
     "metric": 1,
-    "detail": "hardcoded host: brett.mentolder.de",
-    "frozen_at": "8b581ebe"
-  },
-  "S3:prod/cloud-init-dev-vm.yaml:dev.mentolder.de": {
-    "gate": "S3",
-    "path": "prod/cloud-init-dev-vm.yaml",
-    "metric": 1,
-    "detail": "hardcoded host: dev.mentolder.de",
-    "frozen_at": "8b581ebe"
-  },
-  "S3:prod/coredns-signaling-override.yaml:signaling.korczewski.de": {
-    "gate": "S3",
-    "path": "prod/coredns-signaling-override.yaml",
-    "metric": 1,
-    "detail": "hardcoded host: signaling.korczewski.de",
-    "frozen_at": "8b581ebe"
-  },
-  "S3:prod/coredns-signaling-override.yaml:signaling.mentolder.de": {
-    "gate": "S3",
-    "path": "prod/coredns-signaling-override.yaml",
-    "metric": 1,
-    "detail": "hardcoded host: signaling.mentolder.de",
-    "frozen_at": "8b581ebe"
-  },
-  "S3:website/src/components/admin/inhalte/AngeboteSection.svelte:files.mentolder.de": {
-    "gate": "S3",
-    "path": "website/src/components/admin/inhalte/AngeboteSection.svelte",
-    "metric": 1,
-    "detail": "hardcoded host: files.mentolder.de",
-    "frozen_at": "8b581ebe"
-  },
-  "S3:website/src/db/migrations/20260522_fix_platform_assets_status.sql:brainstorm.mentolder.de": {
-    "gate": "S3",
-    "path": "website/src/db/migrations/20260522_fix_platform_assets_status.sql",
-    "metric": 1,
-    "detail": "hardcoded host: brainstorm.mentolder.de",
-    "frozen_at": "8b581ebe"
-  },
-  "S3:website/src/lib/agent-guide.generated.json:brainstorm.mentolder.de": {
-    "gate": "S3",
-    "path": "website/src/lib/agent-guide.generated.json",
-    "metric": 1,
-    "detail": "hardcoded host: brainstorm.mentolder.de",
-    "frozen_at": "8b581ebe"
-  },
-  "S3:website/src/lib/agent-guide.generated.json:dev.mentolder.de": {
-    "gate": "S3",
-    "path": "website/src/lib/agent-guide.generated.json",
-    "metric": 1,
-    "detail": "hardcoded host: dev.mentolder.de",
-    "frozen_at": "8b581ebe"
-  },
-  "S3:website/src/lib/agent-guide.generated.json:docs.mentolder.de": {
-    "gate": "S3",
-    "path": "website/src/lib/agent-guide.generated.json",
-    "metric": 1,
-    "detail": "hardcoded host: docs.mentolder.de",
-    "frozen_at": "8b581ebe"
-  },
-  "S3:website/src/lib/agent-guide.generated.json:web.mentolder.de": {
-    "gate": "S3",
-    "path": "website/src/lib/agent-guide.generated.json",
-    "metric": 1,
-    "detail": "hardcoded host: web.mentolder.de",
-    "frozen_at": "8b581ebe"
-  },
-  "S3:website/src/lib/helpContent.ts:web.mentolder.de": {
-    "gate": "S3",
-    "path": "website/src/lib/helpContent.ts",
-    "metric": 1,
-    "detail": "hardcoded host: web.mentolder.de",
-    "frozen_at": "8b581ebe"
-  },
-  "S3:website/src/lib/newsletter-template.test.ts:web.mentolder.de": {
-    "gate": "S3",
-    "path": "website/src/lib/newsletter-template.test.ts",
-    "metric": 1,
-    "detail": "hardcoded host: web.mentolder.de",
-    "frozen_at": "8b581ebe"
-  },
-  "S3:website/src/lib/platform-descriptions.generated.json:brainstorm.mentolder.de": {
-    "gate": "S3",
-    "path": "website/src/lib/platform-descriptions.generated.json",
-    "metric": 1,
-    "detail": "hardcoded host: brainstorm.mentolder.de",
-    "frozen_at": "8b581ebe"
-  },
-  "S3:website/src/lib/tickets/email-templates.ts:web.mentolder.de": {
-    "gate": "S3",
-    "path": "website/src/lib/tickets/email-templates.ts",
-    "metric": 1,
-    "detail": "hardcoded host: web.mentolder.de",
-    "frozen_at": "8b581ebe"
-  },
-  "S3:website/src/pages/admin/termine.astro:files.mentolder.de": {
-    "gate": "S3",
-    "path": "website/src/pages/admin/termine.astro",
-    "metric": 1,
-    "detail": "hardcoded host: files.mentolder.de",
-    "frozen_at": "8b581ebe"
-  },
-  "S3:website/src/pages/api/admin/questionnaires/assignments/[id]/reassign.test.ts:web.mentolder.de": {
-    "gate": "S3",
-    "path": "website/src/pages/api/admin/questionnaires/assignments/[id]/reassign.test.ts",
-    "metric": 1,
-    "detail": "hardcoded host: web.mentolder.de",
-    "frozen_at": "8b581ebe"
+    "detail": "no reference to 'tickets-sunset-audit.mjs' in any configured source",
+    "frozen_at": "c0831873"
   }
 }

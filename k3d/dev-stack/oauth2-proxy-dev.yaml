@@ -88,7 +88,7 @@ spec:
             - --http-address=0.0.0.0:4181
             - --reverse-proxy=true
             - --whitelist-domain=.${DEV_DOMAIN}
-            - --whitelist-domain=brainstorm.mentolder.de
+            - --whitelist-domain=brainstorm.${PROD_DOMAIN}
             - --cookie-domain=.${DEV_DOMAIN}
             - --cookie-name=_oauth2_dev
             - --cookie-secure=true

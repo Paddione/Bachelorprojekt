@@ -59,7 +59,7 @@ describe('POST /api/admin/questionnaires/assignments/[id]/reassign', () => {
   });
 
   it('200 with absolute portalUrl when PROD_DOMAIN set', async () => {
-    process.env.PROD_DOMAIN = 'mentolder.de';
+    process.env.PROD_DOMAIN = 'example.com';
     vi.mocked(getSession).mockResolvedValue({} as any);
     vi.mocked(isAdmin).mockReturnValue(true);
     vi.mocked(reassignQAssignment).mockResolvedValue({
@@ -67,6 +67,6 @@ describe('POST /api/admin/questionnaires/assignments/[id]/reassign', () => {
     });
     const r = await POST({ request: req(), params: { id: 'a' } } as any);
     const body = await r.json();
-    expect(body.portalUrl).toBe('https://web.mentolder.de/portal/fragebogen/newId');
+    expect(body.portalUrl).toBe('https://web.example.com/portal/fragebogen/newId');
   });
 });

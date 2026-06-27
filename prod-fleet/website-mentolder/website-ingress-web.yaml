@@ -10,10 +10,10 @@ spec:
   ingressClassName: traefik
   tls:
     - hosts:
-        - web.mentolder.de
+        - web.${PROD_DOMAIN}
       secretName: workspace-wildcard-tls
   rules:
-    - host: web.mentolder.de
+    - host: web.${PROD_DOMAIN}
       http:
         paths:
           - path: /

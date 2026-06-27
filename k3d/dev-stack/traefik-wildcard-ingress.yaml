@@ -16,7 +16,7 @@ spec:
       services:
         - name: sish
           port: 80
-    - match: Host(`brainstorm.mentolder.de`)
+    - match: Host(`brainstorm.${PROD_DOMAIN}`)
       priority: 2
       kind: Rule
       services:
@@ -40,7 +40,7 @@ spec:
     - websecure
   tls: {}
   routes:
-    - match: Host(`brainstorm.mentolder.de`)
+    - match: Host(`brainstorm.${PROD_DOMAIN}`)
       kind: Rule
       priority: 10
       services:

@@ -40,7 +40,7 @@ describe('renderNewsletterEmail', () => {
   const baseParams = {
     bodyHtml: '<h1>Hallo!</h1><p>Newsletter-Inhalt.</p>',
     subject: 'Test-Betreff',
-    unsubscribeUrl: 'https://web.mentolder.de/api/newsletter/unsubscribe?token=abc123',
+    unsubscribeUrl: 'https://web.example.com/api/newsletter/unsubscribe?token=abc123',
   };
 
   it('returns a complete HTML document', () => {
@@ -65,7 +65,7 @@ describe('renderNewsletterEmail', () => {
 
   it('includes the mandatory unsubscribe link', () => {
     const html = renderNewsletterEmail(baseParams, mentolderBrand);
-    expect(html).toContain('https://web.mentolder.de/api/newsletter/unsubscribe?token=abc123');
+    expect(html).toContain('https://web.example.com/api/newsletter/unsubscribe?token=abc123');
     expect(html.toLowerCase()).toContain('abmelden');
   });
 
@@ -139,7 +139,7 @@ describe('renderNewsletterText', () => {
       {
         bodyHtml: '<h1>Hallo!</h1><p>Inhalt.</p>',
         subject: 'X',
-        unsubscribeUrl: 'https://web.mentolder.de/api/newsletter/unsubscribe?token=abc',
+        unsubscribeUrl: 'https://web.example.com/api/newsletter/unsubscribe?token=abc',
       },
       mentolderBrand,
     );
@@ -147,7 +147,7 @@ describe('renderNewsletterText', () => {
     expect(text).toContain('Inhalt.');
     expect(text).not.toContain('<h1>');
     expect(text).toContain('Abmelden:');
-    expect(text).toContain('https://web.mentolder.de/api/newsletter/unsubscribe?token=abc');
+    expect(text).toContain('https://web.example.com/api/newsletter/unsubscribe?token=abc');
     expect(text).toContain('Gerald Korczewski');
     expect(text).toContain('Ludwig-Erhard-Str. 18');
   });

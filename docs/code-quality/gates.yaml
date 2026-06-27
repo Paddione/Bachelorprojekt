@@ -81,10 +81,23 @@ s3:
     - website/src/
   # configmap-domains.yaml is the *.localhost dev SSOT — never a violation.
   # sitemap.xml.ts derives domain from BRAND env var (legitimate conditional) — not a hardcoded host.
+  # Brand-specific overlays (prod-<brand>/kustomization.yaml + prod-<brand>/ddns-updater.yaml)
+  # pin the brand's own domain by design — the file is the brand-scoped overlay, not a
+  # cross-brand hardcode. prod/coredns-signaling-override.yaml + prod/cloud-init-dev-vm.yaml
+  # are special-purpose configs (CoreDNS rewrite / Proxmox cloud-init) where the host is
+  # the resource's own identity. website/src/lib/*.generated.json are emitted from the
+  # agent-guide/components registry — the host strings live in doc text, not config.
   allowlist_files:
     - k3d/configmap-domains.yaml
     - website/src/pages/sitemap.xml.ts
     - prod-fleet/mentolder/sessions-server.yaml
+    - prod-mentolder/kustomization.yaml
+    - prod-korczewski/kustomization.yaml
+    - prod-korczewski/ddns-updater.yaml
+    - prod/coredns-signaling-override.yaml
+    - prod/cloud-init-dev-vm.yaml
+    - website/src/lib/agent-guide.generated.json
+    - website/src/lib/platform-descriptions.generated.json
 
 s4:
   manifest_globs:

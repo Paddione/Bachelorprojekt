@@ -34,7 +34,7 @@ spec:
         - name: sish
           image: antoniomika/sish:v2.22.1
           args:
-            - --domain=mentolder.de
+            - --domain=${PROD_DOMAIN}
             - --ssh-address=:2222
             - --http-address=:80
             - --authentication=true
@@ -45,7 +45,7 @@ spec:
             - --idle-connection-timeout=24h
             - --service-console=false
             - --tcp-aliases=false
-            - --bind-hosts=brainstorm.mentolder.de
+            - --bind-hosts=brainstorm.${PROD_DOMAIN}
           ports:
             - containerPort: 2222
               name: ssh

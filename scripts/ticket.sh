@@ -41,12 +41,33 @@ fi
 
 source "$(dirname "${BASH_SOURCE[0]}")/vda/ticket/_ticket-core.sh"
 
+# TICKET_OFFLINE=1 — skip the cluster call for writes (dev-flow-execute best-effort).
+# Mirrors scripts/openspec.sh so the same env var works for both CLIs.
+_ticket_offline_skip() {
+  if [[ "${TICKET_OFFLINE:-0}" == "1" ]]; then
+    echo "OFFLINE: skipped $*"
+    return 0
+  fi
+  return 1
+}
+
+# TICKET_OFFLINE=1 — refuse reads loudly. Reads must reach the cluster to
+# validate ticket state; silently returning empty would mask missing-cluster bugs.
+_ticket_offline_refuse_read() {
+  if [[ "${TICKET_OFFLINE:-0}" == "1" ]]; then
+    echo "OFFLINE: refused read $* (cluster required for reads)" >&2
+    return 9
+  fi
+  return 1
+}
+
 cmd_create() {
   source "$(dirname "${BASH_SOURCE[0]}")/vda/ticket/create.sh"
   main "$@"
 }
 
 cmd_update_status() {
+  if _ticket_offline_skip "update-status" "$@"; then exit 0; fi
   source "$(dirname "${BASH_SOURCE[0]}")/vda/ticket/update-status.sh"
   main "$@"
 }
@@ -65,6 +86,8 @@ cmd_add_comment() {
     echo "ERROR: --id and --body are required." >&2
     exit 2
   fi
+
+  if _ticket_offline_skip "add-comment" "--id" "$id"; then return 0; fi
 
   local pod
   pod=$(_pgpod)
@@ -98,6 +121,10 @@ cmd_archive_plan() {
     echo "ERROR: --id, --slug, --branch, and --plan-file are required." >&2
     exit 2
   fi
+
+  # OFFLINE guard runs BEFORE the empty-plan-file check so operators get
+  # the OFFLINE marker, not a 'plan file not found' error. See T001242 M3.
+  if _ticket_offline_skip "archive-plan" "--id" "$id" "--slug" "$slug"; then return 0; fi
 
   if [[ ! -s "$plan_file" ]]; then
     echo "ERROR: plan file does not exist or is empty: $plan_file" >&2
@@ -246,6 +273,7 @@ cmd_set_touched_files() {
       *)       echo "Unknown set-touched-files option: $1" >&2; exit 2 ;;
     esac; done
   if [[ -z "$id" || -z "$files" ]]; then echo "ERROR: --id and --files are required." >&2; exit 2; fi
+  if _ticket_offline_skip "set-touched-files" "--id" "$id"; then return 0; fi
   local pod; pod=$(_pgpod)
   _exec_sql "$pod" -v ext_id="$id" -v files="$files" <<'EOF' >/dev/null
 UPDATE tickets.tickets SET touched_files = string_to_array(:'files', ',') WHERE external_id = :'ext_id';
@@ -254,6 +282,10 @@ EOF
 }
 
 cmd_set_scout_drift() {
+  # NOTE: This subcommand has a pre-existing schema bug — `tickets.tickets.scout_drift`
+  # column does not exist. The OFFLINE guard runs FIRST, so test cases that exercise
+  # the OFFLINE path (T001242 M3) pass without hitting the schema bug. Fixing the
+  # schema bug is a separate ticket and out of scope here.
   local id="" drift=""
   while [[ $# -gt 0 ]]; do case "$1" in
       --id)    id="$2"; shift 2 ;;
@@ -261,6 +293,7 @@ cmd_set_scout_drift() {
       *)       echo "Unknown set-scout-drift option: $1" >&2; exit 2 ;;
     esac; done
   if [[ -z "$id" || -z "$drift" ]]; then echo "ERROR: --id and --drift are required." >&2; exit 2; fi
+  if _ticket_offline_skip "set-scout-drift" "--id" "$id"; then return 0; fi
   local pod; pod=$(_pgpod)
   _exec_sql "$pod" -v ext_id="$id" -v drift="$drift" <<'EOF' >/dev/null
 UPDATE tickets.tickets SET scout_drift = :'drift'::numeric, scout_drift_at = now() WHERE external_id = :'ext_id';
@@ -276,6 +309,7 @@ cmd_set_pipeline_slot() {
       *)      echo "Unknown set-pipeline-slot option: $1" >&2; exit 2 ;;
     esac; done
   if [[ -z "$id" || -z "$slot" ]]; then echo "ERROR: --id and --slot are required (use --slot null to clear)." >&2; exit 2; fi
+  if _ticket_offline_skip "set-pipeline-slot" "--id" "$id"; then return 0; fi
   local pod; pod=$(_pgpod)
   _exec_sql "$pod" -v ext_id="$id" -v slot="$slot" <<'EOF' >/dev/null
 UPDATE tickets.tickets SET pipeline_slot = NULLIF(:'slot','null')::integer WHERE external_id = :'ext_id';
@@ -290,6 +324,7 @@ cmd_release_slot() {
       *)    echo "Unknown release-slot option: $1" >&2; exit 2 ;;
     esac; done
   if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
+  if _ticket_offline_skip "release-slot" "--id" "$id"; then return 0; fi
   local pod; pod=$(_pgpod)
   _exec_sql "$pod" -v ext_id="$id" <<'EOF' >/dev/null
 UPDATE tickets.tickets SET pipeline_slot = NULL WHERE external_id = :'ext_id';
@@ -465,6 +500,7 @@ cmd_phase() {
   case "$phase" in scout|design|plan|implement|verify|deploy) ;; *) echo "ERROR: phase must be one of scout|design|plan|implement|verify|deploy." >&2; exit 2 ;; esac
   case "$state" in entered|done|blocked) ;; *) echo "ERROR: state must be one of entered|done|blocked." >&2; exit 2 ;; esac
   case "$driver" in factory|devflow) ;; *) echo "ERROR: driver must be one of factory|devflow." >&2; exit 2 ;; esac
+  if _ticket_offline_skip "phase" "$id" "$phase" "$state"; then return 0; fi
   local pod; pod=$(_pgpod)
   _exec_sql "$pod" -v ext_id="$id" -v phase="$phase" -v state="$state" -v detail="$detail" -v driver="$driver" <<'EOF' >/dev/null
 INSERT INTO tickets.factory_phase_events (ticket_id, phase, state, detail, driver)
@@ -502,6 +538,7 @@ cmd_inject() {
       fname=$(basename -- "$file"); data_url="data:${mime};base64,$(base64 -w0 < "$file")"
     fi
   fi
+  if _ticket_offline_skip "inject" "--id" "$id" "--kind" "$kind"; then return 0; fi
   local pod; pod=$(_pgpod)
   # Quoted heredoc (<<'EOF') → no shell expansion; every value a psql -v param, target_files via in-SQL CASE (injection-safe).
   _exec_sql "$pod" -v ext_id="$id" -v kind="$kind" -v phase="$phase" -v title="$title" \

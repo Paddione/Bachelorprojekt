@@ -24,6 +24,8 @@ cmd_add_pr_link() {
     echo "ERROR: --pr must be an integer (got '$pr')." >&2
     exit 2
   fi
+  # TICKET_OFFLINE=1 — skip the cluster call (T001242 M3).
+  if _ticket_offline_skip "add-pr-link" "--id" "$id" "--pr" "$pr"; then return 0; fi
 
   local pod
   pod=$(_pgpod)

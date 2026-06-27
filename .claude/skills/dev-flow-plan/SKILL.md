@@ -275,6 +275,26 @@ Statt deinen eigenen Kontext zurückzusetzen (das ließe dich den Faden verliere
        Acceptance-Kriterien notieren. `new/` enthält nur geprüfte, passende Assets.
      - Ticket-/Grilling-Kontext (`$GRILLING_TICKET_EXT_ID` etc.), falls vorhanden.
       - **CI-/Quality-Gates:** [plan-quality-gates](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-quality-gates.md) — der Subagent MUSS die Datei lesen und den Plan dagegen schreiben: pro zu ändernder Datei `wc -l` UND den Baseline-Wert (`jq -r '."S1:<pfad>".metric // "nicht-baselined"' docs/code-quality/baseline.json`) ermitteln und das S1-Budget gegen die **wirksame Schwelle** notieren — bei schon gebaselineten (gewachsenen) Dateien ist das Budget oft **0** (jede Netto-Zeile trippt das CI-Ratchet), dann zeilenneutral planen oder die Datei in dieser PR **echt verkleinern**; bei >~80 % der Schwelle echten Modul-Split einplanen (kein kosmetisches Zusammenziehen). Dazu: keine Brand-Domain-Literale in Code-Snippets (S3), Helper als pure Module ohne Import-Zyklen (S2), neue Manifeste/Skripte referenzieren statt verwaisen lassen (S4).
+    - **plan-lint Hard Rules (PFLICHT — vom Subagenten verbatim zu befolgen):**
+      Lies vor dem Schreiben `scripts/plan-lint.sh` und stelle sicher, dass die
+      tasks.md alle Hard-Pflichten erfüllt. Die folgenden Regeln sind die
+      einzige Quelle der Wahrheit (Stand jetzt):
+      - **F1 Frontmatter:** YAML-Frontmatter am Anfang mit den vier Pflicht-Keys
+        `title`, `ticket_id`, `domains`, `status` (alle nicht-leer).
+      - **F2 domains:** `domains:` ist eine non-empty YAML-Liste
+        (`[a, b, …]`), kein leerer String und kein `[]`.
+      - **STRUCT1 Plan-Shape:** Die Datei beginnt (nach Frontmatter) mit
+        `# <slug> — Implementation Plan` als H1, gefolgt von einer H2-Sektion
+        `## File Structure`, die die geänderten/neuen Dateien auflistet.
+      - **STRUCT2 Failing-Test-Step:** Mindestens ein Task enthält einen
+        rot→grün-Failing-Test-Step mit der wortwörtlichen Phrase
+        `expected: FAIL` (regex tolerant: `expected:? *fail`).
+      - **STRUCT3 Verify-Task:** Der letzte Task listet die drei mandatory
+        Verify-Commands: `task test:changed`, `task freshness:regenerate`,
+        `task freshness:check` (regex `task[[:space:]]+<cmd>`).
+      - **P1 Placeholder-Verbot:** In Prosa (außerhalb von ```-Fences und
+        `inline code`) dürfen die Tokens `TBD`, `TODO`, `FIXME`, `???`,
+        `<ausfüllen>` und `similar to Task <N>` NICHT vorkommen.
     - **Auftrag:** „Lies die Spec UND `.claude/skills/references/plan-quality-gates.md`. Rufe `superpowers:writing-plans` auf und schreibe den Implementierungsplan **ausschließlich** nach `openspec/changes/<slug>/tasks.md` (OpenSpec-Format: H2-Operationsheader im Delta, H3-Requirement, H4-Scenario im `specs/<capability>.md`). Der finale Verifikations-Task des Plans MUSS `task test:changed`, `task freshness:regenerate` und `task freshness:check` als Steps enthalten (CI-Äquivalent inkl. S1–S4-Ratchet); nach Test-Änderungen zusätzlich `task test:inventory` + Commit des Inventars. Vor dem Commit: `task test:openspec` (oder `bash scripts/openspec.sh validate`) — muss grün sein. Starte KEINE Implementierung (nur Plan schreiben, dann STOPP). Gib den Plan-Pfad (`openspec/changes/<slug>/tasks.md`) und eine 3-Zeilen-Zusammenfassung zurück."
 
 ### Schritt 3.8: Plan-Qualitäts-Gate (deterministischer Linter + advisory LLM-QA)

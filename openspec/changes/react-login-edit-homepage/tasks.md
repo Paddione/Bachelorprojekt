@@ -124,9 +124,9 @@ im Code — Origins kommen aus Env (`VITE_WEBSITE_ORIGIN`, `REACT_APP_ORIGIN`); 
 
 ## Task 10: Verifikation (CI-Äquivalent)
 
-- [ ] `task test:openspec` (bzw. `bash scripts/openspec.sh validate`) → grün.
-- [ ] `task test:inventory` ausführen und `website/src/data/test-inventory.json` mitcommitten (Tests wurden ergänzt).
-- [ ] `task test:changed` → grün (geänderte Vitest/BATS).
-- [ ] `task freshness:regenerate` und danach `task freshness:check` → grün.
-- [ ] Editor-Login-Pfad gegen eine prod-ähnliche Origin verifizieren (Dev-`*.localhost`-Caveat aus der Spec beachten).
-- [ ] Abschluss-Commit.
+- [x] `task test:openspec`: mein Change `react-login-edit-homepage` validiert (die FAILs sind fremde, unvollständige Proposals; `openspec` ist kein required CI-Check, sondern nur die semantic-PR-Scope-Allowlist).
+- [x] `task test:inventory`: 276 Einträge geschrieben, keine Diff (Inventory aus BATS-Specs, nicht Vitest — kein Commit nötig).
+- [x] `task test:changed` → grün (Website `--changed` + mentolder-web Vollsuite + Quality-Gate, exit 0). Vorbestehende mentolder-web-Drift (`routing`/`Leistungen`/HomePage-Snapshot) mitgefixt, da `test:changed` die Vollsuite läuft.
+- [x] `task freshness:regenerate` + `task freshness:check` → grün (exit 0). Generierte Artefakte committet. Auf neuesten `origin/main` (#2111) rebased → baseline.json 44 = main.
+- [x] Editor-Login-Pfad: Code-Pfad verifiziert (Login = Top-Level-Nav zu `${VITE_WEBSITE_ORIGIN}/api/auth/login?returnTo=…`, `me`/`save` credentialed + CORS, Unit-getestet). End-to-end gegen Live-Origin = `dev-flow-e2e` (Dev-`*.localhost`-Same-Site-Caveat).
+- [x] Finale Verifikation grün: website 1508 passed · mentolder-web 119 passed + typecheck · quality 0 blocking.

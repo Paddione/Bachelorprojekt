@@ -3,6 +3,10 @@ on:
   push:
     branches: [main]
 
+concurrency:
+  group: post-merge-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: read
 
@@ -30,8 +34,22 @@ jobs:
           chmod 600 "$HOME/.kube/config"
           export KUBECONFIG="$HOME/.kube/config"
           export TICKET_CTX=fleet BRAND=mentolder
-          bash scripts/ticket.sh update-status --id "$TICKET_ID" --status awaiting_deploy \
-            || echo "WARNING: update-status failed for $TICKET_ID (non-fatal)."
+          # retry <cmd...> — bis zu 5 Versuche, Exponential-Backoff 2/4/8/16 s.
+          # Non-fatal: gibt nach Erschöpfung 0 zurück (wie das bisherige || echo WARNING).
+          retry() {
+            local max=5 delay=2 attempt=1
+            until "$@"; do
+              if (( attempt >= max )); then
+                echo "WARNING: '$*' failed after ${max} attempts (non-fatal)."
+                return 0
+              fi
+              echo "attempt ${attempt}/${max} failed; retry in ${delay}s"
+              sleep "${delay}"
+              delay=$(( delay * 2 ))
+              attempt=$(( attempt + 1 ))
+            done
+          }
+          retry bash scripts/ticket.sh update-status --id "$TICKET_ID" --status awaiting_deploy
 
   deploy-manifests:
     name: Deploy manifest changes to both brands
@@ -105,8 +123,22 @@ jobs:
           chmod 600 "$HOME/.kube/config"
           export KUBECONFIG="$HOME/.kube/config"
           export TICKET_CTX=fleet BRAND=mentolder
-          bash scripts/ticket.sh update-status --id "$TICKET_ID" --status done \
-            || echo "WARNING: update-status failed for $TICKET_ID (non-fatal)."
+          # retry <cmd...> — bis zu 5 Versuche, Exponential-Backoff 2/4/8/16 s.
+          # Non-fatal: gibt nach Erschöpfung 0 zurück (wie das bisherige || echo WARNING).
+          retry() {
+            local max=5 delay=2 attempt=1
+            until "$@"; do
+              if (( attempt >= max )); then
+                echo "WARNING: '$*' failed after ${max} attempts (non-fatal)."
+                return 0
+              fi
+              echo "attempt ${attempt}/${max} failed; retry in ${delay}s"
+              sleep "${delay}"
+              delay=$(( delay * 2 ))
+              attempt=$(( attempt + 1 ))
+            done
+          }
+          retry bash scripts/ticket.sh update-status --id "$TICKET_ID" --status done
       - name: Scout drift ratchet
         if: steps.close.outputs.ticket_id != ''
         env:

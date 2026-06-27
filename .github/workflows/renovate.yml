@@ -20,6 +20,9 @@ concurrency:
   group: renovate-${{ github.workflow }}
   cancel-in-progress: false
 
+env:
+  OPENSPEC_TELEMETRY: '0'
+
 jobs:
   renovate:
     runs-on: ubuntu-latest

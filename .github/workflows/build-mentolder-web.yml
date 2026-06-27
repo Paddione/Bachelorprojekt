@@ -8,6 +8,9 @@ on:
       - '.github/workflows/build-mentolder-web.yml'
   workflow_dispatch:
 
+env:
+  OPENSPEC_TELEMETRY: '0'
+
 jobs:
   build-and-deploy:
     name: Build & Deploy (react.mentolder.de)

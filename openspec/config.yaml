@@ -26,3 +26,10 @@ rules:
   tasks:
     - Aufgaben auf max. 2 Stunden Aufwand begrenzen
     - Jeden Task einem konkreten Dateipfad zuordnen wenn möglich
+  specs:
+    - Jede SSOT-Spec deklariert ## Purpose + ## Requirements H2-Header (enforced by scripts/openspec-validate.ts)
+    - Purpose-Text auf Deutsch, Requirements + Scenarios auf Englisch (GIVEN/WHEN/THEN)
+    - H3 ist ### Requirement: (H2 Requirement: ist verboten)
+  design:
+    - Goals und Non-Goals explizit trennen
+    - Decisions mit Begründung und ggf. Trade-offs dokumentieren

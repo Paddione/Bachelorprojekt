@@ -9,6 +9,9 @@ concurrency:
   group: ai-review-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  OPENSPEC_TELEMETRY: '0'
+
 jobs:
   ai-review:
     name: AI Code Review

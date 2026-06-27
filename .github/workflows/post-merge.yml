@@ -10,6 +10,9 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  OPENSPEC_TELEMETRY: '0'
+
 jobs:
   mark-awaiting:
     name: Mark ticket awaiting_deploy

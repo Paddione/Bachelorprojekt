@@ -19,6 +19,7 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: paddione/talk-transcriber
 
+  OPENSPEC_TELEMETRY: '0'
 jobs:
   build-push:
     name: Build and push

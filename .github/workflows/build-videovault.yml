@@ -9,6 +9,9 @@ on:
       - '.github/workflows/build-videovault.yml'
   workflow_dispatch:
 
+env:
+  OPENSPEC_TELEMETRY: '0'
+
 jobs:
   build-and-deploy:
     name: Build & Deploy VideoVault (both brands)

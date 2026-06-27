@@ -27,6 +27,7 @@ concurrency:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
+  OPENSPEC_TELEMETRY: '0'
 jobs:
   playwright:
     name: ${{ matrix.cluster }}

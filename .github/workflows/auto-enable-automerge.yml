@@ -19,6 +19,9 @@ concurrency:
   group: auto-enable-automerge-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
+env:
+  OPENSPEC_TELEMETRY: '0'
+
 jobs:
   enable-automerge:
     name: Enable Auto-Merge

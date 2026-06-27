@@ -13,7 +13,7 @@ depends_on_plans: []
 # Tasks: g-cd01-korczewski-secret-drift (T001182)
 
 - [ ] Task 0: Failing-Test ist bereits rot im Branch — `tests/spec/sealed-secret-cluster-drift.bats` (RED)
-- [ ] Task 1: Cluster-Repair — `task env:seal ENV=korczewski && task env:deploy ENV=korczewski` (operational, Gate)
+- [x] Task 1: Cluster-Repair — `task env:seal ENV=korczewski && task env:deploy ENV=korczewski` (operational, Gate)
 - [x] Task 2: CD-Workflow-Härtung — Pre-Rollout Secret-Check in `build-website-korczewski.yml` + `build-website.yml`
 - [ ] Task 3: Test-Inventory-Refresh — `task test:inventory` + commit
 - [ ] Task 4: Verifikation — `task test:changed` + `task freshness:regenerate && task freshness:check` + `task workspace:validate` + `bash scripts/openspec.sh validate`

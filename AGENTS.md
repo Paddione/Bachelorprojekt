@@ -46,11 +46,12 @@ task feature:deploy  # fan-out to both brands
 - Branch naming: `feature/*`, `fix/*`, `chore/*`, `docs/*`
 - All changes via PRs → squash-and-merge. No direct pushes to `main`.
 - Use `dev-flow-plan` (brainstorm → spec → plan → push) then `dev-flow-execute` (implement → PR → deploy). Chores use `dev-flow-chore` (inline execute + merge).
-- **OpenSpec Native Workflow**: Specifications are written in the OpenSpec format under `openspec/`.
-  - `task openspec:propose -- <slug> --ticket <ext-id>`: Create a new proposal skeleton (status: planning).
-  - `task openspec:apply -- <slug>`: Mark proposal as implementable (status: plan_staged).
-  - `task openspec:archive -- <slug>`: Archive a completed proposal and merge its delta into the SSOT.
-  - `task openspec:validate`: Dry-run validation of the `openspec/` change tree (runs in CI).
+- **OpenSpec Native Workflow**: Specifications are written in the OpenSpec format under `openspec/`. Drive the lifecycle with the upstream **`/opsx:*` commands** (canonical):
+  - `/opsx:propose <slug>` — create a new proposal skeleton (status: `planning`).
+  - `/opsx:apply <slug>` — mark proposal as implementable (status: `plan_staged`).
+  - `/opsx:archive <slug>` — archive a completed change + merge its delta into the SSOT spec.
+  - `/opsx:explore` — think-through / requirements clarification (no implementation).
+  - The `task openspec:propose|apply|archive` wrappers are **equivalent fallbacks** for environments without the OpenSpec CLI; `task openspec:validate` is the fail-closed CI gate. Authoring conventions are SSOT in `openspec/config.yaml` — see [OpenSpec conventions](#openspec-conventions) below.
 - **awaiting_deploy status**: A transition state for tickets that are merged to `main` but not yet deployed to production (the "merge ≠ prod" lane on the dashboard cockpit).
 - CI gate: `task test:changed` (smart selection) + `task freshness:check` + `task workspace:validate`.
 - Pre-commit hook (`.githooks/pre-commit`) auto-runs freshness regeneration, secret scanning, agent-lock guard. Install with `git config core.hooksPath .githooks`.
@@ -205,4 +206,4 @@ Proposal and task files (`openspec/changes/<slug>/proposal.md`, `tasks.md`, `spe
 
 ## Dev experience
 
-After installing the OpenSpec CLI (`npm i -g @fission-ai/openspec@1.3.1`), run `openspec completion install` once to enable shell completions (bash/zsh/fish/powershell). Upstream workflow commands live under `.opencode/commands/opsx-*.md` and `.claude/skills/openspec-*/SKILL.md`; use them via `/opsx:propose`, `/opsx:apply`, `/opsx:archive` instead of the older `task openspec:*` wrappers.
+After installing the OpenSpec CLI (`npm i -g @fission-ai/openspec@1.3.1`), run `openspec completion install` once to enable shell completions (bash/zsh/fish/powershell). The upstream workflow commands are canonical (in preference to the `task openspec:*` wrappers, which remain a CLI-absent fallback). Invoke them as `/opsx:propose`, `/opsx:apply`, `/opsx:archive`, `/opsx:explore` in Claude Code (`/opsx-propose`, `/opsx-apply`, … in opencode). The command definitions live under `.claude/commands/opsx/*.md` and `.opencode/commands/opsx-*.md`; the equivalent **skill-form** is SSOT in `.claude/skills/openspec-*/SKILL.md` and mirrored to `.opencode/skills/` via symlink.

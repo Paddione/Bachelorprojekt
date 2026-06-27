@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.134.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.134.1...website-v1.134.2) (2026-06-27)
+
+
+### Tests
+
+* **website:** vitest line coverage gate &gt;= 60% on src/lib (G-TEST05) [T001208] ([#2177](https://github.com/Paddione/Bachelorprojekt/issues/2177)) ([c4d4051](https://github.com/Paddione/Bachelorprojekt/commit/c4d40513f983ab264a06b01ceb8550efdd309c32))
+
 ## [1.134.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.134.0...website-v1.134.1) (2026-06-27)
 
 

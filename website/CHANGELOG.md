@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.133.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.133.4...website-v1.133.5) (2026-06-27)
+
+
+### Performance
+
+* **website:** slim runtime image + consolidate brand builds to shared image [T001229] ([#2167](https://github.com/Paddione/Bachelorprojekt/issues/2167)) ([7ed1fdf](https://github.com/Paddione/Bachelorprojekt/commit/7ed1fdf875a9bdb485267242e9dab161b666ccfc))
+
 ## [1.133.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.133.3...website-v1.133.4) (2026-06-27)
 
 

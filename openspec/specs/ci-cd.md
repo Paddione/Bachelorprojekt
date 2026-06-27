@@ -540,6 +540,41 @@ instead of npm ci, referencing `pnpm-lock.yaml` for reproducible installs. The b
 
 ---
 
+### Requirement: PR-Gate — LOC-Budget (S6)
+
+The system SHALL reject PRs that increase total source-file LOC by more than
+`thresholds.fail_pct` percent above the committed baseline, or that exceed
+`thresholds.absolute_cap`, and SHALL emit a non-blocking warning for PRs exceeding
+`thresholds.warn_pct`.
+
+#### Scenario: LOC growth below warn_pct — PASS
+
+- **GIVEN** the current LOC is within `warn_pct` percent of `baseline.total_lines`
+- **WHEN** `task loc:check` runs
+- **THEN** exits 0 with a PASS message
+
+#### Scenario: LOC growth above fail_pct — FAIL
+
+- **GIVEN** current LOC exceeds `baseline.total_lines * (1 + fail_pct/100)`
+- **WHEN** `task loc:check` runs
+- **THEN** exits 1 with a FAIL message including the delta percentage
+
+#### Scenario: Total LOC exceeds absolute_cap — FAIL
+
+- **GIVEN** current LOC > `thresholds.absolute_cap`
+- **WHEN** `task loc:check` runs
+- **THEN** exits 1 with "absolute cap exceeded" regardless of delta_pct
+
+#### Scenario: Baseline missing — FAIL with actionable error
+
+- **GIVEN** `docs/code-quality/loc-budget.json` does not exist
+- **WHEN** `task loc:check` runs
+- **THEN** exits 1 with a message suggesting `task loc:update-baseline`
+
+---
+
+---
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->

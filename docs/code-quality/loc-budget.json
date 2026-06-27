@@ -1,0 +1,11 @@
+{
+  "total_lines": 497708,
+  "file_count": 3827,
+  "commit": "0b39bd53",
+  "measured_at": "2026-06-27T23:41:23.627Z",
+  "thresholds": {
+    "warn_pct": 5,
+    "fail_pct": 15,
+    "absolute_cap": 600000
+  }
+}

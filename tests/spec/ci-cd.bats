@@ -141,4 +141,46 @@ PY
 @test "G-CI01-D: website/pnpm-lock.yaml existiert; website/package-lock.json existiert nicht" {
   [ -f "$REPO_ROOT/website/pnpm-lock.yaml" ]
   [ ! -f "$REPO_ROOT/website/package-lock.json" ]
+
+# G-SIZE04: LOC-Budget-Gate (S6)
+
+@test "G-SIZE04: scripts/check-loc-budget.mjs exists" {
+  [ -f "$REPO_ROOT/scripts/check-loc-budget.mjs" ]
+}
+
+@test "G-SIZE04: --update-baseline writes valid JSON with required keys" {
+  TMPBASELINE=$(mktemp /tmp/loc-baseline-XXXXXX.json)
+  run node "$REPO_ROOT/scripts/check-loc-budget.mjs" --update-baseline --baseline="$TMPBASELINE"
+  [ "$status" -eq 0 ]
+  run node -e "const d=JSON.parse(require('fs').readFileSync('$TMPBASELINE','utf8')); process.exit(d.total_lines>0&&d.file_count>0&&d.commit&&d.thresholds?0:1)"
+  rm -f "$TMPBASELINE"
+  [ "$status" -eq 0 ]
+}
+
+@test "G-SIZE04: exits 0 when LOC matches baseline (idempotent)" {
+  run node "$REPO_ROOT/scripts/check-loc-budget.mjs" \
+    --baseline="$REPO_ROOT/docs/code-quality/loc-budget.json"
+  [ "$status" -eq 0 ]
+}
+
+@test "G-SIZE04: exits 0 when LOC decreases below baseline" {
+  TMPBASELINE=$(mktemp /tmp/loc-baseline-XXXXXX.json)
+  echo '{"total_lines":9999999,"file_count":9999,"commit":"test","measured_at":"now","thresholds":{"warn_pct":5,"fail_pct":15,"absolute_cap":9999999}}' > "$TMPBASELINE"
+  run node "$REPO_ROOT/scripts/check-loc-budget.mjs" --baseline="$TMPBASELINE"
+  rm -f "$TMPBASELINE"
+  [ "$status" -eq 0 ]
+}
+
+@test "G-SIZE04: exits 1 when absolute_cap is exceeded" {
+  TMPBASELINE=$(mktemp /tmp/loc-baseline-XXXXXX.json)
+  echo '{"total_lines":1,"file_count":1,"commit":"test","measured_at":"now","thresholds":{"warn_pct":5,"fail_pct":15,"absolute_cap":1}}' > "$TMPBASELINE"
+  run node "$REPO_ROOT/scripts/check-loc-budget.mjs" --baseline="$TMPBASELINE"
+  rm -f "$TMPBASELINE"
+  [ "$status" -eq 1 ]
+}
+
+@test "G-SIZE04: exits 1 when baseline file is missing" {
+  run node "$REPO_ROOT/scripts/check-loc-budget.mjs" --baseline=/nonexistent/loc-budget.json
+  [ "$status" -eq 1 ]
+
 }

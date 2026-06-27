@@ -237,6 +237,12 @@
       "status": "plan_staged"
     }
   ],
+  "T001209": [
+    {
+      "slug": "g-dep02-major-deps-website",
+      "status": "plan_staged"
+    }
+  ],
   "T001211": [
     {
       "slug": "2026-06-27-mcp-skill-integration",

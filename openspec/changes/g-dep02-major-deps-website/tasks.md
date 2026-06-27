@@ -9,12 +9,12 @@ shared_changes: false
 
 # Tasks: g-dep02-major-deps-website (T001209)
 
-- [ ] Task 0: Failing-Gate `website/tests/major-deps.test.ts` (vitest, offline) — RED bei 9 behind > 3
-- [ ] Task 1: Major-Drift inventarisieren (`npx npm-check-updates`) und die 9 bestätigen
-- [ ] Task 2: Low-Risk-Updates — `pino` 9→10, `signature_pad` 4→5
-- [ ] Task 3: Astro-Stack koordiniert — `astro` 6→7 + `@astrojs/node`/`@astrojs/react`/`@astrojs/svelte` + `@sveltejs/vite-plugin-svelte`
-- [ ] Task 4: High-Risk / Alpha — `rrweb` + `rrweb-player` alpha → 2.0.1 (migrieren oder als Ausnahme dokumentieren)
-- [ ] Task 5: Verifikation + Commit + Push + PR
+- [x] Task 0: Failing-Gate `website/tests/major-deps.test.ts` (vitest, offline) — RED bei 9 behind > 3
+- [x] Task 1: Major-Drift inventarisieren (`npx npm-check-updates`) und die 9 bestätigen
+- [x] Task 2: Low-Risk-Updates — `pino` 9→10, `signature_pad` 4→5
+- [x] Task 3: Astro-Stack koordiniert — `astro` 6→7 + `@astrojs/node`/`@astrojs/react`/`@astrojs/svelte` + `@sveltejs/vite-plugin-svelte`
+- [x] Task 4: High-Risk / Alpha — `rrweb` + `rrweb-player` 1-alpha → 2.0.1 (vollständig migriert, keine Ausnahme nötig)
+- [x] Task 5: Verifikation + Commit + Push + PR
 
 ---
 

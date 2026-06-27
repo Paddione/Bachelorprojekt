@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.130.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.129.4...website-v1.130.0) (2026-06-27)
+
+
+### Features
+
+* **website:** measure client-JS bundle + no-net-growth budget [T001207] ([#2141](https://github.com/Paddione/Bachelorprojekt/issues/2141)) ([f70ed0a](https://github.com/Paddione/Bachelorprojekt/commit/f70ed0ae611160bc8bf0eafe8489b0deda1dff4a))
+
 ## [1.129.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.129.3...website-v1.129.4) (2026-06-27)
 
 

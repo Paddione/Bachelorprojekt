@@ -207,15 +207,9 @@
       "status": "plan_staged"
     }
   ],
-  "T001203": [
+  "T001211": [
     {
-      "slug": "g-cd02-post-merge-race-guard",
-      "status": "plan_staged"
-    }
-  ],
-  "T001207": [
-    {
-      "slug": "g-fe02-bundle-budget",
+      "slug": "mcp-skill-integration",
       "status": "plan_staged"
     }
   ],

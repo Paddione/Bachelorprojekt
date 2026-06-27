@@ -207,6 +207,12 @@
       "status": "plan_staged"
     }
   ],
+  "T001203": [
+    {
+      "slug": "g-cd02-post-merge-race-guard",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

@@ -1,0 +1,36 @@
+<svg viewBox="0 0 320 64" width="320" height="64" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="ld-bg" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#1a2436"/>
+      <stop offset="60%" stop-color="#101826"/>
+      <stop offset="100%" stop-color="#0a0f18"/>
+    </linearGradient>
+    <linearGradient id="ld-brass" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#f0d28c"/>
+      <stop offset="45%" stop-color="#d7b06a"/>
+      <stop offset="100%" stop-color="#8a6a2a"/>
+    </linearGradient>
+    <linearGradient id="ld-ring" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#f4dc9a"/>
+      <stop offset="50%" stop-color="#c89a4a"/>
+      <stop offset="100%" stop-color="#7a5a1a"/>
+    </linearGradient>
+  </defs>
+  <!-- mark tile -->
+  <rect x="0" y="0" width="52" height="52" rx="12" ry="12" fill="url(#ld-bg)" transform="translate(0,6)"/>
+  <rect x="1.5" y="1.5" width="49" height="49" rx="10.5" ry="10.5" fill="none" stroke="url(#ld-ring)" stroke-width="1" transform="translate(0,6)"/>
+  <text x="26" y="42" text-anchor="middle"
+        font-family='Newsreader, "EB Garamond", Georgia, serif'
+        font-weight="500" font-size="30"
+        fill="url(#ld-brass)">m</text>
+  <circle cx="40" cy="41" r="1.8" fill="url(#ld-brass)"/>
+  <!-- wordmark -->
+  <text x="66" y="38"
+        font-family='Newsreader, "EB Garamond", Georgia, serif'
+        font-weight="400" font-size="26" letter-spacing="-0.01em"
+        fill="#eef1f3">mentolder</text>
+  <text x="213" y="38"
+        font-family='Newsreader, "EB Garamond", Georgia, serif'
+        font-weight="400" font-size="26"
+        fill="#d7b06a">.</text>
+</svg>

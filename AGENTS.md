@@ -169,6 +169,28 @@ Only skills with an explicit `agent:` field in their SKILL.md frontmatter are di
 
 When a new skill is added: pick an agent from the routing table, add `agent: bachelorprojekt-<role>` to frontmatter, and add a row to this table. (Optional follow-up: add a `task skills:validate` that asserts every `agent:` value resolves to an existing `.claude/agents/<name>.md` and that every agent has at least one skill referring to it — currently no such gate exists.)
 
+## Code Discovery (codebase-memory-mcp)
+
+Use `codebase-memory-mcp` tools **first** for any code exploration — before grepping or reading files:
+
+| Goal | Tool |
+|------|------|
+| Find a function / class / route by name | `search_graph(name_pattern=…)` |
+| Trace call chain or data flow | `trace_path(function_name=…, mode=calls\|data_flow\|cross_service)` |
+| Get exact source for a symbol | `get_code_snippet(qualified_name=…)` |
+| Complex Cypher query across the graph | `query_graph(query=…)` |
+| Project structure / architecture overview | `get_architecture(aspects=…)` |
+| Text search (graph-augmented grep) | `search_code(pattern=…)` |
+
+The graph is auto-indexed after every `git merge`/`git pull` (`.githooks/post-merge`). If you suspect the graph is stale (e.g. after a rebase or manual file edit), re-index with mode `fast` before querying:
+
+```bash
+/home/patrick/.local/bin/codebase-memory-mcp cli index_repository \
+  '{"project": "home-patrick-Bachelorprojekt", "mode": "fast"}'
+```
+
+Registered as `codebase-memory-mcp` in both `.mcp.json` (Claude Code) and `.opencode/opencode.jsonc` (opencode). Use `search_code` as the fallback when you need plain-text grep behaviour — the graph tools are faster and cross-reference aware for symbol lookups.
+
 ## Important References
 
 - `CLAUDE.md` — authoritative comprehensive reference (task lists, topology details, all footguns)

@@ -5,3 +5,8 @@ repo_root="$(git rev-parse --show-toplevel)"
 if [ -d "$repo_root/node_modules" ]; then
   task -d "$repo_root" freshness:regenerate 2>/dev/null || true
 fi
+# Keep codebase-memory graph in sync after merge (incremental, non-blocking).
+if command -v /home/patrick/.local/bin/codebase-memory-mcp &>/dev/null; then
+  /home/patrick/.local/bin/codebase-memory-mcp cli index_repository \
+    '{"project": "home-patrick-Bachelorprojekt", "mode": "fast"}' 2>/dev/null || true
+fi

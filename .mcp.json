@@ -22,17 +22,9 @@
       "type": "http",
       "url": "http://localhost:18080/mcp"
     },
-    "mcp-browser": {
-      "type": "http",
-      "url": "http://localhost:13000/mcp"
-    },
     "mcp-postgres": {
       "type": "http",
       "url": "http://localhost:13001/mcp"
-    },
-    "mcp-github": {
-      "type": "http",
-      "url": "http://localhost:13002/mcp"
     },
     "factory-mcp": {
       "type": "http",

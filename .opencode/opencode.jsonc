@@ -3,25 +3,15 @@
   "model": "lmstudio/hermes-3-llama-3.1-8b",
   "permission": "allow",
   "mcp": {
-    // ── Monolith HTTP-Endpunkte (via scripts/mcp-portforward.sh) ──────────
+    // ── Monolith HTTP-Endpunkte (kubectl portforward via Taskfile) ────────
     "mcp-kubernetes": {
       "type": "remote",
       "url": "http://localhost:18080/mcp",
       "enabled": true
     },
-    "mcp-browser": {
-      "type": "remote",
-      "url": "http://localhost:13000/mcp",
-      "enabled": true
-    },
     "mcp-postgres": {
       "type": "remote",
       "url": "http://localhost:13001/mcp",
-      "enabled": true
-    },
-    "mcp-github": {
-      "type": "remote",
-      "url": "http://localhost:13002/mcp",
       "enabled": true
     },
     "factory-mcp": {
@@ -30,6 +20,11 @@
       "enabled": true
     },
     // ── Stdio-Server (lokale Prozesse) ────────────────────────────────────
+    "codebase-memory-mcp": {
+      "type": "local",
+      "command": ["/home/patrick/.local/bin/codebase-memory-mcp"],
+      "enabled": true
+    },
     "task-master-ai": {
       "type": "local",
       "command": ["npx", "-y", "task-master-ai"],
@@ -84,6 +79,16 @@
         "qwen/qwen3.5-9b": {
           "id": "qwen/qwen3.5-9b",
           "name": "Qwen 3.5 9B (Coding)",
+          "limit": { "context": 131072, "output": 8192 }
+        },
+        "qwen/qwen3.5-9b:q4_k_m": {
+          "id": "qwen/qwen3.5-9b:q4_k_m",
+          "name": "Qwen 3.5 9B Q4_K_M (schnell)",
+          "limit": { "context": 131072, "output": 8192 }
+        },
+        "qwen/qwen3.5-9b:q8_0": {
+          "id": "qwen/qwen3.5-9b:q8_0",
+          "name": "Qwen 3.5 9B Q8_0 (präzise)",
           "limit": { "context": 131072, "output": 8192 }
         },
         "text-embedding-bge-m3": {

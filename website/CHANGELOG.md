@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.131.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.130.0...website-v1.131.0) (2026-06-27)
+
+
+### Features
+
+* **mcp:** Go-SSOT consolidation + complete adapter surface [T001211] ([#2144](https://github.com/Paddione/Bachelorprojekt/issues/2144)) ([249f42d](https://github.com/Paddione/Bachelorprojekt/commit/249f42dd3602847274b8dd794ace12cd21942b9c))
+
+
+### Bug Fixes
+
+* **website:** add missing yaml dependency [T001207] ([#2143](https://github.com/Paddione/Bachelorprojekt/issues/2143)) ([1658627](https://github.com/Paddione/Bachelorprojekt/commit/16586279448e06f00abb53ba0afb60efd4add3a5))
+
 ## [1.130.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.129.4...website-v1.130.0) (2026-06-27)
 
 

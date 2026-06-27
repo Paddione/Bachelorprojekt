@@ -67,6 +67,9 @@ psql() { kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- psql 
 Fetch every open ticket and compute, per ticket, **what is missing** before it can be worked. This is a two-tier rubric: a lightweight field check for *all* tickets, plus the DoR check for planning-stage features.
 
 ### Step 1.1: Fetch open tickets (enriched)
+
+**MCP-first** (`mcp-postgres`, read-only): pass the query below to `mcp__mcp-postgres__query({ sql: "…" })`. Fallback: `psql -c "<query>"` via the `psql()` helper above.
+
 ```sql
 SELECT external_id, title, type, status, priority, severity, component, areas,
        depends_on, attention_mode, planning_rank, readiness,
@@ -140,7 +143,14 @@ Mirror `website/src/lib/clarification-questions.ts` (`deriveSections`) — the s
 One `AskUserQuestion` round per ticket (≤4 questions per call — split into multiple calls if a ticket has more), in priority order. Use the radio/checkbox option sets from `clarification-questions.ts` where they exist; free-text otherwise. If you are running without the `AskUserQuestion` tool (e.g. dispatched as a subagent), fall back to one consolidated plain-text question per ticket.
 
 ### Step 2.4: Write answers back to the DB
-Writes go through `psql()` (the MCP query tool is read-only). Per ticket, set the now-satisfied DoR flags via a JSONB merge (never clobber other flags), update the answered fields, and append a clarification comment:
+
+**MCP-first** (`ticket-mcp` lifecycle, where a wrapper exists — these shell out to `ticket.sh`, the sanctioned write path, NOT via the read-only `mcp-postgres`): set DoR flags via `set_readiness_flag` (one per flag) or `prepare_feature`; set effort/areas/depends_on via `set_plan_meta`; append the clarification comment via `add_comment`.
+
+> `mcp__ticket-mcp__set_readiness_flag({ id: "T000XXX", flag: "spec_skizziert", value: true })`
+> `mcp__ticket-mcp__set_plan_meta({ id: "T000XXX", effort: "mittel", depends_on: "T000YYY" })`
+> `mcp__ticket-mcp__add_comment({ id: "T000XXX", body: "## Klärungsrunde …" })`
+
+Fallback / bulk path (ticket-mcp nicht erreichbar, oder für Felder ohne Wrapper wie ein direkter `priority`-Set + eine einzelne JSONB-Readiness-Merge): Writes go through `psql()` (the MCP query tool is read-only). Per ticket, set the now-satisfied DoR flags via a JSONB merge (never clobber other flags), update the answered fields, and append a clarification comment:
 
 ```bash
 psql -c "
@@ -272,7 +282,11 @@ TICKET_ID=$(printf '%s %s' "$TITLE" "$BRANCH" | grep -oiE 'T[0-9]{6}' | head -1 
   > ```
   Use `--auto` instead when CI is still running — GitHub merges once checks pass.
 
-* **Close the ticket once `mergedAt` is set** (only if `$TICKET_ID` was found; `resolution`: `fixed` for `fix/*`, `shipped` for `feature/*`):
+* **Close the ticket once `mergedAt` is set** (only if `$TICKET_ID` was found; `resolution`: `fixed` for `fix/*`, `shipped` for `feature/*`) — **MCP-first** (`ticket-mcp` lifecycle; the wrappers write via `ticket.sh`, not via the read-only `mcp-postgres`):
+  > `mcp__ticket-mcp__transition_status({ id: "$TICKET_ID", status: "done", resolution: "<fixed|shipped>" })`
+  > `mcp__ticket-mcp__add_comment({ id: "$TICKET_ID", body: "PR #<number> merged." })`
+
+  Fallback (ticket-mcp nicht erreichbar — direkte Writes über `psql`):
   ```bash
   psql -c \
     "UPDATE tickets.tickets SET status='done', resolution='fixed', done_at=now()

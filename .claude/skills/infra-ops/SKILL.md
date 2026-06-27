@@ -291,8 +291,10 @@ Keycloak-Realm aus JSON reconcilen — OIDC-Clients, Gruppen, Mapper, SSO-Login-
 
 ### Phases
 
+> **Status-Reads MCP-first:** Pod-Status/Logs bevorzugt über `mcp__mcp-kubernetes__pods_list_in_namespace({ namespace: "workspace" })` / `mcp__mcp-kubernetes__pods_log({ namespace: "workspace", name: "<keycloak-pod>" })` (read-only); die `task workspace:status`/`logs`-Aufrufe unten sind der Fallback. Mutations (`task secrets:sync`, `register-oidc-client.mjs`, deploys) bleiben unverändert.
+
 ```bash
-# Phase 1: Pre-sync check
+# Phase 1: Pre-sync check (Fallback — siehe MCP-first oben)
 task workspace:status ENV=<env>  # keycloak pod: 1/1 Running?
 task workspace:logs ENV=<env> -- keycloak
 
@@ -463,6 +465,13 @@ task workspace:deploy ENV=mentolder && task workspace:deploy ENV=korczewski
 ```
 
 ### Verification
+
+Status-Reads — **MCP-first** (`mcp-kubernetes`, read-only):
+
+> `mcp__mcp-kubernetes__pods_list_in_namespace({ namespace: "workspace" })` — alle Pods 1/1 Running?
+> `mcp__mcp-kubernetes__pods_log({ namespace: "workspace", name: "<keycloak|nextcloud|website>-pod" })`
+
+Fallback (mcp-kubernetes nicht erreichbar):
 
 ```bash
 task workspace:status ENV=<env>

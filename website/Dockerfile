@@ -4,8 +4,17 @@
 FROM node:22-alpine AS build
 WORKDIR /app
 
-COPY website/package.json website/package-lock.json ./
-RUN --mount=type=cache,target=/root/.npm npm ci
+# T001224/T001276: website migrated to pnpm — `website/package-lock.json` was
+# deleted, only `website/pnpm-lock.yaml` exists. Corepack is bundled with
+# node 22, so we enable pnpm@10 (matches `.github/workflows/ci.yml` +
+# `.github/workflows/build-mentolder-web.yml`).
+ENV PNPM_HOME=/pnpm
+ENV PATH=/pnpm:$PATH
+RUN corepack enable && corepack prepare pnpm@10.15.0 --activate
+
+# Copy ONLY the manifest + lockfile first so dependency layer caches cleanly.
+COPY website/package.json website/pnpm-lock.yaml ./
+RUN --mount=type=cache,target=/pnpm/store pnpm install --frozen-lockfile
 
 COPY website/ .
 
@@ -13,11 +22,11 @@ COPY website/ .
 # The pixi.js + Astro build is memory-hungry; without an explicit limit,
 # the dev node (k3s-1) crashes with SIGSEGV or esbuild memory-corruption.
 ENV NODE_OPTIONS=--max-old-space-size=3072
-RUN npm run build
+RUN pnpm run build
 
 # Prune devDependencies so the runtime stage copies only prod node_modules
 # (~1.2 GB → ~600 MB). Chromium/kubectl/tests/ bleiben bewusst im Runtime-Image.
-RUN npm prune --omit=dev
+RUN pnpm install --prod
 
 # ── Runtime stage ─────────────────────────────────────────────────────────────
 FROM node:22-alpine AS runtime

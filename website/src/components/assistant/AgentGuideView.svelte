@@ -191,12 +191,12 @@
   // ── Handlers ─────────────────────────────────────────────────────────────────
   function toggleCard(id: string) {
     const next = new Set(expanded);
-    next.has(id) ? next.delete(id) : next.add(id);
+    if (next.has(id)) next.delete(id); else next.add(id);
     expanded = next;
   }
   function toggleGroup(key: string) {
     const next = new Set(groupsOpen);
-    next.has(key) ? next.delete(key) : next.add(key);
+    if (next.has(key)) next.delete(key); else next.add(key);
     groupsOpen = next;
   }
   function expandAll() { expanded = new Set(ALL.map(e => e.id)); }
@@ -281,7 +281,7 @@
     {resultCount} {searching}
     onQuery={(v) => (query = v)}
     onAxis={(a) => (axis = a)}
-    onToggleTier={(id) => { const n = new Set(tierFilter); n.has(id) ? n.delete(id) : n.add(id); tierFilter = n; }}
+    onToggleTier={(id) => { const n = new Set(tierFilter); if (n.has(id)) n.delete(id); else n.add(id); tierFilter = n; }}
     onToggleDomain={(id) => (domainFilter = id)}
   />
 

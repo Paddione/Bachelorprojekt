@@ -2,7 +2,7 @@
   import { PHASE_ORDER } from '../lib/factory-floor';
   import type { Phase } from '../lib/factory-floor';
   import { MOBILE_COL_INDEX } from './factory/MobileTabBar.svelte';
-  export { MOBILE_COL_INDEX };
+  export { MOBILE_COL_INDEX }; // eslint-disable-line no-import-assign
   export const STATIONS: { key: Phase; label: string }[] =
     PHASE_ORDER.map((key) => ({ key, label: key.charAt(0).toUpperCase() + key.slice(1) }));
 </script>

@@ -176,7 +176,7 @@
           ondragenter={enableImageUpload ? onDragOver : undefined}
           ondragleave={enableImageUpload ? onDragLeave : undefined}
           ondrop={enableImageUpload ? onDrop : undefined}
-          class={`bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm font-mono focus:border-gold focus:ring-1 focus:ring-gold/20 outline-none resize-y w-full`}
+          class="bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm font-mono focus:border-gold focus:ring-1 focus:ring-gold/20 outline-none resize-y w-full"
         ></textarea>
         {#if dragOver}
           <div class="absolute inset-0 flex items-center justify-center bg-gold/20 border-2 border-dashed border-gold rounded-lg pointer-events-none">

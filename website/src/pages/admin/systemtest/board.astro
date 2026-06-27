@@ -309,7 +309,6 @@ const COLUMNS: Array<{ key: string; title: string; hint: string }> = [
       banner.classList.remove('hidden');
       status.textContent = 'Fehler';
       status.dataset.fresh = 'false';
-      // eslint-disable-next-line no-console
       console.error('[systemtest/board] poll failed:', err);
     }
   }

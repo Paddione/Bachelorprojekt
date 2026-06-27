@@ -80,7 +80,7 @@
     <p class="text-xs text-muted">Platzhalter: <code class="font-mono text-gold/80">&#123;&#123;number&#125;&#125;</code> <code class="font-mono text-gold/80">&#123;&#123;gross_amount&#125;&#125;</code> <code class="font-mono text-gold/80">&#123;&#123;due_date&#125;&#125;</code> <code class="font-mono text-gold/80">&#123;&#123;payment_reference&#125;&#125;</code> <code class="font-mono text-gold/80">&#123;&#123;customer_name&#125;&#125;</code> <code class="font-mono text-gold/80">&#123;&#123;seller_name&#125;&#125;</code></p>
     <div>
       <label class={labelCls}>E-Mail-Betreff</label>
-      <input type="text" bind:value={subject} class={inputCls} placeholder="Rechnung {{number}}" />
+      <input type="text" bind:value={subject} class={inputCls} placeholder="Rechnung &#123;&#123;number&#125;&#125;" />
     </div>
     <div>
       <label class={labelCls}>E-Mail-Text</label>

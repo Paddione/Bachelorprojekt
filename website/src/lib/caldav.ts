@@ -281,7 +281,7 @@ export async function getAvailableSlots(fromDate?: Date, brand?: string, slotDur
 
   // windowsMap: date string → array of {winStart, winEnd} (HH:MM strings)
   let windowsMap: Map<string, Array<{ winStart: string; winEnd: string }>> | null = null;
-  let vacationDays: Set<string> = new Set();
+  const vacationDays: Set<string> = new Set();
   const effectiveBrand = brand || config.brand;
 
   if (brand) {

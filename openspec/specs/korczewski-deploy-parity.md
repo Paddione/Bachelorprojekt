@@ -1,7 +1,10 @@
 # korczewski-deploy-parity
 
+## Purpose
 
-<!-- merged from change delta korczewski-deploy-parity.md on 2026-06-28 -->
+Stellt sicher, dass das CI-Deployment der korczewski-Brand unabhängig vom mentolder-Deploy läuft — ein mentolder-Fehler darf den korczewski-Deploy nicht still überspringen. Garantiert wird dies durch die 3-Job-Architektur von `build-website.yml` (`build-image` → `deploy-mentolder` ‖ `deploy-korczewski`) und BATS-Tests, die die Job-Topologie strukturell prüfen.
+
+## Requirements
 
 ### Requirement: Unabhängiger korczewski Deploy-Job in build-website.yml
 

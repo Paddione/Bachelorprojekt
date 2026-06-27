@@ -54,10 +54,10 @@ depends_on_plans: []
 - [x] **P2-T4** (2b) Geteiltes Image `ghcr.io/paddione/website`: `build-website.yml` = 1 Build + 2 Deploy-Steps; `build-website-korczewski.yml` löschen; `WEBSITE_IMAGE` in allen `environments/*.yaml` repointen
 - [x] **P2-T5** Stale Aussage in `website/CLAUDE.md` korrigieren (`LEGAL_*` Build-Zeit → Runtime)
 - [ ] **P2-T6** Rollout beider Brands verifizieren (post-merge)
-- [ ] **P3-T0** (TDD rot) Phase-3-Assertions an `tests/spec/docker-build-speedup.bats` anhängen + ausführen, Expected: FAIL (rot)
-- [ ] **P3-T1** (Pre-flight) `kubectl --context fleet get nodes -o wide` → amd64-only bestätigen
-- [ ] **P3-T2** `build-transcriber.yml` + `build-collabora.yml`: `platforms: linux/amd64` (arm64 + QEMU raus)
-- [ ] **P3-T3** Phase-3-Verifikation
+- [x] **P3-T0** (TDD rot) Phase-3-Assertions an `tests/spec/docker-build-speedup.bats` anhängen + ausführen, Expected: FAIL (rot)
+- [x] **P3-T1** (Pre-flight) `kubectl --context fleet get nodes -o wide` → amd64-only bestätigen
+- [x] **P3-T2** `build-transcriber.yml` + `build-collabora.yml`: `platforms: linux/amd64` (arm64 + QEMU raus)
+- [x] **P3-T3** Phase-3-Verifikation
 - [x] **SPEC** Spec-Delta `specs/docker-build-speedup.md` füllen + `task test:openspec` grün
 - [ ] **VERIFY** Finaler CI-Gate-Verifikations-Task (pro Phase-PR auszuführen)
 
@@ -685,7 +685,7 @@ Alle vom Change berührten Pfade, gruppiert nach Aktion (1-Wort-Zweck je Pfad):
 
 **Konkrete Schritte:**
 
-- [ ] **Step 1 — Phase-3-Block anhängen:**
+- [x] **Step 1 — Phase-3-Block anhängen:**
   ```bash
   # ── Phase 3: amd64-only ────────────────────────────────────────────────────
   @test "P3: transcriber baut amd64-only ohne QEMU" {
@@ -701,7 +701,7 @@ Alle vom Change berührten Pfade, gruppiert nach Aktion (1-Wort-Zweck je Pfad):
   }
   ```
 
-- [ ] **Step 2 — Test ausführen, Expected: FAIL (rot):** die `P3:`-Assertions schlagen fehl, weil beide Workflows noch `linux/amd64,linux/arm64` + QEMU enthalten.
+- [x] **Step 2 — Test ausführen, Expected: FAIL (rot):** die `P3:`-Assertions schlagen fehl, weil beide Workflows noch `linux/amd64,linux/arm64` + QEMU enthalten.
   ```bash
   ./tests/unit/lib/bats-core/bin/bats tests/spec/docker-build-speedup.bats --filter 'P3:'
   ```
@@ -721,13 +721,13 @@ Alle vom Change berührten Pfade, gruppiert nach Aktion (1-Wort-Zweck je Pfad):
 
 **Konkrete Schritte:**
 
-- [ ] **Step 1:**
+- [x] **Step 1:**
   ```bash
   kubectl --context fleet get nodes -o wide
   kubectl --context fleet get nodes -o jsonpath='{range .items[*]}{.metadata.name}{"="}{.status.nodeInfo.architecture}{"\n"}{end}'
   ```
   Erwartung: alle Nodes `amd64`.
-- [ ] **Step 2 — Gate:** Taucht ein `arm64`-Node auf → **STOP Phase 3** (arm64 wird gebraucht). Sonst fortsetzen.
+- [x] **Step 2 — Gate:** Taucht ein `arm64`-Node auf → **STOP Phase 3** (arm64 wird gebraucht). Sonst fortsetzen.
 
 **Acceptance-Kriterien:**
 - Nachweis (Output) im PR, dass alle fleet-Nodes amd64 sind.
@@ -744,8 +744,8 @@ Alle vom Change berührten Pfade, gruppiert nach Aktion (1-Wort-Zweck je Pfad):
 
 **Konkrete Schritte:**
 
-- [ ] **Step 1 — `build-transcriber.yml`:** `platforms: linux/amd64,linux/arm64` → `platforms: linux/amd64`. Den Step „Set up QEMU" (`docker/setup-qemu-action`, mit `platforms: linux/arm64`) entfernen (nur noch amd64 = nativ, kein QEMU nötig). `setup-buildx` bleibt. Cache-Konfig aus P1-T3 bleibt.
-- [ ] **Step 2 — `build-collabora.yml`:** `platforms: linux/amd64,linux/arm64` → `platforms: linux/amd64`. „Set up QEMU"-Step entfernen. Kommentar „Needed so amd64 runners can build the arm64 variant too." mit-entfernen/anpassen.
+- [x] **Step 1 — `build-transcriber.yml`:** `platforms: linux/amd64,linux/arm64` → `platforms: linux/amd64`. Den Step „Set up QEMU" (`docker/setup-qemu-action`, mit `platforms: linux/arm64`) entfernen (nur noch amd64 = nativ, kein QEMU nötig). `setup-buildx` bleibt. Cache-Konfig aus P1-T3 bleibt.
+- [x] **Step 2 — `build-collabora.yml`:** `platforms: linux/amd64,linux/arm64` → `platforms: linux/amd64`. „Set up QEMU"-Step entfernen. Kommentar „Needed so amd64 runners can build the arm64 variant too." mit-entfernen/anpassen.
 
 **Acceptance-Kriterien:**
 - Beide Workflows: `platforms: linux/amd64` (kein `arm64` mehr).
@@ -760,12 +760,12 @@ Alle vom Change berührten Pfade, gruppiert nach Aktion (1-Wort-Zweck je Pfad):
 
 **Konkrete Schritte:**
 
-- [ ] **Step 0 — P3-BATS grün:** der in P3-T0 rote Block ist nach P3-T2 grün:
+- [x] **Step 0 — P3-BATS grün:** der in P3-T0 rote Block ist nach P3-T2 grün:
   ```bash
   ./tests/unit/lib/bats-core/bin/bats tests/spec/docker-build-speedup.bats
   ```
   Erwartung: alle `@test` (P1+P2+P3) `ok`.
-- [ ] **Step 1:** Workflow-Syntax/Struktur grün (`task test:all` bzw. `yamllint` lokal).
+- [x] **Step 1:** Workflow-Syntax/Struktur grün (`task test:all` bzw. `yamllint` lokal).
 - [ ] **Step 2:** Post-merge: transcriber-Run-Duration vorher (~8 min) / nachher dokumentieren (Beleg der Halbierung durch QEMU-Wegfall).
 - [ ] **Step 3:** Bestätigen, dass die single-arch Images im Cluster ziehen (transcriber- + collabora-Pods `Running`).
 

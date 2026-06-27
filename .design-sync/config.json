@@ -1,0 +1,34 @@
+{
+  "projectId": "01e9f022-213c-4e8b-8f33-38222947565f",
+  "pkg": "mentolder-web",
+  "globalName": "MentolderWeb",
+  "shape": "package",
+  "srcDir": "src/components",
+  "cssEntry": ".design-sync/design-tokens.css",
+  "tsconfig": "tsconfig.app.json",
+  "runtimeFontPrefixes": ["Newsreader", "Geist", "Geist Mono"],
+  "provider": {
+    "component": "MemoryRouter"
+  },
+  "componentSrcMap": {
+    "Hero": "src/components/Hero.tsx",
+    "ServiceCard": "src/components/ServiceCard.tsx",
+    "ServiceRow": "src/components/ServiceRow.tsx",
+    "WhyMeStats": "src/components/WhyMeStats.tsx",
+    "FAQ": "src/components/FAQ.tsx",
+    "ContactForm": "src/components/ContactForm.tsx",
+    "Footer": "src/components/Footer.tsx",
+    "KickerBar": "src/components/KickerBar.tsx",
+    "Navigation": "src/components/Navigation.tsx",
+    "Portrait": "src/components/Portrait.tsx",
+    "CallToAction": "src/components/CallToAction.tsx"
+  },
+  "overrides": {
+    "KickerBar": { "cardMode": "column" },
+    "ServiceRow": { "cardMode": "column" },
+    "WhyMeStats": { "cardMode": "column" }
+  },
+  "libOverrides": {
+    "bundle.mjs": "adds svgr-stub plugin to handle ?react SVG imports from vite-plugin-svgr"
+  }
+}

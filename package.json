@@ -7,7 +7,8 @@
     "test:docs-gen": "node --test scripts/docs-gen/*.test.mjs",
     "build:docs": "node scripts/build-docs.mjs",
     "test:agent-guide": "node --test scripts/agent-guide/*.test.mjs",
-    "test:code-quality": "node --test scripts/code-quality/*.test.mjs scripts/code-quality/gates/*.test.mjs"
+    "test:code-quality": "node --test scripts/code-quality/*.test.mjs scripts/code-quality/gates/*.test.mjs",
+    "test:openspec": "vitest run scripts/openspec-validate.test.ts --reporter=verbose"
   },
   "engines": {
     "node": ">=22.13.0"
@@ -21,6 +22,8 @@
     "gray-matter": "^4.0.3",
     "madge": "^8.0.0",
     "marked": "^18.0.4",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4",
     "yaml": "^2.9.0"
   }
 }

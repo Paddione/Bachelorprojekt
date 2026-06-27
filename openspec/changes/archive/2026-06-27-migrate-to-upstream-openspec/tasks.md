@@ -2,7 +2,7 @@
 title: "OpenSpec improvements batch: backfill + /opsx:* commands + polish [T001267]"
 ticket_id: T001267
 domains: [openspec, ci, docs, tooling]
-status: plan_staged
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

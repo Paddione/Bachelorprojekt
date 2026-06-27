@@ -70,7 +70,7 @@ python3 -c "import json,sys,collections as c; d=json.load(sys.stdin); [print(f'{
 task quality:check
 ```
 
-> **Baseline:** 28 (S1:28 S2:0 S3:0 S4:0) · **Target:** ≤ 30 (erreicht) · **Aufwand:** halten + S1-Refactoring · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
+> **Priorität:** C · **Baseline:** 28 (S1:28 S2:0 S3:0 S4:0) · **Target:** ≤ 30 (erreicht) · **Aufwand:** halten + S1-Refactoring · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
 
 ## G-RH02 — TypeScript-Suppressionen: 0 → 0 (erreicht, halten)
 
@@ -83,11 +83,11 @@ grep -r "@ts-ignore\|@ts-expect-error" website/src \
   --include="*.ts" --include="*.svelte" --include="*.astro" --exclude-dir=node_modules | wc -l
 ```
 
-> **Baseline:** 0 (vorher 9) · **Target:** 0 · **Aufwand:** erreicht — Review-Gate · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
+> **Priorität:** C · **Baseline:** 0 (vorher 9) · **Target:** 0 · **Aufwand:** erreicht — Review-Gate · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
 
-## G-RH03 — OpenSpec-BATS-Abdeckung: 35 % → ≥ 60 %
+## G-RH03 — OpenSpec-BATS-Abdeckung: 45 % → ≥ 60 %
 
-**Was:** Von 55 OpenSpec-Specs (`openspec/specs/*.md`) haben 19 eine BATS-Datei in `tests/spec/`. Jede unabgedeckte Spec ist nur manuell oder gar nicht verifiziertes Verhalten.
+**Was:** Von 60 OpenSpec-Specs (`openspec/specs/*.md`) haben 27 eine BATS-Datei in `tests/spec/`. Jede unabgedeckte Spec ist nur manuell oder gar nicht verifiziertes Verhalten.
 
 **Warum erreichbar:** ≥ 60 % = 33 Specs ⇒ 14 neue BATS-Dateien, ~1 h/Datei, ~3 Wochen. Trend belegt (17 % → 28 % → 35 %).
 
@@ -98,7 +98,7 @@ comm -23 <(ls openspec/specs/*.md | xargs -n1 basename | sed 's/.md$//' | sort) 
          <(ls tests/spec/*.bats | xargs -n1 basename | sed 's/.bats$//' | sort)
 ```
 
-> **Baseline:** 35 % (19/55) · **Target:** ≥ 60 % (33/55) · **Aufwand:** ~3 Wochen · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
+> **Priorität:** B · **Baseline:** 45 % (27/60) · **Target:** ≥ 60 % (36/60) · **Aufwand:** ~3 Wochen · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
 
 ## G-RH04 — Stale Remote Branches (>14 Tage, kein offener PR): 0
 
@@ -112,7 +112,7 @@ git for-each-ref --format='%(refname:short)|%(committerdate:unix)' refs/remotes/
   | grep -v "HEAD\|main" | while IFS='|' read b ts; do [[ "$ts" -lt "$CUTOFF" ]] && echo "$b"; done | wc -l
 ```
 
-> **Baseline:** 0 stale (3 aktiv) · **Target:** dauerhaft 0 · **Aufwand:** Policy · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
+> **Priorität:** C · **Baseline:** 0 stale (3 aktiv) · **Target:** dauerhaft 0 · **Aufwand:** Policy · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
 
 ## G-RH05 — Plan-Staged-Tickets ohne Aktivität >14 Tage: 0
 
@@ -125,7 +125,7 @@ git for-each-ref --format='%(refname:short)|%(committerdate:unix)' refs/remotes/
 bash scripts/vda.sh oracle --dry-run 'list plan_staged tickets'
 ```
 
-> **Baseline:** 0 (vorher 4) · **Target:** 0 idle >14 Tage · **Aufwand:** laufend · **Messzyklus:** wöchentlich · **Reproduzierbar:** mit ticket-mcp
+> **Priorität:** C · **Baseline:** 0 (vorher 4) · **Target:** 0 idle >14 Tage · **Aufwand:** laufend · **Messzyklus:** wöchentlich · **Reproduzierbar:** mit ticket-mcp
 
 ## G-RH06 — Sentinel-Issues unbehandelt >48h: 0
 
@@ -140,7 +140,7 @@ i=json.load(sys.stdin); cut=datetime.now(timezone.utc)-timedelta(hours=48)
 print('>48h:', sum(1 for x in i if datetime.fromisoformat(x['createdAt'].replace('Z','+00:00'))<cut))"
 ```
 
-> **Baseline:** 0 offen · **Target:** 0 älter als 48h · **Aufwand:** Policy · **Messzyklus:** täglich · **Reproduzierbar:** mit gh
+> **Priorität:** C · **Baseline:** 0 offen · **Target:** 0 älter als 48h · **Aufwand:** Policy · **Messzyklus:** täglich · **Reproduzierbar:** mit gh
 
 ## G-RH07 — Freshness-Check: grün (Exit 0) auf `main`
 
@@ -152,7 +152,7 @@ print('>48h:', sum(1 for x in i if datetime.fromisoformat(x['createdAt'].replace
 task freshness:check; echo "Exit: $?"
 ```
 
-> **Baseline:** Exit 0 (grün) · **Target:** Exit 0 auf main, immer · **Aufwand:** Policy · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
+> **Priorität:** C · **Baseline:** Exit 0 (grün) · **Target:** Exit 0 auf main, immer · **Aufwand:** Policy · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
 
 ---
 
@@ -168,7 +168,7 @@ task freshness:check; echo "Exit: $?"
 grep -rniE "skip [\"']" tests --include=*.bats | grep -ciE "pending|todo|gap-analysis|WP-|not implemented|disabled|stub"
 ```
 
-> **Baseline:** 9 (alle in admin-nav.bats) · **Target:** 0 · **Aufwand:** ~1–2 Wochen (feature-gekoppelt) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
+> **Priorität:** B · **Baseline:** 9 (alle in admin-nav.bats) · **Target:** 0 · **Aufwand:** ~1–2 Wochen (feature-gekoppelt) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
 
 ## G-TEST02 — Vitest `.only`-Vorkommen: dauerhaft 0 (Policy-Gate)
 
@@ -181,9 +181,9 @@ grep -rnE "\.only\b" website/src mentolder-web/src \
   --include="*.test.ts" --include="*.test.tsx" --include="*.test.svelte" | wc -l
 ```
 
-> **Baseline:** 0 · **Target:** dauerhaft 0 · **Aufwand:** Policy (~1h Gate) · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
+> **Priorität:** C · **Baseline:** 0 · **Target:** dauerhaft 0 · **Aufwand:** Policy (~1h Gate) · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
 
-## G-TEST03 — Vitest Skipped/Todo-Suiten: 5 → 0
+## G-TEST03 — Vitest Skipped/Todo-Suiten: 3 → 0
 
 **Was:** 3× `it.todo` (`factory-floor.order.test.ts`, SP4-Order-Asserts) + 2× `describe.skip` (`assistant/dismissals`, `assistant/conversations`, brauchen DB). Definiertes, aber nie ausgeführtes Verhalten — zählt nicht als Fehlschlag, prüft nichts.
 
@@ -194,7 +194,7 @@ grep -rnE "(describe|it|test)\.(skip|todo)\b" website/src --include="*.ts" --inc
   | grep -vE "^[^:]+:[0-9]+:[[:space:]]*//" | wc -l
 ```
 
-> **Baseline:** 5 · **Target:** 0 · **Aufwand:** ~1 Woche · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
+> **Priorität:** B · **Baseline:** 3 (war 5) · **Target:** 0 · **Aufwand:** ~1 Woche · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
 
 ## G-TEST04 — Test-Inventory-Drift: 0 (CI-Gate)
 
@@ -209,7 +209,7 @@ git status --porcelain website/src/data/test-inventory.json | wc -l
 # task test:inventory && git diff --exit-code website/src/data/test-inventory.json
 ```
 
-> **Baseline:** 0 Drift · **Target:** dauerhaft 0 · **Aufwand:** Policy · **Messzyklus:** pro Merge / bei Test-Änderungen · **Reproduzierbar:** ja
+> **Priorität:** C · **Baseline:** 0 Drift · **Target:** dauerhaft 0 · **Aufwand:** Policy · **Messzyklus:** pro Merge / bei Test-Änderungen · **Reproduzierbar:** ja
 
 ## G-TEST05 — Vitest Line-Coverage (website/src/lib): messen → ≥ 60 %
 
@@ -223,7 +223,7 @@ pnpm --dir website exec vitest run --coverage --coverage.provider=v8 \
   --coverage.reporter=text-summary 2>/dev/null | grep -iE 'lines|statements'
 ```
 
-> **Baseline:** unbekannt (Provider nicht installiert) · **Target:** ≥ 60 % Lines (lib/) · **Aufwand:** ~0.5 Tag Setup + laufend · **Messzyklus:** wöchentlich · **Reproduzierbar:** eingeschränkt (Tool-Setup)
+> **Priorität:** B · **Baseline:** unbekannt (Provider nicht installiert) · **Target:** ≥ 60 % Lines (lib/) · **Aufwand:** ~0.5 Tag Setup + laufend · **Messzyklus:** wöchentlich · **Reproduzierbar:** eingeschränkt (Tool-Setup)
 
 ---
 
@@ -241,11 +241,11 @@ pnpm --dir website exec vitest run --coverage --coverage.provider=v8 \
 cd website && timeout 240 npx astro check 2>&1 | grep -E '^- [0-9]+ errors'
 ```
 
-> **Baseline:** 249 Fehler (war 177; +72 durch G-CQ02-Cast-Abbau) · **Target:** ≤ 20 · **Aufwand:** hoch (~2–3 Sessions, gekoppelt an G-CQ02) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
+> **Priorität:** A · **Baseline:** 249 Fehler (war 177; +72 durch G-CQ02-Cast-Abbau) · **Target:** ≤ 20 · **Aufwand:** hoch (~2–3 Sessions, gekoppelt an G-CQ02) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
 
-## G-CQ02 — Explizite `any`-Verwendungen: 431 → ≤ 280
+## G-CQ02 — Explizite `any`-Verwendungen: 424 → ≤ 280
 
-**Was:** 431 explizite `any` in `website/src` (war 564; Abbau v.a. in Testdateien, PR #2128 595→431) über die `.ts`/`.svelte`/`.astro`-Quellen. Jedes `any` deaktiviert lokal die Typprüfung; die `as any` umgehen bewusst die Zuweisbarkeitsprüfung. **Achtung:** weiterer `as any`-Abbau erhöht G-CQ01 (astro-check), solange die Test-Render-Helper nicht zentral typisiert sind — die beiden Ziele sind gekoppelt.
+**Was:** 424 explizite `any` in `website/src` (war 431; Abbau v.a. in Testdateien) über die `.ts`/`.svelte`/`.astro`-Quellen. Jedes `any` deaktiviert lokal die Typprüfung; die `as any` umgehen bewusst die Zuweisbarkeitsprüfung. **Achtung:** weiterer `as any`-Abbau erhöht G-CQ01 (astro-check), solange die Test-Render-Helper nicht zentral typisiert sind — die beiden Ziele sind gekoppelt.
 
 **Warum erreichbar:** Viele `as any` stecken in Tests + wenigen Hotspots (API-Routes, DB-Layer); durch generische Typen/Interfaces ersetzbar. Halbierung über ~4–5 Wochen kontinuierlich; 0 bei 1357 Dateien unrealistisch.
 
@@ -253,7 +253,7 @@ cd website && timeout 240 npx astro check 2>&1 | grep -E '^- [0-9]+ errors'
 grep -rn ': any\|<any>\|as any' website/src --include=*.ts --include=*.svelte --include=*.astro | wc -l
 ```
 
-> **Baseline:** 431 (war 564) · **Target:** ≤ 280 · **Aufwand:** mittel (~3–4 Wochen, gekoppelt an G-CQ01) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
+> **Priorität:** B · **Baseline:** 424 (war 431) · **Target:** ≤ 280 · **Aufwand:** mittel (~3–4 Wochen, gekoppelt an G-CQ01) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
 
 ## G-CQ03 — ESLint einrichten + Warnings → 0 (Setup-Ziel)
 
@@ -266,7 +266,7 @@ ls website/eslint.config.* 2>/dev/null; ls website/node_modules/.bin/eslint 2>/d
 grep -c '"lint"' website/package.json; grep -rn 'eslint-disable' website/src | wc -l
 ```
 
-> **Baseline:** kein ESLint; 9 tote disable-Direktiven · **Target:** Flat-Config + CI-Gate aktiv, Warnings 0 · **Aufwand:** mittel (~1 Tag + Abbau) · **Messzyklus:** pro Merge (nach Setup) · **Reproduzierbar:** eingeschränkt (erst nach Setup messbar)
+> **Priorität:** B · **Baseline:** kein ESLint; 9 tote disable-Direktiven · **Target:** Flat-Config + CI-Gate aktiv, Warnings 0 · **Aufwand:** mittel (~1 Tag + Abbau) · **Messzyklus:** pro Merge (nach Setup) · **Reproduzierbar:** eingeschränkt (erst nach Setup messbar)
 
 ## G-CQ04 — FIXME/HACK/XXX (echte Code-Schuld): 0 → dauerhaft 0
 
@@ -280,7 +280,7 @@ grep -rnE "\b(FIXME|HACK|XXX)\b" --include=*.ts --include=*.svelte --include=*.a
   | grep -vE "node_modules|/dist/|plan-lint.sh|plan-qa-check.sh" | wc -l
 ```
 
-> **Baseline:** 0 echte Schuld (3 Wort-Treffer, alle Tooling/Format) · **Target:** dauerhaft 0 echte · **Aufwand:** Policy · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
+> **Priorität:** C · **Baseline:** 0 echte Schuld (3 Wort-Treffer, alle Tooling/Format) · **Target:** dauerhaft 0 echte · **Aufwand:** Policy · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
 
 ## G-CQ05 — Echte TODO-Marker: 1 → ≤ 1 (Target erreicht)
 
@@ -294,7 +294,7 @@ grep -rnE "\bTODO\b" --include=*.ts --include=*.svelte --include=*.astro --inclu
   | grep -vE "node_modules|/dist/|plan-lint.sh|plan-qa-check.sh|openspec.sh" | wc -l
 ```
 
-> **Baseline:** 1 (war 3) · **Target:** ≤ 1 (erreicht) · **Aufwand:** halten · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
+> **Priorität:** C · **Baseline:** 1 (war 3) · **Target:** ≤ 1 (erreicht) · **Aufwand:** halten · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
 
 ## G-CQ06 — `@deprecated`-Symbole: 1 → ≤ 1 (Target erreicht)
 
@@ -307,7 +307,7 @@ grep -rnE "@deprecated" --include=*.ts --include=*.svelte --include=*.astro webs
   | grep -v node_modules | wc -l
 ```
 
-> **Baseline:** 1 (war 3) · **Target:** ≤ 1 (erreicht) · **Aufwand:** halten · **Messzyklus:** monatlich · **Reproduzierbar:** ja
+> **Priorität:** C · **Baseline:** 1 (war 3) · **Target:** ≤ 1 (erreicht) · **Aufwand:** halten · **Messzyklus:** monatlich · **Reproduzierbar:** ja
 
 ## G-CQ07 — S2 Import-Zyklen (circular deps): 0 → 0 (erreicht, halten)
 
@@ -322,7 +322,7 @@ python3 -c "import json,sys; print(sum(1 for v in json.load(sys.stdin).values() 
 npx --yes madge --circular --extensions ts,tsx website/src
 ```
 
-> **Baseline:** 0 (war 4) · **Target:** 0 (erreicht) · **Aufwand:** Gate halten · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
+> **Priorität:** C · **Baseline:** 0 (war 4) · **Target:** 0 (erreicht) · **Aufwand:** Gate halten · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
 
 ## G-CQ08 — Dead-Code / ungenutzte Exports (website/src): messen → −50 %
 
@@ -334,7 +334,7 @@ npx --yes madge --circular --extensions ts,tsx website/src
 npx --yes knip@latest --directory website --reporter symbols 2>/dev/null | grep -iE 'unused|exports' | head
 ```
 
-> **Baseline:** unbekannt (knip-Config nötig) · **Target:** ungenutzte Exports −50 % · **Aufwand:** mittel (Setup + Abbau) · **Messzyklus:** monatlich · **Reproduzierbar:** eingeschränkt (Tool-Setup)
+> **Priorität:** B · **Baseline:** unbekannt (knip-Config nötig) · **Target:** ungenutzte Exports −50 % · **Aufwand:** mittel (Setup + Abbau) · **Messzyklus:** monatlich · **Reproduzierbar:** eingeschränkt (Tool-Setup)
 
 ## G-CQ09 — S3 hartkodierte Hostnames (Gate): 0 → ≤ 10 (erreicht)
 
@@ -346,7 +346,7 @@ npx --yes knip@latest --directory website --reporter symbols 2>/dev/null | grep 
 python3 -c "import json,sys; print(sum(1 for v in json.load(sys.stdin).values() if v['gate']=='S3'))" < docs/code-quality/baseline.json
 ```
 
-> **Baseline:** 0 (war 24) · **Target:** ≤ 10 (erreicht) · **Aufwand:** Gate halten · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
+> **Priorität:** C · **Baseline:** 0 (war 24) · **Target:** ≤ 10 (erreicht) · **Aufwand:** Gate halten · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
 
 ## G-CQ10 — S4 verwaiste Scripts/Manifeste (Gate): 0 → ≤ 4 (erreicht)
 
@@ -358,7 +358,7 @@ python3 -c "import json,sys; print(sum(1 for v in json.load(sys.stdin).values() 
 python3 -c "import json,sys; print(sum(1 for v in json.load(sys.stdin).values() if v['gate']=='S4'))" < docs/code-quality/baseline.json
 ```
 
-> **Baseline:** 0 (war 12) · **Target:** ≤ 4 (erreicht) · **Aufwand:** Gate halten · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
+> **Priorität:** C · **Baseline:** 0 (war 12) · **Target:** ≤ 4 (erreicht) · **Aufwand:** Gate halten · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
 
 ---
 
@@ -366,7 +366,7 @@ python3 -c "import json,sys; print(sum(1 for v in json.load(sys.stdin).values() 
 
 Ergänzt G-RH01/S1 um **Wachstum** statt Bestand (überlappt nicht mit der `baseline.json`).
 
-## G-SIZE01 — Freeze-Frühwarn-Band (80–100 % S1-Limit): 38 → ≤ 15
+## G-SIZE01 — Freeze-Frühwarn-Band (80–100 % S1-Limit): 39 → ≤ 15
 
 **Was:** In-Scope-Quelldateien (`gates.yaml scan.code_roots`) bei 80–100 % ihres per-Extension S1-Limits, noch nicht eingefroren. Die nächsten Freeze-Kandidaten — die nächste Funktion kippt sie über das Limit und sie landen als neue G-RH01-Schuld. Mehrere stehen exakt bei 100 % (`templates.test.mjs` 500/500, `theme.mjs` 498/500).
 
@@ -388,7 +388,7 @@ print('Warn-Band 80-100%:', n)
 PY
 ```
 
-> **Baseline:** 38 (war 35) · **Target:** ≤ 15 · **Aufwand:** mittel (~3–4 Wochen präventiv) · **Messzyklus:** wöchentlich + Pre-PR auf geänderte Dateien · **Reproduzierbar:** ja
+> **Priorität:** B · **Baseline:** 39 (war 38) · **Target:** ≤ 15 · **Aufwand:** mittel (~3–4 Wochen präventiv) · **Messzyklus:** wöchentlich + Pre-PR auf geänderte Dateien · **Reproduzierbar:** ja
 
 ## G-SIZE02 — Großdateien außerhalb Gate-Scope (VideoVault/.opencode): 18 → ≤ 8
 
@@ -401,7 +401,7 @@ git ls-files VideoVault .opencode | grep -E '\.(ts|tsx|js|mjs|cjs|svelte|astro|s
   | grep -v node_modules | xargs wc -l 2>/dev/null | grep -v ' total$' | awk '$1>600' | wc -l
 ```
 
-> **Baseline:** 18 · **Target:** ≤ 8 · **Aufwand:** mittel (~2–3 Wochen) · **Messzyklus:** pro Merge auf VideoVault//.opencode/ · **Reproduzierbar:** ja
+> **Priorität:** B · **Baseline:** 18 · **Target:** ≤ 8 · **Aufwand:** mittel (~2–3 Wochen) · **Messzyklus:** pro Merge auf VideoVault//.opencode/ · **Reproduzierbar:** ja
 
 ## G-SIZE03 — God-File `website/src/lib/website-db.ts`: 4435 → ≤ 3000 Zeilen
 
@@ -413,9 +413,9 @@ git ls-files VideoVault .opencode | grep -E '\.(ts|tsx|js|mjs|cjs|svelte|astro|s
 wc -l < website/src/lib/website-db.ts
 ```
 
-> **Baseline:** 4435 (war 4485) · **Target:** ≤ 3000 (danach aus `s1.ignore`) · **Aufwand:** mittel-hoch (~2 Wochen) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
+> **Priorität:** B · **Baseline:** 4435 (war 4485) · **Target:** ≤ 3000 (danach aus `s1.ignore`) · **Aufwand:** mittel-hoch (~2 Wochen) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
 
-## G-SIZE04 — Netto-Quell-LOC/Woche: Budget ≤ +2000 (Policy)
+## G-SIZE04 — Netto-Quell-LOC/Woche: +2887 → ≤ +2000  ⚠️ OVER BUDGET
 
 **Was:** Netto-Zeilenänderung (added − deleted) der Quellsprachen/Woche, ohne node_modules/Vendored. Ein Budget macht Bulk-Importe als Ausreißer sofort sichtbar, statt unbemerkt G-RH01/S1 zu füllen.
 
@@ -427,7 +427,7 @@ git log --since="2026-06-21" --no-merges --numstat --pretty=tformat: \
   | awk 'NF==3 && $1!="-"{a+=$1;d+=$2} END{printf "net=%+d (added=%d deleted=%d)\n",a-d,a,d}'
 ```
 
-> **Baseline:** ~ −800 LOC/Woche (graft-bereinigt) · **Target:** ≤ +2000/Woche · **Aufwand:** Policy · **Messzyklus:** wöchentlich · **Reproduzierbar:** eingeschränkt (Graft-Ausschluss nötig)
+> **Priorität:** A · **Baseline:** +2887 LOC/Woche (ÜBER Budget; war −2029 KW26) · **Target:** ≤ +2000/Woche · **Aufwand:** Policy · **Messzyklus:** wöchentlich · **Reproduzierbar:** eingeschränkt (Graft-Ausschluss nötig)
 
 ---
 
@@ -444,7 +444,7 @@ cd website && timeout 90 pnpm audit --json 2>/dev/null | python3 -c \
 "import sys,json; v=json.load(sys.stdin).get('metadata',{}).get('vulnerabilities',{}); print('high+critical:', v.get('high',0)+v.get('critical',0))"
 ```
 
-> **Baseline:** 6 · **Target:** 0 · **Aufwand:** ~1–2 h · **Messzyklus:** pro Merge / wöchentlich · **Reproduzierbar:** eingeschränkt (Advisory-DB driftet)
+> **Priorität:** A · **Baseline:** 6 · **Target:** 0 · **Aufwand:** ~1–2 h · **Messzyklus:** pro Merge / wöchentlich · **Reproduzierbar:** eingeschränkt (Advisory-DB driftet)
 
 ## G-DEP02 — Veraltete Major-Deps (website): 9 → ≤ 3
 
@@ -456,7 +456,7 @@ cd website && timeout 90 pnpm audit --json 2>/dev/null | python3 -c \
 cd website && timeout 90 pnpm outdated 2>/dev/null   # Major-Sprünge: erste vs. letzte Spalte, andere Major-Zahl
 ```
 
-> **Baseline:** 9 Major · **Target:** ≤ 3 · **Aufwand:** moderat (~1–2 Tage) · **Messzyklus:** monatlich / Renovate · **Reproduzierbar:** eingeschränkt (Registry driftet)
+> **Priorität:** B · **Baseline:** 9 Major · **Target:** ≤ 3 · **Aufwand:** moderat (~1–2 Tage) · **Messzyklus:** monatlich / Renovate · **Reproduzierbar:** eingeschränkt (Registry driftet)
 
 ## G-DEP03 — Package-Manager-Konsistenz website (npm-Build + pnpm-Test): vereinheitlichen
 
@@ -469,7 +469,7 @@ cd website && timeout 90 pnpm outdated 2>/dev/null   # Major-Sprünge: erste vs.
 grep -q "npm ci" website/Dockerfile && grep -q "pnpm" .github/workflows/ci.yml   && echo "1 (inkonsistent: npm-Build + pnpm-Test)" || echo "0 (vereinheitlicht)"
 ```
 
-> **Baseline:** inkonsistent (npm-Build + pnpm-Test) · **Target:** ein PM (pnpm) in Build + Test · **Aufwand:** mittel (Dockerfile-Umbau) · **Messzyklus:** einmalig · **Reproduzierbar:** ja
+> **Priorität:** B · **Baseline:** inkonsistent (npm-Build + pnpm-Test) · **Target:** ein PM (pnpm) in Build + Test · **Aufwand:** mittel (Dockerfile-Umbau) · **Messzyklus:** einmalig · **Reproduzierbar:** ja
 
 ## G-DEP04 — Deploybare package.json ohne `engines >= 22.13.0`: 0 → 0 (erreicht, halten)
 
@@ -484,7 +484,7 @@ c=0; for p in package.json website/package.json brett/package.json mentolder-web
   [ "$v" != ">=22.13.0" ] && c=$((c+1)); done; echo "abweichend: $c"
 ```
 
-> **Baseline:** 0 (war 6) · **Target:** 0 (erreicht) · **Aufwand:** CI-Guard halten · **Messzyklus:** einmalig + CI-Guard · **Reproduzierbar:** ja
+> **Priorität:** C · **Baseline:** 0 (war 6) · **Target:** 0 (erreicht) · **Aufwand:** CI-Guard halten · **Messzyklus:** einmalig + CI-Guard · **Reproduzierbar:** ja
 
 ## G-DEP05 — Renovate/Dependency-PR-Backlog: ≤ 3 (Policy)
 
@@ -497,7 +497,7 @@ gh pr list --state open --json author,labels \
   | python3 -c "import sys,json; p=json.load(sys.stdin); print(sum(1 for x in p if x['author'].get('login','').startswith('app/renovate') or any(l['name']=='dependencies' for l in x['labels'])))"
 ```
 
-> **Baseline:** 0 · **Target:** ≤ 3 · **Aufwand:** Policy · **Messzyklus:** wöchentlich · **Reproduzierbar:** mit gh
+> **Priorität:** C · **Baseline:** 0 · **Target:** ≤ 3 · **Aufwand:** Policy · **Messzyklus:** wöchentlich · **Reproduzierbar:** mit gh
 
 ## G-IMG01 — Ungepinnte Fremd-Images (kein @sha256): 39 → 0
 
@@ -512,7 +512,7 @@ grep -rhE '^[[:space:]]*-?[[:space:]]*image:[[:space:]]+["'"'"']?[A-Za-z0-9$]' k
   | sed -E 's/.*image:[[:space:]]*//; s/["'"'"']//g; s/[[:space:]]*#.*//' | sort -u | wc -l
 ```
 
-> **Baseline:** 39 unique (war 43) · **Target:** 0 · **Aufwand:** 2–3 Sessions + Renovate pinDigests · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
+> **Priorität:** B · **Baseline:** 39 unique (war 43) · **Target:** 0 · **Aufwand:** 2–3 Sessions + Renovate pinDigests · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
 
 ## G-IMG02 — Fremd-Image-Versions-Drift (gleiches Image, ≠ Tags): 0 → 0 (erreicht, halten)
 
@@ -528,7 +528,7 @@ grep -rhE '^[[:space:]]*-?[[:space:]]*image:[[:space:]]+["'"'"']?[A-Za-z0-9$]' k
   | awk -F'\t' '{c[$1]++} END{n=0; for(k in c) if(c[k]>1) n++; print n}'
 ```
 
-> **Baseline:** 0 (war 3) · **Target:** 0 (erreicht) · **Aufwand:** halten · **Messzyklus:** pro Merge an Manifesten · **Reproduzierbar:** ja
+> **Priorität:** C · **Baseline:** 0 (war 3) · **Target:** 0 (erreicht) · **Aufwand:** halten · **Messzyklus:** pro Merge an Manifesten · **Reproduzierbar:** ja
 
 ---
 
@@ -546,7 +546,7 @@ grep -rn 'password.*=.*[^$]' k3d/*.yaml \
   | grep -iv '^\s*#' | wc -l
 ```
 
-> **Baseline:** 0 · **Target:** 0 dauerhaft · **Aufwand:** Policy (CI-erzwungen) · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
+> **Priorität:** C · **Baseline:** 0 · **Target:** 0 dauerhaft · **Aufwand:** Policy (CI-erzwungen) · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
 
 ## G-SEC02 — Getrackte Klartext-Secrets im Git-Tree: 0 (git-crypt-Guard grün)
 
@@ -558,9 +558,9 @@ grep -rn 'password.*=.*[^$]' k3d/*.yaml \
 bash scripts/git-crypt-guard.sh check-tracked >/dev/null 2>&1; echo "exit=$? (0 = alle verschlüsselt)"
 ```
 
-> **Baseline:** Exit 0 · **Target:** Exit 0 dauerhaft · **Aufwand:** Policy · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
+> **Priorität:** C · **Baseline:** Exit 0 · **Target:** Exit 0 dauerhaft · **Aufwand:** Policy · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
 
-## G-SEC03 — Älteste SealedSecret-Rotation: 5 Tage → ≤ 90 Tage
+## G-SEC03 — Älteste SealedSecret-Rotation: 6 Tage → ≤ 90 Tage
 
 **Was:** Alter (Commit-Datum, **nicht** mtime) der am längsten nicht reseal-committeten Datei unter `environments/sealed-secrets/*.yaml`. Lange nicht versiegelte Dateien transportieren potenziell rotationsbedürftige Credentials und vergrößern das Schadenfenster.
 
@@ -571,13 +571,13 @@ oldest=$(for f in environments/sealed-secrets/*.yaml; do git log -1 --format='%a
 echo "$(( ($(date +%s)-oldest)/86400 )) Tage (älteste sealed-secrets-Datei)"
 ```
 
-> **Baseline:** 5 Tage · **Target:** ≤ 90 Tage · **Aufwand:** ~1 Reseal/Quartal · **Messzyklus:** monatlich · **Reproduzierbar:** ja (git-Commit-Datum)
+> **Priorität:** C · **Baseline:** 6 Tage · **Target:** ≤ 90 Tage · **Aufwand:** ~1 Reseal/Quartal · **Messzyklus:** monatlich · **Reproduzierbar:** ja (git-Commit-Datum)
 
 ## G-SEC04 — Sealing-Cert Restlaufzeit: ≥ 30 Tage (passiver Monitor)
 
 **Was:** Geringste Restlaufzeit aller committeten Sealing-Zertifikate (`environments/certs/*.pem`). Läuft eines ab, schlägt künftiges Versiegeln fehl und ein Cluster-Reset kann alte Sealed-Files nicht mehr neu erzeugen.
 
-**Warum erreichbar:** Aktuell ~3622 Tage (gültig bis 2036) — bis dahin trivial erfüllt. Reiner Frühwarn-Monitor (< 30 Tage); `task env:fetch-cert` frischt bei Cluster-Reset ohnehin auf. **Niedrige Priorität** (auf Thesis-Horizont nie ausgelöst).
+**Warum erreichbar:** Aktuell ~3621 Tage (gültig bis 2036) — bis dahin trivial erfüllt. Reiner Frühwarn-Monitor (< 30 Tage); `task env:fetch-cert` frischt bei Cluster-Reset ohnehin auf. **Niedrige Priorität** (auf Thesis-Horizont nie ausgelöst).
 
 ```bash
 for f in environments/certs/*.pem; do \
@@ -585,19 +585,19 @@ for f in environments/certs/*.pem; do \
   echo "$d $(basename "$f")"; done | sort -n | head -1
 ```
 
-> **Baseline:** 3622 Tage · **Target:** ≥ 30 Tage Warnschwelle · **Aufwand:** Monitor · **Messzyklus:** monatlich · **Reproduzierbar:** ja
+> **Priorität:** C · **Baseline:** 3621 Tage · **Target:** ≥ 30 Tage Warnschwelle · **Aufwand:** Monitor · **Messzyklus:** monatlich · **Reproduzierbar:** ja
 
-## G-SEC05 — Unsignierte Commits auf main (letzte 50): ~10 % → ≤ 5 %
+## G-SEC05 — Unsignierte Commits auf main (letzte 50): 0 % → ≤ 5 % (TARGET ERREICHT)
 
 **Was:** Anteil der letzten 50 main-Commits ohne gültige Signatur (`%G?` = `N`). Signierte Commits sichern Provenienz/Supply-Chain-Integrität — wichtig bei mehreren Agenten + Factory, die auf main pushen.
 
-**Warum erreichbar:** 5/50 unsigniert (war 13/50). Commit-Signing für Factory-Bot + lokale Sessions weiter durchsetzen (gpg/ssh-signing). Der `N`-Anteil ist maschinenunabhängig reproduzierbar (anders als `G`/`E`, die vom lokalen Keyring abhängen).
+**Warum erreichbar:** 0/50 (war 5/50) — Target ≤5 % erreicht. Commit-Signing für Factory-Bot + lokale Sessions weiter durchsetzen (gpg/ssh-signing). Der `N`-Anteil ist maschinenunabhängig reproduzierbar (anders als `G`/`E`, die vom lokalen Keyring abhängen).
 
 ```bash
 git log -50 --pretty='%G?' main | grep -c N
 ```
 
-> **Baseline:** 5/50 (~10 %) · **Target:** ≤ 5 % · **Aufwand:** ~0.5 Tag (Signing-Setup) · **Messzyklus:** monatlich · **Reproduzierbar:** ja (driftet mit neuen Commits)
+> **Priorität:** C · **Baseline:** 0/50 (0 %; TARGET ERREICHT) · **Target:** ≤ 5 % · **Aufwand:** ~0.5 Tag (Signing-Setup) · **Messzyklus:** monatlich · **Reproduzierbar:** ja (driftet mit neuen Commits)
 
 ---
 
@@ -613,7 +613,7 @@ git log -50 --pretty='%G?' main | grep -c N
 python3 -c "import yaml,glob; D=[s for f in glob.glob('k3d/*.yaml') for s in yaml.safe_load_all(open(f)) if isinstance(s,dict) and s.get('kind')=='Deployment']; print(sum(1 for x in D if not all(c.get('resources',{}).get('limits') and c.get('resources',{}).get('requests') for c in x['spec']['template']['spec']['containers'])),'of',len(D))"
 ```
 
-> **Baseline:** 0/34 · **Target:** dauerhaft 0 · **Aufwand:** Policy · **Messzyklus:** pro neuem Deployment · **Reproduzierbar:** ja
+> **Priorität:** C · **Baseline:** 0/34 · **Target:** dauerhaft 0 · **Aufwand:** Policy · **Messzyklus:** pro neuem Deployment · **Reproduzierbar:** ja
 
 ## G-K8S02 — Deployments ohne readinessProbe: 3 → ≤ 3 (Target erreicht)
 
@@ -625,7 +625,7 @@ python3 -c "import yaml,glob; D=[s for f in glob.glob('k3d/*.yaml') for s in yam
 python3 -c "import yaml,glob; D=[s for f in glob.glob('k3d/*.yaml') for s in yaml.safe_load_all(open(f)) if isinstance(s,dict) and s.get('kind')=='Deployment']; print(sum(1 for x in D if not all(c.get('readinessProbe') for c in x['spec']['template']['spec']['containers'])),'of',len(D))"
 ```
 
-> **Baseline:** 3/34 (war 10/34) · **Target:** ≤ 3 (erreicht) · **Aufwand:** halten · **Messzyklus:** pro Manifest-Änderung · **Reproduzierbar:** ja
+> **Priorität:** C · **Baseline:** 3/34 (war 10/34) · **Target:** ≤ 3 (erreicht) · **Aufwand:** halten · **Messzyklus:** pro Manifest-Änderung · **Reproduzierbar:** ja
 
 ## G-K8S03 — Deployments ohne securityContext: 3 → 0
 
@@ -637,7 +637,7 @@ python3 -c "import yaml,glob; D=[s for f in glob.glob('k3d/*.yaml') for s in yam
 python3 -c "import yaml,glob; D=[s for f in glob.glob('k3d/*.yaml') for s in yaml.safe_load_all(open(f)) if isinstance(s,dict) and s.get('kind')=='Deployment']; print([x['metadata']['name'] for x in D if not x['spec']['template']['spec'].get('securityContext') and not all(c.get('securityContext') for c in x['spec']['template']['spec']['containers'])])"
 ```
 
-> **Baseline:** 3/34 · **Target:** 0 · **Aufwand:** ~0.5 Tag · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
+> **Priorität:** B · **Baseline:** 3/34 · **Target:** 0 · **Aufwand:** ~0.5 Tag · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
 
 ## G-K8S04 — `workspace:validate` grün: Exit 0 (halten)
 
@@ -649,7 +649,7 @@ python3 -c "import yaml,glob; D=[s for f in glob.glob('k3d/*.yaml') for s in yam
 timeout 150 task workspace:validate >/dev/null 2>&1; echo "Exit: $?"
 ```
 
-> **Baseline:** Exit 0 (162 Ressourcen) · **Target:** Exit 0, immer · **Aufwand:** Policy · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
+> **Priorität:** C · **Baseline:** Exit 0 (162 Ressourcen) · **Target:** Exit 0, immer · **Aufwand:** Policy · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
 
 ## G-CFG01 — `env:validate:all` grün: Exit 0 (behoben, halten)
 
@@ -661,7 +661,7 @@ timeout 150 task workspace:validate >/dev/null 2>&1; echo "Exit: $?"
 task env:validate:all; echo "exit=$?"
 ```
 
-> **Baseline:** Exit 0 (war FAIL Exit 5; POCKET_ID_DOMAIN ergänzt) · **Target:** Exit 0 (erreicht) · **Aufwand:** Policy · **Messzyklus:** pro Merge (CI-tauglich) · **Reproduzierbar:** ja
+> **Priorität:** C · **Baseline:** Exit 0 (war FAIL Exit 5; POCKET_ID_DOMAIN ergänzt) · **Target:** Exit 0 (erreicht) · **Aufwand:** Policy · **Messzyklus:** pro Merge (CI-tauglich) · **Reproduzierbar:** ja
 
 ## G-DATA01 — DB-Backup-Freshness: jüngster Erfolg < 26h + 0 Failed/7d
 
@@ -674,7 +674,7 @@ kubectl --context fleet -n workspace get cronjob db-backup -o jsonpath='{.status
 kubectl --context fleet -n workspace get jobs -l app=db-backup --sort-by=.metadata.creationTimestamp | tail -3
 ```
 
-> **Baseline:** gesund (~5h, 0 Failed/7d) · **Target:** jüngster Erfolg < 26h UND 0 Failed/7d · **Aufwand:** Monitor (+ optional Alert) · **Messzyklus:** täglich · **Reproduzierbar:** eingeschränkt (Cluster nötig)
+> **Priorität:** C · **Baseline:** gesund (~5h, 0 Failed/7d) · **Target:** jüngster Erfolg < 26h UND 0 Failed/7d · **Aufwand:** Monitor (+ optional Alert) · **Messzyklus:** täglich · **Reproduzierbar:** eingeschränkt (Cluster nötig)
 
 ---
 
@@ -682,18 +682,18 @@ kubectl --context fleet -n workspace get jobs -l app=db-backup --sort-by=.metada
 
 > **Hinweis zu Erfolgsraten (G-CI/G-CD):** `gh run list --limit N` ist ein **gleitendes Fenster** — der Wert verschiebt sich mit jedem neuen Lauf. Für stabile, reproduzierbare Messung ein fixes `--created`-Zeitfenster verwenden.
 
-## G-CI01 — main `ci.yml`-Erfolgsrate (letzte 20): 95 % → ≥ 95 % halten
+## G-CI01 — main `ci.yml`-Erfolgsrate (letzte 20): 90 % → ≥ 95 %  ⚠️ UNTER TARGET
 
 **Was:** Anteil erfolgreicher `ci.yml`-Push-Läufe auf main (bündelt die required Jobs Offline Tests, Security Scan, Brett TS, Vitest). Sinkende Rate = fehlerhafte Commits landen trotz grünem PR auf main (Merge-Skew, flaky Gates).
 
-**Warum erreichbar:** Aktuell 19/20 grün (1 Failure im gleitenden Fenster, genau an der ≥95-%-Schwelle). Da PRs nur mit grünem Gate squash-gemergt werden, ist ≥ 95 % reine Erhaltung (kein Direct-/Force-Push, flaky Tests fixen statt rerun).
+**Warum erreichbar:** Aktuell 18/20 grün (1 Failure + 1 Cancelled; 90 %, unter Target ≥95 %). Da PRs nur mit grünem Gate squash-gemergt werden, ist ≥ 95 % reine Erhaltung (kein Direct-/Force-Push, flaky Tests fixen statt rerun).
 
 ```bash
 timeout 60 gh-axi run list --workflow ci.yml --branch main --limit 20 \
   | grep -oE 'completed,(success|failure|cancelled)' | sort | uniq -c
 ```
 
-> **Baseline:** 95 % (19/20) · **Target:** ≥ 95 % · **Aufwand:** Policy · **Messzyklus:** wöchentlich · **Reproduzierbar:** eingeschränkt (gleitendes Fenster)
+> **Priorität:** A · **Baseline:** 90 % (18/20) · **Target:** ≥ 95 % · **Aufwand:** untersuchen · **Messzyklus:** wöchentlich · **Reproduzierbar:** eingeschränkt (gleitendes Fenster)
 
 ## G-CI02 — Rote required-Läufe auf main-HEAD: 0
 
@@ -705,11 +705,11 @@ timeout 60 gh-axi run list --workflow ci.yml --branch main --limit 20 \
 timeout 60 gh-axi run list --workflow ci.yml --branch main --limit 5 | grep -c 'completed,failure'
 ```
 
-> **Baseline:** 0 rote · **Target:** dauerhaft 0 · **Aufwand:** Policy · **Messzyklus:** täglich · **Reproduzierbar:** eingeschränkt (gleitendes Fenster)
+> **Priorität:** C · **Baseline:** 0 rote · **Target:** dauerhaft 0 · **Aufwand:** Policy · **Messzyklus:** täglich · **Reproduzierbar:** eingeschränkt (gleitendes Fenster)
 
-## G-CD01 — korczewski Website-Deploy-Erfolgsrate: 27 % → ≥ 90 %  ⚠️ ECHTE SCHULD
+## G-CD01 — korczewski Website-Deploy-Erfolgsrate: 53 % → ≥ 90 %  ⚠️ ECHTE SCHULD
 
-**Was:** Erfolgsrate von `build-website-korczewski.yml` (letzte 15 main-Läufe): **4/15 grün** (11 Failures, neueste 3 alle rot). web.korczewski.de wird bei den meisten Pushes **nicht** neu deployt → driftet still gegen main, während mentolder live geht. Der stärkste konkrete CD-Defekt.
+**Was:** Erfolgsrate von `build-website-korczewski.yml` (letzte 15 main-Läufe): **8/15 grün** (7 Failures; verbessert von 27 %, aber noch weit unter Target). web.korczewski.de wird bei den meisten Pushes **nicht** neu deployt → driftet still gegen main, während mentolder live geht. Der stärkste konkrete CD-Defekt.
 
 **Warum erreichbar:** Der Schwester-Workflow `build-website.yml` (mentolder) steht bei 15/15 (100 %) mit identischer Mechanik. Differenz ist Konfig-/Credential-Problem (vermutlich Kubeconfig/Secret/Context der korczewski-Lane) — per `gh-axi run view <id> --log-failed` in ~1 Session behebbar.
 
@@ -718,7 +718,7 @@ timeout 60 gh-axi run list --workflow build-website-korczewski.yml --branch main
   | grep -oE 'completed,(success|failure)' | sort | uniq -c
 ```
 
-> **Baseline:** 27 % (4/15) · **Target:** ≥ 90 % · **Aufwand:** ~1 Debug-Session · **Messzyklus:** wöchentlich · **Reproduzierbar:** eingeschränkt (gleitendes Fenster)
+> **Priorität:** A · **Baseline:** 53 % (8/15) · **Target:** ≥ 90 % · **Aufwand:** ~1 Debug-Session · **Messzyklus:** wöchentlich · **Reproduzierbar:** eingeschränkt (gleitendes Fenster)
 
 ## G-CD02 — `post-merge.yml`-Erfolgsrate: 93 % → ≥ 95 %
 
@@ -731,7 +731,7 @@ timeout 60 gh-axi run list --workflow post-merge.yml --branch main --limit 15 \
   | grep -oE 'completed,(success|failure)' | sort | uniq -c
 ```
 
-> **Baseline:** 93 % (14/15) · **Target:** ≥ 95 % · **Aufwand:** klein (Race-Guard) · **Messzyklus:** wöchentlich · **Reproduzierbar:** eingeschränkt (gleitendes Fenster)
+> **Priorität:** C · **Baseline:** 93 % (14/15) · **Target:** ≥ 95 % · **Aufwand:** klein (Race-Guard) · **Messzyklus:** wöchentlich · **Reproduzierbar:** eingeschränkt (gleitendes Fenster)
 
 ---
 
@@ -743,13 +743,13 @@ timeout 60 gh-axi run list --workflow post-merge.yml --branch main --limit 15 \
 
 **Was:** Merges nach main/Woche (first-parent-Commits, squash-and-merge). Spiegelt „Deployment Frequency" aus `dora-dashboard.md` (ehrlich als „Merges nach main" gelabelt, da Prod-Deploy push-basiert entkoppelt). Sinkende Frequenz = größere, seltenere Batches → mehr Konflikte/Risiko.
 
-**Warum erreichbar:** Real ~24 Merges/Tag (weit im Elite-Band). Ziel: Niveau halten + auf `/admin/dora` sichtbar tracken, damit ein Einbruch (Factory-Stillstand) sofort auffällt.
+**Warum erreichbar:** Real ~31 Merges/Tag (157 in 5d; weit im Elite-Band). Ziel: Niveau halten + auf `/admin/dora` sichtbar tracken, damit ein Einbruch (Factory-Stillstand) sofort auffällt.
 
 ```bash
 git log --since="4 weeks ago" --first-parent --oneline main | wc -l   # /4 = Merges/Woche (NUR auf Voll-Clone aussagekräftig)
 ```
 
-> **Baseline:** ~183/Woche (~26/Tag; Shallow-Artefakt) · **Target:** ≥ 5/Woche, Trend auf /admin/dora · **Aufwand:** Policy/Tracking · **Messzyklus:** wöchentlich · **Reproduzierbar:** eingeschränkt (Shallow → DB)
+> **Priorität:** C · **Baseline:** ~220/Woche (~26/Tag; Shallow-Artefakt) · **Target:** ≥ 5/Woche, Trend auf /admin/dora · **Aufwand:** Policy/Tracking · **Messzyklus:** wöchentlich · **Reproduzierbar:** eingeschränkt (Shallow → DB)
 
 ## G-DORA02 — Lead Time (PR-open → merge): Elite-Median ≤ 1h halten
 
@@ -762,13 +762,13 @@ gh-axi api 'repos/{owner}/{repo}/pulls?state=closed&base=main&per_page=80&sort=u
   | grep -E '^\s+(created_at|merged_at):'   # Differenzen via DB/v_timeline für spec-exakte Lead Time
 ```
 
-> **Baseline:** Median 0.03h (PR→merge-Proxy) · **Target:** Median ≤ 1h; Max-Ausreißer < 24h · **Aufwand:** Policy · **Messzyklus:** wöchentlich · **Reproduzierbar:** eingeschränkt (Proxy ≠ Spec; DB für exakt)
+> **Priorität:** C · **Baseline:** Median 0.03h (PR→merge-Proxy) · **Target:** Median ≤ 1h; Max-Ausreißer < 24h · **Aufwand:** Policy · **Messzyklus:** wöchentlich · **Reproduzierbar:** eingeschränkt (Proxy ≠ Spec; DB für exakt)
 
 ## G-DORA03 — Change Failure Rate (Proxy): ≤ 15 % halten
 
-**Was:** Anteil Merges mit späterem Rollback/Fix. Spiegelt `dora-dashboard.md` (CFR = (Reverts + Bug-Tickets)/Merges, explizit Proxy). git-strikt = revert/hotfix-Commits (0 %); git-breit zählt `fix()`-Commits als Bug-Näherung (15.8 %). *Caveat:* `fix()` ≠ Prod-Ausfall — spec-exakte CFR braucht Bug-Tickets aus der DB.
+**Was:** Anteil Merges mit späterem Rollback/Fix. Spiegelt `dora-dashboard.md` (CFR = (Reverts + Bug-Tickets)/Merges, explizit Proxy). git-strikt = revert/hotfix-Commits (0 %); git-breit zählt `fix()`-Commits als Bug-Näherung (15.9 %). *Caveat:* `fix()` ≠ Prod-Ausfall — spec-exakte CFR braucht Bug-Tickets aus der DB.
 
-**Warum erreichbar:** Strikte Revert-Rate 0 %; breiter Proxy 15.8 % knapp über Elite (0–15 %). Rückgang ≤ 15 % über konsequente Bug-Triage + CI-Gates.
+**Warum erreichbar:** Strikte Revert-Rate 0 %; breiter Proxy 15.9 % knapp über Elite (0–15 %). Rückgang ≤ 15 % über konsequente Bug-Triage + CI-Gates.
 
 ```bash
 T=$(git log --since="8 weeks ago" --first-parent --oneline main | wc -l)
@@ -777,7 +777,7 @@ F=$(git log --since="8 weeks ago" --first-parent --oneline main | grep -ciE '^[0
 python3 -c "print(f'merges={$T} reverts={$R} ({$R/$T*100:.1f}% strikt) +fix()={$F} -> {($R+$F)/$T*100:.1f}% breit')"
 ```
 
-> **Baseline:** 15.8 % breit / 0 % strikt · **Target:** ≤ 15 % (Elite), strikt 0 % · **Aufwand:** ~1 Woche + laufend · **Messzyklus:** wöchentlich · **Reproduzierbar:** eingeschränkt (Shallow/Proxy; DB für exakt)
+> **Priorität:** B · **Baseline:** 15.9 % breit / 0 % strikt · **Target:** ≤ 15 % (Elite), strikt 0 % · **Aufwand:** ~1 Woche + laufend · **Messzyklus:** wöchentlich · **Reproduzierbar:** eingeschränkt (Shallow/Proxy; DB für exakt)
 
 ## G-DORA04 — MTTR: Median < 24h halten
 
@@ -789,7 +789,7 @@ python3 -c "print(f'merges={$T} reverts={$R} ({$R/$T*100:.1f}% strikt) +fix()={$
 git log --since="8 weeks ago" --first-parent --format='%ct %s' main | grep -iE 'revert|hotfix' | wc -l   # 0 = kein Recovery-Fall
 ```
 
-> **Baseline:** n/a (0 Recovery-Fälle) · **Target:** Median < 24h bei Störungen · **Aufwand:** Policy (Revert-Bereitschaft) · **Messzyklus:** pro Incident · **Reproduzierbar:** eingeschränkt (DB für exakt)
+> **Priorität:** C · **Baseline:** n/a (0 Recovery-Fälle) · **Target:** Median < 24h bei Störungen · **Aufwand:** Policy (Revert-Bereitschaft) · **Messzyklus:** pro Incident · **Reproduzierbar:** eingeschränkt (DB für exakt)
 
 ---
 
@@ -809,7 +809,7 @@ a=[(n-datetime.fromisoformat(x['createdAt'].replace('Z','+00:00'))).days for x i
 print('open:',len(p),'| >7d:',sum(x>7 for x in a),'| oldest:',max(a) if a else 0,'d')"
 ```
 
-> **Baseline:** 0 >7d (0 offen) · **Target:** dauerhaft 0 · **Aufwand:** Policy · **Messzyklus:** täglich · **Reproduzierbar:** mit gh
+> **Priorität:** C · **Baseline:** 0 >7d (0 offen) · **Target:** dauerhaft 0 · **Aufwand:** Policy · **Messzyklus:** täglich · **Reproduzierbar:** mit gh
 
 ## G-GIT02 — Non-conventional Commit-Subjects (letzte 30 auf main): 0
 
@@ -821,22 +821,22 @@ print('open:',len(p),'| >7d:',sum(x>7 for x in a),'| oldest:',max(a) if a else 0
 git log --format=%s -30 origin/main | grep -vcE '^(feat|fix|chore|docs|refactor|test|ci|build|perf|style)(\(|!|:)'
 ```
 
-> **Baseline:** 0/30 · **Target:** dauerhaft 0 · **Aufwand:** Policy (CI-Gate) · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
+> **Priorität:** C · **Baseline:** 0/30 · **Target:** dauerhaft 0 · **Aufwand:** Policy (CI-Gate) · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
 
-## G-GIT03 — Dateien > 1MB im Tree (kein LFS): 6 → ≤ 6 (Target erreicht)
+## G-GIT03 — Dateien > 1MB im Tree (kein LFS): 7 → ≤ 6  ⚠️ REGRESSION
 
-**Was:** 6 git-getrackte Dateien >1MB (war 11), git-lfs inaktiv. Verbleibend: `kube-prometheus-stack-rendered.yaml` (~4MB, gerendert), 2× datamodel-workflow.html + db-schema.html (generierte docs-HTML, je ~2MB), `assets/grilling-brett-admin-panel/Brett` (~2MB), `environments/korczewski/KERN` (~1MB). Die überdimensionierten OG-PNGs sind optimiert. Große Blobs blähen jeden Clone auf.
+**Was:** 7 git-getrackte Dateien >1MB (war 6), git-lfs inaktiv. Neu: `docs-content-built/search-index.json` (~2.6MB). Verbleibend: `kube-prometheus-stack-rendered.yaml` (~4.8MB), 2× datamodel-workflow.html + db-schema.html (generierte docs-HTML, je ~2MB), `assets/grilling-brett-admin-panel/Brett` (~2MB), `environments/korczewski/KERN` (~1MB). Die überdimensionierten OG-PNGs sind optimiert. Große Blobs blähen jeden Clone auf.
 
-**Warum erreichbar:** Bereits auf Target. Weiter senkbar: gerendertes Prometheus-YAML regenerieren/gitignoren. Generierte docs-HTML bleiben legitim >1MB. Net-Zero (keine neuen >1MB) halten.
+**Warum erreichbar:** Regression: `search-index.json` in `docs-content-built/` ist neu >1MB. Fix: gitignore oder LFS-tracken. Prometheus-YAML bleibt kandidat für weiteren Abbau.
 
 ```bash
 git ls-files -z | xargs -0 -I{} sh -c 'test -f "{}" && wc -c "{}"' 2>/dev/null \
   | awk '$1>1048576{c++} END{print c+0}'
 ```
 
-> **Baseline:** 6 (war 11; LFS aus) · **Target:** ≤ 6 (erreicht) · **Aufwand:** halten + optional Prometheus-YAML gitignoren · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
+> **Priorität:** A · **Baseline:** 7 (war 6; Regression: search-index.json) · **Target:** ≤ 6 · **Aufwand:** halten + optional Prometheus-YAML gitignoren · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
 
-## G-SPEC01 — `openspec:validate` grün: Exit 1 (8 FAIL · 2 WARN) → Exit 0
+## G-SPEC01 — `openspec:validate` grün: Exit 0 (2 WARN) — TARGET ERREICHT
 
 **Was:** Fail-closed CI-Gate `task openspec:validate` (`scripts/openspec.sh`) prüft jeden nicht-archivierten change auf gültige `specs/`-Delta-Struktur + `.ticket`-Verknüpfung. **Aktuell Exit 1:** 8 changes ohne `specs/`-Delta-Dir (reine Skelette: bats-coverage-batch1, cockpit-bulk-status, cockpit-filter-presets, cockpit-mobile-view, mentolder-react-rebuild, s1-violations-batch1, test-slug, ticket-mcp-go), 2 WARN ohne `.ticket` (agent-push-notifications, ai-ticket-auto-triage).
 
@@ -846,7 +846,7 @@ git ls-files -z | xargs -0 -I{} sh -c 'test -f "{}" && wc -c "{}"' 2>/dev/null \
 timeout 120 bash scripts/openspec.sh validate >/dev/null 2>&1; echo "exit=$?"
 ```
 
-> **Baseline:** Exit 1 (8 FAIL, 2 WARN) · **Target:** Exit 0 · **Aufwand:** ~1 Tag · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
+> **Priorität:** C · **Baseline:** Exit 1 (8 FAIL, 2 WARN) · **Target:** Exit 0 · **Aufwand:** ~1 Tag · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
 
 ## G-SPEC02 — Nicht-archivierte changes älter als 30 Tage: 0
 
@@ -861,7 +861,7 @@ for d in openspec/changes/*/; do b=$(basename "$d"); [ "$b" = archive ] && conti
   [ $(((NOW-ts)/86400)) -gt 30 ] && n=$((n+1)); done; echo "older30=$n"
 ```
 
-> **Baseline:** 0 (18 nicht-archiviert, alle ≤30d) · **Target:** dauerhaft 0 · **Aufwand:** Policy · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
+> **Priorität:** C · **Baseline:** 0 (18 nicht-archiviert, alle ≤30d) · **Target:** dauerhaft 0 · **Aufwand:** Policy · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
 
 ## G-SPEC03 — Proposals ohne Ticket-Verknüpfung (.ticket): 10 → 0
 
@@ -874,7 +874,7 @@ m=0; for d in openspec/changes/*/; do b=$(basename "$d"); [ "$b" = archive ] && 
   [ -f "$d/.ticket" ] || m=$((m+1)); done; echo "no-ticket=$m"
 ```
 
-> **Baseline:** 10/18 · **Target:** 0 · **Aufwand:** ~0.5 Tag · **Messzyklus:** pro neuem Proposal · **Reproduzierbar:** ja
+> **Priorität:** B · **Baseline:** 10/18 · **Target:** 0 · **Aufwand:** ~0.5 Tag · **Messzyklus:** pro neuem Proposal · **Reproduzierbar:** ja
 
 ---
 
@@ -903,11 +903,11 @@ print(f"checked={tot} broken={bad}")
 PY
 ```
 
-> **Baseline:** 0 (von 27; war 9/29) · **Target:** 0 (erreicht) · **Aufwand:** Policy · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
+> **Priorität:** C · **Baseline:** 0 (von 27; war 9/29) · **Target:** 0 (erreicht) · **Aufwand:** Policy · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
 
-## G-DOC02 — Root-CLAUDE.md Zeilen: 277 → ≤ 200
+## G-DOC02 — Root-CLAUDE.md Zeilen: 273 → ≤ 200
 
-**Was:** Zeilenzahl der bei jedem Request geladenen Orchestrator-Instruktion. 277 Zeilen / 4463 Wörter; allein „Gotchas & Footguns" = 109 Zeilen (40 %). Je länger, desto eher gehen Routing-/Workflow-Regeln im Footgun-Wust unter und Tokens/Turn werden verschwendet.
+**Was:** Zeilenzahl der bei jedem Request geladenen Orchestrator-Instruktion. 273 Zeilen; allein „Gotchas & Footguns" = 109 Zeilen (40 %). Je länger, desto eher gehen Routing-/Workflow-Regeln im Footgun-Wust unter und Tokens/Turn werden verschwendet.
 
 **Warum erreichbar:** Footgun-Block fast 1:1 in eine referenzierte Doku auslagerbar (REFERENCE-GOTCHAS.md existiert im Auto-Memory-Schema); in CLAUDE.md bleibt ein Pointer. Reines Verschieben, kein Informationsverlust.
 
@@ -915,7 +915,7 @@ PY
 wc -l < CLAUDE.md
 ```
 
-> **Baseline:** 277 · **Target:** ≤ 200 · **Aufwand:** mittel (~1 Session) · **Messzyklus:** bei jedem CLAUDE.md-Edit · **Reproduzierbar:** ja
+> **Priorität:** B · **Baseline:** 273 · **Target:** ≤ 200 · **Aufwand:** mittel (~1 Session) · **Messzyklus:** bei jedem CLAUDE.md-Edit · **Reproduzierbar:** ja
 
 ## G-DOC03 — README-Index in Hauptverzeichnissen: 1/5 → 5/5
 
@@ -927,7 +927,7 @@ wc -l < CLAUDE.md
 c=0; for d in website brett scripts tests k3d; do ls "$d"/README* >/dev/null 2>&1 && c=$((c+1)); done; echo "$c/5"
 ```
 
-> **Baseline:** 1/5 · **Target:** 5/5 · **Aufwand:** ~2–3 h · **Messzyklus:** pro neuem Top-Level-Verzeichnis · **Reproduzierbar:** ja
+> **Priorität:** B · **Baseline:** 1/5 · **Target:** 5/5 · **Aufwand:** ~2–3 h · **Messzyklus:** pro neuem Top-Level-Verzeichnis · **Reproduzierbar:** ja
 
 ## G-DOC04 — Architektur-ADRs: 0 → ≥ 5
 
@@ -939,7 +939,7 @@ c=0; for d in website brett scripts tests k3d; do ls "$d"/README* >/dev/null 2>&
 adr=$(find docs -ipath '*adr*' -name '*.md' 2>/dev/null | wc -l); echo "ADR .md: $adr | dir: $([ -d docs/adr ] && echo yes || echo no)"
 ```
 
-> **Baseline:** 0 · **Target:** ≥ 5 in docs/adr/ · **Aufwand:** mittel (~5×30–45 min) · **Messzyklus:** bei neuer Architekturentscheidung · **Reproduzierbar:** ja
+> **Priorität:** B · **Baseline:** 0 · **Target:** ≥ 5 in docs/adr/ · **Aufwand:** mittel (~5×30–45 min) · **Messzyklus:** bei neuer Architekturentscheidung · **Reproduzierbar:** ja
 
 ---
 
@@ -956,7 +956,7 @@ pnpm --dir website build >/dev/null 2>&1 && (pnpm --dir website exec astro previ
 npx --yes @axe-core/cli http://localhost:4321 http://localhost:4321/ueber-mich --exit
 ```
 
-> **Baseline:** unbekannt (kein a11y-Tool) · **Target:** 0 critical/serious (Kern-Routen) · **Aufwand:** mittel (Setup + Fixes) · **Messzyklus:** pro Release · **Reproduzierbar:** eingeschränkt (Build + Tool nötig)
+> **Priorität:** B · **Baseline:** unbekannt (kein a11y-Tool) · **Target:** 0 critical/serious (Kern-Routen) · **Aufwand:** mittel (Setup + Fixes) · **Messzyklus:** pro Release · **Reproduzierbar:** eingeschränkt (Build + Tool nötig)
 
 ## G-FE02 — Client-JS-Bundle-Budget: messen → kein Netto-Zuwachs/Release
 
@@ -969,11 +969,11 @@ pnpm --dir website build >/dev/null 2>&1 && find website/dist -name '*.js' -path
   | awk '{s+=$1} END{printf "client JS total: %.0f KiB\n", s/1024}'
 ```
 
-> **Baseline:** unbekannt (Voll-Build nötig) · **Target:** Budget setzen, kein Netto-Zuwachs/Release · **Aufwand:** gering (Messung) + Policy · **Messzyklus:** pro Release · **Reproduzierbar:** eingeschränkt (Build nötig)
+> **Priorität:** B · **Baseline:** unbekannt (Voll-Build nötig) · **Target:** Budget setzen, kein Netto-Zuwachs/Release · **Aufwand:** gering (Messung) + Policy · **Messzyklus:** pro Release · **Reproduzierbar:** eingeschränkt (Build nötig)
 
 ## G-FE03 — Stray `console.log/debug/info` + strukturiertes Logging: 0 stray → 0 + Logger
 
-**Was:** `website/src` hat **0** stray `console.log/debug/info` (war 3 — Dev-Reste entfernt), nutzt aber weiter 109 rohe `console.error/warn` und keinen strukturierten Logger (kein pino/winston). Unstrukturiertes Log-Rauschen ohne Level/Korrelation in Prod-Pods erschwert Incident-Triage.
+**Was:** `website/src` hat **0** stray `console.log/debug/info` (war 3 — Dev-Reste entfernt), nutzt aber weiter 141 rohe `console.error/warn` (war 109, Regression +32) und keinen strukturierten Logger (kein pino/winston). Unstrukturiertes Log-Rauschen ohne Level/Korrelation in Prod-Pods erschwert Incident-Triage.
 
 **Warum erreichbar:** Stray-Teil bereits erledigt. Verbleibend: ein schmaler Logger-Wrapper (error/warn über strukturierten Logger) als abgegrenzter Schritt — error/warn lassen sich migrieren statt umschreiben.
 
@@ -982,7 +982,7 @@ echo -n "log/debug/info: "; grep -rEn 'console\.(log|debug|info)' website/src --
 echo -n "error/warn: ";     grep -rEn 'console\.(error|warn)'      website/src --include='*.ts' --include='*.svelte' --include='*.astro' | wc -l
 ```
 
-> **Baseline:** 0 stray (war 3; +109 error/warn) · **Target:** 0 stray + strukturierter Logger · **Aufwand:** mittel (Logger) · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
+> **Priorität:** B · **Baseline:** 0 stray (war 3; +141 error/warn) · **Target:** 0 stray + strukturierter Logger · **Aufwand:** mittel (Logger) · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
 
 ---
 
@@ -1017,7 +1017,7 @@ echo -n "error/warn: ";     grep -rEn 'console\.(error|warn)'      website/src -
 | **G-SIZE01** | Freeze-Frühwarn-Band | 38 | ≤ 15 | ~3–4 Wo | ✅ |
 | **G-SIZE02** | Großdateien außerhalb Gate | 18 | ≤ 8 | ~2–3 Wo | ✅ |
 | **G-SIZE03** | God-File website-db.ts | 4435 | ≤ 3000 | ~2 Wo | ✅ |
-| **G-SIZE04** | Netto-LOC/Woche | ~ −800 | ≤ +2000 | Policy | ⚠️ |
+| **G-SIZE04** ⚠️ | Netto-LOC/Woche | **+2887** ↑ | ≤ +2000 | untersuchen | ⚠️ |
 | **G-DEP01** | High/Critical npm-Vulns | 6 | 0 | ~1–2 h | ⚠️ |
 | **G-DEP02** | Veraltete Major-Deps | 9 | ≤ 3 | ~1–2 Tage | ⚠️ |
 | **G-DEP03** | PM-Konsistenz website (npm+pnpm) | inkonsistent | 1 PM (pnpm) | mittel | ✅ |
@@ -1051,7 +1051,7 @@ echo -n "error/warn: ";     grep -rEn 'console\.(error|warn)'      website/src -
 | **G-SPEC02** | Changes >30 Tage | 0 | 0 | Policy | ✅ |
 | **G-SPEC03** | Proposals ohne .ticket | 10/18 | 0 | ~0.5 Tag | ✅ |
 | **G-DOC01** | Defekte interne Doc-Links | 0 ✓ | 0 | Policy | ✅ |
-| **G-DOC02** | CLAUDE.md Zeilen | 277 | ≤ 200 | ~1 Sess | ✅ |
+| **G-DOC02** | CLAUDE.md Zeilen | 273 | ≤ 200 | ~1 Sess | ✅ |
 | **G-DOC03** | README-Index | 1/5 | 5/5 | ~2–3 h | ✅ |
 | **G-DOC04** | Architektur-ADRs | 0 | ≥ 5 | ~5×45 min | ✅ |
 | **G-FE01** | a11y axe-Violations | — | 0 crit/serious | mittel | ⚠️ |
@@ -1060,15 +1060,17 @@ echo -n "error/warn: ";     grep -rEn 'console\.(error|warn)'      website/src -
 
 ## Sofort-Quick-Wins (hoher Wert, ≤ ~1 Tag)
 
-**Seit dem letzten Stand erledigt:** G-CFG01 (POCKET_ID_DOMAIN ergänzt, env:validate grün) · G-IMG02 (3 Image-Drifts vereinheitlicht) · G-DEP04 (engines.node in allen 7 package.json) · G-DOC01 (9 Doc-Links gefixt) · G-RH01 (S2/S3/S4 komplett abgebaut, 70→28). Außerdem aufgelöst: G-CQ07/09/10, G-K8S02, G-GIT03, G-CQ05/06, G-FE03-stray.
+**Seit dem letzten Stand erledigt:** G-CFG01 (POCKET_ID_DOMAIN ergänzt, env:validate grün) · G-IMG02 (3 Image-Drifts vereinheitlicht) · G-DEP04 (engines.node in allen 7 package.json) · G-DOC01 (9 Doc-Links gefixt) · G-RH01 (S2/S3/S4 komplett abgebaut, 70→28). Außerdem aufgelöst: G-CQ07/09/10, G-K8S02, G-CQ05/06, G-FE03-stray. Neu erreicht (2026-06-28): G-SEC05 (0/50 unsigniert), G-SPEC01 (openspec:validate Exit 0), G-TEST03 (3 todo verblieben → Schritt zur 0).
 
 **Noch offen — echte, sofort behebbare Defekte oder Ein-Sitzung-Aufräumarbeiten:**
 
-1. **G-CD01** ⚠️ — korczewski-Deploy-Lane debuggen *(~1 Session, behebt weiterhin 73 % Fehlschläge — der stärkste verbleibende CD-Defekt, unverändert 27 %)*
-2. **G-DEP01** — 6 high npm-Vulns via `pnpm.overrides` + nodemailer-Bump *(~1–2 h)*
-3. **G-SPEC01** — 8 Skelett-Changes ohne `specs/`-Delta aufräumen (archivieren/löschen) → openspec:validate grün *(~1 Tag)*
-4. **G-CQ01/G-CQ02** ⚠️ — zentraler typisierter Test-`render`-Wrapper: senkt astro-check (249, Regression) und `any` (431) **gleichzeitig** statt gegeneinander *(~2–3 Sessions, gekoppelt)*
-5. **G-SEC05** — Commit-Signing für Factory-Bot fertig durchsetzen *(10 % → ≤ 5 %, nur noch ~3 Commits)*
+1. **G-GIT03** (T001275) — search-index.json gitignoren (7→≤6 Dateien >1MB, ~15 Min — einfachster Fix)
+2. **G-CD01** (T001276) ⚠️ — korczewski-Deploy debuggen (53%→90%, ~1 Session)
+3. **G-DEP01** (T001278) — 6 high npm-Vulns neu fixen (T001200 Regression, ~1–2 h)
+4. **G-SPEC03** — 10/25 Proposals ohne `.ticket`-Datei verknüpfen (~0.5 Tage)
+5. **G-CQ01** (T001277) ⚠️ — astro-check 249 Fehler beheben; getypten Render-Wrapper anlegen senkt G-CQ02 (424 any) gleichzeitig (~2–3 Sessions)
+6. **G-CI01** (T001279) — CI-Erfolgsrate 90%→≥95% untersuchen (~1 Session)
+7. **G-SIZE04** (T001280) — LOC-Wachstum +2887/Woche analysieren und eindämmen (~1–2h)
 
 ## Messzyklus
 
@@ -1079,3 +1081,62 @@ echo -n "error/warn: ";     grep -rEn 'console\.(error|warn)'      website/src -
 - **Bei Bedarf:** G-RH04/05, G-DEP01/05, G-IMG*, G-K8S02/03, G-DOC03/04, G-CQ03
 
 **Mess-Werkzeug:** Das Sammel-Skript `scripts/health-goals-check.sh` **existiert** und prüft die ✅-reproduzierbaren Ziele in einem Lauf gegen ihre Targets (Ampel-Report). Trennung GATE (Policy/Halten, Verstoß ⇒ exit 1) vs. TARGET (Reduktion in Arbeit). Aufrufe: `bash scripts/health-goals-check.sh` (Report), `--strict` (verfehlte TARGETs ⇒ exit 1), `--fast` (überspringt langsame Checks), `--only=G-RH01,G-CQ02`. Die `eingeschränkt`-Ziele (Shallow-DORA, Netz-Audits, gleitende CI-Fenster, Tool-Setup/Cluster) deckt es bewusst **nicht** ab — die hier oben manuell.
+
+---
+
+## Prioritätssystem & Ticket-Erstellung
+
+### Prioritäten (A/B/C)
+
+Jedes Ziel trägt jetzt `**Priorität:**` in seiner Meta-Zeile:
+
+| Stufe | Bedeutung | Handlungsbedarf |
+|-------|-----------|-----------------|
+| **A** | Aktive Verletzung, Regression oder Sicherheitslücke | Ticket anlegen, sofort angehen |
+| **B** | Unter Target, Mehrfach-Sessions-Aufwand | Im nächsten Sprint einplanen |
+| **C** | Auf/über Target oder reine Policy | Halten, kein Handlungsbedarf |
+
+Aktuell A-Ziele (2026-06-28): **G-CQ01, G-SIZE04, G-DEP01, G-CI01, G-CD01, G-GIT03**
+
+### Ticket aus einem A-Ziel anlegen
+
+```bash
+# Voraussetzung: kubectl context fleet, shared-db erreichbar
+PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)
+
+# Nächste freie External-ID ermitteln
+NEXT_ID=$(kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- \
+  psql -U website -d website -tAc \
+  "SELECT 'T' || LPAD((CAST(SUBSTRING(MAX(external_id) FROM 2) AS int)+1)::text, 6, '0') FROM tickets.tickets;")
+
+echo "Neue Ticket-ID: $NEXT_ID"
+
+# Template-INSERT (Werte anpassen):
+kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- psql -U website -d website -c "
+INSERT INTO tickets.tickets
+  (external_id, title, type, status, priority, severity, component, areas, description, attention_mode, brand)
+VALUES
+  ('\$NEXT_ID',
+   'G-XYZNN: <Kurztitel>',
+   'chore',          -- oder 'bug'/'feature'
+   'backlog',
+   'hoch',           -- A = hoch
+   NULL,
+   '<component>',    -- z.B. 'website', 'infra', 'ci'
+   ARRAY['<area>'],  -- z.B. 'website', 'infra'
+   '<Beschreibung mit konkretem Fix-Hinweis>',
+   'ai_ready',
+   'mentolder');"
+```
+
+### Angelegte A-Tickets (2026-06-28)
+
+| Ziel | Ticket | Titel |
+|------|--------|-------|
+| G-GIT03 | T001275 | search-index.json gitignoren |
+| G-CD01 | T001276 | korczewski-Deploy debuggen |
+| G-CQ01 | T001277 | astro-check Regression (249 Fehler) |
+| G-DEP01 | T001278 | 6 high npm-Vulns neu fixen |
+| G-CI01 | T001279 | CI-Erfolgsrate < 95 % untersuchen |
+| G-SIZE04 | T001280 | LOC-Wachstum über Budget eingedämmen |
+

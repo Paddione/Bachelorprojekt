@@ -1,6 +1,6 @@
 ---
 ticket_id: T000994
-status: planning
+status: archived
 title: "Proposal: sessions-history-archive"
 date: 2026-06-20
 spec_ref: docs/superpowers/specs/2026-06-20-sessions-history-archive.md

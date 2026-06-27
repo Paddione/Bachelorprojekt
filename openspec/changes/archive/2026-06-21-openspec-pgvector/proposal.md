@@ -1,6 +1,6 @@
 ---
 ticket_id: T001008
-status: planning
+status: archived
 ---
 
 # Proposal: openspec-pgvector

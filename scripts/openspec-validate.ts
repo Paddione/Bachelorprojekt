@@ -99,6 +99,43 @@ export function validateSpecsDir(specsDir: string): ValidationResult {
   return { ok: errors.length === 0, errors, warnings }
 }
 
+/**
+ * Check whether SSOT specs under openspec/specs/ are listed in openspec/config.yaml
+ * OpenSpec-Komponenten. Emits WARN (never FAIL) for unlisted slugs.
+ */
+export function checkConfigDrift(openspecRoot: string): ValidationResult {
+  const warnings: string[] = []
+
+  const configPath = join(openspecRoot, 'config.yaml')
+  const specsDir = join(openspecRoot, 'specs')
+
+  if (!existsSync(configPath) || !existsSync(specsDir)) {
+    return { ok: true, errors: [], warnings }
+  }
+
+  const configContent = readFileSync(configPath, 'utf-8')
+  // Extract the OpenSpec-Komponenten value (block scalar or inline)
+  const match = configContent.match(/OpenSpec-Komponenten:\s*\|?\s*([\s\S]*?)(?:\n\w|\n$|$)/)
+  const componentSet = new Set<string>()
+  if (match) {
+    const raw = match[1]
+    for (const part of raw.split(/[\n,]+/)) {
+      const slug = part.trim()
+      if (slug) componentSet.add(slug)
+    }
+  }
+
+  for (const entry of readdirSync(specsDir, { withFileTypes: true })) {
+    if (!entry.isFile() || !entry.name.endsWith('.md')) continue
+    const slug = entry.name.replace(/\.md$/, '')
+    if (!componentSet.has(slug)) {
+      warnings.push(`WARN: ${slug} not listed in config.yaml OpenSpec-Komponenten`)
+    }
+  }
+
+  return { ok: true, errors: [], warnings }
+}
+
 export function validateTree(openspecRoot: string): ValidationResult {
   const changesDir = join(openspecRoot, 'changes')
   const specsDir = join(openspecRoot, 'specs')
@@ -122,6 +159,10 @@ export function validateTree(openspecRoot: string): ValidationResult {
   const specsResult = validateSpecsDir(specsDir)
   allErrors.push(...specsResult.errors)
   allWarnings.push(...specsResult.warnings)
+
+  // 3) Check config drift — SSOT specs not listed in config.yaml
+  const driftResult = checkConfigDrift(openspecRoot)
+  allWarnings.push(...driftResult.warnings)
 
   return { ok: allErrors.length === 0, errors: allErrors, warnings: allWarnings }
 }

@@ -6,7 +6,7 @@ import type { ReferenzItem, ReferenzenType, ReferenzenConfig } from '../config/t
 
 import pg from 'pg';
 import dns from 'dns';
-import { initTicketsSchema } from './tickets-db';
+import { initTicketsSchema } from './tickets-schema';
 import { transitionTicket } from './tickets/transition';
 import { refFor } from './content-registry';
 import { idsToPrune } from './admin/version-prune';

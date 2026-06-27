@@ -114,7 +114,7 @@ vi.mock('pg', () => {
 // initTicketsSchema is also called per-request from other website-db functions
 // but is irrelevant to the site_settings invariant under test — stub it out so
 // it can't touch the DB or skew counts.
-vi.mock('./tickets-db', () => ({
+vi.mock('./tickets-schema', () => ({
   initTicketsSchema: vi.fn().mockResolvedValue(undefined),
 }));
 vi.mock('./tickets/transition', () => ({

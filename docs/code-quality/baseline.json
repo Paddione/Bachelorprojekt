@@ -209,6 +209,13 @@
     "detail": "cycle in website: src/lib/tickets-db.ts → src/lib/website-db.ts",
     "frozen_at": "8b581ebe"
   },
+  "S2:website:src/lib/tickets-schema.ts|src/lib/website-db.ts": {
+    "gate": "S2",
+    "path": "website",
+    "metric": 2,
+    "detail": "cycle in website: src/lib/tickets-schema.ts → src/lib/website-db.ts",
+    "frozen_at": "T001172-cycle1-renamed"
+  },
   "S2:website:src/lib/tickets/reporter-link.ts|src/lib/tickets/transition.ts|src/lib/website-db.ts": {
     "gate": "S2",
     "path": "website",

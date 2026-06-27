@@ -33,7 +33,7 @@ vi.mock('pg', () => {
   }
   return { default: { Pool: CountingPool }, Pool: CountingPool };
 });
-vi.mock('./tickets-db', () => ({ initTicketsSchema: vi.fn().mockResolvedValue(undefined) }));
+vi.mock('./tickets-schema', () => ({ initTicketsSchema: vi.fn().mockResolvedValue(undefined) }));
 vi.mock('./tickets/transition', () => ({ transitionTicket: vi.fn().mockResolvedValue(undefined) }));
 
 import { listSoftwareAssets, listHardwareAssets } from './platform-db';

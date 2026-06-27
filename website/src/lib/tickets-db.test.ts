@@ -8,12 +8,13 @@ import { dirname, resolve } from 'node:path'
 // is present, fires only on feature inserts, and is explicitly marked NOT-CONSUMED.
 // As of T001155 (G-RH01 Batch 2), the inert plumbing lives in
 // `tickets/migrations.ts` (the legacy-migrations module owns the deprecated
-// trigger function + drop/create pair). The compat re-export in tickets-db.ts
-// must still call applyLegacyMigrations() so the trigger gets installed.
+// trigger function + drop/create pair). As of T001172 (G-CQ07 cycle #1),
+// initTicketsSchema itself lives in `tickets-schema.ts`; tickets-db.ts is a
+// thin facade that re-exports it and must not duplicate the body.
 const THIS_DIR = dirname(fileURLToPath(import.meta.url))
-const SRC = readFileSync(resolve(THIS_DIR, 'tickets-db.ts'), 'utf8')
+const SCHEMA_SRC = readFileSync(resolve(THIS_DIR, 'tickets-schema.ts'), 'utf8')
 const MIGRATIONS_SRC = readFileSync(resolve(THIS_DIR, 'tickets/migrations.ts'), 'utf8')
-const ALL_SRC = SRC + '\n' + MIGRATIONS_SRC
+const ALL_SRC = SCHEMA_SRC + '\n' + MIGRATIONS_SRC
 
 describe('factory: inert pg_notify trigger on feature inserts', () => {
   it('creates the notify function and trigger', () => {
@@ -31,12 +32,13 @@ describe('factory: inert pg_notify trigger on feature inserts', () => {
     expect(ALL_SRC).toMatch(/NOT[- ]CONSUMED|not consumed in (P3|Phase 3)/i)
   })
 
-  it('tickets-db.ts still calls applyLegacyMigrations(pool) so the trigger installs', () => {
-    // Regression guard for the G-RH01 Batch 2 split: the inert pg_notify
-    // plumbing is in tickets/migrations.ts now; without this call, initTicketsSchema
-    // would skip it and the trigger would never be installed. The module takes
-    // `pool` as a parameter (no longer imports from website-db) to break the
-    // import cycle that the monolithic file had implicitly avoided.
-    expect(SRC).toMatch(/applyLegacyMigrations\s*\(\s*pool\s*\)/)
+  it('tickets-schema.ts still calls applyLegacyMigrations(pool) so the trigger installs', () => {
+    // Regression guard for the G-RH01 Batch 2 + G-CQ07 cycle #1 splits: the
+    // inert pg_notify plumbing is in tickets/migrations.ts now, and
+    // initTicketsSchema() lives in tickets-schema.ts. Without this call,
+    // initTicketsSchema would skip it and the trigger would never be installed.
+    // The module takes `pool` as a parameter (no longer imports from website-db)
+    // to break the import cycle that the monolithic file had implicitly avoided.
+    expect(SCHEMA_SRC).toMatch(/applyLegacyMigrations\s*\(\s*pool\s*\)/)
   })
 })

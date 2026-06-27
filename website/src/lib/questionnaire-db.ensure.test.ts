@@ -51,7 +51,7 @@ vi.mock('pg', () => {
 // website-db pulls in tickets-db / transition at import; stub them so the module
 // graph loads without a DB. ensureSchemaOnce + __resetSchemaInitCacheForTests
 // are pure and come through the real website-db module.
-vi.mock('./tickets-db', () => ({ initTicketsSchema: vi.fn().mockResolvedValue(undefined) }));
+vi.mock('./tickets-schema', () => ({ initTicketsSchema: vi.fn().mockResolvedValue(undefined) }));
 vi.mock('./tickets/transition', () => ({ transitionTicket: vi.fn().mockResolvedValue(undefined) }));
 
 import { pool, __resetSchemaInitCacheForTests } from './website-db';

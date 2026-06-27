@@ -42,7 +42,7 @@ vi.mock('pg', () => {
   const { Pool } = mem.adapters.createPg();
   return { default: { Pool }, Pool };
 });
-vi.mock('./tickets-db', () => ({
+vi.mock('./tickets-schema', () => ({
   initTicketsSchema: vi.fn().mockResolvedValue(undefined),
   isFeatureEnabled: vi.fn().mockResolvedValue(false),
 }));

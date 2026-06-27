@@ -41,7 +41,7 @@ vi.mock('pg', () => {
   const { Pool } = mem.adapters.createPg();
   return { default: { Pool }, Pool };
 });
-vi.mock('./tickets-db', () => ({
+vi.mock('./tickets-schema', () => ({
   initTicketsSchema: vi.fn().mockResolvedValue(undefined),
   isFeatureEnabled: vi.fn().mockResolvedValue(false),
 }));
@@ -116,7 +116,7 @@ describe('provider routing DDL lebt im ausgelagerten Schema-Modul', () => {
   it('tickets-db.ts ruft das ausgelagerte initProviderConfigSchema auf', async () => {
     const { readFileSync } = await import('node:fs');
     const { fileURLToPath } = await import('node:url');
-    const src = readFileSync(fileURLToPath(new URL('./tickets-db.ts', import.meta.url)), 'utf8');
+    const src = readFileSync(fileURLToPath(new URL('./tickets-schema.ts', import.meta.url)), 'utf8');
     expect(src).toContain('initProviderConfigSchema');
   });
 });

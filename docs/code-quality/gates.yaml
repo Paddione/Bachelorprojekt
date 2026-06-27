@@ -57,6 +57,11 @@ s1:
     # queries across all features. Splitting it would require carefully managing the
     # single PostgreSQL pool. Accepted as a long-term refactoring target.
     - "website/src/lib/website-db.ts"
+    # tickets-schema.ts akkumuliert das gesamte DDL + Helper für das
+    # `tickets`-PostgreSQL-Schema. Splitting-Grenze ist die Tabelle
+    # (Tabelle = Datei-Abschnitt), nicht die Datei — analog zu
+    # website-db.ts. Entstanden mit G-CQ07 (S2-Import-Zyklus #1).
+    - "website/src/lib/tickets-schema.ts"
     # GLTFLoader.js is a vendored Three.js loader (MIT) shipped as a single
     # monolithic browser bundle. Cannot be reasonably split; vendor file.
     - "brett/public/lib/GLTFLoader.js"

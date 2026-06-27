@@ -207,15 +207,33 @@
       "status": "plan_staged"
     }
   ],
+  "T001203": [
+    {
+      "slug": "g-cd02-post-merge-race-guard",
+      "status": "plan_staged"
+    }
+  ],
   "T001204": [
     {
       "slug": "g-cq03-eslint-website",
       "status": "plan_staged"
     }
   ],
+  "T001207": [
+    {
+      "slug": "g-fe02-bundle-budget",
+      "status": "plan_staged"
+    }
+  ],
   "T001211": [
     {
       "slug": "mcp-skill-integration",
+      "status": "plan_staged"
+    }
+  ],
+  "T001216": [
+    {
+      "slug": "ci-speed",
       "status": "plan_staged"
     }
   ],

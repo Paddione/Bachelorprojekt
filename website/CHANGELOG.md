@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.129.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.129.2...website-v1.129.3) (2026-06-27)
+
+
+### Bug Fixes
+
+* **infra:** env-seal.sh: required-empty keys fail-fast, optional-empty keys in SealedSecret [T001198] ([#2136](https://github.com/Paddione/Bachelorprojekt/issues/2136)) ([8d661be](https://github.com/Paddione/Bachelorprojekt/commit/8d661beabe1bcdf6fe7cea09a698ca40165d3bb8))
+
 ## [1.129.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.129.1...website-v1.129.2) (2026-06-27)
 
 

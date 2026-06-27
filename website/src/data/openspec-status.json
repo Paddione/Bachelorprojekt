@@ -237,6 +237,12 @@
       "status": "plan_staged"
     }
   ],
+  "T001208": [
+    {
+      "slug": "g-test05-vitest-coverage",
+      "status": "plan_staged"
+    }
+  ],
   "T001211": [
     {
       "slug": "2026-06-27-mcp-skill-integration",

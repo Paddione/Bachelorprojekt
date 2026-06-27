@@ -9,7 +9,7 @@ env_vars:
   # Override only where the dev default differs from schema:
   BRAND_ID: korczewski
   BRAND_NAME: "KORE"
-  WEBSITE_IMAGE: korczewski-website
+  WEBSITE_IMAGE: website
   DOCS_IMAGE: korczewski-docs
   WEBSITE_NAMESPACE: workspace-korczewski-dev
   LLM_ENABLED: "true"

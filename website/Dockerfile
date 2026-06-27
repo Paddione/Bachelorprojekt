@@ -15,6 +15,10 @@ COPY website/ .
 ENV NODE_OPTIONS=--max-old-space-size=3072
 RUN npm run build
 
+# Prune devDependencies so the runtime stage copies only prod node_modules
+# (~1.2 GB → ~600 MB). Chromium/kubectl/tests/ bleiben bewusst im Runtime-Image.
+RUN npm prune --omit=dev
+
 # ── Runtime stage ─────────────────────────────────────────────────────────────
 FROM node:22-alpine AS runtime
 WORKDIR /app

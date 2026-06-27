@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 485,
+      "file_count": 487,
       "files": [
         "tests/.gitignore",
         "tests/batch/batch-gap-analysis.bats",
@@ -336,6 +336,7 @@
         "tests/spec/backup-pipeline.bats",
         "tests/spec/ci-cd.bats",
         "tests/spec/coverage-gate.bats",
+        "tests/spec/docker-build-speedup.bats",
         "tests/spec/env-seal-empty-value-keys.bats",
         "tests/spec/fleet-operations.bats",
         "tests/spec/g-cq08-knip-dead-code.bats",
@@ -491,6 +492,7 @@
         "website/tests/e2e-marker-hygiene.test.ts",
         "website/tests/fixtures/mustang.sh",
         "website/tests/live-state.test.mjs",
+        "website/tests/major-deps.test.ts",
         "website/tests/zugferd.test.mjs"
       ]
     },

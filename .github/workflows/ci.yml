@@ -56,14 +56,21 @@ jobs:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install dependencies
+      - name: Install kubectl
         run: |
-          sudo apt-get update && sudo apt-get install -y jq curl python3-pip
           curl --fail -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" \
             -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
 
       - name: Install node dependencies (docs-gen generator + tests)
         run: npm ci
+
+      - name: Cache factory npm dependencies
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830  # v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-factory-${{ hashFiles('scripts/factory/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-factory-
 
       - name: Install factory MCP dependencies
         run: npm ci --prefix scripts/factory
@@ -168,7 +175,7 @@ jobs:
     name: Vitest (website)
     if: github.event.action != 'edited'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
 
@@ -201,28 +208,36 @@ jobs:
           cd website
           pnpm exec vitest run --testTimeout=30000
 
+      - name: Build website
+        run: |
+          cd website
+          pnpm build
+
+      - name: Upload website dist artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+        with:
+          name: website-dist
+          path: website/dist
+          retention-days: 1
+
   bundle-budget:
     name: Client-JS Bundle Budget
     if: github.event.action != 'edited'
+    needs: [vitest-website]
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
-
-      - name: Set up pnpm
-        uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda  # v4.1.0
-        with:
-          version: 10
 
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444  # v5
         with:
           node-version: '22'
-          cache: 'pnpm'
-          cache-dependency-path: website/pnpm-lock.yaml
 
-      - name: Build website
-        run: |
-          cd website && pnpm install --frozen-lockfile && pnpm build
+      - name: Download website dist artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4
+        with:
+          name: website-dist
+          path: website/dist
 
       - name: Check client-JS bundle budget
         run: node scripts/check-bundle-size.mjs --check --fail --threshold=5

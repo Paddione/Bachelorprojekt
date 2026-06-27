@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.133.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.133.1...website-v1.133.2) (2026-06-27)
+
+
+### Bug Fixes
+
+* **website:** resolve footer color-contrast violations on both brands [T001206] ([#2158](https://github.com/Paddione/Bachelorprojekt/issues/2158)) ([031f705](https://github.com/Paddione/Bachelorprojekt/commit/031f7059e96cfdc286ba2a3c1bd8f226e385f3be))
+
 ## [1.133.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.133.0...website-v1.133.1) (2026-06-27)
 
 

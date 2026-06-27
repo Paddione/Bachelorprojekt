@@ -9,11 +9,11 @@ shared_changes: false
 
 # Tasks: t1224-lockfile-drift
 
-- [ ] Task 0: Failing-Test schreiben — BATS `tests/spec/lockfile-drift.bats` (RED)
-- [ ] Task 1: Bereinigung & Ignore-Regeln (Entfernen von website/package-lock.json)
-- [ ] Task 2: Implementierung des Code-Quality-Gates S5 (Lockfiles)
-- [ ] Task 3: Verkabelung und Registrierung des Gates S5
-- [ ] Task 4 (Final): Verifikation via test:changed + freshness:regenerate + freshness:check
+- [x] Task 0: Failing-Test schreiben — BATS `tests/spec/lockfile-drift.bats` (RED)
+- [x] Task 1: Bereinigung & Ignore-Regeln (Entfernen von website/package-lock.json)
+- [x] Task 2: Implementierung des Code-Quality-Gates S5 (Lockfiles)
+- [x] Task 3: Verkabelung und Registrierung des Gates S5
+- [x] Task 4 (Final): Verifikation via test:changed + freshness:regenerate + freshness:check
 
 ---
 

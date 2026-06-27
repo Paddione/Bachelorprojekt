@@ -138,3 +138,19 @@ s4:
     - "k3d/coturn-stack/**"
     - "k3d/sealed-secrets-controller.yaml"
     - "k3d/backup-secrets.yaml"
+
+s5:
+  rules:
+    - path: "."
+      allowed: ["package-lock.json"]
+      forbidden: ["pnpm-lock.yaml"]
+    - path: "website"
+      allowed: ["pnpm-lock.yaml"]
+      forbidden: ["package-lock.json"]
+    - path: "brett"
+      allowed: ["package-lock.json", "pnpm-lock.yaml"]
+      forbidden: []
+    - path: "mentolder-web"
+      allowed: ["pnpm-lock.yaml"]
+      forbidden: ["package-lock.json"]
+

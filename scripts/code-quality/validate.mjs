@@ -79,6 +79,21 @@ export function validateRegistry(cfgDir, repoRoot) {
   req(Array.isArray(gates?.s4?.allowlist_globs),
     'gates.yaml: s4.allowlist_globs must be an array');
 
+  req(Array.isArray(gates?.s5?.rules),
+    'gates.yaml: s5.rules must be an array');
+  if (Array.isArray(gates?.s5?.rules)) {
+    for (const [idx, r] of gates.s5.rules.entries()) {
+      req(r && typeof r === 'object',
+        `gates.yaml: s5.rules[${idx}] must be an object`);
+      req(typeof r?.path === 'string',
+        `gates.yaml: s5.rules[${idx}].path must be a string`);
+      req(Array.isArray(r?.allowed) && r.allowed.every((x) => typeof x === 'string'),
+        `gates.yaml: s5.rules[${idx}].allowed must be an array of strings`);
+      req(Array.isArray(r?.forbidden) && r.forbidden.every((x) => typeof x === 'string'),
+        `gates.yaml: s5.rules[${idx}].forbidden must be an array of strings`);
+    }
+  }
+
   return { ok: errors.length === 0, errors };
 }
 

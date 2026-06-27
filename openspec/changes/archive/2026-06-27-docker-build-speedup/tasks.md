@@ -2,7 +2,7 @@
 title: "Docker-Build-Beschleunigung (Caching + Website slim/konsolidieren + arm64-Drop)"
 ticket_id: T001229
 domains: [infra, website]
-status: active
+status: completed
 file_locks:
   - .github/workflows/build-website.yml
   - .github/workflows/build-website-korczewski.yml

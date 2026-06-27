@@ -93,13 +93,13 @@ interface FixtureRow {
   row_id: string;
 }
 
-export interface PurgeFixturesOpts {
+interface PurgeFixturesOpts {
   /** Minimum age (in hours) of the assignment's terminal-state timestamp
    *  before its fixtures become eligible for deletion. Default 24h. */
   graceHours: number;
 }
 
-export interface PurgeFixturesResult {
+interface PurgeFixturesResult {
   /** Count of fixture rows that were marked `purged_at` (DB row deleted or
    *  Keycloak user deleted). */
   purged: number;
@@ -206,7 +206,7 @@ async function purgeOneFixture(pool: Pool, row: FixtureRow): Promise<void> {
   await pool.query(`DELETE FROM ${row.table_name} WHERE id = $1`, [row.row_id]);
 }
 
-export interface DrainOutboxResult {
+interface DrainOutboxResult {
   /** Number of due rows we attempted to retry. */
   retried: number;
   /** Number of those that succeeded (ticket created → outbox row deleted). */
@@ -294,7 +294,7 @@ export async function drainOutbox(pool: Pool): Promise<DrainOutboxResult> {
   return { retried: due.rowCount ?? 0, succeeded };
 }
 
-export interface PurgeMagicTokensResult {
+interface PurgeMagicTokensResult {
   purged: number;
 }
 

@@ -35,7 +35,7 @@ export interface Theme {
   blurb_de: string;
 }
 
-export interface GlossaryEntry {
+interface GlossaryEntry {
   term: string;
   def_de: string;
 }
@@ -82,7 +82,7 @@ export interface Tool {
   init_prompt_de?: string;
 }
 
-export interface Component {
+interface Component {
   slug: string;
   kind: string;
   name: string;
@@ -103,7 +103,7 @@ export interface FlowStation {
   toolIds: string[];
 }
 
-export interface TerritoryNode {
+interface TerritoryNode {
   slug: string;
   name: string;
   emoji: string;
@@ -156,7 +156,7 @@ export function componentBySlug(slug: string): Component | undefined {
   return components[slug];
 }
 
-export interface LegendRow {
+interface LegendRow {
   id: string;
   emoji: string;
   label: string;

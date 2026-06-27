@@ -208,6 +208,12 @@ jobs:
           cd website
           pnpm exec vitest run --testTimeout=30000
 
+      - name: Knip dead-code report (advisory)
+        continue-on-error: true
+        run: |
+          cd website
+          pnpm exec knip --no-exit-code || true
+
       - name: Build website
         run: |
           cd website

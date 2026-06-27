@@ -1,11 +1,11 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { z } from 'zod';
 
-export const CLASSIFIER_VERSION = 'v1-2026-05-10';
-export const DEFAULT_MODEL = process.env.COACHING_CLASSIFIER_MODEL || 'claude-haiku-4-5-20251001';
+const CLASSIFIER_VERSION = 'v1-2026-05-10';
+const DEFAULT_MODEL = process.env.COACHING_CLASSIFIER_MODEL || 'claude-haiku-4-5-20251001';
 
-export type TemplateKind = 'reflection' | 'dialog_pattern' | 'exercise' | 'case_example';
-export type ClassifierKind = TemplateKind | 'theory' | 'noise';
+type TemplateKind = 'reflection' | 'dialog_pattern' | 'exercise' | 'case_example';
+type ClassifierKind = TemplateKind | 'theory' | 'noise';
 
 const ReflectionPayload = z.object({
   title: z.string().min(3).max(120),
@@ -42,7 +42,7 @@ const ClassifierEnvelope = z.object({
   reason: z.string().max(280).optional(),
 });
 
-export interface ClassifierResult {
+interface ClassifierResult {
   kind: ClassifierKind;
   payload: Record<string, unknown> | null;
   model: string;
@@ -63,7 +63,7 @@ Regeln:
 
 Erzeuge KEINE Inhalte, die nicht im Chunk stehen. Paraphrasiere knapp, kein wörtliches Zitat über 280 Zeichen. Antworte ausschließlich mit dem JSON-Objekt, ohne Markdown-Fence.`;
 
-export interface ClassifyOpts {
+interface ClassifyOpts {
   client?: Anthropic;
   model?: string;
   maxTokens?: number;

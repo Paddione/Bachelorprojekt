@@ -4,7 +4,7 @@
 
 import { pool } from './website-db';
 
-export interface FactoryRunBudget {
+interface FactoryRunBudget {
   id: string;
   ticketId: string;
   runDate: string;
@@ -21,7 +21,7 @@ export interface FactoryRunBudget {
   updatedAt: string;
 }
 
-export interface ProviderBudgetSummary {
+interface ProviderBudgetSummary {
   provider: string;
   tokensInAct: number;
   tokensOutAct: number;
@@ -31,13 +31,13 @@ export interface ProviderBudgetSummary {
   costUsdEst: number;
 }
 
-export interface DailyBudgetSummary {
+interface DailyBudgetSummary {
   used: number;
   limit: number | null;
   byProvider: ProviderBudgetSummary[];
 }
 
-export interface RecentRunSummary {
+interface RecentRunSummary {
   ticketId: string;
   externalId: string;
   title: string;
@@ -57,7 +57,7 @@ export async function setBudgetLimit(usd: number): Promise<void> {
 }
 
 /** Get current daily budget limit in USD. */
-export async function getBudgetLimit(): Promise<number | null> {
+async function getBudgetLimit(): Promise<number | null> {
   const r = await pool.query(
     `SELECT value FROM tickets.factory_control WHERE key = 'budget-limit-daily-usd' AND brand IS NULL LIMIT 1`
   );

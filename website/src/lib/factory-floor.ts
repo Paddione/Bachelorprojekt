@@ -32,10 +32,8 @@ export function phaseProgress(phase: Phase | null, state: PhaseState | null): Ph
 export {
   ALL_TICKET_STATUSES,
   PIPELINE_LANES,
-  PIPELINE_STATUSES,
   STATUS_BUCKETS,
 } from './tickets/pipeline-order';
-export type { TicketStatus, PipelineLane, LaneKey } from './tickets/pipeline-order';
 
 export interface AttentionPayload {
   blocked: { extId: string; reason: string }[];
@@ -60,7 +58,7 @@ export function buildAttention(
   return { blocked, stuck, cooldowns, isEmpty: !blocked.length && !stuck.length && !cooldowns.length };
 }
 
-export interface TimelineEntry extends PhaseEventRow { durationSec: number | null; }
+interface TimelineEntry extends PhaseEventRow { durationSec: number | null; }
 export function phaseDurations(events: PhaseEventRow[]): TimelineEntry[] {
   const asc = [...events].sort((a, b) => +new Date(a.at) - +new Date(b.at));
   return asc.map((e, i) => ({
@@ -340,7 +338,7 @@ export async function getPlanningCount(): Promise<PlanningCount> {
 }
 
 /** Extract a PR number from a phase-event detail string ("PR #1512 · …"); null on miss. */
-export function parsePrNumber(detail: string | null): number | null {
+function parsePrNumber(detail: string | null): number | null {
   if (!detail) return null;
   const m = /PR #(\d+)/.exec(detail);
   return m ? parseInt(m[1], 10) : null;
@@ -437,7 +435,7 @@ export interface InjectionRow {
   dataUrl: string | null; ncPath: string | null; filename: string | null; mimeType: string | null;
   injectedBy: string; injectedAt: string; consumedAt: string | null;
 }
-export interface InjectInput {
+interface InjectInput {
   extId: string; kind: InjectionKind; phase?: Phase | null;
   title?: string | null; content?: string | null; targetFiles?: string[] | null;
   dataUrl?: string | null; ncPath?: string | null; filename?: string | null; mimeType?: string | null;
@@ -571,4 +569,3 @@ export async function consumeInjections(extId: string, phase: Phase): Promise<In
   );
   return r.rows.map(mapInjection);
 }
-export type { FactoryRunBudget } from './factory-budget';

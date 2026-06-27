@@ -25,7 +25,7 @@ export interface Snippet {
   createdAt: Date;
 }
 
-export interface Cluster {
+interface Cluster {
   id: string;
   bookId: string | null;
   name: string;
@@ -58,7 +58,7 @@ export interface Template {
   createdAt: Date;
 }
 
-export interface ChunkRow {
+interface ChunkRow {
   id: string;
   position: number;
   text: string;
@@ -110,7 +110,7 @@ export async function listChunksForBook(
   }));
 }
 
-export interface CreateSnippetArgs {
+interface CreateSnippetArgs {
   bookId: string;
   title: string;
   body: string;
@@ -140,7 +140,7 @@ export async function createSnippet(pool: Pool, args: CreateSnippetArgs): Promis
   return rowToSnippet(r.rows[0]);
 }
 
-export type UpdateSnippetArgs = Partial<Pick<Snippet, 'title' | 'body' | 'tags' | 'clusterId'>>;
+type UpdateSnippetArgs = Partial<Pick<Snippet, 'title' | 'body' | 'tags' | 'clusterId'>>;
 
 const SNIPPET_COLUMN_MAP: Record<keyof UpdateSnippetArgs, string> = {
   title: 'title',
@@ -180,7 +180,7 @@ export async function deleteSnippet(pool: Pool, id: string): Promise<boolean> {
   return (r.rowCount ?? 0) > 0;
 }
 
-export interface ListSnippetsFilter {
+interface ListSnippetsFilter {
   bookId?: string;
   clusterId?: string;
   tag?: string;
@@ -198,7 +198,7 @@ export async function listSnippets(pool: Pool, filter: ListSnippetsFilter = {}):
   return r.rows.map(rowToSnippet);
 }
 
-export interface CreateClusterArgs {
+interface CreateClusterArgs {
   bookId?: string | null;
   name: string;
   kind?: 'auto' | 'manual';
@@ -244,7 +244,7 @@ export async function listClusters(
   });
 }
 
-export interface CreateTemplateDraftArgs {
+interface CreateTemplateDraftArgs {
   snippetId: string;
   targetSurface: TargetSurface;
   payload: Record<string, unknown>;
@@ -301,7 +301,7 @@ export async function getTemplate(pool: Pool, id: string): Promise<Template | nu
   return r.rows[0] ? rowToTemplate(r.rows[0]) : null;
 }
 
-export interface ListTemplatesFilter {
+interface ListTemplatesFilter {
   bookId?: string;
   targetSurface?: TargetSurface;
   status?: TemplateStatus;
@@ -436,7 +436,7 @@ function rowToTemplate(r: Record<string, unknown>): Template {
 export type DraftKind = 'reflection' | 'dialog_pattern' | 'exercise' | 'case_example';
 export type DraftStatus = 'open' | 'accepted' | 'rejected' | 'skipped';
 
-export interface Draft {
+interface Draft {
   id: string;
   bookId: string;
   knowledgeChunkId: string;
@@ -452,7 +452,7 @@ export interface Draft {
   createdAt: Date;
 }
 
-export interface DraftWithChunk extends Draft {
+interface DraftWithChunk extends Draft {
   chunkText: string;
   page: number | null;
 }
@@ -551,7 +551,7 @@ export async function getDraft(pool: Pool, id: string): Promise<DraftWithChunk |
   };
 }
 
-export interface AcceptDraftOpts {
+interface AcceptDraftOpts {
   reviewedBy: string;
   /** override of suggested_payload before snippet creation; merged shallow */
   payloadOverrides?: Record<string, unknown>;
@@ -632,7 +632,7 @@ export async function rejectDraft(
   return rowToDraft(r.rows[0]);
 }
 
-export interface AcceptanceRate {
+interface AcceptanceRate {
   bookId: string;
   open: number;
   accepted: number;

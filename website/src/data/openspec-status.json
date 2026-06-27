@@ -219,6 +219,12 @@
       "status": "plan_staged"
     }
   ],
+  "T001205": [
+    {
+      "slug": "g-cq08-knip-dead-code",
+      "status": "plan_staged"
+    }
+  ],
   "T001206": [
     {
       "slug": "g-fe01-a11y-axe-violations",

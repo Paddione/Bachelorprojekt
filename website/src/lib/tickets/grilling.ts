@@ -2,19 +2,19 @@
 // Pure data module — no DB imports, no cycles.
 // Questionnaire definitions and answer type for the Grilling QA Panel.
 
-export interface GrillingQuestion {
+interface GrillingQuestion {
   id: string;       // e.g. "q1"
   label: string;    // question text
   choices?: string[]; // quick-select chips for common answers
 }
 
-export interface GrillingSection {
+interface GrillingSection {
   id: string;       // e.g. "s1"
   title: string;
   questions: GrillingQuestion[];
 }
 
-export interface GrillingQuestionnaire {
+interface GrillingQuestionnaire {
   id: string;       // e.g. "coaching-sessions-v1"
   title: string;
   sections: GrillingSection[];
@@ -224,7 +224,7 @@ export function splitAnswered(questions: ParsedQuestion[]): {
   return { answered, unanswered };
 }
 
-export interface ParsedGrillingDoc { questionnaireId: string; title: string; questions: ParsedQuestion[] }
+interface ParsedGrillingDoc { questionnaireId: string; title: string; questions: ParsedQuestion[] }
 
 const FRONT_RE = /^---\s*$/;
 const HEADING_RE = /^#{2,3}\s+(.*?)\s*$/;
@@ -310,7 +310,7 @@ export interface GrillingMetaEntry {
   dismissed: string[];
 }
 export type GrillingMeta = Record<string, GrillingMetaEntry>;
-export interface ResolvedQuestion { id: string; prompt: string; section?: string; choices?: string[] }
+interface ResolvedQuestion { id: string; prompt: string; section?: string; choices?: string[] }
 
 /** Registry questions (flattened, section title as `section`) ∪ absorbed meta questions.
  *  Registry wins on duplicate id; absorbed-only ids are appended in meta order. */

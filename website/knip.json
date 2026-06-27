@@ -1,0 +1,15 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": [
+    "src/pages/**/*.{astro,ts,js}",
+    "src/middleware.{ts,js}",
+    "src/content/config.ts",
+    "astro.config.{mjs,ts,js}"
+  ],
+  "project": [
+    "src/**/*.{ts,tsx,js,mjs,svelte,astro}"
+  ],
+  "ignore": [
+    "src/**/*.generated.*"
+  ]
+}

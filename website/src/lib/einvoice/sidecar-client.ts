@@ -1,14 +1,14 @@
 export class SidecarUnavailableError extends Error {
   constructor(public status: number, msg: string) { super(msg); this.name = 'SidecarUnavailableError'; }
 }
-export class SidecarValidationError extends Error {
+class SidecarValidationError extends Error {
   constructor(msg: string) { super(msg); this.name = 'SidecarValidationError'; }
 }
 
-export interface EmbedResult { pdf: Buffer; meta: Record<string, unknown>; }
-export interface ValidateResult { ok: boolean; errors: string[]; warnings: string[]; reportXml: string; }
+interface EmbedResult { pdf: Buffer; meta: Record<string, unknown>; }
+interface ValidateResult { ok: boolean; errors: string[]; warnings: string[]; reportXml: string; }
 
-export interface SidecarClient {
+interface SidecarClient {
   embed(pdf: Buffer, xml: string): Promise<EmbedResult>;
   validate(payload: { pdf?: Buffer; xml?: string }): Promise<ValidateResult>;
 }

@@ -51,7 +51,7 @@ export interface ListedTicket {
   aiQuestion: string | null; humanAnswer: string | null;
 }
 
-export interface TicketDetail extends ListedTicket {
+interface TicketDetail extends ListedTicket {
   description: string | null;
   notes: string | null;
   url: string | null;
@@ -70,7 +70,7 @@ export interface TicketDetail extends ListedTicket {
   grillingAnswers: GrillingAnswers | null; grillingMeta: GrillingMeta | null;
 }
 
-export interface TicketLinkRow {
+interface TicketLinkRow {
   id: number;
   kind: LinkKind;
   direction: 'out' | 'in';        // 'out' = from this ticket; 'in' = to this ticket
@@ -85,7 +85,7 @@ export interface TicketLinkRow {
   createdAt: Date;
 }
 
-export interface TicketAttachmentRow {
+interface TicketAttachmentRow {
   id: string;
   filename: string;
   mimeType: string;
@@ -632,18 +632,18 @@ export async function addAttachment(p: {
 
 // ── Lookups for the action bar dropdowns ───────────────────────────────────
 
-export async function listAdminUsersForBrand(): Promise<Customer[]> {
+async function listAdminUsersForBrand(): Promise<Customer[]> {
   // Admin users are global (no brand) — same as the projekte page.
   const { listAdminUsers } = await import('../website-db');
   return listAdminUsers();
 }
 
-export async function listCustomersForBrand(): Promise<Customer[]> {
+async function listCustomersForBrand(): Promise<Customer[]> {
   const { listAllCustomers } = await import('../website-db');
   return listAllCustomers();
 }
 
-export async function searchTicketsForLink(brand: string, q: string, limit = 10): Promise<ListedTicket[]> {
+async function searchTicketsForLink(brand: string, q: string, limit = 10): Promise<ListedTicket[]> {
   await initTicketsSchema();
   if (q.trim().length < 2) return [];
   const r = await pool.query<ListedTicket>(
@@ -658,7 +658,7 @@ export async function searchTicketsForLink(brand: string, q: string, limit = 10)
 
 // ── Distinct components for the filter dropdown ─────────────────────────────
 
-export async function listKnownComponents(brand: string, opts: { includeTestData?: boolean } = {}): Promise<string[]> {
+async function listKnownComponents(brand: string, opts: { includeTestData?: boolean } = {}): Promise<string[]> {
   await initTicketsSchema();
   const filter = opts.includeTestData ? '' : ' AND is_test_data = false';
   const r = await pool.query<{ component: string }>(
@@ -667,7 +667,7 @@ export async function listKnownComponents(brand: string, opts: { includeTestData
     [brand]);
   return r.rows.map(x => x.component);
 }
-export async function listKnownThesisTags(brand: string): Promise<string[]> {
+async function listKnownThesisTags(brand: string): Promise<string[]> {
   await initTicketsSchema();
   const r = await pool.query<{ thesis_tag: string }>(
     `SELECT DISTINCT thesis_tag FROM tickets.tickets

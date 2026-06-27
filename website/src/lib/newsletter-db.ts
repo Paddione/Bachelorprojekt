@@ -62,7 +62,7 @@ async function ensureTables(): Promise<void> {
   tablesReady = true;
 }
 
-export interface NewsletterSubscriber {
+interface NewsletterSubscriber {
   id: string;
   email: string;
   status: 'pending' | 'confirmed' | 'unsubscribed';
@@ -71,7 +71,7 @@ export interface NewsletterSubscriber {
   created_at: Date;
 }
 
-export interface NewsletterCampaign {
+interface NewsletterCampaign {
   id: string;
   subject: string;
   html_body: string;
@@ -180,7 +180,7 @@ export async function deleteSubscriber(id: string): Promise<void> {
   await pool.query(`DELETE FROM newsletter_subscribers WHERE id = $1`, [id]);
 }
 
-export async function getConfirmedSubscribers(): Promise<
+async function getConfirmedSubscribers(): Promise<
   (NewsletterSubscriber & { unsubscribe_token: string })[]
 > {
   await ensureTables();
@@ -269,7 +269,7 @@ export async function updateCampaign(
   return result.rows[0] ?? null;
 }
 
-export async function markCampaignSent(id: string, recipientCount: number): Promise<void> {
+async function markCampaignSent(id: string, recipientCount: number): Promise<void> {
   await ensureTables();
   await pool.query(
     `UPDATE newsletter_campaigns
@@ -377,7 +377,7 @@ export async function resetStaleSendingCampaigns(): Promise<number> {
 
 // ── Send log ──────────────────────────────────────────────────────────────────
 
-export async function createSendLog(params: {
+async function createSendLog(params: {
   campaignId: string;
   subscriberId: string;
   status: 'sent' | 'failed';

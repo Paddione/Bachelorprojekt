@@ -17,10 +17,10 @@ const pool = new Pool({ connectionString: DB_URL, lookup: nodeLookup } as unknow
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-export type PollKind = 'multiple_choice' | 'text';
-export type PollStatus = 'open' | 'locked';
+type PollKind = 'multiple_choice' | 'text';
+type PollStatus = 'open' | 'locked';
 
-export interface Poll {
+interface Poll {
   id: string;
   question: string;
   kind: PollKind;
@@ -31,19 +31,19 @@ export interface Poll {
   locked_at: Date | null;
 }
 
-export interface PollTemplate {
+interface PollTemplate {
   label: string;
   question: string;
   kind: PollKind;
   options: string[] | null;
 }
 
-export interface AnswerCount {
+interface AnswerCount {
   answer: string;
   count: number;
 }
 
-export interface PollResults {
+interface PollResults {
   poll: Poll;
   total: number;
   counts: AnswerCount[];

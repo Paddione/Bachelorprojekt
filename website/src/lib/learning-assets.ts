@@ -1,10 +1,10 @@
 import data from './learning-assets.generated.json';
 
-export type AssetType = 'illustration' | 'icon' | 'diagram' | 'motion' | 'sfx' | 'voice' | 'ambient';
+type AssetType = 'illustration' | 'icon' | 'diagram' | 'motion' | 'sfx' | 'voice' | 'ambient';
 export type Register = 'technical' | 'coaching' | 'neutral';
 export type Tone = 'active' | 'calm';
 
-export interface AssetEntry {
+interface AssetEntry {
   id: string;
   type: AssetType;
   register: Register;
@@ -18,7 +18,7 @@ export interface AssetEntry {
   reducedMotion?: string | null;
 }
 
-export interface AssetQuery {
+interface AssetQuery {
   type?: AssetType;
   register?: Register;
   tone?: Tone;
@@ -26,7 +26,7 @@ export interface AssetQuery {
   guideItem?: string;
 }
 
-export const assets: AssetEntry[] = (data.assets ?? []) as AssetEntry[];
+const assets: AssetEntry[] = (data.assets ?? []) as AssetEntry[];
 const byId = new Map(assets.map((a) => [a.id, a]));
 
 export function queryAssets(q: AssetQuery): AssetEntry[] {

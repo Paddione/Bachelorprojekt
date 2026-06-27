@@ -1,14 +1,14 @@
-import { writable, derived, get } from 'svelte/store';
+import { writable, derived } from 'svelte/store';
 import type { CockpitFilterState } from '../cockpit-presets';
 
-export interface OptimisticEdit {
+interface OptimisticEdit {
   ticketId: string;
   field: string;
   oldValue: unknown;
   newValue: unknown;
 }
 
-export interface CockpitState {
+interface CockpitState {
   selectedFeature: string | null;
   selectedTickets: Set<string>;
   optimistic: Record<string, OptimisticEdit>;
@@ -34,7 +34,7 @@ const initial: CockpitState = {
 };
 
 export const cockpitStore = writable<CockpitState>(initial);
-export const selectedCount = derived(cockpitStore, ($s) => $s.selectedTickets.size);
+const selectedCount = derived(cockpitStore, ($s) => $s.selectedTickets.size);
 
 function syncUrl(s: CockpitState): void {
   if (typeof window === 'undefined') return;
@@ -87,12 +87,12 @@ export function applyOptimistic(ticketId: string, field: string, newValue: unkno
   return () => rollbackOptimistic(ticketId, field);
 }
 
-export function rollbackOptimistic(ticketId: string, field: string): void {
+function rollbackOptimistic(ticketId: string, field: string): void {
   const key = `${ticketId}:${field}`;
   cockpitStore.update((s) => { const { [key]: _drop, ...rest } = s.optimistic; return { ...s, optimistic: rest }; });
 }
 
-export function clearOptimistic(ticketId: string, field: string): void { rollbackOptimistic(ticketId, field); }
+function clearOptimistic(ticketId: string, field: string): void { rollbackOptimistic(ticketId, field); }
 export function setError(error: string | null): void { cockpitStore.update((s) => ({ ...s, error })); }
 export function setLoading(isLoading: boolean): void { cockpitStore.update((s) => ({ ...s, isLoading })); }
 
@@ -100,4 +100,3 @@ export function setFilter(filter: CockpitFilterState): void {
   cockpitStore.update((s) => ({ ...s, filter }));
 }
 
-export { get };

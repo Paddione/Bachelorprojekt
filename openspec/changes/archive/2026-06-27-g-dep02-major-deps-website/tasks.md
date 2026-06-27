@@ -2,7 +2,7 @@
 title: "G-DEP02: Veraltete Major-Deps (website) 9 → ≤3"
 ticket_id: T001209
 domains: [dep, dependencies, website, renovate]
-status: plan_staged
+status: completed
 file_locks: []
 shared_changes: false
 ---

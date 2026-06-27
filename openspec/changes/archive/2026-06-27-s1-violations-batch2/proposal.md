@@ -2,7 +2,7 @@
 title: "G-RH01: S1-Frozen-Violations Batch 2 — baseline.json 70→≤30"
 ticket_id: T001155
 domains: [quality, infra, website]
-status: active
+status: completed
 file_locks: [docs/code-quality/baseline.json, website/src/lib/tickets-db.ts, scripts/backup-restore.sh, Taskfile.yml]
 shared_changes: false
 batch_id: null

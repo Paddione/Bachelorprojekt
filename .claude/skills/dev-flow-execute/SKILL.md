@@ -552,7 +552,19 @@ git commit -m "chore(plans): archive $SLUG → postgres + openspec/archive [$TIC
 
 ARCHIVE_BRANCH="chore/plan-archive-${SLUG//\//-}"
 git checkout -b "$ARCHIVE_BRANCH"
-git push -u origin "$ARCHIVE_BRANCH"
+
+# Push-Verification Checkpoint (PFLICHT — Schritt 7) [T001268]:
+# Bevor der archive commit als "erledigt" gilt, MUSS der Subagent beweisen, dass
+# der Commit auf origin ist. Wir prüfen via `git ls-remote origin`, dass der
+# remote SHA gleich dem lokalen HEAD ist. `push_verified:<sha>` ist ein
+# Pflicht-Feld im Subagent-Return-Contract — der Orchestrator darf ohne dieses
+# Feld weder mergen noch das Ticket schließen.
+git push -u origin "$ARCHIVE_BRANCH" || { echo "FATAL: archive push fehlgeschlagen" >&2; exit 1; }
+LOCAL_SHA="$(git rev-parse HEAD)"
+REMOTE_SHA="$(git ls-remote origin "refs/heads/$ARCHIVE_BRANCH" | awk '{print $1}')"
+[ "$LOCAL_SHA" = "$REMOTE_SHA" ] || { echo "FATAL: push_verified mismatch — local=$LOCAL_SHA remote=$REMOTE_SHA" >&2; exit 1; }
+echo "push_verified:$LOCAL_SHA"
+
 gh pr create --title "chore(plans): archive $SLUG → postgres + openspec/archive [$TICKET_ID]" --base main
 gh pr merge --auto --squash --delete-branch
 ```

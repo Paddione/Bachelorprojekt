@@ -265,6 +265,12 @@
       "status": "archived"
     }
   ],
+  "T001233": [
+    {
+      "slug": "docs-ux-polish",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

@@ -211,12 +211,14 @@ export function renderDiagrams(html, opts = {}) {
 }
 
 // ─── addHeadingIds ──────────────────────────────────────────────────────────────
-// Assigns a German-umlaut-safe slug id to every h2 that lacks one.
+// Assigns a German-umlaut-safe slug id to every h2 and h3 that lacks one.
+// Phase 3.1: extended to include h3 (was h2-only). Both level entries appear in
+// the TOC with visual indentation.
 // @param {string} html
 // @returns {string}
 export function addHeadingIds(html) {
   const $ = cheerio.load(html, { xmlMode: false });
-  $('h2').each((_, el) => {
+  $('h2, h3').each((_, el) => {
     const text = $(el).text().trim();
     if (!$(el).attr('id')) $(el).attr('id', slugifyHeading(text));
   });
@@ -224,15 +226,30 @@ export function addHeadingIds(html) {
 }
 
 // ─── buildToc ───────────────────────────────────────────────────────────────────
-// Builds the "Auf dieser Seite" TOC box from an array of h2 texts.
+// Builds the "Auf dieser Seite" TOC box.
+//
+// Overloaded signature (Phase 3.1):
+//   buildToc(Array<{level: 2|3, text: string}>)   — new structured form
+//   buildToc(string[])                             — legacy flat form (h2-only)
+//
 // Returns '' for fewer than two headings (matches old build-docs.js behavior).
-// @param {string[]} headings
+// h3 entries are visually indented one level in the TOC list.
+//
+// @param {Array<{level:2|3,text:string}> | string[]} headings
 // @returns {string}
 export function buildToc(headings) {
-  if (headings.length < 2) return '';
-  const items = headings.map((h, i) => {
-    const id = slugifyHeading(h);
-    return `<li class="toc-item"><a href="#${id}"><span class="toc-num">${i + 1}.</span> ${escapeHtml(h)}</a></li>`;
+  if (!headings || headings.length < 2) return '';
+  // Detect legacy flat-array form (string[]) vs new structured form ({level,text}[]).
+  const structured = typeof headings[0] === 'object';
+  let h2counter = 0;
+  const items = headings.map((h) => {
+    const text = structured ? h.text : h;
+    const level = structured ? h.level : 2;
+    const id = slugifyHeading(text);
+    if (level === 2) h2counter += 1;
+    const num = level === 2 ? `${h2counter}.` : '–';
+    const indent = level === 3 ? ' class="toc-item toc-item--h3"' : ' class="toc-item"';
+    return `<li${indent}><a href="#${id}"><span class="toc-num">${num}</span> ${escapeHtml(text)}</a></li>`;
   }).join('\n');
   return `<div class="toc-box auto-toc">
   <div class="toc-title">Auf dieser Seite</div>
@@ -326,14 +343,19 @@ export function renderMarkdown(markdown, { registry, page, mmdc, dot, recordSnap
 
   html = addHeadingIds(html);
 
-  // Collect h2 texts (post-id) for the TOC and the return value.
+  // Collect h2 + h3 texts (post-id) for the TOC (Phase 3.1 structured form).
+  // The legacy `headings` return value keeps only h2 for backward compat.
   const $ = cheerio.load(html, { xmlMode: false });
   const headings = $('h2').map((_, el) => $(el).text().trim()).get();
+  const tocEntries = $('h2, h3').map((_, el) => ({
+    level: el.name === 'h3' ? 3 : 2,
+    text: $(el).text().trim(),
+  })).get();
 
   html = injectCopyButtons(html);
 
   // Inject TOC after the first h1 (or at the top if no h1) when >= 2 h2 headings.
-  const toc = buildToc(headings);
+  const toc = buildToc(tocEntries);
   if (toc) {
     const $$ = cheerio.load(html, { xmlMode: false });
     const h1 = $$('h1').first();

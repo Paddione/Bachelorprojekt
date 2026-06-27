@@ -197,6 +197,30 @@ test('buildToc: renders a toc-box from a headings array of length >= 2', () => {
   assert.equal(buildToc(['only one']), '', 'no toc for a single heading');
 });
 
+// Phase 3.1: structured {level, text} TOC (h2+h3)
+test('buildToc (structured): accepts {level,text} objects and indents h3', () => {
+  const entries = [
+    { level: 2, text: 'Installation' },
+    { level: 3, text: 'Voraussetzungen' },
+    { level: 2, text: 'Konfiguration' },
+  ];
+  const out = buildToc(entries);
+  assert.ok(out.includes('class="toc-box auto-toc"'), 'toc box class');
+  assert.ok(out.includes('href="#installation"'), 'h2 anchor correct');
+  assert.ok(out.includes('href="#voraussetzungen"'), 'h3 anchor correct');
+  // h3 gets indented class
+  assert.ok(out.includes('toc-item--h3'), 'h3 items get toc-item--h3 class');
+  // h3 uses dash counter, h2 uses numeric counter
+  assert.ok(out.includes('<span class="toc-num">–</span>'), 'h3 uses dash counter');
+});
+
+test('addHeadingIds (Phase 3.1): assigns ids to both h2 and h3', () => {
+  const html = '<h2>Konfiguration</h2><h3>Unterabschnitt</h3>';
+  const out = addHeadingIds(html);
+  assert.ok(out.includes('id="konfiguration"'), 'h2 gets id');
+  assert.ok(out.includes('id="unterabschnitt"'), 'h3 gets id');
+});
+
 test('injectCopyButtons: adds a copy button to a pre/code, skips diagram fallbacks', () => {
   const html =
     '<pre><code class="language-bash">echo hi</code></pre>' +

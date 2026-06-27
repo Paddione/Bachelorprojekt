@@ -122,7 +122,9 @@ function assetPrefix(outRelPath) {
   return outRelPath.includes('/') ? '../' : './';
 }
 
-/** The shared <head> + opening body, including the search overlay shell. */
+/** The shared <head> + opening body, including the search overlay shell.
+ *  Phase 2.3: ARIA roles on search overlay (dialog/searchbox/listbox).
+ *  Phase 4.1: Skip-link as first body element (WCAG 2.4.1). */
 function documentHead(titleText, prefix) {
   return `<!DOCTYPE html>
 <html lang="de">
@@ -136,16 +138,17 @@ function documentHead(titleText, prefix) {
 <link rel="stylesheet" href="${prefix}style.css">
 </head>
 <body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
 <header class="site-header">
   <a class="site-header-brand" href="${prefix}index.html">
     <span class="site-mark" aria-hidden="true">◆</span>
     <span class="site-wordmark">Dokumentation</span>
   </a>
 </header>
-<div id="search-overlay">
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
   <div id="search-box">
-    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
-    <div id="search-results"></div>
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
   </div>
 </div>`;
 }
@@ -196,10 +199,11 @@ ${items}
  * The FULL description is rendered (escaped only) — never truncated here.
  * `toc` is a pre-rendered HTML STRING (render-markdown already injects the TOC
  * into contentHtml); it is interpolated as-is and never treated as an array.
- * @param {{ page: Page, contentHtml: string, toc?: string, related?: RelatedLink[] }} args
+ * `navModel` (optional) — when provided, adds a sidebar and prev/next navigation.
+ * @param {{ page: Page, contentHtml: string, toc?: string, related?: RelatedLink[], navModel?: object }} args
  * @returns {string}
  */
-export function renderPage({ page, contentHtml, toc, related }) {
+export function renderPage({ page, contentHtml, toc, related, navModel }) {
   const prefix = assetPrefix(page.outRelPath);
   const header = `<header class="page-header">
   <div class="page-header-body">
@@ -213,8 +217,12 @@ export function renderPage({ page, contentHtml, toc, related }) {
   </div>
 </header>`;
 
+  const sidebar = navModel ? renderSidebar(navModel, page, prefix) : '';
+  const prevNext = navModel ? renderPrevNext(navModel.prevNext, page.slug, prefix) : '';
+  const hasLayout = Boolean(sidebar);
+
   return `${documentHead(page.title, prefix)}
-<div id="app">
+<div id="app">${hasLayout ? `\n<div class="doc-layout">\n${sidebar}` : ''}
   <main id="main">
 ${header}
 ${toc ?? ''}
@@ -222,7 +230,9 @@ ${toc ?? ''}
 ${contentHtml}
 </article>
 ${relatedFooter(related)}
+${prevNext}
   </main>
+${hasLayout ? '</div>' : ''}
 </div>
 ${documentTail(prefix)}`;
 }

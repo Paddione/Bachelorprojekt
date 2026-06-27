@@ -241,3 +241,84 @@ test('runBuild: agent-guide pages discovered, domain general, wikilinks + TOC/co
     rmSync(outDir, { recursive: true, force: true });
   }
 });
+
+// Phase 5.1: search-index.json smoke
+test('runBuild: search-index.json exists, has body tokens, is ≤ 2 MB', async () => {
+  const repoRoot = makeFixtureRepo();
+  const outDir = mkdtempSync(join(tmpdir(), 'docs-gen-idx-out-'));
+  const pluginsRoot = join(repoRoot, '__no_plugins_here__');
+  try {
+    await runBuild({ repoRoot, pluginsRoot, outDir });
+
+    // File must exist.
+    const idxPath = join(outDir, 'search-index.json');
+    assert.ok(existsSync(idxPath), 'search-index.json written');
+
+    // Must be ≤ 2 MB (2 097 152 bytes).
+    const raw = readFileSync(idxPath, 'utf8');
+    const byteLen = Buffer.byteLength(raw, 'utf8');
+    assert.ok(byteLen <= 2 * 1024 * 1024, `search-index.json size ${byteLen} ≤ 2 MB`);
+
+    // Schema validation: { pages: [...], index: {...} }
+    const idx = JSON.parse(raw);
+    assert.ok(Array.isArray(idx.pages), 'idx.pages is an array');
+    assert.ok(typeof idx.index === 'object' && idx.index !== null, 'idx.index is an object');
+    assert.ok(idx.pages.length >= 1, 'at least one page entry');
+
+    // Each page entry must have slug, title, sectionPath, outRelPath.
+    for (const p of idx.pages) {
+      assert.equal(typeof p.slug, 'string', 'page.slug is string');
+      assert.equal(typeof p.title, 'string', 'page.title is string');
+      assert.equal(typeof p.sectionPath, 'string', 'page.sectionPath is string');
+      assert.equal(typeof p.outRelPath, 'string', 'page.outRelPath is string');
+    }
+
+    // Each postings array must contain objects with slug + weight.
+    let checked = 0;
+    for (const [token, postings] of Object.entries(idx.index)) {
+      assert.equal(typeof token, 'string', 'token is a string');
+      assert.ok(Array.isArray(postings), `postings for "${token}" is an array`);
+      for (const p of postings) {
+        assert.equal(typeof p.slug, 'string', 'posting.slug is string');
+        assert.equal(typeof p.weight, 'number', 'posting.weight is number');
+      }
+      if (++checked >= 5) break; // Spot-check first 5 tokens.
+    }
+
+    // The fixture fixture skill body contains "alpha" → must appear in index.
+    assert.ok('alpha' in idx.index, '"alpha" token indexed from fixture skill body');
+  } finally {
+    rmSync(repoRoot, { recursive: true, force: true });
+    rmSync(outDir, { recursive: true, force: true });
+  }
+});
+
+// Phase 5.1 (h3-TOC): render-markdown h3 smoke
+test('renderMarkdown: h3 headings get ids and appear in TOC alongside h2', async () => {
+  const { renderMarkdown } = await import('./render-markdown.mjs');
+  const md = [
+    '# Haupttitel',
+    '',
+    '## Abschnitt Eins',
+    '',
+    'Text hier.',
+    '',
+    '### Unterabschnitt',
+    '',
+    'Untertext.',
+    '',
+    '## Abschnitt Zwei',
+    '',
+    'Mehr Text.',
+    '',
+  ].join('\n');
+  const result = renderMarkdown(md, {});
+  // h2 headings must have ids
+  assert.ok(result.html.includes('id="abschnitt-eins"'), 'h2 gets id');
+  // h3 heading must have an id (Phase 3.1)
+  assert.ok(result.html.includes('id="unterabschnitt"'), 'h3 gets id');
+  // TOC must be present (≥2 h2)
+  assert.ok(result.html.includes('auto-toc'), 'TOC box present');
+  // TOC must reference h3 (with toc-item--h3 class)
+  assert.ok(result.html.includes('toc-item--h3') || result.html.includes('#unterabschnitt'), 'h3 in TOC');
+});

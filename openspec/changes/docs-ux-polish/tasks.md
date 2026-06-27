@@ -80,61 +80,61 @@ Neues Build-Artefakt: `search-index.json` (≤ 2 MB). Serving-Kette (Image, OIDC
 
 ## Phase 2 — Feature A: Volltextsuche
 
-- [ ] 2.1 Build-time Inverted-Index in `build-docs.mjs` (**nur Bauen/Emittieren des Artefakts — der Client-Fetch-Cutover gehört allein zu 2.2**): über `page.bodyMarkdown` jeder Page mit `tokenize.mjs` Postings `token -> [{slug, headingId, weight}]` bauen (Titel/Heading-Tokens höher gewichtet, Stopword/Min-Length/Dedup/Cap je Seite), als neues Artefakt `search-index.json` emittieren. Das `sectionPath`-Feld pro Page stammt aus `buildNavModel(pages).sectionOf` (`build-docs.mjs` importiert dazu **`navigation.mjs`** zusätzlich zu `tokenize.mjs`) — Such-Index und Sidebar teilen damit **dasselbe** Sektionsmodell, kein zweiter Klassifikationspfad. `search.json`-Inkremental-Pfad bleibt unberührt (out of scope).
+- [x] 2.1 Build-time Inverted-Index in `build-docs.mjs` (**nur Bauen/Emittieren des Artefakts — der Client-Fetch-Cutover gehört allein zu 2.2**): über `page.bodyMarkdown` jeder Page mit `tokenize.mjs` Postings `token -> [{slug, headingId, weight}]` bauen (Titel/Heading-Tokens höher gewichtet, Stopword/Min-Length/Dedup/Cap je Seite), als neues Artefakt `search-index.json` emittieren. Das `sectionPath`-Feld pro Page stammt aus `buildNavModel(pages).sectionOf` (`build-docs.mjs` importiert dazu **`navigation.mjs`** zusätzlich zu `tokenize.mjs`) — Such-Index und Sidebar teilen damit **dasselbe** Sektionsmodell, kein zweiter Klassifikationspfad. `search.json`-Inkremental-Pfad bleibt unberührt (out of scope).
   - **Limitation (explizit dokumentieren):** `search-index.json` wird **nur im Full-Build** geschrieben. Der Einzelseiten-Fast-Path (`rebuildPage` ~L261-315 → `refreshSearchIndexFromOutDir` ~L301) aktualisiert weiterhin nur das alte `search.json`, **nicht** `search-index.json`. Nach einem inkrementellen `rebuildPage` ist `search-index.json` daher veraltet — die neue Such-Experience erfordert einen Full-Build (im Task-Kommentar/PR-Body vermerken, damit Watch-Mode-Nutzer keine stale Treffer für ein Mysterium halten). Kein Re-Emit im Fast-Path in diesem Schnitt.
   - target_files: `scripts/build-docs.mjs` (importiert `tokenize.mjs` **und** `navigation.mjs`), neues Output-Artefakt `search-index.json`
   - S1-budget: `build-docs.mjs` 380/Limit 500 → **Budget +120**; Index-Builder ~ +50 Zeilen, Ziel ≤ 440.
   - accept: `search-index.json` wird im Full-Build geschrieben, Schema `{pages:[{slug,title,sectionPath}], index:{token:[postings]}}` mit `sectionPath` aus `buildNavModel().sectionOf`; enthält **Body**-Tokens (nicht nur Titel); `tokenize.mjs` **und** `navigation.mjs` importiert (nicht orphan); Hard-Acceptance **Dateigröße ≤ 2 MB** (im Smoke geprüft, Task 5.1); 2.1 fasst `search-client.mjs` **nicht** an (Fetch-Cutover = 2.2).
 
-- [ ] 2.2 Ranked Lookup im `search-client.mjs` (aus 1.3) — **alleiniger Owner des Client-Fetch-Cutovers**: stellt den Such-Client von `search.json` auf `search-index.json` um (einzige Stelle, die die Fetch-URL/das Konsum-Schema ändert) und implementiert Term-Frequenz + Titel/Heading-Boost, Ergebnis-Snippet mit `<mark>`-Highlight, Klick springt zum Heading-Anchor (`#<headingId>`); Ctrl/⌘-K bleibt; leerer Query → Top-Seiten wie heute.
+- [x] 2.2 Ranked Lookup im `search-client.mjs` (aus 1.3) — **alleiniger Owner des Client-Fetch-Cutovers**: stellt den Such-Client von `search.json` auf `search-index.json` um (einzige Stelle, die die Fetch-URL/das Konsum-Schema ändert) und implementiert Term-Frequenz + Titel/Heading-Boost, Ergebnis-Snippet mit `<mark>`-Highlight, Klick springt zum Heading-Anchor (`#<headingId>`); Ctrl/⌘-K bleibt; leerer Query → Top-Seiten wie heute.
   - target_files: `scripts/docs-gen/search-client.mjs`
   - S1-budget: `search-client.mjs` < 300 (Reserve unter 500).
   - accept: Client rankt nach Score (Body-Treffer erscheinen), rendert `<mark>`-Snippet, Treffer-`href` enthält `#<headingId>`; keine neuen Deps; reiner Browser-JS-String.
 
-- [ ] 2.3 Such-Overlay-ARIA im Shell-Markup `templates.mjs` `renderPage` (L276) bzw. zentralem Overlay-Markup: Overlay `role="dialog"` + `aria-modal`, Input `type="search"`/`role="searchbox"`, Ergebnisliste `role="listbox"` + `aria-live="polite"`, Treffer `role="option"`.
+- [x] 2.3 Such-Overlay-ARIA im Shell-Markup `templates.mjs` `renderPage` (L276) bzw. zentralem Overlay-Markup: Overlay `role="dialog"` + `aria-modal`, Input `type="search"`/`role="searchbox"`, Ergebnisliste `role="listbox"` + `aria-live="polite"`, Treffer `role="option"`.
   - target_files: `scripts/docs-gen/templates.mjs`
   - S1-budget: kleine Addition; zählt zum **kumulativen** templates.mjs-Budget (2.3+3.2+4.1 zusammen ≤ Post-1.2-Checkpoint ≤ 635, hart < 687) — vor der Addition `wc -l` prüfen.
   - accept: gerendertes Overlay trägt die genannten `role`/`aria-*`-Attribute; `templates.test.mjs` grün.
 
-- [ ] 2.4 Such-Styles (`<mark>`-Highlight, Ergebnis-Snippet-Layout) in `styles-ux.mjs` `searchCss()` füllen.
+- [x] 2.4 Such-Styles (`<mark>`-Highlight, Ergebnis-Snippet-Layout) in `styles-ux.mjs` `searchCss()` füllen.
   - target_files: `scripts/docs-gen/styles-ux.mjs`
   - S1-budget: `styles-ux.mjs` < 250.
   - accept: `editorialCss()`-Ausgabe enthält `.search-result mark`/Snippet-Regeln; `theme.mjs` weiterhin ≤ 500.
 
 ## Phase 3 — Feature B: Navigation & Orientierung
 
-- [ ] 3.1 h3-TOC in `render-markdown.mjs`: `addHeadingIds` (L217, heute nur h2) **und** `buildToc` (L231, heute nur h2) auf h3 erweitern (verschachtelt, h3 bekommt Anchor-IDs via vorhandener umlaut-safer `slugifyHeading` L54); `renderMarkdown` (L331) sammelt h2 **und** h3 mit.
+- [x] 3.1 h3-TOC in `render-markdown.mjs`: `addHeadingIds` (L217, heute nur h2) **und** `buildToc` (L231, heute nur h2) auf h3 erweitern (verschachtelt, h3 bekommt Anchor-IDs via vorhandener umlaut-safer `slugifyHeading` L54); `renderMarkdown` (L331) sammelt h2 **und** h3 mit.
   - **Interface-Pin (Vertrag explizit neu festlegen):** `buildToc` kann nicht länger ein flaches `string[]` (nur h2-Texte) entgegennehmen — die **neue Signatur ist `buildToc(headings: Array<{level: 2|3, text: string}>)`** (Dokumentreihenfolge), die verschachteltes Markup erzeugt. Entsprechend wird `RenderResult.headings` (heute `@property {string[]} headings — h2 text` L46) zur **reicheren Struktur `Array<{level: 2|3, text}>`**; der `@property`-Doc-Block L46 **muss** auf diese Form aktualisiert werden, damit alle Consumer **einen** Vertrag sehen (kein stilles Ändern der h2-only-Zusage). Falls ein bestehender Consumer das alte flache `string[]` braucht, im selben Task auf die neue Form anpassen.
   - target_files: `scripts/docs-gen/render-markdown.mjs`
   - S1-budget: `render-markdown.mjs` 387/Limit 500 → **Budget +113**; Erweiterung ~ +30, Ziel ≤ 420.
   - accept: gerenderte Seite mit h3 trägt h3-`id`s und verschachtelte h3-TOC-Einträge; `buildToc` nimmt `{level,text}[]`; `RenderResult.headings` + L46-`@property` dokumentieren die `{level,text}[]`-Form konsistent; bestehende h2-Tests in `render-markdown.test.mjs` weiterhin grün (ggf. an die neue Signatur angepasst).
 
-- [ ] 3.2 Sidebar + Prev/Next in `templates.mjs` `renderPage` (**größte `templates.mjs`-Addition — gegen die Arbeits-Decke aus 1.2 prüfen**): `buildNavModel` (aus `navigation.mjs`) konsumieren — sektion-fokussierte `<aside>`-Sidebar (nur aktuelle Sektion aufgeklappt, andere kollabiert; aktuelle Seite hervorgehoben), Prev/Next am Seitenende aus `prevNext`. `build-docs.mjs` reicht das Nav-Model an `renderPage` durch.
+- [x] 3.2 Sidebar + Prev/Next in `templates.mjs` `renderPage` (**größte `templates.mjs`-Addition — gegen die Arbeits-Decke aus 1.2 prüfen**): `buildNavModel` (aus `navigation.mjs`) konsumieren — sektion-fokussierte `<aside>`-Sidebar (nur aktuelle Sektion aufgeklappt, andere kollabiert; aktuelle Seite hervorgehoben), Prev/Next am Seitenende aus `prevNext`. `build-docs.mjs` reicht das Nav-Model an `renderPage` durch.
   - **Headroom-Guard:** Vor dieser Addition `wc -l scripts/docs-gen/templates.mjs` prüfen; zusammen mit 2.3+4.1 muss der Endwert beim/unter dem Post-1.2-Checkpoint (≤ 635) bleiben, hart < 687. **Reicht das nicht**, den Sidebar-/Prev-Next-Markup-Builder als **reine, string-zurückgebende** Helfer (`renderSidebar(navModel, currentSlug)` / `renderPrevNext(navModel, currentSlug)`) neben das Nav-Model auslagern (in `navigation.mjs` als seiteneffektfreie, vom Model abgeleitete String-Helfer — relaxiert die „navigation emittiert kein HTML"-Designnotiz auf reine Model→String-Fragmente), sodass `templates.mjs` nur die **Aufrufstellen** gewinnt; die Seiten-Komposition bleibt in `renderPage`.
   - target_files: `scripts/docs-gen/templates.mjs`, `scripts/build-docs.mjs`, `scripts/docs-gen/navigation.mjs` (`prevNext` + optional reine Markup-Helfer)
   - S1-budget: `templates.mjs` ≤ Post-1.2-Checkpoint (≤ 635) inkl. 2.3+4.1, hart < 687; `build-docs.mjs` < 460; etwaige Markup-Helfer in `navigation.mjs` < 250-Gesamtbudget des Moduls.
   - accept: gerenderte Content-Seite enthält `<aside>`-Sidebar mit aktueller Sektion + markierter aktueller Seite und deterministische Prev/Next-Links; `<aside>`/`<nav>` mit passenden `role`/`aria-label`; `templates.test.mjs` grün; `wc -l scripts/docs-gen/templates.mjs` ≤ Checkpoint.
 
-- [ ] 3.3 Sidebar-/TOC-/Prev-Next-/Mobile-Disclosure-Styles in `styles-ux.mjs` `navCss()`: Layout neben `--maxw`-Spalte, `<820px`-Kollaps in Disclosure/Burger.
+- [x] 3.3 Sidebar-/TOC-/Prev-Next-/Mobile-Disclosure-Styles in `styles-ux.mjs` `navCss()`: Layout neben `--maxw`-Spalte, `<820px`-Kollaps in Disclosure/Burger.
   - target_files: `scripts/docs-gen/styles-ux.mjs`
   - S1-budget: `styles-ux.mjs` < 350.
   - accept: `editorialCss()`-Ausgabe enthält Sidebar-Regeln + `@media (max-width:820px)`-Kollaps; `theme.mjs` ≤ 500.
 
 ## Phase 4 — Feature C: Lesbarkeit & A11y
 
-- [ ] 4.1 Skip-Link `<a class="skip" href="#main">Zum Inhalt springen</a>` als erstes Body-Element in `templates.mjs` `renderPage` (vor `#app`).
+- [x] 4.1 Skip-Link `<a class="skip" href="#main">Zum Inhalt springen</a>` als erstes Body-Element in `templates.mjs` `renderPage` (vor `#app`).
   - target_files: `scripts/docs-gen/templates.mjs`
   - S1-budget: ~1 Zeile; zählt zum **kumulativen** templates.mjs-Budget (2.3+3.2+4.1 zusammen ≤ Post-1.2-Checkpoint ≤ 635, hart < 687) — vor der Addition `wc -l` prüfen.
   - accept: gerenderte Seite hat Skip-Link als erstes Body-Element mit `href="#main"`; `templates.test.mjs` grün.
 
-- [ ] 4.2 A11y-CSS in `styles-ux.mjs` `a11yCss()` + `theme.mjs` `:root`-Token-Tweaks (L47-60): `:focus-visible`-Fokusring (Gold/Accent-Token) für alle interaktiven Elemente; Skip-Link sichtbar bei `:focus`; **WCAG-AA-Kontrast** der Dark-Tokens (`--muted`/`--faint`/`--ink-mute` gegen `--paper`/`--paper-2`) auf ≥ 4.5:1 (Text) bzw. ≥ 3:1 (großer Text) anheben; `prefers-reduced-motion` respektieren.
+- [x] 4.2 A11y-CSS in `styles-ux.mjs` `a11yCss()` + `theme.mjs` `:root`-Token-Tweaks (L47-60): `:focus-visible`-Fokusring (Gold/Accent-Token) für alle interaktiven Elemente; Skip-Link sichtbar bei `:focus`; **WCAG-AA-Kontrast** der Dark-Tokens (`--muted`/`--faint`/`--ink-mute` gegen `--paper`/`--paper-2`) auf ≥ 4.5:1 (Text) bzw. ≥ 3:1 (großer Text) anheben; `prefers-reduced-motion` respektieren.
   - target_files: `scripts/docs-gen/styles-ux.mjs`, `scripts/docs-gen/theme.mjs` (`:root`-Tokenwerte, zeilenneutral)
   - S1-budget: `theme.mjs` ≤ 500 (nur Tokenwerte geändert, keine neuen Zeilen); `styles-ux.mjs` < 400.
   - accept: `editorialCss()` enthält `:focus-visible`-Regel + `@media (prefers-reduced-motion)`; Skip-Link `:focus`-sichtbar; geänderte Token-Kontrastwerte dokumentiert ≥ 4.5:1 (Rechnung im PR-Body/Kommentar).
 
 ## Phase 5 — Tests & Verifikation
 
-- [ ] 5.1 Smoke-Tests in **bestehenden** Test-Dateien erweitern (keine neuen Dateien außer den Co-Tests aus 1.1/1.2): in `scripts/docs-gen/build-smoke.test.mjs` einen Such-Index-Smoke (`search-index.json` existiert, enthält Body-Tokens, **Größe ≤ 2 MB**); in `scripts/docs-gen/render-markdown.test.mjs` einen h3-TOC-Smoke (Seite mit h3 → h3-Anchor-IDs + h3-TOC-Einträge).
+- [x] 5.1 Smoke-Tests in **bestehenden** Test-Dateien erweitern (keine neuen Dateien außer den Co-Tests aus 1.1/1.2): in `scripts/docs-gen/build-smoke.test.mjs` einen Such-Index-Smoke (`search-index.json` existiert, enthält Body-Tokens, **Größe ≤ 2 MB**); in `scripts/docs-gen/render-markdown.test.mjs` einen h3-TOC-Smoke (Seite mit h3 → h3-Anchor-IDs + h3-TOC-Einträge).
   - target_files: `scripts/docs-gen/build-smoke.test.mjs`, `scripts/docs-gen/render-markdown.test.mjs`
   - S1-budget: Test-Dateien (keine .mjs-Prod-Limits relevant, aber < 500 halten).
   - accept: `node --test scripts/docs-gen/*.test.mjs` grün inkl. der neuen Smokes; `search-index.json`-Größenassertion ≤ 2 MB scheitert nicht.

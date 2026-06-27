@@ -34,6 +34,10 @@
       "type": "http",
       "url": "http://localhost:13002/mcp"
     },
+    "factory-mcp": {
+      "type": "http",
+      "url": "http://localhost:13003/mcp"
+    },
     "mcp-task-runner": {
       "command": "mcp-task-runner",
       "args": [

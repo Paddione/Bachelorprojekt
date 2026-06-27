@@ -306,6 +306,23 @@ This repo tracks issues in Postgres, not GitHub. If `gh issue list --state open`
 
 ---
 
+## Software-Factory-Queue (MCP-first)
+
+Für Factory-Queue-Status und manuelles Anstoßen die `factory-mcp`-Tools bevorzugen (HTTP-Daemon auf `127.0.0.1:13003`). **Verfügbarkeits-Guard zuerst:** `curl -sf --max-time 2 http://127.0.0.1:13003/health` — bei Erfolg MCP, sonst Skript-Fallback.
+
+**MCP-first** (`factory-mcp`):
+
+> `mcp__factory-mcp__factory_status()` — Queue-Tiefe + ob gerade ein Tick läuft
+> `mcp__factory-mcp__factory_queue()` — wartende Tickets (backlog + plan_staged)
+> `mcp__factory-mcp__factory_trigger()` — sofortigen Factory-Tick auslösen
+> `mcp__factory-mcp__factory_enqueue({ ticket_id: "T000XXX" })` · `mcp__factory-mcp__factory_recent({ limit: 10 })`
+
+Fallback (Daemon `:13003` nicht erreichbar):
+- Status/Queue → `mcp__mcp-postgres__query` bzw. `psql` SELECT auf `tickets.tickets WHERE status IN ('backlog','plan_staged')`.
+- Tick auslösen → `bash scripts/factory/wakeup.sh`.
+
+---
+
 ## Post-Execution: Mishap Report
 
 After completing all steps in this skill, invoke `mishap-tracker` with your accumulated `MISHAP_LOG`. If no mishaps were found, `mishap-tracker` exits cleanly.

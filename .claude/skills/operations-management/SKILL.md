@@ -33,6 +33,16 @@ Is a core service DOWN or DEGRADED right now?
 
 ---
 
+## Software-Factory operations (MCP-first)
+
+Für Factory-Queue-Status und manuelles Anstoßen die `factory-mcp`-Tools bevorzugen (HTTP-Daemon auf `127.0.0.1:13003`). **Verfügbarkeits-Guard zuerst:** `curl -sf --max-time 2 http://127.0.0.1:13003/health`.
+
+> `mcp__factory-mcp__factory_status()` · `mcp__factory-mcp__factory_queue()` · `mcp__factory-mcp__factory_trigger()` · `mcp__factory-mcp__factory_enqueue({ ticket_id })` · `mcp__factory-mcp__factory_recent({ limit })`
+
+Fallback (Daemon nicht erreichbar): Status/Queue über `mcp__mcp-postgres__query`/`psql`, Tick über `bash scripts/factory/wakeup.sh`. Details in [`ticket-ops`](file:///home/patrick/Bachelorprojekt/.claude/skills/ticket-ops/SKILL.md) und im [`MCP-Tool-Guide`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md).
+
+---
+
 ## Mishap Tracking
 
 Both sub-skills carry the mishap tracking preamble. After completing either, invoke `mishap-tracker` if any mishaps were accumulated.

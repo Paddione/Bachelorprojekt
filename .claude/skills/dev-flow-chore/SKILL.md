@@ -104,9 +104,29 @@ Siehe [dev-flow-gotchas](file:///home/patrick/Bachelorprojekt/.claude/skills/ref
 
 ## Schritt 4: Commit, Push & PR
 
+> **git-crypt-Staging-Hinweis [T001210]:** Niemals `git add -A` in diesem Repo
+> verwenden. `environments/.secrets/**` ist git-crypt-geschützt; in jedem
+> Worktree erscheinen ~21 Smudge-Artefakte als "modified" und würden durch
+> ein blankes `git add -A` in den Index und den Commit promoviert werden.
+> Der ad-hoc-Workaround wurde in T001199 / PR #2135 entwickelt und ist
+> hier in den Skill selbst übernommen. Verwandt: das silent-commit-failure
+> Symptom derselben Root-Cause ist in T000925 dokumentiert.
+
 ```bash
 BASE_SHA="$(git rev-parse "@{upstream}" 2>/dev/null || git rev-parse origin/main)"
-git add -A
+# Stage only the files the chore actually changed — a bare `git add -A`
+# would promote ~21 git-crypt smudge artifacts from environments/.secrets/**
+# into the index on every chore commit. See T001210, T001199 / PR #2135,
+# and the related silent-commit-failure guard in T000925.
+git add <changed-paths>   # explicit pathspec; e.g. scripts/ docs/ Taskfile.* (NEVER `git add -A`)
+
+# Secret-in-index guard (T001210). environments/.secrets/** is git-crypt-
+# protected; abort with FATAL if any such path slipped into the index.
+if git diff --cached --name-only | grep -q '^environments/.secrets/'; then
+  echo "FATAL: environments/.secrets/** must not be staged (git-crypt)" >&2
+  git diff --cached --name-only | grep '^environments/.secrets/' | sed 's/^/  /' >&2
+  exit 1
+fi
 git commit -m "chore(<scope>): <subject> [$TICKET_EXT_ID]"   # commitlint: Body-Zeilen <100 Zeichen
 
 # Verify commit landed — git-crypt clean filter can cause silent commit failures

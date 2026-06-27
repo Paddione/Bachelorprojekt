@@ -3,6 +3,11 @@ title: G-CD01 korczewski CI Build/Deployment Parity
 ticket_id: T001276
 domains: [ci-cd, test]
 status: draft
+file_locks: []
+shared_changes: false
+batch_id: null
+parent_feature: null
+depends_on_plans: []
 ---
 
 # g-cd01-korczewski-ci-parity — Implementation Plan

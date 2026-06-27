@@ -38,3 +38,28 @@ setup() {
   fi
   [ "${#missing[@]}" -eq 0 ]
 }
+
+# T001274: antigravity-cli sandbox interceptor blocks direct gh invocations
+# expected: FAIL (before fix — settings.json lacks permissions.allow for gh)
+@test "antigravity-cli settings.json pre-grants Bash(gh *) permission" {
+  local settings="$HOME/.gemini/antigravity-cli/settings.json"
+  if [ ! -f "$settings" ]; then
+    skip "antigravity-cli not installed on this machine (settings.json absent)"
+  fi
+  # The permissions.allow list must contain an entry matching 'gh'
+  python3 - "$settings" <<'PYEOF'
+import json, sys
+try:
+    d = json.load(open(sys.argv[1]))
+    allows = d.get("permissions", {}).get("allow", [])
+    has_gh = any("gh" in entry for entry in allows)
+    if not has_gh:
+        print("# ERROR: permissions.allow missing Bash(gh *) entry", file=sys.stderr)
+        print("# Current allows:", allows, file=sys.stderr)
+        sys.exit(1)
+    sys.exit(0)
+except Exception as e:
+    print(f"# ERROR parsing settings.json: {e}", file=sys.stderr)
+    sys.exit(1)
+PYEOF
+}

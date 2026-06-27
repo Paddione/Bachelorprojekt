@@ -116,3 +116,23 @@ Lies zuerst [CLAUDE.md](CLAUDE.md). Sie enthält Agent-Routing, Standard-Workflo
 ### MCP-Erweiterung & Tool-Registrierung (Best Practices)
 
 Wenn neue MCP-Tools im Go-Binary von `ticket-mcp` (unter `scripts/ticket-mcp/go/`) implementiert werden, müssen die entsprechenden Client-Schemas als statische JSON-Dateien im Verzeichnis `/home/patrick/.gemini/antigravity-cli/mcp/ticket-mcp/` hinterlegt werden, damit der Client (z. B. Antigravity) diese Tools lazy laden kann (z. B. `stage_plan.json` oder `record_phase_event.json`). Nach einer Tool-Erweiterung muss das Go-Binary mit `make -C scripts/ticket-mcp/go build` neu kompiliert werden.
+
+### antigravity-cli Permissions
+
+Die antigravity-cli (eine Claude-Code-Instanz unter `~/.gemini/antigravity-cli/`) prüft jeden Bash-Aufruf gegen die `permissions.allow`-Liste in `~/.gemini/antigravity-cli/settings.json`. Diese Datei liegt **außerhalb des Repos** (host-lokal, nicht getrackt).
+
+**Root Cause eines bekannten Mishaps (T001274):** Fehlt ein `Bash(gh *)`-Eintrag in `permissions.allow`, löst ein direkter `gh`-Aufruf eine interaktive Permission-Anfrage aus. Selbst wenn der User dann `custom(gh.read(...))` gewährt, matcht dieser Grant **nicht** das interne `Bash(gh *)`-Schema des Interceptors — der Befehl schlägt mit „permission denied" fehl.
+
+**Workaround (nicht der Fix):** `bash -c "gh ..."` umgeht das Problem, weil der Interceptor dann `bash` statt `gh` prüft. Das ist ein Notbehelf, kein Ersatz für korrektes Pre-Granting.
+
+**Korrekter Fix:** In `~/.gemini/antigravity-cli/settings.json` einen `permissions.allow`-Block pflegen, der `gh` (und `gh-axi`) vorermächtigt:
+
+```json
+{
+  "permissions": {
+    "allow": ["Bash(gh *)", "Bash(gh-axi *)"]
+  }
+}
+```
+
+Bei einer JSON-Merge-Bearbeitung bestehende Keys bewahren — nur `permissions.allow` ergänzen. Der BATS-Guard `antigravity-cli settings.json pre-grants Bash(gh *) permission` in `tests/spec/mcp-tooling.bats` verifiziert diese Konfiguration (er `skip`t auf Maschinen ohne installierte antigravity-cli).

@@ -307,6 +307,12 @@
       "status": "archived"
     }
   ],
+  "T001274": [
+    {
+      "slug": "antigravity-cli-gh-sandbox",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

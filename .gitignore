@@ -172,3 +172,10 @@ assets-inbox/docs/superpowers/specs/.gaps/
 
 # mcp-task-runner build artifacts
 mcp-task-runner/bin/
+
+# Design sync converter + output (ds-bundle is build output; .cache/ and node_modules are tooling-local)
+.ds-sync/
+ds-bundle/
+.design-sync/.cache/
+.design-sync/learnings/
+.design-sync/node_modules

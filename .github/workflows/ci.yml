@@ -4,10 +4,11 @@ on:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened, edited]
-    paths-ignore:
-      - 'docs/**'
-      - '*.md'
-      - '**/CLAUDE.md'
+    # No `paths-ignore` here: docs-only PRs (e.g. AGENTS.md/CLAUDE.md edits) must
+    # still trigger this workflow so the 5 branch-protection required checks
+    # (Offline Tests, Security Scan, Brett TypeScript, Vitest (website),
+    # Conventional Commits) report success — otherwise mergeStateStatus stays
+    # BLOCKED indefinitely and admin-merge is required. See mishap T001149-M3.
   push:
     branches:
       - main

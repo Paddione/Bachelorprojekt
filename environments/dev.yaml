@@ -17,7 +17,7 @@ env_vars:
   LLM_RERANKER_URL: "http://llm-gateway-tei-rerank.workspace.svc.cluster.local:8083"
   LLM_ROUTER_URL: "http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234"
   LLM_EMBED_URL: "http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234"
-  LLM_CHAT_MODEL: "google/gemma-4-12b-qat"
+  LLM_CHAT_MODEL: "hermes-3-llama-3.1-8b"
   LLM_CODING_MODEL: "qwen/qwen3.5-9b"
   LLM_EMBED_MODEL: "text-embedding-bge-m3"
   LLM_EMBED_MODEL_NOMIC: "text-embedding-nomic-embed-text-v1.5"

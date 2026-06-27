@@ -21,3 +21,6 @@ k3d/docs-content-built/**                     merge=ours linguist-generated=true
 # NOTE: environments/certs/*.pem are PUBLIC sealing certs — intentionally NOT listed here.
 environments/.secrets/**            filter=git-crypt diff=git-crypt
 deploy/mcp/claude-code-secrets.yaml filter=git-crypt diff=git-crypt
+.claude/settings.json               filter=git-crypt diff=git-crypt
+dotfiles/opencode/config.json       filter=git-crypt diff=git-crypt
+dotfiles/agy/settings.json          filter=git-crypt diff=git-crypt

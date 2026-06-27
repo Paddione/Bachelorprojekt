@@ -1,0 +1,18 @@
+{
+    "SessionStart": [
+        {
+            "hooks": [
+                {
+                    "type": "command",
+                    "command": "bash scripts/agent-lock.sh reap 2>/dev/null || true"
+                },
+                {
+                    "type": "command",
+                    "command": "/home/patrick/.local/bin/codebase-memory-mcp cli detect_changes '{\"project\": \"home-patrick-Bachelorprojekt\"}' 2>/dev/null | python3 -c \"\nimport sys, json\ntry:\n    data = json.load(sys.stdin)\n    count = data.get('changed_count', 0)\n    files = data.get('changed_files', [])\n    symbols = data.get('impacted_symbols', [])\n    if count > 0:\n        files_str = ', '.join(files[:10])\n        sym_note = f' ({len(symbols)} Symbole betroffen)' if symbols else ''\n        msg = f'CODEBASE-MEMORY GRAPH VERALTET: {count} Datei(en) seit letztem Index geaendert: {files_str}{sym_note}. Erwaege Re-Index (mode=fast) bevor du graph-Tools nutzt.'\n        print(json.dumps({'hookSpecificOutput': {'hookEventName': 'SessionStart', 'additionalContext': msg}}))\nexcept:\n    pass\n\" 2>/dev/null || true",
+                    "timeout": 30,
+                    "statusMessage": "Checking codebase-memory graph freshness..."
+                }
+            ]
+        }
+    ]
+}

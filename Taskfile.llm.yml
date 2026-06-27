@@ -61,6 +61,26 @@ tasks:
           --image=curlimages/curl:8.7.1 --quiet -- \
           curl -fsS "http://llm-gateway-lmstudio.${ns}.svc.cluster.local:1234/v1/models" || true
 
+  preload-embeddings:
+    desc: "Pin all 3 embedding models in LM Studio VRAM permanently (ttl=-1, 1.26 GB total)"
+    cmds:
+      - bash scripts/lmstudio-preload.sh embeddings
+
+  coding-session:
+    desc: "Pre-load Qwen3.5-9B + embedding models into VRAM before a big coding task"
+    cmds:
+      - bash scripts/lmstudio-preload.sh coding
+
+  chat-session:
+    desc: "Pre-load Hermes + embedding models into VRAM for a chat session"
+    cmds:
+      - bash scripts/lmstudio-preload.sh chat
+
+  model-status:
+    desc: "Show which LM Studio models are currently loaded in VRAM"
+    cmds:
+      - bash scripts/lmstudio-preload.sh status
+
   test:
     desc: "Smoke-test the gateway Services directly (embed bge-m3 + LM Studio chat). Voyage hits the cloud API. ENV=<env>"
     vars:

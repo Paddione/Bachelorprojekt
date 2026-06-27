@@ -1,6 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "lmstudio/hermes",
+  "model": "lmstudio/hermes-3-llama-3.1-8b",
   "permission": "allow",
   "mcp": {
     // ── Monolith HTTP-Endpunkte (via scripts/mcp-portforward.sh) ──────────
@@ -34,6 +34,10 @@
       "type": "local",
       "command": ["npx", "-y", "task-master-ai"],
       "environment": {
+        "OPENAI_API_KEY": "lmstudio",
+        "OPENAI_BASE_URL": "http://192.168.100.10:1234/v1",
+        "TASK_MASTER_MODEL": "hermes-3-llama-3.1-8b",
+        "TASK_MASTER_PROVIDER": "openai",
         "OLLAMA_BASE_URL": "http://localhost:11434/api",
         "TASK_MASTER_TOOLS": "all"
       },
@@ -70,6 +74,30 @@
       "options": {
         "baseURL": "http://192.168.100.10:1234/v1",
         "apiKey": "lmstudio"
+      },
+      "models": {
+        "hermes-3-llama-3.1-8b": {
+          "id": "hermes-3-llama-3.1-8b",
+          "name": "Hermes 3 Llama 3.1 8B",
+          "limit": { "context": 131072, "output": 8192 }
+        },
+        "qwen/qwen3.5-9b": {
+          "id": "qwen/qwen3.5-9b",
+          "name": "Qwen 3.5 9B (Coding)",
+          "limit": { "context": 131072, "output": 8192 }
+        },
+        "text-embedding-bge-m3": {
+          "id": "text-embedding-bge-m3",
+          "name": "BGE-M3 Embeddings"
+        },
+        "text-embedding-nomic-embed-text-v1.5": {
+          "id": "text-embedding-nomic-embed-text-v1.5",
+          "name": "Nomic Embed Text v1.5"
+        },
+        "text-embedding-bge-reranker-v2-m3": {
+          "id": "text-embedding-bge-reranker-v2-m3",
+          "name": "BGE Reranker v2 M3"
+        }
       }
     },
     "ollama": {

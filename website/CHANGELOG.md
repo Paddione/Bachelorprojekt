@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.134.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.134.5...website-v1.134.6) (2026-06-27)
+
+
+### Bug Fixes
+
+* **website:** pin js-yaml & @babel/core via pnpm overrides [T001278] ([#2209](https://github.com/Paddione/Bachelorprojekt/issues/2209)) ([03b5be3](https://github.com/Paddione/Bachelorprojekt/commit/03b5be38ef46ad90f159d54628b51f57b7a0e1b0))
+
 ## [1.134.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.134.4...website-v1.134.5) (2026-06-27)
 
 

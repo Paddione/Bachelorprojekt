@@ -7,88 +7,14 @@
 // (joseluisq/static-web-server, read-only rootfs). Never SSR, never write fs.
 
 import { pluginNameOf } from './registry.mjs';
+import {
+  CATEGORY_ORDER, CATEGORY_LABELS, AGENT_GROUPS, DOC_GROUPS, categoryForSkill,
+  renderSidebar, renderPrevNext,
+} from './navigation.mjs';
 
-/**
- * Maps plugin name → skill category slug.
- * Skills without a matching plugin entry fall back to 'claude-code'.
- */
-const PLUGIN_SKILL_CATEGORIES = {
-  'superpowers': 'dev-workflow',
-  'superpowers-lab': 'claude-code',          // mcp-cli overridden per-name below
-  'superpowers-chrome': 'browser',
-  'superpowers-developing-for-claude-code': 'claude-code',
-  'huggingface-skills': 'ki-ml',
-  'chrome-devtools-mcp': 'browser',
-  'plugin-dev': 'plugin-bau',
-  'skill-creator': 'plugin-bau',
-  'hookify': 'plugin-bau',
-  'mcp-server-dev': 'mcp-api',
-  'postman': 'mcp-api',
-  'claude-code-setup': 'claude-code',
-  'claude-md-management': 'claude-code',
-  'remember': 'claude-code',
-  'desktop-commander': 'claude-code',
-  'frontend-design': 'claude-code',
-  'playground': 'claude-code',
-};
-
-/** Per-skill overrides that take priority over the plugin mapping. */
-const SKILL_NAME_OVERRIDES = {
-  'mcp-cli': 'mcp-api',
-};
-
-/** Repo skills mapped by skill name → category. */
-const REPO_SKILL_CATEGORIES = {
-  'dev-flow-plan': 'dev-workflow',
-  'dev-flow-execute': 'dev-workflow',
-  'dev-flow-iterate': 'dev-workflow',
-  'dev-flow-e2e': 'dev-workflow',
-  'using-git-worktrees': 'dev-workflow',
-  'cluster-deployment': 'bachelorprojekt-infra',
-  'database-ops': 'bachelorprojekt-infra',
-  'fleet-ops': 'bachelorprojekt-infra',
-  'host-node-networking': 'bachelorprojekt-infra',
-  'keycloak-realm-sync': 'bachelorprojekt-infra',
-  'knowledge-management': 'bachelorprojekt-infra',
-  'mishap-tracker': 'bachelorprojekt-infra',
-  'operations-management': 'bachelorprojekt-infra',
-  'secret-rotation': 'bachelorprojekt-infra',
-  'update-dependencies': 'bachelorprojekt-infra',
-};
-
-const CATEGORY_LABELS = {
-  'dev-workflow': 'Dev-Workflow',
-  'bachelorprojekt-infra': 'Bachelorprojekt-Infra',
-  'ki-ml': 'KI / ML',
-  'plugin-bau': 'Plugin- & Skill-Bau',
-  'browser': 'Browser & Debugging',
-  'mcp-api': 'MCP & API',
-  'claude-code': 'Claude Code & Tooling',
-};
-
-const CATEGORY_ORDER = [
-  'dev-workflow',
-  'bachelorprojekt-infra',
-  'ki-ml',
-  'plugin-bau',
-  'browser',
-  'mcp-api',
-  'claude-code',
-];
-
-/**
- * Assign a display category to a skill page.
- * @param {Page} page
- * @returns {string} category slug
- */
-export function categoryForSkill(page) {
-  if (SKILL_NAME_OVERRIDES[page.name]) return SKILL_NAME_OVERRIDES[page.name];
-  if (page.provenance === 'repo') {
-    return REPO_SKILL_CATEGORIES[page.name] ?? 'claude-code';
-  }
-  const plugin = pluginNameOf(page.provenance);
-  return PLUGIN_SKILL_CATEGORIES[plugin] ?? 'claude-code';
-}
+// Re-export categoryForSkill so existing callers (including tests) that import
+// it from templates.mjs continue to work without change.
+export { categoryForSkill };
 
 /**
  * Remove duplicate skill pages: keep only the newest version per (pluginName, skillName) pair.
@@ -401,18 +327,6 @@ ${cards}
 ${documentTail('./')}`;
 }
 
-/** Map agent slug prefix → display group. Order = display order. */
-const AGENT_GROUPS = [
-  { key: 'bachelorprojekt', label: 'Bachelorprojekt', match: (p) => p.name.startsWith('bachelorprojekt') || (p.provenance === 'repo' && p.name.startsWith('bachelorprojekt')) },
-  { key: 'dev-workflow', label: 'Dev-Workflow', match: (p) => {
-    const plugin = pluginNameOf(p.provenance);
-    return ['feature-dev', 'pr-review-toolkit', 'code-simplifier'].some((pfx) => plugin.startsWith(pfx));
-  }},
-  { key: 'plugin-bau', label: 'Plugin- & Skill-Bau', match: (p) => {
-    const plugin = pluginNameOf(p.provenance);
-    return ['plugin-dev', 'hookify', 'agent-sdk-dev', 'skill-creator'].some((pfx) => plugin.startsWith(pfx));
-  }},
-];
 
 /**
  * Agents index page grouped by plugin family.
@@ -469,30 +383,6 @@ ${sections}
 ${documentTail('./')}`;
 }
 
-/** Static slug-to-group assignment for doc pages. */
-const DOC_GROUPS = [
-  {
-    key: 'handbuecher',
-    label: 'Handbücher',
-    slugs: new Set(['benutzerhandbuch', 'adminhandbuch', 'claude-code', 'contributing', 'readme']),
-  },
-  {
-    key: 'architektur',
-    label: 'Architektur & Bausteine',
-    slugs: new Set(['architecture', 'bereitstellungsdetails', 'db-schema', 'datamodel-workflow',
-      '30-bausteine', '20-werkzeuge', '10-ziele', '00-anleitung']),
-  },
-  {
-    key: 'audits',
-    label: 'Audits & Reports',
-    matchFn: (slug) => /^\d{4}-\d{2}-\d{2}/.test(slug) || ['findings', 'db-audit'].includes(slug),
-  },
-  {
-    key: 'entscheidungen',
-    label: 'Entscheidungen',
-    slugs: new Set(['decision-log', 'decisions', 'CHANGELOG']),
-  },
-];
 
 /** Fallback description derived from slug when page.description is empty. */
 function fallbackDescription(slug) {

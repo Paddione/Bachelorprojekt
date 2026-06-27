@@ -47,9 +47,11 @@ test('clientJs: returns a string that parses as valid JavaScript', () => {
   assert.doesNotThrow(() => new Function(js), 'clientJs must be syntactically valid JS');
 });
 
-test('clientJs: wires search.json and a copy-button handler', () => {
+test('clientJs: wires search-index.json and a copy-button handler', () => {
   const js = clientJs();
-  assert.ok(js.includes('search.json'), 'fetches ./search.json');
+  // Phase 2.2: search client was switched from search.json to search-index.json
+  // (ranked inverted-index). search-client.mjs is the sole owner of this URL.
+  assert.ok(js.includes('search-index.json'), 'fetches ./search-index.json');
   assert.ok(js.includes('.copy-btn'), 'attaches a copy-button handler');
   assert.ok(js.includes('clipboard'), 'copies to clipboard');
 });

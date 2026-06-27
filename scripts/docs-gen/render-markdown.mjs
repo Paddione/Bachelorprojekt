@@ -32,6 +32,7 @@ import { tmpdir } from 'node:os';
 import { createHash } from 'node:crypto';
 import { marked } from 'marked';
 import * as cheerio from 'cheerio';
+import { foldGerman } from './tokenize.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -48,13 +49,12 @@ const DEFAULT_DOT = 'dot';
  * @property {number} diagramFallbacks     count of diagrams that fell back to code blocks
  */
 
-// ─── slugifyHeading (verbatim behavior from build-docs.js) ──────────────────────
-// lowercases, maps the German umlauts and eszett, turns spaces into hyphens,
-// strips chars outside a-z0-9 and hyphen.
+// ─── slugifyHeading ──────────────────────────────────────────────────────────────
+// German-umlaut-safe heading anchor generator. Uses foldGerman from tokenize.mjs
+// (the single source of umlaut folding) so that search-index headingId values and
+// heading anchor ids are always byte-identical.
 function slugifyHeading(text) {
-  return text.toLowerCase()
-    .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')
-    .replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  return foldGerman(text).replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 }
 
 // ─── diagram caption helpers ──────────────────────────────────────────────────

@@ -4,7 +4,7 @@ Quantifizierbare Ziele für die strukturelle Gesundheit des Repos.
 Jedes Ziel hat einen **messbaren Befehl**, einen **real gemessenen Baseline-Wert** und ein **erreichbares Target**.
 Ein Ziel ohne reproduzierbaren Mess-Befehl ist kein Ziel, sondern ein Wunsch.
 
-**Baseline-Stichtag aller Werte:** `2026-06-27` (sofern nicht anders vermerkt).
+**Baseline-Stichtag aller Werte:** `2026-06-27` (sofern nicht anders vermerkt). Zuletzt refreshed: `2026-06-27` (alle ✅-reproduzierbaren + gh/cluster-Ziele neu gemessen).
 
 ---
 
@@ -54,12 +54,12 @@ Autoritative Quelle für DORA-Metriken ist das **`/admin/dora`-Dashboard + die D
 
 Die sieben ursprünglichen Ziele, mit auf `2026-06-27` aktualisierten Baselines.
 
-## G-RH01 — Baselined Gate-Violations (baseline.json gesamt): 70 → ≤ 30
+## G-RH01 — Baselined Gate-Violations (baseline.json gesamt): 28 → ≤ 30 (Target erreicht)
 
 **Was:** Einträge in `docs/code-quality/baseline.json` — eingefrorene Gate-Verstöße über **alle vier** Code-Quality-Gates
-(`docs/code-quality/gates.yaml`), nicht nur Dateigröße. Aufschlüsselung: **S1 Dateigröße 30 · S2 Import-Zyklen 4 · S3 hartkodierte Hostnames 24 · S4 verwaiste Scripts/Manifeste 12**. Jeder Eintrag ist Schuld: die Datei darf nicht schlimmer werden, muss aber refactored werden. Die Drill-down-Ziele dafür sind G-CQ07/09/10 (S2/S3/S4) und die G-SIZE-Reihe (S1-Wachstum).
+(`docs/code-quality/gates.yaml`), nicht nur Dateigröße. Aufschlüsselung: **S1 Dateigröße 28 · S2 Import-Zyklen 0 · S3 hartkodierte Hostnames 0 · S4 verwaiste Scripts/Manifeste 0** — nur noch S1 verbleibt; S2/S3/S4 sind vollständig aufgelöst. Jeder Eintrag ist Schuld: die Datei darf nicht schlimmer werden, muss aber refactored werden. Die Drill-down-Ziele dafür sind G-CQ07/09/10 (S2/S3/S4, alle 0) und die G-SIZE-Reihe (S1-Wachstum).
 
-**Warum erreichbar:** Trend stimmt (98 → 74 → 70). Der `task quality:baseline:refresh` (in diesem Commit ausgeführt) hat 4 bereits gelöste S3-Einträge aus dem Ledger entfernt. Rest 70→30 = ~2 Refactoring-Sessions/Woche für ~3–4 Wochen, schwerpunktmäßig S1 (30) + S3 (24).
+**Warum erreichbar:** Trend stimmt (98 → 74 → 70 → 28). S2/S3/S4 sind komplett abgebaut (Import-Zyklen, hartkodierte Hostnames, verwaiste Scripts alle 0); es verbleiben ausschließlich 28 S1-Dateigrößen-Einträge. Target ≤30 ist damit **erreicht** — verbleibende Arbeit ist reines S1-Refactoring (siehe G-SIZE-Reihe), nicht mehr Gate-übergreifend.
 
 ```bash
 # Zielmetrik (G-RH01, exakt wie historisch):
@@ -70,7 +70,7 @@ python3 -c "import json,sys,collections as c; d=json.load(sys.stdin); [print(f'{
 task quality:check
 ```
 
-> **Baseline:** 70 (S1:30 S2:4 S3:24 S4:12) · **Target:** ≤ 30 · **Aufwand:** ~3–4 Wochen · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
+> **Baseline:** 28 (S1:28 S2:0 S3:0 S4:0) · **Target:** ≤ 30 (erreicht) · **Aufwand:** halten + S1-Refactoring · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
 
 ## G-RH02 — TypeScript-Suppressionen: 0 → 0 (erreicht, halten)
 
@@ -85,11 +85,11 @@ grep -r "@ts-ignore\|@ts-expect-error" website/src \
 
 > **Baseline:** 0 (vorher 9) · **Target:** 0 · **Aufwand:** erreicht — Review-Gate · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
 
-## G-RH03 — OpenSpec-BATS-Abdeckung: 28 % → ≥ 60 %
+## G-RH03 — OpenSpec-BATS-Abdeckung: 35 % → ≥ 60 %
 
-**Was:** Von 53 OpenSpec-Specs (`openspec/specs/*.md`) haben 15 eine BATS-Datei in `tests/spec/`. Jede unabgedeckte Spec ist nur manuell oder gar nicht verifiziertes Verhalten.
+**Was:** Von 55 OpenSpec-Specs (`openspec/specs/*.md`) haben 19 eine BATS-Datei in `tests/spec/`. Jede unabgedeckte Spec ist nur manuell oder gar nicht verifiziertes Verhalten.
 
-**Warum erreichbar:** ≥ 60 % = 32 Specs ⇒ 17 neue BATS-Dateien, ~1 h/Datei, ~3–4 Wochen. Trend belegt (17 % → 28 %).
+**Warum erreichbar:** ≥ 60 % = 33 Specs ⇒ 14 neue BATS-Dateien, ~1 h/Datei, ~3 Wochen. Trend belegt (17 % → 28 % → 35 %).
 
 ```bash
 SPECS=$(ls openspec/specs/*.md 2>/dev/null | wc -l); BATS=$(ls tests/spec/*.bats 2>/dev/null | wc -l)
@@ -98,7 +98,7 @@ comm -23 <(ls openspec/specs/*.md | xargs -n1 basename | sed 's/.md$//' | sort) 
          <(ls tests/spec/*.bats | xargs -n1 basename | sed 's/.bats$//' | sort)
 ```
 
-> **Baseline:** 28 % (15/53) · **Target:** ≥ 60 % (32/53) · **Aufwand:** ~3–4 Wochen · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
+> **Baseline:** 35 % (19/55) · **Target:** ≥ 60 % (33/55) · **Aufwand:** ~3 Wochen · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
 
 ## G-RH04 — Stale Remote Branches (>14 Tage, kein offener PR): 0
 
@@ -229,21 +229,23 @@ pnpm --dir website exec vitest run --coverage --coverage.provider=v8 \
 
 # 3. Code-Qualität & statische Analyse
 
-## G-CQ01 — astro-check-Fehler: 177 → ≤ 20
+## G-CQ01 — astro-check-Fehler: 249 → ≤ 20  ⚠️ REGRESSION
 
-**Was:** `npx astro check` (Typprüfer via `@astrojs/check`) meldet 177 Typfehler über `website/src` + `tests/`. 153 davon sind `ts(2345)` gebündelt in `.test.ts` (testing-library/svelte `render`). `astro check` ist die **einzige derzeit aktive** statische Analyse der Website.
+**Was:** `npx astro check` (Typprüfer via `@astrojs/check`) meldet **249** Typfehler (0 Warnings, 197 Hints) über `website/src` + `tests/` — gestiegen von 177. Der Großteil ist weiter `ts(2345)` gebündelt in `.test.ts` (testing-library/svelte `render`). `astro check` ist die **einzige derzeit aktive** statische Analyse der Website.
 
-**Warum erreichbar:** 153/177 sind ein Cluster mit gemeinsamer Ursache (Test-Render-Helper/Props-Typ); eine zentrale Korrektur eliminiert den Großteil, ~24 Rest sind Einzelfixes.
+**Warum gestiegen (G-CQ01 ↔ G-CQ02-Spannung):** Der `as any`-Abbau in den Testdateien (G-CQ02 564→431) hat genau die `ts(2345)`-Fehler **freigelegt**, die die Casts zuvor unterdrückten — weniger `as any` bedeutet mehr sichtbare astro-check-Fehler. Beide Ziele lassen sich nur gemeinsam senken: die Test-Render-Helper brauchen einen korrekt typisierten `render`-Wrapper (eine zentrale Korrektur), statt die Fehler per Cast zu verstecken.
+
+**Warum erreichbar:** Der Cluster hat eine gemeinsame Ursache (Test-Render-Helper/Props-Typ); ein zentral typisierter Wrapper eliminiert den Großteil und reduziert G-CQ01 und G-CQ02 zugleich.
 
 ```bash
 cd website && timeout 240 npx astro check 2>&1 | grep -E '^- [0-9]+ errors'
 ```
 
-> **Baseline:** 177 Fehler · **Target:** ≤ 20 · **Aufwand:** hoch (~2–3 Sessions) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
+> **Baseline:** 249 Fehler (war 177; +72 durch G-CQ02-Cast-Abbau) · **Target:** ≤ 20 · **Aufwand:** hoch (~2–3 Sessions, gekoppelt an G-CQ02) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
 
-## G-CQ02 — Explizite `any`-Verwendungen: 564 → ≤ 280
+## G-CQ02 — Explizite `any`-Verwendungen: 431 → ≤ 280
 
-**Was:** 564 explizite `any` in `website/src` (208× `: any`, 345× `as any`, 11× `<any>`) über 1357 Dateien. Jedes `any` deaktiviert lokal die Typprüfung; die 345 `as any` umgehen bewusst die Zuweisbarkeitsprüfung und untergraben den astro-check-Wert (G-CQ01).
+**Was:** 431 explizite `any` in `website/src` (war 564; Abbau v.a. in Testdateien, PR #2128 595→431) über die `.ts`/`.svelte`/`.astro`-Quellen. Jedes `any` deaktiviert lokal die Typprüfung; die `as any` umgehen bewusst die Zuweisbarkeitsprüfung. **Achtung:** weiterer `as any`-Abbau erhöht G-CQ01 (astro-check), solange die Test-Render-Helper nicht zentral typisiert sind — die beiden Ziele sind gekoppelt.
 
 **Warum erreichbar:** Viele `as any` stecken in Tests + wenigen Hotspots (API-Routes, DB-Layer); durch generische Typen/Interfaces ersetzbar. Halbierung über ~4–5 Wochen kontinuierlich; 0 bei 1357 Dateien unrealistisch.
 
@@ -251,7 +253,7 @@ cd website && timeout 240 npx astro check 2>&1 | grep -E '^- [0-9]+ errors'
 grep -rn ': any\|<any>\|as any' website/src --include=*.ts --include=*.svelte --include=*.astro | wc -l
 ```
 
-> **Baseline:** 564 · **Target:** ≤ 280 · **Aufwand:** hoch (~4–5 Wochen) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
+> **Baseline:** 431 (war 564) · **Target:** ≤ 280 · **Aufwand:** mittel (~3–4 Wochen, gekoppelt an G-CQ01) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
 
 ## G-CQ03 — ESLint einrichten + Warnings → 0 (Setup-Ziel)
 
@@ -268,7 +270,7 @@ grep -c '"lint"' website/package.json; grep -rn 'eslint-disable' website/src | w
 
 ## G-CQ04 — FIXME/HACK/XXX (echte Code-Schuld): 0 → dauerhaft 0
 
-**Was:** Schuld-Marker FIXME/HACK/XXX (Wort-Grenze) über `website/src`, `scripts`, `tests`, `k3d`, `brett/src`. 4 Wort-Treffer, davon **0 echte Code-Schuld** (2× in `plan-lint.sh`/`plan-qa-check.sh` = Linter, die diese Marker *detektieren*; 1× Template-String; 1× `XXX-XXX`-Session-Code in `brett`). Naiver Substring-Grep liefert 22 (False Positives in Testdaten).
+**Was:** Schuld-Marker FIXME/HACK/XXX (Wort-Grenze) über `website/src`, `scripts`, `tests`, `k3d`, `brett/src`. 3 Wort-Treffer, davon **0 echte Code-Schuld** (2× in `scripts/health-goals-check.sh` = Kommentare des neuen Health-Check-Skripts, das diese Marker selbst *detektiert*; 1× `XXX-XXX`-Session-Code-Kommentar in `brett/src/client/ui/menu.ts`). Naiver Substring-Grep liefert deutlich mehr (False Positives in Testdaten). *(Das `health-goals-check.sh`-GATE nutzt Schwelle ≤4, deckt diese bekannten Tooling-Treffer ab.)*
 
 **Warum erreichbar:** Nichts abzubauen — präventiv halten (Netto-Rate 0) per Wort-Grenzen-Grep als Pre-Merge-Wächter.
 
@@ -278,13 +280,13 @@ grep -rnE "\b(FIXME|HACK|XXX)\b" --include=*.ts --include=*.svelte --include=*.a
   | grep -vE "node_modules|/dist/|plan-lint.sh|plan-qa-check.sh" | wc -l
 ```
 
-> **Baseline:** 0 echte Schuld (4 Wort-Treffer, alle Tooling) · **Target:** dauerhaft 0 echte · **Aufwand:** Policy · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
+> **Baseline:** 0 echte Schuld (3 Wort-Treffer, alle Tooling/Format) · **Target:** dauerhaft 0 echte · **Aufwand:** Policy · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
 
-## G-CQ05 — Echte TODO-Marker: 3 → ≤ 1
+## G-CQ05 — Echte TODO-Marker: 1 → ≤ 1 (Target erreicht)
 
-**Was:** 3 echte TODOs: `sendInvoice.ts:4` (E2E-Invoice-Send-Stub), `GraphCanvas.svelte:155` (TODO T000667, Kantenlabels), `fa-10-website.spec.ts:34` (TODO T000603, Prod-Netzwerkpfad). Unfertiges Verhalten bzw. ausgelassene Abdeckung.
+**Was:** 1 echtes TODO: `sendInvoice.ts:4` (E2E-Invoice-Send-Stub — PDF-Generierung + Factur-X-Embed). Die zuvor offenen ticket-gebundenen TODOs (`GraphCanvas.svelte` T000667, `fa-10-website.spec.ts` T000603) sind abgearbeitet.
 
-**Warum erreichbar:** 2 sind ticket-gebunden (T000667/T000603) — abarbeiten oder Ticket schließen. Target ≤1 lässt den größeren `sendInvoice`-Stub bewusst offen, falls außerhalb Thesis-Scope.
+**Warum erreichbar:** Bereits auf Target. Der verbleibende `sendInvoice`-Stub darf offen bleiben, falls außerhalb Thesis-Scope; sonst implementieren ⇒ 0.
 
 ```bash
 grep -rnE "\bTODO\b" --include=*.ts --include=*.svelte --include=*.astro --include=*.sh \
@@ -292,26 +294,26 @@ grep -rnE "\bTODO\b" --include=*.ts --include=*.svelte --include=*.astro --inclu
   | grep -vE "node_modules|/dist/|plan-lint.sh|plan-qa-check.sh|openspec.sh" | wc -l
 ```
 
-> **Baseline:** 3 · **Target:** ≤ 1 · **Aufwand:** ~2 kleine Sessions · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
+> **Baseline:** 1 (war 3) · **Target:** ≤ 1 (erreicht) · **Aufwand:** halten · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
 
-## G-CQ06 — `@deprecated`-Symbole: 3 → ≤ 1
+## G-CQ06 — `@deprecated`-Symbole: 1 → ≤ 1 (Target erreicht)
 
-**Was:** 3 `@deprecated` in `website/src`: `website-db.ts:875` (legacy headline price), `website-db.ts:892` (detail tiers read-fallback), `ServiceRow.svelte:19` (entfernte Direct-Buy-Buttons). Tote Pfade post-Katalog-Migration, Risiko versehentlicher Weiterverwendung.
+**Was:** 1 `@deprecated` in `website/src`: `ServiceRow.svelte:19` (entfernte Direct-Buy-Buttons, als Kompatibilität gehalten). Die 2 `website-db.ts`-Fallbacks (legacy headline price, detail tiers read-fallback) sind entfernt.
 
-**Warum erreichbar:** Die 2 `website-db.ts`-Fallbacks hängen an derselben Migration; nach Daten-Verifikation entfernbar. Der ServiceRow-Marker darf als Kompatibilität bleiben.
+**Warum erreichbar:** Bereits auf Target. Der ServiceRow-Marker darf als Kompatibilität bleiben.
 
 ```bash
 grep -rnE "@deprecated" --include=*.ts --include=*.svelte --include=*.astro website/src 2>/dev/null \
   | grep -v node_modules | wc -l
 ```
 
-> **Baseline:** 3 · **Target:** ≤ 1 · **Aufwand:** ~1 Session + Daten-Verifikation · **Messzyklus:** monatlich · **Reproduzierbar:** ja
+> **Baseline:** 1 (war 3) · **Target:** ≤ 1 (erreicht) · **Aufwand:** halten · **Messzyklus:** monatlich · **Reproduzierbar:** ja
 
-## G-CQ07 — S2 Import-Zyklen (circular deps): 4 → 0
+## G-CQ07 — S2 Import-Zyklen (circular deps): 0 → 0 (erreicht, halten)
 
-**Was:** Eingefrorene S2-Verstöße (Gate `s2-cycles`) = Import-Zyklen im Modulgraph. 4 Zyklen: `tickets-db.ts ↔ website-db.ts`; `website-db.ts → tickets/transition.ts → reporter-link.ts`; `invoice-pdf.ts ↔ native-billing.ts`. Zyklen erschweren Tree-Shaking, verursachen Init-Reihenfolge-Bugs (undefined exports) und blockieren Refactoring. (Drill-down von G-RH01.)
+**Was:** Eingefrorene S2-Verstöße (Gate `s2-cycles`) = Import-Zyklen im Modulgraph. **0** — die zuvor 4 Zyklen (`tickets-db.ts ↔ website-db.ts`; `website-db.ts → tickets/transition.ts → reporter-link.ts`; `invoice-pdf.ts ↔ native-billing.ts`) sind aufgelöst. Zyklen erschweren Tree-Shaking, verursachen Init-Reihenfolge-Bugs und blockieren Refactoring. (Drill-down von G-RH01.)
 
-**Warum erreichbar:** 4 lokalisierte Zyklen, je durch Extraktion eines geteilten Moduls/Interface auflösbar. Reduziert zugleich G-RH01 und entsperrt den `website-db.ts`-Split (G-SIZE03).
+**Warum erreichbar:** Bereits 0. Halten: neuer Zyklus blockt im S2-Gate (`task quality:check`).
 
 ```bash
 # Eingefrorene S2-Zyklen:
@@ -320,7 +322,7 @@ python3 -c "import json,sys; print(sum(1 for v in json.load(sys.stdin).values() 
 npx --yes madge --circular --extensions ts,tsx website/src
 ```
 
-> **Baseline:** 4 · **Target:** 0 · **Aufwand:** mittel (~2–3 Module entkoppeln) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
+> **Baseline:** 0 (war 4) · **Target:** 0 (erreicht) · **Aufwand:** Gate halten · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
 
 ## G-CQ08 — Dead-Code / ungenutzte Exports (website/src): messen → −50 %
 
@@ -334,29 +336,29 @@ npx --yes knip@latest --directory website --reporter symbols 2>/dev/null | grep 
 
 > **Baseline:** unbekannt (knip-Config nötig) · **Target:** ungenutzte Exports −50 % · **Aufwand:** mittel (Setup + Abbau) · **Messzyklus:** monatlich · **Reproduzierbar:** eingeschränkt (Tool-Setup)
 
-## G-CQ09 — S3 hartkodierte Hostnames (Gate): 24 → ≤ 10
+## G-CQ09 — S3 hartkodierte Hostnames (Gate): 0 → ≤ 10 (erreicht)
 
-**Was:** Eingefrorene S3-Verstöße (Gate `s3-hostnames`) = hartkodierte Hostnames/Domains in `k3d/`, `prod*/`, `website/src/` außerhalb der Allowlist (`configmap-domains.yaml`, `sitemap.xml.ts`). Hartkodierte Hosts brechen die zentrale Domain-Konfiguration und Multi-Brand-Fähigkeit. Größter Einzel-Bucket von G-RH01 (24/70).
+**Was:** Eingefrorene S3-Verstöße (Gate `s3-hostnames`) = hartkodierte Hostnames/Domains in `k3d/`, `prod*/`, `website/src/` außerhalb der Allowlist (`configmap-domains.yaml`, `sitemap.xml.ts`). **0** — der zuvor größte Einzel-Bucket von G-RH01 (24) ist vollständig auf die ConfigMap-SSOT bzw. Brand-Env-Vars umgestellt.
 
-**Warum erreichbar:** Jeder Treffer ist auf die ConfigMap-SSOT (`k3d/configmap-domains.yaml`) bzw. Brand-Env-Var umzustellen. Mechanisch, gut batchbar.
+**Warum erreichbar:** Bereits 0. Halten: neuer hartkodierter Host blockt im S3-Gate.
 
 ```bash
 python3 -c "import json,sys; print(sum(1 for v in json.load(sys.stdin).values() if v['gate']=='S3'))" < docs/code-quality/baseline.json
 ```
 
-> **Baseline:** 24 · **Target:** ≤ 10 · **Aufwand:** ~2 Sessions · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
+> **Baseline:** 0 (war 24) · **Target:** ≤ 10 (erreicht) · **Aufwand:** Gate halten · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
 
-## G-CQ10 — S4 verwaiste Scripts/Manifeste (Gate): 12 → ≤ 4
+## G-CQ10 — S4 verwaiste Scripts/Manifeste (Gate): 0 → ≤ 4 (erreicht)
 
-**Was:** Eingefrorene S4-Verstöße (Gate `s4-orphans`) = Scripts/Manifeste unter `scripts/`, `k3d/`, auf die keine `Taskfile`/`kustomization`/Doku/Workflow/Skill mehr verweist. Toter Infrastruktur-Code: erschwert Verständnis, Sicherheits-Triage und täuscht Wartungsbedarf vor.
+**Was:** Eingefrorene S4-Verstöße (Gate `s4-orphans`) = Scripts/Manifeste unter `scripts/`, `k3d/`, auf die keine `Taskfile`/`kustomization`/Doku/Workflow/Skill mehr verweist. **0** — die zuvor 12 verwaisten Einträge sind gelöscht bzw. mit `reference_sources` in `gates.yaml` verknüpft.
 
-**Warum erreichbar:** Pro Eintrag entweder löschen (echt verwaist) oder Referenz nachtragen (`reference_sources` in `gates.yaml`). 12 endliche Fälle.
+**Warum erreichbar:** Bereits 0. Halten: neuer verwaister Eintrag blockt im S4-Gate.
 
 ```bash
 python3 -c "import json,sys; print(sum(1 for v in json.load(sys.stdin).values() if v['gate']=='S4'))" < docs/code-quality/baseline.json
 ```
 
-> **Baseline:** 12 · **Target:** ≤ 4 · **Aufwand:** ~1 Session · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
+> **Baseline:** 0 (war 12) · **Target:** ≤ 4 (erreicht) · **Aufwand:** Gate halten · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
 
 ---
 
@@ -364,7 +366,7 @@ python3 -c "import json,sys; print(sum(1 for v in json.load(sys.stdin).values() 
 
 Ergänzt G-RH01/S1 um **Wachstum** statt Bestand (überlappt nicht mit der `baseline.json`).
 
-## G-SIZE01 — Freeze-Frühwarn-Band (80–100 % S1-Limit): 35 → ≤ 15
+## G-SIZE01 — Freeze-Frühwarn-Band (80–100 % S1-Limit): 38 → ≤ 15
 
 **Was:** In-Scope-Quelldateien (`gates.yaml scan.code_roots`) bei 80–100 % ihres per-Extension S1-Limits, noch nicht eingefroren. Die nächsten Freeze-Kandidaten — die nächste Funktion kippt sie über das Limit und sie landen als neue G-RH01-Schuld. Mehrere stehen exakt bei 100 % (`templates.test.mjs` 500/500, `theme.mjs` 498/500).
 
@@ -386,7 +388,7 @@ print('Warn-Band 80-100%:', n)
 PY
 ```
 
-> **Baseline:** 35 · **Target:** ≤ 15 · **Aufwand:** mittel (~3–4 Wochen präventiv) · **Messzyklus:** wöchentlich + Pre-PR auf geänderte Dateien · **Reproduzierbar:** ja
+> **Baseline:** 38 (war 35) · **Target:** ≤ 15 · **Aufwand:** mittel (~3–4 Wochen präventiv) · **Messzyklus:** wöchentlich + Pre-PR auf geänderte Dateien · **Reproduzierbar:** ja
 
 ## G-SIZE02 — Großdateien außerhalb Gate-Scope (VideoVault/.opencode): 18 → ≤ 8
 
@@ -401,9 +403,9 @@ git ls-files VideoVault .opencode | grep -E '\.(ts|tsx|js|mjs|cjs|svelte|astro|s
 
 > **Baseline:** 18 · **Target:** ≤ 8 · **Aufwand:** mittel (~2–3 Wochen) · **Messzyklus:** pro Merge auf VideoVault//.opencode/ · **Reproduzierbar:** ja
 
-## G-SIZE03 — God-File `website/src/lib/website-db.ts`: 4485 → ≤ 3000 Zeilen
+## G-SIZE03 — God-File `website/src/lib/website-db.ts`: 4435 → ≤ 3000 Zeilen
 
-**Was:** Größte Nicht-Vendored-Quelldatei (4485 Zeilen, zentrale DB-Zugriffsschicht). Steht in `gates.yaml s1.ignore` und **nicht** in `baseline.json` — weder Freeze noch G-RH01 überwachen sie, sie wächst unbegrenzt. Permanenter Review-/Merge-Konflikt-Hotspot.
+**Was:** Größte Nicht-Vendored-Quelldatei (4435 Zeilen, zentrale DB-Zugriffsschicht). Steht in `gates.yaml s1.ignore` und **nicht** in `baseline.json` — weder Freeze noch G-RH01 überwachen sie, sie wächst unbegrenzt. Permanenter Review-/Merge-Konflikt-Hotspot.
 
 **Warum erreichbar:** Split-Pattern im Repo erprobt: `tickets-db.ts` (1096 Zeilen) wurde bereits ausgelagert. Weitere Domänen (Termine, Newsletter, Coaching) analog extrahieren, Pool zentral importiert lassen. Danach aus `s1.ignore` entfernen.
 
@@ -411,13 +413,13 @@ git ls-files VideoVault .opencode | grep -E '\.(ts|tsx|js|mjs|cjs|svelte|astro|s
 wc -l < website/src/lib/website-db.ts
 ```
 
-> **Baseline:** 4485 · **Target:** ≤ 3000 (danach aus `s1.ignore`) · **Aufwand:** mittel-hoch (~2 Wochen) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
+> **Baseline:** 4435 (war 4485) · **Target:** ≤ 3000 (danach aus `s1.ignore`) · **Aufwand:** mittel-hoch (~2 Wochen) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
 
 ## G-SIZE04 — Netto-Quell-LOC/Woche: Budget ≤ +2000 (Policy)
 
 **Was:** Netto-Zeilenänderung (added − deleted) der Quellsprachen/Woche, ohne node_modules/Vendored. Ein Budget macht Bulk-Importe als Ausreißer sofort sichtbar, statt unbemerkt G-RH01/S1 zu füllen.
 
-**Warum erreichbar:** Repo ist aktuell netto negativ (~−1500 LOC/Woche, Refactoring überwiegt). ≤ +2000/Woche lässt normale Feature-Arbeit zu. **Achtung Shallow-Clone:** der Graft-Commit (Initial-Import 2026-06-20) muss ausgeschlossen werden, sonst meldet der naive 7-Tage-Lauf falsche +317743.
+**Warum erreichbar:** Repo ist aktuell netto negativ (~−800 LOC/Woche, Refactoring überwiegt). ≤ +2000/Woche lässt normale Feature-Arbeit zu. **Achtung Shallow-Clone:** der Graft-Commit (Initial-Import 2026-06-20) muss ausgeschlossen werden (`--since="2026-06-21"`), sonst meldet der naive 7-Tage-`date -d`-Lauf falsche +320671 (verifiziert in diesem Refresh).
 
 ```bash
 git log --since="2026-06-21" --no-merges --numstat --pretty=tformat: \
@@ -425,7 +427,7 @@ git log --since="2026-06-21" --no-merges --numstat --pretty=tformat: \
   | awk 'NF==3 && $1!="-"{a+=$1;d+=$2} END{printf "net=%+d (added=%d deleted=%d)\n",a-d,a,d}'
 ```
 
-> **Baseline:** ~ −1500 LOC/Woche (graft-bereinigt) · **Target:** ≤ +2000/Woche · **Aufwand:** Policy · **Messzyklus:** wöchentlich · **Reproduzierbar:** eingeschränkt (Graft-Ausschluss nötig)
+> **Baseline:** ~ −800 LOC/Woche (graft-bereinigt) · **Target:** ≤ +2000/Woche · **Aufwand:** Policy · **Messzyklus:** wöchentlich · **Reproduzierbar:** eingeschränkt (Graft-Ausschluss nötig)
 
 ---
 
@@ -469,11 +471,11 @@ grep -q "npm ci" website/Dockerfile && grep -q "pnpm" .github/workflows/ci.yml  
 
 > **Baseline:** inkonsistent (npm-Build + pnpm-Test) · **Target:** ein PM (pnpm) in Build + Test · **Aufwand:** mittel (Dockerfile-Umbau) · **Messzyklus:** einmalig · **Reproduzierbar:** ja
 
-## G-DEP04 — Deploybare package.json ohne `engines >= 22.13.0`: 6 → 0
+## G-DEP04 — Deploybare package.json ohne `engines >= 22.13.0`: 0 → 0 (erreicht, halten)
 
-**Was:** Root pinnt korrekt `>=22.13.0`, aber website, brett, mediaviewer-widget, VideoVault, studio-server haben **kein** `engines`-Feld, mentolder-web pinnt veraltetes `>=20`. 6/7 weichen ab → stille Node-Version-Drift, kein fail-fast (pnpm 11 braucht ≥ 22.13).
+**Was:** Alle 7 deploybaren `package.json` (root, website, brett, mentolder-web, mediaviewer-widget, VideoVault, studio-server) pinnen jetzt korrekt `engines.node >= 22.13.0`. Zuvor wichen 6/7 ab → stille Node-Version-Drift; jetzt fail-fast konsistent (pnpm 11 braucht ≥ 22.13).
 
-**Warum erreichbar:** 6 Ein-Zeilen-Edits, Vorlage in `.nvmrc` + Root-package.json. Kein Build-Impact.
+**Warum erreichbar:** Bereits 0. Halten: CI-Guard / neue Pakete mit `engines`-Feld anlegen.
 
 ```bash
 c=0; for p in package.json website/package.json brett/package.json mentolder-web/package.json \
@@ -482,7 +484,7 @@ c=0; for p in package.json website/package.json brett/package.json mentolder-web
   [ "$v" != ">=22.13.0" ] && c=$((c+1)); done; echo "abweichend: $c"
 ```
 
-> **Baseline:** 6 · **Target:** 0 · **Aufwand:** ~30 min · **Messzyklus:** einmalig + CI-Guard · **Reproduzierbar:** ja
+> **Baseline:** 0 (war 6) · **Target:** 0 (erreicht) · **Aufwand:** CI-Guard halten · **Messzyklus:** einmalig + CI-Guard · **Reproduzierbar:** ja
 
 ## G-DEP05 — Renovate/Dependency-PR-Backlog: ≤ 3 (Policy)
 
@@ -497,9 +499,9 @@ gh pr list --state open --json author,labels \
 
 > **Baseline:** 0 · **Target:** ≤ 3 · **Aufwand:** Policy · **Messzyklus:** wöchentlich · **Reproduzierbar:** mit gh
 
-## G-IMG01 — Ungepinnte Fremd-Images (kein @sha256): 43 → 0
+## G-IMG01 — Ungepinnte Fremd-Images (kein @sha256): 39 → 0
 
-**Was:** 43 eindeutige Fremd-Images in `k3d/`/`prod*/`, die nur per veränderlichem Tag statt @sha256-Digest referenziert werden (busybox, oauth2-proxy, pgvector, nextcloud:33-apache, livekit/*, grafana/*, prometheus/*, …). Ein Tag kann unter dem Pod neu gepusht werden → stille, nicht reviewte Bytes (Supply-Chain-Risiko). Bewusst auf `:latest` gepinnte **eigene** Images (website, brett, docs, videovault, mediaviewer-widget, mentolder-web) sind ausgeschlossen.
+**Was:** 39 eindeutige Fremd-Images in `k3d/`/`prod*/`, die nur per veränderlichem Tag statt @sha256-Digest referenziert werden (busybox, oauth2-proxy, pgvector, nextcloud:33-apache, livekit/*, grafana/*, prometheus/*, …). Ein Tag kann unter dem Pod neu gepusht werden → stille, nicht reviewte Bytes (Supply-Chain-Risiko). Bewusst auf `:latest` gepinnte **eigene** Images (website, brett, docs, videovault, mediaviewer-widget, mentolder-web) sind ausgeschlossen.
 
 **Warum erreichbar:** Präzedenz: 6 Refs sind bereits digest-gepinnt. Renovate `pinDigests` hält Digests nach dem einmaligen Pinnen automatisch frisch. 43 ist eine endliche Menge (2–3 Sessions).
 
@@ -510,13 +512,13 @@ grep -rhE '^[[:space:]]*-?[[:space:]]*image:[[:space:]]+["'"'"']?[A-Za-z0-9$]' k
   | sed -E 's/.*image:[[:space:]]*//; s/["'"'"']//g; s/[[:space:]]*#.*//' | sort -u | wc -l
 ```
 
-> **Baseline:** 43 unique · **Target:** 0 · **Aufwand:** 2–3 Sessions + Renovate pinDigests · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
+> **Baseline:** 39 unique (war 43) · **Target:** 0 · **Aufwand:** 2–3 Sessions + Renovate pinDigests · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
 
-## G-IMG02 — Fremd-Image-Versions-Drift (gleiches Image, ≠ Tags): 3 → 0
+## G-IMG02 — Fremd-Image-Versions-Drift (gleiches Image, ≠ Tags): 0 → 0 (erreicht, halten)
 
-**Was:** 3 Image-Familien in mehreren Versionen gleichzeitig: busybox (1.36/1.37/1.38.0), kiwigrid/k8s-sidecar (2.5.0 docker.io / 2.7.3 quay.io), curlimages/curl (8.7.1/8.11.0). Vergrößert unnötig Angriffsfläche/Cache, erschwert CVE-Triage.
+**Was:** Keine Image-Familie mehr in mehreren Versionen gleichzeitig. Zuvor 3 Drifts (busybox 1.36/1.37/1.38.0, kiwigrid/k8s-sidecar 2.5.0/2.7.3, curlimages/curl 8.7.1/8.11.0) — alle auf je eine kanonische Version vereinheitlicht. Reduziert Angriffsfläche/Cache, erleichtert CVE-Triage.
 
-**Warum erreichbar:** 3 Familien auf je eine kanonische Version (+ einheitliche Registry) vereinheitlichen. Utility-Images ohne Funktionsrisiko (~1 h).
+**Warum erreichbar:** Bereits 0. Halten: neue Image-Refs gegen die bestehende kanonische Version prüfen.
 
 ```bash
 grep -rhE '^[[:space:]]*-?[[:space:]]*image:[[:space:]]+["'"'"']?[A-Za-z0-9$]' k3d/ prod*/ 2>/dev/null \
@@ -526,7 +528,7 @@ grep -rhE '^[[:space:]]*-?[[:space:]]*image:[[:space:]]+["'"'"']?[A-Za-z0-9$]' k
   | awk -F'\t' '{c[$1]++} END{n=0; for(k in c) if(c[k]>1) n++; print n}'
 ```
 
-> **Baseline:** 3 · **Target:** 0 · **Aufwand:** ~1 h · **Messzyklus:** pro Merge an Manifesten · **Reproduzierbar:** ja
+> **Baseline:** 0 (war 3) · **Target:** 0 (erreicht) · **Aufwand:** halten · **Messzyklus:** pro Merge an Manifesten · **Reproduzierbar:** ja
 
 ---
 
@@ -585,17 +587,17 @@ for f in environments/certs/*.pem; do \
 
 > **Baseline:** 3622 Tage · **Target:** ≥ 30 Tage Warnschwelle · **Aufwand:** Monitor · **Messzyklus:** monatlich · **Reproduzierbar:** ja
 
-## G-SEC05 — Unsignierte Commits auf main (letzte 50): ~26 % → ≤ 5 %
+## G-SEC05 — Unsignierte Commits auf main (letzte 50): ~10 % → ≤ 5 %
 
 **Was:** Anteil der letzten 50 main-Commits ohne gültige Signatur (`%G?` = `N`). Signierte Commits sichern Provenienz/Supply-Chain-Integrität — wichtig bei mehreren Agenten + Factory, die auf main pushen.
 
-**Warum erreichbar:** 13/50 unsigniert. Commit-Signing für Factory-Bot + lokale Sessions konfigurieren (gpg/ssh-signing). Der `N`-Anteil ist maschinenunabhängig reproduzierbar (anders als `G`/`E`, die vom lokalen Keyring abhängen).
+**Warum erreichbar:** 5/50 unsigniert (war 13/50). Commit-Signing für Factory-Bot + lokale Sessions weiter durchsetzen (gpg/ssh-signing). Der `N`-Anteil ist maschinenunabhängig reproduzierbar (anders als `G`/`E`, die vom lokalen Keyring abhängen).
 
 ```bash
 git log -50 --pretty='%G?' main | grep -c N
 ```
 
-> **Baseline:** 13/50 (~26 %) · **Target:** ≤ 5 % · **Aufwand:** ~0.5 Tag (Signing-Setup) · **Messzyklus:** monatlich · **Reproduzierbar:** ja (driftet mit neuen Commits)
+> **Baseline:** 5/50 (~10 %) · **Target:** ≤ 5 % · **Aufwand:** ~0.5 Tag (Signing-Setup) · **Messzyklus:** monatlich · **Reproduzierbar:** ja (driftet mit neuen Commits)
 
 ---
 
@@ -613,17 +615,17 @@ python3 -c "import yaml,glob; D=[s for f in glob.glob('k3d/*.yaml') for s in yam
 
 > **Baseline:** 0/34 · **Target:** dauerhaft 0 · **Aufwand:** Policy · **Messzyklus:** pro neuem Deployment · **Reproduzierbar:** ja
 
-## G-K8S02 — Deployments ohne readinessProbe: 10 → ≤ 3
+## G-K8S02 — Deployments ohne readinessProbe: 3 → ≤ 3 (Target erreicht)
 
-**Was:** 10/34 Deployments ohne readinessProbe (9 davon ganz ohne Probe): livekit-{redis,server,ingress,egress}, mailpit, nextcloud, ntfy, recovery-browser, sessions-server, nats. Ohne readinessProbe leitet Traefik Traffic an nicht-bereite Pods → 502/503 bei Rollouts.
+**Was:** 3/34 Deployments ohne readinessProbe (war 10/34). Die verbleibenden 3 dürfen begründet probe-los bleiben (livekit-egress/-ingress headless/hostNetwork, recovery-browser ephemer). Ohne readinessProbe leitet Traefik Traffic an nicht-bereite Pods → 502/503 bei Rollouts.
 
-**Warum erreichbar:** Die meisten exponieren einen HTTP/TCP-Port; eine Probe ist ~5 Zeilen YAML. 3 dürfen begründet probe-los bleiben (livekit-egress/-ingress headless/hostNetwork, recovery-browser ephemer).
+**Warum erreichbar:** Bereits auf Target. Halten: neue HTTP/TCP-exponierende Deployments mit Probe (~5 Zeilen YAML) anlegen.
 
 ```bash
 python3 -c "import yaml,glob; D=[s for f in glob.glob('k3d/*.yaml') for s in yaml.safe_load_all(open(f)) if isinstance(s,dict) and s.get('kind')=='Deployment']; print(sum(1 for x in D if not all(c.get('readinessProbe') for c in x['spec']['template']['spec']['containers'])),'of',len(D))"
 ```
 
-> **Baseline:** 10/34 · **Target:** ≤ 3 · **Aufwand:** ~1 Tag (~7 Probes) · **Messzyklus:** pro Manifest-Änderung · **Reproduzierbar:** ja
+> **Baseline:** 3/34 (war 10/34) · **Target:** ≤ 3 (erreicht) · **Aufwand:** halten · **Messzyklus:** pro Manifest-Änderung · **Reproduzierbar:** ja
 
 ## G-K8S03 — Deployments ohne securityContext: 3 → 0
 
@@ -649,30 +651,30 @@ timeout 150 task workspace:validate >/dev/null 2>&1; echo "Exit: $?"
 
 > **Baseline:** Exit 0 (162 Ressourcen) · **Target:** Exit 0, immer · **Aufwand:** Policy · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
 
-## G-CFG01 — `env:validate:all` grün: FAIL (Exit 5) → Exit 0  ⚠️ AKTIVER DEFEKT
+## G-CFG01 — `env:validate:all` grün: Exit 0 (behoben, halten)
 
-**Was:** `task env:validate:all` prüft jedes `environments/<env>.yaml` gegen `environments/schema.yaml` (autoritative Var-Liste). **Aktuell ROT (Exit 5):** required `env_var` **`POCKET_ID_DOMAIN` fehlt in fleet-mentolder, korczewski, mentolder, staging** (4 Umgebungen). Drift gegen das Schema schlägt sonst erst spät beim Prod-Deploy (`envsubst`/Setup) fehl. CLAUDE.md nennt envsubst/schema-Sync explizit als Footgun.
+**Was:** `task env:validate:all` prüft jedes `environments/<env>.yaml` gegen `environments/schema.yaml` (autoritative Var-Liste). **Jetzt grün (Exit 0):** der zuvor fehlende `POCKET_ID_DOMAIN` (4 Umgebungen) wurde ergänzt — alle envs schema-konform. Drift gegen das Schema schlägt sonst erst spät beim Prod-Deploy (`envsubst`/Setup) fehl. CLAUDE.md nennt envsubst/schema-Sync explizit als Footgun.
 
-**Warum erreichbar:** Konkreter, sofort behebbarer Defekt: `POCKET_ID_DOMAIN` in den 4 env-Dateien ergänzen (oder im Schema als optional markieren, falls bewusst entfernt). ~30 min.
+**Warum erreichbar:** Bereits behoben. Halten: neue `${VAR}`-Referenz immer in `environments/schema.yaml` + envsubst-Listen registrieren (siehe envsubst-Footgun).
 
 ```bash
 task env:validate:all; echo "exit=$?"
 ```
 
-> **Baseline:** FAIL Exit 5 (POCKET_ID_DOMAIN ×4) · **Target:** Exit 0 (alle envs schema-konform) · **Aufwand:** ~30 min · **Messzyklus:** pro Merge (CI-tauglich) · **Reproduzierbar:** ja
+> **Baseline:** Exit 0 (war FAIL Exit 5; POCKET_ID_DOMAIN ergänzt) · **Target:** Exit 0 (erreicht) · **Aufwand:** Policy · **Messzyklus:** pro Merge (CI-tauglich) · **Reproduzierbar:** ja
 
 ## G-DATA01 — DB-Backup-Freshness: jüngster Erfolg < 26h + 0 Failed/7d
 
 **Was:** Der `db-backup`-CronJob (`schedule '0 2 * * *'`) sichert die geteilte PostgreSQL. DSGVO-/Thesis-kritisch (alles on-premise, kein Cloud-Fallback). Ein lautlos hängender Backup-Job = Datenverlust-Risiko — bislang kein Health-Gate dafür.
 
-**Warum erreichbar:** Aktuell gesund (jüngster Complete-Job ~23h, `lastSuccessfulTime` 2026-06-26). Ein 26h-Frische-Check + „0 Failed-Jobs/7d" formalisiert nur die Überwachung. Cluster-abhängig (`fleet`-Kontext).
+**Warum erreichbar:** Aktuell gesund (jüngster Complete-Job ~5 h alt, `lastSuccessfulTime` 2026-06-27T00:01:42Z; **0 Failed-Jobs im 7-Tage-Fenster** — die 2 Failures sind 8 bzw. 12 Tage alt, außerhalb des Fensters). Ein 26h-Frische-Check + „0 Failed-Jobs/7d" formalisiert nur die Überwachung. Cluster-abhängig (`fleet`-Kontext).
 
 ```bash
 kubectl --context fleet -n workspace get cronjob db-backup -o jsonpath='{.status.lastSuccessfulTime}'; echo
 kubectl --context fleet -n workspace get jobs -l app=db-backup --sort-by=.metadata.creationTimestamp | tail -3
 ```
 
-> **Baseline:** gesund (~23h, 1 Failed-Job vor 8d) · **Target:** jüngster Erfolg < 26h UND 0 Failed/7d · **Aufwand:** Monitor (+ optional Alert) · **Messzyklus:** täglich · **Reproduzierbar:** eingeschränkt (Cluster nötig)
+> **Baseline:** gesund (~5h, 0 Failed/7d) · **Target:** jüngster Erfolg < 26h UND 0 Failed/7d · **Aufwand:** Monitor (+ optional Alert) · **Messzyklus:** täglich · **Reproduzierbar:** eingeschränkt (Cluster nötig)
 
 ---
 
@@ -680,18 +682,18 @@ kubectl --context fleet -n workspace get jobs -l app=db-backup --sort-by=.metada
 
 > **Hinweis zu Erfolgsraten (G-CI/G-CD):** `gh run list --limit N` ist ein **gleitendes Fenster** — der Wert verschiebt sich mit jedem neuen Lauf. Für stabile, reproduzierbare Messung ein fixes `--created`-Zeitfenster verwenden.
 
-## G-CI01 — main `ci.yml`-Erfolgsrate (letzte 20): 100 % → ≥ 95 % halten
+## G-CI01 — main `ci.yml`-Erfolgsrate (letzte 20): 95 % → ≥ 95 % halten
 
 **Was:** Anteil erfolgreicher `ci.yml`-Push-Läufe auf main (bündelt die required Jobs Offline Tests, Security Scan, Brett TS, Vitest). Sinkende Rate = fehlerhafte Commits landen trotz grünem PR auf main (Merge-Skew, flaky Gates).
 
-**Warum erreichbar:** Aktuell 20/20 grün. Da PRs nur mit grünem Gate squash-gemergt werden, ist ≥ 95 % reine Erhaltung (kein Direct-/Force-Push, flaky Tests fixen statt rerun).
+**Warum erreichbar:** Aktuell 19/20 grün (1 Failure im gleitenden Fenster, genau an der ≥95-%-Schwelle). Da PRs nur mit grünem Gate squash-gemergt werden, ist ≥ 95 % reine Erhaltung (kein Direct-/Force-Push, flaky Tests fixen statt rerun).
 
 ```bash
 timeout 60 gh-axi run list --workflow ci.yml --branch main --limit 20 \
   | grep -oE 'completed,(success|failure|cancelled)' | sort | uniq -c
 ```
 
-> **Baseline:** 100 % (20/20) · **Target:** ≥ 95 % · **Aufwand:** Policy · **Messzyklus:** wöchentlich · **Reproduzierbar:** eingeschränkt (gleitendes Fenster)
+> **Baseline:** 95 % (19/20) · **Target:** ≥ 95 % · **Aufwand:** Policy · **Messzyklus:** wöchentlich · **Reproduzierbar:** eingeschränkt (gleitendes Fenster)
 
 ## G-CI02 — Rote required-Läufe auf main-HEAD: 0
 
@@ -718,18 +720,18 @@ timeout 60 gh-axi run list --workflow build-website-korczewski.yml --branch main
 
 > **Baseline:** 27 % (4/15) · **Target:** ≥ 90 % · **Aufwand:** ~1 Debug-Session · **Messzyklus:** wöchentlich · **Reproduzierbar:** eingeschränkt (gleitendes Fenster)
 
-## G-CD02 — `post-merge.yml`-Erfolgsrate: 87 % → ≥ 95 %
+## G-CD02 — `post-merge.yml`-Erfolgsrate: 93 % → ≥ 95 %
 
-**Was:** Erfolgsrate des post-merge-Workflows (letzte 15: 13/15 = 87 %). Ein roter Lauf = nachgelagerte Schritte (Freshness-Regen/Deploy-Trigger) schlagen nach Merge fehl, ohne den Merge zu blocken → stille Drift main ↔ generierte Artefakte/Cluster.
+**Was:** Erfolgsrate des post-merge-Workflows (letzte 15: 14/15 = 93 %). Ein roter Lauf = nachgelagerte Schritte (Freshness-Regen/Deploy-Trigger) schlagen nach Merge fehl, ohne den Merge zu blocken → stille Drift main ↔ generierte Artefakte/Cluster.
 
-**Warum erreichbar:** Nur 2 Failures/15, überwiegend grün. Typisch transiente Git-/Push-Races bei der Freshness-Auto-Regen — gezielter Retry-/Rebase-Guard härtet auf ≥ 95 %.
+**Warum erreichbar:** Nur 1 Failure/15, überwiegend grün. Typisch transiente Git-/Push-Races bei der Freshness-Auto-Regen — gezielter Retry-/Rebase-Guard härtet auf ≥ 95 %.
 
 ```bash
 timeout 60 gh-axi run list --workflow post-merge.yml --branch main --limit 15 \
   | grep -oE 'completed,(success|failure)' | sort | uniq -c
 ```
 
-> **Baseline:** 87 % (13/15) · **Target:** ≥ 95 % · **Aufwand:** klein (Race-Guard) · **Messzyklus:** wöchentlich · **Reproduzierbar:** eingeschränkt (gleitendes Fenster)
+> **Baseline:** 93 % (14/15) · **Target:** ≥ 95 % · **Aufwand:** klein (Race-Guard) · **Messzyklus:** wöchentlich · **Reproduzierbar:** eingeschränkt (gleitendes Fenster)
 
 ---
 
@@ -747,7 +749,7 @@ timeout 60 gh-axi run list --workflow post-merge.yml --branch main --limit 15 \
 git log --since="4 weeks ago" --first-parent --oneline main | wc -l   # /4 = Merges/Woche (NUR auf Voll-Clone aussagekräftig)
 ```
 
-> **Baseline:** ~166/Woche (~24/Tag; Shallow-Artefakt) · **Target:** ≥ 5/Woche, Trend auf /admin/dora · **Aufwand:** Policy/Tracking · **Messzyklus:** wöchentlich · **Reproduzierbar:** eingeschränkt (Shallow → DB)
+> **Baseline:** ~183/Woche (~26/Tag; Shallow-Artefakt) · **Target:** ≥ 5/Woche, Trend auf /admin/dora · **Aufwand:** Policy/Tracking · **Messzyklus:** wöchentlich · **Reproduzierbar:** eingeschränkt (Shallow → DB)
 
 ## G-DORA02 — Lead Time (PR-open → merge): Elite-Median ≤ 1h halten
 
@@ -764,9 +766,9 @@ gh-axi api 'repos/{owner}/{repo}/pulls?state=closed&base=main&per_page=80&sort=u
 
 ## G-DORA03 — Change Failure Rate (Proxy): ≤ 15 % halten
 
-**Was:** Anteil Merges mit späterem Rollback/Fix. Spiegelt `dora-dashboard.md` (CFR = (Reverts + Bug-Tickets)/Merges, explizit Proxy). git-strikt = revert/hotfix-Commits (0 %); git-breit zählt `fix()`-Commits als Bug-Näherung (16.7 %). *Caveat:* `fix()` ≠ Prod-Ausfall — spec-exakte CFR braucht Bug-Tickets aus der DB.
+**Was:** Anteil Merges mit späterem Rollback/Fix. Spiegelt `dora-dashboard.md` (CFR = (Reverts + Bug-Tickets)/Merges, explizit Proxy). git-strikt = revert/hotfix-Commits (0 %); git-breit zählt `fix()`-Commits als Bug-Näherung (15.8 %). *Caveat:* `fix()` ≠ Prod-Ausfall — spec-exakte CFR braucht Bug-Tickets aus der DB.
 
-**Warum erreichbar:** Strikte Revert-Rate 0 %; breiter Proxy 16.7 % knapp über Elite (0–15 %). Rückgang ≤ 15 % über konsequente Bug-Triage + CI-Gates.
+**Warum erreichbar:** Strikte Revert-Rate 0 %; breiter Proxy 15.8 % knapp über Elite (0–15 %). Rückgang ≤ 15 % über konsequente Bug-Triage + CI-Gates.
 
 ```bash
 T=$(git log --since="8 weeks ago" --first-parent --oneline main | wc -l)
@@ -775,7 +777,7 @@ F=$(git log --since="8 weeks ago" --first-parent --oneline main | grep -ciE '^[0
 python3 -c "print(f'merges={$T} reverts={$R} ({$R/$T*100:.1f}% strikt) +fix()={$F} -> {($R+$F)/$T*100:.1f}% breit')"
 ```
 
-> **Baseline:** 16.7 % breit / 0 % strikt · **Target:** ≤ 15 % (Elite), strikt 0 % · **Aufwand:** ~1 Woche + laufend · **Messzyklus:** wöchentlich · **Reproduzierbar:** eingeschränkt (Shallow/Proxy; DB für exakt)
+> **Baseline:** 15.8 % breit / 0 % strikt · **Target:** ≤ 15 % (Elite), strikt 0 % · **Aufwand:** ~1 Woche + laufend · **Messzyklus:** wöchentlich · **Reproduzierbar:** eingeschränkt (Shallow/Proxy; DB für exakt)
 
 ## G-DORA04 — MTTR: Median < 24h halten
 
@@ -797,7 +799,7 @@ git log --since="8 weeks ago" --first-parent --format='%ct %s' main | grep -iE '
 
 **Was:** Offene PRs >7 Tage = Review-Stau: divergieren von main, sammeln Konflikte (CONFLICTING blockt sogar CI), binden Kontext. Ergänzt G-RH04 (stale Branches) um die PR-Flow-Seite.
 
-**Warum erreichbar:** Aktuell 0 (2 offen, beide 0d). Reine Disziplin: `gh pr merge --squash --auto` direkt nach PR-Erstellung hält die Liste leer.
+**Warum erreichbar:** Aktuell 0 (0 offene PRs). Reine Disziplin: `gh pr merge --squash --auto` direkt nach PR-Erstellung hält die Liste leer.
 
 ```bash
 gh pr list --state open --json number,createdAt | python3 -c "
@@ -807,7 +809,7 @@ a=[(n-datetime.fromisoformat(x['createdAt'].replace('Z','+00:00'))).days for x i
 print('open:',len(p),'| >7d:',sum(x>7 for x in a),'| oldest:',max(a) if a else 0,'d')"
 ```
 
-> **Baseline:** 0 >7d (2 offen) · **Target:** dauerhaft 0 · **Aufwand:** Policy · **Messzyklus:** täglich · **Reproduzierbar:** mit gh
+> **Baseline:** 0 >7d (0 offen) · **Target:** dauerhaft 0 · **Aufwand:** Policy · **Messzyklus:** täglich · **Reproduzierbar:** mit gh
 
 ## G-GIT02 — Non-conventional Commit-Subjects (letzte 30 auf main): 0
 
@@ -821,22 +823,22 @@ git log --format=%s -30 origin/main | grep -vcE '^(feat|fix|chore|docs|refactor|
 
 > **Baseline:** 0/30 · **Target:** dauerhaft 0 · **Aufwand:** Policy (CI-Gate) · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
 
-## G-GIT03 — Dateien > 1MB im Tree (kein LFS): 11 → ≤ 6
+## G-GIT03 — Dateien > 1MB im Tree (kein LFS): 6 → ≤ 6 (Target erreicht)
 
-**Was:** 11 git-getrackte Dateien >1MB, git-lfs inaktiv (0 LFS-Dateien). Größte: `kube-prometheus-stack-rendered.yaml` (4.98MB, gerendert), 2× `og-image-square.png` (je 1.8MB, massiv überdimensioniert), 3× generierte docs-HTML (~2.3MB). Große Blobs blähen jeden Clone auf.
+**Was:** 6 git-getrackte Dateien >1MB (war 11), git-lfs inaktiv. Verbleibend: `kube-prometheus-stack-rendered.yaml` (~4MB, gerendert), 2× datamodel-workflow.html + db-schema.html (generierte docs-HTML, je ~2MB), `assets/grilling-brett-admin-panel/Brett` (~2MB), `environments/korczewski/KERN` (~1MB). Die überdimensionierten OG-PNGs sind optimiert. Große Blobs blähen jeden Clone auf.
 
-**Warum erreichbar:** ~5 sofort reduzierbar: gerendertes Prometheus-YAML regenerieren/gitignoren; OG-PNGs verlustfrei auf <1MB (echte OG-Bilder ~150KB). Generierte docs-HTML + User-Uploads bleiben legitim >1MB → Target ≤6 statt 0. Net-Zero (keine neuen >1MB) sofort.
+**Warum erreichbar:** Bereits auf Target. Weiter senkbar: gerendertes Prometheus-YAML regenerieren/gitignoren. Generierte docs-HTML bleiben legitim >1MB. Net-Zero (keine neuen >1MB) halten.
 
 ```bash
 git ls-files -z | xargs -0 -I{} sh -c 'test -f "{}" && wc -c "{}"' 2>/dev/null \
   | awk '$1>1048576{c++} END{print c+0}'
 ```
 
-> **Baseline:** 11 (LFS aus) · **Target:** ≤ 6 · **Aufwand:** ~0.5 Tag (Asset-Optimierung) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
+> **Baseline:** 6 (war 11; LFS aus) · **Target:** ≤ 6 (erreicht) · **Aufwand:** halten + optional Prometheus-YAML gitignoren · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
 
 ## G-SPEC01 — `openspec:validate` grün: Exit 1 (8 FAIL · 2 WARN) → Exit 0
 
-**Was:** Fail-closed CI-Gate `task openspec:validate` (`scripts/openspec.sh`) prüft jeden nicht-archivierten change auf gültige `specs/`-Delta-Struktur + `.ticket`-Verknüpfung. **Aktuell Exit 1:** 8 changes ohne `specs/`-Delta-Dir (reine Skelette: bats-coverage-batch1, cockpit-bulk-status, cockpit-filter-presets, cockpit-mobile-view, mentolder-react-rebuild, s1-violations-batch1, test-slug, ticket-mcp-go), 2 ohne `.ticket`.
+**Was:** Fail-closed CI-Gate `task openspec:validate` (`scripts/openspec.sh`) prüft jeden nicht-archivierten change auf gültige `specs/`-Delta-Struktur + `.ticket`-Verknüpfung. **Aktuell Exit 1:** 8 changes ohne `specs/`-Delta-Dir (reine Skelette: bats-coverage-batch1, cockpit-bulk-status, cockpit-filter-presets, cockpit-mobile-view, mentolder-react-rebuild, s1-violations-batch1, test-slug, ticket-mcp-go), 2 WARN ohne `.ticket` (agent-push-notifications, ai-ticket-auto-triage).
 
 **Warum erreichbar:** Reines Aufräumen vorhandener Artefakte: pro Skelett `specs/`-Delta nachreichen oder via `openspec:archive`/Löschung entfernen (z.B. `test-slug`). 8 Fälle, je ~15–30 min.
 
@@ -859,11 +861,11 @@ for d in openspec/changes/*/; do b=$(basename "$d"); [ "$b" = archive ] && conti
   [ $(((NOW-ts)/86400)) -gt 30 ] && n=$((n+1)); done; echo "older30=$n"
 ```
 
-> **Baseline:** 0 (16 nicht-archiviert, älteste 6d) · **Target:** dauerhaft 0 · **Aufwand:** Policy · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
+> **Baseline:** 0 (18 nicht-archiviert, alle ≤30d) · **Target:** dauerhaft 0 · **Aufwand:** Policy · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
 
 ## G-SPEC03 — Proposals ohne Ticket-Verknüpfung (.ticket): 10 → 0
 
-**Was:** 10/16 nicht-archivierte changes ohne `.ticket`-Datei (externe Ticket-ID). Ohne sie kann `openspec.sh` den Status nicht auf `plan_staged` ziehen; Rückverfolgbarkeit Proposal→Ticket→Merge geht verloren. `validate` meldet das nur als WARN und nur für changes, die die specs-Prüfung überstehen → echte Schuld größer als die validate-Ausgabe (G-SPEC01) suggeriert.
+**Was:** 10/18 nicht-archivierte changes ohne `.ticket`-Datei (externe Ticket-ID). Ohne sie kann `openspec.sh` den Status nicht auf `plan_staged` ziehen; Rückverfolgbarkeit Proposal→Ticket→Merge geht verloren. `validate` meldet das nur als WARN und nur für changes, die die specs-Prüfung überstehen → echte Schuld größer als die validate-Ausgabe (G-SPEC01) suggeriert.
 
 **Warum erreichbar:** Mehrere sind Skelette, die in G-SPEC01 ohnehin aufgeräumt werden. Für echte Proposals nur `echo Txxxxxx > openspec/changes/<slug>/.ticket`. ~0.5 Tag inkl. Cleanup.
 
@@ -872,17 +874,17 @@ m=0; for d in openspec/changes/*/; do b=$(basename "$d"); [ "$b" = archive ] && 
   [ -f "$d/.ticket" ] || m=$((m+1)); done; echo "no-ticket=$m"
 ```
 
-> **Baseline:** 10/16 · **Target:** 0 · **Aufwand:** ~0.5 Tag · **Messzyklus:** pro neuem Proposal · **Reproduzierbar:** ja
+> **Baseline:** 10/18 · **Target:** 0 · **Aufwand:** ~0.5 Tag · **Messzyklus:** pro neuem Proposal · **Reproduzierbar:** ja
 
 ---
 
 # 10. Dokumentation
 
-## G-DOC01 — Defekte interne Doc-Links: 9 → 0
+## G-DOC01 — Defekte interne Doc-Links: 0 → 0 (erreicht, halten)
 
-**Was:** Relative `.md`-Links in Root-MDs + `docs/`, die auf nicht existierende Ziele zeigen (9/29 geprüfte interne Links kaputt): 1× falsche db-audit-Cross-Reference, 1× Prosa-Beispiel `file.md`, 7× noch nicht angelegte `behaviors/*.md` + `prompts/*.md` aus dem Agent-Library-Plan. Tote Doku → Leser und Agenten (plan-context-Auflösung) laufen ins Leere.
+**Was:** Relative `.md`-Links in Root-MDs + `docs/`, die auf nicht existierende Ziele zeigen: **0/27** (war 9/29). Die zuvor defekten Links (db-audit-Cross-Reference, Prosa-`file.md`, fehlende `behaviors/*.md` + `prompts/*.md`) sind behoben (PR #2125). Tote Doku → Leser und Agenten (plan-context-Auflösung) laufen ins Leere.
 
-**Warum erreichbar:** 9 lokalisierte Treffer: db-audit-Pfad korrigieren, referenzierte Dateien anlegen/Referenzen entfernen, Prosa-`file.md` als Code escapen. Read-only, CI-tauglich.
+**Warum erreichbar:** Bereits 0. Halten: read-only-Check ist CI-tauglich, kein neuer toter Link mergen.
 
 ```bash
 python3 - <<'PY'
@@ -901,7 +903,7 @@ print(f"checked={tot} broken={bad}")
 PY
 ```
 
-> **Baseline:** 9 (von 29) · **Target:** 0 · **Aufwand:** ~1–2 h · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
+> **Baseline:** 0 (von 27; war 9/29) · **Target:** 0 (erreicht) · **Aufwand:** Policy · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
 
 ## G-DOC02 — Root-CLAUDE.md Zeilen: 277 → ≤ 200
 
@@ -969,18 +971,18 @@ pnpm --dir website build >/dev/null 2>&1 && find website/dist -name '*.js' -path
 
 > **Baseline:** unbekannt (Voll-Build nötig) · **Target:** Budget setzen, kein Netto-Zuwachs/Release · **Aufwand:** gering (Messung) + Policy · **Messzyklus:** pro Release · **Reproduzierbar:** eingeschränkt (Build nötig)
 
-## G-FE03 — Stray `console.log/debug/info` + strukturiertes Logging: 3 → 0
+## G-FE03 — Stray `console.log/debug/info` + strukturiertes Logging: 0 stray → 0 + Logger
 
-**Was:** `website/src` nutzt 112 rohe `console.*` (91 error, 18 warn, 3 log/debug/info) und keinen strukturierten Logger (kein pino/winston). Unstrukturiertes Log-Rauschen ohne Level/Korrelation in Prod-Pods erschwert Incident-Triage; die 3 `console.log/debug/info` sind reine Dev-Reste.
+**Was:** `website/src` hat **0** stray `console.log/debug/info` (war 3 — Dev-Reste entfernt), nutzt aber weiter 109 rohe `console.error/warn` und keinen strukturierten Logger (kein pino/winston). Unstrukturiertes Log-Rauschen ohne Level/Korrelation in Prod-Pods erschwert Incident-Triage.
 
-**Warum erreichbar:** Die 3 Dev-Reste sofort entfernbar. Ein schmaler Logger-Wrapper (error/warn über strukturierten Logger) ist ein abgegrenzter Schritt — error/warn lassen sich migrieren statt umschreiben.
+**Warum erreichbar:** Stray-Teil bereits erledigt. Verbleibend: ein schmaler Logger-Wrapper (error/warn über strukturierten Logger) als abgegrenzter Schritt — error/warn lassen sich migrieren statt umschreiben.
 
 ```bash
 echo -n "log/debug/info: "; grep -rEn 'console\.(log|debug|info)' website/src --include='*.ts' --include='*.svelte' --include='*.astro' | wc -l
 echo -n "error/warn: ";     grep -rEn 'console\.(error|warn)'      website/src --include='*.ts' --include='*.svelte' --include='*.astro' | wc -l
 ```
 
-> **Baseline:** 3 stray (+109 error/warn) · **Target:** 0 stray + strukturierter Logger · **Aufwand:** klein (stray) + mittel (Logger) · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
+> **Baseline:** 0 stray (war 3; +109 error/warn) · **Target:** 0 stray + strukturierter Logger · **Aufwand:** mittel (Logger) · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
 
 ---
 
@@ -990,9 +992,9 @@ echo -n "error/warn: ";     grep -rEn 'console\.(error|warn)'      website/src -
 
 | ID | Ziel | Baseline | Target | Aufwand | Repro |
 |----|------|----------|--------|---------|:---:|
-| **G-RH01** | Baselined Gate-Violations (gesamt) | 70 | ≤ 30 | ~3–4 Wo | ✅ |
+| **G-RH01** | Baselined Gate-Violations (gesamt) | 28 ✓ | ≤ 30 | halten | ✅ |
 | **G-RH02** | TypeScript-Suppressionen | 0 | 0 | erreicht | ✅ |
-| **G-RH03** | OpenSpec-BATS-Abdeckung | 28 % | ≥ 60 % | ~3–4 Wo | ✅ |
+| **G-RH03** | OpenSpec-BATS-Abdeckung | 35 % | ≥ 60 % | ~3 Wo | ✅ |
 | **G-RH04** | Stale Remote Branches | 0 | 0 | Policy | ✅ |
 | **G-RH05** | Plan-Staged idle >14d | 0 | 0 | laufend | ✅ |
 | **G-RH06** | Sentinel-Issues >48h | 0 | 0 | Policy | ✅ |
@@ -1002,71 +1004,71 @@ echo -n "error/warn: ";     grep -rEn 'console\.(error|warn)'      website/src -
 | **G-TEST03** | Vitest skip/todo-Suiten | 5 | 0 | ~1 Wo | ✅ |
 | **G-TEST04** | Test-Inventory-Drift | 0 | 0 | Policy | ✅ |
 | **G-TEST05** | Vitest Line-Coverage | — | ≥ 60 % | ~0.5 Tag+ | ⚠️ |
-| **G-CQ01** | astro-check-Fehler | 177 | ≤ 20 | ~2–3 Sess | ✅ |
-| **G-CQ02** | Explizite `any` | 564 | ≤ 280 | ~4–5 Wo | ✅ |
+| **G-CQ01** ⚠️ | astro-check-Fehler | 249 ↑ | ≤ 20 | ~2–3 Sess | ✅ |
+| **G-CQ02** | Explizite `any` | 431 | ≤ 280 | ~3–4 Wo | ✅ |
 | **G-CQ03** | ESLint einrichten | kein ESLint | Gate + 0 | ~1 Tag | ⚠️ |
 | **G-CQ04** | FIXME/HACK/XXX (echt) | 0 | 0 | Policy | ✅ |
-| **G-CQ05** | Echte TODOs | 3 | ≤ 1 | ~2 Sess | ✅ |
-| **G-CQ06** | `@deprecated` | 3 | ≤ 1 | ~1 Sess | ✅ |
-| **G-CQ07** | S2 Import-Zyklen | 4 | 0 | mittel | ✅ |
+| **G-CQ05** | Echte TODOs | 1 ✓ | ≤ 1 | halten | ✅ |
+| **G-CQ06** | `@deprecated` | 1 ✓ | ≤ 1 | halten | ✅ |
+| **G-CQ07** | S2 Import-Zyklen | 0 ✓ | 0 | halten | ✅ |
 | **G-CQ08** | Dead-Code/unused exports | — | −50 % | mittel | ⚠️ |
-| **G-CQ09** | S3 hartkodierte Hostnames | 24 | ≤ 10 | ~2 Sess | ✅ |
-| **G-CQ10** | S4 verwaiste Scripts/Manifeste | 12 | ≤ 4 | ~1 Sess | ✅ |
-| **G-SIZE01** | Freeze-Frühwarn-Band | 35 | ≤ 15 | ~3–4 Wo | ✅ |
+| **G-CQ09** | S3 hartkodierte Hostnames | 0 ✓ | ≤ 10 | halten | ✅ |
+| **G-CQ10** | S4 verwaiste Scripts/Manifeste | 0 ✓ | ≤ 4 | halten | ✅ |
+| **G-SIZE01** | Freeze-Frühwarn-Band | 38 | ≤ 15 | ~3–4 Wo | ✅ |
 | **G-SIZE02** | Großdateien außerhalb Gate | 18 | ≤ 8 | ~2–3 Wo | ✅ |
-| **G-SIZE03** | God-File website-db.ts | 4485 | ≤ 3000 | ~2 Wo | ✅ |
-| **G-SIZE04** | Netto-LOC/Woche | ~ −1500 | ≤ +2000 | Policy | ⚠️ |
+| **G-SIZE03** | God-File website-db.ts | 4435 | ≤ 3000 | ~2 Wo | ✅ |
+| **G-SIZE04** | Netto-LOC/Woche | ~ −800 | ≤ +2000 | Policy | ⚠️ |
 | **G-DEP01** | High/Critical npm-Vulns | 6 | 0 | ~1–2 h | ⚠️ |
 | **G-DEP02** | Veraltete Major-Deps | 9 | ≤ 3 | ~1–2 Tage | ⚠️ |
 | **G-DEP03** | PM-Konsistenz website (npm+pnpm) | inkonsistent | 1 PM (pnpm) | mittel | ✅ |
-| **G-DEP04** | package.json ohne engines | 6 | 0 | ~30 min | ✅ |
+| **G-DEP04** | package.json ohne engines | 0 ✓ | 0 | halten | ✅ |
 | **G-DEP05** | Renovate-PR-Backlog | 0 | ≤ 3 | Policy | ✅ |
-| **G-IMG01** | Ungepinnte Fremd-Images | 43 | 0 | 2–3 Sess | ✅ |
-| **G-IMG02** | Fremd-Image-Versions-Drift | 3 | 0 | ~1 h | ✅ |
+| **G-IMG01** | Ungepinnte Fremd-Images | 39 | 0 | 2–3 Sess | ✅ |
+| **G-IMG02** | Fremd-Image-Versions-Drift | 0 ✓ | 0 | halten | ✅ |
 | **G-SEC01** | Hardcoded Secrets (k3d) | 0 | 0 | Policy | ✅ |
 | **G-SEC02** | git-crypt Klartext-Leaks | Exit 0 | Exit 0 | Policy | ✅ |
 | **G-SEC03** | SealedSecret-Rotation | 5 Tage | ≤ 90 Tage | 1/Quartal | ✅ |
 | **G-SEC04** | Sealing-Cert Restlaufzeit | 3622 Tage | ≥ 30 Tage | Monitor | ✅ |
-| **G-SEC05** | Unsignierte Commits (main) | ~26 % | ≤ 5 % | ~0.5 Tag | ✅ |
+| **G-SEC05** | Unsignierte Commits (main) | ~10 % | ≤ 5 % | ~0.5 Tag | ✅ |
 | **G-K8S01** | Deployments ohne Limits | 0/34 | 0 | Policy | ✅ |
-| **G-K8S02** | Deployments ohne readinessProbe | 10/34 | ≤ 3 | ~1 Tag | ✅ |
+| **G-K8S02** | Deployments ohne readinessProbe | 3/34 ✓ | ≤ 3 | halten | ✅ |
 | **G-K8S03** | Deployments ohne securityContext | 3/34 | 0 | ~0.5 Tag | ✅ |
 | **G-K8S04** | workspace:validate grün | Exit 0 | Exit 0 | Policy | ✅ |
-| **G-CFG01** ⚠️ | env:validate:all grün | **FAIL (5)** | Exit 0 | ~30 min | ✅ |
-| **G-DATA01** | DB-Backup-Freshness | ~23h | < 26h, 0 fail/7d | Monitor | ⚠️ |
-| **G-CI01** | main ci.yml-Erfolgsrate | 100 % | ≥ 95 % | Policy | ⚠️ |
+| **G-CFG01** | env:validate:all grün | Exit 0 ✓ | Exit 0 | Policy | ✅ |
+| **G-DATA01** | DB-Backup-Freshness | ~5h ✓ | < 26h, 0 fail/7d | Monitor | ⚠️ |
+| **G-CI01** | main ci.yml-Erfolgsrate | 95 % | ≥ 95 % | Policy | ⚠️ |
 | **G-CI02** | rote main-HEAD-Läufe | 0 | 0 | Policy | ⚠️ |
 | **G-CD01** ⚠️ | korczewski-Deploy-Rate | **27 %** | ≥ 90 % | ~1 Sess | ⚠️ |
-| **G-CD02** | post-merge.yml-Rate | 87 % | ≥ 95 % | klein | ⚠️ |
+| **G-CD02** | post-merge.yml-Rate | 93 % | ≥ 95 % | klein | ⚠️ |
 | **G-DORA01** | Deployment Frequency | Elite | ≥ 5/Wo | Policy | ⚠️ |
 | **G-DORA02** | Lead Time | Median 0.03h | ≤ 1h | Policy | ⚠️ |
-| **G-DORA03** | Change Failure Rate | 16.7 % | ≤ 15 % | ~1 Wo | ⚠️ |
+| **G-DORA03** | Change Failure Rate | 15.8 % | ≤ 15 % | ~1 Wo | ⚠️ |
 | **G-DORA04** | MTTR | n/a | < 24h | Policy | ⚠️ |
 | **G-GIT01** | Offene PRs >7 Tage | 0 | 0 | Policy | ✅ |
 | **G-GIT02** | Non-conventional Commits | 0/30 | 0 | Policy | ✅ |
-| **G-GIT03** | Dateien >1MB (kein LFS) | 11 | ≤ 6 | ~0.5 Tag | ✅ |
+| **G-GIT03** | Dateien >1MB (kein LFS) | 6 ✓ | ≤ 6 | halten | ✅ |
 | **G-SPEC01** ⚠️ | openspec:validate grün | **Exit 1** | Exit 0 | ~1 Tag | ✅ |
 | **G-SPEC02** | Changes >30 Tage | 0 | 0 | Policy | ✅ |
-| **G-SPEC03** | Proposals ohne .ticket | 10 | 0 | ~0.5 Tag | ✅ |
-| **G-DOC01** | Defekte interne Doc-Links | 9 | 0 | ~1–2 h | ✅ |
+| **G-SPEC03** | Proposals ohne .ticket | 10/18 | 0 | ~0.5 Tag | ✅ |
+| **G-DOC01** | Defekte interne Doc-Links | 0 ✓ | 0 | Policy | ✅ |
 | **G-DOC02** | CLAUDE.md Zeilen | 277 | ≤ 200 | ~1 Sess | ✅ |
 | **G-DOC03** | README-Index | 1/5 | 5/5 | ~2–3 h | ✅ |
 | **G-DOC04** | Architektur-ADRs | 0 | ≥ 5 | ~5×45 min | ✅ |
 | **G-FE01** | a11y axe-Violations | — | 0 crit/serious | mittel | ⚠️ |
 | **G-FE02** | Client-JS-Bundle-Budget | — | kein Zuwachs | gering+ | ⚠️ |
-| **G-FE03** | Stray console.* + Logger | 3 | 0 + Logger | klein+ | ✅ |
+| **G-FE03** | Stray console.* + Logger | 0 stray | 0 + Logger | mittel (Logger) | ✅ |
 
 ## Sofort-Quick-Wins (hoher Wert, ≤ ~1 Tag)
 
-Diese Ziele sind echte, sofort behebbare Defekte oder Ein-Sitzung-Aufräumarbeiten:
+**Seit dem letzten Stand erledigt:** G-CFG01 (POCKET_ID_DOMAIN ergänzt, env:validate grün) · G-IMG02 (3 Image-Drifts vereinheitlicht) · G-DEP04 (engines.node in allen 7 package.json) · G-DOC01 (9 Doc-Links gefixt) · G-RH01 (S2/S3/S4 komplett abgebaut, 70→28). Außerdem aufgelöst: G-CQ07/09/10, G-K8S02, G-GIT03, G-CQ05/06, G-FE03-stray.
 
-1. **G-CFG01** — `POCKET_ID_DOMAIN` in 4 env-Dateien ergänzen → `env:validate:all` grün *(aktiver Defekt, ~30 min)*
-2. **G-IMG02** — 3 Fremd-Image-Versions-Drifts vereinheitlichen (busybox/curl/k8s-sidecar) *(~1 h)*
-3. **G-DEP04** — `engines.node` in 6 package.json *(~30 min)*
-4. **G-RH01** — ✓ `task quality:baseline:refresh` ausgeführt: 4 stale S3-Einträge entfernt (74→70) *(erledigt)*
-5. **G-CD01** — korczewski-Deploy-Lane debuggen *(~1 Session, behebt 73 % Fehlschläge)*
-6. **G-DOC01** — 9 defekte Doc-Links *(~1–2 h)*
-7. **G-DEP01** — 6 high npm-Vulns via overrides + nodemailer-Bump *(~1–2 h)*
+**Noch offen — echte, sofort behebbare Defekte oder Ein-Sitzung-Aufräumarbeiten:**
+
+1. **G-CD01** ⚠️ — korczewski-Deploy-Lane debuggen *(~1 Session, behebt weiterhin 73 % Fehlschläge — der stärkste verbleibende CD-Defekt, unverändert 27 %)*
+2. **G-DEP01** — 6 high npm-Vulns via `pnpm.overrides` + nodemailer-Bump *(~1–2 h)*
+3. **G-SPEC01** — 8 Skelett-Changes ohne `specs/`-Delta aufräumen (archivieren/löschen) → openspec:validate grün *(~1 Tag)*
+4. **G-CQ01/G-CQ02** ⚠️ — zentraler typisierter Test-`render`-Wrapper: senkt astro-check (249, Regression) und `any` (431) **gleichzeitig** statt gegeneinander *(~2–3 Sessions, gekoppelt)*
+5. **G-SEC05** — Commit-Signing für Factory-Bot fertig durchsetzen *(10 % → ≤ 5 %, nur noch ~3 Commits)*
 
 ## Messzyklus
 
@@ -1076,4 +1078,4 @@ Diese Ziele sind echte, sofort behebbare Defekte oder Ein-Sitzung-Aufräumarbeit
 - **Monatlich / Quartal:** G-CQ06/08, G-DEP02, G-SEC03/04, G-DOC02, G-FE01/02 (pro Release)
 - **Bei Bedarf:** G-RH04/05, G-DEP01/05, G-IMG*, G-K8S02/03, G-DOC03/04, G-CQ03
 
-**Mess-Werkzeug:** Ein Sammel-Skript (`scripts/health-goals-check.sh`) könnte alle ✅-reproduzierbaren Ziele in einem Lauf gegen ihre Targets prüfen und einen Ampel-Report ausgeben — siehe Quick-Win-Kandidat für die Automatisierung dieses Katalogs.
+**Mess-Werkzeug:** Das Sammel-Skript `scripts/health-goals-check.sh` **existiert** und prüft die ✅-reproduzierbaren Ziele in einem Lauf gegen ihre Targets (Ampel-Report). Trennung GATE (Policy/Halten, Verstoß ⇒ exit 1) vs. TARGET (Reduktion in Arbeit). Aufrufe: `bash scripts/health-goals-check.sh` (Report), `--strict` (verfehlte TARGETs ⇒ exit 1), `--fast` (überspringt langsame Checks), `--only=G-RH01,G-CQ02`. Die `eingeschränkt`-Ziele (Shallow-DORA, Netz-Audits, gleitende CI-Fenster, Tool-Setup/Cluster) deckt es bewusst **nicht** ab — die hier oben manuell.

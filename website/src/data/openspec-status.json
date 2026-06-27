@@ -259,6 +259,12 @@
       "status": "archived"
     }
   ],
+  "T001224": [
+    {
+      "slug": "t1224-lockfile-drift",
+      "status": "plan_staged"
+    }
+  ],
   "T001229": [
     {
       "slug": "2026-06-27-docker-build-speedup",

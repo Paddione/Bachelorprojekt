@@ -9,6 +9,7 @@ import { runS1 } from './gates/s1-filesize.mjs';
 import { runS2 } from './gates/s2-cycles.mjs';
 import { runS3 } from './gates/s3-hostnames.mjs';
 import { runS4 } from './gates/s4-orphans.mjs';
+import { runS5 } from './gates/s5-lockfiles.mjs';
 
 /** Run every gate; returns the flat violation list. */
 export function aggregate(repoRoot, gates) {
@@ -17,6 +18,7 @@ export function aggregate(repoRoot, gates) {
     runS2(repoRoot, gates),
     runS3(repoRoot, gates),
     runS4(repoRoot, gates),
+    runS5(repoRoot, gates),
   ].flatMap((g) => g.violations);
 }
 

@@ -6,7 +6,7 @@
 : "${NS:=${TICKET_NS:-workspace}}"
 : "${CTX:=${TICKET_CTX:-fleet}}"
 : "${DB:=website}"
-: "${USER:=website}"
+USER="${TICKET_USER:-website}"
 
 _pgpod() {
   local pod

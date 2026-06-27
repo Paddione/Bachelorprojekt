@@ -1,13 +1,14 @@
 #!/usr/bin/env bats
-# Offline-safe: prüft den Migrations-Quelltext in tickets-db.ts. Stellt sicher,
+# Offline-safe: prüft den Migrations-Quelltext in tickets/migrations.ts. Stellt sicher,
 # dass 'plan_staged' im Status-CHECK steht und das Muster idempotent (drop+add) ist.
 # Kein Cluster / keine DB nötig.
 # As of T001155 (G-RH01 Batch 2), the status-CHECK migration lives in
-# tickets/migrations.ts. The compat re-export in tickets-db.ts must still call
-# applyLegacyMigrations(pool) so the migration gets installed.
+# tickets/migrations.ts. #2114 (G-CQ07) moved initTicketsSchema() into
+# tickets-schema.ts, which must still call applyLegacyMigrations(pool) so the
+# migration gets installed.
 
 setup() {
-  SRC="$BATS_TEST_DIRNAME/../../website/src/lib/tickets-db.ts"
+  SRC="$BATS_TEST_DIRNAME/../../website/src/lib/tickets-schema.ts"
   TMIG="$BATS_TEST_DIRNAME/../../website/src/lib/tickets/migrations.ts"
 }
 
@@ -27,7 +28,7 @@ setup() {
   [ "$status" -eq 0 ]
 }
 
-@test "tickets-db.ts calls applyLegacyMigrations(pool) (regression guard for the split)" {
+@test "tickets-schema.ts calls applyLegacyMigrations(pool) (regression guard for the split)" {
   # Without this call, the status-CHECK migration above would never install.
   run grep -E "applyLegacyMigrations\([[:space:]]*pool[[:space:]]*\)" "$SRC"
   [ "$status" -eq 0 ]

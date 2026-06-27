@@ -112,8 +112,8 @@ im Code — Origins kommen aus Env (`VITE_WEBSITE_ORIGIN`, `REACT_APP_ORIGIN`); 
 
 ## Task 8: React — HomePage rendert gespeichertes Dokument
 
-- [ ] `mentolder-web/src/pages/HomePage.test.tsx` (existiert) erweitern: gemocktes `getHomepage()` liefert Dokument → wird gerendert; Fehler/leer → Seed-Fallback. Lauf → expected: FAIL.
-- [ ] `mentolder-web/src/pages/HomePage.tsx`: State init `homepageSeed`, `getHomepage()` ersetzt bei gültigem Dokument. Tests → grün. Commit.
+- [x] `mentolder-web/src/pages/HomePage.test.tsx` (existiert) erweitern: gemocktes `getHomepage()` liefert Dokument → wird gerendert; Fehler/leer/ungültig → Seed-Fallback. Lauf → expected: FAIL.
+- [x] `mentolder-web/src/pages/HomePage.tsx`: State init `homepageSeed`, `getHomepage()` ersetzt bei gültigem Dokument (zod-validiert). Snapshot-Baseline auf Seed regeneriert. Tests → grün. Commit.
 
 ## Task 9: Infra — Env-Verdrahtung (k8s + Build)
 

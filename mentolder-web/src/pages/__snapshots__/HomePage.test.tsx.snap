@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`HomePage Null-Diff baseline > renders the full page identically to the pre-refactor snapshot > homepage-full-page 1`] = `
+exports[`HomePage Null-Diff baseline > renders the seed page as a stable snapshot > homepage-seed-page 1`] = `
 <section
   aria-label="Hero-Bereich"
   class="relative pt-[76px] pb-[120px] border-b border-line"
@@ -130,7 +130,7 @@ exports[`HomePage Null-Diff baseline > renders the full page identically to the 
               alt="Gerald Korczewski, Digital Coach & Mentor"
               class="absolute inset-0 w-full h-full object-cover"
               loading="lazy"
-              src="/brand/mentolder/characters/leadership.portrait.svg"
+              src="/gerald.jpg"
               style="object-position: center 18%; filter: contrast(1.04) brightness(1.02) sepia(.18) saturate(1.05);"
             />
             <div

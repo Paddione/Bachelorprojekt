@@ -82,13 +82,13 @@ im Code — Origins kommen aus Env (`VITE_WEBSITE_ORIGIN`, `REACT_APP_ORIGIN`); 
 
 ## Task 4: Website — Block-Dokument-Store + API
 
-- [ ] `website/src/lib/homepage-blocks-store.test.ts`: erstes Save legt v1 an; zweites Save mit falschem `baseVersion` → Conflict; `restore` setzt alte Version als neue. Lauf → expected: FAIL.
-- [ ] `scripts/migrate-homepage-blocks.mjs` nach Muster `scripts/migrate-content-versions.mjs`: Tabellen `homepage_block_documents(brand PK, document JSONB, version INT, updated_at)` + `homepage_block_versions(... snapshot JSONB, editor, created_at)`. Den realen Migrations-Aufrufpfad bestätigen (wie `content_versions` in prod erzeugt wird) und gleich anhängen.
-- [ ] `website/src/lib/homepage-blocks-store.ts`: `readCurrent(brand)`, `save(brand, payload, baseVersion, editor)` (zod-validiert via Schema aus Task 1, optimistic concurrency → `ContentConflictError`-analog), `listVersions(brand)`, `restore(brand, versionId, editor)`, History-Pruning (~letzte 20).
-- [ ] `website/src/pages/api/homepage.ts`: public `GET` (`readCurrent`, CORS, `OPTIONS`); leer → `204`.
-- [ ] `website/src/pages/api/admin/homepage/save.ts`: `getSession`+`isAdmin`-Gate; `{baseVersion,payload}`; `200 {version}` / `409 {currentVersion,currentValue}` / `422 {errors}`; CORS.
-- [ ] `website/src/pages/api/admin/homepage/versions.ts` + `restore.ts`: admin-gated, CORS.
-- [ ] `website/src/pages/api/homepage.test.ts` + `.../admin/homepage/save.test.ts`: public read, Auth-Gate (401 ohne Session/Nicht-Admin), zod-422, 409-Conflict. Tests → grün. Commit.
+- [x] `website/src/lib/homepage-blocks-store.test.ts`: erstes Save legt v1 an; zweites Save mit falschem `baseVersion` → Conflict; `restore` setzt alte Version als neue. Lauf → expected: FAIL.
+- [x] `scripts/migrate-homepage-blocks.mjs` nach Muster `scripts/migrate-content-versions.mjs`: Tabellen `homepage_block_documents(brand PK, document JSONB, version INT, updated_at)` + `homepage_block_versions(... snapshot JSONB, editor, created_at)`. Realer Aufrufpfad bestätigt: es gibt KEINEN automatischen Migrations-Runner — Tabellen werden lazy via `CREATE TABLE IF NOT EXISTS` im Store erzeugt (wie `service_page_config` via `ensureSchemaOnce`); `migrate-content-versions.mjs` ist ebenfalls nirgends verdrahtet (Operator-Helfer). Diese Migration spiegelt das (Parität).
+- [x] `website/src/lib/homepage-blocks-store.ts`: `readCurrent(brand)`, `save(brand, payload, baseVersion, editor)` (zod-validiert via Schema aus Task 1, optimistic concurrency → `HomepageConflictError`/`HomepageValidationError`), `listVersions(brand)`, `restore(brand, versionId, editor)`, History-Pruning (KEEP 50).
+- [x] `website/src/pages/api/homepage.ts`: public `GET` (`readCurrent`, CORS, `OPTIONS`); leer → `204`.
+- [x] `website/src/pages/api/admin/homepage/save.ts`: `getSession`+`isAdmin`-Gate; `{baseVersion,payload}`; `200 {version}` / `409 {currentVersion,currentValue}` / `422 {errors}`; CORS.
+- [x] `website/src/pages/api/admin/homepage/versions.ts` + `restore.ts`: admin-gated, CORS.
+- [x] `website/src/pages/api/homepage.test.ts` + `.../admin/homepage/save.test.ts`: public read, Auth-Gate (401 ohne Session/Nicht-Admin), zod-422, 409-Conflict. Tests → grün. Commit.
 
 ## Task 5: React — Auth-Context + API-Helper
 

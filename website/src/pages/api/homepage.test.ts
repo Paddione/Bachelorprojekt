@@ -1,0 +1,58 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
+let mockDoc: any = null;
+vi.mock('../../lib/homepage-blocks-store', () => ({
+  readCurrent: vi.fn(async () => ({ document: mockDoc, version: mockDoc ? 5 : 0 })),
+}));
+
+import { GET, OPTIONS } from './homepage';
+
+const REACT = 'https://react.mentolder.de';
+let saved: string | undefined;
+beforeEach(() => {
+  saved = process.env.REACT_APP_ORIGIN;
+  process.env.REACT_APP_ORIGIN = REACT;
+  mockDoc = null;
+});
+afterEach(() => {
+  if (saved === undefined) delete process.env.REACT_APP_ORIGIN;
+  else process.env.REACT_APP_ORIGIN = saved;
+});
+
+const req = (origin: string | null, method = 'GET') =>
+  new Request('https://web.mentolder.de/api/homepage', {
+    method,
+    headers: origin ? { Origin: origin } : {},
+  });
+
+describe('GET /api/homepage (public)', () => {
+  it('returns the stored document with CORS for an allowlisted origin', async () => {
+    mockDoc = { schemaVersion: 1, blocks: [{ id: 'spacer', type: 'spacer', props: { size: 8 } }] };
+    const res = await GET({ request: req(REACT) } as any);
+    expect(res.status).toBe(200);
+    expect(res.headers.get('Access-Control-Allow-Origin')).toBe(REACT);
+    const body = await res.json();
+    expect(body.schemaVersion).toBe(1);
+    expect(body.blocks).toHaveLength(1);
+  });
+
+  it('returns 204 when no document is stored', async () => {
+    mockDoc = null;
+    const res = await GET({ request: req(REACT) } as any);
+    expect(res.status).toBe(204);
+  });
+
+  it('serves without authentication (no cookie)', async () => {
+    mockDoc = { schemaVersion: 1, blocks: [] };
+    const res = await GET({ request: req(null) } as any);
+    expect(res.status).toBe(200);
+  });
+});
+
+describe('OPTIONS /api/homepage', () => {
+  it('answers an allowlisted preflight with 204 + Allow-Origin', () => {
+    const res = OPTIONS({ request: req(REACT, 'OPTIONS') } as any);
+    expect(res.status).toBe(204);
+    expect(res.headers.get('Access-Control-Allow-Origin')).toBe(REACT);
+  });
+});

@@ -1,7 +1,7 @@
 ---
 title: "Proposal: cockpit-dor-inline-editor"
 ticket_id: T000990
-status: planning
+status: archived
 date: 2026-06-20
 plan_ref: openspec/changes/cockpit-dor-inline-editor/tasks.md
 spec_ref: docs/superpowers/specs/2026-06-20-cockpit-dor-inline-editor.md

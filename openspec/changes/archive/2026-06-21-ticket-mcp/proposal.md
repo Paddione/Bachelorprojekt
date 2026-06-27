@@ -1,7 +1,7 @@
 ---
 ticket_id: (wird nach Erstellung eingetragen)
 plan_ref: openspec/changes/ticket-mcp/tasks.md
-status: plan_staged
+status: archived
 date: 2026-06-21
 ---
 

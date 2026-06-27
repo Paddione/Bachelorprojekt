@@ -2,7 +2,7 @@
 title: Proposal: fix-coaching-studio-prod-manifest
 ticket_id: T001009
 plan_ref: openspec/changes/fix-coaching-studio-prod-manifest/tasks.md
-status: planning
+status: archived
 date: 2026-06-20
 ---
 

@@ -2,7 +2,7 @@
 title: "G-RH02: TypeScript @ts-ignore in rechnungen.astro eliminieren"
 ticket_id: T001105
 domains: [website, frontend]
-status: active
+status: archived
 file_locks: []
 shared_changes: false
 batch_id: null

@@ -1,7 +1,7 @@
 ---
 title: "agent-lock + dev-flow mishap bundle (T001268): harness-stable identity, pre-commit guards, push verification"
 ticket_id: T001268
-status: plan_staged
+status: archived
 ---
 
 # Proposal: agent-lock + dev-flow mishap bundle [T001268]

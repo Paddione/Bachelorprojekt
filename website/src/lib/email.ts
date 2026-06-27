@@ -43,7 +43,6 @@ interface SendEmailParams {
 
 export async function sendEmail(params: SendEmailParams, request?: Request): Promise<boolean> {
   if (request && isE2ETestRequest(request)) {
-    console.log('[email] E2E test — skipping send to:', params.to, '|', params.subject);
     return true;
   }
   try {

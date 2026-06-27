@@ -141,7 +141,6 @@ export async function getRecordingFile(roomToken: string): Promise<{ data: Buffe
       .filter((href) => filePattern.test(href));
 
     if (hrefMatches.length === 0) {
-      console.log('[talk] No recording files found for room:', roomName);
       return null;
     }
 

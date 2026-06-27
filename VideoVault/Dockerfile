@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # VideoVault — Library (Vite-Client + Express-Server) for the Fleet platform.
 # Build-Context = Repo-Root (~/Bachelorprojekt), so that @videovault-player alias
 # can reach the vendored packages/videovault-player.
@@ -22,7 +23,7 @@ COPY VideoVault/vite.config.ts ./
 COPY VideoVault/tailwind.config.cjs ./
 COPY VideoVault/postcss.config.js ./
 
-RUN npm install -g npm@11 && npm install --legacy-peer-deps
+RUN --mount=type=cache,target=/root/.npm npm install -g npm@11 && npm install --legacy-peer-deps
 
 # Sources
 COPY VideoVault/shared/ ./shared/
@@ -47,7 +48,7 @@ ENV NODE_ENV=production
 
 COPY --from=build /app/shared/ ./shared/
 COPY VideoVault/package*.json ./
-RUN npm install -g npm@11 && npm install --legacy-peer-deps --omit=dev
+RUN --mount=type=cache,target=/root/.npm npm install -g npm@11 && npm install --legacy-peer-deps --omit=dev
 
 COPY --from=build /app/dist ./dist
 COPY VideoVault/migrations/ ./migrations/

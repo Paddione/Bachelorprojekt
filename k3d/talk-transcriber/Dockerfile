@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 FROM python:3.11-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -7,7 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         dbus \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir \
+RUN --mount=type=cache,target=/root/.cache/pip pip install \
         fastapi \
         "uvicorn[standard]" \
         httpx \

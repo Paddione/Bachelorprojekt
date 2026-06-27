@@ -89,3 +89,5 @@ jobs:
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.description=Collabora CODE with file-capabilities on coolwsd
             org.opencontainers.image.licenses=MPL-2.0
+          cache-from: type=gha
+          cache-to: type=gha,mode=min

@@ -43,7 +43,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f  # v3
+
+      - name: Compute image + tags
+        run: |
+          IMAGE="ghcr.io/paddione/korczewski-website"
+          SHA_TAG="sha-$(date +%Y%m%d-%H%M%S)-$(git rev-parse --short HEAD)"
+          echo "IMAGE=${IMAGE}" >> "$GITHUB_ENV"
+          echo "SHA_TAG=${SHA_TAG}" >> "$GITHUB_ENV"
+
       - name: Build & push Docker image
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8  # v6
         env:
           PROD_DOMAIN: korczewski.de
           BRAND_NAME: KORE
@@ -56,29 +67,27 @@ jobs:
           LEGAL_JOBTITLE: Software Engineer, IT-Security-Berater
           LEGAL_UST_ID: ${{ secrets.KORCZEWSKI_LEGAL_UST_ID }}
           LEGAL_WEBSITE: korczewski.de
-        run: |
-          IMAGE="ghcr.io/paddione/korczewski-website"
-          SHA_TAG="sha-$(date +%Y%m%d-%H%M%S)-$(git rev-parse --short HEAD)"
-          docker build --no-cache \
-            -t "${IMAGE}:${SHA_TAG}" \
-            -t "${IMAGE}:latest" \
-            -f website/Dockerfile \
-            --build-arg PROD_DOMAIN="$PROD_DOMAIN" \
-            --build-arg BRAND_NAME="$BRAND_NAME" \
-            --build-arg CONTACT_EMAIL="$CONTACT_EMAIL" \
-            --build-arg CONTACT_PHONE="$CONTACT_PHONE" \
-            --build-arg CONTACT_CITY="$CONTACT_CITY" \
-            --build-arg CONTACT_NAME="$CONTACT_NAME" \
-            --build-arg LEGAL_STREET="$LEGAL_STREET" \
-            --build-arg LEGAL_ZIP="$LEGAL_ZIP" \
-            --build-arg LEGAL_JOBTITLE="$LEGAL_JOBTITLE" \
-            --build-arg LEGAL_UST_ID="$LEGAL_UST_ID" \
-            --build-arg LEGAL_WEBSITE="$LEGAL_WEBSITE" \
-            .
-          docker push "${IMAGE}:${SHA_TAG}"
-          docker push "${IMAGE}:latest"
-          echo "IMAGE=${IMAGE}" >> $GITHUB_ENV
-          echo "SHA_TAG=${SHA_TAG}" >> $GITHUB_ENV
+        with:
+          context: .
+          file: website/Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:${{ env.SHA_TAG }}
+            ${{ env.IMAGE }}:latest
+          build-args: |
+            PROD_DOMAIN=${{ env.PROD_DOMAIN }}
+            BRAND_NAME=${{ env.BRAND_NAME }}
+            CONTACT_EMAIL=${{ env.CONTACT_EMAIL }}
+            CONTACT_PHONE=${{ env.CONTACT_PHONE }}
+            CONTACT_CITY=${{ env.CONTACT_CITY }}
+            CONTACT_NAME=${{ env.CONTACT_NAME }}
+            LEGAL_STREET=${{ env.LEGAL_STREET }}
+            LEGAL_ZIP=${{ env.LEGAL_ZIP }}
+            LEGAL_JOBTITLE=${{ env.LEGAL_JOBTITLE }}
+            LEGAL_UST_ID=${{ env.LEGAL_UST_ID }}
+            LEGAL_WEBSITE=${{ env.LEGAL_WEBSITE }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Deploy to korczewski
         env:

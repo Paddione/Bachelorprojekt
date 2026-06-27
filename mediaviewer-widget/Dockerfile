@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # ── Build stage ───────────────────────────────────────────────
 FROM node:22-alpine AS build
 WORKDIR /app
@@ -5,7 +6,7 @@ WORKDIR /app
 COPY packages/videovault-player ./packages/videovault-player
 COPY mediaviewer-widget/package.json mediaviewer-widget/package-lock.json ./mediaviewer-widget/
 WORKDIR /app/mediaviewer-widget
-RUN npm install --legacy-peer-deps
+RUN --mount=type=cache,target=/root/.npm npm install --legacy-peer-deps
 COPY mediaviewer-widget/ ./
 ARG VITE_ALLOWED_PARENT_ORIGINS=""
 ENV VITE_ALLOWED_PARENT_ORIGINS=$VITE_ALLOWED_PARENT_ORIGINS

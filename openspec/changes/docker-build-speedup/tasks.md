@@ -41,12 +41,12 @@ depends_on_plans: []
 > Jede Phase ist ein eigener PR. Phase 2 baut auf Phase 1 auf (Cache greift schon),
 > Phase 3 ist unabhängig. Innerhalb einer Phase: Tasks der Reihe nach.
 
-- [ ] **P1-T0** (TDD rot) Failing-Test-Block `tests/spec/docker-build-speedup.bats` für den Phase-1-Endzustand schreiben + ausführen, Expected: FAIL (rot)
-- [ ] **P1-T1** BuildKit-Cache-Mounts + `# syntax`-Direktive in die 6 Dependency-Dockerfiles
-- [ ] **P1-T2** Die 7 „nackten `docker build`"-Workflows auf `build-push-action@v6` + `type=gha`-Cache umstellen (`--no-cache` raus), Interface-Kontrakt wahren
-- [ ] **P1-T3** `type=gha`-Cache in die 2 bereits-buildx-Workflows (transcriber/collabora) ergänzen
-- [ ] **P1-T4** `setup-node`-Cache-Audit: pro Workflow Runner-npm/pnpm-Nutzung prüfen, Befund festhalten, KEINE Cache-Keys entfernen
-- [ ] **P1-T5** Phase-1-Verifikation + Build-Zeit-Messprozedur dokumentieren
+- [x] **P1-T0** (TDD rot) Failing-Test-Block `tests/spec/docker-build-speedup.bats` für den Phase-1-Endzustand schreiben + ausführen, Expected: FAIL (rot)
+- [x] **P1-T1** BuildKit-Cache-Mounts + `# syntax`-Direktive in die 6 Dependency-Dockerfiles
+- [x] **P1-T2** Die 7 „nackten `docker build`"-Workflows auf `build-push-action@v6` + `type=gha`-Cache umstellen (`--no-cache` raus), Interface-Kontrakt wahren
+- [x] **P1-T3** `type=gha`-Cache in die 2 bereits-buildx-Workflows (transcriber/collabora) ergänzen
+- [x] **P1-T4** `setup-node`-Cache-Audit: pro Workflow Runner-npm/pnpm-Nutzung prüfen, Befund festhalten, KEINE Cache-Keys entfernen
+- [x] **P1-T5** Phase-1-Verifikation + Build-Zeit-Messprozedur dokumentieren
 - [ ] **P2-T0** (TDD rot) Phase-2-Assertions an `tests/spec/docker-build-speedup.bats` anhängen + ausführen, Expected: FAIL (rot)
 - [ ] **P2-T1** (2a) `npm prune --omit=dev` im Build-Stage von `website/Dockerfile`
 - [ ] **P2-T2** (2a-Guardrail HART) Runtime-Image lokal bauen, booten, Smoke HTTP 200 auf `/`; bei Boot-Fehler Paket `devDependencies`→`dependencies`
@@ -58,7 +58,7 @@ depends_on_plans: []
 - [ ] **P3-T1** (Pre-flight) `kubectl --context fleet get nodes -o wide` → amd64-only bestätigen
 - [ ] **P3-T2** `build-transcriber.yml` + `build-collabora.yml`: `platforms: linux/amd64` (arm64 + QEMU raus)
 - [ ] **P3-T3** Phase-3-Verifikation
-- [ ] **SPEC** Spec-Delta `specs/docker-build-speedup.md` füllen + `task test:openspec` grün
+- [x] **SPEC** Spec-Delta `specs/docker-build-speedup.md` füllen + `task test:openspec` grün
 - [ ] **VERIFY** Finaler CI-Gate-Verifikations-Task (pro Phase-PR auszuführen)
 
 ---
@@ -156,7 +156,7 @@ Alle vom Change berührten Pfade, gruppiert nach Aktion (1-Wort-Zweck je Pfad):
 
 **Konkrete Schritte:**
 
-- [ ] **Step 1 — Test-Datei mit Phase-1-Block anlegen:** `tests/spec/docker-build-speedup.bats` mit Shebang/Header (Konvention: eine `.bats`-Datei pro SSOT-Spec) und diesen echten Assertions erstellen:
+- [x] **Step 1 — Test-Datei mit Phase-1-Block anlegen:** `tests/spec/docker-build-speedup.bats` mit Shebang/Header (Konvention: eine `.bats`-Datei pro SSOT-Spec) und diesen echten Assertions erstellen:
   ```bash
   #!/usr/bin/env bats
   # tests/spec/docker-build-speedup.bats
@@ -193,7 +193,7 @@ Alle vom Change berührten Pfade, gruppiert nach Aktion (1-Wort-Zweck je Pfad):
   }
   ```
 
-- [ ] **Step 2 — Test ausführen, Expected: FAIL (rot):** weil die Dockerfiles/Workflows noch unverändert sind, müssen die Assertions fehlschlagen.
+- [x] **Step 2 — Test ausführen, Expected: FAIL (rot):** weil die Dockerfiles/Workflows noch unverändert sind, müssen die Assertions fehlschlagen.
   ```bash
   ./tests/unit/lib/bats-core/bin/bats tests/spec/docker-build-speedup.bats
   ```
@@ -220,12 +220,12 @@ Alle vom Change berührten Pfade, gruppiert nach Aktion (1-Wort-Zweck je Pfad):
 
 **Konkrete Schritte:**
 
-- [ ] **Step 1 — `website/Dockerfile`:** Neue erste Zeile `# syntax=docker/dockerfile:1` einfügen. `RUN npm ci` (jetzt Zeile 7) ersetzen durch:
+- [x] **Step 1 — `website/Dockerfile`:** Neue erste Zeile `# syntax=docker/dockerfile:1` einfügen. `RUN npm ci` (jetzt Zeile 7) ersetzen durch:
   ```dockerfile
   RUN --mount=type=cache,target=/root/.npm npm ci
   ```
 
-- [ ] **Step 2 — `brett/Dockerfile`:** Erste Zeile `# syntax=docker/dockerfile:1`. Build-Stage `RUN npm ci` →
+- [x] **Step 2 — `brett/Dockerfile`:** Erste Zeile `# syntax=docker/dockerfile:1`. Build-Stage `RUN npm ci` →
   ```dockerfile
   RUN --mount=type=cache,target=/root/.npm npm ci
   ```
@@ -234,7 +234,7 @@ Alle vom Change berührten Pfade, gruppiert nach Aktion (1-Wort-Zweck je Pfad):
   RUN --mount=type=cache,target=/root/.npm npm ci --omit=dev
   ```
 
-- [ ] **Step 3 — `VideoVault/Dockerfile`:** Erste Zeile `# syntax=docker/dockerfile:1`. Build-Stage `RUN npm install -g npm@11 && npm install --legacy-peer-deps` →
+- [x] **Step 3 — `VideoVault/Dockerfile`:** Erste Zeile `# syntax=docker/dockerfile:1`. Build-Stage `RUN npm install -g npm@11 && npm install --legacy-peer-deps` →
   ```dockerfile
   RUN --mount=type=cache,target=/root/.npm npm install -g npm@11 && npm install --legacy-peer-deps
   ```
@@ -243,18 +243,18 @@ Alle vom Change berührten Pfade, gruppiert nach Aktion (1-Wort-Zweck je Pfad):
   RUN --mount=type=cache,target=/root/.npm npm install -g npm@11 && npm install --legacy-peer-deps --omit=dev
   ```
 
-- [ ] **Step 4 — `mediaviewer-widget/Dockerfile`:** Erste Zeile `# syntax=docker/dockerfile:1`. `RUN npm install --legacy-peer-deps` →
+- [x] **Step 4 — `mediaviewer-widget/Dockerfile`:** Erste Zeile `# syntax=docker/dockerfile:1`. `RUN npm install --legacy-peer-deps` →
   ```dockerfile
   RUN --mount=type=cache,target=/root/.npm npm install --legacy-peer-deps
   ```
 
-- [ ] **Step 5 — `mentolder-web/Dockerfile` (pnpm-Sonderfall):** Erste Zeile `# syntax=docker/dockerfile:1`. Die kombinierte Zeile `RUN pnpm install --frozen-lockfile && pnpm run build` ersetzen durch:
+- [x] **Step 5 — `mentolder-web/Dockerfile` (pnpm-Sonderfall):** Erste Zeile `# syntax=docker/dockerfile:1`. Die kombinierte Zeile `RUN pnpm install --frozen-lockfile && pnpm run build` ersetzen durch:
   ```dockerfile
   RUN --mount=type=cache,target=/root/.local/share/pnpm/store pnpm install --frozen-lockfile && pnpm run build
   ```
   > **Hinweis:** pnpm nutzt den content-addressable Store unter `$HOME/.local/share/pnpm/store` (Build läuft als root → `/root/...`). Der Mount cached nur die Install-Hälfte der Zeile — das genügt (der `pnpm run build`-Teil ist Source-abhängig).
 
-- [ ] **Step 6 — `k3d/talk-transcriber/Dockerfile` (pip):** Erste Zeile `# syntax=docker/dockerfile:1`. Den `pip install`-Block (Zeilen 10–15) so ändern, dass `--no-cache-dir` **entfällt** und ein pip-Cache-Mount greift:
+- [x] **Step 6 — `k3d/talk-transcriber/Dockerfile` (pip):** Erste Zeile `# syntax=docker/dockerfile:1`. Den `pip install`-Block (Zeilen 10–15) so ändern, dass `--no-cache-dir` **entfällt** und ein pip-Cache-Mount greift:
   ```dockerfile
   RUN --mount=type=cache,target=/root/.cache/pip pip install \
           fastapi \
@@ -300,7 +300,7 @@ Alle vom Change berührten Pfade, gruppiert nach Aktion (1-Wort-Zweck je Pfad):
 
 **Konkrete Schritte:**
 
-- [ ] **Step 1 — `build-website.yml`:** `setup-buildx` nach dem GHCR-Login einfügen. Den „Build & push Docker image"-Step so umbauen, dass ein vorgelagerter Shell-Step setzt:
+- [x] **Step 1 — `build-website.yml`:** `setup-buildx` nach dem GHCR-Login einfügen. Den „Build & push Docker image"-Step so umbauen, dass ein vorgelagerter Shell-Step setzt:
   ```bash
   IMAGE="ghcr.io/paddione/mentolder-website"
   SHA_TAG="sha-$(date +%Y%m%d-%H%M%S)-$(git rev-parse --short HEAD)"
@@ -335,17 +335,17 @@ Alle vom Change berührten Pfade, gruppiert nach Aktion (1-Wort-Zweck je Pfad):
   ```
   > Die `--build-arg`s bleiben **verbatim** erhalten (Interface-Kontrakt), obwohl der `website/Dockerfile` sie als No-Ops ignoriert — Phase 1 ändert keine Build-Semantik. (Phase 2b räumt sie auf.) Die `env:`-Werte des Steps unverändert lassen.
 
-- [ ] **Step 2 — `build-website-korczewski.yml`:** Identisches Muster wie Step 1; `IMAGE="ghcr.io/paddione/korczewski-website"`, korczewski-`build-args` verbatim, `cache-to: type=gha,mode=max`.
+- [x] **Step 2 — `build-website-korczewski.yml`:** Identisches Muster wie Step 1; `IMAGE="ghcr.io/paddione/korczewski-website"`, korczewski-`build-args` verbatim, `cache-to: type=gha,mode=max`.
 
-- [ ] **Step 3 — `build-videovault.yml`:** `setup-buildx` nach Login. Build-Step → `build-push-action` mit `context: .`, `file: VideoVault/Dockerfile`, keine `build-args`, `tags` = `${IMAGE}:${SHA_TAG}` + `:latest`, `cache-to: type=gha,mode=max`. Vorgelagerter Shell-Step setzt `IMAGE`/`SHA_TAG` in `$GITHUB_ENV` exakt wie bisher (`IMAGE="ghcr.io/paddione/videovault"`). `--no-cache` raus.
+- [x] **Step 3 — `build-videovault.yml`:** `setup-buildx` nach Login. Build-Step → `build-push-action` mit `context: .`, `file: VideoVault/Dockerfile`, keine `build-args`, `tags` = `${IMAGE}:${SHA_TAG}` + `:latest`, `cache-to: type=gha,mode=max`. Vorgelagerter Shell-Step setzt `IMAGE`/`SHA_TAG` in `$GITHUB_ENV` exakt wie bisher (`IMAGE="ghcr.io/paddione/videovault"`). `--no-cache` raus.
 
-- [ ] **Step 4 — `build-brett.yml`:** `setup-buildx` nach Login. Build-Step → `build-push-action` mit `context: brett`, `file: brett/Dockerfile`, `tags` = `${IMAGE}:sha-${{ steps.version.outputs.sha }}` + `:latest` (`IMAGE="ghcr.io/paddione/workspace-brett"`), `cache-to: type=gha,mode=min`. `steps.version`-Step bleibt SHA-Quelle.
+- [x] **Step 4 — `build-brett.yml`:** `setup-buildx` nach Login. Build-Step → `build-push-action` mit `context: brett`, `file: brett/Dockerfile`, `tags` = `${IMAGE}:sha-${{ steps.version.outputs.sha }}` + `:latest` (`IMAGE="ghcr.io/paddione/workspace-brett"`), `cache-to: type=gha,mode=min`. `steps.version`-Step bleibt SHA-Quelle.
 
-- [ ] **Step 5 — `build-mediaviewer-widget.yml`:** `setup-buildx` nach Login. Build-Step → `build-push-action` mit `context: .`, `file: mediaviewer-widget/Dockerfile`, **`build-args` mit dem bestehenden `VITE_ALLOWED_PARENT_ORIGINS`-Wert verbatim übernehmen** (nicht im Plan reproduzieren — 1:1 aus dem aktuellen `--build-arg` kopieren), `tags` = `:sha-${{ steps.version.outputs.sha }}` + `:latest` (`IMAGE="ghcr.io/paddione/mediaviewer-widget"`), `cache-to: type=gha,mode=min`.
+- [x] **Step 5 — `build-mediaviewer-widget.yml`:** `setup-buildx` nach Login. Build-Step → `build-push-action` mit `context: .`, `file: mediaviewer-widget/Dockerfile`, **`build-args` mit dem bestehenden `VITE_ALLOWED_PARENT_ORIGINS`-Wert verbatim übernehmen** (nicht im Plan reproduzieren — 1:1 aus dem aktuellen `--build-arg` kopieren), `tags` = `:sha-${{ steps.version.outputs.sha }}` + `:latest` (`IMAGE="ghcr.io/paddione/mediaviewer-widget"`), `cache-to: type=gha,mode=min`.
 
-- [ ] **Step 6 — `build-mentolder-web.yml`:** `setup-buildx` nach Login. Build-Step → `build-push-action` mit `context: .`, `file: mentolder-web/Dockerfile`, **`build-args` `VITE_FORMSPREE_ENDPOINT` + `VITE_WEBSITE_ORIGIN` verbatim** aus dem bestehenden Step übernehmen, `tags` = `:${{ steps.version.outputs.sha }}` + `:latest` (`IMAGE="ghcr.io/paddione/mentolder-web"`), `cache-to: type=gha,mode=min`. (pnpm-`setup`-Steps unverändert.)
+- [x] **Step 6 — `build-mentolder-web.yml`:** `setup-buildx` nach Login. Build-Step → `build-push-action` mit `context: .`, `file: mentolder-web/Dockerfile`, **`build-args` `VITE_FORMSPREE_ENDPOINT` + `VITE_WEBSITE_ORIGIN` verbatim** aus dem bestehenden Step übernehmen, `tags` = `:${{ steps.version.outputs.sha }}` + `:latest` (`IMAGE="ghcr.io/paddione/mentolder-web"`), `cache-to: type=gha,mode=min`. (pnpm-`setup`-Steps unverändert.)
 
-- [ ] **Step 7 — `build-docs.yml`:** `setup-buildx` nach Login. Build-Step → `build-push-action` mit `context: .`, `file: scripts/docs.Dockerfile`, keine `build-args`, `tags` = `:sha-${{ steps.version.outputs.sha }}` + `:latest` (`IMAGE="ghcr.io/paddione/workspace-docs"`), `cache-to: type=gha,mode=min`. Die vorgelagerten Runner-Steps (`npm install`, `task freshness:regenerate`, `node scripts/build-docs.mjs`) **unverändert** lassen — der vorgebaute Output ist Build-Input.
+- [x] **Step 7 — `build-docs.yml`:** `setup-buildx` nach Login. Build-Step → `build-push-action` mit `context: .`, `file: scripts/docs.Dockerfile`, keine `build-args`, `tags` = `:sha-${{ steps.version.outputs.sha }}` + `:latest` (`IMAGE="ghcr.io/paddione/workspace-docs"`), `cache-to: type=gha,mode=min`. Die vorgelagerten Runner-Steps (`npm install`, `task freshness:regenerate`, `node scripts/build-docs.mjs`) **unverändert** lassen — der vorgebaute Output ist Build-Input.
 
 **Acceptance-Kriterien:**
 - Kein Workflow enthält mehr `docker build` als Shell-Kommando (`grep -rl "docker build" .github/workflows/build-{website,website-korczewski,videovault,brett,mediaviewer-widget,mentolder-web,docs}.yml` == leer).
@@ -367,14 +367,14 @@ Alle vom Change berührten Pfade, gruppiert nach Aktion (1-Wort-Zweck je Pfad):
 
 **Konkrete Schritte:**
 
-- [ ] **Step 1 — `build-transcriber.yml`:** Im `docker/build-push-action@…`-Step ergänzen:
+- [x] **Step 1 — `build-transcriber.yml`:** Im `docker/build-push-action@…`-Step ergänzen:
   ```yaml
       cache-from: type=gha
       cache-to: type=gha,mode=max
   ```
   `platforms: linux/amd64,linux/arm64` **unverändert** lassen (Phase 3).
 
-- [ ] **Step 2 — `build-collabora.yml`:** Im `build-push-action`-Step ergänzen:
+- [x] **Step 2 — `build-collabora.yml`:** Im `build-push-action`-Step ergänzen:
   ```yaml
       cache-from: type=gha
       cache-to: type=gha,mode=min
@@ -409,8 +409,8 @@ Alle vom Change berührten Pfade, gruppiert nach Aktion (1-Wort-Zweck je Pfad):
 
 **Konkrete Schritte:**
 
-- [ ] **Step 1:** Gegenprüfen: `grep -n "freshness:regenerate:" -A8 Taskfile.yml` zeigt `[ -d node_modules ] || npm ci`. Für jeden Workflow den Runner-npm/pnpm-Aufruf bestätigen (Tabelle oben).
-- [ ] **Step 2:** Befund in die PR-Beschreibung übernehmen („setup-node-Cache überall live → keine Entfernung").
+- [x] **Step 1:** Gegenprüfen: `grep -n "freshness:regenerate:" -A8 Taskfile.yml` zeigt `[ -d node_modules ] || npm ci`. Für jeden Workflow den Runner-npm/pnpm-Aufruf bestätigen (Tabelle oben).
+- [x] **Step 2:** Befund in die PR-Beschreibung übernehmen („setup-node-Cache überall live → keine Entfernung").
 
 **Acceptance-Kriterien:**
 - Kein `cache:`-Key wurde aus einem `setup-node`/`setup-pnpm`-Step entfernt.
@@ -426,18 +426,18 @@ Alle vom Change berührten Pfade, gruppiert nach Aktion (1-Wort-Zweck je Pfad):
 
 **Konkrete Schritte:**
 
-- [ ] **Step 1:** Lokaler BuildKit-Build je geänderter Dockerfile-Familie als Smoke (Exit 0), z.B.:
+- [x] **Step 1:** Lokaler BuildKit-Build je geänderter Dockerfile-Familie als Smoke (Exit 0), z.B.:
   ```bash
   DOCKER_BUILDKIT=1 docker build -f website/Dockerfile . -t website:p1
   DOCKER_BUILDKIT=1 docker build -f brett/Dockerfile brett -t brett:p1
   ```
-- [ ] **Step 2 — P1-BATS grün:** der in P1-T0 rote Block ist nach P1-T1…T4 grün:
+- [x] **Step 2 — P1-BATS grün:** der in P1-T0 rote Block ist nach P1-T1…T4 grün:
   ```bash
   ./tests/unit/lib/bats-core/bin/bats tests/spec/docker-build-speedup.bats
   ```
   Erwartung: alle P1-`@test` `ok`.
-- [ ] **Step 3:** CI-Gates (siehe finaler VERIFY-Task) ausführen: `task test:changed`, `task freshness:regenerate`, `task freshness:check` — alle Exit 0.
-- [ ] **Step 4:** **Vorher-Werte** der GHA-Run-Durations der betroffenen Workflows aus den letzten `main`-Runs notieren (Tabelle aus der Spec als Baseline: transcriber ~8 min, videovault ~4–6 min, website ~3–5 min ×2).
+- [x] **Step 3:** CI-Gates (siehe finaler VERIFY-Task) ausführen: `task test:changed`, `task freshness:regenerate`, `task freshness:check` — alle Exit 0.
+- [x] **Step 4:** **Vorher-Werte** der GHA-Run-Durations der betroffenen Workflows aus den letzten `main`-Runs notieren (Tabelle aus der Spec als Baseline: transcriber ~8 min, videovault ~4–6 min, website ~3–5 min ×2).
 - [ ] **Step 5:** Nach Merge (erster `main`-Push, der die jeweiligen `paths` triggert): die neuen Run-Durations notieren. Der **zweite** Cache-Hit-Run (nur Source-Änderung) ist der aussagekräftige Wert (erster Run nach Merge baut den Cache erst auf). Vorher/Nachher in den PR-/Ticket-Kommentar schreiben.
 
 **Acceptance-Kriterien:**
@@ -786,8 +786,8 @@ Alle vom Change berührten Pfade, gruppiert nach Aktion (1-Wort-Zweck je Pfad):
 
 **Konkrete Schritte:**
 
-- [ ] **Step 1:** Die Platzhalter-Einträge durch die Requirements ersetzen (Layer-Caching vorhanden, kein `--no-cache`, schlankes Website-Image, ein geteiltes Website-Image, amd64-only Builds) — siehe die parallel committete `specs/docker-build-speedup.md`. Format: `## ADDED Requirements` → `### Requirement: …` (H3, SHALL) → `#### Scenario: …` (H4, GIVEN/WHEN/THEN).
-- [ ] **Step 2 — Validieren:**
+- [x] **Step 1:** Die Platzhalter-Einträge durch die Requirements ersetzen (Layer-Caching vorhanden, kein `--no-cache`, schlankes Website-Image, ein geteiltes Website-Image, amd64-only Builds) — siehe die parallel committete `specs/docker-build-speedup.md`. Format: `## ADDED Requirements` → `### Requirement: …` (H3, SHALL) → `#### Scenario: …` (H4, GIVEN/WHEN/THEN).
+- [x] **Step 2 — Validieren:**
   ```bash
   task test:openspec    # bzw. bash scripts/openspec.sh validate
   ```

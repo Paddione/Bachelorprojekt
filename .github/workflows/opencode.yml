@@ -6,6 +6,9 @@ on:
   pull_request_review_comment:
     types: [created]
 
+env:
+  OPENSPEC_TELEMETRY: '0'
+
 jobs:
   opencode:
     # Public repo: nur Repo-Mitglieder duerfen opencode triggern (kein anonymer Trigger).

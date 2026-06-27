@@ -762,6 +762,10 @@ tasks:
     desc: "Bulk-add ## Purpose + ## Requirements H2 headers to SSOT specs under openspec/specs/. Usage: task openspec:header-inject [-- --dry-run]"
     cmds:
       - bash scripts/openspec-header-inject.sh {{.CLI_ARGS}} openspec/specs/
+  openspec:ci-telemetry-optout:
+    desc: "Add OPENSPEC_TELEMETRY: '0' to every .github/workflows/*.yml that lacks it. Usage: task openspec:ci-telemetry-optout [-- --dry-run]"
+    cmds:
+      - python3 scripts/openspec-telemetry-optout.py {{.CLI_ARGS}} .github/workflows/*.yml .github/workflows/*.yaml
 
   test:agent-lock:
     desc: "Run the offline agent-lock session-coordination bats (tests/local/AGENT-LOCK-*)."

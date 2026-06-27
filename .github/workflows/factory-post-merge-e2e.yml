@@ -8,6 +8,9 @@ on:
   push:
     branches: [main]
 
+env:
+  OPENSPEC_TELEMETRY: '0'
+
 jobs:
   trigger-e2e:
     runs-on: ubuntu-latest

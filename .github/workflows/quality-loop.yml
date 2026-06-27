@@ -19,6 +19,9 @@ on:
         required: false
         default: "2"
 
+env:
+  OPENSPEC_TELEMETRY: '0'
+
 jobs:
   quality-loop:
     runs-on: ubuntu-latest

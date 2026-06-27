@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths: ['brett/**']
 
+env:
+  OPENSPEC_TELEMETRY: '0'
+
 jobs:
   build:
     name: Build & push Brett image

@@ -198,3 +198,11 @@ Registered as `codebase-memory-mcp` in both `.mcp.json` (Claude Code) and `.open
 - `docs/agent-guide/README.md` — agent operating guide registry (taxonomy, guardrails, tools, goals)
 - `CONTRIBUTING.md` — human-readable dev workflow
 - `.agents/skills/OVERVIEW.md` — skill layering contract (dev-flow → superpowers)
+
+## OpenSpec conventions
+
+Proposal and task files (`openspec/changes/<slug>/proposal.md`, `tasks.md`, `specs/*.md`) may include YAML frontmatter parsed by `scripts/openspec-embed.mjs` (used to index changes in pgvector for `plan-context.sh --semantic`). Language convention: **Purpose sections in German; Requirements and Scenarios in English** (GIVEN/WHEN/THEN). Rule source: `openspec/config.yaml` (keys: `proposal`, `tasks`, `specs`, `design`).
+
+## Dev experience
+
+After installing the OpenSpec CLI (`npm i -g @fission-ai/openspec@1.3.1`), run `openspec completion install` once to enable shell completions (bash/zsh/fish/powershell). Upstream workflow commands live under `.opencode/commands/opsx-*.md` and `.claude/skills/openspec-*/SKILL.md`; use them via `/opsx:propose`, `/opsx:apply`, `/opsx:archive` instead of the older `task openspec:*` wrappers.

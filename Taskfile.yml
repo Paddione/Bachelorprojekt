@@ -718,9 +718,10 @@ tasks:
       - ./tests/unit/lib/bats-core/bin/bats tests/spec/mcp-tooling.bats
 
   test:openspec:
-    desc: "Validate the openspec/ change tree is OpenSpec-format-conformant (fail-closed CI gate)."
+    desc: "Validate the openspec/ change tree is OpenSpec-format-conformant (fail-closed CI gate, TypeScript/Vitest)."
     cmds:
-      - bash scripts/openspec.sh validate
+      - '[ -d node_modules ] || npm ci'
+      - npm run test:openspec
 
   test:unit:openspec:
     internal: true
@@ -756,7 +757,7 @@ tasks:
   openspec:validate:
     desc: "Validate the openspec/ tree (same as test:openspec)."
     cmds:
-      - bash scripts/openspec.sh validate
+      - task: test:openspec
 
   test:agent-lock:
     desc: "Run the offline agent-lock session-coordination bats (tests/local/AGENT-LOCK-*)."
@@ -775,7 +776,7 @@ tasks:
       - |
         set -e
         CHANGED=$(git diff --name-only HEAD origin/main 2>/dev/null || git diff --name-only HEAD 2>/dev/null || true)
-        RUN_WEBSITE=false; RUN_MENTOLDER_WEB=false; RUN_K8S=false; RUN_SCRIPTS=false; RUN_FACTORY=false; RUN_UNIT=false; RUN_MCP=false
+        RUN_WEBSITE=false; RUN_MENTOLDER_WEB=false; RUN_K8S=false; RUN_SCRIPTS=false; RUN_FACTORY=false; RUN_UNIT=false; RUN_MCP=false; RUN_OPENSPEC=false
         echo "$CHANGED" | grep -qE "^website/" && RUN_WEBSITE=true || true
         echo "$CHANGED" | grep -qE "^mentolder-web/" && RUN_MENTOLDER_WEB=true || true
         echo "$CHANGED" | grep -qE "^(k3d/|prod|prod-fleet|prod-mentolder|prod-korczewski|environments/)" && RUN_K8S=true || true
@@ -783,6 +784,7 @@ tasks:
         echo "$CHANGED" | grep -qE "^scripts/factory/" && RUN_FACTORY=true || true
         echo "$CHANGED" | grep -qE "^(tests/unit/|\.bats)" && RUN_UNIT=true || true
         echo "$CHANGED" | grep -qE "^(\.claude/skills/|\.mcp\.json|\.opencode/|tests/spec/mcp-tooling\.bats|scripts/ticket-mcp/)" && RUN_MCP=true || true
+        echo "$CHANGED" | grep -qE "^openspec/" && RUN_OPENSPEC=true || true
         if [ "$RUN_WEBSITE" = "true" ] && command -v pnpm >/dev/null 2>&1; then echo "→ website changes: pnpm vitest run --changed"; (cd website && pnpm vitest run --changed --reporter verbose); fi
         if [ "$RUN_MENTOLDER_WEB" = "true" ] && command -v pnpm >/dev/null 2>&1; then echo "→ mentolder-web changes: pnpm --filter mentolder-web test"; pnpm --filter mentolder-web test; fi
         if [ "$RUN_K8S" = "true" ]; then echo "→ k8s changes: task test:manifests"; task test:manifests; fi
@@ -790,7 +792,8 @@ tasks:
         if [ "$RUN_FACTORY" = "true" ]; then echo "→ factory changes: task test:factory"; task test:factory; fi
         if [ "$RUN_MCP" = "true" ] && [ "$RUN_SCRIPTS" = "false" ]; then echo "→ MCP tooling guardrail"; task test:mcp-tooling; fi
         if [ "$RUN_UNIT" = "true" ] && [ "$RUN_SCRIPTS" = "false" ]; then echo "→ test changes: task test:unit"; task test:unit; fi
-        if [ "$RUN_WEBSITE" = "false" ] && [ "$RUN_MENTOLDER_WEB" = "false" ] && [ "$RUN_K8S" = "false" ] && [ "$RUN_SCRIPTS" = "false" ] && [ "$RUN_FACTORY" = "false" ] && [ "$RUN_UNIT" = "false" ] && [ "$RUN_MCP" = "false" ]; then
+        if [ "$RUN_OPENSPEC" = "true" ]; then echo "→ openspec changes: task test:openspec"; task test:openspec; fi
+        if [ "$RUN_WEBSITE" = "false" ] && [ "$RUN_MENTOLDER_WEB" = "false" ] && [ "$RUN_K8S" = "false" ] && [ "$RUN_SCRIPTS" = "false" ] && [ "$RUN_FACTORY" = "false" ] && [ "$RUN_UNIT" = "false" ] && [ "$RUN_MCP" = "false" ] && [ "$RUN_OPENSPEC" = "false" ]; then
           if command -v pnpm >/dev/null 2>&1; then echo "→ no domain-specific changes: vitest only"; (cd website && pnpm vitest run --reporter verbose); fi
         fi
         echo "→ quality gate (always)"; task test:code-quality

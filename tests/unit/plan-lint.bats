@@ -52,10 +52,12 @@ setup() {
 }
 
 @test "B1 math: baselined file uses max(limit, baseline.metric)" {
-  # scripts/backup-restore.sh is baselined at 1037 (> 500 .sh limit) in baseline.json
-  run env PLAN_LINT_SELFTEST=1 bash "$LINT" effective_threshold "scripts/backup-restore.sh"
+  # website/src/components/inbox/InboxApp.svelte is baselined at 1017 (> 500 .svelte limit) in baseline.json
+  # (After T001155/G-RH01 Batch 2, scripts/backup-restore.sh is no longer in baseline.json
+  # because the refactor brought it under 500 LOC.)
+  run env PLAN_LINT_SELFTEST=1 bash "$LINT" effective_threshold "website/src/components/inbox/InboxApp.svelte"
   [ "$status" -eq 0 ]
-  [ "$output" = "1037" ]
+  [ "$output" = "1017" ]
 }
 
 @test "B1 math: residual_budget = threshold - wc -l on a live file" {

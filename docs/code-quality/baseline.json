@@ -13,13 +13,6 @@
     "detail": "648 lines > 600 limit (.py)",
     "frozen_at": "8b581ebe"
   },
-  "S1:scripts/backup-restore.sh": {
-    "gate": "S1",
-    "path": "scripts/backup-restore.sh",
-    "metric": 1037,
-    "detail": "1037 lines > 500 limit (.sh)",
-    "frozen_at": "8b581ebe"
-  },
   "S1:scripts/docs-gen/templates.mjs": {
     "gate": "S1",
     "path": "scripts/docs-gen/templates.mjs",
@@ -109,13 +102,6 @@
     "path": "website/src/lib/helpContent.ts",
     "metric": 923,
     "detail": "923 lines > 600 limit (.ts)",
-    "frozen_at": "8b581ebe"
-  },
-  "S1:website/src/lib/tickets-db.ts": {
-    "gate": "S1",
-    "path": "website/src/lib/tickets-db.ts",
-    "metric": 1096,
-    "detail": "1096 lines > 600 limit (.ts)",
     "frozen_at": "8b581ebe"
   },
   "S1:website/src/lib/tickets/admin.ts": {

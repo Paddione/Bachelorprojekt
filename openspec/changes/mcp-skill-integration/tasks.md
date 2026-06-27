@@ -93,7 +93,7 @@ Files created / modified / deleted, grouped by slice (each slice is one PR).
 - Consumes: existing `readBuffer()`, `writeBuffer()`, `classifyBundle()`, `MishapEntry`, `MISHAP_TRIGGER`, `runner.RunTicket`, `getArgs` (all already in package `tools`).
 - Produces: Go tools `get_mishap_buffer` (no args), `flush_mishap_buffer` (arg: `brand`), and a `process`-aware `report_mishap`; plus an unexported helper `createMishapBundleTicket(bundle []MishapEntry, brand string) (string, error)`.
 
-- [ ] **Step 1: Extend the `process` Go test (write failing test).** Add to `mishap_test.go`:
+- [x] **Step 1: Extend the `process` Go test (write failing test).** Add to `mishap_test.go`:
 
 ```go
 func TestClassifyBundleProcessType(t *testing.T) {
@@ -108,11 +108,11 @@ func TestClassifyBundleProcessType(t *testing.T) {
 }
 ```
 
-- [ ] **Step 2: Run it — expect PASS already** (classifyBundle treats unknown types as non-critical). Run: `cd scripts/ticket-mcp/go && go test ./... -run TestClassifyBundleProcessType -v`. Expected: PASS (this pins the behaviour; the real gap is the enum, fixed next).
+- [x] **Step 2: Run it — expect PASS already** (classifyBundle treats unknown types as non-critical). Run: `cd scripts/ticket-mcp/go && go test ./... -run TestClassifyBundleProcessType -v`. Expected: PASS (this pins the behaviour; the real gap is the enum, fixed next).
 
-- [ ] **Step 3: Add `process` to the `report_mishap` enum + validator.** In `mishap.go`, the `mcp.Enum("broken", "degraded", "suspicious", "security", "drift")` → add `"process"`; and `validTypes := []string{"broken", "degraded", "suspicious", "security", "drift"}` → append `"process"`. (Matches Node `MISHAP_TYPE` and `mishap-categorize`/skill classification.)
+- [x] **Step 3: Add `process` to the `report_mishap` enum + validator.** In `mishap.go`, the `mcp.Enum("broken", "degraded", "suspicious", "security", "drift")` → add `"process"`; and `validTypes := []string{"broken", "degraded", "suspicious", "security", "drift"}` → append `"process"`. (Matches Node `MISHAP_TYPE` and `mishap-categorize`/skill classification.)
 
-- [ ] **Step 4: Extract the bundle-create helper (DRY).** Add to `mishap.go`:
+- [x] **Step 4: Extract the bundle-create helper (DRY).** Add to `mishap.go`:
 
 ```go
 // createMishapBundleTicket creates one bundled task ticket from the given
@@ -144,7 +144,7 @@ func createMishapBundleTicket(bundle []MishapEntry, brand string) (string, error
 
 Then refactor the existing `report_mishap` create-block to call `createMishapBundleTicket(buffer[:MISHAP_TRIGGER], brand)` instead of inlining the `create` args (behaviour identical: on error it still `writeBuffer(buffer)` and returns the error; on success `writeBuffer(buffer[MISHAP_TRIGGER:])`).
 
-- [ ] **Step 5: Register the two buffer tools** at the end of `RegisterMishapTools`:
+- [x] **Step 5: Register the two buffer tools** at the end of `RegisterMishapTools`:
 
 ```go
 	s.AddTool(
@@ -189,9 +189,9 @@ Then refactor the existing `report_mishap` create-block to call `createMishapBun
 	)
 ```
 
-- [ ] **Step 6: Build + vet + test.** Run: `cd scripts/ticket-mcp/go && go vet ./... && go test ./... && make build`. Expected: vet clean, tests PASS, binary written to `scripts/ticket-mcp/ticket-mcp-go`.
+- [x] **Step 6: Build + vet + test.** Run: `cd scripts/ticket-mcp/go && go vet ./... && go test ./... && make build`. Expected: vet clean, tests PASS, binary written to `scripts/ticket-mcp/ticket-mcp-go`.
 
-- [ ] **Step 7: Commit.**
+- [x] **Step 7: Commit.**
 
 ```bash
 git add scripts/ticket-mcp/go/internal/tools/mishap.go scripts/ticket-mcp/go/internal/tools/mishap_test.go
@@ -222,7 +222,7 @@ guide — the guide-completeness `@test` is appended in Slice 3, Task 3.4).
 
 > **Why the Taskfile wiring is mandatory:** `tests/spec/*.bats` has no auto-glob runner (verified — no Taskfile target references `tests/spec/`; `runner.sh unit` globs only `tests/unit/`; the unit-coverage-guard only checks `tests/unit/`). Without explicit wiring the guard is an orphan that never gates CI.
 
-- [ ] **Step 1: Write the guardrail's adapter-completeness `@test` (red-first).** Create `tests/spec/mcp-tooling.bats`:
+- [x] **Step 1: Write the guardrail's adapter-completeness `@test` (red-first).** Create `tests/spec/mcp-tooling.bats`:
 
 ```bash
 #!/usr/bin/env bats
@@ -252,7 +252,7 @@ setup() {
 }
 ```
 
-- [ ] **Step 2: Wire it into `Taskfile.yml`.** Add the public task (near the other `test:*` tasks):
+- [x] **Step 2: Wire it into `Taskfile.yml`.** Add the public task (near the other `test:*` tasks):
 
 ```yaml
   test:mcp-tooling:
@@ -276,9 +276,9 @@ and after the existing `if [ "$RUN_FACTORY" = "true" ] …` line add
 
 (Also add `[ "$RUN_MCP" = "false" ]` to the final "no domain-specific changes" all-false guard so a guard-only change does not fall through to vitest-only.)
 
-- [ ] **Step 3: Run the guard — expected: fail (red).** Run: `task test:mcp-tooling`. Expected: **fail** — the assertion lists the unwrapped verbs `phase grill stage-plan create enqueue set-touched-files get-attachments archive-plan` (only `get` + `add-comment` are wrapped today), confirming the guard catches missing wrappers before we add them.
+- [x] **Step 3: Run the guard — expected: fail (red).** Run: `task test:mcp-tooling`. Expected: **fail** — the assertion lists the unwrapped verbs `phase grill stage-plan create enqueue set-touched-files get-attachments archive-plan` (only `get` + `add-comment` are wrapped today), confirming the guard catches missing wrappers before we add them.
 
-- [ ] **Step 4: Write the registration smoke test (failing).** `workflow_test.go`:
+- [x] **Step 4: Write the registration smoke test (failing).** `workflow_test.go`:
 
 ```go
 package tools
@@ -298,9 +298,9 @@ func TestRegisterWorkflowToolsNoPanic(t *testing.T) {
 }
 ```
 
-- [ ] **Step 5: Run it — to verify it fails (undefined: RegisterWorkflowTools).** Run: `cd scripts/ticket-mcp/go && go test ./internal/tools/ -run TestRegisterWorkflowToolsNoPanic -v`. Expected: build error `undefined: RegisterWorkflowTools`.
+- [x] **Step 5: Run it — to verify it fails (undefined: RegisterWorkflowTools).** Run: `cd scripts/ticket-mcp/go && go test ./internal/tools/ -run TestRegisterWorkflowToolsNoPanic -v`. Expected: build error `undefined: RegisterWorkflowTools`.
 
-- [ ] **Step 6: Create `workflow.go` (complete file).**
+- [x] **Step 6: Create `workflow.go` (complete file).**
 
 ```go
 package tools
@@ -542,15 +542,15 @@ func RegisterWorkflowTools(s *server.MCPServer) {
 }
 ```
 
-- [ ] **Step 7: Register in `main.go`.** After the existing `tools.RegisterMishapTools(mcpServer)` line, add:
+- [x] **Step 7: Register in `main.go`.** After the existing `tools.RegisterMishapTools(mcpServer)` line, add:
 
 ```go
 	tools.RegisterWorkflowTools(mcpServer)
 ```
 
-- [ ] **Step 8: Build + vet + test.** Run: `cd scripts/ticket-mcp/go && go vet ./... && go test ./... && make build`. Expected: clean vet, PASS, binary rebuilt.
+- [x] **Step 8: Build + vet + test.** Run: `cd scripts/ticket-mcp/go && go vet ./... && go test ./... && make build`. Expected: clean vet, PASS, binary rebuilt.
 
-- [ ] **Step 9: Re-run the guard — now green; manual stdio smoke lists the 9 names.** Run: `task test:mcp-tooling`. Expected: `1 test, 0 failures` (all skill-critical verbs now wrapped). Then confirm the live tool list:
+- [x] **Step 9: Re-run the guard — now green; manual stdio smoke lists the 9 names.** Run: `task test:mcp-tooling`. Expected: `1 test, 0 failures` (all skill-critical verbs now wrapped). Then confirm the live tool list:
 
 ```bash
 cd /tmp/wt-mcp-skill-integration
@@ -560,7 +560,7 @@ printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocol
 
 Expected: includes `record_phase_event`, `record_grill_answers`, `stage_plan`, `create_ticket`, `enqueue_ticket`, `set_touched_files`, `get_attachments`, `archive_plan`, `add_pr_link`, `get_mishap_buffer`, `flush_mishap_buffer`.
 
-- [ ] **Step 10: Commit.**
+- [x] **Step 10: Commit.**
 
 ```bash
 git add tests/spec/mcp-tooling.bats Taskfile.yml scripts/ticket-mcp/go/internal/tools/workflow.go scripts/ticket-mcp/go/internal/tools/workflow_test.go scripts/ticket-mcp/go/cmd/ticket-mcp/main.go
@@ -578,10 +578,10 @@ git commit -m "feat(ticket-mcp): adapter-completeness guard + 9 workflow wrapper
 
 **Behaviour must NOT change** — `priority`/`severity` are still declared on `prepare_feature` but NOT forwarded to `ticket.sh` (the `plan-meta set` verb does not accept them). Only the misleading comment text changes.
 
-- [ ] **Step 1: Reword the parameter descriptions** (lines ~118 and ~120): replace `"wird nicht an ticket.sh durchgereicht (Node-Kompatibilität)"` with `"wird nicht an ticket.sh plan-meta durchgereicht (das Verb akzeptiert priority/severity nicht)"` for both `priority` and `severity`.
-- [ ] **Step 2: Reword the inline comment** (~line 154-155): replace the `// This matches Node behavior exactly …` block with `// priority/severity are declared for caller convenience but plan-meta does not accept them, so they are intentionally not forwarded.`
-- [ ] **Step 3: Build + vet + test.** Run: `cd scripts/ticket-mcp/go && go vet ./... && go test ./... && make build`. Expected: clean, PASS.
-- [ ] **Step 4: Commit.**
+- [x] **Step 1: Reword the parameter descriptions** (lines ~118 and ~120): replace `"wird nicht an ticket.sh durchgereicht (Node-Kompatibilität)"` with `"wird nicht an ticket.sh plan-meta durchgereicht (das Verb akzeptiert priority/severity nicht)"` for both `priority` and `severity`.
+- [x] **Step 2: Reword the inline comment** (~line 154-155): replace the `// This matches Node behavior exactly …` block with `// priority/severity are declared for caller convenience but plan-meta does not accept them, so they are intentionally not forwarded.`
+- [x] **Step 3: Build + vet + test.** Run: `cd scripts/ticket-mcp/go && go vet ./... && go test ./... && make build`. Expected: clean, PASS.
+- [x] **Step 4: Commit.**
 
 ```bash
 git add scripts/ticket-mcp/go/internal/tools/planning.go
@@ -600,9 +600,9 @@ git commit -m "chore(ticket-mcp): drop stale Node-compat comments (behaviour unc
 - Modify: `.opencode/opencode.jsonc` (`.jsonc` not gated → S1 N/A)
 - Delete: `scripts/ticket-mcp/server.js`, `scripts/ticket-mcp/tools/` (lifecycle.js, list.js, mishap.js, planning.js, triage.js), `scripts/ticket-mcp/lib/` (mishap-buffer.js, run-ticket.js), `scripts/ticket-mcp/package.json`, `scripts/ticket-mcp/package-lock.json`
 
-- [ ] **Step 1: Build the binary first.** Run: `task ticket-mcp:build` (→ `make -C scripts/ticket-mcp/go build`). Expected: `scripts/ticket-mcp/ticket-mcp-go` exists and is executable (`ls -l scripts/ticket-mcp/ticket-mcp-go`). The binary is gitignored (`scripts/ticket-mcp/.gitignore` = `ticket-mcp-go`) — do not commit it.
+- [x] **Step 1: Build the binary first.** Run: `task ticket-mcp:build` (→ `make -C scripts/ticket-mcp/go build`). Expected: `scripts/ticket-mcp/ticket-mcp-go` exists and is executable (`ls -l scripts/ticket-mcp/ticket-mcp-go`). The binary is gitignored (`scripts/ticket-mcp/.gitignore` = `ticket-mcp-go`) — do not commit it.
 
-- [ ] **Step 2: Pre-deletion reference scan** (confirm nothing else launches the Node server). Run:
+- [x] **Step 2: Pre-deletion reference scan** (confirm nothing else launches the Node server). Run:
 
 ```bash
 cd /tmp/wt-mcp-skill-integration
@@ -613,7 +613,7 @@ grep -rn "ticket-mcp/server.js\|ticket-mcp/tools\|ticket-mcp/lib\|ticket-mcp/pac
 
 Expected: only `.opencode/opencode.jsonc` (the entry we are about to change) and possibly docs. If a Taskfile/script launches `node …/server.js`, update it to the Go binary in this step.
 
-- [ ] **Step 3: Flip opencode to the Go binary.** In `.opencode/opencode.jsonc`, change the `ticket-mcp` entry from:
+- [x] **Step 3: Flip opencode to the Go binary.** In `.opencode/opencode.jsonc`, change the `ticket-mcp` entry from:
 
 ```jsonc
     "ticket-mcp": {
@@ -635,7 +635,7 @@ to:
 
 (`.mcp.json` already points at the Go binary — no change there.)
 
-- [ ] **Step 4: Delete the Node adapter.**
+- [x] **Step 4: Delete the Node adapter.**
 
 ```bash
 cd /tmp/wt-mcp-skill-integration
@@ -645,7 +645,7 @@ git rm -r scripts/ticket-mcp/tools scripts/ticket-mcp/lib
 
 (If `scripts/ticket-mcp/node_modules/` exists and is tracked, also `git rm -r` it; it is typically untracked.)
 
-- [ ] **Step 5: Verify the Go binary still builds + the JSON is valid.** Run:
+- [x] **Step 5: Verify the Go binary still builds + the JSON is valid.** Run:
 
 ```bash
 task ticket-mcp:build
@@ -654,7 +654,7 @@ jq empty .mcp.json && node -e "require('fs').readFileSync('.opencode/opencode.js
 
 Expected: build green; `.mcp.json` valid JSON; opencode jsonc readable.
 
-- [ ] **Step 6: Commit.**
+- [x] **Step 6: Commit.**
 
 ```bash
 git add .opencode/opencode.jsonc scripts/ticket-mcp/

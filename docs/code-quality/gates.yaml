@@ -107,6 +107,14 @@ s4:
     # AGENTS.md is the canonical reference for agent coordination scripts (agent-lock.sh,
     # agent-msg.sh, agent-escalate.sh). Added in T001049.
     - "AGENTS.md"
+    # OpenSpec SSOT specs (.openspec/specs/<capability>/spec.md) are the source of truth
+    # for behavioural contracts and frequently name migration / one-shot scripts that the
+    # old spec did not list under docs/ (T001170, chore/repo-hygiene).
+    - "openspec/specs/**/*.md"
+    # BATS unit tests under tests/unit/ document and exercise helper scripts
+    # (e.g. tests/unit/skill-orchestrator.bats, tickets-sunset.bats). Without this
+    # entry, those scripts are flagged as orphans. Added in T001170.
+    - "tests/**/*.bats"
   allowlist_globs:
     - "k3d/office-stack/**"
     - "k3d/coturn-stack/**"

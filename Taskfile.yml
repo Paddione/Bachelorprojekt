@@ -2158,6 +2158,19 @@ tasks:
       - kustomize build prod-fleet/mentolder/ --load-restrictor=LoadRestrictionsNone >/dev/null && echo "✓ prod-fleet/mentolder builds"
       - kustomize build prod-fleet/korczewski/ --load-restrictor=LoadRestrictionsNone >/dev/null && echo "✓ prod-fleet/korczewski builds"
 
+  srgb-icc:build:
+    desc: "Regenerate website/src/lib/srgb-icc.ts from the canonical sRGB.icc (delegates to scripts/build-srgb-icc.mjs)"
+    cmds:
+      - node scripts/build-srgb-icc.mjs
+
+  cicd:kubeconfig:
+    desc: "Generate a minimal kubeconfig for the cicd-deploy ServiceAccount (delegates to scripts/cicd-kubeconfig-gen.sh)"
+    vars:
+      CONTEXT: '{{.CONTEXT | default "fleet"}}'
+      NAMESPACE: '{{.NAMESPACE | default "workspace"}}'
+    cmds:
+      - bash scripts/cicd-kubeconfig-gen.sh "{{.CONTEXT}}" "{{.NAMESPACE}}"
+
   workspace:preflight:
     desc: "Pre-deploy checklist — secrets, SealedSecrets, overlay, cluster health (ENV=dev|mentolder|korczewski)"
     vars:

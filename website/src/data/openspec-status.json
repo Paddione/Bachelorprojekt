@@ -213,6 +213,12 @@
       "status": "plan_staged"
     }
   ],
+  "T001207": [
+    {
+      "slug": "g-fe02-bundle-budget",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

@@ -196,6 +196,32 @@ jobs:
           cd website
           pnpm exec vitest run --testTimeout=30000
 
+  bundle-budget:
+    name: Client-JS Bundle Budget
+    if: github.event.action != 'edited'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda  # v4.1.0
+        with:
+          version: 10
+
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444  # v5
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+          cache-dependency-path: website/pnpm-lock.yaml
+
+      - name: Build website
+        run: |
+          cd website && pnpm install --frozen-lockfile && pnpm build
+
+      - name: Check client-JS bundle budget
+        run: node scripts/check-bundle-size.mjs --check --fail --threshold=5
+
   commit-lint:
     name: Conventional Commits
     runs-on: ubuntu-latest

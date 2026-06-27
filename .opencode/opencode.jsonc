@@ -46,7 +46,7 @@
     },
     "ticket-mcp": {
       "type": "local",
-      "command": ["node", "/home/patrick/Bachelorprojekt/scripts/ticket-mcp/server.js"],
+      "command": ["/home/patrick/Bachelorprojekt/scripts/ticket-mcp/ticket-mcp-go"],
       "enabled": true
     }
   },

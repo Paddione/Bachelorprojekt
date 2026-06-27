@@ -301,8 +301,9 @@ TICKET_ID=$(printf '%s %s' "$TITLE" "$BRANCH" | grep -oiE 'T[0-9]{6}' | head -1 
 
 ### Step 4.4: GitHub Issue Intake (rare)
 This repo tracks issues in Postgres, not GitHub. If `gh issue list --state open` returns anything, funnel it in rather than working it on GitHub:
-1. Create a `tickets.tickets` row from the issue (`type`, `brand`, `title`, `description`, `status='triage'`).
-2. `gh issue close <n> --comment "Tracked internally as <external_id>."`
+1. **Title-dedupe guard [T001210].** Before creating a new row, run a lookup for an open ticket with the same (case-insensitive, whitespace-normalised) title. If one exists — e.g. canonical reference T001147 "E2E notification test — Playwright FA-bug-notify", mishap bundle T001148 — do not create a duplicate. Append a `ticket_comments` row to the existing ticket noting the re-trigger source, then `gh issue close <n> --comment "Duplicate of <external_id>."`. The 4 duplicates T001196/T001197/T001201/T001202 were created 2026-06-27 against T001147 precisely because this dedupe guard was missing. Phase 1 Step 1.4 (Completeness triage) applies the same dedupe precondition before accepting a new auto-intake row.
+2. Create a `tickets.tickets` row from the issue (`type`, `brand`, `title`, `description`, `status='triage'`).
+3. `gh issue close <n> --comment "Tracked internally as <external_id>."`
 
 ---
 

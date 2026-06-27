@@ -2593,7 +2593,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 431,
+      "file_count": 433,
       "files": [
         "scripts/add-whiteboard-library.py",
         "scripts/admin-menu-gate.sh",
@@ -2929,6 +2929,8 @@
         "scripts/openspec-embed.mjs",
         "scripts/openspec-embed.test.mjs",
         "scripts/openspec-status-map.sh",
+        "scripts/openspec-validate.test.ts",
+        "scripts/openspec-validate.ts",
         "scripts/openspec.sh",
         "scripts/plan-context.sh",
         "scripts/plan-frontmatter-hook.sh",

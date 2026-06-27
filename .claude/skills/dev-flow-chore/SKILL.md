@@ -104,9 +104,25 @@ Siehe [dev-flow-gotchas](file:///home/patrick/Bachelorprojekt/.claude/skills/ref
 
 ## Schritt 4: Commit, Push & PR
 
+> **⚠ Achtung:** Nutze niemals `git add -A` oder `git add .`, da dies unbeabsichtigt durch `git-crypt` entschlüsselte/modifizierte Secret-Artefakte stagen kann. Nutze stattdessen gezieltes Pathspec-Staging (z. B. `git add path/to/file`). Checke vor dem Commit immer, ob versehentlich Secrets gestaged wurden:
+> ```bash
+> if git diff --cached --name-only | grep "environments/.secrets" >/dev/null 2>&1; then
+>   echo "FATAL: Secrets in environments/.secrets are staged!" >&2
+>   exit 1
+> fi
+> ```
+
 ```bash
 BASE_SHA="$(git rev-parse "@{upstream}" 2>/dev/null || git rev-parse origin/main)"
-git add -A
+
+# Vor dem Commit prüfen, ob Secrets gestaged wurden
+if git diff --cached --name-only | grep "environments/.secrets" >/dev/null 2>&1; then
+  echo "FATAL: Secrets in environments/.secrets are staged!" >&2
+  exit 1
+fi
+
+# Nur spezifische Pfade/Dateien stagen, KEIN git add -A!
+git add path/to/file1 path/to/file2
 git commit -m "chore(<scope>): <subject> [$TICKET_EXT_ID]"   # commitlint: Body-Zeilen <100 Zeichen
 
 # Verify commit landed — git-crypt clean filter can cause silent commit failures

@@ -118,3 +118,27 @@ PY
   [ "$status" -eq 0 ]
   ! grep -qE '^[^#]*\bnpm ci\b' "$DOCKERFILE"
 }
+
+# ── G-CI01: CI Pipeline Stability ─────────────────────────────────────────────
+# Requirement: Post-merge Freshness-Regenerierung ohne externe GPG-Action
+# Requirement: Website Dockerfile verwendet pnpm als Package-Manager
+
+@test "G-CI01-A: freshness-regen.yml enthält keinen ghaction-import-gpg-Verweis" {
+  run grep -c "ghaction-import-gpg" "$REPO_ROOT/.github/workflows/freshness-regen.yml"
+  [ "$status" -ne 0 ] || [ "$output" -eq 0 ]
+}
+
+@test "G-CI01-B: Dockerfile COPY-Zeile referenziert pnpm-lock.yaml (nicht package-lock.json)" {
+  ! grep -q "package-lock.json" "$REPO_ROOT/website/Dockerfile"
+  grep -q "pnpm-lock.yaml" "$REPO_ROOT/website/Dockerfile"
+}
+
+@test "G-CI01-C: Dockerfile nutzt pnpm install --frozen-lockfile (nicht npm ci)" {
+  ! grep -q "npm ci" "$REPO_ROOT/website/Dockerfile"
+  grep -q "pnpm install --frozen-lockfile" "$REPO_ROOT/website/Dockerfile"
+}
+
+@test "G-CI01-D: website/pnpm-lock.yaml existiert; website/package-lock.json existiert nicht" {
+  [ -f "$REPO_ROOT/website/pnpm-lock.yaml" ]
+  [ ! -f "$REPO_ROOT/website/package-lock.json" ]
+}

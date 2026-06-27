@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.129.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.129.1...website-v1.129.2) (2026-06-27)
+
+
+### Bug Fixes
+
+* **secrets:** re-sync website-secrets in website-korczewski + add cluster-drift guard [T001182] ([#2124](https://github.com/Paddione/Bachelorprojekt/issues/2124)) ([192e804](https://github.com/Paddione/Bachelorprojekt/commit/192e8049177df345edca6230712c1d6e1fe3464c))
+
 ## [1.129.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.129.0...website-v1.129.1) (2026-06-27)
 
 

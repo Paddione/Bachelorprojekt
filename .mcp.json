@@ -47,6 +47,9 @@
     },
     "ticket-mcp": {
       "command": "/home/patrick/Bachelorprojekt/scripts/ticket-mcp/ticket-mcp-go"
+    },
+    "codebase-memory-mcp": {
+      "command": "/home/patrick/.local/bin/codebase-memory-mcp"
     }
   }
 }

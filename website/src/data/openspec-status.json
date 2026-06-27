@@ -219,6 +219,12 @@
       "status": "plan_staged"
     }
   ],
+  "T001216": [
+    {
+      "slug": "ci-speed",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

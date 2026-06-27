@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.133.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.133.2...website-v1.133.3) (2026-06-27)
+
+
+### Bug Fixes
+
+* **website:** sync package-lock.json with package.json (T001209 followup) ([4fb582a](https://github.com/Paddione/Bachelorprojekt/commit/4fb582ae421d98f19456dd4915b2d4bf3e2678b2))
+
 ## [1.133.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.133.1...website-v1.133.2) (2026-06-27)
 
 

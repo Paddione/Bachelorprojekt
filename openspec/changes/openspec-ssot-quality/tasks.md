@@ -3,6 +3,11 @@ title: "OpenSpec SSOT Quality Improvements"
 ticket_id: T001266
 domains: [openspec, ci-cd]
 status: plan_staged
+file_locks: []
+shared_changes: false
+batch_id: null
+parent_feature: null
+depends_on_plans: []
 ---
 
 # openspec-ssot-quality — Implementation Plan

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.129.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.128.2...website-v1.129.0) (2026-06-27)
+
+
+### Features
+
+* **website:** react.mentolder.de login + homepage block editor (Astro-auth reuse) [T001160] ([#2113](https://github.com/Paddione/Bachelorprojekt/issues/2113)) ([94e8ffc](https://github.com/Paddione/Bachelorprojekt/commit/94e8ffcb4472c0c24ffb4552df2aad61b5c52ae2))
+
 ## [1.128.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.128.1...website-v1.128.2) (2026-06-27)
 
 

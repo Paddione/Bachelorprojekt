@@ -21,6 +21,12 @@ AGENT_LOCK_TTL="${AGENT_LOCK_TTL:-1800}"
 _now() { date +%s; }
 
 _my_sid() {
+  # Harness-stable env wins (Claude Code / opencode expose a session id for
+  # telemetry that survives across bash tool calls). The test override
+  # AGENT_LOCK_SID stays as a second layer (CI / unit tests). Only fall back
+  # to the per-call Unix SID when neither harness env nor test override is
+  # set — that path is the source of the cross-call drift bug. [T001268]
+  if [ -n "${CLAUDE_SESSION_ID:-}" ]; then printf '%s\n' "$CLAUDE_SESSION_ID"; return; fi
   if [ -n "${AGENT_LOCK_SID:-}" ]; then printf '%s\n' "$AGENT_LOCK_SID"; return; fi
   local s; s="$(ps -o sess= -p "$$" 2>/dev/null | tr -d ' ')"
   if [ -n "$s" ]; then printf '%s\n' "$s"; return; fi
@@ -35,11 +41,18 @@ _sid_alive() {
   if [ -n "${AGENT_LOCK_FAKE_ALIVE+x}" ]; then
     case " $AGENT_LOCK_FAKE_ALIVE " in *" $1 "*) return 0;; *) return 1;; esac
   fi
+  # Non-numeric sids are harness-provided session IDs (e.g. CLAUDE_SESSION_ID).
+  # They cannot be verified via pgrep, so treat them as alive and rely on the
+  # heartbeat TTL to reap them when their holder stops refreshing. [T001268]
+  case "$1" in *[!0-9]*) return 0;; esac
   pgrep -s "$1" >/dev/null 2>&1
 }
 
 _detect_tool() {
-  if [ -n "${CLAUDECODE:-}${CLAUDE_CODE:-}" ]; then echo claude
+  # CLAUDE_SESSION_ID is the harness-provided env from Claude Code / opencode;
+  # we also accept the older CLAUDECODE/CLAUDE_CODE marker for back-compat.
+  # CLAUDE_SESSION_ID alone is enough to identify the Claude harness. [T001268]
+  if [ -n "${CLAUDE_SESSION_ID:-}${CLAUDECODE:-}${CLAUDE_CODE:-}" ]; then echo claude
   elif [ -n "${GEMINI_CLI:-}${GEMINI_SANDBOX:-}${GEMINI_API_KEY:-}" ]; then echo gemini
   else echo unknown; fi
 }

@@ -289,6 +289,12 @@
       "status": "archived"
     }
   ],
+  "T001268": [
+    {
+      "slug": "agent-lock-dev-flow-mishaps",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

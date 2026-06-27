@@ -52,7 +52,7 @@ task feature:deploy  # fan-out to both brands
   - `/opsx:archive <slug>` — archive a completed change + merge its delta into the SSOT spec.
   - `/opsx:explore` — think-through / requirements clarification (no implementation).
   - The `task openspec:propose|apply|archive` wrappers are **equivalent fallbacks** for environments without the OpenSpec CLI; `task openspec:validate` is the fail-closed CI gate. Authoring conventions are SSOT in `openspec/config.yaml` — see [OpenSpec conventions](#openspec-conventions) below.
-- **awaiting_deploy status**: A transition state for tickets that are merged to `main` but not yet deployed to production (the "merge ≠ prod" lane on the dashboard cockpit).
+- **Merge = closure (T001092)**: Tickets close directly on green auto-merge to `main` (`done · resolution=shipped`). The prod deploy is **decoupled** (push-based) and does NOT change ticket status. `awaiting_deploy`/`qa_review` are **removed from the happy-path** but stay valid enum values for historical rows, manual holds, and the watchdog safety net (`awaiting_deploy > 24h`); the cockpit hides the `awaiting_deploy` lane unless a ticket is manually held. Source: CLAUDE.md → "Domain conventions: Merge = Abschluss".
 - CI gate: `task test:changed` (smart selection) + `task freshness:check` + `task workspace:validate`.
 - Pre-commit hook (`.githooks/pre-commit`) auto-runs freshness regeneration, secret scanning, agent-lock guard. Install with `git config core.hooksPath .githooks`.
 

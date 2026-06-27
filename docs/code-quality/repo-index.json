@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 491,
+      "file_count": 492,
       "files": [
         "tests/.gitignore",
         "tests/batch/batch-gap-analysis.bats",

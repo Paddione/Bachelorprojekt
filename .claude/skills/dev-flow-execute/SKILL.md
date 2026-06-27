@@ -394,19 +394,66 @@ Bei roten Checks: Logs aus dem Skript-Output als Prompt-Kontext an einen `sonnet
 
 ---
 
+## Schritt 6.4: Warte auf PR-Merge (vor Ticket-Abschluss)
+
+`gh pr merge --auto` kehrt sofort zurück — der eigentliche Merge passiert asynchron im Hintergrund.
+Bisher hat Schritt 6.5 das Ticket direkt nach `--auto` auf `done` gesetzt, was zu Drift führte
+(s. Mishap T001149-M1, T001145/PR #2101: Ticket `done`, PR aber OPEN+CONFLICTING).
+Jetzt: **warten, bis der Merge tatsächlich durch ist**, bevor das Ticket geschlossen wird.
+
+```bash
+PR_NUM=$(gh pr view --json number -q '.number')
+PR_URL="https://github.com/Paddione/Bachelorprojekt/pull/$PR_NUM"
+MAX_MERGE_WAIT_MIN="${MAX_MERGE_WAIT_MIN:-15}"
+WAIT_START=$(date +%s)
+
+echo "⏳ Warte auf Merge von PR #$PR_NUM (max ${MAX_MERGE_WAIT_MIN}min) ..."
+MERGE_STATE=""
+while true; do
+  MERGE_STATE=$(gh pr view "$PR_NUM" --json mergeStateStatus,state -q '.state + "|" + .mergeStateStatus' 2>/dev/null || echo "UNKNOWN|UNKNOWN")
+  STATE="${MERGE_STATE%%|*}"
+  MS="${MERGE_STATE##*|}"
+
+  case "$STATE" in
+    MERGED)
+      echo "✅ PR #$PR_NUM ist gemergt — fahre mit Ticket-Abschluss fort."
+      break
+      ;;
+    CLOSED)
+      echo "❌ PR #$PR_NUM wurde geschlossen ohne Merge — breche ab." >&2
+      exit 2
+      ;;
+  esac
+
+  ELAPSED=$(( $(date +%s) - WAIT_START ))
+  if (( ELAPSED > MAX_MERGE_WAIT_MIN * 60 )); then
+    echo "❌ PR #$PR_NUM nach ${MAX_MERGE_WAIT_MIN}min noch nicht gemergt (state=$STATE mergeStateStatus=$MS)." >&2
+    echo "   CI rot? Branch-Protection blockiert? Manuell prüfen:" >&2
+    echo "   gh pr view $PR_NUM --json mergeStateStatus,statusCheckRollup,reviewDecision" >&2
+    exit 3
+  fi
+
+  sleep 15
+done
+```
+
+---
+
 ## Schritt 6.5: Ticket abschließen
 
 Falls eine Ticket-ID vorhanden ist, schließe das Ticket:
 
 ```bash
 RESOLUTION="shipped" # oder "fixed" bei Fixes
-PR_NUM=$(gh pr view --json number -q '.number')
+# PR_NUM wurde in Schritt 6.4 bereits ermittelt; hier nur falls separat aufgerufen:
+: "${PR_NUM:=$(gh pr view --json number -q '.number' 2>/dev/null || echo "")}"
 
 # PR-Nummer in ticket_links eintragen, damit der Shipped-Tab sie zeigt (Fix 1):
 ./scripts/ticket.sh add-pr-link --id "$TICKET_ID" --pr "$PR_NUM"
 
-# Merge = Abschluss (T001092): grüner Auto-Merge nach main schließt das Ticket direkt.
-# Prod-Deploy (Schritt 8) ist entkoppelt und ändert den Ticket-Status NICHT.
+# Merge = Abschluss (T001092): Schritt 6.4 hat bestätigt, dass der PR gemergt ist;
+# Ticket kann jetzt sauber auf done gehen. Prod-Deploy (Schritt 8) ist entkoppelt
+# und ändert den Ticket-Status NICHT.
 ./scripts/vda.sh ticket update-status --id "$TICKET_ID" --status done --resolution "$RESOLUTION"
 # Quality-Gate-Outcome + Live-Floor-Telemetrie (best-effort; --driver devflow; nie blockierend)
 ./scripts/ticket.sh phase "$TICKET_ID" verify done --driver devflow --detail "gate=ci result=pass" || true

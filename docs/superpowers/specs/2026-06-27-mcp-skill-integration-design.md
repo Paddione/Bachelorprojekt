@@ -1,6 +1,6 @@
 ---
-ticket_id: null
-plan_ref: null
+ticket_id: T001211
+plan_ref: openspec/changes/mcp-skill-integration/tasks.md
 status: active
 date: 2026-06-27
 ---

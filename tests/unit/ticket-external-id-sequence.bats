@@ -5,15 +5,16 @@
 # brands — a fresh korczewski counter regenerated T000001.. and clashed with
 # existing mentolder ids. Fixed 2026-05-30 (T000339).
 # After G-RH01 Batch 2 (T001155) the external_id plumbing lives in
-# tickets/migrations.ts; tickets-db.ts must still call applyLegacyMigrations()
+# tickets/migrations.ts; initTicketsSchema() must still call applyLegacyMigrations()
 # (which installs the trigger + sequence) so the regression guard continues to
-# hold across the split.
+# hold across the split. #2114 (G-CQ07) moved initTicketsSchema() out of
+# tickets-db.ts into tickets-schema.ts, so the guard now greps tickets-schema.ts.
 
 setup() {
   load 'lib/bats-support/load'
   load 'lib/bats-assert/load'
   REPO_ROOT="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
-  TDB="$REPO_ROOT/website/src/lib/tickets-db.ts"
+  TSCHEMA="$REPO_ROOT/website/src/lib/tickets-schema.ts"
   TMIG="$REPO_ROOT/website/src/lib/tickets/migrations.ts"
 }
 
@@ -24,10 +25,11 @@ setup() {
   assert_success
 }
 
-@test "tickets-db.ts still calls applyLegacyMigrations(pool) (regression guard for the split)" {
+@test "tickets-schema.ts still calls applyLegacyMigrations(pool) (regression guard for the split)" {
   # The split moved external_id plumbing into tickets/migrations.ts; without
-  # this call from initTicketsSchema(), the trigger would never install.
-  run grep -E "applyLegacyMigrations\([[:space:]]*pool[[:space:]]*\)" "$TDB"
+  # this call from initTicketsSchema() (now in tickets-schema.ts), the trigger
+  # would never install.
+  run grep -E "applyLegacyMigrations\([[:space:]]*pool[[:space:]]*\)" "$TSCHEMA"
   assert_success
 }
 

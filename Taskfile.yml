@@ -758,6 +758,10 @@ tasks:
     desc: "Validate the openspec/ tree (same as test:openspec)."
     cmds:
       - task: test:openspec
+  openspec:header-inject:
+    desc: "Bulk-add ## Purpose + ## Requirements H2 headers to SSOT specs under openspec/specs/. Usage: task openspec:header-inject [-- --dry-run]"
+    cmds:
+      - bash scripts/openspec-header-inject.sh {{.CLI_ARGS}} openspec/specs/
 
   test:agent-lock:
     desc: "Run the offline agent-lock session-coordination bats (tests/local/AGENT-LOCK-*)."

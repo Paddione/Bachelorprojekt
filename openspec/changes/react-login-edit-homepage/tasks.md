@@ -76,9 +76,9 @@ im Code — Origins kommen aus Env (`VITE_WEBSITE_ORIGIN`, `REACT_APP_ORIGIN`); 
 
 ## Task 3: Website — `/api/auth/me` CORS + Callback returnTo-Allowlist
 
-- [ ] `website/src/pages/api/auth/callback.test.ts` erweitern: `returnTo` = react-Origin-URL → Redirect dorthin; `returnTo` = fremde Domain → Fallback `/admin`/`/portal`; relative Pfade unverändert. Lauf → expected: FAIL.
-- [ ] `callback.ts`: Allowlist-Check ergänzen — absolute URL erlaubt nur, wenn ihre Origin in (`SITE_URL`-Origin, `REACT_APP_ORIGIN`) liegt; sonst bisheriger Open-Redirect-Guard.
-- [ ] `me.ts`: CORS-Header via Helper setzen + `OPTIONS`-Handler. Tests → grün. Commit.
+- [x] `website/src/pages/api/auth/callback.test.ts` erweitern: `returnTo` = react-Origin-URL → Redirect dorthin; `returnTo` = fremde Domain → Fallback `/admin`/`/portal`; relative Pfade unverändert. Lauf → expected: FAIL.
+- [x] `callback.ts`: Allowlist-Check ergänzen — absolute URL erlaubt nur, wenn ihre Origin in (`SITE_URL`-Origin, `REACT_APP_ORIGIN`) liegt; sonst bisheriger Open-Redirect-Guard.
+- [x] `me.ts`: CORS-Header via Helper setzen + `OPTIONS`-Handler. Tests → grün. Commit.
 
 ## Task 4: Website — Block-Dokument-Store + API
 

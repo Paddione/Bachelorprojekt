@@ -48,6 +48,12 @@ SKIP_CI_CHECK=1 git push   # überspringt task quality:check
 
 Voraussetzungen: Docker, k3d, kubectl, `task` (go-task).
 
+#### Lokales Setup bewahren (Verlust durch git reset verhindern)
+
+Lokale Konfigurationsdateien wie `.claude/settings.json` und `.opencode/opencode.jsonc` werden nicht im Git-Repository getrackt (bzw. sind gitignored). Bei einem unbedachten `git reset --hard` werden uncommitted oder ungestashte Änderungen (auch an diesen Configs) unwiderruflich gelöscht.
+* **Best Practice:** Nutze vor einem `git reset --hard` immer `git stash push -u` (oder `git stash --include-untracked`), um deine lokalen Einstellungen und uncommitted Code zu sichern.
+* **Selektives Zurücksetzen:** Nutze `git checkout origin/main -- <paths>` oder `git restore --source=origin/main <paths>` anstelle von `git reset --hard`, wenn du nur bestimmte Dateien auf den Stand von `origin/main` bringen möchtest, ohne das restliche Arbeitsverzeichnis zu beeinträchtigen.
+
 ```bash
 task cluster:create
 task workspace:deploy
@@ -106,3 +112,7 @@ Test-IDs: `FA-01`…`FA-29` (funktional), `SA-01`…`SA-10` (Sicherheit), `NFA-0
 ### Für KI-Assistenten (Claude Code / Codex / Gemini)
 
 Lies zuerst [CLAUDE.md](CLAUDE.md). Sie enthält Agent-Routing, Standard-Workflow, Footguns und die vollständige Task-Referenz. Diese Datei ist die kompakte Sicht für menschliche Beitragende.
+
+### MCP-Erweiterung & Tool-Registrierung (Best Practices)
+
+Wenn neue MCP-Tools im Go-Binary von `ticket-mcp` (unter `scripts/ticket-mcp/go/`) implementiert werden, müssen die entsprechenden Client-Schemas als statische JSON-Dateien im Verzeichnis `/home/patrick/.gemini/antigravity-cli/mcp/ticket-mcp/` hinterlegt werden, damit der Client (z. B. Antigravity) diese Tools lazy laden kann (z. B. `stage_plan.json` oder `record_phase_event.json`). Nach einer Tool-Erweiterung muss das Go-Binary mit `make -C scripts/ticket-mcp/go build` neu kompiliert werden.

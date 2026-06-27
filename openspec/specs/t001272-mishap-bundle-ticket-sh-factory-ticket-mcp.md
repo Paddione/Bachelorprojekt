@@ -1,7 +1,12 @@
 # t001272-mishap-bundle-ticket-sh-factory-ticket-mcp
 
-
 <!-- merged from change delta t001272-mishap-bundle-ticket-sh-factory-ticket-mcp.md on 2026-06-28 -->
+
+## Purpose
+
+Behebt drei Mishaps aus dem Ticket-System, Software-Factory und MCP-Tooling-Bereich: fehlende `scout_drift`/`scout_drift_at` Datenbankspalten, fehlende Factory-Troubleshooting-Dokumentation und fehlende Lazy-Load-JSON-Schemas für `ticket-mcp` Go-Tools.
+
+## Requirements
 
 ### Requirement: Database Schema for Scout Drift (R1)
 

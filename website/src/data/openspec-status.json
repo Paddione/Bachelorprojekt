@@ -295,6 +295,12 @@
       "status": "archived"
     }
   ],
+  "T001269": [
+    {
+      "slug": "t001269-mishap-bundle-skills-dev-flow-execute-repo-worktree-state-ticket-mcp",
+      "status": "plan_staged"
+    }
+  ],
   "T001272": [
     {
       "slug": "2026-06-28-t001272-mishap-bundle-ticket-sh-factory-ticket-mcp",

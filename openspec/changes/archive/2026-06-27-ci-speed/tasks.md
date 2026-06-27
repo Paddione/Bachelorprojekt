@@ -2,17 +2,17 @@
 title: "ci-speed: CI-Pipeline-Laufzeit reduzieren (apt-Bloat, npm-Cache, Artifact-Sharing)"
 ticket_id: T001216
 domains: [ci, perf]
-status: plan_staged
+status: completed
 file_locks: []
 shared_changes: false
 ---
 
 # Tasks: ci-speed (T001216)
 
-- [ ] Task 1: apt-get-Bloat aus `offline-tests` entfernen
-- [ ] Task 2: Dedizierten npm-Cache-Slot für `scripts/factory` ergänzen
-- [ ] Task 3: Website-Dist als Artifact zwischen `vitest-website` und `bundle-budget` teilen
-- [ ] Task 4: Verifikation + Commit
+- [x] Task 1: apt-get-Bloat aus `offline-tests` entfernen
+- [x] Task 2: Dedizierten npm-Cache-Slot für `scripts/factory` ergänzen
+- [x] Task 3: Website-Dist als Artifact zwischen `vitest-website` und `bundle-budget` teilen
+- [x] Task 4: Verifikation + Commit
 
 ---
 

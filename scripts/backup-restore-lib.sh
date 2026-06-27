@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # scripts/backup-restore-lib.sh — sourced helpers for backup-restore*.sh
 # Sourced by backup-restore.sh (Dispatcher) and all subcommand scripts.
 # Globals consumed: NS, CTX_FLAG, REMOTE_PATH, MANIFEST, REPO_ROOT, KC, SCRIPT, YES

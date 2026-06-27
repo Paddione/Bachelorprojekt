@@ -4,6 +4,8 @@
 # This file is a thin dispatcher; implementations live in backup-restore-{db,pvc,filen,recovery}.sh.
 # The recovery subcommand path renders k3d/recovery-browser.yaml through envsubst
 # (see backup-restore-recovery.sh and backup-restore-lib.sh _render_recovery_browser).
+# The 'restore' subcommand chains workspace:sync-db-passwords automatically
+# (see backup-restore-db.sh cmd_db_restore post-restore guidance).
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

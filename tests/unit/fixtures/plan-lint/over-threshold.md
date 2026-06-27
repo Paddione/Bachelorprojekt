@@ -13,7 +13,7 @@ status: active
 
 | File | Ist | Budget |
 |------|-----|--------|
-| `scripts/backup-restore.sh` | 1037 | 0 |
+| `website/src/components/inbox/InboxApp.svelte` | 1017 | 0 |
 
 ## Task 1: Edit
 

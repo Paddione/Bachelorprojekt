@@ -18,7 +18,14 @@ depends_on_plans: []
 - [x] Task 3: Test-Inventory-Refresh — `task test:inventory` (no-op, siehe Notiz)
 
 > **Notiz:** `scripts/build-test-inventory.sh` scannt nur `tests/local/`, `tests/prod/`, `tests/e2e/specs/` — `tests/spec/<slug>.bats` (per AGENTS.md-Konvention) ist aussen vor. `sealed-secret-cluster-drift.bats` ist im richtigen Pfad, aber für das Inventory unsichtbar. Pre-existing limitation, separat zu fixen (scripts/build-test-inventory.sh erweitern). BATS-Test läuft via `task test:changed` / `task test:unit`.
-- [ ] Task 4: Verifikation — `task test:changed` + `task freshness:regenerate && task freshness:check` + `task workspace:validate` + `bash scripts/openspec.sh validate`
+- [x] Task 4: Verifikation — `task test:changed` + `task freshness:regenerate && task freshness:check` + `task workspace:validate` + `bash scripts/openspec.sh validate`
+
+> **Verifikations-Resultate:**
+> - `task freshness:regenerate`: ✓ alle Artefakte aktuell, keine Änderungen
+> - `task freshness:check`: ✓ 0 neue Violations, baseline.json sauber, route-manifest OK
+> - `task workspace:validate`: ✓ Manifests sind valid
+> - `bash scripts/openspec.sh validate g-cd01-korczewski-secret-drift`: ✓ keine Errors
+> - `task test:changed`: ✗ `tests/unit/ticket-external-id-sequence.bats` test #2 failt — **PRE-EXISTING**, nicht durch diesen Change verursacht. Branch war vor diesem PR bereits in dem Zustand (T001155 bat die test-Datei, T001160 hat sie auf main gefixt, dieser Branch hat den rebase nicht). Separater Follow-up nötig.
 - [ ] Task 5: Commit + Push auf `fix/g-cd01-korczewski-secret-drift` + PR via `gh-axi pr create`
 
 ---

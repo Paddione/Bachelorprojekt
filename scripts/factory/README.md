@@ -105,6 +105,14 @@ task factory:autopilot:status      # nächster Tick + letzter Journal-Tail
 task factory:autopilot:uninstall   # stop + disable + entfernt die Units
 ```
 
+### Behebung von API-Guthaben-Fehlern (HTTP 402 / Insufficient Balance)
+
+Falls der Autopilot mit dem Fehler `API Error: 402 Insufficient Balance` abbricht, sind die API-Credits des konfigurierten Keys aufgebraucht.
+1. **API-Key & Modell prüfen:** Öffne die Konfiguration unter `~/.config/factory/autopilot.env` und prüfe die gesetzten Werte für `ANTHROPIC_AUTH_TOKEN` und `ANTHROPIC_MODEL`.
+2. **Guthaben aufladen:** Lade das Guthaben des betroffenen Kontos beim jeweiligen Provider (z.B. Anthropic Console oder DeepSeek Plattform) wieder auf.
+3. **Provider/Key wechseln:** Trage alternativ einen anderen, aktiven API-Key mit ausreichendem Guthaben in `ANTHROPIC_AUTH_TOKEN` ein.
+4. **Modell wechseln:** Falls nötig, passe das gewünschte Modell über `ANTHROPIC_MODEL`, `CLAUDE_CODE_SUBAGENT_MODEL` oder andere Modell-Variablen in der `.env`-Datei an.
+
 Ablauf pro Tick: `factory.timer` (`OnUnitInactiveSec=10min`, re-armt **erst nach
 Tick-Ende** → Single-Flight; `Persistent=true` → überlebt Reboot) → `factory.service`
 (`RuntimeMaxSec=900` killt hängende Runs) → `wakeup.sh` (`cd` Repo · `flock

@@ -277,6 +277,12 @@
       "status": "archived"
     }
   ],
+  "T001242": [
+    {
+      "slug": "dev-flow-plan-ticket-sh-mishaps",
+      "status": "plan_staged"
+    }
+  ],
   "T001267": [
     {
       "slug": "2026-06-27-migrate-to-upstream-openspec",

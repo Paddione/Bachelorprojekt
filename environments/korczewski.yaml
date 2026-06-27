@@ -17,7 +17,7 @@ env_vars:
   LEGAL_JOBTITLE: "Software Engineer, IT-Security-Berater"
   LEGAL_UST_ID: "Kleinunternehmer gem. § 19 Abs. 1 UStG"
   LEGAL_WEBSITE: korczewski.de
-  WEBSITE_IMAGE: korczewski-website
+  WEBSITE_IMAGE: website
   DOCS_IMAGE: korczewski-docs
   WEBSITE_NAMESPACE: website-korczewski
   WORKSPACE_NAMESPACE: workspace-korczewski

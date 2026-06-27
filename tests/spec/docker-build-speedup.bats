@@ -31,3 +31,27 @@
 @test "P1: mentolder-web Dockerfile hat pnpm-Store-Cache-Mount" {
   grep -q 'mount=type=cache,target=/root/.local/share/pnpm/store' mentolder-web/Dockerfile
 }
+
+# ── Phase 2: Website slim + Konsolidierung ─────────────────────────────────
+@test "P2: website Dockerfile pruned devDependencies" {
+  grep -q 'npm prune --omit=dev' website/Dockerfile
+}
+
+@test "P2: website-Build-Workflow pusht das geteilte Image" {
+  grep -q 'ghcr.io/paddione/website' .github/workflows/build-website.yml
+}
+
+@test "P2: korczewski-Website-Workflow ist entfernt" {
+  [ ! -f .github/workflows/build-website-korczewski.yml ]
+}
+
+@test "P2: alle prod/dev env-Dateien zeigen WEBSITE_IMAGE auf den geteilten Namen" {
+  for f in mentolder korczewski fleet-mentolder fleet-korczewski staging dev; do
+    grep -qE '^\s*WEBSITE_IMAGE:\s*website\s*$' "environments/$f.yaml"
+  done
+}
+
+@test "P2: kein per-Brand-Website-Image-Name mehr in Workflows/Manifesten" {
+  ! grep -rqE 'paddione/(mentolder|korczewski)-website' \
+      .github/workflows environments
+}

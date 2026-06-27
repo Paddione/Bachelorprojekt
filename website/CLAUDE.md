@@ -61,7 +61,7 @@ A section with `title: '__introNote__'` renders as an italic personal note block
 - **First save after deploy**: new pages in `mentolder.ts` need one Admin save to activate DB-override
 - **CONTACT_CITY in workflow**: `.github/workflows/build-website.yml` must have `"Lüneburg, Hamburg und Umgebung"` — not just `"Hamburg"`
 - **Brand name**: always `mentolder` (lowercase m), never `Mentolder` except at sentence start
-- **Build-time vs runtime values**: `CONTACT_EMAIL`, `LEGAL_*` etc. are baked at image build time; only `footerCity`, tagline, copyright can be overridden at runtime via Admin
+- **Runtime vs admin values**: `CONTACT_EMAIL`, `LEGAL_*` etc. are read at runtime from `process.env` (ConfigMap, envsubst'd in the deploy step) — `website/Dockerfile` has no `ARG` line, so the workflow `--build-arg`s are no-ops and nothing is baked at build time; `footerCity`, tagline, copyright stay admin-overridable at runtime
 - **New image takes ~3-4 min** after merge; check in incognito to avoid cache
 
 ## Content Standards

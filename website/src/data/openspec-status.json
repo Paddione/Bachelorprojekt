@@ -239,6 +239,10 @@
   ],
   "T001209": [
     {
+      "slug": "g-dep02-major-deps-website",
+      "status": "plan_staged"
+    },
+    {
       "slug": "2026-06-27-g-dep02-major-deps-website",
       "status": "archived"
     }

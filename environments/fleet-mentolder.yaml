@@ -20,7 +20,7 @@ env_vars:
   LEGAL_JOBTITLE: "Coach und digitaler Begleiter"
   LEGAL_UST_ID: "33/023/05100"
   LEGAL_WEBSITE: mentolder.de
-  WEBSITE_IMAGE: mentolder-website
+  WEBSITE_IMAGE: website
   DOCS_IMAGE: mentolder-docs
   WEBSITE_NAMESPACE: website
   WORKSPACE_NAMESPACE: workspace

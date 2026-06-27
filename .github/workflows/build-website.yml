@@ -48,25 +48,18 @@ jobs:
 
       - name: Compute image + tags
         run: |
-          IMAGE="ghcr.io/paddione/mentolder-website"
+          IMAGE="ghcr.io/paddione/website"
           SHA_TAG="sha-$(date +%Y%m%d-%H%M%S)-$(git rev-parse --short HEAD)"
           echo "IMAGE=${IMAGE}" >> "$GITHUB_ENV"
           echo "SHA_TAG=${SHA_TAG}" >> "$GITHUB_ENV"
 
+      # Shared, brand-neutral image: website/Dockerfile has no ARG line, so the
+      # former --build-arg / env values were no-ops. Brand config (PROD_DOMAIN,
+      # LEGAL_*, CONTACT_*, BRAND) is injected at runtime via each brand's
+      # ConfigMap in the deploy steps below — not baked at build time. One build
+      # feeds both the mentolder and korczewski deploy steps (T001229).
       - name: Build & push Docker image
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8  # v6
-        env:
-          PROD_DOMAIN: mentolder.de
-          BRAND_NAME: Mentolder
-          CONTACT_EMAIL: info@mentolder.de
-          CONTACT_PHONE: "+49 151 508 32 601"
-          CONTACT_CITY: "Hamburg"
-          CONTACT_NAME: Gerald Korczewski
-          LEGAL_STREET: "Ludwig-Erhard-Str. 18"
-          LEGAL_ZIP: "20459"
-          LEGAL_JOBTITLE: Coach und digitaler Begleiter
-          LEGAL_UST_ID: "33/023/05100"
-          LEGAL_WEBSITE: mentolder.de
         with:
           context: .
           file: website/Dockerfile
@@ -74,18 +67,6 @@ jobs:
           tags: |
             ${{ env.IMAGE }}:${{ env.SHA_TAG }}
             ${{ env.IMAGE }}:latest
-          build-args: |
-            PROD_DOMAIN=${{ env.PROD_DOMAIN }}
-            BRAND_NAME=${{ env.BRAND_NAME }}
-            CONTACT_EMAIL=${{ env.CONTACT_EMAIL }}
-            CONTACT_PHONE=${{ env.CONTACT_PHONE }}
-            CONTACT_CITY=${{ env.CONTACT_CITY }}
-            CONTACT_NAME=${{ env.CONTACT_NAME }}
-            LEGAL_STREET=${{ env.LEGAL_STREET }}
-            LEGAL_ZIP=${{ env.LEGAL_ZIP }}
-            LEGAL_JOBTITLE=${{ env.LEGAL_JOBTITLE }}
-            LEGAL_UST_ID=${{ env.LEGAL_UST_ID }}
-            LEGAL_WEBSITE=${{ env.LEGAL_WEBSITE }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -125,7 +106,7 @@ jobs:
           LLM_RERANK_ENABLED: "true"
           LLM_ROUTER_URL: http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234
           LLM_EMBED_URL: http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234
-          WEBSITE_IMAGE: mentolder-website
+          WEBSITE_IMAGE: website
           WEBSITE_NAMESPACE: website
           WORKSPACE_NAMESPACE: workspace
           SYSTEMTEST_LOOP_ENABLED: "true"
@@ -194,5 +175,112 @@ jobs:
       - name: Wait for rollout
         env:
           NAMESPACE: website
+        run: |
+          kubectl rollout status deployment/website -n "$NAMESPACE" --timeout=120s
+
+      - name: Deploy to korczewski
+        env:
+          KUBECONFIG_DATA: ${{ secrets.FLEET_KUBECONFIG }}
+          BRAND_ID: korczewski
+          PROD_DOMAIN: korczewski.de
+          BRAND_NAME: KORE
+          CONTACT_EMAIL: info@korczewski.de
+          CONTACT_PHONE: ${{ secrets.KORCZEWSKI_CONTACT_PHONE }}
+          CONTACT_CITY: Lüneburg
+          CONTACT_NAME: Patrick Korczewski
+          LEGAL_STREET: ${{ secrets.KORCZEWSKI_LEGAL_STREET }}
+          LEGAL_ZIP: ${{ secrets.KORCZEWSKI_LEGAL_ZIP }}
+          LEGAL_JOBTITLE: Software Engineer, IT-Security-Berater
+          LEGAL_UST_ID: ${{ secrets.KORCZEWSKI_LEGAL_UST_ID }}
+          LEGAL_WEBSITE: korczewski.de
+          SMTP_USER: korczewski@mailbox.org
+          SMTP_HOST: smtp.mailbox.org
+          SMTP_PORT: "587"
+          SMTP_SECURE: "false"
+          SMTP_FROM: korczewski@mailbox.org
+          AUTH_EXTERNAL_URL: https://auth.korczewski.de
+          NEXTCLOUD_EXTERNAL_URL: https://files.korczewski.de
+          DOCS_URL: https://docs.korczewski.de
+          VAULT_EXTERNAL_URL: https://vault.korczewski.de
+          WHITEBOARD_EXTERNAL_URL: https://files.korczewski.de/apps/files
+          TRAEFIK_EXTERNAL_URL: https://traefik.korczewski.de
+          MAIL_EXTERNAL_URL: https://mail.korczewski.de
+          BRETT_DOMAIN: brett.korczewski.de
+          LIVEKIT_DOMAIN: livekit.korczewski.de
+          STREAM_DOMAIN: stream.korczewski.de
+          CLUSTER_ENV: korczewski
+          LLM_ENABLED: "true"
+          LLM_RERANK_ENABLED: "false"
+          LLM_ROUTER_URL: http://llm-gateway-lmstudio.workspace-korczewski.svc.cluster.local:1234
+          LLM_EMBED_URL: http://llm-gateway-lmstudio.workspace-korczewski.svc.cluster.local:1234
+          WEBSITE_IMAGE: website
+          WEBSITE_NAMESPACE: website-korczewski
+          WORKSPACE_NAMESPACE: workspace-korczewski
+          SYSTEMTEST_LOOP_ENABLED: "true"
+          COMFY_HOST_IP: "10.13.14.10"
+          COMFY_PORT: "8189"
+          RIGGER_PORT: "8190"
+          POCKET_ID_FRONTEND_URL: https://auth.korczewski.de
+          POCKET_ID_URL: http://pocket-id.workspace-korczewski.svc.cluster.local:1411
+        run: |
+          curl -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" \
+            -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
+          rm -f /usr/local/bin/kustomize
+          curl -sSL "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" \
+            | bash -s -- 5.4.3 /usr/local/bin
+          mkdir -p ~/.kube
+          echo "$KUBECONFIG_DATA" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+          # Derived vars
+          WEBSITE_HOST="web.${PROD_DOMAIN}"
+          WEBSITE_SITE_URL="https://web.${PROD_DOMAIN}"
+          KEYCLOAK_FRONTEND_URL="https://auth.${PROD_DOMAIN}"
+          REACT_APP_ORIGIN="https://react.${PROD_DOMAIN}"
+          RIGGER_HOST_IP="${COMFY_HOST_IP}"
+          export WEBSITE_HOST WEBSITE_SITE_URL KEYCLOAK_FRONTEND_URL REACT_APP_ORIGIN RIGGER_HOST_IP
+
+          # Apply full website overlay (ConfigMap + networking + Deployment with :latest).
+          # The sed step adds YAML string quotes around unquoted ${VAR} placeholders so
+          # server-side apply doesn't reject boolean/integer fields as wrong types.
+          kustomize build prod-fleet/website-korczewski --load-restrictor=LoadRestrictionsNone \
+            | sed -E 's/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g' \
+            | envsubst '$WEBSITE_IMAGE $BRAND_ID $BRAND_NAME $CONTACT_EMAIL $CONTACT_NAME $CONTACT_PHONE $CONTACT_CITY $LEGAL_STREET $LEGAL_ZIP $LEGAL_JOBTITLE $LEGAL_UST_ID $LEGAL_WEBSITE $SMTP_FROM $SMTP_USER $SMTP_HOST $SMTP_PORT $SMTP_SECURE $WEBSITE_HOST $WEBSITE_SITE_URL $REACT_APP_ORIGIN $KEYCLOAK_FRONTEND_URL $NEXTCLOUD_EXTERNAL_URL $DOCS_URL $AUTH_EXTERNAL_URL $VAULT_EXTERNAL_URL $WHITEBOARD_EXTERNAL_URL $TRAEFIK_EXTERNAL_URL $MAIL_EXTERNAL_URL $BRETT_DOMAIN $LIVEKIT_DOMAIN $STREAM_DOMAIN $PROD_DOMAIN $CLUSTER_ENV $WEBSITE_NAMESPACE $WORKSPACE_NAMESPACE $SYSTEMTEST_LOOP_ENABLED $LLM_ENABLED $LLM_RERANK_ENABLED $LLM_ROUTER_URL $LLM_EMBED_URL $COMFY_HOST_IP $COMFY_PORT $RIGGER_HOST_IP $RIGGER_PORT $POCKET_ID_FRONTEND_URL $POCKET_ID_URL' \
+            | sed -E 's/\$\$([a-zA-Z0-9_\{])/$\1/g' \
+            | kubectl apply --server-side --force-conflicts -f -
+
+          # Pin to the exact SHA-tagged image to guarantee the freshly built version rolls out.
+          kubectl set image deployment/website website="${IMAGE}:${SHA_TAG}" -n website-korczewski
+
+      - name: Pre-Rollout Secret-Check (korczewski)
+        env:
+          NAMESPACE: website-korczewski
+        run: |
+          MISSING=""
+          for KEY in $(python3 -c "
+          import yaml
+          with open('k3d/website.yaml') as f:
+              for doc in yaml.safe_load_all(f):
+                  if not doc: continue
+                  for c in (doc.get('spec',{}).get('template',{}).get('spec',{}).get('containers',[]) or []):
+                      for e in (c.get('env',[]) or []):
+                          v = (e.get('valueFrom') or {}).get('secretKeyRef') or {}
+                          if v.get('name') == 'website-secrets' and v.get('key'):
+                              print(v['key'])
+          "); do
+            if ! kubectl get secret website-secrets -n "$NAMESPACE" \
+                -o jsonpath="{.data.${KEY//_/\_}}" 2>/dev/null | grep -q .; then
+              MISSING="$MISSING $KEY"
+            fi
+          done
+          if [[ -n "$MISSING" ]]; then
+            echo "::error::website-secrets in $NAMESPACE is missing required keys:$MISSING"
+            echo "Fix: task env:seal ENV=korczewski && task env:deploy ENV=korczewski"
+            exit 1
+          fi
+
+      - name: Wait for rollout (korczewski)
+        env:
+          NAMESPACE: website-korczewski
         run: |
           kubectl rollout status deployment/website -n "$NAMESPACE" --timeout=120s

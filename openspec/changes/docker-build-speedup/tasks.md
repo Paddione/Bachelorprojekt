@@ -47,12 +47,12 @@ depends_on_plans: []
 - [x] **P1-T3** `type=gha`-Cache in die 2 bereits-buildx-Workflows (transcriber/collabora) ergänzen
 - [x] **P1-T4** `setup-node`-Cache-Audit: pro Workflow Runner-npm/pnpm-Nutzung prüfen, Befund festhalten, KEINE Cache-Keys entfernen
 - [x] **P1-T5** Phase-1-Verifikation + Build-Zeit-Messprozedur dokumentieren
-- [ ] **P2-T0** (TDD rot) Phase-2-Assertions an `tests/spec/docker-build-speedup.bats` anhängen + ausführen, Expected: FAIL (rot)
-- [ ] **P2-T1** (2a) `npm prune --omit=dev` im Build-Stage von `website/Dockerfile`
-- [ ] **P2-T2** (2a-Guardrail HART) Runtime-Image lokal bauen, booten, Smoke HTTP 200 auf `/`; bei Boot-Fehler Paket `devDependencies`→`dependencies`
-- [ ] **P2-T3** (2b-Guardrail HART, ZUERST) `import.meta.env.*`-Grep — bestätigen, dass keine brand-differenzierende Build-Zeit-Konstante existiert; bei Fund 2b zurückstellen
-- [ ] **P2-T4** (2b) Geteiltes Image `ghcr.io/paddione/website`: `build-website.yml` = 1 Build + 2 Deploy-Steps; `build-website-korczewski.yml` löschen; `WEBSITE_IMAGE` in allen `environments/*.yaml` repointen
-- [ ] **P2-T5** Stale Aussage in `website/CLAUDE.md` korrigieren (`LEGAL_*` Build-Zeit → Runtime)
+- [x] **P2-T0** (TDD rot) Phase-2-Assertions an `tests/spec/docker-build-speedup.bats` anhängen + ausführen, Expected: FAIL (rot)
+- [x] **P2-T1** (2a) `npm prune --omit=dev` im Build-Stage von `website/Dockerfile`
+- [x] **P2-T2** (2a-Guardrail HART) Runtime-Image lokal bauen, booten, Smoke HTTP 200 auf `/`; bei Boot-Fehler Paket `devDependencies`→`dependencies`
+- [x] **P2-T3** (2b-Guardrail HART, ZUERST) `import.meta.env.*`-Grep — bestätigen, dass keine brand-differenzierende Build-Zeit-Konstante existiert; bei Fund 2b zurückstellen
+- [x] **P2-T4** (2b) Geteiltes Image `ghcr.io/paddione/website`: `build-website.yml` = 1 Build + 2 Deploy-Steps; `build-website-korczewski.yml` löschen; `WEBSITE_IMAGE` in allen `environments/*.yaml` repointen
+- [x] **P2-T5** Stale Aussage in `website/CLAUDE.md` korrigieren (`LEGAL_*` Build-Zeit → Runtime)
 - [ ] **P2-T6** Rollout beider Brands verifizieren (post-merge)
 - [ ] **P3-T0** (TDD rot) Phase-3-Assertions an `tests/spec/docker-build-speedup.bats` anhängen + ausführen, Expected: FAIL (rot)
 - [ ] **P3-T1** (Pre-flight) `kubectl --context fleet get nodes -o wide` → amd64-only bestätigen
@@ -457,7 +457,7 @@ Alle vom Change berührten Pfade, gruppiert nach Aktion (1-Wort-Zweck je Pfad):
 
 **Konkrete Schritte:**
 
-- [ ] **Step 1 — Phase-2-Block anhängen:** Folgende echte Assertions ans Dateiende ergänzen:
+- [x] **Step 1 — Phase-2-Block anhängen:** Folgende echte Assertions ans Dateiende ergänzen:
   ```bash
   # ── Phase 2: Website slim + Konsolidierung ─────────────────────────────────
   @test "P2: website Dockerfile pruned devDependencies" {
@@ -484,7 +484,7 @@ Alle vom Change berührten Pfade, gruppiert nach Aktion (1-Wort-Zweck je Pfad):
   }
   ```
 
-- [ ] **Step 2 — Test ausführen, Expected: FAIL (rot):** die neuen P2-Assertions schlagen fehl (Prune fehlt, Image noch `mentolder-website`, korczewski-Workflow existiert noch).
+- [x] **Step 2 — Test ausführen, Expected: FAIL (rot):** die neuen P2-Assertions schlagen fehl (Prune fehlt, Image noch `mentolder-website`, korczewski-Workflow existiert noch).
   ```bash
   ./tests/unit/lib/bats-core/bin/bats tests/spec/docker-build-speedup.bats --filter 'P2:'
   ```
@@ -505,13 +505,13 @@ Alle vom Change berührten Pfade, gruppiert nach Aktion (1-Wort-Zweck je Pfad):
 
 **Konkrete Schritte:**
 
-- [ ] **Step 1:** Direkt nach `RUN npm run build` (Build-Stage) einfügen:
+- [x] **Step 1:** Direkt nach `RUN npm run build` (Build-Stage) einfügen:
   ```dockerfile
   # Prune devDependencies so the runtime stage copies only prod node_modules
   # (~1.2 GB → ~600 MB). Chromium/kubectl/tests/ bleiben bewusst im Runtime-Image.
   RUN npm prune --omit=dev
   ```
-- [ ] **Step 2:** Bestätigen, dass `COPY --from=build /app/node_modules ./node_modules` (Runtime-Stage, jetzt verschoben um 1 Zeile) **unverändert** bleibt — es kopiert jetzt das geprunte Verzeichnis.
+- [x] **Step 2:** Bestätigen, dass `COPY --from=build /app/node_modules ./node_modules` (Runtime-Stage, jetzt verschoben um 1 Zeile) **unverändert** bleibt — es kopiert jetzt das geprunte Verzeichnis.
 
 **Acceptance-Kriterien:**
 - `website/Dockerfile` enthält `RUN npm prune --omit=dev` zwischen `npm run build` und dem Runtime-Stage.
@@ -529,15 +529,15 @@ Alle vom Change berührten Pfade, gruppiert nach Aktion (1-Wort-Zweck je Pfad):
 
 **Konkrete Schritte:**
 
-- [ ] **Step 1 — Image lokal bauen:**
+- [x] **Step 1 — Image lokal bauen:**
   ```bash
   DOCKER_BUILDKIT=1 docker build -f website/Dockerfile . -t website:slim
   ```
-- [ ] **Step 2 — Größe prüfen (Beleg der Ziel-Metrik ~600 MB):**
+- [x] **Step 2 — Größe prüfen (Beleg der Ziel-Metrik ~600 MB):**
   ```bash
   docker image inspect website:slim --format '{{.Size}}' | awk '{printf "%.0f MB\n",$1/1024/1024}'
   ```
-- [ ] **Step 3 — Booten + Smoke HTTP 200 auf `/`:**
+- [x] **Step 3 — Booten + Smoke HTTP 200 auf `/`:**
   ```bash
   docker run -d --name website-smoke -p 4321:4321 website:slim
   sleep 5
@@ -545,7 +545,7 @@ Alle vom Change berührten Pfade, gruppiert nach Aktion (1-Wort-Zweck je Pfad):
   docker logs website-smoke | tail -30
   docker rm -f website-smoke
   ```
-- [ ] **Step 4 — Fehlerbehandlung (nur falls Boot/Smoke fehlschlägt):** Aus `docker logs` das fehlende Modul ablesen (z.B. `Cannot find module 'X'`). Das zugehörige Paket in `website/package.json` von `devDependencies` nach `dependencies` verschieben (genau diese eine Zeile umhängen, netto zeilenneutral). `package-lock.json` ggf. via `npm install --package-lock-only` im `website/`-Verzeichnis aktualisieren. Dann ab Step 1 wiederholen. **Den Prune NICHT entfernen.**
+- [x] **Step 4 — Fehlerbehandlung (nur falls Boot/Smoke fehlschlägt):** Aus `docker logs` das fehlende Modul ablesen (z.B. `Cannot find module 'X'`). Das zugehörige Paket in `website/package.json` von `devDependencies` nach `dependencies` verschieben (genau diese eine Zeile umhängen, netto zeilenneutral). `package-lock.json` ggf. via `npm install --package-lock-only` im `website/`-Verzeichnis aktualisieren. Dann ab Step 1 wiederholen. **Den Prune NICHT entfernen.**
 
 **Acceptance-Kriterien:**
 - `website:slim` bootet und liefert HTTP 200 auf `/`.
@@ -568,16 +568,16 @@ Alle vom Change berührten Pfade, gruppiert nach Aktion (1-Wort-Zweck je Pfad):
 
 **Konkrete Schritte:**
 
-- [ ] **Step 1:** Ausführen:
+- [x] **Step 1:** Ausführen:
   ```bash
   grep -rnE "import\.meta\.env\.(PROD_DOMAIN|BRAND_NAME|BRAND_ID|CONTACT_|LEGAL_)" website/src || echo "OK: keine Build-Zeit-Brand-Konstante"
   grep -rnE "import\.meta\.env\.BRAND\b" website/src
   ```
-- [ ] **Step 2:** Bestätigen, dass weder `build-website.yml` noch `build-website-korczewski.yml` `BRAND`/`BRAND_ID` im **Build**-Step-`env:` setzen:
+- [x] **Step 2:** Bestätigen, dass weder `build-website.yml` noch `build-website-korczewski.yml` `BRAND`/`BRAND_ID` im **Build**-Step-`env:` setzen:
   ```bash
   awk '/Build & push Docker image/,/run:/' .github/workflows/build-website*.yml | grep -nE "BRAND_ID:|BRAND:" || echo "OK: kein Brand-Build-Env"
   ```
-- [ ] **Step 3 — Entscheidungs-Gate:** Liefert Step 1 Treffer einer **build-time-gesetzten** brand-differenzierenden Konstante → **STOP 2b** (P2-T4 überspringen, 2a + Phase 1 bleiben). Sonst → P2-T4 fortsetzen.
+- [x] **Step 3 — Entscheidungs-Gate:** Liefert Step 1 Treffer einer **build-time-gesetzten** brand-differenzierenden Konstante → **STOP 2b** (P2-T4 überspringen, 2a + Phase 1 bleiben). Sonst → P2-T4 fortsetzen.
 
 **Acceptance-Kriterien:**
 - Beweis dokumentiert (Grep-Output im PR), dass keine brand-differenzierende Build-Zeit-Konstante existiert.
@@ -601,21 +601,21 @@ Alle vom Change berührten Pfade, gruppiert nach Aktion (1-Wort-Zweck je Pfad):
 
 **Konkrete Schritte:**
 
-- [ ] **Step 1 — Build-Step in `build-website.yml` repointen:** Im „Compute image + tags"-Shell-Step `IMAGE="ghcr.io/paddione/mentolder-website"` → `IMAGE="ghcr.io/paddione/website"`. Die jetzt obsoleten `LEGAL_*`/`CONTACT_*`/`BRAND_NAME`/`PROD_DOMAIN`-`--build-arg`s **dürfen** entfernt werden (sie sind No-Ops; Entfernung ist Teil von 2b/Cleanup) — alternativ verbatim belassen. Empfehlung: entfernen, da der `website/Dockerfile` keine `ARG`-Zeile hat (kein Funktionsverlust). Den `env:`-Block des Build-Steps entsprechend ausdünnen (nur noch das, was der Build wirklich liest — faktisch nichts Brand-spezifisches).
-- [ ] **Step 2 — korczewski-Deploy in `build-website.yml` anfügen:** Den kompletten „Deploy to korczewski"-Step (env-Block inkl. `BRAND_ID: korczewski`, korczewski-Secrets `KORCZEWSKI_*`, `WEBSITE_IMAGE: website`, `WEBSITE_NAMESPACE: website-korczewski`, `WORKSPACE_NAMESPACE: workspace-korczewski`, korczewski-LLM-URLs, Overlay `prod-fleet/website-korczewski`, `kubectl set image … -n website-korczewski`), den „Pre-Rollout Secret-Check" (`NAMESPACE: website-korczewski`) und „Wait for rollout" (`NAMESPACE: website-korczewski`) **1:1 aus `build-website-korczewski.yml` übernehmen** und hinter die mentolder-Deploy-/Check-/Rollout-Steps in `build-website.yml` einhängen. In beiden Deploy-Steps `WEBSITE_IMAGE` auf `website` setzen.
-- [ ] **Step 3 — `WEBSITE_IMAGE` im mentolder-Deploy-Step** von `mentolder-website` → `website`.
-- [ ] **Step 4 — `build-website-korczewski.yml` löschen:** `git rm .github/workflows/build-website-korczewski.yml`.
-- [ ] **Step 5 — `environments/*.yaml` repointen:** In allen 6 Dateien `WEBSITE_IMAGE: {mentolder,korczewski}-website` → `WEBSITE_IMAGE: website`.
+- [x] **Step 1 — Build-Step in `build-website.yml` repointen:** Im „Compute image + tags"-Shell-Step `IMAGE="ghcr.io/paddione/mentolder-website"` → `IMAGE="ghcr.io/paddione/website"`. Die jetzt obsoleten `LEGAL_*`/`CONTACT_*`/`BRAND_NAME`/`PROD_DOMAIN`-`--build-arg`s **dürfen** entfernt werden (sie sind No-Ops; Entfernung ist Teil von 2b/Cleanup) — alternativ verbatim belassen. Empfehlung: entfernen, da der `website/Dockerfile` keine `ARG`-Zeile hat (kein Funktionsverlust). Den `env:`-Block des Build-Steps entsprechend ausdünnen (nur noch das, was der Build wirklich liest — faktisch nichts Brand-spezifisches).
+- [x] **Step 2 — korczewski-Deploy in `build-website.yml` anfügen:** Den kompletten „Deploy to korczewski"-Step (env-Block inkl. `BRAND_ID: korczewski`, korczewski-Secrets `KORCZEWSKI_*`, `WEBSITE_IMAGE: website`, `WEBSITE_NAMESPACE: website-korczewski`, `WORKSPACE_NAMESPACE: workspace-korczewski`, korczewski-LLM-URLs, Overlay `prod-fleet/website-korczewski`, `kubectl set image … -n website-korczewski`), den „Pre-Rollout Secret-Check" (`NAMESPACE: website-korczewski`) und „Wait for rollout" (`NAMESPACE: website-korczewski`) **1:1 aus `build-website-korczewski.yml` übernehmen** und hinter die mentolder-Deploy-/Check-/Rollout-Steps in `build-website.yml` einhängen. In beiden Deploy-Steps `WEBSITE_IMAGE` auf `website` setzen.
+- [x] **Step 3 — `WEBSITE_IMAGE` im mentolder-Deploy-Step** von `mentolder-website` → `website`.
+- [x] **Step 4 — `build-website-korczewski.yml` löschen:** `git rm .github/workflows/build-website-korczewski.yml`.
+- [x] **Step 5 — `environments/*.yaml` repointen:** In allen 6 Dateien `WEBSITE_IMAGE: {mentolder,korczewski}-website` → `WEBSITE_IMAGE: website`.
   ```bash
   grep -rln "WEBSITE_IMAGE:" environments/   # mentolder, korczewski, fleet-*, staging, dev
   ```
-- [ ] **Step 6 — Verifikation kein Restvorkommen** (außer historischem Kommentar `k3s/korczewski-website-prod.yaml` + Design-Doc):
+- [x] **Step 6 — Verifikation kein Restvorkommen** (außer historischem Kommentar `k3s/korczewski-website-prod.yaml` + Design-Doc):
   ```bash
   grep -rnE "paddione/(mentolder|korczewski)-website|WEBSITE_IMAGE:\s*(mentolder|korczewski)-website" \
     --include="*.yml" --include="*.yaml" . | grep -v node_modules
   ```
   Erwartung: leer (bzw. nur der Kommentar in `k3s/korczewski-website-prod.yaml`).
-- [ ] **Step 7 — Kustomize-Validierung:** `task workspace:validate` und ein Render-Smoke beider Overlays:
+- [x] **Step 7 — Kustomize-Validierung:** `task workspace:validate` und ein Render-Smoke beider Overlays:
   ```bash
   WEBSITE_IMAGE=website kustomize build prod-fleet/website-mentolder --load-restrictor=LoadRestrictionsNone >/dev/null
   WEBSITE_IMAGE=website kustomize build prod-fleet/website-korczewski --load-restrictor=LoadRestrictionsNone >/dev/null
@@ -639,7 +639,7 @@ Alle vom Change berührten Pfade, gruppiert nach Aktion (1-Wort-Zweck je Pfad):
 
 **Konkrete Schritte:**
 
-- [ ] **Step 1:** Zeile 64 (`- **Build-time vs runtime values**: \`CONTACT_EMAIL\`, \`LEGAL_*\` etc. are baked at image build time; …`) so umformulieren, dass klargestellt ist: `CONTACT_*`/`LEGAL_*` werden zur **Runtime** über `process.env` (ConfigMap, envsubst im Deploy-Step) gelesen — der `website/Dockerfile` hat keine `ARG`-Zeile, die `--build-arg`-Aufrufe sind No-Ops. `footerCity`, Tagline, Copyright sind weiterhin per Admin zur Runtime überschreibbar. Netto zeilenneutral. **Keine** Brand-Domain-Literale einfügen.
+- [x] **Step 1:** Zeile 64 (`- **Build-time vs runtime values**: \`CONTACT_EMAIL\`, \`LEGAL_*\` etc. are baked at image build time; …`) so umformulieren, dass klargestellt ist: `CONTACT_*`/`LEGAL_*` werden zur **Runtime** über `process.env` (ConfigMap, envsubst im Deploy-Step) gelesen — der `website/Dockerfile` hat keine `ARG`-Zeile, die `--build-arg`-Aufrufe sind No-Ops. `footerCity`, Tagline, Copyright sind weiterhin per Admin zur Runtime überschreibbar. Netto zeilenneutral. **Keine** Brand-Domain-Literale einfügen.
 
 **Acceptance-Kriterien:**
 - `website/CLAUDE.md` enthält keine „baked at build time"-Aussage über `LEGAL_*`/`CONTACT_*` mehr.
@@ -655,7 +655,7 @@ Alle vom Change berührten Pfade, gruppiert nach Aktion (1-Wort-Zweck je Pfad):
 
 **Konkrete Schritte:**
 
-- [ ] **Step 0 — P2-BATS grün (vor Merge):** der in P2-T0 rote Block ist nach P2-T1…T5 grün:
+- [x] **Step 0 — P2-BATS grün (vor Merge):** der in P2-T0 rote Block ist nach P2-T1…T5 grün:
   ```bash
   ./tests/unit/lib/bats-core/bin/bats tests/spec/docker-build-speedup.bats
   ```

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.134.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.134.8...website-v1.134.9) (2026-06-27)
+
+
+### Bug Fixes
+
+* **ci:** remove GPG step and migrate Dockerfile to pnpm [T001279] ([#2216](https://github.com/Paddione/Bachelorprojekt/issues/2216)) ([3e8f8bc](https://github.com/Paddione/Bachelorprojekt/commit/3e8f8bca128745e5655618ed92a476912a38cbb4))
+
 ## [1.134.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.134.7...website-v1.134.8) (2026-06-27)
 
 

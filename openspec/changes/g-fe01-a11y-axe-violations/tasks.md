@@ -10,7 +10,7 @@ shared_changes: false
 # Tasks: g-fe01-a11y-axe-violations (T001206)
 
 - [x] Task 0: Failing a11y-Spec + `@axe-core/playwright` devDep (RED)
-- [ ] Task 1: a11y-Suite ausbauen — alle Kern-Routen, beide Marken, testMatch
+- [x] Task 1: a11y-Suite ausbauen — alle Kern-Routen, beide Marken, testMatch
 - [ ] Task 2: mentolder Kern-Routen — critical/serious Violations beheben
 - [ ] Task 3: korczewski Kore-Homepage — critical/serious Violations beheben
 - [ ] Task 4: CI-Anbindung — nightly e2e + `task a11y:axe` Wrapper

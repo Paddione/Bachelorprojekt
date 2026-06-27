@@ -38,11 +38,6 @@
       },
       "enabled": true
     },
-    "openspec": {
-      "type": "local",
-      "command": ["npx", "-y", "openspec-mcp"],
-      "enabled": true
-    },
     "mcp-task-runner": {
       "type": "local",
       "command": ["mcp-task-runner", "--otel-endpoint", "localhost:4317", "--taskfile", "/home/patrick/Bachelorprojekt/Taskfile.yml"],

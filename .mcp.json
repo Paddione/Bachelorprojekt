@@ -11,13 +11,6 @@
         "TASK_MASTER_TOOLS": "all"
       }
     },
-    "openspec": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "openspec-mcp"
-      ]
-    },
     "mcp-kubernetes": {
       "type": "http",
       "url": "http://localhost:18080/mcp"

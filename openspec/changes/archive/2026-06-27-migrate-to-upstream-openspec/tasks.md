@@ -2,7 +2,7 @@
 title: "OpenSpec improvements batch: backfill + /opsx:* commands + polish [T001267]"
 ticket_id: T001267
 domains: [openspec, ci, docs, tooling]
-status: plan_staged
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null
@@ -22,11 +22,11 @@ depends_on_plans: []
 - [x] Task 7 (T001263-b): Update `.claude/skills/dev-flow-plan/SKILL.md` — replace `task openspec:propose` with `/opsx:propose`
 - [x] Task 8 (T001263-c): Update `.claude/skills/dev-flow-execute/SKILL.md` — replace `task openspec:apply` with `/opsx:apply`
 - [x] Task 9 (T001263-d): Open PR `feat(openspec): install upstream workflow commands in .opencode + .claude [T001263]`; merge after CI green
-- [ ] Task 10 (T001265-a): Add `specs:` and `design:` keys to `openspec/config.yaml` under `rules:`
-- [ ] Task 11 (T001265-b): Add `OPENSPEC_TELEMETRY: '0'` to workflow-level `env:` in every `.github/workflows/*.yml`
-- [ ] Task 12 (T001265-c): Add "OpenSpec conventions" + "Dev experience" subsections to `AGENTS.md`
-- [ ] Task 13 (T001265-d): Open PR `chore(openspec): polish — frontmatter convention, rules, telemetry opt-out, completions [T001265]`; merge after CI green
-- [ ] Task 14 (Verify): `task test:changed` + `task freshness:regenerate` + `task freshness:check` + `task test:openspec` — all green; `task openspec:validate` — no errors
+- [x] Task 10 (T001265-a): Add `specs:` and `design:` keys to `openspec/config.yaml` under `rules:`
+- [x] Task 11 (T001265-b): Add `OPENSPEC_TELEMETRY: '0'` to workflow-level `env:` in every `.github/workflows/*.yml`
+- [x] Task 12 (T001265-c): Add "OpenSpec conventions" + "Dev experience" subsections to `AGENTS.md`
+- [x] Task 13 (T001265-d): Open PR `chore(openspec): polish — frontmatter convention, rules, telemetry opt-out, completions [T001265]`; merge after CI green
+- [x] Task 14 (Verify): `task test:changed` + `task freshness:regenerate` + `task freshness:check` + `task test:openspec` — all green; `task openspec:validate` — no errors
 
 ---
 

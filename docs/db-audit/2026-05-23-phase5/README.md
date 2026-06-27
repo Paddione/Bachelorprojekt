@@ -18,7 +18,7 @@ Multi-phase audit of the `shared-db` on both `mentolder` and `korczewski` cluste
 [`docs/superpowers/specs/2026-05-23-db-audit-phase5-design.md`](../../superpowers/specs/2026-05-23-db-audit-phase5-design.md)
 
 ## Plan
-[`docs/superpowers/plans/2026-05-23-db-audit-phase5.md`](../../superpowers/plans/2026-05-23-db-audit-phase5.md)
+Kein separater Implementierungsplan — Audit wurde inline ausgeführt (siehe `evidence/` und Hinweis im Re-running-Abschnitt unten).
 
 ## Ticket
 [T000150](https://web.mentolder.de/admin/bugs)

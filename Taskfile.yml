@@ -3124,6 +3124,16 @@ tasks:
           .
         echo "✓ Docker image built: ${IMAGE}:latest"
 
+  website:bundle:check:
+    desc: "Check client-JS bundle size against committed baseline (exit 1 if above threshold) — G-FE02"
+    cmds:
+      - node scripts/check-bundle-size.mjs --check --fail
+
+  website:bundle:baseline:
+    desc: "Measure and update the client-JS bundle baseline (website/bundle-baseline.json) — G-FE02"
+    cmds:
+      - node scripts/check-bundle-size.mjs --update-baseline
+
   website:sync:
     desc: "Fast-sync website/src to the running pod and rebuild (ENV=dev|mentolder|...)"
     vars:

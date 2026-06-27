@@ -667,11 +667,11 @@ git commit -m "refactor(ticket-mcp): consolidate on Go binary; point opencode at
 
 ### Task 1.5 (Slice 1 verification gate)
 
-- [ ] **Step 1: Go suite + build.** Run: `cd scripts/ticket-mcp/go && go vet ./... && go test ./... && make build`. Expected: all green.
-- [ ] **Step 2: Tool inventory (parity + completeness).** Re-run the stdio smoke from Task 1.2 Step 9; confirm all 9 workflow tools + `get_mishap_buffer` + `flush_mishap_buffer` + the pre-existing 12 are present (≥23 tool names). Also re-run `task test:mcp-tooling` → `1 test, 0 failures`.
-- [ ] **Step 3: No Node residue.** Run: `ls scripts/ticket-mcp/` — expect only `go/`, `.gitignore`, and the gitignored `ticket-mcp-go`. No `server.js`/`tools/`/`lib/`/`package*.json`.
-- [ ] **Step 4: CI-equivalent (changed-scope).** Run: `task test:changed && task freshness:check`. Expected: green (Go changes trigger `test:unit`; quality gate clean — no S1/baseline movement).
-- [ ] **Step 5: Open PR #1.** Title: `feat(ticket-mcp): Go-SSOT consolidation + complete adapter surface [T001211]`. Merge before starting Slice 2.
+- [x] **Step 1: Go suite + build.** Run: `cd scripts/ticket-mcp/go && go vet ./... && go test ./... && make build`. Expected: all green.
+- [x] **Step 2: Tool inventory (parity + completeness).** Re-run the stdio smoke from Task 1.2 Step 9; confirm all 9 workflow tools + `get_mishap_buffer` + `flush_mishap_buffer` + the pre-existing 12 are present (≥23 tool names). Also re-run `task test:mcp-tooling` → `1 test, 0 failures`.
+- [x] **Step 3: No Node residue.** Run: `ls scripts/ticket-mcp/` — expect only `go/`, `.gitignore`, and the gitignored `ticket-mcp-go`. No `server.js`/`tools/`/`lib/`/`package*.json`.
+- [x] **Step 4: CI-equivalent (changed-scope).** Run: `task test:changed && task freshness:check`. Expected: green (Go changes trigger `test:unit`; quality gate clean — no S1/baseline movement).
+- [x] **Step 5: Open PR #1.** Title: `feat(ticket-mcp): Go-SSOT consolidation + complete adapter surface [T001211]`. Merge before starting Slice 2.
 
 ---
 
@@ -686,8 +686,8 @@ git commit -m "refactor(ticket-mcp): consolidate on Go binary; point opencode at
 
 **Files:** Modify `.claude/skills/dev-flow-execute/SKILL.md` (558 lines · `.md` not gated → S1 N/A)
 
-- [ ] **Step 1: Inventory the call sites.** Run: `grep -n "ticket.sh\|kubectl exec.*psql\|psql " .claude/skills/dev-flow-execute/SKILL.md`. Map each to its MCP tool: `phase`→`record_phase_event`, `stage-plan`→`stage_plan`, `get-attachments`→`get_attachments`, `archive-plan`→`archive_plan`, `add-comment`→`add_comment`, `add-pr-link`→`add_pr_link`, plan-metadata **read** (`psql SELECT …`) → `mcp__mcp-postgres__query`.
-- [ ] **Step 2: Rewrite each lifecycle call site to MCP-first + Fallback.** For every mapped call, restructure to (exemplar for `phase`):
+- [x] **Step 1: Inventory the call sites.** Run: `grep -n "ticket.sh\|kubectl exec.*psql\|psql " .claude/skills/dev-flow-execute/SKILL.md`. Map each to its MCP tool: `phase`→`record_phase_event`, `stage-plan`→`stage_plan`, `get-attachments`→`get_attachments`, `archive-plan`→`archive_plan`, `add-comment`→`add_comment`, `add-pr-link`→`add_pr_link`, plan-metadata **read** (`psql SELECT …`) → `mcp__mcp-postgres__query`.
+- [x] **Step 2: Rewrite each lifecycle call site to MCP-first + Fallback.** For every mapped call, restructure to (exemplar for `phase`):
 
 ```markdown
 Phasen-Event setzen (MCP-first):
@@ -699,9 +699,9 @@ Fallback (MCP nicht erreichbar):
 ```
 
 Apply the same shape to `stage_plan`, `get_attachments`, `archive_plan`, `add_comment`, `add_pr_link`.
-- [ ] **Step 3: Convert plan-metadata READS to `mcp__mcp-postgres__query` first, kubectl fallback** (keep any INSERT/UPDATE on kubectl). Link the availability guard to `.claude/skills/references/mcp-tool-guide.md` rather than re-explaining it.
-- [ ] **Step 4: Verify no write-path was switched to mcp-postgres.** Run: `grep -n "mcp__mcp-postgres__query" .claude/skills/dev-flow-execute/SKILL.md` and eyeball that each is a SELECT.
-- [ ] **Step 5: Commit.** `git add .claude/skills/dev-flow-execute/SKILL.md && git commit -m "feat(skills): dev-flow-execute MCP-first (ticket-mcp + mcp-postgres reads), script fallback retained"`
+- [x] **Step 3: Convert plan-metadata READS to `mcp__mcp-postgres__query` first, kubectl fallback** (keep any INSERT/UPDATE on kubectl). Link the availability guard to `.claude/skills/references/mcp-tool-guide.md` rather than re-explaining it.
+- [x] **Step 4: Verify no write-path was switched to mcp-postgres.** Run: `grep -n "mcp__mcp-postgres__query" .claude/skills/dev-flow-execute/SKILL.md` and eyeball that each is a SELECT.
+- [x] **Step 5: Commit.** `git add .claude/skills/dev-flow-execute/SKILL.md && git commit -m "feat(skills): dev-flow-execute MCP-first (ticket-mcp + mcp-postgres reads), script fallback retained"`
 
 **Acceptance:** every lifecycle call site shows the MCP tool first and the script as labelled fallback; reads use mcp-postgres, writes/DDL stay kubectl.
 
@@ -709,9 +709,9 @@ Apply the same shape to `stage_plan`, `get_attachments`, `archive_plan`, `add_co
 
 **Files:** Modify `.claude/skills/dev-flow-plan/SKILL.md` (434 lines · `.md` N/A)
 
-- [ ] **Step 1:** `grep -n "ticket.sh" .claude/skills/dev-flow-plan/SKILL.md`. Map `create`→`create_ticket` (parse `external_id|uuid` → `cut -d'|' -f1` still applies to the tool's returned text), `stage-plan`→`stage_plan`.
-- [ ] **Step 2:** Rewrite both to MCP-first + Fallback (same shape as Task 2.1 Step 2). For `create_ticket`, document that the returned text is still `external_id|uuid` so existing parsing holds.
-- [ ] **Step 3: Commit.** `git add .claude/skills/dev-flow-plan/SKILL.md && git commit -m "feat(skills): dev-flow-plan MCP-first (create_ticket/stage_plan), script fallback retained"`
+- [x] **Step 1:** `grep -n "ticket.sh" .claude/skills/dev-flow-plan/SKILL.md`. Map `create`→`create_ticket` (parse `external_id|uuid` → `cut -d'|' -f1` still applies to the tool's returned text), `stage-plan`→`stage_plan`.
+- [x] **Step 2:** Rewrite both to MCP-first + Fallback (same shape as Task 2.1 Step 2). For `create_ticket`, document that the returned text is still `external_id|uuid` so existing parsing holds.
+- [x] **Step 3: Commit.** `git add .claude/skills/dev-flow-plan/SKILL.md && git commit -m "feat(skills): dev-flow-plan MCP-first (create_ticket/stage_plan), script fallback retained"`
 
 **Acceptance:** create + stage-plan are MCP-first; the `cut -d'|' -f1` parse note is present.
 
@@ -719,9 +719,9 @@ Apply the same shape to `stage_plan`, `get_attachments`, `archive_plan`, `add_co
 
 **Files:** Modify `.claude/skills/ticket-ops/SKILL.md` (309 lines · `.md` N/A)
 
-- [ ] **Step 1:** `grep -n "ticket.sh\|psql\|kubectl exec" .claude/skills/ticket-ops/SKILL.md`. DB **reads** → `mcp__mcp-postgres__query`; lifecycle → ticket-mcp tools (`transition_status`, `add_comment`, `triage_ticket`, `set_plan_meta`, `add_pr_link`, etc.).
-- [ ] **Step 2:** Rewrite reads + lifecycle to MCP-first + fallback. Do NOT pre-reference the unregistered `factory-mcp` server here — its wiring lands in Slice 3, Task 3.1; keep this task scoped to `mcp-postgres` reads + `ticket-mcp` lifecycle only.
-- [ ] **Step 3: Commit.** `git add .claude/skills/ticket-ops/SKILL.md && git commit -m "feat(skills): ticket-ops MCP-first (mcp-postgres reads + ticket-mcp lifecycle)"`
+- [x] **Step 1:** `grep -n "ticket.sh\|psql\|kubectl exec" .claude/skills/ticket-ops/SKILL.md`. DB **reads** → `mcp__mcp-postgres__query`; lifecycle → ticket-mcp tools (`transition_status`, `add_comment`, `triage_ticket`, `set_plan_meta`, `add_pr_link`, etc.).
+- [x] **Step 2:** Rewrite reads + lifecycle to MCP-first + fallback. Do NOT pre-reference the unregistered `factory-mcp` server here — its wiring lands in Slice 3, Task 3.1; keep this task scoped to `mcp-postgres` reads + `ticket-mcp` lifecycle only.
+- [x] **Step 3: Commit.** `git add .claude/skills/ticket-ops/SKILL.md && git commit -m "feat(skills): ticket-ops MCP-first (mcp-postgres reads + ticket-mcp lifecycle)"`
 
 **Acceptance:** ticket-pool/staged-plan reads use mcp-postgres; lifecycle uses ticket-mcp; writes stay kubectl.
 
@@ -729,19 +729,19 @@ Apply the same shape to `stage_plan`, `get_attachments`, `archive_plan`, `add_co
 
 **Files:** Modify `.claude/skills/incident-response/SKILL.md` (93 lines · `.md` N/A), `.claude/skills/infra-ops/SKILL.md` (586 lines · `.md` N/A)
 
-- [ ] **Step 1:** In both, map cluster **status reads** (`kubectl get pods/logs/describe`) → `mcp__mcp-kubernetes__pods_list / pods_log / pods_get / resources_get` (first), kubectl as fallback. DB **reads** → `mcp__mcp-postgres__query`.
-- [ ] **Step 2:** Keep ALL mutations on kubectl: `kubectl apply`, `rollout restart`, scale, delete, SealedSecrets, DDL, writes — these must stay (per guide). Only reads flip.
-- [ ] **Step 3:** Rewrite the read steps to MCP-first + fallback; link the guard to `mcp-tool-guide.md`.
-- [ ] **Step 4: Commit.** `git add .claude/skills/incident-response/SKILL.md .claude/skills/infra-ops/SKILL.md && git commit -m "feat(skills): incident-response + infra-ops read-paths MCP-first (mcp-kubernetes/mcp-postgres), mutations stay kubectl"`
+- [x] **Step 1:** In both, map cluster **status reads** (`kubectl get pods/logs/describe`) → `mcp__mcp-kubernetes__pods_list / pods_log / pods_get / resources_get` (first), kubectl as fallback. DB **reads** → `mcp__mcp-postgres__query`.
+- [x] **Step 2:** Keep ALL mutations on kubectl: `kubectl apply`, `rollout restart`, scale, delete, SealedSecrets, DDL, writes — these must stay (per guide). Only reads flip.
+- [x] **Step 3:** Rewrite the read steps to MCP-first + fallback; link the guard to `mcp-tool-guide.md`.
+- [x] **Step 4: Commit.** `git add .claude/skills/incident-response/SKILL.md .claude/skills/infra-ops/SKILL.md && git commit -m "feat(skills): incident-response + infra-ops read-paths MCP-first (mcp-kubernetes/mcp-postgres), mutations stay kubectl"`
 
 **Acceptance:** status/read steps are MCP-first; every mutation remains kubectl.
 
 ### Task 2.5 (Slice 2 verification gate)
 
-- [ ] **Step 1: No accidental write-over-MCP.** Run: `grep -rn "mcp__mcp-postgres__query" .claude/skills/{dev-flow-execute,ticket-ops,incident-response,infra-ops}/SKILL.md` and confirm each adjacent SQL is a SELECT.
-- [ ] **Step 2: Fallbacks intact.** Run: `grep -rn "ticket.sh\|kubectl exec" .claude/skills/{dev-flow-execute,dev-flow-plan,ticket-ops,incident-response,infra-ops}/SKILL.md` — every former call still exists as a labelled fallback (nothing deleted outright).
-- [ ] **Step 3: S4 — scripts still referenced.** The skills still name `scripts/ticket.sh` etc. (fallbacks), so no script becomes an orphan. Run: `task test:code-quality` → S4 clean.
-- [ ] **Step 4: CI-equivalent.** Run: `task test:changed && task freshness:check`. Expected: green.
+- [x] **Step 1: No accidental write-over-MCP.** Run: `grep -rn "mcp__mcp-postgres__query" .claude/skills/{dev-flow-execute,ticket-ops,incident-response,infra-ops}/SKILL.md` and confirm each adjacent SQL is a SELECT.
+- [x] **Step 2: Fallbacks intact.** Run: `grep -rn "ticket.sh\|kubectl exec" .claude/skills/{dev-flow-execute,dev-flow-plan,ticket-ops,incident-response,infra-ops}/SKILL.md` — every former call still exists as a labelled fallback (nothing deleted outright).
+- [x] **Step 3: S4 — scripts still referenced.** The skills still name `scripts/ticket.sh` etc. (fallbacks), so no script becomes an orphan. Run: `task test:code-quality` → S4 clean.
+- [x] **Step 4: CI-equivalent.** Run: `task test:changed && task freshness:check`. Expected: green.
 - [ ] **Step 5: Open PR #2.** Title: `feat(skills): MCP-first routing for the 5 high-frequency skills [T001211]`. Merge before Slice 3.
 
 ---

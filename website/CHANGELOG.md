@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.129.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.129.0...website-v1.129.1) (2026-06-27)
+
+
+### Code Refactoring
+
+* **website:** decouple tickets-db from website-db (G-CQ07 cycle [#1](https://github.com/Paddione/Bachelorprojekt/issues/1)) [T001172] ([#2114](https://github.com/Paddione/Bachelorprojekt/issues/2114)) ([2cc0eb2](https://github.com/Paddione/Bachelorprojekt/commit/2cc0eb2294b6a6b71dcabae98ab99f77caeb740f))
+
 ## [1.129.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.128.2...website-v1.129.0) (2026-06-27)
 
 

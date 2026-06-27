@@ -12,7 +12,7 @@ depends_on_plans: [s1-violations-batch1]
 
 # Tasks: s1-violations-batch2 (T001155)
 
-- [ ] Task 0: Failing-Test schreiben — BATS `tests/spec/s1-violations-batch2.bats` (RED)
+- [x] Task 0: Failing-Test schreiben — BATS `tests/spec/s1-violations-batch2.bats` (RED)
 - [ ] Task 1: `scripts/backup-restore.sh` aufteilen (1037 → < 500 Zeilen Dispatcher)
 - [ ] Task 2: `website/src/lib/tickets-db.ts` aufteilen (1096 → < 200 Zeilen Re-Export-Index)
 - [ ] Task 3: CI-Guard Härtung in `Taskfile.yml` Phase 3 (`freshness:check` → blockt neue Baseline-Keys ohne `[baseline-allow:<reason>]`-Tag)

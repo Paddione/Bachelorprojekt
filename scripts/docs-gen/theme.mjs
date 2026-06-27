@@ -4,6 +4,11 @@
 // already bundled by the website. Used by templates.mjs (renderPage) and
 // written to OUT_DIR/style.css + OUT_DIR/app.js by the build entry.
 
+// Phase 1.3: search client extracted to search-client.mjs (sole fetch-URL owner).
+// Phase 1.4: UX CSS split into styles-ux.mjs (navCss/searchCss/a11yCss).
+import { SEARCH_JS as _SEARCH_JS } from './search-client.mjs';
+import { navCss, searchCss, a11yCss } from './styles-ux.mjs';
+
 /**
  * Full editorial stylesheet for every generated page.
  * @returns {string} CSS source
@@ -294,7 +299,8 @@ body{margin:0;background:var(--paper-2);color:var(--ink);
   padding-bottom:.4rem;border-bottom:1px solid var(--line-soft)}
 .agent-group-header:first-child,.doc-group-header:first-child{margin-top:.5rem}
 
-${GRAPH_CSS}`;
+${GRAPH_CSS}
+${navCss()}${searchCss()}${a11yCss()}`;
 }
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -361,52 +367,10 @@ export const DIAGRAM_JS = `
   });
 })();`;
 
-/** Ctrl/Cmd-K search overlay backed by ./search.json. */
-export const SEARCH_JS = `
-(function(){
-  var PAGE_INDEX=[];
-  fetch('./search.json').then(function(r){return r.json()}).then(function(j){PAGE_INDEX=j}).catch(function(){});
-  var overlay=document.getElementById('search-overlay');
-  var inp=document.getElementById('search-input');
-  var resultsEl=document.getElementById('search-results');
-  if(!overlay||!inp||!resultsEl)return;
-  function open(){overlay.classList.add('active');inp.value='';inp.focus();renderResults('');}
-  function close(){overlay.classList.remove('active');}
-  document.addEventListener('keydown',function(e){
-    if((e.ctrlKey||e.metaKey)&&(e.key==='k'||e.key==='K')){e.preventDefault();open();}
-    if(e.key==='Escape')close();
-  });
-  overlay.addEventListener('click',function(e){if(e.target===overlay)close();});
-  inp.addEventListener('input',function(){renderResults(inp.value.trim().toLowerCase());});
-  document.querySelectorAll('.search-trigger').forEach(function(b){
-    b.addEventListener('click',open);
-  });
-  function renderResults(q){
-    while(resultsEl.firstChild)resultsEl.removeChild(resultsEl.firstChild);
-    var hits=q?PAGE_INDEX.filter(function(p){
-      return (p.title||'').toLowerCase().indexOf(q)>-1||(p.excerpt||'').toLowerCase().indexOf(q)>-1;
-    }):PAGE_INDEX.slice(0,12);
-    if(!hits.length){
-      var none=document.createElement('p');
-      none.className='search-no-results';
-      none.textContent='Kein Ergebnis';
-      resultsEl.appendChild(none);
-      return;
-    }
-    hits.forEach(function(p){
-      var a=document.createElement('a');
-      a.href='./'+p.slug+'.html';
-      a.className='search-result-item';
-      a.addEventListener('click',close);
-      var t=document.createElement('span');t.className='search-result-title';
-      t.textContent=p.title;
-      var ex=document.createElement('span');ex.className='search-result-excerpt';
-      ex.textContent=p.excerpt||'';
-      a.appendChild(t);a.appendChild(ex);
-      resultsEl.appendChild(a);
-    });
-  }
-})();`;
+// SEARCH_JS is defined in search-client.mjs (the sole owner of the fetch-URL
+// and index-schema). Re-exported here for backward compatibility with callers
+// (including theme.test.mjs) that import SEARCH_JS from theme.mjs.
+export const SEARCH_JS = _SEARCH_JS;
 
 /** Category filter for skills.html — toggles .section-card visibility by data-category. */
 export const CAT_FILTER_JS = `

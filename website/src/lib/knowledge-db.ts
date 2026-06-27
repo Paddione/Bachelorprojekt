@@ -61,7 +61,7 @@ export interface Collection {
   crawl_config: CrawlConfig | null;
 }
 
-export interface Document {
+interface Document {
   id: string;
   collection_id: string;
   title: string;
@@ -70,7 +70,7 @@ export interface Document {
   sha256: string | null;
 }
 
-export interface ChunkInput { position: number; text: string; embedding: number[]; }
+interface ChunkInput { position: number; text: string; embedding: number[]; }
 
 export async function listCollections(): Promise<Collection[]> {
   const r = await p().query(
@@ -181,7 +181,7 @@ export async function recountChunks(collectionId: string): Promise<void> {
   );
 }
 
-export interface NearestChunk {
+interface NearestChunk {
   id: string;
   text: string;
   collection_id: string;
@@ -192,7 +192,7 @@ export interface NearestChunk {
   page: number | null;
 }
 
-export interface OpenspecHit {
+interface OpenspecHit {
   slug: string;
   ticket_id: string | null;
   section_title: string | null;
@@ -390,7 +390,7 @@ export async function mergeCollections(args: {
   }
 }
 
-export interface SuggestSpec {
+interface SuggestSpec {
   name: string;
   sourceIds: string[];
 }

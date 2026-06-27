@@ -2,7 +2,7 @@
 import type { Pool } from 'pg';
 import { pool } from './website-db';
 
-export interface ComponentRow {
+interface ComponentRow {
   id: number;
   name: string;
   kind: 'physical' | 'non-physical';
@@ -16,7 +16,7 @@ export interface ComponentRow {
   updated_at: string;
 }
 
-export interface ComponentInput {
+interface ComponentInput {
   name: string;
   kind: 'physical' | 'non-physical';
   area: string;
@@ -27,7 +27,7 @@ export interface ComponentInput {
   notes?: string | null;
 }
 
-export interface ListFilters {
+interface ListFilters {
   kind?: string;
   cluster?: string;
   status?: string;

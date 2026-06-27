@@ -27,8 +27,7 @@ export const PORTFOLIO_MAX_ROWS = 1000;
 //     feature linkage — the flat "see all my tickets" view (T000877 follow-up).
 //   - NO_FEATURE_ID  ("Ohne Feature"): parentless leaves only (T000848); a
 //     subset of Alle Tickets, surfaced only when it is a genuine subset.
-// Re-exported so existing importers keep resolving these ids from cockpit-db.
-export { ALL_TICKETS_ID, NO_FEATURE_ID };
+
 
 function rollupHealth(r: RollupMetrics): HealthStatus {
   if (r.blocked > 0) return 'red';

@@ -3,7 +3,7 @@ import { skrAccountFor } from './skr';
 
 // ---- EÜR Booking types ----
 
-export interface EurBooking {
+interface EurBooking {
   id: number; brand: string; bookingDate: string; type: string;
   category: string; description: string; netAmount: number;
   vatAmount: number; invoiceId?: string; receiptPath?: string;
@@ -36,7 +36,7 @@ export async function addBooking(
   return mapBooking(r.rows[0]);
 }
 
-export interface EurSummary {
+interface EurSummary {
   year: number; totalIncome: number; totalExpenses: number;
   totalVatCollected: number; totalPretax: number; profit: number;
 }
@@ -78,7 +78,7 @@ function mapBooking(row: Record<string, unknown>): EurBooking {
 
 // ---- Asset types (§15a UStG) ----
 
-export interface Asset {
+interface Asset {
   id: number; brand: string; description: string; purchaseDate: string;
   netPurchasePrice: number; vatPaid: number; usefulLifeMonths: number;
   correctionStartDate?: string; isGwg: boolean;
@@ -97,7 +97,7 @@ export async function addAsset(p: Omit<Asset, 'id'>): Promise<Asset> {
 
 const SECTION_15A_THRESHOLD = 1_000;
 
-export interface Section15aResult {
+interface Section15aResult {
   eligible: boolean; reason?: string;
   correctionAmount: number; remainingMonths: number;
 }
@@ -135,7 +135,7 @@ function mapAsset(row: Record<string, unknown>): Asset {
 const GEWST_FREIBETRAG    = 24_500;
 const GEWST_STEUERMESSZAHL = 0.035;
 
-export interface GewerbesteuerResult {
+interface GewerbesteuerResult {
   gewerbeertrag: number; messbetrag: number; gewerbesteuer: number;
   anrechenbareGewerbesteuer: number;
 }

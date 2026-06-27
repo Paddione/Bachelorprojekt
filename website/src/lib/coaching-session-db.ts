@@ -18,7 +18,7 @@ export interface Session {
   steps: SessionStep[];
 }
 
-export interface AuditEntry {
+interface AuditEntry {
   id: string;
   sessionId: string;
   eventType: 'status_change' | 'field_change' | 'ai_request' | 'notes_change' | 'tool_invocation';
@@ -28,7 +28,7 @@ export interface AuditEntry {
   changedAt: Date;
 }
 
-export interface ListSessionsOpts {
+interface ListSessionsOpts {
   q?: string;
   status?: string[];
   archived?: boolean;
@@ -59,7 +59,7 @@ export interface SessionStep {
   generatedAt: Date | null;
 }
 
-export interface CreateSessionArgs {
+interface CreateSessionArgs {
   brand: string;
   clientId?: string | null;
   clientName?: string | null;
@@ -70,7 +70,7 @@ export interface CreateSessionArgs {
   createdBy: string;
 }
 
-export interface UpsertStepArgs {
+interface UpsertStepArgs {
   sessionId: string;
   stepNumber: number;
   stepName: string;

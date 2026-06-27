@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const LEITWEG_ID_REGEX = /^\d{2,12}(-\d{1,30})?(-\d{1,3})?$/;
 
-export const SellerConfigSchema = z.object({
+const SellerConfigSchema = z.object({
   name: z.string().min(1),
   address: z.string().min(1),
   postalCode: z.string().min(1),
@@ -14,9 +14,9 @@ export const SellerConfigSchema = z.object({
   iban: z.string().min(15),
   bic: z.string().optional(),
 });
-export type SellerConfig = z.infer<typeof SellerConfigSchema>;
+type SellerConfig = z.infer<typeof SellerConfigSchema>;
 
-export const BuyerConfigSchema = z.object({
+const BuyerConfigSchema = z.object({
   name: z.string().min(1),
   email: z.string().email(),
   address: z.string().optional(),
@@ -26,7 +26,7 @@ export const BuyerConfigSchema = z.object({
   vatId: z.string().optional(),
   leitwegId: z.string().regex(LEITWEG_ID_REGEX).optional(),
 });
-export type BuyerConfig = z.infer<typeof BuyerConfigSchema>;
+type BuyerConfig = z.infer<typeof BuyerConfigSchema>;
 
 export const InvoiceLineSchema = z.object({
   description: z.string().min(1),

@@ -35,7 +35,7 @@ const TOKEN_TTL_MS = 5 * 60 * 1000;
  *  a password grant against Keycloak, so the magic redeem route fabricates
  *  an empty access/refresh-token pair. The session is short-lived (8h via
  *  SESSION_TTL_MS in lib/auth) and only used to drive the system test. */
-export interface MagicSessionUser {
+interface MagicSessionUser {
   sub: string;
   email: string;
   name: string;
@@ -48,7 +48,7 @@ function generateToken(): string {
   return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-export interface MintMagicLinkOpts {
+interface MintMagicLinkOpts {
   /** Keycloak user id (UUID). Stored for cleanup-side correlation. */
   keycloakUserId: string;
   sessionUser: MagicSessionUser;
@@ -71,13 +71,13 @@ export async function mintMagicLink(opts: MintMagicLinkOpts): Promise<string> {
   return `${base}/api/auth/magic?token=${encodeURIComponent(token)}`;
 }
 
-export interface RedeemedToken {
+interface RedeemedToken {
   ok: true;
   user: UserSession;
   redirectUri: string;
 }
 
-export interface RedeemFailure {
+interface RedeemFailure {
   ok: false;
   reason: 'missing' | 'expired' | 'used' | 'unknown';
 }

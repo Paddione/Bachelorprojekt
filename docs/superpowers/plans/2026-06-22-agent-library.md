@@ -416,10 +416,10 @@ Jeder Agent liest nur die für seine Domäne relevanten Fragmente.
 
 | Fragment | Zweck | Referenziert von |
 |---|---|---|
-| [`behaviors/never-push-main.md`](behaviors/never-push-main.md) | Kein direkter Push auf main, immer PRs | alle 6 Agenten |
-| [`behaviors/inject-plan-context.md`](behaviors/inject-plan-context.md) | plan-context.sh vor Agent-Dispatch injizieren | infra, website, db, test, security |
-| [`behaviors/tool-use-safety.md`](behaviors/tool-use-safety.md) | Reversibility-Check vor destruktiven Operationen | infra, db, ops, security |
-| [`behaviors/commit-conventions.md`](behaviors/commit-conventions.md) | squash-merge, branch-naming, Co-Authored-By | infra, website, test |
+| [`behaviors/never-push-main.md`](../../../.claude/lib/behaviors/never-push-main.md) | Kein direkter Push auf main, immer PRs | alle 6 Agenten |
+| [`behaviors/inject-plan-context.md`](../../../.claude/lib/behaviors/inject-plan-context.md) | plan-context.sh vor Agent-Dispatch injizieren | infra, website, db, test, security |
+| [`behaviors/tool-use-safety.md`](../../../.claude/lib/behaviors/tool-use-safety.md) | Reversibility-Check vor destruktiven Operationen | infra, db, ops, security |
+| [`behaviors/commit-conventions.md`](../../../.claude/lib/behaviors/commit-conventions.md) | squash-merge, branch-naming, Co-Authored-By | infra, website, test |
 
 ## Prompts
 
@@ -427,9 +427,9 @@ Wiederverwendbare Prompt-Bausteine für Factory-Prompts und LLM-Aufrufe.
 
 | Fragment | Zweck | Referenziert von |
 |---|---|---|
-| [`prompts/review-lens-format.md`](prompts/review-lens-format.md) | HARD CONSTRAINT Block für Review-Lenses | factory review-prompts |
-| [`prompts/diff-analysis-context.md`](prompts/diff-analysis-context.md) | Diff-Scope Boilerplate (nur `+`-Zeilen) | factory lenses |
-| [`prompts/review-coordinator.md`](prompts/review-coordinator.md) | Koordinations-Logik Consolidation-Agent | factory coordinator |
+| [`prompts/review-lens-format.md`](../../../.claude/lib/prompts/review-lens-format.md) | HARD CONSTRAINT Block für Review-Lenses | factory review-prompts |
+| [`prompts/diff-analysis-context.md`](../../../.claude/lib/prompts/diff-analysis-context.md) | Diff-Scope Boilerplate (nur `+`-Zeilen) | factory lenses |
+| [`prompts/review-coordinator.md`](../../../.claude/lib/prompts/review-coordinator.md) | Koordinations-Logik Consolidation-Agent | factory coordinator |
 
 ## Wachstumsprinzip
 

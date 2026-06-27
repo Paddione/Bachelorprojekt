@@ -36,7 +36,7 @@ All operator-facing text on this surface is German, Du-form, friendly. This is t
   - `30-bausteine.md` — Lens 3, the platform components / enriched hub (from `components.yaml`).
 - **G3** — Ship one HAND-AUTHORED, committed, hand-edited landing page `00-anleitung.md` ("Was will ich tun?") that teaches and links into the three generated pages.
 - **G4** — Wire the emitter behind `task agent-guide:docs` (and the umbrella `task agent-guide:emit`), and add a CI freshness gate (`git diff --exit-code` over the generated trio) mirroring the existing `test-inventory.json` gate.
-- **G5** — Cross-link the four pages to each other and into existing docs pages (skills/agents) using the docs generator's native `[[wikilink]]` and `[label](file.md)` mechanisms, so the registry's `links`/`related`/`tool`/`guardrails` references become live navigation. Where a tool/agent id does not equal its discovered page slug (see §6, §7.2), the emitter maps the id to the real slug before emitting the wikilink.
+- **G5** — Cross-link the four pages to each other and into existing docs pages (skills/agents) using the docs generator's native `[[wikilink]]` and `` `[label](<rel>)` `` mechanisms, so the registry's `links`/`related`/`tool`/`guardrails` references become live navigation. Where a tool/agent id does not equal its discovered page slug (see §6, §7.2), the emitter maps the id to the real slug before emitting the wikilink.
 - **G6** — Never emit from an invalid registry: the emitter runs F+B's `validateRegistry` (or `task test:agent-guide`) first.
 
 ### Non-goals (explicit deferrals)

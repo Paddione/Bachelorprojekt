@@ -2,7 +2,7 @@
 title: "T001224: CI-Guard gegen website-Lockfile-Drift + pnpm/npm-Strukturentscheidung"
 ticket_id: "T001224"
 domains: [website, ci, quality]
-status: "plan_staged"
+status: "completed"
 file_locks: []
 shared_changes: false
 ---

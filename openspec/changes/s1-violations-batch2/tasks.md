@@ -17,7 +17,7 @@ depends_on_plans: [s1-violations-batch1]
 - [x] Task 2: `website/src/lib/tickets-db.ts` aufteilen (1096 → < 200 Zeilen Re-Export-Index)
 - [x] Task 3: CI-Guard Härtung in `Taskfile.yml` Phase 3 (`freshness:check` → blockt neue Baseline-Keys ohne `[baseline-allow:<reason>]`-Tag)
 - [x] Task 4: `task quality:baseline:refresh` + finaler Stand + Tests
-- [ ] Task 5: Finaler Verifikations-Task (`task test:changed` + `task freshness:regenerate` + `task freshness:check`)
+- [x] Task 5: Finaler Verifikations-Task (`task test:changed` + `task freshness:regenerate` + `task freshness:check`)
 
 ---
 

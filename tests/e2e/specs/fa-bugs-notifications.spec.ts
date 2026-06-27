@@ -28,6 +28,15 @@ const CRON_SECRET = process.env.CRON_SECRET;
 
 test.describe('FA-bug-notify', () => {
   test('reporter receives close-mail when admin resolves ticket', async ({ page, request }, testInfo) => {
+    if (!process.env.CRON_SECRET) {
+      test.skip(true, 'Skipping test because CRON_SECRET is not set');
+      return;
+    }
+    if (!ADMIN_PASS) {
+      test.skip(true, 'Skipping test because E2E_ADMIN_PASS is not set');
+      return;
+    }
+
     await assertAuthenticatedReachable(
       request,
       `${BASE}/admin/bugs`,

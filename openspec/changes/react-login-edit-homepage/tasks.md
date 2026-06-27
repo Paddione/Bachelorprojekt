@@ -99,9 +99,9 @@ im Code — Origins kommen aus Env (`VITE_WEBSITE_ORIGIN`, `REACT_APP_ORIGIN`); 
 
 ## Task 6: React — UserMenu + Navigation
 
-- [ ] `mentolder-web/src/components/UserMenu.test.tsx`: ausgeloggt → „Login"-Element mit korrekter Login-URL (`returnTo`); eingeloggter Admin → Dropdown mit „Edit Homepage" (→ `/admin/homepage`) + „Logout"; Nicht-Admin → kein „Edit Homepage". Lauf → expected: FAIL.
-- [ ] `mentolder-web/src/components/UserMenu.tsx` implementieren (nutzt `useAuth`); Login/Logout = Top-Level-Navigation zu Website-Origin mit `returnTo`.
-- [ ] `mentolder-web/src/components/Navigation.tsx`: `<UserMenu />` rechts einbinden (Desktop + Mobile-Sheet). Tests → grün. Commit.
+- [x] `mentolder-web/src/components/UserMenu.test.tsx`: ausgeloggt → „Login"-Element mit korrekter Login-URL (`returnTo`); eingeloggter Admin → Dropdown mit „Edit Homepage" (→ `/admin/homepage`) + „Logout"; Nicht-Admin → kein „Edit Homepage". Lauf → expected: FAIL.
+- [x] `mentolder-web/src/components/UserMenu.tsx` implementieren (nutzt `useAuth`); Login/Logout = Top-Level-Navigation zu Website-Origin mit `returnTo`.
+- [x] `mentolder-web/src/components/Navigation.tsx`: `<UserMenu />` rechts einbinden (Desktop + Mobile-Sheet). Tests → grün. Commit. (Nebenbei: vorbestehende `routing.test.tsx`-Drift aus #2100 — Heading „Was ich anbiete" → „Leistungen & Preise" — korrigiert, damit `test:changed` grün ist.)
 
 ## Task 7: React — Editor-Route + Feld-Editor
 

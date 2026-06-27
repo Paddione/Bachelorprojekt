@@ -4,7 +4,7 @@ Die `website/`-Abhängigkeiten enthalten zwei bekannte CVEs in transitiven Depen
 
 ## What Changes
 
-- `pnpm.overrides` in `website/package.json` pinnt `js-yaml` auf `>=4.1.2` (patched) und `@babel/core` auf `>=7.29.1` (patched)
+- `overrides` in `website/pnpm-workspace.yaml` pinnt `js-yaml` auf `^4.1.2` (patched) und `@babel/core` auf `>=7.29.1` (patched)
 - `website/pnpm-lock.yaml` wird mit gepinnten, sicheren Versionen neu generiert
 - Ein BATS-Test in `tests/spec/g-dep01-npm-vuln.bats` verifiziert `pnpm audit --json` meldet 0 Vulnerabilities (rot→grün-Gate)
 - Keine direkten Dependency-Upgrades (package.json `dependencies`/`devDependencies` unverändert)
@@ -22,7 +22,7 @@ Die `website/`-Abhängigkeiten enthalten zwei bekannte CVEs in transitiven Depen
 
 ## Impact
 
-- `website/package.json`: neues `pnpm.overrides`-Feld
+- `website/pnpm-workspace.yaml`: neuer `overrides`-Block für `js-yaml` und `@babel/core`
 - `website/pnpm-lock.yaml`: Lockfile-Änderungen für `js-yaml` und `@babel/core`
 - `tests/spec/g-dep01-npm-vuln.bats`: neuer BATS-Test
 - `openspec/specs/website-core.md`: optionaler Delta-Eintrag für Override-Konvention

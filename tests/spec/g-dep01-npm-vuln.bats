@@ -10,13 +10,16 @@ setup() {
 
 @test "G-DEP01: pnpm audit reports zero vulnerabilities" {
   run bash -c "cd '${WEBSITE_DIR}' && pnpm audit --json"
-  # Parse total vulnerability count from JSON output
+  # Sum severity counts (pnpm 11 dropped the 'total' field; pnpm 9/10 had it).
   total="$(echo "${output}" | python3 -c "
 import sys, json
 data = json.load(sys.stdin)
 meta = data.get('metadata', {})
 vulns = meta.get('vulnerabilities', {})
-print(vulns.get('total', -1))
+if 'total' in vulns:
+    print(vulns['total'])
+else:
+    print(sum(v for k, v in vulns.items() if k in ('info', 'low', 'moderate', 'high', 'critical') and isinstance(v, int)))
 " 2>/dev/null || echo "-1")"
   [ "${total}" -eq 0 ]
 }

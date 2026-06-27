@@ -25,15 +25,12 @@ Beide sind ausschließlich Build-/Dev-Zeit-Dependencies — kein direkter Laufze
 
 ### Entscheidung: pnpm.overrides statt direktem Dep-Upgrade
 
-**Gewählt:** `pnpm.overrides` in `website/package.json` pinnt die verwundbaren transitiven Packages auf sichere Patch-Versionen.
+**Gewählt:** `overrides` in `website/pnpm-workspace.yaml` (pnpm 11+ liest `overrides` aus `pnpm-workspace.yaml`, nicht mehr aus `package.json`) pinnt die verwundbaren transitiven Packages auf sichere Patch-Versionen.
 
-```json
-"pnpm": {
-  "overrides": {
-    "js-yaml": ">=4.1.2",
-    "@babel/core": ">=7.29.1"
-  }
-}
+```yaml
+overrides:
+  js-yaml: "^4.1.2"
+  "@babel/core": ">=7.29.1"
 ```
 
 **Alternativen:**
@@ -51,6 +48,6 @@ Beide sind ausschließlich Build-/Dev-Zeit-Dependencies — kein direkter Laufze
 
 ## Risks / Trade-offs
 
-- **[Risk] pnpm.overrides wird vom nächsten Renovate-Sweep überschrieben** → Mitigation: Override-Kommentar in package.json dokumentiert CVE-Referenz. Renovate renoviert keine `pnpm.overrides`-Blöcke (nur direkte deps). Beim nächsten Astro-Upstream-Fix wird Override entfernt.
+- **[Risk] pnpm.overrides wird vom nächsten Renovate-Sweep überschrieben** → Mitigation: Override-Kommentar in `pnpm-workspace.yaml` dokumentiert CVE-Referenz. Renovate renoviert keine `overrides`-Blöcke (nur direkte deps). Beim nächsten Astro-Upstream-Fix wird Override entfernt.
 - **[Risk] Override >=4.1.2 pulled eine inkompatible js-yaml-Version** → Mitigation: js-yaml 4.x ist SemVer-konform; Minor/Patch-Bumps innerhalb 4.x sind safe. Test: `task vitest` und `task website:build` nach dem Lockfile-Update.
 - **[Risk] @babel/core >=7.29.1 ändert Build-Verhalten** → Mitigation: Babel@7.29.x-Changelog enthält keine Breaking Changes zwischen .0 und .1. Build-Smoke-Test als Verify-Step eingeplant.

@@ -8,7 +8,7 @@ The `website/` package SHALL report zero known vulnerabilities when `pnpm audit`
 
 - **WHEN** `pnpm audit --json` is executed in the `website/` directory
 - **THEN** the command exits with code 0
-- **AND** the JSON output contains `"metadata": {"vulnerabilities": {"total": 0}}`
+- **AND** the sum of severity counts (`info` + `low` + `moderate` + `high` + `critical`) in `metadata.vulnerabilities` equals 0
 
 #### Scenario: Vulnerability detected fails the gate
 
@@ -18,6 +18,6 @@ The `website/` package SHALL report zero known vulnerabilities when `pnpm audit`
 
 #### Scenario: Override pins transitive deps to safe versions
 
-- **WHEN** `pnpm.overrides` in `website/package.json` pins `js-yaml` to `>=4.1.2` and `@babel/core` to `>=7.29.1`
+- **WHEN** `overrides` in `website/pnpm-workspace.yaml` pins `js-yaml` to `^4.1.2` and `@babel/core` to `>=7.29.1`
 - **THEN** `pnpm install --frozen-lockfile` resolves both to their patched versions
 - **AND** the website build (`task website:build`) completes successfully

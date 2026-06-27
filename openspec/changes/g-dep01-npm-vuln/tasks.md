@@ -39,23 +39,25 @@ Goal: have a BATS test that asserts `pnpm audit` exits 0. Currently it exits 1
 - [ ] 1.2 Run `./tests/runner.sh local G-DEP01` and confirm the audit test **fails**
   with non-zero exit (expected: FAIL before the override is applied)
 
-## Task 2 — Add pnpm.overrides to website/package.json
+## Task 2 — Add overrides to website/pnpm-workspace.yaml
 
 Goal: pin the two vulnerable transitive deps to their patched versions using the
-idiomatic pnpm mechanism.
+idiomatic pnpm mechanism. **pnpm 11+ reads `overrides` from `pnpm-workspace.yaml`,
+not from `package.json`** (the `pnpm.overrides` field in `package.json` is ignored
+as of v11 and emits a warning).
 
-- [ ] 2.1 In `website/package.json`, add a top-level `"pnpm"` field with an
-  `"overrides"` block:
-  ```json
-  "pnpm": {
-    "overrides": {
-      "js-yaml": ">=4.1.2",
-      "@babel/core": ">=7.29.1"
-    }
-  }
+- [ ] 2.1 In `website/pnpm-workspace.yaml`, add `js-yaml` and `@babel/core` to the
+  existing `overrides` block:
+  ```yaml
+  overrides:
+    yaml: "^2.9.0"
+    esbuild: "^0.28.1"
+    undici: "7.28.0"
+    ws: "8.21.0"
+    js-yaml: "^4.1.2"        # GHSA-h67p-54hq-rp68 — ReDoS in 4.1.1
+    "@babel/core": ">=7.29.1"  # GHSA-4x5r-pxfx-6jf8 — Arbitrary File Read in 7.29.0
   ```
-  Place the block after `"devDependencies"` and before any closing brace.
-- [ ] 2.2 Verify `package.json` is valid JSON by running `node -e "require('./website/package.json')"`.
+- [ ] 2.2 Verify `pnpm-workspace.yaml` is valid YAML by running `python3 -c "import yaml; yaml.safe_load(open('./website/pnpm-workspace.yaml'))"`.
 
 ## Task 3 — Regenerate pnpm-lock.yaml
 

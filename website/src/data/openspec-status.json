@@ -171,9 +171,21 @@
       "status": "plan_staged"
     }
   ],
+  "T001155": [
+    {
+      "slug": "2026-06-27-s1-violations-batch2",
+      "status": "archived"
+    }
+  ],
   "T001159": [
     {
       "slug": "img02-image-drift",
+      "status": "plan_staged"
+    }
+  ],
+  "T001160": [
+    {
+      "slug": "react-login-edit-homepage",
       "status": "plan_staged"
     }
   ],

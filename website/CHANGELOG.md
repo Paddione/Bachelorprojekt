@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.134.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.134.7...website-v1.134.8) (2026-06-27)
+
+
+### Bug Fixes
+
+* **website:** migrate Dockerfile to pnpm (T001224 follow-up) [T001276] ([#2215](https://github.com/Paddione/Bachelorprojekt/issues/2215)) ([eb50ea2](https://github.com/Paddione/Bachelorprojekt/commit/eb50ea26abc05714c0318431b8cd46e2b7124850))
+
 ## [1.134.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.134.6...website-v1.134.7) (2026-06-27)
 
 

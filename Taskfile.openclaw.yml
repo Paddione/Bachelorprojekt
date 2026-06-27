@@ -144,16 +144,24 @@ tasks:
   factory-mcp:start:
     desc: "Start the Factory MCP server in the background (PID file)"
     cmds:
-      # Run under real bash: go-task's mvdan/sh interpreter returns a job handle
-      # (e.g. "g1") instead of a real OS PID from `$!`, which breaks the PID file
-      # and factory-mcp:stop. bash gives the actual node PID.
+      # Build the Go binary on first run, then launch it detached. The Node
+      # implementation (scripts/factory/mcp-server.mjs) is kept around for
+      # fallback — the Go binary at scripts/factory/mcp-go/bin/factory-mcp
+      # speaks the same Streamable-HTTP MCP shape on 127.0.0.1:13003.
       - |
         bash -c '
+          set -euo pipefail
+          REPO="${FACTORY_REPO:-/home/patrick/Bachelorprojekt}"
+          BIN="$REPO/scripts/factory/mcp-go/bin/factory-mcp"
+          if [[ ! -x "$BIN" ]]; then
+            echo "factory-mcp: building $BIN"
+            (cd "$REPO/scripts/factory/mcp-go" && CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o bin/factory-mcp .)
+          fi
           PIDFILE=/tmp/factory-mcp.pid
           if [[ -f "$PIDFILE" ]] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
             echo "factory-mcp already running (PID $(cat "$PIDFILE"))"
           else
-            nohup node scripts/factory/mcp-server.mjs > /tmp/factory-mcp.log 2>&1 &
+            nohup "$BIN" > /tmp/factory-mcp.log 2>&1 &
             echo $! > "$PIDFILE"
             echo "factory-mcp started (PID $(cat "$PIDFILE"))"
           fi
@@ -181,3 +189,9 @@ tasks:
     desc: "Health-check the Factory MCP server"
     cmds:
       - curl -sS --max-time 3 http://127.0.0.1:13003/health && echo "" || echo "factory-mcp not responding"
+
+  factory-mcp:build:
+    desc: "Build the Go factory-mcp binary (scripts/factory/mcp-go/bin/factory-mcp)"
+    dir: scripts/factory/mcp-go
+    cmds:
+      - CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o bin/factory-mcp .

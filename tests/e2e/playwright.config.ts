@@ -92,6 +92,7 @@ export default defineConfig({
         '**/fa-admin-backup-ops.spec.ts',            // admin backup ops auth guards
         '**/fa-50-*.spec.ts',                        // request correlation / X-Request-ID (T000964)
         '**/fa-51-*.spec.ts',                        // sidekick navigation + grilling/mediaviewer views (T000965)
+        '**/a11y-axe.spec.ts',                       // axe-core a11y-Scan der Kern-Routen (G-FE01, T001206)
       ],
       use: {
         ...devices['Desktop Chrome'],

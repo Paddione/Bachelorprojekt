@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 vi.mock('pg', () => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
+   
   const { newDb } = require('pg-mem') as typeof import('pg-mem');
   const mem = newDb();
   // Simplified platform tables (pg-mem can't do uuid/array/timestamptz DDL); seed

@@ -19,7 +19,6 @@
   style="font-size: 12px; line-height: 1.45; padding: 7px 10px; border-radius: 8px; max-width: 80%;
          font-family: var(--font-sans); color: var(--fg);"
 >
-  <!-- eslint-disable-next-line svelte/no-at-html-tags -->
   {@html renderCitations(message.content)}
   {#if !isUser}
     <SourcesBox {sources} />

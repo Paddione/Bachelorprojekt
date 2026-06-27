@@ -114,7 +114,7 @@
         {#if activeKey === 'meine-daten'}
           <p class="text-sm text-muted">
             Die Seite <code class="text-gold">/meine-daten</code> ist technisch generiert und über OIDC geschützt.
-            Eingeloggte Nutzer können dort Auskunft anfordern und ihr Konto löschen (DSGVO Art. 15/17).
+            Eingeloggte Nutzer können dort Auskunft anfordern und ihr Konto löschen (DSGVO Art. 15/17).
             Sie ist nicht über diesen Editor pflegbar.
           </p>
           <a href="/meine-daten" target="_blank" rel="noopener"

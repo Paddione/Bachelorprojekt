@@ -12,7 +12,7 @@ export const POST: APIRoute = async ({ request, params }) => {
   if (!session || !isAdmin(session)) return new Response(null, { status: 403 });
 
   const body = await request.json();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const inv  = await (stripe as any).invoices.retrieve(params.id!);
   const customerId = typeof inv.customer === 'string'
     ? inv.customer
@@ -34,7 +34,7 @@ export const PATCH: APIRoute = async ({ request, params }) => {
   const invoiceItemId = String(body.invoiceItemId ?? '');
   if (!invoiceItemId) return new Response(null, { status: 400 });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const item = await (stripe as any).invoiceItems.retrieve(invoiceItemId);
   if (item.invoice !== params.id) return new Response(null, { status: 403 });
 
@@ -54,7 +54,7 @@ export const DELETE: APIRoute = async ({ request, params }) => {
   const invoiceItemId = String(body.invoiceItemId ?? '');
   if (!invoiceItemId) return new Response(null, { status: 400 });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const item = await (stripe as any).invoiceItems.retrieve(invoiceItemId);
   if (item.invoice !== params.id) return new Response(null, { status: 403 });
 

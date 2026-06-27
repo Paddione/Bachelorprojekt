@@ -24,7 +24,7 @@
   let pageRows = $derived(filtered.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE));
 
   $effect(() => {
-    statusFilter;
+    void statusFilter;
     page = 0;
   });
 

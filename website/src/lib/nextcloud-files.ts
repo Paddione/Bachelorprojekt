@@ -129,7 +129,7 @@ export async function uploadFile(
       Authorization: authHeader(),
       'Content-Type': contentType,
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     body: body as any,
   });
   // 201 = created, 204 = overwritten — both are fine

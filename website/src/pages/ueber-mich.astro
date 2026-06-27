@@ -41,7 +41,7 @@ const seoOgImage = await getSeoOgImage(BRAND_ID, 'ueber-mich').catch(() => null)
       ))}
 
       <h2 class="text-2xl font-bold text-light !mt-12 font-serif">Privat</h2>
-      <p>{uebermich.privateText.replace('{city}', contact.city)}</p>
+      <p>{uebermich.privateText.replace('{city}', config.contact.city)}</p>
 
       {uebermich.warumdieserName && (
         <div class="bg-dark rounded-2xl p-8 my-10 border-l-4 border-gold">

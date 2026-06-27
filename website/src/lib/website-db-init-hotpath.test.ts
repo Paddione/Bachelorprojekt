@@ -42,7 +42,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 vi.mock('pg', () => {
   // require() is available inside a vi.mock factory (it runs in CJS-interop
   // context); pg-mem is single-threaded but fine for observing emitted SQL.
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
+   
   const { newDb } = require('pg-mem') as typeof import('pg-mem');
 
   const mem = newDb();

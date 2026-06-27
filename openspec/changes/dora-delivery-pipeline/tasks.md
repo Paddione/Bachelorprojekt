@@ -26,7 +26,7 @@ depends_on_plans: []
 
 ## Global Constraints
 
-Jeder Task erbt diesen Abschnitt implizit. Werte stammen aus der Design-Spec §S1-Budgets, §3, §5, §6 und der Quality-Gates-Referenz (`.claude/skills/references/references.md#plan-quality-gates`, SSOT `docs/code-quality/gates.yaml`).
+Jeder Task erbt diesen Abschnitt implizit. Werte stammen aus der Design-Spec §S1-Budgets, §3, §5, §6 und der Quality-Gates-Referenz (`.claude/skills/references/plan-quality-gates.md`, SSOT `docs/code-quality/gates.yaml`).
 
 - **Merge = Abschluss (Kern-Invariante).** Nach grünem Auto-Merge nach `main` → Ticket **direkt** `done · resolution=shipped` im selben Schritt wie der Merge. KEIN `awaiting_deploy`, KEIN `qa_review` im Happy-Path. Prod-Deploy bleibt entkoppelt (push-based) und ändert den Ticket-Status NICHT. Gilt einheitlich für **Factory (pipeline.js)** + **dev-flow-execute (SKILL)** + **Batches** (mehrere devflow-Tickets parallel).
 - **Enum-Werte NICHT destruktiv löschen.** `awaiting_deploy` und `qa_review` bleiben im TS-Enum (`transition.ts:7-14`), im `VALID_STATUSES`-Set, und im DB-`CHECK`-Constraint — für historische Zeilen, manuelle Sonderfälle und das Watchdog-Sicherheitsnetz. KEIN DB-Constraint-Drop, KEINE destruktive Migration.

@@ -26,7 +26,7 @@ Internal tickets live in `tickets.tickets` on the `mentolder` (`website` DB). En
 `mcp__mcp-postgres__query`. Die `psql()`-Funktion unten ist der Read-Fallback; **schreibende**
 Statements (z. B. das `INSERT INTO tickets.tickets` in Schritt 2) bleiben Pflicht über
 `psql`/`kubectl exec`, da das MCP-Query-Tool read-only ist.
-Siehe [`MCP-Tool-Guide`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#mcp-tool-guide).
+Siehe [`MCP-Tool-Guide`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md).
 
 SQL helper:
 ```bash

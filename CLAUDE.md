@@ -15,13 +15,13 @@ Before responding to any request, check these signals and delegate to the named 
 | database, PostgreSQL, psql, schema, query, backup, restore, tracking, timeline, `bachelorprojekt.features`, `v_timeline` | `bachelorprojekt-db` | `mcp-postgres` (localhost:13001) |
 | SealedSecret, Keycloak realm, OIDC, DSGVO, credentials, rotate, certificate, secret | `bachelorprojekt-security` | — |
 
-> **MCP-Server names in this table refer to Claude-Code-only SSE servers** configured in `.claude/settings.json` / `.claude/skills/references/references.md#mcp-tool-guide`. The opencode runtime uses different MCP server names from `.opencode/opencode.jsonc` (`mcp-k8s`, `mcp-postgres`, `mcp-browser`, `mcp-github`, `mcp-factory` — no `mcp-kubernetes`). If you are running in opencode, see the `MCP-Schnellweg` block below and the opencode config, not the table above.
+> **MCP-Server names in this table refer to Claude-Code-only SSE servers** configured in `.claude/settings.json` / `.claude/skills/references/mcp-tool-guide.md`. The opencode runtime uses different MCP server names from `.opencode/opencode.jsonc` (`mcp-k8s`, `mcp-postgres`, `mcp-browser`, `mcp-github`, `mcp-factory` — no `mcp-kubernetes`). If you are running in opencode, see the `MCP-Schnellweg` block below and the opencode config, not the table above.
 
 > **Agent-Routing-Karten:** Generierte, grepbare Karten unter `docs/agent-guide/maps/` — `goals-map.md` (Intention → Weg → Tier → Guardrails), `tools-map.md`, `danger-map.md`. Quelle: `docs/agent-guide/registry/` (nicht von Hand editieren; via `task agent-guide:maps` regenerieren).
 
-> **MCP-Schnellweg:** Welcher MCP-Server wann bevorzugt wird (statt `kubectl exec … psql`), steht in [`.claude/skills/references/references.md#mcp-tool-guide`](.claude/skills/references/references.md#mcp-tool-guide) — inkl. Portforward-Guard und der kubectl-Pflicht für DDL/Superuser/Writes.
+> **MCP-Schnellweg:** Welcher MCP-Server wann bevorzugt wird (statt `kubectl exec … psql`), steht in [`.claude/skills/references/mcp-tool-guide.md`](.claude/skills/references/mcp-tool-guide.md) — inkl. Portforward-Guard und der kubectl-Pflicht für DDL/Superuser/Writes.
 
-> **gh-axi:** Bevorzugter GitHub-CLI-Wrapper für alle Agents (`gh-axi` statt `gh`). Kommando-Referenz: [`.claude/skills/references/references.md#gh-axi`](.claude/skills/references/references.md#gh-axi).
+> **gh-axi:** Bevorzugter GitHub-CLI-Wrapper für alle Agents (`gh-axi` statt `gh`). Kommando-Referenz: [`.claude/skills/references/gh-axi.md`](.claude/skills/references/gh-axi.md).
 
 **Before dispatching any agent, inject active plan context:**
 Run `bash scripts/plan-context.sh <role> --with-openspec` and prepend output to the agent prompt wrapped in `<active-plans>` tags. If the script produces no output, omit the block entirely. `--with-openspec` auto-loads the SSOT spec(s) for any files changed vs main — omit only when explicitly told to skip OpenSpec context.

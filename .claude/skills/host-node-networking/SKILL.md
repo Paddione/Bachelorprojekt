@@ -9,6 +9,6 @@ archived: true
 Dieser Skill wurde in `infra-ops` konsolidiert.
 Verwende stattdessen: **Skill: infra-ops** → Abschnitt §3 (Host Node Networking).
 
-Referenz-Dateien (weiterhin nutzbar):
-- `host-node-networking/references/hetzner-provisioning.md`
-- `host-node-networking/references/wsl-openclaw.md`
+Referenz-Dateien (verschoben nach `infra-ops/references/`):
+- `infra-ops/references/hetzner-provisioning-network.md`
+- `infra-ops/references/wsl-openclaw.md`

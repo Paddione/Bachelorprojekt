@@ -58,9 +58,9 @@ export K3S_VERSION="${k3s}"
 
 ### Phase 1 — Environment Initialization
 
-**Step 1.0: Hetzner Nodes** — Vollständige Befehle in [`cluster-deployment/references/hetzner-provisioning.md`](../cluster-deployment/references/hetzner-provisioning.md).
+**Step 1.0: Hetzner Nodes** — Vollständige Befehle in [`references/hetzner-provisioning-cluster.md`](references/hetzner-provisioning-cluster.md).
 
-**Step 1.0b: Proxmox Nodes** — [`cluster-deployment/references/proxmox-provisioning.md`](../cluster-deployment/references/proxmox-provisioning.md).
+**Step 1.0b: Proxmox Nodes** — [`references/proxmox-provisioning.md`](references/proxmox-provisioning.md).
 
 ```bash
 # Step 1.1: Environment-Config anlegen
@@ -227,8 +227,8 @@ Hetzner-Provisioning, WireGuard-Mesh, UFW-Firewall, LiveKit-WebRTC, OpenClaw.
 [ WSL Host / OpenClaw ] ◄──► [ GPU Worker — 10.10.0.3 ]
 ```
 
-Hetzner-Provisioning-Details: [`host-node-networking/references/hetzner-provisioning.md`](../host-node-networking/references/hetzner-provisioning.md)
-OpenClaw-Setup: [`host-node-networking/references/wsl-openclaw.md`](../host-node-networking/references/wsl-openclaw.md)
+Hetzner-Provisioning-Details: [`references/hetzner-provisioning-network.md`](references/hetzner-provisioning-network.md)
+OpenClaw-Setup: [`references/wsl-openclaw.md`](references/wsl-openclaw.md)
 
 ### Phase 2 — UFW Firewall Ports
 

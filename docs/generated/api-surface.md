@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-06-26T22:33:47.493Z
+> Generated at 2026-06-27T02:11:48.887Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -146,6 +146,9 @@
 | `/api/admin/fuehrung/save` | POST | 🔐 admin | `website/src/pages/api/admin/fuehrung/save.ts` |
 | `/api/admin/generate-3d` | POST | 🔐 admin | `website/src/pages/api/admin/generate-3d.ts` |
 | `/api/admin/generate-3d/status` | GET | 🔐 admin | `website/src/pages/api/admin/generate-3d/status.ts` |
+| `/api/admin/homepage/restore` | OPTIONS, POST | 🔐 admin | `website/src/pages/api/admin/homepage/restore.ts` |
+| `/api/admin/homepage/save` | OPTIONS, POST | 🔐 admin | `website/src/pages/api/admin/homepage/save.ts` |
+| `/api/admin/homepage/versions` | OPTIONS, GET | 🔐 admin | `website/src/pages/api/admin/homepage/versions.ts` |
 | `/api/admin/inbox` | GET | 🔐 admin | `website/src/pages/api/admin/inbox.ts` |
 | `/api/admin/inbox/{id}/action` | POST | 🔐 admin | `website/src/pages/api/admin/inbox/[id]/action.ts` |
 | `/api/admin/inbox/count` | GET | 🔐 admin | `website/src/pages/api/admin/inbox/count.ts` |
@@ -323,7 +326,7 @@
 | `/api/auth/login` | GET | ❓ unclassified | `website/src/pages/api/auth/login.ts` |
 | `/api/auth/logout` | GET | ❓ unclassified | `website/src/pages/api/auth/logout.ts` |
 | `/api/auth/magic` | GET | ❓ unclassified | `website/src/pages/api/auth/magic.ts` |
-| `/api/auth/me` | GET | 🔐 admin | `website/src/pages/api/auth/me.ts` |
+| `/api/auth/me` | OPTIONS, GET | 🔐 admin | `website/src/pages/api/auth/me.ts` |
 | `/api/billing/create-invoice` | POST | ❓ unclassified | `website/src/pages/api/billing/create-invoice.ts` |
 | `/api/billing/invoice/{id}/pdf` | GET | 🔐 admin | `website/src/pages/api/billing/invoice/[id]/pdf.ts` |
 | `/api/billing/invoice/{id}/xrechnung.xml` | GET | 🔐 admin | `website/src/pages/api/billing/invoice/[id]/xrechnung.xml.ts` |
@@ -350,6 +353,7 @@
 | `/api/factory-metrics` | GET | 🔐 admin | `website/src/pages/api/factory-metrics.ts` |
 | `/api/factory-observability` | GET | 🔐 admin | `website/src/pages/api/factory-observability.ts` |
 | `/api/health` | GET | ❓ unclassified | `website/src/pages/api/health.ts` |
+| `/api/homepage` | OPTIONS, GET | ❓ unclassified | `website/src/pages/api/homepage.ts` |
 | `/api/internal/tickets/notify-close` | POST | 🔒 internal | `website/src/pages/api/internal/tickets/notify-close.ts` |
 | `/api/leistungen` | GET | ❓ unclassified | `website/src/pages/api/leistungen.ts` |
 | `/api/live/state` | GET | 🔐 admin | `website/src/pages/api/live/state.ts` |

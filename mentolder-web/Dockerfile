@@ -12,6 +12,12 @@ COPY mentolder-web/ .
 ARG VITE_FORMSPREE_ENDPOINT=""
 ENV VITE_FORMSPREE_ENDPOINT=${VITE_FORMSPREE_ENDPOINT}
 
+# Origin of the Astro website the SPA reuses for auth + homepage persistence
+# (cross-origin, same-site). Baked at build time; empty → same-origin relative
+# requests. Set by build-mentolder-web.yml to https://web.mentolder.de.
+ARG VITE_WEBSITE_ORIGIN=""
+ENV VITE_WEBSITE_ORIGIN=${VITE_WEBSITE_ORIGIN}
+
 RUN pnpm install --frozen-lockfile && pnpm run build
 
 # ── Runtime stage ─────────────────────────────────────────────────

@@ -18,7 +18,7 @@ describe('Routing', () => {
 
   it('renders leistungen page at /leistungen', () => {
     renderAt('/leistungen');
-    expect(screen.getByRole('heading', { name: /Was ich anbiete/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Leistungen & Preise/i })).toBeInTheDocument();
   });
 
   it('renders leistung detail at /leistungen/fuehrung', () => {

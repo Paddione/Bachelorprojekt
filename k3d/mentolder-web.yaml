@@ -22,6 +22,12 @@ spec:
       nodeSelector:
         kubernetes.io/arch: amd64
       containers:
+        # NOTE: mentolder-web is a static Vite/React SPA served by nginx. Its
+        # VITE_WEBSITE_ORIGIN (the Astro website origin reused for auth +
+        # homepage persistence) is BAKED AT BUILD TIME via the
+        # `VITE_WEBSITE_ORIGIN` build-arg in .github/workflows/build-mentolder-web.yml
+        # (https://web.mentolder.de). A runtime env here would have no effect on
+        # the pre-built bundle, so none is set.
         - name: mentolder-web
           image: ghcr.io/paddione/mentolder-web:latest
           imagePullPolicy: Always

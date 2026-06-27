@@ -88,6 +88,8 @@ data:
   ARENA_WS_URL: "${ARENA_WS_URL}"
   # Site
   SITE_URL: "${WEBSITE_SITE_URL}"
+  # CORS allowlist for the React SPA (react.<brand>); empty → fail-closed (no React app)
+  REACT_APP_ORIGIN: "${REACT_APP_ORIGIN}"
   # System-test failure loop (Task 10): off by default. Flip to "true" only
   # after the rollout checklist in feat/systemtest-failure-loop has been run.
   SYSTEMTEST_LOOP_ENABLED: "${SYSTEMTEST_LOOP_ENABLED}"

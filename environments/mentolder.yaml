@@ -49,6 +49,8 @@ env_vars:
   NEXTCLOUD_DB_HOST: nextcloud-db.workspace.svc.cluster.local
   WEBSITE_HOST: web.mentolder.de
   WEBSITE_SITE_URL: "https://web.mentolder.de"
+  # CORS allowlist origin for the React SPA at react.mentolder.de
+  REACT_APP_ORIGIN: "https://react.mentolder.de"
   # Pocket ID is now the auth provider on auth.mentolder.de
   POCKET_ID_FRONTEND_URL: "https://auth.mentolder.de"
   POCKET_ID_DOMAIN: "auth.mentolder.de"

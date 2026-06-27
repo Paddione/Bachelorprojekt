@@ -259,6 +259,13 @@ env_vars:
     required: true
     default_dev: "http://web.localhost"
 
+  # CORS allowlist origin for the React SPA (react.<brand>) calling the Astro
+  # website cross-origin (same-site). Optional: only the mentolder brand ships
+  # a React app today; other brands leave it empty → CORS stays fail-closed.
+  - name: REACT_APP_ORIGIN
+    required: false
+    default_dev: "http://react.localhost"
+
   # KEYCLOAK_FRONTEND_URL removed — Keycloak decommissioned (pocket-id-migration Welle 3, 2026-06-22).
 
   - name: POCKET_ID_FRONTEND_URL

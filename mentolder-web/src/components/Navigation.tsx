@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
+import { UserMenu } from './UserMenu';
 
 const links: ReadonlyArray<{ to: string; label: string }> = [
   { to: '/#angebote', label: 'Angebote' },
@@ -106,6 +107,7 @@ export function Navigation() {
               <path d="M2 7h10M8 3l4 4-4 4" />
             </svg>
           </Link>
+          <UserMenu />
         </div>
 
         {/* Mobile menu button */}
@@ -147,6 +149,9 @@ export function Navigation() {
                 </Link>
               )
             )}
+            <div className="pt-2 mt-1 border-t border-line/60">
+              <UserMenu />
+            </div>
           </nav>
         </div>
       )}

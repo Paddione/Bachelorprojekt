@@ -1,0 +1,46 @@
+<svg width="160" height="160" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bp-bg" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#152033"/>
+      <stop offset="100%" stop-color="#0a0f18"/>
+    </radialGradient>
+    <radialGradient id="bp-core" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fff3d4"/>
+      <stop offset="40%" stop-color="#e8c878"/>
+      <stop offset="100%" stop-color="#8a6a2a" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="bp-ring" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#f4dc9a"/>
+      <stop offset="100%" stop-color="#7a5a1a"/>
+    </linearGradient>
+    <filter id="bp-glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3"/>
+    </filter>
+    <clipPath id="bp-clip"><rect width="160" height="160" rx="36" ry="36"/></clipPath>
+  </defs>
+  <g clip-path="url(#bp-clip)">
+    <rect width="160" height="160" fill="url(#bp-bg)"/>
+    <rect x="4" y="4" width="152" height="152" rx="32" ry="32" fill="none" stroke="url(#bp-ring)" stroke-width="2"/>
+    <g transform="translate(80,80)" fill="none" stroke="#e8c878" stroke-width="0.6">
+      <circle r="22" opacity="0.22"/>
+      <circle r="42" opacity="0.13"/>
+      <circle r="62" opacity="0.07"/>
+    </g>
+    <g transform="translate(80,80)" fill="none" stroke="#f0d28c" stroke-width="1.2">
+      <circle r="28" opacity="0">
+        <animate attributeName="r" values="14;50" dur="2.4s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.7;0" dur="2.4s" repeatCount="indefinite"/>
+      </circle>
+      <circle r="28" opacity="0">
+        <animate attributeName="r" values="14;50" dur="2.4s" begin="0.8s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.7;0" dur="2.4s" begin="0.8s" repeatCount="indefinite"/>
+      </circle>
+      <circle r="28" opacity="0">
+        <animate attributeName="r" values="14;50" dur="2.4s" begin="1.6s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.7;0" dur="2.4s" begin="1.6s" repeatCount="indefinite"/>
+      </circle>
+    </g>
+    <circle cx="80" cy="80" r="18" fill="url(#bp-core)" filter="url(#bp-glow)"/>
+    <circle cx="80" cy="80" r="7" fill="#fff3d4"/>
+  </g>
+</svg>

@@ -21,6 +21,20 @@ export default defineConfig({
     env: {
       VOYAGE_API_KEY: 'test-key',
     },
+    coverage: {
+      provider: 'v8',
+      include: ['src/lib/**/*.ts'],
+      exclude: [
+        'src/lib/**/*.test.ts',
+        'src/lib/**/*.spec.ts',
+        'src/lib/**/__tests__/**',
+        'src/lib/**/*.generated.*',
+        'src/lib/**/*.d.ts',
+      ],
+      reporter: ['text', 'json-summary'],
+      reportsDirectory: './coverage',
+      thresholds: { lines: 60 },
+    },
     projects: [
       {
         test: {

@@ -51,6 +51,7 @@ env_vars:
   WEBSITE_SITE_URL: "https://web.mentolder.de"
   # Pocket ID is now the auth provider on auth.mentolder.de
   POCKET_ID_FRONTEND_URL: "https://auth.mentolder.de"
+  POCKET_ID_DOMAIN: "auth.mentolder.de"
   POCKET_ID_URL: "http://pocket-id.workspace.svc.cluster.local:1411"
   # System-test failure loop master kill-switch (Task 10).
   SYSTEMTEST_LOOP_ENABLED: "true"

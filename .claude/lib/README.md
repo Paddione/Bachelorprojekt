@@ -25,6 +25,14 @@ Wiederverwendbare Prompt-Bausteine für Factory-Prompts und LLM-Aufrufe.
 | [`prompts/diff-analysis-context.md`](prompts/diff-analysis-context.md) | Diff-Scope Boilerplate (nur `+`-Zeilen) | factory lenses |
 | [`prompts/review-coordinator.md`](prompts/review-coordinator.md) | Koordinations-Logik Consolidation-Agent | factory coordinator |
 
+## Goals
+
+Quantifizierbare Repository-Health-Ziele — je mit Mess-Befehl, real gemessenem Baseline und erreichbarem Target.
+
+| Datei | Zweck | Referenziert von |
+|---|---|---|
+| [`goals.md`](goals.md) | 65 Health-Ziele in 11 Kategorien (Tests, Deps, Supply-Chain, Secrets, K8s, CI/CD, DORA, Docs, Frontend). Die Gate-IDs `G-RH01`–`G-RH07` sind stabile Anker (referenziert in `docs/code-quality/gates.yaml`, Plänen, OpenSpec) — nie umnummerieren. | [`scripts/health-goals-check.sh`](../../scripts/health-goals-check.sh) (Ampel-Report) |
+
 ## Wachstumsprinzip
 
 1. Neues Fragment schreiben

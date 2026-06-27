@@ -1,5 +1,6 @@
 {
   "name": "mentolder-website",
+  "engines": { "node": ">=22.13.0" },
   "type": "module",
   "version": "1.128.0",
   "private": true,

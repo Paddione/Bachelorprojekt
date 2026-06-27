@@ -40,6 +40,7 @@ env_vars:
   NEXTCLOUD_EXTERNAL_URL: "https://files.staging.korczewski.de"
   NEXTCLOUD_DB_HOST: nextcloud-db.workspace.svc.cluster.local
   POCKET_ID_FRONTEND_URL: "https://auth.staging.korczewski.de"
+  POCKET_ID_DOMAIN: "auth.staging.korczewski.de"
   DOCS_URL: "https://docs.staging.korczewski.de"
   AUTH_EXTERNAL_URL: "https://auth.staging.korczewski.de"
   VAULT_EXTERNAL_URL: "https://vault.staging.korczewski.de"

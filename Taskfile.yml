@@ -2939,6 +2939,11 @@ tasks:
     cmds:
       - node scripts/code-quality/check.mjs
 
+  health:goals:
+    desc: "Ampel-Report der reproduzierbaren Repository-Health-Ziele aus .claude/lib/goals.md (Gates müssen grün sein; Targets zeigen Reduktions-Fortschritt). Flags nach --, z.B. task health:goals -- --strict --fast"
+    cmds:
+      - bash scripts/health-goals-check.sh {{.CLI_ARGS}}
+
   quality:baseline:freeze:
     desc: "One-time: freeze the current code-quality violations into docs/code-quality/baseline.json"
     cmds:

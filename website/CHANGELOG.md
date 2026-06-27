@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.133.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.132.0...website-v1.133.0) (2026-06-27)
+
+
+### Features
+
+* **mcp:** factory-mcp registration, tool-guide SSOT, re-drift guardrail [T001211] ([#2150](https://github.com/Paddione/Bachelorprojekt/issues/2150)) ([f6739df](https://github.com/Paddione/Bachelorprojekt/commit/f6739dfef230bf375fa323acef17086d324002df))
+
+
+### CI/CD
+
+* reduce apt bloat, add factory npm cache, share website dist artifact [T001216] ([#2149](https://github.com/Paddione/Bachelorprojekt/issues/2149)) ([57d177a](https://github.com/Paddione/Bachelorprojekt/commit/57d177acb375a7841e7f1a2359745c4b24037d99))
+
 ## [1.132.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.131.0...website-v1.132.0) (2026-06-27)
 
 

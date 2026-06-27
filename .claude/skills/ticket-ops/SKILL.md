@@ -50,7 +50,7 @@ This mirrors `website/src/lib/planning-office.ts` (`DOR_KEYS`, `dorScore`) and t
 ist read-only und direkt verfügbar, wenn der MCP-Server läuft (einfach mit `SELECT 1` testen).
 Die `psql()`-Bash-Hilfsfunktion unten ist der **Fallback** für Reads bei fehlendem MCP-Zugriff
 und der **Pflichtweg für schreibende** Statements (INSERT/UPDATE/DELETE) — das MCP-Query-Tool ist
-read-only. Siehe [`MCP-Tool-Guide`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#mcp-tool-guide).
+read-only. Siehe [`MCP-Tool-Guide`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md).
 
 All SQL below assumes:
 ```bash

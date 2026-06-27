@@ -74,7 +74,7 @@ BASE_URL="https://web.mentolder.de"   # anpassen falls nötig
 
 Das `korczewski`-Projekt verwendet einen dedizierten `test-admin`-User auf dem
 Korczewski-Keycloak. Das Passwort ist in `environments/.secrets/korczewski.yaml`
-unter dem Key `E2E_TEST_ADMIN_PASSWORD` gespeichert. Siehe details in [dev-flow-gotchas](file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#dev-flow-gotchas).
+unter dem Key `E2E_TEST_ADMIN_PASSWORD` gespeichert. Siehe details in [dev-flow-gotchas](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md).
 
 ---
 
@@ -142,7 +142,7 @@ testMatch: [
 
 ## Schritt 5: Tests ausführen und verifizieren
 
-> **Wichtig:** Details zu setup, working directory und global Setup/Purge Bypässen (`SKIP_DB_PURGE=1`) findest du in [dev-flow-gotchas](file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#t000218).
+> **Wichtig:** Details zu setup, working directory und global Setup/Purge Bypässen (`SKIP_DB_PURGE=1`) findest du in [dev-flow-gotchas](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md#t000218).
 
 ```bash
 # E2E Tests ausführen

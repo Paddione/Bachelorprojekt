@@ -171,6 +171,12 @@
       "status": "plan_staged"
     }
   ],
+  "T001155": [
+    {
+      "slug": "s1-violations-batch2",
+      "status": "plan_staged"
+    }
+  ],
   "T001159": [
     {
       "slug": "img02-image-drift",

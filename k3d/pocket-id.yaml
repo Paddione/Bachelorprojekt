@@ -31,7 +31,7 @@ spec:
           type: RuntimeDefault
       initContainers:
         - name: wait-for-db
-          image: busybox:1.37
+          image: busybox:1.38.0
           command: ['sh', '-c', 'until nc -w1 -z shared-db 5432 2>/dev/null; do echo "waiting for shared-db..."; sleep 3; done']
           securityContext:
             allowPrivilegeEscalation: false
@@ -129,7 +129,7 @@ spec:
           type: RuntimeDefault
       initContainers:
         - name: wait-for-db
-          image: busybox:1.37
+          image: busybox:1.38.0
           command: ['sh', '-c', 'until nc -w1 -z shared-db 5432 2>/dev/null; do echo "waiting for shared-db..."; sleep 3; done']
           securityContext:
             allowPrivilegeEscalation: false

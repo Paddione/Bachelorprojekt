@@ -14,7 +14,7 @@ export interface CloseEmailParams {
   reporterEmail: string;
   resolution: string;             // 'fixed' | 'shipped' | 'wontfix' | 'duplicate' | 'cant_reproduce' | 'obsolete'
   note?: string;                   // optional public note
-  publicStatusUrl?: string;        // e.g. https://web.mentolder.de/portal/tickets/BR-…
+  publicStatusUrl?: string;        // e.g. https://web.example.com/portal/tickets/BR-…
 }
 
 const RESOLUTION_LABELS_DE: Record<string, string> = {

@@ -225,7 +225,7 @@
 
   <div class={sectionCls}>
     <h3 class="text-xl font-bold text-light font-serif">Preisliste</h3>
-    <div><label class={labelCls}>Nextcloud-Freigabe-URL</label><input type="url" bind:value={priceListUrl} class={inputCls} placeholder="https://files.mentolder.de/s/..." /></div>
+    <div><label class={labelCls}>Nextcloud-Freigabe-URL</label><input type="url" bind:value={priceListUrl} class={inputCls} placeholder="https://files.example.com/s/..." /></div>
   </div>
 
   <div class={sectionCls}>

@@ -557,7 +557,7 @@ export const helpContent: Record<HelpContext, Record<string, HelpSection>> = {
           title: 'Änderungen in Echtzeit prüfen',
           steps: [
             'Speichere deine Änderung im Admin.',
-            'Öffne die öffentliche Website in einem neuen Tab (z.B. web.mentolder.de).',
+            'Öffne die öffentliche Website in einem neuen Tab.',
             'Lade die Seite neu — die Änderung ist sofort sichtbar (kein Deploy nötig).',
           ],
         },

@@ -14,7 +14,7 @@ const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
 if (!isAdmin(session)) return Astro.redirect('/admin');
 
-const ncBase      = (process.env.NEXTCLOUD_EXTERNAL_URL ?? 'https://files.mentolder.de').replace(/\/$/, '');
+const ncBase      = (process.env.NEXTCLOUD_EXTERNAL_URL ?? 'https://files.example.com').replace(/\/$/, '');
 const calendarUrl = `${ncBase}/apps/calendar`;
 const brand = process.env.BRAND_NAME || 'mentolder';
 const IN_PUBLIC_URL = process.env.INVOICENINJA_PUBLIC_URL || '';

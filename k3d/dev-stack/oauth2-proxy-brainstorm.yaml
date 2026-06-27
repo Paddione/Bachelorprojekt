@@ -52,7 +52,7 @@ spec:
           type: RuntimeDefault
       initContainers:
         - name: write-cookie-secret
-          image: busybox:1.37
+          image: busybox:1.38.0
           imagePullPolicy: Always
           command: ["/bin/sh", "-c"]
           args:

@@ -21,7 +21,7 @@ VALUES
   ('whisper',        'Whisper',               'OpenAI Whisper speech-to-text transcription',                       'other',    '🎙️', '{mentolder}',            'workspace',        'whisper',             ':latest',  'optional', 250),
   ('talk-transcriber','Talk Transcriber',     'Nextcloud Talk auto-transcription bot',                            'messaging','📝', '{mentolder}',            'workspace',        'talk-transcriber',    ':latest',  'optional', 260),
   ('mcp',            'MCP Monolith',          'Claude Code MCP proxy (auth + ops pods, mentolder only)',           'dev',      '🤖', '{mentolder}',            'workspace',        'claude-code-mcp-auth',':latest',  'live',     270),
-  ('brainstorm',     'Brainstorm Sish',       'Reverse-SSH tunnel endpoint for brainstorm.mentolder.de',          'dev',      '🌀', '{mentolder}',            'workspace',        'brainstorm-sish',     ':latest',  'live',     280),
+  ('brainstorm',     'Brainstorm Sish',       'Reverse-SSH tunnel endpoint (ad-hoc dev tunnels)',                 'dev',      '🌀', '{mentolder}',            'workspace',        'brainstorm-sish',     ':latest',  'live',     280),
   ('arena-server',   'Arena Server',          'Multiplayer 3D game server (korczewski only) — JWT validated from both Keycloak realms', 'other', '🎮', '{korczewski}', 'workspace-korczewski', 'arena-server', ':latest', 'live', 290)
 ON CONFLICT (slug) DO UPDATE SET
   description    = EXCLUDED.description,

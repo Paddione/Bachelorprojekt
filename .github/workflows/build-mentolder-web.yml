@@ -50,12 +50,15 @@ jobs:
       - name: Build & push Docker image
         env:
           VITE_FORMSPREE_ENDPOINT: ${{ secrets.MENTOLDER_WEB_FORMSPREE_ENDPOINT }}
+          # Astro website origin the SPA reuses for auth + homepage persistence.
+          VITE_WEBSITE_ORIGIN: "https://web.mentolder.de"
           SHA_TAG: ${{ steps.version.outputs.sha }}
         run: |
           IMAGE="ghcr.io/paddione/mentolder-web"
 
           docker build \
             --build-arg VITE_FORMSPREE_ENDPOINT="${VITE_FORMSPREE_ENDPOINT}" \
+            --build-arg VITE_WEBSITE_ORIGIN="${VITE_WEBSITE_ORIGIN}" \
             --tag "${IMAGE}:latest" \
             --tag "${IMAGE}:${SHA_TAG}" \
             --file mentolder-web/Dockerfile \

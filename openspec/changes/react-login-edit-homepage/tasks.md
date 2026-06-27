@@ -117,10 +117,10 @@ im Code — Origins kommen aus Env (`VITE_WEBSITE_ORIGIN`, `REACT_APP_ORIGIN`); 
 
 ## Task 9: Infra — Env-Verdrahtung (k8s + Build)
 
-- [ ] `k3d/mentolder-web.yaml` + `.github/workflows/build-mentolder-web.yml`: `VITE_WEBSITE_ORIGIN` als Build-Arg/Env (prod `https://web.${PROD_DOMAIN}`, dev Website-Dev-Origin).
-- [ ] `k3d/website.yaml`: Deployment-Env `REACT_APP_ORIGIN`.
-- [ ] `environments/mentolder.yaml`, `environments/dev.yaml`, `environments/schema.yaml`: `REACT_APP_ORIGIN` registrieren; `Taskfile.yml` envsubst-Listen der Website-Manifest-Tasks ergänzen (siehe `docs/superpowers/references/envsubst-variable-management.md`).
-- [ ] `task workspace:validate` (Manifeste bauen sauber). Commit.
+- [x] `mentolder-web/Dockerfile` + `.github/workflows/build-mentolder-web.yml`: `VITE_WEBSITE_ORIGIN` als Build-Arg/ENV (prod `https://web.mentolder.de`). `k3d/mentolder-web.yaml`: Kommentar dokumentiert Build-Zeit-Bake (kein irreführendes Runtime-Env auf dem statischen nginx — bewusste Abweichung von der wörtlichen Plan-Datei-Liste).
+- [x] `k3d/website.yaml`: ConfigMap `website-config` Env `REACT_APP_ORIGIN` (per `envFrom` → `process.env`).
+- [x] `environments/mentolder.yaml`, `environments/dev.yaml`, `environments/schema.yaml` (`required:false`): `REACT_APP_ORIGIN` registriert; `Taskfile.yml` dev/prod-Branches + `export` + beide envsubst-Listen ergänzt.
+- [x] `task env:validate` (mentolder+korczewski) + `task workspace:validate` grün; envsubst substituiert `REACT_APP_ORIGIN` korrekt. Commit.
 
 ## Task 10: Verifikation (CI-Äquivalent)
 

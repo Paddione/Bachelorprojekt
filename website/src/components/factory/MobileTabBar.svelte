@@ -1,6 +1,6 @@
 <script module lang="ts">
   import { PIPELINE_LANES } from '../../lib/tickets/pipeline-order';
-  import { PHASE_ORDER } from '../../lib/factory-floor';
+  import { PHASE_ORDER } from '../../lib/factory-floor-types';
 
   const linearLanes = PIPELINE_LANES.filter(l => !l.side && l.key !== 'planning');
 

@@ -6,7 +6,7 @@
   import KnowledgeSourceModal from './KnowledgeSourceModal.svelte';
   import CollectionMergePanel from './CollectionMergePanel.svelte';
   import DraftsInbox from './DraftsInbox.svelte';
-  import type { Collection } from '../../lib/knowledge-db';
+  import type { Collection } from '../../lib/knowledge-db-types';
   import type { Book } from '../../lib/coaching-db';
 
   let {

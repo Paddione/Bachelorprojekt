@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { AttentionPayload } from '../../lib/factory-floor';
+  import type { AttentionPayload } from '../../lib/factory-floor-types';
   let { attention }: { attention: AttentionPayload } = $props();
 </script>
 {#if !attention.isEmpty}

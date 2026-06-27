@@ -1,6 +1,6 @@
 <script lang="ts">
   import { PIPELINE_LANES, STATUS_BUCKETS } from '../../lib/tickets/pipeline-order';
-  import type { FloorPayload, HallItem, StagedItem, LoadingDockItem, ShippedItem } from '../../lib/factory-floor';
+  import type { FloorPayload, HallItem, StagedItem, LoadingDockItem, ShippedItem } from '../../lib/factory-floor-types';
   import PhaseStepper from '../factory/PhaseStepper.svelte';
 
   let { onClose }: { onClose: () => void } = $props();

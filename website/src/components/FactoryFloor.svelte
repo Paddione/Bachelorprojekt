@@ -1,6 +1,6 @@
 <script module lang="ts">
-  import { PHASE_ORDER } from '../lib/factory-floor';
-  import type { Phase } from '../lib/factory-floor';
+  import { PHASE_ORDER } from '../lib/factory-floor-types';
+  import type { Phase } from '../lib/factory-floor-types';
   import { MOBILE_COL_INDEX } from './factory/MobileTabBar.svelte';
   export { MOBILE_COL_INDEX }; // eslint-disable-line no-import-assign
   export const STATIONS: { key: Phase; label: string }[] =
@@ -9,7 +9,7 @@
 
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import type { FloorPayload, TicketDetail, HallItem, InjectionKind } from '../lib/factory-floor';
+  import type { FloorPayload, TicketDetail, HallItem, InjectionKind } from '../lib/factory-floor-types';
 
   import QaChip from './QaChip.svelte';
   import QaModal from './QaModal.svelte';

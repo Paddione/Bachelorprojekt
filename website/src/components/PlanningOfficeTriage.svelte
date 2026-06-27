@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { TriageSuggestion } from '../lib/planning-office';
+  import type { TriageSuggestion } from '../lib/planning-office-types';
 
   let { extId, triage, onTriageDone }: {
     extId: string;

@@ -2,9 +2,13 @@
 
 <!-- baseline SSOT — generiert aus Codebase-Analyse am 2026-06-20 -->
 
+## Purpose
+
 Das Newsletter-System ermöglicht das zeitgesteuerte, atomare Versenden von geplanten Newsletter-Beiträgen über einen Kubernetes-CronJob, der alle fünf Minuten ausgeführt wird. Die Zustelllogik ist durch eine datenbankbasierte Sperre vor parallelen Ausführungen und verwaisten Locks geschützt. Jede Brand-Instanz (mentolder, korczewski) betreibt ihren eigenen CronJob, der den API-Endpunkt im jeweiligen Namespace adressiert.
 
 ---
+
+## Requirements
 
 ### Requirement: Scheduled-Publish CronJob Registration
 

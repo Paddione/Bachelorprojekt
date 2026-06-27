@@ -1,9 +1,13 @@
 # sessions-server
 <!-- baseline SSOT — generiert aus Codebase-Analyse am 2026-06-20 -->
 
+## Purpose
+
 Der Sessions-Server verwaltet kurzlebige öffentliche Sessions (z. B. Brainstorming-Boards oder Formulare), die unter `sessions.mentolder.de` erreichbar gemacht werden. Ein zentrales Registry-JSON hält alle aktiven Sessions mit Slug, Port, Typ, Titel und öffentlicher URL vor. Das `session-hub.sh`-Skript steuert den gesamten Lebenszyklus (Registrieren, Auflisten, Abmelden, Bereinigen).
 
 ---
+
+## Requirements
 
 ### Requirement: Session Registration
 

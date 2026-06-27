@@ -1,9 +1,13 @@
 # billing-pipeline
 <!-- baseline SSOT — generiert aus Codebase-Analyse am 2026-06-20 -->
 
+## Purpose
+
 Die Billing-Pipeline deckt die gesamte Rechnungsverarbeitung ab: von der steuerlichen Klassifikation (Inland, EU-B2B-Reverse-Charge, Drittland-Export) über Rechnungserstellung, Zahlungserfassung und Integritätssicherung bis hin zu PDF-Generierung, Stripe-Integration, EZB-Wechselkursen, USt-ID-Validierung und Kleinstunternehmer-Schwellenwertüberwachung. Alle Buchungen folgen dem EÜR-Prinzip (Zufluss-Abfluss) und unterliegen den GoBD-Unveränderlichkeitsregeln. Fremdwährungsrechnungen werden beim Erstellen mit dem tagesaktuellen EZB-Kurs in EUR umgerechnet; Kursdifferenzen beim Zahlungseingang werden als separate Buchungen erfasst.
 
 ---
+
+## Requirements
 
 ### Requirement: Tax Classification by Customer Location
 

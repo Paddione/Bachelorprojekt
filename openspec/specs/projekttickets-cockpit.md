@@ -3,6 +3,8 @@
 
 <!-- merged from change delta projekttickets-cockpit.md on 2026-06-21 -->
 
+## Purpose
+
 ### Requirement: Container-Vollansicht für project/feature-Tickets
 
 Das System SHALL auf `/admin/tickets/[id]` für Tickets mit `type ∈ {project, feature}` eine aggregierte Container-Vollansicht rendern, die Rollup-Breakdown, Plan, Definition of Ready und die nach Status gruppierte Kind-Liste an einem Ort zeigt. Für `task`/`bug`-Leaves SHALL die Seite unverändert bleiben.
@@ -24,6 +26,8 @@ Das System SHALL auf `/admin/tickets/[id]` für Tickets mit `type ∈ {project, 
 - **GIVEN** ein `feature`-Ticket ohne Plan und ohne Rollup-Zeile
 - **WHEN** die Container-Loader fehlschlagen oder `null` liefern
 - **THEN** wird die jeweilige Sektion ausgeblendet und die Seite bricht nicht
+
+## Requirements
 
 ### Requirement: Container-Datenquellen in reinem pg-Modul
 

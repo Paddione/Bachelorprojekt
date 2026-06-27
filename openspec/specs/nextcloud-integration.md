@@ -2,6 +2,8 @@
 
 <!-- baseline SSOT — generiert aus Codebase-Analyse am 2026-06-20 -->
 
+## Purpose
+
 Nextcloud ist die zentrale Dateiablage und Videokonferenz-Plattform der Workspace-Plattform.
 Diese Spec beschreibt den Integrationsvertrag zwischen Nextcloud (Files + Talk) und den
 umgebenden Plattformdiensten: Keycloak (SSO), Redis (Cache/Locking), PostgreSQL (Daten),
@@ -9,6 +11,8 @@ Collabora (Office), spreed-signaling/HPB (Talk-Signaling), CoTURN (TURN/ICE), de
 Talk-Transcriber und dem Talk-Recording-Backend.
 
 ---
+
+## Requirements
 
 ### Requirement: OIDC-SSO via Keycloak
 

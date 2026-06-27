@@ -2,11 +2,15 @@
 
 <!-- baseline SSOT — generiert aus Codebase-Analyse am 2026-06-20 -->
 
+## Purpose
+
 Das Admin-Cockpit ist das zentrale Ticket-Dashboard der Administrationsoberfläche.
 Es zeigt den Portfolio-Baum (Produkte → Features → Tickets) und erlaubt inline-Statuswechsel,
 Bulk-Aktionen, Erstellung neuer Tickets und Detailansicht im Drawer.
 
 ---
+
+## Requirements
 
 ### Requirement: Authentifizierungs-Gate
 

@@ -2,9 +2,13 @@
 
 <!-- baseline SSOT — generiert aus Codebase-Analyse am 2026-06-20 -->
 
+## Purpose
+
 Dieses Dokument beschreibt die Anforderungen an das deutsche Buchhaltungs- und E-Rechnungsexport-Subsystem. Es umfasst das DATEV-EXTF-Format (SKR03/04-Kontenrahmen, S/H-Kennzeichen, BU-Schlüssel), die EUR-Doppelte-Buchführung mit §15a-UStG-Korrekturen und Gewerbesteuer-Berechnung, SEPA-Zahlungsverkehr (pain.001/pain.008), die Leitweg-ID-Validierung für B2G-E-Rechnungen sowie die Erzeugung von ZUGFeRD/EN16931-XML und dessen Einbettung in PDF/A-3-Dateien.
 
 ---
+
+## Requirements
 
 ### Requirement: EXTF Row Format
 

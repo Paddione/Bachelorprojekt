@@ -2,12 +2,16 @@
 
 <!-- baseline SSOT — generiert aus Codebase-Analyse am 2026-06-20 -->
 
+## Purpose
+
 Vaultwarden ist der self-hosted Bitwarden-kompatible Passwort-Manager der Workspace-Plattform.
 Diese Spec beschreibt den Integrationsvertrag zwischen Vaultwarden und den umgebenden
 Plattformdiensten: Keycloak (SSO-Login-Flow), PostgreSQL (Datenbank), SMTP (E-Mail-Benachrichtigungen),
 dem Bitwarden-CLI (Seed-Job), sowie der Backup-Pipeline.
 
 ---
+
+## Requirements
 
 ### Requirement: SSO-Only-Login via Keycloak OIDC
 

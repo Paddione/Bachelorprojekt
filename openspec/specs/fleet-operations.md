@@ -2,9 +2,13 @@
 
 <!-- baseline SSOT — generiert aus Codebase-Analyse am 2026-06-20 -->
 
+## Purpose
+
 Das Fleet-Operations-Domain beschreibt die Anforderungen an den konsolidierten k3s-Cluster (`fleet`), der beide Produktivmarken (mentolder, korczewski) auf denselben Control-Plane- und Worker-Nodes betreibt. Es regelt das WireGuard-Full-Mesh-Netzwerk zwischen allen Knoten, das DNS-Cutover-Verfahren beim Übergang auf den Fleet-Cluster sowie die strukturellen Invarianten der Taskfile-gestützten Deployment-Pipeline. Alle Anforderungen leiten sich aus Regressionstests und dokumentierten Ausfällen (insb. 2026-05-31) ab.
 
 ---
+
+## Requirements
 
 ### Requirement: WireGuard Worker-to-Worker Full Mesh
 

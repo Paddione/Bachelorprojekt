@@ -2,6 +2,8 @@
 
 <!-- baseline SSOT — generiert aus Codebase-Analyse am 2026-06-20 -->
 
+## Purpose
+
 Beschreibt die automatisierte Backup-Pipeline des Workspace: tägliche verschlüsselte
 PostgreSQL-Dumps (`db-backup` CronJob, 02:00 UTC) und PVC-Datei-Archive (`pvc-backup`
 CronJob, 03:00 UTC), lokale Aufbewahrung auf `backup-pvc` (30 Tage), optionaler
@@ -9,6 +11,8 @@ Remote-Upload zu Filen Cloud, sowie Wiederherstellungs- und Disaster-Recovery-Op
 via `scripts/backup-restore.sh`.
 
 ---
+
+## Requirements
 
 ### Requirement: Tägliche verschlüsselte PostgreSQL-Dumps
 

@@ -2,9 +2,13 @@
 
 <!-- baseline SSOT — generiert aus Codebase-Analyse am 2026-06-20 -->
 
+## Purpose
+
 Systemisches Brett ist ein browserbasiertes 3D-Konstellationsboard für systemische Coaching-Arbeit. Es läuft als einzelner Node.js-Pod (`workspace-brett`) und verbindet statische HTML-Auslieferung, WebSocket-Echtzeitsynchronisation und REST-Persistenz auf Port 3000. Alle Figuren-Zustände werden im Shared-PostgreSQL (`brett_rooms`-Tabelle) persistiert; das In-Memory-Figuremap ist der primäre Zustandsspeicher während einer Session.
 
 ---
+
+## Requirements
 
 ### Requirement: Keycloak-SSO-Authentifizierung via OAuth2-Proxy
 

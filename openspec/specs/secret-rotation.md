@@ -2,6 +2,8 @@
 
 <!-- baseline SSOT — generiert aus Codebase-Analyse am 2026-06-20 -->
 
+## Purpose
+
 ### Requirement: Schema-driven secret generation
 
 The system SHALL generate all secrets for an environment from `environments/schema.yaml` via `env:generate ENV=<name>`, writing the result to `environments/.secrets/<env>.yaml` (chmod 600, gitignored), and SHALL refuse to overwrite an existing file without explicit deletion.
@@ -25,6 +27,8 @@ The system SHALL generate all secrets for an environment from `environments/sche
 - **THEN** it exits non-zero with an explicit error naming the missing key
 
 ---
+
+## Requirements
 
 ### Requirement: Dev-placeholder detection blocks sealing
 

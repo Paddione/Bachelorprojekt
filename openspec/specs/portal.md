@@ -2,6 +2,8 @@
 
 <!-- baseline SSOT — generiert aus Codebase-Analyse am 2026-06-20 -->
 
+## Purpose
+
 Das Nutzerportal ist das kundenseitige Self-Service-Interface der Plattform. Es aggregiert
 Nachrichten, Dateien, Verträge, Fragebögen, Rechnungen, Termine und externe Dienste in
 einer einzigen, SSO-gesicherten Oberfläche unter `/portal`. Navigation erfolgt über einen
@@ -9,6 +11,8 @@ einer einzigen, SSO-gesicherten Oberfläche unter `/portal`. Navigation erfolgt 
 verursacht Backend-Abfragen.
 
 ---
+
+## Requirements
 
 ### Requirement: Authentifizierungspflicht
 

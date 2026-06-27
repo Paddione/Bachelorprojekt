@@ -2,9 +2,13 @@
 
 <!-- baseline SSOT — generiert aus Codebase-Analyse am 2026-06-20 -->
 
+## Purpose
+
 Astro-basierte Website-Plattform mit SSR (Node-Adapter), die unter zwei Marken (`mentolder` / `korczewski`) betrieben wird. Jede Marke hat ein eigenes Design-System, eine eigene Navigationshierarchie und eine eigene Inhaltskonfiguration. Inhalte folgen einer dreistufigen Prioritätskette: DB-Override (Admin) > statische `pageContent`-Felder in der Marken-Config > TypeScript-Fallback in `src/config/brands/<brand>.ts`.
 
 ---
+
+## Requirements
 
 ### Requirement: Brand-Switch via Umgebungsvariable
 

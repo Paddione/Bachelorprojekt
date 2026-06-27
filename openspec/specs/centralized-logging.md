@@ -1,5 +1,7 @@
 # centralized-logging
 
+## Purpose
+
 The platform SHALL collect container logs from all fleet namespaces into a single Loki
 instance, ship them through Promtail with structured parsing, and surface them through
 four Grafana dashboards. The website application SHALL emit newline-delimited JSON
@@ -9,6 +11,8 @@ to API errors with a standardized `{ error, requestId }` body — never a stack 
 <!-- merged from change delta centralized-logging.md on 2026-06-21 -->
 
 ---
+
+## Requirements
 
 ### Requirement: Pino logger singleton
 

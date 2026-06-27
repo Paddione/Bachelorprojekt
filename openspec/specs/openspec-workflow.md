@@ -2,12 +2,16 @@
 
 <!-- baseline SSOT — generiert aus Codebase-Analyse am 2026-06-20 -->
 
+## Purpose
+
 Dieses Dokument beschreibt den OpenSpec-Workflow als Spec-first Entwicklungssteuerung im
 Bachelorprojekt. Er umfasst die Verben `propose`/`apply`/`archive`/`validate`, das
 Dateiformat-Konformitätsmodell, die Ticket-Lifecycle-Kopplung, die Statusmap-Generierung
 und die CI-Integration.
 
 ---
+
+## Requirements
 
 ### Requirement: Propose erstellt vollständiges Change-Skeleton
 

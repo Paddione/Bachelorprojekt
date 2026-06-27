@@ -3,6 +3,8 @@
 
 <!-- merged from change delta mcp-skill-integration.md on 2026-06-27 -->
 
+## Purpose
+
 ### Requirement: ticket-mcp adapter completeness
 
 The `ticket-mcp` server SHALL expose one MCP tool for every skill-critical
@@ -31,6 +33,8 @@ arguments, value enumerations, and stdout format).
 - **GIVEN** `cmd_get_attachments` requires both `--id` and `--out-dir`
 - **WHEN** the `get_attachments` tool is defined
 - **THEN** it declares both `id` and `out_dir` as required parameters and forwards `--out-dir` to the verb
+
+## Requirements
 
 ### Requirement: Go-consolidated MCP runtime with no capability loss
 

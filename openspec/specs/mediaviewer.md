@@ -2,6 +2,8 @@
 
 <!-- baseline SSOT — generiert aus Codebase-Analyse am 2026-06-20 -->
 
+## Purpose
+
 Der Mediaviewer ist ein iframe-eingebettetes SPA-Widget (`mediaviewer-widget`), das im
 Admin-Sidekick der Website läuft. Es wird über einen dedizierten Keycloak-OIDC-OAuth2-Proxy
 authentifiziert und kommuniziert ausschließlich per `postMessage`-Bridge mit dem einbettenden
@@ -9,6 +11,8 @@ Fenster. Das Widget unterstützt zwei Modi: **video** (VideoVault-Hilfsvideos) u
 **grilling** (Final-Grilling-Fragebogen für ein Ticket).
 
 ---
+
+## Requirements
 
 ### Requirement: OIDC-Authentifizierungs-Gate
 

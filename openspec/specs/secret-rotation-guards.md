@@ -3,6 +3,8 @@
 
 <!-- merged from change delta secret-rotation-guards.md on 2026-06-20 -->
 
+## Purpose
+
 ### Requirement: Fail-closed SealedSecret decrypt-wait
 
 The system SHALL wait for the controller-decrypted `workspace-secrets` Secret via a pure, testable helper (`scripts/wait-for-sealed-secret.sh`) that fails closed on timeout, and `workspace:deploy` SHALL abort the deploy when the Secret never appears. The helper SHALL read `${KUBECTL:-kubectl}` so tests can inject a fake, accept `--context/--namespace/--secret/--timeout`, and default to a generous timeout (≥ 60s).
@@ -18,6 +20,8 @@ The system SHALL wait for the controller-decrypted `workspace-secrets` Secret vi
 - **GIVEN** a deploy where the controller decrypts the SealedSecret within the timeout
 - **WHEN** the helper polls
 - **THEN** it exits zero as soon as the Secret is present and the deploy continues
+
+## Requirements
 
 ### Requirement: keycloak-sync fail-closed in non-dev
 

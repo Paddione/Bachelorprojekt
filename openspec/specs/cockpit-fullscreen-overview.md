@@ -3,6 +3,8 @@
 
 <!-- merged from change delta cockpit-fullscreen-overview.md on 2026-06-21 -->
 
+## Purpose
+
 ### Requirement: ContainerDor.lastenheftLocked field
 
 The system SHALL derive a `lastenheftLocked` boolean on `ContainerDor` from the ticket's
@@ -20,6 +22,8 @@ badge without accessing raw readiness data directly.
 - **GIVEN** a container ticket whose `readiness` object has `lastenheft_locked: false` or the field is absent
 - **WHEN** `getContainerDor()` is called
 - **THEN** the returned `ContainerDor` has `lastenheftLocked === false`
+
+## Requirements
 
 ### Requirement: TicketSpecProgress checklist island
 

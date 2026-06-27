@@ -2,11 +2,15 @@
 
 <!-- baseline SSOT — generiert aus Codebase-Analyse am 2026-06-20 -->
 
+## Purpose
+
 Dieses Dokument beschreibt das Ticket-System und seinen Lifecycle im Bachelorprojekt-Workspace.
 Es umfasst die Datenstruktur, Statusübergänge, Brand-Isolation, Pipeline-Lanes, Reporter-Benachrichtigung,
 Cockpit-Rollup, KI-gestützte Feature-Priorisierung und die Anforderungsverriegelung (Lastenheft-Lock).
 
 ---
+
+## Requirements
 
 ### Requirement: Brand-Isolation
 

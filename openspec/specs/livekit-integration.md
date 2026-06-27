@@ -2,12 +2,16 @@
 
 <!-- baseline SSOT — generiert aus Codebase-Analyse am 2026-06-20 -->
 
+## Purpose
+
 LiveKit stellt die WebRTC-SFU-Infrastruktur für Livestreaming bereit.
 Die Integration umfasst den LiveKit-Server (hostNetwork, node-pinned), den Redis-Raumzustand,
 einen RTMP-Ingress (OBS-Einspeisung), einen Egress (MP4-Recording) sowie die Website-seitige
 Steuerlogik (Token-API, Status-API, Admin-Cockpit, Viewer-Seite).
 
 ---
+
+## Requirements
 
 ### Requirement: Auth-Gating für Stream-Endpunkte
 

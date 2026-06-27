@@ -70,28 +70,11 @@ export async function getCustomerById(brand: string, id: string): Promise<Custom
   return r.rows[0] ? mapCustomer(r.rows[0]) : null;
 }
 
-export interface InvoiceLine {
-  description: string; quantity: number; unitPrice: number; unit?: string;
-  taxCategory?: string;
-}
-
-export interface Invoice {
-  id: string; brand: string; number: string; status: string;
-  customerId: string; issueDate: string; dueDate: string;
-  taxMode: string; netAmount: number; taxRate: number;
-  taxAmount: number; grossAmount: number; notes?: string;
-  paymentReference?: string; paidAt?: string; paidAmount?: number;
-  locked: boolean; cancelledInvoiceId?: string;
-  servicePeriodStart?: string; servicePeriodEnd?: string;
-  leitwegId?: string;
-  currency: string;
-  currencyRate: number | null;
-  netAmountEur: number;
-  grossAmountEur: number;
-  supplyType?: string;
-  kind: 'regular' | 'prepayment' | 'final' | 'gutschrift';
-  parentInvoiceId?: string;
-}
+// Invoice / InvoiceLine moved to invoice-types.ts (G-CQ07) so invoice-pdf.ts
+// can import the type without creating a static cycle. Re-export for backward
+// compatibility with any external caller that imports these names here.
+export type { Invoice, InvoiceLine } from './invoice-types';
+import type { Invoice, InvoiceLine } from './invoice-types';
 
 export async function createInvoice(params: {
   brand: string; customerId: string; issueDate: string; dueDays: number;
@@ -208,7 +191,7 @@ export async function finalizeInvoice(id: string, opts: FinalizeOpts = {}): Prom
     if (opts.invoiceInput) {
       const { generateFacturX } = await import('./einvoice/factur-x');
       const { generateXRechnung } = await import('./einvoice/xrechnung');
-      const { embedFacturX } = await import('./invoice-pdf');
+      const { embedFacturX } = await import('./pdf-a3-embed');
       const { createSidecarClient, sidecarBaseUrlFromEnv, SidecarUnavailableError } = await import('./einvoice/sidecar-client');
 
       const facturXXml = generateFacturX(opts.invoiceInput);

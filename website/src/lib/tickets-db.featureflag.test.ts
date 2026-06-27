@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const query = vi.fn();
-vi.mock('./website-db', () => ({
+vi.mock('./db-pool', () => ({
   pool: { query: (...a: unknown[]) => query(...a), connect: vi.fn() },
   ensureSchemaOnce: vi.fn(),
 }));

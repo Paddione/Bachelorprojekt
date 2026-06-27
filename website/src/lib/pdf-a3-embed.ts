@@ -1,6 +1,7 @@
 import { PDFDocument, PDFName, PDFDict, PDFHexString, PDFString, PDFNumber } from 'pdf-lib';
 import { createHash } from 'node:crypto';
 import { SRGB_ICC } from './srgb-icc';
+import { createSidecarClient, sidecarBaseUrlFromEnv } from './einvoice/sidecar-client';
 
 export type FacturXLevel = 'MINIMUM' | 'BASIC WL' | 'BASIC' | 'EN 16931' | 'EXTENDED' | 'XRECHNUNG';
 
@@ -164,4 +165,20 @@ export async function embedFacturXIntoPdfA3(
   pdf.setModificationDate(modDate);
 
   return Buffer.from(await pdf.save({ useObjectStreams: false }));
+}
+
+/**
+ * Wrap a pre-generated Factur-X XML into an already-rendered PDF/A-3 by
+ * delegating to the configured sidecar (env EINVOICE_SIDECAR_ENABLED=true).
+ * When the sidecar is disabled, returns the input PDF unchanged — the caller
+ * still produces a valid (non-ZUGFeRD-tagged) PDF. Moved here from
+ * invoice-pdf.ts (G-CQ07) so native-billing.ts can static-import it without
+ * creating a cycle.
+ */
+export async function embedFacturX(rawPdf: Buffer, facturXXml: string): Promise<Buffer> {
+  const enabled = process.env.EINVOICE_SIDECAR_ENABLED === 'true';
+  if (!enabled) return rawPdf;
+  const client = createSidecarClient(sidecarBaseUrlFromEnv());
+  const out = await client.embed(rawPdf, facturXXml);
+  return out.pdf;
 }

@@ -56,9 +56,18 @@ kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- psql -U websit
 
 ## Step 3 — Diagnose
 
+Cluster-Status-Reads — **MCP-first** (`mcp-kubernetes`, read-only):
+
+> Pod-Status: `mcp__mcp-kubernetes__pods_list_in_namespace({ namespace: "workspace" })` — CrashLoopBackOff, OOMKilled, Pending erkennen.
+> Logs: `mcp__mcp-kubernetes__pods_log({ namespace: "workspace", name: "<pod>" })`
+> Einzelnes Pod-Detail: `mcp__mcp-kubernetes__pods_get({ namespace: "workspace", name: "<pod>" })`
+
+Fallback (mcp-kubernetes nicht erreichbar — Verfügbarkeits-Guard siehe [`MCP-Tool-Guide`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md)):
+
 * **Pod status:** `task workspace:status ENV=mentolder` (CrashLoopBackOff, OOMKilled, Pending).
 * **Logs:** `task workspace:logs ENV=<env> -- <service>`.
-* **Recent Deploys:** `git log --oneline -10`.
+
+**Recent Deploys** (kein Cluster-Read): `git log --oneline -10`.
 
 ## Step 4 — Fix or Rollback
 

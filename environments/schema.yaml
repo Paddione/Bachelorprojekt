@@ -775,7 +775,21 @@ secrets:
       - namespace: website
         secret: website-secrets
 
-  # TRAEFIK_OIDC_SECRET, MAIL_OIDC_SECRET, BRETT_OIDC_SECRET, MEDIAVIEWER_OIDC_CLIENT_SECRET
+  # BRETT_OIDC_SECRET is NOT a Keycloak OIDC client secret despite the name — it is the
+  # shared website↔brett admin/E2E secret sent as the `x-e2e-secret` header (website
+  # src/pages/api/admin/generate-3d/status.ts → brett src/server/auth.ts). It is still
+  # actively used; its website-secrets mapping was erroneously dropped in pocket-id Welle 3
+  # (the website Deployment requires it, optional=false), breaking the korczewski website
+  # pod. Restored here so `env:seal` re-emits it into website-secrets. [T001156]
+  - name: BRETT_OIDC_SECRET
+    required: false
+    generate: false
+    description: "Shared website↔brett admin/E2E secret (x-e2e-secret header). NOT a Keycloak OIDC client — do not remove. [T001156]"
+    extra_namespaces:
+      - namespace: website
+        secret: website-secrets
+
+  # TRAEFIK_OIDC_SECRET, MAIL_OIDC_SECRET, MEDIAVIEWER_OIDC_CLIENT_SECRET
   # removed — Keycloak decommissioned (pocket-id-migration Welle 3, 2026-06-22).
   # POCKET_ID_* equivalents are above.
 

@@ -2,7 +2,7 @@
 title: "agent-lock + dev-flow mishap bundle (T001268): harness-stable identity, pre-commit guards, push verification"
 ticket_id: T001268
 domains: [tooling, agent-coordination, skills]
-status: plan_staged
+status: completed
 file_locks: [scripts/agent-lock.sh, .claude/skills/dev-flow-plan/SKILL.md, .claude/skills/dev-flow-execute/SKILL.md]
 shared_changes: false
 batch_id: null

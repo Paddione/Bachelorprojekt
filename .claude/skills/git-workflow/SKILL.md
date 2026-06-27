@@ -142,7 +142,7 @@ EOF
 
 Nachdem der PR gepusht ist: CI überwachen und Fehler beheben **bevor** gemergt wird.
 
-Detaillierte Checkliste: [references/ci-fix-loop.md](../references/ci-fix-loop.md)
+Detaillierte Checkliste: [references/ci-fix-loop.md](../dev-flow-execute/references/ci-fix-loop.md)
 
 Kurzfassung:
 1. `gh pr checks <n> --watch` — warten bis alle Required Checks grün sind

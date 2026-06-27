@@ -24,7 +24,7 @@ export const SERVICES = {
 export type ServiceKey = keyof typeof SERVICES;
 
 // ---- Types ----
-export interface BillingCustomer {
+interface BillingCustomer {
   id: string;
   name: string;
   email: string;
@@ -51,7 +51,7 @@ export interface AdminBillingInvoice extends BillingInvoice {
   customerEmail: string;
 }
 
-export interface DraftInvoiceItem {
+interface DraftInvoiceItem {
   id: string;
   description: string;
   quantity: number;
@@ -60,7 +60,7 @@ export interface DraftInvoiceItem {
   currency: string;
 }
 
-export interface DraftInvoiceDetail extends AdminBillingInvoice {
+interface DraftInvoiceDetail extends AdminBillingInvoice {
   items: DraftInvoiceItem[];
   currency: string;
   subtotalExclTax: number;
@@ -68,7 +68,7 @@ export interface DraftInvoiceDetail extends AdminBillingInvoice {
   taxPercent: number;
 }
 
-export interface FullInvoice extends AdminBillingInvoice {
+interface FullInvoice extends AdminBillingInvoice {
   items: DraftInvoiceItem[];
   currency: string;
   subtotalExclTax: number;
@@ -120,7 +120,7 @@ function mapAdminRow(row: Record<string, unknown>): AdminBillingInvoice {
 
 // ---- Functions ----
 
-export function stripeInvoiceDashboardUrl(_invoiceId: string): string {
+function stripeInvoiceDashboardUrl(_invoiceId: string): string {
   return '#';
 }
 
@@ -163,7 +163,7 @@ export async function getDraftInvoices(): Promise<AdminBillingInvoice[]> {
   return r.rows.map(mapAdminRow);
 }
 
-export async function getDraftInvoiceCount(): Promise<number> {
+async function getDraftInvoiceCount(): Promise<number> {
   await initBillingTables();
   const brand = process.env.BRAND || 'mentolder';
   const r = await pool.query(
@@ -299,11 +299,11 @@ export async function createMonthlyDraftInvoices(_params: unknown): Promise<unkn
   return [];
 }
 
-export async function sendDraftInvoice(_invoiceId: string): Promise<void> {
+async function sendDraftInvoice(_invoiceId: string): Promise<void> {
   console.warn('[stripe-billing] sendDraftInvoice: use /api/admin/billing/[id]/send instead');
 }
 
-export async function discardDraftInvoice(invoiceId: string): Promise<void> {
+async function discardDraftInvoice(invoiceId: string): Promise<void> {
   await initBillingTables();
   const brand = process.env.BRAND || 'mentolder';
   await pool.query(

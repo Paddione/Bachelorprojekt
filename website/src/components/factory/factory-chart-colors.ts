@@ -1,16 +1,16 @@
-export const BG = '#0a0a0a';
+const BG = '#0a0a0a';
 export const SURFACE = '#141414';
-export const SURFACE_ELEVATED = '#1a1a1a';
+const SURFACE_ELEVATED = '#1a1a1a';
 export const BORDER = '#2a2a2a';
-export const TEXT_PRIMARY = '#e5e5e5';
-export const TEXT_SECONDARY = '#a3a3a3';
+const TEXT_PRIMARY = '#e5e5e5';
+const TEXT_SECONDARY = '#a3a3a3';
 export const TEXT_MUTED = '#737373';
 export const ACCENT = '#f59e0b';
 export const SUCCESS = '#10b981';
-export const ERROR = '#ef4444';
+const ERROR = '#ef4444';
 
-export const HEATMAP_MIN = '#1a2634';
-export const HEATMAP_MAX = '#f59e0b';
+const HEATMAP_MIN = '#1a2634';
+const HEATMAP_MAX = '#f59e0b';
 
 export const PHASE_COLORS: string[] = [
   '#3b82f6',
@@ -33,7 +33,7 @@ function rgbToHex(r: number, g: number, b: number): string {
   return '#' + [r, g, b].map((c) => Math.round(c).toString(16).padStart(2, '0')).join('');
 }
 
-export function interpolateColor(min: string, max: string, t: number): string {
+function interpolateColor(min: string, max: string, t: number): string {
   const clamped = Math.max(0, Math.min(1, t));
   const [r1, g1, b1] = hexToRgb(min);
   const [r2, g2, b2] = hexToRgb(max);

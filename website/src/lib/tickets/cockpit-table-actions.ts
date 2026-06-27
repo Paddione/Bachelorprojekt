@@ -29,7 +29,7 @@ export async function patchPriority(id: string, priority: string): Promise<boole
   return res.ok;
 }
 
-export async function patchTitle(id: string, title: string): Promise<boolean> {
+async function patchTitle(id: string, title: string): Promise<boolean> {
   const res = await fetch(`/api/admin/tickets/${id}`, {
     method: 'PATCH', headers: JSON_HEADERS, credentials: 'same-origin',
     body: JSON.stringify({ title }),
@@ -37,7 +37,7 @@ export async function patchTitle(id: string, title: string): Promise<boolean> {
   return res.ok;
 }
 
-export async function patchDescription(id: string, description: string): Promise<boolean> {
+async function patchDescription(id: string, description: string): Promise<boolean> {
   const res = await fetch(`/api/admin/tickets/${id}`, {
     method: 'PATCH', headers: JSON_HEADERS, credentials: 'same-origin',
     body: JSON.stringify({ description }),
@@ -63,11 +63,11 @@ export async function runBatch(
   return res.ok;
 }
 
-export interface CreatePayload {
+interface CreatePayload {
   type: string; title: string; priority: string;
   description?: string; component?: string; parentId?: string;
 }
-export interface CreateResult { ok: boolean; body?: unknown; error?: string; }
+interface CreateResult { ok: boolean; body?: unknown; error?: string; }
 
 export async function createTicket(p: CreatePayload): Promise<CreateResult> {
   const res = await fetch('/api/admin/tickets', {

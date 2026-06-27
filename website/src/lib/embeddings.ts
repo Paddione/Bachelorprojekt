@@ -8,11 +8,11 @@ const VOYAGE_DOLLARS_PER_M_TOKENS = 0.06;
 export const ANTHROPIC_FALLBACK_MODEL_DIM = 1024;
 
 export type EmbeddingModel = 'bge-m3' | 'voyage-multilingual-2';
-export type EmbeddingPurpose = 'index' | 'query';
+type EmbeddingPurpose = 'index' | 'query';
 
-export interface EmbedResult { embedding: number[]; tokens: number; }
-export interface BatchResult  { embeddings: number[][]; tokens: number; }
-export interface EmbedOpts {
+interface EmbedResult { embedding: number[]; tokens: number; }
+interface BatchResult  { embeddings: number[][]; tokens: number; }
+interface EmbedOpts {
   maxAttempts?: number;
   baseDelayMs?: number;
   signal?: AbortSignal;

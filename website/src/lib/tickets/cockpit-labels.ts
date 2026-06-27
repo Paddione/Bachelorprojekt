@@ -16,15 +16,15 @@ export const STATUS_LABELS: Record<string, string> = {
   archived: 'Archiviert',
 };
 
-export const PRIORITY_LABELS: Record<string, string> = {
+const PRIORITY_LABELS: Record<string, string> = {
   niedrig: 'Niedrig', mittel: 'Mittel', hoch: 'Hoch', kritisch: 'Kritisch',
 };
 
-export const TYPE_LABELS: Record<string, string> = {
+const TYPE_LABELS: Record<string, string> = {
   task: 'Aufgabe', bug: 'Bug', feature: 'Feature', project: 'Projekt',
 };
 
-export const RESOLUTION_LABELS: Record<string, string> = {
+const RESOLUTION_LABELS: Record<string, string> = {
   fixed: 'Behoben', shipped: 'Ausgeliefert', wontfix: 'Wontfix',
   duplicate: 'Duplikat', cant_reproduce: 'Nicht reproduzierbar', obsolete: 'Obsolet',
 };

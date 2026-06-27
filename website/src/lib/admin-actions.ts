@@ -1,8 +1,8 @@
 import type { Pool } from 'pg';
 
-export type ActionStatus = 'in_progress' | 'success' | 'failed' | 'partial_success';
+type ActionStatus = 'in_progress' | 'success' | 'failed' | 'partial_success';
 
-export interface StartActionInput {
+interface StartActionInput {
   actor: string;
   action: string;
   target?: string;
@@ -10,7 +10,7 @@ export interface StartActionInput {
   payload?: unknown;
 }
 
-export interface FinishActionInput {
+interface FinishActionInput {
   status: 'success' | 'failed' | 'partial_success';
   payload?: unknown;
   error?: string;

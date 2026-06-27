@@ -1,13 +1,13 @@
-export type Phase = 'problem_ziel' | 'analyse' | 'loesung' | 'umsetzung';
+type Phase = 'problem_ziel' | 'analyse' | 'loesung' | 'umsetzung';
 
-export interface StepInput {
+interface StepInput {
   key: string;
   label: string;
   required: boolean;
   multiline?: boolean;
 }
 
-export interface StepDefinition {
+interface StepDefinition {
   stepNumber: number;
   stepName: string;
   phase: Phase;

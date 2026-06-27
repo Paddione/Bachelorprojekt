@@ -1,6 +1,6 @@
 import { pool } from './website-db';
 
-export interface GraphNode {
+interface GraphNode {
   id: string;
   title: string;
   status: string;
@@ -8,13 +8,13 @@ export interface GraphNode {
   depth: number;
 }
 
-export interface GraphEdge {
+interface GraphEdge {
   from: string;
   to: string;
   type: 'depends_on';
 }
 
-export interface TicketGraph {
+interface TicketGraph {
   nodes: GraphNode[];
   edges: GraphEdge[];
   criticalPath: string[];

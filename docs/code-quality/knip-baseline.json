@@ -2,7 +2,7 @@
   "tool": "knip",
   "scope": "website/src",
   "unused_before": 422,
-  "unused_after": 422,
+  "unused_after": 208,
   "breakdown": {
     "files": 53,
     "exports": 111,

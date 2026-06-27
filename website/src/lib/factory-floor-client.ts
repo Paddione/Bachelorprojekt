@@ -1,10 +1,10 @@
 // Client-safe utilities extracted from factory-floor.ts.
 // NO server imports — safe to bundle for the browser.
 
-export type Phase = 'scout' | 'design' | 'plan' | 'implement' | 'verify' | 'deploy';
-export type PhaseState = 'entered' | 'done' | 'blocked';
+type Phase = 'scout' | 'design' | 'plan' | 'implement' | 'verify' | 'deploy';
+type PhaseState = 'entered' | 'done' | 'blocked';
 
-export interface PhaseEventRow {
+interface PhaseEventRow {
   phase: Phase;
   state: PhaseState;
   detail: string | null;
@@ -12,7 +12,7 @@ export interface PhaseEventRow {
   at: string;
 }
 
-export interface TimelineEntry extends PhaseEventRow {
+interface TimelineEntry extends PhaseEventRow {
   durationSec: number | null;
 }
 

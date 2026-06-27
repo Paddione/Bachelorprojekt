@@ -19,12 +19,12 @@ export interface ReferenzenConfig {
   items: ReferenzItem[];
 }
 
-export interface ServicePageSection {
+interface ServicePageSection {
   title: string;
   items: string[];
 }
 
-export interface ServicePagePricing {
+interface ServicePagePricing {
   label: string;
   price: string;
   unit?: string;
@@ -92,7 +92,7 @@ export interface NavigationLink {
   external?: boolean;
 }
 
-export interface FooterColumn {
+interface FooterColumn {
   heading: string;
   links: Array<{ label: string; href: string }>;
 }

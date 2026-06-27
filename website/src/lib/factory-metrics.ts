@@ -4,7 +4,7 @@
 // only — never cross-namespace (korczewski cannot reach shared-db.workspace).
 import { pool } from './website-db';
 
-export interface FactoryMetricRow {
+interface FactoryMetricRow {
   day: string;
   features_shipped: number;
   avg_cycle_time_h: number | null;
@@ -12,7 +12,7 @@ export interface FactoryMetricRow {
   total_features: number;
 }
 
-export interface ActiveFeatureRow {
+interface ActiveFeatureRow {
   external_id: string;
   title: string;
   priority: string;
@@ -20,7 +20,7 @@ export interface ActiveFeatureRow {
   pipeline_slot: number | null;
 }
 
-export interface FeatureFlagRow {
+interface FeatureFlagRow {
   brand: string;
   key: string;
   enabled: boolean;

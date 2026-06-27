@@ -40,8 +40,8 @@ export const COMM_FREQUENCIES = ['wöchentlich', 'zweiwöchentlich', 'monatlich'
 export const CUSTOMER_STATUSES = ['aktiv', 'inaktiv', 'potentiell', 'pausiert', 'abgeschlossen'] as const;
 export const CONTACT_TYPES = ['email', 'phone', 'meeting', 'note'] as const;
 
-export type ContactChannel = typeof CONTACT_CHANNELS[number];
-export type CommFrequency = typeof COMM_FREQUENCIES[number];
+type ContactChannel = typeof CONTACT_CHANNELS[number];
+type CommFrequency = typeof COMM_FREQUENCIES[number];
 export type CustomerStatus = typeof CUSTOMER_STATUSES[number];
 export type ContactType = typeof CONTACT_TYPES[number];
 
@@ -124,7 +124,7 @@ export async function updateCustomerProfile(
   return { updatedAt: rows[0].profile_updated_at };
 }
 
-export interface ContactHistoryEntry {
+interface ContactHistoryEntry {
   id: string; keycloak_user_id: string; contact_type: string;
   subject?: string; content?: string; direction?: string;
   admin_id?: string; created_at: string;

@@ -3,7 +3,7 @@ import { generateXRechnungUbl } from './xrechnung-ubl';
 import { validateLeitwegId } from './leitweg';
 import type { EInvoiceInput, EInvoiceProfile } from './einvoice-types';
 
-export type { EInvoiceProfile, EInvoiceCustomer, EInvoiceSeller, EInvoiceLine, EInvoiceInput } from './einvoice-types';
+export type { EInvoiceProfile } from './einvoice-types';
 
 function toZugferdNativeInput(p: EInvoiceInput): ZugferdNativeInput {
   return {

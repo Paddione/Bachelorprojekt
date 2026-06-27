@@ -1,9 +1,0 @@
-export { default as AdminCard } from './AdminCard.svelte';
-export { default as AdminPageHeader } from './AdminPageHeader.svelte';
-export { default as AdminStatCard } from './AdminStatCard.svelte';
-export { default as AdminBadge } from './AdminBadge.svelte';
-export { default as AdminEmptyState } from './AdminEmptyState.svelte';
-export { default as AdminTable } from './AdminTable.svelte';
-export { default as AdminTabs } from './AdminTabs.svelte';
-export { default as AdminModal } from './AdminModal.svelte';
-export { default as AdminFormField } from './AdminFormField.svelte';

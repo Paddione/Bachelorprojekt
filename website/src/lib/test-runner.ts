@@ -13,7 +13,7 @@ import {
 } from './website-db.js';
 import { safeOpenTestRunFailureTicket } from './systemtest/test-run-bridge.js';
 
-export interface TestResult {
+interface TestResult {
   req: string;
   test: string;
   desc: string;
@@ -22,16 +22,16 @@ export interface TestResult {
   detail: string;
 }
 
-export interface TestJobSummary {
+interface TestJobSummary {
   total: number;
   pass: number;
   fail: number;
   skip: number;
 }
 
-export type SseListener = (event: string, data: string) => void;
+type SseListener = (event: string, data: string) => void;
 
-export interface TestJob {
+interface TestJob {
   id: string;
   tier: string;
   startedAt: Date;

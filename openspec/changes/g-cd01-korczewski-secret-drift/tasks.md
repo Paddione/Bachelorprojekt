@@ -15,7 +15,9 @@ depends_on_plans: []
 - [ ] Task 0: Failing-Test ist bereits rot im Branch — `tests/spec/sealed-secret-cluster-drift.bats` (RED)
 - [x] Task 1: Cluster-Repair — `task env:seal ENV=korczewski && task env:deploy ENV=korczewski` (operational, Gate)
 - [x] Task 2: CD-Workflow-Härtung — Pre-Rollout Secret-Check in `build-website-korczewski.yml` + `build-website.yml`
-- [ ] Task 3: Test-Inventory-Refresh — `task test:inventory` + commit
+- [x] Task 3: Test-Inventory-Refresh — `task test:inventory` (no-op, siehe Notiz)
+
+> **Notiz:** `scripts/build-test-inventory.sh` scannt nur `tests/local/`, `tests/prod/`, `tests/e2e/specs/` — `tests/spec/<slug>.bats` (per AGENTS.md-Konvention) ist aussen vor. `sealed-secret-cluster-drift.bats` ist im richtigen Pfad, aber für das Inventory unsichtbar. Pre-existing limitation, separat zu fixen (scripts/build-test-inventory.sh erweitern). BATS-Test läuft via `task test:changed` / `task test:unit`.
 - [ ] Task 4: Verifikation — `task test:changed` + `task freshness:regenerate && task freshness:check` + `task workspace:validate` + `bash scripts/openspec.sh validate`
 - [ ] Task 5: Commit + Push auf `fix/g-cd01-korczewski-secret-drift` + PR via `gh-axi pr create`
 

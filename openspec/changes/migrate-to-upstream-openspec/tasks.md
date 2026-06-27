@@ -18,10 +18,10 @@ depends_on_plans: []
 - [x] Task 3 (T001261-c): Bulk-add `## Purpose` + `## Requirements` H2 headers to all 60 SSOT specs via awk pass; manual review of every changed spec
 - [x] Task 4 (T001261-d): Update `scripts/openspec-validate.ts` to enforce `## Purpose` and `## Requirements`; run `task test:openspec` — expected: PASS
 - [x] Task 5 (T001261-e): Open PR `chore(openspec): backfill 11 SSOT stubs + add Purpose/Requirements headers [T001261]`; merge after CI green
-- [ ] Task 6 (T001263-a): Run `openspec init --tools opencode,claude --profile core --force`; verify 4 `.opencode/commands/opsx-*.md` + 4 `.claude/skills/openspec-*/SKILL.md` created
-- [ ] Task 7 (T001263-b): Update `.claude/skills/dev-flow-plan/SKILL.md` — replace `task openspec:propose` with `/opsx:propose`
-- [ ] Task 8 (T001263-c): Update `.claude/skills/dev-flow-execute/SKILL.md` — replace `task openspec:apply` with `/opsx:apply`
-- [ ] Task 9 (T001263-d): Open PR `feat(openspec): install upstream workflow commands in .opencode + .claude [T001263]`; merge after CI green
+- [x] Task 6 (T001263-a): Run `openspec init --tools opencode,claude --profile core --force`; verify 4 `.opencode/commands/opsx-*.md` + 4 `.claude/skills/openspec-*/SKILL.md` created
+- [x] Task 7 (T001263-b): Update `.claude/skills/dev-flow-plan/SKILL.md` — replace `task openspec:propose` with `/opsx:propose`
+- [x] Task 8 (T001263-c): Update `.claude/skills/dev-flow-execute/SKILL.md` — replace `task openspec:apply` with `/opsx:apply`
+- [x] Task 9 (T001263-d): Open PR `feat(openspec): install upstream workflow commands in .opencode + .claude [T001263]`; merge after CI green
 - [ ] Task 10 (T001265-a): Add `specs:` and `design:` keys to `openspec/config.yaml` under `rules:`
 - [ ] Task 11 (T001265-b): Add `OPENSPEC_TELEMETRY: '0'` to workflow-level `env:` in every `.github/workflows/*.yml`
 - [ ] Task 12 (T001265-c): Add "OpenSpec conventions" + "Dev experience" subsections to `AGENTS.md`

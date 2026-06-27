@@ -3,6 +3,12 @@
 
 <!-- merged from change delta npm-audit-clean.md on 2026-06-28 -->
 
+## Purpose
+
+Spec for the npm-audit-clean capability — guarantees the `website/` package reports zero known vulnerabilities on `pnpm audit` and that the gate is enforced by an automated BATS test in `task test:all`. Originally added by PR #2209 (T001278 — g-dep01-npm-vuln). Wrappers added in T001274 to unblock the validateTree CI gate for the antigravity-cli gh pre-grant plan.
+
+## Requirements
+
 ### Requirement: Zero-vulnerability npm audit gate
 
 The `website/` package SHALL report zero known vulnerabilities when `pnpm audit` is run against the committed `pnpm-lock.yaml`. This gate SHALL be enforced by an automated BATS test that runs in CI as part of `task test:all`.

@@ -2,7 +2,7 @@ import PDFDocument from 'pdfkit';
 import { readFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { join, dirname } from 'path';
-import type { Invoice } from './native-billing';
+import type { Invoice } from './invoice-types';
 import { embedFacturXIntoPdfA3, type FacturXLevel } from './pdf-a3-embed';
 import { generateEInvoiceXml, type EInvoiceProfile } from './einvoice-profile';
 import type { EInvoiceInput } from './einvoice-types';
@@ -488,14 +488,4 @@ export async function generateInvoicePdf(p: {
     attachmentName,
     modificationDate: new Date(p.invoice.issueDate),
   });
-}
-
-import { createSidecarClient, sidecarBaseUrlFromEnv } from './einvoice/sidecar-client';
-
-export async function embedFacturX(rawPdf: Buffer, facturXXml: string): Promise<Buffer> {
-  const enabled = process.env.EINVOICE_SIDECAR_ENABLED === 'true';
-  if (!enabled) return rawPdf;
-  const client = createSidecarClient(sidecarBaseUrlFromEnv());
-  const out = await client.embed(rawPdf, facturXXml);
-  return out.pdf;
 }

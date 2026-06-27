@@ -3,6 +3,8 @@
 
 <!-- merged from change delta pocket-id-oidc-wiring.md on 2026-06-22 -->
 
+## Purpose
+
 ### Requirement: Pocket ID OIDC clients are deploy-seeded
 
 The system SHALL register and reconcile all OIDC clients in Pocket ID
@@ -17,6 +19,8 @@ every OIDC-protected endpoint authenticates after a single deploy.
 - **THEN** each client whose secret env is set is created (or PUT-updated if it
   already exists) in Pocket ID, and clients with an empty/absent secret are
   skipped without failing the Job.
+
+## Requirements
 
 ### Requirement: Dev secret manifests carry the Pocket ID keys
 

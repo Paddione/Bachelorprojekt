@@ -56,8 +56,52 @@ export function validateChange(changeDir: string): ChangeValidation {
   return { slug, result: { ok: errors.length === 0, errors, warnings } }
 }
 
+/**
+ * Validate a single SSOT spec file under `openspec/specs/`. Enforces:
+ *   - `## Purpose` H2 header is present
+ *   - `## Requirements` H2 header is present
+ *   - at least one `### Requirement:` H3 entry is present under Requirements
+ */
+export function validateSpec(specFile: string): Pick<ValidationResult, 'errors'> {
+  const content = readFileSync(specFile, 'utf-8')
+  const errors: string[] = []
+
+  if (!/^## Purpose\s*$/m.test(content)) {
+    errors.push(`${specFile}: missing '## Purpose' H2 header`)
+  }
+  if (!/^## Requirements\s*$/m.test(content)) {
+    errors.push(`${specFile}: missing '## Requirements' H2 header`)
+  }
+  if (!/^### Requirement: /m.test(content)) {
+    errors.push(`${specFile}: has no '### Requirement: ' (H3) entry`)
+  }
+  if (/^## Requirement: /m.test(content)) {
+    errors.push(`${specFile}: uses H2 '## Requirement:' (must be H3 '### Requirement:')`)
+  }
+
+  return { errors }
+}
+
+export function validateSpecsDir(specsDir: string): ValidationResult {
+  const errors: string[] = []
+  const warnings: string[] = []
+
+  if (!existsSync(specsDir) || !statSync(specsDir).isDirectory()) {
+    return { ok: true, errors: [], warnings: [`no specs/ dir at ${specsDir} (ok)`] }
+  }
+
+  for (const entry of readdirSync(specsDir, { withFileTypes: true })) {
+    if (!entry.isFile() || !entry.name.endsWith('.md')) continue
+    const { errors: fileErrors } = validateSpec(join(specsDir, entry.name))
+    errors.push(...fileErrors)
+  }
+
+  return { ok: errors.length === 0, errors, warnings }
+}
+
 export function validateTree(openspecRoot: string): ValidationResult {
   const changesDir = join(openspecRoot, 'changes')
+  const specsDir = join(openspecRoot, 'specs')
 
   if (!existsSync(changesDir)) {
     return { ok: true, errors: [], warnings: ['no changes/ dir under openspecRoot (ok)'] }
@@ -66,12 +110,18 @@ export function validateTree(openspecRoot: string): ValidationResult {
   const allErrors: string[] = []
   const allWarnings: string[] = []
 
+  // 1) Validate every change folder
   for (const entry of readdirSync(changesDir, { withFileTypes: true })) {
     if (!entry.isDirectory() || entry.name === 'archive') continue
     const { result } = validateChange(join(changesDir, entry.name))
     allErrors.push(...result.errors)
     allWarnings.push(...result.warnings)
   }
+
+  // 2) Validate every SSOT spec under openspec/specs/ (Purpose + Requirements headers)
+  const specsResult = validateSpecsDir(specsDir)
+  allErrors.push(...specsResult.errors)
+  allWarnings.push(...specsResult.warnings)
 
   return { ok: allErrors.length === 0, errors: allErrors, warnings: allWarnings }
 }

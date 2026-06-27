@@ -2,6 +2,8 @@
 
 <!-- baseline SSOT — generiert aus Codebase-Analyse am 2026-06-20 -->
 
+## Purpose
+
 Die Software Factory ist ein autonomes, mehrstufiges Pipeline-System, das Feature-Tickets
 vom Backlog bis zum Production-Deploy verarbeitet. Sie besteht aus drei Kernkomponenten:
 dem **Dispatcher** (Queue-Poll, Slot-Management, Tick-Orchestrierung), der **Pipeline**
@@ -10,6 +12,8 @@ dem **Dispatcher** (Queue-Poll, Slot-Management, Tick-Orchestrierung), der **Pip
 auf dem WSL-Host ohne offene Claude-Code-Session.
 
 ---
+
+## Requirements
 
 ### Requirement: Dispatcher-Tick-Execution
 

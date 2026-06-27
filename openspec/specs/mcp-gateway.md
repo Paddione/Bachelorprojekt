@@ -2,11 +2,15 @@
 
 <!-- baseline SSOT — aktualisiert 2026-06-22: Monolith dekommissioniert, CLI-basierte MCP-Server -->
 
+## Purpose
+
 Das MCP-Gateway stellt MCP-Server (PostgreSQL, GitHub, Browser, Kubernetes) als lokale CLI-Prozesse bereit, die auf dem WSL-Host laufen und über `localhost:{port}/mcp` erreichbar sind. Die Server sind in `.mcp.json` konfiguriert. Die Absicherung im Dev-Cluster erfolgt über einen `--skip-auth-route`-Bypass auf dem `oauth2-proxy-dev`, der die vier MCP-Pfade am OIDC-Gate vorbeileitet.
 
 > **Architektur-Notiz:** Der frühere `claude-code-mcp-monolith` Kubernetes-Pod (Supergateway-basiert) wurde dekommissioniert. MCP-Server laufen jetzt ausschließlich als CLI-Prozesse auf dem WSL-Host — keine In-Cluster-Deployment mehr. Referenz: PR MCP-Monolith-Removal (2026-06-22).
 
 ---
+
+## Requirements
 
 ### Requirement: OAuth2 Proxy MCP Path Bypass
 

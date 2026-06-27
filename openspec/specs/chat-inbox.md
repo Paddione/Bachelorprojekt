@@ -2,6 +2,8 @@
 
 <!-- baseline SSOT — generiert aus Codebase-Analyse am 2026-06-20 -->
 
+## Purpose
+
 ### Requirement: Authenticated message thread per customer
 
 The system SHALL maintain exactly one `message_thread` per customer (identified by Keycloak user ID).
@@ -27,6 +29,8 @@ subsequent messages SHALL append to the existing thread. Unauthenticated request
 - **THEN** the system responds HTTP 401 with `{"error":"Unauthorized"}`
 
 ---
+
+## Requirements
 
 ### Requirement: Admin inbox aggregates all pending items by type
 

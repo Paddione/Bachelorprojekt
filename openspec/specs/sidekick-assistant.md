@@ -2,6 +2,8 @@
 
 <!-- baseline SSOT — generiert aus Codebase-Analyse am 2026-06-20 -->
 
+## Purpose
+
 Das Sidekick-System ist der KI-gestützte In-App-Assistent und Nudge-Kanal der Website.
 Es besteht aus zwei Schichten: einem proaktiven **Nudge-System** (kontextgebundene Push-Hinweise)
 und einem reaktiven **Chat-Interface** mit optionaler RAG-Anreicherung aus Coaching-Büchern.
@@ -9,6 +11,8 @@ Das System kennt zwei Profile — `admin` (Coach) und `portal` (Klient) — mit 
 Triggern, Aktionen und Seitenmenüs.
 
 ---
+
+## Requirements
 
 ### Requirement: Profilbasierte Zugriffstrennung
 

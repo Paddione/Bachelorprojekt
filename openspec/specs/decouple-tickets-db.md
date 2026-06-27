@@ -3,6 +3,8 @@
 
 <!-- merged from change delta decouple-tickets-db.md on 2026-06-27 -->
 
+## Purpose
+
 ### Requirement: S2 import cycle between `tickets-db.ts` and `website-db.ts` is removed
 
 The system SHALL break the static import cycle `lib/tickets-db.ts ↔ lib/website-db.ts`
@@ -22,6 +24,8 @@ addressed in separate follow-up PRs.
   the duplicate `lib/website-db.ts > lib/tickets/transition.ts` listing, and
   `lib/invoice-pdf.ts > lib/native-billing.ts`) and the cycle between
   `lib/tickets-db.ts` and `lib/website-db.ts` is absent.
+
+## Requirements
 
 ### Requirement: Public API of `tickets-db.ts` is preserved
 

@@ -3,6 +3,8 @@
 
 <!-- merged from change delta react-homepage-blocks.md on 2026-06-21 -->
 
+## Purpose
+
 ### Requirement: Block-Dokument-Schema (Zod)
 
 The system SHALL define a Zod-validated homepage block document of shape
@@ -35,6 +37,8 @@ same position as today. The current schema version SHALL be exposed as a single 
 - **WHEN** the document is validated against the schema
 - **THEN** validation succeeds in both cases (the schema is not narrower than the `Service`
   interface)
+
+## Requirements
 
 ### Requirement: Block-getriebenes Homepage-Rendering mit Parität (Null-Diff)
 

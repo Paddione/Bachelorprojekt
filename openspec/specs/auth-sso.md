@@ -2,6 +2,8 @@
 
 <!-- baseline SSOT — generiert aus Codebase-Analyse am 2026-06-20 -->
 
+## Purpose
+
 Keycloak ist der einzige Identity Provider der Plattform. Alle Services authentifizieren sich
 ausschliesslich über den OIDC Authorization Code Flow gegen das `workspace`-Realm. Direkte
 Passwortvergabe, implizite Flows und Self-Registration sind deaktiviert. Der Realm wird beim
@@ -9,6 +11,8 @@ Pod-Start idempotent aus einem Template importiert — unaufgelöste Platzhalter
 Pod-Fehler, bevor ein kaputtes Realm in die Datenbank geschrieben wird.
 
 ---
+
+## Requirements
 
 ### Requirement: Single-Sign-On für alle Platform-Services
 

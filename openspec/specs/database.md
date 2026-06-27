@@ -2,12 +2,16 @@
 
 <!-- baseline SSOT — generiert aus Codebase-Analyse am 2026-06-20 -->
 
+## Purpose
+
 Beschreibt den Integrationsvertrag der PostgreSQL-Datenbankschicht: eine einzelne
 `pgvector/pgvector:0.8.0-pg16`-Instanz (`shared-db`) mit logisch getrennten Datenbanken
 pro Service, die im Kubernetes-Namespace `workspace` (bzw. `workspace-korczewski`)
 betrieben wird.
 
 ---
+
+## Requirements
 
 ### Requirement: Service Isolation via Separate Databases
 

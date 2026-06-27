@@ -2,9 +2,13 @@
 
 <!-- baseline SSOT — generiert aus Codebase-Analyse am 2026-06-20 -->
 
+## Purpose
+
 Collabora Online (coolwsd) ist die LibreOffice-basierte Online-Office-Komponente der Workspace-Plattform. Sie wird über das WOPI-Protokoll an Nextcloud angebunden und läuft in einem dedizierten privilegierten Namespace (`workspace-office`), der von den übrigen Workloads isoliert ist.
 
 ---
+
+## Requirements
 
 ### Requirement: Dedicated Privileged Namespace
 

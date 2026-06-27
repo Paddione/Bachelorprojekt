@@ -3,6 +3,8 @@
 
 <!-- merged from change delta docker-build-speedup.md on 2026-06-27 -->
 
+## Purpose
+
 ### Requirement: Layer-Caching für alle CI-gebauten Docker-Images
 
 The system SHALL build every CI-built Docker image with reusable layer caching: each affected
@@ -35,6 +37,8 @@ and `mode=min` for light images (docs, collabora, brett, mediaviewer-widget, men
   vorherigen Zustand verglichen werden
 - **THEN** sind sie unverändert, und alle nachgelagerten Deploy-/Rollout-Steps funktionieren
   unverändert
+
+## Requirements
 
 ### Requirement: Kein `--no-cache` in Build-Workflows
 

@@ -2,6 +2,8 @@
 
 <!-- baseline SSOT — generiert aus Codebase-Analyse am 2026-06-20 -->
 
+## Purpose
+
 Der Grilling-Flow ist das strukturierte Interview-System für die Ticket-Vorbereitung.
 Es führt Admins Schritt für Schritt durch vordefinierte Fragebögen (Questionnaires), erlaubt
 Multichoice-Chips als Schnellantworten, persistiert Antworten via PATCH-API, und ermöglicht
@@ -10,6 +12,8 @@ das Verwerfen irrelevanter Fragen. Zwei Built-in-Questionnaires existieren: `fin
 Konzeption von Coaching-Sessions).
 
 ---
+
+## Requirements
 
 ### Requirement: Questionnaire-Registry
 

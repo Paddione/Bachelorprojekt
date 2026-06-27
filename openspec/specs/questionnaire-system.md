@@ -2,12 +2,16 @@
 
 <!-- baseline SSOT — generiert aus Codebase-Analyse am 2026-06-20 -->
 
+## Purpose
+
 Das Questionnaire-System ist das Umfrage- und System-Test-Werkzeug der Plattform.
 Es umfasst zwei Nutzungsmodi: **Coaching-Umfragen** (strukturierte Selbstauskunft von Kunden
 mit gewichteten Dimensionen) und **System-Tests** (step-basierte QA-Läufe mit rrweb-Evidence).
 Admins verwalten Vorlagen und Zuweisungen; Kunden füllen Fragebögen im Portal aus.
 
 ---
+
+## Requirements
 
 ### Requirement: Template-Lifecycle (draft → published → archived)
 

@@ -5,6 +5,8 @@
 # mcp-task-runner
 
 
+## Purpose
+
 ### Requirement: plan_tasks
 
 The system SHALL provide a `plan_tasks` MCP tool that accepts a list of `{task, env}` pairs and returns an execution plan organised into parallel groups.
@@ -34,6 +36,8 @@ The system SHALL return `ErrCyclicDependency` if the requested tasks form a cycl
 - **GIVEN** a Taskfile where task A depends on B and B depends on A
 - **WHEN** the caller invokes `plan_tasks` with both tasks
 - **THEN** the tool returns an error referencing the cycle
+
+## Requirements
 
 ### Requirement: run_task
 

@@ -1,9 +1,13 @@
 # monitoring-alerts
 <!-- baseline SSOT — generiert aus Codebase-Analyse am 2026-06-20 -->
 
+## Purpose
+
 Das Monitoring-Alerting-System definiert Prometheus-Alertregeln und Alertmanager-Konfiguration für die Workspace-Plattform. Es stellt sicher, dass kritische Cluster-Ereignisse (Pod-Crashes, hohe Ressourcenauslastung, Fehlerraten) zuverlässig erkannt und über Pushover sowie E-Mail benachrichtigt werden. Die Konfiguration ist markenunabhängig und muss für alle Cluster-Umgebungen valide bauen.
 
 ---
+
+## Requirements
 
 ### Requirement: Prometheus Rules File Existence
 

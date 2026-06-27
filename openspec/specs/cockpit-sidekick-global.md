@@ -3,6 +3,8 @@
 
 <!-- merged from change delta cockpit-sidekick-global.md on 2026-06-21 -->
 
+## Purpose
+
 ### Requirement: CockpitSidekickView component
 
 The system SHALL provide a `CockpitSidekickView` Svelte 5 component that fetches the
@@ -28,6 +30,8 @@ feature on `pickFeature(extId)`.
 - **GIVEN** the user enables the active-only toggle in CockpitSidekickView
 - **WHEN** the page is reloaded and the sidekick cockpit view is opened
 - **THEN** the active-only toggle is still enabled (read from `localStorage['cockpit:activeOnly']`)
+
+## Requirements
 
 ### Requirement: 'cockpit' SidekickView union entry
 

@@ -2,6 +2,8 @@
 
 <!-- merged from change delta fix-awaiting-deploy-visualization-gaps.md on 2026-06-20 -->
 
+## Purpose
+
 ### Requirement: awaiting_deploy in all type definitions and labels
 
 The system SHALL include `awaiting_deploy` in `TicketStatus` union types, `VALID_STATUSES`
@@ -20,6 +22,8 @@ consistently.
 - **GIVEN** `STATUS_LABELS` from `cockpit-labels.ts` is queried
 - **WHEN** the key `'awaiting_deploy'` is accessed
 - **THEN** the returned string is `'Wartet auf Deploy'`
+
+## Requirements
 
 ### Requirement: awaiting_deploy filter chip in CockpitTable
 

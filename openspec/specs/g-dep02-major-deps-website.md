@@ -3,6 +3,8 @@
 
 <!-- merged from change delta g-dep02-major-deps-website.md on 2026-06-27 -->
 
+## Purpose
+
 ### Requirement: Website Major-Dependency Drift Budget
 
 The website package SHALL carry no more than 3 runtime/dev dependencies that are
@@ -26,3 +28,5 @@ package-registry network calls, so it runs deterministically inside the existing
 - **THEN** they MAY remain behind their stable target as accepted, documented
   exceptions
 - **AND** the total behind-count SHALL still be ≤ 3
+## Requirements
+

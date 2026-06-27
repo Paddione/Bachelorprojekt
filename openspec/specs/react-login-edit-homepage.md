@@ -3,6 +3,8 @@
 
 <!-- merged from change delta react-login-edit-homepage.md on 2026-06-27 -->
 
+## Purpose
+
 ### Requirement: React-Site-Login via Astro-Auth-Wiederverwendung
 
 Die React-Site `react.mentolder.de` SHALL einen Login anbieten, der die bestehende
@@ -29,6 +31,8 @@ Cookie-Domain-Erweiterung und ohne Änderung der OIDC-`redirect_uri`.
 - **WHEN** er „Logout" auslöst
 - **THEN** wird er zu `web.mentolder.de/api/auth/logout?returnTo=https://react.mentolder.de/` geleitet
 - **AND** die Session wird invalidiert und er ist wieder ausgeloggt
+
+## Requirements
 
 ### Requirement: „Edit Homepage"-Eintrag neben Admin-Menü/User-Profil
 

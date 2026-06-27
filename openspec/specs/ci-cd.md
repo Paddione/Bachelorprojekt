@@ -2,11 +2,15 @@
 
 <!-- baseline SSOT — generiert aus Codebase-Analyse am 2026-06-20 -->
 
+## Purpose
+
 Dieses Dokument beschreibt die CI/CD-Pipeline des Bachelorprojekt-Repositories auf Basis von GitHub Actions.
 Es umfasst die PR-Gate-Checks, automatisches Deployment von Build-Artifacts, Post-Merge-Automatisierung,
 Nightly-E2E, Freshness-Regenerierung, Dependency-Updates (Renovate) und Squash-Auto-Merge.
 
 ---
+
+## Requirements
 
 ### Requirement: PR-Gate — Offline Tests
 

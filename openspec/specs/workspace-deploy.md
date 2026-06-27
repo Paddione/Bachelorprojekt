@@ -2,6 +2,8 @@
 
 <!-- baseline SSOT — generiert aus Codebase-Analyse am 2026-06-20 -->
 
+## Purpose
+
 `task workspace:deploy ENV=<env>` ist der einzige autorisierte Weg, den Workspace-Stack auf ein
 Kubernetes-Cluster aufzuspielen. Der Befehl ist **push-basiert** — kein GitOps-Reconciler im
 Cluster. Er kombiniert Schema-Validierung, SealedSecrets-Anwendung, Kustomize-Build mit
@@ -10,6 +12,8 @@ stets die `prod-fleet/<brand>/`-Overlays gebaut, nicht die `prod/`-Basis direkt.
 `k3d/`-Basis-Build ohne Overlay.
 
 ---
+
+## Requirements
 
 ### Requirement: Umgebungsvalidierung vor jedem Deploy
 

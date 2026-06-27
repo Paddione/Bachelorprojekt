@@ -3,6 +3,8 @@
 
 <!-- merged from change delta platform-cockpit-alignment.md on 2026-06-20 -->
 
+## Purpose
+
 ### Requirement: Centralized logging dashboards are reachable from the admin UI
 
 The admin Platform Control Center SHALL surface the four Grafana dashboards provisioned by the centralized-logging change (UIDs `log-explorer`, `api-errors`, `traefik-access`, `keycloak-audit`) through a `CentralizedLoggingPanel` component rendering a 2×2 card grid. Each card SHALL link to `{grafanaUrl}/d/{uid}` in a new tab (`target="_blank"`, `rel="noopener noreferrer"`), and the Grafana base URL SHALL be derived from `PROD_DOMAIN` (no new env var, no brand-domain literal).
@@ -14,6 +16,8 @@ The admin Platform Control Center SHALL surface the four Grafana dashboards prov
 - **THEN** they see four dashboard cards above the live pod-log stream
 - **AND** each card's link resolves to `{grafanaUrl}/d/{uid}` for its dashboard and opens in a new tab
 
+
+## Requirements
 
 ### Requirement: Platform Control Center matches the Cockpit design language
 

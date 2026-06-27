@@ -1,9 +1,13 @@
 # planning-office
 <!-- baseline SSOT — generiert aus Codebase-Analyse am 2026-06-20 -->
 
+## Purpose
+
 Das Planning-Office-Domain steuert den LLM-gestützten Klärungsprozess für Ticket-Items im Planungsbüro: Generierung von Klärungsfragen anhand des Definition-of-Ready-Status, JSONB-basiertes Merging von Readiness-Flags direkt in der Datenbank, Berechnung von Liefermetriken (Durchlaufzeiten nach Stage) sowie die Zustandsermittlung des Kunden-Workflows (Fragebogen, Verträge, Buchungen). Zusätzlich umfasst das Domain das CRM-Schema für Kundenverwaltung (Kontakthistorie, Profilvalidierung) und die Verwaltung von Ordnervorlagen-Strukturen für die Nextcloud-Kundenmappen.
 
 ---
+
+## Requirements
 
 ### Requirement: clarifyItem Returns False for Unknown Ticket
 

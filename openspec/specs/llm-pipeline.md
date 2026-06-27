@@ -2,12 +2,16 @@
 
 <!-- baseline SSOT — generiert aus Codebase-Analyse am 2026-06-20 -->
 
+## Purpose
+
 Die LLM-Pipeline umfasst drei Subsysteme: den Embedding-Layer (bge-m3 via TEI auf dem GPU-Host
 sowie voyage-multilingual-2 via Voyage-API), den wissensbasierten RAG-Query-Layer (pgvector,
 `MixedEmbeddingModelError`-Schutz), sowie den Chat-Router (provider_config-Tabelle, Cooldown,
 Tier-basiertes Routing). Alle drei werden über den `LLM_ENABLED`-Schalter gesteuert.
 
 ---
+
+## Requirements
 
 ### Requirement: LLM-Enabled-Schalter
 

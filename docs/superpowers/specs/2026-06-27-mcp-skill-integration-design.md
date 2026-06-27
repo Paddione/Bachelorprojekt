@@ -54,9 +54,12 @@ mcp-tool-guide.md  = Mapping-SSOT (Server → Tools → Wann → Fallback)
 tests/spec/mcp-tooling.bats = Guardrail gegen Re-Drift (CI, hart)
 ```
 
-Da die Logik in Bash liegt, ist die Go-Konsolidierung **risikolos** (das Löschen des
-Node-Adapters verliert nichts) und neue Tools sind **reine Adapter-Registrierungen** (~15 Zeilen
-Go), keine neue Logik.
+Da die Logik in Bash liegt, sind neue Tools **reine Adapter-Registrierungen** (~15 Zeilen Go),
+keine neue Logik. Die Go-Konsolidierung ist jedoch **nicht** ganz aufwandsfrei: der Node-Adapter
+exponiert heute zwei Tools (`get_mishap_buffer`, `flush_mishap_buffer`) und einen Mishap-`type`
+(`process`), die das Go-Binary **noch nicht** hat — und das Exemplar `mishap-tracker` ruft alle
+drei. Diese Parität muss in Go hergestellt werden, **bevor** der Node-Adapter gelöscht wird
+(Plan-Vorbedingung in Slice 1, vom Plan-Autor aus dem Code verifiziert).
 
 ## Scope-Entscheidungen (mit dem User abgestimmt)
 
@@ -74,6 +77,9 @@ Go), keine neue Logik.
 ## Slice 1 — `ticket-mcp`: Go-SSOT + vollständige Adapter-Fläche
 
 ### 1a. Go-Konsolidierung
+- **Parität ZUERST (Vorbedingung):** Die Node-only-Tools `get_mishap_buffer` +
+  `flush_mishap_buffer` und der Mishap-`type: process` nach Go portieren — sonst bricht
+  `mishap-tracker` beim Node-Löschen. Erst danach darf der Node-Adapter weg.
 - `.opencode/opencode.jsonc`: `ticket-mcp.command` von `["node", ".../server.js"]` auf das
   Go-Binary `["/home/patrick/Bachelorprojekt/scripts/ticket-mcp/ticket-mcp-go"]` umstellen.
 - Node-Adapter entfernen: `scripts/ticket-mcp/server.js`, `scripts/ticket-mcp/tools/`,

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.128.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.128.1...website-v1.128.2) (2026-06-27)
+
+
+### Bug Fixes
+
+* **infra:** vereinheitliche busybox/curl Image-Versionen [T001159] ([#2105](https://github.com/Paddione/Bachelorprojekt/issues/2105)) ([9b2d4c7](https://github.com/Paddione/Bachelorprojekt/commit/9b2d4c70ee380b4bf9edece6695ba07f73bbd5a8))
+
 ## [1.128.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.128.0...website-v1.128.1) (2026-06-27)
 
 

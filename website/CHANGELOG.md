@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.133.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.133.0...website-v1.133.1) (2026-06-27)
+
+
+### Bug Fixes
+
+* regenerate website/package-lock.json from the current website/package.json (the on-disk file was prepared off-branch by the diagnosis pass and copied into this worktree). No other files changed in this commit. ([da77ec3](https://github.com/Paddione/Bachelorprojekt/commit/da77ec34b8c41121eeab52a98f3f8522936dddb8))
+* **website:** sync package-lock.json with package.json [T001221] ([#2155](https://github.com/Paddione/Bachelorprojekt/issues/2155)) ([da77ec3](https://github.com/Paddione/Bachelorprojekt/commit/da77ec34b8c41121eeab52a98f3f8522936dddb8))
+
 ## [1.133.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.132.0...website-v1.133.0) (2026-06-27)
 
 

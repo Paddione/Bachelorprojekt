@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.134.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.134.6...website-v1.134.7) (2026-06-27)
+
+
+### Bug Fixes
+
+* **mcp:** antigravity-cli gh sandbox pre-grant [T001274] ([#2211](https://github.com/Paddione/Bachelorprojekt/issues/2211)) ([960ec83](https://github.com/Paddione/Bachelorprojekt/commit/960ec8329df336fc81c7938f2bb71f1b5e3454fb))
+
 ## [1.134.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.134.5...website-v1.134.6) (2026-06-27)
 
 

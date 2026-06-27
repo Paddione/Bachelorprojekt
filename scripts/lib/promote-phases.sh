@@ -16,10 +16,9 @@ svc_image_repo() {
   local svc="$1" cluster="$2"
   case "$svc" in
     website)
-      case "$cluster" in
-        mentolder)  echo "ghcr.io/paddione/mentolder-website" ;;
-        korczewski) echo "ghcr.io/paddione/korczewski-website" ;;
-      esac ;;
+      # Shared brand-neutral image since T001229 Phase 2 (WEBSITE_IMAGE=website,
+      # PR #2167): both brands deploy the same ghcr.io/paddione/website.
+      echo "ghcr.io/paddione/website" ;;
     brett) echo "ghcr.io/paddione/workspace-brett" ;;
 
     docs)  echo "ghcr.io/paddione/workspace-docs" ;;

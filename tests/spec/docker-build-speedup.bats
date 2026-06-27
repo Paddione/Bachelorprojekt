@@ -56,6 +56,15 @@
       .github/workflows environments
 }
 
+@test "P2: svc_image_repo liefert für beide Brands das geteilte Website-Image" {
+  # Die Promote-Lib (task feature:promote + Factory-Canary) muss dieselbe
+  # Konsolidierung wie WEBSITE_IMAGE=website spiegeln — sonst set-image/Canary
+  # gegen das tote ghcr.io/paddione/{mentolder,korczewski}-website.
+  source scripts/lib/promote-phases.sh
+  [ "$(svc_image_repo website mentolder)" = "ghcr.io/paddione/website" ]
+  [ "$(svc_image_repo website korczewski)" = "ghcr.io/paddione/website" ]
+}
+
 # ── Phase 3: amd64-only ────────────────────────────────────────────────────
 @test "P3: transcriber baut amd64-only ohne QEMU" {
   grep -qE '^\s*platforms:\s*linux/amd64\s*$' .github/workflows/build-transcriber.yml

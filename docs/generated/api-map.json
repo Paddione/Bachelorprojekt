@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-26T22:33:47.493Z",
+  "generatedAt": "2026-06-27T02:11:48.887Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -1162,6 +1162,33 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/generate-3d/status.ts"
+    },
+    {
+      "path": "/api/admin/homepage/restore",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/homepage/restore.ts"
+    },
+    {
+      "path": "/api/admin/homepage/save",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/homepage/save.ts"
+    },
+    {
+      "path": "/api/admin/homepage/versions",
+      "methods": [
+        "OPTIONS",
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/homepage/versions.ts"
     },
     {
       "path": "/api/admin/inbox",
@@ -2614,6 +2641,7 @@
     {
       "path": "/api/auth/me",
       "methods": [
+        "OPTIONS",
         "GET"
       ],
       "auth": "admin",
@@ -2827,6 +2855,15 @@
       ],
       "auth": "unclassified",
       "file": "website/src/pages/api/health.ts"
+    },
+    {
+      "path": "/api/homepage",
+      "methods": [
+        "OPTIONS",
+        "GET"
+      ],
+      "auth": "unclassified",
+      "file": "website/src/pages/api/homepage.ts"
     },
     {
       "path": "/api/internal/tickets/notify-close",

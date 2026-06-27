@@ -6,6 +6,7 @@
 setup() {
   REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
   WF="$REPO_ROOT/.github/workflows/post-merge.yml"
+  BUILD_WF="$REPO_ROOT/.github/workflows/build-website.yml"
 }
 
 @test "G-CD02: post-merge.yml deklariert eine top-level concurrency-Group" {
@@ -44,4 +45,52 @@ setup() {
   fi
   run bash -c "cd '$REPO_ROOT/website' && ./node_modules/.bin/eslint . --max-warnings 0"
   [ "$status" -eq 0 ]
+}
+
+# --- G-CD01: Brand-Parity im Website-Deploy (T001276) ---
+# build-website.yml muss korczewski in einem Job deployen, der NICHT vom
+# mentolder-Deploy-Job abhängt — ein mentolder-Fehler darf korczewski nicht
+# still überspringen. SSOT: openspec/specs/ci-cd.md.
+
+@test "G-CD01: build-website.yml hat einen build-image Job mit image+sha_tag outputs" {
+  run python3 - "$BUILD_WF" <<'PY'
+import sys, yaml
+jobs = (yaml.safe_load(open(sys.argv[1])) or {}).get('jobs', {})
+assert 'build-image' in jobs, 'kein build-image Job'
+outs = jobs['build-image'].get('outputs') or {}
+assert 'image' in outs, 'build-image hat kein image output'
+assert 'sha_tag' in outs, 'build-image hat kein sha_tag output'
+PY
+  [ "$status" -eq 0 ]
+}
+
+@test "G-CD01: deploy-mentolder needs build-image und NICHT deploy-korczewski" {
+  run python3 - "$BUILD_WF" <<'PY'
+import sys, yaml
+jobs = (yaml.safe_load(open(sys.argv[1])) or {}).get('jobs', {})
+assert 'deploy-mentolder' in jobs, 'kein deploy-mentolder Job'
+needs = jobs['deploy-mentolder'].get('needs', [])
+if isinstance(needs, str): needs = [needs]
+assert 'build-image' in needs, 'deploy-mentolder muss build-image brauchen'
+assert 'deploy-korczewski' not in needs, 'deploy-mentolder darf nicht von deploy-korczewski abhaengen'
+PY
+  [ "$status" -eq 0 ]
+}
+
+@test "G-CD01: deploy-korczewski needs build-image und NICHT deploy-mentolder" {
+  run python3 - "$BUILD_WF" <<'PY'
+import sys, yaml
+jobs = (yaml.safe_load(open(sys.argv[1])) or {}).get('jobs', {})
+assert 'deploy-korczewski' in jobs, 'kein deploy-korczewski Job'
+needs = jobs['deploy-korczewski'].get('needs', [])
+if isinstance(needs, str): needs = [needs]
+assert 'build-image' in needs, 'deploy-korczewski muss build-image brauchen'
+assert 'deploy-mentolder' not in needs, 'deploy-korczewski muss unabhaengig von deploy-mentolder sein'
+PY
+  [ "$status" -eq 0 ]
+}
+
+@test "G-CD01: beide Deploy-Jobs lesen den Image-Tag aus build-image outputs" {
+  grep -q 'needs.build-image.outputs.image' "$BUILD_WF"
+  grep -q 'needs.build-image.outputs.sha_tag' "$BUILD_WF"
 }

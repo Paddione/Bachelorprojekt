@@ -3,6 +3,11 @@ title: antigravity-cli gh sandbox pre-grant fix
 ticket_id: T001274
 domains: [agy-cli, tooling]
 status: plan_staged
+file_locks: []
+shared_changes: false
+batch_id: null
+parent_feature: null
+depends_on_plans: []
 ---
 
 # antigravity-cli-gh-sandbox — Implementation Plan

@@ -742,7 +742,7 @@ Apply the same shape to `stage_plan`, `get_attachments`, `archive_plan`, `add_co
 - [x] **Step 2: Fallbacks intact.** Run: `grep -rn "ticket.sh\|kubectl exec" .claude/skills/{dev-flow-execute,dev-flow-plan,ticket-ops,incident-response,infra-ops}/SKILL.md` — every former call still exists as a labelled fallback (nothing deleted outright).
 - [x] **Step 3: S4 — scripts still referenced.** The skills still name `scripts/ticket.sh` etc. (fallbacks), so no script becomes an orphan. Run: `task test:code-quality` → S4 clean.
 - [x] **Step 4: CI-equivalent.** Run: `task test:changed && task freshness:check`. Expected: green.
-- [ ] **Step 5: Open PR #2.** Title: `feat(skills): MCP-first routing for the 5 high-frequency skills [T001211]`. Merge before Slice 3.
+- [x] **Step 5: Open PR #2.** Title: `feat(skills): MCP-first routing for the 5 high-frequency skills [T001211]`. Merge before Slice 3.
 
 ---
 
@@ -756,7 +756,7 @@ Apply the same shape to `stage_plan`, `get_attachments`, `archive_plan`, `add_co
 
 factory-mcp (`scripts/factory/mcp-server.mjs`) serves StreamableHTTP at `127.0.0.1:13003/mcp` (health: `GET /health`), tools: `factory_status`, `factory_queue`, `factory_enqueue`, `factory_trigger`, `factory_recent`, `openspec_find_similar`.
 
-- [ ] **Step 1: Add to `.mcp.json`** (alongside the other HTTP servers):
+- [x] **Step 1: Add to `.mcp.json`** (alongside the other HTTP servers):
 
 ```json
     "factory-mcp": {
@@ -765,7 +765,7 @@ factory-mcp (`scripts/factory/mcp-server.mjs`) serves StreamableHTTP at `127.0.0
     }
 ```
 
-- [ ] **Step 2: Add to `.opencode/opencode.jsonc`** (alongside the other `"type": "remote"` HTTP servers):
+- [x] **Step 2: Add to `.opencode/opencode.jsonc`** (alongside the other `"type": "remote"` HTTP servers):
 
 ```jsonc
     "factory-mcp": {
@@ -775,9 +775,9 @@ factory-mcp (`scripts/factory/mcp-server.mjs`) serves StreamableHTTP at `127.0.0
     }
 ```
 
-- [ ] **Step 3: Wire `ticket-ops` + `operations-management`** to prefer `mcp__factory-mcp__factory_status` / `factory_queue` / `factory_trigger` over equivalent script calls, with the script path retained as a fallback for when the daemon (`:13003`) is down. Document the health guard: `curl -sf --max-time 2 http://127.0.0.1:13003/health`.
-- [ ] **Step 4: Validate configs.** Run: `jq empty .mcp.json && jq -r '.mcp["factory-mcp"].url' <(sed 's://.*::' .opencode/opencode.jsonc 2>/dev/null) 2>/dev/null || node -e "require('fs').readFileSync('.opencode/opencode.jsonc','utf8')"; echo OK`. Expected: `.mcp.json` valid; jsonc readable.
-- [ ] **Step 5: Commit.** `git add .mcp.json .opencode/opencode.jsonc .claude/skills/ticket-ops/SKILL.md .claude/skills/operations-management/SKILL.md && git commit -m "feat(mcp): register factory-mcp (HTTP :13003) in both runtimes + wire ops skills"`
+- [x] **Step 3: Wire `ticket-ops` + `operations-management`** to prefer `mcp__factory-mcp__factory_status` / `factory_queue` / `factory_trigger` over equivalent script calls, with the script path retained as a fallback for when the daemon (`:13003`) is down. Document the health guard: `curl -sf --max-time 2 http://127.0.0.1:13003/health`.
+- [x] **Step 4: Validate configs.** Run: `jq empty .mcp.json && jq -r '.mcp["factory-mcp"].url' <(sed 's://.*::' .opencode/opencode.jsonc 2>/dev/null) 2>/dev/null || node -e "require('fs').readFileSync('.opencode/opencode.jsonc','utf8')"; echo OK`. Expected: `.mcp.json` valid; jsonc readable.
+- [x] **Step 5: Commit.** `git add .mcp.json .opencode/opencode.jsonc .claude/skills/ticket-ops/SKILL.md .claude/skills/operations-management/SKILL.md && git commit -m "feat(mcp): register factory-mcp (HTTP :13003) in both runtimes + wire ops skills"`
 
 **Acceptance:** both runtime configs contain `factory-mcp` at `:13003/mcp`; ops skills prefer factory tools with script fallback.
 
@@ -785,9 +785,9 @@ factory-mcp (`scripts/factory/mcp-server.mjs`) serves StreamableHTTP at `127.0.0
 
 **Files:** Modify `CLAUDE.md` (277 lines · `.md` N/A), `AGENTS.md` (178 lines · `.md` N/A)
 
-- [ ] **Step 1: Locate drift.** Run: `grep -rn "mcp-k8s\|mcp-factory" CLAUDE.md AGENTS.md`.
-- [ ] **Step 2: Fix.** In the opencode MCP descriptions, replace `mcp-k8s` → `mcp-kubernetes`. Replace `mcp-factory` claims with the now-real `factory-mcp` (registered in Task 3.1). Ensure the opencode server list reads: `mcp-kubernetes`, `mcp-browser`, `mcp-postgres`, `mcp-github`, `mcp-task-runner`, `task-master-ai`, `openspec`, `ticket-mcp`, `factory-mcp`.
-- [ ] **Step 3: Commit.** `git add CLAUDE.md AGENTS.md && git commit -m "docs: fix opencode MCP server-name drift (mcp-kubernetes; factory-mcp now real)"`
+- [x] **Step 1: Locate drift.** Run: `grep -rn "mcp-k8s\|mcp-factory" CLAUDE.md AGENTS.md`.
+- [x] **Step 2: Fix.** In the opencode MCP descriptions, replace `mcp-k8s` → `mcp-kubernetes`. Replace `mcp-factory` claims with the now-real `factory-mcp` (registered in Task 3.1). Ensure the opencode server list reads: `mcp-kubernetes`, `mcp-browser`, `mcp-postgres`, `mcp-github`, `mcp-task-runner`, `task-master-ai`, `openspec`, `ticket-mcp`, `factory-mcp`.
+- [x] **Step 3: Commit.** `git add CLAUDE.md AGENTS.md && git commit -m "docs: fix opencode MCP server-name drift (mcp-kubernetes; factory-mcp now real)"`
 
 **Acceptance:** no `mcp-k8s` remains; `factory-mcp` is described as registered; `grep -rn "mcp-factory\b" CLAUDE.md AGENTS.md` returns nothing (or only as the registered server name).
 
@@ -795,16 +795,16 @@ factory-mcp (`scripts/factory/mcp-server.mjs`) serves StreamableHTTP at `127.0.0
 
 **Files:** Modify `.claude/skills/references/mcp-tool-guide.md` (56 lines · `.md` N/A)
 
-- [ ] **Step 1: Enumerate the live Go tool set** (the guardrail in Task 3.4 checks this exact set is listed). Run:
+- [x] **Step 1: Enumerate the live Go tool set** (the guardrail in Task 3.4 checks this exact set is listed). Run:
 
 ```bash
 grep -rhoE 'mcp\.NewTool\("[a-z_]+"' scripts/ticket-mcp/go/internal/tools/ | sed -E 's/.*"([a-z_]+)"/\1/' | sort -u
 ```
 
 Expected ~23 names (12 pre-existing + `get_mishap_buffer`,`flush_mishap_buffer` + the 9 workflow tools).
-- [ ] **Step 2: Rewrite the guide** with one section per server: `mcp-postgres` (read-only `query`), `mcp-kubernetes` (status/read tools), `ticket-mcp` (**list every tool name from Step 1**, grouped: list/get, triage/planning, lifecycle, workflow, mishap), `factory-mcp` (`factory_status/queue/enqueue/trigger/recent/openspec_find_similar`, requires `:13003` daemon), `mcp-task-runner` (task execution + OTel), `task-master-ai` (**optional/available** — PRD/complexity, no skill logic), `mcp-browser` (untouched, Playwright). For each: Tools · When to prefer · Fallback.
-- [ ] **Step 3: Preserve the invariants** verbatim: the portforward/availability guard (curl health check), the "READ-ONLY, only `sql`" note for mcp-postgres, and the **kubectl-for-writes/DDL/superuser** rule.
-- [ ] **Step 4: Self-check guide completeness now** (pre-empt the guardrail). Run:
+- [x] **Step 2: Rewrite the guide** with one section per server: `mcp-postgres` (read-only `query`), `mcp-kubernetes` (status/read tools), `ticket-mcp` (**list every tool name from Step 1**, grouped: list/get, triage/planning, lifecycle, workflow, mishap), `factory-mcp` (`factory_status/queue/enqueue/trigger/recent/openspec_find_similar`, requires `:13003` daemon), `mcp-task-runner` (task execution + OTel), `task-master-ai` (**optional/available** — PRD/complexity, no skill logic), `mcp-browser` (untouched, Playwright). For each: Tools · When to prefer · Fallback.
+- [x] **Step 3: Preserve the invariants** verbatim: the portforward/availability guard (curl health check), the "READ-ONLY, only `sql`" note for mcp-postgres, and the **kubectl-for-writes/DDL/superuser** rule.
+- [x] **Step 4: Self-check guide completeness now** (pre-empt the guardrail). Run:
 
 ```bash
 for t in $(grep -rhoE 'mcp\.NewTool\("[a-z_]+"' scripts/ticket-mcp/go/internal/tools/ | sed -E 's/.*"([a-z_]+)"/\1/' | sort -u); do
@@ -813,7 +813,7 @@ done
 ```
 
 Expected: no `MISSING:` lines.
-- [ ] **Step 5: Commit.** `git add .claude/skills/references/mcp-tool-guide.md && git commit -m "docs(mcp-tool-guide): rewrite as server→tool→when→fallback SSOT (lists all ticket-mcp + factory-mcp tools)"`
+- [x] **Step 5: Commit.** `git add .claude/skills/references/mcp-tool-guide.md && git commit -m "docs(mcp-tool-guide): rewrite as server→tool→when→fallback SSOT (lists all ticket-mcp + factory-mcp tools)"`
 
 **Acceptance:** guide lists every Go tool name + factory-mcp tools; invariants retained; Step-4 check clean.
 
@@ -828,13 +828,13 @@ fail against an un-updated guide, and Task 3.3's rewrite is what makes it pass.
 **Files:**
 - Modify: `tests/spec/mcp-tooling.bats` (`.bats` not gated → S1 N/A) — append the guide-completeness `@test` and add `GUIDE` to `setup()`.
 
-- [ ] **Step 1: Add `GUIDE` to `setup()`.** In `tests/spec/mcp-tooling.bats`, add to the existing `setup()`:
+- [x] **Step 1: Add `GUIDE` to `setup()`.** In `tests/spec/mcp-tooling.bats`, add to the existing `setup()`:
 
 ```bash
   GUIDE="$REPO_ROOT/.claude/skills/references/mcp-tool-guide.md"
 ```
 
-- [ ] **Step 2: Append the guide-completeness `@test`** to `tests/spec/mcp-tooling.bats`:
+- [x] **Step 2: Append the guide-completeness `@test`** to `tests/spec/mcp-tooling.bats`:
 
 ```bash
 @test "every ticket-mcp Go tool is listed in mcp-tool-guide.md" {
@@ -852,22 +852,22 @@ fail against an un-updated guide, and Task 3.3's rewrite is what makes it pass.
 }
 ```
 
-- [ ] **Step 3: Run the full guard — expected: pass** (Task 3.3 rewrote the guide to list every tool; Slice 1 wrapped every verb). Run: `task test:mcp-tooling`. Expected: `2 tests, 0 failures`.
-- [ ] **Step 4: Sanity — prove the new `@test` fails on drift** (temporary). Delete one tool line from `mcp-tool-guide.md`, run `task test:mcp-tooling` → expect 1 failure naming the missing tool; then `git checkout .claude/skills/references/mcp-tool-guide.md` to restore.
-- [ ] **Step 5: Verify wiring is intact.** Run: `grep -n "test:mcp-tooling" Taskfile.yml` → still appears in the task def, the `test:unit` list, and `test:changed` (all added in Slice 1; this task changes none of them).
-- [ ] **Step 6: Regenerate test inventory (likely no-op).** Run: `task test:inventory`. NOTE: `scripts/build-test-inventory.sh` scans only `tests/local`, `tests/prod`, `tests/e2e/specs` — NOT `tests/spec/` — so `website/src/data/test-inventory.json` is expected to be **unchanged**. If `git status` shows it changed, commit it.
-- [ ] **Step 7: Commit.** `git add tests/spec/mcp-tooling.bats && git add -A website/src/data/test-inventory.json 2>/dev/null; git commit -m "test(mcp): extend guardrail with guide-completeness @test"`
+- [x] **Step 3: Run the full guard — expected: pass** (Task 3.3 rewrote the guide to list every tool; Slice 1 wrapped every verb). Run: `task test:mcp-tooling`. Expected: `2 tests, 0 failures`.
+- [x] **Step 4: Sanity — prove the new `@test` fails on drift** (temporary). Delete one tool line from `mcp-tool-guide.md`, run `task test:mcp-tooling` → expect 1 failure naming the missing tool; then `git checkout .claude/skills/references/mcp-tool-guide.md` to restore.
+- [x] **Step 5: Verify wiring is intact.** Run: `grep -n "test:mcp-tooling" Taskfile.yml` → still appears in the task def, the `test:unit` list, and `test:changed` (all added in Slice 1; this task changes none of them).
+- [x] **Step 6: Regenerate test inventory (likely no-op).** Run: `task test:inventory`. NOTE: `scripts/build-test-inventory.sh` scans only `tests/local`, `tests/prod`, `tests/e2e/specs` — NOT `tests/spec/` — so `website/src/data/test-inventory.json` is expected to be **unchanged**. If `git status` shows it changed, commit it.
+- [x] **Step 7: Commit.** `git add tests/spec/mcp-tooling.bats && git add -A website/src/data/test-inventory.json 2>/dev/null; git commit -m "test(mcp): extend guardrail with guide-completeness @test"`
 
 **Acceptance:** `task test:mcp-tooling` runs both `@test`s and passes; the guide-completeness `@test` fails on injected guide drift; Taskfile wiring from Slice 1 unchanged.
 
 ### Task 3.5 (Slice 3 verification gate = FINAL CI-equivalent gate)
 
-- [ ] **Step 1: OpenSpec validation (must be green before commit/push).** Run: `task test:openspec` (≡ `bash scripts/openspec.sh validate`). Expected: `openspec validate: OK` (the change delta has `## ADDED Requirements`, `### Requirement:` H3 entries, no H2 `## Requirement:`).
-- [ ] **Step 2: Guardrail green.** Run: `task test:mcp-tooling`. Expected: `2 tests, 0 failures`.
-- [ ] **Step 3: Targeted tests for changed domains.** Run: `task test:changed`. Expected: green (this Slice's changes under `.claude/skills/`, `.mcp.json`, `.opencode/`, `tests/spec/` trigger the new `RUN_MCP` branch → the guardrail runs).
-- [ ] **Step 4: Regenerate generated artifacts.** Run: `task freshness:regenerate`. Then re-run `task test:inventory` (no diff expected, per Task 3.4 Step 8). Commit any regen output (resolve generated-artifact conflicts with `git checkout --ours` per CLAUDE.md if a freshness regen collides on rebase).
-- [ ] **Step 5: Freshness + quality ratchet (CI equivalent).** Run: `task freshness:check`. Expected: green — S1 (no gated file touched), S2 (no new cycle), S3 (no host literals), S4 (no orphan; guard is wired, scripts still referenced by fallbacks), and **baseline key-count unchanged**.
-- [ ] **Step 6: Go suite still green** (in case of rebase). Run: `cd scripts/ticket-mcp/go && go vet ./... && go test ./... && make build`.
+- [x] **Step 1: OpenSpec validation (must be green before commit/push).** Run: `task test:openspec` (≡ `bash scripts/openspec.sh validate`). Expected: `openspec validate: OK` (the change delta has `## ADDED Requirements`, `### Requirement:` H3 entries, no H2 `## Requirement:`).
+- [x] **Step 2: Guardrail green.** Run: `task test:mcp-tooling`. Expected: `2 tests, 0 failures`.
+- [x] **Step 3: Targeted tests for changed domains.** Run: `task test:changed`. Expected: green (this Slice's changes under `.claude/skills/`, `.mcp.json`, `.opencode/`, `tests/spec/` trigger the new `RUN_MCP` branch → the guardrail runs).
+- [x] **Step 4: Regenerate generated artifacts.** Run: `task freshness:regenerate`. Then re-run `task test:inventory` (no diff expected, per Task 3.4 Step 8). Commit any regen output (resolve generated-artifact conflicts with `git checkout --ours` per CLAUDE.md if a freshness regen collides on rebase).
+- [x] **Step 5: Freshness + quality ratchet (CI equivalent).** Run: `task freshness:check`. Expected: green — S1 (no gated file touched), S2 (no new cycle), S3 (no host literals), S4 (no orphan; guard is wired, scripts still referenced by fallbacks), and **baseline key-count unchanged**.
+- [x] **Step 6: Go suite still green** (in case of rebase). Run: `cd scripts/ticket-mcp/go && go vet ./... && go test ./... && make build`.
 - [ ] **Step 7: Open PR #3.** Title: `feat(mcp): factory-mcp registration, tool-guide SSOT, re-drift guardrail [T001211]`. Ensure required checks (`Offline Tests`, `Security Scan`, `Brett TypeScript`, `Vitest (website)`, `Conventional Commits`) are green; auto-merge with `--squash`.
 
 ---

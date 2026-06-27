@@ -456,18 +456,18 @@ cd website && timeout 90 pnpm outdated 2>/dev/null   # Major-Sprünge: erste vs.
 
 > **Baseline:** 9 Major · **Target:** ≤ 3 · **Aufwand:** moderat (~1–2 Tage) · **Messzyklus:** monatlich / Renovate · **Reproduzierbar:** eingeschränkt (Registry driftet)
 
-## G-DEP03 — Verwaiste npm-Lockfile in pnpm-Paketen: 1 → 0
+## G-DEP03 — Package-Manager-Konsistenz website (npm-Build + pnpm-Test): vereinheitlichen
 
-**Was:** `website/` wird im CI mit **pnpm** gebaut (`pnpm/action-setup`, Cache `website/pnpm-lock.yaml`), trägt aber zusätzlich ein verwaistes `package-lock.json` — ein versehentliches `npm install` zöge abweichende Auflösungen → divergente Builds. **Nicht betroffen:** `brett/` ist npm-primär; sein `package-lock.json` ist CI-aktiv (`npm ci --prefix brett`), dort wäre umgekehrt die `pnpm-lock.yaml` das verwaiste Artefakt (separat zu klären, hier ausgeklammert).
+**Was:** `website/` nutzt **zwei** Package-Manager parallel: der Production-Docker-Build (`website/Dockerfile`: `COPY … package-lock.json` + `npm ci`) und die CI-Test-Lane (`ci.yml`: `pnpm/action-setup`, `pnpm-lock.yaml`). Beide Lockfiles müssen synchron bleiben; Build und Test können divergierende Abhängigkeiten auflösen. **Keine Lockfile ist verwaist** — `website/package-lock.json` zu löschen bricht den Docker-Build **beider** Brands (in einem realen Incident verifiziert: PR #2101 → mentolder+korczewski-Deploy rot, Hotfix #-restore). `brett/` ist konsistent npm-primär.
 
-**Warum erreichbar:** Reines Aufräumen — das verwaiste `website/package-lock.json` löschen; `pnpm-lock.yaml` bleibt alleinige Wahrheit. Optional CI-Guard.
+**Warum erreichbar:** Vereinheitlichung auf **pnpm** im `website/Dockerfile` (`corepack enable` + `pnpm install --frozen-lockfile`) macht `package-lock.json` danach echt überflüssig. Mittlerer Aufwand (Dockerfile-Umbau + Build-Verifikation über `task feature:website`), **kein** simples Löschen. Lehre: „welcher Package-Manager" über **alle** Pipelines prüfen (Test- UND Build-/Deploy-Lane), nicht nur `ci.yml`.
 
 ```bash
-# pnpm-primäre Pakete mit verwaister npm-Lockfile (website baut im CI via pnpm):
-c=0; for d in website; do [ -f "$d/pnpm-lock.yaml" ] && [ -f "$d/package-lock.json" ] && c=$((c+1)); done; echo "$c"
+# Inkonsistenz erkennen: npm im Docker-Build, pnpm im CI-Test
+grep -q "npm ci" website/Dockerfile && grep -q "pnpm" .github/workflows/ci.yml   && echo "1 (inkonsistent: npm-Build + pnpm-Test)" || echo "0 (vereinheitlicht)"
 ```
 
-> **Baseline:** 1 (nur website; brett ist npm-primär) · **Target:** 0 · **Aufwand:** ~10 min · **Messzyklus:** pro Merge (Guard) · **Reproduzierbar:** ja
+> **Baseline:** inkonsistent (npm-Build + pnpm-Test) · **Target:** ein PM (pnpm) in Build + Test · **Aufwand:** mittel (Dockerfile-Umbau) · **Messzyklus:** einmalig · **Reproduzierbar:** ja
 
 ## G-DEP04 — Deploybare package.json ohne `engines >= 22.13.0`: 6 → 0
 
@@ -1018,7 +1018,7 @@ echo -n "error/warn: ";     grep -rEn 'console\.(error|warn)'      website/src -
 | **G-SIZE04** | Netto-LOC/Woche | ~ −1500 | ≤ +2000 | Policy | ⚠️ |
 | **G-DEP01** | High/Critical npm-Vulns | 6 | 0 | ~1–2 h | ⚠️ |
 | **G-DEP02** | Veraltete Major-Deps | 9 | ≤ 3 | ~1–2 Tage | ⚠️ |
-| **G-DEP03** | Verwaiste npm-Lockfile (website) | 1 | 0 | ~10 min | ✅ |
+| **G-DEP03** | PM-Konsistenz website (npm+pnpm) | inkonsistent | 1 PM (pnpm) | mittel | ✅ |
 | **G-DEP04** | package.json ohne engines | 6 | 0 | ~30 min | ✅ |
 | **G-DEP05** | Renovate-PR-Backlog | 0 | ≤ 3 | Policy | ✅ |
 | **G-IMG01** | Ungepinnte Fremd-Images | 43 | 0 | 2–3 Sess | ✅ |
@@ -1061,7 +1061,7 @@ echo -n "error/warn: ";     grep -rEn 'console\.(error|warn)'      website/src -
 Diese Ziele sind echte, sofort behebbare Defekte oder Ein-Sitzung-Aufräumarbeiten:
 
 1. **G-CFG01** — `POCKET_ID_DOMAIN` in 4 env-Dateien ergänzen → `env:validate:all` grün *(aktiver Defekt, ~30 min)*
-2. **G-DEP03** — verwaiste `website/package-lock.json` löschen (brett bleibt npm-primär) *(~10 min)*
+2. **G-IMG02** — 3 Fremd-Image-Versions-Drifts vereinheitlichen (busybox/curl/k8s-sidecar) *(~1 h)*
 3. **G-DEP04** — `engines.node` in 6 package.json *(~30 min)*
 4. **G-RH01** — ✓ `task quality:baseline:refresh` ausgeführt: 4 stale S3-Einträge entfernt (74→70) *(erledigt)*
 5. **G-CD01** — korczewski-Deploy-Lane debuggen *(~1 Session, behebt 73 % Fehlschläge)*

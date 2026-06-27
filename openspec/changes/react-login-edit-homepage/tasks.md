@@ -92,10 +92,10 @@ im Code — Origins kommen aus Env (`VITE_WEBSITE_ORIGIN`, `REACT_APP_ORIGIN`); 
 
 ## Task 5: React — Auth-Context + API-Helper
 
-- [ ] `mentolder-web/src/auth/useAuth.test.tsx`: gemocktes `/api/auth/me` → `{authenticated, isAdmin}` korrekt; Fetch-Fehler → ausgeloggt. Lauf → expected: FAIL.
-- [ ] `mentolder-web/src/lib/homepageApi.ts`: `getMe()`, `getHomepage()`, `saveHomepage()` gegen `import.meta.env.VITE_WEBSITE_ORIGIN`, `credentials:'include'`.
-- [ ] `mentolder-web/src/auth/useAuth.tsx`: `AuthProvider` + `useAuth()` (lädt bei Mount, `{authenticated,user,isAdmin,loading}`).
-- [ ] `mentolder-web/src/main.tsx`: `AuthProvider` um die App. Tests → grün. Commit.
+- [x] `mentolder-web/src/auth/useAuth.test.tsx`: gemocktes `/api/auth/me` → `{authenticated, isAdmin}` korrekt; Fetch-Fehler → ausgeloggt. Lauf → expected: FAIL.
+- [x] `mentolder-web/src/lib/homepageApi.ts`: `getMe()`, `getHomepage()`, `saveHomepage()` gegen `import.meta.env.VITE_WEBSITE_ORIGIN`, `credentials:'include'`.
+- [x] `mentolder-web/src/auth/useAuth.tsx`: `AuthProvider` + `useAuth()` (lädt bei Mount, `{authenticated,user,isAdmin,loading}`).
+- [x] `mentolder-web/src/main.tsx`: `AuthProvider` um die App. Tests → grün. Commit.
 
 ## Task 6: React — UserMenu + Navigation
 

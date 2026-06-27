@@ -8,6 +8,7 @@
 setup() {
   REPO_ROOT="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
   TOOLS_DIR="$REPO_ROOT/scripts/ticket-mcp/go/internal/tools"
+  GUIDE="$REPO_ROOT/.claude/skills/references/mcp-tool-guide.md"
 }
 
 @test "every skill-critical ticket.sh verb has a ticket-mcp wrapper" {
@@ -20,6 +21,20 @@ setup() {
   done
   if [ "${#missing[@]}" -gt 0 ]; then
     echo "# Verbs without a ticket-mcp wrapper: ${missing[*]}" >&2
+  fi
+  [ "${#missing[@]}" -eq 0 ]
+}
+
+@test "every ticket-mcp Go tool is listed in mcp-tool-guide.md" {
+  [ -d "$TOOLS_DIR" ]
+  [ -f "$GUIDE" ]
+  missing=()
+  while IFS= read -r tool; do
+    [ -z "$tool" ] && continue
+    grep -qF "$tool" "$GUIDE" || missing+=("$tool")
+  done < <(grep -rhoE 'mcp\.NewTool\("[a-z_]+"' "$TOOLS_DIR" | sed -E 's/.*"([a-z_]+)"/\1/' | sort -u)
+  if [ "${#missing[@]}" -gt 0 ]; then
+    echo "# Tools missing from mcp-tool-guide.md: ${missing[*]}" >&2
   fi
   [ "${#missing[@]}" -eq 0 ]
 }

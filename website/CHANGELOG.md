@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.134.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.134.0...website-v1.134.1) (2026-06-27)
+
+
+### Bug Fixes
+
+* **infra:** point promote-phases.sh at shared ghcr.io/paddione/website [T001229] ([#2174](https://github.com/Paddione/Bachelorprojekt/issues/2174)) ([ed8f325](https://github.com/Paddione/Bachelorprojekt/commit/ed8f3259a98adef59206e2aeec209c39598f596f))
+
 ## [1.134.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.133.5...website-v1.134.0) (2026-06-27)
 
 

@@ -872,7 +872,6 @@ export interface ServiceOverride {
   title: string;
   description: string;
   icon: string;
-  /** @deprecated legacy headline price — derived from the catalog post-migration. Kept for read fallback. */
   price?: string;
   features: string[];
   hidden?: boolean;
@@ -889,7 +888,6 @@ export interface ServiceOverride {
     intro?: string;
     forWhom?: string[];
     sections?: Array<{ title: string; items: string[] }>;
-    /** @deprecated detail tiers now render the linked catalog category. Kept for read fallback. */
     pricing?: Array<{ label: string; price: string; unit?: string; highlight?: boolean }>;
     faq?: Array<{ question: string; answer: string }>;
     faqTitle?: string;

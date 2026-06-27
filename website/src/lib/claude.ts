@@ -19,7 +19,6 @@ export async function generateMeetingInsights(params: {
   artifacts?: string;
 }): Promise<MeetingInsights | null> {
   if (!ANTHROPIC_API_KEY) {
-    console.log('[claude] No API key configured. Skipping insights generation.');
     return null;
   }
 

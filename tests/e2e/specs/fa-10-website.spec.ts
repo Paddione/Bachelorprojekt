@@ -31,7 +31,6 @@ test.describe('FA-10: Unternehmenswebsite (Astro) & Kontaktformular', { tag: ['@
     const pages = [
       ...servicePages,
       // '/ueber-mich' — temporarily disabled: consistently times out from GitHub Actions
-      // TODO: investigate production network path for this page (T000603 follow-up)
       '/kontakt',
       '/leistungen',
       '/registrieren',

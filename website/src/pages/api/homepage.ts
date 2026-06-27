@@ -10,12 +10,18 @@ export const OPTIONS: APIRoute = ({ request }) => handlePreflight(request) as Re
 
 export const GET: APIRoute = async ({ request }) => {
   const cors = corsHeaders(request.headers.get('origin'));
-  const { document } = await readCurrent(BRAND);
+  const { document, version } = await readCurrent(BRAND);
+  // Expose the live version so the cross-origin editor can do optimistic-
+  // concurrency saves without the version leaking into the public body.
+  const versionHeaders = {
+    'X-Homepage-Version': String(version),
+    'Access-Control-Expose-Headers': 'X-Homepage-Version',
+  };
   if (!document) {
-    return new Response(null, { status: 204, headers: { ...cors } });
+    return new Response(null, { status: 204, headers: { ...cors, ...versionHeaders } });
   }
   return new Response(JSON.stringify(document), {
     status: 200,
-    headers: { 'Content-Type': 'application/json', ...cors },
+    headers: { 'Content-Type': 'application/json', ...cors, ...versionHeaders },
   });
 };

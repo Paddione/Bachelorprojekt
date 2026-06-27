@@ -37,13 +37,19 @@ export async function getMe(): Promise<MeResponse> {
   }
 }
 
-export async function getHomepage<T = unknown>(): Promise<T | null> {
+export interface HomepageLoad<T = unknown> {
+  document: T | null;
+  version: number;
+}
+
+export async function getHomepage<T = unknown>(): Promise<HomepageLoad<T>> {
   try {
     const res = await fetch(apiUrl('/api/homepage'), { credentials: 'include' });
-    if (res.status === 204 || !res.ok) return null;
-    return (await res.json()) as T;
+    const version = Number(res.headers.get('X-Homepage-Version') ?? '0') || 0;
+    if (res.status === 204 || !res.ok) return { document: null, version };
+    return { document: (await res.json()) as T, version };
   } catch {
-    return null;
+    return { document: null, version: 0 };
   }
 }
 

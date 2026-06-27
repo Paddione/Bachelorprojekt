@@ -26,11 +26,13 @@ const req = (origin: string | null, method = 'GET') =>
   });
 
 describe('GET /api/homepage (public)', () => {
-  it('returns the stored document with CORS for an allowlisted origin', async () => {
+  it('returns the stored document with CORS + version header for an allowlisted origin', async () => {
     mockDoc = { schemaVersion: 1, blocks: [{ id: 'spacer', type: 'spacer', props: { size: 8 } }] };
     const res = await GET({ request: req(REACT) } as any);
     expect(res.status).toBe(200);
     expect(res.headers.get('Access-Control-Allow-Origin')).toBe(REACT);
+    expect(res.headers.get('X-Homepage-Version')).toBe('5');
+    expect(res.headers.get('Access-Control-Expose-Headers')).toContain('X-Homepage-Version');
     const body = await res.json();
     expect(body.schemaVersion).toBe(1);
     expect(body.blocks).toHaveLength(1);

@@ -37,20 +37,26 @@ describe('getMe', () => {
 });
 
 describe('getHomepage', () => {
-  it('returns the document on 200', async () => {
-    fetchMock.mockResolvedValueOnce(jsonRes(200, { schemaVersion: 1, blocks: [] }));
-    const doc = await getHomepage();
-    expect(doc).toEqual({ schemaVersion: 1, blocks: [] });
+  it('returns the document + version (from the X-Homepage-Version header) on 200', async () => {
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify({ schemaVersion: 1, blocks: [] }), {
+        status: 200,
+        headers: { 'content-type': 'application/json', 'X-Homepage-Version': '4' },
+      }),
+    );
+    const r = await getHomepage();
+    expect(r.document).toEqual({ schemaVersion: 1, blocks: [] });
+    expect(r.version).toBe(4);
   });
 
-  it('returns null on 204', async () => {
+  it('returns null document + version 0 on 204', async () => {
     fetchMock.mockResolvedValueOnce(new Response(null, { status: 204 }));
-    expect(await getHomepage()).toBeNull();
+    expect(await getHomepage()).toEqual({ document: null, version: 0 });
   });
 
-  it('returns null when fetch throws', async () => {
+  it('returns null document when fetch throws', async () => {
     fetchMock.mockRejectedValueOnce(new Error('offline'));
-    expect(await getHomepage()).toBeNull();
+    expect(await getHomepage()).toEqual({ document: null, version: 0 });
   });
 });
 

@@ -35,7 +35,7 @@ describe('LeistungenPage', () => {
 
   it('renders §19 UStG price hint', () => {
     renderPage();
-    expect(screen.getByText(/§19 UStG/)).toBeInTheDocument();
+    expect(screen.getByText(/§\s?19 UStG/)).toBeInTheDocument();
   });
 
   it('renders link to /kontakt for Erstgespräch', () => {

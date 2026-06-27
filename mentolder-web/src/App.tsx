@@ -1,5 +1,5 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
 import { Navigation } from './components/Navigation';
 import { Footer } from './components/Footer';
 import { HomePage } from './pages/HomePage';
@@ -13,6 +13,12 @@ import { ReferenzenPage } from './pages/ReferenzenPage';
 import { BarrierefreiheitPage } from './pages/BarrierefreiheitPage';
 import { AgbPage } from './pages/AgbPage';
 import { MeineDatenPage } from './pages/MeineDatenPage';
+
+// Admin-only editor — lazy so the marketing bundle stays lean. The page
+// self-guards (admin check + login bounce) via useAuth.
+const HomepageEditorPage = lazy(() =>
+  import('./pages/admin/HomepageEditorPage').then((m) => ({ default: m.HomepageEditorPage })),
+);
 
 function ScrollToTop() {
   const { pathname, hash } = useLocation();
@@ -47,6 +53,14 @@ export default function App() {
           <Route path="/barrierefreiheit" element={<BarrierefreiheitPage />} />
           <Route path="/agb" element={<AgbPage />} />
           <Route path="/meine-daten" element={<MeineDatenPage />} />
+          <Route
+            path="/admin/homepage"
+            element={
+              <Suspense fallback={<div className="pt-[120px] text-center text-fg-soft">Lädt…</div>}>
+                <HomepageEditorPage />
+              </Suspense>
+            }
+          />
           <Route
             path="*"
             element={

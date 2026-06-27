@@ -105,10 +105,10 @@ im Code — Origins kommen aus Env (`VITE_WEBSITE_ORIGIN`, `REACT_APP_ORIGIN`); 
 
 ## Task 7: React — Editor-Route + Feld-Editor
 
-- [ ] `mentolder-web/src/pages/admin/HomepageEditorPage.test.tsx`: Nicht-Admin → Redirect; Admin → lädt Dokument, ändert ein Hero-Textfeld, „Save" ruft `saveHomepage` mit erwartetem Payload + `baseVersion`. Lauf → expected: FAIL.
-- [ ] `mentolder-web/src/pages/admin/blockFields.ts`: pro Block-`type` editierbare Felder ableiten (String→Text/Textarea, String-Array→Liste, verschachtelte Arrays `services.items`/`whyMe.points`/`faq.items`→wiederholbare Unterformulare).
-- [ ] `mentolder-web/src/pages/admin/HomepageEditorPage.tsx`: Formulare je Block, Live-Vorschau via `BlockRenderer` mit Arbeitsdokument, Save mit `409`/`422`-Handling.
-- [ ] `mentolder-web/src/App.tsx`: Route `/admin/homepage` (lazy, Admin-Guard → sonst Login). Tests → grün. Commit.
+- [x] `mentolder-web/src/pages/admin/HomepageEditorPage.test.tsx`: Nicht-Admin → Redirect; Admin → lädt Dokument, ändert ein Hero-Textfeld, „Save" ruft `saveHomepage` mit erwartetem Payload + `baseVersion`. Lauf → expected: FAIL.
+- [x] `mentolder-web/src/pages/admin/blockFields.ts`: pro Block-`type` editierbare Felder ableiten (String→Text/Textarea, String-Array→Liste, verschachtelte Arrays `services.items`/`whyMe.points`/`faq.items`→wiederholbare Unterformulare). Inkl. `getAtPath`/`setAtPath` (immutable dotted paths).
+- [x] `mentolder-web/src/pages/admin/HomepageEditorPage.tsx`: Formulare je Block, Live-Vorschau via `BlockRenderer` mit Arbeitsdokument, Save mit `409`/`422`-Handling. Editor lädt Version über neuen `X-Homepage-Version`-Header (`getHomepage`→`{document,version}`); `/api/homepage` setzt Header + `Access-Control-Expose-Headers`.
+- [x] `mentolder-web/src/App.tsx`: Route `/admin/homepage` (lazy, Admin-Guard → sonst Login). Tests → grün. Commit. (Nebenbei: vorbestehende `LeistungenPage.test.tsx`-Drift „§19"→„§ 19" korrigiert.)
 
 ## Task 8: React — HomePage rendert gespeichertes Dokument
 

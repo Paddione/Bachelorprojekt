@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { sellerConfigFromEnv } from './legacy-seller';
 
 describe('legacy-seller', () => {
-  let envBackup: any;
+  let envBackup: NodeJS.ProcessEnv;
 
   beforeEach(() => {
     envBackup = { ...process.env };

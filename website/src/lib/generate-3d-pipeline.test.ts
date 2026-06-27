@@ -5,11 +5,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // '../../../../lib/website-db', which resolve to the SAME files as './generation-jobs'
 // and './website-db' from this test (both live in website/src/lib/). vitest matches
 // vi.mock by resolved module id, so these specifiers intercept the SUT's imports.
-const stageCalls: Array<{ id: string; stage: string; extra?: any }> = [];
-const registryInserts: any[][] = [];
+const stageCalls: Array<{ id: string; stage: string; extra?: unknown }> = [];
+const registryInserts: unknown[][] = [];
 
 vi.mock('./generation-jobs', () => ({
-  updateJobStage: vi.fn(async (id: string, stage: string, extra?: any) => {
+  updateJobStage: vi.fn(async (id: string, stage: string, extra?: unknown) => {
     stageCalls.push({ id, stage, extra });
   }),
   updateJobStatus: vi.fn(async () => {}),
@@ -18,7 +18,7 @@ vi.mock('./generation-jobs', () => ({
 }));
 
 vi.mock('./website-db', () => ({
-  pool: { query: vi.fn(async (...args: any[]) => { registryInserts.push(args); return { rows: [] }; }) },
+  pool: { query: vi.fn(async (...args: unknown[]) => { registryInserts.push(args); return { rows: [] }; }) },
 }));
 
 import { finaliseJob } from '../pages/api/admin/generate-3d/status';

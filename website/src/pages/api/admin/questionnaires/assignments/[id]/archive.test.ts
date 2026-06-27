@@ -30,33 +30,33 @@ describe('POST /api/admin/questionnaires/assignments/[id]/archive', () => {
   });
 
   it('401 when not admin', async () => {
-    vi.mocked(getSession).mockResolvedValue({ user: { sub: 'u' } } as any);
+    vi.mocked(getSession).mockResolvedValue({ user: { sub: 'u' } } as never);
     vi.mocked(isAdmin).mockReturnValue(false);
     const r = await POST({ request: req(), params: { id: 'a' } } as any);
     expect(r.status).toBe(401);
   });
 
   it('400 when id missing', async () => {
-    vi.mocked(getSession).mockResolvedValue({ user: { sub: 'u' } } as any);
+    vi.mocked(getSession).mockResolvedValue({ user: { sub: 'u' } } as never);
     vi.mocked(isAdmin).mockReturnValue(true);
     const r = await POST({ request: req(), params: {} } as any);
     expect(r.status).toBe(400);
   });
 
   it('404 when archive helper returns not_found', async () => {
-    vi.mocked(getSession).mockResolvedValue({ user: { sub: 'u' } } as any);
+    vi.mocked(getSession).mockResolvedValue({ user: { sub: 'u' } } as never);
     vi.mocked(isAdmin).mockReturnValue(true);
-    vi.mocked(archiveQAssignment).mockResolvedValue({ reason: 'not_found' } as any);
+    vi.mocked(archiveQAssignment).mockResolvedValue({ reason: 'not_found' } as never);
     const r = await POST({ request: req(), params: { id: 'a' } } as any);
     expect(r.status).toBe(404);
   });
 
   it('409 when status not archivable', async () => {
-    vi.mocked(getSession).mockResolvedValue({ user: { sub: 'u' } } as any);
+    vi.mocked(getSession).mockResolvedValue({ user: { sub: 'u' } } as never);
     vi.mocked(isAdmin).mockReturnValue(true);
     vi.mocked(archiveQAssignment).mockResolvedValue({
-      reason: 'not_archivable', status: 'pending',
-    } as any);
+      reason: 'not_archivable',       status: 'pending',
+    } as never);
     const r = await POST({ request: req(), params: { id: 'a' } } as any);
     expect(r.status).toBe(409);
     const body = await r.json();
@@ -64,10 +64,10 @@ describe('POST /api/admin/questionnaires/assignments/[id]/archive', () => {
   });
 
   it('200 with assignment on success', async () => {
-    vi.mocked(getSession).mockResolvedValue({ user: { sub: 'u' } } as any);
+    vi.mocked(getSession).mockResolvedValue({ user: { sub: 'u' } } as never);
     vi.mocked(isAdmin).mockReturnValue(true);
     vi.mocked(archiveQAssignment).mockResolvedValue({
-      assignment: { id: 'a', status: 'archived' } as any,
+      assignment: { id: 'a', status: 'archived' } as never,
     });
     const r = await POST({ request: req(), params: { id: 'a' } } as any);
     expect(r.status).toBe(200);

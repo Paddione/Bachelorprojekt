@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import type { UserSession } from '../../../lib/auth';
 
-let mockSession: any = null;
+let mockSession: UserSession | null = null;
 vi.mock('../../../lib/auth', () => ({
   getSession: vi.fn(async () => mockSession),
-  isAdmin: vi.fn((s: any) => s?.realmRoles?.includes('admin') ?? false),
+  isAdmin: vi.fn((s: UserSession) => s?.realmRoles?.includes('admin') ?? false),
 }));
 
 import { GET, OPTIONS } from './me';

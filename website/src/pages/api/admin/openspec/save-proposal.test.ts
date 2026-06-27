@@ -26,7 +26,7 @@ beforeEach(() => {
 });
 
 function asAdmin() {
-  vi.mocked(getSession).mockResolvedValue({ user: { sub: 'admin' }, email: 'admin@test.de' } as any);
+  vi.mocked(getSession).mockResolvedValue({ user: { sub: 'admin' }, email: 'admin@test.de' } as never);
   vi.mocked(isAdmin).mockReturnValue(true);
 }
 

@@ -35,7 +35,7 @@ beforeEach(() => {
 });
 
 function asAdmin() {
-  vi.mocked(getSession).mockResolvedValue({ user: { sub: 'admin' } } as any);
+  vi.mocked(getSession).mockResolvedValue({ user: { sub: 'admin' } } as never);
   vi.mocked(isAdmin).mockReturnValue(true);
 }
 
@@ -72,7 +72,7 @@ describe('content-section save endpoints', () => {
   });
 
   it('rejects non-admin with 403 and never writes', async () => {
-    vi.mocked(getSession).mockResolvedValue(null as any);
+    vi.mocked(getSession).mockResolvedValue(null as never);
     vi.mocked(isAdmin).mockReturnValue(false);
     const r = await navPOST({ request: jsonReq([]) } as any);
     expect(r.status).toBe(403);

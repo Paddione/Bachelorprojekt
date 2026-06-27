@@ -31,25 +31,25 @@ describe('POST /api/admin/questionnaires/assignments/[id]/reassign', () => {
   });
 
   it('400 when id missing', async () => {
-    vi.mocked(getSession).mockResolvedValue({} as any);
+    vi.mocked(getSession).mockResolvedValue({} as never);
     vi.mocked(isAdmin).mockReturnValue(true);
     const r = await POST({ request: req(), params: {} } as any);
     expect(r.status).toBe(400);
   });
 
   it('404 when source missing', async () => {
-    vi.mocked(getSession).mockResolvedValue({} as any);
+    vi.mocked(getSession).mockResolvedValue({} as never);
     vi.mocked(isAdmin).mockReturnValue(true);
-    vi.mocked(reassignQAssignment).mockResolvedValue({ reason: 'not_found' } as any);
+    vi.mocked(reassignQAssignment).mockResolvedValue({ reason: 'not_found' } as never);
     const r = await POST({ request: req(), params: { id: 'a' } } as any);
     expect(r.status).toBe(404);
   });
 
   it('200 with portalUrl (relative when PROD_DOMAIN unset)', async () => {
-    vi.mocked(getSession).mockResolvedValue({} as any);
+    vi.mocked(getSession).mockResolvedValue({} as never);
     vi.mocked(isAdmin).mockReturnValue(true);
     vi.mocked(reassignQAssignment).mockResolvedValue({
-      assignment: { id: 'newId' } as any,
+      assignment: { id: 'newId' } as never,
     });
     const r = await POST({ request: req(), params: { id: 'a' } } as any);
     expect(r.status).toBe(200);
@@ -60,10 +60,10 @@ describe('POST /api/admin/questionnaires/assignments/[id]/reassign', () => {
 
   it('200 with absolute portalUrl when PROD_DOMAIN set', async () => {
     process.env.PROD_DOMAIN = 'example.com';
-    vi.mocked(getSession).mockResolvedValue({} as any);
+    vi.mocked(getSession).mockResolvedValue({} as never);
     vi.mocked(isAdmin).mockReturnValue(true);
     vi.mocked(reassignQAssignment).mockResolvedValue({
-      assignment: { id: 'newId' } as any,
+      assignment: { id: 'newId' } as never,
     });
     const r = await POST({ request: req(), params: { id: 'a' } } as any);
     const body = await r.json();

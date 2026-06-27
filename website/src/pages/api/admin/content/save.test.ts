@@ -5,7 +5,7 @@ vi.mock('../../../../lib/website-db', () => ({
   writeContent: vi.fn(),
   ContentConflictError: class ContentConflictError extends Error {
     code = 'CONFLICT';
-    constructor(public currentVersion: number, public currentValue: any) { super('conflict'); }
+    constructor(public currentVersion: number, public currentValue: unknown) { super('conflict'); }
   },
 }));
 vi.mock('../../../../lib/content-registry', () => ({ refFor: vi.fn() }));
@@ -34,7 +34,7 @@ beforeEach(() => {
 });
 
 function asAdmin() {
-  vi.mocked(getSession).mockResolvedValue({ user: { sub: 'admin' }, email: 'admin@test.de' } as any);
+  vi.mocked(getSession).mockResolvedValue({ user: { sub: 'admin' }, email: 'admin@test.de' } as never);
   vi.mocked(isAdmin).mockReturnValue(true);
 }
 
@@ -59,7 +59,7 @@ describe('POST /api/admin/content/save', () => {
     asAdmin();
     vi.mocked(refFor).mockReturnValue({ contentKey: 'kontakt', contentType: 'site_setting', storeKey: 'kontakt', publicRoute: '/kontakt' });
     vi.mocked(validateSection).mockReturnValue([]);
-    vi.mocked(writeContent).mockRejectedValue(new (vi.mocked(ContentConflictError) as any)(5, { old: 'value' }));
+    vi.mocked(writeContent).mockRejectedValue(new (vi.mocked(ContentConflictError) as never)(5, { old: 'value' }));
     const res = await POST({ request: jsonReq({ contentKey: 'kontakt', baseVersion: 2, payload: {} }), url: new URL('http://x/') } as any);
     expect(res.status).toBe(409);
     const body = await res.json();

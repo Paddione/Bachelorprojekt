@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import type { HomepageBlocksDocumentType } from '../../lib/homepage-blocks-store';
 
-let mockDoc: any = null;
+let mockDoc: HomepageBlocksDocumentType | null = null;
 vi.mock('../../lib/homepage-blocks-store', () => ({
   readCurrent: vi.fn(async () => ({ document: mockDoc, version: mockDoc ? 5 : 0 })),
 }));
@@ -28,7 +29,7 @@ const req = (origin: string | null, method = 'GET') =>
 describe('GET /api/homepage (public)', () => {
   it('returns the stored document with CORS + version header for an allowlisted origin', async () => {
     mockDoc = { schemaVersion: 1, blocks: [{ id: 'spacer', type: 'spacer', props: { size: 8 } }] };
-    const res = await GET({ request: req(REACT) } as any);
+    const res = await GET({ request: req(REACT) } as Parameters<typeof GET>[0]);
     expect(res.status).toBe(200);
     expect(res.headers.get('Access-Control-Allow-Origin')).toBe(REACT);
     expect(res.headers.get('X-Homepage-Version')).toBe('5');
@@ -40,20 +41,20 @@ describe('GET /api/homepage (public)', () => {
 
   it('returns 204 when no document is stored', async () => {
     mockDoc = null;
-    const res = await GET({ request: req(REACT) } as any);
+    const res = await GET({ request: req(REACT) } as Parameters<typeof GET>[0]);
     expect(res.status).toBe(204);
   });
 
   it('serves without authentication (no cookie)', async () => {
     mockDoc = { schemaVersion: 1, blocks: [] };
-    const res = await GET({ request: req(null) } as any);
+    const res = await GET({ request: req(null) } as Parameters<typeof GET>[0]);
     expect(res.status).toBe(200);
   });
 });
 
 describe('OPTIONS /api/homepage', () => {
   it('answers an allowlisted preflight with 204 + Allow-Origin', () => {
-    const res = OPTIONS({ request: req(REACT, 'OPTIONS') } as any);
+    const res = OPTIONS({ request: req(REACT, 'OPTIONS') } as Parameters<typeof OPTIONS>[0]);
     expect(res.status).toBe(204);
     expect(res.headers.get('Access-Control-Allow-Origin')).toBe(REACT);
   });

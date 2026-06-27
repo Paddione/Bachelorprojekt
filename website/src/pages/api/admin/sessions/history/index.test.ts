@@ -38,7 +38,7 @@ describe('History and Purge API Endpoints', () => {
 
   describe('GET /api/admin/sessions/history', () => {
     it('returns 401 when anonymous', async () => {
-      (getSession as any).mockResolvedValue(null);
+      vi.mocked(getSession).mockResolvedValue(null);
       const req = new Request('http://x/api/admin/sessions/history');
       const res = await getHistoryList({ request: req, locals } as any);
       expect(res.status).toBe(401);
@@ -56,26 +56,26 @@ describe('History and Purge API Endpoints', () => {
       writeFileSync(join(tmpArchiveDir, 'p1.meta.json'), JSON.stringify(metaPaddione));
 
       // 1. Non-admin Gekko user
-      (getSession as any).mockResolvedValue({ preferred_username: 'gekko' });
-      (isAdmin as any).mockReturnValue(false);
+      vi.mocked(getSession).mockResolvedValue({ preferred_username: 'gekko' });
+      vi.mocked(isAdmin).mockReturnValue(false);
 
       let req = new Request('http://x/api/admin/sessions/history');
       let res = await getHistoryList({ request: req, locals } as any);
       expect(res.status).toBe(200);
       let body = await res.json();
       expect(body.total).toBe(2);
-      expect(body.items.map((i: any) => i.id)).toEqual(['g1', 'g2']);
+      expect(body.items.map((i: { id: string }) => i.id)).toEqual(['g1', 'g2']);
 
       // 2. Admin user sees all
-      (getSession as any).mockResolvedValue({ preferred_username: 'gekko' });
-      (isAdmin as any).mockReturnValue(true);
+      vi.mocked(getSession).mockResolvedValue({ preferred_username: 'gekko' });
+      vi.mocked(isAdmin).mockReturnValue(true);
 
       req = new Request('http://x/api/admin/sessions/history');
       res = await getHistoryList({ request: req, locals } as any);
       expect(res.status).toBe(200);
       body = await res.json();
       expect(body.total).toBe(3);
-      expect(body.items.map((i: any) => i.id)).toEqual(['g1', 'g2', 'p1']);
+      expect(body.items.map((i: { id: string }) => i.id)).toEqual(['g1', 'g2', 'p1']);
     });
 
     it('paginates correctly using limit and offset', async () => {
@@ -94,8 +94,8 @@ describe('History and Purge API Endpoints', () => {
         writeFileSync(join(tmpArchiveDir, `s-${i}.meta.json`), JSON.stringify(meta));
       }
 
-      (getSession as any).mockResolvedValue({ preferred_username: 'gekko' });
-      (isAdmin as any).mockReturnValue(false);
+      vi.mocked(getSession).mockResolvedValue({ preferred_username: 'gekko' });
+      vi.mocked(isAdmin).mockReturnValue(false);
 
       const req = new Request('http://x/api/admin/sessions/history?offset=0&limit=2');
       const res = await getHistoryList({ request: req, locals } as any);
@@ -104,7 +104,7 @@ describe('History and Purge API Endpoints', () => {
       expect(body.items.length).toBe(2);
       expect(body.total).toBe(5);
       expect(body.hasMore).toBe(true);
-      expect(body.items.map((i: any) => i.id)).toEqual(['s-0', 's-1']);
+      expect(body.items.map((i: { id: string }) => i.id)).toEqual(['s-0', 's-1']);
     });
 
     it('filters by type', async () => {
@@ -115,8 +115,8 @@ describe('History and Purge API Endpoints', () => {
       writeFileSync(join(tmpArchiveDir, 's1.meta.json'), JSON.stringify(metaForm));
       writeFileSync(join(tmpArchiveDir, 's2.meta.json'), JSON.stringify(metaBrainstorm));
 
-      (getSession as any).mockResolvedValue({ preferred_username: 'gekko' });
-      (isAdmin as any).mockReturnValue(false);
+      vi.mocked(getSession).mockResolvedValue({ preferred_username: 'gekko' });
+      vi.mocked(isAdmin).mockReturnValue(false);
 
       const req = new Request('http://x/api/admin/sessions/history?type=form');
       const res = await getHistoryList({ request: req, locals } as any);
@@ -134,26 +134,26 @@ describe('History and Purge API Endpoints', () => {
       writeFileSync(join(tmpArchiveDir, 'g1.md'), '# Gekko Markdown Content');
 
       // 1. Unauthenticated -> 401
-      (getSession as any).mockResolvedValue(null);
+      vi.mocked(getSession).mockResolvedValue(null);
       let res = await getHistoryItem({ request: new Request('http://x'), params: { id: 'g1' }, locals } as any);
       expect(res.status).toBe(401);
 
       // 2. Authenticated non-owner -> 403
-      (getSession as any).mockResolvedValue({ preferred_username: 'paddione' });
-      (isAdmin as any).mockReturnValue(false);
+      vi.mocked(getSession).mockResolvedValue({ preferred_username: 'paddione' });
+      vi.mocked(isAdmin).mockReturnValue(false);
       res = await getHistoryItem({ request: new Request('http://x'), params: { id: 'g1' }, locals } as any);
       expect(res.status).toBe(403);
 
       // 3. Authenticated owner -> 200
-      (getSession as any).mockResolvedValue({ preferred_username: 'gekko' });
-      (isAdmin as any).mockReturnValue(false);
+      vi.mocked(getSession).mockResolvedValue({ preferred_username: 'gekko' });
+      vi.mocked(isAdmin).mockReturnValue(false);
       res = await getHistoryItem({ request: new Request('http://x'), params: { id: 'g1' }, locals } as any);
       expect(res.status).toBe(200);
       expect(await res.text()).toBe('# Gekko Markdown Content');
 
       // 4. Admin sees others -> 200
-      (getSession as any).mockResolvedValue({ preferred_username: 'admin' });
-      (isAdmin as any).mockReturnValue(true);
+      vi.mocked(getSession).mockResolvedValue({ preferred_username: 'admin' });
+      vi.mocked(isAdmin).mockReturnValue(true);
       res = await getHistoryItem({ request: new Request('http://x'), params: { id: 'g1' }, locals } as any);
       expect(res.status).toBe(200);
 
@@ -168,8 +168,8 @@ describe('History and Purge API Endpoints', () => {
       process.env.SESSIONS_CRON_TOKEN = 'my-secret-cron-token';
 
       // 1. No auth -> 401
-      (getSession as any).mockResolvedValue(null);
-      (isAdmin as any).mockReturnValue(false);
+      vi.mocked(getSession).mockResolvedValue(null);
+      vi.mocked(isAdmin).mockReturnValue(false);
       let req = new Request('http://x', { method: 'POST' });
       let res = await triggerPurge({ request: req, locals } as any);
       expect(res.status).toBe(401);
@@ -183,8 +183,8 @@ describe('History and Purge API Endpoints', () => {
       expect(res.status).toBe(401);
 
       // 3. Admin session cookie -> 200
-      (getSession as any).mockResolvedValue({ preferred_username: 'admin' });
-      (isAdmin as any).mockReturnValue(true);
+      vi.mocked(getSession).mockResolvedValue({ preferred_username: 'admin' });
+      vi.mocked(isAdmin).mockReturnValue(true);
       req = new Request('http://x', { method: 'POST' });
       res = await triggerPurge({ request: req, locals } as any);
       expect(res.status).toBe(200);
@@ -192,8 +192,8 @@ describe('History and Purge API Endpoints', () => {
       expect(body.purged).toBeDefined();
 
       // 4. Cron token header -> 200
-      (getSession as any).mockResolvedValue(null);
-      (isAdmin as any).mockReturnValue(false);
+      vi.mocked(getSession).mockResolvedValue(null);
+      vi.mocked(isAdmin).mockReturnValue(false);
       req = new Request('http://x', {
         method: 'POST',
         headers: { 'X-Cron-Token': 'my-secret-cron-token' }

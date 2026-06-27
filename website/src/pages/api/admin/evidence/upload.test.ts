@@ -8,6 +8,7 @@ vi.mock('../../../../lib/auth', () => ({
 }));
 
 import { getSession, isAdmin } from '../../../../lib/auth';
+import type { UserSession } from '../../../../lib/auth';
 import { POST } from './upload';
 import { pool } from '../../../../lib/website-db';
 import { ensureSystemtestSchema } from '../../../../lib/systemtest/db';
@@ -18,7 +19,7 @@ const dbAvailable = !!(
   process.env.SESSIONS_DATABASE_URL
 );
 
-const mockSession = { sub: 'admin', preferred_username: 'admin' };
+const mockSession = { sub: 'admin', preferred_username: 'admin' } as unknown as UserSession;
 
 function makeReq(body: unknown): Request {
   return new Request('http://test/api/admin/evidence/upload', {
@@ -37,7 +38,7 @@ describe.skipIf(!dbAvailable)('POST /api/admin/evidence/upload', () => {
   });
 
   beforeEach(() => {
-    vi.mocked(getSession).mockResolvedValue(mockSession as any);
+    vi.mocked(getSession).mockResolvedValue(mockSession);
     vi.mocked(isAdmin).mockReturnValue(true);
   });
 

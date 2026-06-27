@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Pool } from 'pg';
 import { startAction, finishAction, checkConcurrent, ConcurrentActionError } from '../admin-actions';
 
-function mockPool(impl: (q: string, params: any[]) => any): Pool {
-  return { query: vi.fn(impl) } as any;
+function mockPool(impl: (q: string, params: unknown[]) => unknown): Pool {
+  return { query: vi.fn(impl) } as unknown as Pool;
 }
 
 describe('startAction', () => {

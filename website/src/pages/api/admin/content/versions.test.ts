@@ -22,13 +22,13 @@ describe('GET /api/admin/content/versions', () => {
   });
 
   it('returns list of versions with id, editor, createdAt (no snapshot)', async () => {
-    vi.mocked(getSession).mockResolvedValue({ user: { sub: 'admin' } } as any);
+    vi.mocked(getSession).mockResolvedValue({ user: { sub: 'admin' } } as never);
     vi.mocked(isAdmin).mockReturnValue(true);
     const mockVersions = [
       { id: 3, editor: 'admin@x.de', createdAt: new Date('2026-01-01'), snapshot: { value: { secret: 'stuff' } } },
       { id: 2, editor: 'admin@x.de', createdAt: new Date('2025-12-31'), snapshot: { value: { old: 'data' } } },
     ];
-    vi.mocked(listVersions).mockResolvedValue(mockVersions as any);
+    vi.mocked(listVersions).mockResolvedValue(mockVersions as never);
     const url = new URL('http://x/api/admin/content/versions?key=kontakt');
     const res = await GET({ request: new Request(url), url } as any);
     expect(res.status).toBe(200);
@@ -41,7 +41,7 @@ describe('GET /api/admin/content/versions', () => {
   });
 
   it('returns 400 when key param missing', async () => {
-    vi.mocked(getSession).mockResolvedValue({ user: { sub: 'admin' } } as any);
+    vi.mocked(getSession).mockResolvedValue({ user: { sub: 'admin' } } as never);
     vi.mocked(isAdmin).mockReturnValue(true);
     const url = new URL('http://x/api/admin/content/versions');
     const res = await GET({ request: new Request(url), url } as any);

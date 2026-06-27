@@ -7,7 +7,7 @@ vi.mock('../../../../lib/auth', () => ({
 
 const mockQuery = vi.fn();
 vi.mock('../../../../lib/website-db', () => ({
-  pool: { query: (...args: any[]) => mockQuery(...args) },
+  pool: { query: (...args: unknown[]) => mockQuery(...args) },
   initBillingTables: vi.fn().mockResolvedValue(undefined),
 }));
 
@@ -17,15 +17,16 @@ vi.mock('../../../../lib/sepa-pain008', () => ({
 }));
 
 import { getSession, isAdmin } from '../../../../lib/auth';
+import type { UserSession } from '../../../../lib/auth';
 import { GET } from './sepa-export';
 
-const mockSession = { user: { id: 'admin1' } };
+const mockSession = { user: { id: 'admin1' } } as unknown as UserSession;
 
 describe('GET /api/admin/billing/sepa-export', () => {
-  let envBackup: any;
+  let envBackup: NodeJS.ProcessEnv;
 
   beforeEach(() => {
-    vi.mocked(getSession).mockResolvedValue(mockSession as any);
+    vi.mocked(getSession).mockResolvedValue(mockSession);
     vi.mocked(isAdmin).mockReturnValue(true);
     mockQuery.mockReset();
     envBackup = { ...process.env };

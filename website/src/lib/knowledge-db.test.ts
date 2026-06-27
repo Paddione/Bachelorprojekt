@@ -2,7 +2,7 @@ import { describe, test, expect, beforeAll, afterAll, beforeEach, vi } from 'vit
 import { newDb, DataType } from 'pg-mem';
 import * as kdb from './knowledge-db';
 
-let pool: ReturnType<ReturnType<typeof newDb>['adapters']['createPg']>['Pool'] extends new (...args: any[]) => infer T ? T : never;
+let pool: ReturnType<ReturnType<typeof newDb>['adapters']['createPg']>['Pool'] extends new (...args: unknown[]) => infer T ? T : never;
 
 let pgmem: ReturnType<typeof newDb>;
 

@@ -9,7 +9,7 @@ vi.mock('pg', () => {
     name: 'to_char',
     args: [DataType.date, DataType.text],
     returns: DataType.text,
-    implementation: (date: any, format: string) => {
+    implementation: (date: Date | string | null, format: string) => {
       if (!date) return null;
       const d = new Date(date);
       if (isNaN(d.getTime())) return String(date);

@@ -63,7 +63,7 @@ describe('provider routing schema', () => {
     const { rows } = await pool.query(
       `SELECT tier FROM tickets.provider_config WHERE source='*' AND provider='anthropic' ORDER BY tier`,
     );
-    expect(rows.map((r: any) => r.tier)).toEqual(['haiku', 'sonnet']);
+    expect(rows.map((r: { tier: string }) => r.tier)).toEqual(['haiku', 'sonnet']);
   });
 
   it('creates provider_health keyed by provider', async () => {

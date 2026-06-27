@@ -2,12 +2,12 @@ import { describe, it, expect, vi } from 'vitest';
 
 vi.mock('../../../lib/auth', () => ({
   getSession: vi.fn(async (c: string | null) => (c === 'admin' ? { groups: ['admins'] } : null)),
-  isAdmin: vi.fn((s: any) => s?.groups?.includes('admins') ?? false),
+  isAdmin: vi.fn((s: { groups?: string[] } | null | undefined) => s?.groups?.includes('admins') ?? false),
 }));
 const getTicketDetail = vi.fn();
-vi.mock('../../../lib/factory-floor', () => ({ getTicketDetail: (...a: any[]) => getTicketDetail(...a) }));
+vi.mock('../../../lib/factory-floor', () => ({ getTicketDetail: (...a: unknown[]) => getTicketDetail(...a) }));
 const fetchCiChecks = vi.fn();
-vi.mock('../../../lib/factory-ci', () => ({ fetchCiChecks: (...a: any[]) => fetchCiChecks(...a) }));
+vi.mock('../../../lib/factory-ci', () => ({ fetchCiChecks: (...a: unknown[]) => fetchCiChecks(...a) }));
 
 import { GET } from './[extId]/ci';
 const req = (c: string | null) => new Request('http://x/api/factory-floor/T1/ci', { headers: c ? { cookie: c } : {} });

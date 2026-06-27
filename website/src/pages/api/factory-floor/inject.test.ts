@@ -5,10 +5,10 @@ import { describe, it, expect, vi } from 'vitest';
 // path that resolves to the real module (vi.mock matches the resolved module).
 vi.mock('../../../lib/auth', () => ({
   getSession: vi.fn(async (cookie: string | null) => (cookie === 'admin' ? { preferred_username: 'admin', groups: ['admins'] } : null)),
-  isAdmin: vi.fn((s: any) => s?.groups?.includes('admins') ?? false),
+  isAdmin: vi.fn((s: { groups?: string[] } | null | undefined) => s?.groups?.includes('admins') ?? false),
 }));
 const insertInjection = vi.fn(async () => ({ id: 'x' }));
-vi.mock('../../../lib/factory-floor', () => ({ insertInjection: (...a: any[]) => insertInjection(...(a as [])) }));
+vi.mock('../../../lib/factory-floor', () => ({ insertInjection: (...a: unknown[]) => insertInjection(...a) }));
 
 import { POST } from './[extId]/inject';
 
@@ -32,7 +32,7 @@ describe('POST /api/factory-floor/[extId]/inject', () => {
   });
 
   it('201 inserts a context injection for an admin', async () => {
-    insertInjection.mockResolvedValueOnce({ id: 'abc' } as any);
+    insertInjection.mockResolvedValueOnce({ id: 'abc' } as never);
     const res = await POST({ request: req('admin', { kind: 'context', content: 'hi', phase: 'implement' }), params: { extId: 'T000459' } } as any);
     expect(res.status).toBe(201);
     expect(insertInjection).toHaveBeenCalled();

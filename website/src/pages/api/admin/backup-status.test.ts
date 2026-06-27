@@ -151,7 +151,7 @@ describe('GET /api/admin/backup-status', () => {
   });
 
   it('returns 401 for non-admin', async () => {
-    vi.mocked(getSession).mockResolvedValue({ sub: 'u1' } as any);
+    vi.mocked(getSession).mockResolvedValue({ sub: 'u1' } as never);
     vi.mocked(isAdmin).mockReturnValue(false);
     const req = new Request('http://x/api/admin/backup-status');
     const res = await GET({ request: req } as any);

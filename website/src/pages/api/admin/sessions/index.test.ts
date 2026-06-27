@@ -17,14 +17,14 @@ describe('GET /api/admin/sessions', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('401 when anonymous', async () => {
-    (getSession as any).mockResolvedValue(null);
+    vi.mocked(getSession).mockResolvedValue(null);
     const res = await GET({ request: mkReq(), locals } as any);
     expect(res.status).toBe(401);
   });
 
   it('403 when non-admin', async () => {
-    (getSession as any).mockResolvedValue({ preferred_username: 'bob', sub: 'b', email: 'b@x' });
-    (isAdmin as any).mockReturnValue(false);
+    vi.mocked(getSession).mockResolvedValue({ preferred_username: 'bob', sub: 'b', email: 'b@x' });
+    vi.mocked(isAdmin).mockReturnValue(false);
     const res = await GET({ request: mkReq(), locals } as any);
     expect(res.status).toBe(403);
   });
@@ -36,8 +36,8 @@ describe('GET /api/admin/sessions', () => {
       { slug: 'foo', type: 'form', title: 'Foo', port: 1, public_url: 'https://session-foo.dev.example.test', local_url: 'http://localhost:1/', started_at: '2026-06-20T00:00:00Z' },
     ]));
     process.env.SESSION_HUB_REGISTRY = reg;
-    (getSession as any).mockResolvedValue({ preferred_username: 'admin', sub: 'a', email: 'a@x' });
-    (isAdmin as any).mockReturnValue(true);
+    vi.mocked(getSession).mockResolvedValue({ preferred_username: 'admin', sub: 'a', email: 'a@x' });
+    vi.mocked(isAdmin).mockReturnValue(true);
     const res = await GET({ request: mkReq(), locals } as any);
     expect(res.status).toBe(200);
     const body = await res.json();
@@ -46,8 +46,8 @@ describe('GET /api/admin/sessions', () => {
 
   it('returns an empty list when the registry file is absent', async () => {
     process.env.SESSION_HUB_REGISTRY = join(tmpdir(), 'does-not-exist-' + Date.now() + '.json');
-    (getSession as any).mockResolvedValue({ preferred_username: 'admin', sub: 'a', email: 'a@x' });
-    (isAdmin as any).mockReturnValue(true);
+    vi.mocked(getSession).mockResolvedValue({ preferred_username: 'admin', sub: 'a', email: 'a@x' });
+    vi.mocked(isAdmin).mockReturnValue(true);
     const res = await GET({ request: mkReq(), locals } as any);
     expect(res.status).toBe(200);
     const body = await res.json();

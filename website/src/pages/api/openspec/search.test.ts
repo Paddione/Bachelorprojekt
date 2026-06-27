@@ -13,7 +13,7 @@ function req(qs: string) {
     url: new URL(`http://x/api/openspec/search?${qs}`),
     request: new Request(`http://x/api/openspec/search?${qs}`),
     locals: { requestLogger: { error: () => {} } },
-  } as any;
+  } as unknown as Parameters<typeof GET>[0];
 }
 
 beforeEach(() => vi.clearAllMocks());
@@ -25,7 +25,7 @@ describe('GET /api/openspec/search', () => {
   });
 
   it('returns the top match for a query', async () => {
-    (searchOpenspec as any).mockResolvedValue([
+    vi.mocked(searchOpenspec).mockResolvedValue([
       { slug: 'openspec-pgvector', ticket_id: 'T001008', section_title: 'Write-Pfad',
         file_type: 'task_section', snippet: 'Standalone Node.js ESM-Script', similarity: 0.91 },
     ]);
@@ -34,19 +34,19 @@ describe('GET /api/openspec/search', () => {
     const body = await res.json();
     expect(body.results[0].slug).toBe('openspec-pgvector');
     expect(body.results[0].similarity).toBeGreaterThan(0.9);
-    expect((searchOpenspec as any).mock.calls[0][0]).toMatchObject({ query: 'embedding indexierung', limit: 3 });
+    expect(vi.mocked(searchOpenspec).mock.calls[0][0]).toMatchObject({ query: 'embedding indexierung', limit: 3 });
   });
 
   it('clamps limit to max 20 and passes status filter', async () => {
-    (searchOpenspec as any).mockResolvedValue([]);
+    vi.mocked(searchOpenspec).mockResolvedValue([]);
     await GET(req('q=foo&limit=999&status=plan_staged'));
-    const arg = (searchOpenspec as any).mock.calls[0][0];
+    const arg = vi.mocked(searchOpenspec).mock.calls[0][0];
     expect(arg.limit).toBe(20);
     expect(arg.status).toBe('plan_staged');
   });
 
   it('503 when the embedding service is unavailable', async () => {
-    (searchOpenspec as any).mockRejectedValue(Object.assign(new Error('router 503'), { status: 503 }));
+    vi.mocked(searchOpenspec).mockRejectedValue(Object.assign(new Error('router 503'), { status: 503 }));
     const res = await GET(req('q=embedding'));
     expect(res.status).toBe(503);
   });

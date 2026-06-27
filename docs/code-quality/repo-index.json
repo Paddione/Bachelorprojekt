@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 480,
+      "file_count": 481,
       "files": [
         "tests/.gitignore",
         "tests/batch/batch-gap-analysis.bats",
@@ -343,6 +343,7 @@
         "tests/spec/s1-violations-batch2.bats",
         "tests/spec/s1-violations.bats",
         "tests/spec/s2-cycles-g-cq07.bats",
+        "tests/spec/sealed-secret-cluster-drift.bats",
         "tests/spec/secret-rotation.bats",
         "tests/spec/secrets-deploy-automation.bats",
         "tests/spec/software-factory.bats",

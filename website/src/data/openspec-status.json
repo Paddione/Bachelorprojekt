@@ -195,6 +195,12 @@
       "status": "archived"
     }
   ],
+  "T001182": [
+    {
+      "slug": "g-cd01-korczewski-secret-drift",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

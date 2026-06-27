@@ -153,4 +153,36 @@ jobs:
 
           # Pin to the exact SHA-tagged image to guarantee the freshly built version rolls out.
           kubectl set image deployment/website website="${IMAGE}:${SHA_TAG}" -n website-korczewski
-          kubectl rollout status deployment/website -n website-korczewski --timeout=120s
+
+      - name: Pre-Rollout Secret-Check
+        env:
+          NAMESPACE: website-korczewski
+        run: |
+          MISSING=""
+          for KEY in $(python3 -c "
+          import yaml
+          with open('k3d/website.yaml') as f:
+              for doc in yaml.safe_load_all(f):
+                  if not doc: continue
+                  for c in (doc.get('spec',{}).get('template',{}).get('spec',{}).get('containers',[]) or []):
+                      for e in (c.get('env',[]) or []):
+                          v = (e.get('valueFrom') or {}).get('secretKeyRef') or {}
+                          if v.get('name') == 'website-secrets' and v.get('key'):
+                              print(v['key'])
+          "); do
+            if ! kubectl get secret website-secrets -n "$NAMESPACE" \
+                -o jsonpath="{.data.${KEY//_/\_}}" 2>/dev/null | grep -q .; then
+              MISSING="$MISSING $KEY"
+            fi
+          done
+          if [[ -n "$MISSING" ]]; then
+            echo "::error::website-secrets in $NAMESPACE is missing required keys:$MISSING"
+            echo "Fix: task env:seal ENV=korczewski && task env:deploy ENV=korczewski"
+            exit 1
+          fi
+
+      - name: Wait for rollout
+        env:
+          NAMESPACE: website-korczewski
+        run: |
+          kubectl rollout status deployment/website -n "$NAMESPACE" --timeout=120s

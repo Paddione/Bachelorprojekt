@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.134.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.134.4...website-v1.134.5) (2026-06-27)
+
+
+### Bug Fixes
+
+* **skills,docs:** update dev-flow-execute status regex, add CONTRIBUTING warnings [T001269] ([#2206](https://github.com/Paddione/Bachelorprojekt/issues/2206)) ([3637503](https://github.com/Paddione/Bachelorprojekt/commit/3637503966fa831e80ba3e83ae500f5964557ada))
+
 ## [1.134.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.134.3...website-v1.134.4) (2026-06-27)
 
 

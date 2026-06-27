@@ -349,6 +349,30 @@ fi
 Hänge gesammelte Assets mit `bash scripts/ticket-attach.sh "$TICKET_UUID" <pfade>` an.
 
 ### Schritt 5: Commit & Push — dann STOPP
+
+**Pre-Commit Guard (PFLICHT — Schritt 5) [T001268]:**
+
+Bevor der plan-stage Commit läuft, MUSS der Operator verifizieren:
+
+1. **Do not commit on main / Nicht auf main committen:**
+   ```bash
+   CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+   [ "$CURRENT_BRANCH" != "main" ] || { echo "FATAL: plan-stage commit auf main ist verboten — nutze einen Worktree-Branch." >&2; exit 1; }
+   ```
+
+2. **Clean git status / Sauberer Status ist Pflicht:**
+   ```bash
+   [ -z "$(git status --porcelain)" ] || { echo "FATAL: working tree ist nicht sauber — stash oder commit zuerst." >&2; exit 1; }
+   ```
+
+3. **Branch stimmt mit agent-lock claim überein:**
+   ```bash
+   CLAIMED_BRANCH="$(jq -r '.branch' .git/agent-locks/ticket__"$TICKET_EXT_ID".json 2>/dev/null)"
+   [ "$CLAIMED_BRANCH" = "$CURRENT_BRANCH" ] || { echo "FATAL: branch mismatch — agent-lock claim = $CLAIMED_BRANCH, HEAD = $CURRENT_BRANCH." >&2; exit 1; }
+   ```
+
+Erst nach diesen drei Checks darf `git commit` und `git push` laufen. Damit verweigern wir stale plan-stage commits auf `main`.
+
 ```bash
 # Sicherheitscheck: Branch-Guard [T000321]
 git add openspec/changes/<slug>/

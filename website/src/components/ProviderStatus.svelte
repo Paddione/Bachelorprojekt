@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { ProviderStatus } from '../lib/factory-floor';
+  import type { ProviderStatus } from '../lib/factory-floor-types';
 
   let { providerHealth }: { providerHealth: ProviderStatus[] } = $props();
 

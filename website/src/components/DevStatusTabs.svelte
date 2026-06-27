@@ -9,7 +9,7 @@
   import FactoryShippedBar from './factory/FactoryShippedBar.svelte';
   import DependencyGraph from './DependencyGraph.svelte';
   import DeliveryHistory from './DeliveryHistory.svelte';
-  import type { FloorPayload } from '../lib/factory-floor';
+  import type { FloorPayload } from '../lib/factory-floor-types';
 
   type Tab = 'factory' | 'planung' | 'control' | 'analytics' | 'abhaengigkeiten';
 

@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { ContainerDor } from '../../lib/tickets/container-detail';
-  import { DOR_KEYS } from '../../lib/tickets/container-detail';
+  import { DOR_KEYS } from '../../lib/planning-office-types';
 
   let { dor }: { dor: ContainerDor } = $props();
 

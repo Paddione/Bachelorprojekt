@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { PhaseProgressSegment } from '../../lib/factory-floor';
+  import type { PhaseProgressSegment } from '../../lib/factory-floor-types';
   let { segments }: { segments: PhaseProgressSegment[] } = $props();
 </script>
 <div class="stepper" role="img" aria-label="Pipeline-Fortschritt">

@@ -33,16 +33,18 @@ setup() {
   grep -q "export async function updateSuccessorReadiness" "$READINESS_LIB"
 }
 
-@test "static: exports TicketGraph interface" {
-  grep -q "export interface TicketGraph" "$GRAPH_LIB"
+@test "static: defines TicketGraph interface" {
+  # G-CQ08 (#2157) de-exported these internal-only interfaces (knip dead-export
+  # cleanup); they are still defined, just no longer `export`ed. Match either form.
+  grep -qE "(export )?interface TicketGraph" "$GRAPH_LIB"
 }
 
-@test "static: exports GraphNode interface" {
-  grep -q "export interface GraphNode" "$GRAPH_LIB"
+@test "static: defines GraphNode interface" {
+  grep -qE "(export )?interface GraphNode" "$GRAPH_LIB"
 }
 
-@test "static: exports GraphEdge interface" {
-  grep -q "export interface GraphEdge" "$GRAPH_LIB"
+@test "static: defines GraphEdge interface" {
+  grep -qE "(export )?interface GraphEdge" "$GRAPH_LIB"
 }
 
 @test "static: uses recursive CTE for graph traversal" {

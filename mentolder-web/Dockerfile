@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # ── Build stage ───────────────────────────────────────────────────
 FROM node:22-alpine AS build
 WORKDIR /app
@@ -18,7 +19,7 @@ ENV VITE_FORMSPREE_ENDPOINT=${VITE_FORMSPREE_ENDPOINT}
 ARG VITE_WEBSITE_ORIGIN=""
 ENV VITE_WEBSITE_ORIGIN=${VITE_WEBSITE_ORIGIN}
 
-RUN pnpm install --frozen-lockfile && pnpm run build
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store pnpm install --frozen-lockfile && pnpm run build
 
 # ── Runtime stage ─────────────────────────────────────────────────
 FROM nginx:1.27-alpine AS runtime

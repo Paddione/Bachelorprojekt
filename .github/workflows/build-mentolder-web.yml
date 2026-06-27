@@ -47,25 +47,27 @@ jobs:
         id: version
         run: echo "sha=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f  # v3
+
       - name: Build & push Docker image
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8  # v6
         env:
           VITE_FORMSPREE_ENDPOINT: ${{ secrets.MENTOLDER_WEB_FORMSPREE_ENDPOINT }}
           # Astro website origin the SPA reuses for auth + homepage persistence.
           VITE_WEBSITE_ORIGIN: "https://web.mentolder.de"
-          SHA_TAG: ${{ steps.version.outputs.sha }}
-        run: |
-          IMAGE="ghcr.io/paddione/mentolder-web"
-
-          docker build \
-            --build-arg VITE_FORMSPREE_ENDPOINT="${VITE_FORMSPREE_ENDPOINT}" \
-            --build-arg VITE_WEBSITE_ORIGIN="${VITE_WEBSITE_ORIGIN}" \
-            --tag "${IMAGE}:latest" \
-            --tag "${IMAGE}:${SHA_TAG}" \
-            --file mentolder-web/Dockerfile \
-            .
-
-          docker push "${IMAGE}:latest"
-          docker push "${IMAGE}:${SHA_TAG}"
+        with:
+          context: .
+          file: mentolder-web/Dockerfile
+          push: true
+          build-args: |
+            VITE_FORMSPREE_ENDPOINT=${{ env.VITE_FORMSPREE_ENDPOINT }}
+            VITE_WEBSITE_ORIGIN=${{ env.VITE_WEBSITE_ORIGIN }}
+          tags: |
+            ghcr.io/paddione/mentolder-web:latest
+            ghcr.io/paddione/mentolder-web:${{ steps.version.outputs.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=min
 
       - name: Deploy to fleet (react.mentolder.de)
         env:

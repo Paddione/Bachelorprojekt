@@ -61,3 +61,5 @@ jobs:
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.description=Nextcloud Talk Transcriber Bot
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

@@ -42,18 +42,22 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GH_PAT }}
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f  # v3
+
       - name: Build & push Docker image
-        run: |
-          IMAGE="ghcr.io/paddione/mediaviewer-widget"
-          SHA="${{ steps.version.outputs.sha }}"
-          docker build \
-            --build-arg VITE_ALLOWED_PARENT_ORIGINS="https://web.mentolder.de,https://web.korczewski.de,http://localhost:4321,http://web.localhost" \
-            -t "${IMAGE}:sha-${SHA}" \
-            -t "${IMAGE}:latest" \
-            -f mediaviewer-widget/Dockerfile \
-            .
-          docker push "${IMAGE}:sha-${SHA}"
-          docker push "${IMAGE}:latest"
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8  # v6
+        with:
+          context: .
+          file: mediaviewer-widget/Dockerfile
+          push: true
+          build-args: |
+            VITE_ALLOWED_PARENT_ORIGINS=https://web.mentolder.de,https://web.korczewski.de,http://localhost:4321,http://web.localhost
+          tags: |
+            ghcr.io/paddione/mediaviewer-widget:sha-${{ steps.version.outputs.sha }}
+            ghcr.io/paddione/mediaviewer-widget:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=min
 
       - name: Deploy to mentolder
         env:

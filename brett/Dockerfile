@@ -1,8 +1,9 @@
+# syntax=docker/dockerfile:1
 # Stage 1: build Vite client bundle
 FROM node:22-alpine AS builder
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm npm ci
 COPY src ./src
 COPY public ./public
 COPY vite.config.ts tsconfig.json tsconfig.client.json tsconfig.server.json ./
@@ -12,7 +13,7 @@ RUN npm run build
 FROM node:22-alpine
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+RUN --mount=type=cache,target=/root/.npm npm ci --omit=dev
 COPY src ./src
 COPY --from=builder /app/dist/client ./dist/client
 # Vite (root: 'public') bundles only index.html + imported JS into dist/client; the

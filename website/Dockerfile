@@ -1,10 +1,11 @@
+# syntax=docker/dockerfile:1
 # ── Build stage ───────────────────────────────────────────────────────────────
 # Build context is repo root so that tests/ can be copied into the runtime stage.
 FROM node:22-alpine AS build
 WORKDIR /app
 
 COPY website/package.json website/package-lock.json ./
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm npm ci
 
 COPY website/ .
 

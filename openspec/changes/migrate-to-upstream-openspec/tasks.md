@@ -12,12 +12,12 @@ depends_on_plans: []
 
 # Tasks: openspec-improvements-batch (T001267)
 
-- [ ] Task 0: Write failing tests in `tests/spec/openspec-workflow.bats`; run `bats tests/spec/openspec-workflow.bats` to verify it fails before any changes (expected: FAIL on all three guards)
-- [ ] Task 1 (T001261-a): Investigate each of the 11 stub specs — backfill from archive or delete
-- [ ] Task 2 (T001261-b): Backfill confirmed stubs from `openspec/changes/archive/<date>-<slug>/tasks.md`; delete phantom spec+change pairs
-- [ ] Task 3 (T001261-c): Bulk-add `## Purpose` + `## Requirements` H2 headers to all 60 SSOT specs via awk pass; manual review of every changed spec
-- [ ] Task 4 (T001261-d): Update `scripts/openspec-validate.ts` to enforce `## Purpose` and `## Requirements`; run `task test:openspec` — expected: PASS
-- [ ] Task 5 (T001261-e): Open PR `chore(openspec): backfill 11 SSOT stubs + add Purpose/Requirements headers [T001261]`; merge after CI green
+- [x] Task 0: Write failing tests in `tests/spec/openspec-workflow.bats`; run `bats tests/spec/openspec-workflow.bats` to verify it fails before any changes (expected: FAIL on all three guards)
+- [x] Task 1 (T001261-a): Investigate each of the 11 stub specs — backfill from archive or delete
+- [x] Task 2 (T001261-b): Backfill confirmed stubs from `openspec/changes/archive/<date>-<slug>/tasks.md`; delete phantom spec+change pairs
+- [x] Task 3 (T001261-c): Bulk-add `## Purpose` + `## Requirements` H2 headers to all 60 SSOT specs via awk pass; manual review of every changed spec
+- [x] Task 4 (T001261-d): Update `scripts/openspec-validate.ts` to enforce `## Purpose` and `## Requirements`; run `task test:openspec` — expected: PASS
+- [x] Task 5 (T001261-e): Open PR `chore(openspec): backfill 11 SSOT stubs + add Purpose/Requirements headers [T001261]`; merge after CI green
 - [ ] Task 6 (T001263-a): Run `openspec init --tools opencode,claude --profile core --force`; verify 4 `.opencode/commands/opsx-*.md` + 4 `.claude/skills/openspec-*/SKILL.md` created
 - [ ] Task 7 (T001263-b): Update `.claude/skills/dev-flow-plan/SKILL.md` — replace `task openspec:propose` with `/opsx:propose`
 - [ ] Task 8 (T001263-c): Update `.claude/skills/dev-flow-execute/SKILL.md` — replace `task openspec:apply` with `/opsx:apply`

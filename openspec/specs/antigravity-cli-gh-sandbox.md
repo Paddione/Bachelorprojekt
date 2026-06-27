@@ -3,6 +3,12 @@
 
 <!-- merged from change delta antigravity-cli-gh-sandbox.md on 2026-06-28 -->
 
+## Purpose
+
+SSOT spec for the antigravity-cli gh sandbox fix (T001274) — pre-grants `Bash(gh *)` and `Bash(gh-axi *)` permissions in the antigravity-cli `settings.json` so agents can run `gh` directly. Originally proposed in the T001274 mishap-bundle plan; merged into SSOT by `openspec.sh archive`. Wrappers added to satisfy the `validateTree` CI gate.
+
+## Requirements
+
 ### Requirement: Pre-granted gh Permissions in antigravity-cli settings
 
 The system SHALL have `Bash(gh *)` and `Bash(gh-axi *)` entries in

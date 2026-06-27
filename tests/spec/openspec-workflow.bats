@@ -52,8 +52,8 @@ setup() {
   [ -f "$REPO/.claude/skills/openspec-propose/SKILL.md" ]
 }
 
-@test "T001263: .claude/skills/openspec-apply/SKILL.md is installed" {
-  [ -f "$REPO/.claude/skills/openspec-apply/SKILL.md" ]
+@test "T001263: .claude/skills/openspec-apply-change/SKILL.md is installed" {
+  [ -f "$REPO/.claude/skills/openspec-apply-change/SKILL.md" ]
 }
 
 @test "T001263: dev-flow-plan SKILL.md references /opsx:propose" {

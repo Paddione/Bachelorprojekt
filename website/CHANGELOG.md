@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.129.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.129.3...website-v1.129.4) (2026-06-27)
+
+
+### Bug Fixes
+
+* **ci:** serialize post-merge runs + retry ticket status updates [T001203] ([#2139](https://github.com/Paddione/Bachelorprojekt/issues/2139)) ([90b33b8](https://github.com/Paddione/Bachelorprojekt/commit/90b33b8fcfe3d1852e49239644da0b990c822eab))
+
 ## [1.129.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.129.2...website-v1.129.3) (2026-06-27)
 
 

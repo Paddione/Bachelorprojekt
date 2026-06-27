@@ -207,34 +207,10 @@
       "status": "plan_staged"
     }
   ],
-  "T001203": [
+  "T001206": [
     {
-      "slug": "g-cd02-post-merge-race-guard",
+      "slug": "g-fe01-a11y-axe-violations",
       "status": "plan_staged"
-    }
-  ],
-  "T001204": [
-    {
-      "slug": "g-cq03-eslint-website",
-      "status": "plan_staged"
-    }
-  ],
-  "T001207": [
-    {
-      "slug": "g-fe02-bundle-budget",
-      "status": "plan_staged"
-    }
-  ],
-  "T001211": [
-    {
-      "slug": "2026-06-27-mcp-skill-integration",
-      "status": "archived"
-    }
-  ],
-  "T001216": [
-    {
-      "slug": "2026-06-27-ci-speed",
-      "status": "archived"
     }
   ],
   "TBD": [

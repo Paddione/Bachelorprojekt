@@ -10,19 +10,24 @@
 <link rel="stylesheet" href="./style.css">
 </head>
 <body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
 <header class="site-header">
   <a class="site-header-brand" href="./index.html">
     <span class="site-mark" aria-hidden="true">◆</span>
     <span class="site-wordmark">Dokumentation</span>
   </a>
 </header>
-<div id="search-overlay">
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
   <div id="search-box">
-    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
-    <div id="search-results"></div>
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
   </div>
 </div>
 <div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Handbücher</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./readme.html">AI-Agent Operating Guide — Registry (SSOT)</a></li><li class="sidebar-item"><a href="./readme.html">DB Audit Phase 5 — 2026-05-23</a></li><li class="sidebar-item"><a href="./readme.html">dev.mentolder.de — Operator Runbook</a></li><li class="sidebar-item"><a href="./readme.html">Korczewski Visual Design Brief</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Architektur &amp; Bausteine</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./30-bausteine.html">Bausteine — Was läuft auf der Plattform?</a></li><li class="sidebar-item"><a href="./bereitstellungsdetails.html">Bereitstellungsdetails und Server-Topologie</a></li><li class="sidebar-item"><a href="./db-schema.html">Shared DB — Schema Reference &amp; Normalization Audit</a></li><li class="sidebar-item"><a href="./00-anleitung.html">Was will ich tun?</a></li><li class="sidebar-item"><a href="./20-werkzeuge.html">Werkzeuge — Tools und Agents</a></li><li class="sidebar-item"><a href="./10-ziele.html">Ziele — Was will ich tun?</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">Audits &amp; Reports</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./2026-06-20-active-sessions-hub.html">Active Sessions Hub — Mediaviewer-Panel verlinkt aktive Forms/Brainstorm/Companion</a></li><li class="sidebar-item"><a href="./2026-06-22-agent-library.html">Agent Library Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-22-bats-coverage-batch1.html">BATS Coverage Expansion — Batch 1 (G-RH03) Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-20-cockpit-direct-ticket-links.html">Cockpit Direct Ticket Links — TicketDrawer entfernen, Titel als Navigationslinks</a></li><li class="sidebar-item sidebar-item--active"><a href="./2026-06-07-dataflow-dataleak.html" aria-current="page">Dataflow &amp; Datenleck-Audit — 2026-06-07</a></li><li class="sidebar-item"><a href="./findings.html">DB Audit Phase 5 — Findings</a></li><li class="sidebar-item"><a href="./2026-06-07-e2e-reachability-test-quality.html">E2E Reachability &amp; Test-Quality-Audit — 2026-06-07</a></li><li class="sidebar-item"><a href="./2026-06-22-ki-api-prod-migrations.html">KI-API Prod-Migrationen (T000711) Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-20-mcp-task-runner.html">MCP Task Runner Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-27-mentolder-brand-foundations-design-system.html">mentolder — Brand Foundations Design System</a></li><li class="sidebar-item"><a href="./2026-06-22-mentolder-web-unterseiten.html">mentolder-web Unterseiten Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-22-s1-violations-batch1.html">S1-Frozen-Violations Reduction — Batch 1 (G-RH01) Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-21-ticket-mcp.html">ticket-mcp Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-22-ts-suppression-elimination.html">TypeScript-Suppressionen eliminieren (G-RH02) Implementation Plan</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Entscheidungen</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./decision-log.html">Phase 5 DROP Decision Log</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Referenz</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./tasks.html">Agent-Push-Notifications für opencode/agy-Sessions</a></li><li class="sidebar-item"><a href="./tasks.html">AI: Ticket-Auto-Triage (Severity-Erkennung)</a></li><li class="sidebar-item"><a href="./alert-email-test.html">Alert-E-Mail-Test (synthetisch)</a></li><li class="sidebar-item"><a href="./api-surface.html">API Surface Map</a></li><li class="sidebar-item"><a href="./tasks.html">Art Library Webapp Integration</a></li><li class="sidebar-item"><a href="./audit-log-retention.html">Audit-Log Retention — DSGVO-Dokumentation</a></li><li class="sidebar-item"><a href="./blast-radius.html">Blast-Radius-Report</a></li><li class="sidebar-item"><a href="./brainstorm-bridge-wsl.html">Brainstorm-Bridge (WSL) — Visuals &amp; Auswahl an den Nutzer kommunizieren</a></li><li class="sidebar-item"><a href="./tasks.html">Cockpit Mobile-View Implementation Plan</a></li><li class="sidebar-item"><a href="./tasks.html">Cockpit: Filter speichern / Voreinstellungen</a></li><li class="sidebar-item"><a href="./tasks.html">env-seal.sh: empty-value Keys in extra_namespaces korrekt verarbeiten (G-CD01 Root-Cause)</a></li><li class="sidebar-item"><a href="./envsubst-variable-management.html">envsubst Variable Management — Referenz</a></li><li class="sidebar-item"><a href="./tasks.html">Feature Intake: Semantischer Duplikatcheck + dynamischer Feature-Pool</a></li><li class="sidebar-item"><a href="./fleet-stage2-cutover-runbook.html">Fleet Stage 2 — Cutover Runbook</a></li><li class="sidebar-item"><a href="./fleet-2026-05-31-what-changed.html">Fleet-Konsolidierung — was sich am 2026-05-31 geändert hat</a></li><li class="sidebar-item"><a href="./tasks.html">G-CD01: korczewski-Deploy-Lane — stale SealedSecret reparieren + Drift-Prevention</a></li><li class="sidebar-item"><a href="./tasks.html">G-CD02: post-merge.yml Race-Guard härten (93% → ≥95%)</a></li><li class="sidebar-item"><a href="./tasks.html">G-CQ03: ESLint in website/ einrichten + Warnings auf 0</a></li><li class="sidebar-item"><a href="./tasks.html">G-CQ08: Dead-Code/unused exports in website/src via knip messen + −50%</a></li><li class="sidebar-item"><a href="./tasks.html">G-DEP02: Veraltete Major-Deps (website) 9 → ≤3</a></li><li class="sidebar-item"><a href="./tasks.html">G-FE01: a11y axe-Violations (Kern-Routen beider Marken) auf 0 crit/serious</a></li><li class="sidebar-item"><a href="./tasks.html">G-FE02: Client-JS-Bundle messen + Budget (kein Netto-Zuwachs/Release)</a></li><li class="sidebar-item"><a href="./tasks.html">G-IMG02: Fremd-Image-Versions-Drift vereinheitlichen (busybox/curl)</a></li><li class="sidebar-item"><a href="./proposal.html">G-RH01: S1-Frozen-Violations Batch 1 — baseline.json 98→≤30</a></li><li class="sidebar-item"><a href="./tasks.html">G-RH01: S1-Frozen-Violations Batch 1 — baseline.json 98→≤30</a></li><li class="sidebar-item"><a href="./proposal.html">G-RH03: BATS Coverage Batch 1 — OpenSpec 17%→23%</a></li><li class="sidebar-item"><a href="./tasks.html">G-RH03: BATS Coverage Batch 1 — OpenSpec 17%→23%</a></li><li class="sidebar-item"><a href="./tasks.html">Implementation Plan: cockpit-bulk-status</a></li><li class="sidebar-item"><a href="./design-system.html">mentolder Design-System</a></li><li class="sidebar-item"><a href="./tasks.html">mentolder.de Website-Frontend in React neu aufbauen</a></li><li class="sidebar-item"><a href="./tasks.html">Messbare Delivery-Pipeline + DORA-Dashboard</a></li><li class="sidebar-item"><a href="./tasks.html">Pocket ID Migration — Keycloak ersetzen durch Pocket ID</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: agent-push-notifications</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: AI: Ticket-Auto-Triage (Severity-Erkennung)</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: art-library-webapp-integration</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: cockpit-bulk-status</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: cockpit-filter-presets</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: cockpit-mobile-view</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: dora-delivery-pipeline</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: env-seal-empty-value-keys</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: Feature Intake + Knowledge-Graph-Anreicherung</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-cd01-korczewski-secret-drift</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-cd02-post-merge-race-guard</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-cq03-eslint-website</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-cq08-knip-dead-code</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-dep02-major-deps-website (G-DEP02)</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-fe01-a11y-axe-violations</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-fe02-bundle-budget</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: img02-image-drift (G-IMG02)</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: Mentolder Homepage — hifi-Redesign in Astro+Svelte</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: mentolder.de Website-Frontend in React neu aufbauen</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: pocket-id-migration</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: ticket-mcp Go-Rewrite mit HTTP-Transport [T001043]</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: ticket-verlauf-anhaenge</a></li><li class="sidebar-item"><a href="./secrets-architecture.html">Secrets-Dateiarchitektur</a></li><li class="sidebar-item"><a href="./shared-infrastructure-security.html">Shared Infrastructure Security — Cross-Brand Analysis</a></li><li class="sidebar-item"><a href="./overview.html">Skills Overview</a></li><li class="sidebar-item"><a href="./factory-usage.html">Software Factory — Usage Guide</a></li><li class="sidebar-item"><a href="./systemtest-fragebogen.html">Systemtest-Protokoll — Workspace Collaboration Platform</a></li><li class="sidebar-item"><a href="./tasks.html">Tasks: ticket-verlauf-anhaenge</a></li><li class="sidebar-item"><a href="./tasks.html">ticket-mcp Go-Rewrite mit HTTP-Transport</a></li><li class="sidebar-item"><a href="./wsl-bootstrap.html">WSL Bootstrapping Gotchas</a></li></ul></details>
+</aside>
   <main id="main">
 <header class="page-header">
   <div class="page-header-body">
@@ -41,6 +46,19 @@
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#executive-summary"><span class="toc-num">1.</span> Executive Summary</a></li>
 <li class="toc-item"><a href="#per-app-dataflow-maps"><span class="toc-num">2.</span> Per-App Dataflow Maps</a></li>
+<li class="toc-item toc-item--h3"><a href="#1-website--api-backend"><span class="toc-num">–</span> 1. Website + /api Backend</a></li>
+<li class="toc-item toc-item--h3"><a href="#2-keycloak-oidcsso"><span class="toc-num">–</span> 2. Keycloak (OIDC/SSO)</a></li>
+<li class="toc-item toc-item--h3"><a href="#3-nextcloud-files--talk-video"><span class="toc-num">–</span> 3. Nextcloud (Files + Talk Video)</a></li>
+<li class="toc-item toc-item--h3"><a href="#4-collabora-office"><span class="toc-num">–</span> 4. Collabora (Office)</a></li>
+<li class="toc-item toc-item--h3"><a href="#5-vaultwarden-passwoerter"><span class="toc-num">–</span> 5. Vaultwarden (Passwörter)</a></li>
+<li class="toc-item toc-item--h3"><a href="#6-whiteboard"><span class="toc-num">–</span> 6. Whiteboard</a></li>
+<li class="toc-item toc-item--h3"><a href="#7-docuseal-signing"><span class="toc-num">–</span> 7. DocuSeal (Signing)</a></li>
+<li class="toc-item toc-item--h3"><a href="#8-docs-statische-html-dokumentation"><span class="toc-num">–</span> 8. Docs (Statische HTML-Dokumentation)</a></li>
+<li class="toc-item toc-item--h3"><a href="#9-mailpit"><span class="toc-num">–</span> 9. Mailpit</a></li>
+<li class="toc-item toc-item--h3"><a href="#10-brett-3d-systembrett"><span class="toc-num">–</span> 10. Brett (3D Systembrett)</a></li>
+<li class="toc-item toc-item--h3"><a href="#11-livekit-webrtc"><span class="toc-num">–</span> 11. LiveKit (WebRTC)</a></li>
+<li class="toc-item toc-item--h3"><a href="#12-talk-hpb--signaling--coturn--transcriber"><span class="toc-num">–</span> 12. Talk HPB + Signaling + Coturn + Transcriber</a></li>
+<li class="toc-item toc-item--h3"><a href="#13-recovery-browser"><span class="toc-num">–</span> 13. Recovery Browser</a></li>
 <li class="toc-item"><a href="#cross-brand-isolation"><span class="toc-num">3.</span> Cross-Brand-Isolation</a></li>
 <li class="toc-item"><a href="#investigierte--verworfen-kein-leck"><span class="toc-num">4.</span> Investigierte &amp; Verworfen (kein Leck)</a></li>
 <li class="toc-item"><a href="#priorisierte-massnahmen"><span class="toc-num">5.</span> Priorisierte Maßnahmen</a></li>
@@ -80,7 +98,7 @@
 </tbody></table>
 <hr>
 <h2 id="per-app-dataflow-maps">Per-App Dataflow Maps</h2>
-<h3>1. Website + /api Backend</h3>
+<h3 id="1-website--api-backend">1. Website + /api Backend</h3>
 <div class="code-wrapper"><pre><code>Inputs:    User browser (HTML forms, API calls) → Astro SSR → /api/* handlers
            OIDC identity von Keycloak (JWT claims: sub, email, name, groups)
            Stripe Webhooks (Zahlungsereignisse)
@@ -106,7 +124,7 @@ Auth:      Keycloak OIDC (client_id=website); Admin-UI via isAdmin() (group /adm
 <li>Brand-spezifische Inhalte (/api/leistungen) korrekt getrennt ✅</li>
 <li>CORS: <code>Access-Control-Allow-Origin</code> nicht gesetzt → Browser blockt Cross-Origin-Reads ✅</li>
 </ul>
-<h3>2. Keycloak (OIDC/SSO)</h3>
+<h3 id="2-keycloak-oidcsso">2. Keycloak (OIDC/SSO)</h3>
 <div class="code-wrapper"><pre><code>Inputs:    User credentials (username/password), OIDC client registrations
            Admin UI (Realm-Konfiguration, User-Management, Group-Mappings)
 Storage:   shared-db PostgreSQL (DB: keycloak oder via shared-db Alias)
@@ -123,7 +141,7 @@ Auth:      Self-hosted; Admin-REST via Keycloak Admin CLI (client_id=admin-cli)
 <li><code>login-actions/registration</code> → 400 (keine offene Self-Service-Registrierung) ✅</li>
 <li>Issuer pro Brand korrekt getrennt (<code>auth.mentolder.de</code> vs <code>auth.korczewski.de</code>) ✅</li>
 </ul>
-<h3>3. Nextcloud (Files + Talk Video)</h3>
+<h3 id="3-nextcloud-files--talk-video">3. Nextcloud (Files + Talk Video)</h3>
 <div class="code-wrapper"><pre><code>Inputs:    User-Dateien (Upload via WebDAV/Browser), Talk-Chat-Nachrichten, Talk-Audio/Video-Streams
 Storage:   shared-db PostgreSQL (DB: nextcloud)
              ├─ oc_filecache, oc_storages, oc_share, oc_share_external, oc_comments
@@ -148,7 +166,7 @@ Auth:      Keycloak OIDC (social_login plugin); App-native für Public-Shares
 <li><code>/index.php/apps/spreed</code> → 303 zu Login ✅</li>
 <li><code>signaling.&lt;brand&gt;/api/v1/welcome</code> → 200 (public by design, enthält nur Version) ✅</li>
 </ul>
-<h3>4. Collabora (Office)</h3>
+<h3 id="4-collabora-office">4. Collabora (Office)</h3>
 <div class="code-wrapper"><pre><code>Inputs:    WOPI-Dokumente von Nextcloud (office.&lt;brand&gt; empfängt WOPI-Requests von files.&lt;brand&gt;)
 Storage:   Kein persistentes Storage — Office-Dokumente werden im RAM gerendert und zurück an Nextcloud geschrieben
 Egress:    NUR Nextcloud (WOPI Callback)
@@ -161,7 +179,7 @@ Auth:      WOPI Access-Token (Nextcloud ↔ Collabora, kein User-Direktzugriff)
 <li><code>/hosting/discovery</code>, <code>/hosting/capabilities</code> → 200 (public by design, WOPI-Protokoll) ✅</li>
 <li>Keine User-Dokumente unauthenticated erreichbar (WOPI erfordert Access-Token) ✅</li>
 </ul>
-<h3>5. Vaultwarden (Passwörter)</h3>
+<h3 id="5-vaultwarden-passwoerter">5. Vaultwarden (Passwörter)</h3>
 <div class="code-wrapper"><pre><code>Inputs:    User-Passwörter, Notizen, Kreditkarten, TOTP-Seeds (vom User eingegeben)
 Storage:   shared-db PostgreSQL (DB: vaultwarden)
              ├─ ciphers (verschlüsselt mit User-Master-Password), attachments (verschlüsselt)
@@ -182,7 +200,7 @@ Auth:      Keycloak OIDC (client_id=vaultwarden); Master-Password als Zweitfakto
 <li><code>disableUserRegistration</code> ist <code>true</code> auf beiden Brands ✅</li>
 <li>Kein unauthenticated Vault-Zugriff ✅</li>
 </ul>
-<h3>6. Whiteboard</h3>
+<h3 id="6-whiteboard">6. Whiteboard</h3>
 <div class="code-wrapper"><pre><code>Inputs:    Zeichen-/Canvas-Daten vom Browser (via WebSocket/Yjs)
 Storage:   In-Memory (Yjs Document); kein persistentes Storage außer optionalem Export
 Egress:    Kein externer Egress
@@ -194,7 +212,7 @@ Auth:      App-native JWT (Whiteboard-Server validiert Token via öffentlichem K
 <li>Kein Raum-Join ohne JWT-Token (WebSocket authentifiziert, konnte nicht unauthenticated getestet werden)</li>
 <li><code>/health</code> → 404 (kein dedizierter Liveness-Endpoint; nicht exponiert) ⚠️</li>
 </ul>
-<h3>7. DocuSeal (Signing)</h3>
+<h3 id="7-docuseal-signing">7. DocuSeal (Signing)</h3>
 <div class="code-wrapper"><pre><code>Inputs:    PDF-Dokumente (Upload), Signatur-Felder, Signer-Namen/Emails
 Storage:   shared-db PostgreSQL (DB: docuseal)
              ├─ templates, submissions, signers, documents
@@ -213,7 +231,7 @@ Auth:      Keycloak OIDC (client_id=docuseal); Public-Submission-Links für exte
 <li><code>/submissions</code> → 302 zu /setup (nicht exponiert) ✅</li>
 <li>Nur Setup-Wizard sichtbar ✅</li>
 </ul>
-<h3>8. Docs (Statische HTML-Dokumentation)</h3>
+<h3 id="8-docs-statische-html-dokumentation">8. Docs (Statische HTML-Dokumentation)</h3>
 <div class="code-wrapper"><pre><code>Inputs:    Pre-built HTML (kompiliert aus docs/ + Skills, in Container-Image gebaked)
 Storage:   Container-Image (read-only Rootfs)
              └─ PII: Nein (rein statisches HTML, keine User-Daten)
@@ -226,7 +244,7 @@ Auth:      oauth2-proxy → Keycloak OIDC (client_id=docs, group /docs-access)
 <li>oauth2-proxy gating funktioniert auf beiden Brands ✅</li>
 <li>Kein statisches HTML ohne Auth ausgeliefert ✅</li>
 </ul>
-<h3>9. Mailpit</h3>
+<h3 id="9-mailpit">9. Mailpit</h3>
 <div class="code-wrapper"><pre><code>Inputs:    SMTP-E-Mails von allen Services (via SMTP smtp.mailbox.org → Mailpit catch-all in Dev; in Prod: kein Catch-All)
 Storage:   SQLite (in-Memory/flüchtig in Dev; Prod: Mailpit ist Dev-Tool, sollte in Prod nicht Catch-All sein)
              └─ PII: JA — ALLE ausgehenden E-Mails (Rechnungen, Coaching, Newsletter, Passwort-Resets)
@@ -240,7 +258,7 @@ Auth:      oauth2-proxy → Keycloak OIDC
 <li><code>/api/v1/messages?limit=1</code> → 401 ✅ (PII-geschützt)</li>
 <li>Kein unauthenticated Zugriff auf E-Mail-Inhalte ✅</li>
 </ul>
-<h3>10. Brett (3D Systembrett)</h3>
+<h3 id="10-brett-3d-systembrett">10. Brett (3D Systembrett)</h3>
 <div class="code-wrapper"><pre><code>Inputs:    User-Interaktionen via WebSocket (Figuren-Platzierung, Gruppen, Sessions)
 Storage:   shared-db PostgreSQL (DB: brett oder separate DB)
              ├─ boards, customers, presets, snapshots (Board-Konfiguration)
@@ -255,7 +273,7 @@ Auth:      oauth2-proxy → Keycloak OIDC (client_id=brett); App-native WebSocke
 <li><code>/api/state</code>, <code>/healthz</code>, <code>/three.min.js</code> → alle 302 zu Keycloak ✅</li>
 <li>Kein unauthenticated Board-State geleakt ✅</li>
 </ul>
-<h3>11. LiveKit (WebRTC)</h3>
+<h3 id="11-livekit-webrtc">11. LiveKit (WebRTC)</h3>
 <div class="code-wrapper"><pre><code>Inputs:    Audio/Video-Streams (E2E-verschlüsselt, DTLS-SRTP)
            Token-Anfragen (via Website `/api/stream/token`)
 Storage:   Redis (Raum-Status, Participant-List; flüchtig)
@@ -269,7 +287,7 @@ Auth:      LiveKit Access-Token (via Website+Keycloak generiert); /rtc/validate 
 <li><code>/rtc/validate</code> → 401 (erfordert gültigen Grant) ✅</li>
 <li><code>/api/stream/token</code> → 401 (Website, gated) ✅</li>
 </ul>
-<h3>12. Talk HPB + Signaling + Coturn + Transcriber</h3>
+<h3 id="12-talk-hpb--signaling--coturn--transcriber">12. Talk HPB + Signaling + Coturn + Transcriber</h3>
 <div class="code-wrapper"><pre><code>Inputs:    Talk-WebRTC-Signaling (Raum-Join, ICE-Candidates, Chat-Signaling)
            Transkriptions-Webhook (Audio → Text)
 Storage:   Kein persistentes Storage (Signaling ist stateless; Transcriber: flüchtige Audio-Chunks)
@@ -284,7 +302,7 @@ Auth:      Signaling: App-native (shared Secret mit Nextcloud); Transcriber: HMA
 <li>Transcriber NICHT öffentlich geroutet (404) ✅</li>
 <li>TURN-Auth via short-term Credentials (nicht unauthenticated nutzbar)</li>
 </ul>
-<h3>13. Recovery Browser</h3>
+<h3 id="13-recovery-browser">13. Recovery Browser</h3>
 <div class="code-wrapper"><pre><code>Inputs:    Read-Only-Zugriff auf PVC-Backups (Recovery-Dateien)
 Storage:   recovery-pvc (ReadOnly-Mount)
              └─ PII: JA — Backup-Inhalte können DB-Dumps mit User-Daten enthalten
@@ -461,7 +479,9 @@ Status:    On-Demand (nicht permanent deployed); aktuell auf beiden Brands 404 (
 </body></html>
 </article>
 
+<nav class="prevnext" aria-label="Seitennavigation"><a class="prevnext-link prevnext-prev" href="./2026-06-20-cockpit-direct-ticket-links.html"><span class="prevnext-label">← Zurück</span><span class="prevnext-title">Cockpit Direct Ticket Links — TicketDrawer entfernen, Titel als Navigationslinks</span></a><a class="prevnext-link prevnext-next" href="./findings.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">DB Audit Phase 5 — Findings</span></a></nav>
   </main>
+</div>
 </div>
 <footer class="site-footer">
   <span>Workspace MVP — generierte Dokumentation</span>

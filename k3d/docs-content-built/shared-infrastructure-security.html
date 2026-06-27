@@ -10,19 +10,24 @@
 <link rel="stylesheet" href="./style.css">
 </head>
 <body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
 <header class="site-header">
   <a class="site-header-brand" href="./index.html">
     <span class="site-mark" aria-hidden="true">◆</span>
     <span class="site-wordmark">Dokumentation</span>
   </a>
 </header>
-<div id="search-overlay">
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
   <div id="search-box">
-    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
-    <div id="search-results"></div>
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
   </div>
 </div>
 <div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Handbücher</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./readme.html">AI-Agent Operating Guide — Registry (SSOT)</a></li><li class="sidebar-item"><a href="./readme.html">DB Audit Phase 5 — 2026-05-23</a></li><li class="sidebar-item"><a href="./readme.html">dev.mentolder.de — Operator Runbook</a></li><li class="sidebar-item"><a href="./readme.html">Korczewski Visual Design Brief</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Architektur &amp; Bausteine</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./30-bausteine.html">Bausteine — Was läuft auf der Plattform?</a></li><li class="sidebar-item"><a href="./bereitstellungsdetails.html">Bereitstellungsdetails und Server-Topologie</a></li><li class="sidebar-item"><a href="./db-schema.html">Shared DB — Schema Reference &amp; Normalization Audit</a></li><li class="sidebar-item"><a href="./00-anleitung.html">Was will ich tun?</a></li><li class="sidebar-item"><a href="./20-werkzeuge.html">Werkzeuge — Tools und Agents</a></li><li class="sidebar-item"><a href="./10-ziele.html">Ziele — Was will ich tun?</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Audits &amp; Reports</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./2026-06-20-active-sessions-hub.html">Active Sessions Hub — Mediaviewer-Panel verlinkt aktive Forms/Brainstorm/Companion</a></li><li class="sidebar-item"><a href="./2026-06-22-agent-library.html">Agent Library Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-22-bats-coverage-batch1.html">BATS Coverage Expansion — Batch 1 (G-RH03) Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-20-cockpit-direct-ticket-links.html">Cockpit Direct Ticket Links — TicketDrawer entfernen, Titel als Navigationslinks</a></li><li class="sidebar-item"><a href="./2026-06-07-dataflow-dataleak.html">Dataflow &amp; Datenleck-Audit — 2026-06-07</a></li><li class="sidebar-item"><a href="./findings.html">DB Audit Phase 5 — Findings</a></li><li class="sidebar-item"><a href="./2026-06-07-e2e-reachability-test-quality.html">E2E Reachability &amp; Test-Quality-Audit — 2026-06-07</a></li><li class="sidebar-item"><a href="./2026-06-22-ki-api-prod-migrations.html">KI-API Prod-Migrationen (T000711) Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-20-mcp-task-runner.html">MCP Task Runner Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-27-mentolder-brand-foundations-design-system.html">mentolder — Brand Foundations Design System</a></li><li class="sidebar-item"><a href="./2026-06-22-mentolder-web-unterseiten.html">mentolder-web Unterseiten Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-22-s1-violations-batch1.html">S1-Frozen-Violations Reduction — Batch 1 (G-RH01) Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-21-ticket-mcp.html">ticket-mcp Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-22-ts-suppression-elimination.html">TypeScript-Suppressionen eliminieren (G-RH02) Implementation Plan</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Entscheidungen</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./decision-log.html">Phase 5 DROP Decision Log</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">Referenz</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./tasks.html">Agent-Push-Notifications für opencode/agy-Sessions</a></li><li class="sidebar-item"><a href="./tasks.html">AI: Ticket-Auto-Triage (Severity-Erkennung)</a></li><li class="sidebar-item"><a href="./alert-email-test.html">Alert-E-Mail-Test (synthetisch)</a></li><li class="sidebar-item"><a href="./api-surface.html">API Surface Map</a></li><li class="sidebar-item"><a href="./tasks.html">Art Library Webapp Integration</a></li><li class="sidebar-item"><a href="./audit-log-retention.html">Audit-Log Retention — DSGVO-Dokumentation</a></li><li class="sidebar-item"><a href="./blast-radius.html">Blast-Radius-Report</a></li><li class="sidebar-item"><a href="./brainstorm-bridge-wsl.html">Brainstorm-Bridge (WSL) — Visuals &amp; Auswahl an den Nutzer kommunizieren</a></li><li class="sidebar-item"><a href="./tasks.html">Cockpit Mobile-View Implementation Plan</a></li><li class="sidebar-item"><a href="./tasks.html">Cockpit: Filter speichern / Voreinstellungen</a></li><li class="sidebar-item"><a href="./tasks.html">env-seal.sh: empty-value Keys in extra_namespaces korrekt verarbeiten (G-CD01 Root-Cause)</a></li><li class="sidebar-item"><a href="./envsubst-variable-management.html">envsubst Variable Management — Referenz</a></li><li class="sidebar-item"><a href="./tasks.html">Feature Intake: Semantischer Duplikatcheck + dynamischer Feature-Pool</a></li><li class="sidebar-item"><a href="./fleet-stage2-cutover-runbook.html">Fleet Stage 2 — Cutover Runbook</a></li><li class="sidebar-item"><a href="./fleet-2026-05-31-what-changed.html">Fleet-Konsolidierung — was sich am 2026-05-31 geändert hat</a></li><li class="sidebar-item"><a href="./tasks.html">G-CD01: korczewski-Deploy-Lane — stale SealedSecret reparieren + Drift-Prevention</a></li><li class="sidebar-item"><a href="./tasks.html">G-CD02: post-merge.yml Race-Guard härten (93% → ≥95%)</a></li><li class="sidebar-item"><a href="./tasks.html">G-CQ03: ESLint in website/ einrichten + Warnings auf 0</a></li><li class="sidebar-item"><a href="./tasks.html">G-CQ08: Dead-Code/unused exports in website/src via knip messen + −50%</a></li><li class="sidebar-item"><a href="./tasks.html">G-DEP02: Veraltete Major-Deps (website) 9 → ≤3</a></li><li class="sidebar-item"><a href="./tasks.html">G-FE01: a11y axe-Violations (Kern-Routen beider Marken) auf 0 crit/serious</a></li><li class="sidebar-item"><a href="./tasks.html">G-FE02: Client-JS-Bundle messen + Budget (kein Netto-Zuwachs/Release)</a></li><li class="sidebar-item"><a href="./tasks.html">G-IMG02: Fremd-Image-Versions-Drift vereinheitlichen (busybox/curl)</a></li><li class="sidebar-item"><a href="./proposal.html">G-RH01: S1-Frozen-Violations Batch 1 — baseline.json 98→≤30</a></li><li class="sidebar-item"><a href="./tasks.html">G-RH01: S1-Frozen-Violations Batch 1 — baseline.json 98→≤30</a></li><li class="sidebar-item"><a href="./proposal.html">G-RH03: BATS Coverage Batch 1 — OpenSpec 17%→23%</a></li><li class="sidebar-item"><a href="./tasks.html">G-RH03: BATS Coverage Batch 1 — OpenSpec 17%→23%</a></li><li class="sidebar-item"><a href="./tasks.html">Implementation Plan: cockpit-bulk-status</a></li><li class="sidebar-item"><a href="./design-system.html">mentolder Design-System</a></li><li class="sidebar-item"><a href="./tasks.html">mentolder.de Website-Frontend in React neu aufbauen</a></li><li class="sidebar-item"><a href="./tasks.html">Messbare Delivery-Pipeline + DORA-Dashboard</a></li><li class="sidebar-item"><a href="./tasks.html">Pocket ID Migration — Keycloak ersetzen durch Pocket ID</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: agent-push-notifications</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: AI: Ticket-Auto-Triage (Severity-Erkennung)</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: art-library-webapp-integration</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: cockpit-bulk-status</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: cockpit-filter-presets</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: cockpit-mobile-view</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: dora-delivery-pipeline</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: env-seal-empty-value-keys</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: Feature Intake + Knowledge-Graph-Anreicherung</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-cd01-korczewski-secret-drift</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-cd02-post-merge-race-guard</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-cq03-eslint-website</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-cq08-knip-dead-code</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-dep02-major-deps-website (G-DEP02)</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-fe01-a11y-axe-violations</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-fe02-bundle-budget</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: img02-image-drift (G-IMG02)</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: Mentolder Homepage — hifi-Redesign in Astro+Svelte</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: mentolder.de Website-Frontend in React neu aufbauen</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: pocket-id-migration</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: ticket-mcp Go-Rewrite mit HTTP-Transport [T001043]</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: ticket-verlauf-anhaenge</a></li><li class="sidebar-item"><a href="./secrets-architecture.html">Secrets-Dateiarchitektur</a></li><li class="sidebar-item sidebar-item--active"><a href="./shared-infrastructure-security.html" aria-current="page">Shared Infrastructure Security — Cross-Brand Analysis</a></li><li class="sidebar-item"><a href="./overview.html">Skills Overview</a></li><li class="sidebar-item"><a href="./factory-usage.html">Software Factory — Usage Guide</a></li><li class="sidebar-item"><a href="./systemtest-fragebogen.html">Systemtest-Protokoll — Workspace Collaboration Platform</a></li><li class="sidebar-item"><a href="./tasks.html">Tasks: ticket-verlauf-anhaenge</a></li><li class="sidebar-item"><a href="./tasks.html">ticket-mcp Go-Rewrite mit HTTP-Transport</a></li><li class="sidebar-item"><a href="./wsl-bootstrap.html">WSL Bootstrapping Gotchas</a></li></ul></details>
+</aside>
   <main id="main">
 <header class="page-header">
   <div class="page-header-body">
@@ -40,14 +45,26 @@
 <html><head></head><body><h1>Shared Infrastructure Security — Cross-Brand Analysis</h1><div class="toc-box auto-toc">
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#1-shared-llm-gpu-host"><span class="toc-num">1.</span> 1. Shared LLM GPU Host</a></li>
+<li class="toc-item toc-item--h3"><a href="#architektur"><span class="toc-num">–</span> Architektur</a></li>
+<li class="toc-item toc-item--h3"><a href="#brand-isolation-der-embeddings"><span class="toc-num">–</span> Brand-Isolation der Embeddings</a></li>
+<li class="toc-item toc-item--h3"><a href="#restrisiko-plaintext-http-innerhalb-wg-mesh"><span class="toc-num">–</span> Restrisiko: Plaintext-HTTP innerhalb wg-mesh</a></li>
+<li class="toc-item toc-item--h3"><a href="#gpu-host-ausfall"><span class="toc-num">–</span> GPU-Host-Ausfall</a></li>
 <li class="toc-item"><a href="#2-backup-encryption-pipeline"><span class="toc-num">2.</span> 2. Backup Encryption Pipeline</a></li>
+<li class="toc-item toc-item--h3"><a href="#uebersicht"><span class="toc-num">–</span> Übersicht</a></li>
+<li class="toc-item toc-item--h3"><a href="#21-db-backup-db-backup-cronjob-0200-utc-taeglich"><span class="toc-num">–</span> 2.1 DB-Backup (db-backup CronJob, 02:00 UTC täglich)</a></li>
+<li class="toc-item toc-item--h3"><a href="#22-pvc-backup-pvc-backup-cronjob-0300-utc-taeglich"><span class="toc-num">–</span> 2.2 PVC-Backup (pvc-backup CronJob, 03:00 UTC täglich)</a></li>
+<li class="toc-item toc-item--h3"><a href="#23-defense-in-depth-filen-eigene-verschluesselung"><span class="toc-num">–</span> 2.3 Defense-in-Depth: Filen-eigene Verschlüsselung</a></li>
+<li class="toc-item toc-item--h3"><a href="#24-recovery-prozess"><span class="toc-num">–</span> 2.4 Recovery-Prozess</a></li>
 <li class="toc-item"><a href="#3-shared-infrastructure-risk-assessment"><span class="toc-num">3.</span> 3. Shared Infrastructure Risk Assessment</a></li>
+<li class="toc-item toc-item--h3"><a href="#31-filen-backup-account"><span class="toc-num">–</span> 3.1 Filen Backup Account</a></li>
+<li class="toc-item toc-item--h3"><a href="#32-smtp-smtpmailboxorg"><span class="toc-num">–</span> 3.2 SMTP (smtp.mailbox.org)</a></li>
+<li class="toc-item toc-item--h3"><a href="#33-wireguard-mesh-gemeinsames-vpn"><span class="toc-num">–</span> 3.3 WireGuard Mesh (gemeinsames VPN)</a></li>
 <li class="toc-item"><a href="#4-zusammenfassung"><span class="toc-num">4.</span> 4. Zusammenfassung</a></li></ul>
 </div>
 <p>Beide Brands (mentolder.de / korczewski.de) laufen auf demselben <strong>fleet</strong> Kubernetes-Cluster, in getrennten Namespaces (<code>workspace</code> / <code>workspace-korczewski</code>). Einige Infrastruktur-Komponenten werden jedoch <strong>cluster-übergreifend geteilt</strong>. Dieses Dokument analysiert die Sicherheits-Implikationen der geteilten Ressourcen.</p>
 <hr>
 <h2 id="1-shared-llm-gpu-host">1. Shared LLM GPU Host</h2>
-<h3>Architektur</h3>
+<h3 id="architektur">Architektur</h3>
 <p>Beide Brands nutzen <strong>dieselbe physische GPU-Box</strong> für KI-Workloads:</p>
 <table>
 <thead>
@@ -101,7 +118,7 @@
 │         └──────────────────────┘                         │
 └─────────────────────────────────────────────────────────┘
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Brand-Isolation der Embeddings</h3>
+<h3 id="brand-isolation-der-embeddings">Brand-Isolation der Embeddings</h3>
 <p><strong>Fazit: Collections sind pro Brand logisch isoliert. Kein Cross-Brand-Leak möglich.</strong></p>
 <p>Die Isolation erfolgt auf <strong>Applikations-Ebene</strong>, nicht auf GPU-Ebene:</p>
 <ol>
@@ -114,14 +131,14 @@
 <li><p><strong>Kein Cross-Brand-Routing:</strong> Obwohl beide Brands denselben GPU-Host ansteuern, geschieht dies über separate <code>Service</code>/<code>Endpoints</code>-Objekte in getrennten Namespaces. Eine mentolder-Collection kann nicht versehentlich eine korczewski-Collection abfragen, weil die Website nur ihre eigene Datenbank kennt.</p>
 </li>
 </ol>
-<h3>Restrisiko: Plaintext-HTTP innerhalb wg-mesh</h3>
+<h3 id="restrisiko-plaintext-http-innerhalb-wg-mesh">Restrisiko: Plaintext-HTTP innerhalb wg-mesh</h3>
 <p>Der Traffic zwischen Cluster und GPU-Host läuft <strong>unverschlüsselt als HTTP</strong> innerhalb des WireGuard-Tunnels. WireGuard selbst bietet Verschlüsselung auf Layer 3 (ChaCha20-Poly1305), aber:</p>
 <ul>
 <li>Ein kompromittierter wg-mesh-Peer (z. B. der Entwickler-Laptop <code>10.13.14.11</code>) könnte den Plaintext-Traffic mitschneiden.</li>
 <li>Embedding-Anfragen enthalten den zu vektorisierenden Plaintext — bei Coaching-Dokumenten potenziell PII.</li>
 <li><strong>Akzeptiertes Risiko:</strong> wg-mesh ist ein geschlossenes VPN mit bekannten Peers. Die Alternative (TLS-Terminierung auf dem GPU-Host) würde Zertifikatsmanagement auf einem nicht-Cluster-Node erfordern.</li>
 </ul>
-<h3>GPU-Host-Ausfall</h3>
+<h3 id="gpu-host-ausfall">GPU-Host-Ausfall</h3>
 <p>Fällt der GPU-Host aus:</p>
 <ul>
 <li><code>bge-m3</code>-Collections: Embedding-Indexierung und -Queries <strong>fail closed</strong> (503). Kein Fallback auf Voyage — unterschiedliche Vektorräume würden garbage results liefern.</li>
@@ -131,10 +148,10 @@
 <p>Siehe auch: CLAUDE.md § "Local-first LLM pipeline", <code>docs/superpowers/plans/archive/2026-05-10-local-llm-pipeline.md</code>.</p>
 <hr>
 <h2 id="2-backup-encryption-pipeline">2. Backup Encryption Pipeline</h2>
-<h3>Übersicht</h3>
+<h3 id="uebersicht">Übersicht</h3>
 <p><strong>Fazit: ALLE Backups werden vor dem Upload mit AES-256-CBC verschlüsselt. Filen sieht nur verschlüsselte Daten.</strong></p>
 <p>Es gibt zwei Backup-Ströme, beide folgen demselben Prinzip: <strong>encrypt-then-upload</strong>.</p>
-<h3>2.1 DB-Backup (<code>db-backup</code> CronJob, 02:00 UTC täglich)</h3>
+<h3 id="21-db-backup-db-backup-cronjob-0200-utc-taeglich">2.1 DB-Backup (<code>db-backup</code> CronJob, 02:00 UTC täglich)</h3>
 <div class="code-wrapper"><pre><code>┌──────────┐    pg_dump -Fc     ┌──────────┐    openssl enc     ┌───────────┐    @filen/cli    ┌───────┐
 │ shared-db │ ────────────────► │  *.dump   │ ────────────────► │ *.dump.enc │ ──────────────► │ Filen │
 │ PostgreSQL│   (plaintext)     │ (raw SQL) │  aes-256-cbc      │(encrypted) │   (encrypted)   │ Cloud │
@@ -180,7 +197,7 @@
 <li><strong>Verschlüsselung geschieht IM Pod, vor dem Upload.</strong> Filen empfängt ausschließlich <code>.dump.enc</code>-Dateien.</li>
 <li>Retention: 30 Tage lokal auf <code>backup-pvc</code> + dauerhaft in Filen</li>
 </ul>
-<h3>2.2 PVC-Backup (<code>pvc-backup</code> CronJob, 03:00 UTC täglich)</h3>
+<h3 id="22-pvc-backup-pvc-backup-cronjob-0300-utc-taeglich">2.2 PVC-Backup (<code>pvc-backup</code> CronJob, 03:00 UTC täglich)</h3>
 <div class="code-wrapper"><pre><code>┌───────────┐    tar czf    ┌──────────────┐    openssl enc     ┌──────────────────┐    @filen/cli    ┌───────┐
 │ data-PVCs  │ ───────────► │  *.tar.gz     │ ────────────────► │ *.tar.gz.enc      │ ──────────────► │ Filen │
 │ (readOnly) │  (plaintext) │  (raw files)  │  aes-256-cbc      │ (encrypted)        │   (encrypted)   │ Cloud │
@@ -209,14 +226,14 @@
 </tr>
 </tbody></table>
 <p><strong>Verschlüsselung:</strong> Identisch zu DB-Backup — <code>openssl enc -aes-256-cbc -salt -pbkdf2</code> mit <code>BACKUP_PASSPHRASE</code>.</p>
-<h3>2.3 Defense-in-Depth: Filen-eigene Verschlüsselung</h3>
+<h3 id="23-defense-in-depth-filen-eigene-verschluesselung">2.3 Defense-in-Depth: Filen-eigene Verschlüsselung</h3>
 <p>Zusätzlich zur AES-256-CBC-Verschlüsselung vor dem Upload bietet Filen <strong>client-seitige Ende-zu-Ende-Verschlüsselung</strong> (Zero-Knowledge-Architektur). Das bedeutet:</p>
 <ol>
 <li><strong>Unsere Schicht:</strong> <code>openssl enc -aes-256-cbc</code> → Dateien sind bereits verschlüsselt, bevor sie den Pod verlassen</li>
 <li><strong>Filens Schicht:</strong> Filen verschlüsselt alle Uploads client-seitig mit dem Account-Master-Key → Filen kann die Inhalte selbst dann nicht lesen, wenn der <code>BACKUP_PASSPHRASE</code> schwach wäre</li>
 </ol>
 <p><strong>Doppelte Verschlüsselung ist hier gewollt</strong> — sie schützt auch dann, wenn eine der beiden Schichten kompromittiert wird.</p>
-<h3>2.4 Recovery-Prozess</h3>
+<h3 id="24-recovery-prozess">2.4 Recovery-Prozess</h3>
 <p>Der <code>BACKUP_PASSPHRASE</code> wird im Disaster-Recovery-Fall benötigt:</p>
 <ol>
 <li><code>scripts/backup-restore.sh filen-pull &lt;timestamp&gt;</code> — lädt verschlüsselte Backups aus Filen in den leeren <code>backup-pvc</code></li>
@@ -225,7 +242,7 @@
 <p><strong>Kritische Abhängigkeit:</strong> Ohne <code>BACKUP_PASSPHRASE</code> sind alle Backups unwiederbringlich verloren. Der Passphrase ist Teil der <code>workspace-secrets</code> und wird als SealedSecret versioniert in <code>environments/sealed-secrets/&lt;env&gt;.yaml</code>. Bei einem Komplettverlust des Clusters muss der Passphrase aus dem Git-Repository (git-crypt-encrypted) wiederhergestellt werden.</p>
 <hr>
 <h2 id="3-shared-infrastructure-risk-assessment">3. Shared Infrastructure Risk Assessment</h2>
-<h3>3.1 Filen Backup Account</h3>
+<h3 id="31-filen-backup-account">3.1 Filen Backup Account</h3>
 <table>
 <thead>
 <tr>
@@ -256,7 +273,7 @@
 <li>Der <code>BACKUP_PASSPHRASE</code> ist pro Brand unterschiedlich (separate <code>workspace-secrets</code>)</li>
 <li>Selbst bei gleichem Passphrase würden die <code>pg_restore</code>-Befehle gegen die falsche DB fehlschlagen (falsche Credentials)</li>
 </ol>
-<h3>3.2 SMTP (smtp.mailbox.org)</h3>
+<h3 id="32-smtp-smtpmailboxorg">3.2 SMTP (smtp.mailbox.org)</h3>
 <table>
 <thead>
 <tr>
@@ -287,7 +304,7 @@
 <li>E-Mails enthalten die Absender-Domain im <code>From:</code>-Header (vom Client gesetzt)</li>
 <li>DSGVO-Relevanz: Rechnungen/Coaching-Mails sind bereits per STARTTLS verschlüsselt; ein Routing-Fehler würde zu einem Zustellfehler führen, nicht zu einem Leak</li>
 </ol>
-<h3>3.3 WireGuard Mesh (gemeinsames VPN)</h3>
+<h3 id="33-wireguard-mesh-gemeinsames-vpn">3.3 WireGuard Mesh (gemeinsames VPN)</h3>
 <table>
 <thead>
 <tr>
@@ -365,7 +382,9 @@
 </body></html>
 </article>
 
+<nav class="prevnext" aria-label="Seitennavigation"><a class="prevnext-link prevnext-prev" href="./secrets-architecture.html"><span class="prevnext-label">← Zurück</span><span class="prevnext-title">Secrets-Dateiarchitektur</span></a><a class="prevnext-link prevnext-next" href="./overview.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">Skills Overview</span></a></nav>
   </main>
+</div>
 </div>
 <footer class="site-footer">
   <span>Workspace MVP — generierte Dokumentation</span>

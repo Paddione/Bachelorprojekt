@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>mentolder — Brand Foundations Design System — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<header class="site-header">
+  <a class="site-header-brand" href="./index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
+  <div id="search-box">
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
+  </div>
+</div>
+<div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Handbücher</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./readme.html">AI-Agent Operating Guide — Registry (SSOT)</a></li><li class="sidebar-item"><a href="./readme.html">DB Audit Phase 5 — 2026-05-23</a></li><li class="sidebar-item"><a href="./readme.html">dev.mentolder.de — Operator Runbook</a></li><li class="sidebar-item"><a href="./readme.html">Korczewski Visual Design Brief</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Architektur &amp; Bausteine</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./30-bausteine.html">Bausteine — Was läuft auf der Plattform?</a></li><li class="sidebar-item"><a href="./bereitstellungsdetails.html">Bereitstellungsdetails und Server-Topologie</a></li><li class="sidebar-item"><a href="./db-schema.html">Shared DB — Schema Reference &amp; Normalization Audit</a></li><li class="sidebar-item"><a href="./00-anleitung.html">Was will ich tun?</a></li><li class="sidebar-item"><a href="./20-werkzeuge.html">Werkzeuge — Tools und Agents</a></li><li class="sidebar-item"><a href="./10-ziele.html">Ziele — Was will ich tun?</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">Audits &amp; Reports</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./2026-06-20-active-sessions-hub.html">Active Sessions Hub — Mediaviewer-Panel verlinkt aktive Forms/Brainstorm/Companion</a></li><li class="sidebar-item"><a href="./2026-06-22-agent-library.html">Agent Library Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-22-bats-coverage-batch1.html">BATS Coverage Expansion — Batch 1 (G-RH03) Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-20-cockpit-direct-ticket-links.html">Cockpit Direct Ticket Links — TicketDrawer entfernen, Titel als Navigationslinks</a></li><li class="sidebar-item"><a href="./2026-06-07-dataflow-dataleak.html">Dataflow &amp; Datenleck-Audit — 2026-06-07</a></li><li class="sidebar-item"><a href="./findings.html">DB Audit Phase 5 — Findings</a></li><li class="sidebar-item"><a href="./2026-06-07-e2e-reachability-test-quality.html">E2E Reachability &amp; Test-Quality-Audit — 2026-06-07</a></li><li class="sidebar-item"><a href="./2026-06-22-ki-api-prod-migrations.html">KI-API Prod-Migrationen (T000711) Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-20-mcp-task-runner.html">MCP Task Runner Implementation Plan</a></li><li class="sidebar-item sidebar-item--active"><a href="./2026-06-27-mentolder-brand-foundations-design-system.html" aria-current="page">mentolder — Brand Foundations Design System</a></li><li class="sidebar-item"><a href="./2026-06-22-mentolder-web-unterseiten.html">mentolder-web Unterseiten Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-22-s1-violations-batch1.html">S1-Frozen-Violations Reduction — Batch 1 (G-RH01) Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-21-ticket-mcp.html">ticket-mcp Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-22-ts-suppression-elimination.html">TypeScript-Suppressionen eliminieren (G-RH02) Implementation Plan</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Entscheidungen</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./decision-log.html">Phase 5 DROP Decision Log</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Referenz</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./tasks.html">Agent-Push-Notifications für opencode/agy-Sessions</a></li><li class="sidebar-item"><a href="./tasks.html">AI: Ticket-Auto-Triage (Severity-Erkennung)</a></li><li class="sidebar-item"><a href="./alert-email-test.html">Alert-E-Mail-Test (synthetisch)</a></li><li class="sidebar-item"><a href="./api-surface.html">API Surface Map</a></li><li class="sidebar-item"><a href="./tasks.html">Art Library Webapp Integration</a></li><li class="sidebar-item"><a href="./audit-log-retention.html">Audit-Log Retention — DSGVO-Dokumentation</a></li><li class="sidebar-item"><a href="./blast-radius.html">Blast-Radius-Report</a></li><li class="sidebar-item"><a href="./brainstorm-bridge-wsl.html">Brainstorm-Bridge (WSL) — Visuals &amp; Auswahl an den Nutzer kommunizieren</a></li><li class="sidebar-item"><a href="./tasks.html">Cockpit Mobile-View Implementation Plan</a></li><li class="sidebar-item"><a href="./tasks.html">Cockpit: Filter speichern / Voreinstellungen</a></li><li class="sidebar-item"><a href="./tasks.html">env-seal.sh: empty-value Keys in extra_namespaces korrekt verarbeiten (G-CD01 Root-Cause)</a></li><li class="sidebar-item"><a href="./envsubst-variable-management.html">envsubst Variable Management — Referenz</a></li><li class="sidebar-item"><a href="./tasks.html">Feature Intake: Semantischer Duplikatcheck + dynamischer Feature-Pool</a></li><li class="sidebar-item"><a href="./fleet-stage2-cutover-runbook.html">Fleet Stage 2 — Cutover Runbook</a></li><li class="sidebar-item"><a href="./fleet-2026-05-31-what-changed.html">Fleet-Konsolidierung — was sich am 2026-05-31 geändert hat</a></li><li class="sidebar-item"><a href="./tasks.html">G-CD01: korczewski-Deploy-Lane — stale SealedSecret reparieren + Drift-Prevention</a></li><li class="sidebar-item"><a href="./tasks.html">G-CD02: post-merge.yml Race-Guard härten (93% → ≥95%)</a></li><li class="sidebar-item"><a href="./tasks.html">G-CQ03: ESLint in website/ einrichten + Warnings auf 0</a></li><li class="sidebar-item"><a href="./tasks.html">G-CQ08: Dead-Code/unused exports in website/src via knip messen + −50%</a></li><li class="sidebar-item"><a href="./tasks.html">G-DEP02: Veraltete Major-Deps (website) 9 → ≤3</a></li><li class="sidebar-item"><a href="./tasks.html">G-FE01: a11y axe-Violations (Kern-Routen beider Marken) auf 0 crit/serious</a></li><li class="sidebar-item"><a href="./tasks.html">G-FE02: Client-JS-Bundle messen + Budget (kein Netto-Zuwachs/Release)</a></li><li class="sidebar-item"><a href="./tasks.html">G-IMG02: Fremd-Image-Versions-Drift vereinheitlichen (busybox/curl)</a></li><li class="sidebar-item"><a href="./proposal.html">G-RH01: S1-Frozen-Violations Batch 1 — baseline.json 98→≤30</a></li><li class="sidebar-item"><a href="./tasks.html">G-RH01: S1-Frozen-Violations Batch 1 — baseline.json 98→≤30</a></li><li class="sidebar-item"><a href="./proposal.html">G-RH03: BATS Coverage Batch 1 — OpenSpec 17%→23%</a></li><li class="sidebar-item"><a href="./tasks.html">G-RH03: BATS Coverage Batch 1 — OpenSpec 17%→23%</a></li><li class="sidebar-item"><a href="./tasks.html">Implementation Plan: cockpit-bulk-status</a></li><li class="sidebar-item"><a href="./design-system.html">mentolder Design-System</a></li><li class="sidebar-item"><a href="./tasks.html">mentolder.de Website-Frontend in React neu aufbauen</a></li><li class="sidebar-item"><a href="./tasks.html">Messbare Delivery-Pipeline + DORA-Dashboard</a></li><li class="sidebar-item"><a href="./tasks.html">Pocket ID Migration — Keycloak ersetzen durch Pocket ID</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: agent-push-notifications</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: AI: Ticket-Auto-Triage (Severity-Erkennung)</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: art-library-webapp-integration</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: cockpit-bulk-status</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: cockpit-filter-presets</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: cockpit-mobile-view</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: dora-delivery-pipeline</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: env-seal-empty-value-keys</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: Feature Intake + Knowledge-Graph-Anreicherung</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-cd01-korczewski-secret-drift</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-cd02-post-merge-race-guard</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-cq03-eslint-website</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-cq08-knip-dead-code</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-dep02-major-deps-website (G-DEP02)</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-fe01-a11y-axe-violations</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-fe02-bundle-budget</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: img02-image-drift (G-IMG02)</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: Mentolder Homepage — hifi-Redesign in Astro+Svelte</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: mentolder.de Website-Frontend in React neu aufbauen</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: pocket-id-migration</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: ticket-mcp Go-Rewrite mit HTTP-Transport [T001043]</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: ticket-verlauf-anhaenge</a></li><li class="sidebar-item"><a href="./secrets-architecture.html">Secrets-Dateiarchitektur</a></li><li class="sidebar-item"><a href="./shared-infrastructure-security.html">Shared Infrastructure Security — Cross-Brand Analysis</a></li><li class="sidebar-item"><a href="./overview.html">Skills Overview</a></li><li class="sidebar-item"><a href="./factory-usage.html">Software Factory — Usage Guide</a></li><li class="sidebar-item"><a href="./systemtest-fragebogen.html">Systemtest-Protokoll — Workspace Collaboration Platform</a></li><li class="sidebar-item"><a href="./tasks.html">Tasks: ticket-verlauf-anhaenge</a></li><li class="sidebar-item"><a href="./tasks.html">ticket-mcp Go-Rewrite mit HTTP-Transport</a></li><li class="sidebar-item"><a href="./wsl-bootstrap.html">WSL Bootstrapping Gotchas</a></li></ul></details>
+</aside>
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./docs.html">Docs</a> <span class="sep">/</span> <span class="crumb-current">mentolder — Brand Foundations Design System</span></nav>
+    <h1>mentolder — Brand Foundations Design System</h1>
+    <p class="page-desc"></p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      <span class="domain-tag">website</span>
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>mentolder — Brand Foundations Design System Implementation Plan</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#global-constraints"><span class="toc-num">1.</span> Global Constraints</a></li>
+<li class="toc-item"><a href="#file-structure"><span class="toc-num">2.</span> File Structure</a></li>
+<li class="toc-item"><a href="#task-1-build-script-buildmjs--tests"><span class="toc-num">3.</span> Task 1: Build script (build.mjs) + tests</a></li>
+<li class="toc-item"><a href="#task-2-card-validator-validatemjs--tests"><span class="toc-num">4.</span> Task 2: Card validator (validate.mjs) + tests</a></li>
+<li class="toc-item"><a href="#task-3-shared-card-css-cardcss--first-card-colors-surfaces--pipeline-smoke-test"><span class="toc-num">5.</span> Task 3: Shared card CSS (_card.css) + first card (colors-surfaces) — pipeline smoke test</a></li>
+<li class="toc-item"><a href="#task-4-remaining-color-cards-text-brass-sagesemantic-paperprint"><span class="toc-num">6.</span> Task 4: Remaining Color cards (Text, Brass, Sage+Semantic, Paper+Print)</a></li>
+<li class="toc-item"><a href="#task-5-type-cards-families-scale-editorial"><span class="toc-num">7.</span> Task 5: Type cards (Families, Scale, Editorial)</a></li>
+<li class="toc-item"><a href="#task-6-spacing-radius-elevation-cards"><span class="toc-num">8.</span> Task 6: Spacing, Radius, Elevation cards</a></li>
+<li class="toc-item"><a href="#task-7-motion-card-animated"><span class="toc-num">9.</span> Task 7: Motion card (animated)</a></li>
+<li class="toc-item"><a href="#task-8-iconography--brand-cards-inline-svg-grids"><span class="toc-num">10.</span> Task 8: Iconography + Brand cards (inline SVG grids)</a></li>
+<li class="toc-item"><a href="#task-9-bundle-metadata-full-build-repo-gate-plan-frontmatter"><span class="toc-num">11.</span> Task 9: Bundle metadata, full build, repo gate, plan frontmatter</a></li>
+<li class="toc-item"><a href="#task-10-create-the-claudeaidesign-project-and-push-main-session-only"><span class="toc-num">12.</span> Task 10: Create the claude.ai/design project and push (main session only)</a></li>
+<li class="toc-item"><a href="#self-review"><span class="toc-num">13.</span> Self-Review</a></li></ul>
+</div>
+<blockquote>
+<p><strong>For agentic workers:</strong> REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (<code>- [ ]</code>) syntax for tracking.</p>
+</blockquote>
+<p><strong>Goal:</strong> Build a new third claude.ai/design project (<code>mentolder — Brand Foundations</code>) holding 14 self-contained static HTML foundation cards (color/type/spacing/radius/elevation/motion/icons/brand), generated DRY from the canonical <code>colors_and_type.css</code>, and push it via the DesignSync tool.</p>
+<p><strong>Architecture:</strong> A standalone <code>design-system/</code> bundle. <code>build.mjs</code> (1) copies the canonical token CSS into <code>_tokens.css</code>, (2) copies needed SVGs into <code>assets/</code>, and (3) assembles each <code>cards/*.html</code> by replacing idempotent marker regions with the inlined token CSS, a shared <code>_card.css</code>, and inline SVG grids. Foundation cards are static (no props/state), so no component-compile pipeline is used — this is the DesignSync tool's native card format. Only <code>cards/**</code> is uploaded; <code>_tokens.css</code>/<code>_card.css</code>/<code>assets/</code> are local build inputs.</p>
+<p><strong>Tech Stack:</strong> Node ≥22.13 (built-in <code>node:test</code>, no new deps), plain HTML/CSS, the DesignSync tool.</p>
+<h2 id="global-constraints">Global Constraints</h2>
+<ul>
+<li><strong>Brand name</strong> is always lowercase <code>mentolder</code> (never <code>Mentolder</code> except at sentence start).</li>
+<li><strong>Cards render on the brand ground:</strong> every card sets <code>background: var(--ink-900)</code> / <code>color: var(--fg)</code> — brand text is light and invisible on white.</li>
+<li><strong>Token SSOT</strong> is <code>website/public/brand/mentolder/colors_and_type.css</code> — never hand-copy hex values into cards; they arrive via injection.</li>
+<li><strong>Cards must be self-contained:</strong> no relative <code>@import</code>/<code>&lt;img src&gt;</code>; tokens, card CSS, and SVGs are inlined at build time (claude.ai/design renders each card in isolation).</li>
+<li><strong>Card index marker:</strong> every <code>cards/*.html</code> MUST have, as the literal first line, <code>&lt;!-- @dsCard group="&lt;Group&gt;" name="&lt;Name&gt;" --&gt;</code>.</li>
+<li><strong>Upload scope:</strong> DesignSync plan <code>writes</code> is exactly <code>["cards/**"]</code>. Never add <code>_tokens.css</code>/<code>assets/</code> to the plan.</li>
+<li><strong>Node ESM:</strong> all scripts are <code>.mjs</code> (ESM); the repo root has no <code>"type":"module"</code>, so <code>.mjs</code> is required.</li>
+<li><strong>Additive only:</strong> create only files under <code>design-system/</code>; touch no <code>website/</code> or <code>mentolder-web/</code> source.</li>
+</ul>
+<hr>
+<h2 id="file-structure">File Structure</h2>
+<div class="code-wrapper"><pre><code>design-system/
+├── build.mjs            # extractTokens + copyAssets + injectRegion + svgGrid + assembleCard + main
+├── build.test.mjs       # node:test — injectRegion idempotency, extractTokens, svgGrid
+├── validate.mjs         # @dsCard line-1 marker + injection-region lint over cards/*.html
+├── _card.css            # shared foundation-card layout (authored, local build input)
+├── _tokens.css          # generated verbatim copy of colors_and_type.css (local build input)
+├── assets/              # SVGs copied from website (local build input)
+│   ├── props/*.svg
+│   └── logos/*.svg
+├── config.json          # { name, projectId, localDir, cards[] }
+├── NOTES.md             # re-sync checklist + quirks
+└── cards/
+    ├── colors-surfaces.html       (Colors / Surfaces)
+    ├── colors-text.html           (Colors / Text)
+    ├── colors-brass.html          (Colors / Brass)
+    ├── colors-sage-semantic.html  (Colors / Sage + Semantic)
+    ├── colors-paper-print.html    (Colors / Paper + Print)
+    ├── type-families.html         (Type / Families)
+    ├── type-scale.html            (Type / Scale)
+    ├── type-editorial.html        (Type / Editorial)
+    ├── spacing-scale.html         (Spacing / Scale + Layout)
+    ├── radius-scale.html          (Radius / Scale)
+    ├── elevation-shadows.html     (Elevation / Shadows + Hairlines)
+    ├── motion-easing.html         (Motion / Easing + Duration)
+    ├── icons-sheet.html           (Iconography / Icon Sheet)
+    └── brand-logo.html            (Brand / Logo + Mark)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Card source skeleton</strong> (what an author writes — build fills the marker regions in place, idempotently):</p>
+<div class="code-wrapper"><pre><code class="language-html">&lt;!-- @dsCard group="Colors" name="Surfaces" --&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang="de"&gt;&lt;head&gt;&lt;meta charset="utf-8"&gt;
+&lt;title&gt;Surfaces · mentolder&lt;/title&gt;
+&lt;!-- tokens:start --&gt;&lt;!-- tokens:end --&gt;
+&lt;!-- card:start --&gt;&lt;!-- card:end --&gt;
+&lt;/head&gt;
+&lt;body class="ds-card"&gt;&lt;div class="ds-wrap"&gt;
+  &lt;!-- unique body here --&gt;
+&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="task-1-build-script-buildmjs--tests">Task 1: Build script (<code>build.mjs</code>) + tests</h2>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>design-system/build.mjs</code></li>
+<li>Test: <code>design-system/build.test.mjs</code></li>
+</ul>
+<p><strong>Interfaces:</strong></p>
+<ul>
+<li><p>Produces: <code>injectRegion(html: string, name: string, payload: string) → string</code> (replaces content between <code>&lt;!-- name:start --&gt;</code> and <code>&lt;!-- name:end --&gt;</code>; idempotent); <code>extractTokens() → void</code> (writes <code>design-system/_tokens.css</code>); <code>copyAssets() → void</code>; <code>svgGrid(absDir: string) → string</code>; <code>assembleCard(html: string) → string</code>; <code>main() → Promise&lt;void&gt;</code>.</p>
+</li>
+<li><p>Consumes: <code>website/public/brand/mentolder/colors_and_type.css</code>, <code>website/public/brand/mentolder/props/*.svg</code>, <code>website/public/brand/mentolder/logos/*.svg</code>.</p>
+</li>
+<li><p><input disabled="" type="checkbox"> <strong>Step 1: Write the failing test</strong></p>
+</li>
+</ul>
+<p>Create <code>design-system/build.test.mjs</code>:</p>
+<div class="code-wrapper"><pre><code class="language-js">import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { injectRegion, svgGrid } from './build.mjs';
+
+test('injectRegion fills a start/end region', () =&gt; {
+  const html = 'A&lt;!-- tokens:start --&gt;&lt;!-- tokens:end --&gt;B';
+  const out = injectRegion(html, 'tokens', '&lt;style&gt;X&lt;/style&gt;');
+  assert.equal(out, 'A&lt;!-- tokens:start --&gt;&lt;style&gt;X&lt;/style&gt;&lt;!-- tokens:end --&gt;B');
+});
+
+test('injectRegion is idempotent (re-run replaces, not appends)', () =&gt; {
+  const html = 'A&lt;!-- tokens:start --&gt;&lt;!-- tokens:end --&gt;B';
+  const once = injectRegion(html, 'tokens', 'P1');
+  const twice = injectRegion(once, 'tokens', 'P2');
+  assert.equal(twice, 'A&lt;!-- tokens:start --&gt;P2&lt;!-- tokens:end --&gt;B');
+  assert.equal((twice.match(/tokens:start/g) || []).length, 1);
+});
+
+test('injectRegion throws if region markers are missing', () =&gt; {
+  assert.throws(() =&gt; injectRegion('no markers', 'tokens', 'P'), /tokens:start/);
+});
+
+test('svgGrid inlines each svg as a labelled cell', () =&gt; {
+  const grid = svgGrid(new URL('./assets/props', import.meta.url).pathname);
+  assert.match(grid, /&lt;svg/);
+  assert.match(grid, /icon-cell/);
+});
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 2: Run test to verify it fails</strong></li>
+</ul>
+<p>Run: <code>cd design-system &amp;&amp; node --test build.test.mjs</code>
+Expected: FAIL — <code>Cannot find module './build.mjs'</code> (and <code>svgGrid</code> test needs <code>assets/props</code>, created in Step 3's <code>copyAssets</code>).</p>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 3: Write minimal implementation</strong></li>
+</ul>
+<p>Create <code>design-system/build.mjs</code>:</p>
+<div class="code-wrapper"><pre><code class="language-js">import { readFileSync, writeFileSync, mkdirSync, readdirSync, copyFileSync, existsSync } from 'node:fs';
+import { dirname, join, basename } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+const BRAND = join(HERE, '..', 'website', 'public', 'brand', 'mentolder');
+const CARDS = join(HERE, 'cards');
+
+/** Replace the content between `&lt;!-- name:start --&gt;` and `&lt;!-- name:end --&gt;`. Idempotent. */
+export function injectRegion(html, name, payload) {
+  const open = `&lt;!-- ${name}:start --&gt;`;
+  const close = `&lt;!-- ${name}:end --&gt;`;
+  const i = html.indexOf(open);
+  const j = html.indexOf(close);
+  if (i === -1 || j === -1 || j &lt; i) {
+    throw new Error(`injectRegion: missing region ${name}:start/${name}:end`);
+  }
+  return html.slice(0, i + open.length) + payload + html.slice(j);
+}
+
+/** Verbatim copy of the canonical token CSS → _tokens.css (DRY; no regex extraction). */
+export function extractTokens() {
+  const src = join(BRAND, 'colors_and_type.css');
+  const css = readFileSync(src, 'utf8');
+  const header = `/* GENERATED by design-system/build.mjs — verbatim copy of\n   website/public/brand/mentolder/colors_and_type.css. Do not edit by hand. */\n`;
+  writeFileSync(join(HERE, '_tokens.css'), header + css);
+}
+
+/** Copy the SVGs the icon-sheet &amp; logo cards inline into assets/ (tracked local snapshot). */
+export function copyAssets() {
+  for (const sub of ['props', 'logos']) {
+    const from = join(BRAND, sub);
+    const to = join(HERE, 'assets', sub);
+    mkdirSync(to, { recursive: true });
+    for (const f of readdirSync(from).filter((n) =&gt; n.endsWith('.svg'))) {
+      copyFileSync(join(from, f), join(to, f));
+    }
+  }
+}
+
+/** Inline every *.svg in absDir as a labelled grid cell. */
+export function svgGrid(absDir) {
+  return readdirSync(absDir)
+    .filter((n) =&gt; n.endsWith('.svg'))
+    .sort()
+    .map((n) =&gt; {
+      const svg = readFileSync(join(absDir, n), 'utf8')
+        .replace(/&lt;\?xml[^&gt;]*\?&gt;/, '')
+        .trim();
+      const label = basename(n, '.svg');
+      return `&lt;div class="icon-cell"&gt;${svg}&lt;span class="cap"&gt;${label}&lt;/span&gt;&lt;/div&gt;`;
+    })
+    .join('\n');
+}
+
+/** Assemble one card: inject tokens, shared card css, and any svg grids. */
+export function assembleCard(html) {
+  const tokens = `&lt;style&gt;\n${readFileSync(join(HERE, '_tokens.css'), 'utf8')}\n&lt;/style&gt;`;
+  const card = `&lt;style&gt;\n${readFileSync(join(HERE, '_card.css'), 'utf8')}\n&lt;/style&gt;`;
+  let out = injectRegion(html, 'tokens', tokens);
+  out = injectRegion(out, 'card', card);
+  if (out.includes('&lt;!-- props-grid:start --&gt;')) {
+    out = injectRegion(out, 'props-grid', svgGrid(join(HERE, 'assets', 'props')));
+  }
+  if (out.includes('&lt;!-- logos-grid:start --&gt;')) {
+    out = injectRegion(out, 'logos-grid', svgGrid(join(HERE, 'assets', 'logos')));
+  }
+  return out;
+}
+
+export async function main() {
+  extractTokens();
+  copyAssets();
+  if (!existsSync(CARDS)) { console.log('no cards/ yet'); return; }
+  const files = readdirSync(CARDS).filter((n) =&gt; n.endsWith('.html')).sort();
+  for (const f of files) {
+    const p = join(CARDS, f);
+    writeFileSync(p, assembleCard(readFileSync(p, 'utf8')));
+  }
+  console.log(`assembled ${files.length} card(s)`);
+}
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  main().catch((e) =&gt; { console.error(e); process.exit(1); });
+}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 4: Run <code>copyAssets</code> once so the svgGrid test has fixtures, then run tests</strong></li>
+</ul>
+<p>Run: <code>cd design-system &amp;&amp; node -e "import('./build.mjs').then(m=&gt;m.copyAssets())" &amp;&amp; node --test build.test.mjs</code>
+Expected: PASS (4 tests). <code>assets/props/*.svg</code> and <code>assets/logos/*.svg</code> now exist.</p>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 5: Commit</strong></li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-bash">git add design-system/build.mjs design-system/build.test.mjs design-system/assets design-system/_tokens.css
+git commit -m "feat(design-system): build pipeline (token copy, asset copy, idempotent injection)"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="task-2-card-validator-validatemjs--tests">Task 2: Card validator (<code>validate.mjs</code>) + tests</h2>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>design-system/validate.mjs</code></li>
+<li>Test: <code>design-system/validate.test.mjs</code></li>
+</ul>
+<p><strong>Interfaces:</strong></p>
+<ul>
+<li><p>Produces: <code>validateCard(html: string) → string[]</code> (returns an array of problem strings; empty = valid); <code>main()</code> exits non-zero if any <code>cards/*.html</code> has problems.</p>
+</li>
+<li><p><input disabled="" type="checkbox"> <strong>Step 1: Write the failing test</strong></p>
+</li>
+</ul>
+<p>Create <code>design-system/validate.test.mjs</code>:</p>
+<div class="code-wrapper"><pre><code class="language-js">import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { validateCard } from './validate.mjs';
+
+const good = [
+  '&lt;!-- @dsCard group="Colors" name="Surfaces" --&gt;',
+  '&lt;!-- tokens:start --&gt;&lt;style&gt;:root{}&lt;/style&gt;&lt;!-- tokens:end --&gt;',
+  '&lt;!-- card:start --&gt;&lt;style&gt;.x{}&lt;/style&gt;&lt;!-- card:end --&gt;',
+].join('\n');
+
+test('a well-formed card has no problems', () =&gt; {
+  assert.deepEqual(validateCard(good), []);
+});
+
+test('missing @dsCard first line is flagged', () =&gt; {
+  const bad = '&lt;html&gt;\n' + good;
+  assert.ok(validateCard(bad).some((p) =&gt; /first line/.test(p)));
+});
+
+test('empty group or name is flagged', () =&gt; {
+  const bad = good.replace('group="Colors"', 'group=""');
+  assert.ok(validateCard(bad).some((p) =&gt; /group/.test(p)));
+});
+
+test('un-injected token region (build not run) is flagged', () =&gt; {
+  const bad = good.replace('&lt;style&gt;:root{}&lt;/style&gt;', '');
+  assert.ok(validateCard(bad).some((p) =&gt; /tokens/.test(p)));
+});
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 2: Run test to verify it fails</strong></li>
+</ul>
+<p>Run: <code>cd design-system &amp;&amp; node --test validate.test.mjs</code>
+Expected: FAIL — <code>Cannot find module './validate.mjs'</code>.</p>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 3: Write minimal implementation</strong></li>
+</ul>
+<p>Create <code>design-system/validate.mjs</code>:</p>
+<div class="code-wrapper"><pre><code class="language-js">import { readFileSync, readdirSync, existsSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+const CARDS = join(HERE, 'cards');
+
+export function validateCard(html) {
+  const problems = [];
+  const firstLine = html.split('\n', 1)[0];
+  const m = firstLine.match(/^&lt;!--\s*@dsCard\s+group="([^"]*)"\s+name="([^"]*)"\s*--&gt;$/);
+  if (!m) {
+    problems.push('first line must be `&lt;!-- @dsCard group="..." name="..." --&gt;`');
+  } else {
+    if (!m[1].trim()) problems.push('@dsCard group is empty');
+    if (!m[2].trim()) problems.push('@dsCard name is empty');
+  }
+  // token region must be present AND filled (proves build ran)
+  const tok = html.match(/&lt;!-- tokens:start --&gt;([\s\S]*?)&lt;!-- tokens:end --&gt;/);
+  if (!tok) problems.push('missing tokens:start/end region');
+  else if (!tok[1].includes('&lt;style')) problems.push('tokens region not injected — run build.mjs');
+  // no leftover svg-grid markers without injection
+  for (const grid of ['props-grid', 'logos-grid']) {
+    const g = html.match(new RegExp(`&lt;!-- ${grid}:start --&gt;([\\s\\S]*?)&lt;!-- ${grid}:end --&gt;`));
+    if (g &amp;&amp; !g[1].includes('&lt;svg')) problems.push(`${grid} region not injected — run build.mjs`);
+  }
+  return problems;
+}
+
+export function main() {
+  if (!existsSync(CARDS)) { console.error('no cards/ directory'); process.exit(1); }
+  const files = readdirSync(CARDS).filter((n) =&gt; n.endsWith('.html')).sort();
+  let bad = 0;
+  for (const f of files) {
+    const probs = validateCard(readFileSync(join(CARDS, f), 'utf8'));
+    if (probs.length) { bad++; console.error(`✗ ${f}:`); probs.forEach((p) =&gt; console.error(`   - ${p}`)); }
+    else console.log(`✓ ${f}`);
+  }
+  if (bad) { console.error(`\n${bad} card(s) with problems`); process.exit(1); }
+  console.log(`\n${files.length} card(s) OK`);
+}
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) main();
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 4: Run test to verify it passes</strong></li>
+</ul>
+<p>Run: <code>cd design-system &amp;&amp; node --test validate.test.mjs</code>
+Expected: PASS (4 tests).</p>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 5: Commit</strong></li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-bash">git add design-system/validate.mjs design-system/validate.test.mjs
+git commit -m "feat(design-system): card validator (dsCard marker + injection lint)"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="task-3-shared-card-css-cardcss--first-card-colors-surfaces--pipeline-smoke-test">Task 3: Shared card CSS (<code>_card.css</code>) + first card (<code>colors-surfaces</code>) — pipeline smoke test</h2>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>design-system/_card.css</code></li>
+<li>Create: <code>design-system/cards/colors-surfaces.html</code></li>
+</ul>
+<p><strong>Interfaces:</strong></p>
+<ul>
+<li><p>Consumes: <code>injectRegion</code>/<code>assembleCard</code> (Task 1), <code>validateCard</code> (Task 2).</p>
+</li>
+<li><p>Produces: the canonical card pattern every later card follows; the helper classes (<code>.ds-card</code>, <code>.ds-wrap</code>, <code>.ds-head</code>, <code>.ds-grid</code>, <code>.cols-*</code>, <code>.swatch</code>, <code>.scale-row</code>, <code>.bar</code>, <code>.tile</code>, <code>.icon-cell</code>, <code>.cap</code>, <code>.kpill</code>) used by Tasks 4–8.</p>
+</li>
+<li><p><input disabled="" type="checkbox"> <strong>Step 1: Write the shared card layout</strong></p>
+</li>
+</ul>
+<p>Create <code>design-system/_card.css</code>:</p>
+<div class="code-wrapper"><pre><code class="language-css">/* _card.css — shared foundation-card layout. Injected into every card (local build input). */
+body.ds-card { background: var(--ink-900); color: var(--fg); font-family: var(--sans);
+  margin: 0; padding: 48px; -webkit-font-smoothing: antialiased; }
+.ds-wrap { max-width: 1000px; margin: 0 auto; }
+.ds-head { margin: 0 0 28px; }
+.ds-head .t-eyebrow { color: var(--brass); }
+.ds-head h1 { font-size: 34px; line-height: 1.1; margin: 8px 0 6px; }
+.ds-head p { color: var(--fg-soft); max-width: 64ch; }
+.ds-grid { display: grid; gap: 16px; }
+.cols-2 { grid-template-columns: repeat(2,1fr); } .cols-3 { grid-template-columns: repeat(3,1fr); }
+.cols-4 { grid-template-columns: repeat(4,1fr); } .cols-5 { grid-template-columns: repeat(5,1fr); }
+.swatch { border: 1px solid var(--line-2); border-radius: var(--radius-md); overflow: hidden; }
+.swatch .fill { height: 92px; }
+.swatch .meta { padding: 11px 13px; background: var(--ink-850); display: flex; flex-direction: column; gap: 3px; }
+.swatch .nm { font: 500 14px/1.2 var(--sans); color: var(--fg); }
+.swatch .vl { font: 400 11px/1.3 var(--mono); color: var(--mute); }
+.swatch .ro { font: 400 12px/1.4 var(--sans); color: var(--fg-soft); }
+.scale-row { display: flex; align-items: center; gap: 18px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.scale-row .lab { width: 120px; font: 400 12px/1.3 var(--mono); color: var(--mute); flex: none; }
+.bar { height: 14px; background: var(--brass); border-radius: var(--radius-pill); }
+.tile { display: grid; place-items: center; background: var(--ink-800); border: 1px solid var(--line-2); min-height: 92px; }
+.icon-cell { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 18px;
+  background: var(--ink-850); border: 1px solid var(--line); border-radius: var(--radius-md); }
+.icon-cell svg { width: 30px; height: 30px; color: var(--brass); fill: currentColor; }
+.cap { font: 400 11px/1.3 var(--mono); color: var(--mute); }
+.kpill { display: inline-block; padding: 4px 10px; border-radius: var(--radius-pill);
+  border: 1px solid var(--line-2); font: 500 11px/1 var(--mono); color: var(--fg-soft); }
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 2: Write the first card source</strong></li>
+</ul>
+<p>Create <code>design-system/cards/colors-surfaces.html</code>:</p>
+<div class="code-wrapper"><pre><code class="language-html">&lt;!-- @dsCard group="Colors" name="Surfaces" --&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang="de"&gt;&lt;head&gt;&lt;meta charset="utf-8"&gt;
+&lt;title&gt;Surfaces · mentolder&lt;/title&gt;
+&lt;!-- tokens:start --&gt;&lt;!-- tokens:end --&gt;
+&lt;!-- card:start --&gt;&lt;!-- card:end --&gt;
+&lt;/head&gt;
+&lt;body class="ds-card"&gt;&lt;div class="ds-wrap"&gt;
+  &lt;header class="ds-head"&gt;
+    &lt;span class="t-eyebrow"&gt;Colors&lt;/span&gt;
+    &lt;h1&gt;Surfaces&lt;/h1&gt;
+    &lt;p&gt;Das Ink-Substrat — tiefes, leicht warmes Navy. Tiefe entsteht über gestapelte
+       Flächen plus Hairlines, nicht über Schatten.&lt;/p&gt;
+  &lt;/header&gt;
+  &lt;div class="ds-grid cols-4"&gt;
+    &lt;div class="swatch"&gt;&lt;div class="fill" style="background:var(--ink-900)"&gt;&lt;/div&gt;
+      &lt;div class="meta"&gt;&lt;span class="nm"&gt;ink-900&lt;/span&gt;&lt;span class="vl"&gt;#0b111c&lt;/span&gt;&lt;span class="ro"&gt;Page-Basis&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;
+    &lt;div class="swatch"&gt;&lt;div class="fill" style="background:var(--ink-850)"&gt;&lt;/div&gt;
+      &lt;div class="meta"&gt;&lt;span class="nm"&gt;ink-850&lt;/span&gt;&lt;span class="vl"&gt;#101826&lt;/span&gt;&lt;span class="ro"&gt;Erhöhte Panels (Footer, „Why")&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;
+    &lt;div class="swatch"&gt;&lt;div class="fill" style="background:var(--ink-800)"&gt;&lt;/div&gt;
+      &lt;div class="meta"&gt;&lt;span class="nm"&gt;ink-800&lt;/span&gt;&lt;span class="vl"&gt;#17202e&lt;/span&gt;&lt;span class="ro"&gt;Cards, Quote-Panel&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;
+    &lt;div class="swatch"&gt;&lt;div class="fill" style="background:var(--ink-750)"&gt;&lt;/div&gt;
+      &lt;div class="meta"&gt;&lt;span class="nm"&gt;ink-750&lt;/span&gt;&lt;span class="vl"&gt;#1d2736&lt;/span&gt;&lt;span class="ro"&gt;Subtile Alternate&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 3: Run build, then validate</strong></li>
+</ul>
+<p>Run: <code>cd design-system &amp;&amp; node build.mjs &amp;&amp; node validate.mjs</code>
+Expected: <code>assembled 1 card(s)</code> then <code>✓ colors-surfaces.html</code> / <code>1 card(s) OK</code>. The file now contains the injected <code>&lt;style&gt;</code> blocks between the marker comments.</p>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 4: Visual render check</strong></li>
+</ul>
+<p>Open <code>design-system/cards/colors-surfaces.html</code> in a browser (or headless screenshot via the repo's chrome-devtools tooling). Expected: dark ink page, four labelled ink swatches, Geist/Newsreader fonts loaded, brass eyebrow tick.</p>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 5: Commit</strong></li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-bash">git add design-system/_card.css design-system/cards/colors-surfaces.html
+git commit -m "feat(design-system): shared card css + Colors/Surfaces card"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="task-4-remaining-color-cards-text-brass-sagesemantic-paperprint">Task 4: Remaining Color cards (Text, Brass, Sage+Semantic, Paper+Print)</h2>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>design-system/cards/colors-text.html</code>, <code>colors-brass.html</code>, <code>colors-sage-semantic.html</code>, <code>colors-paper-print.html</code></li>
+</ul>
+<p><strong>Interfaces:</strong> Consumes the Task 3 card pattern + <code>_card.css</code> helpers. Values are copied verbatim from <code>colors_and_type.css</code>.</p>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 1: Write <code>cards/colors-text.html</code></strong></li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-html">&lt;!-- @dsCard group="Colors" name="Text" --&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang="de"&gt;&lt;head&gt;&lt;meta charset="utf-8"&gt;&lt;title&gt;Text · mentolder&lt;/title&gt;
+&lt;!-- tokens:start --&gt;&lt;!-- tokens:end --&gt;&lt;!-- card:start --&gt;&lt;!-- card:end --&gt;
+&lt;/head&gt;&lt;body class="ds-card"&gt;&lt;div class="ds-wrap"&gt;
+  &lt;header class="ds-head"&gt;&lt;span class="t-eyebrow"&gt;Colors&lt;/span&gt;&lt;h1&gt;Text&lt;/h1&gt;
+    &lt;p&gt;Vier Stufen warmes Off-White auf Ink. Fließtext ist nie reines Weiß — `fg-soft`
+       ist der Standard, `fg` nur für Headlines.&lt;/p&gt;&lt;/header&gt;
+  &lt;div class="ds-grid cols-2"&gt;
+    &lt;div class="swatch"&gt;&lt;div class="fill" style="background:var(--ink-850);display:grid;place-items:center"&gt;
+      &lt;span style="color:var(--fg);font-size:22px"&gt;Aa — Primärtext&lt;/span&gt;&lt;/div&gt;
+      &lt;div class="meta"&gt;&lt;span class="nm"&gt;fg&lt;/span&gt;&lt;span class="vl"&gt;#eef1f3&lt;/span&gt;&lt;span class="ro"&gt;Headlines, Primärtext&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;
+    &lt;div class="swatch"&gt;&lt;div class="fill" style="background:var(--ink-850);display:grid;place-items:center"&gt;
+      &lt;span style="color:var(--fg-soft);font-size:22px"&gt;Aa — Fließtext&lt;/span&gt;&lt;/div&gt;
+      &lt;div class="meta"&gt;&lt;span class="nm"&gt;fg-soft&lt;/span&gt;&lt;span class="vl"&gt;#cdd3d9&lt;/span&gt;&lt;span class="ro"&gt;Body, Ledes (Default)&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;
+    &lt;div class="swatch"&gt;&lt;div class="fill" style="background:var(--ink-850);display:grid;place-items:center"&gt;
+      &lt;span style="color:var(--mute);font-size:22px"&gt;Aa — Meta&lt;/span&gt;&lt;/div&gt;
+      &lt;div class="meta"&gt;&lt;span class="nm"&gt;mute&lt;/span&gt;&lt;span class="vl"&gt;#8c96a3&lt;/span&gt;&lt;span class="ro"&gt;Captions, Meta&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;
+    &lt;div class="swatch"&gt;&lt;div class="fill" style="background:var(--ink-850);display:grid;place-items:center"&gt;
+      &lt;span style="color:var(--mute-2);font-size:22px"&gt;Aa — Deep Meta&lt;/span&gt;&lt;/div&gt;
+      &lt;div class="meta"&gt;&lt;span class="nm"&gt;mute-2&lt;/span&gt;&lt;span class="vl"&gt;#6a727e&lt;/span&gt;&lt;span class="ro"&gt;Footer-Bottom, Deep Meta&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 2: Write <code>cards/colors-brass.html</code></strong></li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-html">&lt;!-- @dsCard group="Colors" name="Brass" --&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang="de"&gt;&lt;head&gt;&lt;meta charset="utf-8"&gt;&lt;title&gt;Brass · mentolder&lt;/title&gt;
+&lt;!-- tokens:start --&gt;&lt;!-- tokens:end --&gt;&lt;!-- card:start --&gt;&lt;!-- card:end --&gt;
+&lt;/head&gt;&lt;body class="ds-card"&gt;&lt;div class="ds-wrap"&gt;
+  &lt;header class="ds-head"&gt;&lt;span class="t-eyebrow"&gt;Colors&lt;/span&gt;&lt;h1&gt;Brass — Primär-Akzent&lt;/h1&gt;
+    &lt;p&gt;Der warme Messing-Akzent. &lt;strong&gt;Eine&lt;/strong&gt; primäre Aktion pro View: CTAs, aktive
+       Zustände, Eyebrow-Ticks. Brass-2 ist der Hover-/Kursiv-Akzent.&lt;/p&gt;&lt;/header&gt;
+  &lt;div class="ds-grid cols-3"&gt;
+    &lt;div class="swatch"&gt;&lt;div class="fill" style="background:var(--brass)"&gt;&lt;/div&gt;
+      &lt;div class="meta"&gt;&lt;span class="nm"&gt;brass&lt;/span&gt;&lt;span class="vl"&gt;oklch(.80 .09 75)&lt;/span&gt;&lt;span class="ro"&gt;CTA, Eyebrow, aktiv&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;
+    &lt;div class="swatch"&gt;&lt;div class="fill" style="background:var(--brass-2)"&gt;&lt;/div&gt;
+      &lt;div class="meta"&gt;&lt;span class="nm"&gt;brass-2&lt;/span&gt;&lt;span class="vl"&gt;oklch(.86 .09 75)&lt;/span&gt;&lt;span class="ro"&gt;Hover, Kursiv-Akzent&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;
+    &lt;div class="swatch"&gt;&lt;div class="fill" style="background:var(--brass-deep)"&gt;&lt;/div&gt;
+      &lt;div class="meta"&gt;&lt;span class="nm"&gt;brass-deep&lt;/span&gt;&lt;span class="vl"&gt;#8a6a2a&lt;/span&gt;&lt;span class="ro"&gt;Gradient-Basis Brand-Mark&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;
+    &lt;div class="swatch"&gt;&lt;div class="fill" style="background:var(--ink-850)"&gt;
+      &lt;div style="height:100%;background:var(--brass-d)"&gt;&lt;/div&gt;&lt;/div&gt;
+      &lt;div class="meta"&gt;&lt;span class="nm"&gt;brass-d&lt;/span&gt;&lt;span class="vl"&gt;oklch(.80 .09 75 / .14)&lt;/span&gt;&lt;span class="ro"&gt;Getönte Füllung auf Ink&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;
+    &lt;div class="swatch"&gt;&lt;div class="fill" style="background:var(--brass-hex)"&gt;&lt;/div&gt;
+      &lt;div class="meta"&gt;&lt;span class="nm"&gt;brass-hex&lt;/span&gt;&lt;span class="vl"&gt;#cda260&lt;/span&gt;&lt;span class="ro"&gt;Fallback (PDF/E-Mail, kein OKLCH)&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;
+    &lt;div class="swatch"&gt;&lt;div class="fill" style="display:grid;place-items:center;background:var(--ink-900)"&gt;
+      &lt;button style="background:var(--brass);color:var(--ink-900);border:0;border-radius:var(--radius-pill);padding:10px 20px;font:500 14px var(--sans)"&gt;Termin buchen&lt;/button&gt;&lt;/div&gt;
+      &lt;div class="meta"&gt;&lt;span class="nm"&gt;in situ&lt;/span&gt;&lt;span class="vl"&gt;CTA on ink-900&lt;/span&gt;&lt;span class="ro"&gt;So sieht die Primär-Aktion aus&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 3: Write <code>cards/colors-sage-semantic.html</code></strong></li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-html">&lt;!-- @dsCard group="Colors" name="Sage + Semantic" --&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang="de"&gt;&lt;head&gt;&lt;meta charset="utf-8"&gt;&lt;title&gt;Sage + Semantik · mentolder&lt;/title&gt;
+&lt;!-- tokens:start --&gt;&lt;!-- tokens:end --&gt;&lt;!-- card:start --&gt;&lt;!-- card:end --&gt;
+&lt;/head&gt;&lt;body class="ds-card"&gt;&lt;div class="ds-wrap"&gt;
+  &lt;header class="ds-head"&gt;&lt;span class="t-eyebrow"&gt;Colors&lt;/span&gt;&lt;h1&gt;Sage + Semantik&lt;/h1&gt;
+    &lt;p&gt;Sage (kühles Mint) signalisiert „bereit / gesund / live" und ist der zweite Akzent
+       neben Brass. Die semantischen Farben markieren Status.&lt;/p&gt;&lt;/header&gt;
+  &lt;div class="ds-grid cols-4"&gt;
+    &lt;div class="swatch"&gt;&lt;div class="fill" style="background:var(--sage)"&gt;&lt;/div&gt;
+      &lt;div class="meta"&gt;&lt;span class="nm"&gt;sage&lt;/span&gt;&lt;span class="vl"&gt;oklch(.80 .06 160)&lt;/span&gt;&lt;span class="ro"&gt;Bereit / ruhig (2. Akzent)&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;
+    &lt;div class="swatch"&gt;&lt;div class="fill" style="background:var(--success)"&gt;&lt;/div&gt;
+      &lt;div class="meta"&gt;&lt;span class="nm"&gt;success&lt;/span&gt;&lt;span class="vl"&gt;oklch(.80 .06 160)&lt;/span&gt;&lt;span class="ro"&gt;Erfolg / live&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;
+    &lt;div class="swatch"&gt;&lt;div class="fill" style="background:var(--danger)"&gt;&lt;/div&gt;
+      &lt;div class="meta"&gt;&lt;span class="nm"&gt;danger&lt;/span&gt;&lt;span class="vl"&gt;oklch(.62 .18 22)&lt;/span&gt;&lt;span class="ro"&gt;Blockiert / kritisch&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;
+    &lt;div class="swatch"&gt;&lt;div class="fill" style="background:var(--info)"&gt;&lt;/div&gt;
+      &lt;div class="meta"&gt;&lt;span class="nm"&gt;info&lt;/span&gt;&lt;span class="vl"&gt;oklch(.70 .10 230)&lt;/span&gt;&lt;span class="ro"&gt;Information&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 4: Write <code>cards/colors-paper-print.html</code></strong></li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-html">&lt;!-- @dsCard group="Colors" name="Paper + Print" --&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang="de"&gt;&lt;head&gt;&lt;meta charset="utf-8"&gt;&lt;title&gt;Paper + Print · mentolder&lt;/title&gt;
+&lt;!-- tokens:start --&gt;&lt;!-- tokens:end --&gt;&lt;!-- card:start --&gt;&lt;!-- card:end --&gt;
+&lt;/head&gt;&lt;body class="ds-card"&gt;&lt;div class="ds-wrap"&gt;
+  &lt;header class="ds-head"&gt;&lt;span class="t-eyebrow"&gt;Colors&lt;/span&gt;&lt;h1&gt;Paper + Print&lt;/h1&gt;
+    &lt;p&gt;Die warme Papier-Palette für PDF-, Rechnungs- und E-Mail-Kontexte — die einzige Stelle,
+       an der mentolder auf hellem Grund erscheint.&lt;/p&gt;&lt;/header&gt;
+  &lt;div class="ds-grid cols-3"&gt;
+    &lt;div class="swatch"&gt;&lt;div class="fill" style="background:var(--paper)"&gt;&lt;/div&gt;
+      &lt;div class="meta"&gt;&lt;span class="nm"&gt;paper&lt;/span&gt;&lt;span class="vl"&gt;#f6f3ee&lt;/span&gt;&lt;span class="ro"&gt;Papier-Basis&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;
+    &lt;div class="swatch"&gt;&lt;div class="fill" style="background:var(--paper-2)"&gt;&lt;/div&gt;
+      &lt;div class="meta"&gt;&lt;span class="nm"&gt;paper-2&lt;/span&gt;&lt;span class="vl"&gt;#efeae1&lt;/span&gt;&lt;span class="ro"&gt;Alternate&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;
+    &lt;div class="swatch"&gt;&lt;div class="fill" style="background:var(--paper);display:grid;place-items:center"&gt;
+      &lt;span style="color:var(--paper-ink);font-size:20px"&gt;Aa — Text auf Papier&lt;/span&gt;&lt;/div&gt;
+      &lt;div class="meta"&gt;&lt;span class="nm"&gt;paper-ink&lt;/span&gt;&lt;span class="vl"&gt;#1a2030&lt;/span&gt;&lt;span class="ro"&gt;Dunkler Text auf Papier&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;
+    &lt;div class="swatch"&gt;&lt;div class="fill" style="background:var(--paper);display:grid;place-items:center"&gt;
+      &lt;span style="color:var(--paper-ink-soft);font-size:20px"&gt;Aa — Soft&lt;/span&gt;&lt;/div&gt;
+      &lt;div class="meta"&gt;&lt;span class="nm"&gt;paper-ink-soft&lt;/span&gt;&lt;span class="vl"&gt;#3a4150&lt;/span&gt;&lt;span class="ro"&gt;Weicher Text&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;
+    &lt;div class="swatch"&gt;&lt;div class="fill" style="background:var(--paper);display:grid;place-items:center"&gt;
+      &lt;span style="color:var(--paper-mute);font-size:20px"&gt;Aa — Mute&lt;/span&gt;&lt;/div&gt;
+      &lt;div class="meta"&gt;&lt;span class="nm"&gt;paper-mute&lt;/span&gt;&lt;span class="vl"&gt;#6a717e&lt;/span&gt;&lt;span class="ro"&gt;Meta auf Papier&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;
+    &lt;div class="swatch"&gt;&lt;div class="fill" style="background:var(--paper)"&gt;
+      &lt;div style="height:1px;background:var(--paper-line);margin-top:46px"&gt;&lt;/div&gt;&lt;/div&gt;
+      &lt;div class="meta"&gt;&lt;span class="nm"&gt;paper-line&lt;/span&gt;&lt;span class="vl"&gt;#d4cfc6&lt;/span&gt;&lt;span class="ro"&gt;Divider auf Papier&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 5: Build, validate, render-check, commit</strong></li>
+</ul>
+<p>Run: <code>cd design-system &amp;&amp; node build.mjs &amp;&amp; node validate.mjs</code>
+Expected: <code>assembled 5 card(s)</code>, all <code>✓</code>. Spot-check each of the 4 new cards in a browser.</p>
+<div class="code-wrapper"><pre><code class="language-bash">git add design-system/cards/colors-text.html design-system/cards/colors-brass.html design-system/cards/colors-sage-semantic.html design-system/cards/colors-paper-print.html
+git commit -m "feat(design-system): Colors cards (text, brass, sage+semantic, paper+print)"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="task-5-type-cards-families-scale-editorial">Task 5: Type cards (Families, Scale, Editorial)</h2>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>design-system/cards/type-families.html</code>, <code>type-scale.html</code>, <code>type-editorial.html</code></li>
+</ul>
+<p><strong>Interfaces:</strong> Uses the <code>.t-*</code> semantic classes that ship inside the injected <code>_tokens.css</code> (e.g. <code>.t-h1</code>, <code>.t-lede</code>, <code>.t-eyebrow</code>, <code>.t-kicker</code>, <code>.t-stat</code>).</p>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 1: Write <code>cards/type-families.html</code></strong></li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-html">&lt;!-- @dsCard group="Type" name="Families" --&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang="de"&gt;&lt;head&gt;&lt;meta charset="utf-8"&gt;&lt;title&gt;Type Families · mentolder&lt;/title&gt;
+&lt;!-- tokens:start --&gt;&lt;!-- tokens:end --&gt;&lt;!-- card:start --&gt;&lt;!-- card:end --&gt;
+&lt;/head&gt;&lt;body class="ds-card"&gt;&lt;div class="ds-wrap"&gt;
+  &lt;header class="ds-head"&gt;&lt;span class="t-eyebrow"&gt;Type&lt;/span&gt;&lt;h1&gt;Schrift-Familien&lt;/h1&gt;
+    &lt;p&gt;Editoriale Serife für Display, humanistische Sans für Body/UI, Mono für Eyebrows und Meta.&lt;/p&gt;&lt;/header&gt;
+  &lt;div class="ds-grid" style="gap:28px"&gt;
+    &lt;div class="tile" style="display:block;padding:24px 28px;text-align:left"&gt;
+      &lt;span class="kpill"&gt;--serif · Newsreader&lt;/span&gt;
+      &lt;div style="font-family:var(--serif);font-size:40px;font-weight:400;margin-top:12px"&gt;Menschen, Prozesse &amp; Technik&lt;/div&gt;
+      &lt;div class="cap" style="margin-top:8px"&gt;Display / Headlines · weights 300–600 · optical sizing&lt;/div&gt;&lt;/div&gt;
+    &lt;div class="tile" style="display:block;padding:24px 28px;text-align:left"&gt;
+      &lt;span class="kpill"&gt;--sans · Geist&lt;/span&gt;
+      &lt;div style="font-family:var(--sans);font-size:28px;font-weight:400;margin-top:12px"&gt;Klar, ruhig, auf Augenhöhe — der Fließtext der Marke.&lt;/div&gt;
+      &lt;div class="cap" style="margin-top:8px"&gt;Body / UI · weights 300/400/500/600/700&lt;/div&gt;&lt;/div&gt;
+    &lt;div class="tile" style="display:block;padding:24px 28px;text-align:left"&gt;
+      &lt;span class="kpill"&gt;--mono · Geist Mono&lt;/span&gt;
+      &lt;div style="font-family:var(--mono);font-size:20px;letter-spacing:.05em;margin-top:12px"&gt;EYEBROW · META · LABELS · 0042&lt;/div&gt;
+      &lt;div class="cap" style="margin-top:8px"&gt;Eyebrows, Kicker, Meta · weights 400/500&lt;/div&gt;&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 2: Write <code>cards/type-scale.html</code></strong></li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-html">&lt;!-- @dsCard group="Type" name="Scale" --&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang="de"&gt;&lt;head&gt;&lt;meta charset="utf-8"&gt;&lt;title&gt;Type Scale · mentolder&lt;/title&gt;
+&lt;!-- tokens:start --&gt;&lt;!-- tokens:end --&gt;&lt;!-- card:start --&gt;&lt;!-- card:end --&gt;
+&lt;/head&gt;&lt;body class="ds-card"&gt;&lt;div class="ds-wrap"&gt;
+  &lt;header class="ds-head"&gt;&lt;span class="t-eyebrow"&gt;Type&lt;/span&gt;&lt;h1&gt;Typo-Skala&lt;/h1&gt;
+    &lt;p&gt;Semantische Stufen, je in echter Größe gerendert. Größen aus den `--t-*`-Token.&lt;/p&gt;&lt;/header&gt;
+  &lt;div style="display:flex;flex-direction:column;gap:18px"&gt;
+    &lt;div&gt;&lt;span class="kpill"&gt;.t-h1 · clamp(44–88) · 350&lt;/span&gt;&lt;div class="t-h1"&gt;Wieder in Einklang&lt;/div&gt;&lt;/div&gt;
+    &lt;div&gt;&lt;span class="kpill"&gt;.t-h2 · clamp(32–48) · 400&lt;/span&gt;&lt;div class="t-h2"&gt;Coaching &amp; digitale Begleitung&lt;/div&gt;&lt;/div&gt;
+    &lt;div&gt;&lt;span class="kpill"&gt;.t-h3 · 22 · 500 · sans&lt;/span&gt;&lt;div class="t-h3"&gt;Führungs-Coaching&lt;/div&gt;&lt;/div&gt;
+    &lt;div&gt;&lt;span class="kpill"&gt;.t-h3-serif · 28 · serif&lt;/span&gt;&lt;div class="t-h3-serif"&gt;Digitale Transformation&lt;/div&gt;&lt;/div&gt;
+    &lt;div&gt;&lt;span class="kpill"&gt;.t-lede · 20&lt;/span&gt;&lt;div class="t-lede"&gt;Mit 30+ Jahren Führungserfahrung begleite ich Menschen praxisnah.&lt;/div&gt;&lt;/div&gt;
+    &lt;div&gt;&lt;span class="kpill"&gt;.t-body · 16&lt;/span&gt;&lt;p class="t-body"&gt;Standard-Fließtext in fg-soft, line-height 1.55.&lt;/p&gt;&lt;/div&gt;
+    &lt;div&gt;&lt;span class="kpill"&gt;.t-small · 14&lt;/span&gt;&lt;div class="t-small"&gt;Captions und sekundäre Meta-Angaben.&lt;/div&gt;&lt;/div&gt;
+    &lt;div&gt;&lt;span class="kpill"&gt;.t-eyebrow · 11 · mono&lt;/span&gt;&lt;div&gt;&lt;span class="t-eyebrow"&gt;Leistungen&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;
+    &lt;div&gt;&lt;span class="kpill"&gt;.t-kicker · 11 · mono&lt;/span&gt;&lt;div class="t-kicker"&gt;EINZELCOACHING&lt;/div&gt;&lt;/div&gt;
+    &lt;div&gt;&lt;span class="kpill"&gt;.t-stat · 44 · serif&lt;/span&gt;&lt;div class="t-stat"&gt;30&lt;em&gt;+&lt;/em&gt;&lt;/div&gt;&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 3: Write <code>cards/type-editorial.html</code></strong></li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-html">&lt;!-- @dsCard group="Type" name="Editorial" --&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang="de"&gt;&lt;head&gt;&lt;meta charset="utf-8"&gt;&lt;title&gt;Editorial Details · mentolder&lt;/title&gt;
+&lt;!-- tokens:start --&gt;&lt;!-- tokens:end --&gt;&lt;!-- card:start --&gt;&lt;!-- card:end --&gt;
+&lt;/head&gt;&lt;body class="ds-card"&gt;&lt;div class="ds-wrap"&gt;
+  &lt;header class="ds-head"&gt;&lt;span class="t-eyebrow"&gt;Type&lt;/span&gt;&lt;h1&gt;Editorial-Details&lt;/h1&gt;
+    &lt;p&gt;Die kleinen Signaturen, die den editorialen Ton tragen: Brass-Kursiv-Betonung,
+       der Eyebrow-Tick und die Stat-Hervorhebung.&lt;/p&gt;&lt;/header&gt;
+  &lt;div class="ds-grid cols-2" style="gap:22px"&gt;
+    &lt;div class="tile" style="display:block;text-align:left;padding:28px"&gt;
+      &lt;div class="t-h2"&gt;Echte Lösungen brauchen &lt;em&gt;unbequeme&lt;/em&gt; Wahrheiten&lt;/div&gt;
+      &lt;div class="cap" style="margin-top:14px"&gt;Headline-`&lt;em&gt;` → kursiv, brass-2&lt;/div&gt;&lt;/div&gt;
+    &lt;div class="tile" style="display:block;text-align:left;padding:28px"&gt;
+      &lt;span class="t-eyebrow"&gt;Warum mentolder&lt;/span&gt;
+      &lt;div class="cap" style="margin-top:14px"&gt;.t-eyebrow → Mono, uppercase, 0.18em, brass-Tick via ::before&lt;/div&gt;&lt;/div&gt;
+    &lt;div class="tile" style="display:block;text-align:left;padding:28px"&gt;
+      &lt;div class="t-stat"&gt;50&lt;em&gt;+&lt;/em&gt;&lt;/div&gt;&lt;div class="t-small" style="margin-top:4px"&gt;Begleitete Teilnehmer&lt;/div&gt;
+      &lt;div class="cap" style="margin-top:14px"&gt;.t-stat → Serife, `&lt;em&gt;` brass, nicht kursiv&lt;/div&gt;&lt;/div&gt;
+    &lt;div class="tile" style="display:block;text-align:left;padding:28px"&gt;
+      &lt;div class="t-kicker"&gt;PROJEKT · AB 3.500 € / MONAT&lt;/div&gt;
+      &lt;div class="cap" style="margin-top:14px"&gt;.t-kicker → Mono, 0.14em, mute&lt;/div&gt;&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 4: Build, validate, render-check, commit</strong></li>
+</ul>
+<p>Run: <code>cd design-system &amp;&amp; node build.mjs &amp;&amp; node validate.mjs</code> → <code>assembled 8 card(s)</code>, all <code>✓</code>. Spot-check the 3 type cards (real font sizes, brass italics).</p>
+<div class="code-wrapper"><pre><code class="language-bash">git add design-system/cards/type-families.html design-system/cards/type-scale.html design-system/cards/type-editorial.html
+git commit -m "feat(design-system): Type cards (families, scale, editorial)"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="task-6-spacing-radius-elevation-cards">Task 6: Spacing, Radius, Elevation cards</h2>
+<p><strong>Files:</strong></p>
+<ul>
+<li><p>Create: <code>design-system/cards/spacing-scale.html</code>, <code>radius-scale.html</code>, <code>elevation-shadows.html</code></p>
+</li>
+<li><p><input disabled="" type="checkbox"> <strong>Step 1: Write <code>cards/spacing-scale.html</code></strong></p>
+</li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-html">&lt;!-- @dsCard group="Spacing" name="Scale + Layout" --&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang="de"&gt;&lt;head&gt;&lt;meta charset="utf-8"&gt;&lt;title&gt;Spacing · mentolder&lt;/title&gt;
+&lt;!-- tokens:start --&gt;&lt;!-- tokens:end --&gt;&lt;!-- card:start --&gt;&lt;!-- card:end --&gt;
+&lt;/head&gt;&lt;body class="ds-card"&gt;&lt;div class="ds-wrap"&gt;
+  &lt;header class="ds-head"&gt;&lt;span class="t-eyebrow"&gt;Spacing&lt;/span&gt;&lt;h1&gt;Spacing + Layout&lt;/h1&gt;
+    &lt;p&gt;Acht-stufige Skala plus Layout-Rhythmus. Sektionen atmen bei 80–120px.&lt;/p&gt;&lt;/header&gt;
+  &lt;div style="display:flex;flex-direction:column"&gt;
+    &lt;div class="scale-row"&gt;&lt;span class="lab"&gt;--space-1 · 4&lt;/span&gt;&lt;div class="bar" style="width:4px"&gt;&lt;/div&gt;&lt;/div&gt;
+    &lt;div class="scale-row"&gt;&lt;span class="lab"&gt;--space-2 · 8&lt;/span&gt;&lt;div class="bar" style="width:8px"&gt;&lt;/div&gt;&lt;/div&gt;
+    &lt;div class="scale-row"&gt;&lt;span class="lab"&gt;--space-3 · 14&lt;/span&gt;&lt;div class="bar" style="width:14px"&gt;&lt;/div&gt;&lt;/div&gt;
+    &lt;div class="scale-row"&gt;&lt;span class="lab"&gt;--space-4 · 22&lt;/span&gt;&lt;div class="bar" style="width:22px"&gt;&lt;/div&gt;&lt;/div&gt;
+    &lt;div class="scale-row"&gt;&lt;span class="lab"&gt;--space-5 · 36&lt;/span&gt;&lt;div class="bar" style="width:36px"&gt;&lt;/div&gt;&lt;/div&gt;
+    &lt;div class="scale-row"&gt;&lt;span class="lab"&gt;--space-6 · 56&lt;/span&gt;&lt;div class="bar" style="width:56px"&gt;&lt;/div&gt;&lt;/div&gt;
+    &lt;div class="scale-row"&gt;&lt;span class="lab"&gt;--space-7 · 80&lt;/span&gt;&lt;div class="bar" style="width:80px"&gt;&lt;/div&gt;&lt;/div&gt;
+    &lt;div class="scale-row"&gt;&lt;span class="lab"&gt;--space-8 · 120&lt;/span&gt;&lt;div class="bar" style="width:120px"&gt;&lt;/div&gt;&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div style="display:flex;gap:10px;margin-top:24px;flex-wrap:wrap"&gt;
+    &lt;span class="kpill"&gt;--gutter · 40&lt;/span&gt;&lt;span class="kpill"&gt;--gutter-mobile · 22&lt;/span&gt;
+    &lt;span class="kpill"&gt;--maxw · 1240&lt;/span&gt;&lt;span class="kpill"&gt;Sektion-Rhythmus · 80–120&lt;/span&gt;&lt;/div&gt;
+&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 2: Write <code>cards/radius-scale.html</code></strong></li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-html">&lt;!-- @dsCard group="Radius" name="Scale" --&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang="de"&gt;&lt;head&gt;&lt;meta charset="utf-8"&gt;&lt;title&gt;Radius · mentolder&lt;/title&gt;
+&lt;!-- tokens:start --&gt;&lt;!-- tokens:end --&gt;&lt;!-- card:start --&gt;&lt;!-- card:end --&gt;
+&lt;/head&gt;&lt;body class="ds-card"&gt;&lt;div class="ds-wrap"&gt;
+  &lt;header class="ds-head"&gt;&lt;span class="t-eyebrow"&gt;Radius&lt;/span&gt;&lt;h1&gt;Radius-Skala&lt;/h1&gt;
+    &lt;p&gt;Von der Portrait-Kante bis zur Pille — Rundungen aus den `--radius-*`-Token.&lt;/p&gt;&lt;/header&gt;
+  &lt;div class="ds-grid cols-3"&gt;
+    &lt;div class="tile" style="border-radius:var(--radius-xs)"&gt;&lt;span class="cap"&gt;--radius-xs · 4&lt;/span&gt;&lt;/div&gt;
+    &lt;div class="tile" style="border-radius:var(--radius-sm)"&gt;&lt;span class="cap"&gt;--radius-sm · 8&lt;/span&gt;&lt;/div&gt;
+    &lt;div class="tile" style="border-radius:var(--radius-md)"&gt;&lt;span class="cap"&gt;--radius-md · 12&lt;/span&gt;&lt;/div&gt;
+    &lt;div class="tile" style="border-radius:var(--radius-lg)"&gt;&lt;span class="cap"&gt;--radius-lg · 14&lt;/span&gt;&lt;/div&gt;
+    &lt;div class="tile" style="border-radius:var(--radius)"&gt;&lt;span class="cap"&gt;--radius · 22&lt;/span&gt;&lt;/div&gt;
+    &lt;div class="tile" style="border-radius:var(--radius-pill)"&gt;&lt;span class="cap"&gt;--radius-pill · 999&lt;/span&gt;&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<blockquote>
+<p>Note: <code>--radius-lg</code> (14px) is defined in <code>src/styles/factory-tokens.css</code>; if absent from the injected <code>_tokens.css</code> the tile simply falls back to square — acceptable. Verify in render-check; if missing, drop the <code>--radius-lg</code> tile.</p>
+</blockquote>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 3: Write <code>cards/elevation-shadows.html</code></strong></li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-html">&lt;!-- @dsCard group="Elevation" name="Shadows + Hairlines" --&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang="de"&gt;&lt;head&gt;&lt;meta charset="utf-8"&gt;&lt;title&gt;Elevation · mentolder&lt;/title&gt;
+&lt;!-- tokens:start --&gt;&lt;!-- tokens:end --&gt;&lt;!-- card:start --&gt;&lt;!-- card:end --&gt;
+&lt;/head&gt;&lt;body class="ds-card"&gt;&lt;div class="ds-wrap"&gt;
+  &lt;header class="ds-head"&gt;&lt;span class="t-eyebrow"&gt;Elevation&lt;/span&gt;&lt;h1&gt;Elevation — Hairlines statt Schatten&lt;/h1&gt;
+    &lt;p&gt;Das System vermeidet schwere Schatten. Tiefe entsteht über 1px-Hairlines mit
+       Transparenz; nur Portraits tragen einen echten Schlagschatten.&lt;/p&gt;&lt;/header&gt;
+  &lt;div class="ds-grid cols-3" style="align-items:start"&gt;
+    &lt;div style="background:var(--ink-800);border-radius:var(--radius);box-shadow:var(--shadow-card);padding:28px;min-height:120px"&gt;
+      &lt;span class="kpill"&gt;--shadow-card&lt;/span&gt;&lt;p class="t-small" style="margin-top:10px"&gt;Hairline + 1px-Inset. Die Standard-Card-Tiefe.&lt;/p&gt;&lt;/div&gt;
+    &lt;div style="background:var(--ink-800);border-radius:var(--radius);box-shadow:var(--shadow-portrait);padding:28px;min-height:120px"&gt;
+      &lt;span class="kpill"&gt;--shadow-portrait&lt;/span&gt;&lt;p class="t-small" style="margin-top:10px"&gt;Tiefer, weicher Schatten — nur für Charakter-Portraits.&lt;/p&gt;&lt;/div&gt;
+    &lt;div style="background:var(--ink-800);border-radius:var(--radius);padding:0;min-height:120px;overflow:hidden"&gt;
+      &lt;div style="padding:18px;border-bottom:1px solid var(--line)"&gt;&lt;span class="kpill"&gt;--line&lt;/span&gt;&lt;/div&gt;
+      &lt;div style="padding:18px;border-bottom:1px solid var(--line-2)"&gt;&lt;span class="kpill"&gt;--line-2&lt;/span&gt;&lt;/div&gt;
+      &lt;div style="padding:18px"&gt;&lt;span class="cap"&gt;Hairline-Hierarchie&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 4: Build, validate, render-check, commit</strong></li>
+</ul>
+<p>Run: <code>cd design-system &amp;&amp; node build.mjs &amp;&amp; node validate.mjs</code> → <code>assembled 11 card(s)</code>, all <code>✓</code>.</p>
+<div class="code-wrapper"><pre><code class="language-bash">git add design-system/cards/spacing-scale.html design-system/cards/radius-scale.html design-system/cards/elevation-shadows.html
+git commit -m "feat(design-system): Spacing, Radius, Elevation cards"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="task-7-motion-card-animated">Task 7: Motion card (animated)</h2>
+<p><strong>Files:</strong></p>
+<ul>
+<li><p>Create: <code>design-system/cards/motion-easing.html</code></p>
+</li>
+<li><p><input disabled="" type="checkbox"> <strong>Step 1: Write <code>cards/motion-easing.html</code></strong> — CSS-keyframe demos that loop, plus the easing/duration token table.</p>
+</li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-html">&lt;!-- @dsCard group="Motion" name="Easing + Duration" --&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang="de"&gt;&lt;head&gt;&lt;meta charset="utf-8"&gt;&lt;title&gt;Motion · mentolder&lt;/title&gt;
+&lt;!-- tokens:start --&gt;&lt;!-- tokens:end --&gt;&lt;!-- card:start --&gt;&lt;!-- card:end --&gt;
+&lt;style&gt;
+  @keyframes ds-slide { 0%,12% { transform: translateX(0) } 50% { transform: translateX(220px) } 88%,100% { transform: translateX(0) } }
+  .track { position:relative; height:34px; background:var(--ink-850); border-radius:var(--radius-pill); border:1px solid var(--line); }
+  .dot { position:absolute; top:5px; left:5px; width:22px; height:22px; border-radius:50%; background:var(--brass); }
+  .d-soft { animation: ds-slide 2.4s var(--ease-soft) infinite; }
+  .d-out  { animation: ds-slide 2.4s var(--ease-out) infinite; }
+&lt;/style&gt;
+&lt;/head&gt;&lt;body class="ds-card"&gt;&lt;div class="ds-wrap"&gt;
+  &lt;header class="ds-head"&gt;&lt;span class="t-eyebrow"&gt;Motion&lt;/span&gt;&lt;h1&gt;Easing + Dauer&lt;/h1&gt;
+    &lt;p&gt;Weiche, ein-/ausschwingende Kurven. Eintritts-Reveals nutzen `ease-soft`; UI-Reaktionen `ease-out`.&lt;/p&gt;&lt;/header&gt;
+  &lt;div style="display:flex;flex-direction:column;gap:14px;margin-bottom:24px"&gt;
+    &lt;div&gt;&lt;span class="kpill"&gt;--ease-soft · cubic-bezier(.22,.61,.36,1)&lt;/span&gt;&lt;div class="track" style="margin-top:8px"&gt;&lt;div class="dot d-soft"&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;
+    &lt;div&gt;&lt;span class="kpill"&gt;--ease-out · cubic-bezier(.2,.8,.2,1)&lt;/span&gt;&lt;div class="track" style="margin-top:8px"&gt;&lt;div class="dot d-out"&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div style="display:flex;gap:10px;flex-wrap:wrap"&gt;
+    &lt;span class="kpill"&gt;--dur-fast · 150ms&lt;/span&gt;&lt;span class="kpill"&gt;--dur-base · 200ms&lt;/span&gt;
+    &lt;span class="kpill"&gt;--dur-slow · 500ms&lt;/span&gt;&lt;span class="kpill"&gt;--dur-portrait · 800ms&lt;/span&gt;&lt;/div&gt;
+&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 2: Build, validate, render-check, commit</strong></li>
+</ul>
+<p>Run: <code>cd design-system &amp;&amp; node build.mjs &amp;&amp; node validate.mjs</code> → <code>assembled 12 card(s)</code>, all <code>✓</code>. In the browser, confirm both dots animate with visibly different easing.</p>
+<div class="code-wrapper"><pre><code class="language-bash">git add design-system/cards/motion-easing.html
+git commit -m "feat(design-system): Motion card (easing + duration, animated)"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="task-8-iconography--brand-cards-inline-svg-grids">Task 8: Iconography + Brand cards (inline SVG grids)</h2>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>design-system/cards/icons-sheet.html</code>, <code>brand-logo.html</code></li>
+</ul>
+<p><strong>Interfaces:</strong> Uses the <code>props-grid</code> / <code>logos-grid</code> injection regions filled by <code>svgGrid()</code> (Task 1). The grids inline every SVG in <code>assets/props/</code> and <code>assets/logos/</code>.</p>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 1: Write <code>cards/icons-sheet.html</code></strong></li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-html">&lt;!-- @dsCard group="Iconography" name="Icon Sheet" --&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang="de"&gt;&lt;head&gt;&lt;meta charset="utf-8"&gt;&lt;title&gt;Icons · mentolder&lt;/title&gt;
+&lt;!-- tokens:start --&gt;&lt;!-- tokens:end --&gt;&lt;!-- card:start --&gt;&lt;!-- card:end --&gt;
+&lt;/head&gt;&lt;body class="ds-card"&gt;&lt;div class="ds-wrap"&gt;
+  &lt;header class="ds-head"&gt;&lt;span class="t-eyebrow"&gt;Iconography&lt;/span&gt;&lt;h1&gt;Icon-Sheet&lt;/h1&gt;
+    &lt;p&gt;Die Service-Prop-Icons der Marke, brass eingefärbt auf Ink. Quelle:
+       &lt;span class="cap"&gt;website/public/brand/mentolder/props/&lt;/span&gt;&lt;/p&gt;&lt;/header&gt;
+  &lt;div class="ds-grid cols-5"&gt;&lt;!-- props-grid:start --&gt;&lt;!-- props-grid:end --&gt;&lt;/div&gt;
+&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 2: Write <code>cards/brand-logo.html</code></strong></li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-html">&lt;!-- @dsCard group="Brand" name="Logo + Mark" --&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang="de"&gt;&lt;head&gt;&lt;meta charset="utf-8"&gt;&lt;title&gt;Logo + Mark · mentolder&lt;/title&gt;
+&lt;!-- tokens:start --&gt;&lt;!-- tokens:end --&gt;&lt;!-- card:start --&gt;&lt;!-- card:end --&gt;
+&lt;style&gt;.logos .icon-cell svg { width:auto; height:48px; max-width:200px; }&lt;/style&gt;
+&lt;/head&gt;&lt;body class="ds-card"&gt;&lt;div class="ds-wrap"&gt;
+  &lt;header class="ds-head"&gt;&lt;span class="t-eyebrow"&gt;Brand&lt;/span&gt;&lt;h1&gt;Logo + Mark&lt;/h1&gt;
+    &lt;p&gt;Lockup, Mark, App-Icon und der Brass-Pulse. Auf dem Ink-Grund gerendert.
+       Quelle: &lt;span class="cap"&gt;website/public/brand/mentolder/logos/&lt;/span&gt;&lt;/p&gt;&lt;/header&gt;
+  &lt;div class="ds-grid cols-3 logos"&gt;&lt;!-- logos-grid:start --&gt;&lt;!-- logos-grid:end --&gt;&lt;/div&gt;
+&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 3: Build, validate, render-check, commit</strong></li>
+</ul>
+<p>Run: <code>cd design-system &amp;&amp; node build.mjs &amp;&amp; node validate.mjs</code> → <code>assembled 14 card(s)</code>, all <code>✓</code>. In the browser, confirm the icon grid shows the props SVGs (brass) and the logo grid renders the lockup/mark. If a <code>lockup-light</code> SVG renders invisibly on ink, that's expected (light lockup is for light grounds) — acceptable for a contact sheet, or remove that one cell's source SVG from <code>assets/logos</code> before build if undesired.</p>
+<div class="code-wrapper"><pre><code class="language-bash">git add design-system/cards/icons-sheet.html design-system/cards/brand-logo.html
+git commit -m "feat(design-system): Iconography + Brand cards (inline SVG grids)"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="task-9-bundle-metadata-full-build-repo-gate-plan-frontmatter">Task 9: Bundle metadata, full build, repo gate, plan frontmatter</h2>
+<p><strong>Files:</strong></p>
+<ul>
+<li><p>Create: <code>design-system/config.json</code>, <code>design-system/NOTES.md</code></p>
+</li>
+<li><p><input disabled="" type="checkbox"> <strong>Step 1: Write <code>config.json</code></strong> (projectId left null until Task 10 creates the project)</p>
+</li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-json">{
+  "name": "mentolder — Brand Foundations",
+  "projectId": null,
+  "localDir": "design-system",
+  "uploadGlobs": ["cards/**"],
+  "tokenSource": "website/public/brand/mentolder/colors_and_type.css",
+  "cards": [
+    "colors-surfaces", "colors-text", "colors-brass", "colors-sage-semantic", "colors-paper-print",
+    "type-families", "type-scale", "type-editorial",
+    "spacing-scale", "radius-scale", "elevation-shadows",
+    "motion-easing", "icons-sheet", "brand-logo"
+  ]
+}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 2: Write <code>NOTES.md</code></strong> (re-sync checklist)</li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-markdown"># mentolder — Brand Foundations · design-sync notes
+
+Third design-sync target, **foundations** (not a code mirror). 14 self-contained static
+HTML cards. No component-compile pipeline — cards are static; `build.mjs` only injects
+the token CSS, the shared card CSS, and inline SVG grids.
+
+## Re-build / re-sync
+1. `node design-system/build.mjs`  — regenerates `_tokens.css` from the brand SSOT,
+   copies SVGs into `assets/`, and re-injects every card (idempotent).
+2. `node design-system/validate.mjs`  — lints `@dsCard` markers + injection regions.
+3. `node --test design-system/`  — unit tests for build + validate.
+4. Push: DesignSync `finalize_plan { writes:["cards/**"], localDir:"design-system" }` → `write_files`.
+   Only `cards/**` is uploaded; `_tokens.css` / `_card.css` / `assets/` are local build inputs.
+
+## Quirks
+- Token DRYness is guaranteed at the **source** (`build.mjs` copies `colors_and_type.css`
+  verbatim); each delivered card is self-contained (tokens inlined). After a token change,
+  re-run step 1 to refresh all cards.
+- `projectId` lives in `config.json`, set after the first `create_project`.
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 3: Full clean rebuild + validate + unit tests</strong></li>
+</ul>
+<p>Run:</p>
+<div class="code-wrapper"><pre><code class="language-bash">cd design-system &amp;&amp; node build.mjs &amp;&amp; node validate.mjs &amp;&amp; node --test .
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Expected: <code>assembled 14 card(s)</code>, <code>14 card(s) OK</code>, all unit tests pass.</p>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 4: Repo offline gate (sanity — our files are additive/out of its scope)</strong></li>
+</ul>
+<p>Run: <code>cd /tmp/wt-mentolder-foundations-ds &amp;&amp; task test:all</code>
+Expected: PASS (unchanged — no manifest/website test touches our new dir).</p>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 5: Commit the finalized bundle</strong></li>
+</ul>
+<p>(The plan + spec were already committed/pushed in the planning phase; do not re-commit them here.)</p>
+<div class="code-wrapper"><pre><code class="language-bash">cd /tmp/wt-mentolder-foundations-ds
+git add design-system/config.json design-system/NOTES.md design-system/_tokens.css design-system/cards
+git commit -m "feat(design-system): bundle metadata + NOTES; finalize foundations bundle"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="task-10-create-the-claudeaidesign-project-and-push-main-session-only">Task 10: Create the claude.ai/design project and push (main session only)</h2>
+<blockquote>
+<p><strong>This task uses the DesignSync tool, authorized via <code>/design-login</code> in the main session.</strong> It is NOT delegatable to a subagent — run it inline. No git commit except persisting <code>projectId</code>.</p>
+</blockquote>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 1: Confirm the project doesn't already exist</strong></li>
+</ul>
+<p>Call <code>DesignSync { method: "list_projects" }</code>. Confirm no project named <code>mentolder — Brand Foundations</code> exists. (The two existing ones are <code>mentolder-web</code>/<code>mentolder-website</code> component syncs with different ids.)</p>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 2: Create the project</strong></li>
+</ul>
+<p>Call <code>DesignSync { method: "create_project", name: "mentolder — Brand Foundations" }</code>. Capture the returned <code>projectId</code>.</p>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 3: Verify it is a design-system project</strong></li>
+</ul>
+<p>Call <code>DesignSync { method: "get_project", projectId: "&lt;new id&gt;" }</code>. Confirm <code>type: PROJECT_TYPE_DESIGN_SYSTEM</code> and <code>canEdit: true</code> before any write.</p>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 4: Persist projectId</strong></li>
+</ul>
+<p>Edit <code>design-system/config.json</code> → set <code>"projectId": "&lt;new id&gt;"</code>. Commit:</p>
+<div class="code-wrapper"><pre><code class="language-bash">git add design-system/config.json
+git commit -m "chore(design-system): record Brand Foundations projectId"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 5: Finalize the upload plan</strong></li>
+</ul>
+<p>Call <code>DesignSync { method: "finalize_plan", projectId, localDir: "design-system", writes: ["cards/**"] }</code>. Capture <code>planId</code>. (User sees the path list in the permission prompt.)</p>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 6: Upload the cards</strong></li>
+</ul>
+<p>Call <code>DesignSync { method: "write_files", projectId, planId, files: [ {path:"cards/colors-surfaces.html", localPath:"cards/colors-surfaces.html"}, … all 14 … ] }</code>. Contents are read from disk — they never enter context.</p>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Step 7: Verify</strong></li>
+</ul>
+<p>Call <code>DesignSync { method: "list_files", projectId }</code>. Confirm all 14 <code>cards/*.html</code> are present. The Design System pane builds its card index automatically from the <code>@dsCard</code> markers — no <code>register_assets</code> needed.</p>
+<hr>
+<h2 id="self-review">Self-Review</h2>
+<p><strong>1. Spec coverage:</strong></p>
+<ul>
+<li>14-card inventory (Colors×5, Type×3, Spacing, Radius, Elevation, Motion, Icons, Brand) → Tasks 3–8. ✓</li>
+<li>Self-contained static HTML, <code>@dsCard</code> line-1 marker → card skeleton + Task 2 validator. ✓</li>
+<li>DRY token source from <code>colors_and_type.css</code> → Task 1 <code>extractTokens</code> (verbatim copy; supersedes the spec's regex-extractor failure mode — simpler, same DRY guarantee). ✓</li>
+<li>Inline tokens + inline SVGs (no relative refs) → Task 1 <code>assembleCard</code> + <code>svgGrid</code>. ✓</li>
+<li>Directory layout <code>design-system/</code> → File Structure + Task 9 metadata. ✓</li>
+<li>Push flow <code>create_project → finalize_plan(writes cards/**) → write_files</code>, projectId persisted, type-check before write → Task 10. ✓</li>
+<li>Verification (render check, marker lint, token-drift, <code>task test:all</code>) → per-task render checks + Task 2 + Task 9. ✓</li>
+<li>Error cases (project exists, type-immutable) → Task 10 Steps 1 &amp; 3. ✓</li>
+</ul>
+<p><strong>2. Placeholder scan:</strong> No <code>TODO</code>/<code>TBD</code> in steps (the <code>ticket: TBD</code> frontmatter is resolved by <code>plan-frontmatter-hook.sh</code> in Task 9 Step 5 / during execute). Every code step contains complete content. ✓</p>
+<p><strong>3. Type consistency:</strong> <code>injectRegion</code>, <code>extractTokens</code>, <code>copyAssets</code>, <code>svgGrid</code>, <code>assembleCard</code>, <code>main</code>, <code>validateCard</code> are named identically in their defining task (1/2) and every consumer (3–10). Marker names (<code>tokens</code>, <code>card</code>, <code>props-grid</code>, <code>logos-grid</code>) match between card skeletons, <code>assembleCard</code>, and <code>validateCard</code>. ✓</p>
+<p><strong>Refinement note (vs. spec):</strong> the plan (a) extracts tokens by verbatim copy rather than regex (removes a failure mode, same DRY guarantee), and (b) injects a shared <code>_card.css</code> via the same marker mechanism so each card source carries only its unique body. Both preserve the spec's contract (self-contained cards, DRY against <code>colors_and_type.css</code>, only <code>cards/**</code> uploaded).</p>
+</body></html>
+</article>
+
+<nav class="prevnext" aria-label="Seitennavigation"><a class="prevnext-link prevnext-prev" href="./2026-06-20-mcp-task-runner.html"><span class="prevnext-label">← Zurück</span><span class="prevnext-title">MCP Task Runner Implementation Plan</span></a><a class="prevnext-link prevnext-next" href="./2026-06-22-mentolder-web-unterseiten.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">mentolder-web Unterseiten Implementation Plan</span></a></nav>
+  </main>
+</div>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="./app.js"></script>
+</body>
+</html>

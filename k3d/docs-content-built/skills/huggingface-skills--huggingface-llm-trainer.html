@@ -10,19 +10,24 @@
 <link rel="stylesheet" href="../style.css">
 </head>
 <body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
 <header class="site-header">
   <a class="site-header-brand" href="../index.html">
     <span class="site-mark" aria-hidden="true">◆</span>
     <span class="site-wordmark">Dokumentation</span>
   </a>
 </header>
-<div id="search-overlay">
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
   <div id="search-box">
-    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
-    <div id="search-results"></div>
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
   </div>
 </div>
 <div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Dev-Workflow</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-architect.html">code-architect</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-architect.html">code-architect</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-explorer.html">code-explorer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-explorer.html">code-explorer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/code-simplifier--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--comment-analyzer.html">comment-analyzer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--comment-analyzer.html">comment-analyzer</a></li><li class="sidebar-item"><a href="../skills/dev-flow-e2e.html">dev-flow-e2e</a></li><li class="sidebar-item"><a href="../skills/dev-flow-execute.html">dev-flow-execute</a></li><li class="sidebar-item"><a href="../skills/dev-flow-plan.html">dev-flow-plan</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--pr-test-analyzer.html">pr-test-analyzer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--pr-test-analyzer.html">pr-test-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--silent-failure-hunter.html">Silent Failure Hunter</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--silent-failure-hunter.html">silent-failure-hunter</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--type-design-analyzer.html">type-design-analyzer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--type-design-analyzer.html">type-design-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Bachelorprojekt-Infra</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/cluster-deployment.html">cluster-deployment</a></li><li class="sidebar-item"><a href="../skills/database-ops.html">database-ops</a></li><li class="sidebar-item"><a href="../skills/host-node-networking.html">host-node-networking</a></li><li class="sidebar-item"><a href="../skills/keycloak-realm-sync.html">keycloak-realm-sync</a></li><li class="sidebar-item"><a href="../skills/mishap-tracker.html">mishap-tracker</a></li><li class="sidebar-item"><a href="../skills/operations-management.html">operations-management</a></li><li class="sidebar-item"><a href="../skills/secret-rotation.html">secret-rotation</a></li><li class="sidebar-item"><a href="../skills/update-dependencies.html">update-dependencies</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">KI / ML</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html" aria-current="page">huggingface-llm-trainer</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html" aria-current="page">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Plugin- &amp; Skill-Bau</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../agents/plugin-dev--agent-creator.html">agent-creator</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--agent-creator.html">agent-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--agent-development.html">agent-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--agent-development.html">agent-development</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-py.html">agent-sdk-verifier-py</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-py.html">agent-sdk-verifier-py</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-ts.html">agent-sdk-verifier-ts</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-ts.html">agent-sdk-verifier-ts</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--command-development.html">command-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--command-development.html">command-development</a></li><li class="sidebar-item"><a href="../agents/hookify--conversation-analyzer.html">conversation-analyzer</a></li><li class="sidebar-item"><a href="../agents/hookify--conversation-analyzer.html">conversation-analyzer</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--hook-development.html">hook-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--hook-development.html">hook-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--mcp-integration.html">mcp-integration</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--mcp-integration.html">mcp-integration</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-settings.html">plugin-settings</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-settings.html">plugin-settings</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-structure.html">plugin-structure</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-structure.html">plugin-structure</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--plugin-validator.html">plugin-validator</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--plugin-validator.html">plugin-validator</a></li><li class="sidebar-item"><a href="../skills/skill-creator--skill-creator.html">skill-creator</a></li><li class="sidebar-item"><a href="../skills/skill-creator--skill-creator.html">skill-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--skill-development.html">skill-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--skill-development.html">skill-development</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--skill-reviewer.html">skill-reviewer</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--skill-reviewer.html">skill-reviewer</a></li><li class="sidebar-item"><a href="../skills/hookify--writing-rules.html">writing-hookify-rules</a></li><li class="sidebar-item"><a href="../skills/hookify--writing-rules.html">writing-hookify-rules</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Browser &amp; Debugging</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers-chrome--browsing.html">browsing</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">MCP &amp; API</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/postman--agent-ready-apis.html">agent-ready-apis</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-app.html">build-mcp-app</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-app.html">build-mcp-app</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-server.html">build-mcp-server</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-server.html">build-mcp-server</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcpb.html">build-mcpb</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcpb.html">build-mcpb</a></li><li class="sidebar-item"><a href="../skills/postman--generate-spec.html">generate-spec</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--mcp-cli.html">mcp-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-cli.html">postman-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-context.html">postman-context</a></li><li class="sidebar-item"><a href="../skills/postman--postman-knowledge.html">postman-knowledge</a></li><li class="sidebar-item"><a href="../skills/postman--run-collection.html">run-collection</a></li><li class="sidebar-item"><a href="../skills/postman--send-request.html">send-request</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Claude Code &amp; Tooling</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/brightdata-plugin--agent-onboarding.html">agent-onboarding</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brand-listening.html">brand-listening</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brd-browser-debug.html">brd-browser-debug</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-best-practices.html">bright-data-best-practices</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-mcp.html">bright-data-mcp</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brightdata-cli.html">brightdata-cli</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--proxy.html">brightdata-proxy</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--python-sdk-best-practices.html">brightdata-sdk</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--js-sdk-best-practices.html">brightdata-sdk-js</a></li><li class="sidebar-item"><a href="../skills/claude-code-setup--claude-automation-recommender.html">claude-automation-recommender</a></li><li class="sidebar-item"><a href="../skills/claude-md-management--claude-md-improver.html">claude-md-improver</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--competitive-intel.html">competitive-intel</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--data-feeds.html">data-feeds</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--design-mirror.html">design-mirror</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/dev-flow-chore.html">dev-flow-chore</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--developing-claude-code-plugins.html">developing-claude-code-plugins</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--discover-api.html">discover-api</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--finding-duplicate-functions.html">finding-duplicate-functions</a></li><li class="sidebar-item"><a href="../skills/frontend-design--frontend-design.html">frontend-design</a></li><li class="sidebar-item"><a href="../skills/frontend-design--frontend-design.html">frontend-design</a></li><li class="sidebar-item"><a href="../skills/git-workflow.html">git-workflow</a></li><li class="sidebar-item"><a href="../skills/incident-response.html">incident-response</a></li><li class="sidebar-item"><a href="../skills/infra-ops.html">infra-ops</a></li><li class="sidebar-item"><a href="../skills/lavish.html">lavish</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--live-research.html">live-research</a></li><li class="sidebar-item"><a href="../skills/llm-ops.html">llm-ops</a></li><li class="sidebar-item"><a href="../skills/playground--playground.html">playground</a></li><li class="sidebar-item"><a href="../skills/playground--playground.html">playground</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--price-comparison.html">price-comparison</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--rag-pipeline.html">rag-pipeline</a></li><li class="sidebar-item"><a href="../skills/references.html">references</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scrape.html">scrape</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-builder.html">scraper-builder</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-studio.html">scraper-studio</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--search.html">search</a></li><li class="sidebar-item"><a href="../skills/sourcegraph--searching-sourcegraph.html">searching-sourcegraph</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--seo-audit.html">seo-audit</a></li><li class="sidebar-item"><a href="../skills/ticket-ops.html">ticket-ops</a></li><li class="sidebar-item"><a href="../skills/braintrust--troubleshoot-braintrust-mcp.html">troubleshoot-braintrust-mcp</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--using-tmux-for-interactive-commands.html">using-tmux-for-interactive-commands</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--windows-vm.html">windows-vm</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--working-with-claude-code.html">working-with-claude-code</a></li><li class="sidebar-item"><a href="../skills/workspace-deploy.html">workspace-deploy</a></li></ul></details>
+</aside>
   <main id="main">
 <header class="page-header">
   <div class="page-header-body">
@@ -41,24 +46,59 @@
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#overview"><span class="toc-num">1.</span> Overview</a></li>
 <li class="toc-item"><a href="#when-to-use-this-skill"><span class="toc-num">2.</span> When to Use This Skill</a></li>
+<li class="toc-item toc-item--h3"><a href="#when-to-use-unsloth"><span class="toc-num">–</span> When to Use Unsloth</a></li>
 <li class="toc-item"><a href="#key-directives"><span class="toc-num">3.</span> Key Directives</a></li>
 <li class="toc-item"><a href="#local-script-execution"><span class="toc-num">4.</span> Local Script Execution</a></li>
 <li class="toc-item"><a href="#prerequisites-checklist"><span class="toc-num">5.</span> Prerequisites Checklist</a></li>
+<li class="toc-item toc-item--h3"><a href="#-account--authentication"><span class="toc-num">–</span> ✅ Account &amp; Authentication</a></li>
+<li class="toc-item toc-item--h3"><a href="#-dataset-requirements"><span class="toc-num">–</span> ✅ Dataset Requirements</a></li>
+<li class="toc-item toc-item--h3"><a href="#-critical-settings"><span class="toc-num">–</span> ⚠️ Critical Settings</a></li>
 <li class="toc-item"><a href="#asynchronous-job-guidelines"><span class="toc-num">6.</span> Asynchronous Job Guidelines</a></li>
+<li class="toc-item toc-item--h3"><a href="#action-required"><span class="toc-num">–</span> Action Required</a></li>
+<li class="toc-item toc-item--h3"><a href="#ground-rules"><span class="toc-num">–</span> Ground Rules</a></li>
+<li class="toc-item toc-item--h3"><a href="#after-submission"><span class="toc-num">–</span> After Submission</a></li>
 <li class="toc-item"><a href="#quick-start-three-approaches"><span class="toc-num">7.</span> Quick Start: Three Approaches</a></li>
+<li class="toc-item toc-item--h3"><a href="#sequence-length-configuration"><span class="toc-num">–</span> Sequence Length Configuration</a></li>
+<li class="toc-item toc-item--h3"><a href="#approach-1-uv-scripts-recommendeddefault-choice"><span class="toc-num">–</span> Approach 1: UV Scripts (Recommended—Default Choice)</a></li>
+<li class="toc-item toc-item--h3"><a href="#approach-2-trl-maintained-scripts-official-examples"><span class="toc-num">–</span> Approach 2: TRL Maintained Scripts (Official Examples)</a></li>
+<li class="toc-item toc-item--h3"><a href="#finding-more-uv-scripts-on-hub"><span class="toc-num">–</span> Finding More UV Scripts on Hub</a></li>
+<li class="toc-item toc-item--h3"><a href="#approach-3-hf-jobs-cli-direct-terminal-commands"><span class="toc-num">–</span> Approach 3: HF Jobs CLI (Direct Terminal Commands)</a></li>
+<li class="toc-item toc-item--h3"><a href="#approach-4-trl-jobs-package-simplified-training"><span class="toc-num">–</span> Approach 4: TRL Jobs Package (Simplified Training)</a></li>
 <li class="toc-item"><a href="#hardware-selection"><span class="toc-num">8.</span> Hardware Selection</a></li>
 <li class="toc-item"><a href="#critical-saving-results-to-hub"><span class="toc-num">9.</span> Critical: Saving Results to Hub</a></li>
+<li class="toc-item toc-item--h3"><a href="#required-configuration"><span class="toc-num">–</span> Required Configuration</a></li>
+<li class="toc-item toc-item--h3"><a href="#verification-checklist"><span class="toc-num">–</span> Verification Checklist</a></li>
 <li class="toc-item"><a href="#timeout-management"><span class="toc-num">10.</span> Timeout Management</a></li>
+<li class="toc-item toc-item--h3"><a href="#setting-timeouts"><span class="toc-num">–</span> Setting Timeouts</a></li>
+<li class="toc-item toc-item--h3"><a href="#timeout-guidelines"><span class="toc-num">–</span> Timeout Guidelines</a></li>
 <li class="toc-item"><a href="#choose-a-base-model-model-selection"><span class="toc-num">11.</span> Choose a Base Model (Model Selection)</a></li>
+<li class="toc-item toc-item--h3"><a href="#example----choosing-an-ocr-base-model"><span class="toc-num">–</span> Example -- choosing an OCR base model</a></li>
 <li class="toc-item"><a href="#cost-estimation"><span class="toc-num">12.</span> Cost Estimation</a></li>
 <li class="toc-item"><a href="#example-training-scripts"><span class="toc-num">13.</span> Example Training Scripts</a></li>
 <li class="toc-item"><a href="#monitoring-and-tracking"><span class="toc-num">14.</span> Monitoring and Tracking</a></li>
+<li class="toc-item toc-item--h3"><a href="#trackio-configuration-defaults"><span class="toc-num">–</span> Trackio Configuration Defaults</a></li>
+<li class="toc-item toc-item--h3"><a href="#check-job-status"><span class="toc-num">–</span> Check Job Status</a></li>
 <li class="toc-item"><a href="#dataset-validation"><span class="toc-num">15.</span> Dataset Validation</a></li>
+<li class="toc-item toc-item--h3"><a href="#why-validate"><span class="toc-num">–</span> Why Validate</a></li>
+<li class="toc-item toc-item--h3"><a href="#when-to-validate"><span class="toc-num">–</span> When to Validate</a></li>
+<li class="toc-item toc-item--h3"><a href="#usage"><span class="toc-num">–</span> Usage</a></li>
+<li class="toc-item toc-item--h3"><a href="#reading-results"><span class="toc-num">–</span> Reading Results</a></li>
+<li class="toc-item toc-item--h3"><a href="#example-workflow"><span class="toc-num">–</span> Example Workflow</a></li>
+<li class="toc-item toc-item--h3"><a href="#common-scenario-dpo-format-mismatch"><span class="toc-num">–</span> Common Scenario: DPO Format Mismatch</a></li>
 <li class="toc-item"><a href="#converting-models-to-gguf"><span class="toc-num">16.</span> Converting Models to GGUF</a></li>
 <li class="toc-item"><a href="#common-training-patterns"><span class="toc-num">17.</span> Common Training Patterns</a></li>
 <li class="toc-item"><a href="#common-failure-modes"><span class="toc-num">18.</span> Common Failure Modes</a></li>
+<li class="toc-item toc-item--h3"><a href="#out-of-memory-oom"><span class="toc-num">–</span> Out of Memory (OOM)</a></li>
+<li class="toc-item toc-item--h3"><a href="#dataset-misformatted"><span class="toc-num">–</span> Dataset Misformatted</a></li>
+<li class="toc-item toc-item--h3"><a href="#job-timeout"><span class="toc-num">–</span> Job Timeout</a></li>
+<li class="toc-item toc-item--h3"><a href="#hub-push-failures"><span class="toc-num">–</span> Hub Push Failures</a></li>
+<li class="toc-item toc-item--h3"><a href="#missing-dependencies"><span class="toc-num">–</span> Missing Dependencies</a></li>
 <li class="toc-item"><a href="#troubleshooting"><span class="toc-num">19.</span> Troubleshooting</a></li>
 <li class="toc-item"><a href="#resources"><span class="toc-num">20.</span> Resources</a></li>
+<li class="toc-item toc-item--h3"><a href="#references-in-this-skill"><span class="toc-num">–</span> References (In This Skill)</a></li>
+<li class="toc-item toc-item--h3"><a href="#scripts-in-this-skill"><span class="toc-num">–</span> Scripts (In This Skill)</a></li>
+<li class="toc-item toc-item--h3"><a href="#external-scripts"><span class="toc-num">–</span> External Scripts</a></li>
+<li class="toc-item toc-item--h3"><a href="#external-links"><span class="toc-num">–</span> External Links</a></li>
 <li class="toc-item"><a href="#key-takeaways"><span class="toc-num">21.</span> Key Takeaways</a></li></ul>
 </div>
 <h2 id="overview">Overview</h2>
@@ -87,7 +127,7 @@ hf_doc_fetch("https://huggingface.co/docs/trl/dpo_trainer")  # DPO
 <li>Ensure trained models are permanently saved to the Hub</li>
 <li>Use modern workflows with optimized defaults</li>
 </ul>
-<h3>When to Use Unsloth</h3>
+<h3 id="when-to-use-unsloth">When to Use Unsloth</h3>
 <p>Use <strong>Unsloth</strong> (<code>references/unsloth.md</code>) instead of standard TRL when:</p>
 <ul>
 <li><strong>Limited GPU memory</strong> - Unsloth uses ~60% less VRAM</li>
@@ -115,7 +155,7 @@ uv run scripts/dataset_inspector.py --help
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h2 id="prerequisites-checklist">Prerequisites Checklist</h2>
 <p>Before starting any training job, verify:</p>
-<h3>✅ <strong>Account &amp; Authentication</strong></h3>
+<h3 id="-account--authentication">✅ <strong>Account &amp; Authentication</strong></h3>
 <ul>
 <li>Hugging Face Account with <a href="https://hf.co/pro">Pro</a>, <a href="https://hf.co/enterprise">Team</a>, or <a href="https://hf.co/enterprise">Enterprise</a> plan (Jobs require paid plan)</li>
 <li>Authenticated login: Check with <code>hf_whoami()</code></li>
@@ -124,21 +164,21 @@ uv run scripts/dataset_inspector.py --help
 <li><strong>MUST pass <code>secrets={"HF_TOKEN": "$HF_TOKEN"}</code> in job config</strong> to make token available (the <code>$HF_TOKEN</code> syntax
 references your actual token value)</li>
 </ul>
-<h3>✅ <strong>Dataset Requirements</strong></h3>
+<h3 id="-dataset-requirements">✅ <strong>Dataset Requirements</strong></h3>
 <ul>
 <li>Dataset must exist on Hub or be loadable via <code>datasets.load_dataset()</code></li>
 <li>Format must match training method (SFT: "messages"/text/prompt-completion; DPO: chosen/rejected; GRPO: prompt-only)</li>
 <li><strong>ALWAYS validate unknown datasets</strong> before GPU training to prevent format failures (see Dataset Validation section below)</li>
 <li>Size appropriate for hardware (Demo: 50-100 examples on t4-small; Production: 1K-10K+ on a10g-large/a100-large)</li>
 </ul>
-<h3>⚠️ <strong>Critical Settings</strong></h3>
+<h3 id="-critical-settings">⚠️ <strong>Critical Settings</strong></h3>
 <ul>
 <li><strong>Timeout must exceed expected training time</strong> - Default 30min is TOO SHORT for most training. Minimum recommended: 1-2 hours. Job fails and loses all progress if timeout is exceeded.</li>
 <li><strong>Hub push must be enabled</strong> - Config: <code>push_to_hub=True</code>, <code>hub_model_id="username/model-name"</code>; Job: <code>secrets={"HF_TOKEN": "$HF_TOKEN"}</code></li>
 </ul>
 <h2 id="asynchronous-job-guidelines">Asynchronous Job Guidelines</h2>
 <p><strong>⚠️ IMPORTANT: Training jobs run asynchronously and can take hours</strong></p>
-<h3>Action Required</h3>
+<h3 id="action-required">Action Required</h3>
 <p><strong>When user requests training:</strong></p>
 <ol>
 <li><strong>Create the training script</strong> with Trackio included (use <code>scripts/train_sft_example.py</code> as template)</li>
@@ -146,14 +186,14 @@ references your actual token value)</li>
 <li><strong>Report submission</strong> with job ID, monitoring URL, and estimated time</li>
 <li><strong>Wait for user</strong> to request status checks - don't poll automatically</li>
 </ol>
-<h3>Ground Rules</h3>
+<h3 id="ground-rules">Ground Rules</h3>
 <ul>
 <li><strong>Jobs run in background</strong> - Submission returns immediately; training continues independently</li>
 <li><strong>Initial logs delayed</strong> - Can take 30-60 seconds for logs to appear</li>
 <li><strong>User checks status</strong> - Wait for user to request status updates</li>
 <li><strong>Avoid polling</strong> - Check logs only on user request; provide monitoring links instead</li>
 </ul>
-<h3>After Submission</h3>
+<h3 id="after-submission">After Submission</h3>
 <p><strong>Provide to user:</strong></p>
 <ul>
 <li>✅ Job ID and monitoring URL</li>
@@ -174,7 +214,7 @@ The job is running in the background. Ask me to check status/logs when ready!
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h2 id="quick-start-three-approaches">Quick Start: Three Approaches</h2>
 <p><strong>💡 Tip for Demos:</strong> For quick demos on smaller GPUs (t4-small), omit <code>eval_dataset</code> and <code>eval_strategy</code> to save ~40% memory. You'll still see training loss and learning progress.</p>
-<h3>Sequence Length Configuration</h3>
+<h3 id="sequence-length-configuration">Sequence Length Configuration</h3>
 <p><strong>TRL config classes use <code>max_length</code> (not <code>max_seq_length</code>)</strong> to control tokenized sequence length:</p>
 <div class="code-wrapper"><pre><code class="language-python"># ✅ CORRECT - If you need to set sequence length
 SFTConfig(max_length=512)   # Truncate sequences to 512 tokens
@@ -191,7 +231,7 @@ SFTConfig(max_seq_length=512)  # TypeError!
 <li><strong>Vision models</strong>: Set <code>max_length=None</code> (prevents cutting image tokens)</li>
 </ul>
 <p><strong>Usually you don't need to set this parameter at all</strong> - the examples below use the sensible default.</p>
-<h3>Approach 1: UV Scripts (Recommended—Default Choice)</h3>
+<h3 id="approach-1-uv-scripts-recommendeddefault-choice">Approach 1: UV Scripts (Recommended—Default Choice)</h3>
 <p>UV scripts use PEP 723 inline dependencies for clean, self-contained training. <strong>This is the primary approach for Claude Code.</strong></p>
 <div class="code-wrapper"><pre><code class="language-python">hf_jobs("uv", {
     "script": """
@@ -270,7 +310,7 @@ hf_jobs("uv", {"script": "https://gist.githubusercontent.com/user/id/raw/train.p
 hf upload my-training-scripts ./train.py train.py
 # Use: https://huggingface.co/USERNAME/my-training-scripts/resolve/main/train.py
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Approach 2: TRL Maintained Scripts (Official Examples)</h3>
+<h3 id="approach-2-trl-maintained-scripts-official-examples">Approach 2: TRL Maintained Scripts (Official Examples)</h3>
 <p>TRL provides battle-tested scripts for all methods. Can be run from URLs:</p>
 <div class="code-wrapper"><pre><code class="language-python">hf_jobs("uv", {
     "script": "https://github.com/huggingface/trl/blob/main/trl/scripts/sft.py",
@@ -289,7 +329,7 @@ hf upload my-training-scripts ./train.py train.py
 <p><strong>Benefits:</strong> No code to write, maintained by TRL team, production-tested
 <strong>When to use:</strong> Standard TRL training, quick experiments, don't need custom code
 <strong>Available:</strong> Scripts are available from <a href="https://github.com/huggingface/trl/tree/main/examples/scripts">https://github.com/huggingface/trl/tree/main/examples/scripts</a></p>
-<h3>Finding More UV Scripts on Hub</h3>
+<h3 id="finding-more-uv-scripts-on-hub">Finding More UV Scripts on Hub</h3>
 <p>The <code>uv-scripts</code> organization provides ready-to-use UV scripts stored as datasets on Hugging Face Hub:</p>
 <div class="code-wrapper"><pre><code class="language-python"># Discover available UV script collections
 dataset_search({"author": "uv-scripts", "sort": "downloads", "limit": 20})
@@ -298,7 +338,7 @@ dataset_search({"author": "uv-scripts", "sort": "downloads", "limit": 20})
 hub_repo_details(["uv-scripts/classification"], repo_type="dataset", include_readme=True)
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p><strong>Popular collections:</strong> ocr, classification, synthetic-data, vllm, dataset-creation</p>
-<h3>Approach 3: HF Jobs CLI (Direct Terminal Commands)</h3>
+<h3 id="approach-3-hf-jobs-cli-direct-terminal-commands">Approach 3: HF Jobs CLI (Direct Terminal Commands)</h3>
 <p>When the <code>hf_jobs()</code> MCP tool is unavailable, use the <code>hf jobs</code> CLI directly.</p>
 <p><strong>⚠️ CRITICAL: CLI Syntax Rules</strong></p>
 <div class="code-wrapper"><pre><code class="language-bash"># ✅ CORRECT syntax - flags BEFORE script URL
@@ -333,7 +373,7 @@ hf jobs logs &lt;job-id&gt;             # View logs
 hf jobs inspect &lt;job-id&gt;          # Job details
 hf jobs cancel &lt;job-id&gt;           # Cancel a job
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Approach 4: TRL Jobs Package (Simplified Training)</h3>
+<h3 id="approach-4-trl-jobs-package-simplified-training">Approach 4: TRL Jobs Package (Simplified Training)</h3>
 <p>The <code>trl-jobs</code> package provides optimized defaults and one-liner training.</p>
 <div class="code-wrapper"><pre><code class="language-bash">uvx trl-jobs sft \
   --model_name Qwen/Qwen2.5-0.5B \
@@ -395,7 +435,7 @@ hf jobs cancel &lt;job-id&gt;           # Cancel a job
 <h2 id="critical-saving-results-to-hub">Critical: Saving Results to Hub</h2>
 <p><strong>⚠️ EPHEMERAL ENVIRONMENT—MUST PUSH TO HUB</strong></p>
 <p>The Jobs environment is temporary. All files are deleted when the job ends. If the model isn't pushed to Hub, <strong>ALL TRAINING IS LOST</strong>.</p>
-<h3>Required Configuration</h3>
+<h3 id="required-configuration">Required Configuration</h3>
 <p><strong>In training script/config:</strong></p>
 <div class="code-wrapper"><pre><code class="language-python">SFTConfig(
     push_to_hub=True,
@@ -408,7 +448,7 @@ hf jobs cancel &lt;job-id&gt;           # Cancel a job
     "secrets": {"HF_TOKEN": "$HF_TOKEN"}  # Enables authentication
 }
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Verification Checklist</h3>
+<h3 id="verification-checklist">Verification Checklist</h3>
 <p>Before submitting:</p>
 <ul>
 <li><input disabled="" type="checkbox"> <code>push_to_hub=True</code> set in config</li>
@@ -419,12 +459,12 @@ hf jobs cancel &lt;job-id&gt;           # Cancel a job
 <p><strong>See:</strong> <code>references/hub_saving.md</code> for detailed troubleshooting</p>
 <h2 id="timeout-management">Timeout Management</h2>
 <p><strong>⚠️ DEFAULT: 30 MINUTES—TOO SHORT FOR TRAINING</strong></p>
-<h3>Setting Timeouts</h3>
+<h3 id="setting-timeouts">Setting Timeouts</h3>
 <div class="code-wrapper"><pre><code class="language-python">{
     "timeout": "2h"   # 2 hours (formats: "90m", "2h", "1.5h", or seconds as integer)
 }
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Timeout Guidelines</h3>
+<h3 id="timeout-guidelines">Timeout Guidelines</h3>
 <table>
 <thead>
 <tr>
@@ -462,7 +502,7 @@ hf jobs cancel &lt;job-id&gt;           # Cancel a job
 <div class="code-wrapper"><pre><code class="language-bash"># Get help on the benchmarks command:
 uv run scripts/hf_benchmarks.py --help
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Example -- choosing an OCR base model</h3>
+<h3 id="example----choosing-an-ocr-base-model">Example -- choosing an OCR base model</h3>
 <div class="code-wrapper"><pre><code class="language-bash"># Search for benchmarks containing whose name contains the text `ocr`
 uv run scripts/hf_benchmarks.py search --query ocr
 
@@ -496,7 +536,7 @@ uv run scripts/hf_benchmarks.py leaderboard allenai/olmOCR-bench
 <li>Add <code>trackio</code> to dependencies</li>
 <li>Configure trainer with <code>report_to="trackio" and run_name="meaningful_name"</code></li>
 </ul>
-<h3>Trackio Configuration Defaults</h3>
+<h3 id="trackio-configuration-defaults">Trackio Configuration Defaults</h3>
 <p><strong>Use sensible defaults unless user specifies otherwise.</strong> When generating training scripts with Trackio:</p>
 <p><strong>Default Configuration:</strong></p>
 <ul>
@@ -508,7 +548,7 @@ uv run scripts/hf_benchmarks.py leaderboard allenai/olmOCR-bench
 <p><strong>User overrides:</strong> If user requests specific trackio configuration (custom space, run naming, grouping, or additional config), apply their preferences instead of defaults.</p>
 <p>This is useful for managing multiple jobs with the same configuration or keeping training scripts portable.</p>
 <p>See <code>references/trackio_guide.md</code> for complete documentation including grouping runs for experiments.</p>
-<h3>Check Job Status</h3>
+<h3 id="check-job-status">Check Job Status</h3>
 <div class="code-wrapper"><pre><code class="language-python"># List all jobs
 hf_jobs("ps")
 
@@ -521,14 +561,14 @@ hf_jobs("logs", {"job_id": "your-job-id"})
 <p><strong>Remember:</strong> Wait for user to request status checks. Avoid polling repeatedly.</p>
 <h2 id="dataset-validation">Dataset Validation</h2>
 <p><strong>Validate dataset format BEFORE launching GPU training to prevent the #1 cause of training failures: format mismatches.</strong></p>
-<h3>Why Validate</h3>
+<h3 id="why-validate">Why Validate</h3>
 <ul>
 <li>50%+ of training failures are due to dataset format issues</li>
 <li>DPO especially strict: requires exact column names (<code>prompt</code>, <code>chosen</code>, <code>rejected</code>)</li>
 <li>Failed GPU jobs waste $1-10 and 30-60 minutes</li>
 <li>Validation on CPU costs ~$0.01 and takes &lt;1 minute</li>
 </ul>
-<h3>When to Validate</h3>
+<h3 id="when-to-validate">When to Validate</h3>
 <p><strong>ALWAYS validate for:</strong></p>
 <ul>
 <li>Unknown or custom datasets</li>
@@ -539,14 +579,14 @@ hf_jobs("logs", {"job_id": "your-job-id"})
 <ul>
 <li><code>trl-lib/ultrachat_200k</code>, <code>trl-lib/Capybara</code>, <code>HuggingFaceH4/ultrachat_200k</code>, etc.</li>
 </ul>
-<h3>Usage</h3>
+<h3 id="usage">Usage</h3>
 <div class="code-wrapper"><pre><code class="language-python">hf_jobs("uv", {
     "script": "https://huggingface.co/datasets/mcp-tools/skills/raw/main/dataset_inspector.py",
     "script_args": ["--dataset", "username/dataset-name", "--split", "train"]
 })
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>The script is fast, and will usually complete synchronously.</p>
-<h3>Reading Results</h3>
+<h3 id="reading-results">Reading Results</h3>
 <p>The output shows compatibility for each training method:</p>
 <ul>
 <li><strong><code>✓ READY</code></strong> - Dataset is compatible, use directly</li>
@@ -554,7 +594,7 @@ hf_jobs("logs", {"job_id": "your-job-id"})
 <li><strong><code>✗ INCOMPATIBLE</code></strong> - Cannot be used for this method</li>
 </ul>
 <p>When mapping is needed, the output includes a <strong>"MAPPING CODE"</strong> section with copy-paste ready Python code.</p>
-<h3>Example Workflow</h3>
+<h3 id="example-workflow">Example Workflow</h3>
 <div class="code-wrapper"><pre><code class="language-python"># 1. Inspect dataset (costs ~$0.01, &lt;1 min on CPU)
 hf_jobs("uv", {
     "script": "https://huggingface.co/datasets/mcp-tools/skills/raw/main/dataset_inspector.py",
@@ -577,7 +617,7 @@ dataset = dataset.map(format_for_dpo, remove_columns=dataset.column_names)
 
 # 4. Launch training job with confidence
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Common Scenario: DPO Format Mismatch</h3>
+<h3 id="common-scenario-dpo-format-mismatch">Common Scenario: DPO Format Mismatch</h3>
 <p>Most DPO datasets use non-standard column names. Example:</p>
 <div class="code-wrapper"><pre><code>Dataset has: instruction, chosen_response, rejected_response
 DPO expects: prompt, chosen, rejected
@@ -623,14 +663,14 @@ DPO expects: prompt, chosen, rejected
 <li>GRPO training (online RL)</li>
 </ul>
 <h2 id="common-failure-modes">Common Failure Modes</h2>
-<h3>Out of Memory (OOM)</h3>
+<h3 id="out-of-memory-oom">Out of Memory (OOM)</h3>
 <p><strong>Fix (try in order):</strong></p>
 <ol>
 <li>Reduce batch size: <code>per_device_train_batch_size=1</code>, increase <code>gradient_accumulation_steps=8</code>. Effective batch size is <code>per_device_train_batch_size</code> x <code>gradient_accumulation_steps</code>. For best performance keep effective batch size close to 128. </li>
 <li>Enable: <code>gradient_checkpointing=True</code></li>
 <li>Upgrade hardware: t4-small → l4x1, a10g-small → a10g-large etc.</li>
 </ol>
-<h3>Dataset Misformatted</h3>
+<h3 id="dataset-misformatted">Dataset Misformatted</h3>
 <p><strong>Fix:</strong></p>
 <ol>
 <li>Validate first with dataset inspector:<div class="code-wrapper"><pre><code class="language-bash">uv run https://huggingface.co/datasets/mcp-tools/skills/raw/main/dataset_inspector.py \
@@ -640,7 +680,7 @@ DPO expects: prompt, chosen, rejected
 <li>Check output for compatibility markers (✓ READY, ✗ NEEDS MAPPING, ✗ INCOMPATIBLE)</li>
 <li>Apply mapping code from inspector output if needed</li>
 </ol>
-<h3>Job Timeout</h3>
+<h3 id="job-timeout">Job Timeout</h3>
 <p><strong>Fix:</strong></p>
 <ol>
 <li>Check logs for actual runtime: <code>hf_jobs("logs", {"job_id": "..."})</code></li>
@@ -649,7 +689,7 @@ DPO expects: prompt, chosen, rejected
 <li>Save checkpoints: <code>save_strategy="steps"</code>, <code>save_steps=500</code>, <code>hub_strategy="every_save"</code></li>
 </ol>
 <p><strong>Note:</strong> Default 30min is insufficient for real training. Minimum 1-2 hours.</p>
-<h3>Hub Push Failures</h3>
+<h3 id="hub-push-failures">Hub Push Failures</h3>
 <p><strong>Fix:</strong></p>
 <ol>
 <li>Add to job: <code>secrets={"HF_TOKEN": "$HF_TOKEN"}</code></li>
@@ -657,7 +697,7 @@ DPO expects: prompt, chosen, rejected
 <li>Verify auth: <code>mcp__huggingface__hf_whoami()</code></li>
 <li>Check token has write permissions and repo exists (or set <code>hub_private_repo=True</code>)</li>
 </ol>
-<h3>Missing Dependencies</h3>
+<h3 id="missing-dependencies">Missing Dependencies</h3>
 <p><strong>Fix:</strong>
 Add to PEP 723 header:</p>
 <div class="code-wrapper"><pre><code class="language-python"># /// script
@@ -676,7 +716,7 @@ Add to PEP 723 header:</p>
 </ul>
 <p><strong>See:</strong> <code>references/troubleshooting.md</code> for complete troubleshooting guide</p>
 <h2 id="resources">Resources</h2>
-<h3>References (In This Skill)</h3>
+<h3 id="references-in-this-skill">References (In This Skill)</h3>
 <ul>
 <li><code>references/training_methods.md</code> - Overview of SFT, DPO, GRPO, KTO, PPO, Reward Modeling</li>
 <li><code>references/training_patterns.md</code> - Common training patterns and examples</li>
@@ -688,7 +728,7 @@ Add to PEP 723 header:</p>
 <li><code>references/troubleshooting.md</code> - Common issues and solutions</li>
 <li><code>references/local_training_macos.md</code> - Local training on macOS</li>
 </ul>
-<h3>Scripts (In This Skill)</h3>
+<h3 id="scripts-in-this-skill">Scripts (In This Skill)</h3>
 <ul>
 <li><code>scripts/train_sft_example.py</code> - Production SFT template</li>
 <li><code>scripts/train_dpo_example.py</code> - Production DPO template</li>
@@ -698,11 +738,11 @@ Add to PEP 723 header:</p>
 <li><code>scripts/convert_to_gguf.py</code> - Complete GGUF conversion script</li>
 <li><code>scripts/hf_benchmarks.py</code> - Search for benchmark results and leaderboards by task, alias or free text.</li>
 </ul>
-<h3>External Scripts</h3>
+<h3 id="external-scripts">External Scripts</h3>
 <ul>
 <li><a href="https://huggingface.co/datasets/mcp-tools/skills/raw/main/dataset_inspector.py">Dataset Inspector</a> - Validate dataset format before training (use via <code>uv run</code> or <code>hf_jobs</code>)</li>
 </ul>
-<h3>External Links</h3>
+<h3 id="external-links">External Links</h3>
 <ul>
 <li><a href="https://huggingface.co/docs/trl">TRL Documentation</a></li>
 <li><a href="https://huggingface.co/docs/trl/en/jobs_training">TRL Jobs Training Guide</a></li>
@@ -728,7 +768,9 @@ Add to PEP 723 header:</p>
 </body></html>
 </article>
 
+<nav class="prevnext" aria-label="Seitennavigation"><a class="prevnext-link prevnext-prev" href="../skills/huggingface-skills--huggingface-llm-trainer.html"><span class="prevnext-label">← Zurück</span><span class="prevnext-title">huggingface-llm-trainer</span></a><a class="prevnext-link prevnext-next" href="../skills/huggingface-skills--huggingface-local-models.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">huggingface-local-models</span></a></nav>
   </main>
+</div>
 </div>
 <footer class="site-footer">
   <span>Workspace MVP — generierte Dokumentation</span>

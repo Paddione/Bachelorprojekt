@@ -144,39 +144,33 @@ Direkt `openspec:propose` (kein PRD), wenn ALLE zutreffen:
 
 ## Feature-Pfad
 
-### Schritt 1: Worktree anlegen
-Erstelle einen neuen Worktree für den Feature-Branch (niemals `.claude/worktrees/` verwenden!):
-```bash
-# git-crypt-safe: creates the worktree, handles git-crypt, inits submodules
-bash scripts/worktree-create.sh feature/<slug> /tmp/wt-<slug>
-cd /tmp/wt-<slug>
-# Doppelarbeit verhindern: Branch claimen (Session-Koordination [T000510]).
-bash scripts/agent-lock.sh claim branch "feature/<slug>" --worktree "$PWD" --label dev-flow-plan \
-  || { echo "🛑 Branch wird bereits von einer anderen Session bearbeitet — koordinieren oder anderen slug wählen."; exit 1; }
-```
+> **Proposal-Konvention:** Die gesamte Proposal-Phase (Brainstorming + `openspec:propose`) läuft
+> auf dem `main`-Branch — erst danach wird der Worktree angelegt. So sieht OpenSpec beim
+> Propose alle SSOT-Specs und committed Proposals auf main, nicht nur das eigene Branch-Delta.
 
-### Schritt 1.5: Optionale Asset-Sammlung
+---
+
+### Phase A: Auf main — Proposal-Phase
+
+#### Schritt A.1: Asset-Sammlung + Codebase-Exploration
 Frage den User aktiv nach Spec-Notizen, Mockups oder Screenshots. Lese Text- und Image-Dateien mit dem `Read` Tool ein, um sie in den Kontext zu laden.
 
-### Schritt 1.6: Codebase-Exploration
 Verwende einen Code-Explorer Subagenten, um die Code-Pfade und Architektur vor dem Brainstorming zu analysieren.
 
-### Schritt 1.7: Design-Bundle co-lokalisieren (nur Design-/UI-Tickets)
+#### Schritt A.2: Design-Bundle co-lokalisieren (nur Design-/UI-Tickets)
 
-Wenn das Ticket einen Design-Handoff hat (claude.ai-Design-Session → Bundle-ID), ziehe das Bundle **direkt neben den Plan** in den Branch, damit `dev-flow-execute` Intent **und** Assets auf Platte hat. Andernfalls überspringe diesen Schritt.
+Wenn das Ticket einen Design-Handoff hat (claude.ai-Design-Session → Bundle-ID), lege die Assets
+**jetzt im main-Checkout** an — sie werden in Schritt B.2 in den Worktree verschoben:
 
 ```bash
 SLUG="<slug>"
 DESIGN_DIR="openspec/changes/${SLUG}/assets"
 mkdir -p "${DESIGN_DIR}/new"
 
-# 1. Design-Assets synchronisieren:
-#    ⚠ /design-sync macht UPLOAD (Repo → claude.ai), nicht Download.
-#    Für Download: Bundle manuell entpacken (Bundle-ID vom User erfragen)
-#    oder separates Tool nutzen. .tar.gz enthält: chats/chat1.md = Intent, project/ = SVGs.
-#    Ziel: ${DESIGN_DIR}/new/
-
-# 2. Intent extrahieren:  cp <bundle>/chats/chat1.md "${DESIGN_DIR}/intent.md"
+# Design-Assets extrahieren (Bundle-ID vom User erfragen)
+# .tar.gz enthält: chats/chat1.md = Intent, project/ = SVGs
+# Ziel: ${DESIGN_DIR}/new/
+# Intent:  cp <bundle>/chats/chat1.md "${DESIGN_DIR}/intent.md"
 ```
 
 **Qualitäts-Gate — nur passende Assets co-lokalisieren** (aus T000756): jedes synchronisierte
@@ -186,36 +180,80 @@ und **Export-Vollständigkeit** (Anzahl gelieferter Dateien vs. im Intent spezif
 Alt-Assets werden **nicht** mitkopiert — der Abgleich passiert in-place gegen die echte
 Repo-Datei (`git diff` / `Read` der Live-Datei) erst beim Verbauen, nicht als Plan-Ballast.
 
-Zusätzlich die Schlüsseldateien ans Ticket hängen:
-```bash
-bash scripts/ticket-attach.sh "$TICKET_UUID" "${DESIGN_DIR}/intent.md" "${DESIGN_DIR}"/new/*.svg
-```
-
-### Schritt 2: Lavish-Board starten ⚡ PFLICHT — vor Brainstorming
+#### Schritt A.3: Lavish-Board starten ⚡ PFLICHT — vor Brainstorming
 Erstelle `.lavish/<slug>-brainstorm.html` (Sections: Intent, Constraints, Trade-offs, Entscheidungen) und öffne es mit `npx -y lavish-axi .lavish/<slug>-brainstorm.html`. Dieses Board dient als visuelles Arbeitsblatt während des Brainstormings.
 
-### Schritt 3: Brainstorming ⚡ IMMER — kein Überspringen
-Rufe `superpowers:brainstorming` auf. Nutze das `lavish`-Board (aus Schritt 2) für visuelle Dokumentation und strukturiertes Feedback.
+#### Schritt A.4: Brainstorming ⚡ IMMER — kein Überspringen
+Rufe `superpowers:brainstorming` auf. Nutze das `lavish`-Board (aus Schritt A.3) für visuelle Dokumentation und strukturiertes Feedback.
 Ergebnis: Spec-Datei in `docs/superpowers/specs/<date>-<slug>-design.md`.
 Nach dem Schreiben der Spec das Frontmatter setzen (siehe
 `docs/superpowers/specs/spec-frontmatter-standard.md`):
 `bash scripts/vda.sh frontmatter --spec docs/superpowers/specs/<date>-<slug>-design.md`
 und `ticket_id`/`plan_ref` ausfüllen sobald Ticket-ID und Plan-Pfad feststehen.
 
-### Schritt 3.1: OpenSpec-Change anlegen
-
-Lege den OpenSpec-Change-Ordner an (seedet `proposal.md` + `tasks.md` + Delta-Skeleton und
-setzt den Ticket-Status auf `planning`):
+#### Schritt A.5: OpenSpec-Change anlegen — AUF MAIN ⚡
+Lege den OpenSpec-Change-Ordner **auf dem main-Branch** an (seedet `proposal.md` + `tasks.md` +
+Delta-Skeleton, setzt Ticket-Status auf `planning`). Merke den Repo-Root für Schritt B.2:
 
 ```bash
+# Repo-Root für späteres Verschieben der Artefakte festhalten
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
 bash scripts/openspec.sh propose "<slug>" --ticket "<TICKET_EXT_ID>"
 ```
 
 Übertrage den Brainstorming-Output (WARUM + WAS) nach `openspec/changes/<slug>/proposal.md`.
 Der Implementierungsplan wird **ausschließlich** in `openspec/changes/<slug>/tasks.md` geschrieben.
 
-### Schritt 3.5: Playwright-Projekt-Gate
+#### Schritt A.6: Playwright-Projekt-Gate (optional)
 Falls neue E2E-Tests geplant sind, weise das passende Playwright-Projekt zu (siehe [dev-flow-gotchas](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md) für Zuordnungstabelle).
+
+---
+
+### Phase B: Worktree anlegen + Artefakte übertragen
+
+#### Schritt B.1: Worktree anlegen
+Erstelle den Worktree NACH dem Propose (niemals `.claude/worktrees/` verwenden!):
+```bash
+# git-crypt-safe: creates the worktree, handles git-crypt, inits submodules
+bash scripts/worktree-create.sh feature/<slug> /tmp/wt-<slug>
+
+# Doppelarbeit verhindern: Branch claimen (Session-Koordination [T000510]).
+bash scripts/agent-lock.sh claim branch "feature/<slug>" --worktree "/tmp/wt-<slug>" --label dev-flow-plan \
+  || { echo "🛑 Branch wird bereits von einer anderen Session bearbeitet — koordinieren oder anderen slug wählen."; exit 1; }
+```
+
+#### Schritt B.2: Proposal-Artefakte in den Worktree verschieben
+Die Artefakte aus Phase A befinden sich noch im main-Checkout — jetzt in den frischen Worktree verschieben:
+
+```bash
+WT="/tmp/wt-<slug>"
+
+# OpenSpec-Change-Ordner (proposal.md, tasks.md, ggf. assets/)
+mkdir -p "${WT}/openspec/changes/"
+mv "${REPO_ROOT}/openspec/changes/<slug>" "${WT}/openspec/changes/<slug>"
+
+# Brainstorming-Spec
+mv "${REPO_ROOT}/docs/superpowers/specs/<date>-<slug>-design.md" \
+   "${WT}/docs/superpowers/specs/"
+
+# Lavish-Board (falls vorhanden)
+[ -f "${REPO_ROOT}/.lavish/<slug>-brainstorm.html" ] && \
+  mv "${REPO_ROOT}/.lavish/<slug>-brainstorm.html" "${WT}/.lavish/" 2>/dev/null || true
+
+cd "${WT}"
+```
+
+Schlüsseldateien ans Ticket hängen (falls Design-Bundle, Schritt A.2):
+```bash
+bash scripts/ticket-attach.sh "$TICKET_UUID" \
+  "openspec/changes/<slug>/assets/intent.md" \
+  openspec/changes/<slug>/assets/new/*.svg
+```
+
+---
+
+### Phase C: Im Worktree — Plan-Phase
 
 ### Schritt 3.7: Plan-Erstellung an einen passend provisionierten Subagenten delegieren
 Statt deinen eigenen Kontext zurückzusetzen (das ließe dich den Faden verlieren), committe die Spec und delegiere das Plan-Schreiben an einen **frischen Subagenten** — der hat per Konstruktion einen sauberen Kontext und bekommt ein **zur Plan-Komplexität passendes Modell + Effort**. Du selbst behältst den vollen Brainstorming-Kontext.
@@ -228,7 +266,7 @@ Statt deinen eigenen Kontext zurückzusetzen (das ließe dich den Faden verliere
    - **Kontext-Injektion** (er hat sonst KEINEN Kontext — gib ihm alles explizit):
      - Absoluter Worktree-Pfad (`pwd`) + Branch-Name; er arbeitet NUR relativ dazu.
      - Spec-Pfad: `docs/superpowers/specs/<date>-<slug>-design.md`
-     - **Design-Bundle** (falls Schritt 1.7 lief): `openspec/changes/<slug>/assets/` —
+     - **Design-Bundle** (falls Schritt A.2 lief): `openspec/changes/<slug>/assets/` —
        der Plan MUSS `intent.md` als Design-Quelle referenzieren, die finalen Asset-Zielpfade
        (z. B. unter `website/src/...`) in die Task-`target_files` aufnehmen und die T000756-
        Guardrails (currentColor statt `<img>`, keine Stray-Hex, Export-Vollständigkeit) als

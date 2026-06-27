@@ -10,19 +10,24 @@
 <link rel="stylesheet" href="../style.css">
 </head>
 <body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
 <header class="site-header">
   <a class="site-header-brand" href="../index.html">
     <span class="site-mark" aria-hidden="true">◆</span>
     <span class="site-wordmark">Dokumentation</span>
   </a>
 </header>
-<div id="search-overlay">
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
   <div id="search-box">
-    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
-    <div id="search-results"></div>
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
   </div>
 </div>
 <div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Dev-Workflow</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-architect.html">code-architect</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-architect.html">code-architect</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-explorer.html">code-explorer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-explorer.html">code-explorer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/code-simplifier--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--comment-analyzer.html">comment-analyzer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--comment-analyzer.html">comment-analyzer</a></li><li class="sidebar-item"><a href="../skills/dev-flow-e2e.html">dev-flow-e2e</a></li><li class="sidebar-item"><a href="../skills/dev-flow-execute.html">dev-flow-execute</a></li><li class="sidebar-item"><a href="../skills/dev-flow-plan.html">dev-flow-plan</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--pr-test-analyzer.html">pr-test-analyzer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--pr-test-analyzer.html">pr-test-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--silent-failure-hunter.html">Silent Failure Hunter</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--silent-failure-hunter.html">silent-failure-hunter</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--type-design-analyzer.html">type-design-analyzer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--type-design-analyzer.html">type-design-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Bachelorprojekt-Infra</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/cluster-deployment.html">cluster-deployment</a></li><li class="sidebar-item"><a href="../skills/database-ops.html">database-ops</a></li><li class="sidebar-item"><a href="../skills/host-node-networking.html">host-node-networking</a></li><li class="sidebar-item"><a href="../skills/keycloak-realm-sync.html">keycloak-realm-sync</a></li><li class="sidebar-item"><a href="../skills/mishap-tracker.html">mishap-tracker</a></li><li class="sidebar-item"><a href="../skills/operations-management.html">operations-management</a></li><li class="sidebar-item"><a href="../skills/secret-rotation.html">secret-rotation</a></li><li class="sidebar-item"><a href="../skills/update-dependencies.html">update-dependencies</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">KI / ML</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html" aria-current="page">huggingface-vision-trainer</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html" aria-current="page">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Plugin- &amp; Skill-Bau</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../agents/plugin-dev--agent-creator.html">agent-creator</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--agent-creator.html">agent-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--agent-development.html">agent-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--agent-development.html">agent-development</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-py.html">agent-sdk-verifier-py</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-py.html">agent-sdk-verifier-py</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-ts.html">agent-sdk-verifier-ts</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-ts.html">agent-sdk-verifier-ts</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--command-development.html">command-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--command-development.html">command-development</a></li><li class="sidebar-item"><a href="../agents/hookify--conversation-analyzer.html">conversation-analyzer</a></li><li class="sidebar-item"><a href="../agents/hookify--conversation-analyzer.html">conversation-analyzer</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--hook-development.html">hook-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--hook-development.html">hook-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--mcp-integration.html">mcp-integration</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--mcp-integration.html">mcp-integration</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-settings.html">plugin-settings</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-settings.html">plugin-settings</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-structure.html">plugin-structure</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-structure.html">plugin-structure</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--plugin-validator.html">plugin-validator</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--plugin-validator.html">plugin-validator</a></li><li class="sidebar-item"><a href="../skills/skill-creator--skill-creator.html">skill-creator</a></li><li class="sidebar-item"><a href="../skills/skill-creator--skill-creator.html">skill-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--skill-development.html">skill-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--skill-development.html">skill-development</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--skill-reviewer.html">skill-reviewer</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--skill-reviewer.html">skill-reviewer</a></li><li class="sidebar-item"><a href="../skills/hookify--writing-rules.html">writing-hookify-rules</a></li><li class="sidebar-item"><a href="../skills/hookify--writing-rules.html">writing-hookify-rules</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Browser &amp; Debugging</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers-chrome--browsing.html">browsing</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">MCP &amp; API</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/postman--agent-ready-apis.html">agent-ready-apis</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-app.html">build-mcp-app</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-app.html">build-mcp-app</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-server.html">build-mcp-server</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-server.html">build-mcp-server</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcpb.html">build-mcpb</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcpb.html">build-mcpb</a></li><li class="sidebar-item"><a href="../skills/postman--generate-spec.html">generate-spec</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--mcp-cli.html">mcp-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-cli.html">postman-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-context.html">postman-context</a></li><li class="sidebar-item"><a href="../skills/postman--postman-knowledge.html">postman-knowledge</a></li><li class="sidebar-item"><a href="../skills/postman--run-collection.html">run-collection</a></li><li class="sidebar-item"><a href="../skills/postman--send-request.html">send-request</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Claude Code &amp; Tooling</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/brightdata-plugin--agent-onboarding.html">agent-onboarding</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brand-listening.html">brand-listening</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brd-browser-debug.html">brd-browser-debug</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-best-practices.html">bright-data-best-practices</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-mcp.html">bright-data-mcp</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brightdata-cli.html">brightdata-cli</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--proxy.html">brightdata-proxy</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--python-sdk-best-practices.html">brightdata-sdk</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--js-sdk-best-practices.html">brightdata-sdk-js</a></li><li class="sidebar-item"><a href="../skills/claude-code-setup--claude-automation-recommender.html">claude-automation-recommender</a></li><li class="sidebar-item"><a href="../skills/claude-md-management--claude-md-improver.html">claude-md-improver</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--competitive-intel.html">competitive-intel</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--data-feeds.html">data-feeds</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--design-mirror.html">design-mirror</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/dev-flow-chore.html">dev-flow-chore</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--developing-claude-code-plugins.html">developing-claude-code-plugins</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--discover-api.html">discover-api</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--finding-duplicate-functions.html">finding-duplicate-functions</a></li><li class="sidebar-item"><a href="../skills/frontend-design--frontend-design.html">frontend-design</a></li><li class="sidebar-item"><a href="../skills/frontend-design--frontend-design.html">frontend-design</a></li><li class="sidebar-item"><a href="../skills/git-workflow.html">git-workflow</a></li><li class="sidebar-item"><a href="../skills/incident-response.html">incident-response</a></li><li class="sidebar-item"><a href="../skills/infra-ops.html">infra-ops</a></li><li class="sidebar-item"><a href="../skills/lavish.html">lavish</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--live-research.html">live-research</a></li><li class="sidebar-item"><a href="../skills/llm-ops.html">llm-ops</a></li><li class="sidebar-item"><a href="../skills/playground--playground.html">playground</a></li><li class="sidebar-item"><a href="../skills/playground--playground.html">playground</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--price-comparison.html">price-comparison</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--rag-pipeline.html">rag-pipeline</a></li><li class="sidebar-item"><a href="../skills/references.html">references</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scrape.html">scrape</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-builder.html">scraper-builder</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-studio.html">scraper-studio</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--search.html">search</a></li><li class="sidebar-item"><a href="../skills/sourcegraph--searching-sourcegraph.html">searching-sourcegraph</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--seo-audit.html">seo-audit</a></li><li class="sidebar-item"><a href="../skills/ticket-ops.html">ticket-ops</a></li><li class="sidebar-item"><a href="../skills/braintrust--troubleshoot-braintrust-mcp.html">troubleshoot-braintrust-mcp</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--using-tmux-for-interactive-commands.html">using-tmux-for-interactive-commands</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--windows-vm.html">windows-vm</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--working-with-claude-code.html">working-with-claude-code</a></li><li class="sidebar-item"><a href="../skills/workspace-deploy.html">workspace-deploy</a></li></ul></details>
+</aside>
   <main id="main">
 <header class="page-header">
   <div class="page-header-body">
@@ -43,16 +48,43 @@
 <li class="toc-item"><a href="#related-skills"><span class="toc-num">2.</span> Related Skills</a></li>
 <li class="toc-item"><a href="#local-script-execution"><span class="toc-num">3.</span> Local Script Execution</a></li>
 <li class="toc-item"><a href="#prerequisites-checklist"><span class="toc-num">4.</span> Prerequisites Checklist</a></li>
+<li class="toc-item toc-item--h3"><a href="#account--authentication"><span class="toc-num">–</span> Account &amp; Authentication</a></li>
+<li class="toc-item toc-item--h3"><a href="#dataset-requirements--object-detection"><span class="toc-num">–</span> Dataset Requirements — Object Detection</a></li>
+<li class="toc-item toc-item--h3"><a href="#dataset-requirements--image-classification"><span class="toc-num">–</span> Dataset Requirements — Image Classification</a></li>
+<li class="toc-item toc-item--h3"><a href="#dataset-requirements--samsam2-segmentation"><span class="toc-num">–</span> Dataset Requirements — SAM/SAM2 Segmentation</a></li>
+<li class="toc-item toc-item--h3"><a href="#critical-settings"><span class="toc-num">–</span> Critical Settings</a></li>
 <li class="toc-item"><a href="#dataset-validation"><span class="toc-num">5.</span> Dataset Validation</a></li>
+<li class="toc-item toc-item--h3"><a href="#running-the-inspector"><span class="toc-num">–</span> Running the Inspector</a></li>
+<li class="toc-item toc-item--h3"><a href="#reading-results"><span class="toc-num">–</span> Reading Results</a></li>
 <li class="toc-item"><a href="#automatic-bbox-preprocessing"><span class="toc-num">6.</span> Automatic Bbox Preprocessing</a></li>
 <li class="toc-item"><a href="#training-workflow"><span class="toc-num">7.</span> Training workflow</a></li>
 <li class="toc-item"><a href="#critical-directives"><span class="toc-num">8.</span> Critical directives</a></li>
+<li class="toc-item toc-item--h3"><a href="#1-job-submission-hfjobs-mcp-tool-vs-python-api"><span class="toc-num">–</span> 1. Job submission: hf_jobs MCP tool vs Python API</a></li>
+<li class="toc-item toc-item--h3"><a href="#2-authentication-via-job-secrets--explicit-hubtoken-injection"><span class="toc-num">–</span> 2. Authentication via job secrets + explicit hub_token injection</a></li>
+<li class="toc-item toc-item--h3"><a href="#3-jobinfo-attribute"><span class="toc-num">–</span> 3. JobInfo attribute</a></li>
+<li class="toc-item toc-item--h3"><a href="#4-required-training-flags-and-hfargumentparser-boolean-syntax"><span class="toc-num">–</span> 4. Required training flags and HfArgumentParser boolean syntax</a></li>
+<li class="toc-item toc-item--h3"><a href="#5-timeout-management"><span class="toc-num">–</span> 5. Timeout management</a></li>
+<li class="toc-item toc-item--h3"><a href="#6-trackio-monitoring"><span class="toc-num">–</span> 6. Trackio monitoring</a></li>
 <li class="toc-item"><a href="#model--hardware-selection"><span class="toc-num">9.</span> Model &amp; hardware selection</a></li>
+<li class="toc-item toc-item--h3"><a href="#recommended-object-detection-models"><span class="toc-num">–</span> Recommended object detection models</a></li>
+<li class="toc-item toc-item--h3"><a href="#recommended-image-classification-models"><span class="toc-num">–</span> Recommended image classification models</a></li>
+<li class="toc-item toc-item--h3"><a href="#recommended-samsam2-segmentation-models"><span class="toc-num">–</span> Recommended SAM/SAM2 segmentation models</a></li>
+<li class="toc-item toc-item--h3"><a href="#hardware-recommendation"><span class="toc-num">–</span> Hardware recommendation</a></li>
 <li class="toc-item"><a href="#quick-start--object-detection"><span class="toc-num">10.</span> Quick start — Object Detection</a></li>
+<li class="toc-item toc-item--h3"><a href="#key-od-scriptargs"><span class="toc-num">–</span> Key OD script_args</a></li>
 <li class="toc-item"><a href="#quick-start--image-classification"><span class="toc-num">11.</span> Quick start — Image Classification</a></li>
+<li class="toc-item toc-item--h3"><a href="#key-ic-scriptargs"><span class="toc-num">–</span> Key IC script_args</a></li>
 <li class="toc-item"><a href="#quick-start--samsam2-segmentation"><span class="toc-num">12.</span> Quick start — SAM/SAM2 Segmentation</a></li>
+<li class="toc-item toc-item--h3"><a href="#key-sam-scriptargs"><span class="toc-num">–</span> Key SAM script_args</a></li>
 <li class="toc-item"><a href="#checking-job-status"><span class="toc-num">13.</span> Checking job status</a></li>
 <li class="toc-item"><a href="#common-failure-modes"><span class="toc-num">14.</span> Common failure modes</a></li>
+<li class="toc-item toc-item--h3"><a href="#oom-cuda-out-of-memory"><span class="toc-num">–</span> OOM (CUDA out of memory)</a></li>
+<li class="toc-item toc-item--h3"><a href="#dataset-format-errors"><span class="toc-num">–</span> Dataset format errors</a></li>
+<li class="toc-item toc-item--h3"><a href="#hub-push-failures-401"><span class="toc-num">–</span> Hub push failures (401)</a></li>
+<li class="toc-item toc-item--h3"><a href="#job-timeout"><span class="toc-num">–</span> Job timeout</a></li>
+<li class="toc-item toc-item--h3"><a href="#keyerror-test-missing-test-split"><span class="toc-num">–</span> KeyError: 'test' (missing test split)</a></li>
+<li class="toc-item toc-item--h3"><a href="#single-class-dataset-iteration-over-a-0-d-tensor"><span class="toc-num">–</span> Single-class dataset: "iteration over a 0-d tensor"</a></li>
+<li class="toc-item toc-item--h3"><a href="#poor-detection-performance-map--015"><span class="toc-num">–</span> Poor detection performance (mAP &lt; 0.15)</a></li>
 <li class="toc-item"><a href="#reference-files"><span class="toc-num">15.</span> Reference files</a></li>
 <li class="toc-item"><a href="#external-links"><span class="toc-num">16.</span> External links</a></li></ul>
 </div>
@@ -81,14 +113,14 @@ uv run scripts/estimate_cost.py --help
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h2 id="prerequisites-checklist">Prerequisites Checklist</h2>
 <p>Before starting any training job, verify:</p>
-<h3>Account &amp; Authentication</h3>
+<h3 id="account--authentication">Account &amp; Authentication</h3>
 <ul>
 <li>Hugging Face Account with <a href="https://hf.co/pro">Pro</a>, <a href="https://hf.co/enterprise">Team</a>, or <a href="https://hf.co/enterprise">Enterprise</a> plan (Jobs require paid plan)</li>
 <li>Authenticated login: Check with <code>hf_whoami()</code> (tool) or <code>hf auth whoami</code> (terminal)</li>
 <li>Token has <strong>write</strong> permissions</li>
 <li><strong>MUST pass token in job secrets</strong> — see directive #3 below for syntax (MCP tool vs Python API)</li>
 </ul>
-<h3>Dataset Requirements — Object Detection</h3>
+<h3 id="dataset-requirements--object-detection">Dataset Requirements — Object Detection</h3>
 <ul>
 <li>Dataset must exist on Hub</li>
 <li>Annotations must use the <code>objects</code> column with <code>bbox</code>, <code>category</code> (and optionally <code>area</code>) sub-fields</li>
@@ -97,7 +129,7 @@ uv run scripts/estimate_cost.py --help
 <li><code>image_id</code> column is <strong>optional</strong> — generated automatically if missing</li>
 <li><strong>ALWAYS validate unknown datasets</strong> before GPU training (see Dataset Validation section)</li>
 </ul>
-<h3>Dataset Requirements — Image Classification</h3>
+<h3 id="dataset-requirements--image-classification">Dataset Requirements — Image Classification</h3>
 <ul>
 <li>Dataset must exist on Hub</li>
 <li>Must have an <strong><code>image</code> column</strong> (PIL images) and a <strong><code>label</code> column</strong> (integer class IDs or strings)</li>
@@ -105,7 +137,7 @@ uv run scripts/estimate_cost.py --help
 <li>Common column names auto-detected: <code>label</code>, <code>labels</code>, <code>class</code>, <code>fine_label</code></li>
 <li><strong>ALWAYS validate unknown datasets</strong> before GPU training (see Dataset Validation section)</li>
 </ul>
-<h3>Dataset Requirements — SAM/SAM2 Segmentation</h3>
+<h3 id="dataset-requirements--samsam2-segmentation">Dataset Requirements — SAM/SAM2 Segmentation</h3>
 <ul>
 <li>Dataset must exist on Hub</li>
 <li>Must have an <strong><code>image</code> column</strong> (PIL images) and a <strong><code>mask</code> column</strong> (binary ground-truth segmentation mask)</li>
@@ -119,7 +151,7 @@ uv run scripts/estimate_cost.py --help
 <li>Example dataset: <code>merve/MicroMat-mini</code> (image matting with bbox prompts)</li>
 <li><strong>ALWAYS validate unknown datasets</strong> before GPU training (see Dataset Validation section)</li>
 </ul>
-<h3>Critical Settings</h3>
+<h3 id="critical-settings">Critical Settings</h3>
 <ul>
 <li><strong>Timeout must exceed expected training time</strong> — Default 30min is TOO SHORT. See directive #6 for recommended values.</li>
 <li><strong>Hub push must be enabled</strong> — <code>push_to_hub=True</code>, <code>hub_model_id="username/model-name"</code>, token in <code>secrets</code></li>
@@ -127,7 +159,7 @@ uv run scripts/estimate_cost.py --help
 <h2 id="dataset-validation">Dataset Validation</h2>
 <p><strong>Validate dataset format BEFORE launching GPU training to prevent the #1 cause of training failures: format mismatches.</strong></p>
 <p><strong>ALWAYS validate for</strong> unknown/custom datasets or any dataset you haven't trained with before. <strong>Skip for</strong> <code>cppe-5</code> (the default in the training script).</p>
-<h3>Running the Inspector</h3>
+<h3 id="running-the-inspector">Running the Inspector</h3>
 <p><strong>Option 1: Via HF Jobs (recommended — avoids local SSL/dependency issues):</strong></p>
 <div class="code-wrapper"><pre><code class="language-python">hf_jobs("uv", {
     "script": "path/to/dataset_inspector.py",
@@ -147,7 +179,7 @@ api.run_uv_job(
     timeout=300,
 )
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Reading Results</h3>
+<h3 id="reading-results">Reading Results</h3>
 <ul>
 <li><strong><code>✓ READY</code></strong> — Dataset is compatible, use directly</li>
 <li><strong><code>✗ NEEDS FORMATTING</code></strong> — Needs preprocessing (mapping code provided in output)</li>
@@ -214,7 +246,7 @@ api.run_uv_job(
 </ol>
 <h2 id="critical-directives">Critical directives</h2>
 <p>These rules prevent common failures. Follow them exactly.</p>
-<h3>1. Job submission: <code>hf_jobs</code> MCP tool vs Python API</h3>
+<h3 id="1-job-submission-hfjobs-mcp-tool-vs-python-api">1. Job submission: <code>hf_jobs</code> MCP tool vs Python API</h3>
 <p><strong><code>hf_jobs()</code> is an MCP tool, NOT a Python function.</strong> Do NOT try to import it from <code>huggingface_hub</code>. Call it as a tool:</p>
 <div class="code-wrapper"><pre><code>hf_jobs("uv", {"script": training_script_content, "flavor": "a10g-large", "timeout": "4h", "secrets": {"HF_TOKEN": "$HF_TOKEN"}})
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
@@ -261,7 +293,7 @@ print(f"Job ID: {job_info.id}")
 <li>The training script MUST include PEP 723 inline metadata with dependencies</li>
 <li>Do NOT use <code>image</code> or <code>command</code> parameters (those belong to <code>run_job()</code>, not <code>run_uv_job()</code>)</li>
 </ul>
-<h3>2. Authentication via job secrets + explicit hub_token injection</h3>
+<h3 id="2-authentication-via-job-secrets--explicit-hubtoken-injection">2. Authentication via job secrets + explicit hub_token injection</h3>
 <p><strong>Job config</strong> MUST include the token in secrets — syntax depends on submission method (see table above).</p>
 <p><strong>Training script requirement:</strong> The Transformers <code>Trainer</code> calls <code>create_repo(token=self.args.hub_token)</code> during <code>__init__()</code> when <code>push_to_hub=True</code>. The training script MUST inject <code>HF_TOKEN</code> into <code>training_args.hub_token</code> AFTER parsing args but BEFORE creating the <code>Trainer</code>. The template <code>scripts/object_detection_training.py</code> already includes this:</p>
 <div class="code-wrapper"><pre><code class="language-python">hf_token = os.environ.get("HF_TOKEN")
@@ -275,12 +307,12 @@ if training_args.push_to_hub and not training_args.hub_token:
 <li>Do NOT rely on implicit token resolution (<code>hub_token=None</code>) — unreliable in Jobs</li>
 <li>See the <code>hugging-face-jobs</code> skill → <em>Token Usage Guide</em> for full details</li>
 </ul>
-<h3>3. JobInfo attribute</h3>
+<h3 id="3-jobinfo-attribute">3. JobInfo attribute</h3>
 <p>Access the job identifier using <code>.id</code> (NOT <code>.job_id</code> or <code>.name</code> — these don't exist):</p>
 <div class="code-wrapper"><pre><code class="language-python">job_info = api.run_uv_job(...)  # or hf_jobs("uv", {...})
 job_id = job_info.id  # Correct -- returns string like "687fb701029421ae5549d998"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>4. Required training flags and HfArgumentParser boolean syntax</h3>
+<h3 id="4-required-training-flags-and-hfargumentparser-boolean-syntax">4. Required training flags and HfArgumentParser boolean syntax</h3>
 <p><code>scripts/object_detection_training.py</code> uses <code>HfArgumentParser</code> — all config is passed via <code>script_args</code>. Boolean arguments have two syntaxes:</p>
 <ul>
 <li><strong><code>bool</code> fields</strong> (e.g., <code>push_to_hub</code>, <code>do_train</code>): Use as bare flags (<code>--push_to_hub</code>) or negate with <code>--no_</code> prefix (<code>--no_remove_unused_columns</code>)</li>
@@ -313,7 +345,7 @@ job_id = job_info.id  # Correct -- returns string like "687fb701029421ae5549d998
 --prompt_type bbox                  # or "point"
 --dataloader_pin_memory False       # MUST: avoids pin_memory issues with custom collator
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>5. Timeout management</h3>
+<h3 id="5-timeout-management">5. Timeout management</h3>
 <p>Default 30 min is TOO SHORT for object detection. Set minimum 2-4 hours. Add 30% buffer for model loading, preprocessing, and Hub push.</p>
 <table>
 <thead>
@@ -339,11 +371,11 @@ job_id = job_info.id  # Correct -- returns string like "687fb701029421ae5549d998
 <td>6-12h</td>
 </tr>
 </tbody></table>
-<h3>6. Trackio monitoring</h3>
+<h3 id="6-trackio-monitoring">6. Trackio monitoring</h3>
 <p>Trackio is <strong>always enabled</strong> in the object detection training script — it calls <code>trackio.init()</code> and <code>trackio.finish()</code> automatically. No need to pass <code>--report_to trackio</code>. The project name is taken from <code>--output_dir</code> and the run name from <code>--run_name</code>. For image classification, pass <code>--report_to trackio</code> in <code>TrainingArguments</code>.</p>
 <p>Dashboard at: <code>https://huggingface.co/spaces/{username}/trackio</code></p>
 <h2 id="model--hardware-selection">Model &amp; hardware selection</h2>
-<h3>Recommended object detection models</h3>
+<h3 id="recommended-object-detection-models">Recommended object detection models</h3>
 <table>
 <thead>
 <tr>
@@ -384,7 +416,7 @@ job_id = job_info.id  # Correct -- returns string like "687fb701029421ae5549d998
 </tr>
 </tbody></table>
 <p>Start with <code>ustc-community/dfine-small-coco</code> for fast iteration. Move to D-FINE Large or RT-DETR v2 R50 for better accuracy.</p>
-<h3>Recommended image classification models</h3>
+<h3 id="recommended-image-classification-models">Recommended image classification models</h3>
 <p>All <code>timm/</code> models work out of the box via <code>AutoModelForImageClassification</code> (loaded as <code>TimmWrapperForImageClassification</code>). See <a href="references/timm_trainer.md">references/timm_trainer.md</a> for details.</p>
 <table>
 <thead>
@@ -416,7 +448,7 @@ job_id = job_info.id  # Correct -- returns string like "687fb701029421ae5549d998
 </tr>
 </tbody></table>
 <p>Start with <code>timm/mobilenetv3_small_100.lamb_in1k</code> for fast iteration. Move to <code>timm/resnet50.a1_in1k</code> or <code>timm/vit_base_patch16_dinov3.lvd1689m</code> for better accuracy.</p>
-<h3>Recommended SAM/SAM2 segmentation models</h3>
+<h3 id="recommended-samsam2-segmentation-models">Recommended SAM/SAM2 segmentation models</h3>
 <table>
 <thead>
 <tr>
@@ -462,7 +494,7 @@ job_id = job_info.id  # Correct -- returns string like "687fb701029421ae5549d998
 </tr>
 </tbody></table>
 <p>Start with <code>facebook/sam2.1-hiera-small</code> for fast iteration. SAM2 models are generally more efficient than SAM v1 at similar quality. Only the mask decoder is trained by default (vision and prompt encoders are frozen).</p>
-<h3>Hardware recommendation</h3>
+<h3 id="hardware-recommendation">Hardware recommendation</h3>
 <p>All recommended OD and IC models are under 100M params — <strong><code>t4-small</code> (16 GB VRAM, $0.40/hr) is sufficient for all of them.</strong> Image classification models are generally smaller and faster than object detection models — <code>t4-small</code> handles even ViT-Base comfortably. For SAM2 models up to <code>hiera-base-plus</code>, <code>t4-small</code> is sufficient since only the mask decoder is trained. For <code>sam2.1-hiera-large</code> or SAM v1 models, use <code>l4x1</code> or <code>a10g-large</code>. Only upgrade if you hit OOM from large batch sizes — reduce batch size first before switching hardware. Common upgrade path: <code>t4-small</code> → <code>l4x1</code> ($0.80/hr, 24 GB) → <code>a10g-large</code> ($1.50/hr, 24 GB).</p>
 <p>For full hardware flavor list: refer to the <code>hugging-face-jobs</code> skill. For cost estimation: run <code>scripts/estimate_cost.py</code>.</p>
 <h2 id="quick-start--object-detection">Quick start — Object Detection</h2>
@@ -501,7 +533,7 @@ job_info = api.run_uv_job(
 )
 print(f"Job ID: {job_info.id}")
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Key OD <code>script_args</code></h3>
+<h3 id="key-od-scriptargs">Key OD <code>script_args</code></h3>
 <ul>
 <li><code>--model_name_or_path</code> — recommended: <code>"ustc-community/dfine-small-coco"</code> (see model table above)</li>
 <li><code>--dataset_name</code> — the Hub dataset ID</li>
@@ -546,7 +578,7 @@ job_info = api.run_uv_job(
 )
 print(f"Job ID: {job_info.id}")
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Key IC <code>script_args</code></h3>
+<h3 id="key-ic-scriptargs">Key IC <code>script_args</code></h3>
 <ul>
 <li><code>--model_name_or_path</code> — any <code>timm/</code> model or Transformers classification model (see model table above)</li>
 <li><code>--dataset_name</code> — the Hub dataset ID</li>
@@ -591,7 +623,7 @@ job_info = api.run_uv_job(
 )
 print(f"Job ID: {job_info.id}")
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Key SAM <code>script_args</code></h3>
+<h3 id="key-sam-scriptargs">Key SAM <code>script_args</code></h3>
 <ul>
 <li><code>--model_name_or_path</code> — SAM or SAM2 model (see model table above); auto-detects SAM vs SAM2</li>
 <li><code>--dataset_name</code> — the Hub dataset ID (e.g., <code>"merve/MicroMat-mini"</code>)</li>
@@ -620,19 +652,19 @@ api.get_job_logs(job_id="your-job-id")           # View logs
 api.get_job(job_id="your-job-id")                # Job details
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h2 id="common-failure-modes">Common failure modes</h2>
-<h3>OOM (CUDA out of memory)</h3>
+<h3 id="oom-cuda-out-of-memory">OOM (CUDA out of memory)</h3>
 <p>Reduce <code>per_device_train_batch_size</code> (try 4, then 2), reduce <code>IMAGE_SIZE</code>, or upgrade hardware.</p>
-<h3>Dataset format errors</h3>
+<h3 id="dataset-format-errors">Dataset format errors</h3>
 <p>Run <code>scripts/dataset_inspector.py</code> first. The training script auto-detects xyxy vs xywh, converts string categories to integer IDs, and adds <code>image_id</code> if missing. Ensure <code>objects.bbox</code> contains 4-value coordinate lists in absolute pixels and <code>objects.category</code> contains either integer IDs or string labels.</p>
-<h3>Hub push failures (401)</h3>
+<h3 id="hub-push-failures-401">Hub push failures (401)</h3>
 <p>Verify: (1) job secrets include token (see directive #2), (2) script sets <code>training_args.hub_token</code> BEFORE creating the <code>Trainer</code>, (3) <code>push_to_hub=True</code> is set, (4) correct <code>hub_model_id</code>, (5) token has write permissions.</p>
-<h3>Job timeout</h3>
+<h3 id="job-timeout">Job timeout</h3>
 <p>Increase timeout (see directive #5 table), reduce epochs/dataset, or use checkpoint strategy with <code>hub_strategy="every_save"</code>.</p>
-<h3>KeyError: 'test' (missing test split)</h3>
+<h3 id="keyerror-test-missing-test-split">KeyError: 'test' (missing test split)</h3>
 <p>The object detection training script handles this gracefully — it falls back to the <code>validation</code> split. Ensure you're using the latest <code>scripts/object_detection_training.py</code>.</p>
-<h3>Single-class dataset: "iteration over a 0-d tensor"</h3>
+<h3 id="single-class-dataset-iteration-over-a-0-d-tensor">Single-class dataset: "iteration over a 0-d tensor"</h3>
 <p><code>torchmetrics.MeanAveragePrecision</code> returns scalar (0-d) tensors for per-class metrics when there's only one class. The template <code>scripts/object_detection_training.py</code> handles this by calling <code>.unsqueeze(0)</code> on these tensors. Ensure you're using the latest template.</p>
-<h3>Poor detection performance (mAP &lt; 0.15)</h3>
+<h3 id="poor-detection-performance-map--015">Poor detection performance (mAP &lt; 0.15)</h3>
 <p>Increase epochs (30-50), ensure 500+ images, check per-class mAP for imbalanced classes, try different learning rates (1e-5 to 1e-4), increase image size.</p>
 <p>For comprehensive troubleshooting: see <a href="references/reliability_principles.md">references/reliability_principles.md</a></p>
 <h2 id="reference-files">Reference files</h2>
@@ -668,7 +700,9 @@ api.get_job(job_id="your-job-id")                # Job details
 </body></html>
 </article>
 
+<nav class="prevnext" aria-label="Seitennavigation"><a class="prevnext-link prevnext-prev" href="../skills/huggingface-skills--huggingface-vision-trainer.html"><span class="prevnext-label">← Zurück</span><span class="prevnext-title">huggingface-vision-trainer</span></a><a class="prevnext-link prevnext-next" href="../skills/huggingface-skills--huggingface-zerogpu.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">huggingface-zerogpu</span></a></nav>
   </main>
+</div>
 </div>
 <footer class="site-footer">
   <span>Workspace MVP — generierte Dokumentation</span>

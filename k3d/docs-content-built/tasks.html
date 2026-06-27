@@ -10,19 +10,24 @@
 <link rel="stylesheet" href="./style.css">
 </head>
 <body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
 <header class="site-header">
   <a class="site-header-brand" href="./index.html">
     <span class="site-mark" aria-hidden="true">◆</span>
     <span class="site-wordmark">Dokumentation</span>
   </a>
 </header>
-<div id="search-overlay">
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
   <div id="search-box">
-    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
-    <div id="search-results"></div>
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
   </div>
 </div>
 <div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Handbücher</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./readme.html">AI-Agent Operating Guide — Registry (SSOT)</a></li><li class="sidebar-item"><a href="./readme.html">DB Audit Phase 5 — 2026-05-23</a></li><li class="sidebar-item"><a href="./readme.html">dev.mentolder.de — Operator Runbook</a></li><li class="sidebar-item"><a href="./readme.html">Korczewski Visual Design Brief</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Architektur &amp; Bausteine</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./30-bausteine.html">Bausteine — Was läuft auf der Plattform?</a></li><li class="sidebar-item"><a href="./bereitstellungsdetails.html">Bereitstellungsdetails und Server-Topologie</a></li><li class="sidebar-item"><a href="./db-schema.html">Shared DB — Schema Reference &amp; Normalization Audit</a></li><li class="sidebar-item"><a href="./00-anleitung.html">Was will ich tun?</a></li><li class="sidebar-item"><a href="./20-werkzeuge.html">Werkzeuge — Tools und Agents</a></li><li class="sidebar-item"><a href="./10-ziele.html">Ziele — Was will ich tun?</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Audits &amp; Reports</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./2026-06-20-active-sessions-hub.html">Active Sessions Hub — Mediaviewer-Panel verlinkt aktive Forms/Brainstorm/Companion</a></li><li class="sidebar-item"><a href="./2026-06-22-agent-library.html">Agent Library Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-22-bats-coverage-batch1.html">BATS Coverage Expansion — Batch 1 (G-RH03) Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-20-cockpit-direct-ticket-links.html">Cockpit Direct Ticket Links — TicketDrawer entfernen, Titel als Navigationslinks</a></li><li class="sidebar-item"><a href="./2026-06-07-dataflow-dataleak.html">Dataflow &amp; Datenleck-Audit — 2026-06-07</a></li><li class="sidebar-item"><a href="./findings.html">DB Audit Phase 5 — Findings</a></li><li class="sidebar-item"><a href="./2026-06-07-e2e-reachability-test-quality.html">E2E Reachability &amp; Test-Quality-Audit — 2026-06-07</a></li><li class="sidebar-item"><a href="./2026-06-22-ki-api-prod-migrations.html">KI-API Prod-Migrationen (T000711) Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-20-mcp-task-runner.html">MCP Task Runner Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-27-mentolder-brand-foundations-design-system.html">mentolder — Brand Foundations Design System</a></li><li class="sidebar-item"><a href="./2026-06-22-mentolder-web-unterseiten.html">mentolder-web Unterseiten Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-22-s1-violations-batch1.html">S1-Frozen-Violations Reduction — Batch 1 (G-RH01) Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-21-ticket-mcp.html">ticket-mcp Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-22-ts-suppression-elimination.html">TypeScript-Suppressionen eliminieren (G-RH02) Implementation Plan</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Entscheidungen</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./decision-log.html">Phase 5 DROP Decision Log</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">Referenz</summary><ul class="sidebar-list"><li class="sidebar-item sidebar-item--active"><a href="./tasks.html" aria-current="page">Agent-Push-Notifications für opencode/agy-Sessions</a></li><li class="sidebar-item sidebar-item--active"><a href="./tasks.html" aria-current="page">AI: Ticket-Auto-Triage (Severity-Erkennung)</a></li><li class="sidebar-item"><a href="./alert-email-test.html">Alert-E-Mail-Test (synthetisch)</a></li><li class="sidebar-item"><a href="./api-surface.html">API Surface Map</a></li><li class="sidebar-item sidebar-item--active"><a href="./tasks.html" aria-current="page">Art Library Webapp Integration</a></li><li class="sidebar-item"><a href="./audit-log-retention.html">Audit-Log Retention — DSGVO-Dokumentation</a></li><li class="sidebar-item"><a href="./blast-radius.html">Blast-Radius-Report</a></li><li class="sidebar-item"><a href="./brainstorm-bridge-wsl.html">Brainstorm-Bridge (WSL) — Visuals &amp; Auswahl an den Nutzer kommunizieren</a></li><li class="sidebar-item sidebar-item--active"><a href="./tasks.html" aria-current="page">Cockpit Mobile-View Implementation Plan</a></li><li class="sidebar-item sidebar-item--active"><a href="./tasks.html" aria-current="page">Cockpit: Filter speichern / Voreinstellungen</a></li><li class="sidebar-item sidebar-item--active"><a href="./tasks.html" aria-current="page">env-seal.sh: empty-value Keys in extra_namespaces korrekt verarbeiten (G-CD01 Root-Cause)</a></li><li class="sidebar-item"><a href="./envsubst-variable-management.html">envsubst Variable Management — Referenz</a></li><li class="sidebar-item sidebar-item--active"><a href="./tasks.html" aria-current="page">Feature Intake: Semantischer Duplikatcheck + dynamischer Feature-Pool</a></li><li class="sidebar-item"><a href="./fleet-stage2-cutover-runbook.html">Fleet Stage 2 — Cutover Runbook</a></li><li class="sidebar-item"><a href="./fleet-2026-05-31-what-changed.html">Fleet-Konsolidierung — was sich am 2026-05-31 geändert hat</a></li><li class="sidebar-item sidebar-item--active"><a href="./tasks.html" aria-current="page">G-CD01: korczewski-Deploy-Lane — stale SealedSecret reparieren + Drift-Prevention</a></li><li class="sidebar-item sidebar-item--active"><a href="./tasks.html" aria-current="page">G-CD02: post-merge.yml Race-Guard härten (93% → ≥95%)</a></li><li class="sidebar-item sidebar-item--active"><a href="./tasks.html" aria-current="page">G-CQ03: ESLint in website/ einrichten + Warnings auf 0</a></li><li class="sidebar-item sidebar-item--active"><a href="./tasks.html" aria-current="page">G-CQ08: Dead-Code/unused exports in website/src via knip messen + −50%</a></li><li class="sidebar-item sidebar-item--active"><a href="./tasks.html" aria-current="page">G-DEP02: Veraltete Major-Deps (website) 9 → ≤3</a></li><li class="sidebar-item sidebar-item--active"><a href="./tasks.html" aria-current="page">G-FE01: a11y axe-Violations (Kern-Routen beider Marken) auf 0 crit/serious</a></li><li class="sidebar-item sidebar-item--active"><a href="./tasks.html" aria-current="page">G-FE02: Client-JS-Bundle messen + Budget (kein Netto-Zuwachs/Release)</a></li><li class="sidebar-item sidebar-item--active"><a href="./tasks.html" aria-current="page">G-IMG02: Fremd-Image-Versions-Drift vereinheitlichen (busybox/curl)</a></li><li class="sidebar-item"><a href="./proposal.html">G-RH01: S1-Frozen-Violations Batch 1 — baseline.json 98→≤30</a></li><li class="sidebar-item sidebar-item--active"><a href="./tasks.html" aria-current="page">G-RH01: S1-Frozen-Violations Batch 1 — baseline.json 98→≤30</a></li><li class="sidebar-item"><a href="./proposal.html">G-RH03: BATS Coverage Batch 1 — OpenSpec 17%→23%</a></li><li class="sidebar-item sidebar-item--active"><a href="./tasks.html" aria-current="page">G-RH03: BATS Coverage Batch 1 — OpenSpec 17%→23%</a></li><li class="sidebar-item sidebar-item--active"><a href="./tasks.html" aria-current="page">Implementation Plan: cockpit-bulk-status</a></li><li class="sidebar-item"><a href="./design-system.html">mentolder Design-System</a></li><li class="sidebar-item sidebar-item--active"><a href="./tasks.html" aria-current="page">mentolder.de Website-Frontend in React neu aufbauen</a></li><li class="sidebar-item sidebar-item--active"><a href="./tasks.html" aria-current="page">Messbare Delivery-Pipeline + DORA-Dashboard</a></li><li class="sidebar-item sidebar-item--active"><a href="./tasks.html" aria-current="page">Pocket ID Migration — Keycloak ersetzen durch Pocket ID</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: agent-push-notifications</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: AI: Ticket-Auto-Triage (Severity-Erkennung)</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: art-library-webapp-integration</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: cockpit-bulk-status</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: cockpit-filter-presets</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: cockpit-mobile-view</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: dora-delivery-pipeline</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: env-seal-empty-value-keys</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: Feature Intake + Knowledge-Graph-Anreicherung</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-cd01-korczewski-secret-drift</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-cd02-post-merge-race-guard</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-cq03-eslint-website</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-cq08-knip-dead-code</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-dep02-major-deps-website (G-DEP02)</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-fe01-a11y-axe-violations</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-fe02-bundle-budget</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: img02-image-drift (G-IMG02)</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: Mentolder Homepage — hifi-Redesign in Astro+Svelte</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: mentolder.de Website-Frontend in React neu aufbauen</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: pocket-id-migration</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: ticket-mcp Go-Rewrite mit HTTP-Transport [T001043]</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: ticket-verlauf-anhaenge</a></li><li class="sidebar-item"><a href="./secrets-architecture.html">Secrets-Dateiarchitektur</a></li><li class="sidebar-item"><a href="./shared-infrastructure-security.html">Shared Infrastructure Security — Cross-Brand Analysis</a></li><li class="sidebar-item"><a href="./overview.html">Skills Overview</a></li><li class="sidebar-item"><a href="./factory-usage.html">Software Factory — Usage Guide</a></li><li class="sidebar-item"><a href="./systemtest-fragebogen.html">Systemtest-Protokoll — Workspace Collaboration Platform</a></li><li class="sidebar-item sidebar-item--active"><a href="./tasks.html" aria-current="page">Tasks: ticket-verlauf-anhaenge</a></li><li class="sidebar-item sidebar-item--active"><a href="./tasks.html" aria-current="page">ticket-mcp Go-Rewrite mit HTTP-Transport</a></li><li class="sidebar-item"><a href="./wsl-bootstrap.html">WSL Bootstrapping Gotchas</a></li></ul></details>
+</aside>
   <main id="main">
 <header class="page-header">
   <div class="page-header-body">
@@ -40,14 +45,25 @@
 <html><head></head><body><h1>Tasks: ticket-verlauf-anhaenge</h1><div class="toc-box auto-toc">
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#feature-a--verlauf-collapse"><span class="toc-num">1.</span> Feature A — Verlauf-Collapse</a></li>
+<li class="toc-item toc-item--h3"><a href="#ticketactivitytimelinesvelte"><span class="toc-num">–</span> TicketActivityTimeline.svelte</a></li>
+<li class="toc-item toc-item--h3"><a href="#ticketactivitytimelinetestts-neu"><span class="toc-num">–</span> TicketActivityTimeline.test.ts (neu)</a></li>
 <li class="toc-item"><a href="#feature-b--ticketattachmentspanel-neu"><span class="toc-num">2.</span> Feature B — TicketAttachmentsPanel (neu)</a></li>
+<li class="toc-item toc-item--h3"><a href="#ticketattachmentspanelsvelte-neue-datei"><span class="toc-num">–</span> TicketAttachmentsPanel.svelte (neue Datei)</a></li>
+<li class="toc-item toc-item--h3"><a href="#ticketattachmentspaneltestts-neue-datei"><span class="toc-num">–</span> TicketAttachmentsPanel.test.ts (neue Datei)</a></li>
+<li class="toc-item toc-item--h3"><a href="#idastro--anhaenge-block-ersetzen"><span class="toc-num">–</span> [id].astro — Anhänge-Block ersetzen</a></li>
 <li class="toc-item"><a href="#feature-c--binary-download-endpoint"><span class="toc-num">3.</span> Feature C — Binary-Download-Endpoint</a></li>
+<li class="toc-item toc-item--h3"><a href="#websitesrcpagesapiadminticketsidattachmentsaidts-neue-datei"><span class="toc-num">–</span> website/src/pages/api/admin/tickets/[id]/attachments/[aid].ts (neue Datei)</a></li>
 <li class="toc-item"><a href="#feature-d--frageboegen-export"><span class="toc-num">4.</span> Feature D — Fragebögen-Export</a></li>
+<li class="toc-item toc-item--h3"><a href="#grillingsteppersvelte"><span class="toc-num">–</span> GrillingStepper.svelte</a></li>
+<li class="toc-item toc-item--h3"><a href="#grillingsteppertestts-erweitern"><span class="toc-num">–</span> GrillingStepper.test.ts (erweitern)</a></li>
 <li class="toc-item"><a href="#feature-e--plan-download"><span class="toc-num">5.</span> Feature E — Plan-Download</a></li>
+<li class="toc-item toc-item--h3"><a href="#ticketplanpanelsvelte"><span class="toc-num">–</span> TicketPlanPanel.svelte</a></li>
+<li class="toc-item toc-item--h3"><a href="#ticketplanpaneltestts-neue-datei"><span class="toc-num">–</span> TicketPlanPanel.test.ts (neue Datei)</a></li>
+<li class="toc-item toc-item--h3"><a href="#idastro--plancontent-prop-ergaenzen"><span class="toc-num">–</span> [id].astro — planContent Prop ergänzen</a></li>
 <li class="toc-item"><a href="#verifikation"><span class="toc-num">6.</span> Verifikation</a></li></ul>
 </div>
 <h2 id="feature-a--verlauf-collapse">Feature A — Verlauf-Collapse</h2>
-<h3><code>TicketActivityTimeline.svelte</code></h3>
+<h3 id="ticketactivitytimelinesvelte"><code>TicketActivityTimeline.svelte</code></h3>
 <ul>
 <li><input disabled="" type="checkbox"> <code>initialCount: number = 5</code> Prop hinzufügen (Svelte-4-Syntax beibehalten: <code>export let</code>)</li>
 <li><input disabled="" type="checkbox"> <code>let expanded = false</code> reaktive Variable hinzufügen</li>
@@ -56,7 +72,7 @@
 <li><input disabled="" type="checkbox"> Collapse-Button nach <code>&lt;/ol&gt;</code> einfügen (<code>{#if entries.length &gt; initialCount}</code>)</li>
 <li><input disabled="" type="checkbox"> CSS-Klassen für Toggle-Button in <code>&lt;style&gt;</code> ergänzen</li>
 </ul>
-<h3><code>TicketActivityTimeline.test.ts</code> (neu)</h3>
+<h3 id="ticketactivitytimelinetestts-neu"><code>TicketActivityTimeline.test.ts</code> (neu)</h3>
 <ul>
 <li><input disabled="" type="checkbox"> Test: Default 5 Einträge sichtbar bei 10 Einträgen</li>
 <li><input disabled="" type="checkbox"> Test: Alle Einträge nach Klick auf Expand-Button</li>
@@ -65,7 +81,7 @@
 <li><input disabled="" type="checkbox"> Test: Default funktioniert ohne explizites initialCount</li>
 </ul>
 <h2 id="feature-b--ticketattachmentspanel-neu">Feature B — TicketAttachmentsPanel (neu)</h2>
-<h3><code>TicketAttachmentsPanel.svelte</code> (neue Datei)</h3>
+<h3 id="ticketattachmentspanelsvelte-neue-datei"><code>TicketAttachmentsPanel.svelte</code> (neue Datei)</h3>
 <ul>
 <li><input disabled="" type="checkbox"> Props: <code>ticketId: string</code>, <code>attachments: Array&lt;{id, filename, mimeType, fileSize, hasDataUrl}&gt;</code></li>
 <li><input disabled="" type="checkbox"> Anhang-Liste rendern mit Download-<code>&lt;a href="/api/admin/tickets/{ticketId}/attachments/{id}"&gt;</code> + <code>download</code>-Attribut (nur wenn <code>hasDataUrl === true</code>)</li>
@@ -74,7 +90,7 @@
 <li><input disabled="" type="checkbox"> <code>uploadError</code> als <code>$state&lt;string&gt;</code> mit Fehleranzeige</li>
 <li><input disabled="" type="checkbox"> <code>fmtSize()</code> Hilfsfunktion für B/KB/MB</li>
 </ul>
-<h3><code>TicketAttachmentsPanel.test.ts</code> (neue Datei)</h3>
+<h3 id="ticketattachmentspaneltestts-neue-datei"><code>TicketAttachmentsPanel.test.ts</code> (neue Datei)</h3>
 <ul>
 <li><input disabled="" type="checkbox"> Test: "Keine Anhänge" bei leerem Array</li>
 <li><input disabled="" type="checkbox"> Test: Download-Link wenn <code>hasDataUrl === true</code></li>
@@ -82,7 +98,7 @@
 <li><input disabled="" type="checkbox"> Test: Größenformatierung (B, KB, MB)</li>
 <li><input disabled="" type="checkbox"> Test: Count im Header</li>
 </ul>
-<h3><code>[id].astro</code> — Anhänge-Block ersetzen</h3>
+<h3 id="idastro--anhaenge-block-ersetzen"><code>[id].astro</code> — Anhänge-Block ersetzen</h3>
 <ul>
 <li><input disabled="" type="checkbox"> <code>import TicketAttachmentsPanel</code> hinzufügen</li>
 <li><input disabled="" type="checkbox"> Anhänge-Block (~28 Zeilen) durch <code>&lt;TicketAttachmentsPanel client:load .../&gt;</code> (1 Zeile) ersetzen</li>
@@ -91,7 +107,7 @@
 <li><input disabled="" type="checkbox"> Zeilenzahl prüfen: <code>wc -l [id].astro</code> → ≤ 395</li>
 </ul>
 <h2 id="feature-c--binary-download-endpoint">Feature C — Binary-Download-Endpoint</h2>
-<h3><code>website/src/pages/api/admin/tickets/[id]/attachments/[aid].ts</code> (neue Datei)</h3>
+<h3 id="websitesrcpagesapiadminticketsidattachmentsaidts-neue-datei"><code>website/src/pages/api/admin/tickets/[id]/attachments/[aid].ts</code> (neue Datei)</h3>
 <ul>
 <li><input disabled="" type="checkbox"> <code>GET</code> APIRoute mit Admin-Auth-Guard (<code>getSession</code> + <code>isAdmin</code>)</li>
 <li><input disabled="" type="checkbox"> Inline-DB-Query: <code>SELECT data_url, filename, mime_type FROM tickets.ticket_attachments JOIN tickets.tickets ... WHERE a.id=$1 AND a.ticket_id=$2 AND t.brand=$3 AND a.data_url IS NOT NULL</code></li>
@@ -101,34 +117,34 @@
 <li><input disabled="" type="checkbox"> <strong>Kein Import aus <code>lib/tickets/admin.ts</code></strong> (Budget=0 dort)</li>
 </ul>
 <h2 id="feature-d--frageboegen-export">Feature D — Fragebögen-Export</h2>
-<h3><code>GrillingStepper.svelte</code></h3>
+<h3 id="grillingsteppersvelte"><code>GrillingStepper.svelte</code></h3>
 <ul>
 <li><input disabled="" type="checkbox"> <code>exportAnswers()</code> Funktion: iteriert über <code>resolveQuestions(...)</code>, formatiert als <code># Grilling: &lt;title&gt;\n## &lt;Section&gt;\n**&lt;Frage&gt;**\n&lt;Antwort&gt;\n</code></li>
 <li><input disabled="" type="checkbox"> <code>const hasAnswers = $derived(...)</code> — prüft ob mindestens eine Antwort nicht leer</li>
 <li><input disabled="" type="checkbox"> Export-Button im Header (<code>{#if hasAnswers}</code>) mit <code>onclick={exportAnswers}</code></li>
 <li><input disabled="" type="checkbox"> Blob-Download via <code>URL.createObjectURL(new Blob([text], { type: 'text/plain' }))</code>, Dateiname: <code>grilling-{questionnaireId}.txt</code></li>
 </ul>
-<h3><code>GrillingStepper.test.ts</code> (erweitern)</h3>
+<h3 id="grillingsteppertestts-erweitern"><code>GrillingStepper.test.ts</code> (erweitern)</h3>
 <ul>
 <li><input disabled="" type="checkbox"> Test: Export-Button nicht sichtbar bei leeren Antworten</li>
 <li><input disabled="" type="checkbox"> Test: Export-Button sichtbar wenn mindestens eine Antwort vorhanden</li>
 <li><input disabled="" type="checkbox"> Test: Klick auf Export triggert Blob-Download (<code>URL.createObjectURL</code> aufgerufen, <code>&lt;a&gt;.click()</code> ausgeführt)</li>
 </ul>
 <h2 id="feature-e--plan-download">Feature E — Plan-Download</h2>
-<h3><code>TicketPlanPanel.svelte</code></h3>
+<h3 id="ticketplanpanelsvelte"><code>TicketPlanPanel.svelte</code></h3>
 <ul>
 <li><input disabled="" type="checkbox"> Neue optionale Prop <code>planContent: string = ''</code> (Svelte-5-<code>$props()</code> — ganzen Script-Block auf Runes migrieren)</li>
 <li><input disabled="" type="checkbox"> <code>downloadPlan()</code> Funktion: <code>new Blob([planContent], { type: 'text/markdown' })</code>, Dateiname <code>plan-{plan.slug}.md</code></li>
 <li><input disabled="" type="checkbox"> Download-Button im Panel-Header (<code>{#if planContent}</code>) mit <code>onclick={downloadPlan}</code></li>
 </ul>
-<h3><code>TicketPlanPanel.test.ts</code> (neue Datei)</h3>
+<h3 id="ticketplanpaneltestts-neue-datei"><code>TicketPlanPanel.test.ts</code> (neue Datei)</h3>
 <ul>
 <li><input disabled="" type="checkbox"> Test: Slug und PR-Link werden gerendert</li>
 <li><input disabled="" type="checkbox"> Test: Download-Button sichtbar wenn <code>planContent</code> nicht leer</li>
 <li><input disabled="" type="checkbox"> Test: Download-Button nicht sichtbar wenn <code>planContent</code> leer</li>
 <li><input disabled="" type="checkbox"> Test: Klick löst Blob-Download aus (Typ <code>text/markdown</code>)</li>
 </ul>
-<h3><code>[id].astro</code> — planContent Prop ergänzen</h3>
+<h3 id="idastro--plancontent-prop-ergaenzen"><code>[id].astro</code> — planContent Prop ergänzen</h3>
 <ul>
 <li><input disabled="" type="checkbox"> <code>&lt;TicketPlanPanel ... planContent={containerPlan.content ?? ''} /&gt;</code> ergänzen</li>
 </ul>
@@ -144,7 +160,9 @@
 </body></html>
 </article>
 
+<nav class="prevnext" aria-label="Seitennavigation"><a class="prevnext-link prevnext-prev" href="./tasks.html"><span class="prevnext-label">← Zurück</span><span class="prevnext-title">Tasks: ticket-verlauf-anhaenge</span></a><a class="prevnext-link prevnext-next" href="./wsl-bootstrap.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">WSL Bootstrapping Gotchas</span></a></nav>
   </main>
+</div>
 </div>
 <footer class="site-footer">
   <span>Workspace MVP — generierte Dokumentation</span>

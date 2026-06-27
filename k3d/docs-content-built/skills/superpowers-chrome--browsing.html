@@ -10,19 +10,24 @@
 <link rel="stylesheet" href="../style.css">
 </head>
 <body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
 <header class="site-header">
   <a class="site-header-brand" href="../index.html">
     <span class="site-mark" aria-hidden="true">◆</span>
     <span class="site-wordmark">Dokumentation</span>
   </a>
 </header>
-<div id="search-overlay">
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
   <div id="search-box">
-    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
-    <div id="search-results"></div>
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
   </div>
 </div>
 <div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Dev-Workflow</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-architect.html">code-architect</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-architect.html">code-architect</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-explorer.html">code-explorer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-explorer.html">code-explorer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/code-simplifier--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--comment-analyzer.html">comment-analyzer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--comment-analyzer.html">comment-analyzer</a></li><li class="sidebar-item"><a href="../skills/dev-flow-e2e.html">dev-flow-e2e</a></li><li class="sidebar-item"><a href="../skills/dev-flow-execute.html">dev-flow-execute</a></li><li class="sidebar-item"><a href="../skills/dev-flow-plan.html">dev-flow-plan</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--pr-test-analyzer.html">pr-test-analyzer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--pr-test-analyzer.html">pr-test-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--silent-failure-hunter.html">Silent Failure Hunter</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--silent-failure-hunter.html">silent-failure-hunter</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--type-design-analyzer.html">type-design-analyzer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--type-design-analyzer.html">type-design-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Bachelorprojekt-Infra</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/cluster-deployment.html">cluster-deployment</a></li><li class="sidebar-item"><a href="../skills/database-ops.html">database-ops</a></li><li class="sidebar-item"><a href="../skills/host-node-networking.html">host-node-networking</a></li><li class="sidebar-item"><a href="../skills/keycloak-realm-sync.html">keycloak-realm-sync</a></li><li class="sidebar-item"><a href="../skills/mishap-tracker.html">mishap-tracker</a></li><li class="sidebar-item"><a href="../skills/operations-management.html">operations-management</a></li><li class="sidebar-item"><a href="../skills/secret-rotation.html">secret-rotation</a></li><li class="sidebar-item"><a href="../skills/update-dependencies.html">update-dependencies</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">KI / ML</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Plugin- &amp; Skill-Bau</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../agents/plugin-dev--agent-creator.html">agent-creator</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--agent-creator.html">agent-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--agent-development.html">agent-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--agent-development.html">agent-development</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-py.html">agent-sdk-verifier-py</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-py.html">agent-sdk-verifier-py</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-ts.html">agent-sdk-verifier-ts</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-ts.html">agent-sdk-verifier-ts</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--command-development.html">command-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--command-development.html">command-development</a></li><li class="sidebar-item"><a href="../agents/hookify--conversation-analyzer.html">conversation-analyzer</a></li><li class="sidebar-item"><a href="../agents/hookify--conversation-analyzer.html">conversation-analyzer</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--hook-development.html">hook-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--hook-development.html">hook-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--mcp-integration.html">mcp-integration</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--mcp-integration.html">mcp-integration</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-settings.html">plugin-settings</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-settings.html">plugin-settings</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-structure.html">plugin-structure</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-structure.html">plugin-structure</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--plugin-validator.html">plugin-validator</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--plugin-validator.html">plugin-validator</a></li><li class="sidebar-item"><a href="../skills/skill-creator--skill-creator.html">skill-creator</a></li><li class="sidebar-item"><a href="../skills/skill-creator--skill-creator.html">skill-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--skill-development.html">skill-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--skill-development.html">skill-development</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--skill-reviewer.html">skill-reviewer</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--skill-reviewer.html">skill-reviewer</a></li><li class="sidebar-item"><a href="../skills/hookify--writing-rules.html">writing-hookify-rules</a></li><li class="sidebar-item"><a href="../skills/hookify--writing-rules.html">writing-hookify-rules</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">Browser &amp; Debugging</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/superpowers-chrome--browsing.html" aria-current="page">browsing</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">MCP &amp; API</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/postman--agent-ready-apis.html">agent-ready-apis</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-app.html">build-mcp-app</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-app.html">build-mcp-app</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-server.html">build-mcp-server</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-server.html">build-mcp-server</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcpb.html">build-mcpb</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcpb.html">build-mcpb</a></li><li class="sidebar-item"><a href="../skills/postman--generate-spec.html">generate-spec</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--mcp-cli.html">mcp-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-cli.html">postman-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-context.html">postman-context</a></li><li class="sidebar-item"><a href="../skills/postman--postman-knowledge.html">postman-knowledge</a></li><li class="sidebar-item"><a href="../skills/postman--run-collection.html">run-collection</a></li><li class="sidebar-item"><a href="../skills/postman--send-request.html">send-request</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Claude Code &amp; Tooling</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/brightdata-plugin--agent-onboarding.html">agent-onboarding</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brand-listening.html">brand-listening</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brd-browser-debug.html">brd-browser-debug</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-best-practices.html">bright-data-best-practices</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-mcp.html">bright-data-mcp</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brightdata-cli.html">brightdata-cli</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--proxy.html">brightdata-proxy</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--python-sdk-best-practices.html">brightdata-sdk</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--js-sdk-best-practices.html">brightdata-sdk-js</a></li><li class="sidebar-item"><a href="../skills/claude-code-setup--claude-automation-recommender.html">claude-automation-recommender</a></li><li class="sidebar-item"><a href="../skills/claude-md-management--claude-md-improver.html">claude-md-improver</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--competitive-intel.html">competitive-intel</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--data-feeds.html">data-feeds</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--design-mirror.html">design-mirror</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/dev-flow-chore.html">dev-flow-chore</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--developing-claude-code-plugins.html">developing-claude-code-plugins</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--discover-api.html">discover-api</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--finding-duplicate-functions.html">finding-duplicate-functions</a></li><li class="sidebar-item"><a href="../skills/frontend-design--frontend-design.html">frontend-design</a></li><li class="sidebar-item"><a href="../skills/frontend-design--frontend-design.html">frontend-design</a></li><li class="sidebar-item"><a href="../skills/git-workflow.html">git-workflow</a></li><li class="sidebar-item"><a href="../skills/incident-response.html">incident-response</a></li><li class="sidebar-item"><a href="../skills/infra-ops.html">infra-ops</a></li><li class="sidebar-item"><a href="../skills/lavish.html">lavish</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--live-research.html">live-research</a></li><li class="sidebar-item"><a href="../skills/llm-ops.html">llm-ops</a></li><li class="sidebar-item"><a href="../skills/playground--playground.html">playground</a></li><li class="sidebar-item"><a href="../skills/playground--playground.html">playground</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--price-comparison.html">price-comparison</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--rag-pipeline.html">rag-pipeline</a></li><li class="sidebar-item"><a href="../skills/references.html">references</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scrape.html">scrape</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-builder.html">scraper-builder</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-studio.html">scraper-studio</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--search.html">search</a></li><li class="sidebar-item"><a href="../skills/sourcegraph--searching-sourcegraph.html">searching-sourcegraph</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--seo-audit.html">seo-audit</a></li><li class="sidebar-item"><a href="../skills/ticket-ops.html">ticket-ops</a></li><li class="sidebar-item"><a href="../skills/braintrust--troubleshoot-braintrust-mcp.html">troubleshoot-braintrust-mcp</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--using-tmux-for-interactive-commands.html">using-tmux-for-interactive-commands</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--windows-vm.html">windows-vm</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--working-with-claude-code.html">working-with-claude-code</a></li><li class="sidebar-item"><a href="../skills/workspace-deploy.html">workspace-deploy</a></li></ul></details>
+</aside>
   <main id="main">
 <header class="page-header">
   <div class="page-header-body">
@@ -44,11 +49,35 @@
 <li class="toc-item"><a href="#auto-capture"><span class="toc-num">3.</span> Auto-Capture</a></li>
 <li class="toc-item"><a href="#the-usebrowser-tool"><span class="toc-num">4.</span> The use_browser Tool</a></li>
 <li class="toc-item"><a href="#actions-reference"><span class="toc-num">5.</span> Actions Reference</a></li>
+<li class="toc-item toc-item--h3"><a href="#navigation"><span class="toc-num">–</span> Navigation</a></li>
+<li class="toc-item toc-item--h3"><a href="#interaction"><span class="toc-num">–</span> Interaction</a></li>
+<li class="toc-item toc-item--h3"><a href="#mouse-actions-cdp-level"><span class="toc-num">–</span> Mouse Actions (CDP-Level)</a></li>
+<li class="toc-item toc-item--h3"><a href="#file-upload"><span class="toc-num">–</span> File Upload</a></li>
+<li class="toc-item toc-item--h3"><a href="#extraction"><span class="toc-num">–</span> Extraction</a></li>
+<li class="toc-item toc-item--h3"><a href="#export"><span class="toc-num">–</span> Export</a></li>
+<li class="toc-item toc-item--h3"><a href="#tab-management"><span class="toc-num">–</span> Tab Management</a></li>
+<li class="toc-item toc-item--h3"><a href="#browser-mode-control"><span class="toc-num">–</span> Browser Mode Control</a></li>
+<li class="toc-item toc-item--h3"><a href="#profile-management"><span class="toc-num">–</span> Profile Management</a></li>
+<li class="toc-item toc-item--h3"><a href="#chrome-lifecycle-recovery"><span class="toc-num">–</span> Chrome Lifecycle (Recovery)</a></li>
+<li class="toc-item toc-item--h3"><a href="#console-logging"><span class="toc-num">–</span> Console Logging</a></li>
+<li class="toc-item toc-item--h3"><a href="#dialog-handling"><span class="toc-num">–</span> Dialog Handling</a></li>
 <li class="toc-item"><a href="#quick-start-pattern"><span class="toc-num">6.</span> Quick Start Pattern</a></li>
 <li class="toc-item"><a href="#common-patterns"><span class="toc-num">7.</span> Common Patterns</a></li>
+<li class="toc-item toc-item--h3"><a href="#fill-and-submit-form"><span class="toc-num">–</span> Fill and Submit Form</a></li>
+<li class="toc-item toc-item--h3"><a href="#multi-tab-workflow"><span class="toc-num">–</span> Multi-Tab Workflow</a></li>
+<li class="toc-item toc-item--h3"><a href="#dynamic-content"><span class="toc-num">–</span> Dynamic Content</a></li>
+<li class="toc-item toc-item--h3"><a href="#get-link-attribute"><span class="toc-num">–</span> Get Link Attribute</a></li>
+<li class="toc-item toc-item--h3"><a href="#execute-javascript"><span class="toc-num">–</span> Execute JavaScript</a></li>
+<li class="toc-item toc-item--h3"><a href="#resize-viewport-responsive-testing"><span class="toc-num">–</span> Resize Viewport (Responsive Testing)</a></li>
+<li class="toc-item toc-item--h3"><a href="#clear-cookies"><span class="toc-num">–</span> Clear Cookies</a></li>
+<li class="toc-item toc-item--h3"><a href="#scroll-page"><span class="toc-num">–</span> Scroll Page</a></li>
 <li class="toc-item"><a href="#tips"><span class="toc-num">8.</span> Tips</a></li>
 <li class="toc-item"><a href="#troubleshooting"><span class="toc-num">9.</span> Troubleshooting</a></li>
 <li class="toc-item"><a href="#test-automation-advanced"><span class="toc-num">10.</span> Test Automation (Advanced)</a></li>
+<li class="toc-item toc-item--h3"><a href="#approach-1-usebrowser-mcp-simple-tests"><span class="toc-num">–</span> Approach 1: use_browser MCP (Simple Tests)</a></li>
+<li class="toc-item toc-item--h3"><a href="#approach-2-chrome-ws-cli-complex-tests"><span class="toc-num">–</span> Approach 2: chrome-ws CLI (Complex Tests)</a></li>
+<li class="toc-item toc-item--h3"><a href="#when-usebrowser-fails"><span class="toc-num">–</span> When use_browser Fails</a></li>
+<li class="toc-item toc-item--h3"><a href="#common-test-automation-patterns"><span class="toc-num">–</span> Common Test Automation Patterns</a></li>
 <li class="toc-item"><a href="#advanced-usage"><span class="toc-num">11.</span> Advanced Usage</a></li>
 <li class="toc-item"><a href="#protocol-reference"><span class="toc-num">12.</span> Protocol Reference</a></li></ul>
 </div>
@@ -88,7 +117,7 @@
 </ul>
 <p><strong>Active tab</strong>: Every action operates on the current <code>activeTab</code>. Use <code>switch_tab</code> to change it.</p>
 <h2 id="actions-reference">Actions Reference</h2>
-<h3>Navigation</h3>
+<h3 id="navigation">Navigation</h3>
 <ul>
 <li><p><strong>navigate</strong>: Navigate to URL</p>
 <ul>
@@ -110,7 +139,7 @@
 </ul>
 </li>
 </ul>
-<h3>Interaction</h3>
+<h3 id="interaction">Interaction</h3>
 <ul>
 <li><p><strong>click</strong>: Click element</p>
 <ul>
@@ -152,7 +181,7 @@
 </ul>
 </li>
 </ul>
-<h3>Mouse Actions (CDP-Level)</h3>
+<h3 id="mouse-actions-cdp-level">Mouse Actions (CDP-Level)</h3>
 <p>These use CDP Input.dispatchMouseEvent, bypassing synthetic event restrictions.</p>
 <ul>
 <li><p><strong>hover</strong>: Move mouse over element (CSS :hover, tooltips, menus)</p>
@@ -182,7 +211,7 @@
 </ul>
 </li>
 </ul>
-<h3>File Upload</h3>
+<h3 id="file-upload">File Upload</h3>
 <ul>
 <li><strong>file_upload</strong>: Set files on input[type=file] elements (can't be done via JavaScript)<ul>
 <li><code>selector</code>: File input element</li>
@@ -191,7 +220,7 @@
 </ul>
 </li>
 </ul>
-<h3>Extraction</h3>
+<h3 id="extraction">Extraction</h3>
 <ul>
 <li><p><strong>extract</strong>: Get page content</p>
 <ul>
@@ -215,7 +244,7 @@
 </ul>
 </li>
 </ul>
-<h3>Export</h3>
+<h3 id="export">Export</h3>
 <ul>
 <li><strong>screenshot</strong>: Capture screenshot of a specific element<ul>
 <li><code>payload</code>: Filename</li>
@@ -225,7 +254,7 @@
 </ul>
 </li>
 </ul>
-<h3>Tab Management</h3>
+<h3 id="tab-management">Tab Management</h3>
 <ul>
 <li><p><strong>list_tabs</strong>: List all open tabs</p>
 <ul>
@@ -251,7 +280,7 @@
 </ul>
 </li>
 </ul>
-<h3>Browser Mode Control</h3>
+<h3 id="browser-mode-control">Browser Mode Control</h3>
 <ul>
 <li><p><strong>show_browser</strong>: Make browser window visible (headed mode)</p>
 <ul>
@@ -272,7 +301,7 @@
 </ul>
 </li>
 </ul>
-<h3>Profile Management</h3>
+<h3 id="profile-management">Profile Management</h3>
 <ul>
 <li><p><strong>set_profile</strong>: Change Chrome profile (must kill Chrome first)</p>
 <ul>
@@ -297,7 +326,7 @@ When two MCP servers start on the same host with the default profile, the first 
 <li>Or: <code>{action: "set_profile", payload: "my-profile"}</code> at runtime</li>
 </ul>
 <p>An explicit profile name still acquires the lock, but on conflict the bridge <strong>shares</strong> rather than disambiguates — the second process reconnects to the first's Chrome (the original reconnect-on-restart behavior).</p>
-<h3>Chrome Lifecycle (Recovery)</h3>
+<h3 id="chrome-lifecycle-recovery">Chrome Lifecycle (Recovery)</h3>
 <ul>
 <li><p><strong>kill_chrome</strong>: Kill the Chrome process this MCP is driving</p>
 <ul>
@@ -315,7 +344,7 @@ When two MCP servers start on the same host with the default profile, the first 
 <div class="code-wrapper"><pre><code>[Chrome auto-restarted; URL reset to about:blank. Re-navigate to continue.]
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>Treat this as a signal that your prior URL / tab state is gone — re-navigate before assuming anything about the current page.</p>
-<h3>Console Logging</h3>
+<h3 id="console-logging">Console Logging</h3>
 <p>Capture browser console output for the active tab. Buffer is keyed by the page session's <code>sessionId</code>, so it survives <code>close_tab</code>/<code>new_tab</code> ordering quirks. Levels: <code>log</code>, <code>info</code>, <code>warn</code>, <code>error</code>.</p>
 <ul>
 <li><p><strong>enable_console_logging</strong>: Start capturing</p>
@@ -336,7 +365,7 @@ When two MCP servers start on the same host with the default profile, the first 
 </ul>
 </li>
 </ul>
-<h3>Dialog Handling</h3>
+<h3 id="dialog-handling">Dialog Handling</h3>
 <p>Native dialogs (JS alert/confirm/prompt, beforeunload, HTTP basic-auth, permission prompts, device choosers) pause the page. While a dialog is open, page-targeted actions (<code>extract</code>, <code>click</code>, <code>eval</code>, etc.) return a refusal whose text contains <code>Page is behind a dialog</code> and lists the available <code>dialog::*</code> selectors.</p>
 <p>When a dialog fires <strong>during</strong> a <code>navigate</code> (typical for HTTP basic-auth), <code>navigate</code> itself throws with the dialog grammar in the message — you don't have to issue a separate page-targeted call to discover the dialog.</p>
 <p>Handle dialogs by clicking/typing a <code>dialog::*</code> selector:</p>
@@ -407,7 +436,7 @@ Profiles store persistent browser data (cookies, localStorage, extensions, auth 
 {action: "extract", payload: "text", selector: "h1"}
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h2 id="common-patterns">Common Patterns</h2>
-<h3>Fill and Submit Form</h3>
+<h3 id="fill-and-submit-form">Fill and Submit Form</h3>
 <div class="code-wrapper"><pre><code>{action: "navigate", payload: "https://example.com/login"}
 {action: "await_element", selector: "input[name=email]"}
 {action: "type", selector: "input[name=email]", payload: "user@example.com"}
@@ -416,30 +445,30 @@ Profiles store persistent browser data (cookies, localStorage, extensions, auth 
 {action: "await_text", payload: "Welcome"}
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>Uses <code>keyboard_press</code> to submit the form.</p>
-<h3>Multi-Tab Workflow</h3>
+<h3 id="multi-tab-workflow">Multi-Tab Workflow</h3>
 <div class="code-wrapper"><pre><code>{action: "list_tabs"}
 {action: "switch_tab", payload: 2}
 {action: "click", selector: "a.email"}
 {action: "await_element", selector: ".content"}
 {action: "extract", payload: "text", selector: ".amount"}
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Dynamic Content</h3>
+<h3 id="dynamic-content">Dynamic Content</h3>
 <div class="code-wrapper"><pre><code>{action: "navigate", payload: "https://example.com"}
 {action: "type", selector: "input[name=q]", payload: "query"}
 {action: "click", selector: "button.search"}
 {action: "await_element", selector: ".results"}
 {action: "extract", payload: "text", selector: ".result-title"}
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Get Link Attribute</h3>
+<h3 id="get-link-attribute">Get Link Attribute</h3>
 <div class="code-wrapper"><pre><code>{action: "navigate", payload: "https://example.com"}
 {action: "await_element", selector: "a.download"}
 {action: "attr", selector: "a.download", payload: "href"}
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Execute JavaScript</h3>
+<h3 id="execute-javascript">Execute JavaScript</h3>
 <div class="code-wrapper"><pre><code>{action: "eval", payload: "document.querySelectorAll('a').length"}
 {action: "eval", payload: "Array.from(document.querySelectorAll('a')).map(a =&gt; a.href)"}
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Resize Viewport (Responsive Testing)</h3>
+<h3 id="resize-viewport-responsive-testing">Resize Viewport (Responsive Testing)</h3>
 <p>Use <code>eval</code> to resize the browser window for testing responsive layouts:</p>
 <div class="code-wrapper"><pre><code>{action: "eval", payload: "window.resizeTo(375, 812); 'Resized to mobile'"}
 {action: "eval", payload: "window.resizeTo(768, 1024); 'Resized to tablet'"}
@@ -452,7 +481,7 @@ Profiles store persistent browser data (cookies, localStorage, extensions, auth 
 <li>User-Agent string</li>
 </ul>
 <p>For most responsive testing, window resize is sufficient.</p>
-<h3>Clear Cookies</h3>
+<h3 id="clear-cookies">Clear Cookies</h3>
 <p>Use <code>eval</code> to clear cookies accessible to JavaScript:</p>
 <div class="code-wrapper"><pre><code>{action: "eval", payload: "document.cookie.split(';').forEach(c =&gt; { document.cookie = c.trim().split('=')[0] + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/'; }); 'Cookies cleared'"}
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
@@ -462,7 +491,7 @@ Profiles store persistent browser data (cookies, localStorage, extensions, auth 
 <li>Cookies from other domains</li>
 </ul>
 <p>For most logout/reset scenarios, this is sufficient.</p>
-<h3>Scroll Page</h3>
+<h3 id="scroll-page">Scroll Page</h3>
 <div class="code-wrapper"><pre><code>{action: "scroll", payload: "down"}
 {action: "scroll", payload: "up"}
 {action: "scroll", selector: ".container", payload: "{\"deltaX\":0,\"deltaY\":500}"}
@@ -523,13 +552,13 @@ Extract page content to verify selectors before building workflow.</p>
 <h2 id="test-automation-advanced">Test Automation (Advanced)</h2>
 <details>
 <summary>Click to expand test automation guidance</summary><p>When building test automation, you have two approaches:</p>
-<h3>Approach 1: use_browser MCP (Simple Tests)</h3>
+<h3 id="approach-1-usebrowser-mcp-simple-tests">Approach 1: use_browser MCP (Simple Tests)</h3>
 <p>Best for: Single-step tests, direct Claude control during conversation</p>
 <div class="code-wrapper"><pre><code class="language-json">{"action": "navigate", "payload": "https://app.com"}
 {"action": "click", "selector": "#test-button"}
 {"action": "eval", "payload": "JSON.stringify({passed: document.querySelector('.success') !== null})"}
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Approach 2: chrome-ws CLI (Complex Tests)</h3>
+<h3 id="approach-2-chrome-ws-cli-complex-tests">Approach 2: chrome-ws CLI (Complex Tests)</h3>
 <p>Best for: Multi-step test suites, standalone automation scripts</p>
 <p><strong>Key insight</strong>: <code>chrome-ws</code> is the reference implementation showing proper Chrome DevTools Protocol usage. When <code>use_browser</code> doesn't work as expected, examine how <code>chrome-ws</code> handles the same operation.</p>
 <div class="code-wrapper"><pre><code class="language-bash"># Example: Automated form testing
@@ -538,13 +567,13 @@ Extract page content to verify selectors before building workflow.</p>
 ./chrome-ws click 0 "button[type=submit]"
 ./chrome-ws wait-text 0 "Success"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>When use_browser Fails</h3>
+<h3 id="when-usebrowser-fails">When use_browser Fails</h3>
 <ol>
 <li><strong>Check chrome-ws source code</strong> - It shows the correct CDP pattern</li>
 <li><strong>Use chrome-ws to verify</strong> - Test the same operation via CLI</li>
 <li><strong>Adapt the pattern</strong> - Apply the working CDP approach to use_browser</li>
 </ol>
-<h3>Common Test Automation Patterns</h3>
+<h3 id="common-test-automation-patterns">Common Test Automation Patterns</h3>
 <ul>
 <li><strong>Form validation</strong>: Fill forms, check error states</li>
 <li><strong>UI state testing</strong>: Click elements, verify DOM changes</li>
@@ -559,7 +588,9 @@ Extract page content to verify selectors before building workflow.</p>
 </body></html>
 </article>
 
+<nav class="prevnext" aria-label="Seitennavigation"><a class="prevnext-link prevnext-prev" href="../skills/chrome-devtools-mcp--a11y-debugging.html"><span class="prevnext-label">← Zurück</span><span class="prevnext-title">a11y-debugging</span></a><a class="prevnext-link prevnext-next" href="../skills/chrome-devtools-mcp--chrome-devtools.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">chrome-devtools</span></a></nav>
   </main>
+</div>
 </div>
 <footer class="site-footer">
   <span>Workspace MVP — generierte Dokumentation</span>

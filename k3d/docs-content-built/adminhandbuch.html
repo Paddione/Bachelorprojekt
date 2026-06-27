@@ -10,16 +10,17 @@
 <link rel="stylesheet" href="./style.css">
 </head>
 <body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
 <header class="site-header">
   <a class="site-header-brand" href="./index.html">
     <span class="site-mark" aria-hidden="true">◆</span>
     <span class="site-wordmark">Dokumentation</span>
   </a>
 </header>
-<div id="search-overlay">
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
   <div id="search-box">
-    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
-    <div id="search-results"></div>
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
   </div>
 </div>
 <div id="app">
@@ -54,11 +55,12 @@
 <li class="toc-item"><a href="#backups"><span class="toc-num">12.</span>&nbsp;Backups</a></li>
 <li class="toc-item"><a href="#livekit--livestream-betrieb"><span class="toc-num">13.</span>&nbsp;LiveKit — Livestream-Betrieb</a></li>
 <li class="toc-item"><a href="#brett-systembrett"><span class="toc-num">14.</span>&nbsp;Brett (Systembrett)</a></li>
-<li class="toc-item"><a href="#coaching-pipeline--wissensdatenbank"><span class="toc-num">15.</span>&nbsp;Coaching-Pipeline &amp; Wissensdatenbank</a></li>
-<li class="toc-item"><a href="#datenbankzugang-postgresql"><span class="toc-num">16.</span>&nbsp;Datenbankzugang (PostgreSQL)</a></li>
-<li class="toc-item"><a href="#routineaufgaben--schnellreferenz"><span class="toc-num">17.</span>&nbsp;Routineaufgaben — Schnellreferenz</a></li>
-<li class="toc-item"><a href="#haeufige-admin-fragen"><span class="toc-num">18.</span>&nbsp;Häufige Admin-Fragen</a></li>
-<li class="toc-item"><a href="#weiterfuehrende-dokumentation"><span class="toc-num">19.</span>&nbsp;Weiterführende Dokumentation</a></li></ul>
+<li class="toc-item"><a href="#arena-server-multiplayer"><span class="toc-num">15.</span>&nbsp;Arena-Server (Multiplayer)</a></li>
+<li class="toc-item"><a href="#coaching-pipeline--wissensdatenbank"><span class="toc-num">16.</span>&nbsp;Coaching-Pipeline &amp; Wissensdatenbank</a></li>
+<li class="toc-item"><a href="#datenbankzugang-postgresql"><span class="toc-num">17.</span>&nbsp;Datenbankzugang (PostgreSQL)</a></li>
+<li class="toc-item"><a href="#routineaufgaben--schnellreferenz"><span class="toc-num">18.</span>&nbsp;Routineaufgaben — Schnellreferenz</a></li>
+<li class="toc-item"><a href="#haeufige-admin-fragen"><span class="toc-num">19.</span>&nbsp;Häufige Admin-Fragen</a></li>
+<li class="toc-item"><a href="#weiterfuehrende-dokumentation"><span class="toc-num">20.</span>&nbsp;Weiterführende Dokumentation</a></li></ul>
 </div>
 <p>Dieses Handbuch richtet sich an Plattform-Administratoren, die den Workspace betreiben. Für Endnutzer-Themen siehe das <a href="benutzerhandbuch.md">Benutzerhandbuch</a>. Für die vollständige Referenz aller Admin-UI-Bereiche siehe das <a href="admin-webinterface.md">Admin-Webinterface</a>.</p>
 <h2 id="voraussetzungen">Voraussetzungen</h2>
@@ -213,6 +215,11 @@ task website:deploy              # Astro-Website bauen und deployen
 <td>LiveKit</td>
 <td><code>https://livekit.{DOMAIN}</code></td>
 <td>Admin-Steuerseite: <code>https://web.{DOMAIN}/admin/stream</code></td>
+</tr>
+<tr>
+<td>Arena</td>
+<td><code>https://arena-ws.korczewski.de</code></td>
+<td>nur auf korczewski</td>
 </tr>
 <tr>
 <td>Mailpit</td>
@@ -549,6 +556,20 @@ task brett:bot-setup ENV=&lt;env&gt;    # /brett Slash-Command in Nextcloud Talk
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>Details: <a href="systembrett.md">Systembrett</a>.</p>
 <hr>
+<h2 id="arena-server-multiplayer">Arena-Server (Multiplayer)</h2>
+<p>Der Arena-Server läuft <strong>ausschließlich auf dem korczewski-Cluster</strong> (<code>arena-ws.korczewski.de</code>). Beide Websites können darauf zugreifen; der Server validiert JWT von beiden Keycloak-Realms.</p>
+<div class="code-wrapper"><pre><code class="language-bash">task arena:build                  # Image bauen
+task arena:deploy ENV=korczewski  # Bauen, pushen, ausrollen
+task feature:arena                # Kurzform: Build + Deploy auf korczewski
+task arena:status ENV=korczewski  # Pod + Service-Status
+task arena:logs ENV=korczewski    # Logs
+task arena:db ENV=korczewski      # psql in das arena-Schema
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<blockquote>
+<p><code>task arena:deploy ENV=mentolder</code> bricht mit Erklärung ab — Arena läuft nur auf korczewski.</p>
+</blockquote>
+<p>Details: <a href="arena.md">Arena</a>.</p>
+<hr>
 <h2 id="coaching-pipeline--wissensdatenbank">Coaching-Pipeline &amp; Wissensdatenbank</h2>
 <p>Die Coaching-Pipeline verarbeitet PDF/EPUB-Bücher in Wissens-Chunks und macht sie über pgvector abrufbar.</p>
 <div class="code-wrapper"><pre><code class="language-bash"># Buch hochladen und verarbeiten
@@ -574,7 +595,7 @@ task workspace:db:drop -- &lt;dbname&gt; ENV=&lt;env&gt;   # DB löschen (mit Be
 task workspace:db:restore -- &lt;db&gt; &lt;ts&gt; ENV=&lt;env&gt;  # Backup einspielen
 task workspace:sync-db-passwords ENV=&lt;env&gt;     # Rollen-Passwörter abgleichen
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Verfügbare Datenbanken: <code>keycloak</code>, <code>nextcloud</code>, <code>vaultwarden</code>, <code>website</code>, <code>docuseal</code>, <code>bachelorprojekt</code>.</p>
+<p>Verfügbare Datenbanken: <code>keycloak</code>, <code>nextcloud</code>, <code>vaultwarden</code>, <code>website</code>, <code>docuseal</code>, <code>arena</code>, <code>bachelorprojekt</code>.</p>
 <p>Schema-Diagramm erzeugen: <code>task db:diagram</code></p>
 <hr>
 <h2 id="routineaufgaben--schnellreferenz">Routineaufgaben — Schnellreferenz</h2>
@@ -741,6 +762,10 @@ task env:seal ENV=&lt;env&gt;        # Secrets neu verschlüsseln
 <td><a href="systembrett.md">Systembrett</a></td>
 </tr>
 <tr>
+<td>Arena-Server</td>
+<td><a href="arena.md">Arena</a></td>
+</tr>
+<tr>
 <td>Fehlerbehebung</td>
 <td><a href="troubleshooting.md">Fehlerbehebung</a></td>
 </tr>
@@ -753,7 +778,9 @@ task env:seal ENV=&lt;env&gt;        # Secrets neu verschlüsseln
 
 </article>
 
+
   </main>
+
 </div>
 <footer class="site-footer">
   <span>Workspace MVP — generierte Dokumentation</span>

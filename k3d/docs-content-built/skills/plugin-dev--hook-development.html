@@ -10,19 +10,24 @@
 <link rel="stylesheet" href="../style.css">
 </head>
 <body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
 <header class="site-header">
   <a class="site-header-brand" href="../index.html">
     <span class="site-mark" aria-hidden="true">◆</span>
     <span class="site-wordmark">Dokumentation</span>
   </a>
 </header>
-<div id="search-overlay">
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
   <div id="search-box">
-    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
-    <div id="search-results"></div>
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
   </div>
 </div>
 <div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Dev-Workflow</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-architect.html">code-architect</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-architect.html">code-architect</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-explorer.html">code-explorer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-explorer.html">code-explorer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/code-simplifier--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--comment-analyzer.html">comment-analyzer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--comment-analyzer.html">comment-analyzer</a></li><li class="sidebar-item"><a href="../skills/dev-flow-e2e.html">dev-flow-e2e</a></li><li class="sidebar-item"><a href="../skills/dev-flow-execute.html">dev-flow-execute</a></li><li class="sidebar-item"><a href="../skills/dev-flow-plan.html">dev-flow-plan</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--pr-test-analyzer.html">pr-test-analyzer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--pr-test-analyzer.html">pr-test-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--silent-failure-hunter.html">Silent Failure Hunter</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--silent-failure-hunter.html">silent-failure-hunter</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--type-design-analyzer.html">type-design-analyzer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--type-design-analyzer.html">type-design-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Bachelorprojekt-Infra</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/cluster-deployment.html">cluster-deployment</a></li><li class="sidebar-item"><a href="../skills/database-ops.html">database-ops</a></li><li class="sidebar-item"><a href="../skills/host-node-networking.html">host-node-networking</a></li><li class="sidebar-item"><a href="../skills/keycloak-realm-sync.html">keycloak-realm-sync</a></li><li class="sidebar-item"><a href="../skills/mishap-tracker.html">mishap-tracker</a></li><li class="sidebar-item"><a href="../skills/operations-management.html">operations-management</a></li><li class="sidebar-item"><a href="../skills/secret-rotation.html">secret-rotation</a></li><li class="sidebar-item"><a href="../skills/update-dependencies.html">update-dependencies</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">KI / ML</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">Plugin- &amp; Skill-Bau</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../agents/plugin-dev--agent-creator.html">agent-creator</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--agent-creator.html">agent-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--agent-development.html">agent-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--agent-development.html">agent-development</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-py.html">agent-sdk-verifier-py</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-py.html">agent-sdk-verifier-py</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-ts.html">agent-sdk-verifier-ts</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-ts.html">agent-sdk-verifier-ts</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--command-development.html">command-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--command-development.html">command-development</a></li><li class="sidebar-item"><a href="../agents/hookify--conversation-analyzer.html">conversation-analyzer</a></li><li class="sidebar-item"><a href="../agents/hookify--conversation-analyzer.html">conversation-analyzer</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/plugin-dev--hook-development.html" aria-current="page">hook-development</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/plugin-dev--hook-development.html" aria-current="page">hook-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--mcp-integration.html">mcp-integration</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--mcp-integration.html">mcp-integration</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-settings.html">plugin-settings</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-settings.html">plugin-settings</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-structure.html">plugin-structure</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-structure.html">plugin-structure</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--plugin-validator.html">plugin-validator</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--plugin-validator.html">plugin-validator</a></li><li class="sidebar-item"><a href="../skills/skill-creator--skill-creator.html">skill-creator</a></li><li class="sidebar-item"><a href="../skills/skill-creator--skill-creator.html">skill-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--skill-development.html">skill-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--skill-development.html">skill-development</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--skill-reviewer.html">skill-reviewer</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--skill-reviewer.html">skill-reviewer</a></li><li class="sidebar-item"><a href="../skills/hookify--writing-rules.html">writing-hookify-rules</a></li><li class="sidebar-item"><a href="../skills/hookify--writing-rules.html">writing-hookify-rules</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Browser &amp; Debugging</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers-chrome--browsing.html">browsing</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">MCP &amp; API</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/postman--agent-ready-apis.html">agent-ready-apis</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-app.html">build-mcp-app</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-app.html">build-mcp-app</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-server.html">build-mcp-server</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-server.html">build-mcp-server</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcpb.html">build-mcpb</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcpb.html">build-mcpb</a></li><li class="sidebar-item"><a href="../skills/postman--generate-spec.html">generate-spec</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--mcp-cli.html">mcp-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-cli.html">postman-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-context.html">postman-context</a></li><li class="sidebar-item"><a href="../skills/postman--postman-knowledge.html">postman-knowledge</a></li><li class="sidebar-item"><a href="../skills/postman--run-collection.html">run-collection</a></li><li class="sidebar-item"><a href="../skills/postman--send-request.html">send-request</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Claude Code &amp; Tooling</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/brightdata-plugin--agent-onboarding.html">agent-onboarding</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brand-listening.html">brand-listening</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brd-browser-debug.html">brd-browser-debug</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-best-practices.html">bright-data-best-practices</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-mcp.html">bright-data-mcp</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brightdata-cli.html">brightdata-cli</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--proxy.html">brightdata-proxy</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--python-sdk-best-practices.html">brightdata-sdk</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--js-sdk-best-practices.html">brightdata-sdk-js</a></li><li class="sidebar-item"><a href="../skills/claude-code-setup--claude-automation-recommender.html">claude-automation-recommender</a></li><li class="sidebar-item"><a href="../skills/claude-md-management--claude-md-improver.html">claude-md-improver</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--competitive-intel.html">competitive-intel</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--data-feeds.html">data-feeds</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--design-mirror.html">design-mirror</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/dev-flow-chore.html">dev-flow-chore</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--developing-claude-code-plugins.html">developing-claude-code-plugins</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--discover-api.html">discover-api</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--finding-duplicate-functions.html">finding-duplicate-functions</a></li><li class="sidebar-item"><a href="../skills/frontend-design--frontend-design.html">frontend-design</a></li><li class="sidebar-item"><a href="../skills/frontend-design--frontend-design.html">frontend-design</a></li><li class="sidebar-item"><a href="../skills/git-workflow.html">git-workflow</a></li><li class="sidebar-item"><a href="../skills/incident-response.html">incident-response</a></li><li class="sidebar-item"><a href="../skills/infra-ops.html">infra-ops</a></li><li class="sidebar-item"><a href="../skills/lavish.html">lavish</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--live-research.html">live-research</a></li><li class="sidebar-item"><a href="../skills/llm-ops.html">llm-ops</a></li><li class="sidebar-item"><a href="../skills/playground--playground.html">playground</a></li><li class="sidebar-item"><a href="../skills/playground--playground.html">playground</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--price-comparison.html">price-comparison</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--rag-pipeline.html">rag-pipeline</a></li><li class="sidebar-item"><a href="../skills/references.html">references</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scrape.html">scrape</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-builder.html">scraper-builder</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-studio.html">scraper-studio</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--search.html">search</a></li><li class="sidebar-item"><a href="../skills/sourcegraph--searching-sourcegraph.html">searching-sourcegraph</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--seo-audit.html">seo-audit</a></li><li class="sidebar-item"><a href="../skills/ticket-ops.html">ticket-ops</a></li><li class="sidebar-item"><a href="../skills/braintrust--troubleshoot-braintrust-mcp.html">troubleshoot-braintrust-mcp</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--using-tmux-for-interactive-commands.html">using-tmux-for-interactive-commands</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--windows-vm.html">windows-vm</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--working-with-claude-code.html">working-with-claude-code</a></li><li class="sidebar-item"><a href="../skills/workspace-deploy.html">workspace-deploy</a></li></ul></details>
+</aside>
   <main id="main">
 <header class="page-header">
   <div class="page-header-body">
@@ -41,20 +46,54 @@
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#overview"><span class="toc-num">1.</span> Overview</a></li>
 <li class="toc-item"><a href="#hook-types"><span class="toc-num">2.</span> Hook Types</a></li>
+<li class="toc-item toc-item--h3"><a href="#prompt-based-hooks-recommended"><span class="toc-num">–</span> Prompt-Based Hooks (Recommended)</a></li>
+<li class="toc-item toc-item--h3"><a href="#command-hooks"><span class="toc-num">–</span> Command Hooks</a></li>
 <li class="toc-item"><a href="#hook-configuration-formats"><span class="toc-num">3.</span> Hook Configuration Formats</a></li>
+<li class="toc-item toc-item--h3"><a href="#plugin-hooksjson-format"><span class="toc-num">–</span> Plugin hooks.json Format</a></li>
+<li class="toc-item toc-item--h3"><a href="#settings-format-direct"><span class="toc-num">–</span> Settings Format (Direct)</a></li>
 <li class="toc-item"><a href="#hook-events"><span class="toc-num">4.</span> Hook Events</a></li>
+<li class="toc-item toc-item--h3"><a href="#pretooluse"><span class="toc-num">–</span> PreToolUse</a></li>
+<li class="toc-item toc-item--h3"><a href="#posttooluse"><span class="toc-num">–</span> PostToolUse</a></li>
+<li class="toc-item toc-item--h3"><a href="#stop"><span class="toc-num">–</span> Stop</a></li>
+<li class="toc-item toc-item--h3"><a href="#subagentstop"><span class="toc-num">–</span> SubagentStop</a></li>
+<li class="toc-item toc-item--h3"><a href="#userpromptsubmit"><span class="toc-num">–</span> UserPromptSubmit</a></li>
+<li class="toc-item toc-item--h3"><a href="#sessionstart"><span class="toc-num">–</span> SessionStart</a></li>
+<li class="toc-item toc-item--h3"><a href="#sessionend"><span class="toc-num">–</span> SessionEnd</a></li>
+<li class="toc-item toc-item--h3"><a href="#precompact"><span class="toc-num">–</span> PreCompact</a></li>
+<li class="toc-item toc-item--h3"><a href="#notification"><span class="toc-num">–</span> Notification</a></li>
 <li class="toc-item"><a href="#hook-output-format"><span class="toc-num">5.</span> Hook Output Format</a></li>
+<li class="toc-item toc-item--h3"><a href="#standard-output-all-hooks"><span class="toc-num">–</span> Standard Output (All Hooks)</a></li>
+<li class="toc-item toc-item--h3"><a href="#exit-codes"><span class="toc-num">–</span> Exit Codes</a></li>
 <li class="toc-item"><a href="#hook-input-format"><span class="toc-num">6.</span> Hook Input Format</a></li>
 <li class="toc-item"><a href="#environment-variables"><span class="toc-num">7.</span> Environment Variables</a></li>
 <li class="toc-item"><a href="#plugin-hook-configuration"><span class="toc-num">8.</span> Plugin Hook Configuration</a></li>
 <li class="toc-item"><a href="#matchers"><span class="toc-num">9.</span> Matchers</a></li>
+<li class="toc-item toc-item--h3"><a href="#tool-name-matching"><span class="toc-num">–</span> Tool Name Matching</a></li>
+<li class="toc-item toc-item--h3"><a href="#common-patterns"><span class="toc-num">–</span> Common Patterns</a></li>
 <li class="toc-item"><a href="#security-best-practices"><span class="toc-num">10.</span> Security Best Practices</a></li>
+<li class="toc-item toc-item--h3"><a href="#input-validation"><span class="toc-num">–</span> Input Validation</a></li>
+<li class="toc-item toc-item--h3"><a href="#path-safety"><span class="toc-num">–</span> Path Safety</a></li>
+<li class="toc-item toc-item--h3"><a href="#quote-all-variables"><span class="toc-num">–</span> Quote All Variables</a></li>
+<li class="toc-item toc-item--h3"><a href="#set-appropriate-timeouts"><span class="toc-num">–</span> Set Appropriate Timeouts</a></li>
 <li class="toc-item"><a href="#performance-considerations"><span class="toc-num">11.</span> Performance Considerations</a></li>
+<li class="toc-item toc-item--h3"><a href="#parallel-execution"><span class="toc-num">–</span> Parallel Execution</a></li>
+<li class="toc-item toc-item--h3"><a href="#optimization"><span class="toc-num">–</span> Optimization</a></li>
 <li class="toc-item"><a href="#temporarily-active-hooks"><span class="toc-num">12.</span> Temporarily Active Hooks</a></li>
 <li class="toc-item"><a href="#hook-lifecycle-and-limitations"><span class="toc-num">13.</span> Hook Lifecycle and Limitations</a></li>
+<li class="toc-item toc-item--h3"><a href="#hooks-load-at-session-start"><span class="toc-num">–</span> Hooks Load at Session Start</a></li>
+<li class="toc-item toc-item--h3"><a href="#hook-validation-at-startup"><span class="toc-num">–</span> Hook Validation at Startup</a></li>
 <li class="toc-item"><a href="#debugging-hooks"><span class="toc-num">14.</span> Debugging Hooks</a></li>
+<li class="toc-item toc-item--h3"><a href="#enable-debug-mode"><span class="toc-num">–</span> Enable Debug Mode</a></li>
+<li class="toc-item toc-item--h3"><a href="#test-hook-scripts"><span class="toc-num">–</span> Test Hook Scripts</a></li>
+<li class="toc-item toc-item--h3"><a href="#validate-json-output"><span class="toc-num">–</span> Validate JSON Output</a></li>
 <li class="toc-item"><a href="#quick-reference"><span class="toc-num">15.</span> Quick Reference</a></li>
+<li class="toc-item toc-item--h3"><a href="#hook-events-summary"><span class="toc-num">–</span> Hook Events Summary</a></li>
+<li class="toc-item toc-item--h3"><a href="#best-practices"><span class="toc-num">–</span> Best Practices</a></li>
 <li class="toc-item"><a href="#additional-resources"><span class="toc-num">16.</span> Additional Resources</a></li>
+<li class="toc-item toc-item--h3"><a href="#reference-files"><span class="toc-num">–</span> Reference Files</a></li>
+<li class="toc-item toc-item--h3"><a href="#example-hook-scripts"><span class="toc-num">–</span> Example Hook Scripts</a></li>
+<li class="toc-item toc-item--h3"><a href="#utility-scripts"><span class="toc-num">–</span> Utility Scripts</a></li>
+<li class="toc-item toc-item--h3"><a href="#external-resources"><span class="toc-num">–</span> External Resources</a></li>
 <li class="toc-item"><a href="#implementation-workflow"><span class="toc-num">17.</span> Implementation Workflow</a></li></ul>
 </div>
 <h2 id="overview">Overview</h2>
@@ -68,7 +107,7 @@
 <li>Automate workflows across the development lifecycle</li>
 </ul>
 <h2 id="hook-types">Hook Types</h2>
-<h3>Prompt-Based Hooks (Recommended)</h3>
+<h3 id="prompt-based-hooks-recommended">Prompt-Based Hooks (Recommended)</h3>
 <p>Use LLM-driven decision making for context-aware validation:</p>
 <div class="code-wrapper"><pre><code class="language-json">{
   "type": "prompt",
@@ -84,7 +123,7 @@
 <li>Better edge case handling</li>
 <li>Easier to maintain and extend</li>
 </ul>
-<h3>Command Hooks</h3>
+<h3 id="command-hooks">Command Hooks</h3>
 <p>Execute bash commands for deterministic checks:</p>
 <div class="code-wrapper"><pre><code class="language-json">{
   "type": "command",
@@ -100,7 +139,7 @@
 <li>Performance-critical checks</li>
 </ul>
 <h2 id="hook-configuration-formats">Hook Configuration Formats</h2>
-<h3>Plugin hooks.json Format</h3>
+<h3 id="plugin-hooksjson-format">Plugin hooks.json Format</h3>
 <p><strong>For plugin hooks</strong> in <code>hooks/hooks.json</code>, use wrapper format:</p>
 <div class="code-wrapper"><pre><code class="language-json">{
   "description": "Brief explanation of hooks (optional)",
@@ -135,7 +174,7 @@
   }
 }
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Settings Format (Direct)</h3>
+<h3 id="settings-format-direct">Settings Format (Direct)</h3>
 <p><strong>For user settings</strong> in <code>.claude/settings.json</code>, use direct format:</p>
 <div class="code-wrapper"><pre><code class="language-json">{
   "PreToolUse": [...],
@@ -151,7 +190,7 @@
 </ul>
 <p><strong>Important:</strong> The examples below show the hook event structure that goes inside either format. For plugin hooks.json, wrap these in <code>{"hooks": {...}}</code>.</p>
 <h2 id="hook-events">Hook Events</h2>
-<h3>PreToolUse</h3>
+<h3 id="pretooluse">PreToolUse</h3>
 <p>Execute before any tool runs. Use to approve, deny, or modify tool calls.</p>
 <p><strong>Example (prompt-based):</strong></p>
 <div class="code-wrapper"><pre><code class="language-json">{
@@ -177,7 +216,7 @@
   "systemMessage": "Explanation for Claude"
 }
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>PostToolUse</h3>
+<h3 id="posttooluse">PostToolUse</h3>
 <p>Execute after tool completes. Use to react to results, provide feedback, or log.</p>
 <p><strong>Example:</strong></p>
 <div class="code-wrapper"><pre><code class="language-json">{
@@ -200,7 +239,7 @@
 <li>Exit 2: stderr fed back to Claude</li>
 <li>systemMessage included in context</li>
 </ul>
-<h3>Stop</h3>
+<h3 id="stop">Stop</h3>
 <p>Execute when main agent considers stopping. Use to validate completeness.</p>
 <p><strong>Example:</strong></p>
 <div class="code-wrapper"><pre><code class="language-json">{
@@ -224,10 +263,10 @@
   "systemMessage": "Additional context"
 }
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>SubagentStop</h3>
+<h3 id="subagentstop">SubagentStop</h3>
 <p>Execute when subagent considers stopping. Use to ensure subagent completed its task.</p>
 <p>Similar to Stop hook, but for subagents.</p>
-<h3>UserPromptSubmit</h3>
+<h3 id="userpromptsubmit">UserPromptSubmit</h3>
 <p>Execute when user submits a prompt. Use to add context, validate, or block prompts.</p>
 <p><strong>Example:</strong></p>
 <div class="code-wrapper"><pre><code class="language-json">{
@@ -244,7 +283,7 @@
   ]
 }
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>SessionStart</h3>
+<h3 id="sessionstart">SessionStart</h3>
 <p>Execute when Claude Code session begins. Use to load context and set environment.</p>
 <p><strong>Example:</strong></p>
 <div class="code-wrapper"><pre><code class="language-json">{
@@ -265,14 +304,14 @@
 <div class="code-wrapper"><pre><code class="language-bash">echo "export PROJECT_TYPE=nodejs" &gt;&gt; "$CLAUDE_ENV_FILE"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>See <code>examples/load-context.sh</code> for complete example.</p>
-<h3>SessionEnd</h3>
+<h3 id="sessionend">SessionEnd</h3>
 <p>Execute when session ends. Use for cleanup, logging, and state preservation.</p>
-<h3>PreCompact</h3>
+<h3 id="precompact">PreCompact</h3>
 <p>Execute before context compaction. Use to add critical information to preserve.</p>
-<h3>Notification</h3>
+<h3 id="notification">Notification</h3>
 <p>Execute when Claude sends notifications. Use to react to user notifications.</p>
 <h2 id="hook-output-format">Hook Output Format</h2>
-<h3>Standard Output (All Hooks)</h3>
+<h3 id="standard-output-all-hooks">Standard Output (All Hooks)</h3>
 <div class="code-wrapper"><pre><code class="language-json">{
   "continue": true,
   "suppressOutput": false,
@@ -284,7 +323,7 @@
 <li><code>suppressOutput</code>: Hide output from transcript (default false)</li>
 <li><code>systemMessage</code>: Message shown to Claude</li>
 </ul>
-<h3>Exit Codes</h3>
+<h3 id="exit-codes">Exit Codes</h3>
 <ul>
 <li><code>0</code> - Success (stdout shown in transcript)</li>
 <li><code>2</code> - Blocking error (stderr fed back to Claude)</li>
@@ -362,7 +401,7 @@
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>Plugin hooks merge with user's hooks and run in parallel.</p>
 <h2 id="matchers">Matchers</h2>
-<h3>Tool Name Matching</h3>
+<h3 id="tool-name-matching">Tool Name Matching</h3>
 <p><strong>Exact match:</strong></p>
 <div class="code-wrapper"><pre><code class="language-json">"matcher": "Write"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
@@ -376,7 +415,7 @@
 <div class="code-wrapper"><pre><code class="language-json">"matcher": "mcp__.*__delete.*"  // All MCP delete tools
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p><strong>Note:</strong> Matchers are case-sensitive.</p>
-<h3>Common Patterns</h3>
+<h3 id="common-patterns">Common Patterns</h3>
 <div class="code-wrapper"><pre><code class="language-json">// All MCP tools
 "matcher": "mcp__.*"
 
@@ -390,7 +429,7 @@
 "matcher": "Bash"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h2 id="security-best-practices">Security Best Practices</h2>
-<h3>Input Validation</h3>
+<h3 id="input-validation">Input Validation</h3>
 <p>Always validate inputs in command hooks:</p>
 <div class="code-wrapper"><pre><code class="language-bash">#!/bin/bash
 set -euo pipefail
@@ -404,7 +443,7 @@ if [[ ! "$tool_name" =~ ^[a-zA-Z0-9_]+$ ]]; then
   exit 2
 fi
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Path Safety</h3>
+<h3 id="path-safety">Path Safety</h3>
 <p>Check for path traversal and sensitive files:</p>
 <div class="code-wrapper"><pre><code class="language-bash">file_path=$(echo "$input" | jq -r '.tool_input.file_path')
 
@@ -421,7 +460,7 @@ if &amp;quot;$file_path&amp;quot; == *&amp;quot;.env&amp;quot;*; then
 fi
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>See <code>examples/validate-write.sh</code> and <code>examples/validate-bash.sh</code> for complete examples.</p>
-<h3>Quote All Variables</h3>
+<h3 id="quote-all-variables">Quote All Variables</h3>
 <div class="code-wrapper"><pre><code class="language-bash"># GOOD: Quoted
 echo "$file_path"
 cd "$CLAUDE_PROJECT_DIR"
@@ -430,7 +469,7 @@ cd "$CLAUDE_PROJECT_DIR"
 echo $file_path
 cd $CLAUDE_PROJECT_DIR
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Set Appropriate Timeouts</h3>
+<h3 id="set-appropriate-timeouts">Set Appropriate Timeouts</h3>
 <div class="code-wrapper"><pre><code class="language-json">{
   "type": "command",
   "command": "bash script.sh",
@@ -439,7 +478,7 @@ cd $CLAUDE_PROJECT_DIR
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p><strong>Defaults:</strong> Command hooks (60s), Prompt hooks (30s)</p>
 <h2 id="performance-considerations">Performance Considerations</h2>
-<h3>Parallel Execution</h3>
+<h3 id="parallel-execution">Parallel Execution</h3>
 <p>All matching hooks run <strong>in parallel</strong>:</p>
 <div class="code-wrapper"><pre><code class="language-json">{
   "PreToolUse": [
@@ -460,7 +499,7 @@ cd $CLAUDE_PROJECT_DIR
 <li>Non-deterministic ordering</li>
 <li>Design for independence</li>
 </ul>
-<h3>Optimization</h3>
+<h3 id="optimization">Optimization</h3>
 <ol>
 <li>Use command hooks for quick deterministic checks</li>
 <li>Use prompt hooks for complex reasoning</li>
@@ -508,7 +547,7 @@ input=$(cat)
 </ul>
 <p><strong>Best practice:</strong> Document activation mechanism in plugin README so users know how to enable/disable temporary hooks.</p>
 <h2 id="hook-lifecycle-and-limitations">Hook Lifecycle and Limitations</h2>
-<h3>Hooks Load at Session Start</h3>
+<h3 id="hooks-load-at-session-start">Hooks Load at Session Start</h3>
 <p><strong>Important:</strong> Hooks are loaded when Claude Code session starts. Changes to hook configuration require restarting Claude Code.</p>
 <p><strong>Cannot hot-swap hooks:</strong></p>
 <ul>
@@ -525,7 +564,7 @@ input=$(cat)
 <li>New hook configuration loads</li>
 <li>Test hooks with <code>claude --debug</code></li>
 </ol>
-<h3>Hook Validation at Startup</h3>
+<h3 id="hook-validation-at-startup">Hook Validation at Startup</h3>
 <p>Hooks are validated when Claude Code starts:</p>
 <ul>
 <li>Invalid JSON in hooks.json causes loading failure</li>
@@ -534,24 +573,24 @@ input=$(cat)
 </ul>
 <p>Use <code>/hooks</code> command to review loaded hooks in current session.</p>
 <h2 id="debugging-hooks">Debugging Hooks</h2>
-<h3>Enable Debug Mode</h3>
+<h3 id="enable-debug-mode">Enable Debug Mode</h3>
 <div class="code-wrapper"><pre><code class="language-bash">claude --debug
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>Look for hook registration, execution logs, input/output JSON, and timing information.</p>
-<h3>Test Hook Scripts</h3>
+<h3 id="test-hook-scripts">Test Hook Scripts</h3>
 <p>Test command hooks directly:</p>
 <div class="code-wrapper"><pre><code class="language-bash">echo '{"tool_name": "Write", "tool_input": {"file_path": "/test"}}' | \
   bash ${CLAUDE_PLUGIN_ROOT}/scripts/validate.sh
 
 echo "Exit code: $?"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Validate JSON Output</h3>
+<h3 id="validate-json-output">Validate JSON Output</h3>
 <p>Ensure hooks output valid JSON:</p>
 <div class="code-wrapper"><pre><code class="language-bash">output=$(./your-hook.sh &lt; test-input.json)
 echo "$output" | jq .
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h2 id="quick-reference">Quick Reference</h2>
-<h3>Hook Events Summary</h3>
+<h3 id="hook-events-summary">Hook Events Summary</h3>
 <table>
 <thead>
 <tr>
@@ -606,7 +645,7 @@ echo "$output" | jq .
 <td>Logging, reactions</td>
 </tr>
 </tbody></table>
-<h3>Best Practices</h3>
+<h3 id="best-practices">Best Practices</h3>
 <p><strong>DO:</strong></p>
 <ul>
 <li>✅ Use prompt-based hooks for complex logic</li>
@@ -627,28 +666,28 @@ echo "$output" | jq .
 <li>❌ Log sensitive information</li>
 </ul>
 <h2 id="additional-resources">Additional Resources</h2>
-<h3>Reference Files</h3>
+<h3 id="reference-files">Reference Files</h3>
 <p>For detailed patterns and advanced techniques, consult:</p>
 <ul>
 <li><strong><code>references/patterns.md</code></strong> - Common hook patterns (8+ proven patterns)</li>
 <li><strong><code>references/migration.md</code></strong> - Migrating from basic to advanced hooks</li>
 <li><strong><code>references/advanced.md</code></strong> - Advanced use cases and techniques</li>
 </ul>
-<h3>Example Hook Scripts</h3>
+<h3 id="example-hook-scripts">Example Hook Scripts</h3>
 <p>Working examples in <code>examples/</code>:</p>
 <ul>
 <li><strong><code>validate-write.sh</code></strong> - File write validation example</li>
 <li><strong><code>validate-bash.sh</code></strong> - Bash command validation example</li>
 <li><strong><code>load-context.sh</code></strong> - SessionStart context loading example</li>
 </ul>
-<h3>Utility Scripts</h3>
+<h3 id="utility-scripts">Utility Scripts</h3>
 <p>Development tools in <code>scripts/</code>:</p>
 <ul>
 <li><strong><code>validate-hook-schema.sh</code></strong> - Validate hooks.json structure and syntax</li>
 <li><strong><code>test-hook.sh</code></strong> - Test hooks with sample input before deployment</li>
 <li><strong><code>hook-linter.sh</code></strong> - Check hook scripts for common issues and best practices</li>
 </ul>
-<h3>External Resources</h3>
+<h3 id="external-resources">External Resources</h3>
 <ul>
 <li><strong>Official Docs</strong>: <a href="https://docs.claude.com/en/docs/claude-code/hooks">https://docs.claude.com/en/docs/claude-code/hooks</a></li>
 <li><strong>Examples</strong>: See security-guidance plugin in marketplace</li>
@@ -672,7 +711,9 @@ echo "$output" | jq .
 </body></html>
 </article>
 
+<nav class="prevnext" aria-label="Seitennavigation"><a class="prevnext-link prevnext-prev" href="../skills/plugin-dev--hook-development.html"><span class="prevnext-label">← Zurück</span><span class="prevnext-title">hook-development</span></a><a class="prevnext-link prevnext-next" href="../skills/plugin-dev--mcp-integration.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">mcp-integration</span></a></nav>
   </main>
+</div>
 </div>
 <footer class="site-footer">
   <span>Workspace MVP — generierte Dokumentation</span>

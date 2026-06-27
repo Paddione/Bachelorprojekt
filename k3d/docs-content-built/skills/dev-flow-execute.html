@@ -10,19 +10,24 @@
 <link rel="stylesheet" href="../style.css">
 </head>
 <body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
 <header class="site-header">
   <a class="site-header-brand" href="../index.html">
     <span class="site-mark" aria-hidden="true">◆</span>
     <span class="site-wordmark">Dokumentation</span>
   </a>
 </header>
-<div id="search-overlay">
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
   <div id="search-box">
-    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
-    <div id="search-results"></div>
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
   </div>
 </div>
 <div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section" open><summary class="sidebar-section-title">Dev-Workflow</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-architect.html">code-architect</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-architect.html">code-architect</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-explorer.html">code-explorer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-explorer.html">code-explorer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/code-simplifier--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--comment-analyzer.html">comment-analyzer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--comment-analyzer.html">comment-analyzer</a></li><li class="sidebar-item"><a href="../skills/dev-flow-e2e.html">dev-flow-e2e</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/dev-flow-execute.html" aria-current="page">dev-flow-execute</a></li><li class="sidebar-item"><a href="../skills/dev-flow-plan.html">dev-flow-plan</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--pr-test-analyzer.html">pr-test-analyzer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--pr-test-analyzer.html">pr-test-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--silent-failure-hunter.html">Silent Failure Hunter</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--silent-failure-hunter.html">silent-failure-hunter</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--type-design-analyzer.html">type-design-analyzer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--type-design-analyzer.html">type-design-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Bachelorprojekt-Infra</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/cluster-deployment.html">cluster-deployment</a></li><li class="sidebar-item"><a href="../skills/database-ops.html">database-ops</a></li><li class="sidebar-item"><a href="../skills/host-node-networking.html">host-node-networking</a></li><li class="sidebar-item"><a href="../skills/keycloak-realm-sync.html">keycloak-realm-sync</a></li><li class="sidebar-item"><a href="../skills/mishap-tracker.html">mishap-tracker</a></li><li class="sidebar-item"><a href="../skills/operations-management.html">operations-management</a></li><li class="sidebar-item"><a href="../skills/secret-rotation.html">secret-rotation</a></li><li class="sidebar-item"><a href="../skills/update-dependencies.html">update-dependencies</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">KI / ML</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Plugin- &amp; Skill-Bau</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../agents/plugin-dev--agent-creator.html">agent-creator</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--agent-creator.html">agent-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--agent-development.html">agent-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--agent-development.html">agent-development</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-py.html">agent-sdk-verifier-py</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-py.html">agent-sdk-verifier-py</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-ts.html">agent-sdk-verifier-ts</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-ts.html">agent-sdk-verifier-ts</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--command-development.html">command-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--command-development.html">command-development</a></li><li class="sidebar-item"><a href="../agents/hookify--conversation-analyzer.html">conversation-analyzer</a></li><li class="sidebar-item"><a href="../agents/hookify--conversation-analyzer.html">conversation-analyzer</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--hook-development.html">hook-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--hook-development.html">hook-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--mcp-integration.html">mcp-integration</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--mcp-integration.html">mcp-integration</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-settings.html">plugin-settings</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-settings.html">plugin-settings</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-structure.html">plugin-structure</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-structure.html">plugin-structure</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--plugin-validator.html">plugin-validator</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--plugin-validator.html">plugin-validator</a></li><li class="sidebar-item"><a href="../skills/skill-creator--skill-creator.html">skill-creator</a></li><li class="sidebar-item"><a href="../skills/skill-creator--skill-creator.html">skill-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--skill-development.html">skill-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--skill-development.html">skill-development</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--skill-reviewer.html">skill-reviewer</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--skill-reviewer.html">skill-reviewer</a></li><li class="sidebar-item"><a href="../skills/hookify--writing-rules.html">writing-hookify-rules</a></li><li class="sidebar-item"><a href="../skills/hookify--writing-rules.html">writing-hookify-rules</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Browser &amp; Debugging</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers-chrome--browsing.html">browsing</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">MCP &amp; API</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/postman--agent-ready-apis.html">agent-ready-apis</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-app.html">build-mcp-app</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-app.html">build-mcp-app</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-server.html">build-mcp-server</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-server.html">build-mcp-server</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcpb.html">build-mcpb</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcpb.html">build-mcpb</a></li><li class="sidebar-item"><a href="../skills/postman--generate-spec.html">generate-spec</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--mcp-cli.html">mcp-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-cli.html">postman-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-context.html">postman-context</a></li><li class="sidebar-item"><a href="../skills/postman--postman-knowledge.html">postman-knowledge</a></li><li class="sidebar-item"><a href="../skills/postman--run-collection.html">run-collection</a></li><li class="sidebar-item"><a href="../skills/postman--send-request.html">send-request</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Claude Code &amp; Tooling</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/brightdata-plugin--agent-onboarding.html">agent-onboarding</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brand-listening.html">brand-listening</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brd-browser-debug.html">brd-browser-debug</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-best-practices.html">bright-data-best-practices</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-mcp.html">bright-data-mcp</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brightdata-cli.html">brightdata-cli</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--proxy.html">brightdata-proxy</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--python-sdk-best-practices.html">brightdata-sdk</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--js-sdk-best-practices.html">brightdata-sdk-js</a></li><li class="sidebar-item"><a href="../skills/claude-code-setup--claude-automation-recommender.html">claude-automation-recommender</a></li><li class="sidebar-item"><a href="../skills/claude-md-management--claude-md-improver.html">claude-md-improver</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--competitive-intel.html">competitive-intel</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--data-feeds.html">data-feeds</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--design-mirror.html">design-mirror</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/dev-flow-chore.html">dev-flow-chore</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--developing-claude-code-plugins.html">developing-claude-code-plugins</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--discover-api.html">discover-api</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--finding-duplicate-functions.html">finding-duplicate-functions</a></li><li class="sidebar-item"><a href="../skills/frontend-design--frontend-design.html">frontend-design</a></li><li class="sidebar-item"><a href="../skills/frontend-design--frontend-design.html">frontend-design</a></li><li class="sidebar-item"><a href="../skills/git-workflow.html">git-workflow</a></li><li class="sidebar-item"><a href="../skills/incident-response.html">incident-response</a></li><li class="sidebar-item"><a href="../skills/infra-ops.html">infra-ops</a></li><li class="sidebar-item"><a href="../skills/lavish.html">lavish</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--live-research.html">live-research</a></li><li class="sidebar-item"><a href="../skills/llm-ops.html">llm-ops</a></li><li class="sidebar-item"><a href="../skills/playground--playground.html">playground</a></li><li class="sidebar-item"><a href="../skills/playground--playground.html">playground</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--price-comparison.html">price-comparison</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--rag-pipeline.html">rag-pipeline</a></li><li class="sidebar-item"><a href="../skills/references.html">references</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scrape.html">scrape</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-builder.html">scraper-builder</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-studio.html">scraper-studio</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--search.html">search</a></li><li class="sidebar-item"><a href="../skills/sourcegraph--searching-sourcegraph.html">searching-sourcegraph</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--seo-audit.html">seo-audit</a></li><li class="sidebar-item"><a href="../skills/ticket-ops.html">ticket-ops</a></li><li class="sidebar-item"><a href="../skills/braintrust--troubleshoot-braintrust-mcp.html">troubleshoot-braintrust-mcp</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--using-tmux-for-interactive-commands.html">using-tmux-for-interactive-commands</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--windows-vm.html">windows-vm</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--working-with-claude-code.html">working-with-claude-code</a></li><li class="sidebar-item"><a href="../skills/workspace-deploy.html">workspace-deploy</a></li></ul></details>
+</aside>
   <main id="main">
 <header class="page-header">
   <div class="page-header-body">
@@ -59,13 +64,14 @@
 <li class="toc-item"><a href="#schritt-5-pr-erstellen"><span class="toc-num">18.</span> Schritt 5: PR erstellen</a></li>
 <li class="toc-item"><a href="#schritt-55-cicd-fix-schleife"><span class="toc-num">19.</span> Schritt 5.5: CI/CD-Fix-Schleife</a></li>
 <li class="toc-item"><a href="#schritt-6-auto-merge-wenn-ci-gruen"><span class="toc-num">20.</span> Schritt 6: Auto-Merge wenn CI grün</a></li>
-<li class="toc-item"><a href="#schritt-65-ticket-abschliessen"><span class="toc-num">21.</span> Schritt 6.5: Ticket abschließen</a></li>
-<li class="toc-item"><a href="#schritt-7-plan--openspec-archivieren"><span class="toc-num">22.</span> Schritt 7: Plan &amp; OpenSpec archivieren</a></li>
-<li class="toc-item"><a href="#schritt-75-worktree--branch-bereinigen"><span class="toc-num">23.</span> Schritt 7.5: Worktree &amp; Branch bereinigen</a></li>
-<li class="toc-item"><a href="#schritt-8-post-merge-deploy--verify"><span class="toc-num">24.</span> Schritt 8: Post-Merge Deploy &amp; Verify</a></li>
-<li class="toc-item"><a href="#uebergabe--kreislauf-geschlossen"><span class="toc-num">25.</span> Übergabe — Kreislauf geschlossen</a></li>
-<li class="toc-item"><a href="#verwandte-skills"><span class="toc-num">26.</span> Verwandte Skills</a></li>
-<li class="toc-item"><a href="#nachbereitung--mishap-report"><span class="toc-num">27.</span> Nachbereitung &amp; Mishap Report</a></li></ul>
+<li class="toc-item"><a href="#schritt-64-warte-auf-pr-merge-vor-ticket-abschluss"><span class="toc-num">21.</span> Schritt 6.4: Warte auf PR-Merge (vor Ticket-Abschluss)</a></li>
+<li class="toc-item"><a href="#schritt-65-ticket-abschliessen"><span class="toc-num">22.</span> Schritt 6.5: Ticket abschließen</a></li>
+<li class="toc-item"><a href="#schritt-7-plan--openspec-archivieren"><span class="toc-num">23.</span> Schritt 7: Plan &amp; OpenSpec archivieren</a></li>
+<li class="toc-item"><a href="#schritt-75-worktree--branch-bereinigen"><span class="toc-num">24.</span> Schritt 7.5: Worktree &amp; Branch bereinigen</a></li>
+<li class="toc-item"><a href="#schritt-8-post-merge-deploy--verify"><span class="toc-num">25.</span> Schritt 8: Post-Merge Deploy &amp; Verify</a></li>
+<li class="toc-item"><a href="#uebergabe--kreislauf-geschlossen"><span class="toc-num">26.</span> Übergabe — Kreislauf geschlossen</a></li>
+<li class="toc-item"><a href="#verwandte-skills"><span class="toc-num">27.</span> Verwandte Skills</a></li>
+<li class="toc-item"><a href="#nachbereitung--mishap-report"><span class="toc-num">28.</span> Nachbereitung &amp; Mishap Report</a></li></ul>
 </div>
 <h2 id="wann-diese-skill-greift">Wann diese Skill greift</h2>
 <p>Du bist auf einem <code>feature/*</code> oder <code>fix/*</code> Branch. <code>dev-flow-plan</code> hat Spec und Plan committed und gepusht. Jetzt soll implementiert werden.</p>
@@ -81,7 +87,7 @@
                                                                   │
                                         zurück zu [ main ] ───────┘
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p><strong>EINSTIEG:</strong> Feature/Fix-Branch mit <code>plan_staged</code> Ticket — von <code>dev-flow-plan</code> übergeben<br><strong>AUSSTIEG:</strong> PR gemergt zu <code>main</code>, Worktree bereinigt, Ticket <code>qa_review</code>, Kreislauf geschlossen<br><strong>Voraussetzung:</strong> <code>dev-flow-plan</code> hat <code>FACTORY-PLAN-REF</code> Kommentar im Ticket hinterlegt</p>
+<p><strong>EINSTIEG:</strong> Feature/Fix-Branch mit <code>plan_staged</code> Ticket — von <code>dev-flow-plan</code> übergeben<br><strong>AUSSTIEG:</strong> PR gemergt zu <code>main</code>, Worktree bereinigt, Ticket <code>done/shipped</code>, Kreislauf geschlossen<br><strong>Voraussetzung:</strong> <code>dev-flow-plan</code> hat <code>FACTORY-PLAN-REF</code> Kommentar im Ticket hinterlegt</p>
 <hr>
 <h2 id="modus-erkennung-single-vs-batch">Modus-Erkennung: Single vs Batch</h2>
 <div class="code-wrapper"><pre><code>    ┌─────────────────────────────────────────────────────────────┐
@@ -93,14 +99,16 @@
                                                                   │
                                         zurück zu [ main ] ───────┘
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p><strong>EINSTIEG:</strong> Feature/Fix-Branch mit <code>plan_staged</code> Ticket — von <code>dev-flow-plan</code> übergeben<br><strong>AUSSTIEG:</strong> PR gemergt zu <code>main</code>, Worktree bereinigt, Ticket <code>qa_review</code>, OpenSpec archiviert, Kreislauf geschlossen<br><strong>Voraussetzung:</strong> <code>dev-flow-plan</code> hat Branch + Plan-Pfad via <code>ticket.sh stage-plan</code> in der DB verankert</p>
+<p><strong>EINSTIEG:</strong> Feature/Fix-Branch mit <code>plan_staged</code> Ticket — von <code>dev-flow-plan</code> übergeben<br><strong>AUSSTIEG:</strong> PR gemergt zu <code>main</code>, Worktree bereinigt, Ticket <code>done/shipped</code>, OpenSpec archiviert, Kreislauf geschlossen<br><strong>Voraussetzung:</strong> <code>dev-flow-plan</code> hat Branch + Plan-Pfad via <code>ticket.sh stage-plan</code> in der DB verankert</p>
 <hr>
 <h2 id="ticket-id-ermitteln">Ticket-ID ermitteln</h2>
 <p>Falls <code>TICKET_ID</code> nicht bereits im Kontext gesetzt ist (z.B. vom User oder aus dem Branch-Namen ableitbar):</p>
-<div class="code-wrapper"><pre><code class="language-bash"># Plan-Metadaten aus der DB holen (MCP-Schnellweg wenn mcp-postgres erreichbar):
-# sql: SELECT external_id, title FROM tickets.tickets WHERE status='plan_staged' ORDER BY planning_rank ASC NULLS LAST, created_at DESC LIMIT 10;
-# Fallback:
-kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -F '|' -c \
+<p>Plan-Metadaten aus der DB holen — <strong>MCP-first</strong> (<code>mcp-postgres</code>, READ-ONLY, nimmt nur <code>sql</code>):</p>
+<blockquote>
+<p><code>mcp__mcp-postgres__query({ sql: "SELECT external_id, title FROM tickets.tickets WHERE status='plan_staged' ORDER BY planning_rank ASC NULLS LAST, created_at DESC LIMIT 10;" })</code></p>
+</blockquote>
+<p>Fallback (mcp-postgres nicht erreichbar — Verfügbarkeits-Guard siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md"><code>mcp-tool-guide.md</code></a>):</p>
+<div class="code-wrapper"><pre><code class="language-bash">kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -F '|' -c \
   "SELECT external_id, title FROM tickets.tickets WHERE status='plan_staged' ORDER BY planning_rank ASC NULLS LAST, created_at DESC LIMIT 10;"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>Bei mehreren staged plans den User via <code>AskUserQuestion</code>-Tool nach der gewünschten Ticket-ID fragen.</p>
@@ -178,36 +186,53 @@ done
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <hr>
 <h2 id="schritt-15-ticket-auf-inprogress-setzen-und-touchedfiles-registrieren">Schritt 1.5: Ticket auf <code>in_progress</code> setzen und touched_files registrieren</h2>
-<p>Falls eine Ticket-ID vorhanden ist, setze das Ticket auf in_progress:</p>
+<p>Falls eine Ticket-ID vorhanden ist, setze das Ticket auf in_progress — <strong>MCP-first</strong> (<code>ticket-mcp</code>):</p>
+<blockquote>
+<p><code>mcp__ticket-mcp__transition_status({ id: "$TICKET_ID", status: "in_progress" })</code>
+<code>mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "plan", state: "entered", driver: "devflow", detail: "Plan: &lt;slug&gt; · $TICKET_ID" })</code></p>
+</blockquote>
+<p>Fallback (ticket-mcp nicht erreichbar; Live-Floor-Telemetrie ist best-effort und darf den Flow nie stoppen):</p>
 <div class="code-wrapper"><pre><code class="language-bash">./scripts/vda.sh ticket update-status --id "$TICKET_ID" --status in_progress
-# Live-Floor-Telemetrie (best-effort; --driver devflow; darf den Flow nie stoppen)
 SLUG=$(basename "$PLAN_FILE" .md)
 ./scripts/ticket.sh phase "$TICKET_ID" plan entered --driver devflow --detail "Plan: $SLUG · $TICKET_ID" || true
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Falls der Plan die berührten Dateien kennt, registriere sie für die Conflict-Gate (parallele Sessions sehen die Kollision via <code>agent-collision.sh</code>):</p>
+<p>Falls der Plan die berührten Dateien kennt, registriere sie für die Conflict-Gate (parallele Sessions sehen die Kollision via <code>agent-collision.sh</code>) — <strong>MCP-first</strong>:</p>
+<blockquote>
+<p><code>mcp__ticket-mcp__set_touched_files({ id: "$TICKET_ID", files: "&lt;comma-separated-paths&gt;" })</code>
+<code>mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "plan", state: "done", driver: "devflow", detail: "Plan geladen · Assets folgen" })</code></p>
+</blockquote>
+<p>Fallback:</p>
 <div class="code-wrapper"><pre><code class="language-bash">./scripts/ticket.sh set-touched-files --id "$TICKET_ID" --files "&lt;comma-separated-paths&gt;"
 ./scripts/ticket.sh phase "$TICKET_ID" plan done --driver devflow --detail "Plan geladen · Assets folgen" || true
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <hr>
 <h2 id="schritt-17-visual--textual-assets-laden-visual-handoff">Schritt 1.7: Visual &amp; Textual Assets laden (Visual Handoff)</h2>
-<p>Falls eine Ticket-ID vorhanden ist, lade alle Anhänge (wie Screenshots, Logdateien, Mockups) herunter:</p>
+<p>Falls eine Ticket-ID vorhanden ist, lade alle Anhänge (wie Screenshots, Logdateien, Mockups) herunter — <strong>MCP-first</strong> (<code>ticket-mcp</code>):</p>
+<blockquote>
+<p><code>mcp__ticket-mcp__get_attachments({ id: "$TICKET_ID", out_dir: "/tmp/ticket-attachments-$TICKET_ID" })</code></p>
+</blockquote>
+<p>Fallback (ticket-mcp nicht erreichbar):</p>
 <div class="code-wrapper"><pre><code class="language-bash">ATTACHMENT_DIR="/tmp/ticket-attachments-$TICKET_ID"
 ./scripts/ticket.sh get-attachments --id "$TICKET_ID" --out-dir "$ATTACHMENT_DIR"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p><strong>⚠️ Pflicht für UI-Arbeiten:</strong> Lies (mit dem <code>Read</code> Tool) alle heruntergeladenen Bilddateien und Textdateien in diesem Ordner ein, um ein pixelgenaues Verständnis des UI-Designs zu erlangen. Verlasse dich nicht auf Prose allein.</p>
 <hr>
 <h2 id="schritt-2-implementierung-an-frischen-implementer-subagenten-delegieren">Schritt 2: Implementierung an frischen Implementer-Subagenten delegieren</h2>
-<div class="code-wrapper"><pre><code class="language-bash"># Live-Floor-Telemetrie (best-effort): Implementer-Subagent wird gespawnt
-./scripts/ticket.sh phase "$TICKET_ID" implement entered --driver devflow --detail "Subagent gestartet" || true
+<p>Live-Floor-Telemetrie (best-effort): Implementer-Subagent wird gespawnt — <strong>MCP-first</strong>:</p>
+<blockquote>
+<p><code>mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "implement", state: "entered", driver: "devflow", detail: "Subagent gestartet" })</code></p>
+</blockquote>
+<p>Fallback:</p>
+<div class="code-wrapper"><pre><code class="language-bash">./scripts/ticket.sh phase "$TICKET_ID" implement entered --driver devflow --detail "Subagent gestartet" || true
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>Statt deinen eigenen Kontext/Modell zurückzusetzen (das ließe dich den Faden verlieren), delegiere die <strong>gesamte Implementierung an EINEN frischen Subagenten</strong> — sauberer Kontext per Konstruktion. Du behältst den vollen Plan-Kontext und verifizierst das Ergebnis anschließend unabhängig.</p>
 <blockquote>
-<p><strong>Warum EIN Implementer statt <code>superpowers:subagent-driven-development</code>-Fan-out?</strong> Dieser Skill läuft bereits <em>selbst</em> als delegierte Ebene (oft aus einem dev-flow-Orchestrator). Ein zusätzlicher Per-Task-Fan-out wäre <strong>verschachtelte Delegation</strong> $\rightarrow$ Kontext-Explosion und Synthese-Last (siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#subagent-provisioning">subagent-provisioning</a>, 162k-Prompt-Lehre). Der Implementer ruft <code>superpowers:executing-plans</code> daher <strong>in-context</strong> auf (kein weiterer Agenten-Fan-out). Nur wenn der Plan ausdrücklich viele <strong>voneinander unabhängige</strong> Tasks hat und der Einzel-Implementer am Kontext-Limit scheitert, lohnt der Wechsel auf <code>subagent-driven-development</code> bzw. einen <code>Workflow</code>-Fan-out — bewusste Eskalation, nicht Default.</p>
+<p><strong>Warum EIN Implementer statt <code>superpowers:subagent-driven-development</code>-Fan-out?</strong> Dieser Skill läuft bereits <em>selbst</em> als delegierte Ebene (oft aus einem dev-flow-Orchestrator). Ein zusätzlicher Per-Task-Fan-out wäre <strong>verschachtelte Delegation</strong> $\rightarrow$ Kontext-Explosion und Synthese-Last (siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md">subagent-provisioning</a>, 162k-Prompt-Lehre). Der Implementer ruft <code>superpowers:executing-plans</code> daher <strong>in-context</strong> auf (kein weiterer Agenten-Fan-out). Nur wenn der Plan ausdrücklich viele <strong>voneinander unabhängige</strong> Tasks hat und der Einzel-Implementer am Kontext-Limit scheitert, lohnt der Wechsel auf <code>subagent-driven-development</code> bzw. einen <code>Workflow</code>-Fan-out — bewusste Eskalation, nicht Default.</p>
 </blockquote>
 <p>Spawne den Subagenten:</p>
 <ul>
 <li><strong>Gemini/Antigravity CLI:</strong> call <code>invoke_subagent</code> with <code>TypeName: "self"</code> (inherits permissions and tools), <code>Role: "Implementer &lt;TICKET_ID&gt;"</code>, and <code>Workspace: "share"</code> (or <code>"inherit"</code>).</li>
-<li><strong>Claude Code CLI:</strong> Spawne über das <code>Agent</code>/<code>Task</code>-Tool einen Subagenten, <strong>provisioniert gemäß</strong> <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#subagent-provisioning">subagent-provisioning</a> (Modell · Effort · Kontext):<ul>
+<li><strong>Claude Code CLI:</strong> Spawne über das <code>Agent</code>/<code>Task</code>-Tool einen Subagenten, <strong>provisioniert gemäß</strong> <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md">subagent-provisioning</a> (Modell · Effort · Kontext):<ul>
 <li><strong>Modell — nach Plan-Charakter wählen, nicht pauschal:</strong> mechanisch (Config/Doku/Single-File) $\rightarrow$ <code>haiku</code>; Standard-Feature/Fix $\rightarrow$ <code>sonnet</code>; komplex/riskant (systemübergreifend, Architektur, DB-Migration, Auto-Deploy) $\rightarrow$ <code>opus</code>.</li>
 <li><strong>Effort per Prompt-Direktive</strong> (das <code>Agent</code>-Tool kennt keinen Effort-Regler): mechanisch „Arbeite zügig und fokussiert."; komplex/riskant „Ultrathink. Denke sehr gründlich nach."</li>
 <li><code>subagent_type: general-purpose</code>.</li>
@@ -283,14 +308,26 @@ git diff --cached --quiet || git commit -m "chore: regenerate freshness artifact
 <hr>
 <h2 id="schritt-3-lokale-verifikation">Schritt 3: Lokale Verifikation</h2>
 <p>Rufe das Skill <strong><code>verification-before-completion</code></strong> auf, um die Verifikation strukturiert zu steuern.</p>
-<div class="code-wrapper"><pre><code class="language-bash"># Live-Floor-Telemetrie (best-effort; --driver devflow; darf den Flow nie stoppen)
-./scripts/ticket.sh phase "$TICKET_ID" implement done --driver devflow --detail "Implementierung fertig" || true
-./scripts/ticket.sh phase "$TICKET_ID" verify entered --driver devflow --detail "task test:changed + freshness" || true
-task workspace:validate
+<p>Phasen-Telemetrie (best-effort) — <strong>MCP-first</strong> (<code>ticket-mcp</code>):</p>
+<blockquote>
+<p><code>mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "implement", state: "done", driver: "devflow", detail: "Implementierung fertig" })</code>
+<code>mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "verify", state: "entered", driver: "devflow", detail: "task test:changed + freshness" })</code></p>
+</blockquote>
+<p>Verifikation ausführen:</p>
+<div class="code-wrapper"><pre><code class="language-bash">task workspace:validate
 ./tests/runner.sh local &lt;FA-XX oder SA-XX&gt;
 task test:changed
 task freshness:regenerate
 task freshness:check        # CI-Äquivalent — failt lokal GENAU wie CI (S1–S4-Ratchet + Baseline-Assertion)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Nach grünen Tests — <strong>MCP-first</strong>:</p>
+<blockquote>
+<p><code>mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "verify", state: "done", driver: "devflow", detail: "Tests grün · freshness OK" })</code></p>
+</blockquote>
+<p>Fallback (ticket-mcp nicht erreichbar; Telemetrie ist best-effort und darf den Flow nie stoppen):</p>
+<div class="code-wrapper"><pre><code class="language-bash">./scripts/ticket.sh phase "$TICKET_ID" implement done --driver devflow --detail "Implementierung fertig" || true
+./scripts/ticket.sh phase "$TICKET_ID" verify entered --driver devflow --detail "task test:changed + freshness" || true
+# nach den Tests:
 ./scripts/ticket.sh phase "$TICKET_ID" verify done --driver devflow --detail "Tests grün · freshness OK" || true
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p><strong>Wichtig — beide Befehle sind nötig:</strong></p>
@@ -298,7 +335,7 @@ task freshness:check        # CI-Äquivalent — failt lokal GENAU wie CI (S1–
 <li><code>task freshness:regenerate</code> aktualisiert die generierten Artefakte (test-inventory.json, route-manifest.json, agent-guide docs/maps, learning-assets, repo-index.json), sonst CI rot.</li>
 <li><code>task freshness:check</code> ist das <strong>CI-Äquivalent</strong> und failt lokal genauso wie CI — insbesondere am <strong>S1-Zeilen-Ratchet</strong> (<code>quality:check</code> gegen <code>docs/code-quality/baseline.json</code>) sowie der Baseline-Key-Count-Assertion. Ohne <code>freshness:check</code> lokal wird eine Zeilen-Limit-Überschreitung erst nach dem Push in CI sichtbar — und du landest im Firefight-Modus.</li>
 </ul>
-<p>Siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#dev-flow-gotchas">dev-flow-gotchas</a> für TypeScript/pnpm Gotchas in Worktrees.</p>
+<p>Siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md">dev-flow-gotchas</a> für TypeScript/pnpm Gotchas in Worktrees.</p>
 <hr>
 <h2 id="schritt-35-admin-menu-placement-gate">Schritt 3.5: Admin-Menu Placement Gate</h2>
 <p>Falls neue Admin-Seiten hinzugefügt wurden:</p>
@@ -363,7 +400,7 @@ bash scripts/devflow-ci-watch.sh "$TICKET_ID" "$PR_URL"
 <blockquote>
 <p><strong>Hinweis:</strong> <code>E2E PR</code> ist kein required check (T000722). Auto-Merge wartet nur auf:
 <code>Offline Tests (Manifests, Configs, Unit)</code>, <code>Security Scan</code>, <code>Brett TypeScript</code>,
-<code>Vitest (website + arena-server)</code>, <code>Conventional Commits</code>.
+<code>Vitest (website)</code>, <code>Conventional Commits</code>.
 Ein roter E2E-Check blockiert den Merge NICHT — er erscheint als informativer
 gelber Status im PR. PR-Autor prüft E2E-Ergebnis manuell bei Bedarf.</p>
 </blockquote>
@@ -371,17 +408,65 @@ gelber Status im PR. PR-Autor prüft E2E-Ergebnis manuell bei Bedarf.</p>
 (cd "$MAIN_REPO" &amp;&amp; gh pr merge --auto --squash --delete-branch)
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <hr>
+<h2 id="schritt-64-warte-auf-pr-merge-vor-ticket-abschluss">Schritt 6.4: Warte auf PR-Merge (vor Ticket-Abschluss)</h2>
+<p><code>gh pr merge --auto</code> kehrt sofort zurück — der eigentliche Merge passiert asynchron im Hintergrund.
+Bisher hat Schritt 6.5 das Ticket direkt nach <code>--auto</code> auf <code>done</code> gesetzt, was zu Drift führte
+(s. Mishap T001149-M1, T001145/PR #2101: Ticket <code>done</code>, PR aber OPEN+CONFLICTING).
+Jetzt: <strong>warten, bis der Merge tatsächlich durch ist</strong>, bevor das Ticket geschlossen wird.</p>
+<div class="code-wrapper"><pre><code class="language-bash">PR_NUM=$(gh pr view --json number -q '.number')
+PR_URL="https://github.com/Paddione/Bachelorprojekt/pull/$PR_NUM"
+MAX_MERGE_WAIT_MIN="${MAX_MERGE_WAIT_MIN:-15}"
+WAIT_START=$(date +%s)
+
+echo "⏳ Warte auf Merge von PR #$PR_NUM (max ${MAX_MERGE_WAIT_MIN}min) ..."
+MERGE_STATE=""
+while true; do
+  MERGE_STATE=$(gh pr view "$PR_NUM" --json mergeStateStatus,state -q '.state + "|" + .mergeStateStatus' 2&gt;/dev/null || echo "UNKNOWN|UNKNOWN")
+  STATE="${MERGE_STATE%%|*}"
+  MS="${MERGE_STATE##*|}"
+
+  case "$STATE" in
+    MERGED)
+      echo "✅ PR #$PR_NUM ist gemergt — fahre mit Ticket-Abschluss fort."
+      break
+      ;;
+    CLOSED)
+      echo "❌ PR #$PR_NUM wurde geschlossen ohne Merge — breche ab." &gt;&amp;2
+      exit 2
+      ;;
+  esac
+
+  ELAPSED=$(( $(date +%s) - WAIT_START ))
+  if (( ELAPSED &gt; MAX_MERGE_WAIT_MIN * 60 )); then
+    echo "❌ PR #$PR_NUM nach ${MAX_MERGE_WAIT_MIN}min noch nicht gemergt (state=$STATE mergeStateStatus=$MS)." &gt;&amp;2
+    echo "   CI rot? Branch-Protection blockiert? Manuell prüfen:" &gt;&amp;2
+    echo "   gh pr view $PR_NUM --json mergeStateStatus,statusCheckRollup,reviewDecision" &gt;&amp;2
+    exit 3
+  fi
+
+  sleep 15
+done
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
 <h2 id="schritt-65-ticket-abschliessen">Schritt 6.5: Ticket abschließen</h2>
 <p>Falls eine Ticket-ID vorhanden ist, schließe das Ticket:</p>
+<p>PR-Nummer ermitteln (falls nicht aus Schritt 6.4 bekannt):</p>
 <div class="code-wrapper"><pre><code class="language-bash">RESOLUTION="shipped" # oder "fixed" bei Fixes
-PR_NUM=$(gh pr view --json number -q '.number')
-
-# PR-Nummer in ticket_links eintragen, damit der Shipped-Tab sie zeigt (Fix 1):
-./scripts/ticket.sh add-pr-link --id "$TICKET_ID" --pr "$PR_NUM"
-
-./scripts/vda.sh ticket update-status --id "$TICKET_ID" --status qa_review
-# Live-Floor-Telemetrie (best-effort; --driver devflow; darf den Flow nie stoppen)
-./scripts/ticket.sh phase "$TICKET_ID" deploy done --driver devflow --detail "PR #$PR_NUM merged · deployed" || true
+: "${PR_NUM:=$(gh pr view --json number -q '.number' 2&gt;/dev/null || echo "")}"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Abschluss-Lifecycle — <strong>MCP-first</strong> (<code>ticket-mcp</code>). Merge = Abschluss (T001092): Schritt 6.4 hat bestätigt, dass der PR gemergt ist; der Prod-Deploy (Schritt 8) ist entkoppelt und ändert den Ticket-Status NICHT.</p>
+<blockquote>
+<p><code>mcp__ticket-mcp__add_pr_link({ id: "$TICKET_ID", pr: "$PR_NUM" })</code>
+<code>mcp__ticket-mcp__transition_status({ id: "$TICKET_ID", status: "done", resolution: "&lt;shipped|fixed&gt;" })</code>
+<code>mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "verify", state: "done", driver: "devflow", detail: "gate=ci result=pass" })</code>
+<code>mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "deploy", state: "done", driver: "devflow", detail: "PR #$PR_NUM merged · done/shipped" })</code>
+<code>mcp__ticket-mcp__add_comment({ id: "$TICKET_ID", body: "PR #$PR_NUM merged. Plan archived to tickets.ticket_plans." })</code></p>
+</blockquote>
+<p>Fallback (ticket-mcp nicht erreichbar; die Phasen-Events sind best-effort und nie blockierend):</p>
+<div class="code-wrapper"><pre><code class="language-bash">./scripts/ticket.sh add-pr-link --id "$TICKET_ID" --pr "$PR_NUM"
+./scripts/vda.sh ticket update-status --id "$TICKET_ID" --status done --resolution "$RESOLUTION"
+./scripts/ticket.sh phase "$TICKET_ID" verify done --driver devflow --detail "gate=ci result=pass" || true
+./scripts/ticket.sh phase "$TICKET_ID" deploy done --driver devflow --detail "PR #$PR_NUM merged · done/shipped" || true
 ./scripts/ticket.sh add-comment --id "$TICKET_ID" --body "PR #$PR_NUM merged. Plan archived to tickets.ticket_plans."
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <hr>
@@ -393,18 +478,25 @@ PR_NUM=$(gh pr view --json number -q '.number' 2&gt;/dev/null || echo "")
 
 # 1. Plan-Frontmatter auf completed setzen, BEVOR der Inhalt archiviert wird:
 sed -i 's/^status: active$/status: completed/' "$PLAN_FILE"
-
-# 2. tasks.md → postgres (tickets.ticket_plans)
-./scripts/ticket.sh archive-plan \
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ol start="2">
+<li>tasks.md → postgres (<code>tickets.ticket_plans</code>) — <strong>MCP-first</strong> (<code>ticket-mcp</code>):</li>
+</ol>
+<blockquote>
+<p><code>mcp__ticket-mcp__archive_plan({ id: "$TICKET_ID", slug: "$SLUG", branch: "$BRANCH", plan_file: "$PLAN_FILE", pr: "$PR_NUM" })</code></p>
+</blockquote>
+<p>Fallback (ticket-mcp nicht erreichbar):</p>
+<div class="code-wrapper"><pre><code class="language-bash">./scripts/ticket.sh archive-plan \
   --id "$TICKET_ID" \
   --slug "$SLUG" \
   --branch "$BRANCH" \
   --plan-file "$PLAN_FILE" \
   --pr "$PR_NUM"
-
-# 3. OpenSpec-Change archivieren: openspec/changes/&lt;slug&gt;/ → openspec/changes/archive/&lt;date&gt;-&lt;slug&gt;/
-#    Verschiebt proposal.md, tasks.md, specs/, assets/ ins Archiv und aktualisiert den SSOT-Delta.
-bash scripts/openspec.sh archive "$SLUG"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ol start="3">
+<li>OpenSpec-Change archivieren: <code>openspec/changes/&lt;slug&gt;/</code> → <code>openspec/changes/archive/&lt;date&gt;-&lt;slug&gt;/</code>. Verschiebt proposal.md, tasks.md, specs/, assets/ ins Archiv und aktualisiert den SSOT-Delta.</li>
+</ol>
+<div class="code-wrapper"><pre><code class="language-bash">bash scripts/openspec.sh archive "$SLUG"
 # Alternativ: task openspec:archive -- "$SLUG"
 
 # 4. Archivierung committen und via PR mergen (wegen Branch-Protection)
@@ -430,20 +522,20 @@ git branch -D "&lt;branch&gt;"
 <h2 id="schritt-8-post-merge-deploy--verify">Schritt 8: Post-Merge Deploy &amp; Verify</h2>
 <div class="code-wrapper"><pre><code class="language-bash">bash scripts/devflow-post-merge-deploy.sh "$TICKET_ID"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p><strong>Deploy-Mapping (Single Source of Truth):</strong> Pfad→Task-Tabelle und Pod-Verify-Schleife leben in <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/references.md#deploy-routing">deploy-routing</a>. Bei Änderungen am Deploy-Mapping <strong>nur</strong> diese Referenz pflegen.</p>
+<p><strong>Deploy-Mapping (Single Source of Truth):</strong> Pfad→Task-Tabelle und Pod-Verify-Schleife leben in <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/deploy-routing.md">deploy-routing</a>. Bei Änderungen am Deploy-Mapping <strong>nur</strong> diese Referenz pflegen.</p>
 <p>Führe danach <code>dev-flow-e2e</code> aus, um E2E-Tests gegen die Live-Umgebung zu schreiben.</p>
 <hr>
 <blockquote>
 <p><strong>Mitten in der Umsetzung blockiert?</strong> Nutzer mit <code>lavish</code> grillen — erstelle <code>.lavish/&lt;slug&gt;-grilling.html</code> (Input-Playbook) und poll auf Antworten. Danach die Antworten ans Ticket
 hängen: <code>scripts/ticket.sh grill --id &lt;ext-id&gt; --answer &lt;qid&gt;=&lt;text&gt; …</code>. Siehe
-<code>.claude/skills/references/references.md#grilling-to-ticket</code>.</p>
+<code>.claude/skills/references/grilling-to-ticket.md</code>.</p>
 </blockquote>
 <h2 id="uebergabe--kreislauf-geschlossen">Übergabe — Kreislauf geschlossen</h2>
 <p><strong>Zustand nach Schritt 8:</strong></p>
 <ul>
 <li><code>main</code> enthält die gemergten Änderungen (squash commit)</li>
 <li>Worktree <code>/tmp/wt-&lt;slug&gt;</code> gelöscht, Branch <code>feature/&lt;slug&gt;</code> gelöscht</li>
-<li>Ticket status = <code>qa_review</code></li>
+<li>Ticket status = <code>done</code> (resolution=shipped)</li>
 <li>Branch-Lock und Ticket-Lock freigegeben</li>
 <li>Deployed (falls <code>devflow-post-merge-deploy.sh</code> Pfad-Treffer)</li>
 </ul>
@@ -479,7 +571,9 @@ hängen: <code>scripts/ticket.sh grill --id &lt;ext-id&gt; --answer &lt;qid&gt;=
 </body></html>
 </article>
 
+<nav class="prevnext" aria-label="Seitennavigation"><a class="prevnext-link prevnext-prev" href="../skills/dev-flow-e2e.html"><span class="prevnext-label">← Zurück</span><span class="prevnext-title">dev-flow-e2e</span></a><a class="prevnext-link prevnext-next" href="../skills/dev-flow-plan.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">dev-flow-plan</span></a></nav>
   </main>
+</div>
 </div>
 <footer class="site-footer">
   <span>Workspace MVP — generierte Dokumentation</span>

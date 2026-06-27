@@ -10,16 +10,17 @@
 <link rel="stylesheet" href="./style.css">
 </head>
 <body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
 <header class="site-header">
   <a class="site-header-brand" href="./index.html">
     <span class="site-mark" aria-hidden="true">◆</span>
     <span class="site-wordmark">Dokumentation</span>
   </a>
 </header>
-<div id="search-overlay">
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
   <div id="search-box">
-    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
-    <div id="search-results"></div>
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
   </div>
 </div>
 <div id="app">
@@ -28,7 +29,7 @@
   <div class="page-header-body">
     <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <span class="crumb-current">Agents</span></nav>
     <h1>Agents</h1>
-    <p class="page-desc">55 Agents</p>
+    <p class="page-desc">39 Agents</p>
   </div>
 </header>
 <h2 class="agent-group-header">Bachelorprojekt (6)</h2>
@@ -76,19 +77,12 @@
   <span class="section-card-desc">Use for Astro and Svelte website development, UI components, frontend design, brand-specific layouts, and the /api/* backend endpoints in the Bachelorprojekt website. Triggers on: website/, Astro, Svelte, component, homepage, kore, mentolder brand, CSS, UI, frontend, design.</span>
 </a>
 </section>
-<h2 class="agent-group-header">Dev-Workflow (28)</h2>
+<h2 class="agent-group-header">Dev-Workflow (19)</h2>
 <section class="section-grid">
 <a class="section-card" href="./agents/feature-dev--code-architect.html">
   <span class="section-card-head">
     <span class="section-card-title">code-architect</span>
     <span class="provenance-badge plugin">plugin · <span class="pv-name">feature-dev</span> <span class="pv-ver">8e5d93af5356</span></span><span class="domain-tag">website</span>
-  </span>
-  <span class="section-card-desc">Designs feature architectures by analyzing existing codebase patterns and conventions, then providing comprehensive implementation blueprints with specific files to create/modify, component designs, data flows, and build sequences</span>
-</a>
-<a class="section-card" href="./agents/feature-dev--code-architect.html">
-  <span class="section-card-head">
-    <span class="section-card-title">code-architect</span>
-    <span class="provenance-badge plugin">plugin · <span class="pv-name">feature-dev</span> <span class="pv-ver">bbbff6ab54f0</span></span><span class="domain-tag">website</span>
   </span>
   <span class="section-card-desc">Designs feature architectures by analyzing existing codebase patterns and conventions, then providing comprehensive implementation blueprints with specific files to create/modify, component designs, data flows, and build sequences</span>
 </a>
@@ -109,13 +103,6 @@
 <a class="section-card" href="./agents/feature-dev--code-explorer.html">
   <span class="section-card-head">
     <span class="section-card-title">code-explorer</span>
-    <span class="provenance-badge plugin">plugin · <span class="pv-name">feature-dev</span> <span class="pv-ver">bbbff6ab54f0</span></span>
-  </span>
-  <span class="section-card-desc">Deeply analyzes existing codebase features by tracing execution paths, mapping architecture layers, understanding patterns and abstractions, and documenting dependencies to inform new development</span>
-</a>
-<a class="section-card" href="./agents/feature-dev--code-explorer.html">
-  <span class="section-card-head">
-    <span class="section-card-title">code-explorer</span>
     <span class="provenance-badge plugin">plugin · <span class="pv-name">feature-dev</span> <span class="pv-ver">unknown</span></span>
   </span>
   <span class="section-card-desc">Deeply analyzes existing codebase features by tracing execution paths, mapping architecture layers, understanding patterns and abstractions, and documenting dependencies to inform new development</span>
@@ -130,13 +117,6 @@
 <a class="section-card" href="./agents/feature-dev--code-reviewer.html">
   <span class="section-card-head">
     <span class="section-card-title">code-reviewer</span>
-    <span class="provenance-badge plugin">plugin · <span class="pv-name">feature-dev</span> <span class="pv-ver">bbbff6ab54f0</span></span>
-  </span>
-  <span class="section-card-desc">Reviews code for bugs, logic errors, security vulnerabilities, code quality issues, and adherence to project conventions, using confidence-based filtering to report only high-priority issues that truly matter</span>
-</a>
-<a class="section-card" href="./agents/feature-dev--code-reviewer.html">
-  <span class="section-card-head">
-    <span class="section-card-title">code-reviewer</span>
     <span class="provenance-badge plugin">plugin · <span class="pv-name">feature-dev</span> <span class="pv-ver">unknown</span></span>
   </span>
   <span class="section-card-desc">Reviews code for bugs, logic errors, security vulnerabilities, code quality issues, and adherence to project conventions, using confidence-based filtering to report only high-priority issues that truly matter</span>
@@ -145,13 +125,6 @@
   <span class="section-card-head">
     <span class="section-card-title">code-reviewer</span>
     <span class="provenance-badge plugin">plugin · <span class="pv-name">pr-review-toolkit</span> <span class="pv-ver">8e5d93af5356</span></span>
-  </span>
-  <span class="section-card-desc">Use this agent when you need to review code for adherence to project guidelines, style guides, and best practices. This agent should be used proactively after writing or modifying code, especially before committing changes or creating pull requests. It will check for style violations, potential issues, and ensure code follows the established patterns in CLAUDE.md. Also the agent needs to know which files to focus on for the review. In most cases this will be recently completed work which is unstaged in git (can be retrieved by running git diff). However there can be cases where this is different, make sure to specify this as the agent input when calling the agent. Typical triggers include the user asking for a review of a feature they just implemented, the assistant proactively reviewing its own newly-written code before declaring a task done, and a final pre-PR check before opening a pull request. See &quot;When to invoke&quot; in the agent body for worked scenarios.</span>
-</a>
-<a class="section-card" href="./agents/pr-review-toolkit--code-reviewer.html">
-  <span class="section-card-head">
-    <span class="section-card-title">code-reviewer</span>
-    <span class="provenance-badge plugin">plugin · <span class="pv-name">pr-review-toolkit</span> <span class="pv-ver">bbbff6ab54f0</span></span>
   </span>
   <span class="section-card-desc">Use this agent when you need to review code for adherence to project guidelines, style guides, and best practices. This agent should be used proactively after writing or modifying code, especially before committing changes or creating pull requests. It will check for style violations, potential issues, and ensure code follows the established patterns in CLAUDE.md. Also the agent needs to know which files to focus on for the review. In most cases this will be recently completed work which is unstaged in git (can be retrieved by running git diff). However there can be cases where this is different, make sure to specify this as the agent input when calling the agent. Typical triggers include the user asking for a review of a feature they just implemented, the assistant proactively reviewing its own newly-written code before declaring a task done, and a final pre-PR check before opening a pull request. See &quot;When to invoke&quot; in the agent body for worked scenarios.</span>
 </a>
@@ -214,48 +187,6 @@ assistant: &quot;Now I'll use the code-simplifier agent to ensure the optimized 
 <a class="section-card" href="./agents/pr-review-toolkit--code-simplifier.html">
   <span class="section-card-head">
     <span class="section-card-title">code-simplifier</span>
-    <span class="provenance-badge plugin">plugin · <span class="pv-name">pr-review-toolkit</span> <span class="pv-ver">bbbff6ab54f0</span></span>
-  </span>
-  <span class="section-card-desc">Use this agent when code has been written or modified and needs to be simplified for clarity, consistency, and maintainability while preserving all functionality. This agent should be triggered automatically after completing a coding task or writing a logical chunk of code. It simplifies code by following project best practices while retaining all functionality. The agent focuses only on recently modified code unless instructed otherwise.
-
-Examples:
-
-&lt;example&gt;
-Context: The assistant has just implemented a new feature that adds user authentication to an API endpoint.
-user: &quot;Please add authentication to the /api/users endpoint&quot;
-assistant: &quot;I've implemented the authentication for the /api/users endpoint. Here's the code:&quot;
-&lt;function call omitted for brevity&gt;
-&lt;commentary&gt;
-Since a logical chunk of code has been written (authentication feature), use the Task tool to launch the code-simplifier agent to improve the code's clarity and maintainability while preserving functionality.
-&lt;/commentary&gt;
-assistant: &quot;Now let me use the code-simplifier agent to refine this implementation for better clarity and maintainability&quot;
-&lt;/example&gt;
-
-&lt;example&gt;
-Context: The assistant has just fixed a bug by adding several conditional checks.
-user: &quot;Fix the null pointer exception in the data processor&quot;
-assistant: &quot;I've added the necessary null checks to prevent the exception:&quot;
-&lt;function call omitted for brevity&gt;
-&lt;commentary&gt;
-After modifying code to fix a bug, use the code-simplifier agent to ensure the fix follows best practices and maintains code quality.
-&lt;/commentary&gt;
-assistant: &quot;Let me refine this bug fix using the code-simplifier agent to ensure it follows our best practices&quot;
-&lt;/example&gt;
-
-&lt;example&gt;
-Context: The assistant has just refactored a function to improve performance.
-user: &quot;Optimize the data sorting algorithm for better performance&quot;
-assistant: &quot;I've optimized the sorting algorithm. Here's the updated implementation:&quot;
-&lt;function call omitted for brevity&gt;
-&lt;commentary&gt;
-After completing a performance optimization task, use the code-simplifier agent to ensure the optimized code is also clear and maintainable.
-&lt;/commentary&gt;
-assistant: &quot;Now I'll use the code-simplifier agent to ensure the optimized code is also clear and follows our coding standards&quot;
-&lt;/example&gt;</span>
-</a>
-<a class="section-card" href="./agents/pr-review-toolkit--code-simplifier.html">
-  <span class="section-card-head">
-    <span class="section-card-title">code-simplifier</span>
     <span class="provenance-badge plugin">plugin · <span class="pv-name">pr-review-toolkit</span> <span class="pv-ver">unknown</span></span>
   </span>
   <span class="section-card-desc">Use this agent when code has been written or modified and needs to be simplified for clarity, consistency, and maintainability while preserving all functionality. This agent should be triggered automatically after completing a coding task or writing a logical chunk of code. It simplifies code by following project best practices while retaining all functionality. The agent focuses only on recently modified code unless instructed otherwise.
@@ -299,13 +230,6 @@ assistant: &quot;Now I'll use the code-simplifier agent to ensure the optimized 
   <span class="section-card-head">
     <span class="section-card-title">comment-analyzer</span>
     <span class="provenance-badge plugin">plugin · <span class="pv-name">pr-review-toolkit</span> <span class="pv-ver">8e5d93af5356</span></span>
-  </span>
-  <span class="section-card-desc">Use this agent when you need to analyze code comments for accuracy, completeness, and long-term maintainability. This includes (1) after generating large documentation comments or docstrings, (2) before finalizing a pull request that adds or modifies comments, (3) when reviewing existing comments for potential technical debt or comment rot, and (4) when you need to verify that comments accurately reflect the code they describe. See &quot;When to invoke&quot; in the agent body for worked scenarios.</span>
-</a>
-<a class="section-card" href="./agents/pr-review-toolkit--comment-analyzer.html">
-  <span class="section-card-head">
-    <span class="section-card-title">comment-analyzer</span>
-    <span class="provenance-badge plugin">plugin · <span class="pv-name">pr-review-toolkit</span> <span class="pv-ver">bbbff6ab54f0</span></span>
   </span>
   <span class="section-card-desc">Use this agent when you need to analyze code comments for accuracy, completeness, and long-term maintainability. This includes (1) after generating large documentation comments or docstrings, (2) before finalizing a pull request that adds or modifies comments, (3) when reviewing existing comments for potential technical debt or comment rot, and (4) when you need to verify that comments accurately reflect the code they describe. See &quot;When to invoke&quot; in the agent body for worked scenarios.</span>
 </a>
@@ -326,13 +250,6 @@ assistant: &quot;Now I'll use the code-simplifier agent to ensure the optimized 
 <a class="section-card" href="./agents/pr-review-toolkit--pr-test-analyzer.html">
   <span class="section-card-head">
     <span class="section-card-title">pr-test-analyzer</span>
-    <span class="provenance-badge plugin">plugin · <span class="pv-name">pr-review-toolkit</span> <span class="pv-ver">bbbff6ab54f0</span></span><span class="domain-tag">test</span>
-  </span>
-  <span class="section-card-desc">Use this agent when you need to review a pull request for test coverage quality and completeness. This agent should be invoked after a PR is created or updated to ensure tests adequately cover new functionality and edge cases. Typical triggers include the user asking whether tests on a freshly-created PR are thorough, an updated PR adding new logic that needs coverage analysis, and a final pre-merge double-check before marking a PR ready. See &quot;When to invoke&quot; in the agent body for worked scenarios.</span>
-</a>
-<a class="section-card" href="./agents/pr-review-toolkit--pr-test-analyzer.html">
-  <span class="section-card-head">
-    <span class="section-card-title">pr-test-analyzer</span>
     <span class="provenance-badge plugin">plugin · <span class="pv-name">pr-review-toolkit</span> <span class="pv-ver">unknown</span></span><span class="domain-tag">test</span>
   </span>
   <span class="section-card-desc">Use this agent when you need to review a pull request for test coverage quality and completeness. This agent should be invoked after a PR is created or updated to ensure tests adequately cover new functionality and edge cases. Typical triggers include the user asking whether tests on a freshly-created PR are thorough, an updated PR adding new logic that needs coverage analysis, and a final pre-merge double-check before marking a PR ready. See &quot;When to invoke&quot; in the agent body for worked scenarios.</span>
@@ -343,13 +260,6 @@ assistant: &quot;Now I'll use the code-simplifier agent to ensure the optimized 
     <span class="provenance-badge plugin">plugin · <span class="pv-name">pr-review-toolkit</span> <span class="pv-ver">8e5d93af5356</span></span>
   </span>
   <span class="section-card-desc">Use this agent when reviewing code changes in a pull request to identify silent failures, inadequate error handling, and inappropriate fallback behavior. This agent should be invoked proactively after completing a logical chunk of work that involves error handling, catch blocks, fallback logic, or any code that could potentially suppress errors. Examples:\n\n&lt;example&gt;\nContext: Daisy has just finished implementing a new feature that fetches data from an API with fallback behavior.\nDaisy: &quot;I've added error handling to the API client. Can you review it?&quot;\nAssistant: &quot;Let me use the silent-failure-hunter agent to thoroughly examine the error handling in your changes.&quot;\n&lt;Task tool invocation to launch silent-failure-hunter agent&gt;\n&lt;/example&gt;\n\n&lt;example&gt;\nContext: Daisy has created a PR with changes that include try-catch blocks.\nDaisy: &quot;Please review PR #1234&quot;\nAssistant: &quot;I'll use the silent-failure-hunter agent to check for any silent failures or inadequate error handling in this PR.&quot;\n&lt;Task tool invocation to launch silent-failure-hunter agent&gt;\n&lt;/example&gt;\n\n&lt;example&gt;\nContext: Daisy has just refactored error handling code.\nDaisy: &quot;I've updated the error handling in the authentication module&quot;\nAssistant: &quot;Let me proactively use the silent-failure-hunter agent to ensure the error handling changes don't introduce silent failures.&quot;\n&lt;Task tool invocation to launch silent-failure-hunter agent&gt;\n&lt;/example&gt;</span>
-</a>
-<a class="section-card" href="./agents/pr-review-toolkit--silent-failure-hunter.html">
-  <span class="section-card-head">
-    <span class="section-card-title">Silent Failure Hunter</span>
-    <span class="provenance-badge plugin">plugin · <span class="pv-name">pr-review-toolkit</span> <span class="pv-ver">bbbff6ab54f0</span></span>
-  </span>
-  <span class="section-card-desc"></span>
 </a>
 <a class="section-card" href="./agents/pr-review-toolkit--silent-failure-hunter.html">
   <span class="section-card-head">
@@ -368,58 +278,17 @@ assistant: &quot;Now I'll use the code-simplifier agent to ensure the optimized 
 <a class="section-card" href="./agents/pr-review-toolkit--type-design-analyzer.html">
   <span class="section-card-head">
     <span class="section-card-title">type-design-analyzer</span>
-    <span class="provenance-badge plugin">plugin · <span class="pv-name">pr-review-toolkit</span> <span class="pv-ver">bbbff6ab54f0</span></span><span class="domain-tag">website</span>
-  </span>
-  <span class="section-card-desc">Use this agent when you need expert analysis of type design in your codebase. Specifically use it (1) when introducing a new type to ensure it follows best practices for encapsulation and invariant expression, (2) during pull request creation to review all types being added, and (3) when refactoring existing types to improve their design quality. The agent will provide both qualitative feedback and quantitative ratings on encapsulation, invariant expression, usefulness, and enforcement. See &quot;When to invoke&quot; in the agent body for worked scenarios.</span>
-</a>
-<a class="section-card" href="./agents/pr-review-toolkit--type-design-analyzer.html">
-  <span class="section-card-head">
-    <span class="section-card-title">type-design-analyzer</span>
     <span class="provenance-badge plugin">plugin · <span class="pv-name">pr-review-toolkit</span> <span class="pv-ver">unknown</span></span><span class="domain-tag">website</span>
   </span>
   <span class="section-card-desc">Use this agent when you need expert analysis of type design in your codebase. Specifically use it (1) when introducing a new type to ensure it follows best practices for encapsulation and invariant expression, (2) during pull request creation to review all types being added, and (3) when refactoring existing types to improve their design quality. The agent will provide both qualitative feedback and quantitative ratings on encapsulation, invariant expression, usefulness, and enforcement. See &quot;When to invoke&quot; in the agent body for worked scenarios.</span>
 </a>
 </section>
-<h2 class="agent-group-header">Plugin- &amp; Skill-Bau (18)</h2>
+<h2 class="agent-group-header">Plugin- &amp; Skill-Bau (12)</h2>
 <section class="section-grid">
 <a class="section-card" href="./agents/plugin-dev--agent-creator.html">
   <span class="section-card-head">
     <span class="section-card-title">agent-creator</span>
     <span class="provenance-badge plugin">plugin · <span class="pv-name">plugin-dev</span> <span class="pv-ver">8e5d93af5356</span></span><span class="domain-tag">test</span>
-  </span>
-  <span class="section-card-desc">Use this agent when the user asks to &quot;create an agent&quot;, &quot;generate an agent&quot;, &quot;build a new agent&quot;, &quot;make me an agent that...&quot;, or describes agent functionality they need. Trigger when user wants to create autonomous agents for plugins. Examples:
-
-&lt;example&gt;
-Context: User wants to create a code review agent
-user: &quot;Create an agent that reviews code for quality issues&quot;
-assistant: &quot;I'll use the agent-creator agent to generate the agent configuration.&quot;
-&lt;commentary&gt;
-User requesting new agent creation, trigger agent-creator to generate it.
-&lt;/commentary&gt;
-&lt;/example&gt;
-
-&lt;example&gt;
-Context: User describes needed functionality
-user: &quot;I need an agent that generates unit tests for my code&quot;
-assistant: &quot;I'll use the agent-creator agent to create a test generation agent.&quot;
-&lt;commentary&gt;
-User describes agent need, trigger agent-creator to build it.
-&lt;/commentary&gt;
-&lt;/example&gt;
-
-&lt;example&gt;
-Context: User wants to add agent to plugin
-user: &quot;Add an agent to my plugin that validates configurations&quot;
-assistant: &quot;I'll use the agent-creator agent to generate a configuration validator agent.&quot;
-&lt;commentary&gt;
-Plugin development with agent addition, trigger agent-creator.
-&lt;/commentary&gt;
-&lt;/example&gt;</span>
-</a>
-<a class="section-card" href="./agents/plugin-dev--agent-creator.html">
-  <span class="section-card-head">
-    <span class="section-card-title">agent-creator</span>
-    <span class="provenance-badge plugin">plugin · <span class="pv-name">plugin-dev</span> <span class="pv-ver">bbbff6ab54f0</span></span><span class="domain-tag">test</span>
   </span>
   <span class="section-card-desc">Use this agent when the user asks to &quot;create an agent&quot;, &quot;generate an agent&quot;, &quot;build a new agent&quot;, &quot;make me an agent that...&quot;, or describes agent functionality they need. Trigger when user wants to create autonomous agents for plugins. Examples:
 
@@ -494,13 +363,6 @@ Plugin development with agent addition, trigger agent-creator.
 <a class="section-card" href="./agents/agent-sdk-dev--agent-sdk-verifier-py.html">
   <span class="section-card-head">
     <span class="section-card-title">agent-sdk-verifier-py</span>
-    <span class="provenance-badge plugin">plugin · <span class="pv-name">agent-sdk-dev</span> <span class="pv-ver">bbbff6ab54f0</span></span>
-  </span>
-  <span class="section-card-desc">Use this agent to verify that a Python Agent SDK application is properly configured, follows SDK best practices and documentation recommendations, and is ready for deployment or testing. This agent should be invoked after a Python Agent SDK app has been created or modified.</span>
-</a>
-<a class="section-card" href="./agents/agent-sdk-dev--agent-sdk-verifier-py.html">
-  <span class="section-card-head">
-    <span class="section-card-title">agent-sdk-verifier-py</span>
     <span class="provenance-badge plugin">plugin · <span class="pv-name">agent-sdk-dev</span> <span class="pv-ver">unknown</span></span>
   </span>
   <span class="section-card-desc">Use this agent to verify that a Python Agent SDK application is properly configured, follows SDK best practices and documentation recommendations, and is ready for deployment or testing. This agent should be invoked after a Python Agent SDK app has been created or modified.</span>
@@ -509,13 +371,6 @@ Plugin development with agent addition, trigger agent-creator.
   <span class="section-card-head">
     <span class="section-card-title">agent-sdk-verifier-ts</span>
     <span class="provenance-badge plugin">plugin · <span class="pv-name">agent-sdk-dev</span> <span class="pv-ver">8e5d93af5356</span></span>
-  </span>
-  <span class="section-card-desc">Use this agent to verify that a TypeScript Agent SDK application is properly configured, follows SDK best practices and documentation recommendations, and is ready for deployment or testing. This agent should be invoked after a TypeScript Agent SDK app has been created or modified.</span>
-</a>
-<a class="section-card" href="./agents/agent-sdk-dev--agent-sdk-verifier-ts.html">
-  <span class="section-card-head">
-    <span class="section-card-title">agent-sdk-verifier-ts</span>
-    <span class="provenance-badge plugin">plugin · <span class="pv-name">agent-sdk-dev</span> <span class="pv-ver">bbbff6ab54f0</span></span>
   </span>
   <span class="section-card-desc">Use this agent to verify that a TypeScript Agent SDK application is properly configured, follows SDK best practices and documentation recommendations, and is ready for deployment or testing. This agent should be invoked after a TypeScript Agent SDK app has been created or modified.</span>
 </a>
@@ -536,13 +391,6 @@ Plugin development with agent addition, trigger agent-creator.
 <a class="section-card" href="./agents/hookify--conversation-analyzer.html">
   <span class="section-card-head">
     <span class="section-card-title">conversation-analyzer</span>
-    <span class="provenance-badge plugin">plugin · <span class="pv-name">hookify</span> <span class="pv-ver">bbbff6ab54f0</span></span>
-  </span>
-  <span class="section-card-desc">Use this agent when analyzing conversation transcripts to find behaviors worth preventing with hooks. Typical triggers include the /hookify command being invoked without arguments, or the user explicitly asking to look back at the current conversation and surface mistakes that should be prevented in the future. See &quot;When to invoke&quot; in the agent body for worked scenarios.</span>
-</a>
-<a class="section-card" href="./agents/hookify--conversation-analyzer.html">
-  <span class="section-card-head">
-    <span class="section-card-title">conversation-analyzer</span>
     <span class="provenance-badge plugin">plugin · <span class="pv-name">hookify</span> <span class="pv-ver">unknown</span></span>
   </span>
   <span class="section-card-desc">Use this agent when analyzing conversation transcripts to find behaviors worth preventing with hooks. Typical triggers include the /hookify command being invoked without arguments, or the user explicitly asking to look back at the current conversation and surface mistakes that should be prevented in the future. See &quot;When to invoke&quot; in the agent body for worked scenarios.</span>
@@ -551,42 +399,6 @@ Plugin development with agent addition, trigger agent-creator.
   <span class="section-card-head">
     <span class="section-card-title">plugin-validator</span>
     <span class="provenance-badge plugin">plugin · <span class="pv-name">plugin-dev</span> <span class="pv-ver">8e5d93af5356</span></span><span class="domain-tag">infra</span>
-  </span>
-  <span class="section-card-desc">Use this agent when the user asks to &quot;validate my plugin&quot;, &quot;check plugin structure&quot;, &quot;verify plugin is correct&quot;, &quot;validate plugin.json&quot;, &quot;check plugin files&quot;, or mentions plugin validation. Also trigger proactively after user creates or modifies plugin components. Examples:
-
-&lt;example&gt;
-Context: User finished creating a new plugin
-user: &quot;I've created my first plugin with commands and hooks&quot;
-assistant: &quot;Great! Let me validate the plugin structure.&quot;
-&lt;commentary&gt;
-Plugin created, proactively validate to catch issues early.
-&lt;/commentary&gt;
-assistant: &quot;I'll use the plugin-validator agent to check the plugin.&quot;
-&lt;/example&gt;
-
-&lt;example&gt;
-Context: User explicitly requests validation
-user: &quot;Validate my plugin before I publish it&quot;
-assistant: &quot;I'll use the plugin-validator agent to perform comprehensive validation.&quot;
-&lt;commentary&gt;
-Explicit validation request triggers the agent.
-&lt;/commentary&gt;
-&lt;/example&gt;
-
-&lt;example&gt;
-Context: User modified plugin.json
-user: &quot;I've updated the plugin manifest&quot;
-assistant: &quot;Let me validate the changes.&quot;
-&lt;commentary&gt;
-Manifest modified, validate to ensure correctness.
-&lt;/commentary&gt;
-assistant: &quot;I'll use the plugin-validator agent to check the manifest.&quot;
-&lt;/example&gt;</span>
-</a>
-<a class="section-card" href="./agents/plugin-dev--plugin-validator.html">
-  <span class="section-card-head">
-    <span class="section-card-title">plugin-validator</span>
-    <span class="provenance-badge plugin">plugin · <span class="pv-name">plugin-dev</span> <span class="pv-ver">bbbff6ab54f0</span></span><span class="domain-tag">infra</span>
   </span>
   <span class="section-card-desc">Use this agent when the user asks to &quot;validate my plugin&quot;, &quot;check plugin structure&quot;, &quot;verify plugin is correct&quot;, &quot;validate plugin.json&quot;, &quot;check plugin files&quot;, or mentions plugin validation. Also trigger proactively after user creates or modifies plugin components. Examples:
 
@@ -693,41 +505,6 @@ Skill description modified, review for triggering effectiveness.
 <a class="section-card" href="./agents/plugin-dev--skill-reviewer.html">
   <span class="section-card-head">
     <span class="section-card-title">skill-reviewer</span>
-    <span class="provenance-badge plugin">plugin · <span class="pv-name">plugin-dev</span> <span class="pv-ver">bbbff6ab54f0</span></span>
-  </span>
-  <span class="section-card-desc">Use this agent when the user has created or modified a skill and needs quality review, asks to &quot;review my skill&quot;, &quot;check skill quality&quot;, &quot;improve skill description&quot;, or wants to ensure skill follows best practices. Trigger proactively after skill creation. Examples:
-
-&lt;example&gt;
-Context: User just created a new skill
-user: &quot;I've created a PDF processing skill&quot;
-assistant: &quot;Great! Let me review the skill quality.&quot;
-&lt;commentary&gt;
-Skill created, proactively trigger skill-reviewer to ensure it follows best practices.
-&lt;/commentary&gt;
-assistant: &quot;I'll use the skill-reviewer agent to review the skill.&quot;
-&lt;/example&gt;
-
-&lt;example&gt;
-Context: User requests skill review
-user: &quot;Review my skill and tell me how to improve it&quot;
-assistant: &quot;I'll use the skill-reviewer agent to analyze the skill quality.&quot;
-&lt;commentary&gt;
-Explicit skill review request triggers the agent.
-&lt;/commentary&gt;
-&lt;/example&gt;
-
-&lt;example&gt;
-Context: User modified skill description
-user: &quot;I updated the skill description, does it look good?&quot;
-assistant: &quot;I'll use the skill-reviewer agent to review the changes.&quot;
-&lt;commentary&gt;
-Skill description modified, review for triggering effectiveness.
-&lt;/commentary&gt;
-&lt;/example&gt;</span>
-</a>
-<a class="section-card" href="./agents/plugin-dev--skill-reviewer.html">
-  <span class="section-card-head">
-    <span class="section-card-title">skill-reviewer</span>
     <span class="provenance-badge plugin">plugin · <span class="pv-name">plugin-dev</span> <span class="pv-ver">unknown</span></span>
   </span>
   <span class="section-card-desc">Use this agent when the user has created or modified a skill and needs quality review, asks to &quot;review my skill&quot;, &quot;check skill quality&quot;, &quot;improve skill description&quot;, or wants to ensure skill follows best practices. Trigger proactively after skill creation. Examples:
@@ -761,7 +538,7 @@ Skill description modified, review for triggering effectiveness.
 &lt;/example&gt;</span>
 </a>
 </section>
-<h2 class="agent-group-header">Sonstige (3)</h2>
+<h2 class="agent-group-header">Sonstige (2)</h2>
 <section class="section-grid">
 <a class="section-card" href="./agents/superpowers-chrome--browser-user.html">
   <span class="section-card-head">
@@ -769,13 +546,6 @@ Skill description modified, review for triggering effectiveness.
     <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers-chrome</span> <span class="pv-ver">3.0.2</span></span>
   </span>
   <span class="section-card-desc">Analyzes web content and browser behavior using Chrome DevTools Protocol. Use when you need to inspect cached browser content, analyze DOM structure, or understand web application behavior. Read-only access - cannot create, modify, or delete files.</span>
-</a>
-<a class="section-card" href="./agents/postman--readiness-analyzer.html">
-  <span class="section-card-head">
-    <span class="section-card-title">API Readiness Analyzer</span>
-    <span class="provenance-badge plugin">plugin · <span class="pv-name">postman</span> <span class="pv-ver">1.1.0</span></span>
-  </span>
-  <span class="section-card-desc">Analyze any API for AI agent compatibility. Scans OpenAPI specs across 8 pillars (48 checks), scores agent-readiness, and provides fix recommendations. Triggers on: 'Is my API agent-ready?', 'Scan my API', 'Analyze my OpenAPI spec', 'What\'s wrong with my API for AI agents?', 'How agent-friendly is my API?'.</span>
 </a>
 <a class="section-card" href="./agents/postman--readiness-analyzer.html">
   <span class="section-card-head">

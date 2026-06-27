@@ -10,19 +10,24 @@
 <link rel="stylesheet" href="./style.css">
 </head>
 <body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
 <header class="site-header">
   <a class="site-header-brand" href="./index.html">
     <span class="site-mark" aria-hidden="true">◆</span>
     <span class="site-wordmark">Dokumentation</span>
   </a>
 </header>
-<div id="search-overlay">
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
   <div id="search-box">
-    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
-    <div id="search-results"></div>
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
   </div>
 </div>
 <div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Handbücher</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./readme.html">AI-Agent Operating Guide — Registry (SSOT)</a></li><li class="sidebar-item"><a href="./readme.html">DB Audit Phase 5 — 2026-05-23</a></li><li class="sidebar-item"><a href="./readme.html">dev.mentolder.de — Operator Runbook</a></li><li class="sidebar-item"><a href="./readme.html">Korczewski Visual Design Brief</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Architektur &amp; Bausteine</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./30-bausteine.html">Bausteine — Was läuft auf der Plattform?</a></li><li class="sidebar-item"><a href="./bereitstellungsdetails.html">Bereitstellungsdetails und Server-Topologie</a></li><li class="sidebar-item"><a href="./db-schema.html">Shared DB — Schema Reference &amp; Normalization Audit</a></li><li class="sidebar-item"><a href="./00-anleitung.html">Was will ich tun?</a></li><li class="sidebar-item"><a href="./20-werkzeuge.html">Werkzeuge — Tools und Agents</a></li><li class="sidebar-item"><a href="./10-ziele.html">Ziele — Was will ich tun?</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Audits &amp; Reports</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./2026-06-20-active-sessions-hub.html">Active Sessions Hub — Mediaviewer-Panel verlinkt aktive Forms/Brainstorm/Companion</a></li><li class="sidebar-item"><a href="./2026-06-22-agent-library.html">Agent Library Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-22-bats-coverage-batch1.html">BATS Coverage Expansion — Batch 1 (G-RH03) Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-20-cockpit-direct-ticket-links.html">Cockpit Direct Ticket Links — TicketDrawer entfernen, Titel als Navigationslinks</a></li><li class="sidebar-item"><a href="./2026-06-07-dataflow-dataleak.html">Dataflow &amp; Datenleck-Audit — 2026-06-07</a></li><li class="sidebar-item"><a href="./findings.html">DB Audit Phase 5 — Findings</a></li><li class="sidebar-item"><a href="./2026-06-07-e2e-reachability-test-quality.html">E2E Reachability &amp; Test-Quality-Audit — 2026-06-07</a></li><li class="sidebar-item"><a href="./2026-06-22-ki-api-prod-migrations.html">KI-API Prod-Migrationen (T000711) Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-20-mcp-task-runner.html">MCP Task Runner Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-27-mentolder-brand-foundations-design-system.html">mentolder — Brand Foundations Design System</a></li><li class="sidebar-item"><a href="./2026-06-22-mentolder-web-unterseiten.html">mentolder-web Unterseiten Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-22-s1-violations-batch1.html">S1-Frozen-Violations Reduction — Batch 1 (G-RH01) Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-21-ticket-mcp.html">ticket-mcp Implementation Plan</a></li><li class="sidebar-item"><a href="./2026-06-22-ts-suppression-elimination.html">TypeScript-Suppressionen eliminieren (G-RH02) Implementation Plan</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Entscheidungen</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./decision-log.html">Phase 5 DROP Decision Log</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">Referenz</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./tasks.html">Agent-Push-Notifications für opencode/agy-Sessions</a></li><li class="sidebar-item"><a href="./tasks.html">AI: Ticket-Auto-Triage (Severity-Erkennung)</a></li><li class="sidebar-item"><a href="./alert-email-test.html">Alert-E-Mail-Test (synthetisch)</a></li><li class="sidebar-item"><a href="./api-surface.html">API Surface Map</a></li><li class="sidebar-item"><a href="./tasks.html">Art Library Webapp Integration</a></li><li class="sidebar-item"><a href="./audit-log-retention.html">Audit-Log Retention — DSGVO-Dokumentation</a></li><li class="sidebar-item"><a href="./blast-radius.html">Blast-Radius-Report</a></li><li class="sidebar-item"><a href="./brainstorm-bridge-wsl.html">Brainstorm-Bridge (WSL) — Visuals &amp; Auswahl an den Nutzer kommunizieren</a></li><li class="sidebar-item"><a href="./tasks.html">Cockpit Mobile-View Implementation Plan</a></li><li class="sidebar-item"><a href="./tasks.html">Cockpit: Filter speichern / Voreinstellungen</a></li><li class="sidebar-item"><a href="./tasks.html">env-seal.sh: empty-value Keys in extra_namespaces korrekt verarbeiten (G-CD01 Root-Cause)</a></li><li class="sidebar-item"><a href="./envsubst-variable-management.html">envsubst Variable Management — Referenz</a></li><li class="sidebar-item"><a href="./tasks.html">Feature Intake: Semantischer Duplikatcheck + dynamischer Feature-Pool</a></li><li class="sidebar-item"><a href="./fleet-stage2-cutover-runbook.html">Fleet Stage 2 — Cutover Runbook</a></li><li class="sidebar-item"><a href="./fleet-2026-05-31-what-changed.html">Fleet-Konsolidierung — was sich am 2026-05-31 geändert hat</a></li><li class="sidebar-item"><a href="./tasks.html">G-CD01: korczewski-Deploy-Lane — stale SealedSecret reparieren + Drift-Prevention</a></li><li class="sidebar-item"><a href="./tasks.html">G-CD02: post-merge.yml Race-Guard härten (93% → ≥95%)</a></li><li class="sidebar-item"><a href="./tasks.html">G-CQ03: ESLint in website/ einrichten + Warnings auf 0</a></li><li class="sidebar-item"><a href="./tasks.html">G-CQ08: Dead-Code/unused exports in website/src via knip messen + −50%</a></li><li class="sidebar-item"><a href="./tasks.html">G-DEP02: Veraltete Major-Deps (website) 9 → ≤3</a></li><li class="sidebar-item"><a href="./tasks.html">G-FE01: a11y axe-Violations (Kern-Routen beider Marken) auf 0 crit/serious</a></li><li class="sidebar-item"><a href="./tasks.html">G-FE02: Client-JS-Bundle messen + Budget (kein Netto-Zuwachs/Release)</a></li><li class="sidebar-item"><a href="./tasks.html">G-IMG02: Fremd-Image-Versions-Drift vereinheitlichen (busybox/curl)</a></li><li class="sidebar-item"><a href="./proposal.html">G-RH01: S1-Frozen-Violations Batch 1 — baseline.json 98→≤30</a></li><li class="sidebar-item"><a href="./tasks.html">G-RH01: S1-Frozen-Violations Batch 1 — baseline.json 98→≤30</a></li><li class="sidebar-item"><a href="./proposal.html">G-RH03: BATS Coverage Batch 1 — OpenSpec 17%→23%</a></li><li class="sidebar-item"><a href="./tasks.html">G-RH03: BATS Coverage Batch 1 — OpenSpec 17%→23%</a></li><li class="sidebar-item"><a href="./tasks.html">Implementation Plan: cockpit-bulk-status</a></li><li class="sidebar-item"><a href="./design-system.html">mentolder Design-System</a></li><li class="sidebar-item"><a href="./tasks.html">mentolder.de Website-Frontend in React neu aufbauen</a></li><li class="sidebar-item"><a href="./tasks.html">Messbare Delivery-Pipeline + DORA-Dashboard</a></li><li class="sidebar-item"><a href="./tasks.html">Pocket ID Migration — Keycloak ersetzen durch Pocket ID</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: agent-push-notifications</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: AI: Ticket-Auto-Triage (Severity-Erkennung)</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: art-library-webapp-integration</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: cockpit-bulk-status</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: cockpit-filter-presets</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: cockpit-mobile-view</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: dora-delivery-pipeline</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: env-seal-empty-value-keys</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: Feature Intake + Knowledge-Graph-Anreicherung</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-cd01-korczewski-secret-drift</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-cd02-post-merge-race-guard</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-cq03-eslint-website</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-cq08-knip-dead-code</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-dep02-major-deps-website (G-DEP02)</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-fe01-a11y-axe-violations</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: g-fe02-bundle-budget</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: img02-image-drift (G-IMG02)</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: Mentolder Homepage — hifi-Redesign in Astro+Svelte</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: mentolder.de Website-Frontend in React neu aufbauen</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: pocket-id-migration</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: ticket-mcp Go-Rewrite mit HTTP-Transport [T001043]</a></li><li class="sidebar-item"><a href="./proposal.html">Proposal: ticket-verlauf-anhaenge</a></li><li class="sidebar-item"><a href="./secrets-architecture.html">Secrets-Dateiarchitektur</a></li><li class="sidebar-item"><a href="./shared-infrastructure-security.html">Shared Infrastructure Security — Cross-Brand Analysis</a></li><li class="sidebar-item"><a href="./overview.html">Skills Overview</a></li><li class="sidebar-item"><a href="./factory-usage.html">Software Factory — Usage Guide</a></li><li class="sidebar-item sidebar-item--active"><a href="./systemtest-fragebogen.html" aria-current="page">Systemtest-Protokoll — Workspace Collaboration Platform</a></li><li class="sidebar-item"><a href="./tasks.html">Tasks: ticket-verlauf-anhaenge</a></li><li class="sidebar-item"><a href="./tasks.html">ticket-mcp Go-Rewrite mit HTTP-Transport</a></li><li class="sidebar-item"><a href="./wsl-bootstrap.html">WSL Bootstrapping Gotchas</a></li></ul></details>
+</aside>
   <main id="main">
 <header class="page-header">
   <div class="page-header-body">
@@ -41,8 +46,62 @@
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#testdurchfuehrung"><span class="toc-num">1.</span> Testdurchführung</a></li>
 <li class="toc-item"><a href="#kurzanleitung"><span class="toc-num">2.</span> Kurzanleitung</a></li>
+<li class="toc-item toc-item--h3"><a href="#statusdefinitionen"><span class="toc-num">–</span> Statusdefinitionen</a></li>
 <li class="toc-item"><a href="#testzusammenfassung"><span class="toc-num">3.</span> Testzusammenfassung</a></li>
 <li class="toc-item"><a href="#entfallene-tests-mattermost-entfernung"><span class="toc-num">4.</span> Entfallene Tests (Mattermost-Entfernung)</a></li>
+<li class="toc-item toc-item--h3"><a href="#fa-03-videokonferenzen-nextcloud-talk-hpb"><span class="toc-num">–</span> FA-03: Videokonferenzen (Nextcloud Talk HPB)</a></li>
+<li class="toc-item toc-item--h3"><a href="#fa-10-kundenanfragen-kontaktformular"><span class="toc-num">–</span> FA-10: Kundenanfragen-Kontaktformular</a></li>
+<li class="toc-item toc-item--h3"><a href="#fa-11-kunden-portal"><span class="toc-num">–</span> FA-11: Kunden-Portal</a></li>
+<li class="toc-item toc-item--h3"><a href="#fa-12-claude-code-ai-assistant-mcp-infrastruktur"><span class="toc-num">–</span> FA-12: Claude Code AI Assistant (MCP-Infrastruktur)</a></li>
+<li class="toc-item toc-item--h3"><a href="#fa-13-dokumentations-service"><span class="toc-num">–</span> FA-13: Dokumentations-Service</a></li>
+<li class="toc-item toc-item--h3"><a href="#fa-14-user-registration-flow"><span class="toc-num">–</span> FA-14: User Registration Flow</a></li>
+<li class="toc-item toc-item--h3"><a href="#fa-15-oidc-website-login"><span class="toc-num">–</span> FA-15: OIDC Website Login</a></li>
+<li class="toc-item toc-item--h3"><a href="#fa-16-calendar-booking"><span class="toc-num">–</span> FA-16: Calendar Booking</a></li>
+<li class="toc-item toc-item--h3"><a href="#fa-17-meeting-lifecycle"><span class="toc-num">–</span> FA-17: Meeting Lifecycle</a></li>
+<li class="toc-item toc-item--h3"><a href="#fa-18-meeting-transcription-whisper"><span class="toc-num">–</span> FA-18: Meeting Transcription (Whisper)</a></li>
+<li class="toc-item toc-item--h3"><a href="#fa-20-meeting-finalization-pipeline"><span class="toc-num">–</span> FA-20: Meeting Finalization Pipeline</a></li>
+<li class="toc-item toc-item--h3"><a href="#fa-21-service-catalog"><span class="toc-num">–</span> FA-21: Service Catalog</a></li>
+<li class="toc-item toc-item--h3"><a href="#fa-23-vaultwarden-passwort-manager"><span class="toc-num">–</span> FA-23: Vaultwarden Passwort-Manager</a></li>
+<li class="toc-item toc-item--h3"><a href="#fa-24-kollaboratives-whiteboard"><span class="toc-num">–</span> FA-24: Kollaboratives Whiteboard</a></li>
+<li class="toc-item toc-item--h3"><a href="#fa-25-mailpit-e-mail-server"><span class="toc-num">–</span> FA-25: Mailpit E-Mail-Server</a></li>
+<li class="toc-item toc-item--h3"><a href="#fa-26-bug-report-form"><span class="toc-num">–</span> FA-26: Bug Report Form</a></li>
+<li class="toc-item toc-item--h3"><a href="#fa-27-systemisches-brett-3d-multiplayer"><span class="toc-num">–</span> FA-27: Systemisches Brett (3D Multiplayer)</a></li>
+<li class="toc-item toc-item--h3"><a href="#fa-28-website-messaging-internes-chat-system"><span class="toc-num">–</span> FA-28: Website-Messaging (internes Chat-System)</a></li>
+<li class="toc-item toc-item--h3"><a href="#fa-30-e-rechnung--xrechnung-einvoice-sidecar"><span class="toc-num">–</span> FA-30: E-Rechnung / XRechnung (einvoice-sidecar)</a></li>
+<li class="toc-item toc-item--h3"><a href="#fa-31-admin-monitoring-auth-gate-produktionstest"><span class="toc-num">–</span> FA-31: Admin-Monitoring Auth-Gate (Produktionstest)</a></li>
+<li class="toc-item toc-item--h3"><a href="#fa-32-llm-router-bge-m3-embeddings"><span class="toc-num">–</span> FA-32: LLM-Router bge-m3 Embeddings</a></li>
+<li class="toc-item toc-item--h3"><a href="#fa-33-llm-router-voyage-multilingual-2"><span class="toc-num">–</span> FA-33: LLM-Router voyage-multilingual-2</a></li>
+<li class="toc-item toc-item--h3"><a href="#fa-34-llm-router-strict-fail-kein-silent-fallback"><span class="toc-num">–</span> FA-34: LLM-Router strict-fail (kein silent fallback)</a></li>
+<li class="toc-item toc-item--h3"><a href="#fa-35-llm-mixedembeddingmodelerror"><span class="toc-num">–</span> FA-35: LLM MixedEmbeddingModelError</a></li>
+<li class="toc-item toc-item--h3"><a href="#fa-36-rerank-endpunkt"><span class="toc-num">–</span> FA-36: Rerank-Endpunkt</a></li>
+<li class="toc-item toc-item--h3"><a href="#fa-37-workspace-chat-roundtrip"><span class="toc-num">–</span> FA-37: workspace-chat Roundtrip</a></li>
+<li class="toc-item toc-item--h3"><a href="#fa-39-arena-db-schema-und-service-health"><span class="toc-num">–</span> FA-39: Arena DB-Schema und Service-Health</a></li>
+<li class="toc-item toc-item--h3"><a href="#fa-40-arena-spectator-join-smoke"><span class="toc-num">–</span> FA-40: Arena Spectator-join Smoke</a></li>
+<li class="toc-item toc-item--h3"><a href="#sa-01-transportverschluesselung"><span class="toc-num">–</span> SA-01: Transportverschlüsselung</a></li>
+<li class="toc-item toc-item--h3"><a href="#sa-02-authentifizierung"><span class="toc-num">–</span> SA-02: Authentifizierung</a></li>
+<li class="toc-item toc-item--h3"><a href="#sa-03-passwoerter-hash-policy-kein-klartext"><span class="toc-num">–</span> SA-03: Passwörter (Hash, Policy, kein Klartext)</a></li>
+<li class="toc-item toc-item--h3"><a href="#sa-04-session-timeout"><span class="toc-num">–</span> SA-04: Session-Timeout</a></li>
+<li class="toc-item toc-item--h3"><a href="#sa-05-audit-log"><span class="toc-num">–</span> SA-05: Audit-Log</a></li>
+<li class="toc-item toc-item--h3"><a href="#sa-07-backup-pgdump-pvcs"><span class="toc-num">–</span> SA-07: Backup (pg_dump, PVCs)</a></li>
+<li class="toc-item toc-item--h3"><a href="#sa-08-sso-integration-keycloak-oidc"><span class="toc-num">–</span> SA-08: SSO-Integration (Keycloak OIDC)</a></li>
+<li class="toc-item toc-item--h3"><a href="#sa-10-mcp-endpunkt-absicherung-forwardauth"><span class="toc-num">–</span> SA-10: MCP-Endpunkt-Absicherung (ForwardAuth)</a></li>
+<li class="toc-item toc-item--h3"><a href="#sa-11-arena-non-admin-403"><span class="toc-num">–</span> SA-11: Arena non-admin 403</a></li>
+<li class="toc-item toc-item--h3"><a href="#sa-12-korczewski-realm-jwt-akzeptanz"><span class="toc-num">–</span> SA-12: Korczewski-Realm JWT-Akzeptanz</a></li>
+<li class="toc-item toc-item--h3"><a href="#sa-13-untrusted-jwt-abgelehnt"><span class="toc-num">–</span> SA-13: Untrusted JWT abgelehnt</a></li>
+<li class="toc-item toc-item--h3"><a href="#nfa-01-datenschutz--dsgvo"><span class="toc-num">–</span> NFA-01: Datenschutz / DSGVO</a></li>
+<li class="toc-item toc-item--h3"><a href="#nfa-02-performance--antwortzeiten"><span class="toc-num">–</span> NFA-02: Performance / Antwortzeiten</a></li>
+<li class="toc-item toc-item--h3"><a href="#nfa-03-verfuegbarkeit-und-neustart-resilienz"><span class="toc-num">–</span> NFA-03: Verfügbarkeit und Neustart-Resilienz</a></li>
+<li class="toc-item toc-item--h3"><a href="#nfa-04-skalierbarkeit"><span class="toc-num">–</span> NFA-04: Skalierbarkeit</a></li>
+<li class="toc-item toc-item--h3"><a href="#nfa-05-usability--deutsche-lokalisierung"><span class="toc-num">–</span> NFA-05: Usability / Deutsche Lokalisierung</a></li>
+<li class="toc-item toc-item--h3"><a href="#nfa-06-website-neustart-resilienz"><span class="toc-num">–</span> NFA-06: Website Neustart-Resilienz</a></li>
+<li class="toc-item toc-item--h3"><a href="#nfa-07-open-source-lizenz"><span class="toc-num">–</span> NFA-07: Open-Source-Lizenz</a></li>
+<li class="toc-item toc-item--h3"><a href="#nfa-08-produktions-deployment-hetznerk3s"><span class="toc-num">–</span> NFA-08: Produktions-Deployment (Hetzner/k3s)</a></li>
+<li class="toc-item toc-item--h3"><a href="#nfa-09-statisches-dns-kein-ddns"><span class="toc-num">–</span> NFA-09: Statisches DNS (kein DDNS)</a></li>
+<li class="toc-item toc-item--h3"><a href="#nfa-10-arena-health-endpoint-performance"><span class="toc-num">–</span> NFA-10: Arena Health-Endpoint Performance</a></li>
+<li class="toc-item toc-item--h3"><a href="#nfa-11-gpu-vram-nach-modell-rotation"><span class="toc-num">–</span> NFA-11: GPU-VRAM nach Modell-Rotation</a></li>
+<li class="toc-item toc-item--h3"><a href="#nfa-12-brainstorm-tunnel-configmap-persistenz"><span class="toc-num">–</span> NFA-12: Brainstorm-Tunnel ConfigMap-Persistenz</a></li>
+<li class="toc-item toc-item--h3"><a href="#ak-03-technische-machbarkeit"><span class="toc-num">–</span> AK-03: Technische Machbarkeit</a></li>
+<li class="toc-item toc-item--h3"><a href="#ak-04-prototyp-betrieb"><span class="toc-num">–</span> AK-04: Prototyp-Betrieb</a></li>
 <li class="toc-item"><a href="#ergebnisuebersicht"><span class="toc-num">5.</span> Ergebnisübersicht</a></li>
 <li class="toc-item"><a href="#abschlussbewertung"><span class="toc-num">6.</span> Abschlussbewertung</a></li>
 <li class="toc-item"><a href="#unterschriften"><span class="toc-num">7.</span> Unterschriften</a></li></ul>
@@ -92,7 +151,7 @@
 <li>Notieren Sie Abweichungen oder Hinweise im Feld <strong>Bemerkungen</strong>.</li>
 <li>Für automatisierte Tests kann der Befehl <code>./tests/runner.sh local &lt;TEST-ID&gt;</code> verwendet werden.</li>
 </ol>
-<h3>Statusdefinitionen</h3>
+<h3 id="statusdefinitionen">Statusdefinitionen</h3>
 <table>
 <thead>
 <tr>
@@ -488,7 +547,7 @@
 </tr>
 </tbody></table>
 <hr>
-<h3>FA-03: Videokonferenzen (Nextcloud Talk HPB)</h3>
+<h3 id="fa-03-videokonferenzen-nextcloud-talk-hpb">FA-03: Videokonferenzen (Nextcloud Talk HPB)</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft die Videokonferenz-Infrastruktur über Nextcloud Talk mit dem High-Performance-Backend (HPB), inklusive Janus WebRTC Gateway, Signaling-Server und coturn TURN-Server.</p>
 </blockquote>
@@ -537,7 +596,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>FA-10: Kundenanfragen-Kontaktformular</h3>
+<h3 id="fa-10-kundenanfragen-kontaktformular">FA-10: Kundenanfragen-Kontaktformular</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft das Kontaktformular auf der Website sowie die Admin-Inbox für eingehende Kundenanfragen.</p>
 </blockquote>
@@ -581,7 +640,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>FA-11: Kunden-Portal</h3>
+<h3 id="fa-11-kunden-portal">FA-11: Kunden-Portal</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft die Kunden-Portal-Infrastruktur: Bereitstellungsskript für Gast-Accounts, Keycloak-Realm und Domain-Konfiguration.</p>
 </blockquote>
@@ -630,7 +689,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>FA-12: Claude Code AI Assistant (MCP-Infrastruktur)</h3>
+<h3 id="fa-12-claude-code-ai-assistant-mcp-infrastruktur">FA-12: Claude Code AI Assistant (MCP-Infrastruktur)</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft die Model Context Protocol (MCP) Infrastruktur für den Claude Code AI Assistant, inklusive Core-, Apps- und Auth-Pods sowie ForwardAuth-Proxy.</p>
 </blockquote>
@@ -679,7 +738,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>FA-13: Dokumentations-Service</h3>
+<h3 id="fa-13-dokumentations-service">FA-13: Dokumentations-Service</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft den internen Dokumentations-Dienst (Docsify), der auf <code>docs.{DOMAIN}</code> erreichbar ist.</p>
 </blockquote>
@@ -718,7 +777,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>FA-14: User Registration Flow</h3>
+<h3 id="fa-14-user-registration-flow">FA-14: User Registration Flow</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft den Benutzerregistrierungs-Flow auf der Website: Registrierungsseite erreichbar, Formularfelder vorhanden.</p>
 </blockquote>
@@ -762,7 +821,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>FA-15: OIDC Website Login</h3>
+<h3 id="fa-15-oidc-website-login">FA-15: OIDC Website Login</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft den Single-Sign-On-Login-Flow der Website via Keycloak OIDC.</p>
 </blockquote>
@@ -806,7 +865,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>FA-16: Calendar Booking</h3>
+<h3 id="fa-16-calendar-booking">FA-16: Calendar Booking</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft die Terminbuchungs-Funktionalität: Slots-API, Buchungs-API und CalDAV-Konfiguration.</p>
 </blockquote>
@@ -850,7 +909,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>FA-17: Meeting Lifecycle</h3>
+<h3 id="fa-17-meeting-lifecycle">FA-17: Meeting Lifecycle</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft den vollständigen Meeting-Lebenszyklus: Erinnerungen, CronJob und Nextcloud Talk-Integration.</p>
 </blockquote>
@@ -889,7 +948,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>FA-18: Meeting Transcription (Whisper)</h3>
+<h3 id="fa-18-meeting-transcription-whisper">FA-18: Meeting Transcription (Whisper)</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft den Whisper-basierten Transkriptions-Dienst für Meeting-Aufzeichnungen.</p>
 </blockquote>
@@ -928,7 +987,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>FA-20: Meeting Finalization Pipeline</h3>
+<h3 id="fa-20-meeting-finalization-pipeline">FA-20: Meeting Finalization Pipeline</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft den Meeting-Abschluss-Workflow, der Transkripte zusammenführt und Ergebnisse verschickt.</p>
 </blockquote>
@@ -962,7 +1021,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>FA-21: Service Catalog</h3>
+<h3 id="fa-21-service-catalog">FA-21: Service Catalog</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft die Leistungsübersicht (Service Catalog) auf der Website.</p>
 </blockquote>
@@ -996,7 +1055,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>FA-23: Vaultwarden Passwort-Manager</h3>
+<h3 id="fa-23-vaultwarden-passwort-manager">FA-23: Vaultwarden Passwort-Manager</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft den Vaultwarden Passwort-Manager: Deployment, Health-Endpunkt, Datenbank und SSO-Konfiguration.</p>
 </blockquote>
@@ -1040,7 +1099,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>FA-24: Kollaboratives Whiteboard</h3>
+<h3 id="fa-24-kollaboratives-whiteboard">FA-24: Kollaboratives Whiteboard</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft den Nextcloud Whiteboard-Dienst: Deployment, Service-Port und Anbindung an Nextcloud.</p>
 </blockquote>
@@ -1084,7 +1143,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>FA-25: Mailpit E-Mail-Server</h3>
+<h3 id="fa-25-mailpit-e-mail-server">FA-25: Mailpit E-Mail-Server</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft den Mailpit SMTP-Relay-Dienst für ausgehende E-Mails und die Web-UI.</p>
 </blockquote>
@@ -1133,7 +1192,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>FA-26: Bug Report Form</h3>
+<h3 id="fa-26-bug-report-form">FA-26: Bug Report Form</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft das Bug-Report-Formular auf der Website und den Admin-Inbox-Endpunkt.</p>
 </blockquote>
@@ -1177,7 +1236,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>FA-27: Systemisches Brett (3D Multiplayer)</h3>
+<h3 id="fa-27-systemisches-brett-3d-multiplayer">FA-27: Systemisches Brett (3D Multiplayer)</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft den Systemisches-Brett-Dienst: Pod, REST API, Snapshot-CRUD und WebSocket-Synchronisation.</p>
 </blockquote>
@@ -1241,7 +1300,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>FA-28: Website-Messaging (internes Chat-System)</h3>
+<h3 id="fa-28-website-messaging-internes-chat-system">FA-28: Website-Messaging (internes Chat-System)</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft das in die Website integrierte Chat-System mit Direktnachrichten, Gruppenräumen und Portal-Nachrichten.</p>
 </blockquote>
@@ -1300,7 +1359,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>FA-30: E-Rechnung / XRechnung (einvoice-sidecar)</h3>
+<h3 id="fa-30-e-rechnung--xrechnung-einvoice-sidecar">FA-30: E-Rechnung / XRechnung (einvoice-sidecar)</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft den einvoice-sidecar-Service zum Einbetten von XRechnung-/ZUGFeRD-XML in PDF/A-3-Dokumente.</p>
 </blockquote>
@@ -1339,7 +1398,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>FA-31: Admin-Monitoring Auth-Gate (Produktionstest)</h3>
+<h3 id="fa-31-admin-monitoring-auth-gate-produktionstest">FA-31: Admin-Monitoring Auth-Gate (Produktionstest)</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft, dass das Admin-Monitoring-Dashboard unter <code>/admin/monitoring</code> durch Keycloak OIDC geschützt ist. Nur im Produktions-Tier (mentolder/korczewski) durchführbar.</p>
 </blockquote>
@@ -1378,7 +1437,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen  ☐ Entfällt (kein Produktionscluster)</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>FA-32: LLM-Router bge-m3 Embeddings</h3>
+<h3 id="fa-32-llm-router-bge-m3-embeddings">FA-32: LLM-Router bge-m3 Embeddings</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft, dass der LLM-Router 1024-dimensionale bge-m3-Vektoren liefert, wenn der TEI-Dienst aktiv ist.</p>
 </blockquote>
@@ -1412,7 +1471,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen  ☐ Entfällt (kein LLM-Host)</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>FA-33: LLM-Router voyage-multilingual-2</h3>
+<h3 id="fa-33-llm-router-voyage-multilingual-2">FA-33: LLM-Router voyage-multilingual-2</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft, dass voyage-multilingual-2-Embeddings über den LLM-Router verfügbar sind, unabhängig vom TEI-Status.</p>
 </blockquote>
@@ -1441,7 +1500,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen  ☐ Entfällt (kein LLM-Host)</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>FA-34: LLM-Router strict-fail (kein silent fallback)</h3>
+<h3 id="fa-34-llm-router-strict-fail-kein-silent-fallback">FA-34: LLM-Router strict-fail (kein silent fallback)</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft, dass der LLM-Router bei deaktiviertem TEI und Modell <code>bge-m3</code> einen 5xx-Fehler zurückgibt — kein stiller Fallback auf Voyage.</p>
 </blockquote>
@@ -1475,7 +1534,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen  ☐ Entfällt (kein LLM-Host)</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>FA-35: LLM MixedEmbeddingModelError</h3>
+<h3 id="fa-35-llm-mixedembeddingmodelerror">FA-35: LLM MixedEmbeddingModelError</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft, dass gemischte Embedding-Modell-Collections (bge-m3 + voyage in einer Abfrage) explizit abgelehnt werden.</p>
 </blockquote>
@@ -1504,7 +1563,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen  ☐ Entfällt (kein LLM-Host)</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>FA-36: Rerank-Endpunkt</h3>
+<h3 id="fa-36-rerank-endpunkt">FA-36: Rerank-Endpunkt</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft den Reranking-Endpunkt des LLM-Routers: sortierte Ergebnisse, korrektes Top-1-Dokument.</p>
 </blockquote>
@@ -1533,7 +1592,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen  ☐ Entfällt (kein LLM-Host)</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>FA-37: workspace-chat Roundtrip</h3>
+<h3 id="fa-37-workspace-chat-roundtrip">FA-37: workspace-chat Roundtrip</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft den vollständigen Chat-Roundtrip über den LLM-Router mit einem 200-Token-Deutschen Prompt.</p>
 </blockquote>
@@ -1562,7 +1621,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen  ☐ Entfällt (kein LLM-Host)</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>FA-39: Arena DB-Schema und Service-Health</h3>
+<h3 id="fa-39-arena-db-schema-und-service-health">FA-39: Arena DB-Schema und Service-Health</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft den Arena-Server: Pod-Status, Health-Endpunkt und Datenbank-Schema-Bootstrap.</p>
 </blockquote>
@@ -1601,7 +1660,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>FA-40: Arena Spectator-join Smoke</h3>
+<h3 id="fa-40-arena-spectator-join-smoke">FA-40: Arena Spectator-join Smoke</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft, dass ein Spectator dem Arena-Server beitreten kann und das Protokoll valide ist.</p>
 </blockquote>
@@ -1637,7 +1696,7 @@
 <hr>
 <h1>Abschnitt 2: Sicherheitstests (SA)</h1>
 <hr>
-<h3>SA-01: Transportverschlüsselung</h3>
+<h3 id="sa-01-transportverschluesselung">SA-01: Transportverschlüsselung</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft Ingress-Routing, Security-Header und TLS-Readiness. Vollständige TLS-Tests laufen im Produktions-Tier.</p>
 </blockquote>
@@ -1681,7 +1740,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>SA-02: Authentifizierung</h3>
+<h3 id="sa-02-authentifizierung">SA-02: Authentifizierung</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft den Authentifizierungs-Mechanismus: falsches Passwort abgelehnt, OTP-Policy konfiguriert, Brute-Force-Schutz aktiv.</p>
 </blockquote>
@@ -1720,7 +1779,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>SA-03: Passwörter (Hash, Policy, kein Klartext)</h3>
+<h3 id="sa-03-passwoerter-hash-policy-kein-klartext">SA-03: Passwörter (Hash, Policy, kein Klartext)</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft, dass Passwörter gehasht gespeichert werden, eine Policy konfiguriert ist und kein Klartext in Logs auftaucht.</p>
 </blockquote>
@@ -1754,7 +1813,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>SA-04: Session-Timeout</h3>
+<h3 id="sa-04-session-timeout">SA-04: Session-Timeout</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft, dass Session-Timeouts konfiguriert und DSGVO-konform eingestellt sind.</p>
 </blockquote>
@@ -1793,7 +1852,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>SA-05: Audit-Log</h3>
+<h3 id="sa-05-audit-log">SA-05: Audit-Log</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft, dass Login-Events und Admin-Aktionen in Keycloak protokolliert werden.</p>
 </blockquote>
@@ -1832,7 +1891,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>SA-07: Backup (pg_dump, PVCs)</h3>
+<h3 id="sa-07-backup-pgdump-pvcs">SA-07: Backup (pg_dump, PVCs)</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft, dass Datenbankbackups und persistente Datenvolumina korrekt konfiguriert sind.</p>
 </blockquote>
@@ -1881,7 +1940,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>SA-08: SSO-Integration (Keycloak OIDC)</h3>
+<h3 id="sa-08-sso-integration-keycloak-oidc">SA-08: SSO-Integration (Keycloak OIDC)</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft die OIDC-Anbindung von Nextcloud und Nextcloud Talk an Keycloak.</p>
 </blockquote>
@@ -1925,7 +1984,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>SA-10: MCP-Endpunkt-Absicherung (ForwardAuth)</h3>
+<h3 id="sa-10-mcp-endpunkt-absicherung-forwardauth">SA-10: MCP-Endpunkt-Absicherung (ForwardAuth)</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft, dass der MCP-ForwardAuth-Proxy Token-Validierung korrekt durchsetzt.</p>
 </blockquote>
@@ -1964,7 +2023,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>SA-11: Arena non-admin 403</h3>
+<h3 id="sa-11-arena-non-admin-403">SA-11: Arena non-admin 403</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft, dass ein nicht-Administrator-Benutzer keinen Zugriff auf administrative Arena-Endpunkte erhält.</p>
 </blockquote>
@@ -1993,7 +2052,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>SA-12: Korczewski-Realm JWT-Akzeptanz</h3>
+<h3 id="sa-12-korczewski-realm-jwt-akzeptanz">SA-12: Korczewski-Realm JWT-Akzeptanz</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft, dass ein JWT aus dem korczewski-Keycloak-Realm vom Arena-Server (korczewski-Cluster) akzeptiert wird.</p>
 </blockquote>
@@ -2022,7 +2081,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen  ☐ Entfällt (kein korczewski-Cluster)</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>SA-13: Untrusted JWT abgelehnt</h3>
+<h3 id="sa-13-untrusted-jwt-abgelehnt">SA-13: Untrusted JWT abgelehnt</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft, dass ein JWT, das mit einem unbekannten/gefälschten Schlüssel signiert wurde, vom Arena-Server mit 401 abgelehnt wird.</p>
 </blockquote>
@@ -2053,7 +2112,7 @@
 <hr>
 <h1>Abschnitt 3: Nicht-funktionale Tests (NFA)</h1>
 <hr>
-<h3>NFA-01: Datenschutz / DSGVO</h3>
+<h3 id="nfa-01-datenschutz--dsgvo">NFA-01: Datenschutz / DSGVO</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft DSGVO-Konformität: keine US-Cloud-Images, keine externen Storage-Backends in Nextcloud, Telemetrie deaktiviert.</p>
 </blockquote>
@@ -2092,7 +2151,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>NFA-02: Performance / Antwortzeiten</h3>
+<h3 id="nfa-02-performance--antwortzeiten">NFA-02: Performance / Antwortzeiten</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft Antwortzeiten der wichtigsten Dienste. Schwellenwerte: API &lt; 3 s (k3d), &lt; 1 s (Produktion); Seitenaufbau &lt; 5 s.</p>
 </blockquote>
@@ -2136,7 +2195,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>NFA-03: Verfügbarkeit und Neustart-Resilienz</h3>
+<h3 id="nfa-03-verfuegbarkeit-und-neustart-resilienz">NFA-03: Verfügbarkeit und Neustart-Resilienz</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft automatischen Neustart nach Pod-Terminierung und Datenpersistenz.</p>
 </blockquote>
@@ -2180,7 +2239,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>NFA-04: Skalierbarkeit</h3>
+<h3 id="nfa-04-skalierbarkeit">NFA-04: Skalierbarkeit</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft horizontale Skalierung von Deployments und Rolling-Update-Strategie.</p>
 </blockquote>
@@ -2224,7 +2283,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>NFA-05: Usability / Deutsche Lokalisierung</h3>
+<h3 id="nfa-05-usability--deutsche-lokalisierung">NFA-05: Usability / Deutsche Lokalisierung</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft die Benutzerfreundlichkeit: deutsche Standardsprache, Barrierefreiheit, Ladezeiten.</p>
 </blockquote>
@@ -2268,7 +2327,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>NFA-06: Website Neustart-Resilienz</h3>
+<h3 id="nfa-06-website-neustart-resilienz">NFA-06: Website Neustart-Resilienz</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft, dass der Website-Service nach einem Rollout-Neustart wieder erreichbar ist.</p>
 </blockquote>
@@ -2307,7 +2366,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>NFA-07: Open-Source-Lizenz</h3>
+<h3 id="nfa-07-open-source-lizenz">NFA-07: Open-Source-Lizenz</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft, dass alle verwendeten Komponenten unter anerkannten Open-Source-Lizenzen stehen.</p>
 </blockquote>
@@ -2351,7 +2410,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>NFA-08: Produktions-Deployment (Hetzner/k3s)</h3>
+<h3 id="nfa-08-produktions-deployment-hetznerk3s">NFA-08: Produktions-Deployment (Hetzner/k3s)</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft, dass die Produktions-Infrastruktur (Overlays, Patches, cert-manager) vollständig vorhanden ist.</p>
 </blockquote>
@@ -2395,7 +2454,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>NFA-09: Statisches DNS (kein DDNS)</h3>
+<h3 id="nfa-09-statisches-dns-kein-ddns">NFA-09: Statisches DNS (kein DDNS)</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft, dass statische IPs verwendet werden, kein DDNS-CronJob benötigt wird und das Wildcard-TLS-Zertifikat korrekt konfiguriert ist.</p>
 </blockquote>
@@ -2434,7 +2493,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>NFA-10: Arena Health-Endpoint Performance</h3>
+<h3 id="nfa-10-arena-health-endpoint-performance">NFA-10: Arena Health-Endpoint Performance</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft, dass der Arena-Server-Health-Endpunkt unter Last performant antwortet (p95 &lt; 200 ms über 50 Requests).</p>
 </blockquote>
@@ -2463,7 +2522,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>NFA-11: GPU-VRAM nach Modell-Rotation</h3>
+<h3 id="nfa-11-gpu-vram-nach-modell-rotation">NFA-11: GPU-VRAM nach Modell-Rotation</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft, dass nach sequenziellem Laden aller 4 Ollama-Modelle der GPU-VRAM unter 14 GB bleibt und TEI-Dienste weiterhin antworten.</p>
 </blockquote>
@@ -2497,7 +2556,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen  ☐ Entfällt (kein GPU-Host)</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>NFA-12: Brainstorm-Tunnel ConfigMap-Persistenz</h3>
+<h3 id="nfa-12-brainstorm-tunnel-configmap-persistenz">NFA-12: Brainstorm-Tunnel ConfigMap-Persistenz</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft, dass die <code>brainstorm-sish-authorized-keys</code> ConfigMap Flux-Reconciliation überlebt und der Tunnel nach Pod-Neustart authentifiziert.</p>
 </blockquote>
@@ -2543,7 +2602,7 @@
 <hr>
 <h1>Abschnitt 4: Abnahmetests (AK)</h1>
 <hr>
-<h3>AK-03: Technische Machbarkeit</h3>
+<h3 id="ak-03-technische-machbarkeit">AK-03: Technische Machbarkeit</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft, dass die Plattform grundsätzlich funktioniert: Pods laufen, stabile Image-Tags werden verwendet.</p>
 </blockquote>
@@ -2582,7 +2641,7 @@
 <p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
 <p>Bemerkungen: ______________________________________________________________________________________________</p>
 <hr>
-<h3>AK-04: Prototyp-Betrieb</h3>
+<h3 id="ak-04-prototyp-betrieb">AK-04: Prototyp-Betrieb</h3>
 <blockquote>
 <p><strong>Beschreibung:</strong> Prüft den vollständigen Prototyp-Betrieb: Setup-Skript, keine proprietären Abhängigkeiten.</p>
 </blockquote>
@@ -2721,7 +2780,9 @@
 </body></html>
 </article>
 
+<nav class="prevnext" aria-label="Seitennavigation"><a class="prevnext-link prevnext-prev" href="./factory-usage.html"><span class="prevnext-label">← Zurück</span><span class="prevnext-title">Software Factory — Usage Guide</span></a><a class="prevnext-link prevnext-next" href="./tasks.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">Tasks: ticket-verlauf-anhaenge</span></a></nav>
   </main>
+</div>
 </div>
 <footer class="site-footer">
   <span>Workspace MVP — generierte Dokumentation</span>

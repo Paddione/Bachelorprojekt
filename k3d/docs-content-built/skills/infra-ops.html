@@ -10,19 +10,24 @@
 <link rel="stylesheet" href="../style.css">
 </head>
 <body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
 <header class="site-header">
   <a class="site-header-brand" href="../index.html">
     <span class="site-mark" aria-hidden="true">◆</span>
     <span class="site-wordmark">Dokumentation</span>
   </a>
 </header>
-<div id="search-overlay">
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
   <div id="search-box">
-    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
-    <div id="search-results"></div>
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
   </div>
 </div>
 <div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Dev-Workflow</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-architect.html">code-architect</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-architect.html">code-architect</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-explorer.html">code-explorer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-explorer.html">code-explorer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/code-simplifier--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--comment-analyzer.html">comment-analyzer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--comment-analyzer.html">comment-analyzer</a></li><li class="sidebar-item"><a href="../skills/dev-flow-e2e.html">dev-flow-e2e</a></li><li class="sidebar-item"><a href="../skills/dev-flow-execute.html">dev-flow-execute</a></li><li class="sidebar-item"><a href="../skills/dev-flow-plan.html">dev-flow-plan</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--pr-test-analyzer.html">pr-test-analyzer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--pr-test-analyzer.html">pr-test-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--silent-failure-hunter.html">Silent Failure Hunter</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--silent-failure-hunter.html">silent-failure-hunter</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--type-design-analyzer.html">type-design-analyzer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--type-design-analyzer.html">type-design-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Bachelorprojekt-Infra</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/cluster-deployment.html">cluster-deployment</a></li><li class="sidebar-item"><a href="../skills/database-ops.html">database-ops</a></li><li class="sidebar-item"><a href="../skills/host-node-networking.html">host-node-networking</a></li><li class="sidebar-item"><a href="../skills/keycloak-realm-sync.html">keycloak-realm-sync</a></li><li class="sidebar-item"><a href="../skills/mishap-tracker.html">mishap-tracker</a></li><li class="sidebar-item"><a href="../skills/operations-management.html">operations-management</a></li><li class="sidebar-item"><a href="../skills/secret-rotation.html">secret-rotation</a></li><li class="sidebar-item"><a href="../skills/update-dependencies.html">update-dependencies</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">KI / ML</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Plugin- &amp; Skill-Bau</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../agents/plugin-dev--agent-creator.html">agent-creator</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--agent-creator.html">agent-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--agent-development.html">agent-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--agent-development.html">agent-development</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-py.html">agent-sdk-verifier-py</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-py.html">agent-sdk-verifier-py</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-ts.html">agent-sdk-verifier-ts</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-ts.html">agent-sdk-verifier-ts</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--command-development.html">command-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--command-development.html">command-development</a></li><li class="sidebar-item"><a href="../agents/hookify--conversation-analyzer.html">conversation-analyzer</a></li><li class="sidebar-item"><a href="../agents/hookify--conversation-analyzer.html">conversation-analyzer</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--hook-development.html">hook-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--hook-development.html">hook-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--mcp-integration.html">mcp-integration</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--mcp-integration.html">mcp-integration</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-settings.html">plugin-settings</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-settings.html">plugin-settings</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-structure.html">plugin-structure</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-structure.html">plugin-structure</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--plugin-validator.html">plugin-validator</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--plugin-validator.html">plugin-validator</a></li><li class="sidebar-item"><a href="../skills/skill-creator--skill-creator.html">skill-creator</a></li><li class="sidebar-item"><a href="../skills/skill-creator--skill-creator.html">skill-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--skill-development.html">skill-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--skill-development.html">skill-development</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--skill-reviewer.html">skill-reviewer</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--skill-reviewer.html">skill-reviewer</a></li><li class="sidebar-item"><a href="../skills/hookify--writing-rules.html">writing-hookify-rules</a></li><li class="sidebar-item"><a href="../skills/hookify--writing-rules.html">writing-hookify-rules</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Browser &amp; Debugging</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers-chrome--browsing.html">browsing</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">MCP &amp; API</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/postman--agent-ready-apis.html">agent-ready-apis</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-app.html">build-mcp-app</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-app.html">build-mcp-app</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-server.html">build-mcp-server</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-server.html">build-mcp-server</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcpb.html">build-mcpb</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcpb.html">build-mcpb</a></li><li class="sidebar-item"><a href="../skills/postman--generate-spec.html">generate-spec</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--mcp-cli.html">mcp-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-cli.html">postman-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-context.html">postman-context</a></li><li class="sidebar-item"><a href="../skills/postman--postman-knowledge.html">postman-knowledge</a></li><li class="sidebar-item"><a href="../skills/postman--run-collection.html">run-collection</a></li><li class="sidebar-item"><a href="../skills/postman--send-request.html">send-request</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">Claude Code &amp; Tooling</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/brightdata-plugin--agent-onboarding.html">agent-onboarding</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brand-listening.html">brand-listening</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brd-browser-debug.html">brd-browser-debug</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-best-practices.html">bright-data-best-practices</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-mcp.html">bright-data-mcp</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brightdata-cli.html">brightdata-cli</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--proxy.html">brightdata-proxy</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--python-sdk-best-practices.html">brightdata-sdk</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--js-sdk-best-practices.html">brightdata-sdk-js</a></li><li class="sidebar-item"><a href="../skills/claude-code-setup--claude-automation-recommender.html">claude-automation-recommender</a></li><li class="sidebar-item"><a href="../skills/claude-md-management--claude-md-improver.html">claude-md-improver</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--competitive-intel.html">competitive-intel</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--data-feeds.html">data-feeds</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--design-mirror.html">design-mirror</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/dev-flow-chore.html">dev-flow-chore</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--developing-claude-code-plugins.html">developing-claude-code-plugins</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--discover-api.html">discover-api</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--finding-duplicate-functions.html">finding-duplicate-functions</a></li><li class="sidebar-item"><a href="../skills/frontend-design--frontend-design.html">frontend-design</a></li><li class="sidebar-item"><a href="../skills/frontend-design--frontend-design.html">frontend-design</a></li><li class="sidebar-item"><a href="../skills/git-workflow.html">git-workflow</a></li><li class="sidebar-item"><a href="../skills/incident-response.html">incident-response</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/infra-ops.html" aria-current="page">infra-ops</a></li><li class="sidebar-item"><a href="../skills/lavish.html">lavish</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--live-research.html">live-research</a></li><li class="sidebar-item"><a href="../skills/llm-ops.html">llm-ops</a></li><li class="sidebar-item"><a href="../skills/playground--playground.html">playground</a></li><li class="sidebar-item"><a href="../skills/playground--playground.html">playground</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--price-comparison.html">price-comparison</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--rag-pipeline.html">rag-pipeline</a></li><li class="sidebar-item"><a href="../skills/references.html">references</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scrape.html">scrape</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-builder.html">scraper-builder</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-studio.html">scraper-studio</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--search.html">search</a></li><li class="sidebar-item"><a href="../skills/sourcegraph--searching-sourcegraph.html">searching-sourcegraph</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--seo-audit.html">seo-audit</a></li><li class="sidebar-item"><a href="../skills/ticket-ops.html">ticket-ops</a></li><li class="sidebar-item"><a href="../skills/braintrust--troubleshoot-braintrust-mcp.html">troubleshoot-braintrust-mcp</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--using-tmux-for-interactive-commands.html">using-tmux-for-interactive-commands</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--windows-vm.html">windows-vm</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--working-with-claude-code.html">working-with-claude-code</a></li><li class="sidebar-item"><a href="../skills/workspace-deploy.html">workspace-deploy</a></li></ul></details>
+</aside>
   <main id="main">
 <header class="page-header">
   <div class="page-header-body">
@@ -48,12 +53,53 @@ an entry with: <code>type</code> (broken/degraded/suspicious/security/drift), <c
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#schnell-routing"><span class="toc-num">1.</span> Schnell-Routing</a></li>
 <li class="toc-item"><a href="#1--cluster-deployment"><span class="toc-num">2.</span> §1 — Cluster Deployment</a></li>
+<li class="toc-item toc-item--h3"><a href="#-mandatory-ordering-for-fresh-clusters"><span class="toc-num">–</span> ⚠️ Mandatory Ordering for Fresh Clusters</a></li>
+<li class="toc-item toc-item--h3"><a href="#phase-0--version-discovery--pinning"><span class="toc-num">–</span> Phase 0 — Version Discovery &amp; Pinning</a></li>
+<li class="toc-item toc-item--h3"><a href="#phase-1--environment-initialization"><span class="toc-num">–</span> Phase 1 — Environment Initialization</a></li>
+<li class="toc-item toc-item--h3"><a href="#phase-2--cluster-diagnosis-existing-cluster"><span class="toc-num">–</span> Phase 2 — Cluster Diagnosis (Existing Cluster)</a></li>
+<li class="toc-item toc-item--h3"><a href="#phase-5--cross-brand-fleet-operations"><span class="toc-num">–</span> Phase 5 — Cross-Brand Fleet Operations</a></li>
+<li class="toc-item toc-item--h3"><a href="#troubleshooting"><span class="toc-num">–</span> Troubleshooting</a></li>
 <li class="toc-item"><a href="#2--workspace-deploy"><span class="toc-num">3.</span> §2 — Workspace Deploy</a></li>
+<li class="toc-item toc-item--h3"><a href="#phase-1--umbrella-workspacesetup"><span class="toc-num">–</span> Phase 1 — Umbrella: workspace:setup</a></li>
+<li class="toc-item toc-item--h3"><a href="#phase-2--workspacepost-setup"><span class="toc-num">–</span> Phase 2 — workspace:post-setup</a></li>
+<li class="toc-item toc-item--h3"><a href="#phase-3--workspacetalk-setup"><span class="toc-num">–</span> Phase 3 — workspace:talk-setup</a></li>
+<li class="toc-item toc-item--h3"><a href="#phase-4--workspacerecording-setup"><span class="toc-num">–</span> Phase 4 — workspace:recording-setup</a></li>
+<li class="toc-item toc-item--h3"><a href="#phase-5--workspacetranscriber-setup"><span class="toc-num">–</span> Phase 5 — workspace:transcriber-setup</a></li>
+<li class="toc-item toc-item--h3"><a href="#phase-6--optional-provisioning"><span class="toc-num">–</span> Phase 6 — Optional Provisioning</a></li>
+<li class="toc-item toc-item--h3"><a href="#service-inventory"><span class="toc-num">–</span> Service Inventory</a></li>
 <li class="toc-item"><a href="#3--host-node-networking"><span class="toc-num">4.</span> §3 — Host Node Networking</a></li>
+<li class="toc-item toc-item--h3"><a href="#network-architecture"><span class="toc-num">–</span> Network Architecture</a></li>
+<li class="toc-item toc-item--h3"><a href="#phase-2--ufw-firewall-ports"><span class="toc-num">–</span> Phase 2 — UFW Firewall Ports</a></li>
+<li class="toc-item toc-item--h3"><a href="#phase-3--livekit-webrtc"><span class="toc-num">–</span> Phase 3 — LiveKit WebRTC</a></li>
+<li class="toc-item toc-item--h3"><a href="#troubleshooting"><span class="toc-num">–</span> Troubleshooting</a></li>
 <li class="toc-item"><a href="#4--keycloak-realm-sync"><span class="toc-num">5.</span> §4 — Keycloak Realm Sync</a></li>
+<li class="toc-item toc-item--h3"><a href="#realm-json-locations"><span class="toc-num">–</span> Realm JSON Locations</a></li>
+<li class="toc-item toc-item--h3"><a href="#phases"><span class="toc-num">–</span> Phases</a></li>
+<li class="toc-item toc-item--h3"><a href="#troubleshooting"><span class="toc-num">–</span> Troubleshooting</a></li>
 <li class="toc-item"><a href="#5--llm-ops"><span class="toc-num">6.</span> §5 — LLM Ops</a></li>
+<li class="toc-item toc-item--h3"><a href="#phase-1--gpu-host-bootstrap"><span class="toc-num">–</span> Phase 1 — GPU Host Bootstrap</a></li>
+<li class="toc-item toc-item--h3"><a href="#phase-2--deploy"><span class="toc-num">–</span> Phase 2 — Deploy</a></li>
+<li class="toc-item toc-item--h3"><a href="#phase-3--status"><span class="toc-num">–</span> Phase 3 — Status</a></li>
+<li class="toc-item toc-item--h3"><a href="#phase-4--test"><span class="toc-num">–</span> Phase 4 — Test</a></li>
+<li class="toc-item toc-item--h3"><a href="#phase-5--logs"><span class="toc-num">–</span> Phase 5 — Logs</a></li>
+<li class="toc-item toc-item--h3"><a href="#phase-6--model-management"><span class="toc-num">–</span> Phase 6 — Model Management</a></li>
+<li class="toc-item toc-item--h3"><a href="#troubleshooting"><span class="toc-num">–</span> Troubleshooting</a></li>
 <li class="toc-item"><a href="#6--secret-rotation"><span class="toc-num">7.</span> §6 — Secret Rotation</a></li>
+<li class="toc-item toc-item--h3"><a href="#scope--typ-waehlen"><span class="toc-num">–</span> Scope — Typ wählen</a></li>
+<li class="toc-item toc-item--h3"><a href="#-critical-ordering"><span class="toc-num">–</span> ⚠️ Critical Ordering</a></li>
+<li class="toc-item toc-item--h3"><a href="#typ-a--db-password-drift"><span class="toc-num">–</span> Typ A — DB-Password-Drift</a></li>
+<li class="toc-item toc-item--h3"><a href="#typ-b--neu-generieren--versiegeln"><span class="toc-num">–</span> Typ B — Neu generieren + versiegeln</a></li>
+<li class="toc-item toc-item--h3"><a href="#typ-c--keypair-refresh-nach-cluster-reset"><span class="toc-num">–</span> Typ C — Keypair Refresh (nach Cluster-Reset)</a></li>
+<li class="toc-item toc-item--h3"><a href="#typ-d--claude-code-token"><span class="toc-num">–</span> Typ D — Claude Code Token</a></li>
+<li class="toc-item toc-item--h3"><a href="#cross-brand-checklist"><span class="toc-num">–</span> Cross-Brand Checklist</a></li>
+<li class="toc-item toc-item--h3"><a href="#verification"><span class="toc-num">–</span> Verification</a></li>
+<li class="toc-item toc-item--h3"><a href="#troubleshooting-task-secretssync"><span class="toc-num">–</span> Troubleshooting (task secrets:sync)</a></li>
 <li class="toc-item"><a href="#7--database-ops"><span class="toc-num">8.</span> §7 — Database Ops</a></li>
+<li class="toc-item toc-item--h3"><a href="#-zwei-unabhaengige-shared-db-instanzen"><span class="toc-num">–</span> ⚠️ Zwei unabhängige shared-db Instanzen</a></li>
+<li class="toc-item toc-item--h3"><a href="#phase-1--schema-migration"><span class="toc-num">–</span> Phase 1 — Schema Migration</a></li>
+<li class="toc-item toc-item--h3"><a href="#phase-2--backuprestore-audit"><span class="toc-num">–</span> Phase 2 — Backup/Restore Audit</a></li>
+<li class="toc-item toc-item--h3"><a href="#phase-3--browsable-recovery-stage--browse--selective-restore"><span class="toc-num">–</span> Phase 3 — Browsable Recovery (Stage → Browse → Selective Restore)</a></li>
+<li class="toc-item toc-item--h3"><a href="#troubleshooting"><span class="toc-num">–</span> Troubleshooting</a></li>
 <li class="toc-item"><a href="#post-execution-mishap-report"><span class="toc-num">9.</span> Post-Execution: Mishap Report</a></li>
 <li class="toc-item"><a href="#archivierte-einzel-skills"><span class="toc-num">10.</span> Archivierte Einzel-Skills</a></li></ul>
 </div>
@@ -98,7 +144,7 @@ an entry with: <code>type</code> (broken/degraded/suspicious/security/drift), <c
 <hr>
 <h2 id="1--cluster-deployment">§1 — Cluster Deployment</h2>
 <p>Neues Environment aufsetzen, Fresh-Cluster-Bringup, Gap-Analyse, Cross-Brand-Fleet-Operationen.</p>
-<h3>⚠️ Mandatory Ordering for Fresh Clusters</h3>
+<h3 id="-mandatory-ordering-for-fresh-clusters">⚠️ Mandatory Ordering for Fresh Clusters</h3>
 <ol start="0">
 <li><strong>Phase 0: Version Discovery</strong> — vor jedem Install-Schritt.</li>
 <li>Hetzner-Nodes provisionen (Step 1.0) oder Proxmox (Step 1.0b).</li>
@@ -112,16 +158,16 @@ an entry with: <code>type</code> (broken/degraded/suspicious/security/drift), <c
 <li><strong>Alle Services deployen</strong> — <code>workspace:deploy</code> deckt nur die Base-Kustomization; Collabora, CoTURN, Website, Arena brauchen eigene Deploy-Tasks.</li>
 <li><strong>Ingress Accessibility Verification</strong> — <code>task workspace:check-connectivity ENV=&lt;env&gt;</code>.</li>
 </ol>
-<h3>Phase 0 — Version Discovery &amp; Pinning</h3>
+<h3 id="phase-0--version-discovery--pinning">Phase 0 — Version Discovery &amp; Pinning</h3>
 <div class="code-wrapper"><pre><code class="language-bash">bash scripts/discover-versions.sh
 # Bei Bedarf updaten:
 bash scripts/discover-versions.sh --update --commit
 source &lt;(grep -v '^#' environments/versions.yaml | sed 's/: /=/')
 export K3S_VERSION="${k3s}"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Phase 1 — Environment Initialization</h3>
-<p><strong>Step 1.0: Hetzner Nodes</strong> — Vollständige Befehle in <a href="../cluster-deployment/references/hetzner-provisioning.md"><code>cluster-deployment/references/hetzner-provisioning.md</code></a>.</p>
-<p><strong>Step 1.0b: Proxmox Nodes</strong> — <a href="../cluster-deployment/references/proxmox-provisioning.md"><code>cluster-deployment/references/proxmox-provisioning.md</code></a>.</p>
+<h3 id="phase-1--environment-initialization">Phase 1 — Environment Initialization</h3>
+<p><strong>Step 1.0: Hetzner Nodes</strong> — Vollständige Befehle in <a href="references/hetzner-provisioning-cluster.md"><code>references/hetzner-provisioning-cluster.md</code></a>.</p>
+<p><strong>Step 1.0b: Proxmox Nodes</strong> — <a href="references/proxmox-provisioning.md"><code>references/proxmox-provisioning.md</code></a>.</p>
 <div class="code-wrapper"><pre><code class="language-bash"># Step 1.1: Environment-Config anlegen
 task env:init ENV=&lt;env&gt;
 $EDITOR environments/&lt;env&gt;.yaml
@@ -149,12 +195,11 @@ kubectl patch storageclass longhorn -p '{"metadata":{"annotations":{"storageclas
 task workspace:setup ENV=&lt;env&gt;
 task workspace:coturn:deploy ENV=&lt;env&gt;
 task website:deploy ENV=&lt;env&gt;
-task arena:deploy ENV=korczewski  # korczewski only
 task workspace:admin-users-setup ENV=&lt;env&gt;
 task workspace:vaultwarden:seed ENV=&lt;env&gt;
 task workspace:check-connectivity ENV=&lt;env&gt;
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Phase 2 — Cluster Diagnosis (Existing Cluster)</h3>
+<h3 id="phase-2--cluster-diagnosis-existing-cluster">Phase 2 — Cluster Diagnosis (Existing Cluster)</h3>
 <div class="code-wrapper"><pre><code class="language-bash"># Prerequisites
 for tool in docker kubectl task k3d git kubeseal helm; do
   command -v $tool &gt;/dev/null 2&gt;&amp;1 &amp;&amp; echo "✅ $tool" || echo "❌ $tool MISSING"
@@ -169,7 +214,7 @@ kubectl --context &lt;ctx&gt; -n &lt;WORKSPACE_NAMESPACE&gt; get pods
 kubectl --context &lt;ctx&gt; -n &lt;WORKSPACE_NAMESPACE&gt; get deploy
 task workspace:check-connectivity ENV=&lt;env&gt;
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Phase 5 — Cross-Brand Fleet Operations</h3>
+<h3 id="phase-5--cross-brand-fleet-operations">Phase 5 — Cross-Brand Fleet Operations</h3>
 <div class="code-wrapper"><pre><code class="language-bash">task feature:deploy        # workspace:deploy + post-setup BOTH brands
 task feature:website       # Rebuild + rollout BOTH brands
 task workspace:verify:all-prods
@@ -179,7 +224,7 @@ task clusters:status
 task workspace:deploy ENV=mentolder
 task workspace:deploy ENV=korczewski
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Troubleshooting</h3>
+<h3 id="troubleshooting">Troubleshooting</h3>
 <table>
 <thead>
 <tr>
@@ -211,7 +256,7 @@ task workspace:deploy ENV=korczewski
 <hr>
 <h2 id="2--workspace-deploy">§2 — Workspace Deploy</h2>
 <p>Detaillierter Sub-Step-Guide für <code>workspace:setup</code> und optionale Provisioning-Tasks.</p>
-<h3>Phase 1 — Umbrella: <code>workspace:setup</code></h3>
+<h3 id="phase-1--umbrella-workspacesetup">Phase 1 — Umbrella: <code>workspace:setup</code></h3>
 <div class="code-wrapper"><pre><code class="language-bash">task workspace:setup ENV=&lt;env&gt;
 # Ruft auf: workspace:deploy → office:deploy → mcp:deploy →
 #           post-setup → talk-setup → recording-setup → transcriber-setup
@@ -219,13 +264,12 @@ task workspace:deploy ENV=korczewski
 # Prod-only stacks danach:
 task workspace:coturn:deploy ENV=&lt;env&gt;
 task website:deploy ENV=&lt;env&gt;
-task arena:deploy ENV=korczewski
 
 # Optional one-time:
 task workspace:admin-users-setup ENV=&lt;env&gt;
 task workspace:vaultwarden:seed ENV=&lt;env&gt;
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Phase 2 — <code>workspace:post-setup</code></h3>
+<h3 id="phase-2--workspacepost-setup">Phase 2 — <code>workspace:post-setup</code></h3>
 <p>Aktiviert Nextcloud-Apps, OIDC-Provider, Talk-HPB-Settings, Gruppen-Folder.</p>
 <div class="code-wrapper"><pre><code class="language-bash">task workspace:post-setup ENV=&lt;env&gt;
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
@@ -245,22 +289,22 @@ task workspace:vaultwarden:seed ENV=&lt;env&gt;
 <td><code>task keycloak:sync ENV=&lt;env&gt;</code> dann post-setup</td>
 </tr>
 </tbody></table>
-<h3>Phase 3 — <code>workspace:talk-setup</code></h3>
+<h3 id="phase-3--workspacetalk-setup">Phase 3 — <code>workspace:talk-setup</code></h3>
 <p>Konfiguriert Talk-HPB-Signaling und CoTURN-Credentials.</p>
 <div class="code-wrapper"><pre><code class="language-bash">task workspace:talk-setup ENV=&lt;env&gt;
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Phase 4 — <code>workspace:recording-setup</code></h3>
+<h3 id="phase-4--workspacerecording-setup">Phase 4 — <code>workspace:recording-setup</code></h3>
 <div class="code-wrapper"><pre><code class="language-bash">task workspace:recording-setup ENV=&lt;env&gt;
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Phase 5 — <code>workspace:transcriber-setup</code></h3>
+<h3 id="phase-5--workspacetranscriber-setup">Phase 5 — <code>workspace:transcriber-setup</code></h3>
 <div class="code-wrapper"><pre><code class="language-bash">task workspace:transcriber-setup ENV=&lt;env&gt;
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Phase 6 — Optional Provisioning</h3>
+<h3 id="phase-6--optional-provisioning">Phase 6 — Optional Provisioning</h3>
 <div class="code-wrapper"><pre><code class="language-bash">task workspace:admin-users-setup ENV=&lt;env&gt;    # SSO-Admin-User in Keycloak
 task workspace:vaultwarden:seed ENV=&lt;env&gt;      # Secret-Templates
 task workspace:vaultwarden:seed-logs ENV=&lt;env&gt; # Logs prüfen
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Service Inventory</h3>
+<h3 id="service-inventory">Service Inventory</h3>
 <table>
 <thead>
 <tr>
@@ -309,24 +353,19 @@ task workspace:vaultwarden:seed-logs ENV=&lt;env&gt; # Logs prüfen
 <td><code>web.&lt;domain&gt;</code></td>
 <td><code>website:deploy</code></td>
 </tr>
-<tr>
-<td>Arena (korczewski)</td>
-<td><code>arena-ws.korczewski.de</code></td>
-<td><code>arena:deploy ENV=korczewski</code></td>
-</tr>
 </tbody></table>
 <hr>
 <h2 id="3--host-node-networking">§3 — Host Node Networking</h2>
 <p>Hetzner-Provisioning, WireGuard-Mesh, UFW-Firewall, LiveKit-WebRTC, OpenClaw.</p>
-<h3>Network Architecture</h3>
+<h3 id="network-architecture">Network Architecture</h3>
 <div class="code-wrapper"><pre><code>[ Fleet Cluster: pk-hetzner-4/6/8 (CP) + gekko-hetzner-2/3/4 (Worker) ]
                       │  WireGuard overlay (wg-fleet)
                       ▼
 [ WSL Host / OpenClaw ] ◄──► [ GPU Worker — 10.10.0.3 ]
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Hetzner-Provisioning-Details: <a href="../host-node-networking/references/hetzner-provisioning.md"><code>host-node-networking/references/hetzner-provisioning.md</code></a>
-OpenClaw-Setup: <a href="../host-node-networking/references/wsl-openclaw.md"><code>host-node-networking/references/wsl-openclaw.md</code></a></p>
-<h3>Phase 2 — UFW Firewall Ports</h3>
+<p>Hetzner-Provisioning-Details: <a href="references/hetzner-provisioning-network.md"><code>references/hetzner-provisioning-network.md</code></a>
+OpenClaw-Setup: <a href="references/wsl-openclaw.md"><code>references/wsl-openclaw.md</code></a></p>
+<h3 id="phase-2--ufw-firewall-ports">Phase 2 — UFW Firewall Ports</h3>
 <table>
 <thead>
 <tr>
@@ -388,7 +427,7 @@ OpenClaw-Setup: <a href="../host-node-networking/references/wsl-openclaw.md"><co
 </tbody></table>
 <div class="code-wrapper"><pre><code class="language-bash">ssh patrick@&lt;node-ip&gt; "sudo ufw allow &lt;port&gt;/&lt;proto&gt; &amp;&amp; sudo ufw reload"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Phase 3 — LiveKit WebRTC</h3>
+<h3 id="phase-3--livekit-webrtc">Phase 3 — LiveKit WebRTC</h3>
 <div class="code-wrapper"><pre><code class="language-bash"># Node-Pin prüfen
 kubectl get nodes --context fleet --show-labels | grep pk-hetzner-4
 # Pin-Label setzen falls fehlend:
@@ -399,7 +438,7 @@ dig livekit.mentolder.de +short
 # Falls falsch:
 task livekit:dns-pin ENV=mentolder APPLY=true
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Troubleshooting</h3>
+<h3 id="troubleshooting">Troubleshooting</h3>
 <table>
 <thead>
 <tr>
@@ -427,7 +466,7 @@ task livekit:dns-pin ENV=mentolder APPLY=true
 <hr>
 <h2 id="4--keycloak-realm-sync">§4 — Keycloak Realm Sync</h2>
 <p>Keycloak-Realm aus JSON reconcilen — OIDC-Clients, Gruppen, Mapper, SSO-Login-Fehler.</p>
-<h3>Realm JSON Locations</h3>
+<h3 id="realm-json-locations">Realm JSON Locations</h3>
 <table>
 <thead>
 <tr>
@@ -460,8 +499,11 @@ task livekit:dns-pin ENV=mentolder APPLY=true
 <blockquote>
 <p><strong>Nie</strong> Realm-State direkt im Keycloak-Admin-UI ändern ohne das JSON zu updaten — Sync überschreibt UI-Änderungen.</p>
 </blockquote>
-<h3>Phases</h3>
-<div class="code-wrapper"><pre><code class="language-bash"># Phase 1: Pre-sync check
+<h3 id="phases">Phases</h3>
+<blockquote>
+<p><strong>Status-Reads MCP-first:</strong> Pod-Status/Logs bevorzugt über <code>mcp__mcp-kubernetes__pods_list_in_namespace({ namespace: "workspace" })</code> / <code>mcp__mcp-kubernetes__pods_log({ namespace: "workspace", name: "&lt;keycloak-pod&gt;" })</code> (read-only); die <code>task workspace:status</code>/<code>logs</code>-Aufrufe unten sind der Fallback. Mutations (<code>task secrets:sync</code>, <code>register-oidc-client.mjs</code>, deploys) bleiben unverändert.</p>
+</blockquote>
+<div class="code-wrapper"><pre><code class="language-bash"># Phase 1: Pre-sync check (Fallback — siehe MCP-first oben)
 task workspace:status ENV=&lt;env&gt;  # keycloak pod: 1/1 Running?
 task workspace:logs ENV=&lt;env&gt; -- keycloak
 
@@ -481,7 +523,7 @@ bash scripts/keycloak-ensure-mappers.sh &lt;env&gt;
 
 # Phase 6: SSO-Flow testen (Browser, Inkognito)
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Troubleshooting</h3>
+<h3 id="troubleshooting">Troubleshooting</h3>
 <table>
 <thead>
 <tr>
@@ -545,30 +587,30 @@ bash scripts/keycloak-ensure-mappers.sh &lt;env&gt;
 <p><strong>Kein in-cluster LiteLLM-Router</strong> (seit PR #895). Apps rufen Gateway-Services direkt:
 <code>llm-gateway-embed</code> → TEI bge-m3 (<code>:8081</code>); <code>llm-gateway-lmstudio</code> → LM Studio (<code>:1234</code>).</p>
 </blockquote>
-<h3>Phase 1 — GPU Host Bootstrap</h3>
+<h3 id="phase-1--gpu-host-bootstrap">Phase 1 — GPU Host Bootstrap</h3>
 <div class="code-wrapper"><pre><code class="language-bash">bash scripts/llm-host-setup.sh
 task llm:pull-models HOST=&lt;wg-mesh-ip&gt;
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Phase 2 — Deploy</h3>
+<h3 id="phase-2--deploy">Phase 2 — Deploy</h3>
 <div class="code-wrapper"><pre><code class="language-bash">task llm:deploy ENV=&lt;env&gt;
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>Benötigt in <code>environments/&lt;env&gt;.yaml</code>: <code>LLM_HOST_IP</code>, <code>LLM_ENABLED=true</code>, <code>LLM_RERANK_ENABLED=false</code>.</p>
-<h3>Phase 3 — Status</h3>
+<h3 id="phase-3--status">Phase 3 — Status</h3>
 <div class="code-wrapper"><pre><code class="language-bash">task llm:status ENV=&lt;env&gt;
 kubectl --context fleet -n &lt;ns&gt; get endpoints llm-gateway-embed llm-gateway-lmstudio
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Phase 4 — Test</h3>
+<h3 id="phase-4--test">Phase 4 — Test</h3>
 <div class="code-wrapper"><pre><code class="language-bash">task llm:test ENV=&lt;env&gt;
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Phase 5 — Logs</h3>
+<h3 id="phase-5--logs">Phase 5 — Logs</h3>
 <div class="code-wrapper"><pre><code class="language-bash">ssh &lt;GPU_HOST&gt; "docker logs tei-embed --tail 200"
 kubectl --context fleet -n &lt;ns&gt; get events --field-selector involvedObject.name=llm-gateway-embed
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Phase 6 — Model Management</h3>
+<h3 id="phase-6--model-management">Phase 6 — Model Management</h3>
 <div class="code-wrapper"><pre><code class="language-bash">task llm:pull-models HOST=&lt;wg-mesh-ip&gt;
 ssh &lt;GPU_HOST&gt; "ollama list &amp;&amp; ollama pull qwen2.5:14b-instruct-q4_K_M"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Troubleshooting</h3>
+<h3 id="troubleshooting">Troubleshooting</h3>
 <table>
 <thead>
 <tr>
@@ -600,7 +642,7 @@ ssh &lt;GPU_HOST&gt; "ollama list &amp;&amp; ollama pull qwen2.5:14b-instruct-q4
 <hr>
 <h2 id="6--secret-rotation">§6 — Secret Rotation</h2>
 <p>Sichere, geordnete Secret-Rotation auf beiden Brands.</p>
-<h3>Scope — Typ wählen</h3>
+<h3 id="scope--typ-waehlen">Scope — Typ wählen</h3>
 <table>
 <thead>
 <tr>
@@ -629,11 +671,11 @@ ssh &lt;GPU_HOST&gt; "ollama list &amp;&amp; ollama pull qwen2.5:14b-instruct-q4
 <td>Individual credential geändert</td>
 </tr>
 </tbody></table>
-<h3>⚠️ Critical Ordering</h3>
+<h3 id="-critical-ordering">⚠️ Critical Ordering</h3>
 <div class="code-wrapper"><pre><code>sealed-secrets:install → env:fetch-cert → env:generate → env:seal → workspace:deploy
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p><strong>Nie <code>workspace:deploy</code> vor <code>env:seal</code></strong> — überschreibt Production-Credentials mit Dev-Placeholdern.</p>
-<h3>Typ A — DB-Password-Drift</h3>
+<h3 id="typ-a--db-password-drift">Typ A — DB-Password-Drift</h3>
 <div class="code-wrapper"><pre><code class="language-bash"># Was ist im SealedSecret?
 kubectl get secret workspace-secrets -n &lt;NS&gt; --context &lt;CTX&gt; \
   -o jsonpath='{.data.&lt;KEY&gt;}' | base64 -d
@@ -641,7 +683,7 @@ kubectl get secret workspace-secrets -n &lt;NS&gt; --context &lt;CTX&gt; \
 task workspace:sync-db-passwords ENV=mentolder
 task workspace:sync-db-passwords ENV=korczewski
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Typ B — Neu generieren + versiegeln</h3>
+<h3 id="typ-b--neu-generieren--versiegeln">Typ B — Neu generieren + versiegeln</h3>
 <div class="code-wrapper"><pre><code class="language-bash">task env:generate ENV=&lt;env&gt;
 task env:seal ENV=&lt;env&gt;
 task secrets:sync
@@ -649,7 +691,7 @@ task workspace:restart ENV=&lt;env&gt; -- &lt;service&gt;
 git add environments/sealed-secrets/&lt;env&gt;.yaml
 git commit -m "chore(secrets): rotate &lt;env&gt; secrets"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Typ C — Keypair Refresh (nach Cluster-Reset)</h3>
+<h3 id="typ-c--keypair-refresh-nach-cluster-reset">Typ C — Keypair Refresh (nach Cluster-Reset)</h3>
 <div class="code-wrapper"><pre><code class="language-bash">task sealed-secrets:install ENV=&lt;env&gt;
 task env:fetch-cert ENV=&lt;env&gt;
 task env:seal ENV=&lt;env&gt;
@@ -657,22 +699,28 @@ git add environments/sealed-secrets/&lt;env&gt;.yaml environments/certs/&lt;env&
 git commit -m "chore(secrets): re-seal &lt;env&gt; after keypair reset"
 task workspace:deploy ENV=&lt;env&gt;
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Typ D — Claude Code Token</h3>
+<h3 id="typ-d--claude-code-token">Typ D — Claude Code Token</h3>
 <div class="code-wrapper"><pre><code class="language-bash">task claude-code:rotate-tokens
 task mcp:status
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Cross-Brand Checklist</h3>
+<h3 id="cross-brand-checklist">Cross-Brand Checklist</h3>
 <div class="code-wrapper"><pre><code class="language-bash">task env:fetch-cert ENV=mentolder &amp;&amp; task env:fetch-cert ENV=korczewski
 task env:seal ENV=mentolder &amp;&amp; task env:seal ENV=korczewski
 task workspace:deploy ENV=mentolder &amp;&amp; task workspace:deploy ENV=korczewski
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Verification</h3>
+<h3 id="verification">Verification</h3>
+<p>Status-Reads — <strong>MCP-first</strong> (<code>mcp-kubernetes</code>, read-only):</p>
+<blockquote>
+<p><code>mcp__mcp-kubernetes__pods_list_in_namespace({ namespace: "workspace" })</code> — alle Pods 1/1 Running?
+<code>mcp__mcp-kubernetes__pods_log({ namespace: "workspace", name: "&lt;keycloak|nextcloud|website&gt;-pod" })</code></p>
+</blockquote>
+<p>Fallback (mcp-kubernetes nicht erreichbar):</p>
 <div class="code-wrapper"><pre><code class="language-bash">task workspace:status ENV=&lt;env&gt;
 task workspace:logs ENV=&lt;env&gt; -- keycloak
 task workspace:logs ENV=&lt;env&gt; -- nextcloud
 task workspace:logs ENV=&lt;env&gt; -- website
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Troubleshooting (<code>task secrets:sync</code>)</h3>
+<h3 id="troubleshooting-task-secretssync">Troubleshooting (<code>task secrets:sync</code>)</h3>
 <table>
 <thead>
 <tr>
@@ -696,9 +744,9 @@ task workspace:logs ENV=&lt;env&gt; -- website
 <hr>
 <h2 id="7--database-ops">§7 — Database Ops</h2>
 <p>Schema-Migrationen, Backup/Restore-Audits, Permissions auf beiden Brands.</p>
-<h3>⚠️ Zwei unabhängige shared-db Instanzen</h3>
+<h3 id="-zwei-unabhaengige-shared-db-instanzen">⚠️ Zwei unabhängige shared-db Instanzen</h3>
 <p><code>workspace</code> (mentolder) und <code>workspace-korczewski</code> (korczewski) — Migrations und Backup-Audits immer auf <strong>beiden</strong> ausführen.</p>
-<h3>Phase 1 — Schema Migration</h3>
+<h3 id="phase-1--schema-migration">Phase 1 — Schema Migration</h3>
 <div class="code-wrapper"><pre><code class="language-bash"># Step 1.1: SQL in scripts/datamodel/ erstellen
 # BEGIN; CREATE TABLE IF NOT EXISTS ...; COMMIT;
 
@@ -721,7 +769,7 @@ task db:diagram
 git add scripts/datamodel/&lt;migration&gt;.sql docs/db-schema-diagram.md
 git commit -m "chore(db): apply migration for &lt;description&gt;"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Phase 2 — Backup/Restore Audit</h3>
+<h3 id="phase-2--backuprestore-audit">Phase 2 — Backup/Restore Audit</h3>
 <div class="code-wrapper"><pre><code class="language-bash"># Backup-Config prüfen
 kubectl get cronjob -n &lt;ns&gt; --context &lt;ctx&gt;
 kubectl get pvc backup-pvc -n &lt;ns&gt; --context &lt;ctx&gt;
@@ -740,7 +788,7 @@ bash scripts/backup-restore.sh list --context fleet -n workspace
 Der <code>filen-upload</code>-Sidecar sendet keinen TOTP-Code. Bei aktiviertem 2FA: permanenter Login-Fehler.
 Fehler prüfen: <code>kubectl get jobs -n &lt;ns&gt; --context &lt;ctx&gt; -l app=db-backup</code></p>
 </blockquote>
-<h3>Phase 3 — Browsable Recovery (Stage → Browse → Selective Restore)</h3>
+<h3 id="phase-3--browsable-recovery-stage--browse--selective-restore">Phase 3 — Browsable Recovery (Stage → Browse → Selective Restore)</h3>
 <div class="code-wrapper"><pre><code class="language-bash"># PVC vorbereiten (einmalig)
 task recovery:prepare ENV=mentolder
 task recovery:prepare ENV=korczewski
@@ -761,7 +809,7 @@ task recovery:restore-table ENV=mentolder -- &lt;ts&gt; website site_settings -y
 # Staging cleanup
 task recovery:unstage ENV=mentolder -- &lt;ts&gt; -y
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Troubleshooting</h3>
+<h3 id="troubleshooting">Troubleshooting</h3>
 <table>
 <thead>
 <tr>
@@ -799,7 +847,9 @@ task recovery:unstage ENV=mentolder -- &lt;ts&gt; -y
 </body></html>
 </article>
 
+<nav class="prevnext" aria-label="Seitennavigation"><a class="prevnext-link prevnext-prev" href="../skills/incident-response.html"><span class="prevnext-label">← Zurück</span><span class="prevnext-title">incident-response</span></a><a class="prevnext-link prevnext-next" href="../skills/lavish.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">lavish</span></a></nav>
   </main>
+</div>
 </div>
 <footer class="site-footer">
   <span>Workspace MVP — generierte Dokumentation</span>

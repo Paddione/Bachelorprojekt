@@ -658,16 +658,11 @@ The system SHALL validate PR title scopes against the semantic-PR allowlist from
 ### Requirement: Website-CI-Deploy via kubectl set image
 <!-- bats: website-ci-deploy.bats -->
 
-The system SHALL deploy the website by repointing the Deployment to the freshly built image via `kubectl set image deployment/website website=<IMAGE>:<SHA_TAG>` in both build-website workflows, and SHALL wait for rollout status after each set image command.
+The system SHALL deploy the website by repointing the Deployment to the freshly built image via `kubectl set image deployment/website website=<IMAGE>:<SHA_TAG>` in both per-brand deploy jobs of `build-website.yml`, and SHALL wait for rollout status after each set image command. The image tag SHALL be produced once by the shared `build-image` job and consumed by both deploy jobs via `needs.build-image.outputs.*`.
 
 #### Scenario: Mentolder build-website.yml existiert *(BATS)*
 - **GIVEN** das Repository ist ausgecheckt
 - **WHEN** `$REPO_ROOT/.github/workflows/build-website.yml` geprüft wird
-- **THEN** existiert die Datei
-
-#### Scenario: Korczewski build-website-korczewski.yml existiert *(BATS)*
-- **GIVEN** das Repository ist ausgecheckt
-- **WHEN** `$REPO_ROOT/.github/workflows/build-website-korczewski.yml` geprüft wird
 - **THEN** existiert die Datei
 
 #### Scenario: Mentolder Deploy repoints via kubectl set image deployment/website *(BATS)*
@@ -681,19 +676,34 @@ The system SHALL deploy the website by repointing the Deployment to the freshly 
 - **THEN** enthält die Zeile eine dieser Variablen — keine statische Digest-Referenz
 
 #### Scenario: Korczewski Deploy repoints via kubectl set image deployment/website *(BATS)*
-- **GIVEN** `build-website-korczewski.yml` ist vorhanden
+- **GIVEN** `build-website.yml` ist vorhanden
 - **WHEN** die Datei auf `kubectl set image deployment/website website=` durchsucht wird
 - **THEN** enthält die Datei dieses Muster
 
 #### Scenario: Korczewski set image verwendet SHA_TAG/IMAGE-Variable *(BATS)*
-- **GIVEN** `build-website-korczewski.yml` enthält `kubectl set image deployment/website`
+- **GIVEN** `build-website.yml` enthält `kubectl set image deployment/website`
 - **WHEN** die entsprechende Zeile auf `${SHA_TAG}` oder `${IMAGE}` geprüft wird
 - **THEN** enthält die Zeile eine dieser Variablen
 
-#### Scenario: Beide Workflows warten auf rollout status nach set image *(BATS)*
-- **GIVEN** beide Workflow-Dateien sind vorhanden
-- **WHEN** beide auf `kubectl rollout status deployment/website` geprüft werden
-- **THEN** enthalten beide Dateien dieses Muster — kein Deployment ohne Rollout-Wait
+#### Scenario: Beide Deploy-Jobs warten auf rollout status nach set image *(BATS)*
+- **GIVEN** `build-website.yml` enthält die Jobs `deploy-mentolder` und `deploy-korczewski`
+- **WHEN** beide Deploy-Jobs auf `kubectl rollout status deployment/website` geprüft werden
+- **THEN** enthält jeder Deploy-Job dieses Muster — kein Deployment ohne Rollout-Wait
+
+### Requirement: G-CD01 Brand-Parity im Website-Deploy
+<!-- bats: ci-cd.bats -->
+
+The system SHALL deploy the korczewski brand in a CI job that is structurally independent of the mentolder deploy job, so that a mentolder deploy failure does not skip or block the korczewski deploy. `build-website.yml` SHALL define a shared `build-image` job (exporting `image` + `sha_tag` outputs) and two deploy jobs `deploy-mentolder` and `deploy-korczewski`, each with `needs: [build-image]` and neither depending on the other.
+
+#### Scenario: build-image exportiert image + sha_tag als Job-Outputs *(BATS)*
+- **GIVEN** `build-website.yml` ist vorhanden
+- **WHEN** der `build-image`-Job geprüft wird
+- **THEN** definiert er die Outputs `image` und `sha_tag`
+
+#### Scenario: korczewski Deploy ist unabhängig vom mentolder Deploy *(BATS)*
+- **GIVEN** `build-website.yml` definiert `deploy-mentolder` und `deploy-korczewski`
+- **WHEN** die `needs:`-Felder beider Deploy-Jobs geprüft werden
+- **THEN** referenziert jeder Deploy-Job `build-image`, und `deploy-korczewski` listet `deploy-mentolder` NICHT in seinem `needs:`
 
 ---
 

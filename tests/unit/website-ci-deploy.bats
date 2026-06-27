@@ -10,11 +10,14 @@
 # ${IMAGE}:${SHA_TAG} and exports IMAGE/SHA_TAG to $GITHUB_ENV, so each deploy
 # step has everything it needs to do a deterministic `set image`.
 #
-# T001229 folded the standalone korczewski workflow into build-website.yml:
-# ONE shared, brand-neutral image build (ghcr.io/paddione/website) now feeds
-# TWO deploy steps — mentolder (namespace `website`) and korczewski
-# (namespace `website-korczewski`). The legacy build-website-korczewski.yml
-# was deleted. Both deploy steps live in build-website.yml and must each still
+# T001229 folded the standalone korczewski workflow into build-website.yml.
+# T001276 then split that consolidated workflow into THREE independent jobs:
+# `build-image` (one shared ghcr.io/paddione/website build, exports image +
+# sha_tag as job outputs) → `deploy-mentolder` (namespace `website`) and
+# `deploy-korczewski` (namespace `website-korczewski`), which both declare
+# `needs: [build-image]` and run in PARALLEL — neither depends on the other,
+# so a mentolder failure no longer skips the korczewski deploy. The legacy
+# build-website-korczewski.yml stays deleted. Each deploy job must still
 # `set image` to the freshly-built tag and wait for rollout.
 
 setup() {

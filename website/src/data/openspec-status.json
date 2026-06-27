@@ -201,6 +201,12 @@
       "status": "plan_staged"
     }
   ],
+  "T001198": [
+    {
+      "slug": "env-seal-empty-value-keys",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

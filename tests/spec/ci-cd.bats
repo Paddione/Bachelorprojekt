@@ -94,3 +94,27 @@ PY
   grep -q 'needs.build-image.outputs.image' "$BUILD_WF"
   grep -q 'needs.build-image.outputs.sha_tag' "$BUILD_WF"
 }
+
+# --- G-CD01 (T001276): Dockerfile lockfile must be pnpm-lock.yaml ---
+# T001224 deleted `website/package-lock.json` (pnpm migration). A reference
+# that slipped through the migration (e.g. `COPY website/package-lock.json`
+# in `website/Dockerfile`) makes every `build-website.yml` run fail at the
+# `docker build` step with `"/website/package-lock.json": not found`. Lock
+# the migration in: the Dockerfile must reference pnpm-lock.yaml + pnpm.
+
+@test "G-CD01: website/Dockerfile referenziert pnpm-lock.yaml (nicht package-lock.json)" {
+  DOCKERFILE="$REPO_ROOT/website/Dockerfile"
+  run grep -nE 'pnpm-lock\.yaml' "$DOCKERFILE"
+  [ "$status" -eq 0 ]
+  # Allow references in comments (lines starting with `#`); only forbid
+  # actual COPY/ADD/RUN/ENV lines that would break `docker build` when
+  # website/package-lock.json is gone (deleted by T001224).
+  ! grep -vE '^\s*#' "$DOCKERFILE" | grep -qE 'package-lock\.json'
+}
+
+@test "G-CD01: website/Dockerfile benutzt pnpm install (nicht npm ci)" {
+  DOCKERFILE="$REPO_ROOT/website/Dockerfile"
+  run grep -nE 'pnpm install' "$DOCKERFILE"
+  [ "$status" -eq 0 ]
+  ! grep -qE '^[^#]*\bnpm ci\b' "$DOCKERFILE"
+}

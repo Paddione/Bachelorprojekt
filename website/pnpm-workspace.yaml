@@ -22,7 +22,7 @@ minimumReleaseAgeExclude:
   - livekit-client@2.20.0
 
 overrides:
-  yaml: "^2.8.3"
+  yaml: "^2.9.0"
   esbuild: "^0.28.1"
   undici: "7.28.0"
   ws: "8.21.0"

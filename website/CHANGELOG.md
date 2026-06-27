@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.134.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.133.5...website-v1.134.0) (2026-06-27)
+
+
+### Features
+
+* **docs:** UX-Politur — Volltext-Index, Navigation, A11y [T001233] ([#2170](https://github.com/Paddione/Bachelorprojekt/issues/2170)) ([10164fd](https://github.com/Paddione/Bachelorprojekt/commit/10164fd5c1e961bd8cd925605a0f292728c665be))
+
 ## [1.133.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.133.4...website-v1.133.5) (2026-06-27)
 
 

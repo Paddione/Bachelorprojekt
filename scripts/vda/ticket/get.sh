@@ -10,6 +10,10 @@ main() {
       *)    echo "Unknown get option: $1" >&2; exit 2 ;;
     esac; done
   if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
+  # TICKET_OFFLINE=1 — refuse the read loudly so the operator knows the
+  # result is unavailable. dev-flow-execute relies on cluster reachability
+  # for state validation. See T001242 M3.
+  if _ticket_offline_refuse_read "get" "--id" "$id"; then exit 9; fi
   local pod; pod=$(_pgpod)
   _exec_sql "$pod" -v ext_id="$id" <<'EOF'
 SELECT json_build_object(

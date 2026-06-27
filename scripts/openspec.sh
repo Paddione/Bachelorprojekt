@@ -37,7 +37,55 @@ cmd_propose() {
   [[ -e "$dir" ]] && die "change '$slug' already exists at $dir"
   mkdir -p "$dir/specs"
   printf '# Proposal: %s\n\n## Why\n\n## What\n\n_Ticket: %s_\n' "$slug" "$ticket" > "$dir/proposal.md"
-  printf '# Tasks: %s\n\n- [ ] (writing-plans output goes here)\n' "$slug" > "$dir/tasks.md"
+  # Seed a plan-lint-PASS tasks.md skeleton so the plan author only fills in
+  # the body, not the frontmatter + section shape + verify-task gates. See
+  # T001242 (Mishap 2). Quoted heredoc → no shell expansion inside the fences.
+  cat > "$dir/tasks.md" <<OUTER_EOF
+---
+title: "$slug — Implementation Plan"
+ticket_id: $ticket
+domains: [plan-authoring]
+status: active
+file_locks: []
+shared_changes: false
+batch_id: null
+parent_feature: null
+depends_on_plans: []
+---
+
+# $slug — Implementation Plan
+
+_Ticket: ${ticket}_
+
+## File Structure
+
+\`\`\`
+<author fills this in — list of new/changed files>
+\`\`\`
+
+## Verify (RED → GREEN)
+
+- [ ] **Failing-Test-Step (RED).** Add the BATS test that reproduces the
+      bug. The test must FAIL on the current branch. Use the phrase
+      \`expected: FAIL\` in the step body so plan-lint STRUCT2 picks it up.
+
+\`\`\`bash
+# Example: run the BATS test the author will add in their first task
+tests/unit/lib/bats-core/bin/bats tests/spec/$slug.bats
+# expected: FAIL (red — the fix is not yet implemented)
+\`\`\`
+
+- [ ] **Fix-Step (GREEN).** Implement the fix. The BATS test from the
+      previous step must now pass.
+
+- [ ] **Final Verification.** Run the three mandatory CI gates:
+
+\`\`\`bash
+task test:changed
+task freshness:regenerate
+task freshness:check
+\`\`\`
+OUTER_EOF
   printf '## ADDED Requirements\n\n### Requirement: TODO\n\nThe system SHALL …\n\n#### Scenario: TODO\n\n- **GIVEN** …\n- **WHEN** …\n- **THEN** …\n' > "$dir/specs/$slug.md"
   echo "$ticket" > "$dir/.ticket"
   if [[ "${TICKET_OFFLINE:-0}" != "1" ]]; then

@@ -6,6 +6,8 @@ import { BlockRenderer } from '@/blocks/BlockRenderer';
 import { homepageSeed } from '@/blocks/seed';
 import type { HomepageBlocksDocumentType } from '@/blocks/schema';
 import { fieldsForBlock, getAtPath, setAtPath, BLOCK_LABELS, type FieldDef } from './blockFields';
+import { changedBlockIds } from './homepageDiff';
+import { SaveConfirmDialog, type ChangedBlockPreview } from './SaveConfirmDialog';
 
 type SaveStatus =
   | { kind: 'idle' }
@@ -100,9 +102,15 @@ function FieldInput({ def, value, onChange }: { def: FieldDef; value: any; onCha
 export function HomepageEditorPage() {
   const { authenticated, isAdmin, loading } = useAuth();
   const [doc, setDoc] = useState<HomepageBlocksDocumentType | null>(null);
+  // Baseline = the last persisted document; drives the change detection that
+  // gates the save button and the before/after confirmation preview.
+  const [originalDoc, setOriginalDoc] = useState<HomepageBlocksDocumentType | null>(null);
   const [baseVersion, setBaseVersion] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [status, setStatus] = useState<SaveStatus>({ kind: 'idle' });
+  // Live preview is collapsed by default; admins opt in via the header toggle.
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   // Load the current document once the admin gate is satisfied.
   useEffect(() => {
@@ -110,7 +118,9 @@ export function HomepageEditorPage() {
     let active = true;
     getHomepage<HomepageBlocksDocumentType>().then(({ document, version }) => {
       if (!active) return;
-      setDoc(document ?? homepageSeed);
+      const loadedDoc = document ?? homepageSeed;
+      setDoc(loadedDoc);
+      setOriginalDoc(loadedDoc);
       setBaseVersion(version);
       setLoaded(true);
     });
@@ -136,12 +146,33 @@ export function HomepageEditorPage() {
     setStatus({ kind: 'idle' });
   };
 
-  const handleSave = async () => {
+  const saving = status.kind === 'saving';
+  const changedIds = changedBlockIds(originalDoc, doc);
+  const hasChanges = changedIds.length > 0;
+
+  // Before/after pairs for the confirmation dialog — only the changed blocks,
+  // each wrapped as a single-block document so BlockRenderer renders just it.
+  const changedBlocks: ChangedBlockPreview[] =
+    originalDoc && doc
+      ? changedIds.map((id) => {
+          const before = originalDoc.blocks.find((b) => b.id === id)!;
+          const after = doc.blocks.find((b) => b.id === id)!;
+          return {
+            label: BLOCK_LABELS[after.type] ?? after.type,
+            before: { schemaVersion: doc.schemaVersion, blocks: [before] },
+            after: { schemaVersion: doc.schemaVersion, blocks: [after] },
+          };
+        })
+      : [];
+
+  // Persist only after the admin confirms the previewed changes.
+  const handleConfirm = async () => {
     if (!doc) return;
     setStatus({ kind: 'saving' });
     const r = await saveHomepage(baseVersion, doc);
     if (r.ok) {
       setBaseVersion(r.version ?? baseVersion);
+      setOriginalDoc(doc); // baseline advances → no pending changes
       setStatus({ kind: 'saved', version: r.version });
     } else if (r.status === 409) {
       setStatus({ kind: 'conflict', currentVersion: r.currentVersion });
@@ -150,6 +181,7 @@ export function HomepageEditorPage() {
     } else {
       setStatus({ kind: 'error' });
     }
+    setConfirmOpen(false);
   };
 
   return (
@@ -158,25 +190,38 @@ export function HomepageEditorPage() {
         <h1 className="font-serif font-light text-fg m-0" style={{ fontSize: 'clamp(28px, 4vw, 44px)' }}>
           Edit Homepage
         </h1>
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={status.kind === 'saving'}
-          className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-ink-900 font-medium disabled:opacity-60"
-          style={{ background: 'var(--brass)' }}
-        >
-          {status.kind === 'saving' ? 'Speichert…' : 'Speichern'}
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setPreviewOpen((v) => !v)}
+            aria-expanded={previewOpen}
+            className="rounded-full border border-line-2 px-4 py-2.5 text-[14px] font-medium text-fg"
+          >
+            {previewOpen ? 'Vorschau ausblenden' : 'Vorschau einblenden'}
+          </button>
+          <button
+            type="button"
+            onClick={() => setConfirmOpen(true)}
+            disabled={saving || !hasChanges}
+            className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-ink-900 font-medium disabled:opacity-60"
+            style={{ background: 'var(--brass)' }}
+          >
+            Speichern
+          </button>
+        </div>
       </div>
 
       <StatusBanner status={status} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div>
-          {doc.blocks.map((block, index) => {
-            const fields = fieldsForBlock(block.type);
-            return (
-              <section key={block.id} className="mb-6 rounded-lg border border-line/60 p-4">
+      <div>
+        {doc.blocks.map((block, index) => {
+          const fields = fieldsForBlock(block.type);
+          return (
+            <div
+              key={block.id}
+              className={previewOpen ? 'grid grid-cols-1 lg:grid-cols-2 gap-8 items-start mb-6' : 'mb-6'}
+            >
+              <section className="rounded-lg border border-line/60 p-4">
                 <h2 className="text-[15px] font-semibold text-fg mb-3">
                   {BLOCK_LABELS[block.type] ?? block.type}
                 </h2>
@@ -190,17 +235,25 @@ export function HomepageEditorPage() {
                   />
                 ))}
               </section>
-            );
-          })}
-        </div>
 
-        <div className="lg:sticky lg:top-[90px] self-start">
-          <div className="text-[12px] uppercase tracking-wide text-mute mb-2">Live-Vorschau</div>
-          <div className="rounded-lg border border-line/60 overflow-hidden" aria-label="Live-Vorschau">
-            <BlockRenderer document={doc} />
-          </div>
-        </div>
+              {previewOpen && (
+                <div className="self-start rounded-lg border border-line/60 overflow-hidden">
+                  <BlockRenderer document={{ schemaVersion: doc.schemaVersion, blocks: [block] }} />
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
+
+      {confirmOpen && (
+        <SaveConfirmDialog
+          changedBlocks={changedBlocks}
+          saving={saving}
+          onConfirm={handleConfirm}
+          onCancel={() => setConfirmOpen(false)}
+        />
+      )}
     </section>
   );
 }

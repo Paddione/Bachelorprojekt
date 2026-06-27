@@ -14,8 +14,8 @@ vi.mock('../../../lib/auth', () => ({
 
 import { GET } from './callback';
 
-const REACT = 'https://react.mentolder.de';
-const SITE = 'https://web.mentolder.de';
+const REACT = 'https://react.example.test';
+const SITE = 'https://web.example.test';
 
 let savedReact: string | undefined;
 let savedSite: string | undefined;
@@ -74,7 +74,7 @@ describe('callback returnTo allowlist', () => {
   });
 
   it('rejects a returnTo whose host matches the allowlist but scheme is javascript:', async () => {
-    const res = await call('javascript:alert(1)//react.mentolder.de');
+    const res = await call('javascript:alert(1)//react.example.test');
     expect(res.headers.get('Location')).toBe('/admin');
   });
 

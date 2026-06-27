@@ -22,7 +22,7 @@ vi.mock('../../../../lib/homepage-blocks-store', () => {
 import { POST } from './save';
 import { save, HomepageConflictError, HomepageValidationError } from '../../../../lib/homepage-blocks-store';
 
-const REACT = 'https://react.mentolder.de';
+const REACT = 'https://react.example.test';
 let saved: string | undefined;
 beforeEach(() => {
   saved = process.env.REACT_APP_ORIGIN;
@@ -38,7 +38,7 @@ afterEach(() => {
 
 const post = (body: any, origin: string | null = REACT) =>
   POST({
-    request: new Request('https://web.mentolder.de/api/admin/homepage/save', {
+    request: new Request('https://web.example.test/api/admin/homepage/save', {
       method: 'POST',
       headers: { 'content-type': 'application/json', ...(origin ? { Origin: origin } : {}) },
       body: JSON.stringify(body),

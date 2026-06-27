@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { corsHeaders, handlePreflight, isAllowedOrigin } from './cors';
 
-const REACT = 'https://react.mentolder.de';
+const REACT = 'https://react.example.test';
 const SECOND = 'http://react.localhost';
 const EVIL = 'https://evil.example';
 
@@ -62,13 +62,13 @@ describe('corsHeaders', () => {
 
 describe('handlePreflight', () => {
   const optionsReq = (origin: string | null) =>
-    new Request('https://web.mentolder.de/api/auth/me', {
+    new Request('https://web.example.test/api/auth/me', {
       method: 'OPTIONS',
       headers: origin ? { Origin: origin } : {},
     });
 
   it('returns null for non-OPTIONS requests', () => {
-    const get = new Request('https://web.mentolder.de/api/auth/me', { method: 'GET', headers: { Origin: REACT } });
+    const get = new Request('https://web.example.test/api/auth/me', { method: 'GET', headers: { Origin: REACT } });
     expect(handlePreflight(get)).toBeNull();
   });
 

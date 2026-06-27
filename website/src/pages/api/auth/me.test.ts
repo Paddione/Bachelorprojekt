@@ -8,7 +8,7 @@ vi.mock('../../../lib/auth', () => ({
 
 import { GET, OPTIONS } from './me';
 
-const REACT = 'https://react.mentolder.de';
+const REACT = 'https://react.example.test';
 const EVIL = 'https://evil.example';
 
 let saved: string | undefined;
@@ -23,7 +23,7 @@ afterEach(() => {
 });
 
 const req = (origin: string | null, method = 'GET') =>
-  new Request('https://web.mentolder.de/api/auth/me', {
+  new Request('https://web.example.test/api/auth/me', {
     method,
     headers: origin ? { Origin: origin } : {},
   });

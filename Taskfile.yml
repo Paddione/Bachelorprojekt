@@ -3093,6 +3093,11 @@ tasks:
   # ─────────────────────────────────────────────
   # Website (Astro + Svelte)
   # ─────────────────────────────────────────────
+  website:migrate:homepage-blocks:
+    desc: "Provision the homepage block document tables (idempotent). The website store also creates them lazily; this is the explicit operator path. Requires SESSIONS_DATABASE_URL or POSTGRES_MIGRATION_URL in the env. Pass -- --apply to execute (default: dry-run)."
+    cmds:
+      - node scripts/migrate-homepage-blocks.mjs {{.CLI_ARGS}}
+
   website:build:
     desc: "Build the Astro website Docker image (ENV=dev|mentolder|...)"
     vars:

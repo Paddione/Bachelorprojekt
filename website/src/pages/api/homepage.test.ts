@@ -7,7 +7,7 @@ vi.mock('../../lib/homepage-blocks-store', () => ({
 
 import { GET, OPTIONS } from './homepage';
 
-const REACT = 'https://react.mentolder.de';
+const REACT = 'https://react.example.test';
 let saved: string | undefined;
 beforeEach(() => {
   saved = process.env.REACT_APP_ORIGIN;
@@ -20,7 +20,7 @@ afterEach(() => {
 });
 
 const req = (origin: string | null, method = 'GET') =>
-  new Request('https://web.mentolder.de/api/homepage', {
+  new Request('https://web.example.test/api/homepage', {
     method,
     headers: origin ? { Origin: origin } : {},
   });

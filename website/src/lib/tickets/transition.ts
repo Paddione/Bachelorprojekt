@@ -1,5 +1,5 @@
 // website/src/lib/tickets/transition.ts
-import { pool } from '../website-db';
+import { pool } from '../db-pool';
 import { sendBugCloseEmail } from './email-templates';
 import { linkReporterByEmail } from './reporter-link';
 import { updateSuccessorReadiness } from '../ticket-readiness';

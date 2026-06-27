@@ -2,7 +2,7 @@
 // Re-export compat layer — content split into tickets/tables/* + tickets/migrations
 // (G-RH01 Batch 2, T001155). No API break: existing `import { initTicketsSchema }`
 // continues to work via the re-export below.
-import { pool, ensureSchemaOnce } from './website-db';
+import { pool, ensureSchemaOnce } from './db-pool';
 import { MixedEmbeddingModelError } from './knowledge-db';
 import type { EmbeddingModel } from './embeddings';
 import { initProviderConfigSchema } from './schema/provider-config-schema';

@@ -194,33 +194,5 @@
     "metric": 592,
     "detail": "592 lines > 500 limit (.mjs)",
     "frozen_at": "8b581ebe"
-  },
-  "S2:website:src/lib/invoice-pdf.ts|src/lib/native-billing.ts": {
-    "gate": "S2",
-    "path": "website",
-    "metric": 2,
-    "detail": "cycle in website: src/lib/invoice-pdf.ts → src/lib/native-billing.ts",
-    "frozen_at": "8b581ebe"
-  },
-  "S2:website:src/lib/tickets-db.ts|src/lib/website-db.ts": {
-    "gate": "S2",
-    "path": "website",
-    "metric": 2,
-    "detail": "cycle in website: src/lib/tickets-db.ts → src/lib/website-db.ts",
-    "frozen_at": "8b581ebe"
-  },
-  "S2:website:src/lib/tickets/reporter-link.ts|src/lib/tickets/transition.ts|src/lib/website-db.ts": {
-    "gate": "S2",
-    "path": "website",
-    "metric": 3,
-    "detail": "cycle in website: src/lib/website-db.ts → src/lib/tickets/transition.ts → src/lib/tickets/reporter-link.ts",
-    "frozen_at": "8b581ebe"
-  },
-  "S2:website:src/lib/tickets/transition.ts|src/lib/website-db.ts": {
-    "gate": "S2",
-    "path": "website",
-    "metric": 2,
-    "detail": "cycle in website: src/lib/website-db.ts → src/lib/tickets/transition.ts",
-    "frozen_at": "8b581ebe"
   }
 }

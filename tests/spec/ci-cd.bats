@@ -21,3 +21,27 @@ setup() {
   [ "$status" -eq 0 ]
   [ "$output" -ge 2 ]
 }
+
+@test "G-CQ03: website/eslint.config.js exists" {
+  [ -f "$REPO_ROOT/website/eslint.config.js" ]
+}
+
+@test "G-CQ03: website package.json has a lint script with --max-warnings 0" {
+  run jq -r '.scripts.lint // ""' "$REPO_ROOT/website/package.json"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"eslint"* ]]
+  [[ "$output" == *"--max-warnings 0"* ]]
+}
+
+@test "G-CQ03: ci.yml wires an ESLint gate step" {
+  grep -Eq 'eslint|lint' "$REPO_ROOT/.github/workflows/ci.yml"
+  grep -q -- '--max-warnings 0' "$REPO_ROOT/.github/workflows/ci.yml"
+}
+
+@test "G-CQ03: ESLint runs clean (0 warnings) when deps are installed" {
+  if [ ! -x "$REPO_ROOT/website/node_modules/.bin/eslint" ]; then
+    skip "website deps not installed in this context — enforced by CI vitest-website job"
+  fi
+  run bash -c "cd '$REPO_ROOT/website' && ./node_modules/.bin/eslint . --max-warnings 0"
+  [ "$status" -eq 0 ]
+}

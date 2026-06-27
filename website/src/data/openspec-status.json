@@ -207,15 +207,9 @@
       "status": "plan_staged"
     }
   ],
-  "T001203": [
+  "T001204": [
     {
-      "slug": "g-cd02-post-merge-race-guard",
-      "status": "plan_staged"
-    }
-  ],
-  "T001207": [
-    {
-      "slug": "g-fe02-bundle-budget",
+      "slug": "g-cq03-eslint-website",
       "status": "plan_staged"
     }
   ],

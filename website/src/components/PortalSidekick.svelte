@@ -152,7 +152,7 @@
 
   function openDrawer() { open = true; view = 'home'; }
   function closeDrawer() { open = false; }
-  function toggleDrawer() { open ? closeDrawer() : openDrawer(); }
+  function toggleDrawer() { if (open) closeDrawer(); else openDrawer(); }
   function onKeydown(e: KeyboardEvent) { if (e.key === 'Escape' && open) closeDrawer(); }
   function navigate(v: View) { pendingJump = null; view = v; }
 </script>

@@ -13,7 +13,7 @@
     pathname: string;
     /** Reference to LanguageSwitcher.svelte (passed in to avoid eager
      *  import-cycle / Svelte 5 instance issues). */
-    LanguageSwitcher: ConstructorOfATypedSvelteComponent;
+    LanguageSwitcher: any;
   }
 
   let {

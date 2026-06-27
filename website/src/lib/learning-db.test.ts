@@ -25,7 +25,7 @@ import type { Pool } from 'pg';
 // require() inside the hoisted block — top-level ESM imports are NOT yet evaluated
 // when this runs.
 const { memPool } = vi.hoisted(() => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
+   
   const { newDb, DataType } = require('pg-mem');
   const pgmem = newDb();
   pgmem.public.registerFunction({

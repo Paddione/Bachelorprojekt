@@ -253,11 +253,11 @@ const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
 
     <script is:inline>
       (function() {
-        var btn = document.getElementById('sidebar-toggle');
+        const btn = document.getElementById('sidebar-toggle');
         if (btn) {
-          var collapsed = document.documentElement.classList.contains('sidebar-collapsed');
+          let collapsed = document.documentElement.classList.contains('sidebar-collapsed');
           function updateState(isCollapsed) {
-            var label = isCollapsed ? 'Sidebar ausklappen' : 'Sidebar einklappen';
+            const label = isCollapsed ? 'Sidebar ausklappen' : 'Sidebar einklappen';
             btn.title = label;
             btn.setAttribute('aria-label', label);
             btn.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
@@ -270,11 +270,11 @@ const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
           });
         }
 
-        var hamburger = document.getElementById('mobile-hamburger');
-        var backdrop = document.getElementById('admin-backdrop');
-        var sidebar = document.getElementById('admin-sidebar');
-        var iconOpen = document.getElementById('hamburger-icon-open');
-        var iconClose = document.getElementById('hamburger-icon-close');
+        const hamburger = document.getElementById('mobile-hamburger');
+        const backdrop = document.getElementById('admin-backdrop');
+        const sidebar = document.getElementById('admin-sidebar');
+        const iconOpen = document.getElementById('hamburger-icon-open');
+        const iconClose = document.getElementById('hamburger-icon-close');
 
         function openMobileSidebar() {
           sidebar.classList.add('mobile-open');
@@ -307,38 +307,38 @@ const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
           });
         }
 
-        var ticker = document.getElementById('ka-cluster-ticker');
+        const ticker = document.getElementById('ka-cluster-ticker');
         if (ticker) {
-          var refresh = function() {
-            var ctrl = new AbortController();
-            var t = setTimeout(function() { ctrl.abort(); }, 3000);
-            fetch('/api/cluster/status', { signal: ctrl.signal })
-              .then(function(r) { return r.ok ? r.json() : null; })
-              .then(function(s) {
-                clearTimeout(t);
-                if (!s || typeof s.nodes !== 'number' || typeof s.pods !== 'number') return;
-                while (ticker.firstChild) ticker.removeChild(ticker.firstChild);
-                var dot = document.createElement('span'); dot.className = 'ka-ticker-dot'; ticker.appendChild(dot);
-                var nodesB = document.createElement('b'); nodesB.textContent = String(s.nodes); ticker.appendChild(nodesB);
-                ticker.appendChild(document.createTextNode(' Nodes '));
-                var pods = document.createElement('span'); pods.style.color = 'var(--mute)'; pods.textContent = String('· ' + s.pods + ' Pods'); ticker.appendChild(pods);
-              })
-              .catch(function() { clearTimeout(t); });
-          };
+          const refresh = function() {
+      const ctrl = new AbortController();
+      const t = setTimeout(function() { ctrl.abort(); }, 3000);
+      fetch('/api/cluster/status', { signal: ctrl.signal })
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(s) {
+          clearTimeout(t);
+          if (!s || typeof s.nodes !== 'number' || typeof s.pods !== 'number') return;
+          while (ticker.firstChild) ticker.removeChild(ticker.firstChild);
+          const dot = document.createElement('span'); dot.className = 'ka-ticker-dot'; ticker.appendChild(dot);
+          const nodesB = document.createElement('b'); nodesB.textContent = String(s.nodes); ticker.appendChild(nodesB);
+          ticker.appendChild(document.createTextNode(' Nodes '));
+          const pods = document.createElement('span'); pods.style.color = 'var(--mute)'; pods.textContent = String('· ' + s.pods + ' Pods'); ticker.appendChild(pods);
+        })
+        .catch(function() { clearTimeout(t); });
+    };
           refresh();
           setInterval(refresh, 30000);
         }
 
         function setAdminInboxBadgeCount(n) {
-          var nodes = document.querySelectorAll('[data-admin-inbox-badge]');
-          for (var i = 0; i < nodes.length; i++) {
-            var el = nodes[i]; el.setAttribute('data-count', String(n)); el.textContent = String(n);
+          const nodes = document.querySelectorAll('[data-admin-inbox-badge]');
+          for (let i = 0; i < nodes.length; i++) {
+            const el = nodes[i]; el.setAttribute('data-count', String(n)); el.textContent = String(n);
             el.style.display = n > 0 ? 'flex' : 'none';
           }
         }
         function refreshAdminInboxBadge() {
-          var ctrl = new AbortController();
-          var t = setTimeout(function() { ctrl.abort(); }, 5000);
+          const ctrl = new AbortController();
+          const t = setTimeout(function() { ctrl.abort(); }, 5000);
           fetch('/api/admin/inbox/count', { signal: ctrl.signal, credentials: 'same-origin' })
             .then(function(r) { return r.ok ? r.json() : null; })
             .then(function(d) { clearTimeout(t); if (!d || typeof d.total !== 'number') return; setAdminInboxBadgeCount(d.total); })
@@ -347,7 +347,7 @@ const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
         window.refreshAdminInboxBadge = refreshAdminInboxBadge;
         window.setAdminInboxBadgeCount = setAdminInboxBadgeCount;
         window.addEventListener('admin-inbox-changed', function(ev) {
-          var detail = ev && ev.detail;
+          const detail = ev && ev.detail;
           if (detail && typeof detail.total === 'number') setAdminInboxBadgeCount(detail.total);
           else refreshAdminInboxBadge();
         });

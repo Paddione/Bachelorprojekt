@@ -188,6 +188,11 @@ jobs:
           cd website
           pnpm install --frozen-lockfile
 
+      - name: Run ESLint (--max-warnings 0 fail-closed gate)
+        run: |
+          cd website
+          pnpm lint
+
       - name: Run website unit tests
         # Default 5s per-test timeout is too tight for DB-heavy tests
         # (e.g. tickets/cockpit-db.test.ts seeds 1005 rows) when vitest

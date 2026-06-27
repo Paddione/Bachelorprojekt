@@ -62,11 +62,11 @@ im Code — Origins kommen aus Env (`VITE_WEBSITE_ORIGIN`, `REACT_APP_ORIGIN`); 
 
 ## Task 1: Website — server-seitiges Block-Schema + Paritäts-Test
 
-- [ ] `website/src/lib/homepage-blocks-schema.test.ts` schreiben: parst den `homepageSeed` und ein
+- [x] `website/src/lib/homepage-blocks-schema.test.ts` schreiben: parst den `homepageSeed` und ein
       minimal-gültiges Dokument; assertet Ablehnung bei unbekanntem Block-`type`. Lauf → expected: FAIL.
-- [ ] `website/src/lib/homepage-blocks-schema.ts` als Kopie der zod-Schemas aus
+- [x] `website/src/lib/homepage-blocks-schema.ts` als Kopie der zod-Schemas aus
       `mentolder-web/src/blocks/schema.ts` anlegen (`HomepageBlocksDocument`, `SCHEMA_VERSION`).
-- [ ] Paritäts-Assertion ergänzen: dieselben Block-`type`-Literale wie das React-Schema. Tests → grün. Commit.
+- [x] Paritäts-Assertion ergänzen: dieselben Block-`type`-Literale wie das React-Schema. Tests → grün. Commit.
 
 ## Task 2: Website — CORS-Allowlist-Helper
 

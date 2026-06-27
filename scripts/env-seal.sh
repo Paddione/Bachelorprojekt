@@ -12,6 +12,7 @@
 #   environments/sealed-secrets/<name>.yaml
 # ═══════════════════════════════════════════════════════════════════
 set -euo pipefail
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # ── Globals ──────────────────────────────────────────────────────
 ENV_NAME=""
 ENV_DIR="environments"
@@ -408,111 +409,10 @@ kubeseal --cert "$CERT_FILE" \
   || die "kubeseal encryption failed"
 
 # ── Seal extra-namespace secrets (extra_namespaces in schema) ────
-#
-# For each unique (namespace, secret) pair declared in schema's
-# extra_namespaces, build a Secret manifest containing only the
-# relevant keys and append it as an additional YAML document.
-
-seal_extra_namespace_secrets() {
-  local schema_file="$1"
-  local secrets_file="$2"
-  local cert_file="$3"
-  local output_file="$4"
-
-  # Parse schema via python/PyYAML — handles optional dest_key (destination key
-  # name in the target Secret, defaults to source key name). Emits one line per
-  # (src_key, namespace, secret, dest_key) tuple, tab-separated.
-  local entries
-  entries=$(SCHEMA="$schema_file" WORKSPACE_NS="${WORKSPACE_NS}" WEBSITE_NS="${WEBSITE_NS}" python3 <<'PY'
-import os, sys, yaml
-with open(os.environ["SCHEMA"]) as f:
-    schema = yaml.safe_load(f) or {}
-workspace_ns = os.environ.get("WORKSPACE_NS", "workspace")
-website_ns = os.environ.get("WEBSITE_NS", "website")
-ns_remap = {"workspace": workspace_ns, "website": website_ns}
-for entry in schema.get("secrets") or []:
-    src = entry["name"]
-    for mapping in entry.get("extra_namespaces") or []:
-        ns = ns_remap.get(mapping["namespace"], mapping["namespace"])
-        sec = mapping["secret"]
-        dest = mapping.get("dest_key") or src
-        print(f"{src}\t{ns}\t{sec}\t{dest}")
-PY
-)
-
-  if [[ -z "$entries" ]]; then
-    return 0
-  fi
-
-  # Group entries by (namespace, secret); each entry is "src:=:dest"
-  declare -A ns_map=()
-  while IFS=$'\t' read -r src ns sec dest; do
-    [[ -z "$src" ]] && continue
-    local pair="${ns}|${sec}"
-    local mapping="${src}:=:${dest}"
-    if [[ -v ns_map[$pair] ]]; then
-      ns_map["$pair"]="${ns_map[$pair]} ${mapping}"
-    else
-      ns_map["$pair"]="${mapping}"
-    fi
-  done <<< "$entries"
-
-  # Read all plaintext secrets into an associative array
-  declare -A secret_vals
-  while IFS= read -r line; do
-    [[ "$line" =~ ^[[:space:]]*# ]] && continue
-    [[ -z "${line// /}" ]] && continue
-    if [[ "$line" =~ ^([A-Za-z0-9_]+):[[:space:]]*(.*)$ ]]; then
-      local k="${BASH_REMATCH[1]}" v="${BASH_REMATCH[2]}"
-      v="${v%\"}"; v="${v#\"}"; v="${v%\'}"; v="${v#\'}"
-      secret_vals["$k"]="$v"
-    fi
-  done < "$secrets_file"
-
-  # Seal one SealedSecret per (namespace, secret) pair
-  for pair in "${!ns_map[@]}"; do
-    local ns="${pair%%|*}"
-    local sname="${pair##*|}"
-    local mappings="${ns_map[$pair]}"
-
-    local tmp_manifest
-    tmp_manifest=$(mktemp)
-
-    local dest_list=""
-    {
-      echo "apiVersion: v1"
-      echo "kind: Secret"
-      echo "metadata:"
-      echo "  name: ${sname}"
-      echo "  namespace: ${ns}"
-      echo "type: Opaque"
-      echo "stringData:"
-      for m in $mappings; do
-        local src="${m%%:=:*}"
-        local dest="${m##*:=:}"
-        local val="${secret_vals[$src]:-}"
-        [[ -z "$val" ]] && { echo "WARNING: key ${src} not found in secrets file — skipping ${dest} in ${sname}" >&2; continue; }
-        echo "  ${dest}: \"${val}\""
-        dest_list="${dest_list} ${dest}"
-      done
-    } > "$tmp_manifest"
-
-    if [[ -z "${dest_list}" ]]; then
-      echo "INFO: Skipping ${ns}/${sname} — no keys present in secrets file." >&2
-      rm -f "$tmp_manifest"
-      continue
-    fi
-
-    info "Encrypting ${ns}/${sname} (keys:${dest_list}) with kubeseal..."
-    {
-      echo "---"
-      kubeseal --cert "$cert_file" --format yaml < "$tmp_manifest"
-    } >> "$output_file" \
-      || die "kubeseal encryption failed for ${ns}/${sname}"
-
-    rm -f "$tmp_manifest"
-  done
-}
+# Implementation moved to scripts/lib/seal-extra-namespaces.sh
+# (T001198, G-CD01 root-cause). Sourced here as a library.
+# shellcheck source=scripts/lib/seal-extra-namespaces.sh
+source "${SCRIPT_DIR}/lib/seal-extra-namespaces.sh"
 
 seal_extra_namespace_secrets "$SCHEMA" "$SECRETS_FILE" "$CERT_FILE" "$OUTPUT"
 

@@ -2,7 +2,7 @@
 title: "docs-ux-polish — UX-Politur der Docs-Seite"
 ticket_id: T001233
 domains: [docs]
-status: plan_staged
+status: implemented
 ---
 
 # docs-ux-polish — Implementation Plan
@@ -139,7 +139,7 @@ Neues Build-Artefakt: `search-index.json` (≤ 2 MB). Serving-Kette (Image, OIDC
   - S1-budget: Test-Dateien (keine .mjs-Prod-Limits relevant, aber < 500 halten).
   - accept: `node --test scripts/docs-gen/*.test.mjs` grün inkl. der neuen Smokes; `search-index.json`-Größenassertion ≤ 2 MB scheitert nicht.
 
-- [ ] 5.2 **Finaler Verifikations-Task** (Reihenfolge einhalten, alle grün vor Commit):
+- [x] 5.2 **Finaler Verifikations-Task** (Reihenfolge einhalten, alle grün vor Commit):
   - `task test:changed` — gezielte Tests für geänderte Domains (docs-gen Node-Tests + quality).
   - `task freshness:regenerate` — generierte Artefakte aktualisieren.
   - `task freshness:check` — CI-Äquivalent: Freshness + `quality:check` (S1-S4-Ratchet) + Baseline-Key-Count-Assertion.

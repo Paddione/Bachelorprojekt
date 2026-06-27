@@ -1,9 +1,9 @@
 // website/src/lib/tickets/tables/factory-control.ts
 // DDL for tickets.factory_control, factory_phase_events, ticket_injections.
 // Extracted from tickets-db.ts (G-RH01 Batch 2 — T001155).
-import { pool } from '../../website-db';
+import type { Pool, PoolClient } from 'pg';
 
-export async function applyFactoryControlSchema(): Promise<void> {
+export async function applyFactoryControlSchema(pool: Pool | PoolClient): Promise<void> {
   // Phase 3 Software Factory: factory_control is the runtime control plane —
   // global kill-switch, per-brand daily-deploy cap counter, dry-run markers.
   // brand NULL = global. Read fresh per dispatcher tick, fail-closed on error.

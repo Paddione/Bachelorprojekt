@@ -31,10 +31,12 @@ describe('factory: inert pg_notify trigger on feature inserts', () => {
     expect(ALL_SRC).toMatch(/NOT[- ]CONSUMED|not consumed in (P3|Phase 3)/i)
   })
 
-  it('tickets-db.ts still calls applyLegacyMigrations() so the trigger installs', () => {
+  it('tickets-db.ts still calls applyLegacyMigrations(pool) so the trigger installs', () => {
     // Regression guard for the G-RH01 Batch 2 split: the inert pg_notify
     // plumbing is in tickets/migrations.ts now; without this call, initTicketsSchema
-    // would skip it and the trigger would never be installed.
-    expect(SRC).toMatch(/applyLegacyMigrations\s*\(\s*\)/)
+    // would skip it and the trigger would never be installed. The module takes
+    // `pool` as a parameter (no longer imports from website-db) to break the
+    // import cycle that the monolithic file had implicitly avoided.
+    expect(SRC).toMatch(/applyLegacyMigrations\s*\(\s*pool\s*\)/)
   })
 })

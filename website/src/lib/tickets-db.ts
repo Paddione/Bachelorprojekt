@@ -33,10 +33,10 @@ export async function initTicketsSchema(): Promise<void> {
       await client.query(`SELECT pg_advisory_lock(hashtext('init:tickets'))`);
       try {
         await pool.query(`CREATE SCHEMA IF NOT EXISTS tickets AUTHORIZATION website`);
-        await applyTicketsCoreSchema();
-        await applyFactoryControlSchema();
-        await applySystemtestLinkback();
-        await applyLegacyMigrations();
+        await applyTicketsCoreSchema(pool);
+        await applyFactoryControlSchema(pool);
+        await applySystemtestLinkback(pool);
+        await applyLegacyMigrations(pool);
         await initProviderConfigSchema(client);
         schemaReady = true;
       } finally {

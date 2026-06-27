@@ -4,10 +4,10 @@
 // ticket_watchers, tags, feature_flags, ticket_tags, pr_events, qa_reviews,
 // plus related indexes, triggers, and views. Extracted from tickets-db.ts
 // (G-RH01 Batch 2 — T001155).
-import { pool } from '../../website-db';
+import type { Pool, PoolClient } from 'pg';
 import { ensureCockpitViews } from '../cockpit-schema';
 
-export async function applyTicketsCoreSchema(): Promise<void> {
+export async function applyTicketsCoreSchema(pool: Pool | PoolClient): Promise<void> {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS tickets.tickets (
       id              UUID        PRIMARY KEY DEFAULT gen_random_uuid(),

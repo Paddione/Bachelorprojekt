@@ -4,9 +4,9 @@
 // canonical owner systemtest/db.ts — we add the columns and unique indexes
 // here so a tickets-only init path doesn't break before systemtest/db.ts
 // has a chance to install the FKs.
-import { pool } from '../../website-db';
+import type { Pool, PoolClient } from 'pg';
 
-export async function applySystemtestLinkback(): Promise<void> {
+export async function applySystemtestLinkback(pool: Pool | PoolClient): Promise<void> {
   // Test-run linkback columns. Mirrored in `systemtest/db.ts` (the canonical
   // owner — that module also installs FKs to test_runs/test_results /
   // questionnaire_questions once those tables exist). We add the columns here

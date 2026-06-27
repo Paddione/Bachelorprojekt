@@ -2,9 +2,9 @@
 // Legacy ALTER TABLE patches + deprecated table + global T-number sequence +
 // audit/cycle/lifecycle triggers + fn_purge_test_data + notify_feature_inserted.
 // Extracted from tickets-db.ts (G-RH01 Batch 2 — T001155).
-import { pool } from '../website-db';
+import type { Pool, PoolClient } from 'pg';
 
-export async function applyLegacyMigrations(): Promise<void> {
+export async function applyLegacyMigrations(pool: Pool | PoolClient): Promise<void> {
   // Idempotent column additions for older schema versions where CREATE TABLE IF NOT EXISTS skipped creation
   await pool.query(`
     ALTER TABLE tickets.tickets

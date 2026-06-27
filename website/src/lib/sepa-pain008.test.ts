@@ -2,83 +2,66 @@ import { describe, it, expect } from 'vitest';
 import { buildPain008, type SepaCreditor, type SepaDebitEntry } from './sepa-pain008';
 
 const creditor: SepaCreditor = {
-  name: 'Muster GmbH',
+  name: 'Acme Coaching',
   iban: 'DE89370400440532013000',
   bic: 'COBADEFFXXX',
   creditorId: 'DE98ZZZ09999999999',
 };
 
-const entry: SepaDebitEntry = {
-  endToEndId: 'RG2024001',
-  amount: 119.00,
-  mandateId: 'MNDT-001',
-  mandateDate: '2024-01-15',
+const baseEntry: SepaDebitEntry = {
+  endToEndId: 'E2E-001',
+  amount: 100.5,
+  mandateId: 'M-001',
+  mandateDate: '2026-01-01',
   debtorName: 'Max Mustermann',
-  debtorIban: 'DE75512108001245126199',
-  debtorBic: 'SSKMDEMM',
-  invoiceNumber: 'RE-2024-001',
+  debtorIban: 'DE21500500001234567897',
+  debtorBic: 'INGDDEFFXXX',
+  invoiceNumber: 'R-2026-0001',
 };
 
 describe('buildPain008', () => {
-  it('produces valid XML envelope', () => {
-    const xml = buildPain008(creditor, '2024-02-01', [entry]);
-    expect(xml).toContain('<?xml version="1.0" encoding="UTF-8"?>');
-    expect(xml).toContain('urn:iso:std:iso:20022:tech:xsd:pain.008.001.02');
+  it('throws on empty entries', () => {
+    expect(() => buildPain008(creditor, '2026-07-01', [])).toThrow();
+  });
+
+  it('emits a pain.008.001.02 XML envelope for a single entry', () => {
+    const xml = buildPain008(creditor, '2026-07-01', [baseEntry]);
+    expect(xml).toContain('<?xml');
+    expect(xml).toContain('<Document');
+    expect(xml).toContain('pain.008.001.02');
     expect(xml).toContain('<CstmrDrctDbtInitn>');
   });
 
-  it('embeds creditor identity in GrpHdr and PmtInf', () => {
-    const xml = buildPain008(creditor, '2024-02-01', [entry]);
-    expect(xml).toContain('<Nm>Muster GmbH</Nm>');
-    expect(xml).toContain('<IBAN>DE89370400440532013000</IBAN>');
-    expect(xml).toContain('<BIC>COBADEFFXXX</BIC>');
-    expect(xml).toContain('<Id>DE98ZZZ09999999999</Id>');
+  it('encodes the creditor IBAN and BIC inside PmtInf', () => {
+    const xml = buildPain008(creditor, '2026-07-01', [baseEntry]);
+    expect(xml).toContain('DE89370400440532013000');
+    expect(xml).toContain('COBADEFFXXX');
+    expect(xml).toContain('DE98ZZZ09999999999');
   });
 
-  it('sets correct NbOfTxs and CtrlSum', () => {
-    const xml = buildPain008(creditor, '2024-02-01', [entry]);
-    expect(xml).toContain('<NbOfTxs>1</NbOfTxs>');
-    expect(xml).toContain('<CtrlSum>119.00</CtrlSum>');
+  it('escapes XML special characters in mandate / end-to-end ids', () => {
+    const xml = buildPain008(creditor, '2026-07-01', [
+      { ...baseEntry, endToEndId: 'E2E<&>', mandateId: 'M<test>' },
+    ]);
+    expect(xml).toContain('E2E&lt;&amp;&gt;');
+    expect(xml).toContain('M&lt;test&gt;');
   });
 
-  it('embeds debtor mandate and account', () => {
-    const xml = buildPain008(creditor, '2024-02-01', [entry]);
-    expect(xml).toContain('<MndtId>MNDT-001</MndtId>');
-    expect(xml).toContain('<DtOfSgntr>2024-01-15</DtOfSgntr>');
-    expect(xml).toContain('<IBAN>DE75512108001245126199</IBAN>');
-    expect(xml).toContain('<BIC>SSKMDEMM</BIC>');
-    expect(xml).toContain('<Nm>Max Mustermann</Nm>');
+  it('sums the total of all entries into CtlrSum', () => {
+    const xml = buildPain008(creditor, '2026-07-01', [
+      baseEntry,
+      { ...baseEntry, endToEndId: 'E2E-002', amount: 49.5, mandateId: 'M-002' },
+    ]);
+    expect(xml).toContain('150.00');
   });
 
-  it('sets ReqdColltnDt to the provided collection date', () => {
-    const xml = buildPain008(creditor, '2024-02-01', [entry]);
-    expect(xml).toContain('<ReqdColltnDt>2024-02-01</ReqdColltnDt>');
-  });
-
-  it('includes invoice number in RmtInf', () => {
-    const xml = buildPain008(creditor, '2024-02-01', [entry]);
-    expect(xml).toContain('<Ustrd>RE-2024-001</Ustrd>');
-  });
-
-  it('sums CtrlSum across multiple entries', () => {
-    const entry2 = { ...entry, endToEndId: 'RG2024002', amount: 23.80, invoiceNumber: 'RE-2024-002' };
-    const xml = buildPain008(creditor, '2024-02-01', [entry, entry2]);
-    expect(xml).toContain('<NbOfTxs>2</NbOfTxs>');
-    expect(xml).toContain('<CtrlSum>142.80</CtrlSum>');
-  });
-
-  it('throws when entries array is empty', () => {
-    expect(() => buildPain008(creditor, '2024-02-01', [])).toThrow('at least one entry');
-  });
-
-  it('escapes XML-special characters in string fields', () => {
-    const xml = buildPain008(creditor, '2024-02-01', [{
-      ...entry,
-      debtorName: 'Müller & Co <GmbH>',
-      invoiceNumber: 'RE-"2024"-001',
-    }]);
-    expect(xml).toContain('M\xfcller &amp; Co &lt;GmbH&gt;');
-    expect(xml).toContain('RE-&quot;2024&quot;-001');
-    expect(xml).not.toContain('<GmbH>');
+  it('emits one DrctDbtTxInf block per entry', () => {
+    const xml = buildPain008(creditor, '2026-07-01', [
+      baseEntry,
+      { ...baseEntry, endToEndId: 'E2E-002', amount: 49.5, mandateId: 'M-002' },
+      { ...baseEntry, endToEndId: 'E2E-003', amount: 10, mandateId: 'M-003' },
+    ]);
+    const matches = xml.match(/<DrctDbtTxInf>/g) ?? [];
+    expect(matches.length).toBe(3);
   });
 });

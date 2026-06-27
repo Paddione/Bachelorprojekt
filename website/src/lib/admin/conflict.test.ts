@@ -2,19 +2,30 @@ import { describe, it, expect } from 'vitest';
 import { isConflict, nextVersion } from './conflict';
 
 describe('isConflict', () => {
-  it('flags a stale base version', () => {
-    expect(isConflict(3, 2)).toBe(true);   // current=3, base=2 → someone saved
-  });
-  it('allows a matching base version', () => {
-    expect(isConflict(2, 2)).toBe(false);
-  });
-  it('treats a null current row (brand-new key) as no conflict when base is 0', () => {
+  it('returns false when currentVersion is null and base is 0', () => {
     expect(isConflict(null, 0)).toBe(false);
-    expect(isConflict(null, 1)).toBe(true); // editor thinks it had v1 but row is gone
+  });
+
+  it('returns true when currentVersion is null and base is non-zero', () => {
+    expect(isConflict(null, 1)).toBe(true);
+  });
+
+  it('returns false when versions match', () => {
+    expect(isConflict(5, 5)).toBe(false);
+  });
+
+  it('returns true when versions differ', () => {
+    expect(isConflict(5, 6)).toBe(true);
   });
 });
 
 describe('nextVersion', () => {
-  it('starts at 1 for a new row', () => { expect(nextVersion(null)).toBe(1); });
-  it('increments an existing row', () => { expect(nextVersion(4)).toBe(5); });
+  it('treats null as 0 and increments', () => {
+    expect(nextVersion(null)).toBe(1);
+  });
+
+  it('returns current+1 for non-null values', () => {
+    expect(nextVersion(0)).toBe(1);
+    expect(nextVersion(4)).toBe(5);
+  });
 });

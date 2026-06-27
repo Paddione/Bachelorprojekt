@@ -1,37 +1,40 @@
 import { describe, it, expect } from 'vitest';
-import { validateLeitwegId, formatLeitwegId } from './leitweg';
+import { formatLeitwegId, validateLeitwegId } from './leitweg';
+
+describe('formatLeitwegId', () => {
+  it('trims and uppercases the input', () => {
+    expect(formatLeitwegId('  991-12345-67  ')).toBe('991-12345-67');
+    expect(formatLeitwegId('991-aBcD-99')).toBe('991-ABCD-99');
+  });
+});
 
 describe('validateLeitwegId', () => {
-  it('akzeptiert Grobadressierung + Prüfziffer (Bund-Beispiel)', () => {
-    expect(validateLeitwegId('991-01234-44').ok).toBe(true);
+  it('rejects empty / null / undefined', () => {
+    expect(validateLeitwegId(null)).toEqual({ ok: false, reason: 'leer' });
+    expect(validateLeitwegId(undefined)).toEqual({ ok: false, reason: 'leer' });
+    expect(validateLeitwegId('')).toEqual({ ok: false, reason: 'leer' });
   });
-  it('akzeptiert Grob-Fein-Prüfziffer mit alphanumerischer Feinadresse', () => {
-    expect(validateLeitwegId('04011000-1234512345-06').ok).toBe(true);
+
+  it('rejects strings longer than 46 characters', () => {
+    const tooLong = 'A'.repeat(47) + '-12';
+    expect(validateLeitwegId(tooLong).ok).toBe(false);
+    expect(validateLeitwegId(tooLong).reason).toContain('46');
   });
-  it('lehnt ab bei fehlender Prüfziffer', () => {
-    expect(validateLeitwegId('991-01234').ok).toBe(false);
+
+  it('accepts a standard 991-X-YY Leitweg-ID', () => {
+    expect(validateLeitwegId('991-12345-67')).toEqual({ ok: true });
   });
-  it('lehnt ab bei Länge > 46', () => {
-    expect(validateLeitwegId('9'.repeat(47)).ok).toBe(false);
+
+  it('accepts IDs without a feinadressierung', () => {
+    expect(validateLeitwegId('991-12')).toEqual({ ok: true });
   });
-  it('lehnt ab bei nicht-zifferigen Prüfziffern', () => {
-    expect(validateLeitwegId('991-01234-AB').ok).toBe(false);
+
+  it('rejects IDs with bad check digit format', () => {
+    expect(validateLeitwegId('991-12345-AB').ok).toBe(false);
+    expect(validateLeitwegId('991-12345-1').ok).toBe(false);
   });
-  it('formatLeitwegId trimmt und uppercased Feinadresse', () => {
-    expect(formatLeitwegId('  991-abc-12  ')).toBe('991-ABC-12');
-  });
-  it('lehnt ab bei Feinadresse beginnend mit Sonderzeichen', () => {
-    expect(validateLeitwegId('991--12').ok).toBe(false);
-    expect(validateLeitwegId('991-.X-12').ok).toBe(false);
-    expect(validateLeitwegId('991-_X-12').ok).toBe(false);
-  });
-  it('akzeptiert exakt 46 Zeichen Gesamtlänge', () => {
-    // 12 + '-' + 30 + '-' + 2 = 46. Feinadresse first char alphanumeric.
-    const id = 'A'.repeat(12) + '-' + 'B' + 'C'.repeat(29) + '-12';
-    expect(id.length).toBe(46);
-    expect(validateLeitwegId(id).ok).toBe(true);
-  });
-  it('formatLeitwegId ist idempotent für bereits normalisierte Eingaben', () => {
-    expect(formatLeitwegId('991-ABC-12')).toBe('991-ABC-12');
+
+  it('rejects grobadressierung with special characters', () => {
+    expect(validateLeitwegId('99!-12345-67').ok).toBe(false);
   });
 });

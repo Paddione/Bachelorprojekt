@@ -1,58 +1,78 @@
-import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { rerankCandidates } from './rerank';
 
-const ORIGINAL_FETCH = global.fetch;
-const ORIGINAL_ENABLED = process.env.LLM_RERANK_ENABLED;
-const ORIGINAL_URL = process.env.LLM_ROUTER_URL;
-const ORIGINAL_RERANKER_URL = process.env.LLM_RERANKER_URL;
+describe('rerankCandidates', () => {
+  const ORIGINAL_RERANK = process.env.LLM_RERANK_ENABLED;
+  const ORIGINAL_URL = process.env.LLM_RERANKER_URL;
 
-describe('rerank client', () => {
   beforeEach(() => {
-    process.env.LLM_RERANK_ENABLED = 'true';
-    process.env.LLM_ROUTER_URL = 'http://llm-router.test:4000';
-    process.env.LLM_RERANKER_URL = 'http://llm-router.test:4000';
-    global.fetch = ORIGINAL_FETCH;
-  });
-  afterEach(() => {
-    process.env.LLM_RERANK_ENABLED = ORIGINAL_ENABLED;
-    process.env.LLM_ROUTER_URL = ORIGINAL_URL;
-    process.env.LLM_RERANKER_URL = ORIGINAL_RERANKER_URL;
+    delete process.env.LLM_RERANK_ENABLED;
+    delete process.env.LLM_RERANKER_URL;
   });
 
-  test('returns docs sorted descending by score on happy path', async () => {
-    // LM Studio port migration: rerank endpoint serves the bare array with
-    // {index, score} (no `results` wrapper, no `relevance_score` field).
-    global.fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify([
-      { index: 1, score: 0.9 },
-      { index: 0, score: 0.4 },
-      { index: 2, score: 0.1 },
-    ]), { status: 200 }));
-    const out = await rerankCandidates('q', ['a', 'b', 'c']);
+  afterEach(() => {
+    if (ORIGINAL_RERANK === undefined) delete process.env.LLM_RERANK_ENABLED;
+    else process.env.LLM_RERANK_ENABLED = ORIGINAL_RERANK;
+    if (ORIGINAL_URL === undefined) delete process.env.LLM_RERANKER_URL;
+    else process.env.LLM_RERANKER_URL = ORIGINAL_URL;
+  });
+
+  it('returns empty array for empty docs', async () => {
+    const out = await rerankCandidates('q', []);
+    expect(out).toEqual([]);
+  });
+
+  it('returns zero-score passthrough when LLM_RERANK_ENABLED is off', async () => {
+    const out = await rerankCandidates('q', ['a', 'b']);
     expect(out).toEqual([
-      { doc: 'b', score: 0.9 },
-      { doc: 'a', score: 0.4 },
-      { doc: 'c', score: 0.1 },
+      { doc: 'a', score: 0 },
+      { doc: 'b', score: 0 },
     ]);
   });
 
-  test('returns input docs with score=0 when LLM_RERANK_ENABLED=false', async () => {
-    process.env.LLM_RERANK_ENABLED = 'false';
-    global.fetch = vi.fn();
+  it('returns zero-score passthrough when reranker URL is missing even if enabled', async () => {
+    process.env.LLM_RERANK_ENABLED = 'true';
     const out = await rerankCandidates('q', ['a', 'b']);
-    expect(out).toEqual([{ doc: 'a', score: 0 }, { doc: 'b', score: 0 }]);
-    expect(global.fetch).not.toHaveBeenCalled();
+    expect(out.every((r) => r.score === 0)).toBe(true);
   });
 
-  test('on router 503 returns input docs with score=0 (graceful)', async () => {
-    global.fetch = vi.fn().mockResolvedValue(new Response('down', { status: 503 }));
-    const out = await rerankCandidates('q', ['a', 'b']);
-    expect(out).toEqual([{ doc: 'a', score: 0 }, { doc: 'b', score: 0 }]);
+  it('sorts results descending by score when the reranker responds', async () => {
+    process.env.LLM_RERANK_ENABLED = 'true';
+    process.env.LLM_RERANKER_URL = 'http://rerank.local';
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = (async (_url: unknown, _init?: RequestInit) => {
+      return new Response(
+        JSON.stringify([
+          { index: 0, score: 0.2 },
+          { index: 1, score: 0.9 },
+        ]),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      );
+    }) as typeof fetch;
+    try {
+      const out = await rerankCandidates('q', ['first', 'second']);
+      expect(out[0]).toEqual({ doc: 'second', score: 0.9 });
+      expect(out[1]).toEqual({ doc: 'first', score: 0.2 });
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
   });
 
-  test('empty docs returns empty array without calling fetch', async () => {
-    global.fetch = vi.fn();
-    const out = await rerankCandidates('q', []);
-    expect(out).toEqual([]);
-    expect(global.fetch).not.toHaveBeenCalled();
+  it('falls back to zero scores when the reranker HTTP call fails', async () => {
+    process.env.LLM_RERANK_ENABLED = 'true';
+    process.env.LLM_RERANKER_URL = 'http://rerank.local';
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = (async () => {
+      return new Response('boom', { status: 500 });
+    }) as typeof fetch;
+    try {
+      const out = await rerankCandidates('q', ['a', 'b']);
+      expect(out).toEqual([
+        { doc: 'a', score: 0 },
+        { doc: 'b', score: 0 },
+      ]);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
   });
 });

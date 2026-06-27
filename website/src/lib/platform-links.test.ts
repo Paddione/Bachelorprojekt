@@ -1,85 +1,67 @@
 import { describe, it, expect } from 'vitest';
-import {
-  resolveServiceUrl,
-  resolveHealthUrl,
-  mapNamespaceForBrand,
-} from './platform-links';
-
-// Minimaler Asset-Stub — nur die Felder, die die Helper lesen.
-function asset(over: Partial<{ url: string | null; subdomain: string | null; health_url: string | null }> = {}) {
-  return { url: null, subdomain: null, health_url: null, ...over };
-}
+import { resolveServiceUrl, resolveHealthUrl, mapNamespaceForBrand } from './platform-links';
 
 describe('mapNamespaceForBrand', () => {
-  it('mentolder lässt Namespaces unverändert', () => {
+  it('passes through non-korczewski brands', () => {
     expect(mapNamespaceForBrand('workspace', 'mentolder')).toBe('workspace');
-    expect(mapNamespaceForBrand('website', 'mentolder')).toBe('website');
-    expect(mapNamespaceForBrand('workspace-office', 'mentolder')).toBe('workspace-office');
+    expect(mapNamespaceForBrand('website', 'unknown')).toBe('website');
   });
 
-  it('korczewski mappt workspace/website, lässt workspace-office in Ruhe', () => {
+  it('rewrites workspace → workspace-korczewski for korczewski', () => {
     expect(mapNamespaceForBrand('workspace', 'korczewski')).toBe('workspace-korczewski');
-    expect(mapNamespaceForBrand('website', 'korczewski')).toBe('website-korczewski');
-    expect(mapNamespaceForBrand('workspace-office', 'korczewski')).toBe('workspace-office');
   });
 
-  it('lässt unbekannte Namespaces (kube-system, cert-manager) unverändert', () => {
-    expect(mapNamespaceForBrand('kube-system', 'korczewski')).toBe('kube-system');
-    expect(mapNamespaceForBrand('cert-manager', 'korczewski')).toBe('cert-manager');
+  it('rewrites website → website-korczewski for korczewski', () => {
+    expect(mapNamespaceForBrand('website', 'korczewski')).toBe('website-korczewski');
+  });
+
+  it('passes through other namespaces even for korczewski', () => {
+    expect(mapNamespaceForBrand('logging', 'korczewski')).toBe('logging');
   });
 });
 
 describe('resolveServiceUrl', () => {
-  it('bevorzugt den manuellen url-Override', () => {
-    expect(resolveServiceUrl(asset({ url: 'https://custom.example', subdomain: 'auth' }), 'mentolder.de'))
-      .toBe('https://custom.example');
+  it('prefers an explicit url when set', () => {
+    expect(resolveServiceUrl({ url: 'https://example.com', subdomain: 'app' }, 'brand.example')).toBe('https://example.com');
   });
 
-  it('baut https://<subdomain>.<brandDomain> wenn kein Override', () => {
-    expect(resolveServiceUrl(asset({ subdomain: 'auth' }), 'example.test'))
-      .toBe('https://auth.example.test');
+  it('treats an empty url string as not set', () => {
+    expect(resolveServiceUrl({ url: '   ', subdomain: 'app' }, 'brand.example')).toBe('https://app.brand.example');
+    expect(resolveServiceUrl({ url: '', subdomain: 'app' }, 'brand.example')).toBe('https://app.brand.example');
   });
 
-  it('funktioniert in dev mit PROD_DOMAIN=localhost', () => {
-    expect(resolveServiceUrl(asset({ subdomain: 'auth' }), 'localhost'))
-      .toBe('https://auth.localhost');
+  it('builds subdomain.brandDomain when only subdomain is set', () => {
+    expect(resolveServiceUrl({ url: null, subdomain: 'api' }, 'brand.example')).toBe('https://api.brand.example');
   });
 
-  it('null wenn weder url noch subdomain gesetzt', () => {
-    expect(resolveServiceUrl(asset(), 'mentolder.de')).toBeNull();
+  it('returns null when no url and no subdomain', () => {
+    expect(resolveServiceUrl({ url: null, subdomain: null }, 'brand.example')).toBeNull();
   });
 
-  it('null wenn subdomain gesetzt aber brandDomain leer', () => {
-    expect(resolveServiceUrl(asset({ subdomain: 'auth' }), '')).toBeNull();
+  it('returns null when subdomain is set but no brandDomain', () => {
+    expect(resolveServiceUrl({ url: null, subdomain: 'api' }, '')).toBeNull();
   });
 });
 
 describe('resolveHealthUrl', () => {
-  it('ersetzt {ns} durch workspace bei mentolder', () => {
-    expect(resolveHealthUrl(asset({ health_url: 'http://keycloak.{ns}.svc.cluster.local:8080/health/ready' }), 'mentolder'))
-      .toBe('http://keycloak.workspace.svc.cluster.local:8080/health/ready');
+  it('returns null when health_url is empty', () => {
+    expect(resolveHealthUrl({ health_url: '' }, 'mentolder')).toBeNull();
+    expect(resolveHealthUrl({ health_url: null }, 'mentolder')).toBeNull();
   });
 
-  it('ersetzt {ns} durch workspace-korczewski bei korczewski', () => {
-    expect(resolveHealthUrl(asset({ health_url: 'http://keycloak.{ns}.svc.cluster.local:8080/health/ready' }), 'korczewski'))
-      .toBe('http://keycloak.workspace-korczewski.svc.cluster.local:8080/health/ready');
+  it('passes through templates without {ns} token', () => {
+    expect(resolveHealthUrl({ health_url: 'https://example.com/health' }, 'mentolder')).toBe('https://example.com/health');
   });
 
-  it('lässt collabora (kein {ns}) in beiden Brands unverändert', () => {
-    const a = asset({ health_url: 'http://collabora.workspace-office.svc.cluster.local:9980/hosting/capabilities' });
-    expect(resolveHealthUrl(a, 'mentolder')).toBe('http://collabora.workspace-office.svc.cluster.local:9980/hosting/capabilities');
-    expect(resolveHealthUrl(a, 'korczewski')).toBe('http://collabora.workspace-office.svc.cluster.local:9980/hosting/capabilities');
+  it('substitutes {ns} with the workspace default (no website. prefix)', () => {
+    expect(resolveHealthUrl({ health_url: 'https://{ns}.example.com/health' }, 'mentolder')).toBe('https://workspace.example.com/health');
   });
 
-  it('mappt website-{ns}-Template korrekt auf website-korczewski', () => {
-    // Health-Template nutzt {ns}; für website ist {ns} = "website" → korczewski "website-korczewski".
-    // Wir testen über die website-Service-URL: http://website.{ns}... aber {ns} ist hier der
-    // *namespace* des Dienstes. Für website ist der Namespace "website".
-    expect(resolveHealthUrl(asset({ health_url: 'http://website.{ns}.svc.cluster.local' }), 'korczewski'))
-      .toBe('http://website.website-korczewski.svc.cluster.local');
+  it('substitutes {ns} with workspace-korczewski when brand is korczewski and template has no website. prefix', () => {
+    expect(resolveHealthUrl({ health_url: 'https://{ns}.example.com/health' }, 'korczewski')).toBe('https://workspace-korczewski.example.com/health');
   });
 
-  it('null wenn health_url fehlt', () => {
-    expect(resolveHealthUrl(asset(), 'mentolder')).toBeNull();
+  it('substitutes {ns} with the website default when the template starts with https://website.', () => {
+    expect(resolveHealthUrl({ health_url: 'https://website.{ns}.svc/health' }, 'mentolder')).toBe('https://website.website.svc/health');
   });
 });

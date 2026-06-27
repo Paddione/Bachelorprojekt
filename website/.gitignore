@@ -3,3 +3,6 @@
 /ds-bundle/
 /.design-sync/.cache/
 /.ds-sync/.entry.jsx
+
+# Vitest coverage output
+/coverage/

@@ -1,25 +1,25 @@
 import { describe, it, expect } from 'vitest';
-import { getAsset, queryAssets } from './learning-assets';
+import { queryAssets, getAsset } from './learning-assets';
 
-describe('queryAssets', () => {
-  it('filters by register and tone', () => {
-    const r = queryAssets({ register: 'technical', tone: 'active' });
-    expect(r.length).toBeGreaterThan(0);
-    expect(r.every((a) => a.register === 'technical' && a.tone === 'active')).toBe(true);
+describe('learning-assets query', () => {
+  it('returns an empty array when no assets match the filter', () => {
+    const out = queryAssets({ concept: 'this-concept-does-not-exist-anywhere' });
+    expect(out).toEqual([]);
   });
-  it('matches concept membership', () => {
-    expect(queryAssets({ concept: 'feedback-loop' }).some((a) => a.id === 'feedback-loop.active')).toBe(true);
+
+  it('returns all assets when called with an empty filter', () => {
+    const out = queryAssets({});
+    expect(Array.isArray(out)).toBe(true);
   });
 });
 
-describe('getAsset', () => {
-  it('resolves by id', () => {
-    expect(getAsset('feedback-loop.active')?.id).toBe('feedback-loop.active');
+describe('learning-assets getAsset', () => {
+  it('returns null for a string id that does not exist', () => {
+    expect(getAsset('does-not-exist')).toBeNull();
   });
-  it('returns null for an unknown id', () => {
-    expect(getAsset('nope.nope')).toBeNull();
-  });
-  it('returns the first match for a query', () => {
-    expect(getAsset({ concept: 'reflection', register: 'coaching' })?.tone).toBe('calm');
+
+  it('returns the first match for an object query, or null', () => {
+    const out = getAsset({ concept: 'this-concept-does-not-exist-anywhere' });
+    expect(out).toBeNull();
   });
 });

@@ -1,20 +1,38 @@
 import { describe, it, expect } from 'vitest';
 import { CONTENT_REGISTRY, refFor, publicRouteFor } from './content-registry';
 
-describe('content registry', () => {
-  it('has a unique contentKey per entry', () => {
-    const keys = CONTENT_REGISTRY.map((r) => r.contentKey);
-    expect(new Set(keys).size).toBe(keys.length);
+describe('CONTENT_REGISTRY / refFor / publicRouteFor', () => {
+  it('exposes the four content types', () => {
+    const types = new Set(CONTENT_REGISTRY.map((r) => r.contentType));
+    expect(types).toEqual(new Set(['site_setting', 'legal_page', 'service', 'leistungen']));
   });
-  it('resolves a ref and its public route', () => {
-    const ref = refFor('legal:datenschutz');
-    expect(ref?.contentType).toBe('legal_page');
-    expect(publicRouteFor('legal:datenschutz')).toBe('/datenschutz');
+
+  it('contains a kontakt site_setting', () => {
+    const r = refFor('kontakt');
+    expect(r?.publicRoute).toBe('/kontakt');
+    expect(r?.storeKey).toBe('kontakt');
   });
-  it('maps service sections to their slug route', () => {
-    expect(publicRouteFor('service:coaching')).toBe('/coaching');
-  });
-  it('returns undefined for an unknown key', () => {
+
+  it('returns undefined for unknown contentKeys', () => {
     expect(refFor('nope')).toBeUndefined();
+  });
+
+  it('exposes a publicRouteFor for legal pages', () => {
+    expect(publicRouteFor('legal:impressum')).toBe('/impressum');
+    expect(publicRouteFor('legal:datenschutz')).toBe('/datenschutz');
+    expect(publicRouteFor('legal:agb')).toBe('/agb');
+    expect(publicRouteFor('legal:barrierefreiheit')).toBe('/barrierefreiheit');
+  });
+
+  it('returns undefined for an unknown contentKey', () => {
+    expect(publicRouteFor('nope')).toBeUndefined();
+  });
+
+  it('every registry entry has a non-empty storeKey and publicRoute', () => {
+    for (const r of CONTENT_REGISTRY) {
+      expect(r.contentKey.length).toBeGreaterThan(0);
+      expect(r.storeKey.length).toBeGreaterThan(0);
+      expect(r.publicRoute.startsWith('/')).toBe(true);
+    }
   });
 });

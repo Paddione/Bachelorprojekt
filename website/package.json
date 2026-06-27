@@ -1,8 +1,10 @@
 {
   "name": "mentolder-website",
-  "engines": { "node": ">=22.13.0" },
+  "engines": {
+    "node": ">=22.13.0"
+  },
   "type": "module",
-  "version": "1.128.0",
+  "version": "1.128.1",
   "private": true,
   "scripts": {
     "dev": "astro dev",

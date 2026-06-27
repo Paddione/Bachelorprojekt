@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.128.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.128.0...website-v1.128.1) (2026-06-27)
+
+
+### Bug Fixes
+
+* **website:** restore package-lock.json — Dockerfile npm ci braucht es [T001152] ([#2102](https://github.com/Paddione/Bachelorprojekt/issues/2102)) ([15f5ac3](https://github.com/Paddione/Bachelorprojekt/commit/15f5ac34bf9e7001313bdbe72e60012d045c4c96))
+
 ## [1.128.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.127.2...website-v1.128.0) (2026-06-26)
 
 

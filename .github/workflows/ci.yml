@@ -240,6 +240,29 @@ jobs:
           path: website/dist
           retention-days: 1
 
+  astro-check:
+    name: Astro TypeScript Check (advisory)
+    if: github.event.action != 'edited'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: website
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
+      - uses: pnpm/action-setup@fe02b34f77f8bc703788d534f2ed8388bccb2f32  # v4
+        with:
+          version: 10
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444  # v5
+        with:
+          node-version-file: website/.nvmrc
+          cache: pnpm
+          cache-dependency-path: website/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - name: Run astro check
+        run: pnpm run astro:check
+        continue-on-error: false
+
   bundle-budget:
     name: Client-JS Bundle Budget
     if: github.event.action != 'edited'

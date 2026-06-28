@@ -16,7 +16,8 @@
     "test:unit": "vitest run",
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --max-warnings 0 --fix",
-    "knip": "knip"
+    "knip": "knip",
+    "astro:check": "astro check"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.106.0",

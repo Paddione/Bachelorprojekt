@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.145.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.144.0...website-v1.145.0) (2026-06-28)
+
+
+### Features
+
+* **skills:** Plan Intel Bundle — typed intel artifact for dev-flow plan+execute [T001323] ([#2314](https://github.com/Paddione/Bachelorprojekt/issues/2314)) ([4f9024b](https://github.com/Paddione/Bachelorprojekt/commit/4f9024bad360599ed266435aee2762c939f1c9ce))
+
 ## [1.144.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.143.0...website-v1.144.0) (2026-06-28)
 
 

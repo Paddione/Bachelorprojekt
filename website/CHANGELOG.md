@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.135.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.134.9...website-v1.135.0) (2026-06-28)
+
+
+### Features
+
+* **openspec:** operation-aware delta merge + RENAMED support [T001262] ([#2224](https://github.com/Paddione/Bachelorprojekt/issues/2224)) ([0ebee70](https://github.com/Paddione/Bachelorprojekt/commit/0ebee70c5e87754b4c5554529965343b519e223f))
+
 ## [1.134.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.134.8...website-v1.134.9) (2026-06-27)
 
 

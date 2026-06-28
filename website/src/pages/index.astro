@@ -8,6 +8,7 @@ import FAQ from '../components/FAQ.svelte';
 import WhyMe from '../components/WhyMe.svelte';
 import Process from '../components/Process.astro';
 import KoreHomepage from '../components/kore/KoreHomepage.svelte';
+import GoalsDashboard from '../components/GoalsDashboard.svelte';
 import { config } from '../config/index';
 import type { DaySlots } from '../lib/caldav';
 import { getAvailableSlots } from '../lib/caldav';
@@ -157,6 +158,15 @@ const processSteps = homepage.processSteps ?? [];
         secondaryText={stammdaten?.email}
         secondaryHref={`mailto:${stammdaten?.email}`}
       />
+
+      <!-- Repo Health Dashboard (only for mentolder / dev) -->
+      {BRAND_ID !== 'korczewski' && (
+        <section class="section goals-section" id="health">
+          <div class="wrap">
+            <GoalsDashboard client:visible />
+          </div>
+        </section>
+      )}
     </Fragment>
   )}
 </Layout>

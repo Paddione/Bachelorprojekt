@@ -1,17 +1,12 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, fireEvent } from '@testing-library/svelte';
 import SuggestionBar from './SuggestionBar.svelte';
+import { makeFeature, makeRollup } from '../../lib/tickets/__tests__/fixtures';
 
 const features = [
-  { id: 'f1', extId: 'f1', title: 'F1', priority: 'mittel', health: 'amber' as const,
-    rollup: { total: 0, done: 0, blocked: 0, inProgress: 0, open: 0, pctDone: 0 },
-    nextStep: true, discarded: false, majorFeature: false },
-  { id: 'f2', extId: 'f2', title: 'F2', priority: 'hoch', health: 'green' as const,
-    rollup: { total: 0, done: 0, blocked: 0, inProgress: 0, open: 0, pctDone: 0 },
-    nextStep: false, discarded: true, majorFeature: true },
-  { id: 'f3', extId: 'f3', title: 'F3', priority: 'niedrig', health: 'red' as const,
-    rollup: { total: 0, done: 0, blocked: 0, inProgress: 0, open: 0, pctDone: 0 },
-    nextStep: false, discarded: false, majorFeature: false },
+  makeFeature({ id: 'f1', extId: 'f1', title: 'F1', priority: 'mittel', health: 'amber', rollup: makeRollup({ total: 0, open: 0 }), nextStep: true }),
+  makeFeature({ id: 'f2', extId: 'f2', title: 'F2', priority: 'hoch', health: 'green', rollup: makeRollup({ total: 0, open: 0 }), discarded: true, majorFeature: true }),
+  makeFeature({ id: 'f3', extId: 'f3', title: 'F3', priority: 'niedrig', health: 'red', rollup: makeRollup({ total: 0, open: 0 }) }),
 ];
 
 describe('SuggestionBar', () => {

@@ -46,8 +46,7 @@ export const POST: APIRoute = async ({ request }) => {
         { role: 'system', content: SUGGEST_SYSTEM_PROMPT },
         { role: 'user', content: `Hier sind die Features:\n\n${featureList}` },
       ],
-      timeout: SUGGEST_TIMEOUT_MS,
-    });
+    }, { timeout: SUGGEST_TIMEOUT_MS });
 
     const text = resp.choices[0]?.message.content ?? '';
     const suggestions = parseSuggestions(text);

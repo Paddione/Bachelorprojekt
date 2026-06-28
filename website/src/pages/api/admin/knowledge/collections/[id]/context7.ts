@@ -3,6 +3,7 @@ import { spawn } from 'node:child_process';
 import { resolve } from 'node:path';
 import { getSession, isAdmin } from '../../../../../../lib/auth';
 import { getCollection } from '../../../../../../lib/knowledge-db';
+import { errorResponse } from '../../../../_errors';
 
 const activeIngests = new Set<string>();
 

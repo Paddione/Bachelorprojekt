@@ -43,7 +43,7 @@ const [ticket, timeline] = await Promise.all([
 
 if (!ticket) return Astro.redirect('/admin/tickets');
 
-const openspecProposals = (openspecStatusMap as Record<string, Array<{ slug: string; status: string }>>)[ticket.externalId] ?? [];
+const openspecProposals = (openspecStatusMap as Record<string, Array<{ slug: string; status: string }>>)[ticket.externalId ?? ''] ?? [];
 
 let questionnaireBundles: AssignmentBundle[] = [];
 

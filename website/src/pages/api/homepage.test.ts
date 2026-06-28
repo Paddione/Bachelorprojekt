@@ -54,7 +54,7 @@ describe('GET /api/homepage (public)', () => {
 
 describe('OPTIONS /api/homepage', () => {
   it('answers an allowlisted preflight with 204 + Allow-Origin', () => {
-    const res = OPTIONS({ request: req(REACT, 'OPTIONS') } as Parameters<typeof OPTIONS>[0]);
+    const res = OPTIONS({ request: req(REACT, 'OPTIONS') } as Parameters<typeof OPTIONS>[0]) as Response;
     expect(res.status).toBe(204);
     expect(res.headers.get('Access-Control-Allow-Origin')).toBe(REACT);
   });

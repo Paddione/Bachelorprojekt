@@ -59,7 +59,7 @@ describe('POST /api/admin/content/save', () => {
     asAdmin();
     vi.mocked(refFor).mockReturnValue({ contentKey: 'kontakt', contentType: 'site_setting', storeKey: 'kontakt', publicRoute: '/kontakt' });
     vi.mocked(validateSection).mockReturnValue([]);
-    vi.mocked(writeContent).mockRejectedValue(new (vi.mocked(ContentConflictError) as never)(5, { old: 'value' }));
+    vi.mocked(writeContent).mockRejectedValue(new ContentConflictError(5, { old: 'value' }, null));
     const res = await POST({ request: jsonReq({ contentKey: 'kontakt', baseVersion: 2, payload: {} }), url: new URL('http://x/') } as any);
     expect(res.status).toBe(409);
     const body = await res.json();

@@ -23,7 +23,6 @@ describe('invoice-types', () => {
       netAmountEur: 100,
       grossAmountEur: 100,
       kind: 'regular',
-      lines: undefined as never,
     };
     expect(invoice.number).toBe('R-2026-0001');
     expect(line.description).toBe('Coaching');

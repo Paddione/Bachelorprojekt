@@ -48,7 +48,7 @@ const post = (body: unknown, origin: string | null = REACT) =>
     locals: { requestLogger: { error: vi.fn() } },
   } as any);
 
-const adminSession = { email: 'g@mentolder.de', name: 'Gerald', preferred_username: 'gekko', realmRoles: ['admin'] };
+const adminSession: UserSession = { sub: 'u-1', email: 'g@mentolder.de', name: 'Gerald', preferred_username: 'gekko', realmRoles: ['admin'], brand: null, access_token: 'tok', refresh_token: 'rtok', expires_at: 9999999999 };
 
 describe('POST /api/admin/homepage/save', () => {
   it('rejects an unauthenticated request with 401', async () => {

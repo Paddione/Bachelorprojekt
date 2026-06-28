@@ -19,7 +19,7 @@ function ghHeaders(): Record<string, string> {
   return h;
 }
 
-async function fetchDeployTimestamps(prNumbers: number[], mergedAts: string[]): Promise<Map<number, string>> {
+async function fetchDeployTimestamps(prNumbers: number[], mergedAts: (string | null)[]): Promise<Map<number, string>> {
   if (!GH_PAT || prNumbers.length === 0) return new Map();
 
   const cacheKey = `${prNumbers.length}_${mergedAts[0] ?? ''}`;

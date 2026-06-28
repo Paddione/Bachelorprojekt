@@ -47,7 +47,7 @@ describe('SOURCE constants (Anti-Drift gegen Runtime-Call-Sites)', () => {
   });
 
   it('jede ServiceDef.source ist eine SOURCE-Konstante', () => {
-    const known = new Set(Object.values(SOURCE));
+    const known = new Set<string>(Object.values(SOURCE));
     for (const s of KI_SERVICES) expect(known.has(s.source)).toBe(true);
   });
 });

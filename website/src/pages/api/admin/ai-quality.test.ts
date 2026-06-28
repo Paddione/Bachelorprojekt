@@ -31,7 +31,7 @@ describe('GET /api/admin/ai-quality', () => {
   });
 
   test('200 mit vollständigem Response-Shape', async () => {
-    vi.mocked(getSession).mockResolvedValue({ sub: 'admin' });
+    vi.mocked(getSession).mockResolvedValue({ sub: 'admin' } as any);
     vi.mocked(isAdmin).mockReturnValue(true);
     queryMock.mockResolvedValue({ rows: [] });
     const res = await route.GET({ request: req() } as any);
@@ -47,7 +47,7 @@ describe('GET /api/admin/ai-quality', () => {
   });
 
   test('Health-Klassifikation: green bei niedriger Latenz/Fehlerrate', async () => {
-    vi.mocked(getSession).mockResolvedValue({ sub: 'admin' });
+    vi.mocked(getSession).mockResolvedValue({ sub: 'admin' } as any);
     vi.mocked(isAdmin).mockReturnValue(true);
     expect(route.computeHealth({ avg_latency_ms: 300, error_rate: 0.01, calls: 10 })).toBe('green');
     expect(route.computeHealth({ avg_latency_ms: 1500, error_rate: 0.1, calls: 10 })).toBe('yellow');

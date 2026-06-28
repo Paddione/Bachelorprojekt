@@ -31,14 +31,14 @@ const req = (origin: string | null, method = 'GET') =>
 
 describe('me OPTIONS preflight', () => {
   it('answers an allowlisted preflight with 204 + Allow-Origin', () => {
-    const res = OPTIONS({ request: req(REACT, 'OPTIONS') } as any);
+    const res = OPTIONS({ request: req(REACT, 'OPTIONS') } as any) as Response;
     expect(res.status).toBe(204);
     expect(res.headers.get('Access-Control-Allow-Origin')).toBe(REACT);
     expect(res.headers.get('Access-Control-Allow-Credentials')).toBe('true');
   });
 
   it('answers a foreign preflight with 204 but no Allow-Origin', () => {
-    const res = OPTIONS({ request: req(EVIL, 'OPTIONS') } as any);
+    const res = OPTIONS({ request: req(EVIL, 'OPTIONS') } as any) as Response;
     expect(res.status).toBe(204);
     expect(res.headers.get('Access-Control-Allow-Origin')).toBeNull();
   });
@@ -55,12 +55,16 @@ describe('me GET', () => {
 
   it('returns the user + isAdmin with CORS for an allowlisted origin', async () => {
     mockSession = {
+      sub: 'u-1',
       name: 'Gerald',
       email: 'g@mentolder.de',
       preferred_username: 'gekko',
       given_name: 'Gerald',
       family_name: 'Korczewski',
       realmRoles: ['admin'],
+      brand: null,
+      access_token: 'tok',
+      refresh_token: 'rtok',
       expires_at: 123,
     };
     const res = await GET({ request: req(REACT) } as any);

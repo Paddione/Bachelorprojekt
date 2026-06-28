@@ -39,7 +39,7 @@ export interface TicketPlan {
   branch: string | null;
   prNumber: number | null;
   content: string;
-  archivedAt: Date;
+  archivedAt: Date | null;
 }
 
 export async function getTicketPlan(

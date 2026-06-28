@@ -1,14 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, fireEvent, waitFor } from '@testing-library/svelte';
 import Cockpit from './Cockpit.svelte';
+import { makePortfolio, makeProduct, makeFeature } from '../../lib/tickets/__tests__/fixtures';
 
-const portfolioWithFeature = { products: [{
-  id: 'p1', extId: 'p1', title: 'P',
-  rollup: { total: 1, done: 0, blocked: 0, inProgress: 0, open: 1, pctDone: 0 },
-  features: [{ id: 'f1', extId: 'F1', title: 'F1', priority: 'mittel', health: 'amber' as const,
-    rollup: { total: 1, done: 0, blocked: 0, inProgress: 0, open: 1, pctDone: 0 },
-    nextStep: false, discarded: false, majorFeature: false }],
-}]};
+const portfolioWithFeature = makePortfolio([
+  makeProduct({ features: [makeFeature({ health: 'amber' })] }),
+]);
 
 beforeEach(() => localStorage.clear());
 afterEach(() => vi.restoreAllMocks());

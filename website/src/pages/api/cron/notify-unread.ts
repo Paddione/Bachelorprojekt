@@ -2,6 +2,7 @@
 // Called by K8s CronJob every 6h. Sends one email per customer who has unread messages older than 72h.
 import type { APIRoute } from 'astro';
 import { sendEmail } from '../../../lib/email';
+import { errorResponse } from '../_errors';
 import pg from 'pg';
 const { Pool } = pg;
 

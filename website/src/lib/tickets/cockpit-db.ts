@@ -181,8 +181,9 @@ function aggregate(features: FeatureNode[]): RollupMetrics {
   const sum = features.reduce((a, f) => ({
     total: a.total + f.rollup.total, done: a.done + f.rollup.done,
     blocked: a.blocked + f.rollup.blocked, inProgress: a.inProgress + f.rollup.inProgress,
+    awaitingDeploy: a.awaitingDeploy + f.rollup.awaitingDeploy,
     open: a.open + f.rollup.open, pctDone: 0,
-  }), { total: 0, done: 0, blocked: 0, inProgress: 0, open: 0, pctDone: 0 });
+  }), { total: 0, done: 0, blocked: 0, inProgress: 0, awaitingDeploy: 0, open: 0, pctDone: 0 });
   sum.pctDone = sum.total ? Math.round((100 * sum.done) / sum.total) : 0;
   return sum;
 }

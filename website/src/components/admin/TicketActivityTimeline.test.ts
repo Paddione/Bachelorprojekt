@@ -6,8 +6,9 @@ import type { TimelineEntry } from '../../lib/tickets/admin';
 function makeEntries(n: number): TimelineEntry[] {
   return Array.from({ length: n }, (_, i) => ({
     kind: 'created' as const,
-    at: new Date(2026, 0, i + 1).toISOString(),
+    at: new Date(2026, 0, i + 1),
     actor: `user${i}`,
+    ticketId: `t${i}`,
   }));
 }
 

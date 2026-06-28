@@ -34,13 +34,13 @@ describe('POST /api/admin/billing/[id]/validate', () => {
 
   it('returns 401 when not authenticated', async () => {
     vi.mocked(getSession).mockResolvedValue(null);
-    const res = await POST({ request: new Request('http://localhost'), params: { id: 'inv1' } } as any);
+    const res = await POST({ request: new Request('http://localhost'), params: { id: 'inv1' } } as unknown as Parameters<typeof POST>[0]);
     expect(res.status).toBe(401);
   });
 
   it('returns 404 when invoice has no PDF/A-3 blob', async () => {
     mockQuery.mockResolvedValueOnce({ rowCount: 1, rows: [{ pdf_a3_blob: null }] });
-    const res = await POST({ request: new Request('http://localhost'), params: { id: 'inv1' } } as any);
+    const res = await POST({ request: new Request('http://localhost'), params: { id: 'inv1' } } as unknown as Parameters<typeof POST>[0]);
     expect(res.status).toBe(404);
   });
 
@@ -49,7 +49,7 @@ describe('POST /api/admin/billing/[id]/validate', () => {
     mockValidate.mockResolvedValueOnce({ valid: true, report: 'OK' });
     mockQuery.mockResolvedValueOnce({ rowCount: 1 }); // UPDATE
 
-    const res = await POST({ request: new Request('http://localhost'), params: { id: 'inv1' } } as any);
+    const res = await POST({ request: new Request('http://localhost'), params: { id: 'inv1' } } as unknown as Parameters<typeof POST>[0]);
     expect(res.status).toBe(200);
     expect(mockValidate).toHaveBeenCalledWith({ pdf: Buffer.from('pdf') });
     expect(mockQuery).toHaveBeenCalledTimes(2);

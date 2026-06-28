@@ -25,7 +25,7 @@ export const POST: APIRoute = async ({ request }) => {
   try { k8s = await createK8sClient(); }
   catch { return new Response(JSON.stringify({ error: 'Kein Service-Account-Token.' }), { status: 503 }); }
 
-  const jobData = await k8s.get(`/apis/batch/v1/namespaces/${ns}/jobs/${backupJobName}`);
+  const jobData = await k8s.get<{ status?: { startTime?: string } }>(`/apis/batch/v1/namespaces/${ns}/jobs/${backupJobName}`);
   const startTime = jobData.status?.startTime;
   if (!startTime) return new Response(JSON.stringify({ error: 'Backup-Job hat keinen Startzeitstempel' }), { status: 400 });
 
@@ -40,7 +40,10 @@ export const POST: APIRoute = async ({ request }) => {
     String(ts.getUTCSeconds()).padStart(2, '0'),
   ].join('');
 
-  const cronJob = await k8s.get(`/apis/batch/v1/namespaces/${ns}/cronjobs/db-backup`);
+  interface JobSpec {
+    template: { spec: { containers: Array<{ env?: Array<{ name: string; value: string }> }> } };
+  }
+  const cronJob = await k8s.get<{ spec: { jobTemplate: { spec: JobSpec } } }>(`/apis/batch/v1/namespaces/${ns}/cronjobs/db-backup`);
   const jobName = `db-restore-${db}-${Date.now()}`;
   const spec = structuredClone(cronJob.spec.jobTemplate.spec);
 

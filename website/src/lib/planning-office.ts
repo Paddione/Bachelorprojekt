@@ -30,9 +30,26 @@ export function dorScore(r: Readiness | null): number {
   return DOR_KEYS.reduce((n, k) => n + (r[k] === true ? 1 : 0), 0);
 }
 
-function mapRow(row: any): OfficeItem {
+interface OfficeRow {
+  external_id: string;
+  title: string;
+  value_prop: string | null;
+  priority: string;
+  effort: string | null;
+  areas: string[] | null;
+  depends_on: string[] | null;
+  planning_rank: number | null;
+  readiness: Readiness | null;
+  pinned: boolean | null;
+  created_at: string;
+  updated_at: string;
+  requirements_list: string[] | null;
+  grilling_meta: Record<string, unknown> | null;
+}
+
+function mapRow(row: OfficeRow): OfficeItem {
   const readiness: Readiness = row.readiness ?? {};
-  const grillingMeta = row.grilling_meta ?? {};
+  const grillingMeta: Record<string, unknown> = row.grilling_meta ?? {};
   return {
     extId: row.external_id, title: row.title, valueProp: row.value_prop,
     priority: row.priority, effort: row.effort,
@@ -99,8 +116,8 @@ export async function patchItem(extId: string, p: PatchInput): Promise<boolean> 
     if (!canLock(effective)) throw new Error('lastenheft_empty');
   }
 
-  const sets: string[] = []; const vals: any[] = []; let i = 1;
-  const add = (col: string, v: any) => { sets.push(`${col} = $${i++}`); vals.push(v); };
+  const sets: string[] = []; const vals: unknown[] = []; let i = 1;
+  const add = (col: string, v: unknown) => { sets.push(`${col} = $${i++}`); vals.push(v); };
   if (p.valueProp !== undefined) add('value_prop', p.valueProp);
   if (p.priority !== undefined) add('priority', p.priority);
   if (p.effort !== undefined) add('effort', p.effort);

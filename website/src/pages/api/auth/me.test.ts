@@ -9,6 +9,8 @@ vi.mock('../../../lib/auth', () => ({
 
 import { GET, OPTIONS } from './me';
 
+type RouteContext = Parameters<typeof GET>[0];
+
 const REACT = 'https://react.example.test';
 const EVIL = 'https://evil.example';
 
@@ -31,14 +33,14 @@ const req = (origin: string | null, method = 'GET') =>
 
 describe('me OPTIONS preflight', () => {
   it('answers an allowlisted preflight with 204 + Allow-Origin', () => {
-    const res = OPTIONS({ request: req(REACT, 'OPTIONS') } as any) as Response;
+    const res = OPTIONS({ request: req(REACT, 'OPTIONS') } as unknown as RouteContext) as Response;
     expect(res.status).toBe(204);
     expect(res.headers.get('Access-Control-Allow-Origin')).toBe(REACT);
     expect(res.headers.get('Access-Control-Allow-Credentials')).toBe('true');
   });
 
   it('answers a foreign preflight with 204 but no Allow-Origin', () => {
-    const res = OPTIONS({ request: req(EVIL, 'OPTIONS') } as any) as Response;
+    const res = OPTIONS({ request: req(EVIL, 'OPTIONS') } as unknown as RouteContext) as Response;
     expect(res.status).toBe(204);
     expect(res.headers.get('Access-Control-Allow-Origin')).toBeNull();
   });
@@ -46,7 +48,7 @@ describe('me OPTIONS preflight', () => {
 
 describe('me GET', () => {
   it('includes CORS headers for an allowlisted origin when logged out', async () => {
-    const res = await GET({ request: req(REACT) } as any);
+    const res = await GET({ request: req(REACT) } as unknown as RouteContext);
     expect(res.headers.get('Access-Control-Allow-Origin')).toBe(REACT);
     expect(res.headers.get('Access-Control-Allow-Credentials')).toBe('true');
     const body = await res.json();
@@ -67,7 +69,7 @@ describe('me GET', () => {
       refresh_token: 'rtok',
       expires_at: 123,
     };
-    const res = await GET({ request: req(REACT) } as any);
+    const res = await GET({ request: req(REACT) } as unknown as RouteContext);
     expect(res.headers.get('Access-Control-Allow-Origin')).toBe(REACT);
     const body = await res.json();
     expect(body.authenticated).toBe(true);
@@ -76,7 +78,7 @@ describe('me GET', () => {
   });
 
   it('emits NO Allow-Origin for a foreign origin (fail-closed)', async () => {
-    const res = await GET({ request: req(EVIL) } as any);
+    const res = await GET({ request: req(EVIL) } as unknown as RouteContext);
     expect(res.headers.get('Access-Control-Allow-Origin')).toBeNull();
   });
 });

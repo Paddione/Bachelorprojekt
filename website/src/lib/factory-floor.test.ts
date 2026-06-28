@@ -77,6 +77,7 @@ import { getHall, getLoadingDock, getShipped, getMetrics, getControl,
          getStaged, releaseToBacklog, getProviderHealth, getAwaitingDeploy,
          phaseProgress, STATUS_BUCKETS, ALL_TICKET_STATUSES,
          buildAttention, phaseDurations } from './factory-floor';
+import type { HallItem, ProviderStatus, PhaseEventRow } from './factory-floor';
 import { aggregateCheckRuns } from './github-ci';
 
 describe('factory-floor DAL', () => {
@@ -342,11 +343,11 @@ describe('buildAttention', () => {
     { extId: 'A', phaseState: 'blocked', blockReason: 'review', phaseSince: new Date(Date.now() - 60_000).toISOString() },
     { extId: 'B', phaseState: 'entered', blockReason: null, phaseSince: new Date(Date.now() - 30 * 60_000).toISOString() },
     { extId: 'C', phaseState: 'entered', blockReason: null, phaseSince: new Date().toISOString() },
-  ] as any;
+  ] as unknown as HallItem[];
   const providers = [
     { provider: 'deepseek', status: 'cooldown', cooldownUntil: new Date(Date.now() + 60_000).toISOString() },
     { provider: 'anthropic', status: 'healthy', cooldownUntil: null },
-  ] as any;
+  ] as unknown as ProviderStatus[];
 
   it('collects blocked, stuck (>15min) and cooled-down providers', () => {
     const a = buildAttention(hall, providers, 15);
@@ -358,8 +359,8 @@ describe('buildAttention', () => {
 
   it('is empty when nothing needs attention', () => {
     const a = buildAttention(
-      [{ extId: 'C', phaseState: 'entered', blockReason: null, phaseSince: new Date().toISOString() }] as any,
-      [{ provider: 'x', status: 'healthy', cooldownUntil: null }] as any, 15);
+      [{ extId: 'C', phaseState: 'entered', blockReason: null, phaseSince: new Date().toISOString() }] as unknown as HallItem[],
+      [{ provider: 'x', status: 'healthy', cooldownUntil: null }] as unknown as ProviderStatus[], 15);
     expect(a.isEmpty).toBe(true);
   });
 });
@@ -369,7 +370,7 @@ describe('phaseDurations', () => {
     const events = [
       { phase: 'scout', state: 'entered', at: '2026-06-12T10:00:00.000Z' },
       { phase: 'scout', state: 'done',    at: '2026-06-12T10:05:00.000Z' },
-    ] as any;
+    ] as unknown as PhaseEventRow[];
     const d = phaseDurations(events);
     expect(d[0]).toMatchObject({ phase: 'scout', state: 'entered', durationSec: null });
     expect(d[1]).toMatchObject({ phase: 'scout', state: 'done', durationSec: 300 });

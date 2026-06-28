@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { APIRoute, APIContext } from 'astro';
 
 // Mock openai for suggest endpoint tests — must be before any imports
 const openaiMocks = vi.hoisted(() => ({
@@ -64,13 +65,13 @@ beforeEach(() => { vi.clearAllMocks(); process.env.BRAND_ID = 'mentolder'; });
 describe('GET /cockpit/portfolio', () => {
   it('403 when not admin', async () => {
     mocks.getSession.mockResolvedValue({ user: {} }); mocks.isAdmin.mockReturnValue(false);
-    const res = await GET({ request: req() } as any);
+    const res = await GET({ request: req() } as unknown as APIContext);
     expect(res.status).toBe(403);
   });
   it('returns PortfolioPayload for admin', async () => {
     mocks.getSession.mockResolvedValue({ user: {} }); mocks.isAdmin.mockReturnValue(true);
     mocks.getPortfolio.mockResolvedValue({ products: [{ extId: 'p1', features: [] }] });
-    const res = await GET({ request: req() } as any);
+    const res = await GET({ request: req() } as unknown as APIContext);
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.products[0].extId).toBe('p1');
@@ -87,7 +88,7 @@ describe('GET /cockpit/feature', () => {
   const ctx = (id?: string) => ({
     request: new Request(url(id), { headers: { cookie: 'sid=1' } }),
     url: url(id),
-  } as any);
+  } as unknown as APIContext);
 
   beforeEach(() => { mocks.getSession.mockResolvedValue({ user: {} }); mocks.isAdmin.mockReturnValue(true); });
 
@@ -112,9 +113,9 @@ describe('GET /cockpit/feature', () => {
 // ---------------------------------------------------------------------------
 // Task 9: POST /cockpit/reorder
 // ---------------------------------------------------------------------------
-const post = (route: (args: any) => Response | Promise<Response>, body: unknown): Promise<Response> => Promise.resolve(route({
+const post = (route: APIRoute, body: unknown): Promise<Response> => Promise.resolve(route({
   request: new Request('http://x', { method: 'POST', headers: { cookie: 'sid=1' }, body: JSON.stringify(body) }),
-} as any) as Response);
+} as unknown as APIContext) as Response);
 
 describe('POST /cockpit/reorder', () => {
   beforeEach(() => { mocks.getSession.mockResolvedValue({ user: {} }); mocks.isAdmin.mockReturnValue(true); });

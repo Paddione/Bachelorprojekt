@@ -3,7 +3,7 @@ import { uploadImage, queuePrompt, getHistory, downloadOutput, findGlbOutput } f
 
 const BASE = 'http://comfy-gateway:8189';
 
-function mockFetch(responses: Record<string, unknown>) {
+function mockFetch(responses: Record<string, unknown>): typeof fetch {
   return vi.fn(async (url: string) => {
     const key = Object.keys(responses).find(k => url.includes(k));
     if (!key) throw new Error(`unmocked url: ${url}`);
@@ -12,7 +12,7 @@ function mockFetch(responses: Record<string, unknown>) {
       json: async () => responses[key],
       arrayBuffer: async () => responses[key] as ArrayBuffer,
     };
-  });
+  }) as unknown as typeof fetch;
 }
 
 beforeEach(() => { vi.restoreAllMocks(); });
@@ -20,7 +20,7 @@ beforeEach(() => { vi.restoreAllMocks(); });
 describe('uploadImage', () => {
   it('POSTs to /upload/image and returns filename', async () => {
     const fetch = mockFetch({ '/upload/image': { name: 'abc123.png', subfolder: '', type: 'input' } });
-    const result = await uploadImage(BASE, new Uint8Array([1, 2, 3]).buffer, 'photo.png', fetch as any);
+    const result = await uploadImage(BASE, new Uint8Array([1, 2, 3]).buffer, 'photo.png', fetch);
     expect(result).toBe('abc123.png');
     expect(fetch).toHaveBeenCalledWith(
       `${BASE}/upload/image`,
@@ -32,7 +32,7 @@ describe('uploadImage', () => {
 describe('queuePrompt', () => {
   it('POSTs workflow to /prompt and returns prompt_id', async () => {
     const fetch = mockFetch({ '/prompt': { prompt_id: 'pid-001' } });
-    const id = await queuePrompt(BASE, { nodes: {} }, fetch as any);
+    const id = await queuePrompt(BASE, { nodes: {} }, fetch);
     expect(id).toBe('pid-001');
   });
 });
@@ -40,7 +40,7 @@ describe('queuePrompt', () => {
 describe('getHistory', () => {
   it('returns empty object when job is still queued', async () => {
     const fetch = mockFetch({ '/history/pid-001': {} });
-    const h = await getHistory(BASE, 'pid-001', fetch as any);
+    const h = await getHistory(BASE, 'pid-001', fetch);
     expect(h).toEqual({});
   });
 
@@ -52,7 +52,7 @@ describe('getHistory', () => {
       },
     };
     const fetch = mockFetch({ '/history/pid-001': completed });
-    const h = await getHistory(BASE, 'pid-001', fetch as any);
+    const h = await getHistory(BASE, 'pid-001', fetch);
     expect(h['pid-001'].status.completed).toBe(true);
   });
 });
@@ -75,7 +75,7 @@ describe('downloadOutput', () => {
   it('GETs /view with filename and returns ArrayBuffer', async () => {
     const buf = new Uint8Array([0x67, 0x6c, 0x54, 0x46]).buffer;
     const fetch = mockFetch({ '/view': buf });
-    const result = await downloadOutput(BASE, 'output.glb', fetch as any);
+    const result = await downloadOutput(BASE, 'output.glb', fetch);
     expect(result).toBe(buf);
   });
 });

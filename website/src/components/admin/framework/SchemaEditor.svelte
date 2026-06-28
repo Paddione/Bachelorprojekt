@@ -7,11 +7,13 @@
   import type { SectionSchema, FieldSchema } from '$lib/admin/schema-types';
   import SectionFrame from './SectionFrame.svelte';
 
+  type ContentValue = Record<string, unknown>;
+
   interface Props {
     schema: SectionSchema;
-    initialValue: any;
+    initialValue: ContentValue;
     initialVersion: number;
-    saveFn?: (contentKey: string, baseVersion: number, value: any) => Promise<{ version: number }>;
+    saveFn?: (contentKey: string, baseVersion: number, value: ContentValue) => Promise<{ version: number }>;
   }
 
   let { schema, initialValue, initialVersion, saveFn }: Props = $props();
@@ -26,7 +28,7 @@
     saveFn: resolvedSaveFn,
   });
 
-  let currentValue = $state<any>({ ...initialValue });
+  let currentValue = $state<ContentValue>({ ...initialValue });
 
   onMount(() => {
     const unsub = store.subscribe((s) => {
@@ -38,13 +40,13 @@
     return unsub;
   });
 
-  function setField(key: string, val: any) {
+  function setField(key: string, val: unknown) {
     currentValue = { ...currentValue, [key]: val };
     store.setValue(currentValue);
   }
 
-  function setNestedField(parentKey: string, childKey: string, val: any) {
-    const parent = currentValue[parentKey] ?? {};
+  function setNestedField(parentKey: string, childKey: string, val: unknown) {
+    const parent = (currentValue[parentKey] as Record<string, unknown>) ?? {};
     currentValue = { ...currentValue, [parentKey]: { ...parent, [childKey]: val } };
     store.setValue(currentValue);
   }
@@ -72,7 +74,7 @@
   const errorCls = 'text-xs text-red-400 mt-1';
 </script>
 
-{#snippet fieldRenderer(field: FieldSchema, value: any, onChange: (val: any) => void)}
+{#snippet fieldRenderer(field: FieldSchema, value: unknown, onChange: (val: unknown) => void)}
   <div class="space-y-1">
     {#if field.type !== 'toggle'}
       <label class={labelCls}>{field.label}{field.validation?.required ? ' *' : ''}</label>
@@ -81,7 +83,7 @@
     {#if field.type === 'text' || field.type === 'image'}
       <input
         type="text"
-        value={value ?? ''}
+        value={(value as string | undefined) ?? ''}
         oninput={(e) => onChange((e.target as HTMLInputElement).value)}
         class={inputCls}
       />
@@ -89,7 +91,7 @@
     {:else if field.type === 'textarea'}
       <textarea
         rows={4}
-        value={value ?? ''}
+        value={(value as string | undefined) ?? ''}
         oninput={(e) => onChange((e.target as HTMLTextAreaElement).value)}
         class="{inputCls} resize-y"
       ></textarea>
@@ -112,7 +114,7 @@
       <div class="field-html-wrap">
         <textarea
           rows={6}
-          value={value ?? ''}
+          value={(value as string | undefined) ?? ''}
           oninput={(e) => onChange((e.target as HTMLTextAreaElement).value)}
           class="{inputCls} resize-y font-mono text-xs"
         ></textarea>
@@ -120,7 +122,7 @@
 
     {:else if field.type === 'select'}
       <select
-        value={value ?? ''}
+        value={(value as string | undefined) ?? ''}
         onchange={(e) => onChange((e.target as HTMLSelectElement).value)}
         class={inputCls}
       >
@@ -145,7 +147,7 @@
       <div class="space-y-2">
         {#if field.fields}
           <!-- Object list: each item is a sub-form -->
-          {#each ((value ?? []) as Record<string, any>[]) as item, idx (idx)}
+          {#each ((value ?? []) as Record<string, unknown>[]) as item, idx (idx)}
             <div class="flex gap-2 items-start p-3 bg-dark/50 border border-dark-lighter rounded-lg">
               <div class="flex-1 space-y-2">
                 {#each (field.fields ?? []) as subField (subField.key)}
@@ -153,7 +155,7 @@
                     subField,
                     (item ?? {})[subField.key],
                     (val) => {
-                      const arr = [...(value ?? [])];
+                      const arr = [...((value as Record<string, unknown>[]) ?? [])];
                       arr[idx] = { ...(arr[idx] ?? {}), [subField.key]: val };
                       onChange(arr);
                     }
@@ -163,7 +165,7 @@
               <button
                 type="button"
                 onclick={() => {
-                  const arr = [...(value ?? [])];
+                  const arr = [...((value as Record<string, unknown>[]) ?? [])];
                   arr.splice(idx, 1);
                   onChange(arr);
                 }}
@@ -174,9 +176,9 @@
           <button
             type="button"
             onclick={() => {
-              const empty: Record<string, any> = {};
+              const empty: Record<string, unknown> = {};
               for (const sf of field.fields ?? []) empty[sf.key] = '';
-              onChange([...(value ?? []), empty]);
+              onChange([...((value as unknown[]) ?? []), empty]);
             }}
             class="px-3 py-1.5 text-xs bg-dark border border-dark-lighter text-muted hover:text-light hover:border-gold/50 rounded-lg transition-colors"
           >+ Hinzufügen</button>
@@ -188,7 +190,7 @@
                 type="text"
                 value={item}
                 oninput={(e) => {
-                  const arr = [...(value ?? [])];
+                  const arr = [...((value as string[]) ?? [])];
                   arr[idx] = (e.target as HTMLInputElement).value;
                   onChange(arr);
                 }}
@@ -197,7 +199,7 @@
               <button
                 type="button"
                 onclick={() => {
-                  const arr = [...(value ?? [])];
+                  const arr = [...((value as string[]) ?? [])];
                   arr.splice(idx, 1);
                   onChange(arr);
                 }}
@@ -207,7 +209,7 @@
           {/each}
           <button
             type="button"
-            onclick={() => onChange([...(value ?? []), ''])}
+            onclick={() => onChange([...((value as string[]) ?? []), ''])}
             class="px-3 py-1.5 text-xs bg-dark border border-dark-lighter text-muted hover:text-light hover:border-gold/50 rounded-lg transition-colors"
           >+ Hinzufügen</button>
         {/if}
@@ -218,8 +220,8 @@
         {#each (field.fields ?? []) as subField (subField.key)}
           {@render fieldRenderer(
             subField,
-            (value ?? {})[subField.key],
-            (val) => onChange({ ...(value ?? {}), [subField.key]: val })
+            ((value as Record<string, unknown>) ?? {})[subField.key],
+            (val) => onChange({ ...((value as Record<string, unknown>) ?? {}), [subField.key]: val })
           )}
         {/each}
       </div>

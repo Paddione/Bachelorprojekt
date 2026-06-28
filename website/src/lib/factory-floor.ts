@@ -182,7 +182,7 @@ export async function getMetrics(): Promise<FloorMetrics> {
 
 /** Backlog features waiting for a slot, with a derived wait reason. */
 export async function getLoadingDock(slotsUsed: number, slotsCap: number): Promise<LoadingDockItem[]> {
-  const r = await pool.query(
+  const r = await pool.query<{ external_id: string; title: string; priority: string; retry_count: number | null }>(
     `SELECT external_id, title, priority, retry_count
        FROM tickets.tickets
       WHERE type = 'feature' AND status = 'backlog' AND pipeline_slot IS NULL
@@ -190,7 +190,7 @@ export async function getLoadingDock(slotsUsed: number, slotsCap: number): Promi
                created_at`,
   );
   const slotsFull = slotsUsed >= slotsCap;
-  return r.rows.map((row: any) => ({
+  return r.rows.map((row) => ({
     extId: row.external_id,
     title: row.title,
     priority: row.priority,
@@ -204,7 +204,12 @@ export async function getHall(): Promise<HallItem[]> {
   // latest phase event per ticket via DISTINCT ON, then LEFT JOIN. A ticket
   // qualifies for the Hall if it holds a pipeline_slot (Factory) OR if it has
   // at least one driver='devflow' phase event (dev-flow-execute run, no slot).
-  const r = await pool.query(
+  const r = await pool.query<{
+    external_id: string; title: string; priority: string;
+    pipeline_slot: number | null; retry_count: number | null;
+    phase: Phase | null; state: PhaseState | null; detail: string | null;
+    driver: 'factory' | 'devflow' | null; at: string | null;
+  }>(
     `SELECT t.external_id, t.title, t.priority, t.pipeline_slot, t.retry_count,
             e.phase, e.state, e.detail, e.driver, e.at
        FROM tickets.tickets t
@@ -220,7 +225,7 @@ export async function getHall(): Promise<HallItem[]> {
         AND (t.pipeline_slot IS NOT NULL OR dv.ticket_id IS NOT NULL)
       ORDER BY t.pipeline_slot NULLS LAST, t.external_id`,
   );
-  return r.rows.map((row: any) => ({
+  return r.rows.map((row) => ({
     extId: row.external_id,
     title: row.title,
     priority: row.priority,
@@ -243,7 +248,7 @@ export async function getShipped(limit = 8): Promise<ShippedItem[]> {
   // a correlated scalar subquery referencing the outer alias t.id). LIMIT is cast
   // to int so a string-bound param works under both pg-mem and real Postgres.
   // The nested subquery is constrained to done tickets to avoid unbounded scans.
-  const r = await pool.query(
+  const r = await pool.query<{ external_id: string; title: string; done_at: string | null; pr_number: number | null }>(
     `SELECT t.external_id, t.title, t.done_at, l.pr_number
        FROM tickets.tickets t
        LEFT JOIN (
@@ -260,13 +265,13 @@ export async function getShipped(limit = 8): Promise<ShippedItem[]> {
       LIMIT $1::int`,
     [limit],
   );
-  return r.rows.map((row: any) => mapShippedRow(row));
+  return r.rows.map((row) => mapShippedRow(row));
 }
 
 /** Tickets merged to main but not yet deployed to fleet (the "merge ≠ prod" lane). */
 export async function getAwaitingDeploy(limit = 12): Promise<AwaitingDeployItem[]> {
   // Bounded query targeting only awaiting_deploy tickets for performance.
-  const r = await pool.query(
+  const r = await pool.query<{ external_id: string; title: string; updated_at: string | null; pr_number: number | null }>(
     `SELECT t.external_id, t.title, t.updated_at, l.pr_number
        FROM tickets.tickets t
        LEFT JOIN (
@@ -283,13 +288,13 @@ export async function getAwaitingDeploy(limit = 12): Promise<AwaitingDeployItem[
       LIMIT $1::int`,
     [limit],
   );
-  return r.rows.map((row: any) => mapAwaitingRow(row));
+  return r.rows.map((row) => mapAwaitingRow(row));
 }
 
 /** Plan_staged features (Kommissionierung) with branch/plan parsed from the latest
  *  FACTORY-PLAN-REF comment. Newest first. branch/planPath are null when no ref. */
 export async function getStaged(limit = 12): Promise<StagedItem[]> {
-  const r = await pool.query(
+  const r = await pool.query<{ external_id: string; title: string; priority: string; created_at: string | null; ref_body: string | null }>(
     `SELECT t.external_id, t.title, t.priority, t.created_at, c.body AS ref_body
        FROM tickets.tickets t
        LEFT JOIN (
@@ -304,7 +309,7 @@ export async function getStaged(limit = 12): Promise<StagedItem[]> {
       LIMIT $1::int`,
     [limit],
   );
-  return r.rows.map((row: any) => {
+  return r.rows.map((row) => {
     const { branch, planPath } = parsePlanRef(row.ref_body);
     return {
       extId: row.external_id,
@@ -380,7 +385,10 @@ export async function deployFromAwaiting(extId: string): Promise<boolean> {
 }
 
 export async function getProviderHealth(): Promise<ProviderStatus[]> {
-  const { rows } = await pool.query(`
+  const { rows } = await pool.query<{
+    provider: string; active_agents: number | string; cooldown_until: string | null;
+    max_concurrent: number | string; tiers: string[] | null;
+  }>(`
     SELECT ph.provider,
            ph.active_agents,
            ph.cooldown_until,
@@ -391,7 +399,7 @@ export async function getProviderHealth(): Promise<ProviderStatus[]> {
      GROUP BY ph.provider, ph.active_agents, ph.cooldown_until
      ORDER BY ph.provider`);
   const now = Date.now();
-  return rows.map((r: any) => ({
+  return rows.map((r) => ({
     provider: r.provider,
     status: r.cooldown_until && new Date(r.cooldown_until).getTime() > now ? 'cooldown' : 'healthy' as const,
     activeAgents: Number(r.active_agents),
@@ -464,12 +472,12 @@ export async function getTicketDetail(extId: string): Promise<TicketDetail | nul
   if (!t.rows.length) return null;
   const row = t.rows[0];
   const [events, breadcrumbs, pr, injections] = await Promise.all([
-    pool.query(
+    pool.query<{ phase: Phase; state: PhaseState; detail: string | null; driver: string; at: string }>(
       `SELECT phase, state, detail, driver, at FROM tickets.factory_phase_events
          WHERE ticket_id = $1 ORDER BY at DESC`,
       [row.id],
     ),
-    pool.query(
+    pool.query<{ author_label: string; body: string; created_at: string }>(
       `SELECT author_label, body, created_at FROM tickets.ticket_comments
          WHERE ticket_id = $1 ORDER BY created_at DESC LIMIT 8`,
       [row.id],
@@ -502,11 +510,11 @@ export async function getTicketDetail(extId: string): Promise<TicketDetail | nul
     priority: row.priority,
     retryCount: row.retry_count ?? 0,
     prNumber: pr.rows[0]?.pr_number ?? null,
-    events: events.rows.map((e: any) => ({
+    events: events.rows.map((e) => ({
       phase: e.phase, state: e.state, detail: e.detail ?? null, driver: e.driver,
       at: new Date(e.at).toISOString(),
     })),
-    breadcrumbs: breadcrumbs.rows.map((b: any) => ({
+    breadcrumbs: breadcrumbs.rows.map((b) => ({
       authorLabel: b.author_label, body: b.body, at: new Date(b.created_at).toISOString(),
     })),
     injections: injections.rows.map(mapInjection),
@@ -514,15 +522,15 @@ export async function getTicketDetail(extId: string): Promise<TicketDetail | nul
   };
 }
 
-function mapInjection(r: any): InjectionRow {
+function mapInjection(r: Record<string, unknown>): InjectionRow {
   return {
-    id: String(r.id), phase: r.phase ?? null, kind: r.kind,
-    title: r.title ?? null, content: r.content ?? null,
-    targetFiles: r.target_files ?? null,
-    dataUrl: r.data_url ?? null, ncPath: r.nc_path ?? null,
-    filename: r.filename ?? null, mimeType: r.mime_type ?? null,
-    injectedBy: r.injected_by, injectedAt: new Date(r.injected_at).toISOString(),
-    consumedAt: r.consumed_at ? new Date(r.consumed_at).toISOString() : null,
+    id: String(r.id), phase: (r.phase as Phase | null) ?? null, kind: r.kind as InjectionKind,
+    title: (r.title as string | null) ?? null, content: (r.content as string | null) ?? null,
+    targetFiles: (r.target_files as string[] | null) ?? null,
+    dataUrl: (r.data_url as string | null) ?? null, ncPath: (r.nc_path as string | null) ?? null,
+    filename: (r.filename as string | null) ?? null, mimeType: (r.mime_type as string | null) ?? null,
+    injectedBy: r.injected_by as string, injectedAt: new Date(r.injected_at as string).toISOString(),
+    consumedAt: r.consumed_at ? new Date(r.consumed_at as string).toISOString() : null,
   };
 }
 

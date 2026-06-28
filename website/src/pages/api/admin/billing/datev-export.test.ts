@@ -30,23 +30,23 @@ describe('GET /api/admin/billing/datev-export', () => {
 
   it('returns 401 when not authenticated', async () => {
     vi.mocked(getSession).mockResolvedValue(null);
-    const res = await GET({ request: makeRequest({ year: '2026' }), url: new URL('http://localhost?year=2026') } as any);
+    const res = await GET({ request: makeRequest({ year: '2026' }), url: new URL('http://localhost?year=2026') } as unknown as Parameters<typeof GET>[0]);
     expect(res.status).toBe(401);
   });
 
   it('returns 400 when year is missing', async () => {
-    const res = await GET({ request: makeRequest(), url: new URL('http://localhost') } as any);
+    const res = await GET({ request: makeRequest(), url: new URL('http://localhost') } as unknown as Parameters<typeof GET>[0]);
     expect(res.status).toBe(400);
   });
 
   it('returns CSV with correct Content-Type', async () => {
-    const res = await GET({ request: makeRequest({ year: '2026', month: '1' }), url: new URL('http://localhost?year=2026&month=1') } as any);
+    const res = await GET({ request: makeRequest({ year: '2026', month: '1' }), url: new URL('http://localhost?year=2026&month=1') } as unknown as Parameters<typeof GET>[0]);
     expect(res.status).toBe(200);
     expect(res.headers.get('Content-Type')).toContain('text/csv');
   });
 
   it('sets Content-Disposition attachment with filename', async () => {
-    const res = await GET({ request: makeRequest({ year: '2026', month: '1' }), url: new URL('http://localhost?year=2026&month=1') } as any);
+    const res = await GET({ request: makeRequest({ year: '2026', month: '1' }), url: new URL('http://localhost?year=2026&month=1') } as unknown as Parameters<typeof GET>[0]);
     expect(res.headers.get('Content-Disposition')).toMatch(/attachment.*filename/);
     expect(res.headers.get('Content-Disposition')).toContain('datev-');
   });
@@ -73,7 +73,7 @@ describe('POST /api/admin/billing/datev-email', () => {
       headers: { 'Content-Type': 'application/json', cookie: 'session=test' },
       body: JSON.stringify({ year: 2026, month: 1, to: 'stb@example.de' }),
     });
-    const res = await POST({ request: req } as any);
+    const res = await POST({ request: req } as unknown as Parameters<typeof POST>[0]);
     expect(res.status).toBe(401);
   });
 
@@ -83,7 +83,7 @@ describe('POST /api/admin/billing/datev-email', () => {
       headers: { 'Content-Type': 'application/json', cookie: 'session=test' },
       body: JSON.stringify({ month: 1, to: 'stb@example.de' }),
     });
-    const res = await POST({ request: req } as any);
+    const res = await POST({ request: req } as unknown as Parameters<typeof POST>[0]);
     expect(res.status).toBe(400);
   });
 
@@ -93,7 +93,7 @@ describe('POST /api/admin/billing/datev-email', () => {
       headers: { 'Content-Type': 'application/json', cookie: 'session=test' },
       body: JSON.stringify({ year: 2026, month: 1 }),
     });
-    const res = await POST({ request: req } as any);
+    const res = await POST({ request: req } as unknown as Parameters<typeof POST>[0]);
     expect(res.status).toBe(400);
   });
 
@@ -103,7 +103,7 @@ describe('POST /api/admin/billing/datev-email', () => {
       headers: { 'Content-Type': 'application/json', cookie: 'session=test' },
       body: JSON.stringify({ year: 2026, month: 1, to: 'stb@example.de' }),
     });
-    const res = await POST({ request: req } as any);
+    const res = await POST({ request: req } as unknown as Parameters<typeof POST>[0]);
     expect(res.status).toBe(200);
     expect(vi.mocked(sendEmail)).toHaveBeenCalledWith(
       expect.objectContaining({

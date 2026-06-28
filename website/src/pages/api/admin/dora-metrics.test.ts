@@ -9,29 +9,32 @@ import { GET } from './dora-metrics';
 
 const mkReq = (w = '7d') =>
   new Request(`http://x/api/admin/dora-metrics?window=${w}`, { headers: { cookie: 's=1' } });
-const locals = { requestLogger: { error: vi.fn() } } as any;
+interface MockLocals {
+  requestLogger: { error: ReturnType<typeof vi.fn> };
+}
+const locals: MockLocals = { requestLogger: { error: vi.fn() } };
 
 describe('GET /api/admin/dora-metrics', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('401 when not admin', async () => {
     vi.mocked(getSession).mockResolvedValue(null);
-    const res = await GET({ request: mkReq(), locals } as any);
+    const res = await GET({ request: mkReq(), locals } as unknown as Parameters<typeof GET>[0]);
     expect(res.status).toBe(401);
   });
 
   it('returns DORA metrics for an admin', async () => {
-    vi.mocked(getSession).mockResolvedValue({ preferred_username: 'admin', sub: 'a', email: 'a@x' } as any);
+    vi.mocked(getSession).mockResolvedValue({ preferred_username: 'admin', sub: 'a', email: 'a@x' } as unknown as Awaited<ReturnType<typeof getSession>>);
     vi.mocked(isAdmin).mockReturnValue(true);
     // first query = merges, second = bugs (order matches the route's Promise.all)
-    (pool.query as any)
+    (pool.query as unknown as import('vitest').Mock)
       .mockResolvedValueOnce({ rows: [
         { ticket_id: 'A', type: 'feature', driver: 'factory', created_at: '2026-06-01T00:00:00Z', merged_at: '2026-06-01T10:00:00Z', pr_number: 1, reverted: false },
       ] })
       .mockResolvedValueOnce({ rows: [
         { ticket_id: 'BUG1', type: 'bug', driver: 'devflow', created_at: '2026-06-01T00:00:00Z', merged_at: '2026-06-01T04:00:00Z', pr_number: 2, reverted: false },
       ] });
-    const res = await GET({ request: mkReq('30d'), locals } as any);
+    const res = await GET({ request: mkReq('30d'), locals } as unknown as Parameters<typeof GET>[0]);
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.metrics.deploymentFrequency.merges).toBe(1);
@@ -41,10 +44,10 @@ describe('GET /api/admin/dora-metrics', () => {
   });
 
   it('returns 500 on a query failure (logged, not thrown)', async () => {
-    vi.mocked(getSession).mockResolvedValue({ preferred_username: 'admin', sub: 'a', email: 'a@x' } as any);
+    vi.mocked(getSession).mockResolvedValue({ preferred_username: 'admin', sub: 'a', email: 'a@x' } as unknown as Awaited<ReturnType<typeof getSession>>);
     vi.mocked(isAdmin).mockReturnValue(true);
-    (pool.query as any).mockRejectedValue(new Error('db down'));
-    const res = await GET({ request: mkReq(), locals } as any);
+    (pool.query as unknown as import('vitest').Mock).mockRejectedValue(new Error('db down'));
+    const res = await GET({ request: mkReq(), locals } as unknown as Parameters<typeof GET>[0]);
     expect(res.status).toBe(500);
     expect(locals.requestLogger.error).toHaveBeenCalled();
   });

@@ -17,9 +17,13 @@ export const GET: APIRoute = async ({ request }) => {
   try { k8s = await createK8sClient(); }
   catch { return new Response(JSON.stringify({ error: 'Kein Service-Account-Token.' }), { status: 503 }); }
 
-  const data = await k8s.get(`/apis/batch/v1/namespaces/${ns}/jobs?labelSelector=app%3Ddb-backup`);
+  interface K8sJobRaw {
+    metadata: { name: string; labels?: Record<string, string> };
+    status?: { startTime?: string; completionTime?: string; succeeded?: number; failed?: number };
+  }
+  const data = await k8s.get<{ items?: K8sJobRaw[] }>(`/apis/batch/v1/namespaces/${ns}/jobs?labelSelector=app%3Ddb-backup`);
   const jobs = (data.items ?? [])
-    .map((j: any) => ({
+    .map((j: K8sJobRaw) => ({
       name: j.metadata.name,
       trigger: j.metadata.labels?.trigger ?? 'cron',
       startTime: j.status?.startTime ?? null,
@@ -27,7 +31,7 @@ export const GET: APIRoute = async ({ request }) => {
       succeeded: (j.status?.succeeded ?? 0) > 0,
       failed: (j.status?.failed ?? 0) > 0,
     }))
-    .sort((a: any, b: any) => new Date(b.startTime ?? 0).getTime() - new Date(a.startTime ?? 0).getTime())
+    .sort((a, b) => new Date(b.startTime ?? 0).getTime() - new Date(a.startTime ?? 0).getTime())
     .slice(0, 20);
 
   return new Response(JSON.stringify({ jobs }), { headers: { 'Content-Type': 'application/json' } });

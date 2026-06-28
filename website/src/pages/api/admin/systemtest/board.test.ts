@@ -28,7 +28,7 @@ const dbAvailable = !!(
   process.env.SESSIONS_DATABASE_URL
 );
 
-const mockSession = { sub: 'admin', preferred_username: 'admin' } as any;
+const mockSession = { sub: 'admin', preferred_username: 'admin' } as unknown as Awaited<ReturnType<typeof getSession>>;
 
 function makeReq(): Request {
   return new Request('http://test/api/admin/systemtest/board', {
@@ -131,12 +131,12 @@ describe.skipIf(!dbAvailable)('GET /api/admin/systemtest/board', () => {
 
   it('rejects when not authenticated', async () => {
     vi.mocked(getSession).mockResolvedValue(null);
-    const res = await GET({ request: makeReq() } as any);
+    const res = await GET({ request: makeReq() } as unknown as Parameters<typeof GET>[0]);
     expect(res.status).toBe(401);
   });
 
   it('returns the canonical {columns, undelivered} shape with all four columns present', async () => {
-    const res = await GET({ request: makeReq() } as any);
+    const res = await GET({ request: makeReq() } as unknown as Parameters<typeof GET>[0]);
     expect(res.status).toBe(200);
     const body = (await res.json()) as BoardResponse;
     expect(body).toHaveProperty('columns');
@@ -153,7 +153,7 @@ describe.skipIf(!dbAvailable)('GET /api/admin/systemtest/board', () => {
     const f = await seedFailure();
     pending.push(f.cleanup);
 
-    const res = await GET({ request: makeReq() } as any);
+    const res = await GET({ request: makeReq() } as unknown as Parameters<typeof GET>[0]);
     expect(res.status).toBe(200);
     const body = (await res.json()) as BoardResponse;
 
@@ -178,7 +178,7 @@ describe.skipIf(!dbAvailable)('GET /api/admin/systemtest/board', () => {
       [f.questionId],
     );
 
-    const res = await GET({ request: makeReq() } as any);
+    const res = await GET({ request: makeReq() } as unknown as Parameters<typeof GET>[0]);
     const body = (await res.json()) as BoardResponse;
     const found = body.columns.retest_pending.find(r => r.ticket_id === f.ticketId);
     expect(found).toBeTruthy();
@@ -198,7 +198,7 @@ describe.skipIf(!dbAvailable)('GET /api/admin/systemtest/board', () => {
       await pool.query(`DELETE FROM systemtest_failure_outbox WHERE assignment_id = $1`, [aId]);
     });
 
-    const res = await GET({ request: makeReq() } as any);
+    const res = await GET({ request: makeReq() } as unknown as Parameters<typeof GET>[0]);
     const body = (await res.json()) as BoardResponse;
     expect(body.undelivered).toBeGreaterThanOrEqual(1);
   });

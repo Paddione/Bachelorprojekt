@@ -29,8 +29,8 @@ export const GET: APIRoute = async ({ request, locals }) => {
 
       if (k8s && asset.cluster === currentCluster && asset.k8s_node_name) {
         try {
-          const node = await k8s.get(`/api/v1/nodes/${asset.k8s_node_name}`);
-          const readyCond = node.status?.conditions?.find((c: any) => c.type === 'Ready');
+          const node = await k8s.get<{ status?: { conditions?: Array<{ type: string; status: string }> } }>(`/api/v1/nodes/${asset.k8s_node_name}`);
+          const readyCond = node.status?.conditions?.find((c) => c.type === 'Ready');
           readyStatus = readyCond?.status || 'Unknown';
           liveStatus = readyStatus === 'True' ? 'ready' : 'failing';
         } catch (e) {

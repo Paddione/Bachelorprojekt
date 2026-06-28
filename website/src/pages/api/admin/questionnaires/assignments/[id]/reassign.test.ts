@@ -26,14 +26,14 @@ beforeEach(() => {
 describe('POST /api/admin/questionnaires/assignments/[id]/reassign', () => {
   it('401 when not admin', async () => {
     vi.mocked(getSession).mockResolvedValue(null);
-    const r = await POST({ request: req(), params: { id: 'a' } } as any);
+    const r = await POST({ request: req(), params: { id: 'a' } } as unknown as Parameters<typeof POST>[0]);
     expect(r.status).toBe(401);
   });
 
   it('400 when id missing', async () => {
     vi.mocked(getSession).mockResolvedValue({} as never);
     vi.mocked(isAdmin).mockReturnValue(true);
-    const r = await POST({ request: req(), params: {} } as any);
+    const r = await POST({ request: req(), params: {} } as unknown as Parameters<typeof POST>[0]);
     expect(r.status).toBe(400);
   });
 
@@ -41,7 +41,7 @@ describe('POST /api/admin/questionnaires/assignments/[id]/reassign', () => {
     vi.mocked(getSession).mockResolvedValue({} as never);
     vi.mocked(isAdmin).mockReturnValue(true);
     vi.mocked(reassignQAssignment).mockResolvedValue({ reason: 'not_found' } as never);
-    const r = await POST({ request: req(), params: { id: 'a' } } as any);
+    const r = await POST({ request: req(), params: { id: 'a' } } as unknown as Parameters<typeof POST>[0]);
     expect(r.status).toBe(404);
   });
 
@@ -51,7 +51,7 @@ describe('POST /api/admin/questionnaires/assignments/[id]/reassign', () => {
     vi.mocked(reassignQAssignment).mockResolvedValue({
       assignment: { id: 'newId' } as never,
     });
-    const r = await POST({ request: req(), params: { id: 'a' } } as any);
+    const r = await POST({ request: req(), params: { id: 'a' } } as unknown as Parameters<typeof POST>[0]);
     expect(r.status).toBe(200);
     const body = await r.json();
     expect(body.assignment.id).toBe('newId');
@@ -65,7 +65,7 @@ describe('POST /api/admin/questionnaires/assignments/[id]/reassign', () => {
     vi.mocked(reassignQAssignment).mockResolvedValue({
       assignment: { id: 'newId' } as never,
     });
-    const r = await POST({ request: req(), params: { id: 'a' } } as any);
+    const r = await POST({ request: req(), params: { id: 'a' } } as unknown as Parameters<typeof POST>[0]);
     const body = await r.json();
     expect(body.portalUrl).toBe('https://web.example.com/portal/fragebogen/newId');
   });

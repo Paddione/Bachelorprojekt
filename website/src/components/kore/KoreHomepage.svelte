@@ -1,15 +1,48 @@
 <script lang="ts">
   import Timeline from '../Timeline.svelte';
   import type { DaySlots } from '../../lib/caldav';
+  import type { BrandConfig, FooterConfig, HomepageService } from '../../config/types';
 
-  export let services: any[] = [];
-  export let homepage: any = {};
-  export let contact: any = {};
-  export let legal: any = {};
-  export let footerColumns: any[] = [];
+  interface KoreContact {
+    name?: string;
+    email?: string;
+    phone?: string;
+    city?: string;
+  }
+
+  interface KoreLegal {
+    jobtitle?: string;
+    tagline?: string;
+    street?: string;
+    zip?: string;
+    ustId?: string;
+    website?: string;
+    chamber?: string;
+  }
+
+  interface TimelineRow {
+    id: number;
+    day: string;
+    pr_number: number | null;
+    title: string;
+    description: string | null;
+    category: string;
+    scope: string | null;
+    brand: string | null;
+    requirement_id: string | null;
+    bugs_fixed: number;
+    ticket_external_id: string | null;
+    ticket_id: string | null;
+  }
+
+  export let services: HomepageService[] = [];
+  export let homepage: Partial<BrandConfig['homepage']> = {};
+  export let contact: KoreContact = {};
+  export let legal: KoreLegal = {};
+  export let footerColumns: FooterConfig['columns'] = [];
   export let footerCopyright: string = '';
   export let nextDay: DaySlots | null = null;
-  export let initialTimeline: any[] = [];
+  export let initialTimeline: TimelineRow[] = [];
   export let wantsTimeline: boolean = false;
 
   // Nav active section

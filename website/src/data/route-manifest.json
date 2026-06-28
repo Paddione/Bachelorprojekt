@@ -1,6 +1,6 @@
 {
   "generatedFrom": "website/src/pages",
-  "count": 132,
+  "count": 133,
   "routes": [
     {
       "route": "/",
@@ -221,6 +221,14 @@
     },
     {
       "route": "/admin/cockpit",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/content-db",
       "authTier": "admin",
       "brand": "both",
       "dynamic": false,

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.144.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.143.0...website-v1.144.0) (2026-06-28)
+
+
+### Features
+
+* **admin:** Admin-Menü Umstrukturierung [T001317] ([#2309](https://github.com/Paddione/Bachelorprojekt/issues/2309)) ([b7f7e45](https://github.com/Paddione/Bachelorprojekt/commit/b7f7e45f700dee8b5fdcd89160e74b98708d8bc0))
+
 ## [1.143.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.142.0...website-v1.143.0) (2026-06-28)
 
 

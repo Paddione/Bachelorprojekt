@@ -48,8 +48,27 @@ while true; do
   if [[ -n "$FAILED_RUN_ID" ]]; then
     echo "--- CI-Logs (Run $FAILED_RUN_ID) ---"
     gh run view "$FAILED_RUN_ID" --log-failed 2>&1 | tail -200
+
+    # Job-level step diagnostics via GitHub API (structured, faster than log scan)
+    echo "--- Job-Step-Diagnose (Run $FAILED_RUN_ID) ---"
+    FAILED_JOBS=$(gh api "repos/Paddione/Bachelorprojekt/actions/runs/${FAILED_RUN_ID}/jobs" \
+      --jq '.jobs[] | select(.conclusion == "failure") | {id: .id, name: .name, steps: [.steps[] | select(.conclusion == "failure") | {step: .name, number: .number, conclusion: .conclusion}]}' \
+      2>/dev/null || echo "")
+    if [[ -n "$FAILED_JOBS" ]]; then
+      echo "$FAILED_JOBS"
+      # Fetch detailed annotations for each failed job
+      echo "$FAILED_JOBS" | jq -r '.id' 2>/dev/null | while read -r JOB_ID; do
+        [[ -z "$JOB_ID" ]] && continue
+        echo "--- Annotations für Job $JOB_ID ---"
+        gh api "repos/Paddione/Bachelorprojekt/actions/jobs/${JOB_ID}" \
+          --jq '{job: .name, started_at: .started_at, completed_at: .completed_at, steps: [.steps[] | select(.conclusion != "skipped" and .conclusion != null) | {n: .number, name: .name, conclusion: .conclusion, duration_s: ((.completed_at // .started_at | strptime("%Y-%m-%dT%H:%M:%SZ") | mktime) - (.started_at | strptime("%Y-%m-%dT%H:%M:%SZ") | mktime))}]}' \
+          2>/dev/null || true
+      done
+    fi
   fi
 
   echo "🔧 CI-Fix-Subagenten spawnen (siehe dev-flow-execute Schritt 5.5 für Prompt-Bauanleitung) ..."
+  echo "   Kontext für den Fix-Subagenten: fehlgeschlagene Steps aus der Job-Diagnose oben"
+  echo "   + gh run view $FAILED_RUN_ID --log-failed für den vollständigen Stacktrace."
   echo "   → Nach erfolgreichem Fix: commit + push, Loop wiederholen."
 done

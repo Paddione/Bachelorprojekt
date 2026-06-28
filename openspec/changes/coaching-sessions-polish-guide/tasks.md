@@ -53,7 +53,7 @@ depends_on_plans: []
 **Interfaces:**
 - Produces: `StepDefinition.description: string` — von Task 2 (SessionWizard) und Task 4 (HTML-Guide) gelesen
 
-- [ ] **Schritt 1.1: Failing Test schreiben**
+- [x] **Schritt 1.1: Failing Test schreiben**
 
 In `website/src/lib/coaching-session-prompts.test.ts` am Ende des `describe('STEP_DEFINITIONS', ...)` Blocks hinzufügen:
 
@@ -66,7 +66,7 @@ it('every step has a non-empty description', () => {
 });
 ```
 
-- [ ] **Schritt 1.2: Test ausführen — erwartet FAIL**
+- [x] **Schritt 1.2: Test ausführen — erwartet FAIL**
 
 ```bash
 cd website && pnpm test coaching-session-prompts --run
@@ -74,7 +74,7 @@ cd website && pnpm test coaching-session-prompts --run
 
 expected: FAIL — `expected 'undefined' to be 'string'`
 
-- [ ] **Schritt 1.3: Interface erweitern**
+- [x] **Schritt 1.3: Interface erweitern**
 
 In `website/src/lib/coaching-session-prompts.ts` das Interface um `description` ergänzen (nach `phaseLabel`):
 
@@ -91,7 +91,7 @@ interface StepDefinition {
 }
 ```
 
-- [ ] **Schritt 1.4: Beschreibungen zu allen 10 Steps hinzufügen**
+- [x] **Schritt 1.4: Beschreibungen zu allen 10 Steps hinzufügen**
 
 Jeden Eintrag in `STEP_DEFINITIONS` um `description` nach `phaseLabel:` ergänzen:
 
@@ -118,7 +118,7 @@ description: 'Den einen Schritt mit maximalem Hebel identifizieren und als konkr
 description: 'Hindernisse antizipieren — Unterstützung und Nachverfolgung sicherstellen',
 ```
 
-- [ ] **Schritt 1.5: Test ausführen — erwartet PASS**
+- [x] **Schritt 1.5: Test ausführen — erwartet PASS**
 
 ```bash
 cd website && pnpm test coaching-session-prompts --run
@@ -126,7 +126,7 @@ cd website && pnpm test coaching-session-prompts --run
 
 expected: PASS (alle Tests grün inkl. des neuen)
 
-- [ ] **Schritt 1.6: Commit**
+- [x] **Schritt 1.6: Commit**
 
 ```bash
 git add website/src/lib/coaching-session-prompts.ts website/src/lib/coaching-session-prompts.test.ts

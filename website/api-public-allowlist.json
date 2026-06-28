@@ -10,6 +10,7 @@
   { "path": "/api/calendar/slots", "methods": ["GET"], "reason": "baseline — not individually audited" },
   { "path": "/api/cluster/status", "methods": ["GET"], "reason": "baseline — not individually audited" },
   { "path": "/api/contact", "methods": ["POST"], "reason": "baseline — not individually audited" },
+  { "path": "/api/demo/coaching-sim", "methods": ["POST"], "reason": "public demo endpoint — rate-limited to 20 req/IP/min, no auth by design (T001316)" },
   { "path": "/api/dsgvo-request", "methods": ["POST"], "reason": "baseline — not individually audited" },
   { "path": "/api/health", "methods": ["GET"], "reason": "baseline — not individually audited" },
   { "path": "/api/homepage", "methods": ["GET", "OPTIONS"], "reason": "public read of the versioned homepage block document for the React SPA (react.<brand>); no auth by design, exposes only the block document + X-Homepage-Version (T001160)" },

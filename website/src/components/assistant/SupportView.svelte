@@ -251,14 +251,7 @@
   }
 
   .field { display: flex; flex-direction: column; gap: 6px; }
-  label {
-    font-family: var(--mono);
-    font-size: 10px;
-    font-weight: 500;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--mute);
-  }
+  label { font-family: var(--mono); font-size: 10px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--mute); }
   .req { color: var(--brass); }
   .opt { color: var(--mute-2); font-weight: 400; letter-spacing: 0.04em; text-transform: none; font-style: italic; }
 
@@ -300,22 +293,7 @@
     box-sizing: border-box;
     padding: 4px 0;
   }
-  .file-inp::file-selector-button {
-    margin-right: 12px;
-    padding: 10px 16px;
-    min-height: 40px;
-    border-radius: var(--radius-pill, 999px);
-    border: 0;
-    background: var(--brass);
-    color: var(--ink-900);
-    font-family: var(--mono);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: background 180ms ease;
-  }
+  .file-inp::file-selector-button { margin-right: 12px; padding: 10px 16px; min-height: 40px; border-radius: var(--radius-pill, 999px); border: 0; background: var(--brass); color: var(--ink-900); font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: background 180ms ease; }
   .file-inp::file-selector-button:hover { background: var(--brass-2); }
 
   .file-list {

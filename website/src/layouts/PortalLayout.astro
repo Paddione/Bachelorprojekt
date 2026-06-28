@@ -54,16 +54,7 @@ const navItems: NavItem[] = [
   { id: 'buchung',     label: 'Buchung',     icon: 'buchung' },
 ];
 
-const portalIconColors: Record<string, string> = {
-  overview:       'var(--brass)',
-  dateien:        '#38bdf8',
-  'fragebögen':   '#a78bfa',
-  vertraege:      '#34d399',
-  kalender:       'var(--brass)',
-  rechnungen:     '#34d399',
-  buchung:        '#2dd4bf',
-  konto:          'var(--brass)',
-};
+const portalIconColors: Record<string, string> = { overview: 'var(--brass)', dateien: '#38bdf8', 'fragebögen': '#a78bfa', vertraege: '#34d399', kalender: 'var(--brass)', rechnungen: '#34d399', buchung: '#2dd4bf', konto: 'var(--brass)' };
 
 const avatarInitial = (session.given_name || session.name || session.preferred_username || '?')[0].toUpperCase();
 const displayName   = session.given_name || session.name || session.preferred_username;
@@ -96,23 +87,10 @@ try {
     {isKore && <link rel="stylesheet" href="/brand/korczewski/kore-app.css" />}
     <title>{title} | Portal — {config.meta.siteTitle}</title>
     <style>
-      .portal-nav-item:not(.is-active):hover {
-        background: var(--ink-800) !important;
-        color: var(--fg) !important;
-      }
-      .portal-nav-item:not(.is-active):hover .nav-icon {
-        color: var(--brass) !important;
-      }
-      .portal-footer-link:hover {
-        background: var(--ink-800);
-        color: var(--fg-soft);
-      }
-      .portal-footer-link.danger:hover {
-        background: rgba(248, 113, 113, 0.07);
-        color: #f87171;
-      }
-
-      /* Mobile */
+      .portal-nav-item:not(.is-active):hover { background: var(--ink-800) !important; color: var(--fg) !important; }
+      .portal-nav-item:not(.is-active):hover .nav-icon { color: var(--brass) !important; }
+      .portal-footer-link:hover { background: var(--ink-800); color: var(--fg-soft); }
+      .portal-footer-link.danger:hover { background: rgba(248, 113, 113, 0.07); color: #f87171; }
       #portal-mobile-topbar  { display: none; }
       #portal-backdrop { display: none; }
 

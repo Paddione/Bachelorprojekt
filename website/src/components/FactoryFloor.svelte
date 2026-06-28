@@ -9,23 +9,22 @@
 
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import type { FloorPayload, TicketDetail, HallItem, InjectionKind } from '../lib/factory-floor-types';
+  import type { FloorPayload, TicketDetail, InjectionKind } from '../lib/factory-floor-types';
 
   import QaChip from './QaChip.svelte';
   import QaModal from './QaModal.svelte';
   import ProviderStatus from './ProviderStatus.svelte';
-  import ConveyorBelt from './factory/ConveyorBelt.svelte';
   import DetailPanel from './factory/DetailPanel.svelte';
   import MobileTabBar from './factory/MobileTabBar.svelte';
   import StagedColumn from './factory/StagedColumn.svelte';
   import ShippedColumn from './factory/ShippedColumn.svelte';
   import AwaitingDeployLane from './factory/AwaitingDeployLane.svelte';
-  import PhaseStepper from './factory/PhaseStepper.svelte';
-  import CiBadge from './factory/CiBadge.svelte';
   import AttentionStrip from './factory/AttentionStrip.svelte';
+  import FactoryFloorLane from './FactoryFloorLane.svelte';
   import type { QaItem } from '../lib/qa-dal';
   import type { CiRollup } from '../lib/factory-ci';
-  import { SSE_RECONNECT_MS, STUCK_MIN } from '../lib/factory-constants';
+  import { SSE_RECONNECT_MS } from '../lib/factory-constants';
+  import { relTime, minutesSince, prUrl, ticketUrl, planUrl, prioDot } from '../lib/factory-floor-client';
 
   let { initial }: { initial: FloorPayload | null } = $props();
 
@@ -144,16 +143,6 @@
     } catch { injError = 'Netzwerkfehler'; }
     finally { injBusy = false; }
   }
-  function hallAt(station: Phase): HallItem[] {
-    return data?.hall.filter((h) => h.phase === station) ?? [];
-  }
-  function assetFallback(e: Event) { (e.currentTarget as HTMLImageElement).style.display = 'none'; }
-  const GH_REPO = 'Paddione/Bachelorprojekt';
-  const prUrl = (n: number) => `https://github.com/${GH_REPO}/pull/${n}`;
-  const ticketUrl = (extId: string) => `/admin/tickets?q=${encodeURIComponent(extId)}`;
-  const planUrl = (branch: string, planPath: string) =>
-    `https://github.com/${GH_REPO}/blob/${branch}/${planPath}`;
-
   let releasing = $state<string | null>(null);
   let releaseErr = $state<string | null>(null);
   async function releaseToFactory(extId: string) {
@@ -172,30 +161,6 @@
   let manualHintFor = $state<string | null>(null);
   function toggleManualHint(extId: string) {
     manualHintFor = manualHintFor === extId ? null : extId;
-  }
-  function relTime(iso: string | null): string {
-    if (!iso) return '';
-    const s = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 1000));
-    if (s < 60) return `vor ${s} Sek.`;
-    const m = Math.round(s / 60);
-    if (m < 60) return `vor ${m} Min.`;
-    const h = Math.round(m / 60);
-    if (h < 24) return `vor ${h} Std.`;
-    return `vor ${Math.round(h / 24)} Tg.`;
-  }
-  function minutesSince(iso: string | null): number {
-    if (!iso) return 0;
-    return Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
-  }
-  function ciIcon(s: 'success'|'pending'|'failure'|null): string {
-    return s === 'success' ? '🟢' : s === 'failure' ? '🔴' : s === 'pending' ? '🟡' : '';
-  }
-  function openPR(n: number | null) { if (n) window.open(prUrl(n), '_blank', 'noopener'); }
-  function prioDot(p: string): string {
-    if (p === 'hoch') return 'bg-red-400';
-    if (p === 'mittel') return 'bg-amber-400';
-    if (p === 'niedrig') return 'bg-emerald-400';
-    return 'bg-white/40';
   }
   function connectSSE() {
     es = new EventSource('/api/factory-floor/stream', { withCredentials: true });
@@ -291,87 +256,14 @@
         {planUrl}
         {ticketUrl}
       />
-      <div data-col="backlog" class:mobile-visible={mobileColIndex === 1} class="lg:w-1/5" data-testid="floor-loadingdock">
-        <h3 class="font-semibold mb-2">Laderampe</h3>
-        {#if data.loadingDock.length === 0}
-          <p class="text-muted text-sm">Leer.</p>
-        {:else}
-          <ul class="space-y-1">
-            {#each data.loadingDock as d (d.extId)}
-              <li class="rounded bg-white/5 px-2 py-1 text-sm">
-                <div class="flex items-center gap-1.5">
-                  <span class="h-2 w-2 shrink-0 rounded-full {prioDot(d.priority)}" title={`Priorität: ${d.priority}`}></span>
-                  <a href={ticketUrl(d.extId)} class="font-mono text-xs text-gold hover:underline">{d.extId}</a>
-                  <span class="truncate">{d.title}</span>
-                </div>
-                <span class="block text-muted text-xs">⏳ {d.waitReason}</span>
-              </li>
-            {/each}
-          </ul>
-        {/if}
-      </div>
-
-      {#if floorView === 'conveyor'}
-        <div class="conveyor-wrapper w-full" data-testid="floor-hall">
-          <ConveyorBelt
-            stations={STATIONS}
-            hallItems={data.hall}
-            {mobileColIndex}
-            onSelect={openDetail}
-          />
-        </div>
-      {:else}
-        <div class="lg:w-2/5" data-testid="floor-hall">
-          <h3 class="font-semibold mb-2">Halle</h3>
-          {#if data.hall.length === 0}
-            <p class="text-muted text-sm">Fabrik im Leerlauf.</p>
-          {:else}
-            <div class="grid grid-cols-6 gap-2">
-              {#each STATIONS as st (st.key)}
-                <div data-col={st.key} class:mobile-visible={mobileColIndex === MOBILE_COL_INDEX[st.key]} class="rounded-lg bg-white/5 p-2 min-h-24">
-                  <img src={`/factory/station-${st.key}.svg`} alt="" class="h-8 mx-auto mb-1" onerror={assetFallback} />
-                  <p class="text-center text-xs text-muted mb-1">{st.label}</p>
-                  {#each hallAt(st.key) as w (w.extId)}
-                    <div class="mb-1">
-                      <button
-                        onclick={() => openDetail(w.extId)}
-                        data-testid="floor-workpiece"
-                        data-driver={w.driver ?? 'factory'}
-                        title={`${w.title}${w.driver === 'devflow' && w.prNumber ? ` · PR #${w.prNumber}` : ''}${w.blockReason ? ` · ⛔ ${w.blockReason}` : ''}${w.phaseSince ? ` · seit ${minutesSince(w.phaseSince)} Min. in ${w.phase}` : ''}`}
-                        class="flex w-full items-center justify-between gap-1 rounded px-1 py-0.5 text-xs transition-all"
-                        class:bg-gold={w.driver !== 'devflow' && w.phaseState !== 'blocked'}
-                        class:text-dark={w.driver !== 'devflow' && w.phaseState !== 'blocked'}
-                        class:bg-red-500={w.driver !== 'devflow' && w.phaseState === 'blocked'}
-                        class:border={w.driver === 'devflow'}
-                        class:border-blue-400={w.driver === 'devflow' && w.phaseState !== 'blocked'}
-                        class:text-blue-300={w.driver === 'devflow' && w.phaseState !== 'blocked'}
-                        class:bg-blue-950={w.driver === 'devflow' && w.phaseState !== 'blocked'}
-                        class:border-red-400={w.driver === 'devflow' && w.phaseState === 'blocked'}
-                        class:text-red-300={w.driver === 'devflow' && w.phaseState === 'blocked'}
-                        class:bg-red-950={w.driver === 'devflow' && w.phaseState === 'blocked'}
-                        class:animate-pulse={w.phaseState === 'blocked'}>
-                        <span class="truncate">{w.extId}{w.driver === 'devflow' ? ' 👨‍💻' : ''}{w.phaseState === 'blocked' ? ' ⛔' : (minutesSince(w.phaseSince) >= STUCK_MIN ? ' ⏱' : '')}</span>
-                        {#if w.driver === 'devflow' && w.prNumber}
-                          <CiBadge rollup={ciByExt[w.extId] ?? null} />
-                        {/if}
-                        {#if w.driver === 'devflow' && w.ciStatus}
-                          <span role="button" tabindex="0" data-testid="floor-ci-badge"
-                                title={`CI: ${w.ciStatus} — PR öffnen`}
-                                onclick={(e) => { e.stopPropagation(); openPR(w.prNumber); }}
-                                onkeydown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); openPR(w.prNumber); } }}>
-                            {ciIcon(w.ciStatus)}
-                          </span>
-                        {/if}
-                      </button>
-                      <PhaseStepper segments={w.phaseProgress} />
-                    </div>
-                  {/each}
-                </div>
-              {/each}
-            </div>
-          {/if}
-        </div>
-      {/if}
+      <FactoryFloorLane
+        hall={data.hall}
+        loadingDock={data.loadingDock}
+        {floorView}
+        {mobileColIndex}
+        {ciByExt}
+        onSelect={openDetail}
+      />
 
       <div class="lg:w-1/5" data-testid="floor-qa">
         <h3 class="font-semibold mb-2">QS-Abnahme</h3>

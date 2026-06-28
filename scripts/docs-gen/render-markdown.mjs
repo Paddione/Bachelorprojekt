@@ -373,27 +373,14 @@ export function renderMarkdown(markdown, { registry, page, mmdc, dot, recordSnap
 }
 
 // ─── helpers ────────────────────────────────────────────────────────────────────
-function escapeHtml(str) {
-  return String(str)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-function escapeAttr(str) {
-  return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
-}
+function escapeHtml(str) { return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+function escapeAttr(str) { return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;'); }
 
 // ─── extractDiagramCaptions ─────────────────────────────────────────────────────
-// Scan raw markdown for fenced diagram blocks (mermaid/dot/graphviz) whose
-// info-string carries a title="…", and return a map of trimmed-source → title.
-// marked discards the info-string past the language word, so this runs pre-parse.
-// The map is keyed by the BODY of the fence (matching code.textContent post-marked,
-// which trims the trailing newline — so we trim here too).
-// @param {string} markdown
-// @returns {Record<string,string>}
+// Scan raw markdown for fenced diagram blocks containing title="..." and return a map.
 export function extractDiagramCaptions(markdown) {
   const captions = {};
   if (!markdown) return captions;
-  // ```<lang> …title="<text>"  …body…  ```  — lang restricted to diagram kinds.
   const re = /^([ \t]*)(`{3,}|~{3,})[ \t]*(mermaid|dot|graphviz)\b([^\n]*)\n([\s\S]*?)\n?\1\2[ \t]*$/gim;
   let m;
   while ((m = re.exec(markdown)) !== null) {

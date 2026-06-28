@@ -61,12 +61,12 @@ PROJECT_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
 }
 
 @test "SCS-4: DetailPanel.svelte has suggested_files section" {
-  run grep -c 'suggested_files' "$PROJECT_DIR/website/src/components/factory/DetailPanel.svelte"
+  run grep -c 'suggested_files' "$PROJECT_DIR/website/src/components/factory/DetailPanelSidebar.svelte"
   [[ "$output" -ge 2 ]]
 }
 
 @test "SCS-4: DetailPanel.svelte has scoreColor function" {
-  run grep -c 'scoreColor' "$PROJECT_DIR/website/src/components/factory/DetailPanel.svelte"
+  run grep -c 'scoreColor' "$PROJECT_DIR/website/src/components/factory/SuggestedFiles.svelte"
   [[ "$output" -ge 1 ]]
 }
 

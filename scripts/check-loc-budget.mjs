@@ -221,11 +221,16 @@ async function main() {
   if (args.updateBaseline) {
     const existing = loadBaseline(baselinePath);
     const thresholds = existing?.thresholds ?? { ...DEFAULTS };
+    const commit = gitShortHead();
+    const isSame = existing &&
+      existing.total_lines === total_lines &&
+      existing.file_count === file_count &&
+      existing.commit === commit;
     const baseline = {
       total_lines,
       file_count,
-      commit: gitShortHead(),
-      measured_at: new Date().toISOString(),
+      commit,
+      measured_at: isSame ? existing.measured_at : new Date().toISOString(),
       thresholds,
     };
     writeBaseline(baselinePath, baseline);

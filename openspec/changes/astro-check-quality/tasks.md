@@ -2,7 +2,7 @@
 title: "astro-check Code Quality Gate"
 ticket_id: "T001277"
 domains: [website, ci]
-status: plan_staged
+status: implementing
 file_locks: []
 shared_changes: false
 batch_id: null

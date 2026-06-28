@@ -34,6 +34,7 @@
     - "docker/**"
     - "mcp-browser/**"
     - "claude-code/**"
+    - ".opencode/**"
   owner_agent: bachelorprojekt-infra
   test_location: tests/manifests/
   purpose: Kustomize bases/overlays, sealed secrets, sidecar images, MCP config.

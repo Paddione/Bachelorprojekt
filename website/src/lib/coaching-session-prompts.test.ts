@@ -32,6 +32,13 @@ describe('STEP_DEFINITIONS', () => {
       expect(s.userTemplate.length).toBeGreaterThan(0);
     }
   });
+
+  it('every step has a non-empty description', () => {
+    for (const s of STEP_DEFINITIONS) {
+      expect(typeof (s as unknown as Record<string, unknown>)['description']).toBe('string');
+      expect(((s as unknown as Record<string, unknown>)['description'] as string).length).toBeGreaterThan(10);
+    }
+  });
 });
 
 describe('getStepDef', () => {

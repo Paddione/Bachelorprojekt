@@ -12,6 +12,7 @@ interface StepDefinition {
   stepName: string;
   phase: Phase;
   phaseLabel: string;
+  description: string;
   inputs: StepInput[];
   systemPrompt: string;
   userTemplate: string;
@@ -27,6 +28,7 @@ export const STEP_DEFINITIONS: StepDefinition[] = [
     stepName: 'Erstanamnese',
     phase: 'problem_ziel',
     phaseLabel: 'Phase 1: Problem & Ziel',
+    description: 'Anlass, Vorerfahrung und aktuelle Situation erfassen — erste Kontaktaufnahme',
     inputs: [
       { key: 'anlass', label: 'Anlass der Session', required: true, multiline: true },
       { key: 'vorerfahrung', label: 'Vorerfahrung mit Coaching', required: false },
@@ -45,6 +47,7 @@ Schlage eine einfühlsame Eröffnungsintervention vor, die die Situation würdig
     stepName: 'Schlüsselaffekt',
     phase: 'problem_ziel',
     phaseLabel: 'Phase 1: Problem & Ziel',
+    description: 'Hauptgefühl, Körperreaktion und Auslöser aufdecken — Affekt-Kontakt herstellen',
     inputs: [
       { key: 'hauptgefuehl', label: 'Hauptgefühl des Klienten', required: true },
       { key: 'koerperreaktion', label: 'Körperliche Reaktion / wo spürbar', required: false },
@@ -63,6 +66,7 @@ Schlage eine Intervention vor, die den Klienten mit dem Schlüsselaffekt in Kont
     stepName: 'Zielformulierung',
     phase: 'problem_ziel',
     phaseLabel: 'Phase 1: Problem & Ziel',
+    description: 'Wunschzustand konkretisieren — SMART-Ziel und Brücke zur Gegenwart formulieren',
     inputs: [
       { key: 'wunschzustand', label: 'Wunschzustand des Klienten', required: true, multiline: true },
       { key: 'ressourcen', label: 'Bereits vorhandene Ressourcen', required: false },
@@ -81,6 +85,7 @@ Hilf dabei, ein SMART-Ziel zu formulieren und die Brücke zwischen aktuellem Zus
     stepName: 'Teufelskreislauf',
     phase: 'analyse',
     phaseLabel: 'Phase 2: Analyse',
+    description: 'Auslöser → Reaktion → Konsequenz kartieren — Interventionspunkt im Kreislauf finden',
     inputs: [
       { key: 'ausloeser', label: 'Auslöser des Musters', required: true },
       { key: 'reaktion', label: 'Automatische Reaktion des Klienten', required: true, multiline: true },
@@ -99,6 +104,7 @@ Beschreibe den Teufelskreislauf und schlage einen Interventionspunkt vor, an dem
     stepName: 'Ressourcenanalyse',
     phase: 'analyse',
     phaseLabel: 'Phase 2: Analyse',
+    description: 'Stärken, bisherige Versuche und Netzwerk sichtbar machen und gezielt aktivieren',
     inputs: [
       { key: 'staerken', label: 'Stärken und Fähigkeiten des Klienten', required: true, multiline: true },
       { key: 'bisherige_versuche', label: 'Was hat der Klient bisher versucht?', required: false },
@@ -117,6 +123,7 @@ Schlage vor, wie der Klient seine Ressourcen gezielt für das Ziel aktivieren ka
     stepName: 'Komplementärkräfte',
     phase: 'analyse',
     phaseLabel: 'Phase 2: Analyse',
+    description: 'Polarität und verborgene Stärke im Problem freilegen — Lösungsenergie mobilisieren',
     inputs: [
       { key: 'gegensatz', label: 'Gegensatz zum Problem / was fehlt', required: true },
       { key: 'polaritaet', label: 'Polarität (z.B. Kontrolle ↔ Loslassen)', required: false },
@@ -135,6 +142,7 @@ Zeige auf, wie die Komplementärkräfte zur Lösungsentwicklung genutzt werden k
     stepName: 'Lösungsentwicklung / Bildarbeit',
     phase: 'loesung',
     phaseLabel: 'Phase 3: Lösung',
+    description: 'Metapher des Klienten vertiefen — immersive Bildarbeit für den Lösungsraum',
     inputs: [
       { key: 'bild_metapher', label: 'Bild oder Metapher des Klienten für die Lösung', required: true, multiline: true },
       { key: 'koerperliche_empfindung', label: 'Körperliche Empfindung beim Bild', required: false },
@@ -153,6 +161,7 @@ Begleite den Klienten tiefer in das Lösungsbild hinein. Schlage Fragen vor, die
     stepName: 'Erfolgsimagination',
     phase: 'loesung',
     phaseLabel: 'Phase 3: Lösung',
+    description: 'Erfolgsbild konkret verankern — Übergang zur handfesten Umsetzungsplanung',
     inputs: [
       { key: 'erfolgsbild', label: 'Wie sieht Erfolg aus (konkret)?', required: true, multiline: true },
       { key: 'gefuehl_bei_erfolg', label: 'Wie fühlt sich das an?', required: false },
@@ -171,6 +180,7 @@ Verankere die Erfolgsimagination und leite über zur konkreten Umsetzungsplanung
     stepName: 'Goldstücks-Aktivität',
     phase: 'umsetzung',
     phaseLabel: 'Phase 4: Umsetzung',
+    description: 'Den einen Schritt mit maximalem Hebel identifizieren und als konkreten Auftrag formulieren',
     inputs: [
       { key: 'konkrete_schritte', label: 'Konkrete nächste Schritte', required: true, multiline: true },
       { key: 'ressourcen_dafuer', label: 'Benötigte Ressourcen', required: false },
@@ -189,6 +199,7 @@ Identifiziere die eine "Goldstücks-Aktivität" — den einzelnen Schritt mit de
     stepName: 'Transfersicherung',
     phase: 'umsetzung',
     phaseLabel: 'Phase 4: Umsetzung',
+    description: 'Hindernisse antizipieren — Unterstützung und Nachverfolgung sicherstellen',
     inputs: [
       { key: 'hindernisse', label: 'Mögliche Hindernisse', required: true, multiline: true },
       { key: 'unterstuetzung', label: 'Wer/was unterstützt?', required: false },

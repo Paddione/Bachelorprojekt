@@ -137,6 +137,15 @@ export function HomepageEditorPage() {
     }
   }, [loading, authenticated]);
 
+  // Escape key closes fullscreen preview — must be here (before early returns) to
+  // satisfy Rules of Hooks (hooks cannot appear after conditional returns).
+  useEffect(() => {
+    if (!previewFullscreen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setPreviewFullscreen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [previewFullscreen]);
+
   if (loading) return <PageShell>Lädt…</PageShell>;
   if (authenticated && !isAdmin) return <Navigate to="/" replace />;
   if (!authenticated) return <PageShell>Weiterleitung zum Login…</PageShell>;
@@ -184,13 +193,6 @@ export function HomepageEditorPage() {
     }
     setConfirmOpen(false);
   };
-
-  useEffect(() => {
-    if (!previewFullscreen) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setPreviewFullscreen(false); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [previewFullscreen]);
 
   return (
     <>

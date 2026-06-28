@@ -19,6 +19,7 @@ show_help() {
   echo "  factory-prep               Factory preparation guards"
   echo "  brainstorm                 Brainstorming bridge"
   echo "  release-notes              Release notes generator from merged PRs"
+  echo "  cfr                        Change Failure Rate (fix()-Commits/Merges, letzte 8 Wochen, opt. CFR_WINDOW=<date>)"
   echo "  help                       Show this help"
   echo "  version                    Show version"
 }
@@ -64,6 +65,15 @@ main() {
     release-notes)
       shift
       exec "${SCRIPT_DIR}/vda/release-notes.sh" "$@"
+      ;;
+    cfr)
+      T=$(git log --since="${CFR_WINDOW:-8 weeks ago}" --first-parent --oneline main | wc -l)
+      F=$(git log --since="${CFR_WINDOW:-8 weeks ago}" --first-parent --oneline main | grep -ciE '^[0-9a-f]+ fix\(')
+      if [[ $T -eq 0 ]]; then
+        echo "CFR: n/a (keine Merges im Fenster)"
+        exit 0
+      fi
+      python3 -c "print(f'CFR breit (fix()-Proxy): {$F/$T*100:.1f}% ({$F} fix / {$T} total) — Target: ≤15%')"
       ;;
     help|--help|-h)
       show_help

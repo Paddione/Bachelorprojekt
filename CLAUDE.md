@@ -184,3 +184,15 @@ Covered sub-topics (reference file, not repeated here):
 
 ### Brett
 
+### Bug-Triage-Konvention (CFR-Gate G-DORA03)
+
+**Jeder nach-Merge entdeckte Fehler wird als `type=bug`-Ticket erfasst.**
+Kein stiller `fix()`-Commit ohne Ticket-Referenz. Die Change Failure Rate
+(broad proxy: fix()-Rate) wird mit `bash scripts/vda.sh cfr` gemessen —
+Ziel: ≤ 15 % über 8 Wochen. Ein ungeticketer `fix()`-Commit zählt als
+verschleierter Bug und verschlechtert den Proxy-Wert, ohne dass er in der
+DORA-Auswertung unter `/admin/dora` erscheint.
+
+Ablauf: Bug entdecken → `bash scripts/ticket.sh create --type bug --title "..."` →
+Branch + PR → nach Merge wird Ticket automatisch `done`.
+

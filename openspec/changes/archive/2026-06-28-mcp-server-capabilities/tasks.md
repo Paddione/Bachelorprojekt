@@ -2,7 +2,7 @@
 title: "mcp-server-capabilities — Implementation Plan"
 ticket_id: "T001310"
 domains: [mcp, task-runner, ticket-mcp, bash]
-status: plan_staged
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

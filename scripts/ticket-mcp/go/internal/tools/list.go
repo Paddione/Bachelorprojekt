@@ -155,4 +155,31 @@ func RegisterListTools(s *server.MCPServer) {
 			return mcp.NewToolResultText(strings.TrimSpace(raw)), nil
 		},
 	)
+
+	s.AddTool(
+		mcp.NewTool("export_ticket_timeline",
+			mcp.WithDescription("Exportiert die vollständige Ticket-History als chronologisches JSON. Quellen: Kommentare (ticket_comments), Factory-Phasen (factory_phase_events), PR-Links (ticket_links kind=pr), archivierte Pläne (ticket_plans). HINWEIS: CLI-Statusübergänge via ticket.sh update-status erscheinen nicht in der Timeline (bekannte Lücke — Follow-up-Ticket erforderlich)."),
+			mcp.WithString("id", mcp.Description("external_id z.B. T000123"), mcp.Required()),
+			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)")),
+		),
+		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			a := getArgs(req)
+			id, _ := a["id"].(string)
+			brand, _ := a["brand"].(string)
+			if brand == "" {
+				brand = "mentolder"
+			}
+			if id == "" {
+				return mcp.NewToolResultError("id is required"), nil
+			}
+			raw, err := runner.RunTicket(
+				[]string{"get-timeline", "--id", id, "--brand", brand},
+				map[string]string{"BRAND": brand},
+			)
+			if err != nil {
+				return nil, err
+			}
+			return mcp.NewToolResultText(strings.TrimSpace(raw)), nil
+		},
+	)
 }

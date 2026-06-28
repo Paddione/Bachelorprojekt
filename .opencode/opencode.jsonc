@@ -32,7 +32,7 @@
       "environment": {
         "OPENAI_API_KEY": "lmstudio",
         "OPENAI_BASE_URL": "http://192.168.100.10:1234/v1",
-        "TASK_MASTER_MODEL": "hermes-3-llama-3.1-8b",
+        "TASK_MASTER_MODEL": "qwen3-14b",
         "TASK_MASTER_PROVIDER": "openai",
         "OLLAMA_BASE_URL": "http://localhost:11434/api",
         "TASK_MASTER_TOOLS": "all"

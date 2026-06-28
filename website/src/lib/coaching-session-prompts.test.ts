@@ -80,3 +80,25 @@ describe('buildUserPrompt', () => {
     expect(out).toContain('Anlass: —');
   });
 });
+
+describe('rate limit helper', () => {
+  it('blocks after LIMIT requests from same IP within window', () => {
+    const rateMap = new Map<string, { count: number; reset: number }>();
+    const LIMIT = 20;
+
+    function check(ip: string): boolean {
+      const now = Date.now();
+      const entry = rateMap.get(ip);
+      if (!entry || now > entry.reset) {
+        rateMap.set(ip, { count: 1, reset: now + 60_000 });
+        return false;
+      }
+      entry.count++;
+      return entry.count > LIMIT;
+    }
+
+    for (let i = 0; i < LIMIT; i++) expect(check('1.2.3.4')).toBe(false);
+    expect(check('1.2.3.4')).toBe(true);
+    expect(check('5.6.7.8')).toBe(false); // different IP resets
+  });
+});

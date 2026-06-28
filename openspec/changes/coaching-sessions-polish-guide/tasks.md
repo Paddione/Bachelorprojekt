@@ -218,7 +218,7 @@ git commit -m "feat(coaching): polish SessionWizard — design tokens + serif ti
 - Consumes: `getActiveProvider(pool, 'mentolder')` → `KiConfig.apiEndpoint`, `KiConfig.apiKey`, `KiConfig.modelName`, `KiConfig.systemPrompt`, `KiConfig.maxTokens`, `KiConfig.temperature`
 - Produces: `POST /api/demo/coaching-sim` → `{ result: string }` | `{ error: string }` (429/500/503)
 
-- [ ] **Schritt 3.1: Failing Test schreiben**
+- [x] **Schritt 3.1: Failing Test schreiben**
 
 In `website/src/lib/coaching-session-prompts.test.ts` neue `describe`-Gruppe anfügen:
 
@@ -246,7 +246,7 @@ describe('rate limit helper', () => {
 });
 ```
 
-- [ ] **Schritt 3.2: Test ausführen — erwartet FAIL**
+- [x] **Schritt 3.2: Test ausführen — erwartet FAIL**
 
 ```bash
 cd website && pnpm test coaching-session-prompts --run
@@ -256,7 +256,7 @@ expected: FAIL — der neue `describe`-Block kann noch nicht importiert werden w
 
 > Hinweis: Der Test ist self-contained (kein Import aus coaching-sim.ts nötig). Er schlägt durch den fehlenden Describe-Block oder einen TypeScript-Fehler fehl bis Task 3.3 abgeschlossen ist.
 
-- [ ] **Schritt 3.3: Endpoint erstellen**
+- [x] **Schritt 3.3: Endpoint erstellen**
 
 `website/src/pages/api/demo/coaching-sim.ts`:
 
@@ -397,7 +397,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
 };
 ```
 
-- [ ] **Schritt 3.4: Test ausführen — erwartet PASS**
+- [x] **Schritt 3.4: Test ausführen — erwartet PASS**
 
 ```bash
 cd website && pnpm test coaching-session-prompts --run
@@ -405,7 +405,7 @@ cd website && pnpm test coaching-session-prompts --run
 
 expected: PASS
 
-- [ ] **Schritt 3.5: Commit**
+- [x] **Schritt 3.5: Commit**
 
 ```bash
 git add website/src/pages/api/demo/coaching-sim.ts

@@ -82,6 +82,7 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
 | Lifecycle | `transition_status`, `add_comment`, `update_fields` |
 | Workflow | `record_phase_event`, `record_grill_answers`, `stage_plan`, `create_ticket`, `enqueue_ticket`, `set_touched_files`, `get_attachments`, `archive_plan`, `add_pr_link` |
 | Mishap | `report_mishap`, `get_mishap_buffer`, `flush_mishap_buffer` |
+| Links/Timeline | `link_tickets`, `get_ticket_links`, `export_ticket_timeline` |
 
 > `create_ticket` gibt `external_id|uuid` zurück (Skills parsen `cut -d'|' -f1`). `record_phase_event`
 > ist positional (`phase <id> <phase> <state>`); `get_attachments` braucht `out_dir`; `archive_plan`
@@ -101,7 +102,7 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
 ## `mcp-task-runner` — go-task-Ausführung + OTel
 
 - **Transport:** lokales Binary (`mcp-task-runner`), OTel-Endpoint `localhost:4317`.
-- **Tools:** `plan_tasks`, `run_task`, `execute_plan`.
+- **Tools:** `plan_tasks`, `run_task`, `execute_plan`, `run_task_async`, `cancel_task`, `get_task_result`, `get_task_graph`.
 - **Wann bevorzugen:** go-task-Targets parallel ausführen mit strukturiertem OTel-Logging.
 - **Fallback:** `task <target>` direkt in der Shell.
 

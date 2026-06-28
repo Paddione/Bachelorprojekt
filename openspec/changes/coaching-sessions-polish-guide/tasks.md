@@ -53,7 +53,7 @@ depends_on_plans: []
 **Interfaces:**
 - Produces: `StepDefinition.description: string` — von Task 2 (SessionWizard) und Task 4 (HTML-Guide) gelesen
 
-- [x] **Schritt 1.1: Failing Test schreiben**
+- [ ] **Schritt 1.1: Failing Test schreiben**
 
 In `website/src/lib/coaching-session-prompts.test.ts` am Ende des `describe('STEP_DEFINITIONS', ...)` Blocks hinzufügen:
 
@@ -66,7 +66,7 @@ it('every step has a non-empty description', () => {
 });
 ```
 
-- [x] **Schritt 1.2: Test ausführen — erwartet FAIL**
+- [ ] **Schritt 1.2: Test ausführen — erwartet FAIL**
 
 ```bash
 cd website && pnpm test coaching-session-prompts --run
@@ -74,7 +74,7 @@ cd website && pnpm test coaching-session-prompts --run
 
 expected: FAIL — `expected 'undefined' to be 'string'`
 
-- [x] **Schritt 1.3: Interface erweitern**
+- [ ] **Schritt 1.3: Interface erweitern**
 
 In `website/src/lib/coaching-session-prompts.ts` das Interface um `description` ergänzen (nach `phaseLabel`):
 
@@ -91,7 +91,7 @@ interface StepDefinition {
 }
 ```
 
-- [x] **Schritt 1.4: Beschreibungen zu allen 10 Steps hinzufügen**
+- [ ] **Schritt 1.4: Beschreibungen zu allen 10 Steps hinzufügen**
 
 Jeden Eintrag in `STEP_DEFINITIONS` um `description` nach `phaseLabel:` ergänzen:
 
@@ -118,7 +118,7 @@ description: 'Den einen Schritt mit maximalem Hebel identifizieren und als konkr
 description: 'Hindernisse antizipieren — Unterstützung und Nachverfolgung sicherstellen',
 ```
 
-- [x] **Schritt 1.5: Test ausführen — erwartet PASS**
+- [ ] **Schritt 1.5: Test ausführen — erwartet PASS**
 
 ```bash
 cd website && pnpm test coaching-session-prompts --run
@@ -126,7 +126,7 @@ cd website && pnpm test coaching-session-prompts --run
 
 expected: PASS (alle Tests grün inkl. des neuen)
 
-- [x] **Schritt 1.6: Commit**
+- [ ] **Schritt 1.6: Commit**
 
 ```bash
 git add website/src/lib/coaching-session-prompts.ts website/src/lib/coaching-session-prompts.test.ts
@@ -143,7 +143,7 @@ git commit -m "feat(coaching): add description field to StepDefinition [T001316]
 **Interfaces:**
 - Consumes: `STEP_DEFINITIONS[n].description` aus Task 1
 
-- [x] **Schritt 2.1: Beschreibungszeile ins HTML einfügen**
+- [ ] **Schritt 2.1: Beschreibungszeile ins HTML einfügen**
 
 Im `<div class="step-header">` Block (nach `<span class="phase-label">`):
 
@@ -155,7 +155,7 @@ Im `<div class="step-header">` Block (nach `<span class="phase-label">`):
 </div>
 ```
 
-- [x] **Schritt 2.2: Gesamte `<style>`-Sektion ersetzen**
+- [ ] **Schritt 2.2: Gesamte `<style>`-Sektion ersetzen**
 
 ```svelte
 <style>
@@ -187,7 +187,7 @@ Im `<div class="step-header">` Block (nach `<span class="phase-label">`):
 </style>
 ```
 
-- [x] **Schritt 2.3: Visuell prüfen (Dev-Server)**
+- [ ] **Schritt 2.3: Visuell prüfen (Dev-Server)**
 
 ```bash
 cd website && pnpm dev
@@ -200,7 +200,7 @@ cd website && pnpm dev
 - Fokus-Kante in Brass (gold, nicht mehr --gold Fallback)
 - KI-Antwort-Box mit Brass-Border
 
-- [x] **Schritt 2.4: Commit**
+- [ ] **Schritt 2.4: Commit**
 
 ```bash
 git add website/src/components/admin/coaching/SessionWizard.svelte
@@ -218,7 +218,7 @@ git commit -m "feat(coaching): polish SessionWizard — design tokens + serif ti
 - Consumes: `getActiveProvider(pool, 'mentolder')` → `KiConfig.apiEndpoint`, `KiConfig.apiKey`, `KiConfig.modelName`, `KiConfig.systemPrompt`, `KiConfig.maxTokens`, `KiConfig.temperature`
 - Produces: `POST /api/demo/coaching-sim` → `{ result: string }` | `{ error: string }` (429/500/503)
 
-- [x] **Schritt 3.1: Failing Test schreiben**
+- [ ] **Schritt 3.1: Failing Test schreiben**
 
 In `website/src/lib/coaching-session-prompts.test.ts` neue `describe`-Gruppe anfügen:
 
@@ -246,7 +246,7 @@ describe('rate limit helper', () => {
 });
 ```
 
-- [x] **Schritt 3.2: Test ausführen — erwartet FAIL**
+- [ ] **Schritt 3.2: Test ausführen — erwartet FAIL**
 
 ```bash
 cd website && pnpm test coaching-session-prompts --run
@@ -256,7 +256,7 @@ expected: FAIL — der neue `describe`-Block kann noch nicht importiert werden w
 
 > Hinweis: Der Test ist self-contained (kein Import aus coaching-sim.ts nötig). Er schlägt durch den fehlenden Describe-Block oder einen TypeScript-Fehler fehl bis Task 3.3 abgeschlossen ist.
 
-- [x] **Schritt 3.3: Endpoint erstellen**
+- [ ] **Schritt 3.3: Endpoint erstellen**
 
 `website/src/pages/api/demo/coaching-sim.ts`:
 
@@ -397,7 +397,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
 };
 ```
 
-- [x] **Schritt 3.4: Test ausführen — erwartet PASS**
+- [ ] **Schritt 3.4: Test ausführen — erwartet PASS**
 
 ```bash
 cd website && pnpm test coaching-session-prompts --run
@@ -405,7 +405,7 @@ cd website && pnpm test coaching-session-prompts --run
 
 expected: PASS
 
-- [x] **Schritt 3.5: Commit**
+- [ ] **Schritt 3.5: Commit**
 
 ```bash
 git add website/src/pages/api/demo/coaching-sim.ts
@@ -423,7 +423,7 @@ git commit -m "feat(coaching): add /api/demo/coaching-sim — Hermes proxy with 
 - Consumes: `POST /api/demo/coaching-sim` (Task 3) im Live-Modus
 - Produces: Öffentlich unter `mentolder.de/coaching-guide.html`
 
-- [x] **Schritt 4.1: Datei erstellen**
+- [ ] **Schritt 4.1: Datei erstellen**
 
 `website/public/coaching-guide.html` mit folgendem Inhalt erstellen:
 
@@ -672,7 +672,7 @@ render();
 </html>
 ```
 
-- [x] **Schritt 4.2: Seite im Browser prüfen**
+- [ ] **Schritt 4.2: Seite im Browser prüfen**
 
 ```bash
 cd website && pnpm dev
@@ -683,7 +683,7 @@ cd website && pnpm dev
 - Scripted: Toggle → Felder mit Andrea K. vorbefüllt → "KI befragen →" → Typewriter → "Akzeptieren →" → Step 2 → … → Step 10 → Report
 - Live: "🎭 Klient befragen" → POST /api/demo/coaching-sim (mode:client) → Felder füllen sich → "KI befragen →" → Hermes-Antwort Typewriter
 
-- [x] **Schritt 4.3: Commit**
+- [ ] **Schritt 4.3: Commit**
 
 ```bash
 git add website/public/coaching-guide.html
@@ -694,7 +694,7 @@ git commit -m "feat(coaching): add interactive coaching guide for stakeholder de
 
 ### Task 5: Verifikation
 
-- [x] **Schritt 5.1: Test-Suite**
+- [ ] **Schritt 5.1: Test-Suite**
 
 ```bash
 task test:changed
@@ -702,7 +702,7 @@ task test:changed
 
 expected: PASS
 
-- [x] **Schritt 5.2: Freshness**
+- [ ] **Schritt 5.2: Freshness**
 
 ```bash
 task freshness:regenerate
@@ -711,7 +711,7 @@ task freshness:check
 
 expected: PASS
 
-- [x] **Schritt 5.3: Manueller End-to-End-Check**
+- [ ] **Schritt 5.3: Manueller End-to-End-Check**
 
 Admin-UI: `http://localhost:4321/admin/coaching/sessions` → Session öffnen
 - Schritt-Titel in Newsreader Serif ✓

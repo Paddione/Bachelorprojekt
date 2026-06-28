@@ -523,12 +523,6 @@
       "status": "plan_staged"
     }
   ],
-  "T001323": [
-    {
-      "slug": "2026-06-29-plan-intel-bundle",
-      "status": "archived"
-    }
-  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

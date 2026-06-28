@@ -222,15 +222,16 @@ async function main() {
     const existing = loadBaseline(baselinePath);
     const thresholds = existing?.thresholds ?? { ...DEFAULTS };
     const commit = gitShortHead();
-    const isSame = existing &&
-      existing.total_lines === total_lines &&
-      existing.file_count === file_count &&
-      existing.commit === commit;
+    // Only update commit/timestamp when line count actually changes — avoids
+    // merge conflicts and stale-freshness failures on every new commit.
+    const countChanged = !existing ||
+      existing.total_lines !== total_lines ||
+      existing.file_count !== file_count;
     const baseline = {
       total_lines,
       file_count,
-      commit,
-      measured_at: isSame ? existing.measured_at : new Date().toISOString(),
+      commit: countChanged ? commit : (existing?.commit ?? commit),
+      measured_at: countChanged ? new Date().toISOString() : (existing?.measured_at ?? new Date().toISOString()),
       thresholds,
     };
     writeBaseline(baselinePath, baseline);

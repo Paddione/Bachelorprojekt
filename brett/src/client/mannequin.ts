@@ -60,10 +60,10 @@ export const IK_CHAINS: Record<string, string[]> = {
 const raycaster = new THREE.Raycaster();
 const ndc = new THREE.Vector2();
 
-// sendMove is injected to avoid a cycle with ws-client.ts.
-let sendMove: (id: string, x: number, z: number, facingY: number) => void = () => {};
-export function setSendMove(fn: typeof sendMove): void {
-  sendMove = fn;
+// _sendMove is injected to avoid a cycle with ws-client.ts.
+let _sendMove: (id: string, x: number, z: number, facingY: number) => void = () => {};
+export function setSendMove(fn: typeof _sendMove): void {
+  _sendMove = fn;
   setPhysicsSendMove(fn);
 }
 

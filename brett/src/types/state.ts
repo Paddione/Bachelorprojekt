@@ -92,6 +92,12 @@ export interface FigureLock {
   color: string;
 }
 
+export interface ModerationState {
+  spotlight: string | null;
+  dim: string | null;
+  freeze: boolean;
+}
+
 export interface RoomState {
   figures: Record<string, Figure>;
   participants: Participant[];
@@ -102,6 +108,9 @@ export interface RoomState {
   createdAt?: number | null;
   lastActivity?: number | null;
   coachingSteps?: { steps: string[]; index: number } | null;
+  roles?: Record<string, Role>;
+  moderation?: ModerationState;
+  lobbySettings?: LobbySettings;
 }
 
 // ── Boden-Anker & Zonen (T000468) ────────────────────────────────────────────

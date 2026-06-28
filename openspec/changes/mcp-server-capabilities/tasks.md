@@ -65,7 +65,7 @@ depends_on_plans: []
 **Interfaces:**
 - Produces: `runner.JobStatus` (string type, constants `JobRunning`, `JobDone`, `JobCancelled`); `runner.JobRegistry` with methods `Register(jobID string, cancel context.CancelFunc)`, `Cancel(jobID string) (found bool, wasCancelled bool)`, `Complete(jobID string, result Result)`, `Lookup(jobID string) (found bool, status JobStatus, result *Result)`; `runner.GlobalRegistry *JobRegistry`; `runner.StartTask(parentCtx context.Context, task, env, taskfilePath string) (string, error)`
 
-- [ ] **Step 1: Write the failing registry test**
+- [x] **Step 1: Write the failing registry test**
 
 Create `mcp-task-runner/runner/registry_test.go`:
 
@@ -173,7 +173,7 @@ func TestStartTaskInvalidTask(t *testing.T) {
 }
 ```
 
-- [ ] **Step 2: Run the test to verify it fails (types not yet defined)**
+- [x] **Step 2: Run the test to verify it fails (types not yet defined)**
 
 ```bash
 cd /tmp/wt-mcp-server-capabilities/mcp-task-runner
@@ -182,7 +182,7 @@ go test ./runner/ -run TestJobRegistry -v 2>&1 | head -20
 
 Expected: FAIL — compilation errors: `runner.JobRegistry`, `runner.JobRunning`, `runner.StartTask` undefined.
 
-- [ ] **Step 3: Create `mcp-task-runner/runner/registry.go`**
+- [x] **Step 3: Create `mcp-task-runner/runner/registry.go`**
 
 ```go
 package runner
@@ -286,7 +286,7 @@ func (r *JobRegistry) Lookup(jobID string) (found bool, status JobStatus, result
 }
 ```
 
-- [ ] **Step 4: Add `StartTask()` to `mcp-task-runner/runner/executor.go`**
+- [x] **Step 4: Add `StartTask()` to `mcp-task-runner/runner/executor.go`**
 
 Add these imports to the existing import block:
 ```go
@@ -356,7 +356,7 @@ func StartTask(parentCtx context.Context, task, env, taskfilePath string) (strin
 }
 ```
 
-- [ ] **Step 5: Run tests and verify they pass**
+- [x] **Step 5: Run tests and verify they pass**
 
 ```bash
 cd /tmp/wt-mcp-server-capabilities/mcp-task-runner
@@ -366,7 +366,7 @@ go test ./runner/ -v
 
 Expected: all tests pass, including the existing `TestRunTask*` and `TestExecutePlan*` tests plus the new `TestJobRegistry*` and `TestStartTask*` tests.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 cd /tmp/wt-mcp-server-capabilities
@@ -389,7 +389,7 @@ git commit -m "feat(mcp-task-runner): add JobRegistry and StartTask for async ex
 - Consumes: `runner.StartTask()`, `runner.GlobalRegistry.Cancel()`, `runner.GlobalRegistry.Lookup()`, `runner.JobRunning`, `runner.JobDone`, `runner.JobCancelled` from Task 1
 - Produces: MCP tools `run_task_async`, `cancel_task`, `get_task_result` registered on the MCP server
 
-- [ ] **Step 1: Add three new tool handlers in `mcp-task-runner/main.go`**
+- [x] **Step 1: Add three new tool handlers in `mcp-task-runner/main.go`**
 
 Add a new import `"encoding/json"` is already present. Add the three tool handlers before the `server.ServeStdio(s)` call. The exact insertion point is after the closing brace of the `execute_plan` handler:
 
@@ -474,7 +474,7 @@ s.AddTool(getTaskResultTool, func(ctx context.Context, req mcp.CallToolRequest) 
 })
 ```
 
-- [ ] **Step 2: Verify compilation**
+- [x] **Step 2: Verify compilation**
 
 ```bash
 cd /tmp/wt-mcp-server-capabilities/mcp-task-runner
@@ -483,7 +483,7 @@ go build ./...
 
 Expected: exits 0 with no output.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 cd /tmp/wt-mcp-server-capabilities
@@ -504,7 +504,7 @@ git commit -m "feat(mcp-task-runner): add run_task_async, cancel_task, get_task_
 - Consumes: `planner.Graph` (type `map[string][]string`, defined in `planner/parser.go`)
 - Produces: `planner.GraphToMermaid(g Graph) string`, `planner.GraphToJSON(g Graph) string`
 
-- [ ] **Step 1: Write the failing graphviz test**
+- [x] **Step 1: Write the failing graphviz test**
 
 Create `mcp-task-runner/planner/graphviz_test.go`:
 
@@ -612,7 +612,7 @@ func min(a, b int) int {
 }
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 ```bash
 cd /tmp/wt-mcp-server-capabilities/mcp-task-runner
@@ -621,7 +621,7 @@ go test ./planner/ -run TestGraphTo -v 2>&1 | head -20
 
 Expected: FAIL — `planner.GraphToMermaid` and `planner.GraphToJSON` undefined.
 
-- [ ] **Step 3: Create `mcp-task-runner/planner/graphviz.go`**
+- [x] **Step 3: Create `mcp-task-runner/planner/graphviz.go`**
 
 ```go
 package planner
@@ -715,7 +715,7 @@ func GraphToJSON(g Graph) string {
 }
 ```
 
-- [ ] **Step 4: Run the graphviz tests to verify they pass**
+- [x] **Step 4: Run the graphviz tests to verify they pass**
 
 ```bash
 cd /tmp/wt-mcp-server-capabilities/mcp-task-runner
@@ -724,7 +724,7 @@ go test ./planner/ -v
 
 Expected: all tests pass, including existing `TestParse*` and `TestSchedule*` plus new `TestGraphTo*` tests.
 
-- [ ] **Step 5: Add the `get_task_graph` handler in `mcp-task-runner/main.go`**
+- [x] **Step 5: Add the `get_task_graph` handler in `mcp-task-runner/main.go`**
 
 Add before the `server.ServeStdio(s)` call:
 
@@ -754,7 +754,7 @@ s.AddTool(getTaskGraphTool, func(ctx context.Context, req mcp.CallToolRequest) (
 })
 ```
 
-- [ ] **Step 6: Verify compilation**
+- [x] **Step 6: Verify compilation**
 
 ```bash
 cd /tmp/wt-mcp-server-capabilities/mcp-task-runner
@@ -763,7 +763,7 @@ go build ./...
 
 Expected: exits 0.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 cd /tmp/wt-mcp-server-capabilities
@@ -786,7 +786,7 @@ git commit -m "feat(mcp-task-runner): add get_task_graph with Mermaid/JSON outpu
 **Interfaces:**
 - Produces: `ticket.sh link-tickets --from <ext_id> --to <ext_id> --kind blocks|relates` (exits 0 on TICKET_OFFLINE=1); `ticket.sh get-ticket-links --id <ext_id>` (exits 9 on TICKET_OFFLINE=1); `ticket.sh get-timeline --id <ext_id>` (exits 9 on TICKET_OFFLINE=1)
 
-- [ ] **Step 1: Write failing BATS tests for the new bash verbs**
+- [x] **Step 1: Write failing BATS tests for the new bash verbs**
 
 Add the following `@test` blocks to `tests/spec/ticket-mcp.bats`. Append after the existing tests:
 
@@ -841,7 +841,7 @@ Add the following `@test` blocks to `tests/spec/ticket-mcp.bats`. Append after t
 }
 ```
 
-- [ ] **Step 2: Run the BATS tests to verify they fail**
+- [x] **Step 2: Run the BATS tests to verify they fail**
 
 ```bash
 cd /tmp/wt-mcp-server-capabilities
@@ -850,7 +850,7 @@ bats tests/spec/ticket-mcp.bats --filter "link-tickets|get-ticket-links|get-time
 
 Expected: FAIL — `Unknown command: link-tickets` / `Unknown command: get-ticket-links` / `Unknown command: get-timeline` with exit code 1, not the expected 2 or 9.
 
-- [ ] **Step 3: Create the SQL migration file**
+- [x] **Step 3: Create the SQL migration file**
 
 Create `scripts/datamodel/2026-06-28-ticket-links-deps-kind.sql`:
 
@@ -871,7 +871,7 @@ ALTER TABLE tickets.ticket_links
 COMMIT;
 ```
 
-- [ ] **Step 4: Add `cmd_link_tickets()` and `cmd_get_ticket_links()` to `scripts/lib/ticket-links.sh`**
+- [x] **Step 4: Add `cmd_link_tickets()` and `cmd_get_ticket_links()` to `scripts/lib/ticket-links.sh`**
 
 Append after the existing `cmd_add_pr_link()` function closing brace:
 
@@ -962,7 +962,7 @@ EOF
 }
 ```
 
-- [ ] **Step 5: Add `cmd_get_timeline()` inline in `scripts/ticket.sh`**
+- [x] **Step 5: Add `cmd_get_timeline()` inline in `scripts/ticket.sh`**
 
 Find the line `cmd_triage()` (around line 729) and insert `cmd_get_timeline()` directly before it:
 
@@ -1045,7 +1045,7 @@ EOF
 }
 ```
 
-- [ ] **Step 6: Update dispatch table and usage string in `scripts/ticket.sh`**
+- [x] **Step 6: Update dispatch table and usage string in `scripts/ticket.sh`**
 
 In the usage string (around line 737), update the `echo "Commands: ..."` line to append the three new commands:
 ```
@@ -1059,7 +1059,7 @@ In the `case "$cmd" in` block, add three new entries before the `*)` default cas
   get-timeline)      cmd_get_timeline "$@" ;;
 ```
 
-- [ ] **Step 7: Run BATS tests to verify they pass**
+- [x] **Step 7: Run BATS tests to verify they pass**
 
 ```bash
 cd /tmp/wt-mcp-server-capabilities
@@ -1068,7 +1068,7 @@ bats tests/spec/ticket-mcp.bats --filter "link-tickets|get-ticket-links|get-time
 
 Expected: all 8 new tests pass.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 cd /tmp/wt-mcp-server-capabilities
@@ -1092,7 +1092,7 @@ git commit -m "feat(ticket-mcp): add link-tickets, get-ticket-links, get-timelin
 - Consumes: `runner.RunTicket(args []string, extraEnv map[string]string) (string, error)` from `internal/runner/run_ticket.go`; `getArgs(req mcp.CallToolRequest) map[string]any` already defined in `tools/list.go`
 - Produces: MCP tools `link_tickets`, `get_ticket_links`, `export_ticket_timeline` registered on the ticket-mcp server
 
-- [ ] **Step 1: Create `scripts/ticket-mcp/go/internal/tools/links.go`**
+- [x] **Step 1: Create `scripts/ticket-mcp/go/internal/tools/links.go`**
 
 ```go
 package tools
@@ -1176,7 +1176,7 @@ func RegisterLinkTools(s *server.MCPServer) {
 }
 ```
 
-- [ ] **Step 2: Add `export_ticket_timeline` to the end of `RegisterListTools()` in `scripts/ticket-mcp/go/internal/tools/list.go`**
+- [x] **Step 2: Add `export_ticket_timeline` to the end of `RegisterListTools()` in `scripts/ticket-mcp/go/internal/tools/list.go`**
 
 Inside `RegisterListTools(s *server.MCPServer)`, append after the `export_tickets` tool's closing `s.AddTool(...)` call (before the final closing brace of the function):
 
@@ -1209,7 +1209,7 @@ Inside `RegisterListTools(s *server.MCPServer)`, append after the `export_ticket
 	)
 ```
 
-- [ ] **Step 3: Wire `RegisterLinkTools` in `scripts/ticket-mcp/go/cmd/ticket-mcp/main.go`**
+- [x] **Step 3: Wire `RegisterLinkTools` in `scripts/ticket-mcp/go/cmd/ticket-mcp/main.go`**
 
 In `main()`, after the existing `tools.RegisterWorkflowTools(mcpServer)` call, add:
 
@@ -1217,7 +1217,7 @@ In `main()`, after the existing `tools.RegisterWorkflowTools(mcpServer)` call, a
 tools.RegisterLinkTools(mcpServer)
 ```
 
-- [ ] **Step 4: Verify compilation**
+- [x] **Step 4: Verify compilation**
 
 ```bash
 cd /tmp/wt-mcp-server-capabilities/scripts/ticket-mcp/go
@@ -1226,7 +1226,7 @@ go build ./...
 
 Expected: exits 0.
 
-- [ ] **Step 5: Run existing tests and verify they still pass**
+- [x] **Step 5: Run existing tests and verify they still pass**
 
 ```bash
 cd /tmp/wt-mcp-server-capabilities/scripts/ticket-mcp/go
@@ -1235,7 +1235,7 @@ go test ./...
 
 Expected: all existing tests pass (`TestRegisterWorkflowToolsNoPanic`, `TestClassifyBundle*`, `TestMishapEntry*`).
 
-- [ ] **Step 6: Write a compile-level test for RegisterLinkTools**
+- [x] **Step 6: Write a compile-level test for RegisterLinkTools**
 
 Add `scripts/ticket-mcp/go/internal/tools/links_test.go`:
 
@@ -1256,7 +1256,7 @@ func TestRegisterLinkToolsNoPanic(t *testing.T) {
 }
 ```
 
-- [ ] **Step 7: Run tests including the new links test**
+- [x] **Step 7: Run tests including the new links test**
 
 ```bash
 cd /tmp/wt-mcp-server-capabilities/scripts/ticket-mcp/go
@@ -1265,7 +1265,7 @@ go test ./internal/tools/ -v
 
 Expected: all tests pass including `TestRegisterLinkToolsNoPanic`.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 cd /tmp/wt-mcp-server-capabilities
@@ -1282,7 +1282,7 @@ git commit -m "feat(ticket-mcp): add link_tickets, get_ticket_links, export_tick
 
 **Files:** No new files — verification only.
 
-- [ ] **Step 1: Run all changed tests**
+- [x] **Step 1: Run all changed tests**
 
 ```bash
 cd /tmp/wt-mcp-server-capabilities
@@ -1291,7 +1291,7 @@ task test:changed
 
 Expected: exits 0. This runs the changed BATS specs, Go unit tests, and any other offline test categories detected by `test:changed`.
 
-- [ ] **Step 2: Update test inventory (required because new @test entries were added)**
+- [x] **Step 2: Update test inventory (required because new @test entries were added)**
 
 ```bash
 cd /tmp/wt-mcp-server-capabilities
@@ -1300,7 +1300,7 @@ task test:inventory
 
 Expected: exits 0 and regenerates `website/src/data/test-inventory.json`.
 
-- [ ] **Step 3: Commit updated test inventory if changed**
+- [x] **Step 3: Commit updated test inventory if changed**
 
 ```bash
 cd /tmp/wt-mcp-server-capabilities
@@ -1310,7 +1310,7 @@ git add website/src/data/test-inventory.json
 git commit -m "chore: regenerate test inventory after ticket-mcp BATS additions"
 ```
 
-- [ ] **Step 4: Regenerate freshness artifacts**
+- [x] **Step 4: Regenerate freshness artifacts**
 
 ```bash
 cd /tmp/wt-mcp-server-capabilities
@@ -1319,7 +1319,7 @@ task freshness:regenerate
 
 Expected: exits 0 and updates `.codebase-memory/artifact.json` and `.codebase-memory/graph.db.zst`.
 
-- [ ] **Step 5: Check freshness gate**
+- [x] **Step 5: Check freshness gate**
 
 ```bash
 cd /tmp/wt-mcp-server-capabilities
@@ -1328,7 +1328,7 @@ task freshness:check
 
 Expected: exits 0 (no stale artifacts).
 
-- [ ] **Step 6: Commit freshness artifacts if changed**
+- [x] **Step 6: Commit freshness artifacts if changed**
 
 ```bash
 cd /tmp/wt-mcp-server-capabilities
@@ -1338,7 +1338,7 @@ git add .codebase-memory/artifact.json .codebase-memory/graph.db.zst
 git commit -m "chore: auto-regenerate freshness artifacts [skip ci]"
 ```
 
-- [ ] **Step 7: Push the branch**
+- [x] **Step 7: Push the branch**
 
 ```bash
 cd /tmp/wt-mcp-server-capabilities

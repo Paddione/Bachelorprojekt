@@ -159,16 +159,16 @@ export function validateSpecsDir(specsDir: string): ValidationResult {
 
 /**
  * Check whether SSOT specs under openspec/specs/ are listed in openspec/config.yaml
- * OpenSpec-Komponenten. Emits WARN (never FAIL) for unlisted slugs.
+ * OpenSpec-Komponenten. Hard-fails (ok:false) for unlisted slugs — T001304 drift gate.
  */
 export function checkConfigDrift(openspecRoot: string): ValidationResult {
-  const warnings: string[] = []
+  const errors: string[] = []
 
   const configPath = join(openspecRoot, 'config.yaml')
   const specsDir = join(openspecRoot, 'specs')
 
   if (!existsSync(configPath) || !existsSync(specsDir)) {
-    return { ok: true, errors: [], warnings }
+    return { ok: true, errors: [], warnings: [] }
   }
 
   const configContent = readFileSync(configPath, 'utf-8')
@@ -187,11 +187,11 @@ export function checkConfigDrift(openspecRoot: string): ValidationResult {
     if (!entry.isFile() || !entry.name.endsWith('.md')) continue
     const slug = entry.name.replace(/\.md$/, '')
     if (!componentSet.has(slug)) {
-      warnings.push(`WARN: ${slug} not listed in config.yaml OpenSpec-Komponenten`)
+      errors.push(`FAIL: ${slug} not listed in config.yaml OpenSpec-Komponenten`)
     }
   }
 
-  return { ok: true, errors: [], warnings }
+  return { ok: errors.length === 0, errors, warnings: [] }
 }
 
 export function validateTree(openspecRoot: string): ValidationResult {
@@ -218,8 +218,9 @@ export function validateTree(openspecRoot: string): ValidationResult {
   allErrors.push(...specsResult.errors)
   allWarnings.push(...specsResult.warnings)
 
-  // 3) Check config drift — SSOT specs not listed in config.yaml
+  // 3) Check config drift — SSOT specs not listed in config.yaml (hard gate T001304)
   const driftResult = checkConfigDrift(openspecRoot)
+  allErrors.push(...driftResult.errors)
   allWarnings.push(...driftResult.warnings)
 
   return { ok: allErrors.length === 0, errors: allErrors, warnings: allWarnings }

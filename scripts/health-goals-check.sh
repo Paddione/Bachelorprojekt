@@ -107,6 +107,16 @@ row target G-DOC02 "$(wc -l < CLAUDE.md | tr -d ' ')" le 200 "CLAUDE.md Zeilen"
 row target G-DOC03 "$(c=0; for d in website brett scripts tests k3d; do ls "$d"/README* >/dev/null 2>&1 && c=$((c+1)); done; echo $c)" ge 5 "README-Index Hauptverzeichnisse"
 row target G-SEC05 "$(git log -50 --pretty='%G? %ae' main 2>/dev/null | grep -v '41898282+github-actions\[bot\]@users.noreply.github.com' | awk '{print $1}' | grep -c N || echo 0)" le 2 "unsignierte Commits (letzte 50; adjusted: ohne freshness-Bot)"
 
+# G-TEST05 — Vitest Line-Coverage (website/src/lib ≥ 60 %)
+if [ "$FAST" = 0 ] && command -v pnpm >/dev/null 2>&1; then
+  (cd website && pnpm exec vitest run --coverage --testTimeout=10000 2>/dev/null) >/dev/null 2>&1
+  _cov_pct=$(jq -r '.total.lines.pct // empty' website/coverage/coverage-summary.json 2>/dev/null || echo "-")
+  _cov_int=$(echo "$_cov_pct" | awk -F'.' '{if ($1~/^[0-9]+$/) print int($1); else print "-"}')
+  row target G-TEST05 "$_cov_int" ge 60 "Vitest Line-Coverage website/src/lib"
+else
+  row target G-TEST05 "-" ge 60 "Vitest Line-Coverage website/src/lib (--fast übersprungen)"
+fi
+
 # ── Zusammenfassung ────────────────────────────────────────────────────────────
 TOTAL=$((PASS+OPEN+GATEFAIL+SKIP))
 printf "\n%s──────────────────────────────────────────%s\n" "$C_D" "$C_X"

@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "typecheck": "tsc --build",
     "test:track-pr": "node --test scripts/track-pr.test.mjs",
     "test:docs-gen": "node --test scripts/docs-gen/*.test.mjs",
     "build:docs": "node scripts/build-docs.mjs",

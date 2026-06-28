@@ -19,8 +19,8 @@ const KORCZEWSKI_BASE = (process.env.KORCZEWSKI_URL ?? 'https://web.korczewski.d
 
 const EMAIL_RE = /[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}/i;
 
-async function assertEmailOnPage(request: Parameters<typeof test>[1] extends { request: infer R } ? R : never, url: string, label: string) {
-  const res = await (request as any).get(url);
+async function assertEmailOnPage(request: import('@playwright/test').APIRequestContext, url: string, label: string) {
+  const res = await request.get(url);
   test.skip(res.status() === 404, `${label} not found`);
   expect(res.status(), `${label} loaded`).toBe(200);
   const html = (await res.text()).replace(/\s+/g, ' ');

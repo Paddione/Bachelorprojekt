@@ -1,6 +1,13 @@
 {
   "files": [],
   "references": [
-    { "path": "./brett" }
+    { "path": "./brett" },
+    { "path": "./VideoVault" },
+    { "path": "./website" },
+    { "path": "./studio-server" },
+    { "path": "./packages/videovault-player" },
+    { "path": "./mediaviewer-widget" },
+    { "path": "./mentolder-web" },
+    { "path": "./tests/e2e" }
   ]
 }

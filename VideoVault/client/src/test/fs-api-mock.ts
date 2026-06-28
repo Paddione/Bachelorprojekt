@@ -93,7 +93,7 @@ export class MockFileSystemFileHandle implements FileSystemFileHandle {
         padded.set(new Uint8Array(content));
         blobContent = padded;
       } else {
-        blobContent = content;
+        blobContent = content as any;
       }
     }
 

@@ -102,7 +102,7 @@ describe('ErrorBoundary', () => {
     // Mock window.location.href
     const originalLocation = window.location;
     delete (window as any).location;
-    window.location = { ...originalLocation, href: '' };
+    window.location = { ...originalLocation, href: '' } as any;
 
     render(
       <ErrorBoundary>
@@ -117,7 +117,7 @@ describe('ErrorBoundary', () => {
     expect(window.location.href).toBe('/');
 
     // Restore original location
-    window.location = originalLocation;
+    window.location = originalLocation as any;
   });
 
   it('renders custom fallback when provided', () => {

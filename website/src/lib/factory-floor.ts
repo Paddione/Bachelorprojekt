@@ -377,34 +377,7 @@ export async function getFloor(slotsCap: number): Promise<FloorPayload> {
   };
 }
 
-export interface PhaseEventRow { phase: Phase; state: PhaseState; detail: string | null; driver: string; at: string; }
-export interface Breadcrumb { authorLabel: string; body: string; at: string; }
-export type InjectionKind = 'context' | 'note' | 'asset';
-export interface InjectionRow {
-  id: string; phase: Phase | null; kind: InjectionKind;
-  title: string | null; content: string | null; targetFiles: string[] | null;
-  dataUrl: string | null; ncPath: string | null; filename: string | null; mimeType: string | null;
-  injectedBy: string; injectedAt: string; consumedAt: string | null;
-}
-interface InjectInput {
-  extId: string; kind: InjectionKind; phase?: Phase | null;
-  title?: string | null; content?: string | null; targetFiles?: string[] | null;
-  dataUrl?: string | null; ncPath?: string | null; filename?: string | null; mimeType?: string | null;
-  injectedBy: string;
-}
-export interface SuggestedFile {
-  path: string;
-  score: number;
-  snippet: string;
-}
-export interface TicketDetail {
-  extId: string; title: string; status: string; priority: string;
-  retryCount: number; prNumber: number | null;
-  events: PhaseEventRow[];
-  breadcrumbs: Breadcrumb[];
-  injections: InjectionRow[];
-  suggested_files?: SuggestedFile[];
-}
+
 
 /** Full per-ticket detail for the slide-in panel; null if the ext_id is unknown. */
 export async function getTicketDetail(extId: string): Promise<TicketDetail | null> {

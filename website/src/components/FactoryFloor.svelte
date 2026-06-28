@@ -24,7 +24,7 @@
   import type { QaItem } from '../lib/qa-dal';
   import type { CiRollup } from '../lib/factory-ci';
   import { SSE_RECONNECT_MS } from '../lib/factory-constants';
-  import { relTime, minutesSince, prUrl, ticketUrl, planUrl } from '../lib/factory-floor-client';
+  import { relTime, minutesSince, prUrl, ticketUrl, planUrl, prioDot } from '../lib/factory-floor-client';
 
   let { initial }: { initial: FloorPayload | null } = $props();
 

@@ -45,7 +45,7 @@ spec:
             - name: backup
               # Debian-based image: has openssl pre-installed (unlike postgres-alpine).
               # IfNotPresent avoids pulling on every run in case DNS is unreliable.
-              image: pgvector/pgvector:0.8.0-pg16
+              image: pgvector/pgvector:0.8.0-pg16@sha256:a132765ec351c65111b5b675928a3a0515a466a40f97277329db8b8209ad8bc9
               imagePullPolicy: IfNotPresent
               env:
                 - name: NEXTCLOUD_DB_PASSWORD
@@ -184,7 +184,7 @@ spec:
             - name: filen-upload
               # Uses @filen/cli (Node.js) — rclone has no native Filen backend and
               # webdav.filen.io resolves to 127.0.0.1 (local desktop-app only).
-              image: node:22-alpine
+              image: node:22-alpine@sha256:16e22a550f3863206a3f701448c45f7912c6896a62de43add43bb9c86130c3e2
               imagePullPolicy: IfNotPresent
               securityContext:
                 allowPrivilegeEscalation: false

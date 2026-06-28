@@ -34,7 +34,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: recording
-          image: nextcloud/aio-talk-recording:20260409_094910
+          image: nextcloud/aio-talk-recording:20260409_094910@sha256:add76fbe1a9b2f402fbfec9685bbca52d7fd34f8cda68a74dfbcd0743c9ddcbd
           imagePullPolicy: Always
           env:
             - name: NC_DOMAIN

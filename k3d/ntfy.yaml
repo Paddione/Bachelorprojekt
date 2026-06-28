@@ -31,7 +31,7 @@ spec:
           type: RuntimeDefault
       initContainers:
         - name: ntfy-init
-          image: binwiederhier/ntfy:v2.24.0
+          image: binwiederhier/ntfy:v2.24.0@sha256:f8a9b104313b87cc24ae4f775f39e6328205b57dff6ede3eaf098a91e5d79f59
           imagePullPolicy: Always
           command: ["/bin/sh", "-exc"]
           args:
@@ -81,7 +81,7 @@ spec:
               memory: 64Mi
       containers:
         - name: ntfy
-          image: binwiederhier/ntfy:v2.24.0
+          image: binwiederhier/ntfy:v2.24.0@sha256:f8a9b104313b87cc24ae4f775f39e6328205b57dff6ede3eaf098a91e5d79f59
           imagePullPolicy: Always
           command: ["ntfy", "serve"]
           securityContext:

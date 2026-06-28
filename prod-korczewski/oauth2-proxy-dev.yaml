@@ -35,7 +35,7 @@ spec:
           type: RuntimeDefault
       initContainers:
         - name: write-cookie-secret
-          image: busybox:1.38.0
+          image: busybox:1.38.0@sha256:fd8d9aa63ba2f0982b5304e1ee8d3b90a210bc1ffb5314d980eb6962f1a9715d
           command: ["/bin/sh", "-c"]
           args:
             - printf 'cookie_secret = "%s"\n' "$(printf '%s' "$DEV_OAUTH2_PROXY_COOKIE_SECRET" | cut -c1-32)" > /run/config/oauth2-extra.cfg
@@ -62,7 +62,7 @@ spec:
               mountPath: /run/config
       containers:
         - name: oauth2-proxy
-          image: quay.io/oauth2-proxy/oauth2-proxy:v7.9.0
+          image: quay.io/oauth2-proxy/oauth2-proxy:v7.9.0@sha256:37c1570c0427e02fc7c947ef2c04e8995b8347b7abc9fcf1dbb4e376a4b221a7
           args:
             - --config=/run/config/oauth2-extra.cfg
             - --provider=keycloak-oidc

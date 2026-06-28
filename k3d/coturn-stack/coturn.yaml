@@ -35,7 +35,7 @@ spec:
         kubernetes.io/hostname: ${TURN_NODE}
       containers:
         - name: coturn
-          image: coturn/coturn:4.9-alpine
+          image: coturn/coturn:4.9-alpine@sha256:229f87ef2428336ca2f4b4967a961cc6ad7aceb79277bc51f5a179606228d45f
           imagePullPolicy: Always
           # TURN_SECRET is sourced from coturn-secrets at runtime so the
           # same manifests work with dev literals and production-rotated

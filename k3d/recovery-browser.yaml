@@ -35,7 +35,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: filebrowser
-          image: filebrowser/filebrowser:v2.63.5  # pinned (was floating :v2) — see https://github.com/filebrowser/filebrowser/releases
+          image: filebrowser/filebrowser:v2.63.5@sha256:aefb0c20de10ef8b617995ca5522479ad40d41e6386bd01946a345c6026ff31c  # pinned (was floating :v2) — see https://github.com/filebrowser/filebrowser/releases
           imagePullPolicy: IfNotPresent
           args:
             - --noauth           # auth is handled by oauth2-proxy in front
@@ -108,7 +108,7 @@ spec:
           type: RuntimeDefault
       initContainers:
         - name: write-cookie-secret
-          image: busybox:1.38.0
+          image: busybox:1.38.0@sha256:fd8d9aa63ba2f0982b5304e1ee8d3b90a210bc1ffb5314d980eb6962f1a9715d
           imagePullPolicy: Always
           # Write a TOML config with the cookie_secret truncated to 32 bytes.
           # env-generate produces a 64-char hex string which is too long for AES.
@@ -139,7 +139,7 @@ spec:
               mountPath: /run/config
       containers:
         - name: oauth2-proxy
-          image: quay.io/oauth2-proxy/oauth2-proxy:v7.9.0
+          image: quay.io/oauth2-proxy/oauth2-proxy:v7.9.0@sha256:37c1570c0427e02fc7c947ef2c04e8995b8347b7abc9fcf1dbb4e376a4b221a7
           imagePullPolicy: Always
           args:
             - --config=/run/config/oauth2-extra.cfg

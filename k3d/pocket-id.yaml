@@ -31,7 +31,7 @@ spec:
           type: RuntimeDefault
       initContainers:
         - name: wait-for-db
-          image: busybox:1.38.0
+          image: busybox:1.38.0@sha256:fd8d9aa63ba2f0982b5304e1ee8d3b90a210bc1ffb5314d980eb6962f1a9715d
           command: ['sh', '-c', 'until nc -w1 -z shared-db 5432 2>/dev/null; do echo "waiting for shared-db..."; sleep 3; done']
           securityContext:
             allowPrivilegeEscalation: false
@@ -50,7 +50,7 @@ spec:
               memory: "64Mi"
       containers:
         - name: psql
-          image: postgres:16-alpine
+          image: postgres:16-alpine@sha256:e013e867e712fec275706a6c51c966f0bb0c93cfa8f51000f85a15f9865a28cb
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
@@ -129,7 +129,7 @@ spec:
           type: RuntimeDefault
       initContainers:
         - name: wait-for-db
-          image: busybox:1.38.0
+          image: busybox:1.38.0@sha256:fd8d9aa63ba2f0982b5304e1ee8d3b90a210bc1ffb5314d980eb6962f1a9715d
           command: ['sh', '-c', 'until nc -w1 -z shared-db 5432 2>/dev/null; do echo "waiting for shared-db..."; sleep 3; done']
           securityContext:
             allowPrivilegeEscalation: false
@@ -148,7 +148,7 @@ spec:
               memory: "64Mi"
       containers:
         - name: pocket-id
-          image: ghcr.io/pocket-id/pocket-id:v2.9.0
+          image: ghcr.io/pocket-id/pocket-id:v2.9.0@sha256:a2a38a96699d7483d65b5849b015d954f294938306a03a9c0699bc5b79554e86
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false

@@ -694,7 +694,7 @@ git commit -m "feat(coaching): add interactive coaching guide for stakeholder de
 
 ### Task 5: Verifikation
 
-- [ ] **Schritt 5.1: Test-Suite**
+- [x] **Schritt 5.1: Test-Suite**
 
 ```bash
 task test:changed
@@ -702,7 +702,7 @@ task test:changed
 
 expected: PASS
 
-- [ ] **Schritt 5.2: Freshness**
+- [x] **Schritt 5.2: Freshness**
 
 ```bash
 task freshness:regenerate
@@ -711,7 +711,7 @@ task freshness:check
 
 expected: PASS
 
-- [ ] **Schritt 5.3: Manueller End-to-End-Check**
+- [x] **Schritt 5.3: Manueller End-to-End-Check**
 
 Admin-UI: `http://localhost:4321/admin/coaching/sessions` → Session öffnen
 - Schritt-Titel in Newsreader Serif ✓

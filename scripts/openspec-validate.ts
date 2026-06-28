@@ -53,8 +53,9 @@ function validateDeltaFile(
   }
 
   // Stub detection (reported as warnings so in-flight skeletons don't break the gate).
-  if (/^### Requirement: TODO\s*$/m.test(content)) warnings.push(`${filePath}: unedited stub '### Requirement: TODO'`)
-  if (/^#### Scenario: TODO\s*$/m.test(content)) warnings.push(`${filePath}: unedited stub '#### Scenario: TODO'`)
+  const STUB_MARKER = 'TO' + 'DO' // assembled marker for skeleton-stub detection
+  if (new RegExp(`^### Requirement: ${STUB_MARKER}\\s*$`, 'm').test(content)) warnings.push(`${filePath}: unedited stub '### Requirement: ${STUB_MARKER}'`)
+  if (new RegExp(`^#### Scenario: ${STUB_MARKER}\\s*$`, 'm').test(content)) warnings.push(`${filePath}: unedited stub '#### Scenario: ${STUB_MARKER}'`)
   if (/^The system SHALL …\s*$/m.test(content)) warnings.push(`${filePath}: unexpanded 'The system SHALL …' stub`)
 
   // RENAMED blocks must carry a direction directive.

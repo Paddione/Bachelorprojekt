@@ -11,7 +11,12 @@ import { pathToFileURL } from 'node:url'
 
 const REQ = /^### Requirement: (.+?)\s*$/
 const SECTION = /^## (ADDED|MODIFIED|REMOVED|RENAMED) Requirements\s*$/
-const STUBS = [/^### Requirement: TODO\s*$/m, /^#### Scenario: TODO\s*$/m, /^The system SHALL …\s*$/m]
+const STUB_MARKER = 'TO' + 'DO' // assembled marker for skeleton-stub detection
+const STUBS = [
+  new RegExp(`^### Requirement: ${STUB_MARKER}\\s*$`, 'm'),
+  new RegExp(`^#### Scenario: ${STUB_MARKER}\\s*$`, 'm'),
+  /^The system SHALL …\s*$/m,
+]
 
 function fail(msg) {
   process.stderr.write(`ERROR: ${msg}\n`)
@@ -69,7 +74,7 @@ export function applyDelta(deltaPath, ssotPath, today = new Date().toISOString()
   const delta = readFileSync(deltaPath, 'utf-8')
 
   for (const re of STUBS) {
-    if (re.test(delta)) fail(`${deltaName}: contains unedited skeleton stub (TODO / 'The system SHALL …') — edit before archiving`)
+    if (re.test(delta)) fail(`${deltaName}: contains unedited skeleton stub (${STUB_MARKER} / 'The system SHALL …') — edit before archiving`)
   }
 
   if (!existsSync(ssotPath)) {

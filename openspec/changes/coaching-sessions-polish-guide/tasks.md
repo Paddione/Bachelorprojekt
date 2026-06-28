@@ -423,7 +423,7 @@ git commit -m "feat(coaching): add /api/demo/coaching-sim — Hermes proxy with 
 - Consumes: `POST /api/demo/coaching-sim` (Task 3) im Live-Modus
 - Produces: Öffentlich unter `mentolder.de/coaching-guide.html`
 
-- [ ] **Schritt 4.1: Datei erstellen**
+- [x] **Schritt 4.1: Datei erstellen**
 
 `website/public/coaching-guide.html` mit folgendem Inhalt erstellen:
 
@@ -672,7 +672,7 @@ render();
 </html>
 ```
 
-- [ ] **Schritt 4.2: Seite im Browser prüfen**
+- [x] **Schritt 4.2: Seite im Browser prüfen**
 
 ```bash
 cd website && pnpm dev
@@ -683,7 +683,7 @@ cd website && pnpm dev
 - Scripted: Toggle → Felder mit Andrea K. vorbefüllt → "KI befragen →" → Typewriter → "Akzeptieren →" → Step 2 → … → Step 10 → Report
 - Live: "🎭 Klient befragen" → POST /api/demo/coaching-sim (mode:client) → Felder füllen sich → "KI befragen →" → Hermes-Antwort Typewriter
 
-- [ ] **Schritt 4.3: Commit**
+- [x] **Schritt 4.3: Commit**
 
 ```bash
 git add website/public/coaching-guide.html

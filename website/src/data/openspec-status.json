@@ -325,6 +325,102 @@
       "status": "plan_staged"
     }
   ],
+  "T001286": [
+    {
+      "slug": "g-test01-bats-debt-skips",
+      "status": "plan_staged"
+    }
+  ],
+  "T001287": [
+    {
+      "slug": "g-test03-vitest-skip-todo",
+      "status": "plan_staged"
+    }
+  ],
+  "T001288": [
+    {
+      "slug": "g-test05-vitest-coverage",
+      "status": "plan_staged"
+    }
+  ],
+  "T001289": [
+    {
+      "slug": "g-cq02-any-types-batch1",
+      "status": "plan_staged"
+    }
+  ],
+  "T001290": [
+    {
+      "slug": "g-cq05-todo-cleanup",
+      "status": "plan_staged"
+    }
+  ],
+  "T001291": [
+    {
+      "slug": "g-size01-freeze-warning-band",
+      "status": "plan_staged"
+    }
+  ],
+  "T001292": [
+    {
+      "slug": "g-size02-large-files-gate",
+      "status": "plan_staged"
+    }
+  ],
+  "T001293": [
+    {
+      "slug": "g-size03-website-db-split",
+      "status": "plan_staged"
+    }
+  ],
+  "T001294": [
+    {
+      "slug": "g-img01-image-pinning",
+      "status": "plan_staged"
+    }
+  ],
+  "T001295": [
+    {
+      "slug": "g-k8s03-security-context",
+      "status": "plan_staged"
+    }
+  ],
+  "T001296": [
+    {
+      "slug": "g-doc02-claude-md-trim",
+      "status": "plan_staged"
+    }
+  ],
+  "T001297": [
+    {
+      "slug": "g-doc03-readme-index",
+      "status": "plan_staged"
+    }
+  ],
+  "T001298": [
+    {
+      "slug": "g-doc04-architecture-adrs",
+      "status": "plan_staged"
+    }
+  ],
+  "T001299": [
+    {
+      "slug": "g-fe03-structured-logger",
+      "status": "plan_staged"
+    }
+  ],
+  "T001300": [
+    {
+      "slug": "g-dora03-cfr-policy",
+      "status": "plan_staged"
+    }
+  ],
+  "T001301": [
+    {
+      "slug": "g-spec03-proposal-tickets",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

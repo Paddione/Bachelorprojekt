@@ -425,6 +425,10 @@ git log --since="2026-06-21" --no-merges --numstat --pretty=tformat: \
   | awk 'NF==3 && $1!="-"{a+=$1;d+=$2} END{printf "net=%+d (added=%d deleted=%d)\n",a-d,a,d}'
 ```
 
+> **Messmethodik:** `git log --since="<7-Tage-Datum>" --no-merges --numstat` über `*.ts *.tsx *.svelte *.astro *.js *.mjs *.sh *.py`; `openspec/changes/**` und `node_modules/**` ausgeschlossen (seit T001284: `openspec/changes/` enthält Plan-Artefakte und Design-Sync-Scaffolding, kein Produktionscode).
+>
+> **Shallow-Clone-Caveat:** In CI-Umgebungen mit `--depth=1`-Checkout wird nur der jüngste Commit sichtbar; das 7-Tage-Fenster kann dadurch vollständig leer sein (Messung = 0). Burst-PRs (z. B. große Feature-Branches mit vielen Additions) erhöhen den Wochenwert kurzfristig über 2000 — das ist kein dauerhafter Trend, solange der darauffolgende 7-Tage-Schnitt wieder sinkt. Bei Ausreißern den Langzeittrend über `git log --since="30 days"` prüfen.
+
 > **Priorität:** A · **Baseline:** +3684 LOC/Woche (ÜBER Budget; war +2887) · **Target:** ≤ +2000/Woche · **Aufwand:** Policy/Analyse · **Messzyklus:** wöchentlich · **Reproduzierbar:** eingeschränkt (Graft-Ausschluss nötig)
 
 ---

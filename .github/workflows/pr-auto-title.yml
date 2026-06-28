@@ -1,0 +1,122 @@
+name: PR Auto-Title
+
+# Automatically renames newly-opened PRs whose titles don't follow the
+# Conventional Commits format enforced by the commit-lint required check.
+# Derives type (feat/fix/chore/…) and scope from the branch name so the
+# PR passes the amannn/action-semantic-pull-request gate without human
+# intervention.
+#
+# Only fires on `opened` — avoids loops on synchronize/edited and does not
+# override titles that were already manually set to a valid format.
+#
+# Security model: all untrusted GitHub context values (pr.title, head_ref,
+# pr.number) are passed via env:, never interpolated directly into run:
+# commands. PR_NUMBER is validated as numeric before use in the API path.
+# BRANCH is sanitized to [a-zA-Z0-9/_-] before case/sed/grep use.
+# PR_TITLE is passed only as stdin to grep (static pattern), never as a
+# grep pattern argument.
+
+on:
+  pull_request:
+    types: [opened]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  auto-title:
+    name: Auto-title PR from branch name
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    # Skip bots (renovate, release-please) — they set correct titles already.
+    if: >
+      github.actor != 'renovate[bot]' &&
+      github.actor != 'github-actions[bot]' &&
+      github.actor != 'release-please[bot]'
+    steps:
+      - name: Check and fix PR title
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          BRANCH_RAW: ${{ github.head_ref }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          # ── 0. Validate / sanitize untrusted inputs ────────────────────────
+          # PR_NUMBER must be numeric (guards the REST API path).
+          if ! printf '%s' "$PR_NUMBER" | grep -qE '^[0-9]+$'; then
+            echo "FATAL: PR_NUMBER is not numeric: $PR_NUMBER" >&2
+            exit 1
+          fi
+
+          # BRANCH: strip any character outside [a-zA-Z0-9/_-] to prevent
+          # shell metacharacter injection from github.head_ref.
+          BRANCH="${BRANCH_RAW//[^a-zA-Z0-9\/_-]/}"
+          if [[ -z "$BRANCH" ]]; then
+            echo "FATAL: BRANCH is empty after sanitization (raw: $BRANCH_RAW)" >&2
+            exit 1
+          fi
+
+          echo "PR title : $PR_TITLE"
+          echo "Branch   : $BRANCH"
+
+          # ── 1. Check if the existing title is already valid ────────────────
+          # Pattern: <type>[(<scope>)][!]: <subject>
+          # PR_TITLE is passed as stdin to grep; the pattern is static.
+          if printf '%s' "$PR_TITLE" | grep -qP '^(feat|fix|chore|docs|refactor|test|build|ci|perf|revert)(\([a-z0-9][a-z0-9-]*\))?!?: .{1,}'; then
+            echo "✅ PR title already follows Conventional Commits — no rename needed."
+            exit 0
+          fi
+
+          echo "⚠️  PR title does not match Conventional Commits. Deriving title from branch name…"
+
+          # ── 2. Derive type from branch prefix ──────────────────────────────
+          case "$BRANCH" in
+            feature/*)  TYPE="feat"    ; SLUG="${BRANCH#feature/}" ;;
+            fix/*)      TYPE="fix"     ; SLUG="${BRANCH#fix/}" ;;
+            chore/*)    TYPE="chore"   ; SLUG="${BRANCH#chore/}" ;;
+            docs/*)     TYPE="docs"    ; SLUG="${BRANCH#docs/}" ;;
+            test/*)     TYPE="test"    ; SLUG="${BRANCH#test/}" ;;
+            refactor/*) TYPE="refactor"; SLUG="${BRANCH#refactor/}" ;;
+            perf/*)     TYPE="perf"    ; SLUG="${BRANCH#perf/}" ;;
+            ci/*)       TYPE="ci"      ; SLUG="${BRANCH#ci/}" ;;
+            *)          TYPE="chore"   ; SLUG="$BRANCH" ;;
+          esac
+
+          # ── 3. Try to extract a scope from the slug ────────────────────────
+          # Slug patterns we recognise:
+          #   g-fe03-structured-logger  → scope=fe03
+          #   cq02-any-types            → scope=cq02
+          #   T001234-some-fix          → no scope (ticket ref, not a spec code)
+          #   plain-description         → no scope
+          # SLUG is sanitized (alphanumeric + hyphens only after BRANCH sanitization).
+          SCOPE=""
+          # Pattern: optional "g-" then 2-4 alpha chars + 2-3 digits (OpenSpec category code)
+          if printf '%s' "$SLUG" | grep -qP '^(?:g-)?([a-z]{1,4}\d{2,3})-'; then
+            SCOPE=$(printf '%s' "$SLUG" | sed -nP 's/^(?:g-)?([a-z]{1,4}\d{2,3})-.*/\1/p')
+          fi
+
+          # ── 4. Build the subject from the slug (replace hyphens with spaces) ──
+          # Strip the scope prefix (and optional "g-" prefix) if we extracted one.
+          if [[ -n "$SCOPE" ]]; then
+            SUBJECT_SLUG=$(printf '%s' "$SLUG" | sed -E "s|^(g-)?${SCOPE}-||")
+          else
+            SUBJECT_SLUG="$SLUG"
+          fi
+          SUBJECT=$(printf '%s' "$SUBJECT_SLUG" | tr '-' ' ')
+
+          # ── 5. Compose the new title ───────────────────────────────────────
+          if [[ -n "$SCOPE" ]]; then
+            NEW_TITLE="${TYPE}(${SCOPE}): ${SUBJECT}"
+          else
+            NEW_TITLE="${TYPE}: ${SUBJECT}"
+          fi
+
+          echo "📝 New title: $NEW_TITLE"
+
+          # ── 6. Apply via REST (gh pr edit can fail on Projects Classic) ────
+          # PR_NUMBER is validated numeric above; REPO is a trusted context value.
+          gh api -X PATCH "repos/${REPO}/pulls/${PR_NUMBER}" -f title="$NEW_TITLE"
+          echo "✅ PR title updated to: $NEW_TITLE"

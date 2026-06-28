@@ -64,6 +64,34 @@ Brand-Domains in Code-Snippets vorgeben.
 Jedes neue `k3d/*.yaml` muss in einer `kustomization.yaml` referenziert sein, jedes neue
 `scripts/*.sh`/`*.mjs` von Taskfile/CI/Doku/anderem Skript aus erreichbar — sonst Orphan-Violation.
 
+### CQ02 — Explizite `any`-Typen in `website/src` (Health-Goal)
+
+**Aktuelles Limit:** ≤ 200 explizite `any`-Verwendungen global (Gate: `tests/spec/g-cq02-any-types.bats`).
+
+Beim Plan-Schreiben für alle Dateien in `website/src/**`:
+
+```bash
+# Ist-Zählung vor der Änderung (Baseline für den Plan)
+grep -rn ': any\|<any>\|as any' website/src --include='*.ts' --include='*.svelte' --include='*.astro' | wc -l
+```
+
+**Pflicht:** Kein Plan darf die `any`-Anzahl erhöhen. Jede neue exportierte Funktion / jeder neue API-Handler muss typisiert sein — kein `as any`, kein `catch (e: any)`. Pläne, die `any`-Typen einführen müssen (z.B. Drittanbieter-Interop), MÜSSEN einen eigenen Task „CQ02: any-Typen eliminieren" enthalten.
+
+**Prüfbefehl für den Verify-Task:**
+```bash
+bash -c "count=\$(grep -rn ': any\|<any>\|as any' website/src --include='*.ts' --include='*.svelte' --include='*.astro' | wc -l | tr -d ' '); echo \"any count: \$count (limit: 200)\"; [ \$count -le 200 ]"
+```
+
+### Vitest-Abdeckung (Health-Goal)
+
+Jeder Plan, der in `website/src/lib/**` oder `website/src/pages/api/**` neue Dateien anlegt oder bestehende wesentlich ändert, MUSS mindestens einen Vitest-Test-Task enthalten:
+
+- **Neue Lib-Datei** (`website/src/lib/<name>.ts`) → zugehöriger Test in `website/src/lib/__tests__/<name>.test.ts` (oder in der nächstgelegenen bestehenden Test-Datei erweitern, bevorzugt).
+- **Neuer API-Endpunkt** (`website/src/pages/api/**`) → Vitest-Test im zugehörigen Test-Bundle (`website/src/**/__tests__/`).
+- **Keine Test-Datei anlegen** ohne den `task test:inventory`-Schritt im Plan (CI-Inventar-Check flägt neue Tests).
+
+**Abweichung explizit begründen:** Wenn ein Plan `.ts`/`.svelte`-Dateien ändert aber bewusst KEINEN neuen Vitest-Test braucht (rein konfigurativ, Refactor ohne Logikänderung), muss der Plan einen Kommentar enthalten: `<!-- vitest: kein neuer Test nötig, weil … -->`.
+
 ### Weitere CI-Gates (Pflicht im finalen Verifikations-Task jedes Plans)
 
 Der letzte Task jedes Plans MUSS diese Kommandos als Steps enthalten:

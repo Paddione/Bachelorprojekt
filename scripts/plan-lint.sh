@@ -140,6 +140,20 @@ while IFS= read -r path; do
   fi
 done < <(grep -oE '`[A-Za-z0-9_./-]+\.(sh|bash|ts|tsx|js|jsx|mjs|mts|cjs|py|svelte|astro|java|php)`' <<<"$PLAN_PROSE" | tr -d '`' | sort -u)
 
+# === W1: Vitest advisory — website/src .ts/.svelte/.astro files without a test mention ===
+# If the plan lists website/src lib or API files but never mentions vitest/test, warn.
+if grep -qE '`website/src/(lib|pages/api)/[^`]+\.(ts|svelte|astro)`' <<<"$PLAN_PROSE"; then
+  if ! grep -qiE 'vitest|\.test\.ts|__tests__|test:inventory' <<<"$PLAN_PROSE"; then
+    warn "W1: plan touches website/src lib/api files but mentions no Vitest test — add a test task or a '<!-- vitest: kein neuer Test nötig, weil … -->' comment"
+  fi
+fi
+
+# === W2: CQ02 advisory — new `any` usage planned in website/src ===
+# Warn if the plan's prose or code snippets suggest introducing `: any` / `as any`.
+if grep -qE ': any\b|as any\b|<any>' "$PLAN"; then
+  warn "W2: plan contains explicit 'any' usage — review CQ02 gate (limit ≤200 in website/src); ensure no net increase"
+fi
+
 # === G1: granularity warning — a single task touching >3 files (warn only) ===
 # Count `path` tokens inside each "## Task" block; warn if any block lists >3.
 while IFS= read -r g; do warn "${g/G1:/G1: }"; done < <(awk '

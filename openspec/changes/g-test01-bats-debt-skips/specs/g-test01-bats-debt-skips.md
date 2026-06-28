@@ -4,9 +4,11 @@
 
 Diese Capability stellt sicher, dass keine unkonditionalen `skip`-Aufrufe mit Gap-Analysis- oder Feature-Pending-Markern in der BATS-Testsuite verbleiben. Jeder solche Skip ist ein Tests, der als Spezifikation geschrieben wurde, aber keinerlei Verifikation liefert. Das Ziel ist eine Testsuite, in der jeder geschriebene Test tatsächlich ausgeführt wird und einen Pass/Fail-Status erzeugt.
 
-## Requirements
+## ADDED Requirements
 
-- REQ-1: Der Measure-Command `grep -rniE "skip [\"']" tests --include=*.bats | grep -ciE "pending|todo|gap-analysis|WP-|not implemented|disabled|stub"` ist im Repository reproduzierbar ausführbar und liefert einen numerischen Wert.
+### Requirement: Der Measure-Command `grep -rniE "skip [\"']" tests --include
+
+The system SHALL der Measure-Command `grep -rniE "skip [\"']" tests --include=*.bats | grep -ciE "pending|todo|gap-analysis|WP-|not implemented|disabled|stub"` ist im Repository reproduzierbar ausführbar und liefert einen numerischen Wert.
 - REQ-2: Der Measure-Command liefert den Wert `0` — kein einziger `skip`-Aufruf mit Gap-Analysis- oder Feature-Pending-Marker existiert in einer `.bats`-Datei unter `tests/`.
 - REQ-3: Alle 9 zuvor geskippten Tests in `tests/unit/admin-nav.bats` sind durch echte Assertions ersetzt und laufen im BATS-Runner ohne Skip-Status durch.
 - REQ-4: Die 7 WP-28-Tests (Nicht-Vorhandensein von Nav-Items) bestätigen, dass `AdminLayout.astro` die Routen `/admin/meetings`, `/admin/kalender`, `/admin/zeiterfassung`, `/admin/steuer`, `/admin/software-history` nicht als direkte `href`-Werte in den `navGroups` enthält und dass `/admin/coaching/projekte` sowie `/admin/coaching/settings` nicht als direkte Nav-Items gelistet sind.

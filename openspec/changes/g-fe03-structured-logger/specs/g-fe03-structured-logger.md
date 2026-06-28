@@ -4,9 +4,11 @@
 
 Alle Server-side-Logging-Aufrufe in `website/src` sollen über den pino-basierten strukturierten Logger (`website/src/lib/logger.ts`) laufen, sodass Promtail/Loki jeden Log-Eintrag als JSON-Event mit Level, Service-Kontext und Korrelations-IDs indizieren kann. Browser-seitige Komponenten nutzen einen Browser-Logger-Stub mit identischer API. Kein Produktionscode darf mehr direkt `console.error` oder `console.warn` aufrufen.
 
-## Requirements
+## ADDED Requirements
 
-- REQ-1: Der Mess-Command `grep -rEn 'console\.(error|warn)' website/src --include='*.ts' --include='*.svelte' --include='*.astro' | wc -l` muss reproduzierbar und deterministisch sein. Er wird ohne zusätzliche Flags direkt aus dem Repo-Root ausgeführt.
+### Requirement: Der Mess-Command `grep -rEn 'console\
+
+The system SHALL der Mess-Command `grep -rEn 'console\.(error|warn)' website/src --include='*.ts' --include='*.svelte' --include='*.astro' | wc -l` muss reproduzierbar und deterministisch sein. Er wird ohne zusätzliche Flags direkt aus dem Repo-Root ausgeführt.
 - REQ-2: Nach Abschluss der Migration liefert der Mess-Command den Wert `0`.
 - REQ-3: Alle Server-side-Module (`lib/*.ts`, `pages/*.astro`) importieren `logger` aus `website/src/lib/logger.ts` und verwenden ausschließlich `logger.error()` bzw. `logger.warn()`.
 - REQ-4: Browser-seitige Svelte-Komponenten (`components/**/*.svelte`) importieren `browserLogger` aus `website/src/lib/browser-logger.ts`. Der Stub enthält intern `console.error`/`console.warn`, aber kein Produktionscode ruft diese Funktionen direkt auf.

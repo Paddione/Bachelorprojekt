@@ -4,9 +4,11 @@
 
 Diese Capability stellt sicher, dass `website/src/lib/website-db.ts` dauerhaft unterhalb von 3000 Zeilen bleibt, indem klar abgegrenzte Datenbankdomänen in eigenständige Module extrahiert werden. Das Ergebnis ist eine wartbare, merge-konfliktarme DB-Schicht, in der jedes Modul genau eine fachliche Domäne abbildet und das Size-Gate ohne Ausnahmeliste greifen kann.
 
-## Requirements
+## ADDED Requirements
 
-- REQ-1: Der Mess-Command `wc -l < website/src/lib/website-db.ts` ist jederzeit lokal reproduzierbar und liefert eine eindeutige Ganzzahl ohne Abhängigkeit von Netzwerk, Cluster oder CI-Umgebung.
+### Requirement: Der Mess-Command `wc -l < website/src/lib/website-db
+
+The system SHALL der Mess-Command `wc -l < website/src/lib/website-db.ts` ist jederzeit lokal reproduzierbar und liefert eine eindeutige Ganzzahl ohne Abhängigkeit von Netzwerk, Cluster oder CI-Umgebung.
 - REQ-2: Das neue Modul `website/src/lib/appointments-db.ts` enthält alle Exports der Terminbuchungs- und Kalender-Domäne (`CalendarTask`, `CalendarProject`, `CalendarMeeting`, `BookingInvoiceInfo`, `WhitelistedSlot`, `FreeTimeWindow` und alle zugehörigen CRUD-Funktionen) und kein Code dieser Domäne verbleibt doppelt in `website-db.ts`.
 - REQ-3: Alle Aufrufer in `website/src/pages/` importieren Appointments-Symbole aus `appointments-db`, nicht aus `website-db`. Der TypeScript-Compiler läuft fehlerfrei durch (`npx tsc --noEmit`).
 - REQ-4: Die `initDb`-Kaskade in `website-db.ts` initialisiert die Appointments-Tabellen weiterhin korrekt — entweder durch Delegation an `initAppointmentsDb()` aus dem neuen Modul oder durch gleichwertige explizite Aufrufe an den zuständigen Stellen.

@@ -4,9 +4,11 @@
 
 Stellt sicher, dass alle Quelldateien im Repository, die mehr als 600 Zeilen umfassen, innerhalb des Gate-Scopes von `docs/code-quality/gates.yaml` liegen und damit durch das S1-Zeilenlimit-Gate überwacht werden. Aktuell befinden sich 18 solcher Dateien vollständig außerhalb des Scopes (`15× VideoVault/`, `3× .opencode/`) und wachsen ohne automatisierten Gegendruck. Dieses Spec definiert die Akzeptanzbedingungen für das Erreichen von ≤ 8 Dateien außerhalb des Gate-Scopes.
 
-## Requirements
+## ADDED Requirements
 
-- REQ-1: Der Measure-Command ist reproduzierbar und liefert bei identischem Repository-Stand stets dasselbe numerische Ergebnis. Er ist frei von Abhängigkeiten außerhalb von Standard-POSIX-Tools (`git`, `wc`, `awk`, `grep`) und läuft ohne Netzwerk- oder Cluster-Zugriff.
+### Requirement: Der Measure-Command ist reproduzierbar und liefert bei ident
+
+The system SHALL der Measure-Command ist reproduzierbar und liefert bei identischem Repository-Stand stets dasselbe numerische Ergebnis. Er ist frei von Abhängigkeiten außerhalb von Standard-POSIX-Tools (`git`, `wc`, `awk`, `grep`) und läuft ohne Netzwerk- oder Cluster-Zugriff.
 
 - REQ-2: Das Verzeichnis `.opencode` ist in `scan.code_roots` in `docs/code-quality/gates.yaml` eingetragen. Alle drei derzeit übergroßen Plugin-Dateien (`background-agents.ts`, `worktree.ts`, `worktree/terminal.ts`) stehen in `s1.ignore` mit einer dokumentierten Begründung.
 

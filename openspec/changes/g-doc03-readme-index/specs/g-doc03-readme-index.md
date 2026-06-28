@@ -4,9 +4,11 @@
 
 Ensure every primary top-level directory in the Workspace MVP repository contains a README.md that serves as a human-readable entry point. This supports contributor onboarding and Bachelorarbeit reproducibility by making the purpose, key files, and first commands of each directory immediately discoverable without reading tool-facing agent instructions.
 
-## Requirements
+## ADDED Requirements
 
-- REQ-1: The measure command `c=0; for d in website brett scripts tests k3d; do ls "$d"/README* >/dev/null 2>&1 && c=$((c+1)); done; echo "$c/5"` runs from the repository root without error and produces a numeric result comparable against the target.
+### Requirement: The measure command `c=0; for d in website brett scripts tes
+
+The system SHALL the measure command `c=0; for d in website brett scripts tests k3d; do ls "$d"/README* >/dev/null 2>&1 && c=$((c+1)); done; echo "$c/5"` runs from the repository root without error and produces a numeric result comparable against the target.
 - REQ-2: Each README covers at minimum: directory purpose, key files or sub-directories, and the primary command a new contributor would run first.
 - REQ-3: `website/README.md` references `CLAUDE.md` and `WEBSITE-STANDARDS.md` rather than duplicating their content.
 - REQ-4: `scripts/README.md` documents the VDA oracle (`bash scripts/vda.sh oracle`) as the preferred task-discovery entry point.

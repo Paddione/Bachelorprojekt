@@ -4,9 +4,11 @@
 
 Reproduzierbare Messung der Vitest Line-Coverage für `website/src/lib` und Durchsetzung eines Mindestwertes von 60 % als CI-Gate sowie als lokales Gesundheitsziel. Die Capability stellt sicher, dass die Kernlogik des Website-Projekts durch Tests ausreichend abgedeckt ist und Regressionen der Coverage in Pull Requests automatisch erkannt werden.
 
-## Requirements
+## ADDED Requirements
 
-- REQ-1: Der Mess-Command `cd website && pnpm exec vitest run --coverage && jq -r '.total.lines.pct' coverage/coverage-summary.json` ist reproduzierbar ausführbar und liefert einen numerischen Prozentwert für `total.lines.pct`.
+### Requirement: Der Mess-Command `cd website && pnpm exec vitest run --cover
+
+The system SHALL der Mess-Command `cd website && pnpm exec vitest run --coverage && jq -r '.total.lines.pct' coverage/coverage-summary.json` ist reproduzierbar ausführbar und liefert einen numerischen Prozentwert für `total.lines.pct`.
 - REQ-2: Die `vitest.config.ts` enthält `coverage.provider = 'v8'`, `coverage.include = ['src/lib/**/*.ts']`, und `coverage.thresholds.lines = 60`, sodass Vitest selbst bei Unterschreitung des Schwellenwerts mit Exit-Code 1 endet.
 - REQ-3: Die CI-Pipeline (`ci.yml`) führt einen dedizierten Coverage-Gate-Schritt aus, der `coverage/coverage-summary.json` auswertet und bei `total.lines.pct < 60` mit `exit 1` abbricht.
 - REQ-4: `scripts/health-goals-check.sh --only=G-TEST05` gibt eine `row target G-TEST05`-Zeile aus und zeigt grün, wenn die gemessene Coverage ≥ 60 % beträgt.

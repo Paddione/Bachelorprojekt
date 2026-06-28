@@ -4,7 +4,7 @@
 
 Diese Capability definiert das präventive Refactoring-Ziel für das S1-Freeze-Frühwarn-Band im Repository. 39 In-Scope-Quelldateien befinden sich bei 80–100 % ihres per-Extension S1-Limits und sind damit die unmittelbaren Freeze-Kandidaten: jede weitere hinzugefügte Zeile erzeugt einen neuen Eintrag in `docs/code-quality/baseline.json` (G-RH01-Schuld) und blockiert Feature-Entwicklung. Das Ziel ist es, durch gezieltes Herausziehen von Helpern, Sub-Komponenten und Test-Partials die Zahl der Dateien im Warn-Band von 39 auf ≤ 15 zu senken, ohne Verhalten zu ändern.
 
-## Requirements
+## ADDED Requirements
 
 ### Requirement: REQ-SIZE01-MEASURE
 

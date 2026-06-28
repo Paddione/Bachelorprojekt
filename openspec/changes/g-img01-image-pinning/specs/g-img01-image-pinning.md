@@ -6,9 +6,11 @@ Diese Capability stellt sicher, dass alle Fremd-Images in den Kubernetes-Manifes
 
 Eigene Images (`website`, `brett`, `docs`, `videovault`, `mediaviewer-widget`, `mentolder-web`) sind von diesem Scope ausgenommen, da sie per CI nach jedem Merge neugebaut werden und bewusst `:latest` tragen.
 
-## Requirements
+## ADDED Requirements
 
-- REQ-1: Der Mess-Command ist reproduzierbar und kann in beliebiger Reihenfolge ausgeführt werden:
+### Requirement: Der Mess-Command ist reproduzierbar und kann in beliebiger R
+
+The system SHALL der Mess-Command ist reproduzierbar und kann in beliebiger Reihenfolge ausgeführt werden:
   ```bash
   grep -rhE '^[[:space:]]*-?[[:space:]]*image:' k3d/ prod*/ 2>/dev/null \
     | grep -v '@sha256' \

@@ -4,7 +4,7 @@
 
 Diese Capability stellt sicher, dass die Change Failure Rate (CFR) des Projekts dauerhaft im Elite-Band (≤ 15 % breit) gehalten wird. Als Proxy dient die Rate der `fix()`-Commits am `main`-Branch der letzten 8 Wochen. Die Maßnahmen umfassen einen reproduzierbaren Mess-Command, einen CI-Gate für Typ-Regressionen sowie eine verbindliche Bug-Triage-Konvention. Zusammen senken sie die Wahrscheinlichkeit, dass Defekte ohne Ticket-Tracking als stille `fix()`-Commits landen und die Proxy-Rate künstlich erhöhen.
 
-## Requirements
+## ADDED Requirements
 
 ### Requirement: REQ-CFR-MEASURE-001
 

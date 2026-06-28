@@ -4,7 +4,7 @@
 
 Dieses Dokument beschreibt die Anforderungen an die Architektur-Entscheidungsdokumentation (ADRs) der Workspace-Plattform. Fünf schwer umkehrbare Architekturentscheidungen — Fleet-Konsolidierung, Push-basiertes Deploy, Brand-Namespace-Split, LLM fail-closed und das Merge=Abschluss-Ticketmodell — werden in einem strukturierten ADR-Format unter `docs/adr/` dokumentiert, um die Verteidigbarkeit der Bachelorarbeit sicherzustellen.
 
-## Requirements
+## ADDED Requirements
 
 ### Requirement: ADR-Verzeichnis vorhanden
 

@@ -4,9 +4,11 @@
 
 Stellt sicher, dass unverlinkte `TODO`-Kommentare im Quellcode nicht unkontrolliert akkumulieren. Jeder TODO-Marker, der keinem Ticket zugeordnet ist, verdeckt ungerledigte Arbeit und erhöht die Schuld ohne Sichtbarkeit im Ticket-System. Das Ziel hält den Bestand bei ≤ 1, indem der Measure-Command Falsch-Positive aus OpenSpec-Tooling-Dateien ausschließt und neue echte TODOs durch einen CI-Gate sichtbar werden.
 
-## Requirements
+## ADDED Requirements
 
-- REQ-1: Der Measure-Command ist reproduzierbar — er liefert auf jedem Checkout mit aktuellem Stand dasselbe Ergebnis ohne externe Abhängigkeiten (kein Netz, kein laufender Cluster).
+### Requirement: Der Measure-Command ist reproduzierbar
+
+The system SHALL der Measure-Command ist reproduzierbar — er liefert auf jedem Checkout mit aktuellem Stand dasselbe Ergebnis ohne externe Abhängigkeiten (kein Netz, kein laufender Cluster).
 - REQ-2: Der Measure-Command schließt Dateien aus, die `TODO` ausschließlich als Erkennungs-Pattern verwenden (`openspec-validate.ts`, `openspec-validate.test.ts`, `openspec-merge.mjs`), sowie die bereits ausgeschlossenen Tooling-Dateien (`plan-lint.sh`, `plan-qa-check.sh`, `openspec.sh`).
 - REQ-3: `scripts/health-goals-check.sh` enthält eine `row target G-CQ05`-Zeile, die den korrekten Measure-Command inline ausführt und gegen das Target `le 1` vergleicht.
 - REQ-4: Der verbleibende Treffer in `website/src/lib/assistant/actions/admin/sendInvoice.ts` ist als Pre-Baseline-Stub dokumentiert und wird in einem separaten Feature-Ticket (Rechnungsversand-Pipeline) adressiert.

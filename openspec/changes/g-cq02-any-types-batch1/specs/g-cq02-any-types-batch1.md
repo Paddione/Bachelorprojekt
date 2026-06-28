@@ -10,9 +10,11 @@ shape mismatches, missing properties, and incorrect return types in code that ha
 requests, Kubernetes API responses, and PostgreSQL query results — the three most failure-prone
 integration boundaries in the codebase.
 
-## Requirements
+## ADDED Requirements
 
-- REQ-1: The measure command `grep -rn ': any\|<any>\|as any' website/src --include='*.ts' --include='*.svelte' --include='*.astro' | wc -l` must be reproducible from any clean checkout of the branch and must return a value ≤ 373 after Batch 1 is complete.
+### Requirement: The measure command `grep -rn ': any\|<any>\|as any' website
+
+The system SHALL the measure command `grep -rn ': any\|<any>\|as any' website/src --include='*.ts' --include='*.svelte' --include='*.astro' | wc -l` must be reproducible from any clean checkout of the branch and must return a value ≤ 373 after Batch 1 is complete.
 - REQ-2: All `catch (err: any)` blocks in `website/src/pages/api/admin/` must be replaced with `catch (err: unknown)` plus an `instanceof Error` guard before any `.message` or `.stack` access.
 - REQ-3: `website/src/pages/api/admin/monitoring.ts` must have ≤ 2 remaining `any` occurrences (down from 13). Each remaining occurrence, if any, must be accompanied by an inline comment explaining why a narrower type is not feasible.
 - REQ-4: Kubernetes API response shapes consumed in `website/src/lib/k8s.ts` and the cluster admin routes must be expressed through named `Partial`-safe TypeScript interfaces rather than inline `any` casts.

@@ -94,6 +94,7 @@ else row gate G-CFG01 "-" eq 0 "env:validate:all (--fast übersprungen)"; fi
 # ── TARGETS (Reduktionsziele in Arbeit) ────────────────────────────────────────
 [ "$QUIET" = 0 ] && printf "\n%sTARGETS (Reduktion)%s\n" "$C_B" "$C_X"
 
+row target G-CQ05 "$(grep -rnE '\bTODO\b' --include='*.ts' --include='*.svelte' --include='*.astro' --include='*.sh' --include='*.js' --include='*.mjs' website/src scripts tests k3d brett/src 2>/dev/null | grep -vE 'node_modules|/dist/|plan-lint.sh|plan-qa-check.sh|openspec.sh|openspec-validate|openspec-merge' | wc -l | tr -d ' ')" le 1 "Echte TODO-Marker (kein Netto-Zuwachs)"
 row target G-RH01 "$(n_baseline_gate ALL)" le 30 "Baselined Gate-Violations gesamt"
 row target G-CQ07 "$(n_baseline_gate S2)" le 0  "S2 Import-Zyklen"
 row target G-CQ09 "$(n_baseline_gate S3)" le 10 "S3 hartkodierte Hostnames"

@@ -2,7 +2,7 @@
 title: "G-DOC02: CLAUDE.md Zeilen kürzen (273→≤200)"
 ticket_id: T001296
 domains: ["docs","quality"]
-status: plan_staged
+status: completed
 ---
 
 # g-doc02-claude-md-trim — Implementation Plan

@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.138.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.137.0...website-v1.138.0) (2026-06-28)
+
+
+### Features
+
+* **website:** add Goals Health Dashboard to homepage + slim goals.md ([#2263](https://github.com/Paddione/Bachelorprojekt/issues/2263)) ([d43d6a6](https://github.com/Paddione/Bachelorprojekt/commit/d43d6a62f7b8da2564e4fd06ff083e558cad72f6))
+
+
+### Bug Fixes
+
+* **website:** add \$lib path alias to tsconfig.json for astro check ([#2261](https://github.com/Paddione/Bachelorprojekt/issues/2261)) ([bb4c3e9](https://github.com/Paddione/Bachelorprojekt/commit/bb4c3e972c181279308601a278013475d611b845))
+
 ## [1.137.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.136.1...website-v1.137.0) (2026-06-28)
 
 

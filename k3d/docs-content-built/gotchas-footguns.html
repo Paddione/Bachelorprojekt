@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Gotchas &amp; Footguns Reference — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<header class="site-header">
+  <a class="site-header-brand" href="./index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
+  <div id="search-box">
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
+  </div>
+</div>
+<div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Handbücher</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./readme.html">AI-Agent Operating Guide — Registry (SSOT)</a></li><li class="sidebar-item"><a href="./readme.html">DB Audit Phase 5 — 2026-05-23</a></li><li class="sidebar-item"><a href="./readme.html">dev.mentolder.de — Operator Runbook</a></li><li class="sidebar-item"><a href="./readme.html">Korczewski Visual Design Brief</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Architektur &amp; Bausteine</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./30-bausteine.html">Bausteine — Was läuft auf der Plattform?</a></li><li class="sidebar-item"><a href="./bereitstellungsdetails.html">Bereitstellungsdetails und Server-Topologie</a></li><li class="sidebar-item"><a href="./db-schema.html">Shared DB — Schema Reference &amp; Normalization Audit</a></li><li class="sidebar-item"><a href="./00-anleitung.html">Was will ich tun?</a></li><li class="sidebar-item"><a href="./20-werkzeuge.html">Werkzeuge — Tools und Agents</a></li><li class="sidebar-item"><a href="./10-ziele.html">Ziele — Was will ich tun?</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Audits &amp; Reports</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./findings.html">DB Audit Phase 5 — Findings</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Entscheidungen</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./decision-log.html">Phase 5 DROP Decision Log</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">Referenz</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./adr-001-fleet-konsolidierung.html">ADR-001: Fleet-Konsolidierung — Zusammenführung aller Marken-Cluster (Phase 3)</a></li><li class="sidebar-item"><a href="./adr-002-push-basiertes-deploy.html">ADR-002: Push-basiertes Deploy — kein GitOps-Reconciler im Cluster</a></li><li class="sidebar-item"><a href="./adr-003-brand-namespace-split.html">ADR-003: Brand-Namespace-Split — Multi-Mandanten via Kubernetes-Namespaces</a></li><li class="sidebar-item"><a href="./adr-004-llm-fail-closed.html">ADR-004: LLM-Embedding-Architektur — fail-closed, kein Cross-Space-Fallback</a></li><li class="sidebar-item"><a href="./adr-005-merge-equals-abschluss.html">ADR-005: Merge = Abschluss — Ticketmodell ohne awaiting_deploy-Happy-Path</a></li><li class="sidebar-item"><a href="./alert-email-test.html">Alert-E-Mail-Test (synthetisch)</a></li><li class="sidebar-item"><a href="./api-surface.html">API Surface Map</a></li><li class="sidebar-item"><a href="./audit-log-retention.html">Audit-Log Retention — DSGVO-Dokumentation</a></li><li class="sidebar-item"><a href="./blast-radius.html">Blast-Radius-Report</a></li><li class="sidebar-item"><a href="./brainstorm-bridge-wsl.html">Brainstorm-Bridge (WSL) — Visuals &amp; Auswahl an den Nutzer kommunizieren</a></li><li class="sidebar-item"><a href="./envsubst-variable-management.html">envsubst Variable Management — Referenz</a></li><li class="sidebar-item"><a href="./fleet-stage2-cutover-runbook.html">Fleet Stage 2 — Cutover Runbook</a></li><li class="sidebar-item"><a href="./fleet-2026-05-31-what-changed.html">Fleet-Konsolidierung — was sich am 2026-05-31 geändert hat</a></li><li class="sidebar-item sidebar-item--active"><a href="./gotchas-footguns.html" aria-current="page">Gotchas &amp; Footguns Reference</a></li><li class="sidebar-item"><a href="./secrets-architecture.html">Secrets-Dateiarchitektur</a></li><li class="sidebar-item"><a href="./shared-infrastructure-security.html">Shared Infrastructure Security — Cross-Brand Analysis</a></li><li class="sidebar-item"><a href="./overview.html">Skills Overview</a></li><li class="sidebar-item"><a href="./factory-usage.html">Software Factory — Usage Guide</a></li><li class="sidebar-item"><a href="./systemtest-fragebogen.html">Systemtest-Protokoll — Workspace Collaboration Platform</a></li><li class="sidebar-item"><a href="./wsl-bootstrap.html">WSL Bootstrapping Gotchas</a></li></ul></details>
+</aside>
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./docs.html">Docs</a> <span class="sep">/</span> <span class="crumb-current">Gotchas &amp; Footguns Reference</span></nav>
+    <h1>Gotchas &amp; Footguns Reference</h1>
+    <p class="page-desc"></p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Gotchas &amp; Footguns Reference</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#section-index"><span class="toc-num">1.</span> Section Index</a></li>
+<li class="toc-item toc-item--h3"><a href="#security-guidance-plugin-rewake-after-commits"><span class="toc-num">–</span> security-guidance plugin rewake after commits</a></li>
+<li class="toc-item toc-item--h3"><a href="#session-koordination-parallele-agenten--claude--gemini"><span class="toc-num">–</span> Session-Koordination (parallele Agenten — Claude + Gemini)</a></li>
+<li class="toc-item toc-item--h3"><a href="#environment-targeting"><span class="toc-num">–</span> Environment targeting</a></li>
+<li class="toc-item toc-item--h3"><a href="#cluster-node-placement-fleet"><span class="toc-num">–</span> Cluster node placement (fleet)</a></li>
+<li class="toc-item toc-item--h3"><a href="#kustomize-overlays"><span class="toc-num">–</span> Kustomize overlays</a></li>
+<li class="toc-item toc-item--h3"><a href="#scripts--env"><span class="toc-num">–</span> Scripts &amp; env</a></li>
+<li class="toc-item toc-item--h3"><a href="#database-queries"><span class="toc-num">–</span> Database queries</a></li>
+<li class="toc-item toc-item--h3"><a href="#cluster-reset--fresh-cluster-bring-up-order"><span class="toc-num">–</span> Cluster reset / fresh cluster bring-up order</a></li>
+<li class="toc-item toc-item--h3"><a href="#operational"><span class="toc-num">–</span> Operational</a></li>
+<li class="toc-item toc-item--h3"><a href="#staging-environment-envstaging"><span class="toc-num">–</span> Staging environment (ENV=staging)</a></li>
+<li class="toc-item toc-item--h3"><a href="#korczewski-homepage-uses-the-kore-design-system-different-from-mentolder"><span class="toc-num">–</span> Korczewski homepage uses the Kore design system (different from mentolder)</a></li>
+<li class="toc-item toc-item--h3"><a href="#local-first-llm-pipeline"><span class="toc-num">–</span> Local-first LLM pipeline</a></li>
+<li class="toc-item toc-item--h3"><a href="#devmentolderde-stack"><span class="toc-num">–</span> dev.mentolder.de stack</a></li>
+<li class="toc-item toc-item--h3"><a href="#brett"><span class="toc-num">–</span> Brett</a></li></ul>
+</div>
+<p>Non-obvious repo behaviors that silently break things or hit the wrong cluster. This file is the canonical source, extracted from <code>CLAUDE.md</code> to keep that file within its token budget.</p>
+<h2 id="section-index">Section Index</h2>
+<ol>
+<li><a href="#security-guidance-plugin-rewake-after-commits">security-guidance plugin rewake after commits</a> — never git-restore after a commit rewake</li>
+<li><a href="#session-koordination-parallele-agenten--claude--gemini">Session-Koordination (parallele Agenten — Claude + Gemini)</a> — agent-lock.sh claim/release/reap protocol</li>
+<li><a href="#environment-targeting">Environment targeting</a> — ENV= is always explicit; WORKSPACE_NAMESPACE</li>
+<li><a href="#cluster-node-placement-fleet">Cluster node placement (fleet)</a> — wg-fleet flannel-iface; LiveKit node-pin</li>
+<li><a href="#kustomize-overlays">Kustomize overlays</a> — prod-fleet/* only; never bare prod/; $patch:delete</li>
+<li><a href="#scripts--env">Scripts &amp; env</a> — env-resolve.sh must be sourced; envsubst lists</li>
+<li><a href="#database-queries">Database queries</a> — never SELECT * on ticket_plans.content</li>
+<li><a href="#cluster-reset--fresh-cluster-bring-up-order">Cluster reset / fresh cluster bring-up order</a> — sealed-secrets → fetch-cert → seal → cert → deploy</li>
+<li><a href="#operational">Operational</a> — push-based; pull-first; CONFLICTING PR suppresses CI</li>
+<li><a href="#staging-environment-envstaging">Staging environment (ENV=staging)</a> — workspace-staging ns; LiveKit disabled</li>
+<li><a href="#korczewski-homepage-uses-the-kore-design-system-different-from-mentolder">Korczewski homepage uses the Kore design system</a> — website/src/components/kore/</li>
+<li><a href="#local-first-llm-pipeline">Local-first LLM pipeline</a> — GPU host; vector space isolation; LM Studio</li>
+<li><a href="#devmentolderde-stack">dev.mentolder.de stack</a> — devc decommissioned; WSL bootstrap caveats</li>
+<li><a href="#brett">Brett</a> — stub; reserved for future use</li>
+</ol>
+<hr>
+<h3 id="security-guidance-plugin-rewake-after-commits">security-guidance plugin rewake after commits</h3>
+<ul>
+<li><strong>Never run <code>git restore</code>, <code>git checkout --</code>, or <code>git reset</code> in response to a security-guidance asyncRewake after a <code>git commit</code>.</strong> The <code>security-guidance</code> plugin fires an async background review after every <code>git commit</code> and rewakes Claude with a <code>rewakeMessage</code>. The correct response is to ACKNOWLEDGE findings or open a follow-up ticket — the commit has already happened and reverting it destroys work. If a finding is a false positive, note it; if it's real, fix it in a new commit. Running <code>git restore</code>/<code>git reset</code> after a commit to "fix" a security finding will silently discard committed work and require merge conflict resolution to recover.</li>
+</ul>
+<h3 id="session-koordination-parallele-agenten--claude--gemini">Session-Koordination (parallele Agenten — Claude + Gemini)</h3>
+<p>Mehrere Agenten-Sessions teilen ein <code>.git</code>/denselben Checkout. <code>scripts/agent-lock.sh</code> (dateibasierte Claims unter <code>.git/agent-locks/</code>, Identität via Unix-Session-ID) verhindert Doppelarbeit und main-Checkout-Races. Kontrakt:</p>
+<ul>
+<li><strong>Start jeder Session/Skill:</strong> <code>bash scripts/agent-lock.sh reap</code> — räumt Zombie-Prozesse (cwd auf gelöschtem Worktree), stale Worktrees und tote Locks.</li>
+<li><strong>Vor Ticket-/Branch-Arbeit:</strong> <code>bash scripts/agent-lock.sh claim ticket &lt;ext-id&gt; --branch &lt;b&gt; --worktree &lt;wt&gt; --label &lt;skill&gt;</code> (und <code>claim branch &lt;b&gt;</code>). Exit 1 = eine <strong>lebende</strong> Session arbeitet bereits daran → koordinieren oder anderes Ticket, NICHT duplizieren.</li>
+<li><strong>Am Ende / nach Merge:</strong> <code>bash scripts/agent-lock.sh release ticket &lt;ext-id&gt;</code> (+ <code>release branch &lt;b&gt;</code>).</li>
+<li><strong>main-Checkout:</strong> Commits im main-Checkout sind über <code>.githooks/pre-commit</code> <strong>hart gesperrt</strong>, wenn eine andere lebende Session den <code>main-checkout</code>-Lock hält (Gate nur im main-Checkout, in Worktrees übersprungen, fail-open). Override: <code>AGENT_LOCK_FORCE=1 git commit …</code>. Besser: in einem Worktree (<code>scripts/worktree-create.sh</code>) arbeiten. Setzt <code>core.hooksPath=.githooks</code> voraus (via <code>task secrets:install-hooks</code>).</li>
+<li><strong>Wer macht was:</strong> <code>bash scripts/agent-lock.sh list</code>.</li>
+<li><strong>Nachrichten an parallele Sessions:</strong> <code>bash scripts/agent-msg.sh read --unread</code> zu Skill-Start (offene Nachrichten anderer lebender Sessions sichten); vor dem Anfassen geteilter Registry-Dateien (<code>k3d/configmap-domains.yaml</code>, <code>environments/schema.yaml</code>) optional <code>bash scripts/agent-msg.sh post "berühre &lt;datei&gt; auf &lt;branch&gt;"</code> (broadcast) oder <code>--to &lt;sid|label&gt;</code> gerichtet. Kanal = append-only JSONL unter <code>.git/agent-msgs/</code> (nie committet).</li>
+<li><strong>Aktive Edit-Kollisionswarnung:</strong> der <code>.githooks/pre-commit</code>-Hook ruft <code>scripts/agent-collision.sh check --staged</code> auf und warnt, wenn eine <strong>andere lebende</strong> Session dieselbe Datei in-flight hat. Advisory/fail-open — blockt nur mit <code>AGENT_COLLISION_STRICT=1</code>. Manuell: <code>bash scripts/agent-collision.sh check --all</code>.</li>
+<li>Live-Claims blocken auch die <strong>Software Factory</strong> (Dispatcher überspringt interaktiv geclaimte Tickets).</li>
+<li>Optionaler <strong>SessionStart-Reaper:</strong> <code>.claude/settings.json</code> ist gitignored (lokal/maschinengebunden) — wer den Reaper bei jedem Session-Start (nicht nur dev-flow) will, fügt lokal hinzu: <code>{"hooks":{"SessionStart":[{"hooks":[{"type":"command","command":"bash scripts/agent-lock.sh reap 2&gt;/dev/null || true"}]}]}}</code>.</li>
+</ul>
+<h3 id="environment-targeting">Environment targeting</h3>
+<ul>
+<li><strong><code>ENV=</code> is always explicit.</strong> Env-sensitive tasks (<code>workspace:deploy</code>, <code>workspace:office:deploy</code>, <code>workspace:post-setup</code>, <code>docs:deploy</code>, <code>workspace:talk-setup</code>, etc.) default to <code>ENV=dev</code> when unset. The kubectl context mismatch check only runs when <code>ENV != dev</code>, so a missing <code>ENV=</code> + wrong active context silently deploys to whatever cluster is current. Always pass <code>ENV=mentolder</code> (or <code>ENV=fleet-mentolder</code>) for the mentolder brand, <code>ENV=korczewski</code> (or <code>ENV=fleet-korczewski</code>) for korczewski — both resolve to the <code>fleet</code> context. Or use <code>feature:*</code> / <code>*:all-prods</code> umbrellas which fan out across both brands explicitly.</li>
+<li><strong>All workspace tasks now honour <code>WORKSPACE_NAMESPACE</code>.</strong> Earlier the Taskfile and several <code>scripts/*.sh</code> hardcoded <code>-n workspace</code>, which silently wrote korczewski-targeted post-config (theming, OIDC redirects, talk signaling) into mentolder's <code>workspace</code> namespace. After 2026-05-05 every ENV-aware task sources <code>env-resolve.sh</code> and uses <code>${WORKSPACE_NAMESPACE:-workspace}</code> (mentolder=<code>workspace</code>, korczewski=<code>workspace-korczewski</code>); scripts default to <code>${NAMESPACE:-${WORKSPACE_NAMESPACE:-workspace}}</code> and the Taskfile call sites export the env var before invoking. If you add a new task that touches workspace resources, follow this pattern.</li>
+<li><strong>Both brands are now on the single <code>fleet</code> cluster.</strong> <code>mentolder</code> was a separate standalone cluster until 2026-05-31 (Phase 3 decommission); gekko-hetzner-2/3/4 nodes left that cluster and joined fleet as workers. There is no longer a separate mentolder <code>shared-db</code>, cert-manager, or Keycloak — fleet owns everything. Cross-cutting changes (DB password rotation, OIDC client tweaks, schema migrations) still need to be applied to <strong>both namespaces</strong> (<code>workspace</code> and <code>workspace-korczewski</code>) explicitly, because those are separate per-brand deployments within the same cluster.</li>
+</ul>
+<h3 id="cluster-node-placement-fleet">Cluster node placement (fleet)</h3>
+<ul>
+<li><strong>All fleet nodes use <code>wg-fleet</code> (10.20.0.x) for pod-to-pod traffic.</strong> k3s agents join with <code>--flannel-iface=wg-fleet</code>. Adding a node without joining the wg-fleet mesh will silently break pod-to-pod traffic from that node. See <code>wireguard/wg-mesh-nodes.yaml</code> for the peer config.</li>
+<li><strong>LiveKit is pinned to <code>pk-hetzner-4</code> via <code>nodeAffinity</code>.</strong> It runs with <code>hostNetwork: true</code> and needs a stable IP for DNS pinning. The fleet overlay (<code>prod-fleet/mentolder/kustomization.yaml</code>) sets this pin. <code>livekit.&lt;domain&gt;</code> and <code>stream.&lt;domain&gt;</code> should DNS-pin to <code>204.168.244.104</code> (pk-hetzner-4) via <code>task livekit:dns-pin</code>.</li>
+</ul>
+<h3 id="kustomize-overlays">Kustomize overlays</h3>
+<ul>
+<li><strong>Apply <code>prod-fleet/mentolder/</code> or <code>prod-fleet/korczewski/</code>, never base <code>prod/</code> (or the bare <code>prod-mentolder/</code>/<code>prod-korczewski/</code>) alone.</strong> <code>ENV_OVERLAY</code> resolves to the <code>prod-fleet/&lt;brand&gt;</code> wrapper, which reuses the brand overlay + <code>fleet-common</code>. The base <code>prod/</code> exists to be consumed by the env-specific overlays and contains a <code>$patch: delete</code> on the <code>workspace-secrets</code> Secret — applying it directly relies on the sealed secret existing and can leave the cluster without credentials.</li>
+<li><strong>Never remove the <code>$patch: delete</code> block in <code>prod/kustomization.yaml</code>.</strong> Its job is to strip the dev placeholder from <code>k3d/secrets.yaml</code> so SealedSecrets-managed secrets survive each deploy. Removing it overwrites production secrets with dev values.</li>
+<li><strong>Collabora and CoTURN are NOT in the base kustomization.</strong> <code>k3d/office-stack</code> and <code>k3d/coturn-stack</code> are deployed separately via <code>task workspace:office:deploy</code>. A full bring-up order is <code>workspace:deploy</code> → <code>workspace:office:deploy</code> → CoTURN apply.</li>
+<li><strong>Website, Brett, Docs, Videovault, Mediaviewer-Widget, and Mentolder-Web images use <code>:latest</code> intentionally</strong> (<code>k3d/website.yaml</code>, <code>k3d/brett.yaml</code>, <code>k3d/docs.yaml</code>, <code>k3d/videovault.yaml</code>, <code>k3d/mediaviewer-widget.yaml</code>, <code>k3d/mentolder-web.yaml</code>). CI warns about <code>:latest</code> for these; do not "fix" these tags to a digest — each image is rebuilt and re-imported/pushed on every release (<code>task feature:brett</code>, <code>task docs:deploy</code>, <code>task feature:website</code>, <code>build-mentolder-web.yml</code>).</li>
+</ul>
+<h3 id="scripts--env">Scripts &amp; env</h3>
+<ul>
+<li><strong><code>scripts/env-resolve.sh</code> must be sourced, never executed.</strong> It uses <code>return 1 2&gt;/dev/null || exit 1</code>, so <code>bash scripts/env-resolve.sh</code> exits the parent shell and subsequent task commands never run. Always <code>source scripts/env-resolve.sh "$ENV"</code>.</li>
+<li><strong><code>envsubst</code> variable lists are hardcoded per task in <code>Taskfile.yml</code> (not <code>Taskfile.yaml</code>).</strong> If you add a new <code>${VAR}</code> reference to a manifest, also register it in <code>environments/schema.yaml</code> AND the <code>envsubst</code> list in every task that builds that manifest. See <code>docs/superpowers/references/envsubst-variable-management.md</code> for the complete checklist and common failure modes.</li>
+<li><strong><code>env:generate ENV=&lt;target&gt;</code> must run before <code>env:seal</code> and before deploying prod.</strong> <code>talk-hpb-setup.sh</code> aborts on placeholder <code>MANAGED_EXTERNALLY</code> values if signaling/turn secrets were never generated.</li>
+</ul>
+<h3 id="database-queries">Database queries</h3>
+<ul>
+<li><strong>Never run <code>SELECT *</code> or query the <code>content</code> column on the entire <code>tickets.ticket_plans</code> table.</strong> The <code>content</code> column stores large plan markdown files, and selecting it over a <code>kubectl exec</code> connection will transfer megabytes of data, causing connection timeouts. Always query metadata columns (such as <code>id</code>, <code>ticket_id</code>, <code>slug</code>, <code>branch</code>, <code>pr_number</code>, <code>archived_at</code>) or filter explicitly by a specific <code>ticket_id</code> or <code>slug</code>.</li>
+</ul>
+<h3 id="cluster-reset--fresh-cluster-bring-up-order">Cluster reset / fresh cluster bring-up order</h3>
+<p>After any cluster reset (including replacing a Sealed Secrets controller keypair), the mandatory order is:</p>
+<ol>
+<li><code>task sealed-secrets:install ENV=&lt;env&gt;</code> — controller must exist before any SealedSecret is applied</li>
+<li><code>task env:fetch-cert ENV=&lt;env&gt;</code> — refreshes the sealing cert from the new controller</li>
+<li><code>task env:seal ENV=&lt;env&gt;</code> — re-encrypts plaintext secrets with the new cert</li>
+<li><code>task cert:install ENV=&lt;env&gt;</code> — installs cert-manager CRDs; must precede <code>workspace:deploy</code></li>
+<li><code>task cert:secret -- &lt;ipv64-key&gt; ENV=&lt;env&gt;</code> — stores the ACME DNS-01 key; creates it in both <code>cert-manager</code> AND <code>$WORKSPACE_NAMESPACE</code></li>
+<li><code>task workspace:deploy ENV=&lt;env&gt;</code> — applies SealedSecrets + kustomize overlay</li>
+</ol>
+<p><strong>SealedSecrets keypair rotation is expected on every cluster reset.</strong> Old sealed files won't decrypt. Always run steps 2–3 after a reset.</p>
+<p><strong><code>knowledge-secrets</code> conflict:</strong> if the overlay contains a <code>secretGenerator</code>-managed Secret with the same name as a SealedSecret, the controller refuses to adopt it. Delete the plain Secret first (<code>kubectl delete secret knowledge-secrets -n $WORKSPACE_NS</code>) then re-apply.</p>
+<h3 id="operational">Operational</h3>
+<ul>
+<li><strong>No GitOps reconciler — prod is push-based.</strong> Merging to <code>main</code> does <strong>not</strong> auto-apply to fleet (there is no Flux/Argo controller; <code>flux-system</code> does not exist on the cluster). After a merge, deploy explicitly: <code>task workspace:deploy ENV=mentolder</code> <strong>and</strong> <code>ENV=korczewski</code> (or a <code>task feature:*</code> umbrella that fans out across both brands). Website changes auto-roll-out via the <code>build-website*.yml</code> Actions (which push with <code>FLEET_KUBECONFIG</code>); everything else needs an explicit deploy.</li>
+<li><strong>Pull-first.</strong> Always <code>git pull --rebase origin main</code> before any work. With dirty tree: <code>git stash &amp;&amp; git pull --rebase &amp;&amp; git stash pop</code>. The <code>dev-flow-plan</code>/<code>dev-flow-execute</code>/<code>using-git-worktrees</code> skills enforce this automatically.</li>
+<li><strong>CONFLICTING PR status suppresses CI runs entirely.</strong> When a PR is in <code>CONFLICTING</code> state, GitHub does not build a merge ref → no <code>pull_request</code> workflow runs are created. What looks like "CI hasn't started yet" or "push without any CI run" is actually a conflict blocker. Diagnose via <code>gh pr view &lt;N&gt; --json mergeStateStatus</code> — if it shows <code>CONFLICTING</code>, resolve the conflict locally (<code>git fetch origin main &amp;&amp; git rebase origin/main</code>), then push. CI will start after the conflict is cleared.</li>
+<li><strong>Generated artifacts are conflict magnets — resolve with <code>git checkout --ours</code>.</strong> <code>docs/generated/**</code>, <code>docs/code-quality/repo-index.json</code>, and <code>k3d/docs-content-built/**</code> are auto-regenerated by <code>freshness-regen.yml</code> after every main push. Any PR that also committed a freshness regen will conflict. Resolution: <code>git checkout --ours &lt;file&gt;</code> for each of these files during rebase, then <code>git add</code> them. The <code>.gitattributes</code> <code>merge=ours</code> driver automates this when <code>task secrets:install-hooks</code> has been run (registers <code>git config merge.ours.driver true</code>).</li>
+<li><strong>Docs source is <code>k3d/docs-content-built/</code> (pre-built HTML), not a Markdown source tree.</strong> The <code>docs/</code> directory holds the Markdown source; <code>node scripts/build-docs.mjs</code> compiles it to HTML in <code>k3d/docs-content-built/</code>. Deploy via <code>task docs:deploy</code> (build + Docker image push + rollout on fleet for both brands). <strong><code>docs:sync</code> does NOT work</strong> — <code>kubectl cp</code> fails with "Read-only file system" because the static-web-server container runs with a read-only rootfs. <code>docs:configmap:apply</code> is kept only for kustomize validation — it has no visible effect on running pods.</li>
+<li><strong>No yamllint/shellcheck/kubeconform in CI.</strong> Earlier docs claimed these ran on PRs; the current <code>ci.yml</code> only runs <code>task test:all</code>. Run <code>yamllint</code>/<code>shellcheck</code> locally if you want lint feedback before pushing.</li>
+<li><strong>LiveKit needs node-pinning + DNS-pinning + ufw rules.</strong> <code>livekit-server</code> runs with <code>hostNetwork: true</code> (workspace ns is <code>pod-security: privileged</code> for this) and is pinned via <code>nodeAffinity</code> to <code>pk-hetzner-4</code> (fleet). The Hetzner host firewall blocks all inter-node traffic except 80/443 — <code>prod/cloud-init.yaml</code> opens 7880/tcp + 7881/tcp + 50000-60000/udp + 30000-40000/udp on every node. <code>livekit.&lt;domain&gt;</code> and <code>stream.&lt;domain&gt;</code> should DNS-pin to <code>204.168.244.104</code> (pk-hetzner-4) via <code>task livekit:dns-pin</code> (browsers otherwise hit a non-LiveKit node ~66% of the time and ICE silently fails). <code>Room.connect()</code> must run from a user gesture — Chrome blocks the AudioContext otherwise.</li>
+<li><strong>E2E PR ist kein required check — Auto-Merge wird nicht blockiert.</strong> <code>E2E PR</code> wurde mit T000722 aus den Branch-Protection required checks entfernt. Der E2E-Workflow (<code>e2e-pr.yml</code>) läuft weiterhin bei jedem PR und zeigt sein Ergebnis informativ an (gelb wenn rot, kein Merge-Block). Auto-Merge wartet nur auf: <code>Offline Tests (Manifests, Configs, Unit)</code>, <code>Security Scan</code>, <code>Brett TypeScript</code>, <code>Vitest (website)</code>, <code>Conventional Commits</code>. Emergency-Wiederherstellung: <code>task gh:branch-protection:emergency-add-e2e</code> oder GitHub Settings UI unter <code>Settings → Branches → main</code>. Skript-Status anzeigen: <code>task gh:branch-protection:status</code>.</li>
+</ul>
+<h3 id="staging-environment-envstaging">Staging environment (ENV=staging)</h3>
+<ul>
+<li><strong><code>ENV=staging</code></strong> deploys to the fleet cluster namespace <code>workspace-staging</code> — fully isolated from prod brands (<code>workspace</code>, <code>workspace-korczewski</code>).</li>
+<li>Own shared-db (namespace-local <code>shared-db</code> Service resolves to staging pod automatically), own <code>*.staging.&lt;domain&gt;</code> wildcard TLS, own SealedSecrets (<code>environments/sealed-secrets/staging.yaml</code>).</li>
+<li><strong>LiveKit is disabled</strong> (replicas 0) — hostNetwork slot on pk-hetzner-4 is occupied by prod. LLM is disabled (<code>LLM_ENABLED=false</code>).</li>
+<li>Push-deploy via existing tasks: <code>task workspace:deploy ENV=staging</code> → <code>task workspace:post-setup ENV=staging</code>.</li>
+<li>Deploy order (fresh ns): <code>env:fetch-cert ENV=staging</code> → <code>env:seal ENV=staging</code> → <code>cert:secret -- &lt;ipv64-key&gt; ENV=staging</code> → <code>workspace:deploy ENV=staging</code>.</li>
+<li>Overlay: <code>prod-fleet/staging/</code> (wraps <code>../../prod</code> + <code>fleet-common</code> component). Env file: <code>environments/staging.yaml</code>. SealedSecrets ref: <code>sealed-secrets/staging.yaml</code>.</li>
+</ul>
+<h3 id="korczewski-homepage-uses-the-kore-design-system-different-from-mentolder">Korczewski homepage uses the Kore design system (different from mentolder)</h3>
+<p><code>web.korczewski.de</code> and <code>web.mentolder.de</code> no longer share a layout. <code>website/src/pages/index.astro</code> branches on <code>process.env.BRAND_ID ?? process.env.BRAND</code> and renders the components under <code>website/src/components/kore/</code> for the <code>korczewski</code> brand. Mentolder still uses the existing Hero/WhyMe/ServiceRow/... Svelte components.</p>
+<p>The Kore homepage has a timeline section (<code>BrandConfig.homepage.timeline === true</code>) that reads from <code>v_timeline</code>. The tracking pipeline was fully removed: <code>tracking-import</code> CronJob in PR #788, <code>track-pr.yml</code> in PR #993; the timeline shows historical data only (last entry: PR #787). New PRs are no longer tracked automatically.</p>
+<p>The env var is <code>BRAND</code> in the Kubernetes ConfigMap (<code>k3d/website.yaml</code>) and <code>BRAND_ID</code> in local dev — <code>index.astro</code> reads both with <code>process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder'</code>.</p>
+<h3 id="local-first-llm-pipeline">Local-first LLM pipeline</h3>
+<ul>
+<li><strong>The GPU host is a single, user-provided box on <code>wg-mesh</code></strong> (RTX 5070 Ti, 16 GB). Both prod environments share it via three Services (<code>llm-gateway-lmstudio:1234</code>, <code>llm-gateway-tei-embed:8081</code>, <code>llm-gateway-tei-rerank:8083</code>) that point at the same <code>${LLM_HOST_IP}</code>. Losing the host stalls embedding indexing on <code>bge-m3</code> collections and makes chat-class requests return 503 (no cloud fallback). Voyage-tagged collections are unaffected.</li>
+<li><strong>Embeddings/rerank NEVER fall back across vector spaces.</strong> A <code>bge-m3</code> collection always queries with bge-m3 and <strong>fails closed</strong> if TEI is down. A <code>voyage-multilingual-2</code> collection always queries with Voyage. The <code>MixedEmbeddingModelError</code> rejects multi-collection queries that span both. Don't "fix" this by adding silent fallback — vectors from different spaces in the same <code>&lt;=&gt;</code> query mean garbage retrieval.</li>
+<li><strong><code>llm-gpu.yaml</code> is now in <code>k3d/</code> base (PR #1576); <code>llm-router.yaml</code> remains <code>prod/</code> overlay only.</strong> Dev k3d reaches the GPU host via <code>LLM_HOST_IP: 172.17.0.1</code> (set in <code>environments/dev.yaml</code>). If no GPU is reachable, <code>embeddings.ts</code> falls through to direct Voyage when <code>LLM_ENABLED=false</code>. Don't add <code>llm-router.yaml</code> to <code>k3d/kustomization.yaml</code>.</li>
+<li><strong><code>LLM_HOST_IP</code> is required when <code>LLM_ENABLED=true</code>.</strong> Set it in <code>environments/&lt;env&gt;.yaml</code> to the GPU host's wg-mesh IP. The <code>llm:deploy</code> task aborts if unset.</li>
+<li><strong>Model swap costs ~3-6s on first call after idle.</strong> LM Studio keeps models in VRAM until evicted; first call after a long idle pays the load cost. Router's chat-class timeout is 30s — beyond that, it falls back to Anthropic. Don't set the timeout below ~10s without testing all four models cold.</li>
+<li><strong>Opencode / OpenClaw on the WSL host</strong> (<code>openclaw/</code>, <code>Taskfile.openclaw.yml</code>) talks directly to LM Studio on <code>localhost:1234/v1</code> or <code>10.10.0.3:1234/v1</code>, <strong>not</strong> through <code>llm-router</code>. Bootstrap: <code>task openclaw:install &amp;&amp; task openclaw:configure</code>. Operational: <code>task openclaw:start</code> (restart daemon), <code>task openclaw:status</code> (health probe), <code>task openclaw:logs</code> (journalctl tail), <code>task openclaw:backup</code> / <code>task openclaw:restore</code> (snapshot ~/.openclaw), <code>task openclaw:wipe CONFIRM=yes</code> (destructive reset).</li>
+<li><strong>Cross-brand shared-infrastructure security analysis:</strong> Full analysis in <code>docs/superpowers/references/shared-infrastructure-security.md</code> — covers LLM GPU host brand isolation, backup encryption pipeline (AES-256-CBC encrypt-then-upload), Filen/SMTP shared-account risk assessment, and WireGuard mesh peer trust model. Key finding: no data leaks; collections are DB-level isolated per brand; all backups are encrypted before upload.</li>
+</ul>
+<h3 id="devmentolderde-stack">dev.mentolder.de stack</h3>
+<p><strong>Architecture &amp; Status (2026-06):</strong> The previous 3-node <code>devc</code> k3s HA cluster and the legacy <code>k3s-1</code> VM have been permanently <strong>DECOMMISSIONED</strong>. A new Proxmox cluster is active at IPs <code>10.0.0.9</code>, <code>10.0.0.11</code>, and <code>10.0.0.25</code>. Local development is performed via local k3d.</p>
+<ul>
+<li><p><strong>Storage &amp; Services:</strong> Historical reference: longhorn, shared-db-dev, and sish tunnels are offline. Local dev utilizes standard k3d namespaces.</p>
+</li>
+<li><p><strong>WSL Bootstrapping &amp; Workstation Setup</strong></p>
+</li>
+<li><p><strong><code>task</code> command collision:</strong> On Ubuntu 24.04 (and newer), <code>apt install task</code> installs <code>taskwarrior</code> instead of <code>go-task</code>. Use <code>snap install task --classic</code> or install via the official go-task script.</p>
+</li>
+<li><p><strong>Docker Desktop integration:</strong> WSL integration is not auto-enabled for new distros, which blocks all build/k3d/docker work. Enable it manually under Docker Desktop Settings &gt; Resources &gt; WSL Integration.</p>
+</li>
+<li><p><strong>SSH Key Permissions:</strong> Private keys copied from Windows mount points often arrive with <code>644</code> permissions, which SSH will refuse. Run <code>chmod 600 ~/.ssh/id_ed25519</code> to fix.</p>
+</li>
+<li><p><strong>Node.js Version requirements:</strong> Enforced via <code>.nvmrc</code> and <code>engines</code> in <code>package.json</code> (requires Node.js &gt;= 22.13.0 for pnpm 11 compatibility).</p>
+</li>
+<li><p>See <a href="./wsl-bootstrap.html" class="xref">WSL-BOOTSTRAP.md</a> for more details.</p>
+</li>
+</ul>
+<h3 id="brett">Brett</h3>
+<p>(stub — reserved for future use)</p>
+</body></html>
+</article>
+
+<nav class="prevnext" aria-label="Seitennavigation"><a class="prevnext-link prevnext-prev" href="./fleet-2026-05-31-what-changed.html"><span class="prevnext-label">← Zurück</span><span class="prevnext-title">Fleet-Konsolidierung — was sich am 2026-05-31 geändert hat</span></a><a class="prevnext-link prevnext-next" href="./secrets-architecture.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">Secrets-Dateiarchitektur</span></a></nav>
+  </main>
+</div>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="./app.js"></script>
+</body>
+</html>

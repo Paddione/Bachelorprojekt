@@ -859,7 +859,6 @@ tasks:
       - '[ -d node_modules ] || npm ci'
       - node scripts/build-graph.mjs
       - node scripts/build-api-map.mjs
-      - node scripts/build-graph-docs.mjs
       - task: graph:blast-radius
 
   graph:blast-radius:

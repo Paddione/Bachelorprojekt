@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ADR-003: Brand-Namespace-Split — Multi-Mandanten via Kubernetes-Namespaces — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<header class="site-header">
+  <a class="site-header-brand" href="./index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
+  <div id="search-box">
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
+  </div>
+</div>
+<div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Handbücher</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./readme.html">AI-Agent Operating Guide — Registry (SSOT)</a></li><li class="sidebar-item"><a href="./readme.html">DB Audit Phase 5 — 2026-05-23</a></li><li class="sidebar-item"><a href="./readme.html">dev.mentolder.de — Operator Runbook</a></li><li class="sidebar-item"><a href="./readme.html">Korczewski Visual Design Brief</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Architektur &amp; Bausteine</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./30-bausteine.html">Bausteine — Was läuft auf der Plattform?</a></li><li class="sidebar-item"><a href="./bereitstellungsdetails.html">Bereitstellungsdetails und Server-Topologie</a></li><li class="sidebar-item"><a href="./db-schema.html">Shared DB — Schema Reference &amp; Normalization Audit</a></li><li class="sidebar-item"><a href="./00-anleitung.html">Was will ich tun?</a></li><li class="sidebar-item"><a href="./20-werkzeuge.html">Werkzeuge — Tools und Agents</a></li><li class="sidebar-item"><a href="./10-ziele.html">Ziele — Was will ich tun?</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Audits &amp; Reports</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./findings.html">DB Audit Phase 5 — Findings</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Entscheidungen</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./decision-log.html">Phase 5 DROP Decision Log</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">Referenz</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./adr-001-fleet-konsolidierung.html">ADR-001: Fleet-Konsolidierung — Zusammenführung aller Marken-Cluster (Phase 3)</a></li><li class="sidebar-item"><a href="./adr-002-push-basiertes-deploy.html">ADR-002: Push-basiertes Deploy — kein GitOps-Reconciler im Cluster</a></li><li class="sidebar-item sidebar-item--active"><a href="./adr-003-brand-namespace-split.html" aria-current="page">ADR-003: Brand-Namespace-Split — Multi-Mandanten via Kubernetes-Namespaces</a></li><li class="sidebar-item"><a href="./adr-004-llm-fail-closed.html">ADR-004: LLM-Embedding-Architektur — fail-closed, kein Cross-Space-Fallback</a></li><li class="sidebar-item"><a href="./adr-005-merge-equals-abschluss.html">ADR-005: Merge = Abschluss — Ticketmodell ohne awaiting_deploy-Happy-Path</a></li><li class="sidebar-item"><a href="./alert-email-test.html">Alert-E-Mail-Test (synthetisch)</a></li><li class="sidebar-item"><a href="./api-surface.html">API Surface Map</a></li><li class="sidebar-item"><a href="./audit-log-retention.html">Audit-Log Retention — DSGVO-Dokumentation</a></li><li class="sidebar-item"><a href="./blast-radius.html">Blast-Radius-Report</a></li><li class="sidebar-item"><a href="./brainstorm-bridge-wsl.html">Brainstorm-Bridge (WSL) — Visuals &amp; Auswahl an den Nutzer kommunizieren</a></li><li class="sidebar-item"><a href="./envsubst-variable-management.html">envsubst Variable Management — Referenz</a></li><li class="sidebar-item"><a href="./fleet-stage2-cutover-runbook.html">Fleet Stage 2 — Cutover Runbook</a></li><li class="sidebar-item"><a href="./fleet-2026-05-31-what-changed.html">Fleet-Konsolidierung — was sich am 2026-05-31 geändert hat</a></li><li class="sidebar-item"><a href="./gotchas-footguns.html">Gotchas &amp; Footguns Reference</a></li><li class="sidebar-item"><a href="./secrets-architecture.html">Secrets-Dateiarchitektur</a></li><li class="sidebar-item"><a href="./shared-infrastructure-security.html">Shared Infrastructure Security — Cross-Brand Analysis</a></li><li class="sidebar-item"><a href="./overview.html">Skills Overview</a></li><li class="sidebar-item"><a href="./factory-usage.html">Software Factory — Usage Guide</a></li><li class="sidebar-item"><a href="./systemtest-fragebogen.html">Systemtest-Protokoll — Workspace Collaboration Platform</a></li><li class="sidebar-item"><a href="./wsl-bootstrap.html">WSL Bootstrapping Gotchas</a></li></ul></details>
+</aside>
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./docs.html">Docs</a> <span class="sep">/</span> <span class="crumb-current">ADR-003: Brand-Namespace-Split — Multi-Mandanten via Kubernetes-Namespaces</span></nav>
+    <h1>ADR-003: Brand-Namespace-Split — Multi-Mandanten via Kubernetes-Namespaces</h1>
+    <p class="page-desc"></p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>ADR-003: Brand-Namespace-Split — Multi-Mandanten via Kubernetes-Namespaces</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#kontext"><span class="toc-num">1.</span> Kontext</a></li>
+<li class="toc-item"><a href="#entscheidung"><span class="toc-num">2.</span> Entscheidung</a></li>
+<li class="toc-item"><a href="#konsequenzen"><span class="toc-num">3.</span> Konsequenzen</a></li></ul>
+</div>
+<p><strong>Status:</strong> Accepted<br><strong>Datum:</strong> 2026-05-05<br><strong>Ticket:</strong> T001298</p>
+<h2 id="kontext">Kontext</h2>
+<p>Das Projekt betreibt zwei voneinander getrennte Marken (mentolder.de, korczewski.de) auf derselben Plattform. Beide Marken haben eigene Keycloak-Realms, eigene Nextcloud-Instanzen, eigene Domains und eigene Secrets. Die Frage ist, auf welcher Abstraktionsebene die Isolation umgesetzt wird.</p>
+<p>Optionen:</p>
+<ol>
+<li>Separate Cluster pro Marke (höchste Isolation, höchster Betriebsaufwand).</li>
+<li>Namespace-Trennung im selben Cluster (mittlere Isolation, niedrigerer Aufwand).</li>
+<li>Ein Namespace mit Label-basierter Trennung (geringste Isolation, nicht gewählt).</li>
+</ol>
+<h2 id="entscheidung">Entscheidung</h2>
+<p>Die Marken werden durch Kubernetes-Namespaces getrennt: <code>workspace</code> (mentolder) und <code>workspace-korczewski</code> (korczewski). Alle marken-sensitiven Tasks exportieren <code>WORKSPACE_NAMESPACE</code> und verwenden <code>${WORKSPACE_NAMESPACE:-workspace}</code> konsequent. Keine Ressource hardcodet <code>-n workspace</code>.</p>
+<p>ENV-Aliase: <code>ENV=mentolder</code> = <code>ENV=fleet-mentolder</code>, <code>ENV=korczewski</code> = <code>ENV=fleet-korczewski</code> — beide zeigen auf den <code>fleet</code>-Kontext.</p>
+<h2 id="konsequenzen">Konsequenzen</h2>
+<p><strong>Positive Konsequenzen:</strong></p>
+<ul>
+<li>Ein einziger Fleet-Cluster statt zwei Cluster — Betriebsaufwand halbiert.</li>
+<li>Namespace-RBAC trennt Workloads: kein Pod aus <code>workspace-korczewski</code> kann direkt auf Secrets in <code>workspace</code> zugreifen.</li>
+<li>Cross-cutting-Ressourcen (shared-db, cert-manager, Sealed Secrets Controller) sind einmalig vorhanden.</li>
+</ul>
+<p><strong>Negative Konsequenzen:</strong></p>
+<ul>
+<li>Namespace-Isolation ist schwächer als Cluster-Isolation: ein kompromittierter Cluster-Admin hat Zugriff auf beide Namespaces.</li>
+<li>Cross-cutting-Änderungen (DB-Passwort-Rotation, OIDC-Client-Anpassungen) müssen explizit in beiden Namespaces durchgeführt werden.</li>
+<li><code>WORKSPACE_NAMESPACE</code> muss in jedem neuen Task und Skript explizit berücksichtigt werden.</li>
+</ul>
+<p><strong>Implikation für DSGVO:</strong> Daten beider Marken liegen physisch auf denselben Nodes. Die logische Trennung durch Namespaces ist dokumentiert; eine physische Trennung ist für das Bachelorprojekt nicht gefordert.</p>
+</body></html>
+</article>
+
+<nav class="prevnext" aria-label="Seitennavigation"><a class="prevnext-link prevnext-prev" href="./adr-002-push-basiertes-deploy.html"><span class="prevnext-label">← Zurück</span><span class="prevnext-title">ADR-002: Push-basiertes Deploy — kein GitOps-Reconciler im Cluster</span></a><a class="prevnext-link prevnext-next" href="./adr-004-llm-fail-closed.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">ADR-004: LLM-Embedding-Architektur — fail-closed, kein Cross-Space-Fallback</span></a></nav>
+  </main>
+</div>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="./app.js"></script>
+</body>
+</html>

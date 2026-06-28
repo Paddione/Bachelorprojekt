@@ -1,13 +1,13 @@
 ---
-import AdminLayout from '../../../layouts/AdminLayout.astro';
-import AdminPageHeader from '../../../components/admin/ui/AdminPageHeader.svelte';
-import ContentDb from '../../../components/admin/ContentDb.svelte';
-import { getSession, getLoginUrl, isAdmin } from '../../../lib/auth';
-import { pool } from '../../../lib/website-db';
-import { listQTemplates } from '../../../lib/questionnaire-db/queries';
-import { listTemplates } from '../../../lib/coaching-db';
-import { listDocumentTemplates } from '../../../lib/documents-db';
-import { mergeContentEntries } from '../../../lib/content-db-merge';
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../components/admin/ui/AdminPageHeader.svelte';
+import ContentDb from '../../components/admin/ContentDb.svelte';
+import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
+import { pool } from '../../lib/website-db';
+import { listQTemplates } from '../../lib/questionnaire-db/queries';
+import { listTemplates } from '../../lib/coaching-db';
+import { listDocumentTemplates } from '../../lib/documents-db';
+import { mergeContentEntries } from '../../lib/content-db-merge';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));

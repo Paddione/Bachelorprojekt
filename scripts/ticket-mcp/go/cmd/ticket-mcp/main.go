@@ -33,6 +33,7 @@ func main() {
 	tools.RegisterLifecycleTools(mcpServer)
 	tools.RegisterMishapTools(mcpServer)
 	tools.RegisterWorkflowTools(mcpServer)
+	tools.RegisterLinkTools(mcpServer)
 
 	if httpMode {
 		portStr := os.Getenv("TICKET_MCP_PORT")

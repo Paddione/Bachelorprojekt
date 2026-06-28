@@ -118,6 +118,109 @@ func main() {
 		return mcp.NewToolResultText(string(b)), nil
 	})
 
+	// ── get_task_graph ────────────────────────────────────────────────────────
+	getTaskGraphTool := mcp.NewTool("get_task_graph",
+		mcp.WithDescription("Return the full task dependency DAG from the Taskfile. Default format is Mermaid (graph TD); use format=json for programmatic consumption."),
+		mcp.WithString("format", mcp.Description("Output format: mermaid (default) or json"),
+			mcp.Enum("mermaid", "json")),
+	)
+	s.AddTool(getTaskGraphTool, func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		args := req.GetArguments()
+		format, _ := args["format"].(string)
+		if format == "" {
+			format = "mermaid"
+		}
+		g, err := planner.Parse(*taskfilePath)
+		if err != nil {
+			return mcp.NewToolResultError("parse taskfile: " + err.Error()), nil
+		}
+		switch format {
+		case "json":
+			return mcp.NewToolResultText(planner.GraphToJSON(g)), nil
+		default:
+			return mcp.NewToolResultText(planner.GraphToMermaid(g)), nil
+		}
+	})
+
+	// ── run_task_async ────────────────────────────────────────────────────────
+	runTaskAsyncTool := mcp.NewTool("run_task_async",
+		mcp.WithDescription("Start a task in the background and return a job_id immediately. Poll get_task_result to check progress."),
+		mcp.WithString("task", mcp.Required(), mcp.Description("Task name, e.g. workspace:deploy")),
+		mcp.WithString("env", mcp.Description("ENV value, e.g. mentolder (optional)")),
+	)
+	s.AddTool(runTaskAsyncTool, func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		args := req.GetArguments()
+		task, _ := args["task"].(string)
+		env, _ := args["env"].(string)
+		if task == "" {
+			return mcp.NewToolResultError("task is required"), nil
+		}
+		jobID, err := runner.StartTask(ctx, task, env, *taskfilePath)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+		b, _ := json.Marshal(map[string]string{"job_id": jobID, "status": "running"})
+		return mcp.NewToolResultText(string(b)), nil
+	})
+
+	// ── cancel_task ───────────────────────────────────────────────────────────
+	cancelTaskTool := mcp.NewTool("cancel_task",
+		mcp.WithDescription("Cancel a running async task by job_id. Sends SIGTERM; SIGKILL follows after 5 seconds if the process has not exited."),
+		mcp.WithString("job_id", mcp.Required(), mcp.Description("Job ID returned by run_task_async")),
+	)
+	s.AddTool(cancelTaskTool, func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		args := req.GetArguments()
+		jobID, _ := args["job_id"].(string)
+		if jobID == "" {
+			return mcp.NewToolResultError("job_id is required"), nil
+		}
+		found, wasCancelled := runner.GlobalRegistry.Cancel(jobID)
+		if !found {
+			return mcp.NewToolResultError("job not found: " + jobID), nil
+		}
+		type cancelResult struct {
+			Cancelled bool   `json:"cancelled"`
+			JobID     string `json:"job_id"`
+			Reason    string `json:"reason,omitempty"`
+		}
+		res := cancelResult{Cancelled: wasCancelled, JobID: jobID}
+		if !wasCancelled {
+			res.Reason = "already done"
+		}
+		b, _ := json.Marshal(res)
+		return mcp.NewToolResultText(string(b)), nil
+	})
+
+	// ── get_task_result ───────────────────────────────────────────────────────
+	getTaskResultTool := mcp.NewTool("get_task_result",
+		mcp.WithDescription("Poll the status and output of an async task. Returns status='running' while in progress, 'done' or 'cancelled' when finished."),
+		mcp.WithString("job_id", mcp.Required(), mcp.Description("Job ID returned by run_task_async")),
+	)
+	s.AddTool(getTaskResultTool, func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		args := req.GetArguments()
+		jobID, _ := args["job_id"].(string)
+		if jobID == "" {
+			return mcp.NewToolResultError("job_id is required"), nil
+		}
+		found, status, result := runner.GlobalRegistry.Lookup(jobID)
+		if !found {
+			return mcp.NewToolResultError("job not found: " + jobID), nil
+		}
+		type taskResult struct {
+			Status   string `json:"status"`
+			JobID    string `json:"job_id"`
+			ExitCode *int   `json:"exit_code,omitempty"`
+			Output   string `json:"output,omitempty"`
+		}
+		res := taskResult{Status: string(status), JobID: jobID}
+		if result != nil {
+			res.ExitCode = &result.ExitCode
+			res.Output = result.Stdout + result.Stderr
+		}
+		b, _ := json.Marshal(res)
+		return mcp.NewToolResultText(string(b)), nil
+	})
+
 	if err := server.ServeStdio(s); err != nil {
 		log.Fatalf("mcp-task-runner: %v", err)
 	}

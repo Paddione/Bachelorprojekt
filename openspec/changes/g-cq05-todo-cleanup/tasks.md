@@ -2,7 +2,7 @@
 title: "G-CQ05: Echte `TODO`-Marker aufräumen (6→≤1)"
 ticket_id: T001290
 domains: ["cq","quality"]
-status: plan_staged
+status: completed
 ---
 
 # g-cq05-todo-cleanup — Implementation Plan

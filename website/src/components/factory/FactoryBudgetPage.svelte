@@ -272,17 +272,17 @@
   .input-group { display: flex; align-items: center; background: rgba(0,0,0,0.2); border: 1px solid var(--admin-border, rgba(255,255,255,0.07)); border-radius: 4px; padding-right: 12px; flex: 1; }
   .input-group input { background: transparent; border: none; padding: 10px 12px; color: var(--admin-text, #eef1f3); font-size: 14px; width: 100%; outline: none; }
   .currency-label { color: var(--admin-text-mute, #8c96a3); font-weight: 600; font-size: 12px; }
-  .btn-save, .btn-search { background: var(--admin-primary, oklch(0.80 0.09 75)); color: #121820; border: none; padding: 10px 20px; border-radius: 4px; font-weight: 600; font-size: 14px; cursor: pointer; transition: opacity 0.15s; }
+  .btn-save, .btn-search { background: var(--admin-primary, #818cf8); color: #121820; border: none; padding: 10px 20px; border-radius: 4px; font-weight: 600; font-size: 14px; cursor: pointer; transition: opacity 0.15s; }
   .btn-save:hover, .btn-search:hover { opacity: 0.9; }
   .btn-save:disabled, .btn-search:disabled { opacity: 0.5; cursor: not-allowed; }
   .success-msg { color: #10b981; font-size: 13px; margin: 0.75rem 0 0 0; }
   .error-msg { color: #ef4444; font-size: 13px; margin: 0.75rem 0 0 0; }
   .progress-wrap { margin-bottom: 1.5rem; }
   .progress-labels { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 0.5rem; }
-  .used-val { font-weight: 700; font-size: 16px; color: var(--admin-primary, oklch(0.80 0.09 75)); }
+  .used-val { font-weight: 700; font-size: 16px; color: var(--admin-primary, #818cf8); }
   .limit-val { color: var(--admin-text-mute, #8c96a3); }
   .progress-bar-bg { background: rgba(255,255,255,0.08); height: 8px; border-radius: 4px; overflow: hidden; }
-  .progress-bar-fill { background: var(--admin-primary, oklch(0.80 0.09 75)); height: 100%; border-radius: 4px; transition: width 0.3s ease; }
+  .progress-bar-fill { background: var(--admin-primary, #818cf8); height: 100%; border-radius: 4px; transition: width 0.3s ease; }
   .progress-bar-fill.warning { background: #f59e0b; }
   .progress-bar-fill.danger { background: #ef4444; }
   .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }

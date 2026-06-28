@@ -369,7 +369,7 @@
   }
   .csv-feature-btn:hover { background: var(--admin-surface-hover, #1e2129); }
   .csv-feature-btn.csv-active {
-    background: var(--admin-primary, #6ea8fe);
+    background: var(--admin-primary, #818cf8);
     color: var(--admin-bg, #0b0d12);
     font-weight: 600;
   }

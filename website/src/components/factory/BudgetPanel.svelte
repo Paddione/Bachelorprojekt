@@ -210,7 +210,7 @@
   .used-val {
     font-weight: 600;
     font-size: 15px;
-    color: var(--admin-primary, oklch(0.80 0.09 75));
+    color: var(--admin-primary, #818cf8);
   }
 
   .limit-val {
@@ -225,7 +225,7 @@
   }
 
   .progress-bar-fill {
-    background: var(--admin-primary, oklch(0.80 0.09 75));
+    background: var(--admin-primary, #818cf8);
     height: 100%;
     border-radius: 3px;
     transition: width 0.3s ease;
@@ -307,7 +307,7 @@
 
   .admin-link {
     font-size: 12px;
-    color: var(--admin-primary, oklch(0.80 0.09 75));
+    color: var(--admin-primary, #818cf8);
     text-decoration: none;
   }
   .admin-link:hover {

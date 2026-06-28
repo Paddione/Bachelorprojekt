@@ -255,7 +255,7 @@
     outline: none;
     box-sizing: border-box;
   }
-  .search:focus { border-color: var(--admin-primary, oklch(0.80 0.09 75)); box-shadow: 0 0 0 2px oklch(0.80 0.09 75 / 0.15); }
+  .search:focus { border-color: var(--admin-primary, #818cf8); box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.15); }
 
   .chips { display: flex; gap: 0.25rem; overflow-x: auto; scrollbar-width: none; }
   .chips::-webkit-scrollbar { display: none; }
@@ -272,14 +272,14 @@
   }
   .chip:hover { background: var(--admin-surface-hover, rgba(255,255,255,0.06)); color: var(--admin-text, #eef1f3); }
   .chip.active {
-    background: var(--admin-primary, oklch(0.80 0.09 75));
+    background: var(--admin-primary, #818cf8);
     color: var(--admin-bg, #0b111c);
     border-color: transparent;
     font-weight: 600;
   }
 
   .create {
-    background: var(--admin-primary, oklch(0.80 0.09 75));
+    background: var(--admin-primary, #818cf8);
     color: var(--admin-bg, #0b111c);
     border: none; border-radius: 8px;
     padding: 0.42rem 0.9rem;

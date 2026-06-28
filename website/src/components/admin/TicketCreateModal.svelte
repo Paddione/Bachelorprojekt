@@ -125,7 +125,7 @@
     color: var(--admin-text, #e5e7eb); border-radius: 6px; padding: 0.4rem 0.55rem; font: inherit; }
   .error { color: #ef4444; font-size: 0.82rem; margin: 0; }
   footer { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.25rem; }
-  .primary { background: var(--admin-primary, #6ea8fe); color: var(--admin-bg, #0b0d12); border: none;
+  .primary { background: var(--admin-primary, #818cf8); color: var(--admin-bg, #0b0d12); border: none;
     border-radius: 6px; padding: 0.45rem 0.9rem; cursor: pointer; font-weight: 600; }
   .primary:disabled { opacity: 0.4; cursor: not-allowed; }
   button { background: var(--admin-bg, #1c1f26); border: 1px solid var(--admin-border, #2a2e37);

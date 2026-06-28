@@ -115,7 +115,7 @@
   .ext {
     font-family: var(--font-mono, monospace);
     font-size: 0.68rem;
-    color: var(--admin-primary, oklch(0.80 0.09 75));
+    color: var(--admin-primary, #818cf8);
     background: oklch(0.80 0.09 75 / 0.1);
     padding: 1px 5px;
     border-radius: 4px;
@@ -134,7 +134,7 @@
     font-size: 0.855rem;
     min-width: 0;
   }
-  .title-link:hover { color: var(--admin-primary, oklch(0.80 0.09 75)); }
+  .title-link:hover { color: var(--admin-primary, #818cf8); }
 
   .type-dot {
     display: inline-block;
@@ -145,7 +145,7 @@
   .type-dot--bug      { background: #f87171; }
   .type-dot--task     { background: #60a5fa; }
   .type-dot--feature  { background: #34d399; }
-  .type-dot--project  { background: var(--admin-primary, oklch(0.80 0.09 75)); }
+  .type-dot--project  { background: var(--admin-primary, #818cf8); }
   .type-dot--story    { background: #a78bfa; }
   .type-dot--spike    { background: #fb923c; }
 
@@ -166,7 +166,7 @@
     outline: none;
   }
   .status-sel:hover:not(:disabled) { filter: brightness(1.15); }
-  .status-sel:focus { outline: 2px solid var(--admin-primary, oklch(0.80 0.09 75)); outline-offset: 1px; }
+  .status-sel:focus { outline: 2px solid var(--admin-primary, #818cf8); outline-offset: 1px; }
   .status-sel:disabled { opacity: 0.55; cursor: default; }
   .status-sel[data-s="triage"]          { background-color: rgba(168,85,247,0.14); color: #d8b4fe; border-color: rgba(168,85,247,0.34); }
   .status-sel[data-s="backlog"]         { background-color: rgba(100,116,139,0.14); color: #94a3b8; border-color: rgba(100,116,139,0.28); }

@@ -142,8 +142,8 @@
   }
   .ds-tab:hover { color: var(--admin-text, #eef1f3); }
   .ds-tab.active {
-    color: var(--admin-primary, oklch(0.80 0.09 75));
-    border-bottom-color: var(--admin-primary, oklch(0.80 0.09 75));
+    color: var(--admin-primary, #818cf8);
+    border-bottom-color: var(--admin-primary, #818cf8);
   }
 
   .tab-badge {

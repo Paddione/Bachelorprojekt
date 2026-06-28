@@ -52,9 +52,9 @@
   --admin-border: rgba(255, 255, 255, 0.07);
   --admin-border-bright: rgba(255, 255, 255, 0.12);
 
-  --admin-primary: oklch(0.80 0.09 75);
-  --admin-primary-muted: oklch(0.80 0.09 75 / 0.15);
-  --admin-accent: #818cf8;
+  --admin-primary: #818cf8;
+  --admin-primary-muted: rgba(129, 140, 248, 0.15);
+  --admin-accent: oklch(0.80 0.09 75);
 
   --admin-text: #eef1f3;
   --admin-text-mute: #8c96a3;

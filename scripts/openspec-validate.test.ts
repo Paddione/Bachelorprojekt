@@ -92,3 +92,45 @@ describe('validateTree — repo integration', () => {
     }
   })
 })
+
+describe('validateDeltaFile — T001262 hardening', () => {
+  function tmpChange(deltaBody: string) {
+    const tmp = mkdtempSync(join(tmpdir(), 'openspec-h-'))
+    mkdirSync(join(tmp, 'specs'), { recursive: true })
+    writeFileSync(join(tmp, 'specs', 'cap.md'), deltaBody)
+    writeFileSync(join(tmp, '.ticket'), 'T000000\n')
+    return tmp
+  }
+
+  it('accepts a RENAMED-only delta (no spurious missing-header error)', () => {
+    const tmp = tmpChange('## RENAMED Requirements\n\n### Requirement: Old\n\n**Renamed-to:** New\n')
+    try {
+      const { result } = validateChange(tmp)
+      expect(result.errors.some(e => /missing.*Requirements.*header/i.test(e))).toBe(false)
+    } finally { rmSync(tmp, { recursive: true, force: true }) }
+  })
+
+  it('warns (not errors) on an unedited stub delta', () => {
+    const tmp = tmpChange('## ADDED Requirements\n\n### Requirement: TODO\n\nThe system SHALL …\n')
+    try {
+      const { result } = validateChange(tmp)
+      expect(result.ok).toBe(true)
+      expect(result.warnings.some(w => /stub/i.test(w))).toBe(true)
+    } finally { rmSync(tmp, { recursive: true, force: true }) }
+  })
+
+  it('warns (not errors) when a MODIFIED target is absent from the SSOT', () => {
+    const specsRoot = mkdtempSync(join(tmpdir(), 'openspec-ssot-'))
+    writeFileSync(join(specsRoot, 'cap.md'),
+      '## Purpose\n\nx\n\n## Requirements\n\n### Requirement: Present\n\nThe system SHALL exist.\n')
+    const tmp = tmpChange('## MODIFIED Requirements\n\n### Requirement: Absent\n\nThe system SHALL change.\n')
+    try {
+      const { result } = validateChange(tmp, specsRoot)
+      expect(result.ok).toBe(true)
+      expect(result.warnings.some(w => /Absent/.test(w) && /not found/i.test(w))).toBe(true)
+    } finally {
+      rmSync(tmp, { recursive: true, force: true })
+      rmSync(specsRoot, { recursive: true, force: true })
+    }
+  })
+})

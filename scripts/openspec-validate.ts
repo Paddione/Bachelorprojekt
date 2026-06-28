@@ -12,12 +12,38 @@ export interface ChangeValidation {
   result: ValidationResult
 }
 
-function validateDeltaFile(filePath: string): Pick<ValidationResult, 'errors'> {
+// Names of `### Requirement:` under a given `## <op> Requirements` section.
+function sectionRequirements(content: string, op: string): { name: string; body: string }[] {
+  const out: { name: string; body: string }[] = []
+  let inSec = false
+  let cur: { name: string; body: string } | null = null
+  const flush = () => { if (cur) { out.push(cur); cur = null } }
+  for (const line of content.split('\n')) {
+    const sec = line.match(/^## (ADDED|MODIFIED|REMOVED|RENAMED) Requirements\s*$/)
+    if (sec) { flush(); inSec = sec[1] === op; continue }
+    if (!inSec) continue
+    const r = line.match(/^### Requirement: (.+?)\s*$/)
+    if (r) { flush(); cur = { name: r[1].trim(), body: '' }; continue }
+    if (cur) cur.body += line + '\n'
+  }
+  flush()
+  return out
+}
+
+function allRequirementNames(content: string): string[] {
+  return [...content.matchAll(/^### Requirement: (.+?)\s*$/gm)].map(m => m[1].trim())
+}
+
+function validateDeltaFile(
+  filePath: string,
+  specsRoot?: string,
+): { errors: string[]; warnings: string[] } {
   const content = readFileSync(filePath, 'utf-8')
   const errors: string[] = []
+  const warnings: string[] = []
 
-  if (!/^## (ADDED|MODIFIED|REMOVED) Requirements\s*$/m.test(content)) {
-    errors.push(`${filePath}: missing '## ADDED|MODIFIED|REMOVED Requirements' header`)
+  if (!/^## (ADDED|MODIFIED|REMOVED|RENAMED) Requirements\s*$/m.test(content)) {
+    errors.push(`${filePath}: missing '## ADDED|MODIFIED|REMOVED|RENAMED Requirements' header`)
   }
   if (!/^### Requirement: /m.test(content)) {
     errors.push(`${filePath}: has no '### Requirement: ' (H3) entry`)
@@ -26,10 +52,40 @@ function validateDeltaFile(filePath: string): Pick<ValidationResult, 'errors'> {
     errors.push(`${filePath}: uses H2 '## Requirement:' (must be H3 '### Requirement:')`)
   }
 
-  return { errors }
+  // Stub detection (reported as warnings so in-flight skeletons don't break the gate).
+  if (/^### Requirement: TODO\s*$/m.test(content)) warnings.push(`${filePath}: unedited stub '### Requirement: TODO'`)
+  if (/^#### Scenario: TODO\s*$/m.test(content)) warnings.push(`${filePath}: unedited stub '#### Scenario: TODO'`)
+  if (/^The system SHALL …\s*$/m.test(content)) warnings.push(`${filePath}: unexpanded 'The system SHALL …' stub`)
+
+  // RENAMED blocks must carry a direction directive.
+  for (const { name, body } of sectionRequirements(content, 'RENAMED')) {
+    if (!/\*\*Renamed-to:\*\*/.test(body)) warnings.push(`${filePath}: RENAMED '${name}' missing '**Renamed-to:**' directive`)
+  }
+
+  // Cross-reference: MODIFIED/REMOVED/RENAMED targets should exist in the SSOT.
+  if (specsRoot) {
+    const ssotPath = join(specsRoot, basename(filePath))
+    const targets = [
+      ...sectionRequirements(content, 'MODIFIED'),
+      ...sectionRequirements(content, 'REMOVED'),
+      ...sectionRequirements(content, 'RENAMED'),
+    ].map(t => t.name)
+    if (targets.length > 0) {
+      if (!existsSync(ssotPath)) {
+        warnings.push(`${filePath}: MODIFIED/REMOVED/RENAMED but SSOT ${ssotPath} is absent`)
+      } else {
+        const present = new Set(allRequirementNames(readFileSync(ssotPath, 'utf-8')))
+        for (const t of targets) {
+          if (!present.has(t)) warnings.push(`${filePath}: target '${t}' not found in SSOT ${basename(ssotPath)}`)
+        }
+      }
+    }
+  }
+
+  return { errors, warnings }
 }
 
-export function validateChange(changeDir: string): ChangeValidation {
+export function validateChange(changeDir: string, specsRoot?: string): ChangeValidation {
   const slug = basename(changeDir)
   const errors: string[] = []
   const warnings: string[] = []
@@ -49,8 +105,9 @@ export function validateChange(changeDir: string): ChangeValidation {
   }
 
   for (const capFile of capFiles) {
-    const { errors: fileErrors } = validateDeltaFile(join(specsDir, capFile))
+    const { errors: fileErrors, warnings: fileWarnings } = validateDeltaFile(join(specsDir, capFile), specsRoot)
     errors.push(...fileErrors)
+    warnings.push(...fileWarnings)
   }
 
   return { slug, result: { ok: errors.length === 0, errors, warnings } }
@@ -150,7 +207,7 @@ export function validateTree(openspecRoot: string): ValidationResult {
   // 1) Validate every change folder
   for (const entry of readdirSync(changesDir, { withFileTypes: true })) {
     if (!entry.isDirectory() || entry.name === 'archive') continue
-    const { result } = validateChange(join(changesDir, entry.name))
+    const { result } = validateChange(join(changesDir, entry.name), specsDir)
     allErrors.push(...result.errors)
     allWarnings.push(...result.warnings)
   }

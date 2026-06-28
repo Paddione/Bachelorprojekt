@@ -53,10 +53,6 @@ s1:
     # safely split into modules (see T000460). It is a sanctioned exception to the
     # per-file line limit; the FA-SF-20 contract test guards its structural invariants.
     - "scripts/factory/pipeline.js"
-    # website-db.ts is the central DB access layer for the website — it accumulates all
-    # queries across all features. Splitting it would require carefully managing the
-    # single PostgreSQL pool. Accepted as a long-term refactoring target.
-    - "website/src/lib/website-db.ts"
     # tickets-schema.ts akkumuliert das gesamte DDL + Helper für das
     # `tickets`-PostgreSQL-Schema. Splitting-Grenze ist die Tabelle
     # (Tabelle = Datei-Abschnitt), nicht die Datei — analog zu

@@ -2,7 +2,7 @@
 title: "G-SIZE04 — Lines-of-Code Budget Quality Gate"
 ticket_id: T001280
 domains: [infra, quality]
-status: plan_staged
+status: completed
 ---
 
 # g-size04-loc-budget — Implementation Plan

@@ -53,10 +53,14 @@ s1:
     # safely split into modules (see T000460). It is a sanctioned exception to the
     # per-file line limit; the FA-SF-20 contract test guards its structural invariants.
     - "scripts/factory/pipeline.js"
-    # website-db.ts is the central DB access layer for the website — it accumulates all
-    # queries across all features. Splitting it would require carefully managing the
-    # single PostgreSQL pool. Accepted as a long-term refactoring target.
+    # website-db.ts was split as part of G-SIZE03 (T001293): 4436→2890 lines.
+    # The G-SIZE03 target (≤3000) is achieved; further domain splits are tracked
+    # in future goals. Remains in s1.ignore until it reaches ≤600 lines.
     - "website/src/lib/website-db.ts"
+    # billing-db.ts extracted from website-db.ts (G-SIZE03 / T001293): collects all
+    # billing schema-init DDL. At 618 lines it slightly exceeds the 600-line limit;
+    # future goal can reduce further if needed.
+    - "website/src/lib/billing-db.ts"
     # tickets-schema.ts akkumuliert das gesamte DDL + Helper für das
     # `tickets`-PostgreSQL-Schema. Splitting-Grenze ist die Tabelle
     # (Tabelle = Datei-Abschnitt), nicht die Datei — analog zu

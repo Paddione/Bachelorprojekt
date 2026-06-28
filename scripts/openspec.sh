@@ -27,8 +27,10 @@ _embed_slug() {
 cmd_propose() {
   local slug="${1:-}"; shift || true
   local ticket=""
+  local target_spec=""
   while [[ $# -gt 0 ]]; do case "$1" in
     --ticket) ticket="$2"; shift 2 ;;
+    --target-spec) target_spec="$2"; shift 2 ;;
     *) die "Unknown propose option: $1" ;;
   esac; done
   [[ -n "$slug" ]]   || die "propose requires <slug>"
@@ -86,7 +88,8 @@ task freshness:regenerate
 task freshness:check
 \`\`\`
 OUTER_EOF
-  printf '## ADDED Requirements\n\n### Requirement: TODO\n\nThe system SHALL …\n\n#### Scenario: TODO\n\n- **GIVEN** …\n- **WHEN** …\n- **THEN** …\n' > "$dir/specs/$slug.md"
+  local delta_spec_name="${target_spec:-$slug}"
+  printf '## ADDED Requirements\n\n### Requirement: TODO\n\nThe system SHALL …\n\n#### Scenario: TODO\n\n- **GIVEN** …\n- **WHEN** …\n- **THEN** …\n' > "$dir/specs/$delta_spec_name.md"
   echo "$ticket" > "$dir/.ticket"
   if [[ "${TICKET_OFFLINE:-0}" != "1" ]]; then
     bash "$TICKET_SH" update-status --id "$ticket" --status planning >/dev/null
@@ -114,8 +117,13 @@ cmd_apply() {
 }
 
 cmd_archive() {
-  local slug="${1:-}"
+  local slug="${1:-}"; shift || true
   [[ -n "$slug" ]] || die "archive requires <slug>"
+  local create_new=""
+  while [[ $# -gt 0 ]]; do case "$1" in
+    --create-new) create_new="--create-new"; shift ;;
+    *) die "Unknown archive option: $1" ;;
+  esac; done
   local dir="$OPENSPEC_ROOT/changes/$slug"
   [[ -d "$dir" ]] || die "no such change: $slug"
   if [[ "${TICKET_OFFLINE:-0}" != "1" && -f "$dir/.ticket" ]]; then
@@ -128,7 +136,7 @@ cmd_archive() {
     for capfile in "$dir/specs"/*.md; do
       [[ -e "$capfile" ]] || continue
       local cap; cap="$(basename "$capfile")"
-      _merge_delta "$capfile" "$OPENSPEC_ROOT/specs/$cap"
+      _merge_delta "$capfile" "$OPENSPEC_ROOT/specs/$cap" "$create_new"
     done
   fi
   mkdir -p "$(dirname "$dest")"
@@ -142,11 +150,11 @@ cmd_archive() {
 }
 
 _merge_delta() {
-  local delta="$1" ssot="$2"
+  local delta="$1" ssot="$2" create_new="${3:-}"
   # Operation-aware merge (ADDED/MODIFIED/REMOVED/RENAMED). Fail-closed: a missing
   # target, a RENAMED without **Renamed-to:**, or a skeleton stub exits non-zero
   # and aborts the archive (set -e) before the SSOT can be corrupted.
-  node "$REPO/scripts/openspec-merge.mjs" apply "$delta" "$ssot"
+  node "$REPO/scripts/openspec-merge.mjs" apply "$delta" "$ssot" $create_new
 }
 
 cmd_validate() {

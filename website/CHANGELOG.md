@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.140.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.139.1...website-v1.140.0) (2026-06-28)
+
+
+### Features
+
+* **openspec:** scope hardening — merge guard, drift gate, spec consolidation [T001304] ([#2287](https://github.com/Paddione/Bachelorprojekt/issues/2287)) ([60a5a95](https://github.com/Paddione/Bachelorprojekt/commit/60a5a95ccc85135f73528ebbb1ec46b6ea1c07ab))
+
 ## [1.139.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.139.0...website-v1.139.1) (2026-06-28)
 
 

@@ -69,7 +69,7 @@ function endOfRequirements(lines) {
   return i
 }
 
-export function applyDelta(deltaPath, ssotPath, today = new Date().toISOString().slice(0, 10)) {
+export function applyDelta(deltaPath, ssotPath, today = new Date().toISOString().slice(0, 10), createNew = false) {
   const deltaName = basename(deltaPath)
   const delta = readFileSync(deltaPath, 'utf-8')
 
@@ -78,6 +78,9 @@ export function applyDelta(deltaPath, ssotPath, today = new Date().toISOString()
   }
 
   if (!existsSync(ssotPath)) {
+    if (!createNew) {
+      fail(`Target '${ssotPath}' does not exist. Point the delta at an existing spec, or pass --create-new for a genuinely new component.`)
+    }
     mkdirSync(dirname(ssotPath), { recursive: true })
     writeFileSync(ssotPath, `# ${basename(ssotPath, '.md')}\n\n## Purpose\n\nSSOT spec.\n\n## Requirements\n`)
   }
@@ -113,12 +116,15 @@ export function applyDelta(deltaPath, ssotPath, today = new Date().toISOString()
 }
 
 function main(argv) {
-  const [verb, deltaPath, ssotPath] = argv
+  const positional = argv.filter(a => !a.startsWith('--'))
+  const flags = argv.filter(a => a.startsWith('--'))
+  const [verb, deltaPath, ssotPath] = positional
   if (verb !== 'apply' || !deltaPath || !ssotPath) {
-    process.stderr.write('Usage: openspec-merge.mjs apply <deltaPath> <ssotPath>\n')
+    process.stderr.write('Usage: openspec-merge.mjs apply <deltaPath> <ssotPath> [--create-new]\n')
     process.exit(2)
   }
-  return applyDelta(deltaPath, ssotPath)
+  const createNew = flags.includes('--create-new')
+  return applyDelta(deltaPath, ssotPath, new Date().toISOString().slice(0, 10), createNew)
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

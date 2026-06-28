@@ -43,9 +43,10 @@ test.describe('FA-10: Unternehmenswebsite (Astro) & Kontaktformular', { tag: ['@
 
   test('T3: Navigation is functional', async ({ page }) => {
     await page.goto(BASE);
-    await expect(page.locator('nav')).toBeVisible();
+    const mainNav = page.getByRole('navigation', { name: 'Seitennavigation' });
+    await expect(mainNav).toBeVisible();
     // Nav links the contact and services pages
-    await expect(page.locator('nav a[href="/kontakt"]')).toBeVisible();
+    await expect(mainNav.locator('a[href="/kontakt"]')).toBeVisible();
   });
 
   // -- Contact Form --

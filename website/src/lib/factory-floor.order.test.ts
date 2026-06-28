@@ -13,7 +13,7 @@ import {
   STATUS_BUCKETS as FF_STATUS_BUCKETS,
   ALL_TICKET_STATUSES as FF_ALL_TICKET_STATUSES,
 } from './factory-floor';
-import { TABS, MOBILE_COL_INDEX } from '../components/factory/MobileTabBar.svelte';
+import { TABS, MOBILE_COL_INDEX } from '../components/factory/mobile-tab-bar-constants';
 import { PHASE_ORDER } from './factory-floor-types';
 
 // The declared expectation, independent of the implementation. Front→back, linear lanes only.

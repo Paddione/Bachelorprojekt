@@ -15,7 +15,7 @@ status: plan_staged
 
 ## Task 0: Baseline messen (RED)
 
-- [ ] Measure-Command ausführen:
+- [x] Measure-Command ausführen:
   ```bash
   grep -rnE "(describe|it|test)\.(skip|todo)\b" website/src --include="*.ts" --include="*.svelte" | grep -vE "^[^:]+:[0-9]+:[[:space:]]*//" | wc -l
   ```
@@ -25,15 +25,15 @@ status: plan_staged
 
 Die erste `it.todo` testet, ob `MobileTabBar.TABS` die korrekte Schlüssel-Reihenfolge hat — abgeleitet von `PIPELINE_LANES` und `PHASE_ORDER`, genau wie es `MobileTabBar.svelte` zur Laufzeit berechnet.
 
-- [ ] Import von `TABS` aus `../../components/factory/MobileTabBar.svelte` am Anfang von `factory-floor.order.test.ts` ergänzen:
+- [x] Import von `TABS` aus `../../components/factory/MobileTabBar.svelte` am Anfang von `factory-floor.order.test.ts` ergänzen:
   ```ts
-  import { TABS, MOBILE_COL_INDEX } from '../../components/factory/MobileTabBar.svelte';
+  import { TABS, MOBILE_COL_INDEX } from '../components/factory/MobileTabBar.svelte';
   ```
-- [ ] Import von `PHASE_ORDER` aus `./factory-floor-types` ergänzen:
+- [x] Import von `PHASE_ORDER` aus `./factory-floor-types` ergänzen:
   ```ts
   import { PHASE_ORDER } from './factory-floor-types';
   ```
-- [ ] `it.todo('SP4: MobileTabBar.TABS order matches the SSOT-derived lane/phase order')` ersetzen durch:
+- [x] `it.todo('SP4: MobileTabBar.TABS order matches the SSOT-derived lane/phase order')` ersetzen durch:
   ```ts
   it('SP4: MobileTabBar.TABS order matches the SSOT-derived lane/phase order', () => {
     const linearLanes = PIPELINE_LANES.filter(l => !l.side && l.key !== 'planning');
@@ -51,7 +51,7 @@ Die erste `it.todo` testet, ob `MobileTabBar.TABS` die korrekte Schlüssel-Reihe
 
 Die zweite `it.todo` prüft, ob `MOBILE_COL_INDEX` eine konsistente Rückwärts-Abbildung von `TABS` ist.
 
-- [ ] `it.todo('SP4: MOBILE_COL_INDEX order matches the SSOT-derived lane/phase order')` ersetzen durch:
+- [x] `it.todo('SP4: MOBILE_COL_INDEX order matches the SSOT-derived lane/phase order')` ersetzen durch:
   ```ts
   it('SP4: MOBILE_COL_INDEX order matches the SSOT-derived lane/phase order', () => {
     for (let i = 0; i < TABS.length; i++) {
@@ -65,7 +65,7 @@ Die zweite `it.todo` prüft, ob `MOBILE_COL_INDEX` eine konsistente Rückwärts-
 
 Die dritte `it.todo` enkodiert die Invariante, dass in `PIPELINE_LANES` die Lane mit `key === 'qa'` vor der Lane mit `key === 'shipped'` steht — exakt die Reihenfolge, die das `FactoryFloor.svelte`-Template im DOM hartcodiert.
 
-- [ ] `it.todo('SP4: FactoryFloor macro-lane DOM order matches PIPELINE_LANES (qa before done)')` ersetzen durch:
+- [x] `it.todo('SP4: FactoryFloor macro-lane DOM order matches PIPELINE_LANES (qa before done)')` ersetzen durch:
   ```ts
   it('SP4: FactoryFloor macro-lane DOM order matches PIPELINE_LANES (qa before done)', () => {
     const nonSide = PIPELINE_LANES.filter(l => !l.side);
@@ -79,12 +79,12 @@ Die dritte `it.todo` enkodiert die Invariante, dass in `PIPELINE_LANES` die Lane
 
 ## Task 4: Lokale Verifikation der neuen Tests
 
-- [ ] Tests im `components`-Projekt lokal ausführen:
+- [x] Tests im `components`-Projekt lokal ausführen:
   ```bash
   cd website && pnpm vitest run --project=components src/lib/factory-floor.order.test.ts
   ```
   Erwartetes Ergebnis: alle 9 Tests bestehen, 0 skipped, 0 todo.
-- [ ] Measure-Command erneut ausführen:
+- [x] Measure-Command erneut ausführen:
   ```bash
   grep -rnE "(describe|it|test)\.(skip|todo)\b" website/src --include="*.ts" --include="*.svelte" | grep -vE "^[^:]+:[0-9]+:[[:space:]]*//" | wc -l
   ```

@@ -49,6 +49,8 @@ For any work request in this repo (add/change/fix/build), invoke **`dev-flow-pla
 ### OpenSpec native change workflow
 Specifications are written in the OpenSpec format under `openspec/`. Drive the lifecycle with the upstream **`/opsx:*` commands** — `/opsx:propose <slug>` (skeleton, status `planning`), `/opsx:apply <slug>` (mark implementable, status `plan_staged`), `/opsx:archive <slug>` (archive a done change + merge its delta into the SSOT spec), `/opsx:explore` (think-through). The `task openspec:propose|apply|archive` wrappers are **equivalent fallbacks** for environments without the OpenSpec CLI installed; `task openspec:validate` is the fail-closed CI gate. Authoring conventions (German Purpose, English Requirements/Scenarios, task sizing) are SSOT in **`openspec/config.yaml`**. Full contract: **AGENTS.md → "OpenSpec conventions"** (the cross-harness single source of truth — this block mirrors it).
 
+**Delta-Spec-Konvention (T001304):** Delta-Dateien in `openspec/changes/<slug>/specs/` werden nach dem **Parent-SSOT-Slug** benannt, nicht nach dem Change-Slug. Für Sub-Features einer bestehenden Komponente: `openspec.sh propose <change-slug> --ticket T… --target-spec <parent-slug>`. Für eine wirklich neue Komponente: `openspec.sh archive <change-slug> --create-new`. Ohne `--create-new` schlägt `archive` fehl, wenn der Ziel-SSOT-Spec noch nicht existiert.
+
 ### Domain conventions: Merge = Abschluss (T001092)
 
 Ein Ticket wird bei **grünem Auto-Merge nach `main` direkt geschlossen** (`done · resolution=shipped`) —

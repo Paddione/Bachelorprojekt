@@ -1,13 +1,4 @@
 // brett/src/client/touch-handler.ts — T000606 Mobile-Touch-Steuerung
-// Unified Pointer-Events handler for the Brett 3D board: one-finger orbit,
-// one-finger figure-drag, two-finger pinch-zoom. Desktop mouse paths in
-// scene.ts / board-boot.ts are untouched and run in parallel.
-//
-// Design: pure math helpers (pinchDistance/pinchZoomedDist/orbitDelta) are
-// DOM-free and unit-tested under node:test. initTouchHandler() wires them to
-// PointerEvents (added in Task 4). Mirrors free-fly-camera.ts's testability.
-
-import * as THREE from 'three';
 
 /** Orbit drag sensitivity for touch (higher than the 0.005 mouse value:
  *  a finger travels larger screen distances than a mouse). */

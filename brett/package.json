@@ -14,7 +14,8 @@
     "dev": "concurrently \"npm:dev:server\" \"npm:dev:client\"",
     "build": "vite build && tsc -p tsconfig.server.json",
     "typecheck": "tsc --noEmit -p tsconfig.client.json && tsc --noEmit -p tsconfig.server.json",
-    "test": "MOCK_DB=true tsx --test test/*.test.ts test/*.test.js test/*.test.mjs"
+    "test": "MOCK_DB=true tsx --test test/*.test.ts test/*.test.js test/*.test.mjs",
+    "lint": "eslint ."
   },
   "dependencies": {
     "express": "^5.2.1",
@@ -27,6 +28,7 @@
     "ws": "^8.21.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/express": "^5.0.6",
     "@types/express-session": "^1.19.0",
     "@types/jspdf": "^1.3.3",
@@ -36,8 +38,11 @@
     "@types/three": "^0.184.1",
     "@types/ws": "^8.18.1",
     "concurrently": "^9.2.1",
+    "eslint": "^10.5.0",
+    "globals": "^17.7.0",
     "three": "^0.185.0",
     "typescript": "^5.9.3",
+    "typescript-eslint": "^8.62.0",
     "vite": "^5.4.21"
   },
   "overrides": {

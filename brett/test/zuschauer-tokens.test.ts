@@ -6,7 +6,6 @@ import {
   resolveZuschauerToken,
   disableZuschauerToken,
   listZuschauerTokens,
-  createShareToken,
   resolveShareToken,
 } from '../src/server/share-tokens';
 

@@ -1,6 +1,5 @@
 import type { WsDeps } from './ws-handler';
 import { resolvePlayerId } from './ws-handler';
-import * as undoStack from './undo-stack';
 
 function getModerationState(deps: Pick<WsDeps, 'figureMaps'>, room: string): { spotlight: string | null; dim: string | null; freeze: boolean } {
   const entry = deps.figureMaps.get(room)?.get('__moderation__');
@@ -442,7 +441,7 @@ export async function handleAdminMessage(ws: any, msg: any, adminRoom: string, d
   }
 }
 
-export function startIdleSweep(deps: { checkAllSessions: Function; broadcast: Function; schedulePersist: Function }): NodeJS.Timeout {
+export function startIdleSweep(deps: { checkAllSessions: () => any[]; broadcast: (room: string, msg: any) => void; schedulePersist: (room: string) => void }): NodeJS.Timeout {
   const timer = setInterval(() => {
     if (process.env.MOCK_DB === 'true') return;
     const results = deps.checkAllSessions();

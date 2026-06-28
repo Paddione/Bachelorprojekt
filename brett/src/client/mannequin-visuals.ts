@@ -1,7 +1,6 @@
 // brett/src/client/mannequin-visuals.ts
 // Possession- und Moderation-Visuals für Figuren.
 
-import * as THREE from 'three';
 export { updateModerationVisuals, clearModerationVisuals, type ModerationVisualState } from './mannequin-moderation';
 
 /** Update all figure possession rings + floating labels based on _serverPossessor. */

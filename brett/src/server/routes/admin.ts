@@ -93,9 +93,9 @@ adminRouter.get('/api/sessions', auth.requireAdmin, asyncHandler(async (req: any
 }));
 
 // Admin room list.
-adminRouter.get('/api/admin/rooms', auth.requireAdmin, asyncHandler(async (req: any, res: any) => {
+adminRouter.get('/api/admin/rooms', auth.requireAdmin, asyncHandler(async (_req: any, res: any) => {
   const liveTokens = Array.from(rooms.rooms.keys());
-  let nameMap: Record<string, string> = {};
+  const nameMap: Record<string, string> = {};
   if (liveTokens.length > 0) {
     const placeholders = liveTokens.map((_, i) => `$${i + 1}`).join(',');
     const rows = await db.getPool().query(

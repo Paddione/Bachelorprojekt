@@ -84,7 +84,11 @@ export function initFigPanel(): void {
   }
 
   figPanelBtn.addEventListener('click', () => {
-    figPanel.hidden ? openFigPanel() : closeFigPanel();
+    if (figPanel.hidden) {
+      openFigPanel();
+    } else {
+      closeFigPanel();
+    }
   });
   figPanelClose.addEventListener('click', closeFigPanel);
   document.addEventListener('click', e => {

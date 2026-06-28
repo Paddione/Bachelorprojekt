@@ -16,8 +16,6 @@ const {
   performRedo,
   getUndoStatus,
   clearStacks,
-  undoStacks,
-  redoStacks,
   UNDO_LIMIT,
 } = undoStackModule;
 

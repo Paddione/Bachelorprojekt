@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.136.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.136.0...website-v1.136.1) (2026-06-28)
+
+
+### Code Refactoring
+
+* **website:** reduce freeze-fruehwarn-band from 39 to &lt;=15 files [T001291] ([#2251](https://github.com/Paddione/Bachelorprojekt/issues/2251)) ([e3488fb](https://github.com/Paddione/Bachelorprojekt/commit/e3488fbf81304c4e4e7f688fd656f89db4cd2218))
+
 ## [1.136.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.135.1...website-v1.136.0) (2026-06-28)
 
 

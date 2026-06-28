@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.142.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.141.0...website-v1.142.0) (2026-06-28)
+
+
+### Features
+
+* **quality:** reduce explicit any types [T001289] ([#2293](https://github.com/Paddione/Bachelorprojekt/issues/2293)) ([8158dc7](https://github.com/Paddione/Bachelorprojekt/commit/8158dc728cd02cc493d95ca23457746318183244))
+
 ## [1.141.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.140.0...website-v1.141.0) (2026-06-28)
 
 

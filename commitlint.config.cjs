@@ -43,7 +43,19 @@ module.exports = {
         'dev-flow',
         'prompt-library',
         'tickets',
-        'recovery'
+        'recovery',
+        'test01', 'test02', 'test03', 'test04', 'test05',
+        'cq01', 'cq02', 'cq03', 'cq04', 'cq05', 'cq06', 'cq07', 'cq08',
+        'size01', 'size02', 'size03', 'size04',
+        'ci01', 'ci02', 'ci03', 'cd01', 'cd02',
+        'dora01', 'dora02', 'dora03',
+        'dep01', 'dep02', 'dep03',
+        'doc01', 'doc02', 'doc03', 'doc04',
+        'fe01', 'fe02', 'fe03',
+        'img01', 'img02',
+        'k8s01', 'k8s02', 'k8s03',
+        'spec01', 'spec02', 'spec03',
+        'sec01', 'sec02', 'sec03', 'sec04', 'sec05'
       ]
     ]
   },

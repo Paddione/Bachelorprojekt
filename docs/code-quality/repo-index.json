@@ -2602,7 +2602,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 442,
+      "file_count": 443,
       "files": [
         "scripts/add-whiteboard-library.py",
         "scripts/admin-menu-gate.sh",
@@ -2681,6 +2681,7 @@
         "scripts/changed-manifests.sh",
         "scripts/check-bundle-size.mjs",
         "scripts/check-connectivity.sh",
+        "scripts/check-loc-budget.mjs",
         "scripts/check-updates.sh",
         "scripts/ci-dummy-secrets.sh",
         "scripts/cicd-kubeconfig-gen.sh",

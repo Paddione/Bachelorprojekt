@@ -16,6 +16,7 @@ if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
 if (!isAdmin(session)) return Astro.redirect('/portal');
 
 const BRAND = process.env.BRAND || 'mentolder';
+const isKore = BRAND === 'korczewski';
 
 let openBugCount      = 0;
 let activeProjects    = 0;
@@ -148,7 +149,7 @@ const kpis = [
       <!-- Custom Shortcuts -->
       <AdminCard>
         <p slot="header" style="font-family:var(--font-mono); font-size:0.65rem; color:var(--admin-text-disabled); text-transform:uppercase; letter-spacing:0.12em; margin:0;">Schnellzugriffe</p>
-        <AdminShortcuts client:load links={shortcuts} />
+        <AdminShortcuts client:load links={shortcuts} isKore={isKore} />
       </AdminCard>
 
     </div>

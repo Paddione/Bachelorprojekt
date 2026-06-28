@@ -39,12 +39,14 @@ describe('questionnaire-db/queries', () => {
   });
 
   describe('listQTemplates', () => {
-    it('SELECTs from questionnaire_templates ORDER BY created_at DESC', async () => {
-      query.mockResolvedValueOnce({ rows: [] });
-      await listQTemplates();
+    it('SELECTs from questionnaire_templates with dimension_count subquery', async () => {
+      query.mockResolvedValueOnce({ rows: [{ id: 't1', title: 'Test', dimension_count: 3 }] });
+      const result = await listQTemplates();
       const sql = query.mock.calls[0][0] as string;
-      expect(sql).toMatch(/FROM questionnaire_templates/);
-      expect(sql).toMatch(/ORDER BY created_at DESC/);
+      expect(sql).toMatch(/FROM questionnaire_templates t/);
+      expect(sql).toMatch(/ORDER BY t\.created_at DESC/);
+      expect(sql).toMatch(/dimension_count/);
+      expect(result[0].dimension_count).toBe(3);
     });
   });
 

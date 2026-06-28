@@ -46,8 +46,10 @@ export async function getQAssignment(id: string): Promise<QAssignment | null> {
 
 export async function listQTemplates(): Promise<QTemplate[]> {
   const r = await pool.query(
-    `SELECT id, title, description, instructions, status, is_system_test, created_at, updated_at
-     FROM questionnaire_templates ORDER BY created_at DESC`,
+    `SELECT t.id, t.title, t.description, t.instructions, t.status, t.is_system_test,
+            (SELECT COUNT(*)::int FROM questionnaire_dimensions d WHERE d.template_id = t.id) AS dimension_count,
+            t.created_at, t.updated_at
+     FROM questionnaire_templates t ORDER BY t.created_at DESC`,
   );
   return r.rows;
 }

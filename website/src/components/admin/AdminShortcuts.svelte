@@ -8,7 +8,7 @@
     createdAt: Date | string;
   }
 
-  let { links: initialLinks }: { links: Shortcut[] } = $props();
+  let { links: initialLinks, isKore = false }: { links: Shortcut[]; isKore?: boolean } = $props();
 
   let links = $state<Shortcut[]>(initialLinks);
   let showForm = $state(false);
@@ -151,6 +151,18 @@
     formUrl = '';
     formLabel = '';
   }
+
+  interface InfraLink {
+    url: string;
+    label: string;
+  }
+
+  const allInfraLinks: InfraLink[] = [
+    { url: '/admin/platform', label: 'Plattform Hub' },
+    { url: '/dev-status', label: 'Dev Status' },
+    { url: '/admin/dora', label: 'DORA' },
+    ...(!isKore ? [{ url: '/admin/repohealth', label: 'Repo Health' }] : []),
+  ];
 </script>
 
 <div class="mb-6">
@@ -308,4 +320,19 @@
       </div>
     </div>
   {/if}
+</div>
+
+<!-- Infrastruktur & Dev -->
+<div class="mt-6">
+  <p class="text-xs font-semibold text-muted uppercase tracking-widest mb-2">Infrastruktur & Dev</p>
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+    {#each allInfraLinks as link}
+      <a
+        href={link.url}
+        class="flex flex-col items-center gap-1.5 p-4 bg-dark-light rounded-xl border border-dark-lighter hover:border-gold/40 transition-colors text-center"
+      >
+        <span class="text-xs font-medium text-muted truncate w-full text-center">{link.label}</span>
+      </a>
+    {/each}
+  </div>
 </div>

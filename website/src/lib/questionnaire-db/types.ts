@@ -26,6 +26,7 @@ export interface QTemplate {
   instructions: string;
   status: 'draft' | 'published' | 'archived';
   is_system_test: boolean;
+  dimension_count: number;
   created_at: string;
   updated_at: string;
 }

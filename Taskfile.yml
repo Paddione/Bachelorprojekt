@@ -2019,6 +2019,11 @@ tasks:
           python3 scripts/db-schema-diagram.py > docs/db-schema-diagram.md
         echo "Written to docs/db-schema-diagram.md"
 
+  db:cleanup-test-inbox:
+    desc: "Delete all is_test_data=true rows from inbox_items (one-time prod cleanup)"
+    cmds:
+      - bash scripts/cleanup-test-inbox.sh
+
   datamodel:build:
     desc: "Regenerate datamodel-workflow.html in docs-content-built from shared-db + workflow-map.yaml"
     vars:

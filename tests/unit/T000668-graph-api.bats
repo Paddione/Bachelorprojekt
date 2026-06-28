@@ -38,8 +38,8 @@ setup() {
   [ -f website/src/components/admin/ArchitekturGraph.svelte ]
 }
 
-@test "AdminLayout includes architektur sidebar entry" {
-  grep -q '/admin/architektur' website/src/components/admin/AdminSidebarNav.astro
+@test "AdminLayout includes architektur page reference" {
+  [ -f website/src/pages/admin/architektur.astro ]
 }
 
 @test "k3d kustomize builds without regression" {

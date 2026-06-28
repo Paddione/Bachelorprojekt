@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import { isE2ETestRequest } from './e2e-marker';
 
 const makeRequest = (headers: Record<string, string>): Request =>
@@ -86,5 +86,23 @@ describe('isE2ETestRequest', () => {
         }),
       ),
     ).toBe(true);
+  });
+
+  it('returns false when NODE_ENV is production (fail-closed)', () => {
+    const origNodeEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+    process.env.CRON_SECRET = 'long-enough-secret-1';
+    try {
+      expect(
+        isE2ETestRequest(
+          makeRequest({
+            'X-E2E-Test': '1',
+            'X-Cron-Secret': 'long-enough-secret-1',
+          }),
+        ),
+      ).toBe(false);
+    } finally {
+      process.env.NODE_ENV = origNodeEnv;
+    }
   });
 });

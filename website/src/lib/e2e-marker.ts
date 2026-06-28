@@ -17,12 +17,17 @@
 // website pod's env reads it). Without the secret the marker is ignored —
 // fail-closed.
 //
+// Prod-guard: In production (NODE_ENV === 'production') the function always
+// returns false, regardless of headers. This prevents test data leaking into
+// the production inbox even if a runner or cron job sends the headers.
+//
 // CRON_SECRET is the same gate used by /api/admin/systemtest/purge-all-test-data
 // and the cleanup-fixtures CronJob, so propagating it from the Playwright
 // runner is already a solved-problem (env var on the runner, then forwarded
 // per-request).
 
 export function isE2ETestRequest(request: Request): boolean {
+  if (process.env.NODE_ENV === 'production') return false;
   const e2e = request.headers.get('X-E2E-Test');
   if (!e2e) return false;
   const provided = request.headers.get('X-Cron-Secret');

@@ -1,7 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import type { NavigationLink } from '../config/types';
-  import LanguageSwitcher from './LanguageSwitcher.svelte';
   import NavMobile from './NavMobile.svelte';
   import { t, type Locale } from '../i18n/index';
 
@@ -201,7 +200,6 @@
       </a>
 
       <!-- Mobile toggle -->
-      <LanguageSwitcher {pathname} />
       <button
         class="mobile-toggle"
         onclick={() => (mobileOpen = !mobileOpen)}
@@ -228,7 +226,6 @@
     {authChecked}
     {streamLive}
     {pathname}
-    {LanguageSwitcher}
   />
 </header>
 

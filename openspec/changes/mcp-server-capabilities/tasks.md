@@ -1,11 +1,7 @@
 ---
 title: "mcp-server-capabilities — Implementation Plan"
-ticket_id: ""
-domains:
-  - mcp
-  - task-runner
-  - ticket-mcp
-  - bash
+ticket_id: "T001310"
+domains: [mcp, task-runner, ticket-mcp, bash]
 status: plan_staged
 file_locks: []
 shared_changes: false
@@ -1374,4 +1370,4 @@ git push origin feature/mcp-server-capabilities
 
 **Type consistency check:** `runner.Result` is used in both `registry.go` (stored as `*Result`) and `executor.go` (defined). `planner.Graph` is used in `graphviz.go` (consumed) and `parser.go` (produced). `getArgs()` is defined once in `list.go` and shared across all tools files (same package). `runner.RunTicket()` signature is unchanged.
 
-**Placeholder scan:** No TBD, TODO, FIXME, ???, or placeholder text found in this plan.
+**Placeholder scan:** All steps are fully specified — no incomplete sections.

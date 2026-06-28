@@ -6,6 +6,7 @@ import { getLastTimeEntryRate, listAllTimeEntries, listProjects } from '../../li
 import { getEffectiveLeistungen } from '../../lib/content';
 import type { TimeEntry, Project } from '../../lib/website-db';
 import type { LeistungCategory } from '../../config/types';
+import { logger } from '../../lib/logger';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -34,7 +35,7 @@ try {
     listProjects({ brand: BRAND }),
   ]);
 } catch (err) {
-  console.error('[admin/zeiterfassung]', err);
+  logger.error({ err }, '[admin/zeiterfassung]');
   dbError = 'Datenbankfehler beim Laden.';
 }
 

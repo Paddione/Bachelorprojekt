@@ -1,4 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
+vi.mock('./logger', () => ({
+  logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn(), child: vi.fn() },
+  createRequestLogger: vi.fn(() => ({ error: vi.fn(), warn: vi.fn(), info: vi.fn() })),
+}));
 import {
   createUser,
   setUserPassword,
@@ -55,14 +60,8 @@ describe('createUser', () => {
       if (callCount === 1) return new Response('[]', { status: 200 });
       return new Response('forbidden', { status: 403 });
     }) as typeof fetch;
-    const originalErr = console.error;
-    console.error = () => undefined;
-    try {
-      const out = await createUser({ email: 'x@y.z', firstName: 'X', lastName: 'Y' });
-      expect(out).toEqual({ success: false, error: expect.stringMatching(/Pocket-ID-Fehler: 403/) });
-    } finally {
-      console.error = originalErr;
-    }
+    const out = await createUser({ email: 'x@y.z', firstName: 'X', lastName: 'Y' });
+    expect(out).toEqual({ success: false, error: expect.stringMatching(/Pocket-ID-Fehler: 403/) });
   });
 });
 
@@ -85,13 +84,7 @@ describe('sendPasswordResetEmail', () => {
 
   it('returns false on a non-OK, non-404 response', async () => {
     globalThis.fetch = (async () => new Response('boom', { status: 500 })) as typeof fetch;
-    const originalErr = console.error;
-    console.error = () => undefined;
-    try {
-      expect(await sendPasswordResetEmail('u1')).toBe(false);
-    } finally {
-      console.error = originalErr;
-    }
+    expect(await sendPasswordResetEmail('u1')).toBe(false);
   });
 });
 

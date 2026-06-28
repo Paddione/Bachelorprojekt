@@ -9,6 +9,7 @@
   import { TYPE_META, TYPE_ORDER } from './type-meta';
   import { handle as handleShortcut } from './inbox-shortcuts';
   import { primaryActionFor } from './inbox-actions';
+  import { browserLogger } from '$lib/browser-logger';
 
   interface Props {
     initialItems: InboxItem[];
@@ -318,7 +319,7 @@
       counts = data.counts ?? {};
       selectedId = null;
     } catch (err) {
-      console.error('[InboxApp] reload failed:', err);
+      browserLogger.error({ err }, '[InboxApp] reload failed');
     }
   }
 

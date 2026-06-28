@@ -2,6 +2,7 @@
   import { onDestroy, tick } from 'svelte';
   import { loadStripe } from '@stripe/stripe-js';
   import type { Stripe, StripeElements } from '@stripe/stripe-js';
+  import { browserLogger } from '$lib/browser-logger';
 
   export let invoiceId: string;
   export let amountDue: number;
@@ -54,7 +55,7 @@
       const paymentElement = elementsInstance.create('payment');
       paymentElement.mount(`#payment-element-${invoiceId}`);
     } catch (e) {
-      console.error('[InlineInvoicePayment]', e);
+      browserLogger.error({ err: e }, '[InlineInvoicePayment]');
       errorMessage = 'Verbindung zu Stripe fehlgeschlagen.';
       state = 'error';
     }

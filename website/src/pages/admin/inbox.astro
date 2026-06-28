@@ -4,6 +4,7 @@ import InboxApp from '../../components/inbox/InboxApp.svelte';
 import AdminPageHeader from '../../components/admin/ui/AdminPageHeader.svelte';
 import { getSession, isAdmin, getLoginUrl } from '../../lib/auth';
 import { listInboxItems, countPendingByType } from '../../lib/messaging-db';
+import { logger } from '../../lib/logger';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -22,7 +23,7 @@ try {
     countPendingByType(),
   ]);
 } catch (err) {
-  console.error('[admin/inbox] DB error:', err);
+  logger.error({ err }, '[admin/inbox] DB error');
 }
 ---
 

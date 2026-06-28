@@ -18,6 +18,7 @@ vi.mock('./website-db', () => ({
 }));
 
 import { fetchLiveCockpitData } from './live-state';
+import * as loggerModule from './logger';
 
 describe('live-state.fetchLiveCockpitData', () => {
   it('returns empty state when all sub-fetches are empty', async () => {
@@ -45,7 +46,7 @@ describe('live-state.fetchLiveCockpitData', () => {
     listActiveCallRooms.mockResolvedValueOnce([]);
     query.mockRejectedValueOnce(new Error('polls broken'));
     listAllMeetings.mockResolvedValueOnce([]);
-    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const errSpy = vi.spyOn(loggerModule.logger, 'error').mockReturnValue(undefined as any);
     const out = await fetchLiveCockpitData();
     expect(out.pollActive).toBeNull();
     expect(errSpy).toHaveBeenCalled();
@@ -56,7 +57,7 @@ describe('live-state.fetchLiveCockpitData', () => {
     listActiveCallRooms.mockResolvedValueOnce([]);
     query.mockResolvedValueOnce({ rows: [] });
     listAllMeetings.mockRejectedValueOnce(new Error('meetings broken'));
-    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const errSpy = vi.spyOn(loggerModule.logger, 'error').mockReturnValue(undefined as any);
     const out = await fetchLiveCockpitData();
     expect(out.recentSessions).toEqual([]);
     errSpy.mockRestore();

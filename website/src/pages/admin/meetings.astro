@@ -9,6 +9,7 @@ import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { listAllMeetings, listProjects } from '../../lib/website-db';
 import type { AdminMeeting, Project } from '../../lib/website-db';
 import AdminMeetingModal from '../../components/admin/AdminMeetingModal.svelte';
+import { logger } from '../../lib/logger';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -26,7 +27,7 @@ try {
     listProjects({ brand }),
   ]);
 } catch (err) {
-  console.error('[admin/meetings]', err);
+  logger.error({ err }, '[admin/meetings]');
   loadError = 'Meetings konnten nicht geladen werden.';
 }
 

@@ -63,12 +63,13 @@ export function startRecorder(opts: RecorderOpts): RecorderHandle {
     },
   });
 
-  // Capture console.error / console.warn for context in the evidence row.
+  // Capture console error / warn for context in the evidence row.
   // Stash originals so we can restore them on finalize/cancel — otherwise the
   // patches outlive the recorder and keep pushing into orphaned arrays.
-  const origConsole: Record<'error' | 'warn', typeof console.error> = {
-    error: console.error,
-    warn: console.warn,
+  type ConsoleFn = (...args: unknown[]) => void;
+  const origConsole: Record<'error' | 'warn', ConsoleFn> = {
+    error: console['error'],
+    warn: console['warn'],
   };
   for (const lvl of ['error', 'warn'] as const) {
     const orig = origConsole[lvl];

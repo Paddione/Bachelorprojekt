@@ -9,6 +9,7 @@ import type { Project, BookingInvoiceInfo, VacationPeriod, FreeTimeWindow } from
 import { getEffectiveLeistungen } from '../../lib/content';
 import type { LeistungCategory } from '../../config/types';
 import AdminBookingModal from '../../components/admin/AdminBookingModal.svelte';
+import { logger } from '../../lib/logger';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -57,7 +58,7 @@ try {
   bookingLeistungMap = blMap;
   leistungen = cats;
 } catch (err) {
-  console.error('[admin/termine] load failed:', err);
+  logger.error({ err }, '[admin/termine] load failed');
   calError = 'Kalender konnte nicht geladen werden.';
 }
 

@@ -7,7 +7,7 @@ import type { LogEntry, LogLevel } from './log-types';
 type EventTargetLike = Pick<EventTarget, 'addEventListener' | 'removeEventListener'>;
 
 interface CaptureOptions {
-  /** Also wrap console.error / console.warn. Off by default (console can be noisy). */
+  /** Also wrap console error / warn methods. Off by default (console can be noisy). */
   captureConsole?: boolean;
   /** Injectable for tests; defaults to `window`. */
   target?: EventTargetLike;

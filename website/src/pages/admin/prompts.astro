@@ -5,6 +5,7 @@ import PromptLibraryManager from '../../components/admin/PromptLibraryManager.sv
 import { getSession, isAdmin, getLoginUrl } from '../../lib/auth';
 import { pool } from '../../lib/website-db';
 import { listPrompts } from '../../lib/prompt-library-db';
+import { logger } from '../../lib/logger';
 
 const BRAND = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 
@@ -16,7 +17,7 @@ let prompts: Awaited<ReturnType<typeof listPrompts>> = [];
 try {
   prompts = await listPrompts(pool, BRAND, { activeOnly: false });
 } catch (err) {
-  console.error('[admin/prompts] DB error:', err);
+  logger.error({ err }, '[admin/prompts] DB error');
 }
 ---
 

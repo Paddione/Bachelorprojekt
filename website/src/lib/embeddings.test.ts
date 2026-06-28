@@ -1,5 +1,6 @@
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import { embedQuery, embedBatch, costCentsForTokens, ANTHROPIC_FALLBACK_MODEL_DIM } from './embeddings';
+import * as loggerModule from './logger';
 
 const ORIGINAL_FETCH = global.fetch;
 
@@ -116,8 +117,8 @@ describe('embeddings client — router mode (LLM_ENABLED=true)', () => {
     expect(String(fetchMock.mock.calls[0][0])).toContain('voyageai.com');
   });
 
-  test('voyage model: ECONNREFUSED from router → falls back to Voyage with console.warn', async () => {
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  test('voyage model: ECONNREFUSED from router → falls back to Voyage with structured logger warn', async () => {
+    const warnSpy = vi.spyOn(loggerModule.logger, 'warn').mockReturnValue(undefined as any);
     let callCount = 0;
     global.fetch = vi.fn().mockImplementation((url: string) => {
       callCount++;

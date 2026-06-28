@@ -33,6 +33,7 @@
 //     NULL (enforced by the `outbox_keys_by_kind` CHECK).
 
 import type { Pool } from 'pg';
+import { logger } from '../logger';
 
 export interface OpenTestRunFailureOpts {
   /** test_runs.id — TEXT primary key (UUID-shaped in practice). */
@@ -261,7 +262,7 @@ export async function safeOpenTestRunFailureTicket(
     }).catch((outboxErr) =>
       // Don't let outbox failures bubble — the caller's primary work
       // (saving test_results) must still succeed.
-      console.error('[test-run-bridge] outbox enqueue failed:', outboxErr),
+      logger.error({ err: outboxErr }, '[test-run-bridge] outbox enqueue failed'),
     );
     return null;
   }

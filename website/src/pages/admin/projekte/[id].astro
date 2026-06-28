@@ -17,6 +17,7 @@ import {
 } from '../../../lib/questionnaire-db';
 import { getDisplayScores } from '../../../lib/questionnaire-display';
 import ProjectQuestionnairesPanel, { type AssignmentBundle } from '../../../components/admin/ProjectQuestionnairesPanel.astro';
+import { logger } from '../../../lib/logger';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -72,13 +73,13 @@ try {
           return { assignment: a, questions, options, answers, scores };
         }));
       } catch (err) {
-        console.error('[admin/projekte/[id]] questionnaire fetch failed:', err);
+        logger.error({ err }, '[admin/projekte/[id]] questionnaire fetch failed');
         questionnaireBundles = [];
       }
     }
   }
 } catch (err) {
-  console.error('[admin/projekte/[id]] DB error:', err);
+  logger.error({ err }, '[admin/projekte/[id]] DB error');
   dbError = 'Datenbankfehler beim Laden des Projekts.';
 }
 

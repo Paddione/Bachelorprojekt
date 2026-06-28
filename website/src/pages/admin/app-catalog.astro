@@ -6,6 +6,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 import AdminPageHeader from '../../components/admin/ui/AdminPageHeader.svelte';
 import AppCatalog from '../../components/admin/AppCatalog.svelte';
 import { getSession, isAdmin } from '../../lib/auth';
+import { logger } from '../../lib/logger';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session || !isAdmin(session)) return Astro.redirect('/login');
@@ -36,7 +37,7 @@ if (fs.existsSync(appsDir)) {
           resources: parsed.resources || null
         });
       } catch (err) {
-        console.error(`Error parsing manifest for ${dir}:`, err);
+        logger.error({ err, dir }, `Error parsing manifest for ${dir}`);
       }
     }
   }
@@ -52,7 +53,7 @@ if (fs.existsSync(registryPath)) {
       installedApps = JSON.parse(registryContent);
     }
   } catch (err) {
-    console.error('Error reading installed apps registry:', err);
+    logger.error({ err }, 'Error reading installed apps registry');
   }
 }
 ---

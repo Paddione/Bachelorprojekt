@@ -1,4 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
+vi.mock('./logger', () => ({
+  logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn(), child: vi.fn() },
+  createRequestLogger: vi.fn(() => ({ error: vi.fn(), warn: vi.fn(), info: vi.fn() })),
+}));
 import { extractWhiteboardText, getWhiteboardArtifacts } from './whiteboard';
 
 const ORIGINAL_FETCH = globalThis.fetch;
@@ -64,15 +69,9 @@ describe('getWhiteboardArtifacts (network error / empty paths)', () => {
     globalThis.fetch = (async () => {
       throw new Error('network down');
     }) as typeof fetch;
-    const originalErr = console.error;
-    console.error = () => undefined;
-    try {
-      const mod = await import('./whiteboard');
-      const out = await mod.getWhiteboardArtifacts();
-      expect(out).toEqual([]);
-    } finally {
-      console.error = originalErr;
-    }
+    const mod = await import('./whiteboard');
+    const out = await mod.getWhiteboardArtifacts();
+    expect(out).toEqual([]);
   });
 
   it('returns parsed whiteboard artifacts when the WebDAV listing finds .whiteboard files', async () => {

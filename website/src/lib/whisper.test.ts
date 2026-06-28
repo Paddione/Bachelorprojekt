@@ -1,4 +1,9 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
+vi.mock('./logger', () => ({
+  logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn(), child: vi.fn() },
+  createRequestLogger: vi.fn(() => ({ error: vi.fn(), warn: vi.fn(), info: vi.fn() })),
+}));
 import { transcribeAudio, formatTranscript, type TranscriptionResult } from './whisper';
 
 describe('formatTranscript', () => {
@@ -40,14 +45,9 @@ describe('formatTranscript', () => {
 
 describe('transcribeAudio (network failure path)', () => {
   const ORIGINAL_FETCH = globalThis.fetch;
-  const ORIGINAL_CONSOLE = console.error;
 
-  beforeEach(() => {
-    console.error = () => undefined;
-  });
   afterEach(() => {
     globalThis.fetch = ORIGINAL_FETCH;
-    console.error = ORIGINAL_CONSOLE;
   });
 
   it('returns null on a non-OK response', async () => {

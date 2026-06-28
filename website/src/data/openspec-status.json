@@ -517,6 +517,12 @@
       "status": "plan_staged"
     }
   ],
+  "T001316": [
+    {
+      "slug": "coaching-sessions-polish-guide",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

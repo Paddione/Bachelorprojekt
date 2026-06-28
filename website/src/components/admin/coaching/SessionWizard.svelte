@@ -225,6 +225,7 @@
   <!-- Schritt-Header -->
   <div class="step-header">
     <span class="phase-label {PHASE_TEXT[def.phase]}">{def.phaseLabel}</span>
+    <span class="step-description">{def.description}</span>
     <h2 class="step-title">Schritt {currentStep}/10 &mdash; {def.stepName}</h2>
   </div>
 
@@ -341,25 +342,26 @@
   .wizard { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.5rem; }
   .progress-bar { display: flex; gap: 0.4rem; flex-wrap: wrap; padding: 1rem 0; }
   .progress-step { width: 2rem; height: 2rem; border-radius: 50%; font-size: 0.75rem; font-weight: 700; color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
-  .step-header { border-bottom: 1px solid var(--line, #333); padding-bottom: 0.75rem; }
+  .step-header { border-bottom: 1px solid var(--line); padding-bottom: 0.75rem; display: flex; flex-direction: column; gap: 0.2rem; }
   .phase-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
-  .step-title { font-size: 1.4rem; font-weight: 700; color: var(--text-light, #f0f0f0); margin: 0.25rem 0 0; }
+  .step-description { font-size: 0.82rem; color: var(--mute); font-style: italic; }
+  .step-title { font-family: var(--serif); font-size: 1.5rem; font-weight: 400; letter-spacing: -0.015em; color: var(--fg); margin: 0.15rem 0 0; }
   .inputs-section { display: flex; flex-direction: column; gap: 1rem; }
   .input-group { display: flex; flex-direction: column; gap: 0.3rem; }
-  .input-label { font-size: 0.8rem; color: var(--text-muted, #888); }
+  .input-label { font-size: 0.8rem; color: var(--mute); }
   .required { color: #f87171; margin-left: 0.2rem; }
-  .input-field { background: var(--bg-2, #1a1a1a); border: 1px solid var(--line, #333); border-radius: 6px; padding: 0.6rem 0.75rem; color: var(--text-light, #f0f0f0); font-size: 0.9rem; width: 100%; resize: vertical; }
-  .input-field:focus { outline: none; border-color: var(--gold, #c9a55c); }
-  .ai-response-box { background: var(--bg-2, #1a1a1a); border: 1px solid var(--gold, #c9a55c); border-radius: 8px; padding: 1rem; }
-  .ai-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold, #c9a55c); margin: 0 0 0.5rem; }
-  .ai-text { color: var(--text-light, #f0f0f0); font-size: 0.9rem; line-height: 1.6; white-space: pre-wrap; margin: 0; }
+  .input-field { background: var(--ink-800); border: 1px solid var(--line); border-radius: 6px; padding: 0.6rem 0.75rem; color: var(--fg); font-size: 0.9rem; width: 100%; resize: vertical; font-family: var(--sans); }
+  .input-field:focus { outline: none; border-color: var(--brass); }
+  .ai-response-box { background: var(--ink-800); border: 1px solid var(--brass); border-radius: 8px; padding: 1rem; }
+  .ai-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--brass); margin: 0 0 0.5rem; }
+  .ai-text { color: var(--fg); font-size: 0.9rem; line-height: 1.6; white-space: pre-wrap; margin: 0; }
   .action-buttons { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; }
-  .btn-primary { padding: 0.6rem 1.4rem; background: var(--gold, #c9a55c); color: #111; font-weight: 700; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
+  .btn-primary { padding: 0.6rem 1.4rem; background: var(--brass); color: #111; font-weight: 700; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-family: var(--sans); }
   .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-  .btn-secondary { padding: 0.5rem 1rem; background: transparent; color: var(--text-muted, #888); border: 1px solid var(--line, #444); border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
-  .btn-ghost { padding: 0.5rem 1rem; background: transparent; color: var(--text-muted, #888); border: none; cursor: pointer; font-size: 0.85rem; text-decoration: underline; }
-  .btn-complete { padding: 0.7rem 1.6rem; background: #22c55e; color: #111; font-weight: 700; border: none; border-radius: 6px; cursor: pointer; }
+  .btn-secondary { padding: 0.5rem 1rem; background: transparent; color: var(--mute); border: 1px solid var(--line); border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-family: var(--sans); }
+  .btn-ghost { padding: 0.5rem 1rem; background: transparent; color: var(--mute); border: none; cursor: pointer; font-size: 0.85rem; text-decoration: underline; font-family: var(--sans); }
+  .btn-complete { padding: 0.7rem 1.6rem; background: var(--success); color: #111; font-weight: 700; border: none; border-radius: 6px; cursor: pointer; font-family: var(--sans); }
   .btn-complete:disabled { opacity: 0.5; cursor: not-allowed; }
-  .accepted-badge { display: inline-block; background: #22c55e20; color: #22c55e; border: 1px solid #22c55e40; border-radius: 4px; padding: 0.3rem 0.75rem; font-size: 0.8rem; font-weight: 600; }
-  .error-box { background: #ef444420; border: 1px solid #ef444440; border-radius: 6px; padding: 0.75rem; color: #f87171; font-size: 0.85rem; }
+  .accepted-badge { display: inline-flex; align-items: center; gap: 0.4rem; background: color-mix(in srgb, var(--success) 12%, transparent); color: var(--success); border: 1px solid color-mix(in srgb, var(--success) 30%, transparent); border-radius: 4px; padding: 0.3rem 0.75rem; font-size: 0.8rem; font-weight: 600; }
+  .error-box { background: color-mix(in srgb, var(--danger) 12%, transparent); border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent); border-radius: 6px; padding: 0.75rem; color: var(--danger); font-size: 0.85rem; }
 </style>

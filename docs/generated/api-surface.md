@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-06-27T02:11:48.887Z
+> Generated at 2026-06-28T19:51:53.751Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -341,6 +341,7 @@
 | `/api/contact` | POST | ❓ unclassified | `website/src/pages/api/contact.ts` |
 | `/api/cron/notify-unread` | POST | 🔐 admin | `website/src/pages/api/cron/notify-unread.ts` |
 | `/api/cron/scheduled-publish` | GET | ⏰ cron | `website/src/pages/api/cron/scheduled-publish.ts` |
+| `/api/demo/coaching-sim` | POST | ❓ unclassified | `website/src/pages/api/demo/coaching-sim.ts` |
 | `/api/dsgvo-request` | POST | ❓ unclassified | `website/src/pages/api/dsgvo-request.ts` |
 | `/api/factory-budget` | GET, POST | 🔐 admin | `website/src/pages/api/factory-budget.ts` |
 | `/api/factory-floor` | GET | 🔐 admin | `website/src/pages/api/factory-floor.ts` |

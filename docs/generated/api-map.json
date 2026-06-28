@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-27T02:11:48.887Z",
+  "generatedAt": "2026-06-28T19:51:53.751Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -2758,6 +2758,14 @@
       ],
       "auth": "cron",
       "file": "website/src/pages/api/cron/scheduled-publish.ts"
+    },
+    {
+      "path": "/api/demo/coaching-sim",
+      "methods": [
+        "POST"
+      ],
+      "auth": "unclassified",
+      "file": "website/src/pages/api/demo/coaching-sim.ts"
     },
     {
       "path": "/api/dsgvo-request",

@@ -124,7 +124,8 @@ scripts/coaching/node_modules
 # ── WSL/Windows NTFS alternate data streams ──
 *:Zone.Identifier
 
-# docs-content-built is now committed HTML source (no longer gitignored)
+# docs-content-built HTML is committed; search-index.json is generated (build-docs.mjs:231)
+k3d/docs-content-built/search-index.json
 
 # ── BATS vendor library self-tests (not project tests) ──
 tests/unit/lib/bats-assert/test/

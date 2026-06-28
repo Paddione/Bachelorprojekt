@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.143.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.142.0...website-v1.143.0) (2026-06-28)
+
+
+### Features
+
+* **coaching:** polish sessions UI + coaching guide with live demo [T001316] ([#2306](https://github.com/Paddione/Bachelorprojekt/issues/2306)) ([25b26ba](https://github.com/Paddione/Bachelorprojekt/commit/25b26baa3bb1961fa1cf79eca04363b265f1a076))
+
 ## [1.142.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.141.0...website-v1.142.0) (2026-06-28)
 
 

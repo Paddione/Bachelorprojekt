@@ -1,23 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { assertAuthenticatedReachable } from '../lib/health-assertions';
-
-const BASE = process.env.WEBSITE_URL ?? 'https://web.mentolder.de';
-const isKorczewski = BASE.includes('korczewski.de');
-const ADMIN_USER = isKorczewski
-  ? (process.env.TEST_ADMIN_USER ?? 'test-admin')
-  : (process.env.E2E_ADMIN_USER ?? 'paddione');
-const ADMIN_PASS = isKorczewski
-  ? (process.env.TEST_ADMIN_PASSWORD ?? process.env.E2E_ADMIN_PASS)
-  : process.env.E2E_ADMIN_PASS;
-
-async function loginAsAdmin(page: import('@playwright/test').Page) {
-  await page.goto(`${BASE}/api/auth/login?returnTo=/admin/wissensquellen`);
-  await page.waitForURL(/realms\/workspace/, { timeout: 20_000 });
-  await page.locator('#username, input[name="username"]').first().fill(ADMIN_USER);
-  await page.locator('#password, input[name="password"]').first().fill(ADMIN_PASS!);
-  await page.locator('#kc-login, input[type="submit"]').first().click();
-  await page.waitForURL(/\/admin\/wissensquellen/, { timeout: 20_000 });
-}
+import { BASE, loginAsAdmin, getCookieString, WissensquellenPage, assertWissensquellenReachable } from '../lib/wissensquellen-fixtures';
 
 // ── Auth-gating: unauthenticated API access ──────────────────────────────────
 
@@ -76,52 +58,23 @@ test.describe('Wissensquellen API auth-gating', () => {
 
 test.describe('Wissensquellen admin — custom source', () => {
   test.beforeEach(async ({ request }, testInfo) => {
-    await assertAuthenticatedReachable(
-      request,
-      `${BASE}/admin/wissensquellen`,
-      { acceptableStatuses: [200, 302, 401], label: 'admin wissensquellen' },
-      testInfo
-    );
+    await assertWissensquellenReachable(request, testInfo);
   });
   test.setTimeout(120_000);
 
   test('create custom collection (no paste content avoids embedding dependency)', async ({ page }) => {
-    await loginAsAdmin(page);
-
-    await page.getByRole('button', { name: '+ Neue Wissensquelle' }).click();
     const stamp = `e2e-${Date.now()}`;
-    await page.getByLabel('Name').fill(stamp);
-    // Leave paste content empty — KnowledgeSourceModal skips embedBatch when
-    // pasted.trim() is falsy, so onCreated fires without needing an embedding service.
-
-    // Intercept the collection-creation API call to confirm success, then
-    // navigate manually. We don't rely on detecting location.reload() inside the
-    // Svelte component because Playwright's waitForNavigation doesn't reliably
-    // catch in-component reload calls on SSR-hydrated Astro pages.
-    const [response] = await Promise.all([
-      page.waitForResponse(r =>
-        r.url().includes('/api/admin/knowledge/collections') &&
-        r.request().method() === 'POST' &&
-        !r.url().includes('/documents'),
-      ),
-      page.getByRole('button', { name: 'Anlegen' }).click(),
-    ]);
+    const wPage = new WissensquellenPage(page);
+    await loginAsAdmin(page);
+    const response = await wPage.createCustomCollection(stamp);
     expect(response.status()).toBe(201);
     const created = await response.json();
 
-    // Navigate explicitly so the row is guaranteed to be in the rendered HTML.
-    await page.goto(`${BASE}/admin/wissensquellen`);
+    await wPage.goto();
     const row = page.getByRole('row', { name: new RegExp(stamp) });
     await expect(row).toBeVisible({ timeout: 10_000 });
 
-    // Cleanup via the Löschen button (JS confirm dialog).
-    const deleteResponse = page.waitForResponse(r =>
-      r.url().includes(`/api/admin/knowledge/collections/${created.id}`) &&
-      r.request().method() === 'DELETE',
-    );
-    page.once('dialog', d => d.accept());
-    await row.getByRole('button', { name: 'Löschen' }).click();
-    await deleteResponse;
+    await wPage.deleteCollectionRow(stamp, created.id);
     await expect(row).not.toBeVisible({ timeout: 10_000 });
   });
 });
@@ -130,12 +83,7 @@ test.describe('Wissensquellen admin — custom source', () => {
 
 test.describe('Wissensquellen — web_crawl collection API', () => {
   test.beforeEach(async ({ request }, testInfo) => {
-    await assertAuthenticatedReachable(
-      request,
-      `${BASE}/admin/wissensquellen`,
-      { acceptableStatuses: [200, 302, 401], label: 'admin wissensquellen' },
-      testInfo
-    );
+    await assertWissensquellenReachable(request, testInfo);
   });
   test.setTimeout(120_000);
 
@@ -145,10 +93,8 @@ test.describe('Wissensquellen — web_crawl collection API', () => {
   }
 
   test('POST /api/admin/knowledge/collections rejects web_crawl without startUrl', async ({ request, page }) => {
-    await loginAsAdmin(page);
-    const cookie = (await page.context().cookies())
-      .map(c => `${c.name}=${c.value}`)
-      .join('; ');
+    const cookie = await getCookieString(page);
+
 
     const res = await request.post(`${BASE}/api/admin/knowledge/collections`, {
       data: { name: `e2e-no-url-${Date.now()}`, source: 'web_crawl' },
@@ -160,10 +106,8 @@ test.describe('Wissensquellen — web_crawl collection API', () => {
   });
 
   test('POST /api/admin/knowledge/collections rejects invalid startUrl', async ({ request, page }) => {
-    await loginAsAdmin(page);
-    const cookie = (await page.context().cookies())
-      .map(c => `${c.name}=${c.value}`)
-      .join('; ');
+    const cookie = await getCookieString(page);
+
 
     const res = await request.post(`${BASE}/api/admin/knowledge/collections`, {
       data: {
@@ -179,10 +123,8 @@ test.describe('Wissensquellen — web_crawl collection API', () => {
   });
 
   test('web_crawl collection create, crawl-config patch, crawl trigger, and delete', async ({ request, page }) => {
-    await loginAsAdmin(page);
-    const cookie = (await page.context().cookies())
-      .map(c => `${c.name}=${c.value}`)
-      .join('; ');
+    const cookie = await getCookieString(page);
+
     const headers = { Cookie: cookie };
     const stamp = `e2e-crawl-${Date.now()}`;
 
@@ -245,10 +187,8 @@ test.describe('Wissensquellen — web_crawl collection API', () => {
   });
 
   test('PATCH crawl-config rejects invalid URL', async ({ request, page }) => {
-    await loginAsAdmin(page);
-    const cookie = (await page.context().cookies())
-      .map(c => `${c.name}=${c.value}`)
-      .join('; ');
+    const cookie = await getCookieString(page);
+
 
     // First create a web_crawl collection to patch
     const create = await request.post(`${BASE}/api/admin/knowledge/collections`, {
@@ -274,10 +214,8 @@ test.describe('Wissensquellen — web_crawl collection API', () => {
   });
 
   test('PATCH crawl-config rejects non-web_crawl collections', async ({ request, page }) => {
-    await loginAsAdmin(page);
-    const cookie = (await page.context().cookies())
-      .map(c => `${c.name}=${c.value}`)
-      .join('; ');
+    const cookie = await getCookieString(page);
+
 
     // Create a custom collection (not web_crawl)
     const create = await request.post(`${BASE}/api/admin/knowledge/collections`, {
@@ -298,10 +236,8 @@ test.describe('Wissensquellen — web_crawl collection API', () => {
   });
 
   test('POST crawl returns 400 for non-web_crawl collection', async ({ request, page }) => {
-    await loginAsAdmin(page);
-    const cookie = (await page.context().cookies())
-      .map(c => `${c.name}=${c.value}`)
-      .join('; ');
+    const cookie = await getCookieString(page);
+
 
     const create = await request.post(`${BASE}/api/admin/knowledge/collections`, {
       data: { name: `e2e-crawl-source-${Date.now()}`, source: 'custom' },
@@ -328,20 +264,13 @@ test.describe('Wissensquellen — web_crawl collection API', () => {
 
 test.describe('Wissensquellen — Crawl button progress UX', () => {
   test.beforeEach(async ({ request }, testInfo) => {
-    await assertAuthenticatedReachable(
-      request,
-      `${BASE}/admin/wissensquellen`,
-      { acceptableStatuses: [200, 302, 401], label: 'admin wissensquellen' },
-      testInfo
-    );
+    await assertWissensquellenReachable(request, testInfo);
   });
   test.setTimeout(60_000);
 
   test('button transitions to "Läuft…" + stays disabled after POST 202', async ({ page }) => {
-    await loginAsAdmin(page);
-    const cookie = (await page.context().cookies())
-      .map(c => `${c.name}=${c.value}`)
-      .join('; ');
+    const cookie = await getCookieString(page);
+
 
     const stamp = `e2e-crawl-ux-${Date.now()}`;
     const create = await page.request.post(`${BASE}/api/admin/knowledge/collections`, {
@@ -388,10 +317,8 @@ test.describe('Wissensquellen — Crawl button progress UX', () => {
   });
 
   test('button resets to "Crawl starten" when GET returns running: false', async ({ page }) => {
-    await loginAsAdmin(page);
-    const cookie = (await page.context().cookies())
-      .map(c => `${c.name}=${c.value}`)
-      .join('; ');
+    const cookie = await getCookieString(page);
+
 
     const stamp = `e2e-crawl-reset-${Date.now()}`;
     const create = await page.request.post(`${BASE}/api/admin/knowledge/collections`, {
@@ -437,10 +364,8 @@ test.describe('Wissensquellen — Crawl button progress UX', () => {
   });
 
   test('button shows "Läuft…" immediately when crawl already running (409)', async ({ page }) => {
-    await loginAsAdmin(page);
-    const cookie = (await page.context().cookies())
-      .map(c => `${c.name}=${c.value}`)
-      .join('; ');
+    const cookie = await getCookieString(page);
+
 
     const stamp = `e2e-crawl-409-${Date.now()}`;
     const create = await page.request.post(`${BASE}/api/admin/knowledge/collections`, {
@@ -490,52 +415,24 @@ test.describe('Wissensquellen — Crawl button progress UX', () => {
 
 test.describe('Wissensquellen admin — web_crawl UI', () => {
   test.beforeEach(async ({ request }, testInfo) => {
-    await assertAuthenticatedReachable(
-      request,
-      `${BASE}/admin/wissensquellen`,
-      { acceptableStatuses: [200, 302, 401], label: 'admin wissensquellen' },
-      testInfo
-    );
+    await assertWissensquellenReachable(request, testInfo);
   });
   test.setTimeout(120_000);
 
   test('create web crawl collection via + Web-Quelle button', async ({ page }) => {
-    await loginAsAdmin(page);
-
-    await page.getByRole('button', { name: '+ Web-Quelle' }).click();
-
     const stamp = `e2e-webcrawl-${Date.now()}`;
-    await page.getByLabel('Name').fill(stamp);
-    await page.getByLabel(/Start-URL/i).fill('https://web.mentolder.de');
-
-    // Same intercept pattern as the custom-source test — wait for the API
-    // response then navigate explicitly rather than detecting location.reload().
-    const [response] = await Promise.all([
-      page.waitForResponse(r =>
-        r.url().includes('/api/admin/knowledge/collections') &&
-        r.request().method() === 'POST' &&
-        !r.url().includes('/documents'),
-      ),
-      page.getByRole('button', { name: 'Anlegen' }).click(),
-    ]);
+    const wPage = new WissensquellenPage(page);
+    await loginAsAdmin(page);
+    const response = await wPage.createWebCrawlCollection(stamp, 'https://web.mentolder.de');
     expect(response.status()).toBe(201);
     const created = await response.json();
-    await page.goto(`${BASE}/admin/wissensquellen`);
 
+    await wPage.goto();
     const row = page.getByRole('row', { name: new RegExp(stamp) });
     await expect(row).toBeVisible({ timeout: 10_000 });
-
-    // Verify Start-URL is shown in the table
     await expect(row.locator('a[href*="mentolder"]')).toBeVisible();
 
-    // Cleanup via UI (confirm dialog + wait for DELETE response)
-    const deleteResponse = page.waitForResponse(r =>
-      r.url().includes(`/api/admin/knowledge/collections/${created.id}`) &&
-      r.request().method() === 'DELETE',
-    );
-    page.once('dialog', d => d.accept());
-    await row.getByRole('button', { name: 'Löschen' }).click();
-    await deleteResponse;
+    await wPage.deleteCollectionRow(stamp, created.id);
     await expect(row).not.toBeVisible({ timeout: 10_000 });
   });
 });

@@ -3,6 +3,7 @@
   import PlanningOfficeDetail from './PlanningOfficeDetail.svelte';
   import PlanningOfficeQueue from './PlanningOfficeQueue.svelte';
   import PlanningOfficeTriage from './PlanningOfficeTriage.svelte';
+  import PlanningOfficeItem from './PlanningOfficeItem.svelte';
 
   const { brand }: { brand: string } = $props();
 
@@ -300,32 +301,20 @@
   {/if}
 
   {#if isMobile && sheetItem}
-    <div class="pb-sheet" class:open={sheetOpen} data-testid="pb-sheet">
-      <div
-        class="pb-sheet-handle"
-        onpointerdown={onSheetPointerDown}
-        onpointerup={onSheetPointerUp}
-      >
-        <button class="pb-sheet-close" data-testid="pb-sheet-close" onclick={() => sheetOpen = false}>×</button>
-      </div>
-      <div class="pb-sheet-body">
-        <PlanningOfficeTriage
-          extId={sheetItem.extId}
-          triage={sheetItem.triage}
-          onTriageDone={load}
-        />
-        <PlanningOfficeDetail
-          item={sheetItem}
-          bind:override
-          bind:newDep
-          patchFn={patch}
-          toggleDorFn={toggleDor}
-          promoteFn={promote}
-          removeDepFn={removeDep}
-          addDepFn={addDep}
-        />
-      </div>
-    </div>
+    <PlanningOfficeItem
+      {sheetItem}
+      bind:sheetOpen
+      bind:override
+      bind:newDep
+      onTriageDone={load}
+      patchFn={patch}
+      toggleDorFn={toggleDor}
+      promoteFn={promote}
+      removeDepFn={removeDep}
+      addDepFn={addDep}
+      onSheetPointerDown={onSheetPointerDown}
+      onSheetPointerUp={onSheetPointerUp}
+    />
   {/if}
 </div>
 
@@ -398,43 +387,6 @@
     padding: 16px;
     overflow-y: auto;
     background: var(--pb-surface);
-  }
-
-  .pb-sheet {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 60vh;
-    background: var(--pb-surface);
-    border-radius: 12px 12px 0 0;
-    transform: translateY(100%);
-    transition: transform 0.25s ease;
-    z-index: 100;
-    overflow-y: auto;
-  }
-
-  .pb-sheet.open {
-    transform: translateY(0);
-  }
-
-  .pb-sheet-handle {
-    display: flex;
-    justify-content: flex-end;
-    padding: 8px 12px;
-    touch-action: none;
-  }
-
-  .pb-sheet-close {
-    background: none;
-    border: none;
-    color: var(--pb-text-muted);
-    font-size: 1.2rem;
-    cursor: pointer;
-  }
-
-  .pb-sheet-body {
-    padding: 0 16px 16px;
   }
 
   @media (max-width: 767px) {

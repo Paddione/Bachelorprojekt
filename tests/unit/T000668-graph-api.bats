@@ -39,7 +39,7 @@ setup() {
 }
 
 @test "AdminLayout includes architektur sidebar entry" {
-  grep -q '/admin/architektur' website/src/layouts/AdminLayout.astro
+  grep -q '/admin/architektur' website/src/components/admin/AdminSidebarNav.astro
 }
 
 @test "k3d kustomize builds without regression" {

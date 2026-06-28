@@ -13,67 +13,19 @@ import { readFileSync, writeFileSync, mkdirSync, readdirSync, statSync } from 'f
 import { join, relative } from 'path';
 import { fileURLToPath } from 'url';
 import { parse } from 'yaml';
+import {
+  KNOWN_SERVICES,
+  mapNamespace,
+  findServiceRefs,
+  extractEnvEdges,
+  collectConfigMapRefs,
+  extractCommandEdges,
+  extractAnnotationEdges,
+  globYaml
+} from './build-graph-shared.mjs';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const ROOT = join(__dirname, '..');
-
-// ── Known service names to match against env values ──────────────────────────
-const KNOWN_SERVICES = [
-  'shared-db',
-  'keycloak',
-  'nextcloud',
-  'collabora',
-  'vaultwarden',
-  'website',
-  'brett',
-  'tracking',
-  'docuseal',
-  'livekit',
-  'coturn',
-  'traefik',
-  'mailpit',
-  'whiteboard',
-  'mcp-server',
-  'spreed-signaling',
-  'janus-gateway',
-  'livekit-server',
-  'recovery-browser',
-  'nats',
-  'janus',
-];
-
-// ── Namespace → brand mapping ────────────────────────────────────────────────
-function mapNamespace(ns) {
-  if (!ns) return 'workspace';
-  if (ns === 'workspace') return 'mentolder';
-  if (ns === 'workspace-korczewski') return 'korczewski';
-  if (ns === 'website') return 'website';
-  return ns;
-}
-
-// ── Glob yaml files recursively ──────────────────────────────────────────────
-function globYaml(dir, excludePatterns = []) {
-  const results = [];
-  function walk(d) {
-    let entries;
-    try { entries = readdirSync(d); } catch { return; }
-    for (const entry of entries) {
-      const full = join(d, entry);
-      let stat;
-      try { stat = statSync(full); } catch { continue; }
-      if (stat.isDirectory()) {
-        // Skip excluded directories
-        const rel = relative(ROOT, full);
-        if (excludePatterns.some(p => rel.startsWith(p))) continue;
-        walk(full);
-      } else if (entry.endsWith('.yaml') || entry.endsWith('.yml')) {
-        results.push(full);
-      }
-    }
-  }
-  walk(dir);
-  return results;
-}
 
 // ── Parse a YAML file safely (multi-document) ────────────────────────────────
 function parseYamlFile(filePath) {
@@ -94,93 +46,6 @@ function parseYamlFile(filePath) {
   return docs;
 }
 
-// ── Check if a string references a known service ────────────────────────────
-function findServiceRefs(value) {
-  if (typeof value !== 'string') return [];
-  const found = [];
-  for (const svc of KNOWN_SERVICES) {
-    // Match hostname patterns: svc, svc:PORT, svc.namespace, http://svc, 'svc', "svc", =svc
-    const pattern = new RegExp(`(?:^|[\\s'"=/:@.,>])${svc}(?:[\\s'",:@/.>]|$)`, 'i');
-    if (pattern.test(value) || value === svc) {
-      found.push(svc);
-    }
-  }
-  return found;
-}
-
-// ── Extract edges from env array (literal values only) ──────────────────────
-function extractEnvEdges(fromId, envArray) {
-  const edges = [];
-  if (!Array.isArray(envArray)) return edges;
-  for (const envItem of envArray) {
-    if (!envItem || typeof envItem !== 'object') continue;
-    const varName = envItem.name || '';
-    const varValue = envItem.value || '';
-    const refs = findServiceRefs(varValue);
-    for (const svc of refs) {
-      if (svc !== fromId) {
-        edges.push({ from: fromId, to: svc, via: `env:${varName}`, kind: 'env' });
-      }
-    }
-  }
-  return edges;
-}
-
-// ── Collect ConfigMap names referenced via envFrom/valueFrom/volumes ─────────
-function collectConfigMapRefs(envArray, envFromArray, volumeArray) {
-  const names = new Set();
-  if (Array.isArray(envFromArray)) {
-    for (const item of envFromArray) {
-      const cmName = item?.configMapRef?.name;
-      if (cmName) names.add(cmName);
-    }
-  }
-  if (Array.isArray(envArray)) {
-    for (const item of envArray) {
-      const cmName = item?.valueFrom?.configMapKeyRef?.name;
-      if (cmName) names.add(cmName);
-    }
-  }
-  // ConfigMaps mounted as volumes (e.g. config files injected into the container)
-  if (Array.isArray(volumeArray)) {
-    for (const vol of volumeArray) {
-      const cmName = vol?.configMap?.name;
-      if (cmName) names.add(cmName);
-    }
-  }
-  return [...names];
-}
-
-// ── Extract edges from container command/args ────────────────────────────────
-function extractCommandEdges(fromId, containers, via) {
-  const edges = [];
-  if (!Array.isArray(containers)) return edges;
-  const edgeKind = via.startsWith('initContainer') ? 'initContainer' : 'command';
-  for (const c of containers) {
-    const cmd = Array.isArray(c.command) ? c.command.join(' ') : (c.command || '');
-    const args = Array.isArray(c.args) ? c.args.join(' ') : (c.args || '');
-    const refs = [...findServiceRefs(cmd), ...findServiceRefs(args)];
-    for (const svc of refs) {
-      if (svc !== fromId) {
-        edges.push({ from: fromId, to: svc, via, kind: edgeKind });
-      }
-    }
-  }
-  return edges;
-}
-
-// ── Extract edges from annotation graph.bachelorprojekt.de/depends-on ───────
-function extractAnnotationEdges(fromId, annotations) {
-  const edges = [];
-  const raw = annotations?.['graph.bachelorprojekt.de/depends-on'] || '';
-  if (!raw) return edges;
-  for (const svc of raw.split(',').map(s => s.trim()).filter(Boolean)) {
-    if (svc !== fromId) {
-      edges.push({ from: fromId, to: svc, via: 'annotation', kind: 'annotation' });
-    }
-  }
-  return edges;
-}
 
 // ── Main ─────────────────────────────────────────────────────────────────────
 function main() {
@@ -193,7 +58,7 @@ function main() {
   const yamlFiles = [];
   for (const dir of dirs) {
     const full = join(ROOT, dir);
-    const files = globYaml(full, ['k3d/docs-content-built']);
+    const files = globYaml(full, ROOT, ['k3d/docs-content-built']);
     yamlFiles.push(...files);
   }
 

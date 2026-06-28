@@ -86,35 +86,11 @@ _detect_type() {
 }
 
 _ensure_type_key() {
-  case "$1" in
-    feat)      echo "Features" ;;
-    fix)       echo "Bug Fixes" ;;
-    perf)      echo "Performance" ;;
-    refactor)  echo "Code Refactoring" ;;
-    docs)      echo "Documentation" ;;
-    test)      echo "Tests" ;;
-    build)     echo "Build System" ;;
-    ci)        echo "CI/CD" ;;
-    chore)     echo "Miscellaneous" ;;
-    revert)    echo "Reverts" ;;
-    *)         echo "Miscellaneous" ;;
-  esac
+  case "$1" in feat) echo "Features";; fix) echo "Bug Fixes";; perf) echo "Performance";; refactor) echo "Code Refactoring";; docs) echo "Documentation";; test) echo "Tests";; build) echo "Build System";; ci) echo "CI/CD";; revert) echo "Reverts";; chore|*) echo "Miscellaneous";; esac
 }
 
 _section_order() {
-  case "$1" in
-    "Features")           echo 1 ;;
-    "Bug Fixes")          echo 2 ;;
-    "Performance")        echo 3 ;;
-    "Code Refactoring")   echo 4 ;;
-    "Documentation")      echo 5 ;;
-    "Tests")              echo 6 ;;
-    "Build System")       echo 7 ;;
-    "CI/CD")              echo 8 ;;
-    "Miscellaneous")      echo 9 ;;
-    "Reverts")            echo 10 ;;
-    *)                    echo 99 ;;
-  esac
+  case "$1" in "Features") echo 1;; "Bug Fixes") echo 2;; "Performance") echo 3;; "Code Refactoring") echo 4;; "Documentation") echo 5;; "Tests") echo 6;; "Build System") echo 7;; "CI/CD") echo 8;; "Miscellaneous") echo 9;; "Reverts") echo 10;; *) echo 99;; esac
 }
 
 _build_deterministic_notes() {

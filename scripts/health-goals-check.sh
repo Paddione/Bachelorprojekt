@@ -106,7 +106,7 @@ row target G-GIT03 "$(git ls-files -z 2>/dev/null | xargs -0 -I{} sh -c 'test -f
 row target G-IMG01 "$(grep -rhE '^[[:space:]]*-?[[:space:]]*image:[[:space:]]+["'"'"']?[A-Za-z0-9$]' k3d/ prod*/ 2>/dev/null | grep -v '@sha256' | grep -vE '^[[:space:]]*#' | grep -vE 'website|brett|docs|videovault|mediaviewer-widget|mentolder-web|WEBSITE_IMAGE|STUDIO_IMAGE|STAGING_IMAGE' | sed -E 's/.*image:[[:space:]]*//; s/["'"'"']//g; s/[[:space:]]*#.*//' | sort -u | wc -l | tr -d ' ')" le 0 "ungepinnte Fremd-Images"
 row target G-DOC02 "$(wc -l < CLAUDE.md | tr -d ' ')" le 200 "CLAUDE.md Zeilen"
 row target G-DOC03 "$(c=0; for d in website brett scripts tests k3d; do ls "$d"/README* >/dev/null 2>&1 && c=$((c+1)); done; echo $c)" ge 5 "README-Index Hauptverzeichnisse"
-row target G-SEC05 "$(git log -50 --pretty='%G? %ae' main 2>/dev/null | grep -v '41898282+github-actions\[bot\]@users.noreply.github.com' | awk '{print $1}' | grep -c N || echo 0)" le 2 "unsignierte Commits (letzte 50; adjusted: ohne freshness-Bot)"
+row target G-SEC05 "$(git log -50 --pretty='%G? %ae' main 2>/dev/null | grep -v '41898282+github-actions\[bot\]@users.noreply.github.com' | awk '{print $1}' | grep -c N || true)" le 2 "unsignierte Commits (letzte 50; adjusted: ohne freshness-Bot)"
 
 # G-TEST05 — Vitest Line-Coverage (website/src/lib ≥ 60 %)
 if [ "$FAST" = 0 ] && command -v pnpm >/dev/null 2>&1; then

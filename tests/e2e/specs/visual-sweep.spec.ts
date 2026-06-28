@@ -33,208 +33,24 @@ import {
 } from '../lib/sweep-guard';
 import { resolveRoute } from '../lib/dynamic-resolver';
 import { verifyGlobalNav, harvestLinkHealth } from '../lib/nav-graph';
+import {
+  type AuthTier,
+  type Brand,
+  type Viewport,
+  type RouteEntry,
+  type ResultRow,
+  RESULTS_ROOT,
+  VIEWPORTS,
+  VIDEO_ENABLED,
+  parseProject,
+  safeRoute,
+  applicableRoutes,
+  assertAuthReady,
+  storageStateFor,
+  authStatesMap,
+  robustGoto,
+} from '../lib/visual-sweep-helpers';
 
-type AuthTier = 'public' | 'portal' | 'admin';
-type Brand = 'mentolder' | 'korczewski';
-type Viewport = 'desktop' | 'mobile';
-
-interface RouteEntry {
-  route: string;
-  authTier: AuthTier;
-  brand: 'both' | Brand;
-  dynamic: boolean;
-  resolver?: {
-    indexUrl: string;
-    selector: string;
-    exclude?: string;
-    auth: 'public' | 'customer' | 'admin';
-    source: 'dom' | 'db' | 'none';
-  };
-  excludeFromSweep: boolean;
-  media: boolean;
-}
-
-interface Manifest {
-  generatedFrom: string;
-  count: number;
-  routes: RouteEntry[];
-}
-
-interface ResultRow {
-  route: string;
-  brand: Brand;
-  viewport: Viewport;
-  status: 'ok' | 'redirect' | 'skip' | 'error' | 'timeout';
-  redirectedTo?: string;
-  reason?: string;
-  screenshot: string;
-  navFailures: unknown[];
-  deadLinks: unknown[];
-}
-
-// ── Paths ─────────────────────────────────────────────────────────────────────
-const MANIFEST_PATH = path.join(__dirname, '..', '..', '..', 'website', 'src', 'data', 'route-manifest.json');
-const AUTH_DIR      = path.join(__dirname, '..', '.auth');
-const RESULTS_ROOT  = path.join(__dirname, '..', '..', 'results', 'visual-sweep');
-
-const VIEWPORTS: Record<Viewport, { width: number; height: number }> = {
-  desktop: { width: 1440, height: 900 },
-  mobile:  { width: 390, height: 844 },
-};
-
-const VIDEO_ENABLED = !!process.env.VISUAL_SWEEP_VIDEO;
-
-const manifest: Manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf-8'));
-
-// ── Project-name → {brand, viewport} ───────────────────────────────────────────
-// Project names: visual-sweep-<brand>-<viewport>
-function parseProject(name: string): { brand: Brand; viewport: Viewport } {
-  const m = /^visual-sweep-(mentolder|korczewski)-(desktop|mobile)$/.exec(name);
-  if (!m) {
-    throw new Error(
-      `[visual-sweep] cannot derive brand/viewport from project "${name}". ` +
-      `Run via one of: visual-sweep-{mentolder,korczewski}-{desktop,mobile}.`,
-    );
-  }
-  return { brand: m[1] as Brand, viewport: m[2] as Viewport };
-}
-
-// ── safeRoute (contract): "/"->"index"; otherwise "/"->"__", trim leading "__",
-//    strip "[" and "]". ────────────────────────────────────────────────────────
-function safeRoute(route: string): string {
-  if (route === '/') return 'index';
-  return route
-    .replace(/\//g, '__')
-    .replace(/^__+/, '')
-    .replace(/\[/g, '')
-    .replace(/\]/g, '');
-}
-
-// ── Auth-state file selection per brand+tier ───────────────────────────────────
-function authStateFile(brand: Brand, tier: 'admin' | 'customer'): string {
-  if (tier === 'admin') return path.join(AUTH_DIR, `${brand}-website-admin.json`);
-  // portal/customer state only minted for mentolder (mentolder-website-user.json).
-  return path.join(AUTH_DIR, `${brand}-website-user.json`);
-}
-
-function readStateOrNull(file: string): { cookies: unknown[]; origins: unknown[] } | null {
-  if (!fs.existsSync(file)) return null;
-  try {
-    return JSON.parse(fs.readFileSync(file, 'utf-8'));
-  } catch {
-    return null;
-  }
-}
-
-function isEmptyState(state: { cookies: unknown[]; origins: unknown[] } | null): boolean {
-  if (!state) return true;
-  return (state.cookies?.length ?? 0) === 0 && (state.origins?.length ?? 0) === 0;
-}
-
-// ── Which routes does THIS brand sweep? ────────────────────────────────────────
-function applicableRoutes(brand: Brand): RouteEntry[] {
-  const base = manifest.routes.filter(
-    (r) => !r.excludeFromSweep && (r.brand === 'both' || r.brand === brand),
-  );
-  // Validation hook: anonymous public-only slice (zero auth, zero write-risk).
-  return process.env.VISUAL_SWEEP_PUBLIC_ONLY
-    ? base.filter((r) => r.authTier === 'public')
-    : base;
-}
-
-// ── LOUD-FAIL precondition: if any admin/portal route WILL be swept but the
-//    needed .auth/*.json is empty-state, throw with a clear message. ────────────
-function assertAuthReady(brand: Brand, routes: RouteEntry[]): void {
-  const needsAdmin  = routes.some((r) => r.authTier === 'admin');
-  const needsPortal = routes.some((r) => r.authTier === 'portal');
-  const missing: string[] = [];
-
-  if (needsAdmin) {
-    const f = authStateFile(brand, 'admin');
-    if (isEmptyState(readStateOrNull(f))) {
-      missing.push(
-        `ADMIN routes are in scope but ${path.basename(f)} is empty-state ` +
-        `({cookies:[],origins:[]}). Set ${brand === 'mentolder' ? 'E2E_ADMIN_PASS' : 'TEST_ADMIN_PASSWORD'} ` +
-        `and re-run the ${brand}-setup project so it mints a real session.`,
-      );
-    }
-  }
-  if (needsPortal) {
-    // Only mentolder mints a customer (portal) storageState (mentolder-auth-setup
-    // writes mentolder-website-user.json). korczewski NEVER mints one by design,
-    // so its portal routes must skip+log per-route (via storageStateFor -> 'SKIP'),
-    // NOT loud-fail here. Loud-fail only when portal creds are genuinely EXPECTED.
-    const portalCredsExpected = brand === 'mentolder';
-    const f = authStateFile(brand, 'customer');
-    if (portalCredsExpected && isEmptyState(readStateOrNull(f))) {
-      missing.push(
-        `PORTAL routes are in scope but ${path.basename(f)} is empty-state. ` +
-        `Set E2E_USER_PASS and re-run the ${brand}-setup project.`,
-      );
-    }
-  }
-
-  if (missing.length) {
-    throw new Error(
-      `[visual-sweep] PRECONDITION FAILED for brand "${brand}":\n  - ` +
-      missing.join('\n  - '),
-    );
-  }
-}
-
-// ── Per-tier storageState selection. public => no state (anonymous). ───────────
-// Returns the storageState path, or undefined for anonymous. Returns the literal
-// string 'SKIP' when a portal state is required but absent/empty (korczewski).
-function storageStateFor(brand: Brand, tier: AuthTier): string | undefined | 'SKIP' {
-  if (tier === 'public') return undefined;
-  const file = tier === 'admin' ? authStateFile(brand, 'admin') : authStateFile(brand, 'customer');
-  if (isEmptyState(readStateOrNull(file))) return 'SKIP';
-  return file;
-}
-
-// authStates map handed to resolveRoute (contract: {admin?,customer?}).
-function authStatesMap(brand: Brand): { admin?: string; customer?: string } {
-  const out: { admin?: string; customer?: string } = {};
-  const adminF = authStateFile(brand, 'admin');
-  if (!isEmptyState(readStateOrNull(adminF))) out.admin = adminF;
-  const custF = authStateFile(brand, 'customer');
-  if (!isEmptyState(readStateOrNull(custF))) out.customer = custF;
-  return out;
-}
-
-// ── Resilient navigation. ───────────────────────────────────────────────────────
-// A few live routes (observed: /ueber-mich on BOTH brands) return 200 with a body
-// but never cleanly close the HTTP/2 stream, so 'domcontentloaded'/'load' never
-// fire and a normal goto times out — even though the page renders fine. We try
-// 'domcontentloaded' first (fast path), and on a *timeout* fall back to
-// 'networkidle' (which resolves on the post-reset idle). Returns the response plus
-// a note when the fallback was used, so the row can flag the slow lifecycle. A
-// genuinely broken page (5xx, truly hung) still surfaces: networkidle either
-// returns a >=400 status (→ status:error) or times out again (→ thrown → error).
-async function robustGoto(
-  page: Page,
-  url: string,
-): Promise<{ resp: Awaited<ReturnType<Page['goto']>>; note?: string }> {
-  try {
-    const resp = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 18_000 });
-    return { resp };
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    if (!/Timeout/i.test(msg)) throw err;
-    // The 'domcontentloaded'/'load' lifecycle never fired. Observed on /ueber-mich:
-    // the server delivers the document body but never cleanly closes the HTTP/2
-    // stream, so BOTH the lifecycle events AND 'networkidle' hang past their own
-    // timeouts under request interception. 'commit' resolves as soon as the
-    // response headers arrive — a positive event that cannot wait forever for a
-    // load/idle signal that never comes — so we still capture the rendered page.
-    // applyStability() then settles fonts + scroll before the screenshot.
-    const resp = await page.goto(url, { waitUntil: 'commit', timeout: 18_000 });
-    return {
-      resp,
-      note: 'slow-lifecycle: domcontentloaded never fired (server HTTP/2 stream not closed cleanly); captured via commit + settle',
-    };
-  }
-}
 
 // ───────────────────────────────────────────────────────────────────────────────
 test.describe('visual sweep', () => {

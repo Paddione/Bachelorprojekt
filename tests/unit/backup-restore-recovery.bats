@@ -20,7 +20,13 @@ case "\$args" in
   *"delete"*) exit 0 ;;
   *"wait"*)   exit 0 ;;
   *"logs"*)   exit 0 ;;
-  *"get configmap domain-config"*) echo "recover.localhost" ; exit 0 ;;
+  *"get configmap domain-config"*)
+    if [[ "\$args" == *"-o json"* && "\$args" != *"-o jsonpath"* ]]; then
+      echo '{"data": {"RECOVER_DOMAIN": "recover.localhost"}}'
+    else
+      echo "recover.localhost"
+    fi
+    exit 0 ;;
   *) exit 0 ;;
 esac
 EOF

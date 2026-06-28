@@ -118,6 +118,30 @@ func main() {
 		return mcp.NewToolResultText(string(b)), nil
 	})
 
+	// ── get_task_graph ────────────────────────────────────────────────────────
+	getTaskGraphTool := mcp.NewTool("get_task_graph",
+		mcp.WithDescription("Return the full task dependency DAG from the Taskfile. Default format is Mermaid (graph TD); use format=json for programmatic consumption."),
+		mcp.WithString("format", mcp.Description("Output format: mermaid (default) or json"),
+			mcp.Enum("mermaid", "json")),
+	)
+	s.AddTool(getTaskGraphTool, func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		args := req.GetArguments()
+		format, _ := args["format"].(string)
+		if format == "" {
+			format = "mermaid"
+		}
+		g, err := planner.Parse(*taskfilePath)
+		if err != nil {
+			return mcp.NewToolResultError("parse taskfile: " + err.Error()), nil
+		}
+		switch format {
+		case "json":
+			return mcp.NewToolResultText(planner.GraphToJSON(g)), nil
+		default:
+			return mcp.NewToolResultText(planner.GraphToMermaid(g)), nil
+		}
+	})
+
 	// ── run_task_async ────────────────────────────────────────────────────────
 	runTaskAsyncTool := mcp.NewTool("run_task_async",
 		mcp.WithDescription("Start a task in the background and return a job_id immediately. Poll get_task_result to check progress."),

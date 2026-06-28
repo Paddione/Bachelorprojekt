@@ -4,7 +4,7 @@
   "commit": "23ed9f88",
   "measured_at": "2026-06-28T02:24:55.812Z",
   "thresholds": {
-    "warn_pct": 5,
+    "warn_pct": 2,
     "fail_pct": 15,
     "absolute_cap": 600000
   }

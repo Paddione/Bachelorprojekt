@@ -18,7 +18,7 @@ spec:
           restartPolicy: OnFailure
           containers:
             - name: psql
-              image: postgres:16-alpine
+              image: postgres:16-alpine@sha256:e013e867e712fec275706a6c51c966f0bb0c93cfa8f51000f85a15f9865a28cb
               resources:
                 requests:
                   cpu: "50m"
@@ -69,7 +69,7 @@ spec:
           restartPolicy: OnFailure
           containers:
             - name: psql
-              image: postgres:16-alpine
+              image: postgres:16-alpine@sha256:e013e867e712fec275706a6c51c966f0bb0c93cfa8f51000f85a15f9865a28cb
               resources:
                 requests:
                   cpu: "50m"
@@ -116,7 +116,7 @@ spec:
           restartPolicy: OnFailure
           containers:
             - name: sessions-purge
-              image: curlimages/curl:8.7.1
+              image: curlimages/curl:8.7.1@sha256:25d29daeb9b14b89e2fa8cc17c70e4b188bca1466086907c2d9a4b56b59d8e21
               resources:
                 requests:
                   cpu: "50m"

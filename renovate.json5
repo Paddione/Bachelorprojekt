@@ -149,6 +149,8 @@
       "^prod-mentolder/.+\\.yaml$",
       "^prod-korczewski/.+\\.yaml$",
       "^prod-fleet/.+\\.yaml$"
-    ]
+    ],
+    // pinDigests: automatically update @sha256 digests on every update.
+    "pinDigests": true
   }
 }

@@ -43,7 +43,7 @@ spec:
           type: RuntimeDefault
       initContainers:
         - name: wait-for-pocket-id
-          image: busybox:1.38.0
+          image: busybox:1.38.0@sha256:fd8d9aa63ba2f0982b5304e1ee8d3b90a210bc1ffb5314d980eb6962f1a9715d
           command:
             - sh
             - -ec
@@ -70,7 +70,7 @@ spec:
             limits:   { cpu: "100m", memory: "64Mi" }
       containers:
         - name: seed
-          image: curlimages/curl:8.7.1
+          image: curlimages/curl:8.7.1@sha256:25d29daeb9b14b89e2fa8cc17c70e4b188bca1466086907c2d9a4b56b59d8e21
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false

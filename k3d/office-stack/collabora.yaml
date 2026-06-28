@@ -45,7 +45,7 @@ spec:
           # without needing `runAsUser: 0` (coolwsd refuses to start
           # as root). Built by .github/workflows/build-collabora.yml
           # as a multi-arch (amd64+arm64) image.
-          image: ghcr.io/paddione/collabora-code:25.04.9.4.1-setcap
+          image: ghcr.io/paddione/collabora-code:25.04.9.4.1-setcap@sha256:4f671c72094acd30e03b29088395449ba6d4b2488ff8a59a92edae13e0b46eb8
           imagePullPolicy: Always
           # - capabilities: in the bounding set so the kernel doesn't
           #   strip them on exec (file caps make them effective).

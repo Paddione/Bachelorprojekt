@@ -1,11 +1,11 @@
 {
     "schema_version": 1,
-    "commit": "745eb63508369e29f1a8ae3eec776d7f966afa8e",
-    "indexed_at": "2026-06-28T11:10:28Z",
+    "commit": "1c9e69844020f468d9516853ce695f11dcb097a0",
+    "indexed_at": "2026-06-28T11:15:25Z",
     "project": "home-patrick-Bachelorprojekt",
     "nodes": 58951,
-    "edges": 140850,
+    "edges": 140852,
     "original_size": 112721920,
-    "compressed_size": 18924679,
+    "compressed_size": 18923618,
     "compression_level": 3
 }

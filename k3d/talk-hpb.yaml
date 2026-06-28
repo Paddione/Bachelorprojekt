@@ -30,7 +30,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: nats
-          image: nats:2.10-alpine
+          image: nats:2.10-alpine@sha256:b83efabe3e7def1e0a4a31ec6e078999bb17c80363f881df35edc70fcb6bb927
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
@@ -186,7 +186,7 @@ spec:
         # Uses busybox sed (POSIX, no external tools) and `|` as the sed
         # delimiter so base64-safe secret values don't collide.
         - name: render-config
-          image: busybox:1.38.0
+          image: busybox:1.38.0@sha256:fd8d9aa63ba2f0982b5304e1ee8d3b90a210bc1ffb5314d980eb6962f1a9715d
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
@@ -242,7 +242,7 @@ spec:
               mountPath: /shared
       containers:
         - name: signaling
-          image: strukturag/nextcloud-spreed-signaling:2.1.1
+          image: strukturag/nextcloud-spreed-signaling:2.1.1@sha256:b306eae9d1e62c4b2eaf10a6683dfe1fe76b833bd0f68d1606861e33aff5bca1
           imagePullPolicy: Always
           # Bypass su-exec (needs CAP_SETGID which is dropped) by calling binary directly.
           # The image entrypoint uses su-exec to switch users, but we're already UID 65534.

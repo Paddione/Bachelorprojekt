@@ -32,7 +32,7 @@ spec:
     spec:
       containers:
         - name: sish
-          image: antoniomika/sish:v2.22.1
+          image: antoniomika/sish:v2.22.1@sha256:7da476e26856961705b96b85c6d8b2c648cdf8c4d6992290c7a10d0dfd2d1e86
           args:
             - --domain=${PROD_DOMAIN}
             - --ssh-address=:2222

@@ -1,10 +1,6 @@
-# astro-type-check — Specification
+# astro-type-check — Delta Spec (astro-check-quality)
 
-## Purpose
-
-Typsichere Entwicklung im Astro-Website-Projekt durch kontinuierliche statische Typprüfung aller `.astro`, `.svelte` und `.ts`-Dateien mittels `astro check`.
-
-## Requirements
+## ADDED Requirements
 
 ### Requirement: Zero-Error TypeScript
 
@@ -38,25 +34,18 @@ THEN calling `makeRollup()` returns a valid RollupMetrics with all required fiel
 AND calling `makeRollup({ awaitingDeploy: 5 })` overrides only that field
 ```
 
-```
-GIVEN that cockpit-types.ts adds a new required field to FeatureNode
-WHEN a developer updates makeFeature() in fixtures.ts
-THEN TypeScript immediately flags all callers that pass conflicting overrides
-AND tests that use makeFeature() without overriding the new field still compile
-```
-
 ### Requirement: Check Script
 
 **ID:** REQ-ASTRO-TC-003
 **Status:** Required
 
-`website/package.json` enthält ein `"check": "astro check"` Script für lokale Entwickler.
+`website/package.json` enthält ein `"astro:check": "astro check"` Script für lokale Entwickler.
 
 **Scenarios:**
 
 ```
 GIVEN a developer working on the website project
-WHEN running `cd website && pnpm check`
+WHEN running `cd website && pnpm astro:check`
 THEN astro check runs and reports any TypeScript errors
 ```
 
@@ -68,13 +57,6 @@ THEN astro check runs and reports any TypeScript errors
 Ein neuer CI-Job `Astro TypeScript Check` in `.github/workflows/ci.yml` führt `astro check` bei jedem PR aus.
 
 **Scenarios:**
-
-```
-GIVEN a pull request that introduces a TypeScript error in an Astro component
-WHEN CI runs
-THEN the "Astro TypeScript Check" job fails and is visible in the PR status
-AND the failure does not block auto-merge (advisory, non-required)
-```
 
 ```
 GIVEN a pull request with zero TypeScript errors

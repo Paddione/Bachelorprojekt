@@ -99,7 +99,7 @@ export function getPending(): Map<string, NodeJS.Timeout> {
  */
 export async function runMigrations(): Promise<void> {
   const migrationsDir = join(__dirname, 'migrations');
-  let files: string[] = [];
+  let files: string[];
   try {
     files = readdirSync(migrationsDir).filter(f => f.endsWith('.sql')).sort();
   } catch {

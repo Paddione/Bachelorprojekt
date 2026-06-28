@@ -3130,7 +3130,7 @@
       "id": "brett",
       "name": "Brett 3D board (CommonJS)",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 345,
+      "file_count": 346,
       "files": [
         "brett/.dockerignore",
         "brett/.gitignore",
@@ -3138,6 +3138,7 @@
         "brett/Dockerfile",
         "brett/README.md",
         "brett/dev-start.sh",
+        "brett/eslint.config.mjs",
         "brett/package-lock.json",
         "brett/package.json",
         "brett/pnpm-lock.yaml",

@@ -10,7 +10,6 @@ import type { ReplayController, ReplayBoardState } from '../replay-engine';
 let container: HTMLElement | null = null;
 let trackEl: HTMLElement | null = null;
 let playheadEl: HTMLElement | null = null;
-let playBtnEl: HTMLButtonElement | null = null;
 let timeDisplayEl: HTMLElement | null = null;
 let animFrame: ReturnType<typeof setTimeout> | null = null;
 
@@ -80,7 +79,6 @@ export function renderTimeline(
       playBtn.textContent = '⏸';
     }
   });
-  playBtnEl = playBtn;
 
   // Track container
   const track = document.createElement('div');
@@ -155,7 +153,6 @@ export function destroyTimeline(): void {
   container = null;
   trackEl = null;
   playheadEl = null;
-  playBtnEl = null;
   timeDisplayEl = null;
   activeController = null;
   onSeekCallback = null;

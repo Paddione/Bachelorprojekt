@@ -11,16 +11,12 @@ function generateId(): string {
   return s;
 }
 
-type ValidateAppearance = (a: any) => string | null;
-let validateAppearance: ValidateAppearance = () => null;
-
 // Injected (D7) to read the room's server-authoritative figure set after seeding,
 // without a static import cycle with phases.ts. index.ts wires both.
 type StateBuilder = (room: string) => any;
 let buildStateFromMutations: StateBuilder = () => null;
 
-export function initFigures(deps: { validateAppearance: ValidateAppearance; buildStateFromMutations?: StateBuilder }): void {
-  validateAppearance = deps.validateAppearance;
+export function initFigures(deps: { buildStateFromMutations?: StateBuilder }): void {
   if (deps.buildStateFromMutations) buildStateFromMutations = deps.buildStateFromMutations;
 }
 

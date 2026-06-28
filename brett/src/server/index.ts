@@ -2,7 +2,6 @@ import express from 'express';
 import session from 'express-session';
 import http from 'http';
 import { WebSocketServer } from 'ws';
-import { randomUUID } from 'crypto';
 import path from 'path';
 import fs from 'fs';
 import * as db from './db';
@@ -19,7 +18,6 @@ import * as undoStackModule from './undo-stack';
 import * as eventLog from './event-log';
 import * as shareTokens from './share-tokens';
 import { attachShareRoutes } from './share-routes';
-import { asyncHandler } from './helpers';
 import { attachSkinsUpload } from './skins-upload';
 
 import { snapshotsRouter } from './routes/snapshots';
@@ -38,7 +36,7 @@ if (process.env.MOCK_DB !== 'true') {
 // Event-log initialization (Slice 5, T000472 — replay recording).
 eventLog.initEventLog({ pool: db.getPool() });
 sessions.initSessions({ figureMaps: figures.figureMaps, applyMutation: figures.applyMutation, transitionPhase: phases.transitionPhase });
-figures.initFigures({ validateAppearance: presets.validateAppearance, buildStateFromMutations: (room) => phases.buildStateFromMutations(room) });
+figures.initFigures({ buildStateFromMutations: (room) => phases.buildStateFromMutations(room) });
 
 const app = express();
 app.set('trust proxy', 1);

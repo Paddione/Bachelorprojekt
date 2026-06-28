@@ -87,10 +87,40 @@
       "status": "archived"
     }
   ],
+  "T000987": [
+    {
+      "slug": "cockpit-mobile-view",
+      "status": "plan_staged"
+    }
+  ],
+  "T000988": [
+    {
+      "slug": "cockpit-filter-presets",
+      "status": "plan_staged"
+    }
+  ],
+  "T000989": [
+    {
+      "slug": "cockpit-bulk-status",
+      "status": "plan_staged"
+    }
+  ],
   "T000990": [
     {
       "slug": "2026-06-21-cockpit-dor-inline-editor",
       "status": "archived"
+    }
+  ],
+  "T000991": [
+    {
+      "slug": "agent-push-notifications",
+      "status": "plan_staged"
+    }
+  ],
+  "T000992": [
+    {
+      "slug": "ai-ticket-auto-triage",
+      "status": "plan_staged"
     }
   ],
   "T001002": [
@@ -129,6 +159,12 @@
       "status": "plan_staged"
     }
   ],
+  "T001026": [
+    {
+      "slug": "mentolder-react-rebuild",
+      "status": "plan_staged"
+    }
+  ],
   "T001033": [
     {
       "slug": "art-library-webapp-integration",
@@ -139,6 +175,12 @@
     {
       "slug": "mentolder-homepage-hifi-redesign",
       "status": "planning"
+    }
+  ],
+  "T001043": [
+    {
+      "slug": "ticket-mcp-go",
+      "status": "plan_staged"
     }
   ],
   "T001056": [
@@ -168,6 +210,18 @@
   "T001092": [
     {
       "slug": "dora-delivery-pipeline",
+      "status": "plan_staged"
+    }
+  ],
+  "T001108": [
+    {
+      "slug": "s1-violations-batch1",
+      "status": "plan_staged"
+    }
+  ],
+  "T001117": [
+    {
+      "slug": "bats-coverage-batch1",
       "status": "plan_staged"
     }
   ],
@@ -247,6 +301,12 @@
       "status": "archived"
     }
   ],
+  "T001210": [
+    {
+      "slug": "dev-flow-chore-ticket-ops-mishaps",
+      "status": "plan_staged"
+    }
+  ],
   "T001211": [
     {
       "slug": "2026-06-27-mcp-skill-integration",
@@ -289,6 +349,12 @@
       "status": "archived"
     }
   ],
+  "T001266": [
+    {
+      "slug": "openspec-ssot-quality",
+      "status": "plan_staged"
+    }
+  ],
   "T001267": [
     {
       "slug": "2026-06-27-migrate-to-upstream-openspec",
@@ -325,9 +391,27 @@
       "status": "plan_staged"
     }
   ],
+  "T001281": [
+    {
+      "slug": "ci01-skip-ci-bot-commits",
+      "status": "plan_staged"
+    }
+  ],
   "T001282": [
     {
       "slug": "cq05-todo-cleanup",
+      "status": "plan_staged"
+    }
+  ],
+  "T001283": [
+    {
+      "slug": "sec05-bot-commit-signing",
+      "status": "planning"
+    }
+  ],
+  "T001284": [
+    {
+      "slug": "size04-loc-velocity",
       "status": "plan_staged"
     }
   ],

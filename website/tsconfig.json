@@ -4,6 +4,8 @@
     "verbatimModuleSyntax": true,
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "paths": {
       "$lib/*": ["./src/lib/*"]
     }

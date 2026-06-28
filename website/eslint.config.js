@@ -21,9 +21,9 @@ export default tseslint.config(
   {
     languageOptions: { globals: { ...globals.browser, ...globals.node } },
     rules: {
-      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-explicit-any': 'warn',
       'svelte/require-each-key': 'off',
-      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': 'warn',
       'svelte/prefer-svelte-reactivity': 'off',
       'no-useless-assignment': 'off',
       'no-useless-escape': 'off',

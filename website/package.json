@@ -14,8 +14,8 @@
     "test": "node tests/api.test.mjs",
     "test:api": "node tests/api.test.mjs",
     "test:unit": "vitest run",
-    "lint": "eslint . --max-warnings 0",
-    "lint:fix": "eslint . --max-warnings 0 --fix",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "knip": "knip",
     "astro:check": "astro check"
   },

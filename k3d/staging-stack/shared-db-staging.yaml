@@ -25,7 +25,7 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: pgvector/pgvector:0.8.0-pg16
+          image: pgvector/pgvector:0.8.0-pg16@sha256:a132765ec351c65111b5b675928a3a0515a466a40f97277329db8b8209ad8bc9
           ports:
             - containerPort: 5432
               name: postgres
@@ -87,7 +87,7 @@ spec:
       restartPolicy: OnFailure
       containers:
         - name: init
-          image: pgvector/pgvector:0.8.0-pg16
+          image: pgvector/pgvector:0.8.0-pg16@sha256:a132765ec351c65111b5b675928a3a0515a466a40f97277329db8b8209ad8bc9
           env:
             - name: PGHOST
               value: shared-db-staging

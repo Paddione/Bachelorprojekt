@@ -41,7 +41,7 @@ spec:
           type: RuntimeDefault
       initContainers:
         - name: wait-for-db
-          image: busybox:1.38.0
+          image: busybox:1.38.0@sha256:fd8d9aa63ba2f0982b5304e1ee8d3b90a210bc1ffb5314d980eb6962f1a9715d
           command: ['sh', '-c', 'until nc -w1 -z shared-db 5432 2>/dev/null; do echo "waiting for shared-db..."; sleep 3; done']
           securityContext:
             allowPrivilegeEscalation: false
@@ -60,7 +60,7 @@ spec:
               memory: "64Mi"
       containers:
         - name: vaultwarden
-          image: vaultwarden/server:1.35.3-alpine
+          image: vaultwarden/server:1.35.3-alpine@sha256:c40957876ec13c1cb0d2b08f86e8f738e6d06f7460bad9cdae216cded174c10d
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false

@@ -131,6 +131,12 @@ PY
   [ ! -f "$REPO_ROOT/website/package-lock.json" ]
 }
 
+@test "G-CI01-E: freshness-regen.yml Bot-Commit enthaelt [skip ci]" {
+  run grep -c "\[skip ci\]" "$REPO_ROOT/.github/workflows/freshness-regen.yml"
+  [ "$status" -eq 0 ]
+  [ "$output" -ge 1 ]
+}
+
 # G-SIZE04: LOC-Budget-Gate (S6)
 
 @test "G-SIZE04: scripts/check-loc-budget.mjs exists" {

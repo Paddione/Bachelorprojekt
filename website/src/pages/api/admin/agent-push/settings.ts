@@ -43,7 +43,7 @@ export const GET: APIRoute = async ({ request, locals }) => {
     return new Response(JSON.stringify(settings), {
       headers: { 'Content-Type': 'application/json' },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     locals.requestLogger.error({ err }, '[agent-push settings GET]');
     return errorResponse('AGENT_PUSH_SETTINGS_GET_FAILED', locals.requestId, 500);
   }
@@ -70,7 +70,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     return new Response(JSON.stringify(settings), {
       headers: { 'Content-Type': 'application/json' },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     locals.requestLogger.error({ err }, '[agent-push settings POST]');
     return errorResponse('AGENT_PUSH_SETTINGS_POST_FAILED', locals.requestId, 500);
   }

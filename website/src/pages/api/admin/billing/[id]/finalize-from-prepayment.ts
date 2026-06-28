@@ -51,7 +51,7 @@ export const POST: APIRoute = async ({ params, request , locals }) => {
       customerId: prepayment.customerId,
       issueDate: new Date().toISOString().split('T')[0],
       dueDays,
-      taxMode: prepayment.taxMode as any,
+      taxMode: prepayment.taxMode as 'kleinunternehmer' | 'regelbesteuerung',
       taxRate: prepayment.taxRate,
       lines: finalLines,
       notes: notes || prepayment.notes,
@@ -62,8 +62,9 @@ export const POST: APIRoute = async ({ params, request , locals }) => {
     });
 
     return new Response(JSON.stringify({ success: true, data: finalInvoice }), { status: 200 });
-  } catch (err: any) {
+  } catch (err: unknown) {
     locals.requestLogger.error({ err }, '[finalize-from-prepayment]');
-    return new Response(JSON.stringify({ error: err.message || 'Internal Server Error' }), { status: 500 });
+    const message = err instanceof Error ? err.message : String(err);
+    return new Response(JSON.stringify({ error: message }), { status: 500 });
   }
 };

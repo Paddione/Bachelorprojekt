@@ -34,12 +34,12 @@ export const GET: APIRoute = async ({ request, params, locals }) => {
   const archiveDir = getArchiveDir();
   const metaPath = join(archiveDir, `${id}.meta.json`);
 
-  let meta: any;
+  let meta: { owner?: string };
   try {
     const rawMeta = await readFile(metaPath, 'utf8');
-    meta = JSON.parse(rawMeta);
-  } catch (err: any) {
-    if (err.code === 'ENOENT') {
+    meta = JSON.parse(rawMeta) as { owner?: string };
+  } catch (err: unknown) {
+    if (err && typeof err === 'object' && 'code' in err && err.code === 'ENOENT') {
       return json({ error: 'Not Found' }, 404);
     }
     locals.requestLogger.error({ err }, `[api/admin/sessions/history/${id}] failed to read meta:`);

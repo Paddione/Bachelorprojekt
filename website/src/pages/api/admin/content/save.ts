@@ -20,7 +20,7 @@ export const POST: APIRoute = async ({ request , locals }) => {
   const errors = validateSection(contentKey, payload);
   if (errors.length) return json(422, { errors });
 
-  const editor = (session as any).email ?? (session as any).name ?? 'unknown';
+  const editor = session.email ?? session.name ?? 'unknown';
   try {
     const { version } = await writeContent(BRAND, contentKey, payload, baseVersion ?? 0, editor);
     return json(200, { version });

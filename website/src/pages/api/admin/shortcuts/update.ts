@@ -51,8 +51,9 @@ export const PATCH: APIRoute = async ({ request , locals }) => {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     locals.requestLogger.error({ err }, '[shortcuts/update]');
-    return new Response(JSON.stringify({ error: err.message ?? 'DB error' }), { status: 500 });
+    const message = err instanceof Error ? err.message : String(err);
+    return new Response(JSON.stringify({ error: message }), { status: 500 });
   }
 };

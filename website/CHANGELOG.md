@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.139.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.138.0...website-v1.139.0) (2026-06-28)
+
+
+### Features
+
+* **quality:** add .ticket files for 11 proposals, remove stale skeleton [T001301] ([#2270](https://github.com/Paddione/Bachelorprojekt/issues/2270)) ([4e4215a](https://github.com/Paddione/Bachelorprojekt/commit/4e4215a0459edc2af449750cd9c0c0a3c4437e3c))
+
+
+### Bug Fixes
+
+* **website:** copy pnpm-workspace.yaml in Dockerfile to fix frozen-lockfile ([#2265](https://github.com/Paddione/Bachelorprojekt/issues/2265)) ([e942c82](https://github.com/Paddione/Bachelorprojekt/commit/e942c82aeb43faaf5481faf0dd55d7abf993ed74))
+
 ## [1.138.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.137.0...website-v1.138.0) (2026-06-28)
 
 

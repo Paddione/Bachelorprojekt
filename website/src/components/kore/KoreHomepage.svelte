@@ -1,5 +1,6 @@
 <script lang="ts">
   import Timeline from '../Timeline.svelte';
+  import GoalsDashboard from '../GoalsDashboard.svelte';
   import type { DaySlots } from '../../lib/caldav';
   import type { BrandConfig, FooterConfig, HomepageService } from '../../config/types';
 
@@ -342,6 +343,16 @@
     <Timeline initialRows={initialTimeline} />
   </section>
 {/if}
+
+<!-- ═══════════════════════════════ HEALTH DASHBOARD ═════════════════════ -->
+<section class="w-section" id="health">
+  <div class="head">
+    <span class="num"><!-- dynamic --></span>
+    <h2>Repo Health, <em>gemessen.</em></h2>
+    <span class="hint">Mess-Stichtag: 2026-06-28</span>
+  </div>
+  <GoalsDashboard />
+</section>
 
 <!-- ═══════════════════════════════ FOOTER ════════════════════════════════ -->
 <footer class="w-foot">

@@ -1,8 +1,8 @@
 {
-  "total_lines": 511105,
+  "total_lines": 510446,
   "file_count": 3918,
-  "commit": "fabe63cb",
-  "measured_at": "2026-06-28T22:33:03.353Z",
+  "commit": "d0231c43",
+  "measured_at": "2026-06-28T22:40:26.618Z",
   "thresholds": {
     "warn_pct": 5,
     "fail_pct": 15,

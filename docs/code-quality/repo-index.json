@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 508,
+      "file_count": 509,
       "files": [
         "tests/.gitignore",
         "tests/batch/batch-gap-analysis.bats",
@@ -346,6 +346,7 @@
         "tests/spec/art-library-webapp.bats",
         "tests/spec/backup-pipeline.bats",
         "tests/spec/ci-cd.bats",
+        "tests/spec/code-quality.bats",
         "tests/spec/commit-signing.bats",
         "tests/spec/coverage-gate.bats",
         "tests/spec/dev-flow-chore-ticket-ops-mishaps.bats",

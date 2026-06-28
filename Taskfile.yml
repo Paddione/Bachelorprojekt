@@ -874,6 +874,16 @@ tasks:
       - '[ -d node_modules ] || npm ci'
       - node scripts/build-graph-docs.mjs
 
+  codebase:index:
+    desc: "Vollständiger codebase-memory-mcp Graph-Index (full, persistiertes Artefakt in .codebase-memory/)"
+    cmds:
+      - codebase-memory-mcp cli index_repository '{"repo_path": "{{.ROOT_DIR}}", "mode": "full", "persistence": true}'
+
+  codebase:refresh:
+    desc: "Schnell-Refresh des codebase-memory Graph-Index (fast, kein Similarity-Embedding)"
+    cmds:
+      - codebase-memory-mcp cli index_repository '{"repo_path": "{{.ROOT_DIR}}", "mode": "fast", "persistence": true}'
+
   freshness:graph-check:
     desc: "Prüft ob graph.json + api-map.json + blast-radius.md aktuell sind (kein struktureller Drift)"
     cmds:

@@ -1,5 +1,5 @@
 // scripts/docs-gen/discover.mjs
-import { readdir, readFile, stat } from 'node:fs/promises';
+import { readdir, readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join, sep, basename } from 'node:path';
 
@@ -12,10 +12,14 @@ import { join, sep, basename } from 'node:path';
  * @property {string} raw                       // file contents
  */
 
-// docs subtrees that are internal process artifacts — never published.
+// docs subtrees excluded from the published site: internal process artifacts,
+// transient snapshots, and operational data not relevant to the dev workflow.
 const DOC_EXCLUDE_PREFIXES = [
-  join('docs', 'superpowers', 'specs'),
-  join('docs', 'agent-guide', 'maps'), // grep-only repo maps (S3), not a published doc page
+  join('docs', 'superpowers', 'specs'),   // brainstorming specs — internal, not published
+  join('docs', 'superpowers', 'plans'),   // dated plan files — transient, archived after merge
+  join('docs', 'agent-guide', 'maps'),    // grep-only repo maps (S3), not a published doc page
+  join('docs', 'drift-reports'),          // operational drift snapshots
+  join('docs', 'audits'),                 // audit log snapshots
 ];
 
 /**
@@ -159,21 +163,6 @@ async function discoverDocs(repoRoot, pluginsRoot) {
   return docs;
 }
 
-// openspec/changes/<slug>/{proposal.md,tasks.md} — excluding archive/
-async function discoverOpenspecChanges(repoRoot, pluginsRoot) {
-  const changesDir = join(repoRoot, 'openspec', 'changes');
-  const docs = [];
-  if (!existsSync(changesDir)) return docs;
-  for (const e of await readdir(changesDir, { withFileTypes: true })) {
-    if (!e.isDirectory() || e.name === 'archive') continue;
-    const slugDir = join(changesDir, e.name);
-    for (const md of await listMdFiles(slugDir)) {
-      docs.push(await makeSourceDoc('doc', basename(md, '.md'), md, pluginsRoot));
-    }
-  }
-  return docs;
-}
-
 /**
  * Discover all source types and return a deterministically sorted SourceDoc[].
  * @param {{ repoRoot: string, pluginsRoot: string, homeDir: string }} opts
@@ -188,7 +177,6 @@ export async function discoverSources({ repoRoot, pluginsRoot, homeDir }) {
     discoverRepoAgents(repoRoot, pluginsRoot),
     discoverPluginSources(pluginsRoot),
     discoverDocs(repoRoot, pluginsRoot),
-    discoverOpenspecChanges(repoRoot, pluginsRoot),
   ]);
   const all = groups.flat();
   all.sort((a, b) =>

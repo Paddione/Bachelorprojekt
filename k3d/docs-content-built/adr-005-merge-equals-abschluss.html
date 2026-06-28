@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ADR-005: Merge = Abschluss — Ticketmodell ohne awaiting_deploy-Happy-Path — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<header class="site-header">
+  <a class="site-header-brand" href="./index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
+  <div id="search-box">
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
+  </div>
+</div>
+<div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Handbücher</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./readme.html">AI-Agent Operating Guide — Registry (SSOT)</a></li><li class="sidebar-item"><a href="./readme.html">DB Audit Phase 5 — 2026-05-23</a></li><li class="sidebar-item"><a href="./readme.html">dev.mentolder.de — Operator Runbook</a></li><li class="sidebar-item"><a href="./readme.html">Korczewski Visual Design Brief</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Architektur &amp; Bausteine</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./30-bausteine.html">Bausteine — Was läuft auf der Plattform?</a></li><li class="sidebar-item"><a href="./bereitstellungsdetails.html">Bereitstellungsdetails und Server-Topologie</a></li><li class="sidebar-item"><a href="./db-schema.html">Shared DB — Schema Reference &amp; Normalization Audit</a></li><li class="sidebar-item"><a href="./00-anleitung.html">Was will ich tun?</a></li><li class="sidebar-item"><a href="./20-werkzeuge.html">Werkzeuge — Tools und Agents</a></li><li class="sidebar-item"><a href="./10-ziele.html">Ziele — Was will ich tun?</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Audits &amp; Reports</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./findings.html">DB Audit Phase 5 — Findings</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Entscheidungen</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./decision-log.html">Phase 5 DROP Decision Log</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">Referenz</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./adr-001-fleet-konsolidierung.html">ADR-001: Fleet-Konsolidierung — Zusammenführung aller Marken-Cluster (Phase 3)</a></li><li class="sidebar-item"><a href="./adr-002-push-basiertes-deploy.html">ADR-002: Push-basiertes Deploy — kein GitOps-Reconciler im Cluster</a></li><li class="sidebar-item"><a href="./adr-003-brand-namespace-split.html">ADR-003: Brand-Namespace-Split — Multi-Mandanten via Kubernetes-Namespaces</a></li><li class="sidebar-item"><a href="./adr-004-llm-fail-closed.html">ADR-004: LLM-Embedding-Architektur — fail-closed, kein Cross-Space-Fallback</a></li><li class="sidebar-item sidebar-item--active"><a href="./adr-005-merge-equals-abschluss.html" aria-current="page">ADR-005: Merge = Abschluss — Ticketmodell ohne awaiting_deploy-Happy-Path</a></li><li class="sidebar-item"><a href="./alert-email-test.html">Alert-E-Mail-Test (synthetisch)</a></li><li class="sidebar-item"><a href="./api-surface.html">API Surface Map</a></li><li class="sidebar-item"><a href="./audit-log-retention.html">Audit-Log Retention — DSGVO-Dokumentation</a></li><li class="sidebar-item"><a href="./blast-radius.html">Blast-Radius-Report</a></li><li class="sidebar-item"><a href="./brainstorm-bridge-wsl.html">Brainstorm-Bridge (WSL) — Visuals &amp; Auswahl an den Nutzer kommunizieren</a></li><li class="sidebar-item"><a href="./envsubst-variable-management.html">envsubst Variable Management — Referenz</a></li><li class="sidebar-item"><a href="./fleet-stage2-cutover-runbook.html">Fleet Stage 2 — Cutover Runbook</a></li><li class="sidebar-item"><a href="./fleet-2026-05-31-what-changed.html">Fleet-Konsolidierung — was sich am 2026-05-31 geändert hat</a></li><li class="sidebar-item"><a href="./gotchas-footguns.html">Gotchas &amp; Footguns Reference</a></li><li class="sidebar-item"><a href="./secrets-architecture.html">Secrets-Dateiarchitektur</a></li><li class="sidebar-item"><a href="./shared-infrastructure-security.html">Shared Infrastructure Security — Cross-Brand Analysis</a></li><li class="sidebar-item"><a href="./overview.html">Skills Overview</a></li><li class="sidebar-item"><a href="./factory-usage.html">Software Factory — Usage Guide</a></li><li class="sidebar-item"><a href="./systemtest-fragebogen.html">Systemtest-Protokoll — Workspace Collaboration Platform</a></li><li class="sidebar-item"><a href="./wsl-bootstrap.html">WSL Bootstrapping Gotchas</a></li></ul></details>
+</aside>
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./docs.html">Docs</a> <span class="sep">/</span> <span class="crumb-current">ADR-005: Merge = Abschluss — Ticketmodell ohne awaiting_deploy-Happy-Path</span></nav>
+    <h1>ADR-005: Merge = Abschluss — Ticketmodell ohne awaiting_deploy-Happy-Path</h1>
+    <p class="page-desc"></p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>ADR-005: Merge = Abschluss — Ticketmodell ohne awaiting_deploy-Happy-Path</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#kontext"><span class="toc-num">1.</span> Kontext</a></li>
+<li class="toc-item"><a href="#entscheidung"><span class="toc-num">2.</span> Entscheidung</a></li>
+<li class="toc-item"><a href="#konsequenzen"><span class="toc-num">3.</span> Konsequenzen</a></li></ul>
+</div>
+<p><strong>Status:</strong> Accepted<br><strong>Datum:</strong> 2026-06-01<br><strong>Ticket:</strong> T001092 / T001298</p>
+<h2 id="kontext">Kontext</h2>
+<p>Das Ticketsystem der Software Factory verwaltet den Lifecycle von Features, Fixes und Chores. Vor T001092 gab es einen <code>awaiting_deploy</code>-Status zwischen Merge und Produktiv-Deploy, da das Deployment entkoppelt (push-basiert) ist und nicht automatisch nach jedem Merge ausgelöst wird.</p>
+<p>Probleme des alten Modells:</p>
+<ul>
+<li><code>awaiting_deploy</code> akkumulierte Tickets, die nie manuell auf <code>done</code> gesetzt wurden.</li>
+<li>Der Factory-Floor zeigte eine nicht leergeräumte <code>awaiting_deploy</code>-Lane als Rauschen.</li>
+<li>Der Prod-Deploy ist entkoppelt und kann Minuten bis Stunden nach dem Merge folgen — eine Unterscheidung zwischen "gemergt" und "live" ist für ein Bachelorprojekt ohne SLA nicht relevant.</li>
+</ul>
+<h2 id="entscheidung">Entscheidung</h2>
+<p>Ein grüner Auto-Merge nach main schließt ein Ticket direkt: Status <code>done</code>, <code>resolution=shipped</code>. Der Prod-Deploy ist entkoppelt und ändert den Ticket-Status nicht. <code>awaiting_deploy</code> und <code>qa_review</code> bleiben als gültige Enum-Werte (für Sonderfälle und historische Zeilen), sind aber aus dem Happy-Path entfernt.</p>
+<p>Umsetzung:</p>
+<ul>
+<li>Factory-Pipeline (<code>pipeline.js</code>): nach Auto-Merge direkt auf <code>done</code> setzen.</li>
+<li><code>dev-flow-execute</code>-Skill: nach Merge auf <code>done</code> setzen, kein <code>awaiting_deploy</code>-Zwischenzustand.</li>
+<li>Watchdog: Tickets mit Status <code>awaiting_deploy</code> älter als 24 Stunden werden als Anomalie markiert.</li>
+<li>Factory-Floor: <code>awaiting_deploy</code>-Lane wird nur noch bei manuell zurückgehaltenen Tickets angezeigt.</li>
+</ul>
+<h2 id="konsequenzen">Konsequenzen</h2>
+<p><strong>Positive Konsequenzen:</strong></p>
+<ul>
+<li>Klares, einfaches Modell: Merge = Fertig. Keine mehrdeutigen Zwischenzustände.</li>
+<li>Factory-Floor zeigt einen saubereren Zustand ohne Rauschen.</li>
+<li>Weniger manuelle Ticket-Pflege nach Merge.</li>
+</ul>
+<p><strong>Negative Konsequenzen:</strong></p>
+<ul>
+<li>Kein Status-Tracking zwischen Merge und Prod-Live-Deployment.</li>
+<li>Für zukünftige Szenarien mit SLA oder separatem QA-Gate muss <code>qa_review</code> wieder in den Happy-Path aufgenommen werden.</li>
+</ul>
+<p><strong>Quality-Gate-Erfassung:</strong> Verify-Phase-Events werden weiterhin als <code>tickets.factory_phase_events</code> mit strukturiertem <code>detail</code> erfasst — unabhängig vom Ticketstatus.</p>
+</body></html>
+</article>
+
+<nav class="prevnext" aria-label="Seitennavigation"><a class="prevnext-link prevnext-prev" href="./adr-004-llm-fail-closed.html"><span class="prevnext-label">← Zurück</span><span class="prevnext-title">ADR-004: LLM-Embedding-Architektur — fail-closed, kein Cross-Space-Fallback</span></a><a class="prevnext-link prevnext-next" href="./alert-email-test.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">Alert-E-Mail-Test (synthetisch)</span></a></nav>
+  </main>
+</div>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="./app.js"></script>
+</body>
+</html>

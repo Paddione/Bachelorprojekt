@@ -143,10 +143,10 @@ cmd_archive() {
 
 _merge_delta() {
   local delta="$1" ssot="$2"
-  mkdir -p "$(dirname "$ssot")"
-  [[ -f "$ssot" ]] || printf '# %s\n\n' "$(basename "$ssot" .md)" > "$ssot"
-  printf '\n<!-- merged from change delta %s on %s -->\n' "$(basename "$delta")" "$(date +%F)" >> "$ssot"
-  grep -v -E '^## (ADDED|MODIFIED|REMOVED) Requirements\s*$' "$delta" >> "$ssot"
+  # Operation-aware merge (ADDED/MODIFIED/REMOVED/RENAMED). Fail-closed: a missing
+  # target, a RENAMED without **Renamed-to:**, or a skeleton stub exits non-zero
+  # and aborts the archive (set -e) before the SSOT can be corrupted.
+  node "$REPO/scripts/openspec-merge.mjs" apply "$delta" "$ssot"
 }
 
 cmd_validate() {
@@ -176,8 +176,8 @@ cmd_validate() {
 
 _validate_delta_file() {
   local f="$1" rc=0
-  grep -qE '^## (ADDED|MODIFIED|REMOVED) Requirements\s*$' "$f" \
-    || { echo "FAIL: $f missing '## ADDED|MODIFIED|REMOVED Requirements' header" >&2; rc=1; }
+  grep -qE '^## (ADDED|MODIFIED|REMOVED|RENAMED) Requirements\s*$' "$f" \
+    || { echo "FAIL: $f missing '## ADDED|MODIFIED|REMOVED|RENAMED Requirements' header" >&2; rc=1; }
   grep -qE '^### Requirement: ' "$f" \
     || { echo "FAIL: $f has no '### Requirement: ' (H3) entry" >&2; rc=1; }
   if grep -qE '^## Requirement: ' "$f"; then

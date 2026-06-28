@@ -181,7 +181,7 @@ function writeBaseline(path, data) {
 // Default thresholds
 // ---------------------------------------------------------------------------
 const DEFAULTS = {
-  warn_pct: 5,
+  warn_pct: 2,
   fail_pct: 15,
   absolute_cap: 350000,
 };
@@ -209,6 +209,11 @@ async function main() {
     console.error(`ERROR: Failed to build scan universe: ${e.message}`);
     process.exit(1);
   }
+
+  // Exclude openspec/changes/** — plan artefacts and design-sync scaffolding,
+  // not production code. These inflate the weekly LOC delta without reflecting
+  // real codebase growth (e.g. T001277 .ds-sync/ burst: ~4800 net LOC).
+  files = files.filter((f) => !f.startsWith('openspec/changes/'));
 
   const { total_lines, file_count } = measure(files);
 

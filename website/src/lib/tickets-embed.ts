@@ -10,6 +10,7 @@ import { embedBatch, embedQuery } from './embeddings';
 import { chunkText } from './chunking';
 import { ticketEmbeddingModel, MixedEmbeddingModelError } from './tickets-db';
 import type { EmbeddingModel } from './embeddings';
+import { logger } from './logger';
 
 // ─── Shared helpers ─────────────────────────────────────────────────────────
 
@@ -61,7 +62,7 @@ export async function embedTicket(ticketId: string, parts: TicketTextParts): Pro
     return written;
   } catch (err) {
     // BEST-EFFORT: never propagate to the caller (e.g. ticket create).
-    console.error(`[embedTicket] best-effort embed failed for ${ticketId}:`, err instanceof Error ? err.message : err);
+    logger.error({ ticketId, err: err instanceof Error ? err.message : err }, `[embedTicket] best-effort embed failed for ${ticketId}`);
     return 0;
   }
 }

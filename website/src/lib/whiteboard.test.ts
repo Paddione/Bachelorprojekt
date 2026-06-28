@@ -4,7 +4,7 @@ vi.mock('./logger', () => ({
   logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn(), child: vi.fn() },
   createRequestLogger: vi.fn(() => ({ error: vi.fn(), warn: vi.fn(), info: vi.fn() })),
 }));
-import { extractWhiteboardText, getWhiteboardArtifacts } from './whiteboard';
+import { extractWhiteboardText } from './whiteboard';
 
 const ORIGINAL_FETCH = globalThis.fetch;
 const ORIGINAL_NC = process.env.NEXTCLOUD_URL;
@@ -76,7 +76,7 @@ describe('getWhiteboardArtifacts (network error / empty paths)', () => {
 
   it('returns parsed whiteboard artifacts when the WebDAV listing finds .whiteboard files', async () => {
     let callCount = 0;
-    globalThis.fetch = (async (url: unknown) => {
+    globalThis.fetch = (async (_url: unknown) => {
       callCount++;
       if (callCount === 1) {
         // PROPFIND for /Talk/room1/

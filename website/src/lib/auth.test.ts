@@ -35,11 +35,6 @@ async function loadModule() {
   return import('./auth');
 }
 
-function makeJwt(payload: Record<string, unknown>): string {
-  const enc = (o: unknown) => Buffer.from(JSON.stringify(o)).toString('base64url');
-  return `x.${enc(payload)}.y`;
-}
-
 describe('getLoginUrl', () => {
   it('builds an OIDC authorize URL with the default state', async () => {
     const m = await loadModule();

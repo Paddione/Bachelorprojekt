@@ -22,8 +22,9 @@ export const GET: APIRoute = async ({ params, request , locals }) => {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     locals.requestLogger.error({ err }, '[bugs/[id]] DB error:');
-    return new Response(JSON.stringify({ error: err.message ?? 'DB error' }), { status: 500 });
+    const msg = err instanceof Error ? (err.message ?? 'DB error') : String(err);
+    return new Response(JSON.stringify({ error: msg }), { status: 500 });
   }
 };

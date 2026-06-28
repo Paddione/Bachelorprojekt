@@ -1,6 +1,7 @@
 // WebDAV helpers for Nextcloud file operations
 
 import { posix } from 'node:path';
+import { logger } from './logger';
 
 const NC_URL = process.env.NEXTCLOUD_URL || '';
 const NC_ADMIN_USER = process.env.NEXTCLOUD_ADMIN_USER || 'admin';
@@ -219,14 +220,14 @@ export async function createShareLink(filePath: string): Promise<string | null> 
       }).toString(),
     });
     if (!res.ok) {
-      console.error('[nextcloud-files] createShareLink failed:', res.status, await res.text());
+      logger.error({ status: res.status, body: await res.text() }, '[nextcloud-files] createShareLink failed');
       return null;
     }
     const data = await res.json();
     const url = data?.ocs?.data?.url;
     return typeof url === 'string' ? url : null;
   } catch (err) {
-    console.error('[nextcloud-files] createShareLink error:', err);
+    logger.error({ err }, '[nextcloud-files] createShareLink error');
     return null;
   }
 }

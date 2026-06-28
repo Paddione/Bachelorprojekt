@@ -11,6 +11,7 @@
 //     Controller/BotController.php getBotFromHeaders called with $message)
 
 import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
+import { logger } from './logger';
 
 const NC_URL = process.env.NEXTCLOUD_URL || 'http://nextcloud.workspace.svc.cluster.local';
 
@@ -63,12 +64,12 @@ export async function postBotReply(
       }
     );
     if (!res.ok) {
-      console.error('[brett-bot] reply failed:', res.status, await res.text());
+      logger.error({ status: res.status, body: await res.text() }, '[brett-bot] reply failed');
       return false;
     }
     return true;
   } catch (err) {
-    console.error('[brett-bot] reply error:', err);
+    logger.error({ err }, '[brett-bot] reply error');
     return false;
   }
 }

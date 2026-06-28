@@ -1,6 +1,7 @@
 // Nextcloud Talk API helper.
 // Creates rooms, adds participants, generates meeting links.
 // Uses the OCS API v4 (Nextcloud Talk / Spreed).
+import { logger } from './logger';
 
 const NC_URL = process.env.NEXTCLOUD_URL || 'http://nextcloud.workspace.svc.cluster.local';
 const NC_USER = process.env.NEXTCLOUD_CALDAV_USER || 'admin';
@@ -44,7 +45,7 @@ export async function createTalkRoom(params: {
     });
 
     if (!res.ok) {
-      console.error('[talk] Create room failed:', res.status, await res.text());
+      logger.error({ status: res.status, body: await res.text() }, '[talk] Create room failed');
       return null;
     }
 
@@ -52,7 +53,7 @@ export async function createTalkRoom(params: {
     const token = data?.ocs?.data?.token;
 
     if (!token) {
-      console.error('[talk] No token in response:', JSON.stringify(data));
+      logger.error({ data }, '[talk] No token in response');
       return null;
     }
 
@@ -74,7 +75,7 @@ export async function createTalkRoom(params: {
       url: `${NC_EXTERNAL_URL}/call/${token}`,
     };
   } catch (err) {
-    console.error('[talk] Create room error:', err);
+    logger.error({ err }, '[talk] Create room error');
     return null;
   }
 }
@@ -88,12 +89,12 @@ export async function inviteGuestByEmail(roomToken: string, email: string): Prom
     });
 
     if (!res.ok) {
-      console.error('[talk] Invite guest failed:', res.status, await res.text());
+      logger.error({ status: res.status, body: await res.text() }, '[talk] Invite guest failed');
       return false;
     }
     return true;
   } catch (err) {
-    console.error('[talk] Invite guest error:', err);
+    logger.error({ err }, '[talk] Invite guest error');
     return false;
   }
 }
@@ -128,7 +129,7 @@ export async function getRecordingFile(roomToken: string): Promise<{ data: Buffe
     });
 
     if (!propfindRes.ok) {
-      console.error('[talk] WebDAV PROPFIND failed:', propfindRes.status);
+      logger.error({ status: propfindRes.status }, '[talk] WebDAV PROPFIND failed');
       return null;
     }
 
@@ -152,7 +153,7 @@ export async function getRecordingFile(roomToken: string): Promise<{ data: Buffe
     });
 
     if (!downloadRes.ok) {
-      console.error('[talk] Recording download failed:', downloadRes.status);
+      logger.error({ status: downloadRes.status }, '[talk] Recording download failed');
       return null;
     }
 
@@ -160,7 +161,7 @@ export async function getRecordingFile(roomToken: string): Promise<{ data: Buffe
     const filename = recordingPath.split('/').pop() || 'recording.webm';
     return { data: Buffer.from(arrayBuffer), filename };
   } catch (err) {
-    console.error('[talk] Get recording error:', err);
+    logger.error({ err }, '[talk] Get recording error');
     return null;
   }
 }
@@ -190,12 +191,12 @@ export async function sendChatMessage(roomToken: string, message: string): Promi
       body: JSON.stringify({ message, replyTo: 0 }),
     });
     if (!res.ok) {
-      console.error('[talk] sendChatMessage failed:', res.status, await res.text());
+      logger.error({ status: res.status, body: await res.text() }, '[talk] sendChatMessage failed');
       return false;
     }
     return true;
   } catch (err) {
-    console.error('[talk] sendChatMessage error:', err);
+    logger.error({ err }, '[talk] sendChatMessage error');
     return false;
   }
 }

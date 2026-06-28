@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, vi } from 'vitest';
-import { newDb, DataType } from 'pg-mem';
+import { newDb } from 'pg-mem';
 import type { Pool } from 'pg';
 import { recordAudit, clientIpFromRequest } from './audit-log';
 import * as loggerModule from './logger';

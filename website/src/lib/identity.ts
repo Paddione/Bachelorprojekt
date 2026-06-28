@@ -1,6 +1,7 @@
 // Pocket ID Admin API helper.
 // Replaces the legacy keycloak.ts module. Uses Pocket ID's bearer-token
 // admin API instead of Keycloak's admin-cli / master-realm password flow.
+import { logger } from './logger';
 //
 // Public surface mirrors the previous keycloak.ts export list so the ~26
 // existing call sites can be repointed with a single import-path change
@@ -56,7 +57,7 @@ export async function createUser(params: CreateUserParams): Promise<{ success: b
   }
 
   const errorBody = await res.text();
-  console.error('Pocket ID create user failed:', res.status, errorBody);
+  logger.error({ status: res.status, body: errorBody }, 'Pocket ID create user failed');
   return { success: false, error: `Pocket-ID-Fehler: ${res.status}` };
 }
 
@@ -95,7 +96,7 @@ export async function sendPasswordResetEmail(userId: string): Promise<boolean> {
   }
   if (!res.ok) {
     const body = await res.text().catch(() => '');
-    console.error(`Pocket ID one-time-access-token failed: ${res.status} ${body}`);
+    logger.error({ status: res.status, body }, 'Pocket ID one-time-access-token failed');
   }
   return res.ok;
 }
@@ -137,7 +138,7 @@ export async function updateUser(userId: string, params: {
   const res = await piApi('PUT', `/api/users/${encodeURIComponent(userId)}`, params);
   if (!res.ok) {
     const body = await res.text().catch(() => '');
-    console.error(`Pocket ID updateUser failed: ${res.status} ${body}`);
+    logger.error({ status: res.status, body }, 'Pocket ID updateUser failed');
   }
   return res.ok;
 }
@@ -178,7 +179,7 @@ export async function assignRealmRole(userId: string, roles: KcRole[]): Promise<
   const res = await piApi('PUT', `/api/users/${encodeURIComponent(userId)}`, { isAdmin: true });
   if (!res.ok) {
     const body = await res.text().catch(() => '');
-    console.error(`Pocket ID assignRealmRole failed: ${res.status} ${body}`);
+    logger.error({ status: res.status, body }, 'Pocket ID assignRealmRole failed');
   }
   return res.ok;
 }
@@ -188,7 +189,7 @@ export async function removeRealmRole(userId: string, roles: KcRole[]): Promise<
   const res = await piApi('PUT', `/api/users/${encodeURIComponent(userId)}`, { isAdmin: false });
   if (!res.ok) {
     const body = await res.text().catch(() => '');
-    console.error(`Pocket ID removeRealmRole failed: ${res.status} ${body}`);
+    logger.error({ status: res.status, body }, 'Pocket ID removeRealmRole failed');
   }
   return res.ok;
 }

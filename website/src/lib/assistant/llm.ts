@@ -7,6 +7,7 @@ import { pool } from '../website-db';
 import { getProviderConfig, setProviderCooldown } from '../provider-config';
 import { SOURCE } from '../ki-services';
 import { withAiMetrics } from '../ai-metrics';
+import { logger } from '../logger';
 
 export interface AssistantChatInput {
   profile: AssistantProfile;
@@ -78,7 +79,7 @@ export async function assistantChat(input: AssistantChatInput): Promise<Assistan
         }
       }
     } catch (err) {
-      console.error('[assistantChat] RAG lookup failed, proceeding without passages:', err);
+      logger.error({ err }, '[assistantChat] RAG lookup failed, proceeding without passages');
     }
   }
 

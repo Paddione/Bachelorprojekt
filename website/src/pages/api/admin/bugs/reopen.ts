@@ -30,9 +30,10 @@ export const POST: APIRoute = async ({ request , locals }) => {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     locals.requestLogger.error({ err }, '[bugs/reopen] DB error:');
-    const status = err.message?.includes('not found') ? 404 : 500;
-    return new Response(JSON.stringify({ error: err.message ?? 'DB error' }), { status });
+    const msg = err instanceof Error ? (err.message ?? 'DB error') : String(err);
+    const status = msg.includes('not found') ? 404 : 500;
+    return new Response(JSON.stringify({ error: msg }), { status });
   }
 };

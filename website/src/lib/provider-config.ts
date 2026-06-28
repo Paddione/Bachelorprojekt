@@ -1,5 +1,6 @@
 import { pool } from './website-db';
 import type { Pool } from 'pg';
+import { logger } from './logger';
 
 export interface ProviderChoice {
   provider: string;
@@ -41,7 +42,7 @@ export async function getProviderConfig(source: string, tier: 'sonnet' | 'haiku'
       return { provider, modelId: model_id, baseUrl: base_url ?? null, apiKey };
     }
   } catch (err) {
-    console.error('[provider-config] DB lookup failed, falling back to anthropic:', err);
+    logger.error({ err }, '[provider-config] DB lookup failed, falling back to anthropic');
   }
   return { ...FALLBACK, apiKey: process.env.ANTHROPIC_API_KEY || '' };
 }
@@ -70,8 +71,8 @@ export async function setProviderCooldown(
              cooldown_until = now() + ($2 || ' minutes')::interval`,
       [provider, minutes],
     );
-    console.warn(`[provider-config] ${source}: provider '${provider}' put on cooldown for ${minutes}m`);
+    logger.warn({ source, provider, minutes }, `[provider-config] provider '${provider}' put on cooldown for ${minutes}m`);
   } catch (err) {
-    console.error('[provider-config] setProviderCooldown failed (non-fatal):', err);
+    logger.error({ err }, '[provider-config] setProviderCooldown failed (non-fatal)');
   }
 }

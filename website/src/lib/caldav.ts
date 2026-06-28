@@ -1,5 +1,6 @@
 // Nextcloud CalDAV helper.
 // Fetches events from the admin's calendar and computes free time slots.
+import { logger } from './logger';
 import { config } from '../config/index.js';
 import {
   NC_URL,
@@ -49,7 +50,7 @@ async function fetchEvents(from: Date, to: Date): Promise<CalEvent[]> {
   try {
     icals = await fetchEventsRaw(from, to);
   } catch (err) {
-    console.error('[caldav] fetchEvents failed, treating as no busy times:', err);
+    logger.error({ err }, '[caldav] fetchEvents failed, treating as no busy times');
     return [];
   }
   const events: CalEvent[] = [];
@@ -157,7 +158,7 @@ export async function getClientBookings(clientEmail: string): Promise<ClientBook
   try {
     icals = await fetchEventsRaw(past, future);
   } catch (err) {
-    console.error('[caldav] getClientBookings failed:', err);
+    logger.error({ err }, '[caldav] getClientBookings failed');
     return [];
   }
   const bookings: ClientBooking[] = [];
@@ -348,7 +349,7 @@ export async function deleteCalendarEvent(uid: string): Promise<boolean> {
     });
     return res.ok || res.status === 204;
   } catch (err) {
-    console.error('[caldav] Delete event error:', err);
+    logger.error({ err }, '[caldav] Delete event error');
     return false;
   }
 }
@@ -376,7 +377,7 @@ export async function updateCalendarEventStatus(uid: string, status: 'CANCELLED'
     });
     return putRes.ok || putRes.status === 204;
   } catch (err) {
-    console.error('[caldav] Update event status error:', err);
+    logger.error({ err }, '[caldav] Update event status error');
     return false;
   }
 }
@@ -413,7 +414,7 @@ export async function updateCalendarEventTime(
     });
     return putRes.ok || putRes.status === 204;
   } catch (err) {
-    console.error('[caldav] Update event time error:', err);
+    logger.error({ err }, '[caldav] Update event time error');
     return false;
   }
 }
@@ -463,10 +464,10 @@ export async function createCalendarEvent(params: {
     });
 
     if (res.ok || res.status === 201) return { uid: `${uid}@${BRAND_NAME}` };
-    console.error('[caldav] Create event failed:', res.status, await res.text());
+    logger.error({ status: res.status, body: await res.text() }, '[caldav] Create event failed');
     return null;
   } catch (err) {
-    console.error('[caldav] Create event error:', err);
+    logger.error({ err }, '[caldav] Create event error');
     return null;
   }
 }

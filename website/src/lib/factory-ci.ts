@@ -1,3 +1,5 @@
+import { logger } from './logger';
+
 const GH_REPO = 'Paddione/Bachelorprojekt';
 
 export interface CiCheck {
@@ -47,7 +49,7 @@ export async function fetchCiChecks(prNumber: number): Promise<{ checks: CiCheck
     cache.set(prNumber, { at: Date.now(), checks, rollup });
     return { checks, rollup };
   } catch (err) {
-    console.error('[factory-ci] fetch failed', err);
+    logger.error({ err }, '[factory-ci] fetch failed');
     return { checks: [], rollup: null };
   }
 }

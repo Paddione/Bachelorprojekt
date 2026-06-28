@@ -1,4 +1,5 @@
 import type { Pool } from 'pg';
+import { logger } from './logger';
 
 export interface AuditEntry {
   actor_id?: string | null;
@@ -33,6 +34,6 @@ export async function recordAudit(pool: Pool, e: AuditEntry): Promise<void> {
       ],
     );
   } catch (err) {
-    console.warn('[audit] recordAudit failed:', err);
+    logger.warn({ err }, '[audit] recordAudit failed');
   }
 }

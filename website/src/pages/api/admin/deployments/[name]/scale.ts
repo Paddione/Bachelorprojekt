@@ -19,7 +19,7 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
     });
   }
 
-  let body: any;
+  let body: unknown;
   try {
     body = await request.json();
   } catch {
@@ -29,7 +29,7 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
     });
   }
 
-  const { replicas } = body ?? {};
+  const { replicas } = (body ?? {}) as { replicas?: number };
   if (typeof replicas !== 'number' || !Number.isInteger(replicas) || replicas < 0 || replicas > 10) {
     return new Response(
       JSON.stringify({ error: 'replicas must be an integer between 0 and 10' }),
@@ -58,8 +58,8 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
-  } catch (error: any) {
-    const msg: string = error.message ?? 'Unknown error';
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? (error.message ?? 'Unknown error') : String(error);
     locals.requestLogger.error({ msg }, '[deployments/scale]');
     const status = /K8s API 404/.test(msg) ? 404
       : /K8s API 403/.test(msg) ? 403

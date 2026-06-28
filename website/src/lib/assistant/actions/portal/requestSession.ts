@@ -1,6 +1,7 @@
 import { registerAction } from '../../actions';
 import type { ActionResult } from '../../types';
 import { createInboxItem } from '../../../messaging-db';
+import { logger } from '../../../logger';
 
 registerAction({
   id: 'portal:request-session',
@@ -33,7 +34,7 @@ registerAction({
         },
       });
     } catch (err) {
-      console.error('[requestSession] createInboxItem failed:', err);
+      logger.error({ err }, '[requestSession] createInboxItem failed');
       return {
         ok: false,
         message: 'Ihre Terminanfrage konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.',

@@ -1,4 +1,5 @@
 import type { AssistantProfile, Nudge } from './types';
+import { logger } from '../logger';
 
 export interface TriggerEvalContext {
   userSub: string;
@@ -28,7 +29,7 @@ export async function evaluateTriggers(
       const n = await t.evaluate(ctx);
       if (n) out.push(n);
     } catch (err) {
-      console.error(`[assistant.triggers] evaluator ${t.id} threw:`, err);
+      logger.error({ err }, `[assistant.triggers] evaluator ${t.id} threw`);
     }
   }
   return out;

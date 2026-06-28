@@ -3,6 +3,7 @@ import { createInterface } from 'readline';
 import { watch, existsSync, readdirSync } from 'fs';
 import { readFile } from 'fs/promises';
 import { randomUUID } from 'crypto';
+import { logger } from './logger';
 import {
   saveTestRun,
   saveTestResults,
@@ -282,7 +283,7 @@ export async function spawnTestRun(tier: string, testIds: string[]): Promise<str
             source: 'admin',
             cluster,
           }).catch((err) =>
-            console.error('[test-runner] safeOpenTestRunFailureTicket failed:', err),
+            logger.error({ err }, '[test-runner] safeOpenTestRunFailureTicket failed'),
           );
         }
       }

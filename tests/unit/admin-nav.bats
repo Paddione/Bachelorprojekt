@@ -11,33 +11,39 @@ EINSTELLUNGEN_TABS="$PROJECT_DIR/website/src/components/AdminEinstellungenTabs.a
 
 # ── Admin nav: removed items ──────────────────────────────────────
 
-# skip — pre-existing: items still present on main, tracked via gap analysis
 @test "AdminLayout: /admin/meetings not in navGroups" {
-  skip "gap-analysis: Admin-IA cleanup pending (WP-28)"
+  run grep -c "href: '/admin/meetings'" "$ADMIN_LAYOUT"
+  assert_output "0"
 }
 
 @test "AdminLayout: /admin/kalender not in navGroups" {
-  skip "gap-analysis: Admin-IA cleanup pending (WP-28)"
+  run grep -c "href: '/admin/kalender'" "$ADMIN_LAYOUT"
+  assert_output "0"
 }
 
 @test "AdminLayout: /admin/coaching/projekte not in navGroups" {
-  skip "gap-analysis: Admin-IA cleanup pending (WP-28)"
+  run grep -c "href: '/admin/coaching/projekte'" "$ADMIN_LAYOUT"
+  assert_output "0"
 }
 
 @test "AdminLayout: /admin/coaching/settings not in navGroups" {
-  skip "gap-analysis: Admin-IA cleanup pending (WP-28)"
+  run grep -c "href: '/admin/coaching/settings'" "$ADMIN_LAYOUT"
+  assert_output "0"
 }
 
 @test "AdminLayout: /admin/zeiterfassung not in navGroups" {
-  skip "gap-analysis: Admin-IA cleanup pending (WP-28)"
+  run grep -c "href: '/admin/zeiterfassung'" "$ADMIN_LAYOUT"
+  assert_output "0"
 }
 
 @test "AdminLayout: /admin/steuer not in navGroups" {
-  skip "gap-analysis: Admin-IA cleanup pending (WP-28)"
+  run grep -c "href: '/admin/steuer'" "$ADMIN_LAYOUT"
+  assert_output "0"
 }
 
 @test "AdminLayout: /admin/software-history not in navGroups" {
-  skip "gap-analysis: Admin-IA cleanup pending (WP-28)"
+  run grep -c "href: '/admin/software-history'" "$ADMIN_LAYOUT"
+  assert_output "0"
 }
 
 @test "AdminLayout: /admin/systemtest not in navGroups" {
@@ -70,7 +76,8 @@ EINSTELLUNGEN_TABS="$PROJECT_DIR/website/src/components/AdminEinstellungenTabs.a
 }
 
 @test "clients.astro: Meetings tab present" {
-  skip "gap-analysis: Meetings tab missing from clients page (WP-29)"
+  run grep -c "href.*meetings" "$PROJECT_DIR/website/src/pages/admin/clients.astro"
+  refute_output "0"
 }
 
 @test "coaching/sessions/index.astro: Projekte tab present" {
@@ -79,7 +86,8 @@ EINSTELLUNGEN_TABS="$PROJECT_DIR/website/src/components/AdminEinstellungenTabs.a
 }
 
 @test "rechnungen.astro: Zeiterfassung tab present" {
-  skip "gap-analysis: Zeiterfassung tab missing from rechnungen page (WP-29)"
+  run grep -c "href.*zeiterfassung" "$PROJECT_DIR/website/src/pages/admin/rechnungen.astro"
+  refute_output "0"
 }
 
 @test "buchhaltung.astro: Steuer tab present" {

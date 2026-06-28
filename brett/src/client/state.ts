@@ -61,7 +61,7 @@ export const noteSprites = new Map<string, THREE.Sprite>();
 
 // ── Drag/placement cross-cutting flags ────────────────────────────
 export const ui = {
-  dragging: null as null | { figId: string; boneName: string; plane: any },
+  dragging: null as null | { figId: string; boneName: string; plane: THREE.Plane },
   placingMode: false,
   panelColor: '#b8c0a8',
   panelScale: 1.0,

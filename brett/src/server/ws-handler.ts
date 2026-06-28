@@ -1,7 +1,8 @@
 export { handleAssignRole } from './ws-admin-commands';
 import type { MutationType, MutateContext } from './permissions';
 import type { UndoEntry } from './undo-stack';
-import type { Role, Phase } from '../types/state';
+import type { Role, Phase, FigureAppearance, OptikSettings, Participant, FigureLock, RoomState } from '../types/state';
+import type { ServerMessage } from '../types/messages';
 
 // The full set of server-side collaborators, injected once at startup.
 export interface WsDeps {
@@ -12,10 +13,10 @@ export interface WsDeps {
   broadcastInfo: (room: string) => void;
 
   // ── Participant roster ─────────────────────────────────────────────
-  addParticipant: (room: string, p: { userId: string; name: string }) => any | null;
+  addParticipant: (room: string, p: { userId: string; name: string }) => Participant | null;
   removeParticipant: (room: string, userId: string) => void;
   clearParticipants: (room: string) => void;
-  listParticipants: (room: string) => any[];
+  listParticipants: (room: string) => Participant[];
 
   // ── Figure state ───────────────────────────────────────────────────
   figureMaps: Map<string, Map<string, any>>;
@@ -30,15 +31,15 @@ export interface WsDeps {
   releaseFigureLock: (room: string, id: string, userId: string) => boolean;
   releaseLocksForUser: (room: string, userId: string) => void;
   orphanFiguresForUser: (room: string, userId: string) => string[];
-  listFigureLocks: (room: string) => any[];
+  listFigureLocks: (room: string) => FigureLock[];
 
   // ── Permissions ────────────────────────────────────────────────────
   canMutate: (ctx: MutateContext) => boolean;
   resolveRole: (ws: any, roles: Record<string, Role>) => Role;
-  validateAppearance: (appearance: any) => string | null;
+  validateAppearance: (appearance: FigureAppearance) => string | null;
 
   // ── Persistence ────────────────────────────────────────────────────
-  readState: (room: string) => Promise<any>;
+  readState: (room: string) => Promise<RoomState>;
   schedulePersist: (room: string) => void;
   flushImmediate: (room: string) => Promise<void>;
 
@@ -50,16 +51,16 @@ export interface WsDeps {
 
   // ── Admin / session commands ───────────────────────────────────────
   handleAdminSessionCreate: (room: string, adminPlayerId: string) => { ok: boolean; code?: string };
-  handleAdminHandoffMessage: (room: string, fromPlayerId: string, toPlayerId: string, broadcastFn: (m: any) => void) => { ok: boolean; reason?: string };
-  handleAdminRoundStart: (room: string, broadcastFn: (m: any) => void) => { ok: boolean; reason?: string; noop?: boolean };
-  handleAdminRoundStop: (room: string, broadcastFn: (m: any) => void) => { ok: boolean; reason?: string };
-  handleAdminRoundPause: (room: string, broadcastFn: (m: any) => void) => { ok: boolean; reason?: string };
-  handleAdminSetOptik: (room: string, settings: any, broadcastFn: (m: any) => void) => { ok: boolean };
-  handleAdminSetTemplate: (room: string, templateId: string, broadcastFn: (m: any) => void) => { ok: boolean };
+  handleAdminHandoffMessage: (room: string, fromPlayerId: string, toPlayerId: string, broadcastFn: (m: ServerMessage) => void) => { ok: boolean; reason?: string };
+  handleAdminRoundStart: (room: string, broadcastFn: (m: ServerMessage) => void) => { ok: boolean; reason?: string; noop?: boolean };
+  handleAdminRoundStop: (room: string, broadcastFn: (m: ServerMessage) => void) => { ok: boolean; reason?: string };
+  handleAdminRoundPause: (room: string, broadcastFn: (m: ServerMessage) => void) => { ok: boolean; reason?: string };
+  handleAdminSetOptik: (room: string, settings: OptikSettings, broadcastFn: (m: ServerMessage) => void) => { ok: boolean };
+  handleAdminSetTemplate: (room: string, templateId: string, broadcastFn: (m: ServerMessage) => void) => { ok: boolean };
 
   // ── Snapshot & template ────────────────────────────────────────────
-  loadSnapshotState?: (snapshotId: string) => Promise<any>;
-  applyTemplateToRoom?: (room: string, templateState: any, broadcastFn: (m: any) => void) => void;
+  loadSnapshotState?: (snapshotId: string) => Promise<RoomState>;
+  applyTemplateToRoom?: (room: string, templateState: RoomState, broadcastFn: (m: ServerMessage) => void) => void;
 
   // ── Player tracking ────────────────────────────────────────────────
   trackPlayerInRoom: (room: string, playerId: string) => void;

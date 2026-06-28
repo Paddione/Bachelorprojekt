@@ -687,3 +687,211 @@ The system SHALL expose a POST `/api/tickets/:id/readiness` endpoint that requir
 - **GIVEN** Node.js ist verfügbar
 - **WHEN** `node --check` auf `readiness.ts` ausgeführt wird
 - **THEN** gibt der Befehl keinen Fehler zurück
+
+---
+
+### Requirement: TicketRow rendert Titel als direkten Link
+
+The system SHALL render the ticket title in `TicketRow.svelte` as an `<a class="title-link" href="/admin/tickets/{ticket.id}">` element, styled as a link (inherits color, no underline; underline on hover).
+
+#### Scenario: Title-Click navigiert zur Ticket-Detail-Seite
+
+- **GIVEN** ein `TicketRow` für `ticket.id='t1'` ist gerendert
+- **WHEN** der Nutzer auf den Titel klickt
+- **THEN** navigiert der Browser zu `/admin/tickets/t1` (kein Drawer öffnet sich)
+
+### Requirement: CockpitTable reicht keinen Drawer-Handler mehr durch
+
+The system SHALL NOT define or pass an `onOpenDrawer` prop on `TicketRow` or `CockpitTable`; the corresponding test for the title-click drawer flow MUST be removed.
+
+### Requirement: Cockpit mountet keinen TicketDrawer mehr
+
+The system SHALL NOT mount a `TicketDrawer` component in `Cockpit.svelte`, SHALL NOT import `TicketDrawer`, and SHALL NOT track `drawerTicket` / `drawerOpen` state. The `TicketCreateModal` mount is preserved.
+
+### Requirement: cockpitStore enthält keine aktive-Ticket-State
+
+The system SHALL NOT export a `setActiveTicket` function or carry an `activeTicket: string | null` field on `CockpitState`; the corresponding unit tests SHALL be removed.
+
+### Requirement: TicketDrawer-Dateien sind gelöscht
+
+The system SHALL delete `website/src/components/admin/TicketDrawer.svelte` and its unit-test file, and `website/src/components/admin/TicketDrawerContent.svelte` if it exists; no import of `TicketDrawer` SHALL remain in any `.svelte`, `.ts`, or `.astro` file.
+
+---
+
+### Requirement: ContainerDor.lastenheftLocked field
+
+The system SHALL derive a `lastenheftLocked` boolean on `ContainerDor` from the ticket's
+`readiness.lastenheft_locked` field so that UI components can render the correct label and
+badge without accessing raw readiness data directly.
+
+#### Scenario: Ticket with lastenheft_locked=true
+
+- **GIVEN** a container ticket whose `readiness` object has `lastenheft_locked: true`
+- **WHEN** `getContainerDor()` is called for that ticket
+- **THEN** the returned `ContainerDor` has `lastenheftLocked === true`
+
+#### Scenario: Ticket with lastenheft_locked=false or absent
+
+- **GIVEN** a container ticket whose `readiness` object has `lastenheft_locked: false` or the field is absent
+- **WHEN** `getContainerDor()` is called
+- **THEN** the returned `ContainerDor` has `lastenheftLocked === false`
+
+### Requirement: TicketSpecProgress checklist island
+
+The system SHALL render a 10-point readiness checklist for container tickets on the
+fullscreen ticket detail page, showing a green checkmark (✓) for met criteria and an
+amber circle (○) for unmet criteria, with a header summarising `Fertig: X/10` and a
+progress bar.
+
+#### Scenario: Checklist reflects ticket readiness
+
+- **GIVEN** a container ticket with a description, a locked Lastenheft, and a plan but no PR
+- **WHEN** the `TicketSpecProgress` island renders
+- **THEN** the items for "Beschreibung", "Lastenheft verriegelt", and "Plan vorhanden" are green
+- **AND** the item for "PR erstellt" is amber
+- **AND** the header reads `Fertig: X/10` where X matches the count of green items
+
+#### Scenario: No checklist for non-container tickets
+
+- **GIVEN** a ticket that is not a container type
+- **WHEN** the fullscreen ticket detail page renders
+- **THEN** no `TicketSpecProgress` island is present
+
+### Requirement: Dynamic Pflichtenheft/Lastenheft label with lock badge
+
+The system SHALL render the requirement-list section in `ContainerDorPanel` with a heading
+that reads "Lastenheft" when the Lastenheft is locked and "Pflichtenheft" otherwise, plus a
+colour-coded badge indicating the lock state, and an amber fallback when the list is empty.
+
+#### Scenario: Locked Lastenheft shows green badge
+
+- **GIVEN** a `ContainerDor` with `lastenheftLocked === true`
+- **WHEN** `ContainerDorPanel` renders
+- **THEN** the section heading is "Lastenheft"
+- **AND** a green badge reading "🔒 verriegelt · KI-bereit" is visible
+
+#### Scenario: Unlocked shows amber draft badge
+
+- **GIVEN** a `ContainerDor` with `lastenheftLocked === false`
+- **WHEN** `ContainerDorPanel` renders
+- **THEN** the section heading is "Pflichtenheft"
+- **AND** an amber badge reading "✏ Entwurf" is visible
+
+#### Scenario: Empty requirements list shows warning
+
+- **GIVEN** a `ContainerDor` whose requirements list is empty
+- **WHEN** `ContainerDorPanel` renders
+- **THEN** an amber warning "⚠ Keine Anforderungen erfasst" is shown instead of a blank panel
+
+### Requirement: Fullscreen section ordering with spec progress island
+
+The system SHALL render sections in the fullscreen ticket detail page in the following
+canonical order: Beschreibung → TicketSpecProgress → ContainerDorPanel → TicketPlanPanel →
+ContainerChildrenList → GrillingStepper → ProjectQuestionnairesPanel → Verknüpfungen →
+Verlauf → Anhänge; and the page SHALL remain within 400 lines of code.
+
+#### Scenario: Correct section order
+
+- **GIVEN** a container ticket with all relevant data present
+- **WHEN** the fullscreen detail page renders
+- **THEN** `TicketSpecProgress` appears immediately after the description block
+- **AND** `GrillingStepper` appears after `ContainerChildrenList`
+- **AND** no component appears more than once (GrillingStepper count == 1, ProjectQuestionnairesPanel count == 1)
+
+---
+
+### Requirement: CockpitSidekickView component
+
+The system SHALL provide a `CockpitSidekickView` Svelte 5 component that fetches the
+portfolio from `/api/admin/cockpit/portfolio`, supports text filtering, an active-only
+toggle (persisted in `localStorage`), and collapsed-group state, and navigates to a
+feature on `pickFeature(extId)`.
+
+#### Scenario: Portfolio loads on mount
+
+- **GIVEN** the CockpitSidekickView is rendered in the sidekick drawer
+- **WHEN** the component mounts
+- **THEN** a GET request is made to `/api/admin/cockpit/portfolio`
+- **AND** the returned products are displayed according to the current filter state
+
+#### Scenario: cockpit:portfolio-mutated triggers reload
+
+- **GIVEN** CockpitSidekickView is mounted and portfolio data is shown
+- **WHEN** a `cockpit:portfolio-mutated` custom event is dispatched on the window
+- **THEN** `loadPortfolio()` is called again and the view refreshes
+
+#### Scenario: activeOnly toggle persisted across sessions
+
+- **GIVEN** the user enables the active-only toggle in CockpitSidekickView
+- **WHEN** the page is reloaded and the sidekick cockpit view is opened
+- **THEN** the active-only toggle is still enabled (read from `localStorage['cockpit:activeOnly']`)
+
+### Requirement: 'cockpit' SidekickView union entry
+
+The system SHALL include `'cockpit'` in the `SidekickView` union type and in `KNOWN_VIEWS`
+so that `parseNavigateEvent` and the nudge system can route to the cockpit sidekick view
+without falling through to the default case.
+
+#### Scenario: parseNavigateEvent accepts 'cockpit'
+
+- **GIVEN** a postMessage event with `{ type: 'navigate', view: 'cockpit' }`
+- **WHEN** `parseNavigateEvent` processes the message
+- **THEN** the returned view is `'cockpit'`
+- **AND** no "unknown view" warning is emitted
+
+### Requirement: PortalSidekick and SidekickHome cockpit wiring
+
+The system SHALL route the `'cockpit'` view to `CockpitSidekickView` inside
+`PortalSidekick`, display "Projekt-Cockpit" as the drawer title for that view, and present
+a home tile with `id: 'cockpit'` and subtitle "Container & Features" in `SidekickHome`.
+
+#### Scenario: Cockpit tile visible on SidekickHome
+
+- **GIVEN** the sidekick drawer is open and shows the home screen
+- **WHEN** the user sees item 04
+- **THEN** it has the label for "Projekt-Cockpit" and subtitle "Container & Features"
+- **AND** clicking it transitions the drawer to the `'cockpit'` view
+
+#### Scenario: PortalSidekick renders CockpitSidekickView
+
+- **GIVEN** the sidekick drawer is open with `view === 'cockpit'`
+- **WHEN** the drawer body is rendered
+- **THEN** a `<CockpitSidekickView />` component is mounted
+- **AND** the drawer header reads "Projekt-Cockpit"
+
+### Requirement: Cockpit.svelte decoupled from CockpitSidebar via event bridge
+
+The system SHALL remove the direct `CockpitSidebar` import from `Cockpit.svelte` and
+replace it with a window event bridge listening for `cockpit:feature-selected` and
+`cockpit:portfolio-mutated`, so that the cockpit layout no longer contains a sidebar column.
+
+#### Scenario: cockpit:feature-selected event triggers feature selection
+
+- **GIVEN** Cockpit.svelte is mounted without a CockpitSidebar
+- **WHEN** a `cockpit:feature-selected` event is dispatched on the window with `{ detail: { extId: 'F001' } }`
+- **THEN** the feature with extId 'F001' is selected in the cockpit main area
+- **AND** the event listener is cleaned up when the component is destroyed
+
+---
+
+### Requirement: Centralized logging dashboards are reachable from the admin UI
+
+The admin Platform Control Center SHALL surface the four Grafana dashboards provisioned by the centralized-logging change (UIDs `log-explorer`, `api-errors`, `traefik-access`, `keycloak-audit`) through a `CentralizedLoggingPanel` component rendering a 2×2 card grid. Each card SHALL link to `{grafanaUrl}/d/{uid}` in a new tab (`target="_blank"`, `rel="noopener noreferrer"`), and the Grafana base URL SHALL be derived from `PROD_DOMAIN` (no new env var, no brand-domain literal).
+
+#### Scenario: Operator opens a logging dashboard from the Observability tab
+
+- **GIVEN** an admin is on `/admin/platform`
+- **WHEN** they select the "Observability" tab
+- **THEN** they see four dashboard cards above the live pod-log stream
+- **AND** each card's link resolves to `{grafanaUrl}/d/{uid}` for its dashboard and opens in a new tab
+
+### Requirement: Platform Control Center matches the Cockpit design language
+
+The Platform Control Center SHALL be visually consistent with the Cockpit: the page header SHALL be rendered by `AdminPageHeader` in the Astro shell (`platform.astro`, 88rem max-width, cluster badge in the `actions` slot) rather than inside the Svelte component, and the `PlatformHub` tab bar plus the `LogsTab` and `DienstTab` ops panels SHALL resolve all colors through the `var(--admin-*)` design tokens instead of raw Tailwind color utilities.
+
+#### Scenario: Header and tokens align with the Cockpit
+
+- **GIVEN** an admin compares `/admin/platform` with `/admin/cockpit`
+- **WHEN** both pages render
+- **THEN** the platform header is produced by `AdminPageHeader` and is visually identical in structure to the cockpit header
+- **AND** no raw `bg-gray-*`, `text-gray-*`, `text-green-*`, `text-yellow-*`, or `text-red-*` color utilities remain in `LogsTab.svelte` or `DienstTab.svelte`

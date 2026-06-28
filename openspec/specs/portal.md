@@ -634,3 +634,10 @@ The system SHALL pass all steps of System-Test 10 (Externe Dienste & öffentlich
 - **GIVEN** Admin-Zugangsdaten sind als Umgebungsvariable gesetzt
 - **WHEN** `walkSystemtestByTemplate(page, 10)` ausgeführt wird
 - **THEN** alle 10 Testschritte werden durchlaufen und das Ergebnis wird erfolgreich übermittelt
+
+---
+
+### Requirement: Coaching Studio Service
+
+The system SHALL provide an authenticated coaching-studio service for the coach to run
+KI-supported 10-level systemic coaching sessions with international clients.

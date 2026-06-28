@@ -31,8 +31,11 @@ spec:
           type: RuntimeDefault
       initContainers:
         - name: wait-for-db
-          image: busybox:1.38.0@sha256:fd8d9aa63ba2f0982b5304e1ee8d3b90a210bc1ffb5314d980eb6962f1a9715d
-          command: ['sh', '-c', 'until nc -w1 -z shared-db 5432 2>/dev/null; do echo "waiting for shared-db..."; sleep 3; done']
+          # pg_isready checks actual PostgreSQL readiness (not just TCP open).
+          # nc -z only verifies TCP — shared-db accepts connections before it
+          # can serve queries, so pocket-id would crash on its 3-retry startup.
+          image: postgres:16-alpine@sha256:e013e867e712fec275706a6c51c966f0bb0c93cfa8f51000f85a15f9865a28cb
+          command: ['sh', '-c', 'until pg_isready -h shared-db -p 5432 -U pocket_id -d pocket_id -q; do echo "waiting for shared-db..."; sleep 2; done']
           securityContext:
             allowPrivilegeEscalation: false
             runAsNonRoot: true
@@ -44,7 +47,7 @@ spec:
           resources:
             requests:
               cpu: "10m"
-              memory: "16Mi"
+              memory: "32Mi"
             limits:
               cpu: "100m"
               memory: "64Mi"
@@ -129,8 +132,11 @@ spec:
           type: RuntimeDefault
       initContainers:
         - name: wait-for-db
-          image: busybox:1.38.0@sha256:fd8d9aa63ba2f0982b5304e1ee8d3b90a210bc1ffb5314d980eb6962f1a9715d
-          command: ['sh', '-c', 'until nc -w1 -z shared-db 5432 2>/dev/null; do echo "waiting for shared-db..."; sleep 3; done']
+          # pg_isready checks actual PostgreSQL readiness (not just TCP open).
+          # nc -z only verifies TCP — shared-db accepts connections before it
+          # can serve queries, so pocket-id would crash on its 3-retry startup.
+          image: postgres:16-alpine@sha256:e013e867e712fec275706a6c51c966f0bb0c93cfa8f51000f85a15f9865a28cb
+          command: ['sh', '-c', 'until pg_isready -h shared-db -p 5432 -U pocket_id -d pocket_id -q; do echo "waiting for shared-db..."; sleep 2; done']
           securityContext:
             allowPrivilegeEscalation: false
             runAsNonRoot: true
@@ -142,7 +148,7 @@ spec:
           resources:
             requests:
               cpu: "10m"
-              memory: "16Mi"
+              memory: "32Mi"
             limits:
               cpu: "100m"
               memory: "64Mi"
@@ -203,11 +209,18 @@ spec:
                   key: POCKET_ID_ENCRYPTION_KEY
           ports:
             - containerPort: 1411
+          startupProbe:
+            httpGet:
+              path: /.well-known/openid-configuration
+              port: 1411
+            failureThreshold: 30
+            periodSeconds: 10
+            timeoutSeconds: 3
           readinessProbe:
             httpGet:
               path: /.well-known/openid-configuration
               port: 1411
-            initialDelaySeconds: 10
+            initialDelaySeconds: 5
             periodSeconds: 10
             timeoutSeconds: 3
           livenessProbe:

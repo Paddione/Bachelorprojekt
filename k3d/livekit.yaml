@@ -481,6 +481,8 @@ spec:
             limits:
               memory: 2Gi
               cpu: 2000m
+          securityContext:
+            allowPrivilegeEscalation: false
           volumeMounts:
             - name: recordings
               mountPath: /recordings

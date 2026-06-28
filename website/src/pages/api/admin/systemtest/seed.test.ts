@@ -25,7 +25,7 @@ const dbAvailable = !!(
   process.env.SESSIONS_DATABASE_URL
 );
 
-const mockSession = { sub: 'admin', preferred_username: 'admin' } as any;
+const mockSession = { sub: 'admin', preferred_username: 'admin' } as unknown as Awaited<ReturnType<typeof getSession>>;
 
 function makeReq(body: unknown): Request {
   return new Request('http://test/api/admin/systemtest/seed', {
@@ -58,12 +58,12 @@ describe.skipIf(!dbAvailable)('POST /api/admin/systemtest/seed', () => {
 
   it('rejects when not authenticated', async () => {
     vi.mocked(getSession).mockResolvedValue(null);
-    const res = await POST({ request: makeReq({ assignmentId: 'x', questionId: 'y' }) } as any);
+    const res = await POST({ request: makeReq({ assignmentId: 'x', questionId: 'y' }) } as unknown as Parameters<typeof POST>[0]);
     expect(res.status).toBe(401);
   });
 
   it('rejects non-UUID assignmentId', async () => {
-    const res = await POST({ request: makeReq({ assignmentId: 'not-a-uuid', questionId: 'also-not' }) } as any);
+    const res = await POST({ request: makeReq({ assignmentId: 'not-a-uuid', questionId: 'also-not' }) } as unknown as Parameters<typeof POST>[0]);
     expect(res.status).toBe(400);
   });
 
@@ -82,7 +82,7 @@ describe.skipIf(!dbAvailable)('POST /api/admin/systemtest/seed', () => {
       [tplId],
     )).rows[0].id;
 
-    const res = await POST({ request: makeReq({ assignmentId: aId, questionId: qId }) } as any);
+    const res = await POST({ request: makeReq({ assignmentId: aId, questionId: qId }) } as unknown as Parameters<typeof POST>[0]);
     expect(res.status).toBe(404);
   });
 
@@ -106,7 +106,7 @@ describe.skipIf(!dbAvailable)('POST /api/admin/systemtest/seed', () => {
       [tplId],
     )).rows[0].id;
 
-    const res = await POST({ request: makeReq({ assignmentId: aId, questionId: qId }) } as any);
+    const res = await POST({ request: makeReq({ assignmentId: aId, questionId: qId }) } as unknown as Parameters<typeof POST>[0]);
     const body = await res.json();
     expect(res.status).toBe(200);
     expect(body.testUser.email).toMatch(/^test-.*@systemtest\.local$/);
@@ -144,7 +144,7 @@ describe.skipIf(!dbAvailable)('POST /api/admin/systemtest/seed', () => {
       [tplId],
     )).rows[0].id;
 
-    const res = await POST({ request: makeReq({ assignmentId: aId, questionId: qId }) } as any);
+    const res = await POST({ request: makeReq({ assignmentId: aId, questionId: qId }) } as unknown as Parameters<typeof POST>[0]);
     expect(res.status).toBe(200);
   });
 
@@ -178,7 +178,7 @@ describe.skipIf(!dbAvailable)('POST /api/admin/systemtest/seed', () => {
       [tplId],
     )).rows[0].id;
 
-    const res = await POST({ request: makeReq({ assignmentId: aId, questionId: qId }) } as any);
+    const res = await POST({ request: makeReq({ assignmentId: aId, questionId: qId }) } as unknown as Parameters<typeof POST>[0]);
     expect(res.status).toBe(500);
 
     // No fixture rows written.

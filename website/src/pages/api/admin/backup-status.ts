@@ -87,7 +87,12 @@ export function derivePipelineStatus(
   return { id: '', light: 'gray', lastRun, lastSuccessfulUpload, succeeded: 0, failed: 0, active: 0, schedule };
 }
 
-function mapJob(j: any): PipelineJob {
+interface K8sJobRaw {
+  metadata: { name: string; labels?: Record<string, string> };
+  status?: { startTime?: string; completionTime?: string; succeeded?: number; failed?: number; active?: number };
+}
+
+function mapJob(j: K8sJobRaw): PipelineJob {
   return {
     name: j.metadata.name,
     startTime: j.status?.startTime ?? null,
@@ -128,8 +133,8 @@ export const GET: APIRoute = async ({ request }) => {
   const results = await Promise.allSettled(
     pipelineDefs.map(async (def) => {
       const [jobsData, cronData] = await Promise.all([
-        k8s.get(`/apis/batch/v1/namespaces/${ns}/jobs?labelSelector=app%3D${def.label}`),
-        k8s.get(`/apis/batch/v1/namespaces/${ns}/cronjobs/${def.label}`).catch(() => null),
+        k8s.get<{ items?: K8sJobRaw[] }>(`/apis/batch/v1/namespaces/${ns}/jobs?labelSelector=app%3D${def.label}`),
+        k8s.get<{ spec?: { schedule?: string } }>(`/apis/batch/v1/namespaces/${ns}/cronjobs/${def.label}`).catch(() => null),
       ]);
       const jobs = (jobsData.items ?? []).map(mapJob);
       const status = derivePipelineStatus(jobs, cronData, now, def.maxAgeH);

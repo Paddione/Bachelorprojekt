@@ -21,7 +21,12 @@ export const GET: APIRoute = async ({ request }) => {
 
   await Promise.allSettled(
     NAMESPACES.map(async ({ ns, label }) => {
-      const data = await k8s.get(`/apis/apps/v1/namespaces/${ns}/deployments`);
+      interface K8sDeployment {
+        metadata: { name: string };
+        spec?: { replicas?: number };
+        status?: { readyReplicas?: number };
+      }
+      const data = await k8s.get<{ items?: K8sDeployment[] }>(`/apis/apps/v1/namespaces/${ns}/deployments`);
       for (const d of data.items ?? []) {
         const desired = d.spec?.replicas ?? 0;
         const ready = d.status?.readyReplicas ?? 0;

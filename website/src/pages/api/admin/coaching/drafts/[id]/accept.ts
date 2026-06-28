@@ -9,16 +9,16 @@ export const POST: APIRoute = async ({ request, params, url }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response('Unauthorized', { status: 401 });
   const id = params.id as string;
-  const body = await request.json().catch(() => ({} as Record<string, unknown>));
-  const reviewedBy = (session as any).email ?? (session as any).user ?? 'admin';
+  const body: Record<string, unknown> = await request.json().catch(() => ({}));
+  const reviewedBy = session.email ?? 'admin';
   const then = url.searchParams.get('then');
 
   try {
     const result = await acceptDraft(pool, id, {
       reviewedBy,
-      payloadOverrides: (body as any).payload_overrides as Record<string, unknown> | undefined,
-      snippetTitleOverride: (body as any).snippet_title as string | undefined,
-      tags: (body as any).tags as string[] | undefined,
+      payloadOverrides: body.payload_overrides as Record<string, unknown> | undefined,
+      snippetTitleOverride: body.snippet_title as string | undefined,
+      tags: body.tags as string[] | undefined,
     });
     const out: Record<string, unknown> = {
       draft: result.draft,

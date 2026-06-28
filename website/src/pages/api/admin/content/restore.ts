@@ -14,7 +14,8 @@ export const POST: APIRoute = async ({ request }) => {
   if (!target) return new Response('version not found', { status: 404 });
 
   const current = await readContent(BRAND, contentKey);
-  const editor = (session as any).email ?? (session as any).name ?? 'unknown';
-  const { version } = await writeContent(BRAND, contentKey, target.snapshot.value, current.version, editor);
+  const editor = session.email ?? session.name ?? 'unknown';
+  const snapshot = target.snapshot as { value: unknown };
+  const { version } = await writeContent(BRAND, contentKey, snapshot.value, current.version, editor);
   return new Response(JSON.stringify({ version }), { status: 200, headers: { 'content-type': 'application/json' } });
 };

@@ -51,7 +51,7 @@ describe('POST /api/admin/angebote/save — catalog link persistence', () => {
       headlineKey: 'fuehrung-einzel',
       headlinePrefix: true,
     };
-    const r = await POST({ request: jsonReq({ services: [card], leistungen: [], priceListUrl: '' }) } as any);
+    const r = await POST({ request: jsonReq({ services: [card], leistungen: [], priceListUrl: '' }) } as unknown as Parameters<typeof POST>[0]);
     expect(r.status).toBe(200);
 
     const saved = vi.mocked(saveServiceConfig).mock.calls[0][1];
@@ -76,7 +76,7 @@ describe('POST /api/admin/angebote/save — catalog link persistence', () => {
         pricing: [{ label: 'Einzelstunde', price: '150 €' }],
       },
     };
-    const r = await POST({ request: jsonReq({ services: [card], leistungen: [], priceListUrl: '' }) } as any);
+    const r = await POST({ request: jsonReq({ services: [card], leistungen: [], priceListUrl: '' }) } as unknown as Parameters<typeof POST>[0]);
     expect(r.status).toBe(200);
 
     const saved = vi.mocked(saveServiceConfig).mock.calls[0][1];
@@ -95,7 +95,7 @@ describe('POST /api/admin/angebote/save — catalog link persistence', () => {
       features: [],
       price: 'auf Anfrage',
     };
-    const r = await POST({ request: jsonReq({ services: [card], leistungen: [], priceListUrl: '' }) } as any);
+    const r = await POST({ request: jsonReq({ services: [card], leistungen: [], priceListUrl: '' }) } as unknown as Parameters<typeof POST>[0]);
     expect(r.status).toBe(200);
 
     const saved = vi.mocked(saveServiceConfig).mock.calls[0][1];

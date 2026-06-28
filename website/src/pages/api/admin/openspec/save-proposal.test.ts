@@ -33,7 +33,7 @@ function asAdmin() {
 describe('POST /api/admin/openspec/save-proposal', () => {
   it('returns 403 when not authenticated', async () => {
     vi.mocked(getSession).mockResolvedValue(null);
-    const res = await POST({ request: jsonReq({ slug: 's1', content: 'hello' }) } as any);
+    const res = await POST({ request: jsonReq({ slug: 's1', content: 'hello' }) } as unknown as Parameters<typeof POST>[0]);
     expect(res.status).toBe(403);
   });
 
@@ -42,7 +42,7 @@ describe('POST /api/admin/openspec/save-proposal', () => {
     vi.mocked(isValidSlug).mockReturnValue(true);
     vi.mocked(writeProposal).mockResolvedValue();
 
-    const res = await POST({ request: jsonReq({ slug: 's1', content: 'hello' }) } as any);
+    const res = await POST({ request: jsonReq({ slug: 's1', content: 'hello' }) } as unknown as Parameters<typeof POST>[0]);
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ ok: true });
     expect(writeProposal).toHaveBeenCalledWith('s1', 'hello');
@@ -52,7 +52,7 @@ describe('POST /api/admin/openspec/save-proposal', () => {
     asAdmin();
     vi.mocked(isValidSlug).mockReturnValue(false);
 
-    const res = await POST({ request: jsonReq({ slug: '../x', content: 'hello' }) } as any);
+    const res = await POST({ request: jsonReq({ slug: '../x', content: 'hello' }) } as unknown as Parameters<typeof POST>[0]);
     expect(res.status).toBe(400);
   });
 });

@@ -6,14 +6,14 @@ export const MAX_BULK_SELECT = 10;
 export interface BulkChangeResult {
   changed: { id: string; oldStatus: string }[];
   skipped: { id: string; oldStatus: string; reason: string }[];
-  failed: { id: string; error: any }[];
+  failed: { id: string; error: unknown }[];
   undoToken?: string;
   oldStatuses: Record<string, string>;
 }
 
 export interface UndoResult {
   restored: string[];
-  failed: { id: string; error: any }[];
+  failed: { id: string; error: unknown }[];
 }
 
 interface UndoStoreItem {
@@ -39,7 +39,7 @@ export async function bulkChangeStatus(
 
   const changed: { id: string; oldStatus: string }[] = [];
   const skipped: { id: string; oldStatus: string; reason: string }[] = [];
-  const failed: { id: string; error: any }[] = [];
+  const failed: { id: string; error: unknown }[] = [];
   const oldStatuses: Record<string, string> = {};
 
   for (const id of ids) {
@@ -123,7 +123,7 @@ export async function undoBulkStatus(token: string): Promise<UndoResult> {
 
   const { oldStatuses, newStatus, brand } = item;
   const restored: string[] = [];
-  const failed: { id: string; error: any }[] = [];
+  const failed: { id: string; error: unknown }[] = [];
 
   for (const [id, oldStatus] of Object.entries(oldStatuses)) {
     const client = await pool.connect();

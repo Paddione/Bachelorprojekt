@@ -26,15 +26,15 @@ describe('GET /api/admin/ai-quality', () => {
   test('401 ohne Admin-Session', async () => {
     vi.mocked(getSession).mockResolvedValue(null);
     vi.mocked(isAdmin).mockReturnValue(false);
-    const res = await route.GET({ request: req() } as any);
+    const res = await route.GET({ request: req() } as unknown as Parameters<typeof route.GET>[0]);
     expect(res.status).toBe(401);
   });
 
   test('200 mit vollständigem Response-Shape', async () => {
-    vi.mocked(getSession).mockResolvedValue({ sub: 'admin' } as any);
+    vi.mocked(getSession).mockResolvedValue({ sub: 'admin' } as unknown as Awaited<ReturnType<typeof getSession>>);
     vi.mocked(isAdmin).mockReturnValue(true);
     queryMock.mockResolvedValue({ rows: [] });
-    const res = await route.GET({ request: req() } as any);
+    const res = await route.GET({ request: req() } as unknown as Parameters<typeof route.GET>[0]);
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body).toHaveProperty('health');
@@ -47,7 +47,7 @@ describe('GET /api/admin/ai-quality', () => {
   });
 
   test('Health-Klassifikation: green bei niedriger Latenz/Fehlerrate', async () => {
-    vi.mocked(getSession).mockResolvedValue({ sub: 'admin' } as any);
+    vi.mocked(getSession).mockResolvedValue({ sub: 'admin' } as unknown as Awaited<ReturnType<typeof getSession>>);
     vi.mocked(isAdmin).mockReturnValue(true);
     expect(route.computeHealth({ avg_latency_ms: 300, error_rate: 0.01, calls: 10 })).toBe('green');
     expect(route.computeHealth({ avg_latency_ms: 1500, error_rate: 0.1, calls: 10 })).toBe('yellow');

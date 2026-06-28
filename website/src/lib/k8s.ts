@@ -13,19 +13,19 @@ export class K8sApiError extends Error {
 }
 
 export type K8sClient = {
-  get: (path: string) => Promise<any>;
-  patch: (path: string, body: object) => Promise<any>;
-  mergePatch: (path: string, body: object) => Promise<any>;
-  post: (path: string, body: object) => Promise<any>;
-  delete: (path: string) => Promise<any>;
+  get: <T = unknown>(path: string) => Promise<T>;
+  patch: <T = unknown>(path: string, body: object) => Promise<T>;
+  mergePatch: <T = unknown>(path: string, body: object) => Promise<T>;
+  post: <T = unknown>(path: string, body: object) => Promise<T>;
+  delete: <T = unknown>(path: string) => Promise<T>;
 };
 
 export async function createK8sClient(): Promise<K8sClient> {
   const token = await fs.readFile('/var/run/secrets/kubernetes.io/serviceaccount/token', 'utf-8');
   const ca = await fs.readFile('/var/run/secrets/kubernetes.io/serviceaccount/ca.crt', 'utf-8');
 
-  function request(path: string, method: string, body?: object, contentType = 'application/strategic-merge-patch+json'): Promise<any> {
-    return new Promise((resolve, reject) => {
+  function request<T = unknown>(path: string, method: string, body?: object, contentType = 'application/strategic-merge-patch+json'): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
       const bodyStr = body ? JSON.stringify(body) : undefined;
       const req = https.request(
         {
@@ -61,11 +61,11 @@ export async function createK8sClient(): Promise<K8sClient> {
   }
 
   return {
-    get: (path) => request(path, 'GET'),
-    patch: (path, body) => request(path, 'PATCH', body),
-    mergePatch: (path, body) => request(path, 'PATCH', body, 'application/merge-patch+json'),
-    post: (path, body) => request(path, 'POST', body, 'application/json'),
-    delete: (path) => request(path, 'DELETE'),
+    get: <T = unknown>(path: string) => request<T>(path, 'GET'),
+    patch: <T = unknown>(path: string, body: object) => request<T>(path, 'PATCH', body),
+    mergePatch: <T = unknown>(path: string, body: object) => request<T>(path, 'PATCH', body, 'application/merge-patch+json'),
+    post: <T = unknown>(path: string, body: object) => request<T>(path, 'POST', body, 'application/json'),
+    delete: <T = unknown>(path: string) => request<T>(path, 'DELETE'),
   };
 }
 

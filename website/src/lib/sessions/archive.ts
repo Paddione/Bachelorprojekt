@@ -21,13 +21,24 @@ async function writeAtomically(filePath: string, data: string): Promise<void> {
   await rename(tmpPath, filePath);
 }
 
-async function readRegistry(filePath: string): Promise<any[]> {
+interface RegistryEntry {
+  slug: string;
+  started_at?: string;
+  type?: string;
+  title?: string;
+  participants?: string[];
+  owner?: string;
+  preferred_username?: string;
+  local_url?: string;
+}
+
+async function readRegistry(filePath: string): Promise<RegistryEntry[]> {
   const raw = await readFile(filePath, 'utf8');
   const parsed = JSON.parse(raw);
   if (!Array.isArray(parsed)) {
     throw new Error('Registry is not an array');
   }
-  return parsed;
+  return parsed as RegistryEntry[];
 }
 
 export async function purgeOldSessions({ maxAgeDays = 30 }: { maxAgeDays?: number } = {}): Promise<{ purged: number; warnings: string[] }> {
@@ -35,11 +46,11 @@ export async function purgeOldSessions({ maxAgeDays = 30 }: { maxAgeDays?: numbe
   const archiveDir = getArchiveDir();
   const warnings: string[] = [];
 
-  let registry: any[] = [];
+  let registry: RegistryEntry[] = [];
   try {
     registry = await readRegistry(registryPath);
-  } catch (err: any) {
-    if (err.code === 'ENOENT') {
+  } catch (err: unknown) {
+    if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
       registry = [];
     } else {
       warnings.push('corrupt-registry');
@@ -50,8 +61,8 @@ export async function purgeOldSessions({ maxAgeDays = 30 }: { maxAgeDays?: numbe
   const now = new Date();
   const maxAgeMs = maxAgeDays * 24 * 60 * 60 * 1000;
 
-  const toKeep: any[] = [];
-  const toPurge: any[] = [];
+  const toKeep: RegistryEntry[] = [];
+  const toPurge: RegistryEntry[] = [];
 
   for (const entry of registry) {
     if (!entry.started_at) {
@@ -156,8 +167,8 @@ export async function listArchivedSessions({
   let files: string[] = [];
   try {
     files = await readdir(archiveDir);
-  } catch (err: any) {
-    if (err.code === 'ENOENT') {
+  } catch (err: unknown) {
+    if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
       return { items: [], total: 0, hasMore: false };
     }
     throw err;
@@ -223,7 +234,7 @@ export async function getArchivedMarkdown(id: string): Promise<string | null> {
   const filePath = join(archiveDir, `${id}.md`);
   try {
     return await readFile(filePath, 'utf8');
-  } catch (err: any) {
+  } catch {
     return null;
   }
 }

@@ -44,7 +44,7 @@ describe.skipIf(!dbAvailable)('POST /api/admin/evidence/upload', () => {
 
   it('rejects when not authenticated', async () => {
     vi.mocked(getSession).mockResolvedValue(null);
-    const res = await POST({ request: makeReq({}) } as any);
+    const res = await POST({ request: makeReq({}) } as unknown as Parameters<typeof POST>[0]);
     expect(res.status).toBe(401);
   });
 
@@ -52,7 +52,7 @@ describe.skipIf(!dbAvailable)('POST /api/admin/evidence/upload', () => {
     const res = await POST({ request: makeReq({
       assignmentId: 'not-a-uuid', questionId: 'also-not', attempt: 0,
       chunk: { events: [], chunkIndex: 0, isFinal: true },
-    }) } as any);
+    }) } as unknown as Parameters<typeof POST>[0]);
     expect(res.status).toBe(400);
   });
 
@@ -78,7 +78,7 @@ describe.skipIf(!dbAvailable)('POST /api/admin/evidence/upload', () => {
       chunk: { events: [{ type: 0, data: {}, timestamp: 1 }], chunkIndex: 0, isFinal: true },
       consoleLog: [],
       networkLog: [],
-    }) } as any);
+    }) } as unknown as Parameters<typeof POST>[0]);
     const json = await res.json();
     expect(res.status).toBe(200);
     expect(json.evidenceId).toMatch(/^[0-9a-f-]{36}$/i);

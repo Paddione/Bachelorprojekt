@@ -16,6 +16,7 @@ import { isConflict as detectConflict, nextVersion as bumpVersion } from './admi
 // that imports these names from website-db.
 import { pool, platformPool, ensureSchemaOnce, __resetSchemaInitCacheForTests } from './db-pool';
 export { pool, platformPool, ensureSchemaOnce, __resetSchemaInitCacheForTests } from './db-pool';
+import type { Pool, PoolClient } from 'pg';
 
 // Eager boot-time init so tracker schema migrations apply on rollout rather
 // than on the first lazy code path that happens to call initTicketsSchema (T000410).
@@ -4253,27 +4254,27 @@ async function initServicePageConfigTable(): Promise<void> {
 
 // ─── Content-Store accessors (T000306) ────────────────────────────────────────
 
-export interface ContentRead { value: any | null; version: number }
+export interface ContentRead { value: unknown; version: number }
 
 export class ContentConflictError extends Error {
   code = 'CONFLICT' as const;
   constructor(
     public currentVersion: number,
-    public currentValue: any,
+    public currentValue: unknown,
     public editor: string | null,
   ) {
     super('content version conflict');
   }
 }
 
-function safeJson(v: any): any {
+function safeJson(v: unknown): unknown {
   if (v == null) return null;
   if (typeof v !== 'string') return v;
   try { return JSON.parse(v); } catch { return v; }
 }
 
 async function liveRead(
-  client: any,
+  client: Pool | PoolClient,
   brand: string,
   ref: { contentType: string; storeKey: string },
 ): Promise<ContentRead> {
@@ -4321,10 +4322,10 @@ async function liveRead(
 }
 
 async function liveWrite(
-  client: any,
+  client: Pool | PoolClient,
   brand: string,
   ref: { contentType: string; storeKey: string },
-  value: any,
+  value: unknown,
   version: number,
 ): Promise<void> {
   switch (ref.contentType) {
@@ -4369,7 +4370,7 @@ export async function readContent(brand: string, contentKey: string): Promise<Co
 export async function writeContent(
   brand: string,
   contentKey: string,
-  value: any,
+  value: unknown,
   baseVersion: number,
   editor: string,
 ): Promise<{ version: number }> {
@@ -4400,7 +4401,7 @@ export async function writeContent(
       `SELECT id FROM content_versions WHERE brand=$1 AND content_key=$2 ORDER BY created_at DESC`,
       [brand, contentKey],
     );
-    const prune = idsToPrune(ids.rows.map((r: any) => Number(r.id)));
+    const prune = idsToPrune(ids.rows.map((r: Record<string, unknown>) => Number(r.id)));
     if (prune.length) {
       await client.query(`DELETE FROM content_versions WHERE id = ANY($1)`, [prune]);
     }
@@ -4426,7 +4427,7 @@ export async function listVersions(brand: string, contentKey: string) {
      ORDER BY created_at DESC`,
     [brand, contentKey],
   );
-  return r.rows.map((row: any) => ({
+  return r.rows.map((row: Record<string, unknown>) => ({
     id: Number(row.id),
     editor: row.editor,
     createdAt: row.created_at,

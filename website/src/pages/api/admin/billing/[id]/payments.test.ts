@@ -25,12 +25,12 @@ describe('GET /api/admin/billing/[id]/payments', () => {
 
   it('returns 403 when not authenticated', async () => {
     vi.mocked(getSession).mockResolvedValue(null);
-    const res = await GET({ request: new Request('http://localhost'), params: { id: 'inv1' } } as any);
+    const res = await GET({ request: new Request('http://localhost'), params: { id: 'inv1' } } as unknown as Parameters<typeof GET>[0]);
     expect(res.status).toBe(403);
   });
 
   it('returns payments list', async () => {
-    const res = await GET({ request: new Request('http://localhost'), params: { id: 'inv1' } } as any);
+    const res = await GET({ request: new Request('http://localhost'), params: { id: 'inv1' } } as unknown as Parameters<typeof GET>[0]);
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data.payments).toEqual([{ id: 'p1', amount: 100 }]);
@@ -47,7 +47,7 @@ describe('POST /api/admin/billing/[id]/payments', () => {
 
   it('returns 403 when not authenticated', async () => {
     vi.mocked(getSession).mockResolvedValue(null);
-    const res = await POST({ request: new Request('http://localhost'), params: { id: 'inv1' } } as any);
+    const res = await POST({ request: new Request('http://localhost'), params: { id: 'inv1' } } as unknown as Parameters<typeof POST>[0]);
     expect(res.status).toBe(403);
   });
 
@@ -56,7 +56,7 @@ describe('POST /api/admin/billing/[id]/payments', () => {
       method: 'POST',
       body: JSON.stringify({ paidAt: '2026-01-01' }), // missing amount and method
     });
-    const res = await POST({ request: req, params: { id: 'inv1' } } as any);
+    const res = await POST({ request: req, params: { id: 'inv1' } } as unknown as Parameters<typeof POST>[0]);
     expect(res.status).toBe(400);
   });
 
@@ -65,7 +65,7 @@ describe('POST /api/admin/billing/[id]/payments', () => {
       method: 'POST',
       body: JSON.stringify({ paidAt: '2026-01-01', amount: 100, method: 'invalid' }),
     });
-    const res = await POST({ request: req, params: { id: 'inv1' } } as any);
+    const res = await POST({ request: req, params: { id: 'inv1' } } as unknown as Parameters<typeof POST>[0]);
     expect(res.status).toBe(400);
   });
 
@@ -74,7 +74,7 @@ describe('POST /api/admin/billing/[id]/payments', () => {
       method: 'POST',
       body: JSON.stringify({ paidAt: '2026-01-01', amount: -10, method: 'sepa' }),
     });
-    const res = await POST({ request: req, params: { id: 'inv1' } } as any);
+    const res = await POST({ request: req, params: { id: 'inv1' } } as unknown as Parameters<typeof POST>[0]);
     expect(res.status).toBe(400);
   });
 
@@ -83,7 +83,7 @@ describe('POST /api/admin/billing/[id]/payments', () => {
       method: 'POST',
       body: JSON.stringify({ paidAt: '2026-01-01', amount: 100, method: 'bank', reference: 'ref1' }),
     });
-    const res = await POST({ request: req, params: { id: 'inv1' } } as any);
+    const res = await POST({ request: req, params: { id: 'inv1' } } as unknown as Parameters<typeof POST>[0]);
     expect(res.status).toBe(201);
     expect(vi.mocked(recordPayment)).toHaveBeenCalledWith({
       invoiceId: 'inv1',
@@ -104,7 +104,7 @@ describe('POST /api/admin/billing/[id]/payments', () => {
       method: 'POST',
       body: JSON.stringify({ paidAt: '2026-01-01', amount: 100, method: 'bank' }),
     });
-    const res = await POST({ request: req, params: { id: 'inv1' } } as any);
+    const res = await POST({ request: req, params: { id: 'inv1' } } as unknown as Parameters<typeof POST>[0]);
     expect(res.status).toBe(400);
     expect(await res.text()).toBe('cannot exceed gross amount');
   });

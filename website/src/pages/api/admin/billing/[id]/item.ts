@@ -13,7 +13,7 @@ export const POST: APIRoute = async ({ request, params }) => {
 
   const body = await request.json();
    
-  const inv  = await (stripe as any).invoices.retrieve(params.id!);
+  const inv  = await stripe.invoices.retrieve(params.id!);
   const customerId = typeof inv.customer === 'string'
     ? inv.customer
     : (inv.customer as { id: string } | null)?.id ?? '';
@@ -35,7 +35,7 @@ export const PATCH: APIRoute = async ({ request, params }) => {
   if (!invoiceItemId) return new Response(null, { status: 400 });
 
    
-  const item = await (stripe as any).invoiceItems.retrieve(invoiceItemId);
+  const item = await stripe.invoiceItems.retrieve(invoiceItemId);
   if (item.invoice !== params.id) return new Response(null, { status: 403 });
 
   await updateDraftInvoiceItem(invoiceItemId, {
@@ -55,7 +55,7 @@ export const DELETE: APIRoute = async ({ request, params }) => {
   if (!invoiceItemId) return new Response(null, { status: 400 });
 
    
-  const item = await (stripe as any).invoiceItems.retrieve(invoiceItemId);
+  const item = await stripe.invoiceItems.retrieve(invoiceItemId);
   if (item.invoice !== params.id) return new Response(null, { status: 403 });
 
   await deleteDraftInvoiceItem(invoiceItemId);

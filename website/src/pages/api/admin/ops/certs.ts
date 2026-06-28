@@ -20,7 +20,7 @@ export const GET: APIRoute = async ({ request }) => {
 
   for (const [cluster, { ns, name }] of Object.entries(TLS_SECRETS)) {
     try {
-      const secret = await k8s.get(`/api/v1/namespaces/${ns}/secrets/${name}`);
+      const secret = await k8s.get<{ data?: Record<string, string> }>(`/api/v1/namespaces/${ns}/secrets/${name}`);
       const certBase64 = secret.data?.['tls.crt'];
       if (!certBase64) { results[cluster] = { notAfter: null, daysLeft: null, error: 'Kein tls.crt im Secret' }; continue; }
       const cert = new X509Certificate(Buffer.from(certBase64, 'base64'));

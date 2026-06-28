@@ -41,24 +41,24 @@ describe('GET /api/admin/billing/sepa-export', () => {
 
   it('returns 401 when not authenticated', async () => {
     vi.mocked(getSession).mockResolvedValue(null);
-    const res = await GET({ request: new Request('http://localhost'), url: new URL('http://localhost') } as any);
+    const res = await GET({ request: new Request('http://localhost'), url: new URL('http://localhost') } as unknown as Parameters<typeof GET>[0]);
     expect(res.status).toBe(401);
   });
 
   it('returns 503 when SEPA env vars are missing', async () => {
     delete process.env.SEPA_CREDITOR_IBAN;
-    const res = await GET({ request: new Request('http://localhost'), url: new URL('http://localhost') } as any);
+    const res = await GET({ request: new Request('http://localhost'), url: new URL('http://localhost') } as unknown as Parameters<typeof GET>[0]);
     expect(res.status).toBe(503);
   });
 
   it('returns 400 when date is invalid', async () => {
-    const res = await GET({ request: new Request('http://localhost'), url: new URL('http://localhost?date=invalid') } as any);
+    const res = await GET({ request: new Request('http://localhost'), url: new URL('http://localhost?date=invalid') } as unknown as Parameters<typeof GET>[0]);
     expect(res.status).toBe(400);
   });
 
   it('returns 404 when no open invoices found', async () => {
     mockQuery.mockResolvedValueOnce({ rows: [] });
-    const res = await GET({ request: new Request('http://localhost'), url: new URL('http://localhost?date=2026-05-01') } as any);
+    const res = await GET({ request: new Request('http://localhost'), url: new URL('http://localhost?date=2026-05-01') } as unknown as Parameters<typeof GET>[0]);
     expect(res.status).toBe(404);
   });
 
@@ -78,7 +78,7 @@ describe('GET /api/admin/billing/sepa-export', () => {
       ]
     });
     
-    const res = await GET({ request: new Request('http://localhost'), url: new URL('http://localhost?date=2026-05-01') } as any);
+    const res = await GET({ request: new Request('http://localhost'), url: new URL('http://localhost?date=2026-05-01') } as unknown as Parameters<typeof GET>[0]);
     expect(res.status).toBe(200);
     expect(res.headers.get('Content-Type')).toContain('application/xml');
     expect(res.headers.get('Content-Disposition')).toContain('attachment; filename="sepa-lastschrift-2026-05-01.xml"');

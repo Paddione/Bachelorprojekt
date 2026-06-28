@@ -41,7 +41,7 @@ function asAdmin() {
 describe('POST /api/admin/content/save', () => {
   it('returns 401 when not authenticated', async () => {
     vi.mocked(getSession).mockResolvedValue(null);
-    const res = await POST({ request: jsonReq({ contentKey: 'kontakt', baseVersion: 0, payload: {} }), url: new URL('http://x/') } as any);
+    const res = await POST({ request: jsonReq({ contentKey: 'kontakt', baseVersion: 0, payload: {} }), url: new URL('http://x/') } as unknown as Parameters<typeof POST>[0]);
     expect(res.status).toBe(401);
   });
 
@@ -50,7 +50,7 @@ describe('POST /api/admin/content/save', () => {
     vi.mocked(refFor).mockReturnValue({ contentKey: 'kontakt', contentType: 'site_setting', storeKey: 'kontakt', publicRoute: '/kontakt' });
     vi.mocked(validateSection).mockReturnValue([]);
     vi.mocked(writeContent).mockResolvedValue({ version: 3 });
-    const res = await POST({ request: jsonReq({ contentKey: 'kontakt', baseVersion: 2, payload: { email: 'a@b.de' } }), url: new URL('http://x/') } as any);
+    const res = await POST({ request: jsonReq({ contentKey: 'kontakt', baseVersion: 2, payload: { email: 'a@b.de' } }), url: new URL('http://x/') } as unknown as Parameters<typeof POST>[0]);
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ version: 3 });
   });
@@ -60,7 +60,7 @@ describe('POST /api/admin/content/save', () => {
     vi.mocked(refFor).mockReturnValue({ contentKey: 'kontakt', contentType: 'site_setting', storeKey: 'kontakt', publicRoute: '/kontakt' });
     vi.mocked(validateSection).mockReturnValue([]);
     vi.mocked(writeContent).mockRejectedValue(new ContentConflictError(5, { old: 'value' }, null));
-    const res = await POST({ request: jsonReq({ contentKey: 'kontakt', baseVersion: 2, payload: {} }), url: new URL('http://x/') } as any);
+    const res = await POST({ request: jsonReq({ contentKey: 'kontakt', baseVersion: 2, payload: {} }), url: new URL('http://x/') } as unknown as Parameters<typeof POST>[0]);
     expect(res.status).toBe(409);
     const body = await res.json();
     expect(body).toHaveProperty('currentVersion', 5);
@@ -70,7 +70,7 @@ describe('POST /api/admin/content/save', () => {
     asAdmin();
     vi.mocked(refFor).mockReturnValue({ contentKey: 'kontakt', contentType: 'site_setting', storeKey: 'kontakt', publicRoute: '/kontakt' });
     vi.mocked(validateSection).mockReturnValue([{ field: 'email', message: 'invalid' }]);
-    const res = await POST({ request: jsonReq({ contentKey: 'kontakt', baseVersion: 0, payload: { email: 'bad' } }), url: new URL('http://x/') } as any);
+    const res = await POST({ request: jsonReq({ contentKey: 'kontakt', baseVersion: 0, payload: { email: 'bad' } }), url: new URL('http://x/') } as unknown as Parameters<typeof POST>[0]);
     expect(res.status).toBe(422);
   });
 });

@@ -17,7 +17,7 @@ export const POST: APIRoute = async ({ request }) => {
   try { k8s = await createK8sClient(); }
   catch { return new Response(JSON.stringify({ error: 'Kein Service-Account-Token.' }), { status: 503 }); }
 
-  const cronJob = await k8s.get(`/apis/batch/v1/namespaces/${ns}/cronjobs/db-backup`);
+  const cronJob = await k8s.get<{ spec: { jobTemplate: { spec: unknown } } }>(`/apis/batch/v1/namespaces/${ns}/cronjobs/db-backup`);
   const jobName = `db-backup-manual-${Date.now()}`;
   const job = {
     apiVersion: 'batch/v1',

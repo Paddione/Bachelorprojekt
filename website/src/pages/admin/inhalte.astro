@@ -7,6 +7,9 @@ import { getEffectiveHomepage, getEffectiveUebermich, getEffectiveServices, getE
 import { getLegalPage, listCustomSections, getSiteSetting, readContent } from '../../lib/website-db';
 import { getDefaultDatenschutz, getDefaultAgb, getDefaultBarrierefreiheit, getDefaultImpressumZusatz } from '../../lib/legal-defaults';
 import { config } from '../../config/index';
+import type { HomepageService, ServicePageContent, LeistungCategory, LeistungService } from '../../config/types';
+
+type EditorService = HomepageService & { hidden?: boolean; meta?: string; leistungCategoryId?: string };
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -14,11 +17,11 @@ if (!isAdmin(session)) return Astro.redirect('/admin');
 
 const BRAND = import.meta.env.BRAND || process.env.BRAND || 'mentolder';
 
-function serviceToEditorData(svc: any) {
-  const pc = svc?.pageContent ?? {};
-  const introNoteSection = (pc.sections ?? []).find((s: any) => s.title === '__introNote__');
+function serviceToEditorData(svc: EditorService | undefined) {
+  const pc: Partial<ServicePageContent> = svc?.pageContent ?? {};
+  const introNoteSection = (pc.sections ?? []).find((s) => s.title === '__introNote__');
   const introNote = introNoteSection?.items?.join('\n\n') ?? '';
-  const visibleSections = (pc.sections ?? []).filter((s: any) => s.title !== '__introNote__');
+  const visibleSections = (pc.sections ?? []).filter((s) => s.title !== '__introNote__');
   return {
     cardTitle: svc?.title ?? '',
     cardDescription: svc?.description ?? '',
@@ -34,11 +37,11 @@ function serviceToEditorData(svc: any) {
     faq: pc.faq ?? [],
     ctaText: pc.pricing?.[0]?.label ?? 'Kostenloses Erstgespräch buchen',
     ctaHref: '/termin',
-    seoTitle: (pc as any).seoTitle ?? '',
-    seoDescription: (pc as any).seoDescription ?? svc?.description ?? '',
+    seoTitle: pc.seoTitle ?? '',
+    seoDescription: pc.seoDescription ?? svc?.description ?? '',
     isCatalogLinked: !!svc?.leistungCategoryId,
     catalogTiers: (svc?.leistungCategoryId
-      ? leistungen.find((c: any) => c.id === svc.leistungCategoryId)?.services?.map((r: any) => ({
+      ? leistungen.find((c: LeistungCategory) => c.id === svc?.leistungCategoryId)?.services?.map((r: LeistungService) => ({
           label: r.name ?? '', price: r.price ?? '', unit: r.unit ?? '', highlight: r.highlight ?? false,
         })) ?? []
       : []),

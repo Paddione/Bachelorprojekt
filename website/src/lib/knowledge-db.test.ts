@@ -1,8 +1,15 @@
 import { describe, test, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 import { newDb, DataType } from 'pg-mem';
+import type { Pool } from 'pg';
 import * as kdb from './knowledge-db';
 
-let pool: ReturnType<ReturnType<typeof newDb>['adapters']['createPg']>['Pool'] extends new (...args: unknown[]) => infer T ? T : never;
+// pg-mem types its generated Pool as `any`; model the surface the tests use.
+type TestPool = {
+  query: (text: string, values?: unknown[]) => Promise<{ rows: Array<Record<string, unknown>> }>;
+  end: () => Promise<void>;
+};
+
+let pool: TestPool;
 
 let pgmem: ReturnType<typeof newDb>;
 
@@ -62,16 +69,16 @@ beforeAll(async () => {
   `);
   const { Pool } = pgmem.adapters.createPg();
   pool = new Pool();
-  kdb.__setPoolForTests(pool as any);
+  kdb.__setPoolForTests(pool as unknown as Pool);
 });
 
-afterAll(() => (pool as any).end());
+afterAll(() => pool.end());
 
 beforeEach(async () => {
-  await (pool as any).query('DELETE FROM knowledge.chunks');
-  await (pool as any).query('DELETE FROM knowledge.documents');
-  await (pool as any).query('DELETE FROM coaching.books');
-  await (pool as any).query('DELETE FROM knowledge.collections');
+  await pool.query('DELETE FROM knowledge.chunks');
+  await pool.query('DELETE FROM knowledge.documents');
+  await pool.query('DELETE FROM coaching.books');
+  await pool.query('DELETE FROM knowledge.collections');
 });
 
 describe('knowledge-db', () => {
@@ -104,10 +111,10 @@ describe('knowledge-db — model-aware query path', () => {
   const ORIGINAL_LLM_ENABLED = process.env.LLM_ENABLED;
 
   beforeEach(async () => {
-    await (pool as any).query('DELETE FROM knowledge.chunks');
-    await (pool as any).query('DELETE FROM knowledge.documents');
-    await (pool as any).query('DELETE FROM coaching.books');
-    await (pool as any).query('DELETE FROM knowledge.collections');
+    await pool.query('DELETE FROM knowledge.chunks');
+    await pool.query('DELETE FROM knowledge.documents');
+    await pool.query('DELETE FROM coaching.books');
+    await pool.query('DELETE FROM knowledge.collections');
     process.env.LLM_ENABLED = 'false';
   });
 
@@ -148,20 +155,20 @@ describe('knowledge-db — model-aware query path', () => {
 
 describe('mergeCollections', () => {
   async function seedCollection(name: string, source: 'custom' | 'web_crawl' | 'pr_history', chunks: number, model = 'voyage-multilingual-2') {
-    const r = await (pool as any).query(
+    const r = await pool.query(
       `INSERT INTO knowledge.collections (name, source, chunk_count, embedding_model)
        VALUES ($1, $2, $3, $4) RETURNING id`,
       [name, source, chunks, model],
     );
-    const colId: string = r.rows[0].id;
-    const docR = await (pool as any).query(
+    const colId = r.rows[0].id as string;
+    const docR = await pool.query(
       `INSERT INTO knowledge.documents (collection_id, title, source_uri, raw_text)
        VALUES ($1, $2, $3, $4) RETURNING id`,
       [colId, `${name}-doc`, `uri:${name}`, `text of ${name}`],
     );
-    const docId: string = docR.rows[0].id;
+    const docId = docR.rows[0].id as string;
     for (let i = 0; i < chunks; i++) {
-      await (pool as any).query(
+      await pool.query(
         `INSERT INTO knowledge.chunks (document_id, collection_id, position, text, embedding)
          VALUES ($1, $2, $3, $4, $5)`,
         [docId, colId, i, `chunk ${i} of ${name}`, '[0.1,0.2]'],
@@ -193,12 +200,12 @@ describe('mergeCollections', () => {
 
     const merged = await kdb.mergeCollections({ sourceIds: [a, b], name: 'docs-merged' });
 
-    const docs = await (pool as any).query(
+    const docs = await pool.query(
       'SELECT * FROM knowledge.documents WHERE collection_id = $1', [merged.id],
     );
     expect(docs.rows).toHaveLength(2);
 
-    const chunks = await (pool as any).query(
+    const chunks = await pool.query(
       'SELECT * FROM knowledge.chunks WHERE collection_id = $1', [merged.id],
     );
     expect(chunks.rows).toHaveLength(5);
@@ -207,14 +214,14 @@ describe('mergeCollections', () => {
   test('deletes coaching.books records for source collections', async () => {
     const a = await seedCollection('book-src', 'custom', 2);
     const b = await seedCollection('book-src2', 'custom', 1);
-    await (pool as any).query(
+    await pool.query(
       `INSERT INTO coaching.books (knowledge_collection_id, title) VALUES ($1, $2)`,
       [a, 'Test Book'],
     );
 
     await kdb.mergeCollections({ sourceIds: [a, b], name: 'book-merged' });
 
-    const books = await (pool as any).query(
+    const books = await pool.query(
       'SELECT * FROM coaching.books WHERE knowledge_collection_id = $1', [a],
     );
     expect(books.rows).toHaveLength(0);

@@ -16,9 +16,9 @@ const kontakt = await getEffectiveKontakt();
 const stammdaten = await getEffectiveStammdaten().catch(() => null);
 
 // Kontaktdaten: stammdaten (DB site_settings) wins; legacy kontaktOverride.footer* as fallback; static config as final fallback
-const displayPhone = stammdaten?.phone || (kontakt as any).footerPhone?.trim() || (config.contact.phone && config.contact.phone !== '***' ? config.contact.phone : '');
-const displayEmail = stammdaten?.email || (kontakt as any).footerEmail?.trim() || config.contact.email;
-const displayCity  = stammdaten?.city  || (kontakt as any).footerCity?.trim()  || config.contact.city;
+const displayPhone = stammdaten?.phone || kontakt.footerPhone?.trim() || (config.contact.phone && config.contact.phone !== '***' ? config.contact.phone : '');
+const displayEmail = stammdaten?.email || kontakt.footerEmail?.trim() || config.contact.email;
+const displayCity  = stammdaten?.city  || kontakt.footerCity?.trim()  || config.contact.city;
 
 const rawMode = Astro.url.searchParams.get('mode') ?? '';
 const initialMode = ['message', 'termin', 'callback'].includes(rawMode)

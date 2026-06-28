@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { calcDurationH, toDeliveryMetric, summarize, modelMixPercent } from './delivery-metrics';
-import type { DeliveryRow } from './delivery-metrics';
+import type { DeliveryRow, DeliveryMetric } from './delivery-metrics';
 
 describe('calcDurationH', () => {
   it('returns null when from is null', () => {
@@ -84,9 +84,9 @@ describe('modelMixPercent', () => {
 describe('summarize', () => {
   it('computes averages ignoring null entries', () => {
     const metrics = [
-      { hoursTicketToPrOpen: 10, hoursPrOpenToMerged: 20, hoursMergedToLive: 5, hoursTotal: 35 } as any,
-      { hoursTicketToPrOpen: null, hoursPrOpenToMerged: null, hoursMergedToLive: null, hoursTotal: null } as any,
-      { hoursTicketToPrOpen: 30, hoursPrOpenToMerged: 40, hoursMergedToLive: 10, hoursTotal: 80 } as any,
+      { hoursTicketToPrOpen: 10, hoursPrOpenToMerged: 20, hoursMergedToLive: 5, hoursTotal: 35 } as unknown as DeliveryMetric,
+      { hoursTicketToPrOpen: null, hoursPrOpenToMerged: null, hoursMergedToLive: null, hoursTotal: null } as unknown as DeliveryMetric,
+      { hoursTicketToPrOpen: 30, hoursPrOpenToMerged: 40, hoursMergedToLive: 10, hoursTotal: 80 } as unknown as DeliveryMetric,
     ];
 
     const s = summarize(metrics, 2, 14, {});
@@ -98,7 +98,7 @@ describe('summarize', () => {
   });
 
   it('mishap rate is bugCount / deliveries', () => {
-    const metrics = [{ hoursTicketToPrOpen: 1 } as any, { hoursTicketToPrOpen: 2 } as any];
+    const metrics = [{ hoursTicketToPrOpen: 1 } as unknown as DeliveryMetric, { hoursTicketToPrOpen: 2 } as unknown as DeliveryMetric];
     const s = summarize(metrics, 1, 7, {});
     expect(s.mishapRate).toBe(0.5);
     expect(s.mishapCount).toBe(1);

@@ -19,14 +19,14 @@ function resolveWindow(w: string): { interval: string; days: number; label: stri
   }
 }
 
-function toRow(r: any): DoraDeliveryRow {
+function toRow(r: Record<string, unknown>): DoraDeliveryRow {
   return {
-    ticketId: r.ticket_id,
-    type: r.type,
-    driver: r.driver ?? null,
-    createdAt: r.created_at ?? null,
-    mergedAt: r.merged_at ?? null,
-    prNumber: r.pr_number ?? null,
+    ticketId: r.ticket_id as string,
+    type: r.type as string,
+    driver: (r.driver ?? null) as DoraDeliveryRow['driver'],
+    createdAt: (r.created_at ?? null) as string | null,
+    mergedAt: (r.merged_at ?? null) as string | null,
+    prNumber: (r.pr_number ?? null) as number | null,
     reverted: r.reverted === true || r.reverted === 'reverted',
   };
 }
@@ -78,8 +78,8 @@ export const GET: APIRoute = async ({ request, locals }) => {
       ),
     ]);
 
-    const merges = (mergesRes.rows as any[]).map(toRow);
-    const bugs = (bugsRes.rows as any[]).map(toRow);
+    const merges = (mergesRes.rows as Record<string, unknown>[]).map(toRow);
+    const bugs = (bugsRes.rows as Record<string, unknown>[]).map(toRow);
     const metrics = computeDora(merges, bugs, days, label);
 
     return json({ metrics }, 200);

@@ -32,11 +32,16 @@ export const GET: APIRoute = async ({ request }) => {
   const ns = brand === 'korczewski' ? 'workspace-korczewski' : 'workspace';
 
   try {
-    const data = await k8s.get(`/apis/apps/v1/namespaces/${ns}/deployments`);
-    const deployments = (data.items ?? []).map((d: any) => {
-      const desired: number = d.spec.replicas ?? 1;
-      const ready: number = d.status.readyReplicas ?? 0;
-      const available: number = d.status.availableReplicas ?? 0;
+    interface K8sDeployment {
+      metadata: { name: string };
+      spec?: { replicas?: number };
+      status?: { readyReplicas?: number; availableReplicas?: number };
+    }
+    const data = await k8s.get<{ items?: K8sDeployment[] }>(`/apis/apps/v1/namespaces/${ns}/deployments`);
+    const deployments = (data.items ?? []).map((d: K8sDeployment) => {
+      const desired: number = d.spec?.replicas ?? 1;
+      const ready: number = d.status?.readyReplicas ?? 0;
+      const available: number = d.status?.availableReplicas ?? 0;
       return {
         name: d.metadata.name,
         desired,

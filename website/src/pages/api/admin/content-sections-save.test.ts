@@ -19,6 +19,8 @@ import { POST as footerPOST } from './footer/save';
 import { POST as stammdatenPOST } from './stammdaten/save';
 import { POST as koreFlagsPOST } from './kore-flags/save';
 
+type Ctx = Parameters<typeof navPOST>[0];
+
 function jsonReq(body: unknown): Request {
   return new Request('http://x/api/admin/x/save', {
     method: 'POST',
@@ -43,7 +45,7 @@ describe('content-section save endpoints', () => {
   it('navigation/save persists the posted array under NAV_KEY', async () => {
     asAdmin();
     const nav = [{ label: 'Leistungen', href: '/leistungen', order: 1 }];
-    const r = await navPOST({ request: jsonReq(nav) } as any);
+    const r = await navPOST({ request: jsonReq(nav) } as unknown as Ctx);
     expect(r.status).toBe(200);
     expect(vi.mocked(setJsonSetting)).toHaveBeenCalledWith('mentolder', 'navigation', nav);
   });
@@ -51,7 +53,7 @@ describe('content-section save endpoints', () => {
   it('footer/save persists columns + copyright under FOOTER_KEY', async () => {
     asAdmin();
     const footer = { columns: [{ heading: 'Mehr', links: [{ label: 'Blog', href: '/blog' }] }], copyright: '© 2026' };
-    const r = await footerPOST({ request: jsonReq(footer) } as any);
+    const r = await footerPOST({ request: jsonReq(footer) } as unknown as Ctx);
     expect(r.status).toBe(200);
     expect(vi.mocked(setJsonSetting)).toHaveBeenCalledWith('mentolder', 'footer', footer);
   });
@@ -59,14 +61,14 @@ describe('content-section save endpoints', () => {
   it('stammdaten/save persists the master-data object under STAMMDATEN_KEY', async () => {
     asAdmin();
     const sd = { name: 'P', role: 'Coach', email: 'a@b.de', phone: '', street: '', zip: '', city: 'Berlin', ustId: '', website: '', avatarInitials: 'P' };
-    const r = await stammdatenPOST({ request: jsonReq(sd) } as any);
+    const r = await stammdatenPOST({ request: jsonReq(sd) } as unknown as Ctx);
     expect(r.status).toBe(200);
     expect(vi.mocked(setJsonSetting)).toHaveBeenCalledWith('mentolder', 'stammdaten', sd);
   });
 
   it('kore-flags/save coerces timeline to boolean under KORE_FLAGS_KEY', async () => {
     asAdmin();
-    const r = await koreFlagsPOST({ request: jsonReq({ timeline: 1 }) } as any);
+    const r = await koreFlagsPOST({ request: jsonReq({ timeline: 1 }) } as unknown as Ctx);
     expect(r.status).toBe(200);
     expect(vi.mocked(setJsonSetting)).toHaveBeenCalledWith('mentolder', 'kore_flags', { timeline: true });
   });
@@ -74,16 +76,16 @@ describe('content-section save endpoints', () => {
   it('rejects non-admin with 403 and never writes', async () => {
     vi.mocked(getSession).mockResolvedValue(null as never);
     vi.mocked(isAdmin).mockReturnValue(false);
-    const r = await navPOST({ request: jsonReq([]) } as any);
+    const r = await navPOST({ request: jsonReq([]) } as unknown as Ctx);
     expect(r.status).toBe(403);
     expect(vi.mocked(setJsonSetting)).not.toHaveBeenCalled();
   });
 
   it('rejects a malformed body shape with 400', async () => {
     asAdmin();
-    const r = await navPOST({ request: jsonReq({ not: 'an array' }) } as any);
+    const r = await navPOST({ request: jsonReq({ not: 'an array' }) } as unknown as Ctx);
     expect(r.status).toBe(400);
-    const rf = await footerPOST({ request: jsonReq({ columns: 'nope' }) } as any);
+    const rf = await footerPOST({ request: jsonReq({ columns: 'nope' }) } as unknown as Ctx);
     expect(rf.status).toBe(400);
     expect(vi.mocked(setJsonSetting)).not.toHaveBeenCalled();
   });

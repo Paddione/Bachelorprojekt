@@ -45,7 +45,7 @@ export const GET: APIRoute = async ({ request, locals }) => {
         }
       } else if (k8s) {
         try {
-          const dep = await k8s.get(`/apis/apps/v1/namespaces/${asset.namespace}/deployments/${asset.deployment_name}`);
+          const dep = await k8s.get<{ status?: { readyReplicas?: number }; spec?: { replicas?: number } }>(`/apis/apps/v1/namespaces/${asset.namespace}/deployments/${asset.deployment_name}`);
           readyReplicas = dep.status?.readyReplicas || 0;
           totalReplicas = dep.spec?.replicas || 0;
           liveStatus = readyReplicas > 0 ? (readyReplicas >= totalReplicas ? 'ready' : 'degraded') : 'failing';

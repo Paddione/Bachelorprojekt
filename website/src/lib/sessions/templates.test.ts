@@ -28,7 +28,7 @@ describe('listTemplates — DB fallback', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('falls back to DEFAULT_TEMPLATES when DB query throws', async () => {
-    (pool.query as any).mockRejectedValue(new Error('connection refused'));
+    vi.mocked(pool.query).mockRejectedValue(new Error('connection refused'));
     const result = await listTemplates('user-123');
     expect(result).toHaveLength(5);
     expect(result[0].is_default).toBe(true);
@@ -41,7 +41,7 @@ describe('listTemplates — DB fallback', () => {
       { id: 'b', slug: 'my-custom', title: 'My Custom', body_markdown: '# y',
         is_default: false, owner_id: 'user-123', created_from_template_id: 'a' },
     ];
-    (pool.query as any).mockResolvedValue({ rows: dbRows });
+    vi.mocked(pool.query).mockResolvedValue({ rows: dbRows } as unknown as Awaited<ReturnType<typeof pool.query>>);
     const result = await listTemplates('user-123');
     expect(result).toHaveLength(2);
     expect(result[1].slug).toBe('my-custom');
@@ -52,7 +52,7 @@ describe('cloneTemplate', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('throws when templateId not found', async () => {
-    (pool.query as any).mockResolvedValue({ rows: [] });
+    vi.mocked(pool.query).mockResolvedValue({ rows: [] } as unknown as Awaited<ReturnType<typeof pool.query>>);
     await expect(cloneTemplate('nonexistent', 'user-123', {}))
       .rejects.toThrow('template not found');
   });
@@ -62,17 +62,17 @@ describe('deleteTemplate', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('throws when trying to delete a default template', async () => {
-    (pool.query as any).mockResolvedValue({
+    vi.mocked(pool.query).mockResolvedValue({
       rows: [{ id: 'a', is_default: true, owner_id: null }],
-    });
+    } as unknown as Awaited<ReturnType<typeof pool.query>>);
     await expect(deleteTemplate('a', 'user-123'))
       .rejects.toThrow('cannot delete default template');
   });
 
   it('throws when template belongs to another user', async () => {
-    (pool.query as any).mockResolvedValue({
+    vi.mocked(pool.query).mockResolvedValue({
       rows: [{ id: 'b', is_default: false, owner_id: 'other-user' }],
-    });
+    } as unknown as Awaited<ReturnType<typeof pool.query>>);
     await expect(deleteTemplate('b', 'user-123'))
       .rejects.toThrow('not owner');
   });

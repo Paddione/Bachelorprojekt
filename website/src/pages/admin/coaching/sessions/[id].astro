@@ -161,9 +161,9 @@ const displayKi = kiProviders.find(p => p.id === coachingSession.kiConfigId)?.di
               </span>
               <div class="flex-1 min-w-0">
                 <span class="text-light">
-                  {e.eventType === 'status_change' && `Status: ${(e.payload as any).from ?? ''} → ${(e.payload as any).to ?? (e.payload as any).action ?? ''}`}
-                  {e.eventType === 'field_change'  && `Feld ${(e.payload as any).field}: "${(e.payload as any).from}" → "${(e.payload as any).to}"`}
-                  {e.eventType === 'ai_request'    && `KI-Anfrage Schritt ${e.stepNumber} (${(e.payload as any).provider}, ${(e.payload as any).duration_ms}ms)`}
+                  {e.eventType === 'status_change' && `Status: ${(e.payload as Record<string, string>).from ?? ''} → ${(e.payload as Record<string, string>).to ?? (e.payload as Record<string, string>).action ?? ''}`}
+                  {e.eventType === 'field_change'  && `Feld ${(e.payload as Record<string, string>).field}: "${(e.payload as Record<string, string>).from}" → "${(e.payload as Record<string, string>).to}"`}
+                  {e.eventType === 'ai_request'    && `KI-Anfrage Schritt ${e.stepNumber} (${(e.payload as Record<string, string>).provider}, ${(e.payload as Record<string, string>).duration_ms}ms)`}
                   {e.eventType === 'notes_change'  && `Notiz Schritt ${e.stepNumber} geändert`}
                 </span>
                 <span class="ml-2 text-xs">{new Date(e.changedAt).toLocaleString('de-DE')} · {e.actor}</span>

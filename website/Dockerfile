@@ -12,8 +12,11 @@ ENV PNPM_HOME=/pnpm
 ENV PATH=/pnpm:$PATH
 RUN corepack enable && corepack prepare pnpm@10.15.0 --activate
 
-# Copy ONLY the manifest + lockfile first so dependency layer caches cleanly.
-COPY website/package.json website/pnpm-lock.yaml ./
+# Copy ONLY the manifest + lockfile + workspace config first so dependency layer caches cleanly.
+# pnpm-workspace.yaml must be present alongside pnpm-lock.yaml — it contains the
+# overrides section that the lockfile was generated with; omitting it causes
+# ERR_PNPM_LOCKFILE_CONFIG_MISMATCH on --frozen-lockfile installs.
+COPY website/package.json website/pnpm-lock.yaml website/pnpm-workspace.yaml ./
 RUN --mount=type=cache,target=/pnpm/store pnpm install --frozen-lockfile
 
 COPY website/ .

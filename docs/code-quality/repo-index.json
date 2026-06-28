@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 507,
+      "file_count": 508,
       "files": [
         "tests/.gitignore",
         "tests/batch/batch-gap-analysis.bats",
@@ -357,6 +357,7 @@
         "tests/spec/g-cq08-knip-dead-code.bats",
         "tests/spec/g-dep01-npm-vuln.bats",
         "tests/spec/g-fe02-bundle-budget.bats",
+        "tests/spec/g-fe03-structured-logger.bats",
         "tests/spec/image-drift.bats",
         "tests/spec/lockfile-drift.bats",
         "tests/spec/mcp-task-runner.bats",
@@ -565,7 +566,7 @@
       "id": "website",
       "name": "Astro + Svelte website",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 1643,
+      "file_count": 1644,
       "files": [
         "website/.build-trigger",
         "website/.design-sync/NOTES.md",
@@ -1219,6 +1220,7 @@
         "website/src/lib/billing-tax.ts",
         "website/src/lib/brett-bot.test.ts",
         "website/src/lib/brett-bot.ts",
+        "website/src/lib/browser-logger.ts",
         "website/src/lib/bulk-status.test.ts",
         "website/src/lib/bulk-status.ts",
         "website/src/lib/caldav-cache.ts",

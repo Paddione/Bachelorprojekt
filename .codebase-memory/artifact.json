@@ -1,11 +1,11 @@
 {
     "schema_version": 1,
-    "commit": "a8fd2433d331d7aff246551a90a81c9b7572f91b",
-    "indexed_at": "2026-06-28T17:12:24Z",
-    "project": "home-patrick-Bachelorprojekt",
-    "nodes": 45436,
-    "edges": 116537,
-    "original_size": 96403456,
-    "compressed_size": 17170044,
-    "compression_level": 3
+    "commit": "ea9c60aeebc4916fd4a3251977704fdb2b92f7fb",
+    "indexed_at": "2026-06-28T17:30:42Z",
+    "project": "home-runner-work-Bachelorprojekt-Bachelorprojekt",
+    "nodes": 44061,
+    "edges": 118326,
+    "original_size": 65994752,
+    "compressed_size": 11719702,
+    "compression_level": 9
 }

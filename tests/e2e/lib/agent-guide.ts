@@ -81,6 +81,7 @@ export interface Tool {
   order: number;
   stages: string[];
   escalate_to_de?: string;
+  init_prompt_de?: string;
 }
 
 export interface FlowStation {

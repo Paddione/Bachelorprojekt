@@ -21,7 +21,7 @@ const BASE = (process.env.WEBSITE_URL ?? 'https://web.mentolder.de').replace(/\/
 // storageState. To assert the auth gate is wired we must POST without that
 // session cookie — using a fresh APIRequestContext via `playwright.request`
 // bypasses the inherited cookies entirely. [fix/content-hub-service-page-config]
-async function anonContext(playwright: import('@playwright/test').Playwright) {
+async function anonContext(playwright: { request: import('@playwright/test').APIRequest }) {
   return playwright.request.newContext({ baseURL: BASE, ignoreHTTPSErrors: true });
 }
 

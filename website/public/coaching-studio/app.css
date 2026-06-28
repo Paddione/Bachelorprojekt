@@ -1,8 +1,39 @@
 /* =====================================================================
    Mentolder Coaching Studio — Werkzeug-Styles
-   Baut auf den Design-System-Tokens auf (colors_and_type.css).
    RTL-fähig, barrierearm (Fokus-States, hohe Kontraste).
    ===================================================================== */
+
+:root {
+  --ink-900: #0b111c;
+  --ink-850: #101826;
+  --ink-800: #17202e;
+  --ink-750: #1d2736;
+  --fg:      #eef1f3;
+  --fg-soft: #cdd3d9;
+  --mute:    #8c96a3;
+  --mute-2:  #6a727e;
+  --brass:   oklch(0.80 0.09 75);
+  --brass-2: oklch(0.86 0.09 75);
+  --brass-d: oklch(0.80 0.09 75 / .14);
+  --brass-hex: #cda260;
+  --sage:    oklch(0.80 0.06 160);
+  --success: oklch(0.80 0.06 160);
+  --danger:  oklch(0.62 0.18 22);
+  --line:    rgba(255,255,255,0.07);
+  --line-2:  rgba(255,255,255,0.12);
+  --serif: "Newsreader","Iowan Old Style",Georgia,serif;
+  --sans:  "Geist",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:  "Geist Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --radius:    22px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --radius-pill: 999px;
+  --ease-soft: cubic-bezier(.22,.61,.36,1);
+  --ease-out:  cubic-bezier(.2,.8,.2,1);
+  --dur-fast: 150ms;
+  --dur-base: 200ms;
+  --dur-slow: 500ms;
+}
 
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}

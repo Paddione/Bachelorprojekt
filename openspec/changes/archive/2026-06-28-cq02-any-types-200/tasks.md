@@ -2,7 +2,7 @@
 title: "G-CQ02: any-Typen 463→≤200 — TypeScript-Sicherheitsnetz stärken"
 ticket_id: T001285
 domains: [website, quality]
-status: plan_staged
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

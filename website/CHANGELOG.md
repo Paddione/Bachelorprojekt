@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.136.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.135.1...website-v1.136.0) (2026-06-28)
+
+
+### Features
+
+* **test01:** reaktiviere 9 BATS-Debt-Skips in admin-nav.bats (WP-28/29) [T001286] ([#2240](https://github.com/Paddione/Bachelorprojekt/issues/2240)) ([79a9ed3](https://github.com/Paddione/Bachelorprojekt/commit/79a9ed3c393105051ec7dad80dedfdb093381de8))
+
+
+### Bug Fixes
+
+* **website:** reduce explicit any count to &lt;=200 in website/src (G-CQ02) [T001285] ([#2237](https://github.com/Paddione/Bachelorprojekt/issues/2237)) ([577a618](https://github.com/Paddione/Bachelorprojekt/commit/577a6189200e6ff50ac1db89b15b53a2ff2e0bea))
+
 ## [1.135.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.135.0...website-v1.135.1) (2026-06-28)
 
 

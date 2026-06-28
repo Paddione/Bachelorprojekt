@@ -704,6 +704,7 @@ tasks:
       # so install lazily first. No-op in CI / installed trees. [T000427]
       - '[ -d node_modules ] || npm ci'
       - node --test scripts/code-quality/*.test.mjs scripts/code-quality/gates/*.test.mjs
+      - task: loc:check
 
 
   test:factory:
@@ -912,6 +913,7 @@ tasks:
       - task: agent-guide:emit
       - task: graph:build    # LAD: K8s graph artifacts
       - task: openspec:status-map
+      - task: loc:update-baseline
 
   freshness:check:
     desc: "Fail if any generated artifact is stale or violates invariants (CI gate + local pre-commit safety)"
@@ -927,6 +929,7 @@ tasks:
           website/public/learning-assets/THIRD-PARTY-ASSETS.md
           website/src/data/openspec-status.json
           docs/code-quality/repo-index.json
+          docs/code-quality/loc-budget.json
           docs/agent-guide/10-ziele.md
           docs/agent-guide/20-werkzeuge.md
           docs/agent-guide/30-bausteine.md
@@ -2946,6 +2949,18 @@ tasks:
     desc: "Run all code-quality gates (S1-S4) with the baseline ratchet (fails only on new/worsened)"
     cmds:
       - node scripts/code-quality/check.mjs
+
+  loc:check:
+    desc: "LOC-Budget-Gate (S6) — Fails if total source LOC exceeds budget"
+    cmds:
+      - '[ -d node_modules ] || npm ci'
+      - node scripts/check-loc-budget.mjs
+
+  loc:update-baseline:
+    desc: "Regenerate docs/code-quality/loc-budget.json with current LOC count"
+    cmds:
+      - '[ -d node_modules ] || npm ci'
+      - node scripts/check-loc-budget.mjs --update-baseline
 
   health:goals:
     desc: "Ampel-Report der reproduzierbaren Repository-Health-Ziele aus .claude/lib/goals.md (Gates müssen grün sein; Targets zeigen Reduktions-Fortschritt). Flags nach --, z.B. task health:goals -- --strict --fast"

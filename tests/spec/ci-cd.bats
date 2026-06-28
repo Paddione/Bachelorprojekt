@@ -49,8 +49,8 @@ setup() {
 
 # --- G-CD01: Brand-Parity im Website-Deploy (T001276) ---
 # build-website.yml muss korczewski in einem Job deployen, der NICHT vom
-# mentolder-Deploy-Job abhängt — ein mentolder-Fehler darf korczewski nicht
-# still überspringen. SSOT: openspec/specs/ci-cd.md.
+# mentolder-Deploy-Job abhaengt --- ein mentolder-Fehler darf korczewski nicht
+# still ueberspringen. SSOT: openspec/specs/ci-cd.md.
 
 @test "G-CD01: build-website.yml hat einen build-image Job mit image+sha_tag outputs" {
   run python3 - "$BUILD_WF" <<'PY'
@@ -95,20 +95,10 @@ PY
   grep -q 'needs.build-image.outputs.sha_tag' "$BUILD_WF"
 }
 
-# --- G-CD01 (T001276): Dockerfile lockfile must be pnpm-lock.yaml ---
-# T001224 deleted `website/package-lock.json` (pnpm migration). A reference
-# that slipped through the migration (e.g. `COPY website/package-lock.json`
-# in `website/Dockerfile`) makes every `build-website.yml` run fail at the
-# `docker build` step with `"/website/package-lock.json": not found`. Lock
-# the migration in: the Dockerfile must reference pnpm-lock.yaml + pnpm.
-
 @test "G-CD01: website/Dockerfile referenziert pnpm-lock.yaml (nicht package-lock.json)" {
   DOCKERFILE="$REPO_ROOT/website/Dockerfile"
   run grep -nE 'pnpm-lock\.yaml' "$DOCKERFILE"
   [ "$status" -eq 0 ]
-  # Allow references in comments (lines starting with `#`); only forbid
-  # actual COPY/ADD/RUN/ENV lines that would break `docker build` when
-  # website/package-lock.json is gone (deleted by T001224).
   ! grep -vE '^\s*#' "$DOCKERFILE" | grep -qE 'package-lock\.json'
 }
 
@@ -119,11 +109,9 @@ PY
   ! grep -qE '^[^#]*\bnpm ci\b' "$DOCKERFILE"
 }
 
-# ── G-CI01: CI Pipeline Stability ─────────────────────────────────────────────
-# Requirement: Post-merge Freshness-Regenerierung ohne externe GPG-Action
-# Requirement: Website Dockerfile verwendet pnpm als Package-Manager
+# G-CI01: CI Pipeline Stability
 
-@test "G-CI01-A: freshness-regen.yml enthält keinen ghaction-import-gpg-Verweis" {
+@test "G-CI01-A: freshness-regen.yml enthaelt keinen ghaction-import-gpg-Verweis" {
   run grep -c "ghaction-import-gpg" "$REPO_ROOT/.github/workflows/freshness-regen.yml"
   [ "$status" -ne 0 ] || [ "$output" -eq 0 ]
 }
@@ -141,4 +129,46 @@ PY
 @test "G-CI01-D: website/pnpm-lock.yaml existiert; website/package-lock.json existiert nicht" {
   [ -f "$REPO_ROOT/website/pnpm-lock.yaml" ]
   [ ! -f "$REPO_ROOT/website/package-lock.json" ]
+}
+
+# G-SIZE04: LOC-Budget-Gate (S6)
+
+@test "G-SIZE04: scripts/check-loc-budget.mjs exists" {
+  [ -f "$REPO_ROOT/scripts/check-loc-budget.mjs" ]
+}
+
+@test "G-SIZE04: --update-baseline writes valid JSON with required keys" {
+  TMPBASELINE=$(mktemp /tmp/loc-baseline-XXXXXX.json)
+  run node "$REPO_ROOT/scripts/check-loc-budget.mjs" --update-baseline --baseline="$TMPBASELINE"
+  [ "$status" -eq 0 ]
+  run node -e "const d=JSON.parse(require('fs').readFileSync('$TMPBASELINE','utf8')); process.exit(d.total_lines>0&&d.file_count>0&&d.commit&&d.thresholds?0:1)"
+  rm -f "$TMPBASELINE"
+  [ "$status" -eq 0 ]
+}
+
+@test "G-SIZE04: exits 0 when LOC matches baseline (idempotent)" {
+  run node "$REPO_ROOT/scripts/check-loc-budget.mjs" \
+    --baseline="$REPO_ROOT/docs/code-quality/loc-budget.json"
+  [ "$status" -eq 0 ]
+}
+
+@test "G-SIZE04: exits 0 when LOC decreases below baseline" {
+  TMPBASELINE=$(mktemp /tmp/loc-baseline-XXXXXX.json)
+  echo '{"total_lines":9999999,"file_count":9999,"commit":"test","measured_at":"now","thresholds":{"warn_pct":5,"fail_pct":15,"absolute_cap":9999999}}' > "$TMPBASELINE"
+  run node "$REPO_ROOT/scripts/check-loc-budget.mjs" --baseline="$TMPBASELINE"
+  rm -f "$TMPBASELINE"
+  [ "$status" -eq 0 ]
+}
+
+@test "G-SIZE04: exits 1 when absolute_cap is exceeded" {
+  TMPBASELINE=$(mktemp /tmp/loc-baseline-XXXXXX.json)
+  echo '{"total_lines":1,"file_count":1,"commit":"test","measured_at":"now","thresholds":{"warn_pct":5,"fail_pct":15,"absolute_cap":1}}' > "$TMPBASELINE"
+  run node "$REPO_ROOT/scripts/check-loc-budget.mjs" --baseline="$TMPBASELINE"
+  rm -f "$TMPBASELINE"
+  [ "$status" -eq 1 ]
+}
+
+@test "G-SIZE04: exits 1 when baseline file is missing" {
+  run node "$REPO_ROOT/scripts/check-loc-budget.mjs" --baseline=/nonexistent/loc-budget.json
+  [ "$status" -eq 1 ]
 }

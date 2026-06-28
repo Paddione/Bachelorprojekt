@@ -72,8 +72,8 @@
   "S1:website/src/components/inbox/InboxApp.svelte": {
     "gate": "S1",
     "path": "website/src/components/inbox/InboxApp.svelte",
-    "metric": 1017,
-    "detail": "1017 lines > 500 limit (.svelte)",
+    "metric": 1018,
+    "detail": "1018 lines > 500 limit (.svelte)",
     "frozen_at": "8b581ebe"
   },
   "S1:website/src/components/inbox/InboxDetail.svelte": {
@@ -86,8 +86,8 @@
   "S1:website/src/components/portal/QuestionnaireWizard.svelte": {
     "gate": "S1",
     "path": "website/src/components/portal/QuestionnaireWizard.svelte",
-    "metric": 677,
-    "detail": "677 lines > 500 limit (.svelte)",
+    "metric": 678,
+    "detail": "678 lines > 500 limit (.svelte)",
     "frozen_at": "8b581ebe"
   },
   "S1:website/src/lib/coaching-db.ts": {
@@ -149,29 +149,29 @@
   "S1:website/src/pages/admin/projekte.astro": {
     "gate": "S1",
     "path": "website/src/pages/admin/projekte.astro",
-    "metric": 407,
-    "detail": "407 lines > 400 limit (.astro)",
+    "metric": 408,
+    "detail": "408 lines > 400 limit (.astro)",
     "frozen_at": "8b581ebe"
   },
   "S1:website/src/pages/admin/projekte/[id].astro": {
     "gate": "S1",
     "path": "website/src/pages/admin/projekte/[id].astro",
-    "metric": 922,
-    "detail": "922 lines > 400 limit (.astro)",
+    "metric": 923,
+    "detail": "923 lines > 400 limit (.astro)",
     "frozen_at": "8b581ebe"
   },
   "S1:website/src/pages/admin/rechnungen.astro": {
     "gate": "S1",
     "path": "website/src/pages/admin/rechnungen.astro",
-    "metric": 590,
-    "detail": "590 lines > 400 limit (.astro)",
+    "metric": 592,
+    "detail": "592 lines > 400 limit (.astro)",
     "frozen_at": "8b581ebe"
   },
   "S1:website/src/pages/admin/systemtest/board.astro": {
     "gate": "S1",
     "path": "website/src/pages/admin/systemtest/board.astro",
-    "metric": 418,
-    "detail": "418 lines > 400 limit (.astro)",
+    "metric": 419,
+    "detail": "419 lines > 400 limit (.astro)",
     "frozen_at": "8b581ebe"
   },
   "S1:website/src/pages/admin/termine.astro": {

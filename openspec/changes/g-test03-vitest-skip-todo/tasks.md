@@ -2,7 +2,7 @@
 title: "G-TEST03: Vitest skip/todo-Suiten aufräumen (3→0)"
 ticket_id: T001287
 domains: ["tests","website"]
-status: plan_staged
+status: completed
 ---
 
 # g-test03-vitest-skip-todo — Implementation Plan

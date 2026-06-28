@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.137.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.136.1...website-v1.137.0) (2026-06-28)
+
+
+### Features
+
+* **fe03:** migrate console.error/warn to structured logger [T001299] ([#2253](https://github.com/Paddione/Bachelorprojekt/issues/2253)) ([d9da592](https://github.com/Paddione/Bachelorprojekt/commit/d9da592dc81d5bce4ea656d7de3925423da2289f))
+
 ## [1.136.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.136.0...website-v1.136.1) (2026-06-28)
 
 

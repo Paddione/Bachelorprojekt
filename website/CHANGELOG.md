@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.139.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.139.0...website-v1.139.1) (2026-06-28)
+
+
+### Documentation
+
+* add README index to website scripts tests k3d [T001297] ([#2274](https://github.com/Paddione/Bachelorprojekt/issues/2274)) ([0af66d8](https://github.com/Paddione/Bachelorprojekt/commit/0af66d85c95322764610989e994c7e28600c4c0b))
+
 ## [1.139.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.138.0...website-v1.139.0) (2026-06-28)
 
 

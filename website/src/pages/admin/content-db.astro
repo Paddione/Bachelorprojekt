@@ -1,0 +1,32 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../../components/admin/ui/AdminPageHeader.svelte';
+import ContentDb from '../../../components/admin/ContentDb.svelte';
+import { getSession, getLoginUrl, isAdmin } from '../../../lib/auth';
+import { pool } from '../../../lib/website-db';
+import { listQTemplates } from '../../../lib/questionnaire-db/queries';
+import { listTemplates } from '../../../lib/coaching-db';
+import { listDocumentTemplates } from '../../../lib/documents-db';
+import { mergeContentEntries } from '../../../lib/content-db-merge';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+const [questionnaires, vorlagen, contracts] = await Promise.all([
+  listQTemplates().catch(() => [] as Awaited<ReturnType<typeof listQTemplates>>),
+  listTemplates(pool, {}).catch(() => [] as Awaited<ReturnType<typeof listTemplates>>),
+  listDocumentTemplates().catch(() => [] as Awaited<ReturnType<typeof listDocumentTemplates>>),
+]);
+
+const entries = mergeContentEntries(questionnaires, vorlagen, contracts);
+---
+<AdminLayout title="Admin — Content-DB">
+  <div style="max-width:56rem; margin:0 auto; padding:2.5rem 1.5rem 5rem;">
+    <AdminPageHeader
+      title="Content-DB"
+      description="Alle schriftlichen Content-Assets in einer Übersicht"
+    />
+    <ContentDb client:load entries={entries} />
+  </div>
+</AdminLayout>

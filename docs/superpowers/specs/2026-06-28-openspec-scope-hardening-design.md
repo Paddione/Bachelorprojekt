@@ -1,6 +1,6 @@
 ---
-ticket_id: T001304
-plan_ref: openspec/changes/openspec-scope-hardening/tasks.md
+ticket_id: null
+plan_ref: null
 status: active
 date: 2026-06-28
 ---

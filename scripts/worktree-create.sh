@@ -23,6 +23,18 @@
 #             branch already exists.
 set -euo pipefail
 
+# T001302: Divergence guard — reject worktree creation if local main has diverged from origin/main.
+# Only fires when origin/main exists (e.g. real upstream repos), so BATS tests with
+# ephemeral test repos (no remote) are not affected.
+if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
+  if ! git merge-base --is-ancestor origin/main main 2>/dev/null; then
+    echo "FATAL: local 'main' has no common ancestor with 'origin/main'." >&2
+    echo "       This means local main has diverged (likely from a past rebase)." >&2
+    echo "       Fix with: git reset --hard origin/main" >&2
+    exit 1
+  fi
+fi
+
 BRANCH="${1:?Usage: worktree-create.sh <branch> <path> [<base>]}"
 WT_PATH="${2:?Usage: worktree-create.sh <branch> <path> [<base>]}"
 BASE="${3:-origin/main}"

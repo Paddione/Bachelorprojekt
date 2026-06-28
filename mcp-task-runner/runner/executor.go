@@ -7,7 +7,10 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"syscall"
+	"time"
 
+	"github.com/google/uuid"
 	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/paddione/mcp-task-runner/planner"
@@ -43,12 +46,15 @@ type Result struct {
 }
 
 // RunTask executes `task <name> ENV=<env>` and returns a Result with OTel instrumentation.
+// env may be empty; when empty, the ENV= argument is omitted from the task invocation.
 func RunTask(ctx context.Context, task, env, taskfilePath string) (Result, error) {
 	if err := validateArg(task); err != nil {
 		return Result{Task: task, Env: env, ExitCode: 1}, fmt.Errorf("invalid task argument: %w", err)
 	}
-	if err := validateArg(env); err != nil {
-		return Result{Task: task, Env: env, ExitCode: 1}, fmt.Errorf("invalid env argument: %w", err)
+	if env != "" {
+		if err := validateArg(env); err != nil {
+			return Result{Task: task, Env: env, ExitCode: 1}, fmt.Errorf("invalid env argument: %w", err)
+		}
 	}
 
 	ctx, span := telemetry.NewSpan(ctx, "run_task")
@@ -61,7 +67,13 @@ func RunTask(ctx context.Context, task, env, taskfilePath string) (Result, error
 	}
 	span.SetAttributes(attrs...)
 
-	cmd := exec.CommandContext(ctx, "task", "--taskfile", taskfilePath, "--", task, "ENV="+env)
+	taskArgs := []string{"--taskfile", taskfilePath, "--", task}
+	if env != "" {
+		taskArgs = append(taskArgs, "ENV="+env)
+	}
+	cmd := exec.CommandContext(ctx, "task", taskArgs...)
+	cmd.Cancel = func() error { return cmd.Process.Signal(syscall.SIGTERM) }
+	cmd.WaitDelay = 5 * time.Second
 	stdoutPipe, err := cmd.StdoutPipe()
 	if err != nil {
 		return Result{Task: task, Env: env, ExitCode: 1}, fmt.Errorf("stdout pipe: %w", err)
@@ -100,6 +112,29 @@ func RunTask(ctx context.Context, task, env, taskfilePath string) (Result, error
 		Stderr:   stderrBuf,
 		TraceID:  span.SpanContext().TraceID().String(),
 	}, nil
+}
+
+// StartTask starts a task asynchronously in a new goroutine, registers it in
+// GlobalRegistry, and returns the job ID immediately. The caller can poll
+// GlobalRegistry.Lookup(jobID) for status and result.
+func StartTask(parentCtx context.Context, task, env, taskfilePath string) (string, error) {
+	if err := validateArg(task); err != nil {
+		return "", fmt.Errorf("invalid task: %w", err)
+	}
+	if env != "" {
+		if err := validateArg(env); err != nil {
+			return "", fmt.Errorf("invalid env: %w", err)
+		}
+	}
+	jobID := uuid.New().String()
+	ctx, cancel := context.WithCancel(parentCtx)
+	GlobalRegistry.Register(jobID, cancel)
+	go func() {
+		defer cancel()
+		r, _ := RunTask(ctx, task, env, taskfilePath)
+		GlobalRegistry.Complete(jobID, r)
+	}()
+	return jobID, nil
 }
 
 // ExecutePlan runs plan groups in order. Within each group all tasks run in parallel.

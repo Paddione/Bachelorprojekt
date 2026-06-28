@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.135.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.135.0...website-v1.135.1) (2026-06-28)
+
+
+### Bug Fixes
+
+* **website:** resolve astro check type errors and add CI gate [T001277] ([#2225](https://github.com/Paddione/Bachelorprojekt/issues/2225)) ([6defdeb](https://github.com/Paddione/Bachelorprojekt/commit/6defdebfbba30695989615fb1ef77ed55ed500e4))
+
 ## [1.135.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.134.9...website-v1.135.0) (2026-06-28)
 
 

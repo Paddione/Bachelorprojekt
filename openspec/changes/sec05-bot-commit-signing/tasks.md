@@ -2,7 +2,7 @@
 title: "G-SEC05: adjusted metric for unsigned bot commits"
 ticket_id: T001283
 domains: [quality, security, ci]
-status: plan_staged
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

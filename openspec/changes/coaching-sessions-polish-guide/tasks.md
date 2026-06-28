@@ -143,7 +143,7 @@ git commit -m "feat(coaching): add description field to StepDefinition [T001316]
 **Interfaces:**
 - Consumes: `STEP_DEFINITIONS[n].description` aus Task 1
 
-- [ ] **Schritt 2.1: Beschreibungszeile ins HTML einfügen**
+- [x] **Schritt 2.1: Beschreibungszeile ins HTML einfügen**
 
 Im `<div class="step-header">` Block (nach `<span class="phase-label">`):
 
@@ -155,7 +155,7 @@ Im `<div class="step-header">` Block (nach `<span class="phase-label">`):
 </div>
 ```
 
-- [ ] **Schritt 2.2: Gesamte `<style>`-Sektion ersetzen**
+- [x] **Schritt 2.2: Gesamte `<style>`-Sektion ersetzen**
 
 ```svelte
 <style>
@@ -187,7 +187,7 @@ Im `<div class="step-header">` Block (nach `<span class="phase-label">`):
 </style>
 ```
 
-- [ ] **Schritt 2.3: Visuell prüfen (Dev-Server)**
+- [x] **Schritt 2.3: Visuell prüfen (Dev-Server)**
 
 ```bash
 cd website && pnpm dev
@@ -200,7 +200,7 @@ cd website && pnpm dev
 - Fokus-Kante in Brass (gold, nicht mehr --gold Fallback)
 - KI-Antwort-Box mit Brass-Border
 
-- [ ] **Schritt 2.4: Commit**
+- [x] **Schritt 2.4: Commit**
 
 ```bash
 git add website/src/components/admin/coaching/SessionWizard.svelte

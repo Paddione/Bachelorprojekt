@@ -4,7 +4,7 @@
   "commit": "3119edfa",
   "measured_at": "2026-06-28T02:29:28.102Z",
   "thresholds": {
-    "warn_pct": 5,
+    "warn_pct": 2,
     "fail_pct": 15,
     "absolute_cap": 600000
   }

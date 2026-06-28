@@ -1,68 +1,24 @@
 ---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../../lib/auth';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
 if (!isAdmin(session)) return Astro.redirect('/admin');
 ---
-<!doctype html>
-<html lang="de" dir="ltr">
-<head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Mentolder · Coaching Studio</title>
-<style>
-/* ── Mentolder Design-System Tokens ────────────────────────────────── */
-@import url("https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,400&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap");
-:root {
-  --ink-900: #0b111c;
-  --ink-850: #101826;
-  --ink-800: #17202e;
-  --ink-750: #1d2736;
-  --fg:      #eef1f3;
-  --fg-soft: #cdd3d9;
-  --mute:    #8c96a3;
-  --mute-2:  #6a727e;
-  --brass:   oklch(0.80 0.09 75);
-  --brass-2: oklch(0.86 0.09 75);
-  --brass-d: oklch(0.80 0.09 75 / .14);
-  --brass-hex: #cda260;
-  --sage:    oklch(0.80 0.06 160);
-  --success: oklch(0.80 0.06 160);
-  --danger:  oklch(0.62 0.18 22);
-  --line:    rgba(255,255,255,0.07);
-  --line-2:  rgba(255,255,255,0.12);
-  --serif: "Newsreader","Iowan Old Style",Georgia,serif;
-  --sans:  "Geist",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
-  --mono:  "Geist Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
-  --radius:    22px;
-  --radius-md: 12px;
-  --radius-sm: 8px;
-  --radius-pill: 999px;
-  --ease-soft: cubic-bezier(.22,.61,.36,1);
-  --ease-out:  cubic-bezier(.2,.8,.2,1);
-  --dur-fast: 150ms;
-  --dur-base: 200ms;
-  --dur-slow: 500ms;
-}
-html { -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; }
-*{box-sizing:border-box}
-html,body{margin:0;padding:0}
-</style>
-<link rel="stylesheet" href="/coaching-studio/app.css"/>
-</head>
-<body>
-<div class="grain" aria-hidden="true"></div>
-<div id="root"></div>
 
-<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<AdminLayout title="Coaching Studio">
+  <link rel="stylesheet" href="/coaching-studio/app.css"/>
+  <div class="grain" aria-hidden="true"></div>
+  <div id="root"></div>
 
-<script type="text/babel" src="/coaching-studio/data.jsx"></script>
-<script type="text/babel" src="/coaching-studio/workspace.jsx"></script>
-<script type="text/babel" src="/coaching-studio/screens_core.jsx"></script>
-<script type="text/babel" src="/coaching-studio/screens_more.jsx"></script>
-<script type="text/babel" src="/coaching-studio/app.jsx"></script>
-</body>
-</html>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script type="text/babel" src="/coaching-studio/data.jsx"></script>
+  <script type="text/babel" src="/coaching-studio/workspace.jsx"></script>
+  <script type="text/babel" src="/coaching-studio/screens_core.jsx"></script>
+  <script type="text/babel" src="/coaching-studio/screens_more.jsx"></script>
+  <script type="text/babel" src="/coaching-studio/app.jsx"></script>
+</AdminLayout>

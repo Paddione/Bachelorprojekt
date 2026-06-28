@@ -4,7 +4,6 @@
 function TopBar({ screen, onNav, rtl, setRtl }){
   const navItems = [
     { id:"dashboard", label:"Übersicht" },
-    { id:"admin", label:"Admin" },
   ];
   return (
     <header className="topbar">

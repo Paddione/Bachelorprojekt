@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { sendAdminNotification } from './notifications';
+import * as loggerModule from './logger';
 
 vi.mock('./website-db', () => ({
   getSiteSetting: vi.fn(),
@@ -91,7 +92,7 @@ describe('sendAdminNotification', () => {
       return undefined;
     });
     mockSend.mockResolvedValue(false);
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const warnSpy = vi.spyOn(loggerModule.logger, 'warn').mockReturnValue(undefined as any);
     try {
       await expect(
         sendAdminNotification({ type: 'contact', subject: 'x', text: 'y' }),

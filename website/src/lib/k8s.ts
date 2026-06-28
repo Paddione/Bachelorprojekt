@@ -1,6 +1,60 @@
 import https from 'node:https';
 import fs from 'node:fs/promises';
 
+// ── Kubernetes API type interfaces ──────────────────────────────────────────
+
+export interface KubeContainerStatus {
+  ready: boolean;
+  restartCount: number;
+  name: string;
+}
+
+export interface KubeContainerMetrics {
+  name: string;
+  usage: { cpu: string; memory: string };
+}
+
+export interface KubePodMetrics {
+  metadata: { name: string };
+  containers: KubeContainerMetrics[];
+}
+
+export interface KubePod {
+  metadata: { name: string };
+  status?: {
+    phase?: string;
+    containerStatuses?: KubeContainerStatus[];
+  };
+}
+
+export interface KubeEvent {
+  reason: string;
+  message: string;
+  type: string;
+  lastTimestamp?: string;
+  metadata: { name: string };
+}
+
+export interface KubeNode {
+  metadata: { name: string };
+  status?: {
+    capacity?: Record<string, string>;
+    allocatable?: Record<string, string>;
+  };
+}
+
+export interface KubeDeployment {
+  metadata: { name: string; namespace?: string };
+  spec?: { replicas?: number };
+  status?: { readyReplicas?: number; availableReplicas?: number };
+}
+
+export interface KubeList<T> {
+  items: T[];
+}
+
+// ── Client ──────────────────────────────────────────────────────────────────
+
 /** Error carrying the HTTP status so callers can distinguish 403 (no-access)
  *  from 404 (missing) instead of collapsing both into a generic failure. */
 export class K8sApiError extends Error {

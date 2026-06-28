@@ -1,5 +1,6 @@
 import type { ActiveCallRoom } from './nextcloud-talk-db';
 import type { AdminMeeting } from './website-db';
+import { logger } from './logger';
 
 export type LiveState = 'empty' | 'stream' | 'rooms' | 'both';
 
@@ -65,7 +66,7 @@ async function fetchActivePoll(): Promise<ActivePoll | null> {
     );
     return r.rows[0] ?? null;
   } catch (err) {
-    console.error('[live-state] fetchActivePoll failed:', err);
+    logger.error({ err }, '[live-state] fetchActivePoll failed');
     return null;
   }
 }
@@ -74,7 +75,7 @@ async function fetchRecentSessions(): Promise<AdminMeeting[]> {
   try {
     return await listAllMeetings({ limit: 12 });
   } catch (err) {
-    console.error('[live-state] listAllMeetings failed:', err);
+    logger.error({ err }, '[live-state] listAllMeetings failed');
     return [];
   }
 }

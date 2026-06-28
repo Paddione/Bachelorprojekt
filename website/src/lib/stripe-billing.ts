@@ -1,4 +1,5 @@
 import { pool, initBillingTables } from './website-db';
+import { logger } from './logger';
 import {
   createCustomer as nativeCreateCustomer,
   createInvoice as nativeCreateInvoice,
@@ -295,12 +296,12 @@ export async function createBillingQuote(_params: unknown): Promise<unknown> {
 }
 
 export async function createMonthlyDraftInvoices(_params: unknown): Promise<unknown[]> {
-  console.warn('[stripe-billing] createMonthlyDraftInvoices: native billing only');
+  logger.warn('[stripe-billing] createMonthlyDraftInvoices: native billing only');
   return [];
 }
 
 async function sendDraftInvoice(_invoiceId: string): Promise<void> {
-  console.warn('[stripe-billing] sendDraftInvoice: use /api/admin/billing/[id]/send instead');
+  logger.warn('[stripe-billing] sendDraftInvoice: use /api/admin/billing/[id]/send instead');
 }
 
 async function discardDraftInvoice(invoiceId: string): Promise<void> {
@@ -313,7 +314,7 @@ async function discardDraftInvoice(invoiceId: string): Promise<void> {
 }
 
 export async function updateDraftInvoiceItem(_itemId: string, _params: unknown): Promise<void> {
-  console.warn('[stripe-billing] updateDraftInvoiceItem: use native billing item routes');
+  logger.warn('[stripe-billing] updateDraftInvoiceItem: use native billing item routes');
 }
 
 export async function addDraftInvoiceItem(_invoiceId: string, _params: unknown): Promise<DraftInvoiceItem> {
@@ -321,5 +322,5 @@ export async function addDraftInvoiceItem(_invoiceId: string, _params: unknown):
 }
 
 export async function deleteDraftInvoiceItem(_itemId: string): Promise<void> {
-  console.warn('[stripe-billing] deleteDraftInvoiceItem: use native billing item routes');
+  logger.warn('[stripe-billing] deleteDraftInvoiceItem: use native billing item routes');
 }

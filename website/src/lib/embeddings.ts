@@ -1,4 +1,5 @@
 import { logAiCall } from './ai-metrics';
+import { logger } from './logger';
 
 const VOYAGE_URL = 'https://api.voyageai.com/v1/embeddings';
 const VOYAGE_MODEL = 'voyage-multilingual-2';
@@ -115,7 +116,7 @@ export async function embedQuery(text: string, opts: EmbedOpts = {}): Promise<Em
     } catch (err) {
       if (isNetworkError(err, opts.signal)) {
         if (model === 'voyage-multilingual-2') {
-          console.warn('[embeddings] GPU router unreachable, falling back to Voyage for voyage-multilingual-2');
+          logger.warn('[embeddings] GPU router unreachable, falling back to Voyage for voyage-multilingual-2');
           const r = await callVoyageDirect([text], 'query', opts);
           return { embedding: r.embeddings[0], tokens: r.tokens };
         }
@@ -145,7 +146,7 @@ export async function embedBatch(texts: string[], opts: EmbedOpts = {}): Promise
       } catch (err) {
         if (isNetworkError(err, opts.signal)) {
           if (model === 'voyage-multilingual-2') {
-            console.warn('[embeddings] GPU router unreachable, falling back to Voyage for voyage-multilingual-2');
+            logger.warn('[embeddings] GPU router unreachable, falling back to Voyage for voyage-multilingual-2');
             const r = await callVoyageDirect(slice, 'document', opts);
             out.push(...r.embeddings);
             totalTokens += r.tokens;

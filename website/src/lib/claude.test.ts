@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const mockCreate = vi.fn();
 vi.mock('@anthropic-ai/sdk', () => ({
@@ -20,6 +20,7 @@ vi.hoisted(() => {
 });
 
 import { generateMeetingInsights } from './claude';
+import * as loggerModule from './logger';
 
 beforeEach(() => {
   mockCreate.mockReset();
@@ -51,7 +52,7 @@ describe('claude.generateMeetingInsights', () => {
   it('returns null and logs the error when the SDK throws', async () => {
     getProviderConfig.mockResolvedValueOnce({ provider: 'anthropic', modelId: 'sonnet', apiKey: 'k', baseUrl: null });
     mockCreate.mockRejectedValueOnce(new Error('upstream 500'));
-    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const errSpy = vi.spyOn(loggerModule.logger, 'error').mockReturnValue(undefined as any);
     const out = await generateMeetingInsights({ customerName: 'C', meetingType: '1:1', transcript: 'hi' });
     expect(out).toBeNull();
     expect(errSpy).toHaveBeenCalled();

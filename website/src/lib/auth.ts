@@ -1,5 +1,6 @@
 // OIDC authentication helper for Pocket ID.
 // Implements Authorization Code Flow with cookie-based sessions.
+import { logger } from './logger';
 
 const PI_FRONTEND_URL = process.env.POCKET_ID_FRONTEND_URL || '';
 const PI_INTERNAL_URL = process.env.POCKET_ID_URL || 'http://pocket-id.workspace.svc.cluster.local:1411';
@@ -143,7 +144,7 @@ export async function exchangeCode(code: string): Promise<{ sessionId: string; u
   });
 
   if (!res.ok) {
-    console.error('[auth] Token exchange failed:', res.status, await res.text());
+    logger.error({ status: res.status }, '[auth] Token exchange failed');
     return null;
   }
 
@@ -155,7 +156,7 @@ export async function exchangeCode(code: string): Promise<{ sessionId: string; u
   });
 
   if (!userRes.ok) {
-    console.error('[auth] Userinfo failed:', userRes.status);
+    logger.error({ status: userRes.status }, '[auth] Userinfo failed');
     return null;
   }
 
@@ -251,7 +252,7 @@ export async function getSession(cookieHeader: string | null): Promise<UserSessi
 
     return session;
   } catch (err) {
-    console.error('[auth] Session lookup failed:', err);
+    logger.error({ err }, '[auth] Session lookup failed');
     return null;
   }
 }

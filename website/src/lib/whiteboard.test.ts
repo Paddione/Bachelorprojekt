@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { extractWhiteboardText, getWhiteboardArtifacts } from './whiteboard';
+
+vi.mock('./logger', () => ({
+  logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn(), child: vi.fn() },
+  createRequestLogger: vi.fn(() => ({ error: vi.fn(), warn: vi.fn(), info: vi.fn() })),
+}));
+import { extractWhiteboardText } from './whiteboard';
 
 const ORIGINAL_FETCH = globalThis.fetch;
 const ORIGINAL_NC = process.env.NEXTCLOUD_URL;
@@ -64,20 +69,14 @@ describe('getWhiteboardArtifacts (network error / empty paths)', () => {
     globalThis.fetch = (async () => {
       throw new Error('network down');
     }) as typeof fetch;
-    const originalErr = console.error;
-    console.error = () => undefined;
-    try {
-      const mod = await import('./whiteboard');
-      const out = await mod.getWhiteboardArtifacts();
-      expect(out).toEqual([]);
-    } finally {
-      console.error = originalErr;
-    }
+    const mod = await import('./whiteboard');
+    const out = await mod.getWhiteboardArtifacts();
+    expect(out).toEqual([]);
   });
 
   it('returns parsed whiteboard artifacts when the WebDAV listing finds .whiteboard files', async () => {
     let callCount = 0;
-    globalThis.fetch = (async (url: unknown) => {
+    globalThis.fetch = (async (_url: unknown) => {
       callCount++;
       if (callCount === 1) {
         // PROPFIND for /Talk/room1/

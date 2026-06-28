@@ -3,6 +3,7 @@ import { getProviderConfig, setProviderCooldown } from './provider-config';
 import { SOURCE } from './ki-services';
 import { getTicketDetail, addComment } from './tickets/admin';
 import { pool } from './website-db';
+import { logger } from './logger';
 
 export interface TriageResult {
   priority: string;
@@ -23,7 +24,7 @@ export async function autoTriage(ticketId: string, brand: string): Promise<void>
   try {
     await runTriage(ticketId, brand);
   } catch (err) {
-    console.error('[ticket-triage] autoTriage failed:', err);
+    logger.error({ err }, '[ticket-triage] autoTriage failed');
   }
 }
 
@@ -76,7 +77,7 @@ Regeln:
     } catch (err) {
       if (attempt === 1) {
         await setProviderCooldown(pool, SOURCE.ticketTriage, cfg.provider, 5);
-        console.error('[ticket-triage] LLM call failed after retry:', err);
+        logger.error({ err }, '[ticket-triage] LLM call failed after retry');
         return null;
       }
     }

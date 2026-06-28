@@ -4,6 +4,7 @@
 import nodemailer from 'nodemailer';
 import { isE2ETestRequest } from './e2e-marker';
 import { renderNewsletterEmail, renderNewsletterText } from './newsletter-template';
+import { logger } from './logger';
 
 const SMTP_HOST = process.env.SMTP_HOST || 'mailpit.workspace.svc.cluster.local';
 const SMTP_PORT = parseInt(process.env.SMTP_PORT || '1025');
@@ -59,7 +60,7 @@ export async function sendEmail(params: SendEmailParams, request?: Request): Pro
     });
     return true;
   } catch (err) {
-    console.error('[email] Failed to send:', err);
+    logger.error({ err }, '[email] Failed to send');
     return false;
   }
 }

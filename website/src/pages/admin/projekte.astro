@@ -6,6 +6,7 @@ import { listProjects, listAllCustomers, listAdminUsers } from '../../lib/websit
 import type { Project, Customer } from '../../lib/website-db';
 import { listTemplates } from '../../lib/folder-templates-db';
 import ProjectCreateForm from '../../components/admin/ProjectCreateForm.astro';
+import { logger } from '../../lib/logger';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -37,7 +38,7 @@ try {
   ]);
   templates = (await listTemplates(BRAND)).map(t => ({ id: t.id, name: t.name, isDefault: t.is_default }));
 } catch (err) {
-  console.error('[admin/projekte] DB error:', err);
+  logger.error({ err }, '[admin/projekte] DB error');
   dbError = 'Datenbankfehler beim Laden der Projekte.';
 }
 

@@ -12,6 +12,7 @@
 //   oc_talk_rooms.call_flag     -- bitmask, 0 = no call
 
 import { Pool } from 'pg';
+import { logger } from './logger';
 
 const NC_DB_HOST = process.env.NEXTCLOUD_DB_HOST || 'nextcloud-db.workspace.svc.cluster.local';
 const NC_DB_PORT = parseInt(process.env.NEXTCLOUD_DB_PORT || '5432', 10);
@@ -46,7 +47,7 @@ export interface ActiveCallRoom {
 
 export async function listActiveCallRooms(): Promise<ActiveCallRoom[]> {
   if (!NC_DB_PASSWORD) {
-    console.error('[nc-talk-db] NEXTCLOUD_DB_PASSWORD is not set');
+    logger.error('[nc-talk-db] NEXTCLOUD_DB_PASSWORD is not set');
     return [];
   }
   try {
@@ -68,7 +69,7 @@ export async function listActiveCallRooms(): Promise<ActiveCallRoom[]> {
       activeSince: r.active_since,
     }));
   } catch (err) {
-    console.error('[nc-talk-db] listActiveCallRooms failed:', err);
+    logger.error({ err }, '[nc-talk-db] listActiveCallRooms failed');
     return [];
   }
 }
@@ -84,7 +85,7 @@ async function getBrettBotId(): Promise<number | null> {
     );
     return rows.length === 0 ? null : parseInt(rows[0].id, 10);
   } catch (err) {
-    console.error('[nc-talk-db] getBrettBotId failed:', err);
+    logger.error({ err }, '[nc-talk-db] getBrettBotId failed');
     return null;
   }
 }
@@ -98,7 +99,7 @@ async function getBrettBotId(): Promise<number | null> {
 export async function ensureBrettBotEnabledForRoom(roomToken: string): Promise<boolean> {
   const botId = await getBrettBotId();
   if (botId === null) {
-    console.error('[nc-talk-db] brett bot not found in oc_talk_bots_server');
+    logger.error('[nc-talk-db] brett bot not found in oc_talk_bots_server');
     return false;
   }
   try {
@@ -113,7 +114,7 @@ export async function ensureBrettBotEnabledForRoom(roomToken: string): Promise<b
     );
     return true;
   } catch (err) {
-    console.error('[nc-talk-db] ensureBrettBotEnabledForRoom failed:', err);
+    logger.error({ err }, '[nc-talk-db] ensureBrettBotEnabledForRoom failed');
     return false;
   }
 }

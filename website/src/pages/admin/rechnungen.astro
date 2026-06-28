@@ -10,6 +10,7 @@ import CreateInvoiceModal from '../../components/admin/CreateInvoiceModal.svelte
 import TaxMonitorWidget from '../../components/admin/TaxMonitorWidget.svelte';
 import DatevExportWidget from '../../components/admin/DatevExportWidget.svelte';
 import { SERVICES } from '../../lib/stripe-billing';
+import { logger } from '../../lib/logger';
 
 const serviceOptions = Object.entries(SERVICES).map(([key, val]) => ({
   key,
@@ -32,14 +33,14 @@ if (statusFilter === 'mahnwesen') {
   try {
     pendingDunnings = await listPendingDunnings(brand);
   } catch (err) {
-    console.error('[admin/rechnungen] listPendingDunnings', err);
+    logger.error({ err }, '[admin/rechnungen] listPendingDunnings');
     apiError = 'Mahnwesen konnte nicht geladen werden.';
   }
 } else {
   try {
     invoices = await getAllBillingInvoices({ status: statusFilter || undefined, perPage: 200 });
   } catch (err) {
-    console.error('[admin/rechnungen]', err);
+    logger.error({ err }, '[admin/rechnungen]');
     apiError = 'Datenbank nicht erreichbar.';
   }
 }
@@ -48,7 +49,7 @@ let draftInvoices: Awaited<ReturnType<typeof getDraftInvoices>> = [];
 try {
   draftInvoices = await getDraftInvoices();
 } catch (err) {
-  console.error('[admin/rechnungen] getDraftInvoices', err);
+  logger.error({ err }, '[admin/rechnungen] getDraftInvoices');
 }
 
 const today = new Date().toISOString().slice(0, 10);
@@ -340,6 +341,7 @@ const STATUS_TABS = [
 </script>
 
 <script>
+  import { browserLogger } from '$lib/browser-logger';
   import { mount, unmount, type Component } from 'svelte';
   import RecordPaymentModal from '../../components/admin/RecordPaymentModal.svelte';
   type RecordPaymentModalProps = { invoiceId: string; invoiceNumber: string; outstanding: number; onClose: () => void; onSaved: () => void };
@@ -379,7 +381,7 @@ const STATUS_TABS = [
           btn.textContent = 'Versenden ↑';
         }
       } catch (err) {
-        console.error(err);
+        browserLogger.error({ err }, '[admin/rechnungen] dunning send failed');
         alert('Netzwerkfehler.');
         btn.disabled = false;
         btn.textContent = 'Versenden ↑';

@@ -8,6 +8,7 @@ import { resolve4 } from 'dns';
 import { ensureSystemtestSchema } from '../systemtest/db';
 import { ensureSchemaOnce } from '../website-db';
 import { SYSTEM_TEST_TEMPLATES, type SystemTestTemplate } from '../system-test-seed-data';
+import { logger } from '../logger';
 
 const DB_URL = process.env.SESSIONS_DATABASE_URL
   || 'postgresql://website:devwebsitedb@shared-db.workspace.svc.cluster.local:5432/website';
@@ -296,4 +297,4 @@ async function initDb(): Promise<void> {
   await syncSystemTestTemplates();
 }
 
-initDb().catch(err => console.error('[questionnaire-db] initDb error:', err));
+initDb().catch(err => logger.error({ err }, '[questionnaire-db] initDb error'));

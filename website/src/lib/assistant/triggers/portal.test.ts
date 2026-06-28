@@ -1,5 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
 
+vi.mock('../../logger', () => ({
+  logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn(), child: vi.fn() },
+  createRequestLogger: vi.fn(() => ({ error: vi.fn(), warn: vi.fn(), info: vi.fn() })),
+}));
+import * as loggerModule from '../../logger';
+
 const { triggerStore, seenAtStore, listFirstSeenAt, recordFirstSeen, queueAndReject, mockQuery } = vi.hoisted(() => {
   const triggerStore: Array<{ id: string; profile: string; evaluate: (ctx: unknown) => Promise<unknown> }> = [];
   const seenAtStore: Array<{ userSub: string; profile: string; at: Date | null }> = [];
@@ -175,13 +181,13 @@ describe('portal triggers', () => {
   it('returns null and warns once when a table is missing (42P01)', async () => {
     await loadTriggers();
     queueAndReject.setReject({ code: '42P01', message: 'relation not found' });
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    vi.clearAllMocks();
     try {
       const out = await getTrigger('portal-signature-pending').evaluate({ userSub: 'u1' });
       expect(out).toBeNull();
-      expect(warn).toHaveBeenCalledTimes(1);
+      expect(loggerModule.logger.warn).toHaveBeenCalledTimes(1);
     } finally {
-      warn.mockRestore();
+      vi.clearAllMocks();
     }
   });
 });

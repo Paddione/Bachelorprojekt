@@ -1,4 +1,5 @@
 import { Pool } from 'pg';
+import { logger } from './logger';
 
 export type AiWorkflow =
   | 'coaching_chat'
@@ -45,7 +46,7 @@ export async function logAiCall(rec: AiCallRecord): Promise<void> {
       ],
     );
   } catch (err) {
-    console.error('[ai-metrics] logAiCall insert failed:', err);
+    logger.error({ err }, '[ai-metrics] logAiCall insert failed');
   }
 }
 

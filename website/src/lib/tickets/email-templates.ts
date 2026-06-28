@@ -1,5 +1,6 @@
 // website/src/lib/tickets/email-templates.ts
 import { sendEmail } from '../email';
+import { logger } from '../logger';
 
 const FROM_NAME = process.env.FROM_NAME || process.env.BRAND_NAME || 'Workspace';
 const PROD_DOMAIN = process.env.PROD_DOMAIN || '';
@@ -85,7 +86,7 @@ ${BRAND_NAME}`,
     });
     return true;
   } catch (err) {
-    console.error('[sendPublicCommentEmail] failed:', err);
+    logger.error({ err }, '[sendPublicCommentEmail] failed');
     return false;
   }
 }

@@ -1,6 +1,7 @@
 // website/src/lib/notifications.ts
 import { getSiteSetting } from './website-db';
 import { sendEmail } from './email';
+import { logger } from './logger';
 
 export type NotificationType = 'registration' | 'booking' | 'contact' | 'bug' | 'message' | 'followup';
 
@@ -46,5 +47,5 @@ export async function sendAdminNotification(params: {
     fromName && fromAddress ? `"${fromName.replace(/"/g, "'")}" <${fromAddress}>` : undefined;
 
   const ok = await sendEmail({ to, subject: params.subject, text: params.text, html: withInboxLink(params.html), replyTo: params.replyTo, from });
-  if (!ok) console.warn(`[notifications] sendEmail failed for type="${params.type}" to="${to}"`);
+  if (!ok) logger.warn({ type: params.type, to }, `[notifications] sendEmail failed for type="${params.type}"`);
 }

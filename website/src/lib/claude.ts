@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { getProviderConfig } from './provider-config';
 import { SOURCE } from './ki-services';
+import { logger } from './logger';
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
 
@@ -66,13 +67,13 @@ Antworte ausschliesslich mit dem JSON-Objekt.`;
 
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      console.error('[claude] No JSON found in response');
+      logger.error('[claude] No JSON found in response');
       return null;
     }
 
     return JSON.parse(jsonMatch[0]) as MeetingInsights;
   } catch (err) {
-    console.error('[claude] Insights generation failed:', err);
+    logger.error({ err }, '[claude] Insights generation failed');
     return null;
   }
 }

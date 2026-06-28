@@ -2,6 +2,7 @@
   import type { AssistantProfile, Nudge } from '../../lib/assistant/types';
   import AssistantBubble from './AssistantBubble.svelte';
   import AssistantChat from './AssistantChat.svelte';
+  import { browserLogger } from '$lib/browser-logger';
 
   let { profile }: { profile: AssistantProfile } = $props();
 
@@ -18,7 +19,7 @@
       const j = await r.json();
       if (Array.isArray(j?.nudges)) nudges = j.nudges;
     } catch (err) {
-      console.warn('[assistant] nudge fetch failed', err);
+      browserLogger.warn({ err }, '[assistant] nudge fetch failed');
     }
   }
 

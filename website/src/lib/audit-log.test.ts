@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeAll, vi } from 'vitest';
-import { newDb, DataType } from 'pg-mem';
+import { newDb } from 'pg-mem';
 import type { Pool } from 'pg';
 import { recordAudit, clientIpFromRequest } from './audit-log';
+import * as loggerModule from './logger';
 
 let pool: Pool;
 
@@ -66,14 +67,14 @@ describe('recordAudit', () => {
   });
 
   it('ist fail-soft: Insert-Fehler bricht nicht den Aufrufer', async () => {
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const warnSpy = vi.spyOn(loggerModule.logger, 'warn').mockReturnValue(undefined as any);
     await pool.query('DROP TABLE audit.audit_log CASCADE');
     await expect(
       recordAudit(pool, { action: 'fail.action' }),
     ).resolves.toBeUndefined();
     expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('[audit] recordAudit failed:'),
-      expect.anything(),
+      expect.objectContaining({ err: expect.anything() }),
+      expect.stringContaining('[audit] recordAudit failed'),
     );
     warnSpy.mockRestore();
   });

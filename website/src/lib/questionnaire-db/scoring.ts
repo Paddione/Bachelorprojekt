@@ -6,6 +6,7 @@
 import type { QDimension, QAnswerOption, QAnswer, QAssignment, QTestStatus, QArchivedScore, QEvidenceForQuestion, AssignmentStatus } from './types';
 import { pool } from './schema';
 import { getQAssignment } from './queries';
+import { logger } from '../logger';
 
 export async function autoEvaluateQAssignment(id: string): Promise<void> {
   const assignment = await getQAssignment(id);
@@ -179,7 +180,7 @@ export async function updateTestStatuses(assignmentId: string): Promise<void> {
         evidenceId = ev.rows[0]?.id ?? null;
         attempt = ev.rows[0]?.attempt ?? 0;
       } catch (err) {
-        console.error('[updateTestStatuses] evidence lookup failed:', err);
+        logger.error({ err }, '[updateTestStatuses] evidence lookup failed');
       }
       try {
         await openFailureTicket(pool, {
@@ -190,14 +191,14 @@ export async function updateTestStatuses(assignmentId: string): Promise<void> {
         });
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
-        console.error('[updateTestStatuses] failure-bridge failed:', err);
+        logger.error({ err }, '[updateTestStatuses] failure-bridge failed');
         await enqueueOutboxRetry(pool, {
           assignmentId,
           questionId: row.question_id,
           attempt,
           error: message,
         }).catch((outboxErr) =>
-          console.error('[updateTestStatuses] outbox enqueue failed:', outboxErr),
+          logger.error({ err: outboxErr }, '[updateTestStatuses] outbox enqueue failed'),
         );
       }
     }

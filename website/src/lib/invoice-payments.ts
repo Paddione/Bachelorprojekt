@@ -1,5 +1,6 @@
 import { pool, initBillingTables } from './website-db';
 import { addBooking } from './eur-bookkeeping';
+import { logger } from './logger';
 
 export interface InvoicePayment {
   id: number;
@@ -107,7 +108,7 @@ export async function recordPayment(p: RecordPaymentInput): Promise<InvoicePayme
         taxMode:     inv.tax_mode,
       });
     } catch (bookingErr) {
-      console.error('[recordPayment] EÜR booking failed (payment already committed):', bookingErr);
+      logger.error({ err: bookingErr }, '[recordPayment] EÜR booking failed (payment already committed)');
     }
 
     // Kursdifferenz: only when invoice is in foreign currency and a different payment rate is provided
@@ -132,7 +133,7 @@ export async function recordPayment(p: RecordPaymentInput): Promise<InvoicePayme
             taxMode:     inv.tax_mode,
           });
         } catch (kdBookingErr) {
-          console.error('[recordPayment] EÜR Kursdifferenz booking failed:', kdBookingErr);
+          logger.error({ err: kdBookingErr }, '[recordPayment] EÜR Kursdifferenz booking failed');
         }
       }
     }

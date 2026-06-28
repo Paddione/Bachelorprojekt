@@ -137,6 +137,7 @@ const COLUMNS: Array<{ key: string; title: string; hint: string }> = [
 </AdminLayout>
 
 <script>
+  import { browserLogger } from '$lib/browser-logger';
   // -------------------------------------------------------------------
   //  Failure-board client poller.
   //
@@ -310,7 +311,7 @@ const COLUMNS: Array<{ key: string; title: string; hint: string }> = [
       banner.classList.remove('hidden');
       status.textContent = 'Fehler';
       status.dataset.fresh = 'false';
-      console.error('[systemtest/board] poll failed:', err);
+      browserLogger.error({ err }, '[systemtest/board] poll failed');
     }
   }
 

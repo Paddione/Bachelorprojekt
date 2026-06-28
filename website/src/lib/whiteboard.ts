@@ -2,6 +2,8 @@
 // Finds and exports whiteboard files associated with a Talk room.
 // Whiteboards use Excalidraw-compatible JSON format stored in Nextcloud Files.
 
+import { logger } from './logger';
+
 const NC_URL = process.env.NEXTCLOUD_URL || 'http://nextcloud.workspace.svc.cluster.local';
 const NC_USER = process.env.NEXTCLOUD_CALDAV_USER || 'admin';
 const NC_PASS = process.env.NEXTCLOUD_CALDAV_PASSWORD || 'devnextcloudadmin';
@@ -113,7 +115,7 @@ export async function getWhiteboardArtifacts(roomName?: string): Promise<Whitebo
 
     return artifacts;
   } catch (err) {
-    console.error('[whiteboard] Error fetching artifacts:', err);
+    logger.error({ err }, '[whiteboard] Error fetching artifacts');
     return [];
   }
 }

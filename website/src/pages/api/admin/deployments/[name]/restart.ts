@@ -48,8 +48,8 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
-  } catch (error: any) {
-    const msg: string = error.message ?? 'Unknown error';
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? (error.message ?? 'Unknown error') : String(error);
     locals.requestLogger.error({ msg }, '[deployments/restart]');
     const status = /K8s API 404/.test(msg) ? 404
       : /K8s API 403/.test(msg) ? 403

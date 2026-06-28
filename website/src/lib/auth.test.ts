@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
+vi.mock('./logger', () => ({
+  logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn(), child: vi.fn() },
+  createRequestLogger: vi.fn(() => ({ error: vi.fn(), warn: vi.fn(), info: vi.fn() })),
+}));
+
 const ORIGINAL_POCKET = process.env.POCKET_ID_FRONTEND_URL;
 const ORIGINAL_INTERNAL = process.env.POCKET_ID_URL;
 const ORIGINAL_SECRET = process.env.POCKET_ID_WEBSITE_SECRET;
@@ -28,11 +33,6 @@ afterEach(() => {
 
 async function loadModule() {
   return import('./auth');
-}
-
-function makeJwt(payload: Record<string, unknown>): string {
-  const enc = (o: unknown) => Buffer.from(JSON.stringify(o)).toString('base64url');
-  return `x.${enc(payload)}.y`;
 }
 
 describe('getLoginUrl', () => {
@@ -111,13 +111,7 @@ describe('exchangeCode', () => {
   it('returns null when Pocket ID token endpoint returns a non-OK response', async () => {
     globalThis.fetch = (async () => new Response('nope', { status: 500 })) as typeof fetch;
     const m = await loadModule();
-    const originalErr = console.error;
-    console.error = () => undefined;
-    try {
-      expect(await m.exchangeCode('code-123')).toBeNull();
-    } finally {
-      console.error = originalErr;
-    }
+    expect(await m.exchangeCode('code-123')).toBeNull();
   });
 
   it('propagates the network error when the token endpoint throws (no try/catch on the outer fetch)', async () => {
@@ -143,12 +137,6 @@ describe('exchangeCode', () => {
       return new Response('nope', { status: 500 });
     }) as typeof fetch;
     const m = await loadModule();
-    const originalErr = console.error;
-    console.error = () => undefined;
-    try {
-      expect(await m.exchangeCode('code-123')).toBeNull();
-    } finally {
-      console.error = originalErr;
-    }
+    expect(await m.exchangeCode('code-123')).toBeNull();
   });
 });

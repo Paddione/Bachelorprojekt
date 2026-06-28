@@ -1,5 +1,6 @@
 <!-- website/src/components/portal/QuestionnaireWizard.svelte -->
 <script lang="ts">
+  import { browserLogger } from '$lib/browser-logger';
   type QuestionData = {
     id: string;
     position: number;
@@ -62,7 +63,7 @@
     } catch (e) {
       // Recording is best-effort; never block the wizard if the bundle
       // fails to load (e.g. offline). The user can still complete the test.
-      console.warn('[wizard] failed to start evidence recorder', e);
+      browserLogger.warn({ err: e }, '[wizard] failed to start evidence recorder');
     }
   }
 
@@ -73,7 +74,7 @@
     try {
       await rec.finalize();
     } catch (e) {
-      console.warn('[wizard] evidence finalize failed', e);
+      browserLogger.warn({ err: e }, '[wizard] evidence finalize failed');
     }
   }
 

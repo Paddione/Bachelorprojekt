@@ -2,6 +2,8 @@
 // Sends audio files to the whisper service and returns transcripts.
 // Uses the OpenAI-compatible API (fedirz/faster-whisper-server).
 
+import { logger } from './logger';
+
 const WHISPER_URL = process.env.WHISPER_URL || 'http://whisper.workspace.svc.cluster.local:8000';
 
 export interface TranscriptionResult {
@@ -38,7 +40,7 @@ export async function transcribeAudio(
     });
 
     if (!res.ok) {
-      console.error('[whisper] Transcription failed:', res.status, await res.text());
+      logger.error({ status: res.status, body: await res.text() }, '[whisper] Transcription failed');
       return null;
     }
 
@@ -55,7 +57,7 @@ export async function transcribeAudio(
       })),
     };
   } catch (err) {
-    console.error('[whisper] Transcription error:', err);
+    logger.error({ err }, '[whisper] Transcription error');
     return null;
   }
 }

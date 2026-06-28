@@ -143,19 +143,19 @@ describe.skipIf(!mustangAvailable)('Mustang validation', () => {
   it('factur-x-minimum XML ist Mustang-valide', () => {
     const xml = generateEInvoiceXml('factur-x-minimum', baseInput);
     const r = validateWithMustang(xml, 'xml');
-    if (!r.ok) console.error(r.output);
+    if (!r.ok) console.log('[test-diag]', r.output);
     expect(r.ok).toBe(true);
   }, 60_000);
   it('xrechnung-cii XML ist Mustang-valide', () => {
     const xml = generateEInvoiceXml('xrechnung-cii', baseInput);
     const r = validateWithMustang(xml, 'xml');
-    if (!r.ok) console.error(r.output);
+    if (!r.ok) console.log('[test-diag]', r.output);
     expect(r.ok).toBe(true);
   }, 60_000);
   it('xrechnung-ubl XML ist Mustang-valide', () => {
     const xml = generateEInvoiceXml('xrechnung-ubl', baseInput);
     const r = validateWithMustang(xml, 'xml');
-    if (!r.ok) console.error(r.output);
+    if (!r.ok) console.log('[test-diag]', r.output);
     expect(r.ok).toBe(true);
   }, 60_000);
 });

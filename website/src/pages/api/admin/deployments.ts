@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { createK8sClient } from '../../../lib/k8s';
+import { createK8sClient, type KubeDeployment, type KubeList } from '../../../lib/k8s';
 import { getSession, isAdmin } from '../../../lib/auth';
 import { pool } from '../../../lib/website-db';
 import { recordAudit, clientIpFromRequest } from '../../../lib/audit-log';
@@ -32,13 +32,8 @@ export const GET: APIRoute = async ({ request }) => {
   const ns = brand === 'korczewski' ? 'workspace-korczewski' : 'workspace';
 
   try {
-    interface K8sDeployment {
-      metadata: { name: string };
-      spec?: { replicas?: number };
-      status?: { readyReplicas?: number; availableReplicas?: number };
-    }
-    const data = await k8s.get<{ items?: K8sDeployment[] }>(`/apis/apps/v1/namespaces/${ns}/deployments`);
-    const deployments = (data.items ?? []).map((d: K8sDeployment) => {
+    const data = await k8s.get<KubeList<KubeDeployment>>(`/apis/apps/v1/namespaces/${ns}/deployments`);
+    const deployments = (data.items ?? []).map((d: KubeDeployment) => {
       const desired: number = d.spec?.replicas ?? 1;
       const ready: number = d.status?.readyReplicas ?? 0;
       const available: number = d.status?.availableReplicas ?? 0;
@@ -55,8 +50,9 @@ export const GET: APIRoute = async ({ request }) => {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
-  } catch (error: any) {
-    return new Response(JSON.stringify({ error: error.message }), {
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    return new Response(JSON.stringify({ error: msg }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });

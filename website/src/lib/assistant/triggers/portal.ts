@@ -3,12 +3,13 @@
 // reference customers.id (UUID), not the keycloak sub directly.
 //
 // Every query is wrapped in safeQuery so a missing table downgrades to a
-// one-time console.warn instead of crashing /api/assistant/nudges.
+// one-time warning instead of crashing /api/assistant/nudges.
 
 import { registerTrigger } from '../triggers';
 import { pool } from '../../website-db';
 import { listFirstSeenAt, recordFirstSeen } from '../dismissals';
 import type { Nudge } from '../types';
+import { logger } from '../../logger';
 
 const warned = new Set<string>();
 
@@ -23,7 +24,7 @@ async function safeQuery<T extends Record<string, unknown>>(
     if (err && typeof err === 'object' && 'code' in err && (err as { code?: string }).code === '42P01') {
       if (!warned.has(hintTable)) {
         warned.add(hintTable);
-        console.warn(`[assistant.triggers.portal] table ${hintTable} not found — trigger disabled until schema lands`);
+        logger.warn({ hintTable }, `[assistant.triggers.portal] table ${hintTable} not found — trigger disabled until schema lands`);
       }
       return null;
     }

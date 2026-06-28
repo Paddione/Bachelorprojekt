@@ -6,6 +6,7 @@ import { listTasksInMonth, listProjectsInMonth, listMeetingsInRange } from '../.
 import type { CalendarTask, CalendarProject, CalendarMeeting } from '../../lib/website-db';
 import { getAllBookings } from '../../lib/caldav';
 import type { AdminBooking } from '../../lib/caldav';
+import { logger } from '../../lib/logger';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -67,7 +68,7 @@ try {
     listMeetingsInRange(rangeStart.toISOString(), rangeEnd.toISOString()),
   ]);
 } catch (err) {
-  console.error('[admin/kalender] db', err);
+  logger.error({ err }, '[admin/kalender] db');
   dbError = 'Datenbankfehler beim Laden.';
 }
 
@@ -75,7 +76,7 @@ try {
   const all = await getAllBookings();
   bookings = all.filter(b => b.start >= rangeStart && b.start <= rangeEnd && b.status !== 'CANCELLED');
 } catch (err) {
-  console.error('[admin/kalender] caldav', err);
+  logger.error({ err }, '[admin/kalender] caldav');
 }
 
 // ── Bucket items by calendar day (YYYY-MM-DD) ─────────────────────────────

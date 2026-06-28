@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
+vi.mock('./logger', () => ({
+  logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn(), child: vi.fn() },
+  createRequestLogger: vi.fn(() => ({ error: vi.fn(), warn: vi.fn(), info: vi.fn() })),
+}));
+
 const ORIGINAL_FETCH = globalThis.fetch;
 const ORIGINAL_NC = process.env.NEXTCLOUD_URL;
 const ORIGINAL_USER = process.env.NEXTCLOUD_CALDAV_USER;
@@ -34,13 +39,7 @@ describe('createTalkRoom', () => {
   it('returns null when the OCS API returns a non-OK response', async () => {
     globalThis.fetch = (async () => new Response('boom', { status: 500 })) as typeof fetch;
     const m = await loadModule();
-    const originalErr = console.error;
-    console.error = () => undefined;
-    try {
-      expect(await m.createTalkRoom({ name: 'Session 1' })).toBeNull();
-    } finally {
-      console.error = originalErr;
-    }
+    expect(await m.createTalkRoom({ name: 'Session 1' })).toBeNull();
   });
 
   it('returns the parsed room on success (defaults to public roomType 3)', async () => {
@@ -75,13 +74,7 @@ describe('createTalkRoom', () => {
   it('returns null on network error', async () => {
     globalThis.fetch = (async () => { throw new Error('network down'); }) as typeof fetch;
     const m = await loadModule();
-    const originalErr = console.error;
-    console.error = () => undefined;
-    try {
-      expect(await m.createTalkRoom({ name: 'X' })).toBeNull();
-    } finally {
-      console.error = originalErr;
-    }
+    expect(await m.createTalkRoom({ name: 'X' })).toBeNull();
   });
 });
 
@@ -95,13 +88,7 @@ describe('inviteGuestByEmail', () => {
   it('returns false on non-OK', async () => {
     globalThis.fetch = (async () => new Response('nope', { status: 500 })) as typeof fetch;
     const m = await loadModule();
-    const originalErr = console.error;
-    console.error = () => undefined;
-    try {
-      expect(await m.inviteGuestByEmail('room-tok', 'guest@example.com')).toBe(false);
-    } finally {
-      console.error = originalErr;
-    }
+    expect(await m.inviteGuestByEmail('room-tok', 'guest@example.com')).toBe(false);
   });
 });
 
@@ -129,13 +116,7 @@ describe('sendChatMessage', () => {
   it('returns false on a non-OK response', async () => {
     globalThis.fetch = (async () => new Response('boom', { status: 500 })) as typeof fetch;
     const m = await loadModule();
-    const originalErr = console.error;
-    console.error = () => undefined;
-    try {
-      expect(await m.sendChatMessage('room-tok', 'hello')).toBe(false);
-    } finally {
-      console.error = originalErr;
-    }
+    expect(await m.sendChatMessage('room-tok', 'hello')).toBe(false);
   });
 });
 
@@ -143,13 +124,7 @@ describe('getRecordingFile', () => {
   it('returns null when the WebDAV PROPFIND returns non-OK', async () => {
     globalThis.fetch = (async () => new Response('boom', { status: 500 })) as typeof fetch;
     const m = await loadModule();
-    const originalErr = console.error;
-    console.error = () => undefined;
-    try {
-      expect(await m.getRecordingFile('room-tok')).toBeNull();
-    } finally {
-      console.error = originalErr;
-    }
+    expect(await m.getRecordingFile('room-tok')).toBeNull();
   });
 
   it('returns null when no recording is found in the listing', async () => {

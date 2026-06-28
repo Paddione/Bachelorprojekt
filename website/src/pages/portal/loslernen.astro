@@ -2,6 +2,7 @@
 import PortalLayout from '../../layouts/PortalLayout.astro';
 import { getSession, getLoginUrl } from '../../lib/auth';
 import { themes, goals, tools } from '../../lib/agentGuide';
+import { logger } from '../../lib/logger';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) {
@@ -33,7 +34,7 @@ try {
     summary = await res.json() as LearningSummary;
   }
 } catch (e) {
-  console.error('Failed to fetch learning summary:', e);
+  logger.error({ err: e }, 'Failed to fetch learning summary');
 }
 
 // Build a map of item_id → status for quick lookups

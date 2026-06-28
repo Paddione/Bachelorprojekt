@@ -12,7 +12,8 @@
 // factory-floor.ts — this file intentionally has zero server-side imports.
 
 // Re-exported from factory-floor-lanes (pure module, no DB).
-export type { ShippedItem, AwaitingDeployItem } from './factory-floor-lanes';
+import type { ShippedItem, AwaitingDeployItem } from './factory-floor-lanes';
+export type { ShippedItem, AwaitingDeployItem };
 
 export const PHASE_ORDER = ['scout', 'design', 'plan', 'implement', 'verify', 'deploy'] as const;
 export type Phase = (typeof PHASE_ORDER)[number];

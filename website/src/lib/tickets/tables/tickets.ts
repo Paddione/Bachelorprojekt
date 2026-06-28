@@ -466,7 +466,7 @@ export async function applyTicketsCoreSchema(pool: Pool | PoolClient): Promise<v
       created_at
   `);
 
-  await ensureCockpitViews(pool);
+  await ensureCockpitViews(pool as import('pg').Pool);
 
   // QS-Abnahme [qualitaetssicherung]: menschliche Abnahme-Stufe zwischen deploy und done.
   await pool.query(`

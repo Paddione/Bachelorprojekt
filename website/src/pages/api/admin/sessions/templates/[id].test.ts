@@ -26,7 +26,7 @@ describe('DELETE /api/admin/sessions/templates/[id]', () => {
   });
 
   it('200 deletes own custom template', async () => {
-    vi.mocked(getSession).mockResolvedValue({ sub: 'a', email: 'a@x', preferred_username: 'admin' });
+    vi.mocked(getSession).mockResolvedValue({ sub: 'a', email: 'a@x', preferred_username: 'admin' } as any);
     vi.mocked(isAdmin).mockReturnValue(true);
     vi.mocked(deleteTemplate).mockResolvedValue(undefined);
     const res = await DELETE({ request: mkReq(), locals, params: { id: 'abc' } } as any);
@@ -36,7 +36,7 @@ describe('DELETE /api/admin/sessions/templates/[id]', () => {
   });
 
   it('400 when deleteTemplate throws', async () => {
-    vi.mocked(getSession).mockResolvedValue({ sub: 'a', email: 'a@x', preferred_username: 'admin' });
+    vi.mocked(getSession).mockResolvedValue({ sub: 'a', email: 'a@x', preferred_username: 'admin' } as any);
     vi.mocked(isAdmin).mockReturnValue(true);
     vi.mocked(deleteTemplate).mockRejectedValue(new Error('cannot delete default template'));
     const res = await DELETE({ request: mkReq(), locals, params: { id: 'abc' } } as any);

@@ -23,7 +23,7 @@ function toZugferdNativeInput(p: EInvoiceInput): ZugferdNativeInput {
     customer: { name: p.customer.name, email: p.customer.email },
     seller: {
       name: p.seller.name, address: p.seller.address, postalCode: p.seller.postalCode,
-      city: p.seller.city, country: p.seller.country, vatId: p.seller.vatId,
+      city: p.seller.city, country: p.seller.country, vatId: p.seller.vatId ?? '',
       taxNumber: p.seller.taxNumber,
     },
   };

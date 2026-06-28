@@ -15,15 +15,29 @@ import type { KiConfig } from './coaching-ki-config-db';
 import { OpenAICompatibleSessionAgent } from './openai-compatible-session-agent';
 
 const baseConfig = (overrides: Partial<KiConfig> = {}): KiConfig => ({
-  id: 'c-1',
+  id: 1,
+  brand: 'mentolder',
   provider: 'deepseek',
+  isActive: true,
   modelName: null,
+  displayName: 'DeepSeek',
+  createdAt: new Date(),
   apiEndpoint: null,
   apiKey: null,
   maxTokens: 100,
   temperature: null,
   topP: null,
-  enabled: true,
+  systemPrompt: null,
+  notes: null,
+  topK: null,
+  thinkingMode: false,
+  presencePenalty: null,
+  frequencyPenalty: null,
+  safePrompt: false,
+  randomSeed: null,
+  organizationId: null,
+  euEndpoint: false,
+  enabledFields: null,
   ...overrides,
 });
 

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { getDisplayScores } from './questionnaire-display';
 
 // Mock the DB modules used by getDisplayScores so the pure function can be

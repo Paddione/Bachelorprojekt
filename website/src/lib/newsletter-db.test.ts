@@ -7,11 +7,11 @@ const { Pool, resolve4, query, end } = vi.hoisted(() => {
     if (next) return next;
     return { rows: [], rowCount: 0 };
   });
-  const end = vi.fn(async () => undefined);
+  const end = vi.fn(async (..._args: any[]) => undefined);
   class Pool {
     constructor(_opts: unknown) { /* ignore config */ }
-    query(...a: [...unknown[]]) { return query(...a); }
-    end(...a: [...unknown[]]) { return end(...a); }
+    query(...a: any[]) { return query(...a); }
+    end(...a: any[]) { return end(...a); }
   }
   const resolve4 = vi.fn();
   return { Pool, resolve4, query, end, queue };

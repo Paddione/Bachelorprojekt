@@ -2,7 +2,7 @@
 import AdminLayout from '../../../../layouts/AdminLayout.astro';
 import AdminPageHeader from '../../../../components/admin/ui/AdminPageHeader.svelte';
 import { getSession, getLoginUrl, isAdmin } from '../../../../lib/auth';
-import { listSessions } from '../../../../lib/coaching-session-db';
+import { listSessions, type ListSessionsResult } from '../../../../lib/coaching-session-db';
 import { pool } from '../../../../lib/website-db';
 import SessionsOverview from '../../../../components/admin/coaching/SessionsOverview.svelte';
 
@@ -11,7 +11,7 @@ if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
 if (!isAdmin(session)) return Astro.redirect('/admin');
 
 const brand = process.env.BRAND || 'mentolder';
-let initialResult = { sessions: [], total: 0, page: 1, pageSize: 20 };
+let initialResult: ListSessionsResult = { sessions: [], total: 0, page: 1, pageSize: 20 };
 try {
   initialResult = await listSessions(pool, brand, { page: 1, pageSize: 20 });
 } catch { /* coaching schema may not exist yet */ }

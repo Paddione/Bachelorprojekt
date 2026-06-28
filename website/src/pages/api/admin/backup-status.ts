@@ -133,7 +133,7 @@ export const GET: APIRoute = async ({ request }) => {
       ]);
       const jobs = (jobsData.items ?? []).map(mapJob);
       const status = derivePipelineStatus(jobs, cronData, now, def.maxAgeH);
-      return { id: def.id, ...status };
+      return { ...status, id: def.id };
     }),
   );
 

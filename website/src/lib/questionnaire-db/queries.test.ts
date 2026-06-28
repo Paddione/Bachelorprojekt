@@ -124,7 +124,7 @@ describe('questionnaire-db/queries', () => {
     it('INSERT with the right columns', async () => {
       query.mockResolvedValueOnce({ rows: [{ id: 'q1' }] });
       await upsertQQuestion({
-        templateId: 't1', position: 0, questionText: '?', questionType: 'free_text',
+        templateId: 't1', position: 0, questionText: '?', questionType: 'free_text' as any,
         testExpectedResult: null, testFunctionUrl: null, testMenuPath: null, testRole: null,
       });
       const sql = query.mock.calls[0][0] as string;

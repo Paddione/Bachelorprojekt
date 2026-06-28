@@ -1,4 +1,4 @@
-type Phase = 'problem_ziel' | 'analyse' | 'loesung' | 'umsetzung';
+export type Phase = 'problem_ziel' | 'analyse' | 'loesung' | 'umsetzung';
 
 interface StepInput {
   key: string;

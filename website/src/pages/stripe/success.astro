@@ -11,7 +11,7 @@ let customerEmail = '';
 
 if (sessionId && process.env.STRIPE_SECRET_KEY) {
   try {
-    const session = await stripe.checkout.sessions.retrieve(sessionId, {
+    const session = await stripe!.checkout.sessions.retrieve(sessionId, {
       expand: ['line_items'],
     });
     productName = session.line_items?.data[0]?.description ?? '';

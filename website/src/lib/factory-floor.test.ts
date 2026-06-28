@@ -332,7 +332,7 @@ describe('status coverage', () => {
 
   it('maps every status to a non-empty UI bucket (no invisible tickets)', () => {
     for (const s of ENUM) {
-      expect(STATUS_BUCKETS[s], `status "${s}" has no UI bucket`).toBeTruthy();
+      expect(STATUS_BUCKETS[s as import('./tickets/pipeline-order').TicketStatus], `status "${s}" has no UI bucket`).toBeTruthy();
     }
   });
 });

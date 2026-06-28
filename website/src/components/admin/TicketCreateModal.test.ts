@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, fireEvent, waitFor } from '@testing-library/svelte';
 import TicketCreateModal from './TicketCreateModal.svelte';
+import { makeFeature, makeRollup, makeProduct } from '../../lib/tickets/__tests__/fixtures';
 
 const features = [
-  { id: 'f1', extId: 'F1', title: 'Auth', priority: 'mittel', health: 'green' as const,
-    rollup: { total: 1, done: 0, blocked: 0, inProgress: 0, open: 1, pctDone: 0 } },
+  makeFeature({ id: 'f1', extId: 'F1', title: 'Auth', priority: 'mittel', health: 'green', rollup: makeRollup({ total: 1, open: 1 }) }),
 ];
 
 beforeEach(() => vi.restoreAllMocks());
@@ -21,8 +21,7 @@ describe('TicketCreateModal', () => {
   it('updates parentId when modal is reopened with a different defaultFeatureId', async () => {
     const features2 = [
       ...features,
-      { id: 'f2', extId: 'F2', title: 'Billing', priority: 'hoch', health: 'green' as const,
-        rollup: { total: 0, done: 0, blocked: 0, inProgress: 0, open: 0, pctDone: 0 } },
+      makeFeature({ id: 'f2', extId: 'F2', title: 'Billing', priority: 'hoch', health: 'green', rollup: makeRollup({ total: 0, open: 0 }) }),
     ];
     const onClose = vi.fn();
     const { getByTestId, rerender } = render(TicketCreateModal,
@@ -96,12 +95,8 @@ describe('TicketCreateModal', () => {
 
   it('groups features by product via optgroup when products are passed', () => {
     const products = [
-      { id: 'p1', extId: 'p1', title: 'Produkt A',
-        rollup: { total: 1, done: 0, blocked: 0, inProgress: 0, open: 1, pctDone: 0 },
-        features: [
-          { id: 'f1', extId: 'F1', title: 'Auth', priority: 'mittel', health: 'green' as const,
-            rollup: { total: 1, done: 0, blocked: 0, inProgress: 0, open: 1, pctDone: 0 } },
-        ] },
+      makeProduct({ id: 'p1', extId: 'p1', title: 'Produkt A', rollup: makeRollup({ total: 1, open: 1 }),
+        features: [makeFeature({ id: 'f1', extId: 'F1', title: 'Auth', priority: 'mittel', health: 'green', rollup: makeRollup({ total: 1, open: 1 }) })] }),
     ];
     const { getByTestId } = render(TicketCreateModal,
       { open: true, products, features, onClose: () => {} });

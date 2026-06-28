@@ -112,9 +112,9 @@ describe('GET /cockpit/feature', () => {
 // ---------------------------------------------------------------------------
 // Task 9: POST /cockpit/reorder
 // ---------------------------------------------------------------------------
-const post = (route: (args: { request: Request }) => Promise<Response>, body: unknown) => route({
+const post = (route: (args: any) => Response | Promise<Response>, body: unknown): Promise<Response> => Promise.resolve(route({
   request: new Request('http://x', { method: 'POST', headers: { cookie: 'sid=1' }, body: JSON.stringify(body) }),
-} as any);
+} as any) as Response);
 
 describe('POST /cockpit/reorder', () => {
   beforeEach(() => { mocks.getSession.mockResolvedValue({ user: {} }); mocks.isAdmin.mockReturnValue(true); });

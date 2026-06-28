@@ -11,11 +11,13 @@ const dim = (
   high: number | null = null,
 ): QDimension => ({
   id,
+  template_id: 'tpl-test',
   name,
   position,
   score_multiplier: multi,
   threshold_mid: mid,
   threshold_high: high,
+  created_at: '2024-01-01T00:00:00Z',
 });
 
 const opt = (
@@ -28,6 +30,7 @@ const opt = (
   dimension_id,
   question_id,
   option_key,
+  label: option_key,
   weight,
 });
 
@@ -86,9 +89,9 @@ describe('computeScores', () => {
     const out = computeScores(
       [d1, d2, d3],
       [
-        { id: 'o-low', dimension_id: 'low', question_id: 'q-low', option_key: '1', weight: 1 },
-        { id: 'o-mid', dimension_id: 'mid', question_id: 'q-mid', option_key: '6', weight: 1 },
-        { id: 'o-high', dimension_id: 'high', question_id: 'q-high', option_key: '10', weight: 1 },
+        { id: 'o-low', dimension_id: 'low', question_id: 'q-low', option_key: '1', label: '1', weight: 1 },
+        { id: 'o-mid', dimension_id: 'mid', question_id: 'q-mid', option_key: '6', label: '6', weight: 1 },
+        { id: 'o-high', dimension_id: 'high', question_id: 'q-high', option_key: '10', label: '10', weight: 1 },
       ],
       [
         { question_id: 'q-low', option_key: '1' },

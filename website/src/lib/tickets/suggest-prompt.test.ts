@@ -7,19 +7,19 @@ function portfolio(): PortfolioPayload {
     products: [
       {
         id: 'p1', extId: 'P1', title: 'Brett',
-        rollup: { total: 10, done: 5, blocked: 1, inProgress: 2, open: 2, pctDone: 50 },
+        rollup: { total: 10, done: 5, blocked: 1, inProgress: 2, awaitingDeploy: 0, open: 2, pctDone: 50 },
         features: [
           {
             id: 'f1', extId: 'T000111', title: 'Lobby-Refresh',
             valueProp: 'Schnellerer Lobby-Beitritt', priority: 'hoch', health: 'amber',
-            rollup: { total: 4, done: 3, blocked: 0, inProgress: 1, open: 0, pctDone: 75 },
+            rollup: { total: 4, done: 3, blocked: 0, inProgress: 1, awaitingDeploy: 0, open: 0, pctDone: 75 },
             nextStep: false, discarded: false, majorFeature: false,
             suggestionComment: 'fast fertig',
           },
           {
             id: 'f2', extId: 'T000222', title: 'Blocker-Feature',
             valueProp: undefined, priority: 'mittel', health: 'red',
-            rollup: { total: 6, done: 0, blocked: 2, inProgress: 0, open: 4, pctDone: 0 },
+            rollup: { total: 6, done: 0, blocked: 2, inProgress: 0, awaitingDeploy: 0, open: 4, pctDone: 0 },
             nextStep: false, discarded: false, majorFeature: true,
           },
         ],
@@ -27,11 +27,11 @@ function portfolio(): PortfolioPayload {
       {
         // synthetic aggregate bucket — must be filtered out
         id: 'ALL', extId: 'ALL', title: 'Alle Tickets',
-        rollup: { total: 99, done: 0, blocked: 0, inProgress: 0, open: 99, pctDone: 0 },
+        rollup: { total: 99, done: 0, blocked: 0, inProgress: 0, awaitingDeploy: 0, open: 99, pctDone: 0 },
         features: [
           {
             id: 'ALL', extId: 'ALL', title: 'Alle Tickets', priority: 'mittel', health: 'amber',
-            rollup: { total: 99, done: 0, blocked: 0, inProgress: 0, open: 99, pctDone: 0 },
+            rollup: { total: 99, done: 0, blocked: 0, inProgress: 0, awaitingDeploy: 0, open: 99, pctDone: 0 },
             nextStep: false, discarded: false, majorFeature: false, synthetic: true,
           },
         ],

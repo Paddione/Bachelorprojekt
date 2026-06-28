@@ -56,7 +56,7 @@ describe('History and Purge API Endpoints', () => {
       writeFileSync(join(tmpArchiveDir, 'p1.meta.json'), JSON.stringify(metaPaddione));
 
       // 1. Non-admin Gekko user
-      vi.mocked(getSession).mockResolvedValue({ preferred_username: 'gekko' });
+      vi.mocked(getSession).mockResolvedValue({ preferred_username: 'gekko' } as any);
       vi.mocked(isAdmin).mockReturnValue(false);
 
       let req = new Request('http://x/api/admin/sessions/history');
@@ -67,7 +67,7 @@ describe('History and Purge API Endpoints', () => {
       expect(body.items.map((i: { id: string }) => i.id)).toEqual(['g1', 'g2']);
 
       // 2. Admin user sees all
-      vi.mocked(getSession).mockResolvedValue({ preferred_username: 'gekko' });
+      vi.mocked(getSession).mockResolvedValue({ preferred_username: 'gekko' } as any);
       vi.mocked(isAdmin).mockReturnValue(true);
 
       req = new Request('http://x/api/admin/sessions/history');
@@ -94,7 +94,7 @@ describe('History and Purge API Endpoints', () => {
         writeFileSync(join(tmpArchiveDir, `s-${i}.meta.json`), JSON.stringify(meta));
       }
 
-      vi.mocked(getSession).mockResolvedValue({ preferred_username: 'gekko' });
+      vi.mocked(getSession).mockResolvedValue({ preferred_username: 'gekko' } as any);
       vi.mocked(isAdmin).mockReturnValue(false);
 
       const req = new Request('http://x/api/admin/sessions/history?offset=0&limit=2');
@@ -115,7 +115,7 @@ describe('History and Purge API Endpoints', () => {
       writeFileSync(join(tmpArchiveDir, 's1.meta.json'), JSON.stringify(metaForm));
       writeFileSync(join(tmpArchiveDir, 's2.meta.json'), JSON.stringify(metaBrainstorm));
 
-      vi.mocked(getSession).mockResolvedValue({ preferred_username: 'gekko' });
+      vi.mocked(getSession).mockResolvedValue({ preferred_username: 'gekko' } as any);
       vi.mocked(isAdmin).mockReturnValue(false);
 
       const req = new Request('http://x/api/admin/sessions/history?type=form');
@@ -139,20 +139,20 @@ describe('History and Purge API Endpoints', () => {
       expect(res.status).toBe(401);
 
       // 2. Authenticated non-owner -> 403
-      vi.mocked(getSession).mockResolvedValue({ preferred_username: 'paddione' });
+      vi.mocked(getSession).mockResolvedValue({ preferred_username: 'paddione' } as any);
       vi.mocked(isAdmin).mockReturnValue(false);
       res = await getHistoryItem({ request: new Request('http://x'), params: { id: 'g1' }, locals } as any);
       expect(res.status).toBe(403);
 
       // 3. Authenticated owner -> 200
-      vi.mocked(getSession).mockResolvedValue({ preferred_username: 'gekko' });
+      vi.mocked(getSession).mockResolvedValue({ preferred_username: 'gekko' } as any);
       vi.mocked(isAdmin).mockReturnValue(false);
       res = await getHistoryItem({ request: new Request('http://x'), params: { id: 'g1' }, locals } as any);
       expect(res.status).toBe(200);
       expect(await res.text()).toBe('# Gekko Markdown Content');
 
       // 4. Admin sees others -> 200
-      vi.mocked(getSession).mockResolvedValue({ preferred_username: 'admin' });
+      vi.mocked(getSession).mockResolvedValue({ preferred_username: 'admin' } as any);
       vi.mocked(isAdmin).mockReturnValue(true);
       res = await getHistoryItem({ request: new Request('http://x'), params: { id: 'g1' }, locals } as any);
       expect(res.status).toBe(200);
@@ -183,7 +183,7 @@ describe('History and Purge API Endpoints', () => {
       expect(res.status).toBe(401);
 
       // 3. Admin session cookie -> 200
-      vi.mocked(getSession).mockResolvedValue({ preferred_username: 'admin' });
+      vi.mocked(getSession).mockResolvedValue({ preferred_username: 'admin' } as any);
       vi.mocked(isAdmin).mockReturnValue(true);
       req = new Request('http://x', { method: 'POST' });
       res = await triggerPurge({ request: req, locals } as any);

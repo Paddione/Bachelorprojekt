@@ -2,9 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, fireEvent, waitFor } from '@testing-library/svelte';
 import CockpitTable from './CockpitTable.svelte';
 import { cockpitStore } from '../../lib/stores/cockpitStore';
+import { makeFeature, makeRollup } from '../../lib/tickets/__tests__/fixtures';
 
-const feature = { id: 'f1', extId: 'F1', title: 'F1', priority: 'mittel', health: 'amber' as const,
-  rollup: { total: 2, done: 0, blocked: 0, inProgress: 0, open: 2, pctDone: 0 } };
+const feature = makeFeature({ health: 'amber', rollup: makeRollup({ total: 2, open: 2 }) });
 const tickets = [
   { id: 't1', extId: 'T1', title: 'Alpha', status: 'open', priority: 'mittel', type: 'task' },
   { id: 't2', extId: 'T2', title: 'Beta', status: 'in_progress', priority: 'hoch', type: 'task' },

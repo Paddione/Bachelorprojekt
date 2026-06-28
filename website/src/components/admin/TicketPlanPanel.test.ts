@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/svelte';
 import TicketPlanPanel from './TicketPlanPanel.svelte';
 
 const mockPlan = {
-  id: 'plan-1',
+  id: 1,
   slug: '2026-06-20-mein-plan',
   branch: 'feature/mein-plan',
   prNumber: 42,

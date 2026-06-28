@@ -20,6 +20,8 @@ import {
   type HomepageFieldError,
 } from './homepage-blocks-schema';
 
+export type { HomepageBlocksDocumentType };
+
 const pool = new pg.Pool({
   connectionString:
     process.env.SESSIONS_DATABASE_URL ||

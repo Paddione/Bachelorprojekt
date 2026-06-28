@@ -10,7 +10,7 @@ export interface EInvoiceCustomer {
 
 export interface EInvoiceSeller {
   name: string; address: string; postalCode: string; city: string;
-  country: string; vatId: string; iban?: string; bic?: string;
+  country: string; vatId?: string; iban?: string; bic?: string;
   email?: string;  // BT-34 / BG-6
   phone?: string;  // BG-6 contact
   // BT-32 — German Steuernummer for Kleinunternehmer who have no VAT ID.

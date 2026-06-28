@@ -21,7 +21,7 @@ describe('GET /api/admin/dora-metrics', () => {
   });
 
   it('returns DORA metrics for an admin', async () => {
-    vi.mocked(getSession).mockResolvedValue({ preferred_username: 'admin', sub: 'a', email: 'a@x' });
+    vi.mocked(getSession).mockResolvedValue({ preferred_username: 'admin', sub: 'a', email: 'a@x' } as any);
     vi.mocked(isAdmin).mockReturnValue(true);
     // first query = merges, second = bugs (order matches the route's Promise.all)
     (pool.query as any)
@@ -41,7 +41,7 @@ describe('GET /api/admin/dora-metrics', () => {
   });
 
   it('returns 500 on a query failure (logged, not thrown)', async () => {
-    vi.mocked(getSession).mockResolvedValue({ preferred_username: 'admin', sub: 'a', email: 'a@x' });
+    vi.mocked(getSession).mockResolvedValue({ preferred_username: 'admin', sub: 'a', email: 'a@x' } as any);
     vi.mocked(isAdmin).mockReturnValue(true);
     (pool.query as any).mockRejectedValue(new Error('db down'));
     const res = await GET({ request: mkReq(), locals } as any);

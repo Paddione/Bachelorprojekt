@@ -82,7 +82,7 @@ describe('generate-3d pipeline', () => {
     await finaliseJob('j1', 'p1', 'fig', { comfyFetch: comfyDoneFetch(), riggerFetch, brettFetch });
     const doneCall = stageCalls.find((c) => c.stage === 'done');
     expect(doneCall).toBeDefined();
-    expect(doneCall?.extra?.skin_id).toBe('s1');
+    expect((doneCall?.extra as any)?.skin_id).toBe('s1');
   });
 
   it('Integration: full pipeline reaches done in one tick and registers the asset', async () => {
@@ -106,7 +106,7 @@ describe('generate-3d pipeline', () => {
     await finaliseJob('j1', 'p1', 'fig', { comfyFetch: comfyDoneFetch(), riggerFetch });
     const err = stageCalls.find((c) => c.stage === 'error');
     expect(err).toBeDefined();
-    expect(err?.extra?.error_msg).toMatch(/Rigging failed/);
+    expect((err?.extra as any)?.error_msg).toMatch(/Rigging failed/);
   });
 
   it('Error: Brett validation 422 → stage error with brett message', async () => {
@@ -115,6 +115,6 @@ describe('generate-3d pipeline', () => {
     await finaliseJob('j1', 'p1', 'fig', { comfyFetch: comfyDoneFetch(), riggerFetch, brettFetch });
     const err = stageCalls.find((c) => c.stage === 'error');
     expect(err).toBeDefined();
-    expect(err?.extra?.error_msg).toMatch(/Brett upload failed/);
+    expect((err?.extra as any)?.error_msg).toMatch(/Brett upload failed/);
   });
 });

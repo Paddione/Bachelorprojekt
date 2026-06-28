@@ -1,8 +1,8 @@
 {
   "total_lines": 498465,
   "file_count": 3842,
-  "commit": "3e25f0ab",
-  "measured_at": "2026-06-28T02:42:08.369Z",
+  "commit": "c74f9957",
+  "measured_at": "2026-06-28T02:42:52.855Z",
   "thresholds": {
     "warn_pct": 2,
     "fail_pct": 15,

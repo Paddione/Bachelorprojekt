@@ -2,7 +2,7 @@
 title: "G-TEST01: BATS Debt-Skips reaktivieren (9→0)"
 ticket_id: T001286
 domains: ["tests","quality"]
-status: plan_staged
+status: completed
 ---
 
 # g-test01-bats-debt-skips — Implementation Plan

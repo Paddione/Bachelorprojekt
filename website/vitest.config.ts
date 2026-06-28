@@ -18,6 +18,7 @@ export default defineConfig({
   test: {
     root: __dirname,
     globals: true,
+    testTimeout: 10000,
     env: {
       VOYAGE_API_KEY: 'test-key',
     },

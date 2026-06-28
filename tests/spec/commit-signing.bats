@@ -9,11 +9,11 @@ BOT_EMAIL="41898282+github-actions[bot]@users.noreply.github.com"
 
 @test "G-SEC05: adjusted unsigned-Anteil auf main (ohne Bot) ist <= 5%" {
   unsigned=$(git -C "$PROJECT_DIR" log -50 --pretty="%G? %ae" origin/main 2>/dev/null \
-    | grep -v "$BOT_EMAIL" \
+    | grep -vF "$BOT_EMAIL" \
     | awk '{print $1}' \
     | grep -c N || true)
   total=$(git -C "$PROJECT_DIR" log -50 --pretty="%G? %ae" origin/main 2>/dev/null \
-    | grep -v "$BOT_EMAIL" \
+    | grep -vF "$BOT_EMAIL" \
     | wc -l | tr -d ' ')
   if [ "$total" -eq 0 ]; then
     skip "keine non-bot Commits in den letzten 50 gefunden"

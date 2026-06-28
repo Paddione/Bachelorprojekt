@@ -2,7 +2,7 @@
 title: G-CD01 korczewski CI Build/Deployment Parity
 ticket_id: T001276
 domains: [ci-cd, test]
-status: draft
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

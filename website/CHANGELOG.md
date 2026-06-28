@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.141.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.140.0...website-v1.141.0) (2026-06-28)
+
+
+### Features
+
+* **website:** move RepoHealth dashboard from frontpage to admin sidebar ([#2290](https://github.com/Paddione/Bachelorprojekt/issues/2290)) ([bd58224](https://github.com/Paddione/Bachelorprojekt/commit/bd58224139aeae871c7349c5e0396a8b712b67a7))
+
 ## [1.140.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.139.1...website-v1.140.0) (2026-06-28)
 
 

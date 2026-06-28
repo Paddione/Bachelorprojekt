@@ -18,6 +18,10 @@ data:
     }
     server {
         listen 80 default_server;
+        location /health {
+            return 200 "ok\n";
+            add_header Content-Type text/plain;
+        }
         return 404;
     }
 ---
@@ -44,16 +48,14 @@ spec:
           ports:
             - containerPort: 80
           readinessProbe:
-            httpGet:
-              path: /
+            tcpSocket:
               port: 80
             initialDelaySeconds: 3
             periodSeconds: 10
             timeoutSeconds: 3
             failureThreshold: 3
           livenessProbe:
-            httpGet:
-              path: /
+            tcpSocket:
               port: 80
             initialDelaySeconds: 10
             periodSeconds: 30

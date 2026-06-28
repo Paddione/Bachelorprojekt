@@ -2,7 +2,7 @@
 title: "G-CQ02: Explizite any-Typen reduzieren (463→≤280, Batch 1)"
 ticket_id: T001289
 domains: ["cq","website","quality"]
-status: plan_staged
+status: completed
 ---
 
 # g-cq02-any-types-batch1 — Implementation Plan

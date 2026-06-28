@@ -726,6 +726,83 @@ cmd_backfill_id() {
   main "$@"
 }
 
+cmd_get_timeline() {
+  local id="" brand="${BRAND:-mentolder}"
+  while [[ $# -gt 0 ]]; do case "$1" in
+    --id)    id="$2"; shift 2 ;;
+    --brand) brand="$2"; shift 2 ;;
+    *)       echo "Unknown get-timeline option: $1" >&2; exit 2 ;;
+  esac; done
+
+  if [[ -z "$id" ]]; then
+    echo "ERROR: --id is required." >&2
+    exit 2
+  fi
+  if [[ "${TICKET_OFFLINE:-0}" == "1" ]]; then
+    echo "OFFLINE: refused read get-timeline (cluster required)" >&2
+    exit 9
+  fi
+
+  local pod; pod=$(_pgpod)
+  _exec_sql "$pod" -v ext_id="$id" -v brand="$brand" <<'EOF'
+WITH
+comments AS (
+  SELECT 'comment' AS source, tc.created_at AS ts,
+    jsonb_build_object('type', tc.kind, 'author', tc.author_label, 'body', tc.body) AS detail
+  FROM tickets.ticket_comments tc
+  WHERE tc.ticket_id = (SELECT id FROM tickets.tickets WHERE external_id = :'ext_id')
+),
+phase_events AS (
+  SELECT 'phase_event' AS source, pe.at AS ts,
+    jsonb_build_object('phase', pe.phase, 'state', pe.state, 'driver', pe.driver, 'detail', pe.detail) AS detail
+  FROM tickets.factory_phase_events pe
+  WHERE pe.ticket_id = (SELECT id FROM tickets.tickets WHERE external_id = :'ext_id')
+),
+pr_links AS (
+  SELECT 'pr_link' AS source, tl.created_at AS ts,
+    jsonb_build_object('pr_number', tl.pr_number) AS detail
+  FROM tickets.ticket_links tl
+  WHERE tl.from_id = (SELECT id FROM tickets.tickets WHERE external_id = :'ext_id')
+    AND tl.kind = 'pr'
+),
+plan_events AS (
+  SELECT 'plan_archived' AS source, tp.archived_at AS ts,
+    jsonb_build_object('slug', tp.slug, 'branch', tp.branch) AS detail
+  FROM tickets.ticket_plans tp
+  WHERE tp.ticket_id = (SELECT id FROM tickets.tickets WHERE external_id = :'ext_id')
+    AND tp.archived_at IS NOT NULL
+),
+all_events AS (
+  SELECT * FROM comments
+  UNION ALL SELECT * FROM phase_events
+  UNION ALL SELECT * FROM pr_links
+  UNION ALL SELECT * FROM plan_events
+)
+SELECT jsonb_build_object(
+  'ticket', (
+    SELECT jsonb_build_object(
+      'external_id', t.external_id,
+      'title', t.title,
+      'status', t.status,
+      'type', t.type,
+      'brand', :'brand',
+      'created_at', t.created_at,
+      'done_at', t.done_at,
+      'resolution', t.resolution
+    )
+    FROM tickets.tickets t WHERE t.external_id = :'ext_id'
+  ),
+  'events', COALESCE(
+    (SELECT jsonb_agg(
+       jsonb_build_object('source', source, 'ts', ts, 'detail', detail)
+       ORDER BY ts ASC
+     ) FROM all_events),
+    '[]'::jsonb
+  )
+) AS timeline;
+EOF
+}
+
 cmd_triage() {
   export VDA_NONINTERACTIVE=1
   source "$(dirname "${BASH_SOURCE[0]}")/vda/ticket/triage.sh"
@@ -734,7 +811,7 @@ cmd_triage() {
 
 if [[ $# -lt 1 ]]; then
   echo "Usage: $0 <command> [options]" >&2
-  echo "Commands: create, update-status, add-comment, add-pr-link, grill, archive-plan, get-attachments, get, set-touched-files, set-scout-drift, set-pipeline-slot, release-slot, touch, enqueue, stage-plan, retry-count, factory-control, dryrun-mark, dryrun-check, feature-flag, phase, inject, get-injections, plan-meta, lastenheft, list, backfill-id, triage" >&2
+  echo "Commands: create, update-status, add-comment, add-pr-link, grill, archive-plan, get-attachments, get, set-touched-files, set-scout-drift, set-pipeline-slot, release-slot, touch, enqueue, stage-plan, retry-count, factory-control, dryrun-mark, dryrun-check, feature-flag, phase, inject, get-injections, plan-meta, lastenheft, list, backfill-id, triage, link-tickets, get-ticket-links, get-timeline" >&2
   exit 1
 fi
 cmd="$1"; shift
@@ -767,6 +844,9 @@ case "$cmd" in
   get-injections)    cmd_get_injections "$@" ;;
   plan-meta)         cmd_plan_meta "$@" ;;
   lastenheft)        cmd_lastenheft "$@" ;;
+  link-tickets)      cmd_link_tickets "$@" ;;
+  get-ticket-links)  cmd_get_ticket_links "$@" ;;
+  get-timeline)      cmd_get_timeline "$@" ;;
   *)                 echo "Unknown command: $cmd" >&2; exit 1 ;;
 esac
 

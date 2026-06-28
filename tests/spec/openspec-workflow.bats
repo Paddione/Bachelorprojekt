@@ -102,3 +102,76 @@ setup() {
   [ -f "$f" ]
   grep -qi 'dev experience\|shell completions' "$f"
 }
+
+# ── T001262: operation-aware delta merge (scripts/openspec-merge.mjs) ──#
+
+_merge_setup() {            # copy the read-only SSOT fixture into a writable temp file
+  FX="$REPO/tests/fixtures/openspec"
+  SSOT="$BATS_TEST_TMPDIR/ssot.md"
+  cp "$FX/ssot-sample.md" "$SSOT"
+}
+
+@test "T001262: ADDED inserts a new requirement into the Requirements section" {
+  _merge_setup
+  run node "$REPO/scripts/openspec-merge.mjs" apply "$FX/delta-added.md" "$SSOT"
+  [ "$status" -eq 0 ]
+  grep -q '^### Requirement: Block C$' "$SSOT"
+  # inserted before any trailing H2, i.e. still inside the requirements body
+  [ "$(grep -c '^### Requirement: ' "$SSOT")" -eq 4 ]
+}
+
+@test "T001262: MODIFIED replaces a requirement in-place, not duplicated" {
+  _merge_setup
+  run node "$REPO/scripts/openspec-merge.mjs" apply "$FX/delta-modified.md" "$SSOT"
+  [ "$status" -eq 0 ]
+  [ "$(grep -c '^### Requirement: Block A$' "$SSOT")" -eq 1 ]
+  grep -q 'REPLACED content' "$SSOT"
+  ! grep -q 'original content' "$SSOT"
+}
+
+@test "T001262: MODIFIED with a nonexistent target fails with exit 1" {
+  _merge_setup
+  run node "$REPO/scripts/openspec-merge.mjs" apply "$FX/delta-modified-missing.md" "$SSOT"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"NonExistent Block"* ]]
+  grep -q '^### Requirement: Block A$' "$SSOT"   # SSOT left intact
+}
+
+@test "T001262: REMOVED deletes the requirement and drops the reason text" {
+  _merge_setup
+  run node "$REPO/scripts/openspec-merge.mjs" apply "$FX/delta-removed.md" "$SSOT"
+  [ "$status" -eq 0 ]
+  ! grep -q '^### Requirement: Deprecated Feature$' "$SSOT"
+  ! grep -q 'Removed because obsolete' "$SSOT"
+}
+
+@test "T001262: RENAMED rewrites the heading and keeps the body" {
+  _merge_setup
+  run node "$REPO/scripts/openspec-merge.mjs" apply "$FX/delta-renamed.md" "$SSOT"
+  [ "$status" -eq 0 ]
+  grep -q '^### Requirement: New Name$' "$SSOT"
+  ! grep -q '^### Requirement: Old Name$' "$SSOT"
+}
+
+@test "T001262: RENAMED without **Renamed-to:** fails with exit 1" {
+  _merge_setup
+  run node "$REPO/scripts/openspec-merge.mjs" apply "$FX/delta-renamed-no-direction.md" "$SSOT"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"Renamed-to"* ]]
+}
+
+@test "T001262: a stub delta is rejected with exit 1" {
+  _merge_setup
+  run node "$REPO/scripts/openspec-merge.mjs" apply "$FX/delta-stub.md" "$SSOT"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"stub"* ]]
+}
+
+@test "T001262: merge is idempotent (second apply is a no-op skip)" {
+  _merge_setup
+  run node "$REPO/scripts/openspec-merge.mjs" apply "$FX/delta-added.md" "$SSOT"
+  [ "$status" -eq 0 ]
+  run node "$REPO/scripts/openspec-merge.mjs" apply "$FX/delta-added.md" "$SSOT"
+  [ "$status" -eq 0 ]
+  [ "$(grep -c '^### Requirement: Block C$' "$SSOT")" -eq 1 ]
+}

@@ -3,7 +3,7 @@ import { mkdirSync, writeFileSync, rmSync, mkdtempSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { fileURLToPath } from 'node:url'
-import { validateChange, validateTree } from './openspec-validate.js'
+import { validateChange, validateTree, checkConfigDrift } from './openspec-validate.js'
 
 const REPO_ROOT = fileURLToPath(new URL('..', import.meta.url))
 const FIXTURES = join(REPO_ROOT, 'tests/unit/fixtures/openspec')
@@ -134,6 +134,33 @@ describe('validateDeltaFile — T001262 hardening', () => {
     } finally {
       rmSync(tmp, { recursive: true, force: true })
       rmSync(specsRoot, { recursive: true, force: true })
+    }
+  })
+})
+
+describe('checkConfigDrift — T001304 hard gate', () => {
+  it('returns ok:false and errors when a spec is not listed in config.yaml OpenSpec-Komponenten', () => {
+    const tmp = mkdtempSync(join(tmpdir(), 'openspec-drift-'))
+    try {
+      mkdirSync(join(tmp, 'specs'), { recursive: true })
+      // config.yaml lists 'listed' but NOT 'orphan'
+      writeFileSync(join(tmp, 'config.yaml'), [
+        'schema: spec-driven',
+        'context: |',
+        '  Stack: test',
+        '  OpenSpec-Komponenten: |',
+        '    listed',
+        '',
+      ].join('\n'))
+      // valid SSOT spec files
+      const specShape = '## Purpose\n\nTest purpose.\n\n## Requirements\n\n### Requirement: Some Req\n\nThe system SHALL work.\n'
+      writeFileSync(join(tmp, 'specs', 'listed.md'), specShape)
+      writeFileSync(join(tmp, 'specs', 'orphan.md'), specShape)
+      const result = checkConfigDrift(tmp)
+      expect(result.ok).toBe(false)
+      expect(result.errors.some(e => /orphan/.test(e))).toBe(true)
+    } finally {
+      rmSync(tmp, { recursive: true, force: true })
     }
   })
 })

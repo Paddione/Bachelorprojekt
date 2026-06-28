@@ -13,6 +13,8 @@ import {
   STATUS_BUCKETS as FF_STATUS_BUCKETS,
   ALL_TICKET_STATUSES as FF_ALL_TICKET_STATUSES,
 } from './factory-floor';
+import { TABS, MOBILE_COL_INDEX } from '../components/factory/MobileTabBar.svelte';
+import { PHASE_ORDER } from './factory-floor-types';
 
 // The declared expectation, independent of the implementation. Front→back, linear lanes only.
 const EXPECTED_LINEAR_STATUSES = [
@@ -63,12 +65,33 @@ describe('pipeline-order SSOT', () => {
     expect(FF_ALL_TICKET_STATUSES).toBe(ALL_TICKET_STATUSES);
   });
 
-  // ---- Component-order checks wired by Sub-Plan 4 (T000922). Left as todos here ----
-  // SP4 owns MobileTabBar.svelte / FactoryFloor.svelte; when it derives TABS,
-  // MOBILE_COL_INDEX and the macro-lane DOM order from PIPELINE_LANES/PHASE_ORDER,
-  // it converts each of these into a real assertion against the SSOT. SP1 does NOT
-  // touch those components, so they stay as it.todo placeholders here.
-  it.todo('SP4: MobileTabBar.TABS order matches the SSOT-derived lane/phase order');
-  it.todo('SP4: MOBILE_COL_INDEX order matches the SSOT-derived lane/phase order');
-  it.todo('SP4: FactoryFloor macro-lane DOM order matches PIPELINE_LANES (qa before done)');
+  // ---- Component-order checks wired by Sub-Plan 4 (T000922). ----
+  // SP4 owns MobileTabBar.svelte / FactoryFloor.svelte; TABS, MOBILE_COL_INDEX,
+  // and macro-lane DOM order are derived from PIPELINE_LANES/PHASE_ORDER.
+  it('SP4: MobileTabBar.TABS order matches the SSOT-derived lane/phase order', () => {
+    const linearLanes = PIPELINE_LANES.filter(l => !l.side && l.key !== 'planning');
+    const keyMap: Record<string, string> = { loadingDock: 'backlog', qa: 'qs', shipped: 'done' };
+    const expectedKeys = linearLanes.flatMap(l =>
+      l.key === 'hall'
+        ? [...PHASE_ORDER]
+        : [keyMap[l.key] || l.key]
+    );
+    expect(TABS.map(t => t.key)).toEqual(expectedKeys);
+  });
+
+  it('SP4: MOBILE_COL_INDEX order matches the SSOT-derived lane/phase order', () => {
+    for (let i = 0; i < TABS.length; i++) {
+      expect(MOBILE_COL_INDEX[TABS[i].key]).toBe(i);
+    }
+    expect(Object.keys(MOBILE_COL_INDEX)).toHaveLength(TABS.length);
+  });
+
+  it('SP4: FactoryFloor macro-lane DOM order matches PIPELINE_LANES (qa before done)', () => {
+    const nonSide = PIPELINE_LANES.filter(l => !l.side);
+    const qaIdx = nonSide.findIndex(l => l.key === 'qa');
+    const shippedIdx = nonSide.findIndex(l => l.key === 'shipped');
+    expect(qaIdx).toBeGreaterThanOrEqual(0);
+    expect(shippedIdx).toBeGreaterThanOrEqual(0);
+    expect(qaIdx).toBeLessThan(shippedIdx);
+  });
 });

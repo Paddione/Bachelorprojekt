@@ -11,9 +11,6 @@
     authChecked?: boolean;
     streamLive?: boolean;
     pathname: string;
-    /** Reference to LanguageSwitcher.svelte (passed in to avoid eager
-     *  import-cycle / Svelte 5 instance issues). */
-    LanguageSwitcher: any;
   }
 
   let {
@@ -24,7 +21,6 @@
     authChecked = false,
     streamLive = false,
     pathname,
-    LanguageSwitcher,
   }: Props = $props();
 
   function initial(name: string) {
@@ -75,9 +71,6 @@
       {/if}
     {/if}
 
-    <div class="mobile-lang-row">
-      <LanguageSwitcher {pathname} />
-    </div>
     <a href="/kontakt" class="mobile-cta" onclick={() => (open = false)}>
       {t(locale, 'hero.cta-primary')}
     </a>
@@ -218,12 +211,6 @@
 
   .mobile-cta:hover {
     background: var(--brass-2) !important;
-  }
-
-  .mobile-lang-row {
-    display: flex;
-    justify-content: center;
-    padding: 10px 0;
   }
 
   @media (max-width: 860px) {

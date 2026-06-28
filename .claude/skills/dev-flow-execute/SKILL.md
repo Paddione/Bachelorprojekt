@@ -242,6 +242,11 @@ Spawne den Subagenten:
   - Absoluter Worktree-Pfad + Branch-Name; er arbeitet NUR relativ dazu.
   - Plan-Datei `$PLAN_FILE` (aus Schritt 1, via DB aufgelöst) + Ticket-ID.
   - Attachment-Verzeichnis `$ATTACHMENT_DIR` — bei UI-Arbeit ALLE Bilder/Texte mit dem `Read`-Tool einlesen.
+  - **Plan Intel Bundle (PFLICHT):** `openspec/changes/<slug>/intel.json` (aus der Plan-Phase) — der
+    Implementer lädt es als Pflicht-Kontext (analog zu `$ATTACHMENT_DIR`) und arbeitet gegen dieselbe
+    Typen-Wahrheit wie der Plan: reale Signaturen aus `symbols`, DB-Spalten aus `db_tables`,
+    API-Contracts aus `api_contracts` — kein Re-Explorieren. Format:
+    [plan-intel-bundle](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-intel-bundle.md).
 - **⚠️ BATS-Pflicht — Konvention: ein File pro OpenSpec-Spec:**
   Neue `@test`-Einträge gehören in `tests/spec/<spec-slug>.bats` (die Spec zum Feature/Fix aus `openspec/specs/`).
   Reihenfolge:

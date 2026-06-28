@@ -1,0 +1,49 @@
+{
+  "meta": {
+    "slug": "plan-intel-bundle",
+    "ticket_id": "T001323",
+    "generated_from": "main@0000000",
+    "domains": ["plan-authoring", "dev-tooling"],
+    "intel_sources": ["codebase-memory", "mcp-postgres", "context7", "lsp", "baseline.json"]
+  },
+  "impact_files": [
+    {
+      "path": ".claude/skills/references/schemas/plan-intel-bundle.schema.json",
+      "language": "json",
+      "loc": 120,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": ".claude/skills/dev-flow-plan/SKILL.md",
+      "language": "markdown",
+      "loc": 548,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/plan-lint.sh:effective_threshold",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "effective_threshold <path> -> int",
+      "type_text": "(path: string) => number",
+      "source": "codebase-memory"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": ["scripts/plan-lint.sh:emit_verdict"],
+    "edges": [
+      { "from": "emit_verdict", "to": "residual_budget", "kind": "calls" }
+    ]
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    { "note": "context7 unreachable — cross-check external_types against the library .d.ts", "severity": "info" }
+  ]
+}

@@ -157,6 +157,26 @@ Frage den User aktiv nach Spec-Notizen, Mockups oder Screenshots. Lese Text- und
 
 Verwende einen Code-Explorer Subagenten, um die Code-Pfade und Architektur vor dem Brainstorming zu analysieren.
 
+#### Schritt A.1.5: Intel-Gathering → Plan Intel Bundle ⚡
+
+Nach der Exploration (A.1) ein typisiertes **Plan Intel Bundle** befüllen (`intel.json`) — die
+maschinenlesbare Typen-Wahrheit, die Plan- und Execute-Phase teilen. Schema + Quellen-Mapping:
+[plan-intel-bundle](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-intel-bundle.md).
+
+Jede Sektion ist an ihre Intel-Quelle gebunden:
+- `symbols` / `signature` / `type_text` → **codebase-memory** (`get_code_snippet`, `search_graph`) + **LSP** (Hover/Definition); Fallback `grep`/`Read`.
+- `call_graph` → **codebase-memory** `trace_path` (`calls`/`data_flow`/`cross_service`).
+- `db_tables` → **mcp-postgres** (`information_schema.columns`, read-only); Fallback `kubectl exec … psql`.
+- `api_contracts` → `Read` der `website/src/pages/api/**`-Handler + deren Typen.
+- `external_types` → **context7** (`resolve-library-id` → `query-docs`).
+- `impact_files` / `s1_*` → `wc -l` + `docs/code-quality/baseline.json` + `_ext_limit` (plan-lint-Logik).
+
+Liegt vor `/opsx:propose` noch kein Change-Ordner vor, halte das Bundle bei den übrigen
+Phase-A-Artefakten und verschiebe es in **B.2** nach `openspec/changes/<slug>/intel.json`. Ist eine
+Quelle und auch ihr Fallback nicht erreichbar, setze einen `risks[]`-Eintrag (`severity: warn`) statt
+die Sektion still leer zu lassen. Validiere lokal strukturell (`jq`). Das Bundle informiert bereits
+das Brainstorming (A.4).
+
 #### Schritt A.2: Design-Bundle co-lokalisieren (nur Design-/UI-Tickets)
 
 Wenn das Ticket einen Design-Handoff hat (claude.ai-Design-Session → Bundle-ID), lege die Assets
@@ -239,6 +259,10 @@ mv "${REPO_ROOT}/openspec/changes/<slug>" "${WT}/openspec/changes/<slug>"
 mv "${REPO_ROOT}/docs/superpowers/specs/<date>-<slug>-design.md" \
    "${WT}/docs/superpowers/specs/"
 
+# Plan Intel Bundle (aus A.1.5) in den Change-Ordner verschieben (falls separat gehalten)
+[ -f "${REPO_ROOT}/intel.json" ] && \
+  mv "${REPO_ROOT}/intel.json" "${WT}/openspec/changes/<slug>/intel.json" 2>/dev/null || true
+
 # Lavish-Board (falls vorhanden)
 [ -f "${REPO_ROOT}/.lavish/<slug>-brainstorm.html" ] && \
   mv "${REPO_ROOT}/.lavish/<slug>-brainstorm.html" "${WT}/.lavish/" 2>/dev/null || true
@@ -275,6 +299,11 @@ Statt deinen eigenen Kontext zurückzusetzen (das ließe dich den Faden verliere
        Acceptance-Kriterien notieren. `new/` enthält nur geprüfte, passende Assets.
      - Ticket-/Grilling-Kontext (`$GRILLING_TICKET_EXT_ID` etc.), falls vorhanden.
       - **CI-/Quality-Gates:** [plan-quality-gates](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-quality-gates.md) — der Subagent MUSS die Datei lesen und den Plan dagegen schreiben: pro zu ändernder Datei `wc -l` UND den Baseline-Wert (`jq -r '."S1:<pfad>".metric // "nicht-baselined"' docs/code-quality/baseline.json`) ermitteln und das S1-Budget gegen die **wirksame Schwelle** notieren — bei schon gebaselineten (gewachsenen) Dateien ist das Budget oft **0** (jede Netto-Zeile trippt das CI-Ratchet), dann zeilenneutral planen oder die Datei in dieser PR **echt verkleinern**; bei >~80 % der Schwelle echten Modul-Split einplanen (kein kosmetisches Zusammenziehen). Dazu: keine Brand-Domain-Literale in Code-Snippets (S3), Helper als pure Module ohne Import-Zyklen (S2), neue Manifeste/Skripte referenzieren statt verwaisen lassen (S4).
+     - **Plan Intel Bundle (PFLICHT):** `openspec/changes/<slug>/intel.json` — der Plan-Subagent MUSS
+       ausschließlich reale Signaturen/Typen aus `intel.json` referenzieren (keine erfundenen Typen),
+       die vorberechneten `s1_budget`-Werte aus `impact_files` für die S1-Notation pro Datei nutzen und
+       DB-Spalten/API-Contracts aus den `db_tables`/`api_contracts`-Sektionen zitieren. Format/Quellen:
+       [plan-intel-bundle](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-intel-bundle.md).
     - **plan-lint Hard Rules (PFLICHT — vom Subagenten verbatim zu befolgen):**
       Lies vor dem Schreiben `scripts/plan-lint.sh` und stelle sicher, dass die
       tasks.md alle Hard-Pflichten erfüllt. Die folgenden Regeln sind die

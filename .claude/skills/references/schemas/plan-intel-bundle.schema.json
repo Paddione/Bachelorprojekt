@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bachelorprojekt.local/schemas/plan-intel-bundle.schema.json",
+  "title": "Plan Intel Bundle",
+  "description": "Typed, schema-validated intel artifact (openspec/changes/<slug>/intel.json) consumed by dev-flow-plan and dev-flow-execute.",
+  "type": "object",
+  "required": ["meta", "impact_files", "symbols"],
+  "additionalProperties": false,
+  "properties": {
+    "meta": {
+      "type": "object",
+      "required": ["slug", "ticket_id", "generated_from", "domains", "intel_sources"],
+      "additionalProperties": false,
+      "properties": {
+        "slug": { "type": "string" },
+        "ticket_id": { "type": "string" },
+        "generated_from": { "type": "string", "description": "main@<sha>" },
+        "domains": { "type": "array", "items": { "type": "string" } },
+        "intel_sources": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "impact_files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "language", "loc", "s1_limit", "s1_baseline", "s1_budget"],
+        "additionalProperties": false,
+        "properties": {
+          "path": { "type": "string" },
+          "language": { "type": "string" },
+          "loc": { "type": "integer" },
+          "s1_limit": { "type": "integer" },
+          "s1_baseline": { "type": ["integer", "null"] },
+          "s1_budget": { "type": "integer" }
+        }
+      }
+    },
+    "symbols": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["qualified_name", "kind", "file", "signature", "type_text", "source"],
+        "additionalProperties": false,
+        "properties": {
+          "qualified_name": { "type": "string" },
+          "kind": { "type": "string" },
+          "file": { "type": "string" },
+          "signature": { "type": "string" },
+          "type_text": { "type": "string" },
+          "source": { "type": "string" }
+        }
+      }
+    },
+    "call_graph": {
+      "type": "object",
+      "required": ["entrypoints", "edges"],
+      "additionalProperties": false,
+      "properties": {
+        "entrypoints": { "type": "array", "items": { "type": "string" } },
+        "edges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["from", "to", "kind"],
+            "additionalProperties": false,
+            "properties": {
+              "from": { "type": "string" },
+              "to": { "type": "string" },
+              "kind": { "type": "string", "enum": ["calls", "data_flow", "cross_service"] }
+            }
+          }
+        }
+      }
+    },
+    "db_tables": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "columns"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string" },
+          "columns": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["name", "type", "nullable", "default", "constraints"],
+              "additionalProperties": false,
+              "properties": {
+                "name": { "type": "string" },
+                "type": { "type": "string" },
+                "nullable": { "type": "boolean" },
+                "default": { "type": ["string", "null"] },
+                "constraints": { "type": "array", "items": { "type": "string" } }
+              }
+            }
+          }
+        }
+      }
+    },
+    "api_contracts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["route", "method", "request_type", "response_type", "file"],
+        "additionalProperties": false,
+        "properties": {
+          "route": { "type": "string" },
+          "method": { "type": "string" },
+          "request_type": { "type": "string" },
+          "response_type": { "type": "string" },
+          "file": { "type": "string" }
+        }
+      }
+    },
+    "external_types": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["library", "symbol", "signature", "source"],
+        "additionalProperties": false,
+        "properties": {
+          "library": { "type": "string" },
+          "symbol": { "type": "string" },
+          "signature": { "type": "string" },
+          "source": { "type": "string" }
+        }
+      }
+    },
+    "risks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["note", "severity"],
+        "additionalProperties": false,
+        "properties": {
+          "note": { "type": "string" },
+          "severity": { "type": "string", "enum": ["info", "warn", "blocker"] }
+        }
+      }
+    }
+  }
+}

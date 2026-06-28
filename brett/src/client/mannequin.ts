@@ -148,12 +148,12 @@ export function makeMannequin(id?: string, position = { x: 0, z: 0 }, opts: any 
   const rShoulder = new THREE.Group(); rShoulder.position.set(-0.28, 0.65, 0); hips.add(rShoulder);
   lShoulder.name = 'lShoulder';
   rShoulder.name = 'rShoulder';
-  const lUpper = makeBone(lShoulder, 0.32, bodyColor); const lElbow = new THREE.Group(); lElbow.position.y = -0.32; lShoulder.add(lElbow);
-  const rUpper = makeBone(rShoulder, 0.32, bodyColor); const rElbow = new THREE.Group(); rElbow.position.y = -0.32; rShoulder.add(rElbow);
+  makeBone(lShoulder, 0.32, bodyColor); const lElbow = new THREE.Group(); lElbow.position.y = -0.32; lShoulder.add(lElbow);
+  makeBone(rShoulder, 0.32, bodyColor); const rElbow = new THREE.Group(); rElbow.position.y = -0.32; rShoulder.add(rElbow);
   lElbow.name = 'lElbow';
   rElbow.name = 'rElbow';
-  const lFore  = makeBone(lElbow, 0.30, bodyColor);    const lWrist = new THREE.Group(); lWrist.position.y = -0.30; lElbow.add(lWrist);
-  const rFore  = makeBone(rElbow, 0.30, bodyColor);    const rWrist = new THREE.Group(); rWrist.position.y = -0.30; rElbow.add(rWrist);
+  makeBone(lElbow, 0.30, bodyColor);    const lWrist = new THREE.Group(); lWrist.position.y = -0.30; lElbow.add(lWrist);
+  makeBone(rElbow, 0.30, bodyColor);    const rWrist = new THREE.Group(); rWrist.position.y = -0.30; rElbow.add(rWrist);
   lWrist.name = 'lWrist';
   rWrist.name = 'rWrist';
 

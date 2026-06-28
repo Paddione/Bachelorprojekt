@@ -1,6 +1,6 @@
-import { STATE, getWs, setWs, setWsReady, activeLocks, getScene, currentUser } from './state';
+import { STATE, activeLocks, getScene, currentUser } from './state';
 import { initLinesFromSnapshot, applyLineMessage } from './scene-lines';
-import type { ClientMessage, ServerMessage } from '../types/messages';
+import type { ServerMessage } from '../types/messages';
 import type { Phase, Participant } from '../types/state';
 import { updateExportCache } from './ui/export';
 import * as mannequin from './mannequin';
@@ -316,13 +316,14 @@ export function onWsMessage(evt: MessageEvent): void {
       break;
     }
 
-    case 'info':
+    case 'info': {
       STATE.online = msg.count || 1;
       const onlineCountEl = document.getElementById('online-count');
       if (onlineCountEl) {
         onlineCountEl.textContent = String(STATE.online);
       }
       break;
+    }
 
     // ── Lobby / presence / session routing (§6c) ────────────────────────────
     case 'lobby_settings_change':

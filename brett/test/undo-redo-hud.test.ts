@@ -13,8 +13,6 @@ import assert from 'node:assert/strict';
 // (ws-client hat top-level DOM access → kein direkter Import in node:test)
 
 import {
-  undoStacks,
-  redoStacks,
   getUndoStatus,
   pushUndo,
   clearStacks,

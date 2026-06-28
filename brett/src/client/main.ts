@@ -11,7 +11,7 @@ import { injectPrimitivesStyles } from './ui/primitives';
 import { injectMenuStyles, mountMenu, type MenuUser } from './ui/menu';
 import { injectLobbyStyles, mountLobby, buildLobbyViewModel } from './ui/lobby';
 import { buildCoachingStepsPayload } from './lobby-coaching';
-import { createAppShell, type ViewState, type AppShell } from './app-shell';
+import { createAppShell, type ViewState } from './app-shell';
 import { currentUser } from './state';
 
 function getMenuRoot(): HTMLElement | null {
@@ -48,7 +48,7 @@ function renderView(v: ViewState): void {
 }
 
 // Re-render the lobby screen from the live lobby store (driven by ws-client).
-function renderLobby(appShell: AppShell, user: MenuUser): void {
+function renderLobby(user: MenuUser): void {
   const lobbyRoot = getLobbyRoot();
   if (!lobbyRoot) return;
   // Lazily import the ws-client lobby store to avoid pulling the board bundle.
@@ -99,7 +99,7 @@ async function main(): Promise<void> {
     mountBoard: () => import('./board-boot').then((m) => m.bootBoard()),
     renderView: (v: ViewState) => {
       renderView(v);
-      if (v === 'lobby') renderLobby(appShell, user);
+      if (v === 'lobby') renderLobby(user);
     },
   });
 
@@ -109,7 +109,7 @@ async function main(): Promise<void> {
   const wsMod = await import('./ws-client');
   wsMod.setPhaseChangeHandler((phase) => appShell.setPhase(phase));
   wsMod.setLobbyChangeHandler(() => {
-    if (appShell.getView() === 'lobby') renderLobby(appShell, user);
+    if (appShell.getView() === 'lobby') renderLobby(user);
   });
 
   const hasRoom = new URLSearchParams(location.search).has('room');

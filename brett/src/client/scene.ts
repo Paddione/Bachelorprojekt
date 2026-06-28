@@ -89,7 +89,6 @@ export function initScene(): SceneApi {
   scene.add(grid);
 
   // Procedural arena floor
-  let floorMesh: THREE.Mesh;
   const tc = document.createElement('canvas');
   tc.width = 512;
   tc.height = 512;
@@ -118,7 +117,7 @@ export function initScene(): SceneApi {
     metalness: 0.04,
   });
   const floorGeo = new THREE.PlaneGeometry(40, 40);
-  floorMesh = new THREE.Mesh(floorGeo, floorMat);
+  const floorMesh = new THREE.Mesh(floorGeo, floorMat);
   floorMesh.rotation.x = -Math.PI / 2;
   floorMesh.position.y = -0.001;
   scene.add(floorMesh);

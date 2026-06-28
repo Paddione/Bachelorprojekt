@@ -1,0 +1,21 @@
+---
+export const prerender = false;
+
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
+import GoalsDashboard from '../../components/GoalsDashboard.svelte';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+if (!isAdmin(session)) return Astro.redirect('/admin');
+---
+
+<AdminLayout title="Repo Health">
+  <section class="repohealth-page">
+    <GoalsDashboard client:load />
+  </section>
+</AdminLayout>
+
+<style>
+  .repohealth-page { padding: 1.5rem; }
+</style>

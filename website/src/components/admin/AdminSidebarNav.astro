@@ -9,7 +9,7 @@ interface Props {
   path: string;
 }
 
-const { inboxPending, brettUrl, path } = Astro.props;
+const { inboxPending, brettUrl, path, isKore } = Astro.props;
 
 interface NavItem {
   href: string;
@@ -58,6 +58,7 @@ const navSections: { label?: string; items: NavItem[] }[] = [
       { href: '/admin/platform',                      label: 'Plattform Hub',icon: 'monitor', matches: ['/admin/monitoring', '/admin/ops', '/admin/platform', '/admin/architektur'] },
       { href: '/dev-status',                          label: 'Dev Status',   icon: 'activity', matches: ['/dev-status', '/admin/planungsbuero', '/admin/factory-budget', '/admin/factory-observability'] },
       { href: '/admin/dora',                          label: 'DORA',         icon: 'activity', matches: ['/admin/dora'] },
+      ...(!isKore ? [{ href: '/admin/repohealth', label: 'Repo Health', icon: 'activity', matches: ['/admin/repohealth'] }] : []),
       { href: '/admin/einstellungen/benachrichtigungen', label: 'Einstellungen', icon: 'settings', matches: ['/admin/einstellungen/'] },
       { href: brettUrl,                               label: 'Systembrett',  icon: 'brett', external: true },
       { href: '/admin/live',                          label: 'Live-Stream',  icon: 'broadcast', matches: ['/admin/live', '/admin/stream'] },

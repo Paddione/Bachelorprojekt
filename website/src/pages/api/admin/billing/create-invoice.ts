@@ -48,8 +48,9 @@ export const POST: APIRoute = async ({ request , locals }) => {
     });
 
     return new Response(JSON.stringify({ success: true, data: invoice }), { status: 200 });
-  } catch (err: any) {
+  } catch (err: unknown) {
     locals.requestLogger.error({ err }, '[api/admin/billing/create-invoice]');
-    return new Response(JSON.stringify({ error: err.message || 'Internal Server Error' }), { status: 500 });
+    const message = err instanceof Error ? err.message : String(err);
+    return new Response(JSON.stringify({ error: message }), { status: 500 });
   }
 };

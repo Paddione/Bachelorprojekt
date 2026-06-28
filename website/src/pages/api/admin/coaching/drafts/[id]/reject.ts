@@ -10,8 +10,8 @@ export const POST: APIRoute = async ({ request, params }) => {
   if (!session || !isAdmin(session)) return new Response('Unauthorized', { status: 401 });
   const id = params.id as string;
   const body = await request.json().catch(() => ({} as Record<string, unknown>));
-  const reason = (body as any).reason as string | undefined;
-  const reviewedBy = (session as any).email ?? (session as any).user ?? 'admin';
+  const reason = (body as Record<string, unknown>).reason as string | undefined;
+  const reviewedBy = session.email ?? session.preferred_username ?? 'admin';
   try {
     const draft = await rejectDraft(pool, id, reviewedBy, reason);
     return new Response(JSON.stringify({ draft }), { headers: { 'content-type': 'application/json' } });

@@ -22,7 +22,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
   }
 
   const { baseVersion, payload } = await request.json();
-  const editor = (session as any).email ?? (session as any).name ?? 'unknown';
+  const editor = session.email ?? session.name ?? 'unknown';
   try {
     const { version } = await save(BRAND, payload, baseVersion ?? 0, editor);
     return json(200, { version }, cors);

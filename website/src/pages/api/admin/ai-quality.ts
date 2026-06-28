@@ -118,7 +118,8 @@ export const GET: APIRoute = async ({ request }) => {
     }));
 
     return json({ health, last24h, byWorkflow, recentErrors });
-  } catch (err: any) {
-    return json({ error: err?.message ?? 'internal error' }, 500);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return json({ error: message }, 500);
   }
 };

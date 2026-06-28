@@ -1,6 +1,6 @@
 {
   "generatedFrom": "website/src/pages",
-  "count": 131,
+  "count": 132,
   "routes": [
     {
       "route": "/",
@@ -533,6 +533,14 @@
     },
     {
       "route": "/admin/referenzen",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/repohealth",
       "authTier": "admin",
       "brand": "both",
       "dynamic": false,

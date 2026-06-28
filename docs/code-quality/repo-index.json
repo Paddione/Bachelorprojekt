@@ -569,7 +569,7 @@
       "id": "website",
       "name": "Astro + Svelte website",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 1648,
+      "file_count": 1649,
       "files": [
         "website/.build-trigger",
         "website/.design-sync/NOTES.md",
@@ -1694,6 +1694,7 @@
         "website/src/pages/admin/rechnungen.astro",
         "website/src/pages/admin/rechtliches.astro",
         "website/src/pages/admin/referenzen.astro",
+        "website/src/pages/admin/repohealth.astro",
         "website/src/pages/admin/software-history.astro",
         "website/src/pages/admin/startseite.astro",
         "website/src/pages/admin/steuer.astro",

@@ -174,10 +174,15 @@ runcmd:
   # Install Traefik via Helm
   - su - patrick -c "helm repo add traefik https://traefik.github.io/charts"
   - su - patrick -c "helm repo update"
+  # Values file (DaemonSet on the 3 public nodes, hostPort 80/443,
+  # externalTrafficPolicy: Local for real client IPs — see T001328) lives in
+  # the repo so it's testable and shared with the manual live-upgrade
+  # runbook; fetched the same way install-dev-tools.sh is above.
   # The Traefik chart creates an IngressClass named "traefik" by default;
-  # we deliberately do NOT pass --set providers.kubernetesingress.ingressClass=traefik
+  # we deliberately do NOT pass providers.kubernetesingress.ingressClass=traefik
   # because the live mentolder install does not have that arg either, and
   # adding it would force a chart upgrade just to match the docs.
-  - su - patrick -c "KUBECONFIG=/home/patrick/.kube/config helm install traefik traefik/traefik -n kube-system --set ports.web.hostPort=80 --set ports.websecure.hostPort=443 --set deployment.kind=DaemonSet --set ingressRoute.dashboard.enabled=false"
+  - su - patrick -c "curl -fsSL https://raw.githubusercontent.com/Paddione/Bachelorprojekt/main/prod/traefik-values.yaml -o /home/patrick/traefik-values.yaml"
+  - su - patrick -c "KUBECONFIG=/home/patrick/.kube/config helm install traefik traefik/traefik -n kube-system -f /home/patrick/traefik-values.yaml"
 
 final_message: "k3s control plane ready on $(hostname) - $(date)"

@@ -533,6 +533,10 @@
     {
       "slug": "pocket-id-proxy-ip-rate-limit",
       "status": "plan_staged"
+    },
+    {
+      "slug": "pocket-id-rate-limit",
+      "status": "plan_staged"
     }
   ],
   "TBD": [

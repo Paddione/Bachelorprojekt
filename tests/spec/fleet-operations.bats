@@ -59,3 +59,53 @@ for s in schema.get('secrets', []):
     fi
   done
 }
+
+# ── T001328: Traefik externalTrafficPolicy=Local (real client IP) ─────────
+# Manifest-structure assertions only — there is no live cluster in CI, so
+# the actual SNAT/X-Forwarded-For fix can only be verified against the live
+# fleet (see the manual rollout task in
+# openspec/changes/pocket-id-rate-limit/tasks.md). These guard the static
+# config that (a) the live `helm upgrade` rollout is based on and (b) future
+# full-cluster-rebuilds (prod/cloud-init.yaml) will install by default.
+
+@test "prod/traefik-values.yaml sets externalTrafficPolicy: Local" {
+  if ! command -v yq >/dev/null 2>&1; then
+    skip "yq is not installed"
+  fi
+  run yq eval '.service.spec.externalTrafficPolicy' "${REPO_ROOT}/prod/traefik-values.yaml"
+  [ "$status" -eq 0 ]
+  [ "$output" = "Local" ]
+}
+
+@test "prod/traefik-values.yaml runs Traefik as a DaemonSet on exactly the 3 public Hetzner nodes" {
+  if ! command -v yq >/dev/null 2>&1; then
+    skip "yq is not installed"
+  fi
+  run yq eval '.deployment.kind' "${REPO_ROOT}/prod/traefik-values.yaml"
+  [ "$status" -eq 0 ]
+  [ "$output" = "DaemonSet" ]
+
+  # Regression guard: externalTrafficPolicy=Local silently drops traffic on
+  # any node lacking a local Traefik pod. The node affinity MUST cover
+  # exactly the nodes DNS for *.${PROD_DOMAIN} resolves to.
+  run yq eval '.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values | sort | join(",")' "${REPO_ROOT}/prod/traefik-values.yaml"
+  [ "$status" -eq 0 ]
+  [ "$output" = "pk-hetzner-4,pk-hetzner-6,pk-hetzner-8" ]
+}
+
+@test "prod/cloud-init.yaml installs Traefik from prod/traefik-values.yaml (not inline --set)" {
+  run grep -c 'traefik-values.yaml' "${REPO_ROOT}/prod/cloud-init.yaml"
+  [ "$status" -eq 0 ]
+  [ "$output" -ge 1 ]
+
+  # Regression guard against silently reverting to the old inline-flags
+  # install, which had no externalTrafficPolicy/affinity at all. grep -c
+  # exits 1 on zero matches, so don't assert on $status here — only on the
+  # printed count.
+  run grep -c -- '--set deployment.kind=DaemonSet' "${REPO_ROOT}/prod/cloud-init.yaml"
+  [ "$output" -eq 0 ]
+}
+
+@test "prod-korczewski/traefik-values.yaml (orphaned, superseded by prod/traefik-values.yaml) is gone" {
+  [ ! -f "${REPO_ROOT}/prod-korczewski/traefik-values.yaml" ]
+}

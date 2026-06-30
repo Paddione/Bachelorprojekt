@@ -14,7 +14,6 @@
     showPhone?: boolean;
     email?: string;
     city?: string;
-    sidebarTitle?: string;
     sidebarText?: string;
     sidebarCta?: string;
     showSteps?: boolean;
@@ -31,7 +30,6 @@
     showPhone = false,
     email = '',
     city = '',
-    sidebarTitle = '',
     sidebarText = '',
     sidebarCta = '',
     showSteps = false,

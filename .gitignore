@@ -1,3 +1,6 @@
+# ── Lokale Artefakte (nicht versioniert) ────────
+presentation/
+
 # ── Secrets (niemals committen!) ────────────────
 .env
 .env.*

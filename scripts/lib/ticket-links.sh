@@ -56,7 +56,7 @@ EOF
   echo "PR link #$pr recorded for ticket $id"
 }
 
-# cmd_link_tickets --from <ext_id> --to <ext_id> --kind blocks|relates
+# cmd_link_tickets --from <ext_id> --to <ext_id> --kind pr|relates_to|blocks|blocked_by|duplicate_of|fixes|fixed_by|child_of
 # Creates a directed dependency link between two tickets. Idempotent via ON CONFLICT DO NOTHING.
 # Offline-safe: TICKET_OFFLINE=1 skips the cluster write.
 cmd_link_tickets() {
@@ -72,10 +72,13 @@ cmd_link_tickets() {
     echo "ERROR: --from, --to, and --kind are required." >&2
     exit 2
   fi
-  if [[ "$kind" != "blocks" && "$kind" != "relates" ]]; then
-    echo "ERROR: --kind must be 'blocks' or 'relates' (got '$kind')." >&2
-    exit 2
-  fi
+  case "$kind" in
+    pr|relates_to|blocks|blocked_by|duplicate_of|fixes|fixed_by|child_of) ;;
+    *)
+      echo "ERROR: --kind must be one of: pr, relates_to, blocks, blocked_by, duplicate_of, fixes, fixed_by, child_of (got '$kind')." >&2
+      exit 2
+      ;;
+  esac
   if _ticket_offline_skip "link-tickets" "--from" "$from_ext" "--to" "$to_ext" "--kind" "$kind"; then return 0; fi
 
   local pod; pod=$(_pgpod)

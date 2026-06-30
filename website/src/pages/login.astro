@@ -1,7 +1,6 @@
 ---
 // Force-redirect to Keycloak SSO — /login is a stable public entry point
 // that SA-02 T4 and any external link can use.
-import type { APIContext } from 'astro';
 export const prerender = false;
 
 const { redirect } = Astro;

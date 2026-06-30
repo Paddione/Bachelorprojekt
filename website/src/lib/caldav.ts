@@ -3,10 +3,6 @@
 import { logger } from './logger';
 import { config } from '../config/index.js';
 import {
-  NC_URL,
-  NC_USER,
-  NC_PASS,
-  CALENDAR_NAME,
   WORK_START_HOUR,
   WORK_END_HOUR,
   SLOT_DURATION_MIN,
@@ -17,7 +13,6 @@ import {
   BRAND_NAME,
   CALDAV_TIMEOUT_MS,
   getAuthHeader,
-  unfoldIcal,
   fetchEventsRaw,
   extractICalProp,
   parseICalDate

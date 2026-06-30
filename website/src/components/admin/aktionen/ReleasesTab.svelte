@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
+  import { onDestroy } from 'svelte';
   import { apiCall, toast } from '../../../lib/admin-api';
 
   export let cluster: string = 'mentolder';

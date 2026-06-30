@@ -9,10 +9,6 @@ import {
   decodeState,
   parsePresetFromUrl,
   buildShareUrl,
-  isLocalStorageAvailable,
-  evictOldestNonDefault,
-  DEFAULT_PRESETS,
-  quotaEvictedFlag,
 } from './cockpit-presets';
 
 describe('cockpit-presets pure logic', () => {
@@ -149,7 +145,7 @@ describe('cockpit-presets pure logic', () => {
 
   it('evicts oldest non-default preset on QuotaExceededError', () => {
     const filterState = { status: ['offen'], area: [], brand: [] };
-    const p1 = savePreset('Oldest', filterState);
+    savePreset('Oldest', filterState);
     // Mock setItem to throw QuotaExceededError on next save unless we have reduced size
     let callCount = 0;
     const storeMock = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (this: Storage, key, value) {

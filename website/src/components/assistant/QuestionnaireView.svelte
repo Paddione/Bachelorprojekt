@@ -19,7 +19,7 @@
 
   type AnswerRecord = { question_id: string; option_key: string; details_text?: string | null };
 
-  let { onCloseView }: { onCloseView?: () => void } = $props();
+  let { onCloseView: _onCloseView }: { onCloseView?: () => void } = $props();
 
   let loading = $state(true);
   let assignments = $state<Assignment[]>([]);

@@ -4,18 +4,23 @@ import type { SignatureData } from '../../src/lib/signing/types';
 
 let db: IMemoryDb;
 
+// pg-mem's `db.public.query` only declares a single-arg signature, but the mocked
+// `pg.Pool#query` is invoked with the full node-postgres arg list (text, params, callback).
+// This local type lets us forward those args without widening to `any`.
+type FlexibleQueryable = { query: (...args: unknown[]) => unknown };
+
 vi.mock('pg', () => {
   return {
     default: {
       Pool: class MockPool {
         query(...args: unknown[]) {
-          return (db.public as any).query(...args);
+          return (db.public as unknown as FlexibleQueryable).query(...args);
         }
       },
     },
     Pool: class MockPool {
       query(...args: unknown[]) {
-        return (db.public as any).query(...args);
+        return (db.public as unknown as FlexibleQueryable).query(...args);
       }
     },
   };
@@ -114,6 +119,16 @@ describe('documents-db signing functions', () => {
        VALUES ('${cust[0].id}', '${tpl[0].id}', 'pending')`,
     );
 
+    interface AssignmentJoinRow {
+      id: string;
+      customer_id: string;
+      customer_name: string;
+      customer_email: string;
+      template_id: string;
+      template_title: string;
+      status: string;
+    }
+
     const { rows } = db.public.query(
       `SELECT a.id, a.customer_id,
               c.name  AS customer_name,
@@ -124,7 +139,7 @@ describe('documents-db signing functions', () => {
        JOIN document_templates t ON t.id = a.template_id
        LEFT JOIN customers c ON c.id = a.customer_id
        ORDER BY a.assigned_at DESC`,
-    ) as unknown as { rows: any[] };
+    ) as unknown as { rows: AssignmentJoinRow[] };
 
     expect(rows.length).toBe(1);
     expect(rows[0].template_title).toBe('Vertrag');

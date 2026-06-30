@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderInvoiceHtml, renderDunningHtml, sampleInvoiceForPreview } from './invoice-html';
 import type { Invoice } from './native-billing';
+import type { Dunning } from './invoice-pdf';
 
 const baseInvoice: Invoice = {
   id: 'inv-1',
@@ -134,14 +135,15 @@ describe('renderDunningHtml', () => {
   it('renders a dunning document with the level', () => {
     const out = renderDunningHtml({
       dunning: {
+        id: 'dun-1',
+        invoiceId: baseInvoice.id,
+        brand: baseInvoice.brand,
         level: 1,
         outstandingAtGeneration: 100,
         feeAmount: 5,
         interestAmount: 0,
-        totalAmount: 105,
-        dueDate: '2026-07-11',
         generatedAt: '2026-07-12T00:00:00Z',
-      } as any,
+      } satisfies Dunning,
       invoice: baseInvoice,
       customer: baseCustomer,
       seller: baseSeller,
@@ -153,14 +155,15 @@ describe('renderDunningHtml', () => {
   it('switches to "Mahnung" title when level >= 2', () => {
     const out = renderDunningHtml({
       dunning: {
+        id: 'dun-2',
+        invoiceId: baseInvoice.id,
+        brand: baseInvoice.brand,
         level: 2,
         outstandingAtGeneration: 100,
         feeAmount: 10,
         interestAmount: 5,
-        totalAmount: 115,
-        dueDate: '2026-07-11',
         generatedAt: '2026-07-12T00:00:00Z',
-      } as any,
+      } satisfies Dunning,
       invoice: baseInvoice,
       customer: baseCustomer,
       seller: baseSeller,

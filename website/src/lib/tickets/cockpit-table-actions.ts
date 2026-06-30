@@ -29,22 +29,6 @@ export async function patchPriority(id: string, priority: string): Promise<boole
   return res.ok;
 }
 
-async function patchTitle(id: string, title: string): Promise<boolean> {
-  const res = await fetch(`/api/admin/tickets/${id}`, {
-    method: 'PATCH', headers: JSON_HEADERS, credentials: 'same-origin',
-    body: JSON.stringify({ title }),
-  });
-  return res.ok;
-}
-
-async function patchDescription(id: string, description: string): Promise<boolean> {
-  const res = await fetch(`/api/admin/tickets/${id}`, {
-    method: 'PATCH', headers: JSON_HEADERS, credentials: 'same-origin',
-    body: JSON.stringify({ description }),
-  });
-  return res.ok;
-}
-
 export async function reorderTickets(ordered: TicketRow[]): Promise<boolean> {
   const updates = ordered.map((t, i) => ({ ticketId: t.id, planningRank: i }));
   const res = await fetch('/api/admin/cockpit/reorder', {

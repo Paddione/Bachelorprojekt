@@ -13,8 +13,15 @@ export const POST: APIRoute = async ({ request }) => {
     return new Response('forbidden', { status: 401 });
   }
 
-  let evt: any;
-  try { evt = JSON.parse(body); } catch { return new Response(null, { status: 200 }); }
+  // Nextcloud Talk webhook event shape, restricted to the fields read below.
+  interface TalkBotEvent {
+    type?: string;
+    object?: { name?: string; content?: string };
+    target?: { id?: string };
+  }
+
+  let evt: TalkBotEvent;
+  try { evt = JSON.parse(body) as TalkBotEvent; } catch { return new Response(null, { status: 200 }); }
 
   if (evt.type !== 'Create' || evt.object?.name !== 'message') {
     return new Response(null, { status: 200 });
@@ -22,7 +29,7 @@ export const POST: APIRoute = async ({ request }) => {
 
   let messageText = '';
   try {
-    const content = JSON.parse(evt.object.content);
+    const content = JSON.parse(evt.object?.content ?? '');
     messageText = (content?.message || '').trim();
   } catch { /* ignore */ }
 

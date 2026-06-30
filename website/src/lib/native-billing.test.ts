@@ -70,7 +70,7 @@ it('finalize stores hash, persists PDF, writes audit row (no EÜR booking yet)',
   expect(eurAfterFinalize.rows[0].n).toBe(0);  // PR-A: bookings emit on payment, not finalize
 });
 
-import { recordPayment, listPayments } from './invoice-payments';
+import { listPayments } from './invoice-payments';
 
 it('markInvoicePaid records a single full-gross payment', async () => {
   const c = await createCustomer({ brand: 'test', name: 'F', email: `f-${Date.now()}@t.de` });

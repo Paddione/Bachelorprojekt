@@ -30,11 +30,11 @@ describe('TemplatePicker', () => {
 
   it('dispatches template:select on card click', async () => {
     const handler = vi.fn();
-    window.addEventListener('template:select', handler as any);
+    window.addEventListener('template:select', handler as EventListener);
     const { getByRole } = render(TemplatePicker);
     await waitFor(() => getByRole('button', { name: /Feature-Intake/i }));
     await fireEvent.click(getByRole('button', { name: /Feature-Intake/i }));
     expect(handler).toHaveBeenCalledOnce();
-    window.removeEventListener('template:select', handler as any);
+    window.removeEventListener('template:select', handler as EventListener);
   });
 });

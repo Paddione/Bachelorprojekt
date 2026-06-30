@@ -37,7 +37,7 @@ function call(state: string | null, code = 'abc') {
   if (code !== '') u.searchParams.set('code', code);
   if (state !== null) u.searchParams.set('state', state);
   const ctx = { url: u, locals: { requestLogger: { error: vi.fn() } } };
-  return GET(ctx as any);
+  return GET(ctx as unknown as Parameters<typeof GET>[0]);
 }
 
 describe('callback returnTo allowlist', () => {

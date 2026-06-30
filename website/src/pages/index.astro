@@ -32,7 +32,7 @@ const homeOgImage = !isKore
   ? await getSeoOgImage(BRAND_ID, 'home').catch(() => null)
   : null;
 
-const [homepage, faq, allServices, stammdaten, effectiveNav, effectiveFooter, effectiveKoreFlags] = await Promise.all([
+const [homepage, faq, allServices, stammdaten, _effectiveNav, effectiveFooter, effectiveKoreFlags] = await Promise.all([
   getEffectiveHomepage(),
   getEffectiveFaq(),
   getEffectiveServices(),

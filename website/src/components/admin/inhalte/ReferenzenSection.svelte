@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { ReferenzenConfig } from '../../../lib/website-db';
+  import type { ReferenzenConfig, ReferenzItem } from '../../../lib/website-db';
   let { initialData }: { initialData: ReferenzenConfig } = $props();
   let data=$state(JSON.parse(JSON.stringify(initialData)));
   if(!data.types)data.types=[];
@@ -16,7 +16,7 @@
   }
 
   function addType(){data.types=[...data.types,{id:crypto.randomUUID().slice(0,8),label:''}];}
-  function removeType(i:number){const id=data.types[i].id;data.types=data.types.filter((_:unknown,idx:number)=>idx!==i);data.items=data.items.map((it:any)=>it.type===id?{...it,type:undefined}:it);}
+  function removeType(i:number){const id=data.types[i].id;data.types=data.types.filter((_:unknown,idx:number)=>idx!==i);data.items=data.items.map((it:ReferenzItem)=>it.type===id?{...it,type:undefined}:it);}
   function addItem(){data.items=[...data.items,{id:crypto.randomUUID().slice(0,8),name:'',url:'',logoUrl:'',description:'',type:''}];}
   function removeItem(i:number){data.items=data.items.filter((_:unknown,idx:number)=>idx!==i);}
 

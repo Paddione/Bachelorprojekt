@@ -11,7 +11,7 @@ export const POST: APIRoute = async ({ request , locals }) => {
   try {
     const body = await request.json();
     const {
-      name, email, phone, company, address1, city, postalCode, vatNumber,
+      name, email, company,
       serviceKey, quantity, asQuote, sendEmail: shouldSendEmail,
     } = body;
 

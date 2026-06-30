@@ -8,7 +8,6 @@ import {
 } from '../../../lib/questionnaire-db';
 import { getDisplayScores } from '../../../lib/questionnaire-display';
 import { isSystemtestLoopEnabled } from '../../../lib/systemtest/feature-flag';
-import SystemtestReplayDrawer from '../../../components/SystemtestReplayDrawer.svelte';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -20,7 +19,7 @@ if (!assignmentId) return Astro.redirect('/admin');
 const assignment = await getQAssignment(assignmentId).catch(() => null);
 if (!assignment) return Astro.redirect('/admin');
 
-const [dimensions, questions, allOptions, answers, evidenceList] = await Promise.all([
+const [_dimensions, questions, _allOptions, answers, evidenceList] = await Promise.all([
   listQDimensions(assignment.template_id),
   listQQuestions(assignment.template_id),
   listQAnswerOptionsForTemplate(assignment.template_id),
@@ -276,8 +275,8 @@ const maxScore = Math.max(...scores.map(s => s.threshold_high ?? s.final_score ?
       {assignment.status === 'dismissed' && (
         <div class="mb-8 p-5 bg-red-500/5 rounded-xl border border-red-500/20">
           <h2 class="text-sm font-medium text-red-400 uppercase tracking-wide mb-2">Fragebogen abgelehnt</h2>
-          {(assignment as any).dismiss_reason ? (
-            <p class="text-muted text-sm">Begründung: {(assignment as any).dismiss_reason}</p>
+          {assignment.dismiss_reason ? (
+            <p class="text-muted text-sm">Begründung: {assignment.dismiss_reason}</p>
           ) : (
             <p class="text-muted text-sm italic">Keine Begründung angegeben.</p>
           )}

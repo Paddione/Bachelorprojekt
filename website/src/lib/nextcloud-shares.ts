@@ -93,7 +93,6 @@ export async function createShareLink(opts: ShareOptions): Promise<ShareResult> 
   if (NC_EXTERNAL_URL && url) {
     try {
       const parsed = new URL(url);
-      const extHost = new URL(NC_EXTERNAL_URL).host;
       url = new URL(parsed.pathname + parsed.search, NC_EXTERNAL_URL).href;
     } catch { /* keep original URL */ }
   }

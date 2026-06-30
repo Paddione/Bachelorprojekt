@@ -118,7 +118,7 @@ describe('embeddings client — router mode (LLM_ENABLED=true)', () => {
   });
 
   test('voyage model: ECONNREFUSED from router → falls back to Voyage with structured logger warn', async () => {
-    const warnSpy = vi.spyOn(loggerModule.logger, 'warn').mockReturnValue(undefined as any);
+    const warnSpy = vi.spyOn(loggerModule.logger, 'warn').mockReturnValue(undefined);
     let callCount = 0;
     global.fetch = vi.fn().mockImplementation((url: string) => {
       callCount++;

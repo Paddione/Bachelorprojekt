@@ -184,7 +184,7 @@
           {#each list as d}
             <li class:active={detail?.id === d.id}>
               <button on:click={() => open(d.id)}>
-                {(d.suggestedPayload as any)?.title ?? '(ohne Titel)'}
+                {(d.suggestedPayload.title as string | undefined) ?? '(ohne Titel)'}
               </button>
             </li>
           {/each}

@@ -41,9 +41,6 @@ try {
 
 const totalMinutes    = entries.reduce((s, e) => s + e.minutes, 0);
 const billableMinutes = entries.filter(e => e.billable).reduce((s, e) => s + e.minutes, 0);
-const billableAmount  = entries
-  .filter(e => e.billable && e.rateCents > 0)
-  .reduce((sum, e) => sum + (e.minutes / 60) * (e.rateCents / 100), 0);
 
 function fmtMin(m: number): string {
   return `${Math.floor(m / 60)}h ${(m % 60).toString().padStart(2, '0')}m`;

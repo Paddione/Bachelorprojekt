@@ -14,7 +14,7 @@ function json(body: unknown, status = 200): Response {
   });
 }
 
-export const GET: APIRoute = async ({ request, url , locals }) => {
+export const GET: APIRoute = async ({ request, url , locals: _locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return json({ error: 'Unauthorized' }, 401);
   // The compose-box dropdown only wants active templates; the admin manager

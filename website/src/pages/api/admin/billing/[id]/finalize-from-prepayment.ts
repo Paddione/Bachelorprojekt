@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
-import { pool, initBillingTables } from '../../../../../lib/website-db';
+import { pool } from '../../../../../lib/website-db';
 import { getInvoice, createInvoice, type InvoiceLine } from '../../../../../lib/native-billing';
 
 export const POST: APIRoute = async ({ params, request , locals }) => {

@@ -9,7 +9,7 @@ import { autoTriage } from '../../../../lib/ticket-triage';
 
 const BRAND = (): string => process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 
-export const GET: APIRoute = async ({ request, url , locals }) => {
+export const GET: APIRoute = async ({ request, url , locals: _locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response(null, { status: 403 });
 

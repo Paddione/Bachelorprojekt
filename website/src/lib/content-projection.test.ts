@@ -63,7 +63,7 @@ describe('resolveStammdaten', () => {
     expect(resolveStammdaten(db, fallback).email).toBe('db@x.de');
   });
   it('fills missing DB fields from the static fallback', () => {
-    const partial = { email: 'db@x.de' } as any;
+    const partial = { email: 'db@x.de' };
     const r = resolveStammdaten(partial, fallback);
     expect(r.email).toBe('db@x.de');
     expect(r.city).toBe('c');

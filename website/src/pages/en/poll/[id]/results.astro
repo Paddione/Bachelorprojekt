@@ -1,6 +1,7 @@
 ---
 import DePage from '../../../poll/[id]/results.astro';
+import type { GetStaticPaths } from 'astro';
 Astro.locals.locale = 'en';
-export const getStaticPaths = (DePage as any).getStaticPaths;
+export const getStaticPaths = (DePage as unknown as { getStaticPaths?: GetStaticPaths }).getStaticPaths;
 ---
 <DePage />

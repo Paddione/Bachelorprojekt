@@ -1,5 +1,6 @@
 // website/src/lib/coaching-classifier.test.ts
 import { describe, it, expect, vi } from 'vitest';
+import type Anthropic from '@anthropic-ai/sdk';
 import { classifyChunk } from './coaching-classifier';
 
 function fakeClient(responses: string[]) {
@@ -11,7 +12,7 @@ function fakeClient(responses: string[]) {
         return { content: [{ type: 'text', text }] };
       }),
     },
-  } as any;
+  } as unknown as Anthropic;
 }
 
 describe('classifyChunk', () => {
@@ -39,7 +40,7 @@ describe('classifyChunk', () => {
     ]);
     const r = await classifyChunk('...', { client, model: 'test' });
     expect(r.kind).toBe('exercise');
-    expect((r.payload as any).phases).toHaveLength(1);
+    expect((r.payload as { phases: unknown[] } | null)?.phases).toHaveLength(1);
   });
 
   it('returns case_example with summary', async () => {

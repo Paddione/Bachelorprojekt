@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, fireEvent } from '@testing-library/svelte';
 import FilterBar from './FilterBar.svelte';
-import { DEFAULT_PRESETS, savePreset, loadPresets, quotaEvictedFlag } from '../../../lib/cockpit-presets';
+import { DEFAULT_PRESETS, savePreset, loadPresets } from '../../../lib/cockpit-presets';
 
 describe('FilterBar Component', () => {
   beforeEach(() => {

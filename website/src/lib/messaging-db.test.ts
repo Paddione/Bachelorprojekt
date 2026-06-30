@@ -2,11 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const { Pool, query, end } = vi.hoisted(() => {
   const query = vi.fn(async (..._args: unknown[]) => ({ rows: [], rowCount: 0 }));
-  const end = vi.fn(async (..._args: any[]) => undefined);
+  const end = vi.fn(async (..._args: unknown[]) => undefined);
   class Pool {
     constructor(_opts: unknown) { /* ignore config */ }
-    query(...a: any[]) { return query(...a); }
-    end(...a: any[]) { return end(...a); }
+    query(...a: unknown[]) { return query(...a); }
+    end(...a: unknown[]) { return end(...a); }
   }
   return { Pool, query, end };
 });

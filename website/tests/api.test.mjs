@@ -7,7 +7,6 @@ const BASE_URL = process.env.BASE_URL || 'http://localhost:4321';
 // -- Colors --
 const GREEN = '\x1b[32m';
 const RED = '\x1b[31m';
-const YELLOW = '\x1b[33m';
 const DIM = '\x1b[2m';
 const BOLD = '\x1b[1m';
 const RESET = '\x1b[0m';
@@ -520,8 +519,6 @@ async function run() {
 
   section('Questionnaire Templates (admin)');
 
-  let qTplId;
-
   await assert('GET /api/admin/questionnaires/templates returns 401 without auth', async () => {
     const r = await fetch(`${BASE_URL}/api/admin/questionnaires/templates`);
     if (r.status !== 401) throw new Error(`Expected 401, got ${r.status}`);
@@ -583,7 +580,7 @@ try {
   if (!probe.ok && probe.status !== 302) {
     // Server responded but not as expected — still run the tests
   }
-} catch (err) {
+} catch {
   console.error(`\n${RED}${BOLD}Error:${RESET} Cannot reach ${BASE_URL}`);
   console.error(`${DIM}Make sure the dev server is running: npm run dev${RESET}\n`);
   process.exit(1);

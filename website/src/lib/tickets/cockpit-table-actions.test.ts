@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as actions from './cockpit-table-actions';
+import type { TicketRow } from './cockpit-types';
 
 beforeEach(() => vi.restoreAllMocks());
 
@@ -36,7 +37,7 @@ describe('cockpit-table-actions', () => {
   });
   it('reorderTickets POSTs planningRank updates', async () => {
     const spy = vi.spyOn(global, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }));
-    await actions.reorderTickets([{ id: 'a' }, { id: 'b' }] as any);
+    await actions.reorderTickets([{ id: 'a' }, { id: 'b' }] as unknown as TicketRow[]);
     const body = JSON.parse((spy.mock.calls[0][1] as RequestInit).body as string);
     expect(spy).toHaveBeenCalledWith('/api/admin/cockpit/reorder', expect.anything());
     expect(body.updates).toEqual([

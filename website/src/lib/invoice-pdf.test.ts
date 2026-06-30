@@ -33,6 +33,7 @@ it('includes reverse charge notice when supplyType is eu_b2b_services', async ()
     currency: 'EUR', currencyRate: null,
     netAmountEur: 500, grossAmountEur: 500,
     supplyType: 'eu_b2b_services',
+    kind: 'regular' as const,
   };
   const baseSeller = {
     name: 'Test GmbH', address: 'Musterstr 1', postalCode: '10115',
@@ -41,7 +42,7 @@ it('includes reverse charge notice when supplyType is eu_b2b_services', async ()
     bic: 'COBADEFFXXX', bankName: 'Commerzbank',
   };
   const pdf = await generateInvoicePdf({
-    invoice: baseInvoice as any,
+    invoice: baseInvoice,
     lines: [{ description: 'Consulting', quantity: 1, unitPrice: 500, netAmount: 500 }],
     customer: { name: 'Acme SA', email: 'acme@fr.com', country: 'FR', vatNumber: 'FR12345678901' },
     seller: baseSeller,

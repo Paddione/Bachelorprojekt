@@ -6,7 +6,15 @@ export interface UstvaData {
   brand: string;
 }
 
-export async function getUstvaKennzahlen(data: UstvaData) {
+export interface UstvaKennzahlen {
+  kz81: number;
+  kz86: number;
+  kz41: number;
+  kz43: number;
+  kz66: number;
+}
+
+export async function getUstvaKennzahlen(data: UstvaData): Promise<UstvaKennzahlen> {
   await initBillingTables();
   // Simplified aggregation logic for demonstration
   // In a real app, this would query billing_invoices and eur_bookkeeping
@@ -42,7 +50,7 @@ export async function getUstvaKennzahlen(data: UstvaData) {
   };
 }
 
-export function buildUstvaXml(kennzahlen: any, data: UstvaData) {
+export function buildUstvaXml(kennzahlen: UstvaKennzahlen, data: UstvaData) {
   const { kz81, kz86, kz41, kz43, kz66 } = kennzahlen;
   const steuer81 = Math.round(kz81 * 0.19 * 100) / 100;
   const steuer86 = Math.round(kz86 * 0.07 * 100) / 100;

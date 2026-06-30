@@ -28,12 +28,12 @@ const nextSvc = svcIndex < visibleServices.length - 1 ? visibleServices[svcIndex
 
 // SEO: DB-Override > pageContent.seoTitle > svc.title
 const dbSeoTitle = await getSeoTitle(BRAND_ID, svc.slug).catch(() => null);
-const seoTitle = dbSeoTitle ?? (pc as any).seoTitle ?? svc.title;
+const seoTitle = dbSeoTitle ?? pc.seoTitle ?? svc.title;
 const useRawTitle = seoTitle !== svc.title;
 
 // SEO: DB-Override > pageContent.seoDescription > svc.description
 const dbSeoDesc = await getSiteSetting(BRAND_ID, `seo_meta_desc_${svc.slug}`).catch(() => null);
-const seoDesc = dbSeoDesc ?? (pc as any).seoDescription ?? svc.description;
+const seoDesc = dbSeoDesc ?? pc.seoDescription ?? svc.description;
 
 const seoOgImage = await getSeoOgImage(BRAND_ID, svc.slug).catch(() => null);
 

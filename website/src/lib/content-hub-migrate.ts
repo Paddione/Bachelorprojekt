@@ -58,6 +58,7 @@ export function linkCardsToCatalog(
 
     // Strip legacy price fields
     const { price: _price, pageContent, ...rest } = card;
+    void _price;
     const newPageContent = pageContent
       ? { ...pageContent, pricing: undefined }
       : undefined;

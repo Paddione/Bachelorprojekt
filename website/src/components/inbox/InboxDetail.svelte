@@ -2,7 +2,7 @@
      Right-hand pane. Shared header (avatar, title, meta, ↑↓ nav) +
      per-type body block + footer with actions. -->
 <script lang="ts">
-  import type { InboxItem, InboxType, Message } from '../../lib/messaging-db';
+  import type { InboxItem, Message } from '../../lib/messaging-db';
   import { TYPE_META, initialsOf } from './type-meta';
 
   interface Props {

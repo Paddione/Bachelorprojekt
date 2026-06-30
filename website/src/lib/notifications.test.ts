@@ -92,7 +92,7 @@ describe('sendAdminNotification', () => {
       return undefined;
     });
     mockSend.mockResolvedValue(false);
-    const warnSpy = vi.spyOn(loggerModule.logger, 'warn').mockReturnValue(undefined as any);
+    const warnSpy = vi.spyOn(loggerModule.logger, 'warn').mockReturnValue(undefined);
     try {
       await expect(
         sendAdminNotification({ type: 'contact', subject: 'x', text: 'y' }),

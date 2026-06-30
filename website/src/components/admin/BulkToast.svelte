@@ -12,7 +12,7 @@
   export let onUndo: (token: string) => void;
   export let onDismiss: () => void;
 
-  let timerId: any;
+  let timerId: ReturnType<typeof setTimeout> | undefined;
 
   function startTimer() {
     if (result && result.failed === 0) {

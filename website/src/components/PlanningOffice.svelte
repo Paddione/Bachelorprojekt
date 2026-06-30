@@ -5,7 +5,7 @@
   import PlanningOfficeTriage from './PlanningOfficeTriage.svelte';
   import PlanningOfficeItem from './PlanningOfficeItem.svelte';
 
-  const { brand }: { brand: string } = $props();
+  const { brand: _brand }: { brand: string } = $props();
 
   interface PlanItem {
     extId: string;
@@ -49,7 +49,6 @@
   let dropTargetIdx: number | null = $state(null);
   let newDep = $state('');
   let touchDragExtId: string | null = $state(null);
-  let touchStartY = $state(0);
   let sheetSwipeStartY = $state(0);
 
   let isMobile = $derived(
@@ -169,7 +168,6 @@
   function onHandlePointerDown(e: PointerEvent, it: PlanItem) {
     if (!isMobile) return;
     touchDragExtId = it.extId;
-    touchStartY = e.clientY;
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
   }
 
@@ -185,7 +183,7 @@
     }
   }
 
-  async function onHandlePointerUp(e: PointerEvent) {
+  async function onHandlePointerUp(_e: PointerEvent) {
     if (!touchDragExtId) return;
     if (dropTargetIdx !== null) {
       await patch(touchDragExtId, { rank: dropTargetIdx });

@@ -4,8 +4,6 @@ import * as path from 'path';
 import { isValidSlug, readProposal, writeProposal, proposalPath } from './proposal';
 
 describe('proposal lib', () => {
-  const testSlug = 'cockpit-dor-inline-editor';
-
   afterEach(async () => {
     // Clean up test file if it was created
     const testPath = proposalPath('test-slug');

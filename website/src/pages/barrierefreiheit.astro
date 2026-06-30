@@ -4,11 +4,12 @@ import { getLegalPage } from '../lib/website-db';
 import { getDefaultBarrierefreiheit } from '../lib/legal-defaults';
 import { resolveTokens } from '../lib/legal-tokens';
 import { getEffectiveStammdaten } from '../lib/content';
+import type { Stammdaten } from '../lib/website-db';
 
 const BRAND = process.env.BRAND || 'mentolder';
 const BRAND_ID = process.env.BRAND_ID ?? BRAND;
 const isKore = BRAND_ID === 'korczewski';
-const sd = await getEffectiveStammdaten().catch(() => ({} as any));
+const sd = await getEffectiveStammdaten().catch(() => ({} as Stammdaten));
 const stored = await getLegalPage(BRAND, 'barrierefreiheit').catch(() => null);
 const contentHtml = resolveTokens(stored?.trim() ? stored : getDefaultBarrierefreiheit(), sd);
 ---

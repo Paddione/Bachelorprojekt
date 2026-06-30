@@ -45,11 +45,6 @@
     store.setValue(currentValue);
   }
 
-  function setNestedField(parentKey: string, childKey: string, val: unknown) {
-    const parent = (currentValue[parentKey] as Record<string, unknown>) ?? {};
-    currentValue = { ...currentValue, [parentKey]: { ...parent, [childKey]: val } };
-    store.setValue(currentValue);
-  }
 
   function getErrors(fieldKey: string): string[] {
     return store.get().errors.filter((e) => e.field === fieldKey).map((e) => e.message);

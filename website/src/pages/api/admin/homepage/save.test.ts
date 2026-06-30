@@ -46,7 +46,7 @@ const post = (body: unknown, origin: string | null = REACT) =>
       body: JSON.stringify(body),
     }),
     locals: { requestLogger: { error: vi.fn() } },
-  } as any);
+  } as unknown as Parameters<typeof POST>[0]);
 
 const adminSession: UserSession = { sub: 'u-1', email: 'g@mentolder.de', name: 'Gerald', preferred_username: 'gekko', realmRoles: ['admin'], brand: null, access_token: 'tok', refresh_token: 'rtok', expires_at: 9999999999 };
 

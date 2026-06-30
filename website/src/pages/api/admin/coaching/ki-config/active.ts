@@ -19,7 +19,7 @@ export const PATCH: APIRoute = async ({ request }) => {
   const brand = process.env.BRAND || 'mentolder';
   try {
     await setActiveProvider(pool, brand, body.provider as KiConfig['provider']);
-  } catch (e) {
+  } catch {
     return new Response(JSON.stringify({ error: 'Provider nicht gefunden' }), { status: 404, headers: { 'content-type': 'application/json' } });
   }
   return new Response(JSON.stringify({ ok: true }), { headers: { 'content-type': 'application/json' } });

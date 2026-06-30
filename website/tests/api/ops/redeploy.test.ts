@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 
 vi.mock('../../../src/lib/k8s', () => ({
   createK8sClient: vi.fn(async () => ({
@@ -31,28 +31,28 @@ function makeReq(body: object, sessionCookie = 'session=ok'): Request {
 
 describe('POST /api/admin/ops/redeploy/website', () => {
   it('returns 200 + action_id on happy path', async () => {
-    const res = await redeployWebsite({ request: makeReq({ cluster: 'mentolder' }) } as any);
+    const res = await redeployWebsite({ request: makeReq({ cluster: 'mentolder' }) } as unknown as Parameters<typeof redeployWebsite>[0]);
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json.action_id).toBeDefined();
   });
 
   it('returns 400 for invalid cluster', async () => {
-    const res = await redeployWebsite({ request: makeReq({ cluster: 'invalid' }) } as any);
+    const res = await redeployWebsite({ request: makeReq({ cluster: 'invalid' }) } as unknown as Parameters<typeof redeployWebsite>[0]);
     expect(res.status).toBe(400);
   });
 
   it('returns 401 when no session', async () => {
     const { getSession } = await import('../../../src/lib/auth');
-    (getSession as any).mockResolvedValueOnce(null);
-    const res = await redeployWebsite({ request: makeReq({ cluster: 'mentolder' }) } as any);
+    vi.mocked(getSession).mockResolvedValueOnce(null);
+    const res = await redeployWebsite({ request: makeReq({ cluster: 'mentolder' }) } as unknown as Parameters<typeof redeployWebsite>[0]);
     expect(res.status).toBe(401);
   });
 
   it('returns 403 when not admin', async () => {
     const { isAdmin } = await import('../../../src/lib/auth');
-    (isAdmin as any).mockReturnValueOnce(false);
-    const res = await redeployWebsite({ request: makeReq({ cluster: 'mentolder' }) } as any);
+    vi.mocked(isAdmin).mockReturnValueOnce(false);
+    const res = await redeployWebsite({ request: makeReq({ cluster: 'mentolder' }) } as unknown as Parameters<typeof redeployWebsite>[0]);
     expect(res.status).toBe(403);
   });
 });

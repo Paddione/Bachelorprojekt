@@ -49,7 +49,7 @@ export const POST: APIRoute = async ({ request , locals }) => {
   }
 };
 
-export const ALL: APIRoute = async ({ request , locals }) => {
+export const ALL: APIRoute = async ({ request , locals: _locals }) => {
   if (request.method !== 'POST') {
     return new Response('Method Not Allowed', {
       status: 405,

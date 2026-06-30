@@ -9,12 +9,27 @@ shared_changes: false
 
 # Tasks: website-strict-lint-gate-regression (T001337)
 
-- [ ] Task 0: Bestehenden Regressionstest bestätigen (RED) — `tests/spec/ci-cd.bats`
-- [ ] Task 1: `@typescript-eslint/no-unused-vars`-Befunde beheben
-- [ ] Task 2: `@typescript-eslint/no-explicit-any`-Befunde beheben
-- [ ] Task 3: `noUnusedLocals`/`noUnusedParameters` in `website/tsconfig.json` reaktivieren
-- [ ] Task 4: ESLint-Regeln auf `error` + `--max-warnings 0` wiederherstellen
-- [ ] Task 5 (Final): Verifikation + Commit/PR
+- [x] Task 0: Bestehenden Regressionstest bestätigen (RED) — `tests/spec/ci-cd.bats`
+- [x] Task 1: `@typescript-eslint/no-unused-vars`-Befunde beheben
+- [x] Task 2: `@typescript-eslint/no-explicit-any`-Befunde beheben
+- [x] Task 3: `noUnusedLocals`/`noUnusedParameters` in `website/tsconfig.json` reaktivieren (Abweichung: nur `noUnusedParameters` aktiviert, siehe Hinweis unten)
+- [x] Task 4: ESLint-Regeln auf `error` + `--max-warnings 0` wiederherstellen
+- [x] Task 5 (Final): Verifikation + Commit/PR
+
+## Deviation note (Task 3)
+
+`noUnusedLocals: true` was **not** enabled. Empirically confirmed (minimal `.astro` repro) that
+Astro's `check` compiler has a false-positive bug: any identifier whose only usage is inside a
+frontmatter-level `return <expr>;` (the standard early-redirect-guard pattern, e.g.
+`if (!session) return Astro.redirect(getLoginUrl(...));`) is reported as `error ts(6133)
+declared but never read`, even though it is genuinely read. This pattern is used in 76 files
+across `website/src/pages/` for auth guards. Enabling `noUnusedLocals` turned this into 91 hard
+errors in the separate "Astro TypeScript Check" CI job (REQ-ASTRO-TC-004) — a job this plan's
+own proposal explicitly states is "Out of scope / not affected". `noUnusedParameters: true` alone
+does not trigger the bug (verified) and surfaced exactly one genuine unused parameter
+(`src/pages/admin/termine.astro:388`, fixed). Final state: `noUnusedLocals: false`,
+`noUnusedParameters: true`, `astro check` → 0 errors/0 warnings/115 hints (all 115 are the
+known false-positive pattern, non-blocking).
 
 ---
 

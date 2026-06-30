@@ -24,7 +24,6 @@
   let graphEdges: GraphEdge[] = $state([]);
   let resolvedNamespaces: string[] = $state([]);
   let statusMap: Map<string, NodeStatus> = $state(new Map());
-  let podsByNamespace: Map<string, PodEntry[]> = $state(new Map());
   let warnings: Warning[] = $state([]);
   let selectedNode: GraphNode | null = $state(null);
   let graphLoaded = $state(false);
@@ -51,8 +50,8 @@
       graphEdges = data.edges;
       resolvedNamespaces = data.resolvedNamespaces ?? [];
       graphLoaded = true;
-    } catch (e: any) {
-      errorGraph = e.message ?? 'Graph-Ladefehler';
+    } catch (e) {
+      errorGraph = e instanceof Error ? e.message : 'Graph-Ladefehler';
     }
   }
 
@@ -70,13 +69,12 @@
           newMap.set(r.value.namespace, r.value.pods);
         }
       }
-      podsByNamespace = newMap;
       statusMap = buildStatusMap(graphNodes, newMap);
       unassignedCount = [...statusMap.values()].filter(s => !s.matched && s.color !== '#6b7280').length;
       lastUpdated = new Date();
       errorPods = '';
-    } catch (e: any) {
-      errorPods = e.message ?? 'Pod-Status-Fehler';
+    } catch (e) {
+      errorPods = e instanceof Error ? e.message : 'Pod-Status-Fehler';
     }
   }
 

@@ -4,8 +4,8 @@
   const {
     messagesBaseUrl,
     roomId,
-    role,
-    senderId,
+    role: _role,
+    senderId: _senderId,
     onclose,
     onshare,
   }: {
@@ -17,7 +17,6 @@
     onshare?: (msg: ChatMessage) => void;
   } = $props();
 
-  let closed = $state(false);
   let sharePath = $state('');
   let shareType = $state(3);
   let sharePassword = $state('');

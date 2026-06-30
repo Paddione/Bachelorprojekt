@@ -86,7 +86,7 @@
       } else {
         showError(await readError(res, 'Speichern fehlgeschlagen.'));
       }
-    } catch (e) {
+    } catch {
       showError('Netzwerkfehler beim Speichern.');
     } finally {
       saving = false;
@@ -105,7 +105,7 @@
       } else {
         showError(await readError(res, 'Löschen fehlgeschlagen.'));
       }
-    } catch (e) {
+    } catch {
       showError('Netzwerkfehler beim Löschen.');
     }
   }

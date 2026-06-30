@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { FooterConfig, FooterColumn, FooterLink } from '../../../lib/website-db';
+  import type { FooterConfig, FooterColumn } from '../../../lib/website-db';
 
   let { initialData }: { initialData: FooterConfig } = $props();
   let footerData = $state<FooterConfig>(JSON.parse(JSON.stringify(initialData)));

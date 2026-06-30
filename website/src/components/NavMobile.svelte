@@ -20,7 +20,7 @@
     user = null,
     authChecked = false,
     streamLive = false,
-    pathname,
+    pathname: _pathname,
   }: Props = $props();
 
   function initial(name: string) {

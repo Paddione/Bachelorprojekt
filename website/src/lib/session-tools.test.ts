@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { newDb, DataType } from 'pg-mem';
 import type { Pool } from 'pg';
 import { getSessionStepTool, draftSessionReportTool, __setPoolForTests } from './session-tools';

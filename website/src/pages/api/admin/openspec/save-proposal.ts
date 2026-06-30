@@ -28,7 +28,7 @@ export const POST: APIRoute = async ({ request }) => {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
-  } catch (error) {
+  } catch {
     return new Response(JSON.stringify({ error: 'save failed' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
 };

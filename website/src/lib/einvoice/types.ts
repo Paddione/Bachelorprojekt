@@ -14,7 +14,6 @@ const SellerConfigSchema = z.object({
   iban: z.string().min(15),
   bic: z.string().optional(),
 });
-type SellerConfig = z.infer<typeof SellerConfigSchema>;
 
 const BuyerConfigSchema = z.object({
   name: z.string().min(1),
@@ -26,7 +25,6 @@ const BuyerConfigSchema = z.object({
   vatId: z.string().optional(),
   leitwegId: z.string().regex(LEITWEG_ID_REGEX).optional(),
 });
-type BuyerConfig = z.infer<typeof BuyerConfigSchema>;
 
 export const InvoiceLineSchema = z.object({
   description: z.string().min(1),

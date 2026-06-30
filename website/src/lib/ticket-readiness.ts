@@ -6,7 +6,7 @@ export async function allPredecessorsDone(dependsOn: string[], pool: Pool): Prom
     `SELECT external_id, status FROM tickets.tickets WHERE external_id = ANY($1)`,
     [dependsOn],
   );
-  return rows.length === dependsOn.length && rows.every((r: any) => r.status === 'done');
+  return rows.length === dependsOn.length && rows.every((r: { status: string }) => r.status === 'done');
 }
 
 export async function updateSuccessorReadiness(ticketId: string, pool: Pool): Promise<number> {

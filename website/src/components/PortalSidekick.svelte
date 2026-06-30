@@ -43,8 +43,6 @@
   let pendingJump = $state<string | null>(null);
 
   // User identity for header / avatar
-  let userGivenName = $state('');
-  let userFamilyName = $state('');
   let userAvailable = $state(true);
 
   const STANDARD_WIDTH = 460;
@@ -104,9 +102,6 @@
           user?: { givenName?: string; familyName?: string };
         };
         if (!data.authenticated) return;
-
-        userGivenName = data.user?.givenName ?? '';
-        userFamilyName = data.user?.familyName ?? '';
 
         const qRes = await fetch('/api/portal/questionnaires');
         if (qRes.ok) {

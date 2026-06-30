@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { it, expect, vi, beforeEach } from 'vitest';
 
 // Mock the DB layer so getEffective* is pure to test.
 vi.mock('./website-db', async (orig) => {
@@ -12,10 +12,10 @@ import { getEffectiveServices } from './content';
 beforeEach(() => vi.clearAllMocks());
 
 it('card headline price comes from the linked catalog row, not a stored price', async () => {
-  (db.getLeistungenConfig as any).mockResolvedValue([
+  vi.mocked(db.getLeistungenConfig).mockResolvedValue([
     { id: 'digital-50plus', title: '50+ Digital', services: [
       { key: '50plus-digital-einzel', name: 'Einzelstunde', price: '60 €', unit: '/ Stunde' }] }]);
-  (db.getServiceConfig as any).mockResolvedValue([
+  vi.mocked(db.getServiceConfig).mockResolvedValue([
     { slug: 'digital-50plus', title: '50+ Digital', description: 'd', icon: '💻', features: [],
       leistungCategoryId: 'digital-50plus', headlineKey: '50plus-digital-einzel', headlinePrefix: true }]);
   const svcs = await getEffectiveServices();

@@ -57,8 +57,8 @@
       }
       dispatch('submitted', { verdict });
       dispatch('close');
-    } catch (err: any) {
-      error = err.message;
+    } catch (err) {
+      error = err instanceof Error ? err.message : String(err);
     } finally {
       submitting = false;
     }

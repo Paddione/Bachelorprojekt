@@ -1,4 +1,6 @@
-import type { ReferenzItem, ReferenzenType, ReferenzenConfig } from '../config/types';
+// Types re-exported from config/types.ts for backward compatibility.
+import type { ReferenzItem, ReferenzenConfig } from '../config/types';
+export type { ReferenzItem, ReferenzenType, ReferenzenConfig } from '../config/types';
 
 // Meeting Knowledge Pipeline — PostgreSQL client.
 // Writes meeting data, transcripts, and artifacts to the meetings DB.
@@ -19,8 +21,9 @@ import type { MeetingWithDetails } from './meetings-db';
 // tickets modules can depend on the leaf-most pool without re-entering
 // website-db. Re-export for backward compatibility with any external caller
 // that imports these names from website-db.
-import { pool, platformPool, ensureSchemaOnce, __resetSchemaInitCacheForTests } from './db-pool';
-export { pool, platformPool, ensureSchemaOnce, __resetSchemaInitCacheForTests } from './db-pool';
+import { pool, ensureSchemaOnce, __resetSchemaInitCacheForTests } from './db-pool';
+export { pool, ensureSchemaOnce, __resetSchemaInitCacheForTests } from './db-pool';
+export { platformPool } from './db-pool';
 import type { Pool, PoolClient } from 'pg';
 
 // Eager boot-time init so tracker schema migrations apply on rollout rather
@@ -782,9 +785,6 @@ export async function saveLegalPage(brand: string, pageKey: string, contentHtml:
 }
 
 // ── Referenzen Config ─────────────────────────────────────────────────────────
-// Types re-exported from config/types.ts for backward compatibility.
-
-export type { ReferenzItem, ReferenzenType, ReferenzenConfig } from '../config/types';
 
 export async function initReferenzenTable(): Promise<void> {
   return ensureSchemaOnce('referenzen_config', async () => {

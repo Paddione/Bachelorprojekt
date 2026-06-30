@@ -68,7 +68,7 @@
     try {
       await navigator.clipboard.writeText(url);
       showToast('URL kopiert');
-    } catch (err) {
+    } catch {
       showToast('Kopieren fehlgeschlagen');
     }
   }

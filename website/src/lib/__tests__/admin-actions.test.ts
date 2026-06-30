@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import type { Pool } from 'pg';
 import { startAction, finishAction, checkConcurrent, ConcurrentActionError } from '../admin-actions';
 
@@ -39,7 +39,7 @@ describe('checkConcurrent', () => {
 describe('finishAction', () => {
   it('updates status to success', async () => {
     const queries: string[] = [];
-    const pool = mockPool((q, params) => { queries.push(q); return { rows: [] }; });
+    const pool = mockPool((q, _params) => { queries.push(q); return { rows: [] }; });
     await finishAction(pool, 42, { status: 'success', payload: { ok: true } });
     expect(queries[0]).toMatch(/UPDATE public\.admin_actions/);
   });

@@ -18,7 +18,12 @@ export const GET: APIRoute = async ({ request }) => {
 
   try {
     const manifest = JSON.parse(readFileSync(MANIFEST_PATH, 'utf8'));
-    const assets = (manifest.assets ?? []).map((a: any) => ({
+    // Asset shape from manifest.json: arbitrary metadata plus a `files` map of slot -> relative path.
+    interface ArtLibraryAsset {
+      files?: Record<string, unknown>;
+      [key: string]: unknown;
+    }
+    const assets = (manifest.assets ?? []).map((a: ArtLibraryAsset) => ({
       ...a,
       files: Object.fromEntries(
         Object.entries(a.files ?? {}).map(([slot, rel]) => [slot, toPublicUrl(String(rel))]),

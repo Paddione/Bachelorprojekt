@@ -25,12 +25,18 @@ function ipv64Get(path: string, apiKey?: string): Promise<string> {
   });
 }
 
+// Shape of an entry in ipv64's /api.php?get_domains response, restricted to the fields we read.
+interface Ipv64DomainEntry {
+  domain?: string;
+  domain_update_hash?: string;
+}
+
 async function fetchDomainUpdateHash(apiKey: string, domain: string): Promise<string | null> {
   const raw = await ipv64Get('/api.php?get_domains', apiKey);
-  const data = JSON.parse(raw);
+  const data = JSON.parse(raw) as { subdomains?: Record<string, Ipv64DomainEntry>; domains?: Record<string, Ipv64DomainEntry> };
   // ipv64 returns { subdomains: { "domain.de": { domain_update_hash, ... } } }
-  const subdomains: Record<string, any> = data.subdomains ?? data.domains ?? {};
-  const entry = subdomains[domain] ?? Object.values(subdomains).find((v: any) => v?.domain === domain);
+  const subdomains: Record<string, Ipv64DomainEntry> = data.subdomains ?? data.domains ?? {};
+  const entry = subdomains[domain] ?? Object.values(subdomains).find((v) => v?.domain === domain);
   return entry?.domain_update_hash ?? null;
 }
 
@@ -49,8 +55,9 @@ export const POST: APIRoute = async ({ request }) => {
   let hash: string | null;
   try {
     hash = await fetchDomainUpdateHash(apiKey, cfg.domain);
-  } catch (e: any) {
-    return new Response(JSON.stringify({ error: `ipv64 API Fehler: ${e.message}` }), { status: 502 });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    return new Response(JSON.stringify({ error: `ipv64 API Fehler: ${message}` }), { status: 502 });
   }
 
   if (!hash) {

@@ -10,8 +10,6 @@ export const POST: APIRoute = async ({ request , locals }) => {
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
-    const channelId = formData.get('channelId') as string | null;
-    const customerName = formData.get('customerName') as string | null;
 
     if (!file) {
       return new Response(

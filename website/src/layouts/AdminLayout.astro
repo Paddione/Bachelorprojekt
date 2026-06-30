@@ -4,7 +4,6 @@ import '../styles/admin-foundation.css';
 import '../styles/admin-premium.css';
 import '../styles/sidekick-panels.css';
 import { config } from '../config/index';
-import { icons } from './admin-icons';
 import TicketWidgetBar from '../components/TicketWidgetBar.astro';
 import AssistantWidget from '../components/assistant/AssistantWidget.svelte';
 const ASSISTANT_ENABLED = (process.env.ENABLE_ASSISTANT_ADMIN ?? 'false') === 'true';
@@ -20,15 +19,6 @@ import AdminSidebarNav from '../components/admin/AdminSidebarNav.astro';
 
 interface Props {
   title: string;
-}
-
-interface NavItem {
-  href: string;
-  label: string;
-  icon: string;
-  matches?: string[];
-  badge?: number;
-  external?: boolean;
 }
 
 const { title } = Astro.props;
@@ -84,7 +74,7 @@ const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
         if (localStorage.getItem('admin-sidebar-collapsed') === '1') {
           document.documentElement.classList.add('sidebar-collapsed');
         }
-      } catch (_) {}
+      } catch {}
     </script>
   </head>
   <body class={isKore ? 'kore' : ''} style="min-height:100vh; background:var(--admin-bg); color:var(--admin-text); display:flex; font-family:var(--font-sans); overflow-x:hidden;">

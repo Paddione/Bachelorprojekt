@@ -40,9 +40,10 @@ export const GET: APIRoute = async ({ request }) => {
   let assets;
   try {
     assets = await listSoftwareAssets();
-  } catch (e: any) {
+  } catch (e) {
+    const message = e instanceof Error ? e.message : 'unknown';
     return new Response(
-      JSON.stringify({ error: `DB unreachable: ${e?.message ?? 'unknown'}` }),
+      JSON.stringify({ error: `DB unreachable: ${message}` }),
       { status: 503, headers: { 'Content-Type': 'application/json' } },
     );
   }
@@ -61,11 +62,11 @@ export const GET: APIRoute = async ({ request }) => {
         if (!ok) status = optional ? 'optional' : 'error';
         else status = latencyMs > 2000 ? 'slow' : 'ok';
         return { name: asset.name, slug: asset.slug, url, status, latencyMs, optional } satisfies ServiceCheck;
-      } catch (e: any) {
+      } catch (e) {
         return {
           name: asset.name, slug: asset.slug, url,
           status: optional ? 'optional' : 'error',
-          latencyMs: null, optional, error: e?.message,
+          latencyMs: null, optional, error: e instanceof Error ? e.message : undefined,
         } satisfies ServiceCheck;
       }
     }),

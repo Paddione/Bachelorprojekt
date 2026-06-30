@@ -53,7 +53,7 @@ export const PUT: APIRoute = async ({ request, params , locals }) => {
   }
 };
 
-export const DELETE: APIRoute = async ({ request, params , locals }) => {
+export const DELETE: APIRoute = async ({ request, params , locals: _locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return json({ error: 'Unauthorized' }, 401);
 

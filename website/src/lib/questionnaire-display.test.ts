@@ -15,7 +15,7 @@ type ScoreSnapshot = {
 };
 
 vi.mock('./questionnaire-db/queries', () => ({
-  listQDimensions: async (templateId: string) => [
+  listQDimensions: async (_templateId: string) => [
     { id: 'd1', name: 'D1', position: 1, score_multiplier: 1, threshold_mid: 5, threshold_high: 10 },
   ],
   listQAnswerOptionsForTemplate: async (_templateId: string) => [],

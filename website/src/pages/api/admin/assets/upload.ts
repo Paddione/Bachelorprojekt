@@ -89,7 +89,7 @@ export const POST: APIRoute = async ({ request }) => {
     }), {
       headers: { 'Content-Type': 'application/json' },
     });
-  } catch (err) {
+  } catch {
     return new Response(JSON.stringify({ error: 'Upload fehlgeschlagen' }), {
       status: 500, headers: { 'Content-Type': 'application/json' },
     });

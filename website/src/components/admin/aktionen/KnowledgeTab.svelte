@@ -5,6 +5,7 @@
   export let cluster: string = 'mentolder';
 
   type Collection = { id: string; name: string; chunk_count: number; last_indexed_at: string | null; embedding_model: string };
+  type AuditAction = { target?: string; status: string };
 
   let collections: Collection[] = [];
   let loading = true;
@@ -27,9 +28,9 @@
     if (r.ok) {
       toast('success', `Reindex von "${c.name}" gestartet`);
       const poller = setInterval(async () => {
-        const status = await apiCall<{ actions: any[] }>(`/api/admin/ops/audit/log?action_filter=ai_reindex&limit=5`);
+        const status = await apiCall<{ actions: AuditAction[] }>(`/api/admin/ops/audit/log?action_filter=ai_reindex&limit=5`);
         if (status.ok) {
-          const last = status.data.actions?.find((a: any) => a.target === c.id);
+          const last = status.data.actions?.find((a) => a.target === c.id);
           if (last && (last.status === 'success' || last.status === 'failed')) {
             clearInterval(poller); pending[c.id] = false; pending = pending; load();
           }

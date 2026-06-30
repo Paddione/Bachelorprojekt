@@ -380,7 +380,7 @@ export async function archiveQAssignment(id: string): Promise<
     );
 
     const { computeScores } = await import('../compute-scores');
-    const scores = computeScores(dimsRes.rows, optsRes.rows, ansRes.rows);
+    computeScores(dimsRes.rows, optsRes.rows, ansRes.rows);
 
     await client.query('COMMIT');
     const updated = await getQAssignment(id);

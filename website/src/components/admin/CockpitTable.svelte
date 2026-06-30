@@ -19,7 +19,8 @@
   let busy: Record<string, boolean> = {};
   let dragId: string | null = null;
   let search = '';
-  let toastResult: any = null;
+  type ToastResult = { changed: number; skipped: number; failed: number; status: string; undoToken?: string } | null;
+  let toastResult: ToastResult = null;
   // Default to "active" so the ~97% done tickets don't drown the few open ones.
   let statusFilter = 'active';
   const PAGE = 50;

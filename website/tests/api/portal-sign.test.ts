@@ -13,7 +13,7 @@ vi.mock('../../src/lib/signing/audit', () => ({
   logSigningEvent: vi.fn().mockResolvedValue(undefined),
 }));
 
-import { getDocumentAssignmentById, getDocumentTemplate } from '../../src/lib/documents-db';
+import { getDocumentAssignmentById } from '../../src/lib/documents-db';
 
 describe('POST /api/portal/sign/[assignmentId] validation', () => {
   beforeEach(() => { vi.clearAllMocks(); });

@@ -21,7 +21,7 @@ describe('GET /api/admin/ops/audit/log', () => {
     const res = await GET({
       url: new URL('http://test/?action_filter=&limit=10'),
       request: new Request('http://test', { headers: { Cookie: 'session=ok' } })
-    } as any);
+    } as unknown as Parameters<typeof GET>[0]);
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json.actions[0].id).toBe(5);
@@ -29,21 +29,21 @@ describe('GET /api/admin/ops/audit/log', () => {
 
   it('returns 401 when no session', async () => {
     const { getSession } = await import('../../../src/lib/auth');
-    (getSession as any).mockResolvedValueOnce(null);
+    vi.mocked(getSession).mockResolvedValueOnce(null);
     const res = await GET({
       url: new URL('http://test/?action_filter=&limit=10'),
       request: new Request('http://test', { headers: { Cookie: 'session=ok' } })
-    } as any);
+    } as unknown as Parameters<typeof GET>[0]);
     expect(res.status).toBe(401);
   });
 
   it('returns 403 when not admin', async () => {
     const { isAdmin } = await import('../../../src/lib/auth');
-    (isAdmin as any).mockReturnValueOnce(false);
+    vi.mocked(isAdmin).mockReturnValueOnce(false);
     const res = await GET({
       url: new URL('http://test/?action_filter=&limit=10'),
       request: new Request('http://test', { headers: { Cookie: 'session=ok' } })
-    } as any);
+    } as unknown as Parameters<typeof GET>[0]);
     expect(res.status).toBe(403);
   });
 });

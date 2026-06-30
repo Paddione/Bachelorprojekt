@@ -33,7 +33,7 @@ export const GET: APIRoute = async ({ request, locals }) => {
           const readyCond = node.status?.conditions?.find((c) => c.type === 'Ready');
           readyStatus = readyCond?.status || 'Unknown';
           liveStatus = readyStatus === 'True' ? 'ready' : 'failing';
-        } catch (e) {
+        } catch {
           liveStatus = 'missing';
         }
       }

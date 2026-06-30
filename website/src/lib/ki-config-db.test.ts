@@ -4,8 +4,8 @@ const query = vi.fn();
 vi.mock('./website-db', () => ({ pool: { query: (...a: unknown[]) => query(...a) } }));
 
 import {
-  listProviders, listHealth, createProvider, updateProvider,
-  deleteProvider, countEnabledForSource, EMBED_PRIMARY_KEY, EMBED_FALLBACK_KEY,
+  listProviders, createProvider, updateProvider,
+  countEnabledForSource, EMBED_PRIMARY_KEY, EMBED_FALLBACK_KEY,
 } from './ki-config-db';
 
 beforeEach(() => query.mockReset());

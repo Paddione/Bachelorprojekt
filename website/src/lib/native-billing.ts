@@ -167,7 +167,7 @@ export interface FinalizeOpts {
   actor?: BillingActor;
   pdfBlob?: Buffer;
   pdfMime?: string;
-  invoiceInput?: any;
+  invoiceInput?: InvoiceInput;
 }
 
 export async function finalizeInvoice(id: string, opts: FinalizeOpts = {}): Promise<Invoice | null> {
@@ -198,7 +198,7 @@ export async function finalizeInvoice(id: string, opts: FinalizeOpts = {}): Prom
       const xrechnungXml = opts.invoiceInput.buyer.leitwegId ? generateXRechnung(opts.invoiceInput) : null;
 
       let pdfA3: Buffer | undefined = opts.pdfBlob;
-      let validation: any = null;
+      let validation: Awaited<ReturnType<ReturnType<typeof createSidecarClient>['validate']>> | null = null;
 
       if (opts.pdfBlob && process.env.EINVOICE_SIDECAR_ENABLED === 'true') {
         try {
@@ -405,6 +405,7 @@ function mapCustomer(row: Record<string, unknown>): Customer {
 }
 
 import type { EInvoiceInput } from './einvoice-types';
+import type { InvoiceInput } from './einvoice/types';
 
 /**
  * Loads a finalized invoice and assembles the EInvoiceInput payload used by

@@ -5,18 +5,17 @@ import { getSession, getLoginUrl, isAdmin } from '../../../lib/auth';
 import { listKiProviders } from '../../../lib/coaching-ki-config-db';
 import { listStepTemplates } from '../../../lib/coaching-templates-db';
 import { pool } from '../../../lib/website-db';
-import CoachingSettings from '../../../components/admin/coaching/CoachingSettings.svelte';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
 if (!isAdmin(session)) return Astro.redirect('/admin');
 
 const brand = process.env.BRAND || 'mentolder';
-let initialProviders = [];
-let initialTemplates = [];
+let _initialProviders = [];
+let _initialTemplates = [];
 try {
-  initialProviders = await listKiProviders(pool, brand);
-  initialTemplates = await listStepTemplates(pool, brand);
+  _initialProviders = await listKiProviders(pool, brand);
+  _initialTemplates = await listStepTemplates(pool, brand);
 } catch {}
 ---
 

@@ -24,7 +24,6 @@ import {
   readCurrent,
   save,
   restore,
-  HomepageConflictError,
   HomepageValidationError,
   __setTablesReadyForTests,
 } from './homepage-blocks-store';

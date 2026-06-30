@@ -10,7 +10,16 @@ export interface CiCheck {
 }
 export type CiRollup = 'success' | 'pending' | 'failure' | null;
 
-export function normalizeChecks(runs: any[]): CiCheck[] {
+// Shape of a single entry in GitHub's `check-runs` API response.
+interface GhCheckRun {
+  name: string;
+  status: string;
+  conclusion: string | null;
+  details_url?: string | null;
+  html_url?: string | null;
+}
+
+export function normalizeChecks(runs: GhCheckRun[]): CiCheck[] {
   return (runs ?? []).map(r => ({
     name: r.name, status: r.status, conclusion: r.conclusion ?? null,
     url: r.details_url ?? r.html_url ?? null,

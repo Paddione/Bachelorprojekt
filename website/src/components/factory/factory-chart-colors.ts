@@ -1,13 +1,8 @@
-const BG = '#0a0a0a';
 export const SURFACE = '#141414';
-const SURFACE_ELEVATED = '#1a1a1a';
 export const BORDER = '#2a2a2a';
-const TEXT_PRIMARY = '#e5e5e5';
-const TEXT_SECONDARY = '#a3a3a3';
 export const TEXT_MUTED = '#737373';
 export const ACCENT = '#f59e0b';
 export const SUCCESS = '#10b981';
-const ERROR = '#ef4444';
 
 const HEATMAP_MIN = '#1a2634';
 const HEATMAP_MAX = '#f59e0b';

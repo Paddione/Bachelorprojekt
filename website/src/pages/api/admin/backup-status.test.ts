@@ -146,7 +146,7 @@ describe('GET /api/admin/backup-status', () => {
   it('returns 401 without session', async () => {
     vi.mocked(getSession).mockResolvedValue(null);
     const req = new Request('http://x/api/admin/backup-status');
-    const res = await GET({ request: req } as any);
+    const res = await GET({ request: req } as Parameters<typeof GET>[0]);
     expect(res.status).toBe(401);
   });
 
@@ -154,7 +154,7 @@ describe('GET /api/admin/backup-status', () => {
     vi.mocked(getSession).mockResolvedValue({ sub: 'u1' } as never);
     vi.mocked(isAdmin).mockReturnValue(false);
     const req = new Request('http://x/api/admin/backup-status');
-    const res = await GET({ request: req } as any);
+    const res = await GET({ request: req } as Parameters<typeof GET>[0]);
     expect(res.status).toBe(401);
   });
 });

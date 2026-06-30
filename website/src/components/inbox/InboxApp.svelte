@@ -282,11 +282,6 @@
     selectedId = visible[next].id;
   }
 
-  /** Map the public UI status label ("done") to the DB status ("actioned"). */
-  function uiToDb(s: string): InboxStatus {
-    if (s === 'done') return 'actioned';
-    return s as InboxStatus;
-  }
 
   function setStatus(s: InboxStatus): void {
     // Always mirror the active status into the URL so that the test assertion

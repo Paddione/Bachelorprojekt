@@ -7,7 +7,6 @@
   } from '../../lib/agentGuideSearch';
   import GuideFindBar from './agent-guide/GuideFindBar.svelte';
   import GuideGroup from './agent-guide/GuideGroup.svelte';
-  import GuideCard from './agent-guide/GuideCard.svelte';
   import GuideMap from './agent-guide/GuideMap.svelte';
 
   let { jumpTo: jumpToProp = null }: { jumpTo?: string | null } = $props();

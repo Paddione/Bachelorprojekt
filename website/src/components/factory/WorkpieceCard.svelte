@@ -36,7 +36,6 @@
   let displayPrio  = $derived((item?.priority ?? ticket?.priority ?? 'low').toLowerCase());
   let isBlocked    = $derived(item?.phaseState === 'blocked');
   let isDevflow    = $derived(item?.driver === 'devflow');
-  let isAlert      = $derived(isBlocked);
   let edgeStyle    = $derived(PRIO_EDGE[displayPrio] ?? PRIO_EDGE.low);
   let prioLabel    = $derived(PRIO_LABEL[displayPrio] ?? displayPrio);
 

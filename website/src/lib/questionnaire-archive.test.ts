@@ -278,7 +278,7 @@ describe.skipIf(!dbAvailable)('getDisplayScores', () => {
     await upsertQAnswer({ assignmentId: a.id, questionId: q.id, optionKey: '4' });
     await updateQAssignment(a.id, { status: 'submitted' });
 
-    const live = await getDisplayScores(await getQAssignment(a.id) as any);
+    const live = await getDisplayScores((await getQAssignment(a.id))!);
     expect(live[0].final_score).toBe(4);
     expect(live[0].name).toBe('D');
 
@@ -287,7 +287,7 @@ describe.skipIf(!dbAvailable)('getDisplayScores', () => {
       id: dim.id, templateId: tpl.id, name: 'D-renamed', position: 0,
       thresholdMid: 1, thresholdHigh: 2,
     });
-    const frozen = await getDisplayScores(await getQAssignment(a.id) as any);
+    const frozen = await getDisplayScores((await getQAssignment(a.id))!);
     expect(frozen[0].final_score).toBe(4);
     expect(frozen[0].name).toBe('D');
   });

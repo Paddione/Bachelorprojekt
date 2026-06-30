@@ -23,8 +23,8 @@
       const res = await fetch(`/api/admin/content/versions?key=${encodeURIComponent(contentKey)}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       versions = await res.json();
-    } catch (e: any) {
-      errorMsg = `Verlauf konnte nicht geladen werden: ${e?.message ?? 'Unbekannter Fehler'}`;
+    } catch (e) {
+      errorMsg = `Verlauf konnte nicht geladen werden: ${e instanceof Error ? e.message : 'Unbekannter Fehler'}`;
     } finally {
       loading = false;
     }
@@ -40,8 +40,8 @@
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       window.location.reload();
-    } catch (e: any) {
-      alert(`Wiederherstellen fehlgeschlagen: ${e?.message ?? 'Unbekannter Fehler'}`);
+    } catch (e) {
+      alert(`Wiederherstellen fehlgeschlagen: ${e instanceof Error ? e.message : 'Unbekannter Fehler'}`);
     } finally {
       restoringId = null;
     }

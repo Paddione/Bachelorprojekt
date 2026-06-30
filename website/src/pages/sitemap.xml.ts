@@ -2,7 +2,6 @@ import type { APIRoute } from 'astro';
 import { getEffectiveServices } from '../lib/content';
 import { listCustomSections } from '../lib/website-db';
 
-const BRAND = process.env.BRAND || 'mentolder';
 const PROD_DOMAIN = process.env.PROD_DOMAIN || 'localhost';
 const DOMAIN = `web.${PROD_DOMAIN}`;
 

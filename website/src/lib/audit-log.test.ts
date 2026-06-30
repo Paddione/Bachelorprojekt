@@ -67,7 +67,7 @@ describe('recordAudit', () => {
   });
 
   it('ist fail-soft: Insert-Fehler bricht nicht den Aufrufer', async () => {
-    const warnSpy = vi.spyOn(loggerModule.logger, 'warn').mockReturnValue(undefined as any);
+    const warnSpy = vi.spyOn(loggerModule.logger, 'warn').mockReturnValue(undefined);
     await pool.query('DROP TABLE audit.audit_log CASCADE');
     await expect(
       recordAudit(pool, { action: 'fail.action' }),

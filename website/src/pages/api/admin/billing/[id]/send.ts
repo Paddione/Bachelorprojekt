@@ -73,13 +73,6 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
     unit: l.unit as string | undefined,
   }));
 
-  // Generate PDF + XML before finalizing so we can roll back on failure
-  const zugferdSeller = {
-    name: seller.name, address: seller.address,
-    postalCode: seller.postalCode, city: seller.city,
-    country: seller.country, vatId: seller.vatId,
-  };
-
   // Use a temporary invoice object for generation (same data as draft row)
   const draftRow = draftCheck.rows[0];
   const tempInvoice = {
@@ -213,7 +206,9 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
     vars
   );
 
-  const attachments: any[] = [{ filename: `${finalized.number}.pdf`, content: pdf }];
+  const attachments: { filename: string; content: Buffer; contentType?: string }[] = [
+    { filename: `${finalized.number}.pdf`, content: pdf },
+  ];
   if (finalized.leitwegId) {
     const r = await pool.query<{ content: Buffer | null }>(`SELECT content FROM billing_invoice_documents WHERE invoice_id=$1 AND format='xrechnung'`, [id]);
     if (r.rows[0]?.content) {

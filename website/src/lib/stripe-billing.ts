@@ -121,10 +121,6 @@ function mapAdminRow(row: Record<string, unknown>): AdminBillingInvoice {
 
 // ---- Functions ----
 
-function stripeInvoiceDashboardUrl(_invoiceId: string): string {
-  return '#';
-}
-
 export async function getOrCreateCustomer(params: {
   brand: string; name: string; email: string; company?: string;
 }): Promise<BillingCustomer> {
@@ -162,16 +158,6 @@ export async function getDraftInvoices(): Promise<AdminBillingInvoice[]> {
     [brand]
   );
   return r.rows.map(mapAdminRow);
-}
-
-async function getDraftInvoiceCount(): Promise<number> {
-  await initBillingTables();
-  const brand = process.env.BRAND || 'mentolder';
-  const r = await pool.query(
-    `SELECT COUNT(*)::int AS count FROM billing_invoices WHERE brand = $1 AND status = 'draft'`,
-    [brand]
-  );
-  return r.rows[0]?.count ?? 0;
 }
 
 export async function getCustomerInvoices(customerEmail: string): Promise<BillingInvoice[]> {
@@ -298,19 +284,6 @@ export async function createBillingQuote(_params: unknown): Promise<unknown> {
 export async function createMonthlyDraftInvoices(_params: unknown): Promise<unknown[]> {
   logger.warn('[stripe-billing] createMonthlyDraftInvoices: native billing only');
   return [];
-}
-
-async function sendDraftInvoice(_invoiceId: string): Promise<void> {
-  logger.warn('[stripe-billing] sendDraftInvoice: use /api/admin/billing/[id]/send instead');
-}
-
-async function discardDraftInvoice(invoiceId: string): Promise<void> {
-  await initBillingTables();
-  const brand = process.env.BRAND || 'mentolder';
-  await pool.query(
-    `DELETE FROM billing_invoices WHERE id = $1 AND brand = $2 AND status = 'draft'`,
-    [invoiceId, brand]
-  );
 }
 
 export async function updateDraftInvoiceItem(_itemId: string, _params: unknown): Promise<void> {

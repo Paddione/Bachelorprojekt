@@ -44,8 +44,16 @@ export async function getTicketGraph(): Promise<TicketGraph> {
     WHERE depends_on IS NOT NULL AND array_length(depends_on, 1) > 0
   `);
 
-  const nodeSet = new Set(rows.map((r: any) => r.external_id));
-  const nodes: GraphNode[] = rows.map((r: any) => ({
+  interface DepGraphRow {
+    external_id: string;
+    title: string;
+    status: string;
+    priority: string;
+    depth: number;
+  }
+
+  const nodeSet = new Set(rows.map((r: DepGraphRow) => r.external_id));
+  const nodes: GraphNode[] = rows.map((r: DepGraphRow) => ({
     id: r.external_id,
     title: r.title,
     status: r.status,

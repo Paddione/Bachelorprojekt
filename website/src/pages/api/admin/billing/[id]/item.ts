@@ -13,10 +13,7 @@ export const POST: APIRoute = async ({ request, params }) => {
 
   const body = await request.json();
    
-  const inv  = await stripe.invoices.retrieve(params.id!);
-  const customerId = typeof inv.customer === 'string'
-    ? inv.customer
-    : (inv.customer as { id: string } | null)?.id ?? '';
+  await stripe.invoices.retrieve(params.id!);
 
   await addDraftInvoiceItem(params.id!, {
     description: String(body.description ?? ''),

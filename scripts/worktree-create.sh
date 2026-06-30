@@ -23,15 +23,41 @@
 #             branch already exists.
 set -euo pipefail
 
-# T001302: Divergence guard — reject worktree creation if local main has diverged from origin/main.
+# T001302/T001332: Divergence guard — auto-sync if local main is behind origin/main,
+# reject if truly diverged.
 # Only fires when origin/main exists (e.g. real upstream repos), so BATS tests with
 # ephemeral test repos (no remote) are not affected.
 if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
   if ! git merge-base --is-ancestor origin/main main 2>/dev/null; then
-    echo "FATAL: local 'main' has no common ancestor with 'origin/main'." >&2
-    echo "       This means local main has diverged (likely from a past rebase)." >&2
-    echo "       Fix with: git reset --hard origin/main" >&2
-    exit 1
+    if git merge-base --is-ancestor main origin/main 2>/dev/null; then
+      echo "worktree-create: local main is behind origin/main — fast-forwarding..." >&2
+      _needs_pop=false
+      if ! git diff --quiet HEAD 2>/dev/null; then
+        git stash push -m "worktree-create-auto-stash" 2>/dev/null || true
+        _needs_pop=true
+      fi
+      CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "HEAD")
+      if [ "$CURRENT_BRANCH" = "main" ]; then
+        git pull --rebase origin main 2>/dev/null || {
+          echo "FATAL: auto-sync failed — could not pull origin/main into main." >&2
+          $_needs_pop && git stash pop 2>/dev/null || true
+          exit 1
+        }
+      else
+        git fetch origin main:main 2>/dev/null || {
+          echo "FATAL: auto-sync failed — could not fast-forward main." >&2
+          $_needs_pop && git stash pop 2>/dev/null || true
+          exit 1
+        }
+      fi
+      $_needs_pop && git stash pop 2>/dev/null || true
+      echo "worktree-create: local main synced to origin/main" >&2
+    else
+      echo "FATAL: local 'main' has diverged from 'origin/main'." >&2
+      echo "       This means local main has diverged (likely from a past rebase)." >&2
+      echo "       Fix with: git reset --hard origin/main" >&2
+      exit 1
+    fi
   fi
 fi
 
@@ -102,12 +128,17 @@ else
     echo "worktree-create: repo is git-crypt LOCKED — secrets left encrypted-at-rest in $WT_PATH" >&2
 fi
 
-# T001331: Post-checkout stale-smudge detection for BRANCH_EXISTS=1 path.
+# T001331/T001332: Post-checkout stale-smudge detection for BRANCH_EXISTS=1 path.
 # If the worktree was originally created in locked mode (smudge=cat) but the
 # main checkout now has a key, the checkout above ran with the stale smudge
 # filter — secrets are encrypted-at-rest in the worktree. Detect and fix.
+# Also checks .claude/settings.json as fallback canary when .secrets dir is
+# empty — that file is git-crypt-managed and surfaces the same stale smudge. [T001332]
 if [ "$BRANCH_EXISTS" -eq 1 ] && [ -f "$KEY_SRC" ]; then
   canary="$(find "$WT_PATH/environments/.secrets" -type f 2>/dev/null | head -1)"
+  if [ -z "$canary" ] && [ -f "$WT_PATH/.claude/settings.json" ]; then
+    canary="$WT_PATH/.claude/settings.json"
+  fi
   if [ -n "$canary" ] && bash "$(dirname "$0")/git-crypt-guard.sh" is-encrypted "$canary" 2>/dev/null; then
     echo "worktree-create: stale smudge filter detected (secrets encrypted despite unlocked repo) — re-initializing" >&2
     mkdir -p "$WT_GITDIR/git-crypt/keys"

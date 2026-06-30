@@ -156,6 +156,8 @@ s4:
     - "k3d/coturn-stack/**"
     - "k3d/sealed-secrets-controller.yaml"
     - "k3d/backup-secrets.yaml"
+    - "scripts/weekly-dep-schema-audit.sh"
+    # Standalone cron script — registered via crontab, not referenced by project files.
 
 s5:
   rules:

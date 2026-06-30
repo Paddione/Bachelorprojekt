@@ -148,7 +148,7 @@ spec:
               session-hub|SECRET_sessionhub|${SCHEME}://session-hub.${SUFFIX}/oauth2/callback
               brainstorm|SECRET_brainstorm|${SCHEME}://brainstorm.${SUFFIX}/oauth2/callback
               vaultwarden|SECRET_vaultwarden|${SCHEME}://vault.${SUFFIX}/identity/connect/oidc-signin
-              nextcloud|SECRET_nextcloud|${SCHEME}://cloud.${SUFFIX}/apps/oidc_login/oidc
+              nextcloud|SECRET_nextcloud|${SCHEME}://files.${SUFFIX}/apps/oidc_login/oidc
               grafana|SECRET_grafana|${SCHEME}://grafana.${SUFFIX}/login/generic_oauth
               website|SECRET_website|${SCHEME}://web.${SUFFIX}/api/auth/callback
               "

@@ -13,7 +13,7 @@ status: active
 
 | File | Ist | Budget |
 |------|-----|--------|
-| `website/src/components/inbox/InboxApp.svelte` | 1017 | 0 |
+| `k3d/talk-transcriber/app.py` | 648 | 0 |
 
 ## Task 1: Edit
 

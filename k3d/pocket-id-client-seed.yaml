@@ -29,7 +29,7 @@ metadata:
   labels:
     app: pocket-id
 spec:
-  backoffLimit: 5
+  backoffLimit: 2
   template:
     metadata:
       labels:
@@ -51,10 +51,10 @@ spec:
               i=0
               until wget -q -O- "http://pocket-id:1411/.well-known/openid-configuration" >/dev/null 2>&1; do
                 i=$((i+1))
-                if [ "$i" -ge 60 ]; then
-                  echo "pocket-id not healthy after 120s"; exit 1
+                if [ "$i" -ge 300 ]; then
+                  echo "pocket-id not healthy after 600s"; exit 1
                 fi
-                echo "waiting for pocket-id health ($i/60)..."; sleep 2
+                echo "waiting for pocket-id health ($i/300)..."; sleep 2
               done
               echo "pocket-id is healthy"
           securityContext:

@@ -60,21 +60,26 @@ for s in schema.get('secrets', []):
   done
 }
 
-# ── T001328: Traefik externalTrafficPolicy=Local (real client IP) ─────────
+# ── T001328/T001341: Traefik client-IP preservation ────────────────────────
 # Manifest-structure assertions only — there is no live cluster in CI, so
-# the actual SNAT/X-Forwarded-For fix can only be verified against the live
-# fleet (see the manual rollout task in
-# openspec/changes/pocket-id-rate-limit/tasks.md). These guard the static
-# config that (a) the live `helm upgrade` rollout is based on and (b) future
+# the actual SNAT fix can only be verified against the live fleet (see the
+# manual rollout tasks in openspec/changes/pocket-id-rate-limit/tasks.md and
+# openspec/changes/traefik-hostport-clientip/tasks.md). These guard the
+# static config that (a) the live rollout is based on and (b) future
 # full-cluster-rebuilds (prod/cloud-init.yaml) will install by default.
 
-@test "prod/traefik-values.yaml sets externalTrafficPolicy: Local" {
+@test "prod/traefik-values.yaml does not set externalTrafficPolicy (invalid once type is ClusterIP)" {
   if ! command -v yq >/dev/null 2>&1; then
     skip "yq is not installed"
   fi
+  # T001328 originally set this to "Local"; T001341 found live that the
+  # Kubernetes API hard-rejects externalTrafficPolicy on a ClusterIP Service
+  # ("may only be set for externally-accessible services") — it is not a
+  # silent no-op as design.md assumed. Regression guard: this key must stay
+  # absent (null) as long as service.spec.type is ClusterIP below.
   run yq eval '.service.spec.externalTrafficPolicy' "${REPO_ROOT}/prod/traefik-values.yaml"
   [ "$status" -eq 0 ]
-  [ "$output" = "Local" ]
+  [ "$output" = "null" ]
 }
 
 @test "prod/traefik-values.yaml runs Traefik as a DaemonSet on exactly the 3 public Hetzner nodes" {
@@ -85,8 +90,8 @@ for s in schema.get('secrets', []):
   [ "$status" -eq 0 ]
   [ "$output" = "DaemonSet" ]
 
-  # Regression guard: externalTrafficPolicy=Local silently drops traffic on
-  # any node lacking a local Traefik pod. The node affinity MUST cover
+  # Regression guard: hostPort-based ingress only works on nodes that can
+  # actually receive inbound DNS traffic. The node affinity MUST cover
   # exactly the nodes DNS for *.${PROD_DOMAIN} resolves to.
   run yq eval '.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values | sort | join(",")' "${REPO_ROOT}/prod/traefik-values.yaml"
   [ "$status" -eq 0 ]

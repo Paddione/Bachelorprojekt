@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 514,
+      "file_count": 515,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -371,6 +371,7 @@
         "tests/spec/openspec-workflow.bats",
         "tests/spec/pocket-id-client-seed-timeout.bats",
         "tests/spec/pocket-id-migration.bats",
+        "tests/spec/pocket-id-proxy-ip.bats",
         "tests/spec/react-homepage-blocks.bats",
         "tests/spec/s1-violations-batch2.bats",
         "tests/spec/s1-violations.bats",

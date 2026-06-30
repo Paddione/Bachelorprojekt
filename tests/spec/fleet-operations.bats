@@ -109,3 +109,50 @@ for s in schema.get('secrets', []):
 @test "prod-korczewski/traefik-values.yaml (orphaned, superseded by prod/traefik-values.yaml) is gone" {
   [ ! -f "${REPO_ROOT}/prod-korczewski/traefik-values.yaml" ]
 }
+
+# ── T001341: Traefik hostPort (client IP survives the klipper-lb hop) ─────
+# T001328's externalTrafficPolicy: Local did not fix the bug live — root
+# cause is k3s' ServiceLB (klipper-lb) re-originating the connection in its
+# own pod netns when forwarding to the NodePort backend, which loses the
+# real client IP before externalTrafficPolicy ever applies. Fix: Traefik's
+# own pods bind ports 80/443 directly via hostPort (already committed below,
+# just never live), with klipper-lb removed via service.spec.type: ClusterIP
+# (the missing piece — without it, klipper-lb's svclb-traefik DaemonSet
+# competes for the same hostPorts and the new Traefik pods stay Pending).
+# Manifest-structure assertions only — see the manual rollout task in
+# openspec/changes/traefik-hostport-clientip/tasks.md for live verification.
+
+@test "prod/traefik-values.yaml sets service.spec.type: ClusterIP (removes klipper-lb)" {
+  if ! command -v yq >/dev/null 2>&1; then
+    skip "yq is not installed"
+  fi
+  run yq eval '.service.spec.type' "${REPO_ROOT}/prod/traefik-values.yaml"
+  [ "$status" -eq 0 ]
+  [ "$output" = "ClusterIP" ]
+}
+
+@test "prod/traefik-values.yaml exposes Traefik directly via hostPort 80/443" {
+  if ! command -v yq >/dev/null 2>&1; then
+    skip "yq is not installed"
+  fi
+  run yq eval '.ports.web.hostPort' "${REPO_ROOT}/prod/traefik-values.yaml"
+  [ "$status" -eq 0 ]
+  [ "$output" = "80" ]
+
+  run yq eval '.ports.websecure.hostPort' "${REPO_ROOT}/prod/traefik-values.yaml"
+  [ "$status" -eq 0 ]
+  [ "$output" = "443" ]
+}
+
+@test "prod/traefik-values.yaml uses maxUnavailable=1/maxSurge=0 (hostPort can't share a port)" {
+  if ! command -v yq >/dev/null 2>&1; then
+    skip "yq is not installed"
+  fi
+  run yq eval '.updateStrategy.rollingUpdate.maxUnavailable' "${REPO_ROOT}/prod/traefik-values.yaml"
+  [ "$status" -eq 0 ]
+  [ "$output" = "1" ]
+
+  run yq eval '.updateStrategy.rollingUpdate.maxSurge' "${REPO_ROOT}/prod/traefik-values.yaml"
+  [ "$status" -eq 0 ]
+  [ "$output" = "0" ]
+}

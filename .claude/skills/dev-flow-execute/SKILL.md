@@ -571,6 +571,16 @@ REMOTE_SHA="$(git ls-remote origin "refs/heads/$ARCHIVE_BRANCH" | awk '{print $1
 echo "push_verified:$LOCAL_SHA"
 
 gh pr create --title "chore(plans): archive $SLUG → postgres + openspec/archive [$TICKET_ID]" --base main
+
+# PR Creation Verification (T001331): Confirm the PR was actually created.
+# The subagent must return pr_created:<pr-number> alongside push_verified:<sha>.
+# The orchestrator must not proceed without both fields.
+PR_NUM="$(gh pr view --json number -q '.number' 2>/dev/null || echo '')"
+if [ -z "$PR_NUM" ]; then
+  echo "FATAL: gh pr create did not produce a visible PR — orphan branch left behind." >&2
+  exit 1
+fi
+echo "pr_created:$PR_NUM"
 gh pr merge --auto --squash --delete-branch
 ```
 

@@ -22,6 +22,7 @@ _Ticket: T001331_
 | `scripts/ticket-status-validate.sh` | created |
 | `.claude/skills/dev-flow-execute/SKILL.md` | modified |
 | `tests/spec/mishap-bundle-2026-06-30.bats` | created |
+| `openspec/changes/mishap-bundle-2026-06-30/specs/mishap-bundle.md` | created |
 
 ## Purpose (DE)
 

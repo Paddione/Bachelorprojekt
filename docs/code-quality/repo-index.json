@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 512,
+      "file_count": 513,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -366,6 +366,7 @@
         "tests/spec/lockfile-drift.bats",
         "tests/spec/mcp-task-runner.bats",
         "tests/spec/mcp-tooling.bats",
+        "tests/spec/mishap-bundle-2026-06-30.bats",
         "tests/spec/openspec-embedding.bats",
         "tests/spec/openspec-workflow.bats",
         "tests/spec/pocket-id-migration.bats",

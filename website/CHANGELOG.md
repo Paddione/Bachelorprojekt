@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.145.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.145.1...website-v1.145.2) (2026-06-30)
+
+
+### Bug Fixes
+
+* **infra:** correct pocket-id-rate-limit root cause to Traefik externalTrafficPolicy [T001328] ([#2330](https://github.com/Paddione/Bachelorprojekt/issues/2330)) ([7ab44a7](https://github.com/Paddione/Bachelorprojekt/commit/7ab44a733a7331cef13521d42988392c15b11c4f))
+
 ## [1.145.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.145.0...website-v1.145.1) (2026-06-30)
 
 

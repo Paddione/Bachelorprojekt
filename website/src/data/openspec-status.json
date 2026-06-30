@@ -529,6 +529,12 @@
       "status": "archived"
     }
   ],
+  "T001327": [
+    {
+      "slug": "pocket-id-client-seed-timeout",
+      "status": "plan_staged"
+    }
+  ],
   "T001328": [
     {
       "slug": "pocket-id-proxy-ip-rate-limit",
@@ -541,8 +547,8 @@
   ],
   "T001341": [
     {
-      "slug": "traefik-hostport-clientip",
-      "status": "plan_staged"
+      "slug": "2026-07-01-traefik-hostport-clientip",
+      "status": "archived"
     }
   ],
   "TBD": [

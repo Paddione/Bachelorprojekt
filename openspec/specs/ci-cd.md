@@ -575,6 +575,34 @@ The system SHALL reject PRs that increase total source-file LOC by more than
 
 ---
 
+### Requirement: website ESLint fail-closed gate stays enforced
+
+The `website/` ESLint flat config (`website/eslint.config.js`) SHALL set
+`@typescript-eslint/no-explicit-any` and `@typescript-eslint/no-unused-vars` to `error`
+severity, and `website/package.json`'s `lint`/`lint:fix` scripts SHALL invoke ESLint with
+`--max-warnings 0`, so that any future warning regression fails the PR-gate ESLint CI step
+("Run ESLint (--max-warnings 0 fail-closed gate)" in the `vitest-website` job) instead of
+being silently downgraded to a non-blocking warning.
+
+#### Scenario: lint script enforces zero warnings
+
+- **GIVEN** `website/package.json` is checked out
+- **WHEN** the `scripts.lint` entry is read
+- **THEN** it invokes `eslint . --max-warnings 0`
+
+#### Scenario: no-explicit-any and no-unused-vars are errors, not warnings
+
+- **GIVEN** `website/eslint.config.js` is checked out
+- **WHEN** the `rules` block is read
+- **THEN** `@typescript-eslint/no-explicit-any` and `@typescript-eslint/no-unused-vars` are both
+  set to `'error'` (the latter with `argsIgnorePattern: '^_'` / `varsIgnorePattern: '^_'`)
+
+#### Scenario: ESLint runs clean
+
+- **GIVEN** `website/` dependencies are installed (`pnpm install`)
+- **WHEN** `pnpm --prefix website lint` runs
+- **THEN** it exits 0 with zero errors and zero warnings
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -986,7 +1014,6 @@ using three independent CI jobs: one shared build job and two parallel, independ
 - **WHEN** der Workflow-Status ermittelt wird
 - **THEN** läuft der `deploy-korczewski`-Job weiter und berichtet seinen eigenen Status — er wird NICHT übersprungen
 
-
 ### Requirement: build-website-korczewski.yml Deploy-Coverage
 
 **Reason:** `build-website-korczewski.yml` wurde durch T001229 gelöscht und in `build-website.yml` konsolidiert. Die korczewski Deploy-Scenarios in dieser Requirement bezogen sich auf die standalone Workflow-Datei, die nicht mehr existiert. Die Abdeckung ist jetzt in "Website-Auto-Deploy bei main-Push" und "korczewski-deploy-parity" enthalten.
@@ -1020,9 +1047,10 @@ percent above the committed baseline in `docs/code-quality/loc-budget.json`, or 
 - **WHEN** the `freshness-regen.yml` GitHub Actions workflow runs `task freshness:regenerate`
 - **THEN** `task loc:update-baseline` runs, updating `docs/code-quality/loc-budget.json` with the post-merge LOC count
 
-
 ### Requirement: PR-Gate — Offline Tests (bestehend)
 
 _Modification_: `task test:code-quality` now includes `task loc:check` as an additional
 quality gate step. The offline-tests job continues to pass when LOC is within the
 warn threshold, and fails when LOC exceeds the fail threshold or absolute cap.
+
+<!-- merged from change delta ci-cd.md on 2026-06-30 -->

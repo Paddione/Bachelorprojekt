@@ -2,7 +2,7 @@
 title: "website-strict-lint-gate-regression: restore G-CQ03 --max-warnings 0 gate"
 ticket_id: T001337
 domains: [website, cq, lint, ci]
-status: plan_staged
+status: completed
 file_locks: []
 shared_changes: false
 ---

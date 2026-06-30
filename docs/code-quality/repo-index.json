@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 514,
+      "file_count": 515,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -366,6 +366,7 @@
         "tests/spec/lockfile-drift.bats",
         "tests/spec/mcp-task-runner.bats",
         "tests/spec/mcp-tooling.bats",
+        "tests/spec/mishap-bundle-2026-06-30.bats",
         "tests/spec/openspec-embedding.bats",
         "tests/spec/openspec-workflow.bats",
         "tests/spec/pocket-id-client-seed-timeout.bats",
@@ -2678,7 +2679,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 457,
+      "file_count": 458,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3104,6 +3105,7 @@
         "scripts/ticket-mcp/go/internal/tools/triage.go",
         "scripts/ticket-mcp/go/internal/tools/workflow.go",
         "scripts/ticket-mcp/go/internal/tools/workflow_test.go",
+        "scripts/ticket-status-validate.sh",
         "scripts/ticket.sh",
         "scripts/tickets-sunset-audit.mjs",
         "scripts/tickets-sunset.mjs",

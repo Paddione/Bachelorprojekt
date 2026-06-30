@@ -102,6 +102,23 @@ else
     echo "worktree-create: repo is git-crypt LOCKED — secrets left encrypted-at-rest in $WT_PATH" >&2
 fi
 
+# T001331: Post-checkout stale-smudge detection for BRANCH_EXISTS=1 path.
+# If the worktree was originally created in locked mode (smudge=cat) but the
+# main checkout now has a key, the checkout above ran with the stale smudge
+# filter — secrets are encrypted-at-rest in the worktree. Detect and fix.
+if [ "$BRANCH_EXISTS" -eq 1 ] && [ -f "$KEY_SRC" ]; then
+  canary="$(find "$WT_PATH/environments/.secrets" -type f 2>/dev/null | head -1)"
+  if [ -n "$canary" ] && bash "$(dirname "$0")/git-crypt-guard.sh" is-encrypted "$canary" 2>/dev/null; then
+    echo "worktree-create: stale smudge filter detected (secrets encrypted despite unlocked repo) — re-initializing" >&2
+    mkdir -p "$WT_GITDIR/git-crypt/keys"
+    cp "$KEY_SRC" "$WT_GITDIR/git-crypt/keys/default"
+    git -C "$WT_PATH" config extensions.worktreeConfig true
+    git -C "$WT_PATH" config --worktree filter.git-crypt.clean    cat
+    git -C "$WT_PATH" config --worktree filter.git-crypt.required false
+    git -C "$WT_PATH" checkout --force
+  fi
+fi
+
 # 2) Init submodules (git worktree add does NOT; the BATS runner lives in one).
 git -C "$WT_PATH" submodule update --init --recursive --quiet
 

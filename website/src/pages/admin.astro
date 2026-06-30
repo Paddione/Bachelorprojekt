@@ -59,6 +59,7 @@ const adminLinks = [
   ...(ncBase ? [
     { href: `${ncBase}/apps/files/`,    label: 'Dateien',  icon: icons.folder,   color: '#38bdf8' },
     { href: `${ncBase}/apps/calendar/`, label: 'Kalender', icon: icons.calendar, color: 'oklch(0.80 0.09 75)' },
+    { href: `${ncBase}/apps/spreed/`,   label: 'Talk',     icon: icons.video,    color: '#818cf8' },
   ] : []),
   { href: '/admin/rechnungen',               label: 'Abrechnung', icon: icons.receipt,  color: '#34d399' },
   ...(vaultUrl ? [{ href: vaultUrl,          label: 'Passwörter', icon: icons.lock,     color: '#34d399' }] : []),

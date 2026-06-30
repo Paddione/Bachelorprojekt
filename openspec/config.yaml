@@ -13,7 +13,7 @@ context: |
   Secrets: SealedSecrets (prod) / k3d/secrets.yaml (dev)
   OpenSpec-Komponenten: |
     active-sessions-hub, admin-cockpit, astro-type-check, auth-sso, backup-pipeline,
-    billing-pipeline, brett, centralized-logging, chat-inbox, ci-cd,
+    billing-pipeline, brett, centralized-logging, coaching-sessions-polish-guide, chat-inbox, ci-cd,
     collabora-integration, database, datev-export, decouple-tickets-db, dev-flow-plan,
     fleet-operations, grilling-flow, livekit-integration, llm-local-dev, llm-pipeline,
     loc-budget, mcp-gateway, mcp-skill-integration, mcp-task-runner, mediaviewer,

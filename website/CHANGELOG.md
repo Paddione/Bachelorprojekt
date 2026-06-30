@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.145.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.145.2...website-v1.145.3) (2026-06-30)
+
+
+### Bug Fixes
+
+* **website:** restore G-CQ03 --max-warnings 0 lint gate [T001337] ([#2332](https://github.com/Paddione/Bachelorprojekt/issues/2332)) ([d87f552](https://github.com/Paddione/Bachelorprojekt/commit/d87f552bcdd5075a61a94e7690a2c139cb04c490))
+
 ## [1.145.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.145.1...website-v1.145.2) (2026-06-30)
 
 

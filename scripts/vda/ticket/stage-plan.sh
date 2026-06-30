@@ -16,7 +16,7 @@ main() {
   if [[ -z "$plan"   ]]; then echo "ERROR: --plan is required."   >&2; exit 2; fi
   local pod; pod=$(_pgpod)
   _exec_sql "$pod" -v ext_id="$id" <<'EOF' >/dev/null
-UPDATE tickets.tickets SET type='feature', status='plan_staged' WHERE external_id = :'ext_id';
+UPDATE tickets.tickets SET status='plan_staged' WHERE external_id = :'ext_id';
 EOF
   _exec_sql "$pod" -v ext_id="$id" -v ref="FACTORY-PLAN-REF branch=${branch} plan=${plan}" <<'EOF' >/dev/null
 INSERT INTO tickets.ticket_comments (ticket_id, author_label, body, visibility)
@@ -28,7 +28,7 @@ SELECT t.id, 'dev-flow-plan', :'ref', 'internal'
       WHERE c.ticket_id = t.id AND c.body LIKE 'FACTORY-PLAN-REF %'
    );
 EOF
-  echo "Ticket $id staged in Kommissionierung (type=feature, status=plan_staged)"
+  echo "Ticket $id staged in Kommissionierung (status=plan_staged)"
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

@@ -11,7 +11,7 @@ function isUrl(v: string): boolean {
   }
 }
 
-export function validateAgainst(fields: FieldSchema[], value: Record<string, any>): FieldError[] {
+export function validateAgainst(fields: FieldSchema[], value: Record<string, unknown>): FieldError[] {
   const errs: FieldError[] = [];
 
   for (const f of fields) {

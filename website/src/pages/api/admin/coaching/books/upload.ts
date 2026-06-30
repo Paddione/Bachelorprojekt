@@ -53,7 +53,7 @@ export const POST: APIRoute = async ({ request , locals }) => {
       text = result.text;
       pageCount = result.total;
     } else {
-      const epub = await (EPub as any).createAsync(tmpPath);
+      const epub = await EPub.createAsync(tmpPath);
       const chapters: string[] = [];
       for (const item of epub.flow) {
         const html = await new Promise<string>((res, rej) =>

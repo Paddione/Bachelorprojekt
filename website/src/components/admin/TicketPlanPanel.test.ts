@@ -37,7 +37,7 @@ describe('TicketPlanPanel', () => {
 
   it('clicking download button triggers blob download with correct filename', async () => {
     const createObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock');
-    const revokeObjectURL = vi.spyOn(URL, 'revokeObjectURL').mockReturnValue();
+    const _revokeObjectURL = vi.spyOn(URL, 'revokeObjectURL').mockReturnValue();
 
     render(TicketPlanPanel, {
       props: { plan: mockPlan, renderedHtml: '', planContent: '# Test' },

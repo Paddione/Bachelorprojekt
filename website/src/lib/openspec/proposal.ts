@@ -34,8 +34,8 @@ export async function readProposal(slug: string): Promise<string | null> {
   const filePath = proposalPath(slug);
   try {
     return await fs.readFile(filePath, 'utf-8');
-  } catch (error: any) {
-    if (error.code === 'ENOENT') {
+  } catch (error) {
+    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
       return null;
     }
     throw error;

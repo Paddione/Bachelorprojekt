@@ -1,9 +1,13 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import type { HardwareAsset } from '../../../lib/platform-db';
 
   export let cluster: string;
 
-  let assets: any[] = [];
+  // Enriched server-side with live k8s node status — see GET /api/admin/platform/hardware.
+  type EnrichedHardwareAsset = HardwareAsset & { live_status: string; ready_status: string };
+
+  let assets: EnrichedHardwareAsset[] = [];
   let loading = true;
   let error: string | null = null;
 
@@ -15,7 +19,7 @@
       const data = await res.json();
       assets = data.assets;
     } catch (e) {
-      error = e.message;
+      error = e instanceof Error ? e.message : 'Failed to fetch hardware';
     } finally {
       loading = false;
     }

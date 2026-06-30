@@ -28,7 +28,7 @@ export function schemaFor(contentKey: string): SectionSchema | undefined {
   return REGISTRY[contentKey];
 }
 
-export function validateSection(contentKey: string, payload: any): FieldError[] {
+export function validateSection(contentKey: string, payload: Record<string, unknown>): FieldError[] {
   const s = schemaFor(contentKey);
   if (!s) return [];
   return validateAgainst(s.fields, payload);

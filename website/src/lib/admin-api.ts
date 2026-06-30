@@ -43,7 +43,7 @@ export function toast(kind: ToastKind, message: string) {
  * @param opts Retry options (retries, retryDelay)
  * @returns Promise resolving to ApiResult<T>
  */
-export async function apiCall<T = any>(
+export async function apiCall<T = unknown>(
   url: string,
   init: RequestInit = {},
   opts: ApiCallOptions = {}
@@ -63,7 +63,7 @@ export async function apiCall<T = any>(
       }
 
       // Parse JSON response
-      let json: any = {};
+      let json: unknown = {};
       const contentType = res.headers.get('content-type');
       if (contentType?.includes('application/json')) {
         json = await res.json().catch(() => ({}));
@@ -71,7 +71,7 @@ export async function apiCall<T = any>(
 
       // Non-2xx status
       if (!res.ok) {
-        const errorMsg = (json as any)?.error || `Fehler ${res.status}`;
+        const errorMsg = (json as { error?: string } | null)?.error || `Fehler ${res.status}`;
         const toastKind = res.status >= 500 ? 'err' : 'warn';
         toast(toastKind, errorMsg);
         return { ok: false, error: errorMsg, status: res.status };

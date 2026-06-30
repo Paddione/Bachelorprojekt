@@ -1,5 +1,4 @@
 // website/src/lib/components-db.ts
-import type { Pool } from 'pg';
 import { pool } from './website-db';
 
 interface ComponentRow {

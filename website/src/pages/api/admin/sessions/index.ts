@@ -60,7 +60,7 @@ export const GET: APIRoute = async ({ request, locals }) => {
   }
 };
 
-async function runHub(args: string[], locals: any): Promise<Response> {
+async function runHub(args: string[], locals: App.Locals): Promise<Response> {
   if (process.env.SESSION_HUB_REGISTRY_WRITABLE !== 'true') {
     return json({ error: 'not_implemented', detail: 'registry is read-only in this environment' }, 501);
   }

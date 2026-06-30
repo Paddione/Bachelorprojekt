@@ -29,7 +29,6 @@
     price,
     priceUnit,
     href,
-    icon,
     iconSpriteId,
     iconSpriteBrand,
   }: Props = $props();

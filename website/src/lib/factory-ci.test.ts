@@ -6,7 +6,7 @@ describe('factory-ci normalization', () => {
     const out = normalizeChecks([
       { name: 'CI', status: 'completed', conclusion: 'success', details_url: 'u1' },
       { name: 'e2e', status: 'in_progress', conclusion: null, details_url: 'u2' },
-    ] as any);
+    ]);
     expect(out).toEqual([
       { name: 'CI', status: 'completed', conclusion: 'success', url: 'u1' },
       { name: 'e2e', status: 'in_progress', conclusion: null, url: 'u2' },

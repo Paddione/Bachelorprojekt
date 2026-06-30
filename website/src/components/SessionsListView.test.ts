@@ -23,7 +23,7 @@ describe('SessionsListView', () => {
 
   it('dispatches mediaviewer:open-session on card click', async () => {
     const handler = vi.fn();
-    window.addEventListener('mediaviewer:open-session', handler as any);
+    window.addEventListener('mediaviewer:open-session', handler as EventListener);
     const { getByRole } = render(SessionsListView);
     await waitFor(() => getByRole('button', { name: /Feature-Intake/i }));
     await fireEvent.click(getByRole('button', { name: /Feature-Intake/i }));
@@ -31,7 +31,7 @@ describe('SessionsListView', () => {
     const ev = handler.mock.calls[0][0] as CustomEvent;
     expect(ev.detail.url).toBe('https://session-feature-intake.dev.example.test');
     expect(ev.detail.slug).toBe('feature-intake');
-    window.removeEventListener('mediaviewer:open-session', handler as any);
+    window.removeEventListener('mediaviewer:open-session', handler as EventListener);
   });
 
   it('shows an empty state when there are no sessions', async () => {

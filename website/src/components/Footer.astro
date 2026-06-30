@@ -19,8 +19,9 @@ const footerTagline = config.legal.tagline  || kontaktOverride?.footerTagline?.t
 const gestaltetsIn  = stammdaten?.city      || kontaktOverride?.footerCity?.trim()    || config.contact.city || 'Lüneburg';
 
 // Copyright: effective footer config (DB) wins; legacy kontaktOverride; static config; hardcoded fallback
+// footerCopyright is persisted alongside KontaktContent but not part of its declared type
 const copyrightText = effectiveFooter?.copyright
-  || (kontaktOverride as any)?.footerCopyright?.trim()
+  || (kontaktOverride as (typeof kontaktOverride & { footerCopyright?: string }))?.footerCopyright?.trim()
   || config.footer.copyright
   || `© ${new Date().getFullYear()} mentolder — Alle Rechte vorbehalten`;
 

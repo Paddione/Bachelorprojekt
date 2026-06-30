@@ -97,7 +97,7 @@
             class="w-full bg-dark-light border border-dark-lighter rounded-lg px-3 py-2 text-sm text-light focus:outline-none focus:border-gold" />
           {#if kind === 'multiple_choice'}
             <div class="flex flex-col gap-1.5">
-              {#each options as opt, i}
+              {#each options as _opt, i}
                 <div class="flex gap-1.5">
                   <input type="text" bind:value={options[i]} maxlength="100" placeholder="Option…"
                     class="flex-1 bg-dark-light border border-dark-lighter rounded-lg px-3 py-1.5 text-sm text-light focus:outline-none focus:border-gold" />

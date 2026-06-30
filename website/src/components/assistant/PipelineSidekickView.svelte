@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { PIPELINE_LANES, STATUS_BUCKETS } from '../../lib/tickets/pipeline-order';
+  import { PIPELINE_LANES } from '../../lib/tickets/pipeline-order';
   import type { FloorPayload, HallItem, StagedItem, LoadingDockItem, ShippedItem } from '../../lib/factory-floor-types';
   import PhaseStepper from '../factory/PhaseStepper.svelte';
 
-  let { onClose }: { onClose: () => void } = $props();
+  let { onClose: _onClose }: { onClose: () => void } = $props();
 
   let floor = $state<FloorPayload | null>(null);
   let qaItems = $state<{ extId: string }[]>([]);
@@ -54,15 +54,15 @@
     return typeof t === 'object' && t !== null && 'phase' in t;
   }
 
-  function ticketLabel(t: { extId: string }): string {
-    if ('title' in t && typeof (t as any).title === 'string' && (t as any).title) {
-      return (t as any).title;
+  function ticketLabel(t: { extId: string; title?: string }): string {
+    if ('title' in t && typeof t.title === 'string' && t.title) {
+      return t.title;
     }
     return t.extId;
   }
 
-  function ticketPrio(t: { extId: string }): string {
-    return 'priority' in t ? (t as any).priority as string : '';
+  function ticketPrio(t: { extId: string; priority?: string }): string {
+    return 'priority' in t ? (t.priority ?? '') : '';
   }
 
   function toggleLane(key: string) {
@@ -137,7 +137,7 @@
   {#if error}
     <p class="err">{error}</p>
   {:else if loading && !floor}
-    {#each lanes as lane}
+    {#each lanes as _lane}
       <div class="pv-skeleton" aria-hidden="true"></div>
     {/each}
   {:else}

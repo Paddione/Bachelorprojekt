@@ -46,8 +46,6 @@
   export let initialTimeline: TimelineRow[] = [];
   export let wantsTimeline: boolean = false;
 
-  // Nav active section
-  let activeSection = 'leistungen';
 
   // Booking slot picker
   let pickedSlot: string | null = null;

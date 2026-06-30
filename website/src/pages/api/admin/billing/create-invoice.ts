@@ -10,7 +10,7 @@ export const POST: APIRoute = async ({ request , locals }) => {
   try {
     const body = await request.json();
     const {
-      name, email, company, addressLine1, city, postalCode, vatNumber, landIso,
+      name, email, company, addressLine1, city, postalCode, vatNumber,
       lines, notes, servicePeriodStart, servicePeriodEnd, leitwegId,
       currency, supplyType, kind, parentInvoiceId,
       dueDays = 14, taxMode = 'regelbesteuerung', taxRate = 19

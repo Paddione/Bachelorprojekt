@@ -33,7 +33,7 @@
       } else {
         toast = 'Speichern fehlgeschlagen';
       }
-    } catch (e) {
+    } catch {
       toast = 'Speichern fehlgeschlagen';
     } finally {
       saving = false;

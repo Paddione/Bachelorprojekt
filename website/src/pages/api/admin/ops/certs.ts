@@ -27,8 +27,8 @@ export const GET: APIRoute = async ({ request }) => {
       const notAfter = cert.validTo;
       const daysLeft = Math.floor((new Date(notAfter).getTime() - Date.now()) / 86400000);
       results[cluster] = { notAfter, daysLeft };
-    } catch (e: any) {
-      results[cluster] = { notAfter: null, daysLeft: null, error: e.message };
+    } catch (e) {
+      results[cluster] = { notAfter: null, daysLeft: null, error: e instanceof Error ? e.message : String(e) };
     }
   }
 

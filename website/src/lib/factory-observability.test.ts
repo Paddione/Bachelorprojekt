@@ -14,14 +14,14 @@ describe('buildPromQL', () => {
 describe('queryRange', () => {
   it('proxies Prometheus /api/v1/query_range and returns matrix data', async () => {
     const fakeResp = { status: 'success', data: { resultType: 'matrix', result: [{ metric: {}, values: [[1, '5']] }] } };
-    global.fetch = vi.fn(async () => ({ ok: true, json: async () => fakeResp })) as any;
+    global.fetch = vi.fn(async () => ({ ok: true, json: async () => fakeResp })) as unknown as typeof fetch;
     const r = await queryRange('up', Date.now() / 1000 - 3600, Date.now() / 1000, 60);
     expect(r.data.result.length).toBe(1);
-    expect((global.fetch as any).mock.calls[0][0]).toContain('/api/v1/query_range');
+    expect(vi.mocked(global.fetch).mock.calls[0][0]).toContain('/api/v1/query_range');
   });
 
   it('throws a typed error when Prometheus is unreachable', async () => {
-    global.fetch = vi.fn(async () => { throw new Error('ECONNREFUSED'); }) as any;
+    global.fetch = vi.fn(async () => { throw new Error('ECONNREFUSED'); }) as unknown as typeof fetch;
     await expect(queryRange('up', 0, 1, 60)).rejects.toThrow();
   });
 });

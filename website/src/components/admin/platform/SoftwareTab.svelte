@@ -2,14 +2,24 @@
   import { onMount } from 'svelte';
   import AssetModal from './AssetModal.svelte';
   import AssetTicketDrawer from './AssetTicketDrawer.svelte';
+  import type { SoftwareAsset } from '../../../lib/platform-db';
 
   export let cluster: string;
 
-  let assets: any[] = [];
+  // Enriched server-side with live k8s status — see GET /api/admin/platform/software.
+  type EnrichedAsset = SoftwareAsset & {
+    live_status: string;
+    replicas: { ready: number; total: number };
+    serviceUrl: string | null;
+  };
+
+  type EditableAsset = Partial<EnrichedAsset> & { clusters: string[] };
+
+  let assets: EnrichedAsset[] = [];
   let loading = true;
   let error: string | null = null;
   let showModal = false;
-  let selectedAsset: any = null;
+  let selectedAsset: EditableAsset | null = null;
   let showTickets = false;
   let ticketSlug = '';
 
@@ -21,13 +31,13 @@
       const data = await res.json();
       assets = data.assets;
     } catch (e) {
-      error = e.message;
+      error = e instanceof Error ? e.message : 'Failed to fetch assets';
     } finally {
       loading = false;
     }
   }
 
-  function openEdit(asset: any) {
+  function openEdit(asset: EnrichedAsset) {
     selectedAsset = { ...asset };
     showModal = true;
   }

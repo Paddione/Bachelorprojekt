@@ -14,8 +14,6 @@
     onToggleExpand?: () => void;
     available?: boolean;
   } = $props();
-
-  const isHome = $derived(!onBack);
 </script>
 
 <div class="sk-header">

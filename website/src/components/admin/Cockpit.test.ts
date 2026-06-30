@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, fireEvent, waitFor } from '@testing-library/svelte';
 import Cockpit from './Cockpit.svelte';
 import { makePortfolio, makeProduct, makeFeature } from '../../lib/tickets/__tests__/fixtures';
+import type { PortfolioPayload } from '../../lib/tickets/cockpit-types';
 
 const portfolioWithFeature = makePortfolio([
   makeProduct({ features: [makeFeature({ health: 'amber' })] }),
@@ -13,7 +14,7 @@ afterEach(() => vi.restoreAllMocks());
 describe('Cockpit shell', () => {
   it('does not crash when portfolioInitial has no products field', () => {
     expect(() =>
-      render(Cockpit, { portfolioInitial: { error: 'db_error' } as any, brand: 'mentolder' })
+      render(Cockpit, { portfolioInitial: { error: 'db_error' } as unknown as PortfolioPayload, brand: 'mentolder' })
     ).not.toThrow();
   });
 

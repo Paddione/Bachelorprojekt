@@ -4,7 +4,7 @@
   const { keycloakUserId }: Props = $props();
 
   type Assignment = { id: string; template_title: string; status: string; assigned_at: string; submitted_at: string | null };
-  type Template = { id: string; title: string };
+  type Template = { id: string; title: string; status: string };
 
   let assignments: Assignment[] = $state([]);
   let templates: Template[] = $state([]);
@@ -23,7 +23,7 @@
     ]);
     assignments = aRes.ok ? await aRes.json() : [];
     const allTpls: Template[] = tRes.ok ? await tRes.json() : [];
-    templates = allTpls.filter((t: any) => t.status === 'published');
+    templates = allTpls.filter((t) => t.status === 'published');
   }
 
   $effect(() => { loadData(); });

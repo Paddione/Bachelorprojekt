@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import FactoryKpiCard from './FactoryKpiCard.svelte';
-  import { TEXT_MUTED, SURFACE, BORDER, ACCENT } from './factory-chart-colors';
+  import { ACCENT } from './factory-chart-colors';
 
   interface PromResult {
     metric: Record<string, string>;
@@ -51,14 +51,6 @@
     return Math.round(s * 100) / 100;
   }
 
-  function latestValue(result: PromResult[]): number {
-    for (const r of result) {
-      const vals = r.values;
-      if (vals.length > 0) return parseFloat(vals[vals.length - 1][1]) || 0;
-    }
-    return 0;
-  }
-
   function phaseDurationTotals(dur: PromMatrix | null): Record<string, number> {
     const out: Record<string, number> = {};
     if (!dur?.data?.result) return out;
@@ -71,15 +63,6 @@
     return out;
   }
 
-  function phaseStateCounts(timeline: TimelineRow[]): Map<string, number> {
-    const m = new Map<string, number>();
-    for (const t of timeline) {
-      const k = `${t.brand}:${t.phase}`;
-      m.set(k, (m.get(k) || 0) + 1);
-    }
-    return m;
-  }
-
   function brandBadge(b: string): string {
     return b === 'korczewski' ? 'KOR' : 'MEN';
   }
@@ -89,8 +72,8 @@
       const res = await fetch('/api/factory-observability', { credentials: 'same-origin' });
       if (!res.ok) throw new Error(`API ${res.status}`);
       data = await res.json();
-    } catch (e: any) {
-      error = e.message || 'Fehler beim Laden';
+    } catch (e) {
+      error = e instanceof Error ? e.message : 'Fehler beim Laden';
     } finally {
       loading = false;
     }

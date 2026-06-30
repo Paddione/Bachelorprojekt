@@ -15,7 +15,7 @@ function esc(s: string | null | undefined): string {
 }
 
 export interface ZugferdNativeInput {
-  invoice: { number: string; issueDate: string; grossAmount: number; netAmount: number; taxAmount: number; taxMode: string; taxRate: number };
+  invoice: { number: string; issueDate: string; grossAmount: number; netAmount: number; taxAmount: number; taxMode: 'kleinunternehmer' | 'regelbesteuerung'; taxRate: number };
   lines: Array<{ description: string; netAmount: number }>;
   customer: { name: string; email: string };
   seller: { name: string; address: string; postalCode: string; city: string; country: string; vatId: string; taxNumber?: string };
@@ -25,30 +25,18 @@ export function generateZugferdXml(): string {
   throw new Error('generateZugferdXml is deprecated. Use generateFacturX from ./einvoice/factur-x.ts.');
 }
 
-// Local type — only the fields used in generateZugferdXmlLegacy
-interface FullInvoice {
-  number: string;
-  date: string;
-  amountDue: number;
-  subtotalExclTax: number;
-  taxAmount: number;
-  currency: string;
-  customerName: string;
-  customerEmail: string;
-}
-
-export function generateZugferdXmlFromNative(input: any): string {
+export function generateZugferdXmlFromNative(input: ZugferdNativeInput): string {
   const mapped: InvoiceInput = {
     number: input.invoice.number,
     issueDate: input.invoice.issueDate,
-    dueDate: input.invoice.dueDate ?? input.invoice.issueDate,
+    dueDate: input.invoice.issueDate,
     currency: 'EUR',
     taxMode: input.invoice.taxMode,
-    lines: input.lines.map((l: any) => ({
+    lines: input.lines.map((l) => ({
       description: l.description,
-      quantity: l.quantity || 1,
+      quantity: 1,
       unit: 'C62',
-      unitPrice: l.unitPrice ?? l.netAmount,
+      unitPrice: l.netAmount,
       netAmount: l.netAmount,
       taxRate: input.invoice.taxMode === 'kleinunternehmer' ? 0 : input.invoice.taxRate,
       taxCategory: input.invoice.taxMode === 'kleinunternehmer' ? 'E' : 'S',

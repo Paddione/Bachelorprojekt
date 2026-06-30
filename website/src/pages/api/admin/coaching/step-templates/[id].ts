@@ -5,7 +5,7 @@ import { pool } from '../../../../../lib/website-db';
 
 export const prerender = false;
 
-export const PATCH: APIRoute = async ({ request, params }) => {
+export const PATCH: APIRoute = async ({ request }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response('Unauthorized', { status: 401 });
   const brand = process.env.BRAND || 'mentolder';

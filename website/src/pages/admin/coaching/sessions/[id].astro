@@ -61,8 +61,6 @@ const report = coachingSession.status === 'completed'
   ? coachingSession.steps.find(s => s.stepNumber === 0)
   : null;
 
-const session = coachingSession;
-
 const displayClient = customers.find(c => c.id === coachingSession.clientId)?.name ?? coachingSession.clientName ?? '—';
 const displayKi = kiProviders.find(p => p.id === coachingSession.kiConfigId)?.displayName
   ?? kiProviders.find(p => p.isActive)?.displayName

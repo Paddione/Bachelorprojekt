@@ -135,7 +135,7 @@ describe('GET /api/admin/cluster/graph', () => {
   it('returns 401 without session', async () => {
     vi.mocked(getSession).mockResolvedValue(null);
     const req = new Request('http://x/api/admin/cluster/graph');
-    const res = await GET({ request: req } as any);
+    const res = await GET({ request: req } as Parameters<typeof GET>[0]);
     expect(res.status).toBe(401);
   });
 
@@ -143,7 +143,7 @@ describe('GET /api/admin/cluster/graph', () => {
     vi.mocked(getSession).mockResolvedValue({ sub: 'u1' } as never);
     vi.mocked(isAdmin).mockReturnValue(false);
     const req = new Request('http://x/api/admin/cluster/graph');
-    const res = await GET({ request: req } as any);
+    const res = await GET({ request: req } as Parameters<typeof GET>[0]);
     expect(res.status).toBe(401);
   });
 });

@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, fireEvent } from '@testing-library/svelte';
+import { describe, it, expect } from 'vitest';
+import { render } from '@testing-library/svelte';
 import NavMobile from './NavMobile.svelte';
 
 describe('NavMobile.svelte', () => {

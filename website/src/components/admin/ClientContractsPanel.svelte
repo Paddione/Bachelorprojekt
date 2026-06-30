@@ -5,7 +5,7 @@
     isNewsletterSubscribed: boolean;
   };
 
-  const { keycloakUserId, clientEmail, isNewsletterSubscribed }: Props = $props();
+  const { keycloakUserId, clientEmail: _clientEmail, isNewsletterSubscribed }: Props = $props();
 
   type Template = { id: string; title: string };
   type Assignment = {

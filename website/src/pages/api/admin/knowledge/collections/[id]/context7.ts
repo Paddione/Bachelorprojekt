@@ -74,7 +74,7 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
   );
 };
 
-export const GET: APIRoute = async ({ request, params , locals }) => {
+export const GET: APIRoute = async ({ request, params , locals: _locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response('Unauthorized', { status: 401 });
   const id = params.id!;

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import type { createBehaviorStore, SaveState } from '$lib/admin/behaviorStore';
+  import type { createBehaviorStore } from '$lib/admin/behaviorStore';
   import { publicRouteFor } from '$lib/content-registry';
   import VersionDrawer from './VersionDrawer.svelte';
   import PreviewPane from './PreviewPane.svelte';

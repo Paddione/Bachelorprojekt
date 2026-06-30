@@ -153,7 +153,7 @@ export async function save(
       `SELECT id FROM homepage_block_versions WHERE brand=$1 ORDER BY created_at DESC`,
       [brand],
     );
-    const prune = idsToPrune(ids.rows.map((row: any) => Number(row.id)));
+    const prune = idsToPrune(ids.rows.map((row: { id: number | string }) => Number(row.id)));
     if (prune.length) {
       await client.query(`DELETE FROM homepage_block_versions WHERE id = ANY($1)`, [prune]);
     }
@@ -172,13 +172,13 @@ export async function save(
   }
 }
 
-export async function listVersions(brand: string): Promise<Array<{ id: number; editor: string; createdAt: any }>> {
+export async function listVersions(brand: string): Promise<Array<{ id: number; editor: string; createdAt: Date }>> {
   await ensureTables();
   const r = await pool.query(
     `SELECT id, editor, created_at FROM homepage_block_versions WHERE brand=$1 ORDER BY created_at DESC`,
     [brand],
   );
-  return r.rows.map((row: any) => ({ id: Number(row.id), editor: row.editor, createdAt: row.created_at }));
+  return r.rows.map((row: { id: number | string; editor: string; created_at: Date }) => ({ id: Number(row.id), editor: row.editor, createdAt: row.created_at }));
 }
 
 /**

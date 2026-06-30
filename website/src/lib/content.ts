@@ -60,7 +60,10 @@ export async function getEffectiveServices(): Promise<(HomepageService & { hidde
     o.leistungCategoryId && catById.get(o.leistungCategoryId)
       ? deriveHeadlinePrice(catById.get(o.leistungCategoryId)!, o.headlineKey, o.headlinePrefix ?? false)
       : (o.price ?? staticPrice);
-  const tiersFor = (o: typeof overrides[number], staticTiers: any[]) =>
+  const tiersFor = (
+    o: typeof overrides[number],
+    staticTiers: { label: string; price: string; unit?: string; highlight?: boolean }[],
+  ) =>
     o.leistungCategoryId && catById.get(o.leistungCategoryId)
       ? detailTiers(catById.get(o.leistungCategoryId))
       : staticTiers;

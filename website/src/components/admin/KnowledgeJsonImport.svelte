@@ -6,7 +6,6 @@
   let done = $state(0);
   let total = $state(0);
   let errorMsg = $state('');
-  let collectionId = $state('');
 
   function onFileChange(e: Event) {
     const input = e.target as HTMLInputElement;
@@ -22,7 +21,6 @@
     done = 0;
     total = 0;
     errorMsg = '';
-    collectionId = '';
   }
 
   function closeModal() {
@@ -75,7 +73,6 @@
           if (event.type === 'progress') done = event.done as number;
           if (event.type === 'done') {
             done = total;
-            collectionId = event.collectionId as string;
             status = 'done';
           }
           if (event.type === 'error') {

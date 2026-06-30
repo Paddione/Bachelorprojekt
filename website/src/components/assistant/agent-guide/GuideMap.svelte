@@ -8,7 +8,6 @@
   let {
     map,
     active = null,
-    glossaryTerms = [],
     onSelect,
   }: {
     map: MapData;

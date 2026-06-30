@@ -39,7 +39,7 @@
   let {
     title, entries, health, catalog, editId, form, confirmingDelete,
     onclose, onsave, onedit, onnew, oncanceledit, ondelete, onconfirmdelete,
-    onchangepriority, onproviderchange, showtoast,
+    onchangepriority, onproviderchange, showtoast: _showtoast,
   }: Props = $props();
 
   function inCooldown(provider: string): boolean {

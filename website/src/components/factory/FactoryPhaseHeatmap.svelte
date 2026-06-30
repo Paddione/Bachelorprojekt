@@ -2,14 +2,6 @@
   import { onMount } from 'svelte';
   import { PHASE_LABELS, DAY_LABELS, heatmapColor } from './factory-chart-colors';
 
-  interface PhaseEvent {
-    phase: string;
-    state: string;
-    detail: string | null;
-    driver: string;
-    at: string;
-  }
-
   interface HallItem {
     extId: string;
     phase: string | null;

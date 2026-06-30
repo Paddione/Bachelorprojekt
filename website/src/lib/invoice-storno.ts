@@ -24,7 +24,6 @@ export async function createCreditNote(invoiceId: string, reason: string, actor?
     if (orig.status === 'draft' || orig.status === 'cancelled') throw new Error('invoice cannot be cancelled');
     if (orig.kind === 'gutschrift') throw new Error('credit note cannot be cancelled again');
 
-    const year = new Date(orig.issue_date).getFullYear();
     const number = await getNextInvoiceNumber(orig.brand, 'gutschrift');
     const issueDate = iso(new Date());
     const dueDate = issueDate;

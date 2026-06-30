@@ -4,7 +4,15 @@
 
   export let slug: string;
 
-  let tickets: any[] = [];
+  interface AssetTicket {
+    id: string;
+    external_id: string;
+    title: string;
+    status: string;
+    created_at: string;
+  }
+
+  let tickets: AssetTicket[] = [];
   let loading = true;
   let error: string | null = null;
 

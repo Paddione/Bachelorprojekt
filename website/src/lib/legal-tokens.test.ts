@@ -18,7 +18,7 @@ describe('resolveTokens', () => {
   });
 });
 
-import { getDefaultDatenschutz, getDefaultAgb } from './legal-defaults';
+import { getDefaultDatenschutz } from './legal-defaults';
 it('defaults emit tokens, not baked contact values', () => {
   const ds = getDefaultDatenschutz();
   expect(ds).toContain('{{stammdaten.email}}');
@@ -29,7 +29,7 @@ describe('proposeRetokenize', () => {
   it('proposes replacing baked contact strings with tokens', async () => {
     const { proposeRetokenize } = await import('./legal-tokens');
     const html = '<p>Mail: a@b.de, Stadt: Lüneburg</p>';
-    const sd = { email: 'a@b.de', city: 'Lüneburg' } as any;
+    const sd = { email: 'a@b.de', city: 'Lüneburg' };
     const { result, replacements } = proposeRetokenize(html, sd);
     expect(result).toBe('<p>Mail: {{stammdaten.email}}, Stadt: {{stammdaten.city}}</p>');
     expect(replacements).toContainEqual({ from: 'a@b.de', to: '{{stammdaten.email}}' });

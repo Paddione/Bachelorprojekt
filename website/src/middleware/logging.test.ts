@@ -6,7 +6,7 @@ function makeContext(headers: Record<string, string> = {}) {
   return {
     request: new Request('https://example.test/api/x', { method: 'POST', headers }),
     locals,
-  } as any;
+  } as unknown as Parameters<typeof loggingMiddleware>[0];
 }
 
 describe('loggingMiddleware', () => {

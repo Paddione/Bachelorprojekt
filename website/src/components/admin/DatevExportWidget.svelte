@@ -33,8 +33,8 @@
       const data = await res.json();
       statusMsg = `${data.count} Buchung${data.count !== 1 ? 'en' : ''} gesendet an ${data.to}`;
       status = 'success';
-    } catch (err: any) {
-      statusMsg = err.message ?? 'Unbekannter Fehler';
+    } catch (err) {
+      statusMsg = err instanceof Error ? err.message : 'Unbekannter Fehler';
       status = 'error';
     }
   }

@@ -7,7 +7,7 @@
 // Status changes go through transitionTicket() (lib/tickets/transition.ts) —
 // these helpers do NOT mutate `status` or `resolution`.
 
-import { pool, type Customer } from '../website-db';
+import { pool } from '../website-db';
 import { initTicketsSchema } from '../tickets-db';
 import type { GrillingAnswers, GrillingMeta } from './grilling';
 
@@ -630,48 +630,3 @@ export async function addAttachment(p: {
   return { id: r.rows[0].id };
 }
 
-// ── Lookups for the action bar dropdowns ───────────────────────────────────
-
-async function listAdminUsersForBrand(): Promise<Customer[]> {
-  // Admin users are global (no brand) — same as the projekte page.
-  const { listAdminUsers } = await import('../website-db');
-  return listAdminUsers();
-}
-
-async function listCustomersForBrand(): Promise<Customer[]> {
-  const { listAllCustomers } = await import('../website-db');
-  return listAllCustomers();
-}
-
-async function searchTicketsForLink(brand: string, q: string, limit = 10): Promise<ListedTicket[]> {
-  await initTicketsSchema();
-  if (q.trim().length < 2) return [];
-  const r = await pool.query<ListedTicket>(
-    `${LIST_SELECT}
-     WHERE t.brand = $1
-       AND (t.title ILIKE '%' || $2 || '%' OR t.external_id ILIKE '%' || $2 || '%')
-     ${LIST_ORDER}
-     LIMIT $3`,
-    [brand, q, limit]);
-  return r.rows;
-}
-
-// ── Distinct components for the filter dropdown ─────────────────────────────
-
-async function listKnownComponents(brand: string, opts: { includeTestData?: boolean } = {}): Promise<string[]> {
-  await initTicketsSchema();
-  const filter = opts.includeTestData ? '' : ' AND is_test_data = false';
-  const r = await pool.query<{ component: string }>(
-    `SELECT DISTINCT component FROM tickets.tickets
-      WHERE brand = $1 AND component IS NOT NULL${filter} ORDER BY component`,
-    [brand]);
-  return r.rows.map(x => x.component);
-}
-async function listKnownThesisTags(brand: string): Promise<string[]> {
-  await initTicketsSchema();
-  const r = await pool.query<{ thesis_tag: string }>(
-    `SELECT DISTINCT thesis_tag FROM tickets.tickets
-      WHERE brand = $1 AND thesis_tag IS NOT NULL ORDER BY thesis_tag`,
-    [brand]);
-  return r.rows.map(x => x.thesis_tag);
-}

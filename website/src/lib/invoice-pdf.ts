@@ -196,7 +196,7 @@ export async function generateInvoicePdf(p: {
   templateTexts?: InvoicePdfTemplateTexts;
   profile?: EInvoiceProfile;
 }): Promise<Buffer> {
-  const supplyTypeForMeta = (p.invoice as any).supplyType as string | undefined;
+  const supplyTypeForMeta = p.invoice.supplyType;
   const supplyNoticeMap: Record<string, string> = {
     eu_b2b_services: 'Die Steuerschuldnerschaft geht auf den Leistungsempfänger über (§ 13b UStG / Art. 196 MwStSystRL).',
     eu_b2b_goods:    'Steuerfreie innergemeinschaftliche Lieferung gem. § 4 Nr. 1b UStG. Gelangensbestätigung liegt vor.',
@@ -414,7 +414,7 @@ export async function generateInvoicePdf(p: {
            .text(`USt-IdNr.: ${seller.vatId}`, L, y, { width: W });
         y = doc.y + 4;
       }
-      const supplyType = (inv as any).supplyType as string | undefined;
+      const supplyType = inv.supplyType;
       if (supplyType && supplyNoticeMap[supplyType]) {
         doc.font('Helvetica').fontSize(7.5).fillColor(C.inkMute)
            .text(supplyNoticeMap[supplyType], L, y, { width: W });

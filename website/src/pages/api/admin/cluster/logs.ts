@@ -70,7 +70,8 @@ export const GET: APIRoute = async ({ request }) => {
       status: 200,
       headers: { 'Content-Type': 'text/plain; charset=utf-8' },
     });
-  } catch (error: any) {
-    return new Response(`Error: ${error.message ?? 'unknown'}`, { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'unknown';
+    return new Response(`Error: ${message}`, { status: 500 });
   }
 };

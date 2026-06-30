@@ -1,7 +1,7 @@
 export async function postContentSave(
   contentKey: string,
   baseVersion: number,
-  value: any,
+  value: unknown,
 ): Promise<{ version: number }> {
   const res = await fetch('/api/admin/content/save', {
     method: 'POST',

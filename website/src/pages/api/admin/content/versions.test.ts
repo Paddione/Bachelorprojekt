@@ -17,7 +17,7 @@ describe('GET /api/admin/content/versions', () => {
   it('returns 401 when not authenticated', async () => {
     vi.mocked(getSession).mockResolvedValue(null);
     const url = new URL('http://x/api/admin/content/versions?key=kontakt');
-    const res = await GET({ request: new Request(url), url } as any);
+    const res = await GET({ request: new Request(url), url } as Parameters<typeof GET>[0]);
     expect(res.status).toBe(401);
   });
 
@@ -30,7 +30,7 @@ describe('GET /api/admin/content/versions', () => {
     ];
     vi.mocked(listVersions).mockResolvedValue(mockVersions as never);
     const url = new URL('http://x/api/admin/content/versions?key=kontakt');
-    const res = await GET({ request: new Request(url), url } as any);
+    const res = await GET({ request: new Request(url), url } as Parameters<typeof GET>[0]);
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body).toHaveLength(2);
@@ -44,7 +44,7 @@ describe('GET /api/admin/content/versions', () => {
     vi.mocked(getSession).mockResolvedValue({ user: { sub: 'admin' } } as never);
     vi.mocked(isAdmin).mockReturnValue(true);
     const url = new URL('http://x/api/admin/content/versions');
-    const res = await GET({ request: new Request(url), url } as any);
+    const res = await GET({ request: new Request(url), url } as Parameters<typeof GET>[0]);
     expect(res.status).toBe(400);
   });
 });

@@ -1,7 +1,5 @@
 import type { Pool } from 'pg';
 
-type ActionStatus = 'in_progress' | 'success' | 'failed' | 'partial_success';
-
 interface StartActionInput {
   actor: string;
   action: string;
@@ -57,7 +55,20 @@ export async function finishAction(pool: Pool, id: number, input: FinishActionIn
   );
 }
 
-export async function listActions(pool: Pool, opts: { actionFilter?: string; limit?: number } = {}): Promise<any[]> {
+export interface AdminActionRow {
+  id: number;
+  actor: string;
+  action: string;
+  target: string | null;
+  cluster: string | null;
+  status: string;
+  error: string | null;
+  created_at: Date;
+  completed_at: Date | null;
+  payload: unknown;
+}
+
+export async function listActions(pool: Pool, opts: { actionFilter?: string; limit?: number } = {}): Promise<AdminActionRow[]> {
   const limit = Math.min(opts.limit ?? 50, 500);
   const result = await pool.query(
     `SELECT id, actor, action, target, cluster, status, error, created_at, completed_at, payload

@@ -1,8 +1,9 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
+  import type { SoftwareAsset } from '../../../lib/platform-db';
   const dispatch = createEventDispatcher();
 
-  export let asset: any;
+  export let asset: Partial<SoftwareAsset> & { clusters: string[] };
 
   let loading = false;
   let error: string | null = null;

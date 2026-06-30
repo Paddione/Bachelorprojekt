@@ -3,7 +3,6 @@
 // sofort auf /coaching sichtbar sind.
 
 import { getServiceConfig } from './website-db';
-import { config } from '../config/index';
 
 export interface CoachingProcessStep {
   step: string;

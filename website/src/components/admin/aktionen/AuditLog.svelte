@@ -16,7 +16,7 @@
     error?: string;
     created_at: string;
     completed_at?: string;
-    payload?: any;
+    payload?: unknown;
   };
 
   let actions: Action[] = [];

@@ -8,7 +8,7 @@
   import UebermichSection from './inhalte/UebermichSection.svelte';
   import SchemaEditor from './framework/SchemaEditor.svelte';
   import { schemaFor } from '../../lib/admin/schemas/index';
-  import ServicePageSection from './inhalte/ServicePageSection.svelte';
+  import ServicePageSection, { type ServicePageData } from './inhalte/ServicePageSection.svelte';
   import AngeboteSection from './inhalte/AngeboteSection.svelte';
   import FaqSection from './inhalte/FaqSection.svelte';
   import KontaktSection from './inhalte/KontaktSection.svelte';
@@ -22,8 +22,10 @@
   import type { HomepageContent, UebermichContent, FaqItem, KontaktContent, ReferenzenConfig, CustomSection as CustomSectionType, ServiceOverride, LeistungCategoryOverride, NavItem, FooterConfig, Stammdaten, KoreFlags } from '../../lib/website-db';
   type InitialData = {
     startseite: HomepageContent; uebermich: UebermichContent;
-    coaching: { value: any; version: number }; fuehrung: { value: any; version: number };
-    '50plus-digital': any; 'ki-transition': any; beratung: any;
+    coaching: { value: Record<string, unknown> | null; version: number }; fuehrung: { value: Record<string, unknown> | null; version: number };
+    '50plus-digital': ServicePageData & { isCatalogLinked?: boolean; catalogTiers?: Array<{ label: string; price: string; unit: string; highlight: boolean }> };
+    'ki-transition': ServicePageData & { isCatalogLinked?: boolean; catalogTiers?: Array<{ label: string; price: string; unit: string; highlight: boolean }> };
+    beratung: ServicePageData & { isCatalogLinked?: boolean; catalogTiers?: Array<{ label: string; price: string; unit: string; highlight: boolean }> };
     services: ServiceOverride[]; leistungen: LeistungCategoryOverride[];
     priceListUrl: string; faq: FaqItem[]; kontakt: KontaktContent;
     referenzen: ReferenzenConfig; rechtliches: Record<string, string>;

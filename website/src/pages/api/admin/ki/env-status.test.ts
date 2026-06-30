@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 const session = { sub: 'u1', preferred_username: 'admin', roles: ['admin'] };
 const getSession = vi.fn();

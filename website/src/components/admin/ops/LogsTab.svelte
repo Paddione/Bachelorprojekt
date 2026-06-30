@@ -23,14 +23,13 @@
 
   let lines: string[] = [];
   let streaming = false;
-  let podsLoading = false;
   let podsError: string | null = null;
 
   let logEl: HTMLElement;
   let es: EventSource | null = null;
 
   async function loadPods() {
-    podsLoading = true; podsError = null;
+    podsError = null;
     try {
       const res = await fetch(`/api/admin/cluster/pods-list?ns=${encodeURIComponent(ns)}`);
       const j = await res.json();
@@ -39,7 +38,6 @@
       selectedPod = pods[0]?.name ?? '';
       selectedContainer = pods[0]?.containers?.[0] ?? '';
     } catch (e) { podsError = (e as Error).message; }
-    finally { podsLoading = false; }
   }
 
   function startStream() {

@@ -54,7 +54,8 @@ try {
     status: upstreamRes.status,
     headers: { 'content-type': contentType },
   });
-} catch (e: any) {
-  return new Response(`Proxy error: ${e.message}`, { status: 502 });
+} catch (e) {
+  const message = e instanceof Error ? e.message : String(e);
+  return new Response(`Proxy error: ${message}`, { status: 502 });
 }
 ---

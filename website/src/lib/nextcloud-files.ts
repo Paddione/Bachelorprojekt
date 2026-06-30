@@ -130,8 +130,7 @@ export async function uploadFile(
       Authorization: authHeader(),
       'Content-Type': contentType,
     },
-     
-    body: body as any,
+    body,
   });
   // 201 = created, 204 = overwritten — both are fine
   if (res.status !== 201 && res.status !== 204) {

@@ -1,7 +1,7 @@
 ---
 import PortalLayout from '../../../layouts/PortalLayout.astro';
 import { getSession, getLoginUrl } from '../../../lib/auth';
-import { getDocumentAssignmentById, getDocumentTemplate, listAssignmentsForCustomer } from '../../../lib/documents-db';
+import { getDocumentTemplate, listAssignmentsForCustomer } from '../../../lib/documents-db';
 import { renderTemplate } from '../../../lib/signing/template-renderer';
 import { getCustomerByEmail } from '../../../lib/website-db';
 import { logSigningEvent } from '../../../lib/signing/audit';

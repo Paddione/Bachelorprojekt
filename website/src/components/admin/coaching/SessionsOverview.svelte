@@ -29,10 +29,6 @@
   function badgeCls(status: string) {
     return STATUS_OPTIONS.find(s => s.value === status)?.cls ?? 'badge-abandoned';
   }
-  function statusLabel(status: string) {
-    return STATUS_OPTIONS.find(s => s.value === status)?.label ?? status;
-  }
-
   async function load(p = page) {
     loading = true;
     const params = new URLSearchParams({

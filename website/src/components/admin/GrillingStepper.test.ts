@@ -40,10 +40,10 @@ describe('GrillingStepper', () => {
     await fireEvent.input(ta, { target: { value: 'Meine Antwort' } });
     await new Promise((r) => setTimeout(r, 1000));
     await waitFor(() => expect(global.fetch).toHaveBeenCalled());
-    const [url, opts] = (global.fetch as any).mock.calls.at(-1);
+    const [url, opts] = vi.mocked(global.fetch).mock.calls.at(-1)!;
     expect(url).toBe('/api/admin/tickets/t1');
-    expect(opts.method).toBe('PATCH');
-    const body = JSON.parse(opts.body);
+    expect(opts?.method).toBe('PATCH');
+    const body = JSON.parse(opts?.body as string);
     expect(body.grillingAnswers[QN].q1).toBe('Meine Antwort');
   });
 
@@ -53,8 +53,8 @@ describe('GrillingStepper', () => {
     expect(screen.getByText(first)).toBeTruthy();
     await fireEvent.click(screen.getByRole('button', { name: /Verwerfen/ }));
     await waitFor(() => expect(global.fetch).toHaveBeenCalled());
-    const [, opts] = (global.fetch as any).mock.calls.at(-1);
-    const body = JSON.parse(opts.body);
+    const [, opts] = vi.mocked(global.fetch).mock.calls.at(-1)!;
+    const body = JSON.parse(opts?.body as string);
     expect(body.grillingMeta[QN].dismissed).toContain('q1');
     expect(screen.getByText(QUESTIONNAIRES[QN].sections[0].questions[1].label)).toBeTruthy();
   });

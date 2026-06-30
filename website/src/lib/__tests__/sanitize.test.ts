@@ -23,7 +23,7 @@ describe('sanitizeForLog', () => {
   });
 
   it('handles undefined input', () => {
-    expect(sanitizeForLog(undefined as any)).toBe('');
+    expect(sanitizeForLog(undefined)).toBe('');
   });
 
   it('truncates very long messages', () => {

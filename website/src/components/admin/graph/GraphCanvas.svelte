@@ -172,7 +172,7 @@
         <text x={rect.x + 8} y={rect.y + 16} fill="#64748b" font-size="11" font-family="ui-monospace, monospace">{rect.ns}</text>
       {/each}
 
-      {#each simEdges as edge, i}
+      {#each simEdges as edge}
         <line
           x1={edgeSource(edge).x} y1={edgeSource(edge).y}
           x2={edgeTarget(edge).x} y2={edgeTarget(edge).y}

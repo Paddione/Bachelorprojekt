@@ -60,8 +60,8 @@
       summary = await sRes.json();
       recentRuns = await rRes.json();
       if (summary) limitInput = summary.limit !== null ? summary.limit.toString() : '';
-    } catch (err: any) {
-      error = err.message || 'Fehler beim Laden';
+    } catch (err) {
+      error = err instanceof Error ? err.message : 'Fehler beim Laden';
     } finally {
       loading = false;
     }
@@ -81,8 +81,8 @@
       if (!res.ok) throw new Error('Fehler beim Speichern');
       saveSuccess = true;
       if (summary) summary.limit = parsed;
-    } catch (err: any) {
-      saveError = err.message || 'Fehler beim Speichern';
+    } catch (err) {
+      saveError = err instanceof Error ? err.message : 'Fehler beim Speichern';
     } finally {
       saving = false;
     }
@@ -97,8 +97,8 @@
       if (!res.ok) throw new Error('Ticket nicht gefunden');
       ticketRows = await res.json();
       if (ticketRows.length === 0) ticketSearchError = 'Keine Budgetdaten gefunden.';
-    } catch (err: any) {
-      ticketSearchError = err.message || 'Fehler bei der Suche';
+    } catch (err) {
+      ticketSearchError = err instanceof Error ? err.message : 'Fehler bei der Suche';
     } finally {
       searchingTicket = false;
     }

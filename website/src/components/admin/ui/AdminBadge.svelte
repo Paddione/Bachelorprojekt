@@ -1,4 +1,6 @@
 <script lang="ts">
+  import type { Snippet } from 'svelte';
+
   interface Props {
     variant?: 'success' | 'warning' | 'error' | 'info' | 'neutral';
     size?: 'sm' | 'md';
@@ -10,7 +12,7 @@
     size = 'md',
     dot = false,
     children,
-  }: Props & { children?: any } = $props();
+  }: Props & { children?: Snippet } = $props();
 </script>
 
 <span

@@ -15,8 +15,26 @@ export const POST: APIRoute = async ({ request, url , locals }) => {
     status: 400, headers: { 'Content-Type': 'application/json' },
   });
 
-  let body: any;
-  try { body = await request.json(); }
+  // Request payload shape, restricted to the fields read below.
+  interface ServicePageSaveBody {
+    introNote?: string;
+    sections?: Array<{ title: string; items: string[] }>;
+    cardTitle?: string;
+    cardDescription?: string;
+    cardIcon?: string;
+    cardFeatures?: string[];
+    cardPrice?: string;
+    headline?: string;
+    intro?: string;
+    forWhom?: string[];
+    pricing?: Array<{ label: string; price: string; unit?: string; highlight?: boolean }>;
+    faq?: Array<{ question: string; answer: string }>;
+    seoTitle?: string;
+    seoDescription?: string;
+  }
+
+  let body: ServicePageSaveBody;
+  try { body = (await request.json()) as ServicePageSaveBody; }
   catch { return new Response(JSON.stringify({ error: 'Invalid JSON' }), {
     status: 400, headers: { 'Content-Type': 'application/json' },
   }); }

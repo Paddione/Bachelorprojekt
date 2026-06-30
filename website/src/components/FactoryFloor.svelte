@@ -24,7 +24,7 @@
   import type { QaItem } from '../lib/qa-dal';
   import type { CiRollup } from '../lib/factory-ci';
   import { SSE_RECONNECT_MS } from '../lib/factory-constants';
-  import { relTime, minutesSince, prUrl, ticketUrl, planUrl, prioDot } from '../lib/factory-floor-client';
+  import { relTime, prUrl, ticketUrl, planUrl, prioDot } from '../lib/factory-floor-client';
 
   let { initial }: { initial: FloorPayload | null } = $props();
 
@@ -99,7 +99,7 @@
       void refreshCi(data.hall.filter(w => w.prNumber).map(w => w.extId));
       window.dispatchEvent(new CustomEvent('factory-floor-refreshed', {
         detail: {
-          planningCount: (data as any).planningCount,
+          planningCount: data?.planningCount,
           hallActive: data?.hall.length ?? 0,
         },
       }));

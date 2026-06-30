@@ -4,7 +4,7 @@
   let { initialData }: { initialData: KontaktContent } = $props();
   let data = $state(JSON.parse(JSON.stringify(initialData)));
   // footerCopyright ist nicht im KontaktContent-Typ, aber wir laden/speichern es extra
-  let footerCopyright = $state((initialData as any).footerCopyright ?? '');
+  let footerCopyright = $state((initialData as KontaktContent & { footerCopyright?: string }).footerCopyright ?? '');
   let saving = $state(false); let msg = $state(''); let msgOk = $state(true);
 
   async function save() {

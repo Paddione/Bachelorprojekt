@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { HomepageContent, ProcessStep } from '../../../lib/website-db';
+  import type { HomepageContent } from '../../../lib/website-db';
 
   let { initialData }: { initialData: HomepageContent } = $props();
   let data = $state(JSON.parse(JSON.stringify(initialData)));

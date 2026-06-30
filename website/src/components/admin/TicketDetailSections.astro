@@ -1,9 +1,19 @@
 ---
 import TicketActivityTimeline from './TicketActivityTimeline.svelte';
+import type { TimelineEntry } from '../../lib/tickets/admin';
 
+// Local shape matching the (unexported) TicketDetail fields this component actually reads.
+interface TicketLink {
+  id: number;
+  direction: 'out' | 'in';
+  kind: string;
+  otherId: string;
+  otherTitle: string;
+  prNumber: number | null;
+}
 interface Props {
-  ticket: any;
-  timeline: any[];
+  ticket: { id: string; links: TicketLink[] };
+  timeline: TimelineEntry[];
 }
 
 const { ticket, timeline } = Astro.props;
@@ -16,7 +26,7 @@ const { ticket, timeline } = Astro.props;
       Verknüpfungen ({ticket.links.length})
     </h2>
     <ul class="space-y-2">
-      {ticket.links.map((l: any) => (
+      {ticket.links.map((l: TicketLink) => (
         <li class="flex items-center gap-3 text-sm">
           <span class="text-xs text-muted w-32 shrink-0">
             {l.direction === 'out' ? l.kind : `${l.kind} (← in)`}

@@ -27,9 +27,9 @@
     editNotes: string;
     savingField: string | null;
     savedField: string | null;
-    selectedTicket: any;
+    selectedTicket: { status: TicketStatus };
     saveStatusFn: () => void;
-    saveFieldFn: (field: 'priority' | 'component' | 'notes', value: any) => void;
+    saveFieldFn: (field: 'priority' | 'component' | 'notes', value: string | Priority) => void;
   } = $props();
 </script>
 

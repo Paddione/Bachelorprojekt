@@ -1,15 +1,15 @@
 <script lang="ts">
   import { onDestroy } from 'svelte';
+  import type { ArchivedSession } from '../../lib/sessions/archive';
 
   // Svelte 5 runes
-  let items = $state<any[]>([]);
+  let items = $state<ArchivedSession[]>([]);
   let loading = $state(false);
   let error = $state<string | null>(null);
   let offset = $state(0);
   let hasMore = $state(false);
   let typeFilter = $state('');
   let selectedMarkdown = $state<string | null>(null);
-  let selectedId = $state<string | null>(null);
 
   let abortController: AbortController | null = null;
 
@@ -49,9 +49,9 @@
         items = [...items, ...data.items];
       }
       hasMore = data.hasMore;
-    } catch (err: any) {
-      if (err.name !== 'AbortError') {
-        error = err.message || 'Ein Fehler ist aufgetreten';
+    } catch (err) {
+      if (!(err instanceof Error) || err.name !== 'AbortError') {
+        error = err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten';
       }
     } finally {
       loading = false;
@@ -69,8 +69,7 @@
     if (abortController) abortController.abort();
   });
 
-  async function openSession(item: any) {
-    selectedId = item.id;
+  async function openSession(item: ArchivedSession) {
     selectedMarkdown = null;
     loading = true;
     try {
@@ -88,7 +87,6 @@
 
   function closeSession() {
     selectedMarkdown = null;
-    selectedId = null;
   }
 </script>
 

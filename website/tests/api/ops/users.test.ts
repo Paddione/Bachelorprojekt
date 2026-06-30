@@ -27,7 +27,7 @@ vi.mock('../../../src/lib/website-db', () => {
 import { GET as listUsersHandler } from '../../../src/pages/api/admin/ops/users/list';
 import { POST as createUserHandler } from '../../../src/pages/api/admin/ops/users/create';
 
-const adminReq = (body?: any) => new Request('http://test', {
+const adminReq = (body?: unknown) => new Request('http://test', {
   method: body ? 'POST' : 'GET',
   body: body ? JSON.stringify(body) : undefined,
   headers: { Cookie: 'session=ok', 'Content-Type': 'application/json' },
@@ -35,7 +35,7 @@ const adminReq = (body?: any) => new Request('http://test', {
 
 describe('GET /api/admin/ops/users/list', () => {
   it('returns user list', async () => {
-    const res = await listUsersHandler({ request: adminReq() } as any);
+    const res = await listUsersHandler({ request: adminReq() } as unknown as Parameters<typeof listUsersHandler>[0]);
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(Array.isArray(json.users)).toBe(true);
@@ -44,26 +44,26 @@ describe('GET /api/admin/ops/users/list', () => {
 
 describe('POST /api/admin/ops/users/create', () => {
   it('creates user + sends invite by default', async () => {
-    const res = await createUserHandler({ request: adminReq({ firstName: 'X', lastName: 'Y', email: 'x@y.de', groupIds: ['g2'] }) } as any);
+    const res = await createUserHandler({ request: adminReq({ firstName: 'X', lastName: 'Y', email: 'x@y.de', groupIds: ['g2'] }) } as unknown as Parameters<typeof createUserHandler>[0]);
     expect(res.status).toBe(200);
     const kc = await import('../../../src/lib/identity');
     expect(kc.createUser).toHaveBeenCalled();
   });
 
   it('returns 400 for invalid email', async () => {
-    const res = await createUserHandler({ request: adminReq({ firstName: 'X', lastName: 'Y', email: 'not-email', groupIds: ['g2'] }) } as any);
+    const res = await createUserHandler({ request: adminReq({ firstName: 'X', lastName: 'Y', email: 'not-email', groupIds: ['g2'] }) } as unknown as Parameters<typeof createUserHandler>[0]);
     expect(res.status).toBe(400);
   });
 
   it('returns 400 when groupIds is empty', async () => {
-    const res = await createUserHandler({ request: adminReq({ firstName: 'X', lastName: 'Y', email: 'x@y.de', groupIds: [] }) } as any);
+    const res = await createUserHandler({ request: adminReq({ firstName: 'X', lastName: 'Y', email: 'x@y.de', groupIds: [] }) } as unknown as Parameters<typeof createUserHandler>[0]);
     expect(res.status).toBe(400);
   });
 
   it('returns partial_success when invite email fails', async () => {
     const pi = await import('../../../src/lib/identity');
-    (pi.sendPasswordResetEmail as any).mockRejectedValueOnce(new Error('smtp down'));
-    const res = await createUserHandler({ request: adminReq({ firstName: 'X', lastName: 'Y', email: 'x@y.de', groupIds: ['g2'], sendInvite: true }) } as any);
+    vi.mocked(pi.sendPasswordResetEmail).mockRejectedValueOnce(new Error('smtp down'));
+    const res = await createUserHandler({ request: adminReq({ firstName: 'X', lastName: 'Y', email: 'x@y.de', groupIds: ['g2'], sendInvite: true }) } as unknown as Parameters<typeof createUserHandler>[0]);
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json.partial).toBe(true);

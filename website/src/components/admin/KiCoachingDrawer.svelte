@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { interfaceById, type InterfaceDef } from '../../lib/ki-catalog';
+  import type { InterfaceDef } from '../../lib/ki-catalog';
 
   interface KiConfig {
     id: number; brand: string; provider: string;
@@ -57,10 +57,6 @@
   }
 
   $effect(() => { load(); });
-
-  function catalogEntryFor(provider: string): InterfaceDef | undefined {
-    return interfaceById(provider) ?? catalog.find((c) => c.id === provider);
-  }
 
   function startEdit(p: KiConfig) {
     editId = p.id;
@@ -149,8 +145,6 @@
     }
     await load();
   }
-
-  const activeId = $derived(providers.find((p) => p.isActive)?.id ?? null);
 </script>
 
 <div class="scrim" onclick={onclose} role="presentation"></div>

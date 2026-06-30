@@ -1,19 +1,34 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  
+
   export let cluster: string;
-  
-  let data: any = null;
+
+  // Mirrors the (unexported) ServiceCheck type in src/pages/api/admin/ops/health.ts
+  interface ServiceCheck {
+    name: string;
+    slug: string;
+    url: string;
+    status: 'ok' | 'slow' | 'error' | 'optional';
+    latencyMs: number | null;
+    optional: boolean;
+    error?: string;
+  }
+  interface HealthData {
+    results: Record<string, ServiceCheck[]>;
+    checkedAt: string;
+  }
+
+  let data: HealthData | null = null;
   let loading = true;
   let error: string | null = null;
-  
+
   async function fetchHealth() {
     try {
       const r = await fetch('/api/admin/ops/health');
       if (!r.ok) throw new Error('Health fetch failed');
       data = await r.json();
-    } catch (e: any) {
-      error = e.message;
+    } catch (e) {
+      error = e instanceof Error ? e.message : 'Health fetch failed';
     } finally {
       loading = false;
     }

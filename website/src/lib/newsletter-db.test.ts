@@ -7,11 +7,11 @@ const { Pool, resolve4, query, end } = vi.hoisted(() => {
     if (next) return next;
     return { rows: [], rowCount: 0 };
   });
-  const end = vi.fn(async (..._args: any[]) => undefined);
+  const end = vi.fn(async (..._args: unknown[]) => undefined);
   class Pool {
     constructor(_opts: unknown) { /* ignore config */ }
-    query(...a: any[]) { return query(...a); }
-    end(...a: any[]) { return end(...a); }
+    query(...a: unknown[]) { return query(...a); }
+    end(...a: unknown[]) { return end(...a); }
   }
   const resolve4 = vi.fn();
   return { Pool, resolve4, query, end, queue };
@@ -20,7 +20,7 @@ vi.mock('pg', () => ({ default: { Pool }, Pool }));
 vi.mock('dns', () => ({ default: { resolve4: (...a: unknown[]) => resolve4(...a) }, resolve4: (...a: unknown[]) => resolve4(...a) }));
 vi.mock('./email', () => ({ sendNewsletterCampaign: vi.fn() }));
 
-import { listSubscribers, getSubscriberByEmail, getSubscriberByConfirmToken, createSubscriber, updateSubscriberToken, confirmSubscriber, unsubscribeByToken, deleteSubscriber, listCampaigns, getCampaign, createCampaign, updateCampaign, countSentCampaigns, sendCampaignById, listDueCampaignIds, lockDueCampaign, unlockCampaignToScheduled, resetStaleSendingCampaigns } from './newsletter-db';
+import { listSubscribers, getSubscriberByEmail, getSubscriberByConfirmToken, createSubscriber, updateSubscriberToken, confirmSubscriber, unsubscribeByToken, deleteSubscriber, listCampaigns, getCampaign, createCampaign, countSentCampaigns, sendCampaignById, listDueCampaignIds, lockDueCampaign, unlockCampaignToScheduled, resetStaleSendingCampaigns } from './newsletter-db';
 
 beforeEach(() => { query.mockClear(); end.mockClear(); });
 // Silence unused vars

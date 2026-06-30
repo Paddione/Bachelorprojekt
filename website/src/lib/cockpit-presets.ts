@@ -45,7 +45,7 @@ export function isLocalStorageAvailable(): boolean {
     localStorage.setItem(testKey, testKey);
     localStorage.removeItem(testKey);
     return true;
-  } catch (e) {
+  } catch {
     return false;
   }
 }
@@ -97,10 +97,11 @@ export function savePreset(name: string, state: CockpitFilterState): Preset {
     try {
       localStorage.setItem('cockpit:presets:user', JSON.stringify(userPresets));
       saved = true;
-    } catch (e: any) {
+    } catch (e) {
       attempts++;
       // standard localStorage full indicators
-      if (e.name === 'QuotaExceededError' || e.code === 22 || e.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
+      const err = e as { name?: string; code?: number };
+      if (err.name === 'QuotaExceededError' || err.code === 22 || err.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
         if (userPresets.length <= 1) {
           break;
         }

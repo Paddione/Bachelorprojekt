@@ -105,7 +105,7 @@ export async function purgeOldSessions({ maxAgeDays = 30 }: { maxAgeDays?: numbe
           markdownContent = await res.text();
           contentAvailable = true;
         }
-      } catch (err) {
+      } catch {
         // Fetch failed or timed out
       } finally {
         clearTimeout(timeoutId);
@@ -132,7 +132,7 @@ export async function purgeOldSessions({ maxAgeDays = 30 }: { maxAgeDays?: numbe
 
   try {
     await writeAtomically(registryPath, JSON.stringify(toKeep, null, 2));
-  } catch (err) {
+  } catch {
     warnings.push('write-failed');
   }
 

@@ -26,8 +26,8 @@
       if (!r.ok) throw new Error(`Backup-Status nicht verfügbar (${r.status})`);
       const data = await r.json();
       pipelines = data.pipelines ?? [];
-    } catch (e: any) {
-      error = e.message;
+    } catch (e) {
+      error = e instanceof Error ? e.message : 'Backup-Status nicht verfügbar';
     } finally {
       loading = false;
     }

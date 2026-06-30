@@ -47,8 +47,8 @@
 
       summary = await summaryRes.json();
       recentRuns = await recentRes.json();
-    } catch (err: any) {
-      error = err.message || 'Ein unbekannter Fehler ist aufgetreten';
+    } catch (err) {
+      error = err instanceof Error ? err.message : 'Ein unbekannter Fehler ist aufgetreten';
     } finally {
       loading = false;
     }

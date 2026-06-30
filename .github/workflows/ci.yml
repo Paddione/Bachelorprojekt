@@ -201,23 +201,24 @@ jobs:
           cd website
           pnpm lint
 
-      - name: Run website unit tests
+      - name: Run website unit tests (with coverage)
         # Default 5s per-test timeout is too tight for DB-heavy tests
         # (e.g. tickets/cockpit-db.test.ts seeds 1005 rows) when vitest
         # runs ~243 files in parallel on shared CI runners.
+        # --coverage is on by default here so the suite runs once, not twice —
+        # it also feeds the coverage gate step below. [T001336]
         run: |
           cd website
-          pnpm exec vitest run --testTimeout=30000
+          pnpm exec vitest run --coverage --testTimeout=30000
 
       - name: Vitest line coverage gate (>= 60% on src/lib)
         # G-TEST05 — vitest's built-in thresholds block on regression below
         # 60% lines (see website/vitest.config.ts coverage.thresholds.lines).
-        # The script below is a belt-and-braces second check: it also extracts
-        # the JSON coverage summary and asserts the threshold explicitly, so a
-        # misconfigured reporter cannot silently bypass the gate.
+        # Belt-and-braces second check against the coverage-summary.json
+        # produced by the run above, so a misconfigured reporter cannot
+        # silently bypass the gate. Does NOT re-run vitest. [T001336]
         run: |
           cd website
-          pnpm exec vitest run --coverage --testTimeout=30000
           COV=$(jq -r '.total.lines.pct' coverage/coverage-summary.json)
           echo "Total line coverage: ${COV}%"
           awk -v cov="$COV" 'BEGIN { if (cov + 0 < 60) { print "::error::Coverage gate failed: " cov "% < 60%"; exit 1 } else { print "::notice::Coverage gate passed: " cov "% >= 60%" } }'

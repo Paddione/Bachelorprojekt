@@ -1,0 +1,72 @@
+# prod/traefik-values.yaml
+# Helm values for the shared `kube-system/traefik` release on the fleet
+# cluster (both mentolder + korczewski route through this single Traefik
+# instance — there is no per-brand Traefik).
+#
+# Consumed by `prod/cloud-init.yaml` (fresh full-cluster-rebuild bootstrap
+# only — fetched via curl, mirrors the install-dev-tools.sh pattern). For an
+# ALREADY-RUNNING fleet cluster this file does NOT apply itself — see the
+# manual rollout task in openspec/changes/pocket-id-rate-limit/tasks.md for
+# the `helm upgrade` commands that bring a live cluster in line with this
+# file. There is no GitOps reconciler for this resource (it is Helm-managed,
+# not Kustomize-applied) — see CLAUDE.md "Operational" gotcha.
+#
+# Replaces the previously-orphaned prod-korczewski/traefik-values.yaml
+# (0 references anywhere in the repo — never actually wired up) [T001328].
+
+deployment:
+  kind: DaemonSet
+
+ingressRoute:
+  dashboard:
+    enabled: false
+
+ports:
+  web:
+    hostPort: 80
+  websecure:
+    hostPort: 443
+
+# hostPort bindings prevent maxSurge>0: two pods on the same node can't share
+# a port. Use maxUnavailable=1 so the old pod is evicted before the new one
+# schedules.
+updateStrategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 1
+    maxSurge: 0
+
+# Restrict Traefik to the 3 public Hetzner nodes — these are the only nodes
+# DNS for *.${PROD_DOMAIN} ever resolves to (pk-hetzner-4/6/8). Running on
+# exactly these nodes keeps the DaemonSet's footprint aligned with where the
+# k3s ServiceLB (svclb-traefik) DaemonSet actually receives external
+# connections, which matters once externalTrafficPolicy is set to Local
+# below — kube-proxy drops Service traffic on any node lacking a local
+# backend pod, so topology MUST cover every node that can receive ingress
+# traffic before Local is safe to enable (see T001328 rollout task).
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - pk-hetzner-4
+                - pk-hetzner-6
+                - pk-hetzner-8
+
+# T001328: preserves the real client IP all the way to backend services
+# (e.g. pocket-id's internal rate limiter / audit log). Without this,
+# kube-proxy SNATs traffic forwarded from the k3s ServiceLB (svclb-traefik)
+# hop to the Traefik Service ClusterIP under the default
+# externalTrafficPolicy=Cluster — every backend behind Traefik then sees a
+# cluster-internal pseudo-IP (the svclb pod's own IP) instead of the real
+# client, which broke pocket-id's per-IP rate limiting (network-wide 429s).
+# Traefik itself already forwards X-Forwarded-For correctly by default; the
+# value was simply wrong before it ever reached Traefik. Safe only because
+# the affinity above ensures Traefik runs on every node that can receive
+# inbound traffic — see rollout sequencing note in tasks.md.
+service:
+  spec:
+    externalTrafficPolicy: Local

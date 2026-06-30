@@ -3,7 +3,7 @@
 Quantifizierbare Ziele für die strukturelle Gesundheit des Repos.
 Ein Ziel ohne reproduzierbaren Mess-Befehl ist kein Ziel, sondern ein Wunsch.
 
-**Baseline-Stichtag:** `2026-06-28` · **Dashboard:** Homepage-Section `#health`
+**Baseline-Stichtag:** `2026-07-01` · **Dashboard:** Homepage-Section `#health`
 
 > **Format.** Jedes Ziel trägt eine Meta-Zeile:
 > `Priorität · Baseline · Target · Aufwand · Messzyklus · Reproduzierbar`
@@ -27,18 +27,18 @@ Ein Ziel ohne reproduzierbaren Mess-Befehl ist kein Ziel, sondern ein Wunsch.
 
 Sofort angehen, Ticket anlegen.
 
-## G-SIZE04 — Netto-Quell-LOC/Woche: +324494 → ≤ +2000 ⚠️ OVER BUDGET
+## G-SIZE04 — Netto-Quell-LOC/Woche: +325521 → ≤ +2000 ⚠️ OVER BUDGET
 
-**Was:** Netto-Zeilenänderung/Woche. Budget ≤ +2000 lässt normale Feature-Arbeit zu. Aktuell +324.494 (war +3684) — **stark inflated durch neue `.opencode/`-Plugin-Dateien** (background-agents.ts 1983 LOC, worktree.ts 1215 LOC) und codebase-memory-MCP-Infrastruktur in KW26. **Shallow-Clone:** Graft-Commit muss via `--since="2026-06-21"` ausgeschlossen werden.
+**Was:** Netto-Zeilenänderung/Woche. Budget ≤ +2000 lässt normale Feature-Arbeit zu. Aktuell +325.521 (war +324.494) — weiterhin **stark inflated durch die `.opencode/`-Plugin-Dateien** (background-agents.ts, worktree.ts) und codebase-memory-MCP-Infrastruktur, die innerhalb des 7-Tage-Fensters bleiben; die Top-Diffs der aktuellen Woche liegen aber bereits wieder bei normaler Feature-Arbeit (`website/src/pages/index.astro`, `AdminSidebarNav.astro`, Billing-API-Routen). **Shallow-Clone:** Graft-Commit muss via `--since="2026-06-24"` ausgeschlossen werden.
 
 ```bash
-git log --since="2026-06-21" --no-merges --numstat --pretty=tformat: \
+git log --since="2026-06-24" --no-merges --numstat --pretty=tformat: \
   -- '*.ts' '*.tsx' '*.svelte' '*.astro' '*.js' '*.mjs' '*.cjs' '*.sh' '*.py' \
   ':(exclude)**/node_modules/**' \
   | awk 'NF==3 && $1!="-"{a+=$1;d+=$2} END{printf "net=%+d (added=%d deleted=%d)\n",a-d,a,d}'
 ```
 
-> **A · Baseline:** +324.494 LOC/Wo (war +3684; Spike durch .opencode/-Infrastruktur-Additions) · **Target:** ≤ +2000/Wo · **Aufwand:** Policy/Analyse · **Messzyklus:** wöchentlich · **Reproduzierbar:** eingeschränkt (Shallow + Graft-Ausschluss nötig) · Ticket: T001280
+> **A · Baseline:** +325.521 LOC/Wo (war +324.494; weiterhin Spike-Fenster durch .opencode/-Infrastruktur-Additions) · **Target:** ≤ +2000/Wo · **Aufwand:** Policy/Analyse · **Messzyklus:** wöchentlich · **Reproduzierbar:** eingeschränkt (Shallow + Graft-Ausschluss nötig) · Ticket: T001347 (Nachfolger von T001280, das ohne nachhaltige Messwert-Verbesserung als done geschlossen wurde)
 
 ---
 
@@ -51,20 +51,7 @@ git ls-files -z | xargs -0 -I{} sh -c 'test -f "{}" && wc -c "{}"' 2>/dev/null \
   | awk '$1>1048576{c++} END{print c+0}'
 ```
 
-> **A · Baseline:** 7 (search-index.json gitignored, graph.db.zst 12.7MB bleibt) · **Target:** ≤ 6 · **Aufwand:** LFS-Migration oder Gate-Anpassung · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · Ticket: T001275
-
----
-
-## G-CI01 — main CI-Erfolgsrate (letzte 20): 85 % → ≥ 95 % ⚠️
-
-**Was:** 17/20 grün (2 Cancelled; 85 %). PRs werden nur mit grünem Gate squash-gemergt → ≥ 95 % ist reine Erhaltung.
-
-```bash
-timeout 60 gh-axi run list --workflow ci.yml --branch main --limit 20 \
-  | grep -oE 'completed,(success|failure|cancelled)' | sort | uniq -c
-```
-
-> **A · Baseline:** 85 % (17/20) · **Target:** ≥ 95 % · **Aufwand:** untersuchen · **Messzyklus:** wöchentlich · **Reproduzierbar:** eingeschränkt (gleitendes Fenster) · Ticket: T001279
+> **A · Baseline:** 7 (unverändert; search-index.json gitignored, graph.db.zst 12.7MB bleibt) · **Target:** ≤ 6 · **Aufwand:** LFS-Migration oder Gate-Anpassung · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · Ticket: T001348 (Nachfolger von T001275/T001320, die geschlossen wurden, ohne dass graph.db.zst migriert wurde)
 
 ---
 
@@ -77,7 +64,7 @@ timeout 60 gh-axi run list --workflow build-website-korczewski.yml --branch main
   | grep -oE 'completed,(success|failure)' | sort | uniq -c
 ```
 
-> **A · Baseline:** 53 % (8/15) · **Target:** ≥ 90 % · **Aufwand:** ~1 Debug-Session · **Messzyklus:** wöchentlich · **Reproduzierbar:** eingeschränkt · Ticket: T001276
+> **A · Baseline:** 53 % (8/15, unverändert) · **Target:** ≥ 90 % · **Aufwand:** ~1 Debug-Session · **Messzyklus:** wöchentlich · **Reproduzierbar:** eingeschränkt · Ticket: T001349 (Nachfolger von T001276, das ohne Verbesserung der Erfolgsrate als done geschlossen wurde)
 
 ---
 
@@ -85,24 +72,15 @@ timeout 60 gh-axi run list --workflow build-website-korczewski.yml --branch main
 
 Im nächsten Sprint einplanen.
 
-## G-RH03 — OpenSpec-BATS-Abdeckung: 50 % → ≥ 60 %
+## G-CQ01 — astro-check-Fehler: 0 → ≤ 20 ✅ erreicht (halten)
 
-```bash
-SPECS=$(ls openspec/specs/*.md 2>/dev/null | wc -l); BATS=$(ls tests/spec/*.bats 2>/dev/null | wc -l)
-echo "Specs: $SPECS | BATS: $BATS | Coverage: $(python3 -c "print(f'{$BATS/$SPECS*100:.0f}%')")"
-```
-
-> **B · Baseline:** 50 % (37/74) (war 46 % 32/69) · **Target:** ≥ 60 % (45/74) · **Aufwand:** ~2 Wochen · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
-
-## G-CQ01 — astro-check-Fehler: ? → ≤ 20
-
-CI-Gate aktiv (PR #2225). ESLint-Gate ebenfalls aktiv (`eslint.config.js` vorhanden). Re-Messung nach `pnpm install` ausstehend.
+CI-Gate aktiv (PR #2225). ESLint-Gate ebenfalls aktiv (`eslint.config.js` vorhanden).
 
 ```bash
 cd website && pnpm astro check 2>&1 | grep -E '^- [0-9]+ errors'
 ```
 
-> **B · Baseline:** ? (T001277 fix gemergt, CI-Gate + ESLint-Gate aktiv) · **Target:** ≤ 20 · **Aufwand:** halten (CI-Gate) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja (nach install)
+> **B · Baseline:** 0 ✓ (war ?; erstmals gemessen) · **Target:** ≤ 20 · **Aufwand:** halten (CI-Gate) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
 
 ## G-CQ03 — ESLint Warnings → 0 ✅ Gate vorhanden
 
@@ -133,17 +111,7 @@ git ls-files VideoVault .opencode | grep -E '\.(ts|tsx|js|mjs|svelte|sh|py)$' \
   | grep -v node_modules | xargs wc -l 2>/dev/null | grep -v ' total$' | awk '$1>600' | wc -l
 ```
 
-> **B · Baseline:** 17 (war 18) · **Target:** ≤ 8 · **Aufwand:** ~2–3 Wochen · **Messzyklus:** pro Merge auf VideoVault/ · **Reproduzierbar:** ja
-
-## G-DEP02 — Veraltete Major-Deps: 9 → ≤ 3
-
-9 Major-Sprünge (astro 6→7, @astrojs/*, nodemailer 8→9, pino 9→10, rrweb-player 1→2).
-
-```bash
-cd website && timeout 90 pnpm outdated 2>/dev/null | head -20
-```
-
-> **B · Baseline:** 9 Major · **Target:** ≤ 3 · **Aufwand:** ~1–2 Tage · **Messzyklus:** monatlich / Renovate · **Reproduzierbar:** eingeschränkt
+> **B · Baseline:** 17 (unverändert) · **Target:** ≤ 8 · **Aufwand:** ~2–3 Wochen · **Messzyklus:** pro Merge auf VideoVault/ · **Reproduzierbar:** ja
 
 ## G-FE01 — Accessibility: 0 critical/serious axe-Violations
 
@@ -184,7 +152,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-TEST02** | Vitest `.only` | 0 ✓ | 0 | `grep -rnE '\.only\b' website/src --include='*.test.ts' \| wc -l` |
 | **G-TEST03** | Vitest Skipped/Todo-Suiten | 0 ✓ | 0 | `grep -rnE "(describe\|it\|test)\.(skip\|todo)\b" website/src --include="*.ts" \| wc -l` |
 | **G-TEST04** | Test-Inventory-Drift | 0 ✓ | 0 | `git status --porcelain website/src/data/test-inventory.json \| wc -l` |
-| **G-CQ02** | Explizite `any`-Verwendungen | 154 ✓ | ≤ 280 | `grep -rn ': any\|<any>\|as any' website/src --include=*.ts --include=*.svelte --include=*.astro \| wc -l` |
+| **G-CQ02** | Explizite `any`-Verwendungen | 8 ✓ | ≤ 280 | `grep -rn ': any\|<any>\|as any' website/src --include=*.ts --include=*.svelte --include=*.astro \| wc -l` |
 | **G-CQ04** | FIXME/HACK/XXX (echt) | 3 ✓ | ≤4 | `grep -rnE '\b(FIXME\|HACK\|XXX)\b' ... \| wc -l` |
 | **G-CQ05** | Echte TODO-Marker | 1 ✓ | ≤ 1 | `grep -rnE "\bTODO\b" --include=*.ts ... website/src scripts tests k3d brett/src \| wc -l` |
 | **G-CQ06** | `@deprecated`-Symbole | 1 ✓ | ≤ 1 | `grep -rnE '@deprecated' website/src \| wc -l` |
@@ -198,6 +166,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-DEP03** | PM-Konsistenz (pnpm) | 0 ✓ | 1 PM | `grep -q "npm ci" website/Dockerfile && echo inkonsistent \|\| echo ok` |
 | **G-DEP04** | `engines >= 22.13.0` | 0 ✓ | 0 | `for p in package.json website/package.json ...; do python3 -c "..engines.."; done` |
 | **G-DEP05** | Renovate-PR-Backlog | 0 ✓ | ≤ 3 | `gh pr list --state open --json author,labels \| python3 -c "..renovate.."` |
+| **G-DEP02** | Veraltete Major-Deps | 2 ✓ | ≤ 3 | `cd website && pnpm outdated` (Major-Sprünge zählen: aktuell nur eslint-plugin-astro 1→2, knip 5→6) |
 | **G-IMG01** | Ungepinnte Fremd-Images (Drittanbieter, YAML-only) | 0 ✓ | 0 | `grep -rhE '^[[:space:]]*-?[[:space:]]*image:' k3d/ prod*/ --include='*.yaml' --include='*.yml' 2>/dev/null \| grep -v '@sha256' \| grep -vE 'website\|brett\|docs\|videovault\|mentolder-web\|paddione\|_IMAGE' \| sort -u \| wc -l` |
 | **G-IMG02** | Fremd-Image-Versions-Drift | 0 ✓ | 0 | `grep -rhE 'image:' k3d/ prod*/ \| ... sort -u \| awk -F'\t' '{c[$1]++} END{...}'` |
 | **G-K8S01** | Deployments ohne Limits | 0/34 ✓ | 0 | `python3 -c "..resources.limits.." k3d/*.yaml` |
@@ -209,7 +178,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-SEC02** | git-crypt Guard | Exit 0 ✓ | Exit 0 | `bash scripts/git-crypt-guard.sh check-tracked` |
 | **G-SEC03** | SealedSecret-Rotation | 6 Tage ✓ | ≤ 90 Tage | `git log -1 --format='%at' -- environments/sealed-secrets/*.yaml \| ...` |
 | **G-SEC04** | Sealing-Cert Restlaufzeit | ~3587 Tage ✓ | ≥ 30 Tage | `openssl x509 -enddate -noout -in environments/certs/*.pem` |
-| **G-SEC05** | Unsignierte Commits (adj.) | 1/50 adj. ✓ | ≤ 5 % | `git log -50 --pretty='%G? %ae' main \| grep -v freshness-bot \| grep -c N` |
+| **G-SEC05** | Unsignierte Commits (adj.) | 1/50 adj. ✓ (Skript zeigt 4/50 🟡) | ≤ 5 % | `git log -50 --pretty='%G? %ae' main \| grep -v freshness-bot \| grep -c N` — **bekannter Mess-Bug:** `health-goals-check.sh` filtert nur die Bot-Mail-Variante `41898282+github-actions[bot]@…` heraus, nicht die zweite Variante `github-actions[bot]@…` (ohne Präfix); die 4 verbleibenden "unsignierten" Commits sind alle Bot-Commits, kein echtes Signing-Problem. Fix unverändert offen. |
 | **G-SPEC01** | openspec:validate grün | Exit 0 ✓ | Exit 0 | `bash scripts/openspec.sh validate` |
 | **G-SPEC02** | Changes >30 Tage | 0 ✓ | 0 | `for d in openspec/changes/*/; do ... done` |
 | **G-SPEC03** | Proposals ohne .ticket-Verknüpfung | 0 ✓ | 0 | `for d in openspec/changes/*/; do [ -f "$d/.ticket" ] \|\| m=$((m+1)); done` |
@@ -218,14 +187,15 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-DOC03** | README-Index in Hauptverzeichnissen | 5/5 ✓ | 5/5 | `for d in website brett scripts tests k3d; do ls "$d"/README* ... done` |
 | **G-DOC04** | Architektur-ADRs | 5 ✓ | ≥ 5 | `find docs -ipath '*adr*' -name '*.md' \| wc -l` |
 | **G-DATA01** | DB-Backup-Freshness | ~5h ✓ | < 26h | `kubectl --context fleet -n workspace get cronjob db-backup -o jsonpath='{.status.lastSuccessfulTime}'` |
+| **G-CI01** | main CI-Erfolgsrate (letzte 20) | 95 % ✓ | ≥ 95 % | `gh-axi run list --workflow ci.yml --branch main --limit 20 \| grep -oE 'completed,(success\|failure\|cancelled)' \| sort \| uniq -c` (19/20, 1 cancelled) |
 | **G-CI02** | Rote main-HEAD-Läufe | 0 ✓ | 0 | `gh-axi run list --workflow ci.yml --branch main --limit 5 \| grep -c failure` |
+| **G-RH03** | OpenSpec-BATS-Abdeckung | 82 % ✓ | ≥ 60 % | `SPECS=$(ls openspec/specs/*.md \| wc -l); BATS=$(ls tests/spec/*.bats \| wc -l); echo "$BATS/$SPECS"` |
 | **G-CD02** | post-merge.yml-Rate | 100 % ✓ | ≥ 95 % | `gh-axi run list --workflow post-merge.yml --branch main --limit 15 \| ...` |
 | **G-DORA01** | Deployment Frequency | Elite ✓ | ≥ 5/Wo | `git log --since="4 weeks ago" --first-parent --oneline main \| wc -l` |
 | **G-DORA02** | Lead Time (PR→merge) | Median 0.03h ✓ | ≤ 1h | `gh-axi api repos/{owner}/{repo}/pulls?...` |
 | **G-DORA03** | Change Failure Rate (Proxy) | 7.4 % ✓ | ≤ 15 % | `git log --since="8 weeks ago" --first-parent --oneline main \| ...fix()/revert-Rate` |
 | **G-DORA04** | MTTR | n/a ✓ | < 24h | `git log --since="8 weeks ago" --first-parent --format='%ct %s' main \| grep -iE 'revert\|hotfix'` |
 | **G-FE03** | Stray `console.log/debug/info` | 0 ✓ | 0 | `grep -rEn 'console\.(log\|debug\|info)' website/src --include='*.ts' --include='*.svelte' --include='*.astro' \| grep -v 'browser-logger.ts' \| grep -v '\.test\.ts' \| wc -l` |
-| **G-GIT01** | Offene PRs >7 Tage | 0 ✓ | 0 | `gh pr list --state open --json number,createdAt` |
 | **G-GIT02** | Non-conventional Commits | 0/30 ✓ | 0 | `git log --format=%s -30 origin/main \| grep -vcE '^(feat\|fix\|chore\|...)'` |
 | **G-GIT03** | Dateien >1MB im Tree | 7 ⚠️ | ≤ 6 | `git ls-files -z \| xargs -0 -I{} sh -c 'test -f "{}" && wc -c "{}"' \| awk '$1>1048576{c++} END{print c+0}'` |
 
@@ -246,20 +216,23 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 - **Wöchentlich:** G-RH01/03, G-TEST01/03, G-SIZE01/03/04, G-CI01, G-CD01, G-CQ02/05, G-IMG01, G-K8S03, G-SPEC03, G-GIT03
 - **Monatlich/Quartal:** G-DEP02, G-SEC03/04, G-DOC02, G-FE01/02
 
-**Aktuell A-Ziele (2026-06-28):** G-SIZE04, G-CI01, G-CD01, G-GIT03 (T001320)
+**Aktuell A-Ziele (2026-07-01):** G-SIZE04, G-CD01, G-GIT03
 
-**Sprint-Highlights 2026-06-28 (Chore T001305):** Measurement-Fixes für G-IMG01 (HTML-Docs excluded, paddione/ excluded → Prio-C), G-RH02 (goals-data.ts self-match fixed), G-FE03 (browser-logger.ts excluded); G-DOC02 auf Prio-C promoted; G-GIT03 bleibt Prio-A (search-index.json gitignored, aber graph.db.zst 12.7MB hält Count bei 7); G-K8S03/G-SPEC03/G-DOC04 auf Prio-C.
+**Sprint-Highlights 2026-07-01:** G-CI01 erreicht Target (85 %→95 %, 19/20 grün) und wechselt von Prio A nach Prio C. G-RH03 (OpenSpec-BATS-Abdeckung 50 %→82 %) und G-DEP02 (Major-Deps 9→2) erreichen ihr Target und wechseln von Prio B nach Prio C. G-CQ01 erstmals gemessen: 0 astro-check-Fehler. G-CQ02 (explizite `any`) fällt weiter von 154 auf 8. G-SEC05-Messfehler dokumentiert: das Skript filtert nur eine von zwei GitHub-Actions-Bot-Mail-Varianten heraus, wodurch 4 Bot-Commits fälschlich als unsigniert zählen — echter Wert 0/50, Skript-Fix noch offen.
 
-**Baseline-Update 2026-06-28:** G-RH02 False-Positive behoben (count() schließt jetzt goals-data.ts aus); G-RH01 26→28, G-CQ02 170→154 (verbessert), G-CQ04 Ziel 0→≤4 (Script-Korrektur), G-DOC02 198→200, G-SEC05 0→1; G-IMG01 Regression 0→3 (mailpit:v1.29, whiteboard:v1.5.7, pgvector:0.8.0-pg16 nicht SHA-gepinnt).
+**Baseline-Update 2026-07-01:** G-SIZE04 +324.494→+325.521 (weiterhin im Spike-Fenster, aber Top-Diffs sind wieder normale Feature-Arbeit); G-GIT03 unverändert bei 7 (graph.db.zst-LFS-Migration noch offen); G-CD01 unverändert bei 53 % (8/15); G-CQ02 154→8; G-CQ01 ?→0; G-RH03 50 %→82 %; G-DEP02 9→2 Major; G-CI01 85 %→95 %.
 
-**Offene Tickets:**
+**Offene Tickets (2026-07-01):** Für G-SIZE04, G-GIT03 und G-CD01 wurden neue Tickets angelegt, da die jeweiligen Vorgänger-Tickets als `done` geschlossen wurden, ohne dass sich der zugrundeliegende Messwert nachhaltig verbessert hat.
 
 | Ziel | Ticket | Status |
 |------|--------|--------|
+| G-SIZE04 | T001280 | geschlossen (`done`), Messwert weiterhin rot → Nachfolger T001347 |
+| G-SIZE04 | T001347 | offen |
 | G-GIT03 | T001275 | **gefixt** (gitignore search-index.json [T001305]) |
-| G-GIT03 | T001320 | offen (graph.db.zst 12.7MB → LFS-Migration) |
-| G-CD01 | T001276 | offen |
+| G-GIT03 | T001320 | geschlossen (`done`), graph.db.zst nicht migriert → Nachfolger T001348 |
+| G-GIT03 | T001348 | offen |
+| G-CD01 | T001276 | geschlossen (`done`), Erfolgsrate unverändert → Nachfolger T001349 |
+| G-CD01 | T001349 | offen |
 | G-CQ01 | T001277 | **gefixt** (PR #2225) |
 | G-DEP01 | T001278 | **gefixt** (0 vulnerabilities) |
-| G-CI01 | T001279 | offen |
-| G-SIZE04 | T001280 | offen |
+| G-CI01 | T001279 | **gefixt** (95 % letzte 20 Läufe) |

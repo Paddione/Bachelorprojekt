@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.145.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.145.0...website-v1.145.1) (2026-06-30)
+
+
+### Bug Fixes
+
+* **infra:** add forwardedHeaders to Pocket-ID IngressRoute for real client IP [T001328] ([#2323](https://github.com/Paddione/Bachelorprojekt/issues/2323)) ([1deb270](https://github.com/Paddione/Bachelorprojekt/commit/1deb270e10b7d8d7f762cc7b8a3355a164a9726e))
+
 ## [1.145.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.144.0...website-v1.145.0) (2026-06-28)
 
 

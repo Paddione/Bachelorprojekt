@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.145.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.145.3...website-v1.145.4) (2026-06-30)
+
+
+### Bug Fixes
+
+* **infra:** remove klipper-lb for kube-system/traefik via service.spec.type ([#2335](https://github.com/Paddione/Bachelorprojekt/issues/2335)) ([bb36ce4](https://github.com/Paddione/Bachelorprojekt/commit/bb36ce4ee5a48e055c018a8df73b1bf8e7f2eb2d))
+
 ## [1.145.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.145.2...website-v1.145.3) (2026-06-30)
 
 

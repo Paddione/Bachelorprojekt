@@ -67,6 +67,15 @@ affinity:
 # value was simply wrong before it ever reached Traefik. Safe only because
 # the affinity above ensures Traefik runs on every node that can receive
 # inbound traffic — see rollout sequencing note in tasks.md.
+# T001341: removes k3s' ServiceLB (klipper-lb) for this Service entirely —
+# k3s' ServiceLB controller only manages Services of type: LoadBalancer.
+# Without this, klipper-lb's svclb-traefik DaemonSet keeps claiming
+# hostPort 80/443 on the same 3 nodes Traefik's own pods now also bind
+# directly (see ports.web/websecure.hostPort above), and the new Traefik
+# pods would stay Pending ("didn't have free ports for the requested pod
+# ports"). externalTrafficPolicy has no effect once type is ClusterIP —
+# left in place as a harmless no-op rather than removed in this PR.
 service:
   spec:
+    type: ClusterIP
     externalTrafficPolicy: Local

@@ -174,9 +174,9 @@ runcmd:
   # Install Traefik via Helm
   - su - patrick -c "helm repo add traefik https://traefik.github.io/charts"
   - su - patrick -c "helm repo update"
-  # Values file (DaemonSet on the 3 public nodes, hostPort 80/443,
-  # externalTrafficPolicy: Local for real client IPs — see T001328) lives in
-  # the repo so it's testable and shared with the manual live-upgrade
+  # Values file (DaemonSet on the 3 public nodes, hostPort 80/443 + ClusterIP
+  # service type — no ServiceLB hop — for real client IPs, see T001341) lives
+  # in the repo so it's testable and shared with the manual live-upgrade
   # runbook; fetched the same way install-dev-tools.sh is above.
   # The Traefik chart creates an IngressClass named "traefik" by default;
   # we deliberately do NOT pass providers.kubernetesingress.ingressClass=traefik

@@ -38,12 +38,11 @@ updateStrategy:
 
 # Restrict Traefik to the 3 public Hetzner nodes — these are the only nodes
 # DNS for *.${PROD_DOMAIN} ever resolves to (pk-hetzner-4/6/8). Running on
-# exactly these nodes keeps the DaemonSet's footprint aligned with where the
-# k3s ServiceLB (svclb-traefik) DaemonSet actually receives external
-# connections, which matters once externalTrafficPolicy is set to Local
-# below — kube-proxy drops Service traffic on any node lacking a local
-# backend pod, so topology MUST cover every node that can receive ingress
-# traffic before Local is safe to enable (see T001328 rollout task).
+# exactly these nodes keeps the DaemonSet's footprint aligned with where
+# ingress traffic actually arrives: since Traefik binds ports 80/443 via
+# hostPort directly (see ports.* below, T001341), the affinity MUST cover
+# every node that can receive inbound traffic, or DNS round-robin will hit
+# a node with no Traefik pod listening on those ports.
 affinity:
   nodeAffinity:
     requiredDuringSchedulingIgnoredDuringExecution:
@@ -56,26 +55,22 @@ affinity:
                 - pk-hetzner-6
                 - pk-hetzner-8
 
-# T001328: preserves the real client IP all the way to backend services
-# (e.g. pocket-id's internal rate limiter / audit log). Without this,
-# kube-proxy SNATs traffic forwarded from the k3s ServiceLB (svclb-traefik)
-# hop to the Traefik Service ClusterIP under the default
-# externalTrafficPolicy=Cluster — every backend behind Traefik then sees a
-# cluster-internal pseudo-IP (the svclb pod's own IP) instead of the real
-# client, which broke pocket-id's per-IP rate limiting (network-wide 429s).
-# Traefik itself already forwards X-Forwarded-For correctly by default; the
-# value was simply wrong before it ever reached Traefik. Safe only because
-# the affinity above ensures Traefik runs on every node that can receive
-# inbound traffic — see rollout sequencing note in tasks.md.
 # T001341: removes k3s' ServiceLB (klipper-lb) for this Service entirely —
 # k3s' ServiceLB controller only manages Services of type: LoadBalancer.
 # Without this, klipper-lb's svclb-traefik DaemonSet keeps claiming
 # hostPort 80/443 on the same 3 nodes Traefik's own pods now also bind
 # directly (see ports.web/websecure.hostPort above), and the new Traefik
 # pods would stay Pending ("didn't have free ports for the requested pod
-# ports"). externalTrafficPolicy has no effect once type is ClusterIP —
-# left in place as a harmless no-op rather than removed in this PR.
+# ports"). Real client IP now reaches backends (e.g. pocket-id's rate
+# limiter) via the hostPort bind directly, with no ServiceLB hop to SNAT it.
+#
+# T001328's externalTrafficPolicy: Local is INTENTIONALLY NOT carried over
+# here — found live during the T001341 rollout that the Kubernetes API
+# hard-rejects it once type is ClusterIP ("spec.externalTrafficPolicy:
+# Invalid value: \"Local\": may only be set for externally-accessible
+# services"), it is not merely a silent no-op. The field only applies to
+# LoadBalancer/NodePort Services; ClusterIP has no SNAT hop left for it to
+# fix anyway, since Traefik's own pods now bind the host ports directly.
 service:
   spec:
     type: ClusterIP
-    externalTrafficPolicy: Local

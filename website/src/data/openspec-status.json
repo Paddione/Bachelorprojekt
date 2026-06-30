@@ -547,8 +547,8 @@
   ],
   "T001341": [
     {
-      "slug": "traefik-hostport-clientip",
-      "status": "plan_staged"
+      "slug": "2026-07-01-traefik-hostport-clientip",
+      "status": "archived"
     }
   ],
   "TBD": [

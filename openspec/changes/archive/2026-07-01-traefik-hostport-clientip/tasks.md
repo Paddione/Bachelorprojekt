@@ -2,7 +2,7 @@
 title: "traefik-hostport-clientip — Implementation Plan"
 ticket_id: T001341
 domains: [infra]
-status: active
+status: completed
 file_locks: []
 shared_changes: true
 batch_id: null

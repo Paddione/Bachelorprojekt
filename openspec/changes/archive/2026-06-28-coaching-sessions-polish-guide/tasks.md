@@ -2,7 +2,7 @@
 title: "coaching-sessions-polish-guide — Implementation Plan"
 ticket_id: T001316
 domains: [website, coaching]
-status: plan_staged
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

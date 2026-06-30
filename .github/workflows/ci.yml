@@ -311,6 +311,7 @@ jobs:
           scopes: |
             website
             brett
+            goals
 
             infra
             db

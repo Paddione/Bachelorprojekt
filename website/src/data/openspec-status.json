@@ -529,12 +529,6 @@
       "status": "archived"
     }
   ],
-  "T001327": [
-    {
-      "slug": "pocket-id-client-seed-timeout",
-      "status": "plan_staged"
-    }
-  ],
   "T001328": [
     {
       "slug": "pocket-id-proxy-ip-rate-limit",

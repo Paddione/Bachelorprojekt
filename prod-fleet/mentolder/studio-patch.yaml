@@ -25,6 +25,3 @@ spec:
       containers:
         - name: studio-server
           image: ${STUDIO_IMAGE}@${STUDIO_IMAGE_DIGEST}
-          env:
-            - name: KEYCLOAK_ISSUER_MENTOLDER
-              value: "${KEYCLOAK_ISSUER_MENTOLDER}"

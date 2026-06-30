@@ -266,6 +266,12 @@ env_vars:
     required: false
     default_dev: "http://react.localhost"
 
+  # Arena WebSocket URL — last-man-standing game server (mentolder only).
+  - name: ARENA_WS_URL
+    required: false
+    default_dev: ""
+    description: "WebSocket URL of the Arena game server (optional, mentolder-only). Set in environments/.secrets/mentolder.yaml."
+
   # KEYCLOAK_FRONTEND_URL removed — Keycloak decommissioned (pocket-id-migration Welle 3, 2026-06-22).
 
   - name: POCKET_ID_FRONTEND_URL
@@ -517,6 +523,10 @@ secrets:
   #    namespace-sed-rewritten in workspace:vaultwarden:seed):
   #      KC, NC, WEB, DOCS, OFFICE
   #                          (k3d/vaultwarden-seed-job.yaml lines 60-64)
+  #    Pocket ID client-seed script vars (k3d/pocket-id-client-seed.yaml):
+  #      SCHEME, SUFFIX
+  #                          (dynamically constructed from PROD_DOMAIN inside the
+  #                           workspace:deploy task; never reach envsubst)
   #
   # 5. Taskfile-derived deploy-time variables (computed or pinned in the
   #    task body, passed directly to envsubst — not stored in environments/):

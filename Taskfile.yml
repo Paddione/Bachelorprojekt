@@ -2436,6 +2436,15 @@ tasks:
           | kubectl --context fleet apply -f -
         kubectl --context fleet rollout status deploy/coturn -n coturn --timeout=180s
         kubectl --context fleet rollout status deploy/janus  -n coturn --timeout=180s
+        # --- RustDesk relay (shared, dual-brand) ---
+        # Same public node as coturn/Janus (${TURN_NODE}); raw TCP/UDP,
+        # so it bypasses Traefik via hostNetwork. Only ${TURN_NODE} is
+        # substituted — the image digest + secret literals have no vars.
+        kustomize build k3d/rustdesk-stack \
+          | envsubst '$TURN_NODE' \
+          | kubectl --context fleet apply -f -
+        kubectl --context fleet rollout status deploy/hbbs -n rustdesk --timeout=180s
+        kubectl --context fleet rollout status deploy/hbbr -n rustdesk --timeout=180s
 
   fleet:dns:cutover:
     desc: "Flip a brand's cluster A-records onto the fleet nodes via ipv64 REST. Plan-by-default; pass ACTION=cutover to apply. Usage: task fleet:dns:cutover ENV=fleet-mentolder [ACTION=cutover]"

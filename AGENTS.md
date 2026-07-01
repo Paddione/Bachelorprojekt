@@ -200,6 +200,25 @@ Registered as `codebase-memory-mcp` in both `.mcp.json` (Claude Code) and `.open
 - `CONTRIBUTING.md` — human-readable dev workflow
 - `.agents/skills/OVERVIEW.md` — skill layering contract (dev-flow → superpowers)
 
+## Updating the Health Baseline (`.claude/lib/goals.md`)
+
+~40 quantified health goals (G-* IDs) are tracked in the file. When a goal's measured value
+changes (via `bash scripts/health-goals-check.sh`), update the baseline:
+
+1. **Check:** `bash scripts/health-goals-check.sh --only=G-XXXX` — get the current value.
+2. **Edit `.claude/lib/goals.md`:**
+   - Inline description text (current value, what changed, why).
+   - **Baseline** meta-line: `**A · Baseline:** <alt> → <neu>`.
+   - Goal reached target → move from Prio A/B → Prio C table.
+   - Goal regressed → move from Prio C → Prio A + open a ticket.
+3. **Append `Baseline-Update` entry** at the bottom (section above Mess-Werkzeug):
+   `**Baseline-Update YYYY-MM-DD:** G-XXXX <alt>→<neu> (Begründung); ...`
+4. **Update Sprint-Highlights** with notable changes (target hits, priority changes).
+5. **Never renumber** G-RH01–G-RH07 (externally referenced anchors).
+6. **Verify:** `bash scripts/health-goals-check.sh` still works and shows correct status.
+
+**Convention:** redaktionell, kein Feature-Ticket/OpenSpec-Change nötig.
+
 ## OpenSpec conventions
 
 Proposal and task files (`openspec/changes/<slug>/proposal.md`, `tasks.md`, `specs/*.md`) may include YAML frontmatter parsed by `scripts/openspec-embed.mjs` (used to index changes in pgvector for `plan-context.sh --semantic`). Language convention: **Purpose sections in German; Requirements and Scenarios in English** (GIVEN/WHEN/THEN). Rule source: `openspec/config.yaml` (keys: `proposal`, `tasks`, `specs`, `design`).

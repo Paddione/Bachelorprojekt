@@ -61,16 +61,22 @@ git ls-files -z | grep -zv '^\.codebase-memory/' | xargs -0 -I{} sh -c 'test -f 
 
 ---
 
-## G-CD01 — korczewski Website-Deploy-Rate: 53 % → ≥ 90 % ⚠️
+## G-CD01 — korczewski Website-Deploy-Rate: 100 % (≥ 90 %) ✅
 
-**Was:** 8/15 grün (7 Failures). `build-website.yml` (mentolder) steht bei 100 % mit identischer Mechanik → Konfig-/Credential-Problem der korczewski-Lane.
+**Was:** 15/15 grün. Messbefehl zeigte auf den durch PR #2167/T001229 gelöschten Workflow
+`build-website-korczewski.yml` und lieferte dadurch dauerhaft den eingefrorenen Wert 53 % zurück —
+jetzt Job-Level `gh api`-Abfrage gegen den aktuell existierenden, konsolidierten Workflow
+`build-website.yml`/Job `deploy-korczewski`.
 
 ```bash
-timeout 60 gh-axi run list --workflow build-website-korczewski.yml --branch main --limit 15 \
-  | grep -oE 'completed,(success|failure)' | sort | uniq -c
+gh api "repos/{owner}/{repo}/actions/workflows/build-website.yml/runs?branch=main&per_page=15" \
+    --jq '.workflow_runs[].id' \
+  | xargs -I{} gh api repos/{owner}/{repo}/actions/runs/{}/jobs \
+      --jq '.jobs[] | select(.name=="Deploy Website (korczewski)") | .conclusion' \
+  | sort | uniq -c
 ```
 
-> **A · Baseline:** 53 % (8/15, unverändert) · **Target:** ≥ 90 % · **Aufwand:** ~1 Debug-Session · **Messzyklus:** wöchentlich · **Reproduzierbar:** eingeschränkt · Ticket: T001349 (Nachfolger von T001276, das ohne Verbesserung der Erfolgsrate als done geschlossen wurde)
+> **C · Baseline:** 100 % (15/15) · **Target:** ≥ 90 % · **Status:** erreicht · Ticket: T001349 (gefixt)
 
 ---
 
@@ -222,7 +228,7 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 - **Wöchentlich:** G-RH01/03, G-TEST01/03, G-SIZE01/03/04, G-CI01, G-CD01, G-CQ02/05, G-IMG01, G-K8S03, G-SPEC03, G-GIT03
 - **Monatlich/Quartal:** G-DEP02, G-SEC03/04, G-DOC02, G-FE01/02
 
-**Aktuell A-Ziele (2026-07-01):** G-SIZE04, G-CD01 (G-GIT03 per T001348 auf ≤ 6 gebracht und von Prio A nach Prio C gewechselt)
+**Aktuell A-Ziele (2026-07-01):** G-SIZE04 (G-GIT03 per T001348 auf ≤ 6 gebracht und von Prio A nach Prio C gewechselt; G-CD01 per T001349 auf 100 % (15/15) gebracht und von Prio A nach Prio C gewechselt)
 
 **Sprint-Highlights 2026-07-01:** G-CI01 erreicht Target (85 %→95 %, 19/20 grün) und wechselt von Prio A nach Prio C. G-RH03 (OpenSpec-BATS-Abdeckung 50 %→82 %) und G-DEP02 (Major-Deps 9→2) erreichen ihr Target und wechseln von Prio B nach Prio C. G-CQ01 erstmals gemessen: 0 astro-check-Fehler. G-CQ02 (explizite `any`) fällt weiter von 154 auf 8. G-GIT03 (Dateien >1MB) erreicht Target 7→6 per Policy-Ausschluss von `.codebase-memory/` (T001348) und wechselt von Prio A nach Prio C. G-SEC05-Messfehler dokumentiert: das Skript filtert nur eine von zwei GitHub-Actions-Bot-Mail-Varianten heraus, wodurch 4 Bot-Commits fälschlich als unsigniert zählen — echter Wert 0/50, Skript-Fix noch offen.
 
@@ -238,7 +244,7 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 | G-GIT03 | T001320 | geschlossen (`done`), graph.db.zst nicht migriert → Nachfolger T001348 |
 | G-GIT03 | T001348 | **gefixt** (Policy-Ausschluss `.codebase-memory/` aus Gate-Scope, keine LFS-Migration) |
 | G-CD01 | T001276 | geschlossen (`done`), Erfolgsrate unverändert → Nachfolger T001349 |
-| G-CD01 | T001349 | offen |
+| G-CD01 | T001349 | **gefixt** (Root Cause: Messbefehl zeigte auf geloeschten Workflow build-website-korczewski.yml; jetzt Job-Level gh api gegen build-website.yml) |
 | G-CQ01 | T001277 | **gefixt** (PR #2225) |
 | G-DEP01 | T001278 | **gefixt** (0 vulnerabilities) |
 | G-CI01 | T001279 | **gefixt** (95 % letzte 20 Läufe) |

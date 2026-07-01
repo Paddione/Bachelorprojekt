@@ -109,7 +109,7 @@ export const POST: APIRoute = async ({ request , locals }) => {
       text: isCallback
         ? `Hallo ${clientName},\n\nIhr Termin wurde vom Admin eingetragen.\n\nWir melden uns in Kürze unter ${phone} bei Ihnen.\n\nMit freundlichen Grüßen\n${BRAND_NAME}`
         : `Hallo ${clientName},\n\nIhr Termin wurde vom Admin eingetragen.\n\nTyp:     ${typeLabel}\nDatum:   ${dateFormatted}\nUhrzeit: ${slotDisplay}\n\nMit freundlichen Grüßen\n${BRAND_NAME}`,
-    });
+    }, request);
 
     sendAdminNotification({
       type: 'booking',
@@ -118,7 +118,7 @@ export const POST: APIRoute = async ({ request , locals }) => {
         ? `Admin-Buchung/Rückruf eingetragen.\n\nKunde: ${clientName} (${clientEmail})\nTyp: Rückruf${phone ? `\nTelefon: ${phone}` : ''}${message ? `\n\nAnmerkungen:\n${message}` : ''}`
         : `Admin-Buchung eingetragen.\n\nKunde: ${clientName} (${clientEmail})\nTyp: ${typeLabel}\nDatum: ${dateFormatted}\nUhrzeit: ${slotDisplay}${leistungKey ? `\nLeistung: ${leistungKey}` : ''}${projectId ? `\nProjekt: ${projectId}` : ''}${message ? `\n\nAnmerkungen:\n${message}` : ''}`,
       replyTo: clientEmail,
-    }).catch(err => locals.requestLogger.error({ err }, '[admin/bookings/create] Failed to send admin notification:'));
+    }, request).catch(err => locals.requestLogger.error({ err }, '[admin/bookings/create] Failed to send admin notification:'));
 
     return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
   } catch (err) {

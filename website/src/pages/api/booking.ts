@@ -98,7 +98,7 @@ export const POST: APIRoute = async ({ request , locals }) => {
       text: adminText,
       html: `<p>${adminText.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>')}</p>`,
       replyTo: email,
-    });
+    }, request);
 
     return new Response(
       JSON.stringify({ success: true }),

@@ -2,7 +2,7 @@
 title: "RustDesk-Server im Workspace-Stack — Implementation Plan"
 ticket_id: "T001372"
 domains: [infra, security]
-status: plan_staged
+status: completed
 ---
 
 # rustdesk-server — Implementation Plan

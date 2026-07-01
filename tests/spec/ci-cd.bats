@@ -109,6 +109,29 @@ PY
   ! grep -qE '^[^#]*\bnpm ci\b' "$DOCKERFILE"
 }
 
+# --- G-CD01: Health-Goal-Mess-Guard (T001349) ---
+# goals.md darf keinen `--workflow <datei>.yml`-Verweis auf eine geloeschte
+# .github/workflows/-Datei enthalten -- genau dieser Drift (Workflow konsolidiert/
+# umbenannt, Messbefehl nicht nachgezogen) friert einen Health-Goal-Wert dauerhaft
+# auf einen toten Datenstrom ein (siehe T001349: build-website-korczewski.yml wurde
+# durch T001229 geloescht, der G-CD01-Messbefehl zeigte weiter darauf). Generisch
+# gehalten, damit er jede kuenftige Workflow-Umbenennung abfaengt, nicht nur diesen Fall.
+
+@test "G-CD01: goals.md referenziert keine .github/workflows/*.yml-Datei, die nicht existiert" {
+  run python3 - "$REPO_ROOT/.claude/lib/goals.md" "$REPO_ROOT/.github/workflows" <<'PY'
+import re, sys, pathlib
+goals_md, wf_dir = sys.argv[1], pathlib.Path(sys.argv[2])
+text = pathlib.Path(goals_md).read_text()
+missing = []
+for m in re.finditer(r'--workflow\s+([A-Za-z0-9_.-]+\.ya?ml)', text):
+    fname = m.group(1)
+    if not (wf_dir / fname).is_file():
+        missing.append(fname)
+assert not missing, f"goals.md referenziert geloeschte Workflow-Dateien: {sorted(set(missing))}"
+PY
+  [ "$status" -eq 0 ]
+}
+
 # G-CI01: CI Pipeline Stability
 
 @test "G-CI01-A: freshness-regen.yml enthaelt keinen ghaction-import-gpg-Verweis" {

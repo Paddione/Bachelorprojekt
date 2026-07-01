@@ -645,6 +645,12 @@
       "status": "plan_staged"
     }
   ],
+  "T001386": [
+    {
+      "slug": "devflow-plan-ticket-claim",
+      "status": "plan_staged"
+    }
+  ],
   "T001389": [
     {
       "slug": "openspec-auto-register",

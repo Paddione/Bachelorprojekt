@@ -669,6 +669,12 @@
       "status": "plan_staged"
     }
   ],
+  "T001391": [
+    {
+      "slug": "t001391-git-post-push-sync",
+      "status": "plan_staged"
+    }
+  ],
   "T001392": [
     {
       "slug": "t001392-ticket-external-id-race",

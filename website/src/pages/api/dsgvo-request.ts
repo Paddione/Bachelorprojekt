@@ -54,7 +54,7 @@ export const POST: APIRoute = async ({ request , locals }) => {
       subject: `[DSGVO] ${subject} von ${name}`,
       text: `${subject}\n\nName: ${name}\nE-Mail: ${email}\nEingegangen: ${new Date().toLocaleString('de-DE')}\nFrist: ${deadline}\n\nBitte bearbeiten Sie diese Anfrage innerhalb von 30 Tagen gemäß Art. ${articleNum} DSGVO.`,
       replyTo: email,
-    }).catch(err => locals.requestLogger.error({ err }, '[dsgvo-request] Failed to send admin notification:'));
+    }, request).catch(err => locals.requestLogger.error({ err }, '[dsgvo-request] Failed to send admin notification:'));
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200, headers: { 'Content-Type': 'application/json' },

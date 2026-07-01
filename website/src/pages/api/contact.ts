@@ -57,7 +57,7 @@ export const POST: APIRoute = async ({ request , locals }) => {
       replyTo: email,
       text: `Neue Anfrage über das Kontaktformular auf ${BRAND_NAME}.\n\nName: ${name}\nE-Mail: ${email}${phoneInfo}\nTyp: ${typeLabel}\n\nNachricht:\n${message}`,
       html: `<p><strong>Neue Anfrage über das Kontaktformular auf ${BRAND_NAME}.</strong></p><p>Name: ${name}<br>E-Mail: <a href="mailto:${email}">${email}</a>${phone ? `<br>Telefon: ${phone}` : ''}<br>Typ: ${typeLabel}</p><p><strong>Nachricht:</strong><br>${message.replace(/\n/g, '<br>')}</p>`,
-    }).catch(err => locals.requestLogger.error({ err }, '[contact] Failed to send admin notification:'));
+    }, request).catch(err => locals.requestLogger.error({ err }, '[contact] Failed to send admin notification:'));
 
     return new Response(
       JSON.stringify({ success: true }),

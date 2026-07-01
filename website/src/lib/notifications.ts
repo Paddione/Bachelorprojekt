@@ -28,7 +28,7 @@ export async function sendAdminNotification(params: {
   text: string;
   html?: string;
   replyTo?: string;
-}): Promise<void> {
+}, request?: Request): Promise<void> {
   const brand = process.env.BRAND || 'mentolder';
 
   const [notifEmail, enabled, fromName, fromAddress] = await Promise.all([
@@ -46,6 +46,6 @@ export async function sendAdminNotification(params: {
   const from =
     fromName && fromAddress ? `"${fromName.replace(/"/g, "'")}" <${fromAddress}>` : undefined;
 
-  const ok = await sendEmail({ to, subject: params.subject, text: params.text, html: withInboxLink(params.html), replyTo: params.replyTo, from });
+  const ok = await sendEmail({ to, subject: params.subject, text: params.text, html: withInboxLink(params.html), replyTo: params.replyTo, from }, request);
   if (!ok) logger.warn({ type: params.type, to }, `[notifications] sendEmail failed for type="${params.type}"`);
 }

@@ -44,7 +44,7 @@ export const POST: APIRoute = async ({ request , locals }) => {
       type: 'registration',
       subject: `[Neue Registrierung] ${fullName}`,
       text: `Neue Registrierungsanfrage eingegangen.\n\nName: ${fullName}\nE-Mail: ${email}\n\nZum Bearbeiten: /admin/inbox`,
-    }).catch(err => locals.requestLogger.error({ err }, '[register] Failed to send admin notification:'));
+    }, request).catch(err => locals.requestLogger.error({ err }, '[register] Failed to send admin notification:'));
 
     return new Response(
       JSON.stringify({ success: true }),

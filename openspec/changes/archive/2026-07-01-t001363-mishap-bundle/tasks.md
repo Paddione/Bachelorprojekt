@@ -2,7 +2,7 @@
 title: "t001363-mishap-bundle — Implementation Plan"
 ticket_id: T001363
 domains: [skills, documentation]
-status: plan_staged
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

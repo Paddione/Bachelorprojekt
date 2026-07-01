@@ -2,7 +2,7 @@
 title: "t001360-dep02-major-deps — Major Dependency Updates Plan"
 ticket_id: T001360
 domains: [quality, deps]
-status: plan_staged
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

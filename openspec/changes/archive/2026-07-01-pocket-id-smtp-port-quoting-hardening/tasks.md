@@ -2,7 +2,7 @@
 title: "pocket-id-smtp-port-quoting-hardening — Implementation Plan"
 ticket_id: T001411
 domains: [infra]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

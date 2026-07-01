@@ -27,7 +27,7 @@ openspec/changes/t001360-dep02-major-deps/
 
 ### T‑1: Audit current major dependency versions ✅
 
-- [x] Audit filed at `specs/audit.md` (typescript 5→6, vitest 3→4 in scope; website majors deferred).
+- [x] Audit filed at `audit.md` (vitest 3→4 in scope; typescript 6 blocked by madge peer range; website majors deferred).
 - Run the relevant dependency audit tool for this repo (e.g. `npm outdated` for Node packages, `go mod graph` for Go, or `task deps:audit`).
 - For each major-level outdated dependency, record:
   - current version and latest version
@@ -37,14 +37,14 @@ openspec/changes/t001360-dep02-major-deps/
 
 ### T‑2: Plan the update order and document each step ✅
 
-- [x] Update order documented at `specs/update-plan.md` (single-commit root npm bump; conflict-free).
+- [x] Update order documented at `update-plan.md` (single-commit root npm bump; conflict-free).
 - Based on the audit, determine the dependency-update sequence that minimises conflict risk (e.g. bottom-up: transitive deps first, then direct deps; or by domain alignment).
 - For each upgrade, decide whether a dedicated branch or in‑plan step is appropriate.
 - Write the plan into `openspec/changes/t001360-dep02-major-deps/specs/update-plan.md`.
 
 ### T‑3: Implement and verify ✅
 
-- [x] typescript 5.9.3→6.0.3 and vitest 3.2.6→4.1.9 upgraded in root `package.json` + lockfile; vitest/openspec/agent-guide/code-quality tests green; freshness regenerated.
+- [x] vitest 3.2.6→4.1.9 upgraded in root `package.json` + lockfile; vitest/openspec/agent-guide/code-quality tests green; freshness regenerated. typescript 6 deferred (madge@8 `peerOptional typescript@^5.4.4` fails `npm ci`).
 - Execute the updates according to the order from T‑2.
 - After each update, run `task test:changed` to validate the change.
 - After all updates are complete, run:

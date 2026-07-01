@@ -14,10 +14,10 @@ lockfile ecosystem with its own CI job) is audited below but its major bumps are
 
 ## Root package (`/package.json`, npm) — IN SCOPE
 
-| Dependency  | Current | Latest  | Jump      | Breaking-change summary |
-|-------------|---------|---------|-----------|-------------------------|
-| typescript  | 5.9.3   | 6.0.3   | major 5→6 | TS 6.0 line. Root `typecheck` script is **not** a CI-gated job (CI gates brett + astro checks separately, each with their own TS). Verified: no new errors in the CI-relevant node/vitest paths. |
-| vitest      | 3.2.6   | 4.1.9   | major 3→4 | Vitest 4 switches the default transformer to **oxc** (esbuild transform options ignored with an informational log). `test:openspec` (12 tests) passes unchanged. |
+| Dependency  | Current | Latest  | Jump      | Status | Breaking-change summary |
+|-------------|---------|---------|-----------|--------|-------------------------|
+| vitest      | 3.2.6   | 4.1.9   | major 3→4 | **shipped** | Vitest 4 switches the default transformer to **oxc** (esbuild transform options ignored with an informational log). `test:openspec` (12 tests) passes unchanged. |
+| typescript  | 5.9.3   | 6.0.3   | major 5→6 | **deferred** | `npm ci` (strict, used by CI) fails ERESOLVE: `madge@8.0.0` declares `peerOptional typescript@^5.4.4` and no madge release yet supports TS 6. Local lenient `npm install` masked it. Root `typecheck` script isn't CI-gated anyway. Blocked until madge widens its TS peer range. |
 
 Non-major (excluded from this major-update plan): `@mermaid-js/mermaid-cli`
 11.15→11.16 (minor); `gray-matter` shows an installed-tree artifact (declared
@@ -36,7 +36,8 @@ handled by Renovate's minor/patch groups.
 
 ## Conclusion
 
-dep02 upgrades **typescript 5.9.3 → 6.0.3** and **vitest 3.2.6 → 4.1.9** in the
-root tooling package. Website majors (`eslint-plugin-astro`, `knip`) are
-deferred to a website-domain change to avoid cross-ecosystem lockfile churn and
-the fail-closed lint risk in a single PR.
+dep02 ships **vitest 3.2.6 → 4.1.9** in the root tooling package. **typescript
+6** is deferred (blocked by `madge@8`'s `peerOptional typescript@^5.4.4` — fails
+strict `npm ci`). Website majors (`eslint-plugin-astro`, `knip`) are deferred to
+a website-domain change to avoid cross-ecosystem lockfile churn and the
+fail-closed lint risk in a single PR.

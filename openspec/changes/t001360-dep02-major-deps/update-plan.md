@@ -1,24 +1,21 @@
 # T-2 — Update Order & Steps (T001360, dep02)
 
-Derived from `specs/audit.md`. Both in-scope upgrades live in the same root
-`package.json` / `package-lock.json` and are independent (dev-only tooling with
-no runtime coupling), so they are applied together in one `npm install` and
-recorded as one self-contained commit — there is no transitive ordering
-constraint between them.
+Derived from `audit.md`. The in-scope upgrade lives in the root `package.json` /
+`package-lock.json` (dev-only tooling, no runtime coupling) → one self-contained
+commit.
 
 ## Order
 
-1. **typescript 5.9.3 → 6.0.3** (devDependency).
-   - Risk: root `typecheck` script is not CI-gated; brett + astro TS checks use
-     their own pinned TS. No runtime impact.
-   - Validate: vitest-based tests still compile/run under the new TS toolchain.
-2. **vitest 3.2.6 → 4.1.9** (devDependency).
+1. **vitest 3.2.6 → 4.1.9** (devDependency) — **shipped**.
    - Risk: v4 default transformer is oxc (esbuild transform opts ignored, logged).
    - Validate: `npm run test:openspec` (12 tests) green; `test:agent-guide`,
-     `test:code-quality` green.
-
-Both bumps are staged in a **single** `npm install --save-dev typescript@6
-vitest@4`, producing one coherent lockfile delta → one commit.
+     `test:code-quality` green; `npm ci` resolves cleanly.
+2. **typescript 5.9.3 → 6.0.3** (devDependency) — **deferred, not shipped**.
+   - Blocker: `madge@8.0.0` declares `peerOptional typescript@^5.4.4`; TS 6 fails
+     strict `npm ci` (ERESOLVE). No madge release yet supports TS 6. A lenient
+     local `npm install` masked this — CI's `npm ci` is the source of truth.
+   - Unblock path: bump/replace madge once it widens its TS peer range, then
+     re-attempt in a follow-up dep slot.
 
 ## Verification steps
 
@@ -32,8 +29,9 @@ vitest@4`, producing one coherent lockfile delta → one commit.
 
 ## Deferred (not in this plan)
 
+- **typescript 6** (blocked by madge peer range — see Order step 2).
 - `eslint-plugin-astro` 1→2 and `knip` 5→6 (website / pnpm) — separate
-  website-domain change; see `specs/audit.md` for rationale.
+  website-domain change; see `audit.md` for rationale.
 
 ## Conflict assessment
 

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 519,
+      "file_count": 520,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -386,6 +386,7 @@
         "tests/spec/t001269-mishap-bundle-skills-dev-flow-execute-repo-worktree-state-ticket-mcp.bats",
         "tests/spec/t001353-mishap-bundle-ci-tickets.bats",
         "tests/spec/t001356-git02-conventional-commit.bats",
+        "tests/spec/t001363-mishap-bundle.bats",
         "tests/spec/test_helper.bash",
         "tests/spec/ticket-mcp.bats",
         "tests/spec/ts-suppression.bats",

@@ -100,3 +100,24 @@ _workspace_partial_deploy_block() {
   smtp_port_block=$(printf '%s\n' "$rendered" | grep -A1 'name: SMTP_PORT')
   [[ "$smtp_port_block" == *'value: "587"'* ]]
 }
+
+# T001411 (hardening follow-up): the same latent bug class fixed above for
+# workspace:deploy/workspace:partial-deploy was still present in five other
+# `kustomize build k3d/{coturn,office,rustdesk}-stack | envsubst` call sites
+# (workspace:coturn-setup, workspace:office:deploy, and the three repeated
+# inside fleet:shared-services). This structural scanner enumerates every
+# `kustomize build k3d/...` pipe chain in Taskfile.yml and asserts each one
+# has the re-quoting sed stage before its envsubst, so a future unhardened
+# pipeline can't silently reintroduce the gap.
+@test "every kustomize build | envsubst pipeline in Taskfile.yml re-quotes stripped \${VAR} placeholders (T001411)" {
+  run bash -c '
+    awk '\''
+      /kustomize build k3d\// { pending=1; sed_seen=0; next }
+      pending && index($0, "s/: \\$\\{([a-zA-Z0-9_]+)\\}[[:space:]]*$/: \"${\\1}\"/g") { sed_seen=1 }
+      pending && /envsubst/ { if (!sed_seen) bad++; pending=0; next }
+      END { print bad+0 }
+    '\'' "'"$TASKFILE"'"
+  '
+  [ "$status" -eq 0 ]
+  [ "$output" -eq 0 ]
+}

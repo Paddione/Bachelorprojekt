@@ -84,7 +84,7 @@ future unhardened pipeline"*. Written first so it FAILS on the current
 
 #### Scenario: enumerate every `kustomize build … | envsubst` chain and assert an intervening sed re-quoting stage
 
-- [ ] **Failing-Test-Step (RED).** Add ONE new `@test` to
+- [x] **Failing-Test-Step (RED).** Add ONE new `@test` to
       `tests/spec/workspace-deploy.bats`, name tagged `(T001411)`, that is
       Taskfile-structural (not pipeline-specific). It scans `Taskfile.yml` for
       every `kustomize build k3d/…` line and, within the same contiguous pipe
@@ -132,7 +132,7 @@ re-quote…"*.
 
 #### Scenario: insert the identical sed stage into all five call sites
 
-- [ ] **Fix-Step (GREEN).** In `Taskfile.yml`, insert the identical re-quoting
+- [x] **Fix-Step (GREEN).** In `Taskfile.yml`, insert the identical re-quoting
       line — same regex/format as the already-merged fix — immediately after
       each `kustomize build k3d/{coturn,office,rustdesk}-stack \` line and
       before its `| envsubst …` line, following the existing `\`
@@ -152,7 +152,7 @@ re-quote…"*.
       NOT touch the already-fixed `workspace:deploy` / `workspace:partial-deploy`
       pipelines, and do NOT touch `k3d/pocket-id.yaml`.
 
-- [ ] **Confirm GREEN.** Re-run the new test (and the whole file, to prove no
+- [x] **Confirm GREEN.** Re-run the new test (and the whole file, to prove no
       regression of the existing `(T001411)` tests):
 
       ```bash
@@ -162,7 +162,7 @@ re-quote…"*.
 
 ## Final Verification
 
-- [ ] Regenerate the test inventory (a `@test` was added) and sanity-check
+- [x] Regenerate the test inventory (a `@test` was added) and sanity-check
       manifests are unaffected:
 
       ```bash
@@ -170,7 +170,7 @@ re-quote…"*.
       task workspace:validate    # kustomize renders still valid (no manifest change, sanity only)
       ```
 
-- [ ] Run the three mandatory CI gates and confirm all pass before opening the PR:
+- [x] Run the three mandatory CI gates and confirm all pass before opening the PR:
 
       ```bash
       task test:changed          # targeted tests for changed domains (incl. the new BATS test)

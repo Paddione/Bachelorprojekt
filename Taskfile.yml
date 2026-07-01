@@ -1578,6 +1578,7 @@ tasks:
         context_flag=""
         [ "{{.ENV}}" != "dev" ] && context_flag="--context ${ENV_CONTEXT}"
         kustomize build k3d/coturn-stack \
+          | sed -E 's/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g' \
           | envsubst '$TURN_NODE $TURN_PUBLIC_IP $PROD_DOMAIN $TLS_SECRET_NAME' \
           | kubectl $context_flag apply -f -
       - task: workspace:coturn:sync-secret
@@ -1738,6 +1739,7 @@ tasks:
         context_flag=""
         [ "{{.ENV}}" != "dev" ] && context_flag="--context ${ENV_CONTEXT}"
         kustomize build k3d/office-stack \
+          | sed -E 's/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g' \
           | envsubst '$PROD_DOMAIN $COLLABORA_HOST $COLLABORA_ALIASGROUP1 $COLLABORA_ALIASGROUP2 $COLLABORA_SERVER_NAME $COLLABORA_SSL_TERMINATION $COLLABORA_TLS_SECRET $COLLABORA_INGRESS_MIDDLEWARES' \
           | kubectl $context_flag apply -f -
       - |
@@ -2428,6 +2430,7 @@ tasks:
         export COLLABORA_INGRESS_MIDDLEWARES_2="workspace-korczewski-redirect-https@kubernetescrd,workspace-korczewski-hsts-headers@kubernetescrd"
         # Apply kustomize (primary brand Deployment + Service + primary Ingress).
         kustomize build k3d/office-stack \
+          | sed -E 's/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g' \
           | envsubst '$PROD_DOMAIN $COLLABORA_HOST $COLLABORA_ALIASGROUP1 $COLLABORA_ALIASGROUP2 $COLLABORA_SERVER_NAME $COLLABORA_SSL_TERMINATION $COLLABORA_TLS_SECRET $COLLABORA_INGRESS_MIDDLEWARES' \
           | kubectl --context fleet apply -f -
         # Apply second-brand Ingress separately (own TLS + own middleware namespace).
@@ -2439,6 +2442,7 @@ tasks:
         export TURN_NODE="$MENTOLDER_TURN_NODE"; export TURN_PUBLIC_IP="$MENTOLDER_TURN_PUBLIC_IP"
         export PROD_DOMAIN="$MENTOLDER_PROD_DOMAIN"; export TLS_SECRET_NAME="$MENTOLDER_TLS_SECRET_NAME"
         kustomize build k3d/coturn-stack \
+          | sed -E 's/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g' \
           | envsubst '$TURN_NODE $TURN_PUBLIC_IP $PROD_DOMAIN $TLS_SECRET_NAME' \
           | kubectl --context fleet apply -f -
         kubectl --context fleet rollout status deploy/coturn -n coturn --timeout=180s
@@ -2448,6 +2452,7 @@ tasks:
         # so it bypasses Traefik via hostNetwork. Only ${TURN_NODE} is
         # substituted — the image digest + secret literals have no vars.
         kustomize build k3d/rustdesk-stack \
+          | sed -E 's/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g' \
           | envsubst '$TURN_NODE' \
           | kubectl --context fleet apply -f -
         kubectl --context fleet rollout status deploy/hbbs -n rustdesk --timeout=180s

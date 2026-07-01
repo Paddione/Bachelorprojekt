@@ -77,7 +77,7 @@ jobs:
         shell: pwsh
         run: |
           $p = Start-Process msiexec -ArgumentList '/i','rustdesk-workspace-installer.msi','/qn','/l*v','install.log' -Wait -PassThru
-          if ($p.ExitCode -ne 0) { Get-Content install.log -Tail 40; Write-Error "install failed ($($p.ExitCode))"; exit 1 }
+          if ($p.ExitCode -ne 0) { Get-Content install.log; Write-Error "install failed ($($p.ExitCode))"; exit 1 }
 
       - name: Smoke test — config targets the expected ID server
         shell: pwsh

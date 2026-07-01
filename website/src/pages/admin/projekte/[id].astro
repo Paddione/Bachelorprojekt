@@ -1,13 +1,13 @@
 ---
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../../lib/auth';
+import { listTimeEntries, getProjectTotalMinutes, type Customer, type TimeEntry } from '../../../lib/website-db';
 import {
   getProject, listSubProjects, listDirectTasks, listSubProjectTasks, listAllCustomers, listAdminUsers,
-  listTimeEntries, getProjectTotalMinutes,
-  listMeetingsForProject, listUnassignedMeetingsForCustomer,
-  listProjectAttachments,
-} from '../../../lib/website-db';
-import type { Project, SubProject, ProjectTask, Customer, TimeEntry, MeetingWithDetails, ProjectAttachment } from '../../../lib/website-db';
+  listProjectAttachments, type Project, type SubProject, type ProjectTask, type ProjectAttachment,
+} from '../../../lib/projects-db';
+import { listMeetingsForProject, listUnassignedMeetingsForCustomer } from '../../../lib/project-export-db';
+import type { MeetingWithDetails } from '../../../lib/meetings-db';
 import ProjectMeetingsTab from '../../../components/admin/ProjectMeetingsTab.astro';
 import {
   listQAssignmentsForProject,

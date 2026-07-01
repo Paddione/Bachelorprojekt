@@ -6,7 +6,7 @@
  */
 
 import { pool } from './db-pool';
-import type { Customer } from './website-db';
+import type { Customer } from './customer-types';
 import { initTicketsSchema } from './tickets-schema';
 
 // SQL fragment for status mapping

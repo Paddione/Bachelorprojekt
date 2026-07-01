@@ -13,7 +13,6 @@ import {
   listSubProjects,
   listDirectTasks,
   listSubProjectTasks,
-  type Project,
   type ProjectExportRow,
 } from './projects-db';
 

@@ -1,6 +1,8 @@
 ---
-import { getMeetingsForClient, getCustomerByEmail, listProjects } from '../../lib/website-db';
-import type { Meeting, Project } from '../../lib/website-db';
+import { getMeetingsForClient } from '../../lib/meetings-db';
+import type { Meeting } from '../../lib/website-db';
+import { getCustomerByEmail, listProjects } from '../../lib/projects-db';
+import type { Project } from '../../lib/projects-db';
 
 interface Props {
   clientEmail: string;

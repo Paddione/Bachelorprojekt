@@ -12,11 +12,6 @@ import { refFor } from './content-registry';
 import { idsToPrune } from './admin/version-prune';
 import { isConflict as detectConflict, nextVersion as bumpVersion } from './admin/conflict';
 
-// Cross-domain imports for meeting-project linkage functions (Meeting-Projekt-Verknüpfung)
-// that remain in website-db.ts but need helpers from meetings-db.ts (G-SIZE03).
-import { initMeetingProjectLink } from './meetings-db';
-import type { MeetingWithDetails } from './meetings-db';
-
 // pool / ensureSchemaOnce / platformPool were moved to db-pool.ts (G-CQ07) so
 // tickets modules can depend on the leaf-most pool without re-entering
 // website-db. Re-export for backward compatibility with any external caller
@@ -25,6 +20,13 @@ import { pool, ensureSchemaOnce, __resetSchemaInitCacheForTests } from './db-poo
 export { pool, ensureSchemaOnce, __resetSchemaInitCacheForTests } from './db-pool';
 export { platformPool } from './db-pool';
 import type { Pool, PoolClient } from 'pg';
+
+// listAllCustomers / listAdminUsers / getCustomerByEmail moved to
+// project-portal-db.ts (G-SIZE03). Re-export for backward compatibility with
+// any external caller that imports these names from website-db. Safe because
+// project-portal-db.ts no longer imports anything from website-db.ts (both
+// depend only on the neutral customer-types.ts leaf module).
+export { listAllCustomers, listAdminUsers, getCustomerByEmail } from './project-portal-db';
 
 // Eager boot-time init so tracker schema migrations apply on rollout rather
 // than on the first lazy code path that happens to call initTicketsSchema (T000410).
@@ -123,16 +125,11 @@ export async function listTimeline(opts: {
 
 // ── Customer ────────────────────────────────────────────────────────────────
 
-export interface Customer {
-  id: string;
-  name: string;
-  email: string;
-  customer_number?: string;
-  admin_number?: string;
-  is_admin?: boolean;
-  phone?: string;
-  company?: string;
-}
+// Type moved to customer-types.ts (neutral leaf module) to avoid a
+// website-db.ts <-> project-portal-db.ts import cycle (S2 quality gate).
+// Re-exported here for backward compatibility with existing callers.
+import type { Customer } from './customer-types';
+export type { Customer } from './customer-types';
 
 export async function upsertCustomer(params: {
   name: string;
@@ -1084,110 +1081,6 @@ export async function getUnbilledBillableEntriesByCustomer(
     });
   }
   return [...byCustomer.values()];
-}
-
-// ── Meeting-Projekt-Verknüpfung ───────────────────────────────────────────────
-
-export async function listMeetingsForProject(
-  projectId: string
-): Promise<MeetingWithDetails[]> {
-  await initMeetingProjectLink();
-  const meetings = await pool.query(
-    `SELECT id, meeting_type AS "meetingType", status,
-            scheduled_at AS "scheduledAt", started_at AS "startedAt",
-            ended_at AS "endedAt", duration_seconds AS "durationSeconds",
-            released_at AS "releasedAt", created_at AS "createdAt"
-     FROM meetings WHERE project_id = $1
-     ORDER BY created_at DESC`,
-    [projectId]
-  );
-
-  const result: MeetingWithDetails[] = [];
-  // Per-meeting fan-out: 3 parallel queries × N meetings.
-  // Acceptable for small project meeting counts; revisit if projects regularly exceed ~20 meetings.
-  for (const m of meetings.rows) {
-    const [tRes, iRes, aRes] = await Promise.all([
-      pool.query(
-        `SELECT id, full_text AS "fullText", language,
-                duration_seconds AS "durationSeconds"
-         FROM transcripts WHERE meeting_id = $1`,
-        [m.id]
-      ),
-      pool.query(
-        `SELECT id, insight_type AS "insightType", content,
-                generated_by AS "generatedBy"
-         FROM meeting_insights WHERE meeting_id = $1
-         ORDER BY created_at ASC`,
-        [m.id]
-      ),
-      pool.query(
-        `SELECT id, artifact_type AS "artifactType", name,
-                content_text AS "contentText"
-         FROM meeting_artifacts WHERE meeting_id = $1`,
-        [m.id]
-      ),
-    ]);
-    result.push({
-      ...m,
-      transcripts: tRes.rows,
-      insights: iRes.rows,
-      artifacts: aRes.rows,
-    });
-  }
-  return result;
-}
-
-export async function assignMeetingToProject(
-  meetingId: string,
-  projectId: string | null
-): Promise<void> {
-  await initMeetingProjectLink();
-  await pool.query(
-    `UPDATE meetings SET project_id = $2, updated_at = now() WHERE id = $1`,
-    [meetingId, projectId]
-  );
-}
-
-export async function findProjectByName(
-  brand: string,
-  name: string
-): Promise<{ id: string; name: string } | null> {
-  await initTicketsSchema();
-  const result = await pool.query(
-    `SELECT id, title AS name FROM tickets.tickets
-     WHERE type='project' AND parent_id IS NULL
-       AND brand = $1 AND title ILIKE $2
-     ORDER BY CASE status
-       WHEN 'in_progress' THEN 0 WHEN 'backlog' THEN 1 WHEN 'blocked' THEN 2
-       ELSE 3 END
-     LIMIT 1`,
-    [brand, `%${name}%`]
-  );
-  return result.rows[0] ?? null;
-}
-
-export async function listUnassignedMeetingsForCustomer(
-  customerId: string
-): Promise<Array<{ id: string; meetingType: string; status: string; createdAt: Date }>> {
-  await initMeetingProjectLink();
-  const result = await pool.query(
-    `SELECT id, meeting_type AS "meetingType", status, created_at AS "createdAt"
-     FROM meetings
-     WHERE customer_id = $1 AND project_id IS NULL
-     ORDER BY created_at DESC`,
-    [customerId]
-  );
-  return result.rows;
-}
-
-export async function getCustomerByEmail(
-  email: string
-): Promise<Customer | null> {
-  const result = await pool.query(
-    `SELECT id, name, email, customer_number, admin_number, is_admin, phone, company FROM customers WHERE email = $1`,
-    [email]
-  );
-  return result.rows[0] ?? null;
 }
 
 export async function deleteTimeEntry(id: string): Promise<void> {

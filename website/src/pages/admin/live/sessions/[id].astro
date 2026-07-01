@@ -1,7 +1,8 @@
 ---
 import AdminLayout from '../../../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../../../lib/auth';
-import { getMeetingDetail, assignMeeting, listProjects } from '../../../../lib/website-db';
+import { getMeetingDetail, assignMeeting } from '../../../../lib/website-db';
+import { listProjects } from '../../../../lib/projects-db';
 import { config } from '../../../../config/index';
 import { getFileUrl } from '../../../../lib/nextcloud-files';
 

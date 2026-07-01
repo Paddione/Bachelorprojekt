@@ -1,4 +1,10 @@
-## MODIFIED Requirements
+# size04-loc-velocity
+
+## Purpose
+
+SSOT spec.
+
+## Requirements
 
 ### Requirement: G-SIZE04 LOC/week measurement excludes plan artefacts
 
@@ -22,3 +28,5 @@ a LOC growth of more than 2 % triggers a warning before the 15 % fail threshold.
 - **GIVEN** `scripts/check-loc-budget.mjs` and `docs/code-quality/loc-budget.json`
 - **WHEN** the gate is evaluated
 - **THEN** the effective warn-pct threshold is ≤ 2 %
+
+<!-- merged from change delta size04-loc-velocity.md on 2026-07-01 -->

@@ -1,4 +1,10 @@
-## MODIFIED Requirements
+# agent-skills
+
+## Purpose
+
+SSOT spec.
+
+## Requirements
 
 ### Requirement: dev-flow-chore Step 4 must not stage git-crypt smudge artifacts
 
@@ -33,3 +39,5 @@
 - **AND** a new GitHub issue arrives with the same title
 - **WHEN** Step 4.4 runs the title-dedupe lookup
 - **THEN** no new row is created, a `ticket_comments` row is appended to T001147 noting the re-trigger, and the GitHub issue is closed as "Duplicate of T001147"
+
+<!-- merged from change delta agent-skills.md on 2026-07-01 -->

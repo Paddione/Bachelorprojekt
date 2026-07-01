@@ -645,6 +645,12 @@
       "status": "plan_staged"
     }
   ],
+  "T001385": [
+    {
+      "slug": "t001385-openspec-delta-spec-dir",
+      "status": "plan_staged"
+    }
+  ],
   "T001389": [
     {
       "slug": "openspec-auto-register",

@@ -445,6 +445,8 @@ Bei roten Checks: Logs aus dem Skript-Output als Prompt-Kontext an einen `sonnet
 
 `devflow-ci-watch.sh` prüft `mergeStateStatus` bereits **vor** dem CI-Poll-Loop und rebased bei `DIRTY` selbstständig gegen `origin/main` (T001408, Finding 2). Bricht der Rebase mit einem Konflikt ab, beendet sich das Skript mit Exit-Code `3` (statt hängen zu bleiben). In diesem Fall löst der **implementierende Subagent selbst** den Konflikt (kein zweiter Subagent für denselben Branch — genau das Doppel-Push-Risiko aus T001408) und ruft `devflow-ci-watch.sh` danach erneut auf.
 
+Seit T001415 (Finding 2) beendet sich `devflow-ci-watch.sh` zusätzlich mit Exit-Code `4`, wenn `gh pr view --json mergeable` `CONFLICTING` meldet — d.h. der PR hat echte Merge-Konflikte gegen main (nicht nur einen stale Branch). Auch in diesem Fall löst der **implementierende Subagent selbst** den Konflikt manuell (`git fetch origin main && git rebase origin/main`, Konflikte lösen, `git push --force-with-lease`) und ruft `devflow-ci-watch.sh` erneut auf. Es wird **kein** zweiter Subagent für denselben Branch gespawnt.
+
 ---
 
 ## Schritt 6: Auto-Merge wenn CI grün

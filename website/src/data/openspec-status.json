@@ -729,6 +729,12 @@
       "status": "archived"
     }
   ],
+  "T001415": [
+    {
+      "slug": "t001415-mishap-bundle-status-lifecycle",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

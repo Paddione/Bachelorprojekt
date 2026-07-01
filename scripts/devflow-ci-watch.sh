@@ -34,6 +34,16 @@ if [[ "$MERGE_STATE" == "DIRTY" ]]; then
   fi
 fi
 
+# Conflict preflight: a PR with real merge conflicts (mergeable=CONFLICTING)
+# never starts CI checks — bail with a clear message instead of hanging.
+MERGEABLE=$(gh pr view "$PR_URL" --json mergeable -q '.mergeable' 2>/dev/null || echo "")
+if [[ "$MERGEABLE" == "CONFLICTING" ]]; then
+  echo "❌ PR hat echte Merge-Konflikte gegen main (mergeable=CONFLICTING) — manueller Rebase nötig (kein Auto-Resolve möglich)." >&2
+  echo "   Branch: $(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)" >&2
+  echo "   Fix: rebase den Branch auf origin/main, dann rufe devflow-ci-watch.sh erneut auf." >&2
+  exit 4
+fi
+
 CI_ATTEMPT=0
 while true; do
   CI_ATTEMPT=$((CI_ATTEMPT + 1))

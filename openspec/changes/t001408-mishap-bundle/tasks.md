@@ -12,7 +12,7 @@ depends_on_plans: []
 
 # t001408-mishap-bundle — Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Fix three independent reliability gaps in the dev-flow CI/merge/lock chain — a false-positive agent-lock reap, a missing DIRTY-mergeState preflight in the CI watcher, and an invalid `gh pr checks --json` call.
 
@@ -63,7 +63,7 @@ Both edits add well under 30 lines each, so both stay far below their 500-line t
 
 **Fix approach (from design Finding 1):** A dead *numeric* SID must no longer reap a claim younger than `AGENT_LOCK_GRACE`; the heartbeat-TTL path stays the ultimate fallback for genuinely stale sessions. Every reap decision appends a reason line for post-incident diagnosis.
 
-- [ ] **Step 1: Run the BATS contract to confirm the RED baseline for M1**
+- [x] **Step 1: Run the BATS contract to confirm the RED baseline for M1**
 
 ```bash
 ./tests/unit/lib/bats-core/bin/bats tests/spec/t001408-mishap-bundle.bats
@@ -71,7 +71,7 @@ Both edits add well under 30 lines each, so both stay far below their 500-line t
 # the young claim is reaped, and no .reap.log is written.
 ```
 
-- [ ] **Step 2: Add the `AGENT_LOCK_GRACE` default**
+- [x] **Step 2: Add the `AGENT_LOCK_GRACE` default**
 
 Next to the existing `AGENT_LOCK_TTL="${AGENT_LOCK_TTL:-1800}"` line (line 19):
 
@@ -81,7 +81,7 @@ AGENT_LOCK_GRACE="${AGENT_LOCK_GRACE:-120}"
 
 This makes `@test "T001408-M1: agent-lock.sh defines an AGENT_LOCK_GRACE window"` (test 1) pass.
 
-- [ ] **Step 3: Add the `_reap_log()` helper**
+- [x] **Step 3: Add the `_reap_log()` helper**
 
 Place it just above `_reapable()` (before line 76):
 
@@ -96,7 +96,7 @@ _reap_log() {  # <lock-file> <reason>
 }
 ```
 
-- [ ] **Step 4: Extend `_reapable()` with the grace window + reap logging**
+- [x] **Step 4: Extend `_reapable()` with the grace window + reap logging**
 
 Replace the body at lines 77-86 with:
 
@@ -124,7 +124,7 @@ _reapable() {
 
 Rationale: the `worktree-missing` branch stays unhardened (a missing directory is an unambiguous dead signal). The numeric-SID branch now respects the grace window, then defers to heartbeat-TTL — so a truly dead session still gets reaped after `AGENT_LOCK_TTL`.
 
-- [ ] **Step 5: Run the M1 tests to verify GREEN**
+- [x] **Step 5: Run the M1 tests to verify GREEN**
 
 ```bash
 ./tests/unit/lib/bats-core/bin/bats tests/spec/t001408-mishap-bundle.bats --filter 'M1'
@@ -132,7 +132,7 @@ Rationale: the `worktree-missing` branch stays unhardened (a missing directory i
 # numeric SID, and .reap.log records the reap reason.
 ```
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/agent-lock.sh
@@ -154,14 +154,14 @@ git commit -m "fix(agent-lock): grace-period + reap-log so young claims survive 
 
 **Fix approach (from design Finding 2):** Before entering the CI polling loop, check `mergeStateStatus`; on `DIRTY`, self-service `git fetch origin main && git rebase origin/main` (clean → force-push and continue; conflict → abort cleanly and exit non-zero for the caller to resolve). This runs in the script itself so it protects any caller, not just an attentive agent.
 
-- [ ] **Step 1: Confirm the RED baseline for M2**
+- [x] **Step 1: Confirm the RED baseline for M2**
 
 ```bash
 ./tests/unit/lib/bats-core/bin/bats tests/spec/t001408-mishap-bundle.bats --filter 'M2'
 # Expected: FAIL — the script mentions neither mergeStateStatus nor a rebase against main.
 ```
 
-- [ ] **Step 2: Insert the preflight block**
+- [x] **Step 2: Insert the preflight block**
 
 After the telemetry `phase` call (line 17) and before `CI_ATTEMPT=0` (line 19):
 
@@ -184,18 +184,18 @@ fi
 
 Edge cases handled: no PR / `gh` failure → `MERGE_STATE` empty → preflight skipped (fail-open); a stale force-push (foreign commits landed) → `--force-with-lease` refuses and the error propagates instead of being swallowed.
 
-- [ ] **Step 3: Document the handoff in dev-flow-execute Schritt 5.5**
+- [x] **Step 3: Document the handoff in dev-flow-execute Schritt 5.5**
 
 In `.claude/skills/dev-flow-execute/SKILL.md` Schritt 5.5 (~line 435-444), add a sentence stating that when `devflow-ci-watch.sh` exits `3` (rebase conflict), the implementer subagent resolves the conflict itself and re-runs the watcher — it must NOT spawn a second subagent for the same branch (the double-push risk from the mishap).
 
-- [ ] **Step 4: Run the M2 tests to verify GREEN**
+- [x] **Step 4: Run the M2 tests to verify GREEN**
 
 ```bash
 ./tests/unit/lib/bats-core/bin/bats tests/spec/t001408-mishap-bundle.bats --filter 'M2'
 # Expected: 2 tests pass — mergeStateStatus checked before the loop; rebase against origin/main present.
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/devflow-ci-watch.sh .claude/skills/dev-flow-execute/SKILL.md
@@ -216,7 +216,7 @@ git commit -m "fix(devflow-ci-watch): DIRTY-mergeState preflight rebase before C
 
 **Fix approach (from design Finding 3):** `gh pr checks` has no `--json` flag (verified via `gh pr checks --help`), so line 28 silently yields empty input and reports "green" before checks run. Replace it with a `gh pr view --json statusCheckRollup` query that defensively handles both rollup node types.
 
-- [ ] **Step 1: Confirm the RED baseline for M3**
+- [x] **Step 1: Confirm the RED baseline for M3**
 
 ```bash
 ./tests/unit/lib/bats-core/bin/bats tests/spec/t001408-mishap-bundle.bats --filter 'M3'
@@ -224,7 +224,7 @@ git commit -m "fix(devflow-ci-watch): DIRTY-mergeState preflight rebase before C
 # no statusCheckRollup query exists.
 ```
 
-- [ ] **Step 2: Replace the `FAILED_CHECKS` derivation**
+- [x] **Step 2: Replace the `FAILED_CHECKS` derivation**
 
 Replace lines 28-29 (`FAILED_CHECKS=$(gh pr checks --json name,state,link ...)` and its `jq` continuation) with:
 
@@ -240,14 +240,14 @@ The `-q` (gh's built-in jq mode) surfaces a schema-break as a non-zero exit on s
 
 Known limit (documented, out of scope for T001408): a PR with *no* checks started still yields an empty `FAILED_CHECKS` (green), because the script does not distinguish "no checks yet" from "all checks green" — track as a follow-up if it recurs.
 
-- [ ] **Step 3: Run the M3 tests to verify GREEN**
+- [x] **Step 3: Run the M3 tests to verify GREEN**
 
 ```bash
 ./tests/unit/lib/bats-core/bin/bats tests/spec/t001408-mishap-bundle.bats --filter 'M3'
 # Expected: 2 tests pass — no `gh pr checks --json` call; failed checks derived from statusCheckRollup.
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add scripts/devflow-ci-watch.sh
@@ -261,21 +261,21 @@ git commit -m "fix(devflow-ci-watch): derive failed checks from valid statusChec
 **Files:**
 - No source edits — verification only.
 
-- [ ] **Step 1: Full BATS contract green (all 7 tests)**
+- [x] **Step 1: Full BATS contract green (all 7 tests)**
 
 ```bash
 ./tests/unit/lib/bats-core/bin/bats tests/spec/t001408-mishap-bundle.bats
 # Expected: PASS — all 7 tests green (was 7/7 RED at plan time).
 ```
 
-- [ ] **Step 2: Shellcheck the two edited scripts**
+- [x] **Step 2: Shellcheck the two edited scripts**
 
 ```bash
 shellcheck scripts/agent-lock.sh scripts/devflow-ci-watch.sh
 # Expected: no new warnings introduced by the edits.
 ```
 
-- [ ] **Step 3: Run the three mandatory CI gates**
+- [x] **Step 3: Run the three mandatory CI gates**
 
 ```bash
 task test:changed
@@ -283,7 +283,7 @@ task freshness:regenerate
 task freshness:check
 ```
 
-- [ ] **Step 4: Commit any regenerated freshness artifacts**
+- [x] **Step 4: Commit any regenerated freshness artifacts**
 
 ```bash
 git add -A

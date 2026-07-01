@@ -10,10 +10,9 @@ import type { Pool, PoolClient } from 'pg';
 import { initTicketsSchema } from './tickets-schema';
 import type { Customer } from './website-db';
 
-// Re-export from related modules for convenience
+// Re-export from related modules for convenience (but NOT project-export-db to avoid cycles)
 export * from './project-attachments-db';
 export * from './project-portal-db';
-export * from './project-export-db';
 
 // ── Type Definitions ──────────────────────────────────────────────────────────
 

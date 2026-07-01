@@ -2,7 +2,7 @@
 title: "Mishap-Bundle: tests/ci-pipeline, tickets — Implementation Plan"
 ticket_id: T001353
 domains: [tests, tickets]
-status: plan_staged
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

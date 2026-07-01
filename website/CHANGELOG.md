@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.150.11](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.150.10...website-v1.150.11) (2026-07-01)
+
+
+### Bug Fixes
+
+* **infra:** brand-scope SealedSecret-Anwendung in workspace:deploy [T001404] ([#2467](https://github.com/Paddione/Bachelorprojekt/issues/2467)) ([725d52d](https://github.com/Paddione/Bachelorprojekt/commit/725d52dc8295bf6426bc2be96c9cb3530805ff54))
+
 ## [1.150.10](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.150.9...website-v1.150.10) (2026-07-01)
 
 

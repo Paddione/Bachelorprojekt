@@ -142,11 +142,28 @@ export async function applyLegacyMigrations(pool: Pool | PoolClient): Promise<vo
   // hold valid T-numbers (e.g. T000342/T000399/T000402) are NOT reconciled here
   // — that renumber touches live, externally-referenced ids and is a separate
   // one-shot manual migration. See the PR's HELD-FOR-REVIEW section.
+  //
+  // MONOTONIC-ONLY (T001392): this reseed runs on EVERY schema-init (every
+  // website pod boot/rollout), not just once. `MAX(external_id)` is read in
+  // its own transaction and — under read-committed isolation — is blind to a
+  // concurrent, not-yet-committed nextval()-derived INSERT (e.g. a running
+  // `scripts/ticket.sh create`). An unconditional setval() to that MAX would
+  // regress the sequence backward, and the next nextval() call would then
+  // re-issue an external_id already handed out (but not yet committed) by the
+  // concurrent insert, producing a `tickets_external_id_key` violation once
+  // both commit. GREATEST() over the table's observed max AND the sequence's
+  // own current last_value makes the reseed advance-only: it can never lower
+  // last_value below what nextval() has already dispensed, so a value in
+  // flight can never be reissued. Verified against a real Postgres 16
+  // instance (see docs/superpowers/specs/2026-07-01-t001392-ticket-external-id-race-design.md).
   await pool.query(`
     SELECT setval('tickets.external_id_seq',
-                  COALESCE((SELECT MAX(CAST(SUBSTRING(external_id FROM 2) AS BIGINT))
-                              FROM tickets.tickets
-                             WHERE external_id ~ '^T[0-9]+$'), 1),
+                  GREATEST(
+                    COALESCE((SELECT MAX(CAST(SUBSTRING(external_id FROM 2) AS BIGINT))
+                                FROM tickets.tickets
+                               WHERE external_id ~ '^T[0-9]+$'), 1),
+                    (SELECT last_value FROM tickets.external_id_seq)
+                  ),
                   EXISTS (SELECT 1 FROM tickets.tickets WHERE external_id ~ '^T[0-9]+$'))
   `);
 

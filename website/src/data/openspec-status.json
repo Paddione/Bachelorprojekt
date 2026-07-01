@@ -639,6 +639,12 @@
       "status": "plan_staged"
     }
   ],
+  "T001382": [
+    {
+      "slug": "rustdesk-subpath-rotation-runbook",
+      "status": "plan_staged"
+    }
+  ],
   "T001389": [
     {
       "slug": "openspec-auto-register",

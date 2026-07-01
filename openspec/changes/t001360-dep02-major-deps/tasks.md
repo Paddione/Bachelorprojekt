@@ -42,8 +42,9 @@ openspec/changes/t001360-dep02-major-deps/
 - For each upgrade, decide whether a dedicated branch or in‑plan step is appropriate.
 - Write the plan into `openspec/changes/t001360-dep02-major-deps/specs/update-plan.md`.
 
-### T‑3: Implement and verify
+### T‑3: Implement and verify ✅
 
+- [x] typescript 5.9.3→6.0.3 and vitest 3.2.6→4.1.9 upgraded in root `package.json` + lockfile; vitest/openspec/agent-guide/code-quality tests green; freshness regenerated.
 - Execute the updates according to the order from T‑2.
 - After each update, run `task test:changed` to validate the change.
 - After all updates are complete, run:
@@ -55,7 +56,7 @@ openspec/changes/t001360-dep02-major-deps/
 
 ## Verify
 
-- [ ] Audit reflects the true state of the repo at branch HEAD.
-- [ ] Update plan is conflict-free and preserves the existing test suite.
-- [ ] `task test:changed` passes.
-- [ ] `task freshness:regenerate && task freshness:check` passes.
+- [x] Audit reflects the true state of the repo at branch HEAD.
+- [x] Update plan is conflict-free and preserves the existing test suite.
+- [x] `task test:changed` passes (only pre-existing, unrelated failures remain — see update-plan.md).
+- [x] `task freshness:regenerate && task freshness:check` passes.

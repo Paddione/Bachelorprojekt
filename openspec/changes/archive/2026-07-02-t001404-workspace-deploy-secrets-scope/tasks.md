@@ -2,7 +2,7 @@
 title: "workspace:deploy — brand-scope SealedSecret-Anwendung gegen Cross-Brand-Überschreibung (T001404)"
 ticket_id: T001404
 domains: [infra, secrets, test]
-status: active
+status: completed
 file_locks: [environments/schema.yaml, scripts/env-seal.sh, scripts/lib/seal-extra-namespaces.sh, Taskfile.yml, tests/spec/workspace-deploy-secrets-scope.bats, openspec/changes/t001404-workspace-deploy-secrets-scope/, docs/superpowers/specs/2026-07-01-t001404-workspace-deploy-secrets-scope-design.md, .lavish/t001404-secrets-scope-brainstorm.html]
 shared_changes: false
 batch_id: null

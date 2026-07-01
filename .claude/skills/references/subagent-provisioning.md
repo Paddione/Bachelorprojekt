@@ -12,6 +12,7 @@ Klassifiziere die Aufgabe nach **Komplexität × Risiko × Rolle**:
 
 | Aufgaben-Charakter | Modell |
 |---|---|
+| Reine Textgenerierung ohne Urteilsvermögen: Boilerplate-Text, Klassifizierung, Umbenennungs-Vorschläge, Kurz-Zusammenfassung — kein Datei-/Shell-Zugriff nötig | `hermes-delegate` (lokal, kostenlos) |
 | Mechanisch: Config, Doku, Rename, Single-File-Edit, Lockfile-/Dependency-Bump | `haiku` |
 | Standard: normale Feature-/Fix-Implementierung, mehrere Dateien, klarer Plan | `sonnet` |
 | Komplex/riskant: systemübergreifend, Architektur, Security, DB-/Schema-Migration, Nebenläufigkeit, Auto-Deploy | `opus` |
@@ -19,6 +20,17 @@ Klassifiziere die Aufgabe nach **Komplexität × Risiko × Rolle**:
 
 Im Zweifel **eine Stufe höher**. Wenn unsicher, ob ein Spezial-Modell überhaupt passt: **`model` weglassen**
 → der Subagent erbt das Main-Loop-Modell (fast immer korrekt).
+
+> **Tier 0 — `hermes-delegate` (lokal, vor `haiku`):** Für Prompts, die reine Textgenerierung ohne
+> Dateizugriff, Werkzeugnutzung oder mehrschrittiges Reasoning sind, ruf statt eines `haiku`-Subagenten
+> `bash scripts/hermes-delegate.sh "<prompt>"` auf. Läuft lokal über den bereits konfigurierten
+> Hermes-Agent (`~/.hermes/config.yaml`, Modell `google/gemma-4-12b-qat` via LM Studio) — kostet keine
+> API-Tokens. **Keine Werkzeuge standardmäßig aktiv** (`-t ""`); nur bei explizitem Bedarf ein
+> Toolset als zweites Argument übergeben (`scripts/hermes-delegate.sh "<prompt>" file`), dann aber
+> wie jeden Tool-Zugriff mit Vorsicht behandeln — das Modell ist kleiner und weniger zuverlässig in
+> mehrschrittigem Tool-Calling als `haiku`. **Nicht** verwenden für: Aufgaben mit Urteilsvermögen,
+> Sicherheitsrelevanz, mehreren Dateien, oder wenn das Ergebnis ungeprüft weiterverwendet wird — dort
+> bleibt `haiku`/`sonnet` die Untergrenze.
 
 > **⚠ Haiku-Fußangel bei Spec-Reviews [T000551]:** Haiku liest ohne expliziten `limit`-Parameter nur
 > die ersten ~80 Zeilen einer Datei und liefert daher false negatives bei Spec-Compliance-Prüfungen

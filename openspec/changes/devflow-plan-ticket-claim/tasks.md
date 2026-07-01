@@ -58,7 +58,7 @@ openspec/changes/devflow-plan-ticket-claim/   # this change folder (proposal.md,
 - Consumes: `$PLAN_SKILL` (`setup()` var, already defined in the file: `"$REPO/.claude/skills/dev-flow-plan/SKILL.md"`)
 - Produces: nothing consumed by later tasks — this is a static text-contract check.
 
-- [ ] **Step 1: Confirm the failing tests are present and RED on the current branch**
+- [x] **Step 1: Confirm the failing tests are present and RED on the current branch**
 
 The three `@test` blocks below are already appended to
 `tests/spec/agent-lock-session-identity.bats` (verify with `git diff` / `git status` —
@@ -88,7 +88,7 @@ If this file does not yet contain these three blocks on your checkout, add them 
 the end of the file (after the existing `T001268-M3` tests), matching indentation and
 style of the surrounding blocks.
 
-- [ ] **Step 2: Run the test file and confirm all three new tests FAIL**
+- [x] **Step 2: Run the test file and confirm all three new tests FAIL**
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/agent-lock-session-identity.bats
@@ -99,7 +99,7 @@ while tests 1-6 (`T001268-*`) stay `ok` (they must not regress). Confirmed on th
 branch prior to the fix: exit status 1, tests 7/8/9 failing with
 `` `| grep -Eq …' failed ``.
 
-- [ ] **Step 3: Stage the test file (commit happens together with the plan in Task 3)**
+- [x] **Step 3: Stage the test file (commit happens together with the plan in Task 3)**
 
 ```bash
 git add tests/spec/agent-lock-session-identity.bats
@@ -119,7 +119,7 @@ git add tests/spec/agent-lock-session-identity.bats
 - Consumes: existing `bash scripts/agent-lock.sh claim ticket <id> --branch <b> --worktree <w> --label <l>` CLI contract (unchanged, defined in `scripts/agent-lock.sh`; already used correctly by the Fix-Pfad's Schritt 2.5 in the same file).
 - Produces: `.git/agent-locks/ticket__$TICKET_EXT_ID.json` now exists on the Feature-Pfad by the time Schritt 5 runs — this is what Task 1's tests assert textually, and what makes the Schritt 5 guard's `jq -r '.branch'` read meaningful instead of reading a non-existent file.
 
-- [ ] **Step 1: Edit Schritt B.1 — add conditional ticket claim next to the existing branch claim**
+- [x] **Step 1: Edit Schritt B.1 — add conditional ticket claim next to the existing branch claim**
 
 In `.claude/skills/dev-flow-plan/SKILL.md`, locate the `#### Schritt B.1: Worktree anlegen`
 section (Feature-Pfad, Phase B). Its current content is:
@@ -161,7 +161,7 @@ fi
 \`\`\`
 ```
 
-- [ ] **Step 2: Edit Schritt 4.5 — add the ticket claim right after ticket creation/reuse, before Schritt 5**
+- [x] **Step 2: Edit Schritt 4.5 — add the ticket claim right after ticket creation/reuse, before Schritt 5**
 
 Locate `### Schritt 4.5: Ticket anlegen oder wiederverwenden`. After the existing
 `stage_plan`/`stage-plan` block (both the MCP-first line and the bash fallback block)
@@ -183,7 +183,7 @@ bash scripts/agent-lock.sh claim ticket "$TICKET_EXT_ID" \
 \`\`\`
 ```
 
-- [ ] **Step 3: Harden the Schritt 5 Pre-Commit-Guard check 3 (explicit lock-file existence check)**
+- [x] **Step 3: Harden the Schritt 5 Pre-Commit-Guard check 3 (explicit lock-file existence check)**
 
 Locate `### Schritt 5: Commit & Push — dann STOPP`, "Pre-Commit Guard" block, check 3
 ("Branch stimmt mit agent-lock claim überein"). Current content:
@@ -209,7 +209,7 @@ claim fails loudly and distinctly from a real branch mismatch):
    \`\`\`
 ```
 
-- [ ] **Step 4: Run the test file and confirm all tests now PASS**
+- [x] **Step 4: Run the test file and confirm all tests now PASS**
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/agent-lock-session-identity.bats
@@ -218,7 +218,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/agent-lock-session-identity.bats
 Expected: PASS — all 9 tests `ok` (the 6 pre-existing `T001268-*` tests unchanged plus
 the 3 new `T001386:` tests now green).
 
-- [ ] **Step 5: Commit the SKILL.md fix together with the test file**
+- [x] **Step 5: Commit the SKILL.md fix together with the test file**
 
 ```bash
 git add .claude/skills/dev-flow-plan/SKILL.md tests/spec/agent-lock-session-identity.bats

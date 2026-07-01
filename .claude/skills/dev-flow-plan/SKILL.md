@@ -243,6 +243,15 @@ bash scripts/worktree-create.sh feature/<slug> /tmp/wt-<slug>
 # Doppelarbeit verhindern: Branch claimen (Session-Koordination [T000510]).
 bash scripts/agent-lock.sh claim branch "feature/<slug>" --worktree "/tmp/wt-<slug>" --label dev-flow-plan \
   || { echo "🛑 Branch wird bereits von einer anderen Session bearbeitet — koordinieren oder anderen slug wählen."; exit 1; }
+
+# Ticket-Claim (Session-Koordination [T000510]) — nur falls die Ticket-ID schon bekannt
+# ist (z. B. von feature-intake übergeben). Ist noch keine Ticket-ID bekannt, holt
+# Schritt 4.5 den Claim nach, sobald das Ticket dort angelegt/wiederverwendet wird. [T001386]
+if [[ -n "${TICKET_EXT_ID:-}" ]]; then
+  bash scripts/agent-lock.sh claim ticket "$TICKET_EXT_ID" \
+    --branch "feature/<slug>" --worktree "/tmp/wt-<slug>" --label dev-flow-plan \
+    || { echo "🛑 Ticket wird bereits von einer anderen Session bearbeitet — koordinieren."; exit 1; }
+fi
 ```
 
 #### Schritt B.2: Proposal-Artefakte in den Worktree verschieben
@@ -399,6 +408,17 @@ fi
 
 Hänge gesammelte Assets mit `bash scripts/ticket-attach.sh "$TICKET_UUID" <pfade>` an.
 
+Ticket-Claim jetzt nachholen (Session-Koordination [T000510]) — der Feature-Pfad kennt
+die Ticket-ID erst ab hier; Schritt 5's Pre-Commit-Guard prüft ticket-scoped und braucht
+diesen Claim VOR dem Commit. Falls Schritt B.1 den Claim bereits gesetzt hat (Ticket-ID
+war vorab bekannt), ist ein erneuter Claim durch dieselbe Session ein no-op-Refresh
+(kein Fehler):
+```bash
+bash scripts/agent-lock.sh claim ticket "$TICKET_EXT_ID" \
+  --branch "$(git branch --show-current)" --worktree "$(pwd)" --label dev-flow-plan \
+  || { echo "🛑 Ticket wird bereits von einer anderen Session bearbeitet — koordinieren."; exit 1; }
+```
+
 ### Schritt 5: Commit & Push — dann STOPP
 
 **Pre-Commit Guard (PFLICHT — Schritt 5) [T001268]:**
@@ -418,7 +438,9 @@ Bevor der plan-stage Commit läuft, MUSS der Operator verifizieren:
 
 3. **Branch stimmt mit agent-lock claim überein:**
    ```bash
-   CLAIMED_BRANCH="$(jq -r '.branch' .git/agent-locks/ticket__"$TICKET_EXT_ID".json 2>/dev/null)"
+   LOCK_FILE=".git/agent-locks/ticket__${TICKET_EXT_ID}.json"
+   [ -f "$LOCK_FILE" ] || { echo "FATAL: kein ticket-scoped agent-lock-Claim für $TICKET_EXT_ID gefunden ($LOCK_FILE fehlt) — claim zuerst mit agent-lock.sh claim ticket (siehe Schritt B.1 / Schritt 4.5)." >&2; exit 1; }
+   CLAIMED_BRANCH="$(jq -r '.branch' "$LOCK_FILE" 2>/dev/null)"
    [ "$CLAIMED_BRANCH" = "$CURRENT_BRANCH" ] || { echo "FATAL: branch mismatch — agent-lock claim = $CLAIMED_BRANCH, HEAD = $CURRENT_BRANCH." >&2; exit 1; }
    ```
 

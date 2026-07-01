@@ -58,11 +58,14 @@ git plumbing (`git rev-parse --git-path`, `git show-ref`).
 ### S1 line-budget pre-flight (per plan-quality-gates S1)
 
 `scripts/agent-lock.sh` is `.sh` (static limit 500) and **not baselined** → effective
-threshold 500. Current `wc -l` = 249. Planned additions ≈ +28 lines → ≈ 277, well under.
+threshold 500. Pre-implementation `wc -l` = 249; actual implementation added 49 lines
+(two new helpers, `cmd_guard_precommit`/`cmd_guard_postcheckout` rewrites, plus the
+code-review fix for the self-claim/hard-block interaction — see Task 2 Step 10) →
+post-implementation `wc -l` = 298, still well under the 500 limit.
 
 | Datei | Ist | Budget |
 |---|---|---|
-| `scripts/agent-lock.sh` | 249 | 251 |
+| `scripts/agent-lock.sh` | 298 | 202 |
 
 New files (`check-no-main-checkout.sh` ≈ 22 lines `.sh`/limit 500; `.bats` is ungated) are
 cut with ample reserve. No baseline entries are added. S2 (no import cycles — pure bash, N/A),
@@ -85,7 +88,7 @@ from CI.
   and exits `1` iff a raw `git checkout`/`git switch` exists that is not `-C`-scoped and not a
   comment. Exit `0` on a clean tree. Consumed by Task 2's BATS tests.
 
-- [ ] **Step 1: Write the failing tests (static guard).**
+- [x] **Step 1: Write the failing tests (static guard).**
 
 Create `tests/spec/factory-branch-switch-guard.bats` with the header and the three static
 tests below. Test `A` invokes a script that does not exist yet — `expected: FAIL`.
@@ -125,13 +128,13 @@ teardown() { rm -rf "$TMP"; }
 }
 ```
 
-- [ ] **Step 2: Run the static tests to verify they fail.**
+- [x] **Step 2: Run the static tests to verify they fail.**
 
 Run: `tests/unit/lib/bats-core/bin/bats tests/spec/factory-branch-switch-guard.bats -f "^A"`
 Expected: FAIL — the guard script does not exist (`bash: ... No such file`), so all three
 error out. This is the RED state for the static half. `expected: FAIL`.
 
-- [ ] **Step 3: Create the guard script (minimal implementation).**
+- [x] **Step 3: Create the guard script (minimal implementation).**
 
 ```bash
 #!/usr/bin/env bash
@@ -163,12 +166,12 @@ exit 0
 
 Then: `chmod +x scripts/factory/check-no-main-checkout.sh`.
 
-- [ ] **Step 4: Run the static tests to verify they pass.**
+- [x] **Step 4: Run the static tests to verify they pass.**
 
 Run: `tests/unit/lib/bats-core/bin/bats tests/spec/factory-branch-switch-guard.bats -f "^A"`
 Expected: PASS (3 ok) — clean tree passes, injected violation flagged, worktree-scoped exempt.
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
 
 ```bash
 git add scripts/factory/check-no-main-checkout.sh tests/spec/factory-branch-switch-guard.bats
@@ -191,7 +194,7 @@ git commit -m "test(session-coordination): static factory main-checkout guard [T
   a `guard-postcheckout` that reverts to the lock's `branch` and a `guard-precommit` that
   self-claims. Env gate `AGENT_LOCK_POSTCHECKOUT_REVERT` (default `1`; `0` = warn only).
 
-- [ ] **Step 1: Write the failing runtime tests (B/C/D/E).**
+- [x] **Step 1: Write the failing runtime tests (B/C/D/E).**
 
 Append to `tests/spec/factory-branch-switch-guard.bats`:
 
@@ -266,14 +269,14 @@ JSON
 }
 ```
 
-- [ ] **Step 2: Run B/C/D/E to verify the new-behavior ones fail.**
+- [x] **Step 2: Run B/C/D/E to verify the new-behavior ones fail.**
 
 Run: `tests/unit/lib/bats-core/bin/bats tests/spec/factory-branch-switch-guard.bats -f "^[BCDE]"`
 Expected: FAIL — `C` (no revert today → HEAD stays main), `E` (no self-claim → no lock file),
 and `B` (today it prints a warning → non-empty `$output`) all fail. `D` already passes (warn
 only). This is the RED state for the runtime half. `expected: FAIL`.
 
-- [ ] **Step 3: Add the two helper functions.**
+- [x] **Step 3: Add the two helper functions.**
 
 Insert after `_holder_msg()` (around line 124) in `scripts/agent-lock.sh`:
 
@@ -299,7 +302,7 @@ _self_claim_main_checkout() {
 }
 ```
 
-- [ ] **Step 4: Rewrite `cmd_guard_postcheckout`.**
+- [x] **Step 4: Rewrite `cmd_guard_postcheckout`.**
 
 Replace the existing `cmd_guard_postcheckout` (lines 225–232) with:
 
@@ -328,7 +331,7 @@ cmd_guard_postcheckout() {
 }
 ```
 
-- [ ] **Step 5: Extend `cmd_guard_precommit` with the self-claim.**
+- [x] **Step 5: Extend `cmd_guard_precommit` with the self-claim.**
 
 Replace the existing `cmd_guard_precommit` (lines 212–223) with:
 
@@ -351,27 +354,54 @@ cmd_guard_precommit() {
 }
 ```
 
-- [ ] **Step 6: Run B/C/D/E to verify they pass.**
+- [x] **Step 6: Run B/C/D/E to verify they pass.**
 
 Run: `tests/unit/lib/bats-core/bin/bats tests/spec/factory-branch-switch-guard.bats -f "^[BCDE]"`
 Expected: PASS (4 ok).
 
-- [ ] **Step 7: Run the shellcheck lint and the full new file.**
+- [x] **Step 7: Run the shellcheck lint and the full new file.**
 
 Run: `shellcheck scripts/agent-lock.sh scripts/factory/check-no-main-checkout.sh`
 Then: `tests/unit/lib/bats-core/bin/bats tests/spec/factory-branch-switch-guard.bats`
 Expected: no new shellcheck errors; all BATS tests (A–E) pass.
 
-- [ ] **Step 8: Regression — existing agent-lock suite still green.**
+- [x] **Step 8: Regression — existing agent-lock suite still green.**
 
 Run: `tests/unit/lib/bats-core/bin/bats tests/spec/agent-lock-session-identity.bats`
 Expected: PASS — the identity/claim behaviour used by the self-claim is unchanged.
 
-- [ ] **Step 9: Commit.**
+- [x] **Step 9: Commit.**
 
 ```bash
 git add scripts/agent-lock.sh tests/spec/factory-branch-switch-guard.bats
 git commit -m "fix(session-coordination): post-checkout best-effort revert + precommit self-claim [T001383]"
+```
+
+- [x] **Step 10: Code-review fix — self-claim must never hard-block a different session.**
+
+`requesting-code-review` (Critical finding, reproduced independently): the naive self-claim
+from Step 5 makes `cmd_guard_precommit` create a `main-checkout` lock on *every ordinary
+commit* — so a second session committing minutes later in the same shared main checkout gets
+hard-blocked (`AGENT_LOCK_FORCE=1` required), even though nobody deliberately claimed
+`main-checkout`. This is a real regression against the explicit constraint ("don't change
+existing command semantics") and against the design doc's own "Nicht im Scope" claim.
+
+Fix: give the self-claim a distinguishing label (`_SELF_CLAIM_LABEL="auto: pre-commit
+self-claim"`); `cmd_guard_precommit`'s hard-block condition now also requires the foreign
+lock's label to differ from `_SELF_CLAIM_LABEL` — only a *deliberate* `claim main-checkout`
+(e.g. from `dev-flow-chore`) still hard-blocks. `guard-postcheckout`'s revert logic is
+unaffected (still reads `branch` regardless of label, since a self-claim is a legitimate
+revert target too).
+
+Added regression test `F` (`tests/spec/factory-branch-switch-guard.bats`): session A
+self-claims via `guard-precommit`, then session B's `guard-precommit` must exit 0 with no
+output. Verified RED (fails without the label check) → GREEN (passes with it) by toggling the
+fix locally. Full suite + `agent-lock-session-identity.bats` re-run clean.
+
+```bash
+git add scripts/agent-lock.sh tests/spec/factory-branch-switch-guard.bats \
+        docs/superpowers/specs/2026-07-01-factory-branch-switch-guard-design.md
+git commit -m "fix(session-coordination): self-claim must not hard-block other sessions [T001383]"
 ```
 
 ---
@@ -383,7 +413,7 @@ git commit -m "fix(session-coordination): post-checkout best-effort revert + pre
 
 **Interfaces:** documentation only — no code consumers.
 
-- [ ] **Step 1: Add the note to the `G-B` section.**
+- [x] **Step 1: Add the note to the `G-B` section.**
 
 In the `### G-B — main-Checkout-Race` section, directly after the paragraph that begins
 "Zusätzlich neuer **`post-checkout`**-Hook" (around line 183), insert:
@@ -396,7 +426,7 @@ In the `### G-B — main-Checkout-Race` section, directly after the paragraph th
 > `docs/superpowers/specs/2026-07-01-factory-branch-switch-guard-design.md`.
 ```
 
-- [ ] **Step 2: Commit.**
+- [x] **Step 2: Commit.**
 
 ```bash
 git add docs/superpowers/specs/2026-06-08-agent-session-coordination-design.md
@@ -409,17 +439,19 @@ git commit -m "docs(session-coordination): note post-checkout revert upgrade [T0
 
 **Files:** none (verification only).
 
-- [ ] **Step 1: Plan-lint self-gate.**
+- [x] **Step 1: Plan-lint self-gate.**
 
 Run: `bash scripts/plan-lint.sh openspec/changes/factory-branch-switch-guard/tasks.md`
 Expected: `PLAN-LINT: PASS (0 hard, …)`.
+Result: PASS (0 hard, 2 warn — G1 file-count warnings only, expected for a 4-file plan).
 
-- [ ] **Step 2: OpenSpec validation stays green.**
+- [x] **Step 2: OpenSpec validation stays green.**
 
 Run: `bash scripts/openspec.sh validate factory-branch-switch-guard`
 Expected: validation passes (do NOT commit archive — the orchestrator handles that).
+Result: `openspec validate: OK`.
 
-- [ ] **Step 3: Mandatory CI gates.**
+- [x] **Step 3: Mandatory CI gates.**
 
 ```bash
 task test:changed
@@ -431,13 +463,23 @@ Expected: `task test:changed` runs the new BATS + quality ratchet and passes;
 `task freshness:regenerate` regenerates `website/src/data/test-inventory.json` (the new
 `.bats` file is inventoried); `task freshness:check` passes (S1–S4 ratchet + baseline
 key-count assertion — no baseline entries were added).
+Result: all new/modified BATS suites (factory-branch-switch-guard, agent-lock-session-identity)
+pass. `tests/spec/build-test-inventory.sh` only scans `tests/local/`, `tests/prod/`,
+`tests/e2e/specs/` — `tests/spec/*.bats` is out of its scope, so `test-inventory.json` was
+unchanged (no stale diff). One pre-existing, unrelated failure confirmed via `git stash`
+(reproduces identically on the pre-T001383 tree): `tests/spec/mcp-tooling.bats` test 3
+("antigravity-cli settings.json pre-grants Bash(gh *) permission"). `freshness:check` passed
+after regenerating and committing `docs/code-quality/{repo-index,loc-budget}.json`.
 
-- [ ] **Step 4: Stage regenerated artifacts.**
+- [x] **Step 4: Stage regenerated artifacts.**
 
 ```bash
 git add website/src/data/test-inventory.json
 git status --short
 ```
+Result: `test-inventory.json` had no diff (see Step 3 note); `docs/code-quality/repo-index.json`
+and `docs/code-quality/loc-budget.json` were staged and committed instead
+(`chore: auto-regenerate freshness artifacts [T001383]`).
 
 Expected: only the test-inventory (and any other freshness artifacts) are staged; commit them
 if changed with `git commit -m "chore: regenerate freshness artifacts [T001383]"`.

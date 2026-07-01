@@ -133,6 +133,12 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
+          # Git Bash on windows-latest rewrites a leading "/" as a filesystem
+          # path ("invalid API endpoint: C:/Program Files/Git/user/packages/...")
+          # — this previously made the whole `gh api` call fail silently into
+          # the "2>/dev/null" branch below, masking the check as a false-positive
+          # "not yet created" every run (T001425 follow-up).
+          MSYS_NO_PATHCONV: "1"
         run: |
           # Close the brief exposure window: if downloads-content ALREADY exists
           # and is public, a `docker push` would re-expose the MSI layer before
@@ -183,6 +189,7 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
+          MSYS_NO_PATHCONV: "1"
         run: |
           # REQ-RUSTDESK-CLIENT-003 backstop: a PUBLIC package lets anyone
           # `docker pull` the image and extract the baked unattended password from

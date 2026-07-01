@@ -568,6 +568,20 @@ secrets:
       - namespace: coturn
         secret: coturn-secrets
 
+  - name: RUSTDESK_ID_ED25519
+    required: true
+    extra_namespaces:
+      - namespace: rustdesk
+        secret: rustdesk-secrets
+        dest_key: id_ed25519
+
+  - name: RUSTDESK_ID_ED25519_PUB
+    required: true
+    extra_namespaces:
+      - namespace: rustdesk
+        secret: rustdesk-secrets
+        dest_key: id_ed25519.pub
+
   - name: CRON_SECRET
     required: true
     generate: true

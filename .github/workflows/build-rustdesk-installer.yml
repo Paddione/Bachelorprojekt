@@ -169,6 +169,9 @@ jobs:
 
           New-Item -ItemType Directory -Force -Path layer-root/public | Out-Null
           Copy-Item rustdesk-workspace-installer.exe layer-root/public/rustdesk-workspace-installer.exe
+          # T001431: matches scripts/downloads.Dockerfile's COPY — without this,
+          # static-web-server serves its own built-in placeholder page at "/".
+          Copy-Item scripts/downloads-index.html layer-root/public/index.html
           tar -cf layer.tar -C layer-root public
           if ($LASTEXITCODE -ne 0) { Write-Error "tar failed ($LASTEXITCODE)"; exit $LASTEXITCODE }
 

@@ -1591,7 +1591,7 @@ export async function createTimeEntry(params: {
   await initTimeEntriesTable();
   const result = await pool.query(
     `INSERT INTO time_entries (project_id, task_id, description, minutes, billable, rate_cents, leistung_key, entry_date)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, COALESCE($8::date, CURRENT_DATE))
      RETURNING
        id,
        project_id        AS "projectId",

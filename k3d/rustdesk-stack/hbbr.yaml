@@ -36,6 +36,9 @@ spec:
             - containerPort: 21117
               hostPort: 21117
               protocol: TCP
+            - containerPort: 21119
+              hostPort: 21119
+              protocol: TCP
           resources:
             requests:
               memory: 32Mi

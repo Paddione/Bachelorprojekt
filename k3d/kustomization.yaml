@@ -101,6 +101,9 @@ resources:
   - pocket-id-client-seed.yaml
   # Netzwerksicherheit (L3)
   - network-policies.yaml
+  # RustDesk web-client SSO bridge (T001381)
+  - rustdesk-web-bridge.yaml
+  - oauth2-proxy-rustdesk-web.yaml
   # Ingress
   - ingress.yaml
   # Website RBAC (Role/RoleBinding in workspace ns for monitoring + backup-status API)

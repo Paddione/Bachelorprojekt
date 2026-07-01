@@ -159,6 +159,12 @@ env_vars:
     required: true
     default_dev: "k3d-dev-server-0"
 
+  - name: TURN_OVERLAY_IP
+    required: true
+    default_dev: "127.0.0.1"
+    validate: "^[0-9.]+$"
+    description: "wg-fleet overlay IP of ${TURN_NODE} (fleet pk-hetzner-4 = 10.20.0.1). Endpoints target for the RustDesk web-client bridge (T001381)."
+
   - name: NEXTCLOUD_EXTERNAL_URL
     required: false
     default_dev: "http://files.localhost"
@@ -733,6 +739,12 @@ secrets:
     generate: true
     length: 40
     description: "OIDC client secret for the `studio` Pocket ID client (oauth2-proxy-studio). Pocket ID has no groups — the studio coach allow-list moves to --authenticated-emails-file."
+
+  - name: POCKET_ID_RUSTDESK_WEB_SECRET
+    required: false
+    generate: true
+    length: 40
+    description: "OIDC client secret for the `rustdesk-web` Pocket ID client (oauth2-proxy-rustdesk-web)."
 
   - name: POCKET_ID_DOCS_SECRET
     required: false

@@ -7,6 +7,7 @@ setup() {
   REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
   STACK="${REPO_ROOT}/k3d/rustdesk-stack"
   WORKFLOW="${REPO_ROOT}/.github/workflows/build-rustdesk-installer.yml"
+  K3D="${REPO_ROOT}/k3d"
 }
 
 @test "rustdesk: kustomize build k3d/rustdesk-stack succeeds (no broken refs)" {
@@ -46,10 +47,51 @@ setup() {
   echo "$out" | grep -qE 'hostPort:[[:space:]]*21117'
 }
 
-@test "rustdesk: web-client ports 21118/21119 are absent" {
+@test "rustdesk-web: hbbs adds web-client port 21118/tcp, hbbr adds 21119/tcp" {
   command -v kustomize >/dev/null || skip "kustomize not installed"
   out="$(kustomize build "$STACK")"
-  ! echo "$out" | grep -qE '2111[89]'
+  echo "$out" | grep -qE 'hostPort:[[:space:]]*21118'
+  echo "$out" | grep -qE 'hostPort:[[:space:]]*21119'
+}
+
+@test "rustdesk-web: bridge Services are selector-less with matching Endpoints to \${TURN_OVERLAY_IP}" {
+  command -v kustomize >/dev/null || skip "kustomize not installed"
+  out="$(kustomize build "$K3D" --load-restrictor=LoadRestrictionsNone)"
+  # both bridge Services exist
+  echo "$out" | grep -qE 'name:[[:space:]]*rustdesk-web-hbbs'
+  echo "$out" | grep -qE 'name:[[:space:]]*rustdesk-web-hbbr'
+  # matching Endpoints object referencing the overlay IP placeholder
+  echo "$out" | grep -qE 'kind:[[:space:]]*Endpoints'
+  echo "$out" | grep -qE 'ip:[[:space:]]*"?\$\{TURN_OVERLAY_IP\}"?'
+  # the bridge Services must NOT carry a selector (manually managed Endpoints)
+  svc_block="$(echo "$out" | awk '/name: rustdesk-web-hbbs/,/^---/')"
+  ! echo "$svc_block" | grep -qE '^\s*selector:'
+}
+
+@test "rustdesk-web: oauth2-proxy-rustdesk-web fronts the bridges (downloads pattern)" {
+  command -v kustomize >/dev/null || skip "kustomize not installed"
+  out="$(kustomize build "$K3D" --load-restrictor=LoadRestrictionsNone)"
+  echo "$out" | grep -qE 'name:[[:space:]]*oauth2-proxy-rustdesk-web'
+  echo "$out" | grep -qE 'client-id=rustdesk-web'
+  echo "$out" | grep -qE 'rustdesk-web-hbbs:21118'
+  echo "$out" | grep -qE 'rustdesk-web-hbbr:21119'
+}
+
+@test "rustdesk-web: dev ingress routes remote.localhost to the proxy" {
+  command -v kustomize >/dev/null || skip "kustomize not installed"
+  out="$(kustomize build "$K3D" --load-restrictor=LoadRestrictionsNone)"
+  echo "$out" | grep -qE 'host:[[:space:]]*remote\.localhost'
+}
+
+@test "rustdesk-web: every ufw 21118/21119 rule is overlay-restricted (10.20.0.0/16)" {
+  for f in prod/cloud-init.yaml \
+           scripts/hetzner/cloud-init.yaml.tmpl \
+           scripts/hetzner/cloud-init-server.yaml.tmpl; do
+    # the port rule must exist
+    grep -qE '2111[89]' "${REPO_ROOT}/${f}"
+    # and NO 21118/21119 line may lack the overlay CIDR (guards public exposure)
+    ! grep -E '2111[89]' "${REPO_ROOT}/${f}" | grep -vqE '10\.20\.0\.0/16'
+  done
 }
 
 @test "rustdesk: image is digest-pinned" {

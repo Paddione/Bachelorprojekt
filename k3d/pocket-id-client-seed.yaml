@@ -124,6 +124,8 @@ spec:
               valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_GRAFANA_SECRET, optional: true } }
             - name: SECRET_website
               valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_WEBSITE_SECRET, optional: true } }
+            - name: SECRET_rustdeskweb
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_RUSTDESK_WEB_SECRET, optional: true } }
           command:
             - /bin/sh
             - -ec
@@ -162,6 +164,7 @@ spec:
               nextcloud|SECRET_nextcloud|${SCHEME}://files.${SUFFIX}/apps/oidc_login/oidc
               grafana|SECRET_grafana|${SCHEME}://grafana.${SUFFIX}/login/generic_oauth
               website|SECRET_website|${SCHEME}://web.${SUFFIX}/api/auth/callback
+              rustdesk-web|SECRET_rustdeskweb|${SCHEME}://remote.${SUFFIX}/oauth2/callback
               "
 
               # Find a client id in a JSON list (the Admin API returns a flat

@@ -61,6 +61,7 @@ runcmd:
   - ufw allow 21116/tcp comment 'RustDesk hbbs ID/punch (TCP)'
   - ufw allow 21116/udp comment 'RustDesk hbbs ID/heartbeat (UDP)'
   - ufw allow 21117/tcp comment 'RustDesk hbbr relay'
+  - ufw allow from 10.20.0.0/16 to any port 21118,21119 proto tcp comment 'RustDesk web-client (hbbs/hbbr WS) — overlay only'
   - ufw --force enable
 
   # WireGuard — bring up mesh interface

@@ -129,6 +129,20 @@ automatisch den `main-checkout`-Lock mit `--branch "$(git rev-parse --abbrev-ref
 `claim main-checkout` aufrufen müssen (die dokumentierte, aber ungenutzte Konvention in
 `dev-flow-chore` bleibt als expliziter Pfad zusätzlich bestehen).
 
+> **Korrektur während der Implementierung (Code-Review-Fund, T001383):** ein naiver
+> Selbst-Claim bei *jedem* Commit hätte `guard-precommit` faktisch verschärft, nicht
+> unverändert gelassen — Session A committet, self-claimt automatisch; Session B committet
+> Minuten später im selben main-Checkout und würde jetzt hart geblockt (Exit 1), obwohl vorher
+> niemand bewusst geclaimt hatte (reproduziert, siehe Test `F` in
+> `tests/spec/factory-branch-switch-guard.bats`). Der Selbst-Claim trägt daher ein eigenes
+> Label (`auto: pre-commit self-claim`, Konstante `_SELF_CLAIM_LABEL`), und
+> `cmd_guard_precommit` hart-blockt nur noch, wenn das Fremd-Lock ein *anderes* Label trägt
+> (= eine bewusste `claim main-checkout`-Anfrage, z. B. aus `dev-flow-chore`). Ein
+> Selbst-Claim einer Session steht damit einer anderen Session beim Commit nie im Weg — nur
+> `guard-postcheckout`s Revert-Logik (Abschnitt 3.2) nutzt das `branch`-Feld weiterhin
+> unabhängig vom Label. Damit stimmt "Nicht im Scope" (Abschnitt 5) wieder mit der
+> tatsächlichen Implementierung überein.
+
 **`.githooks/post-checkout`:** keine Änderung am Aufrufmuster nötig — ruft weiterhin
 `agent-lock.sh guard-postcheckout` ohne Argumente auf (die neue Logik liest den main-checkout
 Lock selbst, braucht `$1`/`$2` von Git nicht, weil sie NICHT auf die SHA-Args reverted,

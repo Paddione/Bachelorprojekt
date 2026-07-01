@@ -669,6 +669,12 @@
       "status": "plan_staged"
     }
   ],
+  "T001388": [
+    {
+      "slug": "pre-push-freshness-double-run",
+      "status": "plan_staged"
+    }
+  ],
   "T001389": [
     {
       "slug": "openspec-auto-register",

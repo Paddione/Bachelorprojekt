@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.150.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.150.6...website-v1.150.7) (2026-07-01)
+
+
+### Bug Fixes
+
+* **scripts:** factory branch-switch guard for shared main checkout [T001383] ([#2444](https://github.com/Paddione/Bachelorprojekt/issues/2444)) ([b10802a](https://github.com/Paddione/Bachelorprojekt/commit/b10802ac47a252b73ae1459117a9e9c609fb361d))
+
 ## [1.150.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.150.5...website-v1.150.6) (2026-07-01)
 
 

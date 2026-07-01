@@ -42,7 +42,15 @@ node -e "
   const lines = fs.readFileSync(path, 'utf8').split('\n');
   const closeIdx = lines.findIndex((l) => l.trim() === ']');
   if (closeIdx === -1) { console.error('register-scope: could not find scope-enum array close'); process.exit(1); }
-  const indent = lines[closeIdx - 1].match(/^\s*/)[0];
+  const prevIdx = closeIdx - 1;
+  const indent = lines[prevIdx].match(/^\s*/)[0];
+  // Ensure the previous last-entry line ends with a trailing comma before
+  // splicing in the new entry — two adjacent string literals with no
+  // separator would otherwise produce a syntax error (T001364 bug fix).
+  const trimmedPrev = lines[prevIdx].replace(/\s+\$/, '');
+  if (trimmedPrev && !trimmedPrev.endsWith(',')) {
+    lines[prevIdx] = trimmedPrev + ',';
+  }
   lines.splice(closeIdx, 0, indent + \"'\" + scope + \"',\");
   fs.writeFileSync(path, lines.join('\n'));
 "

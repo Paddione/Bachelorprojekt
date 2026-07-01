@@ -55,7 +55,10 @@ module.exports = {
         'img01', 'img02',
         'k8s01', 'k8s02', 'k8s03',
         'spec01', 'spec02', 'spec03',
-        'sec01', 'sec02', 'sec03', 'sec04', 'sec05'
+        'sec01', 'sec02', 'sec03', 'sec04', 'sec05',
+        'openspec',
+        'quality',
+        'goals',
       ]
     ]
   },

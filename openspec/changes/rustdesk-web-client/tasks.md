@@ -66,7 +66,7 @@ MOD  environments/.secrets/mentolder.yaml + environments/sealed-secrets/mentolde
 
 This is the mandatory rot→grün failing-test step. It asserts the target structure across the relay stack, the workspace base, and the three cloud-init files. It **fails on the current branch** because none of it exists yet, and because the existing `@test "…ports 21118/21119 are absent"` encodes the opposite contract (it must be replaced, not merely extended).
 
-- [ ] **Step 1: Replace the negative port test and add the new positive assertions.**
+- [x] **Step 1: Replace the negative port test and add the new positive assertions.**
 
 Remove the obsolete test:
 
@@ -136,14 +136,14 @@ setup() {
 }
 ```
 
-- [ ] **Step 2: Run the test and confirm it fails (RED).**
+- [x] **Step 2: Run the test and confirm it fails (RED).**
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/rustdesk-server.bats
 # expected: FAIL (red — ports, bridge, proxy, ingress and ufw rules are not implemented yet)
 ```
 
-- [ ] **Step 3: Commit the failing test.**
+- [x] **Step 3: Commit the failing test.**
 
 ```bash
 git add tests/spec/rustdesk-server.bats
@@ -161,7 +161,7 @@ git commit -m "test(rustdesk-web): RED structure test for SSO-gated web client [
 **Interfaces:**
 - Produces: hostPort `21118/tcp` on hbbs, `21119/tcp` on hbbr — the overlay targets that Task 3's Endpoints point at.
 
-- [ ] **Step 1: Add port 21118 to hbbs.** In `k3d/rustdesk-stack/hbbs.yaml`, append to the `ports:` list (after the existing UDP 21116 entry):
+- [x] **Step 1: Add port 21118 to hbbs.** In `k3d/rustdesk-stack/hbbs.yaml`, append to the `ports:` list (after the existing UDP 21116 entry):
 
 ```yaml
             - containerPort: 21118
@@ -169,7 +169,7 @@ git commit -m "test(rustdesk-web): RED structure test for SSO-gated web client [
               protocol: TCP
 ```
 
-- [ ] **Step 2: Add port 21119 to hbbr.** In `k3d/rustdesk-stack/hbbr.yaml`, append to the `ports:` list (after the existing 21117 entry):
+- [x] **Step 2: Add port 21119 to hbbr.** In `k3d/rustdesk-stack/hbbr.yaml`, append to the `ports:` list (after the existing 21117 entry):
 
 ```yaml
             - containerPort: 21119
@@ -177,14 +177,14 @@ git commit -m "test(rustdesk-web): RED structure test for SSO-gated web client [
               protocol: TCP
 ```
 
-- [ ] **Step 3: Verify the stack still builds.**
+- [x] **Step 3: Verify the stack still builds.**
 
 ```bash
 kustomize build k3d/rustdesk-stack | grep -E 'hostPort: 2111[89]'
 # expected: two lines — hostPort: 21118 and hostPort: 21119
 ```
 
-- [ ] **Step 4: Commit.**
+- [x] **Step 4: Commit.**
 
 ```bash
 git add k3d/rustdesk-stack/hbbs.yaml k3d/rustdesk-stack/hbbr.yaml
@@ -203,7 +203,7 @@ git commit -m "feat(rustdesk-web): open hbbs 21118 + hbbr 21119 web-client ports
 - Consumes: hbbs `21118` / hbbr `21119` on `${TURN_OVERLAY_IP}` (Task 2 ports + Task 6 env var).
 - Produces: in-cluster Services `rustdesk-web-hbbs:21118` and `rustdesk-web-hbbr:21119` — the upstreams Task 4's oauth2-proxy dials.
 
-- [ ] **Step 1: Create `k3d/rustdesk-web-bridge.yaml`.** Selector-less Services with manually-managed Endpoints (the top-level `namespace:` transformer in `k3d/kustomization.yaml` places them in the target workspace ns; the Endpoints IP is `envsubst`-substituted at deploy time):
+- [x] **Step 1: Create `k3d/rustdesk-web-bridge.yaml`.** Selector-less Services with manually-managed Endpoints (the top-level `namespace:` transformer in `k3d/kustomization.yaml` places them in the target workspace ns; the Endpoints IP is `envsubst`-substituted at deploy time):
 
 ```yaml
 # ═══════════════════════════════════════════════════════════════════
@@ -267,7 +267,7 @@ subsets:
         protocol: TCP
 ```
 
-- [ ] **Step 2: Reference it in `k3d/kustomization.yaml`.** Add, immediately before the `# Ingress` / `- ingress.yaml` block:
+- [x] **Step 2: Reference it in `k3d/kustomization.yaml`.** Add, immediately before the `# Ingress` / `- ingress.yaml` block:
 
 ```yaml
   # RustDesk web-client SSO bridge (T001381)
@@ -275,7 +275,7 @@ subsets:
   - oauth2-proxy-rustdesk-web.yaml
 ```
 
-- [ ] **Step 3: Verify (Endpoints render with the placeholder, selector absent).**
+- [x] **Step 3: Verify (Endpoints render with the placeholder, selector absent).**
 
 ```bash
 kustomize build k3d/ --load-restrictor=LoadRestrictionsNone \
@@ -283,7 +283,7 @@ kustomize build k3d/ --load-restrictor=LoadRestrictionsNone \
 # expected: both Services + both Endpoints, ip: "${TURN_OVERLAY_IP}" twice
 ```
 
-- [ ] **Step 4: Commit.**
+- [x] **Step 4: Commit.**
 
 ```bash
 git add k3d/rustdesk-web-bridge.yaml k3d/kustomization.yaml
@@ -303,7 +303,7 @@ git commit -m "feat(rustdesk-web): selector-less overlay bridge Services + Endpo
 - Consumes: bridge Services `rustdesk-web-hbbs:21118` / `rustdesk-web-hbbr:21119` (Task 3); secret `POCKET_ID_RUSTDESK_WEB_SECRET`.
 - Produces: Service `oauth2-proxy-rustdesk-web:4180` — the backend Task 8's ingress targets.
 
-- [ ] **Step 1: Create `k3d/oauth2-proxy-rustdesk-web.yaml`** as a 1:1 copy of `oauth2-proxy-downloads.yaml` with these substitutions: name `oauth2-proxy-rustdesk-web`, label `app: rustdesk-web`, `--client-id=rustdesk-web`, `--client-secret=$(POCKET_ID_RUSTDESK_WEB_SECRET)`, `--redirect-url=http://remote.localhost/oauth2/callback`, `--cookie-name=_oauth2_proxy_rustdesk_web`, `--oidc-extra-audience=rustdesk-web`, the two bridge upstreams, and the secret env. Init-container `write-cookie-secret` (busybox pin + OAUTH2_PROXY_COOKIE_SECRET) is copied verbatim. Upstream routing: `/ws/relay*` → hbbr, everything else → hbbs.
+- [x] **Step 1: Create `k3d/oauth2-proxy-rustdesk-web.yaml`** as a 1:1 copy of `oauth2-proxy-downloads.yaml` with these substitutions: name `oauth2-proxy-rustdesk-web`, label `app: rustdesk-web`, `--client-id=rustdesk-web`, `--client-secret=$(POCKET_ID_RUSTDESK_WEB_SECRET)`, `--redirect-url=http://remote.localhost/oauth2/callback`, `--cookie-name=_oauth2_proxy_rustdesk_web`, `--oidc-extra-audience=rustdesk-web`, the two bridge upstreams, and the secret env. Init-container `write-cookie-secret` (busybox pin + OAUTH2_PROXY_COOKIE_SECRET) is copied verbatim. Upstream routing: `/ws/relay*` → hbbr, everything else → hbbs.
 
 ```yaml
 # ═══════════════════════════════════════════════════════════════════
@@ -451,7 +451,7 @@ spec:
 
 > **WebSocket path note (not a placeholder — the design's rollback plan flags this as the one live-verified detail):** hbbr relay is mounted at `/ws/relay`, hbbs signalling at `/` (catch-all). The manual WebSocket verification in Task 12 confirms the RustDesk 1.1.15 web client uses these paths; the plan commits to them rather than leaving them open.
 
-- [ ] **Step 2: Register the Pocket-ID client in `k3d/pocket-id-client-seed.yaml`.** Add a `SECRET_rustdeskweb` env entry after the `SECRET_website` block (~line 124):
+- [x] **Step 2: Register the Pocket-ID client in `k3d/pocket-id-client-seed.yaml`.** Add a `SECRET_rustdeskweb` env entry after the `SECRET_website` block (~line 124):
 
 ```yaml
             - name: SECRET_rustdeskweb
@@ -464,13 +464,13 @@ Add a `ROWS` entry after the `website|SECRET_website|…` line (~line 161), usin
               rustdesk-web|SECRET_rustdeskweb|${SCHEME}://remote.${SUFFIX}/oauth2/callback
 ```
 
-- [ ] **Step 3: Add the dev secret to `k3d/secrets.yaml`** (after `POCKET_ID_STUDIO_SECRET`, dev-only 30-char placeholder like the siblings):
+- [x] **Step 3: Add the dev secret to `k3d/secrets.yaml`** (after `POCKET_ID_STUDIO_SECRET`, dev-only 30-char placeholder like the siblings):
 
 ```yaml
   POCKET_ID_RUSTDESK_WEB_SECRET: "devrustdeskwebpocketidsecret12"
 ```
 
-- [ ] **Step 4: Verify the base renders with the client-id and both upstreams.**
+- [x] **Step 4: Verify the base renders with the client-id and both upstreams.**
 
 ```bash
 kustomize build k3d/ --load-restrictor=LoadRestrictionsNone \
@@ -478,7 +478,7 @@ kustomize build k3d/ --load-restrictor=LoadRestrictionsNone \
 # expected: Deployment+Service names, client-id=rustdesk-web, both upstream lines
 ```
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
 
 ```bash
 git add k3d/oauth2-proxy-rustdesk-web.yaml k3d/pocket-id-client-seed.yaml k3d/secrets.yaml
@@ -493,7 +493,7 @@ git commit -m "feat(rustdesk-web): oauth2-proxy + Pocket-ID client rustdesk-web 
 - Create: `prod/patch-oauth2-proxy-rustdesk-web.yaml`
 - Modify: `prod/kustomization.yaml`
 
-- [ ] **Step 1: Create `prod/patch-oauth2-proxy-rustdesk-web.yaml`** (strategic-merge, mirroring `prod/patch-oauth2-proxy-downloads.yaml`: prod redirect/issuer URLs on `auth.${PROD_DOMAIN}`, `--cookie-secure=true`, the two bridge upstreams retained):
+- [x] **Step 1: Create `prod/patch-oauth2-proxy-rustdesk-web.yaml`** (strategic-merge, mirroring `prod/patch-oauth2-proxy-downloads.yaml`: prod redirect/issuer URLs on `auth.${PROD_DOMAIN}`, `--cookie-secure=true`, the two bridge upstreams retained):
 
 ```yaml
 apiVersion: apps/v1
@@ -540,13 +540,13 @@ spec:
                   key: POCKET_ID_RUSTDESK_WEB_SECRET
 ```
 
-- [ ] **Step 2: Reference the patch in `prod/kustomization.yaml`** — add after the `patch-oauth2-proxy-videovault.yaml` line in the `patches:` list:
+- [x] **Step 2: Reference the patch in `prod/kustomization.yaml`** — add after the `patch-oauth2-proxy-videovault.yaml` line in the `patches:` list:
 
 ```yaml
   - path: patch-oauth2-proxy-rustdesk-web.yaml
 ```
 
-- [ ] **Step 3: Verify the prod overlay builds and the patch is applied.**
+- [x] **Step 3: Verify the prod overlay builds and the patch is applied.**
 
 ```bash
 kustomize build prod/ --load-restrictor=LoadRestrictionsNone \
@@ -554,7 +554,7 @@ kustomize build prod/ --load-restrictor=LoadRestrictionsNone \
 # expected: prod redirect-url line + cookie-secure=true from the patch
 ```
 
-- [ ] **Step 4: Commit.**
+- [x] **Step 4: Commit.**
 
 ```bash
 git add prod/patch-oauth2-proxy-rustdesk-web.yaml prod/kustomization.yaml
@@ -574,7 +574,7 @@ git commit -m "feat(rustdesk-web): prod oauth2-proxy patch (auth.\${PROD_DOMAIN}
 **Interfaces:**
 - Produces: `${TURN_OVERLAY_IP}` — substituted into Task 3's Endpoints during `workspace:deploy`.
 
-- [ ] **Step 1: Register `TURN_OVERLAY_IP` in `environments/schema.yaml`** — add directly after the `TURN_NODE` entry (~line 158, so the wg-fleet var sits next to the node pin):
+- [x] **Step 1: Register `TURN_OVERLAY_IP` in `environments/schema.yaml`** — add directly after the `TURN_NODE` entry (~line 158, so the wg-fleet var sits next to the node pin):
 
 ```yaml
   - name: TURN_OVERLAY_IP
@@ -584,7 +584,7 @@ git commit -m "feat(rustdesk-web): prod oauth2-proxy patch (auth.\${PROD_DOMAIN}
     description: "wg-fleet overlay IP of ${TURN_NODE} (fleet pk-hetzner-4 = 10.20.0.1). Endpoints target for the RustDesk web-client bridge (T001381)."
 ```
 
-- [ ] **Step 2: Register the Pocket-ID secret in `environments/schema.yaml`** — add after `POCKET_ID_STUDIO_SECRET` (~line 734) in the `secrets:` block:
+- [x] **Step 2: Register the Pocket-ID secret in `environments/schema.yaml`** — add after `POCKET_ID_STUDIO_SECRET` (~line 734) in the `secrets:` block:
 
 ```yaml
   - name: POCKET_ID_RUSTDESK_WEB_SECRET
@@ -594,31 +594,31 @@ git commit -m "feat(rustdesk-web): prod oauth2-proxy patch (auth.\${PROD_DOMAIN}
     description: "OIDC client secret for the `rustdesk-web` Pocket ID client (oauth2-proxy-rustdesk-web)."
 ```
 
-- [ ] **Step 3: Add the value to `environments/mentolder.yaml`** — insert after the `TURN_NODE: "pk-hetzner-4"` line (~line 33):
+- [x] **Step 3: Add the value to `environments/mentolder.yaml`** — insert after the `TURN_NODE: "pk-hetzner-4"` line (~line 33):
 
 ```yaml
   TURN_OVERLAY_IP: "10.20.0.1"
 ```
 
-- [ ] **Step 4: Add the same value to `environments/korczewski.yaml`** — insert after its `TURN_NODE: "pk-hetzner-4"` line (~line 36). Rationale: `k3d/` (including the bridge) deploys to **both** brand namespaces on the fleet cluster; both resolve `${TURN_NODE}` to `pk-hetzner-4`, whose overlay IP is `10.20.0.1`. Setting it on both keeps the korczewski deploy from rendering a literal `${TURN_OVERLAY_IP}`:
+- [x] **Step 4: Add the same value to `environments/korczewski.yaml`** — insert after its `TURN_NODE: "pk-hetzner-4"` line (~line 36). Rationale: `k3d/` (including the bridge) deploys to **both** brand namespaces on the fleet cluster; both resolve `${TURN_NODE}` to `pk-hetzner-4`, whose overlay IP is `10.20.0.1`. Setting it on both keeps the korczewski deploy from rendering a literal `${TURN_OVERLAY_IP}`:
 
 ```yaml
   TURN_OVERLAY_IP: "10.20.0.1"
 ```
 
-- [ ] **Step 5: Add `$TURN_OVERLAY_IP` to both `ENVSUBST_VARS` lists in `Taskfile.yml`.** These sit next to the existing `$TURN_PUBLIC_IP $TURN_NODE` entries — edit the two `.../TURN_PUBLIC_IP \$TURN_NODE \$BRAND_ID"` lines (the `workspace:setup` list ~line 2586 and the `workspace:deploy` list ~line 2720):
+- [x] **Step 5: Add `$TURN_OVERLAY_IP` to both `ENVSUBST_VARS` lists in `Taskfile.yml`.** These sit next to the existing `$TURN_PUBLIC_IP $TURN_NODE` entries — edit the two `.../TURN_PUBLIC_IP \$TURN_NODE \$BRAND_ID"` lines (the `workspace:setup` list ~line 2586 and the `workspace:deploy` list ~line 2720):
 
 ```yaml
           ENVSUBST_VARS="$ENVSUBST_VARS \$WEBSITE_IMAGE \$TURN_PUBLIC_IP \$TURN_NODE \$TURN_OVERLAY_IP \$BRAND_ID"
 ```
 
-- [ ] **Step 6: Add a default-export guard in `Taskfile.yml`.** Next to the other `export …:-…` defaults in the deploy task (near the `export POCKET_ID_URL=…` block ~line 2611), add — so any fleet brand/dev env without an explicit value still renders a valid IP instead of the literal token:
+- [x] **Step 6: Add a default-export guard in `Taskfile.yml`.** Next to the other `export …:-…` defaults in the deploy task (near the `export POCKET_ID_URL=…` block ~line 2611), add — so any fleet brand/dev env without an explicit value still renders a valid IP instead of the literal token:
 
 ```yaml
           export TURN_OVERLAY_IP="${TURN_OVERLAY_IP:-127.0.0.1}"
 ```
 
-- [ ] **Step 7: Verify the schema validates and mentolder resolves the var.**
+- [x] **Step 7: Verify the schema validates and mentolder resolves the var.**
 
 ```bash
 task env:validate ENV=mentolder
@@ -626,7 +626,7 @@ bash scripts/env-resolve.sh mentolder 2>/dev/null | grep -E '^TURN_OVERLAY_IP='
 # expected: env:validate passes; TURN_OVERLAY_IP=10.20.0.1
 ```
 
-- [ ] **Step 8: Commit.**
+- [x] **Step 8: Commit.**
 
 ```bash
 git add environments/schema.yaml environments/mentolder.yaml environments/korczewski.yaml Taskfile.yml
@@ -642,21 +642,21 @@ git commit -m "feat(rustdesk-web): register TURN_OVERLAY_IP + rustdesk-web secre
 - Modify: `scripts/hetzner/cloud-init.yaml.tmpl` (`wc -l` = 70 · S1 n/a)
 - Modify: `scripts/hetzner/cloud-init-server.yaml.tmpl` (`wc -l` = 82 · S1 n/a)
 
-- [ ] **Step 1: `prod/cloud-init.yaml`** — after `- ufw allow 21117/tcp     # RustDesk hbbr relay` (line 126) add:
+- [x] **Step 1: `prod/cloud-init.yaml`** — after `- ufw allow 21117/tcp     # RustDesk hbbr relay` (line 126) add:
 
 ```yaml
   - ufw allow from 10.20.0.0/16 to any port 21118,21119 proto tcp  # RustDesk web-client (hbbs/hbbr WS) — wg-fleet overlay only, never public
 ```
 
-- [ ] **Step 2: `scripts/hetzner/cloud-init.yaml.tmpl`** — after `- ufw allow 21117/tcp comment 'RustDesk hbbr relay'` (line 55) add:
+- [x] **Step 2: `scripts/hetzner/cloud-init.yaml.tmpl`** — after `- ufw allow 21117/tcp comment 'RustDesk hbbr relay'` (line 55) add:
 
 ```yaml
   - ufw allow from 10.20.0.0/16 to any port 21118,21119 proto tcp comment 'RustDesk web-client (hbbs/hbbr WS) — overlay only'
 ```
 
-- [ ] **Step 3: `scripts/hetzner/cloud-init-server.yaml.tmpl`** — after `- ufw allow 21117/tcp comment 'RustDesk hbbr relay'` (line 63) add the identical line from Step 2.
+- [x] **Step 3: `scripts/hetzner/cloud-init-server.yaml.tmpl`** — after `- ufw allow 21117/tcp comment 'RustDesk hbbr relay'` (line 63) add the identical line from Step 2.
 
-- [ ] **Step 4: Verify no public 21118/21119 rule leaked.**
+- [x] **Step 4: Verify no public 21118/21119 rule leaked.**
 
 ```bash
 grep -rn '2111[89]' prod/cloud-init.yaml scripts/hetzner/cloud-init.yaml.tmpl scripts/hetzner/cloud-init-server.yaml.tmpl
@@ -665,7 +665,7 @@ grep -rE '2111[89]' prod/cloud-init.yaml scripts/hetzner/*.tmpl | grep -v '10\.2
 # expected: NO output (no unrestricted rule)
 ```
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
 
 ```bash
 git add prod/cloud-init.yaml scripts/hetzner/cloud-init.yaml.tmpl scripts/hetzner/cloud-init-server.yaml.tmpl
@@ -685,19 +685,19 @@ git commit -m "feat(rustdesk-web): ufw allow 21118/21119 from wg-fleet overlay o
 **Interfaces:**
 - Consumes: `oauth2-proxy-rustdesk-web:4180` (Task 4).
 
-- [ ] **Step 1: Add the dev domain key to `k3d/configmap-domains.yaml`** — after `WEB_DOMAIN: "web.localhost"` (line 18):
+- [x] **Step 1: Add the dev domain key to `k3d/configmap-domains.yaml`** — after `WEB_DOMAIN: "web.localhost"` (line 18):
 
 ```yaml
   REMOTE_DOMAIN: "remote.localhost"
 ```
 
-- [ ] **Step 2: Add the prod override to `prod/configmap-domains.yaml`** — after `WEB_DOMAIN: "web.${PROD_DOMAIN}"` (line 18):
+- [x] **Step 2: Add the prod override to `prod/configmap-domains.yaml`** — after `WEB_DOMAIN: "web.${PROD_DOMAIN}"` (line 18):
 
 ```yaml
   REMOTE_DOMAIN: "remote.${PROD_DOMAIN}"
 ```
 
-- [ ] **Step 3: Add the dev ingress rule to `k3d/ingress.yaml`** — inside the `workspace-ingress` `rules:` list (append a new rule, mirroring the other oauth2-proxy rules). `remote.localhost` is a `.localhost` literal, so S3-safe:
+- [x] **Step 3: Add the dev ingress rule to `k3d/ingress.yaml`** — inside the `workspace-ingress` `rules:` list (append a new rule, mirroring the other oauth2-proxy rules). `remote.localhost` is a `.localhost` literal, so S3-safe:
 
 ```yaml
     - host: remote.localhost
@@ -712,7 +712,7 @@ git commit -m "feat(rustdesk-web): ufw allow 21118/21119 from wg-fleet overlay o
                   number: 4180
 ```
 
-- [ ] **Step 4: Add the prod ingress to `prod/ingress.yaml`** — a dedicated `Ingress` (mirroring `workspace-ingress-downloads` from the downloads pattern), inserted before the `# ── Restliche Services` block:
+- [x] **Step 4: Add the prod ingress to `prod/ingress.yaml`** — a dedicated `Ingress` (mirroring `workspace-ingress-downloads` from the downloads pattern), inserted before the `# ── Restliche Services` block:
 
 ```yaml
 ---
@@ -741,7 +741,7 @@ spec:
                   number: 4180
 ```
 
-- [ ] **Step 5: Verify both overlays build with the host + backend.**
+- [x] **Step 5: Verify both overlays build with the host + backend.**
 
 ```bash
 kustomize build k3d/ --load-restrictor=LoadRestrictionsNone | grep -E 'host: remote\.localhost'
@@ -749,7 +749,7 @@ kustomize build prod/ --load-restrictor=LoadRestrictionsNone | grep -E 'remote\.
 # expected: dev host line; prod host + tls host lines
 ```
 
-- [ ] **Step 6: Commit.**
+- [x] **Step 6: Commit.**
 
 ```bash
 git add k3d/configmap-domains.yaml prod/configmap-domains.yaml k3d/ingress.yaml prod/ingress.yaml
@@ -763,14 +763,14 @@ git commit -m "feat(rustdesk-web): remote.<domain> ingress + REMOTE_DOMAIN key [
 **Files:**
 - Test: `tests/spec/rustdesk-server.bats`
 
-- [ ] **Step 1: Run the structure test — it must now pass.**
+- [x] **Step 1: Run the structure test — it must now pass.**
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/rustdesk-server.bats
 # expected: PASS (green — all six rustdesk-web assertions satisfied)
 ```
 
-- [ ] **Step 2: Regenerate the test inventory and commit it** (a `@test` was added/changed → CI inventory check fails otherwise):
+- [x] **Step 2: Regenerate the test inventory and commit it** (a `@test` was added/changed → CI inventory check fails otherwise):
 
 ```bash
 task test:inventory
@@ -786,27 +786,27 @@ git commit -m "test(rustdesk-web): GREEN structure test + inventory [T001381]"
 - Modify: `environments/.secrets/mentolder.yaml` (git-crypt tracked — never echo)
 - Modify: `environments/sealed-secrets/mentolder.yaml` (committed SealedSecret)
 
-- [ ] **Step 1: Add the plaintext secret** to `environments/.secrets/mentolder.yaml` (generate a 40-char value; do NOT print it):
+- [x] **Step 1: Add the plaintext secret** to `environments/.secrets/mentolder.yaml` (generate a 40-char value; do NOT print it):
 
 ```bash
 # add key POCKET_ID_RUSTDESK_WEB_SECRET with a fresh 40-char secret
 task env:generate ENV=mentolder   # fills generate:true keys, incl. the new one
 ```
 
-- [ ] **Step 2: Re-seal** so the committed SealedSecret carries the new key:
+- [x] **Step 2: Re-seal** so the committed SealedSecret carries the new key:
 
 ```bash
 task env:seal ENV=mentolder
 ```
 
-- [ ] **Step 3: Verify the sealed key is present (name only).**
+- [x] **Step 3: Verify the sealed key is present (name only).**
 
 ```bash
 grep -c 'POCKET_ID_RUSTDESK_WEB_SECRET' environments/sealed-secrets/mentolder.yaml
 # expected: 1
 ```
 
-- [ ] **Step 4: Commit.**
+- [x] **Step 4: Commit.**
 
 ```bash
 git add environments/.secrets/mentolder.yaml environments/sealed-secrets/mentolder.yaml
@@ -819,14 +819,14 @@ git commit -m "feat(rustdesk-web): seal POCKET_ID_RUSTDESK_WEB_SECRET (mentolder
 
 **Files:** (no new changes — validation gate)
 
-- [ ] **Step 1: Validate the full workspace manifests.**
+- [x] **Step 1: Validate the full workspace manifests.**
 
 ```bash
 task workspace:validate
 # expected: kustomize base + prod overlays build clean, no dangling refs
 ```
 
-- [ ] **Step 2: Run the rustdesk spec test through the runner.**
+- [x] **Step 2: Run the rustdesk spec test through the runner.**
 
 ```bash
 ./tests/runner.sh local rustdesk-server
@@ -838,6 +838,8 @@ task workspace:validate
 ### Task 12: Manual verification (post-deploy, operator)
 
 These are the design's manual checks (native-parity + SSO gate). Not automatable in CI; run after `task workspace:deploy ENV=mentolder` + the one-time overlay ufw rule on the live node.
+
+> **NOTE (dev-flow-execute):** Task 12 is post-merge operator work — it requires SSH to `pk-hetzner-4` and a live fleet cluster, neither of which is available from the CI/worktree context. Checkboxes intentionally left unchecked; the operator completes them after `task workspace:deploy ENV=mentolder` (dev-flow-execute step 8).
 
 - [ ] **Step 1: Apply the one-time live ufw rule** on `pk-hetzner-4` (matches the cloud-init templates; the manifests cover reprovisioned nodes, this covers the running one):
 
@@ -857,28 +859,28 @@ ssh patrick@204.168.244.104 "sudo ufw allow from 10.20.0.0/16 to any port 21118,
 
 **Files:** (no new changes — verification gate)
 
-- [ ] **Step 1: Targeted changed-domain tests.**
+- [x] **Step 1: Targeted changed-domain tests.**
 
 ```bash
 task test:changed
 # expected: vitest --changed + BATS selection (incl. rustdesk-server.bats) + quality:check all pass
 ```
 
-- [ ] **Step 2: Regenerate freshness artifacts.**
+- [x] **Step 2: Regenerate freshness artifacts.**
 
 ```bash
 task freshness:regenerate
 # expected: test-inventory, repo-index and other generated artefacts updated (commit any diff)
 ```
 
-- [ ] **Step 3: CI-equivalent freshness + quality ratchet.**
+- [x] **Step 3: CI-equivalent freshness + quality ratchet.**
 
 ```bash
 task freshness:check
 # expected: freshness + quality:check (S1–S4 ratchet) + baseline key-count assertion all green
 ```
 
-- [ ] **Step 4: Commit any regenerated artefacts.**
+- [x] **Step 4: Commit any regenerated artefacts.**
 
 ```bash
 git add -A

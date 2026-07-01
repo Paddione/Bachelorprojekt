@@ -106,12 +106,6 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
 - **Wann bevorzugen:** go-task-Targets parallel ausführen mit strukturiertem OTel-Logging.
 - **Fallback:** `task <target>` direkt in der Shell.
 
-## `task-master-ai` — optional/verfügbar (kein Skill-Logik-Pfad)
-
-- **Transport:** `npx -y task-master-ai` (lokal).
-- **Wann:** **optional** für PRD-Parsing/Komplexitätsanalyse. **Keine** Skill-Logik hängt daran —
-  nur als verfügbares Werkzeug gelistet. OpenSpec ist der SSOT-Plan-Workflow, nicht task-master-ai.
-
 ## `mcp-browser` — Playwright (unverändert)
 
 - **Endpoint:** `http://localhost:13000/mcp`.

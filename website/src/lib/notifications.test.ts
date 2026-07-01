@@ -50,6 +50,7 @@ describe('sendAdminNotification', () => {
     await sendAdminNotification({ type: 'contact', subject: 'New ticket', text: 'Hello' });
     expect(mockSend).toHaveBeenCalledWith(
       expect.objectContaining({ to: 'admin@example.com', subject: 'New ticket' }),
+      undefined,
     );
   });
 

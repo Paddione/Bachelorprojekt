@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.145.10](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.145.9...website-v1.145.10) (2026-07-01)
+
+
+### Bug Fixes
+
+* **test:** update stale InboxApp.svelte baseline in plan-lint.bats [T001353] ([#2363](https://github.com/Paddione/Bachelorprojekt/issues/2363)) ([b972ace](https://github.com/Paddione/Bachelorprojekt/commit/b972acec49dd9efc04885219ea50c764469e0aa9))
+
 ## [1.145.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.145.8...website-v1.145.9) (2026-07-01)
 
 

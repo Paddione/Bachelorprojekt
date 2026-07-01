@@ -47,3 +47,22 @@ setup() {
   run grep -E "setval\('tickets\.external_id_seq'" "$TMIG"
   assert_success
 }
+
+# Regression: T001392 — the periodic setval() reseed above ran unconditionally
+# on every schema-init (every website pod boot/rollout), overwriting the
+# sequence's last_value with MAX(external_id) read from the table. A
+# concurrent, not-yet-committed nextval()-derived INSERT (e.g. a running
+# `scripts/ticket.sh create`) is invisible to that MAX() read (read-committed
+# isolation), so the reseed regressed the sequence backward and a later
+# nextval() call re-issued the same external_id, hitting
+# tickets_external_id_key. Verified against a real Postgres 16 instance
+# (docker) before this fix landed. Fix: make the reseed monotonic-only via
+# GREATEST() over the observed table max and the sequence's own current
+# last_value, so the reseed can only advance the sequence, never regress it.
+@test "external_id sequence reseed is monotonic (never regresses last_value)" {
+  run grep -F "GREATEST(" "$TMIG"
+  assert_success
+
+  run grep -E "last_value FROM tickets\.external_id_seq" "$TMIG"
+  assert_success
+}

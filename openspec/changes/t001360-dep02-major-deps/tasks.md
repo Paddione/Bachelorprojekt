@@ -25,8 +25,9 @@ openspec/changes/t001360-dep02-major-deps/
 
 ## Tasks
 
-### T‑1: Audit current major dependency versions
+### T‑1: Audit current major dependency versions ✅
 
+- [x] Audit filed at `specs/audit.md` (typescript 5→6, vitest 3→4 in scope; website majors deferred).
 - Run the relevant dependency audit tool for this repo (e.g. `npm outdated` for Node packages, `go mod graph` for Go, or `task deps:audit`).
 - For each major-level outdated dependency, record:
   - current version and latest version

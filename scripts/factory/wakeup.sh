@@ -98,6 +98,12 @@ Report only the dispatcher's final JSON result. Do not improvise scheduling."
 
   echo "wakeup.sh: starting tick #${TICK} at ${TIMESTAMP}" >&2
   bash "${REPO}/scripts/factory/otel-emit.sh" metric factory.tick.count 1 brand="${BRAND:-mentolder}" || true
+  # T001415: Auto-Close von Tickets deren PR bereits gemergt ist
+  # (worktree-lifecycle, dev-flow-execute, tickets/status-lifecycle).
+  for _acm_brand in mentolder korczewski; do
+    BRAND="$_acm_brand" bash "${REPO}/scripts/factory/auto-close-merged.sh" 2>&1 \
+      | sed "s/^/[auto-close-merged:${_acm_brand}] /" >&2 || true
+  done
   # Lücke 3.1: plan_staged → backlog auto-enqueue (vor Dispatcher-Tick, damit schedule.sh
   # die frisch-enqueueten Tickets in diesem Tick sieht). Best-effort: Fehler nicht fatal.
   for _ae_brand in mentolder korczewski; do

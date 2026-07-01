@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.146.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.146.2...website-v1.146.3) (2026-07-01)
+
+
+### Bug Fixes
+
+* **ci:** unify PR/commit scope allowlist on commitlint.config.cjs SSOT [T001364] ([#2384](https://github.com/Paddione/Bachelorprojekt/issues/2384)) ([8e53a2c](https://github.com/Paddione/Bachelorprojekt/commit/8e53a2c266fae542c2e18b6a80503763d1e721c7))
+
 ## [1.146.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.146.1...website-v1.146.2) (2026-07-01)
 
 

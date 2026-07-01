@@ -31,7 +31,7 @@ Quantifizierbare Repository-Health-Ziele — je mit Mess-Befehl, real gemessenem
 
 | Datei | Zweck | Referenziert von |
 |---|---|---|
-| [`goals.md`](goals.md) | 65 Health-Ziele in 11 Kategorien (Tests, Deps, Supply-Chain, Secrets, K8s, CI/CD, DORA, Docs, Frontend). Die Gate-IDs `G-RH01`–`G-RH07` sind stabile Anker (referenziert in `docs/code-quality/gates.yaml`, Plänen, OpenSpec) — nie umnummerieren. | [`scripts/health-goals-check.sh`](../../scripts/health-goals-check.sh) (Ampel-Report) |
+| [`goals.md`](goals.md) | 65 Health-Ziele in 11 Kategorien (Tests, Deps, Supply-Chain, Secrets, K8s, CI/CD, DORA, Docs, Frontend). Die Gate-IDs `G-RH01`–`G-RH07` sind stabile Anker (referenziert in `docs/code-quality/gates.yaml`, Plänen, OpenSpec) — nie umnummerieren. | [`scripts/health-goals-check.sh`](../../scripts/health-goals-check.sh) (Ampel-Report), [`scripts/health-goals-update.sh`](../../scripts/health-goals-update.sh) (schreibt frische Werte in die Prio-C-Tabelle; `task health:goals:update`) |
 
 ## Wachstumsprinzip
 

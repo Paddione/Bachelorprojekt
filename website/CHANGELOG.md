@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.150.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.150.4...website-v1.150.5) (2026-07-01)
+
+
+### Bug Fixes
+
+* **dev-flow:** add ticket-claim step to Feature-Pfad before pre-commit guard [T001386] ([#2439](https://github.com/Paddione/Bachelorprojekt/issues/2439)) ([96e6c88](https://github.com/Paddione/Bachelorprojekt/commit/96e6c88cd3ba37c32ce69a42ad86a2980fb69800))
+
 ## [1.150.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.150.3...website-v1.150.4) (2026-07-01)
 
 

@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.146.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.146.0...website-v1.146.1) (2026-07-01)
+
+
+### Bug Fixes
+
+* **sec05:** expand health-goals filter to catch both bot-email variants [T001358] ([#2373](https://github.com/Paddione/Bachelorprojekt/issues/2373)) ([a38ecf0](https://github.com/Paddione/Bachelorprojekt/commit/a38ecf0217fd45590a9f755eabac81cae684087f))
+
+## [1.146.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.145.10...website-v1.146.0) (2026-07-01)
+
+
+### Features
+
+* **fe01:** Accessibility-Tooling mit axe-core [T001361] ([#2369](https://github.com/Paddione/Bachelorprojekt/issues/2369)) ([7a3e7f6](https://github.com/Paddione/Bachelorprojekt/commit/7a3e7f66f328a7479b103d6a83fb814a32f8b6ce))
+
+
+### Bug Fixes
+
+* **ci:** block non-conventional commit messages at push and PR gates [T001356] ([#2371](https://github.com/Paddione/Bachelorprojekt/issues/2371)) ([a373272](https://github.com/Paddione/Bachelorprojekt/commit/a3732727c8d42f6fd4bdcf798c5cbcf936f9438a))
+
 ## [1.145.10](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.145.9...website-v1.145.10) (2026-07-01)
 
 

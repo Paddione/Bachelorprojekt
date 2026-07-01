@@ -292,6 +292,9 @@ jobs:
     timeout-minutes: 5
     if: github.event_name == 'pull_request'
     steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
+        with:
+          fetch-depth: 0
       - uses: amannn/action-semantic-pull-request@e32d7e603df1aa1ba07e981f2a23455dee596825  # v5.5.3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -413,3 +416,18 @@ jobs:
           else
             echo "⚠️  PR title has no ticket tag — recommended format: feat(scope): add feature [T000123]"
           fi
+      - name: Validate individual commit messages [T001356 / G-GIT02]
+        # amannn/action-semantic-pull-request (above) only validates the PR
+        # *title*. GitHub's default squash-merge message can still surface a
+        # non-conventional individual commit subject. This step catches that
+        # regression by validating every non-merge commit in the PR range with
+        # the same shared script used by the local pre-push hook
+        # (.githooks/pre-push), so a bypassed hook is still caught in CI.
+        # BASE_SHA/HEAD_SHA are commit SHAs (not free-text), but routed through
+        # env vars per repo convention to avoid interpolating event payload
+        # fields directly into the shell command.
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          bash scripts/validate-commit-msg.sh range "${BASE_SHA}..${HEAD_SHA}"

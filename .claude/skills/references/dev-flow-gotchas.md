@@ -43,7 +43,36 @@ This section aggregates known operational issues, gotchas, and workarounds for t
 
 ### [T000342] gh pr checks parsing
 **Context**: Parsing `gh pr checks` status.
-**Rule**: Do not use `gh pr view --json state` or check status enums because the values do not reliably map to build results. Use text-based parsing of the checks list columns.
+**Rule**: Do not use `gh pr view --json state` or check status enums because the values do not reliably map to build results. Use text-based parsing of the checks list columns. `gh pr checks` itself does **not** support `--json` on the installed CLI version (2.45.0) — `gh pr checks --json name,state,link` fails silently and, if the exit code isn't checked, can make a watch script report "all green" while checks are actually still pending (observed in T001378; fixed in `scripts/devflow-ci-watch.sh` via [T001408]/#2441, which dropped `--json` from the `gh pr checks` call and now cross-checks real conclusions via `gh pr view --json statusCheckRollup`, erroring out loud instead of defaulting to success on parse failure). Any new CI-watch tooling must follow the same pattern: never treat a failed/parse-errored `gh` call as an implicit pass.
+
+### [T001395] Freshness-Auto-Regen race → PR flips to CONFLICTING mid-flow
+**Context**: Scheduled freshness auto-regen (`docs/code-quality/loc-budget.json` and other generated
+artifacts) commits directly to `main` on its own cadence. If a feature/fix/chore PR stays open across
+one of these auto-regen cycles, GitHub reports `mergeStateStatus=CONFLICTING` mid-flow even though no
+human touched the file — this happened during T001378 and required a manual rebase + regenerate +
+force-push to unstick.
+**Rule**: Keep PRs short-lived to minimize the window for this race. If a PR does flip to
+`CONFLICTING` and the diff is only in generated freshness artifacts (`docs/code-quality/*.json`,
+`website/src/data/test-inventory.json`, etc.), don't debug it as a real conflict — immediately run
+`git fetch origin main && git rebase origin/main && task freshness:regenerate && git add <regenerated files> && git rebase --continue && git push --force-with-lease`. `scripts/devflow-ci-watch.sh` already self-services a plain `DIRTY` rebase (see its preflight block); `CONFLICTING` from this specific race needs the regenerate step added in, since a bare rebase won't reproduce the artifact the auto-regen job would have produced.
+
+### [T001395] Check the commit-scope SSOT allowlist BEFORE the first commit
+**Context**: The `<type>(<scope>): <subject>` allowlist is curated on purpose (SSOT: the `scopes:` list
+loaded by `.github/workflows/ci.yml`'s commit-lint job, mirrored by `scripts/validate-commit-msg.sh
+scopes` and enforced pre-push by `.githooks/pre-push` / `scripts/preflight-pr-scope.sh`). Every
+existing dev-flow skill only runs `preflight-pr-scope.sh` right before `gh pr create` — i.e. **after**
+the implementation commit(s) already landed with whatever scope was guessed. During T001378 an
+implementer subagent committed with `installer`/`rustdesk` (neither registered), which was only
+caught at the PR-title preflight, forcing a soft-reset + recommit with `infra`/`ci`/`test`.
+**Rule**: Before writing the first `git commit -m "<type>(<scope>): ..."` in a plan or chore, list the
+current allowlist and pick a scope from it (or register a new one first):
+```bash
+bash scripts/validate-commit-msg.sh scopes   # prints the full SSOT scope list
+# new scope needed? register it BEFORE committing:
+bash scripts/register-scope.sh <new-scope>
+```
+This is advisory (the post-commit `preflight-pr-scope.sh` gate still exists as the hard backstop),
+but doing it pre-commit avoids the soft-reset/recommit cycle entirely.
 
 ### [T000344] Database row check before file deletion
 **Context**: Deleting plan markdown file before verifying database storage.

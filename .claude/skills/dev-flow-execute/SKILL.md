@@ -395,6 +395,12 @@ Rufe `dev-flow-iterate` auf, um Änderungen im dev-Cluster zu testen.
 
 ## Schritt 5: PR erstellen
 
+> **Scope vorab prüfen [T001395]:** Bevor `<scope>` gewählt wird, gegen die SSOT-Allowlist
+> abgleichen (`bash scripts/validate-commit-msg.sh scopes`) — nicht erst beim
+> `preflight-pr-scope.sh`-Check unten. Ein geratener, nicht registrierter Scope (z. B.
+> `installer`/`rustdesk`) erzwingt sonst einen Soft-Reset + Recommit mitten im Flow. Siehe
+> [dev-flow-gotchas T001395](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md).
+
 ```bash
 # Branch-Guard prüfen
 BASE_SHA="$(git rev-parse "@{upstream}" 2>/dev/null || git rev-parse origin/main)"

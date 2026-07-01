@@ -63,8 +63,13 @@ jobs:
       - name: Build wrapper MSI
         shell: pwsh
         run: |
+          # Package.wxs <File Source="..."> uses bare relative filenames
+          # (official-rustdesk.msi, provision.ps1); those live under
+          # rustdesk-installer/, not the repo root the build runs from —
+          # -bindpath adds that directory to wix's source search path (T001422).
           wix build rustdesk-installer/Package.wxs `
             -ext WixToolset.Util.wixext `
+            -bindpath rustdesk-installer `
             -arch x64 `
             -o rustdesk-workspace-installer.msi
 

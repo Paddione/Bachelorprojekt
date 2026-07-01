@@ -683,8 +683,8 @@
   ],
   "T001411": [
     {
-      "slug": "pocket-id-smtp-port-quoting-hardening",
-      "status": "plan_staged"
+      "slug": "2026-07-01-pocket-id-smtp-port-quoting-hardening",
+      "status": "archived"
     }
   ],
   "TBD": [

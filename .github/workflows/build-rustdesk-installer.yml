@@ -93,6 +93,27 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GH_PAT }}
 
+      - name: Pre-push guard — refuse to re-publish over a public package
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          # Close the brief exposure window: if downloads-content ALREADY exists
+          # and is public, a `docker push` would re-expose the MSI layer before
+          # the post-push verify runs. Fail BEFORE pushing. A 404 (package not
+          # yet created — first run) is safe: GHCR defaults new packages to
+          # private. The post-push "Verify … is private" step remains the backstop.
+          if visibility=$(gh api /user/packages/container/downloads-content --jq '.visibility' 2>/dev/null); then
+            echo "existing downloads-content visibility: $visibility"
+            if [ "$visibility" != "private" ]; then
+              echo "FATAL: refusing to push — ghcr.io/paddione/downloads-content is '$visibility', not 'private'." >&2
+              echo "Set it Private in the package's GitHub Settings > Danger Zone, then re-run." >&2
+              exit 1
+            fi
+          else
+            echo "downloads-content not yet created (or unreadable) — GHCR defaults new packages to private. Proceeding."
+          fi
+
       - name: Build & push downloads image
         shell: pwsh
         run: |

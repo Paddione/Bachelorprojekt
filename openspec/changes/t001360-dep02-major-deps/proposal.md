@@ -9,3 +9,5 @@ Major-dependency updates (semver major jumps) carry breaking changes and require
 Audit all outdated major-level dependencies, define a conflict-free update order, and execute the upgrades with per-step test validation.
 
 _Ticket: T001360_
+
+<!-- CI re-trigger 1782880414 -->

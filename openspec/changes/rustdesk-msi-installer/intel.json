@@ -1,0 +1,257 @@
+{
+  "meta": {
+    "slug": "rustdesk-msi-installer",
+    "ticket_id": "T001378",
+    "generated_from": "main@5bea1aa7",
+    "domains": ["infra", "ci-cd"],
+    "intel_sources": ["grep", "Read", "github-api-code-search", "official-rustdesk-docs", "coordinator-verification"]
+  },
+  "impact_files": [
+    {
+      "path": "k3d/kustomization.yaml",
+      "language": "yaml",
+      "loc": 121,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "k3d/ingress.yaml",
+      "language": "yaml",
+      "loc": 157,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "k3d/configmap-domains.yaml",
+      "language": "yaml",
+      "loc": 38,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "environments/schema.yaml",
+      "language": "yaml",
+      "loc": 1281,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "k3d/pocket-id-client-seed.yaml",
+      "language": "yaml",
+      "loc": 208,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "k3d/downloads.yaml",
+      "language": "yaml",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "k3d/oauth2-proxy-downloads.yaml",
+      "language": "yaml",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": ".github/workflows/build-rustdesk-installer.yml",
+      "language": "yaml",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "prod/patch-oauth2-proxy-downloads.yaml",
+      "language": "yaml",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "prod/configmap-domains.yaml",
+      "language": "yaml",
+      "loc": 49,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "prod/ingress.yaml",
+      "language": "yaml",
+      "loc": 316,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "prod/kustomization.yaml",
+      "language": "yaml",
+      "loc": 164,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "environments/schema.yaml:RUSTDESK_ID_ED25519",
+      "kind": "config-pattern",
+      "file": "environments/schema.yaml",
+      "signature": "- name: RUSTDESK_ID_ED25519 (required: true, extra_namespaces: [{namespace: rustdesk, secret: rustdesk-secrets, dest_key: id_ed25519}])",
+      "type_text": "schema.yaml env-var declaration -> SealedSecret extra_namespaces routing (only relevant as a NEGATIVE precedent here: this feature's two new secrets do NOT follow this path, see risks)",
+      "source": "Read (environments/schema.yaml:571-583)"
+    },
+    {
+      "qualified_name": "k3d/docs.yaml:docs-deployment",
+      "kind": "k8s-manifest-template",
+      "file": "k3d/docs.yaml",
+      "signature": "Deployment `docs` (ghcr.io/paddione/workspace-docs:latest, static file server :8787) + Service docs:80",
+      "type_text": "template to clone for k3d/downloads.yaml (swap image/content, keep Service shape)",
+      "source": "Read (k3d/docs.yaml:1-67)"
+    },
+    {
+      "qualified_name": "k3d/oauth2-proxy-docs.yaml:oauth2-proxy-docs-deployment",
+      "kind": "k8s-manifest-template",
+      "file": "k3d/oauth2-proxy-docs.yaml",
+      "signature": "Deployment `oauth2-proxy-docs` (--upstream=http://docs:80, client-id=docs, cookie=_oauth2_proxy_docs, client secret from workspace-secrets/POCKET_ID_DOCS_SECRET) + Service oauth2-proxy-docs:4180",
+      "type_text": "template to clone for k3d/oauth2-proxy-downloads.yaml (client-id=downloads, upstream=http://downloads:80, secret=POCKET_ID_DOWNLOADS_SECRET)",
+      "source": "Read (k3d/oauth2-proxy-docs.yaml:1-143)"
+    },
+    {
+      "qualified_name": "k3d/ingress.yaml:docs-ingressroute",
+      "kind": "k8s-manifest-template",
+      "file": "k3d/ingress.yaml",
+      "signature": "IngressRoute host: docs.localhost -> backend oauth2-proxy-docs:4180 (NOT docs:80 directly)",
+      "type_text": "template for the new downloads.localhost/downloads.${PROD_DOMAIN} IngressRoute -> oauth2-proxy-downloads:4180",
+      "source": "Read (k3d/ingress.yaml:97-107)"
+    },
+    {
+      "qualified_name": "k3d/pocket-id-client-seed.yaml:docs-client-row",
+      "kind": "config-pattern",
+      "file": "k3d/pocket-id-client-seed.yaml",
+      "signature": "docs|SECRET_docs|${SCHEME}://docs.${SUFFIX}/oauth2/callback",
+      "type_text": "row format for the new downloads OIDC client row: downloads|SECRET_downloads|${SCHEME}://downloads.${SUFFIX}/oauth2/callback",
+      "source": "Read (k3d/pocket-id-client-seed.yaml:93-94,147)"
+    },
+    {
+      "qualified_name": ".github/workflows/build-docs.yml:kubeconfig-secret-usage",
+      "kind": "ci-pattern",
+      "file": ".github/workflows/build-docs.yml",
+      "signature": "KUBECONFIG_DATA: ${{ secrets.FLEET_KUBECONFIG }} (used for kubectl rollout restart against workspace + workspace-korczewski)",
+      "type_text": "existing precedent for native GitHub-Actions repo secrets (not git-crypt/SealedSecret) — same pattern to use for RUSTDESK_CLIENT_CONFIG_STRING / RUSTDESK_UNATTENDED_PASSWORD",
+      "source": "Read (.github/workflows/build-docs.yml:75,87)"
+    },
+    {
+      "qualified_name": "rustdesk-client-deployment:cli-flags",
+      "kind": "external-cli-reference",
+      "file": "N/A (upstream RustDesk client)",
+      "signature": "rustdesk.exe --config <config-string> ; rustdesk.exe --password <password> ; rustdesk.exe --install-service ; rustdesk.exe --get-id",
+      "type_text": "official, documented deployment CLI surface (verified 2026-07-01 via rustdesk/doc.rustdesk.com content/self-host/client-deployment + client-configuration)",
+      "source": "github-api-code-search (rustdesk/doc.rustdesk.com content/self-host/client-deployment/_index.en.md, content/self-host/client-configuration/_index.en.md)"
+    },
+    {
+      "qualified_name": "rustdesk-msi:msiexec-properties",
+      "kind": "external-cli-reference",
+      "file": "N/A (upstream RustDesk MSI)",
+      "signature": "msiexec /i RustDesk.msi /qn INSTALLFOLDER=... CREATESTARTMENUSHORTCUTS=... CREATEDESKTOPSHORTCUTS=... INSTALLPRINTER=... /l*v install.log",
+      "type_text": "official MSI-native properties (install path/shortcuts/printer only — no server/key/password property on the official MSI itself, confirming the wrapper-MSI + post-install CLI approach is required)",
+      "source": "github-api-code-search (rustdesk/doc.rustdesk.com content/client/windows/MSI/_index.en.md)"
+    },
+    {
+      "qualified_name": "prod/patch-oauth2-proxy-docs.yaml:redirect-url-pattern",
+      "kind": "k8s-manifest-template",
+      "file": "prod/patch-oauth2-proxy-docs.yaml",
+      "signature": "strategic-merge Deployment patch: --redirect-url=https://docs.${PROD_DOMAIN}/oauth2/callback, --oidc-issuer-url=https://auth.${PROD_DOMAIN}, --cookie-secure=true (dev has --cookie-secure=false)",
+      "type_text": "template to clone for prod/patch-oauth2-proxy-downloads.yaml (client-id=downloads, upstream=http://downloads:80, redirect-url=https://downloads.${PROD_DOMAIN}/oauth2/callback, secret=POCKET_ID_DOWNLOADS_SECRET) — registered via prod/kustomization.yaml:131 patches: list",
+      "source": "Read (prod/patch-oauth2-proxy-docs.yaml:1-41, prod/kustomization.yaml:131)"
+    },
+    {
+      "qualified_name": "prod/ingress.yaml:workspace-ingress-docs",
+      "kind": "k8s-manifest-template",
+      "file": "prod/ingress.yaml",
+      "signature": "dedicated Ingress `workspace-ingress-docs` (own tls.hosts: [docs.${PROD_DOMAIN}], own host rule -> oauth2-proxy-docs:4180) — NOT a shared TLS-hosts list append; each prod service gets its own Ingress block",
+      "type_text": "template for a new dedicated `workspace-ingress-downloads` Ingress block (own tls.hosts: [downloads.${PROD_DOMAIN}], own host rule -> oauth2-proxy-downloads:4180), inserted directly after the docs block",
+      "source": "Read (prod/ingress.yaml:100-124)"
+    },
+    {
+      "qualified_name": "prod/wildcard-certificate.yaml:dnsNames",
+      "kind": "config-pattern",
+      "file": "prod/wildcard-certificate.yaml",
+      "signature": "cert-manager Certificate `workspace-wildcard`, dnsNames: [\"*.${PROD_DOMAIN}\", \"${PROD_DOMAIN}\"], issuer letsencrypt-prod",
+      "type_text": "already covers downloads.${PROD_DOMAIN} — no new Certificate resource needed for the downloads ingress",
+      "source": "Read (prod/wildcard-certificate.yaml:1-19)"
+    },
+    {
+      "qualified_name": "scripts/fleet-dns-cutover.sh:ROOTLIKE_PREFIXES-vs-SERVICE_PREFIXES",
+      "kind": "config-pattern",
+      "file": "scripts/fleet-dns-cutover.sh",
+      "signature": "ROOTLIKE_PREFIXES=(\"\" \"*\") round-robin across FLEET_NODE_IPS=(204.168.244.104 37.27.251.38 62.238.23.79); SERVICE_PREFIXES=(livekit stream turn) get a single pinned IP each (TURN_PUBLIC_IP/LIVEKIT_PIN_IP)",
+      "type_text": "confirms downloads.${PROD_DOMAIN} needs NO dedicated A-record: it resolves via the existing wildcard '*' prefix, exactly like docs.${PROD_DOMAIN} (also absent from SERVICE_PREFIXES) — distinct from rustdesk.mentolder.de's own raw-TCP ID-server hostname (out of scope, governed by the already-archived parent spec's REQ-RUSTDESK-RELAY-005 node-pinned firewall rules, not by this script)",
+      "source": "Read (scripts/fleet-dns-cutover.sh:1-45, environments/mentolder.yaml:32, docs/superpowers/specs/2026-05-30-fleet-stage2-dns-cutover-design.md)"
+    },
+    {
+      "qualified_name": "github-rest-api:packages-visibility-endpoint",
+      "kind": "external-cli-reference",
+      "file": "N/A (GitHub REST/GraphQL API)",
+      "signature": "GET /user/packages/{package_type}/{package_name} -> {..., \"visibility\": \"private\"|\"public\", ...} (read-only field; no PATCH/PUT/mutation exists to set it)",
+      "type_text": "verified 2026-07-01 via docs.github.com/en/rest/packages/packages and .../learn-github-packages/configuring-a-packages-access-control-and-visibility: only GET/DELETE/POST-restore are documented for /user/packages/{package_type}/{package_name}; changing visibility is web-UI-only ('Danger Zone' > 'Change visibility'). No GraphQL mutation found either. The coordinator's proposed `gh api --method PATCH .../visibility` endpoint does NOT exist -- corrected to a read + hard-fail verification step (Task 8 Step 4) plus a one-time manual UI fix (Prerequisite 5), not an automatable set-via-API step.",
+      "source": "WebFetch (docs.github.com/en/rest/packages/packages, docs.github.com/en/packages/learn-github-packages/configuring-a-packages-access-control-and-visibility, docs.github.com/en/packages/learn-github-packages/connecting-a-repository-to-a-package, docs.github.com/en/packages/learn-github-packages/about-permissions-for-github-packages -- fetched 2026-07-01)"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [
+    {
+      "library": "rustdesk-client",
+      "symbol": "--config / --password CLI flags",
+      "signature": "rustdesk.exe --config <config-string>; rustdesk.exe --password <password>",
+      "source": "github:rustdesk/doc.rustdesk.com content/self-host/client-deployment (fetched 2026-07-01)"
+    }
+  ],
+  "risks": [
+    {
+      "note": "WiX Toolset element/attribute names (Custom Action authoring for chained msiexec + CLI post-install steps) were NOT verified against live WiX docs this session — based on general knowledge of WiX v4/v5. The plan-writing and execution agents MUST verify exact WiX syntax (e.g. via context7 or wixtoolset.org docs) before authoring the .wxs project, rather than trusting this bundle for WiX specifics.",
+      "severity": "warn"
+    },
+    {
+      "note": "The RustDesk config-string value is NOT computable from raw host+key — it must be obtained once by a human (Patrick) manually configuring a RustDesk client and using Settings -> Network -> Export Server Config. This is an operational bootstrap step, not something the implementation can automate or verify in CI beyond consuming the resulting opaque string as a GitHub Actions secret.",
+      "severity": "info"
+    },
+    {
+      "note": "All impacted/created file extensions in this change (.yaml, .yml, .wxs) are S1-ungated (limit 0 per scripts/plan-lint.sh _ext_limit default case) — no S1 line-budget constraint applies to this change at all.",
+      "severity": "info"
+    },
+    {
+      "note": "GAP FOUND AND FIXED (coordinator-verified, 2026-07-01): the initial plan draft only wired k3d/ (dev) for the downloads service and omitted the prod/ overlay. Without prod/patch-oauth2-proxy-downloads.yaml + prod/ingress.yaml + prod/configmap-domains.yaml + a prod/kustomization.yaml patches: entry, downloads.mentolder.de would only work in local k3d dev — unreachable on the real fleet cluster, defeating REQ-RUSTDESK-CLIENT-003. Confirmed prod/ has no per-brand sub-overlay for docs (no prod-mentolder/ or prod-fleet/mentolder/ override touches it) — only the shared prod/ layer needed new files. Task 4 was inserted to close this gap; downstream tasks renumbered 5-9.",
+      "severity": "warn"
+    },
+    {
+      "note": "DNS finding (corrects an initial hypothesis that a manual A-record would be needed for downloads.mentolder.de): scripts/fleet-dns-cutover.sh shows the wildcard '*' A-record prefix already round-robins across all three fleet public IPs, and docs.mentolder.de (architecturally identical: Traefik + oauth2-proxy) has no dedicated A-record of its own — it resolves via that same wildcard. downloads.mentolder.de will too. No DNS task/prerequisite was added for it. This is unrelated to rustdesk.mentolder.de's own raw-TCP ID-server hostname, which is a separate, already-solved concern in the archived parent spec (REQ-RUSTDESK-RELAY-005, pinned-node firewall rules).",
+      "severity": "info"
+    },
+    {
+      "note": "SECURITY GAP FOUND AND FIXED (coordinator-verified, 2026-07-01): Task 8 pushed ghcr.io/paddione/downloads-content without ever checking its visibility. Confirmed via WebFetch against official GitHub docs: (1) GitHub REST/GraphQL has NO endpoint to SET package visibility -- only GET (read-only field) is documented; changing it is web-UI-only ('Danger Zone'). The coordinator's suggested `gh api PATCH .../visibility` call does not exist and would 404 if implemented as suggested -- do not add it verbatim. (2) GitHub docs state personal-account packages default to private on first publish, BUT a package auto-linked to its source repo (e.g. via an OCI image-source LABEL, or an Actions-published package connected to the repo) can instead inherit that repo's visibility -- public here, since this repo is public. This is the concrete mechanism that could make downloads-content public despite the general private-by-default rule, and is exactly the bypass REQ-RUSTDESK-CLIENT-003 exists to prevent (SSO gate skipped via direct `docker pull` + layer extraction of the baked password). Fix applied: Task 8 Step 4 adds a read + hard-fail verification (`gh api /user/packages/container/downloads-content --jq '.visibility'`, exit 1 if not 'private') that runs on EVERY workflow run (not just first), Prerequisite 5 documents the one-time manual UI check/fix (no automation possible), and the Dockerfile deliberately omits the org.opencontainers.image.source LABEL as a preventive (not sufficient on its own) measure.",
+      "severity": "warn"
+    },
+    {
+      "note": "UNVERIFIED this session: whether a classic PAT's `write:packages` scope (already granted to GH_PAT for docker/login-action push access) implicitly also grants `read:packages` (needed for the new Task 8 Step 4 `gh api GET /user/packages/container/...` call), or whether both scopes must be requested independently. Official docs list them as separate scopes without stating the hierarchy. If Step 4 fails with an HTTP 403 (as opposed to a 'visibility != private' failure), add the `read:packages` scope to the existing GH_PAT.",
+      "severity": "info"
+    }
+  ]
+}

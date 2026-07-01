@@ -60,9 +60,16 @@ _detect_tool() {
 
 _lock_dir() {
   if [ -n "${AGENT_LOCK_DIR:-}" ]; then printf '%s\n' "$AGENT_LOCK_DIR"; return; fi
-  local cd; cd="$(git rev-parse --git-common-dir 2>/dev/null)" || { printf '/tmp/agent-locks\n'; return; }
-  case "$cd" in /*) : ;; *) cd="$(cd "$cd" && pwd)";; esac
-  printf '%s/agent-locks\n' "$cd"
+  # Always anchor on the toplevel of the main checkout so the path is
+  # independent of the caller's cwd (worktrees, subshell captures, etc.).
+  # Falls back to /tmp/agent-locks only if `git rev-parse` itself fails —
+  # never to a cwd-relative resolution, which can be silently wrong when
+  # invoked from a worktree whose `.git` is a file, not a directory. [T001384]
+  local toplevel common
+  toplevel="$(git rev-parse --show-toplevel 2>/dev/null)" || { printf '/tmp/agent-locks\n'; return; }
+  common="$(cd "$toplevel" && git rev-parse --git-common-dir 2>/dev/null)" || { printf '/tmp/agent-locks\n'; return; }
+  case "$common" in /*) : ;; *) common="$(cd "$toplevel/$common" && pwd)";; esac
+  printf '%s/agent-locks\n' "$common"
 }
 
 _sanitize() { printf '%s' "$1" | tr '/ ' '--'; }
@@ -89,9 +96,12 @@ _reapable() {
   [ -f "$f" ] || return 0
   sid="$(_lock_field "$f" owner_sid)"; wt="$(_lock_field "$f" worktree)"
   hb="$(_lock_field "$f" heartbeat_at)"; ct="$(_lock_field "$f" created_at)"; now="$(_now)"
+  # 0) A CONFIRMED-ALIVE SID ALWAYS WINS — even if the worktree path is stale
+  #    or missing, a live session owns the claim. Reapability only kicks in
+  #    when the SID is dead (or, as a last resort, when no SID is recorded). [T001384]
+  if [ -n "$sid" ] && _sid_alive "$sid"; then return 1; fi
   if [ -n "$wt" ] && [ "$wt" != "-" ] && [ ! -d "$wt" ]; then _reap_log "$f" worktree-missing; return 0; fi
   if [ -n "$sid" ]; then
-    if _sid_alive "$sid"; then return 1; fi
     # Dead numeric SID: a young claim (< AGENT_LOCK_GRACE) is protected from a
     # reap on the SID check alone — a transient session-id mismatch between tool
     # calls must not drop a fresh claim. Fall through to the heartbeat-TTL check.
@@ -247,7 +257,11 @@ cmd_reap() {
       git branch -d "$br" 2>/dev/null || true
     fi
   done
-  # 3) drop reapable (clearly dead) locks
+  # 3) drop reapable (clearly dead) locks — hold the registry lock so this
+  #    sweep is serialised against cmd_claim / cmd_refresh / cmd_release.
+  #    Without the lock, a concurrent claim can write a fresh lock file
+  #    and have it immediately deleted here. [T001384]
+  _with_lock
   if [ -d "$d" ]; then
     local f
     for f in "$d"/*.json; do [ -e "$f" ] || continue; _reapable "$f" && rm -f "$f"; done

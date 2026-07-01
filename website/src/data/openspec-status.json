@@ -557,15 +557,15 @@
       "status": "plan_staged"
     }
   ],
-  "T001352": [
-    {
-      "slug": "t001352-seed-invoice-counter-conflict",
-      "status": "plan_staged"
-    }
-  ],
   "T001351": [
     {
       "slug": "t001351-time-entry-default-date",
+      "status": "plan_staged"
+    }
+  ],
+  "T001352": [
+    {
+      "slug": "t001352-seed-invoice-counter-conflict",
       "status": "plan_staged"
     }
   ],

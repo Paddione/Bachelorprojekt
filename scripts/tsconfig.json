@@ -1,0 +1,11 @@
+{
+  "//": "Self-contained tsconfig for scripts/ so the vitest 4 oxc transformer resolves the nearest tsconfig here and does NOT walk up to the root tsconfig.json, whose project references (./website → astro/tsconfigs/strict) are absent in CI's root-only npm install. [T001360] Replaces the esbuild.tsconfigRaw workaround that oxc ignores.",
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "verbatimModuleSyntax": false,
+    "skipLibCheck": true,
+    "types": []
+  }
+}

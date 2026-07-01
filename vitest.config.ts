@@ -1,13 +1,12 @@
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
-  esbuild: {
-    // Prevent vite:esbuild from scanning workspace tsconfig.json references
-    // (root tsconfig.json references ./website which extends astro/tsconfigs/strict —
-    // only installed in website/node_modules, absent from root node_modules in CI).
-    // Added after PR #2312 introduced the composite build reference. [T001323]
-    tsconfigRaw: '{}',
-  },
+  // NOTE: vitest 4 transforms TS with oxc (not esbuild), and oxc ignores an
+  // `esbuild.tsconfigRaw` override. To stop oxc walking up to the root
+  // tsconfig.json — whose project references (./website → astro/tsconfigs/strict)
+  // are absent in CI's root-only npm install — scripts/ ships its own
+  // self-contained scripts/tsconfig.json, which oxc resolves as the nearest
+  // tsconfig for scripts/**/*.test.ts. [T001360, supersedes T001323's esbuild trick]
   test: {
     include: ['scripts/**/*.test.ts'],
     environment: 'node',

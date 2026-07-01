@@ -294,17 +294,22 @@ vi.mock('./tickets-schema', () => ({
 
 import {
   pool, upsertCustomer,
+  getLastTimeEntryRate, createTimeEntry, listTimeEntries, listAllTimeEntries,
+  setTimeEntryStripeInvoice, getTimeEntryIdsByInvoice, getUnbilledBillableEntriesByCustomer,
+  deleteTimeEntry, getProjectTotalMinutes,
+  claimBrettLinkPost,
+} from './website-db';
+import {
   createProject, updateProject, deleteProject,
   createSubProject, updateSubProject, deleteSubProject,
   listDirectTasks, listSubProjectTasks, createProjectTask, updateProjectTask, deleteProjectTask,
   listProjectAttachments, getProjectAttachment, createProjectAttachment, deleteProjectAttachmentRecord,
   listProjectsForCustomer, togglePortalTaskDone,
-  getLastTimeEntryRate, createTimeEntry, listTimeEntries, listAllTimeEntries,
-  setTimeEntryStripeInvoice, getTimeEntryIdsByInvoice, getUnbilledBillableEntriesByCustomer,
-  deleteTimeEntry, getProjectTotalMinutes,
+} from './projects-db';
+import {
   listMeetingsForProject, assignMeetingToProject, findProjectByName,
-  listUnassignedMeetingsForCustomer, claimBrettLinkPost,
-} from './website-db';
+  listUnassignedMeetingsForCustomer,
+} from './project-export-db';
 
 // ── pg-mem-backed tests below (always run) ───────────────────────────────────
 

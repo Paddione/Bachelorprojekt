@@ -3,7 +3,7 @@ title: "G-SEC05: Messfehler health-goals-check.sh filtert nur eine von zwei Bot-
 ticket_id: T001358
 domains:
   - quality
-status: plan_staged
+status: completed
 ---
 
 ## File Structure

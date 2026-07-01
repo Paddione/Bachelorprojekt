@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../../lib/auth';
 import { getQAssignment, getQQuestion } from '../../../../../../lib/questionnaire-db';
-import { createProjectTask } from '../../../../../../lib/website-db';
+import { createProjectTask } from '../../../../../../lib/projects-db';
 
 export const POST: APIRoute = async ({ request, params }) => {
   const session = await getSession(request.headers.get('cookie'));

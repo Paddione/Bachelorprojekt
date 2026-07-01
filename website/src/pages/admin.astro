@@ -1,8 +1,9 @@
 ---
 import AdminLayout from '../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../lib/auth';
-import { listBugTickets, listProjects, listAdminShortcuts } from '../lib/website-db';
+import { listBugTickets, listAdminShortcuts } from '../lib/website-db';
 import type { AdminShortcut } from '../lib/website-db';
+import { listProjects } from '../lib/projects-db';
 import { getAllBillingInvoices } from '../lib/stripe-billing';
 import { getAvailableSlots } from '../lib/caldav';
 import AdminShortcuts from '../components/admin/AdminShortcuts.svelte';

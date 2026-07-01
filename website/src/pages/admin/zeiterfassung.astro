@@ -2,9 +2,11 @@
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import AdminPageHeader from '../../components/admin/ui/AdminPageHeader.svelte';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
-import { getLastTimeEntryRate, listAllTimeEntries, listProjects } from '../../lib/website-db';
+import { getLastTimeEntryRate, listAllTimeEntries } from '../../lib/website-db';
 import { getEffectiveLeistungen } from '../../lib/content';
-import type { TimeEntry, Project } from '../../lib/website-db';
+import type { TimeEntry } from '../../lib/website-db';
+import { listProjects } from '../../lib/projects-db';
+import type { Project } from '../../lib/projects-db';
 import type { LeistungCategory } from '../../config/types';
 import { logger } from '../../lib/logger';
 

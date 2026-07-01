@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession } from '../../../../../lib/auth';
-import { getCustomerByEmail } from '../../../../../lib/website-db';
+import { getCustomerByEmail } from '../../../../../lib/projects-db';
 import { getQAssignment, dismissQAssignment } from '../../../../../lib/questionnaire-db';
 import { sendQuestionnaireDismissed } from '../../../../../lib/email';
 

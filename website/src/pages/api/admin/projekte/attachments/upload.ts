@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
-import { createProjectAttachment } from '../../../../../lib/website-db';
+import { createProjectAttachment } from '../../../../../lib/projects-db';
 import { ensureFolder, uploadFile } from '../../../../../lib/nextcloud-files';
 import { siteRedirect } from '../../../../../lib/redirect';
 import { randomUUID } from 'node:crypto';

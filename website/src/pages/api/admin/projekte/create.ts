@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { createProject } from '../../../../lib/website-db';
+import { createProject } from '../../../../lib/projects-db';
 import { siteRedirect } from '../../../../lib/redirect';
 import { getTemplate, materializeTemplate } from '../../../../lib/folder-templates-db';
 

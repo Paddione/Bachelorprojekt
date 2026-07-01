@@ -589,7 +589,13 @@
   ],
   "T001358": [
     {
-      "slug": "t001358-sec05-health-goals",
+      "slug": "2026-07-01-t001358-sec05-health-goals",
+      "status": "archived"
+    }
+  ],
+  "T001359": [
+    {
+      "slug": "t001359-size03-website-db",
       "status": "plan_staged"
     }
   ],

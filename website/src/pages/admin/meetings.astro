@@ -6,8 +6,10 @@
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import AdminPageHeader from '../../components/admin/ui/AdminPageHeader.svelte';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
-import { listAllMeetings, listProjects } from '../../lib/website-db';
-import type { AdminMeeting, Project } from '../../lib/website-db';
+import { listAllMeetings } from '../../lib/website-db';
+import type { AdminMeeting } from '../../lib/website-db';
+import { listProjects } from '../../lib/projects-db';
+import type { Project } from '../../lib/projects-db';
 import AdminMeetingModal from '../../components/admin/AdminMeetingModal.svelte';
 import { logger } from '../../lib/logger';
 

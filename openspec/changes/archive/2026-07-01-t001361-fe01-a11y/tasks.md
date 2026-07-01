@@ -2,7 +2,7 @@
 title: "G-FE01: Accessibility-Tooling einrichten + axe-Core-Baseline"
 ticket_id: T001361
 domains: [quality, frontend]
-status: plan_staged
+status: completed
 file_locks: []
 shared_changes: false
 ---

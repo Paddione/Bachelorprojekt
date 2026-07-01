@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.150.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.150.7...website-v1.150.8) (2026-07-01)
+
+
+### Bug Fixes
+
+* **dev-flow:** lavish reload-safety protocol prevents lost form input ([#2459](https://github.com/Paddione/Bachelorprojekt/issues/2459)) ([baba4ff](https://github.com/Paddione/Bachelorprojekt/commit/baba4ff1b0e4dfcba04c73104c9547a535277f9b))
+
 ## [1.150.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.150.6...website-v1.150.7) (2026-07-01)
 
 

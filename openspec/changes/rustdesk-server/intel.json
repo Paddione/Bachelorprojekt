@@ -1,0 +1,117 @@
+{
+  "meta": {
+    "slug": "rustdesk-server",
+    "ticket_id": "",
+    "generated_from": "main@c5d65374",
+    "domains": ["infra", "security"],
+    "intel_sources": ["wc -l", "docs/code-quality/baseline.json", "scripts/plan-lint.sh:_ext_limit"]
+  },
+  "impact_files": [
+    {
+      "path": "Taskfile.yml",
+      "language": "yaml",
+      "loc": 4468,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "prod/cloud-init.yaml",
+      "language": "yaml",
+      "loc": 188,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "scripts/hetzner/cloud-init.yaml.tmpl",
+      "language": "yaml",
+      "loc": 66,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "scripts/hetzner/cloud-init-server.yaml.tmpl",
+      "language": "yaml",
+      "loc": 78,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "environments/sealed-secrets/mentolder.yaml",
+      "language": "yaml",
+      "loc": 291,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "k3d/rustdesk-stack/namespace.yaml",
+      "language": "yaml",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "k3d/rustdesk-stack/hbbs.yaml",
+      "language": "yaml",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "k3d/rustdesk-stack/hbbr.yaml",
+      "language": "yaml",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "k3d/rustdesk-stack/secret.yaml",
+      "language": "yaml",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "k3d/rustdesk-stack/kustomization.yaml",
+      "language": "yaml",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    }
+  ],
+  "symbols": [],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "Kein Ticket existiert zum Zeitpunkt der Intel-Erhebung (wird erst in Schritt 4.5 nach Plan-Freigabe angelegt) — ticket_id ist Platzhalter, muss im Ticket-Schritt nachgetragen werden.",
+      "severity": "info"
+    },
+    {
+      "note": "symbols/call_graph/db_tables/api_contracts/external_types sind leer, da dies reine Kubernetes-Manifest-/Shell-Infrastrukturarbeit ohne Anwendungscode-Symbole, DB-Zugriff oder API-Endpunkte ist — codebase-memory/mcp-postgres/context7 liefern hier keine relevanten Treffer.",
+      "severity": "info"
+    },
+    {
+      "note": "Alle betroffenen Dateien sind .yaml/.yml/.tmpl — laut scripts/plan-lint.sh _ext_limit() eine ungegatete Extension (s1_limit=0), daher greift das S1-LOC-Ratchet hier grundsätzlich nicht.",
+      "severity": "info"
+    },
+    {
+      "note": "Exakte hbbs/hbbr-CLI-Flags und der aktuelle rustdesk/rustdesk-server-Image-Digest sind nicht über codebase-memory oder context7 auflösbar (kein npm/pip-Paket) — müssen während der Implementierung live via Docker-Hub/Upstream-Doku verifiziert werden.",
+      "severity": "warn"
+    }
+  ]
+}

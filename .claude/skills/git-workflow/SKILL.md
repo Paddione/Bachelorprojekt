@@ -81,6 +81,13 @@ mitcommitten — sonst schlägt das `commit-lint`-Gate (und `preflight-pr-scope.
 scope" fehl. `commitlint.config.cjs` ist die einzige Quelle; `ci.yml` und `pr-auto-title.yml`
 laden daraus dynamisch (T001364).
 
+> **Scope vorab gegen SSOT-Allowlist prüfen [T001395]:** `preflight-pr-scope.sh` (Schritt 4) läuft
+> erst kurz vor `gh pr create` — also NACH dem Commit. Ein falsch geratener Scope (z. B.
+> `installer`/`rustdesk` statt eines registrierten Scopes) führt dann zu einem Soft-Reset +
+> Recommit mitten im Flow. Vor dem ersten Commit die erlaubte Liste ziehen und daraus wählen:
+> `bash scripts/validate-commit-msg.sh scopes`. Siehe
+> [dev-flow-gotchas T001395](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md).
+
 ### Commit ausführen
 
 ```bash
@@ -158,6 +165,16 @@ Kurzfassung:
 
 > **Hinweis:** `CONFLICTING`-Status unterdrückt CI-Runs komplett — kein "CI läuft noch",
 > sondern "CI startet nie". Diagnose: `gh pr view <n> --json mergeStateStatus`.
+
+> **Freshness-Auto-Regen-Race [T001395]:** Bleibt ein PR über einen geplanten
+> Freshness-Auto-Regen-Zyklus offen, committet der Scheduler eigenständig Änderungen an
+> generierten Artefakten (`docs/code-quality/loc-budget.json` u. ä.) auf `main` — der PR kippt
+> dann auf `CONFLICTING`, ohne dass ein Mensch etwas geändert hat (beobachtet in T001378). Das
+> ist kein echter Merge-Konflikt: kurz halten (PRs zügig mergen) minimiert das Risiko; tritt es
+> trotzdem auf, den normalen Rebase-Schritt (oben) um `task freshness:regenerate` ergänzen, BEVOR
+> gepusht wird — sonst rebased man gegen einen bereits wieder veralteten Artefaktstand:
+> `git fetch origin main && git rebase origin/main && task freshness:regenerate && git add <regenerierte Dateien> && git rebase --continue && git push --force-with-lease`.
+> Details: [dev-flow-gotchas T001395](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md).
 
 ---
 

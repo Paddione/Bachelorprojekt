@@ -62,15 +62,20 @@
     </ComponentGroup>
 
     <!-- Immediate: marshal the full command lines (with resolved [INSTALLFOLDER]
-         and [System64Folder]) into the util QtExec command-line properties. -->
-    <SetProperty Id="WixSilentExec64CmdLine"
-                 Before="InstallOfficialRustDesk"
-                 Sequence="execute"
-                 Value="&quot;[System64Folder]msiexec.exe&quot; /i &quot;[INSTALLFOLDER]official-rustdesk.msi&quot; /qn /norestart" />
-    <SetProperty Id="WixQuietExec64CmdLine"
-                 Before="ProvisionRustDesk"
-                 Sequence="execute"
-                 Value="&quot;[System64Folder]WindowsPowerShell\v1.0\powershell.exe&quot; -ExecutionPolicy Bypass -NonInteractive -File &quot;[INSTALLFOLDER]provision.ps1&quot;" />
+         and [System64Folder]) into the CustomActionData a deferred CA reads.
+         A util:QtExec deferred CA (WixSilentExec64/WixQuietExec64) gets its
+         CommandLine via a property named EXACTLY like its OWN CustomAction Id
+         (InstallOfficialRustDesk / ProvisionRustDesk) — not an arbitrary name.
+         Each setter therefore needs its own CA Id (≠ the deferred CA's Id) and
+         a Property attribute equal to the deferred CA's Id (T001423; a prior
+         <SetProperty Id="WixSilentExec64CmdLine"/> named the property after the
+         DllEntry instead, so the deferred CA found no data: 0x80070057). -->
+    <CustomAction Id="SetInstallOfficialRustDeskCmdLine"
+                  Property="InstallOfficialRustDesk"
+                  Value="&quot;[System64Folder]msiexec.exe&quot; /i &quot;[INSTALLFOLDER]official-rustdesk.msi&quot; /qn /norestart" />
+    <CustomAction Id="SetProvisionRustDeskCmdLine"
+                  Property="ProvisionRustDesk"
+                  Value="&quot;[System64Folder]WindowsPowerShell\v1.0\powershell.exe&quot; -ExecutionPolicy Bypass -NonInteractive -File &quot;[INSTALLFOLDER]provision.ps1&quot;" />
 
     <!-- Deferred CA: silent-install the official RustDesk MSI. -->
     <CustomAction Id="InstallOfficialRustDesk"
@@ -89,7 +94,9 @@
                   Return="check" />
 
     <InstallExecuteSequence>
+      <Custom Action="SetInstallOfficialRustDeskCmdLine" Before="InstallOfficialRustDesk" Condition="NOT Installed" />
       <Custom Action="InstallOfficialRustDesk" After="InstallFiles" Condition="NOT Installed" />
+      <Custom Action="SetProvisionRustDeskCmdLine" Before="ProvisionRustDesk" Condition="NOT Installed" />
       <Custom Action="ProvisionRustDesk" After="InstallOfficialRustDesk" Condition="NOT Installed" />
     </InstallExecuteSequence>
 

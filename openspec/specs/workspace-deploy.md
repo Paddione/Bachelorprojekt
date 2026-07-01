@@ -382,7 +382,7 @@ ConfigMap, a `nextcloud-oidc-config` ConfigMap, and Pod Security Standards label
 The system SHALL ensure that no core service container image uses the `:latest` tag, that
 all images carry either an explicit version tag or a digest, and that MCP sidecar images,
 internal build images (`paddione/bachelorprojekt`, `workspace-brett`, `docs`, `videovault`,
-`mediaviewer-widget`) are exempt from the `:latest` prohibition.
+`mediaviewer-widget`, `mentolder-web`) are exempt from the `:latest` prohibition.
 
 #### Scenario: Core-Images ohne :latest
 
@@ -393,8 +393,10 @@ internal build images (`paddione/bachelorprojekt`, `workspace-brett`, `docs`, `v
 
 #### Scenario: :latest bei internen Build-Images erlaubt
 
-- **GIVEN** `k3d/website.yaml`, `k3d/brett.yaml`, `k3d/docs.yaml` u.a. nutzen `:latest`
-  für intern gebaute Images (`paddione/bachelorprojekt*`, `workspace-brett`, `docs`, etc.)
+- **GIVEN** `k3d/website.yaml`, `k3d/brett.yaml`, `k3d/docs.yaml`, `k3d/videovault.yaml`,
+  `k3d/mediaviewer-widget.yaml`, `k3d/mentolder-web.yaml` u.a. nutzen `:latest`
+  für intern gebaute Images (`paddione/bachelorprojekt*`, `workspace-brett`, `docs`,
+  `videovault`, `mediaviewer-widget`, `mentolder-web`, etc.)
 - **WHEN** der Image-Pinning-Check ausgeführt wird
 - **THEN** werden diese Images von der `:latest`-Prüfung ausgenommen
 - **AND** der Check schlägt nur fehl, wenn ein Drittanbieter-Core-Image `:latest` trägt

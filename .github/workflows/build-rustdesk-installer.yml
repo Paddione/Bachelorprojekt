@@ -141,7 +141,10 @@ jobs:
           # static-web-server base (alpine) runs on the fleet nodes. The bundle
           # never leaves the runner as a workflow artifact — it goes straight into
           # the image layer and is pushed to the (private) GHCR package.
-          docker buildx create --use --name downloads-builder 2>$null | Out-Null
+          docker version
+          docker buildx version
+          docker buildx create --use --name downloads-builder
+          if ($LASTEXITCODE -ne 0) { Write-Error "buildx create failed ($LASTEXITCODE)"; exit $LASTEXITCODE }
           docker buildx build `
             --platform linux/amd64 `
             -f scripts/downloads.Dockerfile `

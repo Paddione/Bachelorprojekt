@@ -24,7 +24,8 @@ context: |
     sessions-server, sidekick-assistant, software-factory, t1224-lockfile-drift,
     ticket-system, vaultwarden-integration, website-core, workspace-deploy,
     divergence-guard, g-cq02-any-types-batch1, t001352-seed-invoice-counter-conflict,
-    t001358-sec05-health-goals, t001361-fe01-a11y, t001353-mishap-bundle-ci-tickets
+    t001358-sec05-health-goals, t001361-fe01-a11y, t001353-mishap-bundle-ci-tickets,
+    t001359-size03-website-db
 
 
 rules:

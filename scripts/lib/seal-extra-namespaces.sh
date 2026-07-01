@@ -19,7 +19,11 @@
 # shellcheck disable=SC2155
 
 # parse_extra_namespace_entries <schema_file>
-# Emits one tab-separated line per (src, ns, sec, dest, required) tuple.
+# Emits one tab-separated line per tuple:
+#   src<TAB>ns<TAB>sec<TAB>dest<TAB>required<TAB>owner_brand_csv
+# owner_brand_csv is a comma-separated list (e.g. "mentolder" or
+# "mentolder,korczewski"); empty when the schema field is absent
+# (backwards-compat default = no owner_ownership filter).
 parse_extra_namespace_entries() {
   local schema_file="$1"
   SCHEMA="$schema_file" WORKSPACE_NS="${WORKSPACE_NS:-workspace}" WEBSITE_NS="${WEBSITE_NS:-website}" python3 <<'PY'
@@ -36,22 +40,27 @@ for entry in schema.get("secrets") or []:
         ns = ns_remap.get(mapping["namespace"], mapping["namespace"])
         sec = mapping["secret"]
         dest = mapping.get("dest_key") or src
-        print(f"{src}\t{ns}\t{sec}\t{dest}\t{required}")
+        owner_brand = mapping.get("owner_brand") or []
+        ob_csv = ",".join(str(b) for b in owner_brand)
+        print(f"{src}\t{ns}\t{sec}\t{dest}\t{required}\t{ob_csv}")
 PY
 }
 
-# build_secret_manifest <tmp_manifest> <ns> <sname> <mappings> <secrets_file>
+# build_secret_manifest <tmp_manifest> <ns> <sname> <mappings> <secrets_file> [owner_brand_csv]
 # Writes the input Secret manifest to <tmp_manifest> (or empty string if
 # all keys were missing/empty). Honours the per-entry `required` flag:
 #   - required: true + empty value → die
 #   - required: false + empty value → emit key with ""
 # Sets the global DEST_LIST to a space-separated list of emitted keys.
+# If owner_brand_csv is non-empty, writes the annotation
+# `secrets.bachelorprojekt/owner-brand` on the Secret metadata.
 build_secret_manifest() {
   local tmp_manifest="$1"
   local ns="$2"
   local sname="$3"
   local mappings="$4"
   local secrets_file="$5"
+  local owner_brand_csv="${6:-}"
 
   declare -A secret_vals
   while IFS= read -r line; do
@@ -71,6 +80,10 @@ build_secret_manifest() {
     echo "metadata:"
     echo "  name: ${sname}"
     echo "  namespace: ${ns}"
+    if [[ -n "$owner_brand_csv" ]]; then
+      echo "  annotations:"
+      echo "    secrets.bachelorprojekt/owner-brand: \"${owner_brand_csv}\""
+    fi
     echo "type: Opaque"
     echo "stringData:"
     for m in $mappings; do
@@ -117,7 +130,8 @@ seal_extra_namespace_secrets() {
   fi
 
   declare -A ns_map=()
-  while IFS=$'\t' read -r src ns sec dest required; do
+  declare -A owner_by_pair=()
+  while IFS=$'\t' read -r src ns sec dest required ob; do
     [[ -z "$src" ]] && continue
     local pair="${ns}|${sec}"
     local mapping="${src}:=:${dest}:=:${required}"
@@ -126,17 +140,44 @@ seal_extra_namespace_secrets() {
     else
       ns_map["$pair"]="${mapping}"
     fi
+    # Last write wins for owner_brand at pair level (entries with the
+    # same ns|sec pair should agree on ownership; if they don't, the
+    # last declared entry's value is used).
+    owner_by_pair["$pair"]="$ob"
   done <<< "$entries"
 
   for pair in "${!ns_map[@]}"; do
     local ns="${pair%%|*}"
     local sname="${pair##*|}"
     local mappings="${ns_map[$pair]}"
+    local owner_brand_csv="${owner_by_pair[$pair]:-}"
+
+    # Owner-brand filter (T001404): if this entry declares an
+    # `owner_brand` list and the current ENV_NAME is not in it, skip
+    # sealing the document. This prevents a brand-deploy (e.g.
+    # korczewski) from overwriting shared-NS SealedSecret documents
+    # (rustdesk, coturn) that belong to the other brand (mentolder).
+    # When the field is absent (legacy schema), all envs may seal —
+    # backwards-compat behaviour is preserved.
+    if [[ -n "$owner_brand_csv" ]]; then
+      local env_lc="${ENV_NAME,,}"
+      local match=0
+      local ob_arr
+      IFS=',' read -ra ob_arr <<< "$owner_brand_csv"
+      local brand
+      for brand in "${ob_arr[@]}"; do
+        [[ "${brand,,}" == "$env_lc" ]] && match=1
+      done
+      if [[ "$match" -eq 0 ]]; then
+        echo "INFO: skipping ${ns}/${sname} (owner_brand=[${owner_brand_csv}], env=${ENV_NAME})" >&2
+        continue
+      fi
+    fi
 
     local tmp_manifest
     tmp_manifest=$(mktemp)
 
-    build_secret_manifest "$tmp_manifest" "$ns" "$sname" "$mappings" "$secrets_file"
+    build_secret_manifest "$tmp_manifest" "$ns" "$sname" "$mappings" "$secrets_file" "$owner_brand_csv"
 
     if [[ -z "${DEST_LIST// /}" ]]; then
       echo "INFO: Skipping ${ns}/${sname} — no keys present in secrets file." >&2

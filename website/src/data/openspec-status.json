@@ -717,6 +717,12 @@
       "status": "archived"
     }
   ],
+  "T001404": [
+    {
+      "slug": "t001404-workspace-deploy-secrets-scope",
+      "status": "plan_staged"
+    }
+  ],
   "T001408": [
     {
       "slug": "2026-07-01-t001408-mishap-bundle",

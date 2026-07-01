@@ -23,6 +23,13 @@ _TEST_COMPLETENESS_FILE=""
 _TEST_SCHEMA_FILE=""
 _TEST_COMPLETENESS_ENV_FILE=""
 REUSE_CERT=false; _TEST_CERT_A=""; _TEST_CERT_B=""
+# Shared namespaces (T001404): SealedSecret documents targeting these
+# namespaces are emitted by env-seal only for the brand listed in the
+# schema's `owner_brand` field. Source of truth for the
+# `task workspace:deploy` defence-in-depth filter and the regression
+# test in tests/spec/workspace-deploy-secrets-scope.bats.
+SHARED_NAMESPACES=("rustdesk" "coturn")
+export SHARED_NAMESPACES
 # ── Helpers ──────────────────────────────────────────────────────
 die() {
   echo "ERROR: $*" >&2

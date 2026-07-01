@@ -2717,7 +2717,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 463,
+      "file_count": 464,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -2995,6 +2995,7 @@
         "scripts/git-crypt-guard.sh",
         "scripts/health-goals-check.sh",
         "scripts/health-goals-update.sh",
+        "scripts/hermes-delegate.sh",
         "scripts/hetzner/cloud-init-server.yaml.tmpl",
         "scripts/hetzner/cloud-init.yaml.tmpl",
         "scripts/hetzner/generate-wg-conf.sh",

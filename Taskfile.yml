@@ -2562,6 +2562,30 @@ tasks:
               kubectl --context "$ENV_CONTEXT" create namespace "$_ns" \
                 --dry-run=client -o yaml | kubectl --context "$ENV_CONTEXT" apply -f -
             done
+            # Defense-in-depth (T001404): drop any SealedSecret document whose
+            # namespace is in SHARED_NAMESPACES and whose owner-brand
+            # annotation does not include the current ENV. Prevents
+            # follow-up damage if a SealedSecret file is manually edited or
+            # contains legacy-only blocks. Falls back to applying the
+            # original file if yq is unavailable.
+            if command -v yq >/dev/null 2>&1; then
+              _shared_ns_csv=$(IFS=,; echo "${SHARED_NAMESPACES[*]:-rustdesk,coturn}")
+              _filtered=$(yq eval-all '
+                select(
+                  .kind != "SealedSecret" or
+                  (.metadata.namespace as $ns | "'"$_shared_ns_csv"'" | split(",") as $shared |
+                   ($shared | index($ns)) == null) or
+                  (.metadata.annotations["secrets.bachelorprojekt/owner-brand"] as $ob |
+                   $ob == null or ($ob | split("[ ,]" | .[]? // "") | index("'"{{.ENV}}"'")) != null)
+                )
+              ' "$sealed" 2>/dev/null || cat "$sealed")
+              if [[ -n "$_filtered" ]]; then
+                _sealed_filtered="$(mktemp)"
+                echo "$_filtered" > "$_sealed_filtered"
+                trap "rm -f '$_sealed_filtered'" EXIT
+                sealed="$_sealed_filtered"
+              fi
+            fi
             kubectl --context "$ENV_CONTEXT" apply -f "$sealed"
             if ! bash scripts/wait-for-sealed-secret.sh \
                  --context "$ENV_CONTEXT" --namespace "${_ws_ns}" \

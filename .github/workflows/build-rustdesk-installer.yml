@@ -123,8 +123,11 @@ jobs:
           tar -xzf crane.tar.gz crane.exe
 
       - name: Log in to GHCR (crane)
-        run: .\crane.exe auth login ghcr.io -u "${{ github.repository_owner }}" -p "${{ secrets.GH_PAT }}"
         shell: pwsh
+        env:
+          CRANE_USER: ${{ github.repository_owner }}
+          CRANE_PASSWORD: ${{ secrets.GH_PAT }}
+        run: .\crane.exe auth login ghcr.io -u "$env:CRANE_USER" -p "$env:CRANE_PASSWORD"
 
       - name: Pre-push guard — refuse to re-publish over a public package
         shell: bash

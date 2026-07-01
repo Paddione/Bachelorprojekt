@@ -563,6 +563,12 @@
       "status": "plan_staged"
     }
   ],
+  "T001352": [
+    {
+      "slug": "t001352-seed-invoice-counter-conflict",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

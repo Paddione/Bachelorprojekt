@@ -500,17 +500,12 @@ describe('invoice counters', () => {
     expect(gutschrift).toMatch(/^GS-\d{4}-0001$/);
   });
 
-  // FOUND BUG (not fixed — see task report): seedInvoiceCounter() issues
-  // `INSERT ... ON CONFLICT (brand, year) DO NOTHING`, but the table's
-  // actual unique constraint (after initInvoiceCountersTable()'s own
-  // migration) is the 3-column PRIMARY KEY (brand, year, kind). Postgres
-  // validates the ON CONFLICT target against existing constraints at parse
-  // time regardless of whether a row actually conflicts, so this always
-  // throws "there is no unique or exclusion constraint matching the ON
-  // CONFLICT specification" — reproduced here against pg-mem, which mirrors
-  // real Postgres's behavior for this exact error.
-  test('seedInvoiceCounter throws — ON CONFLICT (brand, year) target does not match the (brand, year, kind) PK', async () => {
-    await expect(seedInvoiceCounter('korczewski', 2020, 41)).rejects.toThrow(/no unique or exclusion constraint/);
+  test('seedInvoiceCounter seeds the counter without throwing, next number continues from it', async () => {
+    const year = new Date().getFullYear();
+    await expect(seedInvoiceCounter('korczewski', year, 41)).resolves.toBeUndefined();
+
+    const next = await getNextInvoiceNumber('korczewski', 'invoice');
+    expect(next).toBe(`RE-${year}-0042`);
   });
 });
 

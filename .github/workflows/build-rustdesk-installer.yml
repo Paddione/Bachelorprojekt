@@ -27,22 +27,6 @@ jobs:
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
 
-      - name: Install WiX Toolset + extensions
-        shell: pwsh
-        run: |
-          # Pinned to the last pre-OSMF major: v7 requires accepting the Open
-          # Source Maintenance Fee EULA interactively, which fails non-interactive
-          # CI runs with WIX7015. See https://docs.firegiant.com/wix/osmf/.
-          # Extension versions must match the wix core major/minor (T001421) —
-          # unpinned `extension add` resolves to the latest (v7) package, which
-          # is incompatible with the v5 core (WIX6101).
-          # Bal supplies the Burn bootstrapper application (T001425 — wrapper
-          # is now a Bundle/.exe, not a Package/.msi).
-          dotnet tool install --global wix --version 5.0.2
-          wix extension add -g WixToolset.Bal.wixext/5.0.2
-          if ($LASTEXITCODE -ne 0) { Write-Error "wix extension add failed ($LASTEXITCODE)"; exit $LASTEXITCODE }
-          wix extension list -g
-
       - name: Download + pin-verify official RustDesk MSI
         shell: pwsh
         run: |
@@ -77,15 +61,20 @@ jobs:
       - name: Build wrapper bundle
         shell: pwsh
         run: |
-          # Bundle.wxs <Payload Source="..."> uses bare relative filenames;
-          # those live under rustdesk-installer/, not the repo root the build
-          # runs from — -bindpath adds that directory to wix's source search
-          # path (T001422, carried over from the earlier Package.wxs design).
-          wix build rustdesk-installer/Bundle.wxs `
-            -ext WixToolset.Bal.wixext `
-            -bindpath rustdesk-installer `
-            -arch x64 `
-            -o rustdesk-workspace-installer.exe
+          # Built via the .wixproj (dotnet build), not the raw `wix build` CLI:
+          # the WixToolset.Bal.wixext NuGet package ships an assembly named
+          # WixToolset.BootstrapperApplications.wixext.dll, which doesn't match
+          # its package id — `wix extension add`/`-ext` assume package id ==
+          # assembly name and report the extension "damaged"/not found. MSBuild's
+          # normal NuGet restore (PackageReference in rustdesk-installer.wixproj)
+          # doesn't have that assumption and resolves it correctly (T001425).
+          # Relative Source/Payload paths resolve against the project directory
+          # (rustdesk-installer/), so no -bindpath equivalent is needed here.
+          dotnet build rustdesk-installer/rustdesk-installer.wixproj -c Release
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $built = Get-ChildItem -Path rustdesk-installer -Recurse -Filter "rustdesk-workspace-installer.exe" | Select-Object -First 1
+          if (-not $built) { Write-Error "built bundle exe not found under rustdesk-installer/"; exit 1 }
+          Copy-Item $built.FullName rustdesk-workspace-installer.exe
 
       - name: Silent-install the wrapper bundle
         shell: pwsh

@@ -645,6 +645,12 @@
       "status": "plan_staged"
     }
   ],
+  "T001383": [
+    {
+      "slug": "factory-branch-switch-guard",
+      "status": "plan_staged"
+    }
+  ],
   "T001385": [
     {
       "slug": "2026-07-01-t001385-openspec-delta-spec-dir",

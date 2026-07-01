@@ -2,7 +2,7 @@
 title: "rustdesk-msi-installer — Implementation Plan"
 ticket_id: T001378
 domains: [infra, ci-cd]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

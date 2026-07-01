@@ -52,15 +52,14 @@ den Change-Slug zurück.
 
 - **GIVEN** `openspec/changes/my-feature/` existiert bereits
 - **WHEN** `task openspec:propose -- my-feature --ticket T000999` ausgeführt wird
-- **THEN** schlägt der Befehl mit einer Fehlermeldung fehl, ohne bestehende Dateien zu überschreiben
+- **THEN** schlägt der Befehl mit einer Fehlermeldung fehl, ohne bestehende Dateien zu
+  überschreiben
 
 #### Scenario: Fehlende Pflichtargumente
 
 - **GIVEN** kein Change existiert
 - **WHEN** `propose` ohne `--ticket`-Argument aufgerufen wird
 - **THEN** schlägt der Befehl mit Exit-Code ungleich 0 und einer Fehlermeldung fehl
-
----
 
 ### Requirement: Kanonischer /opsx:propose-Flow respektiert die Delta-Spec-Konvention für Sub-Features
 
@@ -580,6 +579,37 @@ verdict (0 for PASS, 1 for FAIL).
 - **AND** die Ausgabe ist valides JSON mit `"verdict": "FAIL"` und mindestens einem Eintrag in `"hard"`
 
 ---
+
+### Requirement: Kanonischer /opsx:propose-Flow respektiert die Delta-Spec-Konvention für Sub-Features
+
+The system SHALL, when the canonical `/opsx:propose` workflow (as documented in
+`.claude/skills/openspec-propose/SKILL.md` and mirrored in
+`.claude/commands/opsx/propose.md` and `.opencode/commands/opsx-propose.md`) creates the
+`specs` artifact for a change, check whether the change is a sub-feature of an existing
+capability under `openspec/specs/` (via `openspec/component-map.yaml` or explicit user
+input) BEFORE writing the file, and SHALL, if it is, write the Delta-Spec to
+`openspec/changes/<slug>/specs/<parent-slug>.md` (Parent-SSOT-Slug) instead of the
+`outputPath` filename returned by `openspec instructions specs --change "<name>" --json`
+(which always defaults to the change slug).
+
+#### Scenario: /opsx:propose für ein Sub-Feature schreibt die Delta-Spec unter dem Parent-SSOT-Slug
+
+- **GIVEN** ein Change `add-target-spec-check` soll das bestehende `openspec-workflow`
+  SSOT-Spec erweitern
+- **WHEN** der Agent `.claude/skills/openspec-propose/SKILL.md` Schritt 4a für das
+  `specs`-Artefakt ausführt
+- **THEN** identifiziert der Agent `openspec-workflow` als Parent-Capability
+- **AND** schreibt die Delta-Spec nach `openspec/changes/add-target-spec-check/specs/openspec-workflow.md`
+- **AND NICHT** nach `openspec/changes/add-target-spec-check/specs/add-target-spec-check.md`
+
+#### Scenario: /opsx:propose für eine neue Capability nutzt weiterhin den Change-Slug
+
+- **GIVEN** ein Change `brand-new-capability` betrifft keine bestehende Capability unter
+  `openspec/specs/`
+- **WHEN** der Agent `.claude/skills/openspec-propose/SKILL.md` Schritt 4a für das
+  `specs`-Artefakt ausführt
+- **THEN** bleibt der von `outputPath` gelieferte Dateiname unverändert
+  (`specs/brand-new-capability.md`)
 
 ## Testszenarien
 
@@ -1121,8 +1151,8 @@ The system SHALL set the environment variable `OPENSPEC_TELEMETRY=0` in every wo
 
 ---
 
-
 (none — the full SSOT rewrite is parked under T001266 and will land when T001262 unparks)
 
-
 (none in this delta — the existing `openspec-workflow.md` SSOT is being narrowed, not modified; the full rewrite is parked)
+
+<!-- merged from change delta openspec-workflow.md on 2026-07-01 -->

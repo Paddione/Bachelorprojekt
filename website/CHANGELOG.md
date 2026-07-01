@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.150.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.150.2...website-v1.150.3) (2026-07-01)
+
+
+### Bug Fixes
+
+* **openspec:** document parent-SSOT-slug delta-spec convention in propose flow [T001385] ([#2438](https://github.com/Paddione/Bachelorprojekt/issues/2438)) ([3ee247b](https://github.com/Paddione/Bachelorprojekt/commit/3ee247b13e040e51ab64188d595ab4329ea94079))
+
 ## [1.150.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.150.1...website-v1.150.2) (2026-07-01)
 
 

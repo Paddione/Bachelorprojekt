@@ -40,6 +40,8 @@ jobs:
           # is now a Bundle/.exe, not a Package/.msi).
           dotnet tool install --global wix --version 5.0.2
           wix extension add -g WixToolset.Bal.wixext/5.0.2
+          if ($LASTEXITCODE -ne 0) { Write-Error "wix extension add failed ($LASTEXITCODE)"; exit $LASTEXITCODE }
+          wix extension list -g
 
       - name: Download + pin-verify official RustDesk MSI
         shell: pwsh

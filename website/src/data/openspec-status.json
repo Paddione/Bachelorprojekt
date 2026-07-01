@@ -41,8 +41,8 @@
   ],
   "T000956": [
     {
-      "slug": "ticket-verlauf-anhaenge",
-      "status": "plan_staged"
+      "slug": "2026-07-02-ticket-verlauf-anhaenge",
+      "status": "archived"
     }
   ],
   "T000959": [
@@ -89,20 +89,20 @@
   ],
   "T000987": [
     {
-      "slug": "cockpit-mobile-view",
-      "status": "plan_staged"
+      "slug": "2026-07-02-cockpit-mobile-view",
+      "status": "archived"
     }
   ],
   "T000988": [
     {
-      "slug": "cockpit-filter-presets",
-      "status": "plan_staged"
+      "slug": "2026-07-02-cockpit-filter-presets",
+      "status": "archived"
     }
   ],
   "T000989": [
     {
-      "slug": "cockpit-bulk-status",
-      "status": "plan_staged"
+      "slug": "2026-07-02-cockpit-bulk-status",
+      "status": "archived"
     }
   ],
   "T000990": [
@@ -113,14 +113,14 @@
   ],
   "T000991": [
     {
-      "slug": "agent-push-notifications",
-      "status": "plan_staged"
+      "slug": "2026-07-02-agent-push-notifications",
+      "status": "archived"
     }
   ],
   "T000992": [
     {
-      "slug": "ai-ticket-auto-triage",
-      "status": "plan_staged"
+      "slug": "2026-07-02-ai-ticket-auto-triage",
+      "status": "archived"
     }
   ],
   "T001002": [
@@ -155,32 +155,32 @@
   ],
   "T001025": [
     {
-      "slug": "feature-intake-knowledge-search",
-      "status": "plan_staged"
+      "slug": "2026-07-02-feature-intake-knowledge-search",
+      "status": "archived"
     }
   ],
   "T001026": [
     {
-      "slug": "mentolder-react-rebuild",
-      "status": "plan_staged"
+      "slug": "2026-07-02-mentolder-react-rebuild",
+      "status": "archived"
     }
   ],
   "T001033": [
     {
-      "slug": "art-library-webapp-integration",
-      "status": "plan_staged"
+      "slug": "2026-07-02-art-library-webapp-integration",
+      "status": "archived"
     }
   ],
   "T001034": [
     {
-      "slug": "mentolder-homepage-hifi-redesign",
-      "status": "planning"
+      "slug": "2026-07-02-mentolder-homepage-hifi-redesign",
+      "status": "archived"
     }
   ],
   "T001043": [
     {
-      "slug": "ticket-mcp-go",
-      "status": "plan_staged"
+      "slug": "2026-07-02-ticket-mcp-go",
+      "status": "archived"
     }
   ],
   "T001056": [
@@ -197,8 +197,8 @@
   ],
   "T001068": [
     {
-      "slug": "pocket-id-migration",
-      "status": "plan_staged"
+      "slug": "2026-07-02-pocket-id-migration",
+      "status": "archived"
     }
   ],
   "T001087": [
@@ -209,20 +209,20 @@
   ],
   "T001092": [
     {
-      "slug": "dora-delivery-pipeline",
-      "status": "plan_staged"
+      "slug": "2026-07-02-dora-delivery-pipeline",
+      "status": "archived"
     }
   ],
   "T001108": [
     {
-      "slug": "s1-violations-batch1",
-      "status": "plan_staged"
+      "slug": "2026-07-02-s1-violations-batch1",
+      "status": "archived"
     }
   ],
   "T001117": [
     {
-      "slug": "bats-coverage-batch1",
-      "status": "plan_staged"
+      "slug": "2026-07-02-bats-coverage-batch1",
+      "status": "archived"
     }
   ],
   "T001155": [
@@ -233,8 +233,8 @@
   ],
   "T001159": [
     {
-      "slug": "img02-image-drift",
-      "status": "plan_staged"
+      "slug": "2026-07-02-img02-image-drift",
+      "status": "archived"
     }
   ],
   "T001160": [
@@ -251,8 +251,8 @@
   ],
   "T001182": [
     {
-      "slug": "g-cd01-korczewski-secret-drift",
-      "status": "plan_staged"
+      "slug": "2026-07-02-g-cd01-korczewski-secret-drift",
+      "status": "archived"
     }
   ],
   "T001198": [
@@ -263,48 +263,48 @@
   ],
   "T001203": [
     {
-      "slug": "g-cd02-post-merge-race-guard",
-      "status": "plan_staged"
+      "slug": "2026-07-02-g-cd02-post-merge-race-guard",
+      "status": "archived"
     }
   ],
   "T001204": [
     {
-      "slug": "g-cq03-eslint-website",
-      "status": "plan_staged"
+      "slug": "2026-07-02-g-cq03-eslint-website",
+      "status": "archived"
     }
   ],
   "T001205": [
     {
-      "slug": "g-cq08-knip-dead-code",
-      "status": "plan_staged"
+      "slug": "2026-07-02-g-cq08-knip-dead-code",
+      "status": "archived"
     }
   ],
   "T001206": [
     {
-      "slug": "g-fe01-a11y-axe-violations",
-      "status": "plan_staged"
+      "slug": "2026-07-02-g-fe01-a11y-axe-violations",
+      "status": "archived"
     }
   ],
   "T001207": [
     {
-      "slug": "g-fe02-bundle-budget",
-      "status": "plan_staged"
+      "slug": "2026-07-02-g-fe02-bundle-budget",
+      "status": "archived"
     }
   ],
   "T001209": [
     {
-      "slug": "g-dep02-major-deps-website",
-      "status": "plan_staged"
+      "slug": "2026-06-27-g-dep02-major-deps-website",
+      "status": "archived"
     },
     {
-      "slug": "2026-06-27-g-dep02-major-deps-website",
+      "slug": "2026-07-02-g-dep02-major-deps-website",
       "status": "archived"
     }
   ],
   "T001210": [
     {
-      "slug": "dev-flow-chore-ticket-ops-mishaps",
-      "status": "plan_staged"
+      "slug": "2026-07-02-dev-flow-chore-ticket-ops-mishaps",
+      "status": "archived"
     }
   ],
   "T001211": [
@@ -351,8 +351,8 @@
   ],
   "T001266": [
     {
-      "slug": "openspec-ssot-quality",
-      "status": "plan_staged"
+      "slug": "2026-07-02-openspec-ssot-quality",
+      "status": "archived"
     }
   ],
   "T001267": [
@@ -387,38 +387,38 @@
   ],
   "T001279": [
     {
-      "slug": "g-ci01-pipeline-stability",
-      "status": "plan_staged"
+      "slug": "2026-07-02-g-ci01-pipeline-stability",
+      "status": "archived"
     }
   ],
   "T001281": [
     {
-      "slug": "ci01-skip-ci-bot-commits",
-      "status": "plan_staged"
+      "slug": "2026-07-02-ci01-skip-ci-bot-commits",
+      "status": "archived"
     }
   ],
   "T001282": [
     {
-      "slug": "cq05-todo-cleanup",
-      "status": "plan_staged"
+      "slug": "2026-07-02-cq05-todo-cleanup",
+      "status": "archived"
     }
   ],
   "T001283": [
     {
-      "slug": "sec05-bot-commit-signing",
-      "status": "planning"
+      "slug": "2026-07-02-sec05-bot-commit-signing",
+      "status": "archived"
     }
   ],
   "T001284": [
     {
-      "slug": "size04-loc-velocity",
-      "status": "plan_staged"
+      "slug": "2026-07-02-size04-loc-velocity",
+      "status": "archived"
     }
   ],
   "T001286": [
     {
-      "slug": "g-test01-bats-debt-skips",
-      "status": "plan_staged"
+      "slug": "2026-07-02-g-test01-bats-debt-skips",
+      "status": "archived"
     }
   ],
   "T001287": [
@@ -429,8 +429,8 @@
   ],
   "T001288": [
     {
-      "slug": "g-test05-vitest-coverage",
-      "status": "plan_staged"
+      "slug": "2026-07-02-g-test05-vitest-coverage",
+      "status": "archived"
     }
   ],
   "T001289": [
@@ -441,38 +441,38 @@
   ],
   "T001290": [
     {
-      "slug": "g-cq05-todo-cleanup",
-      "status": "plan_staged"
+      "slug": "2026-07-02-g-cq05-todo-cleanup",
+      "status": "archived"
     }
   ],
   "T001291": [
     {
-      "slug": "g-size01-freeze-warning-band",
-      "status": "plan_staged"
+      "slug": "2026-07-02-g-size01-freeze-warning-band",
+      "status": "archived"
     }
   ],
   "T001292": [
     {
-      "slug": "g-size02-large-files-gate",
-      "status": "plan_staged"
+      "slug": "2026-07-02-g-size02-large-files-gate",
+      "status": "archived"
     }
   ],
   "T001293": [
     {
-      "slug": "g-size03-website-db-split",
-      "status": "plan_staged"
+      "slug": "2026-07-02-g-size03-website-db-split",
+      "status": "archived"
     }
   ],
   "T001294": [
     {
-      "slug": "g-img01-image-pinning",
-      "status": "plan_staged"
+      "slug": "2026-07-02-g-img01-image-pinning",
+      "status": "archived"
     }
   ],
   "T001295": [
     {
-      "slug": "g-k8s03-security-context",
-      "status": "plan_staged"
+      "slug": "2026-07-02-g-k8s03-security-context",
+      "status": "archived"
     }
   ],
   "T001296": [
@@ -483,26 +483,26 @@
   ],
   "T001297": [
     {
-      "slug": "g-doc03-readme-index",
-      "status": "plan_staged"
+      "slug": "2026-07-02-g-doc03-readme-index",
+      "status": "archived"
     }
   ],
   "T001298": [
     {
-      "slug": "g-doc04-architecture-adrs",
-      "status": "plan_staged"
+      "slug": "2026-07-02-g-doc04-architecture-adrs",
+      "status": "archived"
     }
   ],
   "T001299": [
     {
-      "slug": "g-fe03-structured-logger",
-      "status": "plan_staged"
+      "slug": "2026-07-02-g-fe03-structured-logger",
+      "status": "archived"
     }
   ],
   "T001300": [
     {
-      "slug": "g-dora03-cfr-policy",
-      "status": "plan_staged"
+      "slug": "2026-07-02-g-dora03-cfr-policy",
+      "status": "archived"
     }
   ],
   "T001301": [
@@ -513,8 +513,8 @@
   ],
   "T001304": [
     {
-      "slug": "openspec-scope-hardening",
-      "status": "plan_staged"
+      "slug": "2026-07-02-openspec-scope-hardening",
+      "status": "archived"
     }
   ],
   "T001316": [
@@ -531,18 +531,24 @@
   ],
   "T001327": [
     {
-      "slug": "pocket-id-client-seed-timeout",
-      "status": "plan_staged"
+      "slug": "2026-07-02-pocket-id-client-seed-timeout",
+      "status": "archived"
     }
   ],
   "T001328": [
     {
-      "slug": "pocket-id-proxy-ip-rate-limit",
-      "status": "plan_staged"
+      "slug": "2026-07-02-pocket-id-proxy-ip-rate-limit",
+      "status": "archived"
     },
     {
-      "slug": "pocket-id-rate-limit",
-      "status": "plan_staged"
+      "slug": "2026-07-02-pocket-id-rate-limit",
+      "status": "archived"
+    }
+  ],
+  "T001331": [
+    {
+      "slug": "2026-07-02-mishap-bundle-2026-06-30",
+      "status": "archived"
     }
   ],
   "T001341": [
@@ -553,14 +559,14 @@
   ],
   "T001349": [
     {
-      "slug": "t001349-korczewski-deploy-rate-metric",
-      "status": "plan_staged"
+      "slug": "2026-07-02-t001349-korczewski-deploy-rate-metric",
+      "status": "archived"
     }
   ],
   "T001351": [
     {
-      "slug": "t001351-time-entry-default-date",
-      "status": "plan_staged"
+      "slug": "2026-07-02-t001351-time-entry-default-date",
+      "status": "archived"
     }
   ],
   "T001352": [
@@ -577,8 +583,8 @@
   ],
   "T001355": [
     {
-      "slug": "pocket-id-client-seed-auth-header",
-      "status": "plan_staged"
+      "slug": "2026-07-02-pocket-id-client-seed-auth-header",
+      "status": "archived"
     }
   ],
   "T001356": [
@@ -589,8 +595,8 @@
   ],
   "T001357": [
     {
-      "slug": "t001357-fe02-bundle-budget",
-      "status": "plan_staged"
+      "slug": "2026-07-02-t001357-fe02-bundle-budget",
+      "status": "archived"
     }
   ],
   "T001358": [
@@ -601,11 +607,11 @@
   ],
   "T001359": [
     {
-      "slug": "t001359-size03-website-db",
-      "status": "plan_staged"
+      "slug": "2026-07-01-t001359-size03-website-db",
+      "status": "archived"
     },
     {
-      "slug": "2026-07-01-t001359-size03-website-db",
+      "slug": "2026-07-02-t001359-size03-website-db",
       "status": "archived"
     }
   ],
@@ -618,6 +624,12 @@
   "T001361": [
     {
       "slug": "2026-07-01-t001361-fe01-a11y",
+      "status": "archived"
+    }
+  ],
+  "T001362": [
+    {
+      "slug": "2026-07-02-t001362-mishap-bundle-2",
       "status": "archived"
     }
   ],
@@ -641,8 +653,8 @@
   ],
   "T001382": [
     {
-      "slug": "rustdesk-subpath-rotation-runbook",
-      "status": "plan_staged"
+      "slug": "2026-07-02-rustdesk-subpath-rotation-runbook",
+      "status": "archived"
     }
   ],
   "T001383": [
@@ -683,14 +695,14 @@
   ],
   "T001391": [
     {
-      "slug": "t001391-git-post-push-sync",
-      "status": "plan_staged"
+      "slug": "2026-07-02-t001391-git-post-push-sync",
+      "status": "archived"
     }
   ],
   "T001392": [
     {
-      "slug": "t001392-ticket-external-id-race",
-      "status": "plan_staged"
+      "slug": "2026-07-02-t001392-ticket-external-id-race",
+      "status": "archived"
     }
   ],
   "T001393": [
@@ -707,13 +719,19 @@
   ],
   "T001397": [
     {
-      "slug": "pocket-id-ingressroute-schema-drift",
-      "status": "plan_staged"
+      "slug": "2026-07-02-pocket-id-ingressroute-schema-drift",
+      "status": "archived"
     }
   ],
   "T001398": [
     {
       "slug": "2026-07-01-agentic-tooling-quality-goals",
+      "status": "archived"
+    }
+  ],
+  "T001400": [
+    {
+      "slug": "2026-07-02-pocket-id-smtp-port-envsubst",
       "status": "archived"
     }
   ],

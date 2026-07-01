@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.145.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.145.5...website-v1.145.6) (2026-07-01)
+
+
+### Bug Fixes
+
+* **website:** suppress admin notification emails during E2E tests ([#2348](https://github.com/Paddione/Bachelorprojekt/issues/2348)) ([560476b](https://github.com/Paddione/Bachelorprojekt/commit/560476bed540ac24af4d758b211ae54e8822f22a))
+
 ## [1.145.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.145.4...website-v1.145.5) (2026-06-30)
 
 

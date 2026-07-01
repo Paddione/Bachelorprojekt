@@ -20,7 +20,7 @@ context: |
     monitoring-alerts, newsletter-system, nextcloud-integration, openspec-pgvector,
     openspec-upstream-cli, openspec-workflow, planning-office, portal,
     projekttickets-cockpit, questionnaire-system, react-homepage-blocks,
-    react-login-edit-homepage, secret-rotation, secrets-deploy-automation, security,
+    react-login-edit-homepage, rustdesk-server, secret-rotation, secrets-deploy-automation, security,
     sessions-server, sidekick-assistant, software-factory, t1224-lockfile-drift,
     ticket-system, vaultwarden-integration, website-core, workspace-deploy,
     divergence-guard, g-cq02-any-types-batch1, t001352-seed-invoice-counter-conflict,

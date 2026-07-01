@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.146.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.145.10...website-v1.146.0) (2026-07-01)
+
+
+### Features
+
+* **fe01:** Accessibility-Tooling mit axe-core [T001361] ([#2369](https://github.com/Paddione/Bachelorprojekt/issues/2369)) ([7a3e7f6](https://github.com/Paddione/Bachelorprojekt/commit/7a3e7f66f328a7479b103d6a83fb814a32f8b6ce))
+
 ## [1.145.10](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.145.9...website-v1.145.10) (2026-07-01)
 
 

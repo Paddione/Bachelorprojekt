@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: downloads
+  labels:
+    app: downloads
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: downloads
+  template:
+    metadata:
+      labels:
+        app: downloads
+    spec:
+      imagePullSecrets:
+        - name: ghcr-pull-secret
+      containers:
+        - name: downloads
+          image: ghcr.io/paddione/downloads-content:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8787
+          env:
+            - name: SERVER_ROOT
+              value: /public
+            - name: SERVER_PORT
+              value: "8787"
+            - name: SERVER_CACHE_CONTROL_HEADERS
+              value: "false"
+          resources:
+            requests:
+              memory: 32Mi
+              cpu: "50m"
+            limits:
+              memory: 128Mi
+              cpu: "200m"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8787
+            initialDelaySeconds: 2
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: downloads
+  labels:
+    app: downloads
+spec:
+  selector:
+    app: downloads
+  ports:
+    - port: 80
+      targetPort: 8787

@@ -92,6 +92,8 @@ spec:
               valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_API_KEY } }
             - name: SECRET_docs
               valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_DOCS_SECRET, optional: true } }
+            - name: SECRET_downloads
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_DOWNLOADS_SECRET, optional: true } }
             - name: SECRET_mail
               valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_MAIL_SECRET, optional: true } }
             - name: SECRET_brett
@@ -145,6 +147,7 @@ spec:
               # Callback hosts mirror each service's --redirect-url / OIDC redirect.
               ROWS="
               docs|SECRET_docs|${SCHEME}://docs.${SUFFIX}/oauth2/callback
+              downloads|SECRET_downloads|${SCHEME}://downloads.${SUFFIX}/oauth2/callback
               mailpit-admin|SECRET_mail|${SCHEME}://mail.${SUFFIX}/oauth2/callback
               brett|SECRET_brett|${SCHEME}://brett.${SUFFIX}/oauth2/callback
               comfy|SECRET_comfy|${SCHEME}://comfy.${SUFFIX}/oauth2/callback

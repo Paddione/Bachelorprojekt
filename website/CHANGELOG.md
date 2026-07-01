@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.150.10](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.150.9...website-v1.150.10) (2026-07-01)
+
+
+### Bug Fixes
+
+* **scripts:** agent-lock reaps dead-PID claims + devflow-ci-watch exits 4 on CONFLICTING PRs + factory auto-close-merged (Mishap-Bundle) [T001415] ([#2471](https://github.com/Paddione/Bachelorprojekt/issues/2471)) ([d39116d](https://github.com/Paddione/Bachelorprojekt/commit/d39116d436f53cc70749ac20de934b2a4d3dbb25))
+
 ## [1.150.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.150.8...website-v1.150.9) (2026-07-01)
 
 

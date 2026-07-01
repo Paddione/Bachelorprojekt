@@ -105,6 +105,16 @@ spec:
                 name: oauth2-proxy-docs
                 port:
                   number: 4180
+    - host: downloads.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: oauth2-proxy-downloads
+                port:
+                  number: 4180
     - host: brett.localhost
       http:
         paths:

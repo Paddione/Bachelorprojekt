@@ -1,0 +1,13 @@
+<Project Sdk="WixToolset.Sdk/5.0.2">
+  <PropertyGroup>
+    <OutputName>rustdesk-workspace-installer</OutputName>
+    <OutputType>Package</OutputType>
+    <!-- x64: the wrapper installs the 64-bit official RustDesk MSI and uses the
+         64-bit util QtExec entry points (WixSilentExec64 / WixQuietExec64). -->
+    <Platform>x64</Platform>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Util extension supplies the deferred QtExec custom actions. -->
+    <PackageReference Include="WixToolset.Util.wixext" Version="5.0.2" />
+  </ItemGroup>
+</Project>

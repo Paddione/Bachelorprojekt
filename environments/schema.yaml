@@ -740,6 +740,12 @@ secrets:
     length: 40
     description: "OIDC client secret for the `docs` Pocket ID client (oauth2-proxy-docs)."
 
+  - name: POCKET_ID_DOWNLOADS_SECRET
+    required: false
+    generate: true
+    length: 40
+    description: "OIDC client secret for the `downloads` Pocket ID client (oauth2-proxy-downloads)."
+
   - name: POCKET_ID_VAULTWARDEN_SECRET
     required: false
     generate: true

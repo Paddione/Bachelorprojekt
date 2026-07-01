@@ -74,6 +74,9 @@ resources:
   - mailpit.yaml
   # Dokumentation
   - docs.yaml
+  # SSO-gated downloads (RustDesk MSI distribution — mentolder only)
+  - downloads.yaml
+  - oauth2-proxy-downloads.yaml
   # Wissensmanagement — Knowledge Base Ingestion CronJobs
   - knowledge-ingest-cronjob.yaml
   # Tests retention (prune tests/results/ nightly).

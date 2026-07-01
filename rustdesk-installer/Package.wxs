@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  RustDesk Workspace Installer — WiX v4/v5 wrapper MSI.
+
+  Element/attribute spelling verified against the official WiX v4 docs
+  (context7 /wixtoolset/wix, 2026-07-01):
+    - Root namespace ..................... http://wixtoolset.org/schemas/v4/wxs
+    - Util extension namespace ........... http://wixtoolset.org/schemas/v4/wxs/util
+    - Deferred exec via util ............. <CustomAction … BinaryRef="Wix4UtilCA_X64"
+                                            DllEntry="WixSilentExec64"/…/"WixQuietExec64">
+      reading properties WixSilentExec64CmdLine / WixQuietExec64CmdLine
+      (documented util QtExec pattern; verified example in context7).
+    - Scheduling ......................... <Custom Action=… After=… Condition=…/>
+      (Condition is an ATTRIBUTE in v4, not element text as in v3.)
+    - Binary reference on a CA ........... BinaryRef (v4 rename of v3 BinaryKey).
+
+  Two distinct util entry points are used (WixSilentExec64 + WixQuietExec64) so
+  the MSI has two separately-named deferred actions without a duplicate-action
+  conflict — each reads its own *CmdLine property, set by an immediate
+  SetProperty (deferred CAs cannot read installer properties directly).
+
+  Design (per plan tasks.md Task 5/7): this wrapper installs the official
+  RustDesk MSI (baked in at CI build time to INSTALLFOLDER), then runs
+  rustdesk.exe (config / password flags) via provision.ps1. The official
+  RustDesk MSI exposes NO server/key/password property (verified in
+  intel.json), so the post-install CLI is the only route.
+
+  Build requires the util extension:
+    wix extension add -g WixToolset.Util.wixext
+    wix build rustdesk-installer/Package.wxs -ext WixToolset.Util.wixext -o …
+
+  CAVEAT (validated only on windows-latest in CI, never locally): chaining
+  `msiexec /i` from a deferred CA runs while the parent install holds the MSI
+  execute mutex. The official RustDesk MSI is launched /qn /norestart; if the
+  runner surfaces a nested-install (1618) error, the CI smoke test in
+  .github/workflows/build-rustdesk-installer.yml is the RED→GREEN gate that
+  catches it. Do not assume this MSI is install-verified without a green CI run.
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
+  <Package Name="RustDesk Workspace Installer"
+           Manufacturer="Workspace"
+           Version="1.0.0.0"
+           UpgradeCode="8f3d1c2a-6b4e-4a7d-9c11-7e2f5a9b0d34"
+           Scope="perMachine">
+    <MajorUpgrade DowngradeErrorMessage="A newer version of RustDesk Workspace Installer is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <!-- Install root: %ProgramFiles%\RustDeskWorkspaceInstaller -->
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="RustDeskWorkspaceInstaller" />
+    </StandardDirectory>
+
+    <!-- Payload files, baked in by CI (official MSI + provisioning script). -->
+    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+      <Component Id="OfficialRustDeskMsiFile" Guid="*">
+        <File Id="OfficialRustDeskMsi" Source="official-rustdesk.msi" KeyPath="yes" />
+      </Component>
+      <Component Id="ProvisionScriptFile" Guid="*">
+        <File Id="ProvisionScript" Source="provision.ps1" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <!-- Immediate: marshal the full command lines (with resolved [INSTALLFOLDER]
+         and [System64Folder]) into the util QtExec command-line properties. -->
+    <SetProperty Id="WixSilentExec64CmdLine"
+                 Before="InstallOfficialRustDesk"
+                 Sequence="execute"
+                 Value="&quot;[System64Folder]msiexec.exe&quot; /i &quot;[INSTALLFOLDER]official-rustdesk.msi&quot; /qn /norestart" />
+    <SetProperty Id="WixQuietExec64CmdLine"
+                 Before="ProvisionRustDesk"
+                 Sequence="execute"
+                 Value="&quot;[System64Folder]WindowsPowerShell\v1.0\powershell.exe&quot; -ExecutionPolicy Bypass -NonInteractive -File &quot;[INSTALLFOLDER]provision.ps1&quot;" />
+
+    <!-- Deferred CA: silent-install the official RustDesk MSI. -->
+    <CustomAction Id="InstallOfficialRustDesk"
+                  BinaryRef="Wix4UtilCA_X64"
+                  DllEntry="WixSilentExec64"
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="check" />
+
+    <!-- Deferred CA: apply relay config + unattended password via the RustDesk CLI. -->
+    <CustomAction Id="ProvisionRustDesk"
+                  BinaryRef="Wix4UtilCA_X64"
+                  DllEntry="WixQuietExec64"
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="check" />
+
+    <InstallExecuteSequence>
+      <Custom Action="InstallOfficialRustDesk" After="InstallFiles" Condition="NOT Installed" />
+      <Custom Action="ProvisionRustDesk" After="InstallOfficialRustDesk" Condition="NOT Installed" />
+    </InstallExecuteSequence>
+
+    <Feature Id="Main" Title="RustDesk Workspace Installer" Level="1">
+      <ComponentGroupRef Id="ProductComponents" />
+    </Feature>
+  </Package>
+</Wix>

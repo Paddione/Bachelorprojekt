@@ -1,0 +1,163 @@
+name: Build RustDesk Installer
+
+# REQ-RUSTDESK-CLIENT-004: manual trigger ONLY — no push: trigger.
+# The built MSI bakes in the shared unattended password; it must never become a
+# public workflow artifact (REQ-RUSTDESK-CLIENT-003). Distribution is exclusively
+# via the SSO-gated downloads.${PROD_DOMAIN} surface (Pocket ID / oauth2-proxy).
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  # Non-sensitive public relay host; used ONLY to assert the client was configured.
+  EXPECTED_ID_SERVER: rustdesk.mentolder.de
+  # Supply-chain pin — official RustDesk Windows MSI (rustdesk/rustdesk 1.4.8).
+  RUSTDESK_VERSION: "1.4.8"
+  RUSTDESK_MSI_URL: "https://github.com/rustdesk/rustdesk/releases/download/1.4.8/rustdesk-1.4.8-x86_64.msi"
+  RUSTDESK_MSI_SHA256: "17117c3a609445bb49cb9298c5cb53cf9c95f0bc4eae8353b81bb5b280c03307"
+
+jobs:
+  build:
+    name: Build, smoke-test, pack & roll out the wrapper MSI
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
+
+      - name: Install WiX Toolset + util extension
+        shell: pwsh
+        run: |
+          dotnet tool install --global wix
+          wix extension add -g WixToolset.Util.wixext
+
+      - name: Download + pin-verify official RustDesk MSI
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri $env:RUSTDESK_MSI_URL -OutFile rustdesk-installer/official-rustdesk.msi
+          $got = (Get-FileHash rustdesk-installer/official-rustdesk.msi -Algorithm SHA256).Hash.ToLower()
+          if ($got -ne $env:RUSTDESK_MSI_SHA256.ToLower()) {
+            Write-Error "SHA256 mismatch: got $got expected $env:RUSTDESK_MSI_SHA256"; exit 1
+          }
+          Write-Host "official MSI pin verified ($env:RUSTDESK_VERSION)"
+
+      - name: Bake secrets into provision.ps1
+        shell: pwsh
+        env:
+          RD_CONFIG: ${{ secrets.RUSTDESK_CLIENT_CONFIG_STRING }}
+          RD_PASSWORD: ${{ secrets.RUSTDESK_UNATTENDED_PASSWORD }}
+        run: |
+          # Writing to a file is not logged; Actions masks these secret values.
+          # The password is never read back, echoed, or written to any log.
+          $p = Get-Content rustdesk-installer/provision.ps1 -Raw
+          $p = $p.Replace('__RUSTDESK_CONFIG__', $env:RD_CONFIG).Replace('__RUSTDESK_PASSWORD__', $env:RD_PASSWORD)
+          Set-Content -Path rustdesk-installer/provision.ps1 -Value $p -NoNewline
+
+      - name: Build wrapper MSI
+        shell: pwsh
+        run: |
+          wix build rustdesk-installer/Package.wxs `
+            -ext WixToolset.Util.wixext `
+            -arch x64 `
+            -o rustdesk-workspace-installer.msi
+
+      - name: Silent-install the wrapper MSI
+        shell: pwsh
+        run: |
+          $p = Start-Process msiexec -ArgumentList '/i','rustdesk-workspace-installer.msi','/qn','/l*v','install.log' -Wait -PassThru
+          if ($p.ExitCode -ne 0) { Get-Content install.log -Tail 40; Write-Error "install failed ($($p.ExitCode))"; exit 1 }
+
+      - name: Smoke test — config targets the expected ID server
+        shell: pwsh
+        run: |
+          # Exact TOML path depends on the CA security context (per-user vs
+          # LocalService vs SYSTEM profile). Check every known candidate.
+          # Asserts only the non-sensitive ID-server host — never the password.
+          $candidates = @(
+            "$env:APPDATA\RustDesk\config\RustDesk2.toml",
+            "C:\Windows\ServiceProfiles\LocalService\AppData\Roaming\RustDesk\config\RustDesk2.toml",
+            "C:\Windows\System32\config\systemprofile\AppData\Roaming\RustDesk\config\RustDesk2.toml"
+          )
+          $cfg = $candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $cfg) { Write-Error "RustDesk config TOML not found"; exit 1 }
+          if (-not (Select-String -Path $cfg -SimpleMatch $env:EXPECTED_ID_SERVER -Quiet)) {
+            Write-Error "config does not target $env:EXPECTED_ID_SERVER"; exit 1
+          }
+          Write-Host "smoke ok: config targets $env:EXPECTED_ID_SERVER"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9  # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GH_PAT }}
+
+      - name: Pre-push guard — refuse to re-publish over a public package
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          # Close the brief exposure window: if downloads-content ALREADY exists
+          # and is public, a `docker push` would re-expose the MSI layer before
+          # the post-push verify runs. Fail BEFORE pushing. A 404 (package not
+          # yet created — first run) is safe: GHCR defaults new packages to
+          # private. The post-push "Verify … is private" step remains the backstop.
+          if visibility=$(gh api /user/packages/container/downloads-content --jq '.visibility' 2>/dev/null); then
+            echo "existing downloads-content visibility: $visibility"
+            if [ "$visibility" != "private" ]; then
+              echo "FATAL: refusing to push — ghcr.io/paddione/downloads-content is '$visibility', not 'private'." >&2
+              echo "Set it Private in the package's GitHub Settings > Danger Zone, then re-run." >&2
+              exit 1
+            fi
+          else
+            echo "downloads-content not yet created (or unreadable) — GHCR defaults new packages to private. Proceeding."
+          fi
+
+      - name: Build & push downloads image
+        shell: pwsh
+        run: |
+          $sha = "sha-$(git rev-parse --short HEAD)"
+          # Mechanism (Task 8 Step 2): the windows-latest runner ships Docker with
+          # a Linux engine available; build a linux/amd64 image via buildx so the
+          # static-web-server base (alpine) runs on the fleet nodes. The MSI never
+          # leaves the runner as a workflow artifact — it goes straight into the
+          # image layer and is pushed to the (private) GHCR package.
+          docker buildx create --use --name downloads-builder 2>$null | Out-Null
+          docker buildx build `
+            --platform linux/amd64 `
+            -f scripts/downloads.Dockerfile `
+            -t "ghcr.io/paddione/downloads-content:$sha" `
+            -t "ghcr.io/paddione/downloads-content:latest" `
+            --push .
+
+      - name: Verify downloads-content package is private
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          # REQ-RUSTDESK-CLIENT-003 backstop: a PUBLIC package lets anyone
+          # `docker pull` the image and extract the baked unattended password from
+          # the layers, bypassing the Pocket ID SSO gate. No GitHub API can SET
+          # visibility (verified: only web UI 'Danger Zone' can) — this is a
+          # read + hard-fail check on every run. If it fails with HTTP 403 rather
+          # than a 'visibility != private' message, add read:packages to GH_PAT.
+          visibility=$(gh api /user/packages/container/downloads-content --jq '.visibility')
+          echo "downloads-content visibility: $visibility"
+          if [ "$visibility" != "private" ]; then
+            echo "FATAL: ghcr.io/paddione/downloads-content is '$visibility', not 'private'." >&2
+            echo "No API can fix this — go to the package's GitHub Settings > Danger Zone >" >&2
+            echo "'Change visibility' and set it to Private, then re-run this workflow." >&2
+            exit 1
+          fi
+
+      - name: Roll out downloads (mentolder only)
+        shell: bash
+        env:
+          KUBECONFIG_DATA: ${{ secrets.FLEET_KUBECONFIG }}
+        run: |
+          curl -sSL "https://dl.k8s.io/release/v1.31.0/bin/windows/amd64/kubectl.exe" -o kubectl.exe
+          mkdir -p "$HOME/.kube"
+          echo "$KUBECONFIG_DATA" | base64 -d > "$HOME/.kube/config"
+          ./kubectl.exe rollout restart deployment/downloads -n workspace
+          ./kubectl.exe rollout status  deployment/downloads -n workspace --timeout=120s

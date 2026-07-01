@@ -6,6 +6,7 @@
 ### Bug Fixes
 
 * **website:** fall back to CURRENT_DATE when entryDate is omitted [T001351] ([#2354](https://github.com/Paddione/Bachelorprojekt/issues/2354)) ([e0f5af4](https://github.com/Paddione/Bachelorprojekt/commit/e0f5af4da05a8d655f98949dfb5ef9a3d39bddc9))
+* **website:** match ON CONFLICT target to invoice_counters PK ([#2356](https://github.com/Paddione/Bachelorprojekt/issues/2356)) ([4484487](https://github.com/Paddione/Bachelorprojekt/commit/448448765d8ee1ac18bcc6f1e101d7f0f71b0a6a))
 
 ## [1.145.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.145.6...website-v1.145.7) (2026-07-01)
 

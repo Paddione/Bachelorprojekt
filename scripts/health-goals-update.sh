@@ -58,11 +58,9 @@ row_re = re.compile(r'^\|\s*\*\*(G-[A-Z0-9]+)\*\*\s*\|([^|]*)\|([^|]*)\|([^|]*)\
 bare_int_re = re.compile(r'^\s*([+-]?\d+)\s*(?:✓|⚠)?\s*$')
 
 # Bekannte ID-Kollisionen: dieselbe ID misst in health-goals-check.sh (Skript) etwas anderes
-# als in der goals.md-Tabelle beschrieben. G-FE03: Skript zählt console.error/warn (passend
-# zum offenen OpenSpec-Change g-fe03-structured-logger), Tabelle dokumentiert console.log/
-# debug/info. Ein Auto-Write würde hier den falschen Messwert unter der falschen Beschreibung
-# ablegen — Auflösung braucht eine inhaltliche Entscheidung, kein Skript.
-EXCLUDE_IDS = {"G-FE03"}
+# als in der goals.md-Tabelle beschrieben. Aktuell keine offenen Fälle (T001369 hat die
+# G-FE03/G-FE04-Kollision aufgelöst) — Set bleibt als Sicherheitsnetz für künftige Drifts.
+EXCLUDE_IDS = set()
 
 changed = []
 skipped_format = []

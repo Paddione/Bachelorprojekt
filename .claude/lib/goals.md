@@ -146,6 +146,16 @@ pnpm --dir website build >/dev/null 2>&1 && find website/dist -name '*.js' -path
 
 > **B · Baseline:** unbekannt (Voll-Build nötig) · **Target:** kein Netto-Zuwachs/Release · **Aufwand:** gering + Policy · **Messzyklus:** pro Release · **Reproduzierbar:** eingeschränkt
 
+## G-FE03 — Strukturiertes Logging: console.error/warn 10 → 0
+
+Aktiver OpenSpec-Change [`g-fe03-structured-logger`](../../openspec/changes/g-fe03-structured-logger/) (Ticket T001299, Status `plan_staged`) migriert alle `console.error`/`console.warn`-Aufrufe auf den pino-basierten Logger (`website/src/lib/logger.ts`) bzw. den Browser-Logger-Stub. **Korrektur (T001369):** diese ID war bis dahin fälschlich in der Prio-C-Tabelle als bereits-grüner Gate für `console.log/debug/info` gelistet — zwei verschiedene Metriken teilten sich eine ID. `console.log/debug/info` läuft jetzt unter der neuen ID [`G-FE04`](#prio-c) (bereits grün, keine Migration nötig).
+
+```bash
+grep -rEn 'console\.(error|warn)' website/src --include='*.ts' --include='*.svelte' --include='*.astro' | grep -v 'browser-logger.ts' | wc -l
+```
+
+> **B · Baseline:** 10 (erstmals korrekt gemessen; vorher fälschlich als 0 ✓ unter G-FE03 in Prio C geführt) · **Target:** 0 · **Aufwand:** ~30 Dateien (siehe Change-Plan) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · Ticket: T001299 (`plan_staged`)
+
 ---
 
 # Priorität C — Green Gates {#prio-c}
@@ -207,7 +217,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-DORA02** | Lead Time (PR→merge) | Median 0.03h ✓ | ≤ 1h | `gh-axi api repos/{owner}/{repo}/pulls?...` |
 | **G-DORA03** | Change Failure Rate (Proxy) | 7.4 % ✓ | ≤ 15 % | `git log --since="8 weeks ago" --first-parent --oneline main \| ...fix()/revert-Rate` |
 | **G-DORA04** | MTTR | n/a ✓ | < 24h | `git log --since="8 weeks ago" --first-parent --format='%ct %s' main \| grep -iE 'revert\|hotfix'` |
-| **G-FE03** | Stray `console.log/debug/info` | 0 ✓ | 0 | `grep -rEn 'console\.(log\|debug\|info)' website/src --include='*.ts' --include='*.svelte' --include='*.astro' \| grep -v 'browser-logger.ts' \| grep -v '\.test\.ts' \| wc -l` |
+| **G-FE04** | Stray `console.log/debug/info` | 0 ✓ | 0 | `grep -rEn 'console\.(log\|debug\|info)' website/src --include='*.ts' --include='*.svelte' --include='*.astro' \| grep -v 'browser-logger.ts' \| grep -v '\.test\.ts' \| wc -l` |
 | **G-GIT02** | Non-conventional Commits | 0/30 ✓ | 0 | `git log --format=%s -30 origin/main \| grep -vcE '^(feat\|fix\|chore\|...)'` |
 | **G-GIT03** | Dateien >1MB im Tree | 6 ✓ | ≤ 6 | `git ls-files -z \| grep -zv '^\.codebase-memory/' \| xargs -0 -I{} sh -c 'test -f "{}" && wc -c "{}"' \| awk '$1>1048576{c++} END{print c+0}'` (`.codebase-memory/` per Policy-Entscheidung T001348 ausgeschlossen) |
 
@@ -225,7 +235,7 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 **Messzyklus:**
 - **Pro Merge (CI-Gate):** G-RH02/07, G-TEST02/04, G-CQ04, G-SEC01/02, G-K8S04, G-CFG01, G-CI02, G-GIT02, G-SPEC01
 - **Täglich:** G-RH06, G-CI02, G-DATA01, G-GIT01
-- **Wöchentlich:** G-RH01/03, G-TEST01/03, G-SIZE01/03/04, G-CI01, G-CD01, G-CQ02/05, G-IMG01, G-K8S03, G-SPEC03, G-GIT03
+- **Wöchentlich:** G-RH01/03, G-TEST01/03, G-SIZE01/03/04, G-CI01, G-CD01, G-CQ02/05, G-IMG01, G-K8S03, G-SPEC03, G-GIT03, G-FE03/04
 - **Monatlich/Quartal:** G-DEP02, G-SEC03/04, G-DOC02, G-FE01/02
 
 **Aktuell A-Ziele (2026-07-01):** G-SIZE04 (G-GIT03 per T001348 auf ≤ 6 gebracht und von Prio A nach Prio C gewechselt; G-CD01 per T001349 auf 100 % (15/15) gebracht und von Prio A nach Prio C gewechselt)

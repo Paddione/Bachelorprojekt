@@ -167,13 +167,34 @@ spec:
               rustdesk-web|SECRET_rustdeskweb|${SCHEME}://remote.${SUFFIX}/oauth2/callback
               "
 
-              # Find a client id in a JSON list (the Admin API returns a flat
-              # array; the previous ?search= form is not supported on
-              # pocket-id:v2.9.0). Matches `"id":"<cid>"` and returns 0 on hit.
-              client_exists() {
-                cid="$1"
-                list=$(curl -fsS -H "$AUTH" "${API}/api/oidc/clients" 2>/dev/null || true)
-                echo "$list" | grep -q "\"id\":\"${cid}\""
+              # Resolve a client's REAL pocket-id id by NAME. pocket-id:v2.9.0
+              # always server-generates a random UUID as `id` on POST — it
+              # does NOT accept/echo back the caller-supplied name as the id
+              # (confirmed live, T001327). A handful of legacy clients created
+              # before this was understood happen to have id==name and still
+              # match here (the id==name row IS "the" row for that name); new
+              # clients never do, so this must resolve by `name`, not assume
+              # id==cid. The Admin API returns a flat JSON array with `id`
+              # immediately followed by `name` per object (verified live) —
+              # matched with a plain grep/sed pair since this image ships no
+              # jq. Returns empty (not found) rather than failing.
+              #
+              # RETRY on every curl call below (T001327): pocket-id:1411
+              # intermittently refuses connections for a few seconds at a
+              # time (observed live, root cause unconfirmed). Without
+              # --retry-connrefused, one refused connection makes curl -f
+              # exit non-zero, which (under `set -e`) kills the container;
+              # restartPolicy: OnFailure then restarts the SAME container
+              # from the top of this script. --retry-all-errors is
+              # deliberately NOT used — a real 4xx from a genuine script bug
+              # must fail fast, not burn the whole retry budget retrying a
+              # deterministic error. </dev/null avoids the curl processes
+              # inheriting the while-read loop's stdin further down.
+              CURL_RETRY="--retry 15 --retry-delay 2 --retry-connrefused --connect-timeout 5"
+              find_client_id() {
+                name="$1"
+                list=$(curl -fsS $CURL_RETRY -H "$AUTH" "${API}/api/oidc/clients" </dev/null 2>/dev/null || true)
+                echo "$list" | grep -o "\"id\":\"[^\"]*\",\"name\":\"${name}\"" | head -1 | sed -E 's/"id":"([^"]*)".*/\1/'
               }
 
               # Idempotent upsert: create if missing, otherwise update via PUT
@@ -186,20 +207,22 @@ spec:
                 if [ -z "$secret" ]; then
                   echo "skip ${cid} (no secret provided)"; return 0
                 fi
-                if client_exists "$cid"; then
-                  curl -fsS -X PUT -H "$AUTH" -H "$CT" \
+                real_id=$(find_client_id "$cid")
+                if [ -n "$real_id" ]; then
+                  curl -fsS $CURL_RETRY -X PUT -H "$AUTH" -H "$CT" \
                     -d "$(printf '{"name":"%s","callbackURLs":["%s"],"logoutCallbackURLs":[],"isPublic":false,"pkceEnabled":false,"requiresReauthentication":false,"requiresPushedAuthorizationRequests":false}' "$cid" "$cb")" \
-                    "${API}/api/oidc/clients/${cid}" >/dev/null
-                  gen=$(curl -fsS -X POST -H "$AUTH" -H "$CT" \
-                    "${API}/api/oidc/clients/${cid}/secret")
-                  echo "upserted ${cid} (updated) dev-secret=${secret} pocket-id-secret=$(echo "$gen" | sed -E 's/.*"secret":"([^"]+)".*/\1/')"
+                    "${API}/api/oidc/clients/${real_id}" </dev/null >/dev/null
+                  gen=$(curl -fsS $CURL_RETRY -X POST -H "$AUTH" -H "$CT" \
+                    "${API}/api/oidc/clients/${real_id}/secret" </dev/null)
+                  echo "upserted ${cid} (updated, id=${real_id}) dev-secret=${secret} pocket-id-secret=$(echo "$gen" | sed -E 's/.*"secret":"([^"]+)".*/\1/')"
                 else
-                  curl -fsS -X POST -H "$AUTH" -H "$CT" \
+                  created=$(curl -fsS $CURL_RETRY -X POST -H "$AUTH" -H "$CT" \
                     -d "$(printf '{"name":"%s","callbackURLs":["%s"],"logoutCallbackURLs":[],"isPublic":false,"pkceEnabled":false,"requiresReauthentication":false,"requiresPushedAuthorizationRequests":false}' "$cid" "$cb")" \
-                    "${API}/api/oidc/clients" >/dev/null
-                  gen=$(curl -fsS -X POST -H "$AUTH" -H "$CT" \
-                    "${API}/api/oidc/clients/${cid}/secret")
-                  echo "upserted ${cid} (created) dev-secret=${secret} pocket-id-secret=$(echo "$gen" | sed -E 's/.*"secret":"([^"]+)".*/\1/')"
+                    "${API}/api/oidc/clients" </dev/null)
+                  new_id=$(echo "$created" | sed -E 's/.*"id":"([^"]+)".*/\1/')
+                  gen=$(curl -fsS $CURL_RETRY -X POST -H "$AUTH" -H "$CT" \
+                    "${API}/api/oidc/clients/${new_id}/secret" </dev/null)
+                  echo "upserted ${cid} (created, id=${new_id}) dev-secret=${secret} pocket-id-secret=$(echo "$gen" | sed -E 's/.*"secret":"([^"]+)".*/\1/')"
                 fi
               }
 

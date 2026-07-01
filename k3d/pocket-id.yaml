@@ -276,6 +276,17 @@ spec:
 ---
 # Dev IngressRoute — web entrypoint (no TLS). Prod overlay (prod/patch-pocket-id.yaml)
 # patches this to websecure + tls: secretName: ${TLS_SECRET_NAME} + Host(`id.${PROD_DOMAIN}`).
+#
+# NOTE (T001397): this IngressRoute intentionally does NOT set a
+# `spec`-level trusted-proxy-IPs block (the "forward headers" trustedIPs
+# setting) — that field has never been valid on any Traefik IngressRoute CRD
+# version (it only exists as Traefik's static/entry-point config); the live
+# `fleet` cluster's installed CRD only declares entryPoints/parentRefs/
+# routes/tls. `kubectl apply --server-side` rejects unknown fields and
+# previously aborted the whole deploy chain here. The real-client-IP
+# problem T001328 introduced this field for is already fixed by T001341
+# (Traefik hostPort DaemonSet, no SNAT hop), so no equivalent replacement is
+# needed. See tests/spec/pocket-id-proxy-ip.bats.
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
@@ -285,10 +296,6 @@ metadata:
 spec:
   entryPoints:
     - web
-  forwardedHeaders:
-    trustedIPs:
-      - "10.42.0.0/16"
-      - "10.43.0.0/16"
   routes:
     - kind: Rule
       match: Host(`${POCKET_ID_DOMAIN}`)

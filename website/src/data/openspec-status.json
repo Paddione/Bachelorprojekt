@@ -645,10 +645,28 @@
       "status": "plan_staged"
     }
   ],
+  "T001389": [
+    {
+      "slug": "openspec-auto-register",
+      "status": "plan_staged"
+    }
+  ],
+  "T001392": [
+    {
+      "slug": "t001392-ticket-external-id-race",
+      "status": "plan_staged"
+    }
+  ],
   "T001396": [
     {
       "slug": "2026-07-01-pocket-id-smtp-wiring",
       "status": "archived"
+    }
+  ],
+  "T001397": [
+    {
+      "slug": "pocket-id-ingressroute-schema-drift",
+      "status": "plan_staged"
     }
   ],
   "T001398": [

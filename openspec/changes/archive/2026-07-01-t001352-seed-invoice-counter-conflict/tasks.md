@@ -2,7 +2,7 @@
 title: "t001352-seed-invoice-counter-conflict — Implementation Plan"
 ticket_id: T001352
 domains: [website]
-status: plan_staged
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

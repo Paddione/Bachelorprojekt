@@ -59,6 +59,34 @@ For flows, architecture, state, or sequence diagrams, do not hand-build boxes-an
 - `input` - Must be used when the agent needs to collect user input on decisions, choices, preferences, triage, scope, or other structured feedback from within the artifact
 - `slides` - Create a deliberate presentation when slides are requested
 
+## Reload Safety
+
+Re-running `npx -y lavish-axi <html-file>` reloads the existing browser tab —
+this is dangerous whenever an `input` playbook form is open in it.
+
+- **Never trigger a reload while a `poll` call is still outstanding** (has not
+  yet returned). If a poll is in flight, wait for it to return before running
+  `npx -y lavish-axi <html-file>` again to fix a layout warning or anything
+  else.
+- **Check the most recent poll result/status before triggering the next
+  reload.** If the last poll response shows an open `input` playbook form
+  (e.g. queued prompts) that the user has not yet submitted, treat a reload
+  as risky.
+- **Why this matters — the input-playbook / unsubmitted form-state risk:** a
+  radio selection or other choice made in an `input` playbook form lives only
+  in client-side DOM state until the user clicks "Antwort senden" (submit).
+  It never reaches the Lavish server before that. A reload during that window
+  silently wipes the selection — the next `poll` will still report empty
+  prompts even though the user believes they already answered.
+- **Explicitly warn the user before a risky reload.** If the board has an
+  open `input` playbook form with a possibly unsubmitted selection, tell the
+  user before reloading and ask them to confirm or re-submit their answer
+  after the reload completes — do not reload silently.
+- Prefer folding layout fixes into the poll cycle that is already due:
+  apply the fix as a file edit first, then let the next scheduled
+  `npx -y lavish-axi poll <html-file>` pick it up, instead of forcing extra
+  ad-hoc reloads while a form is open.
+
 ## Commands & rules
 
 - Run `npx -y lavish-axi <html-file>` to open or resume a Lavish Editor session

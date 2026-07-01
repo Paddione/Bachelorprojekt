@@ -675,6 +675,12 @@
       "status": "plan_staged"
     }
   ],
+  "T001393": [
+    {
+      "slug": "t001393-lavish-reload",
+      "status": "plan_staged"
+    }
+  ],
   "T001396": [
     {
       "slug": "2026-07-01-pocket-id-smtp-wiring",

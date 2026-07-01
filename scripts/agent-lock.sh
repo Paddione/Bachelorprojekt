@@ -49,6 +49,11 @@ _sid_alive() {
   pgrep -s "$1" >/dev/null 2>&1
 }
 
+_pid_alive() {  # <pid>
+  [ -n "${1:-}" ] || return 1
+  kill -0 "$1" 2>/dev/null
+}
+
 _detect_tool() {
   # CLAUDE_SESSION_ID is the harness-provided env from Claude Code / opencode;
   # we also accept the older CLAUDECODE/CLAUDE_CODE marker for back-compat.
@@ -92,7 +97,7 @@ _reap_log() {  # <lock-file> <reason>
 
 # 0 = reapable (clearly dead). A confirmed-alive SID is NEVER reapable.
 _reapable() {
-  local f="$1" sid wt hb ct now age
+  local f="$1" sid wt hb ct now age pid
   [ -f "$f" ] || return 0
   sid="$(_lock_field "$f" owner_sid)"; wt="$(_lock_field "$f" worktree)"
   hb="$(_lock_field "$f" heartbeat_at)"; ct="$(_lock_field "$f" created_at)"; now="$(_now)"
@@ -100,6 +105,16 @@ _reapable() {
   #    or missing, a live session owns the claim. Reapability only kicks in
   #    when the SID is dead (or, as a last resort, when no SID is recorded). [T001384]
   if [ -n "$sid" ] && _sid_alive "$sid"; then return 1; fi
+  # 1) Dead PID + past grace → reap with reason "pid-dead" (auditable cause). [T001415]
+  pid="$(_lock_field "$f" owner_pid)"
+  if [ -n "$pid" ]; then
+    if ! _pid_alive "$pid"; then
+      age=$(( now - ${ct:-0} ))
+      if [ -z "$ct" ] || [ "$age" -ge "$AGENT_LOCK_GRACE" ]; then
+        _reap_log "$f" pid-dead; return 0
+      fi
+    fi
+  fi
   if [ -n "$wt" ] && [ "$wt" != "-" ] && [ ! -d "$wt" ]; then _reap_log "$f" worktree-missing; return 0; fi
   if [ -n "$sid" ]; then
     # Dead numeric SID: a young claim (< AGENT_LOCK_GRACE) is protected from a

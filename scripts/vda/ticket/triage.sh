@@ -50,9 +50,11 @@ main() {
   fi
 
   if [[ "$apply" == "true" || "${VDA_NONINTERACTIVE:-0}" == "1" || ! -t 0 ]]; then
-    [[ -z "$priority" ]] && { vda_error "--priority required in non-interactive mode"; exit 2; }
-    [[ -z "$severity" ]] && { vda_error "--severity required in non-interactive mode"; exit 2; }
-    [[ -z "$status" ]] && { vda_error "--status required in non-interactive mode"; exit 2; }
+    # In non-interactive mode, only require fields that are explicitly being set.
+    # If a field is not provided as a flag, skip the interactive prompt but don't error—
+    # the database UPDATE will only set non-empty values.
+    [[ -n "$priority" || -n "$severity" || -n "$status" || -n "$type" || -n "$attention_mode" ]] || \
+      { vda_error "At least one field (--priority, --severity, --status, --type, --attention-mode) must be provided in non-interactive mode"; exit 2; }
   fi
 
   local pod; pod=$(_pgpod)
@@ -86,17 +88,27 @@ SQL
     fi
   fi
 
-  [[ -z "$priority" ]] && priority=$(vda_choose "Priority" niedrig mittel hoch)
-  [[ -z "$severity" ]] && severity=$(vda_choose "Severity" critical major minor trivial)
-  [[ -z "$status" ]] && status=$(vda_choose "Status" triage planning plan_staged backlog in_progress in_review qa_review awaiting_deploy blocked done archived)
-  [[ -z "$component" ]] && component=$(vda_input "Component" "")
+  # Only prompt interactively if in interactive mode and field is empty
+  if [[ "$apply" != "true" && "${VDA_NONINTERACTIVE:-0}" != "1" && -t 0 ]]; then
+    [[ -z "$priority" ]] && priority=$(vda_choose "Priority" niedrig mittel hoch)
+    [[ -z "$severity" ]] && severity=$(vda_choose "Severity" critical major minor trivial)
+    [[ -z "$status" ]] && status=$(vda_choose "Status" triage planning plan_staged backlog in_progress in_review qa_review awaiting_deploy blocked done archived)
+    [[ -z "$component" ]] && component=$(vda_input "Component" "")
+  fi
 
   if [[ "$apply" != "true" && "${VDA_NONINTERACTIVE:-0}" != "1" && -t 0 ]]; then
     vda_confirm "Apply triage?" || { vda_warn "Cancelled"; exit 0; }
   fi
 
   _exec_sql "$pod" -v ext_id="$id" -v p="$priority" -v s="$severity" -v st="$status" -v c="$component" -v tp="$type" -v attn="$attention_mode" <<'SQL' >/dev/null
-UPDATE tickets.tickets SET priority=:'p', severity=:'s', status=:'st', component=NULLIF(:'c',''), type=COALESCE(NULLIF(:'tp',''), type), attention_mode=COALESCE(NULLIF(:'attn',''), attention_mode) WHERE external_id=:'ext_id';
+UPDATE tickets.tickets SET
+  priority=COALESCE(NULLIF(:'p',''), priority),
+  severity=COALESCE(NULLIF(:'s',''), severity),
+  status=COALESCE(NULLIF(:'st',''), status),
+  component=NULLIF(:'c',''),
+  type=COALESCE(NULLIF(:'tp',''), type),
+  attention_mode=COALESCE(NULLIF(:'attn',''), attention_mode)
+WHERE external_id=:'ext_id';
 SQL
 
   if [[ "$no_comment" != "true" ]]; then

@@ -41,7 +41,8 @@ Das `task`-Tool kennt **`subagent_type` und `description`**, keinen separaten Ef
 
 Der Subagent hat per Konstruktion **keinen** Kontext — gib alles explizit, aber **verdichtet**:
 
-- Absoluter Worktree-Pfad (`pwd`) + Branch-Name; er arbeitet NUR relativ dazu.
+- **Absoluter Worktree-Pfad:** PFLICHT — beginne JEDEN Subagenten-Prompt mit `cd <WORKTREE_PATH>` (z.B. `cd /tmp/wt-<slug>`). Der Subagent hat sonst keinen impliziten Kontext und schreibt Dateien in sein Fallback-CWD (oft der Haupt-Checkout statt des Worktrees).
+- Branch-Name, damit der Subagent weiß, auf welchem Branch er arbeitet.
 - Die relevanten **Artefakt-Pfade** (Spec/Plan/Ticket), nicht deren Volltext, wenn er sie selbst lesen kann.
 - Bei mehreren Vorstufen-Ergebnissen: **zusammenfassen, nie Roh-JSON dumpen**. (Ein 162k-Zeichen-Prompt ließ
   einen Synthese-Agenten ohne brauchbare Antwort scheitern — die Provisioning-Lehre schlechthin.)

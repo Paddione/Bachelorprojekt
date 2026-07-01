@@ -239,7 +239,7 @@ Spawne den Subagenten:
   * **Effort per Prompt-Direktive** (das `Agent`-Tool kennt keinen Effort-Regler): mechanisch „Arbeite zügig und fokussiert."; komplex/riskant „Ultrathink. Denke sehr gründlich nach."
   * `subagent_type: general-purpose`.
 - **Kontext-Injektion** (er hat sonst KEINEN Kontext — gib ihm alles explizit):
-  - Absoluter Worktree-Pfad + Branch-Name; er arbeitet NUR relativ dazu.
+  - **Absoluter Worktree-Pfad (PFLICHT):** Beginne JEDEN Subagenten-Prompt mit `cd <WORKTREE_PATH>` (z.B. `cd /tmp/wt-<slug>`). Der Subagent hat keinen impliziten CWD und schreibt sonst Dateien ins Haupt-Checkout. Danach: Branch-Name; er arbeitet NUR relativ zum Worktree.
   - Plan-Datei `$PLAN_FILE` (aus Schritt 1, via DB aufgelöst) + Ticket-ID.
   - Attachment-Verzeichnis `$ATTACHMENT_DIR` — bei UI-Arbeit ALLE Bilder/Texte mit dem `Read`-Tool einlesen.
   - **Plan Intel Bundle (PFLICHT):** `openspec/changes/<slug>/intel.json` (aus der Plan-Phase) — der

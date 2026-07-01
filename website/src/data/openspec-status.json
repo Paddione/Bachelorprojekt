@@ -551,6 +551,12 @@
       "status": "archived"
     }
   ],
+  "T001349": [
+    {
+      "slug": "t001349-korczewski-deploy-rate-metric",
+      "status": "plan_staged"
+    }
+  ],
   "T001352": [
     {
       "slug": "t001352-seed-invoice-counter-conflict",

@@ -15,6 +15,11 @@
 #   --fast     überspringt langsame Checks (task env:validate, kustomize-Parse)
 #   --quiet    nur die Zusammenfassung
 #   --only=…   nur die genannten Ziel-IDs prüfen (kommagetrennt, z.B. --only=G-RH01,G-CQ02)
+#
+# HG_VALUES_FILE=<path>  wenn gesetzt, hängt jede gemessene (nicht übersprungene) Zeile als
+#                        "<id> <actual> <cmp> <target>" an <path> an — Rohdaten für
+#                        scripts/health-goals-update.sh, ohne dieses Skripts Report-Verhalten
+#                        zu ändern.
 set -uo pipefail
 
 cd "$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "kein git-Repo" >&2; exit 2; }
@@ -52,6 +57,7 @@ row() {
     eq) [ "$actual" -eq "$target" ] && ok=1 || ok=0 ;;
     *)  ok=0 ;;
   esac
+  [ -n "${HG_VALUES_FILE:-}" ] && printf '%s %s %s %s\n' "$id" "$actual" "$cmp" "$target" >> "$HG_VALUES_FILE"
   local cmpsym; case "$cmp" in le) cmpsym="≤" ;; ge) cmpsym="≥" ;; eq) cmpsym="=" ;; esac
   local valstr; valstr=$(printf "%s (Ziel %s%s)" "$actual" "$cmpsym" "$target")
   if [ "$ok" = 1 ]; then

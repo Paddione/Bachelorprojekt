@@ -3004,6 +3004,11 @@ tasks:
     cmds:
       - bash scripts/health-goals-check.sh {{.CLI_ARGS}}
 
+  health:goals:update:
+    desc: "Schreibt frisch gemessene Werte in die Aktuell-Spalte der Prio-C-Tabelle (Green Gates) in .claude/lib/goals.md. Freitextige Prio-A/B-Abschnitte bleiben unangetastet. Flags nach --, z.B. task health:goals:update -- --dry-run"
+    cmds:
+      - bash scripts/health-goals-update.sh {{.CLI_ARGS}}
+
   quality:baseline:freeze:
     desc: "One-time: freeze the current code-quality violations into docs/code-quality/baseline.json"
     cmds:

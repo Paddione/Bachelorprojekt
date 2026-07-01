@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.149.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.148.0...website-v1.149.0) (2026-07-01)
+
+
+### Features
+
+* **infra:** SSO-gated RustDesk web-client access [T001381] ([#2407](https://github.com/Paddione/Bachelorprojekt/issues/2407)) ([73fcb7e](https://github.com/Paddione/Bachelorprojekt/commit/73fcb7e3f57e2ee4a7037a7f2c3cc13c34740424))
+
 ## [1.148.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.147.0...website-v1.148.0) (2026-07-01)
 
 

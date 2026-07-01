@@ -1,0 +1,66 @@
+# ═══════════════════════════════════════════════════════════════════
+# hbbs — RustDesk ID / rendezvous server
+# ═══════════════════════════════════════════════════════════════════
+# hostNetwork on a single public node so native clients reach it
+# directly. ${TURN_NODE} == the coturn/Janus node (no port collision
+# with 3478/5349/49152-49252/20000-20200). Signing keypair mounted
+# from rustdesk-secrets so client IDs survive restarts.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hbbs
+  namespace: rustdesk
+  labels:
+    app: hbbs
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hbbs
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: hbbs
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      nodeSelector:
+        kubernetes.io/hostname: ${TURN_NODE}
+      containers:
+        - name: hbbs
+          image: rustdesk/rustdesk-server:1.1.15@sha256:10818ec05b179039c6660f4d8e74b303f0db2858bbad2b18e24992ea22d54cd6
+          imagePullPolicy: IfNotPresent
+          command: ["hbbs"]
+          workingDir: /root
+          ports:
+            - containerPort: 21115
+              hostPort: 21115
+              protocol: TCP
+            - containerPort: 21116
+              hostPort: 21116
+              protocol: TCP
+            - containerPort: 21116
+              hostPort: 21116
+              protocol: UDP
+          volumeMounts:
+            - name: keys
+              mountPath: /root/id_ed25519
+              subPath: id_ed25519
+              readOnly: true
+            - name: keys
+              mountPath: /root/id_ed25519.pub
+              subPath: id_ed25519.pub
+              readOnly: true
+          resources:
+            requests:
+              memory: 32Mi
+              cpu: "50m"
+            limits:
+              memory: 128Mi
+              cpu: "200m"
+      volumes:
+        - name: keys
+          secret:
+            secretName: rustdesk-secrets

@@ -1,0 +1,15 @@
+# ═══════════════════════════════════════════════════════════════════
+# rustdesk namespace — privileged PSA for hostNetwork relay pods
+# ═══════════════════════════════════════════════════════════════════
+# hbbs + hbbr need hostNetwork + hostPort (raw TCP/UDP that Traefik
+# cannot route), which the baseline PSA on the workspace namespace
+# forbids. A dedicated privileged namespace keeps the escalation
+# surface minimal — same pattern as k3d/coturn-stack/namespace.yaml.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: rustdesk
+  labels:
+    app.kubernetes.io/part-of: workspace-mvp
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/warn: privileged

@@ -6,6 +6,11 @@
     "resolveJsonModule": true,
     "noUnusedLocals": false,
     "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
     "paths": {
       "$lib/*": ["./src/lib/*"]
     }

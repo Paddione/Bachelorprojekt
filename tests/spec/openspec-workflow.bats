@@ -233,3 +233,19 @@ YAML
   after="$(cat "$ROOT/config.yaml")"
   [ "$before" = "$after" ]
 }
+
+@test "openspec-workflow: propose guidance documents the parent-SSOT-slug delta-spec convention (T001385)" {
+  local files=(
+    "openspec/specs/openspec-workflow.md"
+    ".claude/skills/openspec-propose/SKILL.md"
+    ".claude/commands/opsx/propose.md"
+    ".opencode/commands/opsx-propose.md"
+  )
+  for f in "${files[@]}"; do
+    run grep -qi "target-spec\|parent-ssot-slug\|parent ssot slug" "$REPO/$f"
+    [ "$status" -eq 0 ] || {
+      echo "missing parent-SSOT-slug convention reference in $f" >&2
+      return 1
+    }
+  done
+}

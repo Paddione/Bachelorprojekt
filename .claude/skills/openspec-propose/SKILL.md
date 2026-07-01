@@ -66,6 +66,15 @@ When ready to implement, run /opsx:apply (`/opsx-apply` in opencode)
         - `outputPath`: Where to write the artifact
         - `dependencies`: Completed artifacts to read for context
       - Read any completed dependency files for context
+      - **For the `specs` artifact specifically**: before writing the file, check whether
+        this change is a sub-feature of an existing capability (consult
+        `openspec/component-map.yaml` for a matching file-path prefix, or ask the user if
+        ambiguous). If it is a sub-feature of an existing capability with SSOT spec
+        `openspec/specs/<parent-slug>.md`, write the Delta-Spec to
+        `openspec/changes/<name>/specs/<parent-slug>.md` (Parent-SSOT-Slug) instead of the
+        `outputPath` filename returned by `openspec instructions`. If this is a genuinely
+        new capability with no existing SSOT spec, use the `outputPath` filename unchanged.
+        See CLAUDE.md "Delta-Spec-Konvention (T001304)".
       - Create the artifact file using `template` as the structure
       - Apply `context` and `rules` as constraints - but do NOT copy them into the file
       - Show brief progress: "Created <artifact-id>"

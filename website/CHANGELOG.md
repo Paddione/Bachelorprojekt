@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.145.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.145.7...website-v1.145.8) (2026-07-01)
+
+
+### Bug Fixes
+
+* **website:** fall back to CURRENT_DATE when entryDate is omitted [T001351] ([#2354](https://github.com/Paddione/Bachelorprojekt/issues/2354)) ([e0f5af4](https://github.com/Paddione/Bachelorprojekt/commit/e0f5af4da05a8d655f98949dfb5ef9a3d39bddc9))
+
 ## [1.145.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.145.6...website-v1.145.7) (2026-07-01)
 
 

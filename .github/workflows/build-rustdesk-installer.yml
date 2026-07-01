@@ -32,8 +32,11 @@ jobs:
           # Pinned to the last pre-OSMF major: v7 requires accepting the Open
           # Source Maintenance Fee EULA interactively, which fails non-interactive
           # CI runs with WIX7015. See https://docs.firegiant.com/wix/osmf/.
+          # Extension version must match the wix core major/minor (T001421) —
+          # unpinned `extension add` resolves to the latest (v7) package, which
+          # is incompatible with the v5 core (WIX6101).
           dotnet tool install --global wix --version 5.0.2
-          wix extension add -g WixToolset.Util.wixext
+          wix extension add -g WixToolset.Util.wixext/5.0.2
 
       - name: Download + pin-verify official RustDesk MSI
         shell: pwsh

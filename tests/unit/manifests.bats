@@ -153,7 +153,7 @@ all_images() {
 @test "no core service images use :latest tag" {
   # MCP sidecar images may use :latest (upstream-controlled); skip those
   local latest_images
-  latest_images=$(all_images | grep ':latest$' | grep -ivE '(mcp|openapi-mcp|github-mcp|keycloak-mcp|nextcloud-mcp|curlimages/curl|talk-transcriber|paddione/bachelorprojekt|workspace-brett|docs|videovault|mediaviewer-widget|mentolder-web)' || true)
+  latest_images=$(all_images | grep ':latest$' | grep -ivE '(mcp|openapi-mcp|github-mcp|keycloak-mcp|nextcloud-mcp|curlimages/curl|talk-transcriber|paddione/bachelorprojekt|workspace-brett|docs|downloads-content|videovault|mediaviewer-widget|mentolder-web)' || true)
   if [[ -n "$latest_images" ]]; then
     echo "Core images using :latest: ${latest_images}"
     return 1

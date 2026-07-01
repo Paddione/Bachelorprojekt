@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.150.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.150.5...website-v1.150.6) (2026-07-01)
+
+
+### Bug Fixes
+
+* **dev-flow:** agent-lock reap grace, CI-watch DIRTY preflight, invalid gh checks flag [T001408] ([#2441](https://github.com/Paddione/Bachelorprojekt/issues/2441)) ([601f02e](https://github.com/Paddione/Bachelorprojekt/commit/601f02e0eafd79626d7dcf7dafdcaf26fd135a4d))
+
 ## [1.150.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.150.4...website-v1.150.5) (2026-07-01)
 
 

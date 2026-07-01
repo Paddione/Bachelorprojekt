@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.147.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.146.3...website-v1.147.0) (2026-07-01)
+
+
+### Features
+
+* **fe02:** implement client-JS bundle size checker [T001357] ([#2367](https://github.com/Paddione/Bachelorprojekt/issues/2367)) ([c770d4e](https://github.com/Paddione/Bachelorprojekt/commit/c770d4e2f006619314419d6c2563d0de08a22d0e))
+
 ## [1.146.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.146.2...website-v1.146.3) (2026-07-01)
 
 

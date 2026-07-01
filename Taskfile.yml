@@ -1108,6 +1108,25 @@ tasks:
       - dir: tests/e2e
         cmd: node lib/build-gallery.mjs
 
+  a11y:axe:
+    desc: "axe-core a11y-Scan der Kern-Routen gegen ENV=mentolder|korczewski (G-FE01, T001361)"
+    dir: tests/e2e
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    preconditions:
+      - sh: '[ "{{.ENV}}" = "mentolder" ] || [ "{{.ENV}}" = "korczewski" ]'
+        msg: "a11y:axe requires ENV=mentolder or ENV=korczewski, got ENV={{.ENV}}"
+    cmds:
+      - |
+        case "{{.ENV}}" in
+          mentolder)  WEBSITE_URL=https://web.mentolder.de  PROD_DOMAIN=mentolder.de ;;
+          korczewski) WEBSITE_URL=https://web.korczewski.de PROD_DOMAIN=korczewski.de ;;
+        esac
+        export WEBSITE_URL PROD_DOMAIN SKIP_DB_PURGE=1
+        [ -d node_modules ] || npm ci
+        ./node_modules/.bin/playwright install chromium >/dev/null 2>&1 || true
+        ./node_modules/.bin/playwright test a11y-axe.spec.ts --project=website
+
   systemtest:cycle:
     desc: "Fan out 3 parallel Playwright sessions, one per System-Test (CYCLE=1..4, ENV=mentolder|korczewski|dev)"
     vars:

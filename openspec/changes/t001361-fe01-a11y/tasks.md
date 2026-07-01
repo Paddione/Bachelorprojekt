@@ -9,9 +9,19 @@ shared_changes: false
 
 # Tasks: t001361-fe01-a11y (T001361)
 
-- [ ] Task 1: `@axe-core/playwright` installieren + Baseline-Spec anlegen (RED)
-- [ ] Task 2: Spec auf alle Kern-Routen + CI/playwright.config.ts-Anbindung
-- [ ] Task 3: CI-Anbindung (nightly e2e) + `task a11y:axe` Wrapper + Final Gate
+- [x] Task 1: `@axe-core/playwright` installieren + Baseline-Spec anlegen (RED) — bereits über T001206 (#2158) ausgeliefert, hier verifiziert
+- [x] Task 2: Spec auf alle Kern-Routen + CI/playwright.config.ts-Anbindung — bereits über T001206 (#2158) ausgeliefert, hier verifiziert
+- [x] Task 3: CI-Anbindung (nightly e2e) + `task a11y:axe` Wrapper + Final Gate
+
+> **Hinweis (2026-07-01):** Bei Bearbeitung dieses Plans wurde festgestellt, dass
+> `@axe-core/playwright`, `tests/e2e/specs/a11y-axe.spec.ts` (beide Marken) und die
+> `testMatch`-Anbindung in `playwright.config.ts` bereits durch T001206 (PR #2158,
+> "fix(website): resolve footer color-contrast violations on both brands") ausgeliefert
+> wurden — inklusive Violation-Fixes, wodurch der Scan jetzt GREEN läuft (nicht mehr RED
+> wie ursprünglich geplant). Tasks 1+2 wurden verifiziert statt neu erstellt. Neu in
+> diesem Change: der `task a11y:axe`-Wrapper (Taskfile.yml) für manuelle Vor-Merge-Scans.
+> Die nightly-CI-Anbindung existiert bereits implizit (`e2e.yml` ruft `npx playwright test`
+> ohne Projekt-Filter, das `website`-Projekt inkl. `a11y-axe.spec.ts` läuft mit).
 
 ---
 

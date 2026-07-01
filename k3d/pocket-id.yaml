@@ -186,6 +186,8 @@ spec:
               value: "${SMTP_HOST}"
             - name: SMTP_PORT
               value: "${SMTP_PORT}"
+            - name: SMTP_TLS
+              value: "${POCKET_ID_SMTP_TLS}"
             - name: SMTP_USER
               value: "${SMTP_USER}"
             - name: SMTP_PASSWORD

@@ -1,0 +1,59 @@
+# ═══════════════════════════════════════════════════════════════════
+# rustdesk-web bridge — selector-less Services → hbbs/hbbr web-client
+# ports on the wg-fleet overlay address of ${TURN_NODE}. hbbs/hbbr run
+# hostNetwork on ${TURN_NODE}; there are no pod IPs to select, so we
+# point Endpoints straight at the overlay IP (${TURN_OVERLAY_IP}).
+# ═══════════════════════════════════════════════════════════════════
+apiVersion: v1
+kind: Service
+metadata:
+  name: rustdesk-web-hbbs
+  labels:
+    app: rustdesk-web
+spec:
+  ports:
+    - name: hbbs-ws
+      port: 21118
+      targetPort: 21118
+      protocol: TCP
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: rustdesk-web-hbbs
+  labels:
+    app: rustdesk-web
+subsets:
+  - addresses:
+      - ip: "${TURN_OVERLAY_IP}"
+    ports:
+      - name: hbbs-ws
+        port: 21118
+        protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rustdesk-web-hbbr
+  labels:
+    app: rustdesk-web
+spec:
+  ports:
+    - name: hbbr-ws
+      port: 21119
+      targetPort: 21119
+      protocol: TCP
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: rustdesk-web-hbbr
+  labels:
+    app: rustdesk-web
+subsets:
+  - addresses:
+      - ip: "${TURN_OVERLAY_IP}"
+    ports:
+      - name: hbbr-ws
+        port: 21119
+        protocol: TCP

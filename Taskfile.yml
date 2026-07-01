@@ -2499,6 +2499,18 @@ tasks:
           # Full apply (idempotent — updates configs, adds remaining services)
           # SYSTEMTEST_LOOP_ENABLED defaults to "false" so the placeholder is
           # never emitted literally in dev (where the env file may omit it).
+          # POCKET_ID_SMTP_TLS: von SMTP_SECURE + SMTP_PORT hergeleitet (Pocket-ID kennt kein
+          # SMTP_SECURE-Bool, sondern SMTP_TLS=none|starttls|tls). secure=true -> implizites TLS
+          # (z.B. Port 465); Port 587 ist bei allen aktuell konfigurierten Envs (mentolder,
+          # korczewski, staging) STARTTLS gegen mailbox.org; alles andere (z.B. Mailpit dev auf
+          # Port 1025) bleibt unverschluesselt.
+          if [ "${SMTP_SECURE:-false}" = "true" ]; then
+            export POCKET_ID_SMTP_TLS="tls"
+          elif [ "${SMTP_PORT:-}" = "587" ]; then
+            export POCKET_ID_SMTP_TLS="starttls"
+          else
+            export POCKET_ID_SMTP_TLS="none"
+          fi
           SYSTEMTEST_LOOP_ENABLED="${SYSTEMTEST_LOOP_ENABLED:-false}" \
           LLM_ENABLED="${LLM_ENABLED:-false}" \
           LLM_RERANK_ENABLED="${LLM_RERANK_ENABLED:-false}" \
@@ -2508,7 +2520,7 @@ tasks:
           POCKET_ID_FRONTEND_URL="${POCKET_ID_FRONTEND_URL:-http://id.localhost}" \
           POCKET_ID_URL="${POCKET_ID_URL:-http://pocket-id:1411}" \
           POCKET_ID_DOMAIN="${POCKET_ID_DOMAIN:-id.localhost}" \
-            kustomize build k3d/ --load-restrictor=LoadRestrictionsNone | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$BRAND_ID \$LIVEKIT_DOMAIN \$STREAM_DOMAIN \$SYSTEMTEST_LOOP_ENABLED \$ARENA_WS_URL \$LLM_ENABLED \$LLM_RERANK_ENABLED \$LLM_HOST_IP \$LLM_ROUTER_URL \$LLM_EMBED_URL \$WEBSITE_NAMESPACE \$SMTP_FROM \$SMTP_HOST \$SMTP_PORT \$SMTP_USER \$POCKET_ID_FRONTEND_URL \$POCKET_ID_URL \$POCKET_ID_DOMAIN" | sed -E 's/\$\$([a-zA-Z0-9_]|\{)/$\1/g' | kubectl apply --server-side --force-conflicts -f -
+            kustomize build k3d/ --load-restrictor=LoadRestrictionsNone | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$BRAND_ID \$LIVEKIT_DOMAIN \$STREAM_DOMAIN \$SYSTEMTEST_LOOP_ENABLED \$ARENA_WS_URL \$LLM_ENABLED \$LLM_RERANK_ENABLED \$LLM_HOST_IP \$LLM_ROUTER_URL \$LLM_EMBED_URL \$WEBSITE_NAMESPACE \$SMTP_FROM \$SMTP_HOST \$SMTP_PORT \$SMTP_USER \$POCKET_ID_SMTP_TLS \$POCKET_ID_FRONTEND_URL \$POCKET_ID_URL \$POCKET_ID_DOMAIN" | sed -E 's/\$\$([a-zA-Z0-9_]|\{)/$\1/g' | kubectl apply --server-side --force-conflicts -f -
           # Tests retention CronJob — applied separately so its Role+RoleBinding
           # can land in WEBSITE_NAMESPACE (kustomize's top-level namespace
           # transformer would otherwise force them into workspace).
@@ -2582,7 +2594,7 @@ tasks:
           export MAIL_FROM_LOCAL="${SMTP_FROM%@*}"
           export MAIL_FROM_DOMAIN="${SMTP_FROM#*@}"
           ENVSUBST_VARS="\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$INFRA_NAMESPACE \$TLS_SECRET_NAME"
-          ENVSUBST_VARS="$ENVSUBST_VARS \$SMTP_FROM \$SMTP_HOST \$MAIL_FROM_LOCAL \$MAIL_FROM_DOMAIN"
+          ENVSUBST_VARS="$ENVSUBST_VARS \$SMTP_FROM \$SMTP_HOST \$SMTP_USER \$MAIL_FROM_LOCAL \$MAIL_FROM_DOMAIN \$POCKET_ID_SMTP_TLS"
           ENVSUBST_VARS="$ENVSUBST_VARS \$WEBSITE_IMAGE \$TURN_PUBLIC_IP \$TURN_NODE \$TURN_OVERLAY_IP \$BRAND_ID"
           ENVSUBST_VARS="$ENVSUBST_VARS \$KC_USER1_USERNAME \$KC_USER1_EMAIL \$KC_USER2_USERNAME \$KC_USER2_EMAIL"
           ENVSUBST_VARS="$ENVSUBST_VARS \$BRETT_DOMAIN"
@@ -2606,10 +2618,25 @@ tasks:
           # also referenced from the k3d/pocket-id.yaml IngressRoute
           # (Host(`${POCKET_ID_DOMAIN}`)) — kustomize passes the envsubst list
           # through to it as well.
+          # POCKET_ID_SMTP_TLS (T001396): abgeleitet aus SMTP_SECURE + SMTP_PORT, siehe
+          # Herleitungs-Snippet oben — kein eigenes Schema-Pflichtfeld, da Pocket-ID (anders als
+          # Website/Nextcloud) ein Drei-Werte-Enum statt eines Bools erwartet.
           ENVSUBST_VARS="$ENVSUBST_VARS \$POCKET_ID_FRONTEND_URL \$POCKET_ID_URL \$POCKET_ID_DOMAIN"
           # Pocket ID (T001068 Welle 0): defaults so the prod envsubst list
           # never emits literal ${POCKET_ID_*} tokens when an env file hasn't
           # adopted them yet.
+          # POCKET_ID_SMTP_TLS: von SMTP_SECURE + SMTP_PORT hergeleitet (Pocket-ID kennt kein
+          # SMTP_SECURE-Bool, sondern SMTP_TLS=none|starttls|tls). secure=true -> implizites TLS
+          # (z.B. Port 465); Port 587 ist bei allen aktuell konfigurierten Envs (mentolder,
+          # korczewski, staging) STARTTLS gegen mailbox.org; alles andere (z.B. Mailpit dev auf
+          # Port 1025) bleibt unverschluesselt.
+          if [ "${SMTP_SECURE:-false}" = "true" ]; then
+            export POCKET_ID_SMTP_TLS="tls"
+          elif [ "${SMTP_PORT:-}" = "587" ]; then
+            export POCKET_ID_SMTP_TLS="starttls"
+          else
+            export POCKET_ID_SMTP_TLS="none"
+          fi
           export POCKET_ID_FRONTEND_URL="${POCKET_ID_FRONTEND_URL:-https://id.${PROD_DOMAIN}}"
           export POCKET_ID_URL="${POCKET_ID_URL:-http://pocket-id:1411}"
           export POCKET_ID_DOMAIN="${POCKET_ID_DOMAIN:-id.${PROD_DOMAIN}}"
@@ -2717,10 +2744,22 @@ tasks:
 
         # Mirror workspace:deploy's prod envsubst contract EXACTLY so rendered
         # manifests are byte-identical (only the label selector differs).
+        # POCKET_ID_SMTP_TLS: von SMTP_SECURE + SMTP_PORT hergeleitet (Pocket-ID kennt kein
+        # SMTP_SECURE-Bool, sondern SMTP_TLS=none|starttls|tls). secure=true -> implizites TLS
+        # (z.B. Port 465); Port 587 ist bei allen aktuell konfigurierten Envs (mentolder,
+        # korczewski, staging) STARTTLS gegen mailbox.org; alles andere (z.B. Mailpit dev auf
+        # Port 1025) bleibt unverschluesselt.
+        if [ "${SMTP_SECURE:-false}" = "true" ]; then
+          export POCKET_ID_SMTP_TLS="tls"
+        elif [ "${SMTP_PORT:-}" = "587" ]; then
+          export POCKET_ID_SMTP_TLS="starttls"
+        else
+          export POCKET_ID_SMTP_TLS="none"
+        fi
         export MAIL_FROM_LOCAL="${SMTP_FROM%@*}"
         export MAIL_FROM_DOMAIN="${SMTP_FROM#*@}"
         ENVSUBST_VARS="\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$INFRA_NAMESPACE \$TLS_SECRET_NAME"
-        ENVSUBST_VARS="$ENVSUBST_VARS \$SMTP_FROM \$SMTP_HOST \$MAIL_FROM_LOCAL \$MAIL_FROM_DOMAIN"
+        ENVSUBST_VARS="$ENVSUBST_VARS \$SMTP_FROM \$SMTP_HOST \$SMTP_USER \$MAIL_FROM_LOCAL \$MAIL_FROM_DOMAIN \$POCKET_ID_SMTP_TLS"
         ENVSUBST_VARS="$ENVSUBST_VARS \$WEBSITE_IMAGE \$TURN_PUBLIC_IP \$TURN_NODE \$TURN_OVERLAY_IP \$BRAND_ID"
         ENVSUBST_VARS="$ENVSUBST_VARS \$KC_USER1_USERNAME \$KC_USER1_EMAIL \$KC_USER2_USERNAME \$KC_USER2_EMAIL"
         ENVSUBST_VARS="$ENVSUBST_VARS \$BRETT_DOMAIN"

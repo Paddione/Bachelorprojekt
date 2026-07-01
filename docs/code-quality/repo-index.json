@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 521,
+      "file_count": 522,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -391,6 +391,7 @@
         "tests/spec/test_helper.bash",
         "tests/spec/ticket-mcp.bats",
         "tests/spec/ts-suppression.bats",
+        "tests/spec/workspace-deploy.bats",
         "tests/sql/software-history.sql",
         "tests/unit/.coverage-allowlist",
         "tests/unit/T000617-alert-rules.bats",

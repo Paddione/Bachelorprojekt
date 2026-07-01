@@ -6,6 +6,7 @@
 
 # Vitest coverage output
 /coverage/
+/test-results/
 
 # Lockfiles
 /package-lock.json

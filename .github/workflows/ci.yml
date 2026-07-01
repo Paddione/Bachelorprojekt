@@ -211,6 +211,17 @@ jobs:
           cd website
           pnpm exec vitest run --coverage --testTimeout=30000
 
+      - name: Upload Vitest JUnit report
+        # Runs even if the tests above failed, so a red PR still gets a
+        # downloadable per-test breakdown (not just the raw log).
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+        with:
+          name: vitest-junit-report
+          path: website/test-results/junit.xml
+          retention-days: 14
+          if-no-files-found: ignore
+
       - name: Vitest line coverage gate (>= 60% on src/lib)
         # G-TEST05 — vitest's built-in thresholds block on regression below
         # 60% lines (see website/vitest.config.ts coverage.thresholds.lines).

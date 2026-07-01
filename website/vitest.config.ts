@@ -21,6 +21,13 @@ export default defineConfig({
     root: __dirname,
     globals: true,
     testTimeout: 10000,
+    // In CI, add the built-in github-actions reporter (inline PR annotations
+    // on failing tests, no extra tooling) and a JUnit report (uploaded as an
+    // artifact by the workflow) for failure-history/duration tracking.
+    // Local runs keep the plain default reporter.
+    reporters: process.env.GITHUB_ACTIONS
+      ? ['default', 'github-actions', ['junit', { outputFile: './test-results/junit.xml' }]]
+      : ['default'],
     env: {
       VOYAGE_API_KEY: 'test-key',
     },

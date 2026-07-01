@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  RustDesk Workspace Installer — WiX v5 Burn bundle (bootstrapper .exe).
+
+  Replaces the earlier wrapper-MSI design (Package.wxs, T001378) after CI
+  proved (T001425) that a deferred CustomAction cannot run `msiexec /i
+  official-rustdesk.msi` from inside the wrapper MSI's own install
+  transaction: Windows Installer serializes ALL msiexec transactions via a
+  single system-wide mutex (_MSIExecute), regardless of which process
+  triggers the nested call — CustomAction, PowerShell, or otherwise. Result:
+  0x80070652 (ERROR_INSTALL_ALREADY_RUNNING) / 1603.
+
+  Burn's bootstrapper engine (this .exe) is itself NOT an MSI transaction, so
+  it can run the official RustDesk MsiPackage and then the provisioning
+  ExePackage as two separate, sequential, non-nested processes — the
+  documented, supported pattern for "MSI + post-install step" (verified
+  against the WiX v5 XSDs: Chain.xsd, MsiPackage.xsd, ExePackage.xsd,
+  ChainPackageCommonAttributes.xsd, Payload.xsd via the wixtoolset/wix repo,
+  2026-07-01).
+
+  Provisioning runs via a plain batch script (provision.cmd, ported from the
+  former provision.ps1) launched through a build-time copy of cmd.exe
+  (rustdesk-installer/cmd-shim.exe, copied from the CI runner's own
+  System32\cmd.exe in the workflow). cmd.exe is a minimal, ABI-stable system
+  binary present on every supported Windows version — embedding it avoids
+  bundling the far larger PowerShell runtime while cmd.exe in turn calls the
+  TARGET machine's own installed powershell.exe/sc.exe by name via PATH (it
+  actually only needs `sc query`, no PowerShell at all — see provision.cmd).
+
+  Build requires the Bal + Util extensions (both pinned to 5.0.2 to match the
+  wix core, avoiding the v7 OSMF EULA gate — T001416):
+    wix extension add -g WixToolset.Util.wixext/5.0.2
+    wix extension add -g WixToolset.Bal.wixext/5.0.2
+    wix build rustdesk-installer/Bundle.wxs -ext WixToolset.Util.wixext \
+      -ext WixToolset.Bal.wixext -bindpath rustdesk-installer -arch x64 \
+      -o rustdesk-workspace-installer.exe
+
+  Silent install: rustdesk-workspace-installer.exe /quiet /norestart /log install.log
+  (Burn's own switches — NOT msiexec /qn, there is no msiexec transaction to
+  drive from the caller's side anymore).
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:bal="http://wixtoolset.org/schemas/v4/wxs/bal">
+  <Bundle Name="RustDesk Workspace Installer"
+          Version="1.0.0.0"
+          Manufacturer="Workspace"
+          UpgradeCode="8f3d1c2a-6b4e-4a7d-9c11-7e2f5a9b0d34">
+    <BootstrapperApplication>
+      <bal:WixStandardBootstrapperApplication SuppressOptionsUI="yes" />
+    </BootstrapperApplication>
+
+    <Chain>
+      <!-- Real, non-nested install of the official RustDesk product (service,
+           Start Menu entry, uninstall registration — the full normal MSI
+           sequence Burn drives as its own separate msiexec transaction). -->
+      <MsiPackage SourceFile="official-rustdesk.msi" Vital="yes" />
+
+      <!-- Provisioning: apply the baked-in relay config + unattended password
+           via the RustDesk CLI once the service is up. DetectCondition="0"
+           means Burn can never detect this "package" as already present
+           (Windows has no notion of it), so it always runs on install. -->
+      <ExePackage Id="ProvisionRustDesk"
+                  SourceFile="cmd-shim.exe"
+                  DetectCondition="0"
+                  InstallArguments="/c &quot;provision.cmd&quot;"
+                  Vital="yes"
+                  Permanent="yes">
+        <Payload SourceFile="provision.cmd" Name="provision.cmd" />
+      </ExePackage>
+    </Chain>
+  </Bundle>
+</Wix>

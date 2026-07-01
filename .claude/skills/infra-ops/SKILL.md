@@ -283,7 +283,7 @@ Keycloak-Realm aus JSON reconcilen — OIDC-Clients, Gruppen, Mapper, SSO-Login-
 | Env | File | Quelle |
 |-----|------|--------|
 | dev | `k3d/realm-workspace-dev.json` | ConfigMap `realm-template` |
-| prod base | `prod/realm-workspace-prod.json` | **Live SoT** — `keycloak:sync` |
+| prod base | `prod/realm-workspace-prod.json` | **Live SoT** — Pocket-ID OIDC via `pocket-id-client-seed` Job |
 | mentolder | `prod-mentolder/realm-workspace-mentolder.json` | `register-oidc-client.mjs` only |
 | korczewski | `prod-korczewski/realm-workspace-korczewski.json` | `register-oidc-client.mjs` only |
 
@@ -302,17 +302,16 @@ task workspace:logs ENV=<env> -- keycloak
 # Dann validieren:
 python3 -c "import json; json.load(open('prod/realm-workspace-prod.json'))" && echo "valid"
 
-# Phase 3: Sync
-task keycloak:sync ENV=mentolder
-task keycloak:sync ENV=korczewski
+# Phase 3: OIDC-Client-Seed (Pocket-ID)
+# Der pocket-id-client-seed Job wird beim workspace:deploy ausgeführt.
+# Manuelles Neustarten bei Änderungen an den OIDC-Client-Konfigurationen:
+kubectl --context fleet -n workspace delete job pocket-id-client-seed --ignore-not-found=true
+kubectl --context fleet -n workspace-korczewski delete job pocket-id-client-seed --ignore-not-found=true
 
-# Phase 4: Protocol Mapper sicherstellen
-bash scripts/keycloak-ensure-mappers.sh <env>
+# Phase 4: OIDC Clients verifizieren (Pocket-ID Admin UI):
+# id.<domain>/admin → Applications → redirect URIs prüfen
 
-# Phase 5: OIDC Clients verifizieren (Keycloak Admin UI):
-# auth.<domain>/admin → Clients → redirect URIs prüfen
-
-# Phase 6: SSO-Flow testen (Browser, Inkognito)
+# Phase 5: SSO-Flow testen (Browser, Inkognito)
 ```
 
 ### Troubleshooting

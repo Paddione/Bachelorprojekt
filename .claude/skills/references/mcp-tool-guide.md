@@ -28,7 +28,7 @@ Das MCP-Tool ist direkt verfügbar, wenn der Server läuft. Schneller Health-Che
 `mcp-postgres` auf `:13001`, `factory-mcp` auf `:13003` mit `/health`):
 
 ```bash
-# Generischer JSON-RPC-Probe (mcp-postgres/-kubernetes/-browser/-github):
+# Generischer JSON-RPC-Probe (mcp-postgres/-kubernetes):
 curl -s --max-time 2 -o /dev/null -w '%{http_code}' \
   -X POST -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" \
   -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"hc","version":"1"}}}' \
@@ -106,8 +106,16 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
 - **Wann bevorzugen:** go-task-Targets parallel ausführen mit strukturiertem OTel-Logging.
 - **Fallback:** `task <target>` direkt in der Shell.
 
-## `mcp-browser` — Playwright (unverändert)
+## `task-master-ai` — Task-Management (KI-gestützt)
 
-- **Endpoint:** `http://localhost:13000/mcp`.
-- **Tools:** `mcp__mcp-browser__browser_*` (navigate, click, snapshot, evaluate, …).
-- **Wann:** Browser-Automation/E2E-Inspektion. Unangetastet von der MCP↔Skill-Integration.
+- **Transport:** lokales Binary (`task-master-ai`), stdio.
+- **Tools:** `task_manager`, `add_task`, `update_task`, `list_tasks`.
+- **Wann bevorzugen:** Aufgabenverwaltung mit KI-Kontextanalyse.
+- **Fallback:** manuelle Notiz / Ticketsystem.
+
+## `codebase-memory-mcp` — Code-Wissensgraph
+
+- **Transport:** lokales Binary (`codebase-memory-mcp`), stdio.
+- **Tools:** `search_graph`, `trace_path`, `get_code_snippet`, `query_graph`, `search_code`, `get_architecture`, `index_repository`.
+- **Wann bevorzugen:** strukturelle Code-Suche und Abhängigkeitsanalyse — vor grep/glob.
+- **Fallback:** `grep` / `rg` / `glob` für einfache Textsuche.

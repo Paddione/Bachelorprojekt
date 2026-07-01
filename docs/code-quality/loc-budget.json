@@ -2,7 +2,7 @@
   "total_lines": 523744,
   "file_count": 3975,
   "commit": "7f0c7ae2",
-  "measured_at": "2026-07-01T14:33:28.875Z",
+  "measured_at": "2026-07-01T14:33:28.875Z"
   "thresholds": {
     "warn_pct": 5,
     "fail_pct": 15,

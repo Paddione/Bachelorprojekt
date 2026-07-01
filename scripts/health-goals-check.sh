@@ -79,6 +79,13 @@ print(len(d) if g=='ALL' else sum(1 for v in d.values() if v.get('gate')==g))
 PY
 }
 count() { grep -rEn "$1" $2 --include="*.ts" --include="*.svelte" --include="*.astro" 2>/dev/null | grep -v 'goals-data\.ts' | wc -l | tr -d ' '; }
+mcp_servers() { python3 - "$1" <<'PY' 2>/dev/null || true
+import json,re,sys
+s=open(sys.argv[1]).read(); s=re.sub(r'^\s*//.*$','',s,flags=re.M); s=re.sub(r',(\s*[}\]])',r'\1',s)
+d=json.loads(s); k='mcpServers' if 'mcpServers' in d else 'mcp'
+print('\n'.join(sorted(d.get(k,{}).keys())))
+PY
+}
 
 [ "$QUIET" = 0 ] && printf "%sRepository-Health — reproduzierbare Ziele (.claude/lib/goals.md)%s\n\n" "$C_B" "$C_X"
 
@@ -96,6 +103,120 @@ row gate G-GIT02 "$(git log --format=%s -30 origin/main 2>/dev/null | grep -vcE 
 if [ "$FAST" = 0 ] && command -v task >/dev/null 2>&1; then
   timeout 90 task env:validate:all >/dev/null 2>&1; row gate G-CFG01 "$?" eq 0 "env:validate:all (Schema-Drift)"
 else row gate G-CFG01 "-" eq 0 "env:validate:all (--fast übersprungen)"; fi
+
+row gate G-AGENTIC02 "$(
+  python3 - <<'PY'
+import re,glob,os
+def norm(t):
+    t=re.sub(r'\([^)]*\)','',t); t=t.replace('`','').replace('"','').replace("'","")
+    return t.strip().rstrip('.').strip().lower()
+def toks(s): return {norm(x) for x in s.split(',') if norm(x)}
+def fm(p):
+    f=re.search(r'^---\n(.*?)\n---',open(p).read(),re.S).group(1)
+    d=re.search(r'description:\s*>?\s*(.*?)(?:\n[a-z_]+:|\Z)',f,re.S).group(1)
+    d=' '.join(l.strip() for l in d.splitlines())
+    m=re.search(r'[Tt]riggers on:\s*(.*)',d); return toks(m.group(1)) if m else set()
+rows={}; seg=False
+for line in open('AGENTS.md').read().splitlines():
+    if re.match(r'^## Agent Routing',line): seg=True; continue
+    if seg and re.match(r'^## ',line): break
+    if seg:
+        m=re.match(r'\|(.*?)\|\s*`(bachelorprojekt-[a-z]+)`\s*\|\s*$',line)
+        if m: rows[m.group(2)]=toks(m.group(1))
+print(sum(1 for p in glob.glob('.claude/agents/*.md')
+          if fm(p).symmetric_difference(rows.get(os.path.basename(p)[:-3],set()))))
+PY
+)" eq 0 "Agent-Routing-Tabelle ↔ Agent-Frontmatter-Drift"
+row gate G-AGENTIC03 "$(
+  c=0; for f in .claude/agents/*.md; do b=$(basename "$f" .md)
+    nm=$(awk 'BEGIN{f=0}/^---$/{f++;next} f==1&&/^name:/{sub(/^name:[ ]*/,"");print;exit}' "$f")
+    hd=$(awk 'BEGIN{f=0}/^---$/{f++;next} f==1&&/^description:/{print 1;exit}' "$f")
+    { [ "$nm" = "$b" ] && [ -n "$hd" ]; } || c=$((c+1)); done; echo $c
+)" eq 0 "Agent-Frontmatter (name=Dateiname + description)"
+row gate G-AGENTIC04 "$(
+  blk="$(awk '/^  test:changed:/{f=1} f&&/^  [a-z][a-z0-9-]*:/&&!/test:changed:/{exit} f' Taskfile.yml)"
+  m=0
+  echo "$blk" | grep -qE '\.claude/agents/' || m=$((m+1))
+  echo "$blk" | grep -q  'AGENTS'           || m=$((m+1))
+  echo "$blk" | grep -q  'agent-library'    || m=$((m+1))
+  echo $m
+)" eq 0 "test:changed Agents-Bucket-Erreichbarkeit"
+row gate G-AGENTIC05 "$(
+  files=$(ls .claude/agents/*.md | xargs -n1 basename | sed 's/\.md$//;s/^bachelorprojekt-//' | sort -u)
+  routing=$(grep -oE "'bachelorprojekt-[a-z]+'" scripts/code-quality/validate.mjs | tr -d "'" | sed 's/^bachelorprojekt-//' | sort -u)
+  registry=$(grep -oE '^- id: agent-[a-z]+' docs/agent-guide/registry/tools.yaml | sed 's/^- id: agent-//' | sort -u)
+  echo $(( $(comm -3 <(echo "$files") <(echo "$routing") | grep -c .) + $(comm -3 <(echo "$files") <(echo "$registry") | grep -c .) ))
+)" eq 0 "6-Agenten agent↔routing↔registry Cross-Reference"
+row gate G-AGENTIC06 "$(
+  claimed=$(grep -oE '[0-9]+ project-local skills' .claude/skills/OVERVIEW.md | head -1 | grep -oE '^[0-9]+')
+  real=$(find .claude/skills -name SKILL.md | wc -l | tr -d ' ')
+  echo $(( claimed>real ? claimed-real : real-claimed ))
+)" eq 0 "OVERVIEW.md Skill-Zähler vs real (Drift)"
+row gate G-AGENTIC07 "$(
+  c=0
+  for f in $(find .claude/skills -name SKILL.md); do
+    d=$(echo "$f" | sed 's#.claude/skills/##;s#/SKILL.md##'); base=$(basename "$d")
+    awk 'BEGIN{f=0}/^---$/{f++;next} f==1&&/^description:/{print 1;exit}' "$f" | grep -q 1 || continue
+    n=$( { grep -rl -- "$base" CLAUDE.md AGENTS.md .claude/skills/OVERVIEW.md 2>/dev/null
+           grep -rl --include=SKILL.md -- "$base" .claude/skills 2>/dev/null | grep -v "$d/SKILL.md"; } | sort -u | wc -l)
+    [ "$n" -eq 0 ] && c=$((c+1))
+  done; echo $c
+)" eq 0 "Verwaiste aktive Skills (keine Referenzquelle)"
+row gate G-AGENTIC08 "$(
+  c=0
+  for p in $(grep -rhoE 'scripts/[A-Za-z0-9_./-]+\.(sh|mjs|py)' .claude/skills --include=SKILL.md | sort -u); do
+    [ -f "$p" ] || c=$((c+1)); done; echo $c
+)" eq 0 "Tote Script-Pfade in SKILL.md"
+row gate G-AGENTIC11 "$(
+  claimed=$(grep 'opencode runtime registers' CLAUDE.md | grep -oE '`[a-z][a-z0-9-]*`' | tr -d '`' | sort -u)
+  actual=$(mcp_servers .opencode/opencode.jsonc)
+  comm -3 <(echo "$claimed") <(echo "$actual") | grep -c .
+)" eq 0 "CLAUDE.md opencode-Liste vs opencode.jsonc (sym. Diff)"
+row gate G-AGENTIC12 "$(
+  c=0; for s in $(mcp_servers .mcp.json); do
+    grep -q -- "$s" .claude/skills/references/mcp-tool-guide.md || c=$((c+1)); done; echo $c
+)" eq 0 ".mcp.json-Server undokumentiert in mcp-tool-guide"
+row gate G-AGENTIC13 "$(
+  reg=$( { mcp_servers .mcp.json; mcp_servers .opencode/opencode.jsonc; } | sort -u)
+  refs=$(grep -rhoE 'mcp__[a-z0-9-]+__|mcp-[a-z0-9-]+_browser_' .claude/skills --include=SKILL.md \
+         | sed -E 's/^mcp__//; s/__$//; s/_browser_$//' | sort -u)
+  c=0; for s in $refs; do echo "$reg" | grep -qx "$s" || c=$((c+1)); done; echo $c
+)" eq 0 "Tote MCP-Server-Referenzen in SKILL.md"
+row gate G-AGENTIC14 "$(
+  python3 - <<'PY'
+import json,re
+def load(p):
+    s=open(p).read(); s=re.sub(r'^\s*//.*$','',s,flags=re.M); s=re.sub(r',(\s*[}\]])',r'\1',s); d=json.loads(s)
+    return d['mcpServers' if 'mcpServers' in d else 'mcp']
+a=load('.mcp.json'); b=load('.opencode/opencode.jsonc')
+def sig(c):
+    cmd=c.get('command')
+    return c.get('url') or ' '.join((cmd if isinstance(cmd,list) else [cmd or ''])+c.get('args',[]))
+print(sum(1 for k in set(a)&set(b) if sig(a[k])!=sig(b[k])))
+PY
+)" eq 0 ".mcp.json ↔ opencode Parity (gemeinsame Server)"
+row gate G-AGENTIC15 "$(
+  valid=$( { for f in .claude/commands/opsx/*.md; do basename "$f" .md; done
+             for f in .opencode/commands/opsx-*.md; do basename "$f" .md | sed 's/^opsx-//'; done; } | sort -u)
+  refs=$(grep -rhoE '/opsx[:-][a-z]+' CLAUDE.md AGENTS.md .claude/commands .opencode/commands .claude/skills --include='*.md' 2>/dev/null \
+         | sed -E 's#/opsx[:-]##' | sort -u)
+  c=0; for r in $refs; do echo "$valid" | grep -qx "$r" || c=$((c+1)); done; echo $c
+)" eq 0 "Phantom-/opsx-Command-Referenzen"
+row gate G-AGENTIC16 "$(
+  m=0
+  for f in .claude/commands/opsx/*.md; do
+    name=$(basename "$f" .md); o=".opencode/commands/opsx-$name.md"
+    [ -f "$o" ] || { m=$((m+1)); continue; }
+    a=$(awk 'BEGIN{fm=0}/^---$/{fm++;next} fm>=2{print}' "$f" | sed 's#/opsx:#/opsx-#g')
+    b=$(awk 'BEGIN{fm=0}/^---$/{fm++;next} fm>=2{print}' "$o" | sed 's#/opsx:#/opsx-#g')
+    [ "$a" = "$b" ] || m=$((m+1))
+  done; echo $m
+)" eq 0 "Claude ↔ opencode Command-Sync (normalisiert)"
+row gate G-AGENTIC17 "$(
+  cfg=$(grep -cE '(\.claude/commands|\.opencode/commands)/\*\*/\*\.md' docs/code-quality/gates.yaml)
+  orph=$(node scripts/code-quality/gates/s4-orphans.mjs 2>/dev/null | grep -cE '(^|/)(\.claude/commands|\.opencode/commands)/|commands/opsx')
+  if [ "$cfg" -ge 2 ]; then echo "$orph"; else echo 99; fi
+)" le 0 "Command-Orphans via S4 (Config-Guard)"
 
 # ── TARGETS (Reduktionsziele in Arbeit) ────────────────────────────────────────
 [ "$QUIET" = 0 ] && printf "\n%sTARGETS (Reduktion)%s\n" "$C_B" "$C_X"
@@ -119,6 +240,17 @@ row target G-SIZE03 "$( [ -f website/src/lib/website-db.ts ] && wc -l < website/
 row target G-GIT03 "$(git ls-files -z 2>/dev/null | grep -zv '^\.codebase-memory/' | xargs -0 -I{} sh -c 'test -f "{}" && wc -c "{}"' 2>/dev/null | awk '$1>1048576{c++} END{print c+0}')" le 6 "Dateien >1MB (kein LFS, exkl. .codebase-memory/ — T001348)"
 row target G-IMG01 "$(grep -rhE '^[[:space:]]*-?[[:space:]]*image:[[:space:]]+["'"'"']?[A-Za-z0-9$]' --include='*.yaml' --include='*.yml' k3d/ prod*/ 2>/dev/null | grep -v '@sha256' | grep -vE '^[[:space:]]*#' | grep -vE 'website|brett|videovault|mediaviewer-widget|mentolder-web|WEBSITE_IMAGE|STUDIO_IMAGE|STAGING_IMAGE|paddione' | sed -E 's/.*image:[[:space:]]*//; s/["'"'"']//g; s/[[:space:]]*#.*//' | sort -u | wc -l | tr -d ' ')" le 0 "ungepinnte Fremd-Images"
 row target G-DOC02 "$(wc -l < CLAUDE.md | tr -d ' ')" le 200 "CLAUDE.md Zeilen"
+row target G-AGENTIC01 "$(
+  c=0; for a in bachelorprojekt-security bachelorprojekt-infra bachelorprojekt-db; do
+    awk 'BEGIN{f=0}/^---$/{f++;next} f==1&&/^tools:/{ok=1} END{exit !ok}' .claude/agents/$a.md || c=$((c+1)); done; echo $c
+)" le 0 "Ungescopte Agenten (security/infra/db ohne tools:-Feld)"
+row target G-AGENTIC09 "$(
+  find .claude/skills -name SKILL.md -exec wc -l {} + | awk '$2!="total"&&$1>500{c++} END{print c+0}'
+)" le 0 "SKILL.md >500 Zeilen (dev-flow-execute 662, infra-ops 595, dev-flow-plan 580)"
+row target G-AGENTIC10 "$(
+  c=0; for a in bachelorprojekt-website bachelorprojekt-ops bachelorprojekt-infra bachelorprojekt-test bachelorprojekt-db bachelorprojekt-security; do
+    grep -rlE "^agent:[[:space:]]*$a" .claude/skills --include=SKILL.md >/dev/null 2>&1 || c=$((c+1)); done; echo $c
+)" le 0 "Agenten ohne dispatchende Skill (website/db/security)"
 row target G-DOC03 "$(c=0; for d in website brett scripts tests k3d; do ls "$d"/README* >/dev/null 2>&1 && c=$((c+1)); done; echo $c)" ge 5 "README-Index Hauptverzeichnisse"
 row target G-SEC05 "$(git log -50 --pretty='%G? %ae' main 2>/dev/null | grep -vE '(41898282\+)?github-actions\[bot\]@users\.noreply\.github\.com' | awk '{print $1}' | grep -c N || true)" le 2 "unsignierte Commits (letzte 50; adjusted: ohne freshness-Bot)"
 

@@ -128,6 +128,9 @@ s4:
   script_globs:
     - "scripts/*.sh"
     - "scripts/*.mjs"
+  command_globs:
+    - ".claude/commands/**/*.md"
+    - ".opencode/commands/**/*.md"
   reference_sources:
     - "Taskfile*.yml"
     - "**/kustomization.yaml"
@@ -143,6 +146,7 @@ s4:
     # AGENTS.md is the canonical reference for agent coordination scripts (agent-lock.sh,
     # agent-msg.sh, agent-escalate.sh). Added in T001049.
     - "AGENTS.md"
+    - "CLAUDE.md"
     # OpenSpec SSOT specs (.openspec/specs/<capability>/spec.md) are the source of truth
     # for behavioural contracts and frequently name migration / one-shot scripts that the
     # old spec did not list under docs/ (T001170, chore/repo-hygiene).

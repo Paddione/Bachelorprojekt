@@ -48,6 +48,14 @@ setup() {
   [ -f "$REPO/.opencode/commands/opsx-apply.md" ]
 }
 
+@test "T001263: .opencode/commands/opsx-archive.md is installed" {
+  [ -f "$REPO/.opencode/commands/opsx-archive.md" ]
+}
+
+@test "T001263: .opencode/commands/opsx-explore.md is installed" {
+  [ -f "$REPO/.opencode/commands/opsx-explore.md" ]
+}
+
 @test "T001263: .claude/skills/openspec-propose/SKILL.md is installed" {
   [ -f "$REPO/.claude/skills/openspec-propose/SKILL.md" ]
 }

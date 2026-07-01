@@ -46,7 +46,10 @@
           Manufacturer="Workspace"
           UpgradeCode="8f3d1c2a-6b4e-4a7d-9c11-7e2f5a9b0d34">
     <BootstrapperApplication>
-      <bal:WixStandardBootstrapperApplication SuppressOptionsUI="yes" />
+      <!-- Theme="none" is the only theme that doesn't require a
+           LicenseFile/LicenseUrl (BalCompiler.cs) — appropriate since this
+           bundle only ever runs non-interactively via /quiet (T001425). -->
+      <bal:WixStandardBootstrapperApplication Theme="none" SuppressOptionsUI="yes" />
     </BootstrapperApplication>
 
     <Chain>

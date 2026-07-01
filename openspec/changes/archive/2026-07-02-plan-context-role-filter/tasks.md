@@ -2,7 +2,7 @@
 title: "plan-context-role-filter — Implementation Plan"
 ticket_id: T001387
 domains: [dev-flow-plan, tooling, scripts]
-status: active
+status: completed
 file_locks: [scripts/plan-context.sh, tests/spec/plan-context.bats, openspec/changes/plan-context-role-filter/]
 shared_changes: false
 batch_id: null

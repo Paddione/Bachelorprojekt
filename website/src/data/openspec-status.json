@@ -665,7 +665,13 @@
   ],
   "T001387": [
     {
-      "slug": "plan-context-role-filter",
+      "slug": "2026-07-02-plan-context-role-filter",
+      "status": "archived"
+    }
+  ],
+  "T001388": [
+    {
+      "slug": "pre-push-freshness-double-run",
       "status": "plan_staged"
     }
   ],

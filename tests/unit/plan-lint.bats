@@ -52,12 +52,21 @@ setup() {
 }
 
 @test "B1 math: baselined file uses max(limit, baseline.metric)" {
-  # website/src/components/inbox/InboxApp.svelte is baselined at 1018 (> 500 .svelte limit) in baseline.json
-  # (After T001155/G-RH01 Batch 2, scripts/backup-restore.sh is no longer in baseline.json
-  # because the refactor brought it under 500 LOC. G-FE03 added browserLogger import → 1018.)
+  # website/src/components/inbox/InboxApp.svelte is baselined (> 500 .svelte limit) in baseline.json.
+  # (After T001155/G-RH01 Batch 2, scripts/backup-restore.sh is no longer in baseline.json because
+  # the refactor brought it under 500 LOC. G-FE03 added browserLogger import → 1018. T001353: a later
+  # cleanup PR shrank the file back to 1013 LOC and the baseline was updated accordingly, but this
+  # test still hardcoded the stale 1018 expectation — read the current baseline.metric dynamically
+  # instead of hardcoding a snapshot, so this test can't go stale again the same way.)
+  local baseline_metric
+  baseline_metric=$(jq -r '."S1:website/src/components/inbox/InboxApp.svelte".metric' \
+    "$REPO/docs/code-quality/baseline.json")
+  [ "$baseline_metric" != "null" ] && [ -n "$baseline_metric" ]
+  local expected
+  expected=$((baseline_metric > 500 ? baseline_metric : 500))
   run env PLAN_LINT_SELFTEST=1 bash "$LINT" effective_threshold "website/src/components/inbox/InboxApp.svelte"
   [ "$status" -eq 0 ]
-  [ "$output" = "1018" ]
+  [ "$output" = "$expected" ]
 }
 
 @test "B1 math: residual_budget = threshold - wc -l on a live file" {

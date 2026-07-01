@@ -29,12 +29,12 @@ func RegisterLinkTools(s *server.MCPServer) {
 
 	s.AddTool(
 		mcp.NewTool("link_tickets",
-			mcp.WithDescription("Erstellt einen gerichteten Dependency-Link zwischen zwei Tickets (blocks oder relates). Idempotent — mehrfacher Aufruf mit gleichen Argumenten erzeugt keinen Duplikat-Eintrag. HINWEIS: CLI-Statusübergänge via ticket.sh update-status erscheinen nicht in der Timeline (bekannte Lücke)."),
+			mcp.WithDescription("Erstellt einen gerichteten Dependency-Link zwischen zwei Tickets (pr, relates_to, blocks, blocked_by, duplicate_of, fixes, fixed_by, child_of). Idempotent — mehrfacher Aufruf mit gleichen Argumenten erzeugt keinen Duplikat-Eintrag. HINWEIS: CLI-Statusübergänge via ticket.sh update-status erscheinen nicht in der Timeline (bekannte Lücke)."),
 			mcp.WithString("from", mcp.Description("external_id des Quell-Tickets, z.B. T000100"), mcp.Required()),
 			mcp.WithString("to", mcp.Description("external_id des Ziel-Tickets, z.B. T000200"), mcp.Required()),
 			mcp.WithString("kind",
-				mcp.Description("blocks: A verhindert B; relates: weiche bidirektionale Assoziation"),
-				mcp.Enum("blocks", "relates"),
+				mcp.Description("Art der Verknüpfung: pr, relates_to, blocks, blocked_by, duplicate_of, fixes, fixed_by, child_of"),
+				mcp.Enum("pr", "relates_to", "blocks", "blocked_by", "duplicate_of", "fixes", "fixed_by", "child_of"),
 				mcp.Required(),
 			),
 			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)")),
@@ -48,8 +48,10 @@ func RegisterLinkTools(s *server.MCPServer) {
 				return mcp.NewToolResultError("from and to are required"), nil
 			}
 			// Enum validation before shell call — matches ticket.sh validation.
-			if kind != "blocks" && kind != "relates" {
-				return mcp.NewToolResultError("kind must be 'blocks' or 'relates'"), nil
+			switch kind {
+			case "pr", "relates_to", "blocks", "blocked_by", "duplicate_of", "fixes", "fixed_by", "child_of":
+			default:
+				return mcp.NewToolResultError("kind must be one of: pr, relates_to, blocks, blocked_by, duplicate_of, fixes, fixed_by, child_of"), nil
 			}
 			return text(runner.RunTicket(
 				[]string{"link-tickets", "--from", from, "--to", to, "--kind", kind},

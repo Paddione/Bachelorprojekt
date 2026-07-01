@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.150.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.150.3...website-v1.150.4) (2026-07-01)
+
+
+### Bug Fixes
+
+* **infra:** re-quote deploy pipeline placeholders in remaining sites [T001411] ([#2440](https://github.com/Paddione/Bachelorprojekt/issues/2440)) ([e3aa22a](https://github.com/Paddione/Bachelorprojekt/commit/e3aa22a068a5fa47d0eef1b431c8d09bb79ec114))
+
 ## [1.150.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.150.2...website-v1.150.3) (2026-07-01)
 
 

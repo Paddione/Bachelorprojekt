@@ -16,15 +16,8 @@
   "S1:scripts/docs-gen/templates.mjs": {
     "gate": "S1",
     "path": "scripts/docs-gen/templates.mjs",
-    "metric": 687,
-    "detail": "687 lines > 500 limit (.mjs)",
-    "frozen_at": "8b581ebe"
-  },
-  "S1:scripts/env-seal.sh": {
-    "gate": "S1",
-    "path": "scripts/env-seal.sh",
-    "metric": 520,
-    "detail": "520 lines > 500 limit (.sh)",
+    "metric": 587,
+    "detail": "587 lines > 500 limit (.mjs)",
     "frozen_at": "8b581ebe"
   },
   "S1:website/src/components/BookingForm.svelte": {
@@ -37,8 +30,8 @@
   "S1:website/src/components/Navigation.svelte": {
     "gate": "S1",
     "path": "website/src/components/Navigation.svelte",
-    "metric": 538,
-    "detail": "538 lines > 500 limit (.svelte)",
+    "metric": 535,
+    "detail": "535 lines > 500 limit (.svelte)",
     "frozen_at": "8b581ebe"
   },
   "S1:website/src/components/admin/NewsletterAdmin.svelte": {
@@ -62,18 +55,11 @@
     "detail": "1001 lines > 500 limit (.svelte)",
     "frozen_at": "8b581ebe"
   },
-  "S1:website/src/components/assistant/TicketSidekickView.svelte": {
-    "gate": "S1",
-    "path": "website/src/components/assistant/TicketSidekickView.svelte",
-    "metric": 627,
-    "detail": "627 lines > 500 limit (.svelte)",
-    "frozen_at": "8b581ebe"
-  },
   "S1:website/src/components/inbox/InboxApp.svelte": {
     "gate": "S1",
     "path": "website/src/components/inbox/InboxApp.svelte",
-    "metric": 1018,
-    "detail": "1018 lines > 500 limit (.svelte)",
+    "metric": 1013,
+    "detail": "1013 lines > 500 limit (.svelte)",
     "frozen_at": "8b581ebe"
   },
   "S1:website/src/components/inbox/InboxDetail.svelte": {
@@ -107,8 +93,8 @@
   "S1:website/src/lib/tickets/admin.ts": {
     "gate": "S1",
     "path": "website/src/lib/tickets/admin.ts",
-    "metric": 677,
-    "detail": "677 lines > 600 limit (.ts)",
+    "metric": 632,
+    "detail": "632 lines > 600 limit (.ts)",
     "frozen_at": "8b581ebe"
   },
   "S1:website/src/pages/admin/[clientId].astro": {
@@ -128,22 +114,22 @@
   "S1:website/src/pages/admin/clients.astro": {
     "gate": "S1",
     "path": "website/src/pages/admin/clients.astro",
-    "metric": 471,
-    "detail": "471 lines > 400 limit (.astro)",
+    "metric": 470,
+    "detail": "470 lines > 400 limit (.astro)",
     "frozen_at": "8b581ebe"
   },
   "S1:website/src/pages/admin/fragebogen/[assignmentId].astro": {
     "gate": "S1",
     "path": "website/src/pages/admin/fragebogen/[assignmentId].astro",
-    "metric": 620,
-    "detail": "620 lines > 400 limit (.astro)",
+    "metric": 619,
+    "detail": "619 lines > 400 limit (.astro)",
     "frozen_at": "8b581ebe"
   },
   "S1:website/src/pages/admin/kalender.astro": {
     "gate": "S1",
     "path": "website/src/pages/admin/kalender.astro",
-    "metric": 413,
-    "detail": "413 lines > 400 limit (.astro)",
+    "metric": 412,
+    "detail": "412 lines > 400 limit (.astro)",
     "frozen_at": "8b581ebe"
   },
   "S1:website/src/pages/admin/projekte.astro": {
@@ -177,8 +163,8 @@
   "S1:website/src/pages/admin/termine.astro": {
     "gate": "S1",
     "path": "website/src/pages/admin/termine.astro",
-    "metric": 774,
-    "detail": "774 lines > 400 limit (.astro)",
+    "metric": 773,
+    "detail": "773 lines > 400 limit (.astro)",
     "frozen_at": "8b581ebe"
   },
   "S1:website/src/pages/portal/billing/[id]/drucken.astro": {
@@ -191,8 +177,8 @@
   "S1:website/tests/api.test.mjs": {
     "gate": "S1",
     "path": "website/tests/api.test.mjs",
-    "metric": 592,
-    "detail": "592 lines > 500 limit (.mjs)",
+    "metric": 589,
+    "detail": "589 lines > 500 limit (.mjs)",
     "frozen_at": "8b581ebe"
   }
 }

@@ -183,6 +183,12 @@ das git des Users). Default-Zustand (kein Lock / mein Lock / toter Lock) → Com
 Zusätzlich neuer **`post-checkout`**-Hook (in `.githooks/`): **Warnung** (kein Block) bei
 Branch-Switch im main-Checkout, während eine andere Session den `main-checkout`-Lock hält.
 
+> **Update (T001383, 2026-07-01):** `post-checkout` warnt nicht mehr nur, sondern **reverted
+> best-effort** auf den im `main-checkout`-Lock hinterlegten `branch` (nie auf eine SHA),
+> außer während eines laufenden Rebase/Merge/Cherry-Pick. `guard-precommit` self-claimt den
+> Lock bei jedem Commit, damit das `branch`-Feld gefüllt bleibt. Volle Analyse:
+> `docs/superpowers/specs/2026-07-01-factory-branch-switch-guard-design.md`.
+
 Tool-agnostisch — feuert auch für Gemini und manuelles `git`.
 
 ### G-C — Geteilte Registry-Dateien (weiche Warnung)

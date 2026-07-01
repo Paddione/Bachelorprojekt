@@ -1,7 +1,8 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { getQTemplate, createQAssignment } from '../../../../lib/questionnaire-db';
-import { getCustomerByEmail, upsertCustomer, createProject } from '../../../../lib/website-db';
+import { upsertCustomer } from '../../../../lib/website-db';
+import { getCustomerByEmail, createProject } from '../../../../lib/projects-db';
 import { getUserById } from '../../../../lib/identity';
 import { sendQuestionnaireAssigned } from '../../../../lib/email';
 

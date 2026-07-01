@@ -304,7 +304,7 @@ import {
   deleteTimeEntry, getProjectTotalMinutes,
   listMeetingsForProject, assignMeetingToProject, findProjectByName,
   listUnassignedMeetingsForCustomer, claimBrettLinkPost,
-} from './website-db';
+} from './projects-db';
 
 // ── pg-mem-backed tests below (always run) ───────────────────────────────────
 

@@ -841,11 +841,6 @@ export async function saveReferenzen(brand: string, config: ReferenzenConfig): P
   );
 }
 
-
-// Temporarily re-export Projects domain from projects-db.ts to avoid breaking imports.
-// This will be removed in Task 3 after all callers update their imports.
-export * from './projects-db';
-
 // ── Time Entries ──────────────────────────────────────────────────────────────
 
 let timeEntriesReady = false;

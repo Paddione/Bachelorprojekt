@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { deleteProject } from '../../../../lib/website-db';
+import { deleteProject } from '../../../../lib/projects-db';
 import { siteRedirect } from '../../../../lib/redirect';
 
 export const POST: APIRoute = async ({ request , locals }) => {

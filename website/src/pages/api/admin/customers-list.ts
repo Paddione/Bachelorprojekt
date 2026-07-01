@@ -3,7 +3,7 @@
 // other admin UIs that need a customer picker without the full Keycloak roundtrip.
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../lib/auth';
-import { listAllCustomers } from '../../../lib/website-db';
+import { listAllCustomers } from '../../../lib/projects-db';
 
 export const GET: APIRoute = async ({ request }) => {
   const session = await getSession(request.headers.get('cookie'));

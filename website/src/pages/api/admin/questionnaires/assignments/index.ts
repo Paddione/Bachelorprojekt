@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
 import { listQAssignmentsForCustomer } from '../../../../../lib/questionnaire-db';
-import { getCustomerByEmail } from '../../../../../lib/website-db';
+import { getCustomerByEmail } from '../../../../../lib/projects-db';
 import { getUserById } from '../../../../../lib/identity';
 
 export const GET: APIRoute = async ({ request, url }) => {

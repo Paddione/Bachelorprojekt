@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession } from '../../../../../lib/auth';
-import { togglePortalTaskDone } from '../../../../../lib/website-db';
+import { togglePortalTaskDone } from '../../../../../lib/projects-db';
 
 export const POST: APIRoute = async ({ request, params }) => {
   const session = await getSession(request.headers.get('cookie'));

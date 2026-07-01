@@ -165,7 +165,7 @@ describe('openTestRunFailureTicket', () => {
   });
 
   it('resolves the public base URL from PROD_DOMAIN when set', async () => {
-    process.env.PROD_DOMAIN = 'korczewski.de';
+    process.env.PROD_DOMAIN = 'example.test';
     const { pool: fakePool, calls } = scriptedPool([
       () => ({ rows: [] }),
       () => ({}),
@@ -179,7 +179,7 @@ describe('openTestRunFailureTicket', () => {
       name: 'nfa case',
     });
     const description = calls[3].params?.[2] as string;
-    expect(description).toContain('https://web.korczewski.de/admin/tests/runs/run-9');
+    expect(description).toContain('https://web.example.test/admin/tests/runs/run-9');
   });
 
   it('falls back to BRAND when BRAND_ID is unset, and "mentolder" when neither is set', async () => {

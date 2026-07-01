@@ -295,6 +295,14 @@ jobs:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
         with:
           fetch-depth: 0
+      - name: Load allowed scopes from commitlint.config.cjs
+        id: load-scopes
+        run: |
+          {
+            echo 'scopes<<SCOPES_EOF'
+            bash scripts/validate-commit-msg.sh scopes
+            echo 'SCOPES_EOF'
+          } >> "$GITHUB_OUTPUT"
       - uses: amannn/action-semantic-pull-request@e32d7e603df1aa1ba07e981f2a23455dee596825  # v5.5.3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -311,96 +319,7 @@ jobs:
             ci
             perf
             revert
-          scopes: |
-            website
-            brett
-            goals
-
-            infra
-            db
-            security
-            ops
-            docs
-            deps
-            plans
-            ci
-            test
-            factory
-            e2e
-            coaching
-            assistant
-            admin
-            billing
-            talk
-            collabora
-            secrets
-            janus
-            keycloak
-            portal
-            livekit
-            whiteboard
-            nextcloud
-            openclaw
-            scripts
-            agent-guide
-            fleet
-            mcp
-            dev-flow
-            prompt-library
-            tickets
-            recovery
-            openspec
-            mentolder-web
-            skills
-            quality
-            test01
-            test02
-            test03
-            test04
-            test05
-            cq01
-            cq02
-            cq03
-            cq04
-            cq05
-            cq06
-            cq07
-            cq08
-            size01
-            size02
-            size03
-            size04
-            ci01
-            ci02
-            ci03
-            cd01
-            cd02
-            dora01
-            dora02
-            dora03
-            dep01
-            dep02
-            dep03
-            doc01
-            doc02
-            doc03
-            doc04
-            fe01
-            fe02
-            fe03
-            img01
-            img02
-            k8s01
-            k8s02
-            k8s03
-            spec01
-            spec02
-            spec03
-            sec01
-            sec02
-            sec03
-            sec04
-            sec05
+          scopes: ${{ steps.load-scopes.outputs.scopes }}
           # Ticket references like [T000436] can extend subject length
           subjectPattern: ^.{1,200}$
           subjectPatternError: |

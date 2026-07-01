@@ -2710,7 +2710,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 461,
+      "file_count": 462,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3087,6 +3087,7 @@
         "scripts/recording-setup.sh",
         "scripts/register-installed-app.mjs",
         "scripts/register-oidc-client.mjs",
+        "scripts/register-scope.sh",
         "scripts/register-secret.mjs",
         "scripts/rig_for_mixamo.py",
         "scripts/rigger_server.py",

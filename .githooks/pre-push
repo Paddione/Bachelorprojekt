@@ -1,13 +1,17 @@
 #!/usr/bin/env bash
-# pre-push: fast quality gate (blockierend) + BATS-Konsistenz-Advisory (warn-only).
+# pre-push: fast quality gate (blockierend) + Conventional-Commit-Gate (blockierend)
+#            + BATS-Konsistenz-Advisory (warn-only).
 #
 # Blockierend (exit 1):
 #   task quality:check (S1-S4 Ratchet, ~3s)
+#   scripts/validate-commit-msg.sh (Conventional-Commit-Header aller gepushten, nicht-main Commits) [T001356]
 #   Bypass: SKIP_CI_CHECK=1 git push
 #
 # Advisory (exit 0, nur Warnung):
 #   BATS-Dateien geändert aber repo-index.json/test-inventory.json fehlen im Push
 set -uo pipefail
+
+repo_root="$(git rev-parse --show-toplevel)"
 
 warn() { printf '⚠  pre-push: %s\n' "$*" >&2; }
 err()  { printf '✗  pre-push: %s\n' "$*" >&2; }
@@ -24,9 +28,11 @@ else
   fi
 fi
 
-# ── 2. Advisory: BATS changed without repo-index/test-inventory update ───────
+# ── 2. Blocking: Conventional Commit validation [T001356 / G-GIT02] +
+#      Advisory: BATS changed without repo-index/test-inventory update ───────
 REMOTE="$1"
 URL="$2"
+_commit_msg_failed=0
 while IFS=' ' read -r LOCAL_REF LOCAL_SHA REMOTE_REF REMOTE_SHA; do
   [[ "$LOCAL_SHA" == "0000000000000000000000000000000000000000" ]] && continue
   BASE="${REMOTE_SHA:-}"
@@ -34,6 +40,12 @@ while IFS=' ' read -r LOCAL_REF LOCAL_SHA REMOTE_REF REMOTE_SHA; do
     BASE=$(git rev-parse --verify "origin/main" 2>/dev/null || git rev-parse --verify "HEAD~1" 2>/dev/null || true)
   fi
   [[ -z "$BASE" ]] && continue
+
+  if [[ "${SKIP_CI_CHECK:-0}" != "1" ]]; then
+    if ! "$repo_root/scripts/validate-commit-msg.sh" range "${BASE}..${LOCAL_SHA}"; then
+      _commit_msg_failed=1
+    fi
+  fi
 
   CHANGED_BATS=$(git diff --name-only "$BASE..$LOCAL_SHA" 2>/dev/null | grep '\.bats$' || true)
   [[ -z "$CHANGED_BATS" ]] && continue
@@ -47,5 +59,14 @@ while IFS=' ' read -r LOCAL_REF LOCAL_SHA REMOTE_REF REMOTE_SHA; do
     warn "  git commit --amend --no-edit && git push --force-with-lease"
   fi
 done
+
+if [[ "${SKIP_CI_CHECK:-0}" == "1" ]]; then
+  warn "SKIP_CI_CHECK=1 — commit-message validation bypassed"
+elif [[ "$_commit_msg_failed" -ne 0 ]]; then
+  err "Conventional Commit validation failed — push blocked"
+  err "Fix the commit message(s) above (git commit --amend / rebase -i), then push again."
+  err "To bypass (emergency only): SKIP_CI_CHECK=1 git push"
+  exit 1
+fi
 
 exit 0

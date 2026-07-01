@@ -6,6 +6,10 @@ FROM joseluisq/static-web-server:2.36-alpine
 # is the "Verify downloads-content package is private" step in
 # .github/workflows/build-rustdesk-installer.yml (REQ-RUSTDESK-CLIENT-003).
 COPY rustdesk-workspace-installer.exe /public/rustdesk-workspace-installer.exe
+# T001431: without a custom index.html, static-web-server falls back to its
+# own built-in placeholder page ("Static Web Server ... View on GitHub") at
+# the root path instead of starting the download.
+COPY downloads-index.html /public/index.html
 ENV SERVER_ROOT=/public
 ENV SERVER_PORT=8787
 ENV SERVER_CACHE_CONTROL_HEADERS=false

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 517,
+      "file_count": 518,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -362,6 +362,7 @@
         "tests/spec/g-dep01-npm-vuln.bats",
         "tests/spec/g-fe02-bundle-budget.bats",
         "tests/spec/g-fe03-structured-logger.bats",
+        "tests/spec/health-goals.bats",
         "tests/spec/image-drift.bats",
         "tests/spec/lockfile-drift.bats",
         "tests/spec/mcp-task-runner.bats",

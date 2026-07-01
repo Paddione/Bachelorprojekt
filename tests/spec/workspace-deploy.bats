@@ -61,6 +61,42 @@ _workspace_partial_deploy_block() {
 }
 
 @test "workspace:deploy dev branch still envsubsts \$SMTP_USER (no regression)" {
-  run bash -c "_block() { sed -n '/^  workspace:deploy:\$/,/^  workspace:partial-deploy:\$/p' '$TASKFILE'; }; _block | grep 'kustomize build k3d/' | grep -F '\$SMTP_USER'"
+  # The dev-branch pipeline (kustomize build k3d/ | ... | envsubst ... | ... | kubectl apply)
+  # may wrap across multiple piped lines (T001411 added a re-quoting sed stage
+  # between kustomize build and envsubst), so match across the whole pipe
+  # range rather than requiring both tokens on a single physical line.
+  run bash -c "_block() { sed -n '/^  workspace:deploy:\$/,/^  workspace:partial-deploy:\$/p' '$TASKFILE'; }; _block | sed -n '/kustomize build k3d\//,/kubectl apply/p' | grep -F '\$SMTP_USER'"
   [ "$status" -eq 0 ]
+}
+
+# T001411: kustomize build re-serializes YAML and drops the quotes around a
+# bare `"${VAR}"` placeholder (it isn't syntactically required for a plain
+# scalar). When envsubst then substitutes a purely-numeric value like
+# SMTP_PORT=587 into that now-unquoted placeholder, the result is a bare YAML
+# integer (`value: 587`) instead of a string — which `kubectl apply
+# --server-side` rejects for a corev1.EnvVar.Value field, aborting the whole
+# apply chain for both brands. The fix inserts a sed stage between
+# `kustomize build` and `envsubst` that re-quotes any `: ${VAR}` placeholder
+# before substitution happens, so the quotes survive.
+@test "workspace:deploy dev branch re-quotes kustomize-stripped \${VAR} placeholders before envsubst (T001411)" {
+  run bash -c "_block() { sed -n '/^  workspace:deploy:\$/,/^  workspace:partial-deploy:\$/p' '$TASKFILE'; }; _block | sed -n '/kustomize build k3d\//,/kubectl apply/p'"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'s/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g'* ]]
+}
+
+@test "workspace:deploy prod branch re-quotes kustomize-stripped \${VAR} placeholders before envsubst (T001411)" {
+  run bash -c "_block() { sed -n '/^  workspace:deploy:\$/,/^  workspace:partial-deploy:\$/p' '$TASKFILE'; }; _block | sed -n '/kustomize build \"\$overlay\/\"/,/kubectl --context/p'"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'s/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g'* ]]
+}
+
+@test "prod-fleet mentolder overlay renders pocket-id SMTP_PORT as a quoted string after the full deploy pipeline (T001411)" {
+  export SMTP_PORT=587 SMTP_HOST=smtp.example.org SMTP_USER=x POCKET_ID_SMTP_TLS=starttls
+  export POCKET_ID_FRONTEND_URL=https://auth.example POCKET_ID_URL=http://pocket-id:1411 POCKET_ID_DOMAIN=id.example
+  run kustomize build "${PROJECT_DIR}/prod-fleet/mentolder" --load-restrictor=LoadRestrictionsNone
+  [ "$status" -eq 0 ]
+  requoted=$(printf '%s\n' "$output" | sed -E 's/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g')
+  rendered=$(printf '%s\n' "$requoted" | envsubst '$SMTP_PORT $SMTP_HOST $SMTP_USER $POCKET_ID_SMTP_TLS $POCKET_ID_FRONTEND_URL $POCKET_ID_URL $POCKET_ID_DOMAIN')
+  smtp_port_block=$(printf '%s\n' "$rendered" | grep -A1 'name: SMTP_PORT')
+  [[ "$smtp_port_block" == *'value: "587"'* ]]
 }

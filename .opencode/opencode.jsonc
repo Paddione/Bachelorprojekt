@@ -1,6 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "lmstudio/hermes-3-llama-3.1-8b",
+  "model": "lmstudio/google/gemma-4-12b-qat",
   "permission": "allow",
   "lsp": true,
   "mcp": {
@@ -58,29 +58,9 @@
         "apiKey": "lmstudio"
       },
       "models": {
-        "qwen3-14b": {
-          "id": "qwen3-14b",
-          "name": "Qwen3 14B Q5_K_M",
-          "limit": { "context": 100000, "output": 8192 }
-        },
-        "hermes-3-llama-3.1-8b": {
-          "id": "hermes-3-llama-3.1-8b",
-          "name": "Hermes 3 Llama 3.1 8B",
-          "limit": { "context": 131072, "output": 8192 }
-        },
-        "qwen/qwen3.5-9b": {
-          "id": "qwen/qwen3.5-9b",
-          "name": "Qwen 3.5 9B (Coding)",
-          "limit": { "context": 131072, "output": 8192 }
-        },
-        "qwen/qwen3.5-9b:q4_k_m": {
-          "id": "qwen/qwen3.5-9b:q4_k_m",
-          "name": "Qwen 3.5 9B Q4_K_M (schnell)",
-          "limit": { "context": 131072, "output": 8192 }
-        },
-        "qwen/qwen3.5-9b:q8_0": {
-          "id": "qwen/qwen3.5-9b:q8_0",
-          "name": "Qwen 3.5 9B Q8_0 (präzise)",
+        "google/gemma-4-12b-qat": {
+          "id": "google/gemma-4-12b-qat",
+          "name": "Gemma 4 12B QAT",
           "limit": { "context": 131072, "output": 8192 }
         },
         "text-embedding-bge-m3": {

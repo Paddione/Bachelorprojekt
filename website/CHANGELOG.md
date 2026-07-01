@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.146.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.146.0...website-v1.146.1) (2026-07-01)
+
+
+### Bug Fixes
+
+* **sec05:** expand health-goals filter to catch both bot-email variants [T001358] ([#2373](https://github.com/Paddione/Bachelorprojekt/issues/2373)) ([a38ecf0](https://github.com/Paddione/Bachelorprojekt/commit/a38ecf0217fd45590a9f755eabac81cae684087f))
+
 ## [1.146.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.145.10...website-v1.146.0) (2026-07-01)
 
 

@@ -14,13 +14,16 @@
 #   - admin client create: POST   /api/oidc/clients       body: {name, callbackURLs[], logoutCallbackURLs[], isPublic, pkceEnabled, requiresReauthentication, requiresPushedAuthorizationRequests, launchURL}
 #   - admin client update: PUT    /api/oidc/clients/<id>  (not PATCH)
 #   - admin client secret: POST   /api/oidc/clients/<id>/secret  (server generates, body-less; response: {secret})
-#   - Admin endpoints require a session cookie OR an API key with admin scope.
-#     The POCKET_ID_API_KEY in dev is not allowed for these endpoints (the
-#     binary asserts "API key authentication is not allowed for this endpoint"),
-#     so the Job logs the auto-generated secret from each /secret call rather
-#     than trying to write the dev placeholder. A follow-up Job that reads the
-#     generated secrets back into the in-cluster Secret is the natural next
-#     step (T00109x).
+#   - Admin endpoints require the `X-API-KEY: <key>` header, NOT
+#     `Authorization: Bearer <key>` (https://pocket-id.org/docs/api). Using
+#     the wrong header made this Job fail with 401 "You are not signed in"
+#     regardless of key validity -- root-caused live in prod T001355
+#     (2026-07-01); the original "API key auth not allowed for this
+#     endpoint" theory was a misdiagnosis of the same symptom.
+#     The Job logs the auto-generated secret from each /secret call rather
+#     than writing it back into the cluster Secret. A follow-up Job that
+#     reads the generated secrets back into the in-cluster Secret is the
+#     natural next step (T00109x).
 # ═══════════════════════════════════════════════════════════════════
 apiVersion: batch/v1
 kind: Job
@@ -130,7 +133,12 @@ spec:
               HOST="${POCKET_ID_FRONTEND_URL#*://}"
               SUFFIX="${HOST#*.}"   # strips first subdomain (id./auth.) regardless of prefix
 
-              AUTH="Authorization: Bearer ${POCKET_ID_API_KEY}"
+              # Pocket ID's admin API rejects "Authorization: Bearer" for these
+              # endpoints (401 "You are not signed in") -- it requires the
+              # X-API-KEY header (https://pocket-id.org/docs/api). Verified
+              # live against v2.9.0 (T001355): Bearer -> 401 regardless of key
+              # validity, X-API-KEY -> 200.
+              AUTH="X-API-KEY: ${POCKET_ID_API_KEY}"
               CT="Content-Type: application/json"
 
               # client rows: id|secretEnv|callbackUrl

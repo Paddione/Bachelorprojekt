@@ -29,7 +29,10 @@ jobs:
       - name: Install WiX Toolset + util extension
         shell: pwsh
         run: |
-          dotnet tool install --global wix
+          # Pinned to the last pre-OSMF major: v7 requires accepting the Open
+          # Source Maintenance Fee EULA interactively, which fails non-interactive
+          # CI runs with WIX7015. See https://docs.firegiant.com/wix/osmf/.
+          dotnet tool install --global wix --version 5.0.2
           wix extension add -g WixToolset.Util.wixext
 
       - name: Download + pin-verify official RustDesk MSI

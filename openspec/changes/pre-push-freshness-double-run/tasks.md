@@ -44,7 +44,7 @@ depends_on_plans: []
 
 ## Vorgehen
 
-- [ ] **Task 0: Failing-Test ist rot gegen `main` — `tests/spec/pre-commit-freshness.bats` (RED, Step 1)**
+- [x] **Task 0: Failing-Test ist rot gegen `main` — `tests/spec/pre-commit-freshness.bats` (RED, Step 1)**
   - **Step 1: verify test fails against main's pre-commit hook (RED-Sanity, reproduces the bug):**
     ```bash
     tests/unit/lib/bats-core/bin/bats tests/spec/pre-commit-freshness.bats
@@ -55,7 +55,7 @@ depends_on_plans: []
     `_FRESHNESS_FILES`-Array fehlen. Das ist exakt der Bug, der zu
     "Amend + re-push nötig" führt.
 
-- [ ] **Task 1: Fix in `.githooks/pre-commit` anwenden (GREEN, Step 2)**
+- [x] **Task 1: Fix in `.githooks/pre-commit` anwenden (GREEN, Step 2)**
   - Datei: `.githooks/pre-commit`.
   - **Schritt 2a:** Im `_FRESHNESS_FILES`-Array (Zeilen 35–54) die zwei
     fehlenden Pfade ergänzen, in der Reihenfolge, in der sie im
@@ -74,14 +74,14 @@ depends_on_plans: []
     capturing every regen-produced file in the same commit (see
     T001388)."
 
-- [ ] **Task 2: GREEN-Sanity — der neue Test ist jetzt grün**
+- [x] **Task 2: GREEN-Sanity — der neue Test ist jetzt grün**
   - **Step 2: run the test, expect PASS (GREEN) after fix is applied:**
     ```bash
     tests/unit/lib/bats-core/bin/bats tests/spec/pre-commit-freshness.bats
     ```
     **expected:** alle drei Tests `ok` (RED-Sanity, Drift-Guard, Auto-Stage-Smoke).
 
-- [ ] **Task 3: Final Verification — mandatory CI gates**
+- [x] **Task 3: Final Verification — mandatory CI gates**
   ```bash
   task test:changed
   task freshness:regenerate

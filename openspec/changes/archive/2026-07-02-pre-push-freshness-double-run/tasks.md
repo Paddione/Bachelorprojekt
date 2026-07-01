@@ -2,7 +2,7 @@
 title: "pre-push-freshness-double-run — Implementation Plan"
 ticket_id: T001388
 domains: [ci, dev-flow-execute]
-status: active
+status: completed
 file_locks: [.githooks/pre-commit, tests/spec/pre-commit-freshness.bats, openspec/changes/pre-push-freshness-double-run/]
 shared_changes: false
 batch_id: null

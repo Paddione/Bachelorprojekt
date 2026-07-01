@@ -63,6 +63,11 @@
           "name": "Gemma 4 12B QAT",
           "limit": { "context": 131072, "output": 8192 }
         },
+        "gemma-4-26b-a4b-it-qat@q4_k_xl": {
+          "id": "gemma-4-26b-a4b-it-qat@q4_k_xl",
+          "name": "Gemma 4 26B-A4B MoE QAT (vision)",
+          "limit": { "context": 131072, "output": 8192 }
+        },
         "text-embedding-bge-m3": {
           "id": "text-embedding-bge-m3",
           "name": "BGE-M3 Embeddings"

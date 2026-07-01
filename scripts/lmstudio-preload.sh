@@ -5,11 +5,15 @@
 #   Embedding models (1.26 GB total) → ttl=-1 (permanent, too small to matter)
 #   LLM models (hermes 4.58 GB / qwen 8.87 GB) → only one at a time, ttl set
 #   by caller. Loading both simultaneously risks exceeding 16 GB VRAM.
+#   Gemma 4 26B-A4B (15.4 GB, MoE/vision) alone nearly fills the RTX 5070 Ti's
+#   16 GB — load it standalone, without embeddings or the other chat/coding
+#   models resident at the same time.
 #
 # Usage:
 #   scripts/lmstudio-preload.sh embeddings   # pre-load all 3 embedding models
 #   scripts/lmstudio-preload.sh coding       # pre-load qwen + embeddings (big coding task)
 #   scripts/lmstudio-preload.sh chat         # pre-load hermes + embeddings
+#   scripts/lmstudio-preload.sh reasoning    # pre-load Gemma 4 26B-A4B alone (heavy reasoning/vision task)
 #   scripts/lmstudio-preload.sh status       # show loaded instances
 #   scripts/lmstudio-preload.sh unload <id>  # explicit unload
 
@@ -21,6 +25,7 @@ BASE="http://${HOST}:${PORT}"
 
 HERMES="hermes-3-llama-3.1-8b"
 QWEN="qwen/qwen3.5-9b"
+GEMMA4_26B="gemma-4-26b-a4b-it-qat@q4_k_xl"
 EMBED_BGE="text-embedding-bge-m3"
 EMBED_NOMIC="text-embedding-nomic-embed-text-v1.5"
 EMBED_RERANK="text-embedding-bge-reranker-v2-m3"
@@ -89,6 +94,14 @@ case "$CMD" in
     echo "Done. Hermes is warm for chat."
     ;;
 
+  reasoning)
+    echo "Pre-loading Gemma 4 26B-A4B (15.4 GB) alone for a heavy reasoning/vision task ..."
+    echo "Note: this nearly fills the RTX 5070 Ti's 16 GB VRAM — no other chat/coding model"
+    echo "should be resident at the same time. Unload hermes/qwen first if needed."
+    load_model "$GEMMA4_26B"
+    echo "Done. Gemma 4 26B-A4B is warm."
+    ;;
+
   unload)
     MODEL="${2:?usage: $0 unload <model-id>}"
     unload_model "$MODEL"
@@ -99,7 +112,7 @@ case "$CMD" in
     ;;
 
   *)
-    echo "Usage: $0 {embeddings|coding|chat|unload <model>|status}"
+    echo "Usage: $0 {embeddings|coding|chat|reasoning|unload <model>|status}"
     exit 1
     ;;
 esac

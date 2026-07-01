@@ -31,6 +31,14 @@ Im Zweifel **eine Stufe höher**. Wenn unsicher, ob ein Spezial-Modell überhaup
 > mehrschrittigem Tool-Calling als `haiku`. **Nicht** verwenden für: Aufgaben mit Urteilsvermögen,
 > Sicherheitsrelevanz, mehreren Dateien, oder wenn das Ergebnis ungeprüft weiterverwendet wird — dort
 > bleibt `haiku`/`sonnet` die Untergrenze.
+>
+> **Stärkere lokale Alternative:** `gemma-4-26b-a4b-it-qat@q4_k_xl` (MoE, 3.8B aktive Parameter,
+> vision-fähig) läuft ebenfalls im LM Studio auf dem GPU-Host und übertrifft `google/gemma-4-12b-qat`
+> in Coding-/Reasoning-Benchmarks deutlich. Verfügt über kein eigenes `hermes-delegate`-Binding — bei
+> Bedarf direkt gegen `http://192.168.100.10:1234/v1/chat/completions` mit
+> `"model": "gemma-4-26b-a4b-it-qat@q4_k_xl"` ansprechen. Belegt mit 15,4 GiB nahezu die komplette
+> VRAM der RTX 5070 Ti — vorher mit `scripts/lmstudio-preload.sh reasoning` laden, nicht parallel zu
+> Hermes/Qwen.
 
 > **⚠ Haiku-Fußangel bei Spec-Reviews [T000551]:** Haiku liest ohne expliziten `limit`-Parameter nur
 > die ersten ~80 Zeilen einer Datei und liefert daher false negatives bei Spec-Compliance-Prüfungen

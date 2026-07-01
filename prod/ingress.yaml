@@ -26,13 +26,42 @@ spec:
                 port:
                   number: 443
 ---
-# ── Pocket ID (Auth / SSO) — Rate-Limiting ──────────────────────────
+# ── Pocket ID (Auth / SSO) — API: Rate-Limiting (Brute-Force-Schutz) ─
+# T001430: rate-limit-auth NUR auf /api scopen, nicht auf die gesamte
+# Route — sonst reisst der SvelteKit-SPA-Asset-Burst (_app/immutable/*)
+# beim Laden das Limit (average=20/burst=40 pro echter Client-IP seit
+# T001341 den klipper-lb-IP-Maskierungsbug entfernt hat).
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: workspace-ingress-auth-api
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: "${WORKSPACE_NAMESPACE}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE}-hsts-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-security-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-rate-limit-auth@kubernetescrd"
+spec:
+  tls:
+    - hosts:
+        - auth.${PROD_DOMAIN}
+      secretName: ${TLS_SECRET_NAME}
+  rules:
+    - host: auth.${PROD_DOMAIN}
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: pocket-id
+                port:
+                  number: 1411
+---
+# ── Pocket ID (Auth / SSO) — SPA/Static: ohne Rate-Limit ────────────
+# Brute-Force-Schutz greift ausschliesslich ueber /api (siehe oben).
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: workspace-ingress-auth
   annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: "${WORKSPACE_NAMESPACE}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE}-hsts-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-security-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-rate-limit-auth@kubernetescrd"
+    traefik.ingress.kubernetes.io/router.middlewares: "${WORKSPACE_NAMESPACE}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE}-hsts-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-security-headers@kubernetescrd"
 spec:
   tls:
     - hosts:

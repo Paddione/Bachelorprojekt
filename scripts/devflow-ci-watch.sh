@@ -23,7 +23,10 @@ if [[ "$MERGE_STATE" == "DIRTY" ]]; then
   echo "⚠ PR mergeStateStatus=DIRTY — Rebase gegen origin/main vor dem CI-Poll ..."
   git fetch origin main 2>/dev/null || true
   if git rebase origin/main; then
-    git push --force-with-lease
+    if ! git push --force-with-lease; then
+      echo "❌ push nach Rebase fehlgeschlagen (force-with-lease abgelehnt oder Netzwerkfehler) — manuelles Eingreifen nötig." >&2
+      exit 3
+    fi
   else
     git rebase --abort 2>/dev/null || true
     echo "❌ Rebase-Konflikt gegen origin/main — manuelle Konfliktlösung nötig (kein Auto-Force)." >&2
@@ -40,11 +43,19 @@ while true; do
 
   gh pr checks --watch --interval 15 2>/dev/null || true
 
-  FAILED_CHECKS=$(gh pr view "$PR_URL" --json statusCheckRollup \
+  if ! FAILED_CHECKS=$(gh pr view "$PR_URL" --json statusCheckRollup \
     -q '.statusCheckRollup[] | select(
           (.conclusion // "") == "FAILURE" or (.conclusion // "") == "TIMED_OUT"
           or (.state // "") == "FAILURE"
-        ) | (.name // .context // "unknown") + ": " + (.detailsUrl // .targetUrl // "")')
+        ) | (.name // .context // "unknown") + ": " + (.detailsUrl // .targetUrl // "")'); then
+    echo "⚠ gh pr view --json statusCheckRollup fehlgeschlagen (Auth/Schema/Rate-Limit?) — kann Checks nicht sicher bewerten." >&2
+    if [[ $CI_ATTEMPT -ge $MAX_CI_ATTEMPTS ]]; then
+      echo "❌ Nach $MAX_CI_ATTEMPTS Versuchen weiterhin keine verlässliche Check-Auskunft von gh — manuelles Eingreifen nötig." >&2
+      exit 1
+    fi
+    sleep 15
+    continue
+  fi
 
   if [[ -z "$FAILED_CHECKS" ]]; then
     echo "✅ Alle CI-Checks grün."

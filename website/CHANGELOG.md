@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.150.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.150.8...website-v1.150.9) (2026-07-01)
+
+
+### Bug Fixes
+
+* **dev-flow:** add openspec-status.json + loc-budget.json to pre-commit auto-stage [T001388] ([#2468](https://github.com/Paddione/Bachelorprojekt/issues/2468)) ([58e72f3](https://github.com/Paddione/Bachelorprojekt/commit/58e72f38aaed93d82bc9bcd25b8cb0566c54ae2b))
+
 ## [1.150.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.150.7...website-v1.150.8) (2026-07-01)
 
 

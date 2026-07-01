@@ -599,6 +599,12 @@
       "status": "plan_staged"
     }
   ],
+  "T001360": [
+    {
+      "slug": "t001360-dep02-major-deps",
+      "status": "plan_staged"
+    }
+  ],
   "T001361": [
     {
       "slug": "2026-07-01-t001361-fe01-a11y",

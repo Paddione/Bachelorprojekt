@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.145.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.145.8...website-v1.145.9) (2026-07-01)
+
+
+### Bug Fixes
+
+* **infra:** correct pocket-id-client-seed admin API auth header [T001355] ([#2361](https://github.com/Paddione/Bachelorprojekt/issues/2361)) ([99e92d0](https://github.com/Paddione/Bachelorprojekt/commit/99e92d0842ddeb9d0f59c2f51ef48f1bb7493aa5))
+
 ## [1.145.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.145.7...website-v1.145.8) (2026-07-01)
 
 

@@ -26,6 +26,7 @@ spec:
         seccompProfile:
           type: RuntimeDefault
       containers:
+        # :latest is intentional — rebuilt on every release (see gotchas-footguns.md)
         - name: mediaviewer-widget
           image: ghcr.io/paddione/mediaviewer-widget:latest
           imagePullPolicy: Always

@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.150.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.150.1...website-v1.150.2) (2026-07-01)
+
+
+### Bug Fixes
+
+* **openspec:** auto-register new SSOT components in config.yaml ([#2430](https://github.com/Paddione/Bachelorprojekt/issues/2430)) ([1f6ddfc](https://github.com/Paddione/Bachelorprojekt/commit/1f6ddfcaa5f13bdd3aaf3836ce3df37d3685084d))
+
+
+### Tests
+
+* **infra:** add failing test for hbbs subPath rotation runbook [T001382] ([#2424](https://github.com/Paddione/Bachelorprojekt/issues/2424)) ([f0eb29e](https://github.com/Paddione/Bachelorprojekt/commit/f0eb29ec04d099551d5d07a2e944342c3ae16799))
+
 ## [1.150.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.150.0...website-v1.150.1) (2026-07-01)
 
 

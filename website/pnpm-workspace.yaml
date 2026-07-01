@@ -12,13 +12,25 @@ minimumReleaseAgeExclude:
   - playwright-core@1.61.0 || 1.61.1
   - playwright@1.61.0 || 1.61.1
   - vitest@4.1.9
-  - '@anthropic-ai/sdk@0.104.2 || 0.105.0 || 0.106.0'
-  - livekit-server-sdk@2.15.5
+  - '@anthropic-ai/sdk@0.104.2 || 0.105.0 || 0.106.0 || 0.109.0'
+  - livekit-server-sdk@2.15.5 || 2.16.0
   - pg-connection-string@2.14.0
   - pg-protocol@1.15.0
   - pg@8.22.0
   - svelte@5.56.4
   - livekit-client@2.20.0
+  - '@astrojs/compiler-binding-darwin-arm64@0.3.0'
+  - '@astrojs/compiler-binding-darwin-x64@0.3.0'
+  - '@astrojs/compiler-binding-linux-arm64-gnu@0.3.0'
+  - '@astrojs/compiler-binding-linux-arm64-musl@0.3.0'
+  - '@astrojs/compiler-binding-linux-x64-gnu@0.3.0'
+  - '@astrojs/compiler-binding-linux-x64-musl@0.3.0'
+  - '@astrojs/compiler-binding-wasm32-wasi@0.3.0'
+  - '@astrojs/compiler-binding-win32-arm64-msvc@0.3.0'
+  - '@astrojs/compiler-binding-win32-x64-msvc@0.3.0'
+  - '@astrojs/compiler-binding@0.3.0'
+  - '@astrojs/compiler-rs@0.3.0'
+  - astro@7.0.4
 
 overrides:
   yaml: "^2.9.0"

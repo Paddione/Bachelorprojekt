@@ -91,3 +91,44 @@ setup() {
   [ -f "$EXEC_SKILL" ]
   grep -Eqi 'push_verified:|push-verified:|push_verified[[:space:]]*=' "$EXEC_SKILL"
 }
+
+# ── T001386: Feature-Pfad fehlt expliziter Ticket-Claim vor Pre-Commit-Guard ──#
+#
+# dev-flow-plan Schritt 5's Pre-Commit-Guard (introduced by T001268-M2) checks
+# .git/agent-locks/ticket__$TICKET_EXT_ID.json — a ticket-scoped agent-lock
+# claim. The Fix-Pfad creates this claim explicitly in Schritt 2.5 ("claim
+# ticket"). The Feature-Pfad's Phase B Schritt B.1 only claims `branch`, never
+# `ticket` — because the ticket is normally created much later, in Schritt
+# 4.5. The guard in Schritt 5 therefore reads a file that (in the Feature-Pfad)
+# was never created, producing a false-negative branch-mismatch failure.
+#
+# Fix: the Feature-Pfad must gain an explicit `claim ticket` step, positioned
+# where the ticket ID first becomes known — Schritt B.1 (if a ticket ID was
+# already handed in, e.g. by feature-intake) AND/OR Schritt 4.5 (the regular
+# case, right after the ticket is created/reused, before Schritt 5 runs).
+
+@test "T001386: dev-flow-plan Feature-Pfad Schritt B.1 claims ticket when TICKET_EXT_ID is already known" {
+  [ -f "$PLAN_SKILL" ]
+  # Between the "Schritt B.1" heading and the next "Schritt B.2" heading, the
+  # text must contain an agent-lock.sh claim ticket invocation.
+  awk '/^#### Schritt B\.1:/{flag=1} /^#### Schritt B\.2:/{flag=0} flag' "$PLAN_SKILL" \
+    | grep -Eq 'agent-lock\.sh[[:space:]]+claim[[:space:]]+ticket'
+}
+
+@test "T001386: dev-flow-plan Feature-Pfad Schritt 4.5 claims ticket after ticket creation, before Schritt 5" {
+  [ -f "$PLAN_SKILL" ]
+  # Between the "Schritt 4.5" heading and the next "Schritt 5" heading, the
+  # text must contain an agent-lock.sh claim ticket invocation (Session-
+  # Koordination [T000510]) so the Schritt 5 guard has something to read.
+  awk '/^### Schritt 4\.5:/{flag=1} /^### Schritt 5:/{flag=0} flag' "$PLAN_SKILL" \
+    | grep -Eq 'agent-lock\.sh[[:space:]]+claim[[:space:]]+ticket'
+}
+
+@test "T001386: dev-flow-plan Schritt 5 Pre-Commit-Guard checks lock-file existence before reading it" {
+  [ -f "$PLAN_SKILL" ]
+  # The branch-vs-claim check (guard check 3) must fail loudly with a
+  # dedicated message if the ticket-scoped lock file is missing, instead of
+  # silently comparing against an empty string from a failed jq lookup.
+  awk '/^### Schritt 5:/{flag=1} /^### Schritt 6:/{flag=0} flag' "$PLAN_SKILL" \
+    | grep -Eqi '\-f[[:space:]]+"?\$LOCK_FILE"?|kein[[:space:]]+ticket-scoped[[:space:]]+agent-lock'
+}

@@ -2809,6 +2809,7 @@ tasks:
 
         echo "Partial-deploy ENV={{.ENV}} ns=${_ws_ns} services=[{{.PARTIAL_SERVICES}}]"
         kustomize build "$overlay/" --load-restrictor=LoadRestrictionsNone \
+          | sed -E 's/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g' \
           | envsubst "$ENVSUBST_VARS" \
           | sed -E 's/\$\$([a-zA-Z0-9_]|\{)/$\1/g' \
           | kubectl --context "$ENV_CONTEXT" apply --server-side --force-conflicts \

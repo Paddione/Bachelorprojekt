@@ -160,6 +160,35 @@ re-quote…"*.
       # expected: PASS (awk gap-count is now 0 across all pipelines)
       ```
 
+## Correction: `workspace:partial-deploy` was also unfixed (found in code review)
+
+An independent code review (dispatched pre-merge via
+`superpowers:requesting-code-review`) found that the plan's premise —
+"PR #2429 already fixed the two `workspace:deploy` pipelines" — was
+incomplete: `workspace:partial-deploy` (`Taskfile.yml`, uses `kustomize build
+"$overlay/" | envsubst "$ENVSUBST_VARS"` with `$SMTP_PORT` in
+`ENVSUBST_VARS`) was never touched by PR #2429 and still lacked the
+re-quoting sed stage — unlike the five sites this plan targeted, this one is
+a live, actively used pipeline with the identical numeric-placeholder
+exposure. See `proposal.md` → "Correction" section for the full writeup.
+
+- [x] **Broaden the regression-guard test (RED).** The original scanner only
+      matched literal `kustomize build k3d/...` lines, so it could not have
+      caught this (`workspace:partial-deploy` uses `"$overlay/"`, a dynamic
+      path). Broadened the `awk` trigger to `/kustomize build/` and
+      rescoped `pending` to an unbroken run of `|`-continuation lines
+      immediately following (to avoid false positives on build-only
+      invocations like `fleet:platform` or the `workspace:validate`
+      dry-run checks, which never pipe into `envsubst` at all and would
+      otherwise get blamed for an unrelated, much later `envsubst` call
+      elsewhere in the file). Confirmed RED: gap-count reported 1 for the
+      unfixed `workspace:partial-deploy` pipeline.
+- [x] **Fix `workspace:partial-deploy` (GREEN).** Inserted the identical
+      `sed -E 's/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g'` stage
+      between its `kustomize build "$overlay/"` and `envsubst
+      "$ENVSUBST_VARS"` lines. Confirmed GREEN: all 12 tests in
+      `tests/spec/workspace-deploy.bats` pass, gap-count is 0.
+
 ## Final Verification
 
 - [x] Regenerate the test inventory (a `@test` was added) and sanity-check

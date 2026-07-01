@@ -46,4 +46,25 @@ pipeline being added later.
   manual remediation, since this is a live-cluster action outside the scope
   of a PR.
 
+## Correction (found during code review, before merge)
+
+The original investigation's premise that "PR #2429 fixed the two
+`workspace:deploy` pipelines" was incomplete: PR #2429 fixed `workspace:
+deploy` (dev + prod branches) but **never touched `workspace:
+partial-deploy`**, a separate task with its own `kustomize build "$overlay/"
+| envsubst "$ENVSUBST_VARS" | ...` pipeline whose `ENVSUBST_VARS` also
+includes `$SMTP_PORT`. Unlike the five sites this proposal originally
+targeted (none had a live incident, since their placeholders resolve to
+non-numeric strings), `workspace:partial-deploy` is a **live, actively used**
+pipeline (`task workspace:partial-deploy ENV=<brand> PARTIAL_SERVICES=
+pocket-id,...`) with the identical numeric-placeholder exposure as the
+already-fixed `workspace:deploy`. This was caught by an independent code
+review (dispatched via `superpowers:requesting-code-review`) before merge,
+which reproduced the bare `value: 587` output directly. The fix (identical
+one-line `sed` stage) was added to `workspace:partial-deploy` as well, and
+the regression-guard test's `kustomize build k3d/` literal-path match was
+broadened to a pipe-continuation-scoped scanner that also covers dynamic
+paths (`"$overlay/"`, `"$WEBSITE_OVERLAY"`) — see `tasks.md` for the
+before/after RED confirmation of this specific gap.
+
 _Ticket: T001411_

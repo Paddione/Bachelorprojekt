@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { exportProjectsFlat } from '../../../../lib/website-db';
+import { exportProjectsFlat } from '../../../../lib/project-export-db';
 
 export const GET: APIRoute = async ({ request, url , locals }) => {
   const session = await getSession(request.headers.get('cookie'));

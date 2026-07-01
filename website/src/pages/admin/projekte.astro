@@ -2,8 +2,8 @@
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import AdminPageHeader from '../../components/admin/ui/AdminPageHeader.svelte';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
-import { listProjects, listAllCustomers, listAdminUsers } from '../../lib/website-db';
-import type { Project, Customer } from '../../lib/website-db';
+import type { Customer } from '../../lib/website-db';
+import { listProjects, listAllCustomers, listAdminUsers, type Project } from '../../lib/projects-db';
 import { listTemplates } from '../../lib/folder-templates-db';
 import ProjectCreateForm from '../../components/admin/ProjectCreateForm.astro';
 import { logger } from '../../lib/logger';

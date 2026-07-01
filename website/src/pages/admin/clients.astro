@@ -5,8 +5,8 @@ import AdminTabs from '../../components/admin/ui/AdminTabs.svelte';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { listUsers } from '../../lib/identity';
 import type { KcUser } from '../../lib/identity';
-import { listAllCustomers, listPendingEnrollments } from '../../lib/website-db';
-import type { PendingEnrollment } from '../../lib/website-db';
+import { listPendingEnrollments, type PendingEnrollment } from '../../lib/website-db';
+import { listAllCustomers } from '../../lib/projects-db';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));

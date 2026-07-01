@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
-import { getProjectAttachment } from '../../../../../lib/website-db';
+import { getProjectAttachment } from '../../../../../lib/projects-db';
 import { downloadFile } from '../../../../../lib/nextcloud-files';
 
 export const GET: APIRoute = async ({ request, url , locals }) => {

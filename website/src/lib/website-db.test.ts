@@ -305,13 +305,13 @@ import {
   listTimeline, pool,
   upsertCustomer, listPendingEnrollments, declineEnrollment, getCustomerFullById,
   getCustomerByKeycloakId, setCustomerNumber, setAdminNumber, setIsAdmin,
-  getCustomerByEmail, listAllCustomers, listAdminUsers,
   assignMeeting,
   insertBugTicket, resolveBugTicket, archiveBugTicket,
   appendBugTicketComment, reopenBugTicket,
   listClientNotes, createClientNote, deleteClientNote,
   insertDsgvoRequest,
 } from './website-db';
+import { getCustomerByEmail, listAllCustomers, listAdminUsers } from './projects-db';
 
 const dbAvailable = !!(process.env.DATABASE_URL || process.env.SESSIONS_DATABASE_URL);
 

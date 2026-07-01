@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
-import { deleteProjectAttachmentRecord } from '../../../../../lib/website-db';
+import { deleteProjectAttachmentRecord } from '../../../../../lib/projects-db';
 import { deleteFile } from '../../../../../lib/nextcloud-files';
 import { siteRedirect } from '../../../../../lib/redirect';
 

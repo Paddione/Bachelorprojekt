@@ -2,7 +2,9 @@
 import PortalLayout from '../layouts/PortalLayout.astro';
 import { getSession, getLoginUrl } from '../lib/auth';
 import { getCustomerByEmail, listRoomsWithInboxData } from '../lib/messaging-db';
-import { getMeetingsForClient, listProjectsForCustomer, upsertCustomer } from '../lib/website-db';
+import { getMeetingsForClient } from '../lib/meetings-db';
+import { upsertCustomer } from '../lib/website-db';
+import { listProjectsForCustomer } from '../lib/projects-db';
 import { getClientBookings } from '../lib/caldav';
 import { listFiles, getClientFolderPath, PENDING_SIGNATURES_DIR } from '../lib/nextcloud-files';
 import { countPendingAssignmentsForCustomer } from '../lib/documents-db';

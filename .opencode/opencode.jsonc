@@ -54,14 +54,17 @@
   "provider": {
     "lmstudio": {
       "options": {
-        "baseURL": "http://192.168.100.10:1234/v1",
+        "baseURL": "http://localhost:1234/v1",
         "apiKey": "lmstudio"
       },
       "models": {
         "google/gemma-4-12b-qat": {
           "id": "google/gemma-4-12b-qat",
           "name": "Gemma 4 12B QAT",
-          "limit": { "context": 131072, "output": 8192 }
+          "limit": { "context": 131072, "output": 8192 },
+          "options": {
+            "stop": ["<end_of_turn>"]
+          }
         },
         "text-embedding-bge-m3": {
           "id": "text-embedding-bge-m3",

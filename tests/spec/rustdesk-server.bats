@@ -168,6 +168,27 @@ setup() {
   grep -qE 'RUSTDESK_MSI_URL:.*rustdesk.*\.msi' "$WORKFLOW"
 }
 
+# ── hbbs subPath Secret-Rotation runbook (T001382) ────────────────────────
+# SSOT: openspec/specs/rustdesk-server.md, REQ-RUSTDESK-RELAY-006.
+# subPath-mounted Secret files do not live-update in a running pod (documented
+# kubelet limitation); rotating rustdesk-secrets requires a manual rollout
+# restart. These tests guard the runbook's premise (hbbs.yaml still uses
+# subPath) and the runbook's presence in the SSOT spec.
+
+@test "rustdesk: hbbs keypair mount still uses subPath (runbook premise guard)" {
+  command -v kustomize >/dev/null || skip "kustomize not installed"
+  out="$(kustomize build "$STACK")"
+  echo "$out" | grep -qE 'subPath:[[:space:]]*id_ed25519$'
+  echo "$out" | grep -qE 'subPath:[[:space:]]*id_ed25519\.pub$'
+}
+
+@test "rustdesk: Secret-Rotation-Runbook documents manual rollout restart for hbbs" {
+  spec="${REPO_ROOT}/openspec/specs/rustdesk-server.md"
+  [ -f "$spec" ]
+  grep -q 'REQ-RUSTDESK-RELAY-006' "$spec"
+  grep -q 'rollout restart deployment/hbbs' "$spec"
+}
+
 @test "rustdesk-client: WiX wrapper source is well-formed XML" {
   command -v python3 >/dev/null || skip "python3 not installed"
   python3 -c "import xml.dom.minidom as m; m.parse('${REPO_ROOT}/rustdesk-installer/Package.wxs')"

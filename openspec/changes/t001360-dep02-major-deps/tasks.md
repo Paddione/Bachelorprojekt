@@ -35,8 +35,9 @@ openspec/changes/t001360-dep02-major-deps/
   - changelog / breaking-change summary
 - File the audit results as `openspec/changes/t001360-dep02-major-deps/specs/audit.md`.
 
-### T‑2: Plan the update order and document each step
+### T‑2: Plan the update order and document each step ✅
 
+- [x] Update order documented at `specs/update-plan.md` (single-commit root npm bump; conflict-free).
 - Based on the audit, determine the dependency-update sequence that minimises conflict risk (e.g. bottom-up: transitive deps first, then direct deps; or by domain alignment).
 - For each upgrade, decide whether a dedicated branch or in‑plan step is appropriate.
 - Write the plan into `openspec/changes/t001360-dep02-major-deps/specs/update-plan.md`.

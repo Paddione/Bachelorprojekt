@@ -100,3 +100,41 @@ _workspace_partial_deploy_block() {
   smtp_port_block=$(printf '%s\n' "$rendered" | grep -A1 'name: SMTP_PORT')
   [[ "$smtp_port_block" == *'value: "587"'* ]]
 }
+
+# T001411 (hardening follow-up): the same latent bug class fixed above for
+# workspace:deploy was still present in five other `kustomize build
+# k3d/{coturn,office,rustdesk}-stack | envsubst` call sites (workspace:
+# coturn-setup, workspace:office:deploy, and the three repeated inside
+# fleet:shared-services) AND in workspace:partial-deploy (which uses
+# `kustomize build "$overlay/"`, not a literal k3d/ path — an oversight in
+# the original T001411 investigation, which had assumed workspace:
+# partial-deploy was already covered by PR #2429; it wasn't). This
+# structural scanner enumerates every `kustomize build ...` pipe chain in
+# Taskfile.yml — literal k3d/ paths and dynamic ($overlay/, $WEBSITE_OVERLAY,
+# ...) paths alike — and asserts each one that flows into an envsubst (via an
+# unbroken run of `|`-continuation lines immediately following the
+# `kustomize build` line) has the re-quoting sed stage first, so a future
+# unhardened pipeline (of either shape) can't silently reintroduce the gap.
+# Scoping "pending" to an unbroken pipe-continuation run (rather than "the
+# next envsubst anywhere later in the file") is required to avoid false
+# positives on build-only invocations that never pipe into envsubst at all —
+# e.g. the placeholder-free `fleet:platform` build (piped straight to
+# `kubectl apply`) or the `kustomize build ... >/dev/null && echo` dry-run
+# sanity checks in `workspace:validate` — which would otherwise get
+# spuriously blamed for an unrelated, much later envsubst call.
+@test "every kustomize build | envsubst pipeline in Taskfile.yml re-quotes stripped \${VAR} placeholders (T001411)" {
+  run bash -c '
+    awk '\''
+      /kustomize build/ { pending=1; sed_seen=0; next }
+      pending && /^[[:space:]]*\|/ {
+        if (index($0, "s/: \\$\\{([a-zA-Z0-9_]+)\\}[[:space:]]*$/: \"${\\1}\"/g")) sed_seen=1
+        if ($0 ~ /envsubst/) { if (!sed_seen) bad++; pending=0 }
+        next
+      }
+      pending { pending=0 }
+      END { print bad+0 }
+    '\'' "'"$TASKFILE"'"
+  '
+  [ "$status" -eq 0 ]
+  [ "$output" -eq 0 ]
+}

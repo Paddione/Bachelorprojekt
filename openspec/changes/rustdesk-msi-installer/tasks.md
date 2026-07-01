@@ -95,7 +95,7 @@ These are human bootstrap steps outside the automatable plan; record them in the
 **Interfaces:**
 - Produces: Deployment/Service `downloads` (Service port `80` → container `8787`); Deployment/Service `oauth2-proxy-downloads` (Service port `4180`). Both consumed by the ingress (Task 3) and OIDC client (Task 2).
 
-- [ ] **Step 1: Create `k3d/downloads.yaml`** — clone of `k3d/docs.yaml` with `docs` → `downloads` and the image swapped to the downloads-content image:
+- [x] **Step 1: Create `k3d/downloads.yaml`** — clone of `k3d/docs.yaml` with `docs` → `downloads` and the image swapped to the downloads-content image:
 
 ```yaml
 apiVersion: apps/v1
@@ -166,9 +166,9 @@ spec:
       targetPort: 8787
 ```
 
-- [ ] **Step 2: Create `k3d/oauth2-proxy-downloads.yaml`** — clone of `k3d/oauth2-proxy-docs.yaml` with every `docs` token replaced by `downloads`: `--client-id=downloads`, `--client-secret=$(POCKET_ID_DOWNLOADS_SECRET)`, `--redirect-url=http://downloads.localhost/oauth2/callback`, `--upstream=http://downloads:80`, `--cookie-name=_oauth2_proxy_downloads`, `--oidc-extra-audience=downloads`, and the `POCKET_ID_DOWNLOADS_SECRET` env `secretKeyRef` (name `workspace-secrets`, key `POCKET_ID_DOWNLOADS_SECRET`). Keep the `write-cookie-secret` initContainer (reads `OAUTH2_PROXY_COOKIE_SECRET` from `workspace-secrets`) and the pinned `oauth2-proxy` / `busybox` image digests unchanged. Deployment + Service `oauth2-proxy-downloads` on port `4180`.
+- [x] **Step 2: Create `k3d/oauth2-proxy-downloads.yaml`** — clone of `k3d/oauth2-proxy-docs.yaml` with every `docs` token replaced by `downloads`: `--client-id=downloads`, `--client-secret=$(POCKET_ID_DOWNLOADS_SECRET)`, `--redirect-url=http://downloads.localhost/oauth2/callback`, `--upstream=http://downloads:80`, `--cookie-name=_oauth2_proxy_downloads`, `--oidc-extra-audience=downloads`, and the `POCKET_ID_DOWNLOADS_SECRET` env `secretKeyRef` (name `workspace-secrets`, key `POCKET_ID_DOWNLOADS_SECRET`). Keep the `write-cookie-secret` initContainer (reads `OAUTH2_PROXY_COOKIE_SECRET` from `workspace-secrets`) and the pinned `oauth2-proxy` / `busybox` image digests unchanged. Deployment + Service `oauth2-proxy-downloads` on port `4180`.
 
-- [ ] **Step 3: Register both manifests in `k3d/kustomization.yaml`** — add under `resources:` next to the docs entry:
+- [x] **Step 3: Register both manifests in `k3d/kustomization.yaml`** — add under `resources:` next to the docs entry:
 
 ```yaml
   # Dokumentation
@@ -178,12 +178,12 @@ spec:
   - oauth2-proxy-downloads.yaml
 ```
 
-- [ ] **Step 4: Verify the base builds and includes the new resources**
+- [x] **Step 4: Verify the base builds and includes the new resources**
 
 Run: `kubectl kustomize k3d/ > /dev/null && kubectl kustomize k3d/ | grep -Ec 'name: downloads$|name: oauth2-proxy-downloads$'`
 Expected: PASS — build succeeds and the count is `4` (two Deployments + two Services).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add k3d/downloads.yaml k3d/oauth2-proxy-downloads.yaml k3d/kustomization.yaml
@@ -202,7 +202,7 @@ git commit -m "feat(infra): add SSO-gated downloads service manifests [T001378]"
 - Consumes: `oauth2-proxy-downloads` expects `workspace-secrets/POCKET_ID_DOWNLOADS_SECRET` (Task 1).
 - Produces: the `downloads` OIDC client registered in Pocket ID with callback `${SCHEME}://downloads.${SUFFIX}/oauth2/callback`.
 
-- [ ] **Step 1: Add the schema entry** — insert after the `POCKET_ID_DOCS_SECRET` block in `environments/schema.yaml`, mirroring it exactly:
+- [x] **Step 1: Add the schema entry** — insert after the `POCKET_ID_DOCS_SECRET` block in `environments/schema.yaml`, mirroring it exactly:
 
 ```yaml
   - name: POCKET_ID_DOWNLOADS_SECRET
@@ -212,20 +212,20 @@ git commit -m "feat(infra): add SSO-gated downloads service manifests [T001378]"
     description: "OIDC client secret for the `downloads` Pocket ID client (oauth2-proxy-downloads)."
 ```
 
-- [ ] **Step 2: Add the seed env** — in `k3d/pocket-id-client-seed.yaml`, add next to `SECRET_docs`:
+- [x] **Step 2: Add the seed env** — in `k3d/pocket-id-client-seed.yaml`, add next to `SECRET_docs`:
 
 ```yaml
             - name: SECRET_downloads
               valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_DOWNLOADS_SECRET, optional: true } }
 ```
 
-- [ ] **Step 3: Add the client row** — in the `ROWS` heredoc of `k3d/pocket-id-client-seed.yaml`, add directly under the `docs|SECRET_docs|...` line (matching the verified row format `id|secretEnv|callbackUrl`):
+- [x] **Step 3: Add the client row** — in the `ROWS` heredoc of `k3d/pocket-id-client-seed.yaml`, add directly under the `docs|SECRET_docs|...` line (matching the verified row format `id|secretEnv|callbackUrl`):
 
 ```
               downloads|SECRET_downloads|${SCHEME}://downloads.${SUFFIX}/oauth2/callback
 ```
 
-- [ ] **Step 4: Verify schema YAML parses and both files carry the new key**
+- [x] **Step 4: Verify schema YAML parses and both files carry the new key**
 
 Run:
 ```bash
@@ -235,7 +235,7 @@ grep -c 'downloads|SECRET_downloads' k3d/pocket-id-client-seed.yaml
 ```
 Expected: PASS — `schema ok`, the secret key appears in both files, and the row grep returns `1`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add environments/schema.yaml k3d/pocket-id-client-seed.yaml
@@ -254,7 +254,7 @@ git commit -m "feat(infra): register downloads Pocket ID client + secret [T00137
 - Consumes: Service `oauth2-proxy-downloads:4180` (Task 1).
 - Produces: dev host route `downloads.localhost`; ConfigMap key `DOWNLOADS_DOMAIN`.
 
-- [ ] **Step 1: Add the dev host route** — in `k3d/ingress.yaml`, inside the `workspace-ingress-internal` Ingress (the oauth2-proxy-protected block, alongside `docs.localhost`), add:
+- [x] **Step 1: Add the dev host route** — in `k3d/ingress.yaml`, inside the `workspace-ingress-internal` Ingress (the oauth2-proxy-protected block, alongside `docs.localhost`), add:
 
 ```yaml
     - host: downloads.localhost
@@ -269,23 +269,23 @@ git commit -m "feat(infra): register downloads Pocket ID client + secret [T00137
                   number: 4180
 ```
 
-- [ ] **Step 2: Add the domain key** — in `k3d/configmap-domains.yaml`, add next to `DOCS_DOMAIN`:
+- [x] **Step 2: Add the domain key** — in `k3d/configmap-domains.yaml`, add next to `DOCS_DOMAIN`:
 
 ```yaml
   DOWNLOADS_DOMAIN: "downloads.localhost"
 ```
 
-- [ ] **Step 3: Verify the base still builds and the route resolves the proxy backend**
+- [x] **Step 3: Verify the base still builds and the route resolves the proxy backend**
 
 Run: `kubectl kustomize k3d/ | grep -A6 'host: downloads.localhost' | grep -q 'oauth2-proxy-downloads' && echo route-ok`
 Expected: PASS — prints `route-ok`.
 
-- [ ] **Step 4: Confirm S3 compliance (no brand-domain literal added)**
+- [x] **Step 4: Confirm S3 compliance (no brand-domain literal added)**
 
 Run: `grep -nE 'mentolder\.de|korczewski\.de' k3d/ingress.yaml k3d/configmap-domains.yaml | grep -v '^\s*#' || echo s3-clean`
 Expected: PASS — prints `s3-clean` (no non-comment brand-domain literal).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add k3d/ingress.yaml k3d/configmap-domains.yaml
@@ -308,7 +308,7 @@ git commit -m "feat(infra): add downloads.localhost ingress route + domain key [
 
 Without this task, `downloads.mentolder.de` would be unreachable on the real fleet cluster (only local k3d/dev works) — silently undermining REQ-RUSTDESK-CLIENT-003, since Patrick/gekko need to fetch the MSI from a real Windows machine over the real internet. `prod/` has no per-brand sub-overlay for `docs` (no `prod-mentolder/`/`prod-fleet/mentolder/` override touches it) — only this shared `prod/` layer needs new files.
 
-- [ ] **Step 1: Create `prod/patch-oauth2-proxy-downloads.yaml`** — clone of `prod/patch-oauth2-proxy-docs.yaml` with every `docs` token replaced by `downloads`:
+- [x] **Step 1: Create `prod/patch-oauth2-proxy-downloads.yaml`** — clone of `prod/patch-oauth2-proxy-docs.yaml` with every `docs` token replaced by `downloads`:
 
 ```yaml
 apiVersion: apps/v1
@@ -354,20 +354,20 @@ spec:
                   key: POCKET_ID_DOWNLOADS_SECRET
 ```
 
-- [ ] **Step 2: Register the patch in `prod/kustomization.yaml`** — add next to the existing `patch-oauth2-proxy-docs.yaml` entry under `patches:`:
+- [x] **Step 2: Register the patch in `prod/kustomization.yaml`** — add next to the existing `patch-oauth2-proxy-docs.yaml` entry under `patches:`:
 
 ```yaml
   - path: patch-oauth2-proxy-docs.yaml
   - path: patch-oauth2-proxy-downloads.yaml
 ```
 
-- [ ] **Step 3: Add the prod domain override** — in `prod/configmap-domains.yaml`, add next to `DOCS_DOMAIN`:
+- [x] **Step 3: Add the prod domain override** — in `prod/configmap-domains.yaml`, add next to `DOCS_DOMAIN`:
 
 ```yaml
   DOWNLOADS_DOMAIN: "downloads.${PROD_DOMAIN}"
 ```
 
-- [ ] **Step 4: Add the prod ingress route** — in `prod/ingress.yaml`, add a new dedicated Ingress block directly after the existing `workspace-ingress-docs` block (same annotations, same TLS-secret pattern, own `tls.hosts` list — mirrors that block exactly, not a shared list append):
+- [x] **Step 4: Add the prod ingress route** — in `prod/ingress.yaml`, add a new dedicated Ingress block directly after the existing `workspace-ingress-docs` block (same annotations, same TLS-secret pattern, own `tls.hosts` list — mirrors that block exactly, not a shared list append):
 
 ```yaml
 ---
@@ -396,7 +396,7 @@ spec:
                   number: 4180
 ```
 
-- [ ] **Step 5: Verify the prod overlay builds and no brand-domain literal was introduced (S3)**
+- [x] **Step 5: Verify the prod overlay builds and no brand-domain literal was introduced (S3)**
 
 Run:
 ```bash
@@ -406,7 +406,7 @@ grep -nE 'mentolder\.de|korczewski\.de' prod/patch-oauth2-proxy-downloads.yaml p
 ```
 Expected: PASS — prints `prod-build-ok`, both grep counts are `>= 1`, and prints `s3-clean` (no non-comment brand-domain literal).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add prod/patch-oauth2-proxy-downloads.yaml prod/configmap-domains.yaml prod/ingress.yaml prod/kustomization.yaml
@@ -424,9 +424,9 @@ git commit -m "feat(infra): wire downloads service into the prod overlay for fle
 **Interfaces:**
 - Produces: a `wix build` target emitting `rustdesk-workspace-installer.msi` that silently installs the pinned official RustDesk MSI. No provisioning yet (added in Task 7) — this is the RED baseline for the Task 6 smoke test.
 
-- [ ] **Step 1: Verify WiX v4/v5 authoring syntax against the official docs** (intel.json risks[] — do NOT invent element/attribute spelling). Use the context7 MCP (`resolve-library-id` for "WiX Toolset", then `query-docs`) or WebFetch against the official WiX docs (`https://docs.firegiant.com/wix/` / `https://wixtoolset.org/docs/`). Confirm the exact spelling for: a `Package` authored as an MSI; carrying the official MSI as an embedded payload `File`/`Binary`; a deferred `CustomAction` (`Execute="deferred"`, `Impersonate="no"`, `ExeCommand` / `msiexec` invocation); sequencing it via `Custom` in `InstallExecuteSequence`; and passing build-time values with `wix build -d Name=Value` → `$(Name)`. Record the confirmed element/attribute names as inline comments in `Package.wxs`.
+- [x] **Step 1: Verify WiX v4/v5 authoring syntax against the official docs** (intel.json risks[] — do NOT invent element/attribute spelling). Use the context7 MCP (`resolve-library-id` for "WiX Toolset", then `query-docs`) or WebFetch against the official WiX docs (`https://docs.firegiant.com/wix/` / `https://wixtoolset.org/docs/`). Confirm the exact spelling for: a `Package` authored as an MSI; carrying the official MSI as an embedded payload `File`/`Binary`; a deferred `CustomAction` (`Execute="deferred"`, `Impersonate="no"`, `ExeCommand` / `msiexec` invocation); sequencing it via `Custom` in `InstallExecuteSequence`; and passing build-time values with `wix build -d Name=Value` → `$(Name)`. Record the confirmed element/attribute names as inline comments in `Package.wxs`.
 
-- [ ] **Step 2: Author `rustdesk-installer/Package.wxs`** using the verified syntax. Structure (finalize spelling against Step 1 — the skeleton below is the intended shape, not verbatim-final XML):
+- [x] **Step 2: Author `rustdesk-installer/Package.wxs`** using the verified syntax. Structure (finalize spelling against Step 1 — the skeleton below is the intended shape, not verbatim-final XML):
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -457,14 +457,14 @@ git commit -m "feat(infra): wire downloads service into the prod overlay for fle
 </Wix>
 ```
 
-- [ ] **Step 3: Author `rustdesk-installer/rustdesk-installer.wixproj`** (or document the equivalent `wix build rustdesk-installer/Package.wxs -o rustdesk-workspace-installer.msi` invocation the CI will call). Keep it minimal — no extensions beyond what Step 1 confirms are needed for the deferred `ExeCommand` custom action.
+- [x] **Step 3: Author `rustdesk-installer/rustdesk-installer.wixproj`** (or document the equivalent `wix build rustdesk-installer/Package.wxs -o rustdesk-workspace-installer.msi` invocation the CI will call). Keep it minimal — no extensions beyond what Step 1 confirms are needed for the deferred `ExeCommand` custom action.
 
-- [ ] **Step 4: Static-validate the WiX source parses as XML** (the actual `wix build` runs only on `windows-latest` in Task 5):
+- [x] **Step 4: Static-validate the WiX source parses as XML** (the actual `wix build` runs only on `windows-latest` in Task 5):
 
 Run: `python3 -c "import xml.dom.minidom as m; m.parse('rustdesk-installer/Package.wxs'); print('wxs xml ok')"`
 Expected: PASS — prints `wxs xml ok`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add rustdesk-installer/Package.wxs rustdesk-installer/rustdesk-installer.wixproj
@@ -482,7 +482,7 @@ git commit -m "feat(installer): WiX wrapper that silent-installs official RustDe
 - Consumes: the Task 5 `wix build` target; repo secrets `RUSTDESK_CLIENT_CONFIG_STRING` / `RUSTDESK_UNATTENDED_PASSWORD` (config-string used in Task 7; here only the build runs).
 - Produces: a manual `workflow_dispatch` pipeline whose smoke step asserts the installed client's config targets `EXPECTED_ID_SERVER`.
 
-- [ ] **Step 1: Author the workflow** — build + smoke only (no provisioning custom action wired yet, so the smoke test is expected to fail):
+- [x] **Step 1: Author the workflow** — build + smoke only (no provisioning custom action wired yet, so the smoke test is expected to fail):
 
 ```yaml
 name: Build RustDesk Installer
@@ -549,14 +549,14 @@ jobs:
           Write-Host "smoke ok: config targets $env:EXPECTED_ID_SERVER"
 ```
 
-- [ ] **Step 2: Pin the official MSI** — determine the current stable RustDesk Windows MSI from `github.com/rustdesk/rustdesk/releases`, set `RUSTDESK_VERSION`, the exact `RUSTDESK_MSI_URL`, and compute `RUSTDESK_MSI_SHA256` (`Get-FileHash -Algorithm SHA256`), then replace the three `PIN-IN-STEP-2` values.
+- [x] **Step 2: Pin the official MSI** — determine the current stable RustDesk Windows MSI from `github.com/rustdesk/rustdesk/releases`, set `RUSTDESK_VERSION`, the exact `RUSTDESK_MSI_URL`, and compute `RUSTDESK_MSI_SHA256` (`Get-FileHash -Algorithm SHA256`), then replace the three `PIN-IN-STEP-2` values.
 
-- [ ] **Step 3: Run the workflow and observe RED**
+- [x] **Step 3: Run the workflow and observe RED**
 
 Run: `gh workflow run build-rustdesk-installer.yml && gh run watch`
 Expected: FAIL — the `Smoke test` step fails because no provisioning custom action has been wired yet, so the client config never targets `rustdesk.mentolder.de` (config TOML missing or lacking the host). This is the intended red state.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add .github/workflows/build-rustdesk-installer.yml
@@ -576,7 +576,7 @@ git commit -m "ci: manual build+smoke workflow for RustDesk installer (RED) [T00
 - Consumes: `RUSTDESK_CLIENT_CONFIG_STRING` / `RUSTDESK_UNATTENDED_PASSWORD` (baked into `provision.ps1` at build time); verified CLI flags `rustdesk.exe --config <config-string>` / `rustdesk.exe --password <password>`.
 - Produces: the deferred custom action that makes the Task 6 smoke test pass (GREEN).
 
-- [ ] **Step 1: Create `rustdesk-installer/provision.ps1`** — polls the service, then applies config + password. Placeholders are substituted by CI at build time (no real secret is committed):
+- [x] **Step 1: Create `rustdesk-installer/provision.ps1`** — polls the service, then applies config + password. Placeholders are substituted by CI at build time (no real secret is committed):
 
 ```powershell
 # provision.ps1 — runs as a deferred custom action after the official MSI is
@@ -601,7 +601,7 @@ if (-not $svc -or $svc.Status -ne 'Running') { Write-Error 'RustDesk service not
 exit $LASTEXITCODE
 ```
 
-- [ ] **Step 2: Wire the deferred custom action in `rustdesk-installer/Package.wxs`** (finalize spelling against Task 5 Step 1) — embed `provision.ps1` as a payload and run it after the official-MSI install:
+- [x] **Step 2: Wire the deferred custom action in `rustdesk-installer/Package.wxs`** (finalize spelling against Task 5 Step 1) — embed `provision.ps1` as a payload and run it after the official-MSI install:
 
 ```xml
     <Binary Id="ProvisionScript" SourceFile="provision.ps1" />
@@ -613,7 +613,7 @@ exit $LASTEXITCODE
     <!-- <Custom Action="ProvisionRustDesk" After="InstallOfficialRustDesk" Condition="NOT Installed" /> -->
 ```
 
-- [ ] **Step 3: Add the build-time secret substitution step to the workflow** — insert before `Build wrapper MSI`:
+- [x] **Step 3: Add the build-time secret substitution step to the workflow** — insert before `Build wrapper MSI`:
 
 ```yaml
       - name: Bake secrets into provision.ps1
@@ -628,12 +628,12 @@ exit $LASTEXITCODE
           Set-Content -Path rustdesk-installer/provision.ps1 -Value $p -NoNewline
 ```
 
-- [ ] **Step 4: Run the workflow and observe GREEN**
+- [x] **Step 4: Run the workflow and observe GREEN**
 
 Run: `gh workflow run build-rustdesk-installer.yml && gh run watch`
 Expected: PASS — the `Smoke test` step now finds the config TOML targeting `rustdesk.mentolder.de`. The password is never read back or logged.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add rustdesk-installer/provision.ps1 rustdesk-installer/Package.wxs .github/workflows/build-rustdesk-installer.yml
@@ -653,7 +653,7 @@ git commit -m "feat(installer): auto-provision relay config + unattended passwor
 - Produces: `ghcr.io/paddione/downloads-content` image with the MSI in `/public`; a rolled-out `deployment/downloads -n workspace`. The MSI is never uploaded as a workflow artifact (REQ-RUSTDESK-CLIENT-003).
 - **Package-visibility gate (REQ-RUSTDESK-CLIENT-003 backstop):** `ghcr.io/paddione/downloads-content` MUST stay `private` — a public package lets anyone `docker pull` it and extract the baked unattended password straight from the image layers, bypassing the Pocket ID SSO gate entirely (the exact bypass REQ-RUSTDESK-CLIENT-003 forbids for GitHub Releases/Artifacts, just via a different channel). **Verified against official GitHub REST/GraphQL docs this session: there is no API endpoint to set/PATCH a package's visibility** — `GET /user/packages/{package_type}/{package_name}` exposes `visibility` as a **read-only** response field; the only documented way to change it is the web UI's package Settings → "Danger Zone" → "Change visibility" (`docs.github.com/en/packages/learn-github-packages/configuring-a-packages-access-control-and-visibility`). GitHub's docs state a personal-account-scoped package defaults to **private** on first publish — but a package auto-linked to its source repository (e.g. via an OCI `org.opencontainers.image.source` label, or any Actions-published package connected to the repo) can instead **inherit that repository's visibility**, which is **public** here. Step 4 is therefore a **read + hard-fail verification on every run**, not a set-via-API step; if it ever fails, the fix is the one-time manual UI step in Prerequisite 5.
 
-- [ ] **Step 1: Create `scripts/downloads.Dockerfile`** — clone of `scripts/docs.Dockerfile`, baking the MSI into `/public`. Deliberately **no** `org.opencontainers.image.source` (or other repo-linking) `LABEL` — omitting it avoids one known trigger for a package auto-linking to this public repo and inheriting its visibility, though Step 4 is the actual enforced backstop regardless:
+- [x] **Step 1: Create `scripts/downloads.Dockerfile`** — clone of `scripts/docs.Dockerfile`, baking the MSI into `/public`. Deliberately **no** `org.opencontainers.image.source` (or other repo-linking) `LABEL` — omitting it avoids one known trigger for a package auto-linking to this public repo and inheriting its visibility, though Step 4 is the actual enforced backstop regardless:
 
 ```dockerfile
 FROM joseluisq/static-web-server:2.36-alpine
@@ -667,9 +667,9 @@ ENV SERVER_PORT=8787
 ENV SERVER_CACHE_CONTROL_HEADERS=false
 ```
 
-- [ ] **Step 2: Confirm the linux-image build+push mechanism for `windows-latest`** — the MSI must NOT leave the runner as a workflow artifact, so the pack+push runs on the same job. Verify which mechanism works on the current hosted runner image and pick one: (a) a Linux-engine `docker build -f scripts/downloads.Dockerfile` if the runner's Docker supports linux containers, (b) `docker buildx` with QEMU for `--platform linux/amd64`, or (c) `oras` to push the static-server layers. Record the chosen mechanism as a workflow comment.
+- [x] **Step 2: Confirm the linux-image build+push mechanism for `windows-latest`** — the MSI must NOT leave the runner as a workflow artifact, so the pack+push runs on the same job. Verify which mechanism works on the current hosted runner image and pick one: (a) a Linux-engine `docker build -f scripts/downloads.Dockerfile` if the runner's Docker supports linux containers, (b) `docker buildx` with QEMU for `--platform linux/amd64`, or (c) `oras` to push the static-server layers. Record the chosen mechanism as a workflow comment.
 
-- [ ] **Step 3: Add the pack + push + rollout steps to the workflow** — appended after the smoke test, using the confirmed mechanism from Step 2 and the `FLEET_KUBECONFIG` deploy pattern from `build-docs.yml`:
+- [x] **Step 3: Add the pack + push + rollout steps to the workflow** — appended after the smoke test, using the confirmed mechanism from Step 2 and the `FLEET_KUBECONFIG` deploy pattern from `build-docs.yml`:
 
 ```yaml
       - name: Log in to GHCR
@@ -702,7 +702,7 @@ ENV SERVER_CACHE_CONTROL_HEADERS=false
           ./kubectl.exe rollout status  deployment/downloads -n workspace --timeout=120s
 ```
 
-- [ ] **Step 4: Verify `downloads-content` package visibility is `private` (every run) — insert between "Build & push downloads image" and "Roll out downloads"** in the workflow. This is a **read-only check that hard-fails the run**, not a set-via-API step (none exists — see Interfaces above):
+- [x] **Step 4: Verify `downloads-content` package visibility is `private` (every run) — insert between "Build & push downloads image" and "Roll out downloads"** in the workflow. This is a **read-only check that hard-fails the run**, not a set-via-API step (none exists — see Interfaces above):
 
 ```yaml
       - name: Verify downloads-content package is private
@@ -722,7 +722,7 @@ ENV SERVER_CACHE_CONTROL_HEADERS=false
 
 `gh` is preinstalled on GitHub-hosted runners, including `windows-latest`; `shell: bash` (Git Bash, also preinstalled) keeps the `gh api --jq` syntax identical to a Linux runner. `GH_PAT` already authenticates `docker/login-action` above (at least `write:packages`); **unconfirmed this session whether `write:packages` alone also grants the `read:packages` scope this GET call needs** — if this step fails with an HTTP 403 (as opposed to a `visibility != private` failure), add the `read:packages` scope to `GH_PAT` in GitHub Settings → Developer settings → Personal access tokens.
 
-- [ ] **Step 5: Verify the Dockerfile is reachable (S4) and the workflow references both new steps**
+- [x] **Step 5: Verify the Dockerfile is reachable (S4) and the workflow references both new steps**
 
 Run:
 ```bash
@@ -731,12 +731,12 @@ grep -q 'Verify downloads-content package is private' .github/workflows/build-ru
 ```
 Expected: PASS — prints `dockerfile-referenced` and `visibility-gate-referenced`.
 
-- [ ] **Step 6: Run the workflow end-to-end and confirm the download is SSO-gated**
+- [x] **Step 6: Run the workflow end-to-end and confirm the download is SSO-gated**
 
 Run: `gh workflow run build-rustdesk-installer.yml && gh run watch`; then in a browser open `https://downloads.mentolder.de/rustdesk-workspace-installer.msi` while logged out.
 Expected: PASS — the run is green (including the Step 4 visibility gate), and the unauthenticated request is redirected to Pocket ID login (REQ-RUSTDESK-CLIENT-003), while an authenticated session downloads the MSI.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/downloads.Dockerfile .github/workflows/build-rustdesk-installer.yml
@@ -749,17 +749,17 @@ git commit -m "ci: pack MSI into downloads image + roll out downloads service [T
 
 **Files:** none (verification only).
 
-- [ ] **Step 1: Validate manifests** — build the base + prod overlay and lint kustomize output (this exercises both the Task 1 `k3d/` and the Task 4 `prod/` wiring):
+- [x] **Step 1: Validate manifests** — build the base + prod overlay and lint kustomize output (this exercises both the Task 1 `k3d/` and the Task 4 `prod/` wiring):
 
 Run: `task workspace:validate`
 Expected: PASS — kustomize builds cleanly with the new `downloads` resources in both the `k3d/` base and the `prod/` overlay.
 
-- [ ] **Step 2: Regenerate test inventory** (a new workflow file was added; keep the generated inventory in sync):
+- [x] **Step 2: Regenerate test inventory** (a new workflow file was added; keep the generated inventory in sync):
 
 Run: `task test:inventory`
 Expected: PASS — `website/src/data/test-inventory.json` is regenerated (commit it if it changed).
 
-- [ ] **Step 3: Run the three mandatory CI gates**
+- [x] **Step 3: Run the three mandatory CI gates**
 
 ```bash
 task test:changed
@@ -768,12 +768,12 @@ task freshness:check
 ```
 Expected: PASS — targeted tests green; freshness artifacts regenerated; `quality:check` (S1–S4 ratchet) + baseline key-count assertion pass.
 
-- [ ] **Step 4: Validate the OpenSpec change**
+- [x] **Step 4: Validate the OpenSpec change**
 
 Run: `bash scripts/openspec.sh validate`
 Expected: PASS — `openspec validate: OK`.
 
-- [ ] **Step 5: Commit any regenerated artifacts**
+- [x] **Step 5: Commit any regenerated artifacts**
 
 ```bash
 git add -A

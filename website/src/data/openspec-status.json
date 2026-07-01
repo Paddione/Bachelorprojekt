@@ -587,6 +587,12 @@
       "status": "archived"
     }
   ],
+  "T001357": [
+    {
+      "slug": "t001357-fe02-bundle-budget",
+      "status": "plan_staged"
+    }
+  ],
   "T001358": [
     {
       "slug": "2026-07-01-t001358-sec05-health-goals",

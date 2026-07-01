@@ -73,6 +73,24 @@ VAL
   [[ "$output" != *"scripts/ticket.sh create"* ]]
 }
 
+@test "special chars in goal text are shell-escaped in the suggestion" {
+  cat > "$GOALS" <<'MD'
+| **ID** | Ziel | Aktuell | Target | Basis-Messung |
+|--------|------|---------|--------|---------------|
+| **G-ESC01** | Budget $5 "quoted" backtick ` check | 3 ⚠ | ≤ 0 | `echo 3` |
+MD
+  cat > "$VALUES" <<'VAL'
+G-ESC01 3 le 0
+VAL
+  run env HG_GOALS_FILE="$GOALS" HG_VALUES_FILE="$VALUES" bash "$SCRIPT" --dry-run
+  [ "$status" -eq 0 ]
+  # $, ", and ` must all be backslash-escaped so the suggestion is safe to
+  # paste into a double-quoted shell string without triggering substitution.
+  [[ "$output" == *'\$5'* ]]
+  [[ "$output" == *'\"quoted\"'* ]]
+  [[ "$output" == *'\`'* ]]
+}
+
 @test "report block is identical under dry-run" {
   _write_mixed_fixture
   run env HG_GOALS_FILE="$GOALS" HG_VALUES_FILE="$VALUES" bash "$SCRIPT" --dry-run

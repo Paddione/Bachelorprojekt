@@ -123,7 +123,12 @@ if excluded:
 CMP_SYMBOL = {"le": "<=", "ge": ">=", "eq": "=="}
 
 def _sh_escape(text):
-    return text.replace("\\", "\\\\").replace('"', '\\"').replace("`", "\\`")
+    return (
+        text.replace("\\", "\\\\")
+        .replace('"', '\\"')
+        .replace("`", "\\`")
+        .replace("$", "\\$")
+    )
 
 print("\nOffene Ziele (Target verfehlt):")
 if not open_goals:

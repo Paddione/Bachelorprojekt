@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-27T01:56:32.460Z",
+  "generatedAt": "2026-07-01T09:42:37.800Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -312,6 +312,18 @@
       "namespace": "mentolder",
       "type": "Deployment",
       "name": "oauth2-proxy-recovery"
+    },
+    {
+      "id": "hbbr",
+      "namespace": "rustdesk",
+      "type": "Deployment",
+      "name": "hbbr"
+    },
+    {
+      "id": "hbbs",
+      "namespace": "rustdesk",
+      "type": "Deployment",
+      "name": "hbbs"
     },
     {
       "id": "sealed-secrets-controller",

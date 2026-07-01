@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 517,
+      "file_count": 518,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -384,6 +384,7 @@
         "tests/spec/software-factory.bats",
         "tests/spec/t001269-mishap-bundle-skills-dev-flow-execute-repo-worktree-state-ticket-mcp.bats",
         "tests/spec/t001353-mishap-bundle-ci-tickets.bats",
+        "tests/spec/t001356-git02-conventional-commit.bats",
         "tests/spec/test_helper.bash",
         "tests/spec/ticket-mcp.bats",
         "tests/spec/ts-suppression.bats",
@@ -2703,7 +2704,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 459,
+      "file_count": 460,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3136,6 +3137,7 @@
         "scripts/transcriber-setup.sh",
         "scripts/triage/few-shot-examples.json",
         "scripts/triage/heuristik.mjs",
+        "scripts/validate-commit-msg.sh",
         "scripts/validate-manifest.mjs",
         "scripts/vda.sh",
         "scripts/vda/backup.sh",

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 524,
+      "file_count": 525,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -356,6 +356,7 @@
         "tests/spec/divergence-guard.bats",
         "tests/spec/docker-build-speedup.bats",
         "tests/spec/env-seal-empty-value-keys.bats",
+        "tests/spec/factory-branch-switch-guard.bats",
         "tests/spec/fleet-operations.bats",
         "tests/spec/g-cq02-any-types.bats",
         "tests/spec/g-cq08-knip-dead-code.bats",
@@ -2726,7 +2727,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 466,
+      "file_count": 467,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -2922,6 +2923,7 @@
         "scripts/factory/build-loop.cjs",
         "scripts/factory/build-loop.sh",
         "scripts/factory/build-loop.test.cjs",
+        "scripts/factory/check-no-main-checkout.sh",
         "scripts/factory/ci-review.mjs",
         "scripts/factory/classify-failure.sh",
         "scripts/factory/classify-paths.sh",

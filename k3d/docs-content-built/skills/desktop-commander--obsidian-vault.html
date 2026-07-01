@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>obsidian-vault — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
+  <div id="search-box">
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
+  </div>
+</div>
+<div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Dev-Workflow</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-architect.html">code-architect</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-explorer.html">code-explorer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/code-simplifier--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--comment-analyzer.html">comment-analyzer</a></li><li class="sidebar-item"><a href="../skills/dev-flow-e2e.html">dev-flow-e2e</a></li><li class="sidebar-item"><a href="../skills/dev-flow-execute.html">dev-flow-execute</a></li><li class="sidebar-item"><a href="../skills/dev-flow-plan.html">dev-flow-plan</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--pr-test-analyzer.html">pr-test-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--silent-failure-hunter.html">Silent Failure Hunter</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--type-design-analyzer.html">type-design-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Bachelorprojekt-Infra</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/cluster-deployment.html">cluster-deployment</a></li><li class="sidebar-item"><a href="../skills/database-ops.html">database-ops</a></li><li class="sidebar-item"><a href="../skills/host-node-networking.html">host-node-networking</a></li><li class="sidebar-item"><a href="../skills/keycloak-realm-sync.html">keycloak-realm-sync</a></li><li class="sidebar-item"><a href="../skills/mishap-tracker.html">mishap-tracker</a></li><li class="sidebar-item"><a href="../skills/operations-management.html">operations-management</a></li><li class="sidebar-item"><a href="../skills/secret-rotation.html">secret-rotation</a></li><li class="sidebar-item"><a href="../skills/update-dependencies.html">update-dependencies</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">KI / ML</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Plugin- &amp; Skill-Bau</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../agents/plugin-dev--agent-creator.html">agent-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--agent-development.html">agent-development</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-py.html">agent-sdk-verifier-py</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-ts.html">agent-sdk-verifier-ts</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--command-development.html">command-development</a></li><li class="sidebar-item"><a href="../agents/hookify--conversation-analyzer.html">conversation-analyzer</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--hook-development.html">hook-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--mcp-integration.html">mcp-integration</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-settings.html">plugin-settings</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-structure.html">plugin-structure</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--plugin-validator.html">plugin-validator</a></li><li class="sidebar-item"><a href="../skills/skill-creator--skill-creator.html">skill-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--skill-development.html">skill-development</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--skill-reviewer.html">skill-reviewer</a></li><li class="sidebar-item"><a href="../skills/hookify--writing-rules.html">writing-hookify-rules</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Browser &amp; Debugging</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers-chrome--browsing.html">browsing</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">MCP &amp; API</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/postman--agent-ready-apis.html">agent-ready-apis</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-app.html">build-mcp-app</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-server.html">build-mcp-server</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcpb.html">build-mcpb</a></li><li class="sidebar-item"><a href="../skills/postman--generate-spec.html">generate-spec</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--mcp-cli.html">mcp-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-cli.html">postman-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-context.html">postman-context</a></li><li class="sidebar-item"><a href="../skills/postman--postman-knowledge.html">postman-knowledge</a></li><li class="sidebar-item"><a href="../skills/postman--run-collection.html">run-collection</a></li><li class="sidebar-item"><a href="../skills/postman--send-request.html">send-request</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">Claude Code &amp; Tooling</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/brightdata-plugin--agent-onboarding.html">agent-onboarding</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--ai-tools-setup.html">ai-tools-setup</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--ai-tools-setup.html">ai-tools-setup</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brand-listening.html">brand-listening</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brd-browser-debug.html">brd-browser-debug</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-best-practices.html">bright-data-best-practices</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-mcp.html">bright-data-mcp</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brightdata-cli.html">brightdata-cli</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--proxy.html">brightdata-proxy</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--python-sdk-best-practices.html">brightdata-sdk</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--js-sdk-best-practices.html">brightdata-sdk-js</a></li><li class="sidebar-item"><a href="../skills/claude-code-setup--claude-automation-recommender.html">claude-automation-recommender</a></li><li class="sidebar-item"><a href="../skills/claude-md-management--claude-md-improver.html">claude-md-improver</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--competitive-intel.html">competitive-intel</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--computer-health-check.html">computer-health-check</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--computer-health-check.html">computer-health-check</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--data-feeds.html">data-feeds</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--design-mirror.html">design-mirror</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/dev-flow-chore.html">dev-flow-chore</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--developing-claude-code-plugins.html">developing-claude-code-plugins</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--discover-api.html">discover-api</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--finding-duplicate-functions.html">finding-duplicate-functions</a></li><li class="sidebar-item"><a href="../skills/frontend-design--frontend-design.html">frontend-design</a></li><li class="sidebar-item"><a href="../skills/git-workflow.html">Git Workflow — vollständiger Lifecycle für dieses Repo</a></li><li class="sidebar-item"><a href="../skills/incident-response.html">incident-response</a></li><li class="sidebar-item"><a href="../skills/infra-ops.html">infra-ops — Unified Infrastructure Runbook</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--knowledge-base.html">knowledge-base</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--knowledge-base.html">knowledge-base</a></li><li class="sidebar-item"><a href="../skills/lavish.html">lavish</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--live-research.html">live-research</a></li><li class="sidebar-item"><a href="../skills/llm-ops.html">llm-ops</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/desktop-commander--obsidian-vault.html" aria-current="page">obsidian-vault</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/desktop-commander--obsidian-vault.html" aria-current="page">obsidian-vault</a></li><li class="sidebar-item"><a href="../skills/openspec-apply-change.html">openspec-apply-change</a></li><li class="sidebar-item"><a href="../skills/openspec-archive-change.html">openspec-archive-change</a></li><li class="sidebar-item"><a href="../skills/openspec-explore.html">openspec-explore</a></li><li class="sidebar-item"><a href="../skills/openspec-propose.html">openspec-propose</a></li><li class="sidebar-item"><a href="../skills/playground--playground.html">playground</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--price-comparison.html">price-comparison</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--rag-pipeline.html">rag-pipeline</a></li><li class="sidebar-item"><a href="../skills/references.html">references</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/repo-hygiene.html">repo-hygiene</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scrape.html">scrape</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-builder.html">scraper-builder</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-studio.html">scraper-studio</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--search.html">search</a></li><li class="sidebar-item"><a href="../skills/sourcegraph--searching-sourcegraph.html">searching-sourcegraph</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--seo-audit.html">seo-audit</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--terminal.html">terminal</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--terminal.html">terminal</a></li><li class="sidebar-item"><a href="../skills/ticket-ops.html">ticket-ops</a></li><li class="sidebar-item"><a href="../skills/braintrust--troubleshoot-braintrust-mcp.html">troubleshoot-braintrust-mcp</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--using-tmux-for-interactive-commands.html">using-tmux-for-interactive-commands</a></li><li class="sidebar-item"><a href="../skills/vitest.html">vitest</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--windows-vm.html">windows-vm</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--working-with-claude-code.html">working-with-claude-code</a></li><li class="sidebar-item"><a href="../skills/workspace-deploy.html">workspace-deploy</a></li></ul></details>
+</aside>
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">obsidian-vault</span></nav>
+    <h1>obsidian-vault</h1>
+    <p class="page-desc">Organize Obsidian vaults with MOCs, wikilinks, frontmatter/properties, dashboards, orphan-note checks, and cleanup workflows. Use ONLY when the user explicitly refers to Obsidian — by naming &quot;Obsidian&quot;, an Obsidian &quot;vault&quot;, or an Obsidian-specific feature such as wikilinks (&quot;[[ ]]&quot;), the Dataview or Bases plugins, or Obsidian Properties. Within that Obsidian context it covers creating Maps of Content, adding/fixing wikilinks, finding orphan notes, normalizing YAML frontmatter, generating Dataview/Bases dashboards, organizing folders, deduplicating or renaming notes, and preparing the vault for AI use. Do NOT use this skill for generic note-taking, Markdown, or knowledge-base requests that don't mention Obsidian.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">desktop-commander</span> <span class="pv-ver">0.2.0</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Obsidian Vault Assistant</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#wikilinks"><span class="toc-num">1.</span> Wikilinks</a></li>
+<li class="toc-item"><a href="#maps-of-content-mocs"><span class="toc-num">2.</span> Maps of Content (MOCs)</a></li>
+<li class="toc-item"><a href="#frontmatter--properties"><span class="toc-num">3.</span> Frontmatter / Properties</a></li>
+<li class="toc-item"><a href="#dashboards"><span class="toc-num">4.</span> Dashboards</a></li>
+<li class="toc-item"><a href="#orphan-notes--link-hygiene"><span class="toc-num">5.</span> Orphan notes &amp; link hygiene</a></li>
+<li class="toc-item"><a href="#folder-organization"><span class="toc-num">6.</span> Folder organization</a></li>
+<li class="toc-item"><a href="#deduplicate--rename"><span class="toc-num">7.</span> Deduplicate &amp; rename</a></li>
+<li class="toc-item"><a href="#prepare-the-vault-for-ai-use"><span class="toc-num">8.</span> Prepare the vault for AI use</a></li>
+<li class="toc-item"><a href="#workflows"><span class="toc-num">9.</span> Workflows</a></li>
+<li class="toc-item"><a href="#checklist-before-finishing"><span class="toc-num">10.</span> Checklist before finishing</a></li></ul>
+</div>
+<p>Help the user organize and maintain an Obsidian vault: build navigation with
+MOCs and wikilinks, normalize metadata, generate dashboards, find and fix
+orphans, organize folders, deduplicate/rename, and prepare the vault for AI use.</p>
+<p>Obsidian-specific facts that shape every rule here:</p>
+<ul>
+<li>Links are <strong>wikilinks</strong> resolved by <strong>filename</strong>, not path: <code>Note title</code>.
+Renaming a note auto-updates links inside Obsidian, but moving files outside
+Obsidian breaks them — always rename via Obsidian when possible.</li>
+<li>Metadata is <strong>Properties</strong> (YAML frontmatter) at the top of a note.</li>
+<li>Dashboards come from <strong>Dataview</strong> (query language, read-only, flexible) or
+<strong>Bases</strong> (native, editable tables, fast on big vaults, properties-only).</li>
+</ul>
+<p>Before acting, confirm the vault's root folder and whether the user has the
+Dataview plugin installed (Bases is built in since Obsidian 1.9). When a request
+is ambiguous (organize vs. clean up vs. dashboard), ask which task.</p>
+<h2 id="wikilinks">Wikilinks</h2>
+<ul>
+<li>Basic: <code>Three laws of motion</code> — resolves by filename, no extension/path.</li>
+<li>Display text (pipe): <code>atomic-habits|James Clear — Atomic Habits</code>.</li>
+<li>Heading link: <code>Note#Section</code>. Block link: <code>Note#^block-id</code>.</li>
+<li>Embed/transclude: <code>!Note</code>, <code>!Note#Section</code>, <code>!image.png</code>.</li>
+<li>Aliases: add an <code>aliases</code> property so the note resolves under other names.</li>
+<li>Avoid <code># | ^ : %</code> and <code>[ ]</code> in filenames — they have special meaning in links.</li>
+<li>Prefer wikilinks for internal navigation; use standard Markdown links only if
+the vault is also published to a tool that can't parse wikilinks.</li>
+</ul>
+<p>When adding links, also surface <strong>unlinked mentions</strong>: if a note's title appears
+as plain text in other notes, convert those to wikilinks.</p>
+<h2 id="maps-of-content-mocs">Maps of Content (MOCs)</h2>
+<p>A MOC is a note that links the related notes on a topic — the vault's navigation
+layer (more flexible than folders or tags, and needs no institutional knowledge).</p>
+<p>Conventions:</p>
+<ul>
+<li>Name MOCs clearly and tag them: <code>tags: [moc]</code> (or a <code>type: moc</code> property) so
+every MOC is itself discoverable.</li>
+<li>Keep a top-level <strong>Home / Index MOC</strong> that links to all topic MOCs.</li>
+<li>A MOC holds a short intro plus grouped wikilinks; it can be hand-curated or
+auto-generated with a Dataview/Bases query (see Dashboards).</li>
+</ul>
+<p>MOC template:</p>
+<div class="code-wrapper"><pre><code class="language-markdown">---
+type: moc
+tags: [moc]
+updated: 2026-06-18
+---
+# Auth — Map of Content
+
+Notes on authentication, sessions, and access control.
+
+## Core
+- auth-flow
+- session-tokens
+
+## Related MOCs
+- security-moc
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="frontmatter--properties">Frontmatter / Properties</h2>
+<p>Add a consistent property block to every note. Recommended baseline:</p>
+<div class="code-wrapper"><pre><code class="language-yaml">---
+title: Session tokens
+aliases: [tokens, session token]
+tags: [auth, security]
+type: note            # note | moc | dashboard | template | person | project
+created: 2026-06-18
+updated: 2026-06-18
+status: evergreen     # seedling | growing | evergreen
+related: ["auth-flow"]
+---
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Rules:</p>
+<ul>
+<li>Use a <strong>controlled tag vocabulary</strong> — decide tags up front and reuse them;
+nested tags (<code>auth/tokens</code>) are fine. Don't let tags sprawl.</li>
+<li><code>tags</code> use no <code>#</code> in frontmatter. Dates in ISO <code>YYYY-MM-DD</code>.</li>
+<li>Keep property <strong>names and types consistent across the vault</strong> — Bases and
+Dataview both depend on this. When normalizing, pick one name per concept
+(e.g. <code>created</code>, not <code>created</code>/<code>date</code>/<code>Created</code>) and migrate the rest.</li>
+</ul>
+<h2 id="dashboards">Dashboards</h2>
+<p>Pick the engine based on the user's setup:</p>
+<p><strong>Bases</strong> (native, editable, fast — best for operational boards):</p>
+<ul>
+<li>Create a <code>.base</code> file or a <code>base</code> code block; it builds table/board views from
+properties. Each cell edits the underlying note's frontmatter.</li>
+<li>Use for task lists, reading lists, project pipelines, anything point-and-click.</li>
+</ul>
+<p><strong>Dataview</strong> (plugin, read-only, most flexible — best for reports/auto-MOCs):</p>
+<div class="code-wrapper"><pre><code class="language-dataview">TABLE status, updated, tags
+FROM #auth
+WHERE type = "note"
+SORT updated DESC
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Auto-MOC of everything in a topic:</p>
+<div class="code-wrapper"><pre><code class="language-dataview">LIST FROM #auth WHERE type != "moc" SORT file.name ASC
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Recently updated:</p>
+<div class="code-wrapper"><pre><code class="language-dataview">TABLE updated FROM "" WHERE updated &gt;= date(today) - dur(7 days) SORT updated DESC
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Note: large vaults can lag with heavy Dataview queries — prefer Bases there.</p>
+<h2 id="orphan-notes--link-hygiene">Orphan notes &amp; link hygiene</h2>
+<p>An orphan is a note with no inbound or outbound links. To find and fix:</p>
+<ol>
+<li><strong>From Desktop Commander</strong> (no app needed, scales to big vaults): <code>start_search</code>
+the vault for <code></code> links to each note's title — zero hits means no inbound
+links (an <em>unlinked</em> note); to confirm a true orphan (no inbound <strong>and</strong> no
+outbound), also scan the note's own body for <code>...</code>. The same searches
+surface <strong>unlinked mentions</strong> (the title as plain text, not wrapped in <code></code>)
+and <strong>broken links</strong> (a <code>target</code> whose file is missing).</li>
+<li><strong>Graph view</strong> (Cmd/Ctrl+G): orphans float as isolated dots at the edges.</li>
+<li><strong>Dataview</strong> query for notes with no links:<div class="code-wrapper"><pre><code class="language-dataview">LIST WHERE length(file.inlinks) = 0 AND length(file.outlinks) = 0
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+<li>For each orphan: link it from a relevant MOC/note (<code>edit_block</code> to insert the
+wikilink), tag it <code>#needs-link</code> for a batch pass, or archive if obsolete.</li>
+<li>Convert unlinked mentions into real wikilinks and fix broken links with
+<code>edit_block</code>; resolve the rest from Obsidian's right sidebar.</li>
+</ol>
+<h2 id="folder-organization">Folder organization</h2>
+<ul>
+<li>Folders are for coarse buckets; <strong>MOCs + tags do the real organizing</strong>. Don't
+over-nest folders.</li>
+<li>A workable layout:<div class="code-wrapper"><pre><code>00-inbox/        # unsorted captures
+10-notes/        # atomic notes
+20-mocs/         # maps of content
+30-projects/
+90-assets/       # images/attachments
+99-archive/
+templates/
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+<li>Set the attachment folder in Settings so embeds land in <code>90-assets/</code>.</li>
+<li><strong>Moves/renames must happen inside Obsidian</strong> so wikilinks update automatically
+— do <strong>not</strong> use <code>move_file</code> for these, it breaks every <code>link</code>. From Desktop
+Commander, only edit <em>content</em> (<code>edit_block</code> / <code>write_file</code>); leave moving and
+renaming to the user in the app.</li>
+</ul>
+<h2 id="deduplicate--rename">Deduplicate &amp; rename</h2>
+<ul>
+<li><strong>Duplicates</strong>: <code>start_search</code> titles/aliases to find near-identical notes;
+merge into one, keep the most-linked filename, copy unique content with
+<code>edit_block</code>, then <code>start_search</code> for inbound <code>links</code> to the discarded note
+and repoint them before deleting it.</li>
+<li><strong>Renames</strong>: do them inside Obsidian (Rename note / <code>F2</code>) so backlinks update —
+not via <code>move_file</code>. Keep an <code>aliases</code> entry for the old name if it was widely
+referenced.</li>
+<li>Standardize filenames: pick one convention (kebab-case or Title Case) and
+apply it consistently; avoid the special characters listed above.</li>
+</ul>
+<h2 id="prepare-the-vault-for-ai-use">Prepare the vault for AI use</h2>
+<ul>
+<li>Ensure <strong>consistent frontmatter</strong> (same property names/types) so an agent can
+filter and reason over metadata.</li>
+<li>Maintain a <strong>Home/Index MOC</strong> as the single entry point an agent reads first.</li>
+<li>Write a one-line <code>summary</code>/<code>description</code> property per note for quick scanning.</li>
+<li>Reduce orphans and broken links so the link graph is a reliable map.</li>
+<li>Keep notes <strong>atomic</strong> (one idea each) — easier for an agent to retrieve and cite.</li>
+<li>Consider exporting wikilinks to standard Markdown links if the AI tool can't
+parse <code></code>.</li>
+</ul>
+<h2 id="workflows">Workflows</h2>
+<ul>
+<li><strong>Build navigation</strong>: <code>write_file</code> topic MOCs → <code>edit_block</code> notes to link them
+in → refresh the Home MOC → convert unlinked mentions.</li>
+<li><strong>Normalize metadata</strong>: <code>read_multiple_files</code> to audit properties → pick
+canonical names → <code>edit_block</code> each note → add missing baseline properties.</li>
+<li><strong>Cleanup pass</strong>: <code>start_search</code> for orphans, broken links, and unlinked
+mentions → dedupe → report what changed (renames stay in Obsidian).</li>
+<li><strong>Dashboard</strong>: confirm Dataview vs. Bases → <code>write_file</code> the view from properties/tags.</li>
+</ul>
+<h2 id="checklist-before-finishing">Checklist before finishing</h2>
+<ul>
+<li><input disabled="" type="checkbox"> New/changed notes have consistent frontmatter (canonical property names).</li>
+<li><input disabled="" type="checkbox"> Renames/moves done inside Obsidian; no links broken.</li>
+<li><input disabled="" type="checkbox"> New notes linked from at least one MOC or note (no new orphans).</li>
+<li><input disabled="" type="checkbox"> Tags drawn from the controlled vocabulary.</li>
+<li><input disabled="" type="checkbox"> Dashboards reference properties/tags that actually exist.</li>
+<li><input disabled="" type="checkbox"> <code>updated</code> bumped on changed notes.</li>
+</ul>
+</body></html>
+</article>
+
+<nav class="prevnext" aria-label="Seitennavigation"><a class="prevnext-link prevnext-prev" href="../skills/desktop-commander--obsidian-vault.html"><span class="prevnext-label">← Zurück</span><span class="prevnext-title">obsidian-vault</span></a><a class="prevnext-link prevnext-next" href="../skills/openspec-apply-change.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">openspec-apply-change</span></a></nav>
+  </main>
+</div>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

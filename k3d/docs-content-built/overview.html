@@ -47,18 +47,19 @@
   <ul class="toc-list"><li class="toc-item"><a href="#subagent-dispatch-skill--agent"><span class="toc-num">1.</span> Subagent dispatch (Skill → Agent)</a></li>
 <li class="toc-item"><a href="#development-flow-sequential-pipeline"><span class="toc-num">2.</span> Development Flow (sequential pipeline)</a></li>
 <li class="toc-item"><a href="#feature-discovery-vorgelagert-zur-pipeline"><span class="toc-num">3.</span> Feature Discovery (vorgelagert zur Pipeline)</a></li>
-<li class="toc-item"><a href="#git-lifecycle"><span class="toc-num">4.</span> Git Lifecycle</a></li>
-<li class="toc-item"><a href="#schicht-kontrakt-dev-flow-orchestriert-superpowers-liefert-disziplin"><span class="toc-num">5.</span> Schicht-Kontrakt: dev-flow orchestriert, superpowers liefert Disziplin</a></li>
+<li class="toc-item"><a href="#openspec-workflow"><span class="toc-num">4.</span> OpenSpec Workflow</a></li>
+<li class="toc-item"><a href="#git-lifecycle"><span class="toc-num">5.</span> Git Lifecycle</a></li>
+<li class="toc-item"><a href="#schicht-kontrakt-dev-flow-orchestriert-superpowers-liefert-disziplin"><span class="toc-num">6.</span> Schicht-Kontrakt: dev-flow orchestriert, superpowers liefert Disziplin</a></li>
 <li class="toc-item toc-item--h3"><a href="#verifikations-leiter-wer-prueft-was--kein-doppeltes-gate"><span class="toc-num">–</span> Verifikations-Leiter (wer prüft was — kein doppeltes Gate)</a></li>
-<li class="toc-item"><a href="#infrastructure--networking"><span class="toc-num">6.</span> Infrastructure &amp; Networking</a></li>
-<li class="toc-item"><a href="#secret--auth-management"><span class="toc-num">7.</span> Secret &amp; Auth Management</a></li>
-<li class="toc-item"><a href="#service-specific-operations"><span class="toc-num">8.</span> Service-Specific Operations</a></li>
-<li class="toc-item"><a href="#knowledge--database-operations"><span class="toc-num">9.</span> Knowledge &amp; Database Operations</a></li>
-<li class="toc-item"><a href="#operations--life-cycle-management"><span class="toc-num">10.</span> Operations &amp; Life-Cycle Management</a></li>
-<li class="toc-item"><a href="#skill-beziehungen--abfolge"><span class="toc-num">11.</span> Skill-Beziehungen &amp; Abfolge</a></li>
-<li class="toc-item"><a href="#cross-cutting-grilling--ticket"><span class="toc-num">12.</span> Cross-Cutting: Grilling → Ticket</a></li></ul>
+<li class="toc-item"><a href="#infrastructure--networking"><span class="toc-num">7.</span> Infrastructure &amp; Networking</a></li>
+<li class="toc-item"><a href="#secret--auth-management"><span class="toc-num">8.</span> Secret &amp; Auth Management</a></li>
+<li class="toc-item"><a href="#service-specific-operations"><span class="toc-num">9.</span> Service-Specific Operations</a></li>
+<li class="toc-item"><a href="#knowledge--database-operations"><span class="toc-num">10.</span> Knowledge &amp; Database Operations</a></li>
+<li class="toc-item"><a href="#operations--life-cycle-management"><span class="toc-num">11.</span> Operations &amp; Life-Cycle Management</a></li>
+<li class="toc-item"><a href="#skill-beziehungen--abfolge"><span class="toc-num">12.</span> Skill-Beziehungen &amp; Abfolge</a></li>
+<li class="toc-item"><a href="#cross-cutting-grilling--ticket"><span class="toc-num">13.</span> Cross-Cutting: Grilling → Ticket</a></li></ul>
 </div>
-<p>12 project-local skills (11 in <code>.claude/skills/&lt;name&gt;/</code> + 1 in <code>.claude/skills/superpowers/using-git-worktrees/</code>) grouped by domain. Each skill has its own <code>SKILL.md</code> with full runbook details. Invoke any skill by its name.</p>
+<p>27 project-local skills (26 in <code>.claude/skills/&lt;name&gt;/</code> + 1 in <code>.claude/skills/superpowers/using-git-worktrees/</code>) grouped by domain. Each skill has its own <code>SKILL.md</code> with full runbook details. Invoke any skill by its name.</p>
 <blockquote>
 <p><strong>Konsolidierung (2026-06-21):</strong> 7 Infra/Ops-Skills wurden in <code>infra-ops</code> zusammengeführt (nur bei explizitem Bedarf aufrufen). <code>update-dependencies</code> läuft als biweekly Cloud-Routine (<a href="https://claude.ai/code/routines/trig_01GiuyN6KP5iMcVUSvBQMKyQ">https://claude.ai/code/routines/trig_01GiuyN6KP5iMcVUSvBQMKyQ</a>). Die archivierten SKILL.md-Dateien haben kein <code>description</code>-Feld mehr und triggern nicht auto-matisch.</p>
 </blockquote>
@@ -113,6 +114,32 @@
 <tbody><tr>
 <td><code>/feature-intake</code></td>
 <td><strong>Vor <a href="https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-plan.html"><code>dev-flow-plan</code></a></strong> — <code>/feature-intake</code> (opencode-Command) generiert ein frisches HTML-Formular, dedupliziert Feature-Kandidaten gegen den aktuellen Ticket-Backlog und liefert es via Session-Hub. Für Patrick oder gekko zum Ausfüllen auf einen Klick. Kein Teil der dev-flow-Pipeline; speist <a href="https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-plan.html"><code>dev-flow-plan</code></a>. Assets unter <code>assets/feature-intake/</code>.</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="openspec-workflow">OpenSpec Workflow</h2>
+<table>
+<thead>
+<tr>
+<th>Skill</th>
+<th>When to use</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a href="https://github.com/Paddione/Bachelorprojekt/blob/main/.claude/skills/openspec-propose/SKILL.md"><code>openspec-propose</code></a></td>
+<td>Create a new OpenSpec change proposal with design, specs, and tasks in one step.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/Paddione/Bachelorprojekt/blob/main/.claude/skills/openspec-apply-change/SKILL.md"><code>openspec-apply-change</code></a></td>
+<td>Implement tasks from an OpenSpec change — start/continue implementation.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/Paddione/Bachelorprojekt/blob/main/.claude/skills/openspec-explore/SKILL.md"><code>openspec-explore</code></a></td>
+<td>Enter explore mode — thinking partner for ideas, investigations, requirements.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/Paddione/Bachelorprojekt/blob/main/.claude/skills/openspec-archive-change/SKILL.md"><code>openspec-archive-change</code></a></td>
+<td>Archive a completed change after implementation is complete.</td>
 </tr>
 </tbody></table>
 <hr>
@@ -279,6 +306,10 @@ unabhängiger Beweis ist. Stufen 3+4 prüfen andere Dimensionen (Review-Qualitä
 <tr>
 <td><a href="https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/mishap-tracker.html"><code>mishap-tracker</code></a></td>
 <td><strong>End-of-skill routine</strong> — batches accumulated <code>MISHAP_LOG</code> entries from runbook skills into a single aggregate <code>tickets.tickets</code> row. Reuses an open "Mishap collection" ticket if one exists.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/Paddione/Bachelorprojekt/blob/main/.claude/skills/repo-hygiene/SKILL.md"><code>repo-hygiene</code></a></td>
+<td>Repository housekeeping — stale branches/worktrees, PR triage/merge, close resolved tickets, GitHub issue intake, factory queue status.</td>
 </tr>
 </tbody></table>
 <hr>

@@ -29,18 +29,18 @@
   <div class="page-header-body">
     <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <span class="crumb-current">Skills</span></nav>
     <h1>Skills</h1>
-    <p class="page-desc">119 Skills (105 Duplikate bereinigt)</p>
+    <p class="page-desc">126 Skills (84 Duplikate bereinigt)</p>
   </div>
 </header>
 <div class="cat-filter-row">
-<button class="cat-filter-btn active" data-cat="all">Alle (119)</button>
+<button class="cat-filter-btn active" data-cat="all">Alle (126)</button>
 <button class="cat-filter-btn" data-cat="dev-workflow">Dev-Workflow (18)</button>
 <button class="cat-filter-btn" data-cat="bachelorprojekt-infra">Bachelorprojekt-Infra (8)</button>
 <button class="cat-filter-btn" data-cat="ki-ml">KI / ML (19)</button>
 <button class="cat-filter-btn" data-cat="plugin-bau">Plugin- &amp; Skill-Bau (9)</button>
 <button class="cat-filter-btn" data-cat="browser">Browser &amp; Debugging (7)</button>
 <button class="cat-filter-btn" data-cat="mcp-api">MCP &amp; API (11)</button>
-<button class="cat-filter-btn" data-cat="claude-code">Claude Code &amp; Tooling (47)</button>
+<button class="cat-filter-btn" data-cat="claude-code">Claude Code &amp; Tooling (54)</button>
 </div>
 <section class="section-grid">
 <a class="section-card" href="./skills/chrome-devtools-mcp--a11y-debugging.html" data-category="browser">
@@ -77,10 +77,17 @@ MCP, auth-only, or direct REST without any install.</span>
   </span>
   <span class="section-card-desc">Knowledge about AI agent API compatibility. Use when user asks about API readiness, agent compatibility, or wants to improve their API for AI consumption.</span>
 </a>
+<a class="section-card" href="./skills/desktop-commander--ai-tools-setup.html" data-category="claude-code">
+  <span class="section-card-head">
+    <span class="section-card-title">ai-tools-setup</span>
+    <span class="provenance-badge plugin">plugin · <span class="pv-name">desktop-commander</span> <span class="pv-ver">0.2.0</span></span><span class="domain-tag">ops</span>
+  </span>
+  <span class="section-card-desc">Set up, connect, validate, and repair Claude Desktop and MCP servers using Desktop Commander — inspecting and fixing mcp.json / claude_desktop_config.json, getting MCP servers to connect, and diagnosing local AI tooling. Use when a user wants to install, configure, connect, validate, or fix Claude Desktop, an MCP server, an MCP config file, or a local AI agent/gateway. Trigger on the symptoms that actually bring people in: &quot;Claude can't see my tools&quot;, &quot;my MCP server isn't showing up&quot;, &quot;tools aren't loading in Claude&quot;, &quot;add an MCP server&quot;, &quot;my MCP isn't connecting&quot;, &quot;fix my Claude Desktop config&quot;, &quot;the agent won't respond&quot;, &quot;wire up Ollama / LM Studio&quot;, &quot;restart Claude Desktop&quot;. Also covers local agent gateways like OpenClaw and Hermes.</span>
+</a>
 <a class="section-card" href="./skills/superpowers--brainstorming.html" data-category="dev-workflow">
   <span class="section-card-head">
     <span class="section-card-title">brainstorming</span>
-    <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers</span> <span class="pv-ver">6.0.3</span></span><span class="domain-tag">website</span>
+    <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers</span> <span class="pv-ver">6.1.0</span></span><span class="domain-tag">website</span>
   </span>
   <span class="section-card-desc">You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. Explores user intent, requirements and design before implementation.</span>
 </a>
@@ -200,6 +207,13 @@ Returns clean markdown or structured JSON. Handles JavaScript, CAPTCHAs, bot det
   </span>
   <span class="section-card-desc">Real-time competitive intelligence and market research using Bright Data's web scraping infrastructure. Analyzes competitors' pricing, features, reviews, hiring patterns, content strategy, and market positioning with live web data. Use this skill when the user wants to analyze competitors, compare products, monitor pricing changes, track market trends, research a market landscape, build competitive battlecards, find positioning opportunities, or conduct any form of competitive or market research. Also use when the user mentions competitor analysis, market intelligence, competitive landscape, win/loss analysis, or wants to understand what competitors are doing.</span>
 </a>
+<a class="section-card" href="./skills/desktop-commander--computer-health-check.html" data-category="claude-code">
+  <span class="section-card-head">
+    <span class="section-card-title">computer-health-check</span>
+    <span class="provenance-badge plugin">plugin · <span class="pv-name">desktop-commander</span> <span class="pv-ver">0.2.0</span></span><span class="domain-tag">ops</span>
+  </span>
+  <span class="section-card-desc">Run a comprehensive, read-only health check on the user's computer and return a scored chat summary with prioritized, plain-English recommendations and safe cleanup suggestions. Use this whenever the user wants to check their computer's health, speed it up, free up / reclaim disk space, find what's eating CPU / memory / storage, check battery health and wear, audit login &amp; startup items, see pending updates, or asks for a &quot;tune-up&quot;, &quot;checkup&quot;, &quot;system report&quot;, &quot;health check&quot;, or &quot;is my Mac/PC/laptop healthy&quot;. Trigger even on casual phrasing like &quot;my laptop feels slow&quot;, &quot;why is my fan so loud&quot;, &quot;my computer is laggy&quot;, &quot;running out of space&quot;, or &quot;clean up my machine&quot;. Works on macOS, Windows, and Linux. This is a Desktop Commander skill: it relies on a real local shell (start_process / interact_with_process) and is strictly read-only by default — it never needs sudo and only performs cleanups the user explicitly approves.</span>
+</a>
 <a class="section-card" href="./skills/brightdata-plugin--data-feeds.html" data-category="claude-code">
   <span class="section-card-head">
     <span class="section-card-title">data-feeds</span>
@@ -289,14 +303,14 @@ the foundation skill for `live-research` and `rag-pipeline`. For keyword SERP us
 <a class="section-card" href="./skills/superpowers--dispatching-parallel-agents.html" data-category="dev-workflow">
   <span class="section-card-head">
     <span class="section-card-title">dispatching-parallel-agents</span>
-    <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers</span> <span class="pv-ver">6.0.3</span></span>
+    <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers</span> <span class="pv-ver">6.1.0</span></span>
   </span>
   <span class="section-card-desc">Use when facing 2+ independent tasks that can be worked on without shared state or sequential dependencies</span>
 </a>
 <a class="section-card" href="./skills/superpowers--executing-plans.html" data-category="dev-workflow">
   <span class="section-card-head">
     <span class="section-card-title">executing-plans</span>
-    <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers</span> <span class="pv-ver">6.0.3</span></span>
+    <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers</span> <span class="pv-ver">6.1.0</span></span>
   </span>
   <span class="section-card-desc">Use when you have a written implementation plan to execute in a separate session with review checkpoints</span>
 </a>
@@ -310,7 +324,7 @@ the foundation skill for `live-research` and `rag-pipeline`. For keyword SERP us
 <a class="section-card" href="./skills/superpowers--finishing-a-development-branch.html" data-category="dev-workflow">
   <span class="section-card-head">
     <span class="section-card-title">finishing-a-development-branch</span>
-    <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers</span> <span class="pv-ver">6.0.3</span></span>
+    <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers</span> <span class="pv-ver">6.1.0</span></span>
   </span>
   <span class="section-card-desc">Use when implementation is complete, all tests pass, and you need to decide how to integrate the work - guides completion of development work by presenting structured options for merge, PR, or cleanup</span>
 </a>
@@ -497,6 +511,13 @@ terminal CLI, use brightdata-cli.</span>
   </span>
   <span class="section-card-desc"></span>
 </a>
+<a class="section-card" href="./skills/desktop-commander--knowledge-base.html" data-category="claude-code">
+  <span class="section-card-head">
+    <span class="section-card-title">knowledge-base</span>
+    <span class="provenance-badge plugin">plugin · <span class="pv-name">desktop-commander</span> <span class="pv-ver">0.2.0</span></span>
+  </span>
+  <span class="section-card-desc">Create and maintain a Markdown knowledge base that any AI agent can read, search, and update. Use when the user wants to start a knowledge base, add or update notes, organize docs/notes for an agent or LLM to consume, build an index of notes, or run a cleanup/maintenance pass on an existing MD knowledge base. Triggers include &quot;knowledge base&quot;, &quot;KB&quot;, &quot;notes for the agent&quot;, &quot;index of notes&quot;, &quot;second brain&quot;, &quot;docs for AI context&quot;, &quot;add a note&quot;, &quot;update the KB&quot;.</span>
+</a>
 <a class="section-card skill-repo" href="./skills/lavish.html" data-category="claude-code">
   <span class="section-card-head">
     <span class="skill-star" aria-label="repo-eigener Skill">★</span><span class="section-card-title">lavish</span>
@@ -555,6 +576,13 @@ a one-off report) use `rag-pipeline`.</span>
     <span class="provenance-badge repo">repo</span>
   </span>
   <span class="section-card-desc">Shared utility — batches all execution mishaps into a single aggregate ticket. Reuses an existing open &quot;Mishap collection&quot; ticket if one exists; creates a new one otherwise. Each mishap is individually classified within the aggregate.</span>
+</a>
+<a class="section-card" href="./skills/desktop-commander--obsidian-vault.html" data-category="claude-code">
+  <span class="section-card-head">
+    <span class="section-card-title">obsidian-vault</span>
+    <span class="provenance-badge plugin">plugin · <span class="pv-name">desktop-commander</span> <span class="pv-ver">0.2.0</span></span>
+  </span>
+  <span class="section-card-desc">Organize Obsidian vaults with MOCs, wikilinks, frontmatter/properties, dashboards, orphan-note checks, and cleanup workflows. Use ONLY when the user explicitly refers to Obsidian — by naming &quot;Obsidian&quot;, an Obsidian &quot;vault&quot;, or an Obsidian-specific feature such as wikilinks (&quot;[[ ]]&quot;), the Dataview or Bases plugins, or Obsidian Properties. Within that Obsidian context it covers creating Maps of Content, adding/fixing wikilinks, finding orphan notes, normalizing YAML frontmatter, generating Dataview/Bases dashboards, organizing folders, deduplicating or renaming notes, and preparing the vault for AI use. Do NOT use this skill for generic note-taking, Markdown, or knowledge-base requests that don't mention Obsidian.</span>
 </a>
 <a class="section-card skill-repo" href="./skills/openspec-apply-change.html" data-category="claude-code">
   <span class="section-card-head">
@@ -679,7 +707,7 @@ Built on the `discover-api` skill. For a one-off written report use
 <a class="section-card" href="./skills/superpowers--receiving-code-review.html" data-category="dev-workflow">
   <span class="section-card-head">
     <span class="section-card-title">receiving-code-review</span>
-    <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers</span> <span class="pv-ver">6.0.3</span></span>
+    <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers</span> <span class="pv-ver">6.1.0</span></span>
   </span>
   <span class="section-card-desc">Use when receiving code review feedback, before implementing suggestions, especially if feedback seems unclear or technically questionable - requires technical rigor and verification, not performative agreement or blind implementation</span>
 </a>
@@ -697,10 +725,17 @@ Built on the `discover-api` skill. For a one-off written report use
   </span>
   <span class="section-card-desc">Save session state for clean continuation next session.</span>
 </a>
+<a class="section-card skill-repo" href="./skills/repo-hygiene.html" data-category="claude-code">
+  <span class="section-card-head">
+    <span class="skill-star" aria-label="repo-eigener Skill">★</span><span class="section-card-title">repo-hygiene</span>
+    <span class="provenance-badge repo">repo</span><span class="domain-tag">ops</span>
+  </span>
+  <span class="section-card-desc">Use for repository housekeeping — clean up stale branches/worktrees, triage and merge open PRs, close resolved tickets, manage GitHub issue intake, and check software factory queue status. Triggers — &quot;clean branches&quot;, &quot;merge PRs&quot;, &quot;prune worktrees&quot;, &quot;factory queue status&quot;.</span>
+</a>
 <a class="section-card" href="./skills/superpowers--requesting-code-review.html" data-category="dev-workflow">
   <span class="section-card-head">
     <span class="section-card-title">requesting-code-review</span>
-    <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers</span> <span class="pv-ver">6.0.3</span></span>
+    <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers</span> <span class="pv-ver">6.1.0</span></span>
   </span>
   <span class="section-card-desc">Use when completing tasks, implementing major features, or before merging to verify work meets requirements</span>
 </a>
@@ -784,21 +819,28 @@ Built on the `discover-api` skill. For a one-off written report use
 <a class="section-card" href="./skills/superpowers--subagent-driven-development.html" data-category="dev-workflow">
   <span class="section-card-head">
     <span class="section-card-title">subagent-driven-development</span>
-    <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers</span> <span class="pv-ver">6.0.3</span></span>
+    <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers</span> <span class="pv-ver">6.1.0</span></span>
   </span>
   <span class="section-card-desc">Use when executing implementation plans with independent tasks in the current session</span>
 </a>
 <a class="section-card" href="./skills/superpowers--systematic-debugging.html" data-category="dev-workflow">
   <span class="section-card-head">
     <span class="section-card-title">systematic-debugging</span>
-    <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers</span> <span class="pv-ver">6.0.3</span></span><span class="domain-tag">test</span>
+    <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers</span> <span class="pv-ver">6.1.0</span></span><span class="domain-tag">test</span>
   </span>
   <span class="section-card-desc">Use when encountering any bug, test failure, or unexpected behavior, before proposing fixes</span>
+</a>
+<a class="section-card" href="./skills/desktop-commander--terminal.html" data-category="claude-code">
+  <span class="section-card-head">
+    <span class="section-card-title">terminal</span>
+    <span class="provenance-badge plugin">plugin · <span class="pv-name">desktop-commander</span> <span class="pv-ver">0.2.0</span></span><span class="domain-tag">db</span>
+  </span>
+  <span class="section-card-desc">Use Desktop Commander for terminal and command-line work, especially anything that needs a shell whose state persists across turns: Python/Node REPLs, database shells, dev servers and other long-running processes, SSH into remote machines, and Windows PowerShell. Also handles everyday terminal tasks — navigating folders, choosing the right command for the user's shell (PowerShell, cmd, bash, zsh), running Docker/curl/cloud-CLI commands, inspecting processes and ports, and saving recurring workflows as scripts — even when the user doesn't say &quot;Desktop Commander&quot; or &quot;terminal.&quot; Reach for it on pasted errors like &quot;command not found&quot;, &quot;permission denied&quot;, &quot;EADDRINUSE&quot;, &quot;address already in use&quot;, &quot;npm ERR!&quot;, &quot;ModuleNotFoundError&quot;, or &quot;ENOENT&quot;, and on intents like &quot;what's using port 3000&quot;, &quot;kill that process&quot;, &quot;ssh into my server&quot;, or &quot;why won't my dev server start&quot;. Works on Windows, macOS, and Linux. Never run destructive commands without explicit confirmation.</span>
 </a>
 <a class="section-card" href="./skills/superpowers--test-driven-development.html" data-category="dev-workflow">
   <span class="section-card-head">
     <span class="section-card-title">test-driven-development</span>
-    <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers</span> <span class="pv-ver">6.0.3</span></span><span class="domain-tag">test</span>
+    <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers</span> <span class="pv-ver">6.1.0</span></span><span class="domain-tag">test</span>
   </span>
   <span class="section-card-desc">Use when implementing any feature or bugfix, before writing implementation code</span>
 </a>
@@ -854,7 +896,7 @@ Built on the `discover-api` skill. For a one-off written report use
 <a class="section-card" href="./skills/superpowers--using-git-worktrees.html" data-category="dev-workflow">
   <span class="section-card-head">
     <span class="section-card-title">using-git-worktrees</span>
-    <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers</span> <span class="pv-ver">6.0.3</span></span>
+    <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers</span> <span class="pv-ver">6.1.0</span></span>
   </span>
   <span class="section-card-desc">Use when starting feature work that needs isolation from current workspace or before executing implementation plans - ensures an isolated workspace exists via native tools or git worktree fallback</span>
 </a>
@@ -868,7 +910,7 @@ Built on the `discover-api` skill. For a one-off written report use
 <a class="section-card" href="./skills/superpowers--using-superpowers.html" data-category="dev-workflow">
   <span class="section-card-head">
     <span class="section-card-title">using-superpowers</span>
-    <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers</span> <span class="pv-ver">6.0.3</span></span>
+    <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers</span> <span class="pv-ver">6.1.0</span></span>
   </span>
   <span class="section-card-desc">Use when starting any conversation - establishes how to find and use skills, requiring skill invocation before ANY response including clarifying questions</span>
 </a>
@@ -882,9 +924,16 @@ Built on the `discover-api` skill. For a one-off written report use
 <a class="section-card" href="./skills/superpowers--verification-before-completion.html" data-category="dev-workflow">
   <span class="section-card-head">
     <span class="section-card-title">verification-before-completion</span>
-    <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers</span> <span class="pv-ver">6.0.3</span></span>
+    <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers</span> <span class="pv-ver">6.1.0</span></span>
   </span>
   <span class="section-card-desc">Use when about to claim work is complete, fixed, or passing, before committing or creating PRs - requires running verification commands and confirming output before making any success claims; evidence before assertions always</span>
+</a>
+<a class="section-card skill-repo" href="./skills/vitest.html" data-category="claude-code">
+  <span class="section-card-head">
+    <span class="skill-star" aria-label="repo-eigener Skill">★</span><span class="section-card-title">vitest</span>
+    <span class="provenance-badge repo">repo</span><span class="domain-tag">test</span>
+  </span>
+  <span class="section-card-desc">Vitest fast unit testing framework powered by Vite with Jest-compatible API. Use when writing tests, mocking, configuring coverage, or working with test filtering and fixtures.</span>
 </a>
 <a class="section-card" href="./skills/superpowers-lab--windows-vm.html" data-category="claude-code">
   <span class="section-card-head">
@@ -910,7 +959,7 @@ Built on the `discover-api` skill. For a one-off written report use
 <a class="section-card" href="./skills/superpowers--writing-plans.html" data-category="dev-workflow">
   <span class="section-card-head">
     <span class="section-card-title">writing-plans</span>
-    <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers</span> <span class="pv-ver">6.0.3</span></span>
+    <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers</span> <span class="pv-ver">6.1.0</span></span>
   </span>
   <span class="section-card-desc">Use when you have a spec or requirements for a multi-step task, before touching code</span>
 </a>
@@ -924,7 +973,7 @@ Built on the `discover-api` skill. For a one-off written report use
 <a class="section-card" href="./skills/superpowers--writing-skills.html" data-category="dev-workflow">
   <span class="section-card-head">
     <span class="section-card-title">writing-skills</span>
-    <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers</span> <span class="pv-ver">6.0.3</span></span>
+    <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers</span> <span class="pv-ver">6.1.0</span></span>
   </span>
   <span class="section-card-desc">Use when creating new skills, editing existing skills, or verifying skills work before deployment</span>
 </a>

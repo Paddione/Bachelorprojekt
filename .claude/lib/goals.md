@@ -25,7 +25,8 @@ Ein Ziel ohne reproduzierbaren Mess-Befehl ist kein Ziel, sondern ein Wunsch.
 
 # Priorität A — Aktive Defekte {#prio-a}
 
-Sofort angehen, Ticket anlegen.
+Sofort angehen. Ticket-Erstellung ist **bewusst manuell** (`scripts/health-goals-update.sh
+--suggest-tickets`, dedupliziert gegen offene Tickets) — kein Ziel erzeugt automatisch ein Ticket.
 
 ## G-SIZE04 — Netto-Quell-LOC/Woche: +325521 → ≤ +2000 ⚠️ OVER BUDGET
 

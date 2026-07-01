@@ -210,7 +210,7 @@ changes (via `bash scripts/health-goals-check.sh`), update the baseline:
    - Inline description text (current value, what changed, why).
    - **Baseline** meta-line: `**A · Baseline:** <alt> → <neu>`.
    - Goal reached target → move from Prio A/B → Prio C table.
-   - Goal regressed → move from Prio C → Prio A + open a ticket.
+   - Goal regressed → move from Prio C → Prio A.
 3. **Append `Baseline-Update` entry** at the bottom (section above Mess-Werkzeug):
    `**Baseline-Update YYYY-MM-DD:** G-XXXX <alt>→<neu> (Begründung); ...`
 4. **Update Sprint-Highlights** with notable changes (target hits, priority changes).
@@ -218,6 +218,15 @@ changes (via `bash scripts/health-goals-check.sh`), update the baseline:
 6. **Verify:** `bash scripts/health-goals-check.sh` still works and shows correct status.
 
 **Convention:** redaktionell, kein Feature-Ticket/OpenSpec-Change nötig.
+
+**Ticket-Erstellung ist NICHT automatisch.** `scripts/health-goals-update.sh` listet offene Ziele
+per Default nur auf — es druckt keine Ticket-Create-Befehle mehr. Erst mit dem expliziten Flag
+`--suggest-tickets` zeigt es Vorschläge an, und auch dann nur für G-IDs, die noch nicht als Titel
+in einem offenen (nicht-`done`) Ticket auftauchen (Dedup gegen `scripts/ticket.sh list`). Grund:
+wiederholte Läufe erzeugten sonst pro Zyklus ein neues Ticket für dasselbe rote Ziel, selbst wenn
+das Vorgänger-Ticket nur `done` geschlossen wurde ohne den Messwert zu fixen (siehe die
+T001280→T001347/T001320→T001348/T001276→T001349-Kette in `goals.md`). Ob ein rotes Ziel ein Ticket
+bekommt, ist eine bewusste, manuelle Entscheidung — nicht Teil des Standard-Update-Laufs.
 
 ## OpenSpec conventions
 

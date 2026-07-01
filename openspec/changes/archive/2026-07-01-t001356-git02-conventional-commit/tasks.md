@@ -2,7 +2,7 @@
 title: "G-GIT02: Non-conventional commit regression — implementation plan"
 ticket_id: T001356
 domains: [quality, ops]
-status: plan_staged
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

@@ -96,3 +96,7 @@ Use the correct project name in `playwright.config.ts` depending on the targeted
 | `brett-mentolder` | Systembrett E2E-Tests auf Mentolder |
 | `smoke` | Smoke-Tests für den Live-Cluster |
 | `systemtest` | System-Integrationstests |
+
+### [T001393] Lavish reload can discard in-flight form input
+**Context**: Re-running `npx -y lavish-axi <html-file>` (e.g. to fix a layout warning) reloads the existing browser tab.
+**Rule**: See `.claude/skills/lavish/SKILL.md#reload-safety` for the full lavish reload-safety protocol — never reload while a poll is outstanding, and check the last poll status before reloading.

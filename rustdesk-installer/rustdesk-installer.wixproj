@@ -1,13 +1,17 @@
 <Project Sdk="WixToolset.Sdk/5.0.2">
   <PropertyGroup>
     <OutputName>rustdesk-workspace-installer</OutputName>
-    <OutputType>Package</OutputType>
-    <!-- x64: the wrapper installs the 64-bit official RustDesk MSI and uses the
-         64-bit util QtExec entry points (WixSilentExec64 / WixQuietExec64). -->
+    <!-- Bundle (bootstrapper .exe), not Package (MSI) — T001425: a wrapper MSI
+         cannot nest-install the official RustDesk MSI via a deferred
+         CustomAction (Windows Installer's single-transaction mutex). Burn's
+         Chain runs the official MsiPackage and the provisioning ExePackage
+         as separate, sequential, non-nested processes instead. -->
+    <OutputType>Bundle</OutputType>
+    <!-- x64: matches the official 64-bit RustDesk MSI installed via Chain. -->
     <Platform>x64</Platform>
   </PropertyGroup>
   <ItemGroup>
-    <!-- Util extension supplies the deferred QtExec custom actions. -->
-    <PackageReference Include="WixToolset.Util.wixext" Version="5.0.2" />
+    <!-- Bal supplies the standard bootstrapper application UI/engine glue. -->
+    <PackageReference Include="WixToolset.Bal.wixext" Version="5.0.2" />
   </ItemGroup>
 </Project>

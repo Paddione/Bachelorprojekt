@@ -1,9 +1,10 @@
 name: Build RustDesk Installer
 
 # REQ-RUSTDESK-CLIENT-004: manual trigger ONLY — no push: trigger.
-# The built MSI bakes in the shared unattended password; it must never become a
-# public workflow artifact (REQ-RUSTDESK-CLIENT-003). Distribution is exclusively
-# via the SSO-gated downloads.${PROD_DOMAIN} surface (Pocket ID / oauth2-proxy).
+# The built bundle bakes in the shared unattended password; it must never become
+# a public workflow artifact (REQ-RUSTDESK-CLIENT-003). Distribution is
+# exclusively via the SSO-gated downloads.${PROD_DOMAIN} surface (Pocket ID /
+# oauth2-proxy).
 on:
   workflow_dispatch: {}
 
@@ -21,22 +22,10 @@ env:
 
 jobs:
   build:
-    name: Build, smoke-test, pack & roll out the wrapper MSI
+    name: Build, smoke-test, pack & roll out the wrapper bundle
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
-
-      - name: Install WiX Toolset + util extension
-        shell: pwsh
-        run: |
-          # Pinned to the last pre-OSMF major: v7 requires accepting the Open
-          # Source Maintenance Fee EULA interactively, which fails non-interactive
-          # CI runs with WIX7015. See https://docs.firegiant.com/wix/osmf/.
-          # Extension version must match the wix core major/minor (T001421) —
-          # unpinned `extension add` resolves to the latest (v7) package, which
-          # is incompatible with the v5 core (WIX6101).
-          dotnet tool install --global wix --version 5.0.2
-          wix extension add -g WixToolset.Util.wixext/5.0.2
 
       - name: Download + pin-verify official RustDesk MSI
         shell: pwsh
@@ -48,7 +37,16 @@ jobs:
           }
           Write-Host "official MSI pin verified ($env:RUSTDESK_VERSION)"
 
-      - name: Bake secrets into provision.ps1
+      - name: Stage cmd.exe shim for the provisioning ExePackage
+        shell: pwsh
+        run: |
+          # T001425: Bundle.wxs's ExePackage launches provision.cmd through a
+          # build-time copy of the runner's own cmd.exe (small, ABI-stable,
+          # present on every Windows version) instead of embedding the far
+          # larger PowerShell runtime.
+          Copy-Item "$env:WINDIR\System32\cmd.exe" rustdesk-installer/cmd-shim.exe
+
+      - name: Bake secrets into provision.cmd
         shell: pwsh
         env:
           RD_CONFIG: ${{ secrets.RUSTDESK_CLIENT_CONFIG_STRING }}
@@ -56,28 +54,37 @@ jobs:
         run: |
           # Writing to a file is not logged; Actions masks these secret values.
           # The password is never read back, echoed, or written to any log.
-          $p = Get-Content rustdesk-installer/provision.ps1 -Raw
+          $p = Get-Content rustdesk-installer/provision.cmd -Raw
           $p = $p.Replace('__RUSTDESK_CONFIG__', $env:RD_CONFIG).Replace('__RUSTDESK_PASSWORD__', $env:RD_PASSWORD)
-          Set-Content -Path rustdesk-installer/provision.ps1 -Value $p -NoNewline
+          Set-Content -Path rustdesk-installer/provision.cmd -Value $p -NoNewline
 
-      - name: Build wrapper MSI
+      - name: Build wrapper bundle
         shell: pwsh
         run: |
-          # Package.wxs <File Source="..."> uses bare relative filenames
-          # (official-rustdesk.msi, provision.ps1); those live under
-          # rustdesk-installer/, not the repo root the build runs from —
-          # -bindpath adds that directory to wix's source search path (T001422).
-          wix build rustdesk-installer/Package.wxs `
-            -ext WixToolset.Util.wixext `
-            -bindpath rustdesk-installer `
-            -arch x64 `
-            -o rustdesk-workspace-installer.msi
+          # Built via the .wixproj (dotnet build), not the raw `wix build` CLI:
+          # the WixToolset.Bal.wixext NuGet package ships an assembly named
+          # WixToolset.BootstrapperApplications.wixext.dll, which doesn't match
+          # its package id — `wix extension add`/`-ext` assume package id ==
+          # assembly name and report the extension "damaged"/not found. MSBuild's
+          # normal NuGet restore (PackageReference in rustdesk-installer.wixproj)
+          # doesn't have that assumption and resolves it correctly (T001425).
+          # Relative Source/Payload paths resolve against the project directory
+          # (rustdesk-installer/), so no -bindpath equivalent is needed here.
+          dotnet build rustdesk-installer/rustdesk-installer.wixproj -c Release
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $built = Get-ChildItem -Path rustdesk-installer -Recurse -Filter "rustdesk-workspace-installer.exe" | Select-Object -First 1
+          if (-not $built) { Write-Error "built bundle exe not found under rustdesk-installer/"; exit 1 }
+          Copy-Item $built.FullName rustdesk-workspace-installer.exe
 
-      - name: Silent-install the wrapper MSI
+      - name: Silent-install the wrapper bundle
         shell: pwsh
         run: |
-          $p = Start-Process msiexec -ArgumentList '/i','rustdesk-workspace-installer.msi','/qn','/l*v','install.log' -Wait -PassThru
-          if ($p.ExitCode -ne 0) { Get-Content install.log -Tail 40; Write-Error "install failed ($($p.ExitCode))"; exit 1 }
+          # Burn's own switches, not msiexec /qn — there is no msiexec
+          # transaction to drive from the caller's side (T001425): Burn's
+          # Chain runs the official RustDesk MsiPackage and the provisioning
+          # ExePackage as separate, sequential, non-nested processes.
+          $p = Start-Process .\rustdesk-workspace-installer.exe -ArgumentList '/quiet','/norestart','/log','install.log' -Wait -PassThru
+          if ($p.ExitCode -ne 0) { Get-Content install.log; Write-Error "install failed ($($p.ExitCode))"; exit 1 }
 
       - name: Smoke test — config targets the expected ID server
         shell: pwsh
@@ -97,17 +104,41 @@ jobs:
           }
           Write-Host "smoke ok: config targets $env:EXPECTED_ID_SERVER"
 
-      - name: Log in to GHCR
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9  # v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GH_PAT }}
+      - name: Install crane
+        shell: pwsh
+        run: |
+          # T001425 follow-up: `docker buildx` is not installed on windows-latest
+          # (Docker Engine - Community here only supports Windows containers —
+          # WSLv1-only, no Linux/BuildKit backend: "docker: unknown command:
+          # docker buildx"). crane assembles the OCI image via pure manifest/tar
+          # manipulation (no daemon, no container execution needed — the
+          # Dockerfile has no RUN steps, just FROM/COPY/ENV), so it works
+          # identically here without Linux container support. Pinned + SHA256
+          # verified like the RustDesk MSI download above.
+          $url = "https://github.com/google/go-containerregistry/releases/download/v0.21.7/go-containerregistry_Windows_x86_64.tar.gz"
+          $sha256 = "88a1693e8d49298f9c44c81fbca55efea8f5ab1be3c760534cfb8d932ca88baa"
+          Invoke-WebRequest -Uri $url -OutFile crane.tar.gz
+          $got = (Get-FileHash crane.tar.gz -Algorithm SHA256).Hash.ToLower()
+          if ($got -ne $sha256) { Write-Error "crane SHA256 mismatch: got $got expected $sha256"; exit 1 }
+          tar -xzf crane.tar.gz crane.exe
+
+      - name: Log in to GHCR (crane)
+        shell: pwsh
+        env:
+          CRANE_USER: ${{ github.repository_owner }}
+          CRANE_PASSWORD: ${{ secrets.GH_PAT }}
+        run: .\crane.exe auth login ghcr.io -u "$env:CRANE_USER" -p "$env:CRANE_PASSWORD"
 
       - name: Pre-push guard — refuse to re-publish over a public package
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
+          # Git Bash on windows-latest rewrites a leading "/" as a filesystem
+          # path ("invalid API endpoint: C:/Program Files/Git/user/packages/...")
+          # — this previously made the whole `gh api` call fail silently into
+          # the "2>/dev/null" branch below, masking the check as a false-positive
+          # "not yet created" every run (T001425 follow-up).
+          MSYS_NO_PATHCONV: "1"
         run: |
           # Close the brief exposure window: if downloads-content ALREADY exists
           # and is public, a `docker push` would re-expose the MSI layer before
@@ -129,23 +160,36 @@ jobs:
         shell: pwsh
         run: |
           $sha = "sha-$(git rev-parse --short HEAD)"
-          # Mechanism (Task 8 Step 2): the windows-latest runner ships Docker with
-          # a Linux engine available; build a linux/amd64 image via buildx so the
-          # static-web-server base (alpine) runs on the fleet nodes. The MSI never
-          # leaves the runner as a workflow artifact — it goes straight into the
-          # image layer and is pushed to the (private) GHCR package.
-          docker buildx create --use --name downloads-builder 2>$null | Out-Null
-          docker buildx build `
-            --platform linux/amd64 `
-            -f scripts/downloads.Dockerfile `
-            -t "ghcr.io/paddione/downloads-content:$sha" `
-            -t "ghcr.io/paddione/downloads-content:latest" `
-            --push .
+          $tagSha = "ghcr.io/paddione/downloads-content:$sha"
+          # scripts/downloads.Dockerfile has no RUN steps (FROM/COPY/ENV only),
+          # so the image can be assembled as pure OCI manifest/tar operations —
+          # no container execution or Linux daemon needed. Must match the base
+          # image in scripts/downloads.Dockerfile if that file changes.
+          $baseImage = "joseluisq/static-web-server:2.36-alpine"
+
+          New-Item -ItemType Directory -Force -Path layer-root/public | Out-Null
+          Copy-Item rustdesk-workspace-installer.exe layer-root/public/rustdesk-workspace-installer.exe
+          tar -cf layer.tar -C layer-root public
+          if ($LASTEXITCODE -ne 0) { Write-Error "tar failed ($LASTEXITCODE)"; exit $LASTEXITCODE }
+
+          .\crane.exe append -b $baseImage --platform linux/amd64 -f layer.tar -t $tagSha
+          if ($LASTEXITCODE -ne 0) { Write-Error "crane append failed ($LASTEXITCODE)"; exit $LASTEXITCODE }
+
+          .\crane.exe mutate $tagSha `
+            --env SERVER_ROOT=/public `
+            --env SERVER_PORT=8787 `
+            --env SERVER_CACHE_CONTROL_HEADERS=false `
+            -t $tagSha
+          if ($LASTEXITCODE -ne 0) { Write-Error "crane mutate failed ($LASTEXITCODE)"; exit $LASTEXITCODE }
+
+          .\crane.exe tag $tagSha latest
+          if ($LASTEXITCODE -ne 0) { Write-Error "crane tag failed ($LASTEXITCODE)"; exit $LASTEXITCODE }
 
       - name: Verify downloads-content package is private
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
+          MSYS_NO_PATHCONV: "1"
         run: |
           # REQ-RUSTDESK-CLIENT-003 backstop: a PUBLIC package lets anyone
           # `docker pull` the image and extract the baked unattended password from

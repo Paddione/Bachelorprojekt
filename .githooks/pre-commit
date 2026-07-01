@@ -30,14 +30,18 @@ if ! bash "$repo_root/scripts/git-crypt-guard.sh" check-staged; then
 fi
 
 # --- freshness: auto-regenerate generated artifacts before commit [T000581] ---
-# Prevents CI failures when new test/route/asset files are added without regenerating.
+# Prevents CI freshness failures by capturing every regen-produced file in
+# the same commit (see T001388). Keep this list in sync with `task
+# freshness:regenerate` and the FILES list in `Taskfile.yml` `freshness:check`.
 # Best-effort: never blocks the commit if task or node is unavailable.
 _FRESHNESS_FILES=(
   website/src/data/test-inventory.json
   website/src/data/route-manifest.json
   website/src/lib/learning-assets.generated.json
   website/public/learning-assets/THIRD-PARTY-ASSETS.md
+  website/src/data/openspec-status.json
   docs/code-quality/repo-index.json
+  docs/code-quality/loc-budget.json
   docs/agent-guide/10-ziele.md
   docs/agent-guide/20-werkzeuge.md
   docs/agent-guide/30-bausteine.md

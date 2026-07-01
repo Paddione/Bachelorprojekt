@@ -1,5 +1,27 @@
 # Changelog
 
+## [1.150.10](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.150.9...website-v1.150.10) (2026-07-01)
+
+
+### Bug Fixes
+
+* **scripts:** agent-lock reaps dead-PID claims + devflow-ci-watch exits 4 on CONFLICTING PRs + factory auto-close-merged (Mishap-Bundle) [T001415] ([#2471](https://github.com/Paddione/Bachelorprojekt/issues/2471)) ([d39116d](https://github.com/Paddione/Bachelorprojekt/commit/d39116d436f53cc70749ac20de934b2a4d3dbb25))
+
+## [1.150.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.150.8...website-v1.150.9) (2026-07-01)
+
+
+### Bug Fixes
+
+* **dev-flow:** add openspec-status.json + loc-budget.json to pre-commit auto-stage [T001388] ([#2468](https://github.com/Paddione/Bachelorprojekt/issues/2468)) ([58e72f3](https://github.com/Paddione/Bachelorprojekt/commit/58e72f38aaed93d82bc9bcd25b8cb0566c54ae2b))
+
+## [1.150.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.150.7...website-v1.150.8) (2026-07-01)
+
+
+### Bug Fixes
+
+* **dev-flow:** lavish reload-safety protocol prevents lost form input ([#2459](https://github.com/Paddione/Bachelorprojekt/issues/2459)) ([baba4ff](https://github.com/Paddione/Bachelorprojekt/commit/baba4ff1b0e4dfcba04c73104c9547a535277f9b))
+* **scripts:** add post-push origin/main divergence guard ([#2460](https://github.com/Paddione/Bachelorprojekt/issues/2460)) ([8e2507a](https://github.com/Paddione/Bachelorprojekt/commit/8e2507a7d99aa702397a3f918ea6c001706de270))
+
 ## [1.150.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.150.6...website-v1.150.7) (2026-07-01)
 
 

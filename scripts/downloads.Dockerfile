@@ -5,7 +5,7 @@ FROM joseluisq/static-web-server:2.36-alpine
 # visibility instead of the package's own private default. The enforced backstop
 # is the "Verify downloads-content package is private" step in
 # .github/workflows/build-rustdesk-installer.yml (REQ-RUSTDESK-CLIENT-003).
-COPY rustdesk-workspace-installer.msi /public/rustdesk-workspace-installer.msi
+COPY rustdesk-workspace-installer.exe /public/rustdesk-workspace-installer.exe
 ENV SERVER_ROOT=/public
 ENV SERVER_PORT=8787
 ENV SERVER_CACHE_CONTROL_HEADERS=false

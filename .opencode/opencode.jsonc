@@ -26,19 +26,6 @@
       "command": ["/home/patrick/.local/bin/codebase-memory-mcp"],
       "enabled": true
     },
-    "task-master-ai": {
-      "type": "local",
-      "command": ["npx", "-y", "task-master-ai"],
-      "environment": {
-        "OPENAI_API_KEY": "lmstudio",
-        "OPENAI_BASE_URL": "http://192.168.100.10:1234/v1",
-        "TASK_MASTER_MODEL": "hermes-3-llama-3.1-8b",
-        "TASK_MASTER_PROVIDER": "openai",
-        "OLLAMA_BASE_URL": "http://localhost:11434/api",
-        "TASK_MASTER_TOOLS": "all"
-      },
-      "enabled": true
-    },
     "mcp-task-runner": {
       "type": "local",
       "command": ["mcp-task-runner", "--otel-endpoint", "localhost:4317", "--taskfile", "/home/patrick/Bachelorprojekt/Taskfile.yml"],

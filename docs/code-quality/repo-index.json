@@ -2733,7 +2733,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 469,
+      "file_count": 470,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -2901,6 +2901,7 @@
         "scripts/docs-gen/tokenize.mjs",
         "scripts/docs-gen/tokenize.test.mjs",
         "scripts/docs.Dockerfile",
+        "scripts/downloads-index.html",
         "scripts/downloads.Dockerfile",
         "scripts/env-generate.sh",
         "scripts/env-resolve.sh",

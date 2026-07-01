@@ -38,7 +38,7 @@ depends_on_plans: []
 
 ## Vorgehen
 
-- [ ] **Task 0: Failing-Test ist bereits rot gegen `main` — `tests/spec/pocket-id-client-seed-auth-header.bats` (RED, Step 1)**
+- [x] **Task 0: Failing-Test ist bereits rot gegen `main` — `tests/spec/pocket-id-client-seed-auth-header.bats` (RED, Step 1)**
   - **Step 1: verify test fails against main's manifest (RED-Sanity, reproduces the bug):**
     ```bash
     git show main:k3d/pocket-id-client-seed.yaml | grep -qE 'AUTH="X-API-KEY: \$\{POCKET_ID_API_KEY\}"'
@@ -48,7 +48,7 @@ depends_on_plans: []
     2026-07-01): derselbe Key liefert mit `Authorization: Bearer` 401 "You are not signed in",
     mit `X-API-KEY` 200 OK.
 
-- [ ] **Task 1: Fix in `k3d/pocket-id-client-seed.yaml` anwenden (GREEN, Step 2)**
+- [x] **Task 1: Fix in `k3d/pocket-id-client-seed.yaml` anwenden (GREEN, Step 2)**
   - Datei: `k3d/pocket-id-client-seed.yaml`.
   - **Schritt 2a:** `AUTH="Authorization: Bearer ${POCKET_ID_API_KEY}"` →
     `AUTH="X-API-KEY: ${POCKET_ID_API_KEY}"` (Zeile mit der `AUTH=`-Zuweisung im `seed`-Container-Command).
@@ -59,14 +59,14 @@ depends_on_plans: []
   - **Schritt 2c:** Kurzer Inline-Kommentar direkt über der `AUTH=`-Zeile, der den Grund für
     `X-API-KEY` statt `Authorization: Bearer` festhält (nicht offensichtlich aus dem Code selbst).
 
-- [ ] **Task 2: GREEN-Sanity — der neue Test ist jetzt grün**
+- [x] **Task 2: GREEN-Sanity — der neue Test ist jetzt grün**
   - **Step 2: run the test, expect PASS (GREEN) after fix is applied:**
     ```bash
     tests/unit/lib/bats-core/bin/bats tests/spec/pocket-id-client-seed-auth-header.bats
     ```
     **expected:** beide Tests `ok`.
 
-- [ ] **Task 3: Final Verification — mandatory CI gates**
+- [x] **Task 3: Final Verification — mandatory CI gates**
   ```bash
   task test:changed
   task freshness:regenerate

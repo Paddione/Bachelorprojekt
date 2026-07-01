@@ -120,6 +120,10 @@ runcmd:
   - ufw allow 5349/tcp     # coturn TURNS (TLS TURN — iOS/iPhone)
   - ufw allow 49152:49252/udp  # coturn TURN relay port range
   - ufw allow 20000:20200/udp  # Janus SFU RTP media (Talk HPB; required for >3-participant calls)
+  - ufw allow 21115/tcp     # RustDesk hbbs NAT-type test
+  - ufw allow 21116/tcp     # RustDesk hbbs ID registration / TCP hole punching
+  - ufw allow 21116/udp     # RustDesk hbbs ID registration / heartbeat (UDP)
+  - ufw allow 21117/tcp     # RustDesk hbbr relay
   - ufw allow 2379:2380/tcp
   # LiveKit ports — Hetzner host firewall blocks inter-node traffic on every
   # port except 80/443 by default. Without these the host-network livekit-server

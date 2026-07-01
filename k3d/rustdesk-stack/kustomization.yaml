@@ -1,0 +1,13 @@
+# ═══════════════════════════════════════════════════════════════════
+# rustdesk-stack — hbbs/hbbr relay in a dedicated privileged ns
+# ═══════════════════════════════════════════════════════════════════
+# Applied by `task fleet:shared-services` (once, for both brands).
+# Pinned to a single public node via the ${TURN_NODE} envsubst var.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - namespace.yaml
+  - secret.yaml
+  - hbbs.yaml
+  - hbbr.yaml

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-01T12:49:24.178Z",
+  "generatedAt": "2026-07-01T13:41:44.872Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -276,6 +276,12 @@
       "namespace": "mentolder",
       "type": "Deployment",
       "name": "oauth2-proxy-mediaviewer"
+    },
+    {
+      "id": "oauth2-proxy-rustdesk-web",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "oauth2-proxy-rustdesk-web"
     },
     {
       "id": "oauth2-proxy-studio",
@@ -1235,6 +1241,12 @@
     },
     {
       "from": "traefik",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "ingress",
+      "kind": "ingress"
+    },
+    {
+      "from": "traefik",
       "to": "livekit-server",
       "via": "ingress",
       "kind": "ingress"
@@ -1781,6 +1793,18 @@
     },
     {
       "from": "admin-actions-cleanup",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "admin-actions-cleanup",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "admin-actions-cleanup",
       "to": "oauth2-proxy-studio",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -2213,6 +2237,18 @@
     },
     {
       "from": "admin-actions-prune",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "admin-actions-prune",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "admin-actions-prune",
       "to": "oauth2-proxy-studio",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -2633,6 +2669,18 @@
     },
     {
       "from": "sessions-purge",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "sessions-purge",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sessions-purge",
       "to": "oauth2-proxy-studio",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -3041,6 +3089,18 @@
     },
     {
       "from": "db-backup",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "db-backup",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "db-backup",
       "to": "oauth2-proxy-studio",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -3437,6 +3497,18 @@
     },
     {
       "from": "brett",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "brett",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "brett",
       "to": "oauth2-proxy-studio",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -3821,6 +3893,18 @@
     },
     {
       "from": "billing-dunning-detection",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "billing-dunning-detection",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "billing-dunning-detection",
       "to": "oauth2-proxy-studio",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -4193,6 +4277,18 @@
     },
     {
       "from": "monthly-billing",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "monthly-billing",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "monthly-billing",
       "to": "oauth2-proxy-studio",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -4553,6 +4649,18 @@
     },
     {
       "from": "scheduled-publish",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "scheduled-publish",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "scheduled-publish",
       "to": "oauth2-proxy-studio",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -4901,6 +5009,18 @@
     },
     {
       "from": "oauth2-proxy-dev",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "oauth2-proxy-dev",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-dev",
       "to": "oauth2-proxy-studio",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -5237,6 +5357,18 @@
     },
     {
       "from": "knowledge-ingest-prs",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "knowledge-ingest-prs",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "knowledge-ingest-prs",
       "to": "oauth2-proxy-studio",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -5561,6 +5693,18 @@
     },
     {
       "from": "knowledge-ingest-bugs",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "knowledge-ingest-bugs",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "knowledge-ingest-bugs",
       "to": "oauth2-proxy-studio",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -5873,6 +6017,18 @@
     },
     {
       "from": "knowledge-reindex-all",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "knowledge-reindex-all",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "knowledge-reindex-all",
       "to": "oauth2-proxy-studio",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -6173,6 +6329,18 @@
     },
     {
       "from": "livekit-server",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "livekit-server",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-server",
       "to": "oauth2-proxy-studio",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -6461,6 +6629,18 @@
     },
     {
       "from": "livekit-ingress",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "livekit-ingress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-ingress",
       "to": "oauth2-proxy-studio",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -6737,6 +6917,18 @@
     },
     {
       "from": "livekit-egress",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
       "to": "oauth2-proxy-studio",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7001,6 +7193,18 @@
     },
     {
       "from": "nextcloud",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "nextcloud",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "nextcloud",
       "to": "oauth2-proxy-studio",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7253,6 +7457,18 @@
     },
     {
       "from": "notify-unread",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "notify-unread",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "notify-unread",
       "to": "oauth2-proxy-studio",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7493,6 +7709,18 @@
     },
     {
       "from": "oauth2-proxy-brett",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "oauth2-proxy-brett",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brett",
       "to": "oauth2-proxy-studio",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7721,6 +7949,18 @@
     },
     {
       "from": "oauth2-proxy-comfy",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "oauth2-proxy-comfy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-comfy",
       "to": "oauth2-proxy-studio",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7937,6 +8177,18 @@
     },
     {
       "from": "oauth2-proxy-docs",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "oauth2-proxy-docs",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-docs",
       "to": "oauth2-proxy-studio",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -8141,6 +8393,18 @@
     },
     {
       "from": "oauth2-proxy-downloads",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "oauth2-proxy-downloads",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-downloads",
       "to": "oauth2-proxy-studio",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -8333,6 +8597,18 @@
     },
     {
       "from": "oauth2-proxy-mailpit",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "oauth2-proxy-mailpit",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mailpit",
       "to": "oauth2-proxy-studio",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -8513,6 +8789,18 @@
     },
     {
       "from": "oauth2-proxy-mediaviewer",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
       "to": "oauth2-proxy-studio",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -8688,6 +8976,186 @@
     {
       "from": "ddns-updater",
       "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "oauth2-proxy-studio",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-studio",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "oauth2-proxy-traefik",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-traefik",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "pocket-id",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "pocket-id",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "oauth2-proxy-recovery",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-recovery",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "shared-db",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "shared-db",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "studio-server",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "studio-server",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "spreed-signaling",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "spreed-signaling",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "talk-recording",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "talk-recording",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "vaultwarden",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "vaultwarden",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "whiteboard",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "whiteboard",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "talk-transcriber",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "talk-transcriber",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "ddns-updater",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "ddns-updater",
+      "to": "oauth2-proxy-rustdesk-web",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },

@@ -31,6 +31,7 @@ env_vars:
   WEBSITE_NODE_AFFINITY: '["pk-hetzner-4","pk-hetzner-6","pk-hetzner-8"]'
   TURN_PUBLIC_IP: "204.168.244.104"
   TURN_NODE: "pk-hetzner-4"
+  TURN_OVERLAY_IP: "10.20.0.1"
   NEXTCLOUD_EXTERNAL_URL: "https://files.mentolder.de"
   DOCS_URL: "https://docs.mentolder.de"
   AUTH_EXTERNAL_URL: "https://auth.mentolder.de"

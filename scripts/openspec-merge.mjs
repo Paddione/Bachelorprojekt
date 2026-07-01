@@ -6,7 +6,7 @@
 // `**Renamed-to:**` directive, or an unedited skeleton stub.
 //   node scripts/openspec-merge.mjs apply <deltaPath> <ssotPath>
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs'
-import { dirname, basename } from 'node:path'
+import { dirname, basename, join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
 const REQ = /^### Requirement: (.+?)\s*$/
@@ -83,6 +83,13 @@ export function applyDelta(deltaPath, ssotPath, today = new Date().toISOString()
     }
     mkdirSync(dirname(ssotPath), { recursive: true })
     writeFileSync(ssotPath, `# ${basename(ssotPath, '.md')}\n\n## Purpose\n\nSSOT spec.\n\n## Requirements\n`)
+    try {
+      const openspecRoot = dirname(dirname(ssotPath))
+      registerComponent(openspecRoot, basename(ssotPath, '.md'))
+    } catch (e) {
+      // Best-effort: never abort archive/apply because of config.yaml registration.
+      process.stderr.write(`WARN: registerComponent failed (non-fatal): ${e.message}\n`)
+    }
   }
   let content = readFileSync(ssotPath, 'utf-8')
   const marker = `<!-- merged from change delta ${deltaName} on ${today} -->`
@@ -113,6 +120,38 @@ export function applyDelta(deltaPath, ssotPath, today = new Date().toISOString()
   lines.push('', marker)
   writeFileSync(ssotPath, lines.join('\n').replace(/\n{3,}/g, '\n\n'))
   return 0
+}
+
+// Idempotently register a newly-created SSOT component slug into
+// openspec/config.yaml's `OpenSpec-Komponenten` list (T001389 — closes the
+// T001304 CI drift gate without a manual follow-up commit). Best-effort: any
+// unexpected config.yaml shape is a silent no-op, never a thrown error.
+export function registerComponent(openspecRoot, slug) {
+  const configPath = join(openspecRoot, 'config.yaml')
+  if (!existsSync(configPath)) return false
+
+  const lines = readFileSync(configPath, 'utf-8').split('\n')
+  const headerIdx = lines.findIndex(l => /^\s*OpenSpec-Komponenten:\s*\|\s*$/.test(l))
+  if (headerIdx === -1) return false
+
+  let end = headerIdx + 1
+  while (end < lines.length && /^\s+\S/.test(lines[end])) end++
+  const bodyLines = lines.slice(headerIdx + 1, end)
+  if (bodyLines.length === 0) return false
+
+  const existing = new Set(
+    bodyLines.join('\n').split(/[\n,]+/).map(s => s.trim()).filter(Boolean)
+  )
+  if (existing.has(slug)) return false
+
+  const indent = (bodyLines[0].match(/^\s*/) || [''])[0] || '    '
+  const lastIdx = end - 1
+  if (!/,\s*$/.test(lines[lastIdx])) {
+    lines[lastIdx] = lines[lastIdx].replace(/\s+$/, '') + ','
+  }
+  lines.splice(end, 0, `${indent}${slug}`)
+  writeFileSync(configPath, lines.join('\n'))
+  return true
 }
 
 function main(argv) {

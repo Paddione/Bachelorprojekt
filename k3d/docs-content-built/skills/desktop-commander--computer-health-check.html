@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>computer-health-check — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
+  <div id="search-box">
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
+  </div>
+</div>
+<div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Dev-Workflow</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-architect.html">code-architect</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-explorer.html">code-explorer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/code-simplifier--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--comment-analyzer.html">comment-analyzer</a></li><li class="sidebar-item"><a href="../skills/dev-flow-e2e.html">dev-flow-e2e</a></li><li class="sidebar-item"><a href="../skills/dev-flow-execute.html">dev-flow-execute</a></li><li class="sidebar-item"><a href="../skills/dev-flow-plan.html">dev-flow-plan</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--pr-test-analyzer.html">pr-test-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--silent-failure-hunter.html">Silent Failure Hunter</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--type-design-analyzer.html">type-design-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Bachelorprojekt-Infra</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/cluster-deployment.html">cluster-deployment</a></li><li class="sidebar-item"><a href="../skills/database-ops.html">database-ops</a></li><li class="sidebar-item"><a href="../skills/host-node-networking.html">host-node-networking</a></li><li class="sidebar-item"><a href="../skills/keycloak-realm-sync.html">keycloak-realm-sync</a></li><li class="sidebar-item"><a href="../skills/mishap-tracker.html">mishap-tracker</a></li><li class="sidebar-item"><a href="../skills/operations-management.html">operations-management</a></li><li class="sidebar-item"><a href="../skills/secret-rotation.html">secret-rotation</a></li><li class="sidebar-item"><a href="../skills/update-dependencies.html">update-dependencies</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">KI / ML</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Plugin- &amp; Skill-Bau</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../agents/plugin-dev--agent-creator.html">agent-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--agent-development.html">agent-development</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-py.html">agent-sdk-verifier-py</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-ts.html">agent-sdk-verifier-ts</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--command-development.html">command-development</a></li><li class="sidebar-item"><a href="../agents/hookify--conversation-analyzer.html">conversation-analyzer</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--hook-development.html">hook-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--mcp-integration.html">mcp-integration</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-settings.html">plugin-settings</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-structure.html">plugin-structure</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--plugin-validator.html">plugin-validator</a></li><li class="sidebar-item"><a href="../skills/skill-creator--skill-creator.html">skill-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--skill-development.html">skill-development</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--skill-reviewer.html">skill-reviewer</a></li><li class="sidebar-item"><a href="../skills/hookify--writing-rules.html">writing-hookify-rules</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Browser &amp; Debugging</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers-chrome--browsing.html">browsing</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">MCP &amp; API</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/postman--agent-ready-apis.html">agent-ready-apis</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-app.html">build-mcp-app</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-server.html">build-mcp-server</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcpb.html">build-mcpb</a></li><li class="sidebar-item"><a href="../skills/postman--generate-spec.html">generate-spec</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--mcp-cli.html">mcp-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-cli.html">postman-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-context.html">postman-context</a></li><li class="sidebar-item"><a href="../skills/postman--postman-knowledge.html">postman-knowledge</a></li><li class="sidebar-item"><a href="../skills/postman--run-collection.html">run-collection</a></li><li class="sidebar-item"><a href="../skills/postman--send-request.html">send-request</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">Claude Code &amp; Tooling</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/brightdata-plugin--agent-onboarding.html">agent-onboarding</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--ai-tools-setup.html">ai-tools-setup</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--ai-tools-setup.html">ai-tools-setup</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brand-listening.html">brand-listening</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brd-browser-debug.html">brd-browser-debug</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-best-practices.html">bright-data-best-practices</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-mcp.html">bright-data-mcp</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brightdata-cli.html">brightdata-cli</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--proxy.html">brightdata-proxy</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--python-sdk-best-practices.html">brightdata-sdk</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--js-sdk-best-practices.html">brightdata-sdk-js</a></li><li class="sidebar-item"><a href="../skills/claude-code-setup--claude-automation-recommender.html">claude-automation-recommender</a></li><li class="sidebar-item"><a href="../skills/claude-md-management--claude-md-improver.html">claude-md-improver</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--competitive-intel.html">competitive-intel</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/desktop-commander--computer-health-check.html" aria-current="page">computer-health-check</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/desktop-commander--computer-health-check.html" aria-current="page">computer-health-check</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--data-feeds.html">data-feeds</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--design-mirror.html">design-mirror</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/dev-flow-chore.html">dev-flow-chore</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--developing-claude-code-plugins.html">developing-claude-code-plugins</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--discover-api.html">discover-api</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--finding-duplicate-functions.html">finding-duplicate-functions</a></li><li class="sidebar-item"><a href="../skills/frontend-design--frontend-design.html">frontend-design</a></li><li class="sidebar-item"><a href="../skills/git-workflow.html">Git Workflow — vollständiger Lifecycle für dieses Repo</a></li><li class="sidebar-item"><a href="../skills/incident-response.html">incident-response</a></li><li class="sidebar-item"><a href="../skills/infra-ops.html">infra-ops — Unified Infrastructure Runbook</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--knowledge-base.html">knowledge-base</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--knowledge-base.html">knowledge-base</a></li><li class="sidebar-item"><a href="../skills/lavish.html">lavish</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--live-research.html">live-research</a></li><li class="sidebar-item"><a href="../skills/llm-ops.html">llm-ops</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--obsidian-vault.html">obsidian-vault</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--obsidian-vault.html">obsidian-vault</a></li><li class="sidebar-item"><a href="../skills/openspec-apply-change.html">openspec-apply-change</a></li><li class="sidebar-item"><a href="../skills/openspec-archive-change.html">openspec-archive-change</a></li><li class="sidebar-item"><a href="../skills/openspec-explore.html">openspec-explore</a></li><li class="sidebar-item"><a href="../skills/openspec-propose.html">openspec-propose</a></li><li class="sidebar-item"><a href="../skills/playground--playground.html">playground</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--price-comparison.html">price-comparison</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--rag-pipeline.html">rag-pipeline</a></li><li class="sidebar-item"><a href="../skills/references.html">references</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/repo-hygiene.html">repo-hygiene</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scrape.html">scrape</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-builder.html">scraper-builder</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-studio.html">scraper-studio</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--search.html">search</a></li><li class="sidebar-item"><a href="../skills/sourcegraph--searching-sourcegraph.html">searching-sourcegraph</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--seo-audit.html">seo-audit</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--terminal.html">terminal</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--terminal.html">terminal</a></li><li class="sidebar-item"><a href="../skills/ticket-ops.html">ticket-ops</a></li><li class="sidebar-item"><a href="../skills/braintrust--troubleshoot-braintrust-mcp.html">troubleshoot-braintrust-mcp</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--using-tmux-for-interactive-commands.html">using-tmux-for-interactive-commands</a></li><li class="sidebar-item"><a href="../skills/vitest.html">vitest</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--windows-vm.html">windows-vm</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--working-with-claude-code.html">working-with-claude-code</a></li><li class="sidebar-item"><a href="../skills/workspace-deploy.html">workspace-deploy</a></li></ul></details>
+</aside>
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">computer-health-check</span></nav>
+    <h1>computer-health-check</h1>
+    <p class="page-desc">Run a comprehensive, read-only health check on the user's computer and return a scored chat summary with prioritized, plain-English recommendations and safe cleanup suggestions. Use this whenever the user wants to check their computer's health, speed it up, free up / reclaim disk space, find what's eating CPU / memory / storage, check battery health and wear, audit login &amp; startup items, see pending updates, or asks for a &quot;tune-up&quot;, &quot;checkup&quot;, &quot;system report&quot;, &quot;health check&quot;, or &quot;is my Mac/PC/laptop healthy&quot;. Trigger even on casual phrasing like &quot;my laptop feels slow&quot;, &quot;why is my fan so loud&quot;, &quot;my computer is laggy&quot;, &quot;running out of space&quot;, or &quot;clean up my machine&quot;. Works on macOS, Windows, and Linux. This is a Desktop Commander skill: it relies on a real local shell (start_process / interact_with_process) and is strictly read-only by default — it never needs sudo and only performs cleanups the user explicitly approves.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">desktop-commander</span> <span class="pv-ver">0.2.0</span></span>
+      <span class="domain-tag">ops</span>
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Computer Health Check</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#what-this-skill-does"><span class="toc-num">1.</span> What this skill does</a></li>
+<li class="toc-item"><a href="#the-safety-contract-read-this-first"><span class="toc-num">2.</span> The safety contract (read this first)</a></li>
+<li class="toc-item"><a href="#workflow"><span class="toc-num">3.</span> Workflow</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-1--detect-the-os"><span class="toc-num">–</span> Step 1 — Detect the OS</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-2--collect-read-only"><span class="toc-num">–</span> Step 2 — Collect (read-only)</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-3--score-each-area"><span class="toc-num">–</span> Step 3 — Score each area</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-4--report-in-the-chat"><span class="toc-num">–</span> Step 4 — Report in the chat</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-5--suggest-cleanups-execute-only-on-approval"><span class="toc-num">–</span> Step 5 — Suggest cleanups, execute only on approval</a></li>
+<li class="toc-item"><a href="#recommendation-rules-findings--advice"><span class="toc-num">4.</span> Recommendation rules (findings → advice)</a></li>
+<li class="toc-item"><a href="#notes--pitfalls"><span class="toc-num">5.</span> Notes &amp; pitfalls</a></li></ul>
+</div>
+<h2 id="what-this-skill-does">What this skill does</h2>
+<p>Give the user a fast, trustworthy picture of their computer's health and a short list
+of actions worth taking — the way a good technician would: look first, explain plainly,
+fix only with permission.</p>
+<p>It runs entirely through Desktop Commander's local shell, gathers a batch of <strong>read-only</strong>
+diagnostics, scores each area, prints a concise summary <strong>in the chat</strong>, and then offers
+cleanup suggestions the user can approve one by one.</p>
+<h2 id="the-safety-contract-read-this-first">The safety contract (read this first)</h2>
+<p>This is the part that makes users trust the skill, so honor it strictly:</p>
+<ul>
+<li><strong>Read-only by default.</strong> The collection phase only <em>observes</em> (sizes, counts, status).
+It changes nothing.</li>
+<li><strong>Never use <code>sudo</code> or elevation.</strong> DC blocks <code>sudo</code>, <code>shutdown</code>, <code>reboot</code>, <code>dd</code>, <code>mount</code>,
+<code>mkfs</code>, <code>diskpart</code>, etc. for good reason. Every check below is designed to work without
+them. If something seems to need elevation, skip it and say so — don't try to work around
+the block.</li>
+<li><strong>Cleanups are opt-in.</strong> You may <em>suggest</em> cleanups freely, but only <em>execute</em> one after
+the user explicitly approves that specific action, and only show the exact command first.</li>
+<li><strong>Prefer reversible, non-destructive actions.</strong> Emptying caches that regenerate, clearing
+a package-manager download cache, or emptying Trash are fine to offer. Deleting user
+documents, uninstalling apps, or editing system files are not — suggest those, let the
+user do them.</li>
+</ul>
+<h2 id="workflow">Workflow</h2>
+<h3 id="step-1--detect-the-os">Step 1 — Detect the OS</h3>
+<p>Determine the platform before doing anything else, because the commands differ.</p>
+<ul>
+<li>Quickest: read Desktop Commander's config (<code>get_config</code>) and use the
+<code>systemInfo.isMacOS</code> / <code>isWindows</code> / <code>isLinux</code> booleans (or <code>platformName</code>) to
+pick the platform.</li>
+<li>Or run <code>uname</code> (macOS/Linux) — if it fails, assume Windows.</li>
+</ul>
+<p>Then open the matching reference file and use its command set:</p>
+<ul>
+<li>macOS → <code>references/macos.md</code></li>
+<li>Windows → <code>references/windows.md</code></li>
+<li>Linux → <code>references/linux.md</code></li>
+</ul>
+<p>Read <strong>only</strong> the one that matches. Each file contains a single batched collection script
+plus interpretation notes and cleanup commands.</p>
+<h3 id="step-2--collect-read-only">Step 2 — Collect (read-only)</h3>
+<p>Run the batched collection script from the reference file with <code>start_process</code>. Batching
+everything into one call is much faster than many small calls and keeps the output tidy.</p>
+<p>Guidance:</p>
+<ul>
+<li>Keep outputs bounded (<code>head</code>, <code>Select-Object -First</code>, etc.) so a long process list or
+file listing doesn't flood the response.</li>
+<li>Skip the genuinely slow / network checks (full OS-update list, internet speed test) on the
+first pass unless the user asked about updates or network. Mention they're available.</li>
+<li>If a single command errors (e.g., a tool isn't installed), continue — partial data is fine.</li>
+</ul>
+<h3 id="step-3--score-each-area">Step 3 — Score each area</h3>
+<p>Rate each category 🟢 Good / 🟡 Watch / 🔴 Act using the rubric below, then compute a simple
+overall score. Start at 100 and subtract 8 per 🟡 and 18 per 🔴; floor at 0. Report the
+number and a one-word verdict (90+ Excellent, 75–89 Good, 60–74 Fair, &lt;60 Needs attention).</p>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>🟢 Good</th>
+<th>🟡 Watch</th>
+<th>🔴 Act</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Free disk space</td>
+<td>&gt;20% free</td>
+<td>10–20%</td>
+<td>&lt;10%</td>
+</tr>
+<tr>
+<td>Disk health (SMART)</td>
+<td>Verified / OK / PASSED</td>
+<td>—</td>
+<td>failing / not supported &amp; errors present</td>
+</tr>
+<tr>
+<td>Memory pressure</td>
+<td>low swap, free pages healthy</td>
+<td>noticeable swap/compression</td>
+<td>heavy swapping, near-zero free</td>
+</tr>
+<tr>
+<td>Battery (laptops)</td>
+<td>≥80% max capacity, Normal</td>
+<td>70–80%</td>
+<td>&lt;70% or "Service/Replace"</td>
+</tr>
+<tr>
+<td>Maintenance</td>
+<td>uptime &lt;7d, no pending updates</td>
+<td>uptime 7–30d or minor updates</td>
+<td>uptime &gt;30d or security updates pending</td>
+</tr>
+<tr>
+<td>Startup load</td>
+<td>few third-party login items</td>
+<td>moderate</td>
+<td>many heavy third-party agents</td>
+</tr>
+<tr>
+<td>Live resource hogs</td>
+<td>nothing &gt;50% at idle</td>
+<td>one sustained heavy process</td>
+<td>multiple / runaway processes</td>
+</tr>
+</tbody></table>
+<p>Battery is laptop-only — skip it on desktops/VMs. Reclaimable space is reported as an
+informational figure, not scored.</p>
+<h3 id="step-4--report-in-the-chat">Step 4 — Report in the chat</h3>
+<p>Use this exact structure. Keep it tight and scannable — this is the deliverable.</p>
+<div class="code-wrapper"><pre><code>🖥️  Health Check — &lt;Model&gt;, &lt;OS version&gt;     Score: &lt;N&gt;/100 (&lt;verdict&gt;)
+
+🟢/🟡/🔴  Storage      — &lt;free&gt; free of &lt;total&gt; (&lt;%&gt;). Reclaimable: ~&lt;X&gt; GB
+🟢/🟡/🔴  Memory       — &lt;one-line state&gt;
+🟢/🟡/🔴  Battery      — &lt;cycles&gt; cycles, &lt;max capacity&gt;%, &lt;condition&gt;
+🟢/🟡/🔴  Maintenance  — up &lt;days&gt;d, &lt;updates state&gt;
+🟢/🟡/🔴  Startup      — &lt;count&gt; login items (&lt;notable ones&gt;)
+🟢/🟡/🔴  Right now    — top: &lt;proc&gt; &lt;cpu%&gt;, &lt;proc&gt; &lt;cpu%&gt;
+
+Top recommendations
+1. &lt;highest-impact action&gt; (&lt;expected benefit, e.g. frees ~13 GB&gt;)
+2. &lt;next&gt;
+3. &lt;next&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>List at most the 3–5 highest-impact recommendations, ordered by benefit. Don't dump every
+finding — the goal is signal, not a wall of text.</p>
+<h3 id="step-5--suggest-cleanups-execute-only-on-approval">Step 5 — Suggest cleanups, execute only on approval</h3>
+<p>For each recommendation that maps to a concrete command (see the reference file's "Cleanup"
+section), offer it and show the exact command. Then:</p>
+<ul>
+<li><strong>Safe, reversible</strong> (offer to run on a yes): empty Trash, package-manager cache cleanup
+(<code>brew cleanup</code>, <code>npm cache clean</code>), clearing a regenerating user cache folder. (On Linux,
+<code>apt-get clean</code> / <code>dnf clean</code> need root — suggest, don't auto-run.)</li>
+<li><strong>Needs the user to decide / act</strong> (suggest, don't auto-run): disabling login items,
+installing OS updates (requires restart), uninstalling apps, deleting files in Downloads.</li>
+<li><strong>Never</strong>: anything requiring sudo/admin, removing system files, disk/partition operations.</li>
+</ul>
+<p>When the user approves a safe action, run it, then report what changed (e.g., space freed).
+Re-running Step 2's storage check afterward is a nice confirmation.</p>
+<h2 id="recommendation-rules-findings--advice">Recommendation rules (findings → advice)</h2>
+<p>These are the high-value mappings; adapt the wording to the platform.</p>
+<ul>
+<li><strong>Uptime &gt; 30 days</strong> → "Restart your computer — it's been up <n> days. A reboot clears
+memory and applies pending updates." (Highest ROI, lowest effort.)</n></li>
+<li><strong>Pending OS/security updates</strong> → platform update step; flag security updates as higher
+priority.</li>
+<li><strong>Free space &lt; 15%</strong> → lead with the biggest reclaimable buckets you measured.</li>
+<li><strong>Large Downloads / Caches / Trash</strong> → empty Trash; review largest Downloads items by name;
+clear caches that regenerate.</li>
+<li><strong>Package manager has many outdated items / big cache</strong> → <code>upgrade</code> + cache cleanup.</li>
+<li><strong>Battery max capacity &lt; 80%</strong> → explain wear is normal; consider a battery service if it's
+affecting runtime.</li>
+<li><strong>Many third-party startup agents</strong> → name them and suggest disabling the ones the user
+doesn't recognize/need (point to System Settings / Task Manager — don't edit them directly).</li>
+<li><strong>A process pinned high at idle</strong> → name it and suggest quitting/investigating.</li>
+</ul>
+<h2 id="notes--pitfalls">Notes &amp; pitfalls</h2>
+<ul>
+<li><strong>Don't assume — measure.</strong> Always run the commands and report real numbers. Never
+fabricate sizes, cycle counts, or statuses.</li>
+<li><strong>Bounded output.</strong> Process and file listings can be huge; always cap them.</li>
+<li><strong>Optional deep checks</strong> (mention, run on request): internet speed test, full update list,
+per-folder disk scan of the whole home directory, crash-report trend analysis.</li>
+<li><strong>Privacy.</strong> This reads local system metadata only. Don't send anything off the machine;
+the public-IP check is optional and should be labeled.</li>
+<li><strong>Cross-platform parity.</strong> The three reference files mirror the same categories so the
+report looks the same regardless of OS.</li>
+</ul>
+</body></html>
+</article>
+
+<nav class="prevnext" aria-label="Seitennavigation"><a class="prevnext-link prevnext-prev" href="../skills/desktop-commander--computer-health-check.html"><span class="prevnext-label">← Zurück</span><span class="prevnext-title">computer-health-check</span></a><a class="prevnext-link prevnext-next" href="../skills/brightdata-plugin--data-feeds.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">data-feeds</span></a></nav>
+  </main>
+</div>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

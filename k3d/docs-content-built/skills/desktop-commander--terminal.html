@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>terminal — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
+  <div id="search-box">
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
+  </div>
+</div>
+<div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Dev-Workflow</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-architect.html">code-architect</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-explorer.html">code-explorer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/code-simplifier--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--comment-analyzer.html">comment-analyzer</a></li><li class="sidebar-item"><a href="../skills/dev-flow-e2e.html">dev-flow-e2e</a></li><li class="sidebar-item"><a href="../skills/dev-flow-execute.html">dev-flow-execute</a></li><li class="sidebar-item"><a href="../skills/dev-flow-plan.html">dev-flow-plan</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--pr-test-analyzer.html">pr-test-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--silent-failure-hunter.html">Silent Failure Hunter</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--type-design-analyzer.html">type-design-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Bachelorprojekt-Infra</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/cluster-deployment.html">cluster-deployment</a></li><li class="sidebar-item"><a href="../skills/database-ops.html">database-ops</a></li><li class="sidebar-item"><a href="../skills/host-node-networking.html">host-node-networking</a></li><li class="sidebar-item"><a href="../skills/keycloak-realm-sync.html">keycloak-realm-sync</a></li><li class="sidebar-item"><a href="../skills/mishap-tracker.html">mishap-tracker</a></li><li class="sidebar-item"><a href="../skills/operations-management.html">operations-management</a></li><li class="sidebar-item"><a href="../skills/secret-rotation.html">secret-rotation</a></li><li class="sidebar-item"><a href="../skills/update-dependencies.html">update-dependencies</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">KI / ML</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Plugin- &amp; Skill-Bau</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../agents/plugin-dev--agent-creator.html">agent-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--agent-development.html">agent-development</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-py.html">agent-sdk-verifier-py</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-ts.html">agent-sdk-verifier-ts</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--command-development.html">command-development</a></li><li class="sidebar-item"><a href="../agents/hookify--conversation-analyzer.html">conversation-analyzer</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--hook-development.html">hook-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--mcp-integration.html">mcp-integration</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-settings.html">plugin-settings</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-structure.html">plugin-structure</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--plugin-validator.html">plugin-validator</a></li><li class="sidebar-item"><a href="../skills/skill-creator--skill-creator.html">skill-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--skill-development.html">skill-development</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--skill-reviewer.html">skill-reviewer</a></li><li class="sidebar-item"><a href="../skills/hookify--writing-rules.html">writing-hookify-rules</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Browser &amp; Debugging</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers-chrome--browsing.html">browsing</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">MCP &amp; API</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/postman--agent-ready-apis.html">agent-ready-apis</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-app.html">build-mcp-app</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-server.html">build-mcp-server</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcpb.html">build-mcpb</a></li><li class="sidebar-item"><a href="../skills/postman--generate-spec.html">generate-spec</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--mcp-cli.html">mcp-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-cli.html">postman-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-context.html">postman-context</a></li><li class="sidebar-item"><a href="../skills/postman--postman-knowledge.html">postman-knowledge</a></li><li class="sidebar-item"><a href="../skills/postman--run-collection.html">run-collection</a></li><li class="sidebar-item"><a href="../skills/postman--send-request.html">send-request</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">Claude Code &amp; Tooling</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/brightdata-plugin--agent-onboarding.html">agent-onboarding</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--ai-tools-setup.html">ai-tools-setup</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--ai-tools-setup.html">ai-tools-setup</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brand-listening.html">brand-listening</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brd-browser-debug.html">brd-browser-debug</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-best-practices.html">bright-data-best-practices</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-mcp.html">bright-data-mcp</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brightdata-cli.html">brightdata-cli</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--proxy.html">brightdata-proxy</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--python-sdk-best-practices.html">brightdata-sdk</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--js-sdk-best-practices.html">brightdata-sdk-js</a></li><li class="sidebar-item"><a href="../skills/claude-code-setup--claude-automation-recommender.html">claude-automation-recommender</a></li><li class="sidebar-item"><a href="../skills/claude-md-management--claude-md-improver.html">claude-md-improver</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--competitive-intel.html">competitive-intel</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--computer-health-check.html">computer-health-check</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--computer-health-check.html">computer-health-check</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--data-feeds.html">data-feeds</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--design-mirror.html">design-mirror</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/dev-flow-chore.html">dev-flow-chore</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--developing-claude-code-plugins.html">developing-claude-code-plugins</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--discover-api.html">discover-api</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--finding-duplicate-functions.html">finding-duplicate-functions</a></li><li class="sidebar-item"><a href="../skills/frontend-design--frontend-design.html">frontend-design</a></li><li class="sidebar-item"><a href="../skills/git-workflow.html">Git Workflow — vollständiger Lifecycle für dieses Repo</a></li><li class="sidebar-item"><a href="../skills/incident-response.html">incident-response</a></li><li class="sidebar-item"><a href="../skills/infra-ops.html">infra-ops — Unified Infrastructure Runbook</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--knowledge-base.html">knowledge-base</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--knowledge-base.html">knowledge-base</a></li><li class="sidebar-item"><a href="../skills/lavish.html">lavish</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--live-research.html">live-research</a></li><li class="sidebar-item"><a href="../skills/llm-ops.html">llm-ops</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--obsidian-vault.html">obsidian-vault</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--obsidian-vault.html">obsidian-vault</a></li><li class="sidebar-item"><a href="../skills/openspec-apply-change.html">openspec-apply-change</a></li><li class="sidebar-item"><a href="../skills/openspec-archive-change.html">openspec-archive-change</a></li><li class="sidebar-item"><a href="../skills/openspec-explore.html">openspec-explore</a></li><li class="sidebar-item"><a href="../skills/openspec-propose.html">openspec-propose</a></li><li class="sidebar-item"><a href="../skills/playground--playground.html">playground</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--price-comparison.html">price-comparison</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--rag-pipeline.html">rag-pipeline</a></li><li class="sidebar-item"><a href="../skills/references.html">references</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/repo-hygiene.html">repo-hygiene</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scrape.html">scrape</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-builder.html">scraper-builder</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-studio.html">scraper-studio</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--search.html">search</a></li><li class="sidebar-item"><a href="../skills/sourcegraph--searching-sourcegraph.html">searching-sourcegraph</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--seo-audit.html">seo-audit</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/desktop-commander--terminal.html" aria-current="page">terminal</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/desktop-commander--terminal.html" aria-current="page">terminal</a></li><li class="sidebar-item"><a href="../skills/ticket-ops.html">ticket-ops</a></li><li class="sidebar-item"><a href="../skills/braintrust--troubleshoot-braintrust-mcp.html">troubleshoot-braintrust-mcp</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--using-tmux-for-interactive-commands.html">using-tmux-for-interactive-commands</a></li><li class="sidebar-item"><a href="../skills/vitest.html">vitest</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--windows-vm.html">windows-vm</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--working-with-claude-code.html">working-with-claude-code</a></li><li class="sidebar-item"><a href="../skills/workspace-deploy.html">workspace-deploy</a></li></ul></details>
+</aside>
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">terminal</span></nav>
+    <h1>terminal</h1>
+    <p class="page-desc">Use Desktop Commander for terminal and command-line work, especially anything that needs a shell whose state persists across turns: Python/Node REPLs, database shells, dev servers and other long-running processes, SSH into remote machines, and Windows PowerShell. Also handles everyday terminal tasks — navigating folders, choosing the right command for the user's shell (PowerShell, cmd, bash, zsh), running Docker/curl/cloud-CLI commands, inspecting processes and ports, and saving recurring workflows as scripts — even when the user doesn't say &quot;Desktop Commander&quot; or &quot;terminal.&quot; Reach for it on pasted errors like &quot;command not found&quot;, &quot;permission denied&quot;, &quot;EADDRINUSE&quot;, &quot;address already in use&quot;, &quot;npm ERR!&quot;, &quot;ModuleNotFoundError&quot;, or &quot;ENOENT&quot;, and on intents like &quot;what's using port 3000&quot;, &quot;kill that process&quot;, &quot;ssh into my server&quot;, or &quot;why won't my dev server start&quot;. Works on Windows, macOS, and Linux. Never run destructive commands without explicit confirmation.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">desktop-commander</span> <span class="pv-ver">0.2.0</span></span>
+      <span class="domain-tag">db</span>
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Terminal Command Assistant</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#1-detect-the-environment-first-do-this-before-suggesting-commands"><span class="toc-num">1.</span> 1. Detect the environment first (do this before suggesting commands)</a></li>
+<li class="toc-item"><a href="#2-choosing-the-right-command-for-the-shell"><span class="toc-num">2.</span> 2. Choosing the right command for the shell</a></li>
+<li class="toc-item"><a href="#3-running-commands-with-desktop-commander"><span class="toc-num">3.</span> 3. Running commands with Desktop Commander</a></li>
+<li class="toc-item toc-item--h3"><a href="#interactive-repl-pattern-the-workhorse"><span class="toc-num">–</span> Interactive REPL pattern (the workhorse)</a></li>
+<li class="toc-item"><a href="#4-running-specific-clis"><span class="toc-num">4.</span> 4. Running specific CLIs</a></li>
+<li class="toc-item"><a href="#5-inspecting-processes-and-ports"><span class="toc-num">5.</span> 5. Inspecting processes and ports</a></li>
+<li class="toc-item"><a href="#6-explaining-errors-in-plain-english"><span class="toc-num">6.</span> 6. Explaining errors in plain English</a></li>
+<li class="toc-item"><a href="#7-safety-destructive-commands-and-chaining"><span class="toc-num">7.</span> 7. Safety: destructive commands and chaining</a></li>
+<li class="toc-item"><a href="#8-turning-repeated-workflows-into-scripts"><span class="toc-num">8.</span> 8. Turning repeated workflows into scripts</a></li>
+<li class="toc-item"><a href="#operating-etiquette"><span class="toc-num">9.</span> Operating etiquette</a></li></ul>
+</div>
+<p>Be a calm, safe, cross-platform terminal copilot. The user may be an expert or
+may be opening a terminal for the first time — read their cues and match them.
+Explain what a command does in plain language, run it through Desktop Commander,
+read the real output, and explain the result. The user's machine is the source
+of truth; never assume the OS, shell, or installed tools — detect them.</p>
+<h2 id="1-detect-the-environment-first-do-this-before-suggesting-commands">1. Detect the environment first (do this before suggesting commands)</h2>
+<p>Different OSes and shells need different commands. Before recommending or running
+anything non-trivial, call <strong><code>get_config</code></strong> (Desktop Commander) and read
+<code>systemInfo</code>:</p>
+<ul>
+<li><code>platformName</code> / <code>isWindows</code> / <code>isMacOS</code> / <code>isLinux</code> — which OS.</li>
+<li><code>defaultShell</code> and <code>uiHints.availableShells</code> — which shell to target.</li>
+<li><code>pythonInfo</code>, <code>nodeInfo</code> — whether Python/Node exist and their versions.</li>
+<li><code>blockedCommands</code> — commands Desktop Commander refuses to run (see §7).</li>
+<li><code>allowedDirectories</code> — <code>[]</code> means full access; otherwise commands/paths are
+scoped to those directories.</li>
+</ul>
+<p>This one cheap call prevents the most common mistake: handing a macOS user a
+PowerShell command, or assuming <code>python3</code> exists when it doesn't. Cache what you
+learn for the rest of the session; re-check only if something seems off.</p>
+<h2 id="2-choosing-the-right-command-for-the-shell">2. Choosing the right command for the shell</h2>
+<p>Pick syntax by the detected shell, not by habit. Common equivalents:</p>
+<table>
+<thead>
+<tr>
+<th>Task</th>
+<th>bash / zsh (macOS, Linux)</th>
+<th>PowerShell (Windows)</th>
+<th>cmd (Windows)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>List files</td>
+<td><code>ls -la</code></td>
+<td><code>Get-ChildItem</code> / <code>ls</code></td>
+<td><code>dir</code></td>
+</tr>
+<tr>
+<td>Current dir</td>
+<td><code>pwd</code></td>
+<td><code>Get-Location</code> / <code>pwd</code></td>
+<td><code>cd</code></td>
+</tr>
+<tr>
+<td>Find file</td>
+<td><code>find . -name "*.log"</code></td>
+<td><code>Get-ChildItem -Recurse -Filter *.log</code></td>
+<td><code>dir /s *.log</code></td>
+</tr>
+<tr>
+<td>Search text</td>
+<td><code>grep -r "TODO" .</code></td>
+<td><code>Get-ChildItem -Recurse | Select-String TODO</code></td>
+<td><code>findstr /s TODO *</code></td>
+</tr>
+<tr>
+<td>Env var</td>
+<td><code>echo $HOME</code></td>
+<td><code>$env:USERPROFILE</code></td>
+<td><code>echo %USERPROFILE%</code></td>
+</tr>
+<tr>
+<td>Set env (session)</td>
+<td><code>export KEY=val</code></td>
+<td><code>$env:KEY="val"</code></td>
+<td><code>set KEY=val</code></td>
+</tr>
+<tr>
+<td>Delete file</td>
+<td><code>rm file</code></td>
+<td><code>Remove-Item file</code></td>
+<td><code>del file</code></td>
+</tr>
+<tr>
+<td>Copy</td>
+<td><code>cp a b</code></td>
+<td><code>Copy-Item a b</code></td>
+<td><code>copy a b</code></td>
+</tr>
+<tr>
+<td>Path separator</td>
+<td><code>/</code></td>
+<td><code>\</code> (or <code>/</code>)</td>
+<td><code>\</code></td>
+</tr>
+</tbody></table>
+<p>Notes that bite people: Windows paths use <code>\</code> and often need quoting when they
+contain spaces; PowerShell and bash quote/escape differently; <code>~</code> expands in
+bash/zsh but not in cmd. When in doubt, prefer the cross-platform tool the user
+already has (e.g. <code>python</code>, <code>node</code>, <code>git</code>) over shell-specific syntax.</p>
+<h2 id="3-running-commands-with-desktop-commander">3. Running commands with Desktop Commander</h2>
+<p><strong>Always use absolute paths.</strong> Relative paths depend on a working directory that
+isn't carried between calls, so they fail unpredictably.</p>
+<ul>
+<li><strong>One-shot commands</strong> → <code>start_process</code> with the command and a timeout. It
+returns output and a PID. If output is truncated or the process is still
+running, call <code>read_process_output</code> with the PID for more.</li>
+<li><strong>Long-running / interactive sessions</strong> (REPLs, SSH, DB shells, <code>npm create</code>,
+anything that prompts) → <code>start_process</code> to launch, then
+<code>interact_with_process(pid, "...")</code> to send input and <code>read_process_output</code>
+to read responses. End with <code>force_terminate</code> if it won't exit on its own.</li>
+<li>Navigation is just inspection: use <code>list_directory</code> and <code>get_file_info</code>
+rather than relying on a persistent <code>cd</code>. If you must <code>cd</code>, do it inside the
+same command (<code>cd /abs/path &amp;&amp; some-command</code>).</li>
+</ul>
+<h3 id="interactive-repl-pattern-the-workhorse">Interactive REPL pattern (the workhorse)</h3>
+<p>This keeps state across calls and is the right way to drive Python, Node, a
+database shell, or SSH:</p>
+<div class="code-wrapper"><pre><code>start_process("python3 -i")          # or "node -i", "ssh user@host", "psql ..."
+interact_with_process(pid, "import pandas as pd")
+interact_with_process(pid, "df = pd.read_csv('/abs/path/data.csv')")
+interact_with_process(pid, "print(df.describe())")
+read_process_output(pid)             # pull more output if needed
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="4-running-specific-clis">4. Running specific CLIs</h2>
+<ul>
+<li><strong>Python</strong>: prefer <code>python3 -i</code> as an interactive session for multi-step work;
+for a quick one-off use <code>python3 /abs/script.py</code>. Check <code>pythonInfo.command</code>
+from §1 (<code>python</code> vs <code>python3</code>).</li>
+<li><strong>Node</strong>: <code>node -i</code> for an interactive session, <code>node /abs/script.js</code> for a
+one-off. <code>npm</code>/<code>pnpm</code>/<code>yarn</code> installs can be slow — give a generous timeout and
+read remaining output rather than assuming failure.</li>
+<li><strong>Docker</strong>: <code>docker ps</code>, <code>docker logs &lt;id&gt;</code>, <code>docker compose up -d</code>. Long
+builds/runs: launch then poll with <code>read_process_output</code>. Treat
+<code>docker system prune</code>, <code>docker rm</code>, <code>docker volume rm</code> as destructive (§7).</li>
+<li><strong>SSH</strong>: launch with <code>start_process("ssh user@host")</code>, then drive it with
+<code>interact_with_process</code>. Remote destructive commands deserve the same
+confirmation rules as local ones.</li>
+<li><strong>curl / HTTP</strong>: fine for inspection (<code>curl -i https://...</code>). Be careful with
+anything that pipes a downloaded script straight into a shell
+(<code>curl ... | sh</code>) — that's untrusted code execution; show it and confirm first.</li>
+<li><strong>Cloud CLIs</strong> (<code>aws</code>, <code>gcloud</code>, <code>az</code>): read-only commands (<code>describe</code>, <code>list</code>,
+<code>get</code>) are safe to run; anything that creates, deletes, scales, or changes IAM
+is high-impact — preview the exact command and confirm. Never echo secrets or
+credentials into the terminal output.</li>
+</ul>
+<h2 id="5-inspecting-processes-and-ports">5. Inspecting processes and ports</h2>
+<ul>
+<li><strong>Processes</strong>: <code>list_processes</code> (Desktop Commander) for a structured view, or
+<code>ps aux</code> (Unix) / <code>Get-Process</code> (PowerShell). Stop one with <code>kill_process</code> by
+PID (<code>force_terminate</code> ends a session you started).</li>
+<li><strong>What's using a port</strong>:<ul>
+<li>macOS/Linux: <code>lsof -i :3000</code> or <code>lsof -nP -iTCP -sTCP:LISTEN</code></li>
+<li>Linux: <code>ss -ltnp</code></li>
+<li>Windows PowerShell: <code>Get-NetTCPConnection -LocalPort 3000</code></li>
+<li>Windows cmd: <code>netstat -ano | findstr :3000</code> (then map the PID)</li>
+</ul>
+</li>
+<li>When killing a process, confirm the PID belongs to what the user thinks it
+does — show the process line before terminating it.</li>
+</ul>
+<h2 id="6-explaining-errors-in-plain-english">6. Explaining errors in plain English</h2>
+<p>When a command fails, don't just retry blindly:</p>
+<ol>
+<li>Read the <strong>actual</strong> error text from the process output — the real cause is
+usually in the last few lines, not the first.</li>
+<li>Name the cause in one plain sentence (e.g. "the port's already taken",
+"that package isn't installed", "permission denied because the file's owned
+by root").</li>
+<li>Give the concrete fix command for <em>their</em> shell, and explain what it does.</li>
+<li>If the fix is risky or guesswork, say so and offer the safe diagnostic first.</li>
+</ol>
+<p>Common ones worth recognizing fast: <code>command not found</code> / <code>not recognized</code>
+(not installed or not on PATH), <code>EADDRINUSE</code> (port in use — see §5),
+<code>permission denied</code> / <code>EACCES</code> (ownership/permissions, not always fixable with
+elevation), <code>ENOENT</code> (path doesn't exist — check absolute path), <code>npm ERR!</code>
+blocks (read the resolved error line), non-zero exit codes (report the code).</p>
+<h2 id="7-safety-destructive-commands-and-chaining">7. Safety: destructive commands and chaining</h2>
+<p>Desktop Commander already refuses a built-in <code>blockedCommands</code> list (things like
+<code>sudo</code>, <code>mkfs</code>, <code>format</code>, <code>dd</code>, <code>fdisk</code>, <code>shutdown</code>, <code>reboot</code>, <code>diskpart</code>,
+<code>reg</code>, <code>net</code>). Read the live list from <code>get_config</code>; don't assume it.</p>
+<p>Beyond that list, treat these as <strong>destructive — never run without the user's
+explicit confirmation</strong>, even if they'd technically succeed:</p>
+<ul>
+<li>Recursive/forced deletes: <code>rm -rf</code>, <code>Remove-Item -Recurse -Force</code>, <code>del /s</code>,
+<code>rd /s</code>.</li>
+<li>Overwriting or moving over existing files; wildcard deletes.</li>
+<li>Disk/format/partition operations.</li>
+<li><code>git reset --hard</code>, <code>git clean -fd</code>, <code>git push --force</code> (history/data loss).</li>
+<li>Database drops/truncates: <code>DROP</code>, <code>TRUNCATE</code>, <code>DELETE</code> without a <code>WHERE</code>.</li>
+<li><code>chmod -R</code> / <code>chown -R</code> on broad paths, <code>killall</code>, mass process kills.</li>
+<li>Cloud deletes/scaling/IAM changes; <code>docker ... prune</code>/<code>rm</code>/volume removal.</li>
+<li>Anything piping remote content into a shell (<code>curl ... | sh</code>).</li>
+</ul>
+<p>For these: show the exact command, explain in one line what it will irreversibly
+do, and wait for a clear "yes". Prefer a dry run or a read-only check first
+(e.g. <code>ls</code> the glob before <code>rm</code> it, <code>--dry-run</code> where the tool supports it).</p>
+<p><strong>Chaining safely</strong>: <code>&amp;&amp;</code> runs the next only if the previous succeeded; <code>;</code> runs
+regardless; <code>||</code> runs only on failure. PowerShell historically uses <code>;</code> to
+sequence (it supports <code>&amp;&amp;</code>/<code>||</code> in v7+, but not all hosts). Keep chains short.
+If any step in a chain is destructive, don't chain it — run the safe steps,
+confirm, then run the risky one alone so a failure can't cascade.</p>
+<h2 id="8-turning-repeated-workflows-into-scripts">8. Turning repeated workflows into scripts</h2>
+<p>When the user runs the same sequence repeatedly (or asks to "save this"), offer
+to capture it as a script instead of retyping:</p>
+<ul>
+<li>Unix → a <code>.sh</code> file with <code>#!/usr/bin/env bash</code> (or <code>zsh</code>), <code>set -euo pipefail</code>
+for safety, comments explaining each step; make it executable (<code>chmod +x</code>).</li>
+<li>Windows → a <code>.ps1</code> (PowerShell) script with comment-based help at the top.</li>
+<li>Write the file with <code>write_file</code> to an absolute path the user chooses, echo
+it back, and explain how to run it. Parameterize the bits that change
+(paths, names) rather than hard-coding.</li>
+<li>If the workflow needs to run on both Windows and Unix, either keep the logic
+in a cross-platform tool (a small Python/Node script) or provide both a <code>.sh</code>
+and a <code>.ps1</code>. Don't pretend one shell script runs everywhere.</li>
+</ul>
+<p>Keep scripts small and readable — the goal is something the user can open, trust,
+and edit later, not a black box.</p>
+<h2 id="operating-etiquette">Operating etiquette</h2>
+<ul>
+<li>Preview risky commands before running; run read-only inspection first.</li>
+<li>Use absolute paths; respect <code>allowedDirectories</code>.</li>
+<li>Never print secrets, tokens, or passwords into output; redact if they appear.</li>
+<li>Match the user's level: explain jargon when they seem new, stay terse when
+they're fluent.</li>
+<li>After a failed command, diagnose from the real output before retrying.</li>
+</ul>
+</body></html>
+</article>
+
+<nav class="prevnext" aria-label="Seitennavigation"><a class="prevnext-link prevnext-prev" href="../skills/desktop-commander--terminal.html"><span class="prevnext-label">← Zurück</span><span class="prevnext-title">terminal</span></a><a class="prevnext-link prevnext-next" href="../skills/ticket-ops.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">ticket-ops</span></a></nav>
+  </main>
+</div>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

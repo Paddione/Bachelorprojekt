@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>repo-hygiene — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
+  <div id="search-box">
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
+  </div>
+</div>
+<div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Dev-Workflow</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-architect.html">code-architect</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-explorer.html">code-explorer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/code-simplifier--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--comment-analyzer.html">comment-analyzer</a></li><li class="sidebar-item"><a href="../skills/dev-flow-e2e.html">dev-flow-e2e</a></li><li class="sidebar-item"><a href="../skills/dev-flow-execute.html">dev-flow-execute</a></li><li class="sidebar-item"><a href="../skills/dev-flow-plan.html">dev-flow-plan</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--pr-test-analyzer.html">pr-test-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--silent-failure-hunter.html">Silent Failure Hunter</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--type-design-analyzer.html">type-design-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Bachelorprojekt-Infra</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/cluster-deployment.html">cluster-deployment</a></li><li class="sidebar-item"><a href="../skills/database-ops.html">database-ops</a></li><li class="sidebar-item"><a href="../skills/host-node-networking.html">host-node-networking</a></li><li class="sidebar-item"><a href="../skills/keycloak-realm-sync.html">keycloak-realm-sync</a></li><li class="sidebar-item"><a href="../skills/mishap-tracker.html">mishap-tracker</a></li><li class="sidebar-item"><a href="../skills/operations-management.html">operations-management</a></li><li class="sidebar-item"><a href="../skills/secret-rotation.html">secret-rotation</a></li><li class="sidebar-item"><a href="../skills/update-dependencies.html">update-dependencies</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">KI / ML</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Plugin- &amp; Skill-Bau</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../agents/plugin-dev--agent-creator.html">agent-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--agent-development.html">agent-development</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-py.html">agent-sdk-verifier-py</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-ts.html">agent-sdk-verifier-ts</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--command-development.html">command-development</a></li><li class="sidebar-item"><a href="../agents/hookify--conversation-analyzer.html">conversation-analyzer</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--hook-development.html">hook-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--mcp-integration.html">mcp-integration</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-settings.html">plugin-settings</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-structure.html">plugin-structure</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--plugin-validator.html">plugin-validator</a></li><li class="sidebar-item"><a href="../skills/skill-creator--skill-creator.html">skill-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--skill-development.html">skill-development</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--skill-reviewer.html">skill-reviewer</a></li><li class="sidebar-item"><a href="../skills/hookify--writing-rules.html">writing-hookify-rules</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Browser &amp; Debugging</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers-chrome--browsing.html">browsing</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">MCP &amp; API</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/postman--agent-ready-apis.html">agent-ready-apis</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-app.html">build-mcp-app</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-server.html">build-mcp-server</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcpb.html">build-mcpb</a></li><li class="sidebar-item"><a href="../skills/postman--generate-spec.html">generate-spec</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--mcp-cli.html">mcp-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-cli.html">postman-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-context.html">postman-context</a></li><li class="sidebar-item"><a href="../skills/postman--postman-knowledge.html">postman-knowledge</a></li><li class="sidebar-item"><a href="../skills/postman--run-collection.html">run-collection</a></li><li class="sidebar-item"><a href="../skills/postman--send-request.html">send-request</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">Claude Code &amp; Tooling</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/brightdata-plugin--agent-onboarding.html">agent-onboarding</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--ai-tools-setup.html">ai-tools-setup</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--ai-tools-setup.html">ai-tools-setup</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brand-listening.html">brand-listening</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brd-browser-debug.html">brd-browser-debug</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-best-practices.html">bright-data-best-practices</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-mcp.html">bright-data-mcp</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brightdata-cli.html">brightdata-cli</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--proxy.html">brightdata-proxy</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--python-sdk-best-practices.html">brightdata-sdk</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--js-sdk-best-practices.html">brightdata-sdk-js</a></li><li class="sidebar-item"><a href="../skills/claude-code-setup--claude-automation-recommender.html">claude-automation-recommender</a></li><li class="sidebar-item"><a href="../skills/claude-md-management--claude-md-improver.html">claude-md-improver</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--competitive-intel.html">competitive-intel</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--computer-health-check.html">computer-health-check</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--computer-health-check.html">computer-health-check</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--data-feeds.html">data-feeds</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--design-mirror.html">design-mirror</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/dev-flow-chore.html">dev-flow-chore</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--developing-claude-code-plugins.html">developing-claude-code-plugins</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--discover-api.html">discover-api</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--finding-duplicate-functions.html">finding-duplicate-functions</a></li><li class="sidebar-item"><a href="../skills/frontend-design--frontend-design.html">frontend-design</a></li><li class="sidebar-item"><a href="../skills/git-workflow.html">Git Workflow — vollständiger Lifecycle für dieses Repo</a></li><li class="sidebar-item"><a href="../skills/incident-response.html">incident-response</a></li><li class="sidebar-item"><a href="../skills/infra-ops.html">infra-ops — Unified Infrastructure Runbook</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--knowledge-base.html">knowledge-base</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--knowledge-base.html">knowledge-base</a></li><li class="sidebar-item"><a href="../skills/lavish.html">lavish</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--live-research.html">live-research</a></li><li class="sidebar-item"><a href="../skills/llm-ops.html">llm-ops</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--obsidian-vault.html">obsidian-vault</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--obsidian-vault.html">obsidian-vault</a></li><li class="sidebar-item"><a href="../skills/openspec-apply-change.html">openspec-apply-change</a></li><li class="sidebar-item"><a href="../skills/openspec-archive-change.html">openspec-archive-change</a></li><li class="sidebar-item"><a href="../skills/openspec-explore.html">openspec-explore</a></li><li class="sidebar-item"><a href="../skills/openspec-propose.html">openspec-propose</a></li><li class="sidebar-item"><a href="../skills/playground--playground.html">playground</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--price-comparison.html">price-comparison</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--rag-pipeline.html">rag-pipeline</a></li><li class="sidebar-item"><a href="../skills/references.html">references</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/repo-hygiene.html" aria-current="page">repo-hygiene</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scrape.html">scrape</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-builder.html">scraper-builder</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-studio.html">scraper-studio</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--search.html">search</a></li><li class="sidebar-item"><a href="../skills/sourcegraph--searching-sourcegraph.html">searching-sourcegraph</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--seo-audit.html">seo-audit</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--terminal.html">terminal</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--terminal.html">terminal</a></li><li class="sidebar-item"><a href="../skills/ticket-ops.html">ticket-ops</a></li><li class="sidebar-item"><a href="../skills/braintrust--troubleshoot-braintrust-mcp.html">troubleshoot-braintrust-mcp</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--using-tmux-for-interactive-commands.html">using-tmux-for-interactive-commands</a></li><li class="sidebar-item"><a href="../skills/vitest.html">vitest</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--windows-vm.html">windows-vm</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--working-with-claude-code.html">working-with-claude-code</a></li><li class="sidebar-item"><a href="../skills/workspace-deploy.html">workspace-deploy</a></li></ul></details>
+</aside>
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">repo-hygiene</span></nav>
+    <h1>repo-hygiene</h1>
+    <p class="page-desc">Use for repository housekeeping — clean up stale branches/worktrees, triage and merge open PRs, close resolved tickets, manage GitHub issue intake, and check software factory queue status. Triggers — &quot;clean branches&quot;, &quot;merge PRs&quot;, &quot;prune worktrees&quot;, &quot;factory queue status&quot;.</p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      <span class="domain-tag">ops</span>
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><blockquote>
+<p><strong>Mishap Tracking:</strong> As you execute this skill, maintain a running <code>MISHAP_LOG</code>.
+For every anomaly, unexpected state, broken component, security concern, or
+configuration drift you notice — even if unrelated to the current task — add
+an entry with: <code>type</code> (broken/degraded/suspicious/security/drift), <code>title</code>,
+<code>description</code>, and <code>component</code>. Invoke <code>mishap-tracker</code> at the very end.</p>
+</blockquote>
+<h1>repo-hygiene</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#db-setup-read-first"><span class="toc-num">1.</span> DB Setup (read first)</a></li>
+<li class="toc-item"><a href="#step-1-stale-git-worktrees"><span class="toc-num">2.</span> Step 1: Stale Git Worktrees</a></li>
+<li class="toc-item"><a href="#step-2-stale-branches"><span class="toc-num">3.</span> Step 2: Stale Branches</a></li>
+<li class="toc-item"><a href="#step-3-github-pr-triage--close-the-linked-ticket"><span class="toc-num">4.</span> Step 3: GitHub PR Triage → close the linked ticket</a></li>
+<li class="toc-item"><a href="#step-4-github-issue-intake-rare"><span class="toc-num">5.</span> Step 4: GitHub Issue Intake (rare)</a></li>
+<li class="toc-item"><a href="#software-factory-queue-mcp-first"><span class="toc-num">6.</span> Software-Factory-Queue (MCP-first)</a></li>
+<li class="toc-item"><a href="#post-execution-mishap-report"><span class="toc-num">7.</span> Post-Execution: Mishap Report</a></li>
+<li class="toc-item"><a href="#related-skills"><span class="toc-num">8.</span> Related Skills</a></li></ul>
+</div>
+<p>Day-to-day repository hygiene, PR merging, issue intake, and Software Factory queue management.</p>
+<hr>
+<h2 id="db-setup-read-first">DB Setup (read first)</h2>
+<p>The internal Postgres tracker — <code>tickets.tickets</code> on <code>mentolder</code> (<code>website</code> DB) — is the <strong>single source of truth for issues</strong>.</p>
+<p><strong>DB-Zugriff — MCP-Postgres für Reads bevorzugen.</strong> Das <code>mcp-postgres</code> MCP-Tool (<code>mcp__mcp-postgres__query</code>)
+ist read-only und direkt verfügbar, wenn der MCP-Server läuft (einfach mit <code>SELECT 1</code> testen).
+Die <code>psql()</code>-Bash-Hilfsfunktion unten ist der <strong>Fallback</strong> für Reads bei fehlendem MCP-Zugriff
+und der <strong>Pflichtweg für schreibende</strong> Statements (INSERT/UPDATE/DELETE) — das MCP-Query-Tool ist
+read-only. Siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md"><code>MCP-Tool-Guide</code></a>.</p>
+<p>All SQL below assumes:</p>
+<div class="code-wrapper"><pre><code class="language-bash">PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)
+psql() { kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- psql -U website -d website "$@"; }
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="step-1-stale-git-worktrees">Step 1: Stale Git Worktrees</h2>
+<p>List worktrees: <code>git worktree list</code>.
+Verify if the branch is merged: <code>git log main..&lt;branch&gt; --oneline</code> (empty means fully merged).
+Remove stale worktrees:</p>
+<div class="code-wrapper"><pre><code class="language-bash">git worktree remove &lt;path&gt; --force
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="step-2-stale-branches">Step 2: Stale Branches</h2>
+<p>Prune local and remote branches:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Safe batch-delete merged local branches
+git branch --merged main | grep -v 'main' | xargs git branch -d
+
+# Prune gone remote-tracking branches
+git fetch --prune
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<blockquote>
+<p><strong><code>--merged</code> misses squash-merged branches.</strong> This repo merges via <strong>squash-and-merge</strong> (Dev Rule 3), which rewrites a branch's commits into one new commit on <code>main</code>. The original branch tip is therefore NOT an ancestor of <code>main</code>, so <code>git branch --merged</code> never lists it and <code>git branch -d</code> refuses to delete it. Reclaim these branches by detecting that their remote is <strong>[gone]</strong> (deleted by <code>gh pr merge --delete-branch</code>) and confirming the PR actually merged, then force-deleting:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># After `git fetch --prune`, list local branches whose upstream is gone
+git for-each-ref --format='%(refname:short) %(upstream:track)' refs/heads \
+  | awk '$2 == "[gone]" {print $1}' \
+  | while read -r b; do
+      # Verify the PR for this branch is merged before destroying local work
+      merged=$(gh pr list --head "$b" --state merged --json number -q '.[0].number')
+      if [ -n "$merged" ]; then
+        git branch -D "$b"   # safe: PR #$merged merged, remote gone
+      else
+        echo "SKIP $b — upstream gone but no merged PR found; inspect manually"
+      fi
+    done
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Only <code>-D</code> (force) works here — <code>-d</code> will refuse because git does not see the squash-merged history.</p>
+</blockquote>
+<h2 id="step-3-github-pr-triage--close-the-linked-ticket">Step 3: GitHub PR Triage → close the linked ticket</h2>
+<p>List open PRs:</p>
+<div class="code-wrapper"><pre><code class="language-bash">gh pr list --state open --json number,title,headRefName,statusCheckRollup,reviewDecision,isDraft,mergeStateStatus
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>For each PR, first recover the ticket it resolves (soft link). Title tag wins; branch name is the fallback:</p>
+<div class="code-wrapper"><pre><code class="language-bash">TITLE=$(gh pr view &lt;number&gt; --json title -q '.title')
+BRANCH=$(gh pr view &lt;number&gt; --json headRefName -q '.headRefName')
+TICKET_ID=$(printf '%s %s' "$TITLE" "$BRANCH" | grep -oiE 'T[0-9]{6}' | head -1 | tr a-z A-Z)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li><p><strong>Merge (mergeable, CI green, not draft):</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">gh pr merge &lt;number&gt; --squash --delete-branch
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<blockquote>
+<p><strong>Expected exit 1 after a squash-merge is NOT a failure.</strong> A squash-merge makes the local branch diverge from <code>main</code>, so <code>gh pr merge</code> exits 1 with <code>not possible to fast-forward</code> even though the PR merged. <strong>Always verify by timestamp, never by exit code:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">gh pr view &lt;number&gt; --json mergedAt -q '.mergedAt'   # empty = still open; timestamp = merged
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</blockquote>
+<p>Use <code>--auto</code> instead when CI is still running — GitHub merges once checks pass.</p>
+</li>
+<li><p><strong>Close the ticket once <code>mergedAt</code> is set</strong> (only if <code>$TICKET_ID</code> was found; <code>resolution</code>: <code>fixed</code> for <code>fix/*</code>, <code>shipped</code> for <code>feature/*</code>) — <strong>MCP-first</strong> (<code>ticket-mcp</code> lifecycle; the wrappers write via <code>ticket.sh</code>, not via the read-only <code>mcp-postgres</code>):</p>
+<blockquote>
+<p><code>mcp__ticket-mcp__transition_status({ id: "$TICKET_ID", status: "done", resolution: "&lt;fixed|shipped&gt;" })</code>
+<code>mcp__ticket-mcp__add_comment({ id: "$TICKET_ID", body: "PR #&lt;number&gt; merged." })</code></p>
+</blockquote>
+<p>Fallback (ticket-mcp nicht erreichbar — direkte Writes über <code>psql</code>):</p>
+<div class="code-wrapper"><pre><code class="language-bash">psql -c \
+  "UPDATE tickets.tickets SET status='done', resolution='fixed', done_at=now()
+   WHERE external_id='$TICKET_ID' AND status &lt;&gt; 'done';
+   INSERT INTO tickets.ticket_comments (ticket_id, author_label, body, visibility)
+   SELECT id, 'claude-code', 'PR #&lt;number&gt; merged.', 'internal'
+   FROM tickets.tickets WHERE external_id='$TICKET_ID';"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>If no <code>T000XXX</code> is recoverable, the PR is unlinked — note it and leave any ticket untouched.</p>
+</li>
+<li><p><strong>CI Failures:</strong> Diagnose failed checks with <code>gh pr checks &lt;number&gt;</code>. Do not merge red PRs. If the failure is a known flake, re-run; otherwise leave the PR open and (if it has a ticket) leave the ticket <code>in_progress</code>.</p>
+</li>
+</ul>
+<h2 id="step-4-github-issue-intake-rare">Step 4: GitHub Issue Intake (rare)</h2>
+<p>This repo tracks issues in Postgres, not GitHub. If <code>gh issue list --state open</code> returns anything, funnel it in rather than working it on GitHub:</p>
+<ol>
+<li><strong>Title-dedupe guard [T001210].</strong> Before creating a new row, run a lookup for an open ticket with the same (case-insensitive, whitespace-normalised) title. If one exists — e.g. canonical reference T001147 "E2E notification test — Playwright FA-bug-notify", mishap bundle T001148 — do not create a duplicate. Append a <code>ticket_comments</code> row to the existing ticket noting the re-trigger source, then <code>gh issue close &lt;n&gt; --comment "Duplicate of &lt;external_id&gt;."</code>. The 4 duplicates T001196/T001197/T001201/T001202 were created 2026-06-27 against T001147 precisely because this dedupe guard was missing.</li>
+<li>Create a <code>tickets.tickets</code> row from the issue (<code>type</code>, <code>brand</code>, <code>title</code>, <code>description</code>, <code>status='triage'</code>).</li>
+<li><code>gh issue close &lt;n&gt; --comment "Tracked internally as &lt;external_id&gt;."</code></li>
+</ol>
+<hr>
+<h2 id="software-factory-queue-mcp-first">Software-Factory-Queue (MCP-first)</h2>
+<p>Für Factory-Queue-Status und manuelles Anstoßen die <code>factory-mcp</code>-Tools bevorzugen (HTTP-Daemon auf <code>127.0.0.1:13003</code>). <strong>Verfügbarkeits-Guard zuerst:</strong> <code>curl -sf --max-time 2 http://127.0.0.1:13003/health</code> — bei Erfolg MCP, sonst Skript-Fallback.</p>
+<p><strong>MCP-first</strong> (<code>factory-mcp</code>):</p>
+<blockquote>
+<p><code>mcp__factory-mcp__factory_status()</code> — Queue-Tiefe + ob gerade ein Tick läuft
+<code>mcp__factory-mcp__factory_queue()</code> — wartende Tickets (backlog + plan_staged)
+<code>mcp__factory-mcp__factory_trigger()</code> — sofortigen Factory-Tick auslösen
+<code>mcp__factory-mcp__factory_enqueue({ ticket_id: "T000XXX" })</code> · <code>mcp__factory-mcp__factory_recent({ limit: 10 })</code></p>
+</blockquote>
+<p>Fallback (Daemon <code>:13003</code> nicht erreichbar):</p>
+<ul>
+<li>Status/Queue → <code>mcp__mcp-postgres__query</code> bzw. <code>psql</code> SELECT auf <code>tickets.tickets WHERE status IN ('backlog','plan_staged')</code>.</li>
+<li>Tick auslösen → <code>bash scripts/factory/wakeup.sh</code>.</li>
+</ul>
+<hr>
+<h2 id="post-execution-mishap-report">Post-Execution: Mishap Report</h2>
+<p>After completing all steps in this skill, invoke <code>mishap-tracker</code> with your accumulated <code>MISHAP_LOG</code>. If no mishaps were found, <code>mishap-tracker</code> exits cleanly.</p>
+<h2 id="related-skills">Related Skills</h2>
+<table>
+<thead>
+<tr>
+<th>Skill</th>
+<th>Relationship</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>operations-management</code></td>
+<td>Routing hub that dispatches repository housekeeping</td>
+</tr>
+<tr>
+<td><code>ticket-ops</code></td>
+<td>Handles completeness triage and human clarification</td>
+</tr>
+<tr>
+<td><code>mishap-tracker</code></td>
+<td>Converts execution mishaps to tickets</td>
+</tr>
+</tbody></table>
+</body></html>
+</article>
+
+<nav class="prevnext" aria-label="Seitennavigation"><a class="prevnext-link prevnext-prev" href="../skills/remember--remember.html"><span class="prevnext-label">← Zurück</span><span class="prevnext-title">remember</span></a><a class="prevnext-link prevnext-next" href="../skills/brightdata-plugin--scrape.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">scrape</span></a></nav>
+  </main>
+</div>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

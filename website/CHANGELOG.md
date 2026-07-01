@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.150.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.150.0...website-v1.150.1) (2026-07-01)
+
+
+### Bug Fixes
+
+* **infra:** drop invalid pocket-id IngressRoute forwardedHeaders field ([#2423](https://github.com/Paddione/Bachelorprojekt/issues/2423)) ([ea8e7b3](https://github.com/Paddione/Bachelorprojekt/commit/ea8e7b3e834feb43be713385e3882caaf8f4221d))
+* **tickets:** make external_id sequence reseed monotonic [T001392] ([#2427](https://github.com/Paddione/Bachelorprojekt/issues/2427)) ([9039293](https://github.com/Paddione/Bachelorprojekt/commit/9039293f7d148a6b77af9856c0ad8a5245d28b77))
+
 ## [1.150.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.149.1...website-v1.150.0) (2026-07-01)
 
 

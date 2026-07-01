@@ -138,11 +138,11 @@ echo -e "${BOLD}Deployment Verification${RESET}  ${DIM}ENV=${ENV}  ns=${NS}  web
 section "Cross-namespace network paths"
 
 if [[ "$ENV" != "dev" ]]; then
-  # website pod → keycloak (OIDC callback — the path that caused login failures)
+  # website pod → pocket-id (OIDC callback)
   _http_probe \
-    "${WEB_NS} → keycloak:8080 (OIDC)" \
+    "${WEB_NS} → pocket-id:1411 (OIDC)" \
     "$WEB_NS" "website" \
-    "http://keycloak.${NS}.svc.cluster.local:8080/realms/workspace/.well-known/openid-configuration"
+    "http://pocket-id.${NS}.svc.cluster.local:1411/.well-known/openid-configuration"
 
   # workspace cronjobs → website API (billing, notify-unread, monthly-billing)
   _http_probe \
@@ -180,7 +180,7 @@ fi
 # ── 3. Workloads running ──────────────────────────────────────────────
 section "Workloads running"
 
-_check_deploy "keycloak"   "$NS"     "keycloak"
+_check_deploy "pocket-id"  "$NS"     "pocket-id"
 _check_deploy "nextcloud"  "$NS"     "nextcloud"
 _check_deploy "website"    "$WEB_NS" "website"
 _check_deploy "shared-db"  "$NS"     "shared-db"

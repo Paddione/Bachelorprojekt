@@ -38,7 +38,14 @@ _allowed="$(awk '
 ' "$CI_WORKFLOW")"
 
 if [ -z "$_allowed" ]; then
-  echo "preflight-pr-scope: could not parse scope allowlist from '$CI_WORKFLOW'" >&2
+  _ssot_script="$(dirname "$0")/validate-commit-msg.sh"
+  if [ -x "$_ssot_script" ]; then
+    _allowed="$("$_ssot_script" scopes 2>/dev/null || true)"
+  fi
+fi
+
+if [ -z "$_allowed" ]; then
+  echo "preflight-pr-scope: could not parse scope allowlist from '$CI_WORKFLOW' and SSOT fallback failed" >&2
   exit 2
 fi
 

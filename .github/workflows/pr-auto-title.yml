@@ -34,6 +34,10 @@ jobs:
       github.actor != 'github-actions[bot]' &&
       github.actor != 'release-please[bot]'
     steps:
+      - name: Checkout
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
+        with:
+          fetch-depth: 1
       - name: Check and fix PR title
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -96,6 +100,16 @@ jobs:
           # Pattern: optional "g-" then 2-4 alpha chars + 2-3 digits (OpenSpec category code)
           if printf '%s' "$SLUG" | grep -qP '^(?:g-)?([a-z]{1,4}\d{2,3})-'; then
             SCOPE=$(printf '%s' "$SLUG" | sed -nP 's/^(?:g-)?([a-z]{1,4}\d{2,3})-.*/\1/p')
+          fi
+
+          # ── 3b. Validate the derived scope against the SSOT scope list ─────
+          # Unregistered scopes must not be written into the title — fall back
+          # to a scope-less title instead (T001364).
+          if [[ -n "$SCOPE" ]]; then
+            if ! bash scripts/validate-commit-msg.sh scopes | grep -qxF "$SCOPE"; then
+              echo "⚠️  Derived scope '$SCOPE' is not registered — falling back to scope-less title."
+              SCOPE=""
+            fi
           fi
 
           # ── 4. Build the subject from the slug (replace hyphens with spaces) ──

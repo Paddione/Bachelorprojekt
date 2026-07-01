@@ -84,3 +84,61 @@ teardown() {
 @test "CI commit-lint job invokes validate-commit-msg.sh" {
   grep -q 'validate-commit-msg.sh' "${BATS_TEST_DIRNAME}/../../.github/workflows/ci.yml"
 }
+
+# T001364: PR/commit scope SSOT — commitlint.config.cjs must become the only
+# scope list; ci.yml and pr-auto-title.yml must derive from it dynamically
+# instead of maintaining their own copies that can drift.
+
+@test "scopes: prints the allowed scope list, one per line" {
+  run "$SCRIPT" scopes
+  # expected: FAIL until the `scopes` mode is implemented
+  [ "$status" -eq 0 ]
+  [[ "$output" == *$'\n'* || "$(echo "$output" | wc -l)" -gt 1 ]]
+  echo "$output" | grep -qx "website"
+  echo "$output" | grep -qx "ci"
+}
+
+@test "scopes: output matches commitlint.config.cjs scope-enum exactly" {
+  run "$SCRIPT" scopes
+  [ "$status" -eq 0 ]
+  node_scopes=$(node -e "
+    const cfg = require('${BATS_TEST_DIRNAME}/../../commitlint.config.cjs');
+    console.log(cfg.rules['scope-enum'][2].join('\n'));
+  ")
+  [ "$output" == "$node_scopes" ]
+}
+
+@test "ci.yml commit-lint job loads scopes dynamically instead of a hardcoded list" {
+  grep -q 'validate-commit-msg.sh scopes' "${BATS_TEST_DIRNAME}/../../.github/workflows/ci.yml"
+}
+
+@test "pr-auto-title.yml checks out the repo before deriving a scope" {
+  grep -q 'actions/checkout' "${BATS_TEST_DIRNAME}/../../.github/workflows/pr-auto-title.yml"
+}
+
+@test "pr-auto-title.yml validates the derived scope against validate-commit-msg.sh scopes" {
+  grep -q 'validate-commit-msg.sh scopes' "${BATS_TEST_DIRNAME}/../../.github/workflows/pr-auto-title.yml"
+}
+
+@test "register-scope.sh exists and is executable" {
+  [ -x "${BATS_TEST_DIRNAME}/../../scripts/register-scope.sh" ]
+}
+
+@test "register-scope.sh adds a new scope to commitlint.config.cjs" {
+  TMP_CFG="$(mktemp)"
+  cp "${BATS_TEST_DIRNAME}/../../commitlint.config.cjs" "$TMP_CFG"
+  COMMITLINT_CONFIG_OVERRIDE="$TMP_CFG" run "${BATS_TEST_DIRNAME}/../../scripts/register-scope.sh" "bats-test-scope-xyz" --config "$TMP_CFG"
+  [ "$status" -eq 0 ]
+  grep -q "bats-test-scope-xyz" "$TMP_CFG"
+  rm -f "$TMP_CFG"
+}
+
+@test "register-scope.sh rejects an already-registered scope" {
+  run "${BATS_TEST_DIRNAME}/../../scripts/register-scope.sh" "website" --config "${BATS_TEST_DIRNAME}/../../commitlint.config.cjs"
+  [ "$status" -ne 0 ]
+}
+
+@test "register-scope.sh rejects an invalid scope format" {
+  run "${BATS_TEST_DIRNAME}/../../scripts/register-scope.sh" "Not_Valid!"
+  [ "$status" -ne 0 ]
+}

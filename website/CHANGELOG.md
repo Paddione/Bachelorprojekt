@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.146.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.146.1...website-v1.146.2) (2026-07-01)
+
+
+### Code Refactoring
+
+* **website:** extract projects domain to reduce file size (G-SIZE03) ([#2375](https://github.com/Paddione/Bachelorprojekt/issues/2375)) ([a249ed3](https://github.com/Paddione/Bachelorprojekt/commit/a249ed353d5ce2260d16c409599350644879c86b))
+
 ## [1.146.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.146.0...website-v1.146.1) (2026-07-01)
 
 

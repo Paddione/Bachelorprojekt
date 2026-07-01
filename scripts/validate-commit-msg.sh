@@ -19,6 +19,7 @@
 #   validate-commit-msg.sh range <base>..<head>   # validate every non-merge commit in range
 #   validate-commit-msg.sh head                    # validate just HEAD's subject
 #   validate-commit-msg.sh message <file>          # validate literal subject text from file
+#   validate-commit-msg.sh scopes                  # print every allowed scope, one per line
 #
 # Exit codes: 0 = all validated commits conform, 1 = at least one violation, 2 = usage error.
 set -uo pipefail
@@ -160,8 +161,19 @@ main() {
       fi
       exit 1
       ;;
+    scopes)
+      local scopes
+      scopes="$(load_allowed_scopes)"
+      if [ -z "$scopes" ]; then
+        echo "validate-commit-msg: could not load scopes from $CONFIG" >&2
+        exit 1
+      fi
+      # load_allowed_scopes() returns a space-joined string; emit one per line.
+      printf '%s\n' $scopes
+      exit 0
+      ;;
     *)
-      echo "usage: validate-commit-msg.sh {range <base>..<head>|head|message <file>}" >&2
+      echo "usage: validate-commit-msg.sh {range <base>..<head>|head|message <file>|scopes}" >&2
       exit 2
       ;;
   esac

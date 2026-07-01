@@ -6,6 +6,7 @@
 ### Bug Fixes
 
 * **dev-flow:** lavish reload-safety protocol prevents lost form input ([#2459](https://github.com/Paddione/Bachelorprojekt/issues/2459)) ([baba4ff](https://github.com/Paddione/Bachelorprojekt/commit/baba4ff1b0e4dfcba04c73104c9547a535277f9b))
+* **scripts:** add post-push origin/main divergence guard ([#2460](https://github.com/Paddione/Bachelorprojekt/issues/2460)) ([8e2507a](https://github.com/Paddione/Bachelorprojekt/commit/8e2507a7d99aa702397a3f918ea6c001706de270))
 
 ## [1.150.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.150.6...website-v1.150.7) (2026-07-01)
 

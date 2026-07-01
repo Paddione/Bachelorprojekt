@@ -687,6 +687,12 @@
       "status": "archived"
     }
   ],
+  "T001408": [
+    {
+      "slug": "t001408-mishap-bundle",
+      "status": "plan_staged"
+    }
+  ],
   "T001411": [
     {
       "slug": "2026-07-01-pocket-id-smtp-port-quoting-hardening",

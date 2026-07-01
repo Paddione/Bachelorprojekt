@@ -16,6 +16,24 @@ PR_NUM_TELEM=$(gh pr view --json number -q '.number' 2>/dev/null || echo "")
 ./scripts/ticket.sh phase "$TICKET_ID" deploy entered --driver devflow \
   --detail "PR #$PR_NUM_TELEM · CI watch" 2>/dev/null || true
 
+# Preflight: if GitHub reports the PR as DIRTY (needs rebase), CI never starts —
+# self-service a rebase against origin/main instead of hanging in the poll loop.
+MERGE_STATE=$(gh pr view "$PR_URL" --json mergeStateStatus -q '.mergeStateStatus' 2>/dev/null || echo "")
+if [[ "$MERGE_STATE" == "DIRTY" ]]; then
+  echo "⚠ PR mergeStateStatus=DIRTY — Rebase gegen origin/main vor dem CI-Poll ..."
+  git fetch origin main 2>/dev/null || true
+  if git rebase origin/main; then
+    if ! git push --force-with-lease; then
+      echo "❌ push nach Rebase fehlgeschlagen (force-with-lease abgelehnt oder Netzwerkfehler) — manuelles Eingreifen nötig." >&2
+      exit 3
+    fi
+  else
+    git rebase --abort 2>/dev/null || true
+    echo "❌ Rebase-Konflikt gegen origin/main — manuelle Konfliktlösung nötig (kein Auto-Force)." >&2
+    exit 3
+  fi
+fi
+
 CI_ATTEMPT=0
 while true; do
   CI_ATTEMPT=$((CI_ATTEMPT + 1))
@@ -25,8 +43,19 @@ while true; do
 
   gh pr checks --watch --interval 15 2>/dev/null || true
 
-  FAILED_CHECKS=$(gh pr checks --json name,state,link \
-    | jq -r '.[] | select(.state == "FAILURE" or .state == "TIMED_OUT") | "\(.name): \(.link)"')
+  if ! FAILED_CHECKS=$(gh pr view "$PR_URL" --json statusCheckRollup \
+    -q '.statusCheckRollup[] | select(
+          (.conclusion // "") == "FAILURE" or (.conclusion // "") == "TIMED_OUT"
+          or (.state // "") == "FAILURE"
+        ) | (.name // .context // "unknown") + ": " + (.detailsUrl // .targetUrl // "")'); then
+    echo "⚠ gh pr view --json statusCheckRollup fehlgeschlagen (Auth/Schema/Rate-Limit?) — kann Checks nicht sicher bewerten." >&2
+    if [[ $CI_ATTEMPT -ge $MAX_CI_ATTEMPTS ]]; then
+      echo "❌ Nach $MAX_CI_ATTEMPTS Versuchen weiterhin keine verlässliche Check-Auskunft von gh — manuelles Eingreifen nötig." >&2
+      exit 1
+    fi
+    sleep 15
+    continue
+  fi
 
   if [[ -z "$FAILED_CHECKS" ]]; then
     echo "✅ Alle CI-Checks grün."

@@ -17,6 +17,7 @@
 set -uo pipefail
 
 AGENT_LOCK_TTL="${AGENT_LOCK_TTL:-1800}"
+AGENT_LOCK_GRACE="${AGENT_LOCK_GRACE:-120}"
 
 _now() { date +%s; }
 
@@ -73,15 +74,33 @@ _lock_file() { # <scope> [id]
 
 _lock_field() { sed -n "s/.*\"$2\": *\"\\([^\"]*\\)\".*/\\1/p" "$1" 2>/dev/null | head -1; }
 
+# Append an append-only audit line whenever a claim is classified reapable.
+# Fail-open: a write failure is ignored (consistent with the rest of the script).
+# NOTE: .reap.log is not rotated here — small text lines; rotate in a follow-up if it grows.
+_reap_log() {  # <lock-file> <reason>
+  printf '%s %s/%s %s\n' "$(_now)" \
+    "$(_lock_field "$1" scope)" "$(_lock_field "$1" id)" "$2" \
+    >> "$(_lock_dir)/.reap.log" 2>/dev/null || true
+}
+
 # 0 = reapable (clearly dead). A confirmed-alive SID is NEVER reapable.
 _reapable() {
-  local f="$1" sid wt hb now
+  local f="$1" sid wt hb ct now age
   [ -f "$f" ] || return 0
   sid="$(_lock_field "$f" owner_sid)"; wt="$(_lock_field "$f" worktree)"
-  hb="$(_lock_field "$f" heartbeat_at)"; now="$(_now)"
-  if [ -n "$wt" ] && [ "$wt" != "-" ] && [ ! -d "$wt" ]; then return 0; fi
-  if [ -n "$sid" ]; then _sid_alive "$sid" && return 1 || return 0; fi
-  if [ -n "$hb" ] && [ "$(( now - hb ))" -gt "$AGENT_LOCK_TTL" ]; then return 0; fi
+  hb="$(_lock_field "$f" heartbeat_at)"; ct="$(_lock_field "$f" created_at)"; now="$(_now)"
+  if [ -n "$wt" ] && [ "$wt" != "-" ] && [ ! -d "$wt" ]; then _reap_log "$f" worktree-missing; return 0; fi
+  if [ -n "$sid" ]; then
+    if _sid_alive "$sid"; then return 1; fi
+    # Dead numeric SID: a young claim (< AGENT_LOCK_GRACE) is protected from a
+    # reap on the SID check alone — a transient session-id mismatch between tool
+    # calls must not drop a fresh claim. Fall through to the heartbeat-TTL check.
+    age=$(( now - ${ct:-0} ))
+    if [ -z "$ct" ] || [ "$age" -ge "$AGENT_LOCK_GRACE" ]; then
+      _reap_log "$f" sid-dead; return 0
+    fi
+  fi
+  if [ -n "$hb" ] && [ "$(( now - hb ))" -gt "$AGENT_LOCK_TTL" ]; then _reap_log "$f" heartbeat-ttl; return 0; fi
   return 1
 }
 

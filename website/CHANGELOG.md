@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.148.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.147.0...website-v1.148.0) (2026-07-01)
+
+
+### Features
+
+* **infra:** RustDesk MSI wrapper + SSO-gated downloads surface [T001378] ([#2403](https://github.com/Paddione/Bachelorprojekt/issues/2403)) ([0a16b6a](https://github.com/Paddione/Bachelorprojekt/commit/0a16b6a3ef74d89867a81df6ab599fd46c5b9f52))
+
 ## [1.147.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.146.3...website-v1.147.0) (2026-07-01)
 
 

@@ -2,7 +2,7 @@
 title: Agentic Tooling Quality Goals — G-AGENTIC01–17 in .claude/lib/goals.md
 ticket_id: T001398
 domains: [quality, tooling, meta]
-status: planning
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

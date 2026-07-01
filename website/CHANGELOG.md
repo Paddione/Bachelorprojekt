@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.150.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.149.1...website-v1.150.0) (2026-07-01)
+
+
+### Features
+
+* **quality:** add agentic tooling health goals (agents/skills/mcp/commands) [T001398] ([#2415](https://github.com/Paddione/Bachelorprojekt/issues/2415)) ([3455e33](https://github.com/Paddione/Bachelorprojekt/commit/3455e33ac7aba1c92c3613463d58072cb7e86bb1))
+
 ## [1.149.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.149.0...website-v1.149.1) (2026-07-01)
 
 

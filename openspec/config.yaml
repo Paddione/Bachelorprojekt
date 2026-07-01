@@ -54,7 +54,6 @@ context: |
     g-test01-bats-debt-skips,
     g-test05-vitest-coverage,
     mentolder-homepage-hifi-redesign,
-    openspec-ssot-quality,
     pocket-id-client-seed-auth-header,
     pocket-id-client-seed-timeout,
     size04-loc-velocity,

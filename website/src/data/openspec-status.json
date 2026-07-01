@@ -551,6 +551,12 @@
       "status": "archived"
     }
   ],
+  "T001349": [
+    {
+      "slug": "t001349-korczewski-deploy-rate-metric",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

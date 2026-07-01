@@ -356,7 +356,8 @@ The system SHALL deploy a freshly-built website image by running `kubectl set im
 - **AND** der Workflow wartet anschließend auf `kubectl rollout status deployment/website`
 
 #### Scenario: korczewski Build-Workflow enthält kubectl set image *(BATS)*
-- **GIVEN** die Datei `.github/workflows/build-website-korczewski.yml` existiert
+- **GIVEN** die Datei `.github/workflows/build-website.yml` existiert und definiert den Job
+  `deploy-korczewski`
 - **WHEN** der Deploy-Schritt ausgeführt wird
 - **THEN** enthält der Schritt `kubectl set image deployment/website website=` mit dynamischem SHA-Tag
 - **AND** der Workflow wartet anschließend auf `kubectl rollout status deployment/website`

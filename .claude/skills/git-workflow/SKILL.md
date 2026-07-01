@@ -108,6 +108,13 @@ git push -u origin "$(git rev-parse --abbrev-ref HEAD)"
 # git push --force-with-lease   — NUR für eigene Feature-Branches, NIEMALS für main
 ```
 
+> **Push auf `main`:** Verwende `bash scripts/git-safe-push.sh` statt rohem
+> `git push`. Der Wrapper fetcht nach dem Push `origin/main` und heilt eine
+> *inhalts-äquivalente* Divergenz (z. B. Squash-Merge oder freshness-regen-Bot-
+> Commit) automatisch per `git reset --hard origin/main` — aber nur bei sauberem
+> Working Tree; eine echte Divergenz wird nur gewarnt, nie automatisch verworfen.
+> Opt-out: `SKIP_PUSH_SYNC=1`.
+
 ---
 
 ## Schritt 4 — PR-Erstellung

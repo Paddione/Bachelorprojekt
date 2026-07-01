@@ -2,7 +2,7 @@
 title: "pr-scope-drift — Implementation Plan"
 ticket_id: T001364
 domains: [test, infra]
-status: plan_staged
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

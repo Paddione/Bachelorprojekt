@@ -95,6 +95,25 @@ if [[ "$CURRENT_BRANCH" != "$EXPECTED_BRANCH" ]]; then
 fi
 ```
 
+`dev-flow-execute` erwartet normalerweise, dass `dev-flow-plan` bereits einen isolierten Worktree unter
+`tmp/wt-*` übergeben hat. Das wird hier nie explizit geprüft — läuft die Execute-Phase versehentlich im
+Haupt-Checkout (z.B. nach einem Session-Neustart), schreibt der Implementer-Subagent direkt ins
+Haupt-Repo statt in eine isolierte Kopie [T001363]:
+
+```bash
+# Worktree-Isolation-Check [T001363]
+# Wir sind entweder schon in einem tmp/wt-*-Worktree ODER müssen einen anlegen.
+if [[ "$PWD" != *"/tmp/wt-"* ]]; then
+  echo "⚠️  Kein isolierter Worktree unter tmp/wt-* erkannt (PWD=$PWD)."
+  SLUG=$(echo "$EXPECTED_BRANCH" | sed 's#^[a-z]*/##')
+  WORKTREE_PATH="tmp/wt-${SLUG}"
+  echo "→ Lege isolierten Worktree an: scripts/worktree-create.sh $EXPECTED_BRANCH $WORKTREE_PATH"
+  bash scripts/worktree-create.sh "$EXPECTED_BRANCH" "$WORKTREE_PATH"
+  echo "✅ Worktree bereit unter $WORKTREE_PATH — dorthin wechseln, bevor mit Schritt 1 fortgefahren wird."
+  exit 1
+fi
+```
+
 ---
 
 ## Schritt 0.5: Sync mit main & Rebase

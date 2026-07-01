@@ -557,6 +557,12 @@
       "status": "plan_staged"
     }
   ],
+  "T001351": [
+    {
+      "slug": "t001351-time-entry-default-date",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

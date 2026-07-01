@@ -6,9 +6,7 @@
  */
 
 import { pool } from './db-pool';
-import type { Pool, PoolClient } from 'pg';
 import { initTicketsSchema } from './tickets-schema';
-import type { Customer } from './website-db';
 
 // Re-export from related modules for convenience (but NOT project-export-db to avoid cycles)
 export * from './project-attachments-db';

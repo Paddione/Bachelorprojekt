@@ -28,6 +28,7 @@ spec:
         # `VITE_WEBSITE_ORIGIN` build-arg in .github/workflows/build-mentolder-web.yml
         # (https://web.mentolder.de). A runtime env here would have no effect on
         # the pre-built bundle, so none is set.
+        # :latest is intentional — rebuilt on every release (build-mentolder-web.yml, see gotchas-footguns.md)
         - name: mentolder-web
           image: ghcr.io/paddione/mentolder-web:latest
           imagePullPolicy: Always

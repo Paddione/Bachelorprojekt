@@ -17,6 +17,7 @@ spec:
       imagePullSecrets:
         - name: ghcr-pull-secret
       containers:
+        # :latest is intentional — rebuilt on every release (build-rustdesk-installer.yml, see gotchas-footguns.md)
         - name: downloads
           image: ghcr.io/paddione/downloads-content:latest
           imagePullPolicy: Always

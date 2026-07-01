@@ -2,7 +2,7 @@
 title: "t001415-mishap-bundle-status-lifecycle — Implementation Plan"
 ticket_id: T001415
 domains: [infra, dev-flow, tickets]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

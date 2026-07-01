@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.149.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.149.0...website-v1.149.1) (2026-07-01)
+
+
+### Bug Fixes
+
+* **infra:** wire pocket-id SMTP_USER and SMTP_TLS through prod deploy paths ([#2408](https://github.com/Paddione/Bachelorprojekt/issues/2408)) ([0237317](https://github.com/Paddione/Bachelorprojekt/commit/0237317cd0c3877b14764f2c6aac8cdf733d2cc0))
+
 ## [1.149.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.148.0...website-v1.149.0) (2026-07-01)
 
 

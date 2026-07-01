@@ -46,10 +46,13 @@
           Manufacturer="Workspace"
           UpgradeCode="8f3d1c2a-6b4e-4a7d-9c11-7e2f5a9b0d34">
     <BootstrapperApplication>
-      <!-- Theme="none" is the only theme that doesn't require a
-           LicenseFile/LicenseUrl (BalCompiler.cs) — appropriate since this
-           bundle only ever runs non-interactively via /quiet (T001425). -->
-      <bal:WixStandardBootstrapperApplication Theme="none" SuppressOptionsUI="yes" />
+      <!-- Theme="none" compiles but wixstdba.exe's runtime BA host still hard
+           requires a WixStdbaInformation manifest entry (only emitted by the
+           licensed themes) — without it: "0x80070490 BootstrapperApplication.xml
+           manifest is missing wixstdba information." UI is never shown either
+           way since this bundle only ever runs via /quiet (T001425); the
+           LicenseUrl below is inert. -->
+      <bal:WixStandardBootstrapperApplication Theme="hyperlinkLicense" LicenseUrl="https://rustdesk.mentolder.de/" SuppressOptionsUI="yes" />
     </BootstrapperApplication>
 
     <Chain>

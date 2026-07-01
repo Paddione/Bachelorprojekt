@@ -104,12 +104,27 @@ jobs:
           }
           Write-Host "smoke ok: config targets $env:EXPECTED_ID_SERVER"
 
-      - name: Log in to GHCR
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9  # v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GH_PAT }}
+      - name: Install crane
+        shell: pwsh
+        run: |
+          # T001425 follow-up: `docker buildx` is not installed on windows-latest
+          # (Docker Engine - Community here only supports Windows containers —
+          # WSLv1-only, no Linux/BuildKit backend: "docker: unknown command:
+          # docker buildx"). crane assembles the OCI image via pure manifest/tar
+          # manipulation (no daemon, no container execution needed — the
+          # Dockerfile has no RUN steps, just FROM/COPY/ENV), so it works
+          # identically here without Linux container support. Pinned + SHA256
+          # verified like the RustDesk MSI download above.
+          $url = "https://github.com/google/go-containerregistry/releases/download/v0.21.7/go-containerregistry_Windows_x86_64.tar.gz"
+          $sha256 = "88a1693e8d49298f9c44c81fbca55efea8f5ab1be3c760534cfb8d932ca88baa"
+          Invoke-WebRequest -Uri $url -OutFile crane.tar.gz
+          $got = (Get-FileHash crane.tar.gz -Algorithm SHA256).Hash.ToLower()
+          if ($got -ne $sha256) { Write-Error "crane SHA256 mismatch: got $got expected $sha256"; exit 1 }
+          tar -xzf crane.tar.gz crane.exe
+
+      - name: Log in to GHCR (crane)
+        run: .\crane.exe auth login ghcr.io -u "${{ github.repository_owner }}" -p "${{ secrets.GH_PAT }}"
+        shell: pwsh
 
       - name: Pre-push guard — refuse to re-publish over a public package
         shell: bash
@@ -136,21 +151,30 @@ jobs:
         shell: pwsh
         run: |
           $sha = "sha-$(git rev-parse --short HEAD)"
-          # Mechanism (Task 8 Step 2): the windows-latest runner ships Docker with
-          # a Linux engine available; build a linux/amd64 image via buildx so the
-          # static-web-server base (alpine) runs on the fleet nodes. The bundle
-          # never leaves the runner as a workflow artifact — it goes straight into
-          # the image layer and is pushed to the (private) GHCR package.
-          docker version
-          docker buildx version
-          docker buildx create --use --name downloads-builder
-          if ($LASTEXITCODE -ne 0) { Write-Error "buildx create failed ($LASTEXITCODE)"; exit $LASTEXITCODE }
-          docker buildx build `
-            --platform linux/amd64 `
-            -f scripts/downloads.Dockerfile `
-            -t "ghcr.io/paddione/downloads-content:$sha" `
-            -t "ghcr.io/paddione/downloads-content:latest" `
-            --push .
+          $tagSha = "ghcr.io/paddione/downloads-content:$sha"
+          # scripts/downloads.Dockerfile has no RUN steps (FROM/COPY/ENV only),
+          # so the image can be assembled as pure OCI manifest/tar operations —
+          # no container execution or Linux daemon needed. Must match the base
+          # image in scripts/downloads.Dockerfile if that file changes.
+          $baseImage = "joseluisq/static-web-server:2.36-alpine"
+
+          New-Item -ItemType Directory -Force -Path layer-root/public | Out-Null
+          Copy-Item rustdesk-workspace-installer.exe layer-root/public/rustdesk-workspace-installer.exe
+          tar -cf layer.tar -C layer-root public
+          if ($LASTEXITCODE -ne 0) { Write-Error "tar failed ($LASTEXITCODE)"; exit $LASTEXITCODE }
+
+          .\crane.exe append -b $baseImage --platform linux/amd64 -f layer.tar -t $tagSha
+          if ($LASTEXITCODE -ne 0) { Write-Error "crane append failed ($LASTEXITCODE)"; exit $LASTEXITCODE }
+
+          .\crane.exe mutate $tagSha `
+            --env SERVER_ROOT=/public `
+            --env SERVER_PORT=8787 `
+            --env SERVER_CACHE_CONTROL_HEADERS=false `
+            -t $tagSha
+          if ($LASTEXITCODE -ne 0) { Write-Error "crane mutate failed ($LASTEXITCODE)"; exit $LASTEXITCODE }
+
+          .\crane.exe tag $tagSha latest
+          if ($LASTEXITCODE -ne 0) { Write-Error "crane tag failed ($LASTEXITCODE)"; exit $LASTEXITCODE }
 
       - name: Verify downloads-content package is private
         shell: bash

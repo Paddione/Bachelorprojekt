@@ -2,7 +2,7 @@
 title: "pocket-id-smtp-wiring — Implementation Plan"
 ticket_id: T001396
 domains: [infra]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

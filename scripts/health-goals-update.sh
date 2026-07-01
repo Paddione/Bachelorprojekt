@@ -24,11 +24,17 @@ for a in "$@"; do case "$a" in
   *) echo "unbekanntes Flag: $a" >&2; exit 2 ;;
 esac; done
 
-GOALS_FILE=".claude/lib/goals.md"
-VALUES_FILE="$(mktemp)"
-trap 'rm -f "$VALUES_FILE"' EXIT
+GOALS_FILE="${HG_GOALS_FILE:-.claude/lib/goals.md}"
 
-HG_VALUES_FILE="$VALUES_FILE" bash scripts/health-goals-check.sh "${CHECK_ARGS[@]}" >/dev/null || true
+# Testability seam: if the caller pre-supplies a non-empty HG_VALUES_FILE we
+# reuse it verbatim (fixture/CI); otherwise mktemp + run the live check script.
+if [ -n "${HG_VALUES_FILE:-}" ] && [ -s "${HG_VALUES_FILE:-}" ]; then
+  VALUES_FILE="$HG_VALUES_FILE"
+else
+  VALUES_FILE="$(mktemp)"
+  trap 'rm -f "$VALUES_FILE"' EXIT
+  HG_VALUES_FILE="$VALUES_FILE" bash scripts/health-goals-check.sh "${CHECK_ARGS[@]}" >/dev/null || true
+fi
 
 if [ ! -s "$VALUES_FILE" ]; then
   echo "keine Messwerte erhalten — abgebrochen" >&2
@@ -65,6 +71,7 @@ EXCLUDE_IDS = set()
 changed = []
 skipped_format = []
 excluded = []
+open_goals = []
 for i, line in enumerate(lines):
     m = row_re.match(line.rstrip("\n"))
     if not m:
@@ -82,14 +89,16 @@ for i, line in enumerate(lines):
         skipped_format.append(gid)
         continue
     old_val = cm.group(1)
-    if old_val == actual:
-        continue
     ok = {
         "le": int(actual) <= int(target),
         "ge": int(actual) >= int(target),
         "eq": int(actual) == int(target),
     }.get(cmp_op, False)
     marker = "✓" if ok else "⚠"
+    if not ok:
+        open_goals.append((gid, ziel_cell.strip(), actual, cmp_op, target))
+    if old_val == actual:
+        continue
     lines[i] = f"| **{gid}** |{ziel_cell}| {actual} {marker} |{target_cell}|{rest_cell}|\n"
     changed.append((gid, old_val, actual, ok))
 
@@ -110,6 +119,27 @@ if excluded:
     print("\nAusgeschlossen (bekannte ID-Kollision Skript vs. Tabelle, siehe EXCLUDE_IDS):")
     for gid in excluded:
         print(f"  {gid}")
+
+CMP_SYMBOL = {"le": "<=", "ge": ">=", "eq": "=="}
+
+def _sh_escape(text):
+    return text.replace("\\", "\\\\").replace('"', '\\"').replace("`", "\\`")
+
+print("\nOffene Ziele (Target verfehlt):")
+if not open_goals:
+    print("  keine — alle Prio-C-Gates grün.")
+else:
+    for gid, ziel_text, actual, cmp_op, target in sorted(open_goals):
+        sym = CMP_SYMBOL.get(cmp_op, cmp_op)
+        title = _sh_escape(f"Health-Goal: {gid} — {ziel_text}")
+        desc = _sh_escape(
+            f"Aktuell: {actual}, Target: {sym} {target}. Siehe .claude/lib/goals.md#{gid}"
+        )
+        print(f"  ⚠ {gid} — {ziel_text}: {actual} (Target: {sym} {target})")
+        print("    scripts/ticket.sh create --type task \\")
+        print(f'      --title "{title}" \\')
+        print(f'      --description "{desc}" \\')
+        print("      --priority mittel")
 
 if changed and not dry_run:
     with open(goals_file, "w") as f:

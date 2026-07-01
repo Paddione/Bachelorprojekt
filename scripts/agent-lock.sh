@@ -142,6 +142,33 @@ _holder_msg() {
     "$(_lock_field "$1" label)" "$(_lock_field "$1" worktree)" "$(_lock_field "$1" created_at)"
 }
 
+# 0 = a rebase/merge/cherry-pick is mid-flight. git fires post-checkout during the
+# internal ref moves of `git pull --rebase origin main`; reverting then would corrupt
+# another session's legitimate operation. This exemption is the key safety fix. [T001383]
+_git_op_in_progress() {
+  local name p
+  for name in rebase-merge rebase-apply MERGE_HEAD CHERRY_PICK_HEAD; do
+    p="$(git rev-parse --git-path "$name" 2>/dev/null)" || continue
+    [ -e "$p" ] && return 0
+  done
+  return 1
+}
+
+# Label used to mark a main-checkout lock as auto-claimed bookkeeping (populating `branch`
+# for guard-postcheckout) rather than a deliberate exclusive claim (e.g. dev-flow-chore's
+# documented `claim main-checkout`). guard-precommit must NEVER hard-block another session's
+# ordinary commit just because it self-claimed a moment earlier — only a deliberately-labelled
+# claim retains the pre-existing hard-block semantics. [T001383]
+_SELF_CLAIM_LABEL="auto: pre-commit self-claim"
+
+# Best-effort claim/refresh of the main-checkout lock for THIS session, recording the
+# current branch so guard-postcheckout has a reliable revert target. Never blocks. [T001383]
+_self_claim_main_checkout() {
+  local br; br="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
+  [ -n "$br" ] && [ "$br" != "HEAD" ] || return 0
+  cmd_claim main-checkout "" --branch "$br" --label "$_SELF_CLAIM_LABEL" >/dev/null 2>&1
+}
+
 cmd_claim() {
   SCOPE="$1"; ID="${2:-}"; shift 2 2>/dev/null || shift $#
   LABEL=""; WT=""; BRANCH=""; TICKET=""
@@ -232,13 +259,21 @@ cmd_guard_precommit() {
   [ -n "${AGENT_LOCK_FORCE:-}" ] && return 0
   local f; f="$(_lock_file main-checkout)"
   _with_lock
-  [ -f "$f" ] || return 0
-  _reapable "$f" && return 0
-  [ "$(_lock_field "$f" owner_sid)" = "$(_my_sid)" ] && return 0
-  echo "AGENT-LOCK: main-Checkout $(_holder_msg "$f")" >&2
-  echo "  Eine andere Session arbeitet im main-Checkout. Nutze einen Worktree" >&2
-  echo "  (scripts/worktree-create.sh) oder erzwinge: AGENT_LOCK_FORCE=1 git commit ..." >&2
-  return 1
+  # Only a DELIBERATE foreign claim (any label other than the auto self-claim one) still
+  # hard-blocks — an auto-claimed lock is bookkeeping, not a real exclusive hold, so it must
+  # never block a different session's ordinary commit. [T001383]
+  if [ -f "$f" ] && ! _reapable "$f" \
+     && [ "$(_lock_field "$f" owner_sid)" != "$(_my_sid)" ] \
+     && [ "$(_lock_field "$f" label)" != "$_SELF_CLAIM_LABEL" ]; then
+    echo "AGENT-LOCK: main-Checkout $(_holder_msg "$f")" >&2
+    echo "  Eine andere Session arbeitet im main-Checkout. Nutze einen Worktree" >&2
+    echo "  (scripts/worktree-create.sh) oder erzwinge: AGENT_LOCK_FORCE=1 git commit ..." >&2
+    return 1
+  fi
+  # No live foreign deliberate lock blocks the commit → self-claim so the `branch` field
+  # stays populated for guard-postcheckout. Best-effort; must never block the commit. [T001383]
+  _self_claim_main_checkout || true
+  return 0
 }
 
 cmd_guard_postcheckout() {
@@ -246,7 +281,21 @@ cmd_guard_postcheckout() {
   [ -f "$f" ] || return 0
   _reapable "$f" && return 0
   [ "$(_lock_field "$f" owner_sid)" = "$(_my_sid)" ] && return 0
+  # Exemption first: never warn or revert mid rebase/merge/cherry-pick.
+  _git_op_in_progress && return 0
   echo "AGENT-LOCK (Warnung): main-Checkout $(_holder_msg "$f") — paralleler Branch-Switch riskant." >&2
+  # Opt-out escape hatch.
+  [ "${AGENT_LOCK_POSTCHECKOUT_REVERT:-1}" = "0" ] && return 0
+  # Best-effort revert onto the lock's recorded branch — never a raw SHA.
+  local br; br="$(_lock_field "$f" branch)"
+  [ -n "$br" ] || return 0
+  git show-ref --verify --quiet "refs/heads/$br" || return 0
+  [ "$(git rev-parse --abbrev-ref HEAD 2>/dev/null)" = "$br" ] && return 0
+  if git checkout "$br" >/dev/null 2>&1; then
+    echo "AGENT-LOCK: main-Checkout auf '$br' zurückgesetzt (Lock-Halter aktiv)." >&2
+  else
+    echo "AGENT-LOCK: Revert auf '$br' fehlgeschlagen — bitte manuell prüfen." >&2
+  fi
   return 0
 }
 

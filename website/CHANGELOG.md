@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.145.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.145.6...website-v1.145.7) (2026-07-01)
+
+
+### Bug Fixes
+
+* **ci:** repoint G-CD01 goals.md metric to build-website.yml ([#2353](https://github.com/Paddione/Bachelorprojekt/issues/2353)) ([daa1248](https://github.com/Paddione/Bachelorprojekt/commit/daa124876fab07a609fceeae1702c99224e2ebd3))
+
 ## [1.145.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.145.5...website-v1.145.6) (2026-07-01)
 
 

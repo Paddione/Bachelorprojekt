@@ -45,7 +45,7 @@ the new-SSOT-stub is written in `applyDelta()`'s `createNew` branch.
 
 ```
 scripts/openspec-merge.mjs        # MODIFY — add + call registerComponent()
-scripts/openspec-merge.test.mjs   # CREATE — vitest unit tests for registerComponent()
+scripts/openspec-merge.test.ts   # CREATE — vitest unit tests for registerComponent()
 tests/spec/openspec-workflow.bats # ALREADY MODIFIED (this session) — T001389 BATS tests (RED)
 openspec/config.yaml              # untouched by this plan (registerComponent only ever
                                    # mutates copies/fixtures in tests; the real file only
@@ -60,7 +60,7 @@ positive. No split needed.
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED) — already committed this session.** The BATS
+- [x] **Failing-Test-Step (RED) — already committed this session.** The BATS
       tests `T001389: archive --create-new registers the new component slug in
       config.yaml` and `T001389: registering the same component twice does not
       duplicate the entry` were added to `tests/spec/openspec-workflow.bats` and
@@ -74,7 +74,7 @@ positive. No split needed.
 # workflow files, is out of scope for T001389 — do not attempt to fix it here.)
 ```
 
-- [ ] **Fix-Step (GREEN).** Implement `registerComponent()` and wire it into
+- [x] **Fix-Step (GREEN).** Implement `registerComponent()` and wire it into
       `applyDelta()` (Task 1 below), then add the Vitest unit tests (Task 2),
       then re-run the BATS suite to confirm GREEN (Task 3).
 
@@ -91,7 +91,7 @@ positive. No split needed.
   `node:fs`; `dirname`, `basename`, `join` — `join` is a **new** import needed
   from `node:path` (the file currently only imports `dirname, basename`).
 
-- [ ] **Step 1.1: Add the `join` import**
+- [x] **Step 1.1: Add the `join` import**
 
 Edit the top-of-file import line:
 
@@ -105,7 +105,7 @@ import { dirname, basename } from 'node:path'
 import { dirname, basename, join } from 'node:path'
 ```
 
-- [ ] **Step 1.2: Add `registerComponent()` — insert after `applyDelta()` (after line 116, before `function main(argv)`)**
+- [x] **Step 1.2: Add `registerComponent()` — insert after `applyDelta()` (after line 116, before `function main(argv)`)**
 
 ```js
 // Idempotently register a newly-created SSOT component slug into
@@ -141,7 +141,7 @@ export function registerComponent(openspecRoot, slug) {
 }
 ```
 
-- [ ] **Step 1.3: Call `registerComponent()` from `applyDelta()`'s new-SSOT branch**
+- [x] **Step 1.3: Call `registerComponent()` from `applyDelta()`'s new-SSOT branch**
 
 Find the existing block in `applyDelta()`:
 
@@ -174,7 +174,7 @@ Replace it with:
   }
 ```
 
-- [ ] **Step 1.4: Run the BATS suite to confirm GREEN**
+- [x] **Step 1.4: Run the BATS suite to confirm GREEN**
 
 ```bash
 ./tests/unit/lib/bats-core/bin/bats tests/spec/openspec-workflow.bats
@@ -182,7 +182,7 @@ Replace it with:
 # Test 12 (OPENSPEC_TELEMETRY) remains the one pre-existing, unrelated failure.
 ```
 
-- [ ] **Step 1.5: Commit**
+- [x] **Step 1.5: Commit**
 
 ```bash
 git add scripts/openspec-merge.mjs
@@ -192,13 +192,13 @@ git commit -m "fix(openspec): auto-register new SSOT components in config.yaml [
 ### Task 2: Add Vitest unit tests for `registerComponent()`
 
 **Files:**
-- Create: `scripts/openspec-merge.test.mjs`
+- Create: `scripts/openspec-merge.test.ts`
 
 **Interfaces:**
 - Consumes: `registerComponent`, `applyDelta` exported from `./openspec-merge.mjs`
   (Task 1).
 
-- [ ] **Step 2.1: Write the test file**
+- [x] **Step 2.1: Write the test file**
 
 ```js
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
@@ -314,24 +314,24 @@ The system SHALL add a brand new block C.
 });
 ```
 
-- [ ] **Step 2.2: Run the new test file to confirm it fails without Task 1's code**
+- [x] **Step 2.2: Run the new test file to confirm it fails without Task 1's code**
 
-Run: `npx vitest run scripts/openspec-merge.test.mjs`
+Run: `npx vitest run scripts/openspec-merge.test.ts`
 Expected: FAIL — `registerComponent` is not exported yet if Task 1 hasn't landed
 on this checkout (skip this step if Task 1 is already committed; in that case run
 Step 2.3 directly and expect PASS).
 
-- [ ] **Step 2.3: Run the test file to confirm it passes**
+- [x] **Step 2.3: Run the test file to confirm it passes**
 
 ```bash
-npx vitest run scripts/openspec-merge.test.mjs
+npx vitest run scripts/openspec-merge.test.ts
 # expected: PASS — all 6 tests green.
 ```
 
-- [ ] **Step 2.4: Commit**
+- [x] **Step 2.4: Commit**
 
 ```bash
-git add scripts/openspec-merge.test.mjs
+git add scripts/openspec-merge.test.ts
 git commit -m "test(openspec): add vitest coverage for registerComponent [T001389]"
 ```
 
@@ -340,7 +340,7 @@ git commit -m "test(openspec): add vitest coverage for registerComponent [T00138
 **Files:**
 - None changed (verification only).
 
-- [ ] **Step 3.1: Re-run the full BATS spec file**
+- [x] **Step 3.1: Re-run the full BATS spec file**
 
 ```bash
 ./tests/unit/lib/bats-core/bin/bats tests/spec/openspec-workflow.bats
@@ -348,7 +348,7 @@ git commit -m "test(openspec): add vitest coverage for registerComponent [T00138
 # unrelated OPENSPEC_TELEMETRY failure (test 12) is out of scope for T001389.
 ```
 
-- [ ] **Step 3.2: Re-run `openspec validate`**
+- [x] **Step 3.2: Re-run `openspec validate`**
 
 ```bash
 bash scripts/openspec.sh validate

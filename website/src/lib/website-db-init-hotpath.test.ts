@@ -90,7 +90,7 @@ vi.mock('pg', () => {
     // Exposed to the test body. Reset in beforeEach.
     static siteSettingsInitDdlCount = 0;
 
-    async query(textOrConfig: unknown, values?: unknown): Promise<unknown> {
+    override async query(textOrConfig: unknown, values?: unknown): Promise<unknown> {
       const sql =
         typeof textOrConfig === 'string'
           ? textOrConfig

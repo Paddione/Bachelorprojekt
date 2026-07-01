@@ -7,6 +7,9 @@
 //
 // Skipped automatically when no DATABASE_URL/WEBSITE_DATABASE_URL/
 // SESSIONS_DATABASE_URL is set, the same gate other DB-touching tests use.
+//
+// Mocked-pool tests (no DATABASE_URL required, always run including in CI)
+// live in the sibling file `failure-bridge-mocked.test.ts`.
 
 import { describe, it, expect, beforeAll, afterEach } from 'vitest';
 import { randomUUID } from 'node:crypto';

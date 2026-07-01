@@ -25,7 +25,7 @@ vi.mock('pg', () => {
   }
   class CountingPool extends (MemPool as unknown as new (...a: unknown[]) => { query(t: unknown, v?: unknown): Promise<unknown> }) {
     static platformCreateDdlCount = 0;
-    async query(textOrConfig: unknown, values?: unknown): Promise<unknown> {
+    override async query(textOrConfig: unknown, values?: unknown): Promise<unknown> {
       const sql = typeof textOrConfig === 'string' ? textOrConfig : (textOrConfig as { text?: string })?.text ?? '';
       if (isPlatformCreateDdl(sql)) { CountingPool.platformCreateDdlCount += 1; return { rows: [], rowCount: 0 }; }
       return super.query(textOrConfig, values);

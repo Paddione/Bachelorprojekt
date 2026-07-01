@@ -12,6 +12,8 @@ const COMPONENT_TESTS = [
   'src/components/**/*.{test,spec}.ts',
   'src/lib/stores/cockpitStore.test.ts',
   'src/lib/factory-floor.order.test.ts',
+  // Client-only rrweb recorder — touches window/document/navigator directly.
+  'src/lib/systemtest/recorder.test.ts',
 ];
 
 export default defineConfig({
@@ -34,7 +36,7 @@ export default defineConfig({
       ],
       reporter: ['text', 'json-summary'],
       reportsDirectory: './coverage',
-      thresholds: { lines: 60 },
+      thresholds: { lines: 80 },
     },
     projects: [
       {

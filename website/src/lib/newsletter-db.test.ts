@@ -20,9 +20,12 @@ vi.mock('pg', () => ({ default: { Pool }, Pool }));
 vi.mock('dns', () => ({ default: { resolve4: (...a: unknown[]) => resolve4(...a) }, resolve4: (...a: unknown[]) => resolve4(...a) }));
 vi.mock('./email', () => ({ sendNewsletterCampaign: vi.fn() }));
 
-import { listSubscribers, getSubscriberByEmail, getSubscriberByConfirmToken, createSubscriber, updateSubscriberToken, confirmSubscriber, unsubscribeByToken, deleteSubscriber, listCampaigns, getCampaign, createCampaign, countSentCampaigns, sendCampaignById, listDueCampaignIds, lockDueCampaign, unlockCampaignToScheduled, resetStaleSendingCampaigns } from './newsletter-db';
+import { listSubscribers, getSubscriberByEmail, getSubscriberByConfirmToken, createSubscriber, updateSubscriberToken, confirmSubscriber, unsubscribeByToken, deleteSubscriber, listCampaigns, getCampaign, createCampaign, countSentCampaigns, sendCampaignById, listDueCampaignIds, lockDueCampaign, unlockCampaignToScheduled, resetStaleSendingCampaigns, updateCampaign } from './newsletter-db';
+import * as emailModule from './email';
 
-beforeEach(() => { query.mockClear(); end.mockClear(); });
+const mockedSendNewsletterCampaign = emailModule.sendNewsletterCampaign as unknown as ReturnType<typeof vi.fn>;
+
+beforeEach(() => { query.mockClear(); end.mockClear(); mockedSendNewsletterCampaign.mockReset(); });
 // Silence unused vars
 void resolve4;
 
@@ -179,5 +182,91 @@ describe('newsletter-db (pg.Pool mocked, queue-based)', () => {
     await resetStaleSendingCampaigns();
     const calls = query.mock.calls.map(c => c[0] as string);
     expect(calls.some(s => /status = 'sending' AND updated_at < now\(\) - INTERVAL '10 minutes'/.test(s))).toBe(true);
+  });
+});
+
+describe('updateCampaign', () => {
+  it('returns getCampaign result when no fields are provided (no UPDATE issued)', async () => {
+    query.mockResolvedValueOnce({ rows: [{ id: 'c1', subject: 'S' }] });
+    const out = await updateCampaign('c1', {});
+    expect(out).toEqual({ id: 'c1', subject: 'S' });
+    expect(query).toHaveBeenCalledTimes(1);
+    const [sql] = query.mock.calls[0];
+    expect(sql).toMatch(/FROM newsletter_campaigns WHERE id = \$1/);
+  });
+
+  it('builds a partial UPDATE for only the provided field', async () => {
+    query.mockResolvedValueOnce({ rows: [{ id: 'c1', subject: 'New' }] });
+    await updateCampaign('c1', { subject: 'New' });
+    const calls = query.mock.calls.map(c => ({ sql: c[0] as string, params: c[1] as unknown[] }));
+    const updateCall = calls.find(c => /UPDATE newsletter_campaigns SET/.test(c.sql));
+    expect(updateCall).toBeDefined();
+    expect(updateCall!.sql).toMatch(/subject = \$1/);
+    expect(updateCall!.sql).not.toMatch(/html_body = /);
+    expect(updateCall!.sql).toMatch(/WHERE id = \$2 AND status IN \('draft', 'scheduled'\)/);
+    expect(updateCall!.params).toEqual(['New', 'c1']);
+  });
+
+  it('sets all provided fields in the SET clause, in declaration order', async () => {
+    const date = new Date('2026-08-01T00:00:00Z');
+    query.mockResolvedValueOnce({ rows: [{ id: 'c1' }] });
+    await updateCampaign('c1', { subject: 'S', html_body: 'H', scheduled_publish_at: date, status: 'scheduled' });
+    const calls = query.mock.calls.map(c => ({ sql: c[0] as string, params: c[1] as unknown[] }));
+    const updateCall = calls.find(c => /UPDATE newsletter_campaigns SET/.test(c.sql));
+    expect(updateCall).toBeDefined();
+    expect(updateCall!.params).toEqual(['S', 'H', date, 'scheduled', 'c1']);
+  });
+
+  it('returns null when no row matches (e.g. campaign already sent)', async () => {
+    query.mockResolvedValueOnce({ rows: [] });
+    const out = await updateCampaign('c1', { subject: 'x' });
+    expect(out).toBeNull();
+  });
+});
+
+describe('sendCampaignById: full send flow', () => {
+  it('sends to confirmed subscribers, logs each attempt, renders AUSGABE, and marks the campaign sent', async () => {
+    query
+      .mockResolvedValueOnce({ rows: [{ id: 'c1', subject: 'Hi', html_body: 'Ausgabe {{AUSGABE}}', status: 'draft' }] }) // getCampaign
+      .mockResolvedValueOnce({ rows: [
+        { id: 's1', email: 'a@b.com', unsubscribe_token: 'ut-1' },
+        { id: 's2', email: 'c@d.com', unsubscribe_token: 'ut-2' },
+      ] }) // getConfirmedSubscribers
+      .mockResolvedValueOnce({ rows: [{ count: 4 }] }) // countSentCampaigns
+      .mockResolvedValueOnce({ rows: [] }) // createSendLog s1
+      .mockResolvedValueOnce({ rows: [] }) // createSendLog s2
+      .mockResolvedValueOnce({ rows: [] }); // markCampaignSent
+
+    mockedSendNewsletterCampaign
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(false);
+
+    const out = await sendCampaignById('c1');
+    expect(out).toEqual({ success: true, recipientCount: 1 });
+
+    const calls = query.mock.calls.map(c => ({ sql: c[0] as string, params: c[1] as unknown[] }));
+    const logCalls = calls.filter(c => /INSERT INTO newsletter_send_log/.test(c.sql));
+    expect(logCalls).toHaveLength(2);
+    expect(logCalls[0].params).toEqual(['c1', 's1', 'sent']);
+    expect(logCalls[1].params).toEqual(['c1', 's2', 'failed']);
+
+    const markSentCall = calls.find(c => /SET status = 'sent'/.test(c.sql));
+    expect(markSentCall).toBeDefined();
+    expect(markSentCall!.params).toEqual([1, 'c1']);
+
+    expect(mockedSendNewsletterCampaign).toHaveBeenCalledTimes(2);
+    const firstSendArgs = mockedSendNewsletterCampaign.mock.calls[0][0] as { html: string; unsubscribeUrl: string; to: string };
+    expect(firstSendArgs.html).toBe('Ausgabe 05'); // sentCount 4 + 1, padded to 2 digits
+    expect(firstSendArgs.unsubscribeUrl).toMatch(/token=ut-1$/);
+    expect(firstSendArgs.to).toBe('a@b.com');
+  });
+
+  it('returns an error when there are no confirmed subscribers', async () => {
+    query
+      .mockResolvedValueOnce({ rows: [{ id: 'c1', subject: 'Hi', html_body: 'x', status: 'draft' }] }) // getCampaign
+      .mockResolvedValueOnce({ rows: [] }); // getConfirmedSubscribers -> empty
+    const out = await sendCampaignById('c1');
+    expect(out).toEqual({ success: false, recipientCount: 0, error: 'Keine bestätigten Abonnenten vorhanden' });
+    expect(mockedSendNewsletterCampaign).not.toHaveBeenCalled();
   });
 });

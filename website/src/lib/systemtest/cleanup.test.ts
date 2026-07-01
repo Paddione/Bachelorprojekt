@@ -10,6 +10,11 @@
 //     `purgeFixturesFor` picks them up regardless of `graceHours`.
 //   - We tag each fixture's assignment as is_test_data=true so the schema-wide
 //     test-data filter doesn't hide them from other tests.
+//
+// See also: `cleanup-mocked.test.ts`, which covers the mocked-pool suite for
+// `purgeFixturesFor` / `drainOutbox` / `purgeExpiredMagicTokens` (no
+// DATABASE_URL required, always runs including in CI). Split out to keep
+// both files under the repo's S1 file-size CI gate.
 
 import { describe, it, expect, beforeAll, afterEach, vi } from 'vitest';
 import { randomUUID } from 'node:crypto';

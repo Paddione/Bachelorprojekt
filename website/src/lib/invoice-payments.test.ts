@@ -1,170 +1,389 @@
-import { describe, it, expect, beforeAll, vi, afterEach } from 'vitest';
-import { initBillingTables, createCustomer, createInvoice, finalizeInvoice } from './native-billing';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+const query = vi.fn();
+const clientQ = vi.fn();
+const connect = vi.fn();
+const initBillingTables = vi.fn();
+const addBooking = vi.fn();
+const loggerError = vi.fn();
+
+vi.mock('./website-db', () => ({
+  pool: {
+    query: (...a: unknown[]) => query(...a),
+    connect: (...a: unknown[]) => connect(...a),
+  },
+  initBillingTables: (...a: unknown[]) => initBillingTables(...a),
+}));
+vi.mock('./eur-bookkeeping', () => ({
+  addBooking: (...a: unknown[]) => addBooking(...a),
+}));
+vi.mock('./logger', () => ({
+  logger: { error: (...a: unknown[]) => loggerError(...a) },
+}));
+
 import { recordPayment, listPayments } from './invoice-payments';
-import { pool } from './website-db';
 
-const dbAvailable = !!(process.env.DATABASE_URL || process.env.WEBSITE_DATABASE_URL);
+beforeEach(() => {
+  query.mockReset();
+  clientQ.mockReset();
+  connect.mockReset();
+  initBillingTables.mockReset();
+  addBooking.mockReset();
+  loggerError.mockReset();
+  initBillingTables.mockResolvedValue(undefined);
+  addBooking.mockResolvedValue(undefined);
+  connect.mockResolvedValue({
+    query: (...a: unknown[]) => clientQ(...a),
+    release: () => undefined,
+  });
+});
 
-describe.skipIf(!dbAvailable)('invoice-payments (DB-backed)', () => {
-beforeAll(async () => { await initBillingTables(); });
+const baseInvoiceRow = {
+  id: 'inv-1', brand: 'mentolder', number: 'R-2026-0001', status: 'open',
+  net_amount: '100.00', tax_amount: '0.00', gross_amount: '100.00',
+  paid_amount: '0', tax_mode: 'kleinunternehmer',
+  currency: 'EUR', currency_rate: null,
+};
 
-async function setupOpenInvoice(gross: number) {
-  const c = await createCustomer({
-    brand: 'test', name: 'Erika', email: `e-${Date.now()}-${Math.random()}@t.de`,
+describe('invoice-payments.recordPayment — validation (no DB)', () => {
+  it('rejects amount = 0', async () => {
+    await expect(
+      recordPayment({ invoiceId: 'inv-1', paidAt: '2026-02-01', amount: 0, method: 'bank', recordedBy: 'admin' }),
+    ).rejects.toThrow(/non-zero/);
+    expect(initBillingTables).not.toHaveBeenCalled();
   });
-  const inv = await createInvoice({
-    brand: 'test', customerId: c.id,
-    issueDate: '2026-01-15', dueDays: 14,
-    taxMode: 'kleinunternehmer',
-    lines: [{ description: 'X', quantity: 1, unitPrice: gross }],
+
+  it('rejects a negative amount without notes', async () => {
+    await expect(
+      recordPayment({ invoiceId: 'inv-1', paidAt: '2026-02-01', amount: -10, method: 'bank', recordedBy: 'admin' }),
+    ).rejects.toThrow(/requires notes/);
+    expect(initBillingTables).not.toHaveBeenCalled();
   });
-  const fin = await finalizeInvoice(inv.id, {
-    actor: { userId: 'admin', email: 'a@t.de' },
-    pdfBlob: Buffer.from('%PDF-stub'),
-    pdfMime: 'application/pdf',
+});
+
+describe('invoice-payments.recordPayment — transactional error paths', () => {
+  it('rolls back and throws when the invoice does not exist', async () => {
+    clientQ
+      .mockResolvedValueOnce({ rows: [] }) // BEGIN
+      .mockResolvedValueOnce({ rows: [] }) // SELECT FOR UPDATE -> none found
+      .mockResolvedValueOnce({ rows: [] }); // ROLLBACK
+    await expect(
+      recordPayment({ invoiceId: 'missing', paidAt: '2026-02-01', amount: 40, method: 'bank', recordedBy: 'admin' }),
+    ).rejects.toThrow(/invoice not found/);
+    expect(clientQ).toHaveBeenCalledWith('ROLLBACK');
   });
-  return fin!;
+
+  it('rolls back and throws on draft invoice', async () => {
+    clientQ
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [{ ...baseInvoiceRow, status: 'draft' }] })
+      .mockResolvedValueOnce({ rows: [] });
+    await expect(
+      recordPayment({ invoiceId: 'inv-1', paidAt: '2026-02-01', amount: 40, method: 'bank', recordedBy: 'admin' }),
+    ).rejects.toThrow(/status=draft/);
+  });
+
+  it('rolls back and throws on cancelled invoice', async () => {
+    clientQ
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [{ ...baseInvoiceRow, status: 'cancelled' }] })
+      .mockResolvedValueOnce({ rows: [] });
+    await expect(
+      recordPayment({ invoiceId: 'inv-1', paidAt: '2026-02-01', amount: 40, method: 'bank', recordedBy: 'admin' }),
+    ).rejects.toThrow(/status=cancelled/);
+  });
+
+  it('rolls back and throws when payment exceeds outstanding', async () => {
+    clientQ
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [{ ...baseInvoiceRow, paid_amount: '80' }] })
+      .mockResolvedValueOnce({ rows: [] });
+    await expect(
+      recordPayment({ invoiceId: 'inv-1', paidAt: '2026-02-01', amount: 30, method: 'bank', recordedBy: 'admin' }),
+    ).rejects.toThrow(/exceeds outstanding/);
+  });
+
+  it('rolls back and throws when a correction would drive paid_amount negative', async () => {
+    clientQ
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [{ ...baseInvoiceRow, paid_amount: '10' }] })
+      .mockResolvedValueOnce({ rows: [] });
+    await expect(
+      recordPayment({
+        invoiceId: 'inv-1', paidAt: '2026-02-01', amount: -20,
+        method: 'bank', recordedBy: 'admin', notes: 'Rückbuchung',
+      }),
+    ).rejects.toThrow(/negative/);
+  });
+
+  it('rolls back and rethrows on an unexpected error mid-transaction', async () => {
+    clientQ
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [{ ...baseInvoiceRow }] })
+      .mockRejectedValueOnce(new Error('insert failed')) // INSERT payment fails
+      .mockResolvedValueOnce({ rows: [] }); // ROLLBACK (in catch)
+    await expect(
+      recordPayment({ invoiceId: 'inv-1', paidAt: '2026-02-01', amount: 40, method: 'bank', recordedBy: 'admin' }),
+    ).rejects.toThrow(/insert failed/);
+    expect(clientQ).toHaveBeenCalledWith('ROLLBACK');
+  });
+});
+
+function mockHappyPath(payRow: Record<string, unknown>) {
+  clientQ
+    .mockResolvedValueOnce({ rows: [] }) // BEGIN
+    .mockResolvedValueOnce({ rows: [{ ...baseInvoiceRow }] }) // SELECT FOR UPDATE
+    .mockResolvedValueOnce({ rows: [payRow] }) // INSERT ... RETURNING *
+    .mockResolvedValueOnce({ rows: [] }) // UPDATE billing_invoices
+    .mockResolvedValueOnce({ rows: [] }); // COMMIT
 }
 
-it('records partial payment, sets status=partially_paid, paid_amount = sum', async () => {
-  const inv = await setupOpenInvoice(100);
-  const pay = await recordPayment({
-    invoiceId: inv.id, paidAt: '2026-02-01', amount: 40,
-    method: 'bank', recordedBy: 'admin', reference: 'STMT-1',
+describe('invoice-payments.recordPayment — happy paths', () => {
+  it('records a partial payment: status=partially_paid, EÜR booking emitted', async () => {
+    mockHappyPath({
+      id: 1, invoice_id: 'inv-1', brand: 'mentolder',
+      paid_at: new Date('2026-02-01T00:00:00Z'), amount: '40',
+      method: 'bank', reference: 'STMT-1', recorded_by: 'admin', notes: null,
+    });
+    const pay = await recordPayment({
+      invoiceId: 'inv-1', paidAt: '2026-02-01', amount: 40,
+      method: 'bank', recordedBy: 'admin', reference: 'STMT-1',
+    });
+    expect(pay.amount).toBe(40);
+    expect(pay.paidAt).toBe('2026-02-01');
+    expect(pay.reference).toBe('STMT-1');
+    expect(pay.notes).toBeUndefined();
+
+    const updateCall = clientQ.mock.calls.find((c) => String(c[0]).includes('UPDATE billing_invoices'));
+    expect(updateCall![1]).toEqual(['inv-1', 40, 'partially_paid', null]);
+
+    expect(addBooking).toHaveBeenCalledTimes(1);
+    expect(addBooking).toHaveBeenCalledWith(expect.objectContaining({
+      category: 'zahlungseingang',
+      netAmount: 40,
+      vatAmount: 0,
+    }));
   });
-  expect(pay.amount).toBe(40);
 
-  const after = await pool.query(
-    `SELECT status, paid_amount FROM billing_invoices WHERE id=$1`, [inv.id],
-  );
-  expect(after.rows[0].status).toBe('partially_paid');
-  expect(Number(after.rows[0].paid_amount)).toBe(40);
+  it('flips to paid when cumulative payment reaches gross amount', async () => {
+    mockHappyPath({
+      id: 2, invoice_id: 'inv-1', brand: 'mentolder',
+      paid_at: new Date('2026-02-10T00:00:00Z'), amount: '100',
+      method: 'bank', reference: null, recorded_by: 'admin', notes: null,
+    });
+    await recordPayment({ invoiceId: 'inv-1', paidAt: '2026-02-10', amount: 100, method: 'bank', recordedBy: 'admin' });
 
-  const list = await listPayments(inv.id);
-  expect(list).toHaveLength(1);
+    const updateCall = clientQ.mock.calls.find((c) => String(c[0]).includes('UPDATE billing_invoices'));
+    expect(updateCall![1][2]).toBe('paid');
+    expect(updateCall![1][3]).toEqual(new Date('2026-02-10'));
+  });
+
+  it('a negative correction uses category zahlungseingang_korrektur', async () => {
+    clientQ
+      .mockResolvedValueOnce({ rows: [] }) // BEGIN
+      .mockResolvedValueOnce({ rows: [{ ...baseInvoiceRow, paid_amount: '30' }] }) // SELECT FOR UPDATE
+      .mockResolvedValueOnce({ rows: [{
+        id: 3, invoice_id: 'inv-1', brand: 'mentolder',
+        paid_at: new Date('2026-02-05T00:00:00Z'), amount: '-30',
+        method: 'bank', reference: null, recorded_by: 'admin', notes: 'Rückbuchung',
+      }] })
+      .mockResolvedValueOnce({ rows: [] }) // UPDATE
+      .mockResolvedValueOnce({ rows: [] }); // COMMIT
+    await recordPayment({
+      invoiceId: 'inv-1', paidAt: '2026-02-05', amount: -30,
+      method: 'bank', recordedBy: 'admin', notes: 'Rückbuchung',
+    });
+    expect(addBooking).toHaveBeenCalledWith(expect.objectContaining({
+      category: 'zahlungseingang_korrektur',
+    }));
+  });
+
+  it('status reverts to open when a correction brings cumulative payment exactly to zero', async () => {
+    clientQ
+      .mockResolvedValueOnce({ rows: [] }) // BEGIN
+      .mockResolvedValueOnce({ rows: [{ ...baseInvoiceRow, paid_amount: '40' }] }) // SELECT FOR UPDATE
+      .mockResolvedValueOnce({ rows: [{
+        id: 4, invoice_id: 'inv-1', brand: 'mentolder',
+        paid_at: new Date('2026-02-05T00:00:00Z'), amount: '-40',
+        method: 'bank', reference: null, recorded_by: 'admin', notes: 'Storno',
+      }] })
+      .mockResolvedValueOnce({ rows: [] }) // UPDATE
+      .mockResolvedValueOnce({ rows: [] }); // COMMIT
+
+    await recordPayment({
+      invoiceId: 'inv-1', paidAt: '2026-02-05', amount: -40,
+      method: 'bank', recordedBy: 'admin', notes: 'Storno',
+    });
+    const updateCall = clientQ.mock.calls.find((c) => String(c[0]).includes('UPDATE billing_invoices'));
+    expect(updateCall![1]).toEqual(['inv-1', 0, 'open', null]);
+  });
+
+  it('does not swallow the transaction when EÜR booking fails (best-effort, logs error)', async () => {
+    mockHappyPath({
+      id: 5, invoice_id: 'inv-1', brand: 'mentolder',
+      paid_at: new Date('2026-02-01T00:00:00Z'), amount: '40',
+      method: 'bank', reference: null, recorded_by: 'admin', notes: null,
+    });
+    addBooking.mockRejectedValueOnce(new Error('booking down'));
+    const pay = await recordPayment({
+      invoiceId: 'inv-1', paidAt: '2026-02-01', amount: 40, method: 'bank', recordedBy: 'admin',
+    });
+    expect(pay.id).toBe(5);
+    expect(loggerError).toHaveBeenCalledWith(
+      expect.objectContaining({ err: expect.any(Error) }),
+      expect.stringContaining('EÜR booking failed'),
+    );
+  });
 });
 
-it('flips to paid when cumulative payments reach gross_amount', async () => {
-  const inv = await setupOpenInvoice(100);
-  await recordPayment({ invoiceId: inv.id, paidAt: '2026-02-01', amount: 30, method: 'bank', recordedBy: 'admin' });
-  await recordPayment({ invoiceId: inv.id, paidAt: '2026-02-10', amount: 70, method: 'bank', recordedBy: 'admin' });
+describe('invoice-payments.recordPayment — Kursdifferenz (foreign currency)', () => {
+  const usdInvoiceRow = {
+    ...baseInvoiceRow, currency: 'USD', currency_rate: '0.92',
+    net_amount: '1000', tax_amount: '0', gross_amount: '1000', paid_amount: '0',
+  };
 
-  const r = await pool.query(`SELECT status, paid_amount, paid_at FROM billing_invoices WHERE id=$1`, [inv.id]);
-  expect(r.rows[0].status).toBe('paid');
-  expect(Number(r.rows[0].paid_amount)).toBe(100);
-  expect(r.rows[0].paid_at).toBeTruthy();
+  it('books a Kursdifferenzgewinn when the payment rate is more favourable', async () => {
+    clientQ
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [usdInvoiceRow] })
+      .mockResolvedValueOnce({ rows: [{
+        id: 6, invoice_id: 'inv-1', brand: 'mentolder',
+        paid_at: new Date('2026-05-15T00:00:00Z'), amount: '1000',
+        method: 'bank', reference: null, recorded_by: 'admin', notes: null,
+      }] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] });
+
+    await recordPayment({
+      invoiceId: 'inv-1', paidAt: '2026-05-15', amount: 1000,
+      method: 'bank', recordedBy: 'admin', paymentCurrencyRate: 0.95,
+    });
+
+    expect(addBooking).toHaveBeenCalledTimes(2);
+    const kdCall = addBooking.mock.calls.find((c) => String(c[0].category).startsWith('kursdifferenz'));
+    expect(kdCall![0].category).toBe('kursdifferenz_gewinn');
+    expect(kdCall![0].type).toBe('income');
+    expect(kdCall![0].netAmount).toBeCloseTo(30, 2);
+  });
+
+  it('books a Kursdifferenzverlust when the payment rate is less favourable', async () => {
+    clientQ
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [usdInvoiceRow] })
+      .mockResolvedValueOnce({ rows: [{
+        id: 7, invoice_id: 'inv-1', brand: 'mentolder',
+        paid_at: new Date('2026-05-15T00:00:00Z'), amount: '1000',
+        method: 'bank', reference: null, recorded_by: 'admin', notes: null,
+      }] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] });
+
+    await recordPayment({
+      invoiceId: 'inv-1', paidAt: '2026-05-15', amount: 1000,
+      method: 'bank', recordedBy: 'admin', paymentCurrencyRate: 0.90,
+    });
+
+    const kdCall = addBooking.mock.calls.find((c) => String(c[0].category).startsWith('kursdifferenz'));
+    expect(kdCall![0].category).toBe('kursdifferenz_verlust');
+    expect(kdCall![0].type).toBe('expense');
+    expect(kdCall![0].netAmount).toBeCloseTo(20, 2);
+  });
+
+  it('skips Kursdifferenz booking when the rate difference is negligible', async () => {
+    clientQ
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [usdInvoiceRow] })
+      .mockResolvedValueOnce({ rows: [{
+        id: 8, invoice_id: 'inv-1', brand: 'mentolder',
+        paid_at: new Date('2026-05-15T00:00:00Z'), amount: '1000',
+        method: 'bank', reference: null, recorded_by: 'admin', notes: null,
+      }] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] });
+
+    await recordPayment({
+      invoiceId: 'inv-1', paidAt: '2026-05-15', amount: 1000,
+      method: 'bank', recordedBy: 'admin', paymentCurrencyRate: 0.920001,
+    });
+
+    expect(addBooking).toHaveBeenCalledTimes(1); // only the main EÜR booking, no Kursdifferenz
+  });
+
+  it('skips Kursdifferenz entirely when paymentCurrencyRate is not provided', async () => {
+    clientQ
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [usdInvoiceRow] })
+      .mockResolvedValueOnce({ rows: [{
+        id: 9, invoice_id: 'inv-1', brand: 'mentolder',
+        paid_at: new Date('2026-05-15T00:00:00Z'), amount: '1000',
+        method: 'bank', reference: null, recorded_by: 'admin', notes: null,
+      }] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] });
+
+    await recordPayment({
+      invoiceId: 'inv-1', paidAt: '2026-05-15', amount: 1000, method: 'bank', recordedBy: 'admin',
+    });
+    expect(addBooking).toHaveBeenCalledTimes(1);
+  });
+
+  it('logs but does not throw when the Kursdifferenz booking itself fails', async () => {
+    clientQ
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [usdInvoiceRow] })
+      .mockResolvedValueOnce({ rows: [{
+        id: 10, invoice_id: 'inv-1', brand: 'mentolder',
+        paid_at: new Date('2026-05-15T00:00:00Z'), amount: '1000',
+        method: 'bank', reference: null, recorded_by: 'admin', notes: null,
+      }] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] });
+    addBooking
+      .mockResolvedValueOnce(undefined) // main EÜR booking succeeds
+      .mockRejectedValueOnce(new Error('kd booking down')); // Kursdifferenz booking fails
+
+    const pay = await recordPayment({
+      invoiceId: 'inv-1', paidAt: '2026-05-15', amount: 1000,
+      method: 'bank', recordedBy: 'admin', paymentCurrencyRate: 0.95,
+    });
+    expect(pay.id).toBe(10);
+    expect(loggerError).toHaveBeenCalledWith(
+      expect.objectContaining({ err: expect.any(Error) }),
+      expect.stringContaining('Kursdifferenz'),
+    );
+  });
 });
 
-it('rejects payment that overshoots outstanding', async () => {
-  const inv = await setupOpenInvoice(100);
-  await recordPayment({ invoiceId: inv.id, paidAt: '2026-02-01', amount: 80, method: 'bank', recordedBy: 'admin' });
-  await expect(
-    recordPayment({ invoiceId: inv.id, paidAt: '2026-02-02', amount: 50, method: 'bank', recordedBy: 'admin' }),
-  ).rejects.toThrow(/overshoot|exceeds outstanding/i);
-});
-
-it('correction (negative payment) reverts status from paid to partially_paid', async () => {
-  const inv = await setupOpenInvoice(100);
-  await recordPayment({ invoiceId: inv.id, paidAt: '2026-02-01', amount: 100, method: 'bank', recordedBy: 'admin' });
-  await recordPayment({
-    invoiceId: inv.id, paidAt: '2026-02-05', amount: -30,
-    method: 'bank', recordedBy: 'admin', notes: 'Rückbuchung Bank',
+describe('invoice-payments.listPayments', () => {
+  it('maps rows to InvoicePayment, defaulting reference/notes to undefined', async () => {
+    query.mockResolvedValueOnce({
+      rows: [
+        {
+          id: 1, invoice_id: 'inv-1', brand: 'mentolder',
+          paid_at: new Date('2026-02-01T00:00:00Z'), amount: '40',
+          method: 'bank', reference: null, recorded_by: 'admin', notes: null,
+        },
+        {
+          id: 2, invoice_id: 'inv-1', brand: 'mentolder',
+          paid_at: new Date('2026-02-10T00:00:00Z'), amount: '60',
+          method: 'cash', reference: 'REF-2', recorded_by: 'admin', notes: 'Bar bezahlt',
+        },
+      ],
+    });
+    const list = await listPayments('inv-1');
+    expect(list).toHaveLength(2);
+    expect(list[0]).toEqual({
+      id: 1, invoiceId: 'inv-1', brand: 'mentolder', paidAt: '2026-02-01',
+      amount: 40, method: 'bank', reference: undefined, recordedBy: 'admin', notes: undefined,
+    });
+    expect(list[1].reference).toBe('REF-2');
+    expect(list[1].notes).toBe('Bar bezahlt');
+    expect(initBillingTables).toHaveBeenCalled();
   });
-  const r = await pool.query(`SELECT status, paid_amount FROM billing_invoices WHERE id=$1`, [inv.id]);
-  expect(r.rows[0].status).toBe('partially_paid');
-  expect(Number(r.rows[0].paid_amount)).toBe(70);
-});
 
-it('emits proportional EÜR booking on payment', async () => {
-  // gross = 119 (100 net + 19 % VAT)
-  const c = await createCustomer({ brand: 'test', name: 'V', email: `v-${Date.now()}@t.de` });
-  const inv = await createInvoice({
-    brand: 'test', customerId: c.id,
-    issueDate: '2026-01-15', dueDays: 14,
-    taxMode: 'regelbesteuerung', taxRate: 19,
-    lines: [{ description: 'Y', quantity: 1, unitPrice: 100 }],
+  it('returns an empty array when there are no payments', async () => {
+    query.mockResolvedValueOnce({ rows: [] });
+    const list = await listPayments('inv-none');
+    expect(list).toEqual([]);
   });
-  await finalizeInvoice(inv.id, {
-    actor: { userId: 'a', email: 'a@t.de' },
-    pdfBlob: Buffer.from('%PDF'), pdfMime: 'application/pdf',
-  });
-  await recordPayment({
-    invoiceId: inv.id, paidAt: '2026-02-01', amount: 59.50, method: 'bank', recordedBy: 'admin',
-  });
-  const e = await pool.query(
-    `SELECT net_amount, vat_amount FROM eur_bookings WHERE invoice_id=$1 ORDER BY id`,
-    [inv.id],
-  );
-  expect(e.rows).toHaveLength(1);
-  expect(Number(e.rows[0].net_amount)).toBeCloseTo(50, 2);
-  expect(Number(e.rows[0].vat_amount)).toBeCloseTo(9.50, 2);
-});
-
-afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
-
-it('records Kursdifferenz booking when paymentCurrencyRate differs from invoice rate', async () => {
-  // Mock ECB for invoice creation at 1 USD = 0.92 EUR
-  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-    ok: true,
-    text: async () => `<?xml version="1.0"?><gesmes:Envelope xmlns:gesmes="http://www.gesmes.org/xml/2002-08-01" xmlns="http://www.ecb.int/vocabulary/2002-08-01/eurofxref"><Cube><Cube time="2026-04-28"><Cube currency="USD" rate="1.0870"/></Cube></Cube></gesmes:Envelope>`,
-  }));
-  const c = await createCustomer({ brand: 'test', name: 'USD Corp', email: `usdcorp-${Date.now()}@test.com` });
-  const inv = await createInvoice({
-    brand: 'test', customerId: c.id,
-    issueDate: '2026-04-28', dueDays: 30,
-    taxMode: 'kleinunternehmer', currency: 'USD',
-    lines: [{ description: 'License', quantity: 1, unitPrice: 1000 }],
-  });
-  // invoice rate: 1/1.087 ≈ 0.92 EUR/USD
-  await finalizeInvoice(inv.id, { actor: { userId: 'u1', email: 'u@t.de' } });
-
-  // Payment at a different rate: 1 USD = 0.95 EUR → Kursdifferenzgewinn
-  const payment = await recordPayment({
-    invoiceId: inv.id, paidAt: '2026-05-15', amount: 1000,
-    method: 'bank', recordedBy: 'admin',
-    paymentCurrencyRate: 0.95,
-  });
-  expect(payment.id).toBeGreaterThan(0);
-
-  // A Kursdifferenz EUR booking should exist
-  const kdBookings = await pool.query(
-    `SELECT category, net_amount, skr_konto FROM eur_bookings WHERE invoice_id=$1 AND category LIKE 'kursdifferenz%'`,
-    [inv.id],
-  );
-  expect(kdBookings.rows).toHaveLength(1);
-  // 1000 USD * (0.95 - 0.92) = +30 EUR gain
-  expect(Number(kdBookings.rows[0].net_amount)).toBeCloseTo(30, 0);
-  expect(kdBookings.rows[0].category).toBe('kursdifferenz_gewinn');
-  expect(kdBookings.rows[0].skr_konto).toBe('2668');
-});
-
-it('records independent Kursdifferenz bookings for two partial payments at different rates', async () => {
-  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-    ok: true,
-    text: async () => `<?xml version="1.0"?><gesmes:Envelope xmlns:gesmes="http://www.gesmes.org/xml/2002-08-01" xmlns="http://www.ecb.int/vocabulary/2002-08-01/eurofxref"><Cube><Cube time="2026-04-28"><Cube currency="USD" rate="1.0870"/></Cube></Cube></gesmes:Envelope>`,
-  }));
-  const c = await createCustomer({ brand: 'test', name: 'USD Partial', email: `usdpartial-${Date.now()}@test.com` });
-  const inv = await createInvoice({
-    brand: 'test', customerId: c.id,
-    issueDate: '2026-04-28', dueDays: 30,
-    taxMode: 'kleinunternehmer', currency: 'USD',
-    lines: [{ description: 'License', quantity: 1, unitPrice: 1000 }],
-  });
-  await finalizeInvoice(inv.id, { actor: { userId: 'u1', email: 'u@t.de' } });
-
-  // First partial: 500 USD at 0.95 EUR/USD → gain of 500*(0.95-0.92)=15 EUR
-  await recordPayment({ invoiceId: inv.id, paidAt: '2026-05-01', amount: 500, method: 'bank', recordedBy: 'admin', paymentCurrencyRate: 0.95 });
-  // Second partial: 500 USD at 0.90 EUR/USD → loss of 500*(0.92-0.90)=10 EUR
-  await recordPayment({ invoiceId: inv.id, paidAt: '2026-05-15', amount: 500, method: 'bank', recordedBy: 'admin', paymentCurrencyRate: 0.90 });
-
-  const kdBookings = await pool.query(
-    `SELECT category, net_amount FROM eur_bookings WHERE invoice_id=$1 AND category LIKE 'kursdifferenz%' ORDER BY booking_date`,
-    [inv.id],
-  );
-  expect(kdBookings.rows).toHaveLength(2);
-  expect(kdBookings.rows[0].category).toBe('kursdifferenz_gewinn');
-  expect(Number(kdBookings.rows[0].net_amount)).toBeCloseTo(15, 0);
-  expect(kdBookings.rows[1].category).toBe('kursdifferenz_verlust');
-  expect(Number(kdBookings.rows[1].net_amount)).toBeCloseTo(10, 0);
-});
 });

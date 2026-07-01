@@ -4,7 +4,17 @@ import { createInvoice, finalizeInvoice, markInvoicePaid } from './native-billin
 import { getBillingAuditLog } from './billing-audit';
 import { verifyInvoiceIntegrity } from './invoice-hash';
 import { pool } from './website-db';
+import { listPayments } from './invoice-payments';
 
+// ────────────────────────────────────────────────────────────────────────
+// This file covers the `native-billing (live DB)` describe block.
+// The mocked-pool tests (T-VITEST-COVERAGE) that exercise native-billing.ts's
+// own branching logic without a live DB live in the sibling files
+// native-billing-mocked-customers.test.ts and native-billing-mocked-invoices.test.ts
+// (split out to satisfy the S1 file-size CI gate — see those files' headers).
+// ────────────────────────────────────────────────────────────────────────
+
+describe('native-billing (live DB)', () => {
 let dbOk = false;
 beforeAll(async () => {
   try {
@@ -69,8 +79,6 @@ it('finalize stores hash, persists PDF, writes audit row (no EÜR booking yet)',
   );
   expect(eurAfterFinalize.rows[0].n).toBe(0);  // PR-A: bookings emit on payment, not finalize
 });
-
-import { listPayments } from './invoice-payments';
 
 it('markInvoicePaid records a single full-gross payment', async () => {
   const c = await createCustomer({ brand: 'test', name: 'F', email: `f-${Date.now()}@t.de` });
@@ -241,4 +249,5 @@ it('createInvoice with AE line sets supplyType eu_b2b_services automatically', a
     lines: [{ description: 'Consulting', quantity: 1, unitPrice: 500, taxCategory: 'AE' }],
   });
   expect(inv.supplyType).toBe('eu_b2b_services');
+});
 });

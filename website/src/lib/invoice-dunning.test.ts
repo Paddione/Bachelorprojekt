@@ -108,4 +108,131 @@ describe('invoice-dunning.runDunningDetection (no-op end-to-end)', () => {
     const out = await runDunningDetection('mentolder');
     expect(out).toEqual({ generated: 0, skipped: 0 });
   });
+
+  it('skips a candidate with no outstanding balance', async () => {
+    query.mockResolvedValueOnce({ rows: [{
+      id: 'inv-1', number: 'R-1', status: 'open', dunning_level: 0,
+      due_date: new Date(Date.now() - 5 * 86_400_000), last_dunning_at: null,
+      gross_amount: '100', paid_amount: '100', customer_id: 'cust-1',
+    }] });
+    getSiteSetting.mockResolvedValue(undefined); // numberSetting falls back to defaults
+    const out = await runDunningDetection('mentolder');
+    expect(out).toEqual({ generated: 0, skipped: 1 });
+    expect(getInvoice).not.toHaveBeenCalled();
+  });
+
+  it('skips a candidate that is not yet overdue', async () => {
+    query.mockResolvedValueOnce({ rows: [{
+      id: 'inv-1', number: 'R-1', status: 'open', dunning_level: 0,
+      due_date: new Date(Date.now() + 5 * 86_400_000), last_dunning_at: null,
+      gross_amount: '100', paid_amount: '0', customer_id: 'cust-1',
+    }] });
+    getSiteSetting.mockResolvedValue(undefined);
+    const out = await runDunningDetection('mentolder');
+    expect(out).toEqual({ generated: 0, skipped: 1 });
+  });
+
+  it('skips a candidate that is not yet eligible by the dunning interval', async () => {
+    query.mockResolvedValueOnce({ rows: [{
+      id: 'inv-1', number: 'R-1', status: 'dunning_1', dunning_level: 1,
+      due_date: new Date(Date.now() - 20 * 86_400_000),
+      last_dunning_at: new Date(Date.now() - 1 * 86_400_000), // 1 day ago, interval default 14
+      gross_amount: '100', paid_amount: '0', customer_id: 'cust-1',
+    }] });
+    getSiteSetting.mockResolvedValue(undefined);
+    const out = await runDunningDetection('mentolder');
+    expect(out).toEqual({ generated: 0, skipped: 1 });
+    expect(getInvoice).not.toHaveBeenCalled();
+  });
+
+  it('skips a candidate when the invoice or customer can no longer be resolved', async () => {
+    query.mockResolvedValueOnce({ rows: [{
+      id: 'inv-1', number: 'R-1', status: 'open', dunning_level: 0,
+      due_date: new Date(Date.now() - 20 * 86_400_000), last_dunning_at: null,
+      gross_amount: '100', paid_amount: '0', customer_id: 'cust-1',
+    }] });
+    getSiteSetting.mockResolvedValue(undefined);
+    getInvoice.mockResolvedValueOnce(null);
+    const out = await runDunningDetection('mentolder');
+    expect(out).toEqual({ generated: 0, skipped: 1 });
+    expect(getCustomerById).not.toHaveBeenCalled();
+  });
+
+  it('skips a candidate when the INSERT of the dunning row fails', async () => {
+    query
+      .mockResolvedValueOnce({ rows: [{
+        id: 'inv-1', number: 'R-1', status: 'open', dunning_level: 0,
+        due_date: new Date(Date.now() - 20 * 86_400_000), last_dunning_at: null,
+        gross_amount: '100', paid_amount: '0', customer_id: 'cust-1',
+      }] })
+      .mockRejectedValueOnce(new Error('insert failed')); // INSERT billing_invoice_dunnings
+    getSiteSetting.mockResolvedValue(undefined);
+    getInvoice.mockResolvedValueOnce({ id: 'inv-1', number: 'R-1', status: 'open' });
+    getCustomerById.mockResolvedValueOnce({ id: 'cust-1', name: 'Alice', email: 'a@b.com' });
+    generateDunningPdf.mockResolvedValueOnce(Buffer.from('pdf'));
+    archiveBillingPdf.mockResolvedValueOnce('Billing/mentolder/R-1/mahnung-1-R-1.pdf');
+    const out = await runDunningDetection('mentolder');
+    expect(out).toEqual({ generated: 0, skipped: 1 });
+    expect(logBillingEvent).not.toHaveBeenCalled();
+  });
+
+  it('generates a dunning: builds the PDF, archives it, inserts + updates rows, and logs the event', async () => {
+    query
+      .mockResolvedValueOnce({ rows: [{
+        id: 'inv-1', number: 'R-1', status: 'open', dunning_level: 0,
+        due_date: new Date(Date.now() - 20 * 86_400_000), last_dunning_at: null,
+        gross_amount: '100', paid_amount: '0', customer_id: 'cust-1',
+      }] })
+      .mockResolvedValueOnce({ rows: [] }) // INSERT billing_invoice_dunnings
+      .mockResolvedValueOnce({ rows: [] }); // UPDATE billing_invoices
+    getSiteSetting.mockResolvedValue(undefined); // numberSetting falls back to defaults everywhere
+    getInvoice.mockResolvedValueOnce({ id: 'inv-1', number: 'R-1', status: 'open' });
+    getCustomerById.mockResolvedValueOnce({
+      id: 'cust-1', name: 'Alice', email: 'a@b.com', company: null,
+      addressLine1: 'Str. 1', city: 'Berlin', postalCode: '10115', landIso: 'DE',
+    });
+    generateDunningPdf.mockResolvedValueOnce(Buffer.from('pdf'));
+    archiveBillingPdf.mockResolvedValueOnce('Billing/mentolder/R-1/mahnung-1-R-1.pdf');
+    logBillingEvent.mockResolvedValueOnce(undefined);
+
+    const out = await runDunningDetection('mentolder');
+    expect(out).toEqual({ generated: 1, skipped: 0 });
+
+    expect(generateDunningPdf).toHaveBeenCalledTimes(1);
+    const pdfArgs = generateDunningPdf.mock.calls[0][0] as { dunning: { level: number }; customer: { name: string } };
+    expect(pdfArgs.dunning.level).toBe(1);
+    expect(pdfArgs.customer.name).toBe('Alice');
+
+    const insertCall = query.mock.calls.find((c) => /INSERT INTO billing_invoice_dunnings/.test(c[0] as string));
+    expect(insertCall).toBeDefined();
+    expect(insertCall![1]).toEqual(['inv-1', 'mentolder', 1, 0, expect.any(Number), 100, 'Billing/mentolder/R-1/mahnung-1-R-1.pdf']);
+
+    const updateCall = query.mock.calls.find((c) => /UPDATE billing_invoices/.test(c[0] as string));
+    expect(updateCall).toBeDefined();
+    expect(updateCall![1]).toEqual(['inv-1', 'dunning_1', 1]);
+
+    expect(logBillingEvent).toHaveBeenCalledWith(expect.objectContaining({
+      invoiceId: 'inv-1', action: 'dunning_generated', toStatus: 'dunning_1',
+    }));
+  });
+
+  it('falls back to a computed pdfPath when archiveBillingPdf returns nothing', async () => {
+    query
+      .mockResolvedValueOnce({ rows: [{
+        id: 'inv-1', number: 'R-1', status: 'open', dunning_level: 0,
+        due_date: new Date(Date.now() - 20 * 86_400_000), last_dunning_at: null,
+        gross_amount: '100', paid_amount: '0', customer_id: 'cust-1',
+      }] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] });
+    getSiteSetting.mockResolvedValue(undefined);
+    getInvoice.mockResolvedValueOnce({ id: 'inv-1', number: 'R-1', status: 'open' });
+    getCustomerById.mockResolvedValueOnce({ id: 'cust-1', name: 'Alice', email: 'a@b.com' });
+    generateDunningPdf.mockResolvedValueOnce(Buffer.from('pdf'));
+    archiveBillingPdf.mockResolvedValueOnce(undefined);
+
+    await runDunningDetection('mentolder');
+    const insertCall = query.mock.calls.find((c) => /INSERT INTO billing_invoice_dunnings/.test(c[0] as string));
+    expect((insertCall![1] as unknown[])[6]).toBe('Billing/mentolder/R-1/mahnung-1-R-1.pdf');
+  });
 });

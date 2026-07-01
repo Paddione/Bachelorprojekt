@@ -153,6 +153,99 @@ describe('knowledge-db — model-aware query path', () => {
   });
 });
 
+describe('getCollection', () => {
+  test('returns the collection by id', async () => {
+    const c = await kdb.createCollection({ name: 'get-me', source: 'custom' });
+    const found = await kdb.getCollection(c.id);
+    expect(found?.id).toBe(c.id);
+    expect(found?.name).toBe('get-me');
+  });
+
+  test('returns null when not found', async () => {
+    const found = await kdb.getCollection('00000000-0000-4000-8000-000000000000');
+    expect(found).toBeNull();
+  });
+});
+
+describe('updateContext7Config / updateCrawlConfig', () => {
+  test('updateContext7Config persists crawl_config as jsonb', async () => {
+    const c = await kdb.createCollection({ name: 'ctx7', source: 'context7_docs' });
+    await kdb.updateContext7Config(c.id, { libraryId: '/vercel/next.js', tokens: 5000 });
+    const found = await kdb.getCollection(c.id);
+    expect(found?.crawl_config).toMatchObject({ libraryId: '/vercel/next.js', tokens: 5000 });
+  });
+
+  test('updateContext7Config throws not_found for missing collection', async () => {
+    await expect(kdb.updateContext7Config('00000000-0000-4000-8000-000000000000', { libraryId: 'x' }))
+      .rejects.toThrow('not_found');
+  });
+
+  test('updateCrawlConfig persists crawl_config as jsonb', async () => {
+    const c = await kdb.createCollection({ name: 'crawl', source: 'web_crawl' });
+    await kdb.updateCrawlConfig(c.id, { startUrl: 'https://example.com', maxDepth: 2 });
+    const found = await kdb.getCollection(c.id);
+    expect(found?.crawl_config).toMatchObject({ startUrl: 'https://example.com', maxDepth: 2 });
+  });
+
+  test('updateCrawlConfig throws not_found for missing collection', async () => {
+    await expect(kdb.updateCrawlConfig('00000000-0000-4000-8000-000000000000', { startUrl: 'https://x' }))
+      .rejects.toThrow('not_found');
+  });
+});
+
+describe('ensureCollection', () => {
+  test('returns existing collection when name already present', async () => {
+    const c = await kdb.createCollection({ name: 'ensure-existing', source: 'custom' });
+    const found = await kdb.ensureCollection({ name: 'ensure-existing', source: 'custom' });
+    expect(found.id).toBe(c.id);
+  });
+
+  test('creates a new collection when name is absent', async () => {
+    const created = await kdb.ensureCollection({ name: 'ensure-new', source: 'pr_history', description: 'auto' });
+    expect(created.name).toBe('ensure-new');
+    expect(created.source).toBe('pr_history');
+    const list = await kdb.listCollections();
+    expect(list.map(c => c.id)).toContain(created.id);
+  });
+});
+
+describe('searchOpenspec', () => {
+  test('returns [] when no specs_plans collection exists (short-circuits before the pgvector query)', async () => {
+    const hits = await kdb.searchOpenspec({ query: 'anything' });
+    expect(hits).toEqual([]);
+  });
+
+  // NOTE: once a specs_plans collection exists, searchOpenspec's SELECT uses the
+  // pgvector `<=>` distance operator, which pg-mem cannot parse (it is not a real
+  // Postgres server and has no pgvector extension). That branch — and the same
+  // operator in queryNearest/clusterByEmbedding — is exercised only via the
+  // request-shape assertion on embedQuery below, matching the existing
+  // queryNearest test's `.catch(() => {})` precedent.
+  test('embeds the query with the specs_plans collection embedding model before querying chunks', async () => {
+    const c = await kdb.createCollection({ name: 'specs', source: 'specs_plans', embeddingModel: 'bge-m3' });
+    await kdb.addDocument({ collectionId: c.id, title: 'spec-doc', sourceUri: 'uri:1', rawText: 'text' });
+
+    const calls: Array<{ text: string; model?: string }> = [];
+    const embedMod = await import('./embeddings');
+    vi.spyOn(embedMod, 'embedQuery').mockImplementationOnce(async (text, opts) => {
+      calls.push({ text, model: opts?.model });
+      return { embedding: Array(1024).fill(0.01), tokens: 1 };
+    });
+
+    await kdb.searchOpenspec({ query: 'find me', limit: 999, status: 'plan_staged' }).catch(() => {});
+    expect(calls).toHaveLength(1);
+    expect(calls[0]).toMatchObject({ text: 'find me', model: 'bge-m3' });
+    vi.restoreAllMocks();
+  });
+});
+
+// clusterByEmbedding is intentionally left without a dedicated test: its centroid
+// query combines `avg(embedding)` with the pgvector `<=>` operator, which pg-mem's
+// SQL parser rejects with a hard syntax error even on an empty table (this was
+// verified directly — see git history of this file). Exercising it would require
+// a real Postgres instance with the pgvector extension (e.g. testcontainers),
+// which is out of scope for this in-memory DB test harness.
+
 describe('mergeCollections', () => {
   async function seedCollection(name: string, source: 'custom' | 'web_crawl' | 'pr_history', chunks: number, model = 'voyage-multilingual-2') {
     const r = await pool.query(

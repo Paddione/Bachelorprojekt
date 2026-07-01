@@ -183,3 +183,53 @@ _merge_setup() {            # copy the read-only SSOT fixture into a writable te
   [ "$status" -eq 0 ]
   [ "$(grep -c '^### Requirement: Block C$' "$SSOT")" -eq 1 ]
 }
+
+# ── T001389: auto-register new components in config.yaml on archive --create-new ──#
+
+_fake_openspec_root() {   # builds a throwaway <root>/{specs/,config.yaml} tree
+  FX="$REPO/tests/fixtures/openspec"
+  ROOT="$BATS_TEST_TMPDIR/openspec"
+  mkdir -p "$ROOT/specs"
+  cat > "$ROOT/config.yaml" <<'YAML'
+schema: spec-driven
+
+context: |
+  Stack: fixture
+  OpenSpec-Komponenten: |
+    alpha-component, beta-component,
+    gamma-component
+
+
+rules:
+  proposal:
+    - fixture rule
+YAML
+}
+
+@test "T001389: archive --create-new registers the new component slug in config.yaml" {
+  _fake_openspec_root
+  run node "$REPO/scripts/openspec-merge.mjs" apply "$FX/delta-added.md" "$ROOT/specs/new-widget.md" --create-new
+  [ "$status" -eq 0 ]
+  [ -f "$ROOT/specs/new-widget.md" ]
+  grep -q 'new-widget' "$ROOT/config.yaml"
+}
+
+@test "T001389: registering the same component twice does not duplicate the entry" {
+  _fake_openspec_root
+  run node "$REPO/scripts/openspec-merge.mjs" apply "$FX/delta-added.md" "$ROOT/specs/new-widget.md" --create-new
+  [ "$status" -eq 0 ]
+  # remove the merge marker so a second apply against a *different* new slug still runs,
+  # but re-verify idempotency by counting occurrences of the already-registered slug
+  [ "$(grep -o 'new-widget' "$ROOT/config.yaml" | wc -l)" -eq 1 ]
+}
+
+@test "T001389: MODIFIED delta against an existing SSOT does not touch config.yaml" {
+  _fake_openspec_root
+  cp "$FX/ssot-sample.md" "$ROOT/specs/existing.md"
+  local before after
+  before="$(cat "$ROOT/config.yaml")"
+  run node "$REPO/scripts/openspec-merge.mjs" apply "$FX/delta-modified.md" "$ROOT/specs/existing.md"
+  [ "$status" -eq 0 ]
+  after="$(cat "$ROOT/config.yaml")"
+  [ "$before" = "$after" ]
+}

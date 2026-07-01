@@ -1,6 +1,6 @@
 # Skills Overview
 
-12 project-local skills (11 in `.claude/skills/<name>/` + 1 in `.claude/skills/superpowers/using-git-worktrees/`) grouped by domain. Each skill has its own `SKILL.md` with full runbook details. Invoke any skill by its name.
+27 project-local skills (26 in `.claude/skills/<name>/` + 1 in `.claude/skills/superpowers/using-git-worktrees/`) grouped by domain. Each skill has its own `SKILL.md` with full runbook details. Invoke any skill by its name.
 
 > **Konsolidierung (2026-06-21):** 7 Infra/Ops-Skills wurden in `infra-ops` zusammengeführt (nur bei explizitem Bedarf aufrufen). `update-dependencies` läuft als biweekly Cloud-Routine (https://claude.ai/code/routines/trig_01GiuyN6KP5iMcVUSvBQMKyQ). Die archivierten SKILL.md-Dateien haben kein `description`-Feld mehr und triggern nicht auto-matisch.
 
@@ -34,6 +34,17 @@ Each skill's `SKILL.md` frontmatter carries an optional `agent:` field that tell
 | Command | When to use |
 |---|---|
 | `/feature-intake` | **Vor [`dev-flow-plan`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-plan.html)** — `/feature-intake` (opencode-Command) generiert ein frisches HTML-Formular, dedupliziert Feature-Kandidaten gegen den aktuellen Ticket-Backlog und liefert es via Session-Hub. Für Patrick oder gekko zum Ausfüllen auf einen Klick. Kein Teil der dev-flow-Pipeline; speist [`dev-flow-plan`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-plan.html). Assets unter `assets/feature-intake/`. |
+
+---
+
+## OpenSpec Workflow
+
+| Skill | When to use |
+|---|---|
+| [`openspec-propose`](https://github.com/Paddione/Bachelorprojekt/blob/main/.claude/skills/openspec-propose/SKILL.md) | Create a new OpenSpec change proposal with design, specs, and tasks in one step. |
+| [`openspec-apply-change`](https://github.com/Paddione/Bachelorprojekt/blob/main/.claude/skills/openspec-apply-change/SKILL.md) | Implement tasks from an OpenSpec change — start/continue implementation. |
+| [`openspec-explore`](https://github.com/Paddione/Bachelorprojekt/blob/main/.claude/skills/openspec-explore/SKILL.md) | Enter explore mode — thinking partner for ideas, investigations, requirements. |
+| [`openspec-archive-change`](https://github.com/Paddione/Bachelorprojekt/blob/main/.claude/skills/openspec-archive-change/SKILL.md) | Archive a completed change after implementation is complete. |
 
 ---
 
@@ -125,6 +136,7 @@ unabhängiger Beweis ist. Stufen 3+4 prüfen andere Dimensionen (Review-Qualitä
 | [`ticket-ops`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/ticket-ops.html) | Daily operations — DB ticket triage, stale worktrees/branches, PR merge→close workflow, GitHub issue intake. Non-incident operational work. |
 | [`update-dependencies`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/update-dependencies.html) | Update workspace packages, fix deprecation warnings, and handle security audits/Major version bumps across all directories. |
 | [`mishap-tracker`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/mishap-tracker.html) | **End-of-skill routine** — batches accumulated `MISHAP_LOG` entries from runbook skills into a single aggregate `tickets.tickets` row. Reuses an open "Mishap collection" ticket if one exists. |
+| [`repo-hygiene`](https://github.com/Paddione/Bachelorprojekt/blob/main/.claude/skills/repo-hygiene/SKILL.md) | Repository housekeeping — stale branches/worktrees, PR triage/merge, close resolved tickets, GitHub issue intake, factory queue status. |
 
 ---
 

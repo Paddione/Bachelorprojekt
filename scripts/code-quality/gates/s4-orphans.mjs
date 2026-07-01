@@ -2,7 +2,8 @@
 // S4: manifests/scripts with no reference in the configured sources (incl.
 // transitive script sources). key=S4:<path>, metric=1.
 import { readFileSync } from 'node:fs';
-import { join, basename } from 'node:path';
+import { join, basename, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { trackedFiles } from '../scan.mjs';
 import { matchGlob } from '../glob.mjs';
 
@@ -34,7 +35,7 @@ function corpusExcluding(repoRoot, sourceFiles, candidate) {
 /** Run S4 over the tracked tree. Returns the gate contract object. */
 export function runS4(repoRoot, gates) {
   const s4 = gates?.s4 ?? {};
-  const candGlobs = [...(s4.manifest_globs ?? []), ...(s4.script_globs ?? [])];
+  const candGlobs = [...(s4.manifest_globs ?? []), ...(s4.script_globs ?? []), ...(s4.command_globs ?? [])];
   const allow = s4.allowlist_globs ?? [];
   const srcGlobs = s4.reference_sources ?? [];
   const tracked = trackedFiles(repoRoot);
@@ -58,4 +59,14 @@ export function runS4(repoRoot, gates) {
   }
   violations.sort((a, b) => a.key.localeCompare(b.key));
   return { gate: 'S4', status: violations.length ? 'fail' : 'pass', violations };
+}
+
+const __filename = fileURLToPath(import.meta.url);
+if (process.argv[1] === __filename) {
+  const { loadGates } = await import('../load.mjs');
+  const repoRoot = join(dirname(__filename), '..', '..', '..');
+  const cfgDir = process.env.QUALITY_CFG_DIR
+    ? join(repoRoot, process.env.QUALITY_CFG_DIR)
+    : join(repoRoot, 'docs', 'code-quality');
+  for (const v of runS4(repoRoot, loadGates(cfgDir)).violations) console.log(v.path);
 }

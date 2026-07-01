@@ -156,6 +156,49 @@ grep -rEn 'console\.(error|warn)' website/src --include='*.ts' --include='*.svel
 
 > **B · Baseline:** 10 (erstmals korrekt gemessen; vorher fälschlich als 0 ✓ unter G-FE03 in Prio C geführt) · **Target:** 0 · **Aufwand:** ~30 Dateien (siehe Change-Plan) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · Ticket: T001299 (`plan_staged`)
 
+## G-AGENTIC01 — Least-Privilege-Scoping für hochriskante Agenten: 3 → ≤ 0 🟡
+
+**Was:** Drei Agenten (`bachelorprojekt-security`, `bachelorprojekt-infra`, `bachelorprojekt-db`) haben
+kein `tools:`-Feld in ihrem Frontmatter. Bei security- und infra-Agenten ist das ein konkretes
+Sicherheitsrisiko (könnten theoretisch auf alle MCP-Tools zugreifen). Ein `tools:`-Feld würde den
+Zugriff auf die minimal nötigen Tools beschränken.
+
+```bash
+c=0; for a in bachelorprojekt-security bachelorprojekt-infra bachelorprojekt-db; do
+  awk 'BEGIN{f=0}/^---$/{f++;next} f==1&&/^tools:/{ok=1} END{exit !ok}' .claude/agents/$a.md || c=$((c+1)); done; echo $c
+```
+
+> **B · Baseline:** 3 (security/infra/db) · **Target:** 0 · **Aufwand:** ~1–2h pro Agent (Tool-Inventarisierung + Review) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Kein Gate** — Reduktionsziel
+
+## G-AGENTIC09 — SKILL.md > 500 Zeilen: 3 → ≤ 0 🟡
+
+**Was:** Drei Skills überschreiten die 500-Zeilen-Empfehlung: `dev-flow-execute` (662),
+`infra-ops` (595), `dev-flow-plan` (580). Längere Skills sind schwerer zu warten und
+erhöhen den Prompt-Token-Verbrauch bei Dispatch. Ein Split in Sub-Skills oder
+ausgelagerte Referenz-Dokumente würde die Lesbarkeit verbessern.
+
+```bash
+find .claude/skills -name SKILL.md -exec wc -l {} + | awk '$2!="total"&&$1>500{c++} END{print c+0}'
+```
+
+> **B · Baseline:** 3 (dev-flow-execute 662, infra-ops 595, dev-flow-plan 580) · **Target:** 0 · **Aufwand:** mittel (je Skill ~2–4h Refactoring) · **Messzyklus:** monatlich · **Reproduzierbar:** ja · **Kein Gate** — Reduktionsziel
+
+## G-AGENTIC10 — Agenten ohne dispatchende Skill: 3 → ≤ 0 🟡
+
+**Was:** Drei der sechs Agenten (`bachelorprojekt-website`, `bachelorprojekt-db`,
+`bachelorprojekt-security`) haben keine Skill mit `agent: bachelorprojekt-<name>`-Feld,
+die sie als Dispatch-Ziel deklariert. Das bedeutet, sie können nur vom Orchestrator
+direkt adressiert werden, nicht über einen Skill-Dispatch (der jeweils aktuellste
+Anwendungsfall). Eine Skill-Deklaration würde die Auffindbarkeit und den
+automatischen Dispatch verbessern.
+
+```bash
+c=0; for a in bachelorprojekt-website bachelorprojekt-ops bachelorprojekt-infra bachelorprojekt-test bachelorprojekt-db bachelorprojekt-security; do
+  grep -rlE "^agent:[[:space:]]*$a" .claude/skills --include=SKILL.md >/dev/null 2>&1 || c=$((c+1)); done; echo $c
+```
+
+> **B · Baseline:** 3 (website, db, security) · **Target:** 0 · **Aufwand:** gering (je Skill ~30min inkl. Frontmatter) · **Messzyklus:** monatlich · **Reproduzierbar:** ja · **Kein Gate** — Reduktionsziel
+
 ---
 
 # Priorität C — Green Gates {#prio-c}
@@ -220,6 +263,20 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-FE04** | Stray `console.log/debug/info` | 0 ✓ | 0 | `grep -rEn 'console\.(log\|debug\|info)' website/src --include='*.ts' --include='*.svelte' --include='*.astro' \| grep -v 'browser-logger.ts' \| grep -v '\.test\.ts' \| wc -l` |
 | **G-GIT02** | Non-conventional Commits | 0/30 ✓ | 0 | `git log --format=%s -30 origin/main \| grep -vcE '^(feat\|fix\|chore\|...)'` |
 | **G-GIT03** | Dateien >1MB im Tree | 6 ✓ | ≤ 6 | `git ls-files -z \| grep -zv '^\.codebase-memory/' \| xargs -0 -I{} sh -c 'test -f "{}" && wc -c "{}"' \| awk '$1>1048576{c++} END{print c+0}'` (`.codebase-memory/` per Policy-Entscheidung T001348 ausgeschlossen) |
+| **G-AGENTIC02** | Agent-Routing-Tabelle ↔ Frontmatter-Drift | 0 ✓ | 0 | `python3 <<'PY' ... norm/toks/fm/rows ... symmetric_difference` |
+| **G-AGENTIC03** | Agent-Frontmatter (name + description) | 0 ✓ | 0 | `for f in .claude/agents/*.md; do name==basename && description present` |
+| **G-AGENTIC04** | test:changed Agents-Bucket | 0 ✓ | 0 | `awk '/test:changed/...' Taskfile.yml \| grep -c .claude/agents + AGENTS + agent-library` |
+| **G-AGENTIC05** | 6-Agenten Cross-Reference | 0 ✓ | 0 | `comm -3 <(ls agents/...) <(routing from validate.mjs) + <(registry from tools.yaml)` |
+| **G-AGENTIC06** | OVERVIEW.md Skill-Zähler vs real | 0 ✓ | 0 | `claimed - real (Betrag)` via grep claim + `find SKILL.md \| wc -l` |
+| **G-AGENTIC07** | Verwaiste aktive Skills | 0 ✓ | 0 | `for SKILL.md in find; if description exist && zero refs in CLAUDE.md/AGENTS.md/OVERVIEW.md/other SKILL.md → count` |
+| **G-AGENTIC08** | Tote Script-Pfade in SKILL.md | 0 ✓ | 0 | `grep -rhoE 'scripts/...\.(sh\|mjs\|py)' .claude/skills \| sort -u \| test -f || count` |
+| **G-AGENTIC11** | CLAUDE.md opencode-Liste vs opencode.jsonc | 0 ✓ | 0 | `comm -3 <(grep opencode-Liste \| extract backtick-names) <(mcp_servers opencode.jsonc)` |
+| **G-AGENTIC12** | .mcp.json-Server undokumentiert | 0 ✓ | 0 | `for s in $(mcp_servers .mcp.json); grep -q -- "$s" mcp-tool-guide.md || count` |
+| **G-AGENTIC13** | Tote MCP-Server-Refs in SKILL.md | 0 ✓ | 0 | `grep -rhoE 'mcp__...__\|mcp-..._browser_' .claude/skills \| gegen registrierte Server` |
+| **G-AGENTIC14** | .mcp.json ↔ opencode Parity | 0 ✓ | 0 | `python3 <<'PY' ... load both, sig() for common keys, count mismatches` |
+| **G-AGENTIC15** | Phantom-/opsx-Command-Referenzen | 0 ✓ | 0 | `grep -rhoE '/opsx[:-][a-z]+' in .claude/ .opencode/ .claude/skills vs valid command set` |
+| **G-AGENTIC16** | Claude ↔ opencode Command-Sync | 0 ✓ | 0 | `for each .claude/commands/opsx/*.md, compare normalized body with .opencode/opsx-$name.md` |
+| **G-AGENTIC17** | Command-Orphans via S4 | 0 ✓ | ≤ 0 | `S4 command_globs gegen Referenzquellen; Config-Guard: ohne Config → 99` |
 
 ---
 

@@ -8,7 +8,7 @@ agent: bachelorprojekt-test
 
 ## Wann diese Skill greift
 
-`dev-flow-execute` hat fertig implementiert und gemergt. Jetzt soll die implementierte Funktion mit echten Browser-E2E-Tests abgesichert werden. Du brauchst Zugriff auf die Playwright MCP Tools (`mcp-browser_browser_*`).
+`dev-flow-execute` hat fertig implementiert und gemergt. Jetzt soll die implementierte Funktion mit echten Browser-E2E-Tests abgesichert werden. Die Live-Erkundung nutzt die `chrome-devtools-axi`-Skill (CLI, kein MCP-Browser-Server).
 
 **Sage zu Beginn:** "Ich nutze dev-flow-e2e für Playwright E2E Tests."
 
@@ -78,14 +78,14 @@ unter dem Key `E2E_TEST_ADMIN_PASSWORD` gespeichert. Siehe details in [dev-flow-
 
 ---
 
-## Schritt 2: Live-Erkundung mit Playwright MCP
+## Schritt 2: Live-Erkundung mit chrome-devtools-axi
 
-Navigiere mit den MCP-Browser-Tools zur implementierten Funktion und verschaffe dir ein vollständiges Bild: welche Seiten, welche API-Endpunkte, welche Auth-Anforderungen.
+Navigiere mit der `chrome-devtools-axi`-Skill zur implementierten Funktion und verschaffe dir ein vollständiges Bild: welche Seiten, welche API-Endpunkte, welche Auth-Anforderungen.
 
-```
-mcp-browser_browser_navigate → { url: "$BASE_URL/<pfad>" }
-mcp-browser_browser_snapshot  → {}
-mcp-browser_browser_take_screenshot → { filename: "/tmp/e2e-explore-01.png" }
+```bash
+# Beispiel (chrome-devtools-axi CLI):
+chrome-devtools-axi navigate "$BASE_URL/<pfad>"
+chrome-devtools-axi snapshot
 ```
 
 ---

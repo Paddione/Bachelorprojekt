@@ -3,6 +3,8 @@
 # SSOT: openspec/specs/workspace-deploy.md
 # Covers T001396: Pocket-ID SMTP wiring (SMTP_USER unsubstituted in prod,
 # missing POCKET_ID_SMTP_TLS derivation).
+# Covers T001400: Pocket-ID SMTP_PORT unsubstituted in prod (ENVSUBST_VARS
+# missed $SMTP_PORT in the same two prod deploy paths).
 # Uses simple [ ... ] assertions (matches tests/spec/* convention).
 
 load 'test_helper'
@@ -32,8 +34,18 @@ _workspace_partial_deploy_block() {
   [ "$status" -eq 0 ]
 }
 
+@test "workspace:deploy prod ENVSUBST_VARS includes \$SMTP_PORT" {
+  run bash -c "_block() { sed -n '/^  workspace:deploy:\$/,/^  workspace:partial-deploy:\$/p' '$TASKFILE'; }; _block | grep '^\s*ENVSUBST_VARS=' | grep -F '\$SMTP_PORT'"
+  [ "$status" -eq 0 ]
+}
+
 @test "workspace:partial-deploy ENVSUBST_VARS includes \$SMTP_USER" {
   run bash -c "_block() { sed -n '/^  workspace:partial-deploy:\$/,/^  workspace:fix-tickets-grants:\$/p' '$TASKFILE'; }; _block | grep '^\s*ENVSUBST_VARS=' | grep -F '\$SMTP_USER'"
+  [ "$status" -eq 0 ]
+}
+
+@test "workspace:partial-deploy ENVSUBST_VARS includes \$SMTP_PORT" {
+  run bash -c "_block() { sed -n '/^  workspace:partial-deploy:\$/,/^  workspace:fix-tickets-grants:\$/p' '$TASKFILE'; }; _block | grep '^\s*ENVSUBST_VARS=' | grep -F '\$SMTP_PORT'"
   [ "$status" -eq 0 ]
 }
 

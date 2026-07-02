@@ -128,3 +128,11 @@ ADMIN_RESPONSIVE="$BATS_TEST_DIRNAME/../../website/src/styles/admin-responsive.c
   run grep -E "max-width:[[:space:]]*767px" "$f"
   [ "$status" -eq 0 ]
 }
+
+@test "T001471 forms: all six einstellungen views opt into admin-form-wide" {
+  base="$BATS_TEST_DIRNAME/../../website/src/pages/admin/einstellungen"
+  for f in backup benachrichtigungen branding email ordner-templates rechnungen; do
+    run grep -F "admin-form-wide" "$base/$f.astro"
+    [ "$status" -eq 0 ] || { echo "missing admin-form-wide in $f.astro"; return 1; }
+  done
+}

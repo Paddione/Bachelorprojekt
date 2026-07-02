@@ -53,7 +53,7 @@ Implements delta-spec scenarios "Versand-Zeile zeigt standardmäßig nur die Tic
 - Consumes: `ShippedColumn` props after this task — `{ shipped: { extId: string; title: string; prNumber?: number | null; doneAt?: string | null }[]; mobileColIndex: number; relTime: (iso: string | null) => string; prUrl: (n: number) => string }`. Props `onOpenDetail` and `ticketUrl` are **removed**.
 - Produces: rendered DOM contract for tests and for `FactoryFloor.svelte` — ticket number is a `<button>` (not `<a>`); title element carries `data-testid="floor-shipped-title"` and is present only when toggled open; existing `data-testid` `floor-shipped`, `floor-shipped-item`, `floor-shipped-pr` unchanged.
 
-- [ ] **Step 1: Write the failing component test**
+- [x] **Step 1: Write the failing component test**
 
 Create `website/src/components/factory/ShippedColumn.test.ts`:
 
@@ -98,12 +98,12 @@ describe('ShippedColumn.svelte', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `cd website && npx vitest run --project components src/components/factory/ShippedColumn.test.ts`
 Expected: FAIL — the current component still renders the title unconditionally (via `onOpenDetail`) and the ticket number is an `<a>`, so `queryByText('Erstes Ticket')` is non-null by default and `getByText('T001001').tagName` is `A`.
 
-- [ ] **Step 3: Rewrite the ShippedColumn script block**
+- [x] **Step 3: Rewrite the ShippedColumn script block**
 
 Replace the `<script lang="ts">` block (lines 1-20) of `website/src/components/factory/ShippedColumn.svelte` with:
 
@@ -136,7 +136,7 @@ Replace the `<script lang="ts">` block (lines 1-20) of `website/src/components/f
 </script>
 ```
 
-- [ ] **Step 4: Rewrite the ticket-number link and title markup**
+- [x] **Step 4: Rewrite the ticket-number link and title markup**
 
 In the same file, replace the ticket-number `<a>` (current lines 33-34) and the title `<button>` (current lines 40-42) with:
 
@@ -157,7 +157,7 @@ and, for the title (replacing the old `<button … onclick={() => onOpenDetail(.
 
 Leave the `relTime` badge (`{#if s.doneAt}…`) and the PR badge (`{#if s.prNumber}…`, `data-testid="floor-shipped-pr"`) exactly as they are.
 
-- [ ] **Step 5: Run the test to verify it passes**
+- [x] **Step 5: Run the test to verify it passes**
 
 Run: `cd website && npx vitest run --project components src/components/factory/ShippedColumn.test.ts`
 Expected: PASS (all three cases green).
@@ -183,7 +183,7 @@ Implements delta-spec scenario "Provider-Status-Widget ist entfernt" and the pro
 - Consumes: the updated `ShippedColumn` prop shape from Task 1 (no `onOpenDetail`, no `ticketUrl`).
 - Produces: a `FactoryFloor` render tree with no `floor-provider-status` element and a `<ShippedColumn>` invocation passing only `shipped`, `mobileColIndex`, `relTime`, `prUrl`.
 
-- [ ] **Step 1: Remove the ProviderStatus import**
+- [x] **Step 1: Remove the ProviderStatus import**
 
 In `website/src/components/FactoryFloor.svelte` delete line 16:
 
@@ -191,7 +191,7 @@ In `website/src/components/FactoryFloor.svelte` delete line 16:
   import ProviderStatus from './ProviderStatus.svelte';
 ```
 
-- [ ] **Step 2: Remove the ProviderStatus render**
+- [x] **Step 2: Remove the ProviderStatus render**
 
 Delete the render line (currently line 188):
 
@@ -199,7 +199,7 @@ Delete the render line (currently line 188):
     <ProviderStatus providerHealth={data.providerHealth} />
 ```
 
-- [ ] **Step 3: Drop the unused props on the ShippedColumn invocation**
+- [x] **Step 3: Drop the unused props on the ShippedColumn invocation**
 
 Change the `<ShippedColumn>` block (currently lines 246-254) so it reads exactly:
 
@@ -214,18 +214,18 @@ Change the `<ShippedColumn>` block (currently lines 246-254) so it reads exactly
 
 Do NOT alter the `import { relTime, prUrl, ticketUrl, planUrl, prioDot } from '../lib/factory-floor-client'` line (28), the `openDetail` function, or the `{ticketUrl}` on line 215 (that one feeds `StagedColumn`, which is out of scope).
 
-- [ ] **Step 4: Delete the orphaned component**
+- [x] **Step 4: Delete the orphaned component**
 
 ```bash
 git rm website/src/components/ProviderStatus.svelte
 ```
 
-- [ ] **Step 5: Verify no dangling references remain**
+- [x] **Step 5: Verify no dangling references remain**
 
 Run: `cd website && grep -rn "ProviderStatus.svelte\|<ProviderStatus" src`
 Expected: no matches (the `ProviderStatus` *type* import in `factory-floor.test.ts` and `factory-floor-types.ts` is a different symbol and must stay).
 
-- [ ] **Step 6: Typecheck / build the components**
+- [x] **Step 6: Typecheck / build the components**
 
 Run: `cd website && npx svelte-check --tsconfig ./tsconfig.json --threshold error 2>&1 | tail -20`
 Expected: no new errors referencing `FactoryFloor.svelte` or `ShippedColumn.svelte` (unused-prop / missing-import errors gone).
@@ -250,7 +250,7 @@ Implements delta-spec scenario "Provider-Status-Widget ist entfernt" at the E2E 
 - Consumes: the rendered `/admin/pipeline` page after Task 2 (no `floor-provider-status` node).
 - Produces: a Playwright assertion locking in the removal so a future regression re-adding the widget fails CI/E2E.
 
-- [ ] **Step 1: Add the failing E2E test**
+- [x] **Step 1: Add the failing E2E test**
 
 Inside the existing `test.describe('FactoryFloor /admin/pipeline', …)` block in `tests/e2e/specs/fa-factory-floor.spec.ts`, add:
 
@@ -262,7 +262,7 @@ Inside the existing `test.describe('FactoryFloor /admin/pipeline', …)` block i
   });
 ```
 
-- [ ] **Step 2: Note on execution**
+- [x] **Step 2: Note on execution**
 
 This E2E runs against a live deployment (nightly `e2e.yml` / post-deploy `dev-flow-e2e`), not in the offline PR gate. Expected against the *pre-change* build: FAIL (the widget still exists → count 1). Against the post-change build: PASS. It is committed now so the deployed assertion lands with the code change; do not block the PR on a live run.
 
@@ -280,21 +280,21 @@ git commit -m "test(e2e): assert Factory Floor provider-status widget is removed
 **Files:**
 - Modify: `website/src/data/test-inventory.json` (regenerated)
 
-- [ ] **Step 1: Regenerate the test inventory (new test files were added)**
+- [x] **Step 1: Regenerate the test inventory (new test files were added)**
 
 ```bash
 task test:inventory
 git add website/src/data/test-inventory.json
 ```
 
-- [ ] **Step 2: Validate the OpenSpec change (must be green before commit)**
+- [x] **Step 2: Validate the OpenSpec change (must be green before commit)**
 
 ```bash
 task test:openspec   # or: bash scripts/openspec.sh validate
 ```
 Expected: validation passes for `factory-floor-versand-reveal`.
 
-- [ ] **Step 3: Run the mandatory gate commands**
+- [x] **Step 3: Run the mandatory gate commands**
 
 ```bash
 task test:changed          # vitest --changed + BATS selection + quality for touched domains
@@ -303,7 +303,7 @@ task freshness:check       # CI-equivalent: freshness + quality:check (S1–S4 r
 ```
 Expected: all three exit 0. `freshness:check` confirms no S1 baseline growth (both `.svelte` files are net-neutral-or-smaller) and no orphan/hostname violations.
 
-- [ ] **Step 4: Commit any regenerated artefacts**
+- [x] **Step 4: Commit any regenerated artefacts**
 
 ```bash
 git add -A

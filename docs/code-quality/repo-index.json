@@ -2744,7 +2744,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 471,
+      "file_count": 472,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3203,6 +3203,7 @@
         "scripts/vda/release-notes.sh",
         "scripts/vda/ticket.sh",
         "scripts/vda/ticket/_ticket-core.sh",
+        "scripts/vda/ticket/assert-phase-chain.sh",
         "scripts/vda/ticket/backfill-id.sh",
         "scripts/vda/ticket/create.sh",
         "scripts/vda/ticket/enqueue.sh",

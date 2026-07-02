@@ -1,0 +1,138 @@
+{
+  "meta": {
+    "slug": "devflow-phase-telemetry",
+    "ticket_id": "T001444",
+    "generated_from": "main@9df03a0d3",
+    "domains": ["software-factory", "dev-tooling", "website"],
+    "intel_sources": ["mcp-postgres", "grep", "Read", "baseline.json"]
+  },
+  "impact_files": [
+    {"path": "scripts/vda/ticket/update-status.sh", "language": "bash", "loc": 44, "s1_limit": 500, "s1_baseline": null, "s1_budget": 456},
+    {"path": "scripts/vda/ticket/stage-plan.sh", "language": "bash", "loc": 36, "s1_limit": 500, "s1_baseline": null, "s1_budget": 464},
+    {"path": "scripts/vda/ticket/assert-phase-chain.sh", "language": "bash", "loc": 0, "s1_limit": 500, "s1_baseline": null, "s1_budget": 500},
+    {"path": "scripts/ticket.sh", "language": "bash", "loc": 852, "s1_limit": 500, "s1_baseline": null, "s1_budget": -352},
+    {"path": "website/src/lib/tickets/pipeline-order.ts", "language": "typescript", "loc": 45, "s1_limit": 600, "s1_baseline": null, "s1_budget": 555},
+    {"path": "website/src/components/factory/ShippedColumn.svelte", "language": "svelte", "loc": 58, "s1_limit": 500, "s1_baseline": null, "s1_budget": 442},
+    {"path": ".claude/skills/dev-flow-execute/SKILL.md", "language": "markdown", "loc": 569, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0},
+    {"path": "tests/spec/software-factory.bats", "language": "bash", "loc": 2966, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0}
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/ticket.sh:cmd_phase",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "ticket.sh phase <ext_id> <phase> <state> [--detail \"...\"] [--driver factory|devflow]",
+      "type_text": "phase ∈ {scout,design,plan,implement,verify,deploy}; state ∈ {entered,done,blocked}; INSERT INTO tickets.factory_phase_events (ticket_id, phase, state, detail, driver) SELECT id,... FROM tickets.tickets WHERE external_id=:'ext_id'; validiert VOR _pgpod (FA-SF-48); offline-skip via _ticket_offline_skip",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/vda/ticket/update-status.sh:main",
+      "kind": "function",
+      "file": "scripts/vda/ticket/update-status.sh",
+      "signature": "main --id <ext_id> --status <status> [--resolution <r>] [--notes <n>]",
+      "type_text": "UPDATE tickets.tickets SET status, resolution, done_at (bei done), pipeline_slot=NULL (bei done/archived), notes append; via _exec_sql \"$pod\" -v ...; pod aus _pgpod; sourced von cmd_update_status (ticket.sh:69-71) mit _ticket_offline_skip Guard davor",
+      "source": "Read"
+    },
+    {
+      "qualified_name": "scripts/vda/ticket/stage-plan.sh:main",
+      "kind": "function",
+      "file": "scripts/vda/ticket/stage-plan.sh",
+      "signature": "main --id <ext_id> --branch <branch> --plan <plan-path>",
+      "type_text": "UPDATE tickets.tickets SET status='plan_staged'; danach idempotenter INSERT eines FACTORY-PLAN-REF Kommentars in tickets.ticket_comments (author_label='dev-flow-plan', visibility='internal')",
+      "source": "Read"
+    },
+    {
+      "qualified_name": "scripts/ticket-mcp/go/internal/tools/lifecycle.go:transition_status",
+      "kind": "mcp-tool",
+      "file": "scripts/ticket-mcp/go/internal/tools/lifecycle.go",
+      "signature": "transition_status({id, brand?, status, resolution?, notes?}) → runner.RunTicket([\"update-status\", \"--id\", id, \"--status\", status, ...])",
+      "type_text": "MCP-Tool shellt zu ticket.sh update-status durch → Auto-Emission in update-status.sh deckt MCP-Pfad automatisch mit ab; KEINE Go-Änderung nötig",
+      "source": "Read"
+    },
+    {
+      "qualified_name": "website/src/lib/tickets/pipeline-order.ts:PIPELINE_LANES",
+      "kind": "const",
+      "file": "website/src/lib/tickets/pipeline-order.ts",
+      "signature": "export const PIPELINE_LANES: readonly { key: string; label: string; statuses: readonly string[]; side?: boolean }[]",
+      "type_text": "shipped-Lane: { key: 'shipped', label: 'Fertig', statuses: ['done'] }; SSOT laut openspec/specs/software-factory.md 'Pipeline-Order SSOT Lane Mapping' — STATUS_BUCKETS byte-identisch abgeleitet (key/status-basiert, Label-Änderung ungefährlich, Tests nachziehen)",
+      "source": "Read"
+    },
+    {
+      "qualified_name": "website/src/components/factory/ShippedColumn.svelte",
+      "kind": "component",
+      "file": "website/src/components/factory/ShippedColumn.svelte",
+      "signature": "<ShippedColumn shipped={ShippedTicket[]}>",
+      "type_text": "Zeile 20: hartkodiertes <h3>Versand</h3>, data-col=\"done\", data-testid=\"floor-shipped\", Empty-Text 'Noch nichts versandt.'; gespeist von getShipped() (factory-floor.ts:202-225, tickets WHERE status='done' + ticket_links kind='pr')",
+      "source": "Read"
+    },
+    {
+      "qualified_name": "website/src/lib/factory-floor.ts:getHall",
+      "kind": "function",
+      "file": "website/src/lib/factory-floor.ts",
+      "signature": "getHall(): DISTINCT ON (ticket_id) latest phase/state aus tickets.factory_phase_events",
+      "type_text": "Zeilen 172-181: slot-lose Tickets nur im Hall wenn ≥1 driver='devflow' Phase-Event existiert — deshalb sind devflow-Tickets ohne Events unsichtbar",
+      "source": "Read"
+    },
+    {
+      "qualified_name": "scripts/factory/pipeline.js:phaseEvent",
+      "kind": "function",
+      "file": "scripts/factory/pipeline.js",
+      "signature": "phaseEvent(ph, state, detail) → ticket.sh phase <id> <ph> <state> --driver factory",
+      "type_text": "Factory emittiert selbst scout/design/plan/implement/verify/deploy VOR den Statuswechseln — Auto-Emission muss dedupen (kein Insert wenn (ticket,phase,state) existiert), sonst Duplikate; pipeline.js soll TICKET_PHASE_DRIVER=factory exportieren",
+      "source": "Read"
+    }
+  ],
+  "call_graph": [
+    {"from": "mcp ticket-mcp transition_status", "to": "scripts/ticket.sh update-status", "mode": "cross_service", "note": "runner.RunTicket shell-out"},
+    {"from": "scripts/ticket.sh cmd_update_status (ticket.sh:69)", "to": "scripts/vda/ticket/update-status.sh:main", "mode": "calls", "note": "source + main; _ticket_offline_skip Guard in ticket.sh:70"},
+    {"from": "scripts/ticket.sh cmd_stage_plan (ticket.sh:263)", "to": "scripts/vda/ticket/stage-plan.sh:main", "mode": "calls"},
+    {"from": "scripts/vda/ticket/update-status.sh", "to": "tickets.factory_phase_events", "mode": "data_flow", "note": "NEU: Auto-Emission"},
+    {"from": "tickets.factory_phase_events", "to": "website/src/lib/factory-floor.ts:getHall/getTicketDetail", "mode": "data_flow"},
+    {"from": "website/src/lib/factory-floor.ts", "to": "website/src/components/FactoryFloor.svelte", "mode": "data_flow", "note": "GET /api/factory-floor + SSE stream 'phase' → refetch"}
+  ],
+  "db_tables": [
+    {
+      "table": "tickets.factory_phase_events",
+      "columns": [
+        {"name": "id", "type": "bigint", "nullable": false},
+        {"name": "ticket_id", "type": "uuid", "nullable": false},
+        {"name": "phase", "type": "text", "nullable": false},
+        {"name": "state", "type": "text", "nullable": false},
+        {"name": "detail", "type": "text", "nullable": true},
+        {"name": "driver", "type": "text", "nullable": false},
+        {"name": "at", "type": "timestamptz", "nullable": false}
+      ],
+      "note": "append-only; CHECK auf phase/state/driver; DDL in website/src/lib/tickets/tables/factory-control.ts"
+    },
+    {
+      "table": "tickets.tickets",
+      "columns": [
+        {"name": "id", "type": "uuid", "nullable": false},
+        {"name": "external_id", "type": "text", "nullable": true},
+        {"name": "status", "type": "text", "nullable": false},
+        {"name": "resolution", "type": "text", "nullable": true},
+        {"name": "done_at", "type": "timestamptz", "nullable": true},
+        {"name": "pipeline_slot", "type": "integer", "nullable": true}
+      ],
+      "note": "Teilmenge relevanter Spalten; Statuswechsel via update-status.sh"
+    }
+  ],
+  "api_contracts": [
+    {
+      "endpoint": "GET /api/factory-floor",
+      "handler": "website/src/pages/api/factory-floor.ts → getFloor() (factory-floor.ts)",
+      "note": "liest tickets, factory_phase_events, v_factory_metrics; keine Änderung nötig — Auto-Emission füllt nur die Quelle"
+    },
+    {
+      "endpoint": "GET /api/factory-floor/stream",
+      "handler": "website/src/pages/api/factory-floor/stream.ts",
+      "note": "SSE 'phase'-Events → UI-Refetch; profitiert automatisch"
+    }
+  ],
+  "external_types": [],
+  "risks": [
+    {"severity": "warn", "note": "codebase-memory/LSP nicht konsultiert (Shell-Skripte + kleine TS/Svelte-Dateien, direkt gelesen); Symbole stammen aus Read/grep mit Zeilenreferenzen"},
+    {"severity": "warn", "note": "scripts/ticket.sh ist mit 852 LOC über dem .sh-Limit 500 (laut gates.yaml in s1.ignore) — Dispatcher nur um die minimalen assert-phase-chain-Zeilen erweitern (sourced-Modul-Muster), keine sonstige Netto-Vergrößerung"},
+    {"severity": "info", "note": "BATS-Tests für ticket.sh mocken kubectl/_pgpod nach bestehendem Muster in tests/spec/software-factory.bats (FA-SF-48: Arg-Validierung vor _pgpod)"}
+  ]
+}

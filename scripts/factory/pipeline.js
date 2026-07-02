@@ -23,6 +23,10 @@ try { _msgBridge = require('./agent-msg-bridge.cjs') } catch (_) {}
 const ACI = process.env.ACI_ENABLED === 'true' ? require('./aci.cjs') : null
 const { decideDeployTransition } = require('./deploy-transition.cjs')
 const { resolveTaskSource } = require('./task-source.cjs')
+// Attribute all phase events emitted by shelled-out ticket.sh calls to the factory
+// driver. The auto-emission dedup makes double-emission harmless; this is the
+// safety net for driver attribution when dedup does not apply (T001444).
+if (!process.env.TICKET_PHASE_DRIVER) process.env.TICKET_PHASE_DRIVER = 'factory'
 function routeProviderSync(source, tier) {
   if (tier === 'opus') return { provider: 'anthropic', modelId: 'claude-opus-4-6', baseUrl: null, slotId: null, emergency: false }
   if (process.env.ANTHROPIC_MODEL) {

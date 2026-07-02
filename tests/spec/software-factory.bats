@@ -2964,3 +2964,131 @@ FACTORY_CHART_COLORS="$BATS_TEST_DIRNAME/../../website/src/components/factory/fa
   run grep -F "export const PHASE_COLOR_BY_NAME" "$FACTORY_CHART_COLORS"
   [ "$status" -eq 0 ]
 }
+
+# ── T001444-phase-telemetry ─────────────────────────────────────#
+# Auto-Emission + fail-closed Gate. Offline, CI-safe: ein PATH-Stub ersetzt
+# `kubectl` — `get` liefert einen Fake-Pod, `exec` schreibt -v-Args + SQL-Heredoc
+# in eine Capture-Datei. Reads/Writes erreichen so nie einen echten Cluster.
+_pt_capture_stub() {   # $CAP_FILE muss vor dem Aufruf exportiert sein
+  local dir; dir="$(mktemp -d)"
+  cat > "$dir/kubectl" <<'STUB'
+#!/usr/bin/env bash
+mode=""
+for a in "$@"; do case "$a" in get) mode=get;; exec) mode=exec;; esac; done
+if [[ "$mode" == get ]]; then echo "pod/shared-db-0"; exit 0; fi
+printf '%s\n' "$@" >> "$CAP_FILE"
+cat >> "$CAP_FILE"
+exit 0
+STUB
+  chmod +x "$dir/kubectl"
+  PATH="$dir:$PATH"
+}
+
+@test "T001444: update-status done auto-emits deploy/done" {
+  CAP_FILE="$(mktemp)"; export CAP_FILE
+  _pt_capture_stub
+  run env TICKET_PHASE_DRIVER=devflow bash scripts/ticket.sh update-status --id T000001 --status done
+  [ "$status" -eq 0 ]
+  grep -q "auto_phase=deploy"          "$CAP_FILE"
+  grep -q "auto_state=done"            "$CAP_FILE"
+  grep -q "driver=devflow"             "$CAP_FILE"
+  grep -q "NOT EXISTS"                 "$CAP_FILE"
+  grep -q "auto: update-status done"   "$CAP_FILE"
+}
+
+@test "T001444: update-status in_progress→implement/entered, in_review→implement/done, qa_review→verify/entered" {
+  for pair in "in_progress implement entered" "in_review implement done" "qa_review verify entered"; do
+    set -- $pair
+    CAP_FILE="$(mktemp)"; export CAP_FILE
+    _pt_capture_stub
+    run bash scripts/ticket.sh update-status --id T000001 --status "$1"
+    [ "$status" -eq 0 ]
+    grep -q "auto_phase=$2"  "$CAP_FILE"
+    grep -q "auto_state=$3"  "$CAP_FILE"
+  done
+}
+
+@test "T001444: update-status defaults driver to devflow, factory via env" {
+  CAP_FILE="$(mktemp)"; export CAP_FILE
+  _pt_capture_stub
+  run env TICKET_PHASE_DRIVER=factory bash scripts/ticket.sh update-status --id T000001 --status in_progress
+  [ "$status" -eq 0 ]
+  grep -q "driver=factory" "$CAP_FILE"
+}
+
+@test "T001444: update-status honors TICKET_OFFLINE (no emission)" {
+  CAP_FILE="$(mktemp)"; export CAP_FILE
+  _pt_capture_stub
+  run env TICKET_OFFLINE=1 bash scripts/ticket.sh update-status --id T000001 --status done
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ "OFFLINE" ]]
+  [ ! -s "$CAP_FILE" ]
+}
+
+@test "T001444: stage-plan auto-emits scout/design/plan done" {
+  CAP_FILE="$(mktemp)"; export CAP_FILE
+  _pt_capture_stub
+  run bash scripts/ticket.sh stage-plan --id T000001 --branch feature/x --plan openspec/changes/x/tasks.md
+  [ "$status" -eq 0 ]
+  grep -qF "VALUES ('scout'),('design'),('plan')" "$CAP_FILE"
+  grep -q  "auto: stage-plan"                     "$CAP_FILE"
+  grep -q  "NOT EXISTS"                           "$CAP_FILE"
+}
+
+@test "T001444: pipeline.js exports TICKET_PHASE_DRIVER=factory" {
+  run grep -Eq "TICKET_PHASE_DRIVER['\"]?[[:space:]]*=[[:space:]]*['\"]factory['\"]" "$PIPELINE_SCRIPT"
+  [ "$status" -eq 0 ]
+}
+
+_pt_rows_stub() {   # $1 = phase:state-Zeilen, die der exec-Call zurückgibt
+  local rows="$1" dir; dir="$(mktemp -d)"
+  cat > "$dir/kubectl" <<STUB
+#!/usr/bin/env bash
+for a in "\$@"; do case "\$a" in get) echo "pod/shared-db-0"; exit 0;; esac; done
+printf '%s' "$rows"
+exit 0
+STUB
+  chmod +x "$dir/kubectl"
+  PATH="$dir:$PATH"
+}
+
+@test "T001444: assert-phase-chain requires --id before cluster" {
+  run bash scripts/ticket.sh assert-phase-chain
+  [ "$status" -eq 2 ]
+  [[ "$output" =~ "--id is required" ]]
+}
+
+@test "T001444: assert-phase-chain passes on complete chain" {
+  _pt_rows_stub $'plan:done\nimplement:entered\nverify:done\n'
+  run bash scripts/ticket.sh assert-phase-chain --id T000001
+  [ "$status" -eq 0 ]
+}
+
+@test "T001444: assert-phase-chain fails with backfill hint on gap" {
+  _pt_rows_stub $'plan:done\nimplement:entered\n'
+  run bash scripts/ticket.sh assert-phase-chain --id T000001
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "phase T000001 verify done" ]]
+}
+
+@test "T001444: assert-phase-chain --json emits ok/missing shape" {
+  _pt_rows_stub $'plan:done\n'
+  run bash scripts/ticket.sh assert-phase-chain --id T000001 --json
+  [ "$status" -eq 1 ]
+  [[ "$output" == *'{"ok":false,"missing":["implement:entered","verify:done"]}'* ]]
+}
+
+@test "T001444: assert-phase-chain listed in dispatch usage" {
+  run bash scripts/ticket.sh
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "assert-phase-chain" ]]
+}
+
+@test "T001444: SKILL gates merge on assert-phase-chain without || true" {
+  SKILL=".claude/skills/dev-flow-execute/SKILL.md"
+  run grep -q "assert-phase-chain" "$SKILL"
+  [ "$status" -eq 0 ]
+  # keine || true Suppression auf der Gate-Zeile
+  run bash -c "grep 'assert-phase-chain' '$SKILL' | grep -q '|| true'"
+  [ "$status" -ne 0 ]
+}

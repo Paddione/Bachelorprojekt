@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-28T19:51:53.751Z",
+  "generatedAt": "2026-07-02T02:35:07.270Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -1017,14 +1017,6 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/documents/templates/[id]/pdf.ts"
-    },
-    {
-      "path": "/api/admin/dora-metrics",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/dora-metrics.ts"
     },
     {
       "path": "/api/admin/einstellungen/backup",

@@ -67,9 +67,14 @@ main() {
       exec "${SCRIPT_DIR}/vda/release-notes.sh" "$@"
       ;;
     cfr)
-      T=$(git log --since="${CFR_WINDOW:-8 weeks ago}" --first-parent --oneline main | wc -l)
-      F=$(git log --since="${CFR_WINDOW:-8 weeks ago}" --first-parent --oneline main | grep -ciE '^[0-9a-f]+ fix\(')
-      if [[ $T -eq 0 ]]; then
+      if ! command -v python3 &>/dev/null; then
+        echo "✗ python3 benötigt für cfr-Berechnung" >&2
+        exit 2
+      fi
+      LOG=$(git log --since="${CFR_WINDOW:-8 weeks ago}" --first-parent --oneline main 2>/dev/null || true)
+      T=$(echo "$LOG" | wc -l | tr -d ' ')
+      F=$(echo "$LOG" | grep -ciE '^[0-9a-f]+ fix\(' || true)
+      if [[ "$T" -eq 0 ]]; then
         echo "CFR: n/a (keine Merges im Fenster)"
         exit 0
       fi

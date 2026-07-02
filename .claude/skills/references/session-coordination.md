@@ -45,6 +45,79 @@ for hf in k3d/configmap-domains.yaml environments/schema.yaml Taskfile.yml k3d/k
 done
 ```
 
+## Guard Hooks (pre-commit & post-checkout)
+
+Das `.githooks/pre-commit` ruft zwei agent-lock-Guards auf:
+
+1. **`guard-precommit`** — Verhindert, dass eine Session einen Commit im main-Checkout macht,
+   während eine ANDERE Session dort exklusiv arbeitet (erkannt am `main-checkout`-Lock mit
+   einem Label, das NICHT `auto: pre-commit self-claim` ist). Fail-open: ohne Lock wird der
+   Commit nicht blockiert.
+
+2. **`guard-postcheckout`** — Nach einem `git checkout` (post-checkout Hook) prüft dieser Guard,
+   ob der main-Checkout-Lock von einer ANDEREN lebenden Session gehalten wird. Falls ja
+   UND kein Rebase/Merge/Cherry-Pick läuft, wird automatisch auf den Lock-Branch zurückgesetzt.
+   Verhindert, dass man aus Versehen den Branch einer parallelen Session stört [T001383].
+
+Beide Guards sind im `.githooks/post-checkout` und `.githooks/pre-commit` registriert
+und werden via `git config core.hooksPath .githooks` aktiviert.
+
+## Agent-Msg: tail & peers
+
+Neben `read --unread` stehen weitere Kommandos zur Session-Kommunikation bereit:
+
+```bash
+# Letzte 10 Nachrichten ansehen (auch bereits gelesene)
+bash scripts/agent-msg.sh tail -n 10
+
+# Nur Nachrichten anzeigen, die an DICH adressiert sind (SID oder Label)
+bash scripts/agent-msg.sh read --mine --unread
+
+# Nur Nachrichten ab einem bestimmten Zeitstempel
+bash scripts/agent-msg.sh read --since 1748822400
+
+# Live-Sessions auflisten (delegiert an agent-lock.sh list)
+bash scripts/agent-msg.sh peers
+```
+
+Nachrichten > 4096 Bytes werden automatisch gekürzt (Metrik im JSON erhalten).
+
+## Agent-Collision (live edit collision)
+
+Das Skript `scripts/agent-collision.sh` warnt vor Dateien, die gleichzeitig in einer
+ANDEREN lebenden Session im Worktree geändert werden. Der `.githooks/pre-commit` ruft
+es automatisch auf (`agent-collision.sh check --staged`). Mit `AGENT_COLLISION_STRICT=1`
+wird der Commit bei Kollision abgelehnt.
+
+```bash
+# Prüfe ob staged Dateien mit anderen Sessions kollidieren
+bash scripts/agent-collision.sh check --staged
+
+# Prüfe staged + unstaged Änderungen
+bash scripts/agent-collision.sh check --all
+
+# Stille Prüfung (exit code only)
+bash scripts/agent-collision.sh check --quiet
+```
+
+Erkenntnis: Liest die Lock-Dateien aus `agent-lock.sh` Registry JSON und vergleicht
+`git diff --name-only HEAD` aller lebenden Worktrees. Reine lokale Bash — kein Cluster.
+
+## Reap-Lifecycle
+
+Der Reaper (`agent-lock.sh reap`) räumt stale Locks und Zombie-Prozesse. Ein Lock gilt
+als **reapable** (eindeutig tot), wenn eine dieser Bedingungen zutrifft:
+
+1. **PID tot** (kill -0 schlägt fehl) + Alter > Grace-Periode (`AGENT_LOCK_GRACE`, default 120s).
+2. **Worktree-Pfad gelöscht** (existiert nicht mehr auf Disk).
+3. **SID tot** (numeric SID; per `pgrep -s` geprüft) + Alter > Grace-Periode.
+4. **Heartbeat TTL abgelaufen** (`AGENT_LOCK_TTL`, default 1800s) — für non-numeric SIDs
+   (harness-provided wie `CLAUDE_SESSION_ID`), die nicht per pgrep prüfbar sind.
+
+Der Reaper läuft automatisch in Step -1 der dev-flow-execute Pipeline und beim
+Session-Start (`bash scripts/agent-lock.sh reap`). Stale Locks werden gelöscht und
+ins `.reap.log` geschrieben (im Lock-Verzeichnis).
+
 ## Freigeben (nach Merge, VOR dem Worktree-Remove)
 
 ```bash

@@ -13,12 +13,12 @@ depends_on_plans: []
 # Tasks: devflow-phase-telemetry (T001444)
 
 - [x] Task 1: Auto-Emission in `scripts/vda/ticket/update-status.sh` (Status → Phase-Event, Dedup, `TICKET_PHASE_DRIVER`)
-- [ ] Task 2: Auto-Emission in `scripts/vda/ticket/stage-plan.sh` (scout/design/plan done)
-- [ ] Task 3: `scripts/factory/pipeline.js` exportiert `TICKET_PHASE_DRIVER=factory`
-- [ ] Task 4: Neues Gate-Modul `scripts/vda/ticket/assert-phase-chain.sh` + Dispatcher in `scripts/ticket.sh`
-- [ ] Task 5: `.claude/skills/dev-flow-execute/SKILL.md` — Pflicht-Gate vor `gh pr merge`, verify von best-effort auf Pflicht
-- [ ] Task 6: Versand-Lane — Label-SSOT `pipeline-order.ts` + `ShippedColumn.svelte` Import & Untertitel
-- [ ] Task 7: Finale Verifikation (Gates + Inventar + OpenSpec-Validate)
+- [x] Task 2: Auto-Emission in `scripts/vda/ticket/stage-plan.sh` (scout/design/plan done)
+- [x] Task 3: `scripts/factory/pipeline.js` exportiert `TICKET_PHASE_DRIVER=factory`
+- [x] Task 4: Neues Gate-Modul `scripts/vda/ticket/assert-phase-chain.sh` + Dispatcher in `scripts/ticket.sh`
+- [x] Task 5: `.claude/skills/dev-flow-execute/SKILL.md` — Pflicht-Gate vor `gh pr merge`, verify von best-effort auf Pflicht
+- [x] Task 6: Versand-Lane — Label-SSOT `pipeline-order.ts` + `ShippedColumn.svelte` Import & Untertitel
+- [x] Task 7: Finale Verifikation (Gates + Inventar + OpenSpec-Validate)
 
 ---
 
@@ -247,7 +247,7 @@ git commit -m "feat(factory): auto-emit phase events from update-status transiti
 - Consumes: `_pgpod`, `_exec_sql`; `$TICKET_PHASE_DRIVER` env.
 - Produces: Ein `stage-plan`-Aufruf emittiert zusätzlich `scout done`, `design done`, `plan done` (`detail='auto: stage-plan'`), idempotent per `NOT EXISTS`.
 
-- [ ] **Step 1: Failing-Test-Step (RED).** Ergänze im T001444-Block in `tests/spec/software-factory.bats`:
+- [x] **Step 1: Failing-Test-Step (RED).** Ergänze im T001444-Block in `tests/spec/software-factory.bats`:
 
 ```bash
 @test "T001444: stage-plan auto-emits scout/design/plan done" {
@@ -261,12 +261,12 @@ git commit -m "feat(factory): auto-emit phase events from update-status transiti
 }
 ```
 
-- [ ] **Step 2: Run RED, verify it fails.**
+- [x] **Step 2: Run RED, verify it fails.**
 
 Run: `tests/unit/lib/bats-core/bin/bats tests/spec/software-factory.bats -f "T001444: stage-plan"`
 Expected: FAIL (kein `VALUES ('scout')...` in der Capture-Datei).
 
-- [ ] **Step 3: Implement.** Füge in `scripts/vda/ticket/stage-plan.sh` unmittelbar vor der Abschlusszeile `echo "Ticket $id staged in Kommissionierung (status=plan_staged)"` ein:
+- [x] **Step 3: Implement.** Füge in `scripts/vda/ticket/stage-plan.sh` unmittelbar vor der Abschlusszeile `echo "Ticket $id staged in Kommissionierung (status=plan_staged)"` ein:
 
 ```bash
   local driver="${TICKET_PHASE_DRIVER:-devflow}"
@@ -284,12 +284,12 @@ WHERE t.external_id = :'ext_id'
 EOF
 ```
 
-- [ ] **Step 4: Run GREEN, verify it passes.**
+- [x] **Step 4: Run GREEN, verify it passes.**
 
 Run: `tests/unit/lib/bats-core/bin/bats tests/spec/software-factory.bats -f "T001444: stage-plan"`
 Expected: PASS.
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
 
 ```bash
 git add scripts/vda/ticket/stage-plan.sh tests/spec/software-factory.bats
@@ -308,7 +308,7 @@ git commit -m "feat(factory): auto-emit scout/design/plan done on stage-plan [T0
 - Consumes: nichts Neues.
 - Produces: `process.env.TICKET_PHASE_DRIVER === 'factory'` für alle vom Pipeline-Prozess aus geshellten `ticket.sh`-Aufrufe (Sicherheitsnetz für die Driver-Attribution, falls Dedup nicht greift).
 
-- [ ] **Step 1: Failing-Test-Step (RED).** Ergänze im T001444-Block:
+- [x] **Step 1: Failing-Test-Step (RED).** Ergänze im T001444-Block:
 
 ```bash
 @test "T001444: pipeline.js exports TICKET_PHASE_DRIVER=factory" {
@@ -317,12 +317,12 @@ git commit -m "feat(factory): auto-emit scout/design/plan done on stage-plan [T0
 }
 ```
 
-- [ ] **Step 2: Run RED, verify it fails.**
+- [x] **Step 2: Run RED, verify it fails.**
 
 Run: `tests/unit/lib/bats-core/bin/bats tests/spec/software-factory.bats -f "T001444: pipeline.js exports"`
 Expected: FAIL (`TICKET_PHASE_DRIVER` fehlt in `pipeline.js`).
 
-- [ ] **Step 3: Implement.** Füge in `scripts/factory/pipeline.js` direkt nach dem `require`-Block am Modulkopf (nach der `const path = require('path')`-Gruppe) ein:
+- [x] **Step 3: Implement.** Füge in `scripts/factory/pipeline.js` direkt nach dem `require`-Block am Modulkopf (nach der `const path = require('path')`-Gruppe) ein:
 
 ```javascript
 // Attribute all phase events emitted by shelled-out ticket.sh calls to the factory
@@ -331,12 +331,12 @@ Expected: FAIL (`TICKET_PHASE_DRIVER` fehlt in `pipeline.js`).
 process.env.TICKET_PHASE_DRIVER = process.env.TICKET_PHASE_DRIVER || 'factory'
 ```
 
-- [ ] **Step 4: Run GREEN + Offline-Syntaxcheck.**
+- [x] **Step 4: Run GREEN + Offline-Syntaxcheck.**
 
 Run: `tests/unit/lib/bats-core/bin/bats tests/spec/software-factory.bats -f "T001444: pipeline.js exports" && node --check scripts/factory/pipeline.js`
 Expected: PASS und keine Syntaxfehler.
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
 
 ```bash
 git add scripts/factory/pipeline.js tests/spec/software-factory.bats
@@ -356,7 +356,7 @@ git commit -m "feat(factory): pipeline.js pins TICKET_PHASE_DRIVER=factory [T001
 - Consumes: `_pgpod`, `_exec_sql`.
 - Produces: `ticket.sh assert-phase-chain --id <ext_id> [--json]` — Exit 0 wenn `plan:done` + `implement:entered` + `verify:done` vorhanden, sonst Exit 1 mit Backfill-Kommandos; `--json` ⇒ `{"ok":<bool>,"missing":[…]}`; fehlendes `--id` ⇒ Exit 2 vor `_pgpod`.
 
-- [ ] **Step 1: Failing-Test-Step (RED).** Ergänze im T001444-Block einen Row-Stub (liefert kontrollierte Query-Zeilen) und die Gate-Tests:
+- [x] **Step 1: Failing-Test-Step (RED).** Ergänze im T001444-Block einen Row-Stub (liefert kontrollierte Query-Zeilen) und die Gate-Tests:
 
 ```bash
 _pt_rows_stub() {   # $1 = phase:state-Zeilen, die der exec-Call zurückgibt
@@ -404,12 +404,12 @@ STUB
 }
 ```
 
-- [ ] **Step 2: Run RED, verify it fails.**
+- [x] **Step 2: Run RED, verify it fails.**
 
 Run: `tests/unit/lib/bats-core/bin/bats tests/spec/software-factory.bats -f "T001444: assert-phase-chain"`
 Expected: FAIL (`Unknown command: assert-phase-chain`).
 
-- [ ] **Step 3a: Create the gate module.** Schreibe `scripts/vda/ticket/assert-phase-chain.sh`:
+- [x] **Step 3a: Create the gate module.** Schreibe `scripts/vda/ticket/assert-phase-chain.sh`:
 
 ```bash
 # scripts/vda/ticket/assert-phase-chain.sh — fail-closed phase-chain gate (T001444).
@@ -473,7 +473,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
 fi
 ```
 
-- [ ] **Step 3b: Wire the dispatcher.** Füge in `scripts/ticket.sh` neben den anderen `cmd_*`-Funktionen (z. B. direkt nach `cmd_stage_plan()`) ein:
+- [x] **Step 3b: Wire the dispatcher.** Füge in `scripts/ticket.sh` neben den anderen `cmd_*`-Funktionen (z. B. direkt nach `cmd_stage_plan()`) ein:
 
 ```bash
 cmd_assert_phase_chain() {
@@ -490,12 +490,12 @@ Ergänze im `case "$cmd"`-Block (neben `phase)`):
 
 Und hänge `assert-phase-chain` an die Usage-Kommandoliste im `if [[ $# -lt 1 ]]`-Zweig an (nach `phase,`).
 
-- [ ] **Step 4: Run GREEN, verify it passes.**
+- [x] **Step 4: Run GREEN, verify it passes.**
 
 Run: `tests/unit/lib/bats-core/bin/bats tests/spec/software-factory.bats -f "T001444: assert-phase-chain"`
 Expected: PASS (alle fünf Gate-Tests grün).
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
 
 ```bash
 git add scripts/vda/ticket/assert-phase-chain.sh scripts/ticket.sh tests/spec/software-factory.bats
@@ -514,7 +514,7 @@ git commit -m "feat(factory): fail-closed assert-phase-chain gate [T001444]"
 - Consumes: `ticket.sh assert-phase-chain` (Task 4).
 - Produces: Doku-Kontrakt — Gate-Aufruf vor `gh pr merge` ohne `|| true`; verify-Emission als Pflicht.
 
-- [ ] **Step 1: Failing-Test-Step (RED).** Ergänze im T001444-Block (`$SKILL` ist in dieser Datei bereits definiert):
+- [x] **Step 1: Failing-Test-Step (RED).** Ergänze im T001444-Block (`$SKILL` ist in dieser Datei bereits definiert):
 
 ```bash
 @test "T001444: SKILL gates merge on assert-phase-chain without || true" {
@@ -526,12 +526,12 @@ git commit -m "feat(factory): fail-closed assert-phase-chain gate [T001444]"
 }
 ```
 
-- [ ] **Step 2: Run RED, verify it fails.**
+- [x] **Step 2: Run RED, verify it fails.**
 
 Run: `tests/unit/lib/bats-core/bin/bats tests/spec/software-factory.bats -f "T001444: SKILL gates"`
 Expected: FAIL (`assert-phase-chain` steht noch nicht im Skill).
 
-- [ ] **Step 3: Implement.** In `.claude/skills/dev-flow-execute/SKILL.md`, in „Schritt 6: Auto-Merge wenn CI grün", direkt VOR dem `(cd "$MAIN_REPO" && gh pr merge …)`-Codeblock einfügen:
+- [x] **Step 3: Implement.** In `.claude/skills/dev-flow-execute/SKILL.md`, in „Schritt 6: Auto-Merge wenn CI grün", direkt VOR dem `(cd "$MAIN_REPO" && gh pr merge …)`-Codeblock einfügen:
 
 ```markdown
 **Fail-closed Phase-Chain-Gate (T001444) — PFLICHT vor dem Merge, KEIN `|| true`:**
@@ -545,12 +545,12 @@ zuerst backfillen (insb. `verify done` nach grünem `task test:changed`), dann m
 
 Ändere zusätzlich die verify-Telemetrie in „Schritt 3: Lokale Verifikation" und „Schritt 6.5: Ticket abschließen": ersetze die einleitende Formulierung `Phasen-Telemetrie (best-effort)` / `best-effort und darf den Flow nie stoppen` für die `verify entered`/`verify done`-Events durch `Phasen-Telemetrie (PFLICHT für verify — das Gate erzwingt sie)`. Ergänze am Ende der Telemetrie-Blöcke von Schritt 1.5/2/6.5 den Hinweissatz: „`plan`/`implement`/`deploy`-Events entstehen jetzt automatisch aus den Statuswechseln (`update-status`/`stage-plan`); Doppel-Emission ist dank Dedup harmlos." Die `|| true`-Fallback-Zeilen für `verify` bleiben als Fallback erhalten, aber der Fließtext benennt verify als Pflicht.
 
-- [ ] **Step 4: Run GREEN, verify it passes.**
+- [x] **Step 4: Run GREEN, verify it passes.**
 
 Run: `tests/unit/lib/bats-core/bin/bats tests/spec/software-factory.bats -f "T001444: SKILL gates"`
 Expected: PASS.
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
 
 ```bash
 git add .claude/skills/dev-flow-execute/SKILL.md tests/spec/software-factory.bats
@@ -570,7 +570,7 @@ git commit -m "docs(dev-flow): gate merge on assert-phase-chain, verify mandator
 - Consumes: `PIPELINE_LANES` (readonly Liste `{ key, label, statuses, side }`) aus `pipeline-order.ts`.
 - Produces: `shipped`-Lane-`label === 'Versand'`; `ShippedColumn.svelte` rendert dieses Label aus der SSOT plus den Untertitel „Gemergt nach main · Prod-Deploy entkoppelt".
 
-- [ ] **Step 1: Failing-Test-Step (RED).** Erweitere `website/src/lib/tickets/pipeline-order.test.ts` um die Import-Zeile `PIPELINE_LANES` (falls nicht vorhanden) und einen Test:
+- [x] **Step 1: Failing-Test-Step (RED).** Erweitere `website/src/lib/tickets/pipeline-order.test.ts` um die Import-Zeile `PIPELINE_LANES` (falls nicht vorhanden) und einen Test:
 
 ```typescript
 it('labels the shipped lane Versand (SSOT)', () => {
@@ -579,18 +579,18 @@ it('labels the shipped lane Versand (SSOT)', () => {
 });
 ```
 
-- [ ] **Step 2: Run RED, verify it fails.**
+- [x] **Step 2: Run RED, verify it fails.**
 
 Run: `npx --prefix website vitest run src/lib/tickets/pipeline-order.test.ts -t "Versand"`
 Expected: FAIL (Label ist noch `'Fertig'`).
 
-- [ ] **Step 3a: Change the SSOT label.** In `website/src/lib/tickets/pipeline-order.ts`, in `PIPELINE_LANES`, die `shipped`-Zeile:
+- [x] **Step 3a: Change the SSOT label.** In `website/src/lib/tickets/pipeline-order.ts`, in `PIPELINE_LANES`, die `shipped`-Zeile:
 
 ```typescript
   { key: 'shipped',        label: 'Versand',         statuses: ['done'],                    side: false },
 ```
 
-- [ ] **Step 3b: Consume the label in the component.** In `website/src/components/factory/ShippedColumn.svelte` im `<script lang="ts">`-Block (vor dem `$props()`-Aufruf) ergänzen:
+- [x] **Step 3b: Consume the label in the component.** In `website/src/components/factory/ShippedColumn.svelte` im `<script lang="ts">`-Block (vor dem `$props()`-Aufruf) ergänzen:
 
 ```svelte
   import { PIPELINE_LANES } from '../../lib/tickets/pipeline-order';
@@ -604,12 +604,12 @@ Ersetze im Markup `<h3 class="font-semibold mb-2">Versand</h3>` durch:
   <p class="text-muted text-[11px] mb-2">Gemergt nach main · Prod-Deploy entkoppelt</p>
 ```
 
-- [ ] **Step 4: Run GREEN + Typecheck.**
+- [x] **Step 4: Run GREEN + Typecheck.**
 
 Run: `npx --prefix website vitest run src/lib/tickets/pipeline-order.test.ts && npx --prefix website tsc --noEmit`
 Expected: PASS, keine Typfehler.
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
 
 ```bash
 git add website/src/lib/tickets/pipeline-order.ts website/src/components/factory/ShippedColumn.svelte website/src/lib/tickets/pipeline-order.test.ts
@@ -622,14 +622,14 @@ git commit -m "feat(factory-floor): Versand lane SSOT label + decoupled-deploy s
 
 **Files:** keine Code-Änderung — nur Gates ausführen und generierte Artefakte committen.
 
-- [ ] **Step 1: Test-Inventar regenerieren.** Da neue `@test`-Blöcke hinzugefügt wurden:
+- [x] **Step 1: Test-Inventar regenerieren.** Da neue `@test`-Blöcke hinzugefügt wurden:
 
 ```bash
 task test:inventory
 git add website/src/data/test-inventory.json
 ```
 
-- [ ] **Step 2: OpenSpec validieren (muss grün sein).**
+- [x] **Step 2: OpenSpec validieren (muss grün sein).**
 
 ```bash
 task test:openspec
@@ -638,7 +638,7 @@ bash scripts/openspec.sh validate
 ```
 Expected: `devflow-phase-telemetry` validiert ohne Fehler.
 
-- [ ] **Step 3: Gezielte Tests + Freshness-Ratchet (die drei Pflicht-Gates).**
+- [x] **Step 3: Gezielte Tests + Freshness-Ratchet (die drei Pflicht-Gates).**
 
 ```bash
 task test:changed
@@ -647,7 +647,7 @@ task freshness:check
 ```
 Expected: alle grün; `freshness:check` meldet keine neuen/verschlechterten S1–S4-Violations (die berührten `ticket.sh`/`pipeline.js` stehen in `s1.ignore`).
 
-- [ ] **Step 4: Inventar-/Artefakt-Commit (falls `freshness:regenerate` etwas geändert hat).**
+- [x] **Step 4: Inventar-/Artefakt-Commit (falls `freshness:regenerate` etwas geändert hat).**
 
 ```bash
 git add -A

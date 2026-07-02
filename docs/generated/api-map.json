@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-02T02:35:07.270Z",
+  "generatedAt": "2026-07-02T21:00:46.517Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -1128,7 +1128,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "admin",
+      "auth": "unclassified",
       "file": "website/src/pages/api/admin/footer/save.ts"
     },
     {
@@ -1388,7 +1388,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "admin",
+      "auth": "unclassified",
       "file": "website/src/pages/api/admin/kore-flags/save.ts"
     },
     {
@@ -1479,7 +1479,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "admin",
+      "auth": "unclassified",
       "file": "website/src/pages/api/admin/navigation/save.ts"
     },
     {
@@ -2035,7 +2035,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "admin",
+      "auth": "unclassified",
       "file": "website/src/pages/api/admin/referenzen/save.ts"
     },
     {
@@ -2182,7 +2182,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "admin",
+      "auth": "unclassified",
       "file": "website/src/pages/api/admin/stammdaten/save.ts"
     },
     {

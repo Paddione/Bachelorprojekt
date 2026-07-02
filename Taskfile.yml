@@ -816,7 +816,7 @@ tasks:
         if [ "$RUN_UNIT" = "true" ] && [ "$RUN_SCRIPTS" = "false" ]; then echo "→ test changes: task test:unit"; task test:unit; fi
         if [ "$RUN_OPENSPEC" = "true" ]; then echo "→ openspec changes: task test:openspec"; task test:openspec; fi
         if [ "$RUN_WEBSITE" = "false" ] && [ "$RUN_MENTOLDER_WEB" = "false" ] && [ "$RUN_K8S" = "false" ] && [ "$RUN_SCRIPTS" = "false" ] && [ "$RUN_FACTORY" = "false" ] && [ "$RUN_UNIT" = "false" ] && [ "$RUN_MCP" = "false" ] && [ "$RUN_AGENTS" = "false" ] && [ "$RUN_OPENSPEC" = "false" ]; then
-          if command -v pnpm >/dev/null 2>&1; then echo "→ no domain-specific changes: vitest only"; (cd website && pnpm vitest run --reporter verbose); fi
+          if command -v pnpm >/dev/null 2>&1; then echo "→ no domain-specific changes: vitest --changed"; (cd website && pnpm vitest run --changed --reporter verbose); fi
         fi
         echo "→ quality gate (always)"; task test:code-quality
 

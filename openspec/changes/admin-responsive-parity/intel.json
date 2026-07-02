@@ -1,0 +1,69 @@
+{
+  "meta": {
+    "slug": "admin-responsive-parity",
+    "ticket_id": "T001471",
+    "generated_from": "main@aac9ba550",
+    "domains": ["website", "admin-ui", "frontend"],
+    "intel_sources": ["Explore-subagent", "grep", "wc -l", "baseline.json", "plan-lint.sh"]
+  },
+  "impact_files": [
+    { "path": "website/src/styles/admin-responsive.css", "language": "css", "loc": 0, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "website/src/layouts/AdminLayout.astro", "language": "astro", "loc": 263, "s1_limit": 400, "s1_baseline": null, "s1_budget": 137 },
+    { "path": "website/src/pages/admin/rechnungen.astro", "language": "astro", "loc": 592, "s1_limit": 400, "s1_baseline": 592, "s1_budget": 0 },
+    { "path": "website/src/pages/admin/projekte.astro", "language": "astro", "loc": 408, "s1_limit": 400, "s1_baseline": 408, "s1_budget": 0 },
+    { "path": "website/src/pages/admin/zeiterfassung.astro", "language": "astro", "loc": 261, "s1_limit": 400, "s1_baseline": null, "s1_budget": 139 },
+    { "path": "website/src/components/admin/ui/AdminTabs.svelte", "language": "svelte", "loc": 139, "s1_limit": 500, "s1_baseline": null, "s1_budget": 361 },
+    { "path": "website/src/components/admin/ui/AdminStatCard.svelte", "language": "svelte", "loc": 112, "s1_limit": 500, "s1_baseline": null, "s1_budget": 388 },
+    { "path": "website/src/components/admin/ui/AdminCard.svelte", "language": "svelte", "loc": 70, "s1_limit": 500, "s1_baseline": null, "s1_budget": 430 },
+    { "path": "website/src/components/admin/ui/AdminPageHeader.svelte", "language": "svelte", "loc": 105, "s1_limit": 500, "s1_baseline": null, "s1_budget": 295 },
+    { "path": "website/src/pages/admin/einstellungen/backup.astro", "language": "astro", "loc": 57, "s1_limit": 400, "s1_baseline": null, "s1_budget": 343 },
+    { "path": "website/src/pages/admin/einstellungen/benachrichtigungen.astro", "language": "astro", "loc": 85, "s1_limit": 400, "s1_baseline": null, "s1_budget": 315 },
+    { "path": "website/src/pages/admin/einstellungen/branding.astro", "language": "astro", "loc": 175, "s1_limit": 400, "s1_baseline": null, "s1_budget": 225 },
+    { "path": "website/src/pages/admin/einstellungen/email.astro", "language": "astro", "loc": 65, "s1_limit": 400, "s1_baseline": null, "s1_budget": 335 },
+    { "path": "website/src/pages/admin/einstellungen/ordner-templates.astro", "language": "astro", "loc": 137, "s1_limit": 400, "s1_baseline": null, "s1_budget": 263 },
+    { "path": "website/src/pages/admin/einstellungen/rechnungen.astro", "language": "astro", "loc": 155, "s1_limit": 400, "s1_baseline": null, "s1_budget": 245 },
+    { "path": "tests/spec/website-core.bats", "language": "bats", "loc": 0, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "website/src/styles/mobile-cockpit.css:@container-collapse-pattern",
+      "kind": "css-pattern",
+      "file": "website/src/styles/mobile-cockpit.css",
+      "signature": "@container (max-width:480px) { .row { grid-template-columns:1fr } .row-header { display:none } }",
+      "type_text": "Referenz-Muster Tabelle→Karte (Cockpit, data-container=\"cockpit\"), zu generalisieren als .admin-table-collapse",
+      "source": "grep/Read"
+    },
+    {
+      "qualified_name": "website/src/styles/admin-premium.css:shell-breakpoints",
+      "kind": "css-pattern",
+      "file": "website/src/styles/admin-premium.css",
+      "signature": "@media (max-width:767px) | @media (min-width:768px) | 768–1023px",
+      "type_text": "Bestehende Shell-Breakpoint-Konvention; admin-responsive.css folgt denselben Grenzen",
+      "source": "grep/Read"
+    },
+    {
+      "qualified_name": "website/src/layouts/AdminLayout.astro:AdminLayout",
+      "kind": "astro-layout",
+      "file": "website/src/layouts/AdminLayout.astro",
+      "signature": "AdminLayout({ title }) — bindet admin-foundation.css + admin-premium.css ein, rendert #admin-sidebar, #mobile-topbar, <main>",
+      "type_text": "Einstiegspunkt für den Import von admin-responsive.css",
+      "source": "Explore-subagent"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": ["website/src/layouts/AdminLayout.astro"],
+    "edges": [
+      { "from": "AdminLayout.astro", "to": "admin-premium.css", "kind": "imports" },
+      { "from": "pages/admin/*.astro", "to": "AdminLayout.astro", "kind": "renders" },
+      { "from": "pages/admin/*.astro", "to": "components/admin/ui/*.svelte", "kind": "renders" }
+    ]
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    { "note": "Reine CSS-/Markup-Änderung: keine DB-, API- oder externen Typ-Flächen berührt (db_tables/api_contracts/external_types bewusst leer).", "severity": "info" },
+    { "note": "codebase-memory/LSP nicht befragt — CSS-Selektoren/Astro-Templates sind dort nicht als Symbole indiziert; Intel stammt aus Explore-Audit + grep. Vor Edit jeweils Read der Live-Datei.", "severity": "warn" },
+    { "note": "Globale Mobile-Tabellenregel muss Cockpit ausnehmen (:not([data-container=\"cockpit\"])), sonst Konflikt mit mobile-cockpit.css.", "severity": "warn" }
+  ]
+}

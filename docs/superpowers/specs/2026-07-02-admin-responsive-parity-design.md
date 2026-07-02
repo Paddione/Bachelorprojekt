@@ -1,6 +1,6 @@
 ---
-ticket_id: null
-plan_ref: null
+ticket_id: T001471
+plan_ref: openspec/changes/admin-responsive-parity/tasks.md
 status: active
 date: 2026-07-02
 ---

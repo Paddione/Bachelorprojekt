@@ -67,4 +67,10 @@
     border-top: 1px solid var(--admin-border);
     margin-top: var(--space-4);
   }
+
+  @media (max-width: 767px) {
+    .admin-card {
+      padding: 0.85rem 1rem;
+    }
+  }
 </style>

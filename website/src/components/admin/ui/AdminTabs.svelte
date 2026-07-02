@@ -136,4 +136,17 @@
     transition: left 0.2s ease, width 0.2s ease;
     border-radius: 1px;
   }
+
+  @media (max-width: 767px) {
+    .tabs {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scroll-snap-type: x proximity;
+      flex-wrap: nowrap;
+    }
+    .tabs__tab {
+      scroll-snap-align: start;
+      white-space: nowrap;
+    }
+  }
 </style>

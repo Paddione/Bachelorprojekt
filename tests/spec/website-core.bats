@@ -114,3 +114,17 @@ ADMIN_RESPONSIVE="$BATS_TEST_DIRNAME/../../website/src/styles/admin-responsive.c
   run grep -F "admin-table-collapse" "$BATS_TEST_DIRNAME/../../website/src/pages/admin/zeiterfassung.astro"
   [ "$status" -eq 0 ]
 }
+
+@test "T001471 ui: AdminTabs has a mobile scroll media query" {
+  f="$BATS_TEST_DIRNAME/../../website/src/components/admin/ui/AdminTabs.svelte"
+  run grep -E "max-width:[[:space:]]*767px" "$f"
+  [ "$status" -eq 0 ]
+  run grep -E "overflow-x:[[:space:]]*auto" "$f"
+  [ "$status" -eq 0 ]
+}
+
+@test "T001471 ui: AdminPageHeader stacks title and actions on mobile" {
+  f="$BATS_TEST_DIRNAME/../../website/src/components/admin/ui/AdminPageHeader.svelte"
+  run grep -E "max-width:[[:space:]]*767px" "$f"
+  [ "$status" -eq 0 ]
+}

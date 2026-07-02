@@ -109,4 +109,11 @@
   .stat-card__trend--neutral {
     color: var(--admin-text-mute);
   }
+
+  @media (max-width: 767px) {
+    .stat-card {
+      width: 100%;
+      padding: 0.85rem 1rem;
+    }
+  }
 </style>

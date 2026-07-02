@@ -2,7 +2,7 @@
 title: Factory Floor — Provider-Status entfernen & Versand-Ticket-Reveal
 ticket_id: none
 domains: [website]
-status: planning
+status: completed
 ---
 
 # factory-floor-versand-reveal — Implementation Plan

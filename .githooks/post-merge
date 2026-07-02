@@ -5,6 +5,20 @@ repo_root="$(git rev-parse --show-toplevel)"
 if [ -d "$repo_root/node_modules" ]; then
   task -d "$repo_root" freshness:regenerate 2>/dev/null || true
 fi
+# loc-budget.json always gets a fresh `commit`/`measured_at` stamp from
+# freshness:regenerate — that alone is diff noise, not a real LOC change.
+# Restore it unless total_lines/file_count actually drifted from HEAD, so a
+# plain `git pull` doesn't leave the tree dirty. CI (freshness-regen.yml)
+# is the source of truth that actually commits this file. [T001450]
+_lb="$repo_root/docs/code-quality/loc-budget.json"
+if [ -f "$_lb" ] && command -v jq &>/dev/null; then
+  _head_counts=$(git -C "$repo_root" show HEAD:docs/code-quality/loc-budget.json 2>/dev/null \
+    | jq -c '{total_lines, file_count}' 2>/dev/null || true)
+  _cur_counts=$(jq -c '{total_lines, file_count}' "$_lb" 2>/dev/null || true)
+  if [ -n "$_head_counts" ] && [ "$_head_counts" = "$_cur_counts" ]; then
+    git -C "$repo_root" checkout -- docs/code-quality/loc-budget.json 2>/dev/null || true
+  fi
+fi
 # Keep codebase-memory graph in sync after merge (incremental, non-blocking).
 if command -v /home/patrick/.local/bin/codebase-memory-mcp &>/dev/null; then
   /home/patrick/.local/bin/codebase-memory-mcp cli index_repository \

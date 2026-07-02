@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-01T13:41:44.872Z",
+  "generatedAt": "2026-07-02T11:24:05.888Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -492,18 +492,6 @@
       "namespace": "mentolder",
       "type": "Service",
       "name": "shared-db-dev-lb"
-    },
-    {
-      "id": "loki-memberlist",
-      "namespace": "mentolder",
-      "type": "Service",
-      "name": "loki-memberlist"
-    },
-    {
-      "id": "loki-headless",
-      "namespace": "mentolder",
-      "type": "Service",
-      "name": "loki-headless"
     },
     {
       "id": "keycloak",
@@ -1410,24 +1398,6 @@
     {
       "from": "monitoring-operator",
       "to": "monitoring-operator",
-      "via": "selector",
-      "kind": "selector"
-    },
-    {
-      "from": "loki-memberlist",
-      "to": "loki",
-      "via": "selector",
-      "kind": "selector"
-    },
-    {
-      "from": "loki-headless",
-      "to": "loki",
-      "via": "selector",
-      "kind": "selector"
-    },
-    {
-      "from": "loki",
-      "to": "loki",
       "via": "selector",
       "kind": "selector"
     },

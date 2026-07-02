@@ -21,3 +21,11 @@ resources:
   - promtail-rendered.yaml
   - loki-grafana-datasource.yaml
   - grafana-dashboards
+
+# Adds resources.requests/limits to the loki-sc-rules sidecar that the
+# pre-rendered Helm output (loki-rendered.yaml) does not set. Strategic-merge
+# patches the StatefulSet `loki` and merges the resources block into the
+# existing loki-sc-rules container without touching the rendered YAML (which
+# would be overwritten on the next `task loki:render`).
+patches:
+  - path: loki-sc-rules-resources-patch.yaml

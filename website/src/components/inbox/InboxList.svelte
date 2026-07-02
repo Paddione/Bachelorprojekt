@@ -9,25 +9,19 @@
   interface Props {
     items: InboxItem[];
     selectedId: number | null;
-    searchQuery: string;
     activeStatus: InboxStatus;
     busy: boolean;
     onSelect: (id: number) => void;
-    onSearch: (q: string) => void;
     onQuickDone?: (id: number) => void;
-    bindSearchInput?: (el: HTMLInputElement | null) => void;
   }
 
   const {
     items,
     selectedId,
-    searchQuery,
     activeStatus,
     busy,
     onSelect,
-    onSearch,
     onQuickDone,
-    bindSearchInput,
   }: Props = $props();
 
   // Inline check-icon ("Erledigt") is only shown for pending items where the
@@ -36,13 +30,6 @@
   function canQuickDone(item: InboxItem): boolean {
     return _canQuickDone(item.type, activeStatus);
   }
-
-  let searchEl: HTMLInputElement | null = $state(null);
-
-  $effect(() => {
-    bindSearchInput?.(searchEl);
-    return () => bindSearchInput?.(null);
-  });
 
   function summary(item: InboxItem): { name: string; sub: string } {
     const p = (item.payload ?? {}) as Record<string, unknown>;
@@ -100,19 +87,6 @@
 </script>
 
 <section class="list-pane" data-testid="inbox-list">
-  <div class="search-row">
-    <input
-      type="text"
-      bind:this={searchEl}
-      class="search"
-      data-testid="inbox-search"
-      placeholder="Suchen…"
-      value={searchQuery}
-      oninput={(e) => onSearch(e.currentTarget.value)}
-      aria-label="Posteingang durchsuchen"
-    />
-  </div>
-
   <div class="rows" role="listbox" aria-label="Posteingang">
     {#if items.length === 0}
       <p class="empty">Keine Einträge.</p>
@@ -182,27 +156,6 @@
     min-height: 0;
     box-sizing: border-box;
   }
-
-  .search-row {
-    padding: 10px 12px;
-    border-bottom: 1px solid var(--line);
-    background: var(--ink-900);
-    flex-shrink: 0;
-  }
-
-  .search {
-    width: 100%;
-    box-sizing: border-box;
-    background: var(--ink-850);
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    color: var(--fg);
-    font: 400 12px var(--font-sans);
-    padding: 7px 10px;
-    outline: none;
-  }
-  .search::placeholder { color: var(--mute-2); }
-  .search:focus { border-color: var(--brass); }
 
   .rows {
     flex: 1;

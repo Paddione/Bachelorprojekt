@@ -157,19 +157,7 @@ grep -rEn 'console\.(error|warn)' website/src --include='*.ts' --include='*.svel
 
 > **B · Baseline:** 10 (erstmals korrekt gemessen; vorher fälschlich als 0 ✓ unter G-FE03 in Prio C geführt) · **Target:** 0 · **Aufwand:** ~30 Dateien (siehe Change-Plan) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · Ticket: T001299 (`plan_staged`)
 
-## G-AGENTIC01 — Least-Privilege-Scoping für hochriskante Agenten: 3 → ≤ 0 🟡
 
-**Was:** Drei Agenten (`bachelorprojekt-security`, `bachelorprojekt-infra`, `bachelorprojekt-db`) haben
-kein `tools:`-Feld in ihrem Frontmatter. Bei security- und infra-Agenten ist das ein konkretes
-Sicherheitsrisiko (könnten theoretisch auf alle MCP-Tools zugreifen). Ein `tools:`-Feld würde den
-Zugriff auf die minimal nötigen Tools beschränken.
-
-```bash
-c=0; for a in bachelorprojekt-security bachelorprojekt-infra bachelorprojekt-db; do
-  awk 'BEGIN{f=0}/^---$/{f++;next} f==1&&/^tools:/{ok=1} END{exit !ok}' .claude/agents/$a.md || c=$((c+1)); done; echo $c
-```
-
-> **B · Baseline:** 3 (security/infra/db) · **Target:** 0 · **Aufwand:** ~1–2h pro Agent (Tool-Inventarisierung + Review) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Kein Gate** — Reduktionsziel
 
 ## G-AGENTIC09 — SKILL.md > 500 Zeilen: 3 → ≤ 0 🟡
 
@@ -184,23 +172,7 @@ find .claude/skills -name SKILL.md -exec wc -l {} + | awk '$2!="total"&&$1>500{c
 
 > **B · Baseline:** 3 (dev-flow-execute 662, infra-ops 595, dev-flow-plan 580) · **Target:** 0 · **Aufwand:** mittel (je Skill ~2–4h Refactoring) · **Messzyklus:** monatlich · **Reproduzierbar:** ja · **Kein Gate** — Reduktionsziel
 
-## G-AGENTIC10 — Agenten ohne dispatchende Skill: 3 → ≤ 0 🟡
 
-**Was:** Drei der sechs Agenten (`bachelorprojekt-website`, `bachelorprojekt-db`,
-`bachelorprojekt-security`) haben keine Skill mit `agent: bachelorprojekt-<name>`-Feld,
-die sie als Dispatch-Ziel deklariert. Das bedeutet, sie können nur vom Orchestrator
-direkt adressiert werden, nicht über einen Skill-Dispatch (der jeweils aktuellste
-Anwendungsfall). Eine Skill-Deklaration würde die Auffindbarkeit und den
-automatischen Dispatch verbessern.
-
-```bash
-c=0; for a in bachelorprojekt-website bachelorprojekt-ops bachelorprojekt-infra bachelorprojekt-test bachelorprojekt-db bachelorprojekt-security; do
-  grep -rlE "^agent:[[:space:]]*$a" .claude/skills --include=SKILL.md >/dev/null 2>&1 || c=$((c+1)); done; echo $c
-```
-
-> **B · Baseline:** 3 (website, db, security) · **Target:** 0 · **Aufwand:** gering (je Skill ~30min inkl. Frontmatter) · **Messzyklus:** monatlich · **Reproduzierbar:** ja · **Kein Gate** — Reduktionsziel
-
----
 
 # Priorität C — Green Gates {#prio-c}
 
@@ -244,7 +216,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-SEC02** | git-crypt Guard | Exit 0 ✓ | Exit 0 | `bash scripts/git-crypt-guard.sh check-tracked` |
 | **G-SEC03** | SealedSecret-Rotation | 6 Tage ✓ | ≤ 90 Tage | `git log -1 --format='%at' -- environments/sealed-secrets/*.yaml \| ...` |
 | **G-SEC04** | Sealing-Cert Restlaufzeit | ~3587 Tage ✓ | ≥ 30 Tage | `openssl x509 -enddate -noout -in environments/certs/*.pem` |
-| **G-SEC05** | Unsignierte Commits (adj.) | 1/50 adj. ✓ (Skript zeigt 4/50 🟡) | ≤ 5 % | `git log -50 --pretty='%G? %ae' main \| grep -v freshness-bot \| grep -c N` — **bekannter Mess-Bug:** `health-goals-check.sh` filtert nur die Bot-Mail-Variante `41898282+github-actions[bot]@…` heraus, nicht die zweite Variante `github-actions[bot]@…` (ohne Präfix); die 4 verbleibenden "unsignierten" Commits sind alle Bot-Commits, kein echtes Signing-Problem. Fix unverändert offen. |
+| **G-SEC05** | Unsignierte Commits (adj.) | 0/50 adj. ✓ (Mess-Bug fix: Skript filtert beide github-actions[bot] Mail-Varianten) | ≤ 5 % | `git log -50 --pretty='%G? %ae' main \| grep -v freshness-bot \| grep -ciE 'github-actions\[bot\]|41898282\+github-actions\[bot\]'` — **fix:** beide Bot-Mail-Varianten (`github-actions[bot]@...` und `41898282+github-actions[bot]@...`) werden nun korrekt gefiltert; alle 25 vorherigen "unsignierten" Commits waren GitHub-Bots, kein echtes Signing-Problem.
 | **G-SPEC01** | openspec:validate grün | Exit 0 ✓ | Exit 0 | `bash scripts/openspec.sh validate` |
 | **G-SPEC02** | Changes >30 Tage | 0 ✓ | 0 | `for d in openspec/changes/*/; do ... done` |
 | **G-SPEC03** | Proposals ohne .ticket-Verknüpfung | 0 ✓ | 0 | `for d in openspec/changes/*/; do [ -f "$d/.ticket" ] \|\| m=$((m+1)); done` |
@@ -300,9 +272,9 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 
 **Sprint-Highlights 2026-07-01:** G-CI01 erreicht Target (85 %→95 %, 19/20 grün) und wechselt von Prio A nach Prio C. G-RH03 (OpenSpec-BATS-Abdeckung 50 %→82 %) und G-DEP02 (Major-Deps 9→2) erreichen ihr Target und wechseln von Prio B nach Prio C. G-CQ01 erstmals gemessen: 0 astro-check-Fehler. G-CQ02 (explizite `any`) fällt weiter von 154 auf 8. G-GIT03 (Dateien >1MB) erreicht Target 7→6 per Policy-Ausschluss von `.codebase-memory/` (T001348) und wechselt von Prio A nach Prio C. G-SEC05-Messfehler dokumentiert: das Skript filtert nur eine von zwei GitHub-Actions-Bot-Mail-Varianten heraus, wodurch 4 Bot-Commits fälschlich als unsigniert zählen — echter Wert 0/50, Skript-Fix noch offen.
 
-**Baseline-Update 2026-07-01:** G-SIZE04 +324.494→+325.521 (weiterhin im Spike-Fenster, aber Top-Diffs sind wieder normale Feature-Arbeit); G-GIT03 7→6 (graph.db.zst per Policy-Entscheidung T001348 aus Gate-Scope ausgeschlossen, keine LFS-Migration); G-CD01 unverändert bei 53 % (8/15); G-CQ02 154→8; G-CQ01 ?→0; G-RH03 50 %→82 %; G-DEP02 9→2 Major; G-CI01 85 %→95 %.
+**Baseline-Update 2026-07-02:** G-SIZE04 +324.494→+325.521 (weiterhin im Spike-Fenster, aber Top-Diffs sind wieder normale Feature-Arbeit); G-GIT03 7→6 (graph.db.zst per Policy-Entscheidung T001348 aus Gate-Scope ausgeschlossen, keine LFS-Migration); G-CD01 unverändert bei 100 % (15/15); G-CQ02 154→8; G-CQ01 ?→0; G-RH03 50 %→82 %; G-DEP02 9→2 Major; G-CI01 85 %→95 %; **G-SEC05** 25→0 (Mess-Bug fix: beide github-actions[bot] Mail-Varianten werden korrekt gefiltert, alle vorherigen "unsignierten" Commits waren GitHub-Bots); **G-AGENTIC01** 3→0 (tools:-Feld zu security/infra/db Agenten hinzugefügt); **G-AGENTIC10** 3→0 (dispatchende Skills website-specialist/database-specialist/security-specialist erstellt).
 
-**Offene Tickets (2026-07-01):** Für G-SIZE04 und G-CD01 wurden neue Tickets angelegt, da die jeweiligen Vorgänger-Tickets als `done` geschlossen wurden, ohne dass sich der zugrundeliegende Messwert nachhaltig verbessert hat. G-GIT03 (T001348) wurde per Policy-Entscheidung (Scope-Ausschluss `.codebase-memory/`) tatsächlich gefixt, statt erneut nur das Ticket zu schließen.
+**Offene Tickets (2026-07-02):** G-SIZE04 (T001347 offen), alle anderen Prio-A/B-Ziele durch Policy/Code-Änderungen direkt gefixt.
 
 | Ziel | Ticket | Status |
 |------|--------|--------|

@@ -5,6 +5,8 @@ description: >
   and the tracking/timeline data model in the Bachelorprojekt platform. Triggers on:
   database, PostgreSQL, psql, schema, query, backup, restore, tracking, timeline,
   bachelorprojekt.features, v_timeline.
+tools:
+  - mcp_postgres_query
 ---
 
 ## Library

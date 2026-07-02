@@ -6,6 +6,9 @@ description: >
   workspace:setup/post-setup/talk/recording/transcriber) in the Bachelorprojekt
   workspace. Triggers on: k3d/, prod*/, manifest, kustomize, overlay, Taskfile,
   ENV=, environments/, deploy (when referring to k8s resources), workspace:setup.
+tools:
+  - mcp_kubernetes_*
+  - task
 ---
 
 ## Library

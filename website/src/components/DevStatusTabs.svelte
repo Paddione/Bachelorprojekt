@@ -23,8 +23,6 @@
   } = $props();
 
   let activeTab = $state<Tab>(initialTab);
-  let planningCount = $state(initial?.planningCount ?? { total: 0, ready: 0 });
-  let hallActive   = $state(initial?.hall.length ?? 0);
 
   function switchTab(tab: Tab) {
     activeTab = tab;
@@ -40,21 +38,11 @@
       activeTab = saved;
     }
 
-    window.addEventListener('factory-floor-refreshed', (e: Event) => {
-      const detail = (e as CustomEvent<{ planningCount?: typeof planningCount; hallActive?: number }>).detail;
-      if (detail.planningCount) planningCount = detail.planningCount;
-      if (detail.hallActive != null) hallActive = detail.hallActive;
-    });
-
     window.addEventListener('popstate', () => {
       const t = new URLSearchParams(window.location.search).get('tab') as Tab | null;
       if (t && TAB_KEYS.includes(t)) activeTab = t;
     });
   });
-
-  function planningBadge() {
-    return planningCount.ready > 0 ? planningCount.ready : planningCount.total;
-  }
 </script>
 
 <div class="dev-status-tabs">

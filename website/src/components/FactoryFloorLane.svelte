@@ -2,13 +2,8 @@
   import type { HallItem, LoadingDockItem } from '../lib/factory-floor-types';
   import { PHASE_ORDER } from '../lib/factory-floor-types';
   import type { Phase } from '../lib/factory-floor-types';
-  import { MOBILE_COL_INDEX } from './factory/MobileTabBar.svelte';
   import ConveyorBelt from './factory/ConveyorBelt.svelte';
-  import PhaseStepper from './factory/PhaseStepper.svelte';
-  import CiBadge from './factory/CiBadge.svelte';
-  import { minutesSince, ciIcon, prioDot, ticketUrl, openPR, assetFallback } from '../lib/factory-floor-client';
-  import type { CiRollup } from '../lib/factory-ci';
-  import { STUCK_MIN } from '../lib/factory-constants';
+  import { prioDot, ticketUrl } from '../lib/factory-floor-client';
 
   const STATIONS: { key: Phase; label: string }[] =
     PHASE_ORDER.map((key) => ({ key, label: key.charAt(0).toUpperCase() + key.slice(1) }));
@@ -17,13 +12,11 @@
     hall,
     loadingDock,
     mobileColIndex,
-    ciByExt,
     onSelect,
   }: {
     hall: HallItem[];
     loadingDock: LoadingDockItem[];
     mobileColIndex: number;
-    ciByExt: Record<string, CiRollup>;
     onSelect: (extId: string) => void;
   } = $props();
 </script>

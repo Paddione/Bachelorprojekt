@@ -7,7 +7,8 @@ vi.mock('pg', () => {
     CREATE SCHEMA tickets;
     CREATE TABLE tickets.tickets (
       id text, external_id text, type text, title text, priority text, status text,
-      pipeline_slot int, retry_count int, done_at timestamptz, created_at timestamptz, updated_at timestamptz);
+      pipeline_slot int, retry_count int, description text,
+      done_at timestamptz, created_at timestamptz, updated_at timestamptz);
     CREATE TABLE tickets.factory_phase_events (
       id serial, ticket_id text, phase text, state text, detail text, driver text, at timestamptz);
     CREATE TABLE tickets.factory_control (key text, brand text, value text, set_by text, updated_at timestamptz);
@@ -30,20 +31,20 @@ vi.mock('pg', () => {
 
     -- one active ticket in a slot, latest event = implement/entered
     INSERT INTO tickets.tickets VALUES
-      ('h1','T000459','feature','Hall feature','hoch','in_progress',1,0,NULL, now(), now()),
+      ('h1','T000459','feature','Hall feature','hoch','in_progress',1,0,NULL,NULL, now(), now()),
       -- one blocked active ticket, latest event = verify/blocked
-      ('b1','T000460','feature','Blocked feature','mittel','in_progress',2,1,NULL, now(), now()),
+      ('b1','T000460','feature','Blocked feature','mittel','in_progress',2,1,NULL,NULL, now(), now()),
       -- one backlog feature waiting (no slot)
-      ('d1','T000480','feature','Dock feature','niedrig','backlog',NULL,0,NULL, now(), now()),
+      ('d1','T000480','feature','Dock feature','niedrig','backlog',NULL,0,NULL,NULL, now(), now()),
       -- one shipped ticket
-      ('s1','T000467','feature','Shipped feature','mittel','done',NULL,0, now(), now(), now()),
+      ('s1','T000467','feature','Shipped feature','mittel','done',NULL,0,NULL, now(), now(), now()),
       -- LEAKED: a terminal (archived) ticket that still holds a stale pipeline_slot
-      ('x1','T000466','feature','Leaked terminal slot','mittel','archived',4,0,NULL, now(), now() - INTERVAL '30 min')
+      ('x1','T000466','feature','Leaked terminal slot','mittel','archived',4,0,NULL,NULL, now(), now() - INTERVAL '30 min')
       -- devflow ticket: NO pipeline_slot, but has driver='devflow' phase events
-      ,('dv1','T000582','feature','Devflow feature','hoch','in_progress',NULL,0,NULL, now(), now())
+      ,('dv1','T000582','feature','Devflow feature','hoch','in_progress',NULL,0,NULL,NULL, now(), now())
       -- Kommissionierung: two plan_staged tickets (one with ref, one without)
-      ,('p1','T000490','feature','Staged mit Ref','hoch','plan_staged',NULL,0,NULL, now() - INTERVAL '5 min', now())
-      ,('p2','T000491','feature','Staged ohne Ref','niedrig','plan_staged',NULL,0,NULL, now() - INTERVAL '2 min', now());
+      ,('p1','T000490','feature','Staged mit Ref','hoch','plan_staged',NULL,0,NULL,NULL, now() - INTERVAL '5 min', now())
+      ,('p2','T000491','feature','Staged ohne Ref','niedrig','plan_staged',NULL,0,NULL,NULL, now() - INTERVAL '2 min', now());
     INSERT INTO tickets.factory_phase_events (ticket_id, phase, state, detail, driver, at) VALUES
       ('h1','scout','done',NULL,'factory', now() - INTERVAL '10 min'),
       ('h1','implement','entered',NULL,'factory', now() - INTERVAL '2 min'),

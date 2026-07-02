@@ -56,6 +56,7 @@ const navSections: { label?: string; items: NavItem[]; accordion?: boolean }[] =
   {
     label: 'Infrastruktur',
     items: [
+      { href: '/admin/pipeline', label: 'Pipeline', icon: 'activity', matches: ['/admin/pipeline', '/dev-status'] },
       { href: '/admin/einstellungen/benachrichtigungen', label: 'Einstellungen', icon: 'settings', matches: ['/admin/einstellungen/'] },
       { href: brettUrl,                               label: 'Systembrett',  icon: 'brett', external: true },
       { href: '/admin/live',                          label: 'Live-Stream',  icon: 'broadcast', matches: ['/admin/live', '/admin/stream'] },

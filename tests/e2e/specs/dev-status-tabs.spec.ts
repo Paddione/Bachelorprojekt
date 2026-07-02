@@ -71,4 +71,14 @@ test('FA-UNIF-10: Planungsbüro reflects a promote without manual reload', async
   expect(before).toBeGreaterThanOrEqual(0);
 });
 
+test('FA-UNIF-11: sidebar does not scroll with the Werkstatt accordion open (1440x900)', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/admin');
+  await page.locator('#werkstatt-toggle').click();
+  const overflow = await page.locator('#admin-sidebar').evaluate(
+    (el) => el.scrollHeight > el.clientHeight,
+  );
+  expect(overflow).toBe(false);
+});
+
 });

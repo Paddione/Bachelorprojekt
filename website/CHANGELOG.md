@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.153.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.153.0...website-v1.153.1) (2026-07-02)
+
+
+### Bug Fixes
+
+* **website:** hide test data from admin inbox + sweepable fa-20 fixture [T001456] ([#2513](https://github.com/Paddione/Bachelorprojekt/issues/2513)) ([c383ef4](https://github.com/Paddione/Bachelorprojekt/commit/c383ef4a22ccdec574e6481c0709a07917bd9878))
+
 ## [1.153.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.152.2...website-v1.153.0) (2026-07-02)
 
 

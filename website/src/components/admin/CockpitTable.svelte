@@ -7,6 +7,7 @@
   import BulkBar from './BulkBar.svelte';
   import BulkToast from './BulkToast.svelte';
   import FilterBar from './Cockpit/FilterBar.svelte';
+  import CockpitExpandRow from './CockpitExpandRow.svelte';
   import type { CockpitFilterState } from '../../lib/cockpit-presets';
 
   export let feature: FeatureNode | null = null;
@@ -19,6 +20,7 @@
   let busy: Record<string, boolean> = {};
   let dragId: string | null = null;
   let search = '';
+  let expandedId: string | null = null;
   type ToastResult = { changed: number; skipped: number; failed: number; status: string; undoToken?: string } | null;
   let toastResult: ToastResult = null;
   // Default to "active" so the ~97% done tickets don't drown the few open ones.
@@ -214,10 +216,15 @@
              on:dragover|preventDefault on:drop={() => onDrop(t.id)}>
           <TicketRow ticket={t} busy={busy[t.id]}
             selected={$cockpitStore.selectedTickets.has(t.id)}
+            expanded={expandedId === t.id}
+            onToggleExpand={() => { expandedId = expandedId === t.id ? null : t.id; }}
             onStatusChange={(d) => patchStatus(d.id, d.status)}
             onPriorityChange={(d) => patchPriority(d.id, d.priority)}
             onSelectToggle={(d) => toggleTicketSelection(d.id)}
             onDragStart={(d) => onDragStart(d.id)} />
+          {#if expandedId === t.id}
+            <CockpitExpandRow extId={t.extId} />
+          {/if}
         </div>
       {/each}
       {#if visible.length === 0}<p class="empty">Keine Tickets</p>{/if}
@@ -273,15 +280,15 @@
   }
   .chip:hover { background: var(--admin-surface-hover, rgba(255,255,255,0.06)); color: var(--admin-text, #eef1f3); }
   .chip.active {
-    background: var(--admin-primary, #818cf8);
-    color: var(--admin-bg, #0b111c);
+    background: var(--admin-primary);
+    color: var(--admin-bg);
     border-color: transparent;
     font-weight: 600;
   }
 
   .create {
-    background: var(--admin-primary, #818cf8);
-    color: var(--admin-bg, #0b111c);
+    background: var(--admin-primary);
+    color: var(--admin-bg);
     border: none; border-radius: 8px;
     padding: 0.42rem 0.9rem;
     cursor: pointer; font-weight: 700; font-size: 0.82rem;

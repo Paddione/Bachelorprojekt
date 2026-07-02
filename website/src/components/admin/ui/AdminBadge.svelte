@@ -29,6 +29,9 @@
 </span>
 
 <style>
+  /* T001433 — variant mapping: warning→Brass, success→Sage, error→Danger, info→Brass.
+     Resolved through the --admin-* alias layer (factory-tokens.css), not literals. */
+
   .badge {
     display: inline-flex;
     align-items: center;

@@ -4,7 +4,7 @@ test.use({ viewport: { width: 375, height: 812 } });
 
 test.describe('FA-MOBILE: Factory Floor mobile parity', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/dev-status?tab=factory', { waitUntil: 'networkidle' });
+    await page.goto('/admin/pipeline?tab=factory', { waitUntil: 'networkidle' });
     await page.waitForSelector('[data-testid="factory-floor"]', { timeout: 15_000 });
   });
 
@@ -70,12 +70,12 @@ test.describe('FA-MOBILE: Factory Floor mobile parity', () => {
     }
   });
 
-  test('FA-MOBILE-03: DevStatusTabs outer tabs all reachable via horizontal scroll', async ({ page }) => {
-    const tabBarWrap = page.locator('.tab-bar-wrap');
+  test('FA-MOBILE-03: AdminTabs outer tabs all reachable via horizontal scroll (6 tabs)', async ({ page }) => {
+    const tabBarWrap = page.locator('.tabs');
     await expect(tabBarWrap).toBeVisible();
 
-    const tabs = page.locator('.ds-tab');
-    await expect(tabs).toHaveCount(5);
+    const tabs = page.locator('.tabs__tab');
+    await expect(tabs).toHaveCount(6);
 
     await tabBarWrap.evaluate((el) => { el.scrollLeft = el.scrollWidth; });
 

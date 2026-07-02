@@ -8,11 +8,13 @@
   interface Props {
     tabs: Tab[];
     active: string;
+    onselect?: (id: string) => void;
   }
 
   let {
     tabs = [],
     active = '',
+    onselect,
   }: Props = $props();
 
   let tabRefs: HTMLElement[] = $state([]);
@@ -77,7 +79,7 @@
         aria-selected={tab.id === active}
         tabindex={tab.id === active ? 0 : -1}
         onkeydown={(e) => handleKeydown(e, i)}
-        onclick={() => { /* handled by parent */ }}
+        onclick={() => onselect?.(tab.id)}
       >
         {tab.label}
       </button>
@@ -92,7 +94,10 @@
     position: relative;
     border-bottom: 1px solid var(--admin-border);
     margin-bottom: var(--space-5);
+    overflow-x: auto;
+    scrollbar-width: none;
   }
+  .tabs::-webkit-scrollbar { display: none; }
 
   .tabs__tab {
     padding: var(--space-3) var(--space-4);

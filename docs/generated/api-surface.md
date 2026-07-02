@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-06-28T19:51:53.751Z
+> Generated at 2026-07-02T02:35:07.270Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -128,7 +128,6 @@
 | `/api/admin/documents/templates` | GET, POST | 🔐 admin | `website/src/pages/api/admin/documents/templates/index.ts` |
 | `/api/admin/documents/templates/{id}` | GET, PUT, DELETE | 🔐 admin | `website/src/pages/api/admin/documents/templates/[id].ts` |
 | `/api/admin/documents/templates/{id}/pdf` | GET | 🔐 admin | `website/src/pages/api/admin/documents/templates/[id]/pdf.ts` |
-| `/api/admin/dora-metrics` | GET | 🔐 admin | `website/src/pages/api/admin/dora-metrics.ts` |
 | `/api/admin/einstellungen/backup` | POST | 🔐 admin | `website/src/pages/api/admin/einstellungen/backup.ts` |
 | `/api/admin/einstellungen/benachrichtigungen` | POST | 🔐 admin | `website/src/pages/api/admin/einstellungen/benachrichtigungen.ts` |
 | `/api/admin/einstellungen/branding` | POST | 🔐 admin | `website/src/pages/api/admin/einstellungen/branding.ts` |

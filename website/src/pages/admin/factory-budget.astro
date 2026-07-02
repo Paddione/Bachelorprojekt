@@ -1,19 +1,4 @@
 ---
-import AdminLayout from '../../layouts/AdminLayout.astro';
-import AdminPageHeader from '../../components/admin/ui/AdminPageHeader.svelte';
-import FactoryBudgetPage from '../../components/factory/FactoryBudgetPage.svelte';
-import { getSession, isAdmin, getLoginUrl } from '../../lib/auth';
-
-const session = await getSession(Astro.request.headers.get('cookie'));
-if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
-if (!isAdmin(session)) return Astro.redirect('/admin');
+// Moved to /admin/pipeline?tab=kosten (T001433). Permanent redirect.
+return Astro.redirect('/admin/pipeline?tab=kosten', 301);
 ---
-
-<AdminLayout title="Token-Budget-Leitstand">
-  <section class="bg-dark min-h-screen">
-    <div style="max-width:72rem; margin:0 auto; padding:1.5rem 1.5rem 0;">
-      <AdminPageHeader title="Token-Budget-Leitstand" />
-    </div>
-    <FactoryBudgetPage client:load />
-  </section>
-</AdminLayout>

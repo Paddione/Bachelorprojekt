@@ -1,0 +1,51 @@
+{
+  "symbols": [
+    {
+      "qualified_name": "website/src/components/factory/ShippedColumn.svelte:props",
+      "signature": "let { shipped, mobileColIndex, onOpenDetail, relTime, prUrl, ticketUrl }: { shipped: { extId: string; title: string; prNumber?: number | null; doneAt?: string | null }[]; mobileColIndex: number; onOpenDetail: (extId: string) => void; relTime: (iso: string | null) => string; prUrl: (n: number) => string; ticketUrl: (extId: string) => string; } = $props();",
+      "note": "Current prop shape before change. `onOpenDetail` and `ticketUrl` are removed by this plan; all other props stay unchanged."
+    },
+    {
+      "qualified_name": "website/src/components/ProviderStatus.svelte:props",
+      "signature": "let { providerHealth }: { providerHealth: ProviderStatus[] } = $props();",
+      "note": "Component to be deleted entirely."
+    },
+    {
+      "qualified_name": "website/src/lib/factory-floor-types.ts:ProviderStatus",
+      "type_text": "interface ProviderStatus { provider: string; status: 'healthy' | 'cooldown'; activeAgents: number; maxConcurrent: number; tiers: string[]; cooldownUntil: string | null; }",
+      "note": "Type stays — still used by factory-floor.ts / factory-floor-filters.ts (AttentionStrip cooldowns). Do not remove."
+    }
+  ],
+  "call_graph": {
+    "note": "Presentation-only change. FactoryFloor.svelte imports and renders both ShippedColumn and ProviderStatus. buildAttention(hall, providerHealth) in factory-floor.ts (called from getFactoryFloorData) is independent of the ProviderStatus.svelte widget and must keep receiving providerHealth data unchanged."
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "impact_files": [
+    {
+      "path": "website/src/components/FactoryFloor.svelte",
+      "current_lines": 323,
+      "s1_budget": "nicht-baselined (kein Ratchet-Limit aktiv, normales Limit gilt)",
+      "change": "Remove `import ProviderStatus from './ProviderStatus.svelte'` (line 16) and `<ProviderStatus providerHealth={data.providerHealth} />` (line 188). Remove `onOpenDetail={openDetail}` and `{ticketUrl}` from the `<ShippedColumn>` invocation (currently around lines 247-254)."
+    },
+    {
+      "path": "website/src/components/factory/ShippedColumn.svelte",
+      "current_lines": 62,
+      "s1_budget": "nicht-baselined (kein Ratchet-Limit aktiv, normales Limit gilt)",
+      "change": "Add `let openTitles = $state(new Set<string>())`; remove `onOpenDetail`/`ticketUrl` from props; replace the `<a href={ticketUrl(s.extId)}>` ticket-number link with a `<button>` that toggles `s.extId` membership in `openTitles`; render the title `<button>` only when `openTitles.has(s.extId)`; relTime/PR badge markup unchanged."
+    },
+    {
+      "path": "website/src/components/ProviderStatus.svelte",
+      "current_lines": 31,
+      "s1_budget": "n/a — file deleted",
+      "change": "Delete file entirely (no other consumers found via repo-wide grep)."
+    }
+  ],
+  "risks": [
+    {
+      "severity": "info",
+      "note": "Server-side providerHealth query (website/src/lib/factory-floor.ts) and the ProviderStatus type in factory-floor-types.ts are intentionally NOT touched — still needed by AttentionStrip cooldown chips."
+    }
+  ]
+}

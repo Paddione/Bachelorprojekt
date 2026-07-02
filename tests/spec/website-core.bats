@@ -10,6 +10,7 @@ ADMIN_FOUNDATION="$BATS_TEST_DIRNAME/../../website/src/styles/admin-foundation.c
 ADMIN_LAYOUT="$BATS_TEST_DIRNAME/../../website/src/layouts/AdminLayout.astro"
 SIDEBAR_NAV="$BATS_TEST_DIRNAME/../../website/src/components/admin/AdminSidebarNav.astro"
 KORE_CSS="$BATS_TEST_DIRNAME/../../website/public/brand/korczewski/kore-app.css"
+ADMIN_RESPONSIVE="$BATS_TEST_DIRNAME/../../website/src/styles/admin-responsive.css"
 
 # ── T001433: Token alias layer ───────────────────────────────────────────────
 @test "T001433 alias: admin-foundation.css color-bearing tokens all reference var(--...)" {
@@ -51,4 +52,40 @@ KORE_CSS="$BATS_TEST_DIRNAME/../../website/public/brand/korczewski/kore-app.css"
   # (matches-array entries are fine — they are URL patterns for the isActive() helper)
   run grep -E "href:[[:space:]]*'/dev-status'|href:[[:space:]]*'/admin/planungsbuero'" "$SIDEBAR_NAV"
   [ "$status" -ne 0 ]
+}
+
+# ── T001471: admin responsive parity ─────────────────────────────────────────
+@test "T001471 responsive: admin-responsive.css exists" {
+  [ -f "$ADMIN_RESPONSIVE" ]
+}
+
+@test "T001471 responsive: AdminLayout.astro imports admin-responsive.css" {
+  run grep -F "styles/admin-responsive.css" "$ADMIN_LAYOUT"
+  [ "$status" -eq 0 ]
+}
+
+@test "T001471 responsive: stylesheet has mobile table fallback (767px + overflow-x)" {
+  run grep -E "max-width:[[:space:]]*767px" "$ADMIN_RESPONSIVE"
+  [ "$status" -eq 0 ]
+  run grep -E "overflow-x:[[:space:]]*auto" "$ADMIN_RESPONSIVE"
+  [ "$status" -eq 0 ]
+}
+
+@test "T001471 responsive: stylesheet excludes Cockpit from mobile table rule" {
+  run grep -F 'data-container="cockpit"' "$ADMIN_RESPONSIVE"
+  [ "$status" -eq 0 ]
+}
+
+@test "T001471 responsive: stylesheet has table-collapse container query" {
+  run grep -F ".admin-table-collapse" "$ADMIN_RESPONSIVE"
+  [ "$status" -eq 0 ]
+  run grep -E "max-width:[[:space:]]*480px" "$ADMIN_RESPONSIVE"
+  [ "$status" -eq 0 ]
+}
+
+@test "T001471 responsive: stylesheet has desktop block (1024px) with admin-form-wide" {
+  run grep -E "min-width:[[:space:]]*1024px" "$ADMIN_RESPONSIVE"
+  [ "$status" -eq 0 ]
+  run grep -F ".admin-form-wide" "$ADMIN_RESPONSIVE"
+  [ "$status" -eq 0 ]
 }

@@ -1,0 +1,102 @@
+/* website/src/styles/admin-responsive.css
+ * Admin responsive parity (T001471). Layered:
+ *   Layer 1 — global mobile fallback (≤767px) + desktop form upgrade (≥1024px)
+ *   Layer 2 — opt-in table→card collapse (.admin-table-collapse, container <480px)
+ * Cockpit owns its own mobile layout (mobile-cockpit.css) and is excluded.
+ */
+
+/* Establish a query container on the admin content area so .admin-table-collapse
+ * can react to available content width without any markup wrapper. */
+#admin-main {
+  container-type: inline-size;
+  container-name: admin-content;
+}
+
+/* ── Layer 1: mobile fallback (≤767px) ─────────────────────────────────────── */
+@media (max-width: 767px) {
+  /* Every admin-content table becomes horizontally scrollable so wide tables
+   * stay usable. Opt-in collapse tables are excluded (Layer 2 handles them). */
+  #admin-main table:not(.admin-table-collapse) {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+  }
+
+  /* Cockpit has its own mobile layout — never touch its tables. */
+  #admin-main [data-container="cockpit"] table {
+    display: table;
+    overflow-x: visible;
+  }
+
+  /* Touch targets: interactive controls in the admin content ≥ 44px. */
+  #admin-main button,
+  #admin-main [role="button"],
+  #admin-main select,
+  #admin-main input:not([type="checkbox"]):not([type="radio"]) {
+    min-height: 44px;
+  }
+
+  /* Opt-in defensive grid collapse — never a blind rule on all grids. */
+  #admin-main .admin-grid-collapse {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ── Layer 2: table → card collapse (opt-in, container <480px) ──────────────── */
+@container admin-content (max-width: 480px) {
+  .admin-table-collapse thead {
+    display: none;
+  }
+  .admin-table-collapse,
+  .admin-table-collapse tbody,
+  .admin-table-collapse tr,
+  .admin-table-collapse td {
+    display: block;
+    width: 100%;
+  }
+  .admin-table-collapse tr {
+    margin-bottom: 0.75rem;
+    border: 1px solid var(--admin-border, rgba(255, 255, 255, 0.1));
+    border-radius: 10px;
+    padding: 0.25rem 0;
+  }
+  .admin-table-collapse td {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    text-align: right;
+    padding: 0.4rem 0.9rem;
+  }
+  .admin-table-collapse td::before {
+    content: attr(data-label);
+    font-family: var(--font-mono, monospace);
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--admin-text-mute, #9aa4b2);
+    text-align: left;
+    flex-shrink: 0;
+  }
+  /* Empty-state / colspan rows keep their natural flow. */
+  .admin-table-collapse td[colspan]::before {
+    content: "";
+  }
+  .admin-table-collapse td[colspan] {
+    justify-content: center;
+    text-align: center;
+  }
+}
+
+/* ── Layer 1 desktop: form upgrade (≥1024px) ───────────────────────────────── */
+@media (min-width: 1024px) {
+  .admin-form-wide {
+    max-width: 960px;
+  }
+  .admin-form-wide .admin-field-group {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+}

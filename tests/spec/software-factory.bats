@@ -3083,3 +3083,12 @@ STUB
   [ "$status" -eq 1 ]
   [[ "$output" =~ "assert-phase-chain" ]]
 }
+
+@test "T001444: SKILL gates merge on assert-phase-chain without || true" {
+  SKILL=".claude/skills/dev-flow-execute/SKILL.md"
+  run grep -q "assert-phase-chain" "$SKILL"
+  [ "$status" -eq 0 ]
+  # keine || true Suppression auf der Gate-Zeile
+  run bash -c "grep 'assert-phase-chain' '$SKILL' | grep -q '|| true'"
+  [ "$status" -ne 0 ]
+}

@@ -174,6 +174,8 @@ SLUG=$(basename "$PLAN_FILE" .md)
 ./scripts/ticket.sh phase "$TICKET_ID" plan entered --driver devflow --detail "Plan: $SLUG · $TICKET_ID" || true
 ```
 
+> `plan`/`implement`/`deploy`-Events entstehen jetzt automatisch aus den Statuswechseln (`update-status`/`stage-plan`); Doppel-Emission ist dank Dedup harmlos.
+
 Falls der Plan die berührten Dateien kennt, registriere sie für die Conflict-Gate (parallele Sessions sehen die Kollision via `agent-collision.sh`) — **MCP-first**:
 
 > `mcp__ticket-mcp__set_touched_files({ id: "$TICKET_ID", files: "<comma-separated-paths>" })`
@@ -277,7 +279,7 @@ bash scripts/devflow-build-loop.sh "$TICKET_ID"
 
 Rufe das Skill **`verification-before-completion`** auf, um die Verifikation strukturiert zu steuern.
 
-Phasen-Telemetrie (best-effort) — **MCP-first** (`ticket-mcp`):
+Phasen-Telemetrie (PFLICHT für verify — das Gate erzwingt sie) — **MCP-first** (`ticket-mcp`):
 
 > `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "implement", state: "done", driver: "devflow", detail: "Implementierung fertig" })`
 > `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "verify", state: "entered", driver: "devflow", detail: "task test:changed + freshness" })`
@@ -289,7 +291,9 @@ Nach grünen Tests — **MCP-first**:
 
 > `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "verify", state: "done", driver: "devflow", detail: "Tests grün · freshness OK" })`
 
-Fallback (ticket-mcp nicht erreichbar; Telemetrie ist best-effort und darf den Flow nie stoppen):
+> `plan`/`implement`/`deploy`-Events entstehen jetzt automatisch aus den Statuswechseln (`update-status`/`stage-plan`); Doppel-Emission ist dank Dedup harmlos.
+
+Fallback (ticket-mcp nicht erreichbar; die `verify`-Zeilen bleiben Pflicht — das Gate in Schritt 6 erzwingt `verify:done`):
 
 ```bash
 ./scripts/ticket.sh phase "$TICKET_ID" implement done --driver devflow --detail "Implementierung fertig" || true
@@ -360,6 +364,14 @@ Seit T001415 (Finding 2) beendet sich `devflow-ci-watch.sh` zusätzlich mit Exit
 
 > **Hinweis:** `E2E PR` ist kein required check (T000722) — blockiert den Merge NICHT.
 > Die Required-Check-Liste lebt in [ci-fix-loop](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ci-fix-loop.md).
+
+**Fail-closed Phase-Chain-Gate (T001444) — PFLICHT vor dem Merge, KEIN `|| true`:**
+Prüft, dass `plan:done`, `implement:entered` und `verify:done` vorliegen. Bei FAIL
+zuerst backfillen (insb. `verify done` nach grünem `task test:changed`), dann mergen.
+
+```bash
+./scripts/ticket.sh assert-phase-chain --id "$TICKET_ID"
+```
 
 ```bash
 # Merge PR aus dem Haupt-Repo, um Konflikte zu vermeiden
@@ -432,7 +444,9 @@ Abschluss-Lifecycle — **MCP-first** (`ticket-mcp`). Merge = Abschluss (T001092
 > `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "deploy", state: "done", driver: "devflow", detail: "PR #$PR_NUM merged · done/shipped" })`
 > `mcp__ticket-mcp__add_comment({ id: "$TICKET_ID", body: "PR #$PR_NUM merged. Plan archived to tickets.ticket_plans." })`
 
-Fallback (ticket-mcp nicht erreichbar; die Phasen-Events sind best-effort und nie blockierend):
+> `plan`/`implement`/`deploy`-Events entstehen jetzt automatisch aus den Statuswechseln (`update-status`/`stage-plan`); Doppel-Emission ist dank Dedup harmlos. Das `verify:done`-Event bleibt Pflicht (Merge-Gate).
+
+Fallback (ticket-mcp nicht erreichbar; die `verify`-Zeile bleibt Pflicht, der Rest ist idempotent):
 
 ```bash
 ./scripts/ticket.sh add-pr-link --id "$TICKET_ID" --pr "$PR_NUM"

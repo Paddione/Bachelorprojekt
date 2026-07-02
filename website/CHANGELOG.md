@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.151.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.151.0...website-v1.151.1) (2026-07-02)
+
+
+### Bug Fixes
+
+* **infra:** chain loggingMiddleware in middleware.ts via sequence() [T001434] ([#2489](https://github.com/Paddione/Bachelorprojekt/issues/2489)) ([53657d9](https://github.com/Paddione/Bachelorprojekt/commit/53657d91386fb9424e5740a5cf0a23e46f345b04))
+
 ## [1.151.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.150.11...website-v1.151.0) (2026-07-02)
 
 

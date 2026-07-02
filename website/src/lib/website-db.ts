@@ -2,6 +2,40 @@
 import type { ReferenzItem, ReferenzenConfig } from '../config/types';
 export type { ReferenzItem, ReferenzenType, ReferenzenConfig } from '../config/types';
 
+// ── T001490: Transitional type re-exports for the admin save endpoints ──────
+//
+// During the website-db-decouple migration the canonical content types
+// moved to `website/src/content-schema`. To keep the call-sites compiling
+// until Task 7 rewires every admin save endpoint, we re-export the new
+// types under their old names here. These are type-only — zero runtime
+// cost. Once Task 7 lands and all admin endpoints consume
+// `publishContent` / `bundle*` getters, this block can be removed in a
+// follow-up chore.
+import type {
+  HomepageContent, UebermichContent, FaqItem, KontaktContent,
+  Stammdaten, NavItem, FooterConfig, KoreFlags,
+  LeistungServiceRow, LeistungCategory, HomepageService,
+  ServicePageContent, ServicePagePricing, ServicePageSection,
+} from '../content-schema';
+export type {
+  HomepageContent, UebermichContent, FaqItem, KontaktContent,
+  Stammdaten, NavItem, FooterConfig, KoreFlags,
+  LeistungServiceRow, LeistungCategory, HomepageService,
+  ServicePageContent, ServicePagePricing, ServicePageSection,
+};
+
+// Backwards-compat aliases — these are the pre-T001490 names for shapes
+// that now live in `content-schema`. The admin save endpoints still
+// import them by their old names; the alias keeps TS happy.
+export type LeistungCategoryOverride = LeistungCategory;
+export type LeistungServiceOverride = LeistungServiceRow;
+export type ServiceOverride = HomepageService & {
+  pageContent?: ServicePageContent;
+  leistungCategoryId?: string;
+  headlineKey?: string;
+  headlinePrefix?: boolean;
+};
+
 // Meeting Knowledge Pipeline — PostgreSQL client.
 // Writes meeting data, transcripts, and artifacts to the meetings DB.
 // Uses the 'pg' npm package for direct database access.
@@ -407,6 +441,22 @@ export async function getBugTicketStatus(ticketId: string): Promise<BugTicketSta
 
 // ── Bug Ticket Comments ──────────────────────────────────────────────────────
 
+export interface BugTicketRow {
+  ticketId: string;
+  category: string;
+  reporterEmail: string;
+  description: string;
+  url: string | null;
+  brand: string;
+  status: 'open' | 'resolved' | 'archived';
+  createdAt: Date;
+  resolvedAt: Date | null;
+  resolutionNote: string | null;
+  screenshots: string[] | null;
+  fixedInPr?: number | null;
+  fixedAt?: Date | null;
+}
+
 export interface BugTicketComment {
   id: number;
   ticketId: string;
@@ -492,134 +542,12 @@ export async function reopenBugTicket(
   });
 }
 
-// ── Service Config (Angebote Overrides) ──────────────────────────────────────
-
-export interface ServiceOverride {
-  slug: string;
-  title: string;
-  description: string;
-  icon: string;
-  price?: string;
-  features: string[];
-  hidden?: boolean;
-  /** Short eyebrow-label shown under the title on the homepage card. */
-  meta?: string;
-  /** Catalog category (`LeistungCategoryOverride.id`) this card draws its prices from. */
-  leistungCategoryId?: string;
-  /** Catalog row key whose price is shown as the card headline. */
-  headlineKey?: string;
-  /** Prefix the headline price with "ab ". */
-  headlinePrefix?: boolean;
-  pageContent?: {
-    headline?: string;
-    intro?: string;
-    forWhom?: string[];
-    sections?: Array<{ title: string; items: string[] }>;
-    pricing?: Array<{ label: string; price: string; unit?: string; highlight?: boolean }>;
-    faq?: Array<{ question: string; answer: string }>;
-    faqTitle?: string;
-    seoTitle?: string;
-    seoDescription?: string;
-  };
-}
-
-export interface LeistungServiceOverride {
-  key: string;
-  name?: string;
-  price?: string;
-  unit?: string;
-  desc?: string;
-  highlight?: boolean;
-  stundensatz_cents?: number;
-}
-
-export interface LeistungCategoryOverride {
-  id: string;
-  title?: string;
-  icon?: string;
-  services?: LeistungServiceOverride[];
-}
-
-export async function initServiceConfigTable(): Promise<void> {
-  return ensureSchemaOnce('service_config', async () => {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS service_config (
-        brand        TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT PRIMARY KEY,
-        services_json JSONB NOT NULL,
-        updated_at   TIMESTAMPTZ NOT NULL DEFAULT now()
-      );
-      DO $$
-      BEGIN
-        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'service_config_brand_fkey') THEN
-          ALTER TABLE service_config ADD CONSTRAINT service_config_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID;
-        END IF;
-      END $$;
-    `);
-  });
-}
-
-export async function getServiceConfig(brand: string): Promise<ServiceOverride[] | null> {
-  await initServiceConfigTable();
-  const result = await pool.query(
-    'SELECT services_json FROM service_config WHERE brand = $1',
-    [brand]
-  );
-  if (!result.rows[0]) return null;
-  return result.rows[0].services_json as ServiceOverride[];
-}
-
-export async function saveServiceConfig(brand: string, overrides: ServiceOverride[]): Promise<void> {
-  await initServiceConfigTable();
-  await pool.query(
-    `INSERT INTO service_config (brand, services_json, updated_at)
-     VALUES ($1, $2, now())
-     ON CONFLICT (brand) DO UPDATE SET services_json = $2, updated_at = now()`,
-    [brand, JSON.stringify(overrides)]
-  );
-}
-
-// ── Leistungen Config (Preistabelle Overrides) ───────────────────────────────
-
-export async function initLeistungenConfigTable(): Promise<void> {
-  return ensureSchemaOnce('leistungen_config', async () => {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS leistungen_config (
-        brand            TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT PRIMARY KEY,
-        categories_json  JSONB NOT NULL,
-        updated_at       TIMESTAMPTZ NOT NULL DEFAULT now()
-      );
-      DO $$
-      BEGIN
-        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'leistungen_config_brand_fkey') THEN
-          ALTER TABLE leistungen_config ADD CONSTRAINT leistungen_config_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID;
-        END IF;
-      END $$;
-    `);
-  });
-}
-
-export async function getLeistungenConfig(brand: string): Promise<LeistungCategoryOverride[] | null> {
-  await initLeistungenConfigTable();
-  const result = await pool.query(
-    'SELECT categories_json FROM leistungen_config WHERE brand = $1',
-    [brand]
-  );
-  if (!result.rows[0]) return null;
-  return result.rows[0].categories_json as LeistungCategoryOverride[];
-}
-
-export async function saveLeistungenConfig(brand: string, categories: LeistungCategoryOverride[]): Promise<void> {
-  await initLeistungenConfigTable();
-  await pool.query(
-    `INSERT INTO leistungen_config (brand, categories_json, updated_at)
-     VALUES ($1, $2, now())
-     ON CONFLICT (brand) DO UPDATE SET categories_json = $2, updated_at = now()`,
-    [brand, JSON.stringify(categories)]
-  );
-}
-
 // ── Site Settings (key/value store per brand) ────────────────────────────────
-
+//
+// Generic key-value store used by the admin app for vacation periods,
+// e-mail settings, backup, etc. Content keys (NAV_KEY, FOOTER_KEY, …,
+// seo_title_*, seo_meta_desc_*, seo_og_image_*) have been retired in
+// T001490 — the public surface now reads from the content bundle.
 export async function initSiteSettingsTable(): Promise<void> {
   return ensureSchemaOnce('site_settings', async () => {
     // Transaction-scoped advisory lock serialises concurrent processes/replicas
@@ -664,181 +592,6 @@ export async function setSiteSetting(brand: string, key: string, value: string):
   );
 }
 
-// ── Content-Hub: new editable sections (stored as JSON under site_settings) ──
-export const NAV_KEY = 'navigation' as const;
-export const FOOTER_KEY = 'footer' as const;
-export const STAMMDATEN_KEY = 'stammdaten' as const;
-export const KORE_FLAGS_KEY = 'kore_flags' as const;
-export const PRICING_HIGHLIGHT_KEY = 'pricing_highlight' as const;
-
-export interface NavItem { label: string; href: string; order: number }
-export interface FooterLink { label: string; href: string }
-export interface FooterColumn { heading: string; links: FooterLink[] }
-export interface FooterConfig { columns: FooterColumn[]; copyright: string }
-export interface Stammdaten {
-  name: string; role: string; email: string; phone: string;
-  street: string; zip: string; city: string;
-  ustId: string; website: string; avatarInitials: string;
-}
-export interface KoreFlags { timeline: boolean }
-
-/** Read a JSON-valued site_setting; returns null when absent or unparseable. */
-export async function getJsonSetting<T>(brand: string, key: string): Promise<T | null> {
-  const raw = await getSiteSetting(brand, key).catch(() => null);
-  if (raw == null) return null;
-  try { return JSON.parse(raw) as T; } catch { return null; }
-}
-
-/** Persist a JSON-valued site_setting. */
-export async function setJsonSetting<T>(brand: string, key: string, value: T): Promise<void> {
-  await setSiteSetting(brand, key, JSON.stringify(value));
-}
-
-
-// ── SEO Title overrides (key/value, stored as seo_title_<pageKey>) ──────────
-
-export async function getSeoTitle(brand: string, pageKey: string): Promise<string | null> {
-  return getSiteSetting(brand, `seo_title_${pageKey}`).catch(() => null);
-}
-
-export async function getSeoOgImage(brand: string, pageKey: string): Promise<string | null> {
-  return getSiteSetting(brand, `seo_og_image_${pageKey}`).catch(() => null);
-}
-
-export async function getSeoMeta(brand: string, pageKey: string): Promise<{ title: string | null; description: string | null; ogImage: string | null }> {
-  const result = await pool.query(
-    `SELECT key, value FROM site_settings WHERE brand = $1 AND key IN ($2, $3, $4)`,
-    [brand, `seo_title_${pageKey}`, `seo_meta_desc_${pageKey}`, `seo_og_image_${pageKey}`],
-  );
-  const map: Record<string, string> = {};
-  for (const row of result.rows) {
-    map[row.key as string] = row.value as string;
-  }
-  return {
-    title: map[`seo_title_${pageKey}`] ?? null,
-    description: map[`seo_meta_desc_${pageKey}`] ?? null,
-    ogImage: map[`seo_og_image_${pageKey}`] ?? null,
-  };
-}
-
-// ── Vacation / Blackout Periods ───────────────────────────────────────────────
-
-export interface VacationPeriod {
-  id: string;
-  start: string; // YYYY-MM-DD
-  end: string;   // YYYY-MM-DD
-  label: string;
-}
-
-export async function getVacationPeriods(brand: string): Promise<VacationPeriod[]> {
-  const raw = await getSiteSetting(brand, 'vacation_periods');
-  if (!raw) return [];
-  try { return JSON.parse(raw) as VacationPeriod[]; } catch { return []; }
-}
-
-export async function saveVacationPeriods(brand: string, periods: VacationPeriod[]): Promise<void> {
-  await setSiteSetting(brand, 'vacation_periods', JSON.stringify(periods));
-}
-
-// ── Legal Pages (admin-editable HTML content) ────────────────────────────────
-
-export async function initLegalPagesTable(): Promise<void> {
-  return ensureSchemaOnce('legal_pages', async () => {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS legal_pages (
-        brand        TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT,
-        page_key     TEXT,
-        content_html TEXT NOT NULL,
-        updated_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
-        PRIMARY KEY (brand, page_key)
-      );
-      DO $$
-      BEGIN
-        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'legal_pages_brand_fkey') THEN
-          ALTER TABLE legal_pages ADD CONSTRAINT legal_pages_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID;
-        END IF;
-      END $$;
-    `);
-  });
-}
-
-export async function getLegalPage(brand: string, pageKey: string): Promise<string | null> {
-  await initLegalPagesTable();
-  const result = await pool.query(
-    'SELECT content_html FROM legal_pages WHERE brand = $1 AND page_key = $2',
-    [brand, pageKey]
-  );
-  return result.rows[0]?.content_html ?? null;
-}
-
-export async function saveLegalPage(brand: string, pageKey: string, contentHtml: string): Promise<void> {
-  await initLegalPagesTable();
-  await pool.query(
-    `INSERT INTO legal_pages (brand, page_key, content_html, updated_at)
-     VALUES ($1, $2, $3, now())
-     ON CONFLICT (brand, page_key) DO UPDATE SET content_html = $3, updated_at = now()`,
-    [brand, pageKey, contentHtml]
-  );
-}
-
-// ── Referenzen Config ─────────────────────────────────────────────────────────
-
-export async function initReferenzenTable(): Promise<void> {
-  return ensureSchemaOnce('referenzen_config', async () => {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS referenzen_config (
-        brand      TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT PRIMARY KEY,
-        items_json JSONB NOT NULL,
-        updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
-      );
-      DO $$
-      BEGIN
-        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'referenzen_config_brand_fkey') THEN
-          ALTER TABLE referenzen_config ADD CONSTRAINT referenzen_config_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID;
-        END IF;
-      END $$;
-    `);
-  });
-}
-
-function normalizeReferenzen(raw: unknown): ReferenzenConfig {
-  // Legacy shape: bare array of items.
-  if (Array.isArray(raw)) {
-    return { types: [], items: raw as ReferenzItem[] };
-  }
-  if (raw && typeof raw === 'object') {
-    const o = raw as Partial<ReferenzenConfig>;
-    return {
-      heading: o.heading,
-      subheading: o.subheading,
-      types: Array.isArray(o.types) ? o.types : [],
-      items: Array.isArray(o.items) ? o.items : [],
-    };
-  }
-  return { types: [], items: [] };
-}
-
-export async function getReferenzen(brand: string): Promise<ReferenzenConfig | null> {
-  await initReferenzenTable();
-  const result = await pool.query(
-    'SELECT items_json FROM referenzen_config WHERE brand = $1',
-    [brand]
-  );
-  if (!result.rows[0]) return null;
-  return normalizeReferenzen(result.rows[0].items_json);
-}
-
-export async function saveReferenzen(brand: string, config: ReferenzenConfig): Promise<void> {
-  await initReferenzenTable();
-  await pool.query(
-    `INSERT INTO referenzen_config (brand, items_json, updated_at)
-     VALUES ($1, $2, now())
-     ON CONFLICT (brand) DO UPDATE SET items_json = $2, updated_at = now()`,
-    [brand, JSON.stringify(config)]
-  );
-}
-
-// ── Time Entries ──────────────────────────────────────────────────────────────
 
 let timeEntriesReady = false;
 
@@ -1366,247 +1119,41 @@ export type {
   CalendarMeeting,
 } from './appointments-db';
 
-// ── Bug Ticket List ───────────────────────────────────────────────────────────
 
-export interface BugTicketRow {
-  ticketId: string;
-  category: string;
-  reporterEmail: string;
-  description: string;
-  url: string | null;
-  brand: string;
-  status: 'open' | 'resolved' | 'archived';
-  createdAt: Date;
-  resolvedAt: Date | null;
-  resolutionNote: string | null;
-  screenshots: string[] | null;
-  fixedInPr?: number | null;
-  fixedAt?: Date | null;
-}
 
-// Booking/slot/time-window domain extracted to appointments-db.ts (G-SIZE03)
-// Temporary re-exports so callers that still import from website-db keep working
-// until Task 2 updates their imports — removed after all callers are updated.
-export {
-  setBookingInvoice,
-  getBookingInvoices,
-  getBookingProjects,
-  setBookingProject,
-  getBookingLeistungen,
-  getWhitelistedSlots,
-  addSlotToWhitelist,
-  removeSlotFromWhitelist,
-  isSlotWhitelisted,
-  claimSlot,
-  getFreeTimeWindows,
-  addFreeTimeWindow,
-  removeFreeTimeWindow,
-  isSlotInAnyWindow,
-} from './appointments-db';
-export type {
-  BookingInvoiceInfo,
-  WhitelistedSlot,
-  FreeTimeWindow,
-} from './appointments-db';
-
-export async function listBugTickets(filters: {
-  status?: string;
-  category?: string;
-  brand?: string;
-  q?: string;
-  limit?: number;
-}): Promise<BugTicketRow[]> {
-  await initTicketsSchema();
-  const where: string[] = [`t.type = 'bug'`];
-  const vals: unknown[] = [];
-  if (filters.brand) {
-    vals.push(filters.brand);
-    where.push(`t.brand = $${vals.length}`);
-  }
-  if (filters.status) {
-    // Map legacy filter values back to new status set
-    const map: Record<string, string[]> = {
-      open:     ['triage','backlog','in_progress','in_review','blocked'],
-      resolved: ['done'],
-      archived: ['archived'],
-    };
-    const list = map[filters.status] ?? [filters.status];
-    vals.push(list);
-    where.push(`t.status = ANY($${vals.length}::text[])`);
-  }
-  if (filters.category) {
-    vals.push(`kind:${filters.category}`);
-    where.push(`EXISTS (SELECT 1 FROM tickets.ticket_tags tt
-                          JOIN tickets.tags g ON g.id = tt.tag_id
-                         WHERE tt.ticket_id = t.id AND g.name = $${vals.length})`);
-  }
-  if (filters.q) {
-    vals.push(filters.q);
-    where.push(`(t.description ILIKE '%' || $${vals.length} || '%'
-                 OR t.reporter_email ILIKE '%' || $${vals.length} || '%')`);
-  }
-  vals.push(filters.limit ?? 200);
-  const limitClause = `LIMIT $${vals.length}`;
-  const sql = `
-    SELECT t.external_id   AS "ticketId",
-           COALESCE((SELECT SPLIT_PART(g.name, ':', 2) FROM tickets.ticket_tags tt JOIN tickets.tags g ON g.id = tt.tag_id WHERE tt.ticket_id = t.id AND g.name LIKE 'kind:%' LIMIT 1), '') AS category,
-           t.reporter_email AS "reporterEmail",
-           t.description,
-           t.url,
-           t.brand,
-           CASE t.status WHEN 'done' THEN 'resolved'
-                         WHEN 'archived' THEN 'archived' ELSE 'open' END AS status,
-           t.created_at    AS "createdAt",
-           t.done_at       AS "resolvedAt",
-           NULL            AS "resolutionNote",
-           (SELECT pr_number FROM tickets.ticket_links
-              WHERE from_id = t.id AND kind = 'fixes' AND pr_number IS NOT NULL
-              ORDER BY created_at DESC LIMIT 1) AS "fixedInPr",
-           (SELECT created_at FROM tickets.ticket_links
-              WHERE from_id = t.id AND kind = 'fixes' AND pr_number IS NOT NULL
-              ORDER BY created_at DESC LIMIT 1) AS "fixedAt"
-      FROM tickets.tickets t
-     WHERE ${where.join(' AND ')}
-     ORDER BY t.created_at DESC ${limitClause}`;
-  const r = await pool.query(sql, vals);
-  return r.rows;
-}
-
-// ── Homepage Content (hero + startseite) ─────────────────────────────────────
-
-export interface HomepageHero {
-  title: string;
-  subtitle: string;
-  tagline: string;
-  titleEmphasis?: string;
-}
-
-export interface WhyMePoint {
-  title: string;
-  text: string;
-  iconPath?: string;
-}
-
-export interface StatItem {
-  value: string;
-  label: string;
-}
-
-export interface ProcessStep {
-  num: string;
-  heading: string;
-  description: string;
-}
-
-export interface HomepageContent {
-  hero: HomepageHero;
-  stats: StatItem[];
-  servicesHeadline: string;
-  servicesSubheadline: string;
-  whyMeHeadline: string;
-  whyMeIntro: string;
-  whyMePoints: WhyMePoint[];
-  avatarType?: 'image' | 'initials';
-  avatarSrc?: string;
-  avatarInitials?: string;
-  quote: string;
-  quoteName: string;
-  processSteps?: ProcessStep[];
-  processEyebrow?: string;
-  processHeadline?: string;
-}
-
-export async function getHomepageContent(brand: string): Promise<HomepageContent | null> {
-  const raw = await getSiteSetting(brand, 'homepage');
-  if (!raw) return null;
-  try { return JSON.parse(raw); } catch { return null; }
-}
-
-export async function saveHomepageContent(brand: string, data: HomepageContent): Promise<void> {
-  await setSiteSetting(brand, 'homepage', JSON.stringify(data));
-}
-
-// ── Über mich Content ─────────────────────────────────────────────────────────
-
-export interface UebermichSection {
-  title: string;
-  content: string;
-}
-
-export interface UebermichMilestone {
-  year: string;
-  title: string;
-  desc: string;
-}
-
-export interface UebermichNotDoing {
-  title: string;
-  text: string;
-}
-
-export interface UebermichContent {
-  pageHeadline: string;
-  subheadline: string;
-  introParagraphs: string[];
-  sections: UebermichSection[];
-  milestones: UebermichMilestone[];
-  notDoing: UebermichNotDoing[];
-  privateText: string;
-  /** Optional section rendered after the "Privat" block */
-  warumdieserName?: { title: string; text: string };
-}
-
-export async function getUebermichContent(brand: string): Promise<UebermichContent | null> {
-  const raw = await getSiteSetting(brand, 'uebermich');
-  if (!raw) return null;
-  try { return JSON.parse(raw); } catch { return null; }
-}
-
-export async function saveUebermichContent(brand: string, data: UebermichContent): Promise<void> {
-  await setSiteSetting(brand, 'uebermich', JSON.stringify(data));
-}
-
-// ── FAQ Content ───────────────────────────────────────────────────────────────
-
-export interface FaqItem {
-  question: string;
-  answer: string;
-}
-
-export async function getFaqContent(brand: string): Promise<FaqItem[] | null> {
-  const raw = await getSiteSetting(brand, 'faq');
-  if (!raw) return null;
-  try { return JSON.parse(raw); } catch { return null; }
-}
-
-export async function saveFaqContent(brand: string, items: FaqItem[]): Promise<void> {
-  await setSiteSetting(brand, 'faq', JSON.stringify(items));
-}
-
-// ── Kontakt Content ───────────────────────────────────────────────────────────
-
-export interface KontaktContent {
-  intro: string;
-  sidebarTitle: string;
-  sidebarText: string;
-  sidebarCta: string;
-  showPhone: boolean;
-  showSteps?: boolean;
-  footerEmail?: string;
-  footerPhone?: string;
-  footerCity?: string;
-  footerTagline?: string;
-}
-
-export async function getKontaktContent(brand: string): Promise<KontaktContent | null> {
-  const raw = await getSiteSetting(brand, 'kontakt');
-  if (!raw) return null;
-  try { return JSON.parse(raw); } catch { return null; }
-}
-
-export async function saveKontaktContent(brand: string, data: KontaktContent): Promise<void> {
-  await setSiteSetting(brand, 'kontakt', JSON.stringify(data));
-}
+// ── T001490: Content-domain DB readers/writers removed ───────────────────────
+//
+// All public-page content (homepage, faq, kontakt, ueber-mich, services,
+// leistungen, stammdaten, navigation, footer, kore-flags, referenzen, seo)
+// is now sourced from the build-time content bundle at
+// `website/content/<brand>/<domain>.json`. Writes go through the bot-PR
+// publish pipeline (Task 6/7). The DB-backed functions and the
+// supporting `ServiceOverride` / `LeistungServiceOverride` /
+// `LeistungCategoryOverride` / `NavItem` / `FooterColumn` /
+// `FooterConfig` / `Stammdaten` / `KoreFlags` / `HomepageContent` /
+// `UebermichContent` / `FaqItem` / `KontaktContent` types and the
+// `service_config` / `leistungen_config` / `referenzen_config` table
+// initializers have been removed. The `site_settings` key-value store
+// is retained for non-content admin use (vacation periods, e-mail
+// settings, backup, etc.) — content keys (NAV_KEY, FOOTER_KEY,
+// STAMMDATEN_KEY, KORE_FLAGS_KEY, PRICING_HIGHLIGHT_KEY,
+// seo_title_*, seo_meta_desc_*, seo_og_image_*) are no longer read or
+// written by the public surface.
+//
+// `getServiceConfig` / `getLeistungenConfig` / `getReferenzen` /
+// `getHomepageContent` / `getUebermichContent` / `getFaqContent` /
+// `getKontaktContent` are intentionally NOT exported from this file
+// (the BATS contract `tests/spec/website-core.bats:152` asserts this).
+// The save-side equivalents (save*) have also been removed; admin
+// endpoints are rewired in Task 7 to call `publishContent` from
+// `./content-publish` instead.
+//
+// For convenience during the migration window, this file still
+// re-exports the canonical content-domain types from
+// `./content-schema` under their pre-T001490 names — type-only, zero
+// runtime cost. The admin save endpoints import these via the
+// `ServiceOverride` / `LeistungCategoryOverride` aliases below until
+// they are fully migrated.
 
 // ── Admin Shortcuts ──────────────────────────────────────────────────────────
 

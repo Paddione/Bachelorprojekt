@@ -2923,3 +2923,44 @@ REG="scripts/factory/service-registry.sh"
   run grep -c "ff-view-toggle" website/src/components/FactoryFloor.svelte
   [ "$output" = "0" ]
 }
+
+# ── T001433 admin-redesign: Pipeline move + Kosten tab + chart-color SSOT ────
+PIPELINE_PAGE="$BATS_TEST_DIRNAME/../../website/src/pages/admin/pipeline.astro"
+DEV_STATUS_PAGE="$BATS_TEST_DIRNAME/../../website/src/pages/dev-status.astro"
+FACTORY_OBSERVABILITY_PAGE="$BATS_TEST_DIRNAME/../../website/src/pages/admin/factory-observability.astro"
+FACTORY_BUDGET_PAGE="$BATS_TEST_DIRNAME/../../website/src/pages/admin/factory-budget.astro"
+FACTORY_OBSERVABILITY_COMP="$BATS_TEST_DIRNAME/../../website/src/components/factory/FactoryObservability.svelte"
+FACTORY_CHART_COLORS="$BATS_TEST_DIRNAME/../../website/src/components/factory/factory-chart-colors.ts"
+
+@test "T001433 pipeline: pages/admin/pipeline.astro exists and mounts DevStatusTabs" {
+  [ -f "$PIPELINE_PAGE" ]
+  run grep -F "DevStatusTabs" "$PIPELINE_PAGE"
+  [ "$status" -eq 0 ]
+}
+
+@test "T001433 pipeline: dev-status.astro is a 301 redirect to /admin/pipeline" {
+  run grep -F "Astro.redirect(\`/admin/pipeline" "$DEV_STATUS_PAGE"
+  [ "$status" -eq 0 ]
+}
+
+@test "T001433 pipeline: factory-observability.astro redirects to /admin/pipeline?tab=kosten" {
+  run grep -F "Astro.redirect('/admin/pipeline?tab=kosten', 301)" "$FACTORY_OBSERVABILITY_PAGE"
+  [ "$status" -eq 0 ]
+}
+
+@test "T001433 pipeline: factory-budget.astro redirects to /admin/pipeline?tab=kosten" {
+  run grep -F "Astro.redirect('/admin/pipeline?tab=kosten', 301)" "$FACTORY_BUDGET_PAGE"
+  [ "$status" -eq 0 ]
+}
+
+@test "T001433 chart-colors: FactoryObservability has no local PHASE_COLORS map" {
+  run grep -c "const PHASE_COLORS" "$FACTORY_OBSERVABILITY_COMP"
+  [ "$output" = "0" ]
+  run grep -F "PHASE_COLOR_BY_NAME" "$FACTORY_OBSERVABILITY_COMP"
+  [ "$status" -eq 0 ]
+}
+
+@test "T001433 chart-colors: factory-chart-colors exports PHASE_COLOR_BY_NAME" {
+  run grep -F "export const PHASE_COLOR_BY_NAME" "$FACTORY_CHART_COLORS"
+  [ "$status" -eq 0 ]
+}

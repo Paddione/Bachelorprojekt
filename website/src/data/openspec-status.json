@@ -759,6 +759,12 @@
       "status": "archived"
     }
   ],
+  "T001434": [
+    {
+      "slug": "t001434-logging-middleware-missing",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

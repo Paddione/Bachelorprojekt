@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.152.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.151.1...website-v1.152.0) (2026-07-02)
+
+
+### Features
+
+* **factory:** deterministic devflow phase telemetry + merge gate + Versand lane [T001444] ([#2495](https://github.com/Paddione/Bachelorprojekt/issues/2495)) ([b96fa45](https://github.com/Paddione/Bachelorprojekt/commit/b96fa451abe6982574f27726fe0ce25331c2548b))
+
 ## [1.151.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.151.0...website-v1.151.1) (2026-07-02)
 
 

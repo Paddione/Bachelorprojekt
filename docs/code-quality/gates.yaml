@@ -30,6 +30,11 @@ scan:
     # could be mistaken for orphans/over-limit files. Ignoring them keeps the
     # index and every gate baseline stable as fixtures are added (Finding-3 fix).
     - "scripts/code-quality/fixtures/**"
+    # environments/.secrets/** are git-crypt encrypted files. Counting them from disk
+    # produces different line counts depending on whether git-crypt is unlocked (local)
+    # or locked (CI), causing the LOC baseline to drift without tracked-file changes.
+    # These are deployment secrets, not source code — exclude from the LOC budget.
+    - "environments/.secrets/**"
 
 s1:
   limits:

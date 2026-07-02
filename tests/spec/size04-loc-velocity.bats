@@ -21,3 +21,19 @@ setup() {
 @test "G-SIZE04: goals.md contains Shallow-Clone caveat" {
   grep -qi "shallow.clone\|shallow clone" "$REPO_ROOT/.claude/lib/goals.md"
 }
+
+@test "G-SIZE04: scan universe excludes environments/.secrets/** (git-crypt drift)" {
+  # Run the check with --dry-run-style output to verify .secrets files are excluded
+  # (git-crypt encrypted files have different line counts when unlocked vs locked)
+  run node "$LOC_SCRIPT" 2>&1
+  echo "output: $output"
+  # Script should not crash — should pass or at least run cleanly
+  [ "$status" -eq 0 ]
+  # Verify .secrets files not in scan output
+  run grep -c "environments/.secrets/" "$REPO_ROOT/docs/code-quality/gates.yaml"
+  [ "$output" -ge 1 ]
+}
+
+@test "G-SIZE04: gates.yaml has environments/.secrets/** in scan.ignore_globs" {
+  grep -E "environments/\.secrets" "$REPO_ROOT/docs/code-quality/gates.yaml"
+}

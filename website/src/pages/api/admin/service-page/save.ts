@@ -67,17 +67,13 @@ export const POST: APIRoute = async ({ request, url , locals }) => {
       ...(prev?.leistungCategoryId ? { leistungCategoryId: prev.leistungCategoryId } : {}),
       ...(prev?.headlineKey ? { headlineKey: prev.headlineKey } : {}),
       ...(prev?.headlinePrefix != null ? { headlinePrefix: prev.headlinePrefix } : {}),
-      ...(isCatalogLinked
-        ? {}
-        : { price: body.cardPrice ?? staticSvc?.price ?? '' }),
+      price: isCatalogLinked ? '' : (body.cardPrice ?? staticSvc?.price ?? ''),
       pageContent: {
-        headline: body.headline,
-        intro: body.intro,
+        headline: body.headline ?? '',
+        intro: body.intro ?? '',
         forWhom: body.forWhom ?? [],
         sections,
-        ...(isCatalogLinked
-          ? {}
-          : { pricing: body.pricing ?? [] }),
+        pricing: isCatalogLinked ? [] : (body.pricing ?? []),
         faq: body.faq ?? [],
         seoTitle: body.seoTitle || undefined,
         seoDescription: body.seoDescription || undefined,
@@ -100,8 +96,4 @@ export const POST: APIRoute = async ({ request, url , locals }) => {
       status: 500, headers: { 'Content-Type': 'application/json' },
     });
   }
-
-  return new Response(JSON.stringify({ ok: true }), {
-    headers: { 'Content-Type': 'application/json' },
-  });
 };

@@ -10,7 +10,7 @@ const layoutBrand = BRAND_ID === 'korczewski' ? 'korczewski-kore' : undefined;
 const config = await getEffectiveReferenzen();
 const heading = config.heading?.trim() || 'Referenzen';
 const subheading = config.subheading?.trim() || 'Unternehmen und Personen, die mir ihr Vertrauen geschenkt haben.';
-const seoOgImage = await getSeoOgImage(BRAND_ID, 'referenzen').catch(() => null);
+const seoOgImage = getSeoOgImage(BRAND_ID, 'referenzen');
 const seoDesc = await getSiteSetting(BRAND_ID, 'seo_meta_desc_referenzen').catch(() => null)
   ?? 'Referenzen & Kooperationen – Brückenschlag, Digital Café Hamburg, Polizei Hamburg. Gerald Korczewski, Coach und Mentor in Lüneburg.';
 

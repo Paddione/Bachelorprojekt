@@ -1,4 +1,4 @@
-import type { LeistungCategory, LeistungServiceRow, Stammdaten } from './content-schema';
+import type { LeistungCategory, LeistungServiceRow, Stammdaten } from '../content-schema';
 
 /** True for prices that are not a concrete amount (e.g. "nach Vereinbarung"). */
 function isFreeText(price: string): boolean {

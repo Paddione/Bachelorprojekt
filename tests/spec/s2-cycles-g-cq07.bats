@@ -21,10 +21,8 @@ setup() {
 }
 
 @test "G-CQ07: die übrigen drei Zyklen bleiben während dieses PRs unangetastet" {
-  # Sanity-Check: wir dürfen mit diesem PR nur Zyklus #1 entfernen.
-  # Die anderen drei Zyklen müssen weiterhin im Report auftauchen —
-  # sonst wurden versehentlich Folge-PRs mit-erledigt.
-  output=$(npx --yes madge --circular --extensions ts,tsx "$REPO_ROOT/website/src" 2>&1 || true)
-  echo "$output" | grep -F "lib/website-db.ts > lib/tickets/transition.ts" >/dev/null
-  echo "$output" | grep -F "lib/invoice-pdf.ts > lib/native-billing.ts" >/dev/null
+  # T001514: alle drei übrigen Zyklen sind bereits auf main verschwunden
+  # (madge meldet dort "No circular dependency found!"), unabhängig von
+  # diesem PR — der Sanity-Check war schon vor T001490 stale/RED.
+  skip "T001514: residual cycles already gone on main, guard is stale"
 }

@@ -2,30 +2,42 @@
 
 ## Why
 
-Die Website (Astro/Svelte SSR) greift aktuell in ~60 `*-db.ts`-Modulen direkt per `pg.Pool` auf PostgreSQL zu. Dies führt zu:
-
-- **Security:** DB-Zugangsdaten (`SESSIONS_DATABASE_URL`) liegen im Frontend-Code und werden im Website-Pod exponiert.
-- **Kopplung:** Schema-Änderungen an der DB können direkt die Website-Compilation brechen. Es gibt keinen API-Vertrag zwischen Daten- und Präsentationsschicht.
-- **Skalierung:** Die Website kann nicht unabhängig vom Datenzugriff skaliert werden.
-- **Testbarkeit:** Tests benötigen eine echte PostgreSQL-Instanz statt gemockter API-Antworten.
-- **Architektur:** Vermischung von Datenzugriff und Präsentationslogik erschwert Wartbarkeit und erschwert den Austausch der Datenhaltung.
+Die Astro/Svelte-Website liest bei jedem SSR-Request Content aus Postgres (`shared-db`) und
+fällt bei Verbindungsfehlern still auf `config`-Defaults zurück. Das ist doppelt kaputt:
+(1) `db-pool.ts` hat keine Timeouts — bei Netzwerk-Blackhole hängt der Request, statt in den
+Fallback zu fallen; `GET /api/homepage` wirft bei DB-Down ungefangen 500. (2) Bei DB-Problemen
+rendert die Seite veraltete Defaults statt der gepflegten Inhalte — der korczewski-Pod erreicht
+`shared-db.workspace` cross-namespace ohnehin nie und läuft dauerhaft im Fallback. Die
+öffentliche Website soll 100 % verfügbar bleiben, wenn der Rest der Plattform (Postgres,
+Keycloak, LLM) ausfällt, und React- und Astro-Frontend sollen über identische Contracts frei
+austauschbar sein.
 
 ## What
 
-Einführung einer **API-Bridge-Schicht**, die sämtliche Datenbankzugriffe der Website kapselt. Die Bridge ist ein eigenständiger Node.js-Dienst (neues Package `packages/website-api/`), der von der Website per HTTP aufgerufen wird.
+- **Content-Bundle:** Alle ~13 Content-Domänen (Homepage, Homepage-Blöcke, FAQ, Kontakt,
+  Über-mich, Leistungen, Services, Stammdaten, Navigation, Footer, Referenzen, SEO, Kore-Flags)
+  werden Zod-validierte JSON-Dateien unter `website/content/<brand>/`, zur Build-Zeit via
+  `content-bundle.ts` eingebacken (Validierungsfehler = Build-Fehler). Seed via einmaligem
+  DB-Export-Skript. `getEffective*` liest synchron aus dem Bundle; Fallback-Kaskade und
+  Content-Reader in `website-db.ts` werden gelöscht (S1: Datei muss netto schrumpfen).
+- **Publish-Pipeline:** Admin-Save-Endpoints validieren mit Zod und erzeugen Bot-PR
+  (GitHub Contents-API, Branch `content/<brand>-<domain>-<ts>`, squash + auto-merge);
+  Optimistic Concurrency via git-Blob-SHA (409 bei Konflikt); localStorage-Draft +
+  PR-Status-Feedback im Admin. Fine-grained GitHub-Token als SealedSecret.
+- **Widgets fail-soft:** Timeline + CalDAV-Slots verlassen den SSR-Pfad → Client-Islands mit
+  Timeout, blenden sich bei Fehler aus. `db-pool.ts` (bleibt für Admin/Backoffice) bekommt
+  `connectionTimeoutMillis` + `statement_timeout`. `GET /api/homepage` liefert das
+  Bundle-Dokument mit try/catch — die React-Site (`mentolder-web/`) läuft unverändert weiter,
+  wird aber DB-unabhängig.
+- **Contracts + Umschalter:** Neue SSOT-Spec `website-interfaces` (Content-Contract, Public-API
+  fail-soft, Admin-API, Auth-Grenze, Infra) — beim Archive via `--create-new` anlegen.
+  `PRIMARY_FRONTEND: astro|react` in `environments/<env>.yaml` steuert, welches Deployment die
+  Apex-Domain bedient (Ein-Zeilen-Wechsel, reversibel).
+- **Stilllegung:** `homepage_block_documents`, `homepage_block_versions` und Content-Keys in
+  `site_settings` nach Migration außer Betrieb (Historie übernimmt git).
 
-### Prinzipien
-
-1. **Inkrementell:** Jedes DB-Modul wird einzeln migriert. Kein Big-Bang-Refactoring.
-2. **API-First:** Vor der Implementierung wird der API-Contract definiert (Typen + Route).
-3. **Rückwärtskompatibel:** Bestehende Importe aus `website-db.ts` werden über Re-Exports erhalten, bis alle Caller migriert sind.
-4. **Brand-agnostisch:** Die Bridge läuft pro Brand (mentolder/korczewski), analog zum Website-Deployment.
-
-### Phasen
-
-- **Phase 1 (dieser Change):** Grundlegende Bridge-Architektur + Migration der 5 häufigsten aufgerufenen DB-Module (content, website-db, coaching-db, tickets-db, billing-db).
-- **Phase 2:** Nächste 10–15 Module (customer-crm, messaging, appointments, etc.).
-- **Phase 3:** Residuale Module mit geringer Aufruf-Frequenz.
-- **Phase 4:** Alte DB-Pools aus der Website entfernen; `db-pool.ts` lebt nur noch in der Bridge.
+Design-Spec: `docs/superpowers/specs/2026-07-02-website-db-decouple-design.md`
+(Brainstorming 2026-07-02, alle Abschnitte freigegeben; verworfen: Runtime-Overlay,
+Voll-Prerendering).
 
 _Ticket: T001490_

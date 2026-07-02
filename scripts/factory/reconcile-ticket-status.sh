@@ -168,4 +168,85 @@ SQL
   echo "reconcile-ticket-status: $ext_id terminal-no-pr — set attention_mode=needs_human" >&2
 done
 
+# ── Pattern 4: plan_staged without FACTORY-PLAN-REF comment (drift) ──────
+# Tickets in plan_staged should have a FACTORY-PLAN-REF comment with branch
+# info pointing to the remote plan branch. If missing, the ticket is in a
+# confusing state — flag for review. plan_staged + FACTORY-PLAN-REF = healthy
+# (the plan lives on the remote branch, not in ticket_plans). [T001448 M1]
+echo "reconcile-ticket-status: scanning plan_staged-without-plan-ref (${BRAND})" >&2
+mapfile -t ps_no_ref < <(
+  kubectl exec "$POD" -n "$FACTORY_NS" --context "$FACTORY_CTX" -c postgres -- \
+    psql -U website -d website -qtA -v ON_ERROR_STOP=1 \
+      -c "SELECT t.external_id
+           FROM tickets.tickets t
+           WHERE t.status = 'plan_staged'
+             AND t.updated_at < now() - interval '1 hour'
+             AND NOT EXISTS (
+               SELECT 1 FROM tickets.ticket_comments c
+               WHERE c.ticket_id = t.id
+                 AND c.body LIKE 'FACTORY-PLAN-REF %'
+             )
+           ORDER BY t.updated_at DESC;" 2>/dev/null || true
+)
+
+for ext_id in "${ps_no_ref[@]}"; do
+  [[ -z "$ext_id" ]] && continue
+  if [[ "$DRY_RUN" == "true" ]]; then
+    echo "reconcile-ticket-status [DRY-RUN]: $ext_id plan_staged-without-plan-ref — flagging for review" >&2
+    continue
+  fi
+  kubectl exec "$POD" -n "$FACTORY_NS" --context "$FACTORY_CTX" -c postgres -- \
+    psql -U website -d website -qtA -v ON_ERROR_STOP=1 \
+      -v ext_id="$ext_id" <<'SQL' >/dev/null
+UPDATE tickets.tickets
+   SET attention_mode = 'needs_human',
+       notes = COALESCE(notes || E'\n\n', '') || format(E'reconcile-ticket-status watchdog: plan_staged-without-plan-ref — ticket is plan_staged but has no FACTORY-PLAN-REF comment with branch info. Needs manual review.\nDetected: %s', to_char(now(), 'YYYY-MM-DD HH24:MI:SS')),
+       updated_at = now()
+ WHERE external_id = :'ext_id'
+   AND attention_mode IS DISTINCT FROM 'needs_human';
+SQL
+  echo "reconcile-ticket-status: $ext_id plan_staged-without-plan-ref — set attention_mode=needs_human" >&2
+done
+
+# ── Pattern 4b: plan_staged with FACTORY-PLAN-REF but remote branch gone ──
+# The FACTORY-PLAN-REF comment references a remote branch. If that branch has
+# been deleted (e.g. merged and pruned), the plan is orphaned on this ticket
+# and should be flagged as drift. [T001448 M1]
+echo "reconcile-ticket-status: scanning plan_staged-orphan-branch (${BRAND})" >&2
+mapfile -t ps_orphan < <(
+  kubectl exec "$POD" -n "$FACTORY_NS" --context "$FACTORY_CTX" -c postgres -- \
+    psql -U website -d website -qtA -v ON_ERROR_STOP=1 \
+      -c "SELECT t.external_id,
+                 trim(substring(c.body from 'branch=([^ ]+)'))
+          FROM tickets.tickets t
+          JOIN tickets.ticket_comments c ON c.ticket_id = t.id
+          WHERE t.status = 'plan_staged'
+            AND c.body LIKE 'FACTORY-PLAN-REF %branch=%'
+            AND t.updated_at < now() - interval '1 hour'
+          ORDER BY t.updated_at DESC;" 2>/dev/null || true
+)
+
+while IFS='|' read -r ext_id branch_ref; do
+  [[ -z "$ext_id" || -z "$branch_ref" ]] && continue
+  # Check if remote branch exists
+  if ! git ls-remote --heads origin "$branch_ref" 2>/dev/null | grep -q .; then
+    if [[ "$DRY_RUN" == "true" ]]; then
+      echo "reconcile-ticket-status [DRY-RUN]: $ext_id plan_staged-orphan-branch — remote branch '$branch_ref' gone" >&2
+      continue
+    fi
+    kubectl exec "$POD" -n "$FACTORY_NS" --context "$FACTORY_CTX" -c postgres -- \
+      psql -U website -d website -qtA -v ON_ERROR_STOP=1 \
+        -v ext_id="$ext_id" \
+        -v branch="$branch_ref" <<'SQL' >/dev/null
+UPDATE tickets.tickets
+   SET attention_mode = 'needs_human',
+       notes = COALESCE(notes || E'\n\n', '') || format(E'reconcile-ticket-status watchdog: plan_staged-orphan-branch — FACTORY-PLAN-REF references branch ''%s'' but remote branch is gone. Plan is orphaned. Needs manual review.\nDetected: %s', :'branch', to_char(now(), 'YYYY-MM-DD HH24:MI:SS')),
+       updated_at = now()
+ WHERE external_id = :'ext_id'
+   AND attention_mode IS DISTINCT FROM 'needs_human';
+SQL
+    echo "reconcile-ticket-status: $ext_id plan_staged-orphan-branch — remote branch '$branch_ref' gone; set attention_mode=needs_human" >&2
+  fi
+done <<< "$(printf '%s\n' "${ps_orphan[@]}")"
+
 echo "reconcile-ticket-status: fertig (BRAND=${BRAND}, DRY_RUN=${DRY_RUN})"

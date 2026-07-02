@@ -89,6 +89,21 @@ _lock_field() { sed -n "s/.*\"$2\": *\"\\([^\"]*\\)\".*/\\1/p" "$1" 2>/dev/null 
 # Append an append-only audit line whenever a claim is classified reapable.
 # Fail-open: a write failure is ignored (consistent with the rest of the script).
 # NOTE: .reap.log is not rotated here — small text lines; rotate in a follow-up if it grows.
+# Check if a git branch has a live (non-reapable) agent-lock claim. Used by
+# cmd_reap step 2c to protect live-claimed branches from deletion. [T001448 M3]
+_branch_is_live_claimed() {
+  local br="$1" d f
+  d="$(_lock_dir)"
+  [ -d "$d" ] || return 1
+  for f in "$d"/*.json; do
+    [ -e "$f" ] || continue
+    [ "$(_lock_field "$f" branch)" = "$br" ] || continue
+    _reapable "$f" && continue
+    return 0
+  done
+  return 1
+}
+
 _reap_log() {  # <lock-file> <reason>
   printf '%s %s/%s %s\n' "$(_now)" \
     "$(_lock_field "$1" scope)" "$(_lock_field "$1" id)" "$2" \
@@ -266,6 +281,11 @@ cmd_reap() {
   git fetch --prune origin 2>/dev/null || true
   # 2c) delete local branches that were squash-merged into main (upstream gone)
   for br in $(git branch --merged main 2>/dev/null | sed 's/^[* ]*//' | grep -v '^main$'); do
+    # skip branches that have a live agent-lock claim (e.g. dev-flow-plan in progress) [T001448 M3]
+    if _branch_is_live_claimed "$br"; then
+      echo "AGENT-LOCK: Skipping branch '$br' (live agent-lock claim)" >&2
+      continue
+    fi
     # only delete if the upstream tracking branch is gone
     upstream="$(git rev-parse --abbrev-ref "$br@{upstream}" 2>/dev/null)" || true
     if [ -z "$upstream" ] || ! git show-ref --verify --quiet "refs/remotes/$upstream" 2>/dev/null; then

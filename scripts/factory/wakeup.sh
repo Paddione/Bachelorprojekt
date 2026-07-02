@@ -104,6 +104,13 @@ Report only the dispatcher's final JSON result. Do not improvise scheduling."
     BRAND="$_acm_brand" bash "${REPO}/scripts/factory/auto-close-merged.sh" 2>&1 \
       | sed "s/^/[auto-close-merged:${_acm_brand}] /" >&2 || true
   done
+  # T001443: Status-Drift-Watchdog — awaiting_deploy+done_at, terminal-pr-unmerged, terminal-no-pr
+  # Läuft nach auto-close-merged, weil es abgeschlossene Tickets bereinigt, die auto-close
+  # nicht erwischt hat (z.B. awaiting_deploy obwohl done_at gesetzt). Best-effort.
+  for _rc_brand in mentolder korczewski; do
+    BRAND="$_rc_brand" bash "${REPO}/scripts/factory/reconcile-ticket-status.sh" 2>&1 \
+      | sed "s/^/[reconcile-status:${_rc_brand}] /" >&2 || true
+  done
   # Lücke 3.1: plan_staged → backlog auto-enqueue (vor Dispatcher-Tick, damit schedule.sh
   # die frisch-enqueueten Tickets in diesem Tick sieht). Best-effort: Fehler nicht fatal.
   for _ae_brand in mentolder korczewski; do

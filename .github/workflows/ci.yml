@@ -306,14 +306,6 @@ jobs:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
         with:
           fetch-depth: 0
-      - name: Load allowed scopes from commitlint.config.cjs
-        id: load-scopes
-        run: |
-          {
-            echo 'scopes<<SCOPES_EOF'
-            bash scripts/validate-commit-msg.sh scopes
-            echo 'SCOPES_EOF'
-          } >> "$GITHUB_OUTPUT"
       - uses: amannn/action-semantic-pull-request@e32d7e603df1aa1ba07e981f2a23455dee596825  # v5.5.3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -330,7 +322,9 @@ jobs:
             ci
             perf
             revert
-          scopes: ${{ steps.load-scopes.outputs.scopes }}
+          # Scopes are NOT enforced here — ticket-number scopes (Tdddddd) are
+          # always valid, and named-scope enforcement happens later via
+          # scripts/validate-commit-msg.sh range (individual commit messages).
           # Ticket references like [T000436] can extend subject length
           subjectPattern: ^.{1,200}$
           subjectPatternError: |

@@ -13,9 +13,11 @@ export const GET: APIRoute = async ({ request }) => {
   const url = new URL(request.url);
   const status = (url.searchParams.get('status') as InboxStatus | null) ?? 'pending';
   const type = (url.searchParams.get('type') as InboxType | null) ?? undefined;
+  // E2E-only escape hatch: test rows are hidden by default (T001456).
+  const includeTest = url.searchParams.get('includeTest') === '1';
 
   const [items, counts] = await Promise.all([
-    listInboxItems({ status, type }),
+    listInboxItems({ status, type, includeTest }),
     countPendingByType(),
   ]);
 

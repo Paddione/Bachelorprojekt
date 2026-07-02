@@ -15,11 +15,14 @@ const initialStatus = rawStatus === 'done' ? 'actioned'
   : (rawStatus === 'actioned' || rawStatus === 'archived') ? rawStatus as 'actioned' | 'archived'
   : 'pending' as const;
 
+// E2E-only escape hatch (T001456): test rows are hidden by default.
+const includeTest = Astro.url.searchParams.get('includeTest') === '1';
+
 let initialItems: Awaited<ReturnType<typeof listInboxItems>> = [];
 let initialCounts: Awaited<ReturnType<typeof countPendingByType>> = {};
 try {
   [initialItems, initialCounts] = await Promise.all([
-    listInboxItems({ status: initialStatus }),
+    listInboxItems({ status: initialStatus, includeTest }),
     countPendingByType(),
   ]);
 } catch (err) {

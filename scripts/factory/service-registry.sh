@@ -69,6 +69,7 @@ declare -A SERVICE_REGISTRY=(
   # Pocket ID migration (#2042/#2057) + new services — classified to match app: labels
   [k3d/pocket-id.yaml]="pocket-id"
   [k3d/pocket-id-client-seed.yaml]="pocket-id"
+  [k3d/pocket-id-client-seed-rbac.yaml]="pocket-id"
   [k3d/studio.yaml]="studio-server"
   [k3d/oauth2-proxy-studio.yaml]="studio-server"
   [k3d/mentolder-web.yaml]="mentolder-web"

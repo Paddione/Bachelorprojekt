@@ -265,6 +265,11 @@ cmd_stage_plan() {
   main "$@"
 }
 
+cmd_assert_phase_chain() {
+  source "$(dirname "${BASH_SOURCE[0]}")/vda/ticket/assert-phase-chain.sh"
+  main "$@"
+}
+
 cmd_set_touched_files() {
   local id="" files=""
   while [[ $# -gt 0 ]]; do case "$1" in
@@ -811,7 +816,7 @@ cmd_triage() {
 
 if [[ $# -lt 1 ]]; then
   echo "Usage: $0 <command> [options]" >&2
-  echo "Commands: create, update-status, add-comment, add-pr-link, grill, archive-plan, get-attachments, get, set-touched-files, set-scout-drift, set-pipeline-slot, release-slot, touch, enqueue, stage-plan, retry-count, factory-control, dryrun-mark, dryrun-check, feature-flag, phase, inject, get-injections, plan-meta, lastenheft, list, backfill-id, triage, link-tickets, get-ticket-links, get-timeline" >&2
+  echo "Commands: create, update-status, add-comment, add-pr-link, grill, archive-plan, get-attachments, get, set-touched-files, set-scout-drift, set-pipeline-slot, release-slot, touch, enqueue, stage-plan, assert-phase-chain, retry-count, factory-control, dryrun-mark, dryrun-check, feature-flag, phase, inject, get-injections, plan-meta, lastenheft, list, backfill-id, triage, link-tickets, get-ticket-links, get-timeline" >&2
   exit 1
 fi
 cmd="$1"; shift
@@ -834,6 +839,7 @@ case "$cmd" in
   triage)            cmd_triage "$@" ;;
   enqueue)           cmd_enqueue "$@" ;;
   stage-plan)        cmd_stage_plan "$@" ;;
+  assert-phase-chain) cmd_assert_phase_chain "$@" ;;
   retry-count)       cmd_retry_count "$@" ;;
   factory-control)   cmd_factory_control "$@" ;;
   dryrun-mark)       cmd_dryrun_mark "$@" ;;

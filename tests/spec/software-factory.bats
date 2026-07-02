@@ -3039,3 +3039,47 @@ STUB
   run grep -Eq "TICKET_PHASE_DRIVER['\"]?[[:space:]]*=[[:space:]]*['\"]factory['\"]" "$PIPELINE_SCRIPT"
   [ "$status" -eq 0 ]
 }
+
+_pt_rows_stub() {   # $1 = phase:state-Zeilen, die der exec-Call zurückgibt
+  local rows="$1" dir; dir="$(mktemp -d)"
+  cat > "$dir/kubectl" <<STUB
+#!/usr/bin/env bash
+for a in "\$@"; do case "\$a" in get) echo "pod/shared-db-0"; exit 0;; esac; done
+printf '%s' "$rows"
+exit 0
+STUB
+  chmod +x "$dir/kubectl"
+  PATH="$dir:$PATH"
+}
+
+@test "T001444: assert-phase-chain requires --id before cluster" {
+  run bash scripts/ticket.sh assert-phase-chain
+  [ "$status" -eq 2 ]
+  [[ "$output" =~ "--id is required" ]]
+}
+
+@test "T001444: assert-phase-chain passes on complete chain" {
+  _pt_rows_stub $'plan:done\nimplement:entered\nverify:done\n'
+  run bash scripts/ticket.sh assert-phase-chain --id T000001
+  [ "$status" -eq 0 ]
+}
+
+@test "T001444: assert-phase-chain fails with backfill hint on gap" {
+  _pt_rows_stub $'plan:done\nimplement:entered\n'
+  run bash scripts/ticket.sh assert-phase-chain --id T000001
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "phase T000001 verify done" ]]
+}
+
+@test "T001444: assert-phase-chain --json emits ok/missing shape" {
+  _pt_rows_stub $'plan:done\n'
+  run bash scripts/ticket.sh assert-phase-chain --id T000001 --json
+  [ "$status" -eq 1 ]
+  [[ "$output" == *'{"ok":false,"missing":["implement:entered","verify:done"]}'* ]]
+}
+
+@test "T001444: assert-phase-chain listed in dispatch usage" {
+  run bash scripts/ticket.sh
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "assert-phase-chain" ]]
+}

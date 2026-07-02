@@ -2964,3 +2964,63 @@ FACTORY_CHART_COLORS="$BATS_TEST_DIRNAME/../../website/src/components/factory/fa
   run grep -F "export const PHASE_COLOR_BY_NAME" "$FACTORY_CHART_COLORS"
   [ "$status" -eq 0 ]
 }
+
+# ── T001444-phase-telemetry ─────────────────────────────────────#
+# Auto-Emission + fail-closed Gate. Offline, CI-safe: ein PATH-Stub ersetzt
+# `kubectl` — `get` liefert einen Fake-Pod, `exec` schreibt -v-Args + SQL-Heredoc
+# in eine Capture-Datei. Reads/Writes erreichen so nie einen echten Cluster.
+_pt_capture_stub() {   # $CAP_FILE muss vor dem Aufruf exportiert sein
+  local dir; dir="$(mktemp -d)"
+  cat > "$dir/kubectl" <<'STUB'
+#!/usr/bin/env bash
+mode=""
+for a in "$@"; do case "$a" in get) mode=get;; exec) mode=exec;; esac; done
+if [[ "$mode" == get ]]; then echo "pod/shared-db-0"; exit 0; fi
+printf '%s\n' "$@" >> "$CAP_FILE"
+cat >> "$CAP_FILE"
+exit 0
+STUB
+  chmod +x "$dir/kubectl"
+  PATH="$dir:$PATH"
+}
+
+@test "T001444: update-status done auto-emits deploy/done" {
+  CAP_FILE="$(mktemp)"; export CAP_FILE
+  _pt_capture_stub
+  run env TICKET_PHASE_DRIVER=devflow bash scripts/ticket.sh update-status --id T000001 --status done
+  [ "$status" -eq 0 ]
+  grep -q "auto_phase=deploy"          "$CAP_FILE"
+  grep -q "auto_state=done"            "$CAP_FILE"
+  grep -q "driver=devflow"             "$CAP_FILE"
+  grep -q "NOT EXISTS"                 "$CAP_FILE"
+  grep -q "auto: update-status done"   "$CAP_FILE"
+}
+
+@test "T001444: update-status in_progress→implement/entered, in_review→implement/done, qa_review→verify/entered" {
+  for pair in "in_progress implement entered" "in_review implement done" "qa_review verify entered"; do
+    set -- $pair
+    CAP_FILE="$(mktemp)"; export CAP_FILE
+    _pt_capture_stub
+    run bash scripts/ticket.sh update-status --id T000001 --status "$1"
+    [ "$status" -eq 0 ]
+    grep -q "auto_phase=$2"  "$CAP_FILE"
+    grep -q "auto_state=$3"  "$CAP_FILE"
+  done
+}
+
+@test "T001444: update-status defaults driver to devflow, factory via env" {
+  CAP_FILE="$(mktemp)"; export CAP_FILE
+  _pt_capture_stub
+  run env TICKET_PHASE_DRIVER=factory bash scripts/ticket.sh update-status --id T000001 --status in_progress
+  [ "$status" -eq 0 ]
+  grep -q "driver=factory" "$CAP_FILE"
+}
+
+@test "T001444: update-status honors TICKET_OFFLINE (no emission)" {
+  CAP_FILE="$(mktemp)"; export CAP_FILE
+  _pt_capture_stub
+  run env TICKET_OFFLINE=1 bash scripts/ticket.sh update-status --id T000001 --status done
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ "OFFLINE" ]]
+  [ ! -s "$CAP_FILE" ]
+}

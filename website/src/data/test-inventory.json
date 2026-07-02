@@ -504,6 +504,12 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:website-db-decouple",
+    "file": "tests/e2e/specs/website-db-decouple.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:wissensquellen",
     "file": "tests/e2e/specs/wissensquellen.spec.ts",
     "category": "E2E",

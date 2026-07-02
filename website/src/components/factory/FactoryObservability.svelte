@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import FactoryKpiCard from './FactoryKpiCard.svelte';
-  import { ACCENT } from './factory-chart-colors';
+  import { ACCENT, PHASE_COLOR_BY_NAME } from './factory-chart-colors';
 
   interface PromResult {
     metric: Record<string, string>;
@@ -38,10 +38,6 @@
   const KPI_TICKS = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182"/></svg>';
 
   const PHASE_ORDER = ['scout', 'design', 'plan', 'implement', 'verify', 'deploy'];
-  const PHASE_COLORS: Record<string, string> = {
-    scout: '#3b82f6', design: '#8b5cf6', plan: '#f59e0b',
-    implement: '#06b6d4', verify: '#10b981', deploy: '#ef4444',
-  };
 
   function sumValues(result: PromResult[]): number {
     let s = 0;
@@ -105,9 +101,9 @@
             {@const dur = phaseDurationTotals(data.phaseDuration)[ph] || 0}
             {#if dur > 0}
               <div class="phase-bar-row">
-                <span class="phase-label" style="color: {PHASE_COLORS[ph] || ACCENT}">{ph}</span>
+                <span class="phase-label" style="color: {PHASE_COLOR_BY_NAME[ph] || ACCENT}">{ph}</span>
                 <div class="phase-bar-track">
-                  <div class="phase-bar-fill" style="width: {Math.min(100, dur / 10 * 100)}%; background: {PHASE_COLORS[ph] || ACCENT}"></div>
+                  <div class="phase-bar-fill" style="width: {Math.min(100, dur / 10 * 100)}%; background: {PHASE_COLOR_BY_NAME[ph] || ACCENT}"></div>
                 </div>
                 <span class="phase-val">{dur.toFixed(1)}ms</span>
               </div>
@@ -130,7 +126,7 @@
             <div class="phase-bar-row">
               <span class="phase-label">{model}</span>
               <div class="phase-bar-track">
-                <div class="phase-bar-fill" style="width: {Math.min(100, cost * 100)}%; background: {PHASE_COLORS[model] || ACCENT}"></div>
+                <div class="phase-bar-fill" style="width: {Math.min(100, cost * 100)}%; background: {PHASE_COLOR_BY_NAME[model] || ACCENT}"></div>
               </div>
               <span class="phase-val">${cost.toFixed(4)}</span>
             </div>
@@ -190,7 +186,7 @@
                 <tr>
                   <td class="mono">{row.external_id}</td>
                   <td><span class="brand-badge badge-{row.brand}">{brandBadge(row.brand)}</span></td>
-                  <td><span class="phase-tag" style="background: {PHASE_COLORS[row.phase] || '#333'}">{row.phase}</span></td>
+                  <td><span class="phase-tag" style="background: {PHASE_COLOR_BY_NAME[row.phase] || '#333'}">{row.phase}</span></td>
                   <td><span class="state-tag state-{row.state}">{row.state}</span></td>
                   <td class="muted text-xs">{new Date(row.at).toLocaleString('de-DE')}</td>
                 </tr>

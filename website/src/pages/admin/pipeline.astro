@@ -1,0 +1,32 @@
+---
+// website/src/pages/admin/pipeline.astro
+// Pipeline page — moved from /dev-status (T001433). Admin-only.
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { getSession, isAdmin } from '../../lib/auth';
+import DevStatusTabs from '../../components/DevStatusTabs.svelte';
+import { getFloor } from '../../lib/factory-floor';
+
+export const prerender = false;
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(`/api/auth/login?redirect=${encodeURIComponent(Astro.url.pathname)}`);
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+const slotsCap = parseInt(process.env.FACTORY_GLOBAL_CAP ?? '3', 10);
+const brand = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
+
+let initial = null;
+try { initial = await getFloor(slotsCap); } catch { initial = null; }
+
+type Tab = 'factory' | 'planung' | 'analytics' | 'kosten' | 'control' | 'abhaengigkeiten';
+const ALLOWED: Tab[] = ['factory', 'planung', 'analytics', 'kosten', 'control', 'abhaengigkeiten'];
+const raw = Astro.url.searchParams.get('tab') ?? '';
+const initialTab: Tab = (ALLOWED.includes(raw as Tab) ? raw : 'factory') as Tab;
+---
+<AdminLayout title="Pipeline">
+  <section class="bg-dark min-h-screen p-6">
+    <div class="max-w-screen-2xl mx-auto">
+      <DevStatusTabs client:load {initial} {initialTab} {brand} />
+    </div>
+  </section>
+</AdminLayout>

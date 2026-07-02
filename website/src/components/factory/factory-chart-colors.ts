@@ -39,3 +39,7 @@ export function heatmapColor(value: number, max: number): string {
   if (max <= 0) return HEATMAP_MIN;
   return interpolateColor(HEATMAP_MIN, HEATMAP_MAX, value / max);
 }
+
+export const PHASE_COLOR_BY_NAME: Record<string, string> = Object.fromEntries(
+  PHASE_LABELS.map((label, i) => [label, PHASE_COLORS[i]]),
+);

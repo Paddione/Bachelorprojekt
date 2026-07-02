@@ -111,7 +111,6 @@
 <div class="factory-budget-page">
   <header class="page-header">
     <h1>Software Factory Token-Budget-Leitstand</h1>
-    <a href="/dev-status" class="btn-back">Zurück zu Dev Status</a>
   </header>
 
   {#if loading}
@@ -262,9 +261,9 @@
   .btn-back { background: rgba(255,255,255,0.06); border: 1px solid var(--admin-border, rgba(255,255,255,0.07)); color: var(--admin-text, #eef1f3); text-decoration: none; padding: 8px 16px; border-radius: 4px; font-size: 13px; transition: background 0.15s; }
   .btn-back:hover { background: rgba(255,255,255,0.1); }
   .page-loading { text-align: center; padding: 4rem 0; color: var(--admin-text-mute, #8c96a3); }
-  .error-banner { background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; padding: 1rem; border-radius: 6px; color: #fca5a5; margin-bottom: 2rem; }
-  .dashboard-grid { display: grid; grid-template-cols: 1fr; gap: 1.5rem; }
-  @media (min-width: 1024px) { .dashboard-grid { grid-template-cols: 1fr 1fr; } }
+  .error-banner { background: color-mix(in srgb, var(--danger) 15%, transparent); border: 1px solid var(--danger); color: var(--danger); padding: 1rem; border-radius: 6px; margin-bottom: 2rem; }
+  .dashboard-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+  @media (min-width: 1024px) { .dashboard-grid { grid-template-columns: 1fr 1fr; } }
   .card { background: var(--admin-bg-light, #1b2330); border: 1px solid var(--admin-border, rgba(255,255,255,0.07)); border-radius: 6px; padding: 1.5rem; margin-bottom: 1.5rem; }
   .card h2 { font-size: 16px; margin-top: 0; margin-bottom: 1rem; font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem; }
   .card h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--admin-text-mute, #8c96a3); margin-top: 1.5rem; margin-bottom: 0.75rem; }
@@ -275,24 +274,24 @@
   .btn-save, .btn-search { background: var(--admin-primary, #818cf8); color: #121820; border: none; padding: 10px 20px; border-radius: 4px; font-weight: 600; font-size: 14px; cursor: pointer; transition: opacity 0.15s; }
   .btn-save:hover, .btn-search:hover { opacity: 0.9; }
   .btn-save:disabled, .btn-search:disabled { opacity: 0.5; cursor: not-allowed; }
-  .success-msg { color: #10b981; font-size: 13px; margin: 0.75rem 0 0 0; }
-  .error-msg { color: #ef4444; font-size: 13px; margin: 0.75rem 0 0 0; }
+  .success-msg { color: var(--sage); font-size: 13px; margin: 0.75rem 0 0 0; }
+  .error-msg { color: var(--danger); font-size: 13px; margin: 0.75rem 0 0 0; }
   .progress-wrap { margin-bottom: 1.5rem; }
   .progress-labels { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 0.5rem; }
   .used-val { font-weight: 700; font-size: 16px; color: var(--admin-primary, #818cf8); }
   .limit-val { color: var(--admin-text-mute, #8c96a3); }
   .progress-bar-bg { background: rgba(255,255,255,0.08); height: 8px; border-radius: 4px; overflow: hidden; }
   .progress-bar-fill { background: var(--admin-primary, #818cf8); height: 100%; border-radius: 4px; transition: width 0.3s ease; }
-  .progress-bar-fill.warning { background: #f59e0b; }
-  .progress-bar-fill.danger { background: #ef4444; }
+  .progress-bar-fill.warning { background: var(--brass); }
+  .progress-bar-fill.danger { background: var(--danger); }
   .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
   .data-table th { text-align: left; color: var(--admin-text-mute, #8c96a3); font-weight: 500; padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.06); }
   .data-table td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.03); }
   .data-table th.num, .data-table td.num { text-align: right; }
   .provider-badge { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; background: rgba(255,255,255,0.08); display: inline-block; }
-  .provider-badge.anthropic { background: rgba(217, 119, 6, 0.15); color: #f59e0b; }
-  .provider-badge.deepseek { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
-  .provider-badge.gpu { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+  .provider-badge.anthropic { background: color-mix(in srgb, var(--brass) 15%, transparent); color: var(--brass); }
+  .provider-badge.deepseek { background: color-mix(in srgb, var(--mute-2) 22%, transparent); color: var(--fg-soft); }
+  .provider-badge.gpu { background: color-mix(in srgb, var(--sage) 15%, transparent); color: var(--sage); }
   .search-form { display: flex; gap: 1rem; margin-bottom: 1rem; }
   .search-form input { background: rgba(0,0,0,0.2); border: 1px solid var(--admin-border, rgba(255,255,255,0.07)); border-radius: 4px; padding: 10px 12px; color: var(--admin-text, #eef1f3); font-size: 14px; flex: 1; outline: none; }
   .ticket-results { margin-top: 1.5rem; overflow-x: auto; }

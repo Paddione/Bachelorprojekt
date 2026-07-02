@@ -2,7 +2,7 @@
 
 ## Purpose
 
-SSOT spec.
+Benachrichtigt Nutzer über Agent-Session-Events via HTTP-POST an einen selbstgehosteten ntfy-Server.
 
 ## Requirements
 

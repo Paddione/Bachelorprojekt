@@ -2,7 +2,7 @@
 
 ## Purpose
 
-SSOT spec.
+Automatisiert die Triage von Tickets durch heuristische Regelauswertung und Schweregrad-Klassifizierung.
 
 ## Requirements
 

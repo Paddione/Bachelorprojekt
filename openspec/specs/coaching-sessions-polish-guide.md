@@ -2,7 +2,7 @@
 
 ## Purpose
 
-SSOT spec.
+Beschreibt das UI-Polish und die Design-Token-Migration für den Coaching-Session-Wizard.
 
 ## Requirements
 

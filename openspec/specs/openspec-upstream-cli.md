@@ -2,7 +2,7 @@
 
 ## Purpose
 
-SSOT spec.
+Beschreibt die Delta-Merge-Funktionalität für operation-bewusste MODIFIED/REMOVED/RENAMED-Operationen im OpenSpec-Workflow.
 
 ## Requirements
 

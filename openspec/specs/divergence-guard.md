@@ -2,7 +2,7 @@
 
 ## Purpose
 
-SSOT spec.
+Erkennt und meldet Abweichungen zwischen deklariertem Soll-Zustand und Ist-Zustand im Repository.
 
 ## Requirements
 

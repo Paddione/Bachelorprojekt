@@ -120,8 +120,10 @@ cmd_archive() {
   local slug="${1:-}"; shift || true
   [[ -n "$slug" ]] || die "archive requires <slug>"
   local create_new=""
+  local force_new=""
   while [[ $# -gt 0 ]]; do case "$1" in
     --create-new) create_new="--create-new"; shift ;;
+    --force-new-component) force_new="--force-new-component"; shift ;;
     *) die "Unknown archive option: $1" ;;
   esac; done
   local dir="$OPENSPEC_ROOT/changes/$slug"
@@ -136,7 +138,7 @@ cmd_archive() {
     for capfile in "$dir/specs"/*.md; do
       [[ -e "$capfile" ]] || continue
       local cap; cap="$(basename "$capfile")"
-      _merge_delta "$capfile" "$OPENSPEC_ROOT/specs/$cap" "$create_new"
+      _merge_delta "$capfile" "$OPENSPEC_ROOT/specs/$cap" "$create_new" "$force_new"
     done
   fi
   mkdir -p "$(dirname "$dest")"
@@ -150,11 +152,11 @@ cmd_archive() {
 }
 
 _merge_delta() {
-  local delta="$1" ssot="$2" create_new="${3:-}"
+  local delta="$1" ssot="$2" create_new="${3:-}" force_new="${4:-}"
   # Operation-aware merge (ADDED/MODIFIED/REMOVED/RENAMED). Fail-closed: a missing
   # target, a RENAMED without **Renamed-to:**, or a skeleton stub exits non-zero
   # and aborts the archive (set -e) before the SSOT can be corrupted.
-  node "$REPO/scripts/openspec-merge.mjs" apply "$delta" "$ssot" $create_new
+  node "$REPO/scripts/openspec-merge.mjs" apply "$delta" "$ssot" $create_new $force_new
 }
 
 cmd_validate() {

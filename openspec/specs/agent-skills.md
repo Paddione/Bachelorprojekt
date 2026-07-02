@@ -2,7 +2,7 @@
 
 ## Purpose
 
-SSOT spec.
+Definiert Regeln für die Ausführung von Agent-Skills, inklusive Schutz vor git-crypt-Artefakten und Deduplizierung von Ticket-Intake.
 
 ## Requirements
 

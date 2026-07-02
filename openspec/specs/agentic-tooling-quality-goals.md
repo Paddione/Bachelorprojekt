@@ -2,7 +2,7 @@
 
 ## Purpose
 
-SSOT spec.
+Definiert Qualitätsziele und -metriken für agentische Werkzeuge und Subagenten-Routing.
 
 ## Requirements
 

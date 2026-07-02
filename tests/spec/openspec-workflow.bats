@@ -206,34 +206,6 @@ rules:
 YAML
 }
 
-@test "T001389: archive --create-new registers the new component slug in config.yaml" {
-  _fake_openspec_root
-  run node "$REPO/scripts/openspec-merge.mjs" apply "$FX/delta-added.md" "$ROOT/specs/new-widget.md" --create-new
-  [ "$status" -eq 0 ]
-  [ -f "$ROOT/specs/new-widget.md" ]
-  grep -q 'new-widget' "$ROOT/config.yaml"
-}
-
-@test "T001389: registering the same component twice does not duplicate the entry" {
-  _fake_openspec_root
-  run node "$REPO/scripts/openspec-merge.mjs" apply "$FX/delta-added.md" "$ROOT/specs/new-widget.md" --create-new
-  [ "$status" -eq 0 ]
-  # remove the merge marker so a second apply against a *different* new slug still runs,
-  # but re-verify idempotency by counting occurrences of the already-registered slug
-  [ "$(grep -o 'new-widget' "$ROOT/config.yaml" | wc -l)" -eq 1 ]
-}
-
-@test "T001389: MODIFIED delta against an existing SSOT does not touch config.yaml" {
-  _fake_openspec_root
-  cp "$FX/ssot-sample.md" "$ROOT/specs/existing.md"
-  local before after
-  before="$(cat "$ROOT/config.yaml")"
-  run node "$REPO/scripts/openspec-merge.mjs" apply "$FX/delta-modified.md" "$ROOT/specs/existing.md"
-  [ "$status" -eq 0 ]
-  after="$(cat "$ROOT/config.yaml")"
-  [ "$before" = "$after" ]
-}
-
 @test "openspec-workflow: propose guidance documents the parent-SSOT-slug delta-spec convention (T001385)" {
   local files=(
     "openspec/specs/openspec-workflow.md"
@@ -248,4 +220,30 @@ YAML
       return 1
     }
   done
+}
+
+# ── T001452: config shadow-state removed + one-off denylist ─────────────#
+
+@test "T001452: openspec/config.yaml carries no OpenSpec-Komponenten list" {
+  ! grep -qi 'OpenSpec-Komponenten' "$REPO/openspec/config.yaml"
+}
+
+@test "T001452: archive --create-new rejects a one-off ticket-shaped slug" {
+  _fake_openspec_root
+  run node "$REPO/scripts/openspec-merge.mjs" apply "$FX/delta-added.md" "$ROOT/specs/t000000-foo.md" --create-new
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"--force-new-component"* ]]
+  [ ! -f "$ROOT/specs/t000000-foo.md" ]
+}
+
+@test "T001452: --force-new-component overrides the one-off denylist" {
+  _fake_openspec_root
+  run node "$REPO/scripts/openspec-merge.mjs" apply "$FX/delta-added.md" "$ROOT/specs/t000000-foo.md" --create-new --force-new-component
+  [ "$status" -eq 0 ]
+  [ -f "$ROOT/specs/t000000-foo.md" ]
+}
+
+@test "T001452: validator ignores specs under openspec/specs/archive/" {
+  run bash -c "cd '$REPO' && npx tsx -e \"import {validateTree} from './scripts/openspec-validate.ts'; const r=validateTree('openspec'); process.exit(r.ok?0:1)\""
+  [ "$status" -eq 0 ]
 }

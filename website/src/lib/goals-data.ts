@@ -104,11 +104,11 @@ const RAW_GOALS: HealthGoal[] = [
   {
     id: 'G-RH03', title: 'OpenSpec-BATS-Abdeckung', category: 'Test-Health',
     priority: 'B', direction: 'higher',
-    baseline: 46, current: 46, target: 60, unit: '%',
+    baseline: 46, current: 113, target: 60, unit: '%',
     status: 'unknown',
     measurement: "SPECS=$(ls openspec/specs/*.md | wc -l); BATS=$(ls tests/spec/*.bats | wc -l); python3 -c \"print(f'{$BATS/$SPECS*100:.0f}')\"",
     source: '.agents/lib/goals.md · G-RH03',
-    measured_at: '2026-06-28',
+    measured_at: '2026-07-02',
   },
   {
     id: 'G-TEST01', title: 'BATS Debt-Skips', category: 'Test-Health',

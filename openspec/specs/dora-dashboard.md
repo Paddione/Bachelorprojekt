@@ -2,7 +2,7 @@
 
 ## Purpose
 
-SSOT spec. The DORA UI surface was retired on 2026-07-02 (T001433) — see the
+Hält die Entscheidung fest, die DORA-Dashboard-UI nicht wieder einzuführen. The DORA UI surface was retired on 2026-07-02 (T001433) — see the
 archived delta `openspec/changes/archive/2026-07-02-admin-redesign/specs/dora-dashboard.md`
 for the full REMOVED-requirements history. The DORA/CFR measurement itself is
 preserved as a CLI gate (`bash scripts/vda.sh cfr`, gate G-DORA03) and is not

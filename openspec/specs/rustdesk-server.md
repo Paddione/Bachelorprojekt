@@ -2,7 +2,7 @@
 
 ## Purpose
 
-SSOT spec.
+Definiert den Betrieb eines gemeinsamen RustDesk-Relay-Servers für beide Brands mit persistenten Client-IDs.
 
 ## Requirements
 

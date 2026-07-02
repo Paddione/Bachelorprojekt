@@ -689,8 +689,8 @@
   ],
   "T001389": [
     {
-      "slug": "openspec-auto-register",
-      "status": "plan_staged"
+      "slug": "2026-07-02-openspec-auto-register",
+      "status": "archived"
     }
   ],
   "T001391": [
@@ -763,6 +763,12 @@
     {
       "slug": "2026-07-02-t001434-logging-middleware-missing",
       "status": "archived"
+    }
+  ],
+  "T001452": [
+    {
+      "slug": "openspec-tracking-cleanup",
+      "status": "plan_staged"
     }
   ],
   "TBD": [

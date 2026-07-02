@@ -157,43 +157,6 @@ export function validateSpecsDir(specsDir: string): ValidationResult {
   return { ok: errors.length === 0, errors, warnings }
 }
 
-/**
- * Check whether SSOT specs under openspec/specs/ are listed in openspec/config.yaml
- * OpenSpec-Komponenten. Hard-fails (ok:false) for unlisted slugs — T001304 drift gate.
- */
-export function checkConfigDrift(openspecRoot: string): ValidationResult {
-  const errors: string[] = []
-
-  const configPath = join(openspecRoot, 'config.yaml')
-  const specsDir = join(openspecRoot, 'specs')
-
-  if (!existsSync(configPath) || !existsSync(specsDir)) {
-    return { ok: true, errors: [], warnings: [] }
-  }
-
-  const configContent = readFileSync(configPath, 'utf-8')
-  // Extract the OpenSpec-Komponenten value (block scalar or inline)
-  const match = configContent.match(/OpenSpec-Komponenten:\s*\|?\s*([\s\S]*?)(?:\n\w|\n$|$)/)
-  const componentSet = new Set<string>()
-  if (match) {
-    const raw = match[1]
-    for (const part of raw.split(/[\n,]+/)) {
-      const slug = part.trim()
-      if (slug) componentSet.add(slug)
-    }
-  }
-
-  for (const entry of readdirSync(specsDir, { withFileTypes: true })) {
-    if (!entry.isFile() || !entry.name.endsWith('.md')) continue
-    const slug = entry.name.replace(/\.md$/, '')
-    if (!componentSet.has(slug)) {
-      errors.push(`FAIL: ${slug} not listed in config.yaml OpenSpec-Komponenten`)
-    }
-  }
-
-  return { ok: errors.length === 0, errors, warnings: [] }
-}
-
 export function validateTree(openspecRoot: string): ValidationResult {
   const changesDir = join(openspecRoot, 'changes')
   const specsDir = join(openspecRoot, 'specs')
@@ -217,11 +180,6 @@ export function validateTree(openspecRoot: string): ValidationResult {
   const specsResult = validateSpecsDir(specsDir)
   allErrors.push(...specsResult.errors)
   allWarnings.push(...specsResult.warnings)
-
-  // 3) Check config drift — SSOT specs not listed in config.yaml (hard gate T001304)
-  const driftResult = checkConfigDrift(openspecRoot)
-  allErrors.push(...driftResult.errors)
-  allWarnings.push(...driftResult.warnings)
 
   return { ok: allErrors.length === 0, errors: allErrors, warnings: allWarnings }
 }

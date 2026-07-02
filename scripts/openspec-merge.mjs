@@ -69,7 +69,7 @@ function endOfRequirements(lines) {
   return i
 }
 
-export function applyDelta(deltaPath, ssotPath, today = new Date().toISOString().slice(0, 10), createNew = false) {
+export function applyDelta(deltaPath, ssotPath, today = new Date().toISOString().slice(0, 10), createNew = false, forceNewComponent = false) {
   const deltaName = basename(deltaPath)
   const delta = readFileSync(deltaPath, 'utf-8')
 
@@ -81,15 +81,12 @@ export function applyDelta(deltaPath, ssotPath, today = new Date().toISOString()
     if (!createNew) {
       fail(`Target '${ssotPath}' does not exist. Point the delta at an existing spec, or pass --create-new for a genuinely new component.`)
     }
-    mkdirSync(dirname(ssotPath), { recursive: true })
-    writeFileSync(ssotPath, `# ${basename(ssotPath, '.md')}\n\n## Purpose\n\nSSOT spec.\n\n## Requirements\n`)
-    try {
-      const openspecRoot = dirname(dirname(ssotPath))
-      registerComponent(openspecRoot, basename(ssotPath, '.md'))
-    } catch (e) {
-      // Best-effort: never abort archive/apply because of config.yaml registration.
-      process.stderr.write(`WARN: registerComponent failed (non-fatal): ${e.message}\n`)
+    const newSlug = basename(ssotPath, '.md')
+    if (/^(t[0-9]{6}|g-[a-z0-9]+[0-9]{2})/.test(newSlug) && !forceNewComponent) {
+      fail(`Refusing to create one-off spec '${newSlug}.md' (ticket/gate slug pattern). Use --target-spec <parent> to fold it into an existing component, or --force-new-component to override.`)
     }
+    mkdirSync(dirname(ssotPath), { recursive: true })
+    writeFileSync(ssotPath, `# ${newSlug}\n\n## Purpose\n\n_Purpose fehlt — beim nächsten inhaltlichen Delta zu ${newSlug} ergänzen._\n\n## Requirements\n`)
   }
   let content = readFileSync(ssotPath, 'utf-8')
   const marker = `<!-- merged from change delta ${deltaName} on ${today} -->`
@@ -122,48 +119,17 @@ export function applyDelta(deltaPath, ssotPath, today = new Date().toISOString()
   return 0
 }
 
-// Idempotently register a newly-created SSOT component slug into
-// openspec/config.yaml's `OpenSpec-Komponenten` list (T001389 — closes the
-// T001304 CI drift gate without a manual follow-up commit). Best-effort: any
-// unexpected config.yaml shape is a silent no-op, never a thrown error.
-export function registerComponent(openspecRoot, slug) {
-  const configPath = join(openspecRoot, 'config.yaml')
-  if (!existsSync(configPath)) return false
-
-  const lines = readFileSync(configPath, 'utf-8').split('\n')
-  const headerIdx = lines.findIndex(l => /^\s*OpenSpec-Komponenten:\s*\|\s*$/.test(l))
-  if (headerIdx === -1) return false
-
-  let end = headerIdx + 1
-  while (end < lines.length && /^\s+\S/.test(lines[end])) end++
-  const bodyLines = lines.slice(headerIdx + 1, end)
-  if (bodyLines.length === 0) return false
-
-  const existing = new Set(
-    bodyLines.join('\n').split(/[\n,]+/).map(s => s.trim()).filter(Boolean)
-  )
-  if (existing.has(slug)) return false
-
-  const indent = (bodyLines[0].match(/^\s*/) || [''])[0] || '    '
-  const lastIdx = end - 1
-  if (!/,\s*$/.test(lines[lastIdx])) {
-    lines[lastIdx] = lines[lastIdx].replace(/\s+$/, '') + ','
-  }
-  lines.splice(end, 0, `${indent}${slug}`)
-  writeFileSync(configPath, lines.join('\n'))
-  return true
-}
-
 function main(argv) {
   const positional = argv.filter(a => !a.startsWith('--'))
   const flags = argv.filter(a => a.startsWith('--'))
   const [verb, deltaPath, ssotPath] = positional
   if (verb !== 'apply' || !deltaPath || !ssotPath) {
-    process.stderr.write('Usage: openspec-merge.mjs apply <deltaPath> <ssotPath> [--create-new]\n')
+    process.stderr.write('Usage: openspec-merge.mjs apply <deltaPath> <ssotPath> [--create-new] [--force-new-component]\n')
     process.exit(2)
   }
   const createNew = flags.includes('--create-new')
-  return applyDelta(deltaPath, ssotPath, new Date().toISOString().slice(0, 10), createNew)
+  const forceNewComponent = flags.includes('--force-new-component')
+  return applyDelta(deltaPath, ssotPath, new Date().toISOString().slice(0, 10), createNew, forceNewComponent)
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

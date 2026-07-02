@@ -1,0 +1,132 @@
+{
+  "meta": {
+    "slug": "openspec-tracking-cleanup",
+    "ticket_id": "T001452",
+    "generated_from": "main@5271b12ca",
+    "domains": ["dev-tooling", "openspec"],
+    "intel_sources": ["explore-agent", "grep", "baseline.json", "ticket-mcp"]
+  },
+  "impact_files": [
+    { "path": "scripts/openspec-validate.ts", "language": "typescript", "loc": 227, "s1_limit": 600, "s1_baseline": null, "s1_budget": 373 },
+    { "path": "scripts/openspec-validate.test.ts", "language": "typescript", "loc": 166, "s1_limit": 600, "s1_baseline": null, "s1_budget": 434 },
+    { "path": "scripts/openspec-merge.mjs", "language": "javascript", "loc": 171, "s1_limit": 500, "s1_baseline": null, "s1_budget": 329 },
+    { "path": "scripts/openspec-merge.test.ts", "language": "typescript", "loc": 111, "s1_limit": 600, "s1_baseline": null, "s1_budget": 489 },
+    { "path": "scripts/openspec.sh", "language": "bash", "loc": 208, "s1_limit": 500, "s1_baseline": null, "s1_budget": 292 },
+    { "path": "openspec/config.yaml", "language": "yaml", "loc": 80, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "tests/spec/openspec-workflow.bats", "language": "bash", "loc": 251, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "website/src/lib/goals-data.ts", "language": "typescript", "loc": 304, "s1_limit": 600, "s1_baseline": null, "s1_budget": 296 },
+    { "path": "scripts/openspec-context.sh", "language": "bash", "loc": 99, "s1_limit": 500, "s1_baseline": null, "s1_budget": 401 }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/openspec-validate.ts:checkConfigDrift",
+      "kind": "function",
+      "file": "scripts/openspec-validate.ts",
+      "signature": "export function checkConfigDrift(openspecRoot: string): ValidationResult",
+      "type_text": "(openspecRoot: string) => ValidationResult — Z.164-195, T001304-Drift-Gate, WIRD ENTFERNT; Aufruf in validateTree() Z.222",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-validate.ts:validateTree",
+      "kind": "function",
+      "file": "scripts/openspec-validate.ts",
+      "signature": "export function validateTree(openspecRoot: string): ValidationResult",
+      "type_text": "(openspecRoot: string) => ValidationResult — Z.197ff; ruft validateSpecsDir + checkConfigDrift; Test gegen echtes Repo in openspec-validate.test.ts Z.65-88 muss grün bleiben",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-validate.ts:validateSpecsDir",
+      "kind": "function",
+      "file": "scripts/openspec-validate.ts",
+      "signature": "export function validateSpecsDir(specsDir: string): ValidationResult",
+      "type_text": "(specsDir: string) => ValidationResult — Z.143-157, readdirSync; muss Unterverzeichnis archive/ ignorieren (nur Top-Level-.md)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-validate.ts:validateSpec",
+      "kind": "function",
+      "file": "scripts/openspec-validate.ts",
+      "signature": "export function validateSpec(specFile: string): Pick<ValidationResult, 'errors'>",
+      "type_text": "(specFile: string) => { errors: string[] } — Z.123, prüft ## Purpose + ## Requirements H2",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-merge.mjs:applyDelta",
+      "kind": "function",
+      "file": "scripts/openspec-merge.mjs",
+      "signature": "export function applyDelta(deltaPath, ssotPath, today = new Date().toISOString().slice(0, 10), createNew = false)",
+      "type_text": "(deltaPath: string, ssotPath: string, today?: string, createNew?: boolean) => void — Z.72-123; !existsSync&&createNew-Zweig Z.85 schreibt Skeleton mit Platzhalter 'SSOT spec.' und ruft registerComponent Z.88; hier Denylist + --force-new-component ansetzen",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-merge.mjs:registerComponent",
+      "kind": "function",
+      "file": "scripts/openspec-merge.mjs",
+      "signature": "export function registerComponent(openspecRoot, slug)",
+      "type_text": "(openspecRoot: string, slug: string) => void — Z.129-155, T001389-Auto-Register, WIRD ENTFERNT (inkl. Aufruf Z.88-92 und BATS openspec-workflow.bats Z.187-235)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-merge.mjs:main",
+      "kind": "function",
+      "file": "scripts/openspec-merge.mjs",
+      "signature": "function main(argv)",
+      "type_text": "(argv: string[]) => void — Z.157ff, CLI-Entry 'apply <delta> <ssot> [--create-new]'; neues Flag --force-new-component hier parsen",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:cmd_archive",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "cmd_archive() # args: <slug> [--create-new]",
+      "type_text": "Z.119-150: parst --create-new (Z.123-126), verlangt Ticket-Status done (Z.129-132), _merge_delta pro specs/*.md (Z.135-140), mv nach changes/archive/$(date +%F)-$slug (Z.143), status-map (Z.145), pgvector-refresh (Z.148)",
+      "source": "explore-agent"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:_merge_delta",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "_merge_delta() # args: <delta-file> <ssot-path> [create_new]",
+      "type_text": "Z.152-158: node scripts/openspec-merge.mjs apply <delta> $OPENSPEC_ROOT/specs/$cap $create_new — Zielpfad = Delta-Dateiname 1:1",
+      "source": "explore-agent"
+    },
+    {
+      "qualified_name": "scripts/openspec-context.sh:SPECS_DIR",
+      "kind": "variable",
+      "file": "scripts/openspec-context.sh",
+      "signature": "SPECS_DIR=\"$REPO_ROOT/openspec/specs\"",
+      "type_text": "Z.13; lädt $SPECS_DIR/${slug}.md (Z.90-97) — archivierte Slugs fallen automatisch in den bestehenden Not-Found-Pfad, KEIN Umbau nötig",
+      "source": "explore-agent"
+    },
+    {
+      "qualified_name": "website/src/lib/goals-data.ts:G-RH03",
+      "kind": "constant",
+      "file": "website/src/lib/goals-data.ts",
+      "signature": "{ id: 'G-RH03', measurement: \"SPECS=$(ls openspec/specs/*.md | wc -l); BATS=$(ls tests/spec/*.bats | wc -l); ...\" }",
+      "type_text": "Z.105-112: BATS/SPECS-Ratio, direction 'higher', baseline 46, current 46, target 60 — Archivierung hebt current auf ~75-80; current + measured_at aktualisieren",
+      "source": "explore-agent"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": ["scripts/openspec.sh:cmd_archive", "scripts/openspec-validate.ts:validateTree"],
+    "edges": [
+      { "from": "cmd_archive", "to": "_merge_delta", "kind": "calls" },
+      { "from": "_merge_delta", "to": "openspec-merge.mjs:main", "kind": "calls" },
+      { "from": "openspec-merge.mjs:main", "to": "applyDelta", "kind": "calls" },
+      { "from": "applyDelta", "to": "registerComponent", "kind": "calls" },
+      { "from": "validateTree", "to": "validateSpecsDir", "kind": "calls" },
+      { "from": "validateTree", "to": "checkConfigDrift", "kind": "calls" },
+      { "from": "validateSpecsDir", "to": "validateSpec", "kind": "calls" },
+      { "from": "cmd_archive", "to": "openspec-status-map.sh", "kind": "calls" }
+    ]
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    { "note": "codebase-memory MCP nicht abgefragt (Signaturen via grep/Explore-Agent verifiziert, Zeilennummern Stand main@5271b12ca)", "severity": "info" },
+    { "note": "openspec-validate.test.ts Z.65-88 validiert gegen das ECHTE Repo — Reihenfolge im Plan beachten: checkConfigDrift-Entfernung und Spec-Verschiebung müssen im selben Commit grün sein", "severity": "warn" },
+    { "note": "One-off-Slug-Liste (36 Dateien) muss deterministisch erzeugt werden; 3 Einzelfälle ohne Muster: mentolder-homepage-hifi-redesign, ticket-verlauf-anhaenge, mcp-server-capabilities (Achtung: gleichnamiger Skill existiert)", "severity": "warn" },
+    { "note": "Vorgelagerte Archivierung von openspec-auto-register (T001389 done) ändert openspec-status.json + pgvector — freshness:regenerate in Verifikation zwingend", "severity": "warn" }
+  ]
+}

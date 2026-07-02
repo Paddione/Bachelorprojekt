@@ -1,0 +1,398 @@
+{
+  "meta": {
+    "slug": "admin-redesign",
+    "ticket_id": "T001433",
+    "generated_from": "docs/superpowers/specs/2026-07-02-admin-redesign-design.md",
+    "domains": [
+      "website"
+    ],
+    "intel_sources": [
+      "grep",
+      "Read",
+      "wc -l",
+      "kubectl exec psql (mcp-postgres-Fallback)",
+      "docs/code-quality/baseline.json",
+      "scripts/plan-lint.sh _ext_limit"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "website/src/styles/factory-tokens.css",
+      "language": "css",
+      "loc": 133,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "website/src/styles/admin-foundation.css",
+      "language": "css",
+      "loc": 70,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "website/src/styles/admin-premium.css",
+      "language": "css",
+      "loc": 252,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "website/public/brand/korczewski/kore-app.css",
+      "language": "css",
+      "loc": 562,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "website/src/components/admin/AdminSidebarNav.astro",
+      "language": "astro",
+      "loc": 179,
+      "s1_limit": 400,
+      "s1_baseline": null,
+      "s1_budget": 221
+    },
+    {
+      "path": "website/src/layouts/AdminLayout.astro",
+      "language": "astro",
+      "loc": 262,
+      "s1_limit": 400,
+      "s1_baseline": null,
+      "s1_budget": 138
+    },
+    {
+      "path": "website/src/pages/admin.astro",
+      "language": "astro",
+      "loc": 159,
+      "s1_limit": 400,
+      "s1_baseline": null,
+      "s1_budget": 241
+    },
+    {
+      "path": "website/src/components/admin/AdminShortcuts.svelte",
+      "language": "svelte",
+      "loc": 338,
+      "s1_limit": 500,
+      "s1_baseline": null,
+      "s1_budget": 162
+    },
+    {
+      "path": "website/src/pages/dev-status.astro",
+      "language": "astro",
+      "loc": 36,
+      "s1_limit": 400,
+      "s1_baseline": null,
+      "s1_budget": 364
+    },
+    {
+      "path": "website/src/components/DevStatusTabs.svelte",
+      "language": "svelte",
+      "loc": 197,
+      "s1_limit": 500,
+      "s1_baseline": null,
+      "s1_budget": 303
+    },
+    {
+      "path": "website/src/components/FactoryFloor.svelte",
+      "language": "svelte",
+      "loc": 386,
+      "s1_limit": 500,
+      "s1_baseline": null,
+      "s1_budget": 114
+    },
+    {
+      "path": "website/src/components/FactoryFloorLane.svelte",
+      "language": "svelte",
+      "loc": 113,
+      "s1_limit": 500,
+      "s1_baseline": null,
+      "s1_budget": 387
+    },
+    {
+      "path": "website/src/components/factory/FactoryObservability.svelte",
+      "language": "svelte",
+      "loc": 270,
+      "s1_limit": 500,
+      "s1_baseline": null,
+      "s1_budget": 230
+    },
+    {
+      "path": "website/src/components/factory/FactoryBudgetPage.svelte",
+      "language": "svelte",
+      "loc": 307,
+      "s1_limit": 500,
+      "s1_baseline": null,
+      "s1_budget": 193
+    },
+    {
+      "path": "website/src/components/factory/factory-chart-colors.ts",
+      "language": "ts",
+      "loc": 41,
+      "s1_limit": 600,
+      "s1_baseline": null,
+      "s1_budget": 559
+    },
+    {
+      "path": "website/src/components/assistant/PipelineSidekickView.svelte",
+      "language": "svelte",
+      "loc": 196,
+      "s1_limit": 500,
+      "s1_baseline": null,
+      "s1_budget": 304
+    },
+    {
+      "path": "website/src/components/admin/Cockpit.svelte",
+      "language": "svelte",
+      "loc": 156,
+      "s1_limit": 500,
+      "s1_baseline": null,
+      "s1_budget": 344
+    },
+    {
+      "path": "website/src/components/admin/CockpitTable.svelte",
+      "language": "svelte",
+      "loc": 336,
+      "s1_limit": 500,
+      "s1_baseline": null,
+      "s1_budget": 164
+    },
+    {
+      "path": "website/src/components/admin/ui/AdminBadge.svelte",
+      "language": "svelte",
+      "loc": 89,
+      "s1_limit": 500,
+      "s1_baseline": null,
+      "s1_budget": 411
+    },
+    {
+      "path": "website/src/components/admin/ui/AdminTabs.svelte",
+      "language": "svelte",
+      "loc": 134,
+      "s1_limit": 500,
+      "s1_baseline": null,
+      "s1_budget": 366
+    },
+    {
+      "path": "website/src/pages/admin/dora.astro",
+      "language": "astro",
+      "loc": 21,
+      "s1_limit": 400,
+      "s1_baseline": null,
+      "s1_budget": 379
+    },
+    {
+      "path": "website/src/components/admin/DoraDashboard.svelte",
+      "language": "svelte",
+      "loc": 99,
+      "s1_limit": 500,
+      "s1_baseline": null,
+      "s1_budget": 401
+    },
+    {
+      "path": "website/src/lib/dora-metrics.ts",
+      "language": "ts",
+      "loc": 73,
+      "s1_limit": 600,
+      "s1_baseline": null,
+      "s1_budget": 527
+    },
+    {
+      "path": "website/src/pages/api/admin/dora-metrics.ts",
+      "language": "ts",
+      "loc": 90,
+      "s1_limit": 600,
+      "s1_baseline": null,
+      "s1_budget": 510
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "factory-floor.getFloor",
+      "kind": "function",
+      "file": "website/src/lib/factory-floor.ts:356",
+      "signature": "export async function getFloor(slotsCap: number): Promise<FloorPayload>",
+      "type_text": "FloorPayload = { control: ControlSnapshot; metrics: FloorMetrics; loadingDock: LoadingDockItem[]; hall: HallItem[]; shipped: ShippedItem[]; awaitingDeploy: AwaitingDeployItem[]; awaitingDeployVisible: boolean; staged: StagedItem[]; providerHealth: ProviderStatus[]; officeWaiting: number; stagedWaiting: number; planningCount: PlanningCount; attention: AttentionPayload; fetchedAt: string }",
+      "source": "grep/Read factory-floor-types.ts:78"
+    },
+    {
+      "qualified_name": "pipeline-order.PIPELINE_LANES",
+      "kind": "const",
+      "file": "website/src/lib/tickets/pipeline-order.ts",
+      "signature": "export const PIPELINE_LANES: readonly PipelineLane[]",
+      "type_text": "PipelineLane = { key: LaneKey; label: string; statuses: TicketStatus[]; side: boolean } — 9 Lanes (planning, staged, loadingDock, hall, qa, awaitingDeploy, shipped, attention, archive); pure module, importierbar ohne pg Pool",
+      "source": "Read pipeline-order.ts"
+    },
+    {
+      "qualified_name": "factory-floor-filters.PHASE_ORDER",
+      "kind": "const",
+      "file": "website/src/lib/factory-floor-filters.ts:3",
+      "signature": "export const PHASE_ORDER = ['scout','design','plan','implement','verify','deploy'] as const",
+      "type_text": "Phase = (typeof PHASE_ORDER)[number]; PhaseState = 'entered' | 'done' | 'blocked'",
+      "source": "grep factory-floor-filters.ts / factory-floor-types.ts:20"
+    },
+    {
+      "qualified_name": "AdminTabs.Props",
+      "kind": "component-props",
+      "file": "website/src/components/admin/ui/AdminTabs.svelte",
+      "signature": "let { tabs = [], active = '' }: Props = $props()",
+      "type_text": "Props = { tabs: { id: string; label: string; href?: string }[]; active: string } — Pfeiltasten-Keyboard-Nav, animierter Indikator",
+      "source": "Read AdminTabs.svelte:4-16"
+    },
+    {
+      "qualified_name": "AdminBadge.Props",
+      "kind": "component-props",
+      "file": "website/src/components/admin/ui/AdminBadge.svelte",
+      "signature": "let { variant = 'neutral', size = 'md', dot = false, children }: Props & { children?: Snippet } = $props()",
+      "type_text": "Props = { variant?: 'success'|'warning'|'error'|'info'|'neutral'; size?: 'sm'|'md'; dot?: boolean }",
+      "source": "Read AdminBadge.svelte:4-16"
+    },
+    {
+      "qualified_name": "PipelineSidekickView.props",
+      "kind": "component-props",
+      "file": "website/src/components/assistant/PipelineSidekickView.svelte",
+      "signature": "let { onClose: _onClose }: { onClose: () => void } = $props()",
+      "type_text": "Nutzt GET /api/factory-floor + SSE /api/factory-floor/stream; rendert PIPELINE_LANES-Leiste mit Auslastungs-Fill, aufklappbar zu Ticketliste + PhaseStepper; Test: PipelineSidekickView.test.ts",
+      "source": "Read PipelineSidekickView.svelte:6"
+    },
+    {
+      "qualified_name": "factory-chart-colors",
+      "kind": "module",
+      "file": "website/src/components/factory/factory-chart-colors.ts",
+      "signature": "export PHASE_COLORS[]; export function heatmapColor(...)",
+      "type_text": "Zentrale Chart-Palette; heute nur von FactoryThroughputChart/FactoryShippedBar/FactoryPhaseHeatmap konsumiert — FactoryObservability hat lokale Kopie (zu entfernen)",
+      "source": "Explorer-Bericht + Read"
+    },
+    {
+      "qualified_name": "AdminSidebarNav.navSections",
+      "kind": "const",
+      "file": "website/src/components/admin/AdminSidebarNav.astro:37-63",
+      "signature": "navSections: { label?: string; items: NavItem[]; accordion?: boolean }[]",
+      "type_text": "4 Sektionen: ungelabelt (Dashboard/Cockpit/Postfach+badge), Geschäft, Werkstatt (accordion, 9 Items), Infrastruktur; isActive() via matches[]-Array oder path.startsWith(href); Icons aus layouts/admin-icons.ts (set:html)",
+      "source": "Explorer-Bericht"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [
+      "GET /api/factory-floor",
+      "GET /api/factory-floor/stream",
+      "FactoryFloor.svelte",
+      "PipelineSidekickView.svelte",
+      "DevStatusTabs.svelte"
+    ],
+    "edges": [
+      "GET /api/factory-floor -> getFloor(slotsCap) -> { getMetrics, getLoadingDock, getHall, getShipped, getAwaitingDeploy, getProviderHealth } (Promise.all)",
+      "FactoryFloor.svelte -> fetch /api/factory-floor + EventSource /api/factory-floor/stream (SSE ist nur Wake-up-Trigger, Client refetcht GET)",
+      "PipelineSidekickView.svelte -> fetch /api/factory-floor + SSE stream (gleiche Quellen wie Floor)",
+      "dev-status.astro -> DevStatusTabs.svelte -> { FactoryFloor, PlanungsbueroPanel, ControlPanel, Analytics(FactoryKpiGrid+Charts), Abhaengigkeiten }",
+      "FactoryFloor.svelte -> DetailPanel -> GET /api/factory-floor/[extId] (events, breadcrumbs, injections)",
+      "Cockpit.svelte -> fetch /api/admin/cockpit/portfolio -> getPortfolio(brand) (cockpit-db.ts)"
+    ]
+  },
+  "db_tables": [
+    {
+      "name": "tickets.ticket_links",
+      "columns": [
+        "id:bigint",
+        "from_id:uuid",
+        "to_id:uuid",
+        "kind:text",
+        "pr_number:integer",
+        "created_at:timestamptz",
+        "created_by:uuid"
+      ]
+    },
+    {
+      "name": "tickets.factory_phase_events",
+      "columns": [
+        "id:bigserial",
+        "ticket_id:uuid (FK tickets.tickets ON DELETE CASCADE)",
+        "phase:text CHECK IN (scout,design,plan,implement,verify,deploy)",
+        "state:text CHECK IN (entered,done,blocked)",
+        "detail:text",
+        "driver:text CHECK IN (factory,devflow) DEFAULT factory",
+        "at:timestamptz DEFAULT now()"
+      ]
+    }
+  ],
+  "api_contracts": [
+    {
+      "route": "/api/factory-floor",
+      "method": "GET",
+      "request_type": "—",
+      "response_type": "FloorPayload (factory-floor-types.ts)",
+      "file": "website/src/pages/api/factory-floor.ts"
+    },
+    {
+      "route": "/api/factory-floor/stream",
+      "method": "GET",
+      "request_type": "—",
+      "response_type": "SSE: phase-Events als Refetch-Trigger",
+      "file": "website/src/pages/api/factory-floor/stream.ts"
+    },
+    {
+      "route": "/api/factory-floor/[extId]",
+      "method": "GET",
+      "request_type": "extId: T\\d{6}",
+      "response_type": "Detail: { events: PhaseEventRow[], breadcrumbs: Breadcrumb[], injections: [...] } — für Expand-Row prüfen ob description enthalten; ggf. additiv erweitern",
+      "file": "website/src/pages/api/factory-floor/[extId].ts"
+    },
+    {
+      "route": "/api/factory-observability",
+      "method": "GET",
+      "request_type": "—",
+      "response_type": "{ brand, timeline: [], fetchedAt }",
+      "file": "website/src/pages/api/factory-observability.ts"
+    },
+    {
+      "route": "/api/factory-budget",
+      "method": "GET|POST",
+      "request_type": "GET ?ticketId|?date|?recent · POST { limit }",
+      "response_type": "{ used, limit, byProvider[] } · Fehlerpfad nutzt locals.requestLogger (in lokalem Dev undefined — Nebenbefund)",
+      "file": "website/src/pages/api/factory-budget.ts"
+    },
+    {
+      "route": "/api/admin/cockpit/portfolio",
+      "method": "GET",
+      "request_type": "—",
+      "response_type": "{ products: [{ id, extId, title, rollup: { total, done, blocked, inProgress, awaitingDeploy, open, pctDone }, features: [...] }] }",
+      "file": "website/src/pages/api/admin/cockpit/portfolio.ts"
+    },
+    {
+      "route": "/api/admin/dora-metrics",
+      "method": "GET",
+      "request_type": "?window=7d|30d|90d|all",
+      "response_type": "WIRD ENTFERNT (D6) — inkl. dora-metrics.ts + Tests",
+      "file": "website/src/pages/api/admin/dora-metrics.ts"
+    }
+  ],
+  "external_types": [
+    {
+      "library": "chart.js",
+      "symbol": "Chart, registerables",
+      "signature": "new Chart(ctx, config); Chart.register(...registerables)",
+      "source": "genutzt in FactoryThroughputChart.svelte + FactoryShippedBar.svelte; Farben künftig aus factory-chart-colors.ts"
+    }
+  ],
+  "risks": [
+    {
+      "note": "fa-mobile-factory.spec.ts + dev-status-tabs.spec.ts selektieren .ds-tab/.tab-bar-wrap — Umstellung auf AdminTabs ändert diese Klassen; Specs im selben Task wie der Tab-Umbau anpassen (Outer-Tabs: 5 → 6).",
+      "severity": "warn"
+    },
+    {
+      "note": "GET /api/factory-floor/[extId] liefert evtl. keine Ticket-Beschreibung — für Cockpit-Expand-Row im Plan verifizieren und Endpoint ggf. additiv erweitern (kein Breaking Change).",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory-MCP/LSP für Symbole nicht genutzt (grep/Read-Fallback war ausreichend); mcp-postgres nicht erreichbar aus dieser Session — DB-Spalten via kubectl exec psql (Dev-DB, Schema frisch initialisiert) erhoben.",
+      "severity": "info"
+    },
+    {
+      "note": "adminmenu-restructure (T001317, done) ist noch nicht archiviert — website-core-SSOT enthält dessen Deltas noch nicht; MODIFIED-Blöcke dieses Changes beschreiben den vollständigen Zielzustand.",
+      "severity": "info"
+    }
+  ]
+}

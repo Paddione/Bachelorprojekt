@@ -1,4 +1,24 @@
-# CI-Fix-Schleife — Referenz für dev-flow-execute Schritt 5.5
+# CI-Fix-Schleife (SSOT)
+
+Genutzt von `dev-flow-execute` (Schritt 5.5) und `git-workflow` (Schritt 5). Einzige
+CI-Fix-Referenz — die frühere Zweitkopie `dev-flow-execute/references/ci-fix-loop.md` ist
+hierher konsolidiert.
+
+## Einstieg: `devflow-ci-watch.sh`
+
+Watcht einen PR bis alle required checks grün sind, sammelt Failure-Logs und eskaliert nach
+`MAX_CI_ATTEMPTS` (Default 5):
+
+```bash
+TICKET_ID="T000xxx"
+PR_URL=$(gh pr view --json url -q '.url')
+bash scripts/devflow-ci-watch.sh "$TICKET_ID" "$PR_URL"
+```
+
+- Bei Failure: `gh run view --log-failed` (Tail 200) → Diagnose an einen Fix-Subagenten
+  delegieren (Prompt-Vorlage unten), nach erfolgreichem Fix Loop wiederholen.
+- `MAX_CI_ATTEMPTS` erreicht → `exit 1` mit Liste der roten Checks (Eskalation an den Skill).
+- Telemetrie: das Skript ruft `./scripts/ticket.sh phase … deploy …` best-effort auf (`|| true`).
 
 ## Required Checks (Branch-Protection)
 
@@ -9,7 +29,7 @@ Auto-Merge wartet auf diese fünf required checks:
 | `Offline Tests (Manifests, Configs, Unit)` | `ci.yml` → `task test:all` |
 | `Security Scan` | `ci.yml` → image-pin + hardcoded-secret detection |
 | `Brett TypeScript` | `ci.yml` → tsc in `brett/` |
-| `Vitest (website)` | `ci.yml` → `pnpm test` in `website/` |
+| `Vitest (website + arena-server)` | `ci.yml` → `pnpm test` in `website/` |
 | `Conventional Commits` | `ci.yml` → commitlint PR-Titel |
 
 `E2E PR` ist **kein** required check (T000722) — erscheint informativ, blockiert Merge nicht.

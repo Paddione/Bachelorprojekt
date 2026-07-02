@@ -92,6 +92,26 @@ Jeder Plan, der in `website/src/lib/**` oder `website/src/pages/api/**` neue Dat
 
 **Abweichung explizit begründen:** Wenn ein Plan `.ts`/`.svelte`-Dateien ändert aber bewusst KEINEN neuen Vitest-Test braucht (rein konfigurativ, Refactor ohne Logikänderung), muss der Plan einen Kommentar enthalten: `<!-- vitest: kein neuer Test nötig, weil … -->`.
 
+### plan-lint Hard Rules (fail-closed Gate — `scripts/plan-lint.sh`)
+
+Jede `tasks.md` muss diese Hard-Pflichten erfüllen (SSOT hier + im Skript; Plan-Subagenten
+lesen diese Datei statt einer Kopie im Skill-Prompt):
+
+- **F1 Frontmatter:** YAML-Frontmatter am Anfang mit den vier Pflicht-Keys
+  `title`, `ticket_id`, `domains`, `status` (alle nicht-leer).
+- **F2 domains:** `domains:` ist eine non-empty YAML-Liste (`[a, b, …]`), kein leerer String,
+  kein `[]`.
+- **STRUCT1 Plan-Shape:** Nach dem Frontmatter beginnt die Datei mit
+  `# <slug> — Implementation Plan` als H1, gefolgt von einer H2-Sektion `## File Structure`
+  mit den geänderten/neuen Dateien.
+- **STRUCT2 Failing-Test-Step:** Mindestens ein Task enthält einen rot→grün-Failing-Test-Step
+  mit der wortwörtlichen Phrase `expected: FAIL` (regex tolerant: `expected:? *fail`).
+- **STRUCT3 Verify-Task:** Der letzte Task listet die drei mandatory Verify-Commands:
+  `task test:changed`, `task freshness:regenerate`, `task freshness:check`
+  (regex `task[[:space:]]+<cmd>`).
+- **P1 Placeholder-Verbot:** In Prosa (außerhalb von ```-Fences und `inline code`) dürfen
+  `TBD`, `TODO`, `FIXME`, `???`, `<ausfüllen>` und `similar to Task <N>` NICHT vorkommen.
+
 ### Weitere CI-Gates (Pflicht im finalen Verifikations-Task jedes Plans)
 
 Der letzte Task jedes Plans MUSS diese Kommandos als Steps enthalten:

@@ -50,7 +50,13 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
 - **Tool:** `mcp__mcp-postgres__query` (Param: **nur** `sql`)
 - **Wann bevorzugen:** Read-only SELECTs gegen `tickets.*`, `knowledge.*`, `v_timeline` — Ticket-Pool,
   staged-plans, planning-Count, Timeline-/DoR-Reads.
-- **Fallback:** `psql -c "<SELECT>"` via `kubectl exec … -c postgres -- psql -U website -d website`.
+- **Fallback (Reads) & Pflichtweg für Writes** — das MCP-Query-Tool ist read-only; schreibende
+  Statements (INSERT/UPDATE/DELETE) laufen immer über diesen `psql()`-Helper (SSOT — Skills
+  verlinken hierher statt ihn zu duplizieren):
+  ```bash
+  PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)
+  psql() { kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- psql -U website -d website "$@"; }
+  ```
 - ⚠️ `tickets.ticket_plans`: nie `SELECT *` oder die `content`-Spalte über die ganze Tabelle (MB-Transfer
   über `kubectl exec` → Timeout). Immer Metadaten (`id`, `ticket_id`, `slug`, `branch`, `pr_number`,
   `archived_at`) oder gezielt nach `ticket_id`/`slug` filtern.

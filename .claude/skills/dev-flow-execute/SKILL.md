@@ -27,25 +27,6 @@ Du bist auf einem `feature/*` oder `fix/*` Branch. `dev-flow-plan` hat Spec und 
 ```
 
 **EINSTIEG:** Feature/Fix-Branch mit `plan_staged` Ticket — von `dev-flow-plan` übergeben  
-**AUSSTIEG:** PR gemergt zu `main`, Worktree bereinigt, Ticket `done/shipped`, Kreislauf geschlossen  
-**Voraussetzung:** `dev-flow-plan` hat `FACTORY-PLAN-REF` Kommentar im Ticket hinterlegt
-
----
-
-## Modus-Erkennung: Single vs Batch
-
-```
-    ┌─────────────────────────────────────────────────────────────┐
-    ▼                                                             │
-[ main ]                                                          │
-    │                                                             │
-    └──► [branch + plan committed] ──► [implement] ──► [PR+merge] ──► AUSSTIEG
-              (von dev-flow-plan)       DIESER SKILL              │
-                                                                  │
-                                        zurück zu [ main ] ───────┘
-```
-
-**EINSTIEG:** Feature/Fix-Branch mit `plan_staged` Ticket — von `dev-flow-plan` übergeben  
 **AUSSTIEG:** PR gemergt zu `main`, Worktree bereinigt, Ticket `done/shipped`, OpenSpec archiviert, Kreislauf geschlossen  
 **Voraussetzung:** `dev-flow-plan` hat Branch + Plan-Pfad via `ticket.sh stage-plan` in der DB verankert
 
@@ -75,11 +56,13 @@ Bei mehreren staged plans den User via `AskUserQuestion`-Tool nach der gewünsch
 Synchronisiere `main` im Haupt-Repo:
 
 ```bash
-bash scripts/agent-lock.sh reap   # Session-Koordination [T000510]: Zombie-Prozesse, stale Worktrees & tote Locks räumen
-bash scripts/agent-msg.sh read --unread   # offene Nachrichten paralleler Sessions sichten [T000882]
+bash scripts/agent-lock.sh reap           # Reaper — siehe session-coordination (SSOT)
+bash scripts/agent-msg.sh read --unread   # Nachrichten paralleler Sessions [T000882]
 MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
 (cd "$MAIN_REPO" && git fetch origin main && git pull --rebase origin main)
 ```
+
+Lock-Lebenszyklus (claim/release, Registry-Overlap): [session-coordination](file:///home/patrick/Bachelorprojekt/.claude/skills/references/session-coordination.md).
 
 ---
 
@@ -165,22 +148,9 @@ echo "✅ Plan geladen: $PLAN_FILE (Branch: $BRANCH)"
 
 ## Schritt 1.4: Doppelarbeit-Guard & Registry-Overlap (Session-Koordination [T000510])
 
-Claime Ticket + Branch, damit keine zweite Session (Claude/Gemini) dieselbe Arbeit dupliziert:
-
-```bash
-BRANCH=$(git branch --show-current)
-bash scripts/agent-lock.sh claim ticket "$TICKET_ID" --branch "$BRANCH" --worktree "$PWD" --label dev-flow-execute \
-  || { echo "🛑 Ticket $TICKET_ID wird bereits von einer lebenden Session bearbeitet (siehe Halter-Info oben) — koordinieren statt duplizieren."; exit 1; }
-bash scripts/agent-lock.sh claim branch "$BRANCH" --ticket "$TICKET_ID" --worktree "$PWD" --label dev-flow-execute || true
-
-# Weiche Warnung bei geteilten Registry-Dateien (Keep-both-Rebase-Risiko):
-for hf in k3d/configmap-domains.yaml environments/schema.yaml Taskfile.yml k3d/kustomization.yaml; do
-  git diff --name-only origin/main | grep -qx "$hf" || continue
-  [ "$(bash scripts/agent-lock.sh check registry "$hf" | head -1)" = "held" ] \
-    && echo "⚠ $hf wird parallel bearbeitet → Keep-both-Rebase erwarten."
-  bash scripts/agent-lock.sh claim registry "$hf" --ticket "$TICKET_ID" --label dev-flow-execute || true
-done
-```
+Claime Ticket + Branch (`--label dev-flow-execute`) und prüfe den Registry-Overlap für geteilte
+Hochfrequenz-Dateien — Befehle und Semantik (Exit 1 = koordinieren, nicht duplizieren):
+**SSOT** in [session-coordination](file:///home/patrick/Bachelorprojekt/.claude/skills/references/session-coordination.md).
 
 ---
 
@@ -253,12 +223,8 @@ Statt deinen eigenen Kontext/Modell zurückzusetzen (das ließe dich den Faden v
 
 Spawne den Subagenten:
 * **Gemini/Antigravity CLI:** call `invoke_subagent` with `TypeName: "self"` (inherits permissions and tools), `Role: "Implementer <TICKET_ID>"`, and `Workspace: "share"` (or `"inherit"`).
-* **Claude Code CLI:** Spawne über das `Agent`/`Task`-Tool einen Subagenten, **provisioniert gemäß** [subagent-provisioning](file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md) (Modell · Effort · Kontext):
-  * **Modell — nach Plan-Charakter wählen, nicht pauschal:** mechanisch (Config/Doku/Single-File) $\rightarrow$ `haiku`; Standard-Feature/Fix $\rightarrow$ `sonnet`; komplex/riskant (systemübergreifend, Architektur, DB-Migration, Auto-Deploy) $\rightarrow$ `opus`.
-  * **Effort per Prompt-Direktive** (das `Agent`-Tool kennt keinen Effort-Regler): mechanisch „Arbeite zügig und fokussiert."; komplex/riskant „Ultrathink. Denke sehr gründlich nach."
-  * `subagent_type: general-purpose`.
-- **Kontext-Injektion** (er hat sonst KEINEN Kontext — gib ihm alles explizit):
-  - **Absoluter Worktree-Pfad (PFLICHT):** Beginne JEDEN Subagenten-Prompt mit `cd <WORKTREE_PATH>` (z.B. `cd /tmp/wt-<slug>`). Der Subagent hat keinen impliziten CWD und schreibt sonst Dateien ins Haupt-Checkout. Danach: Branch-Name; er arbeitet NUR relativ zum Worktree.
+* **Claude Code CLI:** Spawne über das `Agent`/`Task`-Tool einen Subagenten (`subagent_type: general-purpose`), **provisioniert gemäß** [subagent-provisioning](file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md) — Modell nach Plan-Charakter (Implementer-Default: `sonnet`; mechanisch `haiku`, komplex/riskant `opus`), Effort per Prompt-Direktive und die Worktree-`cd`-Pflicht stehen dort (SSOT, nicht hier wiederholen).
+- **Kontext-Injektion** (er hat sonst KEINEN Kontext — gib ihm alles explizit; Kompaktheits-Regeln siehe subagent-provisioning §3):
   - Plan-Datei `$PLAN_FILE` (aus Schritt 1, via DB aufgelöst) + Ticket-ID.
   - Attachment-Verzeichnis `$ATTACHMENT_DIR` — bei UI-Arbeit ALLE Bilder/Texte mit dem `Read`-Tool einlesen.
   - **Plan Intel Bundle (PFLICHT):** `openspec/changes/<slug>/intel.json` (aus der Plan-Phase) — der
@@ -285,28 +251,7 @@ Spawne den Subagenten:
   - *Feature:* Rufe `superpowers:executing-plans` (in-context, KEIN weiterer Agenten-Fan-out) + `test-driven-development` auf und arbeite den Plan vollständig ab. Aktualisiere nach jedem Meilenstein die Checkbox im Plan (`- [ ] M1` → `- [x] M1`), committe und pushe.
   - *Fix:* Verifiziere zuerst, dass ein failing Test existiert, dann nach Rot-Grün-Prinzip bis grün.
    - Bei Kompilier-/Testfehlern: diagnostiziere und fixe systematisch (Logs lesen, Fehler eingrenzen, Hypothese testen, fixen, Re-Test).
-  - **PFLICHT vor PR-Erstellung — Freshness-Artefakte regenerieren und committen** (sonst schlägt CI mit "stale artifact" fehl; `executing-plans` → `finishing-a-development-branch` überspringt diesen Schritt):
-    ```bash
-    task freshness:regenerate
-    git add \
-      website/src/data/test-inventory.json \
-      website/src/data/route-manifest.json \
-      website/src/lib/learning-assets.generated.json \
-      "website/public/learning-assets/THIRD-PARTY-ASSETS.md" \
-      docs/code-quality/repo-index.json \
-      docs/agent-guide/10-ziele.md \
-      docs/agent-guide/20-werkzeuge.md \
-      docs/agent-guide/30-bausteine.md \
-      docs/agent-guide/maps/goals-map.md \
-      docs/agent-guide/maps/tools-map.md \
-      docs/agent-guide/maps/danger-map.md \
-      website/src/lib/agent-guide.generated.json \
-      website/src/lib/platform-descriptions.generated.json \
-      docs/generated/graph.json \
-      docs/generated/api-map.json \
-      docs/generated/blast-radius.md 2>/dev/null || true
-    git diff --cached --quiet || git commit -m "chore: regenerate freshness artifacts [$TICKET_ID]"
-    ```
+  - **PFLICHT vor PR-Erstellung — Freshness-Artefakte regenerieren und committen** (sonst schlägt CI mit "stale artifact" fehl; `executing-plans` → `finishing-a-development-branch` überspringt diesen Schritt). Befehle + Artefakt-Pfadliste (SSOT): [verification-block](file:///home/patrick/Bachelorprojekt/.claude/skills/references/verification-block.md) — der Subagent MUSS die Datei lesen und den `git add`-Block daraus verwenden.
   - Erstelle einen PR, durchlaufe die CI-Fix-Schleife bis grün, und merge via Auto-Merge.
   - Schließe das Ticket ab und archiviere den Plan.
 
@@ -337,15 +282,8 @@ Phasen-Telemetrie (best-effort) — **MCP-first** (`ticket-mcp`):
 > `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "implement", state: "done", driver: "devflow", detail: "Implementierung fertig" })`
 > `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "verify", state: "entered", driver: "devflow", detail: "task test:changed + freshness" })`
 
-Verifikation ausführen:
-
-```bash
-task workspace:validate
-./tests/runner.sh local <FA-XX oder SA-XX>
-task test:changed
-task freshness:regenerate
-task freshness:check        # CI-Äquivalent — failt lokal GENAU wie CI (S1–S4-Ratchet + Baseline-Assertion)
-```
+Verifikation ausführen — die vier Befehle + `./tests/runner.sh local <FA-XX oder SA-XX>` bei
+Manifest-Änderungen. **SSOT:** [verification-block](file:///home/patrick/Bachelorprojekt/.claude/skills/references/verification-block.md).
 
 Nach grünen Tests — **MCP-first**:
 
@@ -359,10 +297,6 @@ Fallback (ticket-mcp nicht erreichbar; Telemetrie ist best-effort und darf den F
 # nach den Tests:
 ./scripts/ticket.sh phase "$TICKET_ID" verify done --driver devflow --detail "Tests grün · freshness OK" || true
 ```
-
-**Wichtig — beide Befehle sind nötig:**
-- `task freshness:regenerate` aktualisiert die generierten Artefakte (test-inventory.json, route-manifest.json, agent-guide docs/maps, learning-assets, repo-index.json), sonst CI rot.
-- `task freshness:check` ist das **CI-Äquivalent** und failt lokal genauso wie CI — insbesondere am **S1-Zeilen-Ratchet** (`quality:check` gegen `docs/code-quality/baseline.json`) sowie der Baseline-Key-Count-Assertion. Ohne `freshness:check` lokal wird eine Zeilen-Limit-Überschreitung erst nach dem Push in CI sichtbar — und du landest im Firefight-Modus.
 
 Siehe [dev-flow-gotchas](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md) für TypeScript/pnpm Gotchas in Worktrees.
 
@@ -395,52 +329,19 @@ Rufe `dev-flow-iterate` auf, um Änderungen im dev-Cluster zu testen.
 
 ## Schritt 5: PR erstellen
 
-> **Scope vorab prüfen [T001395]:** Bevor `<scope>` gewählt wird, gegen die SSOT-Allowlist
-> abgleichen (`bash scripts/validate-commit-msg.sh scopes`) — nicht erst beim
-> `preflight-pr-scope.sh`-Check unten. Ein geratener, nicht registrierter Scope (z. B.
-> `installer`/`rustdesk`) erzwingt sonst einen Soft-Reset + Recommit mitten im Flow. Siehe
-> [dev-flow-gotchas T001395](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md).
+Commit → Push → PR läuft nach **`git-workflow` Schritt 2–4** (SSOT): Scope vorab gegen die
+Allowlist prüfen [T001395], explizite Pathspecs statt `git add -A` (git-crypt-Guard [T001210]),
+Commit-Verifikation `HEAD_SHA != BASE_SHA` [T000925], `preflight-pr-scope.sh` vor `gh pr create`,
+REST-Fallback für Titel-Edits.
 
-```bash
-# Branch-Guard prüfen
-BASE_SHA="$(git rev-parse "@{upstream}" 2>/dev/null || git rev-parse origin/main)"
-git add -A
-git commit -m "<type>(<scope>): <subject> [<TICKET_ID>]" # commitlint regeln beachten (<100 Zeichen Subject/Header)
-# Closes T000XXX im Body bei Fixes
-
-# Verify commit landed — git-crypt clean filter can cause silent commit failures
-# in worktrees, and an un-chained push would send an empty branch. [T000925]
-HEAD_SHA="$(git rev-parse HEAD)"
-if [ "$HEAD_SHA" = "$BASE_SHA" ]; then
-  echo "FATAL: commit did not land (git-crypt clean filter?). Push aborted." >&2
-  exit 1
-fi
-
-# Validate PR title scope BEFORE creating the PR — prevents a full CI cycle loss
-# when the scope is not in the semantic-PR allowlist (e.g. 'cockpit' instead of 'admin'). [T000925]
-bash scripts/preflight-pr-scope.sh "<type>(<scope>): <subject>"
-if [ $? -ne 0 ]; then
-  echo "FATAL: PR title scope failed preflight — fix the scope and retry." >&2
-  exit 1
-fi
-
-git push -u origin "$(git rev-parse --abbrev-ref HEAD)"
-```
-
-> **Titel nachträglich editieren (REST-Fallback):** `gh pr edit --title` scheitert
-> gelegentlich an einer Projects-Classic-GraphQL-Deprecation. Nutze stattdessen:
-> ```bash
-> gh api -X PATCH "repos/{owner}/{repo}/pulls/<n>" -f title="<neuer Titel>"
-> ```
-> Der Preflight (oben) sollte Titel-Edits aber überflüssig machen. [T000925]
-
+Execute-spezifisch: Ticket-ID `[$TICKET_ID]` in Header und `Closes T000XXX` im Body bei Fixes.
 Rufe `commit-commands:commit-push-pr` auf (oder führe `gh pr create` manuell aus).
 
 ---
 
 ## Schritt 5.5: CI/CD-Fix-Schleife
 
-Nachdem der PR gepusht ist, überwache CI und behebe Fehler — bevor du mergst. Details und Required-Check-Liste: [references/ci-fix-loop.md](references/ci-fix-loop.md).
+Nachdem der PR gepusht ist, überwache CI und behebe Fehler — bevor du mergst. Details und Required-Check-Liste (SSOT): [ci-fix-loop](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ci-fix-loop.md).
 
 ```bash
 PR_URL=$(gh pr view --json url -q '.url')
@@ -457,11 +358,8 @@ Seit T001415 (Finding 2) beendet sich `devflow-ci-watch.sh` zusätzlich mit Exit
 
 ## Schritt 6: Auto-Merge wenn CI grün
 
-> **Hinweis:** `E2E PR` ist kein required check (T000722). Auto-Merge wartet nur auf:
-> `Offline Tests (Manifests, Configs, Unit)`, `Security Scan`, `Brett TypeScript`,
-> `Vitest (website)`, `Conventional Commits`.
-> Ein roter E2E-Check blockiert den Merge NICHT — er erscheint als informativer
-> gelber Status im PR. PR-Autor prüft E2E-Ergebnis manuell bei Bedarf.
+> **Hinweis:** `E2E PR` ist kein required check (T000722) — blockiert den Merge NICHT.
+> Die Required-Check-Liste lebt in [ci-fix-loop](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ci-fix-loop.md).
 
 ```bash
 # Merge PR aus dem Haupt-Repo, um Konflikte zu vermeiden
@@ -619,10 +517,9 @@ gh pr merge --auto --squash --delete-branch
 
 Lösche den lokalen Worktree und Branch (im Haupt-Repo ausführen):
 
+Claims freigeben VOR dem Worktree-Remove ([session-coordination](file:///home/patrick/Bachelorprojekt/.claude/skills/references/session-coordination.md)), dann:
+
 ```bash
-# Claims freigeben (Session-Koordination [T000510]) — VOR dem Worktree-Remove:
-bash scripts/agent-lock.sh release ticket "$TICKET_ID" 2>/dev/null || true
-bash scripts/agent-lock.sh release branch "<branch>" 2>/dev/null || true
 git worktree remove "$MAIN_REPO/tmp/wt-<slug>" --force
 git branch -D "<branch>"
 ```

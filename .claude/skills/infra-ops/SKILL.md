@@ -4,11 +4,8 @@ description: Explicit-invoke-only infrastructure runbook. DO NOT auto-trigger. U
 agent: bachelorprojekt-infra
 ---
 
-> **Mishap Tracking:** As you execute this skill, maintain a running `MISHAP_LOG`.
-> For every anomaly, unexpected state, broken component, security concern, or
-> configuration drift you notice — even if unrelated to the current task — add
-> an entry with: `type` (broken/degraded/suspicious/security/drift), `title`,
-> `description`, and `component`. Invoke `mishap-tracker` at the very end.
+> **Mishap Tracking:** Führe während dieses Skills ein `MISHAP_LOG` und rufe am Ende
+> `mishap-tracker` auf — Eintragsformat und Ablauf: siehe `mishap-tracker` §Input.
 
 # infra-ops — Unified Infrastructure Runbook
 

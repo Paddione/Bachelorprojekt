@@ -167,18 +167,14 @@ git diff website/src/data/test-inventory.json
 
 ## Schritt 7: Commit & Push
 
-Folge den Commit-Konventionen aus `git-workflow` (Conventional Commits, Freshness Guard, Scope-Preflight):
+Läuft nach **`git-workflow` Schritt 2–4** (SSOT: Conventional Commits, git-crypt-Staging-Guard,
+Commit-Verifikation, Scope-Preflight).
+
+E2E-spezifisch — zu stagende Pfade und Titelformat:
 
 ```bash
-git add tests/e2e/specs/<neu>.spec.ts
-git add tests/e2e/playwright.config.ts
-git add website/src/data/test-inventory.json
-
-# Scope-Preflight (Pflicht) [T000925]
-bash scripts/preflight-pr-scope.sh "test(<scope>): add E2E tests for <feature> [$TICKET_ID]"
-
-git commit -m "test(<scope>): add E2E tests for <feature> [$TICKET_ID]"
-git push
+git add tests/e2e/specs/<neu>.spec.ts tests/e2e/playwright.config.ts website/src/data/test-inventory.json
+# Titel: "test(<scope>): add E2E tests for <feature> [$TICKET_ID]"
 ```
 
 ---

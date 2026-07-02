@@ -4,11 +4,8 @@ description: Production incident triage, scope, diagnose, fix/rollback, and post
 agent: bachelorprojekt-ops
 ---
 
-> **Mishap Tracking:** As you execute this skill, maintain a running `MISHAP_LOG`.
-> For every anomaly, unexpected state, broken component, security concern, or
-> configuration drift you notice — even if unrelated to the current task — add
-> an entry with: `type` (broken/degraded/suspicious/security/drift), `title`,
-> `description`, and `component`. Invoke `mishap-tracker` at the very end.
+> **Mishap Tracking:** Führe während dieses Skills ein `MISHAP_LOG` und rufe am Ende
+> `mishap-tracker` auf — Eintragsformat und Ablauf: siehe `mishap-tracker` §Input.
 
 # incident-response
 
@@ -22,17 +19,10 @@ Internal tickets live in `tickets.tickets` on the `mentolder` (`website` DB). En
 
 `priority ∈ {hoch,mittel,niedrig}` · `severity ∈ {critical,major,minor,trivial}` · `status ∈ {triage,planning,plan_staged,backlog,in_progress,in_review,blocked,qa_review,done,archived}` · `resolution ∈ {fixed,shipped,obsolete}`
 
-**DB-Zugriff — MCP-Postgres für Reads bevorzugen.** Bei erreichbarem `mcp-postgres` lese SELECTs via
-`mcp__mcp-postgres__query`. Die `psql()`-Funktion unten ist der Read-Fallback; **schreibende**
-Statements (z. B. das `INSERT INTO tickets.tickets` in Schritt 2) bleiben Pflicht über
-`psql`/`kubectl exec`, da das MCP-Query-Tool read-only ist.
-Siehe [`MCP-Tool-Guide`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md).
-
-SQL helper:
-```bash
-PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)
-psql() { kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- psql -U website -d website "$@"; }
-```
+**DB-Zugriff:** Reads MCP-first via `mcp__mcp-postgres__query`; der `psql()`-Fallback-Helper
+(zugleich Pflichtweg für Writes wie das `INSERT` in Schritt 2) ist SSOT im
+[`MCP-Tool-Guide`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md) §mcp-postgres —
+die `psql -c`-Aufrufe unten setzen diesen Helper voraus.
 
 ---
 
@@ -47,8 +37,8 @@ Determine:
 ## Step 2 — Open an Incident Ticket
 
 ```bash
-PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)
-kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- psql -U website -d website -At -c \
+# psql()-Helper aus dem MCP-Tool-Guide §mcp-postgres (siehe Preamble)
+psql -At -c \
   "INSERT INTO tickets.tickets (type, brand, title, description, status, severity, priority)
    VALUES ('bug', 'mentolder', 'Incident: <desc>', 'Affected: <svc>\nCluster: <env>\nSymptoms: <symptoms>', 'in_progress', '<critical|major|minor>', 'hoch')
    RETURNING external_id;"

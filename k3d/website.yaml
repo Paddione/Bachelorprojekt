@@ -450,6 +450,15 @@ spec:
                 configMapKeyRef:
                   name: domain-config
                   key: VIDEOVAULT_DOMAIN
+            # T001490 Task 9 — content-publish bot token (fine-grained
+            # `contents:write` + `pull-requests:write` on website/content/**).
+            # Sourced from k3d/website-content-token-secret.yaml in dev and
+            # from a per-env SealedSecret in prod.
+            - name: GITHUB_CONTENT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: website-content-token
+                  key: GITHUB_CONTENT_TOKEN
           volumeMounts:
             - name: evidence
               mountPath: /var/evidence
@@ -498,6 +507,11 @@ spec:
 ---
 
 # ── IngressRoute ─────────────────────────────────────────────────────────────
+# T001490 Task 9: apex Host(`${WEBSITE_HOST}`) backend is selected by
+# `WEBSITE_PRIMARY_SERVICE`, derived from `PRIMARY_FRONTEND` (astro|react) in
+# the deploy task. The Astro SSR is the default; React (mentolder-web) is
+# always deployed too, so the switch is one line + deploy. Per-service hosts
+# (react.<brand>, admin.<brand>, …) are unaffected.
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
@@ -512,7 +526,7 @@ spec:
     - kind: Rule
       match: Host(`${WEBSITE_HOST}`)
       services:
-        - name: website
+        - name: ${WEBSITE_PRIMARY_SERVICE}
           port: 80
 ---
 

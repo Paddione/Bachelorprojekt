@@ -20,6 +20,9 @@ env_vars:
   WEBSITE_IMAGE: website
   DOCS_IMAGE: korczewski-docs
   WEBSITE_NAMESPACE: website-korczewski
+  # PRIMARY_FRONTEND (T001490) — apex web.korczewski.de serves the Astro SSR
+  # (website). Switch to `react` to put the React SPA behind the apex instead.
+  PRIMARY_FRONTEND: astro
   WORKSPACE_NAMESPACE: workspace-korczewski
   WEBSITE_NODE_AFFINITY: '["pk-hetzner-4","pk-hetzner-6","pk-hetzner-8"]'
   INFRA_NAMESPACE: korczewski-infra

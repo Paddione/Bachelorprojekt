@@ -172,3 +172,58 @@ ADMIN_RESPONSIVE="$BATS_TEST_DIRNAME/../../website/src/styles/admin-responsive.c
   run bash -c "cd '$BATS_TEST_DIRNAME/../../website' && pnpm vitest run src/content-schema/__tests__/schema.test.ts 2>&1 | tail -20"
   echo "$output" | grep -q "3 passed"
 }
+
+# ── T001490: PRIMARY_FRONTEND switch + GitHub content-token secret ──────────
+@test "T001490 PRIMARY_FRONTEND: schema-declared with astro|react pattern + brand defaults" {
+  # 1. schema.yaml must declare PRIMARY_FRONTEND with the strict pattern.
+  # env_vars items in schema.yaml are indented 2 spaces — match that.
+  run grep -E "^  - name: PRIMARY_FRONTEND$" "$BATS_TEST_DIRNAME/../../environments/schema.yaml"
+  [ "$status" -eq 0 ] || { echo "PRIMARY_FRONTEND missing from environments/schema.yaml"; return 1; }
+  # Validate the pattern line sits within ~6 lines of the entry.
+  run awk '/^  - name: PRIMARY_FRONTEND$/{flag=1; next} flag && /validate:/{print; exit}' "$BATS_TEST_DIRNAME/../../environments/schema.yaml"
+  [ "$status" -eq 0 ]
+  echo "$output" | grep -qE 'validate:[[:space:]]*"\^\(astro\|react\)\$"'
+
+  # 2. Both brand env files must set PRIMARY_FRONTEND: astro (or react).
+  for brand in mentolder korczewski; do
+    run grep -E "^[[:space:]]+PRIMARY_FRONTEND:[[:space:]]*(astro|react)$" \
+      "$BATS_TEST_DIRNAME/../../environments/${brand}.yaml"
+    [ "$status" -eq 0 ] || { echo "PRIMARY_FRONTEND missing in environments/${brand}.yaml"; return 1; }
+  done
+
+  # 3. k3d/website.yaml apex IngressRoute must reference the envsubst'd
+  #    service name (so the deploy task can switch backends by setting
+  #    WEBSITE_PRIMARY_SERVICE).
+  run grep -E "name:[[:space:]]*\\\${WEBSITE_PRIMARY_SERVICE}" \
+    "$BATS_TEST_DIRNAME/../../k3d/website.yaml"
+  [ "$status" -eq 0 ] || { echo "apex Host() does not envsubst WEBSITE_PRIMARY_SERVICE"; return 1; }
+
+  # 4. Taskfile envsubst lists must whitelist $PRIMARY_FRONTEND + $WEBSITE_PRIMARY_SERVICE.
+  for needle in 'WEBSITE_PRIMARY_SERVICE' 'PRIMARY_FRONTEND'; do
+    run grep -F "\$${needle}" "$BATS_TEST_DIRNAME/../../Taskfile.yml"
+    [ "$status" -eq 0 ] || { echo "Taskfile.yml envsubst list missing $${needle}"; return 1; }
+  done
+}
+
+@test "T001490 PRIMARY_FRONTEND: GITHUB_CONTENT_TOKEN schema-registered + dev secret manifest present" {
+  # 1. Schema declares the secret (secrets: items are also 2-space indented).
+  run grep -E "^  - name: GITHUB_CONTENT_TOKEN$" "$BATS_TEST_DIRNAME/../../environments/schema.yaml"
+  [ "$status" -eq 0 ] || { echo "GITHUB_CONTENT_TOKEN missing from schema"; return 1; }
+  # 2. Dev secret manifest exists with the expected Secret name + namespace.
+  f="$BATS_TEST_DIRNAME/../../k3d/website-content-token-secret.yaml"
+  [ -f "$f" ] || { echo "k3d/website-content-token-secret.yaml missing"; return 1; }
+  run grep -E "name:[[:space:]]*website-content-token" "$f"
+  [ "$status" -eq 0 ]
+  run grep -E "namespace:[[:space:]]*website$" "$f"
+  [ "$status" -eq 0 ]
+  run grep -E "GITHUB_CONTENT_TOKEN:" "$f"
+  [ "$status" -eq 0 ]
+  # 3. Service registry classifies the new file as `website` for partial deploy.
+  run grep -F "k3d/website-content-token-secret.yaml" "$BATS_TEST_DIRNAME/../../scripts/factory/service-registry.sh"
+  [ "$status" -eq 0 ]
+  # 4. Deployment references the secret via secretKeyRef.
+  run grep -B1 -A4 "name: GITHUB_CONTENT_TOKEN" "$BATS_TEST_DIRNAME/../../k3d/website.yaml"
+  [ "$status" -eq 0 ]
+  echo "$output" | grep -qE "secretKeyRef:"
+  echo "$output" | grep -qE "name:[[:space:]]*website-content-token"
+}

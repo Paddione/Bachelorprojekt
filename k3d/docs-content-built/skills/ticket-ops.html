@@ -43,11 +43,8 @@
 
 <article class="doc-body">
 <html><head></head><body><blockquote>
-<p><strong>Mishap Tracking:</strong> As you execute this skill, maintain a running <code>MISHAP_LOG</code>.
-For every anomaly, unexpected state, broken component, security concern, or
-configuration drift you notice — even if unrelated to the current task — add
-an entry with: <code>type</code> (broken/degraded/suspicious/security/drift), <code>title</code>,
-<code>description</code>, and <code>component</code>. Invoke <code>mishap-tracker</code> at the very end.</p>
+<p><strong>Mishap Tracking:</strong> Führe während dieses Skills ein <code>MISHAP_LOG</code> und rufe am Ende
+<code>mishap-tracker</code> auf — Eintragsformat und Ablauf: siehe <code>mishap-tracker</code> §Input.</p>
 </blockquote>
 <h1>ticket-ops</h1><div class="toc-box auto-toc">
   <div class="toc-title">Auf dieser Seite</div>
@@ -70,13 +67,8 @@ an entry with: <code>type</code> (broken/degraded/suspicious/security/drift), <c
 <li class="toc-item toc-item--h3"><a href="#step-34-present-the-masterplan"><span class="toc-num">–</span> Step 3.4: Present the masterplan</a></li>
 <li class="toc-item toc-item--h3"><a href="#step-35-dispatch-wave-1-after-the-user-approves"><span class="toc-num">–</span> Step 3.5: Dispatch wave 1 (after the user approves)</a></li>
 <li class="toc-item"><a href="#phase-4--repository-hygiene--pr-triage"><span class="toc-num">6.</span> Phase 4 — Repository Hygiene &amp; PR Triage</a></li>
-<li class="toc-item toc-item--h3"><a href="#step-41-stale-git-worktrees"><span class="toc-num">–</span> Step 4.1: Stale Git Worktrees</a></li>
-<li class="toc-item toc-item--h3"><a href="#step-42-stale-branches"><span class="toc-num">–</span> Step 4.2: Stale Branches</a></li>
-<li class="toc-item toc-item--h3"><a href="#step-43-github-pr-triage--close-the-linked-ticket"><span class="toc-num">–</span> Step 4.3: GitHub PR Triage → close the linked ticket</a></li>
-<li class="toc-item toc-item--h3"><a href="#step-44-github-issue-intake-rare"><span class="toc-num">–</span> Step 4.4: GitHub Issue Intake (rare)</a></li>
-<li class="toc-item"><a href="#software-factory-queue-mcp-first"><span class="toc-num">7.</span> Software-Factory-Queue (MCP-first)</a></li>
-<li class="toc-item"><a href="#post-execution-mishap-report"><span class="toc-num">8.</span> Post-Execution: Mishap Report</a></li>
-<li class="toc-item"><a href="#related-skills"><span class="toc-num">9.</span> Related Skills</a></li></ul>
+<li class="toc-item"><a href="#post-execution-mishap-report"><span class="toc-num">7.</span> Post-Execution: Mishap Report</a></li>
+<li class="toc-item"><a href="#related-skills"><span class="toc-num">8.</span> Related Skills</a></li></ul>
 </div>
 <p>Day-to-day ticket management, repository hygiene, and PR lifecycle. For time-critical production incidents, use <code>incident-response</code> instead.</p>
 <h2 id="workflow-at-a-glance">Workflow at a glance</h2>
@@ -107,18 +99,10 @@ an entry with: <code>type</code> (broken/degraded/suspicious/security/drift), <c
 <p><strong>Definition of Readiness (DoR)</strong> — the completeness model for <code>type='feature'</code> ideas, stored in the <code>readiness</code> JSONB column. Four boolean flags; all four true = "ready" (<code>dorScore = 4</code>):
 <code>spec_skizziert</code> (spec sketched) · <code>offene_fragen_geklaert</code> (open questions clarified) · <code>abhaengigkeiten_klar</code> (dependencies clear) · <code>aufwand_geschaetzt</code> (effort estimated).
 This mirrors <code>website/src/lib/planning-office.ts</code> (<code>DOR_KEYS</code>, <code>dorScore</code>) and the admin "Planungsbüro" UI — keep the two consistent; the skill is the SQL view of the same model.</p>
-<p><strong>DB-Zugriff — MCP-Postgres für Reads bevorzugen.</strong> Das <code>mcp-postgres</code> MCP-Tool (<code>mcp__mcp-postgres__query</code>)
-ist read-only und direkt verfügbar, wenn der MCP-Server läuft (einfach mit <code>SELECT 1</code> testen).
-Die <code>psql()</code>-Bash-Hilfsfunktion unten ist der <strong>Fallback</strong> für Reads bei fehlendem MCP-Zugriff
-und der <strong>Pflichtweg für schreibende</strong> Statements (INSERT/UPDATE/DELETE) — das MCP-Query-Tool ist
-read-only. Siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md"><code>MCP-Tool-Guide</code></a>.</p>
-<p>All SQL below assumes:</p>
-<div class="code-wrapper"><pre><code class="language-bash">PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)
-psql() { kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- psql -U website -d website "$@"; }
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<blockquote>
-<p>⚠️ <strong>Warning on tickets.ticket_plans</strong>: When querying this table, never run <code>SELECT *</code> or retrieve the <code>content</code> column without filtering by a specific ticket/slug. The <code>content</code> column stores large plan markdown files, and querying the entire table will transfer megabytes over <code>kubectl exec</code>, causing connection timeouts. Always query metadata columns (e.g. <code>id</code>, <code>ticket_id</code>, <code>slug</code>, <code>branch</code>, <code>pr_number</code>, <code>archived_at</code>) or filter explicitly.</p>
-</blockquote>
+<p><strong>DB-Zugriff:</strong> Reads MCP-first via <code>mcp__mcp-postgres__query</code>; der <code>psql()</code>-Fallback-Helper
+(zugleich Pflichtweg für Writes) und die <code>tickets.ticket_plans</code>-<code>SELECT *</code>-Warnung sind SSOT im
+<a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md"><code>MCP-Tool-Guide</code></a> §mcp-postgres —
+alle <code>psql -c</code>-Aufrufe unten setzen diesen Helper voraus.</p>
 <hr>
 <h2 id="phase-1--completeness-triage">Phase 1 — Completeness Triage</h2>
 <p>Fetch every open ticket and compute, per ticket, <strong>what is missing</strong> before it can be worked. This is a two-tier rubric: a lightweight field check for <em>all</em> tickets, plus the DoR check for planning-stage features.</p>
@@ -274,97 +258,12 @@ DEFERRED (needs_human, ungeklärt): T000738
 <p>Merge = Abschluss: each ticket closes on its own green auto-merge; the masterplan tracks dispatch, not prod-live.</p>
 <hr>
 <h2 id="phase-4--repository-hygiene--pr-triage">Phase 4 — Repository Hygiene &amp; PR Triage</h2>
-<h3 id="step-41-stale-git-worktrees">Step 4.1: Stale Git Worktrees</h3>
-<p>List worktrees: <code>git worktree list</code>.
-Verify if the branch is merged: <code>git log main..&lt;branch&gt; --oneline</code> (empty means fully merged).
-Remove stale worktrees:</p>
-<div class="code-wrapper"><pre><code class="language-bash">git worktree remove &lt;path&gt; --force
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3 id="step-42-stale-branches">Step 4.2: Stale Branches</h3>
-<p>Prune local and remote branches:</p>
-<div class="code-wrapper"><pre><code class="language-bash"># Safe batch-delete merged local branches
-git branch --merged main | grep -v 'main' | xargs git branch -d
-
-# Prune gone remote-tracking branches
-git fetch --prune
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<blockquote>
-<p><strong><code>--merged</code> misses squash-merged branches.</strong> This repo merges via <strong>squash-and-merge</strong> (Dev Rule 3), which rewrites a branch's commits into one new commit on <code>main</code>. The original branch tip is therefore NOT an ancestor of <code>main</code>, so <code>git branch --merged</code> never lists it and <code>git branch -d</code> refuses to delete it. Reclaim these branches by detecting that their remote is <strong>[gone]</strong> (deleted by <code>gh pr merge --delete-branch</code>) and confirming the PR actually merged, then force-deleting:</p>
-<div class="code-wrapper"><pre><code class="language-bash"># After `git fetch --prune`, list local branches whose upstream is gone
-git for-each-ref --format='%(refname:short) %(upstream:track)' refs/heads \
-  | awk '$2 == "[gone]" {print $1}' \
-  | while read -r b; do
-      # Verify the PR for this branch is merged before destroying local work
-      merged=$(gh pr list --head "$b" --state merged --json number -q '.[0].number')
-      if [ -n "$merged" ]; then
-        git branch -D "$b"   # safe: PR #$merged merged, remote gone
-      else
-        echo "SKIP $b — upstream gone but no merged PR found; inspect manually"
-      fi
-    done
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Only <code>-D</code> (force) works here — <code>-d</code> will refuse because git does not see the squash-merged history.</p>
-</blockquote>
-<h3 id="step-43-github-pr-triage--close-the-linked-ticket">Step 4.3: GitHub PR Triage → close the linked ticket</h3>
-<p>List open PRs:</p>
-<div class="code-wrapper"><pre><code class="language-bash">gh pr list --state open --json number,title,headRefName,statusCheckRollup,reviewDecision,isDraft,mergeStateStatus
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>For each PR, first recover the ticket it resolves (soft link — see preamble). Title tag wins; branch name is the fallback:</p>
-<div class="code-wrapper"><pre><code class="language-bash">TITLE=$(gh pr view &lt;number&gt; --json title -q '.title')
-BRANCH=$(gh pr view &lt;number&gt; --json headRefName -q '.headRefName')
-TICKET_ID=$(printf '%s %s' "$TITLE" "$BRANCH" | grep -oiE 'T[0-9]{6}' | head -1 | tr a-z A-Z)
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<ul>
-<li><p><strong>Merge (mergeable, CI green, not draft):</strong></p>
-<div class="code-wrapper"><pre><code class="language-bash">gh pr merge &lt;number&gt; --squash --delete-branch
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<blockquote>
-<p><strong>Expected exit 1 after a squash-merge is NOT a failure.</strong> A squash-merge makes the local branch diverge from <code>main</code>, so <code>gh pr merge</code> exits 1 with <code>not possible to fast-forward</code> even though the PR merged. <strong>Always verify by timestamp, never by exit code:</strong></p>
-<div class="code-wrapper"><pre><code class="language-bash">gh pr view &lt;number&gt; --json mergedAt -q '.mergedAt'   # empty = still open; timestamp = merged
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-</blockquote>
-<p>Use <code>--auto</code> instead when CI is still running — GitHub merges once checks pass.</p>
-</li>
-<li><p><strong>Close the ticket once <code>mergedAt</code> is set</strong> (only if <code>$TICKET_ID</code> was found; <code>resolution</code>: <code>fixed</code> for <code>fix/*</code>, <code>shipped</code> for <code>feature/*</code>) — <strong>MCP-first</strong> (<code>ticket-mcp</code> lifecycle; the wrappers write via <code>ticket.sh</code>, not via the read-only <code>mcp-postgres</code>):</p>
-<blockquote>
-<p><code>mcp__ticket-mcp__transition_status({ id: "$TICKET_ID", status: "done", resolution: "&lt;fixed|shipped&gt;" })</code>
-<code>mcp__ticket-mcp__add_comment({ id: "$TICKET_ID", body: "PR #&lt;number&gt; merged." })</code></p>
-</blockquote>
-<p>Fallback (ticket-mcp nicht erreichbar — direkte Writes über <code>psql</code>):</p>
-<div class="code-wrapper"><pre><code class="language-bash">psql -c \
-  "UPDATE tickets.tickets SET status='done', resolution='fixed', done_at=now()
-   WHERE external_id='$TICKET_ID' AND status &lt;&gt; 'done';
-   INSERT INTO tickets.ticket_comments (ticket_id, author_label, body, visibility)
-   SELECT id, 'claude-code', 'PR #&lt;number&gt; merged.', 'internal'
-   FROM tickets.tickets WHERE external_id='$TICKET_ID';"
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>If no <code>T000XXX</code> is recoverable, the PR is unlinked — note it and leave any ticket untouched.</p>
-</li>
-<li><p><strong>CI Failures:</strong> Diagnose failed checks with <code>gh pr checks &lt;number&gt;</code>. Do not merge red PRs. If the failure is a known flake, re-run; otherwise leave the PR open and (if it has a ticket) leave the ticket <code>in_progress</code>.</p>
-</li>
-</ul>
-<h3 id="step-44-github-issue-intake-rare">Step 4.4: GitHub Issue Intake (rare)</h3>
-<p>This repo tracks issues in Postgres, not GitHub. If <code>gh issue list --state open</code> returns anything, funnel it in rather than working it on GitHub:</p>
-<ol>
-<li><strong>Title-dedupe guard [T001210].</strong> Before creating a new row, run a lookup for an open ticket with the same (case-insensitive, whitespace-normalised) title. If one exists — e.g. canonical reference T001147 "E2E notification test — Playwright FA-bug-notify", mishap bundle T001148 — do not create a duplicate. Append a <code>ticket_comments</code> row to the existing ticket noting the re-trigger source, then <code>gh issue close &lt;n&gt; --comment "Duplicate of &lt;external_id&gt;."</code>. The 4 duplicates T001196/T001197/T001201/T001202 were created 2026-06-27 against T001147 precisely because this dedupe guard was missing. Phase 1 Step 1.4 (Completeness triage) applies the same dedupe precondition before accepting a new auto-intake row.</li>
-<li>Create a <code>tickets.tickets</code> row from the issue (<code>type</code>, <code>brand</code>, <code>title</code>, <code>description</code>, <code>status='triage'</code>).</li>
-<li><code>gh issue close &lt;n&gt; --comment "Tracked internally as &lt;external_id&gt;."</code></li>
-</ol>
-<hr>
-<h2 id="software-factory-queue-mcp-first">Software-Factory-Queue (MCP-first)</h2>
-<p>Für Factory-Queue-Status und manuelles Anstoßen die <code>factory-mcp</code>-Tools bevorzugen (HTTP-Daemon auf <code>127.0.0.1:13003</code>). <strong>Verfügbarkeits-Guard zuerst:</strong> <code>curl -sf --max-time 2 http://127.0.0.1:13003/health</code> — bei Erfolg MCP, sonst Skript-Fallback.</p>
-<p><strong>MCP-first</strong> (<code>factory-mcp</code>):</p>
-<blockquote>
-<p><code>mcp__factory-mcp__factory_status()</code> — Queue-Tiefe + ob gerade ein Tick läuft
-<code>mcp__factory-mcp__factory_queue()</code> — wartende Tickets (backlog + plan_staged)
-<code>mcp__factory-mcp__factory_trigger()</code> — sofortigen Factory-Tick auslösen
-<code>mcp__factory-mcp__factory_enqueue({ ticket_id: "T000XXX" })</code> · <code>mcp__factory-mcp__factory_recent({ limit: 10 })</code></p>
-</blockquote>
-<p>Fallback (Daemon <code>:13003</code> nicht erreichbar):</p>
-<ul>
-<li>Status/Queue → <code>mcp__mcp-postgres__query</code> bzw. <code>psql</code> SELECT auf <code>tickets.tickets WHERE status IN ('backlog','plan_staged')</code>.</li>
-<li>Tick auslösen → <code>bash scripts/factory/wakeup.sh</code>.</li>
-</ul>
+<p>Die komplette Housekeeping-Mechanik (stale Worktrees, stale Branches inkl. squash-<code>[gone]</code>-Prune,
+PR-Triage → Ticket-Close, GitHub-Issue-Intake mit Dedupe-Guard, Factory-Queue) ist <strong>SSOT</strong> in
+<a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/repo-hygiene-ops.md"><code>repo-hygiene-ops</code></a> —
+alle vier Schritte (4.1–4.4) dort der Reihe nach ausführen.</p>
+<p>Ticket-ops-spezifisch: der Dedupe-Guard aus §4 (Issue-Intake) gilt auch als Vorbedingung in
+Phase 1 Step 1.4, bevor eine neue Auto-Intake-Zeile akzeptiert wird.</p>
 <hr>
 <h2 id="post-execution-mishap-report">Post-Execution: Mishap Report</h2>
 <p>After completing all steps in this skill, invoke <code>mishap-tracker</code> with your accumulated <code>MISHAP_LOG</code>. If no mishaps were found, <code>mishap-tracker</code> exits cleanly.</p>

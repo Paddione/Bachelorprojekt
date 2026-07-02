@@ -64,6 +64,11 @@
 <li><code>description</code>: What was observed and why it matters</li>
 <li><code>component</code>: Affected subsystem (e.g., <code>kubeconfig</code>, <code>repo/chore/…</code>, <code>skills/&lt;name&gt;</code>)</li>
 </ul>
+<p><strong>Preamble-Konvention für Runbook-Skills (SSOT):</strong> Runbooks tragen am Dateianfang nur den
+Zwei-Zeilen-Verweis („Führe ein <code>MISHAP_LOG</code> … siehe <code>mishap-tracker</code> §Input") — die Semantik
+lebt hier: pro Anomalie, unerwartetem Zustand, kaputter Komponente, Security-Bedenken oder
+Config-Drift — <strong>auch wenn irrelevant für die aktuelle Aufgabe</strong> — einen Eintrag mit den vier
+Feldern oben anlegen und diesen Skill ganz am Ende aufrufen.</p>
 <p>If the log is empty, report that and stop — nothing to track.</p>
 <hr>
 <h2 id="step-0-verify-before-creating-false-positive-guard">Step 0: Verify Before Creating (False-Positive Guard)</h2>

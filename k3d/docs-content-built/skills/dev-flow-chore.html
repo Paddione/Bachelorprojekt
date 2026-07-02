@@ -91,8 +91,8 @@ bash scripts/worktree-create.sh chore/&lt;slug&gt; /tmp/wt-&lt;slug&gt;
 cd /tmp/wt-&lt;slug&gt;
 bash scripts/agent-lock.sh claim branch "chore/&lt;slug&gt;" --worktree "$PWD" --label dev-flow-chore
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Falls ausnahmsweise inline im main-Checkout gearbeitet wird: zusätzlich <code>claim main-checkout</code> —
-der <code>.githooks/pre-commit</code> sperrt sonst konkurrierende Commits anderer Sessions.</p>
+<p>Claim-Semantik, main-checkout-Sonderfall (<code>claim main-checkout</code>) und Release:
+<a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/session-coordination.md">session-coordination</a>.</p>
 <p>Lege ein minimales Audit-Ticket an (type=task, status=done — Chores haben keinen Plan,
 nur eine Audit-Spur):</p>
 <div class="code-wrapper"><pre><code class="language-bash">TICKET_RESULT=$(./scripts/ticket.sh create \
@@ -107,88 +107,31 @@ TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
 <p>Setze die Wartung um. Bei mechanischer Arbeit über mehrere Dateien kannst du an einen passend
 provisionierten Subagenten delegieren (siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md">subagent-provisioning</a> — Chores sind i.d.R. <code>haiku</code>/<code>sonnet</code>, Effort low).</p>
 <h2 id="schritt-3-verifizieren">Schritt 3: Verifizieren</h2>
-<div class="code-wrapper"><pre><code class="language-bash">task workspace:validate
-task test:changed
-task freshness:regenerate   # generierte Artefakte aktuell halten, sonst CI rot
-task freshness:check        # CI-Äquivalent: S1–S4-Ratchet (Zeilenlimits!) gegen baseline.json — fängt das Gate VOR dem Push
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Verify-Block ausführen (die vier Befehle, Freshness-Guard, S1-Ratchet-Erklärung) — <strong>SSOT:</strong>
+<a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/verification-block.md">verification-block</a>.</p>
+<blockquote>
+<p><strong>⚠ S1-Gate-Guard (Chores ohne Plan!):</strong> Chores haben kein Zeilenbudget-Planungsschritt.
+Berührt die Chore Code-Dateien (<code>.ts/.svelte/.astro/.sh/.mjs/...</code>), vor dem Commit den
+<strong>Restbudget-Check</strong> aus dem verification-block laufen lassen (<code>plan-lint.sh residual_budget</code>-
+Schleife) — bei Restbudget ≤ 0 die Datei <strong>echt verkleinern</strong>, nicht kosmetisch zusammenziehen.</p>
+</blockquote>
 <p>Siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md">dev-flow-gotchas</a> für TypeScript/pnpm-Gotchas in Worktrees.</p>
-<blockquote>
-<p><strong>⚠ Freshness-Guard (vor jedem Commit):</strong> Neue Test-Specs, Routen oder Assets ändern generierte Indexdateien (<code>repo-index.json</code>, <code>test-inventory.json</code>, …). Ohne Regenerierung schlägt CI fehl. Der Pre-commit-Hook erledigt das automatisch nach <code>task secrets:install-hooks</code> — ohne Hook: <code>task freshness:regenerate</code> manuell ausführen und staged Änderungen mitcommittten.</p>
-</blockquote>
-<blockquote>
-<p><strong>⚠ S1-Gate-Guard (Chores ohne Plan!):</strong> Chores haben <strong>kein</strong> Zeilenbudget-Planungsschritt. Berührt die Chore Code-Dateien (<code>.ts/.svelte/.astro/.sh/.mjs/...</code>), prüfe vor dem Commit das S1-Ratchet mit <code>task freshness:check</code>. Achtung: Das Ratchet vergleicht gegen den <strong>eingefrorenen Baseline-Wert</strong> in <code>docs/code-quality/baseline.json</code>, nicht nur gegen das statische Limit — eine schon gebaselinete (gewachsene) Datei hat <strong>0 Zeilen Budget</strong>, d.h. schon +1 Zeile macht CI rot. Dann die Datei <strong>echt verkleinern/aufteilen</strong>, nicht kosmetisch Zeilen zusammenziehen (das trippt bei der nächsten Änderung erneut).</p>
-<p><strong>Plan-Linter gibt es für Chores nicht</strong> (kein Plan) — aber das S1-Budget der berührten
-Code-Dateien lässt sich vor dem Commit prüfen: für jede geänderte Datei den Restbudget-Wert
-mit der gleichen Mathematik wie der Linter ermitteln:</p>
-<div class="code-wrapper"><pre><code class="language-bash">for f in $(git diff --name-only); do
-  PLAN_LINT_SELFTEST=1 bash scripts/plan-lint.sh residual_budget "$f" 2&gt;/dev/null \
-    | awk -v f="$f" '{print f": Restbudget "$0}'
-done
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Bei Restbudget ≤ 0 die Datei <strong>echt verkleinern</strong>, nicht kosmetisch zusammenziehen.</p>
-</blockquote>
 <h2 id="schritt-4-commit-push--pr">Schritt 4: Commit, Push &amp; PR</h2>
-<blockquote>
-<p><strong>git-crypt-Staging-Hinweis [T001210]:</strong> Niemals <code>git add -A</code> in diesem Repo
-verwenden. <code>environments/.secrets/**</code> ist git-crypt-geschützt; in jedem
-Worktree erscheinen ~21 Smudge-Artefakte als "modified" und würden durch
-ein blankes <code>git add -A</code> in den Index und den Commit promoviert werden.
-Der ad-hoc-Workaround wurde in T001199 / PR #2135 entwickelt und ist
-hier in den Skill selbst übernommen. Verwandt: das silent-commit-failure
-Symptom derselben Root-Cause ist in T000925 dokumentiert.</p>
-</blockquote>
-<div class="code-wrapper"><pre><code class="language-bash">BASE_SHA="$(git rev-parse "@{upstream}" 2&gt;/dev/null || git rev-parse origin/main)"
-# Stage only the files the chore actually changed — a bare `git add -A`
-# would promote ~21 git-crypt smudge artifacts from environments/.secrets/**
-# into the index on every chore commit. See T001210, T001199 / PR #2135,
-# and the related silent-commit-failure guard in T000925.
-git add &lt;changed-paths&gt;   # explicit pathspec; e.g. scripts/ docs/ Taskfile.* (NEVER `git add -A`)
-
-# Secret-in-index guard (T001210). environments/.secrets/** is git-crypt-
-# protected; abort with FATAL if any such path slipped into the index.
-if git diff --cached --name-only | grep -q '^environments/.secrets/'; then
-  echo "FATAL: environments/.secrets/** must not be staged (git-crypt)" &gt;&amp;2
-  git diff --cached --name-only | grep '^environments/.secrets/' | sed 's/^/  /' &gt;&amp;2
-  exit 1
-fi
-git commit -m "chore(&lt;scope&gt;): &lt;subject&gt; [$TICKET_EXT_ID]"   # commitlint: Body-Zeilen &lt;100 Zeichen
-
-# Verify commit landed — git-crypt clean filter can cause silent commit failures
-# in worktrees, and an un-chained push would send an empty branch. [T000925]
-HEAD_SHA="$(git rev-parse HEAD)"
-if [ "$HEAD_SHA" = "$BASE_SHA" ]; then
-  echo "FATAL: commit did not land (git-crypt clean filter?). Push aborted." &gt;&amp;2
-  exit 1
-fi
-
-# Validate PR title scope BEFORE creating the PR. [T000925]
-bash scripts/preflight-pr-scope.sh "chore(&lt;scope&gt;): &lt;subject&gt; [$TICKET_EXT_ID]"
-if [ $? -ne 0 ]; then
-  echo "FATAL: PR title scope failed preflight — fix the scope and retry." &gt;&amp;2
-  exit 1
-fi
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Die <code>[T000XXX]</code>-Referenz wird von <code>.github/workflows/post-merge.yml</code> gelesen — das Ticket ist
+<p>Läuft nach <strong><code>git-workflow</code> Schritt 2–4</strong> (SSOT): git-crypt-Staging-Guard [T001210]
+(explizite Pathspecs, NIE <code>git add -A</code>, Secret-in-index-Guard), Commit-Verifikation
+<code>HEAD_SHA != BASE_SHA</code> [T000925], <code>preflight-pr-scope.sh</code> vor <code>gh pr create</code>,
+REST-Fallback für Titel-Edits.</p>
+<p>Chore-spezifisch: Titelformat <code>chore(&lt;scope&gt;): &lt;subject&gt; [$TICKET_EXT_ID]</code>. Die
+<code>[T000XXX]</code>-Referenz wird von <code>.github/workflows/post-merge.yml</code> gelesen — das Ticket ist
 bereits <code>done</code>, der Status-Update ist ein idempotenter No-op.</p>
-<blockquote>
-<p><strong>Titel nachträglich editieren (REST-Fallback):</strong> <code>gh pr edit --title</code> scheitert
-gelegentlich an einer Projects-Classic-GraphQL-Deprecation. Nutze stattdessen:</p>
-<div class="code-wrapper"><pre><code class="language-bash">gh api -X PATCH "repos/{owner}/{repo}/pulls/&lt;n&gt;" -f title="&lt;neuer Titel&gt;"
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Der Preflight (oben) sollte Titel-Edits aber überflüssig machen. [T000925]</p>
-</blockquote>
 <p>Rufe <code>commit-commands:commit-push-pr</code> auf (oder <code>gh pr create</code> manuell).</p>
 <h2 id="schritt-5-merge-wenn-ci-gruen">Schritt 5: Merge wenn CI grün</h2>
-<div class="code-wrapper"><pre><code class="language-bash">MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
-(cd "$MAIN_REPO" &amp;&amp; gh pr merge --auto --squash --delete-branch)
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong><code>git-workflow</code> Schritt 5–6</strong> (SSOT): CI-Fix-Loop bis grün, dann aus dem Haupt-Repo
+<code>gh pr merge --auto --squash --delete-branch</code>.</p>
 <h2 id="schritt-6-worktree--branch-bereinigen">Schritt 6: Worktree &amp; Branch bereinigen</h2>
-<div class="code-wrapper"><pre><code class="language-bash">bash scripts/agent-lock.sh release branch "chore/&lt;slug&gt;" 2&gt;/dev/null || true
-cd /home/patrick/Bachelorprojekt
-git worktree remove "/tmp/wt-&lt;slug&gt;" --force
-git branch -D "chore/&lt;slug&gt;"
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong><code>git-workflow</code> Schritt 7</strong> (SSOT): Lock-Release
+(<a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/session-coordination.md">session-coordination</a>),
+dann <code>git worktree remove /tmp/wt-&lt;slug&gt; --force &amp;&amp; git branch -D chore/&lt;slug&gt;</code> im Haupt-Repo.</p>
 <h2 id="schritt-7-deploy-falls-noetig">Schritt 7: Deploy (falls nötig)</h2>
 <p>Nur wenn die Chore deploybare Pfade berührt — Mapping in
 <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/deploy-routing.md">deploy-routing</a> (Single Source of Truth).</p>
@@ -214,6 +157,10 @@ git branch -D "chore/&lt;slug&gt;"
 <tbody><tr>
 <td><code>dev-flow-plan</code></td>
 <td>Geschwister — Features/Fixes (mit Plan + Handoff) statt Chores</td>
+</tr>
+<tr>
+<td><code>git-workflow</code></td>
+<td><strong>SSOT für Schritt 4–6</strong> — Commit/PR/Merge/Cleanup</td>
 </tr>
 <tr>
 <td><code>using-git-worktrees</code></td>

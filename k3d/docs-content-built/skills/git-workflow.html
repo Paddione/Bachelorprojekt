@@ -45,7 +45,7 @@
 <html><head></head><body><h1>Git Workflow — vollständiger Lifecycle für dieses Repo</h1><div class="toc-box auto-toc">
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#schritt-0--pull-first"><span class="toc-num">1.</span> Schritt 0 — Pull-First</a></li>
-<li class="toc-item"><a href="#schritt-1--freshness-guard-vor-dem-commit"><span class="toc-num">2.</span> Schritt 1 — Freshness Guard (vor dem Commit)</a></li>
+<li class="toc-item"><a href="#schritt-1--verifikation--freshness-guard-vor-dem-commit"><span class="toc-num">2.</span> Schritt 1 — Verifikation &amp; Freshness Guard (vor dem Commit)</a></li>
 <li class="toc-item"><a href="#schritt-2--commit"><span class="toc-num">3.</span> Schritt 2 — Commit</a></li>
 <li class="toc-item toc-item--h3"><a href="#conventional-commits--pflichtformat"><span class="toc-num">–</span> Conventional Commits — Pflichtformat</a></li>
 <li class="toc-item toc-item--h3"><a href="#commit-ausfuehren"><span class="toc-num">–</span> Commit ausführen</a></li>
@@ -61,6 +61,9 @@
 <li class="toc-item"><a href="#verwandte-skills"><span class="toc-num">11.</span> Verwandte Skills</a></li></ul>
 </div>
 <p><strong>Sage zu Beginn:</strong> "Ich nutze git-workflow für den Commit/PR-Ablauf."</p>
+<p>Dieser Skill ist die <strong>SSOT für Commit → Push → PR → Merge → Cleanup</strong> — die <code>dev-flow-*</code>-Skills
+verweisen auf die Schritte hier statt sie zu duplizieren. Für read/view-GitHub-Flows den Wrapper
+<code>gh-axi</code> bevorzugen (<a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/gh-axi.md">gh-axi</a>).</p>
 <hr>
 <h2 id="schritt-0--pull-first">Schritt 0 — Pull-First</h2>
 <p>Vor jedem Commit / jeder Branch-Aktion sicherstellen, dass <code>origin/main</code> aktuell ist:</p>
@@ -75,22 +78,12 @@ else
 fi
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <hr>
-<h2 id="schritt-1--freshness-guard-vor-dem-commit">Schritt 1 — Freshness Guard (vor dem Commit)</h2>
-<p>CI schlägt mit "stale artifact" fehl, wenn generierte Indexdateien veraltet sind.</p>
-<div class="code-wrapper"><pre><code class="language-bash"># Regeneriert: docs/code-quality/repo-index.json, website/src/data/test-inventory.json, etc.
-task freshness:regenerate
-
-# Frisch erzeugte Änderungen sofort stagen
-git add -p   # oder: git add docs/code-quality/ website/src/data/
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<blockquote>
-<p>Der Pre-commit-Hook erledigt das automatisch, wenn <code>task secrets:install-hooks</code> gelaufen ist.
-Ohne Hook: immer manuell ausführen, wenn <code>.ts/.svelte/.astro/.sh/.mjs</code>-Dateien geändert wurden.</p>
-</blockquote>
-<p><strong>S1-Ratchet-Check</strong> (wenn Code-Dateien berührt wurden):</p>
-<div class="code-wrapper"><pre><code class="language-bash">task freshness:check    # Schlägt fehl, wenn eine Datei das Zeilenbudget überschreitet
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Falls rot: Datei wirklich verkleinern (nicht kosmetisch Zeilen zusammenziehen).</p>
+<h2 id="schritt-1--verifikation--freshness-guard-vor-dem-commit">Schritt 1 — Verifikation &amp; Freshness Guard (vor dem Commit)</h2>
+<p>Vollständiger Verify-Block (die vier Befehle, S1-Ratchet, Freshness-Artefakt-Liste zum Stagen):
+<strong>SSOT</strong> in <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/verification-block.md">verification-block</a>.</p>
+<p>Kurzform: <code>task freshness:regenerate</code> (Artefakte aktuell halten, dann stagen) +
+<code>task freshness:check</code> (CI-Äquivalent, S1-Ratchet). Falls S1 rot: Datei wirklich verkleinern,
+nicht kosmetisch Zeilen zusammenziehen.</p>
 <hr>
 <h2 id="schritt-2--commit">Schritt 2 — Commit</h2>
 <h3 id="conventional-commits--pflichtformat">Conventional Commits — Pflichtformat</h3>
@@ -123,9 +116,22 @@ Recommit mitten im Flow. Vor dem ersten Commit die erlaubte Liste ziehen und dar
 <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md">dev-flow-gotchas T001395</a>.</p>
 </blockquote>
 <h3 id="commit-ausfuehren">Commit ausführen</h3>
+<blockquote>
+<p><strong>git-crypt-Staging-Guard [T001210]:</strong> Niemals <code>git add -A</code> in diesem Repo.
+<code>environments/.secrets/**</code> ist git-crypt-geschützt; in Worktrees erscheinen ~21
+Smudge-Artefakte als "modified" und würden durch ein blankes <code>git add -A</code> in den Commit
+promoviert. Immer explizite Pathspecs stagen und den Index-Guard unten laufen lassen.</p>
+</blockquote>
 <div class="code-wrapper"><pre><code class="language-bash">BASE_SHA="$(git rev-parse HEAD)"
 
-git add &lt;spezifische Dateien&gt;   # NIEMALS git add -A blindlings (schützt vor .env-Leaks)
+git add &lt;spezifische Dateien&gt;   # explizite Pathspecs — NIEMALS git add -A (git-crypt + .env-Leaks)
+
+# Secret-in-index-Guard (T001210): abbrechen, falls git-crypt-Pfade im Index gelandet sind
+if git diff --cached --name-only | grep -q '^environments/.secrets/'; then
+  echo "FATAL: environments/.secrets/** darf nicht gestaged sein (git-crypt)" &gt;&amp;2
+  git diff --cached --name-only | grep '^environments/.secrets/' | sed 's/^/  /' &gt;&amp;2
+  exit 1
+fi
 
 git commit -m "&lt;type&gt;(&lt;scope&gt;): &lt;subject&gt; [&lt;TICKET_EXT_ID&gt;]"
 
@@ -180,7 +186,7 @@ EOF
 <hr>
 <h2 id="schritt-5--ci-fix-loop">Schritt 5 — CI Fix Loop</h2>
 <p>Nachdem der PR gepusht ist: CI überwachen und Fehler beheben <strong>bevor</strong> gemergt wird.</p>
-<p>Detaillierte Checkliste: <a href="../dev-flow-execute/references/ci-fix-loop.md">references/ci-fix-loop.md</a></p>
+<p>Detaillierte Checkliste (SSOT): <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/ci-fix-loop.md">ci-fix-loop</a></p>
 <p>Kurzfassung:</p>
 <ol>
 <li><code>gh pr checks &lt;n&gt; --watch</code> — warten bis alle Required Checks grün sind</li>
@@ -222,10 +228,8 @@ cd "$MAIN_REPO"
 git worktree remove "$WORKTREE_PATH"
 git worktree prune
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Agent-Lock freigeben:</p>
-<div class="code-wrapper"><pre><code class="language-bash">bash scripts/agent-lock.sh release ticket "&lt;TICKET_EXT_ID&gt;"
-bash scripts/agent-lock.sh release branch "&lt;branch-name&gt;"
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Agent-Lock freigeben (<code>release ticket</code> + <code>release branch</code>, VOR dem Worktree-Remove) —
+Lebenszyklus-SSOT: <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/session-coordination.md">session-coordination</a>.</p>
 <hr>
 <h2 id="quick-reference">Quick-Reference</h2>
 <table>

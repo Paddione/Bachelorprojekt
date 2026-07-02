@@ -95,7 +95,8 @@
 <h2 id="schritt-3-deep-grilling-optional">Schritt −3: Deep Grilling (optional)</h2>
 <p>Wenn das Feature komplex oder unklar ist, frage den User nach einer Grilling-Session (siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md">dev-flow-gotchas</a> für den Fragenkatalog).</p>
 <p><strong>Nutze <code>lavish</code> für die Q/A-Session:</strong> Erstelle <code>.lavish/&lt;slug&gt;-grilling.html</code> mit den Fragen als interaktivem Formular (Input-Playbook), öffne es mit <code>npx -y lavish-axi .lavish/&lt;slug&gt;-grilling.html</code> und poll auf Antworten. So kann der User strukturiert antworten, annotieren und Feedback geben.</p>
-<p>Falls durchgeführt, erstelle das Grilling-Ticket — <strong>MCP-first</strong> (<code>ticket-mcp</code>). Der zurückgegebene Text ist <code>external_id|uuid</code> (identisch zu <code>ticket.sh create</code>): <code>external_id</code> = Feld 1 (<code>cut -d'|' -f1</code>), <code>uuid</code> = Feld 2.</p>
+<p>Falls durchgeführt, erstelle das Grilling-Ticket — <strong>MCP-first</strong> (<code>ticket-mcp</code>; Rückgabe-Parsing
+<code>external_id|uuid</code>: siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md">MCP-Tool-Guide</a> §ticket-mcp).</p>
 <blockquote>
 <p><code>mcp__ticket-mcp__create_ticket({ type: "task", brand: "mentolder", title: "Grilling: &lt;kurzer-titel&gt;", priority: "mittel", description: "FUNKTIONALE ANFORDERUNGEN:\n&lt;requirements&gt;\n\nASSETS ZU BESCHAFFEN:\n&lt;assets-todo&gt;" })</code></p>
 </blockquote>
@@ -130,7 +131,8 @@ fi
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <hr>
 <h2 id="schritt-1-reaper--stale-worktree-audit">Schritt −1: Reaper &amp; Stale-Worktree-Audit</h2>
-<p>Räume tote Sessions/Zombies/stale Worktrees auf und sieh, wer gerade was bearbeitet (Session-Koordination [T000510]):</p>
+<p>Räume tote Sessions/Zombies/stale Worktrees auf und sieh, wer gerade was bearbeitet —
+Lock-Lebenszyklus-SSOT: <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/session-coordination.md">session-coordination</a> [T000510]:</p>
 <div class="code-wrapper"><pre><code class="language-bash">bash scripts/agent-lock.sh reap   # killt cwd-tote-Worktree-Prozesse, prunet Worktrees, räumt tote Locks
 bash scripts/agent-lock.sh list   # "Wer macht was": laufende Claims anderer Sessions
 bash scripts/agent-msg.sh read --unread   # offene Nachrichten paralleler Sessions sichten [T000882]
@@ -338,13 +340,9 @@ cd "${WT}"
 <ol>
 <li><p>Committe und pushe die Spec-Datei auf den Feature-Branch.</p>
 </li>
-<li><p>Spawne über das <code>Agent</code>/<code>Task</code>-Tool einen Subagenten, <strong>provisioniert gemäß</strong> <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md">subagent-provisioning</a> (Modell · Effort · Kontext):</p>
+<li><p>Spawne über das <code>Agent</code>/<code>Task</code>-Tool einen Subagenten (<code>subagent_type: general-purpose</code>), <strong>provisioniert gemäß</strong> <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md">subagent-provisioning</a> — Plan-Schreiben ist reasoning-lastige Meta-Arbeit: Modell-Default <code>opus</code> (triviale chore-artige Pläne: <code>sonnet</code>), Effort high; bei großen multi-subsystem-Specs die ultra-Stufe (<code>Workflow</code>-Fan-out) — Effort-Formulierungen, Worktree-<code>cd</code>-Pflicht und Eskalations-Rubrik stehen in der Reference (SSOT, nicht hier wiederholen).</p>
 <ul>
-<li><strong>Modell:</strong> Plan-Schreiben ist reasoning-lastige Meta-Arbeit → Default <code>model: opus</code>. Bei trivialem (chore-artigem) Plan genügt <code>sonnet</code>.</li>
-<li><strong>Effort:</strong> Default high — beginne den Prompt mit „Ultrathink. Denke sehr gründlich nach." (das <code>Agent</code>-Tool kennt nur <code>model</code>, keinen Effort-Regler — Effort wird im Prompt vermittelt). <strong>Bei großen multi-subsystem-Specs → ultra:</strong> statt eines Einzel-Agenten das <code>Workflow</code>-Tool nutzen (parallele Plan-Segment-Autoren gegen einen geteilten Interface-Contract + abschließende Self-Review), siehe Rubrik.</li>
-<li><code>subagent_type: general-purpose</code>.</li>
-<li><strong>Kontext-Injektion</strong> (er hat sonst KEINEN Kontext — gib ihm alles explizit):<ul>
-<li>Absoluter Worktree-Pfad (<code>pwd</code>) + Branch-Name; er arbeitet NUR relativ dazu.</li>
+<li><strong>Kontext-Injektion</strong> (er hat sonst KEINEN Kontext — gib ihm alles explizit; Kompaktheits-Regeln siehe subagent-provisioning §3):<ul>
 <li>Spec-Pfad: <code>docs/superpowers/specs/&lt;date&gt;-&lt;slug&gt;-design.md</code></li>
 <li><strong>Design-Bundle</strong> (falls Schritt A.2 lief): <code>openspec/changes/&lt;slug&gt;/assets/</code> —
 der Plan MUSS <code>intent.md</code> als Design-Quelle referenzieren, die finalen Asset-Zielpfade
@@ -361,27 +359,10 @@ DB-Spalten/API-Contracts aus den <code>db_tables</code>/<code>api_contracts</cod
 </ul>
 </li>
 <li><strong>plan-lint Hard Rules (PFLICHT — vom Subagenten verbatim zu befolgen):</strong>
-Lies vor dem Schreiben <code>scripts/plan-lint.sh</code> und stelle sicher, dass die
-tasks.md alle Hard-Pflichten erfüllt. Die folgenden Regeln sind die
-einzige Quelle der Wahrheit (Stand jetzt):<ul>
-<li><strong>F1 Frontmatter:</strong> YAML-Frontmatter am Anfang mit den vier Pflicht-Keys
-<code>title</code>, <code>ticket_id</code>, <code>domains</code>, <code>status</code> (alle nicht-leer).</li>
-<li><strong>F2 domains:</strong> <code>domains:</code> ist eine non-empty YAML-Liste
-(<code>[a, b, …]</code>), kein leerer String und kein <code>[]</code>.</li>
-<li><strong>STRUCT1 Plan-Shape:</strong> Die Datei beginnt (nach Frontmatter) mit
-<code># &lt;slug&gt; — Implementation Plan</code> als H1, gefolgt von einer H2-Sektion
-<code>## File Structure</code>, die die geänderten/neuen Dateien auflistet.</li>
-<li><strong>STRUCT2 Failing-Test-Step:</strong> Mindestens ein Task enthält einen
-rot→grün-Failing-Test-Step mit der wortwörtlichen Phrase
-<code>expected: FAIL</code> (regex tolerant: <code>expected:? *fail</code>).</li>
-<li><strong>STRUCT3 Verify-Task:</strong> Der letzte Task listet die drei mandatory
-Verify-Commands: <code>task test:changed</code>, <code>task freshness:regenerate</code>,
-<code>task freshness:check</code> (regex <code>task:space:+&lt;cmd&gt;</code>).</li>
-<li><strong>P1 Placeholder-Verbot:</strong> In Prosa (außerhalb von ```-Fences und
-<code>inline code</code>) dürfen die Tokens <code>TBD</code>, <code>TODO</code>, <code>FIXME</code>, <code>???</code>,
-<code>&lt;ausfüllen&gt;</code> und <code>similar to Task &lt;N&gt;</code> NICHT vorkommen.</li>
-</ul>
-</li>
+F1/F2/STRUCT1–3/P1 stehen als SSOT in
+<a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-quality-gates.md">plan-quality-gates</a>
+§plan-lint — der Subagent MUSS die Datei lesen und die tasks.md dagegen schreiben
+(<code>scripts/plan-lint.sh</code> ist das maschinelle Gate dazu).</li>
 <li><strong>Auftrag:</strong> „<strong>PFLICHT — Worktree-Isolation:</strong> Beginne deinen Prompt mit <code>cd /tmp/wt-&lt;slug&gt;</code> — der Subagent hat keinen impliziten CWD-Kontext und schreibt sonst ins Haupt-Checkout. Alle folgenden Dateipfade sind relativ zu diesem Worktree.</li>
 </ul>
 <p> Dann: Lies die Spec UND <code>.claude/skills/references/plan-quality-gates.md</code>. Rufe <code>superpowers:writing-plans</code> auf und schreibe den Implementierungsplan <strong>ausschließlich</strong> nach <code>openspec/changes/&lt;slug&gt;/tasks.md</code> (OpenSpec-Format: H2-Operationsheader im Delta, H3-Requirement, H4-Scenario im <code>specs/&lt;capability&gt;.md</code>). Der finale Verifikations-Task des Plans MUSS <code>task test:changed</code>, <code>task freshness:regenerate</code> und <code>task freshness:check</code> als Steps enthalten (CI-Äquivalent inkl. S1–S4-Ratchet); nach Test-Änderungen zusätzlich <code>task test:inventory</code> + Commit des Inventars. Vor dem Commit: <code>task test:openspec</code> (oder <code>bash scripts/openspec.sh validate</code>) — muss grün sein. Starte KEINE Implementierung (nur Plan schreiben, dann STOPP). Gib den Plan-Pfad (<code>openspec/changes/&lt;slug&gt;/tasks.md</code>) und eine 3-Zeilen-Zusammenfassung zurück."</p>
@@ -404,7 +385,7 @@ bis <code>plan-lint.sh</code> PASS liefert. KEIN Weitergehen mit rotem Linter.</
 <p>Du behältst deinen vollen Brainstorming-Kontext: lies den vom Subagenten zurückgegebenen Plan und prüfe ihn gegen die im Brainstorming getroffenen Entscheidungen. Prüfe zusätzlich die Gate-Konformität (Checkliste in <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-quality-gates.md">plan-quality-gates</a>): S1-Budgets gegen die <strong>wirksame Schwelle</strong> (Baseline-Wert falls gebaselined, sonst Limit) pro Datei notiert — und bei Budget≈0 ein echter Verkleinerungs-/Split-Schritt statt kosmetischem Zusammenziehen? Finaler Verifikations-Task enthält <code>task test:changed</code> + <code>task freshness:regenerate</code> + <code>task freshness:check</code>? Keine Brand-Domain-Literale in den Code-Snippets? Bei Lücken oder Abweichungen delegiere erneut (Schritt 3.7) mit konkreten Korrektur-Hinweisen. Erst wenn der Plan passt, weiter zu Schritt 4.5.</p>
 <h3 id="schritt-45-ticket-anlegen-oder-wiederverwenden">Schritt 4.5: Ticket anlegen oder wiederverwenden</h3>
 <p>Prüfe ob ein bestehendes Ticket-ID übergeben wurde (z.B. von <code>feature-intake</code>).</p>
-<p><strong>MCP-first</strong> (<code>ticket-mcp</code>) — wenn noch kein <code>TICKET_EXT_ID</code> gesetzt ist, ein neues Ticket anlegen. Rückgabe ist <code>external_id|uuid</code>: Feld 1 (<code>cut -d'|' -f1</code>) = <code>TICKET_EXT_ID</code>, Feld 2 = <code>TICKET_UUID</code>.</p>
+<p><strong>MCP-first</strong> (<code>ticket-mcp</code>) — wenn noch kein <code>TICKET_EXT_ID</code> gesetzt ist, ein neues Ticket anlegen (Rückgabe-Parsing: MCP-Tool-Guide §ticket-mcp).</p>
 <blockquote>
 <p><code>mcp__ticket-mcp__create_ticket({ type: "task", brand: "mentolder", title: "Plan: &lt;slug&gt;", priority: "mittel", description: "Branch: feature/&lt;slug&gt;\nPlan: openspec/changes/&lt;slug&gt;/tasks.md\nSpec: docs/superpowers/specs/&lt;date&gt;-&lt;slug&gt;-design.md\n&lt;grilling-ref&gt;" })</code></p>
 </blockquote>
@@ -502,7 +483,7 @@ Annotationen als Änderungsauftrag an einen Plan-Schreib-Agenten übergeben,
 <hr>
 <h2 id="fix-pfad">Fix-Pfad</h2>
 <h3 id="schritt-1-t--ticket">Schritt 1: T-###### Ticket</h3>
-<p>Frage den User nach der Ticket-ID. Falls keins vorhanden ist, lege ein neues Ticket an — <strong>MCP-first</strong> (<code>ticket-mcp</code>, Rückgabe <code>external_id|uuid</code>: Feld 1 = <code>TICKET_EXT_ID</code>, Feld 2 = <code>TICKET_UUID</code>):</p>
+<p>Frage den User nach der Ticket-ID. Falls keins vorhanden ist, lege ein neues Ticket an — <strong>MCP-first</strong> (<code>ticket-mcp</code>; Rückgabe-Parsing: MCP-Tool-Guide §ticket-mcp):</p>
 <blockquote>
 <p><code>mcp__ticket-mcp__create_ticket({ type: "bug", brand: "mentolder", title: "&lt;titel&gt;", description: "&lt;beschreibung&gt;", status: "triage", severity: "&lt;critical|major|minor|trivial&gt;", priority: "hoch" })</code></p>
 </blockquote>
@@ -557,9 +538,27 @@ kein Test schreiben, bevor Root-Cause und Fix-Ansatz im Board geklärt sind.</p>
 <h3 id="schritt-5-commit--push">Schritt 5: Commit &amp; Push</h3>
 <p>Füge den failing Test und den Plan hinzu, committe und pushe auf den fix Branch:</p>
 <div class="code-wrapper"><pre><code class="language-bash">git add tests/ openspec/changes/&lt;slug&gt;/tasks.md
-git commit -m "fix(&lt;scope&gt;): add failing test + stage plan [$TICKET_EXT_ID]"
+git commit -m "chore(plans): add failing test + stage plan [$TICKET_EXT_ID]"
 git push -u origin $(git branch --show-current)
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<blockquote>
+<p><strong>Wichtig — Commit-Titel-Konvention für Plan-Stage-Commits:</strong> Der Stage-Commit enthält
+NUR den RED-Test und Plan-Artefakte, KEINE Production-Code-Änderung. Verwende deshalb
+<code>chore(plans):</code> (analog zum Feature-Pfad oben) — <strong>nicht</strong> <code>fix(&lt;scope&gt;):</code> /
+<code>feat(&lt;scope&gt;):</code> / <code>refactor(&lt;scope&gt;):</code> / <code>perf(&lt;scope&gt;):</code>. Diese Implementierungs-
+Präfixe wären eine Lüge, weil der Diff keinen Production-Code enthält. Der nachfolgende
+<code>dev-flow-execute</code>-Implementer würde dem Titel vertrauen und den eigentlichen Fix
+überspringen — exakt das ist bei T001434 (2026-07-02) passiert.</p>
+<p>Falls der Plan zusätzlich Production-Code-Aufgaben enthält, die der Planer bereits
+anwendet (z.B. Boilerplate, der vom Fix unabhängig ist): trotzdem <code>chore(plans):</code>
+verwenden und die Production-Code-Änderung in einem <strong>separaten Commit</strong> mit
+<code>fix(&lt;scope&gt;):</code> ablegen, damit die <code>commit-vs-diff</code>-Guard (<code>.githooks/commit-msg</code>)
+den Stage-Commit passieren lässt.</p>
+<p>Guard: <code>scripts/check-commit-vs-diff.sh</code> + <code>.githooks/commit-msg</code> (siehe
+<code>openspec/specs/ci-cd.md</code>) blockiert jeden Commit mit Implementation-Type, dessen
+Staged-Diff nur Test-/Spec-/Plan-Dateien enthält — mit Verweis auf die richtigen
+Präfixe. Bypass: <code>SKIP_COMMIT_VS_DIFF=1 git commit ...</code> (Notfall).</p>
+</blockquote>
 <p><strong>STOPP.</strong> Failing Test, Spec und Plan sind committed und gepusht. Nächster Schritt: <code>dev-flow-execute</code> aufrufen.</p>
 <hr>
 <h2 id="chore-pfad">Chore-Pfad</h2>

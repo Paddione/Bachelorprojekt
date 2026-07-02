@@ -43,11 +43,8 @@
 
 <article class="doc-body">
 <html><head></head><body><blockquote>
-<p><strong>Mishap Tracking:</strong> As you execute this skill, maintain a running <code>MISHAP_LOG</code>.
-For every anomaly, unexpected state, broken component, security concern, or
-configuration drift you notice — even if unrelated to the current task — add
-an entry with: <code>type</code> (broken/degraded/suspicious/security/drift), <code>title</code>,
-<code>description</code>, and <code>component</code>. Invoke <code>mishap-tracker</code> at the very end.</p>
+<p><strong>Mishap Tracking:</strong> Führe während dieses Skills ein <code>MISHAP_LOG</code> und rufe am Ende
+<code>mishap-tracker</code> auf — Eintragsformat und Ablauf: siehe <code>mishap-tracker</code> §Input.</p>
 </blockquote>
 <h1>incident-response</h1><div class="toc-box auto-toc">
   <div class="toc-title">Auf dieser Seite</div>
@@ -65,15 +62,10 @@ an entry with: <code>type</code> (broken/degraded/suspicious/security/drift), <c
 <h2 id="ticket-model-shared-preamble">Ticket model (shared preamble)</h2>
 <p>Internal tickets live in <code>tickets.tickets</code> on the <code>mentolder</code> (<code>website</code> DB). Enum reference:</p>
 <p><code>priority ∈ {hoch,mittel,niedrig}</code> · <code>severity ∈ {critical,major,minor,trivial}</code> · <code>status ∈ {triage,planning,plan_staged,backlog,in_progress,in_review,blocked,qa_review,done,archived}</code> · <code>resolution ∈ {fixed,shipped,obsolete}</code></p>
-<p><strong>DB-Zugriff — MCP-Postgres für Reads bevorzugen.</strong> Bei erreichbarem <code>mcp-postgres</code> lese SELECTs via
-<code>mcp__mcp-postgres__query</code>. Die <code>psql()</code>-Funktion unten ist der Read-Fallback; <strong>schreibende</strong>
-Statements (z. B. das <code>INSERT INTO tickets.tickets</code> in Schritt 2) bleiben Pflicht über
-<code>psql</code>/<code>kubectl exec</code>, da das MCP-Query-Tool read-only ist.
-Siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md"><code>MCP-Tool-Guide</code></a>.</p>
-<p>SQL helper:</p>
-<div class="code-wrapper"><pre><code class="language-bash">PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)
-psql() { kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- psql -U website -d website "$@"; }
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>DB-Zugriff:</strong> Reads MCP-first via <code>mcp__mcp-postgres__query</code>; der <code>psql()</code>-Fallback-Helper
+(zugleich Pflichtweg für Writes wie das <code>INSERT</code> in Schritt 2) ist SSOT im
+<a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md"><code>MCP-Tool-Guide</code></a> §mcp-postgres —
+die <code>psql -c</code>-Aufrufe unten setzen diesen Helper voraus.</p>
 <hr>
 <h2 id="step-1--scope-the-incident--2-min">Step 1 — Scope the Incident (&lt; 2 min)</h2>
 <p>Determine:</p>
@@ -84,8 +76,8 @@ psql() { kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- psql 
 <li><strong>Blast Radius:</strong> All users or a subset of features?</li>
 </ol>
 <h2 id="step-2--open-an-incident-ticket">Step 2 — Open an Incident Ticket</h2>
-<div class="code-wrapper"><pre><code class="language-bash">PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)
-kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- psql -U website -d website -At -c \
+<div class="code-wrapper"><pre><code class="language-bash"># psql()-Helper aus dem MCP-Tool-Guide §mcp-postgres (siehe Preamble)
+psql -At -c \
   "INSERT INTO tickets.tickets (type, brand, title, description, status, severity, priority)
    VALUES ('bug', 'mentolder', 'Incident: &lt;desc&gt;', 'Affected: &lt;svc&gt;\nCluster: &lt;env&gt;\nSymptoms: &lt;symptoms&gt;', 'in_progress', '&lt;critical|major|minor&gt;', 'hoch')
    RETURNING external_id;"

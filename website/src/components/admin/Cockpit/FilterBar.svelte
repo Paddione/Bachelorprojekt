@@ -10,6 +10,7 @@
     type CockpitFilterState,
     type Preset
   } from '../../../lib/cockpit-presets';
+  import { icons } from '../../../layouts/admin-icons';
 
   // Props using Svelte 5 runes
   let {
@@ -92,7 +93,8 @@
       aria-haspopup="listbox"
       aria-expanded={dropdownOpen}
     >
-      📂 Preset laden
+      <span class="btn-ico" aria-hidden="true">{@html icons.folder}</span>
+      <span>Preset laden</span>
     </button>
     
     {#if dropdownOpen}
@@ -122,11 +124,13 @@
   </div>
 
   <button class="btn" onclick={() => (showSaveDialog = true)}>
-    💾 Als Preset speichern
+    <span class="btn-ico" aria-hidden="true">{@html icons.save}</span>
+    <span>Als Preset speichern</span>
   </button>
 
   <button class="btn" onclick={handleCopyUrl}>
-    🔗 URL kopieren
+    <span class="btn-ico" aria-hidden="true">{@html icons.link}</span>
+    <span>URL kopieren</span>
   </button>
 
   {#if toastMsg}
@@ -177,24 +181,27 @@
   }
 
   .btn {
-    background: #21262d;
-    color: #c9d1d9;
-    border: 1px solid #30363d;
+    background: var(--admin-surface);
+    color: var(--admin-text);
+    border: 1px solid var(--admin-border);
     border-radius: 6px;
     padding: 0.4rem 0.8rem;
     font-size: 0.85rem;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
+    gap: 0.4rem;
     font-weight: 500;
     transition: background-color 0.2s, border-color 0.2s;
   }
 
   .btn:hover {
-    background: #30363d;
-    border-color: #8b949e;
+    background: var(--admin-surface-hover);
+    border-color: var(--admin-border-bright);
   }
+
+  .btn-ico { display: inline-flex; width: 16px; height: 16px; color: var(--admin-primary); }
+  .btn-ico :global(svg) { width: 16px; height: 16px; }
 
   .presets-menu {
     position: absolute;

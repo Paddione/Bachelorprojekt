@@ -382,7 +382,7 @@ export async function getFloor(slotsCap: number): Promise<FloorPayload> {
 /** Full per-ticket detail for the slide-in panel; null if the ext_id is unknown. */
 export async function getTicketDetail(extId: string): Promise<TicketDetail | null> {
   const t = await pool.query(
-    `SELECT id, external_id, title, status, priority, retry_count FROM tickets.tickets WHERE external_id = $1`,
+    `SELECT id, external_id, title, status, priority, retry_count, description FROM tickets.tickets WHERE external_id = $1`,
     [extId],
   );
   if (!t.rows.length) return null;
@@ -425,6 +425,7 @@ export async function getTicketDetail(extId: string): Promise<TicketDetail | nul
     status: row.status,
     priority: row.priority,
     retryCount: row.retry_count ?? 0,
+    description: row.description ?? null,
     prNumber: pr.rows[0]?.pr_number ?? null,
     events: events.rows.map((e) => ({
       phase: e.phase, state: e.state, detail: e.detail ?? null, driver: e.driver,

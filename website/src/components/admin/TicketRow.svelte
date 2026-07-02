@@ -5,11 +5,13 @@
   export let ticket: TicketRowT;
   export let selected = false;
   export let busy = false;
+  export let expanded = false;
   // Svelte 5 callback props (also dispatched as events for parent on:xxx compatibility)
   export let onStatusChange: ((detail: { id: string; status: string }) => void) | undefined = undefined;
   export let onPriorityChange: ((detail: { id: string; priority: string }) => void) | undefined = undefined;
   export let onSelectToggle: ((detail: { id: string }) => void) | undefined = undefined;
   export let onDragStart: ((detail: { id: string; event: DragEvent }) => void) | undefined = undefined;
+  export let onToggleExpand: (() => void) | undefined = undefined;
 
   const dispatch = createEventDispatcher();
 
@@ -41,6 +43,18 @@
     onDragStart?.(detail);
     dispatch('dragStart', detail);
   }
+  function handleRowActivate(e: MouseEvent | KeyboardEvent) {
+    const target = e.target as HTMLElement | null;
+    if (target && typeof target.closest === 'function' && target.closest('.title-link')) return;
+    onToggleExpand?.();
+  }
+  function handleRowKey(e: KeyboardEvent) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      if ((e.target as HTMLElement | null)?.closest('.title-link')) return;
+      e.preventDefault();
+      onToggleExpand?.();
+    }
+  }
 
   function relDate(iso?: string): string {
     if (!iso) return '';
@@ -53,7 +67,10 @@
   }
 </script>
 
-<div class="row prio-{ticket.priority}" class:selected aria-busy={busy}>
+<div class="row prio-{ticket.priority}" class:selected class:row--expanded={expanded} aria-busy={busy} aria-expanded={expanded}
+     role="button" tabindex="0"
+     on:click={handleRowActivate}
+     on:keydown={handleRowKey}>
   <input type="checkbox" data-testid="row-checkbox" checked={selected}
     on:change={handleSelectToggle} aria-label={`Select ${ticket.title}`} />
   <span class="handle" draggable="true" role="button" tabindex="0" aria-label="Reorder (Shift+Up/Down)"
@@ -97,6 +114,7 @@
   .row:hover { background: var(--admin-surface-hover, rgba(255,255,255,0.05)); }
   .row.selected { background: rgba(110,168,254,0.08); border-left-color: #6ea8fe; }
   .row[aria-busy="true"] { opacity: 0.6; pointer-events: none; }
+  .row--expanded { background: var(--admin-surface-hover, rgba(255,255,255,0.05)); }
   .row.prio-niedrig { border-left-color: #10b981; }
   .row.prio-mittel  { border-left-color: #f59e0b; }
   .row.prio-hoch    { border-left-color: #f97316; }

@@ -109,6 +109,7 @@ export interface SuggestedFile {
 export interface TicketDetail {
   extId: string; title: string; status: string; priority: string;
   retryCount: number; prNumber: number | null;
+  description: string | null;
   events: PhaseEventRow[];
   breadcrumbs: Breadcrumb[];
   injections: InjectionRow[];

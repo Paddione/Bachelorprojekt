@@ -2,11 +2,9 @@
      Orchestrator for the admin inbox: owns state, fetches, keyboard handlers
      and the top status bar. Delegates rendering to Sidebar / List / Detail. -->
 <script lang="ts">
-  import type { InboxItem, InboxType, InboxStatus, Message } from '../../lib/messaging-db';
-  import InboxSidebar from './InboxSidebar.svelte';
+  import type { InboxItem, InboxStatus, Message } from '../../lib/messaging-db';
   import InboxList    from './InboxList.svelte';
   import InboxDetail  from './InboxDetail.svelte';
-  import { TYPE_META, TYPE_ORDER } from './type-meta';
   import { handle as handleShortcut } from './inbox-shortcuts';
   import { primaryActionFor } from './inbox-actions';
   import { browserLogger } from '$lib/browser-logger';
@@ -33,8 +31,6 @@
   }
 
   let activeStatus = $state<InboxStatus>(readInitialStatus());
-  let activeType   = $state<InboxType | 'all'>('all');
-  let searchQuery  = $state('');
 
   let selectedId   = $state<number | null>(initialItems[0]?.id ?? null);
 
@@ -49,7 +45,6 @@
   let mobileView = $state<'list' | 'detail'>('list');
 
   // refs into children
-  let searchInput: HTMLInputElement | null = $state(null);
   let replyTextarea: HTMLTextAreaElement | null = $state(null);
 
   // ── Compose (Neue Nachricht) ──────────────────────────────────────────────
@@ -122,17 +117,9 @@
   let pointerFine = $state(true);
 
   // ── Derived ──────────────────────────────────────────────────────────────
-  const visible = $derived(items
-    .filter(i => activeType === 'all' || i.type === activeType)
-    .filter(i => searchQuery.trim() === '' || matchesSearch(i, searchQuery)));
+  const visible = $derived(items);
 
   const selected = $derived(visible.find(i => i.id === selectedId) ?? null);
-
-  const typeCounts = $derived.by((): Record<string, number> => {
-    const out: Record<string, number> = {};
-    for (const it of items) out[it.type] = (out[it.type] ?? 0) + 1;
-    return out;
-  });
 
   const visibleTotal = $derived(visible.length);
 
@@ -241,36 +228,17 @@
 
   // ── Helpers ──────────────────────────────────────────────────────────────
 
-  function matchesSearch(i: InboxItem, q: string): boolean {
-    const haystack = JSON.stringify(i.payload ?? {}).toLowerCase()
-      + ' ' + (i.bug_ticket_id ?? '').toLowerCase()
-      + ' ' + (i.reference_id ?? '').toLowerCase()
-      + ' ' + i.type;
-    return haystack.includes(q.toLowerCase());
-  }
-
   function dispatch(action: ReturnType<typeof handleShortcut>['action']): void {
     if (!action) return;
     switch (action.kind) {
       case 'select-next': moveSelection(+1); break;
       case 'select-prev': moveSelection(-1); break;
-      case 'set-type':    setType(action.type); break;
       case 'set-status':  setStatus(action.status); break;
-      case 'focus-search': searchInput?.focus(); searchInput?.select(); break;
       case 'focus-reply':  replyTextarea?.focus(); break;
       case 'send-reply':   void sendReply(); break;
-      case 'clear':
-        if (searchQuery) searchQuery = '';
-        else if (typeof document !== 'undefined' && document.activeElement instanceof HTMLElement) {
-          document.activeElement.blur();
-        }
-        break;
       case 'action':
         if (action.name === 'primary') void runPrimary();
         else void runSecondary();
-        break;
-      case 'toggle-help':
-        // Cheat-sheet popover not in the spec scope; no-op for now.
         break;
     }
   }
@@ -297,11 +265,6 @@
     if (s === activeStatus) return;
     activeStatus = s;
     void reload();
-  }
-
-  function setType(t: InboxType | 'all'): void {
-    activeType = t;
-    selectedId = null; // $effect resets to first visible
   }
 
   async function reload(): Promise<void> {
@@ -342,9 +305,7 @@
         counts = { ...counts, [item.type]: Math.max(0, (counts[item.type] ?? 1) - 1) };
       }
       // pick the next visible item below, else previous, else null
-      const newVisible = items
-        .filter(i => activeType === 'all' || i.type === activeType)
-        .filter(i => searchQuery.trim() === '' || matchesSearch(i, searchQuery));
+      const newVisible = items;
       if (newVisible.length === 0) {
         selectedId = null;
         if (mobileView === 'detail') mobileView = 'list';
@@ -491,24 +452,10 @@
       title="Neue Nachricht verfassen"
     >+ Neue Nachricht</button>
 
-    <div class="search-hint" aria-hidden="true">
-      <span class="ksk">/</span>
-      <span>Suchen</span>
-    </div>
   </header>
 
-  <!-- Three columns -->
+  <!-- Two columns: list + detail -->
   <div class="cols" data-mobile-view={mobileView}>
-    <div class="col col-sidebar">
-      <InboxSidebar
-        types={TYPE_ORDER}
-        counts={typeCounts}
-        total={items.length}
-        activeType={activeType}
-        typeMeta={TYPE_META}
-        onSelect={setType}
-      />
-    </div>
 
     <div class="col col-list">
       <div class="mobile-back-row">
@@ -517,13 +464,10 @@
       <InboxList
         items={visible}
         selectedId={selectedId}
-        searchQuery={searchQuery}
         activeStatus={activeStatus}
         busy={busy}
         onSelect={selectItem}
-        onSearch={(q) => { searchQuery = q; }}
         onQuickDone={(id) => { void quickDone(id); }}
-        bindSearchInput={(el) => { searchInput = el; }}
       />
     </div>
 
@@ -721,13 +665,6 @@
     border-radius: 4px;
   }
 
-  .search-hint {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font: 400 11px var(--font-sans);
-    color: var(--mute-2);
-  }
   .ksk {
     font: 600 9.5px var(--font-mono);
     opacity: 0.65;
@@ -986,13 +923,11 @@
   @media (max-width: 767px) {
     .topbar { padding: 0 10px; gap: 8px; }
     .crumb { font-size: 11px; }
-    .search-hint { display: none; }
     .tab { padding: 4px 8px; font-size: 11px; }
 
     .cols { flex-direction: column; }
     .col { display: none; }
 
-    .cols[data-mobile-view="list"] .col-sidebar,
     .cols[data-mobile-view="list"] .col-list {
       display: flex;
     }

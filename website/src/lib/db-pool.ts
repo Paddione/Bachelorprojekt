@@ -24,7 +24,26 @@ function nodeLookup(
 }
 
 const { Pool } = pg;
-const poolConfig = { connectionString: MEETINGS_DB_URL, lookup: nodeLookup } as unknown as import('pg').PoolConfig;
+// T001490 Task 5: fail-soft timeouts. The public site must stay
+// available when the DB is slow or partitioned off — every request that
+// awaits the pool needs an upper bound. Defaults are deliberately tight
+// (connection / statement) so a hung query does not pin a request
+// indefinitely; the bundled Astro pages already wrap the DB calls in
+// `.catch(() => …)` or `try { … } catch {}` so a timeout just yields a
+// 204 / empty / static fallback.
+//
+// `lookup` is not in the public `pg.PoolConfig` typing (it's an
+// underlying libpq option we pass through), so we keep the cast
+// to `unknown` → `PoolConfig` for the nodeLookup helper.
+const poolConfig = {
+  connectionString: MEETINGS_DB_URL,
+  lookup: nodeLookup,
+  connectionTimeoutMillis: 2_000,
+  idleTimeoutMillis: 30_000,
+  // statement_timeout: max query runtime in milliseconds. Passed as a
+  // libpq option so it applies to every checkout from the pool.
+  statement_timeout: 2_000,
+} as unknown as import('pg').PoolConfig;
 export const pool = new Pool(poolConfig);
 
 // Platform/ops-audit pool. This deliberately stays PER-BRAND (== pool).

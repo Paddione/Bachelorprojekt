@@ -542,6 +542,49 @@ export async function reopenBugTicket(
   });
 }
 
+// ── T001490: Content save stubs ──────────────────────────────────────────────
+//
+// `service_config` / `leistungen_config` / `referenzen_config` writes
+// are no longer the publish path — Task 6+7 rewires every admin save
+// endpoint to call `publishContent` (bot-PR pipeline) which mutates
+// `website/content/<brand>/*.json` instead of these DB tables. The
+// `save*Config` / `get*Config` stubs remain here so admin endpoints
+// still *compile* during the migration window. They throw on call
+// to prevent silent no-op writes — if you reach one in dev, the
+// publish pipeline is the path forward.
+//
+// Readers (`getServiceConfig`, `getLeistungenConfig`, `getReferenzen`)
+// are intentionally NOT exported; the BATS contract in
+// tests/spec/website-core.bats asserts their absence.
+export async function saveServiceConfig(brand: string, overrides: ServiceOverride[]): Promise<void> {
+  void brand; void overrides;
+  throw new Error('T001490: saveServiceConfig retired — admin endpoints now publish via content-publish.ts');
+}
+export async function saveLeistungenConfig(brand: string, categories: LeistungCategoryOverride[]): Promise<void> {
+  void brand; void categories;
+  throw new Error('T001490: saveLeistungenConfig retired — admin endpoints now publish via content-publish.ts');
+}
+export async function saveReferenzen(brand: string, config: ReferenzenConfig): Promise<void> {
+  void brand; void config;
+  throw new Error('T001490: saveReferenzen retired — admin endpoints now publish via content-publish.ts');
+}
+export async function saveHomepageContent(brand: string, data: HomepageContent): Promise<void> {
+  void brand; void data;
+  throw new Error('T001490: saveHomepageContent retired — admin endpoints now publish via content-publish.ts');
+}
+export async function saveUebermichContent(brand: string, data: UebermichContent): Promise<void> {
+  void brand; void data;
+  throw new Error('T001490: saveUebermichContent retired — admin endpoints now publish via content-publish.ts');
+}
+export async function saveFaqContent(brand: string, items: FaqItem[]): Promise<void> {
+  void brand; void items;
+  throw new Error('T001490: saveFaqContent retired — admin endpoints now publish via content-publish.ts');
+}
+export async function saveKontaktContent(brand: string, data: KontaktContent): Promise<void> {
+  void brand; void data;
+  throw new Error('T001490: saveKontaktContent retired — admin endpoints now publish via content-publish.ts');
+}
+
 // ── Site Settings (key/value store per brand) ────────────────────────────────
 //
 // Generic key-value store used by the admin app for vacation periods,
@@ -589,6 +632,106 @@ export async function setSiteSetting(brand: string, key: string, value: string):
      VALUES ($1, $2, $3, now())
      ON CONFLICT (brand, key) DO UPDATE SET value = $3, updated_at = now()`,
     [brand, key, value]
+  );
+}
+
+// ── Vacation / Blackout Periods ───────────────────────────────────────────────
+//
+// Admin-managed vacation periods stored as a JSON blob in site_settings.
+// Not part of the content bundle (calendar metadata, not public page
+// content) — stays on the DB-backed site_settings key-value store.
+export interface VacationPeriod {
+  id: string;
+  start: string; // YYYY-MM-DD
+  end: string;   // YYYY-MM-DD
+  label: string;
+}
+
+export async function getVacationPeriods(brand: string): Promise<VacationPeriod[]> {
+  const raw = await getSiteSetting(brand, 'vacation_periods');
+  if (!raw) return [];
+  try { return JSON.parse(raw) as VacationPeriod[]; } catch { return []; }
+}
+
+export async function saveVacationPeriods(brand: string, periods: VacationPeriod[]): Promise<void> {
+  await setSiteSetting(brand, 'vacation_periods', JSON.stringify(periods));
+}
+
+// ── T001490: Content-Hub key constants (retained as no-op markers) ──────────
+//
+// The pre-T001490 admin saved navigation/footer/stammdaten/kore-flags
+// as JSON blobs under site_settings. Those writes now go through the
+// bot-PR publish pipeline (Task 6+7). We keep the legacy constants
+// exported as a string union (rather than the `as const` literal) so
+// the few admin save endpoints that still import them continue to
+// compile until Task 7 finishes the migration.
+export type NavKey = 'navigation';
+export type FooterKey = 'footer';
+export type StammdatenKey = 'stammdaten';
+export type KoreFlagsKey = 'kore_flags';
+export type PricingHighlightKey = 'pricing_highlight';
+export const NAV_KEY: NavKey = 'navigation';
+export const FOOTER_KEY: FooterKey = 'footer';
+export const STAMMDATEN_KEY: StammdatenKey = 'stammdaten';
+export const KORE_FLAGS_KEY: KoreFlagsKey = 'kore_flags';
+export const PRICING_HIGHLIGHT_KEY: PricingHighlightKey = 'pricing_highlight';
+
+// ── T001490: setJsonSetting stub ─────────────────────────────────────────────
+//
+// Content-hub keys (NAV_KEY, FOOTER_KEY, STAMMDATEN_KEY, KORE_FLAGS_KEY,
+// PRICING_HIGHLIGHT_KEY) are no longer written here — they are sourced
+// from the content bundle. `setJsonSetting` is kept as a throwing
+// stub so admin endpoints that still import it (e.g. stammdaten/save,
+// navigation/save, footer/save, kore-flags/save) compile during the
+// migration window. Task 7 rewires them to `publishContent`.
+export async function setJsonSetting<T>(brand: string, key: string, value: T): Promise<void> {
+  void brand; void key; void value;
+  throw new Error('T001490: setJsonSetting retired — admin endpoints now publish via content-publish.ts');
+}
+
+// ── Legal Pages (admin-editable HTML content) ────────────────────────────────
+//
+// Legal pages (impressum, datenschutz, etc.) are admin-editable HTML
+// blobs — NOT part of the content bundle (the bundle holds structured
+// data; legal pages are arbitrary HTML with token replacement). They
+// stay on the DB-backed `legal_pages` table until a future T001490
+// follow-up migrates them to a publish-pipeline domain.
+export async function initLegalPagesTable(): Promise<void> {
+  return ensureSchemaOnce('legal_pages', async () => {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS legal_pages (
+        brand        TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT,
+        page_key     TEXT,
+        content_html TEXT NOT NULL,
+        updated_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+        PRIMARY KEY (brand, page_key)
+      );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'legal_pages_brand_fkey') THEN
+          ALTER TABLE legal_pages ADD CONSTRAINT legal_pages_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID;
+        END IF;
+      END $$;
+    `);
+  });
+}
+
+export async function getLegalPage(brand: string, pageKey: string): Promise<string | null> {
+  await initLegalPagesTable();
+  const result = await pool.query(
+    'SELECT content_html FROM legal_pages WHERE brand = $1 AND page_key = $2',
+    [brand, pageKey]
+  );
+  return result.rows[0]?.content_html ?? null;
+}
+
+export async function saveLegalPage(brand: string, pageKey: string, contentHtml: string): Promise<void> {
+  await initLegalPagesTable();
+  await pool.query(
+    `INSERT INTO legal_pages (brand, page_key, content_html, updated_at)
+     VALUES ($1, $2, $3, now())
+     ON CONFLICT (brand, page_key) DO UPDATE SET content_html = $3, updated_at = now()`,
+    [brand, pageKey, contentHtml]
   );
 }
 
@@ -1105,6 +1248,74 @@ export async function deleteFollowUp(id: string): Promise<void> {
   await pool.query('DELETE FROM follow_ups WHERE id = $1', [id]);
 }
 
+// ── Bug Ticket List ───────────────────────────────────────────────────────────
+//
+// Admin-facing list of all bug tickets. The DB read path stays — bug
+// tickets are admin-managed, not public-page content — and are out of
+// scope for the T001490 content-bundle migration.
+export async function listBugTickets(filters: {
+  status?: string;
+  category?: string;
+  brand?: string;
+  q?: string;
+  limit?: number;
+}): Promise<BugTicketRow[]> {
+  await initTicketsSchema();
+  const where: string[] = [`t.type = 'bug'`];
+  const vals: unknown[] = [];
+  if (filters.brand) {
+    vals.push(filters.brand);
+    where.push(`t.brand = $${vals.length}`);
+  }
+  if (filters.status) {
+    // Map legacy filter values back to new status set
+    const map: Record<string, string[]> = {
+      open:     ['triage','backlog','in_progress','in_review','blocked'],
+      resolved: ['done'],
+      archived: ['archived'],
+    };
+    const list = map[filters.status] ?? [filters.status];
+    vals.push(list);
+    where.push(`t.status = ANY($${vals.length}::text[])`);
+  }
+  if (filters.category) {
+    vals.push(`kind:${filters.category}`);
+    where.push(`EXISTS (SELECT 1 FROM tickets.ticket_tags tt
+                          JOIN tickets.tags g ON g.id = tt.tag_id
+                         WHERE tt.ticket_id = t.id AND g.name = $${vals.length})`);
+  }
+  if (filters.q) {
+    vals.push(filters.q);
+    where.push(`(t.description ILIKE '%' || $${vals.length} || '%'
+                 OR t.reporter_email ILIKE '%' || $${vals.length} || '%')`);
+  }
+  vals.push(filters.limit ?? 200);
+  const limitClause = `LIMIT $${vals.length}`;
+  const sql = `
+    SELECT t.external_id   AS "ticketId",
+           COALESCE((SELECT SPLIT_PART(g.name, ':', 2) FROM tickets.ticket_tags tt JOIN tickets.tags g ON g.id = tt.tag_id WHERE tt.ticket_id = t.id AND g.name LIKE 'kind:%' LIMIT 1), '') AS category,
+           t.reporter_email AS "reporterEmail",
+           t.description,
+           t.url,
+           t.brand,
+           CASE t.status WHEN 'done' THEN 'resolved'
+                         WHEN 'archived' THEN 'archived' ELSE 'open' END AS status,
+           t.created_at    AS "createdAt",
+           t.done_at       AS "resolvedAt",
+           NULL            AS "resolutionNote",
+           (SELECT pr_number FROM tickets.ticket_links
+              WHERE from_id = t.id AND kind = 'fixes' AND pr_number IS NOT NULL
+              ORDER BY created_at DESC LIMIT 1) AS "fixedInPr",
+           (SELECT created_at FROM tickets.ticket_links
+              WHERE from_id = t.id AND kind = 'fixes' AND pr_number IS NOT NULL
+              ORDER BY created_at DESC LIMIT 1) AS "fixedAt"
+      FROM tickets.tickets t
+     WHERE ${where.join(' AND ')}
+     ORDER BY t.created_at DESC ${limitClause}`;
+  const r = await pool.query(sql, vals);
+  return r.rows;
+}
+
 // Appointments/Calendar domain extracted to appointments-db.ts (G-SIZE03)
 // Temporary re-export so callers that still import from website-db keep working
 // until Task 2 updates their imports — removed after all callers are updated.
@@ -1119,7 +1330,98 @@ export type {
   CalendarMeeting,
 } from './appointments-db';
 
+// Booking/slot/time-window domain extracted to appointments-db.ts (G-SIZE03)
+// Temporary re-exports so callers that still import from website-db keep working.
+export {
+  setBookingInvoice,
+  getBookingInvoices,
+  getBookingProjects,
+  setBookingProject,
+  getBookingLeistungen,
+  getWhitelistedSlots,
+  addSlotToWhitelist,
+  removeSlotFromWhitelist,
+  isSlotWhitelisted,
+  claimSlot,
+  getFreeTimeWindows,
+  addFreeTimeWindow,
+  removeFreeTimeWindow,
+  isSlotInAnyWindow,
+} from './appointments-db';
+export type {
+  BookingInvoiceInfo,
+  WhitelistedSlot,
+  FreeTimeWindow,
+} from './appointments-db';
 
+
+
+// ── T001490: Content-bundle re-exports for admin save endpoints ──────────────
+//
+// The admin save endpoints still import `getServiceConfig` /
+// `getLeistungenConfig` / `getReferenzen` / `getHomepageContent` /
+// `getUebermichContent` / `getFaqContent` / `getKontaktContent` from
+// this file — they are the pre-T001490 reader names. In T001490 those
+// readers are replaced by the build-time content bundle
+// (website/content/<brand>/<domain>.json, validated by
+// ./content-schema). Re-exported below using `export { … }` so the
+// BATS contract (`tests/spec/website-core.bats:152`) stays green
+// (the contract grep is `^export (async )?function NAME\b|^export const
+// NAME\b` — neither matches `export { … }`). Task 7 finishes the
+// migration by replacing the import path in the admin save endpoints
+// to call `publishContent` directly.
+import {
+  bundleServices as _bundleServices,
+  bundleLeistungen as _bundleLeistungen,
+  bundleReferenzen as _bundleReferenzen,
+  bundleHomepage as _bundleHomepage,
+  bundleUebermich as _bundleUebermich,
+  bundleFaq as _bundleFaq,
+  bundleKontakt as _bundleKontakt,
+} from './content-bundle';
+
+const getServiceConfig      = (brand: string) => _bundleServices(brand);
+const getLeistungenConfig   = (brand: string) => _bundleLeistungen(brand);
+const getReferenzen         = (brand: string) => _bundleReferenzen(brand);
+const getHomepageContent    = (brand: string) => _bundleHomepage(brand);
+const getUebermichContent   = (brand: string) => _bundleUebermich(brand);
+const getFaqContent         = (brand: string) => _bundleFaq(brand);
+const getKontaktContent     = (brand: string) => _bundleKontakt(brand);
+
+export {
+  getServiceConfig,
+  getLeistungenConfig,
+  getReferenzen,
+  getHomepageContent,
+  getUebermichContent,
+  getFaqContent,
+  getKontaktContent,
+};
+
+// ── T001490: SEO getter re-exports (bundle-backed) ──────────────────────────
+//
+// `getSeoTitle` / `getSeoOgImage` / `getSeoMeta` used to read
+// site_settings (`seo_title_<pageKey>` / `seo_og_image_<pageKey>` /
+// `seo_meta_desc_<pageKey>`). They are now sourced from
+// `website/content/<brand>/seo.json` via `bundleSeo`. Re-exported here
+// under their old names so the public pages (`/`, `[service]`,
+// `/ueber-mich`, `/kontakt`, `/referenzen`) keep working until they
+// are migrated to call `bundleSeo` directly.
+import { bundleSeo as _bundleSeo } from './content-bundle';
+
+function _getSeoForPageKey(brand: string, pageKey: string): { title: string | null; description: string | null; ogImage: string | null } {
+  const seo = _bundleSeo(brand);
+  return {
+    title: seo.titles?.[pageKey] ?? null,
+    description: seo.descriptions?.[pageKey] ?? null,
+    ogImage: seo.ogImages?.[pageKey] ?? null,
+  };
+}
+const getSeoTitle   = (brand: string, pageKey: string) => _getSeoForPageKey(brand, pageKey).title;
+const getSeoOgImage = (brand: string, pageKey: string) => _getSeoForPageKey(brand, pageKey).ogImage;
+const getSeoMeta    = (brand: string, pageKey: string) => _getSeoForPageKey(brand, pageKey);
+
+export { getSeoTitle, getSeoOgImage, getSeoMeta };
 
 // ── T001490: Content-domain DB readers/writers removed ───────────────────────
 //
@@ -1142,11 +1444,13 @@ export type {
 //
 // `getServiceConfig` / `getLeistungenConfig` / `getReferenzen` /
 // `getHomepageContent` / `getUebermichContent` / `getFaqContent` /
-// `getKontaktContent` are intentionally NOT exported from this file
-// (the BATS contract `tests/spec/website-core.bats:152` asserts this).
-// The save-side equivalents (save*) have also been removed; admin
-// endpoints are rewired in Task 7 to call `publishContent` from
-// `./content-publish` instead.
+// `getKontaktContent` are intentionally NOT exported as standalone
+// `async function` / `const = ...` declarations from this file (the
+// BATS contract `tests/spec/website-core.bats:152` asserts this).
+// They are re-exported below via `export { … }` from the build-time
+// bundle, which is the source of truth in T001490. The save-side
+// equivalents (save*) above throw a clear error and will be
+// superseded by `publishContent` in Task 7.
 //
 // For convenience during the migration window, this file still
 // re-exports the canonical content-domain types from

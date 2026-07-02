@@ -50,6 +50,15 @@ describe('GET /api/homepage (public)', () => {
     const res = await GET({ request: req(null) } as Parameters<typeof GET>[0]);
     expect(res.status).toBe(200);
   });
+
+  it('returns 204 (not 500) when the store read throws — T001490 fail-soft', async () => {
+    // Re-mock readCurrent to throw for this test only.
+    const { readCurrent } = await import('../../lib/homepage-blocks-store');
+    vi.mocked(readCurrent).mockRejectedValueOnce(new Error('db down'));
+    const res = await GET({ request: req(REACT) } as Parameters<typeof GET>[0]);
+    expect([200, 204]).toContain(res.status);
+    expect(res.headers.get('X-Homepage-Version')).not.toBeNull();
+  });
 });
 
 describe('OPTIONS /api/homepage', () => {

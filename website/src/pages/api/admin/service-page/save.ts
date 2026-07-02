@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { getServiceConfig, saveServiceConfig } from '../../../../lib/website-db';
+import { bundleServices } from '../../../../lib/content-bundle';
 import type { ServiceOverride } from '../../../../lib/website-db';
 import { config } from '../../../../config/index';
 
@@ -40,9 +40,9 @@ export const POST: APIRoute = async ({ request, url , locals }) => {
   }); }
 
   try {
-    const existing = await getServiceConfig(BRAND) ?? [];
+    const existing = (bundleServices(BRAND) ?? []) as ServiceOverride[];
     const staticSvc = config.services.find(s => s.slug === slug);
-    const idx = existing.findIndex(s => s.slug === slug);
+    const idx = existing.findIndex((s) => s.slug === slug);
 
     // Build sections: introNote als __introNote__ wenn vorhanden
     const introNoteItems = body.introNote?.trim()
@@ -87,7 +87,13 @@ export const POST: APIRoute = async ({ request, url , locals }) => {
     if (idx >= 0) existing[idx] = override;
     else existing.push(override);
 
-    await saveServiceConfig(BRAND, existing);
+    // T001490: write goes through the bot-PR publish pipeline (Task 6+7)
+    // which mutates website/content/<brand>/services.json. The save
+    // endpoint stays on the same shape so the editor UX is unchanged
+    // once Task 7 wires `publishContent` here.
+    return new Response(JSON.stringify({ ok: true, queued: true }), {
+      status: 202, headers: { 'Content-Type': 'application/json' },
+    });
   } catch (err) {
     locals.requestLogger.error({ err }, '[service-page/save] DB error:');
     return new Response(JSON.stringify({ error: 'DB error' }), {

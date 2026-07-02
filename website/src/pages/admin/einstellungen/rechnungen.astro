@@ -23,7 +23,7 @@ const s = Object.fromEntries(keys.map((k, i) => [k, results[i] ?? ''])) as Recor
 
 <AdminLayout title="Rechnungen & Zahlungen">
   <AdminEinstellungenTabs current={Astro.url.pathname} />
-  <div style="padding: 2rem; max-width: 640px;">
+  <div class="admin-form-wide" style="padding: 2rem; max-width: 640px;">
 <AdminPageHeader title="Rechnungen & Zahlungen" />
 
     {saved && (

@@ -220,7 +220,7 @@ const labelCls  = 'block text-xs text-muted mb-1';
 
       {/* Table */}
       <div class="bg-dark-light rounded-2xl border border-dark-lighter overflow-hidden mb-10">
-        <table class="w-full">
+        <table class="w-full admin-table-collapse">
           <thead>
             <tr class="border-b border-dark-lighter bg-dark/40">
               <th class="text-left px-4 py-3 text-xs text-muted/70 uppercase tracking-wider font-semibold">Projekt</th>
@@ -246,29 +246,29 @@ const labelCls  = 'block text-xs text-muted mb-1';
               const isOverdue = p.dueDate && new Date(p.dueDate) < today && !['erledigt','archiviert'].includes(p.status);
               return (
                 <tr class={`border-b border-dark-lighter/50 hover:bg-white/[.025] transition-colors ${p.status === 'archiviert' ? 'opacity-40' : ''}`}>
-                  <td class="px-4 py-3.5">
+                  <td class="px-4 py-3.5" data-label="Projekt">
                     <a href={`/admin/projekte/${p.id}`} class="text-light hover:text-gold font-semibold text-sm transition-colors">
                       {p.name}
                     </a>
                     {p.description && <p class="text-xs text-muted mt-0.5 max-w-[220px] truncate">{p.description}</p>}
                   </td>
-                  <td class="px-4 py-3 text-sm text-muted whitespace-nowrap">{p.customerName ?? '—'}</td>
-                  <td class="px-4 py-3">
+                  <td class="px-4 py-3 text-sm text-muted whitespace-nowrap" data-label="Kunde">{p.customerName ?? '—'}</td>
+                  <td class="px-4 py-3" data-label="Status">
                     <span class={`text-xs px-2 py-0.5 rounded-full border whitespace-nowrap ${STATUS_CLS[p.status] ?? ''}`}>
                       {STATUS_LABELS[p.status] ?? p.status}
                     </span>
                   </td>
-                  <td class="px-4 py-3 text-sm whitespace-nowrap">
+                  <td class="px-4 py-3 text-sm whitespace-nowrap" data-label="Prio">
                     <span class={PRIO_CLS[p.priority] ?? ''}>{PRIO_ICON[p.priority]} {p.priority.charAt(0).toUpperCase() + p.priority.slice(1)}</span>
                   </td>
-                  <td class="px-4 py-3 text-xs text-muted whitespace-nowrap">{formatDate(p.createdAt)}</td>
-                  <td class="px-4 py-3 text-xs text-muted whitespace-nowrap">{formatDate(p.startDate)}</td>
-                  <td class={`px-4 py-3 text-xs whitespace-nowrap font-medium ${isOverdue ? 'text-red-400' : 'text-muted'}`}>
+                  <td class="px-4 py-3 text-xs text-muted whitespace-nowrap" data-label="Erfasst">{formatDate(p.createdAt)}</td>
+                  <td class="px-4 py-3 text-xs text-muted whitespace-nowrap" data-label="Start">{formatDate(p.startDate)}</td>
+                  <td class={`px-4 py-3 text-xs whitespace-nowrap font-medium ${isOverdue ? 'text-red-400' : 'text-muted'}`} data-label="Fällig">
                     {formatDate(p.dueDate)}{isOverdue ? ' ⚠' : ''}
                   </td>
-                  <td class="px-4 py-3 text-center text-sm text-muted">{p.subProjectCount}</td>
-                  <td class="px-4 py-3 text-center text-sm text-muted">{p.taskCount}</td>
-                  <td class="px-4 py-3">
+                  <td class="px-4 py-3 text-center text-sm text-muted" data-label="TP">{p.subProjectCount}</td>
+                  <td class="px-4 py-3 text-center text-sm text-muted" data-label="Aufg.">{p.taskCount}</td>
+                  <td class="px-4 py-3" data-label="Aktionen">
                     <div class="flex gap-2 justify-end">
                       <a href={`/admin/projekte/${p.id}`}
                         class="px-3 py-1 text-xs bg-gold/20 text-gold border border-gold/30 rounded hover:bg-gold/30 transition-colors">

@@ -102,4 +102,15 @@
     align-items: center;
     gap: var(--space-3);
   }
+
+  @media (max-width: 767px) {
+    .page-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+    .page-header__actions {
+      width: 100%;
+    }
+  }
 </style>

@@ -120,7 +120,7 @@ const labelCls  = 'block text-xs text-muted mb-1';
 
       {/* Table */}
       <div class="bg-dark-light rounded-2xl border border-dark-lighter overflow-hidden">
-        <table class="w-full">
+        <table class="w-full admin-table-collapse">
           <thead>
             <tr class="border-b border-dark-lighter">
               <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Datum</th>
@@ -140,24 +140,24 @@ const labelCls  = 'block text-xs text-muted mb-1';
               </tr>
             ) : entries.map(e => (
               <tr class="border-b border-dark-lighter/50 hover:bg-dark/30 transition-colors">
-                <td class="px-4 py-3 text-sm text-muted whitespace-nowrap">{fmtDate(e.entryDate)}</td>
-                <td class="px-4 py-3 text-sm text-light">
+                <td class="px-4 py-3 text-sm text-muted whitespace-nowrap" data-label="Datum">{fmtDate(e.entryDate)}</td>
+                <td class="px-4 py-3 text-sm text-light" data-label="Projekt">
                   <a href={`/admin/projekte/${e.projectId}`} class="hover:text-gold transition-colors">{e.projectName}</a>
                 </td>
-                <td class="px-4 py-3 text-sm text-muted">{e.taskName ?? '—'}</td>
-                <td class="px-4 py-3 text-sm text-muted max-w-[200px] truncate">{e.description ?? '—'}</td>
-                <td class="px-4 py-3 text-sm text-right font-mono">
+                <td class="px-4 py-3 text-sm text-muted" data-label="Aufgabe">{e.taskName ?? '—'}</td>
+                <td class="px-4 py-3 text-sm text-muted max-w-[200px] truncate" data-label="Beschreibung">{e.description ?? '—'}</td>
+                <td class="px-4 py-3 text-sm text-right font-mono" data-label="Minuten">
                   {e.minutes} <span class="text-muted text-xs">({fmtMin(e.minutes)})</span>
                 </td>
-                <td class="px-4 py-3 text-center text-sm">
+                <td class="px-4 py-3 text-center text-sm" data-label="Abr.">
                   {e.billable ? <span class="text-green-400">✓</span> : <span class="text-muted">—</span>}
                 </td>
-                <td class="px-4 py-3 text-sm text-right font-mono text-gold">
+                <td class="px-4 py-3 text-sm text-right font-mono text-gold" data-label="Betrag">
                   {e.rateCents > 0
                     ? `${((e.minutes / 60) * (e.rateCents / 100)).toFixed(2)} €`
                     : <span class="text-muted">—</span>}
                 </td>
-                <td class="px-4 py-3 text-right">
+                <td class="px-4 py-3 text-right" data-label="Aktionen">
                   <form method="post" action="/api/admin/zeiterfassung/delete">
                     <input type="hidden" name="id" value={e.id} />
                     <input type="hidden" name="_back" value="/admin/zeiterfassung" />

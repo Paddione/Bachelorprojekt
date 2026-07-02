@@ -2744,7 +2744,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 472,
+      "file_count": 473,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -2987,6 +2987,7 @@
         "scripts/factory/qa-notify.sh",
         "scripts/factory/queue.sh",
         "scripts/factory/readiness-check.sh",
+        "scripts/factory/reconcile-ticket-status.sh",
         "scripts/factory/release-slot.sh",
         "scripts/factory/review-agents-md-staleness.prompt.md",
         "scripts/factory/review-bug-hunter.prompt.md",

@@ -558,9 +558,28 @@ Damit ist das Fix-Ticket als `plan_staged` in der DB verankert und für `dev-flo
 Füge den failing Test und den Plan hinzu, committe und pushe auf den fix Branch:
 ```bash
 git add tests/ openspec/changes/<slug>/tasks.md
-git commit -m "fix(<scope>): add failing test + stage plan [$TICKET_EXT_ID]"
+git commit -m "chore(plans): add failing test + stage plan [$TICKET_EXT_ID]"
 git push -u origin $(git branch --show-current)
 ```
+
+> **Wichtig — Commit-Titel-Konvention für Plan-Stage-Commits:** Der Stage-Commit enthält
+> NUR den RED-Test und Plan-Artefakte, KEINE Production-Code-Änderung. Verwende deshalb
+> `chore(plans):` (analog zum Feature-Pfad oben) — **nicht** `fix(<scope>):` /
+> `feat(<scope>):` / `refactor(<scope>):` / `perf(<scope>):`. Diese Implementierungs-
+> Präfixe wären eine Lüge, weil der Diff keinen Production-Code enthält. Der nachfolgende
+> `dev-flow-execute`-Implementer würde dem Titel vertrauen und den eigentlichen Fix
+> überspringen — exakt das ist bei T001434 (2026-07-02) passiert.
+>
+> Falls der Plan zusätzlich Production-Code-Aufgaben enthält, die der Planer bereits
+> anwendet (z.B. Boilerplate, der vom Fix unabhängig ist): trotzdem `chore(plans):`
+> verwenden und die Production-Code-Änderung in einem **separaten Commit** mit
+> `fix(<scope>):` ablegen, damit die `commit-vs-diff`-Guard (`.githooks/commit-msg`)
+> den Stage-Commit passieren lässt.
+>
+> Guard: `scripts/check-commit-vs-diff.sh` + `.githooks/commit-msg` (siehe
+> `openspec/specs/ci-cd.md`) blockiert jeden Commit mit Implementation-Type, dessen
+> Staged-Diff nur Test-/Spec-/Plan-Dateien enthält — mit Verweis auf die richtigen
+> Präfixe. Bypass: `SKIP_COMMIT_VS_DIFF=1 git commit ...` (Notfall).
 
 **STOPP.** Failing Test, Spec und Plan sind committed und gepusht. Nächster Schritt: `dev-flow-execute` aufrufen.
 

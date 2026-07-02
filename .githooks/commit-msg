@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# commit-msg: enforce subject-vs-diff consistency.
+#
+# Rejects commits whose subject uses an implementation type (fix/feat/
+# refactor/perf) but whose staged diff contains only test/spec/plan files.
+# Closes the T001434 mishap: a "fix(infra): chain loggingMiddleware..."
+# title with only a RED test + plan artifacts in the diff caused the
+# implementer to trust the title and skip the actual fix.
+#
+# Exit codes: 0 = subject and diff are consistent, 1 = inconsistent (block).
+# Bypass (emergency only): SKIP_COMMIT_VS_DIFF=1 git commit ...
+
+set -uo pipefail
+
+repo_root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+if [[ -z "$repo_root" ]]; then
+  exit 0  # not a git repo (e.g. initialising) — nothing to do
+fi
+
+if [[ "${SKIP_COMMIT_VS_DIFF:-0}" == "1" ]]; then
+  echo "⚠  commit-msg: SKIP_COMMIT_VS_DIFF=1 — bypassing check-commit-vs-diff" >&2
+  exit 0
+fi
+
+if ! bash "$repo_root/scripts/check-commit-vs-diff.sh" "$1"; then
+  echo "" >&2
+  echo "💡 Hint: use 'test(red):' for RED-only test commits or" >&2
+  echo "         'chore(plan):' for plan-only commits." >&2
+  exit 1
+fi

@@ -361,3 +361,48 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           bash scripts/validate-commit-msg.sh range "${BASE_SHA}..${HEAD_SHA}"
+
+      # commit-vs-diff consistency guard (T001434-mishap). Catches any commit
+      # whose subject claims an implementation change but whose diff contains
+      # only test/spec/plan files. Mirrors the local .githooks/commit-msg hook
+      # so a bypassed hook (SKIP_COMMIT_VS_DIFF=1) is still caught in CI.
+      - name: commit-vs-diff consistency (T001434-mishap guard)
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          fail=0
+          while IFS= read -r sha; do
+            [[ -z "$sha" ]] && continue
+            subject=$(git log -1 --format='%s' "$sha")
+            # Get the list of files changed by this commit (relative to its
+            # first parent, falling back to the merge-base for merge commits).
+            parent=$(git rev-parse "$sha^1" 2>/dev/null || echo "$BASE_SHA")
+            files=$(git diff --name-only "$parent" "$sha" 2>/dev/null || true)
+            # Build a temp commit-msg file and synthesize a staged index so
+            # the guard script can validate without touching the working tree.
+            tmp_msg=$(mktemp)
+            trap 'rm -f "$tmp_msg"' EXIT
+            printf '%s\n' "$subject" > "$tmp_msg"
+            tmp_idx=$(mktemp -d)
+            export GIT_INDEX_FILE="$tmp_idx/index"
+            git read-tree "$sha"
+            git add -A "$sha" 2>/dev/null || true
+            git diff --cached --name-only > "$tmp_idx/staged.txt" || true
+            if ! GIT_INDEX_FILE="$tmp_idx/index" \
+                 bash scripts/check-commit-vs-diff.sh "$tmp_msg"; then
+              echo "✗ commit $sha fails commit-vs-diff guard: $subject" >&2
+              fail=1
+            fi
+            rm -rf "$tmp_idx"
+            rm -f "$tmp_msg"
+          done < <(git rev-list "${BASE_SHA}..${HEAD_SHA}" --no-merges)
+          if [[ "$fail" -ne 0 ]]; then
+            echo "" >&2
+            echo "✗ commit-vs-diff consistency guard failed" >&2
+            echo "  One or more commits in this PR have an implementation-type" >&2
+            echo "  subject (fix/feat/refactor/perf) but a diff that contains" >&2
+            echo "  only test/spec/plan files. See T001434-mishap." >&2
+            exit 1
+          fi

@@ -102,26 +102,6 @@ required checks pass and branch protection is satisfied.
 
 ---
 
-### Requirement: Website-Auto-Deploy bei main-Push
-
-The system SHALL automatically build a Docker image and deploy it to the fleet cluster
-for both brands (mentolder, korczewski) whenever `website/**` changes reach `main`.
-
-#### Scenario: Website-Änderung löst Build und Rollout aus
-
-- **GIVEN** ein Commit auf `main` ändert `website/src/pages/index.astro`
-- **WHEN** der `build-website`-Workflow getriggert wird
-- **THEN** baut er das Image mit `SHA_TAG` (`sha-<datum>-<short-sha>`) und `:latest`,
-  pusht beide Tags nach GHCR, und führt `kubectl set image` + `rollout status --timeout=120s` aus
-
-#### Scenario: Deployment schlägt back bei Rollout-Timeout fehl
-
-- **GIVEN** das neue Website-Image startet nicht innerhalb von 120 Sekunden
-- **WHEN** `kubectl rollout status deployment/website -n website --timeout=120s` läuft
-- **THEN** gibt kubectl Exit-Code 1 zurück und der Workflow-Job schlägt fehl
-
----
-
 ### Requirement: Post-Merge Ticket-Lifecycle und Manifest-Deploy
 
 The system SHALL, after every push to `main`, transition the associated ticket to
@@ -571,7 +551,23 @@ The system SHALL reject PRs that increase total source-file LOC by more than
 - **WHEN** `task loc:check` runs
 - **THEN** exits 1 with a message suggesting `task loc:update-baseline`
 
----
+#### Scenario: LOC-Gate wird bei jedem PR als Teil von test:code-quality ausgeführt
+
+- **GIVEN** a PR is opened against `main`
+- **WHEN** the `offline-tests` CI job runs `task test:code-quality`
+- **THEN** `task loc:check` is executed and its exit code determines whether the quality gate passes
+
+#### Scenario: loc-budget.json ist freshness-überwacht
+
+- **GIVEN** `docs/code-quality/loc-budget.json` was not regenerated after a change to `gates.yaml`
+- **WHEN** the `offline-tests` CI job runs `task freshness:check`
+- **THEN** the step fails with a message indicating `loc-budget.json` is stale
+
+#### Scenario: Baseline wird post-merge regeneriert
+
+- **GIVEN** a PR is merged to `main`
+- **WHEN** the `freshness-regen.yml` GitHub Actions workflow runs `task freshness:regenerate`
+- **THEN** `task loc:update-baseline` runs, updating `docs/code-quality/loc-budget.json` with the post-merge LOC count
 
 ---
 
@@ -1090,31 +1086,6 @@ using three independent CI jobs: one shared build job and two parallel, independ
 **Migration:** Tests in `tests/unit/website-ci-deploy.bats` wurden auf `build-website.yml` umgezeigt (T001229). Keine weitere Migration nötig.
 
 <!-- merged from change delta ci-cd.md on 2026-06-28 -->
-
-### Requirement: PR-Gate — LOC-Budget (S6)
-
-The system SHALL reject PRs that increase total source-file LOC by more than `thresholds.fail_pct`
-percent above the committed baseline in `docs/code-quality/loc-budget.json`, or that exceed
-`thresholds.absolute_cap`, and SHALL emit a non-blocking warning for PRs exceeding
-`thresholds.warn_pct`.
-
-#### Scenario: LOC-Gate wird bei jedem PR als Teil von test:code-quality ausgeführt
-
-- **GIVEN** a PR is opened against `main`
-- **WHEN** the `offline-tests` CI job runs `task test:code-quality`
-- **THEN** `task loc:check` is executed and its exit code determines whether the quality gate passes
-
-#### Scenario: loc-budget.json ist freshness-überwacht
-
-- **GIVEN** `docs/code-quality/loc-budget.json` was not regenerated after a change to `gates.yaml`
-- **WHEN** the `offline-tests` CI job runs `task freshness:check`
-- **THEN** the step fails with a message indicating `loc-budget.json` is stale
-
-#### Scenario: Baseline wird post-merge regeneriert
-
-- **GIVEN** a PR is merged to `main`
-- **WHEN** the `freshness-regen.yml` GitHub Actions workflow runs `task freshness:regenerate`
-- **THEN** `task loc:update-baseline` runs, updating `docs/code-quality/loc-budget.json` with the post-merge LOC count
 
 ### Requirement: PR-Gate — Offline Tests (bestehend)
 

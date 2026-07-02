@@ -182,60 +182,6 @@ a usage message, and SHALL list `filen-pull` in the `--help` output.
 
 ---
 
-### Requirement: filen-pull Job-Struktur
-
-The system SHALL render a Kubernetes Job for `filen-pull` that mounts `backup-pvc`
-writable (no `readOnly: true`), uses `node:22-alpine`, and writes the downloaded
-files to `/backups/<timestamp>/` on the PVC.
-
-#### Scenario: Job mountet backup-pvc schreibbar
-
-- **GIVEN** `scripts/backup-restore.sh filen-pull 20260530-020001` wird ausgeführt
-- **WHEN** der generierte Job per `kubectl apply` eingereicht wird
-- **THEN** enthält das Job-YAML `kind: Job`, `claimName: backup-pvc`, `node:22-alpine` und den Pfad `/backups/20260530-020001/`; `readOnly: true` kommt im gesamten Job-YAML **nicht** vor
-
----
-
-### Requirement: filen-pull Remote-Pfad-Auflösung
-
-The system SHALL resolve the Filen remote base path from the `backup-config` ConfigMap
-by default, and SHALL honour a `--remote-path` flag to override it at call time.
-
-#### Scenario: Remote-Pfad aus ConfigMap
-
-- **GIVEN** die `backup-config` ConfigMap liefert `/Backup` als Basis-Pfad
-- **WHEN** `scripts/backup-restore.sh filen-pull pvc-20260530-030001` aufgerufen wird
-- **THEN** enthält das Job-YAML den Remote-Pfad `/Backup/pvc-20260530-030001/`
-
-#### Scenario: --remote-path überschreibt ConfigMap-Default
-
-- **GIVEN** der Operator übergibt `--remote-path /custom/path`
-- **WHEN** `scripts/backup-restore.sh filen-pull 20260530-020001 --remote-path /custom/path` aufgerufen wird
-- **THEN** enthält das Job-YAML den Pfad `/custom/path/20260530-020001/` statt des ConfigMap-Wertes
-
----
-
-### Requirement: Namespace-Parametrisierung (kein hardcodiertes `-n workspace`)
-
-The system SHALL pass `-n "$NS"` to all `kubectl` invocations that read or write the
-`workspace-secrets` Secret, and SHALL NOT contain any literal `-n workspace` strings
-outside the single default assignment `NS=workspace`, so that restores into
-`workspace-korczewski` land in the correct namespace.
-
-#### Scenario: Kein hardcodiertes `-n workspace` im Skript
-
-- **GIVEN** `scripts/backup-restore.sh` enthält eine Default-Zuweisung `NS=workspace`
-- **WHEN** der Skript-Quelltext auf das Muster `-n workspace` (ohne Trailzeichen `-`) geprüft wird
-- **THEN** werden keine Treffer außerhalb der Default-Zuweisung gefunden
-
-#### Scenario: Alle kubectl-Geheimnis-Lookups nutzen `$NS`
-
-- **GIVEN** `scripts/backup-restore.sh` greift auf das Secret `workspace-secrets` zu
-- **WHEN** jedes `kubectl`-Kommando, das `workspace-secrets` als Secret-Name referenziert, auf den Namespace-Flag geprüft wird
-- **THEN** tragen alle derartigen Kommandos `-n "$NS"` und keines davon ist ohne Namespace-Flag
-
----
-
 ### Requirement: restore-file — Einzelne Datei aus Staging in Live-PVC
 
 The system SHALL support restoring a single file path from the `recovery-pvc` staging
@@ -299,27 +245,6 @@ in the `--help` output so operators can discover all recovery operations.
 - **GIVEN** `scripts/backup-restore.sh` ist vorhanden
 - **WHEN** `scripts/backup-restore.sh --help` aufgerufen wird
 - **THEN** enthält die Ausgabe `stage`, `verify`, `restore-file`, `restore-table` und `browse`, und das Skript beendet sich mit Exit 0
-
----
-
-### Requirement: recovery-browser.yaml Manifest-Struktur
-
-The system SHALL ship a `k3d/recovery-browser.yaml` manifest that mounts `recovery-pvc`
-read-only into the filebrowser container, gates access via an oauth2-proxy restricted
-to the `/recovery-access` group, and is NOT registered in the base kustomization
-(on-demand apply only).
-
-#### Scenario: recovery-pvc wird read-only gemountet
-
-- **GIVEN** `k3d/recovery-browser.yaml` ist vorhanden und syntaktisch gültiges YAML
-- **WHEN** der Mount von `recovery-pvc` im Manifest geprüft wird
-- **THEN** ist `readOnly: true` direkt nach `claimName: recovery-pvc` gesetzt
-
-#### Scenario: oauth2-proxy beschränkt Zugriff auf /recovery-access-Gruppe und ist nicht in der Base-Kustomization registriert
-
-- **GIVEN** `k3d/recovery-browser.yaml` ist vorhanden
-- **WHEN** die oauth2-proxy-Konfiguration und `k3d/kustomization.yaml` geprüft werden
-- **THEN** enthält das Manifest `--allowed-groups=/recovery-access`, `--client-id=recovery` und `--upstream=http://recovery-browser`; `k3d/kustomization.yaml` enthält **keinen** Eintrag für `recovery-browser.yaml`
 
 ---
 

@@ -1,0 +1,52 @@
+# ═══════════════════════════════════════════════════════════════════
+# RBAC for the pocket-id-client-seed Job (T001435).
+#
+# The Job needs to write the pocket-id-server-generated client secret
+# back into the workspace-secrets k8s Secret immediately after creating
+# a new OIDC client (see pocket-id-client-seed.yaml for why). It does
+# this via its own ServiceAccount token against the in-cluster K8s API
+# (https://kubernetes.default.svc) -- the same pattern already used by
+# pvc-backup / tests-results-retention CronJobs (T000368,
+# allow-apiserver-egress NetworkPolicy already permits this egress from
+# any workspace pod, no NetworkPolicy change needed here).
+#
+# Least privilege: get+patch, scoped via resourceNames to the single
+# Secret object "workspace-secrets" -- this ServiceAccount cannot read
+# or modify any other Secret in the namespace.
+# ═══════════════════════════════════════════════════════════════════
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pocket-id-client-seed
+  namespace: workspace
+  labels:
+    app: pocket-id
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pocket-id-client-seed-role
+  namespace: workspace
+  labels:
+    app: pocket-id
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: ["workspace-secrets"]
+    verbs: ["get", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pocket-id-client-seed-rolebinding
+  namespace: workspace
+  labels:
+    app: pocket-id
+subjects:
+  - kind: ServiceAccount
+    name: pocket-id-client-seed
+    namespace: workspace
+roleRef:
+  kind: Role
+  name: pocket-id-client-seed-role
+  apiGroup: rbac.authorization.k8s.io

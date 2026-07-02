@@ -20,13 +20,18 @@
 #   - .github/workflows/ci.yml commit-lint job (CI, blocking, catches bypasses)
 #
 # Usage:
-#   check-commit-vs-diff.sh <commit-msg-file>
+#   check-commit-vs-diff.sh <commit-msg-file> [<commit-sha>]
 #   check-commit-vs-diff.sh --self-test   # internal sanity test (no side effects)
+#
+# When <commit-sha> is provided, uses git show --name-only to inspect that
+# commit's file set (per-commit mode, used in CI). Without it, uses
+# git diff --cached (local hook mode).
 #
 # Exit codes: 0 = subject and diff are consistent, 1 = inconsistent (commit blocked).
 set -uo pipefail
 
 MSG_FILE="${1:-}"
+COMMIT_SHA="${2:-}"
 SELF_TEST=0
 if [[ "${1:-}" == "--self-test" ]]; then
   SELF_TEST=1
@@ -34,7 +39,7 @@ if [[ "${1:-}" == "--self-test" ]]; then
 fi
 
 if [[ -z "$MSG_FILE" && $SELF_TEST -eq 0 ]]; then
-  echo "check-commit-vs-diff: usage: check-commit-vs-diff.sh <commit-msg-file>" >&2
+  echo "check-commit-vs-diff: usage: check-commit-vs-diff.sh <commit-msg-file> [<commit-sha>]" >&2
   exit 2
 fi
 
@@ -135,8 +140,12 @@ if ! echo "$SUBJECT" | grep -qE '^(fix|feat|refactor|perf)(!)?(\([^)]+\))?:\s'; 
   exit 0
 fi
 
-# --- Inspect staged diff file list ---
-STAGED_FILES="$(git -C "$REPO_ROOT" diff --cached --name-only --diff-filter=ACMR 2>/dev/null || true)"
+# --- Inspect file list (per-commit SHA or staged index) ---
+if [[ -n "$COMMIT_SHA" ]]; then
+  STAGED_FILES="$(git show --name-only --format="" "$COMMIT_SHA" 2>/dev/null || true)"
+else
+  STAGED_FILES="$(git -C "$REPO_ROOT" diff --cached --name-only --diff-filter=ACMR 2>/dev/null || true)"
+fi
 [[ -n "$STAGED_FILES" ]] || exit 0  # empty commit (e.g. amend with --allow-empty) — nothing to check
 
 # Files that are NOT production-code-bearing: test/spec/plan artifacts.

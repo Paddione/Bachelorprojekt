@@ -637,7 +637,7 @@ Fills the OpenSpec delta and runs the mandatory CI gates.
 - Modify: `openspec/changes/admin-responsive-parity/specs/website-core.md`
 - Modify: `website/src/data/test-inventory.json` (regenerated)
 
-- [ ] **Step 1: Write the delta spec.**
+- [x] **Step 1: Write the delta spec.**
 
 Fill `openspec/changes/admin-responsive-parity/specs/website-core.md` with the
 `## ADDED Requirements` operation header and the requirement/scenarios (English
@@ -649,14 +649,14 @@ bash scripts/openspec.sh validate
 ```
 Expected: validation passes (green).
 
-- [ ] **Step 2: Regenerate the test inventory (tests were added).**
+- [x] **Step 2: Regenerate the test inventory (tests were added).**
 
 ```bash
 task test:inventory
 git add website/src/data/test-inventory.json tests/spec/website-core.bats
 ```
 
-- [ ] **Step 3: Run the mandatory CI gates.**
+- [x] **Step 3: Run the mandatory CI gates.**
 
 ```bash
 task test:changed
@@ -666,14 +666,14 @@ task freshness:check
 Expected: all green. `freshness:check` runs the S1 ratchet — confirm no baseline
 growth and that `rechnungen.astro` (592) and `projekte.astro` (408) are unchanged.
 
-- [ ] **Step 4: Run plan-lint on this plan.**
+- [x] **Step 4: Run plan-lint on this plan.**
 
 ```bash
 bash scripts/plan-lint.sh openspec/changes/admin-responsive-parity/tasks.md
 ```
 Expected: PASS.
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
 
 ```bash
 git add openspec/changes/admin-responsive-parity/specs/website-core.md website/src/data/test-inventory.json

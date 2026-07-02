@@ -16,6 +16,13 @@ while [ $# -gt 0 ]; do
   esac
 done
 
+# Ticket-number scopes (e.g. T001449) are auto-accepted everywhere and don't
+# need registration. Silently ignore so callers don't accidentally register one.
+if [[ "$SCOPE" =~ ^T[0-9]{6}$ ]]; then
+  echo "register-scope: ticket-number scope '$SCOPE' is auto-allowed — nothing to do" >&2
+  exit 0
+fi
+
 if [[ ! "$SCOPE" =~ ^[a-z0-9][a-z0-9-]*$ ]]; then
   echo "register-scope: invalid scope format '$SCOPE' (must match ^[a-z0-9][a-z0-9-]*$)" >&2
   exit 1

@@ -43,12 +43,15 @@ is_exempt_subject() {
   esac
 }
 
-# Load the allowed scope list from commitlint.config.cjs (single source of truth).
+# Ticket number pattern — any T + 6 digits is a valid scope.
+TICKET_SCOPE_RE='^T[0-9]{6}$'
+
+# Load the named scope list from commitlint.config.cjs (single source of truth).
 load_allowed_scopes() {
   if command -v node >/dev/null 2>&1 && [ -f "$CONFIG" ]; then
     node -e "
       const cfg = require('$CONFIG');
-      const scopes = (cfg.rules && cfg.rules['scope-enum'] && cfg.rules['scope-enum'][2]) || [];
+      const scopes = cfg.namedScopes || [];
       process.stdout.write(scopes.join(' '));
     " 2>/dev/null
   fi
@@ -85,16 +88,21 @@ validate_subject() {
   fi
 
   if [ -n "$scope" ] && [ -n "$ALLOWED_SCOPES" ]; then
-    local ok=1
-    for s in $ALLOWED_SCOPES; do
-      if [ "$s" = "$scope" ]; then
-        ok=0
-        break
+    # Ticket number scopes (e.g. T001449) are always allowed.
+    if [[ "$scope" =~ $TICKET_SCOPE_RE ]]; then
+      : # ok
+    else
+      local ok=1
+      for s in $ALLOWED_SCOPES; do
+        if [ "$s" = "$scope" ]; then
+          ok=0
+          break
+        fi
+      done
+      if [ "$ok" -ne 0 ]; then
+        echo "  ✗ ${label}unknown scope '${scope}': ${subject}" >&2
+        return 1
       fi
-    done
-    if [ "$ok" -ne 0 ]; then
-      echo "  ✗ ${label}unknown scope '${scope}': ${subject}" >&2
-      return 1
     fi
   fi
 

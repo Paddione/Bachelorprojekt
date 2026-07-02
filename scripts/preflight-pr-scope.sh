@@ -14,10 +14,16 @@ CI_WORKFLOW="${2:-.github/workflows/ci.yml}"
 
 # Extract scope from Conventional Commit title: type(scope): subject or type(scope)!: subject
 # Only the first parenthesised token after the type prefix is treated as a scope.
-SCOPE="$(echo "$TITLE" | sed -nE 's/^[a-z]+\(([a-z0-9][a-z0-9-]*?)\)[!]?:\s.*/\1/p')"
+SCOPE="$(echo "$TITLE" | sed -nE 's/^[a-z]+\(([a-zA-Z0-9][a-zA-Z0-9-]*?)\)[!]?:\s.*/\1/p')"
 
 if [ -z "$SCOPE" ]; then
   echo "preflight-pr-scope: no scope detected → scope-less titles are allowed" >&2
+  exit 0
+fi
+
+# Ticket number scopes (e.g. T001449) are always allowed.
+if [[ "$SCOPE" =~ ^T[0-9]{6}$ ]]; then
+  echo "preflight-pr-scope: ticket-number scope '$SCOPE' ✓ (bypasses allowlist)" >&2
   exit 0
 fi
 

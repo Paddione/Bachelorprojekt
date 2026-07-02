@@ -2,7 +2,7 @@
 title: admin-redesign — Implementation Plan
 ticket_id: T001433
 domains: [website]
-status: plan_staged
+status: completed
 ---
 
 # admin-redesign — Implementation Plan

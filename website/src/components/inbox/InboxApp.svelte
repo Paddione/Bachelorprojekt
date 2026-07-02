@@ -270,6 +270,12 @@
   async function reload(): Promise<void> {
     try {
       const p = new URLSearchParams({ status: activeStatus });
+      // E2E-only escape hatch (T001456): forward ?includeTest=1 from the page
+      // URL so the suite can see its seeded is_test_data rows.
+      if (typeof window !== 'undefined'
+          && new URLSearchParams(window.location.search).get('includeTest') === '1') {
+        p.set('includeTest', '1');
+      }
       const res = await fetch(`/api/admin/inbox?${p}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json() as { items: InboxItem[]; counts: Record<string, number> };

@@ -71,16 +71,22 @@ export async function deleteInboxItem(id: number): Promise<number> {
 export async function listInboxItems(filter: {
   status?: InboxStatus;
   type?: InboxType;
+  /** Include is_test_data=true rows. Only the E2E suite sets this (via
+   *  /admin/inbox?includeTest=1) to verify the delete flow on a seeded row. */
+  includeTest?: boolean;
 }): Promise<InboxItem[]> {
-  const conditions: string[] = [];
+  // Marked test rows exist transiently while an E2E run is in flight (the
+  // teardown bracket purges them) — they must never surface in the admin
+  // Postfach (T001456).
+  const conditions: string[] = filter.includeTest ? [] : ['is_test_data = false'];
   const values: unknown[] = [];
 
   if (filter.status) {
-    conditions.push(`status = $${conditions.length + 1}`);
+    conditions.push(`status = $${values.length + 1}`);
     values.push(filter.status);
   }
   if (filter.type) {
-    conditions.push(`type = $${conditions.length + 1}`);
+    conditions.push(`type = $${values.length + 1}`);
     values.push(filter.type);
   }
 
@@ -115,7 +121,8 @@ export async function updateInboxItemStatus(
 
 export async function countPendingByType(): Promise<Record<string, number>> {
   const { rows } = await pool.query<{ type: string; count: string }>(
-    `SELECT type, count(*) AS count FROM inbox_items WHERE status = 'pending' GROUP BY type`,
+    `SELECT type, count(*) AS count FROM inbox_items
+      WHERE status = 'pending' AND is_test_data = false GROUP BY type`,
   );
   const out: Record<string, number> = {};
   for (const row of rows) out[row.type] = parseInt(row.count, 10);

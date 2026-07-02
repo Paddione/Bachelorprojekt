@@ -80,26 +80,36 @@ describe('messaging-db (pg.Pool mocked)', () => {
     expect(out).toBe(1);
   });
 
-  it('listInboxItems: no filter → all rows', async () => {
+  it('listInboxItems: no filter → hides test rows by default (T001456)', async () => {
     await listInboxItems({});
     const calls = query.mock.calls.map(c => c[0] as string);
-    expect(calls.some(s => /FROM inbox_items/.test(s))).toBe(true);
+    const sql = calls.find(s => /FROM inbox_items/.test(s));
+    expect(sql).toBeDefined();
+    expect(sql!).toMatch(/WHERE is_test_data = false/);
   });
 
-  it('listInboxItems: status filter → WHERE status = $1', async () => {
+  it('listInboxItems: includeTest → no is_test_data condition', async () => {
+    await listInboxItems({ includeTest: true });
+    const calls = query.mock.calls.map(c => c[0] as string);
+    const sql = calls.find(s => /FROM inbox_items/.test(s));
+    expect(sql).toBeDefined();
+    expect(sql!).not.toMatch(/is_test_data/);
+  });
+
+  it('listInboxItems: status filter → WHERE is_test_data = false AND status = $1', async () => {
     await listInboxItems({ status: 'pending' });
     const calls = query.mock.calls.map(c => ({ sql: c[0] as string, params: c[1] as unknown[] }));
     const inboxCall = calls.find(c => /FROM inbox_items/.test(c.sql));
     expect(inboxCall).toBeDefined();
-    expect(inboxCall!.sql).toMatch(/WHERE status = \$1/);
+    expect(inboxCall!.sql).toMatch(/WHERE is_test_data = false AND status = \$1/);
     expect(inboxCall!.params).toEqual(['pending']);
   });
 
-  it('listInboxItems: type filter → WHERE type = $1', async () => {
+  it('listInboxItems: type filter → WHERE is_test_data = false AND type = $1', async () => {
     await listInboxItems({ type: 'contact' });
     const calls = query.mock.calls.map(c => ({ sql: c[0] as string, params: c[1] as unknown[] }));
     const inboxCall = calls.find(c => /FROM inbox_items/.test(c.sql));
-    expect(inboxCall!.sql).toMatch(/WHERE type = \$1/);
+    expect(inboxCall!.sql).toMatch(/is_test_data = false AND type = \$1/);
     expect(inboxCall!.params).toEqual(['contact']);
   });
 
@@ -109,6 +119,7 @@ describe('messaging-db (pg.Pool mocked)', () => {
     const inboxCall = calls.find(c => /FROM inbox_items/.test(c.sql));
     expect(inboxCall!.sql).toMatch(/status = \$1/);
     expect(inboxCall!.sql).toMatch(/type = \$2/);
+    expect(inboxCall!.sql).toMatch(/is_test_data = false/);
     expect(inboxCall!.params).toEqual(['pending', 'bug']);
   });
 

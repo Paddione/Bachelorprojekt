@@ -86,8 +86,10 @@ test.describe('FA-admin-inbox-delete: Löschen escape hatch', { tag: ['@admin', 
     // 1. Seed a fresh row tagged is_test_data=true.
     const seedName = await seedTestContactRow(request);
 
-    // 2. Log in and load the inbox.
-    await loginAsAdmin(page);
+    // 2. Log in and load the inbox. ?includeTest=1 is the E2E-only escape
+    //    hatch — the Postfach hides is_test_data rows by default (T001456),
+    //    so without it the seeded row would never render.
+    await loginAsAdmin(page, '/admin/inbox?includeTest=1');
     const root = page.locator('[data-testid="inbox-app"]');
     await expect(root).toBeVisible({ timeout: 10_000 });
 
@@ -135,7 +137,10 @@ test.describe('FA-admin-inbox-delete: Löschen escape hatch', { tag: ['@admin', 
     //    admin inbox endpoint requires a session — reuse the page's cookies.
     const cookies = await page.context().cookies();
     const cookieHeader = cookies.map((c) => `${c.name}=${c.value}`).join('; ');
-    const res = await request.get(`${BASE}/api/admin/inbox?status=pending`, {
+    // includeTest=1 is essential here: with the default filter the seeded
+    // (is_test_data) row would be invisible even if the delete had failed,
+    // and the absence assertion would pass vacuously.
+    const res = await request.get(`${BASE}/api/admin/inbox?status=pending&includeTest=1`, {
       headers: { cookie: cookieHeader },
     });
     expect(res.ok()).toBeTruthy();

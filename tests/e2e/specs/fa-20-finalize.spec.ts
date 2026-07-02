@@ -18,11 +18,17 @@ test.describe('FA-20: Meeting Finalization Pipeline', () => {
       !!prodDomain && prodDomain !== 'mentolder.de',
       'finalize 500 on korczewski — meetings schema not provisioned on this cluster'
     );
+    // '[TEST]'-prefixed meeting_type + reserved .invalid mail: the purge
+    // bracket's meetings sweep (meeting_type LIKE '[TEST]%') reaps the row,
+    // which unblocks the customer allowlist sweep for the upserted customer.
+    // The previous fixture ('Test Kunde' with a real-looking example.de
+    // address and plain 'Erstgesprach') accumulated 309 unmarked finalized
+    // meetings in prod that no sweep could touch (T001456).
     const res = await request.post(`${BASE}/api/meeting/finalize`, {
       data: {
-        customerName: 'Test Kunde',
-        customerEmail: 'test@example.de',
-        meetingType: 'Erstgesprach',
+        customerName: '[TEST] E2E Kunde',
+        customerEmail: 'test-e2e@example.invalid',
+        meetingType: '[TEST] Erstgesprach',
         meetingDate: '03.04.2026',
       },
     });

@@ -249,3 +249,29 @@ YAML
     }
   done
 }
+
+# ── T001452: config shadow-state removed + one-off denylist ─────────────#
+
+@test "T001452: openspec/config.yaml carries no OpenSpec-Komponenten list" {
+  ! grep -qi 'OpenSpec-Komponenten' "$REPO/openspec/config.yaml"
+}
+
+@test "T001452: archive --create-new rejects a one-off ticket-shaped slug" {
+  _fake_openspec_root
+  run node "$REPO/scripts/openspec-merge.mjs" apply "$FX/delta-added.md" "$ROOT/specs/t000000-foo.md" --create-new
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"--force-new-component"* ]]
+  [ ! -f "$ROOT/specs/t000000-foo.md" ]
+}
+
+@test "T001452: --force-new-component overrides the one-off denylist" {
+  _fake_openspec_root
+  run node "$REPO/scripts/openspec-merge.mjs" apply "$FX/delta-added.md" "$ROOT/specs/t000000-foo.md" --create-new --force-new-component
+  [ "$status" -eq 0 ]
+  [ -f "$ROOT/specs/t000000-foo.md" ]
+}
+
+@test "T001452: validator ignores specs under openspec/specs/archive/" {
+  run bash -c "cd '$REPO' && npx tsx -e \"import {validateTree} from './scripts/openspec-validate.ts'; const r=validateTree('openspec'); process.exit(r.ok?0:1)\""
+  [ "$status" -eq 0 ]
+}

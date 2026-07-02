@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.155.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.154.1...website-v1.155.0) (2026-07-02)
+
+
+### Features
+
+* **test:** improve vitest coverage for auth module ([28595cc](https://github.com/Paddione/Bachelorprojekt/commit/28595cce04005398eb56550305a6a5c541b76b12))
+
+
+### Tests
+
+* **website:** repair any-typed mocks + missing beforeEach import [T001517] ([#2531](https://github.com/Paddione/Bachelorprojekt/issues/2531)) ([c1083e4](https://github.com/Paddione/Bachelorprojekt/commit/c1083e459af3de5a25c3d72948f65d72e672ba17))
+
 ## [1.154.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.154.0...website-v1.154.1) (2026-07-02)
 
 

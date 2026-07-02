@@ -314,7 +314,7 @@ edited line-neutrally.
 **Interfaces:**
 - Consumes: `.admin-table-collapse` and the `admin-content` container from Task 1.
 
-- [ ] **Step 1: Write the failing line-count + class tests (RED).**
+- [x] **Step 1: Write the failing line-count + class tests (RED).**
 
 Append to `tests/spec/website-core.bats`:
 
@@ -352,7 +352,7 @@ Run:
 expected: FAIL — the three `admin-table-collapse` grep tests fail (class not applied
 yet). The two line-count tests pass now and must KEEP passing after the edit.
 
-- [ ] **Step 2: Tag the `rechnungen.astro` main invoice table (line-neutral).**
+- [x] **Step 2: Tag the `rechnungen.astro` main invoice table (line-neutral).**
 
 In `website/src/pages/admin/rechnungen.astro`, the main invoice table opens with
 `<table class="w-full">` (line 175 is the dunning table; the main invoice table opens
@@ -374,7 +374,7 @@ line. Example (line 237, unchanged position):
 Apply the same `class` + `data-label` treatment to the dunning table at line 175 using
 its own headers (same nine columns). Do NOT reformat, wrap, or split any line.
 
-- [ ] **Step 3: Tag the `projekte.astro` table (line-neutral).**
+- [x] **Step 3: Tag the `projekte.astro` table (line-neutral).**
 
 In `website/src/pages/admin/projekte.astro`, change the opening `<table class="w-full">`
 (line 223) to:
@@ -393,7 +393,7 @@ headers `Projekt`, `Kunde`, `Status`, `Prio`, `Erfasst`, `Start`, `Fällig`, `TP
 
 Do NOT add or remove any line.
 
-- [ ] **Step 4: Tag the `zeiterfassung.astro` table.**
+- [x] **Step 4: Tag the `zeiterfassung.astro` table.**
 
 In `website/src/pages/admin/zeiterfassung.astro`, change the opening
 `<table class="w-full">` (line 123) to `<table class="w-full admin-table-collapse">` and
@@ -404,7 +404,7 @@ append `data-label` to each `<td …>` opening tag, matching headers `Datum`, `P
 <td class="px-4 py-3 text-sm text-muted whitespace-nowrap" data-label="Datum">{fmtDate(e.entryDate)}</td>
 ```
 
-- [ ] **Step 5: Verify line-neutrality of the Budget 0 files.**
+- [x] **Step 5: Verify line-neutrality of the Budget 0 files.**
 
 Run:
 ```bash
@@ -413,7 +413,7 @@ wc -l website/src/pages/admin/rechnungen.astro website/src/pages/admin/projekte.
 Expected: `592` and `408` respectively — unchanged. If either differs, a line was
 added/removed — undo the reformatting and re-apply attributes on the original lines.
 
-- [ ] **Step 6: Run the tests (GREEN).**
+- [x] **Step 6: Run the tests (GREEN).**
 
 Run:
 ```bash
@@ -421,7 +421,7 @@ Run:
 ```
 Expected: PASS — all `T001471 …` tests green, including both line-count assertions.
 
-- [ ] **Step 7: Commit.**
+- [x] **Step 7: Commit.**
 
 ```bash
 git add website/src/pages/admin/rechnungen.astro website/src/pages/admin/projekte.astro website/src/pages/admin/zeiterfassung.astro tests/spec/website-core.bats
@@ -445,7 +445,7 @@ is fine. No markup or props change.
 **Interfaces:**
 - Consumes: nothing from earlier tasks — component-scoped styles only.
 
-- [ ] **Step 1: Write the failing test (RED).**
+- [x] **Step 1: Write the failing test (RED).**
 
 Append to `tests/spec/website-core.bats`:
 
@@ -471,7 +471,7 @@ Run:
 ```
 expected: FAIL — the two new tests fail (no mobile query yet in those components).
 
-- [ ] **Step 2: AdminTabs — horizontal scroll on mobile.**
+- [x] **Step 2: AdminTabs — horizontal scroll on mobile.**
 
 Inside the existing `<style>` block of `AdminTabs.svelte`, add:
 
@@ -490,7 +490,7 @@ Inside the existing `<style>` block of `AdminTabs.svelte`, add:
 }
 ```
 
-- [ ] **Step 3: AdminStatCard + AdminCard — full width, compact padding on mobile.**
+- [x] **Step 3: AdminStatCard + AdminCard — full width, compact padding on mobile.**
 
 Inside the `<style>` block of `AdminStatCard.svelte`, add a rule targeting the card's
 root class (confirm the class name by reading the file first), e.g.:
@@ -516,7 +516,7 @@ Do the equivalent in `AdminCard.svelte` for its root class:
 
 Read each component before editing to use its real root class name (do not assume).
 
-- [ ] **Step 4: AdminPageHeader — stack title and actions on mobile.**
+- [x] **Step 4: AdminPageHeader — stack title and actions on mobile.**
 
 Inside the `<style>` block of `AdminPageHeader.svelte`, add:
 
@@ -533,7 +533,7 @@ Inside the `<style>` block of `AdminPageHeader.svelte`, add:
 }
 ```
 
-- [ ] **Step 5: Run the tests (GREEN).**
+- [x] **Step 5: Run the tests (GREEN).**
 
 Run:
 ```bash
@@ -541,7 +541,7 @@ Run:
 ```
 Expected: PASS.
 
-- [ ] **Step 6: Commit.**
+- [x] **Step 6: Commit.**
 
 ```bash
 git add website/src/components/admin/ui/AdminTabs.svelte website/src/components/admin/ui/AdminStatCard.svelte website/src/components/admin/ui/AdminCard.svelte website/src/components/admin/ui/AdminPageHeader.svelte tests/spec/website-core.bats
@@ -568,7 +568,7 @@ append the class to the existing line (all six have ample budget).
 **Interfaces:**
 - Consumes: `.admin-form-wide` desktop rule from Task 1.
 
-- [ ] **Step 1: Write the failing test (RED).**
+- [x] **Step 1: Write the failing test (RED).**
 
 Append to `tests/spec/website-core.bats`:
 
@@ -588,7 +588,7 @@ Run:
 ```
 expected: FAIL — none of the six views carry the class yet.
 
-- [ ] **Step 2: Tag `backup.astro`.**
+- [x] **Step 2: Tag `backup.astro`.**
 
 The container opens at line 21 with `<div style="padding: 2rem; max-width: 640px;">`.
 Add the class to that existing line:
@@ -597,7 +597,7 @@ Add the class to that existing line:
 <div class="admin-form-wide" style="padding: 2rem; max-width: 640px;">
 ```
 
-- [ ] **Step 3: Tag the remaining five views.**
+- [x] **Step 3: Tag the remaining five views.**
 
 Read each file, find its outermost content `<div style="…">` (the form/page wrapper, the
 same pattern as `backup.astro`), and append `class="admin-form-wide"` to that existing
@@ -612,7 +612,7 @@ opening tag — one edit per file, no new line:
 If a file's wrapper already has a `class="…"`, append the token inside the existing
 attribute instead (`class="… admin-form-wide"`).
 
-- [ ] **Step 4: Run the tests (GREEN).**
+- [x] **Step 4: Run the tests (GREEN).**
 
 Run:
 ```bash
@@ -620,7 +620,7 @@ Run:
 ```
 Expected: PASS.
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
 
 ```bash
 git add website/src/pages/admin/einstellungen/backup.astro website/src/pages/admin/einstellungen/benachrichtigungen.astro website/src/pages/admin/einstellungen/branding.astro website/src/pages/admin/einstellungen/email.astro website/src/pages/admin/einstellungen/ordner-templates.astro website/src/pages/admin/einstellungen/rechnungen.astro

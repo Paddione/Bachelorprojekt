@@ -177,7 +177,7 @@ jobs:
                   for c in (doc.get('spec',{}).get('template',{}).get('spec',{}).get('containers',[]) or []):
                       for e in (c.get('env',[]) or []):
                           v = (e.get('valueFrom') or {}).get('secretKeyRef') or {}
-                          if v.get('name') == 'website-secrets' and v.get('key'):
+                          if v.get('name') == 'website-secrets' and v.get('key') and not v.get('optional'):
                               print(v['key'])
           "); do
             if ! kubectl get secret website-secrets -n "$NAMESPACE" \
@@ -296,7 +296,7 @@ jobs:
                   for c in (doc.get('spec',{}).get('template',{}).get('spec',{}).get('containers',[]) or []):
                       for e in (c.get('env',[]) or []):
                           v = (e.get('valueFrom') or {}).get('secretKeyRef') or {}
-                          if v.get('name') == 'website-secrets' and v.get('key'):
+                          if v.get('name') == 'website-secrets' and v.get('key') and not v.get('optional'):
                               print(v['key'])
           "); do
             if ! kubectl get secret website-secrets -n "$NAMESPACE" \

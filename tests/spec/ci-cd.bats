@@ -249,3 +249,45 @@ PY
   grep -qE 'blocks:.*plan-only' "$bats_file"
   grep -qE 'SKIP_COMMIT_VS_DIFF' "$bats_file"
 }
+
+@test "T001446: build-website Pre-Rollout Secret-Check skips optional secretKeyRefs (both deploy jobs)" {
+  # Regression for T001446: the check collected ALL website-secrets keys from
+  # k3d/website.yaml and hard-failed on cluster-missing ones — even when the
+  # manifest marks the ref `optional: true` (SEPA_CREDITOR_*, DEEPSEEK_API_KEY*,
+  # schema.yaml required:false). That blocked every korczewski website deploy.
+  local wf="$REPO_ROOT/.github/workflows/build-website.yml"
+  [ -f "$wf" ]
+  local count
+  count=$(grep -c "and not v.get('optional')" "$wf")
+  [ "$count" -eq 2 ]
+}
+
+@test "T001446: secret-check filter behaves correctly against a fixture manifest" {
+  # Functional check of the exact python filter line: optional refs excluded,
+  # required refs included.
+  local out
+  out=$(python3 - <<'PY'
+import yaml, io
+doc = """
+spec:
+  template:
+    spec:
+      containers:
+        - name: website
+          env:
+            - name: REQ
+              valueFrom: {secretKeyRef: {name: website-secrets, key: REQ}}
+            - name: OPT
+              valueFrom: {secretKeyRef: {name: website-secrets, key: OPT, optional: true}}
+"""
+for d in yaml.safe_load_all(io.StringIO(doc)):
+    if not d: continue
+    for c in (d.get('spec',{}).get('template',{}).get('spec',{}).get('containers',[]) or []):
+        for e in (c.get('env',[]) or []):
+            v = (e.get('valueFrom') or {}).get('secretKeyRef') or {}
+            if v.get('name') == 'website-secrets' and v.get('key') and not v.get('optional'):
+                print(v['key'])
+PY
+)
+  [ "$out" = "REQ" ]
+}

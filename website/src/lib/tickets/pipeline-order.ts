@@ -29,7 +29,7 @@ export const PIPELINE_LANES: readonly PipelineLane[] = [
   { key: 'hall',        label: 'In Arbeit',      statuses: ['in_progress', 'in_review'], side: false },
   { key: 'qa',             label: 'QS-Abnahme',     statuses: ['qa_review'],               side: false },
   { key: 'awaitingDeploy', label: 'Deploy-Wartung',  statuses: ['awaiting_deploy'],          side: false },
-  { key: 'shipped',        label: 'Fertig',          statuses: ['done'],                    side: false },
+  { key: 'shipped',        label: 'Versand',         statuses: ['done'],                    side: false },
   { key: 'attention',   label: 'Blockiert',      statuses: ['blocked'],            side: true },
   { key: 'archive',     label: 'Archiv',         statuses: ['archived'],           side: true },
 ] as const;

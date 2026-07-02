@@ -73,3 +73,10 @@ describe('STATUS_BUCKETS', () => {
     expect(STATUS_BUCKETS.done).toBe<LaneKey>('shipped');
   });
 });
+
+describe('shipped lane label', () => {
+  it('labels the shipped lane Versand (SSOT)', () => {
+    const shipped = PIPELINE_LANES.find((l) => l.key === 'shipped');
+    expect(shipped?.label).toBe('Versand');
+  });
+});

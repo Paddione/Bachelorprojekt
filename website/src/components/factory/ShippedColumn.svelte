@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { PIPELINE_LANES } from '../../lib/tickets/pipeline-order';
+  const shippedLabel = PIPELINE_LANES.find((l) => l.key === 'shipped')?.label ?? 'Versand';
+
   let {
     shipped,
     mobileColIndex,
@@ -17,7 +20,8 @@
 </script>
 
 <div data-col="done" class:mobile-visible={mobileColIndex === 9} class="lg:w-1/5" data-testid="floor-shipped">
-  <h3 class="font-semibold mb-2">Versand</h3>
+  <h3 class="font-semibold mb-1">{shippedLabel}</h3>
+  <p class="text-muted text-[11px] mb-2">Gemergt nach main · Prod-Deploy entkoppelt</p>
   {#if shipped.length === 0}
     <p class="text-muted text-sm">Noch nichts versandt.</p>
   {:else}

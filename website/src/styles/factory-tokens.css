@@ -131,3 +131,13 @@
   0%,100% { opacity: 0; box-shadow: 0 0 0 0 currentColor; }
   50%      { opacity: .25; box-shadow: 0 0 0 5px currentColor; }
 }
+
+/* Brass action pill (floor + tabs) */
+.ff-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 12px; border-radius: var(--radius-pill);
+  font-family: var(--sans); font-size: 12px; font-weight: 600;
+  color: var(--ink-900); background: var(--brass); border: none; cursor: pointer;
+}
+.ff-pill:hover { background: var(--brass-2); }
+.ff-pill--ghost { background: transparent; color: var(--brass); border: 1px solid var(--brass-d); }

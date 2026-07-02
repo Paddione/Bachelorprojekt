@@ -2915,3 +2915,11 @@ REG="scripts/factory/service-registry.sh"
   [ "$status" -eq 0 ]
 }
 
+
+# ── T001433 admin-redesign: Factory Floor conveyor-only (FA-SF-FLOOR) ─────────
+@test "FA-SF-FLOOR: FactoryFloor.svelte has no ff-view/kanban toggle" {
+  run grep -c "ff-view" website/src/components/FactoryFloor.svelte
+  [ "$output" = "0" ]
+  run grep -c "ff-view-toggle" website/src/components/FactoryFloor.svelte
+  [ "$output" = "0" ]
+}

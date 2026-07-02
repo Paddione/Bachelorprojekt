@@ -21,6 +21,7 @@
   import AwaitingDeployLane from './factory/AwaitingDeployLane.svelte';
   import AttentionStrip from './factory/AttentionStrip.svelte';
   import FactoryFloorLane from './FactoryFloorLane.svelte';
+  import FloorControlCard from './factory/FloorControlCard.svelte';
   import type { QaItem } from '../lib/qa-dal';
   import type { CiRollup } from '../lib/factory-ci';
   import { SSE_RECONNECT_MS } from '../lib/factory-constants';
@@ -49,28 +50,6 @@
     const delta = e.changedTouches[0].clientX - touchStartX;
     if (delta < -40) { mobileNext(); if ('vibrate' in navigator) navigator.vibrate(5); }
     else if (delta > 40) { mobilePrev(); if ('vibrate' in navigator) navigator.vibrate(5); }
-  }
-
-  type FloorView = 'conveyor' | 'kanban';
-  let floorView = $state<FloorView>('conveyor');
-  let viewMounted = $state(false);
-
-  $effect(() => {
-    if (typeof window === 'undefined') return;
-    const stored = localStorage.getItem('ff-view');
-    if (stored === 'conveyor' || stored === 'kanban') {
-      floorView = stored;
-    } else if (window.innerWidth < 768) {
-      floorView = 'conveyor';
-    }
-    viewMounted = true;
-  });
-
-  function toggleView() {
-    floorView = floorView === 'conveyor' ? 'kanban' : 'conveyor';
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('ff-view', floorView);
-    }
   }
 
   let data = $state<FloorPayload | null>(initial);
@@ -191,31 +170,10 @@
       {:else}
         <span class="text-muted">live · aktualisiert {relTime(data.fetchedAt)}</span>
       {/if}
-      {#if viewMounted}
-        <button type="button" class="ml-auto ff-view-toggle" onclick={toggleView} aria-label="Ansicht wechseln">
-          {#if floorView === 'conveyor'}
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-              <rect x="1" y="1" width="6" height="6" rx="1" />
-              <rect x="9" y="1" width="6" height="6" rx="1" />
-              <rect x="1" y="9" width="6" height="6" rx="1" />
-              <rect x="9" y="9" width="6" height="6" rx="1" />
-            </svg>
-          {:else}
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-              <line x1="1" y1="4" x2="15" y2="4" />
-              <line x1="1" y1="8" x2="15" y2="8" />
-              <line x1="1" y1="12" x2="15" y2="12" />
-            </svg>
-          {/if}
-          <span class="ff-view-toggle__label">{floorView === 'conveyor' ? 'Band' : 'Kanban'}</span>
-        </button>
-      {/if}
     </div>
 
     <div class="grid grid-cols-2 md:grid-cols-6 gap-3 mb-6" data-testid="floor-leitstand">
-      <div class="rounded-xl p-3" class:bg-red-500={data.control.killSwitch} class:bg-white={!data.control.killSwitch} class:bg-opacity-5={!data.control.killSwitch}>
-        <p class="text-muted text-xs">Kill-Switch</p><p class="text-xl font-bold">{data.control.killSwitch ? 'AN' : 'aus'}</p>
-      </div>
+      <FloorControlCard control={data.control} />
       <div class="rounded-xl bg-white/5 p-3"><p class="text-muted text-xs">Slots</p><p class="text-xl font-bold" data-testid="floor-slots">{data.control.slotsUsed}/{data.control.slotsCap}</p></div>
       <div class="rounded-xl bg-white/5 p-3"><p class="text-muted text-xs">Daily-Cap</p><p class="text-xl font-bold">{data.control.dailyUsed}/{data.control.dailyCap}</p></div>
       <div class="rounded-xl bg-white/5 p-3"><p class="text-muted text-xs">Durchsatz heute</p><p class="text-xl font-bold">{data.metrics.shippedToday}</p></div>
@@ -259,7 +217,6 @@
       <FactoryFloorLane
         hall={data.hall}
         loadingDock={data.loadingDock}
-        {floorView}
         {mobileColIndex}
         {ciByExt}
         onSelect={openDetail}
@@ -327,27 +284,7 @@
     .kanban-container [data-col] { display: none; }
     .kanban-container [data-col].mobile-visible { display: flex; flex-direction: column; width: 100%; }
     .kanban-container { overflow-x: hidden; }
-    .conveyor-wrapper { display: none; }
   }
-  .ff-view-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    padding: 0.25rem 0.5rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 0.375rem;
-    background: transparent;
-    color: #8c96a3;
-    font-family: var(--factory-font-mono, monospace);
-    font-size: 0.75rem;
-    cursor: pointer;
-    transition: color 0.15s, border-color 0.15s;
-  }
-  .ff-view-toggle:hover {
-    color: #eef1f3;
-    border-color: rgba(255, 255, 255, 0.2);
-  }
-  .ff-view-toggle__label { text-transform: uppercase; letter-spacing: 0.05em; }
 
   .mobile-station-dots {
     display: none;

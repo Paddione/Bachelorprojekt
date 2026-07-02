@@ -1,0 +1,16 @@
+{
+  "columns": [
+    {
+      "heading": "Rechtliches",
+      "links": [
+        { "label": "Referenzen",          "href": "/referenzen" },
+        { "label": "Impressum",           "href": "/impressum" },
+        { "label": "Datenschutz",         "href": "/datenschutz" },
+        { "label": "Meine Daten",         "href": "/meine-daten" },
+        { "label": "AGB",                 "href": "/agb" },
+        { "label": "Barrierefreiheit",    "href": "/barrierefreiheit" }
+      ]
+    }
+  ],
+  "copyright": "© 2026 mentolder — Alle Rechte vorbehalten"
+}

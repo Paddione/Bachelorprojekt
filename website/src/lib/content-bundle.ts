@@ -58,13 +58,17 @@ interface BundleState {
 
 const state: BundleState = (() => {
   const data = new Map<string, Map<Domain, unknown>>();
-  for (const [path, raw] of Object.entries(RAW_BUNDLES)) {
+  for (const [path, mod] of Object.entries(RAW_BUNDLES)) {
     // path looks like '/content/mentolder/homepage.json'
     const match = path.match(/^\/content\/([^/]+)\/([^/]+)\.json$/);
     if (!match) continue;
     const brand = match[1];
     const domain = match[2] as Domain;
     if (!ContentBundleSchema[domain]) continue;
+    // Vite's eager import.meta.glob wraps each module — unwrap `default`.
+    const raw = (mod && typeof mod === 'object' && 'default' in mod)
+      ? (mod as { default: unknown }).default
+      : mod;
     if (!data.has(brand)) data.set(brand, new Map());
     data.get(brand)!.set(domain, raw);
   }

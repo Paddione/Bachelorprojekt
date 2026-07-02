@@ -1,0 +1,30 @@
+{
+  "heading": "Referenzen",
+  "subheading": "Unternehmen und Personen, die mir ihr Vertrauen geschenkt haben.",
+  "types": [
+    { "id": "ausbildung", "label": "Ausbildung & Qualifikation" },
+    { "id": "projekte", "label": "Projekte" },
+    { "id": "laufbahn", "label": "Berufliche Stationen" }
+  ],
+  "items": [
+    {
+      "id": "brueckenschlag",
+      "name": "Brückenschlag e.V., Lüneburg",
+      "url": "https://www.bs-lg.de",
+      "description": "Systemische Coach-Ausbildung",
+      "type": "ausbildung"
+    },
+    {
+      "id": "digital-cafe",
+      "name": "Digital Café",
+      "description": "6-monatiges Projekt in einem Lüneburger Seniorenheim (2023)",
+      "type": "projekte"
+    },
+    {
+      "id": "polizei-hamburg",
+      "name": "Polizei Hamburg",
+      "description": "KI-gestützte Gesichtserkennung + BOS-Digitalfunk",
+      "type": "laufbahn"
+    }
+  ]
+}

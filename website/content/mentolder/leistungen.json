@@ -1,0 +1,33 @@
+[
+  {
+    "id": "fuehrungskraefte",
+    "title": "Führungskräfte-Coaching",
+    "icon": "🎯",
+    "description": "Für Entscheider in KMU und kommunalen Einrichtungen.",
+    "services": [
+      { "key": "coaching-einzel", "name": "Einzelstunde (60 Min.)", "price": "nach Vereinbarung", "unit": "/ Stunde", "desc": "Intensive Einzelsession." },
+      { "key": "coaching-paket-s", "name": "Paket S — 6 Sessions", "price": "nach Vereinbarung", "unit": "", "desc": "6 Coaching-Sessions.", "highlight": true },
+      { "key": "coaching-paket-m", "name": "Paket M — 12 Sessions", "price": "nach Vereinbarung", "unit": "", "desc": "12 Sessions." }
+    ]
+  },
+  {
+    "id": "digital-50plus",
+    "title": "65+ digital",
+    "icon": "💻",
+    "description": "Für Menschen ab 65.",
+    "services": [
+      { "key": "50plus-digital-einzel", "name": "Einzelstunde (60 Min.)", "price": "nach Vereinbarung", "unit": "/ Stunde", "desc": "Individuelle 1:1 Begleitung." },
+      { "key": "50plus-digital-paket-s", "name": "Paket S — 6 Sessions", "price": "nach Vereinbarung", "unit": "", "desc": "6 Stunden.", "highlight": true },
+      { "key": "50plus-digital-paket-m", "name": "Paket M — 12 Sessions", "price": "nach Vereinbarung", "unit": "", "desc": "12 Stunden." }
+    ]
+  },
+  {
+    "id": "beratung",
+    "title": "Unternehmensberatung",
+    "icon": "🏢",
+    "description": "Für Unternehmenskunden ab 3 Personen.",
+    "services": [
+      { "key": "beratung-individuell", "name": "Individuelles Angebot", "price": "nach Vereinbarung", "unit": "", "desc": "Digitale Transformation." }
+    ]
+  }
+]

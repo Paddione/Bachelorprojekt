@@ -1,0 +1,135 @@
+[
+  {
+    "slug": "50plus-digital",
+    "title": "65+ digital",
+    "description": "Digitale Begleitung für Menschen 65+ in Lüneburg und Hamburg. Smartphone, WhatsApp, Online-Banking – Schritt für Schritt, ohne Fachchinesisch, in Ihrem Tempo.",
+    "icon": "💻",
+    "iconSpriteId": "prop-compass",
+    "features": [
+      "Smartphone, Tablet & Computer Grundlagen",
+      "WhatsApp, Email & Videocalls",
+      "Online-Banking & Shopping sicher nutzen",
+      "Datenschutz & Sicherheit verstehen – inkl. ChatGPT, Claude, Perplexity"
+    ],
+    "price": "nach Vereinbarung",
+    "stripeServiceKey": "50plus-digital-einzel",
+    "pageContent": {
+      "headline": "Ihr sicherer Einstieg in die digitale Welt",
+      "intro": "Sie möchten WhatsApp nutzen, Online-Banking verstehen, oder einfach sicherer im Umgang mit Smartphone und Computer werden? Ich begleite Sie Schritt für Schritt – in Ihrem Tempo, ohne Fachchinesisch.",
+      "forWhom": [
+        "Sich mehr Unabhängigkeit im digitalen Alltag wünschen",
+        "Konkrete Fragen zu Smartphone, Tablet oder Computer haben",
+        "Sicher mit Email, WhatsApp und Online-Diensten umgehen möchten",
+        "Einen geduldigen Begleiter suchen, der Ihre Fragen ernst nimmt"
+      ],
+      "sections": [
+        { "title": "Grundlagen", "items": ["Smartphone & Tablet Bedienung", "Apps installieren und nutzen", "Fotos und Videos verwalten"] },
+        { "title": "Kommunikation", "items": ["Email-Programme einrichten", "WhatsApp sicher nutzen", "Videocalls (Zoom, Skype)"] },
+        { "title": "Dienste", "items": ["Online-Banking sicher nutzen", "Sicher online einkaufen", "Bezahldienste verstehen"] }
+      ],
+      "pricing": [
+        { "label": "Einzelbegleitung", "price": "Auf Anfrage", "unit": "pro Stunde", "highlight": false },
+        { "label": "5er-Paket", "price": "Auf Anfrage", "unit": "Auf Anfrage", "highlight": true },
+        { "label": "Kleine Gruppe", "price": "Auf Anfrage", "unit": "pro Person / Stunde", "highlight": false }
+      ],
+      "faq": [
+        { "question": "Ich habe gar keine Vorkenntnisse – ist das ein Problem?", "answer": "Nein, überhaupt nicht! Wir fangen genau da an, wo Sie stehen." }
+      ],
+      "seoTitle": "65+ digital – Digitale Begleitung in Lüneburg & Hamburg | mentolder.de",
+      "seoDescription": "Digitale Begleitung für Menschen 65+ in Lüneburg und Hamburg."
+    }
+  },
+  {
+    "slug": "coaching",
+    "title": "Coaching für Führungskräfte und Menschen in Verantwortung",
+    "description": "Ihre Karriere strategisch gestalten. Ich unterstütze erfahrene Führungskräfte bei der beruflichen Neuorientierung.",
+    "icon": "🎯",
+    "iconSpriteId": "prop-handshake",
+    "features": [
+      "Profil-Schärfung & Positionierung",
+      "Karriere-Strategie entwickeln",
+      "Gesprächsvorbereitung",
+      "Sparring auf Augenhöhe"
+    ],
+    "price": "nach Vereinbarung",
+    "stripeServiceKey": "coaching-session",
+    "pageContent": {
+      "headline": "Ihre Karriere strategisch gestalten",
+      "intro": "Sie möchten Ihre Karriere strategisch weiterentwickeln oder sich neu ausrichten?",
+      "forWhom": [
+        "Erfahrene Führungskraft oder neu in der Führungsrolle",
+        "Sich auf wichtige Gespräche mit Headhuntern vorbereiten",
+        "Ihr Profil schärfen und Ihre USPs herausarbeiten wollen"
+      ],
+      "sections": [
+        { "title": "Profil-Schärfung", "items": ["Stärken-Analyse und Positionierung", "USPs herausarbeiten", "CV-Optimierung"] },
+        { "title": "Karriere-Strategie", "items": ["Zielpositionen definieren", "Branchen identifizieren"] }
+      ],
+      "pricing": [
+        { "label": "Einzelsession (90 Min.)", "price": "nach Vereinbarung", "highlight": false },
+        { "label": "Paket 6 Sessions", "price": "nach Vereinbarung", "unit": "", "highlight": true }
+      ],
+      "faq": []
+    }
+  },
+  {
+    "slug": "fuehrung-persoenlichkeit",
+    "title": "Führung & Persönlichkeit",
+    "description": "Gute Führung beginnt nicht mit Methoden. Sie beginnt mit Haltung.",
+    "icon": "🦭",
+    "iconSpriteId": "prop-chat",
+    "features": [
+      "Standortbestimmung als Führungsperson",
+      "Führungsstil entwickeln & stärken",
+      "Führen in Veränderungsprozessen",
+      "Frauen in Führung gezielt begleiten"
+    ],
+    "price": "nach Vereinbarung",
+    "stripeServiceKey": "coaching-session",
+    "pageContent": {
+      "headline": "Führen aus der Mitte.",
+      "intro": "Gute Führung beginnt nicht mit Methoden. Sie beginnt mit Haltung.",
+      "forWhom": [
+        "Frauen und Männer in Führung – seit Jahren in Verantwortung",
+        "Frauen und Männer in Führung – gerade neu in der Rolle"
+      ],
+      "sections": [
+        { "title": "Rolle & Identität", "items": ["Wer bin ich als Führungsperson – und wer will ich sein?"] }
+      ],
+      "pricing": [
+        { "label": "Kostenloses Erstgespräch buchen", "price": "nach Vereinbarung", "highlight": true }
+      ],
+      "faq": []
+    }
+  },
+  {
+    "slug": "beratung",
+    "title": "Unternehmensberatung",
+    "description": "Digitale Transformation & KI-Strategie für Mittelstand, Verwaltung und kritische Infrastrukturen.",
+    "icon": "🏢",
+    "iconSpriteId": "prop-briefcase",
+    "features": [
+      "Analyse & digitale Strategie",
+      "Change Management & Teamschulungen",
+      "Umsetzungsbegleitung & Prozessoptimierung",
+      "Nachhaltige interne Kompetenz aufbauen"
+    ],
+    "price": "nach Vereinbarung",
+    "pageContent": {
+      "headline": "Digitale Transformation mit Erfahrung",
+      "intro": "Ich begleite Organisationen bei der digitalen Transformation.",
+      "forWhom": [
+        "Mittelständische Unternehmen (50-500 Mitarbeiter)",
+        "Öffentliche Verwaltung",
+        "Kritische Infrastrukturen"
+      ],
+      "sections": [
+        { "title": "Analyse", "items": ["Wo stehen Sie heute?", "Was sind die konkreten Bedarfe?"] }
+      ],
+      "pricing": [
+        { "label": "Tagessatz", "price": "nach Vereinbarung", "unit": "Projektumfang individuell", "highlight": true }
+      ],
+      "faq": []
+    }
+  }
+]

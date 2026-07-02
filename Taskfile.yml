@@ -2258,6 +2258,13 @@ tasks:
   # ─────────────────────────────────────────────
   # Environment Management
   # ─────────────────────────────────────────────
+  content:export:
+    desc: Export site content (DB → website/content/<brand>/*.json) for the bundle (T001490)
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    cmds:
+      - ENV={{.ENV}} website/node_modules/.bin/tsx scripts/export-site-content.mjs
+
   env:validate:
     desc: Validate environment config against schema
     vars:

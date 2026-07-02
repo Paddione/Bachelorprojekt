@@ -136,3 +136,39 @@ ADMIN_RESPONSIVE="$BATS_TEST_DIRNAME/../../website/src/styles/admin-responsive.c
     [ "$status" -eq 0 ] || { echo "missing admin-form-wide in $f.astro"; return 1; }
   done
 }
+
+# ── T001490: content bundle completeness ──────────────────────────────────────
+@test "T001490 content bundle: every brand has all 13 domain JSON files" {
+  base="$BATS_TEST_DIRNAME/../../website/content"
+  for brand in mentolder korczewski; do
+    [ -d "$base/$brand" ] || { echo "missing brand dir $brand"; return 1; }
+    for d in homepage homepage-blocks seo faq kontakt ueber-mich services \
+             leistungen stammdaten navigation footer referenzen kore-flags; do
+      [ -f "$base/$brand/$d.json" ] || { echo "missing $brand/$d.json"; return 1; }
+    done
+  done
+}
+
+@test "T001490 content bundle: website-db.ts no longer exports deleted content readers" {
+  f="$BATS_TEST_DIRNAME/../../website/src/lib/website-db.ts"
+  # Removed in T001490 Task 4 — content is now sourced from the bundle
+  for fn in getHomepageContent getUebermichContent getFaqContent \
+            getKontaktContent getServiceConfig getLeistungenConfig \
+            getReferenzen; do
+    run grep -E "^export (async )?function $fn\\b|^export const $fn\\b" "$f"
+    [ "$status" -ne 0 ] || { echo "still exports $fn"; return 1; }
+  done
+}
+
+@test "T001490 content bundle: export script registered (no orphan)" {
+  f="$BATS_TEST_DIRNAME/../../Taskfile.yml"
+  run grep -F "content:export" "$f"
+  [ "$status" -eq 0 ]
+  run bash -c "test -f '$BATS_TEST_DIRNAME/../../scripts/export-site-content.mjs'"
+  [ "$status" -eq 0 ]
+}
+
+@test "T001490 content bundle: every JSON file passes the Zod schema (build-time check)" {
+  run bash -c "cd '$BATS_TEST_DIRNAME/../../website' && pnpm vitest run src/content-schema/__tests__/schema.test.ts 2>&1 | tail -20"
+  echo "$output" | grep -q "3 passed"
+}

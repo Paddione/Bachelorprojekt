@@ -391,6 +391,57 @@ exposed in the sidebar navGroups, ensuring they remain reachable from the platfo
 
 ---
 
+### Requirement: Cockpit Ticket-Expand-Row
+
+The cockpit ticket table SHALL expand a detail area beneath a ticket row when the row (outside
+the title link) is activated, showing the ticket description (rendered), the phase stepper, PR
+and plan links from `ticket_links`, and the latest phase events. The detail data SHALL be fetched
+lazily on first expand (no upfront fetch for the whole list). At most one row SHALL be expanded
+at a time (accordion behavior); the expanded state SHALL NOT be persisted. The existing title
+link behavior (`/admin/tickets/{id}`) SHALL remain unchanged, and no drawer component SHALL be
+reintroduced.
+
+#### Scenario: Row click expands detail
+
+- **GIVEN** the cockpit table shows a ticket with a description and a linked PR
+- **WHEN** the user activates the row (outside the title link)
+- **THEN** an expand area appears beneath the row showing description, phase stepper, PR/plan links, and latest events
+
+#### Scenario: Lazy fetch on first expand
+
+- **GIVEN** a cockpit table with 20 rows
+- **WHEN** the page loads
+- **THEN** no ticket-detail requests are issued until a row is expanded
+
+#### Scenario: Accordion behavior
+
+- **GIVEN** row A is expanded
+- **WHEN** the user expands row B
+- **THEN** row A collapses and only row B remains expanded
+
+#### Scenario: Title link keeps navigating
+
+- **GIVEN** an expanded or collapsed row
+- **WHEN** the user clicks the ticket title
+- **THEN** the browser navigates to `/admin/tickets/{id}` (no drawer, no expand toggle)
+
+### Requirement: Cockpit-Toolbar Icon-Buttons
+
+The cockpit toolbar (preset load/save, URL copy) SHALL use SVG icon buttons from the shared
+admin icon set instead of emoji characters; filter pills and action accents SHALL use the Brass
+token instead of indigo.
+
+#### Scenario: No emoji in toolbar buttons
+
+- **WHEN** the cockpit toolbar renders
+- **THEN** the preset and URL-copy buttons contain SVG icons and no emoji characters (📁, 💾, 🔗)
+
+#### Scenario: Filter pills use Brass
+
+- **GIVEN** the status filter pills are rendered
+- **WHEN** a pill is active
+- **THEN** its accent color resolves to the Brass token, not indigo
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -564,59 +615,66 @@ The system SHALL render an "Aktionen"-Tab on the `/admin/platform` page with sub
 ### Requirement: Dev-Status-Seite mit Tab-Navigation
 <!-- e2e: dev-status-tabs.spec.ts -->
 
-The system SHALL provide a `/dev-status` page with a persistent tab bar containing exactly five tabs, SHALL synchronise the active tab with the `?tab=` URL query parameter, and SHALL redirect `/admin/planungsbuero` to `/dev-status?tab=planung`.
+The system SHALL provide the pipeline page at `/admin/pipeline` with a persistent tab bar
+(rendered via `AdminTabs.svelte`) containing exactly six tabs — Floor, Planung, Analytics,
+Kosten, Steuerung, Abhängigkeiten — SHALL synchronise the active tab with the `?tab=` URL query
+parameter, and SHALL redirect legacy routes: `/dev-status` (preserving the `?tab=` query) and
+`/admin/planungsbuero` → `/admin/pipeline?tab=planung`.
 
-#### Scenario: /dev-status öffnet standardmäßig den Factory-Tab *(E2E)*
-- **GIVEN** ein Nutzer ruft `/dev-status` ohne Tab-Parameter auf
+#### Scenario: /admin/pipeline öffnet standardmäßig den Floor-Tab *(E2E)*
+- **GIVEN** ein Nutzer ruft `/admin/pipeline` ohne Tab-Parameter auf
 - **WHEN** die Seite geladen ist
-- **THEN** ist der Tab „Factory Floor" aktiv und die URL enthält nicht `tab=planung`
+- **THEN** ist der Tab „Floor" aktiv und die URL enthält nicht `tab=planung`
 
-#### Scenario: ?tab=planung aktiviert den Planungsbüro-Tab *(E2E)*
-- **GIVEN** ein Nutzer ruft `/dev-status?tab=planung` auf
+#### Scenario: ?tab=planung aktiviert den Planungs-Tab *(E2E)*
+- **GIVEN** ein Nutzer ruft `/admin/pipeline?tab=planung` auf
 - **WHEN** die Seite geladen ist
-- **THEN** ist der Tab „Planungsbüro" aktiv
+- **THEN** ist der Tab „Planung" aktiv
 
 #### Scenario: Tab-Wechsel aktualisiert die URL ohne Reload *(E2E)*
-- **GIVEN** ein Nutzer befindet sich auf `/dev-status` mit aktivem Factory-Tab
-- **WHEN** der Tab „Planungsbüro" angeklickt wird
-- **THEN** ändert sich die URL zu einem Pfad mit `tab=planung` und der Tab „Planungsbüro" ist aktiv — ohne Seitenneuladen
+- **GIVEN** ein Nutzer befindet sich auf `/admin/pipeline` mit aktivem Floor-Tab
+- **WHEN** der Tab „Planung" angeklickt wird
+- **THEN** ändert sich die URL zu einem Pfad mit `tab=planung` und der Tab „Planung" ist aktiv — ohne Seitenneuladen
 
-#### Scenario: /admin/planungsbuero leitet auf /dev-status?tab=planung weiter *(E2E)*
+#### Scenario: /dev-status leitet auf /admin/pipeline weiter *(E2E)*
+- **GIVEN** ein Nutzer ruft `/dev-status?tab=planung` auf
+- **WHEN** der Request verarbeitet wird
+- **THEN** wird auf `/admin/pipeline?tab=planung` weitergeleitet
+
+#### Scenario: /admin/planungsbuero leitet auf /admin/pipeline?tab=planung weiter *(E2E)*
 - **GIVEN** ein Nutzer ruft `/admin/planungsbuero` auf
 - **WHEN** der Request verarbeitet wird
-- **THEN** wird auf `/dev-status?tab=planung` weitergeleitet
+- **THEN** wird auf `/admin/pipeline?tab=planung` weitergeleitet
 
-#### Scenario: Tab-Bar wird mit genau 5 Tabs gerendert *(E2E)*
-- **GIVEN** ein Nutzer ruft `/dev-status` auf
+#### Scenario: Tab-Bar wird mit genau 6 Tabs gerendert *(E2E)*
+- **GIVEN** ein Nutzer ruft `/admin/pipeline` auf
 - **WHEN** die Seite geladen ist
-- **THEN** ist `.tab-bar-wrap` sichtbar und enthält genau 5 `.ds-tab`-Elemente
+- **THEN** ist die Tab-Leiste sichtbar und enthält genau 6 Tab-Elemente
 
 #### Scenario: Tab-Bar ist auf mobilen Geräten (390 px) sichtbar *(E2E)*
 - **GIVEN** der Viewport ist auf 390×844 px gesetzt
-- **WHEN** `/dev-status` aufgerufen wird
-- **THEN** sind `.tab-bar-wrap` und der erste `.ds-tab` sichtbar
+- **WHEN** `/admin/pipeline` aufgerufen wird
+- **THEN** sind die Tab-Leiste und der erste Tab sichtbar
 
 #### Scenario: Tab-Wechsel funktioniert auf mobilen Geräten *(E2E)*
-- **GIVEN** der Viewport ist auf 390×844 px gesetzt und der Nutzer befindet sich auf `/dev-status`
-- **WHEN** der Tab „Planungsbüro" angeklickt wird
-- **THEN** ändert sich die URL zu `tab=planung` und der Planungsbüro-Tab ist aktiv
+- **GIVEN** der Viewport ist auf 390×844 px gesetzt und der Nutzer befindet sich auf `/admin/pipeline`
+- **WHEN** der Tab „Planung" angeklickt wird
+- **THEN** ändert sich die URL zu `tab=planung` und der Planungs-Tab ist aktiv
 
-#### Scenario: Admin-Sidebar enthält genau einen Dev-Status-Eintrag *(E2E)*
+#### Scenario: Admin-Sidebar enthält genau einen Pipeline-Eintrag *(E2E)*
 - **GIVEN** ein Nutzer ruft `/admin` auf
 - **WHEN** die Sidebar gerendert wird
-- **THEN** enthält `#admin-sidebar` genau einen Link mit `href="/dev-status"` mit dem Text „Dev Status" und keinen Link mit `href="/admin/planungsbuero"`
+- **THEN** enthält `#admin-sidebar` genau einen Link mit `href="/admin/pipeline"` mit dem Text „Pipeline" und keinen Link mit `href="/dev-status"` oder `href="/admin/planungsbuero"`
 
 #### Scenario: Attention-Strip erscheint bei blockiertem Workpiece *(E2E)*
-- **GIVEN** ein Nutzer ruft `/dev-status?tab=factory` auf
+- **GIVEN** ein Nutzer ruft `/admin/pipeline?tab=floor` auf
 - **WHEN** ein Workpiece den Status „blocked" hat
 - **THEN** wird ein `role=alert`-Element mit einem der Symbole ⛔, ⏱ oder 🧊 angezeigt
 
-#### Scenario: Planungsbüro aktualisiert sich nach Promote-Event *(E2E)*
-- **GIVEN** ein Nutzer befindet sich auf `/dev-status?tab=planung`
+#### Scenario: Planung aktualisiert sich nach Promote-Event *(E2E)*
+- **GIVEN** ein Nutzer befindet sich auf `/admin/pipeline?tab=planung`
 - **WHEN** das Custom-Event `factory-floor-refreshed` ausgelöst wird
 - **THEN** bleibt die Anzahl der `[data-planning-item]`-Elemente stabil oder ändert sich entsprechend dem neuen Stand
-
----
 
 ### Requirement: Readiness-Webhook für Ticket-Abhängigkeiten
 <!-- bats: readiness-webhook.bats -->
@@ -895,3 +953,5 @@ The Platform Control Center SHALL be visually consistent with the Cockpit: the p
 - **WHEN** both pages render
 - **THEN** the platform header is produced by `AdminPageHeader` and is visually identical in structure to the cockpit header
 - **AND** no raw `bg-gray-*`, `text-gray-*`, `text-green-*`, `text-yellow-*`, or `text-red-*` color utilities remain in `LogsTab.svelte` or `DienstTab.svelte`
+
+<!-- merged from change delta admin-cockpit.md on 2026-07-02 -->

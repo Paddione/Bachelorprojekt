@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.154.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.153.1...website-v1.154.0) (2026-07-02)
+
+
+### Features
+
+* **website:** admin suite responsive parity (mobile+desktop) [T001471] ([#2518](https://github.com/Paddione/Bachelorprojekt/issues/2518)) ([2117131](https://github.com/Paddione/Bachelorprojekt/commit/2117131ec2aa420c907493907c91a4df4e22c327))
+
 ## [1.153.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.153.0...website-v1.153.1) (2026-07-02)
 
 

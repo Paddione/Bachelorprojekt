@@ -378,6 +378,42 @@ export async function applyLegacyMigrations(pool: Pool | PoolClient): Promise<vo
       END IF;
 
       ----------------------------------------------------------------------------
+      -- 9b) ── Unmarked-canonical-identity sweep (NEW in v5 / T001453). ─────────
+      --     E2E runs without CRON_SECRET (missing repo secret, local runs)
+      --     historically created rows with is_test_data=false. We re-mark rows
+      --     whose identity can ONLY come from the test suite, then let the
+      --     regular flag-based deletes below sweep them:
+      --       - reporter/contact emails under RFC-2606-reserved domains
+      --         (example.com/.org/.net, .invalid TLD) — undeliverable, never a
+      --         reachable real user;
+      --       - the canonical fixture name '[TEST] E2E User' (fa-10 T6);
+      --       - bug tickets titled by fa-bugs-notifications.
+      ----------------------------------------------------------------------------
+      UPDATE tickets.tickets
+         SET is_test_data = true
+       WHERE is_test_data = false
+         AND (
+               reporter_email ~* '@example\\.(com|org|net|invalid)$'
+            OR reporter_email ~* '\\.invalid$'
+            OR title LIKE 'E2E notification test — Playwright%'
+             );
+      GET DIAGNOSTICS cnt = ROW_COUNT;
+      result := result || jsonb_build_object('tickets_remarked_unmarked', cnt);
+
+      IF has_inbox_flag THEN
+        UPDATE inbox_items
+           SET is_test_data = true
+         WHERE is_test_data = false
+           AND (
+                 payload->>'email' ~* '@example\\.(com|org|net|invalid)$'
+              OR payload->>'email' ~* '\\.invalid$'
+              OR payload->>'name'  =  '[TEST] E2E User'
+               );
+        GET DIAGNOSTICS cnt = ROW_COUNT;
+        result := result || jsonb_build_object('inbox_remarked_unmarked', cnt);
+      END IF;
+
+      ----------------------------------------------------------------------------
       -- 10) Delete child test-data tickets (non-project).
       ----------------------------------------------------------------------------
       DELETE FROM tickets.tickets
@@ -473,7 +509,7 @@ export async function applyLegacyMigrations(pool: Pool | PoolClient): Promise<vo
     $$;
   `);
 
-  await pool.query(`COMMENT ON FUNCTION tickets.fn_purge_test_data() IS 'Idempotent test-data purge. v4 (2026-05-24)'`);
+  await pool.query(`COMMENT ON FUNCTION tickets.fn_purge_test_data() IS 'Idempotent test-data purge. v5 (2026-07-02, T001453): re-marks unmarked canonical E2E identities (RFC-2606 mails, [TEST] E2E User) before the flag sweeps'`);
   await pool.query(`GRANT EXECUTE ON FUNCTION tickets.fn_purge_test_data() TO website`);
 
   // ── INERT future plumbing: pg_notify on new feature tickets ─────────────────

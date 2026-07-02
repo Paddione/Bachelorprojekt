@@ -112,8 +112,11 @@ jobs:
           # Admin auth for E2E suite (T000480 — was missing, caused 35+ specs to silently skip)
           E2E_ADMIN_USER: paddione
           E2E_ADMIN_PASS: ${{ secrets.E2E_ADMIN_PASS }}
+          # CRON_SECRET aktiviert den Purge-Bracket (globalSetup/-Teardown) und
+          # die Marker-Injection der Specs. Ohne das Repo-Secret akkumulierten
+          # unmarkierte E2E-Zeilen in der Prod-Inbox (T001453) — daher kein
+          # SKIP_DB_PURGE mehr: fehlt das Secret, soll der Run laut scheitern.
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
-          SKIP_DB_PURGE: "1"
           PLAYWRIGHT_WORKERS: "4"
         run: npx playwright test
 

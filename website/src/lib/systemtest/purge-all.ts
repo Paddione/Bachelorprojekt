@@ -12,7 +12,7 @@
 // every run.
 //
 // All heavy lifting lives in PG: `tickets.fn_purge_test_data()` (see
-// scripts/one-shot/2026-05-08-purge-test-data.sql). This module is a thin
+// scripts/one-shot/purge-fn-v5.sql). This module is a thin
 // caller that returns the JSONB counts to the API/Taskfile layer.
 
 import type { Pool } from 'pg';

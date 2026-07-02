@@ -291,3 +291,22 @@ PY
 )
   [ "$out" = "REQ" ]
 }
+
+# ── T001453: E2E-Testdaten dürfen nicht unmarkiert in Prod persistieren ──────
+# Root Cause: fehlendes CRON_SECRET-Repo-Secret + SKIP_DB_PURGE=1 im nightly
+# Workflow + Spec, der ohne Secret unmarkiert submittete. Diese Guards halten
+# alle drei Fix-Ebenen fest.
+
+@test "T001453: e2e.yml setzt SKIP_DB_PURGE nicht mehr (Purge-Bracket aktiv)" {
+  ! grep -q 'SKIP_DB_PURGE:' "$REPO_ROOT/.github/workflows/e2e.yml"
+}
+
+@test "T001453: fa-10 T6 skippt fail-closed ohne CRON_SECRET" {
+  grep -q 'test.skip(!cronSecret' "$REPO_ROOT/tests/e2e/specs/fa-10-website.spec.ts"
+}
+
+@test "T001453: purge-fn v5 re-markiert unmarkierte E2E-Identitäten" {
+  grep -q 'tickets_remarked_unmarked' "$REPO_ROOT/website/src/lib/tickets/migrations.ts"
+  grep -q 'inbox_remarked_unmarked' "$REPO_ROOT/website/src/lib/tickets/migrations.ts"
+  grep -q 'tickets_remarked_unmarked' "$REPO_ROOT/scripts/one-shot/purge-fn-v5.sql"
+}

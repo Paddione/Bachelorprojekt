@@ -92,11 +92,8 @@
 </tbody></table>
 <hr>
 <h2 id="software-factory-operations-mcp-first">Software-Factory operations (MCP-first)</h2>
-<p>Für Factory-Queue-Status und manuelles Anstoßen die <code>factory-mcp</code>-Tools bevorzugen (HTTP-Daemon auf <code>127.0.0.1:13003</code>). <strong>Verfügbarkeits-Guard zuerst:</strong> <code>curl -sf --max-time 2 http://127.0.0.1:13003/health</code>.</p>
-<blockquote>
-<p><code>mcp__factory-mcp__factory_status()</code> · <code>mcp__factory-mcp__factory_queue()</code> · <code>mcp__factory-mcp__factory_trigger()</code> · <code>mcp__factory-mcp__factory_enqueue({ ticket_id })</code> · <code>mcp__factory-mcp__factory_recent({ limit })</code></p>
-</blockquote>
-<p>Fallback (Daemon nicht erreichbar): Status/Queue über <code>mcp__mcp-postgres__query</code>/<code>psql</code>, Tick über <code>bash scripts/factory/wakeup.sh</code>. Details in <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/ticket-ops/SKILL.md"><code>ticket-ops</code></a> und im <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md"><code>MCP-Tool-Guide</code></a>.</p>
+<p>Factory-Queue-Status und manuelles Anstoßen: MCP-first via <code>factory-mcp</code> — Health-Guard, Tools und
+Fallbacks sind SSOT im <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md"><code>MCP-Tool-Guide</code></a> §factory-mcp.</p>
 <hr>
 <h2 id="mishap-tracking">Mishap Tracking</h2>
 <p>Both sub-skills carry the mishap tracking preamble. After completing either, invoke <code>mishap-tracker</code> if any mishaps were accumulated.</p>

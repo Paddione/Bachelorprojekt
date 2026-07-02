@@ -188,16 +188,11 @@ git diff website/src/data/test-inventory.json
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <hr>
 <h2 id="schritt-7-commit--push">Schritt 7: Commit &amp; Push</h2>
-<p>Folge den Commit-Konventionen aus <code>git-workflow</code> (Conventional Commits, Freshness Guard, Scope-Preflight):</p>
-<div class="code-wrapper"><pre><code class="language-bash">git add tests/e2e/specs/&lt;neu&gt;.spec.ts
-git add tests/e2e/playwright.config.ts
-git add website/src/data/test-inventory.json
-
-# Scope-Preflight (Pflicht) [T000925]
-bash scripts/preflight-pr-scope.sh "test(&lt;scope&gt;): add E2E tests for &lt;feature&gt; [$TICKET_ID]"
-
-git commit -m "test(&lt;scope&gt;): add E2E tests for &lt;feature&gt; [$TICKET_ID]"
-git push
+<p>Läuft nach <strong><code>git-workflow</code> Schritt 2–4</strong> (SSOT: Conventional Commits, git-crypt-Staging-Guard,
+Commit-Verifikation, Scope-Preflight).</p>
+<p>E2E-spezifisch — zu stagende Pfade und Titelformat:</p>
+<div class="code-wrapper"><pre><code class="language-bash">git add tests/e2e/specs/&lt;neu&gt;.spec.ts tests/e2e/playwright.config.ts website/src/data/test-inventory.json
+# Titel: "test(&lt;scope&gt;): add E2E tests for &lt;feature&gt; [$TICKET_ID]"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <hr>
 <h2 id="schritt-8-e2e-smoke-auf-live-optional-anstossen">Schritt 8: E2E Smoke auf Live optional anstoßen</h2>

@@ -33,7 +33,7 @@
   <div class="page-header-body">
     <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">references</span></nav>
     <h1>references</h1>
-    <p class="page-desc">Use when a dev-flow skill or subagent needs a shared cross-cutting reference — subagent provisioning (model/effort/context), plan quality gates (S1–S4 CI ratchet), plan-review UI, dev-flow gotchas and known issues (T000xxx), deploy routing (path→task), the MCP tool guide (mcp-postgres/mcp-kubernetes vs kubectl fallback), grilling-to-ticket, or the gh-axi GitHub CLI wrapper.</p>
+    <p class="page-desc">Use when a dev-flow skill or subagent needs a shared cross-cutting reference — subagent provisioning (model/effort/context), plan quality gates (S1–S4 CI ratchet + plan-lint hard rules), plan-review UI, dev-flow gotchas and known issues (T000xxx), deploy routing (path→task), the MCP tool guide (mcp-postgres/mcp-kubernetes vs kubectl fallback, psql helper), verification block (freshness/S1), session coordination (agent-lock lifecycle), repo hygiene ops, the CI fix loop, grilling-to-ticket, or the gh-axi GitHub CLI wrapper.</p>
     <div class="page-meta">
       <span class="provenance-badge repo">repo</span>
       <span class="domain-tag">ops</span>
@@ -87,7 +87,7 @@ aufgeteilt (Chore T001199), damit ein Verweis nur seinen Abschnitt in den Kontex
 <tr>
 <td>MCP-Tool-Guide</td>
 <td><a href="mcp-tool-guide.md"><code>mcp-tool-guide.md</code></a></td>
-<td>MCP bevorzugen vs. kubectl-Fallback; Server/Port/Tool-Tabelle</td>
+<td>MCP bevorzugen vs. kubectl-Fallback; Server/Port/Tool-Tabelle; <code>psql()</code>-Helper</td>
 </tr>
 <tr>
 <td>Grilling → Ticket</td>
@@ -98,6 +98,26 @@ aufgeteilt (Chore T001199), damit ein Verweis nur seinen Abschnitt in den Kontex
 <td>gh-axi</td>
 <td><a href="gh-axi.md"><code>gh-axi.md</code></a></td>
 <td>GitHub-CLI-Wrapper — bevorzugt statt <code>gh</code> für read/view-Flows</td>
+</tr>
+<tr>
+<td>Verifikationsblock</td>
+<td><a href="verification-block.md"><code>verification-block.md</code></a></td>
+<td>Lokale CI-äquivalente Verifikation: die vier Befehle, S1-Ratchet, Freshness-Artefakt-Liste</td>
+</tr>
+<tr>
+<td>Session-Koordination</td>
+<td><a href="session-coordination.md"><code>session-coordination.md</code></a></td>
+<td>agent-lock-Lebenszyklus: reap/claim/release, Registry-Overlap, agent-msg</td>
+</tr>
+<tr>
+<td>Repo-Hygiene-Mechanik</td>
+<td><a href="repo-hygiene-ops.md"><code>repo-hygiene-ops.md</code></a></td>
+<td>Stale Worktrees/Branches, PR-Triage→Ticket-Close, Issue-Intake, Factory-Queue</td>
+</tr>
+<tr>
+<td>CI-Fix-Schleife</td>
+<td><a href="ci-fix-loop.md"><code>ci-fix-loop.md</code></a></td>
+<td>PR-CI überwachen und fixen: devflow-ci-watch, Required Checks, Fix-Routine</td>
 </tr>
 </tbody></table>
 </body></html>

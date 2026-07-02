@@ -2,7 +2,7 @@
 title: "Logging-Middleware in middleware.ts einbinden — locals.requestLogger überall undefined (T001434)"
 ticket_id: T001434
 domains: [infra, website]
-status: active
+status: completed
 file_locks: [website/src/middleware.ts, website/src/middleware.test.ts, openspec/changes/t001434-logging-middleware-missing/, docs/superpowers/specs/2026-07-02-t001434-logging-middleware-missing-design.md]
 shared_changes: false
 batch_id: null

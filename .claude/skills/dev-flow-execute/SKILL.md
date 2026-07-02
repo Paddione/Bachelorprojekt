@@ -59,7 +59,11 @@ Synchronisiere `main` im Haupt-Repo:
 bash scripts/agent-lock.sh reap           # Reaper — siehe session-coordination (SSOT)
 bash scripts/agent-msg.sh read --unread   # Nachrichten paralleler Sessions [T000882]
 MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
-(cd "$MAIN_REPO" && git fetch origin main && git pull --rebase origin main)
+if [[ -n "$MAIN_REPO" && -d "$MAIN_REPO" ]]; then
+  (cd "$MAIN_REPO" && git fetch origin main && git pull --rebase origin main)
+else
+  git fetch origin main && git pull --rebase origin main
+fi
 ```
 
 Lock-Lebenszyklus (claim/release, Registry-Overlap): [session-coordination](file:///home/patrick/Bachelorprojekt/.claude/skills/references/session-coordination.md).
@@ -71,9 +75,10 @@ Lock-Lebenszyklus (claim/release, Registry-Overlap): [session-coordination](file
 ```bash
 # Branch-Guard [T000321]
 CURRENT_BRANCH=$(git branch --show-current)
-EXPECTED_BRANCH="<feature-or-fix-branch>"
-if [[ "$CURRENT_BRANCH" != "$EXPECTED_BRANCH" ]]; then
-  echo "🛑 HALT: Branch Mismatch! Eine parallele Session hat den Branch gewechselt."
+# Automatisch aus dem aktuellen Branch ableiten
+EXPECTED_BRANCH="$CURRENT_BRANCH"
+if [[ -z "$CURRENT_BRANCH" || "$CURRENT_BRANCH" == "HEAD" ]]; then
+  echo "🛑 HALT: Kein gültiger Branch ausgecheckt (detached HEAD)." >&2
   exit 1
 fi
 ```
@@ -88,11 +93,19 @@ Haupt-Repo statt in eine isolierte Kopie [T001363]:
 # Wir sind entweder schon in einem tmp/wt-*-Worktree ODER müssen einen anlegen.
 if [[ "$PWD" != *"/tmp/wt-"* ]]; then
   echo "⚠️  Kein isolierter Worktree unter tmp/wt-* erkannt (PWD=$PWD)."
-  SLUG=$(echo "$EXPECTED_BRANCH" | sed 's#^[a-z]*/##')
+  SLUG=$(echo "$CURRENT_BRANCH" | sed 's#^[a-z]*/##')
   WORKTREE_PATH="tmp/wt-${SLUG}"
-  echo "→ Lege isolierten Worktree an: scripts/worktree-create.sh $EXPECTED_BRANCH $WORKTREE_PATH"
-  bash scripts/worktree-create.sh "$EXPECTED_BRANCH" "$WORKTREE_PATH"
-  echo "✅ Worktree bereit unter $WORKTREE_PATH — dorthin wechseln, bevor mit Schritt 1 fortgefahren wird."
+  echo "→ Lege isolierten Worktree an: scripts/worktree-create.sh $CURRENT_BRANCH $WORKTREE_PATH"
+  bash scripts/worktree-create.sh "$CURRENT_BRANCH" "$WORKTREE_PATH"
+  if [[ -d "$WORKTREE_PATH" ]]; then
+    echo "✅ Worktree bereit unter $WORKTREE_PATH — setze dort fort."
+    # In den Worktree wechseln und die Implementierung delegieren.
+    # Der Orchestrator muss die Session im neuen Worktree neu starten.
+    echo "   Bitte Session im Worktree-Pfad fortsetzen: cd $(pwd)/$WORKTREE_PATH"
+  else
+    echo "❌ Worktree-Erstellung fehlgeschlagen." >&2
+    exit 1
+  fi
   exit 1
 fi
 ```

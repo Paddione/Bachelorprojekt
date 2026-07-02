@@ -374,22 +374,15 @@ jobs:
             # first parent, falling back to the merge-base for merge commits).
             parent=$(git rev-parse "$sha^1" 2>/dev/null || echo "$BASE_SHA")
             files=$(git diff --name-only "$parent" "$sha" 2>/dev/null || true)
-            # Build a temp commit-msg file and synthesize a staged index so
-            # the guard script can validate without touching the working tree.
+            # Build a temp commit-msg file and pass the commit SHA so
+            # the guard script uses per-commit diff (not cumulative).
             tmp_msg=$(mktemp)
             trap 'rm -f "$tmp_msg"' EXIT
             printf '%s\n' "$subject" > "$tmp_msg"
-            tmp_idx=$(mktemp -d)
-            export GIT_INDEX_FILE="$tmp_idx/index"
-            git read-tree "$sha"
-            git add -A "$sha" 2>/dev/null || true
-            git diff --cached --name-only > "$tmp_idx/staged.txt" || true
-            if ! GIT_INDEX_FILE="$tmp_idx/index" \
-                 bash scripts/check-commit-vs-diff.sh "$tmp_msg"; then
+            if ! bash scripts/check-commit-vs-diff.sh "$tmp_msg" "$sha"; then
               echo "✗ commit $sha fails commit-vs-diff guard: $subject" >&2
               fail=1
             fi
-            rm -rf "$tmp_idx"
             rm -f "$tmp_msg"
           done < <(git rev-list "${BASE_SHA}..${HEAD_SHA}" --no-merges)
           if [[ "$fail" -ne 0 ]]; then

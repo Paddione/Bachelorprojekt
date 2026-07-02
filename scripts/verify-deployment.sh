@@ -117,6 +117,49 @@ _secret_exists() {
   fi
 }
 
+# Compare a key across two secrets WITHOUT printing the value. Catches the
+# stale-copy drift class from T001438: a live rotation updates
+# workspace-secrets but the website-namespace copy keeps the old value.
+_secret_key_in_sync() {
+  local desc="$1" ns_a="$2" secret_a="$3" ns_b="$4" secret_b="$5" key="$6"
+  local a b
+  a=$(kubectl get secret "$secret_a" "${CTX_ARGS[@]}" -n "$ns_a" \
+    -o "jsonpath={.data.${key}}" 2>/dev/null) || a=""
+  b=$(kubectl get secret "$secret_b" "${CTX_ARGS[@]}" -n "$ns_b" \
+    -o "jsonpath={.data.${key}}" 2>/dev/null) || b=""
+  if [[ -z "$a" || -z "$b" ]]; then
+    fail "$desc  (${key} missing in ${ns_a}/${secret_a} or ${ns_b}/${secret_b})"
+  elif [[ "$a" == "$b" ]]; then
+    pass "$desc"
+  else
+    fail "$desc  (${key} differs — stale copy; sync environments/.secrets, env:seal, re-apply)"
+  fi
+}
+
+# End-to-end client-secret probe: exercise pocket-id's token endpoint from
+# inside the website pod with its *runtime env* secret and a dummy code.
+# "Invalid authorization code" proves client auth passed; "invalid client
+# secret" is exactly the login-breaking mismatch (also catches a correct
+# k8s Secret with a stale, not-yet-restarted pod).
+_pocket_id_client_auth() {
+  local desc="$1"
+  local out
+  out=$(kubectl exec "${CTX_ARGS[@]}" -n "$WEB_NS" deploy/website -- node -e "
+const p = new URLSearchParams({grant_type:'authorization_code',code:'verify-probe',
+  client_id:'website',client_secret:process.env.POCKET_ID_WEBSITE_SECRET,
+  redirect_uri:'https://verify.invalid/api/auth/callback'});
+fetch('http://pocket-id.${NS}.svc.cluster.local:1411/api/oidc/token',
+  {method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:p})
+  .then(async r=>console.log(await r.text())).catch(e=>console.log('PROBE_ERROR '+e.message));
+" 2>/dev/null) || out="PROBE_ERROR exec failed"
+  case "$out" in
+    *"Invalid authorization code"*) pass "$desc" ;;
+    *"invalid client secret"*|*"Invalid client secret"*)
+      fail "$desc  (pocket-id rejects the website pod's client secret — secret mismatch)" ;;
+    *) warn "$desc  (inconclusive: ${out:0:80})" ;;
+  esac
+}
+
 # ── Deployment readiness ───────────────────────────────────────────────
 _check_deploy() {
   local desc="$1" ns="$2" name="$3"
@@ -176,6 +219,14 @@ _secret_not_sealed   "KEYCLOAK_ADMIN_PASSWORD not SEALED" "$NS"   "workspace-sec
 if [[ "$NS" == "workspace-korczewski" ]]; then
   _secret_exists     "website-secrets exists (${WEB_NS})" "$WEB_NS" "website-secrets"
 fi
+
+# Pocket-ID secret coherence (T001438) — the website reads its OIDC client
+# secret from the website-namespace copy, not from workspace-secrets.
+_secret_key_in_sync  "POCKET_ID_WEBSITE_SECRET in sync (${NS} ↔ ${WEB_NS})" \
+  "$NS" "workspace-secrets" "$WEB_NS" "website-secrets" "POCKET_ID_WEBSITE_SECRET"
+_secret_key_in_sync  "POCKET_ID_API_KEY in sync (${NS} ↔ ${WEB_NS})" \
+  "$NS" "workspace-secrets" "$WEB_NS" "website-secrets" "POCKET_ID_API_KEY"
+_pocket_id_client_auth "pocket-id accepts website client secret (runtime env)"
 
 # ── 3. Workloads running ──────────────────────────────────────────────
 section "Workloads running"

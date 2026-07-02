@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.154.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.154.0...website-v1.154.1) (2026-07-02)
+
+
+### Bug Fixes
+
+* **scripts:** marker collision + ADDED duplicate guard in openspec-merge.mjs [T001473] ([#2516](https://github.com/Paddione/Bachelorprojekt/issues/2516)) ([a6d2142](https://github.com/Paddione/Bachelorprojekt/commit/a6d2142b4d6497b00b7d7d50cf59860755d2111c))
+
 ## [1.154.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.153.1...website-v1.154.0) (2026-07-02)
 
 

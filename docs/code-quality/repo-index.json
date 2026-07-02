@@ -2329,7 +2329,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 426,
+      "file_count": 427,
       "files": [
         ".opencode/commands/opsx-apply.md",
         ".opencode/commands/opsx-archive.md",
@@ -2644,6 +2644,7 @@
         "k3d/videovault-uploads-pvc.yaml",
         "k3d/videovault.yaml",
         "k3d/website-allow-egress-monitoring.yaml",
+        "k3d/website-content-token-secret.yaml",
         "k3d/website-dev-secrets.yaml",
         "k3d/website-rbac.yaml",
         "k3d/website-schema.yaml",

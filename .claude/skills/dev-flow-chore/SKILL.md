@@ -59,16 +59,19 @@ bash scripts/agent-lock.sh claim branch "chore/<slug>" --worktree "$PWD" --label
 Claim-Semantik, main-checkout-Sonderfall (`claim main-checkout`) und Release:
 [session-coordination](file:///home/patrick/Bachelorprojekt/.claude/skills/references/session-coordination.md).
 
-Lege ein minimales Audit-Ticket an (type=task, status=done — Chores haben keinen Plan,
-nur eine Audit-Spur):
+Überspringe die Ticket-Erstellung, wenn bereits eine `TICKET_EXT_ID` gesetzt ist (z.B.
+bei Wiederverwendung eines bestehenden Tickets). Sonst lege ein minimales Audit-Ticket
+an (type=task, status=done — Chores haben keinen Plan, nur eine Audit-Spur):
 ```bash
-TICKET_RESULT=$(./scripts/ticket.sh create \
-  --type task \
-  --brand mentolder \
-  --title "chore: <slug>" \
-  --status done \
-  --description "Branch: chore/<slug>"$'\n'"Kein Plan — direktes Chore.")
-TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
+if [[ -z "${TICKET_EXT_ID:-}" ]]; then
+  TICKET_RESULT=$(./scripts/ticket.sh create \
+    --type task \
+    --brand mentolder \
+    --title "chore: <slug>" \
+    --status done \
+    --description "Branch: chore/<slug>"$'\n'"Kein Plan — direktes Chore.")
+  TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
+fi
 ```
 
 ## Schritt 2: Änderungen vornehmen

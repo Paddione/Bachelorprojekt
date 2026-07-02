@@ -14,7 +14,7 @@ Called as the final step of runbook skills that maintain a `MISHAP_LOG`.
 ## Input
 
 The calling skill accumulates a `MISHAP_LOG` — a list of entries, each with:
-- `type`: `broken` | `degraded` | `suspicious` | `security` | `drift` | `process`
+- `type`: `broken` | `degraded` | `suspicious` | `security` | `drift`
 - `title`: Short, actionable summary
 - `description`: What was observed and why it matters
 - `component`: Affected subsystem (e.g., `kubeconfig`, `repo/chore/…`, `skills/<name>`)
@@ -39,7 +39,6 @@ Before reporting any mishap, verify the claim with a concrete check:
 | `broken` (file missing/stale) | `ls` or `git show HEAD:<file>` to confirm absence |
 | `drift` (version mismatch) | Check current value via kubectl/grep before asserting drift |
 | `suspicious` (unexpected state) | Run the command that reveals the state and confirm it |
-| `process` | Observations, not assertions — no verification needed |
 | `security` | Always report without suppression |
 
 **If verification contradicts the observation:** drop the mishap and log `[mishap-tracker] SKIP <title> — verified false positive: <reason>`.
@@ -57,9 +56,6 @@ Before reporting any mishap, verify the claim with a concrete check:
 | `degraded` | `minor` | `mittel` | `needs_human` |
 | `suspicious` | `minor` | `mittel` | `ai_ready` |
 | `drift` | `trivial` | `niedrig` | `ai_ready` |
-| `process` | `trivial` | `niedrig` | `ai_ready` |
-
-For `process` mishaps, set `component = 'skills/<skill-name>'`.
 
 ---
 
@@ -72,7 +68,7 @@ mcp__ticket-mcp__report_mishap({
   title: "<titel>",
   description: "<beschreibung>",
   component: "<komponente>",
-  type: "<broken|degraded|suspicious|security|drift|process>",
+  type: "<broken|degraded|suspicious|security|drift>",
   brand: "<brand>"
 })
 ```

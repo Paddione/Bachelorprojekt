@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.152.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.152.1...website-v1.152.2) (2026-07-02)
+
+
+### Bug Fixes
+
+* **e2e:** stop unmarked E2E test data persisting in prod inbox [T001453] ([#2507](https://github.com/Paddione/Bachelorprojekt/issues/2507)) ([8866d46](https://github.com/Paddione/Bachelorprojekt/commit/8866d4685ccaa9020c5e7ea0cc0d70ce33b1bb43))
+
 ## [1.152.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.152.0...website-v1.152.1) (2026-07-02)
 
 

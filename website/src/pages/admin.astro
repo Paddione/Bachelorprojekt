@@ -11,6 +11,9 @@ import { icons } from '../layouts/admin-icons';
 import AdminPageHeader from '../components/admin/ui/AdminPageHeader.svelte';
 import AdminStatCard from '../components/admin/ui/AdminStatCard.svelte';
 import AdminCard from '../components/admin/ui/AdminCard.svelte';
+import PipelineSidekickView from '../components/assistant/PipelineSidekickView.svelte';
+import { listInboxItems } from '../lib/messaging-db';
+import { toInboxPreview } from '../lib/admin/inbox-preview';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -25,6 +28,7 @@ let openInvoices      = 0;
 let openInvoiceAmount = 0;
 let freeSlots         = 0;
 let shortcuts: AdminShortcut[] = [];
+let inboxRows: import('../lib/admin/inbox-preview').InboxPreviewRow[] = [];
 
 await Promise.allSettled([
   listBugTickets({ status: 'open', brand: BRAND, limit: 1000 })
@@ -46,6 +50,8 @@ await Promise.allSettled([
     }),
   listAdminShortcuts()
     .then(s => { shortcuts = s; }),
+  listInboxItems({ status: 'pending' })
+    .then((items) => { inboxRows = toInboxPreview(items, 5); }),
 ]);
 
 function fmtCurrency(n: number): string {
@@ -55,16 +61,16 @@ function fmtCurrency(n: number): string {
 const ncBase      = (process.env.NEXTCLOUD_EXTERNAL_URL ?? '').replace(/\/$/, '');
 const vaultUrl    = process.env.VAULT_EXTERNAL_URL ?? '';
 const adminLinks = [
-  { href: '/admin/inbox',                    label: 'Inbox',      icon: icons.inbox,    color: 'oklch(0.80 0.09 75)' },
-  { href: '/admin/coaching/sessions',        label: 'Sitzungen',  icon: icons.clipboard, color: '#a78bfa' },
+  { href: '/admin/inbox',                    label: 'Inbox',      icon: icons.inbox,    color: 'var(--brass)' },
+  { href: '/admin/coaching/sessions',        label: 'Sitzungen',  icon: icons.clipboard, color: 'var(--brass)' },
   ...(ncBase ? [
-    { href: `${ncBase}/apps/files/`,    label: 'Dateien',  icon: icons.folder,   color: '#38bdf8' },
-    { href: `${ncBase}/apps/calendar/`, label: 'Kalender', icon: icons.calendar, color: 'oklch(0.80 0.09 75)' },
-    { href: `${ncBase}/apps/spreed/`,   label: 'Talk',     icon: icons.video,    color: '#818cf8' },
+    { href: `${ncBase}/apps/files/`,    label: 'Dateien',  icon: icons.folder,   color: 'var(--brass)' },
+    { href: `${ncBase}/apps/calendar/`, label: 'Kalender', icon: icons.calendar, color: 'var(--brass)' },
+    { href: `${ncBase}/apps/spreed/`,   label: 'Talk',     icon: icons.video,    color: 'var(--brass)' },
   ] : []),
-  { href: '/admin/rechnungen',               label: 'Abrechnung', icon: icons.receipt,  color: '#34d399' },
-  ...(vaultUrl ? [{ href: vaultUrl,          label: 'Passwörter', icon: icons.lock,     color: '#34d399' }] : []),
-  { href: '/admin/wissen',                   label: 'Wissensbasis', icon: icons.book,   color: '#a78bfa' },
+  { href: '/admin/rechnungen',               label: 'Abrechnung', icon: icons.receipt,  color: 'var(--brass)' },
+  ...(vaultUrl ? [{ href: vaultUrl,          label: 'Passwörter', icon: icons.lock,     color: 'var(--brass)' }] : []),
+  { href: '/admin/wissen',                   label: 'Wissensbasis', icon: icons.book,   color: 'var(--brass)' },
 ];
 
 const now = new Date();
@@ -122,6 +128,26 @@ const kpis = [
             suffix={k.suffix}
           />
         ))}
+      </div>
+
+      <!-- Pipeline widget + Inbox preview (T001433) -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:1.5rem;">
+        <AdminCard>
+          <a slot="header" href="/admin/pipeline" style="font-family:var(--font-mono); font-size:0.65rem; color:var(--admin-text-disabled); text-transform:uppercase; letter-spacing:0.12em; text-decoration:none;">Pipeline &rarr;</a>
+          <PipelineSidekickView client:load onClose={() => {}} />
+        </AdminCard>
+        <AdminCard>
+          <a slot="header" href="/admin/inbox" style="font-family:var(--font-mono); font-size:0.65rem; color:var(--admin-text-disabled); text-transform:uppercase; letter-spacing:0.12em; text-decoration:none;">Postfach &rarr;</a>
+          {inboxRows.length === 0 ? (
+            <p style="color:var(--admin-text-mute); font-size:12px; margin:0;">Keine offenen Postfach-Einträge.</p>
+          ) : (
+            <ul style="list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:6px;">
+              {inboxRows.map((r) => (
+                <li><a href={r.href} style="display:flex; justify-content:space-between; gap:12px; text-decoration:none; color:var(--admin-text); font-size:12px;"><span>{r.title}</span><span style="font-family:var(--font-mono); color:var(--admin-text-mute);">{r.ageLabel}</span></a></li>
+              ))}
+            </ul>
+          )}
+        </AdminCard>
       </div>
 
       <!-- Service Links -->

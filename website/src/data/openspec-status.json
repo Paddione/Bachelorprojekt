@@ -257,8 +257,8 @@
   ],
   "T001198": [
     {
-      "slug": "env-seal-empty-value-keys",
-      "status": "plan_staged"
+      "slug": "2026-07-02-env-seal-empty-value-keys",
+      "status": "archived"
     }
   ],
   "T001203": [
@@ -647,8 +647,8 @@
   ],
   "T001381": [
     {
-      "slug": "rustdesk-web-client",
-      "status": "plan_staged"
+      "slug": "2026-07-02-rustdesk-web-client",
+      "status": "archived"
     }
   ],
   "T001382": [
@@ -779,8 +779,14 @@
   ],
   "T001473": [
     {
-      "slug": "openspec-merge-marker-drift",
-      "status": "plan_staged"
+      "slug": "2026-07-02-openspec-merge-marker-drift",
+      "status": "archived"
+    }
+  ],
+  "T001490": [
+    {
+      "slug": "2026-07-02-website-db-decouple",
+      "status": "archived"
     }
   ],
   "TBD": [

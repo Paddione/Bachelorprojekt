@@ -29,7 +29,7 @@ function jsonResponse(status: number, body: unknown): Response {
  */
 export const POST: APIRoute = async ({ request, redirect, locals }) => {
   const session = await getSession(request.headers.get('cookie'));
-  if (!session || !isAdmin(session)) return new Response('Forbidden', { status: 403 });
+  if (!session || !isAdmin(session)) return new Response('Unauthorized', { status: 401 });
 
   const editor = session.email ?? session.name ?? 'unknown';
 

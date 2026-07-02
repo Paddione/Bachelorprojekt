@@ -12,7 +12,7 @@ depends_on_plans: []
 
 # Tasks: devflow-phase-telemetry (T001444)
 
-- [ ] Task 1: Auto-Emission in `scripts/vda/ticket/update-status.sh` (Status → Phase-Event, Dedup, `TICKET_PHASE_DRIVER`)
+- [x] Task 1: Auto-Emission in `scripts/vda/ticket/update-status.sh` (Status → Phase-Event, Dedup, `TICKET_PHASE_DRIVER`)
 - [ ] Task 2: Auto-Emission in `scripts/vda/ticket/stage-plan.sh` (scout/design/plan done)
 - [ ] Task 3: `scripts/factory/pipeline.js` exportiert `TICKET_PHASE_DRIVER=factory`
 - [ ] Task 4: Neues Gate-Modul `scripts/vda/ticket/assert-phase-chain.sh` + Dispatcher in `scripts/ticket.sh`
@@ -86,7 +86,7 @@ tests/spec/software-factory.bats       ← MODIFY: neue @test-Blöcke (Auto-Emis
 - Consumes: `_pgpod`, `_exec_sql` aus `scripts/vda/ticket/_ticket-core.sh`; DB-Tabelle `tickets.factory_phase_events (ticket_id uuid, phase text, state text, detail text, driver text, at timestamptz)`.
 - Produces: Als Seiteneffekt eines `update-status --id <ext_id> --status <status>`-Aufrufs wird für gemappte Status genau ein Phase-Event emittiert (`detail='auto: update-status <status>'`, `driver=$TICKET_PHASE_DRIVER`). Kein neues Bash-Symbol nach außen.
 
-- [ ] **Step 1: Failing-Test-Step (RED).** Füge oben in `tests/spec/software-factory.bats` (nach den vorhandenen Test-Blöcken, z. B. am Dateiende vor einer evtl. bestehenden Sektion) einen Kapselblock mit einem `kubectl`-Capture-Stub und den Mapping-Tests hinzu:
+- [x] **Step 1: Failing-Test-Step (RED).** Füge oben in `tests/spec/software-factory.bats` (nach den vorhandenen Test-Blöcken, z. B. am Dateiende vor einer evtl. bestehenden Sektion) einen Kapselblock mit einem `kubectl`-Capture-Stub und den Mapping-Tests hinzu:
 
 ```bash
 # ── T001444-phase-telemetry ─────────────────────────────────────#
@@ -150,12 +150,12 @@ STUB
 }
 ```
 
-- [ ] **Step 2: Run RED, verify it fails.**
+- [x] **Step 2: Run RED, verify it fails.**
 
 Run: `tests/unit/lib/bats-core/bin/bats tests/spec/software-factory.bats -f "T001444: update-status"`
 Expected: FAIL (die Capture-Datei enthält weder `auto_phase=` noch `NOT EXISTS`, weil die Emission fehlt).
 
-- [ ] **Step 3: Implement — Mapping + Dedup-INSERT.** Ersetze den Body von `main()` in `scripts/vda/ticket/update-status.sh` (ab der Pflichtprüfung) durch:
+- [x] **Step 3: Implement — Mapping + Dedup-INSERT.** Ersetze den Body von `main()` in `scripts/vda/ticket/update-status.sh` (ab der Pflichtprüfung) durch:
 
 ```bash
   if [[ -z "$id" || -z "$status" ]]; then
@@ -223,12 +223,12 @@ EOF
   echo "Ticket $id status updated to $status"
 ```
 
-- [ ] **Step 4: Run GREEN, verify it passes.**
+- [x] **Step 4: Run GREEN, verify it passes.**
 
 Run: `tests/unit/lib/bats-core/bin/bats tests/spec/software-factory.bats -f "T001444: update-status"`
 Expected: PASS (alle vier update-status-Tests grün).
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
 
 ```bash
 git add scripts/vda/ticket/update-status.sh tests/spec/software-factory.bats

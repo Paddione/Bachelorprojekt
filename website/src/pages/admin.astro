@@ -58,18 +58,20 @@ function fmtCurrency(n: number): string {
   return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(n);
 }
 
-const ncBase      = (process.env.NEXTCLOUD_EXTERNAL_URL ?? '').replace(/\/$/, '');
-const vaultUrl    = process.env.VAULT_EXTERNAL_URL ?? '';
+const ncBase           = (process.env.NEXTCLOUD_EXTERNAL_URL ?? '').replace(/\/$/, '');
+const vaultUrl         = process.env.VAULT_EXTERNAL_URL ?? '';
+const pocketIdFrontend = process.env.POCKET_ID_FRONTEND_URL ?? '';
 const adminLinks = [
-  { href: '/admin/inbox',                    label: 'Inbox',      icon: icons.inbox,    color: 'var(--brass)' },
-  { href: '/admin/coaching/sessions',        label: 'Sitzungen',  icon: icons.clipboard, color: 'var(--brass)' },
+  { href: '/admin/inbox',                    label: 'Inbox',       icon: icons.inbox,    color: 'var(--brass)' },
+  { href: '/admin/coaching/sessions',        label: 'Sitzungen',   icon: icons.clipboard, color: 'var(--brass)' },
   ...(ncBase ? [
     { href: `${ncBase}/apps/files/`,    label: 'Dateien',  icon: icons.folder,   color: 'var(--brass)' },
     { href: `${ncBase}/apps/calendar/`, label: 'Kalender', icon: icons.calendar, color: 'var(--brass)' },
     { href: `${ncBase}/apps/spreed/`,   label: 'Talk',     icon: icons.video,    color: 'var(--brass)' },
   ] : []),
-  { href: '/admin/rechnungen',               label: 'Abrechnung', icon: icons.receipt,  color: 'var(--brass)' },
-  ...(vaultUrl ? [{ href: vaultUrl,          label: 'Passwörter', icon: icons.lock,     color: 'var(--brass)' }] : []),
+  { href: '/admin/rechnungen',               label: 'Abrechnung',  icon: icons.receipt,  color: 'var(--brass)' },
+  ...(vaultUrl ? [{ href: vaultUrl,          label: 'Passwörter',  icon: icons.lock,     color: 'var(--brass)' }] : []),
+  ...(pocketIdFrontend ? [{ href: pocketIdFrontend, label: 'Pocket ID', icon: icons.key, color: 'var(--brass)' }] : []),
   { href: '/admin/wissen',                   label: 'Wissensbasis', icon: icons.book,   color: 'var(--brass)' },
 ];
 

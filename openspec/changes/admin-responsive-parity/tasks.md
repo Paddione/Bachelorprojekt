@@ -106,7 +106,7 @@ behaviour in with a BATS spec written red-first.
   `.admin-grid-collapse`, `.admin-form-wide`; container context established via
   `#admin-main { container-type: inline-size; container-name: admin-content }`.
 
-- [ ] **Step 1: Write the failing BATS test (RED).**
+- [x] **Step 1: Write the failing BATS test (RED).**
 
 Append to `tests/spec/website-core.bats` (extend the existing file — do not create a
 new one). Add a file-level variable next to the others near the top:
@@ -155,7 +155,7 @@ Then append these tests at the end of the file:
 }
 ```
 
-- [ ] **Step 2: Run the test to confirm it fails (RED).**
+- [x] **Step 2: Run the test to confirm it fails (RED).**
 
 Run:
 ```bash
@@ -164,7 +164,7 @@ Run:
 expected: FAIL — the six `T001471 …` tests fail because `admin-responsive.css` does
 not exist yet and `AdminLayout.astro` has no import.
 
-- [ ] **Step 3: Create `website/src/styles/admin-responsive.css`.**
+- [x] **Step 3: Create `website/src/styles/admin-responsive.css`.**
 
 ```css
 /* website/src/styles/admin-responsive.css
@@ -271,7 +271,7 @@ not exist yet and `AdminLayout.astro` has no import.
 }
 ```
 
-- [ ] **Step 4: Import the stylesheet in `AdminLayout.astro`.**
+- [x] **Step 4: Import the stylesheet in `AdminLayout.astro`.**
 
 Add one line to the import block at the top of the frontmatter (after
 `admin-premium.css` on line 5), keeping the ordering with the other style imports:
@@ -281,7 +281,7 @@ import '../styles/admin-premium.css';
 import '../styles/admin-responsive.css';
 ```
 
-- [ ] **Step 5: Run the test to confirm it passes (GREEN).**
+- [x] **Step 5: Run the test to confirm it passes (GREEN).**
 
 Run:
 ```bash
@@ -289,7 +289,7 @@ Run:
 ```
 Expected: PASS — all `T001471 …` tests green.
 
-- [ ] **Step 6: Commit.**
+- [x] **Step 6: Commit.**
 
 ```bash
 git add website/src/styles/admin-responsive.css website/src/layouts/AdminLayout.astro tests/spec/website-core.bats

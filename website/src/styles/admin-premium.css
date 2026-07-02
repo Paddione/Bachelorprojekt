@@ -107,8 +107,8 @@ html.sidebar-collapsed #admin-sidebar {
 .admin-card {
   background: var(--admin-surface);
   border: 1px solid var(--admin-border);
-  border-radius: 16px;
-  padding: 1.5rem;
+  border-radius: var(--admin-card-radius);
+  padding: var(--admin-card-padding);
   transition: border-color 0.2s ease;
 }
 

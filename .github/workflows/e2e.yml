@@ -42,11 +42,13 @@ jobs:
             prod_domain: mentolder.de
             contact_email: info@mentolder.de
             contact_phone: "+49 151 508 32 601"
+            service_pages: /coaching,/beratung
           - cluster: korczewski
             website_url: https://web.korczewski.de
             prod_domain: korczewski.de
             contact_email: info@korczewski.de
             contact_phone: ""
+            service_pages: /ki-beratung,/software-dev,/deployment
     env:
       SELECTED_CLUSTER: ${{ inputs.cluster }}
       EVENT_NAME: ${{ github.event_name }}
@@ -106,6 +108,7 @@ jobs:
           # Per-cluster brand assertions
           CONTACT_EMAIL: ${{ matrix.contact_email }}
           CONTACT_PHONE: ${{ matrix.contact_phone }}
+          WEBSITE_SERVICE_PAGES: ${{ matrix.service_pages }}
           # Auth
           MM_TEST_USER: ${{ secrets.MM_TEST_USER }}
           MM_TEST_PASS: ${{ secrets.MM_TEST_PASS }}

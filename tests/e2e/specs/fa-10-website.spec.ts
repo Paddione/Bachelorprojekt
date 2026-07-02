@@ -27,7 +27,13 @@ test.describe('FA-10: Unternehmenswebsite (Astro) & Kontaktformular', { tag: ['@
 
   test('T2: Subpages are reachable', async ({ page }) => {
     test.setTimeout(120000);
-    const servicePages = (process.env.WEBSITE_SERVICE_PAGES || '/coaching,/beratung').split(',');
+    // Service pages differ per brand. The CI workflow (e2e.yml) sets
+    // WEBSITE_SERVICE_PAGES per-brand in the matrix.  The default here
+    // covers local dev against the mentolder brand.
+    const defaultPages = BASE.includes('korczewski')
+      ? '/ki-beratung,/software-dev,/deployment'
+      : '/coaching,/beratung';
+    const servicePages = (process.env.WEBSITE_SERVICE_PAGES || defaultPages).split(',').filter(Boolean);
     const pages = [
       ...servicePages,
       // '/ueber-mich' — temporarily disabled: consistently times out from GitHub Actions

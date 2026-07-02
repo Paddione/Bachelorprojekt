@@ -285,6 +285,7 @@ tasks:
       - task: test:unit:ticket-triage
       - task: test:unit:website-ci-deploy
       - task: test:unit:plan-frontmatter-hook
+      - task: test:unit:check-commit-vs-diff
       - task: test:unit:plan-lint
       - task: test:unit:mishap-tracker
       - task: test:unit:ticket-add-pr-link
@@ -513,6 +514,11 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/plan-frontmatter-hook.bats
+
+  test:unit:check-commit-vs-diff:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/check-commit-vs-diff.bats
 
   test:unit:plan-lint:
     internal: true
@@ -1470,12 +1476,15 @@ tasks:
         done
 
   secrets:install-hooks:
-    desc: "Point git at the repo's tracked hooks (.githooks) — installs the plaintext-secret pre-commit guard + merge drivers"
+    desc: "Point git at the repo's tracked hooks (.githooks) — installs the plaintext-secret pre-commit guard + commit-vs-diff guard + merge drivers"
     cmds:
       - git config core.hooksPath .githooks
       - chmod +x .githooks/pre-commit
+      - chmod +x .githooks/commit-msg
       - chmod +x .githooks/pre-push
       - chmod +x .githooks/post-commit-index
+      - chmod +x .githooks/post-checkout
+      - chmod +x .githooks/post-merge
       - git config merge.ours.driver true
       - echo "hooksPath set to .githooks; merge.ours driver registered"
 

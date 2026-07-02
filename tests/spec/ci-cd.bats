@@ -201,3 +201,51 @@ PY
   run node "$REPO_ROOT/scripts/check-loc-budget.mjs" --baseline=/nonexistent/loc-budget.json
   [ "$status" -eq 1 ]
 }
+
+# ── G-COMMIT-VS-DIFF: commit-vs-diff consistency guard (T001434-mishap) ──────
+# SSOT: openspec/specs/ci-cd.md "Requirement: commit-vs-diff-consistency-guard"
+
+@test "G-COMMIT-VS-DIFF: scripts/check-commit-vs-diff.sh exists" {
+  [ -f "$REPO_ROOT/scripts/check-commit-vs-diff.sh" ]
+}
+
+@test "G-COMMIT-VS-DIFF: .githooks/commit-msg exists and is executable" {
+  [ -x "$REPO_ROOT/.githooks/commit-msg" ]
+}
+
+@test "G-COMMIT-VS-DIFF: .githooks/commit-msg delegates to check-commit-vs-diff.sh" {
+  grep -q 'check-commit-vs-diff.sh' "$REPO_ROOT/.githooks/commit-msg"
+}
+
+@test "G-COMMIT-VS-DIFF: secrets:install-hooks chmod's the commit-msg hook" {
+  # Grab the full secrets:install-hooks task block (until next blank line / new task)
+  awk '/^  secrets:install-hooks:/{flag=1; next} flag && /^  [a-z]/{flag=0} flag' \
+    "$REPO_ROOT/Taskfile.yml" | grep -q 'chmod +x .githooks/commit-msg'
+}
+
+@test "G-COMMIT-VS-DIFF: dev-flow-plan SKILL.md uses chore(plans): for stage commit (NOT fix(<scope>):)" {
+  # Regression for T001434-mishap: the dev-flow-plan SKILL.md used to
+  # recommend `fix(<scope>):` for the RED-test stage commit, which produced
+  # a misleading commit title whose diff contained no production code.
+  # The fix is to use `chore(plans):` for the plan-stage commit (matching
+  # the feature-path convention) so the commit-vs-diff guard passes.
+  local stage_line
+  stage_line=$(grep -E 'git commit -m "[^"]*add failing test' "$REPO_ROOT/.claude/skills/dev-flow-plan/SKILL.md" | head -1)
+  [ -n "$stage_line" ]
+  [[ "$stage_line" == *"chore(plans):"* ]]
+  [[ "$stage_line" != *"fix(<scope>):"* ]]
+}
+
+@test "G-COMMIT-VS-DIFF: openspec/specs/ci-cd.md documents the guard requirement" {
+  grep -q '^### Requirement: commit-vs-diff-consistency-guard' "$REPO_ROOT/openspec/specs/ci-cd.md"
+}
+
+@test "G-COMMIT-VS-DIFF: unit tests in tests/unit/check-commit-vs-diff.bats cover all branches" {
+  # Sanity: the unit suite must exercise both allow and block paths
+  local bats_file="$REPO_ROOT/tests/unit/check-commit-vs-diff.bats"
+  [ -f "$bats_file" ]
+  grep -qE 'allows:.*real-code' "$bats_file"
+  grep -qE 'blocks:.*T001434' "$bats_file"
+  grep -qE 'blocks:.*plan-only' "$bats_file"
+  grep -qE 'SKIP_COMMIT_VS_DIFF' "$bats_file"
+}

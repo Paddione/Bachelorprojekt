@@ -28,6 +28,19 @@ SELECT t.id, 'dev-flow-plan', :'ref', 'internal'
       WHERE c.ticket_id = t.id AND c.body LIKE 'FACTORY-PLAN-REF %'
    );
 EOF
+  local driver="${TICKET_PHASE_DRIVER:-devflow}"
+  case "$driver" in factory|devflow) ;; *) driver="devflow" ;; esac
+  _exec_sql "$pod" -v ext_id="$id" -v driver="$driver" -v detail="auto: stage-plan" <<'EOF' >/dev/null
+INSERT INTO tickets.factory_phase_events (ticket_id, phase, state, detail, driver)
+SELECT t.id, p.phase, 'done', :'detail', :'driver'
+FROM tickets.tickets t
+CROSS JOIN (VALUES ('scout'),('design'),('plan')) AS p(phase)
+WHERE t.external_id = :'ext_id'
+  AND NOT EXISTS (
+    SELECT 1 FROM tickets.factory_phase_events e
+     WHERE e.ticket_id = t.id AND e.phase = p.phase AND e.state = 'done'
+  );
+EOF
   echo "Ticket $id staged in Kommissionierung (status=plan_staged)"
 }
 

@@ -19,4 +19,10 @@ test.describe('FactoryFloor /admin/pipeline', { tag: ['@admin', '@factory'] }, (
     await workpiece.click();
     await expect(page.getByTestId('floor-detail')).toBeVisible();
   });
+
+  test('does not render the provider-status telemetry widget', async ({ page }) => {
+    await page.goto('/admin/pipeline');
+    await expect(page.getByTestId('factory-floor')).toBeVisible();
+    await expect(page.getByTestId('floor-provider-status')).toHaveCount(0);
+  });
 });

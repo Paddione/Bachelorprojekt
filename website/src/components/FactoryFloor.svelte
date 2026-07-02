@@ -13,7 +13,6 @@
 
   import QaChip from './QaChip.svelte';
   import QaModal from './QaModal.svelte';
-  import ProviderStatus from './ProviderStatus.svelte';
   import DetailPanel from './factory/DetailPanel.svelte';
   import MobileTabBar from './factory/MobileTabBar.svelte';
   import StagedColumn from './factory/StagedColumn.svelte';
@@ -185,8 +184,6 @@
 
     <AttentionStrip attention={data.attention} />
 
-    <ProviderStatus providerHealth={data.providerHealth} />
-
     <div class="mobile-station-dots" aria-hidden="true">
       {#each Array(10) as _, i}
         <span class="dot" class:active={i === mobileColIndex}></span>
@@ -247,10 +244,8 @@
       <ShippedColumn
         shipped={data.shipped}
         {mobileColIndex}
-        onOpenDetail={openDetail}
         {relTime}
         {prUrl}
-        {ticketUrl}
       />
     </div>
 

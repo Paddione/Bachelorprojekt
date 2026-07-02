@@ -192,6 +192,10 @@ ADMIN_RESPONSIVE="$BATS_TEST_DIRNAME/../../website/src/styles/admin-responsive.c
 }
 
 @test "T001490 content bundle: every JSON file passes the Zod schema (build-time check)" {
+  # Needs installed website deps (vitest); the offline CI job runs without
+  # node_modules — the same validation is enforced by the Vitest CI job.
+  command -v pnpm >/dev/null 2>&1 || skip "pnpm not installed"
+  [ -d "$BATS_TEST_DIRNAME/../../website/node_modules" ] || skip "website node_modules not installed"
   run bash -c "cd '$BATS_TEST_DIRNAME/../../website' && pnpm vitest run src/content-schema/__tests__/schema.test.ts 2>&1 | tail -20"
   echo "$output" | grep -q "3 passed"
 }

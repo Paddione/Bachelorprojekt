@@ -19,6 +19,12 @@ The calling skill accumulates a `MISHAP_LOG` — a list of entries, each with:
 - `description`: What was observed and why it matters
 - `component`: Affected subsystem (e.g., `kubeconfig`, `repo/chore/…`, `skills/<name>`)
 
+**Preamble-Konvention für Runbook-Skills (SSOT):** Runbooks tragen am Dateianfang nur den
+Zwei-Zeilen-Verweis („Führe ein `MISHAP_LOG` … siehe `mishap-tracker` §Input") — die Semantik
+lebt hier: pro Anomalie, unerwartetem Zustand, kaputter Komponente, Security-Bedenken oder
+Config-Drift — **auch wenn irrelevant für die aktuelle Aufgabe** — einen Eintrag mit den vier
+Feldern oben anlegen und diesen Skill ganz am Ende aufrufen.
+
 If the log is empty, report that and stop — nothing to track.
 
 ---

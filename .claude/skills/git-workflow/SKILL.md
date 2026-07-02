@@ -7,6 +7,10 @@ description: Use whenever committing, pushing, creating a PR, or finishing work 
 
 **Sage zu Beginn:** "Ich nutze git-workflow für den Commit/PR-Ablauf."
 
+Dieser Skill ist die **SSOT für Commit → Push → PR → Merge → Cleanup** — die `dev-flow-*`-Skills
+verweisen auf die Schritte hier statt sie zu duplizieren. Für read/view-GitHub-Flows den Wrapper
+`gh-axi` bevorzugen ([gh-axi](file:///home/patrick/Bachelorprojekt/.claude/skills/references/gh-axi.md)).
+
 ---
 
 ## Schritt 0 — Pull-First
@@ -27,28 +31,14 @@ fi
 
 ---
 
-## Schritt 1 — Freshness Guard (vor dem Commit)
+## Schritt 1 — Verifikation & Freshness Guard (vor dem Commit)
 
-CI schlägt mit "stale artifact" fehl, wenn generierte Indexdateien veraltet sind.
+Vollständiger Verify-Block (die vier Befehle, S1-Ratchet, Freshness-Artefakt-Liste zum Stagen):
+**SSOT** in [verification-block](file:///home/patrick/Bachelorprojekt/.claude/skills/references/verification-block.md).
 
-```bash
-# Regeneriert: docs/code-quality/repo-index.json, website/src/data/test-inventory.json, etc.
-task freshness:regenerate
-
-# Frisch erzeugte Änderungen sofort stagen
-git add -p   # oder: git add docs/code-quality/ website/src/data/
-```
-
-> Der Pre-commit-Hook erledigt das automatisch, wenn `task secrets:install-hooks` gelaufen ist.
-> Ohne Hook: immer manuell ausführen, wenn `.ts/.svelte/.astro/.sh/.mjs`-Dateien geändert wurden.
-
-**S1-Ratchet-Check** (wenn Code-Dateien berührt wurden):
-
-```bash
-task freshness:check    # Schlägt fehl, wenn eine Datei das Zeilenbudget überschreitet
-```
-
-Falls rot: Datei wirklich verkleinern (nicht kosmetisch Zeilen zusammenziehen).
+Kurzform: `task freshness:regenerate` (Artefakte aktuell halten, dann stagen) +
+`task freshness:check` (CI-Äquivalent, S1-Ratchet). Falls S1 rot: Datei wirklich verkleinern,
+nicht kosmetisch Zeilen zusammenziehen.
 
 ---
 
@@ -90,10 +80,22 @@ laden daraus dynamisch (T001364).
 
 ### Commit ausführen
 
+> **git-crypt-Staging-Guard [T001210]:** Niemals `git add -A` in diesem Repo.
+> `environments/.secrets/**` ist git-crypt-geschützt; in Worktrees erscheinen ~21
+> Smudge-Artefakte als "modified" und würden durch ein blankes `git add -A` in den Commit
+> promoviert. Immer explizite Pathspecs stagen und den Index-Guard unten laufen lassen.
+
 ```bash
 BASE_SHA="$(git rev-parse HEAD)"
 
-git add <spezifische Dateien>   # NIEMALS git add -A blindlings (schützt vor .env-Leaks)
+git add <spezifische Dateien>   # explizite Pathspecs — NIEMALS git add -A (git-crypt + .env-Leaks)
+
+# Secret-in-index-Guard (T001210): abbrechen, falls git-crypt-Pfade im Index gelandet sind
+if git diff --cached --name-only | grep -q '^environments/.secrets/'; then
+  echo "FATAL: environments/.secrets/** darf nicht gestaged sein (git-crypt)" >&2
+  git diff --cached --name-only | grep '^environments/.secrets/' | sed 's/^/  /' >&2
+  exit 1
+fi
 
 git commit -m "<type>(<scope>): <subject> [<TICKET_EXT_ID>]"
 
@@ -163,7 +165,7 @@ EOF
 
 Nachdem der PR gepusht ist: CI überwachen und Fehler beheben **bevor** gemergt wird.
 
-Detaillierte Checkliste: [references/ci-fix-loop.md](../dev-flow-execute/references/ci-fix-loop.md)
+Detaillierte Checkliste (SSOT): [ci-fix-loop](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ci-fix-loop.md)
 
 Kurzfassung:
 1. `gh pr checks <n> --watch` — warten bis alle Required Checks grün sind
@@ -211,12 +213,8 @@ git worktree remove "$WORKTREE_PATH"
 git worktree prune
 ```
 
-Agent-Lock freigeben:
-
-```bash
-bash scripts/agent-lock.sh release ticket "<TICKET_EXT_ID>"
-bash scripts/agent-lock.sh release branch "<branch-name>"
-```
+Agent-Lock freigeben (`release ticket` + `release branch`, VOR dem Worktree-Remove) —
+Lebenszyklus-SSOT: [session-coordination](file:///home/patrick/Bachelorprojekt/.claude/skills/references/session-coordination.md).
 
 ---
 

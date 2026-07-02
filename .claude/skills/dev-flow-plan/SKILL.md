@@ -38,7 +38,8 @@ Wenn das Feature komplex oder unklar ist, frage den User nach einer Grilling-Ses
 
 **Nutze `lavish` für die Q/A-Session:** Erstelle `.lavish/<slug>-grilling.html` mit den Fragen als interaktivem Formular (Input-Playbook), öffne es mit `npx -y lavish-axi .lavish/<slug>-grilling.html` und poll auf Antworten. So kann der User strukturiert antworten, annotieren und Feedback geben.
 
-Falls durchgeführt, erstelle das Grilling-Ticket — **MCP-first** (`ticket-mcp`). Der zurückgegebene Text ist `external_id|uuid` (identisch zu `ticket.sh create`): `external_id` = Feld 1 (`cut -d'|' -f1`), `uuid` = Feld 2.
+Falls durchgeführt, erstelle das Grilling-Ticket — **MCP-first** (`ticket-mcp`; Rückgabe-Parsing
+`external_id|uuid`: siehe [MCP-Tool-Guide](file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md) §ticket-mcp).
 
 > `mcp__ticket-mcp__create_ticket({ type: "task", brand: "mentolder", title: "Grilling: <kurzer-titel>", priority: "mittel", description: "FUNKTIONALE ANFORDERUNGEN:\n<requirements>\n\nASSETS ZU BESCHAFFEN:\n<assets-todo>" })`
 
@@ -84,7 +85,8 @@ fi
 
 ## Schritt −1: Reaper & Stale-Worktree-Audit
 
-Räume tote Sessions/Zombies/stale Worktrees auf und sieh, wer gerade was bearbeitet (Session-Koordination [T000510]):
+Räume tote Sessions/Zombies/stale Worktrees auf und sieh, wer gerade was bearbeitet —
+Lock-Lebenszyklus-SSOT: [session-coordination](file:///home/patrick/Bachelorprojekt/.claude/skills/references/session-coordination.md) [T000510]:
 ```bash
 bash scripts/agent-lock.sh reap   # killt cwd-tote-Worktree-Prozesse, prunet Worktrees, räumt tote Locks
 bash scripts/agent-lock.sh list   # "Wer macht was": laufende Claims anderer Sessions
@@ -294,12 +296,8 @@ bash scripts/ticket-attach.sh "$TICKET_UUID" \
 Statt deinen eigenen Kontext zurückzusetzen (das ließe dich den Faden verlieren), committe die Spec und delegiere das Plan-Schreiben an einen **frischen Subagenten** — der hat per Konstruktion einen sauberen Kontext und bekommt ein **zur Plan-Komplexität passendes Modell + Effort**. Du selbst behältst den vollen Brainstorming-Kontext.
 
 1. Committe und pushe die Spec-Datei auf den Feature-Branch.
-2. Spawne über das `Agent`/`Task`-Tool einen Subagenten, **provisioniert gemäß** [subagent-provisioning](file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md) (Modell · Effort · Kontext):
-   - **Modell:** Plan-Schreiben ist reasoning-lastige Meta-Arbeit → Default `model: opus`. Bei trivialem (chore-artigem) Plan genügt `sonnet`.
-   - **Effort:** Default high — beginne den Prompt mit „Ultrathink. Denke sehr gründlich nach." (das `Agent`-Tool kennt nur `model`, keinen Effort-Regler — Effort wird im Prompt vermittelt). **Bei großen multi-subsystem-Specs → ultra:** statt eines Einzel-Agenten das `Workflow`-Tool nutzen (parallele Plan-Segment-Autoren gegen einen geteilten Interface-Contract + abschließende Self-Review), siehe Rubrik.
-   - `subagent_type: general-purpose`.
-   - **Kontext-Injektion** (er hat sonst KEINEN Kontext — gib ihm alles explizit):
-     - Absoluter Worktree-Pfad (`pwd`) + Branch-Name; er arbeitet NUR relativ dazu.
+2. Spawne über das `Agent`/`Task`-Tool einen Subagenten (`subagent_type: general-purpose`), **provisioniert gemäß** [subagent-provisioning](file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md) — Plan-Schreiben ist reasoning-lastige Meta-Arbeit: Modell-Default `opus` (triviale chore-artige Pläne: `sonnet`), Effort high; bei großen multi-subsystem-Specs die ultra-Stufe (`Workflow`-Fan-out) — Effort-Formulierungen, Worktree-`cd`-Pflicht und Eskalations-Rubrik stehen in der Reference (SSOT, nicht hier wiederholen).
+   - **Kontext-Injektion** (er hat sonst KEINEN Kontext — gib ihm alles explizit; Kompaktheits-Regeln siehe subagent-provisioning §3):
      - Spec-Pfad: `docs/superpowers/specs/<date>-<slug>-design.md`
      - **Design-Bundle** (falls Schritt A.2 lief): `openspec/changes/<slug>/assets/` —
        der Plan MUSS `intent.md` als Design-Quelle referenzieren, die finalen Asset-Zielpfade
@@ -314,25 +312,10 @@ Statt deinen eigenen Kontext zurückzusetzen (das ließe dich den Faden verliere
        DB-Spalten/API-Contracts aus den `db_tables`/`api_contracts`-Sektionen zitieren. Format/Quellen:
        [plan-intel-bundle](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-intel-bundle.md).
     - **plan-lint Hard Rules (PFLICHT — vom Subagenten verbatim zu befolgen):**
-      Lies vor dem Schreiben `scripts/plan-lint.sh` und stelle sicher, dass die
-      tasks.md alle Hard-Pflichten erfüllt. Die folgenden Regeln sind die
-      einzige Quelle der Wahrheit (Stand jetzt):
-      - **F1 Frontmatter:** YAML-Frontmatter am Anfang mit den vier Pflicht-Keys
-        `title`, `ticket_id`, `domains`, `status` (alle nicht-leer).
-      - **F2 domains:** `domains:` ist eine non-empty YAML-Liste
-        (`[a, b, …]`), kein leerer String und kein `[]`.
-      - **STRUCT1 Plan-Shape:** Die Datei beginnt (nach Frontmatter) mit
-        `# <slug> — Implementation Plan` als H1, gefolgt von einer H2-Sektion
-        `## File Structure`, die die geänderten/neuen Dateien auflistet.
-      - **STRUCT2 Failing-Test-Step:** Mindestens ein Task enthält einen
-        rot→grün-Failing-Test-Step mit der wortwörtlichen Phrase
-        `expected: FAIL` (regex tolerant: `expected:? *fail`).
-      - **STRUCT3 Verify-Task:** Der letzte Task listet die drei mandatory
-        Verify-Commands: `task test:changed`, `task freshness:regenerate`,
-        `task freshness:check` (regex `task[[:space:]]+<cmd>`).
-      - **P1 Placeholder-Verbot:** In Prosa (außerhalb von ```-Fences und
-        `inline code`) dürfen die Tokens `TBD`, `TODO`, `FIXME`, `???`,
-        `<ausfüllen>` und `similar to Task <N>` NICHT vorkommen.
+      F1/F2/STRUCT1–3/P1 stehen als SSOT in
+      [plan-quality-gates](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-quality-gates.md)
+      §plan-lint — der Subagent MUSS die Datei lesen und die tasks.md dagegen schreiben
+      (`scripts/plan-lint.sh` ist das maschinelle Gate dazu).
     - **Auftrag:** „**PFLICHT — Worktree-Isolation:** Beginne deinen Prompt mit `cd /tmp/wt-<slug>` — der Subagent hat keinen impliziten CWD-Kontext und schreibt sonst ins Haupt-Checkout. Alle folgenden Dateipfade sind relativ zu diesem Worktree.
     
     Dann: Lies die Spec UND `.claude/skills/references/plan-quality-gates.md`. Rufe `superpowers:writing-plans` auf und schreibe den Implementierungsplan **ausschließlich** nach `openspec/changes/<slug>/tasks.md` (OpenSpec-Format: H2-Operationsheader im Delta, H3-Requirement, H4-Scenario im `specs/<capability>.md`). Der finale Verifikations-Task des Plans MUSS `task test:changed`, `task freshness:regenerate` und `task freshness:check` als Steps enthalten (CI-Äquivalent inkl. S1–S4-Ratchet); nach Test-Änderungen zusätzlich `task test:inventory` + Commit des Inventars. Vor dem Commit: `task test:openspec` (oder `bash scripts/openspec.sh validate`) — muss grün sein. Starte KEINE Implementierung (nur Plan schreiben, dann STOPP). Gib den Plan-Pfad (`openspec/changes/<slug>/tasks.md`) und eine 3-Zeilen-Zusammenfassung zurück."
@@ -362,7 +345,7 @@ Du behältst deinen vollen Brainstorming-Kontext: lies den vom Subagenten zurüc
 
 Prüfe ob ein bestehendes Ticket-ID übergeben wurde (z.B. von `feature-intake`).
 
-**MCP-first** (`ticket-mcp`) — wenn noch kein `TICKET_EXT_ID` gesetzt ist, ein neues Ticket anlegen. Rückgabe ist `external_id|uuid`: Feld 1 (`cut -d'|' -f1`) = `TICKET_EXT_ID`, Feld 2 = `TICKET_UUID`.
+**MCP-first** (`ticket-mcp`) — wenn noch kein `TICKET_EXT_ID` gesetzt ist, ein neues Ticket anlegen (Rückgabe-Parsing: MCP-Tool-Guide §ticket-mcp).
 
 > `mcp__ticket-mcp__create_ticket({ type: "task", brand: "mentolder", title: "Plan: <slug>", priority: "mittel", description: "Branch: feature/<slug>\nPlan: openspec/changes/<slug>/tasks.md\nSpec: docs/superpowers/specs/<date>-<slug>-design.md\n<grilling-ref>" })`
 
@@ -484,7 +467,7 @@ Details siehe [plan-review-ui](file:///home/patrick/Bachelorprojekt/.claude/skil
 ## Fix-Pfad
 
 ### Schritt 1: T-###### Ticket
-Frage den User nach der Ticket-ID. Falls keins vorhanden ist, lege ein neues Ticket an — **MCP-first** (`ticket-mcp`, Rückgabe `external_id|uuid`: Feld 1 = `TICKET_EXT_ID`, Feld 2 = `TICKET_UUID`):
+Frage den User nach der Ticket-ID. Falls keins vorhanden ist, lege ein neues Ticket an — **MCP-first** (`ticket-mcp`; Rückgabe-Parsing: MCP-Tool-Guide §ticket-mcp):
 
 > `mcp__ticket-mcp__create_ticket({ type: "bug", brand: "mentolder", title: "<titel>", description: "<beschreibung>", status: "triage", severity: "<critical|major|minor|trivial>", priority: "hoch" })`
 

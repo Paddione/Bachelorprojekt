@@ -89,3 +89,28 @@ ADMIN_RESPONSIVE="$BATS_TEST_DIRNAME/../../website/src/styles/admin-responsive.c
   run grep -F ".admin-form-wide" "$ADMIN_RESPONSIVE"
   [ "$status" -eq 0 ]
 }
+
+@test "T001471 collapse: rechnungen.astro stays exactly 592 lines (Budget 0)" {
+  run bash -c "wc -l < '$BATS_TEST_DIRNAME/../../website/src/pages/admin/rechnungen.astro' | tr -d ' '"
+  [ "$output" -eq 592 ]
+}
+
+@test "T001471 collapse: projekte.astro stays exactly 408 lines (Budget 0)" {
+  run bash -c "wc -l < '$BATS_TEST_DIRNAME/../../website/src/pages/admin/projekte.astro' | tr -d ' '"
+  [ "$output" -eq 408 ]
+}
+
+@test "T001471 collapse: rechnungen.astro tags a table with admin-table-collapse" {
+  run grep -F "admin-table-collapse" "$BATS_TEST_DIRNAME/../../website/src/pages/admin/rechnungen.astro"
+  [ "$status" -eq 0 ]
+}
+
+@test "T001471 collapse: projekte.astro tags a table with admin-table-collapse" {
+  run grep -F "admin-table-collapse" "$BATS_TEST_DIRNAME/../../website/src/pages/admin/projekte.astro"
+  [ "$status" -eq 0 ]
+}
+
+@test "T001471 collapse: zeiterfassung.astro tags a table with admin-table-collapse" {
+  run grep -F "admin-table-collapse" "$BATS_TEST_DIRNAME/../../website/src/pages/admin/zeiterfassung.astro"
+  [ "$status" -eq 0 ]
+}

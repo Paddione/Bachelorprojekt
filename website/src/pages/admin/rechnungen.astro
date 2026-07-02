@@ -172,7 +172,7 @@ const STATUS_TABS = [
 
       <!-- Table -->
       <div class="bg-dark-light rounded-2xl border border-dark-lighter overflow-hidden">
-        <table class="w-full">
+        <table class="w-full admin-table-collapse">
           <thead>
             <tr class="border-b border-dark-lighter">
               <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Nr.</th>
@@ -194,24 +194,24 @@ const STATUS_TABS = [
                 </tr>
               ) : pendingDunnings.map(d => (
                 <tr class="border-b border-dark-lighter/50 hover:bg-dark/30 transition-colors">
-                  <td class="px-4 py-3 text-sm text-light font-mono">#{d.invoiceNumber}</td>
-                  <td class="px-4 py-3 text-sm">
+                  <td class="px-4 py-3 text-sm text-light font-mono" data-label="Nr.">#{d.invoiceNumber}</td>
+                  <td class="px-4 py-3 text-sm" data-label="Client">
                     <div class="text-light">{d.customerName}</div>
                     <div class="text-xs text-muted">{d.customerEmail}</div>
                   </td>
-                  <td class="px-4 py-3">
+                  <td class="px-4 py-3" data-label="Status">
                     <span class="text-xs px-2 py-0.5 rounded-full border border-red-800 bg-red-900/40 text-red-300">
                       Mahnung {d.level}
                     </span>
                   </td>
-                  <td class="px-4 py-3 text-sm text-muted">Ausstehend</td>
-                  <td class="px-4 py-3 text-sm text-red-400 font-medium">SOFORT</td>
-                  <td class="px-4 py-3 text-sm text-light text-right font-medium">
+                  <td class="px-4 py-3 text-sm text-muted" data-label="Datum">Ausstehend</td>
+                  <td class="px-4 py-3 text-sm text-red-400 font-medium" data-label="Fällig">SOFORT</td>
+                  <td class="px-4 py-3 text-sm text-light text-right font-medium" data-label="Betrag">
                     {fmtCurrency(d.outstanding + d.feeAmount + d.interestAmount)}
                   </td>
-                  <td class="px-4 py-3 text-sm text-right text-yellow-400 font-medium">{fmtCurrency(d.outstanding)}</td>
-                  <td class="px-4 py-3 text-sm text-right">—</td>
-                  <td class="px-4 py-3 text-sm text-right">
+                  <td class="px-4 py-3 text-sm text-right text-yellow-400 font-medium" data-label="Offen">{fmtCurrency(d.outstanding)}</td>
+                  <td class="px-4 py-3 text-sm text-right" data-label="E-Rechnung">—</td>
+                  <td class="px-4 py-3 text-sm text-right" data-label="Drucken">
                     <button
                       class="text-xs text-yellow-400 hover:underline"
                       data-send-dunning
@@ -234,25 +234,25 @@ const STATUS_TABS = [
                 </tr>
               ) : invoices.map(inv => (
               <tr class="border-b border-dark-lighter/50 hover:bg-dark/30 transition-colors">
-                <td class="px-4 py-3 text-sm text-light font-mono">#{inv.number}</td>
-                <td class="px-4 py-3 text-sm">
+                <td class="px-4 py-3 text-sm text-light font-mono" data-label="Nr.">#{inv.number}</td>
+                <td class="px-4 py-3 text-sm" data-label="Client">
                   <div class="text-light">{inv.customerName}</div>
                   <div class="text-xs text-muted">{inv.customerEmail}</div>
                 </td>
-                <td class="px-4 py-3">
+                <td class="px-4 py-3" data-label="Status">
                   <span class={`text-xs px-2 py-0.5 rounded-full border whitespace-nowrap ${STATUS_CLS[inv.status] ?? ''}`}>
                     {inv.statusLabel}
                   </span>
                 </td>
-                <td class="px-4 py-3 text-sm text-muted whitespace-nowrap">{fmtDate(inv.date)}</td>
-                <td class={`px-4 py-3 text-sm whitespace-nowrap font-medium ${inv.status === 'uncollectible' ? 'text-red-400' : 'text-muted'}`}>
+                <td class="px-4 py-3 text-sm text-muted whitespace-nowrap" data-label="Datum">{fmtDate(inv.date)}</td>
+                <td class={`px-4 py-3 text-sm whitespace-nowrap font-medium ${inv.status === 'uncollectible' ? 'text-red-400' : 'text-muted'}`} data-label="Fällig">
                   {fmtDate(inv.dueDate)}{inv.status === 'uncollectible' ? ' ⚠' : ''}
                 </td>
-                <td class="px-4 py-3 text-sm text-light text-right font-medium">{fmtCurrency(inv.amountDue)}</td>
-                <td class={`px-4 py-3 text-sm text-right font-medium ${inv.amountRemaining > 0 ? 'text-yellow-400' : 'text-muted'}`}>
+                <td class="px-4 py-3 text-sm text-light text-right font-medium" data-label="Betrag">{fmtCurrency(inv.amountDue)}</td>
+                <td class={`px-4 py-3 text-sm text-right font-medium ${inv.amountRemaining > 0 ? 'text-yellow-400' : 'text-muted'}`} data-label="Offen">
                   {inv.amountRemaining > 0 ? fmtCurrency(inv.amountRemaining) : '—'}
                 </td>
-                <td class="px-4 py-3 text-sm text-right">
+                <td class="px-4 py-3 text-sm text-right" data-label="E-Rechnung">
                   {['draft', 'void'].includes(inv.status) ? (
                     <span class="text-xs text-muted/40">—</span>
                   ) : (
@@ -264,7 +264,7 @@ const STATUS_TABS = [
                     >XML ↓</a>
                   )}
                 </td>
-                <td class="px-4 py-3 text-sm text-right">
+                <td class="px-4 py-3 text-sm text-right" data-label="Drucken">
                   {['open', 'partially_paid', 'uncollectible'].includes(inv.status) && (
                     <button
                       class="text-xs text-yellow-400 hover:underline"

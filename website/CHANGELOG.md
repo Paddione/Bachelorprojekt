@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.152.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.152.0...website-v1.152.1) (2026-07-02)
+
+
+### Code Refactoring
+
+* **openspec:** drop config shadow-state + archive one-off specs [T001452] ([#2504](https://github.com/Paddione/Bachelorprojekt/issues/2504)) ([8f030a1](https://github.com/Paddione/Bachelorprojekt/commit/8f030a1008469daacceba52f9ecce88bd672a24a))
+
 ## [1.152.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.151.1...website-v1.152.0) (2026-07-02)
 
 

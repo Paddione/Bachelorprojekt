@@ -4,9 +4,28 @@
   let { initialData }: { initialData: FaqItem[] } = $props();
   let items = $state(JSON.parse(JSON.stringify(initialData)));
   let saving = $state(false); let msg = $state(''); let msgOk = $state(true);
+  let prUrl = $state('');
+
+  // T001490 Task 7: localStorage draft for publish-latency safety. The
+  // bot-PR takes ~10 min to land on the public site; if the editor
+  // closes the tab during that window we restore the unsaved draft.
+  const DRAFT_KEY = 'admin.draft.faq';
+  if (typeof window !== 'undefined') {
+    const draft = localStorage.getItem(DRAFT_KEY);
+    if (draft) {
+      try {
+        const parsed = JSON.parse(draft) as FaqItem[];
+        if (Array.isArray(parsed) && parsed.length) items = parsed;
+      } catch { /* ignore corrupt drafts */ }
+    }
+  }
+  $effect(() => {
+    if (typeof window === 'undefined') return;
+    try { localStorage.setItem(DRAFT_KEY, JSON.stringify(items)); } catch { /* quota / private mode */ }
+  });
 
   async function save() {
-    saving = true; msg = '';
+    saving = true; msg = ''; prUrl = '';
     try {
       const res = await fetch('/api/admin/faq/save', {
         method: 'POST',
@@ -14,8 +33,15 @@
         body: JSON.stringify(items.filter((it: FaqItem) => it.question.trim())),
       });
       const json = await res.json();
-      if (res.ok) { msg = 'Gespeichert.'; msgOk = true; }
-      else { msg = json.error ?? 'Fehler.'; msgOk = false; }
+      if (res.ok) {
+        msg = json.prUrl ? `PR #${json.prNumber} erstellt — live in ~10 min.` : 'Gespeichert.';
+        msgOk = true;
+        prUrl = json.prUrl ?? '';
+        if (typeof window !== 'undefined') localStorage.removeItem(DRAFT_KEY);
+      } else {
+        msg = json.error ?? 'Fehler.';
+        msgOk = false;
+      }
     } catch { msg = 'Verbindungsfehler.'; msgOk = false; }
     finally { saving = false; }
   }
@@ -44,7 +70,10 @@
   </div>
 
   {#if msg}
-    <div class={`p-4 rounded-xl text-sm ${msgOk ? 'bg-green-500/10 border border-green-500/30 text-green-400' : 'bg-red-500/10 border border-red-500/30 text-red-400'}`}>{msg}</div>
+    <div class={`p-4 rounded-xl text-sm ${msgOk ? 'bg-green-500/10 border border-green-500/30 text-green-400' : 'bg-red-500/10 border border-red-500/30 text-red-400'}`}>
+      {msg}
+      {#if prUrl}<a href={prUrl} target="_blank" rel="noopener" class="ml-2 underline">PR ansehen</a>{/if}
+    </div>
   {/if}
 
   <!-- Zentrale Elemente: Hinweis -->

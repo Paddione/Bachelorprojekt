@@ -1,40 +1,50 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { saveFaqContent } from '../../../../lib/website-db';
-import type { FaqItem } from '../../../../lib/website-db';
+import { publishContent } from '../../../../lib/content-publish';
+import { publishResultToResponse } from '../../../../lib/content-publish-handler';
+import type { FaqItem } from '../../../../content-schema';
 
 const BRAND = process.env.BRAND || 'mentolder';
 
-export const POST: APIRoute = async ({ request, redirect , locals }) => {
+function jsonResponse(status: number, body: unknown): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'content-type': 'application/json' },
+  });
+}
+
+export const POST: APIRoute = async ({ request, redirect, locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response('Forbidden', { status: 403 });
+  const editor = session.email ?? session.name ?? 'unknown';
 
   if (request.headers.get('content-type')?.includes('application/json')) {
-    let items: FaqItem[];
+    let body: { payload: FaqItem[]; baseSha?: string };
     try {
-      items = await request.json() as FaqItem[];
+      body = await request.json() as typeof body;
     } catch {
-      return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+      return jsonResponse(400, { error: 'Invalid JSON' });
     }
+    const baseSha = typeof body.baseSha === 'string' && body.baseSha ? body.baseSha : null;
     try {
-      await saveFaqContent(BRAND, items);
-    } catch (err) {
-      locals.requestLogger.error({ err }, '[faq/save] DB error:');
-      return new Response(JSON.stringify({ error: 'DB error' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+      const result = await publishContent({
+        brand: BRAND, domain: 'faq', payload: body.payload, baseSha, editor,
+      });
+      return publishResultToResponse(result);
+    } catch (e) {
+      locals.requestLogger?.error?.({ e }, 'faq save failed');
+      return jsonResponse(500, { error: 'publish failed' });
     }
-    return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
   }
 
+  // Legacy form-encoded path.
   const form = await request.formData();
   const g = (k: string) => (form.get(k) as string | null) ?? '';
-
   const count = Math.max(0, parseInt(g('faq_count') || '0', 10) || 0);
   const rawItems: FaqItem[] = Array.from({ length: count }, (_, i) => ({
     question: g(`faq_${i}_question`).trim(),
     answer: g(`faq_${i}_answer`).trim(),
   }));
-
-  // Reorder on raw indices BEFORE filtering (matching what the form rendered)
   const moveUp = form.get('move_up');
   const moveDown = form.get('move_down');
   if (moveUp !== null) {
@@ -44,13 +54,19 @@ export const POST: APIRoute = async ({ request, redirect , locals }) => {
     const idx = parseInt(moveDown as string, 10);
     if (idx >= 0 && idx < rawItems.length - 1) [rawItems[idx], rawItems[idx + 1]] = [rawItems[idx + 1], rawItems[idx]];
   }
-
-  // Filter blank questions (= delete behavior), then add new entry
-  const items = rawItems.filter(item => item.question);
+  const items = rawItems.filter((item) => item.question);
   const newQ = g('faq_new_question').trim();
   const newA = g('faq_new_answer').trim();
   if (newQ) items.push({ question: newQ, answer: newA });
 
-  await saveFaqContent(BRAND, items);
-  return redirect('/admin/faq?saved=1');
+  try {
+    const result = await publishContent({
+      brand: BRAND, domain: 'faq', payload: items, baseSha: null, editor,
+    });
+    if (result.ok) return redirect('/admin/faq?saved=1', 303);
+    return publishResultToResponse(result);
+  } catch (e) {
+    locals.requestLogger?.error?.({ e }, 'faq save failed');
+    return jsonResponse(500, { error: 'publish failed' });
+  }
 };

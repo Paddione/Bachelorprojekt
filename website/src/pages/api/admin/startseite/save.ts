@@ -1,38 +1,68 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { saveHomepageContent } from '../../../../lib/website-db';
-import type { HomepageContent } from '../../../../lib/website-db';
+import { publishContent } from '../../../../lib/content-publish';
+import { publishResultToResponse } from '../../../../lib/content-publish-handler';
+import type { HomepageContent } from '../../../../content-schema';
 
 const BRAND = process.env.BRAND || 'mentolder';
 
-export const POST: APIRoute = async ({ request, redirect , locals }) => {
+function jsonResponse(status: number, body: unknown): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'content-type': 'application/json' },
+  });
+}
+
+async function publishAndRespond(
+  brand: string,
+  payload: HomepageContent,
+  editor: string,
+  baseSha: string | null,
+  logger: { error?: (...args: unknown[]) => void } | undefined,
+): Promise<Response> {
+  try {
+    const result = await publishContent({
+      brand,
+      domain: 'homepage',
+      payload,
+      baseSha,
+      editor,
+    });
+    return publishResultToResponse(result);
+  } catch (e) {
+    logger?.error?.({ e }, 'startseite save failed');
+    return jsonResponse(500, { error: 'publish failed' });
+  }
+}
+
+export const POST: APIRoute = async ({ request, redirect, locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response('Forbidden', { status: 403 });
 
+  const editor = session.email ?? session.name ?? 'unknown';
+
   if (request.headers.get('content-type')?.includes('application/json')) {
-    let body: HomepageContent;
+    let body: { payload: HomepageContent; baseSha?: string };
     try {
-      body = await request.json() as HomepageContent;
+      body = await request.json() as typeof body;
     } catch {
-      return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+      return jsonResponse(400, { error: 'Invalid JSON' });
     }
-    try {
-      await saveHomepageContent(BRAND, body);
-    } catch (err) {
-      locals.requestLogger.error({ err }, '[startseite/save] DB error:');
-      return new Response(JSON.stringify({ error: 'DB error' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
-    }
-    return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
+    const baseSha = typeof body.baseSha === 'string' && body.baseSha ? body.baseSha : null;
+    return publishAndRespond(BRAND, body.payload, editor, baseSha, locals.requestLogger);
   }
 
+  // Legacy form-encoded path — convert form fields to a HomepageContent
+  // payload, then publish through the same pipeline (baseSha omitted).
   const form = await request.formData();
   const g = (k: string) => (form.get(k) as string | null) ?? '';
 
-  await saveHomepageContent(BRAND, {
+  const payload: HomepageContent = {
     hero: {
       tagline: g('hero_tagline'),
       title: g('hero_title'),
       subtitle: g('hero_subtitle'),
+      titleEmphasis: g('hero_title_emphasis') || undefined,
     },
     stats: Array.from({ length: parseInt(g('stats_count') || '4', 10) }, (_, i) => ({
       value: g(`stat_${i}_value`),
@@ -56,7 +86,9 @@ export const POST: APIRoute = async ({ request, redirect , locals }) => {
       heading: g(`process_${i}_heading`),
       description: g(`process_${i}_description`),
     })),
-  });
+  };
 
-  return redirect('/admin/startseite?saved=1');
+  const res = await publishAndRespond(BRAND, payload, editor, null, locals.requestLogger);
+  if (res.status === 200) return redirect('/admin/startseite?saved=1', 303);
+  return res;
 };

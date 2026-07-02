@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-02T21:00:46.517Z",
+  "generatedAt": "2026-07-02T21:29:46.301Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -1156,15 +1156,6 @@
       "file": "website/src/pages/api/admin/generate-3d/status.ts"
     },
     {
-      "path": "/api/admin/homepage/restore",
-      "methods": [
-        "OPTIONS",
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/homepage/restore.ts"
-    },
-    {
       "path": "/api/admin/homepage/save",
       "methods": [
         "OPTIONS",
@@ -1172,15 +1163,6 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/homepage/save.ts"
-    },
-    {
-      "path": "/api/admin/homepage/versions",
-      "methods": [
-        "OPTIONS",
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/homepage/versions.ts"
     },
     {
       "path": "/api/admin/inbox",

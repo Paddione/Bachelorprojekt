@@ -160,6 +160,29 @@ ADMIN_RESPONSIVE="$BATS_TEST_DIRNAME/../../website/src/styles/admin-responsive.c
   done
 }
 
+# T001490 Task 10 — homepage-blocks-store.ts (readCurrent, save, listVersions,
+# restore against `homepage_block_documents` / `homepage_block_versions`) is
+# decommissioned. The public read path serves the build-time bundle; admin
+# saves route through content-publish.ts; version history is now git log.
+@test "T001490 decommissioned: homepage-blocks-store.ts is removed" {
+  [ ! -f "$BATS_TEST_DIRNAME/../../website/src/lib/homepage-blocks-store.ts" ] \
+    || { echo "homepage-blocks-store.ts still present"; return 1; }
+  [ ! -f "$BATS_TEST_DIRNAME/../../website/src/lib/homepage-blocks-store.test.ts" ] \
+    || { echo "homepage-blocks-store.test.ts still present"; return 1; }
+  [ ! -f "$BATS_TEST_DIRNAME/../../website/src/pages/api/admin/homepage/versions.ts" ] \
+    || { echo "admin/homepage/versions.ts still present"; return 1; }
+  [ ! -f "$BATS_TEST_DIRNAME/../../website/src/pages/api/admin/homepage/restore.ts" ] \
+    || { echo "admin/homepage/restore.ts still present"; return 1; }
+}
+
+@test "T001490 decommissioned: /api/homepage is bundle-sourced, no DB readCurrent" {
+  f="$BATS_TEST_DIRNAME/../../website/src/pages/api/homepage.ts"
+  run grep -F "bundleHomepageBlocks" "$f"
+  [ "$status" -eq 0 ] || { echo "homepage.ts does not use bundleHomepageBlocks"; return 1; }
+  run grep -F "readCurrent" "$f"
+  [ "$status" -ne 0 ] || { echo "homepage.ts still references readCurrent"; return 1; }
+}
+
 @test "T001490 content bundle: export script registered (no orphan)" {
   f="$BATS_TEST_DIRNAME/../../Taskfile.yml"
   run grep -F "content:export" "$f"

@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-07-02T21:00:46.517Z
+> Generated at 2026-07-02T21:29:46.301Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -145,9 +145,7 @@
 | `/api/admin/fuehrung/save` | POST | 🔐 admin | `website/src/pages/api/admin/fuehrung/save.ts` |
 | `/api/admin/generate-3d` | POST | 🔐 admin | `website/src/pages/api/admin/generate-3d.ts` |
 | `/api/admin/generate-3d/status` | GET | 🔐 admin | `website/src/pages/api/admin/generate-3d/status.ts` |
-| `/api/admin/homepage/restore` | OPTIONS, POST | 🔐 admin | `website/src/pages/api/admin/homepage/restore.ts` |
 | `/api/admin/homepage/save` | OPTIONS, POST | 🔐 admin | `website/src/pages/api/admin/homepage/save.ts` |
-| `/api/admin/homepage/versions` | OPTIONS, GET | 🔐 admin | `website/src/pages/api/admin/homepage/versions.ts` |
 | `/api/admin/inbox` | GET | 🔐 admin | `website/src/pages/api/admin/inbox.ts` |
 | `/api/admin/inbox/{id}/action` | POST | 🔐 admin | `website/src/pages/api/admin/inbox/[id]/action.ts` |
 | `/api/admin/inbox/count` | GET | 🔐 admin | `website/src/pages/api/admin/inbox/count.ts` |

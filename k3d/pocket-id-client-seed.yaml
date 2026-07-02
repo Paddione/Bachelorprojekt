@@ -20,10 +20,26 @@
 #     regardless of key validity -- root-caused live in prod T001355
 #     (2026-07-01); the original "API key auth not allowed for this
 #     endpoint" theory was a misdiagnosis of the same symptom.
-#     The Job logs the auto-generated secret from each /secret call rather
-#     than writing it back into the cluster Secret. A follow-up Job that
-#     reads the generated secrets back into the in-cluster Secret is the
-#     natural next step (T00109x).
+#
+#   - SECRET DRIFT (T001435, 2026-07-02): earlier versions of this Job
+#     called POST .../secret UNCONDITIONALLY on every run -- for both
+#     newly-created AND already-existing clients -- and only logged the
+#     server-generated secret to stdout, never writing it back into
+#     workspace-secrets. Every successful deploy therefore silently
+#     invalidated the previous secret pocket-id had on file, while the
+#     apps (website, nextcloud, vaultwarden, brett, oauth2-proxy-*) kept
+#     reading the STALE value from the k8s Secret -- a persistent
+#     "invalid client secret" / OIDC login failure that reappeared after
+#     every deploy. Fixed by: (1) never rotating the secret of an
+#     ALREADY-EXISTING client (PUT only touches name/callbackURLs), and
+#     (2) on first CREATE of a new client, writing the pocket-id-
+#     generated secret straight back into workspace-secrets via the
+#     Job's own ServiceAccount token against the in-cluster K8s API
+#     (see pocket-id-client-seed-rbac.yaml — get+patch scoped to that
+#     one Secret object only). This makes the Job's secret handling
+#     converge instead of drifting: once a client exists with a secret
+#     that matches workspace-secrets, subsequent runs never touch it
+#     again.
 # ═══════════════════════════════════════════════════════════════════
 apiVersion: batch/v1
 kind: Job
@@ -39,6 +55,8 @@ spec:
         app: pocket-id
     spec:
       restartPolicy: OnFailure
+      serviceAccountName: pocket-id-client-seed
+      automountServiceAccountToken: true
       securityContext:
         runAsNonRoot: true
         runAsUser: 65534
@@ -145,26 +163,29 @@ spec:
               AUTH="X-API-KEY: ${POCKET_ID_API_KEY}"
               CT="Content-Type: application/json"
 
-              # client rows: id|secretEnv|callbackUrl
+              # client rows: id|secretEnv|secretKey|callbackUrl
+              # secretKey is the literal key in the workspace-secrets k8s
+              # Secret -- used to write a newly-generated secret back on
+              # first create (T001435).
               # Callback hosts mirror each service's --redirect-url / OIDC redirect.
               ROWS="
-              docs|SECRET_docs|${SCHEME}://docs.${SUFFIX}/oauth2/callback
-              downloads|SECRET_downloads|${SCHEME}://downloads.${SUFFIX}/oauth2/callback
-              mailpit-admin|SECRET_mail|${SCHEME}://mail.${SUFFIX}/oauth2/callback
-              brett|SECRET_brett|${SCHEME}://brett.${SUFFIX}/oauth2/callback
-              comfy|SECRET_comfy|${SCHEME}://comfy.${SUFFIX}/oauth2/callback
-              mediaviewer-widget|SECRET_mediaviewer|${SCHEME}://mediaviewer.${SUFFIX}/oauth2/callback
-              videovault|SECRET_videovault|${SCHEME}://videovault.${SUFFIX}/oauth2/callback
-              studio|SECRET_studio|${SCHEME}://studio.${SUFFIX}/oauth2/callback
-              traefik-dashboard|SECRET_traefik|${SCHEME}://traefik.${SUFFIX}/oauth2/callback
-              recovery|SECRET_recovery|${SCHEME}://recover.${SUFFIX}/oauth2/callback
-              session-hub|SECRET_sessionhub|${SCHEME}://session-hub.${SUFFIX}/oauth2/callback
-              brainstorm|SECRET_brainstorm|${SCHEME}://brainstorm.${SUFFIX}/oauth2/callback
-              vaultwarden|SECRET_vaultwarden|${SCHEME}://vault.${SUFFIX}/identity/connect/oidc-signin
-              nextcloud|SECRET_nextcloud|${SCHEME}://files.${SUFFIX}/apps/oidc_login/oidc
-              grafana|SECRET_grafana|${SCHEME}://grafana.${SUFFIX}/login/generic_oauth
-              website|SECRET_website|${SCHEME}://web.${SUFFIX}/api/auth/callback
-              rustdesk-web|SECRET_rustdeskweb|${SCHEME}://remote.${SUFFIX}/oauth2/callback
+              docs|SECRET_docs|POCKET_ID_DOCS_SECRET|${SCHEME}://docs.${SUFFIX}/oauth2/callback
+              downloads|SECRET_downloads|POCKET_ID_DOWNLOADS_SECRET|${SCHEME}://downloads.${SUFFIX}/oauth2/callback
+              mailpit-admin|SECRET_mail|POCKET_ID_MAIL_SECRET|${SCHEME}://mail.${SUFFIX}/oauth2/callback
+              brett|SECRET_brett|POCKET_ID_BRETT_SECRET|${SCHEME}://brett.${SUFFIX}/oauth2/callback
+              comfy|SECRET_comfy|POCKET_ID_COMFY_SECRET|${SCHEME}://comfy.${SUFFIX}/oauth2/callback
+              mediaviewer-widget|SECRET_mediaviewer|POCKET_ID_MEDIAVIEWER_SECRET|${SCHEME}://mediaviewer.${SUFFIX}/oauth2/callback
+              videovault|SECRET_videovault|POCKET_ID_VIDEOVAULT_SECRET|${SCHEME}://videovault.${SUFFIX}/oauth2/callback
+              studio|SECRET_studio|POCKET_ID_STUDIO_SECRET|${SCHEME}://studio.${SUFFIX}/oauth2/callback
+              traefik-dashboard|SECRET_traefik|POCKET_ID_TRAEFIK_SECRET|${SCHEME}://traefik.${SUFFIX}/oauth2/callback
+              recovery|SECRET_recovery|POCKET_ID_RECOVERY_SECRET|${SCHEME}://recover.${SUFFIX}/oauth2/callback
+              session-hub|SECRET_sessionhub|POCKET_ID_SESSION_HUB_SECRET|${SCHEME}://session-hub.${SUFFIX}/oauth2/callback
+              brainstorm|SECRET_brainstorm|POCKET_ID_BRAINSTORM_SECRET|${SCHEME}://brainstorm.${SUFFIX}/oauth2/callback
+              vaultwarden|SECRET_vaultwarden|POCKET_ID_VAULTWARDEN_SECRET|${SCHEME}://vault.${SUFFIX}/identity/connect/oidc-signin
+              nextcloud|SECRET_nextcloud|POCKET_ID_NEXTCLOUD_SECRET|${SCHEME}://files.${SUFFIX}/apps/oidc_login/oidc
+              grafana|SECRET_grafana|POCKET_ID_GRAFANA_SECRET|${SCHEME}://grafana.${SUFFIX}/login/generic_oauth
+              website|SECRET_website|POCKET_ID_WEBSITE_SECRET|${SCHEME}://web.${SUFFIX}/api/auth/callback
+              rustdesk-web|SECRET_rustdeskweb|POCKET_ID_RUSTDESK_WEB_SECRET|${SCHEME}://remote.${SUFFIX}/oauth2/callback
               "
 
               # Resolve a client's REAL pocket-id id by NAME. pocket-id:v2.9.0
@@ -197,24 +218,51 @@ spec:
                 echo "$list" | grep -o "\"id\":\"[^\"]*\",\"name\":\"${name}\"" | head -1 | sed -E 's/"id":"([^"]*)".*/\1/'
               }
 
+              # Write a newly pocket-id-generated client secret back into the
+              # workspace-secrets k8s Secret via the in-cluster K8s API, using
+              # this Job's own ServiceAccount token (RBAC: get+patch scoped to
+              # exactly this one Secret, see pocket-id-client-seed-rbac.yaml).
+              # stringData lets the API server base64-encode server-side --
+              # no client-side base64 needed. allow-apiserver-egress
+              # (T000368) already permits this egress from workspace pods.
+              KSA_DIR=/var/run/secrets/kubernetes.io/serviceaccount
+              patch_secret() {
+                key="$1"; val="$2"
+                ns=$(cat "${KSA_DIR}/namespace")
+                body=$(printf '{"stringData":{"%s":"%s"}}' "$key" "$val")
+                curl -fsS $CURL_RETRY --cacert "${KSA_DIR}/ca.crt" \
+                  -H "Authorization: Bearer $(cat ${KSA_DIR}/token)" \
+                  -H "Content-Type: application/merge-patch+json" \
+                  -X PATCH \
+                  "https://kubernetes.default.svc/api/v1/namespaces/${ns}/secrets/workspace-secrets" \
+                  -d "$body" </dev/null >/dev/null
+              }
+
               # Idempotent upsert: create if missing, otherwise update via PUT
-              # (pocket-id:v2.9.0 uses PUT, not PATCH). Always rotate the
-              # client secret via POST .../secret — the server generates and
-              # returns the new value; the dev placeholders in workspace-secrets
-              # are written as log lines for follow-up ingestion.
+              # (pocket-id:v2.9.0 uses PUT, not PATCH).
+              #
+              # SECRET HANDLING (T001435 — do not "simplify" this back to
+              # always-rotate, see the header comment for why that drifted):
+              #   - EXISTING client (real_id found): PUT only touches
+              #     name/callbackURLs. The secret is intentionally left
+              #     untouched — rotating it here would invalidate whatever
+              #     value is already correctly synced into workspace-secrets
+              #     and break login until the next manual resync.
+              #   - NEW client (no real_id): secret is generated by pocket-id
+              #     via POST .../secret as before, but the plaintext value is
+              #     now written back into workspace-secrets/<secretKey>
+              #     immediately, so the two are created in sync.
               upsert() {
-                cid="$1"; secret="$2"; cb="$3"
+                cid="$1"; secret="$2"; secret_key="$3"; cb="$4"
                 if [ -z "$secret" ]; then
-                  echo "skip ${cid} (no secret provided)"; return 0
+                  echo "skip ${cid} (no secret configured)"; return 0
                 fi
                 real_id=$(find_client_id "$cid")
                 if [ -n "$real_id" ]; then
                   curl -fsS $CURL_RETRY -X PUT -H "$AUTH" -H "$CT" \
                     -d "$(printf '{"name":"%s","callbackURLs":["%s"],"logoutCallbackURLs":[],"isPublic":false,"pkceEnabled":false,"requiresReauthentication":false,"requiresPushedAuthorizationRequests":false}' "$cid" "$cb")" \
                     "${API}/api/oidc/clients/${real_id}" </dev/null >/dev/null
-                  gen=$(curl -fsS $CURL_RETRY -X POST -H "$AUTH" -H "$CT" \
-                    "${API}/api/oidc/clients/${real_id}/secret" </dev/null)
-                  echo "upserted ${cid} (updated, id=${real_id}) dev-secret=${secret} pocket-id-secret=$(echo "$gen" | sed -E 's/.*"secret":"([^"]+)".*/\1/')"
+                  echo "updated ${cid} (id=${real_id}), secret unchanged"
                 else
                   created=$(curl -fsS $CURL_RETRY -X POST -H "$AUTH" -H "$CT" \
                     -d "$(printf '{"name":"%s","callbackURLs":["%s"],"logoutCallbackURLs":[],"isPublic":false,"pkceEnabled":false,"requiresReauthentication":false,"requiresPushedAuthorizationRequests":false}' "$cid" "$cb")" \
@@ -222,14 +270,20 @@ spec:
                   new_id=$(echo "$created" | sed -E 's/.*"id":"([^"]+)".*/\1/')
                   gen=$(curl -fsS $CURL_RETRY -X POST -H "$AUTH" -H "$CT" \
                     "${API}/api/oidc/clients/${new_id}/secret" </dev/null)
-                  echo "upserted ${cid} (created, id=${new_id}) dev-secret=${secret} pocket-id-secret=$(echo "$gen" | sed -E 's/.*"secret":"([^"]+)".*/\1/')"
+                  plaintext=$(echo "$gen" | sed -E 's/.*"secret":"([^"]+)".*/\1/')
+                  if [ -z "$plaintext" ] || [ "$plaintext" = "$gen" ]; then
+                    echo "ERROR: could not parse generated secret for ${cid}: ${gen}" >&2
+                    exit 1
+                  fi
+                  patch_secret "$secret_key" "$plaintext"
+                  echo "created ${cid} (id=${new_id}), secret generated + written back to workspace-secrets/${secret_key}"
                 fi
               }
 
-              echo "$ROWS" | while IFS='|' read -r cid env cb; do
+              echo "$ROWS" | while IFS='|' read -r cid env secret_key cb; do
                 [ -z "$cid" ] && continue
                 secret=$(eval "printf '%s' \"\$$env\"")
-                upsert "$cid" "$secret" "$cb"
+                upsert "$cid" "$secret" "$secret_key" "$cb"
               done
               echo "seed complete"
           resources:

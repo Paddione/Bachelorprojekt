@@ -99,6 +99,9 @@ resources:
   - pocket-id.yaml
   # OIDC client seed Job (T001087) — idempotently registers the 16 clients
   - pocket-id-client-seed.yaml
+  # RBAC for the seed Job to write generated secrets back into
+  # workspace-secrets on client creation (T001435)
+  - pocket-id-client-seed-rbac.yaml
   # Netzwerksicherheit (L3)
   - network-policies.yaml
   # RustDesk web-client SSO bridge (T001381)

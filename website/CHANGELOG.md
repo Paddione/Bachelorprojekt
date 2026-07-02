@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.153.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.152.2...website-v1.153.0) (2026-07-02)
+
+
+### Features
+
+* **website:** ship factory-floor versand-reveal + drop ProviderStatus widget [T001454] ([#2510](https://github.com/Paddione/Bachelorprojekt/issues/2510)) ([d0aea3c](https://github.com/Paddione/Bachelorprojekt/commit/d0aea3cb6e75d22294ddd7368db752c3291835f0))
+
 ## [1.152.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.152.1...website-v1.152.2) (2026-07-02)
 
 

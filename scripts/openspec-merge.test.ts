@@ -68,4 +68,37 @@ The system SHALL add a brand new block C.
 
     expect(after).toBe(before);
   });
+
+  it('applies a second delta with the same basename+date but different content (marker must not collide) [T001473]', () => {
+    const ssotPath = join(root, 'specs', 'parent.md');
+    writeFileSync(ssotPath, '# parent\n\n## Purpose\n\nx\n\n## Requirements\n\n### Requirement: Block A\n\nBody.\n');
+
+    const dir1 = mkdtempSync(join(tmpdir(), 'openspec-merge-delta1-'));
+    const dir2 = mkdtempSync(join(tmpdir(), 'openspec-merge-delta2-'));
+    // Parent-SSOT-Slug convention: both deltas are named after the parent SSOT.
+    const delta1Path = join(dir1, 'parent.md');
+    const delta2Path = join(dir2, 'parent.md');
+    writeFileSync(delta1Path, `## ADDED Requirements\n\n### Requirement: Block B\n\nFirst delta content.\n`);
+    writeFileSync(delta2Path, `## ADDED Requirements\n\n### Requirement: Block C\n\nSecond delta content.\n`);
+
+    applyDelta(delta1Path, ssotPath, '2026-07-02', false);
+    applyDelta(delta2Path, ssotPath, '2026-07-02', false);
+
+    const finalContent = readFileSync(ssotPath, 'utf-8');
+    expect(finalContent).toContain('### Requirement: Block B');
+    expect(finalContent).toContain('### Requirement: Block C');
+
+    rmSync(dir1, { recursive: true, force: true });
+    rmSync(dir2, { recursive: true, force: true });
+  });
+
+  it('refuses ADDED when a requirement with the same name already exists [T001473]', () => {
+    const ssotPath = join(root, 'specs', 'dup.md');
+    writeFileSync(ssotPath, '# dup\n\n## Purpose\n\nx\n\n## Requirements\n\n### Requirement: Block A\n\nBody.\n');
+    const deltaPath = join(root, 'delta-dup.md');
+    writeFileSync(deltaPath, `## ADDED Requirements\n\n### Requirement: Block A\n\nDuplicate add.\n`);
+
+    vi.spyOn(process, 'exit').mockImplementationOnce(() => { throw new Error('process.exit(1)') });
+    expect(() => applyDelta(deltaPath, ssotPath, '2026-07-02', false)).toThrow('process.exit(1)');
+  });
 });

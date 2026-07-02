@@ -6,6 +6,7 @@
 // `**Renamed-to:**` directive, or an unedited skeleton stub.
 //   node scripts/openspec-merge.mjs apply <deltaPath> <ssotPath>
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs'
+import { createHash } from 'node:crypto'
 import { dirname, basename, join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
@@ -89,7 +90,8 @@ export function applyDelta(deltaPath, ssotPath, today = new Date().toISOString()
     writeFileSync(ssotPath, `# ${newSlug}\n\n## Purpose\n\n_Purpose fehlt — beim nächsten inhaltlichen Delta zu ${newSlug} ergänzen._\n\n## Requirements\n`)
   }
   let content = readFileSync(ssotPath, 'utf-8')
-  const marker = `<!-- merged from change delta ${deltaName} on ${today} -->`
+  const deltaHash = createHash('sha1').update(delta).digest('hex').slice(0, 12)
+  const marker = `<!-- merged from change delta ${deltaName} (${deltaHash}) -->`
   if (content.includes(marker)) {
     process.stdout.write(`skip (already merged): ${deltaName}\n`)
     return 0
@@ -99,6 +101,7 @@ export function applyDelta(deltaPath, ssotPath, today = new Date().toISOString()
   for (const item of parseDelta(delta)) {
     const hit = findBlocks(lines).find(b => b.name === item.name)
     if (item.op === 'ADDED') {
+      if (hit) fail(`${deltaName}: ADDED target '${item.name}' already exists in ${basename(ssotPath)} — use MODIFIED or rename`)
       const at = endOfRequirements(lines)
       lines.splice(at, 0, '', ...item.lines)
     } else if (item.op === 'MODIFIED') {

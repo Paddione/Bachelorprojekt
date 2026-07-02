@@ -35,15 +35,17 @@ export default defineConfig({
       provider: 'v8',
       include: ['src/lib/**/*.ts'],
       exclude: [
-        'src/lib/**/*.test.ts',
-        'src/lib/**/*.spec.ts',
-        'src/lib/**/__tests__/**',
-        'src/lib/**/*.generated.*',
-        'src/lib/**/*.d.ts',
+        '**/*.test.ts',
+        '**/*.spec.ts',
+        '**/__tests__/**',
+        '**/.generated.*',
+        '**/*.d.ts',
+        'vitest.config.ts',
       ],
-      reporter: ['text', 'json-summary'],
+      reporter: ['text', 'json-summary', 'lcov'],
       reportsDirectory: './coverage',
       thresholds: { lines: 80 },
+      reportOnFailure: true,
     },
     projects: [
       {

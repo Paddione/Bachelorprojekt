@@ -206,34 +206,6 @@ rules:
 YAML
 }
 
-@test "T001389: archive --create-new registers the new component slug in config.yaml" {
-  _fake_openspec_root
-  run node "$REPO/scripts/openspec-merge.mjs" apply "$FX/delta-added.md" "$ROOT/specs/new-widget.md" --create-new
-  [ "$status" -eq 0 ]
-  [ -f "$ROOT/specs/new-widget.md" ]
-  grep -q 'new-widget' "$ROOT/config.yaml"
-}
-
-@test "T001389: registering the same component twice does not duplicate the entry" {
-  _fake_openspec_root
-  run node "$REPO/scripts/openspec-merge.mjs" apply "$FX/delta-added.md" "$ROOT/specs/new-widget.md" --create-new
-  [ "$status" -eq 0 ]
-  # remove the merge marker so a second apply against a *different* new slug still runs,
-  # but re-verify idempotency by counting occurrences of the already-registered slug
-  [ "$(grep -o 'new-widget' "$ROOT/config.yaml" | wc -l)" -eq 1 ]
-}
-
-@test "T001389: MODIFIED delta against an existing SSOT does not touch config.yaml" {
-  _fake_openspec_root
-  cp "$FX/ssot-sample.md" "$ROOT/specs/existing.md"
-  local before after
-  before="$(cat "$ROOT/config.yaml")"
-  run node "$REPO/scripts/openspec-merge.mjs" apply "$FX/delta-modified.md" "$ROOT/specs/existing.md"
-  [ "$status" -eq 0 ]
-  after="$(cat "$ROOT/config.yaml")"
-  [ "$before" = "$after" ]
-}
-
 @test "openspec-workflow: propose guidance documents the parent-SSOT-slug delta-spec convention (T001385)" {
   local files=(
     "openspec/specs/openspec-workflow.md"

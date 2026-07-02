@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.151.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.150.11...website-v1.151.0) (2026-07-02)
+
+
+### Features
+
+* **admin:** admin-redesign — token alias, sidebar, dashboard, /admin/pipeline, conveyor floor, cockpit expand, DORA removal [T001433] ([#2483](https://github.com/Paddione/Bachelorprojekt/issues/2483)) ([9baa41c](https://github.com/Paddione/Bachelorprojekt/commit/9baa41c980291d8de57bfba93ffa3169e7142e64))
+
 ## [1.150.11](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.150.10...website-v1.150.11) (2026-07-01)
 
 

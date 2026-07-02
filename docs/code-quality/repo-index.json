@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 534,
+      "file_count": 535,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -377,6 +377,7 @@
         "tests/spec/openspec-workflow.bats",
         "tests/spec/plan-context.bats",
         "tests/spec/pocket-id-client-seed-auth-header.bats",
+        "tests/spec/pocket-id-client-seed-secret-writeback.bats",
         "tests/spec/pocket-id-client-seed-timeout.bats",
         "tests/spec/pocket-id-migration.bats",
         "tests/spec/pocket-id-proxy-ip.bats",
@@ -2286,7 +2287,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 445,
+      "file_count": 446,
       "files": [
         ".opencode/commands/opsx-apply.md",
         ".opencode/commands/opsx-archive.md",
@@ -2584,6 +2585,7 @@
         "k3d/office-stack/namespace.yaml",
         "k3d/office-stack/secret.yaml",
         "k3d/pentest-flags.yaml",
+        "k3d/pocket-id-client-seed-rbac.yaml",
         "k3d/pocket-id-client-seed.yaml",
         "k3d/pocket-id.yaml",
         "k3d/pvc-backup-cronjob.yaml",

@@ -385,36 +385,86 @@ correct test invocation.
 
 ---
 
-### Requirement: Archive registriert neue Komponenten automatisch in config.yaml
+### Requirement: Verzeichnis openspec/specs/ ist die einzige Komponenten-Quelle
 
-The system SHALL, wenn `archive --create-new` (bzw. der zugrunde liegende
-`applyDelta()`-Merge) eine bisher nicht existierende SSOT-Spec-Datei unter
-`openspec/specs/<slug>.md` anlegt, den Slug `<slug>` automatisch und idempotent
-in die `OpenSpec-Komponenten`-Liste von `openspec/config.yaml` eintragen, sodass
-`checkConfigDrift()` (T001304) direkt danach ohne manuellen Follow-up-Commit grün
-ist. Für Deltas gegen eine bereits existierende SSOT-Spec (MODIFIED/REMOVED/RENAMED)
-SHALL `config.yaml` unverändert bleiben.
+The system SHALL treat the top-level `*.md` files under `openspec/specs/` as the
+single source of truth for the component set, and SHALL NOT maintain, read, or
+validate any duplicate component enumeration in `openspec/config.yaml`. The
+validator (`scripts/openspec-validate.ts`) SHALL derive the component set
+exclusively from the directory listing and SHALL perform no config-drift
+comparison.
 
-#### Scenario: Archive einer wirklich neuen Komponente registriert sie automatisch
+#### Scenario: config.yaml carries no component enumeration
 
-- **GIVEN** ein Change mit einem Delta-Spec, dessen Ziel-SSOT `openspec/specs/<slug>.md`
-  noch nicht existiert
-- **WHEN** `scripts/openspec.sh archive <change-slug> --create-new` ausgeführt wird
-- **THEN** wird `openspec/specs/<slug>.md` neu angelegt
-- **AND** `<slug>` erscheint danach in `openspec/config.yaml`'s `OpenSpec-Komponenten`-Liste
-- **AND** `bash scripts/openspec.sh validate` bzw. `checkConfigDrift()` meldet für `<slug>` keinen Fehler mehr
+- **GIVEN** the file `openspec/config.yaml`
+- **WHEN** the file is inspected
+- **THEN** it contains no `OpenSpec-Komponenten:` key
+- **AND** `bash scripts/openspec.sh validate` exits 0 without performing a drift check
 
-#### Scenario: Wiederholtes Registrieren ist idempotent
+#### Scenario: validator reads only the directory
 
-- **GIVEN** `<slug>` ist bereits in `openspec/config.yaml`'s `OpenSpec-Komponenten`-Liste enthalten
-- **WHEN** `registerComponent()` erneut mit demselben `<slug>` aufgerufen wird
-- **THEN** bleibt die Liste unverändert (kein doppelter Eintrag)
+- **GIVEN** a well-formed SSOT spec `openspec/specs/<slug>.md`
+- **WHEN** `validateTree()` runs against the repo
+- **THEN** the spec is validated from the directory listing alone
+- **AND** no registration in `openspec/config.yaml` is required for the run to pass
 
-#### Scenario: Delta gegen existierende SSOT-Spec registriert nichts
+### Requirement: One-off-Specs liegen unter openspec/specs/archive/ und werden nicht als Komponenten validiert
 
-- **GIVEN** ein Delta-Spec zielt auf eine bereits existierende SSOT-Spec (MODIFIED)
-- **WHEN** `archive` ohne `--create-new` ausgeführt wird
-- **THEN** bleibt `openspec/config.yaml` unverändert
+The system SHALL store completed one-off change artifacts (ticket- and
+gate-numbered specs) under `openspec/specs/archive/`, and both the validator and
+the context loader SHALL treat only top-level `openspec/specs/*.md` files as
+component specs, ignoring the `archive/` subdirectory entirely.
+
+#### Scenario: archived spec is ignored by the validator
+
+- **GIVEN** a malformed file `openspec/specs/archive/<slug>.md`
+- **WHEN** `validateTree()` / `bash scripts/openspec.sh validate` runs
+- **THEN** the archived file is not validated as a component spec
+- **AND** the run stays green (exit 0)
+
+#### Scenario: context loader does not fall back to archive
+
+- **GIVEN** a slug whose spec was moved to `openspec/specs/archive/`
+- **WHEN** `scripts/openspec-context.sh` is queried for that slug
+- **THEN** it follows the existing not-found path
+- **AND** it does not load the file from `archive/`
+
+### Requirement: archive --create-new verweigert One-off-Slug-Muster ohne expliziten Override
+
+The system SHALL, when `archive` (via `applyDelta()`) would create a new SSOT
+spec whose slug matches the one-off denylist pattern
+`^(t[0-9]{6}|g-[a-z0-9]+[0-9]{2})`, fail with a non-zero exit code and an error
+message naming `--target-spec <parent>` and `--force-new-component` as
+alternatives, unless `--force-new-component` is passed.
+
+#### Scenario: one-off slug is rejected
+
+- **GIVEN** a change whose delta targets a non-existent SSOT `openspec/specs/t000000-foo.md`
+- **WHEN** `scripts/openspec.sh archive <slug> --create-new` runs
+- **THEN** the command exits with a non-zero status
+- **AND** the error message references `--target-spec` and `--force-new-component`
+- **AND** no new spec file is written
+
+#### Scenario: --force-new-component overrides the denylist
+
+- **GIVEN** the same change and one-off-shaped target slug
+- **WHEN** `scripts/openspec.sh archive <slug> --create-new --force-new-component` runs
+- **THEN** the SSOT spec is created
+- **AND** the command exits 0
+
+### Requirement: Neu erzeugte SSOT-Stubs tragen einen deutschen Purpose-Platzhalter
+
+The system SHALL, when writing a brand-new SSOT skeleton, emit a German
+placeholder Purpose sentence that contains no `TODO` token, so the stub is
+recognisable as incomplete without violating the Purpose-must-be-German rule or
+tripping the TODO cleanup gate (G-CQ05).
+
+#### Scenario: new skeleton carries a German placeholder purpose
+
+- **GIVEN** `applyDelta()` creates `openspec/specs/<slug>.md` for a genuinely new component
+- **WHEN** the skeleton file is written
+- **THEN** its `## Purpose` section contains a German placeholder sentence
+- **AND** the sentence contains no `TODO` token
 
 ## Testszenarien
 
@@ -963,3 +1013,5 @@ The system SHALL set the environment variable `OPENSPEC_TELEMETRY=0` in every wo
 <!-- merged from change delta openspec-workflow.md on 2026-07-01 -->
 
 <!-- merged from change delta openspec-workflow.md on 2026-07-02 -->
+
+<!-- merged from change delta openspec-workflow.md (3f6f031c1866) -->

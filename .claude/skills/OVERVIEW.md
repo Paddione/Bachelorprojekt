@@ -1,6 +1,6 @@
 # Skills Overview
 
-27 project-local skills (26 in `.claude/skills/<name>/` + 1 in `.claude/skills/superpowers/using-git-worktrees/`) grouped by domain. Each skill has its own `SKILL.md` with full runbook details. Invoke any skill by its name.
+30 project-local skills (29 in `.claude/skills/<name>/` + 1 in `.claude/skills/superpowers/using-git-worktrees/`) grouped by domain. Each skill has its own `SKILL.md` with full runbook details. Invoke any skill by its name.
 
 > **Konsolidierung (2026-06-21):** 7 Infra/Ops-Skills wurden in `infra-ops` zusammengeführt (nur bei explizitem Bedarf aufrufen). `update-dependencies` läuft als biweekly Cloud-Routine (https://claude.ai/code/routines/trig_01GiuyN6KP5iMcVUSvBQMKyQ). Die archivierten SKILL.md-Dateien haben kein `description`-Feld mehr und triggern nicht auto-matisch.
 
@@ -95,7 +95,8 @@ unabhängiger Beweis ist. Stufen 3+4 prüfen andere Dimensionen (Review-Qualitä
 ## Infrastructure & Networking
 
 | Skill | When to use |
-|---|---|
+|---|---|---|
+| [`website-specialist`](website-specialist/SKILL.md) | Astro/Svelte frontend development, component creation, page routing, content management, UI implementation. Dispatched as subagent via `bachelorprojekt-website`. |
 | [`host-node-networking`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/host-node-networking.html) | Host server provisioning (Hetzner, cloud-init, Rescue Mode resets), WireGuard mesh network topology ("netplan"), host UFW firewall ports, LiveKit WebRTC networking, and WSL OpenClaw local gateway setup. |
 | [`cluster-deployment`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/cluster-deployment.html) | Stand up a brand-new Kubernetes environment, deploy resources, diagnose cluster degraded state (gap analysis), or operate the dev.mentolder.de stack. Also covers cross-brand fleet operations: `task feature:*` fan-out, `feature:promote` smoke gate, SealedSecrets/Keycloak per-brand independence (Phase 5). |
 
@@ -107,6 +108,7 @@ unabhängiger Beweis ist. Stufen 3+4 prüfen andere Dimensionen (Review-Qualitä
 |---|---|
 | [`secret-rotation`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/secret-rotation.html) | Rotate DB passwords, API keys, SealedSecrets keypair (post-reset), Claude Code tokens, or service credentials across both brands on the fleet cluster. |
 | [`keycloak-realm-sync`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/keycloak-realm-sync.html) | Reconcile Keycloak realm JSON → push OIDC client changes, group mappings, mappers, SSO login fixes. |
+| [`security-specialist`](security-specialist/SKILL.md) | SealedSecrets lifecycle, Keycloak realm config, OIDC setup, DSGVO compliance, credential management. Dispatched as subagent via `bachelorprojekt-security`. |
 
 ---
 
@@ -124,6 +126,7 @@ unabhängiger Beweis ist. Stufen 3+4 prüfen andere Dimensionen (Review-Qualitä
 | Skill | When to use |
 |---|---|
 | [`database-ops`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/database-ops.html) | PostgreSQL schema migrations, default permission grants, automated backups audit, and safe restore verification. |
+| [`database-specialist`](database-specialist/SKILL.md) | PostgreSQL schema migrations, data queries, backup/restore, index optimization, performance tuning. Dispatched as subagent via `bachelorprojekt-db`. |
 
 ---
 

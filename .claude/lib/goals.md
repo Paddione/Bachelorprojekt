@@ -93,44 +93,42 @@ task env:validate:all  # Exit 0 ✓
 
 ---
 
-## G-GIT02 — Non-conventional Commits: 0/30 → 1/30 🔴
+## G-GIT02 — Non-conventional Commits: 0/30 ✅
 
-**Was:** Ein Commit ohne konventionelles Präfix in den letzten 30 Commits. Vermutlich
-der `chore(secrets): add GITHUB_CONTENT_TOKEN`-Commit, der das konventionelle Format
-erfüllt — liegt der Fehler im Pre-commit-Guard oder in der Messvorschrift?
+**Fix:** Der vermeintliche non-conventional Commit war ein `Merge branch`-Commit,
+der von GitHub automatisch erzeugt wird und konventionelle Commit-Regeln nicht
+betrifft. Gate: `--no-merges` hinzugefügt (health-goals-check.sh:102).
 
 ```bash
-git log --format=%s -30 origin/main | grep -vcE '^(feat|fix|chore|docs|test|refactor|perf|style|build|ci|revert)(\([^)]+\))?!?:'
+git log --format=%s --no-merges -30 origin/main | grep -vcE '^(feat|fix|chore|docs|test|refactor|perf|style|build|ci|revert)(\([^)]+\))?!?:\s'
 ```
 
-> **A · Baseline:** 1 (war 0/30 ✓) · **Target:** 0 · **Aufwand:** gering (Prüfung ob Commit konform) · **Messzyklus:** pro Merge · **Reproduzierbar:** ja · **Ticket:** T001552
+> **C · Baseline:** 0 · **Target:** 0 · **Aufwand:** gering (Commit 1d4ba261b) · **Messzyklus:** pro Merge · **Reproduzierbar:** ja · **Ticket:** T001552
 
 ---
 
-## G-AGENTIC06 — OVERVIEW.md Skill-Zähler vs real: 0 → 3 🔴
+## G-AGENTIC06 — OVERVIEW.md Skill-Zähler vs real: 0 ✅
 
-**Was:** Die `OVERVIEW.md` gibt 3 Skills mehr oder weniger an als tatsächlich existieren.
-Wahrscheinlich durch die Verschiebung/Archivierung von Skills im Rahmen der Skill-Restrukturierung.
+**Fix:** OVERVIEW.md Zähler von 27→30 korrigiert (3 neue Skills: lavish, references, vitest waren nicht eingetragen).
 
 ```bash
-# claimed - real (Betrag) via grep claim + find SKILL.md | wc -l
+grep -cP '^\d+ project-local skills' .agents/skills/OVERVIEW.md | xargs -I{} sh -c '[ "$(find .claude/skills -name SKILL.md | wc -l)" = "{}" ]'
 ```
 
-> **A · Baseline:** 3 (war 0 ✓) · **Target:** 0 · **Aufwand:** gering (OVERVIEW.md-Zähler korrigieren) · **Messzyklus:** pro Merge · **Reproduzierbar:** ja · **Ticket:** T001550
+> **C · Baseline:** 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** pro Merge · **Reproduzierbar:** ja · **Ticket:** T001550
 
 ---
 
-## G-AGENTIC07 — Verwaiste aktive Skills: 0 → 3 🔴
+## G-AGENTIC07 — Verwaiste aktive Skills: 0 ✅
 
-**Was:** Drei Skills haben eine `description` im Frontmatter, werden aber von keiner
-Referenzquelle (CLAUDE.md, AGENTS.md, OVERVIEW.md, anderen SKILL.md) importiert.
-Wahrscheinlich durch Skill-Archivierung oder Skop-Änderungen.
+**Fix:** website-specialist, database-specialist, security-specialist in OVERVIEW.md
+Tabellen aufgenommen (waren als Subagent-Skills nie in OVERVIEW.md registriert).
 
 ```bash
 # for SKILL.md in find; if description exists && zero refs in CLAUDE.md/AGENTS.md/OVERVIEW.md/other SKILL.md → count
 ```
 
-> **A · Baseline:** 3 (war 0 ✓) · **Target:** 0 · **Aufwand:** gering (Referenzen nachtragen oder Skills aus Frontmatter nehmen) · **Messzyklus:** pro Merge · **Reproduzierbar:** ja · **Ticket:** T001551
+> **C · Baseline:** 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** pro Merge · **Reproduzierbar:** ja · **Ticket:** T001551
 
 ---
 
@@ -287,7 +285,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-DORA03** | Change Failure Rate (Proxy) | 7.4 % ✓ | ≤ 15 % | `git log --since="8 weeks ago" --first-parent --oneline main \| ...fix()/revert-Rate` |
 | **G-DORA04** | MTTR | n/a ✓ | < 24h | `git log --since="8 weeks ago" --first-parent --format='%ct %s' main \| grep -iE 'revert\|hotfix'` |
 | **G-FE04** | Stray `console.log/debug/info` | 0 ✓ | 0 | `grep -rEn 'console\.(log\|debug\|info)' website/src --include='*.ts' --include='*.svelte' --include='*.astro' \| grep -v 'browser-logger.ts' \| grep -v '\.test\.ts' \| wc -l` |
-| **G-GIT02** | Non-conventional Commits | 🔴 1/30 | 0 | `git log --format=%s -30 origin/main \| grep -vcE '^(feat\|fix\|chore\|...)'` |
+| **G-GIT02** | Non-conventional Commits (ohne Merge) | 0 ✓ | 0 | `git log --format=%s --no-merges -30 origin/main \| grep -vcE '^(feat\|fix\|chore\|...)'` |
 | **G-GIT03** | Dateien >1MB im Tree | 6 ✓ | ≤ 6 | `git ls-files -z \| grep -zv '^\.codebase-memory/' \| xargs -0 -I{} sh -c 'test -f "{}" && wc -c "{}"' \| awk '$1>1048576{c++} END{print c+0}'` (`.codebase-memory/` per Policy-Entscheidung T001348 ausgeschlossen) |
 | **G-AGENTIC02** | Agent-Routing-Tabelle ↔ Frontmatter-Drift | 0 ✓ | 0 | `python3 <<'PY' ... norm/toks/fm/rows ... symmetric_difference` |
 | **G-AGENTIC03** | Agent-Frontmatter (name + description) | 0 ✓ | 0 | `for f in .claude/agents/*.md; do name==basename && description present` |
@@ -321,7 +319,7 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 - **Wöchentlich:** G-RH01/03, G-TEST01/03, G-SIZE01/03/04, G-CI01, G-CD01, G-CQ02/05, G-IMG01, G-K8S03, G-SPEC03, G-GIT03, G-FE03/04
 - **Monatlich/Quartal:** G-DEP02, G-SEC03/04, G-DOC02, G-FE01/02
 
-**Aktuell A-Ziele (2026-07-03):** G-SIZE04 (Spike-Fenster, T001347), G-GIT02 (1 non-conventional Commit, neu, T001552), G-AGENTIC06 (3 Skill-Zähler-Drift, neu, T001550), G-AGENTIC07 (3 verwaiste Skills, neu, T001551)
+**Aktuell A-Ziele (2026-07-03):** G-SIZE04 (Spike-Fenster, T001347)
 
 **Sprint-Highlights 2026-07-01:** G-CI01 erreicht Target (85 %→95 %, 19/20 grün) und wechselt von Prio A nach Prio C. G-RH03 (OpenSpec-BATS-Abdeckung 50 %→82 %) und G-DEP02 (Major-Deps 9→2) erreichen ihr Target und wechseln von Prio B nach Prio C. G-CQ01 erstmals gemessen: 0 astro-check-Fehler. G-CQ02 (explizite `any`) fällt weiter von 154 auf 8. G-GIT03 (Dateien >1MB) erreicht Target 7→6 per Policy-Ausschluss von `.codebase-memory/` (T001348) und wechselt von Prio A nach Prio C. G-SEC05-Messfehler dokumentiert: das Skript filtert nur eine von zwei GitHub-Actions-Bot-Mail-Varianten heraus, wodurch 4 Bot-Commits fälschlich als unsigniert zählen — echter Wert 0/50, Skript-Fix noch offen.
 
@@ -333,7 +331,9 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 
 **Baseline-Update 2026-07-03 (Fix):** G-CFG01 201→0 — PRIMARY_FRONTEND + TURN_OVERLAY_IP in fleet-*/staging ergänzt, RUSTDESK-Keys auf `required: false` gesetzt (mentolder-only). Wechselt von Prio A → Prio C.
 
-**Offene Tickets (2026-07-03):** G-SIZE04 (T001347), G-AGENTIC06 (T001550), G-AGENTIC07 (T001551), G-GIT02 (T001552); Prio B: G-CQ01 (T001553), G-CQ03 (T001554), G-CQ08 (T001555), G-SIZE02 (T001556), G-FE01 (T001557), G-FE02 (T001558), G-AGENTIC09 (T001559)
+**Baseline-Update 2026-07-03 (Fix 2):** G-GIT02 1→0 — `--no-merges` im Gate (Merge-Commit war falsch positiv). G-AGENTIC06 3→0 — OVERVIEW.md Zähler 27→30. G-AGENTIC07 3→0 — specialist Skills in OVERVIEW.md registriert. Drei Gates von Prio A → Prio C.
+
+**Offene Tickets (2026-07-03):** G-SIZE04 (T001347), G-AGENTIC06 (T001550), G-AGENTIC07 (T001551); Prio B: G-CQ01 (T001553), G-CQ03 (T001554), G-CQ08 (T001555), G-SIZE02 (T001556), G-FE01 (T001557), G-FE02 (T001558), G-AGENTIC09 (T001559)
 
 | Ziel | Ticket | Status |
 |------|--------|--------|
@@ -348,9 +348,9 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 | G-DEP01 | T001278 | **gefixt** (0 vulnerabilities) |
 | G-CI01 | T001279 | **gefixt** (95 % letzte 20 Läufe) |
 | G-CFG01 | T001548 | **gefixt** (Commit 97f04f031) |
-| G-GIT02 | T001552 | Prio A — offen |
-| G-AGENTIC06 | T001550 | Prio A — offen |
-| G-AGENTIC07 | T001551 | Prio A — offen |
+| G-GIT02 | T001552 | **gefixt** (Commit 1d4ba261b — `--no-merges` im Gate) |
+| G-AGENTIC06 | T001550 | **gefixt** (OVERVIEW.md count 27→30) |
+| G-AGENTIC07 | T001551 | **gefixt** (OVERVIEW.md: specialist skills registriert) |
 | G-CQ01 | T001553 | Prio B — offen |
 | G-CQ03 | T001554 | Prio B — offen |
 | G-CQ08 | T001555 | Prio B — offen |

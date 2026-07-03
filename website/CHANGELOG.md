@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.157.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.157.2...website-v1.157.3) (2026-07-03)
+
+
+### Bug Fixes
+
+* **auth-sso:** align kustomize refs + harden render tests for oauth2-proxy hardening [T001579] ([#2587](https://github.com/Paddione/Bachelorprojekt/issues/2587)) ([93b1247](https://github.com/Paddione/Bachelorprojekt/commit/93b12478a8fba54a0be98241e1835dc602632a34))
+
 ## [1.157.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.157.1...website-v1.157.2) (2026-07-03)
 
 

@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
-# scripts/factory/release-slot.sh <slotId(provider)> [success=true|false]
+# scripts/factory/release-slot.sh <slotId(provider)> [success=true|false] [ctx=0]
 # Decrements active_agents for the provider; success=false records a failure (→ circuit).
+# ctx (token-budget semaphore, T001590): the context_window reserved by the matching claim;
+# decrements provider_health.reserved_tokens by the same amount (floored at 0). Omitted/0
+# is safe but leaves reserved_tokens unreleased for that claim — always pass the route's ctx.
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=/dev/null

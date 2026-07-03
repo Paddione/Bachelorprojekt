@@ -6,6 +6,30 @@ load 'test_helper'
 
 SECRET_SCRIPT="${PROJECT_DIR}/scripts/secret-rotate.sh"
 
+# Stub kubeseal so the rotation test doesn't need a real cluster / the
+# kubeseal binary (absent on the CI runner — see tests/spec/env-seal-empty-value-keys.bats
+# for the same pattern). Echoes the input Secret followed by a stub
+# SealedSecret envelope; good enough for env-seal.sh's --fetch-cert and
+# encrypt calls, both of which only check for non-empty output / exit 0.
+make_kubeseal_stub() {
+  local stub_dir="$1"
+  cat > "${stub_dir}/kubeseal" <<'STUB'
+#!/usr/bin/env bash
+cat
+cat <<'ENVELOPE'
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: stub-envelope
+  namespace: stub
+spec:
+  encryptedData: {}
+ENVELOPE
+STUB
+  chmod +x "${stub_dir}/kubeseal"
+}
+
 @test "secret-rotate.sh does not rotate secrets when exposed (BUG: requires --force)" {
   local env_dir="${BATS_TEST_TMPDIR}/test-env"
   mkdir -p "${env_dir}" "${env_dir}/.secrets"
@@ -65,9 +89,14 @@ website_namespace: website
 YAML
 
   echo "SHARED_DB_PASSWORD: old-secret-value-xyz" > "${env_dir}/.secrets/testenv.yaml"
-  
+
+  local stub_dir="${BATS_TEST_TMPDIR}/kubeseal-stub"
+  mkdir -p "$stub_dir"
+  make_kubeseal_stub "$stub_dir"
+
   # Run secret rotation WITH --force to trigger rotation (fix implementation)
-  run bash "$SECRET_SCRIPT" --env testenv --env-dir "$env_dir" --force
+  PATH="${stub_dir}:${PATH}" \
+    run bash "$SECRET_SCRIPT" --env testenv --env-dir "$env_dir" --force
   
   [ "$status" -eq 0 ] || {
     echo "expected: FAIL (rotation should succeed with --force)"

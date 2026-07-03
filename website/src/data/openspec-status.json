@@ -805,6 +805,12 @@
       "status": "plan_staged"
     }
   ],
+  "T001582": [
+    {
+      "slug": "t001582",
+      "status": "plan_staged"
+    }
+  ],
   "T001584": [
     {
       "slug": "fleet-secrets-parity-test",

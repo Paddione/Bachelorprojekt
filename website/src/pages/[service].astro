@@ -27,7 +27,7 @@ const prevSvc = svcIndex > 0 ? visibleServices[svcIndex - 1] : null;
 const nextSvc = svcIndex < visibleServices.length - 1 ? visibleServices[svcIndex + 1] : null;
 
 // SEO: DB-Override > pageContent.seoTitle > svc.title
-const dbSeoTitle = await getSeoTitle(BRAND_ID, svc.slug).catch(() => null);
+const dbSeoTitle = getSeoTitle(BRAND_ID, svc.slug);
 const seoTitle = dbSeoTitle ?? pc.seoTitle ?? svc.title;
 const useRawTitle = seoTitle !== svc.title;
 
@@ -35,7 +35,7 @@ const useRawTitle = seoTitle !== svc.title;
 const dbSeoDesc = await getSiteSetting(BRAND_ID, `seo_meta_desc_${svc.slug}`).catch(() => null);
 const seoDesc = dbSeoDesc ?? pc.seoDescription ?? svc.description;
 
-const seoOgImage = await getSeoOgImage(BRAND_ID, svc.slug).catch(() => null);
+const seoOgImage = getSeoOgImage(BRAND_ID, svc.slug);
 
 // introNote: special section rendered between intro and forWhom
 const introNoteSection = pc.sections?.find((s) => s.title === '__introNote__');

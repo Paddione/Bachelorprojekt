@@ -33,7 +33,7 @@ const slotPreview  = rawMode === 'termin' && initialDate && initialStart;
 const seoTitle = await getSiteSetting(BRAND_ID, 'seo_title_kontakt').catch(() => null) ?? 'Kontakt | mentolder.de';
 const seoDesc  = await getSiteSetting(BRAND_ID, 'seo_meta_desc_kontakt').catch(() => null)
   ?? 'Nehmen Sie Kontakt auf. Kostenloses Erstgespräch vereinbaren – kein Verkaufsdruck.';
-const seoOgImage = await getSeoOgImage(BRAND_ID, 'kontakt').catch(() => null);
+const seoOgImage = getSeoOgImage(BRAND_ID, 'kontakt');
 ---
 
 <Layout title={seoTitle} description={seoDesc} brand={layoutBrand} ogImage={seoOgImage ?? undefined}>

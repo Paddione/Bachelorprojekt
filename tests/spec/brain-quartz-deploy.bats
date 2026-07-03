@@ -1,5 +1,6 @@
 #!/usr/bin/env bats
 # T001569: brain-quartz-deploy - BATS Spec (RED initial, GREEN after implementation)
+load 'test_helper'
 
 @test "k3d base renders the brain static-site Deployment" {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"

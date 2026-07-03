@@ -16,7 +16,6 @@ spec:
             - "--client-secret=$(POCKET_ID_VIDEOVAULT_SECRET)"
             - "--redirect-url=https://videovault.${PROD_DOMAIN}/oauth2/callback"
             - "--oidc-issuer-url=https://auth.${PROD_DOMAIN}"
-            - "--ssl-insecure-skip-verify=true"
             - "--skip-oidc-discovery=true"
             - "--login-url=https://auth.${PROD_DOMAIN}/authorize"
             - "--redeem-url=https://auth.${PROD_DOMAIN}/api/oidc/token"
@@ -32,7 +31,6 @@ spec:
             - "--set-xauthrequest=true"
             - "--skip-provider-button=true"
             - "--code-challenge-method=S256"
-            - "--insecure-oidc-allow-unverified-email=true"
             - "--oidc-extra-audience=videovault"
             - "--scope=openid email profile"
           env:

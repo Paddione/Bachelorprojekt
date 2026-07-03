@@ -12,13 +12,21 @@ load 'test_helper'
 BOT_EMAIL="github-actions[bot]@users.noreply.github.com"
 
 @test "G-SEC05: adjusted unsigned-Anteil auf main (ohne Bot) ist <= 5%" {
-  unsigned=$(git -C "$PROJECT_DIR" log -50 --pretty="%G? %ae" origin/main 2>/dev/null \
-    | grep -vF "$BOT_EMAIL" \
-    | awk '{print $1}' \
-    | grep -c N || true)
-  total=$(git -C "$PROJECT_DIR" log -50 --pretty="%G? %ae" origin/main 2>/dev/null \
-    | grep -vF "$BOT_EMAIL" \
-    | wc -l | tr -d ' ')
+  # T001575: %G? ist umgebungsabhängig — ohne verfügbares gpg/passende Keys
+  # meldet git für signierte Commits 'N' statt 'E' und der Guard wird im
+  # CI fälschlich rot. "Unsigned" heißt: der Commit-Objekt-Header trägt
+  # KEINE gpgsig-Signatur. Das prüfen wir direkt über git cat-file —
+  # deterministisch, unabhängig von Keyring/gpg auf dem Runner.
+  unsigned=0
+  total=0
+  while read -r sha ae; do
+    [ -z "$sha" ] && continue
+    case "$ae" in *"$BOT_EMAIL"*) continue ;; esac
+    total=$((total + 1))
+    if ! git -C "$PROJECT_DIR" cat-file commit "$sha" 2>/dev/null | grep -q '^gpgsig'; then
+      unsigned=$((unsigned + 1))
+    fi
+  done < <(git -C "$PROJECT_DIR" log -50 --pretty="%H %ae" origin/main 2>/dev/null)
   if [ "$total" -eq 0 ]; then
     skip "keine non-bot Commits in den letzten 50 gefunden"
   fi

@@ -55,7 +55,8 @@
 
           <button type="button" role="tab" aria-selected={activeMode === 'message'}
             class="ch-mode" class:is-active={activeMode === 'message'}
-            onclick={() => (activeMode = 'message')}>
+            onclick={() => (activeMode = 'message')}
+            data-testid="tab-nachricht" aria-label="02 – Nachricht senden">
             <span class="ch-mode-num">02 — Nachricht</span>
             <span class="ch-mode-title">Eine Frage stellen.</span>
             <span class="ch-mode-sub">Wenn Sie erst kurz schildern möchten, was Sie beschäftigt.</span>

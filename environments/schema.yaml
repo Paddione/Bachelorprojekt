@@ -1058,6 +1058,38 @@ secrets:
       - namespace: website
         secret: website-secrets
 
+  - name: OPENROUTER_API_KEY
+    required: false
+    generate: false
+    description: "OpenRouter API key for the OpenRouter provider in provider_config routing. Injected into the website pod via website-secrets."
+    extra_namespaces:
+      - namespace: website
+        secret: website-secrets
+
+  - name: OPENCODE_API_KEY
+    required: false
+    generate: false
+    description: "opencode Zen API key (covers the opencode Go subscription) for provider_config routing. Injected into the website pod via website-secrets."
+    extra_namespaces:
+      - namespace: website
+        secret: website-secrets
+
+  - name: GEMINI_API_KEY
+    required: false
+    generate: false
+    description: "Google Gemini API key for the google-gemini provider in provider_config routing. Injected into the website pod via website-secrets."
+    extra_namespaces:
+      - namespace: website
+        secret: website-secrets
+
+  - name: GITHUB_MODELS_TOKEN
+    required: false
+    generate: false
+    description: "GitHub Models token for the github-models provider in provider_config routing. Injected into the website pod via website-secrets."
+    extra_namespaces:
+      - namespace: website
+        secret: website-secrets
+
   - name: LLM_ROUTER_API_KEY
     required: false
     generate: false

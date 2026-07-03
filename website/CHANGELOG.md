@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.156.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.156.2...website-v1.156.3) (2026-07-03)
+
+
+### Bug Fixes
+
+* **secrets:** resolve fleet secrets-parity test bug + owner_brand env/brand mismatch [T001584] ([#2567](https://github.com/Paddione/Bachelorprojekt/issues/2567)) ([6787265](https://github.com/Paddione/Bachelorprojekt/commit/6787265ce9ff405ce0698b3cbc0fc6e4546a9ef4))
+
 ## [1.156.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.156.1...website-v1.156.2) (2026-07-03)
 
 

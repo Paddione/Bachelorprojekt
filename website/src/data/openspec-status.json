@@ -825,12 +825,12 @@
   ],
   "T001590": [
     {
-      "slug": "local-agent-budget-routing",
+      "slug": "t001590",
       "status": "plan_staged"
     },
     {
-      "slug": "t001590",
-      "status": "plan_staged"
+      "slug": "2026-07-03-local-agent-budget-routing",
+      "status": "archived"
     }
   ],
   "T001591": [

@@ -74,7 +74,10 @@ function extractAuthLevel(content, urlPath) {
     /isAdmin\s*\(/.test(content) ||
     /requireAdmin/.test(content) ||
     /role.*admin/i.test(content) ||
-    /admin.*role/i.test(content)
+    /admin.*role/i.test(content) ||
+    // T001490: admin save endpoints delegate the getSession+isAdmin(401)
+    // guard to the shared publish handler instead of inlining it.
+    /handleAdminSave\s*\(/.test(content)
   ) {
     return 'admin';
   }

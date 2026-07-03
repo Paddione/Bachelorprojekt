@@ -45,7 +45,36 @@ patches:
   - path: patch-mailpit-auth-middleware.yaml
 
   # Brain ist mentolder-only (T001569) — auf korczewski komplett entfernen.
-  - path: brain-exclude.yaml
+  # (Inline-Delete-Patches wie in prod-fleet/components/fleet-common —
+  #  Multi-Doc-Patch-Dateien via `patches:` lassen neuere kustomize panicen.)
+  - target: { group: apps, version: v1, kind: Deployment, name: brain }
+    patch: |-
+      $patch: delete
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: brain
+  - target: { version: v1, kind: Service, name: brain }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: brain
+  - target: { group: apps, version: v1, kind: Deployment, name: oauth2-proxy-brain }
+    patch: |-
+      $patch: delete
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: oauth2-proxy-brain
+  - target: { version: v1, kind: Service, name: oauth2-proxy-brain }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: oauth2-proxy-brain
 
   # livekit-recordings-pvc uses the base manifest's storage class (local-path),
   # tied to the livekit pin-node (pk-hetzner-6). Acceptable because livekit-* are

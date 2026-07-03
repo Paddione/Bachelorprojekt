@@ -81,20 +81,15 @@ gh api "repos/{owner}/{repo}/actions/workflows/build-website.yml/runs?branch=mai
 
 ---
 
-## G-CFG01 — env:validate:all: Exit 0 → 201 Schema-Drift-Violations 🔴
+## G-CFG01 — env:validate:all grün ✅
 
-**Was:** `env:validate:all` meldet 201 Schema-Drift-Verstöße — wahrscheinlich durch die
-hinzugefügte `GITHUB_CONTENT_TOKEN`-Variable in `.secrets/`-Dateien, deren Schema-Eintrag
-(`environments/schema.yaml`) ein `secret:`-Mapping auf den neuen Secret-Namen erwartet,
-während die `.secrets/`-Dateien die Variable als einfaches Key-Value führen. Zusätzlich
-könnten andere Secrets (POCKET_ID_DOWNLOADS_SECRET, POCKET_ID_ENCRYPTION_KEY u.a.) ohne
-korrespondierende Schema-Einträge hinzugekommen sein.
+**Fix:** PRIMARY_FRONTEND + TURN_OVERLAY_IP in fleet-* + staging ergänzt, RUSTDESK-Keys auf `required: false` gesetzt (mentolder-only via `owner_brand`). Alle 6 Environments passen.
 
 ```bash
-task env:validate:all
+task env:validate:all  # Exit 0 ✓
 ```
 
-> **A · Baseline:** 201 (war 0 · Exit 0 ✓) · **Target:** 0 · **Aufwand:** mittel (Schema-Einträge ergänzen) · **Messzyklus:** pro Merge · **Reproduzierbar:** ja · **Ticket:** T001548
+> **C · Baseline:** 0 · **Target:** 0 · **Aufwand:** gering (Commit 97f04f031) · **Messzyklus:** pro Merge · **Reproduzierbar:** ja · **Ticket:** T001548
 
 ---
 
@@ -269,7 +264,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-K8S02** | Deployments ohne readinessProbe | 3/34 ✓ | ≤ 3 | `python3 -c "..readinessProbe.." k3d/*.yaml` |
 | **G-K8S03** | Deployments ohne securityContext | 0 ✓ | 0 | `python3 -c "..securityContext.." k3d/*.yaml` |
 | **G-K8S04** | workspace:validate grün | Exit 0 ✓ | Exit 0 | `task workspace:validate` |
-| **G-CFG01** | env:validate:all grün | 🔴 201 | Exit 0 | `task env:validate:all` |
+| **G-CFG01** | env:validate:all grün | 0 ✓ | Exit 0 | `task env:validate:all` |
 | **G-SEC01** | Hardcoded Secrets (k3d) | 0 ✓ | 0 | `grep -rn 'password.*=.*[^$]' k3d/*.yaml \| grep -iv secretKeyRef \| wc -l` |
 | **G-SEC02** | git-crypt Guard | Exit 0 ✓ | Exit 0 | `bash scripts/git-crypt-guard.sh check-tracked` |
 | **G-SEC03** | SealedSecret-Rotation | 6 Tage ✓ | ≤ 90 Tage | `git log -1 --format='%at' -- environments/sealed-secrets/*.yaml \| ...` |
@@ -326,7 +321,7 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 - **Wöchentlich:** G-RH01/03, G-TEST01/03, G-SIZE01/03/04, G-CI01, G-CD01, G-CQ02/05, G-IMG01, G-K8S03, G-SPEC03, G-GIT03, G-FE03/04
 - **Monatlich/Quartal:** G-DEP02, G-SEC03/04, G-DOC02, G-FE01/02
 
-**Aktuell A-Ziele (2026-07-03):** G-SIZE04 (Spike-Fenster, T001347), G-CFG01 (201 Schema-Verstöße, neu, T001548), G-GIT02 (1 non-conventional Commit, neu, T001552), G-AGENTIC06 (3 Skill-Zähler-Drift, neu, T001550), G-AGENTIC07 (3 verwaiste Skills, neu, T001551)
+**Aktuell A-Ziele (2026-07-03):** G-SIZE04 (Spike-Fenster, T001347), G-GIT02 (1 non-conventional Commit, neu, T001552), G-AGENTIC06 (3 Skill-Zähler-Drift, neu, T001550), G-AGENTIC07 (3 verwaiste Skills, neu, T001551)
 
 **Sprint-Highlights 2026-07-01:** G-CI01 erreicht Target (85 %→95 %, 19/20 grün) und wechselt von Prio A nach Prio C. G-RH03 (OpenSpec-BATS-Abdeckung 50 %→82 %) und G-DEP02 (Major-Deps 9→2) erreichen ihr Target und wechseln von Prio B nach Prio C. G-CQ01 erstmals gemessen: 0 astro-check-Fehler. G-CQ02 (explizite `any`) fällt weiter von 154 auf 8. G-GIT03 (Dateien >1MB) erreicht Target 7→6 per Policy-Ausschluss von `.codebase-memory/` (T001348) und wechselt von Prio A nach Prio C. G-SEC05-Messfehler dokumentiert: das Skript filtert nur eine von zwei GitHub-Actions-Bot-Mail-Varianten heraus, wodurch 4 Bot-Commits fälschlich als unsigniert zählen — echter Wert 0/50, Skript-Fix noch offen.
 
@@ -336,7 +331,9 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 
 **Baseline-Update 2026-07-03:** G-CQ02 11→10; G-SIZE03 2106→1957; G-FE03 10→1; G-TEST05 82 %→85 %; **G-CFG01** Exit 0→201 (Schema-Drift nach GITHUB_CONTENT_TOKEN-Add); **G-GIT02** 0→1 (non-conventional Commit); **G-AGENTIC06** 0→3 (OVERVIEW.md Skill-Zähler); **G-AGENTIC07** 0→3 (verwaiste Skills) — vier Gates von Prio C nach Prio A zurückgestuft.
 
-**Offene Tickets (2026-07-03):** G-SIZE04 (T001347), G-CFG01 (T001548), G-AGENTIC06 (T001550), G-AGENTIC07 (T001551), G-GIT02 (T001552); Prio B: G-CQ01 (T001553), G-CQ03 (T001554), G-CQ08 (T001555), G-SIZE02 (T001556), G-FE01 (T001557), G-FE02 (T001558), G-AGENTIC09 (T001559)
+**Baseline-Update 2026-07-03 (Fix):** G-CFG01 201→0 — PRIMARY_FRONTEND + TURN_OVERLAY_IP in fleet-*/staging ergänzt, RUSTDESK-Keys auf `required: false` gesetzt (mentolder-only). Wechselt von Prio A → Prio C.
+
+**Offene Tickets (2026-07-03):** G-SIZE04 (T001347), G-AGENTIC06 (T001550), G-AGENTIC07 (T001551), G-GIT02 (T001552); Prio B: G-CQ01 (T001553), G-CQ03 (T001554), G-CQ08 (T001555), G-SIZE02 (T001556), G-FE01 (T001557), G-FE02 (T001558), G-AGENTIC09 (T001559)
 
 | Ziel | Ticket | Status |
 |------|--------|--------|
@@ -350,7 +347,7 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 | G-CQ01 | T001277 | **gefixt** (PR #2225) |
 | G-DEP01 | T001278 | **gefixt** (0 vulnerabilities) |
 | G-CI01 | T001279 | **gefixt** (95 % letzte 20 Läufe) |
-| G-CFG01 | T001548 | Prio A — offen |
+| G-CFG01 | T001548 | **gefixt** (Commit 97f04f031) |
 | G-GIT02 | T001552 | Prio A — offen |
 | G-AGENTIC06 | T001550 | Prio A — offen |
 | G-AGENTIC07 | T001551 | Prio A — offen |

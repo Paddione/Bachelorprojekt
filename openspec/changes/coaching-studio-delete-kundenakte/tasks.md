@@ -2,7 +2,7 @@
 title: "Kundenakte löschen (coaching-studio Prototyp)"
 ticket_id: "T001563"
 domains: [website]
-status: plan_staged
+status: completed
 ---
 
 # coaching-studio-delete-kundenakte — Implementation Plan

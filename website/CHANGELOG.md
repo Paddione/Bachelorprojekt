@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.157.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.156.4...website-v1.157.0) (2026-07-03)
+
+
+### Features
+
+* **factory:** token-budget semaphore + local qwen3.5 primary routing [T001590] ([#2574](https://github.com/Paddione/Bachelorprojekt/issues/2574)) ([435c2db](https://github.com/Paddione/Bachelorprojekt/commit/435c2db77d4bd3e1eefa3802605674e173b28284))
+
 ## [1.156.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.156.3...website-v1.156.4) (2026-07-03)
 
 

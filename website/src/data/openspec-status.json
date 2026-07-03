@@ -805,6 +805,12 @@
       "status": "plan_staged"
     }
   ],
+  "T001579": [
+    {
+      "slug": "oauth2-proxy-hardening",
+      "status": "plan_staged"
+    }
+  ],
   "T001582": [
     {
       "slug": "2026-07-03-t001582",

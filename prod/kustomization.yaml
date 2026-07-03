@@ -128,18 +128,18 @@ patches:
   # patch-keycloak.yaml removed — Keycloak decommissioned
   # Production SMTP and service config
   - path: patch-vaultwarden.yaml
-  - path: patch-oauth2-proxy-docs.yaml
-  - path: patch-oauth2-proxy-brain.yaml
-  - path: patch-oauth2-proxy-downloads.yaml
-  - path: patch-oauth2-proxy-traefik.yaml
-  - path: patch-oauth2-proxy-mailpit.yaml
-  - path: patch-oauth2-proxy-brett.yaml
-  - path: patch-oauth2-proxy-videovault.yaml
-  - path: patch-oauth2-proxy-rustdesk-web.yaml
-  - path: patch-oauth2-proxy-studio.yaml
-  - path: patch-oauth2-proxy-mediaviewer.yaml
+  - path: patch-oauth2-proxy-docs-deployment.yaml
+  - path: patch-oauth2-proxy-brain-deployment.yaml
+  - path: patch-oauth2-proxy-downloads-deployment.yaml
+  - path: patch-oauth2-proxy-traefik-deployment.yaml
+  - path: patch-oauth2-proxy-mailpit-deployment.yaml
+  - path: patch-oauth2-proxy-brett-deployment.yaml
+  - path: patch-oauth2-proxy-videovault-deployment.yaml
+  - path: patch-oauth2-proxy-rustdesk-web-deployment.yaml
+  - path: patch-oauth2-proxy-studio-deployment.yaml
+  - path: patch-oauth2-proxy-mediaviewer-deployment.yaml
   - path: patch-brett.yaml
-  - path: patch-oauth2-proxy-comfy.yaml
+  - path: patch-oauth2-proxy-comfy-deployment.yaml
   # Collabora lives in the workspace-office namespace, deployed via
   # task workspace:office:deploy — no patch target on this overlay.
   # Reduce shared-db resource requests for smaller production clusters

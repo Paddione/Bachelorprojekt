@@ -78,7 +78,7 @@ describe('POST /api/admin/angebote/save — T001490 publish pipeline', () => {
     };
     const r = await POST({ request: jsonReq({ services: [card], leistungen: [] }) });
     expect(r.status).toBe(200);
-    const [firstArg] = mocks.publishContent.mock.calls as Array<[{ payload: Array<{ price?: string; pageContent?: { pricing?: unknown } }> }]>;
+    const [firstArg] = mocks.publishContent.mock.calls as Array<[{ payload: Array<{ price?: string; pageContent?: { pricing?: unknown; headline?: string } }> }]>;
     const published = firstArg[0].payload[0];
     expect(published.price).toBeUndefined();
     expect(published.pageContent?.pricing).toBeUndefined();

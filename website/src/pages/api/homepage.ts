@@ -24,7 +24,6 @@ export const GET: APIRoute = async ({ request }) => {
   try {
     document = bundleHomepageBlocks(BRAND);
   } catch (err) {
-    // eslint-disable-next-line no-console
     console.warn('[api/homepage] bundle read failed, returning 204:', (err as Error)?.message ?? err);
   }
   // The bundle carries a build-time SHA via Vite; expose it as a version

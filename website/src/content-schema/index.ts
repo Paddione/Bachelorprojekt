@@ -5,10 +5,10 @@
 // directory must hold. `ContentBundleSchema` is consumed by the build-time
 // loader (content-bundle.ts) and by the DB→JSON exporter (scripts/export-site-content.mjs).
 import type { z } from 'zod';
-import { HomepageSchema, HomepageBlocksSchema, SeoSchema, SCHEMA_VERSION } from './homepage';
+import { HomepageSchema, HomepageBlocksSchema, SeoSchema } from './homepage';
 import {
   FaqSchema, KontaktSchema, UebermichSchema, ServicesSchema,
-  LeistungenSchema, HighlightTableSchema, ReferenzenConfigSchema,
+  LeistungenSchema, ReferenzenConfigSchema,
 } from './pages';
 import {
   StammdatenSchema, NavigationSchema, FooterConfigSchema, KoreFlagsSchema,

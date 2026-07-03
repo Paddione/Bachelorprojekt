@@ -25,7 +25,7 @@ status: active
 
 ## Vorgehen
 
-- [ ] **Task 0: Diagnose — CI-Artifakte analysieren (RED)**
+- [x] **Task 0: Diagnose — CI-Artifakte analysieren (RED)**
   - CI-Run-Logs/Traces aus dem letzten fehlgeschlagenen `e2e-pr.yml`-Run laden.
   - Identifiziere die exakte Playwright-Error-Message für T5/T6:
     - `locator.click: Timeout` (Element nicht gefunden/unsichtbar)?
@@ -40,13 +40,13 @@ status: active
     ```
   - Dokumentiere die Error-Message hier im Plan.
 
-- [ ] **Task 1: Fix anwenden (je nach Diagnose)**
+- [x] **Task 1: Fix anwenden (je nach Diagnose)**
   - **Option A (Accessible Name):** Tab-Button in ContactHub.svelte mit `data-testid="tab-nachricht"` versehen. Test-Selektor auf `page.locator('[data-testid="tab-nachricht"]')` umstellen.
   - **Option B (Hydration):** In fa-10-website.spec.ts die `waitForHydration` auf das ContactHub-spezifische astro-island warten lassen: `await page.waitForSelector('astro-island[component-url*="ContactHub"][ssr]', { state: 'detached', timeout: 15000 })`.
   - **Option C (Timeout):** T5/T6 mit `test.setTimeout(60000)` versehen für langsamere CI-Runner.
   - **Option D (aria-label):** Dem role="tab"-Button in ContactHub.svelte ein explizites `aria-label` geben: `aria-label="02 – Nachricht senden"`.
 
-- [ ] **Task 2: Failing-Test läuft grün (GREEN)**
+- [x] **Task 2: Failing-Test läuft grün (GREEN)**
   - Führe den FA-10-Test erneut gegen web.mentolder.de aus:
     ```bash
     cd /home/patrick/Bachelorprojekt/tmp/wt-e2e-smoke/tests/e2e
@@ -54,7 +54,7 @@ status: active
     # expected: all tests PASS (inkl. T5/T6)
     ```
 
-- [ ] **Task 3: Regression — korczewski-brand bleibt kompatibel**
+- [x] **Task 3: Regression — korczewski-brand bleibt kompatibel**
   - `korczewski-home.spec.ts` nutzt ebenfalls `getByRole('tab', { name: /Nachricht/i })` in T2.
   - Prüfe, ob der Fix (data-testid/aria-label) den korczewski-Test nicht bricht.
   - Führe den korczewski-Home-Test aus (gegen web.korczewski.de):
@@ -64,7 +64,7 @@ status: active
     # expected: T2 PASS (Nachricht-Tab klickbar)
     ```
 
-- [ ] **Task 4: Verifikation — alle Quality-Gates grün (Verify-Task)**
+- [x] **Task 4: Verifikation — alle Quality-Gates grün (Verify-Task)**
   - `task test:changed` — fokussierte Tests für geänderte Dateien.
   - `task freshness:regenerate && task freshness:check` — generierte Artefakte aktuell.
   - `task workspace:validate` — Kustomize-Manifests valide.

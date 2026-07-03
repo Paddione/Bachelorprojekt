@@ -62,19 +62,24 @@ setup() {
   echo "$output" | head -7 | tr '\n' ' ' | grep -q "type: 'hero'.*type: 'stats'.*type: 'services'.*type: 'whyMe'.*type: 'process'.*type: 'faq'.*type: 'cta'"
 }
 
-@test "seed.ts contains the inline testimonial (Dr. M. Albers)" {
-  run grep "Dr. M. Albers" "$REPO/mentolder-web/src/blocks/seed.ts"
+# T001575: seed.ts wurde in 7a0d1dde7 bewusst mit dem Live-Content von
+# web.mentolder.de synchronisiert (Platzhalter "Dr. M. Albers" → echtes
+# Zitat). Die Assertions prüfen weiterhin den Kontrakt (Testimonial mit
+# quoteName/quoteRole, strukturiertes whyMe-Intro), aber gegen den
+# aktuellen, absichtlich geänderten Content.
+@test "seed.ts contains the inline testimonial (quoteName/quoteRole)" {
+  run grep "quoteName: 'Gerald Korczewski'" "$REPO/mentolder-web/src/blocks/seed.ts"
   [ "$status" -eq 0 ]
-  run grep "CTO" "$REPO/mentolder-web/src/blocks/seed.ts"
+  run grep "quoteRole: 'Coach und digitaler Begleiter'" "$REPO/mentolder-web/src/blocks/seed.ts"
   [ "$status" -eq 0 ]
 }
 
 @test "seed.ts uses structured whyMe intro with prefix/emphasis/suffix" {
-  run grep "prefix: 'Ich '" "$REPO/mentolder-web/src/blocks/seed.ts"
+  run grep "prefix: 'Ich kenne beide Welten: '" "$REPO/mentolder-web/src/blocks/seed.ts"
   [ "$status" -eq 0 ]
-  run grep "emphasis: 'verbinde'" "$REPO/mentolder-web/src/blocks/seed.ts"
+  run grep "emphasis: '40 Jahre etablierte Strukturen'" "$REPO/mentolder-web/src/blocks/seed.ts"
   [ "$status" -eq 0 ]
-  run grep "suffix: ' technische Tiefe" "$REPO/mentolder-web/src/blocks/seed.ts"
+  run grep "suffix: ' UND modernste KI-Tools" "$REPO/mentolder-web/src/blocks/seed.ts"
   [ "$status" -eq 0 ]
 }
 

@@ -2327,7 +2327,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 430,
+      "file_count": 429,
       "files": [
         ".opencode/commands/opsx-apply.md",
         ".opencode/commands/opsx-archive.md",
@@ -2681,7 +2681,6 @@
         "prod-fleet/website-korczewski/website-security-headers.yaml",
         "prod-fleet/website-mentolder/kustomization.yaml",
         "prod-fleet/website-mentolder/website-ingress-web.yaml",
-        "prod-korczewski/brain-exclude.yaml",
         "prod-korczewski/cert-dev-wildcard.yaml",
         "prod-korczewski/ddns-updater.yaml",
         "prod-korczewski/dev-db-refresh-cron.yaml",

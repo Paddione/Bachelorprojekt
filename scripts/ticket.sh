@@ -2,7 +2,7 @@
 # scripts/ticket.sh — unified CLI helper for ticket database operations.
 #
 # Commands:
-#   create --type <type> --title <title> --description <description> [--brand <brand>] [--severity <severity>] [--priority <priority>] [--is-test-data]
+#   create --type <type> --title <title> --description <description> [--brand <brand>] [--severity critical|major|minor|trivial] [--priority <priority>] [--is-test-data]
 #   update-status --id <external_id> --status <status> [--resolution <resolution>] [--notes <notes>]
 #   add-comment --id <external_id> --body <body> [--author <author_label>] [--visibility <visibility>]
 #   archive-plan --id <external_id> --slug <slug> --branch <branch> --plan-file <plan_file> [--pr <pr_number>]
@@ -40,26 +40,9 @@ if [[ "$CTX" == k3d-* || "$CTX" == *-dev ]]; then
 fi
 
 source "$(dirname "${BASH_SOURCE[0]}")/vda/ticket/_ticket-core.sh"
-
-# TICKET_OFFLINE=1 — skip the cluster call for writes (dev-flow-execute best-effort).
-# Mirrors scripts/openspec.sh so the same env var works for both CLIs.
-_ticket_offline_skip() {
-  if [[ "${TICKET_OFFLINE:-0}" == "1" ]]; then
-    echo "OFFLINE: skipped $*"
-    return 0
-  fi
-  return 1
-}
-
-# TICKET_OFFLINE=1 — refuse reads loudly. Reads must reach the cluster to
-# validate ticket state; silently returning empty would mask missing-cluster bugs.
-_ticket_offline_refuse_read() {
-  if [[ "${TICKET_OFFLINE:-0}" == "1" ]]; then
-    echo "OFFLINE: refused read $* (cluster required for reads)" >&2
-    return 9
-  fi
-  return 1
-}
+# [T001582-M3] _ticket_offline_skip / _ticket_offline_refuse_read now live in
+# vda/ticket/_ticket-core.sh (sourced above) so scripts/vda/ticket/get.sh can
+# reach them too — see that file for the TICKET_OFFLINE semantics.
 
 cmd_create() {
   source "$(dirname "${BASH_SOURCE[0]}")/vda/ticket/create.sh"

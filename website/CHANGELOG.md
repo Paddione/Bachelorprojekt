@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.156.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.155.2...website-v1.156.0) (2026-07-03)
+
+
+### Features
+
+* brain foundation ([#2550](https://github.com/Paddione/Bachelorprojekt/issues/2550)) ([2248036](https://github.com/Paddione/Bachelorprojekt/commit/22480368770f10707ec6ed017186822fe4c9b733))
+
 ## [1.155.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.155.1...website-v1.155.2) (2026-07-03)
 
 

@@ -58,3 +58,26 @@ Der Subagent hat per Konstruktion **keinen** Kontext — gib alles explizit, abe
 - Die relevanten **Artefakt-Pfade** (Spec/Plan/Ticket), nicht deren Volltext, wenn er sie selbst lesen kann.
 - Bei mehreren Vorstufen-Ergebnissen: **zusammenfassen, nie Roh-JSON dumpen**. (Ein 162k-Zeichen-Prompt ließ
   einen Synthese-Agenten ohne brauchbare Antwort scheitern — die Provisioning-Lehre schlechthin.)
+
+### 4. Kontext-Budget & Handoff (PFLICHT-Direktive in jedem Subagenten-Prompt) [T001571]
+
+Subagenten degradieren still, wenn ihr Kontext gegen das Fenster (~200k Tokens) läuft: Scope-Drift,
+fachfremde Edits, vergessene Auftragsdetails („Dumbzone"). Es gibt keinen Harness-Mechanismus, der
+das hart begrenzt — deshalb ist die Selbstmeldung Teil des Auftrags.
+
+**In JEDEN Subagenten-Prompt gehört diese Standing-Direktive (sinngemäß):**
+
+> Überwache dein eigenes Kontext-Budget. Bei Anzeichen von Kontext-Überlauf — Heuristik:
+> >100 Tool-Calls, viele große File-Reads/CI-Logs, oder du bemerkst, dass frühere Details
+> fehlen/kompaktiert wurden — NICHT weiterarbeiten. Stattdessen sofort stoppen und als finale
+> Nachricht einen strukturierten **Handoff-Report** liefern: (1) erledigte Schritte,
+> (2) exakter Git-/Datei-Zustand (Branch, letzte Commits, dirty files), (3) offene Schritte in
+> Reihenfolge, (4) bekannte Fallen. Ein sauberer Handoff ist Erfolg, kein Versagen.
+
+**Orchestrator-Pflichten beim Ersatz eines Agenten:**
+1. Alten Agenten stoppen (`TaskStop`), NICHT parallel weiterlaufen lassen.
+2. Im Worktree `git status` prüfen: committete Arbeit bleibt; **fachfremde uncommittete
+   Änderungen verwerfen** (`git checkout -- <files>`) — Dumbzone-Edits an Dateien außerhalb
+   des Auftrags-Scopes sind das Leitsymptom.
+3. Frischen Agenten mit kompaktem Lagebild spawnen (Commits seit origin/main, offene Schritte),
+   nicht mit dem Volltranskript des Vorgängers.

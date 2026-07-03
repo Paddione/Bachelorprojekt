@@ -8,13 +8,18 @@
 # silently no-ops on a missing file at this layer — both existing
 # tests/spec/*.bats files use the same pattern).
 #
-# These tests are RED on the current branch (HEAD 2cc010f5): the
-# fixes described in openspec/changes/dev-flow-chore-ticket-ops-mishaps/
-# have not been applied yet. They turn GREEN after the corresponding
-# edits in .claude/skills/dev-flow-chore/SKILL.md (Step 4) and
-# .claude/skills/ticket-ops/SKILL.md (Phase 4 Step 4.4 + Phase 1 Step 1.4)
-# land. See docs/superpowers/specs/2026-06-27-t001210-dev-flow-chore-ticket-ops-mishaps-design.md
-# for the design note and the OpenSpec plan for the implementation tasks.
+# These tests originally targeted the guards inline in dev-flow-chore/SKILL.md
+# and ticket-ops/SKILL.md. PR #2493 (T001441, "modularize skills — dedupe into
+# SSOT references") intentionally hoisted both guards into shared SSOT
+# reference files without touching this bats file:
+#   - git-crypt-Staging-/Secret-in-index-Guard -> .claude/skills/git-workflow/SKILL.md
+#   - ticket-ops Phase 4 Step 4.4 (GitHub Issue Intake + title-dedupe guard,
+#     incl. the T001147 canonical reference) -> the shared
+#     "## 4. GitHub-Issue-Intake" section in
+#     .claude/skills/references/repo-hygiene-ops.md
+# The assertions below were repointed (T001210 follow-up, T001526) at the
+# SSOT files so they keep guarding against the guard silently disappearing,
+# instead of against the (now-stale) assumption that it lives inline.
 
 load 'test_helper'
 
@@ -22,6 +27,8 @@ setup() {
   REPO="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
   DEV_FLOW_CHORE_SKILL="$REPO/.claude/skills/dev-flow-chore/SKILL.md"
   TICKET_OPS_SKILL="$REPO/.claude/skills/ticket-ops/SKILL.md"
+  GIT_WORKFLOW_SKILL="$REPO/.claude/skills/git-workflow/SKILL.md"
+  REPO_HYGIENE_OPS="$REPO/.claude/skills/references/repo-hygiene-ops.md"
 }
 
 # ── Mishap 1: dev-flow-chore must not use `git add -A` and must guard the index ────
@@ -39,23 +46,28 @@ setup() {
 
 @test "T001210: dev-flow-chore Step 4 has a secret-in-index guard for environments/.secrets/**" {
   [ -f "$DEV_FLOW_CHORE_SKILL" ]
-  # The fix adds a hard pre-commit guard that aborts with FATAL if the
-  # index contains any path under environments/.secrets/. The grep below
-  # matches the canonical pattern from T001199 / PR #2135.
-  run grep -nE 'environments/\.secrets' "$DEV_FLOW_CHORE_SKILL"
+  [ -f "$GIT_WORKFLOW_SKILL" ]
+  # T001441 hoisted the actual guard implementation into git-workflow/SKILL.md
+  # (the declared SSOT). dev-flow-chore Step 4 must still point at it by name
+  # ("git-crypt-Staging-Guard [T001210]") so the guard isn't silently
+  # dropped from the chore commit/push flow, and the SSOT file must contain
+  # the real pattern match (canonical from T001199 / PR #2135).
+  run grep -nE 'git-crypt-Staging-Guard \[T001210\]' "$DEV_FLOW_CHORE_SKILL"
+  [ "$status" -eq 0 ]
+  run grep -nE 'environments/\.secrets' "$GIT_WORKFLOW_SKILL"
   [ "$status" -eq 0 ]
 }
 
 @test "T001210: dev-flow-chore secret-in-index guard is positioned in Step 4 (commit/push section)" {
   [ -f "$DEV_FLOW_CHORE_SKILL" ]
-  # The guard must live in the commit/push section, not in a later deploy
-  # section. Find the line of the "## Schritt 4" header, the line of
-  # "## Schritt 5", and the line of the guard; the guard must be between
-  # those two lines.
+  # The SSOT reference to the guard must live in the commit/push section,
+  # not in a later deploy section. Find the line of the "## Schritt 4"
+  # header, the line of "## Schritt 5", and the line of the guard
+  # reference; the reference must be between those two lines.
   local step4 schritt5 guard
   step4="$(grep -n '^## Schritt 4' "$DEV_FLOW_CHORE_SKILL" | head -1 | cut -d: -f1)"
   schritt5="$(grep -n '^## Schritt 5' "$DEV_FLOW_CHORE_SKILL" | head -1 | cut -d: -f1)"
-  guard="$(grep -nE 'environments/\.secrets' "$DEV_FLOW_CHORE_SKILL" | head -1 | cut -d: -f1)"
+  guard="$(grep -nE 'git-crypt-Staging-Guard \[T001210\]' "$DEV_FLOW_CHORE_SKILL" | head -1 | cut -d: -f1)"
   [ -n "$step4" ]
   [ -n "$schritt5" ]
   [ -n "$guard" ]
@@ -67,35 +79,38 @@ setup() {
 
 @test "T001210: ticket-ops Phase 4 Step 4.4 (GitHub Issue Intake) has a title-dedupe guard" {
   [ -f "$TICKET_OPS_SKILL" ]
-  # The fix adds a "check for an existing open ticket with the same title
-  # (or canonical reference) before INSERT" step in Phase 4 Step 4.4
-  # (GitHub Issue Intake). The keyword set is the contract: any of
-  # `dedup`, `deduplicate`, `duplicate ticket`, or `same title` (each
-  # as a word/phrase, not a substring of unrelated prose like
-  # `execution`). We grep the file for the keyword and assert it lands
-  # AFTER the Step 4.4 header (line ~302).
-  local step44 keyword
-  step44="$(grep -nE '^###[[:space:]]+Step 4\.4' "$TICKET_OPS_SKILL" | head -1 | cut -d: -f1)"
-  [ -n "$step44" ]
-  # Anchor on a strict phrase pattern to avoid false positives from
-  # the existing `duplicate_of` schema enum and `execution wave` prose.
-  keyword="$(grep -nEi 'dedup|deduplicate|duplicate ticket|same title' "$TICKET_OPS_SKILL" | head -1 | cut -d: -f1)"
+  [ -f "$REPO_HYGIENE_OPS" ]
+  # T001441 hoisted Phase 4 (incl. Step 4.4 GitHub Issue Intake) out of
+  # ticket-ops/SKILL.md into the shared repo-hygiene-ops.md SSOT reference,
+  # renumbered "### Step 4.4" -> "## 4.". ticket-ops/SKILL.md must still
+  # reference the dedupe guard by name so it isn't silently dropped, and
+  # the SSOT file must contain the actual guard step (any of `dedup`,
+  # `deduplicate`, `duplicate ticket`, or `same title`, as a word/phrase
+  # -- not a substring of unrelated prose like `execution`) after the
+  # "## 4." GitHub-Issue-Intake header.
+  run grep -nEi 'Dedupe-Guard' "$TICKET_OPS_SKILL"
+  [ "$status" -eq 0 ]
+  local step4 keyword
+  step4="$(grep -nE '^##[[:space:]]+4\.[[:space:]]' "$REPO_HYGIENE_OPS" | head -1 | cut -d: -f1)"
+  [ -n "$step4" ]
+  keyword="$(grep -nEi 'dedup|deduplicate|duplicate ticket|same title' "$REPO_HYGIENE_OPS" | head -1 | cut -d: -f1)"
   [ -n "$keyword" ]
-  [ "$keyword" -gt "$step44" ]
+  [ "$keyword" -gt "$step4" ]
 }
 
 @test "T001210: ticket-ops Step 4.4 dedupe guard references the canonical T001147 (regression marker)" {
-  [ -f "$TICKET_OPS_SKILL" ]
-  # The fix cross-references the canonical reference ticket (T001147, the
-  # shipped "E2E notification test — Playwright FA-bug-notify" ticket) so
-  # the dedupe lookup is anchored to a real example. This is a regression
-  # marker: a future re-introduction of duplicate-ticket creation will
-  # be caught by the canonical reference being cited.
-  local step44 ref
-  step44="$(grep -nE '^###[[:space:]]+Step 4\.4' "$TICKET_OPS_SKILL" | head -1 | cut -d: -f1)"
-  [ -n "$step44" ]
-  # Look for T001147 (or T001148, the prior mishap bundle) in the skill.
-  ref="$(grep -nE 'T001147|T001148' "$TICKET_OPS_SKILL" | head -1 | cut -d: -f1)"
+  [ -f "$REPO_HYGIENE_OPS" ]
+  # The dedupe guard (now in repo-hygiene-ops.md, see above) cross-
+  # references the canonical reference ticket (T001147, the shipped "E2E
+  # notification test — Playwright FA-bug-notify" ticket) so the dedupe
+  # lookup is anchored to a real example. This is a regression marker: a
+  # future re-introduction of duplicate-ticket creation will be caught by
+  # the canonical reference being cited.
+  local step4 ref
+  step4="$(grep -nE '^##[[:space:]]+4\.[[:space:]]' "$REPO_HYGIENE_OPS" | head -1 | cut -d: -f1)"
+  [ -n "$step4" ]
+  # Look for T001147 (or T001148, the prior mishap bundle) in the file.
+  ref="$(grep -nE 'T001147|T001148' "$REPO_HYGIENE_OPS" | head -1 | cut -d: -f1)"
   [ -n "$ref" ]
-  [ "$ref" -gt "$step44" ]
+  [ "$ref" -gt "$step4" ]
 }

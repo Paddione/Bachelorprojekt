@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { corsHeaders, handlePreflight } from '../../lib/cors';
 import { bundleHomepageBlocks } from '../../lib/content-bundle';
+import { logger } from '../../lib/logger';
 
 // Public read of the live homepage block document for this brand.
 //
@@ -24,7 +25,7 @@ export const GET: APIRoute = async ({ request }) => {
   try {
     document = bundleHomepageBlocks(BRAND);
   } catch (err) {
-    console.warn('[api/homepage] bundle read failed, returning 204:', (err as Error)?.message ?? err);
+    logger.warn({ err }, '[api/homepage] bundle read failed, returning 204');
   }
   // The bundle carries a build-time SHA via Vite; expose it as a version
   // surrogate so the cross-origin editor can do optimistic-concurrency

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.156.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.156.0...website-v1.156.1) (2026-07-03)
+
+
+### Bug Fixes
+
+* **website:** add data-testid and aria-label to ContactHub Nachricht tab for robust E2E selector [T001564] ([#2560](https://github.com/Paddione/Bachelorprojekt/issues/2560)) ([ad7935c](https://github.com/Paddione/Bachelorprojekt/commit/ad7935c6c734fbacc7d8d38eb0104d61ecc9585a))
+
 ## [1.156.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.155.2...website-v1.156.0) (2026-07-03)
 
 

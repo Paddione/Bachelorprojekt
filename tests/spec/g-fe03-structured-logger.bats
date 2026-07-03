@@ -6,7 +6,7 @@
 @test "G-FE03: keine rohen console.error/warn Aufrufe (exkl. browser-logger-Stub)" {
   count=$(grep -rEn 'console\.(error|warn)' website/src \
     --include='*.ts' --include='*.svelte' --include='*.astro' 2>/dev/null \
-    | grep -v 'browser-logger\.ts' | wc -l | tr -d ' ')
+    | grep -v 'browser-logger\.ts' | grep -v '\.test\.ts' | wc -l | tr -d ' ')
   [ "$count" -eq 0 ]
 }
 

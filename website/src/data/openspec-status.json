@@ -799,6 +799,12 @@
       "status": "archived"
     }
   ],
+  "T001578": [
+    {
+      "slug": "brain-site-dockerfile-template",
+      "status": "plan_staged"
+    }
+  ],
   "T001584": [
     {
       "slug": "fleet-secrets-parity-test",

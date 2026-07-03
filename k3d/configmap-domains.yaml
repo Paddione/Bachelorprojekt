@@ -31,7 +31,6 @@ data:
   ADMIN_EMAIL: "admin@localhost"
   BRETT_DOMAIN: "brett.localhost"
   BRAINSTORM_DOMAIN: "brainstorm.localhost"
-  BRAIN_DOMAIN: "brain.localhost"
   AI_DOMAIN: "ai.localhost"
   OTEL_DOMAIN: "otel.localhost"
   LIVEKIT_DOMAIN: "livekit.localhost"

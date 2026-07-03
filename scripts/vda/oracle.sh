@@ -154,11 +154,24 @@ done
 
 GOAL="${REMAINING_ARGS[*]:?Usage: task-oracle.sh [--dry-run|--json|--quiet] '<goal>'}"
 
+# ── Task-var resolution (ENV vs BRAND) ─────────────────────────────────────
+# shellcheck source=./oracle-task-vars.sh
+source "$(dirname "${BASH_SOURCE[0]}")/oracle-task-vars.sh"
+
 # ── Dry-run / JSON output helper ──────────────────────────────────────────
 emit_dry_run() {
-  local task="$1" env="$2" label="${3:-}" cmd
-  if [[ "${env:-}" == __BOTH__ ]]; then cmd="task ${task} ENV=mentolder && task ${task} ENV=korczewski"; label=both
-  else cmd="task ${task}${env:+ ${env}}"; fi
+  local task="$1" env="$2" label="${3:-}" repo="${4:-.}" cmd
+  if [[ "${env:-}" == __BOTH__ ]]; then
+    # Materialize the correct var (ENV vs BRAND) per task instead of assuming
+    # ENV= — fleet:deploy:brand and friends require BRAND=fleet-<brand>. [T001583]
+    local m k
+    m="$(materialize_task_env_arg "$task" mentolder "$repo")"
+    k="$(materialize_task_env_arg "$task" korczewski "$repo")"
+    cmd="task ${task}${m:+ ${m}} && task ${task}${k:+ ${k}}"
+    label=both
+  else
+    cmd="task ${task}${env:+ ${env}}"
+  fi
   [[ $JSON_OUT -eq 1 ]] && printf '{"task":"%s","env":"%s","cmd":"%s"}\n' "$task" "$label" "$cmd" || echo "$cmd"
   exit 0
 }
@@ -203,7 +216,7 @@ if [[ "$GOAL" =~ $FASTPATH_REGEX ]]; then
   [[ $QUIET -eq 0 ]] && echo "→ [fast-path] Task: ${FP_FINAL}${FP_EXEC_ENV:+  ${FP_EXEC_ENV}}" >&2
   [[ $QUIET -eq 0 && -n "$TASK_DESC_FP" ]] && echo "  ${TASK_DESC_FP}" >&2
 
-  [[ $DRY_RUN -eq 1 ]] && emit_dry_run "$FP_FINAL" "$FP_EXEC_ENV" "$FP_ENV"
+  [[ $DRY_RUN -eq 1 ]] && emit_dry_run "$FP_FINAL" "$FP_EXEC_ENV" "$FP_ENV" "$REPO_FP"
 
   if [[ "${FP_EXEC_ENV:-}" == "__BOTH__" ]]; then
     [[ $QUIET -eq 0 ]] && echo "→ Running on mentolder then korczewski..." >&2
@@ -350,15 +363,19 @@ Goal: ${GOAL}"
   else
     # ── Phase 3: ENV inference + task summary + execution ───────────────
 
-    # task --summary line 3 = human-readable description (includes ENV= hints)
+    # task --summary line 3 = human-readable description, purely informational.
     TASK_DESC=$(cd "$REPO" && task --summary "$SELECTED" 2>/dev/null | sed -n '3p' || true)
-    TASK_HAS_ENV=$(echo "$TASK_DESC" | grep -c 'ENV=' || true)
+    # Resolve the ACTUAL Taskfile.yml `requires: vars:` var (ENV or BRAND) —
+    # not a substring guess on the description text, which silently produced
+    # a non-runnable `ENV=<token>` for BRAND-only tasks like fleet:deploy:brand
+    # (T001583 mishap 3). Empty means the task takes neither var.
+    TASK_VAR=$(task_required_var "$SELECTED" "$REPO")
 
     INFERRED_ENV=$(infer_env "$GOAL")
     FINAL_TASK="$SELECTED"
     EXEC_ENV=""
 
-    if [[ "$TASK_HAS_ENV" -gt 0 && -n "$INFERRED_ENV" ]]; then
+    if [[ -n "$TASK_VAR" && -n "$INFERRED_ENV" ]]; then
       if [[ "$INFERRED_ENV" == "both" ]]; then
         # Prefer the :all-prods sibling if one exists
         ALL_PRODS="${SELECTED}:all-prods"
@@ -369,14 +386,14 @@ Goal: ${GOAL}"
           EXEC_ENV="__BOTH__"
         fi
       else
-        EXEC_ENV="ENV=${INFERRED_ENV}"
+        EXEC_ENV="$(materialize_task_env_arg "$SELECTED" "$INFERRED_ENV" "$REPO")"
       fi
     fi
 
     [[ $QUIET -eq 0 ]] && echo "→ Task: ${FINAL_TASK}${EXEC_ENV:+  ${EXEC_ENV}}" >&2
     [[ $QUIET -eq 0 && -n "$TASK_DESC" ]] && echo "  ${TASK_DESC}" >&2
 
-    [[ $DRY_RUN -eq 1 ]] && emit_dry_run "$FINAL_TASK" "$EXEC_ENV" "${INFERRED_ENV:-}"
+    [[ $DRY_RUN -eq 1 ]] && emit_dry_run "$FINAL_TASK" "$EXEC_ENV" "${INFERRED_ENV:-}" "$REPO"
 
     # Tail hermes log to stderr during execution (skip for quiet/agent mode)
     TAIL_PID=""
@@ -388,8 +405,12 @@ Goal: ${GOAL}"
 
     if [[ "${EXEC_ENV:-}" == "__BOTH__" ]]; then
       [[ $QUIET -eq 0 ]] && echo "→ Running on mentolder then korczewski..." >&2
-      cd "$REPO" && task "$FINAL_TASK" ENV=mentolder
-      cd "$REPO" && task "$FINAL_TASK" ENV=korczewski
+      MENTOLDER_ARG="$(materialize_task_env_arg "$FINAL_TASK" mentolder "$REPO")"
+      KORCZEWSKI_ARG="$(materialize_task_env_arg "$FINAL_TASK" korczewski "$REPO")"
+      # shellcheck disable=SC2086
+      cd "$REPO" && task "$FINAL_TASK" ${MENTOLDER_ARG:-}
+      # shellcheck disable=SC2086
+      cd "$REPO" && task "$FINAL_TASK" ${KORCZEWSKI_ARG:-}
     else
       # shellcheck disable=SC2086
       cd "$REPO" && task "$FINAL_TASK" ${EXEC_ENV:-}

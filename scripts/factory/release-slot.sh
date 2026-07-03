@@ -5,12 +5,15 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=/dev/null
 source "$HERE/lib.sh"; factory_resolve
-PROV="${1:?slotId/provider required}"; SUCCESS="${2:-true}"
+PROV="${1:?slotId/provider required}"; SUCCESS="${2:-true}"; CTX="${3:-0}"
 # null slot (opus / emergency) → nothing to release.
 [[ "$PROV" == "null" || -z "$PROV" ]] && exit 0
 
-factory_psql -v prov="$PROV" <<'SQL'
-UPDATE tickets.provider_health SET active_agents = GREATEST(0, active_agents - 1), updated_at = now()
+factory_psql -v prov="$PROV" -v ctx="$CTX" <<'SQL'
+UPDATE tickets.provider_health
+SET active_agents = GREATEST(0, active_agents - 1),
+    reserved_tokens = GREATEST(0, reserved_tokens - :'ctx'::int),
+    updated_at = now()
 WHERE provider = :'prov';
 SQL
 

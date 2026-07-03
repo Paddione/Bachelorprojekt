@@ -2916,6 +2916,26 @@ REG="scripts/factory/service-registry.sh"
 }
 
 
+# ── FA-SF-71-local-agent-budget-routing ─────────────────────────#
+# FA-SF-71 — token-budget semaphore + local-qwen35 provider (T001590; offline, DB-touching
+# paths skipped).
+
+@test "FA-SF-71: route-provider.sh reserves tokens under a NULL-safe budget guard" {
+  grep -Eq 'reserved_tokens = reserved_tokens \+ :.?ctx' scripts/factory/route-provider.sh
+  grep -Eq "nullif\(:'budget',''\)::int IS NULL OR reserved_tokens \+ :'ctx'::int <=" scripts/factory/route-provider.sh
+  grep -q '"ctx":%s' scripts/factory/route-provider.sh
+}
+
+@test "FA-SF-71: release-slot.sh decrements reserved_tokens by ctx (floored at 0)" {
+  grep -Eq 'reserved_tokens = GREATEST\(0, reserved_tokens - :.?ctx' scripts/factory/release-slot.sh
+}
+
+@test "FA-SF-71: release-slot.sh still no-ops on null slot with a ctx arg" {
+  run bash scripts/factory/release-slot.sh null true 60000
+  [ "$status" -eq 0 ]
+}
+
+
 # ── T001433 admin-redesign: Factory Floor conveyor-only (FA-SF-FLOOR) ─────────
 @test "FA-SF-FLOOR: FactoryFloor.svelte has no ff-view/kanban toggle" {
   run grep -c "ff-view" website/src/components/FactoryFloor.svelte

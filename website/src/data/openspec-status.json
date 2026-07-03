@@ -799,15 +799,49 @@
       "status": "archived"
     }
   ],
+  "T001578": [
+    {
+      "slug": "brain-site-dockerfile-template",
+      "status": "plan_staged"
+    }
+  ],
   "T001584": [
     {
       "slug": "fleet-secrets-parity-test",
       "status": "plan_staged"
     }
   ],
+  "T001586": [
+    {
+      "slug": "t001586",
+      "status": "plan_staged"
+    }
+  ],
+  "T001588": [
+    {
+      "slug": "t001588",
+      "status": "plan_staged"
+    }
+  ],
   "T001590": [
     {
       "slug": "local-agent-budget-routing",
+      "status": "plan_staged"
+    },
+    {
+      "slug": "t001590",
+      "status": "plan_staged"
+    }
+  ],
+  "T001591": [
+    {
+      "slug": "t001591",
+      "status": "plan_staged"
+    }
+  ],
+  "T001592": [
+    {
+      "slug": "t001592",
       "status": "plan_staged"
     }
   ],

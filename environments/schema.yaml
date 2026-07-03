@@ -588,7 +588,7 @@ secrets:
         owner_brand: [mentolder]
 
   - name: RUSTDESK_ID_ED25519
-    required: true
+    required: false
     extra_namespaces:
       - namespace: rustdesk
         secret: rustdesk-secrets
@@ -596,7 +596,7 @@ secrets:
         owner_brand: [mentolder]
 
   - name: RUSTDESK_ID_ED25519_PUB
-    required: true
+    required: false
     extra_namespaces:
       - namespace: rustdesk
         secret: rustdesk-secrets

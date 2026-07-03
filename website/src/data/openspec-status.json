@@ -807,14 +807,18 @@
   ],
   "T001582": [
     {
-      "slug": "t001582",
-      "status": "plan_staged"
+      "slug": "2026-07-03-t001582",
+      "status": "archived"
     }
   ],
   "T001584": [
     {
       "slug": "fleet-secrets-parity-test",
       "status": "plan_staged"
+    },
+    {
+      "slug": "2026-07-03-fleet-secrets-parity-test",
+      "status": "archived"
     }
   ],
   "T001586": [

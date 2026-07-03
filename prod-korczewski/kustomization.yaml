@@ -81,6 +81,10 @@ patches:
   # pinned to that node anyway via patch-livekit.yaml. (Longhorn IS available on
   # fleet — see patch-data-pvc-storage.yaml — but livekit recordings stay local.)
   - path: patch-livekit.yaml
+  # Brain (T001569) is mentolder-only — exclude all brain resources via
+  # $patch: delete (multi-document strategic-merge patch, same convention
+  # as patch-cronjob-urls.yaml above).
+  - path: brain-exclude.yaml
   - path: patch-backup-config.yaml
   # Pin vaultwarden data PVC to longhorn so pvc-backup can clone it
   # placement-independently (mirrors prod-mentolder). [T000403]

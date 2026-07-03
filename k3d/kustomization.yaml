@@ -110,6 +110,9 @@ resources:
   # RustDesk web-client SSO bridge (T001381)
   - rustdesk-web-bridge.yaml
   - oauth2-proxy-rustdesk-web.yaml
+  # Brain — Quartz-rendered LLM-wiki static site (T001569)
+  - brain.yaml
+  - oauth2-proxy-brain.yaml
   # Ingress
   - ingress.yaml
   # Website RBAC (Role/RoleBinding in workspace ns for monitoring + backup-status API)

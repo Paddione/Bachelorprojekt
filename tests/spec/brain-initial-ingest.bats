@@ -2,7 +2,7 @@
 # T001570: brain-initial-ingest - BATS Spec (RED initial, GREEN after implementation)
 # SSOT: openspec/changes/brain-initial-ingest/tasks.md
 
-load helper/load
+load 'test_helper'
 
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"

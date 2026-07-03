@@ -1,27 +1,31 @@
 # ═══════════════════════════════════════════════════════════════════
 # Brain — korczewski-only EXCLUSION (mentolder-only scoping)
-# Alle brain-Ressourcen werden exkludiert ($patch: delete)
+# Alle brain-Ressourcen werden exkludiert via $patch: delete.
 # ═══════════════════════════════════════════════════════════════════
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: brain
-spec: {}
+  namespace: workspace
+$patch: delete
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: brain
-spec: {}
+  namespace: workspace
+$patch: delete
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: oauth2-proxy-brain
-spec: {}
+  namespace: workspace
+$patch: delete
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: oauth2-proxy-brain
-spec: {}
+  namespace: workspace
+$patch: delete

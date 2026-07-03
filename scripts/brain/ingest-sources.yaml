@@ -1,67 +1,40 @@
-# ────────────────────────────────────────────────────────────────────
-# Brain-Quellen-Manifest für die Wiki-Kompilierung (Brain Initial Ingest)
-# ════════════════════════════════════════════════════════════════════
+# brain/ingest-sources.yaml — Quellen-Manifest für Brain-Doku-Kompilierung
 
 exclude:
-  - docs/archive/           # veraltete Doku
-  - docs/generated/         # generierte Artefakte (kein Source Material)
-  - docs/legacy-html/       # alte HTML-Seiten
-  - docs/drift-reports/     # Drift-Detection Reports
-  - openspec/specs/archive/ # archivte OpenSpec-Specs
+  - docs/archive/
+  - docs/generated/
+  - generated/
+  - legacy-html/
+  - drift-reports/
+  - openspec/specs/archive/
 
 groups:
-  # ────────────────────────────────────────────────────────────────────
-  # SSOT-Spezifikationen (57 Specs) — höchste Priorität für LLM-Zitationen
-  # ────────────────────────────────────────────────────────────────────
-  - group: brain-ssot-specs
-    priority: 1
-    include:
-      - openspec/specs/*.md
-
-  # ────────────────────────────────────────────────────────────────────
-  # Operative Runbooks & ADRs — praktische Handlungsanleitungen
-  # ────────────────────────────────────────────────────────────────────
-  - group: brain-runbooks
-    priority: 2
-    include:
-      - docs/runbooks/*.md
-
-  - group: brain-adrs
-    priority: 3
-    include:
-      - docs/adr/*.md
-
-  # ────────────────────────────────────────────────────────────────────
-  # Core-Repo-Dokumentation — zentraler Referenzmaterialien
-  # ────────────────────────────────────────────────────────────────────
-  - group: brain-core-docs
-    priority: 4
-    include:
-      - CLAUDE.md
-      - AGENTS.md
-
-  - group: brain-gotchas
-    priority: 5
-    include:
-      - docs/superpowers/references/gotchas-footguns.md
-
-  # ────────────────────────────────────────────────────────────────────
-  # Agent Guide Maps — visuelle Navigationshilfen für Entwickler
-  # ────────────────────────────────────────────────────────────────────
-  - group: brain-agent-guide
-    priority: 6
-    include:
-      - docs/agent-guide/maps/*.md
-
-  - group: brain-lib-guides
-    priority: 7
-    include:
-      - docs/superpowers/references/lib-guides.md
-
-  # ────────────────────────────────────────────────────────────────────
-  # Project Topology & Health — Architekturübersicht
-  # ────────────────────────────────────────────────────────────────────
-  - group: brain-topology
-    priority: 8
-    include:
-      - docs/project/health-checks.md
+  ssot-specs: |
+    openspec/specs/brain/*.md
+    openspec/specs/ci-cd.md
+    openspec/specs/database.md
+    openspec/specs/deployment.md
+    openspec/specs/devflow.md
+    openspec/specs/docs-gen.md
+    openspec/specs/factory.md
+    openspec/specs/git-workflow.md
+    openspec/specs/health-goals.md
+    openspec/specs/host-node-networking.md
+    openspec/specs/incident-response.md
+    openspec/specs/kustomize-overlays.md
+    openspec/specs/livekit-llm.md
+    openspec/specs/mcp-servers.md
+    openspec/specs/openspec-conventions.md
+    openspec/specs/pre-commit-hooks.md
+    openspec/specs/project-topology.md
+    openspec/specs/repo-hygiene.md
+    openspec/specs/security.md
+    openspec/specs/testing.md
+    openspec/specs/ticket-ops.md
+    openspec/specs/videovault-mediamanager.md
+    openspec/specs/website.md
+  runbooks: docs/runbooks/*.md
+  adr: docs/architecture/*.md
+  gotchas-footguns: docs/gotchas/*.md
+  agent-guide-maps: docs/agent-guide/*.md
+  core-docs: CLAUDE.md AGENTS.md

@@ -38,6 +38,9 @@ resources:
   - oauth2-proxy-studio.yaml
   # ComfyUI SSO gateway
   - oauth2-proxy-comfy.yaml
+  # Brain Static Site (T001569) — brain.localhost, mentolder-only in prod
+  - brain.yaml
+  - oauth2-proxy-brain.yaml
   # Backup (SA-07)
   - backup-pvc.yaml
   - backup-cronjob.yaml

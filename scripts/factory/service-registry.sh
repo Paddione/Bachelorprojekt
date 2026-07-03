@@ -7,6 +7,8 @@
 
 # k3d/<file>.yaml -> app slug. Multiple files may share a slug.
 declare -A SERVICE_REGISTRY=(
+  [k3d/brain.yaml]="brain"
+  [k3d/oauth2-proxy-brain.yaml]="brain"
   [k3d/brett.yaml]="brett"
   [k3d/oauth2-proxy-brett.yaml]="brett"
   [k3d/nextcloud.yaml]="nextcloud"

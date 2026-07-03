@@ -44,6 +44,9 @@ patches:
   # uses "workspace-korczewski", causing Traefik 500 on unauthenticated requests).
   - path: patch-mailpit-auth-middleware.yaml
 
+  # Brain ist mentolder-only (T001569) — auf korczewski komplett entfernen.
+  - path: brain-exclude.yaml
+
   # livekit-recordings-pvc uses the base manifest's storage class (local-path),
   # tied to the livekit pin-node (pk-hetzner-6). Acceptable because livekit-* are
   # pinned to that node anyway via patch-livekit.yaml. (Longhorn IS available on

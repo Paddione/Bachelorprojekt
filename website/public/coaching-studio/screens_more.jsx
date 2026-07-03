@@ -5,7 +5,8 @@
 // 5 · VERGLEICHSANSICHT — Split (Vorlage links · neue Session rechts)
 // =====================================================================
 function CompareView({ customer, onNav }){
-  const k = customer || CUSTOMERS[0];
+if (customer === undefined) return <EmptyState title="Keine Session zum Vergleich" onBack={onNav} />;
+  const k = customer;
   const diffs = { 2:true, 5:true, 8:true, 9:true };
   return (
     <div className="screen"><div className="wrap">

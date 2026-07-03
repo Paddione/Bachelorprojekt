@@ -74,7 +74,7 @@ function TranslationPanel(){
               <Icon.speaker/>{playing==="de" ? "Spricht…" : "Vorlesen"}
             </button>
           </div>
-          <div className="tl-text">{SOURCE_DE}</div>
+          <div className="tl-text" dir={cust.lang.rtl ? "rtl" : "ltr"} lang={cust.lang.code}>>{SOURCE_DE}</div>
         </div>
         <div className={"tl-col" + (lang.rtl ? " rtl" : "")}>
           <div className="tl-top">
@@ -83,7 +83,7 @@ function TranslationPanel(){
               <Icon.speaker/>{playing==="t" ? "Spricht…" : "Vorlesen"}
             </button>
           </div>
-          <div className="tl-text" dir={lang.rtl ? "rtl" : "ltr"} lang={lang.code}>{lang.sample}</div>
+          <div className="tl-text" dir={cust.lang.rtl ? "rtl" : "ltr"} lang={cust.lang.code}> dir={lang.rtl ? "rtl" : "ltr"} lang={lang.code}>{lang.sample}</div>
         </div>
       </div>
     </div>
@@ -91,7 +91,8 @@ function TranslationPanel(){
 }
 
 function Workspace({ customer, onNav }){
-  const cust = customer || CUSTOMERS[0];
+if (customer === undefined) return <EmptyState title="Keine Session gefunden" onBack={onNav} onRestore={restoreCustomerSession} />;
+  const cust = customer;
   const [active, setActive] = useState(0);
   const [prompts, setPrompts] = useState(()=> LEVELS.map(l=> l.prompt));
   const [done, setDone] = useState(()=> LEVELS.map(()=> false));

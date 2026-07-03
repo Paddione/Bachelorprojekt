@@ -36,8 +36,11 @@ for s in schema.get('secrets', []):
       continue
     fi
 
-    legacy_keys=$(yq '.spec.encryptedData | keys | .[]' "$legacy_file" 2>/dev/null | sort)
-    fleet_keys=$(yq '.spec.encryptedData | keys | .[]' "$fleet_file" 2>/dev/null | sort)
+    # T001584: eval-all + select — env:seal emits doubled '---' separators
+    # (empty YAML docs); single-eval yq aborts on the first null doc and
+    # silently reports only the first SealedSecret's keys.
+    legacy_keys=$(yq eval-all 'select(.spec.encryptedData != null) | .spec.encryptedData | keys | .[]' "$legacy_file" 2>/dev/null | sort -u)
+    fleet_keys=$(yq eval-all 'select(.spec.encryptedData != null) | .spec.encryptedData | keys | .[]' "$fleet_file" 2>/dev/null | sort -u)
 
     missing=""
     while IFS= read -r key; do

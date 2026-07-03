@@ -4625,6 +4625,11 @@ tasks:
     cmds:
       - bash scripts/brain-ingest-worklist.sh
 
+  brain:bootstrap:
+    desc: "Seede (und optional erstelle/pushe) das brain-Wiki-Fundament. Usage: task brain:bootstrap -- <target-dir>|--create-remote --collaborator <handle>"
+    cmds:
+      - bash scripts/brain-bootstrap.sh {{.CLI_ARGS}}
+
   # ─────────────────────────────────────────────
   # End of tasks
   # ─────────────────────────────────────────────

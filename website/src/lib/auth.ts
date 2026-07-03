@@ -5,7 +5,16 @@ import { logger } from './logger';
 const PI_FRONTEND_URL = process.env.POCKET_ID_FRONTEND_URL || '';
 const PI_INTERNAL_URL = process.env.POCKET_ID_URL || 'http://pocket-id.workspace.svc.cluster.local:1411';
 const CLIENT_ID = 'website';
-const CLIENT_SECRET = process.env.POCKET_ID_WEBSITE_SECRET || process.env.WEBSITE_OIDC_SECRET || 'devwebsiteoidcsecret12345';
+const CLIENT_SECRET = process.env.POCKET_ID_WEBSITE_SECRET || process.env.WEBSITE_OIDC_SECRET || '';
+if (!CLIENT_SECRET) {
+  // Fail hard at boot instead of silently falling back to a well-known dev
+  // secret (removed 2026-07, T001593). Dev clusters get the secret from
+  // k3d/website-dev-secrets.yaml; prod via SealedSecret (environments/schema.yaml:
+  // POCKET_ID_WEBSITE_SECRET). For local `pnpm dev` see website/.env.example.
+  throw new Error(
+    'POCKET_ID_WEBSITE_SECRET (or legacy WEBSITE_OIDC_SECRET) is not set — refusing to start without an OIDC client secret',
+  );
+}
 const SITE_URL = process.env.SITE_URL || '';
 const CALLBACK_PATH = '/api/auth/callback';
 const COOKIE_NAME = 'workspace_session';

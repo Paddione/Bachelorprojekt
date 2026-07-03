@@ -2,6 +2,7 @@ const NAMED_SCOPES = [
   'website',
   'brett',
   'arena',
+  'brain',
   'infra',
   'db',
   'security',

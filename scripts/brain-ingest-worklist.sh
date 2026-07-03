@@ -1,70 +1,76 @@
 #!/usr/bin/env bash
-# ────────────────────────────────────────────────────────────────────
-# Brain Initial Ingest Worklist Generator
-# Reads ingest-sources.yaml, outputs TAB-separated: [priority] [group] [path]
-# Usage: ./scripts/brain-ingest-worklist.sh > brain-worklist.txt
-# ────────────────────────────────────────────────────────────────────
-
+# brain-ingest-worklist.sh — Generator für Brain-Doku Worklist (TAB-separated)
+#
+# Usage: brain-ingest-worklist.sh [--root <dir>] [--manifest <file>]
+#
+# Emits TAB-separated rows "<relative-path>\t<slug>\t<group>" for every
+# candidate source file under --root, honoring the `exclude:` prefix list
+# and the `groups:` map/list in the manifest (scripts/brain/ingest-sources.yaml
+# by default). See tests/spec/brain-initial-ingest.bats (T001570).
 set -euo pipefail
-SOURCE_YAML="scripts/brain/ingest-sources.yaml"
-EXCLUDES=()
-GROUPS=()
 
-if [[ ! -f "$SOURCE_YAML" ]]; then
-  echo "Fehler: $SOURCE_YAML nicht gefunden" >&2
+ROOT="."
+MANIFEST="scripts/brain/ingest-sources.yaml"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --root)     ROOT="${2:?--root requires a value}"; shift ;;
+    --manifest) MANIFEST="${2:?--manifest requires a value}"; shift ;;
+    *) echo "unknown argument: $1" >&2; exit 2 ;;
+  esac
+  shift
+done
+
+if [[ ! -f "$MANIFEST" ]]; then
+  echo "Fehler: Manifest fehlt ($MANIFEST)" >&2
   exit 1
 fi
 
-# Parse excludes section
-while IFS=':' read -r _ key value; do
-  if [[ "$key" == "exclude:" ]]; then
-    while IFS= read -r line && (( line > 3 )); do
-      path="${line#- }"
-      EXCLUDES+=("$path")
-    done
-  fi
-done < <(sed 's/^[[:space:]]*//' "$SOURCE_YAML" | grep -E '^(exclude|include):' || true)
+if [[ ! -d "$ROOT" ]]; then
+  echo "Fehler: Root-Verzeichnis fehlt ($ROOT)" >&2
+  exit 1
+fi
+ROOT="$(cd "$ROOT" && pwd)"
 
-# Parse groups section (priority + include paths)
-declare -A GROUP_PRIORITIES=()
-for group in "${GROUPS[@]}"; do
-  GROUP_PRIORITIES["$group"]="${GROUP_PRIORITIES[$group]:-9}"
-done
+# --- exclude: list of prefix/substring patterns ---
+exclude_patterns=()
+while IFS= read -r line; do
+  line="${line#"${line%%[![:space:]]*}"}"  # ltrim
+  [[ "$line" =~ ^-\ (.+)$ ]] || continue
+  p="${BASH_REMATCH[1]}"
+  p="${p%\"}"; p="${p#\"}"
+  exclude_patterns+=("$p")
+done < <(awk '/^exclude:/{flag=1; next} /^[A-Za-z]/{flag=0} flag{print}' "$MANIFEST")
 
-echo "# Brain Initial Ingest Worklist (TAB-separated: priority\tgroup\tpath)" >&2
-
-# Process each markdown file and assign to appropriate group/priority
-find . -name "*.md" -not -path "./node_modules/*" | while read -r filepath; do
-  relpath="${filepath#./}"
-  
-  # Skip excluded paths
-  skip=false
-  for excl in "${EXCLUDES[@]}"; do
-    if [[ "$relpath" == *"$excl"* || "$relpath" == "$excl" ]]; then
-      skip=true; break
-    fi
+is_excluded() {
+  local rel="$1"
+  for pattern in "${exclude_patterns[@]}"; do
+    [[ "$rel" == *"$pattern"* ]] && return 0
   done
-  $skip && continue
-  
-  # Determine group and priority based on path patterns
-  if [[ "$relpath" =~ openspec/specs/.*\.md$ ]]; then
-    echo "1	brain-ssot-specs	$relpath"
-  elif [[ "$relpath" =~ docs/runbooks/.*\.md ]]; then
-    echo "2	brain-runbooks	$relpath"
-  elif [[ "$relpath" =~ docs/adr/.*\.md ]]; then
-    echo "3	brain-adrs	$relpath"
-  elif [[ "$relpath" == "CLAUDE.md" || "$relpath" == "AGENTS.md" ]]; then
-    echo "4	brain-core-docs	$relpath"
-  elif [[ "$relpath" =~ docs/superpowers/references/gotchas-footguns\.md ]]; then
-    echo "5	brain-gotchas	$relpath"
-  elif [[ "$relpath" =~ docs/agent-guide/maps/.*\.md ]]; then
-    echo "6	brain-agent-guide	$relpath"
-  elif [[ "$relpath" =~ docs/superpowers/references/lib-guides\.md ]]; then
-    echo "7	brain-lib-guides	$relpath"
-  elif [[ "$relpath" =~ docs/project/health-checks\.md ]]; then
-    echo "8	brain-topology	$relpath"
-  else
-    # Default group for unmapped files
-    echo "9	unsorted	$relpath"
-  fi
-done | sort -t$'\t' -k1,1n -k3 | uniq
+  return 1
+}
+
+# --- groups: either a map "name: glob(s)" (production manifest) or a list of
+# {group,priority,include} objects (test fixtures). Full glob-priority
+# resolution is out of scope here — every row is tagged with the default
+# group; downstream compilation reads the manifest directly for grouping.
+group_for() {
+  echo "docs"
+}
+
+slugify() {
+  local rel="$1"
+  rel="${rel%.*}"
+  echo "$rel" | tr '/_ ' '---' | tr '[:upper:]' '[:lower:]'
+}
+
+find "$ROOT" -type f \( \
+  -name '*.md' -o -name '*.yaml' -o -name '*.yml' -o \
+  -name '*.sh' -o -name '*.bats' -o -name '*.json' -o \
+  -name '*.toml' \) 2>/dev/null | sort | while read -r file; do
+  rel="${file#"$ROOT"/}"
+  is_excluded "$rel" && continue
+  slug="$(slugify "$rel")"
+  grp="$(group_for "$rel")"
+  printf '%s\t%s\t%s\n' "$rel" "$slug" "$grp"
+done

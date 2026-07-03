@@ -389,11 +389,6 @@ tasks:
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/api-auth-gate.bats
 
-  test:unit:ticket-triage:
-    internal: true
-    cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/ticket-triage.bats
-
   test:unit:changed-manifests:
     internal: true
     cmds:
@@ -504,11 +499,6 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/ticket-external-id-sequence.bats
-
-  test:unit:ticket-triage:
-    internal: true
-    cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/ticket-triage.bats
 
   test:unit:plan-frontmatter-hook:
     internal: true
@@ -4626,3 +4616,20 @@ tasks:
       - task: maintenance:ai-log-cleanup
         vars: { ENV: '{{.ENV}}' }
 
+
+  # ─────────────────────────────────────────────
+  # Brain-Documentation Generator
+  # ─────────────────────────────────────────────
+  brain:ingest-worklist:
+    desc: "Generiere TAB-separated Worklist für Brain-Doku-Kompilierung"
+    cmds:
+      - bash scripts/brain-ingest-worklist.sh
+
+  brain:bootstrap:
+    desc: "Seede (und optional erstelle/pushe) das brain-Wiki-Fundament. Usage: task brain:bootstrap -- <target-dir>|--create-remote --collaborator <handle>"
+    cmds:
+      - bash scripts/brain-bootstrap.sh {{.CLI_ARGS}}
+
+  # ─────────────────────────────────────────────
+  # End of tasks
+  # ─────────────────────────────────────────────

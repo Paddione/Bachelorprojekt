@@ -81,6 +81,52 @@ patches:
   # pinned to that node anyway via patch-livekit.yaml. (Longhorn IS available on
   # fleet — see patch-data-pvc-storage.yaml — but livekit recordings stay local.)
   - path: patch-livekit.yaml
+  # Brain (T001569) is mentolder-only — exclude all brain resources via
+  # $patch: delete. Inline `target:` form (not a single multi-document
+  # `path:` file — CI's kubectl v1.31.0 bundles kustomize v5.4.2, which
+  # panics with a nil-pointer dereference in PatchTransformer on a
+  # multi-document strategic-merge patch file; the inline form used
+  # elsewhere in prod/kustomization.yaml is the version-safe convention).
+  - target:
+      kind: Deployment
+      name: brain
+      namespace: workspace
+    patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: brain
+      $patch: delete
+  - target:
+      kind: Service
+      name: brain
+      namespace: workspace
+    patch: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: brain
+      $patch: delete
+  - target:
+      kind: Deployment
+      name: oauth2-proxy-brain
+      namespace: workspace
+    patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: oauth2-proxy-brain
+      $patch: delete
+  - target:
+      kind: Service
+      name: oauth2-proxy-brain
+      namespace: workspace
+    patch: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: oauth2-proxy-brain
+      $patch: delete
   - path: patch-backup-config.yaml
   # Pin vaultwarden data PVC to longhorn so pvc-backup can clone it
   # placement-independently (mirrors prod-mentolder). [T000403]

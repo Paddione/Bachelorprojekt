@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-03T07:26:43.849Z",
+  "generatedAt": "2026-07-03T08:37:24.269Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -1211,6 +1211,12 @@
     },
     {
       "from": "traefik",
+      "to": "oauth2-proxy-brain",
+      "via": "ingress",
+      "kind": "ingress"
+    },
+    {
+      "from": "traefik",
       "to": "oauth2-proxy-downloads",
       "via": "ingress",
       "kind": "ingress"
@@ -1446,12 +1452,6 @@
     {
       "from": "ntfy",
       "to": "ntfy",
-      "via": "selector",
-      "kind": "selector"
-    },
-    {
-      "from": "oauth2-proxy-brain",
-      "to": "oauth2-proxy-brain",
       "via": "selector",
       "kind": "selector"
     },

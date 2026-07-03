@@ -5,7 +5,11 @@
 
 load 'test_helper'
 
-BOT_EMAIL="41898282+github-actions[bot]@users.noreply.github.com"
+# Match both noreply email variants used by github-actions[bot] across workflows:
+# the canonical "<id>+github-actions[bot]@..." form and the bare form some
+# workflows configure via `git config user.email`. grep -F substring-matches,
+# so the bare suffix below matches both.
+BOT_EMAIL="github-actions[bot]@users.noreply.github.com"
 
 @test "G-SEC05: adjusted unsigned-Anteil auf main (ohne Bot) ist <= 5%" {
   unsigned=$(git -C "$PROJECT_DIR" log -50 --pretty="%G? %ae" origin/main 2>/dev/null \

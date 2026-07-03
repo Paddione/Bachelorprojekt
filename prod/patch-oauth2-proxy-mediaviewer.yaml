@@ -25,7 +25,6 @@ spec:
             - "--cookie-secure=true"
             - "--cookie-samesite=none"
             - "--cookie-name=_oauth2_proxy_mediaviewer"
-            - "--email-domain=*"
             - "--pass-access-token=true"
             - "--pass-authorization-header=true"
             - "--set-xauthrequest=true"

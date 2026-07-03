@@ -3,10 +3,10 @@ import { deriveHeadlinePrice, detailTiers, resolveHighlightTable, resolveStammda
 import type { LeistungCategoryOverride } from './website-db';
 
 const cat: LeistungCategoryOverride = {
-  id: 'digital-50plus', title: '50+ Digital',
+  id: 'digital-50plus', title: '50+ Digital', icon: '💻',
   services: [
-    { key: '50plus-digital-einzel', name: 'Einzelstunde', price: '60 €', unit: '/ Stunde' },
-    { key: '50plus-digital-paket-s', name: 'Paket S', price: '330 €', unit: '', highlight: true },
+    { key: '50plus-digital-einzel', name: 'Einzelstunde', price: '60 €', unit: '/ Stunde', desc: '' },
+    { key: '50plus-digital-paket-s', name: 'Paket S', price: '330 €', unit: '', desc: '', highlight: true },
   ],
 };
 
@@ -18,14 +18,14 @@ describe('deriveHeadlinePrice', () => {
     expect(deriveHeadlinePrice(cat, '50plus-digital-einzel', true)).toBe('ab 60 € / Stunde');
   });
   it('renders free-text rows verbatim without prefix even if requested', () => {
-    const c2: LeistungCategoryOverride = { id: 'beratung', services: [{ key: 'b', price: 'nach Vereinbarung', unit: '' }] };
+    const c2: LeistungCategoryOverride = { id: 'beratung', title: 'Beratung', icon: '💬', services: [{ key: 'b', name: 'Beratung', price: 'nach Vereinbarung', unit: '', desc: '' }] };
     expect(deriveHeadlinePrice(c2, 'b', true)).toBe('nach Vereinbarung');
   });
   it('falls back to the first row when headlineKey is missing', () => {
     expect(deriveHeadlinePrice(cat, undefined, false)).toBe('60 € / Stunde');
   });
   it('returns empty string when category has no rows', () => {
-    expect(deriveHeadlinePrice({ id: 'x', services: [] }, 'k', true)).toBe('');
+    expect(deriveHeadlinePrice({ id: 'x', title: 'X', icon: '❓', services: [] }, 'k', true)).toBe('');
   });
 });
 

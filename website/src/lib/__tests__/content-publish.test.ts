@@ -15,8 +15,6 @@ function fakeGitHub({ currentSha, currentValue }: { currentSha: string; currentV
   calls: string[];
 } {
   const fake: ReturnType<typeof fakeGitHub> = {
-    currentSha,
-    currentValue,
     prNumber: 42,
     prUrl: 'https://github.com/Paddione/Bachelorprojekt/pull/42',
     autoMergeEnabled: false,

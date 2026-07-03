@@ -1,5 +1,5 @@
 // Types re-exported from config/types.ts for backward compatibility.
-import type { ReferenzItem, ReferenzenConfig } from '../config/types';
+import type { ReferenzenConfig } from '../config/types';
 export type { ReferenzItem, ReferenzenType, ReferenzenConfig } from '../config/types';
 
 // ── T001490: Transitional type re-exports for the admin save endpoints ──────

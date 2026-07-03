@@ -88,7 +88,7 @@ const processSteps = homepage.processSteps ?? [];
 
       <!-- Stats + Availability strip — slot becomes a client island -->
       <StatsStrip stats={homepage.stats} nextDay={null} />
-      <NextSlotIsland client:idle brand={BRAND_ID} />
+      <NextSlotIsland client:idle />
 
       <!-- Offers -->
       <section id="angebote" class="section" aria-labelledby="offers-heading">

@@ -61,6 +61,12 @@ export async function initProviderConfigSchema(c: PoolClient): Promise<void> {
   await c.query(`CREATE INDEX IF NOT EXISTS provider_config_coaching_active
     ON tickets.provider_config (brand, source, is_active)`);
 
+  // Token-Budget-Semaphor (T001590): context_window pro Row, context_budget pro Provider
+  // (NULL = unbegrenzt), reserved_tokens laufende Reservierung pro Provider.
+  await c.query(`ALTER TABLE tickets.provider_config ADD COLUMN IF NOT EXISTS context_window INTEGER`);
+  await c.query(`ALTER TABLE tickets.provider_config ADD COLUMN IF NOT EXISTS context_budget INTEGER`);
+  await c.query(`ALTER TABLE tickets.provider_health ADD COLUMN IF NOT EXISTS reserved_tokens INTEGER NOT NULL DEFAULT 0`);
+
   // Globale Default-Routing-Rows (brand='*').
   await c.query(`INSERT INTO tickets.provider_config (source,tier,priority,provider,model_id,base_url)
     VALUES ('*','sonnet',99,'anthropic','claude-sonnet-4-6',NULL),('*','haiku',99,'anthropic','claude-haiku-4-5',NULL),('*','sonnet',1,'deepseek','deepseek-v4-pro','https://api.deepseek.com/anthropic'),('*','haiku',1,'deepseek','deepseek-v4-flash','https://api.deepseek.com/anthropic')

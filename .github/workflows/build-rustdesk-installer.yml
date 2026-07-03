@@ -13,6 +13,9 @@ permissions:
   packages: write
 
 env:
+  # T001265: CI-wide OpenSpec telemetry opt-out (blanket convention, applied
+  # regardless of whether this workflow invokes the openspec CLI directly).
+  OPENSPEC_TELEMETRY: '0'
   # Non-sensitive public relay host; used ONLY to assert the client was configured.
   EXPECTED_ID_SERVER: rustdesk.mentolder.de
   # Supply-chain pin — official RustDesk Windows MSI (rustdesk/rustdesk 1.4.8).

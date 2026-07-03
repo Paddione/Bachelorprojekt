@@ -40,7 +40,6 @@
   let aiErrorCount = $state(0);
   const mediaviewerVideos = $derived(resolveHelpVideos(videovaultHost));
   let isMobile = $state(false);
-  let currentTicketId = $state<string | null>(null);
 
   let pendingJump = $state<string | null>(null);
 
@@ -136,7 +135,6 @@
   $effect(() => {
     const onNavigate = (e: Event) => {
       const detail = (e as CustomEvent).detail;
-      if (typeof detail?.ticketId === 'string') currentTicketId = detail.ticketId;
       const intent = parseNavigateEvent(detail);
       if (!intent) return;
       open = true;

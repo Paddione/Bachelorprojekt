@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 542,
+      "file_count": 543,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -474,6 +474,7 @@
         "tests/unit/newsletter-scheduled-publish.bats",
         "tests/unit/openclaw-taskfile.bats",
         "tests/unit/openspec.bats",
+        "tests/unit/oracle-task-vars.bats",
         "tests/unit/plan-frontmatter-hook.bats",
         "tests/unit/plan-lint.bats",
         "tests/unit/planning-office.bats",
@@ -2770,7 +2771,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 478,
+      "file_count": 479,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3230,6 +3231,7 @@
         "scripts/vda/factory/slots.sh",
         "scripts/vda/frontmatter.sh",
         "scripts/vda/oracle-ai-call.sh",
+        "scripts/vda/oracle-task-vars.sh",
         "scripts/vda/oracle.sh",
         "scripts/vda/promote.sh",
         "scripts/vda/release-notes.sh",

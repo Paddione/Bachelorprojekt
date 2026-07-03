@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.157.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.157.0...website-v1.157.1) (2026-07-03)
+
+
+### Bug Fixes
+
+* **scripts:** agent-lock heartbeat reap, severity validation, offline-guard reuse [T001582] ([#2577](https://github.com/Paddione/Bachelorprojekt/issues/2577)) ([47c7f46](https://github.com/Paddione/Bachelorprojekt/commit/47c7f46bf5436f5bff4772abab98c2d6b64b02b4))
+
 ## [1.157.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.156.4...website-v1.157.0) (2026-07-03)
 
 

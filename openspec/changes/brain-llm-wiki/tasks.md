@@ -281,7 +281,7 @@ echo "created: $OUT"
 
 ## Task 7 — GREEN + Final Verification
 
-- [ ] **GREEN:** Alle drei BATS-Specs sind grün:
+- [x] **GREEN:** Alle drei BATS-Specs sind grün:
 
 ```bash
 cd /tmp/wt-brain-wiki

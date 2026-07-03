@@ -1,0 +1,44 @@
+name: brain-merge-hook
+on:
+  push:
+    branches: [main]
+    paths:
+      - openspec/specs/**
+      - docs/runbooks/**
+      - docs/adr/**
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout bachelorprojekt
+        uses: actions/checkout@v4
+        with:
+          path: bachelorprojekt
+
+      - name: Checkout brain
+        uses: actions/checkout@v4
+        with:
+          repository: Paddione/brain
+          path: brain
+          token: ${{ secrets.BRAIN_PAT }}
+
+      - name: Run merge-hook
+        run: |
+          bash bachelorprojekt/scripts/brain-merge-hook.sh \
+            bachelorprojekt/openspec/specs brain/raw/openspec-specs
+          bash bachelorprojekt/scripts/brain-merge-hook.sh \
+            bachelorprojekt/docs/runbooks brain/raw/runbooks
+
+      - name: Commit and push to brain
+        run: |
+          cd brain
+          git config user.name "brain-merge-hook"
+          git config user.email "bot@bachelorprojekt.dev"
+          if [ -n "$(git status --porcelain)" ]; then
+            git add .
+            git commit -m "chore: auto-ingest from Bachelorprojekt [skip ci]"
+            git push
+          else
+            echo "nothing to commit"
+          fi

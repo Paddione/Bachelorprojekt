@@ -1,6 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "lmstudio/google/gemma-4-12b-qat",
+  "model": "lmstudio/qwen3.5-9b@iq4_xs",
   "permission": "allow",
   "lsp": true,
   "mcp": {
@@ -23,21 +23,33 @@
     // ── Stdio-Server (lokale Prozesse) ────────────────────────────────────
     "codebase-memory-mcp": {
       "type": "local",
-      "command": ["/home/patrick/.local/bin/codebase-memory-mcp"],
+      "command": [
+        "/home/patrick/.local/bin/codebase-memory-mcp"
+      ],
       "enabled": true
     },
     "mcp-task-runner": {
       "type": "local",
-      "command": ["mcp-task-runner", "--otel-endpoint", "localhost:4317", "--taskfile", "/home/patrick/Bachelorprojekt/Taskfile.yml"],
+      "command": [
+        "mcp-task-runner",
+        "--otel-endpoint",
+        "localhost:4317",
+        "--taskfile",
+        "/home/patrick/Bachelorprojekt/Taskfile.yml"
+      ],
       "enabled": true
     },
     "ticket-mcp": {
       "type": "local",
-      "command": ["/home/patrick/Bachelorprojekt/scripts/ticket-mcp/ticket-mcp-go"],
+      "command": [
+        "/home/patrick/Bachelorprojekt/scripts/ticket-mcp/ticket-mcp-go"
+      ],
       "enabled": true
     }
   },
-  "plugin": ["@mailshieldai/opencode-canvas"],
+  "plugin": [
+    "@mailshieldai/opencode-canvas"
+  ],
   "command": {
     "feature-intake": {
       "description": "Refresh feature candidate suggestions from current tickets and publish a fresh PM-intake HTML form via session-hub. Use when Patrick or gekko wants to collect new feature ideas (HTML form, dark theme, single click instead of typing).",
@@ -54,16 +66,29 @@
   "provider": {
     "lmstudio": {
       "options": {
-        "baseURL": "http://localhost:1234/v1",
+        "baseURL": "http://100.102.71.114:1234/v1",
         "apiKey": "lmstudio"
       },
       "models": {
+        "qwen3.5-9b@q4_k_xl": {
+          "id": "qwen3.5-9b@q4_k_xl",
+          "name": "Qwen3.5 9B Q4_K_XL"
+        },
+        "qwen3.5-9b@iq4_xs": {
+          "id": "qwen3.5-9b@iq4_xs",
+          "name": "Qwen3.5 9B IQ4_XS"
+        },
         "google/gemma-4-12b-qat": {
           "id": "google/gemma-4-12b-qat",
           "name": "Gemma 4 12B QAT",
-          "limit": { "context": 131072, "output": 8192 },
+          "limit": {
+            "context": 131072,
+            "output": 8192
+          },
           "options": {
-            "stop": ["<end_of_turn>"]
+            "stop": [
+              "<end_of_turn>"
+            ]
           }
         },
         "text-embedding-bge-m3": {
@@ -87,5 +112,7 @@
       }
     }
   },
-  "instructions": ["AGENTS.md"]
+  "instructions": [
+    "AGENTS.md"
+  ]
 }

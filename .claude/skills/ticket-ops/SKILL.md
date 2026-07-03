@@ -50,9 +50,18 @@ alle `psql -c`-Aufrufe unten setzen diesen Helper voraus.
 
 ---
 
-## Phase 1 — Completeness Triage
+## Phase 1 — Completeness Triage (AI-Autonomous with Human Escalation Gate)
 
-Fetch every open ticket and compute, per ticket, **what is missing** before it can be worked. This is a two-tier rubric: a lightweight field check for *all* tickets, plus the DoR check for planning-stage features.
+The triaging agent **autonomously decides** severity, component, areas, and readiness flags using the rubrics below. Only **significant decisions** that genuinely need human judgement are escalated via `attention_mode='needs_human'`. Use all available subagents (`bachelorprojekt-test`, `bachelorprojekt-infra`, `bachelorprojekt-security`, `bachelorprojects-website`, etc.) to validate and complete ticket data in parallel up until plans are staged.
+
+### Decision Rubric (AI-Autonomous)
+
+| Field | Autonomous Default Values | Escalate to Human When... |
+|-------|---------------------------|---------------------------|
+| **severity** | `trivial` (bug type=minor description), `minor` (type=medium/unclear), `major` (clear impact: broken deploy, security leak, data loss), `critical` (CI failure, production blocker) | Ambiguous business impact, unclear scope boundary |
+| **component** | Infer from title keywords (auth→auth, db→database, ci→ci, infra→infra, chat→chat, website→website, brain→brain, tools→tools, secrets→security), use `null` if truly unclear | Cross-cutting without clear owner |
+| **areas** | Extract from component + title context (e.g., "sealed-secret" → ["infra","security"], "oauth2-proxy" → ["auth"], "deployment" → ["infra"]), default to ["ops"] for generic tasks | Multi-area with no clear focus |
+| **readiness.flags** | `spec_skizziert: true` if description ≥ 100 chars, `aufwand_geschaetzt: false`, `abhaengigkeiten_klar: true` (if depends_on null/empty), `offene_fragen_geklaert: false` (default) | Description too thin (<30 chars) or explicitly asks clarifying questions |
 
 ### Step 1.1: Fetch open tickets (enriched)
 
@@ -105,12 +114,22 @@ T000738 | Unbekanntes Feature  | backlog     | niedrig | —       | description
 
 ---
 
-## Phase 2 — Human Clarification Round
+## Phase 2 — Human Escalation Round (Only Significant Decisions)
 
-Ask the user for the missing info that only a human can supply, **batched** and **filtered** so the session stays focused.
+Escalate to the user **only for significant decisions** that AI cannot resolve autonomously: ambiguous business impact, unclear scope boundaries, multi-area conflicts without clear owner. All other tickets proceed with AI-decided values. Use subagent dispatch when validation/clarification requires domain expertise.
 
-### Step 2.1: Select the ask-set (filtered, capped)
-Eligible = `missing[]` non-empty **AND** ( `attention_mode = 'needs_human'` **OR** `priority = 'hoch'` **OR** `planning_rank = 0` ).
+### Step 2.1: Select escalation set (filtered, capped)
+Eligible = `missing[]` non-empty **AND** (`attention_mode = 'needs_human'` OR ambiguous severity/component/areas). Escalate at most ~3 tickets per round for human decision. All others proceed autonomously with AI-decided values.
+
+### Step 2.2: Subagent Dispatch for Validation
+For autonomous decisions, dispatch specialized subagents to validate and enrich ticket data in parallel:
+- `bachelorprojekt-test` → test-related tickets (severity, areas)
+- `bachelorprojekt-infra` → infra/security/deploy tickets
+- `bachelorprojekt-security` → secrets/OIDC/tickets
+- `bachelorprojects-website` → website/frontend/admin tickets
+- `database-specialist` → DB/schema tickets
+
+Each subagent returns validated severity, component, areas, and readiness flags. Consolidate results before proceeding to Phase 3.
 (`planning_rank = 0` is the explicitly **promoted next-candidate** — `planning-office.ts::promoteItem` sets it; `NULL`/large ranks mean *not* promoted.)
 Process at most **~6 tickets per round**, highest priority first. Any eligible ticket beyond the cap is listed explicitly as **DEFERRED** in your summary — never silently dropped.
 
@@ -182,12 +201,14 @@ Edges come from two sources — merge both:
 - **Wave N** = every ready ticket whose hard dependencies are all satisfied by waves `< N` **and** which has no `areas` conflict with another ticket already placed in wave N.
 - **Maximise wave width** (the goal is "as much in parallel as possible") subject to those two constraints.
 - Order ties by `priority` (hoch > mittel > niedrig), then smaller `effort` first (quick wins).
+### Step 3.3: Route each ticket (plan vs. execute with subagent orchestration)
 
-### Step 3.3: Route each ticket (plan vs. execute)
-The dev-flow contract splits the parallel unit:
-- `status = 'plan_staged'` (a plan already exists) → **execution wave**: dispatch `dev-flow-execute`.
-- `attention_mode = 'ai_ready'` / DoR-complete feature **without** a staged plan → **planning wave**: dispatch `dev-flow-plan` (creates + pushes the plan, then stops). These feed future execution waves; do not pretend they execute now.
-- **Any other ready ticket** (e.g. `backlog`/`triage`, no plan, `ai_ready` not yet set) → also a **planning wave** (`dev-flow-plan`). No ready ticket is left without a route.
+The dev-flow contract splits the parallel unit, orchestrated by all available subagents:
+- `status = 'plan_staged'` → **execution wave**: dispatch `dev-flow-execute` via relevant subagent (`website-specialist`, `bachelorprojekt-test`, etc.)
+- `attention_mode = 'ai_ready'` / DoR-complete → **planning wave**: dispatch `dev-flow-plan` via domain-specific subagent for plan creation and staging
+- **Any other ready ticket** → **parallel planning wave**: all available subagents work in parallel to create plans, set readiness flags, stage branches. No ready ticket is left without a route or owner.
+
+All subagents report back with: ticket_id, decisions made, branch created, plan staged. Consolidate for Phase 3 masterplan completion.
 
 ### Step 3.4: Present the masterplan
 ```
@@ -237,3 +258,59 @@ After completing all steps in this skill, invoke `mishap-tracker` with your accu
 | `dev-flow-execute` | Execution-wave tickets (plan_staged) |
 | `mishap-tracker` | Converts execution mishaps to tickets |
 | `database-ops` | DB-related tickets |
+
+---
+
+## Updated Workflow: AI-Autonomous Triage with Subagent Orchestration
+
+### Decision Hierarchy
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Open Tickets (N=17)                       │
+└─────────────────────┬───────────────────────────────────────┘
+                      │
+          ┌───────────┴───────────────────────────────────────┐
+          │                                                   │
+    Autonomous AI Decisions                          Significant Human Decisions
+    (severity/component/areas/readiness)                    ↑
+          │                                                  │
+    Dispatch subagents for validation &             └────────┘
+    enrichment                                        Escalation gate
+          │
+    Set attention_mode = 'ai_ready' or              (ambiguous impact, unclear scope)
+    add to missing[] list                          → needs_human flag
+          │
+          ▼
+    Parallel execution across all subagents:
+    - bachelorprojekt-test
+    - bachelorprojekt-infra  
+    - bachelorprojects-website
+    - database-specialist
+    - security-specialist
+          │
+          ▼
+    Consolidate decisions & set readiness flags
+          │
+          ▼
+    Phase 3: Masterplan with ALL tickets → Plan staging
+```
+
+### Key Changes
+
+1. **No more blanket escalation** — AI decides severity/component/areas/readiness autonomously using rubrics
+2. **Human gate only for significant ambiguity** — unclear business impact or scope boundaries
+3. **Full subagent fan-out** — all available subagents work in parallel to complete planning/staging
+4. **All tickets to plan_staged** — no backlog waiting, every ticket gets a domain expert assigned
+
+### Subagent Responsibilities Matrix
+
+| Ticket Type | Primary Subagent | Validation Scope |
+|-------------|------------------|------------------|
+| test/FA-* / BATS | bachelorprojekt-test | Severity rubric, areas (ci/tests) |
+| infra/deploy/sealed-secret | bachelorprojekt-infra | Component mapping, severity |
+| security/OIDC/secrets | bachelorprojects-security | Severity escalation threshold |
+| website/admin/frontend | bachelorprojects-website | Areas extraction, component |
+| database/schema/query | database-specialist | Severity rubric for DB impact |
+| chat/realtime | (domain subagent) | Scope validation |
+

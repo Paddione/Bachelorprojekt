@@ -809,6 +809,10 @@
     {
       "slug": "oauth2-proxy-hardening",
       "status": "plan_staged"
+    },
+    {
+      "slug": "2026-07-03-oauth2-proxy-hardening",
+      "status": "archived"
     }
   ],
   "T001582": [

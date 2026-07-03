@@ -11,6 +11,31 @@ setup() {
   GUIDE="$REPO_ROOT/.claude/skills/references/mcp-tool-guide.md"
 }
 
+# Hard-CI guard for openspec/specs/mcp-skill-integration.md §"factory-mcp
+# registration and wiring" — both runtime configs MUST point at
+# http://localhost:13003/mcp. Catches port-drift (e.g. 13004) and missing entries.
+# .mcp.json is strict JSON; .opencode/opencode.jsonc has // and /* */ comments,
+# so we extract the factory-mcp URL by regex (the key is unique in the file and
+# the URL is a literal string, no comment-like substrings to worry about).
+@test "factory-mcp is registered at :13003/mcp in BOTH .mcp.json and .opencode/opencode.jsonc" {
+  REPO_ROOT="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
+  run node -e '
+    const fs = require("fs"), path = require("path");
+    const root = process.argv[1];
+    const want = "http://localhost:13003/mcp";
+    const mc = JSON.parse(fs.readFileSync(path.join(root, ".mcp.json"), "utf8"));
+    const m1 = mc.mcpServers && mc.mcpServers["factory-mcp"] && mc.mcpServers["factory-mcp"].url;
+    if (m1 !== want) { console.error("FAIL .mcp.json factory-mcp.url =", JSON.stringify(m1), "!=", want); process.exit(1); }
+    const ocRaw = fs.readFileSync(path.join(root, ".opencode/opencode.jsonc"), "utf8");
+    const m = ocRaw.match(/"factory-mcp"\s*:\s*\{\s*"type"\s*:\s*"remote"\s*,\s*"url"\s*:\s*"([^"]+)"/);
+    const m2 = m ? m[1] : null;
+    if (m2 !== want) { console.error("FAIL .opencode/opencode.jsonc factory-mcp.url =", JSON.stringify(m2), "!=", want); process.exit(2); }
+    process.exit(0);
+  ' "$REPO_ROOT"
+  echo "# stdout: $output"
+  [ "$status" -eq 0 ]
+}
+
 @test "every skill-critical ticket.sh verb has a ticket-mcp wrapper" {
   [ -d "$TOOLS_DIR" ]
   verbs=(phase grill stage-plan create enqueue set-touched-files get-attachments archive-plan add-pr-link get add-comment)

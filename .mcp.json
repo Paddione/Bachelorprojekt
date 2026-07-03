@@ -19,10 +19,10 @@
       "type": "http",
       "url": "http://localhost:13001/mcp"
     },
-"factory-mcp": {
-	"type": "http",
-	"url": "http://127.0.0.1:13004/mcp"
-},
+    "factory-mcp": {
+      "type": "http",
+      "url": "http://localhost:13003/mcp"
+    },
     "mcp-task-runner": {
       "command": "mcp-task-runner",
       "args": [

@@ -104,14 +104,7 @@ function mkSessions(){
     { id:"s4", no:"01", title:"Erstgespräch", status:"fertig", level:10, updated:"vor 3 Monaten", lang:"Deutsch" },
   ];
 }
-const CUSTOMERS = [
-  { id:"k1", name:"M. Albrecht",  initials:"MA", since:"2025", lang:"Farsi",   category:"Orientierung",   aktiv:1, pausiert:1, fertig:2 },
-  { id:"k2", name:"K. Vogt",      initials:"KV", since:"2024", lang:"Deutsch", category:"Führung",        aktiv:1, pausiert:0, fertig:3 },
-  { id:"k3", name:"R. Petrov",    initials:"RP", since:"2026", lang:"Arabisch",category:"Übergang",       aktiv:0, pausiert:2, fertig:0 },
-  { id:"k4", name:"S. Demir",     initials:"SD", since:"2025", lang:"Türkisch",category:"Orientierung",   aktiv:1, pausiert:0, fertig:1 },
-  { id:"k5", name:"L. Brandt",    initials:"LB", since:"2024", lang:"Deutsch", category:"Standortarbeit", aktiv:0, pausiert:1, fertig:4 },
-  { id:"k6", name:"T. Novak",     initials:"TN", since:"2026", lang:"EN",      category:"Orientierung",   aktiv:1, pausiert:0, fertig:0 },
-];
+const CUSTOMERS = [];
 CUSTOMERS.forEach(k=> k.sessions = mkSessions());
 
 // ---------------------------------------------------------------------

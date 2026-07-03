@@ -87,3 +87,33 @@ teardown() { rm -rf "$WORK"; }
 @test "bootstrap reads collaborator from --collaborator flag" {
   grep -q -- '--collaborator' "$BOOTSTRAP"
 }
+
+# --- T001578: site.Dockerfile template must be buildable -------------------
+
+@test "site.Dockerfile pins quartz v4.5.2 via tagged clone" {
+  grep -q -- '--branch v4.5.2' "$REPO_ROOT/templates/brain/site.Dockerfile"
+}
+
+@test "site.Dockerfile runtime stage uses the official static-web-server image" {
+  grep -q 'ghcr.io/static-web-server/static-web-server:2-alpine' \
+    "$REPO_ROOT/templates/brain/site.Dockerfile"
+}
+
+@test "site.Dockerfile has no npm ci against a nonexistent package.json" {
+  df="$REPO_ROOT/templates/brain/site.Dockerfile"
+  ! grep -q 'COPY package' "$df"
+  ! grep -q -- '--only=production' "$df"
+}
+
+@test "build-site.yml workflow template exists and pushes brain-site:latest" {
+  wf="$REPO_ROOT/templates/brain/.github/workflows/build-site.yml"
+  [ -f "$wf" ]
+  grep -q 'ghcr.io/paddione/brain-site:latest' "$wf"
+  grep -q 'site.Dockerfile' "$wf"
+}
+
+@test "bootstrap seed contains site.Dockerfile and build-site.yml" {
+  run bash "$BOOTSTRAP" "$WORK/brain"; [ "$status" -eq 0 ]
+  [ -f "$WORK/brain/site.Dockerfile" ]
+  [ -f "$WORK/brain/.github/workflows/build-site.yml" ]
+}

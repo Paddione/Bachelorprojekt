@@ -81,6 +81,64 @@ gh api "repos/{owner}/{repo}/actions/workflows/build-website.yml/runs?branch=mai
 
 ---
 
+## G-CFG01 — env:validate:all: Exit 0 → 201 Schema-Drift-Violations 🔴
+
+**Was:** `env:validate:all` meldet 201 Schema-Drift-Verstöße — wahrscheinlich durch die
+hinzugefügte `GITHUB_CONTENT_TOKEN`-Variable in `.secrets/`-Dateien, deren Schema-Eintrag
+(`environments/schema.yaml`) ein `secret:`-Mapping auf den neuen Secret-Namen erwartet,
+während die `.secrets/`-Dateien die Variable als einfaches Key-Value führen. Zusätzlich
+könnten andere Secrets (POCKET_ID_DOWNLOADS_SECRET, POCKET_ID_ENCRYPTION_KEY u.a.) ohne
+korrespondierende Schema-Einträge hinzugekommen sein.
+
+```bash
+task env:validate:all
+```
+
+> **A · Baseline:** 201 (war 0 · Exit 0 ✓) · **Target:** 0 · **Aufwand:** mittel (Schema-Einträge ergänzen) · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
+
+---
+
+## G-GIT02 — Non-conventional Commits: 0/30 → 1/30 🔴
+
+**Was:** Ein Commit ohne konventionelles Präfix in den letzten 30 Commits. Vermutlich
+der `chore(secrets): add GITHUB_CONTENT_TOKEN`-Commit, der das konventionelle Format
+erfüllt — liegt der Fehler im Pre-commit-Guard oder in der Messvorschrift?
+
+```bash
+git log --format=%s -30 origin/main | grep -vcE '^(feat|fix|chore|docs|test|refactor|perf|style|build|ci|revert)(\([^)]+\))?!?:'
+```
+
+> **A · Baseline:** 1 (war 0/30 ✓) · **Target:** 0 · **Aufwand:** gering (Prüfung ob Commit konform) · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
+
+---
+
+## G-AGENTIC06 — OVERVIEW.md Skill-Zähler vs real: 0 → 3 🔴
+
+**Was:** Die `OVERVIEW.md` gibt 3 Skills mehr oder weniger an als tatsächlich existieren.
+Wahrscheinlich durch die Verschiebung/Archivierung von Skills im Rahmen der Skill-Restrukturierung.
+
+```bash
+# claimed - real (Betrag) via grep claim + find SKILL.md | wc -l
+```
+
+> **A · Baseline:** 3 (war 0 ✓) · **Target:** 0 · **Aufwand:** gering (OVERVIEW.md-Zähler korrigieren) · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
+
+---
+
+## G-AGENTIC07 — Verwaiste aktive Skills: 0 → 3 🔴
+
+**Was:** Drei Skills haben eine `description` im Frontmatter, werden aber von keiner
+Referenzquelle (CLAUDE.md, AGENTS.md, OVERVIEW.md, anderen SKILL.md) importiert.
+Wahrscheinlich durch Skill-Archivierung oder Skop-Änderungen.
+
+```bash
+# for SKILL.md in find; if description exists && zero refs in CLAUDE.md/AGENTS.md/OVERVIEW.md/other SKILL.md → count
+```
+
+> **A · Baseline:** 3 (war 0 ✓) · **Target:** 0 · **Aufwand:** gering (Referenzen nachtragen oder Skills aus Frontmatter nehmen) · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
+
+---
+
 # Priorität B — Offene Ziele {#prio-b}
 
 Im nächsten Sprint einplanen.
@@ -155,7 +213,7 @@ Aktiver OpenSpec-Change [`g-fe03-structured-logger`](../../openspec/changes/g-fe
 grep -rEn 'console\.(error|warn)' website/src --include='*.ts' --include='*.svelte' --include='*.astro' | grep -v 'browser-logger.ts' | wc -l
 ```
 
-> **B · Baseline:** 10 (erstmals korrekt gemessen; vorher fälschlich als 0 ✓ unter G-FE03 in Prio C geführt) · **Target:** 0 · **Aufwand:** ~30 Dateien (siehe Change-Plan) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · Ticket: T001299 (`plan_staged`)
+> **B · Baseline:** 1 (war 10; console.error/warn von 10 auf 1 reduziert) · **Target:** 0 · **Aufwand:** ~30 Dateien (siehe Change-Plan) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · Ticket: T001299 (`plan_staged`)
 
 
 
@@ -190,7 +248,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-TEST02** | Vitest `.only` | 0 ✓ | 0 | `grep -rnE '\.only\b' website/src --include='*.test.ts' \| wc -l` |
 | **G-TEST03** | Vitest Skipped/Todo-Suiten | 0 ✓ | 0 | `grep -rnE "(describe\|it\|test)\.(skip\|todo)\b" website/src --include="*.ts" \| wc -l` |
 | **G-TEST04** | Test-Inventory-Drift | 0 ✓ | 0 | `git status --porcelain website/src/data/test-inventory.json \| wc -l` |
-| **G-CQ02** | Explizite `any`-Verwendungen | 11 ✓ | ≤ 280 | `grep -rn ': any\|<any>\|as any' website/src --include=*.ts --include=*.svelte --include=*.astro \| wc -l` |
+| **G-CQ02** | Explizite `any`-Verwendungen | 10 ✓ | ≤ 280 | `grep -rn ': any\|<any>\|as any' website/src --include=*.ts --include=*.svelte --include=*.astro \| wc -l` |
 | **G-CQ04** | FIXME/HACK/XXX (echt) | 3 ✓ | ≤4 | `grep -rnE '\b(FIXME\|HACK\|XXX)\b' ... \| wc -l` |
 | **G-CQ05** | Echte TODO-Marker | 1 ✓ | ≤ 1 | `grep -rnE "\bTODO\b" --include=*.ts ... website/src scripts tests k3d brett/src \| wc -l` |
 | **G-CQ06** | `@deprecated`-Symbole | 1 ✓ | ≤ 1 | `grep -rnE '@deprecated' website/src \| wc -l` |
@@ -198,7 +256,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-CQ09** | S3 hartkodierte Hostnames | 0 ✓ | ≤ 10 | `python3 -c "..S3-Gate.." < docs/code-quality/baseline.json` |
 | **G-CQ10** | S4 verwaiste Scripts | 0 ✓ | ≤ 4 | `python3 -c "..S4-Gate.." < docs/code-quality/baseline.json` |
 | **G-SIZE01** | Freeze-Frühwarn-Band (80–100 % S1) | 0 ✓ | ≤ 15 | `python3 -c "import json; d=json.load(open('docs/code-quality/loc-budget.json')); print(sum(1 for v in d.values() if isinstance(v,dict) and v.get('pct_used',0)>=80))"` |
-| **G-SIZE03** | God-File `website/src/lib/website-db.ts` | 2106 ✓ | ≤ 3000 | `wc -l < website/src/lib/website-db.ts` |
+| **G-SIZE03** | God-File `website/src/lib/website-db.ts` | 1957 ✓ | ≤ 3000 | `wc -l < website/src/lib/website-db.ts` |
 | **G-GIT01** | Offene PRs >7 Tage | 0 ✓ | 0 | `gh pr list --state open --json number,createdAt` |
 | **G-DEP01** | High/Critical npm-Vulnerabilities | 0 ✓ | 0 | `cd website && pnpm audit --json 2>/dev/null \| python3 -c "..."` |
 | **G-DEP03** | PM-Konsistenz (pnpm) | 0 ✓ | 1 PM | `grep -q "npm ci" website/Dockerfile && echo inkonsistent \|\| echo ok` |
@@ -211,7 +269,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-K8S02** | Deployments ohne readinessProbe | 3/34 ✓ | ≤ 3 | `python3 -c "..readinessProbe.." k3d/*.yaml` |
 | **G-K8S03** | Deployments ohne securityContext | 0 ✓ | 0 | `python3 -c "..securityContext.." k3d/*.yaml` |
 | **G-K8S04** | workspace:validate grün | Exit 0 ✓ | Exit 0 | `task workspace:validate` |
-| **G-CFG01** | env:validate:all grün | Exit 0 ✓ | Exit 0 | `task env:validate:all` |
+| **G-CFG01** | env:validate:all grün | 🔴 201 | Exit 0 | `task env:validate:all` |
 | **G-SEC01** | Hardcoded Secrets (k3d) | 0 ✓ | 0 | `grep -rn 'password.*=.*[^$]' k3d/*.yaml \| grep -iv secretKeyRef \| wc -l` |
 | **G-SEC02** | git-crypt Guard | Exit 0 ✓ | Exit 0 | `bash scripts/git-crypt-guard.sh check-tracked` |
 | **G-SEC03** | SealedSecret-Rotation | 6 Tage ✓ | ≤ 90 Tage | `git log -1 --format='%at' -- environments/sealed-secrets/*.yaml \| ...` |
@@ -234,14 +292,14 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-DORA03** | Change Failure Rate (Proxy) | 7.4 % ✓ | ≤ 15 % | `git log --since="8 weeks ago" --first-parent --oneline main \| ...fix()/revert-Rate` |
 | **G-DORA04** | MTTR | n/a ✓ | < 24h | `git log --since="8 weeks ago" --first-parent --format='%ct %s' main \| grep -iE 'revert\|hotfix'` |
 | **G-FE04** | Stray `console.log/debug/info` | 0 ✓ | 0 | `grep -rEn 'console\.(log\|debug\|info)' website/src --include='*.ts' --include='*.svelte' --include='*.astro' \| grep -v 'browser-logger.ts' \| grep -v '\.test\.ts' \| wc -l` |
-| **G-GIT02** | Non-conventional Commits | 0/30 ✓ | 0 | `git log --format=%s -30 origin/main \| grep -vcE '^(feat\|fix\|chore\|...)'` |
+| **G-GIT02** | Non-conventional Commits | 🔴 1/30 | 0 | `git log --format=%s -30 origin/main \| grep -vcE '^(feat\|fix\|chore\|...)'` |
 | **G-GIT03** | Dateien >1MB im Tree | 6 ✓ | ≤ 6 | `git ls-files -z \| grep -zv '^\.codebase-memory/' \| xargs -0 -I{} sh -c 'test -f "{}" && wc -c "{}"' \| awk '$1>1048576{c++} END{print c+0}'` (`.codebase-memory/` per Policy-Entscheidung T001348 ausgeschlossen) |
 | **G-AGENTIC02** | Agent-Routing-Tabelle ↔ Frontmatter-Drift | 0 ✓ | 0 | `python3 <<'PY' ... norm/toks/fm/rows ... symmetric_difference` |
 | **G-AGENTIC03** | Agent-Frontmatter (name + description) | 0 ✓ | 0 | `for f in .claude/agents/*.md; do name==basename && description present` |
 | **G-AGENTIC04** | test:changed Agents-Bucket | 0 ✓ | 0 | `awk '/test:changed/...' Taskfile.yml \| grep -c .claude/agents + AGENTS + agent-library` |
 | **G-AGENTIC05** | 6-Agenten Cross-Reference | 0 ✓ | 0 | `comm -3 <(ls agents/...) <(routing from validate.mjs) + <(registry from tools.yaml)` |
-| **G-AGENTIC06** | OVERVIEW.md Skill-Zähler vs real | 0 ✓ | 0 | `claimed - real (Betrag)` via grep claim + `find SKILL.md \| wc -l` |
-| **G-AGENTIC07** | Verwaiste aktive Skills | 0 ✓ | 0 | `for SKILL.md in find; if description exist && zero refs in CLAUDE.md/AGENTS.md/OVERVIEW.md/other SKILL.md → count` |
+| **G-AGENTIC06** | OVERVIEW.md Skill-Zähler vs real | 🔴 3 | 0 | `claimed - real (Betrag)` via grep claim + `find SKILL.md \| wc -l` |
+| **G-AGENTIC07** | Verwaiste aktive Skills | 🔴 3 | 0 | `for SKILL.md in find; if description exist && zero refs in CLAUDE.md/AGENTS.md/OVERVIEW.md/other SKILL.md → count` |
 | **G-AGENTIC08** | Tote Script-Pfade in SKILL.md | 0 ✓ | 0 | `grep -rhoE 'scripts/...\.(sh\|mjs\|py)' .claude/skills \| sort -u \| test -f || count` |
 | **G-AGENTIC11** | CLAUDE.md opencode-Liste vs opencode.jsonc | 0 ✓ | 0 | `comm -3 <(grep opencode-Liste \| extract backtick-names) <(mcp_servers opencode.jsonc)` |
 | **G-AGENTIC12** | .mcp.json-Server undokumentiert | 0 ✓ | 0 | `for s in $(mcp_servers .mcp.json); grep -q -- "$s" mcp-tool-guide.md || count` |
@@ -268,11 +326,15 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 - **Wöchentlich:** G-RH01/03, G-TEST01/03, G-SIZE01/03/04, G-CI01, G-CD01, G-CQ02/05, G-IMG01, G-K8S03, G-SPEC03, G-GIT03, G-FE03/04
 - **Monatlich/Quartal:** G-DEP02, G-SEC03/04, G-DOC02, G-FE01/02
 
-**Aktuell A-Ziele (2026-07-01):** G-SIZE04 (G-GIT03 per T001348 auf ≤ 6 gebracht und von Prio A nach Prio C gewechselt; G-CD01 per T001349 auf 100 % (15/15) gebracht und von Prio A nach Prio C gewechselt)
+**Aktuell A-Ziele (2026-07-03):** G-SIZE04 (Spike-Fenster), G-CFG01 (201 Schema-Verstöße, neu), G-GIT02 (1 non-conventional Commit, neu), G-AGENTIC06 (3 Skill-Zähler-Drift, neu), G-AGENTIC07 (3 verwaiste Skills, neu)
 
 **Sprint-Highlights 2026-07-01:** G-CI01 erreicht Target (85 %→95 %, 19/20 grün) und wechselt von Prio A nach Prio C. G-RH03 (OpenSpec-BATS-Abdeckung 50 %→82 %) und G-DEP02 (Major-Deps 9→2) erreichen ihr Target und wechseln von Prio B nach Prio C. G-CQ01 erstmals gemessen: 0 astro-check-Fehler. G-CQ02 (explizite `any`) fällt weiter von 154 auf 8. G-GIT03 (Dateien >1MB) erreicht Target 7→6 per Policy-Ausschluss von `.codebase-memory/` (T001348) und wechselt von Prio A nach Prio C. G-SEC05-Messfehler dokumentiert: das Skript filtert nur eine von zwei GitHub-Actions-Bot-Mail-Varianten heraus, wodurch 4 Bot-Commits fälschlich als unsigniert zählen — echter Wert 0/50, Skript-Fix noch offen.
 
+**Sprint-Highlights 2026-07-03:** G-FE03 (console.error/warn) von 10 auf 1 reduziert — deutliche Verbesserung. G-CQ02 (explizite `any`) weiter von 11 auf 10 gesunken. G-SIZE03 (God-File website-db.ts) von 2106 auf 1957 Zeilen geschrumpft. G-TEST05 (Vitest Coverage) steigt von 82 %→85 %. **Regressionen:** G-CFG01 (env:validate:all) von Exit 0 auf 201 Schema-Verstöße gesprungen; G-GIT02 (non-conventional Commits) von 0 auf 1; G-AGENTIC06/07 jeweils von 0 auf 3 — vier Gates von Prio C nach Prio A zurückgestuft.
+
 **Baseline-Update 2026-07-02:** G-SIZE04 +324.494→+325.521 (weiterhin im Spike-Fenster, aber Top-Diffs sind wieder normale Feature-Arbeit); G-GIT03 7→6 (graph.db.zst per Policy-Entscheidung T001348 aus Gate-Scope ausgeschlossen, keine LFS-Migration); G-CD01 unverändert bei 100 % (15/15); G-CQ02 154→8; G-CQ01 ?→0; G-RH03 50 %→82 %; G-DEP02 9→2 Major; G-CI01 85 %→95 %; **G-SEC05** 25→0 (Mess-Bug fix: beide github-actions[bot] Mail-Varianten werden korrekt gefiltert, alle vorherigen "unsignierten" Commits waren GitHub-Bots); **G-AGENTIC01** 3→0 (tools:-Feld zu security/infra/db Agenten hinzugefügt); **G-AGENTIC10** 3→0 (dispatchende Skills website-specialist/database-specialist/security-specialist erstellt).
+
+**Baseline-Update 2026-07-03:** G-CQ02 11→10; G-SIZE03 2106→1957; G-FE03 10→1; G-TEST05 82 %→85 %; **G-CFG01** Exit 0→201 (Schema-Drift nach GITHUB_CONTENT_TOKEN-Add); **G-GIT02** 0→1 (non-conventional Commit); **G-AGENTIC06** 0→3 (OVERVIEW.md Skill-Zähler); **G-AGENTIC07** 0→3 (verwaiste Skills) — vier Gates von Prio C nach Prio A zurückgestuft.
 
 **Offene Tickets (2026-07-02):** G-SIZE04 (T001347 offen), alle anderen Prio-A/B-Ziele durch Policy/Code-Änderungen direkt gefixt.
 

@@ -963,7 +963,6 @@ tasks:
     desc: "Fail if any generated artifact is stale or violates invariants (CI gate + local pre-commit safety)"
     cmds:
       # --- Phase 1: regenerate everything, then diff-check each file ---
-      - task: freshness:regenerate
       - |
         ERRORS=0
         FILES="

@@ -288,35 +288,6 @@ spec:
                 secret=$(eval "printf '%s' \"\$$env\"")
                 upsert "$cid" "$secret" "$secret_key" "$cb"
               done
-              
-              # ── User-group provisioning (T001579) ─────────────────────────
-              # Idempotently ensure the platform base group `workspace-users`
-              # exists. oauth2-proxy gates authorize on it via
-              # --allowed-groups=workspace-users (groups claim, scope `groups`).
-              # MEMBERSHIP IS NOT AUTOMATED here — assigning users to the group
-              # is a documented one-time admin step; the seed job must never
-              # overwrite manually curated membership.
-              # Same grep/sed-over-JSON approach as find_client_id (no jq in
-              # this image); same X-API-KEY auth and retry policy.
-              find_group_id() {
-                gname="$1"
-                glist=$(curl -fsS $CURL_RETRY -H "$AUTH" "${API}/api/user-groups" </dev/null 2>/dev/null || true)
-                echo "$glist" | grep -o "\"id\":\"[^\"]*\",\"name\":\"${gname}\"" | head -1 | sed -E 's/"id":"([^"]*)".*/\1/'
-              }
-              ensure_group() {
-                gname="$1"; gfriendly="$2"
-                gid=$(find_group_id "$gname")
-                if [ -n "$gid" ]; then
-                  echo "group ${gname} exists (id=${gid}), unchanged"
-                else
-                  curl -fsS $CURL_RETRY -X POST -H "$AUTH" -H "$CT" \
-                    -d "$(printf '{"name":"%s","friendlyName":"%s"}' "$gname" "$gfriendly")" \
-                    "${API}/api/user-groups" </dev/null >/dev/null
-                  echo "created group ${gname}"
-                fi
-              }
-              ensure_group "workspace-users" "Workspace Users"
-              
               echo "seed complete"
           resources:
             requests: { cpu: "10m", memory: "32Mi" }

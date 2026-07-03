@@ -21,9 +21,6 @@ spec:
             - "--oidc-jwks-url=https://auth.${PROD_DOMAIN}/.well-known/jwks.json"
             - "--profile-url=https://auth.${PROD_DOMAIN}/api/oidc/userinfo"
             - "--upstream=http://mediaviewer-widget:80"
-            --allowed-groups=workspace-users
-            --oidc-groups-claim=groups
-            --scope=openid email profile groups
             - "--http-address=0.0.0.0:4180"
             - "--cookie-secure=true"
             - "--cookie-samesite=none"
@@ -36,7 +33,9 @@ spec:
             - "--skip-auth-route=^/assets/"
             - "--code-challenge-method=S256"
             - "--oidc-extra-audience=mediaviewer-widget"
-            - "--scope=openid email profile"
+            - "--scope=openid email profile groups"
+            - "--oidc-groups-claim=groups"
+            - "--allowed-groups=workspace-users"
           env:
             - name: POCKET_ID_MEDIAVIEWER_SECRET
               valueFrom:

@@ -11,6 +11,17 @@ resources:
   - ../../prod/monitoring
   - sessions-server.yaml
   - studio-ingress.yaml
+  - ../../prod/patch-oauth2-proxy-brain-deployment.yaml
+  - ../../prod/patch-oauth2-proxy-brett-deployment.yaml
+  - ../../prod/patch-oauth2-proxy-comfy-deployment.yaml
+  - ../../prod/patch-oauth2-proxy-docs-deployment.yaml
+  - ../../prod/patch-oauth2-proxy-downloads-deployment.yaml
+  - ../../prod/patch-oauth2-proxy-mailpit-deployment.yaml
+  - ../../prod/patch-oauth2-proxy-mediaviewer-deployment.yaml
+  - ../../prod/patch-oauth2-proxy-rustdesk-web-deployment.yaml
+  - ../../prod/patch-oauth2-proxy-studio-deployment.yaml
+  - ../../prod/patch-oauth2-proxy-traefik-deployment.yaml
+  - ../../prod/patch-oauth2-proxy-videovault-deployment.yaml
 components:
   - ../components/fleet-common
 

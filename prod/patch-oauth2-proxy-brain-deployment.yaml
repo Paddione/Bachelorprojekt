@@ -29,7 +29,9 @@ spec:
             - "--skip-provider-button=true"
             - "--code-challenge-method=S256"
             - "--oidc-extra-audience=brain"
-            - "--scope=openid email profile"
+            - "--scope=openid email profile groups"
+            - "--oidc-groups-claim=groups"
+            - "--allowed-groups=workspace-users"
           env:
             - name: POCKET_ID_BRAIN_SECRET
               valueFrom:

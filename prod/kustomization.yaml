@@ -136,6 +136,7 @@ patches:
   - path: patch-oauth2-proxy-brett-deployment.yaml
   - path: patch-oauth2-proxy-videovault-deployment.yaml
   - path: patch-oauth2-proxy-rustdesk-web-deployment.yaml
+  - path: patch-oauth2-proxy-terminal.yaml
   - path: patch-oauth2-proxy-studio-deployment.yaml
   - path: patch-oauth2-proxy-mediaviewer-deployment.yaml
   - path: patch-brett.yaml

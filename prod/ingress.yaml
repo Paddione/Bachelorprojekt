@@ -223,6 +223,32 @@ spec:
                 port:
                   number: 4180
 ---
+# ── Agentic Terminal — Pocket ID SSO (oauth2-proxy) ──────────────────
+# Embedded as iframe in the website-admin sidekick. Uses embed-headers
+# middleware (no X-Frame-Options, CSP frame-ancestors web.PROD_DOMAIN).
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: workspace-ingress-terminal
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: "${WORKSPACE_NAMESPACE}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE}-hsts-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-security-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-terminal-embed-headers@kubernetescrd"
+spec:
+  tls:
+    - hosts:
+        - terminal.${PROD_DOMAIN}
+      secretName: ${TLS_SECRET_NAME}
+  rules:
+    - host: terminal.${PROD_DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: oauth2-proxy-terminal
+                port:
+                  number: 4180
+---
 # ── Restliche Services (meet, board, signaling) ─────────────────────
 apiVersion: networking.k8s.io/v1
 kind: Ingress

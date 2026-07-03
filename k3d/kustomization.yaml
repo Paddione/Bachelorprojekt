@@ -110,6 +110,9 @@ resources:
   # Brain — Quartz-rendered LLM-wiki static site (T001569)
   - brain.yaml
   - oauth2-proxy-brain.yaml
+  # Agentic Terminal SSO bridge (T001565) — ttyd on the WSL host via wg-fleet
+  - terminal-sidekick.yaml
+  - oauth2-proxy-terminal.yaml
   # Ingress
   - ingress.yaml
   # Website RBAC (Role/RoleBinding in workspace ns for monitoring + backup-status API)

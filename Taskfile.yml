@@ -717,6 +717,28 @@ tasks:
     desc: "Run the offline-safe Software Factory bats (tests/local/FA-SF-* + FA-AR-*) and spec bats (tests/spec/*). Live-DB cases skip without a reachable cluster, so this is CI-safe."
     cmds:
       - '[ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive'
+      - |
+        # tests/spec/mcp-task-runner.bats invokes the compiled binary at
+        # /usr/local/bin/mcp-task-runner directly — nothing else in the repo
+        # builds/installs it, so rebuild it fresh here (best-effort: on hosts
+        # where /usr/local/bin isn't writable, e.g. a locked-down dev box, fall
+        # back to whatever is already installed there). [T001533]
+        if command -v go >/dev/null 2>&1; then
+          TMP_BIN="$(mktemp -d)/mcp-task-runner"
+          if (cd mcp-task-runner && go build -o "$TMP_BIN" .); then
+            if install -m 0755 "$TMP_BIN" /usr/local/bin/mcp-task-runner 2>/dev/null; then
+              echo "mcp-task-runner: installed fresh build to /usr/local/bin"
+            elif sudo -n install -m 0755 "$TMP_BIN" /usr/local/bin/mcp-task-runner 2>/dev/null; then
+              echo "mcp-task-runner: installed fresh build to /usr/local/bin (sudo)"
+            else
+              echo "mcp-task-runner: /usr/local/bin not writable — using pre-installed binary if present"
+            fi
+          else
+            echo "mcp-task-runner: go build failed — using pre-installed binary if present"
+          fi
+        else
+          echo "mcp-task-runner: go not found — using pre-installed binary if present"
+        fi
       - ./tests/unit/lib/bats-core/bin/bats tests/local/FA-SF-*.bats tests/local/FA-AR-*.bats tests/spec/*.bats
 
   test:mcp-tooling:

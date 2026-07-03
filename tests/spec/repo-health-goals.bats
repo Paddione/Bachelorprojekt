@@ -54,7 +54,7 @@ VAL
 
 @test "ticket command is well-formed" {
   _write_mixed_fixture
-  run env HG_GOALS_FILE="$GOALS" HG_VALUES_FILE="$VALUES" bash "$SCRIPT" --dry-run
+  run env HG_GOALS_FILE="$GOALS" HG_VALUES_FILE="$VALUES" bash "$SCRIPT" --dry-run --suggest-tickets
   [ "$status" -eq 0 ]
   [[ "$output" == *"scripts/ticket.sh create"* ]]
   # exactly one of each required flag in the suggestion
@@ -82,7 +82,7 @@ MD
   cat > "$VALUES" <<'VAL'
 G-ESC01 3 le 0
 VAL
-  run env HG_GOALS_FILE="$GOALS" HG_VALUES_FILE="$VALUES" bash "$SCRIPT" --dry-run
+  run env HG_GOALS_FILE="$GOALS" HG_VALUES_FILE="$VALUES" bash "$SCRIPT" --dry-run --suggest-tickets
   [ "$status" -eq 0 ]
   # $, ", and ` must all be backslash-escaped so the suggestion is safe to
   # paste into a double-quoted shell string without triggering substitution.

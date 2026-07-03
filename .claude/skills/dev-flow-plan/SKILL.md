@@ -312,10 +312,26 @@ Statt deinen eigenen Kontext zurückzusetzen (das ließe dich den Faden verliere
        DB-Spalten/API-Contracts aus den `db_tables`/`api_contracts`-Sektionen zitieren. Format/Quellen:
        [plan-intel-bundle](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-intel-bundle.md).
     - **plan-lint Hard Rules (PFLICHT — vom Subagenten verbatim zu befolgen):**
-      F1/F2/STRUCT1–3/P1 stehen als SSOT in
-      [plan-quality-gates](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-quality-gates.md)
+      Vollständige SSOT in [plan-quality-gates](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-quality-gates.md)
       §plan-lint — der Subagent MUSS die Datei lesen und die tasks.md dagegen schreiben
-      (`scripts/plan-lint.sh` ist das maschinelle Gate dazu).
+      (`scripts/plan-lint.sh` ist das maschinelle Gate dazu). Kurzfassung, damit ein
+      frischer Subagent nicht raten muss:
+      - **F1 Frontmatter:** YAML-Frontmatter am Anfang mit den vier Pflicht-Keys
+        `title`, `ticket_id`, `domains`, `status` (alle nicht-leer).
+      - **F2 domains:** `domains:` ist eine non-empty YAML-Liste (`[a, b, …]`),
+        kein leerer String und kein `[]`.
+      - **STRUCT1 Plan-Shape:** Die Datei beginnt (nach Frontmatter) mit
+        `# <slug> — Implementation Plan` als H1, gefolgt von einer H2-Sektion
+        `## File Structure`, die die geänderten/neuen Dateien auflistet.
+      - **STRUCT2 Failing-Test-Step:** Mindestens ein Task enthält einen
+        rot→grün-Failing-Test-Step mit der wortwörtlichen Phrase
+        `expected: FAIL` (regex tolerant: `expected:? *fail`).
+      - **STRUCT3 Verify-Task:** Der letzte Task listet die drei mandatory
+        Verify-Commands: `task test:changed`, `task freshness:regenerate`,
+        `task freshness:check` (regex `task[[:space:]]+<cmd>`).
+      - **P1 Placeholder-Verbot:** In Prosa (außerhalb von ```-Fences und
+        `inline code`) dürfen die Tokens `TBD`, `TODO`, `FIXME`, `???`,
+        `<ausfüllen>` und `similar to Task <N>` NICHT vorkommen.
       - **Auftrag:** „**PFLICHT — Worktree-Isolation:** Beginne deinen Prompt mit `cd /tmp/wt-<slug>` — der Subagent hat keinen impliziten CWD-Kontext und schreibt sonst ins Haupt-Checkout. Alle folgenden Dateipfade sind relativ zu diesem Worktree.
      
      Dann: Lies die Spec UND `.claude/skills/references/plan-quality-gates.md`. Rufe `superpowers:writing-plans` auf und schreibe den Implementierungsplan **ausschließlich** nach `openspec/changes/<slug>/tasks.md` (OpenSpec-Format: H2-Operationsheader im Delta, H3-Requirement, H4-Scenario im `specs/<capability>.md`). Der finale Verifikations-Task des Plans MUSS `task test:changed`, `task freshness:regenerate` und `task freshness:check` als Steps enthalten (CI-Äquivalent inkl. S1–S4-Ratchet); nach Test-Änderungen zusätzlich `task test:inventory` + Commit des Inventars. Vor dem Commit: `task test:openspec` (oder `bash scripts/openspec.sh validate`) — muss grün sein. **Test-Assertion-Konsistenz:** Verifiziere vor Finalisierung, dass jede im Plan-Task vorgegebene Test-Regex/Erwartung tatsächlich die im selben Task referenzierten Implementierungs-Snippets matchen kann — bei Diskrepanz wähle eine semantisch äquivalente Assertion-Form, die zum Snippet passt. Starte KEINE Implementierung (nur Plan schreiben, dann STOPP). Gib den Plan-Pfad (`openspec/changes/<slug>/tasks.md`) und eine 3-Zeilen-Zusammenfassung zurück."

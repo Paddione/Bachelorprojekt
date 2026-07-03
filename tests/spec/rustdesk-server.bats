@@ -191,11 +191,11 @@ setup() {
 
 @test "rustdesk-client: WiX wrapper source is well-formed XML" {
   command -v python3 >/dev/null || skip "python3 not installed"
-  python3 -c "import xml.dom.minidom as m; m.parse('${REPO_ROOT}/rustdesk-installer/Package.wxs')"
+  python3 -c "import xml.dom.minidom as m; m.parse('${REPO_ROOT}/rustdesk-installer/Bundle.wxs')"
   python3 -c "import xml.dom.minidom as m; m.parse('${REPO_ROOT}/rustdesk-installer/rustdesk-installer.wixproj')"
 }
 
-@test "rustdesk-client: provision.ps1 keeps secret placeholders (no committed secret)" {
-  grep -q '__RUSTDESK_CONFIG__' "${REPO_ROOT}/rustdesk-installer/provision.ps1"
-  grep -q '__RUSTDESK_PASSWORD__' "${REPO_ROOT}/rustdesk-installer/provision.ps1"
+@test "rustdesk-client: provision.cmd keeps secret placeholders (no committed secret)" {
+  grep -q '__RUSTDESK_CONFIG__' "${REPO_ROOT}/rustdesk-installer/provision.cmd"
+  grep -q '__RUSTDESK_PASSWORD__' "${REPO_ROOT}/rustdesk-installer/provision.cmd"
 }

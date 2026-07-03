@@ -98,18 +98,22 @@ teardown() {
   echo "$output" | grep -qx "ci"
 }
 
-@test "scopes: output matches commitlint.config.cjs scope-enum exactly" {
+@test "scopes: output matches commitlint.config.cjs namedScopes exactly" {
   run "$SCRIPT" scopes
   [ "$status" -eq 0 ]
   node_scopes=$(node -e "
     const cfg = require('${BATS_TEST_DIRNAME}/../../commitlint.config.cjs');
-    console.log(cfg.rules['scope-enum'][2].join('\n'));
+    console.log(cfg.namedScopes.join('\n'));
   ")
   [ "$output" == "$node_scopes" ]
 }
 
 @test "ci.yml commit-lint job loads scopes dynamically instead of a hardcoded list" {
-  grep -q 'validate-commit-msg.sh scopes' "${BATS_TEST_DIRNAME}/../../.github/workflows/ci.yml"
+  # ci.yml enforces scopes via the shared 'range' subcommand (individual
+  # commit messages), which internally reads commitlint.config.cjs.namedScopes
+  # dynamically (see validate-commit-msg.sh load_allowed_scopes) — no
+  # hardcoded scope list lives in the workflow itself.
+  grep -q 'validate-commit-msg.sh range' "${BATS_TEST_DIRNAME}/../../.github/workflows/ci.yml"
 }
 
 @test "pr-auto-title.yml checks out the repo before deriving a scope" {

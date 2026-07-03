@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # register-scope.sh <scope> [--config <path>] — idempotently register a new
-# scope in commitlint.config.cjs's scope-enum (the SSOT, T001364).
+# scope in commitlint.config.cjs's namedScopes array (the SSOT, T001364).
 set -euo pipefail
 
 SCOPE="${1:?Usage: register-scope.sh <scope> [--config <path>]}"
@@ -32,7 +32,7 @@ fi
 
 if node -e "
   const cfg = require('$CONFIG');
-  const scopes = cfg.rules['scope-enum'][2];
+  const scopes = cfg.namedScopes;
   process.exit(scopes.includes('$SCOPE') ? 0 : 1);
 "; then
   echo "register-scope: scope '$SCOPE' is already registered — nothing to do" >&2
@@ -47,8 +47,8 @@ node -e "
   const path = '$CONFIG';
   const scope = '$SCOPE';
   const lines = fs.readFileSync(path, 'utf8').split('\n');
-  const closeIdx = lines.findIndex((l) => l.trim() === ']');
-  if (closeIdx === -1) { console.error('register-scope: could not find scope-enum array close'); process.exit(1); }
+  const closeIdx = lines.findIndex((l) => l.trim() === ']' || l.trim() === '];');
+  if (closeIdx === -1) { console.error('register-scope: could not find namedScopes array close'); process.exit(1); }
   const prevIdx = closeIdx - 1;
   const indent = lines[prevIdx].match(/^\s*/)[0];
   // Ensure the previous last-entry line ends with a trailing comma before

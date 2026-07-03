@@ -24,7 +24,7 @@ setup() {
   REPO="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
   LINT="$REPO/scripts/plan-lint.sh"
   BASELINE="$REPO/docs/code-quality/baseline.json"
-  MISHAPS="$REPO/openspec/changes/t001353-mishap-bundle-ci-tickets/mishaps.md"
+  MISHAPS="$REPO/openspec/changes/archive/2026-07-01-t001353-mishap-bundle-ci-tickets/mishaps.md"
 }
 
 @test "Mishap 1: plan-lint effective_threshold for InboxApp.svelte matches current baseline.json (not a stale hardcoded snapshot)" {

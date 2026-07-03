@@ -59,12 +59,15 @@ _mcp() {
 
 # ── Tests ─────────────────────────────────────────────────────────────────────
 
-@test "MCP-TASK-RUNNER-001: tools/list returns exactly 3 tools (plan_tasks, run_task, execute_plan)" {
+@test "MCP-TASK-RUNNER-001: tools/list returns all 7 tools (plan_tasks, run_task, execute_plan, get_task_graph, run_task_async, cancel_task, get_task_result)" {
   run _mcp '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'
   [ "$status" -eq 0 ]
-  # Validate JSON is well-formed and contains all 3 expected tool names
-  echo "$output" | jq -e '.result.tools | length == 3' > /dev/null
-  echo "$output" | jq -e '[.result.tools[].name] | contains(["plan_tasks","run_task","execute_plan"])' > /dev/null
+  # Validate JSON is well-formed and contains all 7 expected tool names.
+  # Tool count grew from 3 to 7 with the archived 2026-06-28
+  # mcp-server-capabilities change (async lifecycle + graph tools); this
+  # assertion tracks the current shipped surface, not the original 3. [T001533]
+  echo "$output" | jq -e '.result.tools | length == 7' > /dev/null
+  echo "$output" | jq -e '[.result.tools[].name] | contains(["plan_tasks","run_task","execute_plan","get_task_graph","run_task_async","cancel_task","get_task_result"])' > /dev/null
 }
 
 @test "MCP-TASK-RUNNER-002: plan_tasks with two same-named tasks (different env) groups them into one parallel group" {

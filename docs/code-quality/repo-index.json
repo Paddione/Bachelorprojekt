@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 542,
+      "file_count": 543,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -394,6 +394,7 @@
         "tests/spec/s1-violations.bats",
         "tests/spec/s2-cycles-g-cq07.bats",
         "tests/spec/sealed-secret-cluster-drift.bats",
+        "tests/spec/secret-rotation-exposure.bats",
         "tests/spec/secret-rotation.bats",
         "tests/spec/secrets-deploy-automation.bats",
         "tests/spec/size04-loc-velocity.bats",
@@ -2770,7 +2771,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 478,
+      "file_count": 479,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3166,6 +3167,7 @@
         "scripts/register-secret.mjs",
         "scripts/rig_for_mixamo.py",
         "scripts/rigger_server.py",
+        "scripts/secret-rotate.sh",
         "scripts/seed-admin-shortcuts.sh",
         "scripts/seed-lmstudio-ki-config.mjs",
         "scripts/session-forms/base.html",

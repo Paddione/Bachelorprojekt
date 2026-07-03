@@ -123,3 +123,5 @@ or repo-creation side effects.
 - **THEN** it seeds the directory without invoking `gh-axi`/`gh` or any network call
 
 <!-- merged from change delta brain-foundation.md (369ed3945f41) -->
+
+<!-- merged from change delta brain-foundation.md (7b8cca345b3e) -->

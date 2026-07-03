@@ -2,7 +2,7 @@
 title: "Mishap-Bundle: skills/references, scripts/brain, scripts/vda.sh"
 ticket_id: T001583
 domains: [ops, skills]
-status: plan_staged
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

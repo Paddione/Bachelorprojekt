@@ -17,25 +17,29 @@ _Ticket: T001586_
 ## File Structure
 
 ```
-<author fills this in — list of new/changed files>
+.mcp.json (port-correction: 127.0.0.1:13004 → localhost:13003)
+tests/spec/mcp-tooling.bats (new BATS test for factory-mcp port guard)
 ```
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Add the BATS test that reproduces the
+- [x] **Failing-Test-Step (RED).** Add the BATS test that reproduces the
       bug. The test must FAIL on the current branch. Use the phrase
       `expected: FAIL` in the step body so plan-lint STRUCT2 picks it up.
 
 ```bash
 # Example: run the BATS test the author will add in their first task
-tests/unit/lib/bats-core/bin/bats tests/spec/t001586.bats
+tests/unit/lib/bats-core/bin/bats tests/spec/mcp-tooling.bats
 # expected: FAIL (red — the fix is not yet implemented)
 ```
 
-- [ ] **Fix-Step (GREEN).** Implement the fix. The BATS test from the
+- [x] **Fix-Step (GREEN).** Implement the fix. The BATS test from the
       previous step must now pass.
 
-- [ ] **Final Verification.** Run the three mandatory CI gates:
+  - Port correction in `.mcp.json`: `127.0.0.1:13004` → `localhost:13003`
+  - Add BATS test for factory-mcp port guard in `tests/spec/mcp-tooling.bats`
+
+- [x] **Final Verification.** Run the three mandatory CI gates:
 
 ```bash
 task test:changed

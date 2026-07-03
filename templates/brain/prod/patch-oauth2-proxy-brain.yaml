@@ -1,0 +1,15 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oauth2-proxy-brain
+spec:
+  template:
+    spec:
+      containers:
+        - name: oauth2-proxy
+          env:
+            - name: POCKET_ID_BRAIN_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets-mentolder
+                  key: POCKET_ID_BRAIN_SECRET

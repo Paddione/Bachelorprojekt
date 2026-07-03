@@ -1,0 +1,67 @@
+# ────────────────────────────────────────────────────────────────────
+# Brain-Quellen-Manifest für die Wiki-Kompilierung (Brain Initial Ingest)
+# ════════════════════════════════════════════════════════════════════
+
+exclude:
+  - docs/archive/           # veraltete Doku
+  - docs/generated/         # generierte Artefakte (kein Source Material)
+  - docs/legacy-html/       # alte HTML-Seiten
+  - docs/drift-reports/     # Drift-Detection Reports
+  - openspec/specs/archive/ # archivte OpenSpec-Specs
+
+groups:
+  # ────────────────────────────────────────────────────────────────────
+  # SSOT-Spezifikationen (57 Specs) — höchste Priorität für LLM-Zitationen
+  # ────────────────────────────────────────────────────────────────────
+  - group: brain-ssot-specs
+    priority: 1
+    include:
+      - openspec/specs/*.md
+
+  # ────────────────────────────────────────────────────────────────────
+  # Operative Runbooks & ADRs — praktische Handlungsanleitungen
+  # ────────────────────────────────────────────────────────────────────
+  - group: brain-runbooks
+    priority: 2
+    include:
+      - docs/runbooks/*.md
+
+  - group: brain-adrs
+    priority: 3
+    include:
+      - docs/adr/*.md
+
+  # ────────────────────────────────────────────────────────────────────
+  # Core-Repo-Dokumentation — zentraler Referenzmaterialien
+  # ────────────────────────────────────────────────────────────────────
+  - group: brain-core-docs
+    priority: 4
+    include:
+      - CLAUDE.md
+      - AGENTS.md
+
+  - group: brain-gotchas
+    priority: 5
+    include:
+      - docs/superpowers/references/gotchas-footguns.md
+
+  # ────────────────────────────────────────────────────────────────────
+  # Agent Guide Maps — visuelle Navigationshilfen für Entwickler
+  # ────────────────────────────────────────────────────────────────────
+  - group: brain-agent-guide
+    priority: 6
+    include:
+      - docs/agent-guide/maps/*.md
+
+  - group: brain-lib-guides
+    priority: 7
+    include:
+      - docs/superpowers/references/lib-guides.md
+
+  # ────────────────────────────────────────────────────────────────────
+  # Project Topology & Health — Architekturübersicht
+  # ────────────────────────────────────────────────────────────────────
+  - group: brain-topology
+    priority: 8
+    include:
+      - docs/project/health-checks.md

@@ -2,7 +2,7 @@
 title: "brain-foundation — Implementation Plan"
 ticket_id: T001568
 domains: [infra, test, security]
-status: active
+status: completed
 file_locks: [scripts/brain-bootstrap.sh, tests/spec/brain-foundation.bats, templates/brain/]
 shared_changes: false
 batch_id: null

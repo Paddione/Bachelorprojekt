@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.155.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.155.0...website-v1.155.1) (2026-07-03)
+
+
+### Bug Fixes
+
+* **goals:** resolve Prio B health goals G-CQ01/03/08 and G-FE01/02 [T001553,T001554,T001555,T001557,T001558] ([858d37d](https://github.com/Paddione/Bachelorprojekt/commit/858d37d24fd27babf5c95c93bf979532543d6f58))
+* **website:** repair main CI breakage from T001490 squash-merge [T001562] ([#2548](https://github.com/Paddione/Bachelorprojekt/issues/2548)) ([15ddd4f](https://github.com/Paddione/Bachelorprojekt/commit/15ddd4f4f9bffc71203cbcd4606ade9440724251))
+
 ## [1.155.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.154.1...website-v1.155.0) (2026-07-02)
 
 

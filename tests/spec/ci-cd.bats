@@ -310,3 +310,26 @@ PY
   grep -q 'inbox_remarked_unmarked' "$REPO_ROOT/website/src/lib/tickets/migrations.ts"
   grep -q 'tickets_remarked_unmarked' "$REPO_ROOT/scripts/one-shot/purge-fn-v5.sql"
 }
+
+# ── T001562: main CI post-merge deploy broken by malformed k3d/secrets.yaml ──
+
+@test "T001562: alle k3d/*.yaml parsen als gültiges Multi-Document-YAML" {
+  run python3 - "$REPO_ROOT/k3d" <<'PY'
+import sys, os, yaml
+root = sys.argv[1]
+errors = []
+for fname in sorted(os.listdir(root)):
+  if not fname.endswith(('.yaml', '.yml')):
+    continue
+  fpath = os.path.join(root, fname)
+  try:
+    docs = list(yaml.safe_load_all(open(fpath)))
+  except yaml.YAMLError as e:
+    errors.append(f"{fname}: {e}")
+    continue
+  if not docs:
+    errors.append(f"{fname}: empty (no documents)")
+assert not errors, f"YAML parse errors:\n" + "\n".join(errors)
+PY
+  [ "$status" -eq 0 ]
+}

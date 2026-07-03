@@ -105,7 +105,7 @@ resources:
   # Netzwerksicherheit (L3)
   - network-policies.yaml
   # RustDesk web-client SSO bridge (T001381)
-  - rustdesk-web-bridge.yaml
+#  - rustdesk-web-bridge.yaml  # prod-only (TURN bridge; skipped in dev — see TURN_OVERLAY_IP envsubst gap)
   - oauth2-proxy-rustdesk-web.yaml
   # Brain — Quartz-rendered LLM-wiki static site (T001569)
   - brain.yaml

@@ -91,6 +91,8 @@ INFRA_FILES=(
   "k3d/configmap-domains.yaml"
   "k3d/secrets.yaml"
   "k3d/sealed-secrets-controller.yaml"
+  "k3d/seed.yaml"
+  "k3d/clean-seed.yaml"
 )
 
 # resolve_partial_services <csv-of-touched-files>

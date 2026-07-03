@@ -12,8 +12,8 @@
 #     loki-rendered.yaml, promtail-rendered.yaml) sind deterministisch aus
 #     dem Upstream-Chart → werden ausgeschlossen.
 #
-# Aktuelle kanonische Pins (2026-06-27):
-#   busybox:1.37
+# Aktuelle kanonische Pins (2026-07-03):
+#   busybox:1.38.0
 #   curlimages/curl:8.7.1   (zusätzlich: 8.7.1@sha256:… bleibt erlaubt)
 #   kiwigrid/k8s-sidecar:2.7.3   (nur in helm-rendered; derzeit ausgeschlossen)
 
@@ -21,10 +21,10 @@ setup() {
   REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
 }
 
-@test "G-IMG02: keine busybox Drift-Tags (außer 1.37) in hand-editierten Manifesten" {
+@test "G-IMG02: keine busybox Drift-Tags (außer 1.38.0) in hand-editierten Manifesten" {
   drift=$(grep -rhE 'image:[[:space:]]+["'"'"']?busybox:' \
     "$REPO_ROOT/k3d/" "$REPO_ROOT/prod/" "$REPO_ROOT/prod-korczewski/" 2>/dev/null \
-    | grep -vE 'busybox:1\.37(\s|$|")' \
+    | grep -vE 'busybox:1\.38\.0(@sha256|\s|$|")' \
     | grep -vE 'kube-prometheus-stack-rendered|loki-rendered|promtail-rendered' \
     | wc -l)
   [ "$drift" -eq 0 ]

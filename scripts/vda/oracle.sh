@@ -209,7 +209,11 @@ if [[ "$GOAL" =~ $FASTPATH_REGEX ]]; then
       FP_EXEC_ENV="__BOTH__"
     fi
   elif [[ -n "$FP_ENV" ]]; then
-    FP_EXEC_ENV="ENV=${FP_ENV}"
+    # Resolve to the task's actual required var (ENV vs BRAND) — the user
+    # types the "ENV=<token>" DSL regardless of which var the target task
+    # wants; materialize_task_env_arg maps the token to the right var name
+    # (e.g. fleet:deploy:brand ENV=mentolder → BRAND=fleet-mentolder). [T001583]
+    FP_EXEC_ENV="$(materialize_task_env_arg "$FP_FINAL" "$FP_ENV" "$REPO_FP")"
   fi
 
   TASK_DESC_FP=$(cd "$REPO_FP" && task --summary "$FP_FINAL" 2>/dev/null | sed -n '3p' || true)
@@ -220,8 +224,12 @@ if [[ "$GOAL" =~ $FASTPATH_REGEX ]]; then
 
   if [[ "${FP_EXEC_ENV:-}" == "__BOTH__" ]]; then
     [[ $QUIET -eq 0 ]] && echo "→ Running on mentolder then korczewski..." >&2
-    cd "$REPO_FP" && task "$FP_FINAL" ENV=mentolder
-    cd "$REPO_FP" && task "$FP_FINAL" ENV=korczewski
+    FP_MENTOLDER_ARG="$(materialize_task_env_arg "$FP_FINAL" mentolder "$REPO_FP")"
+    FP_KORCZEWSKI_ARG="$(materialize_task_env_arg "$FP_FINAL" korczewski "$REPO_FP")"
+    # shellcheck disable=SC2086
+    cd "$REPO_FP" && task "$FP_FINAL" ${FP_MENTOLDER_ARG:-}
+    # shellcheck disable=SC2086
+    cd "$REPO_FP" && task "$FP_FINAL" ${FP_KORCZEWSKI_ARG:-}
   else
     # shellcheck disable=SC2086
     cd "$REPO_FP" && task "$FP_FINAL" ${FP_EXEC_ENV:-}

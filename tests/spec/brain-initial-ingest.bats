@@ -117,6 +117,33 @@ YAML
   grep -q '\.claude/commands/' "$MANIFEST" || { echo "FAIL: .claude/commands/ Exclude fehlt"; return 1; }
 }
 
+# Code-review finding (T001583): is_excluded() does unanchored substring
+# matching ([[ "$rel" == *"$pattern"* ]]) — a generic pattern like "build/"
+# or "coverage/" collides with legitimate directory names that merely
+# CONTAIN that substring, e.g. ".../mentolder-react-rebuild/..." contains
+# "build/", and ".../vitest-coverage/..." contains "coverage/". Both are
+# real openspec change dirs in this repo, not build caches.
+@test "exclude list does not use collision-prone generic substrings (build/, coverage/)" {
+  if [ ! -f "$MANIFEST" ]; then
+    echo "FAIL: scripts/brain/ingest-sources.yaml fehlt"
+    return 1
+  fi
+  ! grep -qxE '  - (build|coverage)/' "$MANIFEST" \
+    || { echo "FAIL: generic build/ or coverage/ exclude collides with legitimate dir names (e.g. *-rebuild/, *-coverage/)"; return 1; }
+}
+
+@test "worklist does not exclude a legitimately-named dir that merely contains 'build' or 'coverage' as a substring" {
+  mkdir -p "$WORK/repo/openspec/changes/archive/mentolder-react-rebuild" \
+           "$WORK/repo/openspec/changes/archive/vitest-coverage"
+  printf -- '# rebuild notes\n' > "$WORK/repo/openspec/changes/archive/mentolder-react-rebuild/proposal.md"
+  printf -- '# coverage notes\n' > "$WORK/repo/openspec/changes/archive/vitest-coverage/proposal.md"
+
+  run bash "$WL" --root "$WORK/repo" --manifest "$MANIFEST"
+  [ "$status" -eq 0 ] || { echo "FAIL: worklist exited with $status"; return 1; }
+  [[ "$output" == *"mentolder-react-rebuild"* ]] || { echo "FAIL: *-rebuild/ dir wrongly excluded"; return 1; }
+  [[ "$output" == *"vitest-coverage"* ]] || { echo "FAIL: *-coverage/ dir wrongly excluded"; return 1; }
+}
+
 @test "worklist suppresses a nested node_modules tree regardless of depth" {
   mkdir -p "$WORK/repo/website/node_modules/some-pkg"
   printf -- '{}' > "$WORK/repo/website/node_modules/some-pkg/package.json"

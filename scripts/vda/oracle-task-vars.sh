@@ -15,11 +15,27 @@
 task_required_var() {
   local task="$1" repo="${2:-.}"
   [[ -f "$repo/Taskfile.yml" ]] || return 0
+  # Two Taskfile.yml shapes declare a task's own var, both at 4-space indent
+  # directly under the task (2-space) key:
+  #   requires:            vars:
+  #     vars: [BRAND]        ENV: '{{.ENV | default "dev"}}'
+  # A `vars:` line nested inside `cmds:` (6-/8-space, sub-task-call vars like
+  # `- task: x\n  vars: { BRAND: ... }`) must NOT count — that's the
+  # orchestrator-task false-positive from the T001583 code review.
   awk -v t="$task" '
-    $0 == "  " t ":" { intask=1; next }
-    intask && $0 ~ /^  [A-Za-z0-9_.:-]+:$/ { intask=0 }
-    intask && $0 ~ /vars:.*BRAND/ { print "BRAND"; exit }
-    intask && $0 ~ /vars:.*ENV/   { print "ENV"; exit }
+    $0 == "  " t ":" { intask=1; invars=0; next }
+    intask && $0 ~ /^  [A-Za-z0-9_.:-]+:$/ { intask=0; invars=0 }
+    intask && $0 ~ /^    requires:$/ {
+      if ((getline nextline) > 0) {
+        if (nextline ~ /vars:.*BRAND/) { print "BRAND"; exit }
+        if (nextline ~ /vars:.*ENV/)   { print "ENV"; exit }
+      }
+      next
+    }
+    intask && $0 ~ /^    vars:$/ { invars=1; next }
+    intask && invars && $0 !~ /^      / { invars=0 }
+    intask && invars && $0 ~ /^      BRAND:/ { print "BRAND"; exit }
+    intask && invars && $0 ~ /^      ENV:/   { print "ENV"; exit }
   ' "$repo/Taskfile.yml"
 }
 

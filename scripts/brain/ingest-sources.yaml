@@ -19,8 +19,6 @@ exclude:
   - .antigravitycli/
   - .design-sync/
   - dist/
-  - build/
-  - coverage/
   - tests/unit/lib/
   - .venv/
   - __pycache__/

@@ -2,7 +2,7 @@
 title: "local-agent-budget-routing — Implementation Plan"
 ticket_id: T001590
 domains: [factory, database, website]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-07-02T02:35:07.270Z
+> Generated at 2026-07-02T21:29:46.301Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -141,13 +141,11 @@
 | `/api/admin/folder-templates/create` | POST | 🔐 admin | `website/src/pages/api/admin/folder-templates/create.ts` |
 | `/api/admin/folder-templates/delete` | POST | 🔐 admin | `website/src/pages/api/admin/folder-templates/delete.ts` |
 | `/api/admin/folder-templates/update` | POST | 🔐 admin | `website/src/pages/api/admin/folder-templates/update.ts` |
-| `/api/admin/footer/save` | POST | 🔐 admin | `website/src/pages/api/admin/footer/save.ts` |
+| `/api/admin/footer/save` | POST | ❓ unclassified | `website/src/pages/api/admin/footer/save.ts` |
 | `/api/admin/fuehrung/save` | POST | 🔐 admin | `website/src/pages/api/admin/fuehrung/save.ts` |
 | `/api/admin/generate-3d` | POST | 🔐 admin | `website/src/pages/api/admin/generate-3d.ts` |
 | `/api/admin/generate-3d/status` | GET | 🔐 admin | `website/src/pages/api/admin/generate-3d/status.ts` |
-| `/api/admin/homepage/restore` | OPTIONS, POST | 🔐 admin | `website/src/pages/api/admin/homepage/restore.ts` |
 | `/api/admin/homepage/save` | OPTIONS, POST | 🔐 admin | `website/src/pages/api/admin/homepage/save.ts` |
-| `/api/admin/homepage/versions` | OPTIONS, GET | 🔐 admin | `website/src/pages/api/admin/homepage/versions.ts` |
 | `/api/admin/inbox` | GET | 🔐 admin | `website/src/pages/api/admin/inbox.ts` |
 | `/api/admin/inbox/{id}/action` | POST | 🔐 admin | `website/src/pages/api/admin/inbox/[id]/action.ts` |
 | `/api/admin/inbox/count` | GET | 🔐 admin | `website/src/pages/api/admin/inbox/count.ts` |
@@ -172,7 +170,7 @@
 | `/api/admin/knowledge/collections/suggest` | GET | 🔐 admin | `website/src/pages/api/admin/knowledge/collections/suggest.ts` |
 | `/api/admin/knowledge/import/json` | POST | 🔐 admin | `website/src/pages/api/admin/knowledge/import/json.ts` |
 | `/api/admin/kontakt/save` | POST | 🔐 admin | `website/src/pages/api/admin/kontakt/save.ts` |
-| `/api/admin/kore-flags/save` | POST | 🔐 admin | `website/src/pages/api/admin/kore-flags/save.ts` |
+| `/api/admin/kore-flags/save` | POST | ❓ unclassified | `website/src/pages/api/admin/kore-flags/save.ts` |
 | `/api/admin/legal/{key}/save` | POST | 🔐 admin | `website/src/pages/api/admin/legal/[key]/save.ts` |
 | `/api/admin/legal/retokenize` | POST | 🔐 admin | `website/src/pages/api/admin/legal/retokenize.ts` |
 | `/api/admin/meetings` | GET | 🔐 admin | `website/src/pages/api/admin/meetings/index.ts` |
@@ -183,7 +181,7 @@
 | `/api/admin/messages` | GET, POST | 🔐 admin | `website/src/pages/api/admin/messages.ts` |
 | `/api/admin/messages/{threadId}` | GET, POST | 🔐 admin | `website/src/pages/api/admin/messages/[threadId].ts` |
 | `/api/admin/monitoring` | GET | 🔐 admin | `website/src/pages/api/admin/monitoring.ts` |
-| `/api/admin/navigation/save` | POST | 🔐 admin | `website/src/pages/api/admin/navigation/save.ts` |
+| `/api/admin/navigation/save` | POST | ❓ unclassified | `website/src/pages/api/admin/navigation/save.ts` |
 | `/api/admin/newsletter/blocks` | GET, POST | 🔐 admin | `website/src/pages/api/admin/newsletter/blocks/index.ts` |
 | `/api/admin/newsletter/blocks/{id}` | PUT, DELETE | 🔐 admin | `website/src/pages/api/admin/newsletter/blocks/[id].ts` |
 | `/api/admin/newsletter/campaigns` | GET, POST | 🔐 admin | `website/src/pages/api/admin/newsletter/campaigns/index.ts` |
@@ -251,7 +249,7 @@
 | `/api/admin/questionnaires/templates` | GET, POST | 🔐 admin | `website/src/pages/api/admin/questionnaires/templates/index.ts` |
 | `/api/admin/questionnaires/templates/{id}` | GET, PUT, DELETE | 🔐 admin | `website/src/pages/api/admin/questionnaires/templates/[id].ts` |
 | `/api/admin/rechtliches/save` | POST | 🔐 admin | `website/src/pages/api/admin/rechtliches/save.ts` |
-| `/api/admin/referenzen/save` | POST | 🔐 admin | `website/src/pages/api/admin/referenzen/save.ts` |
+| `/api/admin/referenzen/save` | POST | ❓ unclassified | `website/src/pages/api/admin/referenzen/save.ts` |
 | `/api/admin/seo` | GET | 🔐 admin | `website/src/pages/api/admin/seo/index.ts` |
 | `/api/admin/seo/pages` | GET | 🔐 admin | `website/src/pages/api/admin/seo/pages.ts` |
 | `/api/admin/seo/save` | POST | 🔐 admin | `website/src/pages/api/admin/seo/save.ts` |
@@ -269,7 +267,7 @@
 | `/api/admin/shortcuts/update` | PATCH | 🔐 admin | `website/src/pages/api/admin/shortcuts/update.ts` |
 | `/api/admin/slots/add` | POST | 🔐 admin | `website/src/pages/api/admin/slots/add.ts` |
 | `/api/admin/slots/remove` | DELETE | 🔐 admin | `website/src/pages/api/admin/slots/remove.ts` |
-| `/api/admin/stammdaten/save` | POST | 🔐 admin | `website/src/pages/api/admin/stammdaten/save.ts` |
+| `/api/admin/stammdaten/save` | POST | ❓ unclassified | `website/src/pages/api/admin/stammdaten/save.ts` |
 | `/api/admin/startseite/save` | POST | 🔐 admin | `website/src/pages/api/admin/startseite/save.ts` |
 | `/api/admin/startseite/upload-portrait` | POST | 🔐 admin | `website/src/pages/api/admin/startseite/upload-portrait.ts` |
 | `/api/admin/subprojekte/create` | POST | 🔐 admin | `website/src/pages/api/admin/subprojekte/create.ts` |

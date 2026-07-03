@@ -1,11 +1,11 @@
-import type { LeistungCategoryOverride, LeistungServiceOverride, Stammdaten } from './website-db';
+import type { LeistungCategory, LeistungServiceRow, Stammdaten } from './content-schema';
 
 /** True for prices that are not a concrete amount (e.g. "nach Vereinbarung"). */
 function isFreeText(price: string): boolean {
   return !/\d/.test(price);
 }
 
-function pickRow(cat: LeistungCategoryOverride, headlineKey?: string): LeistungServiceOverride | undefined {
+function pickRow(cat: LeistungCategory, headlineKey?: string): LeistungServiceRow | undefined {
   const rows = cat.services ?? [];
   if (!rows.length) return undefined;
   return rows.find((r) => r.key === headlineKey) ?? rows[0];
@@ -13,7 +13,7 @@ function pickRow(cat: LeistungCategoryOverride, headlineKey?: string): LeistungS
 
 /** The single price string shown on a homepage service card. */
 export function deriveHeadlinePrice(
-  cat: LeistungCategoryOverride,
+  cat: LeistungCategory,
   headlineKey: string | undefined,
   headlinePrefix: boolean,
 ): string {
@@ -26,7 +26,7 @@ export function deriveHeadlinePrice(
 
 export interface Tier { label: string; price: string; unit: string; highlight: boolean }
 
-export function detailTiers(cat: LeistungCategoryOverride | undefined): Tier[] {
+export function detailTiers(cat: LeistungCategory | undefined): Tier[] {
   return (cat?.services ?? []).map((r) => ({
     label: r.name ?? '', price: r.price ?? '', unit: r.unit ?? '', highlight: r.highlight ?? false,
   }));
@@ -40,7 +40,7 @@ export interface ResolvedHighlight { label: string; price: string; unit: string;
 
 export function resolveHighlightTable(
   entries: HighlightEntry[],
-  categories: LeistungCategoryOverride[],
+  categories: LeistungCategory[],
 ): ResolvedHighlight[] {
   const out: ResolvedHighlight[] = [];
   for (const e of entries ?? []) {

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-02T11:24:05.888Z",
+  "generatedAt": "2026-07-02T21:20:59.979Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -474,6 +474,12 @@
       "namespace": "mentolder",
       "type": "Service",
       "name": "api@internal"
+    },
+    {
+      "id": "${WEBSITE_PRIMARY_SERVICE}",
+      "namespace": "mentolder",
+      "type": "Service",
+      "name": "${WEBSITE_PRIMARY_SERVICE}"
     },
     {
       "id": "old-webspace",
@@ -1290,6 +1296,12 @@
     {
       "from": "traefik",
       "to": "api@internal",
+      "via": "ingress",
+      "kind": "ingress"
+    },
+    {
+      "from": "traefik",
+      "to": "${WEBSITE_PRIMARY_SERVICE}",
       "via": "ingress",
       "kind": "ingress"
     },

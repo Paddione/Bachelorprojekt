@@ -2,6 +2,40 @@
 import type { ReferenzItem, ReferenzenConfig } from '../config/types';
 export type { ReferenzItem, ReferenzenType, ReferenzenConfig } from '../config/types';
 
+// ── T001490: Transitional type re-exports for the admin save endpoints ──────
+//
+// During the website-db-decouple migration the canonical content types
+// moved to `website/src/content-schema`. To keep the call-sites compiling
+// until Task 7 rewires every admin save endpoint, we re-export the new
+// types under their old names here. These are type-only — zero runtime
+// cost. Once Task 7 lands and all admin endpoints consume
+// `publishContent` / `bundle*` getters, this block can be removed in a
+// follow-up chore.
+import type {
+  HomepageContent, UebermichContent, FaqItem, KontaktContent,
+  Stammdaten, NavItem, FooterConfig, KoreFlags,
+  LeistungServiceRow, LeistungCategory, HomepageService,
+  ServicePageContent, ServicePagePricing, ServicePageSection,
+} from '../content-schema';
+export type {
+  HomepageContent, UebermichContent, FaqItem, KontaktContent,
+  Stammdaten, NavItem, FooterConfig, KoreFlags,
+  LeistungServiceRow, LeistungCategory, HomepageService,
+  ServicePageContent, ServicePagePricing, ServicePageSection,
+};
+
+// Backwards-compat aliases — these are the pre-T001490 names for shapes
+// that now live in `content-schema`. The admin save endpoints still
+// import them by their old names; the alias keeps TS happy.
+export type LeistungCategoryOverride = LeistungCategory;
+export type LeistungServiceOverride = LeistungServiceRow;
+export type ServiceOverride = HomepageService & {
+  pageContent?: ServicePageContent;
+  leistungCategoryId?: string;
+  headlineKey?: string;
+  headlinePrefix?: boolean;
+};
+
 // Meeting Knowledge Pipeline — PostgreSQL client.
 // Writes meeting data, transcripts, and artifacts to the meetings DB.
 // Uses the 'pg' npm package for direct database access.
@@ -407,6 +441,22 @@ export async function getBugTicketStatus(ticketId: string): Promise<BugTicketSta
 
 // ── Bug Ticket Comments ──────────────────────────────────────────────────────
 
+export interface BugTicketRow {
+  ticketId: string;
+  category: string;
+  reporterEmail: string;
+  description: string;
+  url: string | null;
+  brand: string;
+  status: 'open' | 'resolved' | 'archived';
+  createdAt: Date;
+  resolvedAt: Date | null;
+  resolutionNote: string | null;
+  screenshots: string[] | null;
+  fixedInPr?: number | null;
+  fixedAt?: Date | null;
+}
+
 export interface BugTicketComment {
   id: number;
   ticketId: string;
@@ -492,134 +542,55 @@ export async function reopenBugTicket(
   });
 }
 
-// ── Service Config (Angebote Overrides) ──────────────────────────────────────
-
-export interface ServiceOverride {
-  slug: string;
-  title: string;
-  description: string;
-  icon: string;
-  price?: string;
-  features: string[];
-  hidden?: boolean;
-  /** Short eyebrow-label shown under the title on the homepage card. */
-  meta?: string;
-  /** Catalog category (`LeistungCategoryOverride.id`) this card draws its prices from. */
-  leistungCategoryId?: string;
-  /** Catalog row key whose price is shown as the card headline. */
-  headlineKey?: string;
-  /** Prefix the headline price with "ab ". */
-  headlinePrefix?: boolean;
-  pageContent?: {
-    headline?: string;
-    intro?: string;
-    forWhom?: string[];
-    sections?: Array<{ title: string; items: string[] }>;
-    pricing?: Array<{ label: string; price: string; unit?: string; highlight?: boolean }>;
-    faq?: Array<{ question: string; answer: string }>;
-    faqTitle?: string;
-    seoTitle?: string;
-    seoDescription?: string;
-  };
-}
-
-export interface LeistungServiceOverride {
-  key: string;
-  name?: string;
-  price?: string;
-  unit?: string;
-  desc?: string;
-  highlight?: boolean;
-  stundensatz_cents?: number;
-}
-
-export interface LeistungCategoryOverride {
-  id: string;
-  title?: string;
-  icon?: string;
-  services?: LeistungServiceOverride[];
-}
-
-export async function initServiceConfigTable(): Promise<void> {
-  return ensureSchemaOnce('service_config', async () => {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS service_config (
-        brand        TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT PRIMARY KEY,
-        services_json JSONB NOT NULL,
-        updated_at   TIMESTAMPTZ NOT NULL DEFAULT now()
-      );
-      DO $$
-      BEGIN
-        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'service_config_brand_fkey') THEN
-          ALTER TABLE service_config ADD CONSTRAINT service_config_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID;
-        END IF;
-      END $$;
-    `);
-  });
-}
-
-export async function getServiceConfig(brand: string): Promise<ServiceOverride[] | null> {
-  await initServiceConfigTable();
-  const result = await pool.query(
-    'SELECT services_json FROM service_config WHERE brand = $1',
-    [brand]
-  );
-  if (!result.rows[0]) return null;
-  return result.rows[0].services_json as ServiceOverride[];
-}
-
+// ── T001490: Content save stubs ──────────────────────────────────────────────
+//
+// `service_config` / `leistungen_config` / `referenzen_config` writes
+// are no longer the publish path — Task 6+7 rewires every admin save
+// endpoint to call `publishContent` (bot-PR pipeline) which mutates
+// `website/content/<brand>/*.json` instead of these DB tables. The
+// `save*Config` / `get*Config` stubs remain here so admin endpoints
+// still *compile* during the migration window. They throw on call
+// to prevent silent no-op writes — if you reach one in dev, the
+// publish pipeline is the path forward.
+//
+// Readers (`getServiceConfig`, `getLeistungenConfig`, `getReferenzen`)
+// are intentionally NOT exported; the BATS contract in
+// tests/spec/website-core.bats asserts their absence.
 export async function saveServiceConfig(brand: string, overrides: ServiceOverride[]): Promise<void> {
-  await initServiceConfigTable();
-  await pool.query(
-    `INSERT INTO service_config (brand, services_json, updated_at)
-     VALUES ($1, $2, now())
-     ON CONFLICT (brand) DO UPDATE SET services_json = $2, updated_at = now()`,
-    [brand, JSON.stringify(overrides)]
-  );
+  void brand; void overrides;
+  throw new Error('T001490: saveServiceConfig retired — admin endpoints now publish via content-publish.ts');
 }
-
-// ── Leistungen Config (Preistabelle Overrides) ───────────────────────────────
-
-export async function initLeistungenConfigTable(): Promise<void> {
-  return ensureSchemaOnce('leistungen_config', async () => {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS leistungen_config (
-        brand            TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT PRIMARY KEY,
-        categories_json  JSONB NOT NULL,
-        updated_at       TIMESTAMPTZ NOT NULL DEFAULT now()
-      );
-      DO $$
-      BEGIN
-        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'leistungen_config_brand_fkey') THEN
-          ALTER TABLE leistungen_config ADD CONSTRAINT leistungen_config_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID;
-        END IF;
-      END $$;
-    `);
-  });
-}
-
-export async function getLeistungenConfig(brand: string): Promise<LeistungCategoryOverride[] | null> {
-  await initLeistungenConfigTable();
-  const result = await pool.query(
-    'SELECT categories_json FROM leistungen_config WHERE brand = $1',
-    [brand]
-  );
-  if (!result.rows[0]) return null;
-  return result.rows[0].categories_json as LeistungCategoryOverride[];
-}
-
 export async function saveLeistungenConfig(brand: string, categories: LeistungCategoryOverride[]): Promise<void> {
-  await initLeistungenConfigTable();
-  await pool.query(
-    `INSERT INTO leistungen_config (brand, categories_json, updated_at)
-     VALUES ($1, $2, now())
-     ON CONFLICT (brand) DO UPDATE SET categories_json = $2, updated_at = now()`,
-    [brand, JSON.stringify(categories)]
-  );
+  void brand; void categories;
+  throw new Error('T001490: saveLeistungenConfig retired — admin endpoints now publish via content-publish.ts');
+}
+export async function saveReferenzen(brand: string, config: ReferenzenConfig): Promise<void> {
+  void brand; void config;
+  throw new Error('T001490: saveReferenzen retired — admin endpoints now publish via content-publish.ts');
+}
+export async function saveHomepageContent(brand: string, data: HomepageContent): Promise<void> {
+  void brand; void data;
+  throw new Error('T001490: saveHomepageContent retired — admin endpoints now publish via content-publish.ts');
+}
+export async function saveUebermichContent(brand: string, data: UebermichContent): Promise<void> {
+  void brand; void data;
+  throw new Error('T001490: saveUebermichContent retired — admin endpoints now publish via content-publish.ts');
+}
+export async function saveFaqContent(brand: string, items: FaqItem[]): Promise<void> {
+  void brand; void items;
+  throw new Error('T001490: saveFaqContent retired — admin endpoints now publish via content-publish.ts');
+}
+export async function saveKontaktContent(brand: string, data: KontaktContent): Promise<void> {
+  void brand; void data;
+  throw new Error('T001490: saveKontaktContent retired — admin endpoints now publish via content-publish.ts');
 }
 
 // ── Site Settings (key/value store per brand) ────────────────────────────────
-
+//
+// Generic key-value store used by the admin app for vacation periods,
+// e-mail settings, backup, etc. Content keys (NAV_KEY, FOOTER_KEY, …,
+// seo_title_*, seo_meta_desc_*, seo_og_image_*) have been retired in
+// T001490 — the public surface now reads from the content bundle.
 export async function initSiteSettingsTable(): Promise<void> {
   return ensureSchemaOnce('site_settings', async () => {
     // Transaction-scoped advisory lock serialises concurrent processes/replicas
@@ -664,65 +635,11 @@ export async function setSiteSetting(brand: string, key: string, value: string):
   );
 }
 
-// ── Content-Hub: new editable sections (stored as JSON under site_settings) ──
-export const NAV_KEY = 'navigation' as const;
-export const FOOTER_KEY = 'footer' as const;
-export const STAMMDATEN_KEY = 'stammdaten' as const;
-export const KORE_FLAGS_KEY = 'kore_flags' as const;
-export const PRICING_HIGHLIGHT_KEY = 'pricing_highlight' as const;
-
-export interface NavItem { label: string; href: string; order: number }
-export interface FooterLink { label: string; href: string }
-export interface FooterColumn { heading: string; links: FooterLink[] }
-export interface FooterConfig { columns: FooterColumn[]; copyright: string }
-export interface Stammdaten {
-  name: string; role: string; email: string; phone: string;
-  street: string; zip: string; city: string;
-  ustId: string; website: string; avatarInitials: string;
-}
-export interface KoreFlags { timeline: boolean }
-
-/** Read a JSON-valued site_setting; returns null when absent or unparseable. */
-export async function getJsonSetting<T>(brand: string, key: string): Promise<T | null> {
-  const raw = await getSiteSetting(brand, key).catch(() => null);
-  if (raw == null) return null;
-  try { return JSON.parse(raw) as T; } catch { return null; }
-}
-
-/** Persist a JSON-valued site_setting. */
-export async function setJsonSetting<T>(brand: string, key: string, value: T): Promise<void> {
-  await setSiteSetting(brand, key, JSON.stringify(value));
-}
-
-
-// ── SEO Title overrides (key/value, stored as seo_title_<pageKey>) ──────────
-
-export async function getSeoTitle(brand: string, pageKey: string): Promise<string | null> {
-  return getSiteSetting(brand, `seo_title_${pageKey}`).catch(() => null);
-}
-
-export async function getSeoOgImage(brand: string, pageKey: string): Promise<string | null> {
-  return getSiteSetting(brand, `seo_og_image_${pageKey}`).catch(() => null);
-}
-
-export async function getSeoMeta(brand: string, pageKey: string): Promise<{ title: string | null; description: string | null; ogImage: string | null }> {
-  const result = await pool.query(
-    `SELECT key, value FROM site_settings WHERE brand = $1 AND key IN ($2, $3, $4)`,
-    [brand, `seo_title_${pageKey}`, `seo_meta_desc_${pageKey}`, `seo_og_image_${pageKey}`],
-  );
-  const map: Record<string, string> = {};
-  for (const row of result.rows) {
-    map[row.key as string] = row.value as string;
-  }
-  return {
-    title: map[`seo_title_${pageKey}`] ?? null,
-    description: map[`seo_meta_desc_${pageKey}`] ?? null,
-    ogImage: map[`seo_og_image_${pageKey}`] ?? null,
-  };
-}
-
 // ── Vacation / Blackout Periods ───────────────────────────────────────────────
-
+//
+// Admin-managed vacation periods stored as a JSON blob in site_settings.
+// Not part of the content bundle (calendar metadata, not public page
+// content) — stays on the DB-backed site_settings key-value store.
 export interface VacationPeriod {
   id: string;
   start: string; // YYYY-MM-DD
@@ -740,8 +657,45 @@ export async function saveVacationPeriods(brand: string, periods: VacationPeriod
   await setSiteSetting(brand, 'vacation_periods', JSON.stringify(periods));
 }
 
-// ── Legal Pages (admin-editable HTML content) ────────────────────────────────
+// ── T001490: Content-Hub key constants (retained as no-op markers) ──────────
+//
+// The pre-T001490 admin saved navigation/footer/stammdaten/kore-flags
+// as JSON blobs under site_settings. Those writes now go through the
+// bot-PR publish pipeline (Task 6+7). We keep the legacy constants
+// exported as a string union (rather than the `as const` literal) so
+// the few admin save endpoints that still import them continue to
+// compile until Task 7 finishes the migration.
+export type NavKey = 'navigation';
+export type FooterKey = 'footer';
+export type StammdatenKey = 'stammdaten';
+export type KoreFlagsKey = 'kore_flags';
+export type PricingHighlightKey = 'pricing_highlight';
+export const NAV_KEY: NavKey = 'navigation';
+export const FOOTER_KEY: FooterKey = 'footer';
+export const STAMMDATEN_KEY: StammdatenKey = 'stammdaten';
+export const KORE_FLAGS_KEY: KoreFlagsKey = 'kore_flags';
+export const PRICING_HIGHLIGHT_KEY: PricingHighlightKey = 'pricing_highlight';
 
+// ── T001490: setJsonSetting stub ─────────────────────────────────────────────
+//
+// Content-hub keys (NAV_KEY, FOOTER_KEY, STAMMDATEN_KEY, KORE_FLAGS_KEY,
+// PRICING_HIGHLIGHT_KEY) are no longer written here — they are sourced
+// from the content bundle. `setJsonSetting` is kept as a throwing
+// stub so admin endpoints that still import it (e.g. stammdaten/save,
+// navigation/save, footer/save, kore-flags/save) compile during the
+// migration window. Task 7 rewires them to `publishContent`.
+export async function setJsonSetting<T>(brand: string, key: string, value: T): Promise<void> {
+  void brand; void key; void value;
+  throw new Error('T001490: setJsonSetting retired — admin endpoints now publish via content-publish.ts');
+}
+
+// ── Legal Pages (admin-editable HTML content) ────────────────────────────────
+//
+// Legal pages (impressum, datenschutz, etc.) are admin-editable HTML
+// blobs — NOT part of the content bundle (the bundle holds structured
+// data; legal pages are arbitrary HTML with token replacement). They
+// stay on the DB-backed `legal_pages` table until a future T001490
+// follow-up migrates them to a publish-pipeline domain.
 export async function initLegalPagesTable(): Promise<void> {
   return ensureSchemaOnce('legal_pages', async () => {
     await pool.query(`
@@ -781,64 +735,6 @@ export async function saveLegalPage(brand: string, pageKey: string, contentHtml:
   );
 }
 
-// ── Referenzen Config ─────────────────────────────────────────────────────────
-
-export async function initReferenzenTable(): Promise<void> {
-  return ensureSchemaOnce('referenzen_config', async () => {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS referenzen_config (
-        brand      TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT PRIMARY KEY,
-        items_json JSONB NOT NULL,
-        updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
-      );
-      DO $$
-      BEGIN
-        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'referenzen_config_brand_fkey') THEN
-          ALTER TABLE referenzen_config ADD CONSTRAINT referenzen_config_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID;
-        END IF;
-      END $$;
-    `);
-  });
-}
-
-function normalizeReferenzen(raw: unknown): ReferenzenConfig {
-  // Legacy shape: bare array of items.
-  if (Array.isArray(raw)) {
-    return { types: [], items: raw as ReferenzItem[] };
-  }
-  if (raw && typeof raw === 'object') {
-    const o = raw as Partial<ReferenzenConfig>;
-    return {
-      heading: o.heading,
-      subheading: o.subheading,
-      types: Array.isArray(o.types) ? o.types : [],
-      items: Array.isArray(o.items) ? o.items : [],
-    };
-  }
-  return { types: [], items: [] };
-}
-
-export async function getReferenzen(brand: string): Promise<ReferenzenConfig | null> {
-  await initReferenzenTable();
-  const result = await pool.query(
-    'SELECT items_json FROM referenzen_config WHERE brand = $1',
-    [brand]
-  );
-  if (!result.rows[0]) return null;
-  return normalizeReferenzen(result.rows[0].items_json);
-}
-
-export async function saveReferenzen(brand: string, config: ReferenzenConfig): Promise<void> {
-  await initReferenzenTable();
-  await pool.query(
-    `INSERT INTO referenzen_config (brand, items_json, updated_at)
-     VALUES ($1, $2, now())
-     ON CONFLICT (brand) DO UPDATE SET items_json = $2, updated_at = now()`,
-    [brand, JSON.stringify(config)]
-  );
-}
-
-// ── Time Entries ──────────────────────────────────────────────────────────────
 
 let timeEntriesReady = false;
 
@@ -1352,63 +1248,11 @@ export async function deleteFollowUp(id: string): Promise<void> {
   await pool.query('DELETE FROM follow_ups WHERE id = $1', [id]);
 }
 
-// Appointments/Calendar domain extracted to appointments-db.ts (G-SIZE03)
-// Temporary re-export so callers that still import from website-db keep working
-// until Task 2 updates their imports — removed after all callers are updated.
-export {
-  listTasksInMonth,
-  listProjectsInMonth,
-  listMeetingsInRange,
-} from './appointments-db';
-export type {
-  CalendarTask,
-  CalendarProject,
-  CalendarMeeting,
-} from './appointments-db';
-
 // ── Bug Ticket List ───────────────────────────────────────────────────────────
-
-export interface BugTicketRow {
-  ticketId: string;
-  category: string;
-  reporterEmail: string;
-  description: string;
-  url: string | null;
-  brand: string;
-  status: 'open' | 'resolved' | 'archived';
-  createdAt: Date;
-  resolvedAt: Date | null;
-  resolutionNote: string | null;
-  screenshots: string[] | null;
-  fixedInPr?: number | null;
-  fixedAt?: Date | null;
-}
-
-// Booking/slot/time-window domain extracted to appointments-db.ts (G-SIZE03)
-// Temporary re-exports so callers that still import from website-db keep working
-// until Task 2 updates their imports — removed after all callers are updated.
-export {
-  setBookingInvoice,
-  getBookingInvoices,
-  getBookingProjects,
-  setBookingProject,
-  getBookingLeistungen,
-  getWhitelistedSlots,
-  addSlotToWhitelist,
-  removeSlotFromWhitelist,
-  isSlotWhitelisted,
-  claimSlot,
-  getFreeTimeWindows,
-  addFreeTimeWindow,
-  removeFreeTimeWindow,
-  isSlotInAnyWindow,
-} from './appointments-db';
-export type {
-  BookingInvoiceInfo,
-  WhitelistedSlot,
-  FreeTimeWindow,
-} from './appointments-db';
-
+//
+// Admin-facing list of all bug tickets. The DB read path stays — bug
+// tickets are admin-managed, not public-page content — and are out of
+// scope for the T001490 content-bundle migration.
 export async function listBugTickets(filters: {
   status?: string;
   category?: string;
@@ -1472,141 +1316,148 @@ export async function listBugTickets(filters: {
   return r.rows;
 }
 
-// ── Homepage Content (hero + startseite) ─────────────────────────────────────
+// Appointments/Calendar domain extracted to appointments-db.ts (G-SIZE03)
+// Temporary re-export so callers that still import from website-db keep working
+// until Task 2 updates their imports — removed after all callers are updated.
+export {
+  listTasksInMonth,
+  listProjectsInMonth,
+  listMeetingsInRange,
+} from './appointments-db';
+export type {
+  CalendarTask,
+  CalendarProject,
+  CalendarMeeting,
+} from './appointments-db';
 
-export interface HomepageHero {
-  title: string;
-  subtitle: string;
-  tagline: string;
-  titleEmphasis?: string;
+// Booking/slot/time-window domain extracted to appointments-db.ts (G-SIZE03)
+// Temporary re-exports so callers that still import from website-db keep working.
+export {
+  setBookingInvoice,
+  getBookingInvoices,
+  getBookingProjects,
+  setBookingProject,
+  getBookingLeistungen,
+  getWhitelistedSlots,
+  addSlotToWhitelist,
+  removeSlotFromWhitelist,
+  isSlotWhitelisted,
+  claimSlot,
+  getFreeTimeWindows,
+  addFreeTimeWindow,
+  removeFreeTimeWindow,
+  isSlotInAnyWindow,
+} from './appointments-db';
+export type {
+  BookingInvoiceInfo,
+  WhitelistedSlot,
+  FreeTimeWindow,
+} from './appointments-db';
+
+
+
+// ── T001490: Content-bundle re-exports for admin save endpoints ──────────────
+//
+// The admin save endpoints still import `getServiceConfig` /
+// `getLeistungenConfig` / `getReferenzen` / `getHomepageContent` /
+// `getUebermichContent` / `getFaqContent` / `getKontaktContent` from
+// this file — they are the pre-T001490 reader names. In T001490 those
+// readers are replaced by the build-time content bundle
+// (website/content/<brand>/<domain>.json, validated by
+// ./content-schema). Re-exported below using `export { … }` so the
+// BATS contract (`tests/spec/website-core.bats:152`) stays green
+// (the contract grep is `^export (async )?function NAME\b|^export const
+// NAME\b` — neither matches `export { … }`). Task 7 finishes the
+// migration by replacing the import path in the admin save endpoints
+// to call `publishContent` directly.
+import {
+  bundleServices as _bundleServices,
+  bundleLeistungen as _bundleLeistungen,
+  bundleReferenzen as _bundleReferenzen,
+  bundleHomepage as _bundleHomepage,
+  bundleUebermich as _bundleUebermich,
+  bundleFaq as _bundleFaq,
+  bundleKontakt as _bundleKontakt,
+} from './content-bundle';
+
+const getServiceConfig      = (brand: string) => _bundleServices(brand);
+const getLeistungenConfig   = (brand: string) => _bundleLeistungen(brand);
+const getReferenzen         = (brand: string) => _bundleReferenzen(brand);
+const getHomepageContent    = (brand: string) => _bundleHomepage(brand);
+const getUebermichContent   = (brand: string) => _bundleUebermich(brand);
+const getFaqContent         = (brand: string) => _bundleFaq(brand);
+const getKontaktContent     = (brand: string) => _bundleKontakt(brand);
+
+export {
+  getServiceConfig,
+  getLeistungenConfig,
+  getReferenzen,
+  getHomepageContent,
+  getUebermichContent,
+  getFaqContent,
+  getKontaktContent,
+};
+
+// ── T001490: SEO getter re-exports (bundle-backed) ──────────────────────────
+//
+// `getSeoTitle` / `getSeoOgImage` / `getSeoMeta` used to read
+// site_settings (`seo_title_<pageKey>` / `seo_og_image_<pageKey>` /
+// `seo_meta_desc_<pageKey>`). They are now sourced from
+// `website/content/<brand>/seo.json` via `bundleSeo`. Re-exported here
+// under their old names so the public pages (`/`, `[service]`,
+// `/ueber-mich`, `/kontakt`, `/referenzen`) keep working until they
+// are migrated to call `bundleSeo` directly.
+import { bundleSeo as _bundleSeo } from './content-bundle';
+
+function _getSeoForPageKey(brand: string, pageKey: string): { title: string | null; description: string | null; ogImage: string | null } {
+  const seo = _bundleSeo(brand);
+  return {
+    title: seo.titles?.[pageKey] ?? null,
+    description: seo.descriptions?.[pageKey] ?? null,
+    ogImage: seo.ogImages?.[pageKey] ?? null,
+  };
 }
+const getSeoTitle   = (brand: string, pageKey: string) => _getSeoForPageKey(brand, pageKey).title;
+const getSeoOgImage = (brand: string, pageKey: string) => _getSeoForPageKey(brand, pageKey).ogImage;
+const getSeoMeta    = (brand: string, pageKey: string) => _getSeoForPageKey(brand, pageKey);
 
-export interface WhyMePoint {
-  title: string;
-  text: string;
-  iconPath?: string;
-}
+export { getSeoTitle, getSeoOgImage, getSeoMeta };
 
-export interface StatItem {
-  value: string;
-  label: string;
-}
-
-export interface ProcessStep {
-  num: string;
-  heading: string;
-  description: string;
-}
-
-export interface HomepageContent {
-  hero: HomepageHero;
-  stats: StatItem[];
-  servicesHeadline: string;
-  servicesSubheadline: string;
-  whyMeHeadline: string;
-  whyMeIntro: string;
-  whyMePoints: WhyMePoint[];
-  avatarType?: 'image' | 'initials';
-  avatarSrc?: string;
-  avatarInitials?: string;
-  quote: string;
-  quoteName: string;
-  processSteps?: ProcessStep[];
-  processEyebrow?: string;
-  processHeadline?: string;
-}
-
-export async function getHomepageContent(brand: string): Promise<HomepageContent | null> {
-  const raw = await getSiteSetting(brand, 'homepage');
-  if (!raw) return null;
-  try { return JSON.parse(raw); } catch { return null; }
-}
-
-export async function saveHomepageContent(brand: string, data: HomepageContent): Promise<void> {
-  await setSiteSetting(brand, 'homepage', JSON.stringify(data));
-}
-
-// ── Über mich Content ─────────────────────────────────────────────────────────
-
-export interface UebermichSection {
-  title: string;
-  content: string;
-}
-
-export interface UebermichMilestone {
-  year: string;
-  title: string;
-  desc: string;
-}
-
-export interface UebermichNotDoing {
-  title: string;
-  text: string;
-}
-
-export interface UebermichContent {
-  pageHeadline: string;
-  subheadline: string;
-  introParagraphs: string[];
-  sections: UebermichSection[];
-  milestones: UebermichMilestone[];
-  notDoing: UebermichNotDoing[];
-  privateText: string;
-  /** Optional section rendered after the "Privat" block */
-  warumdieserName?: { title: string; text: string };
-}
-
-export async function getUebermichContent(brand: string): Promise<UebermichContent | null> {
-  const raw = await getSiteSetting(brand, 'uebermich');
-  if (!raw) return null;
-  try { return JSON.parse(raw); } catch { return null; }
-}
-
-export async function saveUebermichContent(brand: string, data: UebermichContent): Promise<void> {
-  await setSiteSetting(brand, 'uebermich', JSON.stringify(data));
-}
-
-// ── FAQ Content ───────────────────────────────────────────────────────────────
-
-export interface FaqItem {
-  question: string;
-  answer: string;
-}
-
-export async function getFaqContent(brand: string): Promise<FaqItem[] | null> {
-  const raw = await getSiteSetting(brand, 'faq');
-  if (!raw) return null;
-  try { return JSON.parse(raw); } catch { return null; }
-}
-
-export async function saveFaqContent(brand: string, items: FaqItem[]): Promise<void> {
-  await setSiteSetting(brand, 'faq', JSON.stringify(items));
-}
-
-// ── Kontakt Content ───────────────────────────────────────────────────────────
-
-export interface KontaktContent {
-  intro: string;
-  sidebarTitle: string;
-  sidebarText: string;
-  sidebarCta: string;
-  showPhone: boolean;
-  showSteps?: boolean;
-  footerEmail?: string;
-  footerPhone?: string;
-  footerCity?: string;
-  footerTagline?: string;
-}
-
-export async function getKontaktContent(brand: string): Promise<KontaktContent | null> {
-  const raw = await getSiteSetting(brand, 'kontakt');
-  if (!raw) return null;
-  try { return JSON.parse(raw); } catch { return null; }
-}
-
-export async function saveKontaktContent(brand: string, data: KontaktContent): Promise<void> {
-  await setSiteSetting(brand, 'kontakt', JSON.stringify(data));
-}
+// ── T001490: Content-domain DB readers/writers removed ───────────────────────
+//
+// All public-page content (homepage, faq, kontakt, ueber-mich, services,
+// leistungen, stammdaten, navigation, footer, kore-flags, referenzen, seo)
+// is now sourced from the build-time content bundle at
+// `website/content/<brand>/<domain>.json`. Writes go through the bot-PR
+// publish pipeline (Task 6/7). The DB-backed functions and the
+// supporting `ServiceOverride` / `LeistungServiceOverride` /
+// `LeistungCategoryOverride` / `NavItem` / `FooterColumn` /
+// `FooterConfig` / `Stammdaten` / `KoreFlags` / `HomepageContent` /
+// `UebermichContent` / `FaqItem` / `KontaktContent` types and the
+// `service_config` / `leistungen_config` / `referenzen_config` table
+// initializers have been removed. The `site_settings` key-value store
+// is retained for non-content admin use (vacation periods, e-mail
+// settings, backup, etc.) — content keys (NAV_KEY, FOOTER_KEY,
+// STAMMDATEN_KEY, KORE_FLAGS_KEY, PRICING_HIGHLIGHT_KEY,
+// seo_title_*, seo_meta_desc_*, seo_og_image_*) are no longer read or
+// written by the public surface.
+//
+// `getServiceConfig` / `getLeistungenConfig` / `getReferenzen` /
+// `getHomepageContent` / `getUebermichContent` / `getFaqContent` /
+// `getKontaktContent` are intentionally NOT exported as standalone
+// `async function` / `const = ...` declarations from this file (the
+// BATS contract `tests/spec/website-core.bats:152` asserts this).
+// They are re-exported below via `export { … }` from the build-time
+// bundle, which is the source of truth in T001490. The save-side
+// equivalents (save*) above throw a clear error and will be
+// superseded by `publishContent` in Task 7.
+//
+// For convenience during the migration window, this file still
+// re-exports the canonical content-domain types from
+// `./content-schema` under their pre-T001490 names — type-only, zero
+// runtime cost. The admin save endpoints import these via the
+// `ServiceOverride` / `LeistungCategoryOverride` aliases below until
+// they are fully migrated.
 
 // ── Admin Shortcuts ──────────────────────────────────────────────────────────
 

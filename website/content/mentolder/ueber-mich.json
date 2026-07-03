@@ -1,0 +1,27 @@
+{
+  "pageHeadline": "Von der Polizei Hamburg in die digitale Begleitung",
+  "subheadline": "Über mich",
+  "introParagraphs": [
+    "Nach über 30 Jahren bei der Polizei Hamburg – davon viele Jahre in Führungspositionen – habe ich 2023 einen neuen Weg eingeschlagen.",
+    "Was ich in all den Jahren gelernt habe? Menschen führen bedeutet vor allem: Menschen verstehen, Geduld haben, und Wissen so vermitteln, dass es ankommt."
+  ],
+  "sections": [
+    { "title": "Warum 50+ digital?", "content": "Als ich im Altenheim ein halbes Jahr lang ein Digital Café verantwortlich mitgestaltet habe, merkte ich: Hier kann ich genau diese Fähigkeiten einsetzen." },
+    { "title": "Warum Führungskräfte-Coaching?", "content": "30+ Jahre Führungserfahrung bedeutet auch: Ich kenne beide Seiten." }
+  ],
+  "milestones": [
+    { "year": "1980-2023", "title": "Polizei Hamburg", "desc": "Über 30 Jahre in Führungspositionen." },
+    { "year": "ca. 2016/2017", "title": "KI-Pionier", "desc": "Erste deutsche Polizeibehörde mit KI/Gesichtserkennung." },
+    { "year": "2023", "title": "Digital Café", "desc": "6 Monate Digital Café im Altenheim." },
+    { "year": "Seit 2024", "title": "Selbständig", "desc": "Coach und Digitaler Begleiter." }
+  ],
+  "notDoing": [
+    { "title": "Keine technische Umsetzung", "text": "Ich berate, entwickle Strategien und begleite Change-Prozesse." },
+    { "title": "Keine Online-Kurse", "text": "Ich glaube an persönliche Begleitung statt standardisierte, skalierbare Produkte." }
+  ],
+  "privateText": "Ich lebe in {city}, bin verheiratet, habe zwei erwachsene Kinder. In meiner Freizeit bin ich viel zu Fuß unterwegs.",
+  "warumdieserName": {
+    "title": "Warum dieser Name",
+    "text": "Als ich „mentolder“ kreiert habe, war die Idee simpel: Mentor trifft Older – Erfahrung, die begleitet."
+  }
+}

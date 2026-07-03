@@ -1,25 +1,36 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('../../../lib/auth', () => ({
+const mocks = vi.hoisted(() => ({
+  publishContent: vi.fn(),
   getSession: vi.fn(),
   isAdmin: vi.fn(),
 }));
-vi.mock('../../../lib/website-db', () => ({
-  setJsonSetting: vi.fn(),
-  NAV_KEY: 'navigation',
-  FOOTER_KEY: 'footer',
-  STAMMDATEN_KEY: 'stammdaten',
-  KORE_FLAGS_KEY: 'kore_flags',
+
+vi.mock('../../../lib/content-publish', () => ({
+  publishContent: mocks.publishContent,
+}));
+vi.mock('../../../lib/auth', () => ({
+  getSession: mocks.getSession,
+  isAdmin: mocks.isAdmin,
+}));
+vi.mock('../../../lib/cors', () => ({
+  corsHeaders: () => ({}),
+  handlePreflight: () => new Response(null, { status: 204 }),
 }));
 
-import { getSession, isAdmin } from '../../../lib/auth';
-import { setJsonSetting } from '../../../lib/website-db';
-import { POST as navPOST } from './navigation/save';
-import { POST as footerPOST } from './footer/save';
-import { POST as stammdatenPOST } from './stammdaten/save';
-import { POST as koreFlagsPOST } from './kore-flags/save';
+const OK = { ok: true as const, sha: 'NEW', prNumber: 1, prUrl: 'https://github.com/x/pull/1' };
 
-type Ctx = Parameters<typeof navPOST>[0];
+beforeEach(() => {
+  mocks.publishContent.mockReset();
+  mocks.getSession.mockReset();
+  mocks.isAdmin.mockReset();
+  mocks.publishContent.mockResolvedValue(OK);
+});
+
+function asAdmin() {
+  mocks.getSession.mockResolvedValue({ user: { sub: 'admin' }, email: 'admin@x' });
+  mocks.isAdmin.mockReturnValue(true);
+}
 
 function jsonReq(body: unknown): Request {
   return new Request('http://x/api/admin/x/save', {
@@ -29,64 +40,80 @@ function jsonReq(body: unknown): Request {
   });
 }
 
-beforeEach(() => {
-  vi.mocked(getSession).mockReset();
-  vi.mocked(isAdmin).mockReset();
-  vi.mocked(setJsonSetting).mockReset();
-  vi.mocked(setJsonSetting).mockResolvedValue(undefined);
-});
+type Ctx = { request: Request; locals?: { requestLogger?: { error?: (...a: unknown[]) => void } } };
+type SaveModule = { POST: (c: Ctx) => Promise<Response> };
 
-function asAdmin() {
-  vi.mocked(getSession).mockResolvedValue({ user: { sub: 'admin' } } as never);
-  vi.mocked(isAdmin).mockReturnValue(true);
-}
-
-describe('content-section save endpoints', () => {
-  it('navigation/save persists the posted array under NAV_KEY', async () => {
+describe('content-section save endpoints (T001490 publish pipeline)', () => {
+  it('navigation/save publishes with domain=navigation', async () => {
     asAdmin();
+    const { POST } = await import('./navigation/save') as SaveModule;
     const nav = [{ label: 'Leistungen', href: '/leistungen', order: 1 }];
-    const r = await navPOST({ request: jsonReq(nav) } as unknown as Ctx);
+    const r = await POST({ request: jsonReq(nav) });
     expect(r.status).toBe(200);
-    expect(vi.mocked(setJsonSetting)).toHaveBeenCalledWith('mentolder', 'navigation', nav);
+    const [arg] = mocks.publishContent.mock.calls[0] as [{ brand: string; domain: string; payload: unknown }];
+    expect(arg.brand).toBe('mentolder');
+    expect(arg.domain).toBe('navigation');
+    expect(arg.payload).toEqual(nav);
   });
 
-  it('footer/save persists columns + copyright under FOOTER_KEY', async () => {
+  it('footer/save publishes with domain=footer and copyright', async () => {
     asAdmin();
+    const { POST } = await import('./footer/save') as SaveModule;
     const footer = { columns: [{ heading: 'Mehr', links: [{ label: 'Blog', href: '/blog' }] }], copyright: '© 2026' };
-    const r = await footerPOST({ request: jsonReq(footer) } as unknown as Ctx);
+    const r = await POST({ request: jsonReq(footer) });
     expect(r.status).toBe(200);
-    expect(vi.mocked(setJsonSetting)).toHaveBeenCalledWith('mentolder', 'footer', footer);
+    const [arg] = mocks.publishContent.mock.calls[0] as [{ brand: string; domain: string; payload: typeof footer }];
+    expect(arg.domain).toBe('footer');
+    expect(arg.payload).toEqual(footer);
   });
 
-  it('stammdaten/save persists the master-data object under STAMMDATEN_KEY', async () => {
+  it('stammdaten/save publishes with domain=stammdaten', async () => {
     asAdmin();
+    const { POST } = await import('./stammdaten/save') as SaveModule;
     const sd = { name: 'P', role: 'Coach', email: 'a@b.de', phone: '', street: '', zip: '', city: 'Berlin', ustId: '', website: '', avatarInitials: 'P' };
-    const r = await stammdatenPOST({ request: jsonReq(sd) } as unknown as Ctx);
+    const r = await POST({ request: jsonReq(sd) });
     expect(r.status).toBe(200);
-    expect(vi.mocked(setJsonSetting)).toHaveBeenCalledWith('mentolder', 'stammdaten', sd);
+    const [arg] = mocks.publishContent.mock.calls[0] as [{ brand: string; domain: string }];
+    expect(arg.domain).toBe('stammdaten');
   });
 
-  it('kore-flags/save coerces timeline to boolean under KORE_FLAGS_KEY', async () => {
+  it('kore-flags/save publishes with domain=kore-flags', async () => {
     asAdmin();
-    const r = await koreFlagsPOST({ request: jsonReq({ timeline: 1 }) } as unknown as Ctx);
+    const { POST } = await import('./kore-flags/save') as SaveModule;
+    const r = await POST({ request: jsonReq({ timeline: 1 }) });
     expect(r.status).toBe(200);
-    expect(vi.mocked(setJsonSetting)).toHaveBeenCalledWith('mentolder', 'kore_flags', { timeline: true });
+    const [arg] = mocks.publishContent.mock.calls[0] as [{ domain: string; payload: { timeline: number } }];
+    expect(arg.domain).toBe('kore-flags');
+    expect(arg.payload.timeline).toBe(1);
   });
 
-  it('rejects non-admin with 403 and never writes', async () => {
-    vi.mocked(getSession).mockResolvedValue(null as never);
-    vi.mocked(isAdmin).mockReturnValue(false);
-    const r = await navPOST({ request: jsonReq([]) } as unknown as Ctx);
-    expect(r.status).toBe(403);
-    expect(vi.mocked(setJsonSetting)).not.toHaveBeenCalled();
+  it('rejects non-admin with 401 and never publishes', async () => {
+    mocks.getSession.mockResolvedValue(null);
+    mocks.isAdmin.mockReturnValue(false);
+    const { POST } = await import('./navigation/save') as SaveModule;
+    const r = await POST({ request: jsonReq([]) });
+    expect(r.status).toBe(401);
+    expect(mocks.publishContent).not.toHaveBeenCalled();
   });
 
-  it('rejects a malformed body shape with 400', async () => {
+  it('returns 400 on malformed JSON', async () => {
     asAdmin();
-    const r = await navPOST({ request: jsonReq({ not: 'an array' }) } as unknown as Ctx);
+    const { POST } = await import('./navigation/save') as SaveModule;
+    const req = new Request('http://x/api/admin/navigation/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', cookie: 'session=test' },
+      body: '{not-json',
+    });
+    const r = await POST({ request: req });
     expect(r.status).toBe(400);
-    const rf = await footerPOST({ request: jsonReq({ columns: 'nope' }) } as unknown as Ctx);
-    expect(rf.status).toBe(400);
-    expect(vi.mocked(setJsonSetting)).not.toHaveBeenCalled();
+    expect(mocks.publishContent).not.toHaveBeenCalled();
+  });
+
+  it('maps publish 422 to HTTP 422', async () => {
+    asAdmin();
+    mocks.publishContent.mockResolvedValueOnce({ ok: false, status: 422, errors: ['bad'] });
+    const { POST } = await import('./navigation/save') as SaveModule;
+    const r = await POST({ request: jsonReq([{ label: 'L', href: '/', order: 1 }]) });
+    expect(r.status).toBe(422);
   });
 });

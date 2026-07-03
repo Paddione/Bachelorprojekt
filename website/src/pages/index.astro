@@ -8,29 +8,35 @@ import FAQ from '../components/FAQ.svelte';
 import WhyMe from '../components/WhyMe.svelte';
 import Process from '../components/Process.astro';
 import KoreHomepage from '../components/kore/KoreHomepage.svelte';
+import TimelineIsland from '../components/islands/TimelineIsland.svelte';
+import NextSlotIsland from '../components/islands/NextSlotIsland.svelte';
 import { config } from '../config/index';
-import type { DaySlots } from '../lib/caldav';
-import { getAvailableSlots } from '../lib/caldav';
-import { getEffectiveServices, getEffectiveHomepage, getEffectiveFaq, getEffectiveStammdaten, getEffectiveNavigation, getEffectiveFooter, getEffectiveKoreFlags } from '../lib/content';
-import { listTimeline, getSiteSetting, getSeoTitle, getSeoOgImage } from '../lib/website-db';
+import {
+  getEffectiveServices,
+  getEffectiveHomepage,
+  getEffectiveFaq,
+  getEffectiveStammdaten,
+  getEffectiveNavigation,
+  getEffectiveFooter,
+  getEffectiveKoreFlags,
+  bundleSeo,
+} from '../lib/content';
 
 const BRAND_ID = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 const isKore = BRAND_ID === 'korczewski';
 const layoutBrand = isKore ? 'korczewski-kore' : undefined;
 
-const homeDescription = !isKore
-  ? await getSiteSetting(BRAND_ID, 'seo_meta_desc_home').catch(() => null)
-  : null;
+// T001490: SEO is now sourced from the build-time content bundle
+// (website/content/<brand>/seo.json). Zero DB dependency on the
+// homepage render path.
+const seo = bundleSeo(BRAND_ID);
+const homeDescription = !isKore ? (seo.descriptions.home ?? null) : null;
 const metaDescription = homeDescription ?? config.meta.siteDescription;
 
-const homeTitle = !isKore
-  ? await getSeoTitle(BRAND_ID, 'home').catch(() => null)
-  : null;
+const homeTitle = !isKore ? (seo.titles.home ?? null) : null;
 const pageTitle = homeTitle ?? 'Gerald Korczewski – Coach & Mentor';
 
-const homeOgImage = !isKore
-  ? await getSeoOgImage(BRAND_ID, 'home').catch(() => null)
-  : null;
+const homeOgImage = !isKore ? (seo.ogImages.home ?? null) : null;
 
 const [homepage, faq, allServices, stammdaten, _effectiveNav, effectiveFooter, effectiveKoreFlags] = await Promise.all([
   getEffectiveHomepage(),
@@ -43,19 +49,11 @@ const [homepage, faq, allServices, stammdaten, _effectiveNav, effectiveFooter, e
 ]);
 const services = allServices.filter((s) => !s.hidden);
 
-// Timeline (live PR feed) gated on editable kore flags (DB wins; fallback: static BrandConfig).
+// Timeline is now a client island (TimelineIsland). We still read the
+// gate flag from the bundle so SSR/CSR agree on whether to render it.
+// No SSR await against the DB — that was the source of the slow render
+// when the meetings DB or the tickets schema was down (T001490 Task 5).
 const wantsTimeline = effectiveKoreFlags.timeline;
-const initialTimeline = wantsTimeline
-  ? await listTimeline({ limit: 20 }).catch(() => [])
-  : [];
-
-let nextDay: DaySlots | null = null;
-try {
-  const slots = await getAvailableSlots(undefined, process.env.BRAND_NAME || 'mentolder');
-  nextDay = slots.length > 0 ? slots[0] : null;
-} catch {
-  // CalDAV unreachable — widget hidden gracefully
-}
 
 const processSteps = homepage.processSteps ?? [];
 ---
@@ -70,8 +68,6 @@ const processSteps = homepage.processSteps ?? [];
       legal={{ jobtitle: stammdaten.role, tagline: config.legal.tagline, street: stammdaten.street, zip: stammdaten.zip, ustId: stammdaten.ustId, website: stammdaten.website, chamber: config.legal.chamber }}
       footerColumns={effectiveFooter.columns}
       footerCopyright={effectiveFooter.copyright}
-      nextDay={nextDay}
-      initialTimeline={initialTimeline}
       wantsTimeline={wantsTimeline}
     />
   ) : (
@@ -90,8 +86,9 @@ const processSteps = homepage.processSteps ?? [];
         personRole={stammdaten.role}
       />
 
-      <!-- Stats + Availability strip -->
-      <StatsStrip stats={homepage.stats} nextDay={nextDay} />
+      <!-- Stats + Availability strip — slot becomes a client island -->
+      <StatsStrip stats={homepage.stats} nextDay={null} />
+      <NextSlotIsland client:idle brand={BRAND_ID} />
 
       <!-- Offers -->
       <section id="angebote" class="section" aria-labelledby="offers-heading">
@@ -150,6 +147,9 @@ const processSteps = homepage.processSteps ?? [];
         ...item,
         answer: item.answer.replace('{city}', stammdaten.city),
       }))} client:visible />
+
+      <!-- Timeline (client island) — was an SSR await; now fail-soft -->
+      <TimelineIsland client:idle wantsTimeline={wantsTimeline} brand={BRAND_ID} limit={20} />
 
       <!-- CTA -->
       <CallToAction

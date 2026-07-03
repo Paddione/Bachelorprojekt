@@ -59,6 +59,7 @@ declare -A SERVICE_REGISTRY=(
   [k3d/website-seller-config.yaml]="website"
   [k3d/website-dev-secrets.yaml]="website"
   [k3d/website-allow-egress-monitoring.yaml]="website"
+  [k3d/website-content-token-secret.yaml]="website"
   [k3d/cicd-deploy-sa.yaml]="cicd"
   [k3d/llm-gpu.yaml]="llm-gateway"
   [k3d/mediaviewer-widget.yaml]="mediaviewer-widget"

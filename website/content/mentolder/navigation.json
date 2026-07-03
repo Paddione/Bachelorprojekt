@@ -1,0 +1,6 @@
+[
+  { "label": "Angebote",   "href": "/#angebote", "order": 0 },
+  { "label": "Über mich",  "href": "/ueber-mich", "order": 1 },
+  { "label": "Referenzen", "href": "/referenzen", "order": 2 },
+  { "label": "Kontakt",    "href": "/kontakt", "order": 3 }
+]

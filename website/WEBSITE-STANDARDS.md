@@ -456,3 +456,92 @@ Seitenspezifisch:
   Referenzen                                 → ?tab=website&section=referenzen
   Rechtliches (Datenschutz, AGB etc.)        → ?tab=website&section=rechtliches
 ```
+
+---
+
+## 8. Content-Source-of-Truth: Git (T001490, seit 2026-07-02)
+
+Seit dem Merge von T001490 (PR folgt) ist **Git** die einzige Source of Truth
+für alle ~13 öffentlichen Content-Domänen (Homepage, FAQ, Kontakt, Services,
+Stammdaten, Navigation, Footer, …). `site_settings` und
+`homepage_block_documents` werden nicht mehr beschrieben (siehe
+`openspec/specs/website-interfaces.md` → "Decommissioned Content-Tabellen").
+
+### Datei-Layout
+
+```
+website/content/<brand>/
+  homepage.json          # HomepageContent (Hero, Stats, Why-Me, …)
+  homepage-blocks.json   # HomepageBlocksContent (React-SPA-Document)
+  seo.json               # SeoContent (titles / descriptions / ogImages pro pageKey)
+  faq.json               # FaqItem[]
+  kontakt.json           # KontaktContent
+  ueber-mich.json        # UebermichContent
+  services.json          # HomepageService[]
+  leistungen.json        # LeistungCategory[]
+  stammdaten.json        # Stammdaten (Name, Adresse, UStId, …)
+  navigation.json        # NavItem[]
+  footer.json            # FooterConfig (Spalten, Copyright)
+  referenzen.json        # ReferenzenConfig
+  kore-flags.json        # KoreFlags (mentolder-only — KORE-Assistent)
+```
+
+Jede Datei wird beim Astro-Build von `website/src/lib/content-bundle.ts`
+importiert (`import.meta.glob('/content/**/*.json', { eager: true })`) und
+gegen das passende Zod-Schema aus `website/src/content-schema/` validiert.
+**Validierungsfehler = Build-Fehler** (fail-closed, keine kaputten Inhalte
+live).
+
+### Publish-Pipeline (Admin → Git → Live)
+
+```
+Admin-UI Save
+   ↓
+POST /api/admin/<domain>/save  { payload, baseSha? }
+   ↓
+publishContent() in website/src/lib/content-publish.ts
+   ↓
+  1. Zod-validate payload (fail-closed 422 wenn ungültig)
+  2. Aktuellen Blob-SHA auf main lesen (GET /repos/.../contents/.../homepage.json)
+     → bei baseSha-Mismatch: 409 { currentSha, currentValue }
+  3. Branch anlegen:   content/<brand>-<domain>-<timestamp>
+  4. Datei PUT-en:     contents:write + korrekter base blob-SHA
+  5. PR öffnen:        label `content`, body enthält baseSha + editor
+  6. Auto-Merge:       squash, Bot-Account
+   ↓
+GitHub squash-merge in main → GH Actions baut Image → rollout
+   ↓
+Live-Website (typisch: 5-10 min nach Save)
+```
+
+### Konsequenzen für den Admin-Workflow
+
+- **Publish-Latenz:** ~5-10 Minuten vom Save-Klick bis zur Live-Site. Das ist
+  der bewusste Trade-off für Git-SSOT (Audit-Trail, branch-PR-Review möglich,
+  Hotfix-Rollback per `git revert`).
+- **Optimistic Concurrency:** `baseSha` ist der SHA der aktuell sichtbaren
+  Datei auf main. Wenn ein zweiter Editor zwischen Laden und Speichern
+  committet hat, bekommt der zweite Save einen `409` und muss re-basen.
+- **Fehlerfall "GitHub-API down":** Der Save antwortet `500 { error:
+  'publish failed' }`. Der Draft bleibt im `localStorage`
+  (`<domain>:draft`), der Admin kann später erneut speichern.
+- **Editor-Feedback:** Nach erfolgreichem Save zeigt die UI
+  `PR #<N> erstellt — live in ~5-10 min` mit Link zum PR. Die Audit-Trail
+  (wer, wann, was) liegt jetzt in der PR-Conversation auf GitHub.
+- **History:** Vor T001490 lag die History in `homepage_block_versions` als
+  JSON-Snapshots. Nach T001490 ist `git log website/content/<brand>/<domain>.json`
+  die kanonische History (Squash-Merge fasst den Bot-PR zu einem einzigen
+  Commit zusammen).
+
+### Local-Dev-Override (worktree, branch, …)
+
+- `scripts/export-site-content.mjs` re-exportiert die DB-Werte in die
+  Bundle-Dateien (Einmal-Migration, historisch; heute ist die Quelle Git).
+- `task website:build` validiert die Bundle-Dateien lokal (`pnpm vitest
+  run src/content-schema/__tests__/schema.test.ts` als schneller
+  Pre-Flight).
+- Für neue Marken: `mkdir -p website/content/<newbrand>/ && cp
+  website/content/mentolder/*.json website/content/<newbrand>/` (gleicher
+  Vertrag, anderer Inhalt), dann `task content:export` für historische
+  Werte.
+

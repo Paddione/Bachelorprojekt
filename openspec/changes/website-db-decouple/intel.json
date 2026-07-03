@@ -1,0 +1,63 @@
+{
+  "meta": {
+    "slug": "website-db-decouple",
+    "ticket_id": "",
+    "generated_from": "main@a6100db70",
+    "domains": ["website", "infra"],
+    "intel_sources": ["code-explorer-subagent", "mcp-postgres", "grep", "wc -l", "baseline.json"]
+  },
+  "impact_files": [
+    { "path": "website/src/lib/db-pool.ts", "language": "typescript", "loc": 60, "s1_limit": 600, "s1_baseline": null, "s1_budget": 540 },
+    { "path": "website/src/lib/website-db.ts", "language": "typescript", "loc": 2106, "s1_limit": 600, "s1_baseline": null, "s1_budget": -1506 },
+    { "path": "website/src/lib/content.ts", "language": "typescript", "loc": 324, "s1_limit": 600, "s1_baseline": null, "s1_budget": 276 },
+    { "path": "website/src/lib/homepage-blocks-store.ts", "language": "typescript", "loc": 198, "s1_limit": 600, "s1_baseline": null, "s1_budget": 402 },
+    { "path": "website/src/pages/index.astro", "language": "astro", "loc": 243, "s1_limit": 400, "s1_baseline": null, "s1_budget": 157 },
+    { "path": "website/src/pages/api/homepage.ts", "language": "typescript", "loc": 27, "s1_limit": 600, "s1_baseline": null, "s1_budget": 573 },
+    { "path": "website/astro.config.mjs", "language": "javascript", "loc": 33, "s1_limit": 500, "s1_baseline": null, "s1_budget": 467 },
+    { "path": "website/src/config/brands/mentolder.ts", "language": "typescript", "loc": 428, "s1_limit": 600, "s1_baseline": null, "s1_budget": 172 },
+    { "path": "mentolder-web/src/blocks/schema.ts", "language": "typescript", "loc": 204, "s1_limit": 600, "s1_baseline": null, "s1_budget": 396 },
+    { "path": "mentolder-web/src/blocks/seed.ts", "language": "typescript", "loc": 209, "s1_limit": 600, "s1_baseline": null, "s1_budget": 391 },
+    { "path": "mentolder-web/src/lib/homepageApi.ts", "language": "typescript", "loc": 87, "s1_limit": 600, "s1_baseline": null, "s1_budget": 513 }
+  ],
+  "symbols": [
+    { "qualified_name": "website/src/lib/content.ts:getEffectiveHomepage", "kind": "function", "file": "website/src/lib/content.ts", "signature": "getEffectiveHomepage(): Promise<HomepageContent>", "type_text": "() => Promise<HomepageContent> — DB-Read mit .catch(() => null) → config-Fallback", "source": "grep" },
+    { "qualified_name": "website/src/lib/content.ts:getEffectiveStammdaten", "kind": "function", "file": "website/src/lib/content.ts", "signature": "getEffectiveStammdaten(): Promise<Stammdaten>", "type_text": "() => Promise<Stammdaten>", "source": "grep" },
+    { "qualified_name": "website/src/lib/content.ts:getEffectiveNavigation", "kind": "function", "file": "website/src/lib/content.ts", "signature": "getEffectiveNavigation(): Promise<NavItem[]>", "type_text": "() => Promise<NavItem[]>", "source": "grep" },
+    { "qualified_name": "website/src/lib/content.ts:getEffectiveFooter", "kind": "function", "file": "website/src/lib/content.ts", "signature": "getEffectiveFooter(): Promise<FooterConfig>", "type_text": "() => Promise<FooterConfig>", "source": "grep" },
+    { "qualified_name": "website/src/lib/content.ts:getEffectiveKoreFlags", "kind": "function", "file": "website/src/lib/content.ts", "signature": "getEffectiveKoreFlags(): Promise<KoreFlags>", "type_text": "() => Promise<KoreFlags>", "source": "grep" },
+    { "qualified_name": "website/src/lib/homepage-blocks-store.ts:readCurrent", "kind": "function", "file": "website/src/lib/homepage-blocks-store.ts", "signature": "readCurrent(brand: string): Promise<HomepageReadResult>", "type_text": "(brand: string) => Promise<HomepageReadResult> — eigener pg.Pool, KEIN try/catch am Aufrufer /api/homepage.ts", "source": "grep" },
+    { "qualified_name": "mentolder-web/src/blocks/schema.ts:SCHEMA_VERSION", "kind": "constant", "file": "mentolder-web/src/blocks/schema.ts", "signature": "SCHEMA_VERSION = 1", "type_text": "number — fail-closed Versionsgate für Block-Dokumente", "source": "grep" },
+    { "qualified_name": "mentolder-web/src/blocks/schema.ts:HomepageBlocksDocumentType", "kind": "type", "file": "mentolder-web/src/blocks/schema.ts", "signature": "type HomepageBlocksDocumentType = z.infer<typeof HomepageBlocksDocument>", "type_text": "{ schemaVersion: number; blocks: Block[] } — Zod-diskriminierte Union über 10 Blocktypen", "source": "grep" },
+    { "qualified_name": "website/src/lib/db-pool.ts:pool", "kind": "constant", "file": "website/src/lib/db-pool.ts", "signature": "pool: pg.Pool (SESSIONS_DATABASE_URL)", "type_text": "pg.Pool — OHNE connectionTimeoutMillis/idleTimeoutMillis (Blackhole-Hang-Risiko)", "source": "code-explorer-subagent" }
+  ],
+  "call_graph": {
+    "entrypoints": ["website/src/pages/index.astro", "website/src/pages/api/homepage.ts"],
+    "edges": [
+      { "from": "index.astro", "to": "content.ts:getEffective*", "kind": "calls" },
+      { "from": "content.ts:getEffective*", "to": "website-db.ts:get*", "kind": "calls" },
+      { "from": "website-db.ts:get*", "to": "db-pool.ts:pool", "kind": "data_flow" },
+      { "from": "api/homepage.ts", "to": "homepage-blocks-store.ts:readCurrent", "kind": "calls" },
+      { "from": "mentolder-web/homepageApi.ts:fetchHomepage", "to": "api/homepage.ts", "kind": "cross_service" },
+      { "from": "mentolder-web/admin save", "to": "api/admin/homepage/save.ts", "kind": "cross_service" }
+    ]
+  },
+  "db_tables": [
+    { "table": "homepage_block_documents", "columns": [ {"name": "brand", "type": "text"}, {"name": "document", "type": "jsonb"}, {"name": "version", "type": "integer"}, {"name": "updated_at", "type": "timestamptz"} ] },
+    { "table": "homepage_block_versions", "columns": [ {"name": "id", "type": "bigint"}, {"name": "brand", "type": "text"}, {"name": "snapshot", "type": "jsonb"}, {"name": "editor", "type": "text"}, {"name": "created_at", "type": "timestamptz"} ] },
+    { "table": "site_settings", "columns": [ {"name": "brand", "type": "text"}, {"name": "key", "type": "text"}, {"name": "value", "type": "text"}, {"name": "updated_at", "type": "timestamptz"} ] }
+  ],
+  "api_contracts": [
+    { "endpoint": "GET /api/homepage", "handler": "website/src/pages/api/homepage.ts", "response": "{ document: HomepageBlocksDocumentType|null, version: number }", "note": "KEIN try/catch um readCurrent — bei DB-Down ungefangener 500" },
+    { "endpoint": "POST /api/admin/homepage/save", "handler": "website/src/pages/api/admin/homepage/save.ts", "response": "Optimistic Concurrency via baseVersion, 409 bei Konflikt", "note": "Schreibpfad des react.mentolder.de-Editors" },
+    { "endpoint": "GET /api/timeline", "handler": "website/src/pages/api/timeline.ts", "response": "{ rows: [], error?: 'fetch_failed' } Status 200", "note": "bereits fail-soft" }
+  ],
+  "external_types": [
+    { "library": "pg", "type": "PoolConfig", "note": "connectionTimeoutMillis, idleTimeoutMillis, statement_timeout — fehlen aktuell in db-pool.ts" },
+    { "library": "zod", "type": "z.discriminatedUnion", "note": "Vorbild-Validierung in mentolder-web/src/blocks/schema.ts" }
+  ],
+  "risks": [
+    { "note": "website-db.ts hat s1_budget=-1506 (2106 LOC > 600-Limit, nicht gebaselined) — Plan darf die Datei nur netto verkleinern oder unangetastet lassen; neue Logik in neue Module", "severity": "warn" },
+    { "note": "korczewski-Pod erreicht shared-db.workspace cross-namespace ohnehin nicht (db-pool.ts:35 Kommentar) — Entkopplung muss beide Brands abdecken", "severity": "info" },
+    { "note": "codebase-memory/LSP nicht genutzt (Kontext-Budget); Signaturen via grep+Explorer verifiziert", "severity": "info" }
+  ]
+}

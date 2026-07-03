@@ -1,4 +1,4 @@
-import type { ServiceOverride, LeistungCategoryOverride } from './website-db';
+import type { HomepageService, LeistungCategory } from './content-schema';
 
 /**
  * Explicit, non-fuzzy card-slug/title → catalog-category-id map.
@@ -16,7 +16,7 @@ export interface Divergence {
   catalog: string;
 }
 
-function resolveCategoryId(card: ServiceOverride): string | undefined {
+function resolveCategoryId(card: HomepageService): string | undefined {
   return TITLE_TO_CATEGORY[card.slug] ?? TITLE_TO_CATEGORY[card.title];
 }
 
@@ -32,13 +32,13 @@ function resolveCategoryId(card: ServiceOverride): string | undefined {
  * Cards with no matching category are also returned unchanged.
  */
 export function linkCardsToCatalog(
-  cards: ServiceOverride[],
-  cats: LeistungCategoryOverride[],
-): { migrated: ServiceOverride[]; divergences: Divergence[] } {
+  cards: HomepageService[],
+  cats: LeistungCategory[],
+): { migrated: HomepageService[]; divergences: Divergence[] } {
   const catById = new Map(cats.map((c) => [c.id, c]));
   const divergences: Divergence[] = [];
 
-  const migrated = cards.map((card): ServiceOverride => {
+  const migrated = cards.map((card): HomepageService => {
     // Already linked → idempotent pass-through
     if (card.leistungCategoryId) return card;
 
@@ -69,7 +69,7 @@ export function linkCardsToCatalog(
       headlineKey: headline.key,
       headlinePrefix: /^ab\b/i.test(old),
       ...(newPageContent ? { pageContent: newPageContent } : {}),
-    } as ServiceOverride;
+    } as HomepageService;
   });
 
   return { migrated, divergences };

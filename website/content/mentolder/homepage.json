@@ -1,0 +1,36 @@
+{
+  "hero": {
+    "title": "Digital Coach & Führungskräfte-Mentor –",
+    "titleEmphasis": "der Mensch und Technologie wieder verbindet.",
+    "subtitle": "Ich kenne beide Welten: 40 Jahre etablierte Strukturen UND modernste KI-Tools.",
+    "tagline": "Praxisnah. Strukturiert. Auf Augenhöhe."
+  },
+  "stats": [
+    { "value": "30+", "label": "Jahre Führungserfahrung" },
+    { "value": "50+", "label": "Begleitete Teilnehmer" },
+    { "value": "40", "label": "Jahre Praxis in IT & Sicherheit" },
+    { "value": "KI", "label": "Pionier der ersten Stunde" }
+  ],
+  "servicesHeadline": "Meine Angebote",
+  "servicesSubheadline": "Sie suchen jemanden, der Menschen, Prozesse und Technik verbindet?",
+  "whyMeHeadline": "Warum ich?",
+  "whyMeIntro": "Ich kenne beide Welten: 40 Jahre etablierte Strukturen UND modernste KI-Tools.",
+  "whyMePoints": [
+    { "title": "Erste deutsche Polizeibehörde mit KI", "text": "Pionier, nicht Nachahmer." },
+    { "title": "Systemischer Coach", "text": "IT + Empathie." },
+    { "title": "Generation 50+", "text": "Aus eigener Erfahrung." },
+    { "title": "Wie ich arbeite", "text": "Analytische Präzision mit Beziehungsarbeit." }
+  ],
+  "avatarType": "image",
+  "avatarSrc": "/brand/mentolder/characters/leadership.portrait.svg",
+  "quote": "Ich stelle unbequeme Fragen – weil echte Lösungen manchmal unbequeme Wahrheiten brauchen.",
+  "quoteName": "Gerald Korczewski",
+  "processSteps": [
+    { "num": "01 — Erstgespräch", "heading": "Kennenlernen", "description": "30 Minuten, kostenlos." },
+    { "num": "02 — Klarheit", "heading": "Zieldefinition", "description": "Gemeinsam entscheiden wir." },
+    { "num": "03 — Begleitung", "heading": "Arbeitsphase", "description": "Individuelle Sessions." },
+    { "num": "04 — Transfer", "heading": "Nachhaltigkeit", "description": "Was Sie hier lernen, bleibt bei Ihnen." }
+  ],
+  "processEyebrow": "So arbeiten wir",
+  "processHeadline": "Vier ruhige Schritte."
+}

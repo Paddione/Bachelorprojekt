@@ -69,6 +69,17 @@ env_vars:
     default_dev: "website"
     description: "Kubernetes namespace for the Astro website (separate per env on unified cluster)"
 
+  # PRIMARY_FRONTEND (T001490 Task 9) — selects the apex ${WEBSITE_HOST} backend.
+  # `astro` → k3d/website.yaml (the Astro/SSR service named `website`)
+  # `react` → k3d/mentolder-web.yaml (the Vite/React SPA service named `mentolder-web`)
+  # Both deployments stay live; only the apex Host() route changes backend.
+  # Per-service hosts (react.<brand>, admin.<brand>, …) are unaffected.
+  - name: PRIMARY_FRONTEND
+    required: true
+    default_dev: "astro"
+    validate: "^(astro|react)$"
+    description: "Apex Host() backend selector for ${WEBSITE_HOST}. `astro` → website (SSR), `react` → mentolder-web (SPA)."
+
   - name: WEBSITE_NODE_AFFINITY
     required: false
     default_dev: ""
@@ -878,6 +889,19 @@ secrets:
   - name: GITHUB_PAT
     required: false
     generate: false
+
+  # GITHUB_CONTENT_TOKEN (T001490 Task 9) — fine-grained token for the bot-PR
+  # content publish pipeline (website/src/lib/content-publish.ts). Scope: only
+  # `contents: write` + `pull-requests: write` on `website/content/**`. Prod
+  # sealed per-env via `task env:seal`; dev placeholder lives in
+  # k3d/website-content-token-secret.yaml.
+  - name: GITHUB_CONTENT_TOKEN
+    required: false
+    generate: false
+    description: "Fine-grained GitHub token for the content publish bot. contents:write + pull-requests:write on website/content/**."
+    extra_namespaces:
+      - namespace: website
+        secret: website-content-token
 
   - name: GHCR_PAT
     required: false

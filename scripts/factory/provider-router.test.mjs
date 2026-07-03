@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { decideOpus, OPUS_MODEL, EMERGENCY_FALLBACK, orderCandidates, isUsable, openCircuit, routeProvider, releaseSlot } from './provider-router.js'
+import { decideOpus, OPUS_MODEL, EMERGENCY_FALLBACK, orderCandidates, isUsable, openCircuit, routeProvider, releaseSlot, hasBudget } from './provider-router.js'
 
 test('decideOpus returns hardcoded Anthropic with a no-op releaseSlot', async () => {
   const r = decideOpus()
@@ -62,14 +62,19 @@ function makeFakeDb(config, health) {
         return { rows: [h] }
       }
       if (kind === 'claim-slot') {
-        const h = hp.get(params.provider) ?? { provider: params.provider, failure_count: 0, cooldown_until: null, active_agents: 0 }
+        const h = hp.get(params.provider) ?? { provider: params.provider, active_agents: 0, reserved_tokens: 0 }
+        const ctx = Number(params.ctx ?? 0)
+        const budget = params.budget == null ? null : Number(params.budget)
         if (Number(h.active_agents) >= Number(params.maxConcurrent)) return { rows: [] }
+        if (budget != null && Number(h.reserved_tokens ?? 0) + ctx > budget) return { rows: [] }
         h.active_agents = Number(h.active_agents) + 1
+        h.reserved_tokens = Number(h.reserved_tokens ?? 0) + ctx
         hp.set(params.provider, h)
         return { rows: [{ provider: params.provider }] }
       }
       if (kind === 'release-slot') {
-        const h = hp.get(params.provider); if (h) h.active_agents = Math.max(0, h.active_agents - 1)
+        const h = hp.get(params.provider)
+        if (h) { h.active_agents = Math.max(0, h.active_agents - 1); h.reserved_tokens = Math.max(0, Number(h.reserved_tokens ?? 0) - Number(params.ctx ?? 0)) }
         return { rows: [] }
       }
       if (kind === 'record-failure') {
@@ -136,4 +141,31 @@ test('releaseSlot(false) records a failure; (true) does not', async () => {
   assert.equal(db._health.get('deepseek').failure_count, 0)
   await releaseSlot(db.query.bind(db), 'deepseek', false)
   assert.equal(db._health.get('deepseek').failure_count, 1)
+})
+
+test('hasBudget: NULL budget is unbounded', () => {
+  assert.equal(hasBudget({ reserved_tokens: 999999 }, 180000, null), true)
+})
+
+test('hasBudget: 2×120k exceeds a 180k budget once one 120k is reserved', () => {
+  assert.equal(hasBudget({ reserved_tokens: 0 }, 120000, 180000), true)
+  assert.equal(hasBudget({ reserved_tokens: 120000 }, 120000, 180000), false)
+})
+
+test('routeProvider rejects a claim over budget and falls through to the cloud row', async () => {
+  const db = makeFakeDb(
+    [
+      { source: 'factory-scout', tier: 'sonnet', priority: 1, provider: 'local-qwen35', model_id: 'qwen3.5-9b@iq4_xs', base_url: 'http://100.102.71.114:1234/v1', max_concurrent: 3, enabled: true, context_window: 120000, context_budget: 180000 },
+      { source: '*', tier: 'sonnet', priority: 2, provider: 'deepseek', model_id: 'deepseek-chat', base_url: 'x', max_concurrent: 3, enabled: true, context_window: 0, context_budget: null },
+    ],
+    [{ provider: 'local-qwen35', failure_count: 0, cooldown_until: null, active_agents: 1, reserved_tokens: 120000 }],
+  )
+  const r = await routeProvider(db.query.bind(db), 'factory-scout', 'sonnet')
+  assert.equal(r.provider, 'deepseek')
+})
+
+test('release restores reserved_tokens by ctx', async () => {
+  const db = makeFakeDb([], [{ provider: 'local-qwen35', failure_count: 0, cooldown_until: null, active_agents: 1, reserved_tokens: 60000 }])
+  await releaseSlot(db.query.bind(db), 'local-qwen35', true, 60000)
+  assert.equal(db._health.get('local-qwen35').reserved_tokens, 0)
 })

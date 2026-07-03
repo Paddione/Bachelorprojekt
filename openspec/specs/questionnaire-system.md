@@ -447,6 +447,13 @@ The system SHALL classify a text chunk into one of the kinds `reflection`, `dial
 
 ---
 
+### Requirement: Öffentlicher listQTemplates-Export
+`questionnaire-db.ts` MUSS eine exportierte Funktion `listQTemplates(pool)` bereitstellen, die alle Fragebögen-Templates mit `id`, `name`, `dimension_count` und `created_at` zurückgibt, sodass die Content-DB-Seite darauf zugreifen kann.
+
+#### Scenario: Templates abrufbar
+- **WHEN** `listQTemplates(pool)` is called
+- **THEN** it returns an array of questionnaire templates with id, name, dimension_count, and created_at fields
+
 ## Testszenarien
 
 <!-- merged from Playwright e2e tests -->
@@ -636,3 +643,5 @@ The system SHALL return an onboarding nudge (`portal-first-login` or `portal-onb
 - **GIVEN** ein Nutzer ist am Portal eingeloggt
 - **WHEN** `POST /api/portal/onboarding/mark-step` mit leerem Body aufgerufen wird
 - **THEN** antwortet das System mit HTTP 400
+
+<!-- merged from change delta questionnaire-system.md (c67362b79d06) -->

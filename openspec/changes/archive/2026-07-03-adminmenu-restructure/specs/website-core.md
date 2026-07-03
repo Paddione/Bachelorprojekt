@@ -1,4 +1,4 @@
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Admin-Sidebar-Navigation
 Die Admin-Sidebar MUSS folgende Navigation bereitstellen:

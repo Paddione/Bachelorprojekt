@@ -8,10 +8,7 @@ description: Use when on a feature/* or fix/* branch that has a staged plan in o
 ## Wann diese Skill greift
 
 Du bist auf einem `feature/*` oder `fix/*` Branch. `dev-flow-plan` hat Spec und Plan committed und gepusht. Jetzt soll implementiert werden.
-
 **Sage zu Beginn:** "Ich nutze dev-flow-execute zur Plan-Ausführung."
-
----
 
 ## Position im Git-Kreislauf
 
@@ -25,36 +22,25 @@ Du bist auf einem `feature/*` oder `fix/*` Branch. `dev-flow-plan` hat Spec und 
                                                                   │
                                         zurück zu [ main ] ───────┘
 ```
-
 **EINSTIEG:** Feature/Fix-Branch mit `plan_staged` Ticket — von `dev-flow-plan` übergeben  
 **AUSSTIEG:** PR gemergt zu `main`, Worktree bereinigt, Ticket `done/shipped`, OpenSpec archiviert, Kreislauf geschlossen  
 **Voraussetzung:** `dev-flow-plan` hat Branch + Plan-Pfad via `ticket.sh stage-plan` in der DB verankert
 
----
-
 ## Ticket-ID ermitteln
 
 Falls `TICKET_ID` nicht bereits im Kontext gesetzt ist (z.B. vom User oder aus dem Branch-Namen ableitbar):
-
 Plan-Metadaten aus der DB holen — **MCP-first** (`mcp-postgres`, READ-ONLY, nimmt nur `sql`):
-
 > `mcp__mcp-postgres__query({ sql: "SELECT external_id, title FROM tickets.tickets WHERE status='plan_staged' ORDER BY planning_rank ASC NULLS LAST, created_at DESC LIMIT 10;" })`
-
 Fallback (mcp-postgres nicht erreichbar — Verfügbarkeits-Guard siehe [`mcp-tool-guide.md`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md)):
-
 ```bash
 kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -F '|' -c \
   "SELECT external_id, title FROM tickets.tickets WHERE status='plan_staged' ORDER BY planning_rank ASC NULLS LAST, created_at DESC LIMIT 10;"
 ```
-
 Bei mehreren staged plans den User via `AskUserQuestion`-Tool nach der gewünschten Ticket-ID fragen.
-
----
 
 ## Schritt −1: Main-Branch im Haupt-Repo synchronisieren (Pull-First)
 
 Synchronisiere `main` im Haupt-Repo:
-
 ```bash
 bash scripts/agent-lock.sh reap           # Reaper — siehe session-coordination (SSOT)
 bash scripts/agent-msg.sh read --unread   # Nachrichten paralleler Sessions [T000882]
@@ -65,10 +51,7 @@ else
   git fetch origin main && git pull --rebase origin main
 fi
 ```
-
 Lock-Lebenszyklus (claim/release, Registry-Overlap): [session-coordination](file:///home/patrick/Bachelorprojekt/.claude/skills/references/session-coordination.md).
-
----
 
 ## Schritt 0: Worktree-Konsistenz prüfen
 
@@ -82,12 +65,10 @@ if [[ -z "$CURRENT_BRANCH" || "$CURRENT_BRANCH" == "HEAD" ]]; then
   exit 1
 fi
 ```
-
 `dev-flow-execute` erwartet normalerweise, dass `dev-flow-plan` bereits einen isolierten Worktree unter
 `tmp/wt-*` übergeben hat. Das wird hier nie explizit geprüft — läuft die Execute-Phase versehentlich im
 Haupt-Checkout (z.B. nach einem Session-Neustart), schreibt der Implementer-Subagent direkt ins
 Haupt-Repo statt in eine isolierte Kopie [T001363]:
-
 ```bash
 # Worktree-Isolation-Check [T001363]
 # Wir sind entweder schon in einem tmp/wt-*-Worktree ODER müssen einen anlegen.
@@ -110,8 +91,6 @@ if [[ "$PWD" != *"/tmp/wt-"* ]]; then
 fi
 ```
 
----
-
 ## Schritt 0.5: Sync mit main & Rebase
 
 ```bash
@@ -121,14 +100,11 @@ git submodule update --init --recursive
 # Falls push fehlschlägt, wende --force-with-lease an
 ```
 
----
-
 ## Schritt 1: Plan-Pfad aus der Datenbank laden (Single Source of Truth)
 
 Der Plan-Pfad wird von `dev-flow-plan` via `ticket.sh stage-plan` in der Datenbank gespeichert
 (als `FACTORY-PLAN-REF branch=<branch> plan=<plan_path>` Kommentar im Ticket). **Niemals** per Glob raten —
 immer die DB als Quelle nutzen.
-
 ```bash
 # TICKET_ID muss bekannt sein (aus Branch-Name, User-Input, oder ticket.sh get --branch <branch>)
 TICKET_ID="<T-######>"
@@ -157,15 +133,11 @@ fi
 echo "✅ Plan geladen: $PLAN_FILE (Branch: $BRANCH)"
 ```
 
----
-
 ## Schritt 1.4: Doppelarbeit-Guard & Registry-Overlap (Session-Koordination [T000510])
 
 Claime Ticket + Branch (`--label dev-flow-execute`) und prüfe den Registry-Overlap für geteilte
 Hochfrequenz-Dateien — Befehle und Semantik (Exit 1 = koordinieren, nicht duplizieren):
 **SSOT** in [session-coordination](file:///home/patrick/Bachelorprojekt/.claude/skills/references/session-coordination.md).
-
----
 
 ## Schritt 1.5: Ticket auf `in_progress` setzen und touched_files registrieren
 
@@ -173,69 +145,46 @@ Hochfrequenz-Dateien — Befehle und Semantik (Exit 1 = koordinieren, nicht dupl
 > Schritt `/opsx:apply <slug>` aufrufen — das ist die upstream-Variante von `task openspec:apply`,
 > die den OpenSpec-Change in den Apply-Modus überführt. Fallback wenn die upstream-CLI nicht
 > installiert ist: `task openspec:apply -- <slug>`.
-
 Falls eine Ticket-ID vorhanden ist, setze das Ticket auf in_progress — **MCP-first** (`ticket-mcp`):
-
 > `mcp__ticket-mcp__transition_status({ id: "$TICKET_ID", status: "in_progress" })`
 > `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "plan", state: "entered", driver: "devflow", detail: "Plan: <slug> · $TICKET_ID" })`
-
 Fallback (ticket-mcp nicht erreichbar; Live-Floor-Telemetrie ist best-effort und darf den Flow nie stoppen):
-
 ```bash
 ./scripts/vda.sh ticket update-status --id "$TICKET_ID" --status in_progress
 SLUG=$(basename "$PLAN_FILE" .md)
 ./scripts/ticket.sh phase "$TICKET_ID" plan entered --driver devflow --detail "Plan: $SLUG · $TICKET_ID" || true
 ```
-
 > `plan`/`implement`/`deploy`-Events entstehen jetzt automatisch aus den Statuswechseln (`update-status`/`stage-plan`); Doppel-Emission ist dank Dedup harmlos.
-
 Falls der Plan die berührten Dateien kennt, registriere sie für die Conflict-Gate (parallele Sessions sehen die Kollision via `agent-collision.sh`) — **MCP-first**:
-
 > `mcp__ticket-mcp__set_touched_files({ id: "$TICKET_ID", files: "<comma-separated-paths>" })`
 > `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "plan", state: "done", driver: "devflow", detail: "Plan geladen · Assets folgen" })`
-
 Fallback:
-
 ```bash
 ./scripts/ticket.sh set-touched-files --id "$TICKET_ID" --files "<comma-separated-paths>"
 ./scripts/ticket.sh phase "$TICKET_ID" plan done --driver devflow --detail "Plan geladen · Assets folgen" || true
 ```
 
----
-
 ## Schritt 1.7: Visual & Textual Assets laden (Visual Handoff)
 
 Falls eine Ticket-ID vorhanden ist, lade alle Anhänge (wie Screenshots, Logdateien, Mockups) herunter — **MCP-first** (`ticket-mcp`):
-
 > `mcp__ticket-mcp__get_attachments({ id: "$TICKET_ID", out_dir: "/tmp/ticket-attachments-$TICKET_ID" })`
-
 Fallback (ticket-mcp nicht erreichbar):
-
 ```bash
 ATTACHMENT_DIR="/tmp/ticket-attachments-$TICKET_ID"
 ./scripts/ticket.sh get-attachments --id "$TICKET_ID" --out-dir "$ATTACHMENT_DIR"
 ```
-
 **⚠️ Pflicht für UI-Arbeiten:** Lies (mit dem `Read` Tool) alle heruntergeladenen Bilddateien und Textdateien in diesem Ordner ein, um ein pixelgenaues Verständnis des UI-Designs zu erlangen. Verlasse dich nicht auf Prose allein.
-
----
 
 ## Schritt 2: Implementierung an frischen Implementer-Subagenten delegieren
 
 Live-Floor-Telemetrie (best-effort): Implementer-Subagent wird gespawnt — **MCP-first**:
-
 > `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "implement", state: "entered", driver: "devflow", detail: "Subagent gestartet" })`
-
 Fallback:
-
 ```bash
 ./scripts/ticket.sh phase "$TICKET_ID" implement entered --driver devflow --detail "Subagent gestartet" || true
 ```
-
 Statt deinen eigenen Kontext/Modell zurückzusetzen (das ließe dich den Faden verlieren), delegiere die **gesamte Implementierung an EINEN frischen Subagenten** — sauberer Kontext per Konstruktion. Du behältst den vollen Plan-Kontext und verifizierst das Ergebnis anschließend unabhängig.
-
 > **Warum EIN Implementer statt `superpowers:subagent-driven-development`-Fan-out?** Dieser Skill läuft bereits *selbst* als delegierte Ebene (oft aus einem dev-flow-Orchestrator). Ein zusätzlicher Per-Task-Fan-out wäre **verschachtelte Delegation** $\rightarrow$ Kontext-Explosion und Synthese-Last (siehe [subagent-provisioning](file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md), 162k-Prompt-Lehre). Der Implementer ruft `superpowers:executing-plans` daher **in-context** auf (kein weiterer Agenten-Fan-out). Nur wenn der Plan ausdrücklich viele **voneinander unabhängige** Tasks hat und der Einzel-Implementer am Kontext-Limit scheitert, lohnt der Wechsel auf `subagent-driven-development` bzw. einen `Workflow`-Fan-out — bewusste Eskalation, nicht Default.
-
 Spawne den Subagenten:
 * **Gemini/Antigravity CLI:** call `invoke_subagent` with `TypeName: "self"` (inherits permissions and tools), `Role: "Implementer <TICKET_ID>"`, and `Workspace: "share"` (or `"inherit"`).
 * **Claude Code CLI:** Spawne über das `Agent`/`Task`-Tool einen Subagenten (`subagent_type: general-purpose`), **provisioniert gemäß** [subagent-provisioning](file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md) — Modell nach Plan-Charakter (Implementer-Default: `sonnet`; mechanisch `haiku`, komplex/riskant `opus`), Effort per Prompt-Direktive und die Worktree-`cd`-Pflicht stehen dort (SSOT, nicht hier wiederholen).
@@ -260,7 +209,6 @@ Spawne den Subagenten:
   # @test in tests/spec/<slug>.bats einfügen, nicht neue tests/local/FA-XY-*.bats Datei
   ```
   **Ziel:** Die Gesamtzahl der `.bats`-Dateien in `tests/local/` sinkt oder bleibt konstant. Ticket-nummerierte Dateien (`FA-SF-42.bats`) sind Legacy — nicht neu anlegen.
-
 - **Auftrag:**
   - **/goal: Finish dev-flow-execute and merge the PR cleanly.**
   - *Feature:* Rufe `superpowers:executing-plans` (in-context, KEIN weiterer Agenten-Fan-out) + `test-driven-development` auf und arbeite den Plan vollständig ab. Aktualisiere nach jedem Meilenstein die Checkbox im Plan (`- [ ] M1` → `- [x] M1`), committe und pushe.
@@ -269,55 +217,37 @@ Spawne den Subagenten:
   - **PFLICHT vor PR-Erstellung — Freshness-Artefakte regenerieren und committen** (sonst schlägt CI mit "stale artifact" fehl; `executing-plans` → `finishing-a-development-branch` überspringt diesen Schritt). Befehle + Artefakt-Pfadliste (SSOT): [verification-block](file:///home/patrick/Bachelorprojekt/.claude/skills/references/verification-block.md) — der Subagent MUSS die Datei lesen und den `git add`-Block daraus verwenden.
   - Erstelle einen PR, durchlaufe die CI-Fix-Schleife bis grün, und merge via Auto-Merge.
   - Schließe das Ticket ab und archiviere den Plan.
-
 Der Subagent führt den gesamten dev-flow-execute-Pipeline selbstständig bis zum Merge durch. Du wirst per `<task-notification>` benachrichtigt, wenn er fertig ist. Fahre dann mit Schritt 8 (Post-Merge Deploy & Verify) fort.
-
----
 
 ## Schritt 2.5 — Lokaler Self-Correcting-Loop (optional)
 
 Nach dem Implementer-Subagenten (Schritt 2) **vor** der finalen Verifikation (Schritt 3):
-
 ```bash
 bash scripts/devflow-build-loop.sh "$TICKET_ID"
 ```
-
 - Default `MAX_LOOP=3`, env `FACTORY_BUILD_LOOP_MAX` überschreibbar.
 - Bei `abort:escalate-gate|no-progress|max-iterations`: Eskalation (Ticket-Kommentar), **kein** blindes Weiter-Pushen.
 - **Abgrenzung zu Schritt 5.5:** Dieser Loop ist **vorgelagert** (lokal, vor `git push`) und reduziert die Last auf die CI-Retry-Schleife — ersetzt sie aber nicht. Schritt 3 (finale Verifikation) bleibt unverändert.
 
----
-
 ## Schritt 3: Lokale Verifikation
 
 Rufe das Skill **`verification-before-completion`** auf, um die Verifikation strukturiert zu steuern.
-
 Phasen-Telemetrie (PFLICHT für verify — das Gate erzwingt sie) — **MCP-first** (`ticket-mcp`):
-
 > `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "implement", state: "done", driver: "devflow", detail: "Implementierung fertig" })`
 > `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "verify", state: "entered", driver: "devflow", detail: "task test:changed + freshness" })`
-
 Verifikation ausführen — die vier Befehle + `./tests/runner.sh local <FA-XX oder SA-XX>` bei
 Manifest-Änderungen. **SSOT:** [verification-block](file:///home/patrick/Bachelorprojekt/.claude/skills/references/verification-block.md).
-
 Nach grünen Tests — **MCP-first**:
-
 > `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "verify", state: "done", driver: "devflow", detail: "Tests grün · freshness OK" })`
-
 > `plan`/`implement`/`deploy`-Events entstehen jetzt automatisch aus den Statuswechseln (`update-status`/`stage-plan`); Doppel-Emission ist dank Dedup harmlos.
-
 Fallback (ticket-mcp nicht erreichbar; die `verify`-Zeilen bleiben Pflicht — das Gate in Schritt 6 erzwingt `verify:done`):
-
 ```bash
 ./scripts/ticket.sh phase "$TICKET_ID" implement done --driver devflow --detail "Implementierung fertig" || true
 ./scripts/ticket.sh phase "$TICKET_ID" verify entered --driver devflow --detail "task test:changed + freshness" || true
 # nach den Tests:
 ./scripts/ticket.sh phase "$TICKET_ID" verify done --driver devflow --detail "Tests grün · freshness OK" || true
 ```
-
 Siehe [dev-flow-gotchas](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md) für TypeScript/pnpm Gotchas in Worktrees.
-
----
 
 ## Schritt 3.5: Admin-Menu Placement Gate
 
@@ -326,22 +256,15 @@ Falls neue Admin-Seiten hinzugefügt wurden:
 bash scripts/admin-menu-gate.sh
 ```
 
----
-
 ## Schritt 3.8: Code Review Gate (Mandatory)
 
 Vor dem PR-Merge muss eine unabhängige Überprüfung stattfinden.
 1. Rufe das Skill **`requesting-code-review`** (oder `pr-review-toolkit:review-pr` bzw. einen Review-Subagenten) auf, um die Änderungen zu auditieren.
 2. Behebe alle gefundenen Probleme und stelle sicher, dass der Reviewer "Approved" gibt, bevor du fortfährst.
 
----
-
 ## Schritt 4: Dev-Iteration (optional)
 
 Rufe `dev-flow-iterate` auf, um Änderungen im dev-Cluster zu testen.
-
----
-
 > **⚠ Freshness-Guard (vor dem Commit):** Wenn Schritt 3 (`task freshness:regenerate`) übersprungen oder der Subagent es vergessen hat, schlägt CI mit "stale artifact" fehl. Prüfe: `git diff --name-only` sollte keine generierten Indexdateien zeigen. Falls doch: `task freshness:regenerate && git add` nachholen. Der Pre-commit-Hook automatisiert das nach `task secrets:install-hooks`.
 
 ## Schritt 5: PR erstellen
@@ -350,48 +273,34 @@ Commit → Push → PR läuft nach **`git-workflow` Schritt 2–4** (SSOT): Scop
 Allowlist prüfen [T001395], explizite Pathspecs statt `git add -A` (git-crypt-Guard [T001210]),
 Commit-Verifikation `HEAD_SHA != BASE_SHA` [T000925], `preflight-pr-scope.sh` vor `gh pr create`,
 REST-Fallback für Titel-Edits.
-
 Execute-spezifisch: Ticket-ID `[$TICKET_ID]` in Header und `Closes T000XXX` im Body bei Fixes.
 Rufe `commit-commands:commit-push-pr` auf (oder führe `gh pr create` manuell aus).
-
----
 
 ## Schritt 5.5: CI/CD-Fix-Schleife
 
 Nachdem der PR gepusht ist, überwache CI und behebe Fehler — bevor du mergst. Details und Required-Check-Liste (SSOT): [ci-fix-loop](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ci-fix-loop.md).
-
 ```bash
 PR_URL=$(gh pr view --json url -q '.url')
 bash scripts/devflow-ci-watch.sh "$TICKET_ID" "$PR_URL"
 ```
-
 Bei roten Checks: Logs aus dem Skript-Output als Prompt-Kontext an einen `sonnet`-Subagenten übergeben (Fix-Routine: Freshness → TS → BATS → Kustomize → Commitlint), nach erfolgreichem Push Loop wiederholen.
-
 `devflow-ci-watch.sh` prüft `mergeStateStatus` bereits **vor** dem CI-Poll-Loop und rebased bei `DIRTY` selbstständig gegen `origin/main` (T001408, Finding 2). Bricht der Rebase mit einem Konflikt ab, beendet sich das Skript mit Exit-Code `3` (statt hängen zu bleiben). In diesem Fall löst der **implementierende Subagent selbst** den Konflikt (kein zweiter Subagent für denselben Branch — genau das Doppel-Push-Risiko aus T001408) und ruft `devflow-ci-watch.sh` danach erneut auf.
-
 Seit T001415 (Finding 2) beendet sich `devflow-ci-watch.sh` zusätzlich mit Exit-Code `4`, wenn `gh pr view --json mergeable` `CONFLICTING` meldet — d.h. der PR hat echte Merge-Konflikte gegen main (nicht nur einen stale Branch). Auch in diesem Fall löst der **implementierende Subagent selbst** den Konflikt manuell (`git fetch origin main && git rebase origin/main`, Konflikte lösen, `git push --force-with-lease`) und ruft `devflow-ci-watch.sh` erneut auf. Es wird **kein** zweiter Subagent für denselben Branch gespawnt.
-
----
 
 ## Schritt 6: Auto-Merge wenn CI grün
 
 > **Hinweis:** `E2E PR` ist kein required check (T000722) — blockiert den Merge NICHT.
 > Die Required-Check-Liste lebt in [ci-fix-loop](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ci-fix-loop.md).
-
 **Fail-closed Phase-Chain-Gate (T001444) — PFLICHT vor dem Merge, KEIN `|| true`:**
 Prüft, dass `plan:done`, `implement:entered` und `verify:done` vorliegen. Bei FAIL
 zuerst backfillen (insb. `verify done` nach grünem `task test:changed`), dann mergen.
-
 ```bash
 ./scripts/ticket.sh assert-phase-chain --id "$TICKET_ID"
 ```
-
 ```bash
 # Merge PR aus dem Haupt-Repo, um Konflikte zu vermeiden
 (cd "$MAIN_REPO" && gh pr merge --auto --squash --delete-branch)
 ```
-
----
 
 ## Schritt 6.4: Warte auf PR-Merge (vor Ticket-Abschluss)
 
@@ -399,7 +308,6 @@ zuerst backfillen (insb. `verify done` nach grünem `task test:changed`), dann m
 Bisher hat Schritt 6.5 das Ticket direkt nach `--auto` auf `done` gesetzt, was zu Drift führte
 (s. Mishap T001149-M1, T001145/PR #2101: Ticket `done`, PR aber OPEN+CONFLICTING).
 Jetzt: **warten, bis der Merge tatsächlich durch ist**, bevor das Ticket geschlossen wird.
-
 ```bash
 PR_NUM=$(gh pr view --json number -q '.number')
 PR_URL="https://github.com/Paddione/Bachelorprojekt/pull/$PR_NUM"
@@ -436,31 +344,22 @@ while true; do
 done
 ```
 
----
-
 ## Schritt 6.5: Ticket abschließen
 
 Falls eine Ticket-ID vorhanden ist, schließe das Ticket:
-
 PR-Nummer ermitteln (falls nicht aus Schritt 6.4 bekannt):
-
 ```bash
 RESOLUTION="shipped" # oder "fixed" bei Fixes
 : "${PR_NUM:=$(gh pr view --json number -q '.number' 2>/dev/null || echo "")}"
 ```
-
 Abschluss-Lifecycle — **MCP-first** (`ticket-mcp`). Merge = Abschluss (T001092): Schritt 6.4 hat bestätigt, dass der PR gemergt ist; der Prod-Deploy (Schritt 8) ist entkoppelt und ändert den Ticket-Status NICHT.
-
 > `mcp__ticket-mcp__add_pr_link({ id: "$TICKET_ID", pr: "$PR_NUM" })`
 > `mcp__ticket-mcp__transition_status({ id: "$TICKET_ID", status: "done", resolution: "<shipped|fixed>" })`
 > `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "verify", state: "done", driver: "devflow", detail: "gate=ci result=pass" })`
 > `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "deploy", state: "done", driver: "devflow", detail: "PR #$PR_NUM merged · done/shipped" })`
 > `mcp__ticket-mcp__add_comment({ id: "$TICKET_ID", body: "PR #$PR_NUM merged. Plan archived to tickets.ticket_plans." })`
-
 > `plan`/`implement`/`deploy`-Events entstehen jetzt automatisch aus den Statuswechseln (`update-status`/`stage-plan`); Doppel-Emission ist dank Dedup harmlos. Das `verify:done`-Event bleibt Pflicht (Merge-Gate).
-
 Fallback (ticket-mcp nicht erreichbar; die `verify`-Zeile bleibt Pflicht, der Rest ist idempotent):
-
 ```bash
 ./scripts/ticket.sh add-pr-link --id "$TICKET_ID" --pr "$PR_NUM"
 ./scripts/vda.sh ticket update-status --id "$TICKET_ID" --status done --resolution "$RESOLUTION"
@@ -469,12 +368,9 @@ Fallback (ticket-mcp nicht erreichbar; die `verify`-Zeile bleibt Pflicht, der Re
 ./scripts/ticket.sh add-comment --id "$TICKET_ID" --body "PR #$PR_NUM merged. Plan archived to tickets.ticket_plans."
 ```
 
----
-
 ## Schritt 7: Plan & OpenSpec archivieren
 
 Zwei Schritte: (1) `tasks.md` nach postgres, (2) den gesamten OpenSpec-Change-Ordner ins Archiv.
-
 ```bash
 SLUG="<slug>"
 BRANCH="feature/<slug>" # oder fix/<slug>
@@ -483,13 +379,9 @@ PR_NUM=$(gh pr view --json number -q '.number' 2>/dev/null || echo "")
 # 1. Plan-Frontmatter auf completed setzen, BEVOR der Inhalt archiviert wird:
 sed -E -i 's/^status: (active|plan_staged|in_progress)$/status: completed/' "$PLAN_FILE"
 ```
-
 2. tasks.md → postgres (`tickets.ticket_plans`) — **MCP-first** (`ticket-mcp`):
-
 > `mcp__ticket-mcp__archive_plan({ id: "$TICKET_ID", slug: "$SLUG", branch: "$BRANCH", plan_file: "$PLAN_FILE", pr: "$PR_NUM" })`
-
 Fallback (ticket-mcp nicht erreichbar):
-
 ```bash
 ./scripts/ticket.sh archive-plan \
   --id "$TICKET_ID" \
@@ -498,9 +390,7 @@ Fallback (ticket-mcp nicht erreichbar):
   --plan-file "$PLAN_FILE" \
   --pr "$PR_NUM"
 ```
-
 3. OpenSpec-Change archivieren: `openspec/changes/<slug>/` → `openspec/changes/archive/<date>-<slug>/`. Verschiebt proposal.md, tasks.md, specs/, assets/ ins Archiv und aktualisiert den SSOT-Delta.
-
 ```bash
 bash scripts/openspec.sh archive "$SLUG"
 # Alternativ: task openspec:archive -- "$SLUG"
@@ -538,34 +428,22 @@ echo "pr_created:$PR_NUM"
 gh pr merge --auto --squash --delete-branch
 ```
 
----
-
 ## Schritt 7.5: Worktree & Branch bereinigen
 
 Lösche den lokalen Worktree und Branch (im Haupt-Repo ausführen):
-
 Claims freigeben VOR dem Worktree-Remove ([session-coordination](file:///home/patrick/Bachelorprojekt/.claude/skills/references/session-coordination.md)), dann:
-
 ```bash
 git worktree remove "$MAIN_REPO/tmp/wt-<slug>" --force
 git branch -D "<branch>"
 ```
-
----
 
 ## Schritt 8: Post-Merge Deploy & Verify
 
 ```bash
 bash scripts/devflow-post-merge-deploy.sh "$TICKET_ID"
 ```
-
 **Deploy-Mapping (Single Source of Truth):** Pfad→Task-Tabelle und Pod-Verify-Schleife leben in [deploy-routing](file:///home/patrick/Bachelorprojekt/.claude/skills/references/deploy-routing.md). Bei Änderungen am Deploy-Mapping **nur** diese Referenz pflegen.
-
 Führe danach `dev-flow-e2e` aus, um E2E-Tests gegen die Live-Umgebung zu schreiben.
-
----
-
-
 > **Mitten in der Umsetzung blockiert?** Nutzer mit `lavish` grillen — erstelle `.lavish/<slug>-grilling.html` (Input-Playbook) und poll auf Antworten. Danach die Antworten ans Ticket
 > hängen: `scripts/ticket.sh grill --id <ext-id> --answer <qid>=<text> …`. Siehe
 > `.claude/skills/references/grilling-to-ticket.md`.
@@ -578,10 +456,7 @@ Führe danach `dev-flow-e2e` aus, um E2E-Tests gegen die Live-Umgebung zu schrei
 - Ticket status = `done` (resolution=shipped)
 - Branch-Lock und Ticket-Lock freigegeben
 - Deployed (falls `devflow-post-merge-deploy.sh` Pfad-Treffer)
-
 **Kreislauf zurück zu `main`** — nächste Arbeit startet mit `dev-flow-plan` von einem frischen `git pull`.
-
----
 
 ## Verwandte Skills
 

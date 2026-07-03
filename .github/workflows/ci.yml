@@ -104,7 +104,6 @@ jobs:
 
       - name: Ensure freshness artifacts are up to date
         if: github.event_name == 'pull_request'
-        continue-on-error: true
         run: |
           if ! task freshness:check; then
             echo ""

@@ -47,6 +47,13 @@ export function openCircuit(failureCount) {
   return Number(failureCount ?? 0) >= FAILURE_THRESHOLD
 }
 
+/** Budget guard: NULL budget = unbounded; else reserved + ctx must fit the budget. */
+export function hasBudget(health, ctx, budget) {
+  if (budget == null) return true
+  const reserved = Number((health && health.reserved_tokens) ?? 0)
+  return reserved + Number(ctx ?? 0) <= Number(budget)
+}
+
 /**
  * Claim a provider slot for (source, tier). `query` is an injected async fn
  * (kind, params) => { rows } so the same logic runs against the fake (tests) and
@@ -63,15 +70,19 @@ export async function routeProvider(query, source, tier) {
     const { rows: hrows } = await query('load-health', { provider: c.provider })
     const health = hrows && hrows[0]
     const cap = Number(c.max_concurrent ?? DEFAULT_MAX_CONCURRENT)
+    const ctx = Number(c.context_window ?? 0)
+    const budget = c.context_budget == null ? null : Number(c.context_budget)
     if (!isUsable(health, cap)) continue
-    const { rows: claimed } = await query('claim-slot', { provider: c.provider, maxConcurrent: cap })
+    if (!hasBudget(health, ctx, budget)) continue
+    const { rows: claimed } = await query('claim-slot', { provider: c.provider, maxConcurrent: cap, ctx, budget })
     if (!claimed || !claimed.length) continue
     const provider = c.provider
     return {
       provider,
       modelId: c.model_id,
       baseUrl: c.base_url ?? null,
-      releaseSlot: (success) => releaseSlot(query, provider, success),
+      ctx,
+      releaseSlot: (success) => releaseSlot(query, provider, success, ctx),
     }
   }
 
@@ -79,7 +90,7 @@ export async function routeProvider(query, source, tier) {
 }
 
 /** Release a claimed slot (always decrements); record a failure when success=false. */
-export async function releaseSlot(query, provider, success) {
-  await query('release-slot', { provider })
+export async function releaseSlot(query, provider, success, ctx = 0) {
+  await query('release-slot', { provider, ctx })
   if (!success) await query('record-failure', { provider })
 }

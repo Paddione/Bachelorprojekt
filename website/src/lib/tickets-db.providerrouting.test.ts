@@ -22,6 +22,8 @@ vi.mock('pg', () => {
       updated_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
       brand          TEXT NOT NULL DEFAULT '*',
       is_active      BOOLEAN,
+      context_window INTEGER,
+      context_budget INTEGER,
       UNIQUE (source, tier, priority)
     );
     CREATE TABLE tickets.provider_health (

@@ -13,6 +13,7 @@ export const SOURCE = {
   websiteLlm: 'website-llm',
   assistantChat: 'assistant-chat',
   ticketTriage: 'ticket-triage',
+  lavishArtifact: 'lavish-artifact',
   coaching: 'coaching',
 } as const;
 
@@ -37,6 +38,7 @@ export const KI_SERVICES: ServiceDef[] = [
   { key: 'website-llm',    label: 'Website-LLM',    icon: '🌐', source: SOURCE.websiteLlm,    tier: 'sonnet',   brandScoped: false, paramSet: 'routing' },
   { key: 'assistant-chat', label: 'Assistent-Chat', icon: '💬', source: SOURCE.assistantChat, tier: 'sonnet',   brandScoped: false, paramSet: 'routing' },
   { key: 'ticket-triage',  label: 'Ticket-Triage',  icon: '🎫', source: SOURCE.ticketTriage,  tier: 'haiku',    brandScoped: false, paramSet: 'routing' },
+  { key: 'lavish-artifact', label: 'Lavish-Artefakt', icon: '🎨', source: SOURCE.lavishArtifact, tier: 'sonnet', brandScoped: false, paramSet: 'routing' },
   { key: 'coaching',       label: 'Coaching',       icon: '🤝', source: SOURCE.coaching,      tier: 'coaching', brandScoped: true,  paramSet: 'coaching' },
 ];
 

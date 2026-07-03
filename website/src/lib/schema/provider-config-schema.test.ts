@@ -45,4 +45,22 @@ describe('initProviderConfigSchema (Coaching-Fusion)', () => {
     const r = await pool.query(`SELECT count(*)::int AS n FROM tickets.provider_config WHERE source='*'`);
     expect(r.rows[0].n).toBe(4);
   });
+
+  it('adds context_window, context_budget, reserved_tokens columns (T001590)', async () => {
+    const pool = freshPool();
+    await initProviderConfigSchema(pool as never);
+    // Hinweis: pg-mem meldet table_schema immer als 'public' (Schema-Quirk) — daher hier
+    // kein table_schema-Filter, table_name reicht zur eindeutigen Identifikation.
+    const cfgCols = await pool.query(
+      `SELECT column_name FROM information_schema.columns
+        WHERE table_name='provider_config'
+          AND column_name IN ('context_window','context_budget')`,
+    );
+    expect(cfgCols.rows.map((r) => r.column_name).sort()).toEqual(['context_budget', 'context_window']);
+    const healthCol = await pool.query(
+      `SELECT column_name FROM information_schema.columns
+        WHERE table_name='provider_health' AND column_name='reserved_tokens'`,
+    );
+    expect(healthCol.rows).toHaveLength(1);
+  });
 });

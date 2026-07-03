@@ -2935,6 +2935,31 @@ REG="scripts/factory/service-registry.sh"
   [ "$status" -eq 0 ]
 }
 
+@test "FA-SF-71: pipeline.js inline clone threads ctx to release-slot.sh" {
+  grep -Eq 'function releaseSlotSync\(slotId, success, ctx' scripts/factory/pipeline.js
+  grep -Eq 'release-slot.sh.*String\(ctx' scripts/factory/pipeline.js
+  grep -Eq 'releaseSlotSync\(planRoute.slotId, plan != null, planRoute.ctx\)' scripts/factory/pipeline.js
+}
+
+@test "FA-SF-71: node --test provider-router budget suite passes" {
+  run node --test scripts/factory/provider-router.test.mjs
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-71: pipeline.js stays offline-parseable after ctx threading" {
+  run node --check scripts/factory/pipeline.js
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-71: local-qwen35 seed sets prio-1 rows for the four orchestration sources" {
+  local f=scripts/migrations/2026-07-03-local-qwen35-seed.sql
+  grep -Eq "'factory-scout', *'sonnet', *1, *'local-qwen35'" "$f"
+  grep -Eq "'factory-plan', *'sonnet', *1, *'local-qwen35'" "$f"
+  grep -Eq "'ticket-triage', *'haiku', *1, *'local-qwen35'" "$f"
+  grep -Eq "'lavish-artifact', *'sonnet', *1, *'local-qwen35'" "$f"
+  grep -Eq '60000, *180000' "$f"
+}
+
 
 # ── T001433 admin-redesign: Factory Floor conveyor-only (FA-SF-FLOOR) ─────────
 @test "FA-SF-FLOOR: FactoryFloor.svelte has no ff-view/kanban toggle" {

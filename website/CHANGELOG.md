@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.156.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.156.3...website-v1.156.4) (2026-07-03)
+
+
+### Bug Fixes
+
+* **brain:** unbaubarer site.Dockerfile und fehlender Workflow [T001578] ([#2571](https://github.com/Paddione/Bachelorprojekt/issues/2571)) ([3f623fb](https://github.com/Paddione/Bachelorprojekt/commit/3f623fb19e511c115c434bc018a4af0242b0ad5a))
+
 ## [1.156.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.156.2...website-v1.156.3) (2026-07-03)
 
 

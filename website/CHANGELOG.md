@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.156.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.156.1...website-v1.156.2) (2026-07-03)
+
+
+### Bug Fixes
+
+* **ci:** resolve 8 pre-existing offline-test failures [T001575] ([#2556](https://github.com/Paddione/Bachelorprojekt/issues/2556)) ([4d9055b](https://github.com/Paddione/Bachelorprojekt/commit/4d9055b31217304b34de2b03cba5462fc30cd280))
+
 ## [1.156.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.156.0...website-v1.156.1) (2026-07-03)
 
 

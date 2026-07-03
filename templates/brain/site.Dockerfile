@@ -1,11 +1,10 @@
-FROM node:20-alpine AS builder
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci --only=production
-COPY . .
+FROM node:22-slim AS builder
+RUN apt-get update -qq && apt-get install -y -qq git ca-certificates >/dev/null
+RUN git clone --depth 1 --branch v4.5.2 https://github.com/jackyzha0/quartz /q
+WORKDIR /q
+RUN npm ci
+RUN rm -rf /q/content
+COPY content /q/content
 RUN npx quartz build
-
-FROM ghcr.io/paddione/workspace-static-server:latest
-COPY --from=builder /app/dist /public
-EXPOSE 8787
-CMD ["static-web-server", "--host", "0.0.0.0", "--port", "8787", "/public"]
+FROM ghcr.io/static-web-server/static-web-server:2-alpine
+COPY --from=builder /q/public /public

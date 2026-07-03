@@ -10,6 +10,11 @@ concurrency:
   group: codebase-memory-regen-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  # T001265: CI-wide OpenSpec telemetry opt-out (blanket convention, applied
+  # regardless of whether this workflow invokes the openspec CLI directly).
+  OPENSPEC_TELEMETRY: '0'
+
 jobs:
   reindex:
     name: Re-index codebase graph

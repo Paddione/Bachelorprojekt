@@ -23,6 +23,11 @@ on:
 permissions:
   pull-requests: write
 
+env:
+  # T001265: CI-wide OpenSpec telemetry opt-out (blanket convention, applied
+  # regardless of whether this workflow invokes the openspec CLI directly).
+  OPENSPEC_TELEMETRY: '0'
+
 jobs:
   auto-title:
     name: Auto-title PR from branch name

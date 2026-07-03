@@ -94,7 +94,7 @@ korrespondierende Schema-Einträge hinzugekommen sein.
 task env:validate:all
 ```
 
-> **A · Baseline:** 201 (war 0 · Exit 0 ✓) · **Target:** 0 · **Aufwand:** mittel (Schema-Einträge ergänzen) · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
+> **A · Baseline:** 201 (war 0 · Exit 0 ✓) · **Target:** 0 · **Aufwand:** mittel (Schema-Einträge ergänzen) · **Messzyklus:** pro Merge · **Reproduzierbar:** ja · **Ticket:** T001548
 
 ---
 
@@ -108,7 +108,7 @@ erfüllt — liegt der Fehler im Pre-commit-Guard oder in der Messvorschrift?
 git log --format=%s -30 origin/main | grep -vcE '^(feat|fix|chore|docs|test|refactor|perf|style|build|ci|revert)(\([^)]+\))?!?:'
 ```
 
-> **A · Baseline:** 1 (war 0/30 ✓) · **Target:** 0 · **Aufwand:** gering (Prüfung ob Commit konform) · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
+> **A · Baseline:** 1 (war 0/30 ✓) · **Target:** 0 · **Aufwand:** gering (Prüfung ob Commit konform) · **Messzyklus:** pro Merge · **Reproduzierbar:** ja · **Ticket:** T001552
 
 ---
 
@@ -121,7 +121,7 @@ Wahrscheinlich durch die Verschiebung/Archivierung von Skills im Rahmen der Skil
 # claimed - real (Betrag) via grep claim + find SKILL.md | wc -l
 ```
 
-> **A · Baseline:** 3 (war 0 ✓) · **Target:** 0 · **Aufwand:** gering (OVERVIEW.md-Zähler korrigieren) · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
+> **A · Baseline:** 3 (war 0 ✓) · **Target:** 0 · **Aufwand:** gering (OVERVIEW.md-Zähler korrigieren) · **Messzyklus:** pro Merge · **Reproduzierbar:** ja · **Ticket:** T001550
 
 ---
 
@@ -135,7 +135,7 @@ Wahrscheinlich durch Skill-Archivierung oder Skop-Änderungen.
 # for SKILL.md in find; if description exists && zero refs in CLAUDE.md/AGENTS.md/OVERVIEW.md/other SKILL.md → count
 ```
 
-> **A · Baseline:** 3 (war 0 ✓) · **Target:** 0 · **Aufwand:** gering (Referenzen nachtragen oder Skills aus Frontmatter nehmen) · **Messzyklus:** pro Merge · **Reproduzierbar:** ja
+> **A · Baseline:** 3 (war 0 ✓) · **Target:** 0 · **Aufwand:** gering (Referenzen nachtragen oder Skills aus Frontmatter nehmen) · **Messzyklus:** pro Merge · **Reproduzierbar:** ja · **Ticket:** T001551
 
 ---
 
@@ -151,7 +151,7 @@ CI-Gate aktiv (PR #2225). ESLint-Gate ebenfalls aktiv (`eslint.config.js` vorhan
 cd website && pnpm astro check 2>&1 | grep -E '^- [0-9]+ errors'
 ```
 
-> **B · Baseline:** 0 ✓ (war ?; erstmals gemessen) · **Target:** ≤ 20 · **Aufwand:** halten (CI-Gate) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
+> **B · Baseline:** 0 ✓ (war ?; erstmals gemessen) · **Target:** ≤ 20 · **Aufwand:** halten (CI-Gate) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001553
 
 ## G-CQ03 — ESLint Warnings → 0 ✅ Gate vorhanden
 
@@ -161,7 +161,7 @@ cd website && pnpm astro check 2>&1 | grep -E '^- [0-9]+ errors'
 ls website/eslint.config.* 2>/dev/null; grep -rn 'eslint-disable' website/src | wc -l
 ```
 
-> **B · Baseline:** 2 legitime Direktiven (war: kein ESLint, 9 tote Direktiven) · **Target:** Gate aktiv + Warnings 0 · **Aufwand:** minimal (Direktiven prüfen ob ersetzbar) · **Messzyklus:** pro Merge · **Reproduzierbar:** eingeschränkt
+> **B · Baseline:** 2 legitime Direktiven (war: kein ESLint, 9 tote Direktiven) · **Target:** Gate aktiv + Warnings 0 · **Aufwand:** minimal (Direktiven prüfen ob ersetzbar) · **Messzyklus:** pro Merge · **Reproduzierbar:** eingeschränkt · **Ticket:** T001554
 
 ## G-CQ08 — Dead-Code / ungenutzte Exports: messen → −50 %
 
@@ -171,7 +171,7 @@ ls website/eslint.config.* 2>/dev/null; grep -rn 'eslint-disable' website/src | 
 npx --yes knip@latest --directory website --reporter symbols 2>/dev/null | grep -iE 'unused|exports' | head
 ```
 
-> **B · Baseline:** unbekannt · **Target:** −50 % · **Aufwand:** mittel · **Messzyklus:** monatlich · **Reproduzierbar:** eingeschränkt (Tool-Setup)
+> **B · Baseline:** unbekannt · **Target:** −50 % · **Aufwand:** mittel · **Messzyklus:** monatlich · **Reproduzierbar:** eingeschränkt (Tool-Setup) · **Ticket:** T001555
 
 ## G-SIZE02 — Großdateien außerhalb Gate-Scope: 17 → ≤ 8
 
@@ -182,7 +182,7 @@ git ls-files VideoVault .opencode | grep -E '\.(ts|tsx|js|mjs|svelte|sh|py)$' \
   | grep -v node_modules | xargs wc -l 2>/dev/null | grep -v ' total$' | awk '$1>600' | wc -l
 ```
 
-> **B · Baseline:** 17 (unverändert) · **Target:** ≤ 8 · **Aufwand:** ~2–3 Wochen · **Messzyklus:** pro Merge auf VideoVault/ · **Reproduzierbar:** ja
+> **B · Baseline:** 17 (unverändert) · **Target:** ≤ 8 · **Aufwand:** ~2–3 Wochen · **Messzyklus:** pro Merge auf VideoVault/ · **Reproduzierbar:** ja · **Ticket:** T001556
 
 ## G-FE01 — Accessibility: 0 critical/serious axe-Violations
 
@@ -192,7 +192,7 @@ Kein a11y-Tooling vorhanden. `@axe-core/cli` gegen Preview-Server ist abgegrenzt
 npx --yes @axe-core/cli http://localhost:4321 http://localhost:4321/ueber-mich --exit
 ```
 
-> **B · Baseline:** unbekannt · **Target:** 0 critical/serious (Kern-Routen) · **Aufwand:** mittel (Setup + Fixes) · **Messzyklus:** pro Release · **Reproduzierbar:** eingeschränkt (Build + Tool nötig)
+> **B · Baseline:** unbekannt · **Target:** 0 critical/serious (Kern-Routen) · **Aufwand:** mittel (Setup + Fixes) · **Messzyklus:** pro Release · **Reproduzierbar:** eingeschränkt (Build + Tool nötig) · **Ticket:** T001557
 
 ## G-FE02 — Client-JS-Bundle-Budget: messen → kein Netto-Zuwachs/Release
 
@@ -203,7 +203,7 @@ pnpm --dir website build >/dev/null 2>&1 && find website/dist -name '*.js' -path
   | awk '{s+=$1} END{printf "client JS total: %.0f KiB\n", s/1024}'
 ```
 
-> **B · Baseline:** unbekannt (Voll-Build nötig) · **Target:** kein Netto-Zuwachs/Release · **Aufwand:** gering + Policy · **Messzyklus:** pro Release · **Reproduzierbar:** eingeschränkt
+> **B · Baseline:** unbekannt (Voll-Build nötig) · **Target:** kein Netto-Zuwachs/Release · **Aufwand:** gering + Policy · **Messzyklus:** pro Release · **Reproduzierbar:** eingeschränkt · **Ticket:** T001558
 
 ## G-FE03 — Strukturiertes Logging: console.error/warn 10 → 0
 
@@ -213,7 +213,7 @@ Aktiver OpenSpec-Change [`g-fe03-structured-logger`](../../openspec/changes/g-fe
 grep -rEn 'console\.(error|warn)' website/src --include='*.ts' --include='*.svelte' --include='*.astro' | grep -v 'browser-logger.ts' | wc -l
 ```
 
-> **B · Baseline:** 1 (war 10; console.error/warn von 10 auf 1 reduziert) · **Target:** 0 · **Aufwand:** ~30 Dateien (siehe Change-Plan) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · Ticket: T001299 (`plan_staged`)
+> **B · Baseline:** 1 (war 10; console.error/warn von 10 auf 1 reduziert) · **Target:** 0 · **Aufwand:** ~30 Dateien (siehe Change-Plan) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001299 (`plan_staged`)
 
 
 
@@ -228,7 +228,7 @@ ausgelagerte Referenz-Dokumente würde die Lesbarkeit verbessern.
 find .claude/skills -name SKILL.md -exec wc -l {} + | awk '$2!="total"&&$1>500{c++} END{print c+0}'
 ```
 
-> **B · Baseline:** 3 (dev-flow-execute 662, infra-ops 595, dev-flow-plan 580) · **Target:** 0 · **Aufwand:** mittel (je Skill ~2–4h Refactoring) · **Messzyklus:** monatlich · **Reproduzierbar:** ja · **Kein Gate** — Reduktionsziel
+> **B · Baseline:** 3 (dev-flow-execute 662, infra-ops 595, dev-flow-plan 580) · **Target:** 0 · **Aufwand:** mittel (je Skill ~2–4h Refactoring) · **Messzyklus:** monatlich · **Reproduzierbar:** ja · **Kein Gate** — Reduktionsziel · **Ticket:** T001559
 
 
 
@@ -326,7 +326,7 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 - **Wöchentlich:** G-RH01/03, G-TEST01/03, G-SIZE01/03/04, G-CI01, G-CD01, G-CQ02/05, G-IMG01, G-K8S03, G-SPEC03, G-GIT03, G-FE03/04
 - **Monatlich/Quartal:** G-DEP02, G-SEC03/04, G-DOC02, G-FE01/02
 
-**Aktuell A-Ziele (2026-07-03):** G-SIZE04 (Spike-Fenster), G-CFG01 (201 Schema-Verstöße, neu), G-GIT02 (1 non-conventional Commit, neu), G-AGENTIC06 (3 Skill-Zähler-Drift, neu), G-AGENTIC07 (3 verwaiste Skills, neu)
+**Aktuell A-Ziele (2026-07-03):** G-SIZE04 (Spike-Fenster, T001347), G-CFG01 (201 Schema-Verstöße, neu, T001548), G-GIT02 (1 non-conventional Commit, neu, T001552), G-AGENTIC06 (3 Skill-Zähler-Drift, neu, T001550), G-AGENTIC07 (3 verwaiste Skills, neu, T001551)
 
 **Sprint-Highlights 2026-07-01:** G-CI01 erreicht Target (85 %→95 %, 19/20 grün) und wechselt von Prio A nach Prio C. G-RH03 (OpenSpec-BATS-Abdeckung 50 %→82 %) und G-DEP02 (Major-Deps 9→2) erreichen ihr Target und wechseln von Prio B nach Prio C. G-CQ01 erstmals gemessen: 0 astro-check-Fehler. G-CQ02 (explizite `any`) fällt weiter von 154 auf 8. G-GIT03 (Dateien >1MB) erreicht Target 7→6 per Policy-Ausschluss von `.codebase-memory/` (T001348) und wechselt von Prio A nach Prio C. G-SEC05-Messfehler dokumentiert: das Skript filtert nur eine von zwei GitHub-Actions-Bot-Mail-Varianten heraus, wodurch 4 Bot-Commits fälschlich als unsigniert zählen — echter Wert 0/50, Skript-Fix noch offen.
 
@@ -336,7 +336,7 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 
 **Baseline-Update 2026-07-03:** G-CQ02 11→10; G-SIZE03 2106→1957; G-FE03 10→1; G-TEST05 82 %→85 %; **G-CFG01** Exit 0→201 (Schema-Drift nach GITHUB_CONTENT_TOKEN-Add); **G-GIT02** 0→1 (non-conventional Commit); **G-AGENTIC06** 0→3 (OVERVIEW.md Skill-Zähler); **G-AGENTIC07** 0→3 (verwaiste Skills) — vier Gates von Prio C nach Prio A zurückgestuft.
 
-**Offene Tickets (2026-07-02):** G-SIZE04 (T001347 offen), alle anderen Prio-A/B-Ziele durch Policy/Code-Änderungen direkt gefixt.
+**Offene Tickets (2026-07-03):** G-SIZE04 (T001347), G-CFG01 (T001548), G-AGENTIC06 (T001550), G-AGENTIC07 (T001551), G-GIT02 (T001552); Prio B: G-CQ01 (T001553), G-CQ03 (T001554), G-CQ08 (T001555), G-SIZE02 (T001556), G-FE01 (T001557), G-FE02 (T001558), G-AGENTIC09 (T001559)
 
 | Ziel | Ticket | Status |
 |------|--------|--------|
@@ -350,3 +350,14 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 | G-CQ01 | T001277 | **gefixt** (PR #2225) |
 | G-DEP01 | T001278 | **gefixt** (0 vulnerabilities) |
 | G-CI01 | T001279 | **gefixt** (95 % letzte 20 Läufe) |
+| G-CFG01 | T001548 | Prio A — offen |
+| G-GIT02 | T001552 | Prio A — offen |
+| G-AGENTIC06 | T001550 | Prio A — offen |
+| G-AGENTIC07 | T001551 | Prio A — offen |
+| G-CQ01 | T001553 | Prio B — offen |
+| G-CQ03 | T001554 | Prio B — offen |
+| G-CQ08 | T001555 | Prio B — offen |
+| G-SIZE02 | T001556 | Prio B — offen |
+| G-FE01 | T001557 | Prio B — offen |
+| G-FE02 | T001558 | Prio B — offen |
+| G-AGENTIC09 | T001559 | Prio B — offen |

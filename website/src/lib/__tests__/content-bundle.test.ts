@@ -24,4 +24,9 @@ describe('content-bundle', () => {
       expect(stammdaten.name.length).toBeGreaterThan(0);
     }
   });
+
+  it('mentolder homepage hero shows the real Gerald photo, not a placeholder illustration [T001561]', () => {
+    const hp = loadDomain('mentolder', 'homepage');
+    expect(hp.avatarSrc).toBe('/gerald.jpg');
+  });
 });

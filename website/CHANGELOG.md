@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.157.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.157.1...website-v1.157.2) (2026-07-03)
+
+
+### Bug Fixes
+
+* brain-ingest excludes + oracle BRAND-var materialization [T001583] ([#2575](https://github.com/Paddione/Bachelorprojekt/issues/2575)) ([f409592](https://github.com/Paddione/Bachelorprojekt/commit/f4095923196e8ca6134e51c2af8b5c934ae7f418))
+
 ## [1.157.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.157.0...website-v1.157.1) (2026-07-03)
 
 

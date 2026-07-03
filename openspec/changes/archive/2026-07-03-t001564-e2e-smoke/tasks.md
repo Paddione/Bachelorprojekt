@@ -2,7 +2,7 @@
 title: "E2E-Smoke: Kontaktformular-Tab 'Nachricht' stabilisieren"
 ticket_id: T001564
 domains: [test, website]
-status: active
+status: completed
 ---
 
 # t001564-e2e-smoke — Implementation Plan

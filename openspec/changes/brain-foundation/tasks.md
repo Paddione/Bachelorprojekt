@@ -342,7 +342,7 @@ bash scripts/brain-bootstrap.sh --create-remote --collaborator "$GEKKO_HANDLE"
 
 **target_files:** `tests/spec/brain-foundation.bats`, `website/src/data/test-inventory.json`
 
-- [ ] **GREEN:** Die Task-1-BATS-Spec ist jetzt grün (Bootstrap + Linter + Seed existieren):
+- [x] **GREEN:** Die Task-1-BATS-Spec ist jetzt grün (Bootstrap + Linter + Seed existieren):
 
 ```bash
 cd /tmp/wt-brain-foundation
@@ -350,14 +350,14 @@ tests/unit/lib/bats-core/bin/bats tests/spec/brain-foundation.bats
 # erwartet: alle @test ok
 ```
 
-- [ ] **Test-Inventar regenerieren + mitcommitten** (neue Test-Datei → CI-Inventar-Check):
+- [x] **Test-Inventar regenerieren + mitcommitten** (neue Test-Datei → CI-Inventar-Check):
 
 ```bash
 task test:inventory
 git add website/src/data/test-inventory.json tests/spec/brain-foundation.bats
 ```
 
-- [ ] **OpenSpec validieren:**
+- [x] **OpenSpec validieren:**
 
 ```bash
 bash scripts/openspec.sh validate 2>&1 | tail -5

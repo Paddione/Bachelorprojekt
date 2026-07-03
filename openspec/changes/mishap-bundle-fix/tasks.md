@@ -18,5 +18,5 @@
 
 ## 4. Verification
 
-- [ ] 4.1 Run `task test:changed` and `task freshness:check` — ensure all quality gates pass
-- [ ] 4.2 Commit all changes and push to `feature/t001482-mishap-bundle`
+- [x] 4.1 Run `task test:changed` and `task freshness:check` — ensure all quality gates pass
+- [x] 4.2 Commit all changes and push to `feature/t001482-mishap-bundle`

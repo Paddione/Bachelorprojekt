@@ -2,7 +2,7 @@
 title: "Mishap-Bundle: agent-lock.sh, ticket.sh, vda.sh (3 Einträge)"
 ticket_id: T001582
 domains: [infra, test]
-status: plan_staged
+status: completed
 ---
 
 # t001582 — Implementation Plan

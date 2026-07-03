@@ -297,6 +297,7 @@ tasks:
       - task: test:unit:test-tasks-node-deps
       - task: test:unit:quality-loop
       - task: test:unit:vda-core
+      - task: test:unit:oracle-task-vars
       - task: test:unit:vda-ticket-smoke
       - task: test:unit:vda-release-notes-smoke
       - task: test:unit:offline-batch
@@ -574,6 +575,11 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/vda-core.bats
+
+  test:unit:oracle-task-vars:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/oracle-task-vars.bats
 
   test:unit:vda-ticket-smoke:
     internal: true

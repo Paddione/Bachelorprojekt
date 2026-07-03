@@ -333,7 +333,9 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 
 **Baseline-Update 2026-07-03 (Fix 2):** G-GIT02 1→0 — `--no-merges` im Gate (Merge-Commit war falsch positiv). G-AGENTIC06 3→0 — OVERVIEW.md Zähler 27→30. G-AGENTIC07 3→0 — specialist Skills in OVERVIEW.md registriert. Drei Gates von Prio A → Prio C.
 
-**Offene Tickets (2026-07-03):** G-SIZE04 (T001347), G-AGENTIC06 (T001550), G-AGENTIC07 (T001551); Prio B: G-CQ01 (T001553), G-CQ03 (T001554), G-CQ08 (T001555), G-SIZE02 (T001556), G-FE01 (T001557), G-FE02 (T001558), G-AGENTIC09 (T001559)
+**Baseline-Update 2026-07-04:** G-CQ01 (T001553) → done (Bereits grün, gate aktiv). G-CQ03 (T001554) → done (Bereits grün, ESLint-Gate aktiv). G-CQ08 (T001555) → done (knip-Baseline: ~120 unused exports, 7 unused files, 5 unused deps entfernt). G-FE01 (T001557) → done (axe 4.12.1, Baseline: 7 violations). G-FE02 (T001558) → done (Bundle-Budget: 747 KB, 99 JS files). G-SIZE02 (T001556) → backlog (17 files >600 Zeilen, ~2-3 Wochen). G-AGENTIC09 (T001559) → backlog (3 SKILL.md >500 Zeilen).
+
+**Offene Tickets (2026-07-04):** G-SIZE04 (T001347), G-SIZE02 (T001556), G-AGENTIC09 (T001559)
 
 | Ziel | Ticket | Status |
 |------|--------|--------|
@@ -351,10 +353,10 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 | G-GIT02 | T001552 | **gefixt** (Commit 1d4ba261b — `--no-merges` im Gate) |
 | G-AGENTIC06 | T001550 | **gefixt** (OVERVIEW.md count 27→30) |
 | G-AGENTIC07 | T001551 | **gefixt** (OVERVIEW.md: specialist skills registriert) |
-| G-CQ01 | T001553 | Prio B — offen |
-| G-CQ03 | T001554 | Prio B — offen |
-| G-CQ08 | T001555 | Prio B — offen |
-| G-SIZE02 | T001556 | Prio B — offen |
-| G-FE01 | T001557 | Prio B — offen |
-| G-FE02 | T001558 | Prio B — offen |
-| G-AGENTIC09 | T001559 | Prio B — offen |
+| G-CQ01 | T001553 | **gefixt** (0 astro-check errors, gate aktiv seit PR #2225) |
+| G-CQ03 | T001554 | **gefixt** (ESLint-Gate aktiv, 2 legitime inline-disables) |
+| G-CQ08 | T001555 | **gefixt** (knip-Baseline: ~120 unused exports, −5 unused deps) |
+| G-SIZE02 | T001556 | Prio B — backlog (17 files >600 Zeilen) |
+| G-FE01 | T001557 | **gefixt** (axe 4.12.1, Baseline: 7 violations) |
+| G-FE02 | T001558 | **gefixt** (Bundle-Budget: 747 KB, 99 JS files) |
+| G-AGENTIC09 | T001559 | Prio B — backlog (3 SKILL.md >500 Zeilen) |

@@ -2334,7 +2334,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 432,
+      "file_count": 433,
       "files": [
         ".opencode/commands/opsx-apply.md",
         ".opencode/commands/opsx-archive.md",
@@ -2496,6 +2496,7 @@
         "environments/mentolder/uploads/favicon.ico",
         "environments/mentolder/uploads/gerald.jpg",
         "environments/schema.yaml",
+        "environments/sealed-secrets/dev.yaml",
         "environments/sealed-secrets/fleet-korczewski.yaml",
         "environments/sealed-secrets/fleet-mentolder.yaml",
         "environments/sealed-secrets/korczewski.yaml",

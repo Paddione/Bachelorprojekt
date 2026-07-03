@@ -554,7 +554,7 @@
       "id": "scripts-db",
       "name": "Database scripts (migrations + datamodel)",
       "owner_agent": "bachelorprojekt-db",
-      "file_count": 38,
+      "file_count": 40,
       "files": [
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-korczewski.sql",
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-mentolder.sql",
@@ -593,7 +593,9 @@
         "scripts/migrations/2026-06-15-cockpit-rollup-view.sql",
         "scripts/migrations/2026-06-15-grilling-answers.sql",
         "scripts/migrations/2026-06-17-scout-drift.sql",
-        "scripts/migrations/2026-06-17-triage-columns.sql"
+        "scripts/migrations/2026-06-17-triage-columns.sql",
+        "scripts/migrations/2026-07-03-context-budget.sql",
+        "scripts/migrations/2026-07-03-local-qwen35-seed.sql"
       ]
     },
     {

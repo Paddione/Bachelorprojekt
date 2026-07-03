@@ -2,7 +2,7 @@
 title: "oauth2-proxy-hardening — Implementation Plan"
 ticket_id: T001579
 domains: [auth, infra, security, tests]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

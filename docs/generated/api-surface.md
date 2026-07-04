@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-07-03T02:31:40.466Z
+> Generated at 2026-07-04T00:59:52.397Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -202,6 +202,7 @@
 | `/api/admin/ops/deployments/{ns}/{name}/scale` | POST | 🔐 admin | `website/src/pages/api/admin/ops/deployments/[ns]/[name]/scale.ts` |
 | `/api/admin/ops/deployments/list` | GET | 🔐 admin | `website/src/pages/api/admin/ops/deployments/list.ts` |
 | `/api/admin/ops/dns/pin` | POST | 🔐 admin | `website/src/pages/api/admin/ops/dns/pin.ts` |
+| `/api/admin/ops/error-log` | POST, GET | 🔐 admin | `website/src/pages/api/admin/ops/error-log.ts` |
 | `/api/admin/ops/health` | GET | 🔐 admin | `website/src/pages/api/admin/ops/health.ts` |
 | `/api/admin/ops/log-stream/stream` | GET | 🔐 admin | `website/src/pages/api/admin/ops/log-stream/stream.ts` |
 | `/api/admin/ops/redeploy/brett` | POST | 🔐 admin | `website/src/pages/api/admin/ops/redeploy/brett.ts` |
@@ -336,6 +337,7 @@
 | `/api/cluster/status` | GET | ❓ unclassified | `website/src/pages/api/cluster/status.ts` |
 | `/api/codesearch` | GET | 🔐 admin | `website/src/pages/api/codesearch.ts` |
 | `/api/contact` | POST | ❓ unclassified | `website/src/pages/api/contact.ts` |
+| `/api/cron/error-log-retention` | POST | ⏰ cron | `website/src/pages/api/cron/error-log-retention.ts` |
 | `/api/cron/notify-unread` | POST | 🔐 admin | `website/src/pages/api/cron/notify-unread.ts` |
 | `/api/cron/scheduled-publish` | GET | ⏰ cron | `website/src/pages/api/cron/scheduled-publish.ts` |
 | `/api/demo/coaching-sim` | POST | ❓ unclassified | `website/src/pages/api/demo/coaching-sim.ts` |

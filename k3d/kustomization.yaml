@@ -46,6 +46,7 @@ resources:
   - backup-config.yaml
   - notify-unread-cronjob.yaml
   - cronjob-scheduled-publish.yaml
+  - error-log-retention-cronjob.yaml
   # Abrechnung
   - admin-actions-cronjobs.yaml
   - cronjob-monthly-billing.yaml

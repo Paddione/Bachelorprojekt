@@ -1,0 +1,209 @@
+{
+  "meta": {
+    "slug": "brain-quality-goals",
+    "ticket_id": "T001608",
+    "generated_from": "origin/main@e7a3958e0",
+    "domains": ["brain", "templates", "tests", "docs"],
+    "intel_sources": ["explorer-agent-brain-clone", "explorer-agent-repo-map", "grep", "wc", "baseline.json"]
+  },
+  "impact_files": [
+    {
+      "path": "templates/brain/scripts/lint-wikilinks.sh",
+      "language": "bash",
+      "loc": 14,
+      "s1_limit": 500,
+      "s1_baseline": null,
+      "s1_budget": 486
+    },
+    {
+      "path": "templates/brain/scripts/lint-frontmatter.sh",
+      "language": "bash",
+      "loc": 16,
+      "s1_limit": 500,
+      "s1_baseline": null,
+      "s1_budget": 484
+    },
+    {
+      "path": "templates/brain/.github/workflows/build-site.yml",
+      "language": "yaml",
+      "loc": 31,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "templates/brain/SCHEMA.md",
+      "language": "markdown",
+      "loc": 71,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "templates/brain/index.md",
+      "language": "markdown",
+      "loc": 17,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "templates/brain/log.md",
+      "language": "markdown",
+      "loc": 10,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "templates/brain/wiki/index-moc.md",
+      "language": "markdown",
+      "loc": 13,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "templates/brain/wiki/quality-goals.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "templates/brain/wiki/usage.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "templates/brain/wiki/cheatsheet.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "templates/brain/wiki/first-aid.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "templates/brain/wiki/llm-workflows.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "templates/brain/README.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "tests/spec/brain-quality-goals.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "website/src/data/test-inventory.json",
+      "language": "json",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "templates/brain/scripts/lint-wikilinks.sh:main",
+      "kind": "script",
+      "file": "templates/brain/scripts/lint-wikilinks.sh",
+      "signature": "lint-wikilinks.sh <dir> -> exit 0|1",
+      "type_text": "grept [[slug]] (Regex [A-Za-z0-9._-]+) gegen basename-.md-Slugs; Alias [[s|t]] und Anker [[s#a]] werden HEUTE ignoriert (G-BRAIN01-Loch); Abbruch beim ersten Fund statt Sammel-Diagnose",
+      "source": "explorer-agent-brain-clone"
+    },
+    {
+      "qualified_name": "templates/brain/scripts/lint-frontmatter.sh:main",
+      "kind": "script",
+      "file": "templates/brain/scripts/lint-frontmatter.sh",
+      "signature": "lint-frontmatter.sh <dir> -> exit 0|1",
+      "type_text": "awk-Frontmatter-Block; prueft type/tags/status-Praesenz + Enum type(note|moc|entity|decision|runbook), status(draft|active|archived); HEUTE: laeuft ueber ALLE *.md inkl. raw/ (G-BRAIN03-Loch), tags:[] passiert (G-BRAIN02-Loch), set -e crasht ohne Diagnose bei Case-Mismatch (G-BRAIN04-Loch)",
+      "source": "explorer-agent-brain-clone"
+    },
+    {
+      "qualified_name": "scripts/brain-bootstrap.sh:seed",
+      "kind": "function",
+      "file": "scripts/brain-bootstrap.sh",
+      "signature": "seed <dest> (Z.53-58)",
+      "type_text": "cp -R \"$TEMPLATE_DIR/.\" \"$dest/\" + chmod +x $dest/scripts/*.sh — TEMPLATE_DIR=templates/brain; neue Template-Dateien werden OHNE Bootstrap-Aenderung mitgeseedet",
+      "source": "explorer-agent-repo-map"
+    },
+    {
+      "qualified_name": "Taskfile.yml:test:factory",
+      "kind": "task",
+      "file": "Taskfile.yml",
+      "signature": "test:factory (Z.713,738)",
+      "type_text": "bats tests/local/FA-SF-*.bats tests/local/FA-AR-*.bats tests/spec/*.bats — Glob erfasst neue tests/spec/brain-quality-goals.bats automatisch; ABER test:changed-Regex (Z.822) matcht templates/brain/** NICHT",
+      "source": "explorer-agent-repo-map"
+    },
+    {
+      "qualified_name": "templates/brain/.github/workflows/build-site.yml:jobs",
+      "kind": "workflow",
+      "file": "templates/brain/.github/workflows/build-site.yml",
+      "signature": "on: push(main)+dispatch -> stage content -> docker build+push ghcr.io/paddione/brain-site:latest",
+      "type_text": "HEUTE: staged index.md log.md SCHEMA.md wiki raw nach /tmp/build/content (raw = G-BRAIN06-Loch); kein needs auf Lint (G-BRAIN05-Loch); ci.yml separat: lint-wikilinks -> lint-frontmatter -> gitleaks",
+      "source": "explorer-agent-brain-clone"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": ["templates/brain/.github/workflows/ci.yml", "templates/brain/.github/workflows/build-site.yml", "tests/spec/brain-quality-goals.bats"],
+    "edges": [
+      { "from": "ci.yml", "to": "scripts/lint-wikilinks.sh", "kind": "calls" },
+      { "from": "ci.yml", "to": "scripts/lint-frontmatter.sh", "kind": "calls" },
+      { "from": "build-site.yml", "to": "site.Dockerfile", "kind": "calls" },
+      { "from": "brain-quality-goals.bats", "to": "templates/brain/scripts/lint-wikilinks.sh", "kind": "calls" },
+      { "from": "brain-quality-goals.bats", "to": "templates/brain/scripts/lint-frontmatter.sh", "kind": "calls" },
+      { "from": "scripts/brain-bootstrap.sh", "to": "templates/brain/", "kind": "data_flow" }
+    ]
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "T001578-Change (brain-site-dockerfile-template) ist gemerged aber NICHT archiviert; beide Deltas zielen auf openspec/specs/brain-foundation.md — beim Archive kollidieren die Delta-Merges. Mitigation: T001578 zuerst archivieren bzw. Reihenfolge beachten.",
+      "severity": "warn"
+    },
+    {
+      "note": "test:changed-Trigger-Luecke: reine templates/brain/**-Aenderungen matchen keine Smart-Selection-Regex — die neue Datei tests/spec/brain-quality-goals.bats MUSS im selben PR liegen, damit test:factory laeuft.",
+      "severity": "warn"
+    },
+    {
+      "note": "Wikilink-Beispiele in cheatsheet.md/llm-workflows.md: der Linter parst KEINE Code-Fences — Beispiel-Links muessen auf existierende Slugs zeigen oder Lint-sicher notiert werden (z. B. zerlegte Syntax), sonst reisst die Doku ihr eigenes Gate G-BRAIN01.",
+      "severity": "warn"
+    },
+    {
+      "note": "Dual-Target: Folge-PR ins externe Repo Paddione/brain ist manueller Schritt nach Merge — bis dahin bewusster kurzer Template-live-Drift.",
+      "severity": "info"
+    },
+    {
+      "note": "db_tables/api_contracts/external_types leer: Change beruehrt weder DB noch API noch externe Libraries (reine Bash/Markdown/YAML-Aenderung).",
+      "severity": "info"
+    }
+  ]
+}

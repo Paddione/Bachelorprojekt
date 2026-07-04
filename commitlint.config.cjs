@@ -51,6 +51,7 @@ const NAMED_SCOPES = [
   'openspec',
   'quality',
   'goals',
+  'wg',
 ];
 
 const TICKET_SCOPE_RE = /^T\d{6}$/;

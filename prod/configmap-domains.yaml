@@ -21,6 +21,7 @@ data:
   TRAEFIK_DOMAIN: "traefik.${PROD_DOMAIN}"
   BRETT_DOMAIN: "brett.${PROD_DOMAIN}"
   BRAIN_DOMAIN: "brain.${PROD_DOMAIN}"
+  TERMINAL_HOST: "terminal.${PROD_DOMAIN}"
   LIVEKIT_DOMAIN: "livekit.${PROD_DOMAIN}"
   STREAM_DOMAIN: "stream.${PROD_DOMAIN}"
   # Mediaviewer host (mediaviewer.<domain>). MUST be set here for the same reason

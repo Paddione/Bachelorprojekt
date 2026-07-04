@@ -871,6 +871,12 @@
       "status": "plan_staged"
     }
   ],
+  "T001608": [
+    {
+      "slug": "brain-quality-goals",
+      "status": "plan_staged"
+    }
+  ],
   "T001611": [
     {
       "slug": "harness-workflow-split",

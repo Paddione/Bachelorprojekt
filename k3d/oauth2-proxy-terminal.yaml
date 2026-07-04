@@ -1,6 +1,8 @@
 # ═══════════════════════════════════════════════════════════════════
-# OAuth2 Proxy — Pocket ID SSO gateway for the Agentic Terminal (ttyd).
-# Group-gated: only members of `terminal-admins` pass. WebSocket upstream.
+# OAuth2 Proxy — Pocket ID SSO gateway for the terminal-sidekick
+# (ttyd on WSL host, reached via terminal-bridge Service over the
+# wg-fleet overlay IP). Authenticates via OIDC, then forwards to
+# terminal-bridge:7681.
 # ═══════════════════════════════════════════════════════════════════
 apiVersion: apps/v1
 kind: Deployment
@@ -37,8 +39,11 @@ spec:
             capabilities:
               drop: ["ALL"]
           resources:
-            requests: { cpu: 10m, memory: 32Mi }
-            limits:   { memory: 64Mi }
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 64Mi
           env:
             - name: OAUTH2_PROXY_COOKIE_SECRET
               valueFrom:
@@ -98,16 +103,24 @@ spec:
           ports:
             - containerPort: 4180
           readinessProbe:
-            httpGet: { path: /ping, port: 4180 }
+            httpGet:
+              path: /ping
+              port: 4180
             initialDelaySeconds: 5
             periodSeconds: 10
           livenessProbe:
-            httpGet: { path: /ping, port: 4180 }
+            httpGet:
+              path: /ping
+              port: 4180
             initialDelaySeconds: 10
             periodSeconds: 30
           resources:
-            requests: { memory: 64Mi, cpu: "50m" }
-            limits:   { memory: 128Mi, cpu: "200m" }
+            requests:
+              memory: 64Mi
+              cpu: "50m"
+            limits:
+              memory: 128Mi
+              cpu: "200m"
           volumeMounts:
             - name: oauth2-config
               mountPath: /run/config

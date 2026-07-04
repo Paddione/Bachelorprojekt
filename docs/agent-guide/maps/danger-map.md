@@ -19,6 +19,7 @@ Ziele/Werkzeuge sie referenzieren (transitiv) — also ggf. unter mehreren Stufe
 **Werkzeuge:**
 - `agent-ops` — Betriebs-Agent (ops)
 - `brainstorming` — Brainstorming (/brainstorming)
+- `opencode-git-workflow` — OpenCode-Git-Workflow
 - `superpowers` — Superpowers (/superpowers)
 - `task-oracle` — Task-Orakel (task-oracle)
 
@@ -44,6 +45,9 @@ Ziele/Werkzeuge sie referenzieren (transitiv) — also ggf. unter mehreren Stufe
 - `dev-flow-execute` — Umsetzungs-Skill (dev-flow-execute)
 - `dev-flow-iterate` — Dev-Iterations-Skill (dev-flow-iterate)
 - `dev-flow-plan` — Planungs-Skill (dev-flow-plan)
+- `opencode-flow-chore` — OpenCode-Wartungs-Skill (opencode-flow-chore)
+- `opencode-flow-execute` — OpenCode-Umsetzungs-Skill (opencode-flow-execute)
+- `opencode-flow-plan` — OpenCode-Planungs-Skill (opencode-flow-plan)
 
 **Guardrails (transitiv):**
 - `G-CONTEXT-CHECK` — Kubectl-Kontext prüfen

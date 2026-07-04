@@ -1,0 +1,114 @@
+{
+  "meta": {
+    "slug": "harness-workflow-split",
+    "ticket_id": "T001611",
+    "generated_from": "main@ea8210840",
+    "domains": ["skills", "agents", "opencode", "dev-tooling", "docs"],
+    "intel_sources": ["Explore-subagent-inventory", "grep", "Read", "wc-l", "baseline.json"]
+  },
+  "impact_files": [
+    { "path": "AGENTS.md", "language": "markdown", "loc": 237, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": ".claude/skills/openspec-propose/SKILL.md", "language": "markdown", "loc": 119, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": ".claude/skills/openspec-apply-change/SKILL.md", "language": "markdown", "loc": 156, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": ".claude/skills/openspec-archive-change/SKILL.md", "language": "markdown", "loc": 114, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": ".claude/skills/openspec-explore/SKILL.md", "language": "markdown", "loc": 288, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "docs/agent-guide/registry/tools.yaml", "language": "yaml", "loc": 240, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "scripts/agent-guide/validate.mjs", "language": "javascript", "loc": 142, "s1_limit": 500, "s1_baseline": null, "s1_budget": 358 },
+    { "path": "scripts/agent-guide/emit-maps.mjs", "language": "javascript", "loc": 291, "s1_limit": 500, "s1_baseline": null, "s1_budget": 209 },
+    { "path": "docs/agent-guide/maps/tools-map.md", "language": "markdown", "loc": 37, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": ".opencode/skills/opencode-flow-plan/SKILL.md", "language": "markdown", "loc": 0, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": ".opencode/skills/opencode-flow-execute/SKILL.md", "language": "markdown", "loc": 0, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": ".opencode/skills/opencode-flow-chore/SKILL.md", "language": "markdown", "loc": 0, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": ".opencode/skills/opencode-git-workflow/SKILL.md", "language": "markdown", "loc": 0, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "tests/spec/harness-workflow-split.bats", "language": "bats", "loc": 0, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/agent-guide/load.mjs:loadRegistry",
+      "kind": "function",
+      "file": "scripts/agent-guide/load.mjs",
+      "signature": "loadRegistry(dir) -> { taxonomy, guardrails, tools, goals, components, ... }",
+      "type_text": "(dir: string) => Registry",
+      "source": "Read"
+    },
+    {
+      "qualified_name": "scripts/agent-guide/load.mjs:toolById",
+      "kind": "function",
+      "file": "scripts/agent-guide/load.mjs",
+      "signature": "toolById(id) -> ToolEntry | undefined",
+      "type_text": "(id: string) => ToolEntry | undefined",
+      "source": "Read"
+    },
+    {
+      "qualified_name": "scripts/agent-guide/validate.mjs:validateRegistry",
+      "kind": "function",
+      "file": "scripts/agent-guide/validate.mjs",
+      "signature": "validateRegistry(dir, repoRoot = null) -> { ok: boolean, errors: string[] }",
+      "type_text": "(dir: string, repoRoot?: string | null) => { ok: boolean, errors: string[] }",
+      "source": "Read"
+    },
+    {
+      "qualified_name": "scripts/agent-guide/emit-maps.mjs:renderToolsMap",
+      "kind": "function",
+      "file": "scripts/agent-guide/emit-maps.mjs",
+      "signature": "renderToolsMap(reg) -> string",
+      "type_text": "(reg: Registry) => string",
+      "source": "Read"
+    },
+    {
+      "qualified_name": "scripts/agent-guide/emit-maps.mjs:escapeCell",
+      "kind": "function",
+      "file": "scripts/agent-guide/emit-maps.mjs",
+      "signature": "escapeCell(value) -> string",
+      "type_text": "(value: unknown) => string",
+      "source": "Read"
+    },
+    {
+      "qualified_name": "scripts/agent-guide/emit-maps.mjs:emitAll",
+      "kind": "function",
+      "file": "scripts/agent-guide/emit-maps.mjs",
+      "signature": "emitAll({ registryDir, mapsDir, repoRoot, validate }) -> Promise<void>",
+      "type_text": "(opts: { registryDir: string, mapsDir: string, repoRoot: string, validate: Function }) => Promise<void>",
+      "source": "Read"
+    },
+    {
+      "qualified_name": ".opencode/plugins/background-agents.ts:default-export",
+      "kind": "plugin",
+      "file": ".opencode/plugins/background-agents.ts",
+      "signature": "opencode plugin — replaces native task tool with persistent, async-first agent delegation",
+      "type_text": "opencode Plugin (unverified exact API — to be read at plan-time)",
+      "source": "Explore-subagent-inventory"
+    },
+    {
+      "qualified_name": ".opencode/plugins/worktree.ts:default-export",
+      "kind": "plugin",
+      "file": ".opencode/plugins/worktree.ts",
+      "signature": "opencode plugin — worktree-session isolation (spawns isolated git worktrees/terminals)",
+      "type_text": "opencode Plugin (unverified exact API, git-crypt-Handling ungeprueft — zu lesen am Plan-Zeitpunkt)",
+      "source": "Explore-subagent-inventory"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": ["scripts/agent-guide/emit-maps.mjs:emitAll"],
+    "edges": [
+      { "from": "emitAll", "to": "validateRegistry", "kind": "calls" },
+      { "from": "emitAll", "to": "renderToolsMap", "kind": "calls" },
+      { "from": "renderToolsMap", "to": "toolById", "kind": "calls" },
+      { "from": "renderToolsMap", "to": "escapeCell", "kind": "calls" }
+    ]
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [
+    {
+      "library": "@opencode-ai/sdk",
+      "symbol": "SkillV2Info / SkillV2DirectorySource / Config.skills",
+      "signature": "Config.skills: { paths?: string[], urls?: string[] } — native opencode skill discovery, confirmed present in .opencode/node_modules @opencode-ai/sdk v1.17.13",
+      "source": "Explore-subagent-inventory (package inspection, not context7 — internal-only package)"
+    }
+  ],
+  "risks": [
+    { "note": "background-agents.ts und worktree.ts exakte Plugin-API (Funktionssignaturen, git-crypt-Handling in worktree.ts) noch nicht am Quelltext verifiziert — Plan-Subagent MUSS beide Dateien lesen, bevor er opencode-flow-execute/opencode-git-workflow konkret ausformuliert.", "severity": "warn" },
+    { "note": "opencodes tatsaechliche MCP-Tool-Aufruf-Syntax (statt Claude's mcp__server__tool) nicht direkt verifiziert — .opencode/commands/opsx-*.md als funktionierende Referenzbeispiele nutzen.", "severity": "warn" }
+  ]
+}

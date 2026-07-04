@@ -170,6 +170,12 @@ env_vars:
     required: true
     default_dev: "k3d-dev-server-0"
 
+  - name: TERMINAL_OVERLAY_IP
+    required: true
+    default_dev: "127.0.0.1"
+    validate: "^[0-9.]+$"
+    description: "wg-fleet overlay IP of the terminal-sidekick host (10.20.0.10). Endpoints in terminal-bridge target this."
+
   - name: TURN_OVERLAY_IP
     required: true
     default_dev: "127.0.0.1"
@@ -375,12 +381,6 @@ env_vars:
     required: false
     default_dev: "8190"
     description: "Port the Rigger FastAPI service listens on. Default 8190."
-
-  - name: TERMINAL_OVERLAY_IP
-    required: true
-    default_dev: "127.0.0.1"
-    validate: "^[0-9.]+$"
-    description: "wg-fleet overlay IP of the WSL host running ttyd (terminal-sidekick). Alloc 10.20.0.10. Endpoints target for the terminal-bridge Service (T001565)."
 
   - name: LLM_ROUTER_URL
     required: true

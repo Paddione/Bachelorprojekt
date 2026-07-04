@@ -1481,6 +1481,181 @@
         "deploy"
       ],
       "init_prompt_de": "Starte den Factory-Dispatcher: arbeite wartende Tickets aus der Warteschlange ab (zuerst Dry-Run)."
+    },
+    {
+      "id": "opencode-git-workflow",
+      "name_de": "OpenCode-Git-Workflow",
+      "kind": "skill",
+      "kind_de": "Fertigkeit",
+      "summary_de": "Git-Lebenszyklus für OpenCode: Pull-First, Branch-Regeln, Worktree-Setup, Commit-Format, PR-Erstellung.",
+      "what_for_de": "Standardisiert alle Git-Operationen in OpenCode-Sessions – vom Branch-Wechsel bis zum Merge.",
+      "how_to_start_de": "Wird von opencode-flow-plan/execute/chore automatisch geladen. Manuell: lade die Skill opencode-git-workflow.",
+      "what_could_go_wrong_de": "Git-crypt-verschlüsselte Dateien können in Worktrees fehlen – darum nutzen die Skills scripts/worktree-create.sh.",
+      "danger": "safe",
+      "guardrails": [
+        {
+          "id": "G-PULL-FIRST",
+          "name_de": "Erst ziehen, dann arbeiten",
+          "rule_de": "Immer 'git pull --rebase origin main' bevor du etwas änderst.",
+          "why_de": "Sonst arbeitest du auf einem veralteten Stand und bekommst Konflikte."
+        },
+        {
+          "id": "G-PR-NOT-MAIN",
+          "name_de": "Nie direkt auf main",
+          "rule_de": "Änderungen immer über einen Branch + Pull Request, niemals direkt nach main pushen.",
+          "why_de": "main ist geschützt; direktes Pushen umgeht Review und CI."
+        }
+      ],
+      "related": [
+        "opencode-flow-plan",
+        "opencode-flow-execute",
+        "opencode-flow-chore"
+      ],
+      "links": [],
+      "theme": "entwickeln",
+      "aliases_de": [
+        "git",
+        "commit",
+        "pr",
+        "branch",
+        "worktree"
+      ],
+      "common": false,
+      "order": 999,
+      "stages": [
+        "code",
+        "pr-ci"
+      ],
+      "init_prompt_de": "Lade opencode-git-workflow – ich brauche Git-Operationen in einer OpenCode-Session."
+    },
+    {
+      "id": "opencode-flow-plan",
+      "name_de": "OpenCode-Planungs-Skill (opencode-flow-plan)",
+      "kind": "skill",
+      "kind_de": "Fertigkeit",
+      "summary_de": "OpenCode-native Planung: Brainstorming, Feature/Fix/Chore-Entscheidung, OpenSpec-Plan-Erstellung.",
+      "what_for_de": "Ersetzt dev-flow-plan in OpenCode. Nutzt delegate() für Read-Only-Recherche und scripts/worktree-create.sh für Git-crypt-sichere Worktrees.",
+      "how_to_start_de": "Beschreibe die Änderung – der Skill entscheidet über den Pfad (Feature/Fix/Chore).",
+      "what_could_go_wrong_de": "Kein Task-Tool für Write-fähige Sub-Agenten – Planung und Umsetzung laufen im gleichen Session-Kontext.",
+      "danger": "caution",
+      "guardrails": [
+        {
+          "id": "G-PULL-FIRST",
+          "name_de": "Erst ziehen, dann arbeiten",
+          "rule_de": "Immer 'git pull --rebase origin main' bevor du etwas änderst.",
+          "why_de": "Sonst arbeitest du auf einem veralteten Stand und bekommst Konflikte."
+        }
+      ],
+      "related": [
+        "opencode-git-workflow",
+        "opencode-flow-execute",
+        "opencode-flow-chore"
+      ],
+      "links": [],
+      "theme": "entwickeln",
+      "aliases_de": [
+        "plan",
+        "planen",
+        "brainstorm",
+        "spec",
+        "opencode-plan"
+      ],
+      "common": false,
+      "order": 999,
+      "stages": [
+        "plan"
+      ],
+      "init_prompt_de": "Lade opencode-flow-plan – ich möchte eine Änderung in OpenCode planen."
+    },
+    {
+      "id": "opencode-flow-execute",
+      "name_de": "OpenCode-Umsetzungs-Skill (opencode-flow-execute)",
+      "kind": "skill",
+      "kind_de": "Fertigkeit",
+      "summary_de": "OpenCode-native Umsetzung: Task-für-Task-Implementierung, Tests, PR-Erstellung.",
+      "what_for_de": "Ersetzt dev-flow-execute in OpenCode. Arbeitet inline statt per Sub-Agent-Delegation.",
+      "how_to_start_de": "Sage 'Setze den Plan um' – ein staged Plan muss existieren.",
+      "what_could_go_wrong_de": "Ohne Task-Tool für Write-fähige Delegation läuft alles im Hauptsession-Kontext – keine Isolation zwischen Tasks.",
+      "danger": "caution",
+      "guardrails": [
+        {
+          "id": "G-PULL-FIRST",
+          "name_de": "Erst ziehen, dann arbeiten",
+          "rule_de": "Immer 'git pull --rebase origin main' bevor du etwas änderst.",
+          "why_de": "Sonst arbeitest du auf einem veralteten Stand und bekommst Konflikte."
+        },
+        {
+          "id": "G-PR-NOT-MAIN",
+          "name_de": "Nie direkt auf main",
+          "rule_de": "Änderungen immer über einen Branch + Pull Request, niemals direkt nach main pushen.",
+          "why_de": "main ist geschützt; direktes Pushen umgeht Review und CI."
+        }
+      ],
+      "related": [
+        "opencode-git-workflow",
+        "opencode-flow-plan",
+        "opencode-flow-chore"
+      ],
+      "links": [],
+      "theme": "entwickeln",
+      "aliases_de": [
+        "umsetzen",
+        "implementieren",
+        "pr",
+        "opcode-execute"
+      ],
+      "common": false,
+      "order": 999,
+      "stages": [
+        "code",
+        "pr-ci"
+      ],
+      "init_prompt_de": "Lade opencode-flow-execute – setze den Plan in OpenCode um und öffne einen PR."
+    },
+    {
+      "id": "opencode-flow-chore",
+      "name_de": "OpenCode-Wartungs-Skill (opencode-flow-chore)",
+      "kind": "skill",
+      "kind_de": "Fertigkeit",
+      "summary_de": "OpenCode-native Wartung: Docs, Bumps, Config, Cleanup – direkt ausführen und mergen.",
+      "what_for_de": "Ersetzt dev-flow-chore in OpenCode. Kein Plan nötig, kein dev-flow-execute – direkt loslegen.",
+      "how_to_start_de": "Sage z.B. 'Bump die Abhängigkeiten in OpenCode'.",
+      "what_could_go_wrong_de": "Wie dev-flow-chore: wenig Risiko, da keine Verhaltensänderung. CI könnte blocken.",
+      "danger": "caution",
+      "guardrails": [
+        {
+          "id": "G-PULL-FIRST",
+          "name_de": "Erst ziehen, dann arbeiten",
+          "rule_de": "Immer 'git pull --rebase origin main' bevor du etwas änderst.",
+          "why_de": "Sonst arbeitest du auf einem veralteten Stand und bekommst Konflikte."
+        },
+        {
+          "id": "G-PR-NOT-MAIN",
+          "name_de": "Nie direkt auf main",
+          "rule_de": "Änderungen immer über einen Branch + Pull Request, niemals direkt nach main pushen.",
+          "why_de": "main ist geschützt; direktes Pushen umgeht Review und CI."
+        }
+      ],
+      "related": [
+        "opencode-git-workflow",
+        "opencode-flow-plan",
+        "opencode-flow-execute"
+      ],
+      "links": [],
+      "theme": "entwickeln",
+      "aliases_de": [
+        "chore",
+        "wartung",
+        "opencode-chore",
+        "aufraeumen"
+      ],
+      "common": false,
+      "order": 999,
+      "stages": [
+        "code",
+        "pr-ci"
+      ],
+      "init_prompt_de": "Lade opencode-flow-chore – erledige diese Wartung in OpenCode und merge sie."
     }
   ],
   "components": {
@@ -1902,7 +2077,8 @@
           "factory-feature-bauen"
         ],
         "toolIds": [
-          "dev-flow-plan"
+          "dev-flow-plan",
+          "opencode-flow-plan"
         ]
       },
       {
@@ -1925,7 +2101,10 @@
           "dev-flow-execute",
           "dev-flow-iterate",
           "factory",
-          "factory-dispatch"
+          "factory-dispatch",
+          "opencode-git-workflow",
+          "opencode-flow-execute",
+          "opencode-flow-chore"
         ]
       },
       {
@@ -1946,7 +2125,10 @@
           "dev-flow-chore",
           "dev-flow-execute",
           "factory",
-          "factory-dispatch"
+          "factory-dispatch",
+          "opencode-git-workflow",
+          "opencode-flow-execute",
+          "opencode-flow-chore"
         ]
       },
       {

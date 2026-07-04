@@ -1,5 +1,6 @@
-# prod/patch-oauth2-proxy-terminal.yaml — prod overlay for terminal-sidekick
-# Replaces dev localhost URLs with real prod domain + HTTPS + secure cookies.
+# prod/patch-oauth2-proxy-terminal.yaml — prod overlay for oauth2-proxy-terminal
+# Replaces the dev localhost URLs with the real prod domain + HTTPS,
+# cross-origin cookie settings, and the terminal-admins group gate.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -16,7 +17,6 @@ spec:
             - "--client-secret=$(POCKET_ID_TERMINAL_SECRET)"
             - "--redirect-url=https://terminal.${PROD_DOMAIN}/oauth2/callback"
             - "--oidc-issuer-url=https://auth.${PROD_DOMAIN}"
-            - "--ssl-insecure-skip-verify=true"
             - "--skip-oidc-discovery=true"
             - "--login-url=https://auth.${PROD_DOMAIN}/authorize"
             - "--redeem-url=https://auth.${PROD_DOMAIN}/api/oidc/token"
@@ -27,13 +27,11 @@ spec:
             - "--cookie-secure=true"
             - "--cookie-samesite=none"
             - "--cookie-name=_oauth2_proxy_terminal"
-            - "--email-domain=*"
             - "--pass-access-token=true"
             - "--pass-authorization-header=true"
             - "--set-xauthrequest=true"
             - "--skip-provider-button=true"
             - "--code-challenge-method=S256"
-            - "--insecure-oidc-allow-unverified-email=true"
             - "--oidc-extra-audience=terminal-sidekick"
             - "--scope=openid email profile groups"
             - "--oidc-groups-claim=groups"

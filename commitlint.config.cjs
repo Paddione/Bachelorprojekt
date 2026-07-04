@@ -52,6 +52,7 @@ const NAMED_SCOPES = [
   'quality',
   'goals',
   'terminal',
+  'wg',
 ];
 
 const TICKET_SCOPE_RE = /^T\d{6}$/;

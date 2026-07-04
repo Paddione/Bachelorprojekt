@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.158.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.157.4...website-v1.158.0) (2026-07-04)
+
+
+### Features
+
+* **agent-guide:** add harness field to registry + opencode workflow skills [T001611] ([#2600](https://github.com/Paddione/Bachelorprojekt/issues/2600)) ([1e114fc](https://github.com/Paddione/Bachelorprojekt/commit/1e114fc14375763215a4850054a4f5352ceb8960))
+
 ## [1.157.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.157.3...website-v1.157.4) (2026-07-04)
 
 

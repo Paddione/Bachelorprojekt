@@ -77,10 +77,10 @@ declare -A SERVICE_REGISTRY=(
   [k3d/oauth2-proxy-studio.yaml]="studio-server"
   [k3d/mentolder-web.yaml]="mentolder-web"
   [k3d/ntfy.yaml]="ntfy"
+  [k3d/terminal-sidekick.yaml]="terminal"
   # RustDesk feature (#2403/#2407)
   [k3d/downloads.yaml]="downloads"
   [k3d/oauth2-proxy-downloads.yaml]="downloads"
-  [k3d/rustdesk-web-bridge.yaml]="rustdesk-web"
   [k3d/oauth2-proxy-rustdesk-web.yaml]="rustdesk-web"
 )
 

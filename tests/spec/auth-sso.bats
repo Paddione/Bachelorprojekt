@@ -36,16 +36,16 @@ _render_korczewski() {
   [ "$count" -eq 8 ] || { echo "FAIL: expected 8 allowed-groups gates, got ${count}"; return 1; }
 }
 
-@test "prod render (mentolder): exactly 8 gates carry --oidc-groups-claim=groups" {
+@test "prod render (mentolder): exactly 9 gates carry --oidc-groups-claim=groups" {
   RENDER="$(_render_mentolder)"
   count="$(grep -c -- '- --oidc-groups-claim=groups' <<< "$RENDER" || true)"
-  [ "$count" -eq 8 ] || { echo "FAIL: expected 8 oidc-groups-claim gates, got ${count}"; return 1; }
+  [ "$count" -eq 9 ] || { echo "FAIL: expected 9 oidc-groups-claim gates, got ${count}"; return 1; }
 }
 
-@test "prod render (mentolder): exactly 8 gates request the groups scope" {
+@test "prod render (mentolder): exactly 9 gates request the groups scope" {
   RENDER="$(_render_mentolder)"
   count="$(grep -c -- '- --scope=openid email profile groups' <<< "$RENDER" || true)"
-  [ "$count" -eq 8 ] || { echo "FAIL: expected 8 gates with groups scope, got ${count}"; return 1; }
+  [ "$count" -eq 9 ] || { echo "FAIL: expected 9 gates with groups scope, got ${count}"; return 1; }
 }
 
 @test "prod render (mentolder): the 3 allowlist gates keep --authenticated-emails-file" {

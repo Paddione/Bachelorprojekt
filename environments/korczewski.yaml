@@ -66,6 +66,7 @@ env_vars:
   COMFY_HOST_IP: "10.13.14.10"
   COMFY_PORT: "8189"
   RIGGER_PORT: "8190"
+  TERMINAL_OVERLAY_IP: "10.20.0.10"
   LLM_ENABLED: "true"
   LLM_RERANK_ENABLED: "false"
   LLM_ROUTER_URL: "http://llm-gateway-lmstudio.workspace-korczewski.svc.cluster.local:1234"

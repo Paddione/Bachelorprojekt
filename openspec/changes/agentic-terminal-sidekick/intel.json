@@ -1,0 +1,158 @@
+{
+  "meta": {
+    "slug": "agentic-terminal-sidekick",
+    "ticket_id": "T001565",
+    "generated_from": "main@3a18797fb",
+    "domains": ["website", "infra", "security"],
+    "intel_sources": ["grep", "read", "baseline.json", "code-explorer-subagent"]
+  },
+  "impact_files": [
+    { "path": "website/src/components/PortalSidekick.svelte", "language": "svelte", "loc": 383, "s1_limit": 500, "s1_baseline": null, "s1_budget": 117 },
+    { "path": "website/src/components/assistant/SidekickHome.svelte", "language": "svelte", "loc": 307, "s1_limit": 500, "s1_baseline": null, "s1_budget": 193 },
+    { "path": "website/src/components/mediaviewer/GrillingSessionHost.svelte", "language": "svelte", "loc": 112, "s1_limit": 500, "s1_baseline": null, "s1_budget": 388 },
+    { "path": "website/src/components/mediaviewer/TerminalSessionHost.svelte", "language": "svelte", "loc": 0, "s1_limit": 500, "s1_baseline": null, "s1_budget": 500 },
+    { "path": "website/src/components/PortalSidekick.test.ts", "language": "typescript", "loc": 20, "s1_limit": 600, "s1_baseline": null, "s1_budget": 580 },
+    { "path": "scripts/terminal-sidekick-host.sh", "language": "shell", "loc": 0, "s1_limit": 500, "s1_baseline": null, "s1_budget": 500 },
+    { "path": "k3d/terminal-sidekick.yaml", "language": "yaml", "loc": 0, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "k3d/oauth2-proxy-terminal.yaml", "language": "yaml", "loc": 0, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "prod/patch-oauth2-proxy-terminal.yaml", "language": "yaml", "loc": 0, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "k3d/pocket-id-client-seed.yaml", "language": "yaml", "loc": 291, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "k3d/ingress.yaml", "language": "yaml", "loc": 177, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "k3d/configmap-domains.yaml", "language": "yaml", "loc": 40, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "k3d/kustomization.yaml", "language": "yaml", "loc": 130, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "prod/kustomization.yaml", "language": "yaml", "loc": 166, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "wireguard/wg-mesh-nodes.yaml", "language": "yaml", "loc": 190, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "environments/schema.yaml", "language": "yaml", "loc": 1327, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "environments/mentolder.yaml", "language": "yaml", "loc": 136, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "environments/fleet-mentolder.yaml", "language": "yaml", "loc": 117, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "Taskfile.yml", "language": "yaml", "loc": 4628, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "website/src/components/PortalSidekick.svelte:View",
+      "kind": "type",
+      "file": "website/src/components/PortalSidekick.svelte",
+      "signature": "type View = 'home' | 'support' | 'questionnaire' | 'help' | 'agent-guide' | 'mediaviewer' | 'grilling' | 'cockpit' | 'ai-quality' | 'logs' (Zeile 19)",
+      "type_text": "string-literal union; 'grilling' wird durch 'terminal' ersetzt",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "website/src/components/PortalSidekick.svelte:props",
+      "kind": "props",
+      "file": "website/src/components/PortalSidekick.svelte",
+      "signature": "props: helpSection, helpContext ('admin'|'portal'), mediaviewerHost (default 'mediaviewer.localhost'), videovaultHost (Zeilen 21-31)",
+      "type_text": "neuer Prop terminalHost: string analog mediaviewerHost; titleMap Zeilen 55-66 (grilling: 'Final Grilling' Zeile 62); drawer-body-Branch Zeilen 224-254, grilling-Branch Zeilen 245-246",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "website/src/components/assistant/SidekickHome.svelte:items",
+      "kind": "const",
+      "file": "website/src/components/assistant/SidekickHome.svelte",
+      "signature": "items: Array<{ id, no, title, sub, badge?, show? }> (Zeilen 26-36); grilling-Eintrag Zeile 28 mit show: isAdmin (isAdmin = helpContext === 'admin', Zeile 22)",
+      "type_text": "{ id: string; no: string; title: string; sub: string; badge?: string; show?: boolean }",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "website/src/components/MediaviewerPanel.svelte:embed-pattern",
+      "kind": "component",
+      "file": "website/src/components/MediaviewerPanel.svelte",
+      "signature": "widgetOrigin = `https://${mediaviewerHost}` (Z.38); iframe Z.170-176 mit sandbox/allow; CSS flex:1/width:100%/height:100% Z.222-227",
+      "type_text": "Referenzmuster fuer TerminalSessionHost: iframe auf https://${terminalHost}/, KEIN postMessage-Bridge noetig",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "website/src/components/mediaviewer/GrillingSessionHost.svelte",
+      "kind": "component",
+      "file": "website/src/components/mediaviewer/GrillingSessionHost.svelte",
+      "signature": "Props: mediaviewerHost, ticketId — wird GELOESCHT; GrillingStepper (website/src/components/admin/GrillingStepper.svelte) + lib/tickets/{grilling,final-grilling}.ts bleiben unangetastet",
+      "type_text": "Verwendung nur in PortalSidekick.svelte Z.245-246",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "k3d/oauth2-proxy-mediaviewer.yaml:pattern",
+      "kind": "manifest",
+      "file": "k3d/oauth2-proxy-mediaviewer.yaml",
+      "signature": "dev: --oidc-issuer-url=http://pocket-id:1411 (Z.64), --client-id=mediaviewer-widget (Z.61), --upstream=http://mediaviewer-widget:80 (Z.71), Cookie _oauth2_proxy_mediaviewer (Z.74), Init-Container fuer cookie_secret aus workspace-secrets/OAUTH2_PROXY_COOKIE_SECRET (Z.26-53), Service :4180 (Z.128-139)",
+      "type_text": "Kopiervorlage fuer k3d/oauth2-proxy-terminal.yaml; zusaetzlich --allowed-group=terminal-admins + --oidc-groups-claim=groups",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "prod/patch-oauth2-proxy-mediaviewer.yaml:pattern",
+      "kind": "manifest",
+      "file": "prod/patch-oauth2-proxy-mediaviewer.yaml",
+      "signature": "prod-Args: --oidc-issuer-url=https://auth.${PROD_DOMAIN} (Z.17), --redirect-url=https://mediaviewer.${PROD_DOMAIN}/oauth2/callback (Z.16), --cookie-secure=true --cookie-samesite=none (Z.26-27), Secret POCKET_ID_MEDIAVIEWER_SECRET aus workspace-secrets (Z.41-45)",
+      "type_text": "Kopiervorlage fuer prod/patch-oauth2-proxy-terminal.yaml mit POCKET_ID_TERMINAL_SECRET",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "k3d/rustdesk-web-bridge.yaml:selectorless-service",
+      "kind": "manifest",
+      "file": "k3d/rustdesk-web-bridge.yaml",
+      "signature": "Service ohne Selector + Endpoints mit ip: \"${TURN_OVERLAY_IP}\" (Z.20-32, 46-59)",
+      "type_text": "Kopiervorlage fuer k3d/terminal-sidekick.yaml: terminal-bridge Service :7681 -> Endpoints ${TERMINAL_OVERLAY_IP}:7681",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "k3d/pocket-id-client-seed.yaml:ROWS",
+      "kind": "manifest",
+      "file": "k3d/pocket-id-client-seed.yaml",
+      "signature": "ROWS-Liste Z.171-189, Format: <client-id>|<SECRET_var>|<K8S_SECRET_KEY>|${SCHEME}://<sub>.${SUFFIX}/oauth2/callback; juengstes Beispiel rustdesk-web Z.188; SECRET_*-Env-Injection analog Z.121-122 (optional: true)",
+      "type_text": "neue ROW: terminal-sidekick|SECRET_terminal|POCKET_ID_TERMINAL_SECRET|${SCHEME}://terminal.${SUFFIX}/oauth2/callback; Secret-Writeback bei Neuanlage automatisch (T001435), RBAC in k3d/pocket-id-client-seed-rbac.yaml",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "k3d/ingress.yaml:mediaviewer-entry",
+      "kind": "manifest",
+      "file": "k3d/ingress.yaml",
+      "signature": "host mediaviewer.localhost -> oauth2-proxy-mediaviewer:4180 (Z.138-147)",
+      "type_text": "Kopiervorlage fuer terminal.localhost -> oauth2-proxy-terminal:4180",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "k3d/configmap-domains.yaml:MEDIAVIEWER_HOST",
+      "kind": "manifest",
+      "file": "k3d/configmap-domains.yaml",
+      "signature": "MEDIAVIEWER_HOST: \"mediaviewer.localhost\" (Z.37)",
+      "type_text": "neuer Key TERMINAL_HOST: \"terminal.localhost\"",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "wireguard/wg-mesh-nodes.yaml:fleet-block",
+      "kind": "config",
+      "file": "wireguard/wg-mesh-nodes.yaml",
+      "signature": "fleet: 10.20.0.0/24 (Z.150-191), bislang OHNE gpu_hosts-Eintrag; Brand-Mesh-Vorbilder: mentolder.gpu_hosts.wsl2-gpu-mentolder wg_ip 192.168.100.10 (Z.42-52), korczewski 10.13.14.10 (Z.128-137)",
+      "type_text": "neuer fleet-Peer WSL-Host wg_ip 10.20.0.10; Mesh-Symmetrie-Requirement in openspec/specs/fleet-operations.md",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": ["website/src/components/PortalSidekick.svelte:drawer-body"],
+    "edges": [
+      { "from": "PortalSidekick.svelte:view==='grilling'", "to": "GrillingSessionHost.svelte", "kind": "renders (wird ersetzt)" },
+      { "from": "PortalSidekick.svelte:view==='terminal'", "to": "TerminalSessionHost.svelte", "kind": "renders (neu)" },
+      { "from": "SidekickHome.svelte:items[id=grilling]", "to": "PortalSidekick.svelte:view", "kind": "sidekick:navigate event" },
+      { "from": "TerminalSessionHost.svelte:iframe", "to": "oauth2-proxy-terminal:4180", "kind": "https via Traefik terminal.${PROD_DOMAIN}" },
+      { "from": "oauth2-proxy-terminal", "to": "terminal-bridge:7681", "kind": "upstream proxy (WebSocket)" },
+      { "from": "terminal-bridge Endpoints", "to": "ttyd@10.20.0.10:7681", "kind": "wg-fleet overlay" }
+    ]
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [
+    {
+      "name": "ttyd CLI flags",
+      "source": "manual",
+      "type_text": "ttyd [-p port] [-i interface/ip] [-W|--writable] <command>; -i 10.20.0.10 bindet nur die wg-IP; ohne -W ist die Session read-only (Flag ist seit ttyd 1.7 PFLICHT fuer Schreibzugriff)"
+    },
+    {
+      "name": "oauth2-proxy group flags",
+      "source": "manual",
+      "type_text": "--allowed-group=<name> (mehrfach moeglich) + --oidc-groups-claim=groups; Gruppe muss im ID-Token/Userinfo des Pocket-ID-Clients ankommen"
+    }
+  ],
+  "risks": [
+    { "note": "codebase-memory-mcp war zum Intel-Zeitpunkt nicht verbunden — symbols/call_graph via grep/Read + code-explorer-Subagent erhoben (Zeilennummern Stand main@3a18797fb)", "severity": "info" },
+    { "note": "Pocket-ID groups-Claim: pruefen ob der Seed-Job den groups-Scope am Client setzen kann; sonst manueller Einmal-Schritt (im Spec dokumentiert)", "severity": "warn" },
+    { "note": "oauth2-proxy vor ttyd: WebSocket-Upgrade muss durchgereicht werden; Rollback-Regel wie RustDesk-Design (kein ungegateter Fallback)", "severity": "warn" }
+  ]
+}

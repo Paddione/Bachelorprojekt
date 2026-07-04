@@ -189,6 +189,9 @@ fleet:
       schema_key: WG_MESH_GEKKO4_FLEET
       public_key: "H8R7yyZ6W8lS2rlKUNF0bP0oYNtxnn1bjoy3SwmRvCY="
 
+    # terminal-sidekick — WSL host on dev machine. No public endpoint (behind NAT);
+    # reachable from fleet nodes only when the WireGuard tunnel is up. Key generated
+    # by scripts/terminal-sidekick-host.sh on first run.
     - name: terminal-sidekick
       endpoint: ""
       wg_ip: "10.20.0.10"

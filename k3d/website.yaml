@@ -445,6 +445,11 @@ spec:
                 configMapKeyRef:
                   name: domain-config
                   key: MEDIAVIEWER_HOST
+            - name: TERMINAL_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: TERMINAL_HOST
             - name: VIDEOVAULT_DOMAIN
               valueFrom:
                 configMapKeyRef:

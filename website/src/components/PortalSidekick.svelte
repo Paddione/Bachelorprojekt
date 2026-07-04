@@ -7,7 +7,7 @@
   import HelpView from './assistant/HelpView.svelte';
   import AgentGuideView from './assistant/AgentGuideView.svelte';
   import MediaviewerPanel from './MediaviewerPanel.svelte';
-  import GrillingSessionHost from './mediaviewer/GrillingSessionHost.svelte';
+  import TerminalSessionIframe from './terminal/TerminalSessionIframe.svelte';
   import CockpitSidekickView from './assistant/CockpitSidekickView.svelte';
   import AiQualitySidekickView from './assistant/AiQualitySidekickView.svelte';
   import LogsSidekickView from './assistant/LogsSidekickView.svelte';
@@ -16,18 +16,20 @@
   import { registerBrowserLogCapture } from '../lib/logging/browser-collector';
   import { addEntry } from '../lib/logging/log-store';
 
-  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'agent-guide' | 'mediaviewer' | 'grilling' | 'cockpit' | 'ai-quality' | 'logs';
+  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'agent-guide' | 'mediaviewer' | 'terminal' | 'cockpit' | 'ai-quality' | 'logs';
 
   let {
     helpSection = '',
     helpContext = 'portal' as HelpContext,
     mediaviewerHost = 'mediaviewer.localhost',
     videovaultHost = 'videovault.localhost',
+    terminalHost = 'terminal.localhost',
   }: {
     helpSection?: string;
     helpContext?: HelpContext;
     mediaviewerHost?: string;
     videovaultHost?: string;
+    terminalHost?: string;
   } = $props();
 
   let open = $state(false);
@@ -38,7 +40,6 @@
   let aiErrorCount = $state(0);
   const mediaviewerVideos = $derived(resolveHelpVideos(videovaultHost));
   let isMobile = $state(false);
-  let currentTicketId = $state<string | null>(null);
 
   let pendingJump = $state<string | null>(null);
 
@@ -59,7 +60,7 @@
     help: 'Hilfe',
     'agent-guide': 'Agent-Anleitung',
     mediaviewer: 'Mediaviewer',
-    grilling: 'Final Grilling',
+    terminal: 'Agentic Terminal',
     cockpit: 'Projekt-Cockpit',
     'ai-quality': 'KI-Qualität',
     logs: 'Logs',
@@ -134,7 +135,6 @@
   $effect(() => {
     const onNavigate = (e: Event) => {
       const detail = (e as CustomEvent).detail;
-      if (typeof detail?.ticketId === 'string') currentTicketId = detail.ticketId;
       const intent = parseNavigateEvent(detail);
       if (!intent) return;
       open = true;
@@ -242,8 +242,8 @@
       <AgentGuideView jumpTo={pendingJump} />
     {:else if view === 'mediaviewer'}
       <MediaviewerPanel {mediaviewerHost} videos={mediaviewerVideos} />
-    {:else if view === 'grilling'}
-      <GrillingSessionHost {mediaviewerHost} ticketId={currentTicketId ?? ''} />
+    {:else if view === 'terminal'}
+      <TerminalSessionIframe {terminalHost} />
     {:else if view === 'cockpit'}
       <CockpitSidekickView />
     {:else if view === 'ai-quality'}

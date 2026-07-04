@@ -105,11 +105,17 @@ resources:
   # Netzwerksicherheit (L3)
   - network-policies.yaml
   # RustDesk web-client SSO bridge (T001381)
-#  - rustdesk-web-bridge.yaml  # prod-only (TURN bridge; skipped in dev — see TURN_OVERLAY_IP envsubst gap)
+  # rustdesk-web-bridge.yaml is prod-only (TURN bridge needs ${TURN_OVERLAY_IP},
+  # not in the dev-envsubst list) — added as a prod-only resource in
+  # prod/kustomization.yaml instead of here, so it stays out of the dev
+  # overlay without dropping out of prod too (both extend this base).
   - oauth2-proxy-rustdesk-web.yaml
   # Brain — Quartz-rendered LLM-wiki static site (T001569)
   - brain.yaml
   - oauth2-proxy-brain.yaml
+  # Terminal-sidekick — ttyd via selector-less bridge on wg-fleet overlay IP
+  - terminal-sidekick.yaml
+  - oauth2-proxy-terminal.yaml
   # Ingress
   - ingress.yaml
   # Website RBAC (Role/RoleBinding in workspace ns for monitoring + backup-status API)

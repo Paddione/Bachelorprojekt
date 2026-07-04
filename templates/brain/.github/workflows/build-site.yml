@@ -10,14 +10,23 @@ permissions:
   packages: write
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Wikilink lint
+        run: bash scripts/lint-wikilinks.sh .
+      - name: Frontmatter lint
+        run: bash scripts/lint-frontmatter.sh .
   build:
     runs-on: ubuntu-latest
+    needs: lint
     steps:
       - uses: actions/checkout@v4
       - name: Stage build context
         run: |
           mkdir -p /tmp/build/content
-          cp -R index.md log.md SCHEMA.md wiki raw /tmp/build/content/
+          cp -R index.md log.md SCHEMA.md wiki /tmp/build/content/
           cp site.Dockerfile /tmp/build/Dockerfile
       - uses: docker/login-action@v3
         with:

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.159.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.158.0...website-v1.159.0) (2026-07-04)
+
+
+### Features
+
+* **brain:** 11 quality goals G-BRAIN01-11, lint gate repairs, doc pages [T001608] ([#2599](https://github.com/Paddione/Bachelorprojekt/issues/2599)) ([34ffa00](https://github.com/Paddione/Bachelorprojekt/commit/34ffa00ca9b0e641ab51875aff7e3cfd67d17c29))
+
 ## [1.158.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.157.4...website-v1.158.0) (2026-07-04)
 
 

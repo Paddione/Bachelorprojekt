@@ -13,5 +13,10 @@ Einstiegs-Hub des Repos.
   angelegt oder verändert werden).
 - [[index-moc]] — thematischer Wiki-Hub (Maps of Content).
 - [[log]] — Änderungs-Journal.
+- [[quality-goals]] — Qualitätsziele G-BRAIN01–11 (Gates + Targets).
+- [[usage]] — How-to: Seiten anlegen, raw→wiki, log-Pflege.
+- [[cheatsheet]] — Frontmatter-Templates, Wikilink-Syntax, Lint-Kommandos.
+- [[first-aid]] — Erste Hilfe bei roter CI.
+- [[llm-workflows]] — Prompt-Vorlagen und Agent-Konventionen für LLM-Anreicherung.
 
 Rohmaterial liegt unter `raw/`, kompilierte Wissensseiten unter `wiki/`.

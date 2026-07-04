@@ -1,5 +1,5 @@
 <script lang="ts">
-  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'agent-guide' | 'mediaviewer' | 'grilling' | 'cockpit' | 'ai-quality' | 'logs';
+  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'agent-guide' | 'mediaviewer' | 'terminal' | 'cockpit' | 'ai-quality' | 'logs';
 
   let {
     onNavigate,
@@ -25,7 +25,7 @@
 
   const items = $derived<Item[]>([
     { id: 'cockpit',      no: '01', title: 'Projekttickets', sub: 'Container & Features', badge: pendingContainerCount > 0 ? pendingContainerCount : undefined, show: isAdmin },
-    { id: 'grilling',      no: '02', title: 'Final Grilling',     sub: 'Abschließende Klärungsrunde', show: isAdmin },
+    { id: 'terminal',      no: '02', title: 'Agentic Terminal',     sub: 'Live-Agenten-Terminal (ttyd)', show: isAdmin },
     { id: 'ai-quality',    no: '03', title: 'KI-Qualität', sub: 'Latenz · Kosten · Fehler', badge: aiErrorCount > 0 ? aiErrorCount : undefined, show: isAdmin },
     { id: 'logs',          no: '04', title: 'Logs', sub: 'Server · Browser · Pods', show: isAdmin },
     { id: 'questionnaire', no: isAdmin ? '05' : '01', title: 'Fragebögen', sub: 'Aufgaben beantworten', badge: pendingQuestionnaires > 0 ? pendingQuestionnaires : undefined, show: true },

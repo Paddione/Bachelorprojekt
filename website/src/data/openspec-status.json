@@ -793,6 +793,12 @@
       "status": "archived"
     }
   ],
+  "T001565": [
+    {
+      "slug": "agentic-terminal-sidekick",
+      "status": "plan_staged"
+    }
+  ],
   "T001537": [
     {
       "slug": "t001537",

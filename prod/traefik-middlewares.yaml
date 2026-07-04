@@ -55,6 +55,25 @@ spec:
       X-Robots-Tag: "noindex"
       Content-Security-Policy: "frame-ancestors 'self' https://web.${PROD_DOMAIN}"
 ---
+# ── Embed-Headers für Agentic Terminal (iframe in Admin-Sidekick) ───
+# Like mediaviewer-embed-headers but without X-Frame-Options removal
+# (terminal is embedded same way). WebSocket-compatible (ttyd protocol).
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: terminal-embed-headers
+  namespace: workspace
+spec:
+  headers:
+    customResponseHeaders:
+      X-Frame-Options: ""
+      X-Content-Type-Options: "nosniff"
+      X-XSS-Protection: "1; mode=block"
+      Referrer-Policy: "strict-origin-when-cross-origin"
+      Permissions-Policy: ""
+      X-Robots-Tag: "noindex"
+      Content-Security-Policy: "frame-ancestors 'self' https://web.${PROD_DOMAIN}"
+---
 # ── Rate-Limiting: Keycloak (Brute-Force-Schutz) ──────────────────
 apiVersion: traefik.io/v1alpha1
 kind: Middleware

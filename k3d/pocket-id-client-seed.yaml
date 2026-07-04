@@ -188,11 +188,11 @@ spec:
               vaultwarden|SECRET_vaultwarden|POCKET_ID_VAULTWARDEN_SECRET|${SCHEME}://vault.${SUFFIX}/identity/connect/oidc-signin
               nextcloud|SECRET_nextcloud|POCKET_ID_NEXTCLOUD_SECRET|${SCHEME}://files.${SUFFIX}/apps/oidc_login/oidc
               grafana|SECRET_grafana|POCKET_ID_GRAFANA_SECRET|${SCHEME}://grafana.${SUFFIX}/login/generic_oauth
-               website|SECRET_website|POCKET_ID_WEBSITE_SECRET|${SCHEME}://web.${SUFFIX}/api/auth/callback
-               rustdesk-web|SECRET_rustdeskweb|POCKET_ID_RUSTDESK_WEB_SECRET|${SCHEME}://remote.${SUFFIX}/oauth2/callback
-               brain|SECRET_brain|POCKET_ID_BRAIN_SECRET|${SCHEME}://brain.${SUFFIX}/oauth2/callback
-               terminal-sidekick|SECRET_terminal|POCKET_ID_TERMINAL_SECRET|${SCHEME}://terminal.${SUFFIX}/oauth2/callback
-               "
+              website|SECRET_website|POCKET_ID_WEBSITE_SECRET|${SCHEME}://web.${SUFFIX}/api/auth/callback
+              rustdesk-web|SECRET_rustdeskweb|POCKET_ID_RUSTDESK_WEB_SECRET|${SCHEME}://remote.${SUFFIX}/oauth2/callback
+              brain|SECRET_brain|POCKET_ID_BRAIN_SECRET|${SCHEME}://brain.${SUFFIX}/oauth2/callback
+              terminal-sidekick|SECRET_terminal|POCKET_ID_TERMINAL_SECRET|${SCHEME}://terminal.${SUFFIX}/oauth2/callback
+              "
 
               # Resolve a client's REAL pocket-id id by NAME. pocket-id:v2.9.0
               # always server-generates a random UUID as `id` on POST — it

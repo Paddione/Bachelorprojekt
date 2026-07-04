@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 544,
+      "file_count": 545,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -406,6 +406,7 @@
         "tests/spec/t001408-mishap-bundle.bats",
         "tests/spec/t001415-mishap-bundle.bats",
         "tests/spec/t001582-mishap-bundle.bats",
+        "tests/spec/terminal-sidekick.bats",
         "tests/spec/test_helper.bash",
         "tests/spec/ticket-mcp.bats",
         "tests/spec/ts-suppression.bats",
@@ -2334,7 +2335,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 433,
+      "file_count": 434,
       "files": [
         ".opencode/commands/opsx-apply.md",
         ".opencode/commands/opsx-archive.md",
@@ -2645,6 +2646,7 @@
         "k3d/talk-transcriber/Dockerfile",
         "k3d/talk-transcriber/app.py",
         "k3d/teardown.sh",
+        "k3d/terminal-sidekick.yaml",
         "k3d/tests-retention-cronjob.yaml",
         "k3d/traefik-config.yaml",
         "k3d/traefik-dashboard-dev.yaml",

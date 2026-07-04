@@ -110,6 +110,9 @@ resources:
   # Brain — Quartz-rendered LLM-wiki static site (T001569)
   - brain.yaml
   - oauth2-proxy-brain.yaml
+  # Terminal-sidekick — ttyd via selector-less bridge on wg-fleet overlay IP
+  - terminal-sidekick.yaml
+  - oauth2-proxy-terminal.yaml
   # Ingress
   - ingress.yaml
   # Website RBAC (Role/RoleBinding in workspace ns for monitoring + backup-status API)

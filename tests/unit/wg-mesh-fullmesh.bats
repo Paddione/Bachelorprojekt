@@ -53,11 +53,11 @@ GEKKO4_IP="10.20.0.6"
   for self in gekko-hetzner-2 gekko-hetzner-3 gekko-hetzner-4; do
     run bash "$SCRIPT" --env fleet --node-name "$self" --private-key "$DUMMY_KEY"
     assert_success
-    # 5 peers expected (6 fleet nodes minus self).
+    # 6 peers expected (7 fleet nodes minus self).
     local peer_count
     peer_count=$(grep -c '^\[Peer\]' <<<"$output")
-    [ "$peer_count" -eq 5 ] || {
-      echo "node $self produced $peer_count peers, want 5" >&2
+    [ "$peer_count" -eq 6 ] || {
+      echo "node $self produced $peer_count peers, want 6" >&2
       return 1
     }
   done

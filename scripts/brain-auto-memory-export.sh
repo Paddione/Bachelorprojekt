@@ -90,7 +90,14 @@ done
 
 if [ "$pushed_any" -eq 1 ]; then
   git -C "$BRAIN_REPO_PATH" add raw/auto-memory
-  git -C "$BRAIN_REPO_PATH" commit -q -m "chore(auto-memory): export reviewed Claude memories"
+  # A prior run may have committed but failed to push (state stays unchanged
+  # on failure, so a retry regenerates identical content and there is
+  # nothing new to `git add`). Only commit when something is staged; always
+  # attempt the push so a stranded local commit from a failed prior run is
+  # retried instead of permanently blocking on "nothing to commit".
+  if ! git -C "$BRAIN_REPO_PATH" diff --cached --quiet; then
+    git -C "$BRAIN_REPO_PATH" commit -q -m "chore(auto-memory): export reviewed Claude memories"
+  fi
   if ! git -C "$BRAIN_REPO_PATH" push -q origin HEAD 2>/dev/null; then
     echo "error: git push failed — state left unchanged, rerun to retry" >&2
     exit 1

@@ -17,8 +17,9 @@ _has_secret() {
 # naive frontmatter parse -> echoes "NAME\tDESC\tTYPE" or returns 1 if unparsable
 _frontmatter() {
   local f="$1" line in_fm=0 seen=0 name="" desc="" mtype="" in_meta=0
-  [ "$(head -n1 "$f")" = "---" ] || return 1
+  [ "$(head -n1 "$f" | tr -d '\r')" = "---" ] || return 1
   while IFS= read -r line; do
+    line="${line%$'\r'}"
     if [ "$line" = "---" ]; then
       if [ "$in_fm" -eq 0 ]; then in_fm=1; continue; else seen=1; break; fi
     fi

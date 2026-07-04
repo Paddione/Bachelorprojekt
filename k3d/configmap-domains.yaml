@@ -39,3 +39,4 @@ data:
   VIDEOVAULT_DOMAIN: "videovault.localhost"
   STUDIO_DOMAIN: "studio.localhost"
   STUDIO_IMAGE: "studio-server:latest"
+  TERMINAL_HOST: "terminal.localhost"

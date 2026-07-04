@@ -1,6 +1,7 @@
 - id: superpowers
   name_de: "Superpowers (/superpowers)"
   kind: skill
+  harness: claude
   summary_de: "Aktiviert die Skill-Bibliothek: zeigt, wie Claude Skills findet und nutzt."
   what_for_de: "Der Einstieg in alle Skills. Erklärt Claude, welche Fertigkeiten es hat und wann es sie einsetzen muss."
   how_to_start_de: "Tippe '/superpowers' in Claude Code – der Skill lädt sich selbst."
@@ -16,6 +17,7 @@
 - id: brainstorming
   name_de: "Brainstorming (/brainstorming)"
   kind: skill
+  harness: claude
   summary_de: "Denkt ein Vorhaben mit dir durch, bevor Code entsteht – Intention, Anforderungen, Design."
   what_for_de: "Vor jeder kreativen Arbeit: klärt, was du wirklich willst, und hält Entscheidungen fest."
   how_to_start_de: "Sage '/brainstorming' oder beschreibe das Vorhaben – der Skill startet von selbst."
@@ -31,6 +33,7 @@
 - id: dev-flow-plan
   name_de: "Planungs-Skill (dev-flow-plan)"
   kind: skill
+  harness: claude
   summary_de: "Der Startpunkt für jede Änderung: wählt den Pfad und schreibt einen Plan."
   what_for_de: "Hilft dir zu entscheiden, ob etwas ein Feature, ein Fix oder eine Wartung (Chore) ist, denkt das Vorhaben mit dir durch und schreibt einen Plan. Setzt nichts um."
   how_to_start_de: "Beschreibe einfach in eigenen Worten, was du ändern willst – der Skill startet von selbst."
@@ -46,6 +49,7 @@
 - id: dev-flow-chore
   name_de: "Wartungs-Skill (dev-flow-chore)"
   kind: skill
+  harness: claude
   summary_de: "Erledigt Wartung ohne Verhaltensänderung in einem Rutsch und mergt sie."
   what_for_de: "Für Doku, Dependency-Bumps, Config/Umbenennungen, CI-Tweaks und Aufräumen — direkt ausgeführt und gemergt, ohne Plan und ohne dev-flow-execute. Für Features/Fixes stattdessen dev-flow-plan."
   how_to_start_de: "Sage z.B. 'bump die Abhängigkeiten' oder 'räum die Doku auf' – der Skill startet von selbst, oder dev-flow-plan leitet Chores hierher."
@@ -61,6 +65,7 @@
 - id: dev-flow-execute
   name_de: "Umsetzungs-Skill (dev-flow-execute)"
   kind: skill
+  harness: claude
   summary_de: "Setzt einen fertigen Plan um und öffnet einen Pull Request."
   what_for_de: "Implementiert den Plan task-by-task, läuft Tests, pusht und erstellt den PR. Wird nach dev-flow-plan aufgerufen."
   how_to_start_de: "Sage '/dev-flow-execute' oder 'Setze den Plan um' – ein staged Plan muss bereits existieren."
@@ -76,6 +81,7 @@
 - id: dev-flow-iterate
   name_de: "Dev-Iterations-Skill (dev-flow-iterate)"
   kind: skill
+  harness: claude
   summary_de: "Deployt Änderungen ins Dev-Cluster und zeigt Logs – zum schnellen Ausprobieren."
   what_for_de: "Shortcut für 'deploy + Logs ansehen + debuggen' im lokalen Dev-Cluster (dev.mentolder.de)."
   how_to_start_de: "Nutze ihn nach dev-flow-execute, wenn du etwas im Dev-Cluster live sehen willst."
@@ -91,6 +97,7 @@
 - id: dev-flow-e2e
   name_de: "E2E-Test-Skill (dev-flow-e2e)"
   kind: skill
+  harness: claude
   summary_de: "Schreibt und führt End-to-End-Tests gegen die Live-Umgebung nach einem Merge aus."
   what_for_de: "Playwright-Tests gegen die echte, laufende Umgebung – prüft, ob das Feature wirklich funktioniert."
   how_to_start_de: "Nur nach einem Merge und Deploy aufrufen; Umgebungs-URL muss erreichbar sein."
@@ -106,6 +113,7 @@
 - id: task-oracle
   name_de: "Task-Orakel (task-oracle)"
   kind: task
+  harness: both
   summary_de: "Findet den richtigen Task-Befehl für ein Ziel in einfachem Deutsch."
   what_for_de: "Übersetzt 'Ich will X tun' in den passenden task-Befehl, ohne dass du die Taskfile kennen musst."
   how_to_start_de: "Rufe auf: bash scripts/task-oracle.sh 'Dein Ziel auf Deutsch'."
@@ -121,6 +129,7 @@
 - id: agent-website
   name_de: "Website-Agent"
   kind: agent
+  harness: both
   summary_de: "Bearbeitet die Webseite: Texte, Design, Komponenten und Svelte-Code."
   what_for_de: "Für alles rund um website/src/ – Astro-Seiten, Svelte-Komponenten, CSS, Inhalte."
   how_to_start_de: "Beschreibe einfach, was auf der Website geändert werden soll."
@@ -136,6 +145,7 @@
 - id: agent-ops
   name_de: "Betriebs-Agent (ops)"
   kind: agent
+  harness: both
   summary_de: "Schaut nach, warum etwas nicht läuft – liest Logs und Status, ohne etwas zu verändern."
   what_for_de: "Für Fragen wie 'Warum ist Dienst X rot?' oder 'Läuft alles?'. Liest Pod-Status und Protokolle (Logs)."
   how_to_start_de: "Frag z. B.: 'Warum startet Nextcloud nicht?' oder 'Zeig mir den Status aller Dienste.'"
@@ -153,6 +163,7 @@
 - id: agent-infra
   name_de: "Infrastruktur-Agent (infra)"
   kind: agent
+  harness: both
   summary_de: "Deployt Kubernetes-Manifeste und verwaltet Cluster-Konfiguration."
   what_for_de: "Für k8s-Manifeste, Kustomize-Overlays, Taskfile-Tasks und ENV-spezifische Deployments."
   how_to_start_de: "Beschreibe, was deployt oder konfiguriert werden soll – immer mit dem Ziel-ENV."
@@ -168,6 +179,7 @@
 - id: agent-test
   name_de: "Test-Agent"
   kind: agent
+  harness: both
   summary_de: "Schreibt und führt Tests aus (BATS, Playwright, vitest)."
   what_for_de: "Für FA-*, SA-*, NFA-*-Testfälle, BATS-Skripte und Playwright-E2E-Tests."
   how_to_start_de: "Sage z. B. 'Schreib einen Test für Feature X' oder 'FA-05 schlägt fehl, bitte fixen'."
@@ -182,6 +194,7 @@
 - id: agent-db
   name_de: "Datenbank-Agent (db)"
   kind: agent
+  harness: both
   summary_de: "Verwaltet PostgreSQL-Schema, Migrationen und Backups."
   what_for_de: "Für Datenbankfragen: Schema-Änderungen, SQL-Abfragen, Backup/Restore."
   how_to_start_de: "Beschreibe die Datenbankaufgabe – Schema-Migration, Query oder Datenfix."
@@ -196,6 +209,7 @@
 - id: agent-security
   name_de: "Sicherheits-Agent (security)"
   kind: agent
+  harness: both
   summary_de: "Rotiert Secrets, verwaltet Keycloak-Realms und SealedSecrets."
   what_for_de: "Für Geheimnis-Rotation, Keycloak-Konfiguration, OIDC-Clients und Zertifikate."
   how_to_start_de: "Nur mit Vorsicht aufrufen; erkläre genau, welches Secret oder welche Konfiguration geändert werden soll."
@@ -211,6 +225,7 @@
 - id: factory
   name_de: "Software Factory (Auto-Bau)"
   kind: task
+  harness: both
   summary_de: "Baut ein Feature (halb-)autonom: Scout → Design → Plan → Implement → Verify → Deploy."
   what_for_de: "Wenn ein gut umrissenes Feature von einem Multi-Agent-Lauf gebaut werden soll — entweder selbst geplant oder aus einem übergebenen Menschen-Plan (Plan-Reuse)."
   how_to_start_de: "Über das Claude-Code-Workflow-Tool mit scripts/factory/pipeline.js starten ('task factory:run' zeigt die genaue Invocation). Für einen gefahrlosen Probelauf args { dry_run: true } übergeben — kein Merge, kein Deploy."
@@ -226,6 +241,7 @@
 - id: factory-dispatch
   name_de: "Factory-Dispatcher (Warteschlange)"
   kind: task
+  harness: both
   summary_de: "Holt wartende Tickets aus der Warteschlange, prüft Konflikte und startet die Factory-Pipeline."
   what_for_de: "Damit übergebene Tickets (type=feature/status=backlog) automatisch abgearbeitet werden — mit Slots pro Marke, Konflikt-Gate und Watchdog."
   how_to_start_de: "Über das Workflow-Tool mit scripts/factory/dispatcher.js starten ('task factory:dispatch' zeigt die Invocation), wiederkehrend selbst-getaktet via /loop. Probelauf mit args { dry_run: true }."
@@ -238,3 +254,67 @@
   related: [factory]
   links: []
   init_prompt_de: "Starte den Factory-Dispatcher: arbeite wartende Tickets aus der Warteschlange ab (zuerst Dry-Run)."
+- id: opencode-git-workflow
+  name_de: "OpenCode-Git-Workflow"
+  kind: skill
+  harness: opencode
+  summary_de: "Git-Lebenszyklus für OpenCode: Pull-First, Branch-Regeln, Worktree-Setup, Commit-Format, PR-Erstellung."
+  what_for_de: "Standardisiert alle Git-Operationen in OpenCode-Sessions – vom Branch-Wechsel bis zum Merge."
+  how_to_start_de: "Wird von opencode-flow-plan/execute/chore automatisch geladen. Manuell: lade die Skill opencode-git-workflow."
+  what_could_go_wrong_de: "Git-crypt-verschlüsselte Dateien können in Worktrees fehlen – darum nutzen die Skills scripts/worktree-create.sh."
+  danger: safe
+  theme: entwickeln
+  stages: [code, pr-ci]
+  aliases_de: [git, commit, pr, branch, worktree]
+  guardrails: [G-PULL-FIRST, G-PR-NOT-MAIN]
+  related: [opencode-flow-plan, opencode-flow-execute, opencode-flow-chore]
+  links: []
+  init_prompt_de: "Lade opencode-git-workflow – ich brauche Git-Operationen in einer OpenCode-Session."
+- id: opencode-flow-plan
+  name_de: "OpenCode-Planungs-Skill (opencode-flow-plan)"
+  kind: skill
+  harness: opencode
+  summary_de: "OpenCode-native Planung: Brainstorming, Feature/Fix/Chore-Entscheidung, OpenSpec-Plan-Erstellung."
+  what_for_de: "Ersetzt dev-flow-plan in OpenCode. Nutzt delegate() für Read-Only-Recherche und scripts/worktree-create.sh für Git-crypt-sichere Worktrees."
+  how_to_start_de: "Beschreibe die Änderung – der Skill entscheidet über den Pfad (Feature/Fix/Chore)."
+  what_could_go_wrong_de: "Kein Task-Tool für Write-fähige Sub-Agenten – Planung und Umsetzung laufen im gleichen Session-Kontext."
+  danger: caution
+  theme: entwickeln
+  stages: [plan]
+  aliases_de: [plan, planen, brainstorm, spec, "opencode-plan"]
+  guardrails: [G-PULL-FIRST]
+  related: [opencode-git-workflow, opencode-flow-execute, opencode-flow-chore]
+  links: []
+  init_prompt_de: "Lade opencode-flow-plan – ich möchte eine Änderung in OpenCode planen."
+- id: opencode-flow-execute
+  name_de: "OpenCode-Umsetzungs-Skill (opencode-flow-execute)"
+  kind: skill
+  harness: opencode
+  summary_de: "OpenCode-native Umsetzung: Task-für-Task-Implementierung, Tests, PR-Erstellung."
+  what_for_de: "Ersetzt dev-flow-execute in OpenCode. Arbeitet inline statt per Sub-Agent-Delegation."
+  how_to_start_de: "Sage 'Setze den Plan um' – ein staged Plan muss existieren."
+  what_could_go_wrong_de: "Ohne Task-Tool für Write-fähige Delegation läuft alles im Hauptsession-Kontext – keine Isolation zwischen Tasks."
+  danger: caution
+  theme: entwickeln
+  stages: [code, pr-ci]
+  aliases_de: [umsetzen, implementieren, pr, "opcode-execute"]
+  guardrails: [G-PULL-FIRST, G-PR-NOT-MAIN]
+  related: [opencode-git-workflow, opencode-flow-plan, opencode-flow-chore]
+  links: []
+  init_prompt_de: "Lade opencode-flow-execute – setze den Plan in OpenCode um und öffne einen PR."
+- id: opencode-flow-chore
+  name_de: "OpenCode-Wartungs-Skill (opencode-flow-chore)"
+  kind: skill
+  harness: opencode
+  summary_de: "OpenCode-native Wartung: Docs, Bumps, Config, Cleanup – direkt ausführen und mergen."
+  what_for_de: "Ersetzt dev-flow-chore in OpenCode. Kein Plan nötig, kein dev-flow-execute – direkt loslegen."
+  how_to_start_de: "Sage z.B. 'Bump die Abhängigkeiten in OpenCode'."
+  what_could_go_wrong_de: "Wie dev-flow-chore: wenig Risiko, da keine Verhaltensänderung. CI könnte blocken."
+  danger: caution
+  theme: entwickeln
+  stages: [code, pr-ci]
+  aliases_de: [chore, wartung, "opencode-chore", aufraeumen]
+  guardrails: [G-PULL-FIRST, G-PR-NOT-MAIN]
+  related: [opencode-git-workflow, opencode-flow-plan, opencode-flow-execute]
+  links: []
+  init_prompt_de: "Lade opencode-flow-chore – erledige diese Wartung in OpenCode und merge sie."

@@ -65,3 +65,12 @@ test('good fixture still validates with a flow.yaml present', () => {
   assert.equal(res.ok, true, JSON.stringify(res.errors, null, 2));
 });
 
+test('bad harness value is rejected', () => {
+  const res = validateRegistry(join(here, 'fixtures', 'bad-harness'));
+  assert.equal(res.ok, false);
+  assert.ok(
+    res.errors.some((e) => e.includes('harness') && e.includes('bogus')),
+    `expected a harness error, got: ${JSON.stringify(res.errors)}`,
+  );
+});
+

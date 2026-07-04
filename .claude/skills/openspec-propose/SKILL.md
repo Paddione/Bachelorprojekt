@@ -26,7 +26,7 @@ When ready to implement, run /opsx:apply (`/opsx-apply` in opencode)
 
 1. **If no clear input provided, ask what they want to build**
 
-   Use the **AskUserQuestion tool** (open-ended, no preset options) to ask:
+   Ask the user directly (open-ended, no preset options):
    > "What change do you want to work on? Describe what you want to build or fix."
 
    From their description, derive a kebab-case name (e.g., "add user authentication" → `add-user-auth`).
@@ -49,7 +49,7 @@ When ready to implement, run /opsx:apply (`/opsx-apply` in opencode)
 
 4. **Create artifacts in sequence until apply-ready**
 
-   Use the **TodoWrite tool** to track progress through the artifacts.
+   Track progress through the artifacts (a short checklist in your reply is enough).
 
    Loop through artifacts in dependency order (artifacts with no pending dependencies first):
 
@@ -85,7 +85,7 @@ When ready to implement, run /opsx:apply (`/opsx-apply` in opencode)
       - Stop when all `applyRequires` artifacts are done
 
    c. **If an artifact requires user input** (unclear context):
-      - Use **AskUserQuestion tool** to clarify
+      - Ask the user to clarify
       - Then continue with creation
 
 5. **Show final status**

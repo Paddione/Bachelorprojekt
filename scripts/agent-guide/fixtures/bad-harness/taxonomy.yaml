@@ -1,0 +1,24 @@
+- id: safe
+  label_de: "🟢 Sicher"
+  emoji: "🟢"
+  meaning_de: "Selbst machen, keine Gefahr."
+  doc_treatment: "green-badge"
+  enforcement_default: "none"
+- id: caution
+  label_de: "🟡 Vorsicht"
+  emoji: "🟡"
+  meaning_de: "Checkliste abarbeiten, Agent bestätigt."
+  doc_treatment: "yellow-badge"
+  enforcement_default: "pre-flight-confirm"
+- id: assisted
+  label_de: "🟠 Nur mit Hilfe"
+  emoji: "🟠"
+  meaning_de: "Mit erfahrener Person."
+  doc_treatment: "orange-warning"
+  enforcement_default: "double-confirm"
+- id: forbidden
+  label_de: "🔴 Niemals allein"
+  emoji: "🔴"
+  meaning_de: "Von Enforcement blockiert."
+  doc_treatment: "red-stop"
+  enforcement_default: "hard-block"

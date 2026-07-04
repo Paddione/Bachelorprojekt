@@ -7,31 +7,35 @@ Die Tier-Emojis (🟢🟡🟠🔴) sind in `danger-map.md` erklärt.
 
 ## Skills
 
-| Id | Name | Art | Tier | Wofür | Guardrails | Init |
-| --- | --- | --- | --- | --- | --- | --- |
-| brainstorming | Brainstorming (/brainstorming) | skill | 🟢 Sicher | Denkt ein Vorhaben mit dir durch, bevor Code entsteht – Intention, Anforderungen, Design. | — | /brainstorming – ich möchte etwas Neues bauen und will es erst durchdenken. |
-| dev-flow-chore | Wartungs-Skill (dev-flow-chore) | skill | 🟡 Vorsicht | Erledigt Wartung ohne Verhaltensänderung in einem Rutsch und mergt sie. | G-PR-NOT-MAIN, G-PULL-FIRST | /dev-flow-chore – erledige diese Wartung und merge sie. |
-| dev-flow-e2e | E2E-Test-Skill (dev-flow-e2e) | skill | 🟡 Vorsicht | Schreibt und führt End-to-End-Tests gegen die Live-Umgebung nach einem Merge aus. | G-ENV-EXPLICIT | /dev-flow-e2e – schreibe und führe E2E-Tests gegen die Live-Umgebung aus. |
-| dev-flow-execute | Umsetzungs-Skill (dev-flow-execute) | skill | 🟡 Vorsicht | Setzt einen fertigen Plan um und öffnet einen Pull Request. | G-PR-NOT-MAIN, G-PULL-FIRST | /dev-flow-execute – setze den fertigen Plan um und öffne einen PR. |
-| dev-flow-iterate | Dev-Iterations-Skill (dev-flow-iterate) | skill | 🟡 Vorsicht | Deployt Änderungen ins Dev-Cluster und zeigt Logs – zum schnellen Ausprobieren. | G-CONTEXT-CHECK, G-ENV-EXPLICIT | /dev-flow-iterate – deploye ins Dev-Cluster und zeig mir die Logs. |
-| dev-flow-plan | Planungs-Skill (dev-flow-plan) | skill | 🟡 Vorsicht | Der Startpunkt für jede Änderung: wählt den Pfad und schreibt einen Plan. | G-PULL-FIRST | Ich will etwas ändern – starte die Planung (dev-flow-plan). |
-| superpowers | Superpowers (/superpowers) | skill | 🟢 Sicher | Aktiviert die Skill-Bibliothek: zeigt, wie Claude Skills findet und nutzt. | — | /superpowers |
+| Id | Name | Art | Harness | Tier | Wofür | Guardrails | Init |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| brainstorming | Brainstorming (/brainstorming) | skill | claude | 🟢 Sicher | Denkt ein Vorhaben mit dir durch, bevor Code entsteht – Intention, Anforderungen, Design. | — | /brainstorming – ich möchte etwas Neues bauen und will es erst durchdenken. |
+| dev-flow-chore | Wartungs-Skill (dev-flow-chore) | skill | claude | 🟡 Vorsicht | Erledigt Wartung ohne Verhaltensänderung in einem Rutsch und mergt sie. | G-PR-NOT-MAIN, G-PULL-FIRST | /dev-flow-chore – erledige diese Wartung und merge sie. |
+| dev-flow-e2e | E2E-Test-Skill (dev-flow-e2e) | skill | claude | 🟡 Vorsicht | Schreibt und führt End-to-End-Tests gegen die Live-Umgebung nach einem Merge aus. | G-ENV-EXPLICIT | /dev-flow-e2e – schreibe und führe E2E-Tests gegen die Live-Umgebung aus. |
+| dev-flow-execute | Umsetzungs-Skill (dev-flow-execute) | skill | claude | 🟡 Vorsicht | Setzt einen fertigen Plan um und öffnet einen Pull Request. | G-PR-NOT-MAIN, G-PULL-FIRST | /dev-flow-execute – setze den fertigen Plan um und öffne einen PR. |
+| dev-flow-iterate | Dev-Iterations-Skill (dev-flow-iterate) | skill | claude | 🟡 Vorsicht | Deployt Änderungen ins Dev-Cluster und zeigt Logs – zum schnellen Ausprobieren. | G-CONTEXT-CHECK, G-ENV-EXPLICIT | /dev-flow-iterate – deploye ins Dev-Cluster und zeig mir die Logs. |
+| dev-flow-plan | Planungs-Skill (dev-flow-plan) | skill | claude | 🟡 Vorsicht | Der Startpunkt für jede Änderung: wählt den Pfad und schreibt einen Plan. | G-PULL-FIRST | Ich will etwas ändern – starte die Planung (dev-flow-plan). |
+| opencode-flow-chore | OpenCode-Wartungs-Skill (opencode-flow-chore) | skill | opencode | 🟡 Vorsicht | OpenCode-native Wartung: Docs, Bumps, Config, Cleanup – direkt ausführen und mergen. | G-PR-NOT-MAIN, G-PULL-FIRST | Lade opencode-flow-chore – erledige diese Wartung in OpenCode und merge sie. |
+| opencode-flow-execute | OpenCode-Umsetzungs-Skill (opencode-flow-execute) | skill | opencode | 🟡 Vorsicht | OpenCode-native Umsetzung: Task-für-Task-Implementierung, Tests, PR-Erstellung. | G-PR-NOT-MAIN, G-PULL-FIRST | Lade opencode-flow-execute – setze den Plan in OpenCode um und öffne einen PR. |
+| opencode-flow-plan | OpenCode-Planungs-Skill (opencode-flow-plan) | skill | opencode | 🟡 Vorsicht | OpenCode-native Planung: Brainstorming, Feature/Fix/Chore-Entscheidung, OpenSpec-Plan-Erstellung. | G-PULL-FIRST | Lade opencode-flow-plan – ich möchte eine Änderung in OpenCode planen. |
+| opencode-git-workflow | OpenCode-Git-Workflow | skill | opencode | 🟢 Sicher | Git-Lebenszyklus für OpenCode: Pull-First, Branch-Regeln, Worktree-Setup, Commit-Format, PR-Erstellung. | G-PR-NOT-MAIN, G-PULL-FIRST | Lade opencode-git-workflow – ich brauche Git-Operationen in einer OpenCode-Session. |
+| superpowers | Superpowers (/superpowers) | skill | claude | 🟢 Sicher | Aktiviert die Skill-Bibliothek: zeigt, wie Claude Skills findet und nutzt. | — | /superpowers |
 
 ## Tasks
 
-| Id | Name | Art | Tier | Wofür | Guardrails | Init |
-| --- | --- | --- | --- | --- | --- | --- |
-| factory | Software Factory (Auto-Bau) | task | 🟠 Nur mit Hilfe | Baut ein Feature (halb-)autonom: Scout → Design → Plan → Implement → Verify → Deploy. | G-FACTORY-DRYRUN, G-PR-NOT-MAIN, G-VALIDATE-FIRST | Übergib das an die Software Factory: <gut umrissenes Feature> — und mach zuerst einen Dry-Run. |
-| factory-dispatch | Factory-Dispatcher (Warteschlange) | task | 🟠 Nur mit Hilfe | Holt wartende Tickets aus der Warteschlange, prüft Konflikte und startet die Factory-Pipeline. | G-FACTORY-DRYRUN, G-PR-NOT-MAIN | Starte den Factory-Dispatcher: arbeite wartende Tickets aus der Warteschlange ab (zuerst Dry-Run). |
-| task-oracle | Task-Orakel (task-oracle) | task | 🟢 Sicher | Findet den richtigen Task-Befehl für ein Ziel in einfachem Deutsch. | — | — |
+| Id | Name | Art | Harness | Tier | Wofür | Guardrails | Init |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| factory | Software Factory (Auto-Bau) | task | both | 🟠 Nur mit Hilfe | Baut ein Feature (halb-)autonom: Scout → Design → Plan → Implement → Verify → Deploy. | G-FACTORY-DRYRUN, G-PR-NOT-MAIN, G-VALIDATE-FIRST | Übergib das an die Software Factory: <gut umrissenes Feature> — und mach zuerst einen Dry-Run. |
+| factory-dispatch | Factory-Dispatcher (Warteschlange) | task | both | 🟠 Nur mit Hilfe | Holt wartende Tickets aus der Warteschlange, prüft Konflikte und startet die Factory-Pipeline. | G-FACTORY-DRYRUN, G-PR-NOT-MAIN | Starte den Factory-Dispatcher: arbeite wartende Tickets aus der Warteschlange ab (zuerst Dry-Run). |
+| task-oracle | Task-Orakel (task-oracle) | task | both | 🟢 Sicher | Findet den richtigen Task-Befehl für ein Ziel in einfachem Deutsch. | — | — |
 
 ## Agenten
 
-| Id | Name | Art | Tier | Wofür | Guardrails | Init |
-| --- | --- | --- | --- | --- | --- | --- |
-| agent-db | Datenbank-Agent (db) | agent | 🟠 Nur mit Hilfe | Verwaltet PostgreSQL-Schema, Migrationen und Backups. | G-ASK-EXPERT, G-ENV-EXPLICIT | Frag den Datenbank-Agenten: <Schema, Query, Backup/Restore>. |
-| agent-infra | Infrastruktur-Agent (infra) | agent | 🟠 Nur mit Hilfe | Deployt Kubernetes-Manifeste und verwaltet Cluster-Konfiguration. | G-ASK-EXPERT, G-ENV-EXPLICIT, G-VALIDATE-FIRST | Übergib das an den Infrastruktur-Agenten: <Manifest-/Overlay-/Deploy-Aufgabe>. |
-| agent-ops | Betriebs-Agent (ops) | agent | 🟢 Sicher | Schaut nach, warum etwas nicht läuft – liest Logs und Status, ohne etwas zu verändern. | G-CONTEXT-CHECK | Frag den Betriebs-Agenten: warum läuft <Dienst> nicht / ist alles grün? |
-| agent-security | Sicherheits-Agent (security) | agent | 🟠 Nur mit Hilfe | Rotiert Secrets, verwaltet Keycloak-Realms und SealedSecrets. | G-ASK-EXPERT, G-ENV-EXPLICIT, G-SECRET-ORDER | Übergib das an den Security-Agenten: <Secret rotieren, Keycloak/OIDC, DSGVO>. |
-| agent-test | Test-Agent | agent | 🟡 Vorsicht | Schreibt und führt Tests aus (BATS, Playwright, vitest). | G-ENV-EXPLICIT | Übergib das an den Test-Agenten: <Test schreiben/reparieren/ausführen>. |
-| agent-website | Website-Agent | agent | 🟡 Vorsicht | Bearbeitet die Webseite: Texte, Design, Komponenten und Svelte-Code. | G-PR-NOT-MAIN, G-PULL-FIRST | Übergib das an den Website-Agenten: <was auf der Website geändert werden soll>. |
+| Id | Name | Art | Harness | Tier | Wofür | Guardrails | Init |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| agent-db | Datenbank-Agent (db) | agent | both | 🟠 Nur mit Hilfe | Verwaltet PostgreSQL-Schema, Migrationen und Backups. | G-ASK-EXPERT, G-ENV-EXPLICIT | Frag den Datenbank-Agenten: <Schema, Query, Backup/Restore>. |
+| agent-infra | Infrastruktur-Agent (infra) | agent | both | 🟠 Nur mit Hilfe | Deployt Kubernetes-Manifeste und verwaltet Cluster-Konfiguration. | G-ASK-EXPERT, G-ENV-EXPLICIT, G-VALIDATE-FIRST | Übergib das an den Infrastruktur-Agenten: <Manifest-/Overlay-/Deploy-Aufgabe>. |
+| agent-ops | Betriebs-Agent (ops) | agent | both | 🟢 Sicher | Schaut nach, warum etwas nicht läuft – liest Logs und Status, ohne etwas zu verändern. | G-CONTEXT-CHECK | Frag den Betriebs-Agenten: warum läuft <Dienst> nicht / ist alles grün? |
+| agent-security | Sicherheits-Agent (security) | agent | both | 🟠 Nur mit Hilfe | Rotiert Secrets, verwaltet Keycloak-Realms und SealedSecrets. | G-ASK-EXPERT, G-ENV-EXPLICIT, G-SECRET-ORDER | Übergib das an den Security-Agenten: <Secret rotieren, Keycloak/OIDC, DSGVO>. |
+| agent-test | Test-Agent | agent | both | 🟡 Vorsicht | Schreibt und führt Tests aus (BATS, Playwright, vitest). | G-ENV-EXPLICIT | Übergib das an den Test-Agenten: <Test schreiben/reparieren/ausführen>. |
+| agent-website | Website-Agent | agent | both | 🟡 Vorsicht | Bearbeitet die Webseite: Texte, Design, Komponenten und Svelte-Code. | G-PR-NOT-MAIN, G-PULL-FIRST | Übergib das an den Website-Agenten: <was auf der Website geändert werden soll>. |

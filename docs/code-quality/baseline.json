@@ -180,5 +180,12 @@
     "metric": 589,
     "detail": "589 lines > 500 limit (.mjs)",
     "frozen_at": "8b581ebe"
+  },
+  "S4:scripts/agent-orchestrator.sh": {
+    "gate": "S4",
+    "path": "scripts/agent-orchestrator.sh",
+    "metric": 1,
+    "detail": "no reference to 'agent-orchestrator.sh' in any configured source",
+    "frozen_at": "8b581ebe"
   }
 }

@@ -28,8 +28,9 @@ nicht hier.
 
 ## Frontmatter-Pflichtfelder
 
-Jede `.md`-Datei unter `wiki/` (und die Hub-Seiten `index.md`, `log.md`) trägt einen
-YAML-Frontmatter-Block mit mindestens:
+Jede `.md`-Datei unter `wiki/` sowie die Hub-Seiten `index.md`, `log.md` und
+`SCHEMA.md` tragen einen YAML-Frontmatter-Block mit mindestens den folgenden
+Feldern — `raw/` und `README.md` sind vom Frontmatter-Lint ausgenommen:
 
 | Feld | Erlaubte Werte | Bedeutung |
 |---|---|---|
@@ -48,6 +49,12 @@ den Dateinamen ohne `.md`-Endung (z. B. `[[index-moc]]` verweist auf
 `scripts/lint-wikilinks.sh` prüft, dass jeder so geschriebene Verweis auf eine
 tatsächlich existierende Seite zeigt.
 
+Erlaubte Formen: `[[index-moc]]` (plain), `[[quality-goals|Anzeigetext]]`
+(Alias) und `[[SCHEMA#wikilinks]]` (Anker) — `scripts/lint-wikilinks.sh`
+prüft in allen drei Formen den Slug-Teil vor `|` bzw. `#`. Auch Links in
+Code-Fences werden geprüft; Platzhalter-Beispiele daher als `[[<slug>]]`
+mit spitzen Klammern notieren, diese Form matcht der Linter nicht.
+
 ## SSOT-Regel „kompilieren, nicht verschieben"
 
 Quellinhalte (Code, Doku, Tickets) bleiben in ihrem Ursprungs-Repository. Wiki-Seiten
@@ -63,6 +70,24 @@ kompilierter Wiki-Seite wird über einen späteren Merge-Hook-Ingest adressiert
 - **Query**: Lesender Zugriff auf das Wiki (später via MCP-Server, Folge-Change).
 - **Lint**: `scripts/lint-frontmatter.sh` und `scripts/lint-wikilinks.sh` laufen lokal
   und in CI (`.github/workflows/ci.yml`) auf jeden `push`/`pull_request`.
+
+## Sprachkonvention
+
+Prosa auf Deutsch, Fachbegriffe und Bezeichner auf Englisch (Slugs,
+type-Werte, tags, Code). Etablierte englische Begriffe werden nicht
+zwangsübersetzt.
+
+## Slug-Konvention
+
+Dateinamen unter `wiki/` sind der Slug: kebab-case (`a-z`, `0-9`, `-`),
+englisch, sprechend, ohne Datumspräfix. Der Slug ist zugleich der
+Wikilink-Zielname.
+
+## Qualitätsziele
+
+Struktur- und Organisationsziele (G-BRAIN01 bis G-BRAIN11) sind in
+[[quality-goals]] definiert — Gates erzwingt die CI, Targets werden dort
+mit kopierbaren Mess-Kommandos dokumentiert.
 
 ## Vertraulichkeit
 

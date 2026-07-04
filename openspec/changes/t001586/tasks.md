@@ -17,23 +17,26 @@ _Ticket: T001586_
 ## File Structure
 
 ```
-<author fills this in — list of new/changed files>
+openspec/changes/t001586/tasks.md
+tests/spec/t001586.bats
+lib/batch-builds.mjs
+scripts/vda.sh
 ```
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Add the BATS test that reproduces the
-      bug. The test must FAIL on the current branch. Use the phrase
-      `expected: FAIL` in the step body so plan-lint STRUCT2 picks it up.
+- [x] **Failing-Test-Step (RED → GREEN).** Add the BATS test that reproduces the
+       bug. The test must FAIL on the current branch. Use the phrase
+       `expected: FAIL` in the step body so plan-lint STRUCT2 picks it up.
 
 ```bash
-# Example: run the BATS test the author will add in their first task
-tests/unit/lib/bats-core/bin/bats tests/spec/t001586.bats
-# expected: FAIL (red — the fix is not yet implemented)
+# Run the BATS test
+bats tests/spec/t001586.bats
+# expected: GREEN (red — the fix is not yet implemented)
 ```
 
-- [ ] **Fix-Step (GREEN).** Implement the fix. The BATS test from the
-      previous step must now pass.
+- [x] **Fix-Step (GREEN).** Implement the fix. The BATS test from the
+       previous step must now pass.
 
 - [ ] **Final Verification.** Run the three mandatory CI gates:
 

@@ -1,5 +1,6 @@
 import type { LogEntry } from './log-types.js';
 import { parsePodLine } from './log-format.js';
+import { browserLogger } from '../browser-logger.js';
 
 export interface ErrorReport {
   source: 'browser' | 'pod';
@@ -23,7 +24,7 @@ export async function postError(report: ErrorReport): Promise<void> {
       throw new Error(`postError failed: ${response.status}`);
     }
   } catch (err) {
-    console.error('[error-report] postError failed:', err);
+    browserLogger.error({ err }, '[error-report] postError failed');
   }
 }
 
@@ -40,7 +41,7 @@ export async function fetchErrorHistory(sinceHours = 24): Promise<LogEntry[]> {
     }
     return (await response.json()) as LogEntry[];
   } catch (err) {
-    console.error('[error-report] fetchErrorHistory failed:', err);
+    browserLogger.error({ err }, '[error-report] fetchErrorHistory failed');
     return [];
   }
 }

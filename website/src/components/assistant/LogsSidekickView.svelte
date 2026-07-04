@@ -4,6 +4,7 @@
   import { levelClass, levelLabel } from '../../lib/logging/log-format';
   import { openServerLogStream, openPodLogStream, type StreamHandle } from '../../lib/logging/log-streams';
   import { postError, podLineToError, fetchErrorHistory } from '../../lib/logging/error-report.js';
+  import { browserLogger } from '../../lib/browser-logger.js';
   import type { LogLevel, LogSource, LogEntry } from '../../lib/logging/log-types';
 
   const ALL_LEVELS: LogLevel[] = ['debug', 'info', 'warn', 'error'];
@@ -93,7 +94,7 @@
     try {
       historyEntries = await fetchErrorHistory();
     } catch (e) {
-      console.error('[LogsSidekickView] Failed to load error history:', e);
+      browserLogger.error({ err: e }, '[LogsSidekickView] Failed to load error history');
     }
   }
 

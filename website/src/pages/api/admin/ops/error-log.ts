@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { persistError, getErrorLogPool } from '../../../../lib/logging/error-log-store';
+import { logger } from '../../../../lib/logger';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
@@ -20,7 +21,7 @@ export const POST: APIRoute = async ({ request }) => {
     try {
       body = await request.json();
     } catch (err) {
-      console.error('[error-log] Failed to parse JSON:', err);
+      logger.error({ err }, '[error-log] Failed to parse JSON');
       return new Response('Invalid JSON', { status: 400 });
     }
 
@@ -45,7 +46,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
   } catch (err) {
-    console.error('[error-log] POST failed:', err);
+    logger.error({ err }, '[error-log] POST failed');
     return new Response('Internal server error', { status: 500 });
   }
 };
@@ -104,7 +105,7 @@ export const GET: APIRoute = async ({ request }) => {
       headers: { 'Content-Type': 'application/json' } 
     });
   } catch (err) {
-    console.error('[error-log] GET failed:', err);
+    logger.error({ err }, '[error-log] GET failed');
     return new Response('Internal server error', { status: 500 });
   }
 };

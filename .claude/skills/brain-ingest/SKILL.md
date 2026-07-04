@@ -23,7 +23,6 @@ cat brain-worklist.txt | cut -f2 | sort | uniq -c
 ### 3. Initial-Ingest ausführen (beispielsweise mit Quartz CLI)
 ```bash
 quartz generate --sources brain-worklist.txt --output docs/brain/wiki/
-# oder alternativ: node scripts/brain-ingest.mjs brain-worklist.txt
 ```
 
 ### 4. Qualitätssicherung

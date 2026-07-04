@@ -93,29 +93,31 @@ task env:validate:all  # Exit 0 ✓
 
 ---
 
-## G-GIT02 — Non-conventional Commits: 0/30 ✅
+## G-GIT02 — Non-conventional Commits: 1/30 🔴
 
 **Fix:** Der vermeintliche non-conventional Commit war ein `Merge branch`-Commit,
 der von GitHub automatisch erzeugt wird und konventionelle Commit-Regeln nicht
 betrifft. Gate: `--no-merges` hinzugefügt (health-goals-check.sh:102).
 
+**Aktuell:** Commit `f9dc1ae4e` (`mishap-bundle-fix: verify — test:changed, freshness:check`) ist kein Konventional-Commit. Wurde von der automatischen Mishap-Bundle-Routine erstellt. Kann nicht aus der History entfernt werden; löst sich nach ~17 weiteren Commits auf main von selbst auf.
+
 ```bash
 git log --format=%s --no-merges -30 origin/main | grep -vcE '^(feat|fix|chore|docs|test|refactor|perf|style|build|ci|revert)(\([^)]+\))?!?:\s'
 ```
 
-> **C · Baseline:** 0 · **Target:** 0 · **Aufwand:** gering (Commit 1d4ba261b) · **Messzyklus:** pro Merge · **Reproduzierbar:** ja · **Ticket:** T001552
+> **A · Baseline:** 0→1 · **Target:** 0 · **Aufwand:** selbstlöschend (~17 weitere main-Commits) · **Messzyklus:** pro Merge · **Reproduzierbar:** ja · **Ticket:** T001552 (reopened)
 
 ---
 
 ## G-AGENTIC06 — OVERVIEW.md Skill-Zähler vs real: 0 ✅
 
-**Fix:** OVERVIEW.md Zähler von 27→30 korrigiert (3 neue Skills: lavish, references, vitest waren nicht eingetragen).
+**Fix:** OVERVIEW.md Zähler von 27→30 korrigiert (3 neue Skills: lavish, references, vitest waren nicht eingetragen). Am 2026-07-04 erneut von 30→31 korrigiert (neuer Skill: brain-ingest).
 
 ```bash
 grep -cP '^\d+ project-local skills' .agents/skills/OVERVIEW.md | xargs -I{} sh -c '[ "$(find .claude/skills -name SKILL.md | wc -l)" = "{}" ]'
 ```
 
-> **C · Baseline:** 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** pro Merge · **Reproduzierbar:** ja · **Ticket:** T001550
+> **C · Baseline:** 0→0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** pro Merge · **Reproduzierbar:** ja · **Ticket:** T001550
 
 ---
 
@@ -248,6 +250,8 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-CQ07** | S2 Import-Zyklen | 0 ✓ | 0 | `python3 -c "..S2-Gate.." < docs/code-quality/baseline.json` |
 | **G-CQ09** | S3 hartkodierte Hostnames | 0 ✓ | ≤ 10 | `python3 -c "..S3-Gate.." < docs/code-quality/baseline.json` |
 | **G-CQ10** | S4 verwaiste Scripts | 0 ✓ | ≤ 4 | `python3 -c "..S4-Gate.." < docs/code-quality/baseline.json` |
+| **G-CQ09** | S3 hartkodierte Hostnames | 0 ✓ | ≤ 10 | `python3 -c "..S3-Gate.." < docs/code-quality/baseline.json` |
+| **G-CQ10** | S4 verwaiste Scripts | 0 ✓ | ≤ 4 | `python3 -c "..S4-Gate.." < docs/code-quality/baseline.json` |
 | **G-SIZE01** | Freeze-Frühwarn-Band (80–100 % S1) | 0 ✓ | ≤ 15 | `python3 -c "import json; d=json.load(open('docs/code-quality/loc-budget.json')); print(sum(1 for v in d.values() if isinstance(v,dict) and v.get('pct_used',0)>=80))"` |
 | **G-SIZE03** | God-File `website/src/lib/website-db.ts` | 1957 ✓ | ≤ 3000 | `wc -l < website/src/lib/website-db.ts` |
 | **G-GIT01** | Offene PRs >7 Tage | 0 ✓ | 0 | `gh pr list --state open --json number,createdAt` |
@@ -275,7 +279,8 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-DOC02** | Root-CLAUDE.md Zeilen | 200 ✓ | ≤ 200 | `wc -l < CLAUDE.md` |
 | **G-DOC03** | README-Index in Hauptverzeichnissen | 5/5 ✓ | 5/5 | `for d in website brett scripts tests k3d; do ls "$d"/README* ... done` |
 | **G-DOC04** | Architektur-ADRs | 5 ✓ | ≥ 5 | `find docs -ipath '*adr*' -name '*.md' \| wc -l` |
-| **G-DATA01** | DB-Backup-Freshness | ~5h ✓ | < 26h | `kubectl --context fleet -n workspace get cronjob db-backup -o jsonpath='{.status.lastSuccessfulTime}'` |
+| **G-DORA04** | MTTR (Mean Time To Recovery) | n/a ✓ | < 24h | `git log --since="8 weeks ago" --first-parent --format='%ct %s' main \| grep -ciE 'revert\|hotfix'` |
+| **G-DOC06** | Agent Guide Index | 30 ✓ | ≥ 30 | `find .claude/skills docs/agent-guide -name SKILL.md -o -name README.md \| wc -l` |
 | **G-CI01** | main CI-Erfolgsrate (letzte 20) | 95 % ✓ | ≥ 95 % | `gh-axi run list --workflow ci.yml --branch main --limit 20 \| grep -oE 'completed,(success\|failure\|cancelled)' \| sort \| uniq -c` (19/20, 1 cancelled) |
 | **G-CI02** | Rote main-HEAD-Läufe | 0 ✓ | 0 | `gh-axi run list --workflow ci.yml --branch main --limit 5 \| grep -c failure` |
 | **G-RH03** | OpenSpec-BATS-Abdeckung | 82 % ✓ | ≥ 60 % | `SPECS=$(ls openspec/specs/*.md \| wc -l); BATS=$(ls tests/spec/*.bats \| wc -l); echo "$BATS/$SPECS"` |
@@ -333,7 +338,11 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 
 **Baseline-Update 2026-07-03 (Fix 2):** G-GIT02 1→0 — `--no-merges` im Gate (Merge-Commit war falsch positiv). G-AGENTIC06 3→0 — OVERVIEW.md Zähler 27→30. G-AGENTIC07 3→0 — specialist Skills in OVERVIEW.md registriert. Drei Gates von Prio A → Prio C.
 
-**Baseline-Update 2026-07-04:** G-CQ01 (T001553) → done (Bereits grün, gate aktiv). G-CQ03 (T001554) → done (Bereits grün, ESLint-Gate aktiv). G-CQ08 (T001555) → done (knip-Baseline: ~120 unused exports, 7 unused files, 5 unused deps entfernt). G-FE01 (T001557) → done (axe 4.12.1, Baseline: 7 violations). G-FE02 (T001558) → done (Bundle-Budget: 747 KB, 99 JS files). G-SIZE02 (T001556) → backlog (17 files >600 Zeilen, ~2-3 Wochen). G-AGENTIC09 (T001559) → done (3 SKILL.md via Whitespace-Kompression auf <500 Zeilen).
+**Baseline-Update 2026-07-04 (morning):** G-CQ01 (T001553) → done (Bereits grün, gate aktiv). G-CQ03 (T001554) → done (Bereits grün, ESLint-Gate aktiv). G-CQ08 (T001555) → done (knip-Baseline: ~120 unused exports, 7 unused files, 5 unused deps entfernt). G-FE01 (T001557) → done (axe 4.12.1, Baseline: 7 violations). G-FE02 (T001558) → done (Bundle-Budget: 747 KB, 99 JS files). G-SIZE02 (T001556) → backlog (17 files >600 Zeilen, ~2-3 Wochen). G-AGENTIC09 (T001559) → done (3 SKILL.md via Whitespace-Kompression auf <500 Zeilen).
+
+**Baseline-Update 2026-07-04 (Fix):** G-AGENTIC06 0→0 (OVERVIEW.md 30→31 — brain-ingest nachgezogen). G-AGENTIC08 1→0 (toter Script-Pfad `scripts/brain-ingest.mjs` aus brain-ingest/SKILL.md entfernt). G-GIT02 0→1 (Commit `f9dc1ae4e` durch Mishap-Bundle-Routine — kann nicht aus History entfernt werden, löst sich nach ~17 weiteren main-Commits).
+
+**Baseline-Update 2026-07-04:** G-CQ07 S2 Import-Zyklen 0 (baseline.json); G-CQ09 S3 Hostnames 0; G-CQ10 S4 Orphaned Scripts 0 — alle grün, Gates neu eingefügt.
 
 **Offene Tickets (2026-07-04):** G-SIZE04 (T001347), G-SIZE02 (T001556)
 
@@ -351,7 +360,7 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 | G-CI01 | T001279 | **gefixt** (95 % letzte 20 Läufe) |
 | G-CFG01 | T001548 | **gefixt** (Commit 97f04f031) |
 | G-GIT02 | T001552 | **gefixt** (Commit 1d4ba261b — `--no-merges` im Gate) |
-| G-AGENTIC06 | T001550 | **gefixt** (OVERVIEW.md count 27→30) |
+| G-AGENTIC06 | T001550 | **gefixt** (OVERVIEW.md count 27→30, am 2026-07-04 erneut 30→31 für brain-ingest) |
 | G-AGENTIC07 | T001551 | **gefixt** (OVERVIEW.md: specialist skills registriert) |
 | G-CQ01 | T001553 | **gefixt** (0 astro-check errors, gate aktiv seit PR #2225) |
 | G-CQ03 | T001554 | **gefixt** (ESLint-Gate aktiv, 2 legitime inline-disables) |
@@ -360,3 +369,5 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 | G-FE01 | T001557 | **gefixt** (axe 4.12.1, Baseline: 7 violations) |
 | G-FE02 | T001558 | **gefixt** (Bundle-Budget: 747 KB, 99 JS files) |
 | G-AGENTIC09 | T001559 | **gefixt** (Whitespace-Kompression → alle <500 Zeilen) |
+| G-AGENTIC08 | — | **gefixt** (2026-07-04: toter script-path `scripts/brain-ingest.mjs` aus SKILL.md entfernt) |
+| G-GIT02 | T001552 | **regressed** (Commit f9dc1ae4e — `mishap-bundle-fix:` non-conventional) |

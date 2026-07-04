@@ -4597,41 +4597,10 @@ tasks:
   # ─────────────────────────────────────────────
   # ticket-mcp Go Binary
   # ─────────────────────────────────────────────
-  # scripts/ticket-mcp/ticket-mcp-go is .gitignored and consumed by
-  # `.opencode/opencode.jsonc` → `mcp.ticket-mcp.command`. A fresh checkout
-  # MUST build it before `opencode` will start — otherwise the spawn fails
-  # silently and the TUI hangs on a blank screen. The targets below are
-  # idempotent: rebuilds only fire when a Go source file (or the go.mod /
-  # Makefile) is newer than the binary.
   ticket-mcp:build:
-    desc: "Build the ticket-mcp Go binary (scripts/ticket-mcp/ticket-mcp-go). Idempotent — only rebuilds when Go source changes."
-    dir: scripts/ticket-mcp/go
-    sources:
-      - cmd/**/*.go
-      - internal/**/*.go
-      - Makefile
-      - go.mod
-      - go.sum
-    generates:
-      - ../ticket-mcp-go
+    desc: "Build the ticket-mcp Go binary (scripts/ticket-mcp/ticket-mcp-go)"
     cmds:
-      - go build -o ../ticket-mcp-go ./cmd/ticket-mcp
-      - 'echo "✓ ticket-mcp-go built: scripts/ticket-mcp/ticket-mcp-go"'
-      - 'echo "  Restart opencode to pick up the new binary (Ctrl+C, then re-run)."'
-
-  ticket-mcp:rebuild:
-    desc: "Force-rebuild ticket-mcp-go (bypass mtime cache; e.g. after pulling a new commit on an unchanged source tree)"
-    cmds:
-      - rm -f scripts/ticket-mcp/ticket-mcp-go
-      - task: ticket-mcp:build
-
-  setup:local-bins:
-    desc: "Build every local dev binary that opencode / agent tooling spawns (currently: ticket-mcp-go). Run once after a fresh checkout, then on demand."
-    cmds:
-      - task: ticket-mcp:build
-      - 'echo ""'
-      - 'echo "✓ All local dev binaries are up to date."'
-      - 'echo "  Next: run ''opencode'' in the project root."'
+      - make -C scripts/ticket-mcp/go build
 
   # ─────────────────────────────────────────────
   # Maintenance — periodic cleanups

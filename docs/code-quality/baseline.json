@@ -58,8 +58,8 @@
   "S1:website/src/components/inbox/InboxApp.svelte": {
     "gate": "S1",
     "path": "website/src/components/inbox/InboxApp.svelte",
-    "metric": 1013,
-    "detail": "1013 lines > 500 limit (.svelte)",
+    "metric": 954,
+    "detail": "954 lines > 500 limit (.svelte)",
     "frozen_at": "8b581ebe"
   },
   "S1:website/src/components/inbox/InboxDetail.svelte": {

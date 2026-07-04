@@ -1,11 +1,11 @@
 {
     "schema_version": 1,
-    "commit": "f9dc1ae4e443cd319abff2653f3c3365da44e5fc",
-    "indexed_at": "2026-07-03T20:59:39Z",
+    "commit": "11d73489211b48c8d43273dfe4622e139c177b42",
+    "indexed_at": "2026-07-04T07:15:06Z",
     "project": "home-runner-work-Bachelorprojekt-Bachelorprojekt",
-    "nodes": 48752,
-    "edges": 120008,
-    "original_size": 118947840,
-    "compressed_size": 17581580,
+    "nodes": 49235,
+    "edges": 120481,
+    "original_size": 119734272,
+    "compressed_size": 17674584,
     "compression_level": 3
 }

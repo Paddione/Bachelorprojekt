@@ -68,6 +68,7 @@ env_vars:
   LLM_HOST_IP: "192.168.100.10"
   COMFY_HOST_IP: "192.168.100.10"
   COMFY_PORT: "8189"
+  TERMINAL_OVERLAY_IP: "10.20.0.10"
   LLM_ENABLED: "true"
   LLM_RERANK_ENABLED: "false"
   LLM_ROUTER_URL: "http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234"

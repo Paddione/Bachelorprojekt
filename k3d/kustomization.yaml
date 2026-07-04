@@ -114,7 +114,7 @@ resources:
   # Brain — Quartz-rendered LLM-wiki static site (T001569)
   - brain.yaml
   - oauth2-proxy-brain.yaml
-  # Terminal-sidekick — ttyd via selector-less bridge on wg-fleet overlay IP
+  # Agentic Terminal SSO bridge (T001565) — ttyd on the WSL host via wg-fleet
   - terminal-sidekick.yaml
   - oauth2-proxy-terminal.yaml
   # Ingress

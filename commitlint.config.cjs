@@ -51,6 +51,7 @@ const NAMED_SCOPES = [
   'openspec',
   'quality',
   'goals',
+  'terminal',
   'wg',
 ];
 

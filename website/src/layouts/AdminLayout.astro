@@ -10,6 +10,7 @@ import TicketWidgetBar from '../components/TicketWidgetBar.astro';
 import AssistantWidget from '../components/assistant/AssistantWidget.svelte';
 const ASSISTANT_ENABLED = (process.env.ENABLE_ASSISTANT_ADMIN ?? 'false') === 'true';
 const MEDIAVIEWER_HOST = process.env.MEDIAVIEWER_HOST ?? 'mediaviewer.localhost';
+const TERMINAL_HOST = process.env.TERMINAL_HOST ?? 'terminal.localhost';
 const brettDomain = process.env.BRETT_DOMAIN ?? 'brett.localhost';
 const brettProto = brettDomain.includes('localhost') ? 'http' : 'https';
 const BRETT_URL = `${brettProto}://${brettDomain}/?admin=1`;
@@ -155,7 +156,7 @@ const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
       <AssistantWidget client:load profile="admin" />
     ) : null}
     <TicketWidgetBar context="admin" showCreate={false} />
-    <PortalSidekick client:load helpSection={helpSection} helpContext="admin" mediaviewerHost={MEDIAVIEWER_HOST} />
+    <PortalSidekick client:load helpSection={helpSection} helpContext="admin" mediaviewerHost={MEDIAVIEWER_HOST} terminalHost={TERMINAL_HOST} />
     <SessionExpiryWarning client:load />
 
     <script is:inline>

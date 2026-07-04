@@ -1314,6 +1314,14 @@ setup_vars:
   - name: WG_MESH_PK_L1_WORKER_PUBLIC_KEY
     required: false
     description: "wg-mesh public key for korczewski l1 worker node"
+  # terminal-sidekick — WSL host (ttyd). Keypair generated on host via `scripts/terminal-sidekick-host.sh`.
+  - name: WG_MESH_TERMINAL_PRIVATE_KEY
+    required: false
+    sealed: true
+    description: "wg-mesh private key for the WSL host running ttyd (terminal-sidekick, T001565)"
+  - name: WG_MESH_TERMINAL_PUBLIC_KEY
+    required: false
+    description: "wg-mesh public key for the WSL host running ttyd (terminal-sidekick, T001565)"
 
   # ── Proxmox hypervisor SSH keys ─────────────────────────────────────────────
   # Root SSH keys for the three Proxmox host nodes. Private keys are sealed;

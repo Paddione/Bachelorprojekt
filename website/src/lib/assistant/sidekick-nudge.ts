@@ -2,10 +2,10 @@
 // No DOM, no fetch — kept here so it is unit-testable in the node vitest env.
 
 export type SidekickView =
-  | 'home' | 'support' | 'questionnaire' | 'help' | 'agent-guide' | 'cockpit' | 'mediaviewer' | 'grilling' | 'ai-quality';
+  | 'home' | 'support' | 'questionnaire' | 'help' | 'agent-guide' | 'cockpit' | 'mediaviewer' | 'terminal' | 'ai-quality';
 
 const KNOWN_VIEWS: ReadonlySet<string> = new Set([
-  'home', 'support', 'questionnaire', 'help', 'agent-guide', 'cockpit', 'mediaviewer', 'grilling', 'ai-quality',
+  'home', 'support', 'questionnaire', 'help', 'agent-guide', 'cockpit', 'mediaviewer', 'terminal', 'ai-quality',
 ]);
 
 export interface NavigateIntent { view: SidekickView; jumpTo: string | null; }

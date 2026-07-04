@@ -799,6 +799,12 @@
       "status": "archived"
     }
   ],
+  "T001565": [
+    {
+      "slug": "agentic-terminal-sidekick",
+      "status": "plan_staged"
+    }
+  ],
   "T001568": [
     {
       "slug": "2026-07-03-brain-foundation",

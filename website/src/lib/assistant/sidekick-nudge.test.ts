@@ -11,10 +11,12 @@ describe('parseNavigateEvent', () => {
   it('returns null for an unknown view', () => {
     expect(parseNavigateEvent({ view: 'nope', jumpTo: 'ag-goal-x' })).toBeNull();
   });
-  it('returns null for a now-removed view (tickets/inbox/pipeline)', () => {
+  it('returns null for a now-removed view (tickets/inbox/pipeline/grilling)', () => {
     expect(parseNavigateEvent({ view: 'tickets' })).toBeNull();
     expect(parseNavigateEvent({ view: 'inbox' })).toBeNull();
     expect(parseNavigateEvent({ view: 'pipeline' })).toBeNull();
+    // grilling was replaced by terminal in T001565
+    expect(parseNavigateEvent({ view: 'grilling' })).toBeNull();
   });
   it('accepts a known view and optional jumpTo', () => {
     expect(parseNavigateEvent({ view: 'agent-guide', jumpTo: 'ag-tool-superpowers' }))
@@ -26,8 +28,9 @@ describe('parseNavigateEvent', () => {
     expect(parseNavigateEvent({ view: 'agent-guide', jumpTo: 123 }))
       .toEqual({ view: 'agent-guide', jumpTo: null });
   });
-  it('accepts grilling and mediaviewer views', () => {
-    expect(parseNavigateEvent({ view: 'grilling' })).toEqual({ view: 'grilling', jumpTo: null });
+  it('accepts terminal and mediaviewer views', () => {
+    // terminal replaced grilling in T001565
+    expect(parseNavigateEvent({ view: 'terminal' })).toEqual({ view: 'terminal', jumpTo: null });
     expect(parseNavigateEvent({ view: 'mediaviewer' })).toEqual({ view: 'mediaviewer', jumpTo: null });
   });
   it('accepts the ai-quality view', () => {

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.157.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.157.3...website-v1.157.4) (2026-07-04)
+
+
+### Bug Fixes
+
+* remove hardcoded dev OIDC secret fallback in website auth [T001593] ([#2596](https://github.com/Paddione/Bachelorprojekt/issues/2596)) ([1905a1b](https://github.com/Paddione/Bachelorprojekt/commit/1905a1b4a2830d433d34ed6b2306a75eed35111b))
+
 ## [1.157.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.157.2...website-v1.157.3) (2026-07-03)
 
 

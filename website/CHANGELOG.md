@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.160.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.159.0...website-v1.160.0) (2026-07-04)
+
+
+### Features
+
+* **terminal:** SSO-gated agentic terminal sidekick replacing grilling view [T001565] ([#2557](https://github.com/Paddione/Bachelorprojekt/issues/2557)) ([dc8e174](https://github.com/Paddione/Bachelorprojekt/commit/dc8e174cb76391235b5a971bb8dbcf74062f7a12))
+
 ## [1.159.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.158.0...website-v1.159.0) (2026-07-04)
 
 

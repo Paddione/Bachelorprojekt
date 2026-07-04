@@ -12,7 +12,7 @@ depends_on_plans: []
 
 # brain-auto-memory — Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Ship a client-side, review-gated Bash bridge that one-way exports curated Claude auto-memory pages into the shared brain wiki repo.
 
@@ -59,7 +59,7 @@ website/src/data/test-inventory.json  (regenerated)  picks up the new BATS file 
 - Consumes: the script env contracts from the File Structure "Interfaces" block above.
 - Produces: the executable spec that Tasks 2–3 must turn GREEN.
 
-- [ ] **Step 1: Write the failing BATS spec.** Mirror `tests/spec/brain-initial-ingest.bats` structure (`#!/usr/bin/env bats`, `load 'test_helper'`, `setup`/`teardown` with `mktemp -d`). Cover exactly the 7 design cases. Use `AUTO_MEMORY_ROOT`, `AUTO_MEMORY_STATE`, `AUTO_MEMORY_CANDIDATES`, `BRAIN_REPO_PATH`, and `AUTO_MEMORY_ASSUME` fixtures so nothing touches the real `$HOME` or network.
+- [x] **Step 1: Write the failing BATS spec.** Mirror `tests/spec/brain-initial-ingest.bats` structure (`#!/usr/bin/env bats`, `load 'test_helper'`, `setup`/`teardown` with `mktemp -d`). Cover exactly the 7 design cases. Use `AUTO_MEMORY_ROOT`, `AUTO_MEMORY_STATE`, `AUTO_MEMORY_CANDIDATES`, `BRAIN_REPO_PATH`, and `AUTO_MEMORY_ASSUME` fixtures so nothing touches the real `$HOME` or network.
 
 ```bash
 #!/usr/bin/env bats
@@ -186,14 +186,14 @@ EOF
 }
 ```
 
-- [ ] **Step 2: Run the spec — expected: FAIL.** The scripts do not exist yet, so every case must fail.
+- [x] **Step 2: Run the spec — expected: FAIL.** The scripts do not exist yet, so every case must fail.
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/brain-auto-memory.bats
 # expected: FAIL (red — scripts/brain-auto-memory-scan.sh and export.sh not yet written)
 ```
 
-- [ ] **Step 3: Commit the RED spec.**
+- [x] **Step 3: Commit the RED spec.**
 
 ```bash
 git add tests/spec/brain-auto-memory.bats
@@ -212,7 +212,7 @@ git commit -m "test(brain): RED spec for auto-memory export bridge [T001567]"
 - Consumes: env `AUTO_MEMORY_ROOT`, `AUTO_MEMORY_STATE`, `AUTO_MEMORY_CANDIDATES`.
 - Produces: candidates JSON (`[{project,file,name,description,metadata_type,hash}]`) and a `_parse_frontmatter` convention reused by the exporter (same naive `---`-split parse).
 
-- [ ] **Step 1: Write the scanner.** Naive frontmatter parse (split on the first two `---` lines, `key: value` per line; `metadata.type` read from an indented `type:` line under `metadata:`). Skip `MEMORY.md`, unparsable pages (warn), and secret-matching bodies (warn). Emit candidates via `jq`. Exit `0` always. Include the cron example as a header comment so the file is self-documenting and not an orphan.
+- [x] **Step 1: Write the scanner.** Naive frontmatter parse (split on the first two `---` lines, `key: value` per line; `metadata.type` read from an indented `type:` line under `metadata:`). Skip `MEMORY.md`, unparsable pages (warn), and secret-matching bodies (warn). Emit candidates via `jq`. Exit `0` always. Include the cron example as a header comment so the file is self-documenting and not an orphan.
 
 ```bash
 #!/usr/bin/env bash
@@ -287,21 +287,21 @@ printf '%s\n' "$candidates" > "$CANDIDATES"
 exit 0
 ```
 
-- [ ] **Step 2: Make executable and check the S1 budget.**
+- [x] **Step 2: Make executable and check the S1 budget.**
 
 ```bash
 chmod +x scripts/brain-auto-memory-scan.sh
 wc -l scripts/brain-auto-memory-scan.sh   # expected < 500 (.sh limit); confirm budget = 500 - lines > 0
 ```
 
-- [ ] **Step 3: Run scanner cases — expected: PASS for cases 1–5.**
+- [x] **Step 3: Run scanner cases — expected: PASS for cases 1–5.**
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/brain-auto-memory.bats -f 'scan'
 # expected: PASS (5 scan cases green)
 ```
 
-- [ ] **Step 4: Commit.**
+- [x] **Step 4: Commit.**
 
 ```bash
 git add scripts/brain-auto-memory-scan.sh
@@ -320,7 +320,7 @@ git commit -m "feat(brain): auto-memory scanner with hash-diff and secret guardr
 - Consumes: candidates JSON from the scanner; env `BRAIN_REPO_PATH`, `AUTO_MEMORY_STATE`, `AUTO_MEMORY_CANDIDATES`, `AUTO_MEMORY_ROOT`, optional `AUTO_MEMORY_ASSUME` (answers file, one `y|n|e[:type]` per line).
 - Produces: converted pages at `$BRAIN_REPO_PATH/raw/auto-memory/<project>/<slug>.md`; state-file updates for approved pages only.
 
-- [ ] **Step 1: Write the exporter.** Guard `BRAIN_REPO_PATH` (unset OR not a git dir → abort non-zero before any state write). Call the scanner when candidates missing/empty. Loop candidates, prompt `[y/n/e]` (or read from `AUTO_MEMORY_ASSUME`), apply the mapping (`e` overrides type), write converted frontmatter + original body (body = everything after the source's closing `---`), then `git add/commit/push`. Update state only for `y` pages; on `git push` failure, abort without state change.
+- [x] **Step 1: Write the exporter.** Guard `BRAIN_REPO_PATH` (unset OR not a git dir → abort non-zero before any state write). Call the scanner when candidates missing/empty. Loop candidates, prompt `[y/n/e]` (or read from `AUTO_MEMORY_ASSUME`), apply the mapping (`e` overrides type), write converted frontmatter + original body (body = everything after the source's closing `---`), then `git add/commit/push`. Update state only for `y` pages; on `git push` failure, abort without state change.
 
 ```bash
 #!/usr/bin/env bash
@@ -428,21 +428,21 @@ done
 exit 0
 ```
 
-- [ ] **Step 2: Make executable and check the S1 budget.**
+- [x] **Step 2: Make executable and check the S1 budget.**
 
 ```bash
 chmod +x scripts/brain-auto-memory-export.sh
 wc -l scripts/brain-auto-memory-export.sh   # expected < 500 (.sh limit); confirm budget = 500 - lines > 0
 ```
 
-- [ ] **Step 3: Run the full spec — expected: PASS (all 8 cases green).**
+- [x] **Step 3: Run the full spec — expected: PASS (all 8 cases green).**
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/brain-auto-memory.bats
 # expected: PASS (all cases green — RED from Task 1 is now resolved)
 ```
 
-- [ ] **Step 4: Commit.**
+- [x] **Step 4: Commit.**
 
 ```bash
 git add scripts/brain-auto-memory-export.sh
@@ -457,14 +457,14 @@ git commit -m "feat(brain): interactive auto-memory exporter with abort-safe sta
 - Verify: `openspec/changes/brain-auto-memory/specs/brain-foundation.md` (ADDED Requirements 008–011 — already authored alongside this plan)
 - Regenerate: `website/src/data/test-inventory.json`
 
-- [ ] **Step 1: Validate the OpenSpec change — must be green before committing.**
+- [x] **Step 1: Validate the OpenSpec change — must be green before committing.**
 
 ```bash
 bash scripts/openspec.sh validate
 # expected: PASS (proposal + delta spec + tasks well-formed)
 ```
 
-- [ ] **Step 2: Regenerate the test inventory (new BATS file) and commit it.**
+- [x] **Step 2: Regenerate the test inventory (new BATS file) and commit it.**
 
 ```bash
 task test:inventory
@@ -472,7 +472,7 @@ git add website/src/data/test-inventory.json
 git commit -m "chore(brain): regenerate test inventory for auto-memory spec [T001567]"
 ```
 
-- [ ] **Step 3: Run the three mandatory CI gates.**
+- [x] **Step 3: Run the three mandatory CI gates.**
 
 ```bash
 task test:changed          # targeted tests for changed domains (BATS selection + quality)
@@ -482,4 +482,4 @@ task freshness:check       # CI equivalent: freshness + quality:check (S1–S4 r
 
 Expected: all three exit `0`. If `freshness:regenerate` changed any tracked file, `git add -A && git commit -m "chore(brain): freshness artefacts [T001567]"` and re-run `task freshness:check`.
 
-- [ ] **Step 4: Confirm no S1/orphan regression.** `wc -l` on both scripts stays under 500; both scripts are reachable (`export.sh` calls `scan.sh`; both referenced by the BATS spec and the in-script cron comment) so S4 is satisfied. No new `docs/code-quality/baseline.json` keys were added.
+- [x] **Step 4: Confirm no S1/orphan regression.** `wc -l` on both scripts stays under 500; both scripts are reachable (`export.sh` calls `scan.sh`; both referenced by the BATS spec and the in-script cron comment) so S4 is satisfied. No new `docs/code-quality/baseline.json` keys were added.

@@ -5,6 +5,7 @@ import { TERRITORY_AREA_IDS } from './map-areas.mjs';
 
 const TAXONOMY_REQUIRED = ['safe', 'caution', 'assisted', 'forbidden'];
 const TOOL_KINDS = ['skill', 'agent', 'task'];
+const HARNESS_VALUES = ['claude', 'opencode', 'both'];
 
 function load(dir, file) {
   return parse(readFileSync(join(dir, file), 'utf8')) ?? [];
@@ -72,6 +73,8 @@ export function validateRegistry(dir, repoRoot = null) {
     req(taxIds.has(t?.danger), `tools[${t?.id}]: danger '${t?.danger}' not in taxonomy`);
     for (const gid of t?.guardrails ?? []) req(grIds.has(gid), `tools[${t?.id}]: guardrail '${gid}' unknown`);
     for (const rid of t?.related ?? []) req(toolIds.has(rid), `tools[${t?.id}]: related '${rid}' unknown`);
+    if (t?.harness !== undefined)
+      req(HARNESS_VALUES.includes(t.harness), `tools[${t?.id}]: harness '${t.harness}' not in ${HARNESS_VALUES}`);
   }
 
   for (const g of goals) {

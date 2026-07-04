@@ -141,22 +141,21 @@ category: devflow                  # optional — existing field
 ---
 ```
 
-- **Skill HAS `agent:`** → orchestrator MUST dispatch as a subagent. Load `.claude/agents/<agent>.md`, splice its body as the system prompt, append the skill body + the user's request, and spawn `task` with `subagent_type: "general"`. The subagent owns the work in an isolated context window.
-- **Skill has NO `agent:`** → workflow/orchestrator skill. Load inline in the main session (current behavior). These are coordination skills (`dev-flow-plan`, `dev-flow-execute`, `dev-flow-chore`, `operations-management`, `ticket-ops`, `update-dependencies`, `lavish`, `mishap-tracker`, `using-git-worktrees`) that need to span multiple agents or hold persistent state across handoffs. `feature-intake` ist seit 2026-06-21 ein opencode-Command (`/feature-intake`), nicht mehr ein Skill.
+- **Skill HAS `agent:`** → dispatch it as a sub-agent through the `background-agents.ts`
+  plugin. Read-only sub-agents (edit/write/bash denied) run via the `delegate(prompt, agent)`
+  tool (async background session; retrieve the result with `delegation_read(id)`).
+  Write-capable sub-agents run via opencode's native write-capable delegation (preserves
+  undo/branching). The agent body (`.agents/agents/<role>.md` → `.claude/agents/<role>.md`)
+  becomes the sub-agent's system prompt; the skill body + the user's request its task.
+- **Skill has NO `agent:`** → workflow/orchestrator skill, loaded inline in the main session.
 
-### Dispatch recipe
+### Dispatch recipe (opencode)
 
-```bash
-# 1. Read the agent config (system prompt for the subagent)
-AGENT_BODY=$(cat .claude/agents/bachelorprojekt-<role>.md)   # strip YAML frontmatter
-SKILL_BODY=$(cat .claude/skills/<name>/SKILL.md | tail -n +5)   # strip frontmatter
-
-# 2. Orchestrator spawns a `task` call with subagent_type="general" and:
-#    system:  <AGENT_BODY>            ← domain knowledge, commands, gotchas
-#    prompt:  <SKILL_BODY>\n\n---\n\n<user request>
-```
-
-The subagent returns its result; the orchestrator relays it back. The subagent sees only its agent instructions + the skill + the request — no orchestrator noise.
+1. Read the agent body: `.agents/agents/bachelorprojekt-<role>.md` (strip frontmatter).
+2. Read the skill body: `.claude/skills/<name>/SKILL.md` (strip frontmatter).
+3. For a read-only sub-agent: `delegate(prompt: "<skill body>\n\n---\n\n<request>", agent: "<role>")`.
+   For a write-capable sub-agent: opencode's native write-capable delegation, selecting the
+   agent by name. If `background-agents.ts` is unavailable, run the sub-step inline.
 
 ### Current skill → agent map
 

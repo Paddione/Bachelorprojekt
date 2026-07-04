@@ -56,7 +56,10 @@ setup() {
 
 @test "rustdesk-web: bridge Services are selector-less with matching Endpoints to \${TURN_OVERLAY_IP}" {
   command -v kustomize >/dev/null || skip "kustomize not installed"
-  out="$(kustomize build "$K3D" --load-restrictor=LoadRestrictionsNone)"
+  # rustdesk-web-bridge.yaml is prod-only (TURN needs a real overlay IP, not
+  # substitutable in the dev overlay) — added as a resource in prod/kustomization.yaml
+  # rather than the k3d/ base, so build the prod overlay here instead of $K3D.
+  out="$(kustomize build "${REPO_ROOT}/prod" --load-restrictor=LoadRestrictionsNone)"
   # both bridge Services exist
   echo "$out" | grep -qE 'name:[[:space:]]*rustdesk-web-hbbs'
   echo "$out" | grep -qE 'name:[[:space:]]*rustdesk-web-hbbr'

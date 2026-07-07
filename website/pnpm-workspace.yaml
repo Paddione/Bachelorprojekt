@@ -2,16 +2,16 @@ allowBuilds:
   esbuild: true
   sharp: true
 minimumReleaseAgeExclude:
-  - '@vitest/expect@4.1.9'
-  - '@vitest/mocker@4.1.9'
-  - '@vitest/pretty-format@4.1.9'
-  - '@vitest/runner@4.1.9'
-  - '@vitest/snapshot@4.1.9'
-  - '@vitest/spy@4.1.9'
-  - '@vitest/utils@4.1.9'
+  - '@vitest/expect@4.1.9 || 4.1.10'
+  - '@vitest/mocker@4.1.9 || 4.1.10'
+  - '@vitest/pretty-format@4.1.9 || 4.1.10'
+  - '@vitest/runner@4.1.9 || 4.1.10'
+  - '@vitest/snapshot@4.1.9 || 4.1.10'
+  - '@vitest/spy@4.1.9 || 4.1.10'
+  - '@vitest/utils@4.1.9 || 4.1.10'
   - playwright-core@1.61.0 || 1.61.1
   - playwright@1.61.0 || 1.61.1
-  - vitest@4.1.9
+  - vitest@4.1.9 || 4.1.10
   - '@anthropic-ai/sdk@0.104.2 || 0.105.0 || 0.106.0 || 0.109.0 || 0.109.1 || 0.110.0'
   - livekit-server-sdk@2.15.5 || 2.16.0
   - pg-connection-string@2.14.0

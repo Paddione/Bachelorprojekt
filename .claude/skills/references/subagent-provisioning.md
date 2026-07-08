@@ -47,7 +47,9 @@ Das `task`-Tool kennt **`subagent_type` und `description`**, keinen separaten Ef
 | low | „Arbeite zügig und fokussiert." | mechanisch, geringes Risiko |
 | medium | (neutral, kein Zusatz) | Standard |
 | high | „Ultrathink. Denke sehr gründlich nach." | komplex/riskant/Meta |
-| **ultra** | high **+ `Workflow`-Fan-out statt Einzel-Agent** | sehr groß/parallelisierbar (multi-subsystem Plan/Review): nutze das `Workflow`-Tool (mehrere Agenten + adversariale Verifikation gegen einen **geteilten Interface-Contract**), nicht einen einzelnen Agenten |
+| **ultra** | high **+ `Workflow`-Fan-out statt Einzel-Agent** | sehr groß/parallelisierbar (multi-subsystem Plan/Review): nutze das **Claude Code** `Workflow`-Tool (mehrere Agenten + adversariale Verifikation gegen einen **geteilten Interface-Contract**), nicht einen einzelnen Agenten. In **opencode/agy** kein `Workflow`-Pendant — führe die Plan-Schritte seriell oder delegiere an einen einzelnen Subagenten mit high-Effort-Prompt. |
+
+> **Framework-Routing für Subagenten:** Claude Code → `Agent`/`Task` tool mit `subagent_type`. opencode → `delegate(prompt, agent)` für read-only, native write-capable Delegation für Edit-Zugriff. agy → treat opencode path as authoritative; bash/MCP tool calls are framework-agnostic.
 
 ### 3. Kontext (passend & KOMPAKT)
 

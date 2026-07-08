@@ -146,8 +146,11 @@ Mirror `website/src/lib/clarification-questions.ts` (`deriveSections`) — the s
 | `priority` / `severity` | Priorität (hoch/mittel/niedrig)? Severity (critical/major/minor/trivial)? |
 | `area/component` | Welcher Bereich/Component ist betroffen? |
 
-### Step 2.3: Ask via `AskUserQuestion`
-One `AskUserQuestion` round per ticket (≤4 questions per call — split into multiple calls if a ticket has more), in priority order. Use the radio/checkbox option sets from `clarification-questions.ts` where they exist; free-text otherwise. If you are running without the `AskUserQuestion` tool (e.g. dispatched as a subagent), fall back to one consolidated plain-text question per ticket.
+### Step 2.3: Ask via the interactive question tool
+Use the framework-appropriate question tool:
+- **Claude Code:** `AskUserQuestion` — one round per ticket (≤4 questions per call), in priority order. Use the radio/checkbox option sets from `clarification-questions.ts` where they exist; free-text otherwise.
+- **opencode:** `question` tool — same workflow, same constraints.
+If you are running without an interactive question tool (e.g. dispatched as a subagent without one), fall back to one consolidated plain-text question per ticket.
 
 ### Step 2.4: Write answers back to the DB
 
@@ -162,12 +165,13 @@ Fallback / bulk path (ticket-mcp nicht erreichbar, oder für Felder ohne Wrapper
 ```bash
 psql -c "
 UPDATE tickets.tickets
-   SET readiness   = COALESCE(readiness,'{}'::jsonb) || '{\"spec_skizziert\":true,\"aufwand_geschaetzt\":true}'::jsonb,
-       effort      = 'mittel',
-       depends_on  = ARRAY['T000YYY'],
-       priority    = 'hoch',
-       updated_at  = now()
+   SET readiness   = COALESCE(readiness,'{}'::jsonb) || '{"spec_skizziert":true,"aufwand_geschaetzt":true}'::jsonb,
+        effort      = 'mittel',
+        depends_on  = ARRAY['T000YYY'],
+        priority    = 'hoch',
+        updated_at  = now()
  WHERE external_id = 'T000XXX';
+-- AUTHOR_LABEL: Set platform-agnostic. Claude Code → 'claude-code', opencode → 'opencode'
 INSERT INTO tickets.ticket_comments (ticket_id, author_label, body, visibility)
 SELECT id, 'claude-code',
        E'## Klärungsrunde $(date +%F)\n| Frage | Antwort |\n|---|---|\n| Kern-Flow | … |\n| Aufwand | mittel |',

@@ -41,6 +41,6 @@ setup() {
   [ "$status" -ne 0 ]
   # Collapse-Regex muss fuer alle vier Pfade vorhanden sein:
   # dev-Apply, dev-kustomize, prod-early-Apply, prod-kustomize
-  cnt=$(grep -cF 's/\$\$([a-zA-Z0-9_]|\{)/\$\1/g' "$TASKFILE" || true)
+  cnt=$(grep -cF 's/\$\$([a-zA-Z0-9_]|\{)/$\1/g' "$TASKFILE" || true)
   [ "${cnt:-0}" -ge 4 ]
 }

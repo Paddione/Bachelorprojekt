@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.165.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.165.0...website-v1.165.1) (2026-07-08)
+
+
+### Bug Fixes
+
+* **website:** add automated migration runner for website/src/db/migrations [T001652] ([#2629](https://github.com/Paddione/Bachelorprojekt/issues/2629)) ([31b140f](https://github.com/Paddione/Bachelorprojekt/commit/31b140f264f42d924d2a13cc57e62f6e7b78505d))
+
 ## [1.165.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.164.0...website-v1.165.0) (2026-07-08)
 
 

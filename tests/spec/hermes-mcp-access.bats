@@ -43,7 +43,7 @@ teardown() {
   
   # Parse expected servers from opencode.jsonc (excluding task-master-ai)
   _opencode_mcp=$(cat "${SCRIPT_REPO_ROOT}/.opencode/opencode.jsonc" 2>/dev/null | grep -A10 '"mcp": {' || true)
-  _servers_catalog=($(echo "$_opencode_mcp" | grep '^[a-z].*:' | sed 's/.*: *//' | tr '\n' ' ') | xargs)
+  _servers_catalog=($(echo "$_opencode_mcp" | grep '^[a-z].*:' | sed 's/.*: *//' | tr '\n' ' ' | xargs))
   
   # Build expected list from design doc table (6 servers)
   _expected_servers="mcp-postgres mcp-kubernetes factory-mcp codebase-memory-mcp mcp-task-runner ticket-mcp"

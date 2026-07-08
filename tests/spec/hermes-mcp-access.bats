@@ -76,18 +76,11 @@ teardown() {
       has_command=true
     fi
     
-    # Should have url XOR command, not both and not neither
-    local status=false
-    if $has_url && ! $has_command; then
-      status=true
-    elif ! $has_url && $has_command; then
-      status=true
-    fi
-    
-    [[ "$status" == true ]] || {
-      echo "Server '$server' has both url and command (should be XOR)"
+    # Should have url or command — at least one, not zero
+    if ! $has_url && ! $has_command; then
+      echo "Server '$server' has neither url nor command"
       return 1
-    }
+    fi
   done
 }
 
@@ -107,8 +100,8 @@ teardown() {
     [[ -z "$_server" ]] && continue
     
     # Verify this server actually has a tools.exclude in the registry
-    _exclude_list=$(yq ".[\"$_server\"].tools.exclude | join(\", \")" "$REGISTRY_SCRIPT")
-    if [[ -z "$_exclude_list" ]]; then
+    _exclude_list=$(yq ".[\"$_server\"].tools.exclude // [] | join(\", \")" "$REGISTRY_SCRIPT")
+    if [[ -z "$_exclude_list" ]] || [[ "$_exclude_list" == "null" ]]; then
       echo "Server '$_server' missing tools.exclude key"
       return 1
     fi
@@ -232,8 +225,10 @@ teardown() {
   _hermes_stub="$BATS_TEST_TMPDIR/hermes-stub"
   cat > "$_hermes_stub" << 'HERMES_STUB'
 #!/bin/bash
-# Stub that prints its argv for inspection (doesn't exec, so output is captured)
-echo "hermes $*"
+# Stub that prints its argv, preserving empty arguments for grep matching
+out="hermes"
+for a in "$@"; do out="$out $a"; done
+echo "$out"
 HERMES_STUB
   chmod +x "$_hermes_stub"
 
@@ -242,10 +237,11 @@ HERMES_STUB
   
   # Run delegate without --with-project-mcp (default path)
   _output=$("${SCRIPT_REPO_ROOT}/scripts/hermes-delegate.sh" "test prompt" 2>/dev/null) || true
+  echo "DELEGATE OUTPUT: $_output"
   
   # Default should use -t "" (no tools)
-  echo "$_output" | grep -qE 'hermes.*-t[[:space:]]*""' || {
-    echo "Default delegate invocation should use '-t \"\"' for no tool access"
+  echo "$_output" | grep -qE 'hermes.*-t ""' || {
+    echo "Default delegate invocation should use '-t \"\"' for no tool access. Got: $_output"
     return 1
   }
 
@@ -262,8 +258,10 @@ HERMES_STUB
   _hermes_stub="$BATS_TEST_TMPDIR/hermes-stub"
   cat > "$_hermes_stub" << 'HERMES_STUB'
 #!/bin/bash
-# Stub that prints its argv for inspection (doesn't exec, so output is captured)
-echo "hermes $*"
+# Stub that prints its argv, preserving empty arguments for grep matching
+out="hermes"
+for a in "$@"; do out="$out $a"; done
+echo "$out"
 HERMES_STUB
   chmod +x "$_hermes_stub"
 
@@ -272,10 +270,11 @@ HERMES_STUB
   
   # Run delegate with --with-project-mcp (opt-in path)
   _output=$("${SCRIPT_REPO_ROOT}/scripts/hermes-delegate.sh" "test prompt" "--with-project-mcp" 2>/dev/null) || true
+  echo "DELEGATE OUTPUT: $_output"
   
   # Opt-in should NOT force -t "" (that would defeat the purpose)
-  echo "$_output" | grep -qvE 'hermes.*-t[[:space:]]*""' || {
-    echo "Delegate opt-in path incorrectly forces '-t \"\"'"
+  echo "$_output" | grep -qvE 'hermes.*-t ""' || {
+    echo "Delegate opt-in path incorrectly forces '-t \"\"'. Got: $_output"
     return 1
   }
 

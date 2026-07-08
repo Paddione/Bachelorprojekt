@@ -28,9 +28,9 @@ if [[ ! -x "$HERMES" ]]; then
 fi
 
 # Default: explicit no tool access (-t "") per Tier-0 policy  
-exec "$HERMES" --cli -z "$PROMPT" -t ""
-
 if [[ "$WITH_PROJECT_MCP" == true ]]; then
   # Opt-in path: remove -t "" suppression to activate provisioned MCP servers
   exec "$HERMES" --cli -z "$PROMPT"
 fi
+
+exec "$HERMES" --cli -z "$PROMPT" -t ""

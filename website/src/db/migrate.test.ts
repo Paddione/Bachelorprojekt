@@ -28,26 +28,30 @@ function createMockPool(opts: MockPoolOptions = {}) {
   const failOn = opts.failOn ?? {};
   const calls: QueryCall[] = [];
 
-  const query = vi.fn(async (sql: string, params?: unknown[]): Promise<QueryResult<any>> => {
-    calls.push({ sql, params });
+  const query = vi.fn(
+    async (sql: string, params?: unknown[]): Promise<QueryResult<{ filename: string }>> => {
+      calls.push({ sql, params });
 
-    if (/^SELECT filename FROM schema_migrations/.test(sql)) {
-      return { rows: tracked.map((filename) => ({ filename })) } as QueryResult<any>;
-    }
-
-    // Migration body queries are the fixture strings produced by the mocked
-    // readFileSync: "-- sql body for <path>". Find a matching failOn entry
-    // by checking whether the path ends with the configured filename.
-    for (const [filename, err] of Object.entries(failOn)) {
-      if (sql.includes(`for `) && sql.endsWith(filename)) {
-        const e = new Error(err.message) as Error & { code: string };
-        e.code = err.code;
-        throw e;
+      if (/^SELECT filename FROM schema_migrations/.test(sql)) {
+        return {
+          rows: tracked.map((filename) => ({ filename })),
+        } as QueryResult<{ filename: string }>;
       }
-    }
 
-    return { rows: [] } as unknown as QueryResult<any>;
-  });
+      // Migration body queries are the fixture strings produced by the mocked
+      // readFileSync: "-- sql body for <path>". Find a matching failOn entry
+      // by checking whether the path ends with the configured filename.
+      for (const [filename, err] of Object.entries(failOn)) {
+        if (sql.includes(`for `) && sql.endsWith(filename)) {
+          const e = new Error(err.message) as Error & { code: string };
+          e.code = err.code;
+          throw e;
+        }
+      }
+
+      return { rows: [] } as unknown as QueryResult<{ filename: string }>;
+    },
+  );
 
   return { query, calls } as unknown as Pool & { calls: QueryCall[] };
 }

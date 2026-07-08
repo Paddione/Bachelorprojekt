@@ -2,6 +2,7 @@ import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Pool } from 'pg';
+import { logger } from '../lib/logger';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -34,7 +35,7 @@ export async function runMigrations(pool: Pool): Promise<void> {
 
   const migrationsDir = join(__dirname, 'migrations');
   if (!existsSync(migrationsDir)) {
-    console.warn(`[migrate] migrations dir missing (${migrationsDir}) — skipping`);
+    logger.warn({ migrationsDir }, '[migrate] migrations dir missing — skipping');
     return;
   }
 
@@ -94,7 +95,7 @@ async function main(): Promise<void> {
 const isMain = process.argv[1] && import.meta.url === `file://${process.argv[1]}`;
 if (isMain) {
   main().catch((e) => {
-    console.error('[migrate] failed:', e instanceof Error ? e.message : e);
+    logger.error({ err: e }, '[migrate] failed');
     process.exit(1);
   });
 }

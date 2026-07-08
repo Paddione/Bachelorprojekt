@@ -72,17 +72,17 @@
       "source": "Read"
     },
     {
-      "qualified_name": ".opencode/plugins/background-agents.ts:default-export",
+      "qualified_name": ".opencode/skills/dev-flow/background-agents.ts:default-export",
       "kind": "plugin",
-      "file": ".opencode/plugins/background-agents.ts",
+      "file": ".opencode/skills/dev-flow/background-agents.ts",
       "signature": "opencode plugin — replaces native task tool with persistent, async-first agent delegation",
       "type_text": "opencode Plugin (unverified exact API — to be read at plan-time)",
       "source": "Explore-subagent-inventory"
     },
     {
-      "qualified_name": ".opencode/plugins/worktree.ts:default-export",
+      "qualified_name": ".opencode/skills/dev-flow/worktree.ts:default-export",
       "kind": "plugin",
-      "file": ".opencode/plugins/worktree.ts",
+      "file": ".opencode/skills/dev-flow/worktree.ts",
       "signature": "opencode plugin — worktree-session isolation (spawns isolated git worktrees/terminals)",
       "type_text": "opencode Plugin (unverified exact API, git-crypt-Handling ungeprueft — zu lesen am Plan-Zeitpunkt)",
       "source": "Explore-subagent-inventory"

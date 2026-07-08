@@ -710,7 +710,13 @@ tasks:
 
 
   test:factory:
-    desc: "Run the offline-safe Software Factory bats (tests/local/FA-SF-* + FA-AR-*) and spec bats (tests/spec/*). Live-DB cases skip without a reachable cluster, so this is CI-safe."
+    desc: "Run the offline-safe Software Factory regression bats (tests/local/FA-SF-* + FA-AR-*). Live-DB cases skip without a reachable cluster, so this is CI-safe."
+    cmds:
+      - '[ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive'
+      - ./tests/unit/lib/bats-core/bin/bats tests/local/FA-SF-*.bats tests/local/FA-AR-*.bats
+
+  test:spec:
+    desc: "Run the offline-safe spec bats (tests/spec/*). Builds mcp-task-runner fresh if go is available (best-effort). Live-DB cases skip without a reachable cluster, so this is CI-safe."
     cmds:
       - '[ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive'
       - |
@@ -735,7 +741,7 @@ tasks:
         else
           echo "mcp-task-runner: go not found — using pre-installed binary if present"
         fi
-      - ./tests/unit/lib/bats-core/bin/bats tests/local/FA-SF-*.bats tests/local/FA-AR-*.bats tests/spec/*.bats
+      - ./tests/unit/lib/bats-core/bin/bats tests/spec/*.bats
 
   test:mcp-tooling:
     desc: "Guardrail: ticket-mcp tools <-> mcp-tool-guide.md <-> skill-critical verbs (hard)"
@@ -814,12 +820,13 @@ tasks:
       - |
         set -e
         CHANGED=$(git diff --name-only HEAD origin/main 2>/dev/null || git diff --name-only HEAD 2>/dev/null || true)
-        RUN_WEBSITE=false; RUN_MENTOLDER_WEB=false; RUN_K8S=false; RUN_SCRIPTS=false; RUN_FACTORY=false; RUN_UNIT=false; RUN_MCP=false; RUN_OPENSPEC=false; RUN_AGENTS=false
+        RUN_WEBSITE=false; RUN_MENTOLDER_WEB=false; RUN_K8S=false; RUN_SCRIPTS=false; RUN_FACTORY=false; RUN_SPEC=false; RUN_UNIT=false; RUN_MCP=false; RUN_OPENSPEC=false; RUN_AGENTS=false
         echo "$CHANGED" | grep -qE "^website/" && RUN_WEBSITE=true || true
         echo "$CHANGED" | grep -qE "^mentolder-web/" && RUN_MENTOLDER_WEB=true || true
         echo "$CHANGED" | grep -qE "^(k3d/|prod|prod-fleet|prod-mentolder|prod-korczewski|environments/)" && RUN_K8S=true || true
         echo "$CHANGED" | grep -qE "^scripts/" && RUN_SCRIPTS=true || true
-        echo "$CHANGED" | grep -qE "^(scripts/factory/|tests/spec/)" && RUN_FACTORY=true || true
+        echo "$CHANGED" | grep -qE "^(scripts/factory/|tests/local/FA-)" && RUN_FACTORY=true || true
+        echo "$CHANGED" | grep -qE "^tests/spec/" && RUN_SPEC=true || true
         echo "$CHANGED" | grep -qE "^(tests/unit/|\.bats)" && RUN_UNIT=true || true
         echo "$CHANGED" | grep -qE "^(\.claude/skills/|\.mcp\.json|\.opencode/|tests/spec/mcp-tooling\.bats|scripts/ticket-mcp/)" && RUN_MCP=true || true
         echo "$CHANGED" | grep -qE "^(\.claude/agents/|AGENTS\.md)" && RUN_AGENTS=true || true
@@ -829,11 +836,12 @@ tasks:
         if [ "$RUN_K8S" = "true" ]; then echo "→ k8s changes: task test:manifests"; task test:manifests; fi
         if [ "$RUN_SCRIPTS" = "true" ]; then echo "→ script changes: task test:unit"; task test:unit; fi
         if [ "$RUN_FACTORY" = "true" ]; then echo "→ factory changes: task test:factory"; task test:factory; fi
+        if [ "$RUN_SPEC" = "true" ]; then echo "→ spec changes: task test:spec"; task test:spec; fi
         if [ "$RUN_MCP" = "true" ] && [ "$RUN_SCRIPTS" = "false" ]; then echo "→ MCP tooling guardrail"; task test:mcp-tooling; fi
         if [ "$RUN_AGENTS" = "true" ]; then echo "→ agent library changes: task test:agent-library"; task test:agent-library; fi
         if [ "$RUN_UNIT" = "true" ] && [ "$RUN_SCRIPTS" = "false" ]; then echo "→ test changes: task test:unit"; task test:unit; fi
         if [ "$RUN_OPENSPEC" = "true" ]; then echo "→ openspec changes: task test:openspec"; task test:openspec; fi
-        if [ "$RUN_WEBSITE" = "false" ] && [ "$RUN_MENTOLDER_WEB" = "false" ] && [ "$RUN_K8S" = "false" ] && [ "$RUN_SCRIPTS" = "false" ] && [ "$RUN_FACTORY" = "false" ] && [ "$RUN_UNIT" = "false" ] && [ "$RUN_MCP" = "false" ] && [ "$RUN_AGENTS" = "false" ] && [ "$RUN_OPENSPEC" = "false" ]; then
+        if [ "$RUN_WEBSITE" = "false" ] && [ "$RUN_MENTOLDER_WEB" = "false" ] && [ "$RUN_K8S" = "false" ] && [ "$RUN_SCRIPTS" = "false" ] && [ "$RUN_FACTORY" = "false" ] && [ "$RUN_SPEC" = "false" ] && [ "$RUN_UNIT" = "false" ] && [ "$RUN_MCP" = "false" ] && [ "$RUN_AGENTS" = "false" ] && [ "$RUN_OPENSPEC" = "false" ]; then
           if command -v pnpm >/dev/null 2>&1; then echo "→ no domain-specific changes: vitest --changed"; (cd website && pnpm vitest run --changed --reporter verbose); fi
         fi
         echo "→ quality gate (always)"; task test:code-quality

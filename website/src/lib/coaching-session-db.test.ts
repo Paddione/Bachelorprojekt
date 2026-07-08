@@ -63,7 +63,8 @@ beforeAll(async () => {
       created_by TEXT NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
       completed_at TIMESTAMPTZ,
-      archived_at TIMESTAMPTZ
+      archived_at TIMESTAMPTZ,
+      is_test_data BOOLEAN NOT NULL DEFAULT false
     );
     CREATE TABLE coaching.session_steps (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -285,6 +286,24 @@ describe('deleteSession', () => {
   it('gibt false zurück bei unbekannter id', async () => {
     const result = await deleteSession(pool, '00000000-0000-4000-8000-000000000099');
     expect(result).toBe(false);
+  });
+});
+
+describe('createSession isTestData', () => {
+  it('persists isTestData=true', async () => {
+    const s = await createSession(pool, {
+      brand: 'mentolder', title: 'Testdaten', createdBy: 'coach1', mode: 'live', isTestData: true,
+    });
+    const r = await pool.query('SELECT is_test_data FROM coaching.sessions WHERE id = $1', [s.id]);
+    expect(r.rows[0].is_test_data).toBe(true);
+  });
+
+  it('defaults isTestData to false', async () => {
+    const s = await createSession(pool, {
+      brand: 'mentolder', title: 'Echtdaten', createdBy: 'coach1', mode: 'live',
+    });
+    const r = await pool.query('SELECT is_test_data FROM coaching.sessions WHERE id = $1', [s.id]);
+    expect(r.rows[0].is_test_data).toBe(false);
   });
 });
 

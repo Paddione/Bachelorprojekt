@@ -120,7 +120,7 @@ Chore-spezifisch: Titelformat `chore(<scope>): <subject> [$TICKET_EXT_ID]`. Die
 `[T000XXX]`-Referenz wird von `.github/workflows/post-merge.yml` gelesen — das Ticket ist
 bereits `done`, der Status-Update ist ein idempotenter No-op.
 
-Rufe `commit-commands:commit-push-pr` auf (oder `gh pr create` manuell).
+Rufe `commit-commands:commit-push-pr` auf (Claude Code slash-command) oder führe `gh pr create` manuell aus (beide Frameworks).
 
 ## Schritt 5: Merge wenn CI grün
 

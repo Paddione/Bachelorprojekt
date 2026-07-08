@@ -68,6 +68,7 @@ interface CreateSessionArgs {
   mode: 'live' | 'prep';
   title: string;
   createdBy: string;
+  isTestData?: boolean;
 }
 
 interface UpsertStepArgs {
@@ -121,13 +122,13 @@ function rowToStep(row: Record<string, unknown>): SessionStep {
 export async function createSession(pool: Pool, args: CreateSessionArgs): Promise<Session> {
   const r = await pool.query(
     `INSERT INTO coaching.sessions
-       (brand, client_id, client_name, project_id, ki_config_id, mode, title, created_by)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       (brand, client_id, client_name, project_id, ki_config_id, mode, title, created_by, is_test_data)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
      RETURNING *`,
     [
       args.brand, args.clientId ?? null, args.clientName ?? null,
       args.projectId ?? null, args.kiConfigId ?? null,
-      args.mode, args.title, args.createdBy,
+      args.mode, args.title, args.createdBy, args.isTestData ?? false,
     ],
   );
   return rowToSession(r.rows[0]);

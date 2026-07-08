@@ -109,7 +109,7 @@ Delegiere das Plan-Schreiben an einen read-only Subagenten via `background-agent
 delegate(prompt: "<plan-writing task mit Spec + intel.json>", agent: "explore")
 ```
 
-Ergebnis mit `delegation_read(id)` abrufen. Falls `background-agents.ts` nicht verfügbar, schreibe den Plan inline.
+Ergebnis mit `delegation_read(id)` abrufen. Falls `background-agents.ts` nicht verfügbar (opencode oder agy ohne Plugin), schreibe den Plan inline.
 
 Der Subagent MUSS die Spec + `openspec/changes/<slug>/intel.json` als Kontext erhalten und die Plan-Qualitäts-Gates einhalten: S1-Budget pro Datei, `plan-lint.sh`-Konformität (F1/F2/STRUCT1-3/P1), drei verify-Commands im letzten Task.
 

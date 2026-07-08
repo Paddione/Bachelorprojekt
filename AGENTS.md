@@ -157,6 +157,10 @@ category: devflow                  # optional — existing field
    For a write-capable sub-agent: opencode's native write-capable delegation, selecting the
    agent by name. If `background-agents.ts` is unavailable, run the sub-step inline.
 
+### agy compatibility
+
+agy is **not explicitly covered** in most skill files. The rule of thumb: **treat the opencode path as authoritative**. All CLI tools (`gh`, `git`, `kubectl`, `task`, `bash scripts/`), MCP tool calls, and git workflows are framework-agnostic. The only gaps are framework-native subagent spawning (`delegate()`, `Agent`/`Task` tool) and Claude Code built-in superpowers — for those, execute the steps inline or manually. The 6 superpower stubs under `.claude/skills/superpowers-*/` and `.claude/skills/{test-driven-development,verification-before-completion,requesting-code-review}/` have framework mapping tables that include agy guidance.
+
 ### Current skill → agent map
 
 Only skills with an explicit `agent:` field in their SKILL.md frontmatter are dispatched as subagents. The rest are coordination skills loaded inline. As of 2026-06-22, exactly three skills declare an `agent:` field:

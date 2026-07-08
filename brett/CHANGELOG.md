@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.36.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.35.0...brett-v0.36.0) (2026-07-08)
+
+
+### Features
+
+* T001641 coaching-ki-model-select — model probe, scrubber, models endpoint ([#2652](https://github.com/Paddione/Bachelorprojekt/issues/2652)) ([ed5614f](https://github.com/Paddione/Bachelorprojekt/commit/ed5614ffeb2178c6f01c7deae418446f68bc5b3d))
+
 ## [0.35.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.34.1...brett-v0.35.0) (2026-07-08)
 
 

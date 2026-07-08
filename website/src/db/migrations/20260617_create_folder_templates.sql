@@ -28,18 +28,20 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO website;
 -- Pass :brand via psql -v brand=mentolder (or korczewski).
 -- The DO block uses pg_try_advisory_xact_lock to prevent concurrent seed insertions.
 DO $$
+DECLARE
+  b TEXT;
 BEGIN
-  IF EXISTS (SELECT 1 FROM public.folder_templates WHERE brand = :'brand' AND is_default) THEN
-    RETURN;
-  END IF;
-
-  INSERT INTO public.folder_templates (brand, name, structure, is_default)
-  VALUES (
-    :'brand',
-    'Standard',
-    '{"folders":["01_Vertrag","02_Rechnungen","03_Dokumente","04_Assets","05_Kommunikation"]}',
-    true
-  )
-  ON CONFLICT (brand, name) DO NOTHING;
+  FOREACH b IN ARRAY ARRAY['mentolder', 'korczewski'] LOOP
+    IF NOT EXISTS (SELECT 1 FROM public.folder_templates WHERE brand = b AND is_default) THEN
+      INSERT INTO public.folder_templates (brand, name, structure, is_default)
+      VALUES (
+        b,
+        'Standard',
+        '{"folders":["01_Vertrag","02_Rechnungen","03_Dokumente","04_Assets","05_Kommunikation"]}',
+        true
+      )
+      ON CONFLICT (brand, name) DO NOTHING;
+    END IF;
+  END LOOP;
 END
 $$;

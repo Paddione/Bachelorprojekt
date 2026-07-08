@@ -2,6 +2,21 @@
 -- Refreshed from live mentolder DB on 2026-06-20.
 -- Upserts so a fresh deploy gets sensible defaults; admin edits take precedence via ON CONFLICT.
 
+CREATE TABLE IF NOT EXISTS leistungen_config (
+  brand            TEXT PRIMARY KEY,
+  categories_json  JSONB NOT NULL,
+  version          INTEGER NOT NULL DEFAULT 0,
+  updated_at       TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS service_config (
+  brand            TEXT PRIMARY KEY,
+  services_json    JSONB NOT NULL,
+  version          INTEGER NOT NULL DEFAULT 0,
+  updated_at       TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+
 INSERT INTO leistungen_config (brand, categories_json)
 VALUES (
   'mentolder',

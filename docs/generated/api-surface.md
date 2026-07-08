@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-07-04T00:59:52.397Z
+> Generated at 2026-07-08T12:45:01.041Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -79,6 +79,7 @@
 | `/api/admin/coaching/ki-config` | GET, POST | 🔐 admin | `website/src/pages/api/admin/coaching/ki-config/index.ts` |
 | `/api/admin/coaching/ki-config/{id}` | PATCH, DELETE | 🔐 admin | `website/src/pages/api/admin/coaching/ki-config/[id].ts` |
 | `/api/admin/coaching/ki-config/active` | PATCH | 🔐 admin | `website/src/pages/api/admin/coaching/ki-config/active.ts` |
+| `/api/admin/coaching/ki-config/models` | GET | 🔐 admin | `website/src/pages/api/admin/coaching/ki-config/models.ts` |
 | `/api/admin/coaching/projects` | GET | 🔐 admin | `website/src/pages/api/admin/coaching/projects/index.ts` |
 | `/api/admin/coaching/projects/{id}` | GET, PATCH | 🔐 admin | `website/src/pages/api/admin/coaching/projects/[id].ts` |
 | `/api/admin/coaching/save` | POST | 🔐 admin | `website/src/pages/api/admin/coaching/save.ts` |

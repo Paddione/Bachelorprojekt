@@ -6,7 +6,7 @@ import { getStepTemplate, buildPromptFromTemplate } from '../../../../../../../.
 import { getStepDef, buildUserPrompt } from '../../../../../../../../lib/coaching-session-prompts';
 import { getProject } from '../../../../../../../../lib/coaching-project-db';
 import { pool } from '../../../../../../../../lib/website-db';
-import { scrubPayload } from '../../../../../../lib/prompt-scrubber';
+import { scrubPayload } from '../../../../../../../../lib/prompt-scrubber';
 
 export const prerender = false;
 

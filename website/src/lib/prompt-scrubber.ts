@@ -1,7 +1,5 @@
 export interface ScrubbedPayload { effectiveSystemPrompt: string; anonymizedUserPrompt: string; }
 
-const PII_PATTERNS = [/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g];
-
 export function scrubPayload(text: string, replacement: string): string {
   let result = text;
   for (const email of extractPIICandidates(text)) {

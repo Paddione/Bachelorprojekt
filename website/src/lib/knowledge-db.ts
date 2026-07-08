@@ -1,7 +1,7 @@
 import { Pool } from 'pg';
-import dns from 'dns';
 import { embedQuery, type EmbeddingModel } from './embeddings';
 import { logAiCall } from './ai-metrics';
+import { pool as defaultPool } from './db-pool';
 
 export class MixedEmbeddingModelError extends Error {
   constructor(models: string[]) {
@@ -10,28 +10,12 @@ export class MixedEmbeddingModelError extends Error {
   }
 }
 
-// musl libc's getaddrinfo opens a connected UDP socket which drops CoreDNS
-// responses after kube-proxy DNAT. Node's dns.resolve4 uses an unconnected
-// socket and is unaffected — mirrors website-db.ts.
-function nodeLookup(
-  hostname: string,
-  _opts: unknown,
-  cb: (err: Error | null, addr: string, family: number) => void,
-) {
-  dns.resolve4(hostname, (err, addrs) => cb(err ?? null, addrs?.[0] ?? '', 4));
-}
-
-let _pool: Pool | null = null;
-function p(): Pool {
-  if (!_pool) {
-    const connectionString = process.env.SESSIONS_DATABASE_URL
-      || 'postgresql://website:devwebsitedb@shared-db.workspace.svc.cluster.local:5432/website';
-    _pool = new Pool({ connectionString, lookup: nodeLookup } as unknown as import('pg').PoolConfig);
-  }
-  return _pool;
-}
-
+// Test-only escape hatch: tests in knowledge-db.test.ts mocken den Pool per pg-mem.
+// In Produktion wird ausschließlich `defaultPool` (aus db-pool.ts) verwendet — der
+// gehärtete Pool liefert nodeLookup DNS-Workaround + fail-soft Timeouts.
+let _pool: Pool | undefined;
 export function __setPoolForTests(testPool: Pool): void { _pool = testPool; }
+function p(): Pool { return _pool ?? defaultPool; }
 
 export type CollectionSource = 'pr_history' | 'specs_plans' | 'claude_md' | 'bug_tickets' | 'custom' | 'web_crawl' | 'context7_docs';
 

@@ -1,13 +1,71 @@
 /* eslint-disable */
 // Dashboard (Kundenliste) · Kundenakte · KI-Profil-Editor
 
-// =====================================================================
-// 1 · DASHBOARD / Kundenliste
-// =====================================================================
-function Dashboard({ onNav }){
+function ConfirmDelete({ show, customer, onConfirm, onAbort }){
+  if(!show) return null;
+  const activeSessions = customer.aktiv + customer.pausiert;
+  return (
+    <div className="confirm-overlay" onClick={onAbort}>
+      <div className="confirm-modal" onClick={(e)=> e.stopPropagation()}>
+        <Icon.trash width={32} height={32}/>
+        <h3>Kundenakte löschen</h3>
+        <p>Sind Sie sicher, dass Sie "{customer.name}" löschen möchten?</p>
+        {activeSessions > 0 && (
+          <div className="confirm-del">
+            <span className="warn-q">Warnung:</span>
+            <span className="warn-sessions">{activeSessions} aktive/pausierte Session{activeSessions > 1 ? "en" : ""}</span>
+          </div>
+        )}
+        <div className="confirm-actions">
+          <button className="btn btn-quiet" onClick={onAbort}>Abbrechen</button>
+          <button className="btn btn-danger" onClick={onConfirm}>Ja, löschen</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function KundenakteCard({ customer, onNav, onDelete }){
+  const [showDelete, setShowDelete] = useState(false);
+  const activeSessions = customer.aktiv + customer.pausiert;
+
+  return (
+    <button key={customer.id} className="card kunde-card" onClick={()=> onNav("akte", customer)}>
+      <div className="head">
+        <span className="avatar">{customer.initials}</span>
+        <div>
+          <div className="name">{customer.name}</div>
+          <div className="sub">{customer.category} · {customer.lang} · seit {customer.since}</div>
+        </div>
+      </div>
+      <div className="sess-count">
+        <div className="c"><b>{customer.aktiv}</b><span>Aktiv</span></div>
+        <div className="c"><b>{customer.pausiert}</b><span>Pausiert</span></div>
+        <div className="c"><b>{customer.fertig}</b><span>Fertig</span></div>
+      </div>
+      <div className="meta">
+        {customer.aktiv>0 && <span className="pill pill-aktiv"><span className="dot dot-aktiv pulse"/>Aktiv</span>}
+        {customer.pausiert>0 && <span className="pill pill-pausiert"><span className="dot dot-pausiert"/>Pausiert</span>}
+        {customer.aktiv===0 && customer.pausiert===0 && <span className="pill pill-fertig"><span className="dot dot-fertig"/>Ruht</span>}
+      </div>
+      {activeSessions === 0 && (
+        <button 
+          className="btn btn-quiet" 
+          style={{position:"absolute", top:8, right:8}}
+          onClick={(e)=>{ e.stopPropagation(); setShowDelete(true); }}
+          aria-label={customer.name + " löschen"}
+        >
+          <Icon.trash width="14" height="14"/>
+        </button>
+      )}
+    </button>
+  );
+}
+
+function Dashboard({ onNav, customers, onDelete }){
   const [q, setQ] = useState("");
-  const list = CUSTOMERS.filter(k=> k.name.toLowerCase().includes(q.toLowerCase()) || k.category.toLowerCase().includes(q.toLowerCase()));
-  const sum = CUSTOMERS.reduce((a,k)=> ({ aktiv:a.aktiv+k.aktiv, pausiert:a.pausiert+k.pausiert, fertig:a.fertig+k.fertig }), {aktiv:0,pausiert:0,fertig:0});
+  const list = customers.filter(k=> k.name.toLowerCase().includes(q.toLowerCase()) || k.category.toLowerCase().includes(q.toLowerCase()));
+  const sum = customers.reduce((a,k)=> ({ aktiv:a.aktiv+k.aktiv, pausiert:a.pausiert+k.pausiert, fertig:a.fertig+k.fertig }), {aktiv:0,pausiert:0,fertig:0});
 
   return (
     <div className="screen"><div className="wrap">
@@ -15,12 +73,12 @@ function Dashboard({ onNav }){
         <div className="eyebrow">Übersicht</div>
         <div className="between" style={{alignItems:"flex-end"}}>
           <h1>Klient:innen &amp; <em>Sessions</em></h1>
-          <button className="btn btn-primary" onClick={()=> onNav("workspace", CUSTOMERS[0])}><Icon.plus width="15" height="15"/>Neue Session</button>
+          <button className="btn btn-primary" onClick={()=> onNav("workspace", customers[0])} disabled={!customers[0]}><Icon.plus width="15" height="15"/>Neue Session</button>
         </div>
       </div>
 
       <div className="stat-strip">
-        <div className="stat-cell"><div className="n">{CUSTOMERS.length}</div><div className="l">Klient:innen</div></div>
+        <div className="stat-cell"><div className="n">{customers.length}</div><div className="l">Klient:innen</div></div>
         <div className="stat-cell"><div className="n">{sum.aktiv}<em> ●</em></div><div className="l">Aktive Sessions</div></div>
         <div className="stat-cell"><div className="n">{sum.pausiert}</div><div className="l">Pausiert</div></div>
         <div className="stat-cell"><div className="n">{sum.fertig}</div><div className="l">Abgeschlossen</div></div>
@@ -34,29 +92,31 @@ function Dashboard({ onNav }){
         <button className="btn btn-ghost" onClick={()=> onNav("admin")}>Admin</button>
       </div>
 
-      <div className="kunden-grid">
-        {list.map(k=> (
-          <button key={k.id} className="card kunde-card" onClick={()=> onNav("akte", k)}>
-            <div className="head">
-              <span className="avatar">{k.initials}</span>
-              <div>
-                <div className="name">{k.name}</div>
-                <div className="sub">{k.category} · {k.lang} · seit {k.since}</div>
-              </div>
-            </div>
-            <div className="sess-count">
-              <div className="c"><b>{k.aktiv}</b><span>Aktiv</span></div>
-              <div className="c"><b>{k.pausiert}</b><span>Pausiert</span></div>
-              <div className="c"><b>{k.fertig}</b><span>Fertig</span></div>
-            </div>
-            <div className="meta">
-              {k.aktiv>0 && <span className="pill pill-aktiv"><span className="dot dot-aktiv pulse"/>Aktiv</span>}
-              {k.pausiert>0 && <span className="pill pill-pausiert"><span className="dot dot-pausiert"/>Pausiert</span>}
-              {k.aktiv===0 && k.pausiert===0 && <span className="pill pill-fertig"><span className="dot dot-fertig"/>Ruht</span>}
-            </div>
-          </button>
-        ))}
-      </div>
+      {list.length > 0 ? (
+        <div className="kunden-grid">
+          {list.map(customer=> (
+            <KundenakteCard 
+              key={customer.id} 
+              customer={customer} 
+              onNav={onNav} 
+              onDelete={onDelete} 
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="empty-state">
+          <Icon.people width={48} height={48}/>
+          <h3>Keine Klient:innen</h3>
+          <p>Erstelle die erste Session, um Klient:innen anzulegen.</p>
+        </div>
+      )}
+
+      <ConfirmDelete 
+        show={showDelete} 
+        customer={list[0]}
+        onConfirm={()=> onDelete(list[0].id)}
+        onAbort={()=> setShowDelete(false)}
+      />
     </div></div>
   );
 }
@@ -65,8 +125,6 @@ function Dashboard({ onNav }){
 // 2 · KUNDENAKTE
 // =====================================================================
 const STATUS_LABEL = { aktiv:"Aktiv", pausiert:"Pausiert", fertig:"Abgeschlossen" };
-function Kundenakte({ customer, onNav }){
-  const k = customer || CUSTOMERS[0] || EMPTY_CUSTOMER;
   const activeProfile = PROFILE_FIELDS.filter(f=> f.active);
 
   return (
@@ -74,10 +132,12 @@ function Kundenakte({ customer, onNav }){
       <button className="btn btn-quiet btn-sm" style={{marginBottom:14, paddingInline:0}} onClick={()=> onNav("dashboard")}><Icon.back width="14" height="14"/>Übersicht</button>
       <div className="page-head" style={{borderBottom:"none", marginBottom:8, paddingBottom:0}}>
         <div className="eyebrow">Kundenakte</div>
+        {activeSessions > 0 && (
+          <div className="warning-badge">Warnung: {activeSessions} aktive/pausierte Session{activeSessions > 1 ? "en" : ""}</div>
+        )}
       </div>
 
       <div className="akte-grid">
-        {/* Aside: Stammdaten + KI-Profil */}
         <aside className="akte-aside">
           <div className="card akte-id">
             <div className="head">
@@ -111,9 +171,16 @@ function Kundenakte({ customer, onNav }){
             </div>
             <div className="kicker" style={{marginTop:6}}>{activeProfile.length} von {PROFILE_FIELDS.length} aktiv für Session</div>
           </div>
+
+          <button 
+            className="btn btn-danger" 
+            onClick={()=> onDelete(k.id)}
+            disabled={activeSessions > 0}
+          >
+            {activeSessions > 0 ? "Löschen deaktiviert ("+activeSessions+" Sessions)" : "Kundenakte löschen"}
+          </button>
         </aside>
 
-        {/* Main: Sessions */}
         <div>
           <div className="between" style={{marginBottom:18}}>
             <div className="row gap-sm">
@@ -154,20 +221,15 @@ function Kundenakte({ customer, onNav }){
 // 3 · KI-PROFIL-EDITOR
 // =====================================================================
 function ProfileEditor({ customer, onNav }){
-  const k = customer || CUSTOMERS[0] || EMPTY_CUSTOMER;
+  if(!customer) return <div className="empty-state">Keine Klient:innen vorhanden</div>;
+  
+  const k = customer;
   const [fields, setFields] = useState(()=> PROFILE_FIELDS.map(f=> ({...f})));
   const toggle = (i)=> setFields(fs=> fs.map((f,j)=> j===i ? {...f, active:!f.active} : f));
-  const edit = (i,v)=> setFields(fs=> fs.map((f,j)=> j===i ? {...f, value:v} : f));
-  const activeCount = fields.filter(f=> f.active).length;
-
-  return (
-    <div className="screen"><div className="wrap">
-      <button className="btn btn-quiet btn-sm" style={{marginBottom:14, paddingInline:0}} onClick={()=> onNav("akte", k)}><Icon.back width="14" height="14"/>Zurück zur Akte</button>
-      <div className="page-head">
         <div className="eyebrow">KI-Profil · {k.name}</div>
         <div className="between" style={{alignItems:"flex-end"}}>
           <h1>Profil für die <em>KI-Anfrage</em></h1>
-          <span className="pill pill-aktiv"><span className="dot dot-aktiv"/>{activeCount} aktiv</span>
+          <span className="pill pill-aktiv"><span className="dot dot-activ"/>{activeCount} aktiv</span>
         </div>
       </div>
 
@@ -210,3 +272,4 @@ function ProfileEditor({ customer, onNav }){
 window.Dashboard = Dashboard;
 window.Kundenakte = Kundenakte;
 window.ProfileEditor = ProfileEditor;
+EOF && echo "✅ screens_core.jsx written"

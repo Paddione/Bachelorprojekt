@@ -474,3 +474,54 @@ a{ color:inherit; text-decoration:none; }
   content:""; position:absolute; inset:27%; border-radius:3px; background:#0b111c;
   clip-path: polygon(0 55%, 30% 55%, 30% 0, 70% 0, 70% 55%, 100% 55%, 100% 100%, 0 100%);
 }
+
+/* ---------------------------------------------------------------------
+   Kundenakte löschen — Bestätigung, Empty-State, Undo-Toast
+   --------------------------------------------------------------------- */
+.kunde-card[role="button"]{ cursor:pointer; }
+.kunde-card[role="button"]:focus-visible{ outline:2px solid var(--brass, #b8860b); outline-offset:2px; }
+.kunde-card .head .btn-quiet{ margin-inline-start:auto; }
+
+.confirm-del{
+  display:flex; flex-wrap:wrap; align-items:center; gap:8px;
+  margin-top:10px; padding-top:10px;
+  border-top:1px solid var(--line, rgba(0,0,0,.12));
+}
+.confirm-del .warn-q{ font-weight:600; }
+.confirm-del .warn-sessions{ flex-basis:100%; font-size:12px; color:var(--brass, #b8860b); }
+
+.empty-state{ padding:40px 0; text-align:center; }
+
+.undo-toast{
+  position:fixed; inset-block-end:24px; inset-inline:0;
+  margin-inline:auto; width:max-content; max-width:90vw;
+  display:flex; align-items:center; gap:14px;
+  padding:12px 18px; border-radius:10px; z-index:1000;
+  background:var(--ink, #1a1a1a); color:#fff;
+  box-shadow:0 8px 30px rgba(0,0,0,.25);
+}
+.undo-toast .btn{ color:#fff; }
+CSSEOF && echo "✅ Task 7 CSS added"
+/* ---------------------------------------------------------------------
+   Kundenakte löschen — Bestätigung, Empty-State, Undo-Toast
+   --------------------------------------------------------------------- */
+
+.kunde-card[role="button"]{ cursor:pointer; }
+.kunde-card[role="button"]:focus-visible{ outline:2px solid var(--brass, #b8860b); outline-offset:2px; }
+.kunde-card .head .btn-quiet{ margin-inline-start:auto; }
+
+.confirm-del{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:10px; padding-top:10px; border-top:1px solid var(--line, rgba(0,0,0,.12)); }
+.confirm-del .warn-q{ font-weight:600; }
+.confirm-del .warn-sessions{ flex-basis:100%; font-size:12px; color:var(--brass, #b8860b); }
+
+.empty-state{ padding:40px 0; text-align:center; }
+
+.undo-toast{ position:fixed; inset-block-end:24px; inset-inline:0; margin-inline:auto; width:max-content; max-width:90vw; display:flex; align-items:center; gap:14px; padding:12px 18px; border-radius:10px; z-index:1000; background:var(--ink, #1a1a1a); color:#fff; box-shadow:0 8px 30px rgba(0,0,0,.25); }
+.undo-toast .btn{ color:#fff; }
+EOF && echo "✅ CSS added"
+
+/* Kundenakte löschen — Bestätigung, Empty-State, Undo-Toast */
+.kunde-card[role="button"]{ cursor:pointer; }
+.confirm-del{ display:flex; gap:8px; margin-top:10px; border-top:1px solid var(--line); }
+.empty-state{ padding:40px 0; text-align:center; }
+.undo-toast{ position:fixed; inset-block-end:24px; margin-inline:auto; max-width:90vw; background:#1a1a1a; color:#fff; padding:12px 18px; border-radius:10px; z-index:1000; box-shadow:0 8px 30px rgba(0,0,0,.25); }

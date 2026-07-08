@@ -14,5 +14,6 @@
     "paths": {
       "$lib/*": ["./src/lib/*"]
     }
-  }
+  },
+  "exclude": ["public"]
 }

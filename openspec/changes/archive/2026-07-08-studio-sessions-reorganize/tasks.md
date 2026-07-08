@@ -36,8 +36,8 @@ _Ticket: T001649_
 - Consumes: Existing files and pages to check.
 - Produces: Assertions for sidebar items, session list tabs, "+ Neue Session" button, page title, and sub-brand header.
 
-- [ ] **Step 1:** Create the BATS test file.
-- [ ] **Step 2:** Run the test to verify it fails initially (failing test step).
+- [x] **Step 1:** Create the BATS test file.
+- [x] **Step 2:** Run the test to verify it fails initially (failing test step).
   ```bash
   tests/unit/lib/bats-core/bin/bats tests/spec/studio-sessions-reorganize.bats
   # expected: FAIL
@@ -54,10 +54,10 @@ _Ticket: T001649_
 - Consumes: Astro props and `navSections` array.
 - Produces: Modified sidebar menu where `/admin/coaching/sessions` is removed and `/admin/coaching/studio` is renamed to "Sessions".
 
-- [ ] **Step 1:** Update the sidebar navigation Astro component.
+- [x] **Step 1:** Update the sidebar navigation Astro component.
   - Remove navigation item for sessions under Geschäft.
   - Rename navigation item for studio to Sessions.
-- [ ] **Step 2:** Execute BATS test suite to verify that the sidebar assertions pass.
+- [x] **Step 2:** Execute BATS test suite to verify that the sidebar assertions pass.
   ```bash
   tests/unit/lib/bats-core/bin/bats tests/spec/studio-sessions-reorganize.bats
   ```
@@ -74,12 +74,12 @@ _Ticket: T001649_
 - Consumes: React component top bar rendering.
 - Produces: App header sub-brand renamed to "Coaching Sessions", navigation link to Sessions list added, and Astro layout wrapper title renamed to "Coaching Sessions".
 
-- [ ] **Step 1:** Update the coaching studio React application layout.
+- [x] **Step 1:** Update the coaching studio React application layout.
   - Change sub-brand header Coaching Studio to Coaching Sessions.
   - Add navigation link pointing to sessions list in the top bar navigation.
-- [ ] **Step 2:** Update the coaching studio Astro wrapper page.
+- [x] **Step 2:** Update the coaching studio Astro wrapper page.
   - Change title attribute in AdminLayout to Coaching Sessions.
-- [ ] **Step 3:** Run the BATS test suite to verify these assertions pass.
+- [x] **Step 3:** Run the BATS test suite to verify these assertions pass.
   ```bash
   tests/unit/lib/bats-core/bin/bats tests/spec/studio-sessions-reorganize.bats
   ```
@@ -97,11 +97,11 @@ _Ticket: T001649_
 - Consumes: Astro component index page layout.
 - Produces: Updated tab bar links.
 
-- [ ] **Step 1:** Update the coaching sessions index Astro page.
+- [x] **Step 1:** Update the coaching sessions index Astro page.
   - Remove the unused Projekte tab link.
   - Rename the current active tab label from Sessions to Sessions-Liste.
   - Rename Studio tab link to Sessions.
-- [ ] **Step 2:** Verify changes by running the BATS test suite.
+- [x] **Step 2:** Verify changes by running the BATS test suite.
   ```bash
   tests/unit/lib/bats-core/bin/bats tests/spec/studio-sessions-reorganize.bats
   ```
@@ -117,9 +117,9 @@ _Ticket: T001649_
 - Consumes: Svelte component markup.
 - Produces: Toolbar layout without "+ Neue Session" button.
 
-- [ ] **Step 1:** Update the coaching sessions overview Svelte component.
+- [x] **Step 1:** Update the coaching sessions overview Svelte component.
   - Remove the anchor link for creating a new session.
-- [ ] **Step 2:** Verify that the test suite passes completely.
+- [x] **Step 2:** Verify that the test suite passes completely.
   ```bash
   tests/unit/lib/bats-core/bin/bats tests/spec/studio-sessions-reorganize.bats
   ```
@@ -132,11 +132,11 @@ _Ticket: T001649_
 
 **Files:** None
 
-- [ ] **Step 1:** Regenerate test inventory and track the new BATS test file.
+- [x] **Step 1:** Regenerate test inventory and track the new BATS test file.
   ```bash
   task test:inventory
   ```
-- [ ] **Step 2:** Run the mandatory validation checks.
+- [x] **Step 2:** Run the mandatory validation checks.
   ```bash
   task test:changed
   task freshness:regenerate

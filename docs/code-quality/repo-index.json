@@ -2355,7 +2355,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 442,
+      "file_count": 443,
       "files": [
         ".opencode/commands/opsx-apply.md",
         ".opencode/commands/opsx-archive.md",
@@ -2645,6 +2645,7 @@
         "k3d/office-stack/secret.yaml",
         "k3d/pentest-flags.yaml",
         "k3d/pocket-id-client-seed-rbac.yaml",
+        "k3d/pocket-id-client-seed-website-rbac.yaml",
         "k3d/pocket-id-client-seed.yaml",
         "k3d/pocket-id.yaml",
         "k3d/pvc-backup-cronjob.yaml",

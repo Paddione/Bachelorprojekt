@@ -33,13 +33,17 @@ load 'test_helper'
 }
 
 @test "prod-korczewski exkludiert brain (mentolder-only)" {
-  run cat prod-korczewski/brain-exclude.yaml
-  [ "${status}" -eq 0 ] || fail "brain-exclude.yaml nicht lesbar"
-  grep -q 'name: brain' <<< "$output" && grep -qE '^spec: \{\}$' <<< "$output" || fail "Exklusions-Patch fehlt"
+  # Exclusion moved inline into kustomization.yaml (PR #2556) — the separate
+  # brain-exclude.yaml multi-doc patch file panics kustomize v5.4.2.
+  run cat prod-korczewski/kustomization.yaml
+  [ "${status}" -eq 0 ] || { echo "FAIL: kustomization.yaml nicht lesbar"; return 1; }
+  grep -q 'name: brain' <<< "$output" || { echo "FAIL: brain-Exklusion fehlt"; return 1; }
+  grep -q 'name: oauth2-proxy-brain' <<< "$output" || { echo "FAIL: oauth2-proxy-brain-Exklusion fehlt"; return 1; }
+  grep -qE '\$patch: delete' <<< "$output" || { echo "FAIL: \$patch: delete fehlt"; return 1; }
 }
 
 @test "k3d/secrets.yaml enthält POCKET_ID_BRAIN_SECRET" {
   run cat k3d/secrets.yaml
-  [ "${status}" -eq 0 ] || fail "secrets.yaml nicht lesbar"
-  grep -q 'POCKET_ID_BRAIN_SECRET' <<< "$output" || fail "Secret fehlt"
+  [ "${status}" -eq 0 ] || { echo "FAIL: secrets.yaml nicht lesbar"; return 1; }
+  grep -q 'POCKET_ID_BRAIN_SECRET' <<< "$output" || { echo "FAIL: Secret fehlt"; return 1; }
 }

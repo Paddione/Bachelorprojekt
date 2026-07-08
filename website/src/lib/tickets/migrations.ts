@@ -189,6 +189,7 @@ export async function applyLegacyMigrations(pool: Pool | PoolClient): Promise<vo
       has_inbox_flag    BOOLEAN;
       has_thread_flag   BOOLEAN;
       has_messages_flag BOOLEAN;
+      has_coaching_flag BOOLEAN;
       keep_emails       TEXT[] := ARRAY[
                            'patrick@korczewski.de',
                            'p.korczewski@gmail.com',
@@ -242,6 +243,11 @@ export async function applyLegacyMigrations(pool: Pool | PoolClient): Promise<vo
                        AND table_name='messages'
                        AND column_name='is_test_data')
         INTO has_messages_flag;
+      SELECT EXISTS(SELECT 1 FROM information_schema.columns
+                     WHERE table_schema='coaching'
+                       AND table_name='sessions'
+                       AND column_name='is_test_data')
+        INTO has_coaching_flag;
 
       ----------------------------------------------------------------------------
       -- 1) Clear FK from questionnaire_test_status to test-data tickets.
@@ -477,6 +483,22 @@ export async function applyLegacyMigrations(pool: Pool | PoolClient): Promise<vo
       END IF;
 
       ----------------------------------------------------------------------------
+      -- 11e) ── Coaching sessions sweep (NEW in v6 / T001638). ──────────────────
+      --     Guarded: column may not exist before the 2026-07-08 migration ran.
+      ----------------------------------------------------------------------------
+      IF has_coaching_flag THEN
+        DELETE FROM coaching.session_steps
+         USING coaching.sessions s
+         WHERE session_id = s.id AND s.is_test_data;
+        GET DIAGNOSTICS cnt = ROW_COUNT;
+        result := result || jsonb_build_object('coaching_session_steps', cnt);
+
+        DELETE FROM coaching.sessions WHERE is_test_data;
+        GET DIAGNOSTICS cnt = ROW_COUNT;
+        result := result || jsonb_build_object('coaching_sessions', cnt);
+      END IF;
+
+      ----------------------------------------------------------------------------
       -- 12) Customer allowlist sweep.
       ----------------------------------------------------------------------------
       DELETE FROM customers c
@@ -509,7 +531,7 @@ export async function applyLegacyMigrations(pool: Pool | PoolClient): Promise<vo
     $$;
   `);
 
-  await pool.query(`COMMENT ON FUNCTION tickets.fn_purge_test_data() IS 'Idempotent test-data purge. v5 (2026-07-02, T001453): re-marks unmarked canonical E2E identities (RFC-2606 mails, [TEST] E2E User) before the flag sweeps'`);
+  await pool.query(`COMMENT ON FUNCTION tickets.fn_purge_test_data() IS 'Idempotent test-data purge. v6 (2026-07-08, T001638): adds a guarded coaching sessions sweep (coaching.sessions.is_test_data + coaching.session_steps) on top of the v5 unmarked-identity re-marking sweeps'`);
   await pool.query(`GRANT EXECUTE ON FUNCTION tickets.fn_purge_test_data() TO website`);
 
   // ── INERT future plumbing: pg_notify on new feature tickets ─────────────────

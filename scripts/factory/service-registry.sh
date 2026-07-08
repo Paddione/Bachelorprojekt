@@ -74,6 +74,7 @@ declare -A SERVICE_REGISTRY=(
   [k3d/pocket-id.yaml]="pocket-id"
   [k3d/pocket-id-client-seed.yaml]="pocket-id"
   [k3d/pocket-id-client-seed-rbac.yaml]="pocket-id"
+  [k3d/pocket-id-client-seed-website-rbac.yaml]="pocket-id"
   [k3d/studio.yaml]="studio-server"
   [k3d/oauth2-proxy-studio.yaml]="studio-server"
   [k3d/mentolder-web.yaml]="mentolder-web"

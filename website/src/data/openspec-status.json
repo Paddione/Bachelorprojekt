@@ -907,6 +907,12 @@
       "status": "plan_staged"
     }
   ],
+  "T001638": [
+    {
+      "slug": "coaching-sessions-admin-ux",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

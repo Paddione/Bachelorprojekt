@@ -47,7 +47,7 @@ while IFS= read -r file; do
     basename=$(basename "$file")
     name="${basename%.*}"
     # Try name.bats and common patterns
-    local matched_test=""
+    matched_test=""
     if [ -f "$BASE_DIR/$name.bats" ]; then
       matched_test="$BASE_DIR/$name.bats"
     elif [ -f "$BASE_DIR/vda-$name.bats" ]; then

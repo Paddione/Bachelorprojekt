@@ -66,7 +66,7 @@ function Dashboard({ onNav }){
 // =====================================================================
 const STATUS_LABEL = { aktiv:"Aktiv", pausiert:"Pausiert", fertig:"Abgeschlossen" };
 function Kundenakte({ customer, onNav }){
-  const k = customer || CUSTOMERS[0];
+  const k = customer || CUSTOMERS[0] || EMPTY_CUSTOMER;
   const activeProfile = PROFILE_FIELDS.filter(f=> f.active);
 
   return (
@@ -154,7 +154,7 @@ function Kundenakte({ customer, onNav }){
 // 3 · KI-PROFIL-EDITOR
 // =====================================================================
 function ProfileEditor({ customer, onNav }){
-  const k = customer || CUSTOMERS[0];
+  const k = customer || CUSTOMERS[0] || EMPTY_CUSTOMER;
   const [fields, setFields] = useState(()=> PROFILE_FIELDS.map(f=> ({...f})));
   const toggle = (i)=> setFields(fs=> fs.map((f,j)=> j===i ? {...f, active:!f.active} : f));
   const edit = (i,v)=> setFields(fs=> fs.map((f,j)=> j===i ? {...f, value:v} : f));

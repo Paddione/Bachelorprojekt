@@ -805,6 +805,12 @@
       "status": "plan_staged"
     }
   ],
+  "T001567": [
+    {
+      "slug": "brain-auto-memory",
+      "status": "plan_staged"
+    }
+  ],
   "T001568": [
     {
       "slug": "2026-07-03-brain-foundation",
@@ -886,6 +892,12 @@
   "T001608": [
     {
       "slug": "brain-quality-goals",
+      "status": "plan_staged"
+    }
+  ],
+  "T001610": [
+    {
+      "slug": "t001610",
       "status": "plan_staged"
     }
   ],

@@ -1,0 +1,95 @@
+{
+  "meta": {
+    "slug": "brain-auto-memory",
+    "ticket_id": "T001567",
+    "generated_from": "main@a7d538968",
+    "domains": ["infra", "ai", "workflow"],
+    "intel_sources": ["grep", "Read", "baseline.json", "plan-lint.sh"]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/brain-auto-memory-scan.sh",
+      "language": "sh",
+      "loc": 0,
+      "s1_limit": 500,
+      "s1_baseline": null,
+      "s1_budget": 500
+    },
+    {
+      "path": "scripts/brain-auto-memory-export.sh",
+      "language": "sh",
+      "loc": 0,
+      "s1_limit": 500,
+      "s1_baseline": null,
+      "s1_budget": 500
+    },
+    {
+      "path": "tests/spec/brain-auto-memory.bats",
+      "language": "bats",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/brain-merge-hook.sh:main",
+      "kind": "script-entrypoint",
+      "file": "scripts/brain-merge-hook.sh",
+      "signature": "brain-merge-hook.sh <SRC=.> <DEST=./raw> -> copies *.md preserving relpath, writes $DEST/.manifest.json",
+      "type_text": "(src: path, dest: path) => void",
+      "source": "Read (worktree /tmp/wt-pr2559-v2, branch feature/t001566-brain-llm-wiki, PR #2559)"
+    },
+    {
+      "qualified_name": "scripts/brain-gekko-inbox.sh:main",
+      "kind": "script-entrypoint",
+      "file": "scripts/brain-gekko-inbox.sh",
+      "signature": "brain-gekko-inbox.sh <SRC> <DEST> [--title T] [--tags t1,t2] -> writes $DEST/$SLUG.md with frontmatter (type: note, title, tags), slug from basename",
+      "type_text": "(src: path, dest: path, opts: {title?: string, tags?: string}) => void",
+      "source": "Read (worktree /tmp/wt-pr2559-v2, branch feature/t001566-brain-llm-wiki, PR #2559)"
+    },
+    {
+      "qualified_name": "scripts/brain-mcp-server.py:find_page",
+      "kind": "function",
+      "file": "scripts/brain-mcp-server.py",
+      "signature": "find_page(wiki_dir, slug) -> Path | None — rglob('*.md') matching stem == slug",
+      "type_text": "(wiki_dir: str, slug: str) => Path | null",
+      "source": "Read (worktree /tmp/wt-pr2559-v2, branch feature/t001566-brain-llm-wiki, PR #2559)"
+    },
+    {
+      "qualified_name": "scripts/brain-mcp-server.py:read_page",
+      "kind": "function",
+      "file": "scripts/brain-mcp-server.py",
+      "signature": "read_page(path) -> {frontmatter: dict, body: str, path: str} — naive '---'-split frontmatter parse (k: v per line, no nesting)",
+      "type_text": "(path: Path) => {frontmatter: object, body: string, path: string}",
+      "source": "Read (worktree /tmp/wt-pr2559-v2, branch feature/t001566-brain-llm-wiki, PR #2559)"
+    },
+    {
+      "qualified_name": "openspec/specs/brain-foundation.md:REQ-BRAIN-FOUNDATION-002",
+      "kind": "requirement",
+      "file": "openspec/specs/brain-foundation.md",
+      "signature": "SCHEMA.md conventions: mandatory frontmatter type in {note, moc, entity, decision, runbook}, tags, status in {draft, active, archived}",
+      "type_text": "n/a — spec requirement, not code",
+      "source": "Read (main, openspec/specs/brain-foundation.md)"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [
+      "scripts/brain-auto-memory-scan.sh:main",
+      "scripts/brain-auto-memory-export.sh:main"
+    ],
+    "edges": [
+      { "from": "brain-auto-memory-export.sh:main", "to": "brain-auto-memory-scan.sh:main", "kind": "calls" }
+    ]
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory-mcp was not used for this bundle (bash-script feature, no indexed symbols expected for scripts/brain-merge-hook.sh et al. on an unmerged PR branch) — intel gathered via direct Read of the PR #2559 worktree instead. loc fields for the three new files are 0 (files do not exist yet); the plan subagent must recompute s1_budget after writing each file via `wc -l` (limit values above already reflect scripts/plan-lint.sh:_ext_limit for .sh=500 / .bats=0-ungated).",
+      "severity": "info"
+    }
+  ]
+}

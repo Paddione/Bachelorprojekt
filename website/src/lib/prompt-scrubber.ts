@@ -1,54 +1,28 @@
-export interface ScrubbedPayload { effectiveSystemPrompt: string; anonymizedUserPrompt: string; }
+export interface ScrubOptions { names: string[]; emails?: string[]; replacement: string; }
 
-export function scrubPayload(text: string, replacement: string): string {
-  let result = text;
-  for (const email of extractPIICandidates(text)) {
-    const regex = new RegExp(email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
-    result = result.replace(regex, replacement);
-  }
-  
-  for (const nameCandidate of extractPIICandidates(text)) {
-    if (nameCandidate.includes('@') || nameCandidate.includes('Klient')) continue;
-    const regex = new RegExp(nameCandidate.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
-    result = result.replace(regex, replacement);
-  }
-  
-  return result;
-}
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-function extractPIICandidates(text: string): Set<string> {
-  const candidates = new Set<string>();
-  for (const match of text.matchAll(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g)) {
-    if (match[1]) candidates.add(match[1]);
+/** Case-insensitive, Unicode/Umlaut-safe, word-boundary scrub of client PII. */
+export function scrubClientPii(text: string, opts: ScrubOptions): string {
+  const { names, emails = [], replacement } = opts;
+  // Build token set: full names + name components ≥ 3 chars; longest first so a full
+  // name is replaced before its parts (avoids leaving a dangling half).
+  const nameTokens = new Set<string>();
+  for (const n of names) {
+    const trimmed = n.trim();
+    if (trimmed.length >= 3) nameTokens.add(trimmed);
+    for (const part of trimmed.split(/\s+/)) if (part.length >= 3) nameTokens.add(part);
   }
-  
-  const nameMatches = text.match(/([A-Za-zäöüÄÖÜß]+(?:\s+[A-Za-zäöüÄÖÜß]+)?)/g);
-  if (nameMatches) {
-    for (const m of nameMatches) {
-      const clean = m.replace(/[^a-zA-ZäöüÄÖÜß]/g, '');
-      if (/^[A-Z][a-z]+(\s+[A-Z][a-z]+)?$/.test(clean)) {
-        candidates.add(m);
-      }
-    }
+  let out = text;
+  const sorted = [...nameTokens].sort((a, b) => b.length - a.length);
+  for (const tok of sorted) {
+    // Unicode letter/number boundaries so "Beispielhannes" ⊉ "Hannes".
+    const re = new RegExp(`(?<![\\p{L}\\p{N}])${escapeRe(tok)}(?![\\p{L}\\p{N}])`, 'giu');
+    out = out.replace(re, replacement);
   }
-  
-  return candidates;
-}
-
-export function scrubPrompt(systemPrompt: string | null, userPrompt: string, customerNumber: string): ScrubbedPayload {
-  const effectiveSystemPrompt = systemPrompt ? scrubPayload(systemPrompt, customerNumber) : '';
-  let anonymizedUserPrompt = userPrompt;
-  
-  if (userPrompt && !userPrompt.includes(customerNumber)) {
-    const prefix = `Klient ${customerNumber}:`;
-    anonymizedUserPrompt = scrubPayload(userPrompt, customerNumber);
-    
-    if (anonymizedUserPrompt && !anonymizedUserPrompt.startsWith(prefix)) {
-      anonymizedUserPrompt = `${prefix}\n${anonymizedUserPrompt}`;
-    } else if (!anonymizedUserPrompt) {
-      anonymizedUserPrompt = prefix;
-    }
+  for (const email of emails) {
+    if (!email.trim()) continue;
+    out = out.replace(new RegExp(escapeRe(email.trim()), 'gi'), replacement);
   }
-  
-  return { effectiveSystemPrompt, anonymizedUserPrompt };
+  return out;
 }

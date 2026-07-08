@@ -1,26 +1,8 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
+import { fetchModelIds } from '../../../../lib/llm-models-probe';
 
 export const prerender = false;
-
-interface LocalEndpointStatus { reachable: boolean; models?: string[]; }
-
-// Server-side reachability probe for the local GPU worker. Fail-soft: any error
-// (timeout/ECONNREFUSED/parse) → reachable:false. The provider stays selectable;
-// this is only a UI hint, never an auth gate. 1s timeout to keep the page snappy.
-async function checkLocalEndpoint(url: string): Promise<LocalEndpointStatus> {
-  try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(1000) });
-    if (!res.ok) return { reachable: false };
-    const body = await res.json().catch(() => null) as { data?: { id?: string }[] } | null;
-    const models = Array.isArray(body?.data)
-      ? body!.data.map((m) => m?.id).filter((id): id is string => typeof id === 'string')
-      : undefined;
-    return { reachable: true, ...(models && models.length ? { models } : {}) };
-  } catch {
-    return { reachable: false };
-  }
-}
 
 export const GET: APIRoute = async ({ request }) => {
   const session = await getSession(request.headers.get('cookie'));
@@ -32,8 +14,8 @@ export const GET: APIRoute = async ({ request }) => {
   // the pod can reach it via the existing llm-gateway Services. Fallback: localhost (dev).
   const gpuBase = process.env.LLM_HOST_IP?.trim() || 'localhost';
   const [lmstudio, ollama] = await Promise.all([
-    checkLocalEndpoint(`http://${gpuBase}:1234/v1/models`),
-    checkLocalEndpoint(`http://${gpuBase}:11434/v1/models`),
+    fetchModelIds(`http://${gpuBase}:1234/v1`, 1000),
+    fetchModelIds(`http://${gpuBase}:11434/v1`, 1000),
   ]);
   const body = {
     ANTHROPIC_API_KEY: has('ANTHROPIC_API_KEY'),

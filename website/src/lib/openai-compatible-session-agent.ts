@@ -2,7 +2,7 @@ import type { SessionAgent, GenerateOptions, GenerateResult } from './session-ag
 import type { KiConfig } from './coaching-ki-config-db';
 import { searchCoachingKnowledgeTool } from './session-tools';
 
-function resolveEndpoint(kiConfig: KiConfig): string {
+export function resolveEndpoint(kiConfig: KiConfig): string {
   if (kiConfig.apiEndpoint) return kiConfig.apiEndpoint;
   const gpuBase = process.env.LLM_HOST_IP?.trim() || 'localhost';
   const defaults: Record<string, string> = {

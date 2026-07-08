@@ -6,7 +6,7 @@ import { getStepTemplate, buildPromptFromTemplate } from '../../../../../../../.
 import { getStepDef, buildUserPrompt } from '../../../../../../../../lib/coaching-session-prompts';
 import { getProject } from '../../../../../../../../lib/coaching-project-db';
 import { pool } from '../../../../../../../../lib/website-db';
-import { scrubPayload } from '../../../../../../../../lib/prompt-scrubber';
+import { scrubClientPii } from '../../../../../../../../lib/prompt-scrubber';
 
 export const prerender = false;
 
@@ -65,18 +65,63 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
 
   let effectiveSystem = activeProvider?.systemPrompt || systemPrompt;
   
-  // DSGVO-konformer Scrubber: Ersetze PII durch customerNumber
+  // DSGVO-konformer Scrubber: Ersetze PII durch customerNumber mit name/email sources
+  let piiSources: { names: string[]; emails: string[] } | null = null;
   if (customerNumber) {
-    effectiveSystem = scrubPayload(effectiveSystem, customerNumber);
+    const pii: { names: string[]; emails: string[] } = { 
+      names: coachingSession?.clientName ? [coachingSession.clientName] : [], 
+      emails: [] as string[] 
+    };
     
-    const prefix = `Klient ${customerNumber}:`;
-    const anonymizedUserPromptFinal = scrubPayload(userPrompt, customerNumber);
-    userPrompt = !anonymizedUserPromptFinal.startsWith(prefix) 
-      ? `${prefix}\n${anonymizedUserPromptFinal}`
-      : !userPrompt ? prefix : userPrompt;
+    // Collect client name PII sources from linked customer record
+    if (coachingSession?.clientId) {
+      try {
+        const c = await pool.query('SELECT name, email FROM customers WHERE id = $1', [coachingSession.clientId]);
+        const row = c.rows[0] as { name?: string; email?: string } | undefined;
+        if (row?.name) pii.names.push(row.name);
+        if (row?.email) pii.emails.push(row.email);
+      } catch { /* customer lookup must not block generation */ }
+    }
+    
+    piiSources = pii;
   }
 
-  const anonymizedUserPromptFinal = customerNumber ? scrubPayload(userPrompt, customerNumber) : userPrompt;
+  // Apply scrubber to effectiveSystem and userPrompt before agent call
+  let anonymizedUserPromptFinal: string;
+  
+  if (customerNumber) {
+    const replacement = customerNumber ?? '[KLIENT]';
+    
+    try {
+      if (piiSources!.names.length || piiSources!.emails.length) {
+        effectiveSystem = scrubClientPii(effectiveSystem, { names: piiSources!.names, emails: piiSources!.emails, replacement });
+        
+        const prefix = `Klient ${customerNumber}:`;
+        anonymizedUserPromptFinal = scrubClientPii(userPrompt, { names: piiSources!.names, emails: piiSources!.emails, replacement });
+      } else if (userPrompt) {
+        // No PII to scrub - just add client prefix if needed
+        const prefix = `Klient ${customerNumber}:`;
+        anonymizedUserPromptFinal = userPrompt.startsWith(prefix) ? userPrompt : `${prefix}\n${userPrompt}`;
+      } else {
+        anonymizedUserPromptFinal = '';
+      }
+    } catch (err: unknown) {
+      locals.requestLogger.error({ err }, '[coaching/generate] scrub failed');
+      // Fallback: use customerNumber as replacement if scrubbing failed
+      const fallbackReplacement = customerNumber ?? '[KLIENT]';
+      anonymizedUserPromptFinal = userPrompt ? userPrompt : '';
+    }
+  } else {
+    anonymizedUserPromptFinal = userPrompt || '';
+  }
+
+  // Update userPrompt to include prefix if we scrubbed with replacement
+  if (customerNumber && piiSources!.names.length) {
+    const prefix = `Klient ${customerNumber}:`;
+    userPrompt = !anonymizedUserPromptFinal.startsWith(prefix) 
+      ? `${prefix}\n${anonymizedUserPromptFinal}`
+      : anonymizedUserPromptFinal;
+  }
   
   if (projectKiContext && !effectiveSystem.includes(projectKiContext)) {
     effectiveSystem = `${projectKiContext}\n\n${effectiveSystem}`;

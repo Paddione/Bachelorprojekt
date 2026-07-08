@@ -120,8 +120,8 @@ mcp-task-runner:execute_plan,run_task,run_task_async,cancel_task
   
   # Also verify mcp-postgres has NO denylist (design D4)
   _pg_exclude=$(yq '.mcp-postgres.tools.exclude' "$REGISTRY_SCRIPT")
-  [[ -z "$_pg_exclude" ]] || {
-    echo "mcp-postgres should have no tools.exclude key (server-side read-only)"
+  [[ "$_pg_exclude" == "null" ]] || {
+    echo "mcp-postgres should have no tools.exclude key (server-side read-only). Got: $_pg_exclude"
     return 1
   }
 }
@@ -129,7 +129,10 @@ mcp-task-runner:execute_plan,run_task,run_task_async,cancel_task
 # ── Scenario 3: mcp-postgres has no denylist ──────────────────────────────────
 @test "mcp-postgres has no denylist" {
   _pg_exclude=$(yq '.mcp-postgres.tools.exclude' "$REGISTRY_SCRIPT")
-  run test -z "$_pg_exclude"
+  [[ "$_pg_exclude" == "null" ]] || {
+    echo "mcp-postgres has a tools.exclude (expected null). Got: $_pg_exclude"
+    return 1
+  }
   
   echo "mcp-postgres correctly has no tools.exclude (null)"
 }

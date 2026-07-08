@@ -2552,7 +2552,11 @@ tasks:
           kubectl apply -f k3d/secrets.yaml -n workspace
           kubectl apply -f k3d/configmap-domains.yaml -n workspace
           kubectl apply -f k3d/website-schema.yaml -n workspace
-          kubectl apply -f k3d/shared-db.yaml -n workspace
+          # $$ -> $ Collapse wie im kustomize-Hauptpfad: shared-db.yaml traegt $$-escapte
+          # Shell-Vars; roh applied setzt der postStart-Hook sonst alle DB-Passwoerter
+          # auf '<PID>{VAR}' (Incident T001673).
+          sed -E 's/\$\$([a-zA-Z0-9_]|\{)/$\1/g' k3d/shared-db.yaml \
+            | kubectl apply -n workspace -f -
           echo "Waiting for shared-db to be ready before deploying dependent services..."
           kubectl rollout status deployment/shared-db -n workspace --timeout=120s
           # Run website DB migrations before the website Deployment is rolled
@@ -2674,7 +2678,11 @@ tasks:
           # target ns. The base manifest intentionally omits namespace on the
           # Deployment so the prod/ strategic-merge patch matches it as [noNs];
           # PVC/ConfigMap/Services keep their explicit (sed-rewritten) namespace.
+          # $$ -> $ Collapse wie im kustomize-Hauptpfad (Zeile mit ENVSUBST_VARS unten):
+          # ohne ihn landet '$${VAR}' literal im postStart-Hook und die Shell expandiert
+          # $$ zur PID — alle DB-User-Passwoerter werden zu '<PID>{VAR}' (Incident T001673).
           sed "s/namespace: workspace$/namespace: ${_ws_ns}/g" k3d/shared-db.yaml \
+            | sed -E 's/\$\$([a-zA-Z0-9_]|\{)/$\1/g' \
             | kubectl --context "$ENV_CONTEXT" -n "${_ws_ns}" apply -f -
           echo "Waiting for shared-db to be ready before deploying dependent services..."
           kubectl --context "$ENV_CONTEXT" rollout status deployment/shared-db -n "${_ws_ns}" --timeout=120s

@@ -3,16 +3,11 @@
 import type { APIRoute } from 'astro';
 import { sendEmail } from '../../../lib/email';
 import { errorResponse } from '../_errors';
-import pg from 'pg';
-const { Pool } = pg;
+import { pool } from '../../../lib/db-pool';
 
-const DB_URL = process.env.SESSIONS_DATABASE_URL
-  || 'postgresql://website:devwebsitedb@shared-db.workspace.svc.cluster.local:5432/website';
 const CRON_SECRET = process.env.CRON_SECRET ?? '';
 const BRAND_NAME  = process.env.BRAND_NAME || 'Workspace';
 const SITE_URL    = process.env.SITE_URL || '';
-
-const pool = new Pool({ connectionString: DB_URL });
 
 interface UnreadRow {
   customer_email: string;

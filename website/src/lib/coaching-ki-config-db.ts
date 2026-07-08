@@ -4,7 +4,12 @@ import type { Pool } from 'pg';
 // Der öffentliche Vertrag (KiConfig-Typ + Funktionssignaturen) bleibt identisch, damit die
 // Coaching-Consumer (coaching-session-db, session-agent-factory, generate.ts, die
 // /api/admin/coaching/ki-config-Endpoints, CoachingSettings.svelte) unverändert weiterlaufen.
-// Speicherung ist physisch fusioniert; coaching.ki_config wird nicht mehr gelesen/geschrieben.
+// Speicherung ist physisch fusioniert: nach der Datenmigration (2026-06-14) und der
+// Phase-2-Bereinigung (2026-07-09-coaching-phase2-drop-legacy.sql) sind die Legacy-Tabellen
+// `coaching.ki_config` und `coaching.ki_config_id_map` weg; das Adapter-Modul liest
+// und schreibt ausschließlich `tickets.provider_config`. Die Spalte
+// `coaching.sessions.ki_config_id` und ihr FK auf `tickets.provider_config` bleiben
+// erhalten und sind die einzige Brücke zwischen Coaching-Sessions und KI-Provider.
 
 const COACHING_SOURCE = 'coaching';
 const COACHING_TIER = 'coaching';

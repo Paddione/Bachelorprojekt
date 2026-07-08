@@ -1,0 +1,104 @@
+{
+  "slug": "db-legacy-cleanup-optimize",
+  "generated_at": "2026-07-09",
+  "sources_used": ["mcp-postgres", "codebase-memory", "Explore-agent", "grep/Read"],
+  "db_tables": {
+    "coaching.ki_config": {
+      "role": "LEGACY — drop in Phase 2",
+      "rows": 9,
+      "indexes": ["ki_config_pkey", "uq_ki_config_one_active_per_brand"],
+      "note": "data fully migrated to tickets.provider_config source='coaching'; no runtime reads/writes"
+    },
+    "coaching.ki_config_id_map": {
+      "role": "LEGACY migration mapping — drop in Phase 2",
+      "rows": 9,
+      "note": "old_id BIGINT PK, new_id BIGINT; created by 2026-06-14-coaching-data-migrate.sql"
+    },
+    "coaching.sessions": {
+      "role": "KEEP",
+      "keep_column": "ki_config_id",
+      "keep_fk": "sessions_ki_config_id_fkey -> tickets.provider_config(id) ON DELETE SET NULL",
+      "existing_index": "idx_coaching_sessions_ki_config_id",
+      "note": "0 rows currently reference a config; column+FK must NOT be dropped"
+    },
+    "tickets.provider_config": {
+      "role": "NEW unified store",
+      "sources": {"*": 4, "assistant-chat": 2, "coaching": 11, "ticket-triage": 2},
+      "indexes": ["provider_config_pkey", "provider_config_coaching_active", "provider_config_coaching_brand_provider"]
+    },
+    "tickets.tickets": {
+      "role": "target of orphaned migration",
+      "category_column_present": false,
+      "note": "scripts/migration/005-add-category-to-tickets.sql NOT applied; category unused in code -> delete migration"
+    }
+  },
+  "open_migrations": [
+    {
+      "file": "scripts/migration/005-add-category-to-tickets.sql",
+      "status": "not-applied, orphaned (singular dir), category unused",
+      "decision": "DELETE"
+    }
+  ],
+  "migration_runners": {
+    "tracked_auto": {
+      "runner": "website/src/db/migrate.ts",
+      "npm_script": "db:migrate (website/package.json)",
+      "task": "website:migrate (Taskfile.yml ~3335)",
+      "tracking_table": "public.schema_migrations(filename PK, applied_at)",
+      "covers": "website/src/db/migrations/*.sql only"
+    },
+    "manual_untracked": {
+      "procedure": "BRAND=<brand> bash -c 'source scripts/factory/lib.sh; factory_resolve; factory_psql < scripts/migrations/<file>.sql'",
+      "covers": "scripts/migrations/*.sql (provider-config, coaching, context-budget, ...)",
+      "note": "no tracking table; apply to BOTH brand DBs (workspace + workspace-korczewski). Consolidation = OUT OF SCOPE follow-up ticket."
+    }
+  },
+  "symbols": {
+    "migrateCoachingKiConfig": {
+      "file": "website/src/lib/schema/coaching-migrate.ts:21",
+      "signature": "export async function migrateCoachingKiConfig(c: PoolClient): Promise<{ migrated: number; remapped: number }>",
+      "callers": ["website/src/lib/schema/coaching-migrate.test.ts (only)"],
+      "decision": "DELETE file + test (dead runtime code)"
+    },
+    "coaching-ki-config-db.ts": {
+      "file": "website/src/lib/coaching-ki-config-db.ts",
+      "note": "live adapter, 14 queries vs tickets.provider_config; stale legacy comment at line 7 to clean up"
+    },
+    "shared_pool": {
+      "file": "website/src/lib/db-pool.ts",
+      "exports": "pool, ensureSchemaOnce",
+      "note": "hardened: fail-soft timeouts + nodeLookup DNS workaround; canonical pool"
+    }
+  },
+  "pool_proliferation_callsites": [
+    "website/src/pages/api/cron/notify-unread.ts",
+    "website/src/pages/api/admin/ai-quality.ts",
+    "website/src/pages/api/admin/knowledge/import/json.ts",
+    "website/src/lib/codesearch-db.ts",
+    "website/src/lib/knowledge-db.ts",
+    "website/src/lib/ai-metrics.ts"
+  ],
+  "optimization_notes": {
+    "seq_scan_hotspots_are_small_tables": {
+      "questionnaire_assignments": 703,
+      "factory_phase_events": 953,
+      "ticket_links": 96,
+      "guidance": "EXPLAIN-driven only; do NOT blindly add indexes on tiny tables"
+    },
+    "unused_indexes_idx_scan_0": "many across billing/coaching/questionnaire/tickets; DROP only after prod-stats gegencheck on BOTH brands (this snapshot = one DB since last stats reset)"
+  },
+  "ssot_spec": "openspec/specs/database.md",
+  "delta_target_spec": "database",
+  "risks": [
+    {"severity": "warn", "note": "index-drop decisions based on single-DB pg_stat snapshot; verify against prod both brands before dropping"},
+    {"severity": "warn", "note": "korczewski brand DB applied-status not verified from this session (single mcp-postgres connection); plan must include cross-brand verification step"}
+  ],
+  "impact_files": [
+    {"path": "scripts/migration/005-add-category-to-tickets.sql", "op": "delete"},
+    {"path": "scripts/migrations/2026-07-09-coaching-phase2-drop-legacy.sql", "op": "create"},
+    {"path": "website/src/lib/schema/coaching-migrate.ts", "op": "delete"},
+    {"path": "website/src/lib/schema/coaching-migrate.test.ts", "op": "delete"},
+    {"path": "website/src/lib/coaching-ki-config-db.ts", "op": "edit-comment"},
+    {"path": "tests/spec/database.bats", "op": "create-or-append"}
+  ]
+}

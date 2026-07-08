@@ -1,25 +1,15 @@
-import { Pool } from 'pg';
-import dns from 'node:dns';
+// website/src/lib/codesearch-db.ts
+// Shared `pool` aus website/src/lib/db-pool.ts (gehärtet: nodeLookup DNS-Workaround +
+// fail-soft Connection-/Statement-Timeouts). Eigener Ad-hoc-Pool entfernt —
+// siehe T001676 Stufe C1.
+import pg from 'pg';
+import { pool as defaultPool } from './db-pool';
 
-function nodeLookup(
-  hostname: string,
-  _opts: unknown,
-  cb: (err: Error | null, addr: string, family: number) => void,
-) {
-  dns.resolve4(hostname, (err, addrs) => cb(err ?? null, addrs?.[0] ?? '', 4));
-}
-
-let _pool: Pool | null = null;
-function p(): Pool {
-  if (!_pool) {
-    const connectionString = process.env.SESSIONS_DATABASE_URL
-      || 'postgresql://website:devwebsitedb@shared-db.workspace.svc.cluster.local:5432/website';
-    _pool = new Pool({ connectionString, lookup: nodeLookup } as unknown as import('pg').PoolConfig);
-  }
-  return _pool;
-}
-
-export function __setPoolForTests(testPool: Pool): void { _pool = testPool; }
+// Test-only escape hatch: tests in codesearch-db.test.ts mocken den Pool per pg-mem.
+// In Produktion wird ausschließlich `defaultPool` (aus db-pool.ts) verwendet.
+let _pool: pg.Pool | undefined;
+export function __setPoolForTests(testPool: pg.Pool): void { _pool = testPool; }
+function p(): pg.Pool { return _pool ?? defaultPool; }
 
 const EMBED_URL = process.env.LLM_EMBED_URL ?? 'http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234';
 const EMBED_MODEL = process.env.LLM_EMBED_MODEL ?? 'text-embedding-bge-m3';
@@ -83,21 +73,29 @@ export async function searchCodeAugmented(query: string, limit = 5): Promise<Cod
   const existingPaths = new Set(paths);
   const augmented: CodeSearchResult[] = [...initial];
 
-  for (const row of neighbors.rows) {
-    if (existingPaths.has(row.path)) continue;
+  const neighborPaths = neighbors.rows
+    .map((row: { path: string }) => row.path)
+    .filter((p: string) => !existingPaths.has(p));
+  if (neighborPaths.length === 0) return augmented;
+
+  // Batch-Lookup statt per-row Query: ein einzelner SELECT für alle Nachbar-Pfade.
+  // T001676 N+1-Audit: ersetzt die vorherige for-Schleife mit await p().query() per row.
+  const chunkRes = await p().query<{ file_path: string; chunk_index: number; content: string }>(
+    `SELECT DISTINCT ON (file_path) file_path, chunk_index, content
+       FROM code_embeddings
+      WHERE file_path = ANY($1::text[])
+      ORDER BY file_path, chunk_index
+      LIMIT $2`,
+    [neighborPaths, limit * 2 - augmented.length],
+  );
+  for (const row of chunkRes.rows) {
     if (augmented.length >= limit * 2) break;
-    const chunkRes = await p().query(
-      `SELECT chunk_index, content FROM code_embeddings WHERE file_path = $1 LIMIT 1`,
-      [row.path],
-    );
-    if (chunkRes.rows.length > 0) {
-      augmented.push({
-        path: row.path,
-        score: 0.7,
-        snippet: chunkRes.rows[0].content.slice(0, 300),
-        chunk_index: chunkRes.rows[0].chunk_index,
-      });
-    }
+    augmented.push({
+      path: row.file_path,
+      score: 0.7,
+      snippet: row.content.slice(0, 300),
+      chunk_index: row.chunk_index,
+    });
   }
 
   return augmented;

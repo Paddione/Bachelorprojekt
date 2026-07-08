@@ -1,4 +1,5 @@
 #!/usr/bin/env bats
+<<<<<<< HEAD
 # T001567: brain-auto-memory bridge — BATS Spec (RED first, GREEN after scripts land)
 # SSOT: openspec/changes/brain-auto-memory/tasks.md
 
@@ -120,3 +121,10 @@ EOF
   run jq -e '[to_entries[] | select(.key | startswith("demoproj/"))] | length == 1' "$AUTO_MEMORY_STATE"
   [ "$status" -eq 0 ] || { echo "FAIL: state count wrong: $(cat "$AUTO_MEMORY_STATE")"; return 1; }
 }
+=======
+# T001567: brain-auto-memory bridge — BATS Spec (placeholder)
+
+load "test_helper"
+
+setup() { skip "brain-auto-memory test suite - full implementation pending"; }
+>>>>>>> origin/main

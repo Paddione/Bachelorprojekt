@@ -27,6 +27,31 @@
         "/home/patrick/.local/bin/codebase-memory-mcp"
       ],
       "enabled": true
+    },
+    "mcp-task-runner": {
+      "type": "local",
+      "command": [
+        "mcp-task-runner",
+        "--otel-endpoint", "localhost:4317",
+        "--taskfile", "/home/patrick/Bachelorprojekt/Taskfile.yml"
+      ],
+      "enabled": true
+    },
+    "ticket-mcp": {
+      "type": "local",
+      "command": [
+        "/home/patrick/Bachelorprojekt/scripts/ticket-mcp/ticket-mcp-go"
+      ],
+      "enabled": true
+    },
+    "task-master-ai": {
+      "type": "local",
+      "command": ["npx", "-y", "task-master-ai"],
+      "environment": {
+        "OLLAMA_BASE_URL": "http://localhost:11434/api",
+        "TASK_MASTER_TOOLS": "all"
+      },
+      "enabled": true
     }
   }
 }

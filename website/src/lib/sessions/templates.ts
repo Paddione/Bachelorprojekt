@@ -2,6 +2,7 @@
 // CRUD logic for brainstorm session templates with hardcoded fallback.
 
 import { pool } from '../website-db';
+import { logger } from '../logger';
 
 export interface SessionTemplate {
   id: string;
@@ -47,7 +48,9 @@ export async function listTemplates(ownerId: string): Promise<SessionTemplate[]>
       [ownerId]
     );
     return rows as SessionTemplate[];
-  } catch {
+  } catch (err) {
+    // Fallback bleibt (Templates sind nicht kritisch), aber der DB-Ausfall muss sichtbar sein
+    logger.error({ err }, '[sessions/templates] listTemplates DB query failed — serving DEFAULT_TEMPLATES');
     return DEFAULT_TEMPLATES;
   }
 }

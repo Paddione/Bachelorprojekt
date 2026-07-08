@@ -1,6 +1,6 @@
 # gh-axi — GitHub CLI Wrapper
 
-`gh-axi` ist ein Ergonomie-Wrapper um die `gh` CLI. **Alle Agents sollen `gh-axi` statt `gh` direkt verwenden**, sofern ein passendes Sub-Kommando existiert.
+`gh-axi` ist ein Ergonomie-Wrapper um die `gh` CLI. **Alle Agents sollen `gh-axi` statt `gh` direkt verwenden**, sofern ein passendes Sub-Kommando existiert. (Framework-agnostisch — funktioniert in Claude Code, opencode und agy gleichermaßen.)
 
 Binary: `~/.npm-global/bin/gh-axi`  
 Repo-Kontext: wird automatisch aus dem aktuellen Git-Checkout abgeleitet (kein `-R` nötig).

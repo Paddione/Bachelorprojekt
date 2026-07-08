@@ -31,6 +31,44 @@ env_vars:
     required: false
     default_dev: "+49 000 000 00 000"
 
+  # Kill-Switch für den öffentlichen Coaching-Guide-Demo-Proxy /api/demo/coaching-sim
+  # (T001664). Wird zur Laufzeit von der Website gelesen; "false" deaktiviert den
+  # Endpoint (503). Jeder andere Wert / nicht gesetzt = aktiv (Spec-Default).
+  - name: COACHING_SIM_ENABLED
+    required: false
+    default_dev: "true"
+
+  # Runtime-Env-Vars der Website rund um Coaching-Sessions (T001672). Alle optional
+  # mit Code-Fallbacks — hier dokumentiert, damit sie auffindbar/konfigurierbar sind.
+  # COACHING_SESSION_MODEL: Claude-Modell für den Abschlussbericht (complete.ts);
+  #   Fallback DEFAULT_CLAUDE_SESSION_MODEL in lib/claude-session-agent.ts.
+  - name: COACHING_SESSION_MODEL
+    required: false
+    default_dev: ""
+
+  # LLM_GATEWAY_URL: OpenAI-kompatibler Gateway-Endpoint für den Provider 'anthropic'
+  # in lib/openai-compatible-session-agent.ts; Fallback ist der Cluster-DNS
+  # llm-gateway-lmstudio.workspace.svc.cluster.local:1234/v1.
+  - name: LLM_GATEWAY_URL
+    required: false
+    default_dev: ""
+
+  # SESSION_HUB_REGISTRY: Pfad zur active-sessions.json des Session-Hubs
+  # (api/admin/sessions). SESSION_HUB_REGISTRY_WRITABLE: nur wenn "true", erlauben
+  # POST/DELETE das Registrieren/Deregistrieren (sonst 501 — bewusstes Gating).
+  # SESSIONS_ARCHIVE_DIR: Ablage archivierter Session-Formulare (history/[id]).
+  - name: SESSION_HUB_REGISTRY
+    required: false
+    default_dev: ""
+
+  - name: SESSION_HUB_REGISTRY_WRITABLE
+    required: false
+    default_dev: ""
+
+  - name: SESSIONS_ARCHIVE_DIR
+    required: false
+    default_dev: ""
+
   - name: CONTACT_CITY
     required: true
     default_dev: "DevCity"

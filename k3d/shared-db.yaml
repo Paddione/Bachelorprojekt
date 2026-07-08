@@ -184,6 +184,11 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: VIDEOVAULT_DB_PASSWORD
+            - name: POCKET_ID_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: POCKET_ID_DB_PASSWORD
 
           lifecycle:
             postStart:
@@ -206,8 +211,9 @@ spec:
                       IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='website')     THEN CREATE USER website;     END IF;
                       IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='pentest')     THEN CREATE USER pentest;     END IF;
                       IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='videovault') THEN CREATE USER videovault; END IF;
+                      IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='pocket_id')  THEN CREATE USER pocket_id;  END IF;
                     END \$\$;"
-                    for db in nextcloud vaultwarden website pentest videovault; do
+                    for db in nextcloud vaultwarden website pentest videovault pocket_id; do
                       psql -U postgres -tAc "SELECT 1 FROM pg_database WHERE datname='$$db'" | grep -q 1 \
                         || psql -U postgres -c "CREATE DATABASE \"$$db\" OWNER \"$$db\";"
                     done
@@ -215,7 +221,8 @@ spec:
                       -c "ALTER USER nextcloud WITH PASSWORD '$${NEXTCLOUD_DB_PASSWORD}';" \
                       -c "ALTER USER vaultwarden WITH PASSWORD '$${VAULTWARDEN_DB_PASSWORD}';" \
                       -c "ALTER USER website WITH PASSWORD '$${WEBSITE_DB_PASSWORD}';" \
-                      -c "ALTER USER videovault WITH PASSWORD '$${VIDEOVAULT_DB_PASSWORD}';"
+                      -c "ALTER USER videovault WITH PASSWORD '$${VIDEOVAULT_DB_PASSWORD}';" \
+                      -c "ALTER USER pocket_id WITH PASSWORD '$${POCKET_ID_DB_PASSWORD}';"
 
                     bash /scripts/ensure-knowledge-schema.sh || true
                     bash /scripts/ensure-meetings-schema.sh || true

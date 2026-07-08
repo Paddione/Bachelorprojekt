@@ -10,9 +10,9 @@ MCP_GUIDE="${PROJECT_DIR}/.claude/skills/references/mcp-tool-guide.md"
   
   opencode_json=$(cat ".opencode/opencode.jsonc")
   
-  # Check .claude/mcp.json for factory-mcp
-  if ! grep -q '"factory-mcp"' ".claude/mcp.json"; then
-    echo "# ERROR: factory-mcp not registered in .claude/mcp.json" && exit 1
+  # Check .mcp.json (project-level Claude Code MCP config) for factory-mcp
+  if ! grep -q '"factory-mcp"' ".mcp.json"; then
+    echo "# ERROR: factory-mcp not registered in .mcp.json" && exit 1
   fi
   
   # Check .opencode/opencode.jsonc for all MCP servers

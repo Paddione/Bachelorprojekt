@@ -56,6 +56,7 @@ const NAMED_SCOPES = [
 ];
 
 const TICKET_SCOPE_RE = /^T\d{6}$/;
+const HEALTH_GOAL_SCOPE_RE = /^G-[A-Z][A-Z0-9]+$/;
 
 module.exports = {
   namedScopes: NAMED_SCOPES,
@@ -67,7 +68,8 @@ module.exports = {
           if (!parsed || !parsed.scope) return [true];
           if (NAMED_SCOPES.includes(parsed.scope)) return [true];
           if (TICKET_SCOPE_RE.test(parsed.scope)) return [true];
-          return [false, `scope "${parsed.scope}" is not allowed. Must be a named scope or ticket number (Tdddddd)`];
+          if (HEALTH_GOAL_SCOPE_RE.test(parsed.scope)) return [true];
+          return [false, `scope "${parsed.scope}" is not allowed. Must be a named scope, health goal (G-XXX), or ticket number (Tdddddd)`];
         },
       },
     },

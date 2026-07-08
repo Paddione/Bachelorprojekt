@@ -33,7 +33,7 @@ Opening a Lavish session starts a real browser tab and a background server on th
 
 - **Already consent** (skip the gate, proceed straight to Workflow): the user typed `/lavish`, or their message explicitly names an artifact, HTML page, Lavish, an interactive/reviewable surface, or otherwise directly asks for this format.
 - **Not yet consent** (gate required): you decided on your own that a plan, comparison, diagram, table, or report from the current task "would be easier to grasp visually." A good idea for you is not the same as buy-in from the user.
-- When the gate applies, ask a single short, concrete question before doing any Lavish work — e.g. "Soll ich das als interaktives Lavish-Artefakt statt als Text aufbereiten?" Use `AskUserQuestion` if the harness has it, otherwise ask in plain text and wait for the reply.
+- When the gate applies, ask a single short, concrete question before doing any Lavish work — e.g. "Soll ich das als interaktives Lavish-Artefakt statt als Text aufbereiten?" Use the framework-appropriate tool (`AskUserQuestion` in Claude Code, `question` in opencode), otherwise ask in plain text and wait for the reply.
 - If the user declines, doesn't respond affirmatively, or the ask would be disruptive mid-task, fall back to a normal prose/markdown response instead — do not silently build the artifact anyway.
 - One confirmation covers the whole build → poll → feedback cycle for that artifact; don't re-ask on every poll iteration or layout fix.
 

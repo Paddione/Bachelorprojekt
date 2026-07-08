@@ -805,6 +805,12 @@
       "status": "plan_staged"
     }
   ],
+  "T001567": [
+    {
+      "slug": "brain-auto-memory",
+      "status": "plan_staged"
+    }
+  ],
   "T001568": [
     {
       "slug": "2026-07-03-brain-foundation",
@@ -889,6 +895,12 @@
       "status": "plan_staged"
     }
   ],
+  "T001609": [
+    {
+      "slug": "hermes-agent-mcp-access",
+      "status": "plan_staged"
+    }
+  ],
   "T001610": [
     {
       "slug": "t001610",
@@ -899,6 +911,38 @@
     {
       "slug": "harness-workflow-split",
       "status": "plan_staged"
+    }
+  ],
+  "T001638": [
+    {
+      "slug": "coaching-sessions-admin-ux",
+      "status": "plan_staged"
+    },
+    {
+      "slug": "2026-07-08-coaching-sessions-admin-ux",
+      "status": "archived"
+    }
+  ],
+  "T001641": [
+    {
+      "slug": "coaching-ki-model-select",
+      "status": "plan_staged"
+    },
+    {
+      "slug": "2026-07-08-coaching-ki-model-select",
+      "status": "archived"
+    }
+  ],
+  "T001649": [
+    {
+      "slug": "2026-07-08-studio-sessions-reorganize",
+      "status": "archived"
+    }
+  ],
+  "T001652": [
+    {
+      "slug": "2026-07-08-website-migration-runner",
+      "status": "archived"
     }
   ],
   "TBD": [

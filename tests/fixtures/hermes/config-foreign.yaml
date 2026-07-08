@@ -1,0 +1,9 @@
+model: google/gemma-4-12b-qat
+temperature: 0.7
+max_tokens: 4096
+profile: bachelorprojekt
+some-other-key: some-value
+mcp_servers:
+  some-other-server:
+    url: http://localhost:9999/mcp
+    enabled: true

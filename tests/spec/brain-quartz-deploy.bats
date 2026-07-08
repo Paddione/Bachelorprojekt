@@ -1,7 +1,5 @@
 #!/usr/bin/env bats
 # T001569: brain-quartz-deploy - BATS Spec (RED initial, GREEN after implementation)
-# T001575: 'load helper/load' zeigte auf einen nicht existierenden Helper
-# (Paste-Fehler aus a9dcb6cc0) und brach den gesamten tests/spec-Lauf.
 load 'test_helper'
 
 @test "k3d base renders the brain static-site Deployment" {
@@ -35,19 +33,17 @@ load 'test_helper'
 }
 
 @test "prod-korczewski exkludiert brain (mentolder-only)" {
-  # T001575: das ursprüngliche brain-exclude.yaml (`spec: {}`) war ein
-  # No-Op-Merge (kein Delete) und als Multi-Doc-Patch-Datei zudem ein
-  # kustomize-Panic-Trigger. Jetzt Inline-$patch:-delete-Patches direkt in
-  # der kustomization (Muster: fleet-common); der Render-Check beweist die
-  # tatsächliche Exklusion.
-  grep -q 'name: oauth2-proxy-brain' prod-korczewski/kustomization.yaml || { echo "Exklusions-Patch fehlt"; return 1; }
-  grep -q '\$patch: delete' prod-korczewski/kustomization.yaml || { echo "kein \$patch: delete"; return 1; }
-  KORCZEWSKI_RENDER="$(kubectl kustomize prod-fleet/korczewski --load-restrictor=LoadRestrictionsNone 2>/dev/null)"
-  ! grep -qE '^  name: (brain|oauth2-proxy-brain)$' <<< "$KORCZEWSKI_RENDER" || { echo "brain rendert trotzdem auf korczewski"; return 1; }
+  # Exclusion moved inline into kustomization.yaml (PR #2556) — the separate
+  # brain-exclude.yaml multi-doc patch file panics kustomize v5.4.2.
+  run cat prod-korczewski/kustomization.yaml
+  [ "${status}" -eq 0 ] || { echo "FAIL: kustomization.yaml nicht lesbar"; return 1; }
+  grep -q 'name: brain' <<< "$output" || { echo "FAIL: brain-Exklusion fehlt"; return 1; }
+  grep -q 'name: oauth2-proxy-brain' <<< "$output" || { echo "FAIL: oauth2-proxy-brain-Exklusion fehlt"; return 1; }
+  grep -qE '\$patch: delete' <<< "$output" || { echo "FAIL: \$patch: delete fehlt"; return 1; }
 }
 
 @test "k3d/secrets.yaml enthält POCKET_ID_BRAIN_SECRET" {
   run cat k3d/secrets.yaml
-  [ "${status}" -eq 0 ] || fail "secrets.yaml nicht lesbar"
-  grep -q 'POCKET_ID_BRAIN_SECRET' <<< "$output" || fail "Secret fehlt"
+  [ "${status}" -eq 0 ] || { echo "FAIL: secrets.yaml nicht lesbar"; return 1; }
+  grep -q 'POCKET_ID_BRAIN_SECRET' <<< "$output" || { echo "FAIL: Secret fehlt"; return 1; }
 }

@@ -1,5 +1,89 @@
 # Changelog
 
+## [1.166.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.166.1...website-v1.166.2) (2026-07-08)
+
+
+### Bug Fixes
+
+* **coaching:** sessions-audit rest — 404-Semantik, Fehler-Logging, Config-Hygiene [T001670] ([#2643](https://github.com/Paddione/Bachelorprojekt/issues/2643)) ([e908b57](https://github.com/Paddione/Bachelorprojekt/commit/e908b57fe73af70237dcf51699100456e121c2e5))
+
+## [1.166.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.166.0...website-v1.166.1) (2026-07-08)
+
+
+### Bug Fixes
+
+* **coaching:** sessions-tool gaps — sim hardening, settings mount, scrubber fail-closed [T001664] ([#2641](https://github.com/Paddione/Bachelorprojekt/issues/2641)) ([be4808e](https://github.com/Paddione/Bachelorprojekt/commit/be4808eefe4374652f0ff014f7f412e97dbad2cb))
+
+## [1.166.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.165.2...website-v1.166.0) (2026-07-08)
+
+
+### Features
+
+* T001641 coaching-ki-model-select — model probe, scrubber, models endpoint ([#2638](https://github.com/Paddione/Bachelorprojekt/issues/2638)) ([e75db9d](https://github.com/Paddione/Bachelorprojekt/commit/e75db9da25c16aa461f2ea657975dabf95c38211))
+
+## [1.165.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.165.1...website-v1.165.2) (2026-07-08)
+
+
+### Bug Fixes
+
+* **website:** coaching-studio Workspace crasht bei leerem CUSTOMERS-Array [T001656] ([#2633](https://github.com/Paddione/Bachelorprojekt/issues/2633)) ([c35e309](https://github.com/Paddione/Bachelorprojekt/commit/c35e3092dbb6451d62c3a00cadc0d0e967f2d648))
+
+## [1.165.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.165.0...website-v1.165.1) (2026-07-08)
+
+
+### Bug Fixes
+
+* **website:** add automated migration runner for website/src/db/migrations [T001652] ([#2629](https://github.com/Paddione/Bachelorprojekt/issues/2629)) ([31b140f](https://github.com/Paddione/Bachelorprojekt/commit/31b140f264f42d924d2a13cc57e62f6e7b78505d))
+
+## [1.165.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.164.0...website-v1.165.0) (2026-07-08)
+
+
+### Features
+
+* t001556 size02 refactor ([#2625](https://github.com/Paddione/Bachelorprojekt/issues/2625)) ([26e3713](https://github.com/Paddione/Bachelorprojekt/commit/26e3713077c5346427a2ad5c6dd83ed4899d01be))
+
+## [1.164.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.163.1...website-v1.164.0) (2026-07-08)
+
+
+### Features
+
+* **website:** Coaching Studio in Sessions umbenennen und Sidebar bereinigen [T001649] ([#2624](https://github.com/Paddione/Bachelorprojekt/issues/2624)) ([8bde301](https://github.com/Paddione/Bachelorprojekt/commit/8bde301156b8a671f87e740758e94fc9eec51d15))
+
+## [1.163.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.163.0...website-v1.163.1) (2026-07-08)
+
+
+### Bug Fixes
+
+* **coaching:** ensure test sessions are flagged as is_test_data and cleaned up in purge-fn ([#2621](https://github.com/Paddione/Bachelorprojekt/issues/2621)) ([9711831](https://github.com/Paddione/Bachelorprojekt/commit/9711831e65fd521f52eb6b10cbab2f5f6b9add31))
+
+## [1.163.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.162.0...website-v1.163.0) (2026-07-08)
+
+
+### Features
+
+* T001641 — LM Studio Models Dropdown + Prompt Scrubber ([#2617](https://github.com/Paddione/Bachelorprojekt/issues/2617)) ([d835325](https://github.com/Paddione/Bachelorprojekt/commit/d835325f61c5d8df3ed6a114847e89d295c02201))
+
+## [1.162.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.161.0...website-v1.162.0) (2026-07-08)
+
+
+### Features
+
+* **coaching:** sessions admin nav, popout GUI, wording + test-data hygiene [T001638] ([#2616](https://github.com/Paddione/Bachelorprojekt/issues/2616)) ([5b20570](https://github.com/Paddione/Bachelorprojekt/commit/5b20570c282802a51f045fd107eb77ea9e7a1c4a))
+
+## [1.161.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.160.0...website-v1.161.0) (2026-07-08)
+
+
+### Features
+
+* **brain:** auto-memory export bridge to brain wiki [T001567] ([831fabf](https://github.com/Paddione/Bachelorprojekt/commit/831fabfdac82765d68faea4c56605a6df81c5a1b))
+* sidekick error log 24h ([3c42242](https://github.com/Paddione/Bachelorprojekt/commit/3c42242b82c0727e597e4216edee7dcbed0be550))
+
+
+### Documentation
+
+* **brain:** add brain-auto-memory design spec + openspec change [T001567] ([fcfbd8a](https://github.com/Paddione/Bachelorprojekt/commit/fcfbd8a6c734e4c3b6e06f19318e2ee903346765))
+* **specs:** add brain-auto-memory design spec + openspec change [T001567] ([cae1482](https://github.com/Paddione/Bachelorprojekt/commit/cae14823c3fac26f31f9fb942caadbe5347bfbd5))
+
 ## [1.160.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.159.0...website-v1.160.0) (2026-07-04)
 
 

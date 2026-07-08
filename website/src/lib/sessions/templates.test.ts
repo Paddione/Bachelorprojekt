@@ -3,7 +3,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 vi.mock('../website-db', () => ({
   pool: { query: vi.fn(), end: vi.fn() },
 }));
+vi.mock('../logger', () => ({
+  logger: { error: vi.fn() },
+}));
 import { pool } from '../website-db';
+import { logger } from '../logger';
 import { DEFAULT_TEMPLATES, listTemplates, cloneTemplate, deleteTemplate } from './templates';
 
 describe('DEFAULT_TEMPLATES', () => {
@@ -32,6 +36,12 @@ describe('listTemplates — DB fallback', () => {
     const result = await listTemplates('user-123');
     expect(result).toHaveLength(5);
     expect(result[0].is_default).toBe(true);
+  });
+
+  it('logs the DB error instead of swallowing it silently (T001671)', async () => {
+    vi.mocked(pool.query).mockRejectedValue(new Error('connection refused'));
+    await listTemplates('user-123');
+    expect(logger.error).toHaveBeenCalledOnce();
   });
 
   it('returns DB rows when query succeeds', async () => {

@@ -62,6 +62,12 @@ includes:
     taskfile: ./Taskfile.taskmaster.yml
     dir: .
 
+  # Brain-Quartz Wiki — initial ingest worklist (T001570).
+  # See Taskfile.brain.yaml + scripts/brain-ingest-worklist.sh.
+  brain:
+    taskfile: ./Taskfile.brain.yaml
+    dir: .
+
 vars:
   CLUSTER_NAME: korczewski
   REGISTRY: localhost:5000
@@ -710,7 +716,13 @@ tasks:
 
 
   test:factory:
-    desc: "Run the offline-safe Software Factory bats (tests/local/FA-SF-* + FA-AR-*) and spec bats (tests/spec/*). Live-DB cases skip without a reachable cluster, so this is CI-safe."
+    desc: "Run the offline-safe Software Factory regression bats (tests/local/FA-SF-* + FA-AR-*). Live-DB cases skip without a reachable cluster, so this is CI-safe."
+    cmds:
+      - '[ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive'
+      - ./tests/unit/lib/bats-core/bin/bats tests/local/FA-SF-*.bats tests/local/FA-AR-*.bats
+
+  test:spec:
+    desc: "Run the offline-safe spec bats (tests/spec/*). Builds mcp-task-runner fresh if go is available (best-effort). Live-DB cases skip without a reachable cluster, so this is CI-safe."
     cmds:
       - '[ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive'
       - |
@@ -735,7 +747,7 @@ tasks:
         else
           echo "mcp-task-runner: go not found — using pre-installed binary if present"
         fi
-      - ./tests/unit/lib/bats-core/bin/bats tests/local/FA-SF-*.bats tests/local/FA-AR-*.bats tests/spec/*.bats
+      - ./tests/unit/lib/bats-core/bin/bats tests/spec/*.bats
 
   test:mcp-tooling:
     desc: "Guardrail: ticket-mcp tools <-> mcp-tool-guide.md <-> skill-critical verbs (hard)"
@@ -814,12 +826,13 @@ tasks:
       - |
         set -e
         CHANGED=$(git diff --name-only HEAD origin/main 2>/dev/null || git diff --name-only HEAD 2>/dev/null || true)
-        RUN_WEBSITE=false; RUN_MENTOLDER_WEB=false; RUN_K8S=false; RUN_SCRIPTS=false; RUN_FACTORY=false; RUN_UNIT=false; RUN_MCP=false; RUN_OPENSPEC=false; RUN_AGENTS=false
+        RUN_WEBSITE=false; RUN_MENTOLDER_WEB=false; RUN_K8S=false; RUN_SCRIPTS=false; RUN_FACTORY=false; RUN_SPEC=false; RUN_UNIT=false; RUN_MCP=false; RUN_OPENSPEC=false; RUN_AGENTS=false
         echo "$CHANGED" | grep -qE "^website/" && RUN_WEBSITE=true || true
         echo "$CHANGED" | grep -qE "^mentolder-web/" && RUN_MENTOLDER_WEB=true || true
         echo "$CHANGED" | grep -qE "^(k3d/|prod|prod-fleet|prod-mentolder|prod-korczewski|environments/)" && RUN_K8S=true || true
         echo "$CHANGED" | grep -qE "^scripts/" && RUN_SCRIPTS=true || true
-        echo "$CHANGED" | grep -qE "^(scripts/factory/|tests/spec/)" && RUN_FACTORY=true || true
+        echo "$CHANGED" | grep -qE "^(scripts/factory/|tests/local/FA-)" && RUN_FACTORY=true || true
+        echo "$CHANGED" | grep -qE "^tests/spec/" && RUN_SPEC=true || true
         echo "$CHANGED" | grep -qE "^(tests/unit/|\.bats)" && RUN_UNIT=true || true
         echo "$CHANGED" | grep -qE "^(\.claude/skills/|\.mcp\.json|\.opencode/|tests/spec/mcp-tooling\.bats|scripts/ticket-mcp/)" && RUN_MCP=true || true
         echo "$CHANGED" | grep -qE "^(\.claude/agents/|AGENTS\.md)" && RUN_AGENTS=true || true
@@ -829,11 +842,12 @@ tasks:
         if [ "$RUN_K8S" = "true" ]; then echo "→ k8s changes: task test:manifests"; task test:manifests; fi
         if [ "$RUN_SCRIPTS" = "true" ]; then echo "→ script changes: task test:unit"; task test:unit; fi
         if [ "$RUN_FACTORY" = "true" ]; then echo "→ factory changes: task test:factory"; task test:factory; fi
+        if [ "$RUN_SPEC" = "true" ]; then echo "→ spec changes: task test:spec"; task test:spec; fi
         if [ "$RUN_MCP" = "true" ] && [ "$RUN_SCRIPTS" = "false" ]; then echo "→ MCP tooling guardrail"; task test:mcp-tooling; fi
         if [ "$RUN_AGENTS" = "true" ]; then echo "→ agent library changes: task test:agent-library"; task test:agent-library; fi
         if [ "$RUN_UNIT" = "true" ] && [ "$RUN_SCRIPTS" = "false" ]; then echo "→ test changes: task test:unit"; task test:unit; fi
         if [ "$RUN_OPENSPEC" = "true" ]; then echo "→ openspec changes: task test:openspec"; task test:openspec; fi
-        if [ "$RUN_WEBSITE" = "false" ] && [ "$RUN_MENTOLDER_WEB" = "false" ] && [ "$RUN_K8S" = "false" ] && [ "$RUN_SCRIPTS" = "false" ] && [ "$RUN_FACTORY" = "false" ] && [ "$RUN_UNIT" = "false" ] && [ "$RUN_MCP" = "false" ] && [ "$RUN_AGENTS" = "false" ] && [ "$RUN_OPENSPEC" = "false" ]; then
+        if [ "$RUN_WEBSITE" = "false" ] && [ "$RUN_MENTOLDER_WEB" = "false" ] && [ "$RUN_K8S" = "false" ] && [ "$RUN_SCRIPTS" = "false" ] && [ "$RUN_FACTORY" = "false" ] && [ "$RUN_SPEC" = "false" ] && [ "$RUN_UNIT" = "false" ] && [ "$RUN_MCP" = "false" ] && [ "$RUN_AGENTS" = "false" ] && [ "$RUN_OPENSPEC" = "false" ]; then
           if command -v pnpm >/dev/null 2>&1; then echo "→ no domain-specific changes: vitest --changed"; (cd website && pnpm vitest run --changed --reporter verbose); fi
         fi
         echo "→ quality gate (always)"; task test:code-quality
@@ -2538,9 +2552,16 @@ tasks:
           kubectl apply -f k3d/secrets.yaml -n workspace
           kubectl apply -f k3d/configmap-domains.yaml -n workspace
           kubectl apply -f k3d/website-schema.yaml -n workspace
-          kubectl apply -f k3d/shared-db.yaml -n workspace
+          # $$ -> $ Collapse wie im kustomize-Hauptpfad: shared-db.yaml traegt $$-escapte
+          # Shell-Vars; roh applied setzt der postStart-Hook sonst alle DB-Passwoerter
+          # auf '<PID>{VAR}' (Incident T001673).
+          sed -E 's/\$\$([a-zA-Z0-9_]|\{)/$\1/g' k3d/shared-db.yaml \
+            | kubectl apply -n workspace -f -
           echo "Waiting for shared-db to be ready before deploying dependent services..."
           kubectl rollout status deployment/shared-db -n workspace --timeout=120s
+          # Run website DB migrations before the website Deployment is rolled
+          # out below (T001652 — website had no automated migration runner).
+          task website:migrate ENV="{{.ENV}}"
           # Full apply (idempotent — updates configs, adds remaining services)
           # SYSTEMTEST_LOOP_ENABLED defaults to "false" so the placeholder is
           # never emitted literally in dev (where the env file may omit it).
@@ -2575,6 +2596,8 @@ tasks:
           # transformer would otherwise force them into workspace).
           envsubst "\$WORKSPACE_NAMESPACE \$WEBSITE_NAMESPACE" < k3d/tests-retention-cronjob.yaml | kubectl apply -f -
           envsubst "\$WORKSPACE_NAMESPACE \$WEBSITE_NAMESPACE" < k3d/cicd-deploy-sa.yaml | kubectl apply -f -
+          # Cross-namespace RBAC for pocket-id-client-seed to also patch website-secrets (T001435)
+          envsubst "\$WORKSPACE_NAMESPACE \$WEBSITE_NAMESPACE" < k3d/pocket-id-client-seed-website-rbac.yaml | kubectl apply -f -
           # System-test failure-loop cleanup CronJobs — applied separately so
           # they land in WEBSITE_NAMESPACE alongside the website pod (kustomize's
           # top-level `namespace: workspace` would otherwise force them into the
@@ -2655,10 +2678,17 @@ tasks:
           # target ns. The base manifest intentionally omits namespace on the
           # Deployment so the prod/ strategic-merge patch matches it as [noNs];
           # PVC/ConfigMap/Services keep their explicit (sed-rewritten) namespace.
+          # $$ -> $ Collapse wie im kustomize-Hauptpfad (Zeile mit ENVSUBST_VARS unten):
+          # ohne ihn landet '$${VAR}' literal im postStart-Hook und die Shell expandiert
+          # $$ zur PID — alle DB-User-Passwoerter werden zu '<PID>{VAR}' (Incident T001673).
           sed "s/namespace: workspace$/namespace: ${_ws_ns}/g" k3d/shared-db.yaml \
+            | sed -E 's/\$\$([a-zA-Z0-9_]|\{)/$\1/g' \
             | kubectl --context "$ENV_CONTEXT" -n "${_ws_ns}" apply -f -
           echo "Waiting for shared-db to be ready before deploying dependent services..."
           kubectl --context "$ENV_CONTEXT" rollout status deployment/shared-db -n "${_ws_ns}" --timeout=120s
+          # Run website DB migrations before the website Deployment is rolled
+          # out below (T001652 — website had no automated migration runner).
+          task website:migrate ENV="{{.ENV}}"
 
           overlay="${ENV_OVERLAY:-prod}"
           # Derive Nextcloud MAIL_FROM_ADDRESS / MAIL_DOMAIN from the authoritative SMTP_FROM
@@ -2752,6 +2782,9 @@ tasks:
           envsubst "\$WORKSPACE_NAMESPACE \$WEBSITE_NAMESPACE" < k3d/tests-retention-cronjob.yaml \
             | kubectl --context "$ENV_CONTEXT" apply -f -
           envsubst "\$WORKSPACE_NAMESPACE \$WEBSITE_NAMESPACE" < k3d/cicd-deploy-sa.yaml \
+            | kubectl --context "$ENV_CONTEXT" apply -f -
+          # Cross-namespace RBAC for pocket-id-client-seed to also patch website-secrets (T001435)
+          envsubst "\$WORKSPACE_NAMESPACE \$WEBSITE_NAMESPACE" < k3d/pocket-id-client-seed-website-rbac.yaml \
             | kubectl --context "$ENV_CONTEXT" apply -f -
           # System-test failure-loop cleanup CronJobs — applied separately so
           # they land in WEBSITE_NAMESPACE alongside the website pod.
@@ -3142,6 +3175,11 @@ tasks:
     cmds:
       - bash scripts/health-goals-update.sh {{.CLI_ARGS}}
 
+  agent:orchestrator:
+    desc: "T001588: local agent orchestration (start/stop/status/submit) via worktrees — see scripts/agent-orchestrator.sh --help"
+    cmds:
+      - bash scripts/agent-orchestrator.sh {{.CLI_ARGS}}
+
   quality:baseline:freeze:
     desc: "One-time: freeze the current code-quality violations into docs/code-quality/baseline.json"
     cmds:
@@ -3302,6 +3340,38 @@ tasks:
   # ─────────────────────────────────────────────
   # Website (Astro + Svelte)
   # ─────────────────────────────────────────────
+  website:migrate:
+    desc: "Run website/src/db/migrations/*.sql against the target DB (idempotent, tracked in schema_migrations). ENV=dev|mentolder|korczewski."
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        set -euo pipefail
+        source scripts/env-resolve.sh "{{.ENV}}"
+        ctx_flag=""
+        [ "{{.ENV}}" != "dev" ] && ctx_flag="--context $ENV_CONTEXT"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+
+        echo "Waiting for shared-db to be ready before running website migrations..."
+        kubectl $ctx_flag -n "$NS" rollout status deployment/shared-db --timeout=120s
+
+        echo "Fetching postgres superuser password from ${NS}/shared-db..."
+        PG_PW=$(kubectl $ctx_flag -n "$NS" exec deploy/shared-db -- \
+          printenv POSTGRES_PASSWORD | tr -d '\r\n')
+        if [ -z "$PG_PW" ]; then
+          echo "ERROR: could not read POSTGRES_PASSWORD from shared-db"; exit 1
+        fi
+
+        echo "Port-forwarding shared-db (5432) and running website migrations..."
+        kubectl $ctx_flag -n "$NS" port-forward svc/shared-db 5432:5432 \
+          >/tmp/website-migrate-pf.log 2>&1 &
+        PF=$!
+        trap 'kill $PF 2>/dev/null' EXIT
+        sleep 3
+
+        DATABASE_URL="postgres://postgres:${PG_PW}@localhost:5432/website" \
+          pnpm --dir website db:migrate
+
   website:migrate:homepage-blocks:
     desc: "Provision the homepage block document tables (idempotent). The website store also creates them lazily; this is the explicit operator path. Requires SESSIONS_DATABASE_URL or POSTGRES_MIGRATION_URL in the env. Pass -- --apply to execute (default: dry-run)."
     cmds:
@@ -3444,6 +3514,10 @@ tasks:
         IMAGE="ghcr.io/paddione/${WEBSITE_IMAGE:-workspace-website}"
         CTX_ARG=""
         [ -n "${ENV_CONTEXT:-}" ] && CTX_ARG="--context=${ENV_CONTEXT}"
+
+        # Run website DB migrations before build/rollout (T001652). Idempotent
+        # and tracked — safe even though workspace:deploy also calls this.
+        task website:migrate ENV="{{.ENV}}"
 
         if [ "{{.ENV}}" = "dev" ]; then
           WEBSITE_HOST="web.localhost"

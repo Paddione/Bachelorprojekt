@@ -49,6 +49,24 @@ einen Cron-Job ein. **STOPP hier.**
 
 ## Schritt 1: Worktree anlegen & claimen
 
+> **Test-only-Kurzpfad (kein Worktree):** Berührt die Chore **ausschließlich** Testdateien
+> (`tests/**/*.bats`, `tests/spec/*.bats`, `website/**/*.test.ts`, Playwright-Specs) — z.B. "schreib
+> einen Test für X" — dann entfällt `tmp/wt-*` als Standardfall. Ein eigener Worktree pro Testdatei
+> erzeugt nur IDE-Clutter (jede offene `tmp/wt-*`-Kopie erscheint als eigener Ordner) ohne
+> Isolationsgewinn, solange kein anderer Prozess konkurrierend im Haupt-Checkout schreibt. Prüfe das:
+> ```bash
+> bash scripts/agent-lock.sh list   # leer/keine fremde main-checkout- oder branch-Claim?
+> ```
+> Ist die Liste leer (solo, kein konkurrierender Prozess), arbeite **inline im Haupt-Checkout**:
+> ```bash
+> git checkout -b chore/<slug>
+> bash scripts/agent-lock.sh claim main-checkout --branch "chore/<slug>" --label dev-flow-chore
+> ```
+> Der `.githooks/pre-commit`-Mutex blockt konkurrierende Commits anderer Sessions währenddessen.
+> Zeigt `agent-lock.sh list` eine fremde lebende Claim, oder berührt die Chore auch Nicht-Testdateien
+> (Implementierung + Test zusammen) → regulärer Worktree-Pfad unten.
+
+Regulärer Pfad (Default für alles außer dem Test-only-Kurzpfad oben):
 ```bash
 # git-crypt-safe: creates the worktree, handles git-crypt, inits submodules
 bash scripts/worktree-create.sh chore/<slug> /tmp/wt-<slug>
@@ -102,7 +120,7 @@ Chore-spezifisch: Titelformat `chore(<scope>): <subject> [$TICKET_EXT_ID]`. Die
 `[T000XXX]`-Referenz wird von `.github/workflows/post-merge.yml` gelesen — das Ticket ist
 bereits `done`, der Status-Update ist ein idempotenter No-op.
 
-Rufe `commit-commands:commit-push-pr` auf (oder `gh pr create` manuell).
+Rufe `commit-commands:commit-push-pr` auf (Claude Code slash-command) oder führe `gh pr create` manuell aus (beide Frameworks).
 
 ## Schritt 5: Merge wenn CI grün
 
@@ -114,6 +132,9 @@ Rufe `commit-commands:commit-push-pr` auf (oder `gh pr create` manuell).
 **`git-workflow` Schritt 7** (SSOT): Lock-Release
 ([session-coordination](file:///home/patrick/Bachelorprojekt/.claude/skills/references/session-coordination.md)),
 dann `git worktree remove /tmp/wt-<slug> --force && git branch -D chore/<slug>` im Haupt-Repo.
+
+Beim Test-only-Kurzpfad (Schritt 1) gibt es keinen Worktree zu entfernen — nur
+`bash scripts/agent-lock.sh release main-checkout` und `git checkout main && git branch -D chore/<slug>`.
 
 ## Schritt 7: Deploy (falls nötig)
 

@@ -26,18 +26,18 @@ protocol to be opencode-native, and adds a durable generated `harness` map.
 
 Both unverified-API risks were resolved by reading the real sources before authoring:
 
-- **`background-agents.ts` API** (`.opencode/plugins/background-agents.ts`, 1983 lines):
+- **`background-agents.ts` API** (`.opencode/skills/dev-flow/background-agents.ts`, 1983 lines):
   exposes `delegate(prompt, agent)` for **read-only** sub-agents (edit/write/bash denied)
   — returns an id immediately, async; result retrieved with `delegation_read(id)`; list via
   `delegation_list()` (never poll). **Write-capable** sub-agents use opencode's native
   write-capable delegation (the plugin blocks read-only agents from it and blocks
   write-capable agents from `delegate`). The `delegate` tool's args are `prompt` (English)
   and `agent` (agent name). Injected `DELEGATION_RULES` document the routing.
-- **`worktree.ts` API + git-crypt gap** (`.opencode/plugins/worktree.ts`, 1215 lines;
-  helpers in `.opencode/plugins/worktree/`): exposes tools `worktree_create` and
+- **`worktree.ts` API + git-crypt gap** (`.opencode/skills/dev-flow/worktree.ts`, 1215 lines;
+  helpers in `.opencode/skills/dev-flow/plugins/worktree/`): exposes tools `worktree_create` and
   `worktree_delete`. `createWorktree()` runs `git worktree add <path> <branch>` (existing)
   or `git worktree add -b <branch> <path> <base>` (new) **with checkout and NO git-crypt
-  handling**. `grep -rniE 'git.?crypt|smudge' .opencode/plugins/worktree.ts .opencode/plugins/worktree/`
+  handling**. `grep -rniE 'git.?crypt|smudge' .opencode/skills/dev-flow/worktree.ts .opencode/skills/dev-flow/plugins/worktree/`
   returns **nothing**. By contrast `scripts/worktree-create.sh` copies the git-crypt key
   and neutralizes the `smudge`/`clean`/`required` filters (T000426/T001331/T001332). So on
   this git-crypt-managed repo a bare `worktree_create` would fail checkout (exit 128) on

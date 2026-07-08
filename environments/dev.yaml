@@ -22,6 +22,8 @@ env_vars:
   LLM_EMBED_MODEL: "text-embedding-bge-m3"
   LLM_EMBED_MODEL_NOMIC: "text-embedding-nomic-embed-text-v1.5"
   LLM_HOST_IP: "172.17.0.1"
+  TURN_OVERLAY_IP: "172.17.0.1"
+  TERMINAL_OVERLAY_IP: "172.17.0.1"
 
   MEDIAVIEWER_HOST: mediaviewer.localhost
   VIDEOVAULT_DOMAIN: videovault.localhost

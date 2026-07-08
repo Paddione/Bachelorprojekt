@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.168.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.168.0...website-v1.168.1) (2026-07-08)
+
+
+### Bug Fixes
+
+* **k3d:** optimize dev stack configurations and fix local resource limits ([#2659](https://github.com/Paddione/Bachelorprojekt/issues/2659)) ([eeaca4a](https://github.com/Paddione/Bachelorprojekt/commit/eeaca4a04a96af5512c39fed4eba574afa8ee9b7))
+
 ## [1.168.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.167.1...website-v1.168.0) (2026-07-08)
 
 

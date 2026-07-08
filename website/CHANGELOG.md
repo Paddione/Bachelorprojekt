@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.169.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.168.1...website-v1.169.0) (2026-07-08)
+
+
+### Features
+
+* **db:** Phase-2-Drop coaching.ki_config + db-audit [T001676] ([#2662](https://github.com/Paddione/Bachelorprojekt/issues/2662)) ([4f25d6a](https://github.com/Paddione/Bachelorprojekt/commit/4f25d6a1e3fe8eeee41cbfa9ebfb3132c5ebf3ea))
+
 ## [1.168.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.168.0...website-v1.168.1) (2026-07-08)
 
 

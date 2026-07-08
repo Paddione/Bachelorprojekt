@@ -6,8 +6,7 @@ describe('fetchModelIds', () => {
 
   beforeEach(() => {
     mockFetch = vi.fn();
-    global.fetch = mockFetch;
-    Object.defineProperty(global, 'fetch', { value: mockFetch, writable: true });
+    vi.stubGlobal('fetch', mockFetch);
   });
 
   it('returns reachable with models when OpenAI body is valid', async () => {

@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.166.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.166.1...website-v1.166.2) (2026-07-08)
+
+
+### Bug Fixes
+
+* **coaching:** sessions-audit rest — 404-Semantik, Fehler-Logging, Config-Hygiene [T001670] ([#2643](https://github.com/Paddione/Bachelorprojekt/issues/2643)) ([e908b57](https://github.com/Paddione/Bachelorprojekt/commit/e908b57fe73af70237dcf51699100456e121c2e5))
+
+## [1.166.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.166.0...website-v1.166.1) (2026-07-08)
+
+
+### Bug Fixes
+
+* **coaching:** sessions-tool gaps — sim hardening, settings mount, scrubber fail-closed [T001664] ([#2641](https://github.com/Paddione/Bachelorprojekt/issues/2641)) ([be4808e](https://github.com/Paddione/Bachelorprojekt/commit/be4808eefe4374652f0ff014f7f412e97dbad2cb))
+
+## [1.166.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.165.2...website-v1.166.0) (2026-07-08)
+
+
+### Features
+
+* T001641 coaching-ki-model-select — model probe, scrubber, models endpoint ([#2638](https://github.com/Paddione/Bachelorprojekt/issues/2638)) ([e75db9d](https://github.com/Paddione/Bachelorprojekt/commit/e75db9da25c16aa461f2ea657975dabf95c38211))
+
 ## [1.165.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.165.1...website-v1.165.2) (2026-07-08)
 
 

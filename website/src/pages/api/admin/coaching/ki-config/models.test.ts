@@ -1,131 +1,134 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-describe('Models endpoint', () => {
-  let mockSession: ReturnType<typeof vi.fn>;
-  let mockGetKiProviderById: ReturnType<typeof vi.fn>;
+vi.mock('../../../../../lib/auth', () => ({
+  getSession: vi.fn(),
+  isAdmin: vi.fn(),
+}));
+vi.mock('../../../../../lib/coaching-ki-config-db', () => ({
+  getKiProviderById: vi.fn(),
+}));
+vi.mock('../../../../../lib/website-db', () => ({
+  pool: {},
+}));
+import { getSession, isAdmin } from '../../../../../lib/auth';
+import { getKiProviderById } from '../../../../../lib/coaching-ki-config-db';
+import type { KiConfig } from '../../../../../lib/coaching-ki-config-db';
+import { GET } from './models';
+
+type RouteContext = Parameters<typeof GET>[0];
+const call = (query: string) => {
+  const url = new URL(`http://x/api/admin/coaching/ki-config/models${query}`);
+  const request = new Request(url, { headers: { cookie: 's=1' } });
+  return GET({ request, url } as unknown as RouteContext);
+};
+const adminSession = { preferred_username: 'admin', sub: 'a', email: 'a@x' } as unknown as Awaited<ReturnType<typeof getSession>>;
+const mkConfig = (overrides: Partial<KiConfig> = {}): KiConfig =>
+  ({
+    id: 1,
+    brand: 'mentolder',
+    provider: 'local-lmstudio',
+    isActive: false,
+    modelName: null,
+    displayName: 'LM Studio',
+    createdAt: new Date(0),
+    apiKey: null,
+    apiEndpoint: 'http://localhost:1234/v1',
+    temperature: 0.7,
+    maxTokens: null,
+    topP: null,
+    systemPrompt: null,
+    ...overrides,
+  }) as KiConfig;
+
+describe('GET /api/admin/coaching/ki-config/models', () => {
   let mockFetch: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    mockSession = vi.fn();
-    mockGetKiProviderById = vi.fn();
+    vi.clearAllMocks();
     mockFetch = vi.fn();
-
-    // Setup mocks inline
-    vi.mock('../../../../../lib/auth', async () => ({
-      getSession: mockSession,
-      isAdmin: (s: any) => s?.role === 'admin',
-    }));
-    
-    vi.mock('../../../../../lib/coaching-ki-config-db', () => ({
-      getKiProviderById: mockGetKiProviderById,
-    }));
-
-    Object.defineProperty(global, 'fetch', { value: mockFetch, writable: true });
+    vi.stubGlobal('fetch', mockFetch);
   });
 
   it('returns 401 when no session is present', async () => {
-    mockSession.mockResolvedValue(null);
+    vi.mocked(getSession).mockResolvedValue(null);
 
-    const response = await fetch('/api/admin/coaching/ki-config/models?id=1');
-    expect(response.status).toBe(401);
-    const json = (await response.json()) as { error: string };
+    const res = await call('?id=1');
+    expect(res.status).toBe(401);
+    const json = (await res.json()) as { error: string };
     expect(json.error).toBe('Unauthorized');
   });
 
   it('returns 403 when session exists but user is not admin', async () => {
-    mockSession.mockResolvedValue({ role: 'user' } as any);
+    vi.mocked(getSession).mockResolvedValue(adminSession);
+    vi.mocked(isAdmin).mockReturnValue(false);
 
-    const response = await fetch('/api/admin/coaching/ki-config/models?id=1');
-    expect(response.status).toBe(403);
-    const json = (await response.json()) as { error: string };
+    const res = await call('?id=1');
+    expect(res.status).toBe(403);
+    const json = (await res.json()) as { error: string };
     expect(json.error).toBe('Forbidden');
   });
 
-  it('returns models when config has apiEndpoint and fetch succeeds', async () => {
-    mockSession.mockResolvedValue({ role: 'admin' } as any);
-    
-    const mockConfig = {
-      provider: 'local-lmstudio',
-      modelName: null,
-      apiEndpoint: 'http://localhost:1234/v1',
-      apiKey: null,
-      temperature: 0.7,
-      maxTokens: null,
-      topP: null,
-      systemPrompt: null,
-      isActive: false,
-    };
-    
-    mockGetKiProviderById.mockResolvedValue(mockConfig);
-    
-    const modelResponse = { data: [{ id: 'qwen2.5-7b' }, { id: 'mistral-7b' }] };
-    mockFetch.mockResolvedValueOnce({ ok: true, json: vi.fn().mockResolvedValue(modelResponse) });
+  it('returns models when config has apiEndpoint and probe succeeds', async () => {
+    vi.mocked(getSession).mockResolvedValue(adminSession);
+    vi.mocked(isAdmin).mockReturnValue(true);
+    vi.mocked(getKiProviderById).mockResolvedValue(mkConfig());
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: vi.fn().mockResolvedValue({ data: [{ id: 'qwen2.5-7b' }, { id: 'mistral-7b' }] }),
+    });
 
-    const response = await fetch(`/api/admin/coaching/ki-config/models?id=1`);
-    
-    expect(response.status).toBe(200);
-    const result = (await response.json()) as { reachable: boolean; models: string[] };
+    const res = await call('?id=1');
+    expect(res.status).toBe(200);
+    const result = (await res.json()) as { reachable: boolean; models: string[] };
     expect(result.reachable).toBe(true);
     expect(result.models).toEqual(['qwen2.5-7b', 'mistral-7b']);
+    expect(mockFetch).toHaveBeenCalledWith('http://localhost:1234/v1/models', expect.any(Object));
   });
 
   it('returns not reachable when getKiProviderById resolves null', async () => {
-    mockSession.mockResolvedValue({ role: 'admin' } as any);
-    
-    mockGetKiProviderById.mockResolvedValue(null);
+    vi.mocked(getSession).mockResolvedValue(adminSession);
+    vi.mocked(isAdmin).mockReturnValue(true);
+    vi.mocked(getKiProviderById).mockResolvedValue(null);
 
-    const response = await fetch('/api/admin/coaching/ki-config/models?id=999');
-    
-    expect(response.status).toBe(200);
-    const result = (await response.json()) as { reachable: boolean; models: string[] };
+    const res = await call('?id=999');
+    expect(res.status).toBe(200);
+    const result = (await res.json()) as { reachable: boolean; models: string[] };
     expect(result.reachable).toBe(false);
     expect(result.models).toEqual([]);
   });
 
-  it('returns not reachable when fetch rejects', async () => {
-    mockSession.mockResolvedValue({ role: 'admin' } as any);
-    
-    const mockConfig = {
-      provider: 'local-lmstudio',
-      modelName: null,
-      apiEndpoint: 'http://localhost:9999/v1',
-      apiKey: null,
-      temperature: 0.7,
-      maxTokens: null,
-      topP: null,
-      systemPrompt: null,
-      isActive: false,
-    };
-
-    mockGetKiProviderById.mockResolvedValue(mockConfig);
+  it('returns not reachable when the probe fetch rejects', async () => {
+    vi.mocked(getSession).mockResolvedValue(adminSession);
+    vi.mocked(isAdmin).mockReturnValue(true);
+    vi.mocked(getKiProviderById).mockResolvedValue(mkConfig({ apiEndpoint: 'http://localhost:9999/v1' }));
     mockFetch.mockRejectedValueOnce(new Error('ECONNREFUSED'));
 
-    const response = await fetch('/api/admin/coaching/ki-config/models?id=1');
-    
-    expect(response.status).toBe(200);
-    const result = (await response.json()) as { reachable: boolean; models: string[] };
+    const res = await call('?id=1');
+    expect(res.status).toBe(200);
+    const result = (await res.json()) as { reachable: boolean; models: string[] };
     expect(result.reachable).toBe(false);
     expect(result.models).toEqual([]);
   });
 
-  it('returns not reachable when id is missing or non-numeric', async () => {
-    mockSession.mockResolvedValue({ role: 'admin' } as any);
+  it('returns not reachable when id is missing', async () => {
+    vi.mocked(getSession).mockResolvedValue(adminSession);
+    vi.mocked(isAdmin).mockReturnValue(true);
 
-    const response = await fetch('/api/admin/coaching/ki-config/models');
-    
-    expect(response.status).toBe(200);
-    const result = (await response.json()) as { reachable: boolean; models: string[] };
+    const res = await call('');
+    expect(res.status).toBe(200);
+    const result = (await res.json()) as { reachable: boolean; models: string[] };
     expect(result.reachable).toBe(false);
     expect(result.models).toEqual([]);
+    expect(getKiProviderById).not.toHaveBeenCalled();
   });
 
   it('returns not reachable when id is a non-integer', async () => {
-    mockSession.mockResolvedValue({ role: 'admin' } as any);
+    vi.mocked(getSession).mockResolvedValue(adminSession);
+    vi.mocked(isAdmin).mockReturnValue(true);
 
-    const response = await fetch('/api/admin/coaching/ki-config/models?id=abc');
-    
-    expect(response.status).toBe(200);
-    const result = (await response.json()) as { reachable: boolean; models: string[] };
+    const res = await call('?id=abc');
+    expect(res.status).toBe(200);
+    const result = (await res.json()) as { reachable: boolean; models: string[] };
     expect(result.reachable).toBe(false);
     expect(result.models).toEqual([]);
   });

@@ -895,6 +895,12 @@
       "status": "plan_staged"
     }
   ],
+  "T001609": [
+    {
+      "slug": "hermes-agent-mcp-access",
+      "status": "plan_staged"
+    }
+  ],
   "T001610": [
     {
       "slug": "t001610",
@@ -921,12 +927,16 @@
     {
       "slug": "coaching-ki-model-select",
       "status": "plan_staged"
+    },
+    {
+      "slug": "2026-07-08-coaching-ki-model-select",
+      "status": "archived"
     }
   ],
   "T001649": [
     {
-      "slug": "studio-sessions-reorganize",
-      "status": "plan_staged"
+      "slug": "2026-07-08-studio-sessions-reorganize",
+      "status": "archived"
     }
   ],
   "T001652": [

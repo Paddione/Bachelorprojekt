@@ -7,7 +7,7 @@ export function resolveEndpoint(kiConfig: KiConfig): string {
   const gpuBase = process.env.LLM_HOST_IP?.trim() || 'localhost';
   const defaults: Record<string, string> = {
     'deepseek': 'https://api.deepseek.com/v1',
-    'anthropic': 'http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234/v1',
+    'anthropic': process.env.LLM_GATEWAY_URL ?? 'http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234/v1',
     'local-cluster': process.env.LLM_ROUTER_URL ?? `http://${gpuBase}:1234/v1`,
     'local-lmstudio': `http://${gpuBase}:1234/v1`,
     'local-ollama': `http://${gpuBase}:1234/v1`,

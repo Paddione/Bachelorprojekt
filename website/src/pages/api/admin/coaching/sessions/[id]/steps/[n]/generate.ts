@@ -42,7 +42,10 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
   const activeProvider = coachingSession?.kiConfigId
     ? (await getKiProviderById(pool, coachingSession.kiConfigId)) ?? await getActiveProvider(pool, brand)
     : await getActiveProvider(pool, brand);
-  const providerName = activeProvider?.provider ?? 'claude';
+  if (!activeProvider) {
+    return new Response(JSON.stringify({ error: 'Kein KI-Provider konfiguriert' }), { status: 503, headers: { 'content-type': 'application/json' } });
+  }
+  const providerName = activeProvider.provider;
 
   const dbTemplate = await getStepTemplate(pool, brand, stepNumber);
   let systemPrompt: string;
@@ -95,8 +98,6 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
     try {
       if (piiSources!.names.length || piiSources!.emails.length) {
         effectiveSystem = scrubClientPii(effectiveSystem, { names: piiSources!.names, emails: piiSources!.emails, replacement });
-        
-        const prefix = `Klient ${customerNumber}:`;
         anonymizedUserPromptFinal = scrubClientPii(userPrompt, { names: piiSources!.names, emails: piiSources!.emails, replacement });
       } else if (userPrompt) {
         // No PII to scrub - just add client prefix if needed
@@ -107,9 +108,8 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
       }
     } catch (err: unknown) {
       locals.requestLogger.error({ err }, '[coaching/generate] scrub failed');
-      // Fallback: use customerNumber as replacement if scrubbing failed
-      const fallbackReplacement = customerNumber ?? '[KLIENT]';
-      anonymizedUserPromptFinal = userPrompt ? userPrompt : '';
+      // Fail-closed: ohne erfolgreichen Scrub darf keine Klienten-PII ans LLM gehen (DSGVO)
+      return new Response(JSON.stringify({ error: 'PII-Anonymisierung fehlgeschlagen — Anfrage abgebrochen' }), { status: 500, headers: { 'content-type': 'application/json' } });
     }
   } else {
     anonymizedUserPromptFinal = userPrompt || '';
@@ -133,7 +133,7 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
   const { createSessionAgent } = await import('../../../../../../../../lib/session-agent-factory');
 
   const history = await buildSessionHistory(sessionId, stepNumber);
-  const agent = createSessionAgent(activeProvider!);
+  const agent = createSessionAgent(activeProvider);
 
   if (wantsStream && agent.stream) {
     const encoder = new TextEncoder();
@@ -146,7 +146,7 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
       try {
         for await (const chunk of agent.stream!({
           sessionId, stepNumber, coachInputs: body.coachInputs,
-          kiConfig: activeProvider!, brand, history,
+          kiConfig: activeProvider, brand, history,
           effectiveSystemPrompt: effectiveSystem,
           assembledUserPrompt: anonymizedUserPromptFinal,
           stepName, phase,
@@ -186,7 +186,7 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
   try {
     const result = await agent.generate({
       sessionId, stepNumber, coachInputs: body.coachInputs,
-      kiConfig: activeProvider!, brand, history,
+      kiConfig: activeProvider, brand, history,
       effectiveSystemPrompt: effectiveSystem,
       assembledUserPrompt: anonymizedUserPromptFinal,
       stepName, phase,

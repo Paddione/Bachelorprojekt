@@ -2833,7 +2833,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 496,
+      "file_count": 497,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3136,6 +3136,7 @@
         "scripts/health-goals-check.sh",
         "scripts/health-goals-update.sh",
         "scripts/hermes-delegate.sh",
+        "scripts/hermes-mcp-provision.sh",
         "scripts/hermes-mcp-servers.yaml",
         "scripts/hetzner/cloud-init-server.yaml.tmpl",
         "scripts/hetzner/cloud-init.yaml.tmpl",

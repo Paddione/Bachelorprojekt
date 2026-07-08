@@ -2355,7 +2355,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 441,
+      "file_count": 442,
       "files": [
         ".opencode/commands/opsx-apply.md",
         ".opencode/commands/opsx-archive.md",
@@ -2571,6 +2571,7 @@
         "k3d/dev-stack/traefik-tls.yaml",
         "k3d/dev-stack/traefik-wildcard-ingress.yaml",
         "k3d/dev-stack/website-dev.yaml",
+        "k3d/docs-content/k3d/docs-content-built/CHANGELOG.html",
         "k3d/docs.yaml",
         "k3d/downloads.yaml",
         "k3d/einvoice-sidecar.yaml",

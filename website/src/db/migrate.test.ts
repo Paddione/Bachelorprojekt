@@ -53,7 +53,13 @@ function createMockPool(opts: MockPoolOptions = {}) {
     },
   );
 
-  return { query, calls } as unknown as Pool & { calls: QueryCall[] };
+  const release = vi.fn();
+  const connect = vi.fn(async () => ({ query, release }));
+
+  return { query, connect, calls, release } as unknown as Pool & {
+    calls: QueryCall[];
+    release: typeof release;
+  };
 }
 
 beforeEach(() => {
@@ -149,5 +155,15 @@ describe('runMigrations', () => {
       /^SELECT filename FROM schema_migrations/.test(c.sql),
     );
     expect(selectIndex).toBeGreaterThan(0);
+  });
+
+  it('runs the whole migration pass on a single dedicated client (not round-robin pool.query)', async () => {
+    mockFiles = ['20260520_a.sql'];
+    const pool = createMockPool();
+
+    await runMigrations(pool);
+
+    expect(pool.connect).toHaveBeenCalledTimes(1);
+    expect(pool.release).toHaveBeenCalledTimes(1);
   });
 });

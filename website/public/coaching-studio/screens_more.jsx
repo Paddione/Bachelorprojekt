@@ -5,7 +5,7 @@
 // 5 · VERGLEICHSANSICHT — Split (Vorlage links · neue Session rechts)
 // =====================================================================
 function CompareView({ customer, onNav }){
-  const k = customer || CUSTOMERS[0];
+  const k = customer || CUSTOMERS[0] || EMPTY_CUSTOMER;
   const diffs = { 2:true, 5:true, 8:true, 9:true };
   return (
     <div className="screen"><div className="wrap">

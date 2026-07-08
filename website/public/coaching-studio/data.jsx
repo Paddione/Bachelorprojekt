@@ -107,6 +107,13 @@ function mkSessions(){
 const CUSTOMERS = [];
 CUSTOMERS.forEach(k=> k.sessions = mkSessions());
 
+// Fallback, solange keine echten Klient:innen angelegt sind — verhindert
+// Abstürze in Screens, die `customer || CUSTOMERS[0]` als Default nutzen.
+const EMPTY_CUSTOMER = {
+  id: null, name: "—", initials: "–", since: "—", lang: "—", category: "—",
+  aktiv: 0, pausiert: 0, fertig: 0, sessions: [],
+};
+
 // ---------------------------------------------------------------------
 // ÜBERSETZUNGEN — DE-Original parallel zur Zielsprache (Platzhalter)
 // ---------------------------------------------------------------------
@@ -120,4 +127,4 @@ const TARGET_LANGS = [
 ];
 
 // expose
-Object.assign(window, { Icon, BrandMark, lorem, LOREM, LEVELS, PROFILE_FIELDS, CUSTOMERS, SOURCE_DE, TARGET_LANGS });
+Object.assign(window, { Icon, BrandMark, lorem, LOREM, LEVELS, PROFILE_FIELDS, CUSTOMERS, EMPTY_CUSTOMER, SOURCE_DE, TARGET_LANGS });

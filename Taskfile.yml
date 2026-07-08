@@ -62,6 +62,12 @@ includes:
     taskfile: ./Taskfile.taskmaster.yml
     dir: .
 
+  # Brain-Quartz Wiki — initial ingest worklist (T001570).
+  # See Taskfile.brain.yaml + scripts/brain-ingest-worklist.sh.
+  brain:
+    taskfile: ./Taskfile.brain.yaml
+    dir: .
+
 vars:
   CLUSTER_NAME: korczewski
   REGISTRY: localhost:5000

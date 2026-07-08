@@ -33,7 +33,7 @@ _pre_commit_files() {
 # (the heredoc-style block indented under `- |`).
 _freshness_check_files() {
   awk '
-    /FILES="/ { capture=1; next }
+    /^[[:space:]]*FILES="/ { capture=1; next }
     capture && /"$/ { capture=0; next }
     capture { print }
   ' "$TASKFILE" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//' | grep -v '^$'

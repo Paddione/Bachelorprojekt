@@ -7,6 +7,8 @@ const validFaq = [{ question: 'q', answer: 'a' }];
 // assert the branch/PR/auto-merge sequence and return a fixed
 // `currentSha` to drive the 409/200/422 matrix.
 function fakeGitHub({ currentSha, currentValue }: { currentSha: string; currentValue?: unknown }): GitHubClient & {
+  currentSha: string;
+  currentValue?: unknown;
   branchName?: string;
   putSha?: string;
   prNumber: number;
@@ -15,6 +17,8 @@ function fakeGitHub({ currentSha, currentValue }: { currentSha: string; currentV
   calls: string[];
 } {
   const fake: ReturnType<typeof fakeGitHub> = {
+    currentSha,
+    currentValue,
     prNumber: 42,
     prUrl: 'https://github.com/Paddione/Bachelorprojekt/pull/42',
     autoMergeEnabled: false,

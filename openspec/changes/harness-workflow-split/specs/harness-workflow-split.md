@@ -98,7 +98,7 @@ antigravity CLI is absent, keeping CI green on machines without it.
 
 ### Requirement: opencode worktree isolation stays git-crypt-safe
 
-Because `.opencode/plugins/worktree.ts` runs `git worktree add` with checkout and does
+Because `.opencode/skills/dev-flow/worktree.ts` runs `git worktree add` with checkout and does
 not neutralize the git-crypt smudge filter (unlike `scripts/worktree-create.sh`), the
 `opencode-git-workflow` skill SHALL create worktrees via the git-crypt-safe
 `scripts/worktree-create.sh` and document the `worktree.ts` limitation, so encrypted

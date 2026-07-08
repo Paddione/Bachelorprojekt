@@ -32,6 +32,7 @@ DECLARE
   has_inbox_flag    BOOLEAN;
   has_thread_flag   BOOLEAN;
   has_messages_flag BOOLEAN;
+  has_coaching_flag BOOLEAN;
   keep_emails       TEXT[] := ARRAY[
                        'patrick@korczewski.de',
                        'p.korczewski@gmail.com',
@@ -85,6 +86,11 @@ BEGIN
                    AND table_name='messages'
                    AND column_name='is_test_data')
     INTO has_messages_flag;
+  SELECT EXISTS(SELECT 1 FROM information_schema.columns
+                 WHERE table_schema='coaching'
+                   AND table_name='sessions'
+                   AND column_name='is_test_data')
+    INTO has_coaching_flag;
 
   ----------------------------------------------------------------------------
   -- 1) Clear FK from questionnaire_test_status to test-data tickets.
@@ -315,18 +321,22 @@ BEGIN
   ----------------------------------------------------------------------------
   -- 11e) ── Coaching sessions sweep (NEW in v6 / T001638). ──────────────────
   --     coaching.sessions.is_test_data flags seed/E2E-created sessions.
-  --     Delete child steps first (explicit, for an auditable count), then
-  --     the parent sessions.
+  --     Guarded by has_coaching_flag: the function may be (re)created before
+  --     the 2026-07-08 column migration ran — an unguarded sweep would then
+  --     abort the whole purge. Delete child steps first (explicit, for an
+  --     auditable count), then the parent sessions.
   ----------------------------------------------------------------------------
-  DELETE FROM coaching.session_steps
-   USING coaching.sessions s
-   WHERE session_id = s.id AND s.is_test_data;
-  GET DIAGNOSTICS cnt = ROW_COUNT;
-  result := result || jsonb_build_object('coaching_session_steps', cnt);
+  IF has_coaching_flag THEN
+    DELETE FROM coaching.session_steps
+     USING coaching.sessions s
+     WHERE session_id = s.id AND s.is_test_data;
+    GET DIAGNOSTICS cnt = ROW_COUNT;
+    result := result || jsonb_build_object('coaching_session_steps', cnt);
 
-  DELETE FROM coaching.sessions WHERE is_test_data;
-  GET DIAGNOSTICS cnt = ROW_COUNT;
-  result := result || jsonb_build_object('coaching_sessions', cnt);
+    DELETE FROM coaching.sessions WHERE is_test_data;
+    GET DIAGNOSTICS cnt = ROW_COUNT;
+    result := result || jsonb_build_object('coaching_sessions', cnt);
+  END IF;
 
   ----------------------------------------------------------------------------
   -- 12) Customer allowlist sweep.

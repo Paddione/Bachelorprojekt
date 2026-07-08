@@ -5,9 +5,11 @@ export interface PopoutOptions {
 
 /**
  * Open `url` in a named popup window, then sever the opener reference
- * (noopener-equivalent security while keeping the window handle). Focuses an
- * already-open window of the same name. If the popup blocker suppresses the
- * window (`window.open` returns null), fall back to same-tab navigation.
+ * (noopener-equivalent security while keeping the window handle). An
+ * already-open window of the same name is re-navigated to `url` and focused
+ * (in-flight client state there is discarded). If the popup blocker
+ * suppresses the window (`window.open` returns null), fall back to same-tab
+ * navigation.
  */
 export function openPopout(url: string, name: string, opts: PopoutOptions = {}): Window | null {
   const width = opts.width ?? 1100;

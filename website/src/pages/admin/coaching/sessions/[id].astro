@@ -73,7 +73,7 @@ const displayKi = kiProviders.find(p => p.id === coachingSession.kiConfigId)?.di
       <a href="/admin">Admin</a><span class="sep">›</span>
       <a href="/admin/coaching/sessions">Sessions</a><span class="sep">›</span>
       {coachingSession.title}
-      <a id="popout-link" href={`/admin/coaching/sessions/${id}/popout`} class="popout-link">Popout ↗</a>
+      {!report && <a id="popout-link" href={`/admin/coaching/sessions/${id}/popout`} class="popout-link">Popout ↗</a>}
     </nav>
 
     {report ? (
@@ -180,8 +180,10 @@ const displayKi = kiProviders.find(p => p.id === coachingSession.kiConfigId)?.di
 
   document.getElementById('popout-link')?.addEventListener('click', (e) => {
     e.preventDefault();
-    const sid = window.location.pathname.split('/').at(-1);
-    openPopout(`/admin/coaching/sessions/${sid}/popout`, 'coaching-session-popout');
+    // The href is rendered server-side from the session id — reuse it instead
+    // of re-deriving the id from the pathname (breaks on trailing slashes).
+    const href = (e.currentTarget as HTMLAnchorElement).href;
+    openPopout(href, 'coaching-session-popout');
   });
 
   document.getElementById('download-btn')?.addEventListener('click', () => {

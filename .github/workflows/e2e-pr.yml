@@ -128,14 +128,48 @@ jobs:
           echo "grep_pattern=$GREP_PATTERN" >> "$GITHUB_OUTPUT"
           echo "feature_tag=$TAG"          >> "$GITHUB_OUTPUT"
 
+      - name: Detect changed E2E spec files
+        # Mirrors the local `task test:changed` smart selection: if a
+        # spec file under tests/e2e/specs/ was touched in this PR, add
+        # it to the run as a positional arg (in addition to the
+        # tag-grep filter above). Working dir is the repo root, so
+        # strip the `tests/e2e/` prefix to match Playwright's --config
+        # testDir (./specs). [T001651]
+        if: steps.filter.outputs.run_e2e == 'true'
+        id: specs
+        run: |
+          CHANGED=$(git diff --name-only origin/main...HEAD 2>/dev/null || echo "")
+          CHANGED_SPECS=$(echo "$CHANGED" \
+            | grep -E '^tests/e2e/specs/.*\.spec\.ts$' \
+            | sed 's|^tests/e2e/||' \
+            | paste -sd' ' - \
+            || true)
+          if [ -n "$CHANGED_SPECS" ]; then
+            echo "Changed spec files (will be added to the run):"
+            echo "$CHANGED_SPECS" | tr ' ' '\n' | sed 's/^/  /'
+          else
+            echo "No changed spec files"
+          fi
+          echo "changed_specs=$CHANGED_SPECS" >> "$GITHUB_OUTPUT"
+
       - name: E2E — ${{ steps.tag.outputs.feature_tag || 'smoke' }} + @smoke gegen web.mentolder.de
         if: steps.filter.outputs.run_e2e == 'true'
         id: playwright
         working-directory: tests/e2e
+        env:
+          CHANGED_SPECS: ${{ steps.specs.outputs.changed_specs }}
         run: |
-          npx playwright test \
-            --config playwright.pr.config.ts \
-            --grep "${{ steps.tag.outputs.grep_pattern }}"
+          if [ -n "${CHANGED_SPECS:-}" ]; then
+            echo "→ Running tag-grep + changed specs: $CHANGED_SPECS"
+            npx playwright test \
+              --config playwright.pr.config.ts \
+              --grep "${{ steps.tag.outputs.grep_pattern }}" \
+              $CHANGED_SPECS
+          else
+            npx playwright test \
+              --config playwright.pr.config.ts \
+              --grep "${{ steps.tag.outputs.grep_pattern }}"
+          fi
 
       - name: Upload Ergebnisse (Traces + JSON)
         if: always() && steps.filter.outputs.run_e2e == 'true'

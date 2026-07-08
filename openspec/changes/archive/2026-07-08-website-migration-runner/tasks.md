@@ -2,7 +2,7 @@
 title: "website-migration-runner — automated SQL migration runner for website/src/db/migrations"
 ticket_id: T001652
 domains: [website, infra]
-status: plan_staged
+status: completed
 ---
 
 # website-migration-runner — Implementation Plan

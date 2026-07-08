@@ -2,7 +2,7 @@
 title: "coaching-sessions-admin-ux — Implementation Plan"
 ticket_id: T001638
 domains: [website, database]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

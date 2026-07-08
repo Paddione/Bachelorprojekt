@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 555,
+      "file_count": 556,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -361,6 +361,7 @@
         "tests/spec/centralized-logging.bats",
         "tests/spec/chat-inbox.bats",
         "tests/spec/ci-cd.bats",
+        "tests/spec/coaching-sessions-polish-guide.bats",
         "tests/spec/code-quality.bats",
         "tests/spec/commit-signing.bats",
         "tests/spec/coverage-gate.bats",
@@ -568,7 +569,7 @@
       "id": "scripts-db",
       "name": "Database scripts (migrations + datamodel)",
       "owner_agent": "bachelorprojekt-db",
-      "file_count": 40,
+      "file_count": 41,
       "files": [
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-korczewski.sql",
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-mentolder.sql",
@@ -609,14 +610,15 @@
         "scripts/migrations/2026-06-17-scout-drift.sql",
         "scripts/migrations/2026-06-17-triage-columns.sql",
         "scripts/migrations/2026-07-03-context-budget.sql",
-        "scripts/migrations/2026-07-03-local-qwen35-seed.sql"
+        "scripts/migrations/2026-07-03-local-qwen35-seed.sql",
+        "scripts/migrations/2026-07-08-coaching-is-test-data.sql"
       ]
     },
     {
       "id": "website",
       "name": "Astro + Svelte website",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 1735,
+      "file_count": 1737,
       "files": [
         "website/.build-trigger",
         "website/.design-sync/NOTES.md",
@@ -1567,6 +1569,7 @@
         "website/src/lib/platform-links.ts",
         "website/src/lib/poll-db.test.ts",
         "website/src/lib/poll-db.ts",
+        "website/src/lib/popout.ts",
         "website/src/lib/project-attachments-db.ts",
         "website/src/lib/project-export-db.ts",
         "website/src/lib/project-portal-db.ts",
@@ -1776,6 +1779,7 @@
         "website/src/pages/admin/coaching/projekte/[id].astro",
         "website/src/pages/admin/coaching/projekte/index.astro",
         "website/src/pages/admin/coaching/sessions/[id].astro",
+        "website/src/pages/admin/coaching/sessions/[id]/popout.astro",
         "website/src/pages/admin/coaching/sessions/index.astro",
         "website/src/pages/admin/coaching/sessions/new.astro",
         "website/src/pages/admin/coaching/settings.astro",
@@ -2810,7 +2814,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 493,
+      "file_count": 494,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3185,6 +3189,7 @@
         "scripts/one-shot/archive/20260518-web-crawl-source.sql",
         "scripts/one-shot/archive/20260519-context7-source.sql",
         "scripts/one-shot/purge-fn-v5.sql",
+        "scripts/one-shot/purge-fn-v6.sql",
         "scripts/openspec-context.sh",
         "scripts/openspec-embed.mjs",
         "scripts/openspec-embed.test.mjs",

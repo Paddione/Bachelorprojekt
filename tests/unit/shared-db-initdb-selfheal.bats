@@ -30,3 +30,17 @@ setup() {
   run grep -qE "SELECT 1 FROM pg_database WHERE datname='\\\$\\\$db'" "$MANIFEST"
   [ "$status" -eq 0 ]
 }
+
+# T001673: shared-db.yaml traegt $$-escapte Shell-Vars. JEDER Apply-Pfad in der
+# Taskfile muss den $$->$-Collapse-sed anwenden — ein roher Apply setzt sonst via
+# postStart alle DB-User-Passwoerter auf '<PID>{VAR}' (Prod-Incident 2026-07-08).
+@test "T001673: every raw k3d/shared-db.yaml apply in Taskfile pipes through the collapse sed" {
+  TASKFILE="$REPO_ROOT/Taskfile.yml"
+  # Kein direktes 'kubectl apply -f k3d/shared-db.yaml' mehr (ohne Collapse-Pipe)
+  run grep -nE 'kubectl[^|]*apply -f k3d/shared-db\.yaml' "$TASKFILE"
+  [ "$status" -ne 0 ]
+  # Collapse-Regex muss fuer alle vier Pfade vorhanden sein:
+  # dev-Apply, dev-kustomize, prod-early-Apply, prod-kustomize
+  cnt=$(grep -cF 's/\$\$([a-zA-Z0-9_]|\{)/$\1/g' "$TASKFILE" || true)
+  [ "${cnt:-0}" -ge 4 ]
+}

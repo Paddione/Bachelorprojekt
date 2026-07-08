@@ -2575,6 +2575,8 @@ tasks:
           # transformer would otherwise force them into workspace).
           envsubst "\$WORKSPACE_NAMESPACE \$WEBSITE_NAMESPACE" < k3d/tests-retention-cronjob.yaml | kubectl apply -f -
           envsubst "\$WORKSPACE_NAMESPACE \$WEBSITE_NAMESPACE" < k3d/cicd-deploy-sa.yaml | kubectl apply -f -
+          # Cross-namespace RBAC for pocket-id-client-seed to also patch website-secrets (T001435)
+          envsubst "\$WORKSPACE_NAMESPACE \$WEBSITE_NAMESPACE" < k3d/pocket-id-client-seed-website-rbac.yaml | kubectl apply -f -
           # System-test failure-loop cleanup CronJobs — applied separately so
           # they land in WEBSITE_NAMESPACE alongside the website pod (kustomize's
           # top-level `namespace: workspace` would otherwise force them into the
@@ -2752,6 +2754,9 @@ tasks:
           envsubst "\$WORKSPACE_NAMESPACE \$WEBSITE_NAMESPACE" < k3d/tests-retention-cronjob.yaml \
             | kubectl --context "$ENV_CONTEXT" apply -f -
           envsubst "\$WORKSPACE_NAMESPACE \$WEBSITE_NAMESPACE" < k3d/cicd-deploy-sa.yaml \
+            | kubectl --context "$ENV_CONTEXT" apply -f -
+          # Cross-namespace RBAC for pocket-id-client-seed to also patch website-secrets (T001435)
+          envsubst "\$WORKSPACE_NAMESPACE \$WEBSITE_NAMESPACE" < k3d/pocket-id-client-seed-website-rbac.yaml \
             | kubectl --context "$ENV_CONTEXT" apply -f -
           # System-test failure-loop cleanup CronJobs — applied separately so
           # they land in WEBSITE_NAMESPACE alongside the website pod.

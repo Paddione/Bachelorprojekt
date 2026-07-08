@@ -185,12 +185,21 @@ describe('archiveSession / unarchiveSession', () => {
     const s = await createSession(pool, {
       brand: 'mentolder', title: 'T', mode: 'live', createdBy: 'coach',
     });
-    await archiveSession(pool, s.id, 'coach');
+    expect(await archiveSession(pool, s.id, 'coach')).toBe(true);
     const fetched = await getSession(pool, s.id);
     expect(fetched?.archivedAt).not.toBeNull();
-    await unarchiveSession(pool, s.id, 'coach');
+    expect(await unarchiveSession(pool, s.id, 'coach')).toBe(true);
     const fetched2 = await getSession(pool, s.id);
     expect(fetched2?.archivedAt).toBeNull();
+  });
+
+  it('returns false for a non-existent session id (T001670)', async () => {
+    const ghost = '00000000-0000-4000-8000-000000000000';
+    expect(await archiveSession(pool, ghost, 'coach')).toBe(false);
+    expect(await unarchiveSession(pool, ghost, 'coach')).toBe(false);
+    // kein Audit-Log-Eintrag für die Geister-ID
+    const log = await getAuditLog(pool, ghost);
+    expect(log).toEqual([]);
   });
 });
 

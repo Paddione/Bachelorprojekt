@@ -40,6 +40,14 @@
 #     converge instead of drifting: once a client exists with a secret
 #     that matches workspace-secrets, subsequent runs never touch it
 #     again.
+#
+#   - CROSS-NAMESPACE DRIFT (website only, T001435): the website pod
+#     reads POCKET_ID_WEBSITE_SECRET from `website-secrets` (website
+#     namespace), NOT from workspace-secrets. On creating a NEW website
+#     client, patch_secret now also writes the generated secret into
+#     website-secrets/<secretKey> so both k8s Secrets stay in sync.
+#     The seed Job's SA needs get+patch RBAC on website-secrets too
+#     (see pocket-id-client-seed-website-rbac.yaml).
 # ═══════════════════════════════════════════════════════════════════
 apiVersion: batch/v1
 kind: Job
@@ -104,6 +112,8 @@ spec:
           env:
             - name: POCKET_ID_FRONTEND_URL
               value: "${POCKET_ID_FRONTEND_URL}"
+            - name: WEBSITE_NAMESPACE
+              value: "${WEBSITE_NAMESPACE}"
             - name: API
               value: "http://pocket-id:1411"
             - name: POCKET_ID_API_KEY
@@ -144,6 +154,10 @@ spec:
               valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_WEBSITE_SECRET, optional: true } }
             - name: SECRET_rustdeskweb
               valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_RUSTDESK_WEB_SECRET, optional: true } }
+            - name: SECRET_brain
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_BRAIN_SECRET, optional: true } }
+            - name: SECRET_terminal
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_TERMINAL_SECRET, optional: true } }
           command:
             - /bin/sh
             - -ec
@@ -186,6 +200,8 @@ spec:
               grafana|SECRET_grafana|POCKET_ID_GRAFANA_SECRET|${SCHEME}://grafana.${SUFFIX}/login/generic_oauth
               website|SECRET_website|POCKET_ID_WEBSITE_SECRET|${SCHEME}://web.${SUFFIX}/api/auth/callback
               rustdesk-web|SECRET_rustdeskweb|POCKET_ID_RUSTDESK_WEB_SECRET|${SCHEME}://remote.${SUFFIX}/oauth2/callback
+              brain|SECRET_brain|POCKET_ID_BRAIN_SECRET|${SCHEME}://brain.${SUFFIX}/oauth2/callback
+              terminal-sidekick|SECRET_terminal|POCKET_ID_TERMINAL_SECRET|${SCHEME}://terminal.${SUFFIX}/oauth2/callback
               "
 
               # Resolve a client's REAL pocket-id id by NAME. pocket-id:v2.9.0
@@ -225,6 +241,10 @@ spec:
               # stringData lets the API server base64-encode server-side --
               # no client-side base64 needed. allow-apiserver-egress
               # (T000368) already permits this egress from workspace pods.
+              # For the website client, also sync to website-secrets in the
+              # website namespace — otherwise the website pod reads the stale
+              # value from its own namespace and Pocket ID rejects the secret
+              # ("invalid client secret" / secret mismatch, T001435).
               KSA_DIR=/var/run/secrets/kubernetes.io/serviceaccount
               patch_secret() {
                 key="$1"; val="$2"
@@ -236,6 +256,15 @@ spec:
                   -X PATCH \
                   "https://kubernetes.default.svc/api/v1/namespaces/${ns}/secrets/workspace-secrets" \
                   -d "$body" </dev/null >/dev/null
+                if [ "$key" = "POCKET_ID_WEBSITE_SECRET" ] && [ -n "${WEBSITE_NAMESPACE:-}" ]; then
+                  curl -fsS $CURL_RETRY --cacert "${KSA_DIR}/ca.crt" \
+                    -H "Authorization: Bearer $(cat ${KSA_DIR}/token)" \
+                    -H "Content-Type: application/merge-patch+json" \
+                    -X PATCH \
+                    "https://kubernetes.default.svc/api/v1/namespaces/${WEBSITE_NAMESPACE}/secrets/website-secrets" \
+                    -d "$body" </dev/null >/dev/null
+                  echo "  (also synced to ${WEBSITE_NAMESPACE}/website-secrets)"
+                fi
               }
 
               # Idempotent upsert: create if missing, otherwise update via PUT
@@ -276,7 +305,7 @@ spec:
                     exit 1
                   fi
                   patch_secret "$secret_key" "$plaintext"
-                  echo "created ${cid} (id=${new_id}), secret generated + written back to workspace-secrets/${secret_key}"
+                  echo "created ${cid} (id=${new_id}), secret generated + written back to workspace-secrets/${secret_key}${WEBSITE_NAMESPACE:+ + website-secrets/${secret_key}}"
                 fi
               }
 
@@ -285,6 +314,35 @@ spec:
                 secret=$(eval "printf '%s' \"\$$env\"")
                 upsert "$cid" "$secret" "$secret_key" "$cb"
               done
+              
+              # ── User-group provisioning (T001579) ─────────────────────────
+              # Idempotently ensure the platform base group `workspace-users`
+              # exists. oauth2-proxy gates authorize on it via
+              # --allowed-groups=workspace-users (groups claim, scope `groups`).
+              # MEMBERSHIP IS NOT AUTOMATED here — assigning users to the group
+              # is a documented one-time admin step; the seed job must never
+              # overwrite manually curated membership.
+              # Same grep/sed-over-JSON approach as find_client_id (no jq in
+              # this image); same X-API-KEY auth and retry policy.
+              find_group_id() {
+                gname="$1"
+                glist=$(curl -fsS $CURL_RETRY -H "$AUTH" "${API}/api/user-groups" </dev/null 2>/dev/null || true)
+                echo "$glist" | grep -o "\"id\":\"[^\"]*\",\"name\":\"${gname}\"" | head -1 | sed -E 's/"id":"([^"]*)".*/\1/'
+              }
+              ensure_group() {
+                gname="$1"; gfriendly="$2"
+                gid=$(find_group_id "$gname")
+                if [ -n "$gid" ]; then
+                  echo "group ${gname} exists (id=${gid}), unchanged"
+                else
+                  curl -fsS $CURL_RETRY -X POST -H "$AUTH" -H "$CT" \
+                    -d "$(printf '{"name":"%s","friendlyName":"%s"}' "$gname" "$gfriendly")" \
+                    "${API}/api/user-groups" </dev/null >/dev/null
+                  echo "created group ${gname}"
+                fi
+              }
+              ensure_group "workspace-users" "Workspace Users"
+              
               echo "seed complete"
           resources:
             requests: { cpu: "10m", memory: "32Mi" }

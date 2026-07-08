@@ -1,0 +1,40 @@
+name: Build & Push Quartz Site
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Wikilink lint
+        run: bash scripts/lint-wikilinks.sh .
+      - name: Frontmatter lint
+        run: bash scripts/lint-frontmatter.sh .
+  build:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      - name: Stage build context
+        run: |
+          mkdir -p /tmp/build/content
+          cp -R index.md log.md SCHEMA.md wiki /tmp/build/content/
+          cp site.Dockerfile /tmp/build/Dockerfile
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: /tmp/build
+          push: true
+          tags: ghcr.io/paddione/brain-site:latest

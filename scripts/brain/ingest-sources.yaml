@@ -1,0 +1,56 @@
+# brain/ingest-sources.yaml — Quellen-Manifest für Brain-Doku-Kompilierung
+
+exclude:
+  - docs/archive/
+  - docs/generated/
+  - generated/
+  - legacy-html/
+  - drift-reports/
+  - openspec/specs/archive/
+  # T001583 mishap 2: the worklist walks the whole --root tree and tags every
+  # matching file "docs" — without excludes for dependency/tool-state/build
+  # trees it emitted ~32.5k rows on first run (verified 2026-07-03), making
+  # the Erst-Ingest LLM batch unbezahlbar. These are never doc sources:
+  - node_modules/
+  - .git/
+  - .astro/
+  - .taskmaster/
+  - .agy/
+  - .antigravitycli/
+  - .design-sync/
+  - dist/
+  - tests/unit/lib/
+  - .venv/
+  - __pycache__/
+  - .claude/commands/
+
+groups:
+  ssot-specs: |
+    openspec/specs/brain/*.md
+    openspec/specs/ci-cd.md
+    openspec/specs/database.md
+    openspec/specs/deployment.md
+    openspec/specs/devflow.md
+    openspec/specs/docs-gen.md
+    openspec/specs/factory.md
+    openspec/specs/git-workflow.md
+    openspec/specs/health-goals.md
+    openspec/specs/host-node-networking.md
+    openspec/specs/incident-response.md
+    openspec/specs/kustomize-overlays.md
+    openspec/specs/livekit-llm.md
+    openspec/specs/mcp-servers.md
+    openspec/specs/openspec-conventions.md
+    openspec/specs/pre-commit-hooks.md
+    openspec/specs/project-topology.md
+    openspec/specs/repo-hygiene.md
+    openspec/specs/security.md
+    openspec/specs/testing.md
+    openspec/specs/ticket-ops.md
+    openspec/specs/videovault-mediamanager.md
+    openspec/specs/website.md
+  runbooks: docs/runbooks/*.md
+  adr: docs/architecture/*.md
+  gotchas-footguns: docs/gotchas/*.md
+  agent-guide-maps: docs/agent-guide/*.md
+  core-docs: CLAUDE.md AGENTS.md

@@ -30,6 +30,8 @@ export default defineConfig({
       : ['default'],
     env: {
       VOYAGE_API_KEY: 'test-key',
+      // auth.ts fails hard at import when no OIDC client secret is set (T001593)
+      POCKET_ID_WEBSITE_SECRET: 'test-oidc-secret',
     },
     coverage: {
       provider: 'v8',
@@ -59,7 +61,7 @@ export default defineConfig({
           ],
           exclude: ['node_modules/**', 'dist/**', ...COMPONENT_TESTS],
           globals: true,
-          env: { VOYAGE_API_KEY: 'test-key' },
+          env: { VOYAGE_API_KEY: 'test-key', POCKET_ID_WEBSITE_SECRET: 'test-oidc-secret' },
         },
       },
       {
@@ -73,7 +75,7 @@ export default defineConfig({
           include: COMPONENT_TESTS,
           exclude: ['node_modules/**', 'dist/**'],
           globals: true,
-          env: { VOYAGE_API_KEY: 'test-key' },
+          env: { VOYAGE_API_KEY: 'test-key', POCKET_ID_WEBSITE_SECRET: 'test-oidc-secret' },
           setupFiles: ['./src/lib/__tests__/setup.ts'],
         },
       },

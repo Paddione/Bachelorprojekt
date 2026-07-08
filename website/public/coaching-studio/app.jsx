@@ -35,11 +35,12 @@ function TopBar({ screen, onNav, rtl, setRtl, customers }){
         <BrandMark size={30}/>
         <span className="name">mentolder<span className="dot">.</span></span>
       </div>
-      <span className="brand-sub">Coaching Studio</span>
+      <span className="brand-sub">Coaching Sessions</span>
       <nav className="topnav" aria-label="Hauptnavigation">
         {navItems.map(n=> (
           <button key={n.id} className={(screen===n.id ? "is-active":"")} onClick={()=> onNav(n.id)}>{n.label}</button>
         ))}
+        <button onClick={()=> window.location.href = "/admin/coaching/sessions"}>Sessions-Liste</button>
       </nav>
       <span className="spacer"/>
       <div className="topbar-tools">

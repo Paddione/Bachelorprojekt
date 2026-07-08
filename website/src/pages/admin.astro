@@ -63,7 +63,7 @@ const vaultUrl         = process.env.VAULT_EXTERNAL_URL ?? '';
 const pocketIdFrontend = process.env.POCKET_ID_FRONTEND_URL ?? '';
 const adminLinks = [
   { href: '/admin/inbox',                    label: 'Inbox',       icon: icons.inbox,    color: 'var(--brass)' },
-  { href: '/admin/coaching/sessions',        label: 'Sitzungen',   icon: icons.clipboard, color: 'var(--brass)' },
+  { href: '/admin/coaching/sessions',        label: 'Sessions',    icon: icons.clipboard, color: 'var(--brass)' },
   ...(ncBase ? [
     { href: `${ncBase}/apps/files/`,    label: 'Dateien',  icon: icons.folder,   color: 'var(--brass)' },
     { href: `${ncBase}/apps/calendar/`, label: 'Kalender', icon: icons.calendar, color: 'var(--brass)' },

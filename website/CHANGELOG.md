@@ -1,5 +1,180 @@
 # Changelog
 
+## [1.166.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.166.1...website-v1.166.2) (2026-07-08)
+
+
+### Bug Fixes
+
+* **coaching:** sessions-audit rest — 404-Semantik, Fehler-Logging, Config-Hygiene [T001670] ([#2643](https://github.com/Paddione/Bachelorprojekt/issues/2643)) ([e908b57](https://github.com/Paddione/Bachelorprojekt/commit/e908b57fe73af70237dcf51699100456e121c2e5))
+
+## [1.166.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.166.0...website-v1.166.1) (2026-07-08)
+
+
+### Bug Fixes
+
+* **coaching:** sessions-tool gaps — sim hardening, settings mount, scrubber fail-closed [T001664] ([#2641](https://github.com/Paddione/Bachelorprojekt/issues/2641)) ([be4808e](https://github.com/Paddione/Bachelorprojekt/commit/be4808eefe4374652f0ff014f7f412e97dbad2cb))
+
+## [1.166.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.165.2...website-v1.166.0) (2026-07-08)
+
+
+### Features
+
+* T001641 coaching-ki-model-select — model probe, scrubber, models endpoint ([#2638](https://github.com/Paddione/Bachelorprojekt/issues/2638)) ([e75db9d](https://github.com/Paddione/Bachelorprojekt/commit/e75db9da25c16aa461f2ea657975dabf95c38211))
+
+## [1.165.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.165.1...website-v1.165.2) (2026-07-08)
+
+
+### Bug Fixes
+
+* **website:** coaching-studio Workspace crasht bei leerem CUSTOMERS-Array [T001656] ([#2633](https://github.com/Paddione/Bachelorprojekt/issues/2633)) ([c35e309](https://github.com/Paddione/Bachelorprojekt/commit/c35e3092dbb6451d62c3a00cadc0d0e967f2d648))
+
+## [1.165.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.165.0...website-v1.165.1) (2026-07-08)
+
+
+### Bug Fixes
+
+* **website:** add automated migration runner for website/src/db/migrations [T001652] ([#2629](https://github.com/Paddione/Bachelorprojekt/issues/2629)) ([31b140f](https://github.com/Paddione/Bachelorprojekt/commit/31b140f264f42d924d2a13cc57e62f6e7b78505d))
+
+## [1.165.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.164.0...website-v1.165.0) (2026-07-08)
+
+
+### Features
+
+* t001556 size02 refactor ([#2625](https://github.com/Paddione/Bachelorprojekt/issues/2625)) ([26e3713](https://github.com/Paddione/Bachelorprojekt/commit/26e3713077c5346427a2ad5c6dd83ed4899d01be))
+
+## [1.164.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.163.1...website-v1.164.0) (2026-07-08)
+
+
+### Features
+
+* **website:** Coaching Studio in Sessions umbenennen und Sidebar bereinigen [T001649] ([#2624](https://github.com/Paddione/Bachelorprojekt/issues/2624)) ([8bde301](https://github.com/Paddione/Bachelorprojekt/commit/8bde301156b8a671f87e740758e94fc9eec51d15))
+
+## [1.163.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.163.0...website-v1.163.1) (2026-07-08)
+
+
+### Bug Fixes
+
+* **coaching:** ensure test sessions are flagged as is_test_data and cleaned up in purge-fn ([#2621](https://github.com/Paddione/Bachelorprojekt/issues/2621)) ([9711831](https://github.com/Paddione/Bachelorprojekt/commit/9711831e65fd521f52eb6b10cbab2f5f6b9add31))
+
+## [1.163.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.162.0...website-v1.163.0) (2026-07-08)
+
+
+### Features
+
+* T001641 — LM Studio Models Dropdown + Prompt Scrubber ([#2617](https://github.com/Paddione/Bachelorprojekt/issues/2617)) ([d835325](https://github.com/Paddione/Bachelorprojekt/commit/d835325f61c5d8df3ed6a114847e89d295c02201))
+
+## [1.162.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.161.0...website-v1.162.0) (2026-07-08)
+
+
+### Features
+
+* **coaching:** sessions admin nav, popout GUI, wording + test-data hygiene [T001638] ([#2616](https://github.com/Paddione/Bachelorprojekt/issues/2616)) ([5b20570](https://github.com/Paddione/Bachelorprojekt/commit/5b20570c282802a51f045fd107eb77ea9e7a1c4a))
+
+## [1.161.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.160.0...website-v1.161.0) (2026-07-08)
+
+
+### Features
+
+* **brain:** auto-memory export bridge to brain wiki [T001567] ([831fabf](https://github.com/Paddione/Bachelorprojekt/commit/831fabfdac82765d68faea4c56605a6df81c5a1b))
+* sidekick error log 24h ([3c42242](https://github.com/Paddione/Bachelorprojekt/commit/3c42242b82c0727e597e4216edee7dcbed0be550))
+
+
+### Documentation
+
+* **brain:** add brain-auto-memory design spec + openspec change [T001567] ([fcfbd8a](https://github.com/Paddione/Bachelorprojekt/commit/fcfbd8a6c734e4c3b6e06f19318e2ee903346765))
+* **specs:** add brain-auto-memory design spec + openspec change [T001567] ([cae1482](https://github.com/Paddione/Bachelorprojekt/commit/cae14823c3fac26f31f9fb942caadbe5347bfbd5))
+
+## [1.160.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.159.0...website-v1.160.0) (2026-07-04)
+
+
+### Features
+
+* **terminal:** SSO-gated agentic terminal sidekick replacing grilling view [T001565] ([#2557](https://github.com/Paddione/Bachelorprojekt/issues/2557)) ([dc8e174](https://github.com/Paddione/Bachelorprojekt/commit/dc8e174cb76391235b5a971bb8dbcf74062f7a12))
+
+## [1.159.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.158.0...website-v1.159.0) (2026-07-04)
+
+
+### Features
+
+* **brain:** 11 quality goals G-BRAIN01-11, lint gate repairs, doc pages [T001608] ([#2599](https://github.com/Paddione/Bachelorprojekt/issues/2599)) ([34ffa00](https://github.com/Paddione/Bachelorprojekt/commit/34ffa00ca9b0e641ab51875aff7e3cfd67d17c29))
+
+## [1.158.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.157.4...website-v1.158.0) (2026-07-04)
+
+
+### Features
+
+* **agent-guide:** add harness field to registry + opencode workflow skills [T001611] ([#2600](https://github.com/Paddione/Bachelorprojekt/issues/2600)) ([1e114fc](https://github.com/Paddione/Bachelorprojekt/commit/1e114fc14375763215a4850054a4f5352ceb8960))
+
+## [1.157.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.157.3...website-v1.157.4) (2026-07-04)
+
+
+### Bug Fixes
+
+* remove hardcoded dev OIDC secret fallback in website auth [T001593] ([#2596](https://github.com/Paddione/Bachelorprojekt/issues/2596)) ([1905a1b](https://github.com/Paddione/Bachelorprojekt/commit/1905a1b4a2830d433d34ed6b2306a75eed35111b))
+
+## [1.157.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.157.2...website-v1.157.3) (2026-07-03)
+
+
+### Bug Fixes
+
+* **auth-sso:** align kustomize refs + harden render tests for oauth2-proxy hardening [T001579] ([#2587](https://github.com/Paddione/Bachelorprojekt/issues/2587)) ([93b1247](https://github.com/Paddione/Bachelorprojekt/commit/93b12478a8fba54a0be98241e1835dc602632a34))
+
+## [1.157.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.157.1...website-v1.157.2) (2026-07-03)
+
+
+### Bug Fixes
+
+* brain-ingest excludes + oracle BRAND-var materialization [T001583] ([#2575](https://github.com/Paddione/Bachelorprojekt/issues/2575)) ([f409592](https://github.com/Paddione/Bachelorprojekt/commit/f4095923196e8ca6134e51c2af8b5c934ae7f418))
+
+## [1.157.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.157.0...website-v1.157.1) (2026-07-03)
+
+
+### Bug Fixes
+
+* **scripts:** agent-lock heartbeat reap, severity validation, offline-guard reuse [T001582] ([#2577](https://github.com/Paddione/Bachelorprojekt/issues/2577)) ([47c7f46](https://github.com/Paddione/Bachelorprojekt/commit/47c7f46bf5436f5bff4772abab98c2d6b64b02b4))
+
+## [1.157.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.156.4...website-v1.157.0) (2026-07-03)
+
+
+### Features
+
+* **factory:** token-budget semaphore + local qwen3.5 primary routing [T001590] ([#2574](https://github.com/Paddione/Bachelorprojekt/issues/2574)) ([435c2db](https://github.com/Paddione/Bachelorprojekt/commit/435c2db77d4bd3e1eefa3802605674e173b28284))
+
+## [1.156.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.156.3...website-v1.156.4) (2026-07-03)
+
+
+### Bug Fixes
+
+* **brain:** unbaubarer site.Dockerfile und fehlender Workflow [T001578] ([#2571](https://github.com/Paddione/Bachelorprojekt/issues/2571)) ([3f623fb](https://github.com/Paddione/Bachelorprojekt/commit/3f623fb19e511c115c434bc018a4af0242b0ad5a))
+
+## [1.156.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.156.2...website-v1.156.3) (2026-07-03)
+
+
+### Bug Fixes
+
+* **secrets:** resolve fleet secrets-parity test bug + owner_brand env/brand mismatch [T001584] ([#2567](https://github.com/Paddione/Bachelorprojekt/issues/2567)) ([6787265](https://github.com/Paddione/Bachelorprojekt/commit/6787265ce9ff405ce0698b3cbc0fc6e4546a9ef4))
+
+## [1.156.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.156.1...website-v1.156.2) (2026-07-03)
+
+
+### Bug Fixes
+
+* **ci:** resolve 8 pre-existing offline-test failures [T001575] ([#2556](https://github.com/Paddione/Bachelorprojekt/issues/2556)) ([4d9055b](https://github.com/Paddione/Bachelorprojekt/commit/4d9055b31217304b34de2b03cba5462fc30cd280))
+
+## [1.156.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.156.0...website-v1.156.1) (2026-07-03)
+
+
+### Bug Fixes
+
+* **website:** add data-testid and aria-label to ContactHub Nachricht tab for robust E2E selector [T001564] ([#2560](https://github.com/Paddione/Bachelorprojekt/issues/2560)) ([ad7935c](https://github.com/Paddione/Bachelorprojekt/commit/ad7935c6c734fbacc7d8d38eb0104d61ecc9585a))
+
+## [1.156.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.155.2...website-v1.156.0) (2026-07-03)
+
+
+### Features
+
+* brain foundation ([#2550](https://github.com/Paddione/Bachelorprojekt/issues/2550)) ([2248036](https://github.com/Paddione/Bachelorprojekt/commit/22480368770f10707ec6ed017186822fe4c9b733))
+
 ## [1.155.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.155.1...website-v1.155.2) (2026-07-03)
 
 

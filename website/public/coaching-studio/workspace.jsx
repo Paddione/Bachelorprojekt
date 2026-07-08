@@ -91,8 +91,6 @@ function TranslationPanel(){
 }
 
 function Workspace({ customer, onNav }){
-if (customer === undefined) return <EmptyState title="Keine Session gefunden" onBack={onNav} onRestore={restoreCustomerSession} />;
-  const cust = customer;
   const [active, setActive] = useState(0);
   const [prompts, setPrompts] = useState(()=> LEVELS.map(l=> l.prompt));
   const [done, setDone] = useState(()=> LEVELS.map(()=> false));

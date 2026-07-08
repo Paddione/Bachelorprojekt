@@ -18,3 +18,20 @@ describe('PortalSidekick — mediaviewer view', () => {
     expect(iframe.getAttribute('src')).toBe('https://mediaviewer.localhost/embed.html?v=mediaviewer.localhost');
   });
 });
+
+describe('PortalSidekick — terminal view', () => {
+  beforeEach(() => {
+    globalThis.fetch = vi.fn().mockRejectedValue(new Error('offline'));
+  });
+
+  it('shows the Terminal iframe when navigating to terminal view', async () => {
+    const { getByLabelText, getByText, getByTitle } = render(PortalSidekick, {
+      helpContext: 'admin',
+      terminalHost: 'terminal.localhost',
+    });
+    await fireEvent.click(getByLabelText('Sidekick öffnen'));
+    await fireEvent.click(getByText('Agentic Terminal'));
+    const iframe = getByTitle('Agentic Terminal') as HTMLIFrameElement;
+    expect(iframe.getAttribute('src')).toBe('https://terminal.localhost/');
+  });
+});

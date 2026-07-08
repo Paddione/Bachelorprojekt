@@ -197,6 +197,17 @@ The system SHALL expose `GET /api/admin/inbox/count` that returns `{ counts: Rec
 
 ---
 
+### Requirement: Prod-Guard gegen E2E-Testdaten in Postfach
+Die API-Endpunkte `/api/contact`, `/api/booking`, `/api/bug-report` und `/api/portal/messages` MÜSSEN den `X-E2E-Test`-Header in Production-Umgebungen (`NODE_ENV=production`) ignorieren. `is_test_data` MUSS in Production immer `false` sein.
+
+#### Scenario: X-E2E-Test Header wird in Prod ignoriert
+- **WHEN** a request with `X-E2E-Test: true` header arrives in production
+- **THEN** the request is processed normally but `is_test_data` is set to `false`
+
+#### Scenario: X-E2E-Test Header funktioniert in Dev/Test
+- **WHEN** a request with valid `X-E2E-Test` and `X-Cron-Secret` headers arrives in non-production
+- **THEN** `is_test_data` is set to `true` as before
+
 ## Testszenarien
 
 <!-- merged from Playwright e2e tests -->
@@ -352,3 +363,5 @@ The system SHALL successfully complete all steps of System-Test 3 (Kommunikation
 - **GIVEN** an admin session and the website is reachable
 - **WHEN** the systemtest runner walks all steps of template 3
 - **THEN** all steps complete without error within 180 seconds
+
+<!-- merged from change delta chat-inbox.md (72a5d35b9e1f) -->

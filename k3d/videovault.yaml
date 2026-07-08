@@ -60,7 +60,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: workspace-secrets
-                  key: VIDEOVAULT_OIDC_SECRET
+                  key: POCKET_ID_VIDEOVAULT_SECRET
             - name: PROCESSED_MEDIA_PATH
               value: "/app/uploads/processed"
           ports:

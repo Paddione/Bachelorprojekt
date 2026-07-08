@@ -1,0 +1,294 @@
+# ═══════════════════════════════════════════════════════════════════
+# Pocket ID OIDC client seed Job (T001087).
+# Idempotently registers/updates the 16 OIDC clients in Pocket ID via its
+# Admin REST API. Runs on every `task workspace:deploy` (Job name is stable,
+# disableNameSuffixHash keeps it overwritable). Stateless — safe to re-run.
+#
+# Callback URLs are derived from ${POCKET_ID_FRONTEND_URL} at deploy time:
+#   dev : http://auth.localhost       -> SCHEME=http  SUFFIX=localhost
+#   prod: https://auth.${PROD_DOMAIN}  -> SCHEME=https SUFFIX=${PROD_DOMAIN}
+# No brand-domain literal appears in this manifest.
+#
+# Verified against pocket-id:v2.9.0 (live API in dev cluster, 2026-06-22):
+#   - admin client list:  GET    /api/oidc/clients       (returns full list)
+#   - admin client create: POST   /api/oidc/clients       body: {name, callbackURLs[], logoutCallbackURLs[], isPublic, pkceEnabled, requiresReauthentication, requiresPushedAuthorizationRequests, launchURL}
+#   - admin client update: PUT    /api/oidc/clients/<id>  (not PATCH)
+#   - admin client secret: POST   /api/oidc/clients/<id>/secret  (server generates, body-less; response: {secret})
+#   - Admin endpoints require the `X-API-KEY: <key>` header, NOT
+#     `Authorization: Bearer <key>` (https://pocket-id.org/docs/api). Using
+#     the wrong header made this Job fail with 401 "You are not signed in"
+#     regardless of key validity -- root-caused live in prod T001355
+#     (2026-07-01); the original "API key auth not allowed for this
+#     endpoint" theory was a misdiagnosis of the same symptom.
+#
+#   - SECRET DRIFT (T001435, 2026-07-02): earlier versions of this Job
+#     called POST .../secret UNCONDITIONALLY on every run -- for both
+#     newly-created AND already-existing clients -- and only logged the
+#     server-generated secret to stdout, never writing it back into
+#     workspace-secrets. Every successful deploy therefore silently
+#     invalidated the previous secret pocket-id had on file, while the
+#     apps (website, nextcloud, vaultwarden, brett, oauth2-proxy-*) kept
+#     reading the STALE value from the k8s Secret -- a persistent
+#     "invalid client secret" / OIDC login failure that reappeared after
+#     every deploy. Fixed by: (1) never rotating the secret of an
+#     ALREADY-EXISTING client (PUT only touches name/callbackURLs), and
+#     (2) on first CREATE of a new client, writing the pocket-id-
+#     generated secret straight back into workspace-secrets via the
+#     Job's own ServiceAccount token against the in-cluster K8s API
+#     (see pocket-id-client-seed-rbac.yaml — get+patch scoped to that
+#     one Secret object only). This makes the Job's secret handling
+#     converge instead of drifting: once a client exists with a secret
+#     that matches workspace-secrets, subsequent runs never touch it
+#     again.
+# ═══════════════════════════════════════════════════════════════════
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pocket-id-client-seed
+  labels:
+    app: pocket-id
+spec:
+  backoffLimit: 2
+  template:
+    metadata:
+      labels:
+        app: pocket-id
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: pocket-id-client-seed
+      automountServiceAccountToken: true
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: wait-for-pocket-id
+          image: busybox:1.38.0@sha256:fd8d9aa63ba2f0982b5304e1ee8d3b90a210bc1ffb5314d980eb6962f1a9715d
+          command:
+            - sh
+            - -ec
+            - |
+              i=0
+              until wget -q -O- "http://pocket-id:1411/.well-known/openid-configuration" >/dev/null 2>&1; do
+                i=$((i+1))
+                if [ "$i" -ge 300 ]; then
+                  echo "pocket-id not healthy after 600s"; exit 1
+                fi
+                echo "waiting for pocket-id health ($i/300)..."; sleep 2
+              done
+              echo "pocket-id is healthy"
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests: { cpu: "10m", memory: "16Mi" }
+            limits:   { cpu: "100m", memory: "64Mi" }
+      containers:
+        - name: seed
+          image: curlimages/curl:8.7.1@sha256:25d29daeb9b14b89e2fa8cc17c70e4b188bca1466086907c2d9a4b56b59d8e21
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
+          env:
+            - name: POCKET_ID_FRONTEND_URL
+              value: "${POCKET_ID_FRONTEND_URL}"
+            - name: API
+              value: "http://pocket-id:1411"
+            - name: POCKET_ID_API_KEY
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_API_KEY } }
+            - name: SECRET_docs
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_DOCS_SECRET, optional: true } }
+            - name: SECRET_downloads
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_DOWNLOADS_SECRET, optional: true } }
+            - name: SECRET_mail
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_MAIL_SECRET, optional: true } }
+            - name: SECRET_brett
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_BRETT_SECRET, optional: true } }
+            - name: SECRET_comfy
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_COMFY_SECRET, optional: true } }
+            - name: SECRET_mediaviewer
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_MEDIAVIEWER_SECRET, optional: true } }
+            - name: SECRET_videovault
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_VIDEOVAULT_SECRET, optional: true } }
+            - name: SECRET_studio
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_STUDIO_SECRET, optional: true } }
+            - name: SECRET_traefik
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_TRAEFIK_SECRET, optional: true } }
+            - name: SECRET_recovery
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_RECOVERY_SECRET, optional: true } }
+            - name: SECRET_sessionhub
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_SESSION_HUB_SECRET, optional: true } }
+            - name: SECRET_brainstorm
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_BRAINSTORM_SECRET, optional: true } }
+            - name: SECRET_claudecode
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_CLAUDE_CODE_SECRET, optional: true } }
+            - name: SECRET_vaultwarden
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_VAULTWARDEN_SECRET, optional: true } }
+            - name: SECRET_nextcloud
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_NEXTCLOUD_SECRET, optional: true } }
+            - name: SECRET_grafana
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_GRAFANA_SECRET, optional: true } }
+            - name: SECRET_website
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_WEBSITE_SECRET, optional: true } }
+            - name: SECRET_rustdeskweb
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_RUSTDESK_WEB_SECRET, optional: true } }
+            - name: SECRET_brain
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_BRAIN_SECRET, optional: true } }
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              # Derive scheme + host suffix from the public frontend URL.
+              # dev:  http://auth.localhost   → SUFFIX=localhost
+              # prod: https://auth.${PROD_DOMAIN} → SUFFIX=${PROD_DOMAIN}
+              SCHEME="${POCKET_ID_FRONTEND_URL%%://*}"
+              HOST="${POCKET_ID_FRONTEND_URL#*://}"
+              SUFFIX="${HOST#*.}"   # strips first subdomain (id./auth.) regardless of prefix
+
+              # Pocket ID's admin API rejects "Authorization: Bearer" for these
+              # endpoints (401 "You are not signed in") -- it requires the
+              # X-API-KEY header (https://pocket-id.org/docs/api). Verified
+              # live against v2.9.0 (T001355): Bearer -> 401 regardless of key
+              # validity, X-API-KEY -> 200.
+              AUTH="X-API-KEY: ${POCKET_ID_API_KEY}"
+              CT="Content-Type: application/json"
+
+              # client rows: id|secretEnv|secretKey|callbackUrl
+              # secretKey is the literal key in the workspace-secrets k8s
+              # Secret -- used to write a newly-generated secret back on
+              # first create (T001435).
+              # Callback hosts mirror each service's --redirect-url / OIDC redirect.
+              ROWS="
+              docs|SECRET_docs|POCKET_ID_DOCS_SECRET|${SCHEME}://docs.${SUFFIX}/oauth2/callback
+              downloads|SECRET_downloads|POCKET_ID_DOWNLOADS_SECRET|${SCHEME}://downloads.${SUFFIX}/oauth2/callback
+              mailpit-admin|SECRET_mail|POCKET_ID_MAIL_SECRET|${SCHEME}://mail.${SUFFIX}/oauth2/callback
+              brett|SECRET_brett|POCKET_ID_BRETT_SECRET|${SCHEME}://brett.${SUFFIX}/oauth2/callback
+              comfy|SECRET_comfy|POCKET_ID_COMFY_SECRET|${SCHEME}://comfy.${SUFFIX}/oauth2/callback
+              mediaviewer-widget|SECRET_mediaviewer|POCKET_ID_MEDIAVIEWER_SECRET|${SCHEME}://mediaviewer.${SUFFIX}/oauth2/callback
+              videovault|SECRET_videovault|POCKET_ID_VIDEOVAULT_SECRET|${SCHEME}://videovault.${SUFFIX}/oauth2/callback
+              studio|SECRET_studio|POCKET_ID_STUDIO_SECRET|${SCHEME}://studio.${SUFFIX}/oauth2/callback
+              traefik-dashboard|SECRET_traefik|POCKET_ID_TRAEFIK_SECRET|${SCHEME}://traefik.${SUFFIX}/oauth2/callback
+              recovery|SECRET_recovery|POCKET_ID_RECOVERY_SECRET|${SCHEME}://recover.${SUFFIX}/oauth2/callback
+              session-hub|SECRET_sessionhub|POCKET_ID_SESSION_HUB_SECRET|${SCHEME}://session-hub.${SUFFIX}/oauth2/callback
+              brainstorm|SECRET_brainstorm|POCKET_ID_BRAINSTORM_SECRET|${SCHEME}://brainstorm.${SUFFIX}/oauth2/callback
+              vaultwarden|SECRET_vaultwarden|POCKET_ID_VAULTWARDEN_SECRET|${SCHEME}://vault.${SUFFIX}/identity/connect/oidc-signin
+              nextcloud|SECRET_nextcloud|POCKET_ID_NEXTCLOUD_SECRET|${SCHEME}://files.${SUFFIX}/apps/oidc_login/oidc
+              grafana|SECRET_grafana|POCKET_ID_GRAFANA_SECRET|${SCHEME}://grafana.${SUFFIX}/login/generic_oauth
+               website|SECRET_website|POCKET_ID_WEBSITE_SECRET|${SCHEME}://web.${SUFFIX}/api/auth/callback
+               rustdesk-web|SECRET_rustdeskweb|POCKET_ID_RUSTDESK_WEB_SECRET|${SCHEME}://remote.${SUFFIX}/oauth2/callback
+               brain|SECRET_brain|POCKET_ID_BRAIN_SECRET|${SCHEME}://brain.${SUFFIX}/oauth2/callback
+              "
+
+              # Resolve a client's REAL pocket-id id by NAME. pocket-id:v2.9.0
+              # always server-generates a random UUID as `id` on POST — it
+              # does NOT accept/echo back the caller-supplied name as the id
+              # (confirmed live, T001327). A handful of legacy clients created
+              # before this was understood happen to have id==name and still
+              # match here (the id==name row IS "the" row for that name); new
+              # clients never do, so this must resolve by `name`, not assume
+              # id==cid. The Admin API returns a flat JSON array with `id`
+              # immediately followed by `name` per object (verified live) —
+              # matched with a plain grep/sed pair since this image ships no
+              # jq. Returns empty (not found) rather than failing.
+              #
+              # RETRY on every curl call below (T001327): pocket-id:1411
+              # intermittently refuses connections for a few seconds at a
+              # time (observed live, root cause unconfirmed). Without
+              # --retry-connrefused, one refused connection makes curl -f
+              # exit non-zero, which (under `set -e`) kills the container;
+              # restartPolicy: OnFailure then restarts the SAME container
+              # from the top of this script. --retry-all-errors is
+              # deliberately NOT used — a real 4xx from a genuine script bug
+              # must fail fast, not burn the whole retry budget retrying a
+              # deterministic error. </dev/null avoids the curl processes
+              # inheriting the while-read loop's stdin further down.
+              CURL_RETRY="--retry 15 --retry-delay 2 --retry-connrefused --connect-timeout 5"
+              find_client_id() {
+                name="$1"
+                list=$(curl -fsS $CURL_RETRY -H "$AUTH" "${API}/api/oidc/clients" </dev/null 2>/dev/null || true)
+                echo "$list" | grep -o "\"id\":\"[^\"]*\",\"name\":\"${name}\"" | head -1 | sed -E 's/"id":"([^"]*)".*/\1/'
+              }
+
+              # Write a newly pocket-id-generated client secret back into the
+              # workspace-secrets k8s Secret via the in-cluster K8s API, using
+              # this Job's own ServiceAccount token (RBAC: get+patch scoped to
+              # exactly this one Secret, see pocket-id-client-seed-rbac.yaml).
+              # stringData lets the API server base64-encode server-side --
+              # no client-side base64 needed. allow-apiserver-egress
+              # (T000368) already permits this egress from workspace pods.
+              KSA_DIR=/var/run/secrets/kubernetes.io/serviceaccount
+              patch_secret() {
+                key="$1"; val="$2"
+                ns=$(cat "${KSA_DIR}/namespace")
+                body=$(printf '{"stringData":{"%s":"%s"}}' "$key" "$val")
+                curl -fsS $CURL_RETRY --cacert "${KSA_DIR}/ca.crt" \
+                  -H "Authorization: Bearer $(cat ${KSA_DIR}/token)" \
+                  -H "Content-Type: application/merge-patch+json" \
+                  -X PATCH \
+                  "https://kubernetes.default.svc/api/v1/namespaces/${ns}/secrets/workspace-secrets" \
+                  -d "$body" </dev/null >/dev/null
+              }
+
+              # Idempotent upsert: create if missing, otherwise update via PUT
+              # (pocket-id:v2.9.0 uses PUT, not PATCH).
+              #
+              # SECRET HANDLING (T001435 — do not "simplify" this back to
+              # always-rotate, see the header comment for why that drifted):
+              #   - EXISTING client (real_id found): PUT only touches
+              #     name/callbackURLs. The secret is intentionally left
+              #     untouched — rotating it here would invalidate whatever
+              #     value is already correctly synced into workspace-secrets
+              #     and break login until the next manual resync.
+              #   - NEW client (no real_id): secret is generated by pocket-id
+              #     via POST .../secret as before, but the plaintext value is
+              #     now written back into workspace-secrets/<secretKey>
+              #     immediately, so the two are created in sync.
+              upsert() {
+                cid="$1"; secret="$2"; secret_key="$3"; cb="$4"
+                if [ -z "$secret" ]; then
+                  echo "skip ${cid} (no secret configured)"; return 0
+                fi
+                real_id=$(find_client_id "$cid")
+                if [ -n "$real_id" ]; then
+                  curl -fsS $CURL_RETRY -X PUT -H "$AUTH" -H "$CT" \
+                    -d "$(printf '{"name":"%s","callbackURLs":["%s"],"logoutCallbackURLs":[],"isPublic":false,"pkceEnabled":false,"requiresReauthentication":false,"requiresPushedAuthorizationRequests":false}' "$cid" "$cb")" \
+                    "${API}/api/oidc/clients/${real_id}" </dev/null >/dev/null
+                  echo "updated ${cid} (id=${real_id}), secret unchanged"
+                else
+                  created=$(curl -fsS $CURL_RETRY -X POST -H "$AUTH" -H "$CT" \
+                    -d "$(printf '{"name":"%s","callbackURLs":["%s"],"logoutCallbackURLs":[],"isPublic":false,"pkceEnabled":false,"requiresReauthentication":false,"requiresPushedAuthorizationRequests":false}' "$cid" "$cb")" \
+                    "${API}/api/oidc/clients" </dev/null)
+                  new_id=$(echo "$created" | sed -E 's/.*"id":"([^"]+)".*/\1/')
+                  gen=$(curl -fsS $CURL_RETRY -X POST -H "$AUTH" -H "$CT" \
+                    "${API}/api/oidc/clients/${new_id}/secret" </dev/null)
+                  plaintext=$(echo "$gen" | sed -E 's/.*"secret":"([^"]+)".*/\1/')
+                  if [ -z "$plaintext" ] || [ "$plaintext" = "$gen" ]; then
+                    echo "ERROR: could not parse generated secret for ${cid}: ${gen}" >&2
+                    exit 1
+                  fi
+                  patch_secret "$secret_key" "$plaintext"
+                  echo "created ${cid} (id=${new_id}), secret generated + written back to workspace-secrets/${secret_key}"
+                fi
+              }
+
+              echo "$ROWS" | while IFS='|' read -r cid env secret_key cb; do
+                [ -z "$cid" ] && continue
+                secret=$(eval "printf '%s' \"\$$env\"")
+                upsert "$cid" "$secret" "$secret_key" "$cb"
+              done
+              echo "seed complete"
+          resources:
+            requests: { cpu: "10m", memory: "32Mi" }
+            limits:   { cpu: "200m", memory: "128Mi" }

@@ -1,0 +1,10 @@
+- slug: keycloak
+  kind: software
+  name: "Keycloak"
+  emoji: "🔑"
+  summary_de: "Die zentrale Anmeldung für alle Dienste."
+  what_for_de: "Ein Login (Single Sign-On) für die ganze Plattform."
+  placeholder_en: "SSO / OIDC identity provider"
+  sensitivity: forbidden
+  url: null
+  links: []

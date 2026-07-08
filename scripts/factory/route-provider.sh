@@ -11,38 +11,40 @@ SOURCE="${1:?source required}"; TIER="${2:?tier required}"
 
 OPUS_MODEL="claude-opus-4-6"
 if [[ "$TIER" == "opus" ]]; then
-  printf '{"provider":"anthropic","modelId":"%s","baseUrl":null,"slotId":null,"emergency":false}\n' "$OPUS_MODEL"
+  printf '{"provider":"anthropic","modelId":"%s","baseUrl":null,"slotId":null,"ctx":0,"emergency":false}\n' "$OPUS_MODEL"
   exit 0
 fi
 
 # Ordered candidates: source-specific before '*', then priority asc.
 CANDS=$(factory_psql -v src="$SOURCE" -v tier="$TIER" <<'SQL'
 SELECT provider||E'\t'||model_id||E'\t'||COALESCE(base_url,'')||E'\t'||max_concurrent
+       ||E'\t'||COALESCE(context_window,0)||E'\t'||COALESCE(context_budget::text,'')
 FROM tickets.provider_config
 WHERE (source=:'src' OR source='*') AND tier=:'tier' AND enabled=true
 ORDER BY (source=:'src') DESC, priority ASC;
 SQL
 )
 
-while IFS=$'\t' read -r prov model burl maxc; do
+while IFS=$'\t' read -r prov model burl maxc ctx budget; do
   [[ -z "$prov" ]] && continue
-  # Atomic claim: only succeeds if circuit closed AND below cap. RETURNING row = claimed.
-  CLAIM=$(factory_psql -v prov="$prov" -v maxc="$maxc" <<'SQL'
+  # Atomic claim: circuit closed AND below cap AND (unbounded budget OR fits reservation).
+  CLAIM=$(factory_psql -v prov="$prov" -v maxc="$maxc" -v ctx="${ctx:-0}" -v budget="$budget" <<'SQL'
 INSERT INTO tickets.provider_health (provider) VALUES (:'prov') ON CONFLICT (provider) DO NOTHING;
 UPDATE tickets.provider_health
-SET active_agents = active_agents + 1, updated_at = now()
+SET active_agents = active_agents + 1, reserved_tokens = reserved_tokens + :'ctx'::int, updated_at = now()
 WHERE provider = :'prov'
   AND active_agents < :'maxc'::int
   AND (cooldown_until IS NULL OR cooldown_until <= now())
+  AND (nullif(:'budget','')::int IS NULL OR reserved_tokens + :'ctx'::int <= nullif(:'budget','')::int)
 RETURNING provider;
 SQL
 )
   if [[ -n "$CLAIM" ]]; then
     BJSON=$([[ -n "$burl" ]] && printf '"%s"' "$burl" || printf 'null')
-    printf '{"provider":"%s","modelId":"%s","baseUrl":%s,"slotId":"%s","emergency":false}\n' "$prov" "$model" "$BJSON" "$prov"
+    printf '{"provider":"%s","modelId":"%s","baseUrl":%s,"slotId":"%s","ctx":%s,"emergency":false}\n' "$prov" "$model" "$BJSON" "$prov" "${ctx:-0}"
     exit 0
   fi
 done <<< "$CANDS"
 
 # Emergency fallback: Anthropic sonnet, no slot claimed.
-printf '{"provider":"anthropic","modelId":"claude-sonnet-4-6","baseUrl":null,"slotId":null,"emergency":true}\n'
+printf '{"provider":"anthropic","modelId":"claude-sonnet-4-6","baseUrl":null,"slotId":null,"ctx":0,"emergency":true}\n'

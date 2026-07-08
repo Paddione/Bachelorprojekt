@@ -122,6 +122,44 @@ _workspace_partial_deploy_block() {
 # `kubectl apply`) or the `kustomize build ... >/dev/null && echo` dry-run
 # sanity checks in `workspace:validate` — which would otherwise get
 # spuriously blamed for an unrelated, much later envsubst call.
+# T001652: website/src/db/migrations/*.sql had no automated runner, causing
+# Prod-DB drift. website:migrate must exist and run before the website
+# rollout in both workspace:deploy branches (dev + prod) and at the top of
+# website:deploy, so every deploy path applies pending migrations first.
+
+@test "website:migrate task exists in Taskfile.yml" {
+  run grep -c '^  website:migrate:$' "$TASKFILE"
+  [ "$status" -eq 0 ]
+  [ "$output" -ge 1 ]
+}
+
+@test "task --dry-run website:migrate ENV=dev resolves without error" {
+  run task -d "$PROJECT_DIR" -n website:migrate ENV=dev
+  [ "$status" -eq 0 ]
+}
+
+@test "workspace:deploy dev branch runs website:migrate before the shared-db-dependent kustomize apply" {
+  run bash -c "_block() { sed -n '/^  workspace:deploy:\$/,/^  workspace:partial-deploy:\$/p' '$TASKFILE'; }; _block | sed -n '/if \[ \"{{.ENV}}\" = \"dev\" \]; then/,/kustomize build k3d\//p'"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'task website:migrate ENV='* ]]
+}
+
+@test "workspace:deploy prod branch runs website:migrate before the overlay apply" {
+  run bash -c "_block() { sed -n '/^  workspace:deploy:\$/,/^  workspace:partial-deploy:\$/p' '$TASKFILE'; }; _block | sed -n '/rollout status deployment\/shared-db -n \"\${_ws_ns}\"/,/overlay=\"\${ENV_OVERLAY/p'"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'task website:migrate ENV='* ]]
+}
+
+@test "website:deploy runs website:migrate before website:build" {
+  run bash -c "_block() { sed -n '/^  website:deploy:\$/,/^cmds:\$/p' '$TASKFILE'; }; sed -n '/^  website:deploy:\$/,/^  [a-z]/p' '$TASKFILE' | grep -n 'task website:migrate\|task website:build'"
+  [ "$status" -eq 0 ]
+  migrate_line=$(echo "$output" | grep 'task website:migrate' | head -1 | cut -d: -f1)
+  build_line=$(echo "$output" | grep 'task website:build' | head -1 | cut -d: -f1)
+  [ -n "$migrate_line" ]
+  [ -n "$build_line" ]
+  [ "$migrate_line" -lt "$build_line" ]
+}
+
 @test "every kustomize build | envsubst pipeline in Taskfile.yml re-quotes stripped \${VAR} placeholders (T001411)" {
   run bash -c '
     awk '\''

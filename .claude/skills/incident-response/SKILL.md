@@ -72,6 +72,7 @@ Capture the fix PR number (`PR_NUM=$(gh pr view <branch-or-num> --json number -q
 psql -c \
   "UPDATE tickets.tickets SET status = 'done', resolution = 'fixed', done_at = now(), notes = COALESCE(notes || E'\n\n', '') || '[incident-response $(date +%Y-%m-%d)] Root cause: <cause>. Fix: <fix>. Duration: <X> min.' WHERE external_id = '<TICKET_EXT_ID>';
 
+   -- AUTHOR_LABEL: Set platform-agnostic. Claude Code → 'claude-code', opencode → 'opencode'
    INSERT INTO tickets.ticket_comments (ticket_id, author_label, body, visibility)
    SELECT id, 'claude-code', 'Resolved by PR #<PR_NUM> (or rollback to <PREV_SHA>).', 'internal'
    FROM tickets.tickets WHERE external_id = '<TICKET_EXT_ID>';"

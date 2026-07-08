@@ -140,3 +140,26 @@ describe('exchangeCode', () => {
     expect(await m.exchangeCode('code-123')).toBeNull();
   });
 });
+
+describe('client secret guard (T001593)', () => {
+  const ORIGINAL_LEGACY = process.env.WEBSITE_OIDC_SECRET;
+
+  afterEach(() => {
+    if (ORIGINAL_LEGACY === undefined) delete process.env.WEBSITE_OIDC_SECRET;
+    else process.env.WEBSITE_OIDC_SECRET = ORIGINAL_LEGACY;
+  });
+
+  it('throws at import when no OIDC client secret is set', async () => {
+    delete process.env.POCKET_ID_WEBSITE_SECRET;
+    delete process.env.WEBSITE_OIDC_SECRET;
+    vi.resetModules();
+    await expect(loadModule()).rejects.toThrow(/OIDC client secret/);
+  });
+
+  it('accepts the legacy WEBSITE_OIDC_SECRET variable', async () => {
+    delete process.env.POCKET_ID_WEBSITE_SECRET;
+    process.env.WEBSITE_OIDC_SECRET = 'legacy-secret';
+    vi.resetModules();
+    await expect(loadModule()).resolves.toBeDefined();
+  });
+});

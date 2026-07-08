@@ -38,6 +38,79 @@ against `main` and SHALL block merge until all checks pass.
 
 ---
 
+### Requirement: PR-Gate — Vitest (website) mit `--changed` Smart-Selection
+
+The system SHALL run Vitest unit tests on every non-draft PR against `main` using
+`pnpm vitest run --changed --coverage` (mirrors the local `task test:changed` smart
+selection) and SHALL keep the `Vitest line coverage gate (>= 60% on src/lib)` as a
+required check that reports green on chore / config-only PRs even when no `website/`
+files were touched.
+
+The `vitest-website` job SHALL stay present and required on every PR (no job-level
+path filter) so branch protection's `Vitest (website)` check always reports — the
+smart selection happens inside the `pnpm vitest run` command, not at the workflow
+level.
+
+#### Scenario: Chore-PR ohne website-Änderungen besteht Vitest-Gate
+
+- **GIVEN** ein PR ändert nur `openspec/` und `AGENTS.md` (keine Datei unter `website/`)
+- **WHEN** der `vitest-website`-Job `pnpm exec vitest run --changed --coverage` ausführt
+- **THEN** beendet Vitest mit Exit-Code 0 (keine Tests, da keine `website/`-Diffs seit `origin/main`)
+- **THEN** schreibt `coverage/coverage-summary.json` mit `pct: "Unknown"` (kein Source-Coverage-Sample)
+- **THEN** der Coverage-Gate-Schritt erkennt `pct: "Unknown"`, gibt `::notice::Coverage pct: Unknown (--changed found no website/ changes) — skipping gate` aus und beendet sich mit Exit-Code 0
+
+#### Scenario: Website-Feature-PR läuft nur betroffene Tests
+
+- **GIVEN** ein PR ändert `website/src/lib/auth/magic-link.ts` und `website/src/lib/auth/magic-link.test.ts`
+- **WHEN** der `vitest-website`-Job `pnpm exec vitest run --changed --coverage` ausführt
+- **THEN** läuft nur `magic-link.test.ts` (und ggf. transitiv abhängige Tests), nicht die vollen ~243 Vitest-Dateien
+- **THEN** schreibt `coverage/coverage-summary.json` einen realen `pct`-Wert für `src/lib/auth/magic-link.ts`
+- **THEN** der Coverage-Gate-Schritt wertet diesen Wert aus und blockt den Merge bei `< 60 %`
+
+#### Scenario: Vitest-Befehl bleibt required Check auf jedem PR
+
+- **GIVEN** der `Vitest (website)`-Check ist als required Check in der Branch-Protection konfiguriert
+- **WHEN** ein chore-PR geöffnet wird, der keine `website/`-Dateien berührt
+- **THEN** läuft der `vitest-website`-Job trotzdem und reported grün — der Check ist nicht "skipped" / "missing"
+
+---
+
+### Requirement: PR-Gate — E2E PR mit Changed-Spec-Selection
+
+The system SHALL run Playwright E2E on a PR only when E2E-relevant files (`website/`,
+`tests/e2e/`, `.github/workflows/e2e-pr.yml`) changed, and WHEN running, SHALL also
+include any spec files changed in `tests/e2e/specs/*.spec.ts` as positional arguments
+to `npx playwright test` in addition to the tag-based grep filter.
+
+#### Scenario: Chore-PR ohne E2E-relevante Änderungen überspringt E2E
+
+- **GIVEN** ein PR ändert nur `openspec/` und `scripts/` (keine Datei unter `website/`, `tests/e2e/`, oder `.github/workflows/e2e-pr.yml`)
+- **WHEN** der `e2e-pr`-Job den `Check if E2E-relevant files changed`-Schritt ausführt
+- **THEN** setzt er `run_e2e=false` und alle nachfolgenden Schritte (Install, Playwright, Upload, Kommentar) werden mit `if: steps.filter.outputs.run_e2e == 'true'` übersprungen
+
+#### Scenario: Website-Feature-PR läuft Tag-gefilterte E2E-Suite
+
+- **GIVEN** ein PR mit Branch `feature/content-hub-foo` ändert `website/src/pages/coaching.astro` (keine Spec-Datei)
+- **WHEN** der `e2e-pr`-Job den `Leite Feature-Tag aus Branch-Name ab`-Schritt ausführt
+- **THEN** leitet er `TAG=content-hub` und `GREP_PATTERN=@content-hub|@smoke` ab
+- **THEN** ruft `npx playwright test --grep "@content-hub|@smoke"` auf (keine zusätzlichen positional args, da `CHANGED_SPECS` leer ist)
+
+#### Scenario: PR mit geänderter Spec-Datei läuft Tag-Grep + die geänderte Spec
+
+- **GIVEN** ein PR ändert `tests/e2e/specs/fa-30-cockpit.spec.ts` und `website/src/pages/cockpit.astro`
+- **WHEN** der `e2e-pr`-Job den `Detect changed E2E spec files`-Schritt ausführt
+- **THEN** setzt er `changed_specs=specs/fa-30-cockpit.spec.ts` (Prefix `tests/e2e/` gestrippt, damit es zum `testDir: ./specs` der Config passt)
+- **THEN** ruft der Playwright-Schritt `npx playwright test --grep "<tag-pattern>" specs/fa-30-cockpit.spec.ts` auf — die geänderte Spec läuft zusätzlich zur Tag-gefilterten Suite
+
+#### Scenario: PR mit nur Spec-Änderungen läuft die Spec + Smoke
+
+- **GIVEN** ein PR ändert nur `tests/e2e/specs/fa-12-mcp.spec.ts` (kein `website/`-Code)
+- **WHEN** der `e2e-pr`-Job den `Check if E2E-relevant files changed`-Schritt ausführt
+- **THEN** triggert der Match auf `tests/e2e/` und setzt `run_e2e=true`
+- **THEN** läuft Playwright mit dem Smoke-Grep (kein Feature-Tag ableitbar) + die geänderte Spec
+
+---
+
 ### Requirement: PR-Gate — Security Scan
 
 The system SHALL scan every PR for hardcoded passwords in `k3d/*.yaml`, unencrypted tracked

@@ -7,27 +7,37 @@ export interface ProviderChoice {
   modelId: string;
   baseUrl: string | null;
   apiKey: string;
+  contextWindow: number | null;
+  contextBudget: number | null;
 }
 
 const OPUS_MODEL = 'claude-opus-4-6';
 const FALLBACK: Omit<ProviderChoice, 'apiKey'> = {
   provider: 'anthropic', modelId: 'claude-sonnet-4-6', baseUrl: null,
+  contextWindow: null, contextBudget: null,
 };
 
-function apiKeyForProvider(provider: string): string {
+export function apiKeyForProvider(provider: string): string {
   if (provider === 'deepseek') return process.env.DEEPSEEK_API_KEY || '';
   if (provider === 'anthropic') return process.env.ANTHROPIC_API_KEY || '';
-  // local-cluster, local-lmstudio, local-ollama: no key needed
+  if (provider === 'openrouter') return process.env.OPENROUTER_API_KEY || '';
+  if (provider === 'opencode-zen') return process.env.OPENCODE_API_KEY || '';
+  if (provider === 'google-gemini') return process.env.GEMINI_API_KEY || '';
+  if (provider === 'github-models') return process.env.GITHUB_MODELS_TOKEN || '';
+  // local-cluster, local-lmstudio, local-ollama, local-qwen35: no key needed
   return 'not-required';
 }
 
 export async function getProviderConfig(source: string, tier: 'sonnet' | 'haiku' | 'opus'): Promise<ProviderChoice> {
   if (tier === 'opus') {
-    return { provider: 'anthropic', modelId: OPUS_MODEL, baseUrl: null, apiKey: process.env.ANTHROPIC_API_KEY || '' };
+    return {
+      provider: 'anthropic', modelId: OPUS_MODEL, baseUrl: null,
+      apiKey: process.env.ANTHROPIC_API_KEY || '', contextWindow: null, contextBudget: null,
+    };
   }
   try {
     const { rows } = await pool.query(
-      `SELECT pc.provider, pc.model_id, pc.base_url, pc.api_key
+      `SELECT pc.provider, pc.model_id, pc.base_url, pc.api_key, pc.context_window, pc.context_budget
          FROM tickets.provider_config pc
          LEFT JOIN tickets.provider_health ph ON ph.provider = pc.provider
         WHERE (pc.source = $1 OR pc.source = '*') AND pc.tier = $2 AND pc.enabled = true
@@ -37,9 +47,12 @@ export async function getProviderConfig(source: string, tier: 'sonnet' | 'haiku'
       [source, tier],
     );
     if (rows.length) {
-      const { provider, model_id, base_url, api_key } = rows[0];
+      const { provider, model_id, base_url, api_key, context_window, context_budget } = rows[0];
       const apiKey = (typeof api_key === 'string' && api_key) ? api_key : apiKeyForProvider(provider);
-      return { provider, modelId: model_id, baseUrl: base_url ?? null, apiKey };
+      return {
+        provider, modelId: model_id, baseUrl: base_url ?? null, apiKey,
+        contextWindow: context_window ?? null, contextBudget: context_budget ?? null,
+      };
     }
   } catch (err) {
     logger.error({ err }, '[provider-config] DB lookup failed, falling back to anthropic');

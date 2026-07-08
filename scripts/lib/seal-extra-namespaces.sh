@@ -129,6 +129,18 @@ seal_extra_namespace_secrets() {
     return 0
   fi
 
+  # Brand resolution (T001584): owner_brand entries in schema.yaml name a
+  # bare brand (e.g. "mentolder"), but ENV_NAME can be a fleet-qualified
+  # env (e.g. "fleet-mentolder") since the fleet consolidation. Resolve
+  # the brand via env_vars.BRAND_ID from the env file; fall back to
+  # ENV_NAME itself when the file/key is absent (legacy/test envs).
+  local brand_lc="${ENV_NAME,,}"
+  if [[ -f "$ENV_FILE" ]] && command -v yq >/dev/null 2>&1; then
+    local resolved_brand
+    resolved_brand=$(yq '.env_vars.BRAND_ID // ""' "$ENV_FILE" 2>/dev/null)
+    [[ -n "$resolved_brand" ]] && brand_lc="${resolved_brand,,}"
+  fi
+
   declare -A ns_map=()
   declare -A owner_by_pair=()
   while IFS=$'\t' read -r src ns sec dest required ob; do
@@ -160,16 +172,15 @@ seal_extra_namespace_secrets() {
     # When the field is absent (legacy schema), all envs may seal —
     # backwards-compat behaviour is preserved.
     if [[ -n "$owner_brand_csv" ]]; then
-      local env_lc="${ENV_NAME,,}"
       local match=0
       local ob_arr
       IFS=',' read -ra ob_arr <<< "$owner_brand_csv"
       local brand
       for brand in "${ob_arr[@]}"; do
-        [[ "${brand,,}" == "$env_lc" ]] && match=1
+        [[ "${brand,,}" == "$brand_lc" ]] && match=1
       done
       if [[ "$match" -eq 0 ]]; then
-        echo "INFO: skipping ${ns}/${sname} (owner_brand=[${owner_brand_csv}], env=${ENV_NAME})" >&2
+        echo "INFO: skipping ${ns}/${sname} (owner_brand=[${owner_brand_csv}], env=${ENV_NAME}, brand=${brand_lc})" >&2
         continue
       fi
     fi

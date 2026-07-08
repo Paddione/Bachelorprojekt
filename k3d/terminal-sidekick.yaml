@@ -1,0 +1,32 @@
+# ═══════════════════════════════════════════════════════════════════
+# terminal-sidekick bridge — selector-less Service → ttyd on the WSL
+# host, reached over the wg-fleet overlay IP ${TERMINAL_OVERLAY_IP}.
+# ttyd runs off-cluster (systemd user unit); there are no pod IPs, so
+# Endpoints point straight at the overlay address. Pattern: rustdesk-web.
+# ═══════════════════════════════════════════════════════════════════
+apiVersion: v1
+kind: Service
+metadata:
+  name: terminal-bridge
+  labels:
+    app: terminal-sidekick
+spec:
+  ports:
+    - name: ttyd
+      port: 7681
+      targetPort: 7681
+      protocol: TCP
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: terminal-bridge
+  labels:
+    app: terminal-sidekick
+subsets:
+  - addresses:
+      - ip: "${TERMINAL_OVERLAY_IP}"
+    ports:
+      - name: ttyd
+        port: 7681
+        protocol: TCP

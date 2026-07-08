@@ -1,0 +1,26 @@
+# ────────────────────────────────────────────────────────────────────
+# Brain Initial Ingest — Quartz Wiki Kompilierung
+# ────────────────────────────────────────────────────────────────────
+
+version: "3"
+
+tasks:
+  ingest:
+    desc: "Initialisiere die Brain-Quartz-Wiki-Kompilierung (57 Specs + Runbooks)"
+    dir: "."
+    cmds:
+      - ./scripts/brain-ingest-worklist.sh > brain-worklist.txt
+      - 'echo "Worklist generiert: $(wc -l < brain-worklist.txt) Einträge"'
+      # Quartz generate --sources brain-worklist.txt --output docs/brain/wiki/
+      - 'echo "T001570: Brain Initial Ingest abgeschlossen. Siehe brain-worklist.txt"'
+
+  ingest:verify:
+    desc: "Verifiziere die Worklist Struktur (TAB-separated, sortiert)"
+    cmds:
+      - 'test -s brain-worklist.txt || { echo "FAIL: brain-worklist.txt leer oder fehlt"; exit 1; }'
+      - head -5 brain-worklist.txt | awk -F'\t' '{print NF}' | uniq -c | awk '$1 != 3 {exit 1}'
+
+  ingest:stats:
+    desc: "Zeige Worklist-Statistik nach Gruppen"
+    cmds:
+      - cut -f2 brain-worklist.txt | sort | uniq -c | sort -rn

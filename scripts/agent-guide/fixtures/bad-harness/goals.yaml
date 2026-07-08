@@ -1,0 +1,10 @@
+- id: bug-beheben
+  title_de: "Ich will einen Fehler beheben"
+  when_de: "Etwas funktioniert nicht wie erwartet."
+  flow:
+    - tool: dev-flow-plan
+      note_de: "Beschreibe den Fehler."
+  example_prompt_de: "Der Login-Button tut nichts. Bitte finde und behebe den Fehler."
+  danger: caution
+  guardrails: [G-ENV-EXPLICIT]
+  related: []

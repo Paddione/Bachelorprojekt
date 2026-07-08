@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-03T02:31:40.466Z",
+  "generatedAt": "2026-07-08T12:45:01.041Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -610,6 +610,14 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/coaching/ki-config/active.ts"
+    },
+    {
+      "path": "/api/admin/coaching/ki-config/models",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/ki-config/models.ts"
     },
     {
       "path": "/api/admin/coaching/projects",
@@ -1627,6 +1635,15 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/ops/dns/pin.ts"
+    },
+    {
+      "path": "/api/admin/ops/error-log",
+      "methods": [
+        "POST",
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/ops/error-log.ts"
     },
     {
       "path": "/api/admin/ops/health",
@@ -2716,6 +2733,14 @@
       ],
       "auth": "unclassified",
       "file": "website/src/pages/api/contact.ts"
+    },
+    {
+      "path": "/api/cron/error-log-retention",
+      "methods": [
+        "POST"
+      ],
+      "auth": "cron",
+      "file": "website/src/pages/api/cron/error-log-retention.ts"
     },
     {
       "path": "/api/cron/notify-unread",

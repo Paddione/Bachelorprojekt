@@ -66,6 +66,7 @@ env_vars:
   COMFY_HOST_IP: "192.168.100.10"
   COMFY_PORT: "8189"
   RIGGER_PORT: "8190"
+  TERMINAL_OVERLAY_IP: "10.20.0.10"
   LLM_ENABLED: "true"
   LLM_RERANK_ENABLED: "true"
   LLM_RERANKER_URL: "http://llm-gateway-tei-rerank.workspace.svc.cluster.local:8083"

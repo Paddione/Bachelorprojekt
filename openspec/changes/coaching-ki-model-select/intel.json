@@ -1,0 +1,216 @@
+{
+  "meta": {
+    "slug": "coaching-ki-model-select",
+    "ticket_id": "T001641",
+    "generated_from": "main@d3fc164ed",
+    "domains": ["website"],
+    "intel_sources": ["code-explorer-subagent", "grep", "Read", "baseline.json"]
+  },
+  "impact_files": [
+    {
+      "path": "website/src/pages/api/admin/coaching/ki-config/active.ts",
+      "language": "typescript",
+      "loc": 26,
+      "s1_limit": 600,
+      "s1_baseline": null,
+      "s1_budget": 574
+    },
+    {
+      "path": "website/src/pages/api/admin/ki/env-status.ts",
+      "language": "typescript",
+      "loc": 46,
+      "s1_limit": 600,
+      "s1_baseline": null,
+      "s1_budget": 554
+    },
+    {
+      "path": "website/src/components/admin/coaching/CoachingSettings.svelte",
+      "language": "svelte",
+      "loc": 598,
+      "s1_limit": 500,
+      "s1_baseline": 598,
+      "s1_budget": 0
+    },
+    {
+      "path": "website/src/components/admin/KiCoachingDrawer.svelte",
+      "language": "svelte",
+      "loc": 251,
+      "s1_limit": 500,
+      "s1_baseline": null,
+      "s1_budget": 249
+    },
+    {
+      "path": "website/src/pages/api/admin/coaching/sessions/[id]/steps/[n]/generate.ts",
+      "language": "typescript",
+      "loc": 165,
+      "s1_limit": 600,
+      "s1_baseline": null,
+      "s1_budget": 435
+    },
+    {
+      "path": "website/src/lib/openai-compatible-session-agent.ts",
+      "language": "typescript",
+      "loc": 113,
+      "s1_limit": 600,
+      "s1_baseline": null,
+      "s1_budget": 487
+    },
+    {
+      "path": "website/src/lib/llm-models-probe.ts",
+      "language": "typescript",
+      "loc": 0,
+      "s1_limit": 600,
+      "s1_baseline": null,
+      "s1_budget": 600
+    },
+    {
+      "path": "website/src/lib/prompt-scrubber.ts",
+      "language": "typescript",
+      "loc": 0,
+      "s1_limit": 600,
+      "s1_baseline": null,
+      "s1_budget": 600
+    },
+    {
+      "path": "website/src/pages/api/admin/coaching/ki-config/models.ts",
+      "language": "typescript",
+      "loc": 0,
+      "s1_limit": 600,
+      "s1_baseline": null,
+      "s1_budget": 600
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "website/src/lib/openai-compatible-session-agent.ts:resolveEndpoint",
+      "kind": "function",
+      "file": "website/src/lib/openai-compatible-session-agent.ts",
+      "signature": "resolveEndpoint(kiConfig: KiConfig): string",
+      "type_text": "(kiConfig: KiConfig) => string — apiEndpoint aus DB, sonst Provider-Default: 'local-lmstudio' -> http://${LLM_HOST_IP||'localhost'}:1234/v1",
+      "source": "code-explorer-subagent"
+    },
+    {
+      "qualified_name": "website/src/lib/openai-compatible-session-agent.ts:resolveModel",
+      "kind": "function",
+      "file": "website/src/lib/openai-compatible-session-agent.ts",
+      "signature": "resolveModel(kiConfig: KiConfig): string",
+      "type_text": "(kiConfig: KiConfig) => string — kiConfig.modelName ?? defaults[provider] ?? 'llama3'",
+      "source": "code-explorer-subagent"
+    },
+    {
+      "qualified_name": "website/src/lib/session-agent-factory.ts:createSessionAgent",
+      "kind": "function",
+      "file": "website/src/lib/session-agent-factory.ts",
+      "signature": "createSessionAgent(kiConfig: KiConfig): SessionAgent",
+      "type_text": "provider-Dispatch: claude->ClaudeSessionAgent; lumo|deepseek|anthropic|local-*|custom_* -> OpenAICompatibleSessionAgent; sonst LegacySessionAgent",
+      "source": "code-explorer-subagent"
+    },
+    {
+      "qualified_name": "website/src/lib/coaching-ki-config-db.ts:KiConfig",
+      "kind": "type",
+      "file": "website/src/lib/coaching-ki-config-db.ts",
+      "signature": "interface KiConfig { provider: string; modelName: string | null; apiEndpoint: string | null; apiKey: string | null; temperature: number | null; maxTokens: number | null; topP: number | null; systemPrompt: string | null; isActive: boolean; ... }",
+      "type_text": "Adapter über tickets.provider_config WHERE source='coaching'; modelName <-> Spalte model_id ('' = null)",
+      "source": "code-explorer-subagent"
+    },
+    {
+      "qualified_name": "website/src/pages/api/admin/ki/env-status.ts:checkLocalEndpoint",
+      "kind": "function",
+      "file": "website/src/pages/api/admin/ki/env-status.ts",
+      "signature": "checkLocalEndpoint(url: string): Promise<{ reachable: boolean; models: string[] }>",
+      "type_text": "fetch <url>/v1/models, parst body.data[].id — Extraktionskandidat für llm-models-probe.ts",
+      "source": "code-explorer-subagent"
+    },
+    {
+      "qualified_name": "website/src/pages/api/admin/coaching/ki-config/active.ts:allowed",
+      "kind": "constant",
+      "file": "website/src/pages/api/admin/coaching/ki-config/active.ts",
+      "signature": "const allowed = ['openai','mistral','lumo'] (Zeile ~15)",
+      "type_text": "string[] — Bug: blockiert Aktivierung von local-lmstudio; ersetzen durch KI_CATALOG-IDs + custom_*",
+      "source": "code-explorer-subagent"
+    },
+    {
+      "qualified_name": "website/src/lib/ki-catalog.ts:KI_CATALOG",
+      "kind": "constant",
+      "file": "website/src/lib/ki-catalog.ts",
+      "signature": "const KI_CATALOG: InterfaceDef[]",
+      "type_text": "InterfaceDef { id: string; suggestedModels: CatalogModel[]; ... } — enthält 'local-lmstudio'",
+      "source": "code-explorer-subagent"
+    },
+    {
+      "qualified_name": "website/src/pages/api/admin/coaching/sessions/[id]/steps/[n]/generate.ts:anonymization",
+      "kind": "block",
+      "file": "website/src/pages/api/admin/coaching/sessions/[id]/steps/[n]/generate.ts",
+      "signature": "Zeilen ~32-78: effectiveSystem = systemPrompt.replace(/\\{\\{KLIENT_ID\\}\\}/g, customerNumber); anonymizedUserPrompt = `Klient ${customerNumber}:\\n${userPrompt}`",
+      "type_text": "Chokepoint für PII-Scrubber — unmittelbar vor createSessionAgent(...).generate/stream einhängen",
+      "source": "code-explorer-subagent"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [
+      "website/src/pages/api/admin/coaching/sessions/[id]/steps/[n]/generate.ts:POST"
+    ],
+    "edges": [
+      { "from": "generate.ts:POST", "to": "coaching-session-db.ts:getCoachingSession", "kind": "calls" },
+      { "from": "generate.ts:POST", "to": "coaching-project-db.ts:getProject", "kind": "calls" },
+      { "from": "generate.ts:POST", "to": "session-agent-factory.ts:createSessionAgent", "kind": "calls" },
+      { "from": "session-agent-factory.ts:createSessionAgent", "to": "openai-compatible-session-agent.ts:OpenAICompatibleSessionAgent", "kind": "calls" },
+      { "from": "openai-compatible-session-agent.ts:generate", "to": "LM Studio /v1/chat/completions (OpenAI SDK, baseURL=resolveEndpoint)", "kind": "cross_service" }
+    ]
+  },
+  "db_tables": [
+    {
+      "table": "tickets.provider_config",
+      "columns": ["id", "source", "provider", "model_id", "brand", "is_active", "display_name", "api_key", "api_endpoint", "temperature", "max_tokens", "top_p", "system_prompt", "enabled_fields"],
+      "note": "source='coaching'-Zeilen; Adapter coaching-ki-config-db.ts; KEINE Schema-Änderung in diesem Change"
+    },
+    {
+      "table": "coaching.sessions",
+      "columns": ["id", "brand", "client_id", "client_name", "project_id", "ki_config_id", "title", "status"],
+      "note": "client_name = Klarname (nie in Prompt); read-only Quelle für Scrubber-Namensliste"
+    },
+    {
+      "table": "coaching.projects",
+      "columns": ["id", "client_id", "customer_number", "display_alias", "ki_context"],
+      "note": "customer_number = Pseudonym (Scrubber-Replacement)"
+    }
+  ],
+  "api_contracts": [
+    {
+      "endpoint": "GET /api/admin/coaching/ki-config",
+      "file": "website/src/pages/api/admin/coaching/ki-config/index.ts",
+      "response": "KiConfig[] (source='coaching')"
+    },
+    {
+      "endpoint": "PATCH /api/admin/coaching/ki-config/active",
+      "file": "website/src/pages/api/admin/coaching/ki-config/active.ts",
+      "response": "setzt is_active; Bug: hartkodierte allowed-Liste"
+    },
+    {
+      "endpoint": "GET /api/admin/coaching/ki-config/models?id=<configId> (NEU)",
+      "file": "website/src/pages/api/admin/coaching/ki-config/models.ts",
+      "response": "{ reachable: boolean, models: string[] } — nie 5xx, Timeout ~2s"
+    }
+  ],
+  "external_types": [
+    {
+      "library": "openai",
+      "type": "OpenAI.chat.completions.create({ model, max_tokens, temperature, top_p, messages })",
+      "note": "bereits in openai-compatible-session-agent.ts verwendet; /v1/models via GET <baseURL>/models (OpenAI-Format { data: [{ id }] })"
+    }
+  ],
+  "risks": [
+    {
+      "note": "CoachingSettings.svelte s1_budget=0 (baseline 598 = Ist-LOC): Datalist-Integration MUSS netto zeilenneutral sein oder Datei echt verkleinern",
+      "severity": "warn"
+    },
+    {
+      "note": "Parallel-Session T001638 (feature/coaching-sessions-admin-ux) belegt coaching-session-db.ts, admin.astro, AdminSidebarNav.astro, helpContent.ts, sessions/[id].astro — diese Dateien NICHT anfassen",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory/LSP nicht genutzt (Signaturen via Explorer-Subagent verifiziert); mcp-postgres nicht abgefragt — Spalten aus provider-config-schema.ts/Migrationen zitiert",
+      "severity": "info"
+    }
+  ]
+}

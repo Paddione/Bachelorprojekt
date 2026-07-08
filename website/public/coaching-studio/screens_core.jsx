@@ -125,10 +125,6 @@ function Dashboard({ onNav, customers, onDelete }){
 // 2 · KUNDENAKTE
 // =====================================================================
 const STATUS_LABEL = { aktiv:"Aktiv", pausiert:"Pausiert", fertig:"Abgeschlossen" };
-function Kundenakte({ customer, onNav, onDelete }){
-  const k = customer;
-  if(!k) return null;
-
   const activeProfile = PROFILE_FIELDS.filter(f=> f.active);
 
   return (
@@ -230,13 +226,6 @@ function ProfileEditor({ customer, onNav }){
   const k = customer;
   const [fields, setFields] = useState(()=> PROFILE_FIELDS.map(f=> ({...f})));
   const toggle = (i)=> setFields(fs=> fs.map((f,j)=> j===i ? {...f, active:!f.active} : f));
-  const edit = (i,v)=> setFields(fs=> fs.map((f,j)=> j===i ? {...f, value:v} : f));
-  const activeCount = fields.filter(f=> f.active).length;
-
-  return (
-    <div className="screen"><div className="wrap">
-      <button className="btn btn-quiet btn-sm" style={{marginBottom:14, paddingInline:0}} onClick={()=> onNav("akte", k)}><Icon.back width="14" height="14"/>Zurück zur Akte</button>
-      <div className="page-head">
         <div className="eyebrow">KI-Profil · {k.name}</div>
         <div className="between" style={{alignItems:"flex-end"}}>
           <h1>Profil für die <em>KI-Anfrage</em></h1>

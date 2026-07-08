@@ -20,6 +20,7 @@ data:
   WHITEBOARD_DOMAIN: "board.${PROD_DOMAIN}"
   TRAEFIK_DOMAIN: "traefik.${PROD_DOMAIN}"
   BRETT_DOMAIN: "brett.${PROD_DOMAIN}"
+  BRAIN_DOMAIN: "brain.${PROD_DOMAIN}"
   LIVEKIT_DOMAIN: "livekit.${PROD_DOMAIN}"
   STREAM_DOMAIN: "stream.${PROD_DOMAIN}"
   # Mediaviewer host (mediaviewer.<domain>). MUST be set here for the same reason
@@ -30,6 +31,9 @@ data:
   # so the dev value makes the Sidekick mediaviewer iframe load mediaviewer.localhost
   # and its postMessage target origin mismatch the live origin on every deploy.
   MEDIAVIEWER_HOST: "mediaviewer.${PROD_DOMAIN}"
+  # Agentic Terminal host — registry-sourced (terminal.<domain>). Same reason as
+  # MEDIAVIEWER_HOST: this file strategic-merge-patches base k3d/configmap-domains.yaml.
+  TERMINAL_HOST: "terminal.${PROD_DOMAIN}"
   # Recovery filebrowser host — registry-sourced (recover.<domain>). MUST be set
   # here: this file is a strategic-merge patch over base k3d/configmap-domains.yaml,
   # so without it the live domain-config keeps the dev value `recover.localhost`,

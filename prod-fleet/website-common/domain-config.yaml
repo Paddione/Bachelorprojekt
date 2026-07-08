@@ -12,3 +12,4 @@ data:
   # ergänzt werden, sonst macht der bats-Guard CI rot.
   MEDIAVIEWER_HOST: "mediaviewer.${PROD_DOMAIN}"
   VIDEOVAULT_DOMAIN: "videovault.${PROD_DOMAIN}"
+  TERMINAL_HOST: "terminal.${PROD_DOMAIN}"

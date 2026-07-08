@@ -36,7 +36,7 @@ Fallback (mcp-postgres nicht erreichbar — Verfügbarkeits-Guard siehe [`mcp-to
 kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -F '|' -c \
   "SELECT external_id, title FROM tickets.tickets WHERE status='plan_staged' ORDER BY planning_rank ASC NULLS LAST, created_at DESC LIMIT 10;"
 ```
-Bei mehreren staged plans den User via `AskUserQuestion`-Tool nach der gewünschten Ticket-ID fragen.
+Bei mehreren staged plans den User via `AskUserQuestion` (Claude Code) oder `question` (opencode/agy) nach der gewünschten Ticket-ID fragen.
 
 ## Schritt −1: Main-Branch im Haupt-Repo synchronisieren (Pull-First)
 
@@ -185,9 +185,10 @@ Fallback:
 ```
 Statt deinen eigenen Kontext/Modell zurückzusetzen (das ließe dich den Faden verlieren), delegiere die **gesamte Implementierung an EINEN frischen Subagenten** — sauberer Kontext per Konstruktion. Du behältst den vollen Plan-Kontext und verifizierst das Ergebnis anschließend unabhängig.
 > **Warum EIN Implementer statt `superpowers:subagent-driven-development`-Fan-out?** Dieser Skill läuft bereits *selbst* als delegierte Ebene (oft aus einem dev-flow-Orchestrator). Ein zusätzlicher Per-Task-Fan-out wäre **verschachtelte Delegation** $\rightarrow$ Kontext-Explosion und Synthese-Last (siehe [subagent-provisioning](file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md), 162k-Prompt-Lehre). Der Implementer ruft `superpowers:executing-plans` daher **in-context** auf (kein weiterer Agenten-Fan-out). Nur wenn der Plan ausdrücklich viele **voneinander unabhängige** Tasks hat und der Einzel-Implementer am Kontext-Limit scheitert, lohnt der Wechsel auf `subagent-driven-development` bzw. einen `Workflow`-Fan-out — bewusste Eskalation, nicht Default.
-Spawne den Subagenten:
+Spawne den Subagenten, provisioniert gemäß [subagent-provisioning](file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md):
 * **Gemini/Antigravity CLI:** call `invoke_subagent` with `TypeName: "self"` (inherits permissions and tools), `Role: "Implementer <TICKET_ID>"`, and `Workspace: "share"` (or `"inherit"`).
-* **Claude Code CLI:** Spawne über das `Agent`/`Task`-Tool einen Subagenten (`subagent_type: general-purpose`), **provisioniert gemäß** [subagent-provisioning](file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md) — Modell nach Plan-Charakter (Implementer-Default: `sonnet`; mechanisch `haiku`, komplex/riskant `opus`), Effort per Prompt-Direktive und die Worktree-`cd`-Pflicht stehen dort (SSOT, nicht hier wiederholen).
+* **Claude Code CLI:** Spawne über das `Agent`/`Task`-Tool einen Subagenten (`subagent_type: general-purpose`) — Modell nach Plan-Charakter (Implementer-Default: `sonnet`; mechanisch `haiku`, komplex/riskant `opus`), Effort per Prompt-Direktive.
+* **opencode:** Nutze `delegate(prompt, agent="researcher")` für read-only Subagenten oder die native write-capable Delegation. Die Worktree-`cd`-Pflicht und Modell-Effort-Formulierungen stehen in der Reference (SSOT, nicht hier wiederholen).
 - **Kontext-Injektion** (er hat sonst KEINEN Kontext — gib ihm alles explizit; Kompaktheits-Regeln siehe subagent-provisioning §3):
   - Plan-Datei `$PLAN_FILE` (aus Schritt 1, via DB aufgelöst) + Ticket-ID.
   - Attachment-Verzeichnis `$ATTACHMENT_DIR` — bei UI-Arbeit ALLE Bilder/Texte mit dem `Read`-Tool einlesen.
@@ -211,7 +212,7 @@ Spawne den Subagenten:
   **Ziel:** Die Gesamtzahl der `.bats`-Dateien in `tests/local/` sinkt oder bleibt konstant. Ticket-nummerierte Dateien (`FA-SF-42.bats`) sind Legacy — nicht neu anlegen.
 - **Auftrag:**
   - **/goal: Finish dev-flow-execute and merge the PR cleanly.**
-  - *Feature:* Rufe `superpowers:executing-plans` (in-context, KEIN weiterer Agenten-Fan-out) + `test-driven-development` auf und arbeite den Plan vollständig ab. Aktualisiere nach jedem Meilenstein die Checkbox im Plan (`- [ ] M1` → `- [x] M1`), committe und pushe.
+  - *Feature:* Rufe `superpowers:executing-plans` (Claude Code — built-in; opencode: führe die Schritte direkt aus — `opencode-flow-execute` hat das Äquivalent inlined) + `test-driven-development` (Claude Code — built-in; opencode: siehe `vitest/SKILL.md`) auf und arbeite den Plan vollständig ab. Aktualisiere nach jedem Meilenstein die Checkbox im Plan (`- [ ] M1` → `- [x] M1`), committe und pushe.
   - *Fix:* Verifiziere zuerst, dass ein failing Test existiert, dann nach Rot-Grün-Prinzip bis grün.
    - Bei Kompilier-/Testfehlern: diagnostiziere und fixe systematisch (Logs lesen, Fehler eingrenzen, Hypothese testen, fixen, Re-Test).
   - **PFLICHT vor PR-Erstellung — Freshness-Artefakte regenerieren und committen** (sonst schlägt CI mit "stale artifact" fehl; `executing-plans` → `finishing-a-development-branch` überspringt diesen Schritt). Befehle + Artefakt-Pfadliste (SSOT): [verification-block](file:///home/patrick/Bachelorprojekt/.claude/skills/references/verification-block.md) — der Subagent MUSS die Datei lesen und den `git add`-Block daraus verwenden.
@@ -231,7 +232,8 @@ bash scripts/devflow-build-loop.sh "$TICKET_ID"
 
 ## Schritt 3: Lokale Verifikation
 
-Rufe das Skill **`verification-before-completion`** auf, um die Verifikation strukturiert zu steuern.
+Rufe das Skill **`verification-before-completion`** auf (Claude Code — built-in; opencode: siehe die
+inlined Steps in `opencode-flow-execute/SKILL.md` und den `references/verification-block.md`), um die Verifikation strukturiert zu steuern.
 Phasen-Telemetrie (PFLICHT für verify — das Gate erzwingt sie) — **MCP-first** (`ticket-mcp`):
 > `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "implement", state: "done", driver: "devflow", detail: "Implementierung fertig" })`
 > `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "verify", state: "entered", driver: "devflow", detail: "task test:changed + freshness" })`
@@ -259,7 +261,9 @@ bash scripts/admin-menu-gate.sh
 ## Schritt 3.8: Code Review Gate (Mandatory)
 
 Vor dem PR-Merge muss eine unabhängige Überprüfung stattfinden.
-1. Rufe das Skill **`requesting-code-review`** (oder `pr-review-toolkit:review-pr` bzw. einen Review-Subagenten) auf, um die Änderungen zu auditieren.
+1. Rufe das Skill **`requesting-code-review`** auf (Claude Code — built-in; opencode: nutze
+   `pr-review-toolkit:review-pr` oder delegiere an einen Review-Subagenten via `delegate()`),
+   um die Änderungen zu auditieren.
 2. Behebe alle gefundenen Probleme und stelle sicher, dass der Reviewer "Approved" gibt, bevor du fortfährst.
 
 ## Schritt 4: Dev-Iteration (optional)
@@ -274,7 +278,7 @@ Allowlist prüfen [T001395], explizite Pathspecs statt `git add -A` (git-crypt-G
 Commit-Verifikation `HEAD_SHA != BASE_SHA` [T000925], `preflight-pr-scope.sh` vor `gh pr create`,
 REST-Fallback für Titel-Edits.
 Execute-spezifisch: Ticket-ID `[$TICKET_ID]` in Header und `Closes T000XXX` im Body bei Fixes.
-Rufe `commit-commands:commit-push-pr` auf (oder führe `gh pr create` manuell aus).
+Rufe `commit-commands:commit-push-pr` auf (Claude Code slash-command) oder führe `gh pr create` manuell aus (beide Frameworks).
 
 ## Schritt 5.5: CI/CD-Fix-Schleife
 

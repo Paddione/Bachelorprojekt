@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.163.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.162.0...website-v1.163.0) (2026-07-08)
+
+
+### Features
+
+* T001641 — LM Studio Models Dropdown + Prompt Scrubber ([#2617](https://github.com/Paddione/Bachelorprojekt/issues/2617)) ([d835325](https://github.com/Paddione/Bachelorprojekt/commit/d835325f61c5d8df3ed6a114847e89d295c02201))
+
 ## [1.162.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.161.0...website-v1.162.0) (2026-07-08)
 
 

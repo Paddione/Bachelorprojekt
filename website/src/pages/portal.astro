@@ -44,8 +44,7 @@ const calMonth  = isNaN(calMonthQ) ? now.getMonth() + 1 : Math.max(1, Math.min(1
 
 const ncBase       = (process.env.NEXTCLOUD_EXTERNAL_URL ?? '').replace(/\/$/, '');
 const vaultUrl     = process.env.VAULT_EXTERNAL_URL ?? '';
-const keycloakBase = process.env.KEYCLOAK_FRONTEND_URL ?? '';
-const realm        = process.env.KEYCLOAK_REALM ?? 'workspace';
+const pocketIdBase = process.env.POCKET_ID_FRONTEND_URL ?? '';
 const bretDomain   = process.env.BRETT_DOMAIN ?? '';
 const bretUrl      = bretDomain ? `https://${bretDomain}` : '';
 
@@ -53,7 +52,7 @@ const bretUrl      = bretDomain ? `https://${bretDomain}` : '';
 let pendingSignatures     = 0;
 let pendingQuestionnaires = 0;
 
-// Ensure a customer record exists for every Keycloak user so room lookups work
+// Ensure a customer record exists for every Pocket-ID user so room lookups work
 await upsertCustomer({ name: session.name, email: session.email, keycloakUserId: session.sub }).catch(() => null);
 const customer = await getCustomerByEmail(session.email).catch(() => null);
 const crmProfile = await getCustomerProfile(session.sub).catch(() => null);
@@ -123,7 +122,7 @@ const questionnaires: QAssignment[] = (section === 'fragebögen' && customer)
     </div>
   )}
   {section === 'fragebögen'     && <FragebogenSection assignments={questionnaires} />}
-  {section === 'dienste'        && <DiensteSection {ncBase} {vaultUrl} {bretUrl} {keycloakBase} isKore={session.brand === 'korczewski'} />}
-  {section === 'konto'          && <KontoSection {session} {keycloakBase} {realm} profile={crmProfile} />}
+  {section === 'dienste'        && <DiensteSection {ncBase} {vaultUrl} {bretUrl} isKore={session.brand === 'korczewski'} />}
+  {section === 'konto'          && <KontoSection {session} {pocketIdBase} profile={crmProfile} />}
   {section === 'buchung'        && <BuchungSection ncBase={ncBase} />}
 </PortalLayout>

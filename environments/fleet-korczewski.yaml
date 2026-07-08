@@ -58,7 +58,7 @@ env_vars:
   NEXTCLOUD_DB_HOST: nextcloud-db.workspace-korczewski.svc.cluster.local
   WEBSITE_HOST: web.korczewski.de
   WEBSITE_SITE_URL: "https://web.korczewski.de"
-  KEYCLOAK_FRONTEND_URL: "https://auth.korczewski.de"
+  POCKET_ID_FRONTEND_URL: "https://auth.korczewski.de"
   POCKET_ID_FRONTEND_URL: "https://auth.korczewski.de"
   POCKET_ID_DOMAIN: "auth.korczewski.de"
   POCKET_ID_URL: "http://pocket-id:1411"

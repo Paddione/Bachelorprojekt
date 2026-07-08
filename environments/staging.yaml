@@ -57,7 +57,7 @@ env_vars:
   STREAM_DOMAIN: stream.staging.korczewski.de
   WEBSITE_HOST: web.staging.korczewski.de
   WEBSITE_SITE_URL: "https://web.staging.korczewski.de"
-  KEYCLOAK_FRONTEND_URL: "https://auth.staging.korczewski.de"
+  POCKET_ID_FRONTEND_URL: "https://auth.staging.korczewski.de"
 
   PRIMARY_FRONTEND: astro
   TURN_OVERLAY_IP: "10.20.0.1"

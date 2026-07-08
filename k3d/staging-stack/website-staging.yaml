@@ -16,7 +16,7 @@ data:
   PROD_DOMAIN: staging-$STAGING_ID.localhost
   WEBSITE_SITE_URL: "http://web.staging-$STAGING_ID.localhost"
   WEBSITE_HOST: "web.staging-$STAGING_ID.localhost"
-  KEYCLOAK_FRONTEND_URL: "http://auth.localhost"
+  POCKET_ID_FRONTEND_URL: "http://auth.localhost"
   CONTACT_EMAIL: "staging@staging.local"
   LLM_ENABLED: "false"
   LLM_RERANK_ENABLED: "false"

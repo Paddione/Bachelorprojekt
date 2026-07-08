@@ -72,7 +72,7 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Go
-        uses: actions/setup-go@3041de560034e29530501543ad5379b9c798b3cf  # v5
+        uses: actions/setup-go@0a12eda9d6a8ea614046837e8c0780586e263d91  # v5.0.0
         with:
           go-version-file: 'mcp-task-runner/go.mod'
           cache: true

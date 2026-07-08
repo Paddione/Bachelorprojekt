@@ -196,7 +196,7 @@ describe('getClientBookings', () => {
 describe('getAvailableSlots', () => {
   it('degrades gracefully and returns [] when fetchEventsRaw fails (admin view, no brand)', async () => {
     mockFetchEventsRaw.mockRejectedValue(new Error('down'));
-    const from = new Date('2026-07-06T00:00:00Z'); // Monday
+    const from = new Date('2030-07-08T00:00:00Z'); // Monday
     const slots = await getAvailableSlots(from);
     // No brand => windowsMap stays null => falls back to WORK_DAYS branch.
     // fetchEvents catches the error internally and returns [], so slots for
@@ -206,10 +206,10 @@ describe('getAvailableSlots', () => {
 
   it('produces slots for admin overview (no brand) on a working day, respecting MIN_ADVANCE_HOURS', async () => {
     mockFetchEventsRaw.mockResolvedValue([]);
-    const from = new Date('2026-07-06T00:00:00Z'); // Monday, well in the future
+    const from = new Date('2030-07-08T00:00:00Z'); // Monday, well in the future
     const days = await getAvailableSlots(from);
     expect(days.length).toBeGreaterThan(0);
-    const monday = days.find((d) => d.date === '2026-07-06');
+    const monday = days.find((d) => d.date === '2030-07-08');
     expect(monday).toBeDefined();
     expect(monday!.weekday).toBe('Montag');
     expect(monday!.slots.length).toBeGreaterThan(0);
@@ -219,13 +219,13 @@ describe('getAvailableSlots', () => {
   it('excludes slots overlapping an existing calendar event', async () => {
     const busy = vevent({
       UID: 'busy@x',
-      DTSTART: '20260706T090000Z',
-      DTEND: '20260706T170000Z',
+      DTSTART: '20300708T090000Z',
+      DTEND: '20300708T170000Z',
     });
     mockFetchEventsRaw.mockResolvedValue([ical(busy)]);
-    const from = new Date('2026-07-06T00:00:00Z');
+    const from = new Date('2030-07-08T00:00:00Z');
     const days = await getAvailableSlots(from);
-    const monday = days.find((d) => d.date === '2026-07-06');
+    const monday = days.find((d) => d.date === '2030-07-08');
     // Entire working day is busy -> no slots that day.
     expect(monday).toBeUndefined();
   });
@@ -233,17 +233,17 @@ describe('getAvailableSlots', () => {
   it('skips vacation days entirely', async () => {
     mockFetchEventsRaw.mockResolvedValue([]);
     mockGetVacationPeriods.mockResolvedValue([
-      { id: 'v1', start: '2026-07-06', end: '2026-07-06', label: 'Urlaub' },
+      { id: 'v1', start: '2030-07-08', end: '2030-07-08', label: 'Urlaub' },
     ]);
-    const from = new Date('2026-07-06T00:00:00Z');
+    const from = new Date('2030-07-08T00:00:00Z');
     const days = await getAvailableSlots(from);
-    expect(days.find((d) => d.date === '2026-07-06')).toBeUndefined();
+    expect(days.find((d) => d.date === '2030-07-08')).toBeUndefined();
   });
 
   it('falls back gracefully when getVacationPeriods throws', async () => {
     mockFetchEventsRaw.mockResolvedValue([]);
     mockGetVacationPeriods.mockRejectedValue(new Error('table missing'));
-    const from = new Date('2026-07-06T00:00:00Z');
+    const from = new Date('2030-07-08T00:00:00Z');
     const days = await getAvailableSlots(from);
     expect(Array.isArray(days)).toBe(true);
   });
@@ -251,11 +251,11 @@ describe('getAvailableSlots', () => {
   it('uses admin-defined free-time windows when a brand is given', async () => {
     mockFetchEventsRaw.mockResolvedValue([]);
     mockGetFreeTimeWindows.mockResolvedValue([
-      { id: 'w1', date: '2026-07-06', winStart: '09:00', winEnd: '10:00' },
+      { id: 'w1', date: '2030-07-08', winStart: '09:00', winEnd: '10:00' },
     ]);
-    const from = new Date('2026-07-06T00:00:00Z');
+    const from = new Date('2030-07-08T00:00:00Z');
     const days = await getAvailableSlots(from, 'mentolder');
-    const monday = days.find((d) => d.date === '2026-07-06');
+    const monday = days.find((d) => d.date === '2030-07-08');
     expect(monday).toBeDefined();
     expect(monday!.slots).toHaveLength(1);
     expect(monday!.slots[0].display).toBe('09:00 - 10:00');
@@ -264,26 +264,26 @@ describe('getAvailableSlots', () => {
   it('falls back to no windowsMap when getFreeTimeWindows throws (brand given)', async () => {
     mockFetchEventsRaw.mockResolvedValue([]);
     mockGetFreeTimeWindows.mockRejectedValue(new Error('no table'));
-    const from = new Date('2026-07-06T00:00:00Z');
+    const from = new Date('2030-07-08T00:00:00Z');
     const days = await getAvailableSlots(from, 'mentolder');
     // windowsMap stays null -> falls through to WORK_DAYS admin branch.
-    const monday = days.find((d) => d.date === '2026-07-06');
+    const monday = days.find((d) => d.date === '2030-07-08');
     expect(monday).toBeDefined();
     expect(monday!.slots.length).toBeGreaterThan(0);
   });
 
   it('produces no slots on a weekend day for the admin overview', async () => {
     mockFetchEventsRaw.mockResolvedValue([]);
-    const from = new Date('2026-07-04T00:00:00Z'); // Saturday
+    const from = new Date('2030-07-06T00:00:00Z'); // Saturday
     const days = await getAvailableSlots(from);
-    expect(days.find((d) => d.date === '2026-07-04')).toBeUndefined();
+    expect(days.find((d) => d.date === '2030-07-06')).toBeUndefined();
   });
 
   it('honours a custom slot duration', async () => {
     mockFetchEventsRaw.mockResolvedValue([]);
-    const from = new Date('2026-07-06T00:00:00Z');
+    const from = new Date('2030-07-08T00:00:00Z');
     const days = await getAvailableSlots(from, undefined, 30);
-    const monday = days.find((d) => d.date === '2026-07-06');
+    const monday = days.find((d) => d.date === '2030-07-08');
     expect(monday).toBeDefined();
     // 30-minute slots => "09:00 - 09:30"
     expect(monday!.slots[0].display).toBe('09:00 - 09:30');

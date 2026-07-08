@@ -3142,6 +3142,11 @@ tasks:
     cmds:
       - bash scripts/health-goals-update.sh {{.CLI_ARGS}}
 
+  agent:orchestrator:
+    desc: "T001588: local agent orchestration (start/stop/status/submit) via worktrees — see scripts/agent-orchestrator.sh --help"
+    cmds:
+      - bash scripts/agent-orchestrator.sh {{.CLI_ARGS}}
+
   quality:baseline:freeze:
     desc: "One-time: freeze the current code-quality violations into docs/code-quality/baseline.json"
     cmds:

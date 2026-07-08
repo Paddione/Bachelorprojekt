@@ -4,8 +4,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REGISTRY_SCRIPT="${SCRIPT_DIR}/hermes-mcp-servers.yaml"
-YQ="/usr/local/bin/yq"
-
+YQ="$(command -v yq)" || { echo "FATAL: yq not found in PATH" >&2; exit 1; }
 CONFIG_FILE="${HOME}/.hermes/config.yaml"
 DRY_RUN=false
 

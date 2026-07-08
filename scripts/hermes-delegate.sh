@@ -13,7 +13,7 @@ PROMPT="${1:?usage: hermes-delegate.sh \"<prompt>\" [--with-project-mcp]}"
 WITH_PROJECT_MCP=false
 
 # Parse optional --with-project-mcp flag (must be last positional arg)
-shift 0 2>/dev/null || true
+shift
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --with-project-mcp) WITH_PROJECT_MCP=true ;;

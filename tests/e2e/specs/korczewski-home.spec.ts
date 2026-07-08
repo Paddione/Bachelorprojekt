@@ -170,8 +170,8 @@ test.describe('Korczewski: Kontakt page', () => {
 
   test('T2: contact form has name, email, message fields', async ({ page }) => {
     await page.goto(`${BASE}/kontakt`);
-    // Try opening message form tab if it exists
-    const msgTab = page.getByRole('tab', { name: /Nachricht/i });
+    // Use data-testid for robust selection instead of computed accessible name.
+    const msgTab = page.getByTestId('tab-nachricht');
     if (await msgTab.isVisible()) await msgTab.click();
     await expect(page.getByRole('textbox', { name: /name/i }).first()).toBeVisible();
     await expect(page.getByRole('textbox', { name: /e-mail/i })).toBeVisible();

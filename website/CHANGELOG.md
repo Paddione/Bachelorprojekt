@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.163.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.163.0...website-v1.163.1) (2026-07-08)
+
+
+### Bug Fixes
+
+* **coaching:** ensure test sessions are flagged as is_test_data and cleaned up in purge-fn ([#2621](https://github.com/Paddione/Bachelorprojekt/issues/2621)) ([9711831](https://github.com/Paddione/Bachelorprojekt/commit/9711831e65fd521f52eb6b10cbab2f5f6b9add31))
+
 ## [1.163.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.162.0...website-v1.163.0) (2026-07-08)
 
 

@@ -159,7 +159,10 @@ Repo-Datei (`git diff` / `Read` der Live-Datei) erst beim Verbauen, nicht als Pl
 #### Schritt A.3: Lavish-Board starten ⚡ PFLICHT — vor Brainstorming
 Erstelle `.lavish/<slug>-brainstorm.html` (Sections: Intent, Constraints, Trade-offs, Entscheidungen) und öffne es mit `npx -y lavish-axi .lavish/<slug>-brainstorm.html`. Dieses Board dient als visuelles Arbeitsblatt während des Brainstormings.
 #### Schritt A.4: Brainstorming ⚡ IMMER — kein Überspringen
-Rufe `superpowers:brainstorming` auf. Nutze das `lavish`-Board (aus Schritt A.3) für visuelle Dokumentation und strukturiertes Feedback.
+Rufe `superpowers:brainstorming` auf (Claude Code — built-in) oder führe die Brainstorming-Schritte
+direkt aus (opencode — das Äquivalent ist in `opencode-flow-plan` inlined; lies die Spec und
+arbeite die Schritte A.3→A.5 ohne Skill-Load durch).
+Nutze das `lavish`-Board (aus Schritt A.3) für visuelle Dokumentation und strukturiertes Feedback.
 Ergebnis: Spec-Datei in `docs/superpowers/specs/<date>-<slug>-design.md`.
 Nach dem Schreiben der Spec das Frontmatter setzen (siehe
 `docs/superpowers/specs/spec-frontmatter-standard.md`):
@@ -233,7 +236,9 @@ bash scripts/ticket-attach.sh "$TICKET_UUID" \
 ### Schritt 3.7: Plan-Erstellung an einen passend provisionierten Subagenten delegieren
 Statt deinen eigenen Kontext zurückzusetzen (das ließe dich den Faden verlieren), committe die Spec und delegiere das Plan-Schreiben an einen **frischen Subagenten** — der hat per Konstruktion einen sauberen Kontext und bekommt ein **zur Plan-Komplexität passendes Modell + Effort**. Du selbst behältst den vollen Brainstorming-Kontext.
 1. Committe und pushe die Spec-Datei auf den Feature-Branch.
-2. Spawne über das `Agent`/`Task`-Tool einen Subagenten (`subagent_type: general-purpose`), **provisioniert gemäß** [subagent-provisioning](file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md) — Plan-Schreiben ist reasoning-lastige Meta-Arbeit: Modell-Default `opus` (triviale chore-artige Pläne: `sonnet`), Effort high; bei großen multi-subsystem-Specs die ultra-Stufe (`Workflow`-Fan-out) — Effort-Formulierungen, Worktree-`cd`-Pflicht und Eskalations-Rubrik stehen in der Reference (SSOT, nicht hier wiederholen).
+2. Spawne einen Subagenten, provisioniert gemäß [subagent-provisioning](file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md):
+   - **Claude Code:** Über das `Agent`/`Task`-Tool (`subagent_type: general-purpose`) — Plan-Schreiben ist reasoning-lastige Meta-Arbeit: Modell-Default `opus` (triviale chore-artige Pläne: `sonnet`), Effort high; bei großen multi-subsystem-Specs die ultra-Stufe (`Workflow`-Fan-out).
+   - **opencode:** Über `delegate(prompt, agent="researcher")` für read-only oder native write-capable Delegation. Effort-Formulierungen, Worktree-`cd`-Pflicht und Eskalations-Rubrik stehen in der Reference (SSOT, nicht hier wiederholen).
    - **Kontext-Injektion** (er hat sonst KEINEN Kontext — gib ihm alles explizit; Kompaktheits-Regeln siehe subagent-provisioning §3):
      - Spec-Pfad: `docs/superpowers/specs/<date>-<slug>-design.md`
      - **Design-Bundle** (falls Schritt A.2 lief): `openspec/changes/<slug>/assets/` —
@@ -425,7 +430,10 @@ kein Test schreiben, bevor Root-Cause und Fix-Ansatz im Board geklärt sind.
 Schreibe einen automatisierten Test, der den Bug reproduziert und fehlschlägt (PASS/FAIL rot-grün Prinzip). Dies ist eine **harte Voraussetzung** für den Fix-Pfad.
 **Wo:** In `tests/spec/<spec-slug>.bats` (Spec zu diesem Fix aus `openspec/specs/`), nicht in eine neue `tests/local/FA-XY-*.bats` Ticket-Datei. Falls `tests/spec/<spec-slug>.bats` noch nicht existiert, anlegen (Vorlage: `tests/spec/software-factory.bats`).
 ### Schritt 4: Plan schreiben
-Rufe `superpowers:writing-plans` auf. Wende das Frontmatter an und trage die Ticket-ID ein. Committe und pushe den Plan.
+Rufe `superpowers:writing-plans` auf (Claude Code — built-in) oder führe die Plan-Schreib-Schritte
+direkt aus (opencode — das Äquivalent ist in `opencode-flow-plan` inlined; schreibe den Plan nach
+`openspec/changes/<slug>/tasks.md` gemäß den plan-lint Hard Rules in Schritt 3.7).
+Wende das Frontmatter an und trage die Ticket-ID ein. Committe und pushe den Plan.
 ### Schritt 4.5: Plan stagen (Fix 6)
 **MCP-first** (`ticket-mcp`):
 > `mcp__ticket-mcp__stage_plan({ id: "$TICKET_EXT_ID", branch: "fix/<slug>", plan: "openspec/changes/<slug>/tasks.md" })`
@@ -484,8 +492,8 @@ Der Skill liest den Plan automatisch aus der DB (`FACTORY-PLAN-REF` Kommentar) �
 | Skill | Beziehung |
 |-------|-----------|
 | `using-git-worktrees` | Hintergrund — ersetzt durch `scripts/worktree-create.sh` (git-crypt-safe) |
-| `superpowers:brainstorming` | **IMMER** aufgerufen — Feature-Pfad Schritt 3, Fix-Pfad Schritt 2.8 |
-| `superpowers:writing-plans` | Aufgerufen vom Plan-Subagenten (Schritt 3.7) |
+| `superpowers:brainstorming` | **IMMER** aufgerufen — Feature-Pfad Schritt 3, Fix-Pfad Schritt 2.8. Stub in `.claude/skills/superpowers-brainstorming/` für opencode-Kompatibilität |
+| `superpowers:writing-plans` | Aufgerufen vom Plan-Subagenten (Schritt 3.7). Stub in `.claude/skills/superpowers-writing-plans/` für opencode-Kompatibilität |
 | `dev-flow-execute` | **Nachfolger im Kreislauf** — implementiert den erstellten Plan |
 | `dev-flow-chore` | Geschwister — Chores statt Features/Fixes (direkter Kurzschluss) |
 | `mishap-tracker` | Abschluss — protokolliert Frictions |

@@ -1,0 +1,47 @@
+---
+import SessionWizard from '../../../../../components/admin/coaching/SessionWizard.svelte';
+import { getSession as getAuthSession, getLoginUrl, isAdmin } from '../../../../../lib/auth';
+import { getSession as getCoachingSession } from '../../../../../lib/coaching-session-db';
+import { listKiProviders } from '../../../../../lib/coaching-ki-config-db';
+import { pool } from '../../../../../lib/website-db';
+
+const authSession = await getAuthSession(Astro.request.headers.get('cookie'));
+if (!authSession) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+if (!isAdmin(authSession)) return Astro.redirect('/admin');
+
+const brand = process.env.BRAND || 'mentolder';
+const id = Astro.params.id as string;
+let coachingSession = null;
+try { coachingSession = await getCoachingSession(pool, id); } catch { /* ignore */ }
+if (!coachingSession) return Astro.redirect('/admin/coaching/sessions');
+
+let kiProviders: { id: number; displayName: string; provider: string; isActive: boolean }[] = [];
+try { kiProviders = await listKiProviders(pool, brand); } catch { /* ignore */ }
+
+const providerName = kiProviders.find(p => p.id === coachingSession.kiConfigId)?.provider
+  ?? kiProviders.find(p => p.isActive)?.provider ?? 'claude';
+---
+
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Session: {coachingSession.title}</title>
+  </head>
+  <body class="popout-body">
+    <main class="popout-main">
+      <SessionWizard
+        sessionId={id}
+        initialSession={coachingSession}
+        providerName={providerName}
+        client:load
+      />
+    </main>
+  </body>
+</html>
+
+<style is:global>
+  :root { color-scheme: dark; }
+  body.popout-body { margin: 0; background: var(--bg-dark, #111); color: var(--text-light, #f0f0f0); font-family: system-ui, sans-serif; }
+  .popout-main { max-width: 800px; margin: 0 auto; padding: 1rem 1.5rem 3rem; }
+</style>

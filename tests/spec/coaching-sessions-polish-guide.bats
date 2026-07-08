@@ -24,3 +24,19 @@ setup() {
   run grep -qF "label: 'Sitzungen'" "$WEB/pages/admin.astro"
   [ "$status" -ne 0 ]
 }
+
+@test "popout helper exports openPopout" {
+  run grep -qE "export function openPopout" "$WEB/lib/popout.ts"
+  [ "$status" -eq 0 ]
+}
+
+@test "popout route exists and renders SessionWizard" {
+  [ -f "$WEB/pages/admin/coaching/sessions/[id]/popout.astro" ]
+  run grep -qF "SessionWizard" "$WEB/pages/admin/coaching/sessions/[id]/popout.astro"
+  [ "$status" -eq 0 ]
+}
+
+@test "session detail page wires a popout control" {
+  run grep -qF "openPopout" "$WEB/pages/admin/coaching/sessions/[id].astro"
+  [ "$status" -eq 0 ]
+}

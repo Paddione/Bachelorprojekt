@@ -73,6 +73,7 @@ const displayKi = kiProviders.find(p => p.id === coachingSession.kiConfigId)?.di
       <a href="/admin">Admin</a><span class="sep">›</span>
       <a href="/admin/coaching/sessions">Sessions</a><span class="sep">›</span>
       {coachingSession.title}
+      <a id="popout-link" href={`/admin/coaching/sessions/${id}/popout`} class="popout-link">Popout ↗</a>
     </nav>
 
     {report ? (
@@ -175,6 +176,14 @@ const displayKi = kiProviders.find(p => p.id === coachingSession.kiConfigId)?.di
 </AdminLayout>
 
 <script>
+  import { openPopout } from '../../../../lib/popout';
+
+  document.getElementById('popout-link')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    const sid = window.location.pathname.split('/').at(-1);
+    openPopout(`/admin/coaching/sessions/${sid}/popout`, 'coaching-session-popout');
+  });
+
   document.getElementById('download-btn')?.addEventListener('click', () => {
     const text = document.getElementById('report-text')?.innerText ?? '';
     const blob = new Blob([text], { type: 'text/markdown' });
@@ -216,6 +225,8 @@ const displayKi = kiProviders.find(p => p.id === coachingSession.kiConfigId)?.di
   .crumbs { font-size: 0.78rem; color: var(--text-muted,#888); margin-bottom: 1rem; }
   .crumbs a { color: var(--text-muted,#888); text-decoration: none; }
   .crumbs .sep { margin: 0 0.4rem; }
+  .popout-link { float: right; color: var(--gold,#c9a55c); text-decoration: none; }
+  .popout-link:hover { text-decoration: underline; }
   .report { display: flex; flex-direction: column; gap: 1.5rem; }
   .report-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
   h1 { font-size: 1.5rem; font-weight: 700; color: var(--text-light,#f0f0f0); margin: 0; }

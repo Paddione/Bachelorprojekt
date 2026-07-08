@@ -7,7 +7,7 @@ if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
 if (!isAdmin(session)) return Astro.redirect('/admin');
 ---
 
-<AdminLayout title="Coaching Studio">
+<AdminLayout title="Coaching Sessions">
   <link rel="stylesheet" href="/coaching-studio/app.css"/>
   <div class="grain" aria-hidden="true"></div>
   <div id="root"></div>

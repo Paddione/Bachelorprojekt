@@ -9,7 +9,10 @@ setup() {
 }
 
 @test "sidebar has a Sessions nav item in Geschäft section" {
-  run grep -qF "{ href: '/admin/coaching/sessions', label: 'Sessions'" "$WEB/components/admin/AdminSidebarNav.astro"
+  # T001649: Sessions label now points to /admin/coaching/studio (Studio was renamed to Sessions;
+  # the separate /admin/coaching/sessions sidebar link was removed).
+  # Use -E to handle variable whitespace between object properties.
+  run grep -qE "href: '/admin/coaching/studio'.*label: 'Sessions'" "$WEB/components/admin/AdminSidebarNav.astro"
   [ "$status" -eq 0 ]
 }
 

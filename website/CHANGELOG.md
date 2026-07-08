@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.166.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.166.0...website-v1.166.1) (2026-07-08)
+
+
+### Bug Fixes
+
+* **coaching:** sessions-tool gaps — sim hardening, settings mount, scrubber fail-closed [T001664] ([#2641](https://github.com/Paddione/Bachelorprojekt/issues/2641)) ([be4808e](https://github.com/Paddione/Bachelorprojekt/commit/be4808eefe4374652f0ff014f7f412e97dbad2cb))
+
 ## [1.166.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.165.2...website-v1.166.0) (2026-07-08)
 
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.165.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.164.0...website-v1.165.0) (2026-07-08)
+
+
+### Features
+
+* t001556 size02 refactor ([#2625](https://github.com/Paddione/Bachelorprojekt/issues/2625)) ([26e3713](https://github.com/Paddione/Bachelorprojekt/commit/26e3713077c5346427a2ad5c6dd83ed4899d01be))
+
 ## [1.164.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.163.1...website-v1.164.0) (2026-07-08)
 
 

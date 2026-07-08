@@ -1,0 +1,44 @@
+# ═══════════════════════════════════════════════════════════════════
+# Cross-namespace RBAC for pocket-id-client-seed to patch
+# website-secrets in the website namespace (T001435).
+#
+# The seed Job's ServiceAccount lives in ${WORKSPACE_NAMESPACE} but
+# also needs to write POCKET_ID_WEBSITE_SECRET into the
+# website-secrets k8s Secret (in ${WEBSITE_NAMESPACE}) when it
+# creates a NEW website OIDC client — otherwise the website pod
+# reads a stale value and Pocket ID rejects it (secret mismatch).
+#
+# Least privilege: get+patch, scoped via resourceNames to the single
+# Secret object "website-secrets".
+#
+# Applied via envsubst (outside kustomize) so kustomize's namespace
+# transformer doesn't force it into the workspace ns.
+# ═══════════════════════════════════════════════════════════════════
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pocket-id-client-seed-website-role
+  namespace: ${WEBSITE_NAMESPACE}
+  labels:
+    app: pocket-id
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: ["website-secrets"]
+    verbs: ["get", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pocket-id-client-seed-website-rolebinding
+  namespace: ${WEBSITE_NAMESPACE}
+  labels:
+    app: pocket-id
+subjects:
+  - kind: ServiceAccount
+    name: pocket-id-client-seed
+    namespace: ${WORKSPACE_NAMESPACE}
+roleRef:
+  kind: Role
+  name: pocket-id-client-seed-website-role
+  apiGroup: rbac.authorization.k8s.io

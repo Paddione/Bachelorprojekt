@@ -895,6 +895,12 @@
       "status": "plan_staged"
     }
   ],
+  "T001609": [
+    {
+      "slug": "hermes-agent-mcp-access",
+      "status": "plan_staged"
+    }
+  ],
   "T001610": [
     {
       "slug": "t001610",

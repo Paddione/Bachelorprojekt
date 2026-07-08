@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.166.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.166.1...website-v1.166.2) (2026-07-08)
+
+
+### Bug Fixes
+
+* **coaching:** sessions-audit rest — 404-Semantik, Fehler-Logging, Config-Hygiene [T001670] ([#2643](https://github.com/Paddione/Bachelorprojekt/issues/2643)) ([e908b57](https://github.com/Paddione/Bachelorprojekt/commit/e908b57fe73af70237dcf51699100456e121c2e5))
+
 ## [1.166.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.166.0...website-v1.166.1) (2026-07-08)
 
 

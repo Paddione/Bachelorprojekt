@@ -51,20 +51,22 @@ teardown() {
   # Check we have exactly 6 servers and they're all present
   local count=0
   for server in $_expected_servers; do
-    if yq ".\"$server\"" "$REGISTRY_SCRIPT" >/dev/null 2>&1; then
-      ((count++))
+    if yq ".[\"$server\"]" "$REGISTRY_SCRIPT" >/dev/null 2>&1; then
+      count=$((count + 1))
     fi
   done
   
-  run [[ $count -eq 6 ]]
-  echo "Found $count servers (expected 6)" || return 1
+  [[ $count -eq 6 ]] || {
+    echo "Found $count servers (expected 6)"
+    return 1
+  }
 
   # Check each server has exactly one of url XOR command
   for server in $_expected_servers; do
     has_url=false
     has_command=false
     
-    _server_data=$(yq ".\"$server\"" "$REGISTRY_SCRIPT")
+    _server_data=$(yq ".[\"$server\"]" "$REGISTRY_SCRIPT")
     
     if echo "$_server_data" | grep -q '"url"'; then
       has_url=true
@@ -82,7 +84,7 @@ teardown() {
       status=true
     fi
     
-    run [[ "$status" == true ]] || {
+    [[ "$status" == true ]] || {
       echo "Server '$server' has both url and command (should be XOR)"
       return 1
     }
@@ -105,7 +107,7 @@ teardown() {
     [[ -z "$_server" ]] && continue
     
     # Verify this server actually has a tools.exclude in the registry
-    _exclude_list=$(yq ".\"$_server\".tools.exclude | join(", ")" "$REGISTRY_SCRIPT")
+    _exclude_list=$(yq ".[\"$_server\"].tools.exclude | join(\", \")" "$REGISTRY_SCRIPT")
     if [[ -z "$_exclude_list" ]]; then
       echo "Server '$_server' missing tools.exclude key"
       return 1
@@ -125,7 +127,7 @@ teardown() {
   
   # Also verify mcp-postgres has NO denylist (design D4)
   _pg_exclude=$(yq '.mcp-postgres.tools.exclude' "$REGISTRY_SCRIPT")
-  run [[ -z "$_pg_exclude" ]] || {
+  [[ -z "$_pg_exclude" ]] || {
     echo "mcp-postgres should have no tools.exclude key (server-side read-only)"
     return 1
   }
@@ -134,7 +136,7 @@ teardown() {
 # ── Scenario 3: mcp-postgres has no denylist ──────────────────────────────────
 @test "mcp-postgres has no denylist" {
   _pg_exclude=$(yq '.mcp-postgres.tools.exclude' "$REGISTRY_SCRIPT")
-  run [[ -z "$_pg_exclude" ]] || return 1
+  run test -z "$_pg_exclude"
   
   echo "mcp-postgres correctly has no tools.exclude (null)"
 }
@@ -143,8 +145,7 @@ teardown() {
 @test "dry-run does not modify the target config" {
   # Need provisioning script for this test
   if [[ ! -f "$PROVISION_SCRIPT" ]]; then
-    echo "SKIP: $PROVISION_SCRIPT missing (Task 3 not yet implemented)"
-    return 77
+    skip "$PROVISION_SCRIPT missing (Task 3 not yet implemented)"
   fi
 
   _checksum_before=$(sha256sum "$_config_tmp" | cut -d' ' -f1)
@@ -154,7 +155,7 @@ teardown() {
   
   # Check stdout mentions mcp_servers
   _output=$("${PROVISION_SCRIPT}" --dry-run --config "$_config_tmp" 2>/dev/null)
-  run echo "$_output" | grep -q "mcp_servers" || {
+  echo "$_output" | grep -q "mcp_servers" || {
     echo "dry-run output should contain 'mcp_servers'"
     return 1
   }
@@ -162,7 +163,7 @@ teardown() {
   _checksum_after=$(sha256sum "$_config_tmp" | cut -d' ' -f1)
   
   # Config file must be unchanged
-  run [[ "$_checksum_before" == "$_checksum_after" ]] || {
+  [[ "$_checksum_before" == "$_checksum_after" ]] || {
     echo "Config modified by dry-run (before: $_checksum_before, after: $_checksum_after)"
     return 1
   }
@@ -173,8 +174,7 @@ teardown() {
 # ── Scenario 5: Provisioning is idempotent ────────────────────────────────────
 @test "provisioning is idempotent" {
   if [[ ! -f "$PROVISION_SCRIPT" ]]; then
-    echo "SKIP: $PROVISION_SCRIPT missing (Task 3 not yet implemented)"
-    return 77
+    skip "$PROVISION_SCRIPT missing (Task 3 not yet implemented)"
   fi
 
   # Provision twice and compare results
@@ -184,7 +184,7 @@ teardown() {
   
   _result2=$(yq '.mcp_servers' "$_config_tmp")
 
-  run [[ "$_result1" == "$_result2" ]] || {
+  [[ "$_result1" == "$_result2" ]] || {
     echo "Idempotency failed: results differ between runs"
     return 1
   }
@@ -195,8 +195,7 @@ teardown() {
 # ── Scenario 6: Provisioning preserves unrelated keys ────────────────────────
 @test "provisioning preserves unrelated keys" {
   if [[ ! -f "$PROVISION_SCRIPT" ]]; then
-    echo "SKIP: $PROVISION_SCRIPT missing (Task 3 not yet implemented)"
-    return 77
+    skip "$PROVISION_SCRIPT missing (Task 3 not yet implemented)"
   fi
 
   # Use the foreign config fixture that has foreign mcp_servers entry
@@ -207,7 +206,7 @@ teardown() {
   "${PROVISION_SCRIPT}" --config "$_config_tmp" >/dev/null 2>&1
   
   # Check model key is preserved
-  run [[ "$(yq '.model' "$_config_tmp")" == "$_model_before" ]] || {
+  [[ "$(yq '.model' "$_config_tmp")" == "$_model_before" ]] || {
     echo "Unrelated key 'model' was modified (was: $_model_before)"
     return 1
   }
@@ -215,7 +214,7 @@ teardown() {
   # Check foreign mcp_servers entry is still present
   _foreign_server=$(yq '.mcp_servers.some-other-server.url' "$_config_tmp")
   
-  run [[ -n "$_foreign_server" ]] || {
+  [[ -n "$_foreign_server" ]] || {
     echo "Foreign mcp_servers entry was removed"
     return 1
   }
@@ -226,16 +225,15 @@ teardown() {
 # ── Scenario 7a: Delegate defaults to no tool access (default path) ────────────
 @test "hermes-delegate.sh defaults to no tool access (without --with-project-mcp flag)" {
   if [[ ! -f "${SCRIPT_REPO_ROOT}/scripts/hermes-delegate.sh" ]]; then
-    echo "SKIP: hermes-delegate.sh missing (Task 4 not yet implemented)"
-    return 77
+    skip "hermes-delegate.sh missing (Task 4 not yet implemented)"
   fi
 
   # Stub the hermes binary to capture argv
   _hermes_stub="$BATS_TEST_TMPDIR/hermes-stub"
   cat > "$_hermes_stub" << 'HERMES_STUB'
 #!/bin/bash
-# Stub that echoes its full argv for inspection
-exec -a hermes "$@"
+# Stub that prints its argv for inspection (doesn't exec, so output is captured)
+echo "hermes $*"
 HERMES_STUB
   chmod +x "$_hermes_stub"
 
@@ -246,7 +244,7 @@ HERMES_STUB
   _output=$("${SCRIPT_REPO_ROOT}/scripts/hermes-delegate.sh" "test prompt" 2>/dev/null) || true
   
   # Default should use -t "" (no tools)
-  run echo "$_output" | grep -qE 'hermes[^-]*-z.*"-t[[:space:]]*""' || {
+  echo "$_output" | grep -qE 'hermes.*-t[[:space:]]*""' || {
     echo "Default delegate invocation should use '-t \"\"' for no tool access"
     return 1
   }
@@ -257,16 +255,15 @@ HERMES_STUB
 # ── Scenario 7b: Delegate opt-in path does not force -t "" ────────────────────
 @test "hermes-delegate.sh --with-project-mcp does not force -t \"\"" {
   if [[ ! -f "${SCRIPT_REPO_ROOT}/scripts/hermes-delegate.sh" ]]; then
-    echo "SKIP: hermes-delegate.sh missing (Task 4 not yet implemented)"
-    return 77
+    skip "hermes-delegate.sh missing (Task 4 not yet implemented)"
   fi
 
   # Stub the hermes binary to capture argv
   _hermes_stub="$BATS_TEST_TMPDIR/hermes-stub"
   cat > "$_hermes_stub" << 'HERMES_STUB'
 #!/bin/bash
-# Stub that echoes its full argv for inspection
-exec -a hermes "$@"
+# Stub that prints its argv for inspection (doesn't exec, so output is captured)
+echo "hermes $*"
 HERMES_STUB
   chmod +x "$_hermes_stub"
 
@@ -277,7 +274,7 @@ HERMES_STUB
   _output=$("${SCRIPT_REPO_ROOT}/scripts/hermes-delegate.sh" "test prompt" "--with-project-mcp" 2>/dev/null) || true
   
   # Opt-in should NOT force -t "" (that would defeat the purpose)
-  run echo "$_output" | grep -qvE 'hermes[^-]*-z.*"-t[[:space:]]*""' || {
+  echo "$_output" | grep -qvE 'hermes.*-t[[:space:]]*""' || {
     echo "Delegate opt-in path incorrectly forces '-t \"\"'"
     return 1
   }

@@ -2549,6 +2549,9 @@ tasks:
           kubectl apply -f k3d/shared-db.yaml -n workspace
           echo "Waiting for shared-db to be ready before deploying dependent services..."
           kubectl rollout status deployment/shared-db -n workspace --timeout=120s
+          # Run website DB migrations before the website Deployment is rolled
+          # out below (T001652 — website had no automated migration runner).
+          task website:migrate ENV="{{.ENV}}"
           # Full apply (idempotent — updates configs, adds remaining services)
           # SYSTEMTEST_LOOP_ENABLED defaults to "false" so the placeholder is
           # never emitted literally in dev (where the env file may omit it).
@@ -2669,6 +2672,9 @@ tasks:
             | kubectl --context "$ENV_CONTEXT" -n "${_ws_ns}" apply -f -
           echo "Waiting for shared-db to be ready before deploying dependent services..."
           kubectl --context "$ENV_CONTEXT" rollout status deployment/shared-db -n "${_ws_ns}" --timeout=120s
+          # Run website DB migrations before the website Deployment is rolled
+          # out below (T001652 — website had no automated migration runner).
+          task website:migrate ENV="{{.ENV}}"
 
           overlay="${ENV_OVERLAY:-prod}"
           # Derive Nextcloud MAIL_FROM_ADDRESS / MAIL_DOMAIN from the authoritative SMTP_FROM
@@ -3320,6 +3326,38 @@ tasks:
   # ─────────────────────────────────────────────
   # Website (Astro + Svelte)
   # ─────────────────────────────────────────────
+  website:migrate:
+    desc: "Run website/src/db/migrations/*.sql against the target DB (idempotent, tracked in schema_migrations). ENV=dev|mentolder|korczewski."
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        set -euo pipefail
+        source scripts/env-resolve.sh "{{.ENV}}"
+        ctx_flag=""
+        [ "{{.ENV}}" != "dev" ] && ctx_flag="--context $ENV_CONTEXT"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+
+        echo "Waiting for shared-db to be ready before running website migrations..."
+        kubectl $ctx_flag -n "$NS" rollout status deployment/shared-db --timeout=120s
+
+        echo "Fetching postgres superuser password from ${NS}/shared-db..."
+        PG_PW=$(kubectl $ctx_flag -n "$NS" exec deploy/shared-db -- \
+          printenv POSTGRES_PASSWORD | tr -d '\r\n')
+        if [ -z "$PG_PW" ]; then
+          echo "ERROR: could not read POSTGRES_PASSWORD from shared-db"; exit 1
+        fi
+
+        echo "Port-forwarding shared-db (5432) and running website migrations..."
+        kubectl $ctx_flag -n "$NS" port-forward svc/shared-db 5432:5432 \
+          >/tmp/website-migrate-pf.log 2>&1 &
+        PF=$!
+        trap 'kill $PF 2>/dev/null' EXIT
+        sleep 3
+
+        DATABASE_URL="postgres://postgres:${PG_PW}@localhost:5432/website" \
+          pnpm --dir website db:migrate
+
   website:migrate:homepage-blocks:
     desc: "Provision the homepage block document tables (idempotent). The website store also creates them lazily; this is the explicit operator path. Requires SESSIONS_DATABASE_URL or POSTGRES_MIGRATION_URL in the env. Pass -- --apply to execute (default: dry-run)."
     cmds:
@@ -3462,6 +3500,10 @@ tasks:
         IMAGE="ghcr.io/paddione/${WEBSITE_IMAGE:-workspace-website}"
         CTX_ARG=""
         [ -n "${ENV_CONTEXT:-}" ] && CTX_ARG="--context=${ENV_CONTEXT}"
+
+        # Run website DB migrations before build/rollout (T001652). Idempotent
+        # and tracked — safe even though workspace:deploy also calls this.
+        task website:migrate ENV="{{.ENV}}"
 
         if [ "{{.ENV}}" = "dev" ]; then
           WEBSITE_HOST="web.localhost"

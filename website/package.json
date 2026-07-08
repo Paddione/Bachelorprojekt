@@ -17,7 +17,8 @@
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --max-warnings 0 --fix",
     "knip": "knip",
-    "astro:check": "astro check"
+    "astro:check": "astro check",
+    "db:migrate": "tsx src/db/migrate.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",

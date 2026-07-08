@@ -917,6 +917,12 @@
       "status": "archived"
     }
   ],
+  "T001641": [
+    {
+      "slug": "coaching-ki-model-select",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

@@ -6,6 +6,7 @@ import { getStepTemplate, buildPromptFromTemplate } from '../../../../../../../.
 import { getStepDef, buildUserPrompt } from '../../../../../../../../lib/coaching-session-prompts';
 import { getProject } from '../../../../../../../../lib/coaching-project-db';
 import { pool } from '../../../../../../../../lib/website-db';
+import { scrubPayload } from '../../../../../../../../lib/prompt-scrubber';
 
 export const prerender = false;
 
@@ -25,11 +26,9 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
   }
 
   const brand = process.env.BRAND || 'mentolder';
-
-  // Session-spezifischen KI-Provider laden oder auf aktiven zurückfallen
+  
   const coachingSession = await getCoachingSession(pool, sessionId);
-
-  // Projekt-Kontext und Anonymisierung
+  
   let customerNumber: string | null = null;
   let projectKiContext: string | null = null;
   if (coachingSession?.projectId) {
@@ -64,18 +63,24 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
     phase = def.phase;
   }
 
-  // System-Prompt aus KI-Profil überschreibt Template-Prompt, wenn gesetzt
   let effectiveSystem = activeProvider?.systemPrompt || systemPrompt;
+  
+  // DSGVO-konformer Scrubber: Ersetze PII durch customerNumber
   if (customerNumber) {
-    effectiveSystem = effectiveSystem.replace(/\{\{KLIENT_ID\}\}/g, customerNumber);
-  }
-  if (projectKiContext) {
-    effectiveSystem = `${projectKiContext}\n\n${effectiveSystem}`;
+    effectiveSystem = scrubPayload(effectiveSystem, customerNumber);
+    
+    const prefix = `Klient ${customerNumber}:`;
+    const anonymizedUserPromptFinal = scrubPayload(userPrompt, customerNumber);
+    userPrompt = !anonymizedUserPromptFinal.startsWith(prefix) 
+      ? `${prefix}\n${anonymizedUserPromptFinal}`
+      : !userPrompt ? prefix : userPrompt;
   }
 
-  const anonymizedUserPrompt = customerNumber
-    ? `Klient ${customerNumber}:\n${userPrompt}`
-    : userPrompt;
+  const anonymizedUserPromptFinal = customerNumber ? scrubPayload(userPrompt, customerNumber) : userPrompt;
+  
+  if (projectKiContext && !effectiveSystem.includes(projectKiContext)) {
+    effectiveSystem = `${projectKiContext}\n\n${effectiveSystem}`;
+  }
 
   const wantsStream = new URL(request.url).searchParams.get('stream') === 'true';
 
@@ -98,7 +103,7 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
           sessionId, stepNumber, coachInputs: body.coachInputs,
           kiConfig: activeProvider!, brand, history,
           effectiveSystemPrompt: effectiveSystem,
-          assembledUserPrompt: anonymizedUserPrompt,
+          assembledUserPrompt: anonymizedUserPromptFinal,
           stepName, phase,
         })) {
           fullResponse += chunk;
@@ -108,16 +113,16 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
         const step = await upsertStep(pool, {
           sessionId, stepNumber, stepName, phase,
           coachInputs: body.coachInputs,
-          aiPrompt: anonymizedUserPrompt,
+          aiPrompt: anonymizedUserPromptFinal,
           aiResponse: fullResponse,
           status: 'generated',
         });
         await appendAuditLog(pool, {
           sessionId, eventType: 'ai_request', actor: session.preferred_username,
           stepNumber,
-          payload: { provider: providerName, model: activeProvider?.modelName ?? '?', prompt: anonymizedUserPrompt, response: fullResponse, duration_ms: durationMs, streaming: true },
+          payload: { provider: providerName, model: activeProvider?.modelName ?? '?', prompt: anonymizedUserPromptFinal, response: fullResponse, duration_ms: durationMs, streaming: true },
         });
-        await writer.write(encoder.encode(`data: ${JSON.stringify({ done: true, step, aiPrompt: anonymizedUserPrompt, durationMs })}\n\n`));
+        await writer.write(encoder.encode(`data: ${JSON.stringify({ done: true, step, aiPrompt: anonymizedUserPromptFinal, durationMs })}\n\n`));
       } catch (err) {
         locals.requestLogger.error({ err }, '[coaching/generate] stream error');
         await writer.write(encoder.encode(`data: ${JSON.stringify({ error: 'Stream-Fehler' })}\n\n`));
@@ -131,7 +136,6 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
     });
   }
 
-  // Non-streaming path
   let aiResponse: string;
   const startMs = Date.now();
   try {
@@ -139,7 +143,7 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
       sessionId, stepNumber, coachInputs: body.coachInputs,
       kiConfig: activeProvider!, brand, history,
       effectiveSystemPrompt: effectiveSystem,
-      assembledUserPrompt: anonymizedUserPrompt,
+      assembledUserPrompt: anonymizedUserPromptFinal,
       stepName, phase,
     });
     aiResponse = result.aiResponse;
@@ -152,13 +156,13 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
 
   const step = await upsertStep(pool, {
     sessionId, stepNumber, stepName, phase,
-    coachInputs: body.coachInputs, aiPrompt: anonymizedUserPrompt, aiResponse, status: 'generated',
+    coachInputs: body.coachInputs, aiPrompt: anonymizedUserPromptFinal, aiResponse, status: 'generated',
   });
 
   await appendAuditLog(pool, {
     sessionId, eventType: 'ai_request', actor: session.preferred_username,
     stepNumber,
-    payload: { provider: providerName, model: activeProvider?.modelName ?? '?', prompt: anonymizedUserPrompt, response: aiResponse, duration_ms: durationMs },
+    payload: { provider: providerName, model: activeProvider?.modelName ?? '?', prompt: anonymizedUserPromptFinal, response: aiResponse, duration_ms: durationMs },
   });
 
   return new Response(JSON.stringify({ step }), { headers: { 'content-type': 'application/json' } });

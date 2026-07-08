@@ -4,9 +4,15 @@
 # Migrates raw console.error/warn calls to the pino-based structured logger.
 
 @test "G-FE03: keine rohen console.error/warn Aufrufe (exkl. browser-logger-Stub)" {
+  # browser-logger.ts: the console.* stub itself.
+  # logger.ts + error-log-store.ts: the pino errorPersistStream and its DB-persist
+  # sink deliberately avoid routing back through `logger` — logger.error() calls
+  # persistError(), so persistError()'s own catch block logging via `logger` would
+  # recurse on a persistent failure (e.g. DB outage).
   count=$(grep -rEn 'console\.(error|warn)' website/src \
     --include='*.ts' --include='*.svelte' --include='*.astro' 2>/dev/null \
-    | grep -v 'browser-logger\.ts' | grep -v '\.test\.ts' | wc -l | tr -d ' ')
+    | grep -v 'browser-logger\.ts' | grep -v 'lib/logger\.ts' | grep -v 'error-log-store\.ts' \
+    | grep -v '\.test\.ts' | wc -l | tr -d ' ')
   [ "$count" -eq 0 ]
 }
 

@@ -1,0 +1,182 @@
+{
+  "meta": {
+    "slug": "coaching-sessions-admin-ux",
+    "ticket_id": "T001638",
+    "generated_from": "main@a4b80db5a",
+    "domains": ["website", "database"],
+    "intel_sources": ["explore-agent", "grep", "read", "baseline.json", "wc -l"]
+  },
+  "impact_files": [
+    {
+      "path": "website/src/components/admin/AdminSidebarNav.astro",
+      "language": "astro",
+      "loc": 180,
+      "s1_limit": 400,
+      "s1_baseline": null,
+      "s1_budget": 220
+    },
+    {
+      "path": "website/src/pages/admin.astro",
+      "language": "astro",
+      "loc": 187,
+      "s1_limit": 400,
+      "s1_baseline": null,
+      "s1_budget": 213
+    },
+    {
+      "path": "website/src/pages/admin/coaching/sessions/[id].astro",
+      "language": "astro",
+      "loc": 247,
+      "s1_limit": 400,
+      "s1_baseline": null,
+      "s1_budget": 153
+    },
+    {
+      "path": "website/src/components/admin/coaching/SessionWizard.svelte",
+      "language": "svelte",
+      "loc": 367,
+      "s1_limit": 500,
+      "s1_baseline": null,
+      "s1_budget": 133
+    },
+    {
+      "path": "website/src/lib/helpContent.ts",
+      "language": "typescript",
+      "loc": 923,
+      "s1_limit": 600,
+      "s1_baseline": 923,
+      "s1_budget": 0
+    },
+    {
+      "path": "website/src/pages/api/admin/inbox/[id]/action.ts",
+      "language": "typescript",
+      "loc": 263,
+      "s1_limit": 600,
+      "s1_baseline": null,
+      "s1_budget": 337
+    },
+    {
+      "path": "website/src/lib/coaching-session-db.ts",
+      "language": "typescript",
+      "loc": 467,
+      "s1_limit": 600,
+      "s1_baseline": null,
+      "s1_budget": 133
+    },
+    {
+      "path": "website/src/pages/admin/coaching/sessions/[id]/popout.astro",
+      "language": "astro",
+      "loc": 0,
+      "s1_limit": 400,
+      "s1_baseline": null,
+      "s1_budget": 400
+    },
+    {
+      "path": "website/src/lib/popout.ts",
+      "language": "typescript",
+      "loc": 0,
+      "s1_limit": 600,
+      "s1_baseline": null,
+      "s1_budget": 600
+    },
+    {
+      "path": "scripts/one-shot/purge-fn-v6.sql",
+      "language": "sql",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "website/src/components/admin/AdminSidebarNav.astro:NavItem",
+      "kind": "interface",
+      "file": "website/src/components/admin/AdminSidebarNav.astro",
+      "signature": "interface NavItem { href: string; label: string; icon: string; matches?: string[]; badge?: number; external?: boolean }",
+      "type_text": "{ href: string; label: string; icon: string; matches?: string[]; badge?: number; external?: boolean }",
+      "source": "read"
+    },
+    {
+      "qualified_name": "website/src/lib/coaching-session-db.ts:createSession",
+      "kind": "function",
+      "file": "website/src/lib/coaching-session-db.ts",
+      "signature": "export async function createSession(pool: Pool, args: CreateSessionArgs): Promise<Session>",
+      "type_text": "(pool: Pool, args: CreateSessionArgs) => Promise<Session>",
+      "source": "read"
+    },
+    {
+      "qualified_name": "website/src/lib/coaching-session-db.ts:CreateSessionArgs",
+      "kind": "interface",
+      "file": "website/src/lib/coaching-session-db.ts",
+      "signature": "interface CreateSessionArgs { brand: string; clientId?: string|null; clientName?: string|null; projectId?: string|null; kiConfigId?: number|null; mode: 'live'|'prep'; title: string; createdBy: string }",
+      "type_text": "{ brand: string; clientId?: string|null; clientName?: string|null; projectId?: string|null; kiConfigId?: number|null; mode: 'live'|'prep'; title: string; createdBy: string }",
+      "source": "read"
+    },
+    {
+      "qualified_name": "website/src/lib/systemtest/purge-all.ts:purgeAll",
+      "kind": "function",
+      "file": "website/src/lib/systemtest/purge-all.ts",
+      "signature": "ruft tickets.fn_purge_test_data() auf (SQL-Quelle: scripts/one-shot/purge-fn-v5.sql)",
+      "type_text": "() => Promise<void>",
+      "source": "explore-agent"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [
+      "website/src/pages/admin/coaching/sessions/[id].astro",
+      "website/src/pages/api/admin/coaching/sessions/index.ts"
+    ],
+    "edges": [
+      { "from": "pages/admin/coaching/sessions/[id].astro", "to": "components/admin/coaching/SessionWizard.svelte", "kind": "renders" },
+      { "from": "pages/api/admin/coaching/sessions/index.ts", "to": "lib/coaching-session-db.ts:createSession", "kind": "calls" },
+      { "from": "pages/api/admin/systemtest/purge-all-test-data.ts", "to": "lib/systemtest/purge-all.ts", "kind": "calls" },
+      { "from": "lib/systemtest/purge-all.ts", "to": "tickets.fn_purge_test_data()", "kind": "data_flow" }
+    ]
+  },
+  "db_tables": [
+    {
+      "table": "coaching.sessions",
+      "columns": [
+        "id", "brand", "client_id", "client_name", "project_id", "ki_config_id",
+        "mode", "title", "status", "created_by", "created_at", "completed_at", "archived_at"
+      ],
+      "note": "KEIN is_test_data-Feld vorhanden (grep-verifiziert via rowToSession + coaching-session-db.ts); Spaltenliste aus rowToSession-Mapping abgeleitet, nicht aus information_schema (mcp-postgres in dieser Session nicht befragt)."
+    },
+    {
+      "table": "coaching.session_steps",
+      "columns": [
+        "id", "session_id", "step_number", "step_name", "phase", "coach_inputs",
+        "ai_prompt", "ai_response", "coach_notes", "status", "generated_at"
+      ],
+      "note": "UNIQUE (session_id, step_number) — upsertStep nutzt ON CONFLICT. Kaskadiert über session_id, keine eigene is_test_data-Spalte nötig."
+    }
+  ],
+  "api_contracts": [
+    {
+      "endpoint": "POST /api/admin/coaching/sessions",
+      "handler": "website/src/pages/api/admin/coaching/sessions/index.ts",
+      "note": "List/Create; Create ruft createSession(pool, CreateSessionArgs)."
+    },
+    {
+      "endpoint": "POST /api/admin/systemtest/purge-all-test-data",
+      "handler": "website/src/pages/api/admin/systemtest/purge-all-test-data.ts",
+      "note": "Ruft tickets.fn_purge_test_data() — deckt coaching.* heute NICHT ab."
+    }
+  ],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "db_tables aus Code-Mapping (rowToSession/rowToStep) abgeleitet statt information_schema — vor der Migration Spaltenliste live gegen shared-db verifizieren.",
+      "severity": "warn"
+    },
+    {
+      "note": "helpContent.ts hat s1_budget=0 (gebaselined 923) — Wording-Änderung MUSS zeilenneutral sein (reiner String-Ersatz).",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory-mcp und mcp-postgres in dieser Plan-Session nicht befragt (Explore-Agent + grep/Read als Quelle); Signaturen sind wörtlich aus den Dateien zitiert.",
+      "severity": "info"
+    }
+  ]
+}

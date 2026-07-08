@@ -351,3 +351,91 @@ Starte den Factory-Dispatcher: arbeite wartende Tickets aus der Warteschlange ab
 **Schutzregeln (Guardrails):** Factory erst im Dry-Run beweisen (G-FACTORY-DRYRUN), Nie direkt auf main (G-PR-NOT-MAIN)
 
 **Verwandt:** Software Factory (Auto-Bau)
+
+## OpenCode-Git-Workflow
+
+**Skill** · 🟢 **Sicher**
+
+Git-Lebenszyklus für OpenCode: Pull-First, Branch-Regeln, Worktree-Setup, Commit-Format, PR-Erstellung.
+
+**Wofür?** Standardisiert alle Git-Operationen in OpenCode-Sessions – vom Branch-Wechsel bis zum Merge.
+
+**So startest du:** Wird von opencode-flow-plan/execute/chore automatisch geladen. Manuell: lade die Skill opencode-git-workflow.
+
+**Was schiefgehen kann:** Git-crypt-verschlüsselte Dateien können in Worktrees fehlen – darum nutzen die Skills scripts/worktree-create.sh.
+
+**Du kannst diesen Prompt kopieren und in Claude Code einfügen:**
+
+```text
+Lade opencode-git-workflow – ich brauche Git-Operationen in einer OpenCode-Session.
+```
+
+**Schutzregeln (Guardrails):** Erst ziehen, dann arbeiten (G-PULL-FIRST), Nie direkt auf main (G-PR-NOT-MAIN)
+
+**Verwandt:** OpenCode-Planungs-Skill (opencode-flow-plan), OpenCode-Umsetzungs-Skill (opencode-flow-execute), OpenCode-Wartungs-Skill (opencode-flow-chore)
+
+## OpenCode-Planungs-Skill (opencode-flow-plan)
+
+**Skill** · 🟡 **Vorsicht**
+
+OpenCode-native Planung: Brainstorming, Feature/Fix/Chore-Entscheidung, OpenSpec-Plan-Erstellung.
+
+**Wofür?** Ersetzt dev-flow-plan in OpenCode. Nutzt delegate() für Read-Only-Recherche und scripts/worktree-create.sh für Git-crypt-sichere Worktrees.
+
+**So startest du:** Beschreibe die Änderung – der Skill entscheidet über den Pfad (Feature/Fix/Chore).
+
+**Was schiefgehen kann:** Kein Task-Tool für Write-fähige Sub-Agenten – Planung und Umsetzung laufen im gleichen Session-Kontext.
+
+**Du kannst diesen Prompt kopieren und in Claude Code einfügen:**
+
+```text
+Lade opencode-flow-plan – ich möchte eine Änderung in OpenCode planen.
+```
+
+**Schutzregeln (Guardrails):** Erst ziehen, dann arbeiten (G-PULL-FIRST)
+
+**Verwandt:** OpenCode-Git-Workflow, OpenCode-Umsetzungs-Skill (opencode-flow-execute), OpenCode-Wartungs-Skill (opencode-flow-chore)
+
+## OpenCode-Umsetzungs-Skill (opencode-flow-execute)
+
+**Skill** · 🟡 **Vorsicht**
+
+OpenCode-native Umsetzung: Task-für-Task-Implementierung, Tests, PR-Erstellung.
+
+**Wofür?** Ersetzt dev-flow-execute in OpenCode. Arbeitet inline statt per Sub-Agent-Delegation.
+
+**So startest du:** Sage 'Setze den Plan um' – ein staged Plan muss existieren.
+
+**Was schiefgehen kann:** Ohne Task-Tool für Write-fähige Delegation läuft alles im Hauptsession-Kontext – keine Isolation zwischen Tasks.
+
+**Du kannst diesen Prompt kopieren und in Claude Code einfügen:**
+
+```text
+Lade opencode-flow-execute – setze den Plan in OpenCode um und öffne einen PR.
+```
+
+**Schutzregeln (Guardrails):** Erst ziehen, dann arbeiten (G-PULL-FIRST), Nie direkt auf main (G-PR-NOT-MAIN)
+
+**Verwandt:** OpenCode-Git-Workflow, OpenCode-Planungs-Skill (opencode-flow-plan), OpenCode-Wartungs-Skill (opencode-flow-chore)
+
+## OpenCode-Wartungs-Skill (opencode-flow-chore)
+
+**Skill** · 🟡 **Vorsicht**
+
+OpenCode-native Wartung: Docs, Bumps, Config, Cleanup – direkt ausführen und mergen.
+
+**Wofür?** Ersetzt dev-flow-chore in OpenCode. Kein Plan nötig, kein dev-flow-execute – direkt loslegen.
+
+**So startest du:** Sage z.B. 'Bump die Abhängigkeiten in OpenCode'.
+
+**Was schiefgehen kann:** Wie dev-flow-chore: wenig Risiko, da keine Verhaltensänderung. CI könnte blocken.
+
+**Du kannst diesen Prompt kopieren und in Claude Code einfügen:**
+
+```text
+Lade opencode-flow-chore – erledige diese Wartung in OpenCode und merge sie.
+```
+
+**Schutzregeln (Guardrails):** Erst ziehen, dann arbeiten (G-PULL-FIRST), Nie direkt auf main (G-PR-NOT-MAIN)
+
+**Verwandt:** OpenCode-Git-Workflow, OpenCode-Planungs-Skill (opencode-flow-plan), OpenCode-Umsetzungs-Skill (opencode-flow-execute)

@@ -91,7 +91,7 @@ function TranslationPanel(){
 }
 
 function Workspace({ customer, onNav }){
-  const cust = customer || CUSTOMERS[0];
+  const cust = customer || CUSTOMERS[0] || EMPTY_CUSTOMER;
   const [active, setActive] = useState(0);
   const [prompts, setPrompts] = useState(()=> LEVELS.map(l=> l.prompt));
   const [done, setDone] = useState(()=> LEVELS.map(()=> false));

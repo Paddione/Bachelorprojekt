@@ -1,0 +1,15 @@
+name: brain-ci
+on:
+  push:
+  pull_request:
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: wikilink lint
+        run: bash scripts/lint-wikilinks.sh .
+      - name: frontmatter lint
+        run: bash scripts/lint-frontmatter.sh .
+      - name: secret scan
+        uses: gitleaks/gitleaks-action@v2

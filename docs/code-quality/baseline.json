@@ -4,181 +4,188 @@
     "path": "art-library/_tooling/extract-from-handoff.mjs",
     "metric": 669,
     "detail": "669 lines > 500 limit (.mjs)",
-    "frozen_at": "8b581ebe"
+    "frozen_at": "90ff47d"
   },
   "S1:k3d/talk-transcriber/app.py": {
     "gate": "S1",
     "path": "k3d/talk-transcriber/app.py",
     "metric": 648,
     "detail": "648 lines > 600 limit (.py)",
-    "frozen_at": "8b581ebe"
+    "frozen_at": "90ff47d"
   },
   "S1:scripts/docs-gen/templates.mjs": {
     "gate": "S1",
     "path": "scripts/docs-gen/templates.mjs",
     "metric": 587,
     "detail": "587 lines > 500 limit (.mjs)",
-    "frozen_at": "8b581ebe"
+    "frozen_at": "90ff47d"
   },
   "S1:website/src/components/BookingForm.svelte": {
     "gate": "S1",
     "path": "website/src/components/BookingForm.svelte",
     "metric": 560,
     "detail": "560 lines > 500 limit (.svelte)",
-    "frozen_at": "8b581ebe"
+    "frozen_at": "90ff47d"
   },
   "S1:website/src/components/Navigation.svelte": {
     "gate": "S1",
     "path": "website/src/components/Navigation.svelte",
     "metric": 535,
     "detail": "535 lines > 500 limit (.svelte)",
-    "frozen_at": "8b581ebe"
+    "frozen_at": "90ff47d"
   },
   "S1:website/src/components/admin/NewsletterAdmin.svelte": {
     "gate": "S1",
     "path": "website/src/components/admin/NewsletterAdmin.svelte",
     "metric": 556,
     "detail": "556 lines > 500 limit (.svelte)",
-    "frozen_at": "8b581ebe"
+    "frozen_at": "90ff47d"
   },
   "S1:website/src/components/admin/coaching/CoachingSettings.svelte": {
     "gate": "S1",
     "path": "website/src/components/admin/coaching/CoachingSettings.svelte",
     "metric": 598,
     "detail": "598 lines > 500 limit (.svelte)",
-    "frozen_at": "8b581ebe"
+    "frozen_at": "90ff47d"
   },
   "S1:website/src/components/assistant/QuestionnaireView.svelte": {
     "gate": "S1",
     "path": "website/src/components/assistant/QuestionnaireView.svelte",
     "metric": 1001,
     "detail": "1001 lines > 500 limit (.svelte)",
-    "frozen_at": "8b581ebe"
+    "frozen_at": "90ff47d"
   },
   "S1:website/src/components/inbox/InboxApp.svelte": {
     "gate": "S1",
     "path": "website/src/components/inbox/InboxApp.svelte",
-    "metric": 1013,
-    "detail": "1013 lines > 500 limit (.svelte)",
-    "frozen_at": "8b581ebe"
+    "metric": 954,
+    "detail": "954 lines > 500 limit (.svelte)",
+    "frozen_at": "90ff47d"
   },
   "S1:website/src/components/inbox/InboxDetail.svelte": {
     "gate": "S1",
     "path": "website/src/components/inbox/InboxDetail.svelte",
     "metric": 837,
     "detail": "837 lines > 500 limit (.svelte)",
-    "frozen_at": "8b581ebe"
+    "frozen_at": "90ff47d"
   },
   "S1:website/src/components/portal/QuestionnaireWizard.svelte": {
     "gate": "S1",
     "path": "website/src/components/portal/QuestionnaireWizard.svelte",
     "metric": 678,
     "detail": "678 lines > 500 limit (.svelte)",
-    "frozen_at": "8b581ebe"
+    "frozen_at": "90ff47d"
   },
   "S1:website/src/lib/coaching-db.ts": {
     "gate": "S1",
     "path": "website/src/lib/coaching-db.ts",
     "metric": 668,
     "detail": "668 lines > 600 limit (.ts)",
-    "frozen_at": "8b581ebe"
+    "frozen_at": "90ff47d"
   },
   "S1:website/src/lib/helpContent.ts": {
     "gate": "S1",
     "path": "website/src/lib/helpContent.ts",
     "metric": 923,
     "detail": "923 lines > 600 limit (.ts)",
-    "frozen_at": "8b581ebe"
+    "frozen_at": "90ff47d"
   },
   "S1:website/src/lib/tickets/admin.ts": {
     "gate": "S1",
     "path": "website/src/lib/tickets/admin.ts",
     "metric": 632,
     "detail": "632 lines > 600 limit (.ts)",
-    "frozen_at": "8b581ebe"
+    "frozen_at": "90ff47d"
   },
   "S1:website/src/pages/admin/[clientId].astro": {
     "gate": "S1",
     "path": "website/src/pages/admin/[clientId].astro",
     "metric": 745,
     "detail": "745 lines > 400 limit (.astro)",
-    "frozen_at": "8b581ebe"
+    "frozen_at": "90ff47d"
   },
   "S1:website/src/pages/admin/billing/[id]/drucken.astro": {
     "gate": "S1",
     "path": "website/src/pages/admin/billing/[id]/drucken.astro",
     "metric": 513,
     "detail": "513 lines > 400 limit (.astro)",
-    "frozen_at": "8b581ebe"
+    "frozen_at": "90ff47d"
   },
   "S1:website/src/pages/admin/clients.astro": {
     "gate": "S1",
     "path": "website/src/pages/admin/clients.astro",
     "metric": 470,
     "detail": "470 lines > 400 limit (.astro)",
-    "frozen_at": "8b581ebe"
+    "frozen_at": "90ff47d"
   },
   "S1:website/src/pages/admin/fragebogen/[assignmentId].astro": {
     "gate": "S1",
     "path": "website/src/pages/admin/fragebogen/[assignmentId].astro",
     "metric": 619,
     "detail": "619 lines > 400 limit (.astro)",
-    "frozen_at": "8b581ebe"
+    "frozen_at": "90ff47d"
   },
   "S1:website/src/pages/admin/kalender.astro": {
     "gate": "S1",
     "path": "website/src/pages/admin/kalender.astro",
     "metric": 412,
     "detail": "412 lines > 400 limit (.astro)",
-    "frozen_at": "8b581ebe"
+    "frozen_at": "90ff47d"
   },
   "S1:website/src/pages/admin/projekte.astro": {
     "gate": "S1",
     "path": "website/src/pages/admin/projekte.astro",
     "metric": 408,
     "detail": "408 lines > 400 limit (.astro)",
-    "frozen_at": "8b581ebe"
+    "frozen_at": "90ff47d"
   },
   "S1:website/src/pages/admin/projekte/[id].astro": {
     "gate": "S1",
     "path": "website/src/pages/admin/projekte/[id].astro",
     "metric": 923,
     "detail": "923 lines > 400 limit (.astro)",
-    "frozen_at": "8b581ebe"
+    "frozen_at": "90ff47d"
   },
   "S1:website/src/pages/admin/rechnungen.astro": {
     "gate": "S1",
     "path": "website/src/pages/admin/rechnungen.astro",
     "metric": 592,
     "detail": "592 lines > 400 limit (.astro)",
-    "frozen_at": "8b581ebe"
+    "frozen_at": "90ff47d"
   },
   "S1:website/src/pages/admin/systemtest/board.astro": {
     "gate": "S1",
     "path": "website/src/pages/admin/systemtest/board.astro",
     "metric": 419,
     "detail": "419 lines > 400 limit (.astro)",
-    "frozen_at": "8b581ebe"
+    "frozen_at": "90ff47d"
   },
   "S1:website/src/pages/admin/termine.astro": {
     "gate": "S1",
     "path": "website/src/pages/admin/termine.astro",
     "metric": 773,
     "detail": "773 lines > 400 limit (.astro)",
-    "frozen_at": "8b581ebe"
+    "frozen_at": "90ff47d"
   },
   "S1:website/src/pages/portal/billing/[id]/drucken.astro": {
     "gate": "S1",
     "path": "website/src/pages/portal/billing/[id]/drucken.astro",
     "metric": 515,
     "detail": "515 lines > 400 limit (.astro)",
-    "frozen_at": "8b581ebe"
+    "frozen_at": "90ff47d"
   },
   "S1:website/tests/api.test.mjs": {
     "gate": "S1",
     "path": "website/tests/api.test.mjs",
     "metric": 589,
     "detail": "589 lines > 500 limit (.mjs)",
-    "frozen_at": "8b581ebe"
+    "frozen_at": "90ff47d"
+  },
+  "S4:scripts/agent-orchestrator.sh": {
+    "gate": "S4",
+    "path": "scripts/agent-orchestrator.sh",
+    "metric": 1,
+    "detail": "no reference to 'agent-orchestrator.sh' in any configured source",
+    "frozen_at": "90ff47d"
   }
 }

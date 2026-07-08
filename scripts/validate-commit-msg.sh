@@ -46,6 +46,12 @@ is_exempt_subject() {
 # Ticket number pattern — any T + 6 digits is a valid scope.
 TICKET_SCOPE_RE='^T[0-9]{6}$'
 
+# Health-goal scope pattern — G-<UPPERCASE_IDENT> (e.g. G-SIZE02, G-CQ07, G-AGENTIC01).
+# Mirrors commitlint.config.cjs HEALTH_GOAL_SCOPE_RE. Health goals are tracked
+# in .claude/lib/goals.md and the OpenSpec spec openspec/specs/agentic-tooling-quality-goals.md
+# (and the G-RH01–G-RH07 anchors in the goals doc).
+HEALTH_GOAL_SCOPE_RE='^G-[A-Z][A-Z0-9]+$'
+
 # Load the named scope list from commitlint.config.cjs (single source of truth).
 load_allowed_scopes() {
   if command -v node >/dev/null 2>&1 && [ -f "$CONFIG" ]; then
@@ -91,6 +97,8 @@ validate_subject() {
     # Ticket number scopes (e.g. T001449) are always allowed.
     if [[ "$scope" =~ $TICKET_SCOPE_RE ]]; then
       : # ok
+    elif [[ "$scope" =~ $HEALTH_GOAL_SCOPE_RE ]]; then
+      : # ok — health-goal scopes (G-SIZE02, G-CQ07, G-AGENTIC01, …) are tracked in .claude/lib/goals.md
     else
       local ok=1
       for s in $ALLOWED_SCOPES; do

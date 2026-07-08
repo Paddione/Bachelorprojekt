@@ -32,6 +32,9 @@ env_vars:
   SMTP_HOST: smtp.mailbox.org
   SMTP_PORT: "587"
   SMTP_SECURE: "false"
+  PRIMARY_FRONTEND: astro
+  # TURN_OVERLAY_IP: pk-hetzner-4 overlay IP (wg-fleet, same fleet mesh as gekko-4)
+  TURN_OVERLAY_IP: "10.20.0.1"
   # Talk HPB (coturn + Janus SFU) is the SHARED fleet:shared-services stack on
   # pk-hetzner-4 — NOT co-located with this brand's LiveKit edge (pk-hetzner-6).
   # turn.korczewski.de must therefore pin to pk-4, while LIVEKIT_PIN_IP stays pk-6.
@@ -64,6 +67,7 @@ env_vars:
   LLM_HOST_IP: "192.168.100.10"
   COMFY_HOST_IP: "10.13.14.10"
   COMFY_PORT: "8189"
+  TERMINAL_OVERLAY_IP: "10.20.0.10"
   LLM_ENABLED: "true"
   LLM_RERANK_ENABLED: "false"
   LLM_ROUTER_URL: "http://llm-gateway-lmstudio.workspace-korczewski.svc.cluster.local:1234"

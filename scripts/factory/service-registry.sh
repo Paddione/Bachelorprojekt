@@ -9,6 +9,8 @@
 declare -A SERVICE_REGISTRY=(
   [k3d/brett.yaml]="brett"
   [k3d/oauth2-proxy-brett.yaml]="brett"
+  [k3d/brain.yaml]="brain"
+  [k3d/oauth2-proxy-brain.yaml]="brain"
   [k3d/nextcloud.yaml]="nextcloud"
   [k3d/nextcloud-redis.yaml]="nextcloud"
   [k3d/shared-db.yaml]="shared-db"
@@ -38,6 +40,7 @@ declare -A SERVICE_REGISTRY=(
   [k3d/cronjob-systemtest-cleanup.yaml]="cronjobs"
   [k3d/tests-retention-cronjob.yaml]="cronjobs"
   [k3d/cronjob-scheduled-publish.yaml]="cronjobs"
+  [k3d/error-log-retention-cronjob.yaml]="cronjobs"
   [k3d/einvoice-sidecar.yaml]="einvoice"
   [k3d/oauth2-proxy-comfy.yaml]="oauth2-proxy"
   [k3d/oauth2-proxy-traefik.yaml]="traefik"
@@ -71,14 +74,16 @@ declare -A SERVICE_REGISTRY=(
   [k3d/pocket-id.yaml]="pocket-id"
   [k3d/pocket-id-client-seed.yaml]="pocket-id"
   [k3d/pocket-id-client-seed-rbac.yaml]="pocket-id"
+  [k3d/pocket-id-client-seed-website-rbac.yaml]="pocket-id"
   [k3d/studio.yaml]="studio-server"
   [k3d/oauth2-proxy-studio.yaml]="studio-server"
   [k3d/mentolder-web.yaml]="mentolder-web"
   [k3d/ntfy.yaml]="ntfy"
+  [k3d/terminal-sidekick.yaml]="terminal-sidekick"
+  [k3d/oauth2-proxy-terminal.yaml]="terminal-sidekick"
   # RustDesk feature (#2403/#2407)
   [k3d/downloads.yaml]="downloads"
   [k3d/oauth2-proxy-downloads.yaml]="downloads"
-  [k3d/rustdesk-web-bridge.yaml]="rustdesk-web"
   [k3d/oauth2-proxy-rustdesk-web.yaml]="rustdesk-web"
 )
 
@@ -89,6 +94,8 @@ INFRA_FILES=(
   "k3d/configmap-domains.yaml"
   "k3d/secrets.yaml"
   "k3d/sealed-secrets-controller.yaml"
+  "k3d/seed.yaml"
+  "k3d/clean-seed.yaml"
 )
 
 # resolve_partial_services <csv-of-touched-files>

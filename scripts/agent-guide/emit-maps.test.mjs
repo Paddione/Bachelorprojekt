@@ -66,8 +66,8 @@ const FIX_GUARDRAILS = [
 ];
 
 const FIX_TOOLS = [
-  { id: 'dev-flow-execute', name_de: 'Plan ausführen', kind: 'skill', summary_de: 'Setzt einen Plan um.', danger: 'caution', guardrails: ['G-PR-ONLY'] },
-  { id: 'dev-flow-plan', name_de: 'Plan erstellen', kind: 'skill', summary_de: 'Erstellt einen Plan.', danger: 'caution', guardrails: ['G-PULL-FIRST'] },
+  { id: 'dev-flow-execute', name_de: 'Plan ausführen', kind: 'skill', harness: 'claude', summary_de: 'Setzt einen Plan um.', danger: 'caution', guardrails: ['G-PR-ONLY'] },
+  { id: 'dev-flow-plan', name_de: 'Plan erstellen', kind: 'skill', harness: 'claude', summary_de: 'Erstellt einen Plan.', danger: 'caution', guardrails: ['G-PULL-FIRST'] },
 ];
 
 test('renderGoalsMap: header on line 1, sorted rows, flow joined, empty guardrails as dash', () => {
@@ -126,11 +126,11 @@ test('renderToolsMap: three sections in fixed order Skills/Tasks/Agenten, sorted
     taxonomy: FIX_TAXONOMY,
     guardrails: FIX_GUARDRAILS,
     tools: [
-      { id: 'agent-security', name_de: 'Security-Agent', kind: 'agent', summary_de: 'Secrets & Auth.', danger: 'forbidden', guardrails: ['G-ENV-EXPLICIT'] },
-      { id: 'agent-ops', name_de: 'Ops-Agent', kind: 'agent', summary_de: 'Status & Logs.', danger: 'safe', guardrails: [] },
-      { id: 'task-oracle', name_de: 'Task-Orakel', kind: 'task', summary_de: 'Findet die richtige Task.', danger: 'safe', guardrails: [] },
-      { id: 'dev-flow-plan', name_de: 'Plan erstellen', kind: 'skill', summary_de: 'Erstellt einen Plan.', danger: 'caution', guardrails: ['G-PULL-FIRST'] },
-      { id: 'dev-flow-execute', name_de: 'Plan ausführen', kind: 'skill', summary_de: 'Setzt einen Plan um.', danger: 'caution', guardrails: ['G-PR-ONLY'] },
+      { id: 'agent-security', name_de: 'Security-Agent', kind: 'agent', harness: 'both', summary_de: 'Secrets & Auth.', danger: 'forbidden', guardrails: ['G-ENV-EXPLICIT'] },
+      { id: 'agent-ops', name_de: 'Ops-Agent', kind: 'agent', harness: 'both', summary_de: 'Status & Logs.', danger: 'safe', guardrails: [] },
+      { id: 'task-oracle', name_de: 'Task-Orakel', kind: 'task', harness: 'both', summary_de: 'Findet die richtige Task.', danger: 'safe', guardrails: [] },
+      { id: 'dev-flow-plan', name_de: 'Plan erstellen', kind: 'skill', harness: 'claude', summary_de: 'Erstellt einen Plan.', danger: 'caution', guardrails: ['G-PULL-FIRST'] },
+      { id: 'dev-flow-execute', name_de: 'Plan ausführen', kind: 'skill', harness: 'claude', summary_de: 'Setzt einen Plan um.', danger: 'caution', guardrails: ['G-PR-ONLY'] },
     ],
   });
   const out = renderToolsMap(reg);
@@ -282,13 +282,13 @@ test('determinism: two separately-constructed registries with different input or
     { id: 'g-b', title_de: 'B', flow: [{ tool: 'dev-flow-plan' }], danger: 'caution', guardrails: ['G-PR-ONLY', 'G-PULL-FIRST', 'G-ENV-EXPLICIT'], example_prompt_de: 'x' },
   ];
   const toolsA = [
-    { id: 'dev-flow-execute', name_de: 'Plan ausführen', kind: 'skill', summary_de: 'Setzt einen Plan um.', danger: 'caution', guardrails: ['G-PR-ONLY', 'G-ENV-EXPLICIT'] },
-    { id: 'dev-flow-plan', name_de: 'Plan erstellen', kind: 'skill', summary_de: 'Erstellt einen Plan.', danger: 'caution', guardrails: ['G-PULL-FIRST'] },
+    { id: 'dev-flow-execute', name_de: 'Plan ausführen', kind: 'skill', harness: 'claude', summary_de: 'Setzt einen Plan um.', danger: 'caution', guardrails: ['G-PR-ONLY', 'G-ENV-EXPLICIT'] },
+    { id: 'dev-flow-plan', name_de: 'Plan erstellen', kind: 'skill', harness: 'claude', summary_de: 'Erstellt einen Plan.', danger: 'caution', guardrails: ['G-PULL-FIRST'] },
   ];
   // reversed row order AND reversed within-row guardrail order on dev-flow-execute
   const toolsB = [
-    { id: 'dev-flow-plan', name_de: 'Plan erstellen', kind: 'skill', summary_de: 'Erstellt einen Plan.', danger: 'caution', guardrails: ['G-PULL-FIRST'] },
-    { id: 'dev-flow-execute', name_de: 'Plan ausführen', kind: 'skill', summary_de: 'Setzt einen Plan um.', danger: 'caution', guardrails: ['G-ENV-EXPLICIT', 'G-PR-ONLY'] },
+    { id: 'dev-flow-plan', name_de: 'Plan erstellen', kind: 'skill', harness: 'claude', summary_de: 'Erstellt einen Plan.', danger: 'caution', guardrails: ['G-PULL-FIRST'] },
+    { id: 'dev-flow-execute', name_de: 'Plan ausführen', kind: 'skill', harness: 'claude', summary_de: 'Setzt einen Plan um.', danger: 'caution', guardrails: ['G-ENV-EXPLICIT', 'G-PR-ONLY'] },
   ];
   const regA = makeRegistry({ taxonomy: FIX_TAXONOMY, guardrails: FIX_GUARDRAILS, tools: toolsA, goals: goalsA });
   const regB = makeRegistry({ taxonomy: FIX_TAXONOMY, guardrails: FIX_GUARDRAILS, tools: toolsB, goals: goalsB });
@@ -310,7 +310,7 @@ test('real-shaped taxonomy: label_de already embeds the tier emoji — render mu
     taxonomy: realShapedTaxonomy,
     guardrails: FIX_GUARDRAILS,
     tools: [
-      { id: 'agent-security', name_de: 'Security-Agent', kind: 'agent', summary_de: 'Secrets.', danger: 'forbidden', guardrails: [] },
+      { id: 'agent-security', name_de: 'Security-Agent', kind: 'agent', harness: 'both', summary_de: 'Secrets.', danger: 'forbidden', guardrails: [] },
     ],
     goals: [
       { id: 'g', title_de: 'T', flow: [], danger: 'caution', guardrails: [], example_prompt_de: 'p' },
@@ -332,13 +332,14 @@ test('renderToolsMap includes an Init column populated from init_prompt_de', () 
   const reg = makeRegistry({   // reuse the file's existing fixture builder
     taxonomy: FIX_TAXONOMY,
     guardrails: FIX_GUARDRAILS,
-    tools: [{ id: 'dev-flow-plan', name_de: 'Planungs-Skill', kind: 'skill',
+    tools: [{ id: 'dev-flow-plan', name_de: 'Planungs-Skill', kind: 'skill', harness: 'claude',
       danger: 'caution', summary_de: 'Plant.', guardrails: [],
       init_prompt_de: '/dev-flow-plan: plane' }],
   });
   const md = renderToolsMap(reg);
-  assert.ok(md.includes('| Id | Name | Art | Tier | Wofür | Guardrails | Init |'),
-    'header must carry the Init column');
+  assert.ok(md.includes('| Id | Name | Art | Harness | Tier | Wofür | Guardrails | Init |'),
+    'header must carry the Harness + Init columns');
   assert.ok(md.includes('/dev-flow-plan: plane'), 'init prompt must appear in the row');
+  assert.ok(md.includes('claude'), 'harness value must appear in the row');
 });
 

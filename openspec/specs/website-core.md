@@ -419,6 +419,46 @@ strip with hairline separators; service tiles SHALL use monochrome Brass icons.
 - **WHEN** the dashboard renders
 - **THEN** the inbox preview shows an empty state (no error, no crash)
 
+### Requirement: Admin-Sidebar-Navigation
+Die Admin-Sidebar MUSS folgende Navigation bereitstellen:
+
+**Immer sichtbar (kein Label):**
+- Dashboard (`/admin`)
+- Cockpit (`/admin/cockpit`)
+- Postfach (`/admin/inbox`, mit Pending-Badge)
+
+**Sektion "Geschäft":**
+- Klienten (`/admin/clients`)
+- Studio (`/admin/coaching/studio`)
+- Fakturierung (`/admin/rechnungen`)
+
+**Sektion "Werkstatt" (Akkordeon):**
+- Content Hub, Wissensbasis, Assets, 3D Generator, App-Katalog, KI-Konfig., Prompts, Systemtest, Content-DB
+
+**Sektion "Infrastruktur":**
+- Einstellungen, Systembrett (extern), Live-Stream
+
+Die folgenden Items MÜSSEN aus der Sidebar entfernt werden: Mitglieder, Mandate, Kontierung, Plattform Hub, Dev Status, DORA, Repo Health.
+
+#### Scenario: Studio-Link in Sidebar
+- **WHEN** the admin views the sidebar
+- **THEN** they see "Studio" linking to `/admin/coaching/studio` in the Geschäft section
+
+#### Scenario: Entfernte Items nicht sichtbar
+- **WHEN** the admin views the sidebar
+- **THEN** Mitglieder, Mandate, Kontierung, Plattform Hub, Dev Status, DORA und Repo Health sind nicht als direkte Sidebar-Links sichtbar
+
+### Requirement: Dashboard-Shortcuts Infrastruktur-Gruppe
+Das Admin-Dashboard (`/admin`) MUSS eine neue Shortcut-Gruppe "Infrastruktur & Dev" anzeigen mit Karten für: Plattform Hub, Dev Status, DORA, Repo Health (letzteres nur wenn `!isKore`).
+
+#### Scenario: Infrastruktur-Shortcuts auf Dashboard
+- **WHEN** the admin navigates to `/admin`
+- **THEN** they see shortcut cards for Plattform Hub, Dev Status, DORA, and Repo Health (mentolder only)
+
+#### Scenario: Repo Health nur für mentolder
+- **WHEN** the admin is on the korczewski brand
+- **THEN** the Repo Health shortcut card is not shown
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -787,3 +827,5 @@ The `website/pnpm-workspace.yaml` MAY include an `overrides` block to pin transi
 - **AND** `pnpm audit` SHALL report zero vulnerabilities for those packages
 
 <!-- merged from change delta website-core.md on 2026-07-02 -->
+
+<!-- merged from change delta website-core.md (02c8df9ce8f7) -->

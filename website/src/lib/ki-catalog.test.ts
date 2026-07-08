@@ -72,3 +72,15 @@ describe('Katalog-Helfer', () => {
     expect(modelsFor('nope')).toEqual([]);
   });
 });
+
+describe('local-qwen35 + neue Cloud-Provider (T001590)', () => {
+  it('registers local-qwen35 (no key) and the four new cloud providers', () => {
+    const local = interfaceById('local-qwen35');
+    expect(local?.defaultBaseUrl).toBe('http://100.102.71.114:1234/v1');
+    expect(local?.apiKeyEnv).toBeUndefined();
+    expect(interfaceById('openrouter')?.apiKeyEnv).toBe('OPENROUTER_API_KEY');
+    expect(interfaceById('opencode-zen')?.apiKeyEnv).toBe('OPENCODE_API_KEY');
+    expect(interfaceById('google-gemini')?.apiKeyEnv).toBe('GEMINI_API_KEY');
+    expect(interfaceById('github-models')?.apiKeyEnv).toBe('GITHUB_MODELS_TOKEN');
+  });
+});

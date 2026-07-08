@@ -1,0 +1,16 @@
+# Delta: t001586 — factory-mcp port guard (13004 → 13003)
+
+## Files Changed
+
+- `.mcp.json`: `factory-mcp.url` corrected from `http://127.0.0.1:13004/mcp` to `http://localhost:13003/mcp`
+- `.opencode/opencode.jsonc`: factory-mcp entry aligned with production config
+
+## Tests Added
+
+- `tests/spec/mcp-tooling.bats`: New Hard-CI guard test ensuring factory-mcp is registered at :13003 in both .mcp.json and .opencode/opencode.jsonc
+
+## Verification
+
+All tests pass. The new BATS test validates:
+1. Both config files point to `http://localhost:13003/mcp`
+2. No port-drift back to 13004 (pre-existing bug)

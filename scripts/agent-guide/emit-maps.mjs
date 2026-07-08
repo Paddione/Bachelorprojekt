@@ -151,14 +151,15 @@ export function renderToolsMap(reg) {
     out.push('');
     out.push(`## ${section.heading}`);
     out.push('');
-    out.push(row(['Id', 'Name', 'Art', 'Tier', 'Wofür', 'Guardrails', 'Init']));
-    out.push(row(['---', '---', '---', '---', '---', '---', '---']));
+    out.push(row(['Id', 'Name', 'Art', 'Harness', 'Tier', 'Wofür', 'Guardrails', 'Init']));
+    out.push(row(['---', '---', '---', '---', '---', '---', '---', '---']));
     for (const t of rows) {
       out.push(
         row([
           escapeCell(t.id),
           escapeCell(t.name_de),
           escapeCell(t.kind),
+          escapeCell(t.harness),
           escapeCell(tierLabel(reg, t.danger)),
           escapeCell(t.summary_de),
           escapeCell(guardrailIds(reg, t.guardrails)),

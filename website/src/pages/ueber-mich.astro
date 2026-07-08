@@ -12,11 +12,11 @@ const uebermich = await getEffectiveUebermich();
 const stammdaten = await getEffectiveStammdaten().catch(() => null);
 const sName = stammdaten?.name ?? config.contact.name;
 
-const seoTitle = await getSeoTitle(BRAND_ID, 'ueber-mich').catch(() => null)
+const seoTitle = getSeoTitle(BRAND_ID, 'ueber-mich')
   ?? `Gerald Korczewski – Coach, Mentor & KI-Pionier`;
 const seoDesc = await getSiteSetting(BRAND_ID, 'seo_meta_desc_ueber-mich').catch(() => null)
   ?? `Über ${sName} – ${config.legal.tagline}`;
-const seoOgImage = await getSeoOgImage(BRAND_ID, 'ueber-mich').catch(() => null);
+const seoOgImage = getSeoOgImage(BRAND_ID, 'ueber-mich');
 ---
 
 <Layout title={seoTitle} rawTitle={true} description={seoDesc} brand={layoutBrand} ogImage={seoOgImage ?? undefined}>

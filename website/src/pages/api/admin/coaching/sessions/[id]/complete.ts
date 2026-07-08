@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import Anthropic from '@anthropic-ai/sdk';
 import { getSession, isAdmin } from '../../../../../../lib/auth';
 import { getSession as getCoachingSession, completeSession } from '../../../../../../lib/coaching-session-db';
+import { DEFAULT_CLAUDE_SESSION_MODEL } from '../../../../../../lib/claude-session-agent';
 import { pool } from '../../../../../../lib/website-db';
 
 export const prerender = false;
@@ -16,7 +17,8 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
     return new Response(JSON.stringify({ error: 'Not found' }), { status: 404, headers: { 'content-type': 'application/json' } });
   }
 
-  // If the ClaudeSessionAgent already wrote the report via draft_session_report tool, reuse it
+  // Step 0 aiResponse wird nur von completeSession selbst geschrieben — dieser Branch greift
+  // also nur bei einem wiederholten Complete-Aufruf und macht ihn idempotent (kein zweiter LLM-Call).
   const existingReport = coachingSession.steps.find(s => s.stepNumber === 0 && s.aiResponse);
   if (existingReport?.aiResponse) {
     await completeSession(pool, sessionId, existingReport.aiResponse);
@@ -36,7 +38,7 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
     try {
       const client = new Anthropic({ apiKey });
       const msg = await client.messages.create({
-        model: process.env.COACHING_SESSION_MODEL || 'claude-haiku-4-5-20251001',
+        model: process.env.COACHING_SESSION_MODEL || DEFAULT_CLAUDE_SESSION_MODEL,
         max_tokens: 1200,
         system: `Du bist ein Coaching-Protokollant. Erstelle aus den 10 Schritten einer Coaching-Session eine strukturierte Zusammenfassung auf Deutsch.
 Abschnitte: ## Ausgangslage, ## Analyse, ## Lösungsansatz, ## Vereinbarte Schritte, ## Bewertung.

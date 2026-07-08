@@ -19,6 +19,7 @@ if [[ "$1" == "--list-all" ]]; then
   printf '* website:redeploy:  Rebuild and deploy website\n'
   printf '* feature:website:  Rebuild website on BOTH prod\n'
   printf '* feature:website:all-prods:  All-prods website deploy\n'
+  printf '* fleet:deploy:brand:  Deploy ONE brand to fleet (requires BRAND)\n'
   exit 0
 fi
 if [[ "$1" == "--summary" ]]; then
@@ -80,6 +81,16 @@ CURL
   [ "$status" -eq 1 ]
   [[ "$stderr" == *"Unknown task"* ]]
   [[ "$stderr" == *"workspace:dploy"* ]]
+}
+
+# T001583 code-review finding: fastpath's "ENV=<token>" DSL is just a token
+# carrier — it must be materialized against the REAL Taskfile.yml's
+# requires:/vars: block for the target task, not echoed back verbatim.
+# fleet:deploy:brand requires BRAND, not ENV, in the actual Taskfile.yml.
+@test "structured input for a BRAND-only task materializes BRAND=, not ENV=" {
+  run bash "$ORACLE" "fleet:deploy:brand ENV=mentolder"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"TASK_CALLED: fleet:deploy:brand BRAND=fleet-mentolder"* ]]
 }
 
 @test "natural language input does not trigger fast-path" {

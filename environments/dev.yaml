@@ -1,6 +1,6 @@
 # environments/dev.yaml
 environment: dev
-context: k3d-korczewski-dev
+context: gekko-hetzner-2-dev
 domain: localhost
 
 env_vars:

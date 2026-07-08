@@ -10,6 +10,10 @@ import {
 
 const MAX_TOOL_ROUNDS = 3;
 
+// Letzter Fallback, wenn weder kiConfig.modelName noch COACHING_SESSION_MODEL gesetzt sind.
+// Eine Stelle statt drei (T001672) — auch von complete.ts konsumiert.
+export const DEFAULT_CLAUDE_SESSION_MODEL = 'claude-haiku-4-5-20251001';
+
 export class ClaudeSessionAgent implements SessionAgent {
   private buildClient(kiConfig: GenerateOptions['kiConfig']): Anthropic {
     const apiKey = kiConfig.apiKey ?? process.env.ANTHROPIC_API_KEY;
@@ -42,7 +46,7 @@ export class ClaudeSessionAgent implements SessionAgent {
   async generate(options: GenerateOptions): Promise<GenerateResult> {
     const { kiConfig, history, effectiveSystemPrompt, assembledUserPrompt, sessionId } = options;
     const client = this.buildClient(kiConfig);
-    const model = kiConfig.modelName ?? 'claude-haiku-4-5-20251001';
+    const model = kiConfig.modelName ?? DEFAULT_CLAUDE_SESSION_MODEL;
     const startMs = Date.now();
 
     const messages: MessageParam[] = [
@@ -93,7 +97,7 @@ export class ClaudeSessionAgent implements SessionAgent {
   async *stream(options: GenerateOptions): AsyncIterable<string> {
     const { kiConfig, history, effectiveSystemPrompt, assembledUserPrompt } = options;
     const client = this.buildClient(kiConfig);
-    const model = kiConfig.modelName ?? 'claude-haiku-4-5-20251001';
+    const model = kiConfig.modelName ?? DEFAULT_CLAUDE_SESSION_MODEL;
 
     const messages: MessageParam[] = [
       ...history.map(t => ({ role: t.role, content: t.content } as MessageParam)),

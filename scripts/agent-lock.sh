@@ -116,6 +116,12 @@ _reapable() {
   [ -f "$f" ] || return 0
   sid="$(_lock_field "$f" owner_sid)"; wt="$(_lock_field "$f" worktree)"
   hb="$(_lock_field "$f" heartbeat_at)"; ct="$(_lock_field "$f" created_at)"; now="$(_now)"
+  # Age reference for the pid-dead/sid-dead grace checks below: prefer the
+  # heartbeat (reflects the last confirmed-live refresh) and fall back to
+  # created_at only for old claim files that predate the heartbeat_at field.
+  # [T001582-M1] Using created_at alone wrongly reaped claims that were
+  # refreshed recently but originally created long ago.
+  local age_base="${hb:-${ct:-0}}"
   # 0) A CONFIRMED-ALIVE SID ALWAYS WINS — even if the worktree path is stale
   #    or missing, a live session owns the claim. Reapability only kicks in
   #    when the SID is dead (or, as a last resort, when no SID is recorded). [T001384]
@@ -124,7 +130,7 @@ _reapable() {
   pid="$(_lock_field "$f" owner_pid)"
   if [ -n "$pid" ]; then
     if ! _pid_alive "$pid"; then
-      age=$(( now - ${ct:-0} ))
+      age=$(( now - age_base ))
       if [ -z "$ct" ] || [ "$age" -ge "$AGENT_LOCK_GRACE" ]; then
         _reap_log "$f" pid-dead; return 0
       fi
@@ -135,7 +141,7 @@ _reapable() {
     # Dead numeric SID: a young claim (< AGENT_LOCK_GRACE) is protected from a
     # reap on the SID check alone — a transient session-id mismatch between tool
     # calls must not drop a fresh claim. Fall through to the heartbeat-TTL check.
-    age=$(( now - ${ct:-0} ))
+    age=$(( now - age_base ))
     if [ -z "$ct" ] || [ "$age" -ge "$AGENT_LOCK_GRACE" ]; then
       _reap_log "$f" sid-dead; return 0
     fi

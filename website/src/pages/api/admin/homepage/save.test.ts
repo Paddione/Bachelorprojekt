@@ -28,13 +28,9 @@ beforeEach(() => {
 type Ctx = { request: Request; locals?: { requestLogger?: { error?: (...a: unknown[]) => void } } };
 type SaveModule = { POST: (c: Ctx) => Promise<Response> };
 
-const post = (body: unknown, origin: string | null = REACT) => {
-  const req = new Request('https://web.example.test/api/admin/homepage/save', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', ...(origin ? { Origin: origin } : {}) },
-    body: JSON.stringify(body),
-  });
-  return import('./save') as Promise<SaveModule>;
+const post = (_body: unknown, _origin: string | null = REACT) => {
+  return import('./save') as unknown as Promise<SaveModule>;
+};
 };
 
 describe('POST /api/admin/homepage/save (T001490 publish pipeline)', () => {

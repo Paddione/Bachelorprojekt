@@ -20,11 +20,15 @@ setup() {
   fi
 }
 
-@test "G-CQ07: die übrigen drei Zyklen bleiben während dieses PRs unangetastet" {
-  # Sanity-Check: wir dürfen mit diesem PR nur Zyklus #1 entfernen.
-  # Die anderen drei Zyklen müssen weiterhin im Report auftauchen —
-  # sonst wurden versehentlich Folge-PRs mit-erledigt.
+@test "G-CQ07: keine zirkulären Imports mehr in website/src" {
+  # T001575: Die Folge-PRs zu den übrigen Zyklen sind inzwischen gelandet —
+  # madge meldet 0 Zyklen auf main. Der frühere Sanity-Check ("übrige Zyklen
+  # bleiben unangetastet") ist damit obsolet; ab jetzt gilt der strengere
+  # Guard: website/src muss zyklenfrei bleiben.
   output=$(npx --yes madge --circular --extensions ts,tsx "$REPO_ROOT/website/src" 2>&1 || true)
-  echo "$output" | grep -F "lib/website-db.ts > lib/tickets/transition.ts" >/dev/null
-  echo "$output" | grep -F "lib/invoice-pdf.ts > lib/native-billing.ts" >/dev/null
+  if ! echo "$output" | grep -F "No circular dependency found" >/dev/null; then
+    echo "madge-Output:"
+    echo "$output"
+    return 1
+  fi
 }

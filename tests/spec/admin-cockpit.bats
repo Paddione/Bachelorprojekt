@@ -34,3 +34,11 @@ TICKET_ROW="$BATS_TEST_DIRNAME/../../website/src/components/admin/TicketRow.svel
     [ "$status" -eq 0 ]
   done
 }
+
+@test "T001665 coaching settings page mounts CoachingSettings component" {
+  WEB="$BATS_TEST_DIRNAME/../../website/src"
+  run grep -qF "CoachingSettings" "$WEB/pages/admin/coaching/settings.astro"
+  [ "$status" -eq 0 ]
+  run grep -qF "client:load" "$WEB/pages/admin/coaching/settings.astro"
+  [ "$status" -eq 0 ]
+}

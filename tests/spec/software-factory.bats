@@ -2916,6 +2916,51 @@ REG="scripts/factory/service-registry.sh"
 }
 
 
+# ── FA-SF-71-local-agent-budget-routing ─────────────────────────#
+# FA-SF-71 — token-budget semaphore + local-qwen35 provider (T001590; offline, DB-touching
+# paths skipped).
+
+@test "FA-SF-71: route-provider.sh reserves tokens under a NULL-safe budget guard" {
+  grep -Eq 'reserved_tokens = reserved_tokens \+ :.?ctx' scripts/factory/route-provider.sh
+  grep -Eq "nullif\(:'budget',''\)::int IS NULL OR reserved_tokens \+ :'ctx'::int <=" scripts/factory/route-provider.sh
+  grep -q '"ctx":%s' scripts/factory/route-provider.sh
+}
+
+@test "FA-SF-71: release-slot.sh decrements reserved_tokens by ctx (floored at 0)" {
+  grep -Eq 'reserved_tokens = GREATEST\(0, reserved_tokens - :.?ctx' scripts/factory/release-slot.sh
+}
+
+@test "FA-SF-71: release-slot.sh still no-ops on null slot with a ctx arg" {
+  run bash scripts/factory/release-slot.sh null true 60000
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-71: pipeline.js inline clone threads ctx to release-slot.sh" {
+  grep -Eq 'function releaseSlotSync\(slotId, success, ctx' scripts/factory/pipeline.js
+  grep -Eq 'release-slot.sh.*String\(ctx' scripts/factory/pipeline.js
+  grep -Eq 'releaseSlotSync\(planRoute.slotId, plan != null, planRoute.ctx\)' scripts/factory/pipeline.js
+}
+
+@test "FA-SF-71: node --test provider-router budget suite passes" {
+  run node --test scripts/factory/provider-router.test.mjs
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-71: pipeline.js stays offline-parseable after ctx threading" {
+  run node --check scripts/factory/pipeline.js
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-71: local-qwen35 seed sets prio-1 rows for the four orchestration sources" {
+  local f=scripts/migrations/2026-07-03-local-qwen35-seed.sql
+  grep -Eq "'factory-scout', *'sonnet', *1, *'local-qwen35'" "$f"
+  grep -Eq "'factory-plan', *'sonnet', *1, *'local-qwen35'" "$f"
+  grep -Eq "'ticket-triage', *'haiku', *1, *'local-qwen35'" "$f"
+  grep -Eq "'lavish-artifact', *'sonnet', *1, *'local-qwen35'" "$f"
+  grep -Eq '60000, *180000' "$f"
+}
+
+
 # ── T001433 admin-redesign: Factory Floor conveyor-only (FA-SF-FLOOR) ─────────
 @test "FA-SF-FLOOR: FactoryFloor.svelte has no ff-view/kanban toggle" {
   run grep -c "ff-view" website/src/components/FactoryFloor.svelte

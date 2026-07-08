@@ -28,10 +28,10 @@ const { resolveTaskSource } = require('./task-source.cjs')
 // safety net for driver attribution when dedup does not apply (T001444).
 if (!process.env.TICKET_PHASE_DRIVER) process.env.TICKET_PHASE_DRIVER = 'factory'
 function routeProviderSync(source, tier) {
-  if (tier === 'opus') return { provider: 'anthropic', modelId: 'claude-opus-4-6', baseUrl: null, slotId: null, emergency: false }
+  if (tier === 'opus') return { provider: 'anthropic', modelId: 'claude-opus-4-6', baseUrl: null, slotId: null, ctx: 0, emergency: false }
   if (process.env.ANTHROPIC_MODEL) {
     return { provider: 'anthropic-compat', modelId: process.env.ANTHROPIC_MODEL,
-             baseUrl: process.env.ANTHROPIC_BASE_URL || null, slotId: null, emergency: false }
+             baseUrl: process.env.ANTHROPIC_BASE_URL || null, slotId: null, ctx: 0, emergency: false }
   }
   try {
     const { execFileSync } = require('child_process')
@@ -40,15 +40,15 @@ function routeProviderSync(source, tier) {
     return JSON.parse(out)
   } catch (e) {
     log(`routeProvider(${source},${tier}) failed -> emergency anthropic-sonnet: ${e.message}`)
-    return { provider: 'anthropic', modelId: 'claude-sonnet-4-6', baseUrl: null, slotId: null, emergency: true }
+    return { provider: 'anthropic', modelId: 'claude-sonnet-4-6', baseUrl: null, slotId: null, ctx: 0, emergency: true }
   }
 }
 
-function releaseSlotSync(slotId, success) {
+function releaseSlotSync(slotId, success, ctx = 0) {
   if (!slotId) return
   try {
     const { execFileSync } = require('child_process')
-    execFileSync('bash', [`${REPO}/scripts/factory/release-slot.sh`, String(slotId), success ? 'true' : 'false'],
+    execFileSync('bash', [`${REPO}/scripts/factory/release-slot.sh`, String(slotId), success ? 'true' : 'false', String(ctx || 0)],
       { stdio: 'ignore', timeout: 20000, env: { ...process.env, BRAND: brand } })
   } catch (e) { log(`releaseSlot(${slotId}) failed (non-fatal): ${e.message}`) }
 }
@@ -306,7 +306,7 @@ if (!isSimple) {
       schema: { type: 'object', required: ['tasks', 'plan_path'], properties: { plan_path: { type: 'string' }, tasks: { type: 'array', items: { type: 'object', required: ['id', 'target_files', 'acceptance_criteria'], properties: { id: { type: 'string' }, target_files: { type: 'array', items: { type: 'string' } }, acceptance_criteria: { type: 'array', items: { type: 'string' } } } } } } },
     },
   )
-  releaseSlotSync(planRoute.slotId, plan != null)
+  releaseSlotSync(planRoute.slotId, plan != null, planRoute.ctx)
   tasks = plan.tasks
   planFilePath = plan.plan_path
   phaseEvent('plan', 'done', `${(plan.tasks || []).length} Tasks`)
@@ -418,9 +418,9 @@ if (tasks.length && !A.batch_mode) {
          Return a summary of the diff and local test result (pass/fail).` + consumeInjections('implement'),
         { label: `impl:${t.id}`, phase: 'Implement', model: route.modelId },
       )
-      releaseSlotSync(route.slotId, impl != null)
+      releaseSlotSync(route.slotId, impl != null, route.ctx)
     } catch (err) {
-      releaseSlotSync(route.slotId, false)
+      releaseSlotSync(route.slotId, false, route.ctx)
       throw err
     }
     if (impl == null) continue

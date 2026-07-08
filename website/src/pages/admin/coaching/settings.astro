@@ -1,9 +1,10 @@
 ---
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 import AdminPageHeader from '../../../components/admin/ui/AdminPageHeader.svelte';
+import CoachingSettings from '../../../components/admin/coaching/CoachingSettings.svelte';
 import { getSession, getLoginUrl, isAdmin } from '../../../lib/auth';
-import { listKiProviders } from '../../../lib/coaching-ki-config-db';
-import { listStepTemplates } from '../../../lib/coaching-templates-db';
+import { listKiProviders, type KiConfig } from '../../../lib/coaching-ki-config-db';
+import { listStepTemplates, type StepTemplate } from '../../../lib/coaching-templates-db';
 import { pool } from '../../../lib/website-db';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
@@ -11,11 +12,11 @@ if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
 if (!isAdmin(session)) return Astro.redirect('/admin');
 
 const brand = process.env.BRAND || 'mentolder';
-let _initialProviders = [];
-let _initialTemplates = [];
+let initialProviders: KiConfig[] = [];
+let initialTemplates: StepTemplate[] = [];
 try {
-  _initialProviders = await listKiProviders(pool, brand);
-  _initialTemplates = await listStepTemplates(pool, brand);
+  initialProviders = await listKiProviders(pool, brand);
+  initialTemplates = await listStepTemplates(pool, brand);
 } catch {}
 ---
 
@@ -29,5 +30,6 @@ try {
       Einstellungen
     </nav>
 <AdminPageHeader title="Coaching-Einstellungen" />
+    <CoachingSettings client:load {initialProviders} {initialTemplates} />
   </div>
 </AdminLayout>

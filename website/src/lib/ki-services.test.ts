@@ -51,3 +51,11 @@ describe('SOURCE constants (Anti-Drift gegen Runtime-Call-Sites)', () => {
     for (const s of KI_SERVICES) expect(known.has(s.source)).toBe(true);
   });
 });
+
+describe('lavish-artifact source (T001590)', () => {
+  it('registers the lavish-artifact source', () => {
+    const svc = KI_SERVICES.find((s) => s.source === 'lavish-artifact');
+    expect(svc?.tier).toBe('sonnet');
+    expect(svc?.brandScoped).toBe(false);
+  });
+});

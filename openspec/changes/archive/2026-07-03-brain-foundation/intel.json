@@ -1,0 +1,103 @@
+{
+  "meta": {
+    "slug": "brain-foundation",
+    "ticket_id": "T001568",
+    "generated_from": "main@36f567bd9",
+    "domains": ["infra", "test", "security"],
+    "intel_sources": ["grep", "baseline.json", "web-research"]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/brain-bootstrap.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 400,
+      "s1_baseline": null,
+      "s1_budget": 400
+    },
+    {
+      "path": "tests/spec/brain-foundation.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "templates/brain/SCHEMA.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "templates/brain/index.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "templates/brain/log.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "templates/brain/scripts/lint-wikilinks.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 400,
+      "s1_baseline": null,
+      "s1_budget": 400
+    },
+    {
+      "path": "templates/brain/scripts/lint-frontmatter.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 400,
+      "s1_baseline": null,
+      "s1_budget": 400
+    },
+    {
+      "path": "templates/brain/.github/workflows/ci.yml",
+      "language": "yaml",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/ticket.sh:cmd_create",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "ticket.sh create --type <t> --brand <b> --title <s> ... -> 'EXT_ID|UUID'",
+      "type_text": "CLI: emits external_id|uuid on stdout",
+      "source": "grep"
+    }
+  ],
+  "call_graph": { "entrypoints": [], "edges": [] },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "severity": "warn",
+      "note": "Alle impact_files sind Neu-Dateien (loc=0, nicht baselined). codebase-memory/LSP/mcp-postgres liefern für dieses Change keine Intel — es entsteht ein externes Repo (Paddione/brain) plus neue Skripte/Templates hier; keine bestehenden Symbole betroffen."
+    },
+    {
+      "severity": "warn",
+      "note": "S1: tests/spec/*.bats und templates/*.md unterliegen keinem Zeilen-Ratchet (nicht in _ext_limit-Kategorien mit Budget-Druck); bash-Skripte unter 400-Zeilen-Limit planen. Plan-Autor: wc -l-Disziplin trotzdem einhalten."
+    },
+    {
+      "severity": "info",
+      "note": "Repo-Erstellung braucht gh-axi (Paddione-Auth vorhanden, siehe SessionStart-Hook). Gekkos GitHub-Handle ist unbekannt → Bootstrap-Parameter --collaborator, nicht hardcoden."
+    }
+  ]
+}

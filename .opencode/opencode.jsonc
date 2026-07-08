@@ -1,10 +1,15 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "lmstudio/google/gemma-4-12b-qat",
+  "model": "lmstudio/qwen3.5-9b@iq4_xs",
   "permission": "allow",
   "lsp": true,
   "mcp": {
     // ── Monolith HTTP-Endpunkte (kubectl portforward via Taskfile) ────────
+    "factory-mcp": {
+      "type": "remote",
+      "url": "http://localhost:13003/mcp",
+      "enabled": true
+    },
     "mcp-kubernetes": {
       "type": "remote",
       "url": "http://localhost:18080/mcp",
@@ -15,77 +20,38 @@
       "url": "http://localhost:13001/mcp",
       "enabled": true
     },
-    "factory-mcp": {
-      "type": "remote",
-      "url": "http://localhost:13003/mcp",
-      "enabled": true
-    },
     // ── Stdio-Server (lokale Prozesse) ────────────────────────────────────
     "codebase-memory-mcp": {
       "type": "local",
-      "command": ["/home/patrick/.local/bin/codebase-memory-mcp"],
+      "command": [
+        "/home/patrick/.local/bin/codebase-memory-mcp"
+      ],
       "enabled": true
     },
     "mcp-task-runner": {
       "type": "local",
-      "command": ["mcp-task-runner", "--otel-endpoint", "localhost:4317", "--taskfile", "/home/patrick/Bachelorprojekt/Taskfile.yml"],
+      "command": [
+        "mcp-task-runner",
+        "--otel-endpoint", "localhost:4317",
+        "--taskfile", "/home/patrick/Bachelorprojekt/Taskfile.yml"
+      ],
       "enabled": true
     },
     "ticket-mcp": {
       "type": "local",
-      "command": ["/home/patrick/Bachelorprojekt/scripts/ticket-mcp/ticket-mcp-go"],
+      "command": [
+        "/home/patrick/Bachelorprojekt/scripts/ticket-mcp/ticket-mcp-go"
+      ],
+      "enabled": true
+    },
+    "task-master-ai": {
+      "type": "local",
+      "command": ["npx", "-y", "task-master-ai"],
+      "environment": {
+        "OLLAMA_BASE_URL": "http://localhost:11434/api",
+        "TASK_MASTER_TOOLS": "all"
+      },
       "enabled": true
     }
-  },
-  "plugin": ["@mailshieldai/opencode-canvas"],
-  "command": {
-    "feature-intake": {
-      "description": "Refresh feature candidate suggestions from current tickets and publish a fresh PM-intake HTML form via session-hub. Use when Patrick or gekko wants to collect new feature ideas (HTML form, dark theme, single click instead of typing).",
-      "template": "You are executing the `/feature-intake` command. Refresh the feature candidate suggestions from the current ticket backlog, generate a fresh HTML intake form, and publish it via the session-hub so the recipient can fill it out in a browser.\n\n## Schritt 1 — Aktuelle Tickets laden (für Deduplizierung)\n\nVersuche zuerst den MCP-Schnellweg:\n\n```\nmcp__mcp-postgres__query: |\n  SELECT external_id, title, status FROM tickets.tickets\n  WHERE status NOT IN ('done','archived')\n  ORDER BY created_at DESC LIMIT 60;\n```\n\nFalls MCP nicht erreichbar, kubectl-Fallback:\n\n```bash\nkubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -F '|' -c \\\n  \"SELECT external_id, title, status FROM tickets.tickets WHERE status NOT IN ('done','archived') ORDER BY created_at DESC LIMIT 60;\" 2>/dev/null\n```\n\nLege das Ergebnis als `EXISTING_TICKETS` ab (Format: `T000xxx | Titel | status`). Leer = keine Dedupe-Notwendigkeit.\n\n## Schritt 1b — Dynamischer Feature-Pool aus indizierten Specs\n\nLade die Proposal-Dokumente aus der `specs_plans`-Knowledge-Collection als dritten Feature-Pool.\n\n```bash\nSPEC_POOL=$(kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -F '|' -c \\\n  \"SELECT d.title, left(kc.text, 300), d.source_uri\n   FROM knowledge.documents d\n   JOIN knowledge.collections c  ON c.id = d.collection_id\n   JOIN knowledge.chunks kc      ON kc.document_id = d.id AND kc.position = 0\n   WHERE c.source = 'specs_plans'\n     AND d.source_uri LIKE 'file:openspec/changes/%/proposal.md'\n   ORDER BY d.created_at DESC\n   LIMIT 30;\" 2>/dev/null)\n```\n\nHalte `$SPEC_POOL` im Arbeitsgedächtnis — es wird in Schritt 3 als zusätzliche Karten-Gruppe\n„Aus eigenen Specs\" unterhalb der hardcodierten Pool-Tabelle gerendert. Wenn `$SPEC_POOL` leer\nist (keine Proposals indiziert), entfällt diese Gruppe; die hardcodierten Einträge bleiben Fallback.\n\n## Schritt 2 — Feature-Kandidaten frisch laden\n\nLies die kanonische Kandidatenliste:\n\n```\nRead: assets/feature-intake/feature-candidates.md\n```\n\nDiese Liste enthält je Bereich 3-5 vorausgefüllte Items sowie die Areas-Normalisierungstabelle.\n\n## Schritt 3 — Formular generieren\n\nTemplate kopieren:\n\n```bash\nHTML_FILE=\"/tmp/intake-$(date +%F).html\"\ncp assets/feature-intake/pm-form-template.html \"$HTML_FILE\"\n```\n\n**Deduplizierung anwenden:** Durchsuche die `FEATURES`-Konstante im `<script>`-Block der Datei. Für jeden Feature-String, der einem Titel in `EXISTING_TICKETS` ähnelt (case-insensitive Substring oder pgvector-Score ≥ 0.65), hänge ` (bereits geplant: Txxx)` an oder entferne den Eintrag. Editiere `assets/feature-intake/pm-form-template.html` nicht — nur die Kopie in `$HTML_FILE`.\n\n**Spec-Pool injizieren (wenn `$SPEC_POOL` nicht leer):**\n\nFüge in der Kopie `$HTML_FILE` im `<script>`-Block direkt nach der `FEATURES`-Konstante eine zusätzliche\nGlobale `window.SPEC_POOL` und eine Initialisierungszeile ein, damit das Template die dritte Karten-Gruppe\nrendert. Verwende dafür die Zeilen aus `$SPEC_POOL` (Pipe-getrennt: `title|snippet|source_uri`):\n\n```bash\nif [ -n \"$SPEC_POOL\" ]; then\n  SPEC_JS=\"\"\n  while IFS='|' read -r TITLE SNIPPET URI; do\n    [ -z \"$TITLE\" ] && continue\n    ESC_TITLE=$(echo \"$TITLE\" | sed 's/\"/\\\\\"/g; s|/|\\\\/|g')\n    ESC_SNIPPET=$(echo \"$SNIPPET\" | head -c 100 | sed 's/\"/\\\\\"/g')\n    ESC_URI=$(echo \"$URI\" | sed 's/\"/\\\\\"/g; s|/|\\\\/|g')\n    SPEC_JS=\"$SPEC_JS { title: \\\"$ESC_TITLE\\\", snippet: \\\"$ESC_SNIPPET\\\", uri: \\\"$ESC_URI\\\" },\"\n  done <<< \"$SPEC_POOL\"\n  python3 - \"$HTML_FILE\" \"$SPEC_JS\" <<'PYEOF'\nimport sys, re\npath, pool = sys.argv[1], sys.argv[2].rstrip(',')\nhtml = open(path).read()\nmarker = 'const FEATURES = {'\nidx = html.find(marker)\nif idx < 0:\n    sys.exit('FEATURES marker not found')\nend = html.find('\\n};', idx) + 3\ninsertion = '\\n\\nconst SPEC_POOL = [' + pool + '];\\nwindow.SPEC_POOL = SPEC_POOL;\\ndocument.addEventListener(\"DOMContentLoaded\", renderSpecPool);\\n'\nopen(path, 'w').write(html[:end] + insertion + html[end:])\nPYEOF\nfi\n```\n\nIm Template ist `renderSpecPool()` so definiert, dass es eine zusätzliche dritte Karten-Gruppe\n„Aus eigenen Specs (aus Knowledge-Base)\" rendert (Überschrift, dann pro Pool-Eintrag eine Karte\nmit `title` als Label, erstem 100-Zeichen-Snippet grau/klein darunter, Bereichs-Tag „Spec“).\nWürfel-Button mischt NUR hardcodierte Einträge; Spec-Karten bleiben vollständig sichtbar.\n`buildMarkdown()` gibt Spec-Karten mit Präfix `[Spec]` aus: `- [Spec] <title>`.\nWenn `$SPEC_POOL` leer → kein leerer Platzhalter, Gruppe wird nicht gerendert (graceful fallback).\n\nOptional: Wenn neue Projektbereiche seit dem letzten Lauf relevant sind, ergänze das `FEATURES`-Objekt um neue Bereiche (Areas-Normalisierung beachten — deutsche Labels im Formular, lowercase-Keys in `ticket.sh --areas`).\n\n## Schritt 4 — Session-Hub starten\n\n```bash\nbash scripts/session-hub.sh start-form --file \"$HTML_FILE\" --name intake\n# Zum späteren Aktualisieren: bash scripts/session-hub.sh regen --name intake\n```\n\nDas Formular ist danach erreichbar unter `https://session-intake.sessions.mentolder.de` und erscheint als Karte im Mediaviewer-Panel.\n\n## Schritt 5 — An User liefern\n\nSage wörtlich:\n\n> „Formular frisch generiert ✓ — Kandidaten gegen aktuelle Tickets dedupliziert.\n>\n> 🖥️ Direkt im Browser: https://session-intake.sessions.mentolder.de\n> 📋 Oder lokal: `$HTML_FILE`\n>\n> Ausfüllen → „Markdown kopieren\" → hier einfügen. Mit „Im Ticket speichern\" geht's auch ohne Kopieren.\"\n\nLiefere die Datei zusätzlich per `SendUserFile`.\n\n## Schritt 6 — Rücklauf verarbeiten (nach User-Eingabe)\n\nWenn der User das ausgefüllte Markdown pastet:\n\n1. **Parse** die Feature-Liste (Sektionen Kritisch/Hoch/Mittel/Niedrig + Freie Ideen + ggf. Major-Feature).\n2. **Pro Feature** ein Ticket anlegen mit semantischem Duplikatcheck:\n\n```bash\n# 1. Titelbasierter Duplikatcheck gegen $EXISTING_TICKETS (bestehend)\n\n# 2. Semantischer Duplikatcheck via pgvector (Knowledge-Graph)\nSEARCH_RESULT=$(task knowledge:search ENV=mentolder \\\n  QUERY=\"<titel>\" \\\n  SOURCE=specs_plans \\\n  LIMIT=3 \\\n  THRESHOLD=0.65 2>/dev/null || echo '{\"results\":[]}')\n\nTOP_SCORE=$(echo \"$SEARCH_RESULT\" | python3 -c \\\n  \"import json,sys; d=json.load(sys.stdin); r=d.get('results',[]); print(r[0]['score'] if r else 0)\" 2>/dev/null || echo 0)\nTOP_TITLE=$(echo \"$SEARCH_RESULT\" | python3 -c \\\n  \"import json,sys; d=json.load(sys.stdin); r=d.get('results',[]); print(r[0]['title'] if r else '')\" 2>/dev/null || echo \"\")\nTOP_URI=$(echo \"$SEARCH_RESULT\" | python3 -c \\\n  \"import json,sys; d=json.load(sys.stdin); r=d.get('results',[]); print(r[0]['source_uri'] if r else '')\" 2>/dev/null || echo \"\")\nHAS_ERROR=$(echo \"$SEARCH_RESULT\" | python3 -c \\\n  \"import json,sys; d=json.load(sys.stdin); print('yes' if d.get('error') else 'no')\" 2>/dev/null || echo \"yes\")\n\nBLOCK_DUPLICATE=false\nif [ \"$HAS_ERROR\" = \"yes\" ]; then\n  echo \"⚠️  Semantischer Check übersprungen (VOYAGE_API_KEY fehlt oder Fehler) — Ticket wird trotzdem angelegt.\"\nelif (( $(echo \"$TOP_SCORE >= 0.80\" | bc -l 2>/dev/null || echo 0) )); then\n  echo \"🛑 Duplikat wahrscheinlich — Spec \\\"${TOP_TITLE}\\\" $(python3 -c \"print(f'{float(\\\"$TOP_SCORE\\\")*100:.0f}')\") % ähnlich.\"\n  echo \"   Quelle: ${TOP_URI}\"\n  echo \"   → Ticket NICHT angelegt. Bestehende Spec prüfen oder verknüpfen.\"\n  BLOCK_DUPLICATE=true\nelif (( $(echo \"$TOP_SCORE >= 0.65\" | bc -l 2>/dev/null || echo 0) )); then\n  echo \"⚠️  Ähnliche Spec: \\\"${TOP_TITLE}\\\" (Score: ${TOP_SCORE}) — Ticket trotzdem anlegen + Hinweis im Kommentar.\"\nfi\n\n# 3. Ticket anlegen (nur wenn nicht blockiert)\nif [ \"$BLOCK_DUPLICATE\" = \"true\" ]; then\n  continue  # zur nächsten Feature-Nennung springen\nfi\n\nTICKET_RESULT=$(bash scripts/ticket.sh create \\\n  --type feature \\\n  --brand mentolder \\\n  --title \"<titel>\" \\\n  --priority <kritisch|hoch|mittel|niedrig> \\\n  --description \"<kommentar>\" \\\n  --status planning)\nTICKET_EXT_ID=$(echo \"$TICKET_RESULT\" | cut -d'|' -f1)\n\n# Areas normalisieren (siehe feature-candidates.md Tabelle)\nbash scripts/ticket.sh plan-meta set --id \"$TICKET_EXT_ID\" \\\n  --value-prop \"<kern-nutzen>\" \\\n  --effort <klein|mittel|gross> \\\n  --areas <normalisiert>\n\nSIMILARITY_NOTE=\"\"\nif (( $(echo \"$TOP_SCORE >= 0.65\" | bc -l 2>/dev/null || echo 0) )) && \\\n   (( $(echo \"$TOP_SCORE < 0.80\"  | bc -l 2>/dev/null || echo 0) )); then\n  SIMILARITY_NOTE=\"\\n\\n**Ähnliche Spec:** \\\"${TOP_TITLE}\\\" (Score: ${TOP_SCORE})\\n**Spec-Quelle:** ${TOP_URI}\"\nfi\n```\n\n3. **Major-Feature** (falls Sektion vorhanden + Checkbox gesetzt): Mehrere Tickets anlegen (je Sub-Feature, `--effort gross` `--priority hoch`), jeweils `major_feature: true` im Kommentar. Nach der Liste vorschlagen: → Sub-Features via `dev-flow-plan` Schritt -0.5 (Batch) planen?\n\n4. **Sortierte Empfehlung** ausgeben (Priorität ↓, Aufwand ↑ als Tiebreaker):\n\n```\nNächste Features (sortiert: Priorität ↓, Aufwand ↑):\n1. [hoch/klein]  T000xxx <Titel A> — <Kern-Nutzen>\n2. [hoch/mittel] T000yyy <Titel B> — <Kern-Nutzen>\n3. [mittel/groß] T000zzz <Titel C> — <Kern-Nutzen>\n\n→ Mit welchem soll dev-flow-plan starten?\n  (Standard: Nummer 1 — bestätige oder nenne eine andere Nummer)\n```\n\nStarte **immer nur ein** `dev-flow-plan` zur Zeit — parallele Feature-Worktrees kollidieren auf `k3d/configmap-domains.yaml` und `environments/schema.yaml` (CLAUDE.md Gotcha „Parallel plans share registry files\").\n\n## Constraints\n\n- **Niemals** `assets/feature-intake/pm-form-template.html` direkt editieren — das ist das Master-Template.\n- **Immer** zuerst Session-Hub starten, **dann** `SendUserFile`.\n- **Niemals** ohne User-Bestätigung mehrere `dev-flow-plan`-Aufrufe parallel starten.\n- Bei `start-form`-Fehler: erst `bash scripts/session-hub.sh list` prüfen, dann User informieren (oft blockiert eine vorige Session mit `--name intake`)."
-    }
-  },
-  "compaction": {
-    "auto": true,
-    "buffer": 10000
-  },
-  "experimental": {
-    "openTelemetry": true
-  },
-  "provider": {
-    "lmstudio": {
-      "options": {
-        "baseURL": "http://localhost:1234/v1",
-        "apiKey": "lmstudio"
-      },
-      "models": {
-        "google/gemma-4-12b-qat": {
-          "id": "google/gemma-4-12b-qat",
-          "name": "Gemma 4 12B QAT",
-          "limit": { "context": 131072, "output": 8192 },
-          "options": {
-            "stop": ["<end_of_turn>"]
-          }
-        },
-        "text-embedding-bge-m3": {
-          "id": "text-embedding-bge-m3",
-          "name": "BGE-M3 Embeddings"
-        },
-        "text-embedding-nomic-embed-text-v1.5": {
-          "id": "text-embedding-nomic-embed-text-v1.5",
-          "name": "Nomic Embed Text v1.5"
-        },
-        "text-embedding-bge-reranker-v2-m3": {
-          "id": "text-embedding-bge-reranker-v2-m3",
-          "name": "BGE Reranker v2 M3"
-        }
-      }
-    },
-    "ollama": {
-      "options": {
-        "baseURL": "http://localhost:11434/v1",
-        "apiKey": "ollama"
-      }
-    }
-  },
-  "instructions": ["AGENTS.md"]
+  }
 }

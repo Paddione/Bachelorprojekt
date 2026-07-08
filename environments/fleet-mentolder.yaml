@@ -32,6 +32,9 @@ env_vars:
   SMTP_HOST: smtp.mailbox.org
   SMTP_PORT: "587"
   SMTP_SECURE: "false"
+  PRIMARY_FRONTEND: astro
+  # TURN_OVERLAY_IP: pk-hetzner-4 overlay IP (wg-fleet, same fleet mesh as gekko-4)
+  TURN_OVERLAY_IP: "10.20.0.1"
   # TURN_NODE repointed to a fleet node (gekko-hetzner-2 does not exist on fleet).
   # TURN_PUBLIC_IP pinned to pk-hetzner-4's public IP — the fleet node TURN_NODE
   # resolves to. Must stay in sync with the fleet-dns-cutover allowlist.
@@ -65,6 +68,7 @@ env_vars:
   LLM_HOST_IP: "192.168.100.10"
   COMFY_HOST_IP: "192.168.100.10"
   COMFY_PORT: "8189"
+  TERMINAL_OVERLAY_IP: "10.20.0.10"
   LLM_ENABLED: "true"
   LLM_RERANK_ENABLED: "false"
   LLM_ROUTER_URL: "http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234"

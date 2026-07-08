@@ -5,6 +5,11 @@ source "$(dirname "${BASH_SOURCE[0]}")/_ticket-core.sh"
 
 main() {
   local type="" title="" desc="" brand="mentolder" severity="" priority="mittel" status="triage" attention_mode="" is_test="false" areas=""
+  # Tolerate an optional leading "create" subcommand token so this script can
+  # be invoked either standalone (`create.sh create --type ...`) or via the
+  # ticket.sh dispatcher (which already shifts the subcommand off before
+  # calling main). [T001582-M2]
+  [[ "${1:-}" == "create" ]] && shift
   while [[ $# -gt 0 ]]; do case "$1" in
       --type)           type="$2"; shift 2 ;;
       --title)          title="$2"; shift 2 ;;
@@ -21,6 +26,18 @@ main() {
   if [[ -z "$type" || -z "$title" || -z "$desc" ]]; then
     echo "ERROR: --type, --title, and --description are required." >&2
     exit 2
+  fi
+  # [T001582-M2] Validate --severity client-side before any DB access, so an
+  # invalid value never burns a sequence id on a failed insert. Empty stays
+  # allowed (severity is optional).
+  if [[ -n "$severity" ]]; then
+    case "$severity" in
+      critical|major|minor|trivial) ;;
+      *)
+        echo "ERROR: --severity must be one of: critical, major, minor, trivial (got: $severity)" >&2
+        exit 2
+        ;;
+    esac
   fi
   local pod; pod=$(_pgpod)
   local result ext_id

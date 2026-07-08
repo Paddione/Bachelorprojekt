@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-02T21:29:46.301Z",
+  "generatedAt": "2026-07-08T12:45:01.041Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -612,6 +612,14 @@
       "file": "website/src/pages/api/admin/coaching/ki-config/active.ts"
     },
     {
+      "path": "/api/admin/coaching/ki-config/models",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/ki-config/models.ts"
+    },
+    {
       "path": "/api/admin/coaching/projects",
       "methods": [
         "GET"
@@ -1128,7 +1136,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "unclassified",
+      "auth": "admin",
       "file": "website/src/pages/api/admin/footer/save.ts"
     },
     {
@@ -1370,7 +1378,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "unclassified",
+      "auth": "admin",
       "file": "website/src/pages/api/admin/kore-flags/save.ts"
     },
     {
@@ -1461,7 +1469,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "unclassified",
+      "auth": "admin",
       "file": "website/src/pages/api/admin/navigation/save.ts"
     },
     {
@@ -1627,6 +1635,15 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/ops/dns/pin.ts"
+    },
+    {
+      "path": "/api/admin/ops/error-log",
+      "methods": [
+        "POST",
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/ops/error-log.ts"
     },
     {
       "path": "/api/admin/ops/health",
@@ -2017,7 +2034,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "unclassified",
+      "auth": "admin",
       "file": "website/src/pages/api/admin/referenzen/save.ts"
     },
     {
@@ -2164,7 +2181,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "unclassified",
+      "auth": "admin",
       "file": "website/src/pages/api/admin/stammdaten/save.ts"
     },
     {
@@ -2716,6 +2733,14 @@
       ],
       "auth": "unclassified",
       "file": "website/src/pages/api/contact.ts"
+    },
+    {
+      "path": "/api/cron/error-log-retention",
+      "methods": [
+        "POST"
+      ],
+      "auth": "cron",
+      "file": "website/src/pages/api/cron/error-log-retention.ts"
     },
     {
       "path": "/api/cron/notify-unread",

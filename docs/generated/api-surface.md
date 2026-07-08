@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-07-02T21:29:46.301Z
+> Generated at 2026-07-08T12:45:01.041Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -79,6 +79,7 @@
 | `/api/admin/coaching/ki-config` | GET, POST | 🔐 admin | `website/src/pages/api/admin/coaching/ki-config/index.ts` |
 | `/api/admin/coaching/ki-config/{id}` | PATCH, DELETE | 🔐 admin | `website/src/pages/api/admin/coaching/ki-config/[id].ts` |
 | `/api/admin/coaching/ki-config/active` | PATCH | 🔐 admin | `website/src/pages/api/admin/coaching/ki-config/active.ts` |
+| `/api/admin/coaching/ki-config/models` | GET | 🔐 admin | `website/src/pages/api/admin/coaching/ki-config/models.ts` |
 | `/api/admin/coaching/projects` | GET | 🔐 admin | `website/src/pages/api/admin/coaching/projects/index.ts` |
 | `/api/admin/coaching/projects/{id}` | GET, PATCH | 🔐 admin | `website/src/pages/api/admin/coaching/projects/[id].ts` |
 | `/api/admin/coaching/save` | POST | 🔐 admin | `website/src/pages/api/admin/coaching/save.ts` |
@@ -141,7 +142,7 @@
 | `/api/admin/folder-templates/create` | POST | 🔐 admin | `website/src/pages/api/admin/folder-templates/create.ts` |
 | `/api/admin/folder-templates/delete` | POST | 🔐 admin | `website/src/pages/api/admin/folder-templates/delete.ts` |
 | `/api/admin/folder-templates/update` | POST | 🔐 admin | `website/src/pages/api/admin/folder-templates/update.ts` |
-| `/api/admin/footer/save` | POST | ❓ unclassified | `website/src/pages/api/admin/footer/save.ts` |
+| `/api/admin/footer/save` | POST | 🔐 admin | `website/src/pages/api/admin/footer/save.ts` |
 | `/api/admin/fuehrung/save` | POST | 🔐 admin | `website/src/pages/api/admin/fuehrung/save.ts` |
 | `/api/admin/generate-3d` | POST | 🔐 admin | `website/src/pages/api/admin/generate-3d.ts` |
 | `/api/admin/generate-3d/status` | GET | 🔐 admin | `website/src/pages/api/admin/generate-3d/status.ts` |
@@ -170,7 +171,7 @@
 | `/api/admin/knowledge/collections/suggest` | GET | 🔐 admin | `website/src/pages/api/admin/knowledge/collections/suggest.ts` |
 | `/api/admin/knowledge/import/json` | POST | 🔐 admin | `website/src/pages/api/admin/knowledge/import/json.ts` |
 | `/api/admin/kontakt/save` | POST | 🔐 admin | `website/src/pages/api/admin/kontakt/save.ts` |
-| `/api/admin/kore-flags/save` | POST | ❓ unclassified | `website/src/pages/api/admin/kore-flags/save.ts` |
+| `/api/admin/kore-flags/save` | POST | 🔐 admin | `website/src/pages/api/admin/kore-flags/save.ts` |
 | `/api/admin/legal/{key}/save` | POST | 🔐 admin | `website/src/pages/api/admin/legal/[key]/save.ts` |
 | `/api/admin/legal/retokenize` | POST | 🔐 admin | `website/src/pages/api/admin/legal/retokenize.ts` |
 | `/api/admin/meetings` | GET | 🔐 admin | `website/src/pages/api/admin/meetings/index.ts` |
@@ -181,7 +182,7 @@
 | `/api/admin/messages` | GET, POST | 🔐 admin | `website/src/pages/api/admin/messages.ts` |
 | `/api/admin/messages/{threadId}` | GET, POST | 🔐 admin | `website/src/pages/api/admin/messages/[threadId].ts` |
 | `/api/admin/monitoring` | GET | 🔐 admin | `website/src/pages/api/admin/monitoring.ts` |
-| `/api/admin/navigation/save` | POST | ❓ unclassified | `website/src/pages/api/admin/navigation/save.ts` |
+| `/api/admin/navigation/save` | POST | 🔐 admin | `website/src/pages/api/admin/navigation/save.ts` |
 | `/api/admin/newsletter/blocks` | GET, POST | 🔐 admin | `website/src/pages/api/admin/newsletter/blocks/index.ts` |
 | `/api/admin/newsletter/blocks/{id}` | PUT, DELETE | 🔐 admin | `website/src/pages/api/admin/newsletter/blocks/[id].ts` |
 | `/api/admin/newsletter/campaigns` | GET, POST | 🔐 admin | `website/src/pages/api/admin/newsletter/campaigns/index.ts` |
@@ -202,6 +203,7 @@
 | `/api/admin/ops/deployments/{ns}/{name}/scale` | POST | 🔐 admin | `website/src/pages/api/admin/ops/deployments/[ns]/[name]/scale.ts` |
 | `/api/admin/ops/deployments/list` | GET | 🔐 admin | `website/src/pages/api/admin/ops/deployments/list.ts` |
 | `/api/admin/ops/dns/pin` | POST | 🔐 admin | `website/src/pages/api/admin/ops/dns/pin.ts` |
+| `/api/admin/ops/error-log` | POST, GET | 🔐 admin | `website/src/pages/api/admin/ops/error-log.ts` |
 | `/api/admin/ops/health` | GET | 🔐 admin | `website/src/pages/api/admin/ops/health.ts` |
 | `/api/admin/ops/log-stream/stream` | GET | 🔐 admin | `website/src/pages/api/admin/ops/log-stream/stream.ts` |
 | `/api/admin/ops/redeploy/brett` | POST | 🔐 admin | `website/src/pages/api/admin/ops/redeploy/brett.ts` |
@@ -249,7 +251,7 @@
 | `/api/admin/questionnaires/templates` | GET, POST | 🔐 admin | `website/src/pages/api/admin/questionnaires/templates/index.ts` |
 | `/api/admin/questionnaires/templates/{id}` | GET, PUT, DELETE | 🔐 admin | `website/src/pages/api/admin/questionnaires/templates/[id].ts` |
 | `/api/admin/rechtliches/save` | POST | 🔐 admin | `website/src/pages/api/admin/rechtliches/save.ts` |
-| `/api/admin/referenzen/save` | POST | ❓ unclassified | `website/src/pages/api/admin/referenzen/save.ts` |
+| `/api/admin/referenzen/save` | POST | 🔐 admin | `website/src/pages/api/admin/referenzen/save.ts` |
 | `/api/admin/seo` | GET | 🔐 admin | `website/src/pages/api/admin/seo/index.ts` |
 | `/api/admin/seo/pages` | GET | 🔐 admin | `website/src/pages/api/admin/seo/pages.ts` |
 | `/api/admin/seo/save` | POST | 🔐 admin | `website/src/pages/api/admin/seo/save.ts` |
@@ -267,7 +269,7 @@
 | `/api/admin/shortcuts/update` | PATCH | 🔐 admin | `website/src/pages/api/admin/shortcuts/update.ts` |
 | `/api/admin/slots/add` | POST | 🔐 admin | `website/src/pages/api/admin/slots/add.ts` |
 | `/api/admin/slots/remove` | DELETE | 🔐 admin | `website/src/pages/api/admin/slots/remove.ts` |
-| `/api/admin/stammdaten/save` | POST | ❓ unclassified | `website/src/pages/api/admin/stammdaten/save.ts` |
+| `/api/admin/stammdaten/save` | POST | 🔐 admin | `website/src/pages/api/admin/stammdaten/save.ts` |
 | `/api/admin/startseite/save` | POST | 🔐 admin | `website/src/pages/api/admin/startseite/save.ts` |
 | `/api/admin/startseite/upload-portrait` | POST | 🔐 admin | `website/src/pages/api/admin/startseite/upload-portrait.ts` |
 | `/api/admin/subprojekte/create` | POST | 🔐 admin | `website/src/pages/api/admin/subprojekte/create.ts` |
@@ -336,6 +338,7 @@
 | `/api/cluster/status` | GET | ❓ unclassified | `website/src/pages/api/cluster/status.ts` |
 | `/api/codesearch` | GET | 🔐 admin | `website/src/pages/api/codesearch.ts` |
 | `/api/contact` | POST | ❓ unclassified | `website/src/pages/api/contact.ts` |
+| `/api/cron/error-log-retention` | POST | ⏰ cron | `website/src/pages/api/cron/error-log-retention.ts` |
 | `/api/cron/notify-unread` | POST | 🔐 admin | `website/src/pages/api/cron/notify-unread.ts` |
 | `/api/cron/scheduled-publish` | GET | ⏰ cron | `website/src/pages/api/cron/scheduled-publish.ts` |
 | `/api/demo/coaching-sim` | POST | ❓ unclassified | `website/src/pages/api/demo/coaching-sim.ts` |

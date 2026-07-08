@@ -3,13 +3,31 @@ import { serverLogBuffer } from './server-log-buffer';
 
 const level = process.env.PINO_LOG_LEVEL ?? 'info';
 
-// Second multistream destination: mirror every emitted line into the in-process
-// ring buffer for the admin logging widget. stdout (→ Promtail/Loki) is kept as
-// the first stream so existing log shipping is unchanged. Per-stream level is
-// 'trace' so the logger's own `level` stays the single gate (no dev regression).
+// First multistream destination: stdout (→ Promtail/Loki) - unchanged
+const stdoutStream = { stream: process.stdout, level: 'trace' };
+
+// Second multistream destination: buffer for admin logging widget - unchanged
 const bufferStream = {
   write(line: string) {
     serverLogBuffer.pushRaw(line);
+  },
+};
+
+// Third multistream destination: persist error lines to DB (fire-and-forget)
+// Note: This is a lazy import to avoid circular dependency with error-log-store.ts
+const errorPersistStream = {
+  level: 'error',
+  write(line: string) {
+    try {
+      const entry = JSON.parse(line);
+      // Dynamically import persistError to avoid circular deps
+      (async () => {
+        const { persistError } = await import('./logging/error-log-store.js');
+        await persistError({ source: 'server' as const, message: entry.msg ?? line });
+      })();
+    } catch (err) {
+      console.error('[logger] Failed to parse and persist error log:', err);
+    }
   },
 };
 
@@ -19,10 +37,7 @@ export const logger = pino(
     base: { service: 'website' },
     serializers: { err: pino.stdSerializers.err },
   },
-  pino.multistream([
-    { stream: process.stdout, level: 'trace' },
-    { stream: bufferStream, level: 'trace' },
-  ]),
+  pino.multistream([stdoutStream, bufferStream, errorPersistStream]),
 );
 
 export interface RequestLogContext {

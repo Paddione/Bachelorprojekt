@@ -1,0 +1,12 @@
+- id: dev-flow-plan
+  name_de: "Planungs-Skill"
+  kind: skill
+  harness: bogus
+  summary_de: "Wählt den Pfad und schreibt den Plan."
+  what_for_de: "Startpunkt für jede Änderung."
+  how_to_start_de: "Beschreibe einfach, was du ändern willst."
+  what_could_go_wrong_de: "Nichts — er stoppt vor der Umsetzung."
+  danger: caution
+  guardrails: [G-ENV-EXPLICIT]
+  related: []
+  links: []

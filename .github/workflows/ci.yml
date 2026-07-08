@@ -104,7 +104,6 @@ jobs:
 
       - name: Ensure freshness artifacts are up to date
         if: github.event_name == 'pull_request'
-        continue-on-error: true
         run: |
           if ! task freshness:check; then
             echo ""
@@ -183,10 +182,14 @@ jobs:
       - run: npm run build --prefix brett
 
   vitest-website:
-    # Always runs on every PR (no path filter) so the branch-protection
+    # Always runs on every PR (no job-level path filter) so the branch-protection
     # required-check "Vitest (website)" reports on chore / config-only PRs too.
     # See mishap: Vitest (website) was required by main but no workflow
     # produced it, blocking auto-merge of chore PRs (e.g. #2094 admin-merged).
+    # Smart selection happens INSIDE the vitest run via `--changed`
+    # (mirrors local `task test:changed`): a chore PR runs zero tests in
+    # ~1s, a website-feature PR runs only the affected ones. The
+    # coverage gate below treats the no-changes case as a pass.
     name: Vitest (website)
     if: github.event.action != 'edited'
     runs-on: ubuntu-latest
@@ -215,15 +218,21 @@ jobs:
           cd website
           pnpm lint
 
-      - name: Run website unit tests (with coverage)
+      - name: Run website unit tests (with coverage, --changed)
+        # Mirrors the local `task test:changed` smart selection: only run
+        # the tests affected by files changed in this PR (vitest --changed).
+        # On a chore / config-only PR (no website/ source touched) the run
+        # exits 0 with zero tests, producing a coverage report with
+        # pct: "Unknown" — the gate step below treats that as a pass
+        # because there is no source delta to regress.
         # Default 5s per-test timeout is too tight for DB-heavy tests
         # (e.g. tickets/cockpit-db.test.ts seeds 1005 rows) when vitest
         # runs ~243 files in parallel on shared CI runners.
         # --coverage is on by default here so the suite runs once, not twice —
-        # it also feeds the coverage gate step below. [T001336]
+        # it also feeds the coverage gate step below. [T001336, T001651]
         run: |
           cd website
-          pnpm exec vitest run --coverage --testTimeout=30000
+          pnpm exec vitest run --changed --coverage --testTimeout=30000
 
       - name: Upload Vitest JUnit report
         # Runs even if the tests above failed, so a red PR still gets a
@@ -242,9 +251,22 @@ jobs:
         # Belt-and-braces second check against the coverage-summary.json
         # produced by the run above, so a misconfigured reporter cannot
         # silently bypass the gate. Does NOT re-run vitest. [T001336]
+        # Skip when --changed produced zero tests (pct: "Unknown"): there
+        # is no website source delta to regress on a chore / config-only
+        # PR. We still run vitest above (so the required check reports
+        # green and junit.xml is produced), we just don't penalise the
+        # 0% "no tests ran" coverage artifact. [T001651]
         run: |
           cd website
+          if [ ! -f coverage/coverage-summary.json ]; then
+            echo "::notice::No coverage-summary.json (--changed produced no report) — skipping gate"
+            exit 0
+          fi
           COV=$(jq -r '.total.lines.pct' coverage/coverage-summary.json)
+          if [ "$COV" = "Unknown" ] || [ "$COV" = "null" ] || [ -z "$COV" ]; then
+            echo "::notice::Coverage pct: ${COV:-empty} (--changed found no website/ changes) — skipping gate"
+            exit 0
+          fi
           echo "Total line coverage: ${COV}%"
           awk -v cov="$COV" 'BEGIN { if (cov + 0 < 60) { print "::error::Coverage gate failed: " cov "% < 60%"; exit 1 } else { print "::notice::Coverage gate passed: " cov "% >= 60%" } }'
 

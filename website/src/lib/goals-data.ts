@@ -218,7 +218,7 @@ const RAW_GOALS: HealthGoal[] = [
     priority: 'C', direction: 'lower',
     baseline: 9, current: 0, target: 0, unit: 'Suppressionen',
     status: 'achieved',
-    measurement: "grep -r '@ts-ignore\\|@ts-expect-error' website/src --include='*.ts' --include='*.svelte' --include='*.astro' | grep -v 'goals-data.ts' | wc -l",
+    measurement: "grep -rE '@ts-(ignore|expect-error)' website/src --include='*.ts' --include='*.svelte' --include='*.astro' | grep -v 'goals-data.ts' | wc -l",
     source: '.agents/lib/goals.md · G-RH02',
     measured_at: '2026-06-28',
   },

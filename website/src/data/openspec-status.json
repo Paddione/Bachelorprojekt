@@ -793,6 +793,158 @@
       "status": "archived"
     }
   ],
+  "T001537": [
+    {
+      "slug": "t001537",
+      "status": "archived"
+    }
+  ],
+  "T001565": [
+    {
+      "slug": "agentic-terminal-sidekick",
+      "status": "plan_staged"
+    }
+  ],
+  "T001567": [
+    {
+      "slug": "brain-auto-memory",
+      "status": "plan_staged"
+    }
+  ],
+  "T001568": [
+    {
+      "slug": "2026-07-03-brain-foundation",
+      "status": "archived"
+    }
+  ],
+  "T001578": [
+    {
+      "slug": "brain-site-dockerfile-template",
+      "status": "plan_staged"
+    }
+  ],
+  "T001579": [
+    {
+      "slug": "oauth2-proxy-hardening",
+      "status": "plan_staged"
+    },
+    {
+      "slug": "2026-07-03-oauth2-proxy-hardening",
+      "status": "archived"
+    }
+  ],
+  "T001582": [
+    {
+      "slug": "2026-07-03-t001582",
+      "status": "archived"
+    }
+  ],
+  "T001583": [
+    {
+      "slug": "2026-07-03-t001583",
+      "status": "archived"
+    }
+  ],
+  "T001584": [
+    {
+      "slug": "fleet-secrets-parity-test",
+      "status": "plan_staged"
+    },
+    {
+      "slug": "2026-07-03-fleet-secrets-parity-test",
+      "status": "archived"
+    }
+  ],
+  "T001586": [
+    {
+      "slug": "t001586",
+      "status": "plan_staged"
+    }
+  ],
+  "T001588": [
+    {
+      "slug": "t001588",
+      "status": "plan_staged"
+    }
+  ],
+  "T001590": [
+    {
+      "slug": "t001590",
+      "status": "plan_staged"
+    },
+    {
+      "slug": "2026-07-03-local-agent-budget-routing",
+      "status": "archived"
+    }
+  ],
+  "T001591": [
+    {
+      "slug": "t001591",
+      "status": "plan_staged"
+    }
+  ],
+  "T001592": [
+    {
+      "slug": "t001592",
+      "status": "plan_staged"
+    }
+  ],
+  "T001608": [
+    {
+      "slug": "brain-quality-goals",
+      "status": "plan_staged"
+    }
+  ],
+  "T001609": [
+    {
+      "slug": "hermes-agent-mcp-access",
+      "status": "plan_staged"
+    }
+  ],
+  "T001610": [
+    {
+      "slug": "t001610",
+      "status": "plan_staged"
+    }
+  ],
+  "T001611": [
+    {
+      "slug": "harness-workflow-split",
+      "status": "plan_staged"
+    }
+  ],
+  "T001638": [
+    {
+      "slug": "coaching-sessions-admin-ux",
+      "status": "plan_staged"
+    },
+    {
+      "slug": "2026-07-08-coaching-sessions-admin-ux",
+      "status": "archived"
+    }
+  ],
+  "T001641": [
+    {
+      "slug": "coaching-ki-model-select",
+      "status": "plan_staged"
+    },
+    {
+      "slug": "2026-07-08-coaching-ki-model-select",
+      "status": "archived"
+    }
+  ],
+  "T001649": [
+    {
+      "slug": "2026-07-08-studio-sessions-reorganize",
+      "status": "archived"
+    }
+  ],
+  "T001652": [
+    {
+      "slug": "2026-07-08-website-migration-runner",
+      "status": "archived"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

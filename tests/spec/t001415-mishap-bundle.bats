@@ -46,6 +46,12 @@ setup() {
   # nobody's PID table on a clean system).
   LF="$AGENT_LOCK_DIR/ticket__t001415-m1-pid.json"
   sed -i 's/"owner_pid": "[0-9]*"/"owner_pid": "999999"/' "$LF"
+  # [T001582-M1] _reapable() now measures age against heartbeat_at first
+  # (falling back to created_at only when heartbeat_at is absent), so a
+  # genuinely stale-and-never-refreshed claim must have BOTH timestamps
+  # aged to simulate that correctly — otherwise the fresh heartbeat_at left
+  # over from `claim` above would make this claim look live.
+  sed -i 's/"heartbeat_at": "[0-9]*"/"heartbeat_at": "1"/' "$LF"
   # Force the claim to be older than AGENT_LOCK_GRACE so the grace window
   # does not protect it.
   sed -i 's/"created_at": "[0-9]*"/"created_at": "1"/' "$LF"

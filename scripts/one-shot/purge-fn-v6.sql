@@ -255,6 +255,20 @@ BEGIN
     result := result || jsonb_build_object('inbox_remarked_unmarked', cnt);
   END IF;
 
+  IF has_coaching_flag THEN
+    UPDATE coaching.sessions
+       SET is_test_data = true
+     WHERE is_test_data = false
+       AND (
+             title LIKE 'FA-%'
+          OR title LIKE 'e2e-%'
+          OR title LIKE '%E2E%'
+          OR title LIKE 'Session E2E%'
+           );
+    GET DIAGNOSTICS cnt = ROW_COUNT;
+    result := result || jsonb_build_object('coaching_sessions_remarked', cnt);
+  END IF;
+
   ----------------------------------------------------------------------------
   -- 10) Delete child test-data tickets (non-project).
   ----------------------------------------------------------------------------

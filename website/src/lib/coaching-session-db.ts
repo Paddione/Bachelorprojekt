@@ -401,20 +401,25 @@ export async function updateSessionFields(
   }
 }
 
-export async function archiveSession(pool: Pool, id: string, actor: string): Promise<void> {
+export async function archiveSession(pool: Pool, id: string, actor: string): Promise<boolean> {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    await client.query(
+    const updated = await client.query(
       `UPDATE coaching.sessions SET archived_at = now() WHERE id = $1`,
       [id],
     );
+    if (updated.rowCount === 0) {
+      await client.query('ROLLBACK');
+      return false;
+    }
     await client.query(
       `INSERT INTO coaching.session_audit_log (session_id, event_type, actor, step_number, payload)
        VALUES ($1, $2, $3, $4, $5)`,
       [id, 'status_change', actor, null, JSON.stringify({ action: 'archived' })],
     );
     await client.query('COMMIT');
+    return true;
   } catch (e) {
     await client.query('ROLLBACK');
     throw e;
@@ -423,20 +428,25 @@ export async function archiveSession(pool: Pool, id: string, actor: string): Pro
   }
 }
 
-export async function unarchiveSession(pool: Pool, id: string, actor: string): Promise<void> {
+export async function unarchiveSession(pool: Pool, id: string, actor: string): Promise<boolean> {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    await client.query(
+    const updated = await client.query(
       `UPDATE coaching.sessions SET archived_at = null WHERE id = $1`,
       [id],
     );
+    if (updated.rowCount === 0) {
+      await client.query('ROLLBACK');
+      return false;
+    }
     await client.query(
       `INSERT INTO coaching.session_audit_log (session_id, event_type, actor, step_number, payload)
        VALUES ($1, $2, $3, $4, $5)`,
       [id, 'status_change', actor, null, JSON.stringify({ action: 'unarchived' })],
     );
     await client.query('COMMIT');
+    return true;
   } catch (e) {
     await client.query('ROLLBACK');
     throw e;

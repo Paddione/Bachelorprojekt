@@ -96,3 +96,21 @@ setup() {
   run grep -qF "Kein KI-Provider konfiguriert" "$WEB/pages/api/admin/coaching/sessions/[id]/steps/[n]/generate.ts"
   [ "$status" -eq 0 ]
 }
+
+@test "T001670 archive/unarchive endpoints return 404 for unknown session ids" {
+  run grep -qF "Session nicht gefunden" "$WEB/pages/api/admin/coaching/sessions/[id]/archive.ts"
+  [ "$status" -eq 0 ]
+  run grep -qF "Session nicht gefunden" "$WEB/pages/api/admin/coaching/sessions/[id]/unarchive.ts"
+  [ "$status" -eq 0 ]
+}
+
+@test "T001672 anthropic gateway endpoint is env-overridable and documented" {
+  run grep -qF "LLM_GATEWAY_URL" "$WEB/lib/openai-compatible-session-agent.ts"
+  [ "$status" -eq 0 ]
+  run grep -qF "LLM_GATEWAY_URL" "$REPO_ROOT/environments/schema.yaml"
+  [ "$status" -eq 0 ]
+  run grep -qF "COACHING_SESSION_MODEL" "$REPO_ROOT/environments/schema.yaml"
+  [ "$status" -eq 0 ]
+  run grep -qF "SESSION_HUB_REGISTRY_WRITABLE" "$REPO_ROOT/environments/schema.yaml"
+  [ "$status" -eq 0 ]
+}

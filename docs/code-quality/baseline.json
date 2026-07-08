@@ -179,21 +179,13 @@
     "path": "website/tests/api.test.mjs",
     "metric": 589,
     "detail": "589 lines > 500 limit (.mjs)",
-<<<<<<< HEAD
-    "frozen_at": "8b581ebe"
-=======
     "frozen_at": "90ff47d"
->>>>>>> origin/main
   },
   "S4:scripts/agent-orchestrator.sh": {
     "gate": "S4",
     "path": "scripts/agent-orchestrator.sh",
     "metric": 1,
     "detail": "no reference to 'agent-orchestrator.sh' in any configured source",
-<<<<<<< HEAD
-    "frozen_at": "8b581ebe"
-=======
     "frozen_at": "90ff47d"
->>>>>>> origin/main
   }
 }

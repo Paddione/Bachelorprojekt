@@ -17,27 +17,55 @@ _Ticket: T001591_
 ## File Structure
 
 ```
-<author fills this in — list of new/changed files>
+scripts/harness.ts                    # Spawn-Wrapper mit Lavish-Delegation detection
+tests/spec/t001591.bats              # BATS tests für harness
+scripts/agent-orchestrator.sh         # Agent orchestration CLI (T001588)
 ```
 
-## Verify (RED → GREEN)
+## Implementieren (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Add the BATS test that reproduces the
-      bug. The test must FAIL on the current branch. Use the phrase
-      `expected: FAIL` in the step body so plan-lint STRUCT2 picks it up.
+### ① Harness Visual Detection Implementation
+
+Implement `scripts/harness.ts` mit Lavish-Delegation für visual requests.
+
+**Failing Test (RED):**
 
 ```bash
-# Example: run the BATS test the author will add in their first task
+# Initial state: harness.ts nicht implementiert, Tests müssen FAIL
 tests/unit/lib/bats-core/bin/bats tests/spec/t001591.bats
-# expected: FAIL (red — the fix is not yet implemented)
+expected: FAIL - harness.ts ist noch nicht implementiert
 ```
 
-- [ ] **Fix-Step (GREEN).** Implement the fix. The BATS test from the
-      previous step must now pass.
+### ② Harness Visual Detection Fix (GREEN)
 
-- [ ] **Final Verification.** Run the three mandatory CI gates:
+Implement `scripts/harness.ts` und alle Testfälle in `tests/spec/t001591.bats`.
+
+**Verify:**
 
 ```bash
+# Alle Tests müssen durchlaufen und PASSEN
+tests/unit/lib/bats-core/bin/bats tests/spec/t001591.bats
+expected: PASS - harness visual detection funktioniert
+```
+
+### ③ Agent Orchestrator Implementation (T001588)
+
+Implement `scripts/agent-orchestrator.sh` für lokale agent orchestration.
+
+**Verify:**
+
+```bash
+# Basic functionality test
+./scripts/agent-orchestrator.sh --help | grep -q "Usage:"
+expected: PASS - help output funktioniert
+```
+
+### ④ Final Verification
+
+Alle Tests und Gates:
+
+```bash
+tests/unit/lib/bats-core/bin/bats tests/spec/t001591.bats
 task test:changed
 task freshness:regenerate
 task freshness:check

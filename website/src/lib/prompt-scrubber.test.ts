@@ -1,15 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { scrubClientPii } from './prompt-scrubber';
 
 describe('scrubClientPii', () => {
-  let mockFetch: ReturnType<typeof vi.fn>;
-
-  beforeEach(() => {
-    mockFetch = vi.fn();
-    global.fetch = mockFetch;
-    Object.defineProperty(global, 'fetch', { value: mockFetch, writable: true });
-  });
-
   it('replaces full name in text with replacement token', () => {
     const result = scrubClientPii(
       'Termin mit Max Mustermann heute',

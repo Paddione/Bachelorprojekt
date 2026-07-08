@@ -1,112 +1,91 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-describe('Active provider endpoint', () => {
-  let mockSession: ReturnType<typeof vi.fn>;
-  let mockSetActiveProvider: ReturnType<typeof vi.fn>;
-  
+vi.mock('../../../../../lib/auth', () => ({
+  getSession: vi.fn(),
+  isAdmin: vi.fn(),
+}));
+vi.mock('../../../../../lib/coaching-ki-config-db', () => ({
+  setActiveProvider: vi.fn(),
+}));
+vi.mock('../../../../../lib/website-db', () => ({
+  pool: {},
+}));
+import { getSession, isAdmin } from '../../../../../lib/auth';
+import { setActiveProvider } from '../../../../../lib/coaching-ki-config-db';
+import { PATCH } from './active';
+
+type RouteContext = Parameters<typeof PATCH>[0];
+const mkReq = (body: string) =>
+  new Request('http://x/api/admin/coaching/ki-config/active', {
+    method: 'PATCH',
+    headers: { cookie: 's=1', 'content-type': 'application/json' },
+    body,
+  });
+const call = (body: string) => PATCH({ request: mkReq(body) } as unknown as RouteContext);
+const adminSession = { preferred_username: 'admin', sub: 'a', email: 'a@x' } as unknown as Awaited<ReturnType<typeof getSession>>;
+
+describe('PATCH /api/admin/coaching/ki-config/active', () => {
   beforeEach(() => {
-    mockSession = vi.fn();
-    mockSetActiveProvider = vi.fn();
-    
-    vi.mock('../../../../../../lib/auth', async () => ({
-      getSession: mockSession,
-      isAdmin: (s: any) => s?.role === 'admin',
-    }));
-    
-    vi.mock('../../../../../../lib/coaching-ki-config-db', () => ({
-      setActiveProvider: mockSetActiveProvider,
-    }));
-
-    Object.defineProperty(global, 'process', {
-      value: { ...global.process, env: { BRAND: 'mentolder' } },
-      writable: true,
-    });
+    vi.clearAllMocks();
+    process.env.BRAND = 'mentolder';
   });
 
-  it('accepts local-lmstudio (KI_CATALOG id)', async () => {
-    mockSession.mockResolvedValue({ role: 'admin' } as any);
-    
-    const providerId = 'local-lmstudio';
-    mockSetActiveProvider.mockResolvedValue(undefined);
+  it('accepts a KI_CATALOG provider id', async () => {
+    vi.mocked(getSession).mockResolvedValue(adminSession);
+    vi.mocked(isAdmin).mockReturnValue(true);
+    vi.mocked(setActiveProvider).mockResolvedValue(undefined);
 
-    const response = await fetch('/api/admin/coaching/ki-config/active', {
-      method: 'PATCH',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ provider: providerId }),
-    });
-    
-    expect(response.status).toBe(200);
-    const json = (await response.json()) as { ok: boolean };
+    const res = await call(JSON.stringify({ provider: 'local-lmstudio' }));
+    expect(res.status).toBe(200);
+    const json = (await res.json()) as { ok: boolean };
     expect(json.ok).toBe(true);
-    expect(mockSetActiveProvider).toHaveBeenCalledWith(expect.anything(), 'mentolder', providerId);
+    expect(setActiveProvider).toHaveBeenCalledWith(expect.anything(), 'mentolder', 'local-lmstudio');
   });
 
-  it('accepts custom_myllm provider', async () => {
-    mockSession.mockResolvedValue({ role: 'admin' } as any);
-    
-    const providerId = 'custom_myllm';
-    mockSetActiveProvider.mockResolvedValue(undefined);
+  it('accepts a custom_-prefixed provider', async () => {
+    vi.mocked(getSession).mockResolvedValue(adminSession);
+    vi.mocked(isAdmin).mockReturnValue(true);
+    vi.mocked(setActiveProvider).mockResolvedValue(undefined);
 
-    const response = await fetch('/api/admin/coaching/ki-config/active', {
-      method: 'PATCH',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ provider: providerId }),
-    });
-    
-    expect(response.status).toBe(200);
-    const json = (await response.json()) as { ok: boolean };
+    const res = await call(JSON.stringify({ provider: 'custom_myllm' }));
+    expect(res.status).toBe(200);
+    const json = (await res.json()) as { ok: boolean };
     expect(json.ok).toBe(true);
   });
 
-  it('returns 400 for invalid provider', async () => {
-    mockSession.mockResolvedValue({ role: 'admin' } as any);
-    
-    const response = await fetch('/api/admin/coaching/ki-config/active', {
-      method: 'PATCH',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ provider: 'not-a-provider' }),
-    });
-    
-    expect(response.status).toBe(404);
-    const json = (await response.json()) as { error: string };
+  it('returns 404 for an unknown provider', async () => {
+    vi.mocked(getSession).mockResolvedValue(adminSession);
+    vi.mocked(isAdmin).mockReturnValue(true);
+
+    const res = await call(JSON.stringify({ provider: 'not-a-provider' }));
+    expect(res.status).toBe(404);
+    const json = (await res.json()) as { error: string };
     expect(json.error).toBe('Provider nicht gefunden');
+    expect(setActiveProvider).not.toHaveBeenCalled();
   });
 
   it('returns 401 when no session is present', async () => {
-    mockSession.mockResolvedValue(null as any);
+    vi.mocked(getSession).mockResolvedValue(null);
 
-    const response = await fetch('/api/admin/coaching/ki-config/active', {
-      method: 'PATCH',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ provider: 'local-lmstudio' }),
-    });
-    
-    expect(response.status).toBe(401);
+    const res = await call(JSON.stringify({ provider: 'local-lmstudio' }));
+    expect(res.status).toBe(401);
   });
 
-  it('returns 403 when session is not admin', async () => {
-    mockSession.mockResolvedValue({ role: 'user' } as any);
+  it('returns 401 when session is not admin', async () => {
+    vi.mocked(getSession).mockResolvedValue(adminSession);
+    vi.mocked(isAdmin).mockReturnValue(false);
 
-    const response = await fetch('/api/admin/coaching/ki-config/active', {
-      method: 'PATCH',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ provider: 'local-lmstudio' }),
-    });
-    
-    expect(response.status).toBe(401); // isAdmin returns false, so 401 is returned early
+    const res = await call(JSON.stringify({ provider: 'local-lmstudio' }));
+    expect(res.status).toBe(401);
   });
 
   it('returns 400 when request body is invalid JSON', async () => {
-    mockSession.mockResolvedValue({ role: 'admin' } as any);
+    vi.mocked(getSession).mockResolvedValue(adminSession);
+    vi.mocked(isAdmin).mockReturnValue(true);
 
-    const response = await fetch('/api/admin/coaching/ki-config/active', {
-      method: 'PATCH',
-      headers: { 'content-type': 'application/json' },
-      body: 'not json',
-    });
-    
-    expect(response.status).toBe(400);
-    const json = (await response.json()) as { error: string };
+    const res = await call('not json');
+    expect(res.status).toBe(400);
+    const json = (await res.json()) as { error: string };
     expect(json.error).toBe('Invalid JSON');
   });
 });

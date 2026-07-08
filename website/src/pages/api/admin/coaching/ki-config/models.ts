@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
 import { getKiProviderById } from '../../../../../lib/coaching-ki-config-db';
+import { pool } from '../../../../../lib/website-db';
 import { resolveEndpoint } from '../../../../../lib/openai-compatible-session-agent';
 import { fetchModelIds } from '../../../../../lib/llm-models-probe';
 
@@ -11,10 +12,11 @@ export const GET: APIRoute = async ({ request, url }) => {
   if (!session) return json({ error: 'Unauthorized' }, 401);
   if (!isAdmin(session)) return json({ error: 'Forbidden' }, 403);
 
-  const id = Number(url.searchParams.get('id'));
+  const raw = url.searchParams.get('id');
+  const id = raw === null || raw.trim() === '' ? NaN : Number(raw);
   if (!Number.isInteger(id)) return json({ reachable: false, models: [] }, 200);
 
-  const config = await getKiProviderById(null as unknown as any, id);
+  const config = await getKiProviderById(pool, id);
   if (!config) return json({ reachable: false, models: [] }, 200);
 
   let baseUrl: string;

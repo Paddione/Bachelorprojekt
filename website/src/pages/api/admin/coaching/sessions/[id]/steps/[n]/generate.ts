@@ -95,8 +95,6 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
     try {
       if (piiSources!.names.length || piiSources!.emails.length) {
         effectiveSystem = scrubClientPii(effectiveSystem, { names: piiSources!.names, emails: piiSources!.emails, replacement });
-        
-        const prefix = `Klient ${customerNumber}:`;
         anonymizedUserPromptFinal = scrubClientPii(userPrompt, { names: piiSources!.names, emails: piiSources!.emails, replacement });
       } else if (userPrompt) {
         // No PII to scrub - just add client prefix if needed
@@ -107,8 +105,6 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
       }
     } catch (err: unknown) {
       locals.requestLogger.error({ err }, '[coaching/generate] scrub failed');
-      // Fallback: use customerNumber as replacement if scrubbing failed
-      const fallbackReplacement = customerNumber ?? '[KLIENT]';
       anonymizedUserPromptFinal = userPrompt ? userPrompt : '';
     }
   } else {

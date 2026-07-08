@@ -135,7 +135,7 @@ export const helpContent: Record<HelpContext, Record<string, HelpSection>> = {
     },
     termine: {
       title: 'Termine',
-      description: 'Verwalte deine Coaching-Sitzungen — buche neue Termine oder sage bestehende ab.',
+      description: 'Verwalte deine Coaching-Sessions — buche neue Termine oder sage bestehende ab.',
       actions: [
         'Neuen Termin buchen',
         'Termin absagen',

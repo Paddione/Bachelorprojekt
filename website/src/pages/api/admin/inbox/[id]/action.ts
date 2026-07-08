@@ -151,7 +151,7 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
           if (meeting && room && await claimBrettLinkPost(meeting.id)) {
             const brettDomain = process.env.BRETT_DOMAIN || 'brett.localhost';
             const url = `https://${brettDomain}/?room=${encodeURIComponent(room.token)}`;
-            await sendChatMessage(room.token, `🎯 Systemisches Brett für diese Sitzung: ${url}`);
+            await sendChatMessage(room.token, `🎯 Systemisches Brett für diese Session: ${url}`);
           }
         } catch (err) {
           locals.requestLogger.error({ err }, '[brett] auto-post failed (non-fatal):');

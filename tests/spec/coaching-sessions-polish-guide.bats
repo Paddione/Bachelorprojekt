@@ -40,3 +40,15 @@ setup() {
   run grep -qF "openPopout" "$WEB/pages/admin/coaching/sessions/[id].astro"
   [ "$status" -eq 0 ]
 }
+
+@test "coaching help content uses Coaching-Sessions" {
+  run grep -qF "Coaching-Sessions" "$WEB/lib/helpContent.ts"
+  [ "$status" -eq 0 ]
+  run grep -qF "Coaching-Sitzungen" "$WEB/lib/helpContent.ts"
+  [ "$status" -ne 0 ]
+}
+
+@test "brett auto-post message uses 'für diese Session'" {
+  run grep -qF "für diese Session:" "$WEB/pages/api/admin/inbox/[id]/action.ts"
+  [ "$status" -eq 0 ]
+}

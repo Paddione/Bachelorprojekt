@@ -1,4 +1,5 @@
-import { Pool } from 'pg';
+import type { Pool } from 'pg';
+import { pool as defaultPool } from './db-pool';
 import { logger } from './logger';
 
 export type AiWorkflow =
@@ -22,11 +23,11 @@ export interface AiCallRecord extends AiCallMeta {
   error?: string;
 }
 
-let pool: Pool | null = null;
-function getPool(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
+// Test-only escape hatch: ai-metrics.test.ts mocks the pool directly.
+// In production this always resolves to `defaultPool` (from db-pool.ts).
+let _pool: Pool | undefined;
+export function __setPoolForTests(testPool: Pool): void { _pool = testPool; }
+function getPool(): Pool { return _pool ?? defaultPool; }
 
 export async function logAiCall(rec: AiCallRecord): Promise<void> {
   try {

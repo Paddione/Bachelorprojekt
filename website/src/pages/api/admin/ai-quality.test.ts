@@ -1,21 +1,17 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
 const queryMock = vi.fn();
-vi.mock('pg', () => ({
-  Pool: class { query = queryMock; },
-}));
 vi.mock('../../../lib/auth', () => ({
   getSession: vi.fn(),
   isAdmin: vi.fn(),
 }));
 
 import { getSession, isAdmin } from '../../../lib/auth';
-let route: typeof import('./ai-quality');
+import * as route from './ai-quality';
 
-beforeEach(async () => {
+beforeEach(() => {
   queryMock.mockReset();
-  vi.resetModules();
-  route = await import('./ai-quality');
+  route.__setPoolForTests({ query: (...a: unknown[]) => queryMock(...a) } as never);
 });
 
 function req(): Request {

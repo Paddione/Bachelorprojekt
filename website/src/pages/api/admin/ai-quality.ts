@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
-import { Pool } from 'pg';
+import type { Pool } from 'pg';
+import { pool as defaultPool } from '../../../lib/db-pool';
 import { getSession, isAdmin } from '../../../lib/auth';
 import type { AiWorkflow } from '../../../lib/ai-metrics';
 
@@ -11,11 +12,11 @@ const PRICE_PER_1K_EUR: Record<string, { input: number; output: number }> = {
   'bge-m3':            { input: 0,       output: 0       },
 };
 
-let pool: Pool | null = null;
-function getPool(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
+// Test-only escape hatch: ai-quality.test.ts mocks the pool directly.
+// In production this always resolves to `defaultPool` (from db-pool.ts).
+let _pool: Pool | undefined;
+export function __setPoolForTests(testPool: Pool): void { _pool = testPool; }
+function getPool(): Pool { return _pool ?? defaultPool; }
 
 export type Health = 'green' | 'yellow' | 'red';
 

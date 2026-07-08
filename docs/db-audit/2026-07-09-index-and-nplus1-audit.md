@@ -94,8 +94,8 @@ Nutzt `SESSIONS_DATABASE_URL` (Fallback auf die `website`-DB), `nodeLookup` DNS-
 | `website/src/lib/codesearch-db.ts` | `SESSIONS_DATABASE_URL` | eigener Pool + `nodeLookup` | **KONSOLIDIEREN** | identische DB/Config; gewinnt DNS-Workaround + fail-soft Timeouts. Embedding-Queries sind reine SELECTs auf indizierten Spalten → bleiben unter 2s. N+1 in `searchCodeAugmented` (s. §5) wird beim Refactor mit behoben (`= ANY($1)`). |
 | `website/src/lib/knowledge-db.ts` | `SESSIONS_DATABASE_URL` | eigener Pool + `nodeLookup` | **KONSOLIDIEREN** | identische DB/Config. Bulk-Pfad in `ingestJsonChunks` lebt in einem **separaten** Modul (`pages/api/admin/knowledge/import/json.ts`, s. nächste Zeile) und nutzt dort seinen eigenen Pool — das `knowledge-db.ts` selbst macht keine Bulk-Inserts, die das `statement_timeout` sprengen. |
 | `website/src/pages/api/cron/notify-unread.ts` | `SESSIONS_DATABASE_URL` | eigener Pool, **ohne** `nodeLookup`/Timeouts | **KONSOLIDIEREN** | identische DB; Cron-Query ist ein einzelnes Read + Mail-Versand → 2s ausreichend. Gewinnt DNS-Workaround + fail-soft Timeouts. |
-| `website/src/lib/ai-metrics.ts` | `DATABASE_URL` | eigener Pool, ohne `nodeLookup`/Timeouts | **KEEP als Sonder-Pool** (s. §6) | andere Env-Var → möglicherweise andere DB. **Verifikation steht aus**: für beide Brands prüfen, ob `DATABASE_URL` in Prod auf dieselbe `website`-DB auflöst wie `SESSIONS_DATABASE_URL`. Bis dahin: keine konsolidierende Änderung. |
-| `website/src/pages/api/admin/ai-quality.ts` | `DATABASE_URL` | eigener Pool, ohne `nodeLookup`/Timeouts | **KEEP als Sonder-Pool** (s. §6) | teilt den `AiWorkflow`-Typ mit `ai-metrics.ts`; Konsolidierung muss **beide** Module gemeinsam oder gar nicht umfassen, konsistent zur `ai-metrics`-Entscheidung. |
+| `website/src/lib/ai-metrics.ts` | `SESSIONS_DATABASE_URL` (nach T001678) | konsolidiert auf `db-pool.ts` | **KONSOLIDIERT** | Verifikation (T001678, s. §3a) ergab: `DATABASE_URL` ist in Prod (beide Brands, Namespaces `website`/`website-korczewski`) **überhaupt nicht gesetzt** (kein env-Eintrag, kein ConfigMap-Key, kein `PG*`-Fallback) — `new Pool({ connectionString: undefined })` fiel auf pg-Library-Defaults (`localhost:5432`) zurück, was im Pod nicht existiert. `ai_call_log`-Inserts scheiterten seit Einführung lautlos (Bug T001679). Fix: Modul auf den gehärteten `db-pool.ts` (`SESSIONS_DATABASE_URL`, nodeLookup + Timeouts) umgestellt. |
+| `website/src/pages/api/admin/ai-quality.ts` | `SESSIONS_DATABASE_URL` (nach T001678) | konsolidiert auf `db-pool.ts` | **KONSOLIDIERT** | Gleicher Root Cause wie `ai-metrics.ts` (teilt den `AiWorkflow`-Typ) — gemeinsam mit `ai-metrics.ts` in T001678/T001679 konsolidiert. |
 | `website/src/pages/api/admin/knowledge/import/json.ts` | `SESSIONS_DATABASE_URL` | eigener Pool, kein Timeout | **KEEP als Sonder-Pool** | Bulk-Import (`ingestJsonChunks`). Der 2s-`statement_timeout` des geteilten Pools würde große Importe abbrechen. Falls der Bulk-Pfad in den geteilten Pool soll: betroffene Aufrufe explizit mit `SET LOCAL statement_timeout` in einer Transaktion überschreiben — Aufwand > Nutzen für die einzige Bulk-Stelle. |
 
 > **DB-Pool-Sonderfall `platformPool`:** `db-pool.ts` exportiert `platformPool = pool`.
@@ -104,24 +104,27 @@ Nutzt `SESSIONS_DATABASE_URL` (Fallback auf die `website`-DB), `nodeLookup` DNS-
 > erreichen → ECONNREFUSED). Jede Brand nutzt ihr eigenes `shared-db`. Diese
 > Sonderheit ist in `db-pool.ts:49-53` dokumentiert.
 
-### 3a. Verifikation der `DATABASE_URL`/`SESSIONS_DATABASE_URL`-Gleichheit (ausstehend)
+### 3a. Verifikation der `DATABASE_URL`/`SESSIONS_DATABASE_URL`-Gleichheit (T001678 — abgeschlossen)
 
-Die Sonder-Pool-Entscheidung für `ai-metrics.ts` und `ai-quality.ts` hängt davon ab, ob
-beide Env-Vars in Prod (beide Brands) auf dieselbe DB zeigen. Verifikationsschritte
-(siehe §6 Follow-up-Ticket):
+Verifikationsschritte (Kontext `fleet`, Namespaces `website` + `website-korczewski` — **nicht**
+`workspace`/`workspace-korczewski`, die Website läuft in eigenen Namespaces):
 
 ```bash
-for BRAND in mentolder korczewski; do
-  for ENV_NS in workspace workspace-korczewski; do
-    kubectl get deploy website -n "$ENV_NS" --context fleet \
-      -o jsonpath='{.spec.template.spec.containers[0].env}' \
-      | jq '[.[] | select(.name|test("^(DATABASE|SESSIONS_DATABASE)_URL$")) | {name, value: (.value // ("fromSecret:" + .valueFrom.secretKeyRef.name + "/" + .valueFrom.secretKeyRef.key))}]'
-  done
+for NS in website website-korczewski; do
+  kubectl get deploy website -n "$NS" --context fleet \
+    -o jsonpath='{.spec.template.spec.containers[0].env}' \
+    | jq '[.[] | select(.name|test("^(DATABASE|SESSIONS_DATABASE)_URL$")) | {name, value: (.value // ("fromSecret:" + .valueFrom.secretKeyRef.name + "/" + .valueFrom.secretKeyRef.key))}]'
 done
 ```
 
-Erst wenn alle vier Slots auf denselben `host:port/database` auflösen, kann die
-Konsolidierung von `ai-metrics.ts`/`ai-quality.ts` in einem Folge-PR erfolgen.
+**Befund:** `DATABASE_URL` ist in **keinem** der beiden Deployments gesetzt — weder als
+direkter `env`-Eintrag noch im `envFrom`-ConfigMap `website-config` noch als `PG*`-Fallback
+(pg-Library-Default wäre sonst gegriffen). Nur `SESSIONS_DATABASE_URL` ist vorhanden
+(je Brand auf das jeweils eigene `shared-db.<namespace>.svc.cluster.local`). Damit war die
+angenommene Prämisse ("evtl. andere DB") falsch — es gab **gar keine** funktionierende DB für
+`ai-metrics.ts`/`ai-quality.ts` in Prod. Root-Cause- und Fix-Details: Bug T001679.
+`ai-metrics.ts` + `ai-quality.ts` wurden in T001678 auf `db-pool.ts`/`SESSIONS_DATABASE_URL`
+konsolidiert (s. Tabelle oben).
 
 ## 4. Index-Audit (Stufe C2 — EXPLAIN-driven)
 
@@ -325,7 +328,8 @@ BRAND=korczewski bash -c 'source scripts/factory/lib.sh; factory_resolve; factor
 |---|---|
 | **T001676** (dieser PR) | Phase-2-Drop, Orphan-Migration, Pool-Konsolidierung (Codesearch/Knowledge/Notify), Index-Audit-Doku, N+1 in `codesearch-db.ts` gefixt. |
 | **T001677** (Folge, in Triage) | Migrations-System-Konsolidierung: `scripts/migrations/*.sql` unter einen getrackten Runner analog `website/src/db/migrate.ts` (`public.schema_migrations`) bringen. |
-| **TBD** (Folge) | `ai-metrics.ts` + `ai-quality.ts` Pool-Konsolidierung, **nach** Verifikation `DATABASE_URL == SESSIONS_DATABASE_URL` (siehe §3a). |
+| **T001678** (Folge, done) | Verifikation `DATABASE_URL`/`SESSIONS_DATABASE_URL` (siehe §3a) + `ai-metrics.ts`/`ai-quality.ts` Pool-Konsolidierung. Ergab Bug T001679 (DATABASE_URL in Prod nie gesetzt). |
+| **T001679** (Bug, gefixt in T001678) | `ai-metrics.ts`/`ai-quality.ts` verbanden sich in Prod mit `connectionString: undefined` (pg-Default `localhost`) statt der echten DB — `ai_call_log`-Inserts scheiterten lautlos seit Feature-Einführung. |
 | **TBD** (Folge) | `knowledge-db.ts` `upsertChunks` + `mergeCollections` N+1 → `unnest`-Batch-INSERTs. |
 | **TBD** (Folge) | `unused-indexes`-Re-Audit nach ≥30d Postgres-Uptime, dann DROP-Entscheidung pro Index. |
 | **TBD** (Ops) | `VACUUM (ANALYZE) coaching.*` + `ANALYZE knowledge.chunks` + `ANALYZE tickets.ticket_embeddings` nach dem Merge. |

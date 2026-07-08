@@ -1,15 +1,11 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
+import * as mod from './ai-metrics';
 
 const queryMock = vi.fn().mockResolvedValue({ rows: [] });
-vi.mock('pg', () => ({
-  Pool: class { query = queryMock; },
-}));
 
-let mod: typeof import('./ai-metrics');
-beforeEach(async () => {
+beforeEach(() => {
   queryMock.mockClear();
-  vi.resetModules();
-  mod = await import('./ai-metrics');
+  mod.__setPoolForTests({ query: (...a: unknown[]) => queryMock(...a) } as never);
 });
 
 describe('withAiMetrics', () => {

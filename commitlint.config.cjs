@@ -10,6 +10,7 @@ const NAMED_SCOPES = [
   'docs',
   'deps',
   'plans',
+  'plan',
   'ci',
   'test',
   'factory',

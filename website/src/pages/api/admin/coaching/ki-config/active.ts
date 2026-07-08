@@ -6,7 +6,8 @@ import { KI_CATALOG } from '../../../../../lib/ki-catalog';
 
 export const prerender = false;
 
-const ALLOWED_PROVIDERS = new Set<string>([...KI_CATALOG.map(i => i.id), 'custom_']);
+const CATALOG_PROVIDERS = new Set<string>(KI_CATALOG.map(i => i.id));
+const isAllowedProvider = (p: string) => CATALOG_PROVIDERS.has(p) || p.startsWith('custom_');
 
 export const PATCH: APIRoute = async ({ request }) => {
   const session = await getSession(request.headers.get('cookie'));
@@ -17,7 +18,7 @@ export const PATCH: APIRoute = async ({ request }) => {
     return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400, headers: { 'content-type': 'application/json' } });
   }
 
-  if (!ALLOWED_PROVIDERS.has(body.provider)) {
+  if (typeof body.provider !== 'string' || !isAllowedProvider(body.provider)) {
     return new Response(JSON.stringify({ error: 'Provider nicht gefunden' }), { status: 404, headers: { 'content-type': 'application/json' } });
   }
 

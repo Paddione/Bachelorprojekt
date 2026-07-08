@@ -19,6 +19,7 @@ while [[ $# -gt 0 ]]; do
     --with-project-mcp) WITH_PROJECT_MCP=true ;;
     *) echo "Unknown option: $1"; exit 1 ;;
   esac
+  shift
 done
 
 if [[ ! -x "$HERMES" ]]; then

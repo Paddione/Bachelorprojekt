@@ -27,6 +27,7 @@ tickets-transition
 #
 # --- Runs a real `npx tsx` ingest against a (deliberately unreachable) DB — needs website deps:
 coaching-json-ingest
+test_art_library_manifest
 #
 # --- Currently FAILS offline: asserts every schema secret exists in k3d/secrets.yaml,
 # --- but TRACKING_DB_URL / ANTHROPIC_API_KEY / DEV_* are absent there.

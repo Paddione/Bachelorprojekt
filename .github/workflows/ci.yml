@@ -71,6 +71,12 @@ jobs:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set up Go
+        uses: actions/setup-go@3041de560034e29530501543ad5379b9c798b3cf  # v5
+        with:
+          go-version-file: 'mcp-task-runner/go.mod'
+          cache: true
+
       - name: Install kubectl
         run: |
           curl --fail -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" \

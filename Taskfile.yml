@@ -268,67 +268,23 @@ tasks:
   # Testing (no cluster required)
   # ─────────────────────────────────────────────
   test:unit:
-    desc: Run BATS unit tests (assertion lib, scripts, configs)
+    desc: Run BATS unit tests (assertion lib, scripts, configs) in parallel
     cmds:
       - '[ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive'
-      - task: test:unit:assert
-      - task: test:unit:scripts
-      - task: test:unit:secret-task-guards
-      - task: test:unit:changed-manifests
-      - task: test:unit:agents
-      - task: test:unit:figure-pack
-      - task: test:unit:discover-versions
-      - task: test:unit:render-cloud-init
-      - task: test:unit:fleet-phase2b
-      - task: test:unit:shared-db-initdb-selfheal
-      - task: test:unit:wg-mesh-fullmesh
-      - task: test:unit:recovery-domain-durability
-      - task: test:unit:mediaviewer-host-durability
-      - task: test:unit:agent-collision
-      - task: test:unit:agent-msg
-      - task: test:unit:website-domain-config-overlay
-      - task: test:unit:ticket-external-id
-      - task: test:unit:ticket-triage
-      - task: test:unit:website-ci-deploy
-      - task: test:unit:plan-frontmatter-hook
-      - task: test:unit:check-commit-vs-diff
-      - task: test:unit:plan-lint
-      - task: test:unit:mishap-tracker
-      - task: test:unit:ticket-add-pr-link
-      - task: test:unit:ticket-create
-      - task: test:unit:ticket-grill
-      - task: test:unit:ticket-lastenheft
-      - task: test:unit:worktree-create
-      - task: test:unit:preflight-pr-scope
-      - task: test:unit:test-tasks-node-deps
-      - task: test:unit:quality-loop
-      - task: test:unit:vda-core
-      - task: test:unit:oracle-task-vars
-      - task: test:unit:vda-ticket-smoke
-      - task: test:unit:vda-release-notes-smoke
-      - task: test:unit:offline-batch
-      - task: test:unit:collabora-wopi-discovery
-      - task: test:unit:collabora-wopi-single-brand-guard
-      - task: test:unit:ticket-triage
+      - |
+        JOBS=$(nproc 2>/dev/null || echo 2)
+        ALL_FILES=$(find tests/unit -maxdepth 1 -name "*.bats" | sort)
+        TEST_FILES=""
+        for f in $ALL_FILES; do
+          base=$(basename "$f" .bats)
+          if ! grep -q "^$base$" tests/unit/.coverage-allowlist; then
+            TEST_FILES="$TEST_FILES $f"
+          fi
+        done
+        TEST_FILES="$TEST_FILES tests/unit/scripts/dev-reset.test.sh tests/spec/mcp-tooling.bats"
+        ./tests/unit/lib/bats-core/bin/bats -j $JOBS --no-parallelize-within-files $TEST_FILES
+      - bash tests/figure-pack-assets.test.sh
       - task: test:unit:coverage-guard
-      - task: test:unit:build-graph
-      - task: test:unit:freshness-graph
-      - task: test:unit:scs-index
-      - task: test:unit:openspec
-      - task: test:unit:scs-search
-      - task: test:unit:ticket-graph
-      - task: test:unit:T000668-graph-api
-      - task: test:unit:factory-blocked
-      - task: test:unit:readiness-webhook
-      - task: test:unit:staging
-      - task: test:unit:api-auth-gate
-      - task: test:unit:factory-readiness
-      - task: test:unit:factory-scout-quality
-      - task: test:unit:factory-scout-drift
-      - task: test:unit:dev-reset
-      - task: test:unit:agent-push
-      - task: test:unit:sessions-purge
-      - task: test:mcp-tooling
 
 
   test:unit:agent-push:
@@ -721,10 +677,9 @@ tasks:
       - '[ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive'
       - ./tests/unit/lib/bats-core/bin/bats tests/local/FA-SF-*.bats tests/local/FA-AR-*.bats
 
-  test:spec:
-    desc: "Run the offline-safe spec bats (tests/spec/*). Builds mcp-task-runner fresh if go is available (best-effort). Live-DB cases skip without a reachable cluster, so this is CI-safe."
+  test:spec:build-mcp-runner:
+    internal: true
     cmds:
-      - '[ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive'
       - |
         # tests/spec/mcp-task-runner.bats invokes the compiled binary at
         # /usr/local/bin/mcp-task-runner directly — nothing else in the repo
@@ -747,7 +702,13 @@ tasks:
         else
           echo "mcp-task-runner: go not found — using pre-installed binary if present"
         fi
-      - ./tests/unit/lib/bats-core/bin/bats tests/spec/*.bats
+
+  test:spec:
+    desc: "Run the offline-safe spec bats (tests/spec/*). Builds mcp-task-runner fresh if go is available (best-effort). Live-DB cases skip without a reachable cluster, so this is CI-safe."
+    cmds:
+      - '[ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive'
+      - task: test:spec:build-mcp-runner
+      - ./tests/unit/lib/bats-core/bin/bats -j $(nproc 2>/dev/null || echo 2) --no-parallelize-within-files tests/spec/*.bats
 
   test:mcp-tooling:
     desc: "Guardrail: ticket-mcp tools <-> mcp-tool-guide.md <-> skill-critical verbs (hard)"
@@ -840,13 +801,38 @@ tasks:
         if [ "$RUN_WEBSITE" = "true" ] && command -v pnpm >/dev/null 2>&1; then echo "→ website changes: pnpm vitest run --changed"; (cd website && pnpm vitest run --changed --reporter verbose); fi
         if [ "$RUN_MENTOLDER_WEB" = "true" ] && command -v pnpm >/dev/null 2>&1; then echo "→ mentolder-web changes: pnpm --filter mentolder-web test"; pnpm --filter mentolder-web test; fi
         if [ "$RUN_K8S" = "true" ]; then echo "→ k8s changes: task test:manifests"; task test:manifests; fi
-        if [ "$RUN_SCRIPTS" = "true" ]; then echo "→ script changes: task test:unit"; task test:unit; fi
+        
+        JOBS=$(nproc 2>/dev/null || echo 2)
+        if [ "$RUN_SCRIPTS" = "true" ] || [ "$RUN_UNIT" = "true" ]; then
+          echo "→ running changed unit tests in parallel"
+          CHANGED_FILES=$(bash scripts/find-changed-tests.sh unit)
+          if [ -n "$CHANGED_FILES" ]; then
+            ./tests/unit/lib/bats-core/bin/bats -j $JOBS --no-parallelize-within-files $CHANGED_FILES
+          else
+            echo "No matching unit tests found for changes."
+          fi
+          if echo "$CHANGED" | grep -qE "^(tests/figure-pack-assets|assets/)"; then
+            bash tests/figure-pack-assets.test.sh
+          fi
+          task test:unit:coverage-guard
+        fi
+        
+        if [ "$RUN_SPEC" = "true" ]; then
+          echo "→ spec changes: running changed spec tests in parallel"
+          task test:spec:build-mcp-runner
+          CHANGED_FILES=$(bash scripts/find-changed-tests.sh spec)
+          if [ -n "$CHANGED_FILES" ]; then
+            ./tests/unit/lib/bats-core/bin/bats -j $JOBS --no-parallelize-within-files $CHANGED_FILES
+          else
+            echo "No matching spec tests found for changes."
+          fi
+        fi
+
         if [ "$RUN_FACTORY" = "true" ]; then echo "→ factory changes: task test:factory"; task test:factory; fi
-        if [ "$RUN_SPEC" = "true" ]; then echo "→ spec changes: task test:spec"; task test:spec; fi
-        if [ "$RUN_MCP" = "true" ] && [ "$RUN_SCRIPTS" = "false" ]; then echo "→ MCP tooling guardrail"; task test:mcp-tooling; fi
+        if [ "$RUN_MCP" = "true" ] && [ "$RUN_SCRIPTS" = "false" ] && [ "$RUN_UNIT" = "false" ]; then echo "→ MCP tooling guardrail"; task test:mcp-tooling; fi
         if [ "$RUN_AGENTS" = "true" ]; then echo "→ agent library changes: task test:agent-library"; task test:agent-library; fi
-        if [ "$RUN_UNIT" = "true" ] && [ "$RUN_SCRIPTS" = "false" ]; then echo "→ test changes: task test:unit"; task test:unit; fi
         if [ "$RUN_OPENSPEC" = "true" ]; then echo "→ openspec changes: task test:openspec"; task test:openspec; fi
+        
         if [ "$RUN_WEBSITE" = "false" ] && [ "$RUN_MENTOLDER_WEB" = "false" ] && [ "$RUN_K8S" = "false" ] && [ "$RUN_SCRIPTS" = "false" ] && [ "$RUN_FACTORY" = "false" ] && [ "$RUN_SPEC" = "false" ] && [ "$RUN_UNIT" = "false" ] && [ "$RUN_MCP" = "false" ] && [ "$RUN_AGENTS" = "false" ] && [ "$RUN_OPENSPEC" = "false" ]; then
           if command -v pnpm >/dev/null 2>&1; then echo "→ no domain-specific changes: vitest --changed"; (cd website && pnpm vitest run --changed --reporter verbose); fi
         fi

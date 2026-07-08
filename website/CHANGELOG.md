@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.164.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.163.1...website-v1.164.0) (2026-07-08)
+
+
+### Features
+
+* **website:** Coaching Studio in Sessions umbenennen und Sidebar bereinigen [T001649] ([#2624](https://github.com/Paddione/Bachelorprojekt/issues/2624)) ([8bde301](https://github.com/Paddione/Bachelorprojekt/commit/8bde301156b8a671f87e740758e94fc9eec51d15))
+
 ## [1.163.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.163.0...website-v1.163.1) (2026-07-08)
 
 

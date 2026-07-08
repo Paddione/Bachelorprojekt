@@ -1,0 +1,25 @@
+# SSOT for Hermes' MCP access — mirrors .opencode/opencode.jsonc catalog + a
+# per-server tools.exclude denylist of destructive/mutating tools (design D2/D4).
+# When a server gains a NEW destructive tool, add it here (see gotchas-footguns.md).
+mcp-postgres:              # remote — server-side read-only, no denylist (design D4)
+  url: http://localhost:13001/mcp
+mcp-kubernetes:
+  url: http://localhost:18080/mcp
+  tools:
+    exclude: [pods_delete, pods_exec, pods_run, resources_delete, resources_create_or_update, resources_scale]
+factory-mcp:
+  url: http://localhost:13003/mcp
+  tools:
+    exclude: [factory_enqueue, factory_trigger]
+codebase-memory-mcp:
+  command: [/home/patrick/.local/bin/codebase-memory-mcp]
+  tools:
+    exclude: [delete_project, index_repository, ingest_traces, manage_adr]
+mcp-task-runner:
+  command: [mcp-task-runner, --otel-endpoint, localhost:4317, --taskfile, /home/patrick/Bachelorprojekt/Taskfile.yml]
+  tools:
+    exclude: [execute_plan, run_task, run_task_async, cancel_task]
+ticket-mcp:
+  command: [/home/patrick/Bachelorprojekt/scripts/ticket-mcp/ticket-mcp-go]
+  tools:
+    exclude: [create_ticket, enqueue_ticket, transition_status, triage_ticket, update_fields, set_readiness_flag, set_touched_files, set_plan_meta, stage_plan, archive_plan, link_tickets, record_grill_answers, record_phase_event, report_mishap, flush_mishap_buffer, add_comment, add_pr_link, backfill_ticket_id]

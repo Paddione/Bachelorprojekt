@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.35.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.34.1...brett-v0.35.0) (2026-07-08)
+
+
+### Features
+
+* **brain:** auto-memory export bridge to brain wiki [T001567] ([831fabf](https://github.com/Paddione/Bachelorprojekt/commit/831fabfdac82765d68faea4c56605a6df81c5a1b))
+
 ## [0.34.1](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.34.0...brett-v0.34.1) (2026-06-27)
 
 

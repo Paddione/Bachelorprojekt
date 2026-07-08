@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.161.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.160.0...website-v1.161.0) (2026-07-08)
+
+
+### Features
+
+* **brain:** auto-memory export bridge to brain wiki [T001567] ([831fabf](https://github.com/Paddione/Bachelorprojekt/commit/831fabfdac82765d68faea4c56605a6df81c5a1b))
+* sidekick error log 24h ([3c42242](https://github.com/Paddione/Bachelorprojekt/commit/3c42242b82c0727e597e4216edee7dcbed0be550))
+
+
+### Documentation
+
+* **brain:** add brain-auto-memory design spec + openspec change [T001567] ([fcfbd8a](https://github.com/Paddione/Bachelorprojekt/commit/fcfbd8a6c734e4c3b6e06f19318e2ee903346765))
+* **specs:** add brain-auto-memory design spec + openspec change [T001567] ([cae1482](https://github.com/Paddione/Bachelorprojekt/commit/cae14823c3fac26f31f9fb942caadbe5347bfbd5))
+
 ## [1.160.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.159.0...website-v1.160.0) (2026-07-04)
 
 

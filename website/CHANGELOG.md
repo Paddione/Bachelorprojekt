@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.165.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.165.1...website-v1.165.2) (2026-07-08)
+
+
+### Bug Fixes
+
+* **website:** coaching-studio Workspace crasht bei leerem CUSTOMERS-Array [T001656] ([#2633](https://github.com/Paddione/Bachelorprojekt/issues/2633)) ([c35e309](https://github.com/Paddione/Bachelorprojekt/commit/c35e3092dbb6451d62c3a00cadc0d0e967f2d648))
+
 ## [1.165.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.165.0...website-v1.165.1) (2026-07-08)
 
 

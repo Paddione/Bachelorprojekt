@@ -85,7 +85,7 @@ Delta-Specs (bereits geschrieben, nur zur Referenz):
 - Consumes: `NavItem` interface — `{ href: string; label: string; icon: string; matches?: string[]; badge?: number; external?: boolean }` (in `AdminSidebarNav.astro`; `icon` is a string key into `admin-icons`, e.g. `'clipboard'`).
 - Produces: sidebar route `/admin/coaching/sessions` addressable via a dedicated "Sessions" item; dashboard tile label `'Sessions'`.
 
-- [ ] **Step 1: Write the failing BATS test.** Create `tests/spec/coaching-sessions-polish-guide.bats`:
+- [x] **Step 1: Write the failing BATS test.** Create `tests/spec/coaching-sessions-polish-guide.bats`:
 
 ```bash
 #!/usr/bin/env bats
@@ -116,14 +116,14 @@ setup() {
 }
 ```
 
-- [ ] **Step 2: Run the test to verify it fails.**
+- [x] **Step 2: Run the test to verify it fails.**
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/coaching-sessions-polish-guide.bats
 # expected: FAIL — sidebar item, studio matches, and dashboard label not yet changed
 ```
 
-- [ ] **Step 3: Add the Sessions nav item and repoint Studio matches.** In
+- [x] **Step 3: Add the Sessions nav item and repoint Studio matches.** In
       `AdminSidebarNav.astro`, in the `Geschäft` section `items` array, add the
       new item after the `Studio` entry and drop `/admin/coaching/sessions`
       from Studio's `matches`:
@@ -133,7 +133,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/coaching-sessions-polish-guide.bats
       { href: '/admin/coaching/sessions',   label: 'Sessions',   icon: 'clipboard', matches: ['/admin/coaching/sessions'] },
 ```
 
-- [ ] **Step 4: Rename the dashboard tile.** In `admin.astro:66`, change the
+- [x] **Step 4: Rename the dashboard tile.** In `admin.astro:66`, change the
       coaching tile label from `'Sitzungen'` to `'Sessions'` (href stays
       `/admin/coaching/sessions`):
 
@@ -141,14 +141,14 @@ tests/unit/lib/bats-core/bin/bats tests/spec/coaching-sessions-polish-guide.bats
   { href: '/admin/coaching/sessions',        label: 'Sessions',    icon: icons.clipboard, color: 'var(--brass)' },
 ```
 
-- [ ] **Step 5: Run the test to verify it passes.**
+- [x] **Step 5: Run the test to verify it passes.**
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/coaching-sessions-polish-guide.bats
 # expected: PASS for the three menu assertions
 ```
 
-- [ ] **Step 6: Commit.**
+- [x] **Step 6: Commit.**
 
 ```bash
 git add tests/spec/coaching-sessions-polish-guide.bats website/src/components/admin/AdminSidebarNav.astro website/src/pages/admin.astro
@@ -177,7 +177,7 @@ unmöglich machen. Deshalb wird der Opener stattdessen nach dem Öffnen via
 Fensterhandle aber behalten — so bleibt `null` ein eindeutiges
 Popup-Blocker-Signal für den Same-Tab-Fallback.
 
-- [ ] **Step 1: Write the failing BATS assertions.** Append to
+- [x] **Step 1: Write the failing BATS assertions.** Append to
       `tests/spec/coaching-sessions-polish-guide.bats`:
 
 ```bash
@@ -198,14 +198,14 @@ Popup-Blocker-Signal für den Same-Tab-Fallback.
 }
 ```
 
-- [ ] **Step 2: Run to verify the new assertions fail.**
+- [x] **Step 2: Run to verify the new assertions fail.**
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/coaching-sessions-polish-guide.bats
 # expected: FAIL — popout helper, route, and control do not exist yet
 ```
 
-- [ ] **Step 3: Create the pure popout helper.** Write `website/src/lib/popout.ts`:
+- [x] **Step 3: Create the pure popout helper.** Write `website/src/lib/popout.ts`:
 
 ```typescript
 export interface PopoutOptions {
@@ -233,7 +233,7 @@ export function openPopout(url: string, name: string, opts: PopoutOptions = {}):
 }
 ```
 
-- [ ] **Step 4: Create the chrome-less popout route.** Write
+- [x] **Step 4: Create the chrome-less popout route.** Write
       `website/src/pages/admin/coaching/sessions/[id]/popout.astro` (same guard
       and data load as `[id].astro`, but no `AdminLayout`):
 
@@ -287,7 +287,7 @@ const providerName = kiProviders.find(p => p.id === coachingSession.kiConfigId)?
 </style>
 ```
 
-- [ ] **Step 5: Wire the Popout control into the detail page.** In
+- [x] **Step 5: Wire the Popout control into the detail page.** In
       `[id].astro`, add the link inside the `.crumbs` nav (after the breadcrumb
       trail, still within the `<nav class="crumbs">`):
 
@@ -309,14 +309,14 @@ const providerName = kiProviders.find(p => p.id === coachingSession.kiConfigId)?
   });
 ```
 
-- [ ] **Step 6: Run the assertions to verify they pass.**
+- [x] **Step 6: Run the assertions to verify they pass.**
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/coaching-sessions-polish-guide.bats
 # expected: PASS for the popout assertions
 ```
 
-- [ ] **Step 7: Commit.**
+- [x] **Step 7: Commit.**
 
 ```bash
 git add website/src/lib/popout.ts "website/src/pages/admin/coaching/sessions/[id]/popout.astro" "website/src/pages/admin/coaching/sessions/[id].astro" tests/spec/coaching-sessions-polish-guide.bats
@@ -338,7 +338,7 @@ git commit -m "feat(coaching): add session popout window and reusable openPopout
 - Consumes: nothing new.
 - Produces: coaching help copy `Coaching-Sessions`; Brett auto-post copy `für diese Session:`.
 
-- [ ] **Step 1: Write the failing BATS assertions.** Append to
+- [x] **Step 1: Write the failing BATS assertions.** Append to
       `tests/spec/coaching-sessions-polish-guide.bats`:
 
 ```bash
@@ -355,14 +355,14 @@ git commit -m "feat(coaching): add session popout window and reusable openPopout
 }
 ```
 
-- [ ] **Step 2: Run to verify the new assertions fail.**
+- [x] **Step 2: Run to verify the new assertions fail.**
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/coaching-sessions-polish-guide.bats
 # expected: FAIL — the two strings still read "Sitzung(en)"
 ```
 
-- [ ] **Step 3: Rename the coaching help string (line-neutral).** In
+- [x] **Step 3: Rename the coaching help string (line-neutral).** In
       `helpContent.ts:138` replace the single word — no line added or removed
       (Budget 0):
 
@@ -370,20 +370,20 @@ tests/unit/lib/bats-core/bin/bats tests/spec/coaching-sessions-polish-guide.bats
       description: 'Verwalte deine Coaching-Sessions — buche neue Termine oder sage bestehende ab.',
 ```
 
-- [ ] **Step 4: Rename the Brett auto-post string.** In `action.ts:154`:
+- [x] **Step 4: Rename the Brett auto-post string.** In `action.ts:154`:
 
 ```typescript
             await sendChatMessage(room.token, `🎯 Systemisches Brett für diese Session: ${url}`);
 ```
 
-- [ ] **Step 5: Run the assertions to verify they pass.**
+- [x] **Step 5: Run the assertions to verify they pass.**
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/coaching-sessions-polish-guide.bats
 # expected: PASS for the wording assertions
 ```
 
-- [ ] **Step 6: Commit.**
+- [x] **Step 6: Commit.**
 
 ```bash
 git add website/src/lib/helpContent.ts "website/src/pages/api/admin/inbox/[id]/action.ts" tests/spec/coaching-sessions-polish-guide.bats
@@ -407,7 +407,7 @@ git commit -m "feat(coaching): use 'Session' wording in coaching-facing copy"
 - Consumes: `createSession(pool: Pool, args: CreateSessionArgs): Promise<Session>` and interface `CreateSessionArgs`.
 - Produces: `CreateSessionArgs` gains optional `isTestData?: boolean` (default `false`); `coaching.sessions.is_test_data boolean NOT NULL DEFAULT false`; `tickets.fn_purge_test_data()` sweeps flagged `coaching.session_steps` then `coaching.sessions`.
 
-- [ ] **Step 1: Verify the live column list before writing the migration.**
+- [x] **Step 1: Verify the live column list before writing the migration.**
       intel.json derived the `coaching.sessions` columns from code mapping, not
       `information_schema` — confirm no `is_test_data` exists yet on the live DB
       (read-only, via mcp-postgres or kubectl-psql):
@@ -422,7 +422,7 @@ SELECT column_name FROM information_schema.columns
       ki_config_id, mode, title, status, created_by, created_at, completed_at,
       archived_at` — and NO `is_test_data`.
 
-- [ ] **Step 2: Write the failing Vitest.** In `coaching-session-db.test.ts`,
+- [x] **Step 2: Write the failing Vitest.** In `coaching-session-db.test.ts`,
       first add the column to the pg-mem `coaching.sessions` DDL so the new
       INSERT is valid — append this line inside that `CREATE TABLE`, after
       `archived_at TIMESTAMPTZ`:
@@ -454,14 +454,14 @@ describe('createSession isTestData', () => {
 });
 ```
 
-- [ ] **Step 3: Run the Vitest to verify it fails.**
+- [x] **Step 3: Run the Vitest to verify it fails.**
 
 ```bash
 cd website && pnpm vitest run src/lib/coaching-session-db.test.ts
 # expected: FAIL — createSession does not yet accept or persist isTestData
 ```
 
-- [ ] **Step 4: Thread `isTestData` through `createSession`.** In
+- [x] **Step 4: Thread `isTestData` through `createSession`.** In
       `coaching-session-db.ts`, extend `CreateSessionArgs` with the optional flag:
 
 ```typescript
@@ -497,14 +497,14 @@ export async function createSession(pool: Pool, args: CreateSessionArgs): Promis
 }
 ```
 
-- [ ] **Step 5: Run the Vitest to verify it passes.**
+- [x] **Step 5: Run the Vitest to verify it passes.**
 
 ```bash
 cd website && pnpm vitest run src/lib/coaching-session-db.test.ts
 # expected: PASS
 ```
 
-- [ ] **Step 6: Write the additive migration.** Create
+- [x] **Step 6: Write the additive migration.** Create
       `scripts/migrations/2026-07-08-coaching-is-test-data.sql`:
 
 ```sql
@@ -520,7 +520,7 @@ ALTER TABLE coaching.sessions
 COMMIT;
 ```
 
-- [ ] **Step 7: Write the failing BATS assertions.** Append to
+- [x] **Step 7: Write the failing BATS assertions.** Append to
       `tests/spec/coaching-sessions-polish-guide.bats`:
 
 ```bash
@@ -542,14 +542,14 @@ COMMIT;
 }
 ```
 
-- [ ] **Step 8: Run to verify the purge assertion fails.**
+- [x] **Step 8: Run to verify the purge assertion fails.**
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/coaching-sessions-polish-guide.bats
 # expected: FAIL — scripts/one-shot/purge-fn-v6.sql does not exist yet
 ```
 
-- [ ] **Step 9: Create purge-fn-v6 from v5.** Copy
+- [x] **Step 9: Create purge-fn-v6 from v5.** Copy
       `scripts/one-shot/purge-fn-v5.sql` to `scripts/one-shot/purge-fn-v6.sql`,
       update the header banner and the `COMMENT ON FUNCTION` text to v6/T001638,
       and insert a new coaching sweep block immediately after the `11d) Meetings
@@ -573,14 +573,14 @@ tests/unit/lib/bats-core/bin/bats tests/spec/coaching-sessions-polish-guide.bats
   result := result || jsonb_build_object('coaching_sessions', cnt);
 ```
 
-- [ ] **Step 10: Run the BATS suite to verify it passes.**
+- [x] **Step 10: Run the BATS suite to verify it passes.**
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/coaching-sessions-polish-guide.bats
 # expected: PASS for all assertions
 ```
 
-- [ ] **Step 11: Commit.**
+- [x] **Step 11: Commit.**
 
 ```bash
 git add scripts/migrations/2026-07-08-coaching-is-test-data.sql scripts/one-shot/purge-fn-v6.sql website/src/lib/coaching-session-db.ts website/src/lib/coaching-session-db.test.ts tests/spec/coaching-sessions-polish-guide.bats

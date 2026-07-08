@@ -13,12 +13,13 @@ PROMPT="${1:?usage: hermes-delegate.sh \"<prompt>\" [--with-project-mcp]}"
 WITH_PROJECT_MCP=false
 
 # Parse optional --with-project-mcp flag (must be last positional arg)
-shift 0 2>/dev/null || true
+shift
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --with-project-mcp) WITH_PROJECT_MCP=true ;;
     *) echo "Unknown option: $1"; exit 1 ;;
   esac
+  shift
 done
 
 if [[ ! -x "$HERMES" ]]; then
@@ -27,9 +28,9 @@ if [[ ! -x "$HERMES" ]]; then
 fi
 
 # Default: explicit no tool access (-t "") per Tier-0 policy  
-exec "$HERMES" --cli -z "$PROMPT" -t ""
-
 if [[ "$WITH_PROJECT_MCP" == true ]]; then
   # Opt-in path: remove -t "" suppression to activate provisioned MCP servers
   exec "$HERMES" --cli -z "$PROMPT"
 fi
+
+exec "$HERMES" --cli -z "$PROMPT" -t ""

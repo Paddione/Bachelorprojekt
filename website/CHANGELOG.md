@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.168.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.167.1...website-v1.168.0) (2026-07-08)
+
+
+### Features
+
+* **coaching:** Kundenakte löschen mit Undo-Toast, State-Lifting und Empty-State Guards [T001563] ([#2648](https://github.com/Paddione/Bachelorprojekt/issues/2648)) ([c8cefb2](https://github.com/Paddione/Bachelorprojekt/commit/c8cefb2d77da14f4b99e191aa6ceed4b28715058))
+
 ## [1.167.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.167.0...website-v1.167.1) (2026-07-08)
 
 

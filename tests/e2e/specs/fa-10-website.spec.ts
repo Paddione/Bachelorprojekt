@@ -65,8 +65,8 @@ test.describe('FA-10: Unternehmenswebsite (Astro) & Kontaktformular', { tag: ['@
   test('T5: Contact form has all required fields', async ({ page }) => {
     await page.goto(`${BASE}/kontakt`);
     await waitForHydration(page);
-    // The new UI uses tabs. "Nachricht" is tab 02.
-    await page.getByRole('tab', { name: /Nachricht/i }).click();
+    // The new UI uses tabs. Use data-testid for robust selection instead of computed accessible name.
+    await page.getByTestId('tab-nachricht').click();
     await expect(page.getByRole('combobox', { name: /wie kann ich helfen/i })).toBeVisible();
     await expect(page.getByRole('textbox', { name: /name/i }).first()).toBeVisible();
     await expect(page.getByRole('textbox', { name: /e-mail/i })).toBeVisible();
@@ -91,7 +91,8 @@ test.describe('FA-10: Unternehmenswebsite (Astro) & Kontaktformular', { tag: ['@
     });
     await page.goto(`${BASE}/kontakt`);
     await waitForHydration(page);
-    await page.getByRole('tab', { name: /Nachricht/i }).click();
+    // Use data-testid for robust selection instead of computed accessible name.
+    await page.getByTestId('tab-nachricht').click();
     await page.getByRole('textbox', { name: /name/i }).first().fill('[TEST] E2E User');
     await page.getByRole('textbox', { name: /e-mail/i }).fill('test-e2e@example.invalid');
     await page.getByRole('textbox', { name: /ihre nachricht/i }).fill('Dies ist eine automatisierte Testnachricht.');

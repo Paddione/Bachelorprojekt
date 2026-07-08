@@ -678,7 +678,6 @@ tasks:
       - ./tests/unit/lib/bats-core/bin/bats tests/local/FA-SF-*.bats tests/local/FA-AR-*.bats
 
   test:spec:build-mcp-runner:
-    internal: true
     cmds:
       - |
         # tests/spec/mcp-task-runner.bats invokes the compiled binary at
@@ -814,7 +813,7 @@ tasks:
           if echo "$CHANGED" | grep -qE "^(tests/figure-pack-assets|assets/)"; then
             bash tests/figure-pack-assets.test.sh
           fi
-          task test:unit:coverage-guard
+          bash scripts/tests/unit-coverage-guard.sh
         fi
         
         if [ "$RUN_SPEC" = "true" ]; then

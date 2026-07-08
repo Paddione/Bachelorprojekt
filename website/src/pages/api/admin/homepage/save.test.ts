@@ -31,7 +31,6 @@ type SaveModule = { POST: (c: Ctx) => Promise<Response> };
 const post = (_body: unknown, _origin: string | null = REACT) => {
   return import('./save') as unknown as Promise<SaveModule>;
 };
-};
 
 describe('POST /api/admin/homepage/save (T001490 publish pipeline)', () => {
   it('rejects an unauthenticated request with 401', async () => {

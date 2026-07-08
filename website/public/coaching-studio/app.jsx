@@ -120,4 +120,3 @@ function App(){
 
 window.__studioRoot = window.__studioRoot || ReactDOM.createRoot(document.getElementById("root"));
 window.__studioRoot.render(<App/>);
-EOF && echo "✅ app.jsx written"

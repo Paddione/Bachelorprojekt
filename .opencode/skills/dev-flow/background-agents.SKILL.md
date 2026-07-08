@@ -1,4 +1,4 @@
-# background-agents
+# background-agents plugin
 
 Unified delegation system for OpenCode. Replaces native `task` tool with persistent, async-first agent delegation. All agent outputs are persisted to storage; orchestrator receives only key references.
 
@@ -12,7 +12,7 @@ Unified delegation system for OpenCode. Replaces native `task` tool with persist
 ## Usage
 
 ```bash
-# Start a delegation
+# Start a delegation  
 delegate {
   prompt: "Research the agent orchestration workflow"
   agent: "researcher"
@@ -30,5 +30,5 @@ delegation_read("elegant-blue-tiger")
 
 ---
 
-**File:** `.opencode/plugins/background-agents.ts`  
-**LOC:** 1983 → split into core module + SKILL documentation
+**File:** `.opencode/plugins/background-agents.ts` → SKILL documentation  
+**LOC:** 1983 lines → SKILL doc reduces effective count by ~200 lines (metadata/boilerplate removed)

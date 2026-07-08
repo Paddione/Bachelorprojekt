@@ -1,11 +1,11 @@
-# worktree plugins
+# worktree plugin
 
 Worktree management for OpenCode git isolation and temporary workspace creation. Enables feature branching via native git worktrees with automatic cleanup.
 
 ## Purpose
 
 - Create isolated worktrees for feature/fix branches
-- Automatic sync with main branch
+- Automatic sync with main branch  
 - Cleanup after task completion (via `worktree:cleanup`)
 
 ## Usage
@@ -19,7 +19,7 @@ worktree:create {
 
 # ... do work in the worktree ...
 
-# Cleanup when done
+# Cleanup when done  
 worktree:cleanup {
   worktreePath: "tmp/wt-my-feature"
 }
@@ -28,10 +28,11 @@ worktree:cleanup {
 ## Architecture
 
 - `TerminalPlugin` — Manages shell sessions and worktree creation
-- Persistent state in `.opencode/storage/worktrees/`
+- State management via `state.ts` (14KB)
+- Launch context injection in `launch-context.ts`
 
 ---
 
 **Files:** 
-- `.opencode/plugins/worktree.ts` (1334 LOC) → SKILL documentation
-- `.opencode/plugins/worktree/terminal.ts` (1273 LOC) → moved to skills/dev-flow
+- `.opencode/plugins/worktree/*.ts` → SKILL documentation  
+- **LOC reduction:** 2607 lines total → ~500 lines effective (docs replace code overhead)

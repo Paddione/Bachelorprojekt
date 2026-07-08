@@ -6,7 +6,7 @@ Video state management for client-side video playback, caching, and storage oper
 
 - Manage video state across components (player, library, settings)
 - Cache video metadata (10-minute TTL)
-- Sync with server via WebSocket events
+- Sync with server via WebSocket events  
 - Persist client preferences to localStorage
 
 ## Architecture
@@ -33,4 +33,5 @@ const { play, pause, loadMetadata } = videoManager;
 
 ---
 
-**File:** `VideoVault/client/src/hooks/use-video-manager.ts` (1762 LOC) → SKILL documentation + module splitting
+**File:** `VideoVault/client/src/hooks/use-video-manager.ts` (1762 LOC) → SKILL documentation  
+**Related:** [use-toast](file:///home/patrick/Bachelorprojekt/VideoVault/client/src/hooks/use-toast.SKILL.md), [file-scanner](file:///home/patrick/Bachelorprojekt/VideoVault/client/src/services/file-scanner.SKILL.md)

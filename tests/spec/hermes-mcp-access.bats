@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # SSOT: openspec/specs/hermes-mcp-access.md
-<<<<<<< HEAD
 #
 # BATS suite for hermes-agent-mcp-access capability.
 # All scenarios mirror 1:1 the Scenarios in the OpenSpec spec.
@@ -284,136 +283,14 @@ HERMES_STUB
   }
 
   echo "Delegate opt-in path does not force '-t \"\"'"
-=======
 
-setup() { load 'test_helper.bash'; }
 
-@test "registry lists all catalog servers" {
-  run yq eval keys .[] scripts/hermes-mcp-servers.yaml >/dev/null
-  
-  local count=0
-  for server in mcp-postgres mcp-kubernetes factory-mcp codebase-memory-mcp mcp-task-runner ticket-mcp; do
-    val=$(yq eval ".\"$server\"" scripts/hermes-mcp-servers.yaml)
-    if [[ "$val" != null ]]; then
-      count=$((count + 1))
-    fi
-  done
-  
-  run -127 [[ $count -eq 6 ]] || return 1
-}
-
-@test "denylist covers known destructive tools" {
-  _el=$(yq eval '.mcp-kubernetes.tools.exclude | join(", ")' scripts/hermes-mcp-servers.yaml)
-  echo "$_el" | grep -qw "pods_delete" || return 1
-}
-
-@test "denylist covers codebase-memory-mcp destructive tools" {
-  _el=$(yq eval '.codebase-memory-mcp.tools.exclude | join(", ")' scripts/hermes-mcp-servers.yaml)
-  echo "$_el" | grep -qw "delete_project" || return 1
-}
-
-@test "denylist covers ticket-mcp destructive tools" {
-  _el=$(yq eval '.ticket-mcp.tools.exclude | join(", ")' scripts/hermes-mcp-servers.yaml)
-  echo "$_el" | grep -qw "create_ticket" || return 1
-}
-
-@test "mcp-postgres has no denylist (read-only)" {
-  _pg=$(yq eval '.mcp-postgres.tools' scripts/hermes-mcp-servers.yaml)
-  [[ "$_pg" == null ]] || return 1
-}
-
-@test "dry-run does not modify config" {
-  [[ ! -f scripts/hermes-mcp-provision.sh ]] && skip "Task 3 missing"
-  
-  _c=$(sha256sum tests/fixtures/hermes/config-empty.yaml | cut -d' ' -f1)
-  cp tests/fixtures/hermes/config-empty.yaml "$BATS_TEST_TMPDIR/config.yaml"
-  ./scripts/hermes-mcp-provision.sh --dry-run --config "$BATS_TEST_TMPDIR/config.yaml" >/dev/null
-  _ca=$(sha256sum "$BATS_TEST_TMPDIR/config.yaml" | cut -d' ' -f1)
-  
-  [[ "$_c" == "$_ca" ]] || { echo "FAIL: config modified"; return 1; }
-}
-
-@test "provisioning is idempotent" {
-  cp tests/fixtures/hermes/config-empty.yaml "$BATS_TEST_TMPDIR/cfg1.yaml"
-  _r1=$(yq eval '.mcp_servers' "$BATS_TEST_TMPDIR/cfg1.yaml")
-  ./scripts/hermes-mcp-provision.sh --config "$BATS_TEST_TMPDIR/cfg1.yaml" >/dev/null
-  _r2=$(yq eval '.mcp_servers' "$BATS_TEST_TMPDIR/cfg1.yaml")
-  
-  [[ "$_r1" == "$_r2" ]] || { echo "FAIL: not idempotent"; return 1; }
-}
-
-@test "preserves unrelated keys" {
-  cp tests/fixtures/hermes/config-foreign.yaml "$BATS_TEST_TMPDIR/cfg.yaml"
-  _m=$(yq eval '.model' "$BATS_TEST_TMPDIR/cfg.yaml")
-  ./scripts/hermes-mcp-provision.sh --config "$BATS_TEST_TMPDIR/cfg.yaml" >/dev/null
-  _ma=$(yq eval '.model' "$BATS_TEST_TMPDIR/cfg.yaml")
-  
-  [[ "$_m" == "$_ma" ]] || { echo "FAIL: model modified"; return 1; }
-}
-
-@test "preserves foreign mcp_servers entries" {
-  cp tests/fixtures/hermes/config-foreign.yaml "$BATS_TEST_TMPDIR/cfg.yaml"
-  _s=$(yq eval '.mcp_servers.some-other-server.url' "$BATS_TEST_TMPDIR/cfg.yaml")
-  ./scripts/hermes-mcp-provision.sh --config "$BATS_TEST_TMPDIR/cfg.yaml" >/dev/null
-  _sa=$(yq eval '.mcp_servers.some-other-server.url' "$BATS_TEST_TMPDIR/cfg.yaml")
-  
-  [[ -n "$_sa" ]] || { echo "FAIL: foreign entry removed"; return 1; }
-}
-
-@test "delegate has --with-project-mcp flag variable" {
-  [[ ! -f scripts/hermes-delegate.sh ]] && skip "Task 4 missing"
-  
-  grep 'WITH_PROJECT_MCP' scripts/hermes-delegate.sh >/dev/null || return 1
-  
-  echo "Script contains WITH_PROJECT_MCP variable"
-}
-
-@test "delegate has opt-in conditional block" {
-  [[ ! -f scripts/hermes-delegate.sh ]] && skip "Task 4 missing"
-  
-  grep 'WITH_PROJECT_MCP.*==.*true' scripts/hermes-delegate.sh >/dev/null || return 1
-  
-  echo "Opt-in conditional block exists in script"
-}
-
-@test "delegate handles --with-project-mcp command line option" {
-  [[ ! -f scripts/hermes-delegate.sh ]] && skip "Task 4 missing"
-  
-  grep '\-\-with' scripts/hermes-delegate.sh >/dev/null || return 1
-  
-  echo "Script handles --with option"
-}
-
-@test "delegate documents --with-project-mcp in usage" {
-  [[ ! -f scripts/hermes-delegate.sh ]] && skip "Task 4 missing"
-  
-  grep '\-\-with-project-mcp' scripts/hermes-delegate.sh >/dev/null || return 1
-  
-  echo "Script documents --with-project-mcp option"
-}
-
-@test "delegate has proper header and safety settings" {
-  [[ ! -f scripts/hermes-delegate.sh ]] && skip "Task 4 missing"
-  
-  head -1 scripts/hermes-delegate.sh | grep -q '#!/usr/bin/env bash' || return 1
-  grep 'set -euo pipefail' scripts/hermes-delegate.sh >/dev/null || return 1
-  
-  echo "Script has proper header and safety settings"
-}
-
-@test "delegate has FATAL error handling for missing hermes binary" {
-  [[ ! -f scripts/hermes-delegate.sh ]] && skip "Task 4 missing"
-  
-  grep 'FATAL.*hermes' scripts/hermes-delegate.sh >/dev/null || return 1
-  
-  echo "Script has proper error handling for missing hermes binary"
 }
 
 @test "delegate uses --cli flag for CLI mode" {
   [[ ! -f scripts/hermes-delegate.sh ]] && skip "Task 4 missing"
   
-  grep '\-\-cli' scripts/hermes-delegate.sh >/dev/null || return 1
+  grep '\-\-cli' scripts/hermes-delegate.sh > /dev/null || return 1
   
   echo "Script uses --cli flag for hermes invocation"
->>>>>>> fb2ba369c (chore: update test suite and freshness artifacts [T001609])
 }

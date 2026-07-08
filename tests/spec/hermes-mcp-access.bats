@@ -228,10 +228,16 @@ mcp-task-runner:execute_plan,run_task,run_task_async,cancel_task
   _hermes_stub="$BATS_TEST_TMPDIR/hermes-stub"
   cat > "$_hermes_stub" << 'HERMES_STUB'
 #!/bin/bash
-# Stub that prints its argv, preserving empty arguments for grep matching
-out="hermes"
-for a in "$@"; do out="$out $a"; done
-echo "$out"
+# Stub that prints its argv — empty args rendered as "" for grep matching
+printf "hermes"
+for a in "$@"; do
+  if [[ -z "$a" ]]; then
+    printf ' ""'
+  else
+    printf " %s" "$a"
+  fi
+done
+printf "\n"
 HERMES_STUB
   chmod +x "$_hermes_stub"
 
@@ -261,10 +267,16 @@ HERMES_STUB
   _hermes_stub="$BATS_TEST_TMPDIR/hermes-stub"
   cat > "$_hermes_stub" << 'HERMES_STUB'
 #!/bin/bash
-# Stub that prints its argv, preserving empty arguments for grep matching
-out="hermes"
-for a in "$@"; do out="$out $a"; done
-echo "$out"
+# Stub that prints its argv — empty args rendered as "" for grep matching
+printf "hermes"
+for a in "$@"; do
+  if [[ -z "$a" ]]; then
+    printf ' ""'
+  else
+    printf " %s" "$a"
+  fi
+done
+printf "\n"
 HERMES_STUB
   chmod +x "$_hermes_stub"
 

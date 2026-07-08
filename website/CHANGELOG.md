@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.166.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.165.2...website-v1.166.0) (2026-07-08)
+
+
+### Features
+
+* T001641 coaching-ki-model-select — model probe, scrubber, models endpoint ([#2638](https://github.com/Paddione/Bachelorprojekt/issues/2638)) ([e75db9d](https://github.com/Paddione/Bachelorprojekt/commit/e75db9da25c16aa461f2ea657975dabf95c38211))
+
 ## [1.165.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.165.1...website-v1.165.2) (2026-07-08)
 
 

@@ -1,0 +1,8 @@
+{
+  "status": "in_progress",
+  "touched_files": [
+    ".opencode/plugins/background-agents.ts",
+    ".opencode/plugins/worktree/terminal.ts",
+    ".opencode/plugins/worktree.ts"
+  ]
+}

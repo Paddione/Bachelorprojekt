@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.162.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.161.0...website-v1.162.0) (2026-07-08)
+
+
+### Features
+
+* **coaching:** sessions admin nav, popout GUI, wording + test-data hygiene [T001638] ([#2616](https://github.com/Paddione/Bachelorprojekt/issues/2616)) ([5b20570](https://github.com/Paddione/Bachelorprojekt/commit/5b20570c282802a51f045fd107eb77ea9e7a1c4a))
+
 ## [1.161.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.160.0...website-v1.161.0) (2026-07-08)
 
 

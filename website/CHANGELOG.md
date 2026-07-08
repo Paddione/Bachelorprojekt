@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.169.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.169.0...website-v1.169.1) (2026-07-08)
+
+
+### Bug Fixes
+
+* **website:** consolidate ai-metrics/ai-quality onto shared db-pool [T001678] ([#2665](https://github.com/Paddione/Bachelorprojekt/issues/2665)) ([18b88a8](https://github.com/Paddione/Bachelorprojekt/commit/18b88a8243a90d2b48c377b82f9429c4a81031a4))
+
 ## [1.169.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.168.1...website-v1.169.0) (2026-07-08)
 
 

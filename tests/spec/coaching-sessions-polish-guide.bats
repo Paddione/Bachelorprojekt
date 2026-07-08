@@ -52,3 +52,20 @@ setup() {
   run grep -qF "für diese Session:" "$WEB/pages/api/admin/inbox/[id]/action.ts"
   [ "$status" -eq 0 ]
 }
+
+@test "migration adds is_test_data to coaching.sessions" {
+  run grep -qF "ADD COLUMN IF NOT EXISTS is_test_data" "$REPO_ROOT/scripts/migrations/2026-07-08-coaching-is-test-data.sql"
+  [ "$status" -eq 0 ]
+}
+
+@test "createSession threads is_test_data into the INSERT" {
+  run grep -qF "is_test_data" "$WEB/lib/coaching-session-db.ts"
+  [ "$status" -eq 0 ]
+}
+
+@test "purge-fn-v6 sweeps coaching test-data sessions and steps" {
+  run grep -qF "coaching.session_steps" "$REPO_ROOT/scripts/one-shot/purge-fn-v6.sql"
+  [ "$status" -eq 0 ]
+  run grep -qF "DELETE FROM coaching.sessions WHERE is_test_data" "$REPO_ROOT/scripts/one-shot/purge-fn-v6.sql"
+  [ "$status" -eq 0 ]
+}

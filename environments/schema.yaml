@@ -31,6 +31,13 @@ env_vars:
     required: false
     default_dev: "+49 000 000 00 000"
 
+  # Kill-Switch für den öffentlichen Coaching-Guide-Demo-Proxy /api/demo/coaching-sim
+  # (T001664). Wird zur Laufzeit von der Website gelesen; "false" deaktiviert den
+  # Endpoint (503). Jeder andere Wert / nicht gesetzt = aktiv (Spec-Default).
+  - name: COACHING_SIM_ENABLED
+    required: false
+    default_dev: "true"
+
   - name: CONTACT_CITY
     required: true
     default_dev: "DevCity"

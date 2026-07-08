@@ -9,7 +9,7 @@ metadata:
   namespace: website
 data:
   # Keycloak (add frontend URL for OIDC redirects)
-  KEYCLOAK_FRONTEND_URL: "https://auth.${PROD_DOMAIN}"
+  POCKET_ID_FRONTEND_URL: "https://auth.${PROD_DOMAIN}"
   # SMTP (production mailbox.org, overrides dev Mailpit)
   SMTP_HOST: "smtp.mailbox.org"
   SMTP_PORT: "465"

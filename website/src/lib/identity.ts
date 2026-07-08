@@ -1,9 +1,9 @@
 // Pocket ID Admin API helper.
-// Replaces the legacy keycloak.ts module. Uses Pocket ID's bearer-token
-// admin API instead of Keycloak's admin-cli / master-realm password flow.
+// Replaces the legacy identity module. Uses Pocket ID's bearer-token
+// admin API instead of Pocket-ID's admin API / master-realm password flow.
 import { logger } from './logger';
 //
-// Public surface mirrors the previous keycloak.ts export list so the ~26
+// Public surface mirrors the previous identity export list so the ~26
 // existing call sites can be repointed with a single import-path change
 // (`lib/identity` → `lib/identity`). Named symbols + signatures are
 // unchanged. The role/group compat shim preserves callers that still treat

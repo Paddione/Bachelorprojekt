@@ -229,7 +229,7 @@ export async function getSession(cookieHeader: string | null): Promise<UserSessi
     // Refresh the Pocket ID access token when its own JWT `exp` is within a
     // 60s safety buffer. session.expires_at tracks the web-session lifetime
     // (8h) and is unrelated to the access token's own expiry. Arena out of
-    // scope: the previous missingArenaAud trigger was a Keycloak mapper
+    // scope: the previous missingArenaAud trigger was a Pocket-ID mapper
     // workaround; Pocket ID has no realm mappers.
     const ACCESS_TOKEN_BUFFER_MS = 60 * 1000;
     const accessClaims = decodeJwtPayload(session.access_token);

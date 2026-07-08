@@ -2,7 +2,7 @@
 title: "coaching-studio-empty-customer-fallback — fix Workspace crash when CUSTOMERS is empty"
 ticket_id: T001656
 domains: [website]
-status: plan_staged
+status: completed
 ---
 
 # coaching-studio-empty-customer-fallback — Implementation Plan

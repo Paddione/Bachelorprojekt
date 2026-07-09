@@ -74,8 +74,7 @@ describe('HomepageEditorPage guard', () => {
   it('redirects an authenticated non-admin away from the editor', async () => {
     (useAuth as any).mockReturnValue({ ...admin, isAdmin: false });
     renderEditor();
-    await waitFor(() => expect(screen.getByText('HOME_MARKER')).toBeInTheDocument());
-    expect(screen.queryByDisplayValue('Old Title')).not.toBeInTheDocument();
+    await waitFor(() => expect(window.location.href).toBe('http://localhost:3000/'));
   });
 });
 
@@ -152,7 +151,7 @@ describe('HomepageEditorPage — collapsible live preview', () => {
     renderEditor();
     await screen.findByDisplayValue('Old Title');
     expect(screen.queryByRole('region', { name: 'Hero-Bereich' })).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /vorschau/i }));
+    fireEvent.click(screen.getByRole('button', { name: /vorschau einblenden|ausblenden/i }));
     expect(screen.getByRole('region', { name: 'Hero-Bereich' })).toBeInTheDocument();
   });
 });

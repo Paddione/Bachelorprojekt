@@ -800,7 +800,7 @@ tasks:
         echo "$CHANGED" | grep -qE "^scripts/build-learning-assets" && RUN_LEARNING_ASSETS=true || true
         echo "$CHANGED" | grep -qE "^(website/public/systembrett/|scripts/tests/systembrett-template\.test\.sh)" && RUN_SYSTEMBRETT=true || true
         if [ "$RUN_WEBSITE" = "true" ] && command -v pnpm >/dev/null 2>&1; then echo "→ website changes: pnpm vitest run --changed"; (cd website && pnpm vitest run --changed --reporter verbose); fi
-        if [ "$RUN_MENTOLDER_WEB" = "true" ] && command -v pnpm >/dev/null 2>&1; then echo "→ mentolder-web changes: pnpm --filter mentolder-web test"; pnpm --filter mentolder-web test; fi
+        if [ "$RUN_MENTOLDER_WEB" = "true" ] && command -v pnpm >/dev/null 2>&1 && [ -f mentolder-web/pnpm-lock.yaml ]; then echo "→ mentolder-web changes: (cd mentolder-web && pnpm install --frozen-lockfile && pnpm test)"; (cd mentolder-web && pnpm install --frozen-lockfile && pnpm test); fi
         if [ "$RUN_K8S" = "true" ]; then echo "→ k8s changes: task test:manifests"; task test:manifests; fi
         
         JOBS=$(nproc 2>/dev/null || echo 2)

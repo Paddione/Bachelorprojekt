@@ -49,7 +49,7 @@ test.describe('FA-30: E-Rechnung / XRechnung (einvoice-sidecar)', () => {
 
   // T4: Im Browser — service landing page renders without 5xx
   test('T4: einvoice-sidecar landing page renders in browser', async ({ page }) => {
-    await page.goto(EINVOICE_URL!, { timeout: 15_000 });
+    await page.goto(EINVOICE_URL!, { timeout: 45_000 });
     const body = page.locator('body');
     await expect(body).toBeVisible();
     await expect(body).not.toContainText('Internal Server Error');

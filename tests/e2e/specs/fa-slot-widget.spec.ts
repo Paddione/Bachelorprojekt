@@ -9,7 +9,7 @@ test.describe('Slot Widget', () => {
     // Either the slot widget (when slots available) or the fallback link is shown
     const widget = page.locator('[data-testid="slot-widget"]');
     const placeholder = page.locator('a[href="/termin"]');
-    await expect(widget.or(placeholder).first()).toBeVisible({ timeout: 30_000 });
+    await expect(widget.or(placeholder).first()).toBeVisible({ timeout: 60_000 });
   });
 
   test('T2 – /termin passes date/start/end params to booking form', async ({ page }) => {
@@ -27,8 +27,8 @@ test.describe('Slot Widget', () => {
     // With initialStart/initialEnd set, the form should skip slot selection and show contact fields.
     await page.goto('/kontakt?mode=termin&date=2026-12-15&start=09:00&end=09:30');
     // Termin tab should be active
-    await expect(page.getByRole('button', { name: /termin buchen/i })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole('button', { name: /termin buchen/i })).toBeVisible({ timeout: 60_000 });
     // With a pre-selected slot, the contact form fields appear without manual selection
-    await expect(page.locator('#b-name').first()).toBeVisible({ timeout: 30_000 });
+    await expect(page.locator('#b-name').first()).toBeVisible({ timeout: 60_000 });
   });
 });

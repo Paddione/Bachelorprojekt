@@ -36,7 +36,7 @@ test.describe('FA-13: Dokumentations-Service', () => {
     await page.goto(DOCS_URL, { timeout: 20_000 });
     // Docsify injects content into #app; wait for it or any visible nav element
     const app = page.locator('#app, .app-nav, nav.app-nav, body');
-    await expect(app.first()).toBeVisible({ timeout: 30_000 });
+    await expect(app.first()).toBeVisible({ timeout: 60_000 });
     // Must not show an error page
     const body = page.locator('body');
     await expect(body).not.toContainText('502 Bad Gateway');

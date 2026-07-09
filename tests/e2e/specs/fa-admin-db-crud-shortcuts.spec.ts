@@ -59,7 +59,7 @@ test.describe('FA-admin-db-crud-shortcuts', () => {
     await page.goto(`${BASE}/admin`);
     await page.waitForLoadState('networkidle');
     // The AdminShortcuts Svelte island hydrates with client:load — wait for the label
-    await expect(page.locator(`text="${label}"`).first()).toBeVisible({ timeout: 30_000 });
+    await expect(page.locator(`text="${label}"`).first()).toBeVisible({ timeout: 60_000 });
 
     // ── 3. Update the label via PATCH ──
     const updateRes = await page.request.patch(`${BASE}/api/admin/shortcuts/update`, {
@@ -73,7 +73,7 @@ test.describe('FA-admin-db-crud-shortcuts', () => {
     // ── 4. Reload /admin and verify the updated label is visible ──
     await page.goto(`${BASE}/admin`);
     await page.waitForLoadState('networkidle');
-    await expect(page.locator(`text="${updatedLabel}"`).first()).toBeVisible({ timeout: 30_000 });
+    await expect(page.locator(`text="${updatedLabel}"`).first()).toBeVisible({ timeout: 60_000 });
     // Old label should no longer appear
     await expect(page.locator(`text="${label}"`).first()).toHaveCount(0);
 

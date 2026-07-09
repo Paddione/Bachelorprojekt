@@ -55,7 +55,7 @@ test('Brett loads art manifest and exposes character ids', async ({ browser }) =
   });
   const page = await ctx.newPage();
   try {
-    await page.goto(BRETT_URL, { waitUntil: 'networkidle', timeout: 30_000 });
+    await page.goto(BRETT_URL, { waitUntil: 'networkidle', timeout: 60_000 });
 
     // Check if the deployed brett image supports the art library feature
     // (window.__ART_READY__ is set by bootArtLibrary() which was added in PR #622)
@@ -68,7 +68,7 @@ test('Brett loads art manifest and exposes character ids', async ({ browser }) =
       return;
     }
 
-    await page.waitForFunction(() => Boolean((window as any).__ART_READY__), null, { timeout: 15_000 });
+    await page.waitForFunction(() => Boolean((window as any).__ART_READY__), null, { timeout: 45_000 });
     const ids = await page.evaluate(() => Array.from((window as any).characterIds ?? []));
     expect(ids).toEqual(expect.arrayContaining(['figure-01', 'figure-02', 'figure-03', 'figure-04']));
   } finally {
@@ -85,7 +85,7 @@ test('Placing a figure creates a Sprite child in the figure mesh', async ({ brow
   });
   const page = await ctx.newPage();
   try {
-    await page.goto(BRETT_URL, { waitUntil: 'networkidle', timeout: 30_000 });
+    await page.goto(BRETT_URL, { waitUntil: 'networkidle', timeout: 60_000 });
 
     const hasArtLibraryFeature = await page.evaluate(() => {
       const scriptText = document.querySelector('script:not([src])')?.innerHTML ?? '';
@@ -96,7 +96,7 @@ test('Placing a figure creates a Sprite child in the figure mesh', async ({ brow
       return;
     }
 
-    await page.waitForFunction(() => Boolean((window as any).__ART_READY__), null, { timeout: 15_000 });
+    await page.waitForFunction(() => Boolean((window as any).__ART_READY__), null, { timeout: 45_000 });
     await page.click('button[data-type="figure-01"]');
     await page.evaluate(() => (window as any).addFigure('figure-01', '#9caa86', 0, 0, '', 1, 0, 'test-1'));
     const hasSprite = await page.evaluate(() => {

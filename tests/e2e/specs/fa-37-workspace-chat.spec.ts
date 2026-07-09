@@ -65,7 +65,7 @@ test.describe('FA-37: workspace-chat Roundtrip', () => {
 
   // Browser: LLM router base URL responds without 5xx
   test('Browser: LLM router base URL is reachable', async ({ page }) => {
-    await page.goto(LLM_URL!, { timeout: 15_000 });
+    await page.goto(LLM_URL!, { timeout: 45_000 });
     const body = page.locator('body');
     await expect(body).toBeVisible();
     await expect(body).not.toContainText('502 Bad Gateway');

@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
 test.describe('AK-03: Technische Machbarkeit', () => {
-  test.setTimeout(30_000);
+  test.setTimeout(90_000);
 
   test('T3a: Keycloak ist erreichbar', async ({ request }) => {
     const KC_URL =

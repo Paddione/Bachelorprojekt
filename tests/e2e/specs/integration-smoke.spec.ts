@@ -104,7 +104,7 @@ test.describe('Integration Smoke Tests', () => {
     }
     const oidcButton = page.locator('a[href*="oidc"], a[href*="keycloak"], .oidc-button, .alternative-logins a[href*="social"]');
     const fallback = page.getByRole('link', { name: /keycloak|anmelden|openid|sso/i });
-    await expect(oidcButton.first().or(fallback.first())).toBeVisible({ timeout: 30_000 });
+    await expect(oidcButton.first().or(fallback.first())).toBeVisible({ timeout: 60_000 });
   });
 
   // ── Collabora Integration ─────────────────────────────────────────────

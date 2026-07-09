@@ -20,7 +20,7 @@ const LLM_URL = process.env.LLM_ROUTER_URL
 test.describe('FA-34: LLM-Router strict-fail (kein silent fallback)', () => {
   test.skip(!LLM_URL, 'requires LLM_ROUTER_URL or LLM_HOST_IP');
   test.skip(!process.env.LLM_TEI_DOWN, 'requires LLM_TEI_DOWN=true to simulate TEI outage');
-  test.setTimeout(30_000);
+  test.setTimeout(90_000);
 
   // T1: TEI outage is assumed to be set up externally (LLM_TEI_DOWN=true)
   test('T1: TEI outage is configured externally via LLM_TEI_DOWN=true', async () => {

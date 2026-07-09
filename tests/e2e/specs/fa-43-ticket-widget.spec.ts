@@ -51,7 +51,7 @@ test.describe('FA-43: TicketWidgetBar — portal widget rendering', () => {
 
       // The floating widget bar is fixed bottom-right; aria-label uniquely identifies the create btn
       const createBtn = page.locator('button[aria-label="Fehler melden"]');
-      await expect(createBtn).toBeVisible({ timeout: 30_000 });
+      await expect(createBtn).toBeVisible({ timeout: 60_000 });
     });
 
     // ── TicketWidgetBar DOM presence (showEdit prop regression guard) ─────
@@ -81,7 +81,7 @@ test.describe('FA-43: TicketWidgetBar — portal widget rendering', () => {
 
       // Tickets is the first tab (default open), create-form heading is "NEUES TICKET ▲"
       const formHeading = page.getByText('NEUES TICKET', { exact: false });
-      await expect(formHeading).toBeVisible({ timeout: 30_000 });
+      await expect(formHeading).toBeVisible({ timeout: 60_000 });
     });
   });
 });

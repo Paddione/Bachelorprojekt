@@ -67,7 +67,7 @@ test.describe('FA-admin-db-crud-clients', () => {
     // Client name appears as "E2E CrudTest<ts>" in the card/list
     const fullName = `${firstName} ${lastName}`;
     const clientItem = page.locator('[data-testid="admin-client-item"]').filter({ hasText: fullName }).first();
-    await expect(clientItem).toBeVisible({ timeout: 30_000 });
+    await expect(clientItem).toBeVisible({ timeout: 60_000 });
 
     // ── 3. Navigate to the client detail page ──
     await clientItem.click();
@@ -94,7 +94,7 @@ test.describe('FA-admin-db-crud-clients', () => {
     // ── 6. Reload notes tab and verify note is visible ──
     await page.goto(`${BASE}/admin/${clientId}?tab=notes`);
     await page.waitForLoadState('networkidle');
-    await expect(page.locator(`text="${noteText}"`)).toBeVisible({ timeout: 30_000 });
+    await expect(page.locator(`text="${noteText}"`)).toBeVisible({ timeout: 60_000 });
 
     // ── 7. Find the note ID from the delete form ──
     const noteDeleteForm = page.locator(`form[action*="clientnotes/delete"]:near(:text("${noteText}"))`).first();

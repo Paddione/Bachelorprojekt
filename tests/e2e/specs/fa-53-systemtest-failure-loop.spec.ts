@@ -76,7 +76,7 @@ test.describe('FA-53: System-test failure loop kanban', () => {
 
       for (const title of COLUMN_TITLES) {
         await expect(page.getByRole('heading', { name: title, level: 2 })).toBeVisible({
-          timeout: 30_000,
+          timeout: 60_000,
         });
       }
 

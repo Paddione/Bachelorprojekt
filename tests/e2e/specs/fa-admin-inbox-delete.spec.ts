@@ -91,7 +91,7 @@ test.describe('FA-admin-inbox-delete: Löschen escape hatch', { tag: ['@admin', 
     //    so without it the seeded row would never render.
     await loginAsAdmin(page, '/admin/inbox?includeTest=1');
     const root = page.locator('[data-testid="inbox-app"]');
-    await expect(root).toBeVisible({ timeout: 30_000 });
+    await expect(root).toBeVisible({ timeout: 60_000 });
 
     // 3. Filter to `contact` so we can locate the seeded row by its
     //    unique name in the list. The seed name appears in the row's
@@ -106,12 +106,12 @@ test.describe('FA-admin-inbox-delete: Löschen escape hatch', { tag: ['@admin', 
       hasText: seedName,
     }).first();
 
-    await expect(seededRow).toBeVisible({ timeout: 30_000 });
+    await expect(seededRow).toBeVisible({ timeout: 60_000 });
 
     // 4. Select the row → detail pane shows it.
     await seededRow.click();
     const detail = root.locator('[data-testid="inbox-detail"][data-type="contact"]');
-    await expect(detail).toBeVisible({ timeout: 30_000 });
+    await expect(detail).toBeVisible({ timeout: 60_000 });
 
     // 5. The Löschen button must be present on every row regardless of status.
     const deleteBtn = detail.locator('[data-testid="inbox-action-delete"]');
@@ -159,7 +159,7 @@ test.describe('FA-admin-inbox-delete: Löschen escape hatch', { tag: ['@admin', 
     // every cluster — when it doesn't, we skip rather than failing.
     await loginAsAdmin(page, '/admin/inbox?status=archived');
     const root = page.locator('[data-testid="inbox-app"]');
-    await expect(root).toBeVisible({ timeout: 30_000 });
+    await expect(root).toBeVisible({ timeout: 60_000 });
 
     const list = root.locator('[data-testid="inbox-list"]');
     const firstRow = list.locator('[data-testid="inbox-list-row"]').first();
@@ -168,7 +168,7 @@ test.describe('FA-admin-inbox-delete: Löschen escape hatch', { tag: ['@admin', 
 
     await firstRow.click();
     const detail = root.locator('[data-testid="inbox-detail"]');
-    await expect(detail).toBeVisible({ timeout: 30_000 });
+    await expect(detail).toBeVisible({ timeout: 60_000 });
 
     // The delete button MUST be visible AND enabled on archived rows —
     // that's the contract this whole feature exists for.

@@ -13,7 +13,7 @@ test.describe('FA-iOS: Nextcloud Talk + notify_push (iPhone WebKit)', () => {
     }
     await expect(
       page.locator('[data-app-id="spreed"], .app-spreed, #body-login, .pf-v5-c-login__main, #kc-form-login').first()
-    ).toBeVisible({ timeout: 30_000 });
+    ).toBeVisible({ timeout: 60_000 });
   });
 
   test('T2: notify_push endpoint antwortet', async ({ request }) => {

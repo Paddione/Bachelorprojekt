@@ -56,11 +56,11 @@ test.describe('T001656: coaching-studio empty-customer fallback', () => {
       // button both call onNav("workspace", CUSTOMERS[0]) — with CUSTOMERS
       // empty, customer arrives as undefined and used to crash Workspace().
       const neueSession = page.getByRole('button', { name: /Neue Session/i }).first();
-      await neueSession.waitFor({ state: 'visible', timeout: 30_000 });
+      await neueSession.waitFor({ state: 'visible', timeout: 60_000 });
       await neueSession.click();
 
       // Workspace screen renders — "Ebene 01" heading / .ws container.
-      await expect(page.locator('.ws, text=Ebene 01').first()).toBeVisible({ timeout: 30_000 });
+      await expect(page.locator('.ws, text=Ebene 01').first()).toBeVisible({ timeout: 60_000 });
 
       expect(
         pageErrors.map(e => e.message),

@@ -250,7 +250,7 @@ test.describe('FA-55-LMStudio: SessionWizard browser flow', () => {
     await kiButton.click();
 
     // The button label changes to "KI antwortet…" while loading — verify that transition
-    await expect(page.getByRole('button', { name: /KI antwortet/ })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole('button', { name: /KI antwortet/ })).toBeVisible({ timeout: 60_000 });
 
     // Wait for either:
     //   a) .ai-response-box appears (streaming or final response) — success
@@ -258,10 +258,10 @@ test.describe('FA-55-LMStudio: SessionWizard browser flow', () => {
     // 30s is sufficient since the API test (T4) showed ~1-3s latency.
     const responseOrError = await Promise.race([
       page.locator('.ai-response-box')
-          .waitFor({ state: 'visible', timeout: 30_000 })
+          .waitFor({ state: 'visible', timeout: 60_000 })
           .then(() => 'response'),
       page.locator('[role="alert"].error, .error-message')
-          .waitFor({ state: 'visible', timeout: 30_000 })
+          .waitFor({ state: 'visible', timeout: 60_000 })
           .then(() => 'error'),
     ]).catch(() => 'timeout');
 

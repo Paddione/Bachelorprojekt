@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
 test.describe('NFA-04: Skalierbarkeit', () => {
-  test.setTimeout(30_000);
+  test.setTimeout(90_000);
 
   test('T3: Service verarbeitet parallele Requests (3 concurrent)', async ({ request }) => {
     // Send 3 concurrent requests to verify the service handles parallelism

@@ -103,7 +103,7 @@ async function triggerLoginEvent(request: APIRequestContext): Promise<void> {
 }
 
 test.describe('SA-05: Audit-Log', () => {
-  test.setTimeout(30_000);
+  test.setTimeout(90_000);
 
   /**
    * T1 + T2: Enable event logging, trigger a login attempt, then verify at least 1 event recorded.

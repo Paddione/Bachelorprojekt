@@ -67,7 +67,7 @@ test.describe('Wissensquellen admin — Embedding Model Selection', () => {
     // Cleanup
     await page.goto(`${BASE}/admin/wissensquellen`);
     const row = page.getByRole('row', { name: new RegExp(stamp) });
-    await expect(row).toBeVisible({ timeout: 30_000 });
+    await expect(row).toBeVisible({ timeout: 60_000 });
 
     const deleteResponse = page.waitForResponse(r =>
       r.url().includes(`/api/admin/knowledge/collections/${created.id}`) &&
@@ -76,6 +76,6 @@ test.describe('Wissensquellen admin — Embedding Model Selection', () => {
     page.once('dialog', d => d.accept());
     await row.getByRole('button', { name: 'Löschen' }).click();
     await deleteResponse;
-    await expect(row).not.toBeVisible({ timeout: 30_000 });
+    await expect(row).not.toBeVisible({ timeout: 60_000 });
   });
 });

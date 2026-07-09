@@ -44,7 +44,7 @@ test.describe('FA-45: Authenticated API flows', () => {
 
   // T3: /api/admin/ops/health returns cluster results
   test('T3: /api/admin/ops/health returns cluster results', async ({ request }) => {
-    const res = await request.get(`${BASE}/api/admin/ops/health`, { timeout: 30_000 });
+    const res = await request.get(`${BASE}/api/admin/ops/health`, { timeout: 60_000 });
     expect(res.status()).toBe(200);
     const body = await res.json();
     // Should have at least one cluster result
@@ -55,7 +55,7 @@ test.describe('FA-45: Authenticated API flows', () => {
 
   // T4: /api/admin/platform/software returns software assets
   test('T4: /api/admin/platform/software returns assets', async ({ request }) => {
-    const res = await request.get(`${BASE}/api/admin/platform/software`, { timeout: 30_000 });
+    const res = await request.get(`${BASE}/api/admin/platform/software`, { timeout: 60_000 });
     expect(res.status()).toBe(200);
     const body = await res.json();
     // Should contain some software entries

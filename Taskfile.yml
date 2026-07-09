@@ -712,11 +712,13 @@ tasks:
   test:mcp-tooling:
     desc: "Guardrail: ticket-mcp tools <-> mcp-tool-guide.md <-> skill-critical verbs (hard)"
     cmds:
+      - '[ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive'
       - ./tests/unit/lib/bats-core/bin/bats tests/spec/mcp-tooling.bats
 
   test:agent-library:
     desc: "Guardrail: .claude/agents/*.md <-> AGENTS.md routing-table library assertions"
     cmds:
+      - '[ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive'
       - ./tests/unit/lib/bats-core/bin/bats tests/spec/agent-library.bats
 
   test:openspec:
@@ -728,6 +730,7 @@ tasks:
   test:unit:openspec:
     internal: true
     cmds:
+      - '[ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive'
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/openspec.bats
 
   openspec:propose:
@@ -800,12 +803,13 @@ tasks:
         echo "$CHANGED" | grep -qE "^scripts/build-learning-assets" && RUN_LEARNING_ASSETS=true || true
         echo "$CHANGED" | grep -qE "^(website/public/systembrett/|scripts/tests/systembrett-template\.test\.sh)" && RUN_SYSTEMBRETT=true || true
         if [ "$RUN_WEBSITE" = "true" ] && command -v pnpm >/dev/null 2>&1; then echo "→ website changes: pnpm vitest run --changed"; (cd website && pnpm vitest run --changed --reporter verbose); fi
-        if [ "$RUN_MENTOLDER_WEB" = "true" ] && command -v pnpm >/dev/null 2>&1 && [ -f mentolder-web/pnpm-lock.yaml ]; then echo "→ mentolder-web changes: (cd mentolder-web && pnpm install --frozen-lockfile && pnpm test)"; (cd mentolder-web && pnpm install --frozen-lockfile && pnpm test); fi
+        if [ "$RUN_MENTOLDER_WEB" = "true" ] && command -v npm >/dev/null 2>&1 && [ -f mentolder-web/package-lock.json ]; then echo "→ mentolder-web changes: (cd mentolder-web && npm ci)"; (cd mentolder-web && npm ci); fi
         if [ "$RUN_K8S" = "true" ]; then echo "→ k8s changes: task test:manifests"; task test:manifests; fi
         
         JOBS=$(nproc 2>/dev/null || echo 2)
         if [ "$RUN_SCRIPTS" = "true" ] || [ "$RUN_UNIT" = "true" ]; then
           echo "→ running changed unit tests in parallel"
+          [ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive
           CHANGED_FILES=$(bash scripts/find-changed-tests.sh unit)
           if [ -n "$CHANGED_FILES" ]; then
             ./tests/unit/lib/bats-core/bin/bats -j $JOBS --no-parallelize-within-files $CHANGED_FILES
@@ -821,6 +825,7 @@ tasks:
         if [ "$RUN_SPEC" = "true" ]; then
           echo "→ spec changes: running changed spec tests in parallel"
           task test:spec:build-mcp-runner
+          [ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive
           CHANGED_FILES=$(bash scripts/find-changed-tests.sh spec)
           if [ -n "$CHANGED_FILES" ]; then
             ./tests/unit/lib/bats-core/bin/bats -j $JOBS --no-parallelize-within-files $CHANGED_FILES

@@ -97,7 +97,7 @@ test.describe('FA-10: Unternehmenswebsite (Astro) & Kontaktformular', { tag: ['@
     await page.getByRole('textbox', { name: /e-mail/i }).fill('test-e2e@example.invalid');
     await page.getByRole('textbox', { name: /ihre nachricht/i }).fill('Dies ist eine automatisierte Testnachricht.');
     await page.getByRole('button', { name: /nachricht senden/i }).click();
-    await expect(page.locator('text=Vielen Dank')).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('.cf-result.is-success')).toHaveText(/Vielen Dank/);
   });
 
   test('T7: Sidebar shows contact information', async ({ page }) => {

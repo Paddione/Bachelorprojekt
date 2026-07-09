@@ -17,6 +17,7 @@ export interface GuideEntry {
   order: number;
   aliases_de: string[];
   stages: string[];
+  harness?: 'claude' | 'opencode' | 'both';
   haystack: string;         // normalized
   goal?: Goal;
   tool?: Tool;
@@ -85,6 +86,7 @@ export function buildEntries(goals: Goal[], tools: Tool[]): GuideEntry[] {
       art, artLabel: ART_LABEL[art] ?? t.kind_de,
       common: t.common, order: t.order, aliases_de: t.aliases_de ?? [],
       stages: t.stages ?? [],
+      harness: t.harness,
       haystack: toolHaystack(t), tool: t,
     };
   });

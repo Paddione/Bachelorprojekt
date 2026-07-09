@@ -82,6 +82,7 @@ export interface Tool {
   stages: string[];
   escalate_to_de?: string;
   init_prompt_de?: string;
+  harness?: 'claude' | 'opencode' | 'both';
 }
 
 export interface FlowStation {

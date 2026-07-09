@@ -854,6 +854,7 @@
       ],
       "common": false,
       "order": 999,
+      "harness": "claude",
       "stages": [
         "brainstorm"
       ],
@@ -885,6 +886,7 @@
       ],
       "common": false,
       "order": 999,
+      "harness": "claude",
       "stages": [
         "idee",
         "brainstorm"
@@ -923,6 +925,7 @@
       ],
       "common": false,
       "order": 999,
+      "harness": "claude",
       "stages": [
         "plan"
       ],
@@ -966,6 +969,7 @@
       ],
       "common": false,
       "order": 999,
+      "harness": "claude",
       "stages": [
         "code",
         "pr-ci"
@@ -1010,6 +1014,7 @@
       ],
       "common": false,
       "order": 999,
+      "harness": "claude",
       "stages": [
         "code",
         "pr-ci"
@@ -1054,6 +1059,7 @@
       ],
       "common": false,
       "order": 999,
+      "harness": "claude",
       "stages": [
         "code",
         "deploy"
@@ -1091,6 +1097,7 @@
       ],
       "common": false,
       "order": 999,
+      "harness": "claude",
       "stages": [
         "live"
       ],
@@ -1119,6 +1126,7 @@
       ],
       "common": true,
       "order": 5,
+      "harness": "both",
       "stages": []
     },
     {
@@ -1164,6 +1172,7 @@
       ],
       "common": false,
       "order": 999,
+      "harness": "both",
       "stages": [],
       "init_prompt_de": "Übergib das an den Website-Agenten: <was auf der Website geändert werden soll>."
     },
@@ -1200,6 +1209,7 @@
       ],
       "common": true,
       "order": 4,
+      "harness": "both",
       "stages": [
         "live"
       ],
@@ -1250,6 +1260,7 @@
       ],
       "common": false,
       "order": 999,
+      "harness": "both",
       "stages": [
         "deploy"
       ],
@@ -1286,6 +1297,7 @@
       ],
       "common": false,
       "order": 999,
+      "harness": "both",
       "stages": [],
       "init_prompt_de": "Übergib das an den Test-Agenten: <Test schreiben/reparieren/ausführen>."
     },
@@ -1327,6 +1339,7 @@
       ],
       "common": false,
       "order": 999,
+      "harness": "both",
       "stages": [],
       "init_prompt_de": "Frag den Datenbank-Agenten: <Schema, Query, Backup/Restore>."
     },
@@ -1380,6 +1393,7 @@
       ],
       "common": false,
       "order": 999,
+      "harness": "both",
       "stages": [],
       "init_prompt_de": "Übergib das an den Security-Agenten: <Secret rotieren, Keycloak/OIDC, DSGVO>."
     },
@@ -1429,6 +1443,7 @@
       ],
       "common": false,
       "order": 999,
+      "harness": "both",
       "stages": [
         "code",
         "pr-ci",
@@ -1475,6 +1490,7 @@
       ],
       "common": false,
       "order": 999,
+      "harness": "both",
       "stages": [
         "code",
         "pr-ci",
@@ -1522,6 +1538,7 @@
       ],
       "common": false,
       "order": 999,
+      "harness": "opencode",
       "stages": [
         "code",
         "pr-ci"
@@ -1562,6 +1579,7 @@
       ],
       "common": false,
       "order": 999,
+      "harness": "opencode",
       "stages": [
         "plan"
       ],
@@ -1606,6 +1624,7 @@
       ],
       "common": false,
       "order": 999,
+      "harness": "opencode",
       "stages": [
         "code",
         "pr-ci"
@@ -1651,6 +1670,7 @@
       ],
       "common": false,
       "order": 999,
+      "harness": "opencode",
       "stages": [
         "code",
         "pr-ci"

@@ -70,3 +70,13 @@ cd website && pnpm install --frozen-lockfile
 |-------|-----------|
 | `infra-ops §1` | Folge — Test-Deploy nach Major-Bump |
 | `mishap-tracker` | Abschluss |
+
+
+## Framework mapping
+
+| Framework | Availability |
+|-----------|-------------|
+| **Claude Code** | Full — load via `load skill <name>` or matches on description triggers |
+| **opencode** | Full — available as a listed skill. All tools (CLI, MCP) are framework-agnostic |
+| **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |
+

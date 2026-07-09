@@ -28,3 +28,13 @@ auf die passende Datei (nicht den ganzen Hub laden, nicht die Inhalte dupliziere
 | Session-Koordination | [`session-coordination.md`](session-coordination.md) | agent-lock-Lebenszyklus: reap/claim/release, Registry-Overlap, agent-msg |
 | Repo-Hygiene-Mechanik | [`repo-hygiene-ops.md`](repo-hygiene-ops.md) | Stale Worktrees/Branches, PR-Triage→Ticket-Close, Issue-Intake, Factory-Queue |
 | CI-Fix-Schleife | [`ci-fix-loop.md`](ci-fix-loop.md) | PR-CI überwachen und fixen: devflow-ci-watch, Required Checks, Fix-Routine |
+
+
+## Framework mapping
+
+| Framework | Availability |
+|-----------|-------------|
+| **Claude Code** | Full — load via `load skill <name>` or matches on description triggers |
+| **opencode** | Full — available as a listed skill. All tools (CLI, MCP) are framework-agnostic |
+| **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |
+

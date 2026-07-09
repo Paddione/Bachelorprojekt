@@ -12,3 +12,13 @@ Verwende stattdessen: **Skill: infra-ops** → Abschnitt §3 (Host Node Networki
 Referenz-Dateien (verschoben nach `infra-ops/references/`):
 - `infra-ops/references/hetzner-provisioning-network.md`
 - `infra-ops/references/wsl-openclaw.md`
+
+
+## Framework mapping
+
+| Framework | Availability |
+|-----------|-------------|
+| **Claude Code** | Full — load via `load skill <name>` or matches on description triggers |
+| **opencode** | Full — available as a listed skill. All tools (CLI, MCP) are framework-agnostic |
+| **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |
+

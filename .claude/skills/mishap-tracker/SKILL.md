@@ -125,3 +125,13 @@ Report:
 |-------|-----------|
 | `operations-management` | Auftraggeber — erstellt Tickets aus Mishaps |
 | Alle Runbooks | Nutzer — jedes Skill schließt mit Mishap-Report ab |
+
+
+## Framework mapping
+
+| Framework | Availability |
+|-----------|-------------|
+| **Claude Code** | Full — load via `load skill <name>` or matches on description triggers |
+| **opencode** | Full — available as a listed skill. All tools (CLI, MCP) are framework-agnostic |
+| **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |
+

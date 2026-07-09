@@ -91,3 +91,13 @@ Invoke `mishap-tracker` with your accumulated `MISHAP_LOG`.
 | `ticket-ops` | Follow-up: PR management, ticket triage for human-fixable items |
 | `mishap-tracker` | Converts execution mishaps to tickets |
 | `cluster-deployment` | Cross-brand incident handling (Phase 5) |
+
+
+## Framework mapping
+
+| Framework | Availability |
+|-----------|-------------|
+| **Claude Code** | Full — load via `load skill <name>` or matches on description triggers |
+| **opencode** | Full — available as a listed skill. All tools (CLI, MCP) are framework-agnostic |
+| **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |
+

@@ -38,3 +38,13 @@ head -50 docs/brain/wiki/*.md | grep "source:" | head -10  # Verifiziere Citatio
 ## Next Steps
 - T001570: CI-Gates (`task test:changed`, `freshness:regenerate`)
 - Brain-Wiki regelmäßig synchronisieren (cron/call-backus)
+
+
+## Framework mapping
+
+| Framework | Availability |
+|-----------|-------------|
+| **Claude Code** | Full — load via `load skill <name>` or matches on description triggers |
+| **opencode** | Full — available as a listed skill. All tools (CLI, MCP) are framework-agnostic |
+| **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |
+

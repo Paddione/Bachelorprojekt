@@ -38,3 +38,12 @@ Before every commit, regenerates artifacts (test-inventory.json, quality-index.j
 ---
 
 **Documentation:** [dev-flow workflow](file:///home/patrick/Bachelorprojekt/.claude/skills/dev-flow-plan/SKILL.md), [verification-block](file:///home/patrick/Bachelorprojekt/.claude/skills/references/verification-block.md)
+
+
+## Framework mapping
+
+| Framework | Availability |
+|-----------|-------------|
+| **Claude Code** | Not available directly. Equivalent: native Claude Code `dev-flow-plan` / `dev-flow-execute` / `dev-flow-chore` skills |
+| **opencode** | Full — native skill for opencode |
+| **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |

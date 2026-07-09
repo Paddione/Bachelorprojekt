@@ -30,6 +30,26 @@ Sofort angehen. Ticket-Erstellung ist **bewusst manuell** (`scripts/health-goals
 
 ---
 
+## G-DB04 — Backup-Alter: 6d19h 🔴 → ≤ 26 h
+
+**Was:** Stunden seit dem letzten erfolgreichen `db-backup`-Job im Cluster (`kubectl get jobs` mit
+`succeeded==1`). Der Live-Wert von 163 h (~6 Tage 19 h) liegt weit über dem Target von ≤ 26 h.
+Root-Cause wird in T001738 verfolgt — dieser Eintrag verdrahtet nur die Messung, kein Fix.
+
+```bash
+ts=$(kubectl get jobs -n "${HG_DB_NS:-workspace}" --context "${HG_DB_CTX:-fleet}" \
+       --request-timeout=5s \
+       -o jsonpath='{range .items[?(@.status.succeeded==1)]}{.metadata.name}{" "}{.status.completionTime}{"\n"}{end}' \
+     | grep -E '^db-backup' | awk '{print $2}' | sort | tail -1)
+epoch=$(date -u -d "$ts" +%s)
+now=$(date -u +%s)
+echo $(( (now - epoch) / 3600 ))
+```
+
+> **A · Baseline:** 6d19h 🔴 · **Target:** ≤ 26 h · **Aufwand:** unbekannt (Root-Cause T001738) · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T001739 (Root-Cause T001738)
+
+---
+
 ## G-GIT03 — Dateien > 1MB im Tree (kein LFS): 6 → ≤ 6 ✅
 
 **Was:** Zählt Dateien >1MB im Tree (u. a. gerenderte `kube-prometheus-stack`-Manifeste, gebaute Docs-HTML). `.codebase-memory/graph.db.zst` (16.7MB, ehem. PR #2281) ist seit **T001717** kein getracktes Repo-Artefakt mehr — es wird lokal via `task codebase:index` regeneriert (`.gitignore`) statt committet, daher entfällt der frühere Scope-Ausschluss (T001348) ersatzlos.
@@ -208,6 +228,53 @@ find .claude/skills -name SKILL.md -exec wc -l {} + | awk '$2!="total"&&$1>500{c
 
 > **B · Baseline:** 3 (dev-flow-execute 662, infra-ops 595, dev-flow-plan 580) · **Target:** 0 · **Aufwand:** mittel (je Skill ~2–4h Refactoring) · **Messzyklus:** monatlich · **Reproduzierbar:** ja · **Kein Gate** — Reduktionsziel · **Ticket:** T001559
 
+## G-DB01 — FK-Spalten ohne Index: 4 → 0
+
+**Was:** Zählt FK-Spalten mit Single-Column-FK, die keinen passenden Index haben. Live-Wert 4
+(3 Tabellen mit je einem fehlenden Index, plus eine Wiederholung). Nur Messung verdrahtet,
+kein erzwungener Fix — die Indizes werden in einem Folge-Ticket nachgezogen.
+
+```bash
+WITH fk AS (
+  SELECT c.conrelid AS relid, c.conkey[1] AS col FROM pg_constraint c
+  JOIN pg_class t ON t.oid=c.conrelid JOIN pg_namespace n ON n.oid=t.relnamespace
+  WHERE c.contype='f' AND n.nspname NOT IN ('pg_catalog','information_schema') AND array_length(c.conkey,1)=1),
+idx AS (SELECT i.indrelid AS relid, i.indkey[0] AS col FROM pg_index i)
+SELECT count(*) FROM (SELECT relid,col FROM fk EXCEPT SELECT relid,col FROM idx) x;
+```
+
+> **B · Baseline:** 4 · **Target:** 0 · **Aufwand:** gering (3 Indizes via Migration) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001739 (Messung verdrahtet; Index-Fix ausstehend)
+
+## G-DB03 — brand-Spalten ohne CHECK-Constraint: 44 → 0
+
+**Was:** Zählt Tabellen mit einer `brand`-Spalte, die keinen CHECK-Constraint auf `'mentolder'`
+haben. Live-Wert 44 von 44 Tabellen — alle `brand`-Spalten sind unconstrained. Nur Messung
+verdrahtet, kein erzwungener Fix aller 44 Tabellen (das wäre ein eigenständiges DB-Migrations-Projekt).
+
+```bash
+SELECT
+    (SELECT count(DISTINCT table_schema||'.'||table_name) FROM information_schema.columns
+       WHERE column_name='brand' AND table_schema NOT IN ('pg_catalog','information_schema'))
+  - (SELECT count(DISTINCT conrelid) FROM pg_constraint
+       WHERE contype='c' AND pg_get_constraintdef(oid) ILIKE '%brand%' AND pg_get_constraintdef(oid) ILIKE '%mentolder%');
+```
+
+> **B · Baseline:** 44 · **Target:** 0 · **Aufwand:** gross (44 Tabellen, orchestrierte Migration) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001739 (Messung verdrahtet; CHECK-Constraints ausstehend)
+
+## G-DB08 — Seq-Scan-Anteil >5% auf Tabellen >10k Rows: 1 → ≤ 3
+
+**Was:** Zählt benutzerdefinierte Tabellen mit >10k Live-Rows, deren Seq-Scan-Anteil >5 %
+beträgt. Live-Wert 1 (Tabelle `chunks` mit 9,5 % Seq-Scans; `questionnaire_answers` liegt
+mit 0,8 % unter der Schwelle). Messen → dokumentieren, kein hartes Target initial.
+
+```bash
+SELECT count(*) FROM pg_stat_user_tables
+  WHERE n_live_tup>10000 AND seq_scan>0
+    AND (seq_scan::numeric/NULLIF(seq_scan+idx_scan,0))>0.05;
+```
+
+> **B · Baseline:** 1 (chunks 9,5 %) · **Target:** ≤ 3 · **Aufwand:** dokumentieren · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001739 (dokumentierte Baseline, kein hartes Target)
+
 
 
 # Priorität C — Green Gates {#prio-c}
@@ -257,6 +324,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-SPEC01** | openspec:validate grün | Exit 0 ✓ | Exit 0 | `bash scripts/openspec.sh validate` |
 | **G-SPEC02** | Changes >30 Tage | 0 ✓ | 0 | `for d in openspec/changes/*/; do ... done` |
 | **G-SPEC03** | Proposals ohne .ticket-Verknüpfung | 0 ✓ | 0 | `for d in openspec/changes/*/; do [ -f "$d/.ticket" ] \|\| m=$((m+1)); done` |
+| **G-DB06** | Orphan-Rows (3 FK-Paare) | 0 ✓ | 0 | `db_scalar NOT-EXISTS-Summe (ticket_plans/comments/links → tickets)` |
 | **G-DOC01** | Defekte interne Doc-Links | 0 ✓ | 0 | `python3 scripts/check-links.py` |
 | **G-DOC02** | Root-CLAUDE.md Zeilen | 200 ✓ | ≤ 200 | `wc -l < CLAUDE.md` |
 | **G-DOC03** | README-Index in Hauptverzeichnissen | 5/5 ✓ | 5/5 | `for d in website brett scripts tests k3d; do ls "$d"/README* ... done` |
@@ -302,8 +370,8 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 
 **Messzyklus:**
 - **Pro Merge (CI-Gate):** G-RH02/07, G-TEST02/04, G-CQ04, G-SEC01/02, G-K8S04, G-CFG01, G-CI02, G-GIT02, G-SPEC01
-- **Täglich:** G-RH06, G-CI02, G-DATA01, G-GIT01
-- **Wöchentlich:** G-RH01/03, G-TEST01/03, G-SIZE03, G-CI01, G-CD01, G-CQ02/05, G-IMG01, G-K8S03, G-SPEC03, G-GIT03, G-FE03/04
+- **Täglich:** G-RH06, G-CI02, G-DB04, G-GIT01
+- **Wöchentlich:** G-RH01/03, G-TEST01/03, G-SIZE03, G-CI01, G-CD01, G-CQ02/05, G-IMG01, G-K8S03, G-SPEC03, G-GIT03, G-FE03/04, G-DB01, G-DB03, G-DB06, G-DB08
 - **Monatlich/Quartal:** G-DEP02, G-SEC03/04, G-DOC02, G-FE01/02
 
 **Sprint-Highlights 2026-07-01:** G-CI01 erreicht Target (85 %→95 %, 19/20 grün) und wechselt von Prio A nach Prio C. G-RH03 (OpenSpec-BATS-Abdeckung 50 %→82 %) und G-DEP02 (Major-Deps 9→2) erreichen ihr Target und wechseln von Prio B nach Prio C. G-CQ01 erstmals gemessen: 0 astro-check-Fehler. G-CQ02 (explizite `any`) fällt weiter von 154 auf 8. G-GIT03 (Dateien >1MB) erreicht Target 7→6 per Policy-Ausschluss von `.codebase-memory/` (T001348) und wechselt von Prio A nach Prio C. G-SEC05-Messfehler dokumentiert: das Skript filtert nur eine von zwei GitHub-Actions-Bot-Mail-Varianten heraus, wodurch 4 Bot-Commits fälschlich als unsigniert zählen — echter Wert 0/50, Skript-Fix noch offen.
@@ -324,10 +392,15 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 
 **Baseline-Update 2026-07-04:** G-CQ07 S2 Import-Zyklen 0 (baseline.json); G-CQ09 S3 Hostnames 0; G-CQ10 S4 Orphaned Scripts 0 — alle grün, Gates neu eingefügt.
 
-**Offene Tickets (2026-07-04):** G-SIZE02 (T001556)
+**Offene Tickets (2026-07-09):** G-SIZE02 (T001556), G-DB01/03/04/06/08 (T001739)
 
 | Ziel | Ticket | Status |
 |------|--------|--------|
+| G-DB01 | T001739 | offen (Messung verdrahtet; Index-Fix ausstehend) |
+| G-DB03 | T001739 | offen (Messung verdrahtet; CHECK-Constraints ausstehend) |
+| G-DB04 | T001739 | offen (rot; Root-Cause T001738) |
+| G-DB06 | T001739 | gruen (Gate, halten) |
+| G-DB08 | T001739 | offen (dokumentierte Baseline, kein hartes Target) |
 | G-SIZE04 | T001280 | geschlossen (`done`), Messwert weiterhin rot → Nachfolger T001347 |
 | G-SIZE04 | T001347 | offen |
 | G-GIT03 | T001275 | **gefixt** (gitignore search-index.json [T001305]) |

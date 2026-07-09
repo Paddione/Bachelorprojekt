@@ -56,13 +56,22 @@ while IFS= read -r file; do
       matched_test="$BASE_DIR/ticket-$name.bats"
     elif [ -f "$BASE_DIR/factory-$name.bats" ]; then
       matched_test="$BASE_DIR/factory-$name.bats"
+    # Strip -check suffix: health-goals-check.sh → health-goals.bats
+    elif [[ "$name" == *-check ]] && [ -f "$BASE_DIR/${name%-check}.bats" ]; then
+      matched_test="$BASE_DIR/${name%-check}.bats"
     fi
     
     if [ -n "$matched_test" ] && ! is_excluded "$matched_test"; then
       CANDIDATES+=("$matched_test")
     elif [ -z "$matched_test" ]; then
-      # If a script changed but no obvious test matches, fallback to run all for safety
-      RUN_ALL=true
+      # If the test-finder itself changed, don't trigger RUN_ALL — the
+      # selection logic IS the change being tested.
+      if [[ "$file" == scripts/find-changed-tests.sh ]]; then
+        echo "note: $file changed — no test file match, skipping RUN_ALL" >&2
+      else
+        # If a script changed but no obvious test matches, fallback to run all for safety
+        RUN_ALL=true
+      fi
     fi
     continue
   fi

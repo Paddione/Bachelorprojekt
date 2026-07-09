@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.174.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.174.0...website-v1.174.1) (2026-07-09)
+
+
+### Tests
+
+* **e2e:** fa-bug-notify direct-DB seed + afterEach cleanup [T001754] ([#2717](https://github.com/Paddione/Bachelorprojekt/issues/2717)) ([71f61f2](https://github.com/Paddione/Bachelorprojekt/commit/71f61f279745ff003b4be96913cbf67ac678ce85))
+
 ## [1.174.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.173.0...website-v1.174.0) (2026-07-09)
 
 

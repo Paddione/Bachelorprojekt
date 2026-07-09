@@ -78,6 +78,7 @@ export interface Tool {
   common: boolean;
   order: number;
   stages: string[];
+  harness: 'claude' | 'opencode' | 'both';
   escalate_to_de?: string;
   init_prompt_de?: string;
 }

@@ -87,14 +87,14 @@ Starte strukturiertes Brainstorming mit dem User. Stelle Fragen als Plain-Text-F
 Da `worktree.ts`'s `worktree_create` keine git-crypt-Filter-Neutralisierung hat (bekannte Limitation — siehe opencode-git-workflow), immer das Wrapper-Skript verwenden:
 
 ```bash
-bash scripts/worktree-create.sh feature/<slug> /tmp/wt-<slug>
-bash scripts/agent-lock.sh claim branch "feature/<slug>" --worktree "/tmp/wt-<slug>" --label opencode-flow-plan
+bash scripts/worktree-create.sh feature/<slug> .worktrees/<slug>
+bash scripts/agent-lock.sh claim branch "feature/<slug>" --worktree ".worktrees/<slug>" --label opencode-flow-plan
 ```
 
 #### Schritt B.2: Proposal-Artefakte in den Worktree verschieben
 
 ```bash
-WT="/tmp/wt-<slug>"
+WT=".worktrees/<slug>"
 mkdir -p "${WT}/openspec/changes/"
 mv "${REPO_ROOT}/openspec/changes/<slug>" "${WT}/openspec/changes/<slug>"
 cd "${WT}"

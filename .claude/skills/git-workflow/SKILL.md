@@ -202,7 +202,7 @@ MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
 
 ## Schritt 7 — Post-Merge Cleanup (Worktrees)
 
-Nur wenn in einem `/tmp/wt-*`-Worktree gearbeitet wurde:
+Nur wenn in einem `.worktrees/*`-Worktree gearbeitet wurde:
 
 ```bash
 WORKTREE_PATH="$(git rev-parse --show-toplevel)"

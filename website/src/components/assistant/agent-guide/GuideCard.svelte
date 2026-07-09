@@ -89,6 +89,12 @@
       ? splitGlossaryTerms(goal.concept_de, glossTerms)
       : [],
   );
+
+  function initPromptLabel(harness: string | undefined): string {
+    if (harness === 'claude') return 'In Claude Code einfügen';
+    if (harness === 'opencode') return 'In opencode einfügen';
+    return 'Prompt einfügen';
+  }
 </script>
 
 <article
@@ -116,6 +122,9 @@
       {#each highlight(entry.title_de, query) as seg}{#if seg.mark}<mark class="ag-hl">{seg.text}</mark>{:else}{seg.text}{/if}{/each}
     </span>
     <span class="ag-meta">{rightMeta}</span>
+    {#if tool && (tool.harness === 'claude' || tool.harness === 'opencode')}
+      <span class="ag-harness-badge">{tool.harness === 'claude' ? 'Claude Code' : 'opencode'}</span>
+    {/if}
     <span class="ag-chevron" aria-hidden="true">{open ? '▾' : '▸'}</span>
     <span class="ag-sr">Gefahrenstufe: {tierLabel(entry.danger)} – {tierFor(entry.danger)?.meaning}</span>
   </button>
@@ -224,11 +233,11 @@
         <p class="ag-label">So startest Du</p><p class="ag-bodytext">{tool!.how_to_start_de}</p>
         <p class="ag-label">Was kann schiefgehen</p><p class="ag-bodytext">{tool!.what_could_go_wrong_de}</p>
         {#if tool!.init_prompt_de}
-          <p class="ag-label">In Claude Code einfügen</p>
+          <p class="ag-label">{initPromptLabel(tool!.harness)}</p>
           <div class="ag-prompt ag-prompt-init">
             <code class="ag-prompt-text">{tool!.init_prompt_de}</code>
             <button class="ag-copy" onclick={() => onCopy(`${entry.id}::init`, tool!.init_prompt_de!)}>
-              {copiedId === `${entry.id}::init` ? 'Kopiert ✓' : 'In Claude Code einfügen'}
+              {copiedId === `${entry.id}::init` ? 'Kopiert ✓' : initPromptLabel(tool!.harness)}
             </button>
           </div>
         {/if}
@@ -341,4 +350,15 @@
   }
 
   .ag-card-art { width: 1.5rem; flex: 0 0 auto; }
+
+  .ag-harness-badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--line, #e2e8f0);
+    background: var(--surface-raised, #f8fafc);
+    color: var(--fg-soft, #64748b);
+    margin-left: 8px;
+    white-space: nowrap;
+  }
 </style>

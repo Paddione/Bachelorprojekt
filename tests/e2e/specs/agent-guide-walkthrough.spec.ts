@@ -113,6 +113,51 @@ test('Schnellstart-Shelf kopiert den Init-Prompt eines Skills', async ({ page, c
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(sp.init_prompt_de);
 });
 
+test('Harness-Badge: opencode-Tool zeigt Badge, both-Tool nicht', async ({ page }) => {
+  await openAgentGuide(page);
+  const oc = tools.find(t => t.id === 'opencode-flow-plan')!;
+  const both = tools.find(t => t.id === 'agent-website')!;
+  const ocCard = page.locator('.ag-card').filter({ has: page.locator('.ag-name', { hasText: oc.name_de }) }).first();
+  await expect(ocCard.locator('.ag-harness-badge')).toHaveText('opencode');
+  const bothCard = page.locator('.ag-card').filter({ has: page.locator('.ag-name', { hasText: both.name_de }) }).first();
+  await expect(bothCard.locator('.ag-harness-badge')).toHaveCount(0);
+});
+
+test('Harness-Filter auf "opencode" versteckt Claude-Tools, laesst Ziele + both', async ({ page }) => {
+  await openAgentGuide(page);
+  const claudeTool = tools.find(t => t.id === 'dev-flow-plan')!;
+  const ocTool = tools.find(t => t.id === 'opencode-flow-plan')!;
+  const bothTool = tools.find(t => t.id === 'agent-website')!;
+  await page.locator('.ag-harness-toggle', { hasText: 'opencode' }).click();
+  await expect(page.locator('.ag-name', { hasText: claudeTool.name_de })).toHaveCount(0);
+  await expect(page.locator('.ag-name', { hasText: ocTool.name_de }).first()).toBeVisible();
+  await expect(page.locator('.ag-name', { hasText: bothTool.name_de }).first()).toBeVisible();
+  // mindestens eine Ziel-Karte bleibt sichtbar
+  await expect(page.locator('.ag-name', { hasText: goals[0].title_de }).first()).toBeVisible();
+});
+
+test('Init-Prompt-Label: opencode-Skill zeigt "In opencode einfügen"', async ({ page }) => {
+  await openAgentGuide(page);
+  const oc = tools.find(t => t.id === 'opencode-flow-plan')!;
+  const card = await expandCardByTitle(page, oc.name_de);
+  await expect(card.locator('.ag-prompt-init')).toContainText('In opencode einfügen');
+  await expect(card.locator('.ag-prompt-init')).not.toContainText('In Claude Code einfügen');
+});
+
+test('Init-Prompt-Label: Claude-Skill behaelt "In Claude Code einfügen"', async ({ page }) => {
+  await openAgentGuide(page);
+  const cl = tools.find(t => t.id === 'dev-flow-plan')!;
+  const card = await expandCardByTitle(page, cl.name_de);
+  await expect(card.locator('.ag-prompt-init')).toContainText('In Claude Code einfügen');
+});
+
+test('Init-Prompt-Label: both-Tool zeigt harness-neutrales "Prompt einfügen"', async ({ page }) => {
+  await openAgentGuide(page);
+  const both = tools.find(t => t.id === 'agent-website')!;
+  const card = await expandCardByTitle(page, both.name_de);
+  await expect(card.locator('.ag-prompt-init')).toContainText('Prompt einfügen');
+});
+
 if (FILM) {
   test('Filmable Walkthrough — gruppiert, suchen, Stopp-Karte', async ({ page }) => {
     await openAgentGuide(page);

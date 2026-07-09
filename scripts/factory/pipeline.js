@@ -66,7 +66,7 @@ const A = args ?? {}
 const slug = A.slug           // args.timestamp for resume-safe timestamps
 const brand = A.brand ?? 'mentolder'
 const REPO = '/home/patrick/Bachelorprojekt'
-const WT = `/tmp/wt-${slug}`
+const WT = `${REPO}/.worktrees/${slug}`
 
 function phaseEvent(ph, state, detail) {
   try {
@@ -99,7 +99,7 @@ const REUSE_BRANCH = A.branch || null
 const REUSE_PLAN   = A.plan_path || null
 const REUSE = !!(REUSE_BRANCH && REUSE_PLAN)
 const WORK_BRANCH = REUSE ? REUSE_BRANCH : `feature/${slug}`
-const WORK_WT = REUSE ? `/tmp/wt-${slug}-reuse` : WT
+const WORK_WT = REUSE ? `${REPO}/.worktrees/${slug}-reuse` : WT
 
 let specPath = null
 let tasks = []

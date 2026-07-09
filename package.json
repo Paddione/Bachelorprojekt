@@ -9,7 +9,8 @@
     "build:docs": "node scripts/build-docs.mjs",
     "test:agent-guide": "node --test scripts/agent-guide/*.test.mjs",
     "test:code-quality": "node --test scripts/code-quality/*.test.mjs scripts/code-quality/gates/*.test.mjs",
-    "test:openspec": "vitest run scripts/openspec-validate.test.ts --reporter=verbose"
+    "test:openspec": "vitest run scripts/openspec-validate.test.ts --reporter=verbose",
+    "test:migrate-factory": "node --test scripts/migrate-factory.test.mjs"
   },
   "engines": {
     "node": ">=22.13.0"

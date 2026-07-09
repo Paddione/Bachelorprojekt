@@ -29,7 +29,7 @@ Frage den User, ob die Chore regelmäßig laufen soll. Falls ja, richte einen Cr
 `worktree.ts`'s `worktree_create` fehlt git-crypt-Filter-Neutralisierung (bekannte Limitation) — daher das Wrapper-Skript verwenden:
 
 ```bash
-bash scripts/worktree-create.sh chore/<slug> /tmp/wt-<slug>
+bash scripts/worktree-create.sh chore/<slug> .worktrees/<slug>
 bash scripts/agent-lock.sh claim branch "chore/<slug>" --worktree "$PWD" --label opencode-flow-chore
 ```
 
@@ -66,7 +66,7 @@ Delegate to **`opencode-git-workflow` Steps 2–6** (SSOT):
 
 Lock-Release, dann:
 ```bash
-git worktree remove /tmp/wt-<slug> --force && git branch -D chore/<slug>
+git worktree remove .worktrees/<slug> --force && git branch -D chore/<slug>
 ```
 
 ## Schritt 7: Deploy (falls nötig)

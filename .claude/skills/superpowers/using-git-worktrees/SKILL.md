@@ -111,7 +111,7 @@ cause PR/branch operations that omit `--head` to resolve against the wrong branc
 
 Rules:
 - Any subagent that mutates git state (checkout, rebase, stash) **must** operate
-  in an isolated `/tmp/wt-*` worktree, never the primary repo.
+  in an isolated `.worktrees/*` worktree, never the primary repo.
 - Always pass `--head <branch>` explicitly on `gh pr create` and `gh pr merge`
   — never rely on the ambient current branch.
 

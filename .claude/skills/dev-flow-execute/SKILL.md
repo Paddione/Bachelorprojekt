@@ -66,16 +66,16 @@ if [[ -z "$CURRENT_BRANCH" || "$CURRENT_BRANCH" == "HEAD" ]]; then
 fi
 ```
 `dev-flow-execute` erwartet normalerweise, dass `dev-flow-plan` bereits einen isolierten Worktree unter
-`tmp/wt-*` übergeben hat. Das wird hier nie explizit geprüft — läuft die Execute-Phase versehentlich im
+`.worktrees/*` übergeben hat. Das wird hier nie explizit geprüft — läuft die Execute-Phase versehentlich im
 Haupt-Checkout (z.B. nach einem Session-Neustart), schreibt der Implementer-Subagent direkt ins
 Haupt-Repo statt in eine isolierte Kopie [T001363]:
 ```bash
 # Worktree-Isolation-Check [T001363]
-# Wir sind entweder schon in einem tmp/wt-*-Worktree ODER müssen einen anlegen.
-if [[ "$PWD" != *"/tmp/wt-"* ]]; then
-  echo "⚠️  Kein isolierter Worktree unter tmp/wt-* erkannt (PWD=$PWD)."
+# Wir sind entweder schon in einem .worktrees/*-Worktree ODER müssen einen anlegen.
+if [[ "$PWD" != *".worktrees/"* ]]; then
+  echo "⚠️  Kein isolierter Worktree unter .worktrees/* erkannt (PWD=$PWD)."
   SLUG=$(echo "$CURRENT_BRANCH" | sed 's#^[a-z]*/##')
-  WORKTREE_PATH="tmp/wt-${SLUG}"
+  WORKTREE_PATH=".worktrees/${SLUG}"
   echo "→ Lege isolierten Worktree an: scripts/worktree-create.sh $CURRENT_BRANCH $WORKTREE_PATH"
   bash scripts/worktree-create.sh "$CURRENT_BRANCH" "$WORKTREE_PATH"
   if [[ -d "$WORKTREE_PATH" ]]; then
@@ -437,7 +437,7 @@ gh pr merge --auto --squash --delete-branch
 Lösche den lokalen Worktree und Branch (im Haupt-Repo ausführen):
 Claims freigeben VOR dem Worktree-Remove ([session-coordination](file:///home/patrick/Bachelorprojekt/.claude/skills/references/session-coordination.md)), dann:
 ```bash
-git worktree remove "$MAIN_REPO/tmp/wt-<slug>" --force
+git worktree remove "$MAIN_REPO/.worktrees/<slug>" --force
 git branch -D "<branch>"
 ```
 
@@ -456,7 +456,7 @@ Führe danach `dev-flow-e2e` aus, um E2E-Tests gegen die Live-Umgebung zu schrei
 
 **Zustand nach Schritt 8:**
 - `main` enthält die gemergten Änderungen (squash commit)
-- Worktree `/tmp/wt-<slug>` gelöscht, Branch `feature/<slug>` gelöscht
+- Worktree `.worktrees/<slug>` gelöscht, Branch `feature/<slug>` gelöscht
 - Ticket status = `done` (resolution=shipped)
 - Branch-Lock und Ticket-Lock freigegeben
 - Deployed (falls `devflow-post-merge-deploy.sh` Pfad-Treffer)

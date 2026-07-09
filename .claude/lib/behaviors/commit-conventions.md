@@ -31,9 +31,9 @@ Nach PR-Erstellung keine weiteren Commits hinzufügen — auto-merge erledigt da
 
 ## Worktrees bevorzugen
 ```bash
-bash scripts/worktree-create.sh <branch> tmp/wt-<slug>
+bash scripts/worktree-create.sh <branch> .worktrees/<slug>
 ```
 Worktrees laufen in `/tmp/` (kurzlebig). Nach Merge aufräumen:
 ```bash
-bash scripts/worktree-create.sh --cleanup tmp/wt-<slug>
+bash scripts/worktree-create.sh --cleanup .worktrees/<slug>
 ```

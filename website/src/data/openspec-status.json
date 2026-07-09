@@ -913,6 +913,12 @@
       "status": "plan_staged"
     }
   ],
+  "T001612": [
+    {
+      "slug": "agent-guide-harness-badge",
+      "status": "plan_staged"
+    }
+  ],
   "T001638": [
     {
       "slug": "coaching-sessions-admin-ux",

@@ -228,7 +228,7 @@ DEFERRED (needs_human, ungeklärt): T000738
 ### Step 3.5: Dispatch wave 1 (after the user approves)
 For each wave-1 ticket, in parallel (use `dispatching-parallel-agents`):
 1. `bash scripts/agent-lock.sh claim ticket <ext-id> --branch <b> --worktree <wt> --label ticket-ops` (skip/coordinate on exit 1 — a live session already owns it).
-2. Create the worktree: `bash scripts/worktree-create.sh <branch> tmp/wt-<slug>`.
+2. Create the worktree: `bash scripts/worktree-create.sh <branch> .worktrees/<slug>`.
 3. Hand to `dev-flow-execute` (plan_staged) or `dev-flow-plan` (unplanned) inside that worktree.
 
 Merge = Abschluss: each ticket closes on its own green auto-merge; the masterplan tracks dispatch, not prod-live.

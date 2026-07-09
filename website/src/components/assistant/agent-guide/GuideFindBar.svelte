@@ -16,6 +16,9 @@
     onAxis,
     onToggleTier,
     onToggleDomain,
+    harnessFilter,
+    harnessCounts,
+    onToggleHarness,
   }: {
     taxonomy: TierEntry[];
     themes: Theme[];
@@ -30,12 +33,20 @@
     onAxis: (a: Axis) => void;
     onToggleTier: (id: string) => void;
     onToggleDomain: (id: string | null) => void;
+    harnessFilter: Set<string>;
+    harnessCounts: Record<string, number>;
+    onToggleHarness: (id: string) => void;
   } = $props();
 
   const AXES: { id: Axis; label: string }[] = [
     { id: 'thema', label: 'Thema' },
     { id: 'gefahr', label: 'Gefahr' },
     { id: 'art', label: 'Art' },
+  ];
+
+  const HARNESSES: { id: string; label: string }[] = [
+    { id: 'claude', label: 'Claude Code' },
+    { id: 'opencode', label: 'opencode' },
   ];
 </script>
 
@@ -55,6 +66,23 @@
           <span aria-hidden="true">{tier.emoji}</span>
           <span class="ag-tier-toggle-label">{tier.label_de}</span>
           <span class="ag-tier-toggle-count">{tierCounts[tier.id] ?? 0}</span>
+        </button>
+      </li>
+    {/each}
+  </ul>
+
+  <ul class="ag-harness-rail" aria-label="Nach Werkzeugumgebung filtern">
+    {#each HARNESSES as h (h.id)}
+      <li>
+        <button
+          type="button"
+          class="ag-harness-toggle"
+          class:on={harnessFilter.has(h.id)}
+          aria-pressed={harnessFilter.has(h.id)}
+          onclick={() => onToggleHarness(h.id)}
+        >
+          <span class="ag-harness-toggle-label">{h.label}</span>
+          <span class="ag-harness-toggle-count">{harnessCounts[h.id] ?? 0}</span>
         </button>
       </li>
     {/each}
@@ -92,3 +120,48 @@
     {#if searching}{resultCount} Treffer{/if}
   </p>
 </div>
+
+<style>
+  .ag-harness-rail {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    list-style: none;
+    margin: 0 0 12px;
+    padding: 0;
+  }
+
+  .ag-harness-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--line, #e2e8f0);
+    background: transparent;
+    color: var(--fg-soft, #64748b);
+    cursor: pointer;
+    transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+  }
+
+  .ag-harness-toggle:hover {
+    border-color: var(--brass, #b8860b);
+    color: var(--fg, #1a1a1a);
+  }
+
+  .ag-harness-toggle.on {
+    background: var(--brass, #b8860b);
+    border-color: var(--brass, #b8860b);
+    color: var(--ink-900, #1a1a1a);
+  }
+
+  .ag-harness-toggle-label {
+    font-weight: 500;
+  }
+
+  .ag-harness-toggle-count {
+    font-size: 11px;
+    opacity: 0.7;
+  }
+</style>

@@ -51,8 +51,8 @@ einen Cron-Job ein. **STOPP hier.**
 
 > **Test-only-Kurzpfad (kein Worktree):** Berührt die Chore **ausschließlich** Testdateien
 > (`tests/**/*.bats`, `tests/spec/*.bats`, `website/**/*.test.ts`, Playwright-Specs) — z.B. "schreib
-> einen Test für X" — dann entfällt `tmp/wt-*` als Standardfall. Ein eigener Worktree pro Testdatei
-> erzeugt nur IDE-Clutter (jede offene `tmp/wt-*`-Kopie erscheint als eigener Ordner) ohne
+> einen Test für X" — dann entfällt `.worktrees/*` als Standardfall. Ein eigener Worktree pro Testdatei
+> erzeugt nur IDE-Clutter (jede offene `.worktrees/*`-Kopie erscheint als eigener Ordner) ohne
 > Isolationsgewinn, solange kein anderer Prozess konkurrierend im Haupt-Checkout schreibt. Prüfe das:
 > ```bash
 > bash scripts/agent-lock.sh list   # leer/keine fremde main-checkout- oder branch-Claim?
@@ -69,8 +69,8 @@ einen Cron-Job ein. **STOPP hier.**
 Regulärer Pfad (Default für alles außer dem Test-only-Kurzpfad oben):
 ```bash
 # git-crypt-safe: creates the worktree, handles git-crypt, inits submodules
-bash scripts/worktree-create.sh chore/<slug> /tmp/wt-<slug>
-cd /tmp/wt-<slug>
+bash scripts/worktree-create.sh chore/<slug> .worktrees/<slug>
+cd .worktrees/<slug>
 bash scripts/agent-lock.sh claim branch "chore/<slug>" --worktree "$PWD" --label dev-flow-chore
 ```
 
@@ -131,7 +131,7 @@ Rufe `commit-commands:commit-push-pr` auf (Claude Code slash-command) oder führ
 
 **`git-workflow` Schritt 7** (SSOT): Lock-Release
 ([session-coordination](file:///home/patrick/Bachelorprojekt/.claude/skills/references/session-coordination.md)),
-dann `git worktree remove /tmp/wt-<slug> --force && git branch -D chore/<slug>` im Haupt-Repo.
+dann `git worktree remove .worktrees/<slug> --force && git branch -D chore/<slug>` im Haupt-Repo.
 
 Beim Test-only-Kurzpfad (Schritt 1) gibt es keinen Worktree zu entfernen — nur
 `bash scripts/agent-lock.sh release main-checkout` und `git checkout main && git branch -D chore/<slug>`.
@@ -147,7 +147,7 @@ Nur wenn die Chore deploybare Pfade berührt — Mapping in
 
 **Zustand nach Schritt 6:**
 - `main` enthält die gemergten Änderungen (squash commit)
-- Worktree `/tmp/wt-<slug>` gelöscht, Branch `chore/<slug>` gelöscht
+- Worktree `.worktrees/<slug>` gelöscht, Branch `chore/<slug>` gelöscht
 - Ticket status = `done` (wurde beim Anlegen bereits gesetzt)
 - Branch-Lock freigegeben
 

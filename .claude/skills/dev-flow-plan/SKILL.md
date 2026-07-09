@@ -188,10 +188,10 @@ Falls neue E2E-Tests geplant sind, weise das passende Playwright-Projekt zu (sie
 Erstelle den Worktree NACH dem Propose (niemals `.claude/worktrees/` verwenden!):
 ```bash
 # git-crypt-safe: creates the worktree, handles git-crypt, inits submodules
-bash scripts/worktree-create.sh feature/<slug> /tmp/wt-<slug>
+bash scripts/worktree-create.sh feature/<slug> .worktrees/<slug>
 
 # Doppelarbeit verhindern: Branch claimen (Session-Koordination [T000510]).
-bash scripts/agent-lock.sh claim branch "feature/<slug>" --worktree "/tmp/wt-<slug>" --label dev-flow-plan \
+bash scripts/agent-lock.sh claim branch "feature/<slug>" --worktree ".worktrees/<slug>" --label dev-flow-plan \
   || { echo "🛑 Branch wird bereits von einer anderen Session bearbeitet — koordinieren oder anderen slug wählen."; exit 1; }
 
 # Ticket-Claim (Session-Koordination [T000510]) — nur falls die Ticket-ID schon bekannt
@@ -199,14 +199,14 @@ bash scripts/agent-lock.sh claim branch "feature/<slug>" --worktree "/tmp/wt-<sl
 # Schritt 4.5 den Claim nach, sobald das Ticket dort angelegt/wiederverwendet wird. [T001386]
 if [[ -n "${TICKET_EXT_ID:-}" ]]; then
   bash scripts/agent-lock.sh claim ticket "$TICKET_EXT_ID" \
-    --branch "feature/<slug>" --worktree "/tmp/wt-<slug>" --label dev-flow-plan \
+    --branch "feature/<slug>" --worktree ".worktrees/<slug>" --label dev-flow-plan \
     || { echo "🛑 Ticket wird bereits von einer anderen Session bearbeitet — koordinieren."; exit 1; }
 fi
 ```
 #### Schritt B.2: Proposal-Artefakte in den Worktree verschieben
 Die Artefakte aus Phase A befinden sich noch im main-Checkout — jetzt in den frischen Worktree verschieben:
 ```bash
-WT="/tmp/wt-<slug>"
+WT=".worktrees/<slug>"
 
 # OpenSpec-Change-Ordner (proposal.md, tasks.md, ggf. assets/)
 mkdir -p "${WT}/openspec/changes/"
@@ -274,7 +274,7 @@ Statt deinen eigenen Kontext zurückzusetzen (das ließe dich den Faden verliere
       - **P1 Placeholder-Verbot:** In Prosa (außerhalb von ```-Fences und
         `inline code`) dürfen die Tokens `TBD`, `TODO`, `FIXME`, `???`,
         `<ausfüllen>` und `similar to Task <N>` NICHT vorkommen.
-      - **Auftrag:** „**PFLICHT — Worktree-Isolation:** Beginne deinen Prompt mit `cd /tmp/wt-<slug>` — der Subagent hat keinen impliziten CWD-Kontext und schreibt sonst ins Haupt-Checkout. Alle folgenden Dateipfade sind relativ zu diesem Worktree.
+      - **Auftrag:** „**PFLICHT — Worktree-Isolation:** Beginne deinen Prompt mit `cd .worktrees/<slug>` — der Subagent hat keinen impliziten CWD-Kontext und schreibt sonst ins Haupt-Checkout. Alle folgenden Dateipfade sind relativ zu diesem Worktree.
      Dann: Lies die Spec UND `.claude/skills/references/plan-quality-gates.md`. Rufe `superpowers:writing-plans` auf und schreibe den Implementierungsplan **ausschließlich** nach `openspec/changes/<slug>/tasks.md` (OpenSpec-Format: H2-Operationsheader im Delta, H3-Requirement, H4-Scenario im `specs/<capability>.md`). Der finale Verifikations-Task des Plans MUSS `task test:changed`, `task freshness:regenerate` und `task freshness:check` als Steps enthalten (CI-Äquivalent inkl. S1–S4-Ratchet); nach Test-Änderungen zusätzlich `task test:inventory` + Commit des Inventars. Vor dem Commit: `task test:openspec` (oder `bash scripts/openspec.sh validate`) — muss grün sein. **Test-Assertion-Konsistenz:** Verifiziere vor Finalisierung, dass jede im Plan-Task vorgegebene Test-Regex/Erwartung tatsächlich die im selben Task referenzierten Implementierungs-Snippets matchen kann — bei Diskrepanz wähle eine semantisch äquivalente Assertion-Form, die zum Snippet passt. Starte KEINE Implementierung (nur Plan schreiben, dann STOPP). Gib den Plan-Pfad (`openspec/changes/<slug>/tasks.md`) und eine 3-Zeilen-Zusammenfassung zurück."
 ### Schritt 3.8: Plan-Qualitäts-Gate (deterministischer Linter + advisory LLM-QA)
 Führe ZUERST den deterministischen, fail-closed Linter auf den Plan-Pfad aus, den der
@@ -408,8 +408,8 @@ TICKET_UUID=$(echo "$TICKET_RESULT"   | cut -d'|' -f2)
 ### Schritt 2: Worktree anlegen
 ```bash
 # git-crypt-safe: creates the worktree, handles git-crypt, inits submodules
-bash scripts/worktree-create.sh fix/<slug> /tmp/wt-<slug>
-cd /tmp/wt-<slug>
+bash scripts/worktree-create.sh fix/<slug> .worktrees/<slug>
+cd .worktrees/<slug>
 ```
 ### Schritt 2.5: Ticket & Branch claimen (Session-Koordination [T000510])
 ```bash

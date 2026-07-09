@@ -712,13 +712,11 @@ tasks:
   test:mcp-tooling:
     desc: "Guardrail: ticket-mcp tools <-> mcp-tool-guide.md <-> skill-critical verbs (hard)"
     cmds:
-      - '[ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive'
       - ./tests/unit/lib/bats-core/bin/bats tests/spec/mcp-tooling.bats
 
   test:agent-library:
     desc: "Guardrail: .claude/agents/*.md <-> AGENTS.md routing-table library assertions"
     cmds:
-      - '[ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive'
       - ./tests/unit/lib/bats-core/bin/bats tests/spec/agent-library.bats
 
   test:openspec:
@@ -730,7 +728,6 @@ tasks:
   test:unit:openspec:
     internal: true
     cmds:
-      - '[ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive'
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/openspec.bats
 
   openspec:propose:
@@ -789,7 +786,7 @@ tasks:
       - |
         set -e
         CHANGED=$(git diff --name-only HEAD origin/main 2>/dev/null || git diff --name-only HEAD 2>/dev/null || true)
-        RUN_WEBSITE=false; RUN_MENTOLDER_WEB=false; RUN_K8S=false; RUN_SCRIPTS=false; RUN_FACTORY=false; RUN_SPEC=false; RUN_UNIT=false; RUN_MCP=false; RUN_OPENSPEC=false; RUN_AGENTS=false; RUN_LEARNING_ASSETS=false; RUN_SYSTEMBRETT=false
+        RUN_WEBSITE=false; RUN_MENTOLDER_WEB=false; RUN_K8S=false; RUN_SCRIPTS=false; RUN_FACTORY=false; RUN_SPEC=false; RUN_UNIT=false; RUN_MCP=false; RUN_OPENSPEC=false; RUN_AGENTS=false
         echo "$CHANGED" | grep -qE "^website/" && RUN_WEBSITE=true || true
         echo "$CHANGED" | grep -qE "^mentolder-web/" && RUN_MENTOLDER_WEB=true || true
         echo "$CHANGED" | grep -qE "^(k3d/|prod|prod-fleet|prod-mentolder|prod-korczewski|environments/)" && RUN_K8S=true || true
@@ -800,16 +797,13 @@ tasks:
         echo "$CHANGED" | grep -qE "^(\.claude/skills/|\.mcp\.json|\.opencode/|tests/spec/mcp-tooling\.bats|scripts/ticket-mcp/)" && RUN_MCP=true || true
         echo "$CHANGED" | grep -qE "^(\.claude/agents/|AGENTS\.md)" && RUN_AGENTS=true || true
         echo "$CHANGED" | grep -qE "^openspec/" && RUN_OPENSPEC=true || true
-        echo "$CHANGED" | grep -qE "^scripts/build-learning-assets" && RUN_LEARNING_ASSETS=true || true
-        echo "$CHANGED" | grep -qE "^(website/public/systembrett/|scripts/tests/systembrett-template\.test\.sh)" && RUN_SYSTEMBRETT=true || true
         if [ "$RUN_WEBSITE" = "true" ] && command -v pnpm >/dev/null 2>&1; then echo "→ website changes: pnpm vitest run --changed"; (cd website && pnpm vitest run --changed --reporter verbose); fi
-        if [ "$RUN_MENTOLDER_WEB" = "true" ] && command -v npm >/dev/null 2>&1 && [ -f mentolder-web/package-lock.json ]; then echo "→ mentolder-web changes: (cd mentolder-web && npm ci)"; (cd mentolder-web && npm ci); fi
+        if [ "$RUN_MENTOLDER_WEB" = "true" ] && command -v pnpm >/dev/null 2>&1; then echo "→ mentolder-web changes: pnpm --filter mentolder-web test"; pnpm --filter mentolder-web test; fi
         if [ "$RUN_K8S" = "true" ]; then echo "→ k8s changes: task test:manifests"; task test:manifests; fi
         
         JOBS=$(nproc 2>/dev/null || echo 2)
         if [ "$RUN_SCRIPTS" = "true" ] || [ "$RUN_UNIT" = "true" ]; then
           echo "→ running changed unit tests in parallel"
-          [ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive
           CHANGED_FILES=$(bash scripts/find-changed-tests.sh unit)
           if [ -n "$CHANGED_FILES" ]; then
             ./tests/unit/lib/bats-core/bin/bats -j $JOBS --no-parallelize-within-files $CHANGED_FILES
@@ -825,7 +819,6 @@ tasks:
         if [ "$RUN_SPEC" = "true" ]; then
           echo "→ spec changes: running changed spec tests in parallel"
           task test:spec:build-mcp-runner
-          [ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive
           CHANGED_FILES=$(bash scripts/find-changed-tests.sh spec)
           if [ -n "$CHANGED_FILES" ]; then
             ./tests/unit/lib/bats-core/bin/bats -j $JOBS --no-parallelize-within-files $CHANGED_FILES
@@ -838,9 +831,7 @@ tasks:
         if [ "$RUN_MCP" = "true" ] && [ "$RUN_SCRIPTS" = "false" ] && [ "$RUN_UNIT" = "false" ]; then echo "→ MCP tooling guardrail"; task test:mcp-tooling; fi
         if [ "$RUN_AGENTS" = "true" ]; then echo "→ agent library changes: task test:agent-library"; task test:agent-library; fi
         if [ "$RUN_OPENSPEC" = "true" ]; then echo "→ openspec changes: task test:openspec"; task test:openspec; fi
-        if [ "$RUN_LEARNING_ASSETS" = "true" ]; then echo "→ learning-assets build script changes"; node --test scripts/build-learning-assets.test.mjs; fi
-        if [ "$RUN_SYSTEMBRETT" = "true" ]; then echo "→ systembrett template changes"; ./scripts/tests/systembrett-template.test.sh; fi
-
+        
         if [ "$RUN_WEBSITE" = "false" ] && [ "$RUN_MENTOLDER_WEB" = "false" ] && [ "$RUN_K8S" = "false" ] && [ "$RUN_SCRIPTS" = "false" ] && [ "$RUN_FACTORY" = "false" ] && [ "$RUN_SPEC" = "false" ] && [ "$RUN_UNIT" = "false" ] && [ "$RUN_MCP" = "false" ] && [ "$RUN_AGENTS" = "false" ] && [ "$RUN_OPENSPEC" = "false" ]; then
           if command -v pnpm >/dev/null 2>&1; then echo "→ no domain-specific changes: vitest --changed"; (cd website && pnpm vitest run --changed --reporter verbose); fi
         fi
@@ -1509,7 +1500,6 @@ tasks:
       - chmod +x .githooks/pre-commit
       - chmod +x .githooks/commit-msg
       - chmod +x .githooks/pre-push
-      - chmod +x .githooks/post-commit
       - chmod +x .githooks/post-commit-index
       - chmod +x .githooks/post-checkout
       - chmod +x .githooks/post-merge
@@ -2562,7 +2552,6 @@ tasks:
           # Run website DB migrations before the website Deployment is rolled
           # out below (T001652 — website had no automated migration runner).
           task website:migrate ENV="{{.ENV}}"
-          task factory:migrate ENV="{{.ENV}}"
           # Full apply (idempotent — updates configs, adds remaining services)
           # SYSTEMTEST_LOOP_ENABLED defaults to "false" so the placeholder is
           # never emitted literally in dev (where the env file may omit it).
@@ -2692,7 +2681,6 @@ tasks:
           # Run website DB migrations before the website Deployment is rolled
           # out below (T001652 — website had no automated migration runner).
           task website:migrate ENV="{{.ENV}}"
-          task factory:migrate ENV="{{.ENV}}"
 
           overlay="${ENV_OVERLAY:-prod}"
           # Derive Nextcloud MAIL_FROM_ADDRESS / MAIL_DOMAIN from the authoritative SMTP_FROM
@@ -3376,38 +3364,6 @@ tasks:
         DATABASE_URL="postgres://postgres:${PG_PW}@localhost:5432/website" \
           pnpm --dir website db:migrate
 
-  factory:migrate:
-    desc: "Run scripts/migrations/*.sql against the target DB (idempotent, tracked in public.factory_schema_migrations). ENV=dev|mentolder|korczewski."
-    vars:
-      ENV: '{{.ENV | default "dev"}}'
-    cmds:
-      - |
-        set -euo pipefail
-        source scripts/env-resolve.sh "{{.ENV}}"
-        ctx_flag=""
-        [ "{{.ENV}}" != "dev" ] && ctx_flag="--context $ENV_CONTEXT"
-        NS="${WORKSPACE_NAMESPACE:-workspace}"
-
-        echo "Waiting for shared-db to be ready before running factory migrations..."
-        kubectl $ctx_flag -n "$NS" rollout status deployment/shared-db --timeout=120s
-
-        echo "Fetching postgres superuser password from ${NS}/shared-db..."
-        PG_PW=$(kubectl $ctx_flag -n "$NS" exec deploy/shared-db -- \
-          printenv POSTGRES_PASSWORD | tr -d '\r\n')
-        if [ -z "$PG_PW" ]; then
-          echo "ERROR: could not read POSTGRES_PASSWORD from shared-db"; exit 1
-        fi
-
-        echo "Port-forwarding shared-db (5432) and running factory migrations..."
-        kubectl $ctx_flag -n "$NS" port-forward svc/shared-db 5432:5432 \
-          >/tmp/factory-migrate-pf.log 2>&1 &
-        PF=$!
-        trap 'kill $PF 2>/dev/null' EXIT
-        sleep 3
-
-        DATABASE_URL="postgres://postgres:${PG_PW}@localhost:5432/website" \
-          node scripts/migrate-factory.mjs
-
   website:migrate:homepage-blocks:
     desc: "Provision the homepage block document tables (idempotent). The website store also creates them lazily; this is the explicit operator path. Requires SESSIONS_DATABASE_URL or POSTGRES_MIGRATION_URL in the env. Pass -- --apply to execute (default: dry-run)."
     cmds:
@@ -3554,19 +3510,18 @@ tasks:
         # Run website DB migrations before build/rollout (T001652). Idempotent
         # and tracked — safe even though workspace:deploy also calls this.
         task website:migrate ENV="{{.ENV}}"
-        task factory:migrate ENV="{{.ENV}}"
 
         if [ "{{.ENV}}" = "dev" ]; then
           WEBSITE_HOST="web.localhost"
           WEBSITE_SITE_URL="http://web.localhost"
-          POCKET_ID_FRONTEND_URL="http://auth.localhost"
+          KEYCLOAK_FRONTEND_URL="http://auth.localhost"
           REACT_APP_ORIGIN="${REACT_APP_ORIGIN:-http://react.localhost}"
           task website:build:import ENV={{.ENV}}
           DIGEST=""
         else
           WEBSITE_HOST="web.${PROD_DOMAIN}"
           WEBSITE_SITE_URL="https://web.${PROD_DOMAIN}"
-          POCKET_ID_FRONTEND_URL="https://auth.${PROD_DOMAIN}"
+          KEYCLOAK_FRONTEND_URL="https://auth.${PROD_DOMAIN}"
           REACT_APP_ORIGIN="${REACT_APP_ORIGIN:-https://react.${PROD_DOMAIN}}"
           task website:build ENV={{.ENV}}
           echo "Pushing ${IMAGE}:latest..."
@@ -3587,7 +3542,7 @@ tasks:
           react) WEBSITE_PRIMARY_SERVICE="mentolder-web" ;;
           *) echo "ERROR: PRIMARY_FRONTEND=${PRIMARY_FRONTEND} (expected astro|react)"; exit 1 ;;
         esac
-        export WEBSITE_HOST WEBSITE_SITE_URL POCKET_ID_FRONTEND_URL WEBSITE_NAMESPACE WORKSPACE_NAMESPACE SYSTEMTEST_LOOP_ENABLED REACT_APP_ORIGIN PRIMARY_FRONTEND WEBSITE_PRIMARY_SERVICE
+        export WEBSITE_HOST WEBSITE_SITE_URL KEYCLOAK_FRONTEND_URL WEBSITE_NAMESPACE WORKSPACE_NAMESPACE SYSTEMTEST_LOOP_ENABLED REACT_APP_ORIGIN PRIMARY_FRONTEND WEBSITE_PRIMARY_SERVICE
 
         if [ "{{.ENV}}" = "dev" ]; then
           # Dev: imperative apply (web.localhost, no TLS, no prod overlay).
@@ -3601,7 +3556,7 @@ tasks:
           RIGGER_PORT="${RIGGER_PORT:-8190}" \
           POCKET_ID_FRONTEND_URL="${POCKET_ID_FRONTEND_URL:-http://id.localhost}" \
           POCKET_ID_URL="${POCKET_ID_URL:-http://pocket-id:1411}" \
-          envsubst "\$WEBSITE_IMAGE \$BRAND_ID \$BRAND_NAME \$CONTACT_EMAIL \$CONTACT_NAME \$CONTACT_PHONE \$CONTACT_CITY \$LEGAL_STREET \$LEGAL_ZIP \$LEGAL_JOBTITLE \$LEGAL_UST_ID \$LEGAL_WEBSITE \$SMTP_FROM \$SMTP_USER \$SMTP_HOST \$SMTP_PORT \$SMTP_SECURE \$WEBSITE_HOST \$WEBSITE_SITE_URL \$REACT_APP_ORIGIN \$NEXTCLOUD_EXTERNAL_URL \$NEXTCLOUD_DB_HOST \$DOCS_URL \$AUTH_EXTERNAL_URL \$VAULT_EXTERNAL_URL \$WHITEBOARD_EXTERNAL_URL \$TRAEFIK_EXTERNAL_URL \$MAIL_EXTERNAL_URL \$BRETT_DOMAIN \$LIVEKIT_DOMAIN \$STREAM_DOMAIN \$PROD_DOMAIN \$CLUSTER_ENV \$WEBSITE_NAMESPACE \$WORKSPACE_NAMESPACE \$SYSTEMTEST_LOOP_ENABLED \$ARENA_WS_URL \$LLM_ENABLED \$LLM_RERANK_ENABLED \$LLM_ROUTER_URL \$LLM_EMBED_URL \$COMFY_HOST_IP \$COMFY_PORT \$RIGGER_HOST_IP \$RIGGER_PORT \$POCKET_ID_FRONTEND_URL \$POCKET_ID_URL \$PRIMARY_FRONTEND \$WEBSITE_PRIMARY_SERVICE" < k3d/website.yaml | kubectl ${CTX_ARG} apply -f -
+          envsubst "\$WEBSITE_IMAGE \$BRAND_ID \$BRAND_NAME \$CONTACT_EMAIL \$CONTACT_NAME \$CONTACT_PHONE \$CONTACT_CITY \$LEGAL_STREET \$LEGAL_ZIP \$LEGAL_JOBTITLE \$LEGAL_UST_ID \$LEGAL_WEBSITE \$SMTP_FROM \$SMTP_USER \$SMTP_HOST \$SMTP_PORT \$SMTP_SECURE \$WEBSITE_HOST \$WEBSITE_SITE_URL \$REACT_APP_ORIGIN \$KEYCLOAK_FRONTEND_URL \$NEXTCLOUD_EXTERNAL_URL \$NEXTCLOUD_DB_HOST \$DOCS_URL \$AUTH_EXTERNAL_URL \$VAULT_EXTERNAL_URL \$WHITEBOARD_EXTERNAL_URL \$TRAEFIK_EXTERNAL_URL \$MAIL_EXTERNAL_URL \$BRETT_DOMAIN \$LIVEKIT_DOMAIN \$STREAM_DOMAIN \$PROD_DOMAIN \$CLUSTER_ENV \$WEBSITE_NAMESPACE \$WORKSPACE_NAMESPACE \$SYSTEMTEST_LOOP_ENABLED \$ARENA_WS_URL \$LLM_ENABLED \$LLM_RERANK_ENABLED \$LLM_ROUTER_URL \$LLM_EMBED_URL \$COMFY_HOST_IP \$COMFY_PORT \$RIGGER_HOST_IP \$RIGGER_PORT \$POCKET_ID_FRONTEND_URL \$POCKET_ID_URL \$PRIMARY_FRONTEND \$WEBSITE_PRIMARY_SERVICE" < k3d/website.yaml | kubectl ${CTX_ARG} apply -f -
           envsubst "\$WEBSITE_NAMESPACE" < k3d/website-seller-config.yaml | kubectl ${CTX_ARG} apply -f -
         else
           # Prod: apply the brand overlay as the single source of truth. The overlay
@@ -3629,7 +3584,7 @@ tasks:
           POCKET_ID_URL="${POCKET_ID_URL:-http://pocket-id:1411}" \
           kustomize build "$WEBSITE_OVERLAY" --load-restrictor=LoadRestrictionsNone \
             | sed -E 's/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g' \
-            | envsubst "\$WEBSITE_IMAGE \$BRAND_ID \$BRAND_NAME \$CONTACT_EMAIL \$CONTACT_NAME \$CONTACT_PHONE \$CONTACT_CITY \$LEGAL_STREET \$LEGAL_ZIP \$LEGAL_JOBTITLE \$LEGAL_UST_ID \$LEGAL_WEBSITE \$SMTP_FROM \$SMTP_USER \$SMTP_HOST \$SMTP_PORT \$SMTP_SECURE \$WEBSITE_HOST \$WEBSITE_SITE_URL \$REACT_APP_ORIGIN \$NEXTCLOUD_EXTERNAL_URL \$NEXTCLOUD_DB_HOST \$DOCS_URL \$AUTH_EXTERNAL_URL \$VAULT_EXTERNAL_URL \$WHITEBOARD_EXTERNAL_URL \$TRAEFIK_EXTERNAL_URL \$MAIL_EXTERNAL_URL \$BRETT_DOMAIN \$LIVEKIT_DOMAIN \$STREAM_DOMAIN \$PROD_DOMAIN \$CLUSTER_ENV \$WEBSITE_NAMESPACE \$WORKSPACE_NAMESPACE \$SYSTEMTEST_LOOP_ENABLED \$ARENA_WS_URL \$LLM_ENABLED \$LLM_RERANK_ENABLED \$LLM_ROUTER_URL \$LLM_EMBED_URL \$COMFY_HOST_IP \$COMFY_PORT \$RIGGER_HOST_IP \$RIGGER_PORT \$POCKET_ID_FRONTEND_URL \$POCKET_ID_URL \$PRIMARY_FRONTEND \$WEBSITE_PRIMARY_SERVICE" \
+            | envsubst "\$WEBSITE_IMAGE \$BRAND_ID \$BRAND_NAME \$CONTACT_EMAIL \$CONTACT_NAME \$CONTACT_PHONE \$CONTACT_CITY \$LEGAL_STREET \$LEGAL_ZIP \$LEGAL_JOBTITLE \$LEGAL_UST_ID \$LEGAL_WEBSITE \$SMTP_FROM \$SMTP_USER \$SMTP_HOST \$SMTP_PORT \$SMTP_SECURE \$WEBSITE_HOST \$WEBSITE_SITE_URL \$REACT_APP_ORIGIN \$KEYCLOAK_FRONTEND_URL \$NEXTCLOUD_EXTERNAL_URL \$NEXTCLOUD_DB_HOST \$DOCS_URL \$AUTH_EXTERNAL_URL \$VAULT_EXTERNAL_URL \$WHITEBOARD_EXTERNAL_URL \$TRAEFIK_EXTERNAL_URL \$MAIL_EXTERNAL_URL \$BRETT_DOMAIN \$LIVEKIT_DOMAIN \$STREAM_DOMAIN \$PROD_DOMAIN \$CLUSTER_ENV \$WEBSITE_NAMESPACE \$WORKSPACE_NAMESPACE \$SYSTEMTEST_LOOP_ENABLED \$ARENA_WS_URL \$LLM_ENABLED \$LLM_RERANK_ENABLED \$LLM_ROUTER_URL \$LLM_EMBED_URL \$COMFY_HOST_IP \$COMFY_PORT \$RIGGER_HOST_IP \$RIGGER_PORT \$POCKET_ID_FRONTEND_URL \$POCKET_ID_URL \$PRIMARY_FRONTEND \$WEBSITE_PRIMARY_SERVICE" \
             | sed -E 's/\$\$([a-zA-Z0-9_]|\{)/$\1/g' \
             | kubectl ${CTX_ARG} apply --server-side --force-conflicts -f -
         fi
@@ -4656,6 +4611,7 @@ tasks:
         fi
 
         PGHOST=localhost PGPORT=15434 PGDATABASE=website PGUSER=website \
+          LLM_EMBED_URL="${LLM_EMBED_URL:-http://llm-gateway-embed.${NS}.svc.cluster.local:8081}" \
           npx tsx scripts/index-repo.ts
 
   scs:index-incremental:
@@ -4680,6 +4636,7 @@ tasks:
         sleep 4
 
         PGHOST=localhost PGPORT=15434 PGDATABASE=website PGUSER=website \
+          LLM_EMBED_URL="${LLM_EMBED_URL:-http://llm-gateway-embed.${NS}.svc.cluster.local:8081}" \
           npx tsx -e "
             import { searchCode, searchCodeAugmented } from './website/src/lib/codesearch-db.ts';
             const args = process.argv.slice(1);

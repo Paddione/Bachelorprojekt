@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.172.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.171.2...website-v1.172.0) (2026-07-09)
+
+
+### Features
+
+* **website:** UI changes for factory floor agent configuration and sidekick settings [T001592] ([#2676](https://github.com/Paddione/Bachelorprojekt/issues/2676)) ([7494981](https://github.com/Paddione/Bachelorprojekt/commit/7494981877cda78b15c36a5b6a4ccac97456782b))
+
 ## [1.171.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.171.1...website-v1.171.2) (2026-07-09)
 
 

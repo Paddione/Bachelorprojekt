@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 563,
+      "file_count": 562,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -412,7 +412,6 @@
         "tests/spec/secret-rotation-exposure.bats",
         "tests/spec/secret-rotation.bats",
         "tests/spec/secrets-deploy-automation.bats",
-        "tests/spec/size04-loc-velocity.bats",
         "tests/spec/software-factory.bats",
         "tests/spec/studio-sessions-reorganize.bats",
         "tests/spec/t001269-mishap-bundle-skills-dev-flow-execute-repo-worktree-state-ticket-mcp.bats",

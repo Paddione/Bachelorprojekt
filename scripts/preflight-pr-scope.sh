@@ -53,7 +53,7 @@ fi
 
 # Enforce worktree usage for feature/* and fix/* branches
 if [[ "$CURRENT_BRANCH" =~ ^(feature|fix)/ ]]; then
-  if [[ "$CURRENT_WORKTREE" != *"/worktrees/"* ]] && [[ "$CURRENT_WORKTREE" != *"\.worktrees/"* ]]; then
+  if [[ "$CURRENT_WORKTREE" != *"/worktrees/"* ]] && [[ "$CURRENT_WORKTREE" != *"/.worktrees/"* ]]; then
     echo "preflight-pr-scope: FATAL: PRs for feature/fix branches must be created from an isolated worktree under '.worktrees/'" >&2
     echo "  Current worktree path: $CURRENT_WORKTREE" >&2
     exit 1

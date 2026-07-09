@@ -33,6 +33,19 @@ jobs:
             factory
           subjectPattern: ^.{1,200}$
 EOF
+
+  # Isolated git fixture [T001723]: the script's branch/worktree guards
+  # ([T001592]) call `git symbolic-ref --short HEAD`, which is meaningless
+  # against the *ambient* checkout — a CI `pull_request` run checks out a
+  # detached HEAD, so running the script straight from $BATS_TEST_DIRNAME's
+  # repo made every test here FATAL in CI while passing locally. Give the
+  # script its own throwaway repo with a real branch (not main/master, not
+  # feature/*|fix/*) checked out so these tests exercise scope-parsing only.
+  git -C "$TMP" init -q -b test-fixture
+  git -C "$TMP" config user.email "test@example.invalid"
+  git -C "$TMP" config user.name "Test Fixture"
+  git -C "$TMP" commit -q --allow-empty -m "fixture"
+  cd "$TMP"
 }
 
 teardown() { rm -rf "$TMP"; }
@@ -67,5 +80,20 @@ teardown() { rm -rf "$TMP"; }
 
 @test "preflight: scope with breaking change marker exits 0 for valid scope" {
   run bash "$HELPER" "feat(db)!: breaking schema" "$FIXTURE"
+  [ "$status" -eq 0 ]
+}
+
+@test "preflight: fix/* branch under a real .worktrees/ path is accepted [T001723]" {
+  # Regression: the T001592 worktree-enforcement check used the broken glob
+  # `*"\.worktrees/"*` (a literal backslash-dot inside a quoted pattern never
+  # matches), so it silently fell through to `*"/worktrees/"*` — which does
+  # NOT match a real `.worktrees/foo` path (leading dot). Every real worktree
+  # created by scripts/worktree-create.sh (the repo-mandated convention) was
+  # rejected with a FATAL.
+  WTREE="$TMP/.worktrees/fix-example"
+  mkdir -p "$WTREE"
+  git -C "$TMP" worktree add -q -b fix/example "$WTREE" test-fixture
+  cd "$WTREE"
+  run bash "$HELPER" "fix(ops): example" "$FIXTURE"
   [ "$status" -eq 0 ]
 }

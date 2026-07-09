@@ -18,7 +18,7 @@ minimumReleaseAgeExclude:
   - pg-protocol@1.15.0
   - pg@8.22.0
   - svelte@5.56.4
-  - livekit-client@2.20.0
+  - livekit-client@2.20.0 || 2.20.1
   - '@astrojs/compiler-binding-darwin-arm64@0.3.0'
   - '@astrojs/compiler-binding-darwin-x64@0.3.0'
   - '@astrojs/compiler-binding-linux-arm64-gnu@0.3.0'
@@ -30,10 +30,11 @@ minimumReleaseAgeExclude:
   - '@astrojs/compiler-binding-win32-x64-msvc@0.3.0'
   - '@astrojs/compiler-binding@0.3.0'
   - '@astrojs/compiler-rs@0.3.0'
-  - astro@7.0.4 || 7.0.5 || 7.0.6
+  - astro@7.0.4 || 7.0.5 || 7.0.6 || 7.0.7
   - '@astrojs/internal-helpers@0.10.1'
   - '@astrojs/markdown-satteri@0.3.3'
   - '@vitest/coverage-v8@4.1.10'
+  - '@astrojs/telemetry@3.3.3'
 
 overrides:
   yaml: "^2.9.0"

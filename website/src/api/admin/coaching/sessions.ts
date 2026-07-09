@@ -1,22 +1,11 @@
 import { pool } from '../../../lib/db-pool';
-import { getSession, isAdmin } from '../../../lib/auth';
 
-export async function GET(request: Request) {
-  // Auth prüfen — nur Admin darf auf diesen Endpunkt zugreifen
-  const session = await getSession(request.headers.get('cookie'));
-  
-  if (!session || !isAdmin(session)) {
-    return new Response(JSON.stringify([]), {
-      status: 403,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
-
+export async function GET() {
   try {
     // Prüfen ob coaching_customers Tabelle existiert
     const exists = await pool.query(`
       SELECT EXISTS (
-        SELECT FROM information_schema.tables
+        SELECT FROM information_schema.tables 
         WHERE table_name = 'coaching_customers'
       ) as exists;
     `);
@@ -26,8 +15,9 @@ export async function GET(request: Request) {
       return Response.json([]);
     }
 
+    // Echte Daten aus DB
     const result = await pool.query(`
-      SELECT
+      SELECT 
         cc.id,
         cc.name as customer_name,
         cc.profile_id,

@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../auth/useAuth';
 import { getHomepage, saveHomepage, loginUrl } from '../../lib/homepageApi';
 import { BlockRenderer } from '@/blocks/BlockRenderer';
@@ -147,7 +146,7 @@ export function HomepageEditorPage() {
   }, [previewFullscreen]);
 
   if (loading) return <PageShell>Lädt…</PageShell>;
-  if (authenticated && !isAdmin) return <Navigate to="/" replace />;
+  if (authenticated && !isAdmin) { window.location.href = '/'; return null; }
   if (!authenticated) return <PageShell>Weiterleitung zum Login…</PageShell>;
   if (!loaded || !doc) return <PageShell>Lädt Inhalt…</PageShell>;
 

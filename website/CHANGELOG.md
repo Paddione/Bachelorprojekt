@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.171.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.170.0...website-v1.171.0) (2026-07-09)
+
+
+### Features
+
+* **factory:** konsolidiere scripts/migrations/ unter getrackten Runner [T001677] ([#2673](https://github.com/Paddione/Bachelorprojekt/issues/2673)) ([4a262d9](https://github.com/Paddione/Bachelorprojekt/commit/4a262d97dab4d55f7f434610a5a8673598bf5af7))
+
+
+### Bug Fixes
+
+* resolve graph.db.zst conflict after pull ([0d368e4](https://github.com/Paddione/Bachelorprojekt/commit/0d368e4d1850615bbf15ce4192393dc8777fe174))
+
 ## [1.170.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.169.1...website-v1.170.0) (2026-07-09)
 
 

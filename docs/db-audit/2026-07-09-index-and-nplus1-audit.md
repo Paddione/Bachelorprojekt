@@ -20,9 +20,9 @@ Brand-DBs. `t` = vorhanden, `f` = fehlt.
 
 | # | Migration | Zielobjekt | mentolder | korczewski | Differenz? |
 |---|---|---|---|---|---|
-| 1 | `2026-05-19-ai-question-human-answer` | `tickets.tickets.ai_question` | t | **f** | ✗ |
-| 2 | `2026-05-19-ai-question-human-answer` | `tickets.tickets.human_answer` | t | **f** | ✗ |
-| 3 | `2026-05-19-central-dashboard-view` | `tickets.v_central_dashboard` | **f** | **f** | (beide) |
+| 1 | `2026-05-19-ai-question-human-answer` | `tickets.tickets.ai_question` | t | t (nachgezogen T001680) | behoben |
+| 2 | `2026-05-19-ai-question-human-answer` | `tickets.tickets.human_answer` | t | t (nachgezogen T001680) | behoben |
+| 3 | ~~`2026-05-19-central-dashboard-view`~~ (entfernt in T001680) | `tickets.v_central_dashboard` | f | f | **obsolet** — kein Code-Konsument (nur Design-Spec `docs/superpowers/specs/2026-05-15-central-db-view-design.md`), abgelöst durch `tickets.v_cockpit_rollup` (Zeile 17, existiert bereits auf beiden Brands). Migrationsdatei gelöscht statt nachgezogen. |
 | 4 | `2026-06-10-provider-routing` | `tickets.provider_config` | t | t | ok |
 | 5 | `2026-06-10-provider-routing` | `tickets.provider_health` | t | t | ok |
 | 6 | `2026-06-14-coaching-data-migrate` | `tickets.provider_config` mit `source='coaching'` | t | t | ok |
@@ -30,7 +30,7 @@ Brand-DBs. `t` = vorhanden, `f` = fehlt.
 | 8 | `2026-06-14-coaching-data-migrate` | `sessions_ki_config_id_fkey` → `tickets.provider_config` | t | t | ok |
 | 9 | `2026-06-14-coaching-deepseek-seed` | `provider_config` row `coaching / deepseek` | t | t | ok |
 | 10 | `2026-06-14-factory-run-budget` | `tickets.factory_run_budget` | t | t | ok |
-| 11 | `2026-06-14-llm-availability-seed` | `provider_config` rows `assistant-chat: deepseek@1, local-cluster@2` | **f** | t | ✗ |
+| 11 | `2026-06-14-llm-availability-seed` | `provider_config` rows `assistant-chat: deepseek@1, local-cluster@2` | t (nachgezogen T001680) | t | behoben — **Achtung:** mentolder + korczewski hatten beide bereits manuell nachjustierte Rows (mentolder: zusätzlich `priority=10`; korczewski: `ticket-triage priority=1` auf `local-cluster` statt `deepseek` umgestellt). Die Migration wurde auf mentolder wie geschrieben angewendet (`ON CONFLICT DO UPDATE`) — dabei wurde `ticket-triage priority=1` auf mentolder von `local-cluster` auf `deepseek` **überschrieben** (Live-Routing-Änderung, nicht nur additiv). korczewski wurde nicht angefasst. |
 | 12 | `2026-06-14-provider-config-unify` | `tickets.provider_config.brand` | t | t | ok |
 | 13 | `2026-06-14-provider-config-unify` | `tickets.provider_config.is_active` | t | t | ok |
 | 14 | `2026-06-15-cockpit-feature-suggest` | `tickets.tickets.next_step` | t | t | ok |
@@ -330,6 +330,7 @@ BRAND=korczewski bash -c 'source scripts/factory/lib.sh; factory_resolve; factor
 | **T001677** (Folge, in Triage) | Migrations-System-Konsolidierung: `scripts/migrations/*.sql` unter einen getrackten Runner analog `website/src/db/migrate.ts` (`public.schema_migrations`) bringen. |
 | **T001678** (Folge, done) | Verifikation `DATABASE_URL`/`SESSIONS_DATABASE_URL` (siehe §3a) + `ai-metrics.ts`/`ai-quality.ts` Pool-Konsolidierung. Ergab Bug T001679 (DATABASE_URL in Prod nie gesetzt). |
 | **T001679** (Bug, gefixt in T001678) | `ai-metrics.ts`/`ai-quality.ts` verbanden sich in Prod mit `connectionString: undefined` (pg-Default `localhost`) statt der echten DB — `ai_call_log`-Inserts scheiterten lautlos seit Feature-Einführung. |
+| **T001680** (Folge, done) | Operator-Nachzug für 3 Migrationslücken aus §1 (Zeilen 1-3, 11): `ai-question-human-answer` auf korczewski nachgezogen, `central-dashboard-view` als obsolet entfernt (kein Code-Konsument, abgelöst durch `v_cockpit_rollup`), `llm-availability-seed` auf mentolder nachgezogen (überschreibt dabei `ticket-triage priority=1` von `local-cluster` auf `deepseek` — Live-Routing-Änderung, siehe Zeile 33). `local-qwen35-seed` (Zeile 49, fehlt auf beiden Brands) bewusst nicht mit-nachgezogen. |
 | **TBD** (Folge) | `knowledge-db.ts` `upsertChunks` + `mergeCollections` N+1 → `unnest`-Batch-INSERTs. |
 | **TBD** (Folge) | `unused-indexes`-Re-Audit nach ≥30d Postgres-Uptime, dann DROP-Entscheidung pro Index. |
 | **TBD** (Ops) | `VACUUM (ANALYZE) coaching.*` + `ANALYZE knowledge.chunks` + `ANALYZE tickets.ticket_embeddings` nach dem Merge. |

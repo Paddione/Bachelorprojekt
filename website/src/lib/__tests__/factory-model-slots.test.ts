@@ -4,7 +4,7 @@ import { readAllSlots, writeSlot, isPhase } from '../factory-model-slots';
 const mockQuery = vi.fn();
 vi.mock('../db-pool', () => ({
   pool: {
-    query: (...args: unknown[]) => mockQuery(...args),
+    query: (text: string, params?: unknown[]) => mockQuery(text, params),
   },
 }));
 
@@ -25,7 +25,8 @@ describe('factory-model-slots', () => {
     it('rejects invalid phases', () => {
       expect(isPhase('design')).toBe(false);
       expect(isPhase('invalid')).toBe(false);
-      expect(isPhase(null)).toBe(false);
+      expect(isPhase(42)).toBe(false);
+      expect(isPhase({})).toBe(false);
     });
   });
 

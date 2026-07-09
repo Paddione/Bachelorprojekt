@@ -1509,6 +1509,7 @@ tasks:
       - chmod +x .githooks/pre-commit
       - chmod +x .githooks/commit-msg
       - chmod +x .githooks/pre-push
+      - chmod +x .githooks/post-commit
       - chmod +x .githooks/post-commit-index
       - chmod +x .githooks/post-checkout
       - chmod +x .githooks/post-merge
@@ -4655,7 +4656,6 @@ tasks:
         fi
 
         PGHOST=localhost PGPORT=15434 PGDATABASE=website PGUSER=website \
-          LLM_EMBED_URL="${LLM_EMBED_URL:-http://llm-gateway-embed.${NS}.svc.cluster.local:8081}" \
           npx tsx scripts/index-repo.ts
 
   scs:index-incremental:
@@ -4680,7 +4680,6 @@ tasks:
         sleep 4
 
         PGHOST=localhost PGPORT=15434 PGDATABASE=website PGUSER=website \
-          LLM_EMBED_URL="${LLM_EMBED_URL:-http://llm-gateway-embed.${NS}.svc.cluster.local:8081}" \
           npx tsx -e "
             import { searchCode, searchCodeAugmented } from './website/src/lib/codesearch-db.ts';
             const args = process.argv.slice(1);

@@ -2,9 +2,15 @@
 # .githooks/post-commit-index — Incremental SCS reindex after commit.
 # Reindexes only files changed in the latest commit.
 # Installed via: task secrets:install-hooks
+#
+# Opt out: SCS_HOOK_DISABLED=1 git commit ...
 set -uo pipefail
 
 repo_root="$(git rev-parse --show-toplevel)"
+
+if [[ "${SCS_HOOK_DISABLED:-0}" == "1" ]]; then
+  exit 0
+fi
 
 CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null | grep -E '\.(ts|tsx|js|jsx|svelte|astro|yaml|yml|sh|mjs|mts)$' || true)
 
@@ -17,7 +23,13 @@ echo "[SCS] Reindexing ${FILE_COUNT} changed file(s)..."
 
 echo "$CHANGED" | while IFS= read -r f; do
   [[ -z "$f" ]] && continue
-  (cd "$repo_root" && npx tsx scripts/index-repo.ts --file "$f" 2>/dev/null) &
+  (
+    cd "$repo_root" || exit 1
+    if ! out=$(timeout 30 npx tsx scripts/index-repo.ts --file "$f" 2>&1); then
+      echo "[SCS] WARN: reindex failed for $f" >&2
+      echo "$out" | tail -5 >&2
+    fi
+  ) &
 done
 
 wait

@@ -3,6 +3,7 @@
 // fail-soft Connection-/Statement-Timeouts). Eigener Ad-hoc-Pool entfernt —
 // siehe T001676 Stufe C1.
 import pg from 'pg';
+import { lookup as dnsLookup } from 'node:dns/promises';
 import { pool as defaultPool } from './db-pool';
 
 // Test-only escape hatch: tests in codesearch-db.test.ts mocken den Pool per pg-mem.
@@ -11,15 +12,30 @@ let _pool: pg.Pool | undefined;
 export function __setPoolForTests(testPool: pg.Pool): void { _pool = testPool; }
 function p(): pg.Pool { return _pool ?? defaultPool; }
 
-const EMBED_URL = process.env.LLM_EMBED_URL ?? 'http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234';
 const EMBED_MODEL = process.env.LLM_EMBED_MODEL ?? 'text-embedding-bge-m3';
+
+// `task scs:search` and local dev shells run outside the cluster, where
+// llm-gateway-lmstudio's DNS never resolves. Resolve once and cache — falls
+// back to the local dev stack (LM Studio direct on :1234) instead of hanging.
+let _embedUrlPromise: Promise<string> | undefined;
+async function resolveEmbedUrl(): Promise<string> {
+  if (process.env.LLM_EMBED_URL) return process.env.LLM_EMBED_URL;
+  if (!_embedUrlPromise) {
+    const clusterHost = 'llm-gateway-lmstudio.workspace.svc.cluster.local';
+    _embedUrlPromise = dnsLookup(clusterHost)
+      .then(() => `http://${clusterHost}:1234`)
+      .catch(() => 'http://localhost:1234');
+  }
+  return _embedUrlPromise;
+}
 
 function vecLiteral(v: number[]): string {
   return `[${v.join(',')}]`;
 }
 
 async function embedQueryText(text: string): Promise<number[]> {
-  const r = await fetch(`${EMBED_URL}/v1/embeddings`, {
+  const embedUrl = await resolveEmbedUrl();
+  const r = await fetch(`${embedUrl}/v1/embeddings`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-LLM-Purpose': 'query' },
     body: JSON.stringify({ model: EMBED_MODEL, input: [text] }),

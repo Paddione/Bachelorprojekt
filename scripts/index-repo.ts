@@ -1,14 +1,13 @@
 #!/usr/bin/env tsx
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { join, relative, extname, resolve, dirname } from 'node:path';
 import { createHash } from 'node:crypto';
+import { lookup as dnsLookup } from 'node:dns/promises';
 import pg from 'pg';
 
 const { Pool } = pg;
 
 const REPO_ROOT = resolve(import.meta.dirname ?? process.cwd(), '..');
-const EMBED_URL = process.env.LLM_EMBED_URL ?? 'http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234';
-const EMBED_MODEL = process.env.LLM_EMBED_MODEL ?? 'text-embedding-bge-m3';
 const EMBED_DIM = 1024;
 const CHUNK_MAX_TOKENS = 512;
 const CHUNK_OVERLAP = 64;
@@ -24,13 +23,48 @@ const INDEXABLE_EXTS = new Set([
   '.yaml', '.yml', '.sh', '.bash', '.mjs', '.mts',
 ]);
 
-function makePool() {
+// This script runs both in-cluster (CronJob) and on a developer's host (git hook,
+// `task scs:index`) where cluster-internal DNS never resolves. Resolve the
+// cluster hostname once; on failure fall back to the local dev stack
+// (LM Studio direct on :1234, port-forwarded/local Postgres) instead of
+// silently hanging or failing every commit. Explicit env vars always win.
+async function clusterDnsResolves(hostname: string): Promise<boolean> {
+  try {
+    await dnsLookup(hostname);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+let EMBED_URL: string;
+let EMBED_MODEL: string;
+
+async function resolveEmbedConfig(): Promise<void> {
+  const clusterHost = 'llm-gateway-lmstudio.workspace.svc.cluster.local';
+  if (process.env.LLM_EMBED_URL) {
+    EMBED_URL = process.env.LLM_EMBED_URL;
+  } else {
+    EMBED_URL = (await clusterDnsResolves(clusterHost))
+      ? `http://${clusterHost}:1234`
+      : 'http://localhost:1234';
+  }
+  // Model IDs are not a stable contract across LM Studio setups — override
+  // locally with LLM_EMBED_MODEL if your loaded model uses a different ID
+  // (e.g. `bge` instead of `text-embedding-bge-m3`).
+  EMBED_MODEL = process.env.LLM_EMBED_MODEL ?? 'text-embedding-bge-m3';
+}
+
+async function makePool(): Promise<pg.Pool> {
+  const clusterHost = 'shared-db.workspace.svc.cluster.local';
+  const host = process.env.PGHOST ?? ((await clusterDnsResolves(clusterHost)) ? clusterHost : 'localhost');
   return new Pool({
-    host: process.env.PGHOST ?? 'shared-db.workspace.svc.cluster.local',
+    host,
     port: Number(process.env.PGPORT ?? 5432),
     database: process.env.PGDATABASE ?? 'website',
     user: process.env.PGUSER ?? 'website',
     password: process.env.PGPASSWORD ?? 'devwebsitedb',
+    connectionTimeoutMillis: 5000,
   });
 }
 
@@ -240,7 +274,9 @@ async function main(): Promise<void> {
   const singleFileFlag = args.indexOf('--file');
   const singleFile = singleFileFlag >= 0 ? args[singleFileFlag + 1] : null;
 
-  const pool = makePool();
+  await resolveEmbedConfig();
+  const pool = await makePool();
+  process.stderr.write(`[SCS] embed=${EMBED_URL} model=${EMBED_MODEL} pghost=${pool.options.host}\n`);
   try {
     await ensureSchema(pool);
 

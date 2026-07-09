@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# .githooks/post-commit — git's real hook entrypoint (git only ever invokes a
+# hook file named exactly "post-commit"; "post-commit-index" alone is never
+# picked up automatically, regardless of core.hooksPath). Dispatches to the
+# actual SCS reindex logic.
+set -uo pipefail
+repo_root="$(git rev-parse --show-toplevel)"
+exec "$repo_root/.githooks/post-commit-index"

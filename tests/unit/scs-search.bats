@@ -114,3 +114,18 @@ PROJECT_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
   run grep -c 'post-commit-index' "$PROJECT_DIR/Taskfile.yml"
   [[ "$output" -ge 1 ]]
 }
+
+@test "SCS-5: .githooks/post-commit exists, is executable, and dispatches to post-commit-index" {
+  # git only ever auto-invokes a hook file named exactly "post-commit" —
+  # "post-commit-index" alone is never picked up regardless of
+  # core.hooksPath [T001692]. This dispatcher is the real entrypoint.
+  [[ -f "$PROJECT_DIR/.githooks/post-commit" ]]
+  [[ -x "$PROJECT_DIR/.githooks/post-commit" ]]
+  run grep -c 'post-commit-index' "$PROJECT_DIR/.githooks/post-commit"
+  [[ "$output" -ge 1 ]]
+}
+
+@test "SCS-5: secrets:install-hooks chmods post-commit" {
+  run grep -c 'chmod +x .githooks/post-commit$' "$PROJECT_DIR/Taskfile.yml"
+  [[ "$output" -ge 1 ]]
+}

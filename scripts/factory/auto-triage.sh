@@ -198,11 +198,40 @@ PROMPT
   # cleanup at function exit
   trap "rm -f $tmp_req $tmp_resp 2>/dev/null" RETURN
 
-  # Build request body
+  # Build request body. For Qwen3-family hybrid reasoners, force
+  # enable_thinking=false (hard switch via chat_template_kwargs, not the
+  # soft "/no_think" prompt convention) so the model doesn't burn max_tokens
+  # on a <think> trace before ever emitting the JSON turn — the same failure
+  # mode documented for factory_ask in scripts/factory/mcp-go/main.go.
+  # response_format uses json_schema (not json_object) so llama.cpp/LM
+  # Studio constrain decoding to the enum-valid schema at the sampler level,
+  # instead of only validating after the fact in validate_triage().
+  local schema
+  schema=$(jq -n --argjson enums "$enums" '{
+    name: "ticket_triage",
+    strict: true,
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      required: ["type","priority","severity","areas","component","assignee_suggested","rationale"],
+      properties: {
+        type: { type: "string", enum: ["bug","feature","task","project"] },
+        priority: { type: "string", enum: ["hoch","mittel","niedrig"] },
+        severity: { type: "string", enum: ["critical","major","minor","trivial"] },
+        areas: { type: "array", items: { type: "string", enum: $enums.areas }, minItems: 1, maxItems: 3 },
+        component: { type: ["string","null"], enum: ($enums.components + [null]) },
+        assignee_suggested: { type: "string", enum: $enums.assignees },
+        rationale: { type: "string" }
+      }
+    }
+  }')
+
   jq -n \
     --arg model "$model" \
     --arg sys "$system_prompt" \
     --arg user "$user_prompt" \
+    --argjson schema "$schema" \
+    --argjson thinking_off "$([[ "$model" == *qwen* ]] && echo true || echo false)" \
     '{
       model: $model,
       messages: [
@@ -211,8 +240,9 @@ PROMPT
       ],
       temperature: 0.2,
       max_tokens: 512,
-      response_format: {type: "json_object"}
-    }' > "$tmp_req"
+      response_format: {type: "json_schema", json_schema: $schema}
+    }
+    + (if $thinking_off then {chat_template_kwargs: {enable_thinking: false}} else {} end)' > "$tmp_req"
 
   local curl_args=(-s -S --max-time 60)
   if [[ -n "$api_key" ]]; then

@@ -18,12 +18,16 @@
     mobileVisible = false,
     isFirst = false,
     onSelect,
+    activeConfig = null,
+    onOpenDrawer,
   }: {
     station: { key: Phase; label: string };
     items: HallItem[];
     mobileVisible?: boolean;
     isFirst?: boolean;
     onSelect: (extId: string) => void;
+    activeConfig?: any;
+    onOpenDrawer?: () => void;
   } = $props();
 
   let meta  = $derived(PHASE_META[station.key] ?? { n: '—', label: station.label, agent: '', task: '' });
@@ -57,6 +61,17 @@
     {#if meta.agent}
       <div class="station-agent">{meta.agent} · {meta.task}</div>
     {/if}
+    <div class="station-badge-container">
+      {#if activeConfig}
+        <button class="station-badge" onclick={onOpenDrawer} title="KI-Konfiguration bearbeiten">
+          🤖 {activeConfig.provider} · {activeConfig.model_id}
+        </button>
+      {:else}
+        <button class="station-badge station-badge--none" onclick={onOpenDrawer} title="KI-Konfiguration einrichten">
+          🤖 Keine Config
+        </button>
+      {/if}
+    </div>
   </div>
 
   <hr class="station-divider" />
@@ -205,5 +220,42 @@
     color: var(--mute-2);
     letter-spacing: .1em;
     text-transform: uppercase;
+  }
+
+  .station-badge-container {
+    margin-top: 6px;
+  }
+
+  .station-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    background: rgba(232, 200, 112, 0.08);
+    border: 1px solid rgba(232, 200, 112, 0.25);
+    color: var(--brass, #e8c870);
+    border-radius: 4px;
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 500;
+    text-transform: uppercase;
+    cursor: pointer;
+    text-align: left;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .station-badge:hover {
+    background: rgba(232, 200, 112, 0.16);
+    border-color: rgba(232, 200, 112, 0.4);
+  }
+  .station-badge--none {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: var(--mute-2, #71717a);
+  }
+  .station-badge--none:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
   }
 </style>

@@ -10,6 +10,8 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import type { FloorPayload, TicketDetail, InjectionKind } from '../lib/factory-floor-types';
+  import KiProviderDrawer from './admin/KiProviderDrawer.svelte';
+  import { interfaceById, type InterfaceDef } from '../lib/ki-catalog';
 
   import QaChip from './QaChip.svelte';
   import QaModal from './QaModal.svelte';
@@ -54,6 +56,164 @@
   let data = $state<FloorPayload | null>(initial);
   let stale = $state(false);
   let selected = $state<string | null>(null);
+
+  interface ProviderEntry {
+    id: number; source: string; tier: 'sonnet' | 'haiku'; priority: number;
+    provider: string; model_id: string; base_url: string | null;
+    max_concurrent: number; enabled: boolean;
+    api_key_hint: string | null;
+  }
+  interface Health {
+    provider: string; cooldown_until: string | null; active_agents: number;
+  }
+
+  let providerEntries = $state<ProviderEntry[]>([]);
+  let providerHealth = $state<Health[]>([]);
+  let catalog = $state<InterfaceDef[]>([]);
+  let openDrawerPhase = $state<string | null>(null);
+  let editId = $state<number | null>(null);
+  let confirmingDelete = $state<number | null>(null);
+  let form = $state(blankForm());
+  let toast = $state('');
+
+  function blankForm(source = '', tier: 'sonnet' | 'haiku' = 'sonnet') {
+    return { source, tier, priority: 1, provider: '', model_id: '', base_url: '', max_concurrent: 3, enabled: true, api_key: '' };
+  }
+
+  function onProviderChange() {
+    const def = interfaceById(form.provider);
+    if (def?.defaultBaseUrl && !form.base_url.trim()) {
+      form.base_url = def.defaultBaseUrl;
+    }
+  }
+
+  async function loadProvidersAndCatalog() {
+    try {
+      const [provRes, catRes] = await Promise.all([
+        fetch('/api/admin/ki/providers', { credentials: 'same-origin' }),
+        fetch('/api/admin/ki/catalog', { credentials: 'same-origin' }),
+      ]);
+      if (provRes.ok) {
+        const { entries: e, health: h } = await provRes.json();
+        providerEntries = e ?? [];
+        providerHealth = h ?? [];
+      }
+      if (catRes.ok) {
+        const { catalog: c } = await catRes.json();
+        catalog = c ?? [];
+      }
+    } catch (err) {
+      console.error('Failed to load providers:', err);
+    }
+  }
+
+  function sourceForPhase(phase: string): string {
+    const mapping: Record<string, string> = {
+      scout: 'factory-scout',
+      design: 'factory-plan',
+      plan: 'factory-plan',
+      implement: 'factory-implement',
+      verify: 'factory-review',
+      deploy: 'factory-implement',
+    };
+    return mapping[phase] || '*';
+  }
+
+  function activeConfigForPhase(phase: string, allEntries: ProviderEntry[]): ProviderEntry | undefined {
+    const src = sourceForPhase(phase);
+    const specific = allEntries.filter(e => e.source === src && e.enabled).sort((a, b) => a.priority - b.priority);
+    if (specific.length) return specific[0];
+    const global = allEntries.filter(e => e.source === '*' && e.enabled).sort((a, b) => a.priority - b.priority);
+    if (global.length) return global[0];
+    return undefined;
+  }
+
+  let activeConfigsByPhase = $derived<Record<string, any>>({
+    scout: activeConfigForPhase('scout', providerEntries),
+    design: activeConfigForPhase('design', providerEntries),
+    plan: activeConfigForPhase('plan', providerEntries),
+    implement: activeConfigForPhase('implement', providerEntries),
+    verify: activeConfigForPhase('verify', providerEntries),
+    deploy: activeConfigForPhase('deploy', providerEntries),
+  });
+
+  const PHASE_LABELS: Record<string, string> = {
+    scout: 'Sichten (factory-scout)',
+    design: 'Entwurf (factory-plan)',
+    plan: 'Planung (factory-plan)',
+    implement: 'Umsetzung (factory-implement)',
+    verify: 'Prüfung (factory-review)',
+    deploy: 'Auslieferung (factory-implement)',
+  };
+
+  function entriesForPhase(phase: string): ProviderEntry[] {
+    const src = sourceForPhase(phase);
+    return providerEntries.filter((e) => e.source === src).sort((a, b) => a.priority - b.priority);
+  }
+
+  function showToast(msg: string) {
+    toast = msg;
+    setTimeout(() => { if (toast === msg) toast = ''; }, 5000);
+  }
+
+  function closeDrawer() { openDrawerPhase = null; editId = null; confirmingDelete = null; }
+
+  function startEdit(e: ProviderEntry) {
+    editId = e.id;
+    form = { source: e.source, tier: e.tier, priority: e.priority, provider: e.provider, model_id: e.model_id, base_url: e.base_url ?? '', max_concurrent: e.max_concurrent, enabled: e.enabled, api_key: '' };
+  }
+
+  function startNew() {
+    editId = -1;
+    if (openDrawerPhase) {
+      form = blankForm(sourceForPhase(openDrawerPhase), 'sonnet');
+    }
+  }
+
+  async function saveForm() {
+    const payload: Record<string, unknown> = { ...form, base_url: form.base_url.trim() || null };
+    if (editId !== -1 && !form.api_key.trim()) { delete payload.api_key; }
+    else { payload.api_key = form.api_key.trim() || null; }
+    const isNew = editId === -1;
+    const res = await fetch(isNew ? '/api/admin/ki/providers' : `/api/admin/ki/providers/${editId}`, {
+      method: isNew ? 'POST' : 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      showToast(body.error ?? `Fehler ${res.status}`);
+      return;
+    }
+    editId = null;
+    await loadProvidersAndCatalog();
+  }
+
+  async function changePriority(e: ProviderEntry, delta: number) {
+    const next = e.priority + delta;
+    if (next < 0) return;
+    const res = await fetch(`/api/admin/ki/providers/${e.id}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ priority: next }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      showToast(body.error ?? 'Priorität konnte nicht geändert werden');
+      return;
+    }
+    await loadProvidersAndCatalog();
+  }
+
+  async function doDelete(id: number) {
+    const res = await fetch(`/api/admin/ki/providers/${id}`, { method: 'DELETE' });
+    confirmingDelete = null;
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      showToast(body.error ?? 'Löschen fehlgeschlagen');
+      return;
+    }
+    await loadProvidersAndCatalog();
+  }
   let detail = $state<TicketDetail | null>(null);
   let qaItems = $state<QaItem[]>([]);
   let qaCriteria = $state<{ key: string; label: string }[]>([]);
@@ -64,6 +224,7 @@
 
   async function refresh() {
     try {
+      void loadProvidersAndCatalog();
       const [floorRes, qaRes, criteriaRes] = await Promise.all([
         fetch('/api/factory-floor', { credentials: 'same-origin' }),
         fetch('/api/admin/qa-queue', { credentials: 'same-origin' }),
@@ -150,7 +311,7 @@
     };
   }
 
-  onMount(() => { if (!initial) void refresh(); connectSSE(); });
+  onMount(() => { if (!initial) void refresh(); connectSSE(); void loadProvidersAndCatalog(); });
   onDestroy(() => { es?.close(); if (reconnectTimer) clearTimeout(reconnectTimer); });
 </script>
 <div class="text-light" data-testid="factory-floor">
@@ -217,6 +378,8 @@
         {mobileColIndex}
         {ciByExt}
         onSelect={openDetail}
+        activeConfigs={activeConfigsByPhase}
+        onOpenDrawerPhase={(phase) => { openDrawerPhase = phase; }}
       />
 
       <div class="lg:w-1/5" data-testid="floor-qa">
@@ -272,6 +435,32 @@
         on:submitted={() => { qaModalItem = null; refresh(); }}
       />
     {/if}
+
+    {#if openDrawerPhase}
+      <KiProviderDrawer
+        title={PHASE_LABELS[openDrawerPhase] || openDrawerPhase}
+        entries={entriesForPhase(openDrawerPhase)}
+        health={providerHealth}
+        {catalog}
+        {editId}
+        {form}
+        {confirmingDelete}
+        onclose={closeDrawer}
+        onsave={saveForm}
+        onedit={(e) => startEdit(e)}
+        onnew={startNew}
+        oncanceledit={() => (editId = null)}
+        ondelete={(id) => doDelete(id)}
+        onconfirmdelete={(id) => (confirmingDelete = id)}
+        onchangepriority={(e, d) => changePriority(e, d)}
+        onproviderchange={onProviderChange}
+        showtoast={showToast}
+      />
+    {/if}
+
+    {#if toast}
+      <div class="toast" role="alert">{toast}</div>
+    {/if}
   {/if}
 </div>
 <style>
@@ -314,5 +503,18 @@
     :global([data-testid="floor-leitstand"] p.text-xs) { font-size: 10px !important; }
     :global([data-testid="floor-pulse"]) { flex-wrap: wrap; row-gap: 4px; }
     :global([data-testid="floor-stale"]) { font-size: 12px; flex-basis: 100%; }
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 24px;
+    background: #9b1c1c;
+    color: #fff;
+    padding: 12px 16px;
+    border-radius: 8px;
+    z-index: 9999;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    font-size: 14px;
   }
 </style>

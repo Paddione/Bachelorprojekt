@@ -13,11 +13,15 @@
     loadingDock,
     mobileColIndex,
     onSelect,
+    activeConfigs = {},
+    onOpenDrawerPhase,
   }: {
     hall: HallItem[];
     loadingDock: LoadingDockItem[];
     mobileColIndex: number;
     onSelect: (extId: string) => void;
+    activeConfigs?: Record<string, any>;
+    onOpenDrawerPhase?: (phase: string) => void;
   } = $props();
 </script>
 
@@ -48,6 +52,8 @@
       hallItems={hall}
       {mobileColIndex}
       {onSelect}
+      {activeConfigs}
+      {onOpenDrawerPhase}
     />
   </div>
 {/if}

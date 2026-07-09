@@ -96,23 +96,58 @@ const PROFILE_FIELDS = [
 // ---------------------------------------------------------------------
 // KUNDEN — Dashboard / Akte
 // ---------------------------------------------------------------------
-function mkSessions(){
-  return [
-    { id:"s1", no:"04", title:"Laufende Begleitung", status:"aktiv",  level:6, updated:"vor 2 Tagen", lang:"Farsi" },
-    { id:"s2", no:"03", title:"Standortbestimmung",  status:"pausiert", level:3, updated:"vor 3 Wochen", lang:"Farsi" },
-    { id:"s3", no:"02", title:"Erstgespräch · Folge", status:"fertig", level:10, updated:"vor 2 Monaten", lang:"Deutsch" },
-    { id:"s4", no:"01", title:"Erstgespräch", status:"fertig", level:10, updated:"vor 3 Monaten", lang:"Deutsch" },
-  ];
-}
-const CUSTOMERS = [];
-CUSTOMERS.forEach(k=> k.sessions = mkSessions());
 
-// Fallback, solange keine echten Klient:innen angelegt sind — verhindert
-// Abstürze in Screens, die `customer || CUSTOMERS[0]` als Default nutzen.
+// Fallback-Data für leere DB (wie bisher)
 const EMPTY_CUSTOMER = {
   id: null, name: "—", initials: "–", since: "—", lang: "—", category: "—",
   aktiv: 0, pausiert: 0, fertig: 0, sessions: [],
 };
+
+// Lade echte Sessions aus DB beim ersten Import (Client-Side)
+let customers = [];
+async function loadCustomers() {
+  try {
+    // Fetch from API endpoint
+    const res = await fetch('/api/admin/coaching/sessions');
+    const data = await res.json();
+    
+    if (Array.isArray(data) && data.length > 0) {
+      customers = data.map(c => ({
+        id: c.id || null,
+        name: c.customer_name || "—",
+        initials: c.name ? c.name.substring(0, 2).toUpperCase() : "–",
+        since: "Seit " + new Date().toLocaleDateString('de-DE'),
+        lang: "Deutsch",
+        category: "Platzhalter",
+        aktiv: 1, pausiert: 0, fertig: 0,
+        sessions: [{
+          id: c.id || null,
+          no: "01",
+          title: "Erstgespräch",
+          status: "aktiv",
+          level: 1,
+          updated: "vor eben",
+          lang: "Deutsch"
+        }]
+      }));
+    } else {
+      // Falls keine Daten, leere Array (falls Screens CUSTOMERS direkt nutzen)
+      customers = [];
+    }
+  } catch (error) {
+    console.error('Error loading coaching sessions:', error);
+    // Fallback: leeres Array oder EMPTY_CUSTOMER je nach Screen-Logik
+    customers = [];
+  }
+}
+
+// Lade beim Script-Loading
+loadCustomers();
+
+const CUSTOMERS = customers.length > 0 ? customers : [EMPTY_CUSTOMER];
+
+// Export für Unit-Tests
+window.__COACHING_CUSTOMERS__ = customers;
 
 // ---------------------------------------------------------------------
 // ÜBERSETZUNGEN — DE-Original parallel zur Zielsprache (Platzhalter)

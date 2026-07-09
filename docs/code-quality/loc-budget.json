@@ -3,6 +3,10 @@
   "file_count": 4120,
   "commit": "e7dea52ad",
   "measured_at": "2026-07-09T14:22:54.599Z",
+  "total_lines": 542926,
+  "file_count": 4120,
+  "commit": "61a1e41f2",
+  "measured_at": "2026-07-09T14:15:58.262Z",
   "thresholds": {
     "warn_pct": 5,
     "fail_pct": 15,

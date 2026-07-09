@@ -91,6 +91,12 @@ s1:
     # module for the OCX Worktree plugin. It exceeds the limit due to the full
     # mutex-protected tmux surface; further splitting yields circular imports.
     - ".opencode/skills/dev-flow/plugins/worktree/terminal.ts"
+    # .opencode/plugins/background-agents.ts and worktree.ts are symlinks to the two
+    # sanctioned exceptions above (opencode's plugin loader resolves plugins from
+    # .opencode/plugins/, so the symlink is required). The scanner checks the symlink
+    # path itself, not its target, so it needs its own ignore entry (T001686).
+    - ".opencode/plugins/background-agents.ts"
+    - ".opencode/plugins/worktree.ts"
 
 s2:
   graphs:

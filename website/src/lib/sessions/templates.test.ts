@@ -4,7 +4,7 @@ vi.mock('../website-db', () => ({
   pool: { query: vi.fn(), end: vi.fn() },
 }));
 vi.mock('../logger', () => ({
-  logger: { error: vi.fn() },
+  logger: { error: vi.fn(), warn: vi.fn() },
 }));
 import { pool } from '../website-db';
 import { logger } from '../logger';

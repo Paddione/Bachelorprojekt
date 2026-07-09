@@ -1,0 +1,77 @@
+{
+  "provider": {
+    "lmstudio": {
+      "models": {
+        "qwen3.5-9b@q4_k_xl": {
+          "name": "Qwen3.5-9B (1 session, 140k ctx, UD-Q4_K_XL weights, Q8_0 KV)",
+          "limit": {
+            "context": 140000,
+            "output": 8192
+          }
+        },
+        "qwen3.5-9b@q4_k_m": {
+          "name": "Qwen3.5-9B (3x48k parallel, Q4_K_M weights, Q8_0 KV)",
+          "limit": {
+            "context": 48000,
+            "output": 8192
+          }
+        },
+        "qwen3.5-9b@iq4_xs": {
+          "name": "Qwen3.5-9B (4x65k parallel, IQ4_XS weights, 260k total ctx)",
+          "limit": {
+            "context": 260000,
+            "output": 8192
+          }
+        },
+        "qwen3-14b@q4_k_m": {
+          "name": "Qwen3-14B (1 session, Q4_K_M, lmstudio-community/Qwen3-14B-GGUF)",
+          "limit": {
+            "context": 32768,
+            "output": 8192
+          }
+        },
+        "google/gemma-4-12b-qat": {
+          "name": "Gemma 4 12B (QAT)",
+          "limit": {
+            "context": 180000,
+            "output": 8192
+          }
+        }
+      }
+    }
+  },
+  "agent": {
+    "qwen35-iq4": {
+      "description": "PREFERRED FIRST CHOICE for subagent delegation: Qwen3.5-9B (IQ4_XS weights, unsloth/Qwen3.5-9B-GGUF) on LM Studio - serves up to 4 parallel subagents, ~65k ctx recommended per call (260k total). Try this before qwythos/q4_k_m/q4_k_xl variants.",
+      "mode": "subagent",
+      "model": "lmstudio/qwen3.5-9b@iq4_xs",
+      "color": "#0EA5E9",
+      "temperature": 0.7,
+      "permission": { "edit": "deny", "write": "deny", "bash": "deny" }
+    },
+    "qwen3-14b": {
+      "description": "Single-session implementation/planning agent: Qwen3-14B (Q4_K_M, lmstudio-community/Qwen3-14B-GGUF) on LM Studio",
+      "mode": "subagent",
+      "model": "lmstudio/qwen3-14b@q4_k_m",
+      "color": "#F59E0B",
+      "temperature": 0.7,
+      "permission": { "edit": "deny", "write": "deny", "bash": "deny" }
+    },
+    "qwen35": {
+      "description": "Subagent using Qwen3.5-9B (Q4_K_M weights) on LM Studio - use when 3 parallel subagents are loaded (48k ctx each)",
+      "mode": "subagent",
+      "model": "lmstudio/qwen3.5-9b@q4_k_m",
+      "color": "#22C55E",
+      "temperature": 0.7,
+      "permission": { "edit": "deny", "write": "deny", "bash": "deny" }
+    },
+    "qwen35-hq": {
+      "description": "Subagent using Qwen3.5-9B (UD-Q4_K_XL weights, higher fidelity, 140k ctx) on LM Studio - single session, serialized (no parallel dispatch), use when max per-call context matters more than concurrency",
+      "mode": "subagent",
+      "model": "lmstudio/qwen3.5-9b@q4_k_xl",
+      "color": "#16A34A",
+      "temperature": 0.7,
+      "permission": { "edit": "deny", "write": "deny", "bash": "deny" }
+    }
+  }
+}

@@ -223,6 +223,16 @@ tasks:
       - 'echo "  pre-commit:         blocks main commits, validates kustomize, scans secrets"'
       - 'echo "  prepare-commit-msg: auto-prefixes commit message from branch name"'
 
+  opencode:sync-agents:
+    desc: "Merge .opencode/agent-models.jsonc config into ~/.config/opencode/opencode.jsonc"
+    cmds:
+      - bash scripts/opencode-sync-agents.sh
+
+  opencode:model-select:
+    desc: "Interactive fzf picker to change agent models and sync them"
+    cmds:
+      - bash scripts/agent-model-select.sh
+
   # ─────────────────────────────────────────────
   # Configuration Management
   # ─────────────────────────────────────────────

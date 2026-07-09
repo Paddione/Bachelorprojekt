@@ -56,6 +56,15 @@ function feedbackBlock({ classify, logTail, attempts }) {
   return lines.join('\n')
 }
 
+const HARNESS_TIERS = new Set(['sonnet', 'opus', 'haiku', 'fable'])
+
+function resolveAgentModel(route, fallbackTier, logFn) {
+  if (!route) return fallbackTier
+  if (HARNESS_TIERS.has(route.modelId) && !route.baseUrl) return route.modelId
+  if (typeof logFn === 'function') logFn(`resolveAgentModel: block baseUrl passthrough — modelId=${route.modelId} baseUrl=${route.baseUrl}, falling back to ${fallbackTier}`)
+  return fallbackTier
+}
+
 async function runTaskVerifyLoop({ t, maxLoop, WORK_WT, WORK_BRANCH, slug, A, prov }) {
   const agentFn = globalThis.agent
   if (!agentFn) return null
@@ -69,4 +78,4 @@ async function runTaskVerifyLoop({ t, maxLoop, WORK_WT, WORK_BRANCH, slug, A, pr
   return null
 }
 
-module.exports = { normalize, sigHash, decide, feedbackBlock, runTaskVerifyLoop, ESCALATE_CLASSES, ALLOWED_CLASSES, MAX_DEFAULT }
+module.exports = { normalize, sigHash, decide, feedbackBlock, runTaskVerifyLoop, resolveAgentModel, ESCALATE_CLASSES, ALLOWED_CLASSES, MAX_DEFAULT }

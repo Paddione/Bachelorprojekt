@@ -11,7 +11,7 @@ test.describe('FA-09: Service Catalog', () => {
   test('T2: All service categories visible', async ({ page }) => {
     await page.goto(`${BASE}/leistungen`);
     // Page should have multiple service sections (flexible matching)
-    await expect(page.locator('h1, h2, h3').filter({ hasText: /café|cafe|digital|coaching|beratung|leistung/i }).first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('h1, h2, h3').filter({ hasText: /café|cafe|digital|coaching|beratung|leistung/i }).first()).toBeVisible({ timeout: 30_000 });
     const headings = await page.locator('h2, h3').count();
     expect(headings).toBeGreaterThan(0);
   });

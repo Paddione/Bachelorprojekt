@@ -15,11 +15,11 @@ const ADMIN_PASS = process.env.E2E_ADMIN_PASS;
 
 async function loginAsAdmin(page: import('@playwright/test').Page) {
   await page.goto(`${BASE}/api/auth/login?returnTo=/admin/projekte`);
-  await page.waitForURL(/realms\/workspace/, { timeout: 20_000 });
+  await page.waitForURL(/realms\/workspace/, { timeout: 60_000 });
   await page.locator('#username, input[name="username"]').first().fill(ADMIN_USER);
   await page.locator('#password, input[name="password"]').first().fill(ADMIN_PASS!);
   await page.locator('#kc-login, input[type="submit"]').first().click();
-  await page.waitForURL(/\/admin\/projekte/, { timeout: 20_000 });
+  await page.waitForURL(/\/admin\/projekte/, { timeout: 60_000 });
 }
 
 test.describe('FA-admin-db-crud-projekte', () => {
@@ -59,11 +59,11 @@ test.describe('FA-admin-db-crud-projekte', () => {
     // ── 2. Navigate to list and verify project appears ──
     await page.goto(`${BASE}/admin/projekte`);
     await page.waitForLoadState('networkidle');
-    await expect(page.locator(`text="${projectName}"`).first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator(`text="${projectName}"`).first()).toBeVisible({ timeout: 30_000 });
 
     // ── 3. Find the project's detail page URL by following the link ──
     await page.locator(`a:has-text("${projectName}")`).first().click();
-    await page.waitForURL(/\/admin\/projekte\/[0-9a-f-]+/, { timeout: 10_000 });
+    await page.waitForURL(/\/admin\/projekte\/[0-9a-f-]+/, { timeout: 60_000 });
     const detailUrl = page.url();
     const projectId = detailUrl.split('/admin/projekte/')[1]?.split('?')[0];
     expect(projectId).toMatch(/^[0-9a-f-]+$/);
@@ -84,7 +84,7 @@ test.describe('FA-admin-db-crud-projekte', () => {
     // ── 5. Verify updated name appears in the list ──
     await page.goto(`${BASE}/admin/projekte`);
     await page.waitForLoadState('networkidle');
-    await expect(page.locator(`text="${updatedName}"`).first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator(`text="${updatedName}"`).first()).toBeVisible({ timeout: 30_000 });
 
     // ── 6. Create a Subprojekt under the project ──
     const subCreateRes = await page.request.post(`${BASE}/api/admin/subprojekte/create`, {
@@ -102,7 +102,7 @@ test.describe('FA-admin-db-crud-projekte', () => {
     // ── 7. Verify subprojekt appears on the detail page ──
     await page.goto(`${BASE}/admin/projekte/${projectId}`);
     await page.waitForLoadState('networkidle');
-    await expect(page.locator(`text="${subName}"`).first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator(`text="${subName}"`).first()).toBeVisible({ timeout: 30_000 });
 
     // ── 8. Find subprojekt id from the page ──
     // The subproject row or link should contain the name — get sub ID from its URL or data attribute

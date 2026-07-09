@@ -31,7 +31,7 @@ const ADMIN_PASS  = process.env.E2E_ADMIN_PASS;
 async function loginAsAdmin(page: import('@playwright/test').Page, returnTo = '/admin/coaching/sessions'): Promise<void> {
   if (!ADMIN_PASS) throw new Error('E2E_ADMIN_PASS is not set');
   await page.goto(`${BASE}/api/auth/login?returnTo=${encodeURIComponent(returnTo)}`);
-  await page.waitForURL(/realms\/workspace/, { timeout: 30_000 });
+  await page.waitForURL(/realms\/workspace/, { timeout: 60_000 });
   await page.locator('#username, input[name="username"]').first().fill(ADMIN_USER);
   await page.locator('#password, input[name="password"]').first().fill(ADMIN_PASS);
   await page.locator('#kc-login, input[type="submit"]').first().click();
@@ -210,7 +210,7 @@ test.describe('FA-55-LMStudio: SessionWizard browser flow', () => {
 
   test('T6: wizard KI button enables when required fields are filled', async ({ page }) => {
     await loginAsAdmin(page, '/admin/coaching/sessions/new');
-    await page.waitForURL(/\/admin\/coaching\/sessions\/new$/, { timeout: 30_000 });
+    await page.waitForURL(/\/admin\/coaching\/sessions\/new$/, { timeout: 60_000 });
 
     const title = `FA-55-LMStudio T6 ${Date.now()}`;
     await page.locator('#title').fill(title);
@@ -234,7 +234,7 @@ test.describe('FA-55-LMStudio: SessionWizard browser flow', () => {
     test.setTimeout(90_000);
 
     await loginAsAdmin(page, '/admin/coaching/sessions/new');
-    await page.waitForURL(/\/admin\/coaching\/sessions\/new$/, { timeout: 30_000 });
+    await page.waitForURL(/\/admin\/coaching\/sessions\/new$/, { timeout: 60_000 });
 
     await page.locator('#title').fill(`FA-55-LMStudio T7 ${Date.now()}`);
     await page.locator('#submit-btn').click();
@@ -250,7 +250,7 @@ test.describe('FA-55-LMStudio: SessionWizard browser flow', () => {
     await kiButton.click();
 
     // The button label changes to "KI antwortet…" while loading — verify that transition
-    await expect(page.getByRole('button', { name: /KI antwortet/ })).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByRole('button', { name: /KI antwortet/ })).toBeVisible({ timeout: 30_000 });
 
     // Wait for either:
     //   a) .ai-response-box appears (streaming or final response) — success

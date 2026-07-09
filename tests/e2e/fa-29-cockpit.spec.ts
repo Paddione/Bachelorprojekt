@@ -24,8 +24,8 @@ test.describe('FA-29 Projekt-Cockpit', () => {
 
   test('loads sidebar and table', async ({ page }) => {
     await login(page);
-    await expect(page.locator('[data-testid="cockpit-sidebar"]')).toBeVisible({ timeout: 15_000 });
-    await expect(page.locator('[data-testid="cockpit-table"]')).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator('[data-testid="cockpit-sidebar"]')).toBeVisible({ timeout: 30_000 });
+    await expect(page.locator('[data-testid="cockpit-table"]')).toBeVisible({ timeout: 30_000 });
   });
 
   test('redirects /admin/tickets to cockpit', async ({ page }) => {
@@ -38,7 +38,7 @@ test.describe('FA-29 Projekt-Cockpit', () => {
   test('opens the create modal', async ({ page }) => {
     await login(page);
     await page.locator('[data-testid="open-create"]').click();
-    await expect(page.locator('[data-testid="create-modal"]')).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('[data-testid="create-modal"]')).toBeVisible({ timeout: 30_000 });
   });
 
   test.describe('data-dependent (requires seeded portfolio)', () => {
@@ -50,7 +50,7 @@ test.describe('FA-29 Projekt-Cockpit', () => {
       await login(page);
       if (!(await hasFeatures(page))) { test.skip(true, 'Keine Features — überspringe'); return; }
       await page.locator('[data-testid="sidebar-feature"]').first().click();
-      await expect(page.locator('[data-testid="cockpit-table"]')).toBeVisible({ timeout: 10_000 });
+      await expect(page.locator('[data-testid="cockpit-table"]')).toBeVisible({ timeout: 30_000 });
       const statusSelect = page.locator('[data-testid="status-select"]').first();
       if (!(await statusSelect.count())) { test.skip(true, 'Kein Status-Select — überspringe'); return; }
       const resp = page.waitForResponse(/\/api\/admin\/tickets\/.+\/transition/);

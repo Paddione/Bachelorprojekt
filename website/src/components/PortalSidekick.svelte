@@ -16,7 +16,7 @@
   import { registerBrowserLogCapture } from '../lib/logging/browser-collector';
   import { addEntry } from '../lib/logging/log-store';
 
-  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'agent-guide' | 'mediaviewer' | 'terminal' | 'cockpit' | 'ai-quality' | 'logs';
+  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'agent-guide' | 'mediaviewer' | 'terminal' | 'cockpit' | 'ai-quality' | 'logs' | 'agent-settings';
 
   let {
     helpSection = '',
@@ -64,6 +64,7 @@
     cockpit: 'Projekt-Cockpit',
     'ai-quality': 'KI-Qualität',
     logs: 'Logs',
+    'agent-settings': 'Agenten-Einstellungen',
   };
 
   // Capture client-side errors into the central log bus (admin sessions only),
@@ -71,6 +72,51 @@
   $effect(() => {
     if (helpContext !== 'admin') return;
     return registerBrowserLogCapture(addEntry);
+  });
+
+  let settings = $state({
+    contextBudget: 180000,
+    spawnHarness: false,
+    lavishDelegation: false,
+    killSwitch: false,
+  });
+  let settingsLoading = $state(false);
+
+  async function fetchSettings() {
+    try {
+      settingsLoading = true;
+      const res = await fetch('/api/admin/factory-control', { credentials: 'same-origin' });
+      if (res.ok) {
+        const data = await res.json();
+        settings.contextBudget = data.contextBudget ?? 180000;
+        settings.spawnHarness = !!data.spawnHarness;
+        settings.lavishDelegation = !!data.lavishDelegation;
+        settings.killSwitch = !!data.killSwitch;
+      }
+    } catch (e) {
+      console.error('Failed to fetch settings:', e);
+    } finally {
+      settingsLoading = false;
+    }
+  }
+
+  async function saveSettings() {
+    try {
+      await fetch('/api/admin/factory-control', {
+        method: 'PATCH',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings),
+      });
+    } catch (e) {
+      console.error('Failed to save settings:', e);
+    }
+  }
+
+  $effect(() => {
+    if (view === 'agent-settings') {
+      void fetchSettings();
+    }
   });
 
   $effect(() => {
@@ -250,6 +296,84 @@
       <AiQualitySidekickView />
     {:else if view === 'logs'}
       <LogsSidekickView />
+    {:else if view === 'agent-settings'}
+      <div class="agent-settings">
+        {#if settingsLoading}
+          <div class="loading">Einstellungen laden...</div>
+        {:else}
+          <div class="settings-group">
+            <h3>Orchestrierungs-Globals</h3>
+            
+            <div class="setting-item">
+              <label for="context-budget">Token-Budget</label>
+              <div class="input-with-hint">
+                <input 
+                  id="context-budget" 
+                  type="number" 
+                  min="0" 
+                  max="180000" 
+                  bind:value={settings.contextBudget} 
+                  onchange={saveSettings} 
+                />
+                <input 
+                  type="range" 
+                  min="0" 
+                  max="180000" 
+                  step="5000"
+                  bind:value={settings.contextBudget} 
+                  oninput={saveSettings} 
+                />
+                <span class="hint">Maximales Token-Budget (Standard: 180000)</span>
+              </div>
+            </div>
+
+            <div class="setting-item switch-row">
+              <div>
+                <label for="spawn-harness">opencode Spawn Harness</label>
+                <span class="hint">Aktiviert den opencode spawn wrapper</span>
+              </div>
+              <input 
+                id="spawn-harness" 
+                type="checkbox" 
+                bind:checked={settings.spawnHarness} 
+                onchange={saveSettings} 
+              />
+            </div>
+
+            <div class="setting-item switch-row">
+              <div>
+                <label for="lavish-delegation">Lavish HTML Delegation Review</label>
+                <span class="hint">Claude validiert die qwen3.5 Ergebnisse</span>
+              </div>
+              <input 
+                id="lavish-delegation" 
+                type="checkbox" 
+                bind:checked={settings.lavishDelegation} 
+                onchange={saveSettings} 
+              />
+            </div>
+
+            <div class="setting-item switch-row">
+              <div>
+                <label for="kill-switch">Master Kill-Switch (Alle Agenten)</label>
+                <span class="hint">Deaktiviert alle Agenten global</span>
+              </div>
+              <input 
+                id="kill-switch" 
+                type="checkbox" 
+                bind:checked={settings.killSwitch} 
+                onchange={saveSettings} 
+              />
+            </div>
+            
+            <div class="setting-link">
+              <a href="/admin/ki-konfiguration" class="admin-link">
+                → Zur Key- & Provider-Konfiguration
+              </a>
+            </div>
+          </div>
+        {/if}
+      </div>
     {/if}
   </div>
 </div>
@@ -379,5 +503,75 @@
     .drawer {
       width: 100vw !important;
     }
+  }
+
+  .agent-settings {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    color: var(--fg, #f4f4f5);
+  }
+  .settings-group {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .settings-group h3 {
+    margin: 0;
+    font-family: var(--serif);
+    font-size: 20px;
+    color: var(--brass, #e8c870);
+    border-bottom: 1px solid rgba(232, 200, 112, 0.12);
+    padding-bottom: 8px;
+  }
+  .setting-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .setting-item label {
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .switch-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 12px;
+  }
+  .switch-row label {
+    display: block;
+    margin-bottom: 2px;
+  }
+  .input-with-hint {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .input-with-hint input[type="number"] {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(232, 200, 112, 0.2);
+    color: var(--fg);
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-family: var(--font-mono, monospace);
+  }
+  .hint {
+    font-size: 12px;
+    color: var(--mute, #a1a1aa);
+  }
+  .setting-link {
+    margin-top: 12px;
+  }
+  .admin-link {
+    color: var(--brass, #e8c870);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .admin-link:hover {
+    text-decoration: underline;
   }
 </style>

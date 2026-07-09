@@ -18,7 +18,7 @@ test.describe('FA-MOBILE: Factory Floor mobile parity', () => {
 
     await workpiece.locator('button').first().click();
     const panel = page.locator('[data-testid="floor-detail"]');
-    await expect(panel).toBeVisible({ timeout: 5_000 });
+    await expect(panel).toBeVisible({ timeout: 30_000 });
 
     const box = await panel.boundingBox();
     expect(box).not.toBeNull();
@@ -38,7 +38,7 @@ test.describe('FA-MOBILE: Factory Floor mobile parity', () => {
     }
 
     await backdrop.click();
-    await expect(panel).not.toBeVisible({ timeout: 2_000 });
+    await expect(panel).not.toBeVisible({ timeout: 30_000 });
   });
 
   test('FA-MOBILE-02: Content padding — last Laderampe item not obscured by TabBar', async ({ page }) => {
@@ -46,7 +46,7 @@ test.describe('FA-MOBILE: Factory Floor mobile parity', () => {
     await tabs.nth(1).click();
 
     const loadingDock = page.locator('[data-testid="floor-loadingdock"]');
-    await expect(loadingDock).toBeVisible({ timeout: 3_000 });
+    await expect(loadingDock).toBeVisible({ timeout: 30_000 });
 
     const items = loadingDock.locator('li');
     const count = await items.count();

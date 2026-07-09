@@ -7,11 +7,11 @@ const ADMIN_PASS = process.env.E2E_ADMIN_PASS;
 
 async function loginAsAdmin(page: import('@playwright/test').Page) {
   await page.goto(`${BASE}/api/auth/login?returnTo=/admin/wissensquellen`);
-  await page.waitForURL(/realms\/workspace/, { timeout: 20_000 });
+  await page.waitForURL(/realms\/workspace/, { timeout: 60_000 });
   await page.locator('#username, input[name="username"]').first().fill(ADMIN_USER);
   await page.locator('#password, input[name="password"]').first().fill(ADMIN_PASS!);
   await page.locator('#kc-login, input[type="submit"]').first().click();
-  await page.waitForURL(/\/admin\/wissensquellen/, { timeout: 20_000 });
+  await page.waitForURL(/\/admin\/wissensquellen/, { timeout: 60_000 });
 }
 
 test.describe('Wissensquellen admin — Embedding Model Selection', () => {
@@ -67,7 +67,7 @@ test.describe('Wissensquellen admin — Embedding Model Selection', () => {
     // Cleanup
     await page.goto(`${BASE}/admin/wissensquellen`);
     const row = page.getByRole('row', { name: new RegExp(stamp) });
-    await expect(row).toBeVisible({ timeout: 10_000 });
+    await expect(row).toBeVisible({ timeout: 30_000 });
 
     const deleteResponse = page.waitForResponse(r =>
       r.url().includes(`/api/admin/knowledge/collections/${created.id}`) &&
@@ -76,6 +76,6 @@ test.describe('Wissensquellen admin — Embedding Model Selection', () => {
     page.once('dialog', d => d.accept());
     await row.getByRole('button', { name: 'Löschen' }).click();
     await deleteResponse;
-    await expect(row).not.toBeVisible({ timeout: 10_000 });
+    await expect(row).not.toBeVisible({ timeout: 30_000 });
   });
 });

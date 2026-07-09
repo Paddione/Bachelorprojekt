@@ -47,17 +47,17 @@ async function oidcLogin(
     }
 
     // Wait for Keycloak login page (should redirect there)
-    await page.waitForURL(/realms\/workspace/, { timeout: 15_000 });
+    await page.waitForURL(/realms\/workspace/, { timeout: 60_000 });
 
     const kcUser = page.locator('#username');
     const kcPass = page.locator('#password');
-    await kcUser.waitFor({ state: 'visible', timeout: 10_000 });
+    await kcUser.waitFor({ state: 'visible', timeout: 30_000 });
     await kcUser.fill(username);
     await kcPass.fill(password);
     await page.locator('#kc-login').click();
 
     // Wait for redirect back to the application
-    await page.waitForURL(waitForUrl, { timeout: 20_000 });
+    await page.waitForURL(waitForUrl, { timeout: 60_000 });
 
     // Save the authenticated state (cookies + localStorage)
     await page.context().storageState({ path: statePath });

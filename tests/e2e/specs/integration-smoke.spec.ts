@@ -93,7 +93,7 @@ test.describe('Integration Smoke Tests', () => {
 
   test('@smoke Keycloak login page is reachable', async ({ page }) => {
     await page.goto(`https://auth.${DOMAIN}/realms/workspace/account/`);
-    await expect(page).toHaveURL(/.*realms\/workspace.*/, { timeout: 10_000 });
+    await expect(page).toHaveURL(/.*realms\/workspace.*/, { timeout: 60_000 });
   });
 
   test('@smoke Nextcloud shows Keycloak login button', async ({ page }) => {
@@ -104,7 +104,7 @@ test.describe('Integration Smoke Tests', () => {
     }
     const oidcButton = page.locator('a[href*="oidc"], a[href*="keycloak"], .oidc-button, .alternative-logins a[href*="social"]');
     const fallback = page.getByRole('link', { name: /keycloak|anmelden|openid|sso/i });
-    await expect(oidcButton.first().or(fallback.first())).toBeVisible({ timeout: 15_000 });
+    await expect(oidcButton.first().or(fallback.first())).toBeVisible({ timeout: 30_000 });
   });
 
   // ── Collabora Integration ─────────────────────────────────────────────

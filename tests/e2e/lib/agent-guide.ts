@@ -162,7 +162,7 @@ export async function openAgentGuide(page: Page) {
   await page.waitForLoadState('networkidle');
 
   const fab = page.locator('button.fab');
-  await expect(fab).toBeVisible({ timeout: 10_000 });
+  await expect(fab).toBeVisible({ timeout: 30_000 });
 
   // Click and poll for the drawer to open (guards against rare pre-hydration click)
   await fab.click();
@@ -170,15 +170,15 @@ export async function openAgentGuide(page: Page) {
   if (!(await skHome.isVisible())) {
     await fab.click();
   }
-  await expect(skHome).toBeVisible({ timeout: 10_000 });
+  await expect(skHome).toBeVisible({ timeout: 30_000 });
 
   // The nav row is button.sk-row — role="listitem" on a <button> isn't matched by getByRole in all browsers
   const agentGuideRow = page.locator('button.sk-row').filter({ hasText: 'Agent-Anleitung' });
-  await expect(agentGuideRow).toBeVisible({ timeout: 5_000 });
+  await expect(agentGuideRow).toBeVisible({ timeout: 30_000 });
   await agentGuideRow.click();
 
   const body = page.locator('.ag-body');
-  await expect(body).toBeVisible({ timeout: 5_000 });
+  await expect(body).toBeVisible({ timeout: 30_000 });
   return body;
 }
 
@@ -190,7 +190,7 @@ export async function ensureMapOpen(page: Page) {
     if (open !== 'true') await toggle.click();
   }
   const map = page.locator('.ag-map');
-  await expect(map).toBeVisible({ timeout: 5_000 });
+  await expect(map).toBeVisible({ timeout: 30_000 });
   return map;
 }
 

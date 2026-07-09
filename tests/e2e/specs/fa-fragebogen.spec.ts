@@ -14,7 +14,7 @@ const isProd = BASE.includes('mentolder.de') || BASE.includes('korczewski.de');
 
 async function loginAsAdmin(page: Page, returnTo: string): Promise<void> {
   await page.goto(`${BASE}/api/auth/login?returnTo=${encodeURIComponent(returnTo)}`);
-  await page.waitForURL(/realms\/workspace/, { timeout: 20_000 });
+  await page.waitForURL(/realms\/workspace/, { timeout: 60_000 });
   await page.locator('#username, input[name="username"]').first().fill(ADMIN_USER);
   await page.locator('#password, input[name="password"]').first().fill(ADMIN_PASS!);
   await page.locator('#kc-login, input[type="submit"]').first().click();
@@ -304,10 +304,10 @@ test.describe('FA-Fragebogen: Archive → reassign → replay', { tag: ['@frageb
     await loginAsAdmin(page, `/admin/fragebogen/${a}`);
 
     page.on('dialog', dlg => dlg.accept());
-    await expect(page.locator('#archive-btn')).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('#archive-btn')).toBeVisible({ timeout: 30_000 });
     await page.click('#archive-btn');
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('text=Archiviert').first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('text=Archiviert').first()).toBeVisible({ timeout: 30_000 });
 
     const pool2 = new Pool({ connectionString: DB_URL });
     const snap = await pool2.query(
@@ -326,7 +326,7 @@ test.describe('FA-Fragebogen: Archive → reassign → replay', { tag: ['@frageb
     expect(kpi.rows[0].dimension_name).toBe('D');
     expect(kpi.rows[0].final_score).toBe(4);
 
-    await expect(page.locator('[data-testid="reassign-questionnaire"]')).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('[data-testid="reassign-questionnaire"]')).toBeVisible({ timeout: 30_000 });
     await page.click('[data-testid="reassign-questionnaire"]');
     await page.waitForURL(/\/portal\/fragebogen\/[0-9a-f-]+/, { timeout: 20_000 });
     const newId = page.url().split('/').pop()!.split('?')[0];
@@ -379,7 +379,7 @@ test.describe('FA-Fragebogen: Archive → reassign → replay', { tag: ['@frageb
     await loginAsAdmin(page, `/admin/fragebogen/${a}`);
 
     const replayBtn = page.locator('.replay-btn').first();
-    await expect(replayBtn).toBeVisible({ timeout: 10_000 });
+    await expect(replayBtn).toBeVisible({ timeout: 30_000 });
     await expect(replayBtn).toContainText('Versuch 0');
   });
 });

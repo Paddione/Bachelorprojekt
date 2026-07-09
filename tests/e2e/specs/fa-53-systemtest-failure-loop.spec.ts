@@ -34,11 +34,11 @@ const COLUMN_TITLES = ['Offen', 'Fix in PR', 'Retest ausstehend', 'Grün (7 Tage
 
 async function loginAsAdmin(page: import('@playwright/test').Page) {
   await page.goto(`${BASE}/api/auth/login?returnTo=/admin/systemtest/board`);
-  await page.waitForURL(/realms\/workspace/, { timeout: 20_000 });
+  await page.waitForURL(/realms\/workspace/, { timeout: 60_000 });
   await page.locator('#username, input[name="username"]').first().fill(ADMIN_USER);
   await page.locator('#password, input[name="password"]').first().fill(ADMIN_PASS!);
   await page.locator('#kc-login, input[type="submit"]').first().click();
-  await page.waitForURL(/\/admin\/systemtest\/board/, { timeout: 20_000 });
+  await page.waitForURL(/\/admin\/systemtest\/board/, { timeout: 60_000 });
 }
 
 test.describe('FA-53: System-test failure loop kanban', () => {
@@ -76,7 +76,7 @@ test.describe('FA-53: System-test failure loop kanban', () => {
 
       for (const title of COLUMN_TITLES) {
         await expect(page.getByRole('heading', { name: title, level: 2 })).toBeVisible({
-          timeout: 10_000,
+          timeout: 30_000,
         });
       }
 

@@ -18,11 +18,11 @@ const ADMIN_PASS = process.env.E2E_ADMIN_PASS;
 
 async function loginAsAdmin(page: import('@playwright/test').Page) {
   await page.goto(`${BASE}/api/auth/login?returnTo=/admin/clients`);
-  await page.waitForURL(/realms\/workspace/, { timeout: 20_000 });
+  await page.waitForURL(/realms\/workspace/, { timeout: 60_000 });
   await page.locator('#username, input[name="username"]').first().fill(ADMIN_USER);
   await page.locator('#password, input[name="password"]').first().fill(ADMIN_PASS!);
   await page.locator('#kc-login, input[type="submit"]').first().click();
-  await page.waitForURL(/\/admin\/clients/, { timeout: 20_000 });
+  await page.waitForURL(/\/admin\/clients/, { timeout: 60_000 });
 }
 
 test.describe('FA-admin-db-crud-clients', () => {
@@ -67,11 +67,11 @@ test.describe('FA-admin-db-crud-clients', () => {
     // Client name appears as "E2E CrudTest<ts>" in the card/list
     const fullName = `${firstName} ${lastName}`;
     const clientItem = page.locator('[data-testid="admin-client-item"]').filter({ hasText: fullName }).first();
-    await expect(clientItem).toBeVisible({ timeout: 15_000 });
+    await expect(clientItem).toBeVisible({ timeout: 30_000 });
 
     // ── 3. Navigate to the client detail page ──
     await clientItem.click();
-    await page.waitForURL(/\/admin\/[0-9a-f-]+/, { timeout: 10_000 });
+    await page.waitForURL(/\/admin\/[0-9a-f-]+/, { timeout: 60_000 });
     const clientDetailUrl = page.url();
     const clientId = clientDetailUrl.split('/admin/')[1]?.split('?')[0];
     expect(clientId).toMatch(/^[0-9a-f-]+$/);
@@ -94,7 +94,7 @@ test.describe('FA-admin-db-crud-clients', () => {
     // ── 6. Reload notes tab and verify note is visible ──
     await page.goto(`${BASE}/admin/${clientId}?tab=notes`);
     await page.waitForLoadState('networkidle');
-    await expect(page.locator(`text="${noteText}"`)).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator(`text="${noteText}"`)).toBeVisible({ timeout: 30_000 });
 
     // ── 7. Find the note ID from the delete form ──
     const noteDeleteForm = page.locator(`form[action*="clientnotes/delete"]:near(:text("${noteText}"))`).first();

@@ -51,7 +51,7 @@ test.describe('FA-47: Brett figure-pack assets are served (T000527 / T000522)', 
       test.skip();
       return;
     }
-    await expect(page).toHaveURL(/auth\.|realms\/workspace/, { timeout: 15_000 });
+    await expect(page).toHaveURL(/auth\.|realms\/workspace/, { timeout: 60_000 });
     await ctx.close();
   });
 

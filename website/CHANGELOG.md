@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.174.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.173.0...website-v1.174.0) (2026-07-09)
+
+
+### Features
+
+* **infra:** agent-model-slots — DB-backed phase routing, Qwen3-14B agent, Svelte UI [T001733] ([#2710](https://github.com/Paddione/Bachelorprojekt/issues/2710)) ([d3473e4](https://github.com/Paddione/Bachelorprojekt/commit/d3473e47be539954ba24ce9b19feee6eaf1f96d0))
+
 ## [1.173.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.172.3...website-v1.173.0) (2026-07-09)
 
 

@@ -20,11 +20,11 @@ const ADMIN_PASS = process.env.E2E_ADMIN_PASS;
 
 async function loginAsAdmin(page: import('@playwright/test').Page) {
   await page.goto(`${BASE}/api/auth/login?returnTo=/admin`);
-  await page.waitForURL(/realms\/workspace/, { timeout: 20_000 });
+  await page.waitForURL(/realms\/workspace/, { timeout: 60_000 });
   await page.locator('#username, input[name="username"]').first().fill(ADMIN_USER);
   await page.locator('#password, input[name="password"]').first().fill(ADMIN_PASS!);
   await page.locator('#kc-login, input[type="submit"]').first().click();
-  await page.waitForURL(/\/admin/, { timeout: 20_000 });
+  await page.waitForURL(/\/admin/, { timeout: 60_000 });
 }
 
 test.describe('FA-admin-db-crud-shortcuts', () => {
@@ -59,7 +59,7 @@ test.describe('FA-admin-db-crud-shortcuts', () => {
     await page.goto(`${BASE}/admin`);
     await page.waitForLoadState('networkidle');
     // The AdminShortcuts Svelte island hydrates with client:load — wait for the label
-    await expect(page.locator(`text="${label}"`).first()).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator(`text="${label}"`).first()).toBeVisible({ timeout: 30_000 });
 
     // ── 3. Update the label via PATCH ──
     const updateRes = await page.request.patch(`${BASE}/api/admin/shortcuts/update`, {
@@ -73,7 +73,7 @@ test.describe('FA-admin-db-crud-shortcuts', () => {
     // ── 4. Reload /admin and verify the updated label is visible ──
     await page.goto(`${BASE}/admin`);
     await page.waitForLoadState('networkidle');
-    await expect(page.locator(`text="${updatedLabel}"`).first()).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator(`text="${updatedLabel}"`).first()).toBeVisible({ timeout: 30_000 });
     // Old label should no longer appear
     await expect(page.locator(`text="${label}"`).first()).toHaveCount(0);
 

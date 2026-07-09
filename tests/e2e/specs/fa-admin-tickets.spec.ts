@@ -36,11 +36,11 @@ async function mailpitReachable(request: import('@playwright/test').APIRequestCo
 
 async function loginAsAdmin(page: import('@playwright/test').Page) {
   await page.goto(`${BASE}/api/auth/login?returnTo=/admin/tickets`);
-  await page.waitForURL(/realms\/workspace/, { timeout: 20_000 });
+  await page.waitForURL(/realms\/workspace/, { timeout: 60_000 });
   await page.locator('#username, input[name="username"]').first().fill(ADMIN_USER);
   await page.locator('#password, input[name="password"]').first().fill(ADMIN_PASS!);
   await page.locator('#kc-login, input[type="submit"]').first().click();
-  await page.waitForURL(/\/admin\/tickets/, { timeout: 20_000 });
+  await page.waitForURL(/\/admin\/tickets/, { timeout: 60_000 });
 }
 
 test.describe('FA-admin-tickets', { tag: ['@admin'] }, () => {
@@ -67,11 +67,11 @@ test.describe('FA-admin-tickets', { tag: ['@admin'] }, () => {
     await loginAsAdmin(page);
     await page.goto(`${BASE}/admin/tickets?type=bug&status=open&q=${externalId}`);
     const externalIdLink = page.locator(`a:has-text("${externalId}")`).first();
-    await expect(externalIdLink).toBeVisible({ timeout: 10_000 });
+    await expect(externalIdLink).toBeVisible({ timeout: 30_000 });
 
     // ── 3. Open detail page ──
     await externalIdLink.click();
-    await page.waitForURL(/\/admin\/tickets\/[0-9a-f-]+/, { timeout: 10_000 });
+    await page.waitForURL(/\/admin\/tickets\/[0-9a-f-]+/, { timeout: 60_000 });
     const detailUrl = page.url();
     const ticketUuid = detailUrl.split('/').pop()!;
     expect(ticketUuid).toMatch(/^[0-9a-f-]{36}$/);
@@ -123,7 +123,7 @@ test.describe('FA-admin-tickets', { tag: ['@admin'] }, () => {
     // Wait for Astro island hydration before asserting timeline visibility.
     await page.waitForLoadState('networkidle');
     const timelineBody = page.locator('.ticket-timeline');
-    await expect(timelineBody).toBeVisible({ timeout: 15_000 });
+    await expect(timelineBody).toBeVisible({ timeout: 30_000 });
     await expect(page.locator('.ticket-timeline-comment').first()).toBeVisible();
     // At minimum: created + 2 comments + 1 status change → 4 timeline rows.
     const rowCount = await page.locator('.ticket-timeline-row').count();

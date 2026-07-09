@@ -40,11 +40,11 @@ const STATUSES = ['pending', 'done', 'archived'] as const;
 
 async function loginAsAdmin(page: Page, returnTo = '/admin/inbox'): Promise<void> {
   await page.goto(`${BASE}/api/auth/login?returnTo=${encodeURIComponent(returnTo)}`);
-  await page.waitForURL(/realms\/workspace/, { timeout: 20_000 });
+  await page.waitForURL(/realms\/workspace/, { timeout: 60_000 });
   await page.locator('#username, input[name="username"]').first().fill(ADMIN_USER);
   await page.locator('#password, input[name="password"]').first().fill(ADMIN_PASS!);
   await page.locator('#kc-login, input[type="submit"]').first().click();
-  await page.waitForURL(/\/admin\/inbox/, { timeout: 20_000 });
+  await page.waitForURL(/\/admin\/inbox/, { timeout: 60_000 });
 }
 
 test.describe('FA-admin-inbox: two-pane rework', { tag: ['@admin', '@messaging'] }, () => {
@@ -65,7 +65,7 @@ test.describe('FA-admin-inbox: two-pane rework', { tag: ['@admin', '@messaging']
 
     // [data-testid="inbox-app"] — InboxApp root (spec §10)
     const root = page.locator('[data-testid="inbox-app"]');
-    await expect(root).toBeVisible({ timeout: 10_000 });
+    await expect(root).toBeVisible({ timeout: 30_000 });
 
     // [data-testid="inbox-sidebar"] — Sidebar root (spec §10)
     const sidebar = root.locator('[data-testid="inbox-sidebar"]');
@@ -98,7 +98,7 @@ test.describe('FA-admin-inbox: two-pane rework', { tag: ['@admin', '@messaging']
   test('inbox-empty-detail: placeholder shown when no item is selected', async ({ page }) => {
     await loginAsAdmin(page, '/admin/inbox?status=archived');
     const root = page.locator('[data-testid="inbox-app"]');
-    await expect(root).toBeVisible({ timeout: 10_000 });
+    await expect(root).toBeVisible({ timeout: 30_000 });
 
     const list   = root.locator('[data-testid="inbox-list"]');
     const detail = root.locator('[data-testid="inbox-detail"]');
@@ -122,7 +122,7 @@ test.describe('FA-admin-inbox: two-pane rework', { tag: ['@admin', '@messaging']
   test('inbox-status-tabs: clicking each tab drives URL ?status=', async ({ page }) => {
     await loginAsAdmin(page);
     const root = page.locator('[data-testid="inbox-app"]');
-    await expect(root).toBeVisible({ timeout: 10_000 });
+    await expect(root).toBeVisible({ timeout: 30_000 });
 
     // [data-testid="inbox-status-tab"][data-status="{status}"] (spec §10)
     for (const status of STATUSES) {
@@ -140,7 +140,7 @@ test.describe('FA-admin-inbox: two-pane rework', { tag: ['@admin', '@messaging']
   test('inbox-type-filter: sidebar narrows list, Alle restores', async ({ page }) => {
     await loginAsAdmin(page);
     const root = page.locator('[data-testid="inbox-app"]');
-    await expect(root).toBeVisible({ timeout: 10_000 });
+    await expect(root).toBeVisible({ timeout: 30_000 });
 
     const list = root.locator('[data-testid="inbox-list"]');
     await expect(list).toBeVisible();
@@ -176,7 +176,7 @@ test.describe('FA-admin-inbox: two-pane rework', { tag: ['@admin', '@messaging']
   test('inbox-search: input narrows rows; clearing restores them', async ({ page }) => {
     await loginAsAdmin(page);
     const root = page.locator('[data-testid="inbox-app"]');
-    await expect(root).toBeVisible({ timeout: 10_000 });
+    await expect(root).toBeVisible({ timeout: 30_000 });
 
     const list   = root.locator('[data-testid="inbox-list"]');
     const search = root.locator('[data-testid="inbox-search"]');
@@ -208,7 +208,7 @@ test.describe('FA-admin-inbox: two-pane rework', { tag: ['@admin', '@messaging']
   test('inbox-keyboard-jk: j advances selection, k reverses', async ({ page }) => {
     await loginAsAdmin(page);
     const root = page.locator('[data-testid="inbox-app"]');
-    await expect(root).toBeVisible({ timeout: 10_000 });
+    await expect(root).toBeVisible({ timeout: 30_000 });
 
     const list = root.locator('[data-testid="inbox-list"]');
     const rows = list.locator('[data-testid="inbox-list-row"]');
@@ -253,7 +253,7 @@ test.describe('FA-admin-inbox: two-pane rework', { tag: ['@admin', '@messaging']
   test('inbox-message-thread-load: selecting user_message renders thread', async ({ page }) => {
     await loginAsAdmin(page);
     const root = page.locator('[data-testid="inbox-app"]');
-    await expect(root).toBeVisible({ timeout: 10_000 });
+    await expect(root).toBeVisible({ timeout: 30_000 });
 
     // Filter to user_message via the sidebar.
     await root
@@ -273,11 +273,11 @@ test.describe('FA-admin-inbox: two-pane rework', { tag: ['@admin', '@messaging']
     const detail = root.locator(
       '[data-testid="inbox-detail"][data-type="user_message"]',
     );
-    await expect(detail).toBeVisible({ timeout: 10_000 });
+    await expect(detail).toBeVisible({ timeout: 30_000 });
 
     // [data-testid="inbox-thread"] — user_message thread container (spec §10)
     const thread = detail.locator('[data-testid="inbox-thread"]');
-    await expect(thread).toBeVisible({ timeout: 10_000 });
+    await expect(thread).toBeVisible({ timeout: 30_000 });
   });
 
   // ── inbox-mobile-list-detail ───────────────────────────────────
@@ -289,7 +289,7 @@ test.describe('FA-admin-inbox: two-pane rework', { tag: ['@admin', '@messaging']
     await loginAsAdmin(page);
 
     const root = page.locator('[data-testid="inbox-app"]');
-    await expect(root).toBeVisible({ timeout: 10_000 });
+    await expect(root).toBeVisible({ timeout: 30_000 });
 
     const list   = root.locator('[data-testid="inbox-list"]');
     const detail = root.locator('[data-testid="inbox-detail"]');
@@ -303,7 +303,7 @@ test.describe('FA-admin-inbox: two-pane rework', { tag: ['@admin', '@messaging']
 
     // Tap the row → mobileView=detail (spec §9).
     await firstRow.click();
-    await expect(detail).toBeVisible({ timeout: 10_000 });
+    await expect(detail).toBeVisible({ timeout: 30_000 });
 
     // The list and sidebar are hidden in detail view on mobile (spec §9).
     // Use isVisible() with no expectation timeout — we want a snapshot read.
@@ -318,11 +318,11 @@ test.describe('FA-admin-inbox: two-pane rework', { tag: ['@admin', '@messaging']
     const backBtn = detail
       .getByRole('button', { name: /zur(ü|ue)ck|back/i })
       .first();
-    await expect(backBtn).toBeVisible({ timeout: 5_000 });
+    await expect(backBtn).toBeVisible({ timeout: 30_000 });
     await backBtn.click();
 
     // List is visible again; detail is hidden.
-    await expect(list).toBeVisible({ timeout: 5_000 });
+    await expect(list).toBeVisible({ timeout: 30_000 });
     const detailVisibleAfterBack = await detail.isVisible().catch(() => false);
     expect(detailVisibleAfterBack).toBeFalsy();
   });

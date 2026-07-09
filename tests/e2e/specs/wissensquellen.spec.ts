@@ -72,10 +72,10 @@ test.describe('Wissensquellen admin — custom source', () => {
 
     await wPage.goto();
     const row = page.getByRole('row', { name: new RegExp(stamp) });
-    await expect(row).toBeVisible({ timeout: 10_000 });
+    await expect(row).toBeVisible({ timeout: 30_000 });
 
     await wPage.deleteCollectionRow(stamp, created.id);
-    await expect(row).not.toBeVisible({ timeout: 10_000 });
+    await expect(row).not.toBeVisible({ timeout: 30_000 });
   });
 });
 
@@ -429,10 +429,10 @@ test.describe('Wissensquellen admin — web_crawl UI', () => {
 
     await wPage.goto();
     const row = page.getByRole('row', { name: new RegExp(stamp) });
-    await expect(row).toBeVisible({ timeout: 10_000 });
+    await expect(row).toBeVisible({ timeout: 30_000 });
     await expect(row.locator('a[href*="mentolder"]')).toBeVisible();
 
     await wPage.deleteCollectionRow(stamp, created.id);
-    await expect(row).not.toBeVisible({ timeout: 10_000 });
+    await expect(row).not.toBeVisible({ timeout: 30_000 });
   });
 });

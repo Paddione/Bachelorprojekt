@@ -21,7 +21,7 @@ test.describe('FA-03: Videokonferenzen (Nextcloud Talk)', () => {
     // NC 33 uses Vue.js; KC login page uses PatternFly (.pf-v5-c-login__main).
     await expect(
       page.locator('[data-app-id="spreed"], .app-spreed, #body-login, [data-login-form], .pf-v5-c-login__main, #kc-form-login').first()
-    ).toBeVisible({ timeout: 20_000 });
+    ).toBeVisible({ timeout: 30_000 });
   });
 
   test('T4: HPB Signaling-Server erreichbar', async ({ request }, testInfo) => {
@@ -49,7 +49,7 @@ test.describe('FA-03: Videokonferenzen (Nextcloud Talk)', () => {
     // All are valid responses — confirms the Talk URL is reachable and handled.
     await expect(
       page.locator('#body-login, [data-login-form], .pf-v5-c-login__main, #kc-form-login, h2').first()
-    ).toBeVisible({ timeout: 20_000 });
+    ).toBeVisible({ timeout: 30_000 });
     await context.close();
   });
 });

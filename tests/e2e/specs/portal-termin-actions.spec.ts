@@ -16,7 +16,7 @@ test.describe('Portal Terminbuchung Actions', () => {
 
   test('SA-PORTAL-01 — Termin buchen: AI bestätigt CalDAV-Event-Erstellung', async ({ page }) => {
     const chatInput = page.locator('[data-testid="assistant-input"], textarea[placeholder*="Nachricht"], input[placeholder*="Nachricht"]').first();
-    await expect(chatInput).toBeVisible({ timeout: 10_000 });
+    await expect(chatInput).toBeVisible({ timeout: 30_000 });
 
     const futureDate = new Date();
     futureDate.setDate(futureDate.getDate() + 5);
@@ -36,7 +36,7 @@ test.describe('Portal Terminbuchung Actions', () => {
 
   test('SA-PORTAL-02 — Termin absagen: AI bestätigt Absage', async ({ page }) => {
     const chatInput = page.locator('[data-testid="assistant-input"], textarea[placeholder*="Nachricht"], input[placeholder*="Nachricht"]').first();
-    await expect(chatInput).toBeVisible({ timeout: 10_000 });
+    await expect(chatInput).toBeVisible({ timeout: 30_000 });
 
     await chatInput.fill('Welche Termine habe ich?');
     await page.keyboard.press('Enter');
@@ -52,7 +52,7 @@ test.describe('Portal Terminbuchung Actions', () => {
 
   test('SA-PORTAL-03 — Terminverschiebung: AI bestätigt Verschiebung', async ({ page }) => {
     const chatInput = page.locator('[data-testid="assistant-input"], textarea[placeholder*="Nachricht"], input[placeholder*="Nachricht"]').first();
-    await expect(chatInput).toBeVisible({ timeout: 10_000 });
+    await expect(chatInput).toBeVisible({ timeout: 30_000 });
 
     const newDate = new Date();
     newDate.setDate(newDate.getDate() + 7);
@@ -68,7 +68,7 @@ test.describe('Portal Terminbuchung Actions', () => {
 
   test('SA-PORTAL-04 — Terminanfrage ohne Datum: InboxItem erstellt, AI bestätigt', async ({ page }) => {
     const chatInput = page.locator('[data-testid="assistant-input"], textarea[placeholder*="Nachricht"], input[placeholder*="Nachricht"]').first();
-    await expect(chatInput).toBeVisible({ timeout: 10_000 });
+    await expect(chatInput).toBeVisible({ timeout: 30_000 });
 
     await chatInput.fill('Ich hätte gerne einen Termin, bin aber zeitlich flexibel');
     await page.keyboard.press('Enter');

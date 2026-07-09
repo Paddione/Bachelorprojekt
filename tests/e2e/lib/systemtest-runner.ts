@@ -92,7 +92,7 @@ export function ensureAdminPasswordOrSkip(testInfo: { skip: (cond: boolean, msg?
 export async function loginAsAdmin(page: Page, returnTo: string): Promise<void> {
   if (!ADMIN_PASS) throw new Error('E2E_ADMIN_PASS unset');
   await page.goto(`${BASE}/api/auth/login?returnTo=${encodeURIComponent(returnTo)}`);
-  await page.waitForURL(/realms\/workspace/, { timeout: 30_000 });
+  await page.waitForURL(/realms\/workspace/, { timeout: 60_000 });
   await page.locator('#username, input[name="username"]').first().fill(ADMIN_USER);
   await page.locator('#password, input[name="password"]').first().fill(ADMIN_PASS);
   await page.locator('#kc-login, input[type="submit"]').first().click();

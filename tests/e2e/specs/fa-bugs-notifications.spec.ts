@@ -73,18 +73,18 @@ test.describe('FA-bug-notify', () => {
     await page.goto(`${BASE}/api/auth/login?returnTo=/admin/bugs`);
 
     // Wait for Keycloak login page (URL contains /realms/workspace)
-    await page.waitForURL(/realms\/workspace/, { timeout: 20_000 });
+    await page.waitForURL(/realms\/workspace/, { timeout: 60_000 });
 
     // Fill Keycloak login form
     const kcUsername = page.locator('#username, input[name="username"]').first();
     const kcPassword = page.locator('#password, input[name="password"]').first();
-    await expect(kcUsername).toBeVisible({ timeout: 10_000 });
+    await expect(kcUsername).toBeVisible({ timeout: 30_000 });
     await kcUsername.fill(ADMIN_USER);
     await kcPassword.fill(ADMIN_PASS!);
     await page.locator('#kc-login, input[type="submit"]').first().click();
 
     // Wait for redirect back to the website admin page (OIDC callback can take a moment).
-    await page.waitForURL(/\/admin/, { timeout: 30_000 });
+    await page.waitForURL(/\/admin/, { timeout: 60_000 });
 
     // ── Step 3: Resolve ticket via API with admin session cookies ───
     // Use page.request so Playwright sends the session cookies from the

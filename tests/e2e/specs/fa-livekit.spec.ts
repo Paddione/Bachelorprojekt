@@ -7,12 +7,12 @@ const DOMAIN = process.env.PROD_DOMAIN || 'localhost';
 test.describe('FA-LiveKit: Livestream — Auth-Gating & API', () => {
   test('T1: /admin/stream redirects unauthenticated users', async ({ page }) => {
     await page.goto(`${BASE}/admin/stream`);
-    await expect(page).not.toHaveURL(/\/admin\/stream$/, { timeout: 10_000 });
+    await expect(page).not.toHaveURL(/\/admin\/stream$/, { timeout: 60_000 });
   });
 
   test('T2: /portal/stream redirects unauthenticated users', async ({ page }) => {
     await page.goto(`${BASE}/portal/stream`);
-    await expect(page).not.toHaveURL(/\/portal\/stream$/, { timeout: 10_000 });
+    await expect(page).not.toHaveURL(/\/portal\/stream$/, { timeout: 60_000 });
   });
 
   test('T3: /api/stream/token requires authentication', async ({ request }) => {

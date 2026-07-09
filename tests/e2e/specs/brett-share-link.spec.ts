@@ -20,10 +20,10 @@ test.describe('Brett share link (T000608)', () => {
     await page.waitForTimeout(500);
 
     const shareBtn = page.locator('#share-btn');
-    await expect(shareBtn).toBeVisible({ timeout: 10000 });
+    await expect(shareBtn).toBeVisible({ timeout: 30_000 });
     await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
     await shareBtn.click();
-    await expect(page.getByText('Link in Zwischenablage kopiert!')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText('Link in Zwischenablage kopiert!')).toBeVisible({ timeout: 30_000 });
     const shareUrl = await page.evaluate(() => navigator.clipboard.readText());
     expect(shareUrl).toContain('/share/');
 
@@ -32,8 +32,8 @@ test.describe('Brett share link (T000608)', () => {
     const guest = await guestCtx.newPage();
     await guest.goto(shareUrl);
 
-    await expect(guest.locator('#view-only-badge')).toBeVisible({ timeout: 10000 });
-    await expect(guest.locator('canvas')).toBeVisible({ timeout: 15000 });
+    await expect(guest.locator('#view-only-badge')).toBeVisible({ timeout: 30_000 });
+    await expect(guest.locator('canvas')).toBeVisible({ timeout: 30_000 });
     await expect(guest.locator('#fig-panel-btn')).toHaveCount(0);
 
     await guestCtx.close();

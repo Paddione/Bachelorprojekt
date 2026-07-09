@@ -128,7 +128,7 @@
     return undefined;
   }
 
-  let activeConfigsByPhase = $derived<Record<string, any>>({
+  let activeConfigsByPhase = $derived<Record<string, ProviderEntry | undefined>>({
     scout: activeConfigForPhase('scout', providerEntries),
     design: activeConfigForPhase('design', providerEntries),
     plan: activeConfigForPhase('plan', providerEntries),

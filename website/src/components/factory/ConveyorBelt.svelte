@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Phase, HallItem } from '../../lib/factory-floor-types';
+  import type { Phase, HallItem, ProviderConfigSummary } from '../../lib/factory-floor-types';
   import StationColumn from './StationColumn.svelte';
 
   let {
@@ -14,7 +14,7 @@
     hallItems: HallItem[];
     mobileColIndex: number;
     onSelect: (extId: string) => void;
-    activeConfigs?: Record<string, any>;
+    activeConfigs?: Record<string, ProviderConfigSummary | undefined>;
     onOpenDrawerPhase?: (phase: string) => void;
   } = $props();
 

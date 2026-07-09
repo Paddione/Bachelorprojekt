@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Phase, HallItem } from '../../lib/factory-floor-types';
+  import type { Phase, HallItem, ProviderConfigSummary } from '../../lib/factory-floor-types';
   import WorkpieceCard from './WorkpieceCard.svelte';
 
   // German display labels + agent personas for each phase key
@@ -26,7 +26,7 @@
     mobileVisible?: boolean;
     isFirst?: boolean;
     onSelect: (extId: string) => void;
-    activeConfig?: any;
+    activeConfig?: ProviderConfigSummary | null;
     onOpenDrawer?: () => void;
   } = $props();
 

@@ -106,6 +106,8 @@ export interface SuggestedFile {
   score: number;
   snippet: string;
 }
+export interface ProviderConfigSummary { provider: string; model_id: string; }
+
 export interface TicketDetail {
   extId: string; title: string; status: string; priority: string;
   retryCount: number; prNumber: number | null;

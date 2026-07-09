@@ -45,20 +45,16 @@ git log --since="2026-06-24" --no-merges --numstat --pretty=tformat: \
 
 ## G-GIT03 — Dateien > 1MB im Tree (kein LFS): 6 → ≤ 6 ✅
 
-**Was:** `.codebase-memory/graph.db.zst` (16.7MB, PR #2281 intentional, `merge=ours binary`) ist per **Policy-Entscheidung (T001348)** aus dem Gate-Scope ausgeschlossen — Begründung siehe unten. Damit zählt das Gate nur noch die verbleibenden 6 Dateien >1MB (u. a. gerenderte `kube-prometheus-stack`-Manifeste, gebaute Docs-HTML). Vorheriger Rohwert (inkl. `.codebase-memory/`): 7.
+**Was:** Zählt Dateien >1MB im Tree (u. a. gerenderte `kube-prometheus-stack`-Manifeste, gebaute Docs-HTML). `.codebase-memory/graph.db.zst` (16.7MB, ehem. PR #2281) ist seit **T001717** kein getracktes Repo-Artefakt mehr — es wird lokal via `task codebase:index` regeneriert (`.gitignore`) statt committet, daher entfällt der frühere Scope-Ausschluss (T001348) ersatzlos.
 
 ```bash
-git ls-files -z | grep -zv '^\.codebase-memory/' | xargs -0 -I{} sh -c 'test -f "{}" && wc -c "{}"' 2>/dev/null \
+git ls-files -z | xargs -0 -I{} sh -c 'test -f "{}" && wc -c "{}"' 2>/dev/null \
   | awk '$1>1048576{c++} END{print c+0}'
 ```
 
-**Policy-Entscheidung (T001348):** LFS-Migration von `graph.db.zst` wurde **nicht** umgesetzt (Option verworfen, nicht nur aufgeschoben):
-- Die Datei wird manuell via `task codebase:index` regeneriert (der automatische CI-Regen-Workflow `.github/workflows/codebase-memory-regen.yml` wurde entfernt, T001717) — ohne jegliche LFS-Awareness beim manuellen `git add`/`git commit`/`git push`; eine Migration würde einen zusätzlichen `git lfs install`/`git lfs push`-Schritt erfordern.
-- Lokal ist `git-lfs` auf der Entwicklungsumgebung aktuell nicht funktionsfähig ("git-lfs is broken") — Contributor-seitig bräuchte es Rollout/Doku, sonst checken sie nur Pointer-Dateien aus und der codebase-memory-mcp-Server bricht.
-- Zusätzlicher GitHub-LFS-Storage-Quota-Bedarf ohne erkennbaren Gegenwert für ein intern generiertes, `merge=ours`-Binärartefakt.
-- Zwei Vorgänger-Tickets (T001275, T001320) wurden bereits als `done` geschlossen, ohne die Migration durchzuführen — wiederholtes Aufschieben verbessert den Messwert nicht nachhaltig. Der Scope-Ausschluss macht das Ziel dauerhaft grün, statt das Problem ein drittes Mal zu vertagen.
+**Historie (T001348, obsolet seit T001717):** Eine LFS-Migration von `graph.db.zst` wurde ursprünglich verworfen und die Datei stattdessen per Policy-Entscheidung aus dem Gate-Scope ausgeschlossen (git-lfs lokal defekt, kein erkennbarer Gegenwert für ein intern generiertes `merge=ours`-Binärartefakt). T001717 hat das Problem an der Wurzel gelöst: die Datei ist nicht mehr getrackt, der Ausschluss ist damit hinfällig.
 
-> **A · Baseline:** 6 (nach Scope-Ausschluss von `.codebase-memory/`, siehe Policy oben) · **Target:** ≤ 6 · **Aufwand:** erledigt (Gate-Anpassung) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · Ticket: T001348 (Nachfolger von T001275/T001320; **gefixt** per Policy-Entscheidung, nicht per LFS-Migration)
+> **A · Baseline:** 6 · **Target:** ≤ 6 · **Aufwand:** erledigt · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · Ticket: T001717 (löst T001348 ab — Artefakt nicht mehr getrackt statt Scope-Ausschluss)
 
 ---
 
@@ -291,7 +287,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-DORA04** | MTTR | n/a ✓ | < 24h | `git log --since="8 weeks ago" --first-parent --format='%ct %s' main \| grep -iE 'revert\|hotfix'` |
 | **G-FE04** | Stray `console.log/debug/info` | 0 ✓ | 0 | `grep -rEn 'console\.(log\|debug\|info)' website/src --include='*.ts' --include='*.svelte' --include='*.astro' \| grep -v 'browser-logger.ts' \| grep -v '\.test\.ts' \| wc -l` |
 | **G-GIT02** | Non-conventional Commits (ohne Merge) | 0 ✓ | 0 | `git log --format=%s --no-merges -30 origin/main \| grep -vcE '^(feat\|fix\|chore\|...)'` |
-| **G-GIT03** | Dateien >1MB im Tree | 6 ✓ | ≤ 6 | `git ls-files -z \| grep -zv '^\.codebase-memory/' \| xargs -0 -I{} sh -c 'test -f "{}" && wc -c "{}"' \| awk '$1>1048576{c++} END{print c+0}'` (`.codebase-memory/` per Policy-Entscheidung T001348 ausgeschlossen) |
+| **G-GIT03** | Dateien >1MB im Tree | 6 ✓ | ≤ 6 | `git ls-files -z \| xargs -0 -I{} sh -c 'test -f "{}" && wc -c "{}"' \| awk '$1>1048576{c++} END{print c+0}'` (`.codebase-memory/` seit T001717 nicht mehr getrackt) |
 | **G-AGENTIC02** | Agent-Routing-Tabelle ↔ Frontmatter-Drift | 0 ✓ | 0 | `python3 <<'PY' ... norm/toks/fm/rows ... symmetric_difference` |
 | **G-AGENTIC03** | Agent-Frontmatter (name + description) | 0 ✓ | 0 | `for f in .claude/agents/*.md; do name==basename && description present` |
 | **G-AGENTIC04** | test:changed Agents-Bucket | 0 ✓ | 0 | `awk '/test:changed/...' Taskfile.yml \| grep -c .claude/agents + AGENTS + agent-library` |

@@ -1,6 +1,10 @@
 # ── Lokale Artefakte (nicht versioniert) ────────
 presentation/
 
+# ── codebase-memory-mcp Graph/Embedding-Index (lokal via `task codebase:index`) ──
+# Nicht mehr committet (T001717) — wird pro Session/Checkout bei Bedarf lokal neu gebaut.
+.codebase-memory/
+
 # ── Secrets (niemals committen!) ────────────────
 .env
 .env.*

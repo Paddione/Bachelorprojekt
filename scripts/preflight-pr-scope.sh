@@ -12,6 +12,54 @@ set -euo pipefail
 TITLE="${1:?Usage: preflight-pr-scope.sh '<PR title>' [<ci_workflow_path>]}"
 CI_WORKFLOW="${2:-.github/workflows/ci.yml}"
 
+# ── Branch and Worktree Validation [T001592] ──────────────────────────────────
+CURRENT_BRANCH="$(git symbolic-ref --short HEAD 2>/dev/null || echo "")"
+
+if [ -z "$CURRENT_BRANCH" ]; then
+  echo "preflight-pr-scope: FATAL: Not on any branch (detached HEAD)" >&2
+  exit 1
+fi
+
+if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
+  echo "preflight-pr-scope: FATAL: Cannot create a PR from the '$CURRENT_BRANCH' branch" >&2
+  exit 1
+fi
+
+# Extract ticket ID from title if present (format: type(scope): [TXXXXXX] subject)
+# Matches [T123456] or T123456
+TICKET_ID="$(echo "$TITLE" | grep -oP '\[T\d{6}\]|T\d{6}' | tr -d '[]' | head -n 1 || true)"
+if [ -n "$TICKET_ID" ]; then
+  # Verify current branch contains the ticket ID
+  if [[ ! "$CURRENT_BRANCH" =~ $TICKET_ID ]]; then
+    echo "preflight-pr-scope: FATAL: PR title ticket ID '$TICKET_ID' does not match current branch name '$CURRENT_BRANCH'" >&2
+    exit 1
+  fi
+fi
+
+# Worktree verification
+CURRENT_WORKTREE="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+EXPECTED_WORKTREE="$(git worktree list | grep -F "[$CURRENT_BRANCH]" | awk '{print $1}' || echo "")"
+
+if [ -n "$EXPECTED_WORKTREE" ]; then
+  ABS_CURRENT="$(cd "$CURRENT_WORKTREE" && pwd -P)"
+  ABS_EXPECTED="$(cd "$EXPECTED_WORKTREE" && pwd -P)"
+  if [ "$ABS_CURRENT" != "$ABS_EXPECTED" ]; then
+    echo "preflight-pr-scope: FATAL: Current directory is not the correct worktree for branch '$CURRENT_BRANCH'" >&2
+    echo "  Current:  $ABS_CURRENT" >&2
+    echo "  Expected: $ABS_EXPECTED" >&2
+    exit 1
+  fi
+fi
+
+# Enforce worktree usage for feature/* and fix/* branches
+if [[ "$CURRENT_BRANCH" =~ ^(feature|fix)/ ]]; then
+  if [[ "$CURRENT_WORKTREE" != *"/worktrees/"* ]] && [[ "$CURRENT_WORKTREE" != *"\.worktrees/"* ]]; then
+    echo "preflight-pr-scope: FATAL: PRs for feature/fix branches must be created from an isolated worktree under '.worktrees/'" >&2
+    echo "  Current worktree path: $CURRENT_WORKTREE" >&2
+    exit 1
+  fi
+fi
+
 # Extract scope from Conventional Commit title: type(scope): subject or type(scope)!: subject
 # Only the first parenthesised token after the type prefix is treated as a scope.
 SCOPE="$(echo "$TITLE" | sed -nE 's/^[a-z]+\(([a-zA-Z0-9][a-zA-Z0-9-]*?)\)[!]?:\s.*/\1/p')"

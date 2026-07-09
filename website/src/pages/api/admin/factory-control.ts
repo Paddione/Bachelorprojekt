@@ -11,6 +11,9 @@ interface ControlState {
   dryRun: boolean;
   slotCap: number;
   dailyCap: number;
+  contextBudget: number;
+  spawnHarness: boolean;
+  lavishDelegation: boolean;
   updatedAt: string | null;
 }
 
@@ -27,14 +30,25 @@ async function readControl(key: string, fallback: string): Promise<{ value: stri
 
 async function getControlState(): Promise<ControlState> {
   const envSlotCap = process.env.FACTORY_GLOBAL_CAP ?? '4';
-  const [kill, dry, daily, slotCapDb] = await Promise.all([
+  const [kill, dry, daily, slotCapDb, contextBudgetDb, spawnHarnessDb, lavishDelegationDb] = await Promise.all([
     readControl('killswitch', 'off'),
     readControl('dry-run', 'off'),
     readControl('daily-cap', '20'),
     readControl('slot-cap', envSlotCap),
+    readControl('context_budget', '180000'),
+    readControl('spawn-harness-toggle', 'off'),
+    readControl('lavish-delegation-regel', 'off'),
   ]);
 
-  const latestUpdate = [kill.updated_at, dry.updated_at, daily.updated_at, slotCapDb.updated_at]
+  const latestUpdate = [
+    kill.updated_at,
+    dry.updated_at,
+    daily.updated_at,
+    slotCapDb.updated_at,
+    contextBudgetDb.updated_at,
+    spawnHarnessDb.updated_at,
+    lavishDelegationDb.updated_at
+  ]
     .filter(Boolean)
     .sort()
     .pop() ?? null;
@@ -44,6 +58,9 @@ async function getControlState(): Promise<ControlState> {
     dryRun: dry.value === 'on',
     slotCap: parseInt(slotCapDb.value, 10) || parseInt(envSlotCap, 10) || 4,
     dailyCap: parseInt(daily.value, 10) || 20,
+    contextBudget: parseInt(contextBudgetDb.value, 10) || 180000,
+    spawnHarness: spawnHarnessDb.value === 'on',
+    lavishDelegation: lavishDelegationDb.value === 'on',
     updatedAt: latestUpdate,
   };
 }
@@ -112,6 +129,13 @@ export const PATCH: APIRoute = async ({ request , locals }) => {
       if (isNaN(n) || n < 1 || n > 8) return null;
       return String(n);
     },
+    contextBudget: (v) => {
+      const n = typeof v === 'number' ? v : parseInt(String(v), 10);
+      if (isNaN(n) || n < 0 || n > 180000) return null;
+      return String(n);
+    },
+    spawnHarness: (v) => typeof v === 'boolean' ? (v ? 'on' : 'off') : null,
+    lavishDelegation: (v) => typeof v === 'boolean' ? (v ? 'on' : 'off') : null,
   };
 
   try {
@@ -127,6 +151,10 @@ export const PATCH: APIRoute = async ({ request , locals }) => {
         const dbKey = field === 'killSwitch' ? 'killswitch'
           : field === 'dryRun' ? 'dry-run'
           : field === 'dailyCap' ? 'daily-cap'
+          : field === 'slotCap' ? 'slot-cap'
+          : field === 'contextBudget' ? 'context_budget'
+          : field === 'spawnHarness' ? 'spawn-harness-toggle'
+          : field === 'lavishDelegation' ? 'lavish-delegation-regel'
           : 'slot-cap';
         await writeControl(dbKey, mapped, session!.preferred_username);
       }

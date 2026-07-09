@@ -1,0 +1,23 @@
+{
+  "tags": ["default"],
+  "tasks": [
+    {
+      "id": "1",
+      "title": "Auth auf GET /api/admin/coaching/sessions hinzufügen",
+      "description": "Sicherheitslücke: API Endpoint ohne Admin-Auth zugänglich. Jeder Nutzer kann Coaching-Sessions einsehen.",
+      "details": "GET /api/admin/coaching/sessions muss isAdmin() prüfen und bei fehlender/ungültiger Session 403 Forbidden oder 401 Unauthorized zurückgeben.",
+      "dependencies": [],
+      "status": "pending",
+      "priority": "high"
+    },
+    {
+      "id": "2", 
+      "title": "window.__COACHING_CUSTOMERS__-Datenleck beheben",
+      "description": "Sensible Kundendaten werden global im Browser exponiert.",
+      "details": "data.jsx schreibt window.__COACHING_CUSTOMERS__ — muss entfernt werden. Daten nur via API laden, nicht global exponieren. Client-Side: Lokale Variable verwenden.",
+      "dependencies": [],
+      "status": "pending", 
+      "priority": "medium"
+    }
+  ]
+}

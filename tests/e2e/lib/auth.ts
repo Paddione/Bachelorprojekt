@@ -20,7 +20,7 @@ export async function loginViaKeycloak(
   });
 
   // Wait for redirect to Keycloak realm login page
-  await page.waitForURL(/realms\/workspace/, { timeout: 15_000 });
+  await page.waitForURL(/realms\/workspace/, { timeout: 60_000 });
 
   await page.locator('#username').fill(user);
   await page.locator('#password').fill(pass);

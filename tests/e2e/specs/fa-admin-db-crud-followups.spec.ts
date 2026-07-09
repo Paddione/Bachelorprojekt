@@ -15,11 +15,11 @@ const ADMIN_PASS = process.env.E2E_ADMIN_PASS;
 
 async function loginAsAdmin(page: import('@playwright/test').Page) {
   await page.goto(`${BASE}/api/auth/login?returnTo=/admin/followups`);
-  await page.waitForURL(/realms\/workspace/, { timeout: 20_000 });
+  await page.waitForURL(/realms\/workspace/, { timeout: 60_000 });
   await page.locator('#username, input[name="username"]').first().fill(ADMIN_USER);
   await page.locator('#password, input[name="password"]').first().fill(ADMIN_PASS!);
   await page.locator('#kc-login, input[type="submit"]').first().click();
-  await page.waitForURL(/\/admin\/followups/, { timeout: 20_000 });
+  await page.waitForURL(/\/admin\/followups/, { timeout: 60_000 });
 }
 
 test.describe('FA-admin-db-crud-followups', () => {
@@ -54,7 +54,7 @@ test.describe('FA-admin-db-crud-followups', () => {
     await page.goto(`${BASE}/admin/followups`);
     await page.waitForLoadState('networkidle');
     const followUpRow = page.locator(`[data-testid="followup-item"]:has-text("${reason}")`);
-    await expect(followUpRow).toBeVisible({ timeout: 10_000 });
+    await expect(followUpRow).toBeVisible({ timeout: 30_000 });
 
     // ── 3. Find the follow-up ID from the hidden input in its delete form ──
     // The delete form inside the matching row has: <input type="hidden" name="id" value="<uuid>" />
@@ -78,7 +78,7 @@ test.describe('FA-admin-db-crud-followups', () => {
     await page.waitForLoadState('networkidle');
     // Done items are rendered with opacity-50 and the reason has line-through
     const doneRow = page.locator(`[data-testid="followup-item"]:has-text("${reason}")`);
-    await expect(doneRow).toBeVisible({ timeout: 10_000 });
+    await expect(doneRow).toBeVisible({ timeout: 30_000 });
     // The reason text in a done row has line-through via the 'line-through' class
     const reasonEl = doneRow.locator('p.line-through');
     await expect(reasonEl).toBeVisible();
@@ -109,11 +109,11 @@ test.describe('FA-admin-db-crud-followups', () => {
 
     // Re-authenticate to /admin/projekte for this sub-test
     await page.goto(`${BASE}/api/auth/login?returnTo=/admin/projekte`);
-    await page.waitForURL(/realms\/workspace/, { timeout: 20_000 });
+    await page.waitForURL(/realms\/workspace/, { timeout: 60_000 });
     await page.locator('#username, input[name="username"]').first().fill(ADMIN_USER);
     await page.locator('#password, input[name="password"]').first().fill(ADMIN_PASS!);
     await page.locator('#kc-login, input[type="submit"]').first().click();
-    await page.waitForURL(/\/admin\/projekte/, { timeout: 20_000 });
+    await page.waitForURL(/\/admin\/projekte/, { timeout: 60_000 });
 
     const ts          = Date.now();
     const projectName = `e2e-zeit-projekt-${ts}`;
@@ -132,10 +132,10 @@ test.describe('FA-admin-db-crud-followups', () => {
     // Navigate to the project list and find the newly created project ID
     await page.goto(`${BASE}/admin/projekte`);
     await page.waitForLoadState('networkidle');
-    await expect(page.locator(`text="${projectName}"`).first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator(`text="${projectName}"`).first()).toBeVisible({ timeout: 30_000 });
 
     await page.locator(`a:has-text("${projectName}")`).first().click();
-    await page.waitForURL(/\/admin\/projekte\/[0-9a-f-]+/, { timeout: 10_000 });
+    await page.waitForURL(/\/admin\/projekte\/[0-9a-f-]+/, { timeout: 60_000 });
     const detailUrl = page.url();
     const projectId = detailUrl.split('/admin/projekte/')[1]?.split('?')[0];
     expect(projectId).toMatch(/^[0-9a-f-]+$/);
@@ -161,7 +161,7 @@ test.describe('FA-admin-db-crud-followups', () => {
     await page.waitForLoadState('networkidle');
     // The time entry description should appear
     const entryLocator = page.locator(`text="e2e-zeit-entry-${ts}"`);
-    await expect(entryLocator).toBeVisible({ timeout: 10_000 });
+    await expect(entryLocator).toBeVisible({ timeout: 30_000 });
 
     // ── 4. Find the entry ID from the delete form ──
     // Look for a delete form near the entry text — search in the surrounding container

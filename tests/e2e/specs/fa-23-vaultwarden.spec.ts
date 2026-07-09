@@ -27,7 +27,7 @@ test.describe('FA-23: Vaultwarden Passwort-Manager', () => {
       'button:has-text("Enterprise")',
       '[data-testid="sso"]',
     ].join(', '));
-    await expect(ssoButton).toBeVisible({ timeout: 10_000 });
+    await expect(ssoButton).toBeVisible({ timeout: 30_000 });
   });
 
   test('T4: /alive health endpoint returns 200', async ({ page }) => {

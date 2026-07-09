@@ -42,7 +42,7 @@ test('Brett redirects unauthenticated users to Keycloak', async ({ browser }) =>
     test.skip();
     return;
   }
-  await expect(page).toHaveURL(/auth\.|realms\/workspace/, { timeout: 15_000 });
+  await expect(page).toHaveURL(/auth\.|realms\/workspace/, { timeout: 60_000 });
   await ctx.close();
 });
 

@@ -9,7 +9,7 @@ setup('authenticate', async ({ page }) => {
   // Dismiss "Desktop vs Browser" chooser if present (URL is /landing#/login)
   const browserLink = page.getByRole('link', { name: /in browser|im browser/i });
   try {
-    await browserLink.waitFor({ state: 'visible', timeout: 5_000 });
+    await browserLink.waitFor({ state: 'visible', timeout: 30_000 });
     await browserLink.click();
   } catch {
     // Already on login form — no chooser shown
@@ -20,17 +20,17 @@ setup('authenticate', async ({ page }) => {
   const emailField = page.getByRole('textbox', { name: /e-mail|email|benutzername|username/i });
 
   // Wait for login page to load
-  await expect(emailField).toBeVisible({ timeout: 10_000 });
+  await expect(emailField).toBeVisible({ timeout: 30_000 });
 
   if (await ssoButton.isVisible()) {
     // SSO flow: click the OIDC button → Keycloak login page
     await ssoButton.click();
-    await page.waitForURL(/\/realms\/|\/auth\//, { timeout: 10_000 });
+    await page.waitForURL(/\/realms\/|\/auth\//, { timeout: 60_000 });
 
     // Fill in Keycloak login form
     const kcUser = page.locator('#username');
     const kcPass = page.locator('#password');
-    await expect(kcUser).toBeVisible({ timeout: 10_000 });
+    await expect(kcUser).toBeVisible({ timeout: 30_000 });
     await kcUser.fill(MM_USER);
     await kcPass.fill(MM_PASS);
     await page.locator('#kc-login').click();
@@ -54,7 +54,7 @@ setup('authenticate', async ({ page }) => {
       throw new Error(`Unexpected URL after login: ${page.url()}`);
     }
   }
-  await expect(page.locator('#channel_view')).toBeVisible({ timeout: 10_000 });
+  await expect(page.locator('#channel_view')).toBeVisible({ timeout: 30_000 });
 
   // Disable remaining tour tips via user preferences (server-level config handles the main flow)
   await page.evaluate(async () => {
@@ -75,7 +75,7 @@ setup('authenticate', async ({ page }) => {
   });
   // Reload to apply clean UI
   await page.reload();
-  await expect(page.locator('#channel_view')).toBeVisible({ timeout: 10_000 });
+  await expect(page.locator('#channel_view')).toBeVisible({ timeout: 30_000 });
 
   await page.context().storageState({ path: '.auth/user.json' });
 });

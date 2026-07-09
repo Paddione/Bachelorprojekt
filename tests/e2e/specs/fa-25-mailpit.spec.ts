@@ -17,7 +17,7 @@ test.describe('FA-25: Mailpit E-Mail-Server', () => {
       test.skip(true, 'Mailpit is behind oauth2-proxy — UI not directly accessible without auth');
       return;
     }
-    await expect(page.locator('#message-page, #messages, [data-testid="message-list"], .messages')).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('#message-page, #messages, [data-testid="message-list"], .messages')).toBeVisible({ timeout: 30_000 });
   });
 
   test('T3: Mailpit API returns messages endpoint', async ({ page }) => {

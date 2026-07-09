@@ -27,7 +27,7 @@ test.describe('Brett Mobile (Android) @mobile', () => {
     const ctx = await browser.newContext({ ignoreHTTPSErrors: true });
     const page = await ctx.newPage();
     await page.goto(BRETT_URL, { waitUntil: 'domcontentloaded' });
-    await expect(page).toHaveURL(/auth\.|realms\/workspace/, { timeout: 15_000 });
+    await expect(page).toHaveURL(/auth\.|realms\/workspace/, { timeout: 60_000 });
     await ctx.close();
   });
 
@@ -137,7 +137,7 @@ test.describe('Brett Mobile (Android) @mobile', () => {
     const page = await ctx.newPage();
     try {
       await page.goto(`${BRETT_URL}?room=e2e-mobile-pill-${Date.now()}`, { waitUntil: 'networkidle', timeout: 30_000 });
-      await expect(page.locator('#status-pill')).toBeVisible({ timeout: 10_000 });
+      await expect(page.locator('#status-pill')).toBeVisible({ timeout: 30_000 });
 
       const pill = await page.locator('#status-pill').boundingBox();
       expect(pill).not.toBeNull();

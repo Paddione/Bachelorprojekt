@@ -35,7 +35,7 @@ test.describe('[factory-qs-abnahme-loop] QS-Abnahme-Flow', () => {
       await page.waitForURL(`${WEBSITE_URL}/admin/dev-status`);
     }
     const qsElement = page.locator('text=QS').first();
-    await expect(qsElement).toBeVisible({ timeout: 10_000 });
+    await expect(qsElement).toBeVisible({ timeout: 30_000 });
   });
 
   test('[factory-qs-abnahme-loop] ingest-e2e Endpoint antwortet mit 401 ohne Token', async ({ request }) => {

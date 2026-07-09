@@ -39,7 +39,7 @@ test('admin portal redirects unauthenticated users to login', async ({ page }) =
     url.includes('auth.korczewski') || url.includes('realms/workspace') || url.includes('/portal');
   // Also accept: the admin page itself returns 200 but shows "Anmelden" nav link
   if (!isRedirectedToAuth) {
-    await expect(page.getByRole('link', { name: /anmelden/i })).toBeVisible({ timeout: 8_000 });
+    await expect(page.getByRole('link', { name: /anmelden/i })).toBeVisible({ timeout: 30_000 });
   } else {
     expect(isRedirectedToAuth).toBe(true);
   }

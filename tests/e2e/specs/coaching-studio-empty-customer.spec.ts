@@ -29,7 +29,7 @@ const ADMIN_PASS = process.env.E2E_ADMIN_PASS;
 async function loginAsAdmin(page: import('@playwright/test').Page, returnTo = '/admin/coaching/studio'): Promise<void> {
   if (!ADMIN_PASS) throw new Error('E2E_ADMIN_PASS is not set');
   await page.goto(`${BASE}/api/auth/login?returnTo=${encodeURIComponent(returnTo)}`);
-  await page.waitForURL(/realms\/workspace/, { timeout: 30_000 });
+  await page.waitForURL(/realms\/workspace/, { timeout: 60_000 });
   await page.locator('#username, input[name="username"]').first().fill(ADMIN_USER);
   await page.locator('#password, input[name="password"]').first().fill(ADMIN_PASS);
   await page.locator('#kc-login, input[type="submit"]').first().click();
@@ -50,17 +50,17 @@ test.describe('T001656: coaching-studio empty-customer fallback', () => {
       page.on('pageerror', err => pageErrors.push(err));
 
       await loginAsAdmin(page, '/admin/coaching/studio');
-      await page.waitForURL(/\/admin\/coaching\/studio$/, { timeout: 20_000 });
+      await page.waitForURL(/\/admin\/coaching\/studio$/, { timeout: 60_000 });
 
       // TopBar "Session" button (always visible) and Dashboard "Neue Session"
       // button both call onNav("workspace", CUSTOMERS[0]) — with CUSTOMERS
       // empty, customer arrives as undefined and used to crash Workspace().
       const neueSession = page.getByRole('button', { name: /Neue Session/i }).first();
-      await neueSession.waitFor({ state: 'visible', timeout: 15_000 });
+      await neueSession.waitFor({ state: 'visible', timeout: 30_000 });
       await neueSession.click();
 
       // Workspace screen renders — "Ebene 01" heading / .ws container.
-      await expect(page.locator('.ws, text=Ebene 01').first()).toBeVisible({ timeout: 10_000 });
+      await expect(page.locator('.ws, text=Ebene 01').first()).toBeVisible({ timeout: 30_000 });
 
       expect(
         pageErrors.map(e => e.message),

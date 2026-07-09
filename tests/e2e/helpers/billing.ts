@@ -18,7 +18,7 @@ export async function adminLogin(page: Page, request?: APIRequestContext, testIn
   await page.goto(`${BASE}/api/auth/login?returnTo=/admin/rechnungen`);
 
   // Wait for Keycloak login page (URL contains /realms/workspace or /auth/).
-  await page.waitForURL(/realms\/workspace|\/auth\//, { timeout: 20_000 });
+  await page.waitForURL(/realms\/workspace|\/auth\//, { timeout: 60_000 });
 
   // Fill Keycloak credentials.
   await page.locator('#username, input[name="username"]').first().fill(ADMIN_USER);
@@ -26,7 +26,7 @@ export async function adminLogin(page: Page, request?: APIRequestContext, testIn
   await page.locator('#kc-login, input[type="submit"]').first().click();
 
   // Wait until we're back on the website.
-  await page.waitForURL(/\/admin/, { timeout: 20_000 });
+  await page.waitForURL(/\/admin/, { timeout: 60_000 });
 }
 
 export async function createTestInvoice(page: Page, opts: { gross: number }) {

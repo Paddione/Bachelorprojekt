@@ -147,7 +147,6 @@ loadCustomers();
 const CUSTOMERS = customers.length > 0 ? customers : [EMPTY_CUSTOMER];
 
 // Export für Unit-Tests
-window.__COACHING_CUSTOMERS__ = customers;
 
 // ---------------------------------------------------------------------
 // ÜBERSETZUNGEN — DE-Original parallel zur Zielsprache (Platzhalter)

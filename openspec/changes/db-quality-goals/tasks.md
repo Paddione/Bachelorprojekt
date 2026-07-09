@@ -2,7 +2,7 @@
 title: "db-quality-goals — Implementation Plan"
 ticket_id: T001739
 domains: [database, health-goals]
-status: active
+status: archived
 file_locks: []
 shared_changes: false
 batch_id: null

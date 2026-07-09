@@ -124,6 +124,9 @@ jobs:
       - name: Verify learning-assets build script (unit test)
         run: node --test scripts/build-learning-assets.test.mjs
 
+      - name: Verify factory migration runner (unit test)
+        run: node --test scripts/migrate-factory.test.mjs
+
       - name: Validate Systembrett template
         run: ./scripts/tests/systembrett-template.test.sh
 

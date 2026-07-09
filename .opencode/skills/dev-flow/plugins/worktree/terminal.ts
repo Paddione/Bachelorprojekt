@@ -12,7 +12,7 @@ import * as fs from "node:fs/promises"
 import * as os from "node:os"
 import * as path from "node:path"
 import { z } from "zod"
-import type { CmuxContext, CmuxEnvironment, OpencodeClient, ResolveExecutable } from "../kdco-primitives"
+import type { CmuxContext, CmuxEnvironment, OpencodeClient, ResolveExecutable } from "../../../plugins/kdco-primitives"
 import {
 	canUseCmuxWorkflow,
 	detectCmuxContext,
@@ -25,7 +25,7 @@ import {
 	Mutex,
 	TimeoutError,
 	withTimeout,
-} from "../kdco-primitives"
+} from "../../../plugins/kdco-primitives"
 
 export {
 	canUseCmuxWorkflow,
@@ -33,7 +33,7 @@ export {
 	type CmuxContext,
 	type CmuxEnvironment,
 	type ResolveExecutable,
-} from "../kdco-primitives"
+} from "../../../plugins/kdco-primitives"
 
 // =============================================================================
 // TEMP SCRIPT HELPER

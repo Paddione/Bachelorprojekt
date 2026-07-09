@@ -13,8 +13,8 @@ import { mkdirSync } from "node:fs"
 import * as os from "node:os"
 import * as path from "node:path"
 import { z } from "zod"
-import type { OpencodeClient } from "../kdco-primitives"
-import { getProjectId, logWarn } from "../kdco-primitives"
+import type { OpencodeClient } from "../../../plugins/kdco-primitives"
+import { getProjectId, logWarn } from "../../../plugins/kdco-primitives"
 import { parsePersistedLaunchMetadata, serializePersistedLaunchMetadata } from "./launch-context"
 
 // =============================================================================

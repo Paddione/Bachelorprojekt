@@ -94,13 +94,13 @@ Delegate to **`opencode-git-workflow` Steps 2–6** (SSOT):
 
 ```bash
 bash scripts/preflight-pr-scope.sh "<type>(<scope>): <subject> [$TICKET_ID]"
-gh pr create --title "<type>(<scope>): <subject> [$TICKET_ID]" --body "..."
+gh-axi pr create --title "<type>(<scope>): <subject> [$TICKET_ID]" --body "..."
 ```
 
 ## Schritt 5.5: CI/CD-Fix-Schleife
 
 ```bash
-PR_URL=$(gh pr view --json url -q '.url')
+PR_URL=$(gh-axi pr view --json url -q '.url')
 bash scripts/devflow-ci-watch.sh "$TICKET_ID" "$PR_URL"
 ```
 
@@ -108,12 +108,12 @@ bash scripts/devflow-ci-watch.sh "$TICKET_ID" "$PR_URL"
 
 ```bash
 bash scripts/ticket.sh assert-phase-chain --id "$TICKET_ID"
-(cd "$MAIN_REPO" && gh pr merge --auto --squash --delete-branch)
+(cd "$MAIN_REPO" && gh-axi pr merge --auto --squash --delete-branch)
 ```
 
 ## Schritt 6.4/6.5: Auf Merge warten + Ticket schließen
 
-Warte auf Merge (poll `gh pr view`), dann:
+Warte auf Merge (poll `gh-axi pr view`), dann:
 ```
 ticket-mcp: add_pr_link({ id: "$TICKET_ID", pr: "$PR_NUM" })
 ticket-mcp: transition_status({ id: "$TICKET_ID", status: "done", resolution: "shipped" })

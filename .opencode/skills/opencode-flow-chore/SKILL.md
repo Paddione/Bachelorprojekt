@@ -59,7 +59,7 @@ Delegate to **`opencode-git-workflow` Steps 2–6** (SSOT):
 ## Schritt 5: Merge wenn CI grün
 
 ```bash
-(cd "$MAIN_REPO" && gh pr merge --auto --squash --delete-branch)
+(cd "$MAIN_REPO" && gh-axi pr merge --auto --squash --delete-branch)
 ```
 
 ## Schritt 6: Worktree & Branch bereinigen

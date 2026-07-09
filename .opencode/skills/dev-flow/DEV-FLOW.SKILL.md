@@ -28,7 +28,7 @@ git checkout -b feature/t001xxx
 
 # 3. Verify & Merge
 task test:changed
-gh pr merge --auto --squash
+gh-axi pr merge --auto --squash
 ```
 
 ## Freshness Guards

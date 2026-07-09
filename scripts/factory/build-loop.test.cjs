@@ -118,3 +118,40 @@ test('feedbackBlock: empty attempts renders cleanly', () => {
   assert.ok(fb.includes('FAILURE CLASS'))
   assert.ok(!fb.includes('PREVIOUS ATTEMPTS (0)'))
 })
+
+// T001681: agent() (harness Workflow primitive) only accepts model in
+// {sonnet,opus,haiku,fable} — no baseUrl passthrough. resolveAgentModel must
+// never let a custom provider modelId/baseUrl reach agent() unguarded.
+test('resolveAgentModel: passes through a valid harness tier unchanged', () => {
+  const logs = []
+  const model = BL.resolveAgentModel({ modelId: 'opus', baseUrl: null }, 'sonnet', (m) => logs.push(m))
+  assert.equal(model, 'opus')
+  assert.equal(logs.length, 0)
+})
+
+test('resolveAgentModel: falls back and logs when modelId is a custom provider string', () => {
+  const logs = []
+  const model = BL.resolveAgentModel(
+    { modelId: 'qwen3.5-9b@iq4_xs', baseUrl: 'http://100.102.71.114:1234/v1' },
+    'sonnet',
+    (m) => logs.push(m)
+  )
+  assert.equal(model, 'sonnet')
+  assert.equal(logs.length, 1)
+  assert.ok(logs[0].includes('qwen3.5-9b@iq4_xs'))
+  assert.ok(logs[0].includes('baseUrl'))
+})
+
+test('resolveAgentModel: falls back and logs when baseUrl is set even if modelId happens to match a tier name', () => {
+  const logs = []
+  const model = BL.resolveAgentModel({ modelId: 'sonnet', baseUrl: 'http://local:1234/v1' }, 'haiku', (m) => logs.push(m))
+  assert.equal(model, 'haiku')
+  assert.equal(logs.length, 1)
+})
+
+test('resolveAgentModel: null/undefined route falls back without throwing', () => {
+  const logs = []
+  assert.equal(BL.resolveAgentModel(null, 'sonnet', (m) => logs.push(m)), 'sonnet')
+  assert.equal(BL.resolveAgentModel(undefined, 'haiku', (m) => logs.push(m)), 'haiku')
+  assert.equal(logs.length, 0)
+})

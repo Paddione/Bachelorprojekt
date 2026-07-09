@@ -56,6 +56,9 @@ while IFS= read -r file; do
       matched_test="$BASE_DIR/ticket-$name.bats"
     elif [ -f "$BASE_DIR/factory-$name.bats" ]; then
       matched_test="$BASE_DIR/factory-$name.bats"
+    # Strip -check suffix: health-goals-check.sh → health-goals.bats
+    elif [[ "$name" == *-check ]] && [ -f "$BASE_DIR/${name%-check}.bats" ]; then
+      matched_test="$BASE_DIR/${name%-check}.bats"
     fi
     
     if [ -n "$matched_test" ] && ! is_excluded "$matched_test"; then

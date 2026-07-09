@@ -46,8 +46,9 @@ Brand-DBs. `t` = vorhanden, `f` = fehlt.
 | 24 | `2026-06-17-triage-columns` | `tickets.tickets.component` | t | t | ok |
 | 25 | `2026-07-03-context-budget` | `tickets.provider_config.context_window + context_budget` | t | t | ok |
 | 26 | `2026-07-03-context-budget` | `tickets.provider_health.reserved_tokens` | t | t | ok |
-| 27 | `2026-07-03-local-qwen35-seed` | `provider_config` row `provider='local-qwen35'` | **f** | **f** | (beide) |
+| 27 | `2026-07-03-local-qwen35-seed` | `provider_config` rows für `factory-scout`/`factory-plan`/`lavish-artifact` (`provider='local-qwen35'`) | **f** | **f** | (beide) — weiterhin ausstehend, nur diese 3 Sources; nutzt zudem eine veraltete hartcodierte wg-gpu-IP statt Service-DNS (siehe Zeile 29). |
 | 28 | `2026-07-08-coaching-is-test-data` | `coaching.sessions.is_test_data` | t | t | ok |
+| 29 | `2026-07-09-ticket-triage-local-qwen35` | `provider_config` row `ticket-triage/haiku priority=1, provider='local-qwen35'` | t | t | ok — live via `kubectl exec`+`psql` angewendet, dann als Migrationsdatei nachgezogen (T001680-Folge). base_url ist zwingend brand-different (K8s-Service-DNS je Namespace), verwendet daher `-v base_url=...` statt hartcodierter IP. Zusätzlich: mentolder-`llm-gateway-lmstudio`-Endpoints-IP war auf `172.17.0.1` (Dev-Bridge) statt `192.168.100.10` (Prod-WireGuard) verdriftet — per `kubectl patch` korrigiert (reiner Live-Cluster-Zustand, kein Manifest-Fix nötig, `environments/mentolder.yaml` hatte den korrekten Wert bereits). |
 
 ### 1a. Lücken → Nachzieh-Empfehlung (NICHT durch dieses PR umgesetzt)
 
@@ -331,6 +332,7 @@ BRAND=korczewski bash -c 'source scripts/factory/lib.sh; factory_resolve; factor
 | **T001678** (Folge, done) | Verifikation `DATABASE_URL`/`SESSIONS_DATABASE_URL` (siehe §3a) + `ai-metrics.ts`/`ai-quality.ts` Pool-Konsolidierung. Ergab Bug T001679 (DATABASE_URL in Prod nie gesetzt). |
 | **T001679** (Bug, gefixt in T001678) | `ai-metrics.ts`/`ai-quality.ts` verbanden sich in Prod mit `connectionString: undefined` (pg-Default `localhost`) statt der echten DB — `ai_call_log`-Inserts scheiterten lautlos seit Feature-Einführung. |
 | **T001680** (Folge, done) | Operator-Nachzug für 3 Migrationslücken aus §1 (Zeilen 1-3, 11): `ai-question-human-answer` auf korczewski nachgezogen, `central-dashboard-view` als obsolet entfernt (kein Code-Konsument, abgelöst durch `v_cockpit_rollup`), `llm-availability-seed` auf mentolder nachgezogen (überschreibt dabei `ticket-triage priority=1` von `local-cluster` auf `deepseek` — Live-Routing-Änderung, siehe Zeile 33). `local-qwen35-seed` (Zeile 49, fehlt auf beiden Brands) bewusst nicht mit-nachgezogen. |
+| **T001680-Folge** (done) | `ticket-triage` explizit auf `local-qwen35`/`qwen3.5-9b@iq4_xs` umgestellt (Priorität 1, beide Brands) — siehe Zeile 29. Zusätzlich mentolder-`llm-gateway-lmstudio`-Endpoints-IP-Drift (`172.17.0.1` statt `192.168.100.10`) per `kubectl patch` behoben. |
 | **TBD** (Folge) | `knowledge-db.ts` `upsertChunks` + `mergeCollections` N+1 → `unnest`-Batch-INSERTs. |
 | **TBD** (Folge) | `unused-indexes`-Re-Audit nach ≥30d Postgres-Uptime, dann DROP-Entscheidung pro Index. |
 | **TBD** (Ops) | `VACUUM (ANALYZE) coaching.*` + `ANALYZE knowledge.chunks` + `ANALYZE tickets.ticket_embeddings` nach dem Merge. |

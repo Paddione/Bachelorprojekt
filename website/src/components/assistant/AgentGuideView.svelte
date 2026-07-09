@@ -75,6 +75,7 @@
   let query = $state('');
   let axis = $state<Axis>('thema');
   let tierFilter = $state(new Set<string>());           // empty = all
+  let harnessFilter = $state(new Set<string>());        // empty = all
   let domainFilter = $state<string | null>(null);       // null = all (theme-based)
   let copiedId = $state<string | null>(null);
   let glossaryOpen = $state(false);
@@ -129,7 +130,8 @@
     ALL.filter(e =>
       (allowedByMap === null || allowedByMap.has(e.id)) &&
       (domainFilter === null || e.theme === domainFilter) &&
-      (tierFilter.size === 0 || tierFilter.has(e.danger)),
+      (tierFilter.size === 0 || tierFilter.has(e.danger)) &&
+      (harnessFilter.size === 0 || e.harness === undefined || e.harness === 'both' || harnessFilter.has(e.harness)),
     ),
   );
   const visible = $derived(filterEntries(preFiltered, query));
@@ -151,6 +153,16 @@
     const counts: Record<string, number> = {};
     for (const t of taxonomy) counts[t.id] = 0;
     for (const e of base) counts[e.danger] = (counts[e.danger] ?? 0) + 1;
+    return counts;
+  });
+
+  const harnessCounts = $derived.by(() => {
+    const base = filterEntries(ALL.filter(e => domainFilter === null || e.theme === domainFilter), query);
+    const counts: Record<string, number> = { claude: 0, opencode: 0 };
+    for (const e of base) {
+      if (e.harness === 'claude' || e.harness === 'both') counts.claude++;
+      if (e.harness === 'opencode' || e.harness === 'both') counts.opencode++;
+    }
     return counts;
   });
 
@@ -277,10 +289,12 @@
 
   <GuideFindBar
     {taxonomy} {themes} {tierCounts} {query} {axis} {tierFilter} {domainFilter}
+    {harnessFilter} {harnessCounts}
     {resultCount} {searching}
     onQuery={(v) => (query = v)}
     onAxis={(a) => (axis = a)}
     onToggleTier={(id) => { const n = new Set(tierFilter); if (n.has(id)) n.delete(id); else n.add(id); tierFilter = n; }}
+    onToggleHarness={(id) => { const n = new Set(harnessFilter); if (n.has(id)) n.delete(id); else n.add(id); harnessFilter = n; }}
     onToggleDomain={(id) => (domainFilter = id)}
   />
 

@@ -47,6 +47,7 @@ function fixtureRegistry() {
     '  guardrails: [G-ENV-EXPLICIT]',
     '  related: []',
     '  links: []',
+    '  harness: opencode',
     '  init_prompt_de: "/dev-flow-plan: plane meine Aenderung"',
     '',
   ].join('\n'));
@@ -148,6 +149,15 @@ test('buildWebappData: every tool carries a German kind label (kind_de)', () => 
   const byId = Object.fromEntries(data.tools.map(t => [t.id, t]));
   assert.equal(byId['agent-website'].kind_de, 'Agent');
   assert.equal(byId['dev-flow-plan'].kind_de, 'Fertigkeit');
+});
+
+test('buildWebappData: projiziert harness pro Tool (gesetzt) und faellt sonst auf "both" zurueck', () => {
+  const data = buildWebappData(fixtureRegistry2());
+  const byId = Object.fromEntries(data.tools.map(t => [t.id, t]));
+  // dev-flow-plan hat harness: opencode in der Fixture → wird uebernommen
+  assert.equal(byId['dev-flow-plan'].harness, 'opencode');
+  // agent-website hat KEIN harness-Feld → Fallback 'both'
+  assert.equal(byId['agent-website'].harness, 'both');
 });
 
 // Task 3 determinism test

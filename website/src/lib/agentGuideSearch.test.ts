@@ -32,6 +32,12 @@ describe('buildEntries', () => {
     expect(goalE.one_liner_de).toBeTruthy();
     expect(toolE.one_liner_de).toBeTruthy();
   });
+  it('setzt harness nur auf Tool-Entries, laesst es bei Goals undefined', () => {
+    const goalE = ALL.find(e => e.kind === 'goal')!;
+    const toolE = ALL.find(e => e.id === 'dev-flow-plan')!;
+    expect(goalE.harness).toBeUndefined();
+    expect(toolE.harness).toBe('claude');
+  });
 });
 
 describe('matches / filterEntries', () => {

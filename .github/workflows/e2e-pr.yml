@@ -160,11 +160,14 @@ jobs:
           CHANGED_SPECS: ${{ steps.specs.outputs.changed_specs }}
         run: |
           if [ -n "${CHANGED_SPECS:-}" ]; then
-            echo "→ Running tag-grep + changed specs: $CHANGED_SPECS"
-            npx playwright test \
-              --config playwright.pr.config.ts \
-              --grep "${{ steps.tag.outputs.grep_pattern }}" \
-              $CHANGED_SPECS
+            echo "→ Running tag-grep + changed specs:"
+            # Safe iteration over filenames (one per line) to prevent command injection
+            while IFS= read -r spec; do
+              npx playwright test \
+                --config playwright.pr.config.ts \
+                --grep "${{ steps.tag.outputs.grep_pattern }}" \
+                "./$spec"
+            done <<< "$CHANGED_SPECS"
           else
             npx playwright test \
               --config playwright.pr.config.ts \

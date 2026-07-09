@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { HallItem, LoadingDockItem } from '../lib/factory-floor-types';
+  import type { HallItem, LoadingDockItem, ProviderConfigSummary } from '../lib/factory-floor-types';
   import { PHASE_ORDER } from '../lib/factory-floor-types';
   import type { Phase } from '../lib/factory-floor-types';
   import ConveyorBelt from './factory/ConveyorBelt.svelte';
@@ -13,11 +13,15 @@
     loadingDock,
     mobileColIndex,
     onSelect,
+    activeConfigs = {},
+    onOpenDrawerPhase,
   }: {
     hall: HallItem[];
     loadingDock: LoadingDockItem[];
     mobileColIndex: number;
     onSelect: (extId: string) => void;
+    activeConfigs?: Record<string, ProviderConfigSummary | undefined>;
+    onOpenDrawerPhase?: (phase: string) => void;
   } = $props();
 </script>
 
@@ -48,6 +52,8 @@
       hallItems={hall}
       {mobileColIndex}
       {onSelect}
+      {activeConfigs}
+      {onOpenDrawerPhase}
     />
   </div>
 {/if}

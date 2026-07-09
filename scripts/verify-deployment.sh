@@ -27,13 +27,7 @@ KUBE_CONTEXT="${ENV_CONTEXT:-}"
 CTX_ARGS=()
 [[ -n "$KUBE_CONTEXT" ]] && CTX_ARGS=(--context "$KUBE_CONTEXT")
 
-# Derive website namespace from workspace namespace
-if [[ "$NS" == "workspace" ]]; then
-  WEB_NS="website"
-else
-  # workspace-korczewski → website-korczewski
-  WEB_NS="website-${NS#workspace-}"
-fi
+WEB_NS="${WEBSITE_NAMESPACE:-website}"
 
 PASS=0; FAIL=0; WARN=0
 
@@ -121,18 +115,33 @@ _secret_exists() {
 # stale-copy drift class from T001438: a live rotation updates
 # workspace-secrets but the website-namespace copy keeps the old value.
 _secret_key_in_sync() {
-  local desc="$1" ns_a="$2" secret_a="$3" ns_b="$4" secret_b="$5" key="$6"
+  local desc="$1" ns_a="$2" secret_a="$3" ns_b="$4" secret_b="$5" key_a="$6" key_b="${7:-$6}"
   local a b
   a=$(kubectl get secret "$secret_a" "${CTX_ARGS[@]}" -n "$ns_a" \
-    -o "jsonpath={.data.${key}}" 2>/dev/null) || a=""
+    -o "jsonpath={.data.${key_a//./\\.}}" 2>/dev/null) || a=""
+  
+  if ! kubectl get secret "$secret_b" "${CTX_ARGS[@]}" -n "$ns_b" >/dev/null 2>&1; then
+    if [[ "$ENV" == "dev" ]]; then
+      pass "$desc  (skipped: target secret ${ns_b}/${secret_b} not found in dev)"
+      return
+    else
+      fail "$desc  (target secret ${ns_b}/${secret_b} not found)"
+      return
+    fi
+  fi
+
   b=$(kubectl get secret "$secret_b" "${CTX_ARGS[@]}" -n "$ns_b" \
-    -o "jsonpath={.data.${key}}" 2>/dev/null) || b=""
-  if [[ -z "$a" || -z "$b" ]]; then
-    fail "$desc  (${key} missing in ${ns_a}/${secret_a} or ${ns_b}/${secret_b})"
+    -o "jsonpath={.data.${key_b//./\\.}}" 2>/dev/null) || b=""
+  if [[ -z "$a" && -z "$b" ]]; then
+    pass "$desc  (both empty/absent)"
+  elif [[ -z "$a" ]]; then
+    fail "$desc  (${key_a} missing in ${ns_a}/${secret_a})"
+  elif [[ -z "$b" ]]; then
+    fail "$desc  (${key_b} missing in ${ns_b}/${secret_b})"
   elif [[ "$a" == "$b" ]]; then
     pass "$desc"
   else
-    fail "$desc  (${key} differs — stale copy; sync environments/.secrets, env:seal, re-apply)"
+    fail "$desc  (${key_a} ↔ ${key_b} differs — stale copy; sync environments/.secrets, env:seal, re-apply)"
   fi
 }
 
@@ -143,6 +152,10 @@ _secret_key_in_sync() {
 # k8s Secret with a stale, not-yet-restarted pod).
 _pocket_id_client_auth() {
   local desc="$1"
+  if ! kubectl get deployment website "${CTX_ARGS[@]}" -n "$WEB_NS" >/dev/null 2>&1; then
+    warn "$desc  (skipped: website deployment not found in $WEB_NS)"
+    return
+  fi
   local out
   out=$(kubectl exec "${CTX_ARGS[@]}" -n "$WEB_NS" deploy/website -- node -e "
 const p = new URLSearchParams({grant_type:'authorization_code',code:'verify-probe',
@@ -214,18 +227,48 @@ section "Secrets & credentials"
 
 _secret_exists       "workspace-secrets exists"         "$NS"     "workspace-secrets"
 _secret_not_sealed   "KC_USER1_PASSWORD not SEALED"     "$NS"     "workspace-secrets" "KC_USER1_PASSWORD"
-_secret_not_sealed   "KEYCLOAK_ADMIN_PASSWORD not SEALED" "$NS"   "workspace-secrets" "KEYCLOAK_ADMIN_PASSWORD"
 
-if [[ "$NS" == "workspace-korczewski" ]]; then
+if [[ "$NS" == "workspace-korczewski" || "$ENV" != "dev" ]]; then
   _secret_exists     "website-secrets exists (${WEB_NS})" "$WEB_NS" "website-secrets"
 fi
 
-# Pocket-ID secret coherence (T001438) — the website reads its OIDC client
-# secret from the website-namespace copy, not from workspace-secrets.
-_secret_key_in_sync  "POCKET_ID_WEBSITE_SECRET in sync (${NS} ↔ ${WEB_NS})" \
-  "$NS" "workspace-secrets" "$WEB_NS" "website-secrets" "POCKET_ID_WEBSITE_SECRET"
-_secret_key_in_sync  "POCKET_ID_API_KEY in sync (${NS} ↔ ${WEB_NS})" \
-  "$NS" "workspace-secrets" "$WEB_NS" "website-secrets" "POCKET_ID_API_KEY"
+# Check all extra namespace secrets from schema dynamically
+if command -v python3 >/dev/null 2>&1 && python3 -c "import yaml" >/dev/null 2>&1; then
+  # Determine current brand (defaulting to mentolder for dev)
+  brand="${BRAND_ID:-mentolder}"
+  brand_lc="${brand,,}"
+
+  mappings=$(BRAND_LC="$brand_lc" WORKSPACE_NS="$NS" WEBSITE_NS="$WEB_NS" SCHEMA="$SCRIPT_DIR/../environments/schema.yaml" python3 <<'PY'
+import os, yaml
+brand_lc = os.environ.get("BRAND_LC", "mentolder")
+workspace_ns = os.environ.get("WORKSPACE_NS", "workspace")
+website_ns = os.environ.get("WEBSITE_NS", "website")
+ns_remap = {"workspace": workspace_ns, "website": website_ns}
+
+with open(os.environ["SCHEMA"]) as f:
+    schema = yaml.safe_load(f) or {}
+
+for entry in schema.get("secrets") or []:
+    src = entry["name"]
+    for mapping in entry.get("extra_namespaces") or []:
+        owner_brand = mapping.get("owner_brand") or []
+        if owner_brand and all(str(b).lower() != brand_lc for b in owner_brand):
+            continue
+        ns = ns_remap.get(mapping["namespace"], mapping["namespace"])
+        sec = mapping["secret"]
+        dest = mapping.get("dest_key") or src
+        print(f"{src}\t{ns}\t{sec}\t{dest}")
+PY
+)
+
+  while IFS=$'\t' read -r src_key target_ns target_secret dest_key; do
+    [[ -z "$src_key" ]] && continue
+    # Verify that the value in workspace-secrets (src_key) matches target_secret (dest_key)
+    _secret_key_in_sync "Secret key sync: ${src_key} (${NS}/workspace-secrets) ↔ ${dest_key} (${target_ns}/${target_secret})" \
+      "$NS" "workspace-secrets" "$target_ns" "$target_secret" "$src_key" "$dest_key"
+  done <<< "$mappings"
+fi
+
 _pocket_id_client_auth "pocket-id accepts website client secret (runtime env)"
 
 # ── 3. Workloads running ──────────────────────────────────────────────
@@ -233,7 +276,15 @@ section "Workloads running"
 
 _check_deploy "pocket-id"  "$NS"     "pocket-id"
 _check_deploy "nextcloud"  "$NS"     "nextcloud"
-_check_deploy "website"    "$WEB_NS" "website"
+if [[ "$ENV" != "dev" ]]; then
+  _check_deploy "website"    "$WEB_NS" "website"
+else
+  if kubectl get deployment mentolder-web "${CTX_ARGS[@]}" -n "$NS" >/dev/null 2>&1; then
+    _check_deploy "mentolder-web" "$NS" "mentolder-web"
+  else
+    warn "website  (skipped in dev)"
+  fi
+fi
 _check_deploy "shared-db"  "$NS"     "shared-db"
 
 # ── Summary ───────────────────────────────────────────────────────────

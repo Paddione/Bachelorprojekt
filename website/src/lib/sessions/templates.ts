@@ -42,16 +42,29 @@ export async function listTemplates(ownerId: string): Promise<SessionTemplate[]>
   try {
     const { rows } = await pool.query(
       `SELECT id, slug, title, body_markdown, is_default, owner_id, created_from_template_id
-       FROM sessions.templates
-       WHERE is_default OR owner_id = $1
-       ORDER BY is_default DESC, title ASC`,
+        FROM sessions.templates
+        WHERE is_default OR owner_id = $1
+        ORDER BY is_default DESC, title ASC`,
       [ownerId]
     );
+    
+    // Log when we get fewer default templates than expected (indicates data issue)
+    if (rows.length < DEFAULT_TEMPLATES.length) {
+      logger.warn({ count: rows.length }, '[sessions/templates] Fewer default templates found in DB');
+    }
+    
     return rows as SessionTemplate[];
   } catch (err) {
-    // Fallback bleibt (Templates sind nicht kritisch), aber der DB-Ausfall muss sichtbar sein
-    logger.error({ err }, '[sessions/templates] listTemplates DB query failed — serving DEFAULT_TEMPLATES');
-    return DEFAULT_TEMPLATES;
+    // Log with context and throw to let caller handle the failure
+    const error = err instanceof Error ? err : new Error('Unknown database error');
+    logger.error({ 
+      ownerId, 
+      err: error.message, 
+      stack: error.stack, 
+      code: 'DB_QUERY_FAILED' 
+    }, '[sessions/templates] listTemplates DB query failed — returning empty array');
+    
+    throw new Error(`Failed to load templates: ${error.message}`);
   }
 }
 

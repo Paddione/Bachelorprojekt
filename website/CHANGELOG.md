@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.171.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.171.1...website-v1.171.2) (2026-07-09)
+
+
+### Bug Fixes
+
+* **website:** remove dead unauthenticated coaching-sessions duplicate [T001697] ([#2686](https://github.com/Paddione/Bachelorprojekt/issues/2686)) ([519321c](https://github.com/Paddione/Bachelorprojekt/commit/519321c1fce8e3692892d9d98b911851e5babd9a))
+
 ## [1.171.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.171.0...website-v1.171.1) (2026-07-09)
 
 

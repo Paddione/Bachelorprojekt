@@ -17,23 +17,24 @@ _Ticket: T001592_
 ## File Structure
 
 ```
-<author fills this in — list of new/changed files>
+website/src/pages/api/admin/factory-control.ts  (Modify to support new global settings)
+website/src/components/PortalSidekick.svelte    (Modify to add agent-settings view)
+website/src/components/assistant/SidekickHome.svelte (Modify to add agent-settings item)
+website/src/components/FactoryFloor.svelte      (Modify to render badge and handle drawer for stations)
+website/src/components/factory/StationColumn.svelte (Modify to render the Agent/Modell badge)
+website/src/components/PortalSidekick.test.ts   (Modify to add test cases)
 ```
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Add the BATS test that reproduces the
-      bug. The test must FAIL on the current branch. Use the phrase
-      `expected: FAIL` in the step body so plan-lint STRUCT2 picks it up.
+- [ ] **Failing-Test-Step (RED).** Write a Vitest test in `PortalSidekick.test.ts` verifying that navigating to `'agent-settings'` shows the correct globals panel, but it will fail since `'agent-settings'` is not yet implemented.
+      `expected: FAIL`
 
 ```bash
-# Example: run the BATS test the author will add in their first task
-tests/unit/lib/bats-core/bin/bats tests/spec/t001592.bats
-# expected: FAIL (red — the fix is not yet implemented)
+npx vitest run website/src/components/PortalSidekick.test.ts
 ```
 
-- [ ] **Fix-Step (GREEN).** Implement the fix. The BATS test from the
-      previous step must now pass.
+- [ ] **Fix-Step (GREEN).** Implement all the backend, API, Sidekick settings view, and Factory Floor badges, ensuring the test now passes.
 
 - [ ] **Final Verification.** Run the three mandatory CI gates:
 

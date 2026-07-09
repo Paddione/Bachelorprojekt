@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Phase, HallItem } from '../../lib/factory-floor-types';
+  import type { Phase, HallItem, ProviderConfigSummary } from '../../lib/factory-floor-types';
   import StationColumn from './StationColumn.svelte';
 
   let {
@@ -7,11 +7,15 @@
     hallItems,
     mobileColIndex,
     onSelect,
+    activeConfigs = {},
+    onOpenDrawerPhase,
   }: {
     stations: { key: Phase; label: string }[];
     hallItems: HallItem[];
     mobileColIndex: number;
     onSelect: (extId: string) => void;
+    activeConfigs?: Record<string, ProviderConfigSummary | undefined>;
+    onOpenDrawerPhase?: (phase: string) => void;
   } = $props();
 
   function itemsFor(phase: Phase): HallItem[] {
@@ -35,6 +39,8 @@
       mobileVisible={isMobileVisible(station.key)}
       isFirst={i === 0}
       {onSelect}
+      activeConfig={activeConfigs[station.key]}
+      onOpenDrawer={() => onOpenDrawerPhase?.(station.key)}
     />
   {/each}
 </div>

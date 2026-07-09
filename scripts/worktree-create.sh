@@ -18,7 +18,7 @@
 #             origin) the worktree CHECKS IT OUT; otherwise a new branch is
 #             created from <base>. The existing-branch mode is what the Software
 #             Factory plan-reuse / dev-flow handoff path needs (T000473).
-#   <path>    worktree path, e.g. /tmp/wt-foo
+#   <path>    worktree path, e.g. .worktrees/foo (repo-relative default location)
 #   <base>    base ref for a NEW branch (default: origin/main); ignored when the
 #             branch already exists.
 set -euo pipefail

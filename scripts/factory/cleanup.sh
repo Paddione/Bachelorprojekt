@@ -6,7 +6,7 @@
 #
 # Usage: cleanup.sh --branch <name> --worktree <path>
 #   --branch    local branch to delete (e.g. feature/sf-t000469)
-#   --worktree  worktree path to remove (e.g. /tmp/wt-sf-t000469)
+#   --worktree  worktree path to remove (e.g. .worktrees/sf-t000469)
 set -euo pipefail
 
 BRANCH=""

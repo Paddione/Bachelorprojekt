@@ -29,7 +29,7 @@ launch-context.ts     → Working directory injection
 # Create a new worktree
 worktree:create {
   branch: "feature/my-feature"  
-  path: "tmp/wt-my-feature"
+  path: ".worktrees/my-feature"
 }
 ```
 

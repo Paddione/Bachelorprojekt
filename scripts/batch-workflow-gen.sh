@@ -64,8 +64,8 @@ ${ctx ? `\nZUSATZ-KONTEXT:\n${ctx}` : ''}
 ABLAUF (führe jeden Schritt aus):
 1. cd ${repoRoot}
 2. Lege Worktree an:
-   bash scripts/worktree-create.sh ${branch} /tmp/wt-batch-${slug}
-3. cd /tmp/wt-batch-${slug}
+   bash scripts/worktree-create.sh ${branch} ${repoRoot}/.worktrees/batch-${slug}
+3. cd ${repoRoot}/.worktrees/batch-${slug}
 4. Schreibe Spec nach docs/superpowers/specs/${today}-${slug}-design.md
    - Vollständige Markdown-Spec basierend auf Ticket-Beschreibung
    - Kein Brainstorming nötig — Ticket-Beschreibung ist die Quelle

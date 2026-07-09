@@ -10,7 +10,7 @@ Alle Änderungen laufen über Pull Requests:
 
 **In Worktrees arbeiten** (bevorzugt):
 ```bash
-bash scripts/worktree-create.sh <branch> tmp/wt-<slug>
+bash scripts/worktree-create.sh <branch> .worktrees/<slug>
 ```
 Die `dev-flow-plan`- und `using-git-worktrees`-Skills automatisieren das.
 

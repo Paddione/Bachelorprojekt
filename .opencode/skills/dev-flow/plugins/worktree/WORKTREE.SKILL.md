@@ -14,14 +14,14 @@ Worktree management for OpenCode git isolation and temporary workspace creation.
 # Create a new worktree
 worktree:create {
   branch: "feature/my-feature"
-  path: "tmp/wt-my-feature"
+  path: ".worktrees/my-feature"
 }
 
 # ... do work in the worktree ...
 
 # Cleanup when done  
 worktree:cleanup {
-  worktreePath: "tmp/wt-my-feature"
+  worktreePath: ".worktrees/my-feature"
 }
 ```
 

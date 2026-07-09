@@ -30,11 +30,11 @@ git fetch origin main && git pull --rebase origin main
 
 ## Schritt 0: Worktree-Konsistenz
 
-Prüfe, ob du in einem `/tmp/wt-*` Worktree bist. Falls nicht:
+Prüfe, ob du in einem `.worktrees/*` Worktree bist. Falls nicht:
 
 ```bash
 SLUG=$(echo "$(git branch --show-current)" | sed 's#^[a-z]*/##')
-bash scripts/worktree-create.sh "$(git branch --show-current)" "tmp/wt-${SLUG}"
+bash scripts/worktree-create.sh "$(git branch --show-current)" ".worktrees/${SLUG}"
 ```
 
 (`scripts/worktree-create.sh` ist git-crypt-safe. `worktree.ts`'s `worktree_create` hat diese Neutralisierung nicht — bekanntes Limitation.)
@@ -59,7 +59,7 @@ PLAN_FILE=$(echo "$PLAN_REF" | sed -n 's/.*plan=\([^ ]*\).*/\1/p')
 ## Schritt 1.4: Doppelarbeit-Guard
 
 ```
-agent-lock.sh claim ticket T000XXX --branch feature/<slug> --worktree /tmp/wt-<slug> --label opencode-flow-execute
+agent-lock.sh claim ticket T000XXX --branch feature/<slug> --worktree .worktrees/<slug> --label opencode-flow-execute
 ```
 
 ## Schritt 1.5: Ticket auf in_progress setzen
@@ -132,7 +132,7 @@ git commit -m "chore(plans): archive $SLUG [$TICKET_ID]"
 
 ```
 agent-lock.sh release ticket $TICKET_ID
-git worktree remove /tmp/wt-<slug> --force
+git worktree remove .worktrees/<slug> --force
 git branch -D feature/<slug>
 ```
 

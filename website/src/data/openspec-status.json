@@ -981,6 +981,12 @@
       "status": "plan_staged"
     }
   ],
+  "T001754": [
+    {
+      "slug": "fa-bug-notify-e2e-seed",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

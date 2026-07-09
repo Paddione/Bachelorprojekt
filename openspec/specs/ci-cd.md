@@ -593,57 +593,6 @@ instead of npm ci, referencing `pnpm-lock.yaml` for reproducible installs. The b
 
 ---
 
-### Requirement: PR-Gate — LOC-Budget (S6)
-
-The system SHALL reject PRs that increase total source-file LOC by more than
-`thresholds.fail_pct` percent above the committed baseline, or that exceed
-`thresholds.absolute_cap`, and SHALL emit a non-blocking warning for PRs exceeding
-`thresholds.warn_pct`.
-
-#### Scenario: LOC growth below warn_pct — PASS
-
-- **GIVEN** the current LOC is within `warn_pct` percent of `baseline.total_lines`
-- **WHEN** `task loc:check` runs
-- **THEN** exits 0 with a PASS message
-
-#### Scenario: LOC growth above fail_pct — FAIL
-
-- **GIVEN** current LOC exceeds `baseline.total_lines * (1 + fail_pct/100)`
-- **WHEN** `task loc:check` runs
-- **THEN** exits 1 with a FAIL message including the delta percentage
-
-#### Scenario: Total LOC exceeds absolute_cap — FAIL
-
-- **GIVEN** current LOC > `thresholds.absolute_cap`
-- **WHEN** `task loc:check` runs
-- **THEN** exits 1 with "absolute cap exceeded" regardless of delta_pct
-
-#### Scenario: Baseline missing — FAIL with actionable error
-
-- **GIVEN** `docs/code-quality/loc-budget.json` does not exist
-- **WHEN** `task loc:check` runs
-- **THEN** exits 1 with a message suggesting `task loc:update-baseline`
-
-#### Scenario: LOC-Gate wird bei jedem PR als Teil von test:code-quality ausgeführt
-
-- **GIVEN** a PR is opened against `main`
-- **WHEN** the `offline-tests` CI job runs `task test:code-quality`
-- **THEN** `task loc:check` is executed and its exit code determines whether the quality gate passes
-
-#### Scenario: loc-budget.json ist freshness-überwacht
-
-- **GIVEN** `docs/code-quality/loc-budget.json` was not regenerated after a change to `gates.yaml`
-- **WHEN** the `offline-tests` CI job runs `task freshness:check`
-- **THEN** the step fails with a message indicating `loc-budget.json` is stale
-
-#### Scenario: Baseline wird post-merge regeneriert
-
-- **GIVEN** a PR is merged to `main`
-- **WHEN** the `freshness-regen.yml` GitHub Actions workflow runs `task freshness:regenerate`
-- **THEN** `task loc:update-baseline` runs, updating `docs/code-quality/loc-budget.json` with the post-merge LOC count
-
----
-
 ### Requirement: website ESLint fail-closed gate stays enforced
 
 The `website/` ESLint flat config (`website/eslint.config.js`) SHALL set
@@ -1162,9 +1111,10 @@ using three independent CI jobs: one shared build job and two parallel, independ
 
 ### Requirement: PR-Gate — Offline Tests (bestehend)
 
-_Modification_: `task test:code-quality` now includes `task loc:check` as an additional
-quality gate step. The offline-tests job continues to pass when LOC is within the
-warn threshold, and fails when LOC exceeds the fail threshold or absolute cap.
+_Modification:_ Die vormalige LOC-Budget-Gate (S6, `task loc:check` als Teil
+von `task test:code-quality`) wurde entfernt. `docs/code-quality/loc-budget.json`
+und `scripts/check-loc-budget.mjs` wurden gelöscht; `task test:code-quality`
+läuft wieder nur mit den S1-S4-Gates aus `task quality:check`.
 
 <!-- merged from change delta ci-cd.md on 2026-06-30 -->
 

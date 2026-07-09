@@ -16,15 +16,28 @@
     "node": ">=22.13.0"
   },
   "dependencies": {
+    "drizzle-orm": "^0.45.2",
     "pg": "^8.21.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
     "@mermaid-js/mermaid-cli": "^11.15.0",
+    "@playwright/test": "^1.61.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/express": "^5.0.6",
+    "@types/pg": "^8.20.0",
+    "@types/pino": "^7.0.4",
+    "@types/pino-http": "^5.8.4",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
     "cheerio": "^1.2.0",
     "gray-matter": "^4.0.3",
     "madge": "^8.0.0",
     "marked": "^18.0.4",
+    "openai": "^6.45.0",
     "typescript": "^5.9.3",
+    "vite-plugin-svgr": "^5.2.0",
     "vitest": "^4.1.9",
     "yaml": "^2.9.0"
   }

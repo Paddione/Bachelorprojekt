@@ -15,5 +15,5 @@
       "$lib/*": ["./src/lib/*"]
     }
   },
-  "exclude": ["public"]
+  "exclude": ["public", "dist"]
 }

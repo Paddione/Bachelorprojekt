@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.172.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.172.0...website-v1.172.1) (2026-07-09)
+
+
+### Bug Fixes
+
+* **website:** wire up backend support for factory-control agent-settings ([#2692](https://github.com/Paddione/Bachelorprojekt/issues/2692)) ([b62de79](https://github.com/Paddione/Bachelorprojekt/commit/b62de79a97c4313a977d79a91e596979efbb0be3))
+
 ## [1.172.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.171.2...website-v1.172.0) (2026-07-09)
 
 

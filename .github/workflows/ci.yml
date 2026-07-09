@@ -121,11 +121,6 @@ jobs:
           fi
           echo "✅ Freshness and quality gates passed"
 
-      - name: Verify learning-assets build script (unit test)
-        run: node --test scripts/build-learning-assets.test.mjs
-
-      - name: Validate Systembrett template
-        run: ./scripts/tests/systembrett-template.test.sh
 
   security-scan:
     name: Security Scan

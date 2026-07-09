@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.172.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.172.1...website-v1.172.2) (2026-07-09)
+
+
+### Bug Fixes
+
+* **website:** restore Gerald's hero portrait photo on mentolder homepage [T001711] ([#2695](https://github.com/Paddione/Bachelorprojekt/issues/2695)) ([8e53f7f](https://github.com/Paddione/Bachelorprojekt/commit/8e53f7f7c1704a7a00de4aac27f3415977af04ff))
+
 ## [1.172.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.172.0...website-v1.172.1) (2026-07-09)
 
 

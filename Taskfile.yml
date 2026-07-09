@@ -51,6 +51,11 @@ includes:
   openclaw:
     taskfile: ./Taskfile.openclaw.yml
     dir: .
+  # Cross-harness agent infrastructure (MCP servers, etc.) shared by every
+  # agent harness in this repo — Claude Code, opencode, Hermes. See Taskfile.agents.yml.
+  agents:
+    taskfile: ./Taskfile.agents.yml
+    dir: .
   # Software Factory — Phase 1 pipeline documentation wrapper.
   # See scripts/factory/pipeline.js + docs/superpowers/references/factory-usage.md.
   factory:

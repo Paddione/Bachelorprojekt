@@ -7,7 +7,7 @@ Go rewrite of `scripts/factory/mcp-server.mjs` with one new tool:
 ## Build & run
 
 ```bash
-# Build (auto-invoked by `task factory-mcp:start` on first run):
+# Build (auto-invoked by `task agents:factory-mcp:start` on first run):
 go build -trimpath -ldflags='-s -w' -o bin/factory-mcp .
 
 # Run directly:
@@ -17,6 +17,21 @@ go build -trimpath -ldflags='-s -w' -o bin/factory-mcp .
 
 The `.mcp.json` / `.opencode/opencode.jsonc` already point at
 `http://localhost:13003/mcp`, so no MCP config edits are needed.
+
+## Persistent service (recommended)
+
+`task agents:factory-mcp:start` launches a detached `nohup` process that
+does not survive logout or a crash. For a durable install (autostart +
+`Restart=always` via a systemd USER unit):
+
+```bash
+task agents:factory-mcp:install     # symlinks factory-mcp.service, enable --now
+task agents:factory-mcp:service-status
+task agents:factory-mcp:uninstall
+```
+
+Requires `loginctl enable-linger $USER` for the service to start without an
+active login session (e.g. after a host reboot).
 
 ## Tools
 

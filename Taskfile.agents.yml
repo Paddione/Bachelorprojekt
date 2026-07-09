@@ -1,0 +1,269 @@
+version: "3"
+
+# Cross-harness agent infrastructure — MCP servers and other tooling shared by
+# every agent harness in this repo (Claude Code, opencode, Hermes), not tied
+# to any one of them. Contrast with Taskfile.openclaw.yml, which only installs
+# the opencode/openclaw CLI binary itself.
+
+tasks:
+  factory-mcp:start:
+    desc: "Start the Factory MCP server in the background (PID file)"
+    cmds:
+      # Build the Go binary on first run, then launch it detached. The Node
+      # implementation (scripts/factory/mcp-server.mjs) is kept around for
+      # fallback — the Go binary at scripts/factory/mcp-go/bin/factory-mcp
+      # speaks the same Streamable-HTTP MCP shape on 127.0.0.1:13003.
+      - |
+        bash -c '
+          set -euo pipefail
+          REPO="${FACTORY_REPO:-/home/patrick/Bachelorprojekt}"
+          BIN="$REPO/scripts/factory/mcp-go/bin/factory-mcp"
+          if [[ ! -x "$BIN" ]]; then
+            echo "factory-mcp: building $BIN"
+            (cd "$REPO/scripts/factory/mcp-go" && CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o bin/factory-mcp .)
+          fi
+          PIDFILE=/tmp/factory-mcp.pid
+          if [[ -f "$PIDFILE" ]] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
+            echo "factory-mcp already running (PID $(cat "$PIDFILE"))"
+          else
+            nohup "$BIN" > /tmp/factory-mcp.log 2>&1 &
+            echo $! > "$PIDFILE"
+            echo "factory-mcp started (PID $(cat "$PIDFILE"))"
+          fi
+        '
+
+  factory-mcp:stop:
+    desc: "Stop the Factory MCP server"
+    cmds:
+      # Run under real bash: go-task's mvdan/sh `kill` builtin mishandles `kill -0`,
+      # so the liveness check always fails and the server is never actually stopped.
+      - |
+        bash -c '
+          PIDFILE=/tmp/factory-mcp.pid
+          if [[ -f "$PIDFILE" ]] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
+            kill "$(cat "$PIDFILE")"
+            rm -f "$PIDFILE"
+            echo "factory-mcp stopped"
+          else
+            echo "factory-mcp not running"
+            rm -f "$PIDFILE"
+          fi
+        '
+
+  factory-mcp:status:
+    desc: "Health-check the Factory MCP server"
+    cmds:
+      - curl -sS --max-time 3 http://127.0.0.1:13003/health && echo "" || echo "factory-mcp not responding"
+
+  factory-mcp:build:
+    desc: "Build the Go factory-mcp binary (scripts/factory/mcp-go/bin/factory-mcp)"
+    dir: scripts/factory/mcp-go
+    cmds:
+      - CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o bin/factory-mcp .
+
+  factory-mcp:install:
+    desc: "Install factory-mcp as a persistent systemd USER service (autostart + Restart=always), replacing the manual nohup/PID-file flow."
+    silent: true
+    cmds:
+      - |
+        set -euo pipefail
+        if ! systemctl --user show-environment >/dev/null 2>&1; then
+          echo "No systemd --user manager on this host (WSL without lingering?)."
+          echo "Enable it: 'loginctl enable-linger $USER' then re-run. Falling back: use task agents:factory-mcp:start."
+          exit 1
+        fi
+        BIN="$(pwd)/scripts/factory/mcp-go/bin/factory-mcp"
+        if [[ ! -x "$BIN" ]]; then
+          echo "factory-mcp: building $BIN"
+          (cd scripts/factory/mcp-go && CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o bin/factory-mcp .)
+        fi
+        # Stop any manually-started nohup instance so the port is free for systemd.
+        PIDFILE=/tmp/factory-mcp.pid
+        if [[ -f "$PIDFILE" ]] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
+          kill "$(cat "$PIDFILE")" && rm -f "$PIDFILE"
+        fi
+        UNIT_DIR="${HOME}/.config/systemd/user"
+        SRC="$(pwd)/scripts/factory/mcp-go"
+        mkdir -p "${UNIT_DIR}"
+        ln -sf "${SRC}/factory-mcp.service" "${UNIT_DIR}/factory-mcp.service"
+        systemctl --user daemon-reload
+        systemctl --user enable --now factory-mcp.service
+        echo "factory-mcp installed as systemd --user service (autostart + Restart=always)."
+
+  factory-mcp:uninstall:
+    desc: "Stop + disable the factory-mcp systemd service and remove the symlinked unit."
+    silent: true
+    cmds:
+      - |
+        set -euo pipefail
+        UNIT_DIR="${HOME}/.config/systemd/user"
+        systemctl --user disable --now factory-mcp.service 2>/dev/null || true
+        rm -f "${UNIT_DIR}/factory-mcp.service"
+        systemctl --user daemon-reload 2>/dev/null || true
+        echo "factory-mcp systemd service uninstalled."
+
+  factory-mcp:service-status:
+    desc: "Show the factory-mcp systemd service state + recent journal tail."
+    silent: true
+    cmds:
+      - |
+        set -euo pipefail
+        if ! systemctl --user show-environment >/dev/null 2>&1; then
+          echo "No systemd --user manager on this host."
+          exit 0
+        fi
+        systemctl --user status factory-mcp.service --no-pager -n 20 || true
+
+  # ── mcp-gateway — kubectl port-forward to svc/claude-code-mcp-monolith ───
+  # Backs the mcp-kubernetes (:18080) and mcp-postgres (:13001) MCP servers.
+  # Same start/stop/status/install shape as factory-mcp above.
+
+  mcp-gateway:start:
+    desc: "Start the mcp-gateway kubectl port-forward in the background (PID file)"
+    cmds:
+      - |
+        bash -c '
+          set -euo pipefail
+          PIDFILE=/tmp/mcp-gateway.pid
+          if [[ -f "$PIDFILE" ]] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
+            echo "mcp-gateway already running (PID $(cat "$PIDFILE"))"
+          else
+            nohup kubectl --context fleet port-forward -n default svc/claude-code-mcp-monolith \
+              18080:8080 13000:3000 13001:3001 13002:3002 > /tmp/mcp-gateway.log 2>&1 &
+            echo $! > "$PIDFILE"
+            echo "mcp-gateway started (PID $(cat "$PIDFILE"))"
+          fi
+        '
+
+  mcp-gateway:stop:
+    desc: "Stop the mcp-gateway kubectl port-forward"
+    cmds:
+      - |
+        bash -c '
+          PIDFILE=/tmp/mcp-gateway.pid
+          if [[ -f "$PIDFILE" ]] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
+            kill "$(cat "$PIDFILE")"
+            rm -f "$PIDFILE"
+            echo "mcp-gateway stopped"
+          else
+            echo "mcp-gateway not running"
+            rm -f "$PIDFILE"
+          fi
+        '
+
+  mcp-gateway:status:
+    desc: "Health-check mcp-kubernetes (:18080) and mcp-postgres (:13001) through the gateway"
+    cmds:
+      - |
+        bash -c '
+          probe() {
+            curl -s --max-time 2 -o /dev/null -w "%{http_code}" \
+              -X POST -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" \
+              -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{},\"clientInfo\":{\"name\":\"hc\",\"version\":\"1\"}}}" \
+              "$1"
+          }
+          k8s_code=$(probe http://localhost:18080/mcp || echo "000")
+          pg_code=$(probe http://localhost:13001/mcp || echo "000")
+          echo "mcp-kubernetes (:18080): HTTP $k8s_code"
+          echo "mcp-postgres   (:13001): HTTP $pg_code"
+          [[ "$k8s_code" == "200" && "$pg_code" == "200" ]]
+        '
+
+  mcp-gateway:install:
+    desc: "Install mcp-gateway as a persistent systemd USER service (autostart + Restart=always), replacing the manual kubectl port-forward."
+    silent: true
+    cmds:
+      - |
+        set -euo pipefail
+        if ! systemctl --user show-environment >/dev/null 2>&1; then
+          echo "No systemd --user manager on this host (WSL without lingering?)."
+          echo "Enable it: 'loginctl enable-linger $USER' then re-run. Falling back: use task agents:mcp-gateway:start."
+          exit 1
+        fi
+        # Stop any manually-started port-forward so the port is free for systemd.
+        PIDFILE=/tmp/mcp-gateway.pid
+        if [[ -f "$PIDFILE" ]] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
+          kill "$(cat "$PIDFILE")" && rm -f "$PIDFILE"
+        fi
+        # Also reap any bare kubectl port-forward started outside of task (e.g. a
+        # prior manual `kubectl port-forward ... svc/claude-code-mcp-monolith` run).
+        pkill -f 'port-forward -n default svc/claude-code-mcp-monolith' 2>/dev/null || true
+        sleep 1
+        UNIT_DIR="${HOME}/.config/systemd/user"
+        SRC="$(pwd)/scripts/mcp-gateway"
+        mkdir -p "${UNIT_DIR}"
+        ln -sf "${SRC}/mcp-gateway.service" "${UNIT_DIR}/mcp-gateway.service"
+        systemctl --user daemon-reload
+        systemctl --user enable --now mcp-gateway.service
+        echo "mcp-gateway installed as systemd --user service (autostart + Restart=always)."
+
+  mcp-gateway:uninstall:
+    desc: "Stop + disable the mcp-gateway systemd service and remove the symlinked unit."
+    silent: true
+    cmds:
+      - |
+        set -euo pipefail
+        UNIT_DIR="${HOME}/.config/systemd/user"
+        systemctl --user disable --now mcp-gateway.service 2>/dev/null || true
+        rm -f "${UNIT_DIR}/mcp-gateway.service"
+        systemctl --user daemon-reload 2>/dev/null || true
+        echo "mcp-gateway systemd service uninstalled."
+
+  mcp-gateway:service-status:
+    desc: "Show the mcp-gateway systemd service state + recent journal tail."
+    silent: true
+    cmds:
+      - |
+        set -euo pipefail
+        if ! systemctl --user show-environment >/dev/null 2>&1; then
+          echo "No systemd --user manager on this host."
+          exit 0
+        fi
+        systemctl --user status mcp-gateway.service --no-pager -n 20 || true
+
+  # ── stdio MCP servers — spawned per-session by the client (Claude Code /
+  # opencode), not standalone daemons. Nothing to install/start here; this is
+  # a read-only presence check for the stack overview below.
+
+  stdio:status:
+    desc: "Check that the stdio-transport MCP binaries (client-spawned, no daemon) are present and executable"
+    silent: true
+    cmds:
+      - |
+        set -euo pipefail
+        check() {
+          if command -v "$1" >/dev/null 2>&1 || [[ -x "$1" ]]; then
+            echo "  ok   $2"
+          else
+            echo "  MISSING $2 ($1)"
+          fi
+        }
+        echo "stdio MCP servers (spawned per-session by the client, no daemon required):"
+        check "/home/patrick/Bachelorprojekt/scripts/ticket-mcp/ticket-mcp-go" "ticket-mcp"
+        check "mcp-task-runner" "mcp-task-runner"
+        check "/home/patrick/.local/bin/codebase-memory-mcp" "codebase-memory-mcp"
+        check "npx" "task-master-ai (via npx)"
+
+  # ── stack — the whole MCP surface at a glance ─────────────────────────
+
+  stack:install:
+    desc: "Install every daemon-backed MCP server (factory-mcp, mcp-gateway) as persistent systemd services"
+    cmds:
+      - task: factory-mcp:install
+      - task: mcp-gateway:install
+
+  stack:uninstall:
+    desc: "Uninstall every daemon-backed MCP server's systemd service"
+    cmds:
+      - task: factory-mcp:uninstall
+      - task: mcp-gateway:uninstall
+
+  stack:status:
+    desc: "Status overview of every configured MCP server (daemons + stdio presence check)"
+    silent: true
+    cmds:
+      - echo "── daemon-backed MCP servers ──"
+      - task: factory-mcp:status
+      - task: mcp-gateway:status
+      - echo ""
+      - task: stdio:status

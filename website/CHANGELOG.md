@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.171.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.171.0...website-v1.171.1) (2026-07-09)
+
+
+### Bug Fixes
+
+* **secrets:** add missing SEPA_CREDITOR keys and SESSIONS_CRON_TOKEN [T001528] ([#2674](https://github.com/Paddione/Bachelorprojekt/issues/2674)) ([e5db86f](https://github.com/Paddione/Bachelorprojekt/commit/e5db86fbceada0fa855137588eb115d6fcb04649))
+
 ## [1.171.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.170.0...website-v1.171.0) (2026-07-09)
 
 

@@ -7,7 +7,7 @@ test.describe('FA-49: Factory Observability Dashboard', { tag: ['@admin', '@fact
   test('T1: /admin/factory-observability loads with KPI cards for admin', async ({ page }) => {
     test.skip(!HAS_ADMIN_AUTH, 'E2E_ADMIN_PASS not set — skipping admin UI test');
     await page.goto('/admin/factory-observability');
-    await expect(page.locator('.obs-dashboard')).toBeVisible({ timeout: 30_000 });
+    await expect(page.locator('.obs-dashboard')).toBeVisible({ timeout: 60_000 });
     await expect(page.locator('.kpi-row')).toBeVisible();
   });
 

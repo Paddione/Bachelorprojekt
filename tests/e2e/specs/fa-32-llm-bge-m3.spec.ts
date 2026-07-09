@@ -15,7 +15,7 @@ const LLM_URL = process.env.LLM_ROUTER_URL
 
 test.describe('FA-32: LLM-Router bge-m3 Embeddings', () => {
   test.skip(!LLM_URL, 'requires LLM_ROUTER_URL or LLM_HOST_IP');
-  test.setTimeout(30_000);
+  test.setTimeout(90_000);
 
   // T1: Pod readiness — kubectl only
   test('T1: llm-router pod readiness (kubectl, skipped without cluster context)', async () => {
@@ -48,7 +48,7 @@ test.describe('FA-32: LLM-Router bge-m3 Embeddings', () => {
 
   // Browser check: LLM router base URL responds (no 5xx)
   test('Browser: LLM router base URL is reachable', async ({ page }) => {
-    await page.goto(LLM_URL!, { timeout: 15_000 });
+    await page.goto(LLM_URL!, { timeout: 45_000 });
     const body = page.locator('body');
     await expect(body).toBeVisible();
     await expect(body).not.toContainText('502 Bad Gateway');

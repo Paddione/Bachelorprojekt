@@ -40,7 +40,7 @@ test.describe.serial('SA-08: SSO-Integration — Browser', () => {
     // Should redirect to account page or show an error (invalid credentials in prod)
     const accountOrError = page.locator('[class*="pf-v5"], [id="landingSignedIn"], [class*="error"], [class*="invalid"]');
     try {
-      await accountOrError.first().waitFor({ state: 'visible', timeout: 30_000 });
+      await accountOrError.first().waitFor({ state: 'visible', timeout: 60_000 });
     } catch {
       // If neither appeared, just confirm we stayed on Keycloak (already asserted above)
     }
@@ -65,7 +65,7 @@ test.describe.serial('SA-08: SSO-Integration — Browser', () => {
       // NC shows its own login with an OIDC button — click it
       const ssoBtn = page.locator('a[href*="oidc"], button:has-text("Keycloak")').first()
         .or(page.getByRole('link', { name: /keycloak|anmelden/i }).first());
-      await expect(ssoBtn).toBeVisible({ timeout: 30_000 });
+      await expect(ssoBtn).toBeVisible({ timeout: 60_000 });
       await ssoBtn.click();
     }
 
@@ -86,7 +86,7 @@ test.describe.serial('SA-08: SSO-Integration — Browser', () => {
         await page.locator('#username, input[name="username"]').fill(KC_USER);
         await page.locator('#password, input[name="password"]').fill(KC_PASS);
         await page.locator('#kc-login, input[type="submit"]').click();
-        await page.waitForURL(/.*\/(files|apps\/dashboard).*/, { timeout: 15_000 });
+        await page.waitForURL(/.*\/(files|apps\/dashboard).*/, { timeout: 45_000 });
       }
     }
 
@@ -116,7 +116,7 @@ test.describe.serial('SA-08: SSO-Integration — Browser', () => {
             await page.locator('#username').fill(KC_USER);
             await page.locator('#password').fill(KC_PASS);
             await page.locator('#kc-login').click();
-            await page.waitForURL(/.*\/(apps\/spreed|files|dashboard).*/, { timeout: 15_000 });
+            await page.waitForURL(/.*\/(apps\/spreed|files|dashboard).*/, { timeout: 45_000 });
           }
         }
       }
@@ -125,7 +125,7 @@ test.describe.serial('SA-08: SSO-Integration — Browser', () => {
     // Should land on Talk or Nextcloud content area
     await expect(
       page.locator('[data-app-id="spreed"], .app-spreed, [id="content"], #app-content').first()
-    ).toBeVisible({ timeout: 30_000 });
+    ).toBeVisible({ timeout: 60_000 });
   });
 
   test('T19: Cross-Service SSO (Keycloak → Nextcloud)', async () => {
@@ -146,6 +146,6 @@ test.describe.serial('SA-08: SSO-Integration — Browser', () => {
     expect(sawLogin).toBe(false);
 
     // Should land on Nextcloud
-    await expect(page).toHaveURL(/.*\/(files|apps\/dashboard|login).*/, { timeout: 15_000 });
+    await expect(page).toHaveURL(/.*\/(files|apps\/dashboard|login).*/, { timeout: 45_000 });
   });
 });

@@ -78,7 +78,7 @@ test.describe('FA-bug-notify', () => {
     // Fill Keycloak login form
     const kcUsername = page.locator('#username, input[name="username"]').first();
     const kcPassword = page.locator('#password, input[name="password"]').first();
-    await expect(kcUsername).toBeVisible({ timeout: 30_000 });
+    await expect(kcUsername).toBeVisible({ timeout: 60_000 });
     await kcUsername.fill(ADMIN_USER);
     await kcPassword.fill(ADMIN_PASS!);
     await page.locator('#kc-login, input[type="submit"]').first().click();

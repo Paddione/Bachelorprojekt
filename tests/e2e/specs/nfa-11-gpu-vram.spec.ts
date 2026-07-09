@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('NFA-11: GPU-VRAM nach Modell-Rotation', () => {
-  test.setTimeout(300_000); // 5 minutes for 4 model loads
+  test.setTimeout(180_000); // 5 minutes for 4 model loads
 
   test('T3: TEI-Dienst (llm-gateway-embed :8081) erreichbar', async ({ request }) => {
     test.skip(!process.env.LLM_HOST_IP, 'requires LLM_HOST_IP (GPU host on wg-mesh)');

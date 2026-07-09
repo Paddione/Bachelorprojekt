@@ -13,7 +13,7 @@ import {
 
 test.describe('System-Test 7: Rechnungserstellung & ZUGFeRD', () => {
   test.beforeEach(({}, info) => ensureAdminPasswordOrSkip(info));
-  test.setTimeout(300_000);
+  test.setTimeout(180_000);
 
   test('walks all steps and submits', async ({ page }) => {
     await walkSystemtestByTemplate(page, 7);

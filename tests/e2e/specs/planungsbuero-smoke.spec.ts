@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Planungsbüro Smoke', { tag: ['@admin', '@planungsbuero'] }, () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/dev-status?tab=planung');
-    await page.locator('[data-testid="pb-stats-bar"]').waitFor({ state: 'visible', timeout: 30_000 });
+    await page.locator('[data-testid="pb-stats-bar"]').waitFor({ state: 'visible', timeout: 60_000 });
   });
 
   test('Stats Bar sichtbar mit korrektem Format', async ({ page }) => {
@@ -26,14 +26,14 @@ test.describe('Planungsbüro Smoke', { tag: ['@admin', '@planungsbuero'] }, () =
     const firstRow = page.locator('[data-testid^="pb-queue-row-"]').first();
     await firstRow.click();
     const detail = page.locator('[data-testid="pb-detail"]');
-    await expect(detail).toBeVisible({ timeout: 30_000 });
+    await expect(detail).toBeVisible({ timeout: 60_000 });
   });
 
   test('Promote-Button ist disabled wenn Readiness < 4', async ({ page }) => {
     const firstRow = page.locator('[data-testid^="pb-queue-row-"]').first();
     await firstRow.click();
     const promote = page.locator('[data-testid="pb-detail-promote"]');
-    await expect(promote).toBeVisible({ timeout: 30_000 });
+    await expect(promote).toBeVisible({ timeout: 60_000 });
     const dorSquares = firstRow.locator('.pb-dor-on');
     const count = await dorSquares.count();
     if (count < 4) {

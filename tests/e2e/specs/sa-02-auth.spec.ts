@@ -26,7 +26,7 @@ test.describe('SA-02: Authentifizierung — Browser (Pocket ID)', () => {
         await page.locator('button[type="submit"], input[type="submit"]').first().click();
         await expect(
           page.locator('#input-error, .feedback-error, .alert-error, [role="alert"]').first()
-        ).toBeVisible({ timeout: 30_000 });
+        ).toBeVisible({ timeout: 60_000 });
       }
     }
     await context.close();

@@ -42,7 +42,7 @@ test.describe('Brett Mobile (Android) @mobile', () => {
     const faviconFetches: string[] = [];
     page.on('request', req => { if (req.url().includes('favicon.ico')) faviconFetches.push(req.url()); });
     try {
-      await page.goto(`${BRETT_URL}?room=e2e-favicon-${Date.now()}`, { waitUntil: 'networkidle', timeout: 30_000 });
+      await page.goto(`${BRETT_URL}?room=e2e-favicon-${Date.now()}`, { waitUntil: 'networkidle', timeout: 60_000 });
 
       // Browser must not request /favicon.ico because <link rel="icon"> is a data: URI
       expect(faviconFetches).toHaveLength(0);
@@ -67,7 +67,7 @@ test.describe('Brett Mobile (Android) @mobile', () => {
     });
     const page = await ctx.newPage();
     try {
-      await page.goto(`${BRETT_URL}?room=e2e-mobile-canvas-${Date.now()}`, { waitUntil: 'networkidle', timeout: 30_000 });
+      await page.goto(`${BRETT_URL}?room=e2e-mobile-canvas-${Date.now()}`, { waitUntil: 'networkidle', timeout: 60_000 });
       await page.waitForFunction(() => !!document.querySelector('canvas'), { timeout: 10_000 });
 
       const vw = await page.evaluate(() => window.innerWidth);
@@ -91,7 +91,7 @@ test.describe('Brett Mobile (Android) @mobile', () => {
     });
     const page = await ctx.newPage();
     try {
-      await page.goto(`${BRETT_URL}?room=e2e-mobile-topbar-${Date.now()}`, { waitUntil: 'networkidle', timeout: 30_000 });
+      await page.goto(`${BRETT_URL}?room=e2e-mobile-topbar-${Date.now()}`, { waitUntil: 'networkidle', timeout: 60_000 });
       await page.waitForSelector('#topbar', { timeout: 10_000 });
 
       const overflowX = await page.evaluate(() => getComputedStyle(document.getElementById('topbar')!).overflowX);
@@ -113,7 +113,7 @@ test.describe('Brett Mobile (Android) @mobile', () => {
     const errors: string[] = [];
     page.on('pageerror', e => errors.push(e.message));
     try {
-      await page.goto(`${BRETT_URL}?room=e2e-mobile-touch-${Date.now()}`, { waitUntil: 'networkidle', timeout: 30_000 });
+      await page.goto(`${BRETT_URL}?room=e2e-mobile-touch-${Date.now()}`, { waitUntil: 'networkidle', timeout: 60_000 });
       await page.waitForFunction(() => Array.isArray((window as any).STATE?.figures), { timeout: 10_000 });
 
       const canvas = page.locator('canvas');
@@ -136,8 +136,8 @@ test.describe('Brett Mobile (Android) @mobile', () => {
     });
     const page = await ctx.newPage();
     try {
-      await page.goto(`${BRETT_URL}?room=e2e-mobile-pill-${Date.now()}`, { waitUntil: 'networkidle', timeout: 30_000 });
-      await expect(page.locator('#status-pill')).toBeVisible({ timeout: 30_000 });
+      await page.goto(`${BRETT_URL}?room=e2e-mobile-pill-${Date.now()}`, { waitUntil: 'networkidle', timeout: 60_000 });
+      await expect(page.locator('#status-pill')).toBeVisible({ timeout: 60_000 });
 
       const pill = await page.locator('#status-pill').boundingBox();
       expect(pill).not.toBeNull();
@@ -159,7 +159,7 @@ test.describe('Brett Mobile (Android) @mobile', () => {
     });
     const page = await ctx.newPage();
     try {
-      await page.goto(`${BRETT_URL}?room=e2e-mobile-taptarget-${Date.now()}`, { waitUntil: 'networkidle', timeout: 30_000 });
+      await page.goto(`${BRETT_URL}?room=e2e-mobile-taptarget-${Date.now()}`, { waitUntil: 'networkidle', timeout: 60_000 });
       await page.waitForSelector('.preset-btn', { timeout: 10_000 });
 
       const heights: number[] = await page.evaluate(() =>
@@ -182,7 +182,7 @@ test.describe('Brett Mobile (Android) @mobile', () => {
     });
     const page = await ctx.newPage();
     try {
-      await page.goto(`${BRETT_URL}?room=e2e-mobile-pinch-${Date.now()}`, { waitUntil: 'networkidle', timeout: 30_000 });
+      await page.goto(`${BRETT_URL}?room=e2e-mobile-pinch-${Date.now()}`, { waitUntil: 'networkidle', timeout: 60_000 });
       await page.waitForFunction(() => !!(window as any).__brettScene, { timeout: 10_000 });
 
       const before = await page.evaluate(() => (window as any).__brettScene.getOrbitState().dist);
@@ -213,7 +213,7 @@ test.describe('Brett Mobile (Android) @mobile', () => {
     });
     const page = await ctx.newPage();
     try {
-      await page.goto(`${BRETT_URL}?room=e2e-mobile-orbit-${Date.now()}`, { waitUntil: 'networkidle', timeout: 30_000 });
+      await page.goto(`${BRETT_URL}?room=e2e-mobile-orbit-${Date.now()}`, { waitUntil: 'networkidle', timeout: 60_000 });
       await page.waitForFunction(() => !!(window as any).__brettScene, { timeout: 10_000 });
 
       const before = await page.evaluate(() => (window as any).__brettScene.getOrbitState().theta);

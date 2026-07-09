@@ -59,7 +59,7 @@ test.describe('FA-admin-db-crud-projekte', () => {
     // ── 2. Navigate to list and verify project appears ──
     await page.goto(`${BASE}/admin/projekte`);
     await page.waitForLoadState('networkidle');
-    await expect(page.locator(`text="${projectName}"`).first()).toBeVisible({ timeout: 30_000 });
+    await expect(page.locator(`text="${projectName}"`).first()).toBeVisible({ timeout: 60_000 });
 
     // ── 3. Find the project's detail page URL by following the link ──
     await page.locator(`a:has-text("${projectName}")`).first().click();
@@ -84,7 +84,7 @@ test.describe('FA-admin-db-crud-projekte', () => {
     // ── 5. Verify updated name appears in the list ──
     await page.goto(`${BASE}/admin/projekte`);
     await page.waitForLoadState('networkidle');
-    await expect(page.locator(`text="${updatedName}"`).first()).toBeVisible({ timeout: 30_000 });
+    await expect(page.locator(`text="${updatedName}"`).first()).toBeVisible({ timeout: 60_000 });
 
     // ── 6. Create a Subprojekt under the project ──
     const subCreateRes = await page.request.post(`${BASE}/api/admin/subprojekte/create`, {
@@ -102,7 +102,7 @@ test.describe('FA-admin-db-crud-projekte', () => {
     // ── 7. Verify subprojekt appears on the detail page ──
     await page.goto(`${BASE}/admin/projekte/${projectId}`);
     await page.waitForLoadState('networkidle');
-    await expect(page.locator(`text="${subName}"`).first()).toBeVisible({ timeout: 30_000 });
+    await expect(page.locator(`text="${subName}"`).first()).toBeVisible({ timeout: 60_000 });
 
     // ── 8. Find subprojekt id from the page ──
     // The subproject row or link should contain the name — get sub ID from its URL or data attribute

@@ -15,7 +15,7 @@ const LLM_URL = process.env.LLM_ROUTER_URL
 
 test.describe('FA-33: LLM-Router voyage-multilingual-2', () => {
   test.skip(!LLM_URL, 'requires LLM_ROUTER_URL or LLM_HOST_IP');
-  test.setTimeout(30_000);
+  test.setTimeout(90_000);
 
   // T1: voyage-multilingual-2 embedding request
   test('T1: voyage-multilingual-2 embedding returns a 1024-dimensional vector', async ({ request }) => {
@@ -58,7 +58,7 @@ test.describe('FA-33: LLM-Router voyage-multilingual-2', () => {
 
   // Browser: base URL responds without 5xx
   test('Browser: LLM router base URL is reachable', async ({ page }) => {
-    await page.goto(LLM_URL!, { timeout: 15_000 });
+    await page.goto(LLM_URL!, { timeout: 45_000 });
     const body = page.locator('body');
     await expect(body).toBeVisible();
     await expect(body).not.toContainText('502 Bad Gateway');

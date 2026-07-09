@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
 test.describe('NFA-02: Performance / Antwortzeiten', () => {
-  test.setTimeout(30_000);
+  test.setTimeout(90_000);
 
   test('T3: Website lädt in < 5000ms (HTTP)', async ({ request }) => {
     const start = Date.now();

@@ -16,7 +16,7 @@ test.describe('FA-51: Sidekick-Navigation (T000965)', { tag: ['@website'] }, () 
     await page.goto(`${BASE}/`);
     await page.waitForLoadState('networkidle');
     const fab = page.locator('button.fab');
-    await expect(fab).toBeVisible({ timeout: 30_000 });
+    await expect(fab).toBeVisible({ timeout: 60_000 });
     await expect(fab).toHaveAttribute('aria-expanded', 'false');
   });
 

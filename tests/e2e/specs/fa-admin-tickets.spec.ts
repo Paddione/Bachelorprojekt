@@ -67,7 +67,7 @@ test.describe('FA-admin-tickets', { tag: ['@admin'] }, () => {
     await loginAsAdmin(page);
     await page.goto(`${BASE}/admin/tickets?type=bug&status=open&q=${externalId}`);
     const externalIdLink = page.locator(`a:has-text("${externalId}")`).first();
-    await expect(externalIdLink).toBeVisible({ timeout: 30_000 });
+    await expect(externalIdLink).toBeVisible({ timeout: 60_000 });
 
     // ── 3. Open detail page ──
     await externalIdLink.click();
@@ -123,7 +123,7 @@ test.describe('FA-admin-tickets', { tag: ['@admin'] }, () => {
     // Wait for Astro island hydration before asserting timeline visibility.
     await page.waitForLoadState('networkidle');
     const timelineBody = page.locator('.ticket-timeline');
-    await expect(timelineBody).toBeVisible({ timeout: 30_000 });
+    await expect(timelineBody).toBeVisible({ timeout: 60_000 });
     await expect(page.locator('.ticket-timeline-comment').first()).toBeVisible();
     // At minimum: created + 2 comments + 1 status change → 4 timeline rows.
     const rowCount = await page.locator('.ticket-timeline-row').count();

@@ -11,7 +11,7 @@ import {
 
 test.describe('System-Test 8: Buchhaltung & EÜR', () => {
   test.beforeEach(({}, info) => ensureAdminPasswordOrSkip(info));
-  test.setTimeout(300_000);
+  test.setTimeout(180_000);
 
   test('walks all steps and submits', async ({ page }) => {
     await walkSystemtestByTemplate(page, 8);

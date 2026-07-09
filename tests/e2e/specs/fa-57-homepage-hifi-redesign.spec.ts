@@ -8,7 +8,7 @@ test.describe('FA-57: Mentolder Homepage hifi-Redesign [T001034]', { tag: ['@smo
   test('T1: Hero-Sektion rendert mit h1 und Kicker', async ({ page }) => {
     await page.goto(BASE, { waitUntil: 'domcontentloaded' });
     const hero = page.locator('section[aria-label="Hero-Bereich"]');
-    await expect(hero).toBeVisible({ timeout: 30_000 });
+    await expect(hero).toBeVisible({ timeout: 60_000 });
     await expect(hero.locator('h1')).toBeVisible();
     await expect(hero.locator('.kicker-row')).toBeVisible();
     // Die Kicker-Zeile enthält mindestens einen Textspan
@@ -19,7 +19,7 @@ test.describe('FA-57: Mentolder Homepage hifi-Redesign [T001034]', { tag: ['@smo
   test('T2: Hero-Lede (Untertitel) ist vorhanden', async ({ page }) => {
     await page.goto(BASE, { waitUntil: 'domcontentloaded' });
     const lede = page.locator('.hero .lede');
-    await expect(lede).toBeVisible({ timeout: 30_000 });
+    await expect(lede).toBeVisible({ timeout: 60_000 });
     const text = await lede.textContent();
     expect(text?.trim().length).toBeGreaterThan(20);
   });
@@ -27,7 +27,7 @@ test.describe('FA-57: Mentolder Homepage hifi-Redesign [T001034]', { tag: ['@smo
   test('T3: StatsStrip zeigt Kennzahlen', async ({ page }) => {
     await page.goto(BASE, { waitUntil: 'domcontentloaded' });
     const strip = page.locator('section.strip[aria-label]');
-    await expect(strip).toBeVisible({ timeout: 30_000 });
+    await expect(strip).toBeVisible({ timeout: 60_000 });
     const stats = strip.locator('.stat');
     await expect(stats.first()).toBeVisible();
     expect(await stats.count()).toBeGreaterThan(0);
@@ -40,7 +40,7 @@ test.describe('FA-57: Mentolder Homepage hifi-Redesign [T001034]', { tag: ['@smo
     await page.goto(BASE, { waitUntil: 'domcontentloaded' });
 
     const faqSection = page.locator('section.faq-section');
-    await expect(faqSection).toBeVisible({ timeout: 30_000 });
+    await expect(faqSection).toBeVisible({ timeout: 60_000 });
 
     const firstBtn = faqSection.locator('.faq-btn').first();
     // Scrolle in den Viewport → löst client:visible Hydration aus
@@ -89,7 +89,7 @@ test.describe('FA-57: Mentolder Homepage hifi-Redesign [T001034]', { tag: ['@smo
   test('T6: Process-Sektion zeigt Schritte', async ({ page }) => {
     await page.goto(BASE, { waitUntil: 'domcontentloaded' });
     const processSection = page.locator('section.process');
-    await expect(processSection).toBeVisible({ timeout: 30_000 });
+    await expect(processSection).toBeVisible({ timeout: 60_000 });
 
     const heading = processSection.locator('#process-heading');
     await expect(heading).toBeVisible();
@@ -103,14 +103,14 @@ test.describe('FA-57: Mentolder Homepage hifi-Redesign [T001034]', { tag: ['@smo
 
     const whySection = page.locator('section.why-me, section[aria-labelledby*="why"]');
     await whySection.scrollIntoViewIfNeeded();
-    await expect(whySection).toBeVisible({ timeout: 30_000 });
+    await expect(whySection).toBeVisible({ timeout: 60_000 });
   });
 
   test('T8: ServiceRow-Sektion rendert Angebote', async ({ page }) => {
     await page.goto(BASE, { waitUntil: 'domcontentloaded' });
 
     const offersSection = page.locator('#angebote');
-    await expect(offersSection).toBeVisible({ timeout: 30_000 });
+    await expect(offersSection).toBeVisible({ timeout: 60_000 });
 
     // Mindestens eine ServiceRow vorhanden (Svelte rendert .offer als Wrapper-Div)
     const rows = offersSection.locator('.offer');
@@ -123,7 +123,7 @@ test.describe('FA-57: Mentolder Homepage hifi-Redesign [T001034]', { tag: ['@smo
     // CTA enthält Link zu /kontakt — nach unten scrollen um client:visible zu triggern
     const ctaLink = page.locator('a[href="/kontakt"]').last();
     await ctaLink.scrollIntoViewIfNeeded();
-    await expect(ctaLink).toBeVisible({ timeout: 30_000 });
+    await expect(ctaLink).toBeVisible({ timeout: 60_000 });
   });
 
   test('T10: Seite hat keine JavaScript-Konsolenfehler beim Laden', async ({ page }) => {

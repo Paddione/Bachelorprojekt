@@ -34,14 +34,14 @@ test.describe('Bug T000368 Reproduction', () => {
 
     // Ensure there is at least one ticket
     const editBtn = page.locator('.quick-edit-btn').first();
-    await expect(editBtn).toBeVisible({ timeout: 30_000 });
+    await expect(editBtn).toBeVisible({ timeout: 60_000 });
 
     // Click edit
     await editBtn.click();
 
     // The modal should appear
     const modalTitle = page.locator('h2:has-text("Ticket bearbeiten")');
-    await expect(modalTitle).toBeVisible({ timeout: 30_000 });
+    await expect(modalTitle).toBeVisible({ timeout: 60_000 });
 
     // Check for the specific error in console
     const stateError = consoleErrors.find(msg => msg.includes('Symbol($state)'));

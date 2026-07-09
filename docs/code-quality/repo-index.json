@@ -2838,7 +2838,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 498,
+      "file_count": 497,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3194,7 +3194,6 @@
         "scripts/migrate-docs-style.mjs",
         "scripts/migrate-eur-on-payment.ts",
         "scripts/migrate-factory.mjs",
-        "scripts/migrate-factory.test.mjs",
         "scripts/migrate-homepage-blocks.mjs",
         "scripts/migrate-lib.sh",
         "scripts/migrate-projects-to-tickets.mjs",

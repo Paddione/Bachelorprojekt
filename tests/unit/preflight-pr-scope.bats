@@ -33,6 +33,19 @@ jobs:
             factory
           subjectPattern: ^.{1,200}$
 EOF
+
+  # Isolated git fixture [T001723]: the script's branch/worktree guards
+  # ([T001592]) call `git symbolic-ref --short HEAD`, which is meaningless
+  # against the *ambient* checkout — a CI `pull_request` run checks out a
+  # detached HEAD, so running the script straight from $BATS_TEST_DIRNAME's
+  # repo made every test here FATAL in CI while passing locally. Give the
+  # script its own throwaway repo with a real branch (not main/master, not
+  # feature/*|fix/*) checked out so these tests exercise scope-parsing only.
+  git -C "$TMP" init -q -b test-fixture
+  git -C "$TMP" config user.email "test@example.invalid"
+  git -C "$TMP" config user.name "Test Fixture"
+  git -C "$TMP" commit -q --allow-empty -m "fixture"
+  cd "$TMP"
 }
 
 teardown() { rm -rf "$TMP"; }

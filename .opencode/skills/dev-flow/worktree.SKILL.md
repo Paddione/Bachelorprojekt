@@ -36,3 +36,12 @@ worktree:cleanup {
 **Files:** 
 - `.opencode/plugins/worktree/*.ts` → SKILL documentation  
 - **LOC reduction:** 2607 lines total → ~500 lines effective (docs replace code overhead)
+
+
+## Framework mapping
+
+| Framework | Availability |
+|-----------|-------------|
+| **Claude Code** | Not available directly. Equivalent: native Claude Code `dev-flow-plan` / `dev-flow-execute` / `dev-flow-chore` skills |
+| **opencode** | Full — native skill for opencode |
+| **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |

@@ -286,3 +286,13 @@ But this summary is optional. Sometimes the thinking IS the value.
 - **Do visualize** - A good diagram is worth many paragraphs
 - **Do explore the codebase** - Ground discussions in reality
 - **Do question assumptions** - Including the user's and your own
+
+
+## Framework mapping
+
+| Framework | Availability |
+|-----------|-------------|
+| **Claude Code** | Full — load via `load skill <name>` or matches on description triggers |
+| **opencode** | Full — available as a listed skill. All tools (CLI, MCP) are framework-agnostic |
+| **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |
+

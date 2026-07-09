@@ -50,3 +50,13 @@ Vitest is a next-generation testing framework powered by Vite. It provides a Jes
 | Environments | Test environments: node, jsdom, happy-dom, custom | [advanced-environments](references/advanced-environments.md) |
 | Type Testing | Type-level testing with expectTypeOf and assertType | [advanced-type-testing](references/advanced-type-testing.md) |
 | Projects | Multi-project workspaces, different configs per project | [advanced-projects](references/advanced-projects.md) |
+
+
+## Framework mapping
+
+| Framework | Availability |
+|-----------|-------------|
+| **Claude Code** | Full — load via `load skill <name>` or matches on description triggers |
+| **opencode** | Full — available as a listed skill. All tools (CLI, MCP) are framework-agnostic |
+| **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |
+

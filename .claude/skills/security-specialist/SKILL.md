@@ -87,3 +87,13 @@ Wenn du blockiert bist — fehlender Kontext, mehrdeutige Anforderung, nicht auf
 
 ## Active plans
 The orchestrator injects an `<active-plans>` block for security-tagged plans. If no block was injected, no security-specific plan is in flight; do not query `superpowers.plans` as a fallback — that table is frozen historical data (tracking pipeline removed in PRs #788/#993).
+
+
+## Framework mapping
+
+| Framework | Availability |
+|-----------|-------------|
+| **Claude Code** | Full — load via `load skill <name>` or matches on description triggers |
+| **opencode** | Full — available as a listed skill. All tools (CLI, MCP) are framework-agnostic |
+| **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |
+

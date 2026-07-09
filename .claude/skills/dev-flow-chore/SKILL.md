@@ -168,3 +168,13 @@ Nur wenn die Chore deploybare Pfade berührt — Mapping in
 
 Melde alle aufgetretenen Fehler oder Prozess-Frictionen am Ende über `mishap-tracker`
 (Invoke `mishap-tracker` with your accumulated MISHAP_LOG).
+
+
+## Framework mapping
+
+| Framework | Availability |
+|-----------|-------------|
+| **Claude Code** | Full — load via `load skill <name>` or matches on description triggers |
+| **opencode** | Full — available as a listed skill. All tools (CLI, MCP) are framework-agnostic |
+| **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |
+

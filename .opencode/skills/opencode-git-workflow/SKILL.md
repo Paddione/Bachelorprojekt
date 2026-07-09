@@ -210,3 +210,12 @@ bash scripts/worktree-create.sh <branch> .worktrees/<slug>
 | `opencode-flow-execute` | Feature/Fix-Ablauf (nutzt diesen Skill intern) |
 | `scripts/worktree-create.sh` | Git-crypt-safe worktree creator |
 | `worktree.ts` Plugin | Opencode-native primitive (git-crypt-limited) |
+
+
+## Framework mapping
+
+| Framework | Availability |
+|-----------|-------------|
+| **Claude Code** | Not available directly. Equivalent: native Claude Code `dev-flow-plan` / `dev-flow-execute` / `dev-flow-chore` skills |
+| **opencode** | Full — native skill for opencode |
+| **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |

@@ -117,3 +117,13 @@ After completing all artifacts, summarize:
 - If context is critically unclear, ask the user - but prefer making reasonable decisions to keep momentum
 - If a change with that name already exists, ask if user wants to continue it or create a new one
 - Verify each artifact file exists after writing before proceeding to next
+
+
+## Framework mapping
+
+| Framework | Availability |
+|-----------|-------------|
+| **Claude Code** | Full — load via `load skill <name>` or matches on description triggers |
+| **opencode** | Full — available as a listed skill. All tools (CLI, MCP) are framework-agnostic |
+| **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |
+

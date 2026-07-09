@@ -255,3 +255,13 @@ Lebenszyklus-SSOT: [session-coordination](file:///home/patrick/Bachelorprojekt/.
 | `superpowers:finishing-a-development-branch` | Optionen nach Implementierung |
 | `dev-flow-chore` | Chore-Ablauf (nutzt diesen Skill intern) |
 | `dev-flow-execute` | Feature/Fix-Ablauf (nutzt diesen Skill intern) |
+
+
+## Framework mapping
+
+| Framework | Availability |
+|-----------|-------------|
+| **Claude Code** | Full — load via `load skill <name>` or matches on description triggers |
+| **opencode** | Full — available as a listed skill. All tools (CLI, MCP) are framework-agnostic |
+| **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |
+

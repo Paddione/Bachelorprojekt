@@ -53,3 +53,13 @@ Both sub-skills carry the mishap tracking preamble. After completing either, inv
 | `mishap-tracker` | Converts execution mishaps to tickets |
 
 > This skill was split from a combined runbook. If you find you need content from the other sub-skill frequently, consider running them in sequence.
+
+
+## Framework mapping
+
+| Framework | Availability |
+|-----------|-------------|
+| **Claude Code** | Full — load via `load skill <name>` or matches on description triggers |
+| **opencode** | Full — available as a listed skill. All tools (CLI, MCP) are framework-agnostic |
+| **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |
+

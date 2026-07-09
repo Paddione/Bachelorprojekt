@@ -32,3 +32,12 @@ delegation_read("elegant-blue-tiger")
 
 **File:** `.opencode/plugins/background-agents.ts` → SKILL documentation  
 **LOC:** 1983 lines → SKILL doc reduces effective count by ~200 lines (metadata/boilerplate removed)
+
+
+## Framework mapping
+
+| Framework | Availability |
+|-----------|-------------|
+| **Claude Code** | Not available directly. Equivalent: native Claude Code `dev-flow-plan` / `dev-flow-execute` / `dev-flow-chore` skills |
+| **opencode** | Full — native skill for opencode |
+| **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |

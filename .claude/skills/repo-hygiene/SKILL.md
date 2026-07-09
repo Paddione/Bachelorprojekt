@@ -43,3 +43,13 @@ After completing all steps in this skill, invoke `mishap-tracker` with your accu
 | `operations-management` | Routing hub that dispatches repository housekeeping |
 | `ticket-ops` | Handles completeness triage and human clarification (Phase 4 = dieselbe SSOT-Reference) |
 | `mishap-tracker` | Converts execution mishaps to tickets |
+
+
+## Framework mapping
+
+| Framework | Availability |
+|-----------|-------------|
+| **Claude Code** | Full — load via `load skill <name>` or matches on description triggers |
+| **opencode** | Full — available as a listed skill. All tools (CLI, MCP) are framework-agnostic |
+| **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |
+

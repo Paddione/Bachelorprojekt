@@ -153,3 +153,12 @@ git push -u origin $(git branch --show-current)
 | `opencode-flow-chore` | Geschwister — Chores statt Features/Fixes |
 | `background-agents.ts` | Read-only Subagent für Plan-Schreiben |
 | `worktree.ts` / `scripts/worktree-create.sh` | Worktree-Erstellung (Wrapper nötig wg. git-crypt) |
+
+
+## Framework mapping
+
+| Framework | Availability |
+|-----------|-------------|
+| **Claude Code** | Not available directly. Equivalent: native Claude Code `dev-flow-plan` / `dev-flow-execute` / `dev-flow-chore` skills |
+| **opencode** | Full — native skill for opencode |
+| **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |

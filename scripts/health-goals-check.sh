@@ -87,6 +87,37 @@ print('\n'.join(sorted(d.get(k,{}).keys())))
 PY
 }
 
+# ── DB-Mess-Helfer (read-only; SKIP bei --fast oder wenn Cluster/Pod nicht erreichbar) ──
+DB_NS="${HG_DB_NS:-workspace}"; DB_CTX="${HG_DB_CTX:-fleet}"; PGPOD=""
+_db_pod() {
+  [ -n "$PGPOD" ] && { echo "$PGPOD"; return 0; }
+  command -v kubectl >/dev/null 2>&1 || return 1
+  PGPOD=$(kubectl get pod -n "$DB_NS" --context "$DB_CTX" --request-timeout=5s \
+            -l app=shared-db -o name 2>/dev/null | head -1)
+  [ -n "$PGPOD" ] && { echo "$PGPOD"; return 0; } || return 1
+}
+db_scalar() {
+  [ "$FAST" = 1 ] && { echo "-"; return; }
+  local pod; pod=$(_db_pod) || { echo "-"; return; }
+  local out
+  out=$(kubectl exec "$pod" -n "$DB_NS" --context "$DB_CTX" --request-timeout=15s \
+          -c postgres -- psql -U website -d website -tAc "$1" 2>/dev/null) || { echo "-"; return; }
+  out=$(printf '%s' "$out" | tr -d '[:space:]')
+  [[ "$out" =~ ^[0-9]+$ ]] && echo "$out" || echo "-"
+}
+db_backup_age_h() {
+  [ "$FAST" = 1 ] && { echo "-"; return; }
+  command -v kubectl >/dev/null 2>&1 || { echo "-"; return; }
+  local ts epoch now
+  ts=$(kubectl get jobs -n "$DB_NS" --context "$DB_CTX" --request-timeout=5s \
+         -o jsonpath='{range .items[?(@.status.succeeded==1)]}{.metadata.name}{" "}{.status.completionTime}{"\n"}{end}' 2>/dev/null \
+       | grep -E '^db-backup' | awk '{print $2}' | sort | tail -1)
+  [ -n "$ts" ] || { echo "-"; return; }
+  epoch=$(date -u -d "$ts" +%s 2>/dev/null) || { echo "-"; return; }
+  now=$(date -u +%s)
+  echo $(( (now - epoch) / 3600 ))
+}
+
 [ "$QUIET" = 0 ] && printf "%sRepository-Health — reproduzierbare Ziele (.claude/lib/goals.md)%s\n\n" "$C_B" "$C_X"
 
 # ── GATES (müssen grün sein) ───────────────────────────────────────────────────
@@ -218,6 +249,13 @@ row gate G-AGENTIC17 "$(
   if [ "$cfg" -ge 2 ]; then echo "$orph"; else echo 99; fi
 )" le 0 "Command-Orphans via S4 (Config-Guard)"
 
+# ── DB-Gesundheit — GATES ──
+row gate G-DB06 "$(db_scalar "SELECT
+  (SELECT count(*) FROM tickets.ticket_plans p    WHERE p.ticket_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM tickets.tickets t WHERE t.id=p.ticket_id))
++ (SELECT count(*) FROM tickets.ticket_comments c WHERE c.ticket_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM tickets.tickets t WHERE t.id=c.ticket_id))
++ (SELECT count(*) FROM tickets.ticket_links l    WHERE l.from_id  IS NOT NULL AND NOT EXISTS (SELECT 1 FROM tickets.tickets t WHERE t.id=l.from_id));")" eq 0 "Orphan-Rows (ticket_plans/comments/links → tickets)"
+row gate G-DB04 "$(db_backup_age_h)" le 26 "Backup-Alter (h) seit letztem erfolgr. db-backup-Job — T001738"
+
 # ── TARGETS (Reduktionsziele in Arbeit) ────────────────────────────────────────
 [ "$QUIET" = 0 ] && printf "\n%sTARGETS (Reduktion)%s\n" "$C_B" "$C_X"
 
@@ -259,6 +297,22 @@ if [ "$FAST" = 0 ] && command -v pnpm >/dev/null 2>&1; then
 else
   row target G-TEST05 "-" ge 60 "Vitest Line-Coverage website/src/lib (--fast übersprungen)"
 fi
+
+# ── DB-Gesundheit — TARGETS ──
+row target G-DB01 "$(db_scalar "WITH fk AS (
+    SELECT c.conrelid AS relid, c.conkey[1] AS col FROM pg_constraint c
+    JOIN pg_class t ON t.oid=c.conrelid JOIN pg_namespace n ON n.oid=t.relnamespace
+    WHERE c.contype='f' AND n.nspname NOT IN ('pg_catalog','information_schema') AND array_length(c.conkey,1)=1),
+  idx AS (SELECT i.indrelid AS relid, i.indkey[0] AS col FROM pg_index i)
+  SELECT count(*) FROM (SELECT relid,col FROM fk EXCEPT SELECT relid,col FROM idx) x;")" le 0 "FK-Spalten ohne Index"
+row target G-DB03 "$(db_scalar "SELECT
+    (SELECT count(DISTINCT table_schema||'.'||table_name) FROM information_schema.columns
+       WHERE column_name='brand' AND table_schema NOT IN ('pg_catalog','information_schema'))
+  - (SELECT count(DISTINCT conrelid) FROM pg_constraint
+       WHERE contype='c' AND pg_get_constraintdef(oid) ILIKE '%brand%' AND pg_get_constraintdef(oid) ILIKE '%mentolder%');")" le 0 "brand-Spalten ohne CHECK-Constraint (messen)"
+row target G-DB08 "$(db_scalar "SELECT count(*) FROM pg_stat_user_tables
+    WHERE n_live_tup>10000 AND seq_scan>0
+      AND (seq_scan::numeric/NULLIF(seq_scan+idx_scan,0))>0.05;")" le 3 "Tabellen >10k Rows mit Seq-Scan-Anteil >5% (messen)"
 
 # ── Zusammenfassung ────────────────────────────────────────────────────────────
 TOTAL=$((PASS+OPEN+GATEFAIL+SKIP))

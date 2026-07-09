@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.173.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.172.3...website-v1.173.0) (2026-07-09)
+
+
+### Features
+
+* **db:** add 5 DB quality goals G-DB01/03/04/06/08 [T001739] ([#2711](https://github.com/Paddione/Bachelorprojekt/issues/2711)) ([73ec7a3](https://github.com/Paddione/Bachelorprojekt/commit/73ec7a39c333dd89a73fb74ba26135374d72cb65))
+
+
+### Documentation
+
+* **plans:** add design spec + openspec proposal for agent-model-slots [T001733] ([#2709](https://github.com/Paddione/Bachelorprojekt/issues/2709)) ([da6ae4d](https://github.com/Paddione/Bachelorprojekt/commit/da6ae4dd438acf69e75ede0c99052e64619c5c95))
+
 ## [1.172.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.172.2...website-v1.172.3) (2026-07-09)
 
 

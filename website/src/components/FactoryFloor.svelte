@@ -27,6 +27,7 @@
   import type { CiRollup } from '../lib/factory-ci';
   import { SSE_RECONNECT_MS } from '../lib/factory-constants';
   import { relTime, prUrl, ticketUrl, planUrl, prioDot } from '../lib/factory-floor-client';
+  import { logger } from '../lib/logger';
 
   let { initial }: { initial: FloorPayload | null } = $props();
 
@@ -103,7 +104,7 @@
         catalog = c ?? [];
       }
     } catch (err) {
-      console.error('Failed to load providers:', err);
+      logger.error('Failed to load providers:', err);
     }
   }
 

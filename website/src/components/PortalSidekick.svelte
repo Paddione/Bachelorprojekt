@@ -15,6 +15,7 @@
   import { parseNavigateEvent } from '../lib/assistant/sidekick-nudge';
   import { registerBrowserLogCapture } from '../lib/logging/browser-collector';
   import { addEntry } from '../lib/logging/log-store';
+  import { logger } from '../lib/logger';
 
   type View = 'home' | 'support' | 'questionnaire' | 'help' | 'agent-guide' | 'mediaviewer' | 'terminal' | 'cockpit' | 'ai-quality' | 'logs' | 'agent-settings';
 
@@ -94,7 +95,7 @@
         settings.killSwitch = !!data.killSwitch;
       }
     } catch (e) {
-      console.error('Failed to fetch settings:', e);
+      logger.error('Failed to fetch settings:', e);
     } finally {
       settingsLoading = false;
     }
@@ -109,7 +110,7 @@
         body: JSON.stringify(settings),
       });
     } catch (e) {
-      console.error('Failed to save settings:', e);
+      logger.error('Failed to save settings:', e);
     }
   }
 

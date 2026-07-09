@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.172.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.172.2...website-v1.172.3) (2026-07-09)
+
+
+### Bug Fixes
+
+* **website:** set avatarSrc in static fallback config to prevent drift [T001687] ([#2697](https://github.com/Paddione/Bachelorprojekt/issues/2697)) ([0918d7a](https://github.com/Paddione/Bachelorprojekt/commit/0918d7a783ae49a1491e90bff6ecbfe54718885b))
+
 ## [1.172.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.172.1...website-v1.172.2) (2026-07-09)
 
 

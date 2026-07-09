@@ -24,4 +24,14 @@ describe('content-bundle', () => {
       expect(stammdaten.name.length).toBeGreaterThan(0);
     }
   });
+
+  it('mentolder hero avatar is Gerald\'s real photo, not the placeholder illustration [T001561]', () => {
+    // Regression guard: fb4826963 silently reverted this to the SVG
+    // placeholder by re-running the one-shot DB export against a DB
+    // that lacked the T001561 admin override. The content bundle is
+    // now the git-tracked SSOT for this field — pin the value so any
+    // future re-export (or manual edit) that loses it fails CI.
+    const hp = loadDomain('mentolder', 'homepage');
+    expect(hp.avatarSrc).toBe('/gerald.jpg');
+  });
 });

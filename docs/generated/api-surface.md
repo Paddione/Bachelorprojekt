@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-07-08T12:45:01.041Z
+> Generated at 2026-07-09T14:51:04.352Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -336,6 +336,7 @@
 | `/api/bug-report` | POST | ❓ unclassified | `website/src/pages/api/bug-report.ts` |
 | `/api/calendar/slots` | GET | ❓ unclassified | `website/src/pages/api/calendar/slots.ts` |
 | `/api/cluster/status` | GET | ❓ unclassified | `website/src/pages/api/cluster/status.ts` |
+| `/api/coaching/sessions` | GET | 🔐 admin | `website/src/pages/api/coaching/sessions/index.ts` |
 | `/api/codesearch` | GET | 🔐 admin | `website/src/pages/api/codesearch.ts` |
 | `/api/contact` | POST | ❓ unclassified | `website/src/pages/api/contact.ts` |
 | `/api/cron/error-log-retention` | POST | ⏰ cron | `website/src/pages/api/cron/error-log-retention.ts` |

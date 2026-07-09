@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-08T12:45:01.041Z",
+  "generatedAt": "2026-07-09T14:51:04.352Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -2717,6 +2717,14 @@
       ],
       "auth": "unclassified",
       "file": "website/src/pages/api/cluster/status.ts"
+    },
+    {
+      "path": "/api/coaching/sessions",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/coaching/sessions/index.ts"
     },
     {
       "path": "/api/codesearch",

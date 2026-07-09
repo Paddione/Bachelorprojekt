@@ -151,7 +151,16 @@ if [ "$BRANCH_EXISTS" -eq 1 ] && [ -f "$KEY_SRC" ]; then
 fi
 
 # 2) Init submodules (git worktree add does NOT; the BATS runner lives in one).
-git -C "$WT_PATH" submodule update --init --recursive --quiet
+git -C "$WT_PATH" submodule update --init --recursive --quiet || {
+    echo "worktree-create: submodule update failed — attempting local copy fallback" >&2
+    for sm in tests/unit/lib/bats-core tests/unit/lib/bats-file tests/unit/lib/bats-support tests/unit/lib/bats-assert; do
+        if [ -d "$MAIN_ROOT/$sm" ]; then
+            rm -rf "$WT_PATH/$sm"
+            cp -r "$MAIN_ROOT/$sm" "$WT_PATH/$sm"
+        fi
+    done
+}
+
 
 # 3) node_modules: git worktrees don't share the gitignored root node_modules,
 #    and several `task test:all` subtasks (test:docs-gen, test:agent-guide) import

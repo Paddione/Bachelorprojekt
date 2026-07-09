@@ -7,6 +7,7 @@ import { MixedEmbeddingModelError } from './knowledge-db';
 import { initProviderConfigSchema } from './schema/provider-config-schema';
 import { applyTicketsCoreSchema } from './tickets/tables/tickets';
 import { applyFactoryControlSchema } from './tickets/tables/factory-control';
+import { applyFactoryModelSlotsSchema } from './tickets/tables/factory-model-slots';
 import { applySystemtestLinkback } from './tickets/tables/systemtest-linkback';
 import { applyLegacyMigrations } from './tickets/migrations';
 
@@ -28,6 +29,7 @@ export async function initTicketsSchema(): Promise<void> {
         await pool.query(`CREATE SCHEMA IF NOT EXISTS tickets AUTHORIZATION website`);
         await applyTicketsCoreSchema(pool);
         await applyFactoryControlSchema(pool);
+        await applyFactoryModelSlotsSchema(pool);
         await applySystemtestLinkback(pool);
         await applyLegacyMigrations(pool);
         await initProviderConfigSchema(client);

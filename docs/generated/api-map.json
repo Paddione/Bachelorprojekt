@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-08T12:45:01.041Z",
+  "generatedAt": "2026-07-09T19:30:06.214Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -2846,6 +2846,15 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/factory-metrics.ts"
+    },
+    {
+      "path": "/api/factory-model-slots",
+      "methods": [
+        "GET",
+        "PUT"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/factory-model-slots.ts"
     },
     {
       "path": "/api/factory-observability",

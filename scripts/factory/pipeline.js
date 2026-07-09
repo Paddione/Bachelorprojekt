@@ -27,7 +27,7 @@ const { resolveTaskSource } = require('./task-source.cjs')
 // driver. The auto-emission dedup makes double-emission harmless; this is the
 // safety net for driver attribution when dedup does not apply (T001444).
 if (!process.env.TICKET_PHASE_DRIVER) process.env.TICKET_PHASE_DRIVER = 'factory'
-function routeProviderSync(source, tier) {
+function routeProviderSync(source, tier, phase) {
   if (tier === 'opus') return { provider: 'anthropic', modelId: 'claude-opus-4-6', baseUrl: null, slotId: null, ctx: 0, emergency: false }
   if (process.env.ANTHROPIC_MODEL) {
     return { provider: 'anthropic-compat', modelId: process.env.ANTHROPIC_MODEL,
@@ -35,11 +35,13 @@ function routeProviderSync(source, tier) {
   }
   try {
     const { execFileSync } = require('child_process')
-    const out = execFileSync('bash', [`${REPO}/scripts/factory/route-provider.sh`, source, tier],
+    const args = [`${REPO}/scripts/factory/route-provider.sh`, source, tier]
+    if (phase) args.push(phase)
+    const out = execFileSync('bash', args,
       { encoding: 'utf8', timeout: 20000, env: { ...process.env, BRAND: brand } }).trim()
     return JSON.parse(out)
   } catch (e) {
-    log(`routeProvider(${source},${tier}) failed -> emergency anthropic-sonnet: ${e.message}`)
+    log(`routeProvider(${source},${tier},${phase || ''}) failed -> emergency anthropic-sonnet: ${e.message}`)
     return { provider: 'anthropic', modelId: 'claude-sonnet-4-6', baseUrl: null, slotId: null, ctx: 0, emergency: true }
   }
 }
@@ -136,7 +138,7 @@ if (A.batch_mode === true && Array.isArray(A.sub_features)) {
 
   const subResults = await parallel(A.sub_features.map((sf) => () => {
     const sfProv = D.provision({ complexity: sf.complexity || 'medium', role: 'implement', risk: (sf.assignedFiles?.some((f) => /\.sql$|^k3d\/|^environments\/|realm.*\.json/.test(f)) ? 'high' : 'low'), budgetRemaining: 1, ticketId: A.ticket_id, touchedFiles: sf.assignedFiles || [], gpuEmbeddings: false })
-    const sfRoute = routeProviderSync('factory-implement', routerTier(sfProv.model))
+    const sfRoute = routeProviderSync('factory-implement', routerTier(sfProv.model), 'implement')
     return agent(
       `Liveness: \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`.
        Implement sub-feature ${sf.id} — ${sf.title} in the shared worktree ${WORK_WT}
@@ -287,7 +289,7 @@ if (!isSimple) {
   }
 
   const planProv = D.provision({ complexity: scout.complexity, role: 'plan', risk: (scout.risk_areas?.length ? 'high' : 'low'), budgetRemaining: 1, ticketId: A.ticket_id, touchedFiles: scout.touched_files, gpuEmbeddings: false })
-  const planRoute = routeProviderSync('factory-plan', routerTier(planProv.model))
+  const planRoute = routeProviderSync('factory-plan', routerTier(planProv.model), 'plan')
   const plan = await agent(
     `/goal Decompose specification into task list plan.
      Decompose the spec at ${specPath} into independent tasks where no two tasks
@@ -392,7 +394,7 @@ if (tasks.length && !A.batch_mode) {
 
   for (const t of tasks) {
     const prov = D.provision({ complexity: featureComplexity, role: 'implement', risk: (t.target_files?.some((f) => /\.sql$|^k3d\/|^environments\/|realm.*\.json/.test(f)) ? 'high' : 'low'), budgetRemaining: 1, ticketId: A.ticket_id, touchedFiles: t.target_files, gpuEmbeddings: false })
-    const route = routeProviderSync('factory-implement', routerTier(prov.model))
+    const route = routeProviderSync('factory-implement', routerTier(prov.model), 'implement')
     const aciToolHint = ACI ? [
       'Use the ACI tool set for file operations:',
       '  aci_view <file> [start:end]  - view numbered lines (focused reading, max 80 lines)',
@@ -488,7 +490,7 @@ if (!cleanDiff || !String(cleanDiff).trim()) {
   const lenses = tierLenses.map((key) => ({ key, file: ALL_LENSES[key] }))
 
   reviews = (await parallel(lenses.map((l) => () => {
-    const route = routeProviderSync('factory-review', 'opus')
+    const route = routeProviderSync('factory-review', 'opus', 'verify')
     return agent(
       `/goal Perform verification review lens: ${l.key}.
        Liveness: \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then review at ${REPO}/${l.file} against: git -C ${WORK_WT} diff origin/main...HEAD. Return findings as JSON per the prompt's schema.` + consumeInjections('verify'),
@@ -537,7 +539,7 @@ if (!cleanDiff || !String(cleanDiff).trim()) {
         findings: { type: 'array', items: { type: 'object' } },
       },
     }
-    const coordRoute = routeProviderSync('factory-review', 'opus')
+    const coordRoute = routeProviderSync('factory-review', 'opus', 'verify')
     const coord = await agent(
       `Read ${REPO}/scripts/factory/review-coordinator.prompt.md and apply to these lens findings. Return ONE consolidated JSON with "verdict" field.\n${xml}`,
       { label: 'review:coordinator', phase: 'Verify', schema: COORDINATOR_SCHEMA, model: coordRoute.modelId },

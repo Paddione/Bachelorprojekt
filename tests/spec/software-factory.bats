@@ -3137,3 +3137,8 @@ STUB
   run bash -c "grep 'assert-phase-chain' '$SKILL' | grep -q '|| true'"
   [ "$status" -ne 0 ]
 }
+
+@test "FA-SF-72: route-provider.sh queries factory_model_slots and accepts a phase argument" {
+  grep -q "tickets.factory_model_slots" scripts/factory/route-provider.sh
+  grep -Eq "PHASE=" scripts/factory/route-provider.sh
+}

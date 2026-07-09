@@ -1,0 +1,22 @@
+# scripts/mcp-gateway/mcp-gateway.service
+# mcp-gateway — systemd USER service. Long-running `kubectl port-forward` to
+# svc/claude-code-mcp-monolith (fleet cluster, default ns), exposing
+# mcp-kubernetes (127.0.0.1:18080) and mcp-postgres (127.0.0.1:13001) —
+# ports 13000/13002 are forwarded too for parity with the service's other
+# exposed ports but have no MCP client wired to them yet.
+# Installed/managed via `task agents:mcp-gateway:install` (symlinked into
+# ~/.config/systemd/user/).
+[Unit]
+Description=MCP gateway port-forward (mcp-kubernetes :18080, mcp-postgres :13001)
+Documentation=file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/patrick/Bachelorprojekt
+ExecStart=/usr/bin/kubectl --context fleet port-forward -n default svc/claude-code-mcp-monolith 18080:8080 13000:3000 13001:3001 13002:3002
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=default.target

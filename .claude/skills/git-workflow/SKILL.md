@@ -177,7 +177,7 @@ Kurzfassung:
 
 > **Freshness-Auto-Regen-Race [T001395]:** Bleibt ein PR über einen geplanten
 > Freshness-Auto-Regen-Zyklus offen, committet der Scheduler eigenständig Änderungen an
-> generierten Artefakten (`docs/code-quality/loc-budget.json` u. ä.) auf `main` — der PR kippt
+> generierten Artefakten (`docs/code-quality/repo-index.json` u. ä.) auf `main` — der PR kippt
 > dann auf `CONFLICTING`, ohne dass ein Mensch etwas geändert hat (beobachtet in T001378). Das
 > ist kein echter Merge-Konflikt: kurz halten (PRs zügig mergen) minimiert das Risiko; tritt es
 > trotzdem auf, den normalen Rebase-Schritt (oben) um `task freshness:regenerate` ergänzen, BEVOR

@@ -1,0 +1,21 @@
+# scripts/factory/mcp-go/factory-mcp.service
+# Factory MCP — systemd USER service. Long-running Streamable-HTTP MCP
+# server on 127.0.0.1:13003 (see README.md). Installed/managed via
+# `task agents:factory-mcp:install` (symlinked into ~/.config/systemd/user/).
+[Unit]
+Description=Factory MCP server (Streamable-HTTP, 127.0.0.1:13003)
+Documentation=file:///home/patrick/Bachelorprojekt/scripts/factory/mcp-go/README.md
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/patrick/Bachelorprojekt
+ExecStart=/home/patrick/Bachelorprojekt/scripts/factory/mcp-go/bin/factory-mcp
+Restart=always
+RestartSec=3
+# Same env surface as the manual `task agents:factory-mcp:start` run
+# (FACTORY_REPO/FACTORY_LLM_URL/etc. — see README.md); optional override file.
+EnvironmentFile=-%h/.config/factory/autopilot.env
+
+[Install]
+WantedBy=default.target

@@ -28,19 +28,6 @@ Ein Ziel ohne reproduzierbaren Mess-Befehl ist kein Ziel, sondern ein Wunsch.
 Sofort angehen. Ticket-Erstellung ist **bewusst manuell** (`scripts/health-goals-update.sh
 --suggest-tickets`, dedupliziert gegen offene Tickets) — kein Ziel erzeugt automatisch ein Ticket.
 
-## G-SIZE04 — Netto-Quell-LOC/Woche: +325521 → ≤ +2000 ⚠️ OVER BUDGET
-
-**Was:** Netto-Zeilenänderung/Woche. Budget ≤ +2000 lässt normale Feature-Arbeit zu. Aktuell +325.521 (war +324.494) — weiterhin **stark inflated durch die `.opencode/`-Plugin-Dateien** (background-agents.ts, worktree.ts) und codebase-memory-MCP-Infrastruktur, die innerhalb des 7-Tage-Fensters bleiben; die Top-Diffs der aktuellen Woche liegen aber bereits wieder bei normaler Feature-Arbeit (`website/src/pages/index.astro`, `AdminSidebarNav.astro`, Billing-API-Routen). **Shallow-Clone:** Graft-Commit muss via `--since="2026-06-24"` ausgeschlossen werden.
-
-```bash
-git log --since="2026-06-24" --no-merges --numstat --pretty=tformat: \
-  -- '*.ts' '*.tsx' '*.svelte' '*.astro' '*.js' '*.mjs' '*.cjs' '*.sh' '*.py' \
-  ':(exclude)**/node_modules/**' \
-  | awk 'NF==3 && $1!="-"{a+=$1;d+=$2} END{printf "net=%+d (added=%d deleted=%d)\n",a-d,a,d}'
-```
-
-> **A · Baseline:** +325.521 LOC/Wo (war +324.494; weiterhin Spike-Fenster durch .opencode/-Infrastruktur-Additions) · **Target:** ≤ +2000/Wo · **Aufwand:** Policy/Analyse · **Messzyklus:** wöchentlich · **Reproduzierbar:** eingeschränkt (Shallow + Graft-Ausschluss nötig) · Ticket: T001347 (Nachfolger von T001280, das ohne nachhaltige Messwert-Verbesserung als done geschlossen wurde)
-
 ---
 
 ## G-GIT03 — Dateien > 1MB im Tree (kein LFS): 6 → ≤ 6 ✅
@@ -248,7 +235,6 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-CQ10** | S4 verwaiste Scripts | 0 ✓ | ≤ 4 | `python3 -c "..S4-Gate.." < docs/code-quality/baseline.json` |
 | **G-CQ09** | S3 hartkodierte Hostnames | 0 ✓ | ≤ 10 | `python3 -c "..S3-Gate.." < docs/code-quality/baseline.json` |
 | **G-CQ10** | S4 verwaiste Scripts | 0 ✓ | ≤ 4 | `python3 -c "..S4-Gate.." < docs/code-quality/baseline.json` |
-| **G-SIZE01** | Freeze-Frühwarn-Band (80–100 % S1) | 0 ✓ | ≤ 15 | `python3 -c "import json; d=json.load(open('docs/code-quality/loc-budget.json')); print(sum(1 for v in d.values() if isinstance(v,dict) and v.get('pct_used',0)>=80))"` |
 | **G-SIZE03** | God-File `website/src/lib/website-db.ts` | 1957 ✓ | ≤ 3000 | `wc -l < website/src/lib/website-db.ts` |
 | **G-GIT01** | Offene PRs >7 Tage | 0 ✓ | 0 | `gh pr list --state open --json number,createdAt` |
 | **G-DEP01** | High/Critical npm-Vulnerabilities | 0 ✓ | 0 | `cd website && pnpm audit --json 2>/dev/null \| python3 -c "..."` |
@@ -317,10 +303,8 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 **Messzyklus:**
 - **Pro Merge (CI-Gate):** G-RH02/07, G-TEST02/04, G-CQ04, G-SEC01/02, G-K8S04, G-CFG01, G-CI02, G-GIT02, G-SPEC01
 - **Täglich:** G-RH06, G-CI02, G-DATA01, G-GIT01
-- **Wöchentlich:** G-RH01/03, G-TEST01/03, G-SIZE01/03/04, G-CI01, G-CD01, G-CQ02/05, G-IMG01, G-K8S03, G-SPEC03, G-GIT03, G-FE03/04
+- **Wöchentlich:** G-RH01/03, G-TEST01/03, G-SIZE03, G-CI01, G-CD01, G-CQ02/05, G-IMG01, G-K8S03, G-SPEC03, G-GIT03, G-FE03/04
 - **Monatlich/Quartal:** G-DEP02, G-SEC03/04, G-DOC02, G-FE01/02
-
-**Aktuell A-Ziele (2026-07-03):** G-SIZE04 (Spike-Fenster, T001347)
 
 **Sprint-Highlights 2026-07-01:** G-CI01 erreicht Target (85 %→95 %, 19/20 grün) und wechselt von Prio A nach Prio C. G-RH03 (OpenSpec-BATS-Abdeckung 50 %→82 %) und G-DEP02 (Major-Deps 9→2) erreichen ihr Target und wechseln von Prio B nach Prio C. G-CQ01 erstmals gemessen: 0 astro-check-Fehler. G-CQ02 (explizite `any`) fällt weiter von 154 auf 8. G-GIT03 (Dateien >1MB) erreicht Target 7→6 per Policy-Ausschluss von `.codebase-memory/` (T001348) und wechselt von Prio A nach Prio C. G-SEC05-Messfehler dokumentiert: das Skript filtert nur eine von zwei GitHub-Actions-Bot-Mail-Varianten heraus, wodurch 4 Bot-Commits fälschlich als unsigniert zählen — echter Wert 0/50, Skript-Fix noch offen.
 
@@ -340,7 +324,7 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 
 **Baseline-Update 2026-07-04:** G-CQ07 S2 Import-Zyklen 0 (baseline.json); G-CQ09 S3 Hostnames 0; G-CQ10 S4 Orphaned Scripts 0 — alle grün, Gates neu eingefügt.
 
-**Offene Tickets (2026-07-04):** G-SIZE04 (T001347), G-SIZE02 (T001556)
+**Offene Tickets (2026-07-04):** G-SIZE02 (T001556)
 
 | Ziel | Ticket | Status |
 |------|--------|--------|

@@ -46,7 +46,7 @@ This section aggregates known operational issues, gotchas, and workarounds for t
 **Rule**: Do not use `gh pr view --json state` or check status enums because the values do not reliably map to build results. Use text-based parsing of the checks list columns. `gh pr checks` itself does **not** support `--json` on the installed CLI version (2.45.0) — `gh pr checks --json name,state,link` fails silently and, if the exit code isn't checked, can make a watch script report "all green" while checks are actually still pending (observed in T001378; fixed in `scripts/devflow-ci-watch.sh` via [T001408]/#2441, which dropped `--json` from the `gh pr checks` call and now cross-checks real conclusions via `gh pr view --json statusCheckRollup`, erroring out loud instead of defaulting to success on parse failure). Any new CI-watch tooling must follow the same pattern: never treat a failed/parse-errored `gh` call as an implicit pass.
 
 ### [T001395] Freshness-Auto-Regen race → PR flips to CONFLICTING mid-flow
-**Context**: Scheduled freshness auto-regen (`docs/code-quality/loc-budget.json` and other generated
+**Context**: Scheduled freshness auto-regen (`docs/code-quality/repo-index.json` and other generated
 artifacts) commits directly to `main` on its own cadence. If a feature/fix/chore PR stays open across
 one of these auto-regen cycles, GitHub reports `mergeStateStatus=CONFLICTING` mid-flow even though no
 human touched the file — this happened during T001378 and required a manual rebase + regenerate +

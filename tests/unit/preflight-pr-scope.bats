@@ -82,3 +82,18 @@ teardown() { rm -rf "$TMP"; }
   run bash "$HELPER" "feat(db)!: breaking schema" "$FIXTURE"
   [ "$status" -eq 0 ]
 }
+
+@test "preflight: fix/* branch under a real .worktrees/ path is accepted [T001723]" {
+  # Regression: the T001592 worktree-enforcement check used the broken glob
+  # `*"\.worktrees/"*` (a literal backslash-dot inside a quoted pattern never
+  # matches), so it silently fell through to `*"/worktrees/"*` — which does
+  # NOT match a real `.worktrees/foo` path (leading dot). Every real worktree
+  # created by scripts/worktree-create.sh (the repo-mandated convention) was
+  # rejected with a FATAL.
+  WTREE="$TMP/.worktrees/fix-example"
+  mkdir -p "$WTREE"
+  git -C "$TMP" worktree add -q -b fix/example "$WTREE" test-fixture
+  cd "$WTREE"
+  run bash "$HELPER" "fix(ops): example" "$FIXTURE"
+  [ "$status" -eq 0 ]
+}

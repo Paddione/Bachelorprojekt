@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.170.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.169.1...website-v1.170.0) (2026-07-09)
+
+
+### Features
+
+* **agent-guide:** Harness-Integration in Sidekick UI ([#2672](https://github.com/Paddione/Bachelorprojekt/issues/2672)) ([9ae518d](https://github.com/Paddione/Bachelorprojekt/commit/9ae518dde155bfb800a98c3023d52c2c34237a56))
+* **coaching:** integrate real coaching sessions API into dashboard [T001659] ([db734df](https://github.com/Paddione/Bachelorprojekt/commit/db734df718ff1a07fed7a98b3eec1a2cd8c44501))
+
+
+### Bug Fixes
+
+* **website:** correct relative import path in coaching sessions API [T001685] ([#2680](https://github.com/Paddione/Bachelorprojekt/issues/2680)) ([61a3eae](https://github.com/Paddione/Bachelorprojekt/commit/61a3eae10b498463b31ba590fad84c3c04f96822))
+
 ## [1.169.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.169.0...website-v1.169.1) (2026-07-08)
 
 

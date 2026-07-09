@@ -53,7 +53,7 @@ git ls-files -z | grep -zv '^\.codebase-memory/' | xargs -0 -I{} sh -c 'test -f 
 ```
 
 **Policy-Entscheidung (T001348):** LFS-Migration von `graph.db.zst` wurde **nicht** umgesetzt (Option verworfen, nicht nur aufgeschoben):
-- `.github/workflows/codebase-memory-regen.yml` schreibt und pusht die Datei direkt (`git add`/`git commit`/`git push`) ohne jegliche LFS-Awareness — eine Migration würde einen zusätzlichen `git lfs install`/`git lfs push`-Schritt im Workflow erfordern.
+- Die Datei wird manuell via `task codebase:index` regeneriert (der automatische CI-Regen-Workflow `.github/workflows/codebase-memory-regen.yml` wurde entfernt, T001717) — ohne jegliche LFS-Awareness beim manuellen `git add`/`git commit`/`git push`; eine Migration würde einen zusätzlichen `git lfs install`/`git lfs push`-Schritt erfordern.
 - Lokal ist `git-lfs` auf der Entwicklungsumgebung aktuell nicht funktionsfähig ("git-lfs is broken") — Contributor-seitig bräuchte es Rollout/Doku, sonst checken sie nur Pointer-Dateien aus und der codebase-memory-mcp-Server bricht.
 - Zusätzlicher GitHub-LFS-Storage-Quota-Bedarf ohne erkennbaren Gegenwert für ein intern generiertes, `merge=ours`-Binärartefakt.
 - Zwei Vorgänger-Tickets (T001275, T001320) wurden bereits als `done` geschlossen, ohne die Migration durchzuführen — wiederholtes Aufschieben verbessert den Messwert nicht nachhaltig. Der Scope-Ausschluss macht das Ziel dauerhaft grün, statt das Problem ein drittes Mal zu vertagen.

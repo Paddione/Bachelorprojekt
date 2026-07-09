@@ -231,12 +231,13 @@ row target G-FE03 "$(grep -rEn 'console\.(error|warn)' website/src --include='*.
 row target G-FE04 "$(grep -rEn 'console\.(log|debug|info)' website/src --include='*.ts' --include='*.svelte' --include='*.astro' 2>/dev/null | grep -v 'browser-logger.ts' | grep -v '\.test\.ts' | wc -l | tr -d ' ')" eq 0 "Stray console.log/debug/info"
 row target G-SIZE03 "$( [ -f website/src/lib/website-db.ts ] && wc -l < website/src/lib/website-db.ts | tr -d ' ' || echo - )" le 3000 "God-File website-db.ts (Zeilen)"
 # .codebase-memory/ ist bewusst aus dem Scope ausgeschlossen (Policy-Entscheidung T001348):
-# graph.db.zst ist ein generiertes, `merge=ours` Binärartefakt (PR #2281), das von
-# .github/workflows/codebase-memory-regen.yml direkt geschrieben/gepusht wird — ohne LFS-Bewusstsein.
-# Eine LFS-Migration würde `git lfs install` im Regen-Workflow sowie lokal bei allen Contributoren
-# voraussetzen (hier lokal aktuell nicht funktionsfähig: "git-lfs is broken"), zusätzlich GitHub-LFS-
-# Storage-Quota. Zwei Vorgänger-Tickets (T001275, T001320) wurden geschlossen, ohne die Migration
-# tatsächlich durchzuführen — der Aufwand/Nutzen rechtfertigt sie für dieses Artefakt nicht.
+# graph.db.zst ist ein generiertes, `merge=ours` Binärartefakt (PR #2281), manuell via
+# `task codebase:index` regeneriert (der automatische CI-Regen-Workflow wurde entfernt, T001717)
+# — ohne LFS-Bewusstsein. Eine LFS-Migration würde `git lfs install` beim manuellen Regenerieren
+# sowie lokal bei allen Contributoren voraussetzen (hier lokal aktuell nicht funktionsfähig:
+# "git-lfs is broken"), zusätzlich GitHub-LFS-Storage-Quota. Zwei Vorgänger-Tickets (T001275,
+# T001320) wurden geschlossen, ohne die Migration tatsächlich durchzuführen — der Aufwand/Nutzen
+# rechtfertigt sie für dieses Artefakt nicht.
 row target G-GIT03 "$(git ls-files -z 2>/dev/null | grep -zv '^\.codebase-memory/' | xargs -0 -I{} sh -c 'test -f "{}" && wc -c "{}"' 2>/dev/null | awk '$1>1048576{c++} END{print c+0}')" le 6 "Dateien >1MB (kein LFS, exkl. .codebase-memory/ — T001348)"
 row target G-IMG01 "$(grep -rhE '^[[:space:]]*-?[[:space:]]*image:[[:space:]]+["'"'"']?[A-Za-z0-9$]' --include='*.yaml' --include='*.yml' k3d/ prod*/ 2>/dev/null | grep -v '@sha256' | grep -vE '^[[:space:]]*#' | grep -vE 'website|brett|videovault|mediaviewer-widget|mentolder-web|WEBSITE_IMAGE|STUDIO_IMAGE|STAGING_IMAGE|paddione' | sed -E 's/.*image:[[:space:]]*//; s/["'"'"']//g; s/[[:space:]]*#.*//' | sort -u | wc -l | tr -d ' ')" le 0 "ungepinnte Fremd-Images"
 row target G-DOC02 "$(wc -l < CLAUDE.md | tr -d ' ')" le 200 "CLAUDE.md Zeilen"

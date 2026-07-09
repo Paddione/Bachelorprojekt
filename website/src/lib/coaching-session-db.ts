@@ -38,11 +38,41 @@ interface ListSessionsOpts {
   pageSize?: number;
 }
 
+/**
+ * User-specific coaching sessions for authenticated coaches.
+ * Requires clientId to filter by the coach's assigned clients only.
+ */
+interface ListCoachSessionsOpts {
+  status?: string[];
+  sort?: 'title' | 'client_name' | 'created_at' | 'status';
+  order?: 'asc' | 'desc';
+  page?: number;
+  pageSize?: number;
+}
+
+interface ListCoachSessionsResult {
+  sessions: Session[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
 export interface ListSessionsResult {
   sessions: Session[];
   total: number;
   page: number;
   pageSize: number;
+}
+
+// @ts-ignore - Duplicate for API compatibility (keep ListSessionsResult exported)
+interface ListSessionsOpts {
+  q?: string;
+  status?: string[];
+  archived?: boolean;
+  sort?: 'title' | 'client_name' | 'created_at' | 'status';
+  order?: 'asc' | 'desc';
+  page?: number;
+  pageSize?: number;
 }
 
 export interface SessionStep {
@@ -208,6 +238,77 @@ export async function listSessions(
   );
 
   return { sessions: r.rows.map(row => rowToSession(row)), total, page, pageSize };
+}
+
+/**
+ * User-specific coaching sessions for authenticated coaches.
+ * Only accessible by non-admin users (coaches) via /api/coaching/sessions.
+ */
+export async function listCoachSessions(
+  pool: Pool,
+  brand: string,
+  clientId: string,
+  opts: ListCoachSessionsOpts = {},
+): Promise<ListCoachSessionsResult> {
+  const page = Math.max(1, opts.page ?? 1);
+  const pageSize = Math.min(100, Math.max(1, opts.pageSize ?? 20));
+  const offset = (page - 1) * pageSize;
+
+  const sortColMap: Record<string, string> = {
+    title: 's.title',
+    client_name: 'c.name',
+    created_at: 's.created_at',
+    status: 's.status',
+  };
+  const sortCol = sortColMap[opts.sort ?? 'created_at'] ?? 's.created_at';
+  const sortDir = opts.order === 'asc' ? 'ASC' : 'DESC';
+
+  // Coach can only see sessions for their assigned clients
+  const clientRes = await pool.query(
+    `SELECT DISTINCT c.id, p.customer_number
+     FROM coaching.sessions s
+     JOIN customers c ON c.id = s.client_id
+     LEFT JOIN projects p ON p.id = s.project_id AND p.brand = $1
+     WHERE c.active = true AND c.id = $2`,
+    [brand, clientId],
+  );
+
+  if (clientRes.rows.length === 0) {
+    return { sessions: [], total: 0, page, pageSize };
+  }
+
+  const clientIds = clientRes.rows.map(r => r.id);
+
+  // Count filtered results  
+  const countR = await pool.query(
+    `SELECT COUNT(*) AS total
+     FROM coaching.sessions s
+     WHERE s.client_id IN (${clientIds.map((_, i) => `$${i + 1}`).join(',')})
+       AND s.archived_at IS NULL`,
+    clientIds,
+  );
+  const total = Number(countR.rows[0]?.total ?? 0);
+
+  // Fetch sessions with customer numbers
+  const dataParams = [brand, ...clientIds, pageSize, offset];
+
+  const r = await pool.query(
+    `SELECT s.*, p.customer_number AS project_customer_number
+     FROM coaching.sessions s
+     LEFT JOIN projects p ON p.id = s.project_id AND p.brand = $1
+     WHERE s.client_id IN ($${2})
+       AND s.archived_at IS NULL
+     ORDER BY ${sortCol} ${sortDir}
+     LIMIT $${4} OFFSET $${5}`,
+    dataParams,
+  );
+
+  return {
+    sessions: r.rows.map(row => rowToSession(row)),
+    total,
+    page,
+    pageSize,
+  };
 }
 
 export async function upsertStep(pool: Pool, args: UpsertStepArgs): Promise<SessionStep> {

@@ -269,7 +269,6 @@ function ProfileEditor({ customer, onNav }){
   );
 }
 
-window.Dashboard = Dashboard;
-window.Kundenakte = Kundenakte;
-window.ProfileEditor = ProfileEditor;
+// Export module components (not to global window - prevents XSS exposure)
+export { Dashboard, Kundenakte, ProfileEditor };
 EOF && echo "✅ screens_core.jsx written"

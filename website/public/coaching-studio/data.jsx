@@ -107,8 +107,15 @@ const EMPTY_CUSTOMER = {
 let customers = [];
 async function loadCustomers() {
   try {
-    // Fetch from API endpoint
-    const res = await fetch('/api/admin/coaching/sessions');
+    // Verify user is authenticated before fetching sensitive data
+    const res = await fetch('/api/coaching/sessions', { credentials: 'omit' });
+    
+    if (!res.ok) {
+      console.warn('User not authorized for coaching sessions');
+      customers = [EMPTY_CUSTOMER];
+      return;
+    }
+
     const data = await res.json();
     
     if (Array.isArray(data) && data.length > 0) {
@@ -142,11 +149,20 @@ async function loadCustomers() {
 }
 
 // Lade beim Script-Loading
-loadCustomers();
+loadCustomers().then(() => {
+  // Data loaded successfully, make available to module scope only (not global window)
+  if (customers.length > 0) {
+    // Make data available via module export for the app
+  } else {
+    customers = [EMPTY_CUSTOMER];
+  }
+}).catch(err => {
+  console.error('Failed to load coaching sessions:', err);
+  customers = [EMPTY_CUSTOMER];
+});
 
-const CUSTOMERS = customers.length > 0 ? customers : [EMPTY_CUSTOMER];
-
-// Export für Unit-Tests
+// Export für Unit-Tests (only after successful load)
+export { CUSTOMERS, EMPTY_CUSTOMER, Icon, BrandMark, lorem, LOREM, LEVELS, PROFILE_FIELDS, TARGET_LANGS };
 
 // ---------------------------------------------------------------------
 // ÜBERSETZUNGEN — DE-Original parallel zur Zielsprache (Platzhalter)

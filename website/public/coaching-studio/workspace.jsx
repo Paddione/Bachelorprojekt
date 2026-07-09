@@ -270,4 +270,5 @@ function Workspace({ customer, onNav }){
   );
 }
 
-window.Workspace = Workspace;
+// Component is self-contained, no need to expose via global window (prevents XSS data exposure)
+export { Workspace };

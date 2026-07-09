@@ -169,7 +169,7 @@ In opencode sind zwei Wege verfügbar:
 
 ```bash
 # Empfohlen (git-crypt-safe):
-bash scripts/worktree-create.sh <branch> /tmp/wt-<slug>
+bash scripts/worktree-create.sh <branch> .worktrees/<slug>
 ```
 
 ---

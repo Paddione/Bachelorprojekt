@@ -251,7 +251,7 @@ const results = await pipeline(
       FILES: ${task.files.join(', ')}
       ACCEPTANCE: ${task.acceptance_criteria}
 
-      1. Create worktree: bash scripts/worktree-create.sh feature/${args.slug}-${task.id} /tmp/wt-${task.id}
+      1. Create worktree: bash scripts/worktree-create.sh feature/${args.slug}-${task.id} .worktrees/${task.id}
       2. Implement the change
       3. Run local tests: task test:all
       4. Return the diff and test results

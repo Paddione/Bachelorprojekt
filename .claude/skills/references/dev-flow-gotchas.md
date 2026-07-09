@@ -11,7 +11,7 @@ This section aggregates known operational issues, gotchas, and workarounds for t
 **Rule**: Always derive the `$PORT` dynamically from the return value of `start-server.sh`. Hardcoding or guessing a port from a prior session will result in 502 Bad Gateway.
 
 ### [T000298] Git Auto-Merge in Worktrees
-**Context**: `gh pr merge --auto` inside `/tmp/wt-*` worktrees.
+**Context**: `gh pr merge --auto` inside `.worktrees/*` worktrees.
 **Rule**: Running `--auto` inside a worktree can silently fail or skip because Git thinks `main` is already in use by the primary worktree. Always run the merge command either with explicit `--repo` from the primary repository directory, or poll the checks sequentially (without `--auto`) before merging.
 
 ### [T000346] K8s Object verification before Planning

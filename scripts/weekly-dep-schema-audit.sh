@@ -7,7 +7,7 @@ cd "$(git rev-parse --show-toplevel 2>/dev/null || echo "/home/patrick/Bachelorp
 
 SLUG="weekly-dep-schema-audit"
 BRANCH="chore/${SLUG}"
-WORKTREE="/tmp/wt-${SLUG}"
+WORKTREE=".worktrees/${SLUG}"
 TICKET_TITLE="chore: weekly dep + schema audit $(date +%Y-%m-%d)"
 
 # Sync main

@@ -23,7 +23,7 @@ for ext_id in "${stale[@]}"; do
   BRAND="$BRAND" TICKET_CTX="$FACTORY_CTX" bash "$HERE/../ticket.sh" release-slot --id "$ext_id" >/dev/null
   BRAND="$BRAND" TICKET_CTX="$FACTORY_CTX" bash "$HERE/../ticket.sh" add-comment --id "$ext_id" \
     --body "Watchdog: pipeline stale > ${STALE_MIN}min (no phase progress write). Returned to queue (triage); slot released." >/dev/null
-  # Zombie-Worktree-Cleanup: a hung pipeline leaves /tmp/wt-sf-* behind. Remove the
+  # Zombie-Worktree-Cleanup: a hung pipeline leaves .worktrees/sf-* behind. Remove the
   # worktree whose branch matches this ticket (idempotent; never fails the loop).
   ext_lc="$(printf '%s' "$ext_id" | tr '[:upper:]' '[:lower:]')"
   stale_wt="$(git worktree list --porcelain 2>/dev/null \

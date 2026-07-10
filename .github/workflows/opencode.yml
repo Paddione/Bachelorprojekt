@@ -22,8 +22,10 @@ jobs:
         contains(github.event.comment.body, ' /oc') ||
         startsWith(github.event.comment.body, '/opencode') ||
         contains(github.event.comment.body, ' /opencode')
+      ) && (
+        github.event.issue.pull_request == null || github.event.issue.pull_request.head.repo.full_name == github.repository
       )
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, fleet-gpu]
     permissions:
       id-token: write        # OIDC -> Installation-Token der opencode GitHub App
       contents: read
@@ -41,6 +43,5 @@ jobs:
         # Bump via Review/Dependabot; nie @latest fuer secret-tragende Third-Party-Actions.
         uses: anomalyco/opencode/github@b1fc8113948b518835c2a39ece49553cffe9b30c
         env:
-          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
         with:
-          model: opencode/big-pickle
+          model: llamacpp-mtp/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf

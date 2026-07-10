@@ -45,6 +45,7 @@
       "description": "PREFERRED FIRST CHOICE for subagent delegation: Qwen3.5-9B (IQ4_XS weights, unsloth/Qwen3.5-9B-GGUF) on LM Studio - serves up to 4 parallel subagents, ~65k ctx recommended per call (260k total). Try this before qwythos/q4_k_m/q4_k_xl variants.",
       "mode": "subagent",
       "model": "lmstudio/qwen3.5-9b@iq4_xs",
+      "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#0EA5E9",
       "temperature": 0.7,
       "permission": { "edit": "deny", "write": "deny", "bash": "deny" }
@@ -53,6 +54,7 @@
       "description": "Single-session implementation/planning agent: Qwen3-14B (Q4_K_M, lmstudio-community/Qwen3-14B-GGUF) on LM Studio",
       "mode": "subagent",
       "model": "lmstudio/qwen3-14b@q4_k_m",
+      "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#F59E0B",
       "temperature": 0.7,
       "permission": { "edit": "deny", "write": "deny", "bash": "deny" }
@@ -61,6 +63,7 @@
       "description": "Subagent using Qwen3.5-9B (Q4_K_M weights) on LM Studio - use when 3 parallel subagents are loaded (48k ctx each)",
       "mode": "subagent",
       "model": "lmstudio/qwen3.5-9b@q4_k_m",
+      "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#22C55E",
       "temperature": 0.7,
       "permission": { "edit": "deny", "write": "deny", "bash": "deny" }
@@ -69,6 +72,7 @@
       "description": "Subagent using Qwen3.5-9B (UD-Q4_K_XL weights, higher fidelity, 140k ctx) on LM Studio - single session, serialized (no parallel dispatch), use when max per-call context matters more than concurrency",
       "mode": "subagent",
       "model": "lmstudio/qwen3.5-9b@q4_k_xl",
+      "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#16A34A",
       "temperature": 0.7,
       "permission": { "edit": "deny", "write": "deny", "bash": "deny" }

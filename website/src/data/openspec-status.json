@@ -1003,15 +1003,15 @@
       "status": "archived"
     }
   ],
-  "T001780": [
-    {
-      "slug": "opencode-local-model-runner",
-      "status": "plan_staged"
-    }
-  ],
   "T001775": [
     {
       "slug": "health-goal-latest-image-exclusions",
+      "status": "plan_staged"
+    }
+  ],
+  "T001780": [
+    {
+      "slug": "opencode-local-model-runner",
       "status": "plan_staged"
     }
   ],

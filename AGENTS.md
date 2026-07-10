@@ -93,7 +93,7 @@ task feature:deploy  # fan-out to both brands
 - **`scripts/task-oracle.sh` is DEPRECATED.** Use `bash scripts/vda.sh oracle` instead. The old script is a thin shim.
 - **Adding `${VAR}` to a manifest?** Register in `environments/schema.yaml` AND `envsubst` list in every Taskfile task that builds that manifest.
 - **Never SELECT * from `tickets.ticket_plans`** — `content` column is multi-MB markdown.
-- **Website, Brett, Docs, Videovault, Mediaviewer-Widget images use `:latest` intentionally** — CI warns, do not "fix" to digests.
+- **Website, Brett, Docs, Videovault, Mediaviewer-Widget, Mentolder-Web, Downloads, Brain, Studio, and Talk-Transcriber images use `:latest` intentionally** — CI warns, do not "fix" to digests.
 - **`env:generate ENV=<target>` must run before `env:seal`** — talk-hpb-setup.sh aborts on placeholder values.
 - **Cluster reset order**: sealed-secrets:install → env:fetch-cert → env:seal → cert:install → cert:secret → workspace:deploy.
 - **`docs:sync` does NOT work** — container rootfs is read-only. Deploy via `task docs:deploy`.

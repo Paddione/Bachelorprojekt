@@ -164,6 +164,9 @@ The following components intentionally use `:latest` images and are excluded fro
 - Mediaviewer-Widget
 - Mentolder-Web
 - Downloads
+- Brain
+- Studio
+- Talk-Transcriber
 
 This ensures that the Infrastructure and Dev workflows correctly identify these as "live" targets that do not require manual digest pinning.
 

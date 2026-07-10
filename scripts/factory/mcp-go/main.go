@@ -43,6 +43,13 @@ func llmModel() string {
 	return envOr("FACTORY_LLM_MODEL", "hermes-3-llama-3.1-8b")
 }
 func llmKey() string { return envOr("FACTORY_LLM_API_KEY", "lmstudio") }
+
+// isQwenReasoningModel reports whether model is a Qwen3-family hybrid
+// reasoner, which needs enable_thinking:false to avoid burning max_tokens
+// on the reasoning_content trace before ever emitting a final answer.
+func isQwenReasoningModel(model string) bool {
+	return strings.Contains(strings.ToLower(model), "qwen")
+}
 func openspecURL() string {
 	return envOr("OPENSPEC_SEARCH_URL", "http://website.website.svc.cluster.local:4321")
 }
@@ -92,7 +99,7 @@ type mcpTool struct {
 
 type mcpToolResult struct {
 	Content []map[string]any `json:"content"`
-	IsError bool            `json:"isError,omitempty"`
+	IsError bool             `json:"isError,omitempty"`
 }
 
 type toolCallParams struct {
@@ -290,9 +297,9 @@ func runTool(name string, args json.RawMessage) (string, bool, error) {
 		return toolFactoryRecent(a.Limit)
 	case "openspec_find_similar":
 		var a struct {
-			Query  string `json:"query"`
+			Query  string          `json:"query"`
 			Limit  json.RawMessage `json:"limit"`
-			Status string `json:"status"`
+			Status string          `json:"status"`
 		}
 		_ = json.Unmarshal(args, &a)
 		return toolOpenspecSimilar(a.Query, a.Limit, a.Status)
@@ -337,8 +344,8 @@ func toolFactoryStatus() (string, bool, error) {
 	backlog := psqlJSON("SELECT count(*) FROM tickets.tickets WHERE status='backlog'")
 	planStaged := psqlJSON("SELECT count(*) FROM tickets.tickets WHERE status='plan_staged'")
 	out := map[string]any{
-		"backlog":     backlog,
-		"plan_staged": planStaged,
+		"backlog":      backlog,
+		"plan_staged":  planStaged,
 		"tick_running": lockHeld == "true",
 	}
 	b, _ := json.MarshalIndent(out, "", "  ")
@@ -435,14 +442,23 @@ func toolFactoryAsk(question string) (string, bool, error) {
 	if q == "" {
 		return "", true, fmt.Errorf("question is required")
 	}
+	model := llmModel()
 	body := map[string]any{
-		"model": llmModel(),
+		"model": model,
 		"messages": []map[string]string{
 			{"role": "system", "content": factorySystemPrompt},
 			{"role": "user", "content": q},
 		},
 		"temperature": 0.2,
 		"max_tokens":  1500,
+	}
+	if isQwenReasoningModel(model) {
+		// Hard switch (not the soft "/no_think" prompt convention): forces
+		// the Jinja chat template to skip the <think> turn entirely, so the
+		// full max_tokens budget goes to the visible answer. Without this,
+		// Qwen3.5 frequently exhausts max_tokens mid-reasoning and returns
+		// an empty content field (see extractAnswerFromReasoning fallback).
+		body["chat_template_kwargs"] = map[string]any{"enable_thinking": false}
 	}
 	bb, _ := json.Marshal(body)
 	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)

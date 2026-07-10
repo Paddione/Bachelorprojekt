@@ -87,6 +87,34 @@
         "GITHUB_TOKEN": "{env:GITHUB_TOKEN}"
       },
       "enabled": true
+    },
+    // ── Projekt-Override: global aktivierte, projektfremde MCPs abschalten ─
+    // Reduziert opencodes initialen Session-Context (Tool-Schemas werden
+    // eager geladen, kein Lazy-Loading). Diese Server sind generische
+    // Web/Docs/Reasoning-Tools ohne Bezug zum k8s/postgres/Ticket-Workflow
+    // dieses Repos. Volle Server-Definition wiederholt (statt nur
+    // "enabled": false), damit der Override unabhängig von opencodes
+    // Merge-Strategie (shallow/deep) greift. Bei Bedarf lokal wieder auf
+    // true setzen.
+    "docfork": {
+      "type": "local",
+      "command": ["npx", "-y", "docfork"],
+      "enabled": false
+    },
+    "sequential-thinking": {
+      "type": "local",
+      "command": ["npx", "-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "enabled": false
+    },
+    "playwright": {
+      "type": "local",
+      "command": ["npx", "@playwright/mcp@latest"],
+      "enabled": false
+    },
+    "webresearch": {
+      "type": "local",
+      "command": ["npx", "-y", "@mzxrai/mcp-webresearch@latest"],
+      "enabled": false
     }
   },
   "agent": {

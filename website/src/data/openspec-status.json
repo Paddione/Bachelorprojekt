@@ -1003,6 +1003,12 @@
       "status": "archived"
     }
   ],
+  "T001780": [
+    {
+      "slug": "opencode-local-model-runner",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

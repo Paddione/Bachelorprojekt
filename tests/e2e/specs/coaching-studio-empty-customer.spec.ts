@@ -45,27 +45,25 @@ test.describe('T001656: coaching-studio empty-customer fallback', () => {
   test.describe('authenticated', () => {
     test.skip(!ADMIN_PASS, 'E2E_ADMIN_PASS not set — skipping authenticated coaching-studio checks');
 
-    test('T2: "Neue Session" does not crash the Workspace when CUSTOMERS is empty', async ({ page }) => {
+    // T001784: the browser-transpiled studio bundle was removed — its source .jsx were
+    // corrupt (a leaked heredoc marker made screens_core.jsx invalid JS) so the studio
+    // crashed on load anyway, and it pulled React + Babel from the unpkg CDN (DSGVO / on-
+    // premises breach). The page now shows an honest disabled placeholder; whether to rebuild
+    // or remove the tool is tracked in T001792. The old T2 ("Neue Session" flow) is obsolete.
+    test('T2: studio is disabled behind a placeholder and requests no third-party CDN (T001784)', async ({ page }) => {
       const pageErrors: Error[] = [];
+      const cdnRequests: string[] = [];
       page.on('pageerror', err => pageErrors.push(err));
+      page.on('request', req => {
+        if (/unpkg\.com|cdn\.jsdelivr|cdnjs\.cloudflare|esm\.sh|skypack/.test(req.url())) cdnRequests.push(req.url());
+      });
 
       await loginAsAdmin(page, '/admin/coaching/studio');
       await page.waitForURL(/\/admin\/coaching\/studio$/, { timeout: 60_000 });
 
-      // TopBar "Session" button (always visible) and Dashboard "Neue Session"
-      // button both call onNav("workspace", CUSTOMERS[0]) — with CUSTOMERS
-      // empty, customer arrives as undefined and used to crash Workspace().
-      const neueSession = page.getByRole('button', { name: /Neue Session/i }).first();
-      await neueSession.waitFor({ state: 'visible', timeout: 60_000 });
-      await neueSession.click();
-
-      // Workspace screen renders — "Ebene 01" heading / .ws container.
-      await expect(page.locator('.ws, text=Ebene 01').first()).toBeVisible({ timeout: 60_000 });
-
-      expect(
-        pageErrors.map(e => e.message),
-        'no uncaught page error should fire when opening a session with an empty client list',
-      ).toEqual([]);
+      await expect(page.getByText(/nicht verfügbar/i).first()).toBeVisible({ timeout: 60_000 });
+      expect(cdnRequests, 'the studio page must not request React/Babel from any third-party CDN').toEqual([]);
+      expect(pageErrors.map(e => e.message), 'the placeholder must load without uncaught page errors').toEqual([]);
     });
   });
 });

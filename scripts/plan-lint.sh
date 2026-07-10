@@ -6,16 +6,35 @@
 set -euo pipefail
 
 # --- B1 budget math (pure; unit-tested via the PLAN_LINT_SELFTEST hook) ---
-# Static per-extension line limits — mirror of docs/code-quality/gates.yaml s1.limits.
+# Per-extension line limits come from docs/code-quality/gates.yaml (s1.limits) — the
+# SAME source the CI quality gate reads, so the linter and the gate can never drift
+# (T001791 #1). A hardcoded map remains only as a fail-safe fallback for environments
+# where yq or the file is unavailable; gates.yaml wins whenever it is present.
+declare -A _S1_LIMITS
+_load_s1_limits() {
+  [[ "${_S1_LIMITS_LOADED:-0}" == "1" ]] && return 0
+  _S1_LIMITS_LOADED=1
+  local gates="${REPO_ROOT:-.}/docs/code-quality/gates.yaml" ext lim
+  if [[ -f "$gates" ]] && command -v yq >/dev/null 2>&1; then
+    while IFS=$'\t' read -r ext lim; do
+      [[ -n "$ext" ]] && _S1_LIMITS["$ext"]="$lim"
+    done < <(yq -r '.s1.limits | to_entries | .[] | [.key, .value] | @tsv' "$gates" 2>/dev/null)
+  fi
+  # Fail-safe fallback — only fills extensions gates.yaml did not provide.
+  local kv k v
+  for kv in .astro=400 .tsx=400 .java=400 .php=400 \
+            .ts=600 .js=600 .jsx=600 .py=600 \
+            .svelte=500 .sh=500 .mjs=500 .mts=500 \
+            .bash=300 .cjs=200; do
+    k="${kv%%=*}"; v="${kv#*=}"
+    [[ -z "${_S1_LIMITS[$k]:-}" ]] && _S1_LIMITS["$k"]="$v"
+  done
+  return 0  # the final [[ ]] above may be false; never let that fail the loader under set -e
+}
 _ext_limit() {  # _ext_limit <path> -> static limit (0 = ungated extension)
-  case "$1" in
-    *.astro|*.tsx|*.java|*.php) echo 400 ;;
-    *.ts|*.js|*.jsx|*.py)       echo 600 ;;
-    *.svelte|*.sh|*.mjs|*.mts)  echo 500 ;;
-    *.bash)                     echo 300 ;;
-    *.cjs)                      echo 200 ;;
-    *)                          echo 0   ;;
-  esac
+  _load_s1_limits
+  local ext=".${1##*.}"
+  echo "${_S1_LIMITS[$ext]:-0}"
 }
 
 # effective_threshold <path> -> max(static_limit, baseline.metric); 0 if ungated & unbaselined
@@ -81,10 +100,16 @@ case "$dom" in ""|"[]"|"null") hard "F2: domains is empty (role injection needs 
 grep -qE '^#.*Implementation Plan' "$PLAN" || hard "STRUCT1: missing '# … Implementation Plan' header"
 grep -qiE '^#+ +File Structure' "$PLAN" || hard "STRUCT1: missing 'File Structure' section"
 
-# === STRUCT2: at least one failing-test step (test invocation + expect FAIL) ===
-# Look for a step that runs a test AND a line asserting failure (FAIL/rot/exit 1).
+# === STRUCT2: at least one failing-test step (fail phrase + a real test-runner) ===
+# The phrase alone is cheap to fake and is pre-seeded by the `openspec propose`
+# skeleton, so we ALSO require an actual test-runner invocation (bats/vitest/pytest/…).
+# The final `task test:*` gate does NOT count — every plan has it for STRUCT3 (T001791 #2).
 if grep -qiE 'expected:? *fail|verify (it|test).*fail|to verify (it|they) fail' "$PLAN"; then
-  :
+  if grep -qiE '\b(bats|vitest|pytest|jest|mocha|go test|playwright test)\b' "$PLAN"; then
+    :
+  else
+    hard "STRUCT2: failing-test phrase present but no test-runner invocation (bats/vitest/pytest/…) — the final 'task test:*' gate does not count as the failing test"
+  fi
 else
   hard "STRUCT2: no task contains a failing-test step (run a test + expect FAIL)"
 fi
@@ -154,12 +179,32 @@ if grep -qE ': any\b|as any\b|<any>' "$PLAN"; then
   warn "W2: plan contains explicit 'any' usage — review CQ02 gate (limit ≤200 in website/src); ensure no net increase"
 fi
 
+# === W3: File-Structure ↔ tasks cross-check (advisory) ===
+# A source file listed in `## File Structure` that no later task references is drift —
+# a stale entry, or a task that forgot to name its file (T001791 #3). One direction only
+# (File Structure → tasks); the reverse is noisy (tasks name incidental helpers/runners).
+# Section boundary is the next H2 (`## `), so H3 sub-groupings inside File Structure
+# (### New files / ### Changed files) stay part of the section.
+FS_SECTION="$(awk '/^##[[:space:]]+File Structure/{f=1;next} f&&/^##[[:space:]]/{exit} f{print}' "$PLAN")"
+PLAN_OUTSIDE_FS="$(awk '/^##[[:space:]]+File Structure/{infs=1;next} infs&&/^##[[:space:]]/{infs=0} infs{next} {print}' "$PLAN")"
+while IFS= read -r ftok; do
+  [[ -n "$ftok" ]] || continue
+  # Match by BASENAME: File Structure lists full paths, but task prose idiomatically
+  # references the same file by its basename (e.g. FS `website/src/x/Foo.svelte`, task
+  # "migrate `Foo.svelte`"). A full-path match would false-positive on nearly every plan.
+  grep -qF -- "${ftok##*/}" <<<"$PLAN_OUTSIDE_FS" || warn "W3: \`$ftok\` is listed in File Structure but no task references it"
+done < <(grep -oE '`[A-Za-z0-9_./-]+\.(sh|bash|ts|tsx|js|jsx|mjs|mts|cjs|py|svelte|astro|java|php|css)`' <<<"$FS_SECTION" | tr -d '`' | sort -u)
+
 # === G1: granularity warning — a single task touching >3 files (warn only) ===
-# Count `path` tokens inside each "## Task" block; warn if any block lists >3.
+# Count `path` tokens inside each "## Task" block; warn if any block lists >3. Only
+# count AFTER the first Task heading (started==1) so the `## File Structure` list — which
+# legitimately enumerates every changed file — is never mistaken for a phantom task
+# (T001791 #5: the old version emitted a spurious empty-titled G1 for that list).
 while IFS= read -r g; do warn "${g/G1:/G1: }"; done < <(awk '
-  /^#+ +Task /{ if (n>3) print "G1:" task " touches " n " files"; task=$0; n=0; next }
-  /`[A-Za-z0-9_./-]+\.[a-z]+`/{ for(i=1;i<=NF;i++) if($i ~ /`.*\..*`/) n++ }
-  END{ if (n>3) print "G1:" task " touches " n " files" }
+  BEGIN{ n=0; task=""; started=0 }
+  /^#+[[:space:]]+Task /{ if (started && n>3) print "G1:" task " touches " n " files"; task=$0; n=0; started=1; next }
+  started && /`[A-Za-z0-9_./-]+\.[a-z]+`/{ for(i=1;i<=NF;i++) if($i ~ /`.*\..*`/) n++ }
+  END{ if (started && n>3) print "G1:" task " touches " n " files" }
 ' "$PLAN")
 
 # === verdict ===

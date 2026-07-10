@@ -101,3 +101,61 @@ setup() {
   [ "$status" -eq 1 ]
   echo "$output" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["verdict"]=="FAIL"; assert len(d["hard"])>=1'
 }
+
+# === T001791 hardening: gates.yaml SSOT for the S1 limits ===
+
+@test "#1: _ext_limit reads the .ts limit from gates.yaml (single source of truth)" {
+  gates_val=$(yq -r '.s1.limits[".ts"]' "$REPO/docs/code-quality/gates.yaml")
+  run env PLAN_LINT_SELFTEST=1 bash "$LINT" _ext_limit "foo.ts"
+  [ "$status" -eq 0 ]
+  [ "$output" = "$gates_val" ]
+}
+
+@test "#1: _ext_limit reads the .cjs limit from gates.yaml (not a hardcoded mirror)" {
+  gates_val=$(yq -r '.s1.limits[".cjs"]' "$REPO/docs/code-quality/gates.yaml")
+  run env PLAN_LINT_SELFTEST=1 bash "$LINT" _ext_limit "foo.cjs"
+  [ "$status" -eq 0 ]
+  [ "$output" = "$gates_val" ]
+}
+
+@test "#1: an extension absent from gates.yaml is ungated (0)" {
+  run env PLAN_LINT_SELFTEST=1 bash "$LINT" _ext_limit "foo.md"
+  [ "$status" -eq 0 ]
+  [ "$output" = "0" ]
+}
+
+# === T001791 hardening: STRUCT2 needs a real test-runner invocation, not just the phrase ===
+
+@test "#2: STRUCT2 hard-fails when the fail phrase has no test-runner invocation" {
+  run bash "$LINT" "$FIX/struct2-phrase-no-testcmd.md"
+  [ "$status" -eq 1 ]
+  echo "$output" | grep -q 'STRUCT2'
+}
+
+@test "#2: good.md still passes STRUCT2 (has a bats invocation)" {
+  run bash "$LINT" "$FIX/good.md"
+  [ "$status" -eq 0 ]
+}
+
+# === T001791 hardening: W3 File-Structure ↔ tasks cross-check (advisory) ===
+
+@test "#3: W3 warns when a File-Structure file is never touched by a task" {
+  run bash "$LINT" "$FIX/fs-orphan.md"
+  [ "$status" -eq 0 ]
+  echo "$output" | grep -q 'W3'
+  echo "$output" | grep -q 'never-touched-orphan'
+}
+
+@test "#3: good.md emits no W3 (every File-Structure file is referenced in a task)" {
+  run bash "$LINT" "$FIX/good.md"
+  [ "$status" -eq 0 ]
+  ! echo "$output" | grep -q 'W3'
+}
+
+# === T001791 hardening: G1 must not count the File Structure list as a phantom task ===
+
+@test "#5: G1 does not fire on the File Structure file list (no task exceeds 3 files)" {
+  run bash "$LINT" "$FIX/g1-filestructure.md"
+  [ "$status" -eq 0 ]
+  ! echo "$output" | grep -q 'G1'
+}

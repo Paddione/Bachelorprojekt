@@ -1,5 +1,32 @@
 {
   "provider": {
+    "llamacpp-mtp": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "llama.cpp b9553 (Gemma4 QAT 12B + MTP draft, speculative decoding)",
+      "options": {
+        "baseURL": "http://127.0.0.1:8091/v1"
+      },
+      "models": {
+        "gemma-4-12B-it-qat-UD-Q4_K_XL.gguf": {
+          "name": "Gemma4 12B QAT (UD-Q4_K_XL) + MTP-draft Q8_0 (raw llama.cpp b9553+CUDA13.3, speculative decoding via --spec-type draft-mtp --spec-draft-n-max 6, -np 4 parallel slots over -c 16384 total ctx = 4096 ctx/slot, Q8_0 KV cache, -fit auto-VRAM-fit, auto-sleeps GPU after 20min idle and reloads on next request in ~6s) - start via Desktop\\start-gemma4-mtp-server.bat first",
+          "limit": {
+            "context": 4096,
+            "output": 4096
+          }
+        }
+      }
+    },
+    "ollama": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Ollama (local)",
+      "options": {
+        "baseURL": "http://127.0.0.1:11434/v1"
+      },
+      // No models pulled yet (`ollama list` is empty). Add an entry here per
+      // model after `ollama pull <model>` - opencode has no model auto-discovery
+      // for OpenAI-compatible providers yet (github.com/anomalyco/opencode#6231).
+      "models": {}
+    },
     "lmstudio": {
       "models": {
         "qwen3.5-9b@q4_k_xl": {
@@ -34,6 +61,13 @@
           "name": "Gemma 4 12B (QAT)",
           "limit": {
             "context": 180000,
+            "output": 8192
+          }
+        },
+        "gemma-4-12b-agentic-fable5-composer2.5-v2-3.5x-tau2@q4_k_m": {
+          "name": "Gemma4 v2 12B + 423M MTP-Assistant draft (speculative decoding, yuxinlu1, Q4_K_M weights, Q8_0 KV)",
+          "limit": {
+            "context": 150000,
             "output": 8192
           }
         }

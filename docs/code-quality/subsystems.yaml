@@ -29,7 +29,6 @@
     - "prod-mentolder/**"
     - "prod-korczewski/**"
     - "environments/**"
-    - "k3s/**"
     - "wireguard/**"
     - "docker/**"
     - "mcp-browser/**"

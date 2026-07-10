@@ -3,6 +3,22 @@
   "model": "llamacpp-mtp/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf",
   "permission": "allow",
   "lsp": true,
+  "provider": {
+    "llamacpp-mtp": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "llama.cpp MTP (Windows)",
+      "options": {
+        "baseURL": "http://localhost:8080",
+        "timeout": 600000,
+        "chunkTimeout": 120000
+      },
+      "models": {
+        "gemma-4-12B-it-qat-UD-Q4_K_XL.gguf": {
+          "name": "Gemma 4 12B QAT (Q4_K_XL) + MTP"
+        }
+      }
+    }
+  },
   "mcp": {
     // ── Monolith HTTP-Endpunkte (kubectl portforward via Taskfile) ────────
     "factory-mcp": {
@@ -32,8 +48,10 @@
       "type": "local",
       "command": [
         "mcp-task-runner",
-        "--otel-endpoint", "localhost:4317",
-        "--taskfile", "/home/patrick/Bachelorprojekt/Taskfile.yml"
+        "--otel-endpoint",
+        "localhost:4317",
+        "--taskfile",
+        "/home/patrick/Bachelorprojekt/Taskfile.yml"
       ],
       "enabled": true
     },
@@ -46,7 +64,11 @@
     },
     "task-master-ai": {
       "type": "local",
-      "command": ["npx", "-y", "task-master-ai"],
+      "command": [
+        "npx",
+        "-y",
+        "task-master-ai"
+      ],
       "environment": {
         "OLLAMA_BASE_URL": "http://localhost:11434/api",
         "TASK_MASTER_TOOLS": "all"
@@ -56,7 +78,11 @@
     // ── GitHub MCP (local) ────────────────────────────────────────────────
     "github-mcp": {
       "type": "local",
-      "command": ["npx", "-y", "@modelcontextprotocol/server-github"],
+      "command": [
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],
       "environment": {
         "GITHUB_TOKEN": "{env:GITHUB_TOKEN}"
       },
@@ -71,7 +97,11 @@
       "prompt": "{file:./prompts/local-openspec-orchestrator.md}",
       "color": "#6366F1",
       "temperature": 0.5,
-      "permission": { "edit": "allow", "write": "allow", "bash": "allow" }
+      "permission": {
+        "edit": "allow",
+        "write": "allow",
+        "bash": "allow"
+      }
     }
   }
 }

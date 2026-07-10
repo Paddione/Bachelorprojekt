@@ -2,7 +2,7 @@
 title: "t001749-admin-tickets-e2e-seed — Implementation Plan"
 ticket_id: T001749
 domains: [e2e, tests, database]
-status: plan_staged
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.175.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.174.1...website-v1.175.0) (2026-07-10)
+
+
+### Features
+
+* **security:** add allowed_signers for G-SEC05 commit signing [T001749] ([#2722](https://github.com/Paddione/Bachelorprojekt/issues/2722)) ([06ad816](https://github.com/Paddione/Bachelorprojekt/commit/06ad816605900519e9323c32a6c8610dcde245c8))
+
 ## [1.174.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.174.0...website-v1.174.1) (2026-07-09)
 
 

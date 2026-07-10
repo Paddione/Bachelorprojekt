@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.176.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.175.0...website-v1.176.0) (2026-07-10)
+
+
+### Features
+
+* **local-runner:** implement local model runner [T001780] ([#2735](https://github.com/Paddione/Bachelorprojekt/issues/2735)) ([d5079d0](https://github.com/Paddione/Bachelorprojekt/commit/d5079d0b056f1ca5c27deb8dca7ddeee7a3e7a8c))
+
 ## [1.175.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.174.1...website-v1.175.0) (2026-07-10)
 
 

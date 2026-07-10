@@ -1,0 +1,4 @@
+This PR adds the intentionally `:latest` image exclusions to the `CLAUDE.md` file to ensure that the infrastructure and dev workflows correctly identify these as 'live' targets that do not require manual digest pinning.
+
+Ticket: T001775
+Fixes: T001775

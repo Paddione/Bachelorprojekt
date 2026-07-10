@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.177.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.177.1...website-v1.177.2) (2026-07-10)
+
+
+### Bug Fixes
+
+* **T001784:** remove coaching-studio CDN/Babel leak, disable behind placeholder ([#2743](https://github.com/Paddione/Bachelorprojekt/issues/2743)) ([0aed76c](https://github.com/Paddione/Bachelorprojekt/commit/0aed76cf2039abe6d80671e6a5a06dae38106d1d))
+
 ## [1.177.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.177.0...website-v1.177.1) (2026-07-10)
 
 

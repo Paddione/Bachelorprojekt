@@ -8,17 +8,36 @@ if (!isAdmin(session)) return Astro.redirect('/admin');
 ---
 
 <AdminLayout title="Coaching Sessions">
-  <link rel="stylesheet" href="/coaching-studio/app.css"/>
-  <div class="grain" aria-hidden="true"></div>
-  <div id="root"></div>
-
-  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
-  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
-  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
-
-  <script type="text/babel" src="/coaching-studio/data.jsx"></script>
-  <script type="text/babel" src="/coaching-studio/workspace.jsx"></script>
-  <script type="text/babel" src="/coaching-studio/screens_core.jsx"></script>
-  <script type="text/babel" src="/coaching-studio/screens_more.jsx"></script>
-  <script type="text/babel" src="/coaching-studio/app.jsx"></script>
+  <section class="studio-disabled">
+    <h1>Coaching Studio</h1>
+    <p>
+      Dieses Werkzeug ist derzeit <strong>nicht verfügbar</strong>. Die frühere Fassung lud
+      React und einen Transpiler zur Laufzeit von einem externen CDN nach und transpilierte den
+      Quellcode im Browser — das wurde aus Datenschutzgründen (DSGVO / On-Premises) entfernt
+      (T001784). Die zugehörigen Quelldateien waren zudem beschädigt, sodass die Oberfläche schon
+      zuvor nicht lief.
+    </p>
+    <p>
+      Über eine gebündelte Neufassung oder das Entfernen des Werkzeugs wird separat entschieden
+      (T001792). Die Sessions-Liste ist davon unberührt.
+    </p>
+    <p>
+      <a class="btn" href="/admin/coaching/sessions">Zur Sessions-Liste</a>
+    </p>
+  </section>
 </AdminLayout>
+
+<style>
+  .studio-disabled { max-width: 62ch; margin: 3rem auto; padding: 0 1rem; }
+  .studio-disabled h1 { margin-bottom: 1rem; }
+  .studio-disabled p { color: var(--admin-text-mute, #8c96a3); line-height: 1.6; margin-bottom: 1rem; }
+  .studio-disabled .btn {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--admin-border, rgba(255, 255, 255, 0.1));
+    border-radius: 8px;
+    color: var(--admin-text, #eef1f3);
+    text-decoration: none;
+  }
+  .studio-disabled .btn:hover { border-color: var(--admin-border-bright, rgba(255, 255, 255, 0.2)); }
+</style>

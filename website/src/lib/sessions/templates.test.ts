@@ -31,16 +31,14 @@ describe('DEFAULT_TEMPLATES', () => {
 describe('listTemplates — DB fallback', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('falls back to DEFAULT_TEMPLATES when DB query throws', async () => {
+  it('throws error when DB query throws', async () => {
     vi.mocked(pool.query).mockRejectedValue(new Error('connection refused'));
-    const result = await listTemplates('user-123');
-    expect(result).toHaveLength(5);
-    expect(result[0].is_default).toBe(true);
+    await expect(listTemplates('user-123')).rejects.toThrow('Failed to load templates: connection refused');
   });
 
   it('logs the DB error instead of swallowing it silently (T001671)', async () => {
     vi.mocked(pool.query).mockRejectedValue(new Error('connection refused'));
-    await listTemplates('user-123');
+    await expect(listTemplates('user-123')).rejects.toThrow();
     expect(logger.error).toHaveBeenCalledOnce();
   });
 

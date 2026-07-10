@@ -1372,30 +1372,12 @@ export type {
 // to call `publishContent` directly.
 import {
   bundleServices as _bundleServices,
-  bundleLeistungen as _bundleLeistungen,
-  bundleReferenzen as _bundleReferenzen,
-  bundleHomepage as _bundleHomepage,
-  bundleUebermich as _bundleUebermich,
-  bundleFaq as _bundleFaq,
-  bundleKontakt as _bundleKontakt,
 } from './content-bundle';
 
 const getServiceConfig      = (brand: string) => _bundleServices(brand);
-const getLeistungenConfig   = (brand: string) => _bundleLeistungen(brand);
-const getReferenzen         = (brand: string) => _bundleReferenzen(brand);
-const getHomepageContent    = (brand: string) => _bundleHomepage(brand);
-const getUebermichContent   = (brand: string) => _bundleUebermich(brand);
-const getFaqContent         = (brand: string) => _bundleFaq(brand);
-const getKontaktContent     = (brand: string) => _bundleKontakt(brand);
 
 export {
   getServiceConfig,
-  getLeistungenConfig,
-  getReferenzen,
-  getHomepageContent,
-  getUebermichContent,
-  getFaqContent,
-  getKontaktContent,
 };
 
 // ── T001490: SEO getter re-exports (bundle-backed) ──────────────────────────

@@ -7,6 +7,12 @@
       "skillPath": "skills/lavish/SKILL.md",
       "computedHash": "7fdc9a25ba80783b336fcd8ffbc9624274ad0647bf383004b5bdd1035a9229f2"
     },
+    "llama-cpp": {
+      "source": "firecrawl/ai-research-skills",
+      "sourceType": "github",
+      "skillPath": "12-inference-serving/llama-cpp/SKILL.md",
+      "computedHash": "1e14d7905cffe5f5ec2f51152a1745b728bcdef8990c285a2a1ce4f4ff5b7518"
+    },
     "vitest": {
       "source": "supabase/supabase",
       "sourceType": "github",

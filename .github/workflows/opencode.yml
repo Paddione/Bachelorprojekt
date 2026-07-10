@@ -37,11 +37,10 @@ jobs:
           persist-credentials: false
 
       - name: Run opencode
-        # SHA-gepinnt (Supply-Chain: Action erhaelt DEEPSEEK_API_KEY). v1.17.7 (2026-06-14).
+        # SHA-gepinnt (Supply-Chain: Action erhaelt OPENCODE_API_KEY). v1.17.18 (2026-07-09).
         # Bump via Review/Dependabot; nie @latest fuer secret-tragende Third-Party-Actions.
-        uses: anomalyco/opencode/github@4ed4f749e644ffb5b279fb30b7b915e743d80142
+        uses: anomalyco/opencode/github@b1fc8113948b518835c2a39ece49553cffe9b30c
         env:
-          # Wiederverwendung des vorhandenen DeepSeek-Secrets (gleiches Modell wie ai-review.yml).
-          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
         with:
-          model: deepseek/deepseek-chat
+          model: opencode/big-pickle

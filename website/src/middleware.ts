@@ -1,6 +1,7 @@
 import { defineMiddleware, sequence } from 'astro:middleware';
 import { getLocaleFromCookie, defaultLocale, type Locale } from './i18n/index';
 import { loggingMiddleware } from './middleware/logging';
+import { resolveRedirect } from './middleware/redirect-map';
 
 const VALID_LOCALES: Locale[] = ['de', 'en'];
 
@@ -12,4 +13,10 @@ const localeMiddleware = defineMiddleware(async (context, next) => {
   return next();
 });
 
-export const onRequest = sequence(loggingMiddleware, localeMiddleware);
+const redirectMiddleware = defineMiddleware(async (context, next) => {
+  const target = resolveRedirect(context.url.pathname);
+  if (target) return context.redirect(target, 301);
+  return next();
+});
+
+export const onRequest = sequence(loggingMiddleware, redirectMiddleware, localeMiddleware);

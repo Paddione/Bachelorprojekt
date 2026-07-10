@@ -1009,6 +1009,18 @@
       "status": "plan_staged"
     }
   ],
+  "T001775": [
+    {
+      "slug": "health-goal-latest-image-exclusions",
+      "status": "plan_staged"
+    }
+  ],
+  "T001781": [
+    {
+      "slug": "exclude-latest-images",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

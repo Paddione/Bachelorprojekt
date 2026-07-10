@@ -18,11 +18,55 @@
         "dependencies": [],
         "status": "pending",
         "priority": "medium"
+      },
+      {
+        "id": 3,
+        "title": "T001775: Unvollständige :latest-Image Exclusions in CLAUDE.md",
+        "description": "Update CLAUDE.md to include explicit exclusions for images that intentionally use the :latest tag. These are: Website, Brett, Docs, Videovault, Mediaviewer-Widget, Mentolder-Web, and Downloads. This is to prevent AI agents from trying to \"fix\" these images by pinning them to specific digests, as they are rebuilt and re-imported on every release.",
+        "details": "",
+        "testStrategy": "",
+        "status": "pending",
+        "dependencies": [],
+        "priority": "high",
+        "subtasks": []
+      },
+      {
+        "id": 4,
+        "title": "Create OpenSpec proposal for T001775",
+        "description": "Create OpenSpec proposal for T001775.",
+        "details": "",
+        "testStrategy": "",
+        "status": "pending",
+        "dependencies": [],
+        "priority": "high",
+        "subtasks": []
+      },
+      {
+        "id": 5,
+        "title": "T001775: Health-Goal: Unvollständige :latest-Image Exclusions in CLAUDE.md",
+        "description": "Execute the implementation plan for T001775 (Health-Goal: Unvollständige :latest-Image Exclusions in CLAUDE.md) in the infra area. Follow the RED -> GREEN flow as specified in openspec/changes/health-goal-latest-image-exclusions/tasks.md. Ensure the subagent uses the correct worktree at .worktrees/T001775.",
+        "details": "",
+        "testStrategy": "",
+        "status": "pending",
+        "dependencies": [],
+        "priority": "medium",
+        "subtasks": []
+      },
+      {
+        "id": 6,
+        "title": "T001775 implementation",
+        "description": "Execute the implementation plan for T001775 (Health-Goal: Unvollständige :latest-Image Exclusions in CLAUDE.md) in the infra area. Follow the RED -> GREEN flow as specified in openspec/changes/health-goal-latest-image-exclusions/tasks.md. Ensure the subagent uses the correct worktree at .worktrees/T001775.",
+        "details": "",
+        "testStrategy": "",
+        "status": "pending",
+        "dependencies": [],
+        "priority": "medium",
+        "subtasks": []
       }
     ],
     "metadata": {
       "created": "2026-07-09T23:03:05.105Z",
-      "updated": "2026-07-09T23:03:05.105Z",
+      "updated": "2026-07-10T12:30:25.272Z",
       "description": "Tasks for master context"
     }
   }

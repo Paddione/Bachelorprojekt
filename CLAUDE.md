@@ -154,6 +154,19 @@ GitHub Actions (`.github/workflows/ci.yml`) runs on every PR:
 Other workflows: `renovate.yml` (self-hosted Renovate weekly dependency update bot, T000898), `e2e.yml` (nightly Playwright against both brands on fleet), `build-brett.yml` (tag `brett-v*`), `build-docs.yml` (tag `docs-v*`), `build-collabora.yml`, `build-transcriber.yml`, `build-website.yml` / `build-website-korczewski.yml` (auto build+rollout on `website/**` push to main).
 Note: `tracking-import` CronJob was removed in PR #788 (2026-05-15); `track-pr.yml` was removed in PR #993 (2026-05-23); `build-tracking.yml` and `track-plans.yml` are gone — both parts of the tracking pipeline are fully removed. The Kore homepage timeline still renders from `v_timeline` but shows only historical data (last tracked PR: #787).
 
+## Image Exclusions
+
+The following components intentionally use `:latest` images and are excluded from standard pinning requirements:
+- Website
+- Brett
+- Docs
+- Videovault
+- Mediaviewer-Widget
+- Mentolder-Web
+- Downloads
+
+This ensures that the Infrastructure and Dev workflows correctly identify these as "live" targets that do not require manual digest pinning.
+
 ## Development Rules
 
 1. Only deploy via k3d/k3s with Kustomize (`k3d/` is the base). Prod is deployed **push-based** via `task workspace:deploy ENV=<brand>` / `task feature:*` — there is no GitOps reconciler on fleet.

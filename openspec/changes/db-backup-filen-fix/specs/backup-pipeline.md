@@ -1,12 +1,10 @@
-## Spec-Delta: db-backup Filen Upload — Frühalarmierung & Diagnose-Workflow
+## ADDED Requirements
 
 Diese Delta-Spec ergänzt die SSOT `openspec/specs/backup-pipeline.md` um drei
 weitere Requirements, die aus dem T001738-Vorfall (3 aufeinanderfolgende
 fehlgeschlagene `db-backup`-CronJob-Läufe) abgeleitet sind. Der bestehende
 „Optionaler Remote-Upload zu Filen Cloud"-Abschnitt bleibt unverändert; die
 folgenden Requirements sind additiv.
-
----
 
 ### Requirement: Erste-Fail-Alert für db-backup
 
@@ -28,8 +26,6 @@ the default `kubectl get jobs` view.
 - **GIVEN** the `DBBackupJobFailed` Prometheus rule is deployed
 - **WHEN** a `db-backup-<schedule-time>` Job completes successfully (`status.succeeded == 1`, `Filen upload done` in container logs)
 - **THEN** no `DBBackupJobFailed` alert is active
-
----
 
 ### Requirement: Manueller Diagnose-Trigger für db-backup
 
@@ -57,8 +53,6 @@ captured error.
 - **GIVEN** the active `kubectl` context is not `fleet`
 - **WHEN** `bash scripts/db-backup-trigger.sh` is run
 - **THEN** the script exits with code 1 and prints `FATAL: this script requires kubectl context 'fleet' (active: <name>)` before any Job is created
-
----
 
 ### Requirement: Dokumentierte Filen Fail-Modes
 

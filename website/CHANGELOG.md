@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.177.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.177.0...website-v1.177.1) (2026-07-10)
+
+
+### Bug Fixes
+
+* **health-goal:** update image exclusions [T001781] ([#2740](https://github.com/Paddione/Bachelorprojekt/issues/2740)) ([cb8a9f6](https://github.com/Paddione/Bachelorprojekt/commit/cb8a9f677f78b4c94f1bf1f4a55646aa8c857be1))
+
 ## [1.177.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.176.0...website-v1.177.0) (2026-07-10)
 
 

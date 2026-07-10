@@ -195,3 +195,6 @@ ds-bundle/
 *.tsbuildinfo
 # brain:ingest output (generated worklist, see Taskfile.brain.yaml)
 brain-worklist.txt
+
+# ── lobehub market-cli — locally installed skills (not vetted/shared) ──
+.claude/skills/haniakrim21-*/

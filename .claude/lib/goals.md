@@ -30,11 +30,12 @@ Sofort angehen. Ticket-Erstellung ist **bewusst manuell** (`scripts/health-goals
 
 ---
 
-## G-DB04 — Backup-Alter: 6d19h 🔴 → ≤ 26 h
+## G-DB04 — Backup-Alter: 6d19h 🔴 → ≤ 26 h ✅ (aktuell 1 h)
 
 **Was:** Stunden seit dem letzten erfolgreichen `db-backup`-Job im Cluster (`kubectl get jobs` mit
-`succeeded==1`). Der Live-Wert von 163 h (~6 Tage 19 h) liegt weit über dem Target von ≤ 26 h.
-Root-Cause wird in T001738 verfolgt — dieser Eintrag verdrahtet nur die Messung, kein Fix.
+`succeeded==1`). War 163 h (~6 Tage 19 h), liegt jetzt bei 1 h — deutlich unter Target. Root-Cause
+war in T001738 verfolgt; ob T001738 selbst die Ursache behoben hat oder der Job zuletzt nur planmäßig
+lief, ist hier nicht verifiziert — Messzyklus bleibt täglich, um eine erneute Regression sofort zu sehen.
 
 ```bash
 ts=$(kubectl get jobs -n "${HG_DB_NS:-workspace}" --context "${HG_DB_CTX:-fleet}" \
@@ -46,7 +47,7 @@ now=$(date -u +%s)
 echo $(( (now - epoch) / 3600 ))
 ```
 
-> **A · Baseline:** 6d19h 🔴 · **Target:** ≤ 26 h · **Aufwand:** unbekannt (Root-Cause T001738) · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T001739 (Root-Cause T001738)
+> **A · Baseline:** 6d19h 🔴 → 1h ✓ · **Target:** ≤ 26 h · **Aufwand:** unbekannt (Root-Cause T001738) · **Messzyklus:** täglich (Regressionswache) · **Reproduzierbar:** ja · **Ticket:** T001739 (Root-Cause T001738)
 
 ---
 
@@ -86,7 +87,9 @@ gh api "repos/{owner}/{repo}/actions/workflows/build-website.yml/runs?branch=mai
 
 ## G-CFG01 — env:validate:all grün ✅
 
-**Fix:** PRIMARY_FRONTEND + TURN_OVERLAY_IP in fleet-* + staging ergänzt, RUSTDESK-Keys auf `required: false` gesetzt (mentolder-only via `owner_brand`). Alle 6 Environments passen.
+**Fix (2026-07-10):** `TERMINAL_OVERLAY_IP` (neues `required: true`-Feld aus dem terminal-sidekick-Feature, T001565) fehlte in `environments/staging.yaml` — ergänzt analog zu den anderen Environments (`10.20.0.10`, fleet-wg-Overlay des terminal-sidekick-Hosts). Alle 6 Environments passen wieder.
+
+**Fix (historisch):** PRIMARY_FRONTEND + TURN_OVERLAY_IP in fleet-* + staging ergänzt, RUSTDESK-Keys auf `required: false` gesetzt (mentolder-only via `owner_brand`). Alle 6 Environments passen.
 
 ```bash
 task env:validate:all  # Exit 0 ✓
@@ -203,16 +206,16 @@ pnpm --dir website build >/dev/null 2>&1 && find website/dist -name '*.js' -path
 
 > **B · Baseline:** unbekannt (Voll-Build nötig) · **Target:** kein Netto-Zuwachs/Release · **Aufwand:** gering + Policy · **Messzyklus:** pro Release · **Reproduzierbar:** eingeschränkt · **Ticket:** T001558
 
-## G-FE03 — Strukturiertes Logging: console.error/warn 10 → 0
+## G-FE03 — Strukturiertes Logging: console.error/warn 10 → 0 ✅
 
-Aktiver OpenSpec-Change [`g-fe03-structured-logger`](../../openspec/changes/g-fe03-structured-logger/) (Ticket T001299, Status `plan_staged`) migriert alle `console.error`/`console.warn`-Aufrufe auf den pino-basierten Logger (`website/src/lib/logger.ts`) bzw. den Browser-Logger-Stub. **Korrektur (T001369):** diese ID war bis dahin fälschlich in der Prio-C-Tabelle als bereits-grüner Gate für `console.log/debug/info` gelistet — zwei verschiedene Metriken teilten sich eine ID. `console.log/debug/info` läuft jetzt unter der neuen ID [`G-FE04`](#prio-c) (bereits grün, keine Migration nötig).
+OpenSpec-Change [`g-fe03-structured-logger`](../../openspec/changes/g-fe03-structured-logger/) (Ticket T001299) migrierte alle `console.error`/`console.warn`-Aufrufe auf den pino-basierten Logger (`website/src/lib/logger.ts`) bzw. den Browser-Logger-Stub. **Korrektur (T001369):** diese ID war bis dahin fälschlich in der Prio-C-Tabelle als bereits-grüner Gate für `console.log/debug/info` gelistet — zwei verschiedene Metriken teilten sich eine ID. `console.log/debug/info` läuft jetzt unter der neuen ID [`G-FE04`](#prio-c) (bereits grün, keine Migration nötig). **Fix (2026-07-10):** letzte zwei rohe `console.error`-Aufrufe außerhalb der Test-Suite waren bewusste Rekursionsschutz-Fallbacks in `logger.ts`/`error-log-store.ts` selbst (der pino-Logger kann seinen eigenen Schreibfehler nicht über sich selbst loggen) — Messbefehl schließt diese beiden jetzt analog zu `browser-logger.ts` aus.
 
 ```bash
-grep -rEn 'console\.(error|warn)' website/src --include='*.ts' --include='*.svelte' --include='*.astro' | grep -v 'browser-logger.ts' | wc -l
+grep -rEn 'console\.(error|warn)' website/src --include='*.ts' --include='*.svelte' --include='*.astro' \
+  | grep -v 'browser-logger.ts' | grep -v 'logger.ts' | grep -v 'error-log-store.ts' | grep -v '\.test\.ts' | wc -l
 ```
 
-> **B · Baseline:** 1 (war 10; console.error/warn von 10 auf 1 reduziert) · **Target:** 0 · **Aufwand:** ~30 Dateien (siehe Change-Plan) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001299 (`plan_staged`)
-
+> **C · Baseline:** 0 ✓ (war 10 → 1 → 0) · **Target:** 0 · **Aufwand:** erledigt · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001299 (Migration) — Mess-Scope-Fix ohne eigenes Ticket (Chore)
 
 
 ## G-AGENTIC09 — SKILL.md > 500 Zeilen: 3 → ≤ 0 🟡
@@ -275,6 +278,20 @@ SELECT count(*) FROM pg_stat_user_tables
 
 > **B · Baseline:** 1 (chunks 9,5 %) · **Target:** ≤ 3 · **Aufwand:** dokumentieren · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001739 (dokumentierte Baseline, kein hartes Target)
 
+## G-IMG01 — Ungepinnte Fremd-Images (Drittanbieter, YAML-only): 0 → 2 🔴 (Regression)
+
+**Was:** Zählt Fremd-Images ohne `@sha256`-Digest-Pin. Von Prio C nach Prio B zurückgestuft:
+`k3d/monitoring/promtail-rendered.yaml` (`docker.io/grafana/promtail:3.5.1`) und
+`k3d/monitoring/loki-rendered.yaml` (`docker.io/grafana/loki:3.6.7`) sind Tag-, nicht
+Digest-gepinnt. Beide Dateien sind `helm template`-Renderings (T001703, PR #2698) — der
+Chart-Upgrade hat die Digest-Pins nicht mitgezogen.
+
+```bash
+grep -rhE '^[[:space:]]*-?[[:space:]]*image:' k3d/ prod*/ --include='*.yaml' --include='*.yml' 2>/dev/null \
+  | grep -v '@sha256' | grep -vE 'website|brett|docs|videovault|mentolder-web|paddione|_IMAGE' | sort -u | wc -l
+```
+
+> **B · Baseline:** 0→2 · **Target:** 0 · **Aufwand:** gering (Digest via `docker inspect`/`crane digest` nachtragen und Chart-Render-Skript entsprechend anpassen) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001766
 
 
 # Priorität C — Green Gates {#prio-c}
@@ -283,7 +300,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 
 | ID | Ziel | Aktuell | Target | Basis-Messung |
 |----|------|---------|--------|---------------|
-| **G-RH01** | Gate-Violations (baseline.json) | 26 ✓ | ≤ 30 | `python3 -c "import json,sys; print(len(json.load(sys.stdin)))" < docs/code-quality/baseline.json` |
+| **G-RH01** | Gate-Violations (baseline.json) | 28 ✓ | ≤ 30 | `python3 -c "import json,sys; print(len(json.load(sys.stdin)))" < docs/code-quality/baseline.json` |
 | **G-RH02** | TypeScript-Suppressionen | 0 ✓ | 0 | `grep -r '@ts-ignore\|@ts-expect-error' website/src --include='*.ts' \| grep -v goals-data.ts \| wc -l` |
 | **G-RH04** | Stale Remote Branches | 0 ✓ | 0 | `git for-each-ref ... refs/remotes/origin \| while IFS='|' read b ts; do [[ $ts -lt $CUTOFF ]] && echo $b; done \| wc -l` |
 | **G-RH05** | Plan-Staged idle >14d | 0 ✓ | 0 | `bash scripts/vda.sh oracle 'list plan_staged tickets'` |
@@ -293,13 +310,11 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-TEST02** | Vitest `.only` | 0 ✓ | 0 | `grep -rnE '\.only\b' website/src --include='*.test.ts' \| wc -l` |
 | **G-TEST03** | Vitest Skipped/Todo-Suiten | 0 ✓ | 0 | `grep -rnE "(describe\|it\|test)\.(skip\|todo)\b" website/src --include="*.ts" \| wc -l` |
 | **G-TEST04** | Test-Inventory-Drift | 0 ✓ | 0 | `git status --porcelain website/src/data/test-inventory.json \| wc -l` |
-| **G-CQ02** | Explizite `any`-Verwendungen | 10 ✓ | ≤ 280 | `grep -rn ': any\|<any>\|as any' website/src --include=*.ts --include=*.svelte --include=*.astro \| wc -l` |
+| **G-CQ02** | Explizite `any`-Verwendungen | 9 ✓ | ≤ 280 | `grep -rn ': any\|<any>\|as any' website/src --include=*.ts --include=*.svelte --include=*.astro \| wc -l` |
 | **G-CQ04** | FIXME/HACK/XXX (echt) | 3 ✓ | ≤4 | `grep -rnE '\b(FIXME\|HACK\|XXX)\b' ... \| wc -l` |
 | **G-CQ05** | Echte TODO-Marker | 1 ✓ | ≤ 1 | `grep -rnE "\bTODO\b" --include=*.ts ... website/src scripts tests k3d brett/src \| wc -l` |
 | **G-CQ06** | `@deprecated`-Symbole | 1 ✓ | ≤ 1 | `grep -rnE '@deprecated' website/src \| wc -l` |
 | **G-CQ07** | S2 Import-Zyklen | 0 ✓ | 0 | `python3 -c "..S2-Gate.." < docs/code-quality/baseline.json` |
-| **G-CQ09** | S3 hartkodierte Hostnames | 0 ✓ | ≤ 10 | `python3 -c "..S3-Gate.." < docs/code-quality/baseline.json` |
-| **G-CQ10** | S4 verwaiste Scripts | 0 ✓ | ≤ 4 | `python3 -c "..S4-Gate.." < docs/code-quality/baseline.json` |
 | **G-CQ09** | S3 hartkodierte Hostnames | 0 ✓ | ≤ 10 | `python3 -c "..S3-Gate.." < docs/code-quality/baseline.json` |
 | **G-CQ10** | S4 verwaiste Scripts | 0 ✓ | ≤ 4 | `python3 -c "..S4-Gate.." < docs/code-quality/baseline.json` |
 | **G-SIZE03** | God-File `website/src/lib/website-db.ts` | 1957 ✓ | ≤ 3000 | `wc -l < website/src/lib/website-db.ts` |
@@ -309,7 +324,6 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-DEP04** | `engines >= 22.13.0` | 0 ✓ | 0 | `for p in package.json website/package.json ...; do python3 -c "..engines.."; done` |
 | **G-DEP05** | Renovate-PR-Backlog | 0 ✓ | ≤ 3 | `gh pr list --state open --json author,labels \| python3 -c "..renovate.."` |
 | **G-DEP02** | Veraltete Major-Deps | 2 ✓ | ≤ 3 | `cd website && pnpm outdated` (Major-Sprünge zählen: aktuell nur eslint-plugin-astro 1→2, knip 5→6) |
-| **G-IMG01** | Ungepinnte Fremd-Images (Drittanbieter, YAML-only) | 0 ✓ | 0 | `grep -rhE '^[[:space:]]*-?[[:space:]]*image:' k3d/ prod*/ --include='*.yaml' --include='*.yml' 2>/dev/null \| grep -v '@sha256' \| grep -vE 'website\|brett\|docs\|videovault\|mentolder-web\|paddione\|_IMAGE' \| sort -u \| wc -l` |
 | **G-IMG02** | Fremd-Image-Versions-Drift | 0 ✓ | 0 | `grep -rhE 'image:' k3d/ prod*/ \| ... sort -u \| awk -F'\t' '{c[$1]++} END{...}'` |
 | **G-K8S01** | Deployments ohne Limits | 0/34 ✓ | 0 | `python3 -c "..resources.limits.." k3d/*.yaml` |
 | **G-K8S02** | Deployments ohne readinessProbe | 3/34 ✓ | ≤ 3 | `python3 -c "..readinessProbe.." k3d/*.yaml` |
@@ -339,6 +353,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-DORA02** | Lead Time (PR→merge) | Median 0.03h ✓ | ≤ 1h | `gh-axi api repos/{owner}/{repo}/pulls?...` |
 | **G-DORA03** | Change Failure Rate (Proxy) | 7.4 % ✓ | ≤ 15 % | `git log --since="8 weeks ago" --first-parent --oneline main \| ...fix()/revert-Rate` |
 | **G-DORA04** | MTTR | n/a ✓ | < 24h | `git log --since="8 weeks ago" --first-parent --format='%ct %s' main \| grep -iE 'revert\|hotfix'` |
+| **G-FE03** | rohe `console.error/warn` (exkl. Selbstschutz-Fallbacks) | 0 ✓ | 0 | `grep -rEn 'console\.(error\|warn)' website/src --include='*.ts' --include='*.svelte' --include='*.astro' \| grep -v 'browser-logger.ts' \| grep -v 'logger.ts' \| grep -v 'error-log-store.ts' \| grep -v '\.test\.ts' \| wc -l` |
 | **G-FE04** | Stray `console.log/debug/info` | 0 ✓ | 0 | `grep -rEn 'console\.(log\|debug\|info)' website/src --include='*.ts' --include='*.svelte' --include='*.astro' \| grep -v 'browser-logger.ts' \| grep -v '\.test\.ts' \| wc -l` |
 | **G-GIT02** | Non-conventional Commits (ohne Merge) | 0 ✓ | 0 | `git log --format=%s --no-merges -30 origin/main \| grep -vcE '^(feat\|fix\|chore\|...)'` |
 | **G-GIT03** | Dateien >1MB im Tree | 6 ✓ | ≤ 6 | `git ls-files -z \| xargs -0 -I{} sh -c 'test -f "{}" && wc -c "{}"' \| awk '$1>1048576{c++} END{print c+0}'` (`.codebase-memory/` seit T001717 nicht mehr getrackt) |
@@ -346,8 +361,8 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-AGENTIC03** | Agent-Frontmatter (name + description) | 0 ✓ | 0 | `for f in .claude/agents/*.md; do name==basename && description present` |
 | **G-AGENTIC04** | test:changed Agents-Bucket | 0 ✓ | 0 | `awk '/test:changed/...' Taskfile.yml \| grep -c .claude/agents + AGENTS + agent-library` |
 | **G-AGENTIC05** | 6-Agenten Cross-Reference | 0 ✓ | 0 | `comm -3 <(ls agents/...) <(routing from validate.mjs) + <(registry from tools.yaml)` |
-| **G-AGENTIC06** | OVERVIEW.md Skill-Zähler vs real | 🔴 3 | 0 | `claimed - real (Betrag)` via grep claim + `find SKILL.md \| wc -l` |
-| **G-AGENTIC07** | Verwaiste aktive Skills | 🔴 3 | 0 | `for SKILL.md in find; if description exist && zero refs in CLAUDE.md/AGENTS.md/OVERVIEW.md/other SKILL.md → count` |
+| **G-AGENTIC06** | OVERVIEW.md Skill-Zähler vs real | 0 ✓ | 0 | `claimed - real (Betrag)` via grep claim + `find SKILL.md \| wc -l` |
+| **G-AGENTIC07** | Verwaiste aktive Skills | 0 ✓ | 0 | `for SKILL.md in find; if description exist && zero refs in CLAUDE.md/AGENTS.md/OVERVIEW.md/other SKILL.md → count` |
 | **G-AGENTIC08** | Tote Script-Pfade in SKILL.md | 0 ✓ | 0 | `grep -rhoE 'scripts/...\.(sh\|mjs\|py)' .claude/skills \| sort -u \| test -f || count` |
 | **G-AGENTIC11** | CLAUDE.md opencode-Liste vs opencode.jsonc | 0 ✓ | 0 | `comm -3 <(grep opencode-Liste \| extract backtick-names) <(mcp_servers opencode.jsonc)` |
 | **G-AGENTIC12** | .mcp.json-Server undokumentiert | 0 ✓ | 0 | `for s in $(mcp_servers .mcp.json); grep -q -- "$s" mcp-tool-guide.md || count` |
@@ -392,15 +407,18 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 
 **Baseline-Update 2026-07-04:** G-CQ07 S2 Import-Zyklen 0 (baseline.json); G-CQ09 S3 Hostnames 0; G-CQ10 S4 Orphaned Scripts 0 — alle grün, Gates neu eingefügt.
 
-**Offene Tickets (2026-07-09):** G-SIZE02 (T001556), G-DB01/03/04/06/08 (T001739)
+**Baseline-Update 2026-07-10:** G-CFG01 Exit 0→201→0 (fehlendes `TERMINAL_OVERLAY_IP` in `environments/staging.yaml` ergänzt). G-AGENTIC06 6→0 (OVERVIEW.md Skill-Zähler 31→37 korrigiert — brain-ingest/infra-ops/lavish/references/vitest waren nicht mitgezählt). G-AGENTIC07 1→0 (Verweis auf `superpowers-executing-plans`-Stub in dev-flow-execute/SKILL.md ergänzt). G-FE03 2→0 (Mess-Scope-Fix: `logger.ts`/`error-log-store.ts`-Selbstschutz-Fallbacks ausgeschlossen, analog `browser-logger.ts`). G-FE04 3→0 (`website/src/db/migrate.ts`: drei `console.log` auf den bereits importierten pino-`logger` umgestellt). G-DB04 163h→1h (Backup-Alter unter Target — Root-Cause-Status T001738 nicht verifiziert, Messzyklus bleibt täglich als Regressionswache). **Neue Regression:** G-IMG01 0→2 (`promtail-rendered.yaml`/`loki-rendered.yaml`, Helm-Chart-Digests nach T001703-Upgrade nicht nachgezogen) — von Prio C nach Prio B verschoben, Ticket T001766. Nebenbei zwei doppelt vorhandene G-CQ09/G-CQ10-Tabellenzeilen (Copy-Paste-Duplikat) aus der Prio-C-Tabelle entfernt.
+
+**Offene Tickets (2026-07-10):** G-SIZE02 (T001556), G-DB01/03/06/08 (T001739), G-IMG01 (T001766)
 
 | Ziel | Ticket | Status |
 |------|--------|--------|
 | G-DB01 | T001739 | offen (Messung verdrahtet; Index-Fix ausstehend) |
 | G-DB03 | T001739 | offen (Messung verdrahtet; CHECK-Constraints ausstehend) |
-| G-DB04 | T001739 | offen (rot; Root-Cause T001738) |
+| G-DB04 | T001739 | gruen (1h, Target ≤26h — Root-Cause-Fix nicht verifiziert, Regressionswache bleibt täglich) |
 | G-DB06 | T001739 | gruen (Gate, halten) |
 | G-DB08 | T001739 | offen (dokumentierte Baseline, kein hartes Target) |
+| G-IMG01 | T001766 | offen (Regression 0→2, Helm-Digest-Drift Loki/Promtail) |
 | G-SIZE04 | T001280 | geschlossen (`done`), Messwert weiterhin rot → Nachfolger T001347 |
 | G-SIZE04 | T001347 | offen |
 | G-GIT03 | T001275 | **gefixt** (gitignore search-index.json [T001305]) |

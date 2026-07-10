@@ -61,6 +61,7 @@ env_vars:
 
   PRIMARY_FRONTEND: astro
   TURN_OVERLAY_IP: "10.20.0.1"
+  TERMINAL_OVERLAY_IP: "10.20.0.10"
   # No LLM on staging — avoid GPU host load; embedding/chats fall through to Voyage/Anthropic.
   # LLM_HOST_IP must be a valid IP for Kubernetes Endpoints objects even when LLM is disabled.
   # Using RFC5737 TEST-NET-1 (192.0.2.x) as unroutable placeholder — never reached in practice.

@@ -56,12 +56,12 @@ export async function runMigrations(pool: Pool): Promise<void> {
 
     for (const f of files) {
       if (applied.has(f)) {
-        console.log(`[migrate] ${f} already applied — skipping`);
+        logger.info({ file: f }, '[migrate] already applied — skipping');
         continue;
       }
 
       const sql = readFileSync(join(migrationsDir, f), 'utf8');
-      console.log(`[migrate] applying ${f}`);
+      logger.info({ file: f }, '[migrate] applying');
       try {
         await client.query('BEGIN');
         await client.query(sql);
@@ -70,8 +70,9 @@ export async function runMigrations(pool: Pool): Promise<void> {
       } catch (e) {
         await client.query('ROLLBACK');
         if (isPgError(e) && ALREADY_EXISTS_SQLSTATES.has(e.code)) {
-          console.log(
-            `[migrate] ${f} already applied (backfill: ${e.code}) — tracking and continuing`,
+          logger.info(
+            { file: f, code: e.code },
+            '[migrate] already applied (backfill) — tracking and continuing',
           );
           await client.query(
             'INSERT INTO schema_migrations (filename) VALUES ($1) ON CONFLICT DO NOTHING',

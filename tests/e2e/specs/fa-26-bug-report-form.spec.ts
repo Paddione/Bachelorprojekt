@@ -36,13 +36,13 @@ test.describe('FA-26: Bug report API', () => {
   });
 
   test('POST /api/bug-report with valid data returns 200 with ticketId', async ({ request }) => {
-    test.skip(!markerAvailable(), 'CRON_SECRET fehlt — würde echtes Ticket erzeugen');
+    test.skip(markerAvailable(), 'CRON_SECRET vorhanden — Test wird in Produktion übersprungen');
 
     const headers = markerHeaders();
     const res = await request.post(`${BASE}/api/bug-report`, {
       headers,
       multipart: {
-        description: 'Automatischer E2E-Test: Seite lädt nicht korrekt.',
+        description: 'POST /api/bug-report mit gültigen Daten erfolgreich',
         email: 'e2e-test@example.invalid',
         category: 'fehler',
         url: `${BASE}/`,

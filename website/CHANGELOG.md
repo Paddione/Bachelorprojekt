@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.177.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.176.0...website-v1.177.0) (2026-07-10)
+
+
+### Features
+
+* **infra:** update image exclusions in CLAUDE.md [T001775] ([#2738](https://github.com/Paddione/Bachelorprojekt/issues/2738)) ([db2c6bc](https://github.com/Paddione/Bachelorprojekt/commit/db2c6bc64301a58552d34398787966d67024bc27))
+
 ## [1.176.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.175.0...website-v1.176.0) (2026-07-10)
 
 

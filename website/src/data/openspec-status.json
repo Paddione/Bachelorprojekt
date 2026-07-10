@@ -993,6 +993,12 @@
       "status": "archived"
     }
   ],
+  "T001760": [
+    {
+      "slug": "t001749-admin-tickets-e2e-seed",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

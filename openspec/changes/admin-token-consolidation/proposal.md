@@ -20,11 +20,12 @@ Problem aufzulösen.
   `--admin-transition-*`, Component-Tokens) und verliert alle **Farb-Aliase**. Farb-`--admin-*`
   dürfen als dünne `@theme`-Semantik-Aliase bestehen bleiben (`--color-admin-text: var(--color-fg)`),
   aber nicht mehr in zwei Dateien dupliziert werden.
-- `--sidebar-width` nur noch **einmal** definiert (`admin-premium.css` als Owner der Sidebar-Optik);
-  die zwei Dubletten entfernen.
+- `--sidebar-width`/`--sidebar-collapsed-width` (heute einmalig in `admin-foundation.css`, aber
+  cross-file in `admin-premium.css` genutzt) wandern zu `admin-premium.css` — dem Owner der Sidebar-Optik,
+  der bereits `--admin-sidebar-w/-h` daraus ableitet.
 - `admin-token-alias.test.ts` **neu fassen**: bewacht künftig „`--admin-*`-Farbtokens aliasen ein
   `@theme --color-*`" und „keine Farb-Dublette zwischen `@theme` und einer zweiten `:root`-Quelle".
-- Die 24 Dateien mit `--admin-*`-Farbnutzung bleiben gültig (die Aliase existieren weiter), werden
+- Die **36** Dateien mit `--admin-*`-Farbnutzung bleiben gültig (die Aliase existieren weiter), werden
   aber gegen die neue Quelle verifiziert.
 
 **Risiko:** Höchstes Snapshot-Risiko im Epic (`visual-sweep.spec.ts`). Läuft **zuerst**; Snapshots

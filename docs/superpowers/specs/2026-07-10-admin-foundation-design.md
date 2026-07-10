@@ -36,7 +36,7 @@ Fundament trägt, folgt der Visual-Layer (react-bits als React-Islands, Welle 4)
 
 | Schuld | Fläche | Risiko | Kernbefund |
 |---|---|---|---|
-| Token-Chaos | 3 Ebenen | hoch | Dieselbe Farbe heißt `--color-fg` (Tailwind `@theme`), `--fg` (factory-tokens), `--admin-text`. `--sidebar-width` dreifach definiert. 17 doppelte Basisnamen zwischen `global.css` und `factory-tokens.css`. |
+| Token-Chaos | 3 Ebenen | hoch | Dieselbe Farbe heißt `--color-fg` (Tailwind `@theme`), `--fg` (factory-tokens), `--admin-text`. 17 doppelte Basisnamen zwischen `global.css` und `factory-tokens.css`; `--sidebar-width` in `admin-foundation.css` definiert, aber cross-file in `admin-premium.css` genutzt. |
 | Keine Modal-Basis | 8 Modals + 4 Drawer | mittel | Nur `TicketCreateModal` hat `role="dialog"` + Escape. `KnowledgeSourceModal`/`WebCrawlSourceModal` haben kein Backdrop-Markup. **Echter A11y-Defekt.** |
 | Redirect-Stubs | 23 Dateien | niedrig | 11 zeigen auf `/admin/inhalte`; `astro.config.mjs` hat **keine** `redirects`-Config. **16 der 23 haben Query-Strings im Ziel.** |
 | Auth-Copy-Paste | 62 Seiten | niedrig | Derselbe 3-Zeilen-Block (`getSession`/`isAdmin`/redirect). Kein `requireAdmin()`-Helper. Redirect-Ziel inkonsistent (`/admin` vs. `/portal`). |
@@ -57,19 +57,24 @@ Node-Adapter standalone.
 
 `factory-tokens.css` wird **ersatzlos aufgelöst**; seine 17 Basisnamen wandern als `@theme`-Einträge nach
 `global.css`. `admin-foundation.css` behält nur echte Admin-Spezifika (`--space-*`, `--z-*`,
-`--admin-transition-*`, Component-Tokens) und verliert **alle Farb-Aliase**. `--sidebar-width` verliert
-seine zwei Dubletten (bleibt einmal, in `admin-premium.css` als Owner der Sidebar-Optik).
+`--admin-transition-*`, Component-Tokens) und verliert **alle Farb-Aliase**. Die
+`--sidebar-width`/`--sidebar-collapsed-width`-Definition (heute einmalig in `admin-foundation.css`,
+aber cross-file in `admin-premium.css` genutzt) wandert nach `admin-premium.css` — dem Owner der
+Sidebar-Optik.
 
 **Konsequenzen:**
-- `admin-token-alias.test.ts` wird neu geschrieben (bewacht künftig „keine Farb-Dublette zwischen
-  `@theme` und `factory-tokens`", nicht mehr die Alias-Kette).
-- ~24 Dateien mit `--admin-*`-Farbnutzung werden auf die verbleibenden Tokens umgestellt bzw. bleiben
-  gültig, wenn die `--admin-*`-Farbnamen als dünne `@theme`-Aliase erhalten bleiben (Entscheidung: Farb-
-  `--admin-*` dürfen als **Semantik-Aliase** in `@theme` bleiben — z. B. `--color-admin-text: var(--color-fg)` —
-  aber **nicht** mehr in `factory-tokens.css`/`admin-foundation.css` dupliziert).
+- `admin-token-alias.test.ts` wird neu gefasst: bewacht künftig, dass jedes `--admin-*`-Farbtoken ein
+  `@theme --color-*` aliast **und** dass `factory-tokens.css` nicht mehr existiert (keine zweite
+  `:root`-Farbquelle) — statt der bisherigen Alias-Kette gegen `factory-tokens`.
+- Die 16 `--admin-*`-Farb-Aliase werden in einem `:root`-Block in `global.css` deklariert (jeweils
+  `var(--color-*)`). Die **36** Dateien, die `--admin-*`-Farben nutzen, bleiben dadurch unverändert
+  gültig — nur die Quelle der Aliase wechselt.
 - CSS ist im S1-Ratchet **ungated** (`_ext_limit` liefert 0 für `.css`) → kein Zeilenbudget-Problem.
-- **Höchstes Regressionsrisiko im Epic:** `visual-sweep.spec.ts` + weitere Snapshot-Specs. Deshalb
-  läuft dieser Strang **zuerst**; Snapshots werden einmal bewusst neu baseliniert.
+- **Snapshot-Risiko geringer als zunächst angenommen:** `tests/e2e/specs/visual-sweep.spec.ts` vergleicht
+  keine eingecheckten Pixel-Baselines, sondern erzeugt eine Galerie und gated nur auf Route-Fehler
+  (HTTP ≥ 400); die migrierten Farbwerte sind computed-deckungsgleich. Der Strang läuft trotzdem
+  **zuerst** (die Token-Basis soll vor den Komponenten-Migrationen stehen), und Task 7 des Plans macht
+  eine bewusste Galerie-Sichtung/Rebaseline, falls je `toHaveScreenshot`-Baselines hinzukommen.
 
 ### T2 — Redirect-Mechanik: `REDIRECT_MAP` in `middleware.ts`
 
@@ -129,8 +134,10 @@ allem, was Snapshots berührt. Modal und Redirect sind untereinander unabhängig
 
 ## Risiken & Failure-Modes
 
-- **Visual-Sweep bricht (hoch):** Token-Migration verändert Snapshots zwangsläufig. Gegenmaßnahme:
-  Token-Strang zuerst; Snapshots einmal bewusst neu baselinen; danach stabile Basis für Modal/Redirect.
+- **Visual-Regression (niedrig–mittel):** `visual-sweep.spec.ts` gated auf Route-Fehler (HTTP ≥ 400),
+  nicht auf eingecheckte Pixel-Baselines; die migrierten Farbwerte sind computed-deckungsgleich.
+  Gegenmaßnahme: Token-Strang zuerst (stabile Basis für Modal/Redirect); bewusste Galerie-Sichtung in
+  Plan-Task 7; Rebaseline nur, falls je `toHaveScreenshot`-Baselines existieren.
 - **Selektor-Bruch (mittel):** Modal-Migration ändert DOM-Struktur (`<div class="modal-overlay">` →
   `<dialog>`). E2E-Specs, die auf alte Selektoren zielen, brechen still. Gegenmaßnahme: vor der Migration
   betroffene Selektoren in den 101 Admin-E2E-Specs inventarisieren; `<dialog>` mit stabilen

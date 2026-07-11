@@ -2965,7 +2965,7 @@ tasks:
         echo "Syncing DB passwords from ${NS}/workspace-secrets → shared-db ({{.ENV}})..."
 
         nc_needs_restart=0
-        for user in keycloak nextcloud vaultwarden website docuseal; do
+        for user in pocket_id nextcloud vaultwarden website docuseal; do
           key="${user^^}_DB_PASSWORD"
           pw=$(kubectl $context_flag get secret workspace-secrets -n "$NS" \
             -o jsonpath="{.data.${key}}" 2>/dev/null | base64 -d)

@@ -33,7 +33,7 @@ describe('AdminModal', () => {
 
   it('calls showModal() when the bound open prop flips to true', async () => {
     const showModalSpy = vi.spyOn(HTMLDialogElement.prototype, 'showModal').mockImplementation(() => {});
-    const closeSpy = vi.spyOn(HTMLDialogElement.prototype, 'close').mockImplementation(() => {});
+    vi.spyOn(HTMLDialogElement.prototype, 'close').mockImplementation(() => {});
     
     const { rerender } = render(AdminModal, { open: false, title: 'X', body });
     
@@ -59,7 +59,7 @@ describe('AdminDrawer', () => {
 
   it('calls showModal() when the bound open prop flips to true', async () => {
     const showModalSpy = vi.spyOn(HTMLDialogElement.prototype, 'showModal').mockImplementation(() => {});
-    const closeSpy = vi.spyOn(HTMLDialogElement.prototype, 'close').mockImplementation(() => {});
+    vi.spyOn(HTMLDialogElement.prototype, 'close').mockImplementation(() => {});
     
     const { rerender } = render(AdminDrawer, { open: false, title: 'X', body });
     

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.179.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.178.0...website-v1.179.0) (2026-07-11)
+
+
+### Features
+
+* **website:** admin-token-consolidation — single [@theme](https://github.com/theme) color source [T001787] ([#2752](https://github.com/Paddione/Bachelorprojekt/issues/2752)) ([5e1c5af](https://github.com/Paddione/Bachelorprojekt/commit/5e1c5af4b12b1b605dc9a52cc4024ebee3f3c714))
+
 ## [1.178.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.177.2...website-v1.178.0) (2026-07-11)
 
 

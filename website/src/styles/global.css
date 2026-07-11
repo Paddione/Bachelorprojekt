@@ -144,6 +144,7 @@
   --brass: var(--color-brass);
   --brass-2: var(--color-brass-2);
   --brass-d: var(--color-brass-d);
+  --brass-deep: #4a3814; /* used via var(--brass-deep, ...) fallback in PortalLayout.astro */
   --sage: var(--color-sage);
   --danger: var(--color-danger);
   --line: var(--color-line);

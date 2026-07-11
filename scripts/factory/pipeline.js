@@ -150,7 +150,7 @@ if (A.batch_mode === true && Array.isArray(A.sub_features)) {
        After implementing: cd ${WORK_WT} && task workspace:validate && task test:all && task freshness:regenerate
        Then commit: cd ${WORK_WT} && git add -A && git commit -m ${JSON.stringify(`feat(${slug}): ${sf.id} [batch-factory]`)}
        Return a summary of the diff and local test result.` + consumeInjections('implement'),
-      { label: `batch:${sf.id}`, phase: 'Implement', model: sfRoute.modelId },
+      { label: `batch:${sf.id}`, phase: 'Implement', model: BL.resolveAgentModel(sfRoute, routerTier(sfProv.model), log) },
     )
   }))
 
@@ -302,7 +302,7 @@ if (!isSimple) {
 
      Return JSON { tasks: [...], plan_path: "<absolute path>" }` + consumeInjections('plan'),
     {
-      model: planRoute.modelId,
+      model: BL.resolveAgentModel(planRoute, routerTier(planProv.model), log),
       label: 'plan:decompose',
       phase: 'Plan',
       schema: { type: 'object', required: ['tasks', 'plan_path'], properties: { plan_path: { type: 'string' }, tasks: { type: 'array', items: { type: 'object', required: ['id', 'target_files', 'acceptance_criteria'], properties: { id: { type: 'string' }, target_files: { type: 'array', items: { type: 'string' } }, acceptance_criteria: { type: 'array', items: { type: 'string' } } } } } } },
@@ -418,7 +418,7 @@ if (tasks.length && !A.batch_mode) {
          After implementing: cd ${WORK_WT} && task workspace:validate && task test:all && task freshness:regenerate
          Then commit: cd ${WORK_WT} && git add -A && git commit -m ${JSON.stringify(`feat(${slug}): ${t.id} [factory]`)}
          Return a summary of the diff and local test result (pass/fail).` + consumeInjections('implement'),
-        { label: `impl:${t.id}`, phase: 'Implement', model: route.modelId },
+        { label: `impl:${t.id}`, phase: 'Implement', model: BL.resolveAgentModel(route, routerTier(prov.model), log) },
       )
       releaseSlotSync(route.slotId, impl != null, route.ctx)
     } catch (err) {
@@ -494,7 +494,7 @@ if (!cleanDiff || !String(cleanDiff).trim()) {
     return agent(
       `/goal Perform verification review lens: ${l.key}.
        Liveness: \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then review at ${REPO}/${l.file} against: git -C ${WORK_WT} diff origin/main...HEAD. Return findings as JSON per the prompt's schema.` + consumeInjections('verify'),
-      { label: `review:${l.key}`, phase: 'Verify', ...(l.key === 'agents-md' ? {} : { schema: REVIEW_SCHEMA }), model: route.modelId },
+      { label: `review:${l.key}`, phase: 'Verify', ...(l.key === 'agents-md' ? {} : { schema: REVIEW_SCHEMA }), model: BL.resolveAgentModel(route, 'opus', log) },
     )
   }))).filter(Boolean)
   log(`Verify: ${reviews.length}/${lenses.length} lenses done, tier=${tier}`)
@@ -542,7 +542,7 @@ if (!cleanDiff || !String(cleanDiff).trim()) {
     const coordRoute = routeProviderSync('factory-review', 'opus', 'verify')
     const coord = await agent(
       `Read ${REPO}/scripts/factory/review-coordinator.prompt.md and apply to these lens findings. Return ONE consolidated JSON with "verdict" field.\n${xml}`,
-      { label: 'review:coordinator', phase: 'Verify', schema: COORDINATOR_SCHEMA, model: coordRoute.modelId },
+      { label: 'review:coordinator', phase: 'Verify', schema: COORDINATOR_SCHEMA, model: BL.resolveAgentModel(coordRoute, 'opus', log) },
     )
     if (coord && coord.verdict) {
       coordinatorVerdict = coord.verdict

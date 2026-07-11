@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "./factory-tokens.css";
+@import url("https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap");
 
 @theme {
   /* ── Legacy aliases (backwards compat for non-homepage pages) ── */
@@ -32,6 +32,9 @@
 
   /* Sage accent */
   --color-sage: oklch(0.80 0.06 160);
+
+  /* Danger / destructive (migrated from factory-tokens.css) */
+  --color-danger: #d77a6e;
 
   /* UI surface tokens */
   --color-surface: #101826;
@@ -142,11 +145,77 @@
   --brass-2: var(--color-brass-2);
   --brass-d: var(--color-brass-d);
   --sage: var(--color-sage);
+  --danger: var(--color-danger);
   --line: var(--color-line);
   --line-2: var(--color-line-2);
   --serif: var(--font-serif);
   --sans: var(--font-sans);
   --mono: var(--font-mono);
+
+  /* Radii (migrated from factory-tokens.css) */
+  --radius-sm:   4px;
+  --radius-md:   10px;
+  --radius-lg:   14px;
+  --radius-pill: 999px;
+
+  /* Motion (migrated from factory-tokens.css) */
+  --dur-base:  180ms;
+  --ease-soft: cubic-bezier(.2,.7,.2,1);
+
+  /* Legacy factory aliases (migrated from factory-tokens.css) */
+  --factory-bg:             var(--ink-900);
+  --factory-surface:        var(--ink-850);
+  --factory-surface-elevated: var(--ink-800);
+  --factory-border:         var(--line);
+  --factory-text-primary:   var(--fg);
+  --factory-text-secondary: var(--fg-soft);
+  --factory-text-muted:     var(--mute);
+  --factory-accent:         var(--brass);
+  --factory-accent-hover:   var(--brass-2);
+  --factory-error:          var(--danger);
+  --factory-success:        var(--sage);
+
+  --factory-priority-critical: var(--danger);
+  --factory-priority-high:     var(--brass);
+  --factory-priority-medium:   color-mix(in oklab, var(--brass) 55%, var(--mute-2));
+  --factory-priority-low:      var(--mute-2);
+
+  --factory-font-sans: var(--sans);
+  --factory-font-mono: var(--mono);
+  --factory-font-serif: var(--serif);
+
+  --factory-radius-sm:   var(--radius-sm);
+  --factory-radius-md:   var(--radius-md);
+  --factory-radius-lg:   var(--radius-lg);
+
+  --factory-conveyor-line: var(--line-2);
+  --factory-conveyor-bg:   var(--ink-900);
+  --factory-detail-width: 460px;
+
+  --factory-phase-entered: var(--brass);
+  --factory-phase-done:    color-mix(in oklab, var(--brass) 55%, var(--ink-850));
+  --factory-phase-blocked: var(--danger);
+  --factory-phase-future:  var(--ink-750);
+}
+
+/* Admin semantic color aliases — single source (was admin-foundation.css). */
+:root {
+  --admin-bg:            var(--color-ink-900);
+  --admin-sidebar-bg:    var(--color-ink-850);
+  --admin-surface:       var(--color-ink-800);
+  --admin-surface-hover: var(--color-ink-750);
+  --admin-border:        var(--color-line);
+  --admin-border-bright: var(--color-line-2);
+  --admin-primary:       var(--color-brass);
+  --admin-primary-muted: var(--color-brass-d);
+  --admin-accent:        var(--color-brass);
+  --admin-text:          var(--color-fg);
+  --admin-text-mute:     var(--color-mute);
+  --admin-text-disabled: var(--color-mute-2);
+  --admin-success:       var(--color-sage);
+  --admin-danger:        var(--color-danger);
+  --admin-info:          var(--color-brass);
+  --admin-warning:       var(--color-brass);
 }
 
 html {
@@ -304,3 +373,56 @@ dialog {
     transition: none;
   }
 }
+
+/* ── Factory presentation rules (migrated from factory-tokens.css) ──── */
+
+/* Scrollbar (quiet) */
+.factory-scroll::-webkit-scrollbar { width: 10px; }
+.factory-scroll::-webkit-scrollbar-thumb {
+  background: var(--ink-750);
+  border-radius: 99px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+.factory-scroll::-webkit-scrollbar-track { background: transparent; }
+
+/* Film grain overlay */
+.ff-grain {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  opacity: .45; mix-blend-mode: overlay;
+}
+
+/* Panel + backdrop slide animations */
+@keyframes ff-slide-in  { from { transform: translateX(100%); } to { transform: translateX(0); } }
+@keyframes ff-slide-out { from { transform: translateX(0); }   to { transform: translateX(100%); } }
+@keyframes ff-fade-in   { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ff-fade-out  { from { opacity: 1; } to { opacity: 0; } }
+@keyframes ff-blocked-pulse { 0%,100% { opacity: 1; } 50% { opacity: .55; } }
+
+/* Pulse dot (live / sage) */
+@keyframes ff-pulse-ring {
+  0%   { box-shadow: 0 0 0 0 color-mix(in oklab, var(--sage) 55%, transparent); opacity: 1; }
+  70%  { box-shadow: 0 0 0 9px transparent; opacity: 0; }
+  100% { box-shadow: 0 0 0 0 transparent; opacity: 0; }
+}
+@keyframes ff-pulse-ring-d {
+  0%   { box-shadow: 0 0 0 0 color-mix(in oklab, var(--danger) 55%, transparent); opacity: 1; }
+  70%  { box-shadow: 0 0 0 9px transparent; opacity: 0; }
+  100% { box-shadow: 0 0 0 0 transparent; opacity: 0; }
+}
+
+/* Pilot light (control panel indicators) */
+@keyframes ff-pilot-breathe {
+  0%,100% { opacity: 0; box-shadow: 0 0 0 0 currentColor; }
+  50%      { opacity: .25; box-shadow: 0 0 0 5px currentColor; }
+}
+
+/* Brass action pill (floor + tabs) */
+.ff-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 12px; border-radius: var(--radius-pill);
+  font-family: var(--sans); font-size: 12px; font-weight: 600;
+  color: var(--ink-900); background: var(--brass); border: none; cursor: pointer;
+}
+.ff-pill:hover { background: var(--brass-2); }
+.ff-pill--ghost { background: transparent; color: var(--brass); border: 1px solid var(--brass-d); }

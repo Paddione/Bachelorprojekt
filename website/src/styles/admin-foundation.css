@@ -28,12 +28,6 @@
   --admin-table-row-height: 44px;
   --admin-modal-backdrop: rgba(0, 0, 0, 0.6);
 
-  /* --- Status colors (aliased to factory-tokens.css) --- */
-  --admin-success: var(--sage);
-  --admin-danger:  var(--danger);
-  --admin-info:    var(--brass);   /* indigo retired */
-  --admin-warning: var(--brass);
-
   /* --- Z-index scale --- */
   --z-sidebar: 50;
   --z-dropdown: 80;
@@ -43,25 +37,6 @@
   /* --- Animation --- */
   --admin-transition-fast: 0.15s ease;
   --admin-transition-normal: 0.25s ease;
-
-  /* --- Surfaces & text (aliased to factory-tokens.css) --- */
-  --admin-bg:            var(--ink-900);
-  --admin-sidebar-bg:    var(--ink-850);
-  --admin-surface:       var(--ink-800);
-  --admin-surface-hover: var(--ink-750);
-  --admin-border:        var(--line);
-  --admin-border-bright: var(--line-2);
-
-  --admin-primary:       var(--brass);
-  --admin-primary-muted: var(--brass-d);
-  --admin-accent:        var(--brass);
-
-  --admin-text:          var(--fg);
-  --admin-text-mute:     var(--mute);
-  --admin-text-disabled: var(--mute-2);
-
-  --sidebar-width: 16rem;
-  --sidebar-collapsed-width: 4rem;
 }
 
 /* No film grain on admin pages */

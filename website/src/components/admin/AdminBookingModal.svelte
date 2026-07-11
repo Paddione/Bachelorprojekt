@@ -1,5 +1,6 @@
 <script lang="ts">
   import AdminBookingSlotPicker from './AdminBookingSlotPicker.svelte';
+  import AdminModal from './ui/AdminModal.svelte';
 
   interface Leistung {
     key: string;
@@ -63,7 +64,7 @@
           c =>
             c.name.toLowerCase().includes(clientSearch.toLowerCase()) ||
             c.email.toLowerCase().includes(clientSearch.toLowerCase())
-        )
+          )
   );
 
   let bookingType = $state<'erstgespraech' | 'callback' | 'meeting' | 'termin'>('erstgespraech');
@@ -128,7 +129,6 @@
       const res = await fetch('/api/leistungen');
       if (res.ok) leistungen = await res.json();
     } catch {
-      // Dropdown bleibt leer
     } finally {
       leistungenLoaded = true;
     }
@@ -156,7 +156,6 @@
       const res = await fetch('/api/admin/clients-list');
       if (res.ok) clients = await res.json();
     } catch {
-      // Combobox bleibt leer
     } finally {
       clientsLoaded = true;
     }
@@ -165,7 +164,7 @@
   async function submit() {
     error = '';
     const clientEmail = isPrefilled ? prefillEmail : (selectedClient?.email ?? '');
-    const clientName  = isPrefilled ? (prefillName || prefillEmail) : (selectedClient?.name ?? '');
+    const clientName = isPrefilled ? (prefillName || prefillEmail) : (selectedClient?.name ?? '');
 
     if (!clientEmail) { error = 'Bitte einen Client auswählen.'; return; }
     if (!leistungKey)  { error = 'Bitte eine Leistung auswählen.'; return; }
@@ -239,6 +238,131 @@
   }
 </script>
 
+{#snippet modalContent()}
+  <div class="modal-content">
+    {#if error}<p class="err">{error}</p>{/if}
+    {#if success}<p class="info">{success}</p>{/if}
+
+    {#if !isPrefilled}
+      <div class="client-section">
+        <label>Client</label>
+        {#if selectedClient}
+          <div class="selected-client">
+            <span class="client-name">{selectedClient.name}</span>
+            <span class="client-email">· {selectedClient.email}</span>
+            <button onclick={() => { selectedClient = null; clientSearch = ''; }} class="btn-clear">✕</button>
+          </div>
+        {:else}
+          <input
+            type="text"
+            placeholder="Name oder E-Mail suchen…"
+            bind:value={clientSearch}
+            class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm focus:border-gold outline-none"
+          />
+          {#if clientSearch.length > 0 && filteredClients.length > 0}
+            <div class="client-list">
+              {#each filteredClients as c}
+                <button onclick={() => { selectedClient = c; clientSearch = ''; }} class="client-item">
+                  {c.name} <span class="client-email-sub">· {c.email}</span>
+                </button>
+              {/each}
+            </div>
+          {/if}
+        {/if}
+      </div>
+    {/if}
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Typ</label>
+        <select
+          bind:value={bookingType}
+          class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm focus:border-gold outline-none"
+        >
+          <option value="erstgespraech">Kostenloses Erstgespräch</option>
+          <option value="meeting">Online-Meeting</option>
+          <option value="termin">Termin vor Ort</option>
+          <option value="callback">Rückruf</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Leistung</label>
+        <select
+          bind:value={leistungKey}
+          class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm focus:border-gold outline-none"
+        >
+          <option value="">— Bitte wählen —</option>
+          {#each leistungen as l}
+            <option value={l.key}>{l.category} · {l.name}</option>
+          {/each}
+        </select>
+      </div>
+
+      {#if projects.length > 0}
+      <div class="form-group">
+        <label>Projekt <span class="sub-label">(optional)</span></label>
+        <select
+          bind:value={projectId}
+          class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm focus:border-gold outline-none"
+        >
+          <option value="">— Kein Projekt —</option>
+          {#each projects as p}
+            <option value={p.id}>{p.name}</option>
+          {/each}
+        </select>
+      </div>
+      {/if}
+
+      {#if !isCallback}
+        <div class="form-group">
+          <label>Termin</label>
+          <AdminBookingSlotPicker
+            bind:useCustomTime={useCustomTime}
+            bind:customDate={customDate}
+            bind:customStartTime={customStartTime}
+            bind:customDurationMin={customDurationMin}
+            daySlots={daySlots}
+            slotsLoaded={slotsLoaded}
+            slotsError={slotsError}
+            bind:selectedDate={selectedDate}
+            bind:selectedSlot={selectedSlot}
+          />
+        </div>
+      {/if}
+
+      {#if isCallback}
+        <div class="form-group">
+          <label>Telefon</label>
+          <input
+            type="tel"
+            placeholder="+49 151 …"
+            bind:value={phone}
+            class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm focus:border-gold outline-none"
+          />
+        </div>
+      {/if}
+
+      <div class="form-group">
+        <label>Nachricht <span class="sub-label">(optional)</span></label>
+        <textarea
+          bind:value={message}
+          rows="3"
+          placeholder="Interne Notiz oder Nachricht an den Client…"
+          class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm focus:border-gold outline-none resize-none"
+        ></textarea>
+      </div>
+    </div>
+  </div>
+{/snippet}
+
+{#snippet modalFooter()}
+  <div class="actions">
+    <button onclick={closeModal} disabled={submitting}>Abbrechen</button>
+    <button onclick={submit} disabled={submitting}>{submitting ? '…' : 'Buchung anlegen'}</button>
+  </div>
+{/snippet}
+
 {#if buttonVariant === 'primary'}
   <button
     onclick={openModal}
@@ -255,157 +379,36 @@
   </button>
 {/if}
 
-{#if open}
-  <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-  <div
-    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-    onclick={(e) => { if (e.target === e.currentTarget) closeModal(); }}
-  >
-    <div class="w-full max-w-lg bg-dark rounded-2xl border border-dark-lighter shadow-2xl overflow-hidden">
+<AdminModal
+  bind:open
+  title="Leistung buchen{isPrefilled ? ` für ${prefillName || prefillEmail}` : ''}"
+  onclose={closeModal}
+  body={modalContent}
+  footer={modalFooter}
+/>
 
-      <div class="flex items-center justify-between px-6 py-4 border-b border-dark-lighter">
-        <h2 class="text-lg font-bold text-light font-serif">
-          Leistung buchen{isPrefilled ? ` für ${prefillName || prefillEmail}` : ''}
-        </h2>
-        <button onclick={closeModal} class="text-muted hover:text-light transition-colors text-xl leading-none">✕</button>
-      </div>
-
-      <div class="px-6 py-5 space-y-4 max-h-[80vh] overflow-y-auto">
-
-        {#if error}
-          <div class="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">{error}</div>
-        {/if}
-        {#if success}
-          <div class="p-3 bg-green-500/10 border border-green-500/30 rounded-lg text-green-400 text-sm">{success}</div>
-        {/if}
-
-        {#if !isPrefilled}
-          <div>
-            <label class="block text-xs text-muted uppercase tracking-wide mb-1">Client</label>
-            {#if selectedClient}
-              <div class="flex items-center gap-2 px-3 py-2 bg-dark-light border border-gold/40 rounded-lg text-sm">
-                <span class="text-light flex-1">{selectedClient.name} <span class="text-muted">· {selectedClient.email}</span></span>
-                <button onclick={() => { selectedClient = null; clientSearch = ''; }} class="text-muted hover:text-light text-xs">✕</button>
-              </div>
-            {:else}
-              <input
-                type="text"
-                placeholder="Name oder E-Mail suchen…"
-                bind:value={clientSearch}
-                class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm focus:border-gold outline-none"
-              />
-              {#if clientSearch.length > 0 && filteredClients.length > 0}
-                <div class="mt-1 bg-dark border border-dark-lighter rounded-lg overflow-hidden max-h-40 overflow-y-auto">
-                  {#each filteredClients as c}
-                    <button
-                      onclick={() => { selectedClient = c; clientSearch = ''; }}
-                      class="w-full text-left px-3 py-2 text-sm text-light hover:bg-dark-light transition-colors"
-                    >
-                      {c.name} <span class="text-muted">· {c.email}</span>
-                    </button>
-                  {/each}
-                </div>
-              {/if}
-            {/if}
-          </div>
-        {/if}
-
-        <div>
-          <label class="block text-xs text-muted uppercase tracking-wide mb-1">Typ</label>
-          <select
-            bind:value={bookingType}
-            class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm focus:border-gold outline-none"
-          >
-            <option value="erstgespraech">Kostenloses Erstgespräch</option>
-            <option value="meeting">Online-Meeting</option>
-            <option value="termin">Termin vor Ort</option>
-            <option value="callback">Rückruf</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-xs text-muted uppercase tracking-wide mb-1">Leistung</label>
-          <select
-            bind:value={leistungKey}
-            class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm focus:border-gold outline-none"
-          >
-            <option value="">— Bitte wählen —</option>
-            {#each leistungen as l}
-              <option value={l.key}>{l.category} · {l.name}</option>
-            {/each}
-          </select>
-        </div>
-
-        {#if projects.length > 0}
-          <div>
-            <label class="block text-xs text-muted uppercase tracking-wide mb-1">Projekt <span class="normal-case text-muted/60">(optional)</span></label>
-            <select
-              bind:value={projectId}
-              class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm focus:border-gold outline-none"
-            >
-              <option value="">— Kein Projekt —</option>
-              {#each projects as p}
-                <option value={p.id}>{p.name}</option>
-              {/each}
-            </select>
-          </div>
-        {/if}
-
-        {#if !isCallback}
-          <AdminBookingSlotPicker
-            bind:useCustomTime={useCustomTime}
-            bind:customDate={customDate}
-            bind:customStartTime={customStartTime}
-            bind:customDurationMin={customDurationMin}
-            daySlots={daySlots}
-            slotsLoaded={slotsLoaded}
-            slotsError={slotsError}
-            bind:selectedDate={selectedDate}
-            bind:selectedSlot={selectedSlot}
-          />
-        {/if}
-
-        {#if isCallback}
-          <div>
-            <label class="block text-xs text-muted uppercase tracking-wide mb-1">Telefon</label>
-            <input
-              type="tel"
-              placeholder="+49 151 …"
-              bind:value={phone}
-              class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm focus:border-gold outline-none"
-            />
-          </div>
-        {/if}
-
-        <div>
-          <label class="block text-xs text-muted uppercase tracking-wide mb-1">Nachricht <span class="normal-case text-muted/60">(optional)</span></label>
-          <textarea
-            bind:value={message}
-            rows="3"
-            placeholder="Interne Notiz oder Nachricht an den Client…"
-            class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm focus:border-gold outline-none resize-none"
-          ></textarea>
-        </div>
-
-      </div>
-
-      <div class="flex justify-end gap-3 px-6 py-4 border-t border-dark-lighter">
-        <button
-          onclick={closeModal}
-          disabled={submitting}
-          class="px-4 py-2 text-sm text-muted hover:text-light transition-colors disabled:opacity-50"
-        >
-          Abbrechen
-        </button>
-        <button
-          onclick={submit}
-          disabled={submitting}
-          class="px-5 py-2 bg-gold text-dark rounded-lg text-sm font-semibold hover:bg-gold/80 transition-colors disabled:opacity-50"
-        >
-          {submitting ? '…' : 'Buchung anlegen'}
-        </button>
-      </div>
-
-    </div>
-  </div>
-{/if}
+<style>
+  .err { color: #c96e6e; }
+  .info { color: var(--brass); background: rgba(201, 165, 92, 0.08); border: 1px solid rgba(201, 165, 92, 0.3); border-radius: 6px; padding: 0.5rem 0.75rem; font-size: 12px; }
+  .actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem; }
+  button { background: var(--brass); color: var(--ink-900); border: none; padding: 0.55rem 1rem; border-radius: 6px; font-weight: 600; cursor: pointer; }
+  .actions button:first-of-type { background: transparent; color: var(--fg); border: 1px solid var(--ink-750); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .mode-tabs { display: flex; gap: 0.25rem; padding: 0.25rem; background: var(--ink-900); border-radius: 6px; border: 1px solid var(--ink-750); }
+  .mode-tabs button { flex: 1; background: transparent; color: var(--fg-soft); padding: 0.4rem; font-size: 12px; font-weight: 500; }
+  .mode-tabs button.active { background: var(--ink-750); color: var(--fg); }
+  .hint { margin: 0; color: var(--fg-soft); font-size: 11px; }
+  .hint code { background: var(--ink-900); padding: 0.05rem 0.3rem; border-radius: 3px; font-family: var(--font-mono); }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+  .form-group { display: flex; flex-direction: column; gap: 0.25rem; }
+  .client-section { margin-bottom: 1rem; }
+  .selected-client { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; background: var(--ink-900); border: 1px solid var(--ink-750); border-radius: 8px; font-size: 13px; }
+  .client-name { color: var(--fg); font-weight: 600; }
+  .client-email { color: var(--fg-soft); }
+  .client-list { display: flex; flex-direction: column; gap: 0.25rem; border: 1px solid var(--ink-750); border-radius: 8px; max-height: 150px; overflow-y: auto; }
+  .client-item { text-align: left; padding: 0.5rem; border-bottom: 1px solid var(--ink-800); cursor: pointer; transition: background 0.2s; }
+  .client-item:hover { background: var(--ink-900); }
+  .client-email-sub { color: var(--fg-soft); font-size: 11px; }
+  .sub-label { font-size: 10px; font-weight: 700; }
+</style>

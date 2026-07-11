@@ -1,6 +1,7 @@
 <script lang="ts">
   // Admin "Neues Meeting" modal — used on /admin/meetings.
   // Closes T000161, T000164.
+  import AdminModal from './ui/AdminModal.svelte';
   interface ClientOption {
     id: string;
     name: string;
@@ -136,27 +137,8 @@
   }
 </script>
 
-<button
-  onclick={openModal}
-  data-testid="admin-meeting-new"
-  class="px-4 py-2 bg-gold text-dark text-sm font-semibold rounded-lg hover:bg-gold/90 transition-colors"
->
-  {buttonLabel}
-</button>
-
-{#if open}
-  <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-  <div
-    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-    onclick={(e) => { if (e.target === e.currentTarget) closeModal(); }}
-  >
-    <div class="w-full max-w-lg bg-dark rounded-2xl border border-dark-lighter shadow-2xl overflow-hidden">
-      <div class="flex items-center justify-between px-6 py-4 border-b border-dark-lighter">
-        <h2 class="text-lg font-bold text-light font-serif">Neues Meeting</h2>
-        <button onclick={closeModal} class="text-muted hover:text-light transition-colors text-xl leading-none">✕</button>
-      </div>
-
-      <div class="px-6 py-5 space-y-4 max-h-[80vh] overflow-y-auto">
+{#snippet modalContent()}
+  <div class="px-6 py-5 space-y-4 max-h-[80vh] overflow-y-auto">
         {#if error}
           <div class="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">{error}</div>
         {/if}
@@ -253,24 +235,40 @@
             {/each}
           </select>
         </div>
-      </div>
-
-      <div class="flex justify-end gap-3 px-6 py-4 border-t border-dark-lighter">
-        <button
-          onclick={closeModal}
-          disabled={submitting}
-          class="px-4 py-2 text-sm text-muted hover:text-light transition-colors disabled:opacity-50"
-        >
-          Abbrechen
-        </button>
-        <button
-          onclick={submit}
-          disabled={submitting}
-          class="px-5 py-2 bg-gold text-dark rounded-lg text-sm font-semibold hover:bg-gold/80 transition-colors disabled:opacity-50"
-        >
-          {submitting ? '…' : 'Meeting anlegen'}
-        </button>
-      </div>
-    </div>
   </div>
-{/if}
+{/snippet}
+
+{#snippet modalFooter()}
+  <div class="flex justify-end gap-3 px-6 py-4">
+    <button
+      onclick={closeModal}
+      disabled={submitting}
+      class="px-4 py-2 text-sm text-muted hover:text-light transition-colors disabled:opacity-50"
+    >
+      Abbrechen
+    </button>
+    <button
+      onclick={submit}
+      disabled={submitting}
+      class="px-5 py-2 bg-gold text-dark rounded-lg text-sm font-semibold hover:bg-gold/80 transition-colors disabled:opacity-50"
+    >
+      {submitting ? '…' : 'Meeting anlegen'}
+    </button>
+  </div>
+{/snippet}
+
+<button
+  onclick={openModal}
+  data-testid="admin-meeting-new"
+  class="px-4 py-2 bg-gold text-dark text-sm font-semibold rounded-lg hover:bg-gold/90 transition-colors"
+>
+  {buttonLabel}
+</button>
+
+<AdminModal
+  bind:open
+  title="Neues Meeting"
+  onclose={closeModal}
+  body={modalContent}
+  footer={modalFooter}
+/>

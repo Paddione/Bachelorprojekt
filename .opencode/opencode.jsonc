@@ -1,7 +1,59 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "model": "llamacpp-mtp/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf",
-  "permission": "allow",
+  "permission": {
+    "read": "allow",
+    "edit": "allow",
+    "glob": "allow",
+    "grep": "allow",
+    "list": "allow",
+    "bash": "allow",
+    "task": "allow",
+    "external_directory": "allow",
+    "todowrite": "allow",
+    "question": "allow",
+    "webfetch": "allow",
+    "websearch": "allow",
+    "lsp": "allow",
+    "doom_loop": "allow",
+    "skill": {
+      "*": "allow",
+      // ── Claude Code stubs (opencode has native equivalents) ──────────
+      "dev-flow-plan": "deny",
+      "dev-flow-execute": "deny",
+      "dev-flow-chore": "deny",
+      "dev-flow-e2e": "deny",
+      "requesting-code-review": "deny",
+      "superpowers:brainstorming": "deny",
+      "superpowers:executing-plans": "deny",
+      "superpowers:writing-plans": "deny",
+      "test-driven-development": "deny",
+      "verification-before-completion": "deny",
+      // ── ML inference / fine-tuning (not project-relevant) ────────────
+      "gguf-quantization": "deny",
+      "llama-cpp": "deny",
+      "speculative-decoding": "deny",
+      "unsloth": "deny",
+      "whisper": "deny",
+      // ── Generic meta / skill discovery ───────────────────────────────
+      "agent-orchestration": "deny",
+      "project-overview": "deny",
+      "find-skills": "deny",
+      "skill-creator": "deny",
+      "codebase-memory": "deny",
+      // ── Domain specialists (dispatched via agent routing, not skills) ─
+      "database-specialist": "deny",
+      "incident-response": "deny",
+      "infra-ops": "deny",
+      "operations-management": "deny",
+      "security-specialist": "deny",
+      "website-specialist": "deny",
+      // ── UI/design (not primary workflow) ─────────────────────────────
+      "ui-ux-pro-max": "deny",
+      "react-bits": "deny",
+      "references": "deny"
+    }
+  },
   "lsp": true,
   "provider": {
     "llamacpp-mtp": {
@@ -62,6 +114,10 @@
       ],
       "enabled": true
     },
+    // task-master-ai: per openspec/specs/mcp-skill-integration.md deliberately
+    // "optional/available, keine Skill-Logik" — never wired into any skill.
+    // Disabled by default to avoid eager tool-schema loading; ticket-mcp is
+    // the canonical task/ticket system for this repo. Flip to true to use ad-hoc.
     "task-master-ai": {
       "type": "local",
       "command": [
@@ -73,9 +129,13 @@
         "OLLAMA_BASE_URL": "http://localhost:11434/api",
         "TASK_MASTER_TOOLS": "all"
       },
-      "enabled": true
+      "enabled": false
     },
     // ── GitHub MCP (local) ────────────────────────────────────────────────
+    // Disabled: zero references in this repo's skills/scripts/docs; gh-axi
+    // (.claude/skills/references/gh-axi.md) is the mandated GitHub path for
+    // all agents, with plain `gh` as documented fallback. Flip to true if a
+    // future workflow needs native MCP-level GitHub API access gh-axi/gh lack.
     "github-mcp": {
       "type": "local",
       "command": [

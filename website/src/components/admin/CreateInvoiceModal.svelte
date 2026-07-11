@@ -1,5 +1,7 @@
 <!-- website/src/components/admin/CreateInvoiceModal.svelte -->
 <script lang="ts">
+  import AdminModal from './ui/AdminModal.svelte';
+
   export interface ServiceOption {
     key: string;
     name: string;
@@ -197,40 +199,8 @@
   }
 </script>
 
-<!-- Trigger button -->
-{#if buttonVariant === 'primary'}
-  <button
-    onclick={openModal}
-    class="px-4 py-2 bg-gold text-dark text-sm font-semibold rounded-lg hover:bg-gold/90 transition-colors"
-  >
-    {buttonLabel}
-  </button>
-{:else}
-  <button
-    onclick={openModal}
-    class="px-3 py-1.5 text-xs font-medium text-gold border border-gold/40 rounded-lg hover:bg-gold/10 transition-colors"
-  >
-    {buttonLabel}
-  </button>
-{/if}
-
-<!-- Modal overlay -->
-{#if open}
-  <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-  <div
-    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-    onclick={(e) => { if (e.target === e.currentTarget) closeModal(); }}
-  >
-    <div class="w-full max-w-lg bg-dark rounded-2xl border border-dark-lighter shadow-2xl overflow-hidden">
-      <!-- Header -->
-      <div class="flex items-center justify-between px-6 py-4 border-b border-dark-lighter">
-        <h2 class="text-lg font-bold text-light font-serif">
-          {asQuote ? 'Angebot erstellen' : 'Rechnung erstellen'}
-        </h2>
-        <button onclick={closeModal} class="text-muted hover:text-light transition-colors text-xl leading-none">✕</button>
-      </div>
-
-      <div class="px-6 py-5 space-y-4 max-h-[80vh] overflow-y-auto">
+{#snippet modalContent()}
+  <div class="px-6 py-5 space-y-4 max-h-[80vh] overflow-y-auto">
 
         <!-- Rechnung / Angebot tabs -->
         <div class="flex gap-1 p-1 bg-dark-light rounded-lg border border-dark-lighter">
@@ -387,25 +357,49 @@
           <div class="px-4 py-3 bg-green-900/30 border border-green-800 rounded-xl text-green-300 text-sm">{success}</div>
         {/if}
 
-      </div>
-
-      <!-- Footer -->
-      <div class="px-6 py-4 border-t border-dark-lighter flex gap-3 justify-end">
-        <button onclick={closeModal} class="px-4 py-2 text-sm text-muted hover:text-light transition-colors">
-          Abbrechen
-        </button>
-        <button
-          onclick={submit}
-          disabled={submitting}
-          class="px-5 py-2 bg-gold text-dark text-sm font-semibold rounded-lg hover:bg-gold/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {#if submitting}
-            Wird erstellt…
-          {:else}
-            {asQuote ? 'Angebot erstellen →' : 'Rechnung erstellen →'}
-          {/if}
-        </button>
-      </div>
-    </div>
   </div>
+{/snippet}
+
+{#snippet modalFooter()}
+  <div class="px-6 py-4 flex gap-3 justify-end">
+    <button onclick={closeModal} class="px-4 py-2 text-sm text-muted hover:text-light transition-colors">
+      Abbrechen
+    </button>
+    <button
+      onclick={submit}
+      disabled={submitting}
+      class="px-5 py-2 bg-gold text-dark text-sm font-semibold rounded-lg hover:bg-gold/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {#if submitting}
+        Wird erstellt…
+      {:else}
+        {asQuote ? 'Angebot erstellen →' : 'Rechnung erstellen →'}
+      {/if}
+    </button>
+  </div>
+{/snippet}
+
+<!-- Trigger button -->
+{#if buttonVariant === 'primary'}
+  <button
+    onclick={openModal}
+    class="px-4 py-2 bg-gold text-dark text-sm font-semibold rounded-lg hover:bg-gold/90 transition-colors"
+  >
+    {buttonLabel}
+  </button>
+{:else}
+  <button
+    onclick={openModal}
+    class="px-3 py-1.5 text-xs font-medium text-gold border border-gold/40 rounded-lg hover:bg-gold/10 transition-colors"
+  >
+    {buttonLabel}
+  </button>
 {/if}
+
+<AdminModal
+  bind:open
+  title={asQuote ? 'Angebot erstellen' : 'Rechnung erstellen'}
+  onclose={closeModal}
+  body={modalContent}
+  footer={modalFooter}
+/>

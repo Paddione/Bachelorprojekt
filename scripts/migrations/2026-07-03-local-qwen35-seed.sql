@@ -5,6 +5,10 @@
 -- priority-2+ rows). Idempotent (ON CONFLICT DO UPDATE + provider<>'local-qwen35' demotion
 -- guard). Depends on 2026-07-03-context-budget.sql.
 --
+-- Scope-corrected 2026-07-09 (T001681): factory-scout/factory-plan/lavish-artifact removed —
+-- they call the harness agent() primitive, which has no baseUrl support; only ticket-triage
+-- uses its own baseURL-aware SDK client (website/src/lib/ticket-triage.ts) and benefits from this row.
+--
 -- Apply to BOTH brands (separate per-brand DBs):
 --   BRAND=mentolder bash -c 'source scripts/factory/lib.sh; factory_resolve; factory_psql < scripts/migrations/2026-07-03-local-qwen35-seed.sql'
 --   BRAND=korczewski bash -c 'source scripts/factory/lib.sh; factory_resolve; factory_psql < scripts/migrations/2026-07-03-local-qwen35-seed.sql'
@@ -20,7 +24,7 @@ BEGIN;
 WITH targets AS (
   SELECT id, source, tier
     FROM tickets.provider_config
-   WHERE source IN ('factory-scout','factory-plan','ticket-triage','lavish-artifact')
+   WHERE source IN ('ticket-triage')
      AND priority = 1
      AND provider <> 'local-qwen35'
 ),
@@ -40,10 +44,7 @@ UPDATE tickets.provider_config pc
 INSERT INTO tickets.provider_config
   (source, tier, priority, provider, model_id, base_url, context_window, context_budget, enabled)
 VALUES
-  ('factory-scout',   'sonnet', 1, 'local-qwen35', 'qwen3.5-9b@iq4_xs', 'http://100.102.71.114:1234/v1', 60000, 180000, true),
-  ('factory-plan',    'sonnet', 1, 'local-qwen35', 'qwen3.5-9b@iq4_xs', 'http://100.102.71.114:1234/v1', 60000, 180000, true),
-  ('ticket-triage',   'haiku',  1, 'local-qwen35', 'qwen3.5-9b@iq4_xs', 'http://100.102.71.114:1234/v1', 60000, 180000, true),
-  ('lavish-artifact', 'sonnet', 1, 'local-qwen35', 'qwen3.5-9b@iq4_xs', 'http://100.102.71.114:1234/v1', 60000, 180000, true)
+  ('ticket-triage',   'haiku',  1, 'local-qwen35', 'qwen3.5-9b@iq4_xs', 'http://100.102.71.114:1234/v1', 60000, 180000, true)
 ON CONFLICT (source, tier, priority) DO UPDATE
   SET provider       = EXCLUDED.provider,
       model_id       = EXCLUDED.model_id,

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import AdminModal from './ui/AdminModal.svelte';
+
   let {
     onCreated,
   }: {
@@ -63,7 +65,6 @@
         if (!docRes.ok) { error = docBody.error ?? `PDF-Upload fehlgeschlagen (${docRes.status})`; return; }
         if (docRes.status === 202 && docBody.message) {
           info = docBody.message;
-          // Don't auto-close so user can copy CLI hint.
           onCreated?.(col.id);
           return;
         }
@@ -79,7 +80,6 @@
     } finally { busy = false; }
   }
 
-  // Listen for external open trigger (from the "+ Neue Wissensquelle" button in the page)
   import { onMount } from 'svelte';
   onMount(() => {
     const handler = () => openModal();
@@ -94,11 +94,8 @@
   );
 </script>
 
-{#if open}
-<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-<div class="modal-bg" onclick={closeModal}>
-  <div class="modal" onclick={(e: MouseEvent) => e.stopPropagation()}>
-    <h3>Neue Wissensquelle</h3>
+{#snippet modalContent()}
+  <div class="modal-content">
     {#if error}<p class="err">{error}</p>{/if}
     {#if info}<p class="info">{info}</p>{/if}
     <label>Name<input bind:value={name} required /></label>
@@ -126,8 +123,8 @@
       </label>
       {#if pdfFile}
         <p class="hint">{pdfFile.name} · {(pdfFile.size / 1024 / 1024).toFixed(2)} MB</p>
+        <p class="hint">Max. 25 MB. Große Bücher (≫ 200 Chunks) bitte via CLI: <code class="code-block">task coaching:ingest -- <datei> <slug></code></p>
       {/if}
-      <p class="hint">Max. 25 MB. Große Bücher (≫ 200 Chunks) bitte via CLI: <code>task coaching:ingest -- &lt;datei&gt; &lt;slug&gt;</code></p>
     {/if}
 
     <div class="actions">
@@ -135,21 +132,23 @@
       <button onclick={submit} disabled={!canSubmit}>{busy ? '…' : 'Anlegen'}</button>
     </div>
   </div>
-</div>
-{/if}
+{/snippet}
+
+<AdminModal 
+  bind:open 
+  title="Neue Wissensquelle"
+  onclose={closeModal}
+  body={modalContent}
+  footer={undefined}
+/>
 
 <style>
-  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 50; }
-  .modal { background: var(--ink-800); border: 1px solid var(--ink-750); padding: 1.25rem; border-radius: 10px; min-width: 480px; max-width: 640px; display: flex; flex-direction: column; gap: 0.6rem; color: var(--fg); }
-  label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 12px; color: var(--fg-soft); text-transform: uppercase; letter-spacing: 0.04em; }
-  input, textarea, select { background: var(--ink-900); border: 1px solid var(--ink-750); color: var(--fg); border-radius: 6px; padding: 0.5rem; font-family: inherit; font-size: 13px; }
-  input[type="file"] { padding: 0.4rem; }
+  .err { color: #c96e6e; }
+  .info { color: var(--brass); background: rgba(201, 165, 92, 0.08); border: 1px solid rgba(201, 165, 92, 0.3); border-radius: 6px; padding: 0.5rem 0.75rem; font-size: 12px; }
   .actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem; }
   button { background: var(--brass); color: var(--ink-900); border: none; padding: 0.55rem 1rem; border-radius: 6px; font-weight: 600; cursor: pointer; }
   .actions button:first-of-type { background: transparent; color: var(--fg); border: 1px solid var(--ink-750); }
   button:disabled { opacity: 0.5; cursor: not-allowed; }
-  .err { color: #c96e6e; }
-  .info { color: var(--brass); background: rgba(201, 165, 92, 0.08); border: 1px solid rgba(201, 165, 92, 0.3); border-radius: 6px; padding: 0.5rem 0.75rem; font-size: 12px; }
   .mode-tabs { display: flex; gap: 0.25rem; padding: 0.25rem; background: var(--ink-900); border-radius: 6px; border: 1px solid var(--ink-750); }
   .mode-tabs button { flex: 1; background: transparent; color: var(--fg-soft); padding: 0.4rem; font-size: 12px; font-weight: 500; }
   .mode-tabs button.active { background: var(--ink-750); color: var(--fg); }

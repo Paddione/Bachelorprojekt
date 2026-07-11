@@ -1,9 +1,0 @@
----
-import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
-
-const session = await getSession(Astro.request.headers.get('cookie'));
-if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
-if (!isAdmin(session)) return Astro.redirect('/admin');
-
-return Astro.redirect('/admin/wissen', 301);
----

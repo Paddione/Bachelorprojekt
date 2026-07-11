@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.178.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.177.2...website-v1.178.0) (2026-07-11)
+
+
+### Features
+
+* **website:** AdminModal/AdminDrawer primitives + migrate 8 modals + 4 drawers ([#2749](https://github.com/Paddione/Bachelorprojekt/issues/2749)) ([c3f7e57](https://github.com/Paddione/Bachelorprojekt/commit/c3f7e57434cb264a2532e09683f6066e9f2a9b51))
+
 ## [1.177.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.177.1...website-v1.177.2) (2026-07-10)
 
 

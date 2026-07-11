@@ -33,8 +33,10 @@ interface FakeLocals {
 
 function makeContext(headers: Record<string, string> = {}) {
   const locals: FakeLocals = {};
+  const request = new Request('https://example.test/api/x', { method: 'GET', headers });
   return {
-    request: new Request('https://example.test/api/x', { method: 'GET', headers }),
+    request,
+    url: new URL(request.url),
     locals,
   } as unknown as Parameters<typeof onRequest>[0];
 }

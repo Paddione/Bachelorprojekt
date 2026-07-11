@@ -1,10 +1,22 @@
 <script lang="ts">
   import type { InterfaceDef } from '../../lib/ki-catalog';
+  import AdminDrawer from './ui/AdminDrawer.svelte';
 
   interface KiConfig { id: number; brand: string; provider: string; isActive: boolean; modelName: string | null; displayName: string; apiKey: string | null; apiEndpoint: string | null; temperature: number | null; maxTokens: number | null; topP: number | null; systemPrompt: string | null; notes: string | null; topK: number | null; thinkingMode: boolean; presencePenalty: number | null; frequencyPenalty: number | null; safePrompt: boolean; randomSeed: number | null; organizationId: string | null; euEndpoint: boolean; enabledFields: string[] | null; }
 
   interface Props { onclose: () => void; showtoast: (msg: string) => void; }
-  let { onclose, showtoast }: Props = $props();
+  let { onclose: oncloseExternal, showtoast }: Props = $props();
+
+  let open = $state(true);
+
+  // Guard against double-invocation: AdminDrawer calls `onclose` for every
+  // native dismissal path (Escape, backdrop, dialog.close()) in addition to
+  // the explicit header × button calling this function directly.
+  function onclose() {
+    if (!open) return;
+    open = false;
+    oncloseExternal();
+  }
 
   let catalog = $state<InterfaceDef[]>([]);
   let providers = $state<KiConfig[]>([]);
@@ -39,10 +51,7 @@
   function getAllModels(): { id: string; label: string }[] { const allModels = new Set<{ id: string; label: string }>(); for (const iface of catalog) { if (!iface.kinds.includes('chat')) continue; for (const model of iface.suggestedModels || []) allModels.add({ id: model.id, label: model.label }); } return Array.from(allModels).sort((a, b) => a.id.localeCompare(b.id)); }
 </script>
 
-<div class="scrim" onclick={onclose} role="presentation"></div>
-<aside class="drawer">
-  <header><h2>Coaching</h2><button onclick={onclose}>&#x2715;</button></header>
-
+{#snippet drawerBody()}
   {#if loadError}<div class="err-banner">&#9888; {loadError} <button onclick={load}>Erneut laden</button></div>{/if}
   {#if !loaded}<p class="muted">Lade…</p>
   {:else}
@@ -76,7 +85,9 @@
       </div>
     {:else}<button class="add" onclick={() => (newProvider = true)}>+ Provider hinzufügen</button>{/if}
   {/if}
-</aside>
+{/snippet}
+
+<AdminDrawer bind:open title="Coaching" {onclose} body={drawerBody} />
 
 {#snippet editFields()}<form class="fields" onsubmit={(ev) => { ev.preventDefault(); saveEdit(); }}>
     <label>Anzeigename <input bind:value={editForm.displayName} /></label>
@@ -95,9 +106,6 @@
   </form>{/snippet}
 
 <style>
-  .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.3); z-index: 10; }
-  .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 440px; background: var(--admin-bg, #fff); border-left: 1px solid var(--admin-border, #e4e4e7); padding: 16px; overflow-y: auto; z-index: 11; }
-  .drawer header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
   .err-banner { background: #fde8e8; color: #9b1c1c; padding: 8px 12px; border-radius: 8px; margin-bottom: 12px; font-size: 13px; }
   .muted { color: var(--admin-text-mute, #71717a); }
   .provider-list { list-style: none; padding: 0; }

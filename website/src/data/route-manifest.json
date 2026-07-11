@@ -1,6 +1,6 @@
 {
   "generatedFrom": "website/src/pages",
-  "count": 135,
+  "count": 114,
   "routes": [
     {
       "route": "/",
@@ -44,22 +44,6 @@
       "media": false
     },
     {
-      "route": "/admin/50plus-digital",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
-      "route": "/admin/angebote",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
       "route": "/admin/app-catalog",
       "authTier": "admin",
       "brand": "both",
@@ -85,14 +69,6 @@
     },
     {
       "route": "/admin/assets",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
-      "route": "/admin/beratung",
       "authTier": "admin",
       "brand": "both",
       "dynamic": false,
@@ -149,14 +125,6 @@
     },
     {
       "route": "/admin/clients",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
-      "route": "/admin/coaching",
       "authTier": "admin",
       "brand": "both",
       "dynamic": false,
@@ -252,14 +220,6 @@
       "media": false
     },
     {
-      "route": "/admin/dora",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
       "route": "/admin/einstellungen/backup",
       "authTier": "admin",
       "brand": "both",
@@ -308,42 +268,10 @@
       "media": false
     },
     {
-      "route": "/admin/factory-budget",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
-      "route": "/admin/factory-observability",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
-      "route": "/admin/faq",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
       "route": "/admin/fragebogen/[assignmentId]",
       "authTier": "admin",
       "brand": "both",
       "dynamic": true,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
-      "route": "/admin/fuehrung-persoenlichkeit",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
       "excludeFromSweep": false,
       "media": false
     },
@@ -380,14 +308,6 @@
       "media": false
     },
     {
-      "route": "/admin/ki-transition",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
       "route": "/admin/knowledge/drafts",
       "authTier": "admin",
       "brand": "both",
@@ -405,14 +325,6 @@
     },
     {
       "route": "/admin/knowledge/templates",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
-      "route": "/admin/kontakt",
       "authTier": "admin",
       "brand": "both",
       "dynamic": false,
@@ -468,39 +380,7 @@
       "media": false
     },
     {
-      "route": "/admin/monitoring",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
-      "route": "/admin/newsletter",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
-      "route": "/admin/ops",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
       "route": "/admin/pipeline",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
-      "route": "/admin/planungsbuero",
       "authTier": "admin",
       "brand": "both",
       "dynamic": false,
@@ -556,14 +436,6 @@
       "media": false
     },
     {
-      "route": "/admin/referenzen",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
       "route": "/admin/repohealth",
       "authTier": "admin",
       "brand": "both",
@@ -580,23 +452,7 @@
       "media": false
     },
     {
-      "route": "/admin/startseite",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
       "route": "/admin/steuer",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
-      "route": "/admin/stream",
       "authTier": "admin",
       "brand": "both",
       "dynamic": false,
@@ -620,14 +476,6 @@
       "media": false
     },
     {
-      "route": "/admin/tickets",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
       "route": "/admin/tickets/[id]",
       "authTier": "admin",
       "brand": "both",
@@ -636,23 +484,7 @@
       "media": false
     },
     {
-      "route": "/admin/uebermich",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
       "route": "/admin/wissen",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
-      "route": "/admin/wissensquellen",
       "authTier": "admin",
       "brand": "both",
       "dynamic": false,

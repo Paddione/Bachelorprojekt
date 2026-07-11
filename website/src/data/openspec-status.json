@@ -1021,6 +1021,24 @@
       "status": "plan_staged"
     }
   ],
+  "T001787": [
+    {
+      "slug": "admin-token-consolidation",
+      "status": "plan_staged"
+    }
+  ],
+  "T001788": [
+    {
+      "slug": "2026-07-11-admin-ui-modal-drawer",
+      "status": "archived"
+    }
+  ],
+  "T001789": [
+    {
+      "slug": "admin-redirect-map",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

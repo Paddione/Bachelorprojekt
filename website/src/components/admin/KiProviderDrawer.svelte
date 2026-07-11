@@ -1,5 +1,6 @@
 <script lang="ts">
   import { modelsFor, type InterfaceDef } from '../../lib/ki-catalog';
+  import AdminDrawer from './ui/AdminDrawer.svelte';
 
   interface ProviderEntry {
     id: number; source: string; tier: 'sonnet' | 'haiku'; priority: number;
@@ -38,9 +39,20 @@
 
   let {
     title, entries, health, catalog, editId, form, confirmingDelete,
-    onclose, onsave, onedit, onnew, oncanceledit, ondelete, onconfirmdelete,
+    onclose: oncloseExternal, onsave, onedit, onnew, oncanceledit, ondelete, onconfirmdelete,
     onchangepriority, onproviderchange, showtoast: _showtoast,
   }: Props = $props();
+
+  let open = $state(true);
+
+  // Guard against double-invocation: AdminDrawer calls `onclose` for every
+  // native dismissal path (Escape, backdrop, dialog.close()) in addition to
+  // the explicit header × button calling this function directly.
+  function onclose() {
+    if (!open) return;
+    open = false;
+    oncloseExternal();
+  }
 
   function inCooldown(provider: string): boolean {
     const h = health.find((x) => x.provider === provider);
@@ -48,10 +60,7 @@
   }
 </script>
 
-<div class="scrim" onclick={onclose} role="presentation"></div>
-<aside class="drawer">
-  <header><h2>{title}</h2><button onclick={onclose}>&#x2715;</button></header>
-
+{#snippet drawerBody()}
   <ul class="chain-list">
     {#each entries as e (e.id)}
       <li class:disabled={!e.enabled}>
@@ -85,7 +94,9 @@
   {:else}
     <button class="add" onclick={onnew}>+ Provider hinzufügen</button>
   {/if}
-</aside>
+{/snippet}
+
+<AdminDrawer bind:open {title} {onclose} body={drawerBody} />
 
 {#snippet formFields()}
   <form class="fields" onsubmit={(ev) => { ev.preventDefault(); onsave(); }}>

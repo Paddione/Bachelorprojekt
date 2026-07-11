@@ -1,8 +1,10 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from 'svelte';
+  import AdminDrawer from '../ui/AdminDrawer.svelte';
+
   const dispatch = createEventDispatcher();
 
-  export let slug: string;
+  let { slug }: { slug: string } = $props();
 
   interface AssetTicket {
     id: string;
@@ -12,9 +14,19 @@
     created_at: string;
   }
 
-  let tickets: AssetTicket[] = [];
-  let loading = true;
-  let error: string | null = null;
+  let tickets: AssetTicket[] = $state([]);
+  let loading = $state(true);
+  let error: string | null = $state(null);
+  let open = $state(true);
+
+  // Guard against double-invocation: AdminDrawer calls `onclose` for every
+  // native dismissal path (Escape, backdrop, dialog.close()) in addition to
+  // the explicit header × button calling this function directly.
+  function close() {
+    if (!open) return;
+    open = false;
+    dispatch('close');
+  }
 
   async function loadTickets() {
     loading = true;
@@ -24,7 +36,7 @@
       const data = await res.json();
       tickets = data.tickets;
     } catch (e) {
-      error = e.message;
+      error = (e as Error).message;
     } finally {
       loading = false;
     }
@@ -33,16 +45,10 @@
   onMount(loadTickets);
 </script>
 
-<div class="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-admin-sidebar-bg border-l border-admin-border shadow-2xl backdrop-blur-xl flex flex-col">
-  <header class="p-6 border-b border-admin-border flex justify-between items-center">
-    <div>
-      <h3 class="text-xl font-bold text-white">Verknüpfte Tickets</h3>
-      <p class="text-xs text-admin-text-mute">Tickets mit Tag <code class="text-admin-primary">component:{slug}</code></p>
-    </div>
-    <button on:click={() => dispatch('close')} class="text-admin-text-mute hover:text-white transition-all text-2xl">&times;</button>
-  </header>
+{#snippet drawerBody()}
+  <div class="tickets-panel">
+    <p class="hint">Tickets mit Tag <code class="text-admin-primary">component:{slug}</code></p>
 
-  <div class="flex-1 overflow-y-auto p-6 space-y-4">
     {#if loading}
       {#each Array(3) as _}
         <div class="h-24 bg-admin-surface rounded-2xl animate-pulse"></div>
@@ -58,8 +64,8 @@
       </div>
     {:else}
       {#each tickets as ticket}
-        <a 
-          href="/admin/tickets/{ticket.external_id}" 
+        <a
+          href="/admin/tickets/{ticket.external_id}"
           class="block p-4 bg-admin-surface border border-admin-border rounded-2xl hover:border-admin-primary/50 transition-all group"
         >
           <div class="flex justify-between items-start mb-2">
@@ -76,15 +82,26 @@
       {/each}
     {/if}
   </div>
+{/snippet}
 
-  <footer class="p-6 border-t border-admin-border bg-admin-bg/50">
-    <a 
-      href="/admin/bugs" 
-      class="block w-full py-3 bg-admin-bg border border-admin-border rounded-xl text-center text-sm font-bold text-white hover:border-admin-primary/30 transition-all"
-    >
-      Alle Tickets anzeigen
-    </a>
-  </footer>
-</div>
+{#snippet drawerFooter()}
+  <a
+    href="/admin/bugs"
+    class="block w-full py-3 bg-admin-bg border border-admin-border rounded-xl text-center text-sm font-bold text-white hover:border-admin-primary/30 transition-all"
+  >
+    Alle Tickets anzeigen
+  </a>
+{/snippet}
 
-<div class="fixed inset-0 z-40 bg-admin-bg/20 backdrop-blur-[1px]" on:click={() => dispatch('close')}></div>
+<AdminDrawer
+  bind:open
+  title="Verknüpfte Tickets"
+  onclose={close}
+  body={drawerBody}
+  footer={drawerFooter}
+/>
+
+<style>
+  .tickets-panel { display: flex; flex-direction: column; gap: 1rem; }
+  .hint { font-size: 0.75rem; color: var(--admin-text-mute, #71717a); }
+</style>

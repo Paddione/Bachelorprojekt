@@ -70,7 +70,7 @@ The migration replaces ad-hoc overlays (`<div class="modal-overlay">`, `<div cla
 inventory which admin E2E and component specs target the affected DOM so each migrated `<dialog>` can
 carry a matching stable `data-testid`.
 
-- [ ] Grep the E2E specs and admin component tests for the affected selectors and record an
+- [x] Grep the E2E specs and admin component tests for the affected selectors and record an
       old-selector → new-`data-testid` table in the change folder notes:
 
 ```bash
@@ -79,14 +79,14 @@ grep -rnE 'create-modal|modal-overlay|modal-backdrop|admin-meeting-new|getByRole
   tests/e2e website/src/components/admin | sort
 ```
 
-- [ ] Confirmed hard dependency to preserve: `tests/e2e/fa-29-cockpit.spec.ts` relies on
+- [x] Confirmed hard dependency to preserve: `tests/e2e/fa-29-cockpit.spec.ts` relies on
       `data-testid="open-create"` (trigger) and `data-testid="create-modal"` (the dialog). The
       `TicketCreateModal.test.ts` component test relies on `create-modal`, `create-title`,
       `create-submit`, `feature-select`, `type-select`. These selectors MUST survive the migration.
 
 ## Task 2: AdminModal primitive — failing test first (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Add `website/src/components/admin/ui/AdminModal.test.ts` asserting
+- [x] **Failing-Test-Step (RED).** Add `website/src/components/admin/ui/AdminModal.test.ts` asserting
       that `AdminModal` renders a `<dialog>` with `aria-labelledby` wired to its `<h2>` title, and that
       binding `open` to `true` invokes `showModal()`. It fails now because `AdminModal.svelte` does not
       yet exist (the `import` cannot resolve).
@@ -134,7 +134,7 @@ cd website && npx vitest run src/components/admin/ui/AdminModal.test.ts
 # expected: FAIL (red — AdminModal.svelte does not exist yet, import unresolved)
 ```
 
-- [ ] **Fix-Step (GREEN).** Implement `website/src/components/admin/ui/AdminModal.svelte`:
+- [x] **Fix-Step (GREEN).** Implement `website/src/components/admin/ui/AdminModal.svelte`:
   - Typed `Props` interface with `open = $bindable(false)`, `title: string`, `body: Snippet`,
     `footer?: Snippet`, `onclose?: () => void` (typed — no `any`; mirror `AdminCard.svelte` style).
   - `let dialogEl: HTMLDialogElement | undefined = $state()`; `bind:this={dialogEl}` on the `<dialog>`.
@@ -153,56 +153,78 @@ cd website && npx vitest run src/components/admin/ui/AdminModal.test.ts
 
 ## Task 3: AdminDrawer primitive
 
-- [ ] Implement `website/src/components/admin/ui/AdminDrawer.svelte` as a thin variant of `AdminModal`:
+- [x] Implement `website/src/components/admin/ui/AdminDrawer.svelte` as a thin variant of `AdminModal`:
       same native-`<dialog>` base and `open`/`title`/`body`/`footer`/`onclose` API, but styled
       side-anchored (right edge, full-height) instead of centered, with `data-testid="admin-drawer"`.
-- [ ] Extend `AdminModal.test.ts` with one render case importing `AdminDrawer`, asserting its root is a
+- [x] Extend `AdminModal.test.ts` with one render case importing `AdminDrawer`, asserting its root is a
       `<dialog>` with `aria-labelledby` wired to its heading (reuse the same snippet + spy pattern).
 
 ## Task 4: Migrate KnowledgeSourceModal + WebCrawlSourceModal (first — largest a11y gain)
 
 These two have **no backdrop today** and the weakest accessibility, so they lead the migration.
 
-- [ ] Replace the hand-rolled container in `KnowledgeSourceModal.svelte` and `WebCrawlSourceModal.svelte`
+- [x] Replace the hand-rolled container in `KnowledgeSourceModal.svelte` and `WebCrawlSourceModal.svelte`
       with `AdminModal`: move the existing form markup into `{#snippet body()}` and the action buttons
       into `{#snippet footer()}`; bind the existing local `open` state via `bind:open`; route the old
       close paths through `onclose`. Give each dialog a stable `data-testid`.
-- [ ] Run their targeted tests (component tests if present, otherwise the pre-flight E2E flows) to
-      confirm the open/submit/close behavior is unchanged.
+- [x] Run their targeted tests (component tests if present, otherwise the pre-flight E2E flows) to
+      confirm the open/submit/close behavior is unchanged. (No dedicated component test or E2E
+      selector exists for either — verified via `grep tests/e2e website/src/components/admin
+      -e KnowledgeSourceModal -e WebCrawlSourceModal`; full `vitest run src/components/admin` green.)
 
 ## Task 5: Migrate AdminBookingModal + CreateInvoiceModal (largest files)
 
-- [ ] Migrate `AdminBookingModal.svelte` (411 → shrinks) and `CreateInvoiceModal.svelte` (411 → shrinks)
+- [x] Migrate `AdminBookingModal.svelte` (411 → shrinks) and `CreateInvoiceModal.svelte` (411 → shrinks)
       onto `AdminModal`, moving overlay/backdrop markup out and form + actions into `body`/`footer`
-      snippets. Preserve each internal `open`-state trigger and any embedded child forms.
-- [ ] Verify LOC after migration is well under budget (`wc -l` both files); confirm no `any` was
+      snippets. Preserve each internal `open`-state trigger and any embedded child forms. (Pre-existing
+      uncommitted WIP on `AdminBookingModal` was missing the `AdminModal` import, its trigger buttons,
+      and its footer actions entirely — restored all three during this pass; see notes.md.)
+- [x] Verify LOC after migration is well under budget (`wc -l` both files); confirm no `any` was
       introduced.
 
 ## Task 6: Migrate AdminMeetingModal + RecordPaymentModal + platform/AssetModal
 
-- [ ] Migrate `AdminMeetingModal.svelte` onto `AdminModal`, preserving its `admin-meeting-new` trigger
+- [x] Migrate `AdminMeetingModal.svelte` onto `AdminModal`, preserving its `admin-meeting-new` trigger
       selector.
-- [ ] Migrate `RecordPaymentModal.svelte` (already has `role="dialog"` + `modal-backdrop`) onto
-      `AdminModal`; route its `onClose` prop through the primitive's `onclose`.
-- [ ] Migrate `platform/AssetModal.svelte` (fixed-inset overlay) onto `AdminModal`.
+- [x] Migrate `RecordPaymentModal.svelte` (already has `role="dialog"` + `modal-backdrop`) onto
+      `AdminModal`; route its `onClose` prop through the primitive's `onclose` (guarded against
+      double-invocation, see notes.md).
+- [x] Migrate `platform/AssetModal.svelte` (fixed-inset overlay) onto `AdminModal` (converted from
+      legacy Svelte 4 `export let`/`on:click` syntax to Svelte 5 runes, required to coexist with
+      `$state`/`$props` in the same component).
 
 ## Task 7: Migrate the four drawers onto AdminDrawer
 
-- [ ] Migrate `KiCoachingDrawer.svelte`, `KiProviderDrawer.svelte`, `platform/AssetTicketDrawer.svelte`
-      and `framework/VersionDrawer.svelte` onto `AdminDrawer`. Preserve each drawer's existing `onclose`
-      / `dispatch('close')` contract; move `.scrim` / fixed-inset backdrop markup into the primitive.
-- [ ] Confirm each migrated drawer still opens, closes on Escape and backdrop, and fires its close
-      callback to the parent.
+- [x] Migrate `KiCoachingDrawer.svelte`, `KiProviderDrawer.svelte`, `platform/AssetTicketDrawer.svelte`
+      onto `AdminDrawer`. Preserve each drawer's existing `onclose` / `dispatch('close')` contract; move
+      `.scrim` / fixed-inset backdrop markup into the primitive.
+      **Deviation:** `framework/VersionDrawer.svelte` was NOT migrated — it is not an overlay/dialog at
+      all (renders inline in `framework/SectionFrame.svelte`, no backdrop, no close/escape handling);
+      migrating it onto `AdminDrawer` would turn an inline expand-in-place panel into a fixed overlay,
+      a UX regression rather than an a11y fix. See notes.md "Deviations" for full reasoning.
+- [x] Confirm each migrated drawer still opens, closes on Escape and backdrop, and fires its close
+      callback to the parent. (`AdminDrawer`'s `onclose` was not wired to the native `<dialog>` `close`
+      event in the pre-existing WIP — Escape/backdrop never synced `open` or notified the caller. Fixed
+      in `AdminModal.svelte`/`AdminDrawer.svelte`; see notes.md "Primitive fixes".)
 
 ## Task 8: Migrate TicketCreateModal last (regression anchor)
 
 `TicketCreateModal` is already `role="dialog"` + Escape-aware and is guarded by both a component test
 and the fa-29 E2E flow, so it migrates last to catch regressions in the primitive.
 
-- [ ] Migrate `TicketCreateModal.svelte` onto `AdminModal`, keeping `data-testid="create-modal"` on the
-      rendered `<dialog>` and preserving `create-title`, `create-submit`, `feature-select`,
-      `type-select`, and the `open-create` trigger.
-- [ ] Run the existing component test — it must stay green without edits:
+- [x] **NOT DONE — blocked, deviation from plan.** `TicketCreateModal.svelte` was intentionally left
+      on its original `{#if open}` implementation rather than migrated onto `AdminModal`. Confirmed by
+      experiment (migrated it, ran the test, reverted): `AdminModal`'s `<dialog>` is always mounted
+      (visibility toggled via `showModal()`/`close()`, not conditional rendering), which is
+      fundamentally incompatible with `TicketCreateModal.test.ts`'s
+      `expect(queryByTestId('create-modal')).toBeNull()` assertion when `open=false` — that dialog
+      element is still present (just closed) after migration, so the assertion would fail. jsdom also
+      lacks native `showModal()`/`close()`, which would additionally throw in every other test in the
+      file. Both issues can only be fixed by editing the test, which the plan explicitly forbids. Full
+      reasoning in notes.md "Deviations". `create-modal`/`create-title`/`create-submit`/
+      `feature-select`/`type-select`/`open-create` are all unaffected since the component is untouched.
+- [ ] ~~Run the existing component test — it must stay green without edits~~ (N/A — component not
+      migrated; test suite unmodified and green as-is):
 
 ```bash
 cd website && npx vitest run src/components/admin/TicketCreateModal.test.ts
@@ -211,19 +233,23 @@ cd website && npx vitest run src/components/admin/TicketCreateModal.test.ts
 
 ## Task 9: Final verification (mandatory CI gates)
 
-- [ ] OpenSpec delta validates before commit:
+- [x] OpenSpec delta validates before commit:
 
 ```bash
 task test:openspec
 ```
 
-- [ ] Regenerate the test inventory (a new `.test.ts` was added) and commit it alongside the tests:
+- [x] Regenerate the test inventory (a new `.test.ts` was added) and commit it alongside the tests:
 
 ```bash
 task test:inventory   # regenerates website/src/data/test-inventory.json → commit it
 ```
 
-- [ ] Run the three mandatory gates green (S1–S4 ratchet + freshness):
+  (No-op: `test-inventory.json` only indexes BATS/shell tests under `tests/local`/`tests/prod` and
+  Playwright specs under `tests/e2e/specs` — Vitest component `.test.ts` files like `AdminModal.test.ts`
+  are not part of this inventory. `task test:inventory` produced zero diff.)
+
+- [x] Run the three mandatory gates green (S1–S4 ratchet + freshness):
 
 ```bash
 task test:changed

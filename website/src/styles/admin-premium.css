@@ -225,6 +225,8 @@ html.sidebar-collapsed #icon-expand   { display: block; }
 
 /* Layout vars (AdminLayout) */
 :root {
+  --sidebar-width: 16rem;
+  --sidebar-collapsed-width: 4rem;
   --admin-sidebar-w: var(--sidebar-width);
   --admin-sidebar-h: 100vh;
 }

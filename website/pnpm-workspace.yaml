@@ -12,7 +12,7 @@ minimumReleaseAgeExclude:
   - playwright-core@1.61.0 || 1.61.1
   - playwright@1.61.0 || 1.61.1
   - vitest@4.1.9 || 4.1.10
-  - '@anthropic-ai/sdk@0.104.2 || 0.105.0 || 0.106.0 || 0.109.0 || 0.109.1 || 0.110.0'
+  - '@anthropic-ai/sdk@0.104.2 || 0.105.0 || 0.106.0 || 0.109.0 || 0.109.1 || 0.110.0 || 0.111.0'
   - livekit-server-sdk@2.15.5 || 2.16.0 || 2.17.0
   - pg-connection-string@2.14.0
   - pg-protocol@1.15.0

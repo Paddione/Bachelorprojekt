@@ -1,4 +1,10 @@
-## ADDED Requirements
+# admin-ui-modal-drawer
+
+## Purpose
+
+_Purpose fehlt — beim nächsten inhaltlichen Delta zu admin-ui-modal-drawer ergänzen._
+
+## Requirements
 
 ### Requirement: Native dialog-based AdminModal primitive
 
@@ -58,20 +64,40 @@ identical accessibility base (focus trap, Escape, `onclose` propagation, stable 
 
 ### Requirement: Migrated dialogs preserve stable test selectors
 
-The system SHALL migrate the eight existing admin modals and four drawers onto `AdminModal` /
-`AdminDrawer` while preserving the automation selectors that existing end-to-end and component tests
-depend on, so the DOM-structure change from ad-hoc overlays to `<dialog>` does not silently break the
-101 admin E2E specs.
+The system SHALL migrate the admin modals and drawers onto `AdminModal` / `AdminDrawer` while
+preserving the automation selectors that existing end-to-end and component tests depend on, so the
+DOM-structure change from ad-hoc overlays to `<dialog>` does not silently break admin E2E specs. Of
+the 8 modals and 4 drawers originally scoped, 7 modals and 3 drawers were migrated; `TicketCreateModal`
+and `framework/VersionDrawer` were intentionally left on their pre-existing implementations (see the
+two scenarios below for why), tracked as follow-up candidates rather than blocking this change.
 
-#### Scenario: TicketCreateModal keeps its create-modal selector
+#### Scenario: TicketCreateModal keeps its create-modal selector by staying unmigrated
 
-- **GIVEN** `TicketCreateModal` is migrated last as the regression anchor
-- **WHEN** it renders through `AdminModal`
-- **THEN** the `data-testid="create-modal"` handle is present on the rendered dialog
-- **AND** the `tests/e2e/fa-29-cockpit.spec.ts` flow that opens the create modal continues to pass
+- **GIVEN** `AdminModal`'s `<dialog>` is always mounted (visibility toggled via `showModal()`/`close()`,
+  not conditional rendering) — established by `AdminModal.test.ts`, which renders with `open: false`
+  and still expects the dialog element to resolve
+- **AND** `TicketCreateModal.test.ts` asserts `queryByTestId('create-modal')` is `null` when `open` is
+  `false`, a contract that requires the element to not exist in the DOM while closed
+- **WHEN** these two contracts are compared
+- **THEN** they are incompatible without editing `TicketCreateModal.test.ts`, which this change does
+  not do
+- **AND** `TicketCreateModal` therefore remains on its original `{#if open}`-based implementation,
+  keeping `data-testid="create-modal"` and the `tests/e2e/fa-29-cockpit.spec.ts` flow working exactly
+  as before
 
 #### Scenario: Every migrated dialog carries a stable data-testid
 
 - **GIVEN** a modal or drawer previously located via an overlay-specific selector
 - **WHEN** it is migrated onto the native `<dialog>` primitive
-- **THEN** the `<dialog>` exposes a stable `data-testid` recorded in the pre-flight selector inventory
+- **THEN** the `<dialog>` exposes a stable `data-testid` recorded in the migration notes
+  (`openspec/changes/admin-ui-modal-drawer/notes.md`)
+
+#### Scenario: Non-overlay components are not forced onto the dialog primitive
+
+- **GIVEN** `framework/VersionDrawer.svelte` renders inline in `SectionFrame.svelte` behind a toggle
+  button, with no backdrop, no `role="dialog"`, and no Escape/close handling of its own
+- **WHEN** deciding whether to migrate it onto `AdminDrawer`
+- **THEN** it is left unmigrated, because forcing an inline expand-in-place panel onto a fixed
+  right-edge overlay primitive would be a UX regression, not an accessibility improvement
+
+<!-- merged from change delta admin-ui-modal-drawer.md (b3647ca33b7a) -->

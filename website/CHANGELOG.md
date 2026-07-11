@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.179.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.179.0...website-v1.179.1) (2026-07-11)
+
+
+### Bug Fixes
+
+* **website:** restore --brass-deep fallback for portal avatar gradient [T001797] ([#2754](https://github.com/Paddione/Bachelorprojekt/issues/2754)) ([e6e2a99](https://github.com/Paddione/Bachelorprojekt/commit/e6e2a99103dc9906f47f22c180c396c52c640ef9))
+
 ## [1.179.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.178.0...website-v1.179.0) (2026-07-11)
 
 

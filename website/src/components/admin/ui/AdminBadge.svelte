@@ -30,7 +30,7 @@
 
 <style>
   /* T001433 — variant mapping: warning→Brass, success→Sage, error→Danger, info→Brass.
-     Resolved through the --admin-* alias layer (factory-tokens.css), not literals. */
+     Resolved through the --admin-* alias layer (global.css), not literals. */
 
   .badge {
     display: inline-flex;

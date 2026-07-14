@@ -172,7 +172,7 @@ if (A.batch_mode === true && Array.isArray(A.sub_features)) {
        Description: ${sf.description}.
        ${sf.shared_changes ? 'NOTE: shared files (configmap/schema/kustomization) — apply changes idempotently.' : ''}
        Follow TDD (red-green). DARK-LAUNCH: gate new user-visible behavior behind isFeatureEnabled('${brand}', '${slug}').
-       After implementing: cd ${WORK_WT} && task workspace:validate && task test:all && task freshness:regenerate
+       After implementing: bash ${REPO}/scripts/factory/sandbox-run.sh ${WORK_WT} 'task workspace:validate && task test:all && task freshness:regenerate'
        Then commit: cd ${WORK_WT} && git add -A && git commit -m ${JSON.stringify(`feat(${slug}): ${sf.id} [batch-factory]`)}
        Return a summary of the diff and local test result.` + consumeInjections('implement'),
       { label: `batch:${sf.id}`, phase: 'Implement', model: BL.resolveAgentModel(sfRoute, routerTier(sfProv.model), log) },
@@ -440,7 +440,7 @@ if (tasks.length && !A.batch_mode) {
          DARK-LAUNCH: gate new behavior behind isFeatureEnabled('${brand}', '${slug}') (default OFF).
          Context hints: ${prov.contextHints.join(' | ')}.
          ${aciToolHint}
-         After implementing: cd ${WORK_WT} && task workspace:validate && task test:all && task freshness:regenerate
+         After implementing: bash ${REPO}/scripts/factory/sandbox-run.sh ${WORK_WT} 'task workspace:validate && task test:all && task freshness:regenerate'
          Then commit: cd ${WORK_WT} && git add -A && git commit -m ${JSON.stringify(`feat(${slug}): ${t.id} [factory]`)}
          Return a summary of the diff and local test result (pass/fail).` + consumeInjections('implement'),
         { label: `impl:${t.id}`, phase: 'Implement', model: BL.resolveAgentModel(route, routerTier(prov.model), log) },

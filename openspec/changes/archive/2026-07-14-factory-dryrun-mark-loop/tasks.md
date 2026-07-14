@@ -2,7 +2,7 @@
 title: "factory-dryrun-mark-loop — Implementation Plan"
 ticket_id: T001816
 domains: [factory]
-status: plan_staged
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

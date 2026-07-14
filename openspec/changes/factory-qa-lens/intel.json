@@ -1,0 +1,157 @@
+{
+  "meta": {
+    "slug": "factory-qa-lens",
+    "ticket_id": "T001814",
+    "generated_from": "main@5ba1e2608",
+    "domains": ["factory", "ci", "staging"],
+    "intel_sources": ["Read", "grep", "baseline.json", "gates.yaml"]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/factory/qa-lens.mjs",
+      "language": "javascript-esm",
+      "loc": 0,
+      "s1_limit": 500,
+      "s1_baseline": null,
+      "s1_budget": 500
+    },
+    {
+      "path": "scripts/factory/pipeline.js",
+      "language": "javascript",
+      "loc": 741,
+      "s1_limit": 600,
+      "s1_baseline": null,
+      "s1_budget": 9999,
+      "note": "S1-exempt: listed in docs/code-quality/gates.yaml s1.ignore as a sanctioned monolithic Workflow-script exception (harness forbids top-level imports/dynamic import). check.mjs skips it; budget is not enforced. Keep the qa-lens delta minimal anyway."
+    },
+    {
+      "path": "tests/spec/software-factory.bats",
+      "language": "bats",
+      "loc": 3237,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 9999,
+      "note": "S1-exempt: gates.yaml s1.ignore matches tests/**/*.bats. No line budget applies."
+    },
+    {
+      "path": "openspec/specs/software-factory.md",
+      "language": "markdown",
+      "loc": 2701,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0,
+      "note": "SSOT spec; markdown not S1-checked. Delta merged on archive, not hand-edited during the change (delta lives in openspec/changes/factory-qa-lens/specs/software-factory.md)."
+    },
+    {
+      "path": "openspec/changes/factory-qa-lens/specs/software-factory.md",
+      "language": "markdown",
+      "loc": 10,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0,
+      "note": "Delta-spec to fill (ADDED Requirements for qa-lens, staging-lock, degradation path)."
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/factory/pipeline.js:ALL_LENSES",
+      "kind": "const-object",
+      "file": "scripts/factory/pipeline.js",
+      "signature": "const ALL_LENSES = { bug, security, pattern, perf, 'agents-md' } (line 505-511); tierLenses selects by tier (line 512-514); lenses.map -> parallel agent() review calls (line 517-524)",
+      "type_text": "Record<string, string /* prompt-file path */>",
+      "source": "Read"
+    },
+    {
+      "qualified_name": "scripts/factory/pipeline.js:REVIEW_SCHEMA",
+      "kind": "const-object",
+      "file": "scripts/factory/pipeline.js",
+      "signature": "const REVIEW_SCHEMA = { type:'object', required:['findings'], properties:{ findings:{ type:'array', items:{ required:['severity','file','description'], properties:{ severity:{enum:['low','medium','high','critical']}, file:string, line:integer, description:string, suggested_fix:string } } }, summary:string } } (line 189)",
+      "type_text": "{ findings: Array<{severity:'low'|'medium'|'high'|'critical', file:string, line?:number, description:string, suggested_fix?:string}>, summary?:string }",
+      "source": "Read"
+    },
+    {
+      "qualified_name": "scripts/factory/pipeline.js:verify-phase-full-branch",
+      "kind": "code-block",
+      "file": "scripts/factory/pipeline.js",
+      "signature": "reviews = parallel(lenses...) (517-524); finding-filter (527-554); coordinator only when tier==='full' && reviews.length>=2 (556-578); rawBlocking = reviews.flatMap(findings).filter(sev high|critical) (585); isBlocked -> return {status:'blocked'} (586-598)",
+      "type_text": "reviews: Array<{findings:[], summary?:string}>",
+      "source": "Read"
+    },
+    {
+      "qualified_name": "scripts/factory/pipeline.js:phaseEvent",
+      "kind": "function",
+      "file": "scripts/factory/pipeline.js",
+      "signature": "phaseEvent(ph: string, state: string, detail?: string) -> void  (shells ticket.sh phase + otel-emit; detail sliced to 240 chars) (line 73-81)",
+      "type_text": "(ph: string, state: string, detail?: string) => void",
+      "source": "Read"
+    },
+    {
+      "qualified_name": "scripts/factory/build-loop.cjs:wrapSandbox",
+      "kind": "function",
+      "file": "scripts/factory/build-loop.cjs",
+      "signature": "wrapSandbox(workWt: string, command: string) -> string  returns `bash <repo>/scripts/factory/sandbox-run.sh <workWt> <JSON.stringify(command)>` (line 68-71)",
+      "type_text": "(workWt: string, command: string) => string",
+      "source": "Read"
+    },
+    {
+      "qualified_name": "scripts/factory/sandbox-run.sh:entrypoint",
+      "kind": "cli",
+      "file": "scripts/factory/sandbox-run.sh",
+      "signature": "sandbox-run.sh <worktree> <command...>  — resolve_mode() docker->k8s->off (FACTORY_SANDBOX override); refuses main checkout (exit 3); bind-mounts only worktree at /work; egress allowlist incl. staging.<prod_domain> (line 26-30)",
+      "type_text": "(worktree: string, ...command: string[]) => stdout",
+      "source": "Read"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:cmd_claim",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "agent-lock.sh claim <scope> <id> [--label L] [--worktree W] [--branch B] [--ticket T]  -> exit 0 claimed / exit 1 held-by-foreign-session; stderr 'AGENT-LOCK: <scope>/<id> bereits gehalten von ...' (line 218-236)",
+      "type_text": "(scope: string, id: string, opts) => 0|1",
+      "source": "Read"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:cmd_release",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "agent-lock.sh release <scope> <id> [--force]  -> exit 0 (rm own lock or no-op); exit 1 only if held by other and no --force (line 247-253). check <scope> <id> prints free|mine|held (exit 3 when held).",
+      "type_text": "(scope: string, id: string, force?: '--force') => 0|1",
+      "source": "Read"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": ["scripts/factory/pipeline.js:main:verify-phase"],
+    "edges": [
+      { "from": "pipeline.js:verify(tier==='full')", "to": "qa-lens.mjs:cli", "kind": "spawns (execFileSync node qa-lens.mjs)" },
+      { "from": "qa-lens.mjs:runTestChanged", "to": "sandbox-run.sh", "kind": "spawns" },
+      { "from": "qa-lens.mjs:claimStaging", "to": "agent-lock.sh:cmd_claim(scope=staging)", "kind": "spawns" },
+      { "from": "qa-lens.mjs:deployStaging", "to": "task workspace:deploy ENV=staging", "kind": "spawns" },
+      { "from": "qa-lens.mjs:playwrightSmoke", "to": "playwright test --project=smoke", "kind": "spawns" },
+      { "from": "qa-lens.mjs:finally", "to": "agent-lock.sh:cmd_release(scope=staging)", "kind": "spawns" },
+      { "from": "pipeline.js:verify", "to": "rawBlocking/coordinator", "kind": "merges qa findings into reviews[]" }
+    ]
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [
+    {
+      "library": "@playwright/test",
+      "symbol": "playwright test --project=smoke",
+      "type_text": "smoke project (playwright.config.ts line ~266): testMatch **/integration-smoke.spec.ts, baseURL from process.env.WEBSITE_URL (default http://localhost:4321). qa-lens sets WEBSITE_URL to the staging site URL for staging smoke and to the live-prod URL for the read-only regression smoke.",
+      "source": "Read"
+    }
+  ],
+  "risks": [
+    {
+      "note": "Two distinct staging mechanisms exist: (a) environments/staging.yaml — shared workspace-staging namespace on fleet, push-deploy via `task workspace:deploy ENV=staging` (LLM/LiveKit disabled); (b) Taskfile.staging.yml — on-demand per-branch ephemeral namespaces via `task staging:up BRANCH=`. The design (decision table) chose the SHARED workspace-staging as an exclusive resource serialized by a lock, so the plan targets mechanism (a). Plan must resolve the staging site URL from env (WEBSITE_SITE_URL/PROD_DOMAIN), never hardcode a brand domain.",
+      "severity": "warn"
+    },
+    {
+      "note": "qa-lens must be ESM-invoked as a subprocess (execFileSync node qa-lens.mjs), NOT require()'d: pipeline.js is CommonJS-style and the harness forbids dynamic import(); .cjs would cap at 200 lines which is too tight. review-finding-filter.mjs (pipeline.js line 538-541) is the established `node <script>.mjs --cli` subprocess pattern to follow.",
+      "severity": "info"
+    },
+    {
+      "note": "codebase-memory MCP / LSP not used (offline plan run) — symbols captured via Read+grep with exact current line numbers (main@5ba1e2608). Line numbers may drift on rebase; re-grep ALL_LENSES/REVIEW_SCHEMA before editing.",
+      "severity": "info"
+    }
+  ]
+}

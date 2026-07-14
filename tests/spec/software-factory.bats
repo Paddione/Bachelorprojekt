@@ -3391,3 +3391,12 @@ _stub_gh_runlog() {
   run grep -F 'PushNotification' "$BABYSIT"
   [ "$status" -ne 0 ]   # Notify läuft über den Wakeup-Kontext, nicht im Script
 }
+
+@test "T001805: dry-run posts no marker comment even on an abort decision" {
+  _stub_gh_prs '[{"number":62,"isDraft":false,"mergeStateStatus":"BLOCKED","headRefName":"fix/g","author":{"login":"paddione"},"labels":[],"statusCheckRollup":[{"conclusion":"FAILURE"}]}]'
+  _stub_gh_runlog $'SQLSTATE 42P01\nrelation "x" does not exist\n'
+  FACTORY_DRY_RESOLVE=1 FACTORY_DRY_RUN=true run bash "$BABYSIT"
+  [[ "$output" == *"QA_NOTIFY_PAYLOAD"* ]]
+  run grep -F 'pr comment' "$ARGV_LOG"
+  [ "$status" -ne 0 ]   # dry-run → kein Kommentar, auch im Abort-Pfad
+}

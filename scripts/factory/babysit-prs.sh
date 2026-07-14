@@ -171,7 +171,11 @@ read -r DECISION _ < <(build_loop_decide "$ATTEMPTS" 2 "" "$CLASS" "" "$HASH")
 echo "babysit-prs: PR #${NUM} class=${CLASS} decision=${DECISION}" >&2
 
 if [[ "$DECISION" != "continue" ]]; then
-  post_marker "$NUM" "$((ATTEMPTS + 1))" "$CLASS" "$DECISION" "$LOGFILE"
+  if [[ "$DRY_RUN" == "true" ]]; then
+    echo "babysit-prs [DRY-RUN]: would post marker + escalate PR #${NUM} (decision=${DECISION})" >&2
+  else
+    post_marker "$NUM" "$((ATTEMPTS + 1))" "$CLASS" "$DECISION" "$LOGFILE"
+  fi
   emit_notify "$NUM" "PR #${NUM} CI babysitter escalated (${DECISION})" \
     "PR #${NUM} (${BRANCH_NAME}) hit ${DECISION} on class=${CLASS} — needs a human."
   exit 0

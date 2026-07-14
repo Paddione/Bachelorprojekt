@@ -1,6 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "llamacpp-mtp/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf",
+  "model": "lmstudio/qwen3.5-9b@q4_k_m",
   "permission": {
     "read": "allow",
     "edit": "allow",

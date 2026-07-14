@@ -12,10 +12,8 @@ DORA_METRICS_LIB="$BATS_TEST_DIRNAME/../../website/src/lib/dora-metrics.ts"
 DORA_API="$BATS_TEST_DIRNAME/../../website/src/pages/api/admin/dora-metrics.ts"
 
 # ── T001433: DORA removal ─────────────────────────────────────────────────────
-@test "T001433 dora: /admin/dora redirects to /admin/pipeline?tab=analytics" {
-  [ -f "$DORA_PAGE" ]
-  run grep -F "Astro.redirect('/admin/pipeline?tab=analytics', 301)" "$DORA_PAGE"
-  [ "$status" -eq 0 ]
+@test "T001433 dora: /admin/dora redirect stub is removed" {
+  [ ! -f "$DORA_PAGE" ]
 }
 
 @test "T001433 dora: DoraDashboard.svelte is removed" {

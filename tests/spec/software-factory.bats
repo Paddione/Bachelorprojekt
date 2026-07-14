@@ -836,15 +836,15 @@ DISPATCHER_SCRIPT="scripts/factory/dispatcher.js"
 }
 
 @test "FA-SF-30: PREP gate reads hard guards fresh per tick via guards.sh" {
-  run grep -q "scripts/factory/guards.sh" "$DISPATCHER_SCRIPT"; [ "$status" -eq 0 ]
-  run grep -q "guard_killswitch_on" "$DISPATCHER_SCRIPT"; [ "$status" -eq 0 ]
-  run grep -q "guard_daily_cap_reached" "$DISPATCHER_SCRIPT"; [ "$status" -eq 0 ]
+  # T001812: factory-prep (which sources guards.sh) now runs in wakeup.sh, once
+  # per while-loop tick, before the Workflow call — not inside dispatcher.js.
+  run grep -q "scripts/factory/guards.sh\|factory-prep" scripts/factory/wakeup.sh; [ "$status" -eq 0 ]
 }
 
 @test "FA-SF-30: PREP gate is fail-closed (drops the brand from launch on guard trip / read error)" {
-  # T001810: PREP gate now runs via child_process.execFileSync — fail-closed by
-  # JavaScript exception (non-zero exit propagates, no brands launched).
-  run grep -Eq "execFile|child_process" "$DISPATCHER_SCRIPT"; [ "$status" -eq 0 ]
+  # T001812: fail-closed via JS exception on missing/invalid prep_file — same
+  # early-return-with-no-launches contract as before, different trigger.
+  run grep -Eq "prep_file missing|JSON.parse\(raw\)" "$DISPATCHER_SCRIPT"; [ "$status" -eq 0 ]
 }
 
 @test "FA-SF-30: captures the parallel() launch result (not discarded)" {
@@ -3152,12 +3152,19 @@ STUB
   [ "$status" -eq 0 ]
 }
 
-@test "T001810: dispatcher.js runs factory-prep deterministically via child_process" {
-  # T001808/T001809 routed prep through wakeup args — lossy through small models
-  # (branch/plan_path dropped). Superseded by direct execFileSync in the dispatcher.
-  run grep -F "require('child_process')" scripts/factory/dispatcher.js
+@test "T001812: dispatcher.js reads factory-prep from a file precomputed by wakeup.sh" {
+  # T001810 ran factory-prep via child_process.execFileSync INSIDE the Workflow
+  # call (up to 300s worst case) to avoid T001808/T001809's lossiness (small
+  # models dropped fields like branch/plan_path when relaying prep JSON through
+  # the prompt) — but that made the call slow enough to flip into the harness's
+  # async "launched in background" mode, which a one-shot `claude -p` session
+  # never survives to see the notification for (orphaned Workflow runs observed,
+  # no transcript dir ever written). T001812 moved factory-prep back to
+  # wakeup.sh (fast, synchronous bash) and hands dispatcher.js a file path
+  # instead — no lossy JSON-in-prompt relay, and a fast/synchronous Workflow call.
+  run grep -F "args.prep_file" scripts/factory/dispatcher.js
   [ "$status" -eq 0 ]
-  run bash -c "grep -A2 'execFileSync' scripts/factory/dispatcher.js | grep -F 'vda.sh'"
+  run grep -F "readFileSync" scripts/factory/dispatcher.js
   [ "$status" -eq 0 ]
 }
 
@@ -3171,10 +3178,17 @@ STUB
   [ "$status" -ne 0 ]
 }
 
-@test "T001810: wakeup.sh passes only timestamp and dry_run — no prep JSON through the model" {
+@test "T001812: wakeup.sh precomputes factory-prep and passes a file path, not inline JSON" {
+  # Neither the T001810 args-blob (no prep object relayed verbatim) nor a
+  # T001808/T001809-style giant inline JSON string — just a short path the
+  # model passes through untouched.
   run grep -F 'PREP_JSON' scripts/factory/wakeup.sh
   [ "$status" -ne 0 ]
-  run grep -F "args { timestamp: '\${TIMESTAMP}', dry_run: \${DRY_RUN} }" scripts/factory/wakeup.sh
+  run grep -F 'PREP_FILE=' scripts/factory/wakeup.sh
+  [ "$status" -eq 0 ]
+  run grep -F 'factory-prep' scripts/factory/wakeup.sh
+  [ "$status" -eq 0 ]
+  run grep -F "prep_file: '\${PREP_FILE}'" scripts/factory/wakeup.sh
   [ "$status" -eq 0 ]
 }
 

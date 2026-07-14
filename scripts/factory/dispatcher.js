@@ -19,27 +19,24 @@ async function main() {
   // - ticket.sh get (fetch details for launch)
   // - scripts/factory/guards.sh (kill-switch via guard_killswitch_on, daily cap via guard_daily_cap_reached)
   phase('Prep')
-  // T001810: run the deterministic prep directly via child_process — Workflow scripts
-  // CAN exec (pipeline.js does it throughout; the old "cannot execFileSync" note was
-  // stale). Passing prep JSON through the top-level model (T001808/T001809 handoff)
-  // proved lossy: small models drop fields like branch/plan_path → REUSE=false → the
-  // pipeline re-designs instead of executing the staged plan.
+  // T001812: factory-prep now runs in wakeup.sh (plain bash, before this Workflow
+  // call), which writes the result to args.prep_file. Reading a file here is a
+  // fast, synchronous op, unlike the T001810 approach of running factory-prep
+  // (up to 300s worst case: watchdog sweep + schedule poll, both brands) via
+  // child_process.execFileSync INSIDE this Workflow call — that made the call
+  // slow enough to flip into the harness's async "launched in background" mode,
+  // which a one-shot `claude -p` session never survives to see the notification
+  // for (orphaned runs, no transcript ever written). Passing prep as a file path
+  // instead of inline JSON also keeps T001809's original fix intact (small local
+  // models drop fields like branch/plan_path when relaying a large JSON blob
+  // verbatim through the prompt).
   const cp = require('child_process')
+  const fs = require('fs')
   let prep = null
   try {
-    const out = cp.execFileSync('bash', [`${REPO}/scripts/vda.sh`, 'factory-prep'], {
-      encoding: 'utf8',
-      timeout: 300000,
-      env: {
-        ...process.env,
-        FACTORY_DAILY_DEPLOY_CAP: String(A.FACTORY_DAILY_DEPLOY_CAP ?? '5'),
-        FACTORY_GLOBAL_CAP: String(A.FACTORY_GLOBAL_CAP ?? '3'),
-      },
-    })
-    // Defensiv: alles vor dem ersten '{' abschneiden — einzelne Helper (z. B.
-    // agent-lock.sh check) haben historisch stdout-Zeilen vor dem JSON geleakt.
-    const jsonStart = out.indexOf('{')
-    prep = JSON.parse(jsonStart >= 0 ? out.slice(jsonStart) : out)
+    if (!A.prep_file) throw new Error('args.prep_file missing — wakeup.sh must precompute it')
+    const raw = fs.readFileSync(A.prep_file, 'utf8')
+    prep = JSON.parse(raw)
   } catch (e) {
     log(
       `Dispatcher: factory-prep failed (${String(e && e.message ? e.message : e).slice(0, 300)}). ` +

@@ -262,6 +262,8 @@ cmd_set_touched_files() {
     esac; done
   if [[ -z "$id" || -z "$files" ]]; then echo "ERROR: --id and --files are required." >&2; exit 2; fi
   if _ticket_offline_skip "set-touched-files" "--id" "$id"; then return 0; fi
+  # Normalize any whitespace to commas so both comma- and space-separated input works
+  files="$(printf '%s' "$files" | tr ',' '\n' | tr -s '[:space:]' '\n' | grep -v '^$' | paste -sd ',' -)"
   local pod; pod=$(_pgpod)
   _exec_sql "$pod" -v ext_id="$id" -v files="$files" <<'EOF' >/dev/null
 UPDATE tickets.tickets SET touched_files = string_to_array(:'files', ',') WHERE external_id = :'ext_id';

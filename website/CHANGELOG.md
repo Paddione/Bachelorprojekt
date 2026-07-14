@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.180.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.179.5...website-v1.180.0) (2026-07-14)
+
+
+### Features
+
+* factory sandbox runner ([#2804](https://github.com/Paddione/Bachelorprojekt/issues/2804)) ([3001bac](https://github.com/Paddione/Bachelorprojekt/commit/3001bace4abc8933d704faac79f8b45a5c822801))
+
 ## [1.179.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.179.4...website-v1.179.5) (2026-07-14)
 
 

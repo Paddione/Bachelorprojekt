@@ -62,7 +62,7 @@ func RegisterLinkTools(s *server.MCPServer) {
 
 	s.AddTool(
 		mcp.NewTool("get_ticket_links",
-			mcp.WithDescription("Gibt alle Dependency-Links eines Tickets zurück: blocks (von diesem Ticket ausgehend), blocked_by (auf dieses Ticket zeigend), relates (symmetrisch)."),
+			mcp.WithDescription("Gibt alle Dependency-Links eines Tickets zurück: blocks (von diesem Ticket ausgehend), blocked_by (auf dieses Ticket zeigend), relates (symmetrisch), child_of (Elternticket)."),
 			mcp.WithString("id", mcp.Description("external_id z.B. T000123"), mcp.Required()),
 			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)")),
 		),

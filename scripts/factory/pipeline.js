@@ -581,7 +581,8 @@ if (DRY_RUN) {
     `DRY RUN — do NOT push, merge, or deploy. Work from WORKTREE (HEAD=${WORK_BRANCH}):
      1. Show planned diff: git -C ${WORK_WT} diff origin/main...HEAD --stat
      2. Summarise review findings (${reviews.length} lens result(s)).
-     3. Release slot + return to queue:
+     3. Mark dry-run-checked, release slot, return to queue:
+        bash ${REPO}/scripts/ticket.sh dryrun-mark --id ${A.ticket_id}
         bash ${REPO}/scripts/ticket.sh release-slot --id ${A.ticket_id}
         bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status backlog
      Report the diff stat + one-line verdict. Take NO other action.`,

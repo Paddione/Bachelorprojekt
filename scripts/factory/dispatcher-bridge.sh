@@ -71,7 +71,10 @@ Invoke the Workflow tool with Workflow({scriptPath:\"scripts/factory/pipeline.js
 slug:\"${slug}\", timestamp:\"${TIMESTAMP}\", dry_run:${dry_run_val}, \
 branch:$(if [[ -n "$branch" ]]; then echo "\"${branch}\""; else echo 'null'; fi), \
 plan_path:$(if [[ -n "$plan_path" ]]; then echo "\"${plan_path}\""; else echo 'null'; fi)}). \
-Report only the pipeline's final JSON result."
+Report only the pipeline's final JSON result. \
+Do NOT call the Skill tool — there is no skill that runs the pipeline; \
+the ONLY correct way to run it is the Workflow tool call described above. \
+If a tool call fails, do not retry the identical call — stop and report the error verbatim instead of looping."
 
   "${CLAUDE_BIN:-claude}" -p "$PIPELINE_PROMPT" \
     --allowedTools "Workflow,Bash(bash scripts/factory/*),Bash(bash scripts/ticket.sh*),Bash(bash scripts/vda.sh*),ToolSearch,PushNotification" \

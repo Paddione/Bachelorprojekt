@@ -113,7 +113,10 @@ scriptPath 'scripts/factory/dispatcher.js' and args { timestamp: '${TIMESTAMP}',
 Pass prep_file through verbatim — do not alter, re-run, or improvise it. \
 The dispatcher reads all guards (kill-switch, daily-cap, dry-run-first) fresh per brand inside its PREP step \
 (already evaluated into prep_file by this wrapper). \
-Report only the dispatcher's final JSON result. Do not improvise scheduling."
+Report only the dispatcher's final JSON result. Do not improvise scheduling. \
+Do NOT call the Skill tool — there is no 'factory-dispatch' skill or any skill that runs the dispatcher; \
+the ONLY correct way to run it is the Workflow tool call described above. \
+If a tool call fails, do not retry the identical call — stop and report the error verbatim instead of looping."
 
   echo "wakeup.sh: starting tick #${TICK} at ${TIMESTAMP}" >&2
 

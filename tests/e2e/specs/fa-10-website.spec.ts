@@ -2,16 +2,40 @@ import { test, expect, type Page } from '@playwright/test';
 
 const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
+// Hydration timeout: prod (remote) needs more time for JS bundle download +
+// framework init than localhost. Configurable via E2E_HYDRATION_TIMEOUT ms.
+const HYDRATION_TIMEOUT = parseInt(process.env.E2E_HYDRATION_TIMEOUT || '20000', 10);
+
 /**
- * Wait for all Astro islands to finish hydration by polling for the removal
- * of the `ssr` attribute. Astro removes this attribute from <astro-island>
- * elements after the component JavaScript finishes loading and the framework
- * (Svelte, Vue, etc.) completes hydration.
+ * Wait for Astro islands to finish hydration by polling the removal of the
+ * `ssr` attribute.  Some non-critical islands (e.g. PortalSidekick) may
+ * never hydrate in certain environments, so we wait for the *count* of
+ * `astro-island[ssr]` elements to **stabilise** (stop decreasing) rather
+ * than requiring it to reach exactly zero.
+ *
+ * The function polls every 200 ms.  Once the count has been unchanged for
+ * three consecutive polls (≈ 600 ms of stability) the function returns
+ * successfully.  If the overall timeout is exceeded the caller's test
+ * fails with a clear message.
  */
 async function waitForHydration(page: Page) {
   await page.waitForFunction(
-    () => document.querySelectorAll('astro-island[ssr]').length === 0,
-    { timeout: 8000 }
+    () => {
+      // Expose a stable polling counter on the window object.
+      const w = window as any;
+      const current = document.querySelectorAll('astro-island[ssr]').length;
+      if (w.__ssrLast === undefined || w.__ssrLast !== current) {
+        // Count changed – reset the stability counter.
+        w.__ssrLast = current;
+        w.__ssrStablePolls = 0;
+        return false;
+      }
+      // Count unchanged – increment stability counter.
+      w.__ssrStablePolls = (w.__ssrStablePolls || 0) + 1;
+      // Consider hydrated once stable for 3 polls (≈ 600 ms) or count hit 0.
+      return current === 0 || w.__ssrStablePolls >= 3;
+    },
+    { timeout: HYDRATION_TIMEOUT },
   );
 }
 

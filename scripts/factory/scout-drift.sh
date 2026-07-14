@@ -96,4 +96,7 @@ if awk "BEGIN {exit !($drift > $THRESHOLD)}" 2>/dev/null; then
     2>/dev/null || warn "drift warning comment failed (non-fatal)"
 fi
 
+A_joined="$(printf '%s\n' "$A_clean" | jq -r 'join(" ")' 2>/dev/null || echo '(empty)')"
 echo "scout-drift: drift=$drift persisted for $TICKET"
+echo "scout-drift: P=${P_rel[*]:-(empty)}"
+echo "scout-drift: A=$A_joined"

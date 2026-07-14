@@ -12,7 +12,10 @@ DRY_RUN="${2:-false}"
 PROMPT="Run the Software Factory dispatcher now. Invoke the Workflow tool with \
 scriptPath 'scripts/factory/dispatcher.js' and args { timestamp: '${TIMESTAMP}', dry_run: ${DRY_RUN} }. \
 The dispatcher reads all guards (kill-switch, daily-cap, dry-run-first) fresh per brand inside its PREP step. \
-Report only the dispatcher's final JSON result. Do not improvise scheduling."
+Report only the dispatcher's final JSON result. Do not improvise scheduling. \
+Do NOT call the Skill tool — there is no 'factory-dispatch' skill or any skill that runs the dispatcher; \
+the ONLY correct way to run it is the Workflow tool call described above. \
+If a tool call fails, do not retry the identical call — stop and report the error verbatim instead of looping."
 exec claude -p "${PROMPT}" \
   --allowedTools "Workflow,Bash(bash scripts/factory/*),Bash(bash scripts/ticket.sh*),ToolSearch,PushNotification" \
   --dangerously-skip-permissions

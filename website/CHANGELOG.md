@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.182.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.181.0...website-v1.182.0) (2026-07-14)
+
+
+### Features
+
+* **factory:** migrate to qwythos-9b-v2 local LLM provider + sandbox runner [T001837] ([#2812](https://github.com/Paddione/Bachelorprojekt/issues/2812)) ([8d036fb](https://github.com/Paddione/Bachelorprojekt/commit/8d036fba16411679f38c7ee1edf80fe62fb9c984))
+
 ## [1.181.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.180.0...website-v1.181.0) (2026-07-14)
 
 

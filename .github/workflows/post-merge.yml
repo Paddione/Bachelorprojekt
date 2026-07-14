@@ -149,6 +149,12 @@ jobs:
         run: |
           set -euo pipefail
           TICKET_ID="${{ steps.close.outputs.ticket_id }}"
+          # Only feature/fix merges produce meaningful drift — skip chore/docs/archive
+          COMMIT_TITLE="$(git log -1 --pretty=%s)"
+          case "$COMMIT_TITLE" in
+            feat:*|fix:*) ;;
+            *) echo "scout-drift: skipping — not a feature/fix merge ($COMMIT_TITLE)"; exit 0 ;;
+          esac
           mkdir -p "$HOME/.kube"
           echo "$FLEET_KUBECONFIG" | base64 -d > "$HOME/.kube/config"
           chmod 600 "$HOME/.kube/config"

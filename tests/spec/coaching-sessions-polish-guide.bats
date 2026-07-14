@@ -9,15 +9,15 @@ setup() {
 }
 
 @test "sidebar has a Sessions nav item in Geschäft section" {
-  # T001649: Sessions label now points to /admin/coaching/studio (Studio was renamed to Sessions;
-  # the separate /admin/coaching/sessions sidebar link was removed).
+  # T001792 / PR #2767: the dead studio route was removed; the Sessions label
+  # points to /admin/coaching/sessions again (T001807).
   # Use -E to handle variable whitespace between object properties.
-  run grep -qE "href: '/admin/coaching/studio'.*label: 'Sessions'" "$WEB/components/admin/AdminSidebarNav.astro"
+  run grep -qE "href: '/admin/coaching/sessions'.*label: 'Sessions'" "$WEB/components/admin/AdminSidebarNav.astro"
   [ "$status" -eq 0 ]
 }
 
-@test "Studio nav item no longer matches the sessions path" {
-  run grep -qF "matches: ['/admin/coaching/studio', '/admin/fragebogen']" "$WEB/components/admin/AdminSidebarNav.astro"
+@test "Sessions nav item matches sessions and fragebogen paths" {
+  run grep -qF "matches: ['/admin/coaching/sessions', '/admin/fragebogen']" "$WEB/components/admin/AdminSidebarNav.astro"
   [ "$status" -eq 0 ]
 }
 

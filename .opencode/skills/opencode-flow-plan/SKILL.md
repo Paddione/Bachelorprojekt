@@ -81,6 +81,19 @@ Starte strukturiertes Brainstorming mit dem User. Stelle Fragen als Plain-Text-F
 
 Übertrage Brainstorming-Output nach `openspec/changes/<slug>/proposal.md`. Der Implementierungsplan kommt in `openspec/changes/<slug>/tasks.md`.
 
+#### Schritt A.5: Ticket anlegen — VOR Plan-Schreibung ⚡
+
+Erstelle das Ticket **jetzt** (nach dem Propose, vor dem Plan-Schreiben), damit die
+Ticket-ID für den Rest des Flows verfügbar ist und `stage_plan` sofort nach der
+Plan-Erstellung ausgeführt werden kann (kein Fenster für Plan-Verlagerung):
+
+```
+ticket-mcp: create_ticket({ type: "task", brand: "mentolder", title: "<slug>", priority: "mittel", description: "Branch: feature/<slug>\nPlan: openspec/changes/<slug>/tasks.md\nSpec: docs/superpowers/specs/<date>-<slug>-design.md" })
+```
+
+Setze `TICKET_EXT_ID` (Feld 1) und `TICKET_UUID` (Feld 2) aus der Rückgabe.
+Claims: `agent-lock.sh claim ticket` + `claim branch` mit Label `opencode-flow-plan`.
+
 ### Phase B: Worktree anlegen + Artefakte übertragen
 #### Schritt B.1: Worktree anlegen
 
@@ -120,12 +133,13 @@ bash scripts/plan-lint.sh openspec/changes/<slug>/tasks.md
 bash scripts/openspec.sh validate
 ```
 
-#### Schritt 4: Plan prüfen & Ticket anlegen/verwenden
+#### Schritt 4: Plan stagen (Ticket existiert bereits aus Schritt A.5)
 
-Ticket anlegen (via ticket-mcp `create_ticket`), dann stagen:
+Ticket-ID muss aus Schritt A.5 im Kontext sein (`$TICKET_EXT_ID`).
+Plan stagen — `stage_plan` setzt automatisch `status=plan_staged` und die
+`FACTORY-PLAN-REF`-Comment:
 ```
 ticket-mcp: stage_plan({ id: "$TICKET_EXT_ID", branch: "feature/<slug>", plan: "openspec/changes/<slug>/tasks.md" })
-ticket-mcp: transition_status({ id: "$TICKET_EXT_ID", status: "plan_staged" })
 ```
 
 #### Schritt 5: Commit & Push — dann STOPP

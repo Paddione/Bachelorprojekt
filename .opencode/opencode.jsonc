@@ -51,7 +51,9 @@
       // ── UI/design (not primary workflow) ─────────────────────────────
       "ui-ux-pro-max": "deny",
       "react-bits": "deny",
-      "references": "deny"
+      "references": "deny",
+      // ── market-cli installed (not project-relevant, avoid context bloat) ─
+      "lavish": "deny"
     }
   },
   "lsp": true,

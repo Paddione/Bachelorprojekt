@@ -1057,6 +1057,18 @@
       "status": "plan_staged"
     }
   ],
+  "T001813": [
+    {
+      "slug": "factory-sandbox-runner",
+      "status": "plan_staged"
+    }
+  ],
+  "T001814": [
+    {
+      "slug": "factory-qa-lens",
+      "status": "plan_staged"
+    }
+  ],
   "T001816": [
     {
       "slug": "2026-07-14-factory-dryrun-mark-loop",

@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: factory-sandbox-job-TEMPLATE_JOB_ID
+  namespace: TEMPLATE_NAMESPACE
+spec:
+  template:
+    spec:
+      containers:
+      - name: sandbox
+        image: TEMPLATE_IMAGE
+        command: ["bash", "-lc", "TEMPLATE_CMD"]
+        volumeMounts:
+        - name: worktree
+          mountPath: /work
+      volumes:
+      - name: worktree
+        hostPath:
+          path: TEMPLATE_WORKTREE_PATH
+          type: Directory
+      restartPolicy: Never
+  backoffLimit: 0

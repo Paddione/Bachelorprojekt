@@ -15,21 +15,21 @@ depends_on_plans: []
 ## File Structure
 
 ```
-scripts/factory/sandbox-run.sh        (NEW  · bash · S1 limit 500 · budget 500 — target ≤ 320 lines)
+scripts/factory/sandbox-run.sh        (NEW  · bash · S1 limit 500 · budget 418 — target ≤ 320 lines)
 scripts/factory/sandbox.Dockerfile    (NEW  · Dockerfile · not S1-gated — reference from sandbox-run.sh for S4)
-scripts/factory/build-loop.cjs        (EDIT · .cjs · ist 81 · limit 200 · budget 119 — stay < 200)
+scripts/factory/build-loop.cjs        (EDIT · .cjs · ist 88 · limit 200 · budget 112 — stay < 200)
 scripts/factory/pipeline.js           (EDIT · .js · s1.ignore sanctioned (T000460) · budget 0 — LINE-NEUTRAL redirect only)
-scripts/factory/wakeup.sh             (EDIT · .sh · ist 173 · limit 500 · budget 327)
+scripts/factory/wakeup.sh             (EDIT · .sh · ist 187 · limit 500 · budget 313)
 tests/spec/software-factory.bats      (EDIT · BATS · not S1-gated — extend existing suite, no new ticket-numbered file)
 openspec/changes/factory-sandbox-runner/specs/software-factory.md  (delta — already authored, verify with openspec validate)
 ```
 
 S1 notes per file (source: `intel.json` impact_files, verified `main@e06124632`):
 
-- `scripts/factory/sandbox-run.sh` — new bash file, extension limit 500, budget 500. Keep it a focused runner (mode-resolve + docker path + k8s path + off path). If it approaches ~400 lines, extract the k8s-Job manifest heredoc into a sibling `scripts/factory/sandbox-job.yaml` referenced from the script (also satisfies S4).
-- `scripts/factory/build-loop.cjs` — ist 81, limit 200, budget 119. The new `wrapSandbox` helper plus its wiring must stay net under 200 lines.
+- `scripts/factory/sandbox-run.sh` — new bash file, extension limit 500, budget 418. Keep it a focused runner (mode-resolve + docker path + k8s path + off path). If it approaches ~400 lines, extract the k8s-Job manifest heredoc into a sibling `scripts/factory/sandbox-job.yaml` referenced from the script (also satisfies S4).
+- `scripts/factory/build-loop.cjs` — ist 88, limit 200, budget 112. The new `wrapSandbox` helper plus its wiring must stay net under 200 lines.
 - `scripts/factory/pipeline.js` — listed on `docs/code-quality/gates.yaml` `s1.ignore` (sanctioned T000460 monolith; module-split forbidden by the workflow harness). Budget 0 means **no net new lines**: the Implement-phase change is a pure in-place string edit that redirects an already-present `cd … && task …` command through the runner — no added logic, no new blocks.
-- `scripts/factory/wakeup.sh` — ist 173, limit 500, budget 327. The per-tick sandbox preflight + telemetry export fits well within budget.
+- `scripts/factory/wakeup.sh` — ist 187, limit 500, budget 313. The per-tick sandbox preflight + telemetry export fits well within budget.
 - `tests/spec/software-factory.bats` / delta spec / Dockerfile — not S1-gated.
 
 S2 (no import cycles): `build-loop.cjs` stays a pure module — `wrapSandbox` is a string helper with no DB/API imports (contract already stated in its header comment).

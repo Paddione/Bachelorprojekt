@@ -114,6 +114,20 @@ The dispatcher reads all guards (kill-switch, daily-cap, dry-run-first) fresh pe
 Report only the dispatcher's final JSON result. Do not improvise scheduling."
 
   echo "wakeup.sh: starting tick #${TICK} at ${TIMESTAMP}" >&2
+
+  # Sandbox preflight: resolve the default backend once and record it for this tick.
+  if [[ "${FACTORY_SANDBOX:-auto}" == "auto" ]]; then
+    if docker info >/dev/null 2>&1; then
+      export FACTORY_SANDBOX=docker
+    elif kubectl --context "${FACTORY_SANDBOX_CTX:-k3d-mentolder-dev}" version >/dev/null 2>&1; then
+      export FACTORY_SANDBOX=k8s
+    else
+      export FACTORY_SANDBOX=off
+      echo "wakeup.sh: no sandbox backend available — Implement runs UNSANDBOXED" >&2
+    fi
+  fi
+  bash "${REPO}/scripts/factory/otel-emit.sh" metric factory.sandbox.mode 1 "mode=${FACTORY_SANDBOX}" || true
+
   bash "${REPO}/scripts/factory/otel-emit.sh" metric factory.tick.count 1 brand="${BRAND:-mentolder}" || true
   # T001415: Auto-Close von Tickets deren PR bereits gemergt ist
   # (worktree-lifecycle, dev-flow-execute, tickets/status-lifecycle).

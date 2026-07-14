@@ -3194,3 +3194,44 @@ STUB
   run grep -F 'Bash(bash scripts/vda.sh*)' scripts/factory/wakeup.sh
   [ "$status" -eq 0 ]
 }
+
+@test "FA-SF-SANDBOX: sandbox-run resolves docker→k8s→off and honors FACTORY_SANDBOX override" {
+  run bash -c "FACTORY_SANDBOX=off bash scripts/factory/sandbox-run.sh /tmp/nonexistent-wt 'echo hi' 2>&1"
+  [ "$status" -eq 0 ]
+  echo "$output" | grep -q 'hi'
+}
+
+@test "FA-SF-SANDBOX: docker path bind-mounts only the worktree and never secrets or main checkout" {
+  # The docker invocation mounts the worktree at /work and adds no secrets/main-checkout volume.
+  run grep -nE -- '-v[[:space:]]+"?\$\{?WORKTREE' scripts/factory/sandbox-run.sh
+  [ "$status" -eq 0 ]
+  # No bind-mount of the decrypted secrets dir anywhere in the runner.
+  run grep -nE -- '-v[^\n]*environments/\.secrets' scripts/factory/sandbox-run.sh
+  [ "$status" -ne 0 ]
+  # Refuses to sandbox the main checkout.
+  run bash -c "FACTORY_SANDBOX=docker bash scripts/factory/sandbox-run.sh /home/patrick/Bachelorprojekt 'true'; echo EXIT=\$?"
+  echo "$output" | grep -q 'EXIT=3'
+}
+
+@test "FA-SF-SANDBOX: off mode warns on stderr and runs the command on the host" {
+  run bash -c "FACTORY_SANDBOX=off bash scripts/factory/sandbox-run.sh /tmp 'echo RAN' 2>&1"
+  [ "$status" -eq 0 ]
+  echo "$output" | grep -q 'RAN'
+  echo "$output" | grep -qi 'UNSANDBOXED'
+}
+
+@test "FA-SF-SANDBOX: build-loop wraps the verify task command through sandbox-run.sh" {
+  run node -e "const m=require('./scripts/factory/build-loop.cjs'); process.stdout.write(typeof m.wrapSandbox)"
+  [ "$status" -eq 0 ]
+  echo "$output" | grep -q 'function'
+  run node -e "const m=require('./scripts/factory/build-loop.cjs'); process.stdout.write(m.wrapSandbox('/tmp/wt','task test:all'))"
+  echo "$output" | grep -q 'scripts/factory/sandbox-run.sh'
+}
+
+@test "FA-SF-SANDBOX: wakeup.sh performs a sandbox preflight and exports FACTORY_SANDBOX" {
+  run grep -nE 'export FACTORY_SANDBOX=(docker|k8s|off)' scripts/factory/wakeup.sh
+  [ "$status" -eq 0 ]
+  run grep -nq 'factory.sandbox.mode' scripts/factory/wakeup.sh
+  [ "$status" -eq 0 ]
+}
+

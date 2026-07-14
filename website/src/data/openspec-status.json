@@ -1039,6 +1039,12 @@
       "status": "plan_staged"
     }
   ],
+  "T001805": [
+    {
+      "slug": "factory-pr-ci-babysitter",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

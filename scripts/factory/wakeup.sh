@@ -108,6 +108,13 @@ while true; do
 
   DISPATCHER_BRIDGE="${REPO}/scripts/factory/dispatcher-bridge.sh"
 
+  PROMPT="Run the Software Factory dispatcher now. Invoke the Workflow tool with \
+scriptPath 'scripts/factory/dispatcher.js' and args { timestamp: '${TIMESTAMP}', dry_run: ${DRY_RUN}, prep_file: '${PREP_FILE}' }. \
+Pass prep_file through verbatim — do not alter, re-run, or improvise it. \
+The dispatcher reads all guards (kill-switch, daily-cap, dry-run-first) fresh per brand inside its PREP step \
+(already evaluated into prep_file by this wrapper). \
+Report only the dispatcher's final JSON result. Do not improvise scheduling."
+
   echo "wakeup.sh: starting tick #${TICK} at ${TIMESTAMP}" >&2
 
   # Sandbox preflight: resolve the default backend once and record it for this tick.

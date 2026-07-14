@@ -15,7 +15,7 @@ Before responding to any request, check these signals and delegate to the named 
 | database, PostgreSQL, psql, schema, query, backup, restore, tracking, timeline, `bachelorprojekt.features`, `v_timeline` | `bachelorprojekt-db` | `mcp-postgres` (localhost:13001) |
 | SealedSecret, Keycloak realm, OIDC, DSGVO, credentials, rotate, certificate, secret | `bachelorprojekt-security` | — |
 
-> **MCP-Server names in this table refer to Claude-Code-only SSE servers** configured in `.claude/skills/references/mcp-tool-guide.md`. The opencode runtime registers its MCP servers in `.opencode/opencode.jsonc`: `mcp-kubernetes`, `mcp-postgres`, `factory-mcp`, `codebase-memory-mcp`, `mcp-task-runner`, `ticket-mcp`, `task-master-ai` (same `mcp-kubernetes` name as the table; `factory-mcp` is the HTTP factory server on `:13003`). If you are running in opencode, see the `MCP-Schnellweg` block below and the opencode config, not the table above.
+> **MCP-Server names in this table refer to Claude-Code-only SSE servers** configured in `.claude/skills/references/mcp-tool-guide.md`. The opencode runtime registers its MCP servers in `.opencode/opencode.jsonc`: `mcp-kubernetes`, `mcp-postgres`, `factory-mcp`, `codebase-memory-mcp`, `mcp-task-runner`, `ticket-mcp`, `task-master-ai`, `github-mcp`, `playwright`, `sequential-thinking`, `webresearch`, `docfork` (same `mcp-kubernetes` name as the table; `factory-mcp` is the HTTP factory server on `:13003`). If you are running in opencode, see the `MCP-Schnellweg` block below and the opencode config, not the table above.
 
 > **Agent-Routing-Karten:** Generierte, grepbare Karten unter `docs/agent-guide/maps/` — `goals-map.md` (Intention → Weg → Tier → Guardrails), `tools-map.md`, `danger-map.md`. Quelle: `docs/agent-guide/registry/` (nicht von Hand editieren; via `task agent-guide:maps` regenerieren).
 
@@ -53,15 +53,7 @@ Specifications are written in the OpenSpec format under `openspec/`. Drive the l
 
 ### Domain conventions: Merge = Abschluss (T001092)
 
-Ein Ticket wird bei **grünem Auto-Merge nach `main` direkt geschlossen** (`done · resolution=shipped`) —
-einheitlich für Factory (`pipeline.js`) und dev-flow-execute (inkl. Batches). Der Prod-Deploy ist
-**entkoppelt** (push-based) und ändert den Ticket-Status NICHT. `awaiting_deploy` und `qa_review` sind
-**aus dem Happy-Path entfernt**, bleiben aber als Enum-Werte gültig (historische Zeilen, manuelle
-Sonderfälle, Watchdog-Sicherheitsnetz `awaiting_deploy > 24h`). Es gibt keine separate
-„gemergt-aber-noch-nicht-live"-Ruhestufe mehr; Closure trackt **Merge**, nicht Prod-Live. Der Factory-Floor
-blendet die `awaiting_deploy`-Lane jetzt leer aus (sie rendert nur noch bei manuell zurückgehaltenen Tickets).
-Quality-Gate-Ergebnisse werden als `verify`-Phase-Events (`tickets.factory_phase_events`, strukturiertes
-`detail`) erfasst.
+Ein Ticket wird bei **grünem Auto-Merge nach `main` direkt geschlossen** (`done · resolution=shipped`) — einheitlich für Factory (`pipeline.js`) und dev-flow-execute (inkl. Batches). Der Prod-Deploy ist **entkoppelt** (push-based) und ändert den Ticket-Status NICHT; Closure trackt **Merge**, nicht Prod-Live. `awaiting_deploy` und `qa_review` sind aus dem Happy-Path entfernt, bleiben aber als Enum-Werte gültig (historische Zeilen, manuelle Sonderfälle, Watchdog `awaiting_deploy > 24h`); der Factory-Floor blendet die leere `awaiting_deploy`-Lane aus. Quality-Gate-Ergebnisse werden als `verify`-Phase-Events (`tickets.factory_phase_events`, strukturiertes `detail`) erfasst.
 
 ## Project Overview
 
@@ -90,16 +82,6 @@ bash scripts/vda.sh oracle 'create a fresh k3d cluster'
 - `--dry-run` / `-n` — resolve and print the task command without executing it (safe for pre-flight checks)
 - `--json` — like `--dry-run` but outputs `{"task":"...","env":"...","cmd":"..."}` on stdout
 - `--quiet` / `-q` — suppress diagnostic lines on stderr (useful in pipelines)
-
-```bash
-# Pre-flight: check what would run before committing to it
-bash scripts/vda.sh oracle --dry-run 'deploy website mentolder'
-# → task feature:website ENV=mentolder
-
-# Machine-readable for agent scripts
-bash scripts/vda.sh oracle --json 'run all offline tests'
-# → {"task":"test:all","env":"","cmd":"task test:all"}
-```
 
 Routes to local Ollama (at `localhost:11434`) → Opencode/OpenClaw `task-runner` agent (fallback) → error with `task --list` hint.
 
@@ -200,17 +182,9 @@ Covered sub-topics (reference file, not repeated here):
 - **Local-first LLM pipeline** — GPU host; vector space isolation; LM Studio
 - **dev.mentolder.de stack** — devc decommissioned; WSL bootstrap caveats
 
-### Brett
-
 ### Bug-Triage-Konvention (CFR-Gate G-DORA03)
 
-**Jeder nach-Merge entdeckte Fehler wird als `type=bug`-Ticket erfasst.**
-Kein stiller `fix()`-Commit ohne Ticket-Referenz. Die Change Failure Rate
-(broad proxy: fix()-Rate) wird mit `bash scripts/vda.sh cfr` gemessen —
-Ziel: ≤ 15 % über 8 Wochen. Ein ungeticketer `fix()`-Commit zählt als
-verschleierter Bug und verschlechtert den Proxy-Wert, ohne dass er in der
-DORA-Auswertung unter `/admin/dora` erscheint.
+**Jeder nach-Merge entdeckte Fehler wird als `type=bug`-Ticket erfasst** — kein stiller `fix()`-Commit ohne Ticket-Referenz. Die Change Failure Rate (broad proxy: fix()-Rate) wird mit `bash scripts/vda.sh cfr` gemessen, Ziel ≤ 15 % über 8 Wochen; ein ungeticketer `fix()`-Commit zählt als verschleierter Bug und verschlechtert den Proxy-Wert, ohne in der DORA-Auswertung unter `/admin/dora` zu erscheinen.
 
-Ablauf: Bug entdecken → `bash scripts/ticket.sh create --type bug --title "..."` →
-Branch + PR → nach Merge wird Ticket automatisch `done`.
+Ablauf: Bug entdecken → `bash scripts/ticket.sh create --type bug --title "..."` → Branch + PR → nach Merge wird Ticket automatisch `done`.
 

@@ -1,10 +1,10 @@
 # Skills Overview
 
-37 project-local skills (36 in `.claude/skills/<name>/` + 1 in `.claude/skills/superpowers/using-git-worktrees/`) grouped by domain. Each skill has its own `SKILL.md` with full runbook details. Invoke any skill by its name.
+36 project-local skills (35 in `.claude/skills/<name>/` + 1 in `.claude/skills/superpowers/using-git-worktrees/`) grouped by domain. Each skill has its own `SKILL.md` with full runbook details. Invoke any skill by its name.
 
 > **Konsolidierung (2026-06-21):** 7 Infra/Ops-Skills wurden in `infra-ops` zusammengeführt (nur bei explizitem Bedarf aufrufen). `update-dependencies` läuft als biweekly Cloud-Routine (https://claude.ai/code/routines/trig_01GiuyN6KP5iMcVUSvBQMKyQ). Die archivierten SKILL.md-Dateien haben kein `description`-Feld mehr und triggern nicht auto-matisch.
 
-> **Wartung:** Diese Anzahl stimmt mit `find .claude/skills -name SKILL.md | wc -l` und mit der `<available_skills>`-Liste des OpenCode-Loaders überein. Wenn ein Skill hinzukommt oder entfernt wird, hier nachziehen.
+> **Wartung:** Diese Anzahl stimmt mit `git ls-files -- .claude/skills | grep -c '/SKILL\.md$'` überein (nur **getrackte** Skills — lokal via market-cli installierte zählen nicht, Präzedenz T001783). Wenn ein Skill hinzukommt oder entfernt wird, hier nachziehen (Gate G-AGENTIC06).
 
 > **Für Agenten:** Schnelle Routing-Karten (Intention → Weg → Tier → Guardrails) unter `docs/agent-guide/maps/` — `goals-map.md`, `tools-map.md`, `danger-map.md`. Generiert aus `docs/agent-guide/registry/`.
 
@@ -140,6 +140,19 @@ unabhängiger Beweis ist. Stufen 3+4 prüfen andere Dimensionen (Review-Qualitä
 | [`update-dependencies`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/update-dependencies.html) | Update workspace packages, fix deprecation warnings, and handle security audits/Major version bumps across all directories. |
 | [`mishap-tracker`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/mishap-tracker.html) | **End-of-skill routine** — batches accumulated `MISHAP_LOG` entries from runbook skills into a single aggregate `tickets.tickets` row. Reuses an open "Mishap collection" ticket if one exists. |
 | [`repo-hygiene`](https://github.com/Paddione/Bachelorprojekt/blob/main/.claude/skills/repo-hygiene/SKILL.md) | Repository housekeeping — stale branches/worktrees, PR triage/merge, close resolved tickets, GitHub issue intake, factory queue status. |
+
+---
+
+## Third-party / ML-Referenz-Skills (kein Projekt-Workflow)
+
+Eingecheckte Referenz-Skills ohne Bezug zum Workspace-Deploy-Workflow — nur bei explizitem Bedarf aufrufen:
+
+| Skill | When to use |
+|---|---|
+| `ui-ux-pro-max` | UI/UX-Design-Intelligenz (Styles, Paletten, Font-Pairings) — für opencode via `permission: deny` deaktiviert. |
+| `unsloth` | Schnelles LLM-Fine-Tuning (LoRA/QLoRA) — Referenz für die lokale LLM-Pipeline. |
+| `gguf-quantization` | GGUF-Format & llama.cpp-Quantisierung für CPU/Consumer-GPU-Inferenz. |
+| `speculative-decoding` | Inferenz-Beschleunigung (Draft-Modelle, Medusa, Lookahead). |
 
 ---
 

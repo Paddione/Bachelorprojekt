@@ -833,6 +833,52 @@ discarding local-provider routing.
 - **WHEN** `resolveAgentModel` evaluates the route
 - **THEN** it returns that `modelId` unchanged, with no fallback and no log line
 
+### Requirement: Dry-run-first tickets graduate to a real run
+
+The Software Factory pipeline SHALL mark a ticket as dry-run-checked
+(`ticket.sh dryrun-mark`) after completing its forced preview run in the
+`DRY_RUN` branch, so that `guard_dryrun_ok()` permits a real (non-dry-run)
+execution on the ticket's next scheduled tick.
+
+#### Scenario: Ticket forced into dry-run by guard_dryrun_ok
+
+- **GIVEN** a ticket has no dry-run-first marker (`ticket.sh dryrun-check`
+  exits non-zero)
+- **WHEN** the pipeline runs it in the `DRY_RUN` branch and reaches the
+  Deploy-phase preview step
+- **THEN** it calls `ticket.sh dryrun-mark --id <ticket>` before releasing
+  the slot and resetting status to `backlog`, so the next tick's
+  `guard_dryrun_ok()` call returns true and the ticket runs for real instead
+  of looping through another forced preview.
+
+### Requirement: Sandboxed Command Execution for the Implement Phase
+
+The system SHALL execute the Implement-phase build and verify commands (`task workspace:validate`, `task test:all`, `task freshness:regenerate` in `pipeline.js` and the `runTaskVerifyLoop` in `build-loop.cjs`) inside an isolated sandbox provided by `scripts/factory/sandbox-run.sh`, instead of running them directly as a host process. The runner SHALL select an execution backend via the fallback chain **docker → k8s → off**, overridable with the `FACTORY_SANDBOX=docker|k8s|off` environment variable. When Docker is available (`docker info` succeeds) it SHALL run the command in a dedicated sandbox image with the target worktree bind-mounted; when Docker is unavailable it SHALL fall back to a Kubernetes Job in the local cluster with equivalent semantics; when neither is available (or `FACTORY_SANDBOX=off`) it SHALL run the command unsandboxed on the host and emit warning telemetry. The runner SHALL NOT mount the main repository checkout or the `environments/.secrets/` directory into the sandbox. The egress policy SHALL be default-deny with an allowlist (Anthropic API, npm registry, GitHub, and staging/prod endpoints), where the prod domain is resolved from `PROD_DOMAIN` / `k3d/configmap-domains.yaml` and never hardcoded as a brand-domain literal.
+
+#### Scenario: Docker backend selected when the daemon is reachable
+
+- **GIVEN** `FACTORY_SANDBOX` is unset and `docker info` succeeds
+- **WHEN** `scripts/factory/sandbox-run.sh <worktree> "task test:all"` is invoked
+- **THEN** the resolved mode is `docker`; the command runs in the sandbox image with the worktree bind-mounted; neither the main checkout nor `environments/.secrets/` is mounted
+
+#### Scenario: Fallback to a k8s Job when Docker is unavailable
+
+- **GIVEN** `FACTORY_SANDBOX` is unset and `docker info` fails while the local cluster is reachable
+- **WHEN** `scripts/factory/sandbox-run.sh <worktree> "task test:all"` is invoked
+- **THEN** the resolved mode is `k8s`; the command runs as a Kubernetes Job with the worktree as its volume and the same secret/main-checkout mount exclusions
+
+#### Scenario: Off escape-hatch runs unsandboxed with warning telemetry
+
+- **GIVEN** `FACTORY_SANDBOX=off`
+- **WHEN** `scripts/factory/sandbox-run.sh <worktree> "task test:all"` is invoked
+- **THEN** the command runs directly on the host (today's behavior); a warning is written to stderr; and warn telemetry (`factory.sandbox.off`) is emitted via `otel-emit.sh`
+
+#### Scenario: Refusal to sandbox the main checkout
+
+- **GIVEN** the worktree argument equals the main repository checkout path
+- **WHEN** `scripts/factory/sandbox-run.sh <main-checkout> "task test:all"` is invoked
+- **THEN** the runner exits non-zero without mounting the main checkout into any container
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -2650,3 +2696,7 @@ The system SHALL enforce authentication on all coaching-session pages and API en
 <!-- merged from change delta software-factory.md (3cef9c1225a1) -->
 
 <!-- merged from change delta software-factory.md (85a753c0b53f) -->
+
+<!-- merged from change delta software-factory.md (3d41d00e010b) -->
+
+<!-- merged from change delta software-factory.md (1c6325b6ab26) -->

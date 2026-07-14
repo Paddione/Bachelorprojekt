@@ -1,5 +1,40 @@
 # Changelog
 
+## [1.180.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.179.5...website-v1.180.0) (2026-07-14)
+
+
+### Features
+
+* factory sandbox runner ([#2804](https://github.com/Paddione/Bachelorprojekt/issues/2804)) ([3001bac](https://github.com/Paddione/Bachelorprojekt/commit/3001bace4abc8933d704faac79f8b45a5c822801))
+
+## [1.179.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.179.4...website-v1.179.5) (2026-07-14)
+
+
+### Bug Fixes
+
+* **factory:** mark ticket dry-run-checked before requeuing from DRY_RUN branch [T001816] ([#2791](https://github.com/Paddione/Bachelorprojekt/issues/2791)) ([f67418e](https://github.com/Paddione/Bachelorprojekt/commit/f67418ecb00e4460e19ce4b25a5327037b554083))
+
+## [1.179.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.179.3...website-v1.179.4) (2026-07-14)
+
+
+### Bug Fixes
+
+* **admin:** cockpit Aktiv-Filter zeigt keine Tickets via Store-Pfad ([#2778](https://github.com/Paddione/Bachelorprojekt/issues/2778)) ([cf94a2e](https://github.com/Paddione/Bachelorprojekt/commit/cf94a2ea7d5daa3127fd62096517e74c26abd13b))
+
+## [1.179.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.179.2...website-v1.179.3) (2026-07-14)
+
+
+### Bug Fixes
+
+* **website:** remove dead coaching studio route and rewire references [T001792] ([#2767](https://github.com/Paddione/Bachelorprojekt/issues/2767)) ([fc0b196](https://github.com/Paddione/Bachelorprojekt/commit/fc0b196d95fc376bf60f98cd61155e3da11b14b9))
+
+## [1.179.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.179.1...website-v1.179.2) (2026-07-14)
+
+
+### Bug Fixes
+
+* **tests:** resolve 8 pre-existing BATS test failures ([#2766](https://github.com/Paddione/Bachelorprojekt/issues/2766)) ([26ba7d8](https://github.com/Paddione/Bachelorprojekt/commit/26ba7d836d4f3cae125c04abc020b2faf31f0b76))
+
 ## [1.179.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.179.0...website-v1.179.1) (2026-07-11)
 
 

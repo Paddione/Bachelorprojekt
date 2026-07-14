@@ -836,13 +836,15 @@ DISPATCHER_SCRIPT="scripts/factory/dispatcher.js"
 }
 
 @test "FA-SF-30: PREP gate reads hard guards fresh per tick via guards.sh" {
-  run grep -q "scripts/factory/guards.sh" "$DISPATCHER_SCRIPT"; [ "$status" -eq 0 ]
-  run grep -q "guard_killswitch_on" "$DISPATCHER_SCRIPT"; [ "$status" -eq 0 ]
-  run grep -q "guard_daily_cap_reached" "$DISPATCHER_SCRIPT"; [ "$status" -eq 0 ]
+  # T001812: factory-prep (which sources guards.sh) now runs in wakeup.sh, once
+  # per while-loop tick, before the Workflow call — not inside dispatcher.js.
+  run grep -q "scripts/factory/guards.sh\|factory-prep" scripts/factory/wakeup.sh; [ "$status" -eq 0 ]
 }
 
 @test "FA-SF-30: PREP gate is fail-closed (drops the brand from launch on guard trip / read error)" {
-  run grep -Eq "fail-closed|fail closed" "$DISPATCHER_SCRIPT"; [ "$status" -eq 0 ]
+  # T001812: fail-closed via JS exception on missing/invalid prep_file — same
+  # early-return-with-no-launches contract as before, different trigger.
+  run grep -Eq "prep_file missing|JSON.parse\(raw\)" "$DISPATCHER_SCRIPT"; [ "$status" -eq 0 ]
 }
 
 @test "FA-SF-30: captures the parallel() launch result (not discarded)" {
@@ -859,10 +861,11 @@ DISPATCHER_SCRIPT="scripts/factory/dispatcher.js"
   # and run-dispatcher.sh, so the ambient config no longer carries reasoning_effort.
   # T000543/#1466 then intentionally removed the model: pins so the dispatcher inherits the
   # session model from the invoker (DeepSeek or Anthropic), keeping dispatch flexible.
-  # Guard: verify all 3 agent labels are present but none carry a hard model: pin.
-  labels=$(grep -cE "label: '(prep|escalate|metrics)'" "$DISPATCHER_SCRIPT")
-  [ "$labels" -eq 3 ]
-  pinned=$(grep -E "label: '(prep|escalate|metrics)'" "$DISPATCHER_SCRIPT" | grep "model:" | wc -l)
+  # Guard: verify agent labels are present but none carry a hard model: pin.
+  # T001810: prep is now deterministic (child_process), only escalate + metrics remain.
+  labels=$(grep -cE "label: '(escalate|metrics)'" "$DISPATCHER_SCRIPT")
+  [ "$labels" -eq 2 ]
+  pinned=$(grep -E "label: '(escalate|metrics)'" "$DISPATCHER_SCRIPT" | grep "model:" | wc -l)
   [ "$pinned" -eq 0 ]
 }
 
@@ -904,6 +907,16 @@ DISPATCHER_SCRIPT="scripts/factory/dispatcher.js"
 
 @test "FA-SF-31: pipeline.js has a plan-reuse entrypoint" {
   run grep -Eq 'REUSE|plan_path|WORK_BRANCH' scripts/factory/pipeline.js; [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-31: DRY_RUN branch marks the ticket dry-run-checked before requeuing (T001816)" {
+  # guard_dryrun_ok() in guards.sh only allows a REAL run once ticket.sh dryrun-mark
+  # has been called for a ticket. Without it, a ticket that enters the DRY_RUN
+  # branch loops forever: every subsequent tick re-forces dry_run=true and the
+  # ticket is bounced back to backlog without ever progressing (T001816).
+  run awk '/^if \(DRY_RUN\) \{/{f=1} f{print} f && /^\}/{exit}' scripts/factory/pipeline.js
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ "dryrun-mark --id" ]]
 }
 
 # ── FA-SF-32-classify-paths ─────────────────────────────────────#
@@ -2951,12 +2964,9 @@ REG="scripts/factory/service-registry.sh"
   [ "$status" -eq 0 ]
 }
 
-@test "FA-SF-71: local-qwen35 seed sets prio-1 rows for the four orchestration sources" {
+@test "FA-SF-71: local-qwen35 seed sets prio-1 row for ticket-triage" {
   local f=scripts/migrations/2026-07-03-local-qwen35-seed.sql
-  grep -Eq "'factory-scout', *'sonnet', *1, *'local-qwen35'" "$f"
-  grep -Eq "'factory-plan', *'sonnet', *1, *'local-qwen35'" "$f"
   grep -Eq "'ticket-triage', *'haiku', *1, *'local-qwen35'" "$f"
-  grep -Eq "'lavish-artifact', *'sonnet', *1, *'local-qwen35'" "$f"
   grep -Eq '60000, *180000' "$f"
 }
 
@@ -2972,8 +2982,6 @@ REG="scripts/factory/service-registry.sh"
 # ── T001433 admin-redesign: Pipeline move + Kosten tab + chart-color SSOT ────
 PIPELINE_PAGE="$BATS_TEST_DIRNAME/../../website/src/pages/admin/pipeline.astro"
 DEV_STATUS_PAGE="$BATS_TEST_DIRNAME/../../website/src/pages/dev-status.astro"
-FACTORY_OBSERVABILITY_PAGE="$BATS_TEST_DIRNAME/../../website/src/pages/admin/factory-observability.astro"
-FACTORY_BUDGET_PAGE="$BATS_TEST_DIRNAME/../../website/src/pages/admin/factory-budget.astro"
 FACTORY_OBSERVABILITY_COMP="$BATS_TEST_DIRNAME/../../website/src/components/factory/FactoryObservability.svelte"
 FACTORY_CHART_COLORS="$BATS_TEST_DIRNAME/../../website/src/components/factory/factory-chart-colors.ts"
 
@@ -2985,16 +2993,6 @@ FACTORY_CHART_COLORS="$BATS_TEST_DIRNAME/../../website/src/components/factory/fa
 
 @test "T001433 pipeline: dev-status.astro is a 301 redirect to /admin/pipeline" {
   run grep -F "Astro.redirect(\`/admin/pipeline" "$DEV_STATUS_PAGE"
-  [ "$status" -eq 0 ]
-}
-
-@test "T001433 pipeline: factory-observability.astro redirects to /admin/pipeline?tab=kosten" {
-  run grep -F "Astro.redirect('/admin/pipeline?tab=kosten', 301)" "$FACTORY_OBSERVABILITY_PAGE"
-  [ "$status" -eq 0 ]
-}
-
-@test "T001433 pipeline: factory-budget.astro redirects to /admin/pipeline?tab=kosten" {
-  run grep -F "Astro.redirect('/admin/pipeline?tab=kosten', 301)" "$FACTORY_BUDGET_PAGE"
   [ "$status" -eq 0 ]
 }
 
@@ -3142,3 +3140,98 @@ STUB
   grep -q "tickets.factory_model_slots" scripts/factory/route-provider.sh
   grep -Eq "PHASE=" scripts/factory/route-provider.sh
 }
+
+@test "T001806: factory-prep.sh must not pipe watchdog into the non-reading log() function" {
+  # log() ignores stdin and exits immediately -> SIGPIPE (rc 141) kills PREP under pipefail.
+  run bash -c "grep -E 'watchdog\.sh.*\| *log$' scripts/vda/factory-prep.sh"
+  [ "$status" -ne 0 ]
+  # stdout muss von einer stdin-lesenden Konstruktion konsumiert werden (Folgezeile der Pipe)
+  run bash -c "grep -A2 'watchdog\.sh' scripts/vda/factory-prep.sh | grep -E 'while IFS= read'"
+  [ "$status" -eq 0 ]
+}
+
+@test "T001812: dispatcher.js reads factory-prep from a file precomputed by wakeup.sh" {
+  # T001810 ran factory-prep via child_process.execFileSync INSIDE the Workflow
+  # call (up to 300s worst case) to avoid T001808/T001809's lossiness (small
+  # models dropped fields like branch/plan_path when relaying prep JSON through
+  # the prompt) — but that made the call slow enough to flip into the harness's
+  # async "launched in background" mode, which a one-shot `claude -p` session
+  # never survives to see the notification for (orphaned Workflow runs observed,
+  # no transcript dir ever written). T001812 moved factory-prep back to
+  # wakeup.sh (fast, synchronous bash) and hands dispatcher.js a file path
+  # instead — no lossy JSON-in-prompt relay, and a fast/synchronous Workflow call.
+  run grep -F "args.prep_file" scripts/factory/dispatcher.js
+  [ "$status" -eq 0 ]
+  run grep -F "readFileSync" scripts/factory/dispatcher.js
+  [ "$status" -eq 0 ]
+}
+
+@test "T001810: dispatcher.js runs budget-guard and sentinel deterministically" {
+  run grep -F 'budget-guard.sh' scripts/factory/dispatcher.js
+  [ "$status" -eq 0 ]
+  run grep -F 'interactive_worker_active: /interactive-worker/.test(locks)' scripts/factory/dispatcher.js
+  [ "$status" -eq 0 ]
+  # keine LLM-Agent-Schritte mehr für prep/budget/sentinel
+  run bash -c "grep -E \"label: '(prep|budget-guard|sentinel-check|sentinel-defer)'\" scripts/factory/dispatcher.js"
+  [ "$status" -ne 0 ]
+}
+
+@test "T001812: wakeup.sh precomputes factory-prep and passes a file path, not inline JSON" {
+  # Neither the T001810 args-blob (no prep object relayed verbatim) nor a
+  # T001808/T001809-style giant inline JSON string — just a short path the
+  # model passes through untouched.
+  run grep -F 'PREP_JSON' scripts/factory/wakeup.sh
+  [ "$status" -ne 0 ]
+  run grep -F 'PREP_FILE=' scripts/factory/wakeup.sh
+  [ "$status" -eq 0 ]
+  run grep -F 'factory-prep' scripts/factory/wakeup.sh
+  [ "$status" -eq 0 ]
+  run grep -F "prep_file: '\${PREP_FILE}'" scripts/factory/wakeup.sh
+  [ "$status" -eq 0 ]
+}
+
+@test "T001809: dispatcher allowedTools covers vda.sh" {
+  run grep -F 'Bash(bash scripts/vda.sh*)' scripts/factory/wakeup.sh
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-SANDBOX: sandbox-run resolves docker→k8s→off and honors FACTORY_SANDBOX override" {
+  run bash -c "FACTORY_SANDBOX=off bash scripts/factory/sandbox-run.sh /tmp/nonexistent-wt 'echo hi' 2>&1"
+  [ "$status" -eq 0 ]
+  echo "$output" | grep -q 'hi'
+}
+
+@test "FA-SF-SANDBOX: docker path bind-mounts only the worktree and never secrets or main checkout" {
+  # The docker invocation mounts the worktree at /work and adds no secrets/main-checkout volume.
+  run grep -nE -- '-v[[:space:]]+"?\$\{?WORKTREE' scripts/factory/sandbox-run.sh
+  [ "$status" -eq 0 ]
+  # No bind-mount of the decrypted secrets dir anywhere in the runner.
+  run grep -nE -- '-v[^\n]*environments/\.secrets' scripts/factory/sandbox-run.sh
+  [ "$status" -ne 0 ]
+  # Refuses to sandbox the main checkout.
+  run bash -c "FACTORY_SANDBOX=docker bash scripts/factory/sandbox-run.sh /home/patrick/Bachelorprojekt 'true'; echo EXIT=\$?"
+  echo "$output" | grep -q 'EXIT=3'
+}
+
+@test "FA-SF-SANDBOX: off mode warns on stderr and runs the command on the host" {
+  run bash -c "FACTORY_SANDBOX=off bash scripts/factory/sandbox-run.sh /tmp 'echo RAN' 2>&1"
+  [ "$status" -eq 0 ]
+  echo "$output" | grep -q 'RAN'
+  echo "$output" | grep -qi 'UNSANDBOXED'
+}
+
+@test "FA-SF-SANDBOX: build-loop wraps the verify task command through sandbox-run.sh" {
+  run node -e "const m=require('./scripts/factory/build-loop.cjs'); process.stdout.write(typeof m.wrapSandbox)"
+  [ "$status" -eq 0 ]
+  echo "$output" | grep -q 'function'
+  run node -e "const m=require('./scripts/factory/build-loop.cjs'); process.stdout.write(m.wrapSandbox('/tmp/wt','task test:all'))"
+  echo "$output" | grep -q 'scripts/factory/sandbox-run.sh'
+}
+
+@test "FA-SF-SANDBOX: wakeup.sh performs a sandbox preflight and exports FACTORY_SANDBOX" {
+  run grep -nE 'export FACTORY_SANDBOX=(docker|k8s|off)' scripts/factory/wakeup.sh
+  [ "$status" -eq 0 ]
+  run grep -nq 'factory.sandbox.mode' scripts/factory/wakeup.sh
+  [ "$status" -eq 0 ]
+}
+

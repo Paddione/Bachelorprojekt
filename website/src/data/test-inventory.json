@@ -78,12 +78,6 @@
     "kind": "playwright"
   },
   {
-    "id": "E2E:coaching-studio-empty-customer",
-    "file": "tests/e2e/specs/coaching-studio-empty-customer.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
     "id": "E2E:dashboard-art",
     "file": "tests/e2e/specs/dashboard-art.spec.ts",
     "category": "E2E",
@@ -368,6 +362,12 @@
   {
     "id": "E2E:fa-slot-widget",
     "file": "tests/e2e/specs/fa-slot-widget.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:factory-qs-abnahme",
+    "file": "tests/e2e/specs/factory-qs-abnahme.spec.ts",
     "category": "E2E",
     "kind": "playwright"
   },
@@ -818,6 +818,12 @@
   {
     "id": "FA-28",
     "file": "tests/e2e/specs/fa-28-messaging.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-29",
+    "file": "tests/e2e/specs/fa-29-cockpit.spec.ts",
     "category": "FA",
     "kind": "playwright"
   },

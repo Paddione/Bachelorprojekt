@@ -5,158 +5,127 @@ export const meta = {
   phases: [{ title: 'Prep' }, { title: 'Launch' }, { title: 'Metrics' }],
 }
 
-let _msgBridge
-try { _msgBridge = require('./agent-msg-bridge.cjs') } catch (_) { _msgBridge = { broadcast: (msg, label) => log(`[broadcast:${label}] ${msg}`) } }
+import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+
+// Simple broadcast shim — no external module needed
+const _msgBridge = { broadcast: (msg, label) => log(`[broadcast:${label}] ${msg}`) };
 
 async function main() {
-  const A = args ?? {}
-  const REPO = '/home/patrick/Bachelorprojekt'
-
-  const PLAN_SCHEMA = {
-    type: 'object',
-    required: ['launch'],
-    properties: {
-      launch: {
-        type: 'array',
-        items: {
-          type: 'object',
-          required: ['brand', 'external_id', 'slot'],
-          properties: {
-            brand: { enum: ['mentolder', 'korczewski'] },
-            external_id: { type: 'string' },
-            slot: { type: 'integer' },
-            title: { type: 'string' },
-            branch: { type: 'string' },
-            plan_path: { type: 'string' },
-            dry_run: { type: 'boolean' },
-          },
-        },
-      },
-      skipped: {
-        type: 'array',
-        items: {
-          type: 'object',
-          properties: {
-            brand: { type: 'string' },
-            reason: { type: 'string' },
-          },
-        },
-      },
-    },
-  }
+  const A = args ?? {};
+  const REPO = '/home/patrick/Bachelorprojekt';
 
   // ── ① Prep: watchdog sweep + queue poll + conflict-gate + slot-claim ──────────
-  // Deterministic prep logic is delegated to scripts/vda.sh factory-prep, which consolidates:
+  // Deterministic prep logic is delegated to wakeup.sh → factory-prep, which consolidates:
   // - watchdog.sh (watchdog sweep)
   // - schedule.sh (poll backlog + conflict-gate + slot-claim)
   // - ticket.sh get (fetch details for launch)
   // - scripts/factory/guards.sh (kill-switch via guard_killswitch_on, daily cap via guard_daily_cap_reached)
   phase('Prep')
-  const prep = await agent(
-    `Run the unified Software Factory prep script from ${REPO} and return its JSON output:
-       FACTORY_DAILY_DEPLOY_CAP=${A.FACTORY_DAILY_DEPLOY_CAP ?? '5'} FACTORY_GLOBAL_CAP=3 bash ${REPO}/scripts/vda.sh factory-prep
-     Return the exact JSON output from this script and nothing else.`,
-    { label: 'prep', phase: 'Prep', schema: PLAN_SCHEMA },
-  )
-
-  // Guard: PREP agent returned null (API error, model config mismatch, or subagent failure).
-  // Fail-closed — record the outage and exit cleanly so the /loop can retry next tick.
-  if (!prep || !prep.launch) {
+  let prep = null;
+  try {
+    if (!A.prep_file) throw new Error('args.prep_file missing — wakeup.sh must precompute it');
+    const raw = readFileSync(A.prep_file, 'utf8');
+    prep = JSON.parse(raw);
+  } catch (e) {
     log(
-      `Dispatcher: PREP step returned null (agent error). No brands processed this tick. ` +
+      `Dispatcher: factory-prep failed (${String(e && e.message ? e.message : e).slice(0, 300)}). ` +
+        `No brands processed this tick. Retrying next tick.`,
+    );
+    return;
+  }
+
+  if (!prep || !Array.isArray(prep.launch)) {
+    log(
+      `Dispatcher: factory-prep returned an unexpected shape. No brands processed this tick. ` +
         `Raw prep value: ${JSON.stringify(prep)}. Retrying next tick.`,
-    )
-    return
+    );
+    return;
   }
 
   log(
     `Dispatcher: ${prep.launch.length} feature(s) scheduled this tick (${A.timestamp ?? 'no timestamp'})`,
-  )
+  );
   if (prep.launch.length === 0) {
-    return
+    return;
   }
 
-  // Run budget guards and estimates (agent-based — Workflow scripts cannot execFileSync)
-  const BUDGET_RESULT_SCHEMA = {
-    type: 'object',
-    required: ['ok', 'blocked'],
-    properties: {
-      ok: { type: 'array', items: { type: 'object', properties: { external_id: { type: 'string' }, brand: { type: 'string' } } } },
-      blocked: { type: 'array', items: { type: 'object', properties: { external_id: { type: 'string' }, brand: { type: 'string' }, reason: { type: 'string' } } } },
-      estimates: { type: 'array' },
-    },
+  const ticketCmd = (brand, argv) => {
+    execFileSync('bash', [`${REPO}/scripts/ticket.sh`, ...argv], {
+      stdio: 'ignore',
+      timeout: 30000,
+      env: { ...process.env, BRAND: brand },
+    });
+  };
+
+  const budgetResult = { ok: [], blocked: [] };
+  for (const f of prep.launch) {
+    let withinBudget = true;
+    try {
+      execFileSync('bash', [`${REPO}/scripts/factory/budget-guard.sh`, f.brand], {
+        stdio: 'ignore',
+        timeout: 60000,
+        env: { ...process.env, BRAND: f.brand },
+      });
+    } catch {
+      withinBudget = false;
+    }
+
+    if (withinBudget) {
+      try {
+        execFileSync('bash', [`${REPO}/scripts/factory/budget-estimate.sh`, f.external_id, f.brand], {
+          stdio: 'ignore',
+          timeout: 120000,
+          env: { ...process.env, BRAND: f.brand },
+        });
+      } catch (e) {
+        log(`Dispatcher: budget-estimate failed for ${f.external_id} (non-fatal): ${String(e && e.message ? e.message : e).slice(0, 200)}`);
+      }
+      budgetResult.ok.push({ external_id: f.external_id, brand: f.brand });
+    } else {
+      log(`Dispatcher: budget-guard blocked ${f.external_id} (${f.brand})`);
+      for (const argv of [
+        ['update-status', '--id', f.external_id, '--status', 'blocked'],
+        ['phase', f.external_id, 'scout', 'blocked', '--detail', 'daily budget exceeded'],
+        ['release-slot', '--id', f.external_id],
+      ]) {
+        try { ticketCmd(f.brand, argv); } catch {}
+      }
+      budgetResult.blocked.push({ external_id: f.external_id, brand: f.brand, reason: 'daily budget exceeded' });
+    }
   }
 
-  const budgetResult = await agent(
-    `/goal Guard the Software Factory budget and estimate feature costs.
-     You are the Software Factory budget guard. Process ONLY the features listed below.
-     REPO=${REPO}
-
-     For EACH feature in this list:
-     ${JSON.stringify(prep.launch.map(f => ({ external_id: f.external_id, brand: f.brand })))}
-
-     Step 1 — Budget guard (fail-closed):
-       BRAND=<brand> bash ${REPO}/scripts/factory/budget-guard.sh <brand>
-       If this exits non-zero: the feature is BLOCKED. Proceed to cleanup steps (2-4).
-       If this exits zero: the feature is OK. Proceed to estimate then next feature.
-
-     Step 2 — Estimate (best-effort, only for OK features):
-       BRAND=<brand> bash ${REPO}/scripts/factory/budget-estimate.sh <external_id> <brand>
-       Capture stdout; if it fails log the error but do NOT block the feature.
-
-     For BLOCKED features, run these cleanup steps:
-     Step 3 — Set ticket status to blocked:
-       BRAND=<brand> bash ${REPO}/scripts/ticket.sh update-status --id <external_id> --status blocked
-     Step 4 — Log phase event:
-       BRAND=<brand> bash ${REPO}/scripts/ticket.sh phase <external_id> scout blocked --detail 'daily budget exceeded'
-     Step 5 — Release slot:
-       BRAND=<brand> bash ${REPO}/scripts/ticket.sh release-slot --id <external_id>
-
-     Return JSON: { ok: [{external_id, brand}, ...], blocked: [{external_id, brand, reason}, ...], estimates: [...] }`,
-    { label: 'budget-guard', phase: 'Launch', schema: BUDGET_RESULT_SCHEMA },
-  )
-
-  const okIds = new Set((budgetResult?.ok ?? []).map(f => f.external_id))
-  const launches = (prep.launch ?? []).filter(f => okIds.has(f.external_id))
+  const okIds = new Set((budgetResult?.ok ?? []).map(f => f.external_id));
+  const launches = (prep.launch ?? []).filter(f => okIds.has(f.external_id));
   const blockedLaunches = (budgetResult?.blocked ?? []).map(b => ({
     external_id: b.external_id,
     brand: b.brand,
-  }))
+  }));
 
-  // ── ② Launch: nest one pipeline workflow per scheduled feature (Model A) ──────
   phase('Launch')
 
-  // ── Sentinel: an interactive worker is active → yield one parallel slot ──
-  const SENTINEL_SCHEMA = {
-    type: 'object',
-    required: ['interactive_worker_active'],
-    properties: { interactive_worker_active: { type: 'boolean' } },
-  }
-  const sentinel = await agent(
-    `Run this and report the result as JSON ONLY:
-       bash ${REPO}/scripts/agent-lock.sh list | grep -q interactive-worker && echo found || echo none
-     If output is "found": return {"interactive_worker_active": true}
-     If output is "none":  return {"interactive_worker_active": false}`,
-    { label: 'sentinel-check', phase: 'Launch', schema: SENTINEL_SCHEMA },
-  )
+  let sentinel = { interactive_worker_active: false };
+  try {
+    const locks = execFileSync('bash', [`${REPO}/scripts/agent-lock.sh`, 'list'], {
+      encoding: 'utf8',
+      timeout: 30000,
+    });
+    sentinel = { interactive_worker_active: /interactive-worker/.test(locks) };
+  } catch {}
 
-  let maxParallel = launches.length
+  let maxParallel = launches.length;
   if (sentinel && sentinel.interactive_worker_active) {
-    maxParallel = Math.max(1, launches.length - 1)
-    log(`Dispatcher: interactive-worker detected, reducing slots to ${maxParallel}`)
+    maxParallel = Math.max(1, launches.length - 1);
+    log(`Dispatcher: interactive-worker detected, reducing slots to ${maxParallel}`);
   }
 
-  const toLaunch = launches.slice(0, maxParallel)
-  const deferred = launches.slice(maxParallel)
+  const toLaunch = launches.slice(0, maxParallel);
+  const deferred = launches.slice(maxParallel);
   if (deferred.length) {
-    log(`Dispatcher: deferring ${deferred.length} feature(s) to next tick (interactive-worker yield)`)
-    await agent(
-      `Release the slots for these deferred features so they re-queue cleanly next tick:
-       ${JSON.stringify(deferred.map((f) => ({ external_id: f.external_id, brand: f.brand })))}
-       For EACH: BRAND=<brand> bash ${REPO}/scripts/ticket.sh release-slot --id <external_id>
-       Report which slots were released.`,
-      { label: 'sentinel-defer', phase: 'Launch' },
-    )
+    log(`Dispatcher: deferring ${deferred.length} feature(s) to next tick (interactive-worker yield)`);
+    for (const f of deferred) {
+      try { ticketCmd(f.brand, ['release-slot', '--id', f.external_id]); } catch {}
+    }
   }
 
   const results = await parallel(
@@ -179,24 +148,22 @@ async function main() {
           .then((r) => ({ external_id: f.external_id, brand: f.brand, result: r }))
           .catch((e) => ({ external_id: f.external_id, brand: f.brand, error: String(e) })),
     ),
-  )
+  );
 
-  // ── ②b Escalation routing: surface every error / blocked pipeline (never silent) ──
-  // The parallel() result was previously discarded (gotcha: dispatcher.js:88) which
-  // swallowed both .catch errors (:105-106) and structured { status:'blocked' } returns.
   const blockedResults = blockedLaunches.map(f => ({
     external_id: f.external_id,
     brand: f.brand,
     result: { status: 'blocked', reason: 'daily budget exceeded' }
-  }))
+  }));
   const escalations = [
     ...blockedResults,
     ...(results ?? []).filter(
       (r) => r && (r.error || (r.result && r.result.status === 'blocked')),
     )
-  ]
+  ];
+
   if (escalations.length) {
-    _msgBridge.broadcast(`factory-dispatch: ${escalations.length} run(s) blocked/escalated`, 'factory')
+    _msgBridge.broadcast(`factory-dispatch: ${escalations.length} run(s) blocked/escalated`, 'factory');
     await agent(
       `/goal Notify the operator about blocked or errored Software Factory pipelines and log them.
        ${escalations.length} pipeline run(s) ended in error or blocked this tick. Notify the operator
@@ -220,12 +187,11 @@ async function main() {
          bash ${REPO}/scripts/factory/otel-emit.sh metric factory.tick.escalations ${escalations.length}
        Report what was notified and the ticket-comment output.`,
       { label: 'escalate', phase: 'Launch' },
-    )
+    );
   } else {
-    log(`Dispatcher: all ${results?.length ?? 0} pipeline run(s) completed without error/block.`)
+    log(`Dispatcher: all ${results?.length ?? 0} pipeline run(s) completed without error/block.`);
   }
 
-  // ── ③ Metrics: per-brand throughput summary on the Vorhaben ticket ────────────
   phase('Metrics')
   await agent(
     `/goal Retrieve and report Software Factory metrics for both brands.
@@ -238,6 +204,7 @@ async function main() {
        bash ${REPO}/scripts/factory/otel-emit.sh metric factory.tick.count 1 brand=korczewski
        bash ${REPO}/scripts/factory/otel-emit.sh metric factory.tick.launches ${launches.length}`,
     { label: 'metrics', phase: 'Metrics' },
-  )
+  );
 }
+
 await main();

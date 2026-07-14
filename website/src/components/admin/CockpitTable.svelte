@@ -48,7 +48,9 @@
 
     let matchStatus = true;
     if (storeFilter && storeFilter.status && storeFilter.status.length > 0) {
-      matchStatus = storeFilter.status.includes(t.status);
+      const statuses = storeFilter.status;
+      matchStatus = statuses.includes(t.status) ||
+        (statuses.includes('active') && !isTerminal(t.status));
     } else {
       matchStatus =
         statusFilter === '' ? true :

@@ -263,13 +263,26 @@ Statt deinen eigenen Kontext zurückzusetzen (das ließe dich den Faden verliere
         `## File Structure`, die die geänderten/neuen Dateien auflistet.
       - **STRUCT2 Failing-Test-Step:** Mindestens ein Task enthält einen
         rot→grün-Failing-Test-Step mit der wortwörtlichen Phrase
-        `expected: FAIL` (regex tolerant: `expected:? *fail`).
+        `expected: FAIL` (regex tolerant: `expected:? *fail`) — **UND** einen
+        echten Testrunner-Aufruf (`bats`/`vitest`/`pytest`/`jest`/`mocha`/
+        `go test`/`playwright test`) im selben oder einem anderen Task. Die
+        Phrase allein reicht NICHT (billig zu faken, vom `openspec propose`-
+        Skeleton vorgeseedet); der finale `task test:*`-Verify-Task (STRUCT3)
+        zählt NICHT als dieser Failing-Test-Step (T001791 #2).
       - **STRUCT3 Verify-Task:** Der letzte Task listet die drei mandatory
         Verify-Commands: `task test:changed`, `task freshness:regenerate`,
         `task freshness:check` (regex `task[[:space:]]+<cmd>`).
       - **P1 Placeholder-Verbot:** In Prosa (außerhalb von ```-Fences und
         `inline code`) dürfen die Tokens `TBD`, `TODO`, `FIXME`, `???`,
         `<ausfüllen>` und `similar to Task <N>` NICHT vorkommen.
+      - **B1a Budget-Integrität:** Jeder im Plan behauptete Budget-Wert für
+        eine bereits im Repo existierende Datei muss exakt dem vom Linter
+        berechneten effektiven Budget entsprechen (Baseline vs. Limit) —
+        sonst Hard-Fail.
+      - **B1b Split/Shrink bei Budget ≤ 0:** Ist das effektive Budget einer
+        referenzierten Datei ≤ 0, MUSS der Plan einen Split-/Shrink-Schritt
+        enthalten (Stichwörter: `split`, `extract`, `verkleiner`, `shrink`,
+        `aufteil`) — sonst Warnung (kosmetisches Zusammenziehen reicht nicht).
       - **Auftrag:** „**PFLICHT — Worktree-Isolation:** Beginne deinen Prompt mit `cd .worktrees/<slug>` — der Subagent hat keinen impliziten CWD-Kontext und schreibt sonst ins Haupt-Checkout. Alle folgenden Dateipfade sind relativ zu diesem Worktree.
      Dann: Lies die Spec UND `.claude/skills/references/plan-quality-gates.md`. Rufe `superpowers:writing-plans` auf und schreibe den Implementierungsplan **ausschließlich** nach `openspec/changes/<slug>/tasks.md` (OpenSpec-Format: H2-Operationsheader im Delta, H3-Requirement, H4-Scenario im `specs/<capability>.md`). Der finale Verifikations-Task des Plans MUSS `task test:changed`, `task freshness:regenerate` und `task freshness:check` als Steps enthalten (CI-Äquivalent inkl. S1–S4-Ratchet); nach Test-Änderungen zusätzlich `task test:inventory` + Commit des Inventars. Vor dem Commit: `task test:openspec` (oder `bash scripts/openspec.sh validate`) — muss grün sein. **Test-Assertion-Konsistenz:** Verifiziere vor Finalisierung, dass jede im Plan-Task vorgegebene Test-Regex/Erwartung tatsächlich die im selben Task referenzierten Implementierungs-Snippets matchen kann — bei Diskrepanz wähle eine semantisch äquivalente Assertion-Form, die zum Snippet passt. Starte KEINE Implementierung (nur Plan schreiben, dann STOPP). Gib den Plan-Pfad (`openspec/changes/<slug>/tasks.md`) und eine 3-Zeilen-Zusammenfassung zurück."
 ### Schritt 3.8: Plan-Qualitäts-Gate (deterministischer Linter + advisory LLM-QA)

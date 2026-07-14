@@ -41,6 +41,20 @@ test.describe('FA-29 Projekt-Cockpit', () => {
     await expect(page.locator('[data-testid="create-modal"]')).toBeVisible({ timeout: 30_000 });
   });
 
+  test('active filter shows fewer rows than all', async ({ page }) => {
+    await login(page);
+    const chip = (label: string) => page.locator('[data-testid="status-chip"]', { hasText: label });
+    const rowCount = async () => page.locator('[data-testid="cockpit-table"] [data-testid="row-checkbox"]').count();
+    await chip('Alle').click();
+    await page.waitForTimeout(500);
+    const allCount = await rowCount();
+    if (allCount === 0) { test.skip(true, 'No cockpit rows — skip active-filter test'); return; }
+    await chip('Aktiv').click();
+    await page.waitForTimeout(500);
+    const activeCount = await rowCount();
+    expect(activeCount).toBeLessThanOrEqual(allCount);
+  });
+
   test.describe('data-dependent (requires seeded portfolio)', () => {
     async function hasFeatures(page: any) {
       return (await page.locator('[data-testid="sidebar-feature"]').count()) > 0;

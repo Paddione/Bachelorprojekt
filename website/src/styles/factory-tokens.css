@@ -1,0 +1,20 @@
+/* factory-tokens.css — Admin color token aliases (SSOT for admin-* aliases) */
+/* Base colors live in global.css @theme; these map them to admin-* namespace */
+:root {
+  --admin-bg: var(--color-dark);
+  --admin-sidebar-bg: var(--color-dark-light);
+  --admin-surface: var(--color-surface);
+  --admin-surface-hover: var(--color-surface-hover);
+  --admin-border: var(--color-border);
+  --admin-border-bright: var(--color-line-2);
+  --admin-primary: var(--color-brass);
+  --admin-primary-muted: var(--color-brass-d);
+  --admin-accent: var(--color-sage);
+  --admin-text: var(--color-fg);
+  --admin-text-mute: var(--color-mute);
+  --admin-text-disabled: var(--color-mute-2);
+  --admin-success: var(--color-success);
+  --admin-danger: var(--color-danger);
+  --admin-info: var(--color-info);
+  --admin-warning: var(--color-warning);
+}

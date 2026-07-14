@@ -2,7 +2,7 @@
 title: "agent-guide-harness-badge — Implementation Plan"
 ticket_id: T001612
 domains: [website, sidekick]
-status: plan_staged
+status: archived
 file_locks: []
 shared_changes: false
 batch_id: null

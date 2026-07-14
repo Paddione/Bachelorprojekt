@@ -115,6 +115,25 @@ setup() {
   grep -EqE '\[T[0-9]{6}\]|sed.*T[0-9]\{6\}' "$REPO/scripts/factory/auto-close-merged.sh"
 }
 
+@test "T001811: auto-close-merged.sh sed pattern actually extracts the ticket ID (regression)" {
+  # T001811: the pattern previously had unescaped capture-group parens
+  # ('\[(T...)\]' instead of '\[\(T...\)\]'), which made sed abort with
+  # "invalid reference \1" on every PR title — auto-close silently never
+  # matched anything for either brand. Run the exact sed line from the
+  # script (not a re-typed copy) so a future regression here fails loudly.
+  sed_cmd=$(grep -m1 '^\s*ticket=\$(printf' "$REPO/scripts/factory/auto-close-merged.sh" \
+    | sed -n "s/.*printf '%s' \"\$title\" | \(sed -n '[^']*'\).*/\1/p")
+  [ -n "$sed_cmd" ]
+
+  run bash -c "printf '%s' 'fix(admin): cockpit foo [T001655]' | $sed_cmd | head -1"
+  [ "$status" -eq 0 ]
+  [ "$output" = "T001655" ]
+
+  run bash -c "printf '%s' 'chore: no ticket tag here' | $sed_cmd | head -1"
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
+}
+
 @test "T001415-M3: auto-close-merged.sh transitions non-terminal tickets via ticket.sh update-status" {
   [ -f "$REPO/scripts/factory/auto-close-merged.sh" ]
   grep -Eq 'ticket\.sh[[:space:]]+update-status.*--status[[:space:]]+done' "$REPO/scripts/factory/auto-close-merged.sh"

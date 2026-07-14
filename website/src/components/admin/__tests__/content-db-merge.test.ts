@@ -37,7 +37,7 @@ describe('mergeContentEntries', () => {
     const qEntry = result.find(e => e.type === 'questionnaire')!;
     expect(qEntry.title).toBe('Fragebogen A');
     expect(qEntry.meta).toBe('3 Dimensionen');
-    expect(qEntry.detailHref).toBe('/admin/coaching/studio');
+    expect(qEntry.detailHref).toBe('/admin/coaching/sessions');
 
     const vEntry = result.find(e => e.type === 'vorlage')!;
     expect(vEntry.title).toBe('Meine Vorlage');

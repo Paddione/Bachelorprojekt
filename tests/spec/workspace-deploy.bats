@@ -60,6 +60,11 @@ _workspace_partial_deploy_block() {
   [ "$output" -ge 1 ]
 }
 
+@test "workspace:deploy dev branch envsubsts \$STUDIO_IMAGE (T001799)" {
+  run bash -c "_block() { sed -n '/^  workspace:deploy:\$/,/^  workspace:partial-deploy:\$/p' '$TASKFILE'; }; _block | sed -n '/kustomize build k3d\//,/kubectl apply/p' | grep -F '\$STUDIO_IMAGE'"
+  [ "$status" -eq 0 ]
+}
+
 @test "workspace:deploy dev branch still envsubsts \$SMTP_USER (no regression)" {
   # The dev-branch pipeline (kustomize build k3d/ | ... | envsubst ... | ... | kubectl apply)
   # may wrap across multiple piped lines (T001411 added a re-quoting sed stage

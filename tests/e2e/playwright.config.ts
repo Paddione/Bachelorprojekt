@@ -136,6 +136,7 @@ export default defineConfig({
         '**/fa-admin-knowledge-model-selection.spec.ts', // embedding model selection (admin-gated)
         '**/fa-mobile-factory.spec.ts',           // FA-MOBILE-01..06 mobile factory parity (admin-gated)
         '**/sa-21-*.spec.ts',             // admin Aktionen tab (admin-gated)
+        '**/factory-qs-abnahme.spec.ts',  // QS-Abnahme-Flow /dev-status (T000730)
       ],
       use: {
         ...devices['Desktop Chrome'],

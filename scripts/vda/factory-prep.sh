@@ -59,9 +59,14 @@ run_prep() {
       continue
     fi
 
-    # Watchdog
+    # Watchdog — stdout muss von einer stdin-lesenden Schleife konsumiert werden:
+    # log() liest kein stdin; ein direktes `| log` beendet die rechte Seite sofort
+    # und der Watchdog stirbt an SIGPIPE (rc 141 unter pipefail). Best-effort:
+    # ein Watchdog-Fehler bricht den PREP nicht ab (T001806).
     log "Watchdog ${brand}..."
-    BRAND="${brand}" bash "${REPO}/scripts/factory/watchdog.sh" 2>&1 | log
+    BRAND="${brand}" bash "${REPO}/scripts/factory/watchdog.sh" 2>&1 \
+      | while IFS= read -r _wdline; do log "${_wdline}"; done \
+      || log "Watchdog ${brand} failed (non-fatal)"
 
     # Schedule
     log "Schedule ${brand}..."
@@ -87,7 +92,7 @@ run_prep() {
 
       # Session-coordination guard (T000510)
       local al=0
-      bash "${REPO}/scripts/agent-lock.sh" check ticket "${ext_id}" 2>/dev/null; al=$? || true
+      bash "${REPO}/scripts/agent-lock.sh" check ticket "${ext_id}" >/dev/null 2>&1; al=$? || true
       if [[ "${al}" -eq 3 ]]; then
         log "Ticket ${ext_id} claimed by live interactive session -> releasing slot"
         BRAND="${brand}" bash "${REPO}/scripts/ticket.sh" release-slot --id "${ext_id}" 2>/dev/null || true

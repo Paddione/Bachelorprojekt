@@ -65,17 +65,24 @@ function resolveAgentModel(route, fallbackTier, logFn) {
   return fallbackTier
 }
 
+function wrapSandbox(workWt, command) {
+  const repo = process.env.FACTORY_REPO || '/home/patrick/Bachelorprojekt'
+  return `bash ${repo}/scripts/factory/sandbox-run.sh ${workWt} ${JSON.stringify(command)}`
+}
+
 async function runTaskVerifyLoop({ t, maxLoop, WORK_WT, WORK_BRANCH, slug, A, prov }) {
   const agentFn = globalThis.agent
   if (!agentFn) return null
   for (let i = 0; i < maxLoop; i++) {
+    const verifyCmd = 'task workspace:validate && task test:all && task freshness:regenerate'
     const prompt = i === 0
       ? `Self-verify task ${t.id}: confirm acceptance: ${t.acceptance_criteria.join('; ')}. Report pass/fail.`
-      : `/goal Fix task ${t.id} (attempt ${i + 1}/${maxLoop}). Acceptance: ${t.acceptance_criteria.join('; ')}. After fix: cd ${WORK_WT} && task workspace:validate && task test:all && task freshness:regenerate && git add -A && git commit -m ${JSON.stringify(`feat(${slug}): ${t.id} iter ${i + 1} [factory]`)}. Return pass/fail.`
+      : `/goal Fix task ${t.id} (attempt ${i + 1}/${maxLoop}). Acceptance: ${t.acceptance_criteria.join('; ')}. After fix: ${wrapSandbox(WORK_WT, verifyCmd)} && cd ${WORK_WT} && git add -A && git commit -m ${JSON.stringify(`feat(${slug}): ${t.id} iter ${i + 1} [factory]`)}. Return pass/fail.`
     const result = await agentFn(prompt, { label: `impl:${t.id}:${i}`, phase: 'Implement', ...(prov && i === 0 ? { model: prov.modelId || prov.model } : {}) })
     if (result) return result
   }
   return null
 }
 
-module.exports = { normalize, sigHash, decide, feedbackBlock, runTaskVerifyLoop, resolveAgentModel, ESCALATE_CLASSES, ALLOWED_CLASSES, MAX_DEFAULT }
+module.exports = { normalize, sigHash, decide, feedbackBlock, runTaskVerifyLoop, resolveAgentModel, wrapSandbox, ESCALATE_CLASSES, ALLOWED_CLASSES, MAX_DEFAULT }
+

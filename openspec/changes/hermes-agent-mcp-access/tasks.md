@@ -2,7 +2,7 @@
 title: "hermes-agent-mcp-access — Implementation Plan"
 ticket_id: T001609
 domains: [infra, tooling, tests]
-status: plan_staged
+status: archived
 file_locks: []
 shared_changes: false
 batch_id: null

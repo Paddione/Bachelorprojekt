@@ -1051,6 +1051,12 @@
       "status": "plan_staged"
     }
   ],
+  "T001816": [
+    {
+      "slug": "factory-dryrun-mark-loop",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

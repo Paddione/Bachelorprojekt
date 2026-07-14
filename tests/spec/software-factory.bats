@@ -909,6 +909,16 @@ DISPATCHER_SCRIPT="scripts/factory/dispatcher.js"
   run grep -Eq 'REUSE|plan_path|WORK_BRANCH' scripts/factory/pipeline.js; [ "$status" -eq 0 ]
 }
 
+@test "FA-SF-31: DRY_RUN branch marks the ticket dry-run-checked before requeuing (T001816)" {
+  # guard_dryrun_ok() in guards.sh only allows a REAL run once ticket.sh dryrun-mark
+  # has been called for a ticket. Without it, a ticket that enters the DRY_RUN
+  # branch loops forever: every subsequent tick re-forces dry_run=true and the
+  # ticket is bounced back to backlog without ever progressing (T001816).
+  run awk '/^if \(DRY_RUN\) \{/{f=1} f{print} f && /^\}/{exit}' scripts/factory/pipeline.js
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ "dryrun-mark --id" ]]
+}
+
 # ── FA-SF-32-classify-paths ─────────────────────────────────────#
 # FA-SF-32: shared-state allowlist + classify-paths.sh escalate-class detection.
 

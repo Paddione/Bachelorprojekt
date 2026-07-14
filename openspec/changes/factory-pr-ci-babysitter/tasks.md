@@ -26,7 +26,7 @@ openspec/changes/factory-pr-ci-babysitter/specs/software-factory.md  DONE — De
 **S1-Budgets (wirksame Schwelle aus intel.json impact_files):**
 
 - `scripts/factory/babysit-prs.sh` — neu, nicht-baselined, `.sh`-Limit 500 → **Budget 500**. Zielgröße ~150–250 Zeilen; deutlich unter der Schwelle mit Wachstumsreserve schneiden.
-- `scripts/factory/wakeup.sh` — Ist 155, nicht-baselined, `.sh`-Limit 500 → **Budget 345**. Einhängung fügt ~6–10 Zeilen hinzu (neuer Best-Effort-Block); bleibt weit unter der Schwelle.
+- `scripts/factory/wakeup.sh` — Ist 187 (main seit Plan-Erstellung um ~32 Zeilen gewachsen — Budget beim Rebase 2026-07-14 aktualisiert), nicht-baselined, `.sh`-Limit 500 → **Budget 313**. Einhängung fügt ~6–10 Zeilen hinzu (neuer Best-Effort-Block); bleibt weit unter der Schwelle.
 - `tests/spec/software-factory.bats` — `.bats` ist S1-ausgenommen (`s1_limit 0` in intel.json) → **kein Zeilenbudget**; nur Anhänge-Konvention (neue `@test`-Blöcke ans Dateiende).
 
 **Reuse-Kontrakt (G2, keine Logik-Duplikate):** `classify_failure` (Klasse), `build_loop_decide`/`build_loop_sig_hash` (Gates + No-Progress + Iterationslimit), `paths_are_escalate_class` (indirekt über `build_loop_decide` Gate 2), `guard_killswitch_on` (Kill-Switch), `factory_resolve` (Offline-Isolation via `FACTORY_DRY_RESOLVE`). Kein Nachbau dieser Funktionen.

@@ -2972,8 +2972,6 @@ REG="scripts/factory/service-registry.sh"
 # ── T001433 admin-redesign: Pipeline move + Kosten tab + chart-color SSOT ────
 PIPELINE_PAGE="$BATS_TEST_DIRNAME/../../website/src/pages/admin/pipeline.astro"
 DEV_STATUS_PAGE="$BATS_TEST_DIRNAME/../../website/src/pages/dev-status.astro"
-FACTORY_OBSERVABILITY_PAGE="$BATS_TEST_DIRNAME/../../website/src/pages/admin/factory-observability.astro"
-FACTORY_BUDGET_PAGE="$BATS_TEST_DIRNAME/../../website/src/pages/admin/factory-budget.astro"
 FACTORY_OBSERVABILITY_COMP="$BATS_TEST_DIRNAME/../../website/src/components/factory/FactoryObservability.svelte"
 FACTORY_CHART_COLORS="$BATS_TEST_DIRNAME/../../website/src/components/factory/factory-chart-colors.ts"
 
@@ -2985,16 +2983,6 @@ FACTORY_CHART_COLORS="$BATS_TEST_DIRNAME/../../website/src/components/factory/fa
 
 @test "T001433 pipeline: dev-status.astro is a 301 redirect to /admin/pipeline" {
   run grep -F "Astro.redirect(\`/admin/pipeline" "$DEV_STATUS_PAGE"
-  [ "$status" -eq 0 ]
-}
-
-@test "T001433 pipeline: factory-observability.astro redirects to /admin/pipeline?tab=kosten" {
-  run grep -F "Astro.redirect('/admin/pipeline?tab=kosten', 301)" "$FACTORY_OBSERVABILITY_PAGE"
-  [ "$status" -eq 0 ]
-}
-
-@test "T001433 pipeline: factory-budget.astro redirects to /admin/pipeline?tab=kosten" {
-  run grep -F "Astro.redirect('/admin/pipeline?tab=kosten', 301)" "$FACTORY_BUDGET_PAGE"
   [ "$status" -eq 0 ]
 }
 

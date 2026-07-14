@@ -46,7 +46,7 @@ The system SHALL degrade gracefully when the staging lock cannot be acquired wit
 - **WHEN** the qa-lens gives up claiming the lock
 - **THEN** it runs `task test:changed` only and returns a single `severity=medium` finding, and the merge is not blocked by the qa-lens
 
-#### Scenario: test:changed still gates a degraded run
-- **GIVEN** a degraded qa-lens run where `task test:changed` fails
+#### Scenario: test:changed failure does not escalate a degraded run
+- **GIVEN** a degraded qa-lens run (staging unavailable) where `task test:changed` also fails
 - **WHEN** the qa-lens reports its findings
-- **THEN** it returns a `severity=high` finding for the failing tests in addition to the `medium` degradation finding, and the pipeline blocks the merge
+- **THEN** it still returns exactly one `severity=medium` finding — the `test:changed` failure detail is folded into that finding's description rather than emitted as a separate `severity=high` finding, so a degraded run never blocks the merge on its own

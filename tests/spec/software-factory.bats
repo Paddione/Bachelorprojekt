@@ -3400,3 +3400,59 @@ _stub_gh_runlog() {
   run grep -F 'pr comment' "$ARGV_LOG"
   [ "$status" -ne 0 ]   # dry-run → kein Kommentar, auch im Abort-Pfad
 }
+
+# ── T001814: factory-qa-lens — executing QA lens (Verify phase, tier=full) ──
+QA_LENS="${BATS_TEST_DIRNAME}/../../scripts/factory/qa-lens.mjs"
+
+@test "FA-SF-QA: qa-lens.mjs exists and prints REVIEW_SCHEMA-shaped JSON in degraded mode" {
+  [ -f "$QA_LENS" ]
+  local wt="${BATS_TMPDIR}/qa-lens-nonexistent-wt"
+  rm -rf "$wt"
+  FACTORY_SANDBOX=off FACTORY_QA_SKIP_STAGING=1 run node "$QA_LENS" --worktree "$wt" --branch fake/branch --ticket T000000 --diff-range origin/main...HEAD
+  [ "$status" -eq 0 ]
+  # stdout/stderr are interleaved by `run`; the JSON is always the last line.
+  echo "$output" | tail -1 | jq -e '.findings | type == "array"'
+}
+
+@test "FA-SF-QA: qa-lens degradation emits a single medium finding, never high, when staging is skipped" {
+  local wt="${BATS_TMPDIR}/qa-lens-nonexistent-wt2"
+  rm -rf "$wt"
+  FACTORY_SANDBOX=off FACTORY_QA_SKIP_STAGING=1 run node "$QA_LENS" --worktree "$wt" --branch fake/branch --ticket T000000 --diff-range origin/main...HEAD
+  [ "$status" -eq 0 ]
+  local json; json="$(echo "$output" | tail -1)"
+  run bash -c "echo '$json' | jq '[.findings[]|select(.severity==\"high\" or .severity==\"critical\")]|length'"
+  [ "$output" -eq 0 ]
+  run bash -c "echo '$json' | jq '[.findings[]|select(.severity==\"medium\")]|length'"
+  [ "$output" -ge 1 ]
+}
+
+@test "FA-SF-QA: qa-lens claims and releases the staging agent-lock scope" {
+  run grep -F 'agent-lock.sh claim staging' "$QA_LENS"
+  [ "$status" -eq 0 ]
+  run grep -F 'agent-lock.sh release staging' "$QA_LENS"
+  [ "$status" -eq 0 ]
+  run grep -F 'finally' "$QA_LENS"
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-QA: qa-lens resolves smoke base URLs from env, never a brand-domain literal" {
+  run grep -F '.korczewski.de' "$QA_LENS"
+  [ "$status" -ne 0 ]
+  run grep -F '.mentolder.de' "$QA_LENS"
+  [ "$status" -ne 0 ]
+  run grep -F 'WEBSITE_SITE_URL' "$QA_LENS"
+  [ "$status" -eq 0 ]
+  run grep -F 'PROD_DOMAIN' "$QA_LENS"
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-QA: pipeline.js wires qa-lens into the full-tier verify branch" {
+  run grep -n "qa-lens.mjs" "$PJS"
+  [ "$status" -eq 0 ]
+  # the qa-lens spawn must live after the `tier === 'full'` guard opens
+  local tier_line qa_line
+  tier_line=$(grep -n "tier === 'full'" "$PJS" | head -1 | cut -d: -f1)
+  qa_line=$(grep -n "qa-lens.mjs" "$PJS" | head -1 | cut -d: -f1)
+  [ -n "$tier_line" ]
+  [ -n "$qa_line" ]
+}

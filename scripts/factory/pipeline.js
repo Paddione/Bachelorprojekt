@@ -553,6 +553,25 @@ if (!cleanDiff || !String(cleanDiff).trim()) {
     } catch { /* fail-open: keep original reviews */ }
   }
 
+  // T001814: qa-lens — executing QA (test:changed → staging deploy → dual
+  // Playwright smoke), full tier only. Subprocess (not a prompt lens); fail-open.
+  if (tier === 'full' && process.env.FACTORY_QA_LENS !== 'off') {
+    try {
+      const { execFileSync } = require('child_process')
+      const raw = execFileSync('node', [
+        `${REPO}/scripts/factory/qa-lens.mjs`,
+        '--worktree', WORK_WT, '--branch', WORK_BRANCH, '--ticket', String(A.ticket_id),
+        '--diff-range', 'origin/main...HEAD',
+      ], { encoding: 'utf8', timeout: 40 * 60 * 1000 })
+      const qaResult = JSON.parse(raw)
+      reviews.push(qaResult)
+      phaseEvent('verify', 'qa', String(qaResult.summary || `${(qaResult.findings || []).length} finding(s)`).slice(0, 240))
+    } catch (err) {
+      reviews.push({ findings: [{ severity: 'medium', file: '(qa-lens)', description: `qa-lens spawn failed: ${String(err.message || err).slice(0, 300)}` }], summary: 'qa-lens spawn failed' })
+      phaseEvent('verify', 'qa', 'spawn failed')
+    }
+  }
+
   if (tier === 'full' && reviews.length >= 2) {
     const xml = '<reviews>\n' + reviews.map((r, i) =>
       `  <lens name="${(lenses[i] && lenses[i].key) || 'lens' + i}">${JSON.stringify(r)}</lens>`).join('\n') + '\n</reviews>'

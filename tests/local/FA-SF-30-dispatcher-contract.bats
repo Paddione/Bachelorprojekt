@@ -44,7 +44,9 @@ setup() { load 'test_helper.bash'; }
 }
 
 @test "FA-SF-30: PREP gate is fail-closed (drops the brand from launch on guard trip / read error)" {
-  run grep -Eq "fail-closed|fail closed" "$SCRIPT"; [ "$status" -eq 0 ]
+  # T001810: PREP gate now runs via child_process.execFileSync — fail-closed by
+  # JavaScript exception (non-zero exit propagates, no brands launched).
+  run grep -Eq "execFile|child_process" "$SCRIPT"; [ "$status" -eq 0 ]
 }
 
 @test "FA-SF-30: captures the parallel() launch result (not discarded)" {
@@ -61,9 +63,10 @@ setup() { load 'test_helper.bash'; }
   # and run-dispatcher.sh, so the ambient config no longer carries reasoning_effort.
   # T000543/#1466 then intentionally removed the model: pins so the dispatcher inherits the
   # session model from the invoker (DeepSeek or Anthropic), keeping dispatch flexible.
-  # Guard: verify all 3 agent labels are present but none carry a hard model: pin.
-  labels=$(grep -cE "label: '(prep|escalate|metrics)'" "$SCRIPT")
-  [ "$labels" -eq 3 ]
-  pinned=$(grep -E "label: '(prep|escalate|metrics)'" "$SCRIPT" | grep "model:" | wc -l)
+  # Guard: verify agent labels are present but none carry a hard model: pin.
+  # T001810: prep is now deterministic (child_process), only escalate + metrics remain.
+  labels=$(grep -cE "label: '(escalate|metrics)'" "$SCRIPT")
+  [ "$labels" -eq 2 ]
+  pinned=$(grep -E "label: '(escalate|metrics)'" "$SCRIPT" | grep "model:" | wc -l)
   [ "$pinned" -eq 0 ]
 }

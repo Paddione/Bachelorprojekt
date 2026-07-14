@@ -12,39 +12,6 @@ async function main() {
   const A = args ?? {}
   const REPO = '/home/patrick/Bachelorprojekt'
 
-  const PLAN_SCHEMA = {
-    type: 'object',
-    required: ['launch'],
-    properties: {
-      launch: {
-        type: 'array',
-        items: {
-          type: 'object',
-          required: ['brand', 'external_id', 'slot'],
-          properties: {
-            brand: { enum: ['mentolder', 'korczewski'] },
-            external_id: { type: 'string' },
-            slot: { type: 'integer' },
-            title: { type: 'string' },
-            branch: { type: 'string' },
-            plan_path: { type: 'string' },
-            dry_run: { type: 'boolean' },
-          },
-        },
-      },
-      skipped: {
-        type: 'array',
-        items: {
-          type: 'object',
-          properties: {
-            brand: { type: 'string' },
-            reason: { type: 'string' },
-          },
-        },
-      },
-    },
-  }
-
   // ── ① Prep: watchdog sweep + queue poll + conflict-gate + slot-claim ──────────
   // Deterministic prep logic is delegated to scripts/vda.sh factory-prep, which consolidates:
   // - watchdog.sh (watchdog sweep)
@@ -52,29 +19,39 @@ async function main() {
   // - ticket.sh get (fetch details for launch)
   // - scripts/factory/guards.sh (kill-switch via guard_killswitch_on, daily cap via guard_daily_cap_reached)
   phase('Prep')
-  // T001808: prefer the deterministic prep JSON precomputed by wakeup.sh (args.prep) —
-  // small local models fail the PREP subagent's StructuredOutput contract; the agent
-  // call below survives only as fallback for invocations without a precomputed prep.
-  let prep
-  let prepPrecomputed = false
-  if (A.prep && typeof A.prep === 'object' && Array.isArray(A.prep.launch)) {
-    log('Dispatcher: using precomputed prep from args (deterministic wakeup handoff)')
-    prep = A.prep
-    prepPrecomputed = true
-  } else {
-    prep = await agent(
-      `Run the unified Software Factory prep script from ${REPO} and return its JSON output:
-         FACTORY_DAILY_DEPLOY_CAP=${A.FACTORY_DAILY_DEPLOY_CAP ?? '5'} FACTORY_GLOBAL_CAP=3 bash ${REPO}/scripts/vda.sh factory-prep
-       Return the exact JSON output from this script and nothing else.`,
-      { label: 'prep', phase: 'Prep', schema: PLAN_SCHEMA },
+  // T001810: run the deterministic prep directly via child_process — Workflow scripts
+  // CAN exec (pipeline.js does it throughout; the old "cannot execFileSync" note was
+  // stale). Passing prep JSON through the top-level model (T001808/T001809 handoff)
+  // proved lossy: small models drop fields like branch/plan_path → REUSE=false → the
+  // pipeline re-designs instead of executing the staged plan.
+  const cp = require('child_process')
+  let prep = null
+  try {
+    const out = cp.execFileSync('bash', [`${REPO}/scripts/vda.sh`, 'factory-prep'], {
+      encoding: 'utf8',
+      timeout: 300000,
+      env: {
+        ...process.env,
+        FACTORY_DAILY_DEPLOY_CAP: String(A.FACTORY_DAILY_DEPLOY_CAP ?? '5'),
+        FACTORY_GLOBAL_CAP: String(A.FACTORY_GLOBAL_CAP ?? '3'),
+      },
+    })
+    // Defensiv: alles vor dem ersten '{' abschneiden — einzelne Helper (z. B.
+    // agent-lock.sh check) haben historisch stdout-Zeilen vor dem JSON geleakt.
+    const jsonStart = out.indexOf('{')
+    prep = JSON.parse(jsonStart >= 0 ? out.slice(jsonStart) : out)
+  } catch (e) {
+    log(
+      `Dispatcher: factory-prep failed (${String(e && e.message ? e.message : e).slice(0, 300)}). ` +
+        `No brands processed this tick. Retrying next tick.`,
     )
+    return
   }
 
-  // Guard: PREP agent returned null (API error, model config mismatch, or subagent failure).
   // Fail-closed — record the outage and exit cleanly so the /loop can retry next tick.
-  if (!prep || !prep.launch) {
+  if (!prep || !Array.isArray(prep.launch)) {
     log(
-      `Dispatcher: PREP step returned null (agent error). No brands processed this tick. ` +
+      `Dispatcher: factory-prep returned an unexpected shape. No brands processed this tick. ` +
         `Raw prep value: ${JSON.stringify(prep)}. Retrying next tick.`,
     )
     return
@@ -87,56 +64,49 @@ async function main() {
     return
   }
 
-  // Run budget guards and estimates (agent-based — Workflow scripts cannot execFileSync)
-  const BUDGET_RESULT_SCHEMA = {
-    type: 'object',
-    required: ['ok', 'blocked'],
-    properties: {
-      ok: { type: 'array', items: { type: 'object', properties: { external_id: { type: 'string' }, brand: { type: 'string' } } } },
-      blocked: { type: 'array', items: { type: 'object', properties: { external_id: { type: 'string' }, brand: { type: 'string' }, reason: { type: 'string' } } } },
-      estimates: { type: 'array' },
-    },
+  // T001810: budget guard + estimates + blocked-cleanup run deterministically via
+  // child_process — this is pure bash orchestration, no judgment needed.
+  const ticketCmd = (brand, argv) => {
+    cp.execFileSync('bash', [`${REPO}/scripts/ticket.sh`, ...argv], {
+      stdio: 'ignore',
+      timeout: 30000,
+      env: { ...process.env, BRAND: brand },
+    })
   }
-
-  // T001809: with a precomputed prep the budget guard already ran deterministically
-  // in wakeup.sh (blocked features were cleaned up and filtered out of prep.launch) —
-  // skip the LLM step; small local models fail its StructuredOutput contract.
-  let budgetResult
-  if (prepPrecomputed) {
-    log('Dispatcher: budget-guard precomputed in wakeup — prep.launch is pre-filtered')
-    budgetResult = {
-      ok: prep.launch.map((f) => ({ external_id: f.external_id, brand: f.brand })),
-      blocked: [],
+  const budgetResult = { ok: [], blocked: [] }
+  for (const f of prep.launch) {
+    let withinBudget = true
+    try {
+      cp.execFileSync('bash', [`${REPO}/scripts/factory/budget-guard.sh`, f.brand], {
+        stdio: 'ignore',
+        timeout: 60000,
+        env: { ...process.env, BRAND: f.brand },
+      })
+    } catch {
+      withinBudget = false
     }
-  } else {
-  budgetResult = await agent(
-    `/goal Guard the Software Factory budget and estimate feature costs.
-     You are the Software Factory budget guard. Process ONLY the features listed below.
-     REPO=${REPO}
-
-     For EACH feature in this list:
-     ${JSON.stringify(prep.launch.map(f => ({ external_id: f.external_id, brand: f.brand })))}
-
-     Step 1 — Budget guard (fail-closed):
-       BRAND=<brand> bash ${REPO}/scripts/factory/budget-guard.sh <brand>
-       If this exits non-zero: the feature is BLOCKED. Proceed to cleanup steps (2-4).
-       If this exits zero: the feature is OK. Proceed to estimate then next feature.
-
-     Step 2 — Estimate (best-effort, only for OK features):
-       BRAND=<brand> bash ${REPO}/scripts/factory/budget-estimate.sh <external_id> <brand>
-       Capture stdout; if it fails log the error but do NOT block the feature.
-
-     For BLOCKED features, run these cleanup steps:
-     Step 3 — Set ticket status to blocked:
-       BRAND=<brand> bash ${REPO}/scripts/ticket.sh update-status --id <external_id> --status blocked
-     Step 4 — Log phase event:
-       BRAND=<brand> bash ${REPO}/scripts/ticket.sh phase <external_id> scout blocked --detail 'daily budget exceeded'
-     Step 5 — Release slot:
-       BRAND=<brand> bash ${REPO}/scripts/ticket.sh release-slot --id <external_id>
-
-     Return JSON: { ok: [{external_id, brand}, ...], blocked: [{external_id, brand, reason}, ...], estimates: [...] }`,
-    { label: 'budget-guard', phase: 'Launch', schema: BUDGET_RESULT_SCHEMA },
-  )
+    if (withinBudget) {
+      try {
+        cp.execFileSync('bash', [`${REPO}/scripts/factory/budget-estimate.sh`, f.external_id, f.brand], {
+          stdio: 'ignore',
+          timeout: 120000,
+          env: { ...process.env, BRAND: f.brand },
+        })
+      } catch (e) {
+        log(`Dispatcher: budget-estimate failed for ${f.external_id} (non-fatal): ${String(e && e.message ? e.message : e).slice(0, 200)}`)
+      }
+      budgetResult.ok.push({ external_id: f.external_id, brand: f.brand })
+    } else {
+      log(`Dispatcher: budget-guard blocked ${f.external_id} (${f.brand})`)
+      for (const argv of [
+        ['update-status', '--id', f.external_id, '--status', 'blocked'],
+        ['phase', f.external_id, 'scout', 'blocked', '--detail', 'daily budget exceeded'],
+        ['release-slot', '--id', f.external_id],
+      ]) {
+        try { ticketCmd(f.brand, argv) } catch {}
+      }
+      budgetResult.blocked.push({ external_id: f.external_id, brand: f.brand, reason: 'daily budget exceeded' })
+    }
   }
 
   const okIds = new Set((budgetResult?.ok ?? []).map(f => f.external_id))
@@ -150,24 +120,15 @@ async function main() {
   phase('Launch')
 
   // ── Sentinel: an interactive worker is active → yield one parallel slot ──
-  const SENTINEL_SCHEMA = {
-    type: 'object',
-    required: ['interactive_worker_active'],
-    properties: { interactive_worker_active: { type: 'boolean' } },
-  }
-  // T001809: prefer the sentinel state precomputed by wakeup.sh (args.interactive_worker).
-  let sentinel
-  if (typeof A.interactive_worker === 'boolean') {
-    sentinel = { interactive_worker_active: A.interactive_worker }
-  } else {
-    sentinel = await agent(
-      `Run this and report the result as JSON ONLY:
-         bash ${REPO}/scripts/agent-lock.sh list | grep -q interactive-worker && echo found || echo none
-       If output is "found": return {"interactive_worker_active": true}
-       If output is "none":  return {"interactive_worker_active": false}`,
-      { label: 'sentinel-check', phase: 'Launch', schema: SENTINEL_SCHEMA },
-    )
-  }
+  // T001810: deterministic check via child_process (pure bash, no judgment needed).
+  let sentinel = { interactive_worker_active: false }
+  try {
+    const locks = cp.execFileSync('bash', [`${REPO}/scripts/agent-lock.sh`, 'list'], {
+      encoding: 'utf8',
+      timeout: 30000,
+    })
+    sentinel = { interactive_worker_active: /interactive-worker/.test(locks) }
+  } catch {}
 
   let maxParallel = launches.length
   if (sentinel && sentinel.interactive_worker_active) {
@@ -179,13 +140,9 @@ async function main() {
   const deferred = launches.slice(maxParallel)
   if (deferred.length) {
     log(`Dispatcher: deferring ${deferred.length} feature(s) to next tick (interactive-worker yield)`)
-    await agent(
-      `Release the slots for these deferred features so they re-queue cleanly next tick:
-       ${JSON.stringify(deferred.map((f) => ({ external_id: f.external_id, brand: f.brand })))}
-       For EACH: BRAND=<brand> bash ${REPO}/scripts/ticket.sh release-slot --id <external_id>
-       Report which slots were released.`,
-      { label: 'sentinel-defer', phase: 'Launch' },
-    )
+    for (const f of deferred) {
+      try { ticketCmd(f.brand, ['release-slot', '--id', f.external_id]) } catch {}
+    }
   }
 
   const results = await parallel(

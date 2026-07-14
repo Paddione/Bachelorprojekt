@@ -842,7 +842,9 @@ DISPATCHER_SCRIPT="scripts/factory/dispatcher.js"
 }
 
 @test "FA-SF-30: PREP gate is fail-closed (drops the brand from launch on guard trip / read error)" {
-  run grep -Eq "fail-closed|fail closed" "$DISPATCHER_SCRIPT"; [ "$status" -eq 0 ]
+  # T001810: PREP gate now runs via child_process.execFileSync — fail-closed by
+  # JavaScript exception (non-zero exit propagates, no brands launched).
+  run grep -Eq "execFile|child_process" "$DISPATCHER_SCRIPT"; [ "$status" -eq 0 ]
 }
 
 @test "FA-SF-30: captures the parallel() launch result (not discarded)" {
@@ -859,10 +861,11 @@ DISPATCHER_SCRIPT="scripts/factory/dispatcher.js"
   # and run-dispatcher.sh, so the ambient config no longer carries reasoning_effort.
   # T000543/#1466 then intentionally removed the model: pins so the dispatcher inherits the
   # session model from the invoker (DeepSeek or Anthropic), keeping dispatch flexible.
-  # Guard: verify all 3 agent labels are present but none carry a hard model: pin.
-  labels=$(grep -cE "label: '(prep|escalate|metrics)'" "$DISPATCHER_SCRIPT")
-  [ "$labels" -eq 3 ]
-  pinned=$(grep -E "label: '(prep|escalate|metrics)'" "$DISPATCHER_SCRIPT" | grep "model:" | wc -l)
+  # Guard: verify agent labels are present but none carry a hard model: pin.
+  # T001810: prep is now deterministic (child_process), only escalate + metrics remain.
+  labels=$(grep -cE "label: '(escalate|metrics)'" "$DISPATCHER_SCRIPT")
+  [ "$labels" -eq 2 ]
+  pinned=$(grep -E "label: '(escalate|metrics)'" "$DISPATCHER_SCRIPT" | grep "model:" | wc -l)
   [ "$pinned" -eq 0 ]
 }
 
@@ -3149,35 +3152,33 @@ STUB
   [ "$status" -eq 0 ]
 }
 
-@test "T001808: wakeup.sh precomputes factory-prep JSON and passes it as args.prep" {
-  run grep -E 'vda\.sh.? factory-prep' scripts/factory/wakeup.sh
+@test "T001810: dispatcher.js runs factory-prep deterministically via child_process" {
+  # T001808/T001809 routed prep through wakeup args — lossy through small models
+  # (branch/plan_path dropped). Superseded by direct execFileSync in the dispatcher.
+  run grep -F "require('child_process')" scripts/factory/dispatcher.js
   [ "$status" -eq 0 ]
-  run grep -F 'prep: ${PREP_JSON}' scripts/factory/wakeup.sh
-  [ "$status" -eq 0 ]
-}
-
-@test "T001808: dispatcher.js prefers precomputed args.prep over the PREP subagent" {
-  run grep -F 'A.prep' scripts/factory/dispatcher.js
-  [ "$status" -eq 0 ]
-  run grep -F 'Array.isArray(A.prep.launch)' scripts/factory/dispatcher.js
+  run bash -c "grep -A2 'execFileSync' scripts/factory/dispatcher.js | grep -F 'vda.sh'"
   [ "$status" -eq 0 ]
 }
 
-@test "T001809: wakeup.sh runs budget-guard deterministically and passes interactive_worker" {
-  run grep -F 'budget-guard.sh' scripts/factory/wakeup.sh
+@test "T001810: dispatcher.js runs budget-guard and sentinel deterministically" {
+  run grep -F 'budget-guard.sh' scripts/factory/dispatcher.js
   [ "$status" -eq 0 ]
-  run grep -F 'interactive_worker: ${_iw}' scripts/factory/wakeup.sh
+  run grep -F 'interactive_worker_active: /interactive-worker/.test(locks)' scripts/factory/dispatcher.js
+  [ "$status" -eq 0 ]
+  # keine LLM-Agent-Schritte mehr für prep/budget/sentinel
+  run bash -c "grep -E \"label: '(prep|budget-guard|sentinel-check|sentinel-defer)'\" scripts/factory/dispatcher.js"
+  [ "$status" -ne 0 ]
+}
+
+@test "T001810: wakeup.sh passes only timestamp and dry_run — no prep JSON through the model" {
+  run grep -F 'PREP_JSON' scripts/factory/wakeup.sh
+  [ "$status" -ne 0 ]
+  run grep -F "args { timestamp: '\${TIMESTAMP}', dry_run: \${DRY_RUN} }" scripts/factory/wakeup.sh
   [ "$status" -eq 0 ]
 }
 
-@test "T001809: dispatcher.js skips budget/sentinel agents on precomputed handoff" {
-  run grep -F 'prepPrecomputed' scripts/factory/dispatcher.js
-  [ "$status" -eq 0 ]
-  run grep -F "typeof A.interactive_worker === 'boolean'" scripts/factory/dispatcher.js
-  [ "$status" -eq 0 ]
-}
-
-@test "T001809: dispatcher allowedTools covers vda.sh for the PREP fallback agent" {
+@test "T001809: dispatcher allowedTools covers vda.sh" {
   run grep -F 'Bash(bash scripts/vda.sh*)' scripts/factory/wakeup.sh
   [ "$status" -eq 0 ]
 }

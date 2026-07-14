@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.179.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.179.3...website-v1.179.4) (2026-07-14)
+
+
+### Bug Fixes
+
+* **admin:** cockpit Aktiv-Filter zeigt keine Tickets via Store-Pfad ([#2778](https://github.com/Paddione/Bachelorprojekt/issues/2778)) ([cf94a2e](https://github.com/Paddione/Bachelorprojekt/commit/cf94a2ea7d5daa3127fd62096517e74c26abd13b))
+
 ## [1.179.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.179.2...website-v1.179.3) (2026-07-14)
 
 

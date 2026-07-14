@@ -22,5 +22,6 @@ through the CLI gate `vda.sh cfr` and direct `tickets.pr_events` queries.
 
 - **GIVEN** an authenticated admin on `/admin`
 - **WHEN** the sidebar or shortcuts render
-- **THEN** no link to `/admin/dora` is present, and the URL returns a 301
-  redirect to `/admin/pipeline?tab=analytics`
+- **THEN** no link to `/admin/dora` is present, the redirect stub page
+  (`website/src/pages/admin/dora.astro`) has been removed, and the URL
+  returns a 404

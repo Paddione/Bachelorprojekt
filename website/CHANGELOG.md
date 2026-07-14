@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.179.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.179.4...website-v1.179.5) (2026-07-14)
+
+
+### Bug Fixes
+
+* **factory:** mark ticket dry-run-checked before requeuing from DRY_RUN branch [T001816] ([#2791](https://github.com/Paddione/Bachelorprojekt/issues/2791)) ([f67418e](https://github.com/Paddione/Bachelorprojekt/commit/f67418ecb00e4460e19ce4b25a5327037b554083))
+
 ## [1.179.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.179.3...website-v1.179.4) (2026-07-14)
 
 

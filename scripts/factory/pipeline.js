@@ -97,9 +97,34 @@ function consumeInjections(ph) {
 }
 
 const DRY_RUN = A.dry_run === true || A.dry_run === 'true'
-const REUSE_BRANCH = A.branch || null
-const REUSE_PLAN   = A.plan_path || null
-const REUSE = !!(REUSE_BRANCH && REUSE_PLAN)
+let REUSE_BRANCH = A.branch || null
+let REUSE_PLAN   = A.plan_path || null
+let REUSE = !!(REUSE_BRANCH && REUSE_PLAN)
+
+// ── Auto-detect FACTORY-PLAN-REF when REUSE is not explicitly set ──
+// If dev-flow-plan staged a plan but the dispatcher didn't pass branch/plan_path,
+// the ticket still carries a FACTORY-PLAN-REF comment. Parse it to enable REUSE
+// and skip Scout/Design/Plan-creation — the human already did that work.
+if (!REUSE && A.ticket_id) {
+  try {
+    const cp2 = require('child_process')
+    const ticketJson = cp2.execFileSync('bash',
+      [`${REPO}/scripts/ticket.sh`, 'get', '--id', String(A.ticket_id)],
+      { encoding: 'utf8', timeout: 15000, env: { ...process.env, BRAND: brand } })
+    const planRef = JSON.parse(ticketJson).plan_ref || ''
+    const branchMatch = planRef.match(/branch=(\S+)/)
+    const planMatch   = planRef.match(/plan=(\S+)/)
+    if (branchMatch && planMatch) {
+      REUSE_BRANCH = branchMatch[1]
+      REUSE_PLAN   = planMatch[1]
+      REUSE = true
+      log(`Auto-detected FACTORY-PLAN-REF on ${A.ticket_id}: branch=${REUSE_BRANCH} plan=${REUSE_PLAN} — skipping Scout/Design/Plan-creation`)
+    }
+  } catch (e) {
+    log(`FACTORY-PLAN-REF auto-detect failed for ${A.ticket_id} (non-fatal): ${e.message}`)
+  }
+}
+
 const WORK_BRANCH = REUSE ? REUSE_BRANCH : `feature/${slug}`
 const WORK_WT = REUSE ? `${REPO}/.worktrees/${slug}-reuse` : WT
 

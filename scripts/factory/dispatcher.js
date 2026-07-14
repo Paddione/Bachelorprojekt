@@ -16,6 +16,11 @@ async function main() {
   const REPO = '/home/patrick/Bachelorprojekt';
 
   // ── ① Prep: watchdog sweep + queue poll + conflict-gate + slot-claim ──────────
+  // Deterministic prep logic is delegated to wakeup.sh → factory-prep, which consolidates:
+  // - watchdog.sh (watchdog sweep)
+  // - schedule.sh (poll backlog + conflict-gate + slot-claim)
+  // - ticket.sh get (fetch details for launch)
+  // - scripts/factory/guards.sh (kill-switch via guard_killswitch_on, daily cap via guard_daily_cap_reached)
   phase('Prep')
   let prep = null;
   try {

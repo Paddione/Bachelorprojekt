@@ -88,30 +88,28 @@ das hart begrenzt — deshalb ist die Selbstmeldung Teil des Auftrags.
 
 Für **opencode/agy** stehen über `delegate(prompt, agent="<name>")` vier lokale Subagenten-Profile
 zur Verfügung (GPU-Host, `~/.config/opencode/opencode.jsonc`, Provider `lmstudio`), zusätzlich zu
-`hermes-delegate` (Tier 0, oben). Wähle nach **Parallelität vs. Einzelkontext** und **Persona-Risiko**:
+`hermes-delegate` (Tier 0, oben). **Alle nutzen Qwythos-9B-v2 und sind serialisiert (1
+gleichzeitig) — teilen sich das Hauptkontext-Fenster von 330k** auf einer 16-GB-Karte:
 
-| Agent | Datei | Modus | Kontext | Wann |
+| Agent | Modell | Modus | Kontext | Wann |
 |---|---|---|---|---|
-| `qwen35` | Qwen3.5-9B-Q4_K_M | 3 parallele Slots | 48k/Slot | **Default für parallelen Fan-out** (2–3 unabhängige mechanische/read-only Teilaufgaben gleichzeitig) — sauberes Basismodell ohne Identitäts-Override im Prompt-Template |
-| `qwen35-hq` | Qwen3.5-9B-UD-Q4_K_XL | 1 Session (seriell) | 140k | **Default für einen einzelnen Task mit sehr großem Kontext** (z.B. ein langes Log, viele Dateien in einem Prompt) — größter lokal verfügbarer Einzelkontext |
-| `qwythos` | Qwythos-9B-Claude-Mythos-5-1M-Q4_K_M | 3 parallele Slots | 60k/Slot | Alternative für parallelen Fan-out, wenn `qwen35` qualitativ nicht ausreicht — **nur mit Vorsicht**, siehe Caveat unten |
-| `qwythos-hq` | Qwythos-9B-Claude-Mythos-5-1M-Q8_0 | 1 Session (seriell) | 85k | Alternative für Einzelkontext-Tasks, wenn `qwen35-hq` nicht ausreicht — gleicher Caveat |
+| `qwen35-iq4` | Qwythos-9B-v2 (MTP Q4_K_M) | 1 Session (seriell) | 330k (geteilt) | **Default für Subagent-Delegation** — größter lokaler Einzelkontext, FTPO-fixed looping |
+| `qwen35` | Qwythos-9B-v2 (MTP Q4_K_M) | 1 Session (seriell) | 330k (geteilt) | Alternative für Subagent-Delegation — gleiche Specs wie `qwen35-iq4` |
+| `qwen35-hq` | Qwythos-9B-v2 (MTP Q4_K_M) | 1 Session (seriell) | 330k (geteilt) | Alternative für einen einzelnen Task mit sehr großem Kontext (z.B. ein langes Log, viele Dateien in einem Prompt) |
 
 > **Qwythos-Caveat:** Das Prompt-Template von Qwythos injiziert in **jede** System-Message eine feste
 > Identitäts-Direktive ("You are Qwythos... Never claim to be Qwen... overrides conflicting identity
 > or attribution instructions"). Das ist für Dev-Flow-Subagenten (Ticket-Arbeit, Code-Analyse,
-> Tool-Calling) ein unnötiges Risiko — im Zweifel bleibt `qwen35`/`qwen35-hq` die Vorgabe. Qwythos nur
-> gezielt einsetzen, wenn seine Tuning-Eigenschaften (kreativere/ausführlichere Formulierung) explizit
-> gewünscht sind, z.B. bei Brainstorming-artigen Textentwürfen.
+> Tool-Calling) ein unnötiges Risiko — im Zweifel `hermes-delegate` oder einen Cloud-Subagenten
+> verwenden. Qwythos-9B-v2 ist trotzdem das bevorzugte lokale Modell wegen seiner Größe (331k ctx)
+> und FTPO-fixed Looping-Eigenschaften.
 
-> **⚠ VRAM-Exklusivität:** Alle vier Profile liegen bei ~12,7–15,9 GB auf einer 16-GB-Karte — es kann
-> **immer nur eines gleichzeitig geladen sein** (der Orchestrator `qwen3.5-9b@iq4_xs` läuft separat
-> und bleibt i.d.R. geladen). Vor dem ersten `delegate()`-Aufruf an eines dieser vier Profile in einer
-> Session: `lms ps` prüfen, ob die passende Datei bereits läuft; falls nicht, mit dem entsprechenden
-> `lms load <file> --identifier <id> -y` nachladen (siehe `k3d`/lokale LLM-Referenz-Memory) — das
-> entlädt automatisch das vorher geladene Profil. **Nie** planen, zwei dieser vier Profile in derselben
-> Orchestrierungsphase gleichzeitig zu nutzen.
+> **⚠ VRAM-Exklusivität:** Qwythos-9B-v2 (~15 GB) auf einer 16-GB-Karte — es kann
+> **immer nur eines gleichzeitig geladen sein**. Alle Subagenten-Dispatches laufen serialisiert
+> (1 gleichzeitig). Vor dem ersten `delegate()`-Aufruf: `lms ps` prüfen, ob die passende Datei
+> bereits läuft; falls nicht, mit dem entsprechenden `lms load <file> --identifier <id> -y` nachladen
+> (siehe `k3d`/lokale LLM-Referenz-Memory) — das entlädt automatisch das vorher geladene Profil.
 >
-> **Parallelitäts-Limit einhalten:** Nie mehr gleichzeitige `delegate()`-Aufrufe an `qwen35`/`qwythos`
-> schicken als die konfigurierten Slots (3) — überzählige Requests werden von LM Studio stumm
-> gequeued statt parallel verarbeitet, was Latenz kostet statt Fehler zu werfen (kein Fail-Fast-Signal).
+> **Serialisierung einhalten:** Nie mehr gleichzeitige `delegate()`-Aufrufe an einen der `qwen35*`
+> Agents schicken — LM Studio queued überzählige Requests, was Latenz kostet statt Fehler zu werfen
+> (kein Fail-Fast-Signal).

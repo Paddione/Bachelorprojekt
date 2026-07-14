@@ -181,9 +181,9 @@
   },
   "agent": {
     "openspec": {
-      "description": "OpenSpec-plan orchestrator - decomposes a brainstorming spec into proposal.md/tasks.md/specs-delta and delegates the three parts to parallel qwen35 (Q4_K_M) subagents (~48k ctx each, 3x parallel), then merges and runs plan-lint.sh. Default model is qwen3.5-9b@q4_k_xl - pair it with the 'qwen3.5-9b-orchestrator-150k-q8' LM Studio preset (Q8 KV cache, 150k ctx, 1 session) for the merge pass; the 3 delegated workers load Qwen3.5-9B Q4_K_M with numParallelSessions=3, ~48k ctx each. Both are local/free - JIT auto-evict swaps them in/out, no manual VRAM juggling needed.",
+      "description": "OpenSpec-plan orchestrator - decomposes a brainstorming spec into proposal.md/tasks.md/specs-delta and delegates the three parts to serialized qwen35 subagents (Qwythos-9B-v2, shares main 330k context, 1 at a time), then merges and runs plan-lint.sh. Serial dispatch — no parallel subagents.",
       "mode": "primary",
-      "model": "lmstudio/qwen3.5-9b@q4_k_xl",
+      "model": "lmstudio/qwythos-9b-v2",
       "prompt": "{file:./prompts/local-openspec-orchestrator.md}",
       "color": "#6366F1",
       "temperature": 0.5,

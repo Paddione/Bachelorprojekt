@@ -38,15 +38,30 @@ setup() { load 'test_helper.bash'; }
 }
 
 @test "FA-SF-30: PREP gate reads hard guards fresh per tick via guards.sh" {
-  run grep -q "scripts/factory/guards.sh" "$SCRIPT"; [ "$status" -eq 0 ]
-  run grep -q "guard_killswitch_on" "$SCRIPT"; [ "$status" -eq 0 ]
-  run grep -q "guard_daily_cap_reached" "$SCRIPT"; [ "$status" -eq 0 ]
+  # T001812: factory-prep (which sources guards.sh) now runs in wakeup.sh, once
+  # per while-loop tick, BEFORE the Workflow call — not inside dispatcher.js
+  # anymore (see FA-SF-30: dispatcher reads prep from a file, below). "Fresh per
+  # tick" holds because wakeup.sh recomputes prep_file on every loop iteration.
+  WAKEUP="scripts/factory/wakeup.sh"
+  run grep -q "scripts/factory/guards.sh\|factory-prep" "$WAKEUP"; [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-30: dispatcher reads prep from a file, not via child_process (T001812)" {
+  # T001810 ran factory-prep via child_process.execFileSync INSIDE the Workflow
+  # call (up to 300s worst case), which was slow enough to flip the call into the
+  # harness's async "launched in background" mode — a one-shot `claude -p`
+  # session never survives to see that notification (orphaned runs observed,
+  # no transcript dir ever written). T001812 moved factory-prep back to
+  # wakeup.sh (synchronous bash) and hands the result to dispatcher.js as a file
+  # path, keeping the Workflow call itself fast/synchronous.
+  run grep -q "args.prep_file\|A.prep_file" "$SCRIPT"; [ "$status" -eq 0 ]
+  run grep -q "readFileSync" "$SCRIPT"; [ "$status" -eq 0 ]
 }
 
 @test "FA-SF-30: PREP gate is fail-closed (drops the brand from launch on guard trip / read error)" {
-  # T001810: PREP gate now runs via child_process.execFileSync — fail-closed by
-  # JavaScript exception (non-zero exit propagates, no brands launched).
-  run grep -Eq "execFile|child_process" "$SCRIPT"; [ "$status" -eq 0 ]
+  # T001812: fail-closed via JS exception on missing/invalid prep_file — same
+  # early-return-with-no-launches contract as before, different trigger.
+  run grep -Eq "prep_file missing|JSON.parse\(raw\)" "$SCRIPT"; [ "$status" -eq 0 ]
 }
 
 @test "FA-SF-30: captures the parallel() launch result (not discarded)" {

@@ -91,12 +91,26 @@ TICK=0
 while true; do
   TICK=$(( TICK + 1 ))
   TIMESTAMP="$(date -u +%FT%TZ)"
-  # T001810: Kein Precompute/args-Durchreichen mehr (lossy durch kleine Modelle) —
-  # der Dispatcher führt prep/budget/sentinel selbst deterministisch via
-  # child_process aus. Das Modell übergibt nur noch timestamp + dry_run.
+  # T001812: factory-prep (watchdog sweep + schedule poll, up to 300s worst case)
+  # runs here in plain bash again — synchronous, no LLM/Workflow overhead. T001810
+  # moved it into dispatcher.js's Workflow call via child_process.execFileSync to
+  # avoid small models dropping fields when relaying prep JSON through the prompt
+  # (T001808/T001809 handoff), but that made the Workflow call itself slow enough
+  # to flip into the harness's async "launched in background" mode — and a
+  # one-shot `claude -p` session doesn't survive to receive that notification
+  # (observed: orphaned Workflow runs, no transcript dir ever created, weak local
+  # models retry + hallucinate an unrelated failure reason). Writing the result to
+  # a file and passing only the path keeps BOTH properties: no lossy JSON-in-prompt
+  # relay, and a fast/synchronous Workflow call (dispatcher.js just reads the file).
+  PREP_FILE="/tmp/factory-prep-tick${TICK}-$$.json"
+  FACTORY_DAILY_DEPLOY_CAP="${FACTORY_DAILY_DEPLOY_CAP:-5}" FACTORY_GLOBAL_CAP="${FACTORY_GLOBAL_CAP:-3}" \
+    bash "${REPO}/scripts/vda.sh" factory-prep 2>/dev/null | jq -c . > "${PREP_FILE}" 2>/dev/null || echo 'null' > "${PREP_FILE}"
+
   PROMPT="Run the Software Factory dispatcher now. Invoke the Workflow tool with \
-scriptPath 'scripts/factory/dispatcher.js' and args { timestamp: '${TIMESTAMP}', dry_run: ${DRY_RUN} }. \
-The dispatcher runs all guards (kill-switch, daily-cap, dry-run-first) deterministically inside its PREP step. \
+scriptPath 'scripts/factory/dispatcher.js' and args { timestamp: '${TIMESTAMP}', dry_run: ${DRY_RUN}, prep_file: '${PREP_FILE}' }. \
+Pass prep_file through verbatim — do not alter, re-run, or improvise it. \
+The dispatcher reads all guards (kill-switch, daily-cap, dry-run-first) fresh per brand inside its PREP step \
+(already evaluated into prep_file by this wrapper). \
 Report only the dispatcher's final JSON result. Do not improvise scheduling."
 
   echo "wakeup.sh: starting tick #${TICK} at ${TIMESTAMP}" >&2
@@ -130,6 +144,7 @@ Report only the dispatcher's final JSON result. Do not improvise scheduling."
     --allowedTools "Workflow,Bash(bash scripts/factory/*),Bash(bash scripts/ticket.sh*),Bash(bash scripts/vda.sh*),ToolSearch,PushNotification" \
     --permission-mode acceptEdits
   TICK_EXIT=$?
+  rm -f "${PREP_FILE}"
 
   if [[ ${TICK_EXIT} -ne 0 ]]; then
     echo "wakeup.sh: tick #${TICK} exited with code ${TICK_EXIT} — stopping loop" >&2

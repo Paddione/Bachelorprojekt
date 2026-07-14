@@ -366,6 +366,12 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:factory-qs-abnahme",
+    "file": "tests/e2e/specs/factory-qs-abnahme.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:integration-smoke",
     "file": "tests/e2e/specs/integration-smoke.spec.ts",
     "category": "E2E",
@@ -812,6 +818,12 @@
   {
     "id": "FA-28",
     "file": "tests/e2e/specs/fa-28-messaging.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-29",
+    "file": "tests/e2e/specs/fa-29-cockpit.spec.ts",
     "category": "FA",
     "kind": "playwright"
   },

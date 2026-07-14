@@ -41,12 +41,12 @@ Lege `scripts/factory/babysit-prs.sh` an. Muster wie `auto-close-merged.sh`: She
 
 Steps:
 
-- [ ] Header-Block + `set -euo pipefail` + Sourcing der Reuse-Module (`lib.sh`, `build-loop.sh`, `classify-failure.sh`, `guards.sh`).
-- [ ] Flag-Parsing: `--dry-run` setzt `DRY_RUN=true`; `--help` gibt Usage aus und `exit 0`. Zusätzlich `DRY_RUN=true`, wenn `FACTORY_DRY_RUN=true`.
-- [ ] Guard: `if guard_killswitch_on "${BRAND:-mentolder}"; then echo "babysit-prs: kill-switch ON → skip" >&2; exit 0; fi`. (Kill-Switch ist global; `guard_killswitch_on` verlangt ein Brand-Argument, der globale NULL-Key entscheidet.)
-- [ ] Offline-Isolation: `if [[ -n "${FACTORY_DRY_RESOLVE:-}" ]]; then` — Scan über den gestubten `gh` läuft, aber kein realer Cluster/`factory_psql`-Zugriff. Analog `auto-close-merged.sh` Zeile 33–36.
-- [ ] Scan: `PRS_JSON=$(gh pr list --state open --json number,headRefName,isDraft,mergeStateStatus,statusCheckRollup,author,labels)`. Bei leerer Liste sauber beenden (`exit 0`).
-- [ ] `bash -n scripts/factory/babysit-prs.sh` muss clean sein.
+- [x] Header-Block + `set -euo pipefail` + Sourcing der Reuse-Module (`lib.sh`, `build-loop.sh`, `classify-failure.sh`, `guards.sh`).
+- [x] Flag-Parsing: `--dry-run` setzt `DRY_RUN=true`; `--help` gibt Usage aus und `exit 0`. Zusätzlich `DRY_RUN=true`, wenn `FACTORY_DRY_RUN=true`.
+- [x] Guard: `if guard_killswitch_on "${BRAND:-mentolder}"; then echo "babysit-prs: kill-switch ON → skip" >&2; exit 0; fi`. (Kill-Switch ist global; `guard_killswitch_on` verlangt ein Brand-Argument, der globale NULL-Key entscheidet.)
+- [x] Offline-Isolation: `if [[ -n "${FACTORY_DRY_RESOLVE:-}" ]]; then` — Scan über den gestubten `gh` läuft, aber kein realer Cluster/`factory_psql`-Zugriff. Analog `auto-close-merged.sh` Zeile 33–36.
+- [x] Scan: `PRS_JSON=$(gh pr list --state open --json number,headRefName,isDraft,mergeStateStatus,statusCheckRollup,author,labels)`. Bei leerer Liste sauber beenden (`exit 0`).
+- [x] `bash -n scripts/factory/babysit-prs.sh` muss clean sein.
 
 Roter Test (STRUCT2) — schreibe zuerst diesen Failing-Test-Block ans Ende von `tests/spec/software-factory.bats` und führe ihn aus, BEVOR `babysit-prs.sh` existiert:
 
@@ -83,10 +83,10 @@ Implementiere in `babysit-prs.sh` die Filter-Kette. Ein Kandidat wird via `jq` a
 
 Steps:
 
-- [ ] Rot-Wertung: `is_red()` — `jq` prüft `any(.statusCheckRollup[]?; .conclusion=="FAILURE")`; pending (`null`) zählt nicht.
-- [ ] Filter: Draft, `ci-babysitter-gave-up`-Label, Renovate-Opt-in, Rot-Wertung — als `jq select(...)`-Kette über die PR-Liste, sortiert nach `.number`.
-- [ ] Dedup: für den gewählten Head-Branch prüfen, ob `.git/agent-locks/branch__<name>.json` existiert und lebendig ist (Muster: `bash scripts/agent-lock.sh list` grep auf den Branch-Namen) ODER ein `[TNNNNNN]`-Titel-Tag ein Ticket mit `in_progress` auflöst; falls ja → skip. Unter `FACTORY_DRY_RESOLVE` wird der Ticket-Status-Teil übersprungen (kein DB-Zugriff), der Branch-Claim-File-Check läuft.
-- [ ] `expected: FAIL` zuerst — die folgenden Filter-Tests rot laufen lassen, dann GREEN.
+- [x] Rot-Wertung: `is_red()` — `jq` prüft `any(.statusCheckRollup[]?; .conclusion=="FAILURE")`; pending (`null`) zählt nicht.
+- [x] Filter: Draft, `ci-babysitter-gave-up`-Label, Renovate-Opt-in, Rot-Wertung — als `jq select(...)`-Kette über die PR-Liste, sortiert nach `.number`.
+- [x] Dedup: für den gewählten Head-Branch prüfen, ob `.git/agent-locks/branch__<name>.json` existiert und lebendig ist (Muster: `bash scripts/agent-lock.sh list` grep auf den Branch-Namen) ODER ein `[TNNNNNN]`-Titel-Tag ein Ticket mit `in_progress` auflöst; falls ja → skip. Unter `FACTORY_DRY_RESOLVE` wird der Ticket-Status-Teil übersprungen (kein DB-Zugriff), der Branch-Claim-File-Check läuft.
+- [x] `expected: FAIL` zuerst — die folgenden Filter-Tests rot laufen lassen, dann GREEN.
 
 BATS-Blöcke (Filter-Kette; jeder Test stubt `gh` mit genau der Konstellation und prüft, dass **kein** `pr comment`/`pr edit` gegen einen ausgeschlossenen PR läuft — Argv-Log inspizieren):
 
@@ -125,10 +125,10 @@ Der gewählte Kandidat wird mit der Log-Zeile `selected PR #<n>` markiert, damit
 
 ## Task 3 — CONFLICTING-Zweig + Concurrency-1 + Marker-Zählung
 
-- [ ] CONFLICTING (D7): wenn der gewählte PR `mergeStateStatus=="CONFLICTING"` ist → einmalig `gh pr edit <n> --add-label ci-babysitter-conflict` (nur wenn Label fehlt), `emit_notify` (Task 5), KEIN Fix. Unter `--dry-run`/`FACTORY_DRY_RUN` nur loggen.
-- [ ] Concurrency-1 (D3): nach Filter genau EIN Kandidat (kleinste Nummer); Script verarbeitet höchstens einen PR und beendet danach.
-- [ ] Marker-Zählung (D1/D2): `attempts=$(gh pr view <n> --json comments --jq '[.comments[].body | select(test("<!-- ci-babysitter attempt="))] | length')`. Bei `attempts >= 2` → `gh pr edit <n> --add-label ci-babysitter-gave-up`, `emit_notify`, Ende (kein Fix).
-- [ ] `expected: FAIL` zuerst für die Concurrency- und Marker-Tests.
+- [x] CONFLICTING (D7): wenn der gewählte PR `mergeStateStatus=="CONFLICTING"` ist → einmalig `gh pr edit <n> --add-label ci-babysitter-conflict` (nur wenn Label fehlt), `emit_notify` (Task 5), KEIN Fix. Unter `--dry-run`/`FACTORY_DRY_RUN` nur loggen.
+- [x] Concurrency-1 (D3): nach Filter genau EIN Kandidat (kleinste Nummer); Script verarbeitet höchstens einen PR und beendet danach.
+- [x] Marker-Zählung (D1/D2): `attempts=$(gh pr view <n> --json comments --jq '[.comments[].body | select(test("<!-- ci-babysitter attempt="))] | length')`. Bei `attempts >= 2` → `gh pr edit <n> --add-label ci-babysitter-gave-up`, `emit_notify`, Ende (kein Fix).
+- [x] `expected: FAIL` zuerst für die Concurrency- und Marker-Tests.
 
 BATS-Blöcke:
 
@@ -162,12 +162,12 @@ BATS-Blöcke:
 
 ## Task 4 — Fix-Pfad: Log-Fetch, classify_failure, build_loop_decide, Hybrid-Fix
 
-- [ ] CI-Log holen: `gh run view --log-failed` (auf den Head-Branch bezogen), Fallback `gh run view --log`, in eine Tempdatei schreiben. `class=$(classify_failure "$logfile")`.
-- [ ] Entscheidung: `hash=$(build_loop_sig_hash "$logfile")`; `read -r decision _ < <(build_loop_decide "$attempts" 2 "" "$class" "" "$hash")`. (Iterationslimit 2 analog pipeline.js; `touched_csv` leer im Scan-Kontext, Gate 2 greift über die Klasse.) `abort:*` → `emit_notify` + Marker-Kommentar (Task 5), Ende.
-- [ ] `continue`-Fix, Klasse `freshness` (deterministisch): Temp-Worktree `git worktree add "$WT" "$head"`; darin `task freshness:regenerate`; `git commit -am "chore: refresh (ci-babysitter)"`; `git push`; `git worktree remove "$WT"`. Kein Merge, kein Force-Push, kein Rebase.
-- [ ] `continue`-Fix, Klassen `ci|test|lint` (Agent): Temp-Worktree; `"${CLAUDE_BIN:-claude}" -p "<eng gescopeter Fix-Prompt>" --allowedTools "Bash(task *),Bash(git *),Edit,Read" --permission-mode acceptEdits`; danach push durch den Agenten bzw. `git push` im Worktree; Worktree entfernen. Prompt bleibt minimal (nur den einen CI-Fehler beheben, keine Feature-Arbeit).
-- [ ] Unter `--dry-run`/`FACTORY_DRY_RUN`: Log-Fetch + classify + decide laufen (read-only), aber KEIN Worktree/commit/push/Agent-Dispatch — nur loggen.
-- [ ] `expected: FAIL` zuerst für die decide-Abbruch- und Klassen-Routing-Tests.
+- [x] CI-Log holen: `gh run view --log-failed` (auf den Head-Branch bezogen), Fallback `gh run view --log`, in eine Tempdatei schreiben. `class=$(classify_failure "$logfile")`.
+- [x] Entscheidung: `hash=$(build_loop_sig_hash "$logfile")`; `read -r decision _ < <(build_loop_decide "$attempts" 2 "" "$class" "" "$hash")`. (Iterationslimit 2 analog pipeline.js; `touched_csv` leer im Scan-Kontext, Gate 2 greift über die Klasse.) `abort:*` → `emit_notify` + Marker-Kommentar (Task 5), Ende.
+- [x] `continue`-Fix, Klasse `freshness` (deterministisch): Temp-Worktree `git worktree add "$WT" "$head"`; darin `task freshness:regenerate`; `git commit -am "chore: refresh (ci-babysitter)"`; `git push`; `git worktree remove "$WT"`. Kein Merge, kein Force-Push, kein Rebase.
+- [x] `continue`-Fix, Klassen `ci|test|lint` (Agent): Temp-Worktree; `"${CLAUDE_BIN:-claude}" -p "<eng gescopeter Fix-Prompt>" --allowedTools "Bash(task *),Bash(git *),Edit,Read" --permission-mode acceptEdits`; danach push durch den Agenten bzw. `git push` im Worktree; Worktree entfernen. Prompt bleibt minimal (nur den einen CI-Fehler beheben, keine Feature-Arbeit).
+- [x] Unter `--dry-run`/`FACTORY_DRY_RUN`: Log-Fetch + classify + decide laufen (read-only), aber KEIN Worktree/commit/push/Agent-Dispatch — nur loggen.
+- [x] `expected: FAIL` zuerst für die decide-Abbruch- und Klassen-Routing-Tests.
 
 BATS-Blöcke (Log-Fetch stubt `gh run view` mit einer Log-Datei-Ausgabe; decide-Pfade prüfen, dass Escalate-Klassen KEIN Push auslösen):
 
@@ -195,9 +195,9 @@ Die Regex `task freshness:regenerate` und `git worktree add` matchen die im Fix-
 
 ## Task 5 — Notify-Payload + Marker-Kommentar + Wakeup-Einhängung
 
-- [ ] `emit_notify()`: gibt eine Zeile im `qa-notify.sh`-Format auf **stdout** aus: `QA_NOTIFY_PAYLOAD: title="..." body="..." event=ci-babysitter pr=<n>`. KEIN eigener PushNotification-Aufruf — der aufrufende Wakeup-Kontext leitet weiter.
-- [ ] `post_marker()`: `gh pr comment <n> --body "<!-- ci-babysitter attempt=<N> -->\n<class> / <decision>\n\`\`\`\n<log-tail ~20 Z.>\n\`\`\`"`. Marker-Zeile strikt maschinenlesbar (Task 3 zählt darauf). Log-Tail via `tail -n 20`.
-- [ ] Wakeup-Einhängung (D8) in `scripts/factory/wakeup.sh`: nach der `for _t_brand … auto-triage.sh`-Schleife (endet Z. 125) und VOR dem `"${CLAUDE_BIN}" -p`-Dispatch (Z. 126) einen best-effort-Block einfügen — **außerhalb** jeder Brand-Schleife, genau ein Aufruf pro Tick:
+- [x] `emit_notify()`: gibt eine Zeile im `qa-notify.sh`-Format auf **stdout** aus: `QA_NOTIFY_PAYLOAD: title="..." body="..." event=ci-babysitter pr=<n>`. KEIN eigener PushNotification-Aufruf — der aufrufende Wakeup-Kontext leitet weiter.
+- [x] `post_marker()`: `gh pr comment <n> --body "<!-- ci-babysitter attempt=<N> -->\n<class> / <decision>\n\`\`\`\n<log-tail ~20 Z.>\n\`\`\`"`. Marker-Zeile strikt maschinenlesbar (Task 3 zählt darauf). Log-Tail via `tail -n 20`.
+- [x] Wakeup-Einhängung (D8) in `scripts/factory/wakeup.sh`: nach der `for _t_brand … auto-triage.sh`-Schleife (endet Z. 125) und VOR dem `"${CLAUDE_BIN}" -p`-Dispatch (Z. 126) einen best-effort-Block einfügen — **außerhalb** jeder Brand-Schleife, genau ein Aufruf pro Tick:
 
 ```bash
 # T001805: PR-CI-Babysitter — repo-weit, brand-agnostisch, best-effort.
@@ -205,7 +205,7 @@ bash "${REPO}/scripts/factory/babysit-prs.sh" 2>&1 \
   | sed 's/^/[babysit] /' >&2 || true
 ```
 
-- [ ] `expected: FAIL` zuerst für den Wakeup-Einhäng-Test und den Notify-Format-Test.
+- [x] `expected: FAIL` zuerst für den Wakeup-Einhäng-Test und den Notify-Format-Test.
 
 BATS-Blöcke:
 
@@ -228,27 +228,27 @@ BATS-Blöcke:
 
 ## Task 6 — Final Verification (RED → GREEN Abschluss)
 
-- [ ] **RED bestätigen:** vor der Implementierung liefen die neuen `@test`-Blöcke rot:
+- [x] **RED bestätigen:** vor der Implementierung liefen die neuen `@test`-Blöcke rot:
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/software-factory.bats
 # expected: FAIL (rot vor Implementierung)
 ```
 
-- [ ] **GREEN bestätigen:** nach Implementierung von `babysit-prs.sh` + Wakeup-Einhängung laufen alle Blöcke grün:
+- [x] **GREEN bestätigen:** nach Implementierung von `babysit-prs.sh` + Wakeup-Einhängung laufen alle Blöcke grün:
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/software-factory.bats
 ```
 
-- [ ] `bash -n scripts/factory/babysit-prs.sh` und `bash -n scripts/factory/wakeup.sh` clean.
-- [ ] Test-Inventar nach Test-Änderung regenerieren und mitcommitten:
+- [x] `bash -n scripts/factory/babysit-prs.sh` und `bash -n scripts/factory/wakeup.sh` clean.
+- [x] Test-Inventar nach Test-Änderung regenerieren und mitcommitten:
 
 ```bash
 task test:inventory
 ```
 
-- [ ] Die drei mandatory CI-Gates:
+- [x] Die drei mandatory CI-Gates:
 
 ```bash
 task test:changed
@@ -256,4 +256,4 @@ task freshness:regenerate
 task freshness:check
 ```
 
-- [ ] `website/src/data/test-inventory.json` zusammen mit den Test-Änderungen committen.
+- [x] `website/src/data/test-inventory.json` zusammen mit den Test-Änderungen committen.

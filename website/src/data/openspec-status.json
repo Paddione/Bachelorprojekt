@@ -1057,6 +1057,12 @@
       "status": "plan_staged"
     }
   ],
+  "T001805": [
+    {
+      "slug": "factory-pr-ci-babysitter",
+      "status": "plan_staged"
+    }
+  ],
   "T001813": [
     {
       "slug": "2026-07-14-factory-sandbox-runner",

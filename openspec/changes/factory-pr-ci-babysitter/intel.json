@@ -1,0 +1,133 @@
+{
+  "meta": {
+    "slug": "factory-pr-ci-babysitter",
+    "ticket_id": "T001805",
+    "generated_from": "main@ea9b4015e",
+    "domains": ["factory", "ci", "dev-tooling"],
+    "intel_sources": ["grep", "Read", "baseline.json", "explore-subagent"]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/factory/babysit-prs.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 500,
+      "s1_baseline": null,
+      "s1_budget": 500
+    },
+    {
+      "path": "scripts/factory/wakeup.sh",
+      "language": "bash",
+      "loc": 155,
+      "s1_limit": 500,
+      "s1_baseline": null,
+      "s1_budget": 345
+    },
+    {
+      "path": "tests/spec/software-factory.bats",
+      "language": "bats",
+      "loc": 3144,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "openspec/changes/factory-pr-ci-babysitter/specs/software-factory.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/factory/classify-failure.sh:classify_failure",
+      "kind": "function",
+      "file": "scripts/factory/classify-failure.sh",
+      "signature": "classify_failure <ci-log-file> -> stdout: one of freshness|sql|realm|secret|manifest|lint|test|ci|other (return 0)",
+      "type_text": "(logFile: string) => FailureClass",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/classify-paths.sh:paths_are_escalate_class",
+      "kind": "function",
+      "file": "scripts/factory/classify-paths.sh",
+      "signature": "paths_are_escalate_class <comma-separated-files> -> exit 0 if ANY path is escalate-class, exit 1 otherwise",
+      "type_text": "(csvPaths: string) => exitCode(0=escalate, 1=safe)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/build-loop.sh:build_loop_decide",
+      "kind": "function",
+      "file": "scripts/factory/build-loop.sh",
+      "signature": "build_loop_decide <iteration> <max> <prev_hash> <classify> <touched_csv> <hash> -> stdout 2 lines: decision(continue|abort:escalate-gate|abort:no-progress|abort:max-iterations) + hash",
+      "type_text": "(iteration: number, max: number, prevHash: string, classify: FailureClass, touchedCsv: string, hash: string) => [Decision, string]",
+      "source": "explore-subagent"
+    },
+    {
+      "qualified_name": "scripts/factory/build-loop.sh:build_loop_sig_hash",
+      "kind": "function",
+      "file": "scripts/factory/build-loop.sh",
+      "signature": "build_loop_sig_hash <log_file> -> stdout: normalized sha256 log signature",
+      "type_text": "(logFile: string) => string",
+      "source": "explore-subagent"
+    },
+    {
+      "qualified_name": "scripts/factory/guards.sh:guard_killswitch_on",
+      "kind": "function",
+      "file": "scripts/factory/guards.sh",
+      "signature": "guard_killswitch_on <brand> -> exit 0 if kill-switch ON (global or per-brand), fail-closed",
+      "type_text": "(brand: string) => exitCode(0=on)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/lib.sh:factory_resolve",
+      "kind": "function",
+      "file": "scripts/factory/lib.sh",
+      "signature": "factory_resolve -> sets FACTORY_NS from BRAND, FACTORY_CTX (default fleet); honors FACTORY_DRY_RESOLVE for offline tests",
+      "type_text": "() => void (env side effects)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:list",
+      "kind": "command",
+      "file": "scripts/agent-lock.sh",
+      "signature": "agent-lock.sh list -> table of live claims (SCOPE ID TOOL SID STATE LABEL); branch claims stored as .git/agent-locks/branch__<name>.json",
+      "type_text": "() => string",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/wakeup.sh:pre-dispatcher-chain",
+      "kind": "block",
+      "file": "scripts/factory/wakeup.sh",
+      "signature": "lines ~103-125: for _x_brand in mentolder korczewski; best-effort steps auto-close-merged, reconcile-ticket-status, auto-enqueue, auto-triage — pattern: BRAND=x bash script 2>&1 | sed 's/^/[label:brand] /' >&2 || true",
+      "type_text": "shell block",
+      "source": "explore-subagent"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": ["scripts/factory/wakeup.sh:babysit-step(NEU)"],
+    "edges": [
+      { "from": "wakeup.sh:babysit-step", "to": "babysit-prs.sh:main", "kind": "calls" },
+      { "from": "babysit-prs.sh:main", "to": "guards.sh:guard_killswitch_on", "kind": "calls" },
+      { "from": "babysit-prs.sh:main", "to": "gh pr list/view/comment/edit", "kind": "calls" },
+      { "from": "babysit-prs.sh:main", "to": "classify-failure.sh:classify_failure", "kind": "calls" },
+      { "from": "babysit-prs.sh:main", "to": "build-loop.sh:build_loop_decide", "kind": "calls" },
+      { "from": "babysit-prs.sh:main", "to": "classify-paths.sh:paths_are_escalate_class", "kind": "calls" }
+    ]
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "gh pr list --json statusCheckRollup liefert pro Check conclusion (SUCCESS|FAILURE|null=pending) — nur eindeutige FAILURE-Conclusions als rot werten; Feldform vor Implementierung mit gh live verifizieren (Test-Stub entsprechend bauen).",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory nicht genutzt (Graph als veraltet gemeldet, Bash-Scripts ohnehin schwach indiziert) — Signaturen stammen aus direktem Read/grep, verifiziert am Stand main@ea9b4015e.",
+      "severity": "info"
+    }
+  ]
+}

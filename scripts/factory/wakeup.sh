@@ -154,6 +154,9 @@ Report only the dispatcher's final JSON result. Do not improvise scheduling."
     BRAND="$_t_brand" bash "${REPO}/scripts/factory/auto-triage.sh" 2>&1 \
       | sed "s/^/[auto-triage:${_t_brand}] /" >&2 || true
   done
+  # T001805: PR-CI-Babysitter — repo-weit, brand-agnostisch, best-effort.
+  bash "${REPO}/scripts/factory/babysit-prs.sh" 2>&1 \
+    | sed 's/^/[babysit] /' >&2 || true
   "${CLAUDE_BIN}" -p "${PROMPT}" \
     --allowedTools "Workflow,Bash(bash scripts/factory/*),Bash(bash scripts/ticket.sh*),Bash(bash scripts/vda.sh*),ToolSearch,PushNotification" \
     --permission-mode acceptEdits

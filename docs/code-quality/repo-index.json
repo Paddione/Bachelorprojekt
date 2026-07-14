@@ -2815,7 +2815,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 503,
+      "file_count": 504,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3024,6 +3024,7 @@
         "scripts/factory/auto-enqueue.sh",
         "scripts/factory/auto-triage.sh",
         "scripts/factory/autopilot.env.example",
+        "scripts/factory/babysit-prs.sh",
         "scripts/factory/budget-estimate.sh",
         "scripts/factory/budget-guard.sh",
         "scripts/factory/build-loop.cjs",

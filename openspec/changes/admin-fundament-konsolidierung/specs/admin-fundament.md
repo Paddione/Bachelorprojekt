@@ -11,7 +11,7 @@ Die eigentlichen Detail-Specs leben in den Sub-Ticket-Changes:
 - `openspec/changes/admin-modal-drawer/specs/` (T001788)
 - `openspec/changes/admin-redirect-map/specs/` (T001789)
 
-## Requirements
+## ADDED Requirements
 
 ### Requirement: INTEGRATION-001 — Token-Konsolidierung ist vollständig
 

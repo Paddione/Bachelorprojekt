@@ -1,6 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "lmstudio/qwen3.5-9b@q4_k_m",
+  "model": "lmstudio/qwythos-9b-v2",
   "permission": {
     "read": "allow",
     "edit": "allow",

@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.36.1](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.36.0...brett-v0.36.1) (2026-07-14)
+
+
+### Bug Fixes
+
+* weekly audit T001811 ([#2787](https://github.com/Paddione/Bachelorprojekt/issues/2787)) ([d369903](https://github.com/Paddione/Bachelorprojekt/commit/d369903dc64942e19e7e6d4d987c87512245b9de))
+
 ## [0.36.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.35.0...brett-v0.36.0) (2026-07-08)
 
 

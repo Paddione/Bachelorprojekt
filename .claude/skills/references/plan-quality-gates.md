@@ -105,12 +105,27 @@ lesen diese Datei statt einer Kopie im Skill-Prompt):
   `# <slug> — Implementation Plan` als H1, gefolgt von einer H2-Sektion `## File Structure`
   mit den geänderten/neuen Dateien.
 - **STRUCT2 Failing-Test-Step:** Mindestens ein Task enthält einen rot→grün-Failing-Test-Step
-  mit der wortwörtlichen Phrase `expected: FAIL` (regex tolerant: `expected:? *fail`).
+  mit der wortwörtlichen Phrase `expected: FAIL` (regex tolerant: `expected:? *fail`) —
+  UND einen echten Testrunner-Aufruf (`bats`, `vitest`, `pytest`, `jest`, `mocha`, `go test`
+  oder `playwright test`). Die Phrase allein reicht NICHT: sie ist billig zu faken und wird
+  bereits vom `openspec propose`-Skeleton vorgeseedet. Der finale `task test:*`-Verify-Task
+  (STRUCT3) zählt NICHT als dieser Failing-Test-Step — es muss ein eigener, expliziter
+  Testrunner-Befehl im selben oder einem anderen Task stehen (T001791 #2).
 - **STRUCT3 Verify-Task:** Der letzte Task listet die drei mandatory Verify-Commands:
   `task test:changed`, `task freshness:regenerate`, `task freshness:check`
   (regex `task[[:space:]]+<cmd>`).
 - **P1 Placeholder-Verbot:** In Prosa (außerhalb von ```-Fences und `inline code`) dürfen
   `TBD`, `TODO`, `FIXME`, `???`, `<ausfüllen>` und `similar to Task <N>` NICHT vorkommen.
+- **B1a Budget-Integrität:** Für jede im Plan referenzierte Datei (`` `path` `` als 3-Spalten-
+  Tabellenzeile `| \`path\` | <ist> | <budget> |` oder als Prosa `` `path` … (Budget|Restbudget|
+  budget) <N> ``), die bereits im Repo existiert, muss der behauptete Budget-Wert exakt dem
+  vom Linter berechneten effektiven Budget (Baseline vs. Limit, siehe oben) entsprechen —
+  sonst Hard-Fail. Nicht als Zahl behauptete Budgets werden nicht geprüft.
+- **B1b Split/Shrink bei Budget ≤ 0 (Warn, nicht Hard-Fail):** Ist das berechnete effektive
+  Budget einer referenzierten Datei ≤ 0 und der Plan enthält keinen Split-/Shrink-Schritt
+  (Stichwörter: `split`, `extract`, `verkleiner`, `shrink`, `aufteil`), gibt der Linter eine
+  Warnung aus — kosmetisches Zusammenziehen reicht bei Budget≈0 nicht (siehe Schritt 3.7/4
+  im Skill).
 
 ### Weitere CI-Gates (Pflicht im finalen Verifikations-Task jedes Plans)
 

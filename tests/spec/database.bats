@@ -75,3 +75,34 @@ _psql_db() {
   result=$(_psql_db "SELECT EXISTS(SELECT 1 FROM pg_constraint WHERE conname='sessions_ki_config_id_fkey' AND connamespace='coaching'::regnamespace AND confrelid='tickets.provider_config'::regclass)")
   [ "$result" = "t" ]
 }
+
+# ── T001800: arena-server cluster drift regression ─────────────────────────
+# arena-server was fully decommissioned in PR #2093 (commit 4c1d107f4,
+# 2026-06-27) but three live cluster objects (deployment/service/
+# ingressroute) survived in workspace-korczewski and were never deleted,
+# causing a permanent CreateContainerConfigError crash loop. Since the
+# manifests no longer exist in the repo, no `kubectl apply -k` run can
+# clean these up — only an explicit `kubectl delete` does. This test
+# guards against the orphans reappearing.
+_skip_if_no_cluster() {
+  kubectl get nodes --context "${FACTORY_CTX:-fleet}" --request-timeout=3s >/dev/null 2>&1 \
+    || skip "no live cluster reachable (kubectl get nodes failed)"
+}
+
+@test "cluster: workspace-korczewski has no orphaned arena-server deployment" {
+  _skip_if_no_cluster
+  run kubectl get deployment arena-server -n workspace-korczewski --context "${FACTORY_CTX:-fleet}" -o name
+  [ "$status" -ne 0 ]
+}
+
+@test "cluster: workspace-korczewski has no orphaned arena-server service" {
+  _skip_if_no_cluster
+  run kubectl get service arena-server -n workspace-korczewski --context "${FACTORY_CTX:-fleet}" -o name
+  [ "$status" -ne 0 ]
+}
+
+@test "cluster: workspace-korczewski has no orphaned arena-server ingressroute" {
+  _skip_if_no_cluster
+  run kubectl get ingressroute.traefik.io arena-server -n workspace-korczewski --context "${FACTORY_CTX:-fleet}" -o name
+  [ "$status" -ne 0 ]
+}

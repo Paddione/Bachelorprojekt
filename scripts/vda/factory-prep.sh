@@ -92,7 +92,7 @@ run_prep() {
 
       # Session-coordination guard (T000510)
       local al=0
-      bash "${REPO}/scripts/agent-lock.sh" check ticket "${ext_id}" 2>/dev/null; al=$? || true
+      bash "${REPO}/scripts/agent-lock.sh" check ticket "${ext_id}" >/dev/null 2>&1; al=$? || true
       if [[ "${al}" -eq 3 ]]; then
         log "Ticket ${ext_id} claimed by live interactive session -> releasing slot"
         BRAND="${brand}" bash "${REPO}/scripts/ticket.sh" release-slot --id "${ext_id}" 2>/dev/null || true

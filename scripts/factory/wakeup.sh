@@ -91,41 +91,12 @@ TICK=0
 while true; do
   TICK=$(( TICK + 1 ))
   TIMESTAMP="$(date -u +%FT%TZ)"
-  # T001808: PREP deterministisch vorberechnen und als args.prep durchreichen.
-  # Kleine lokale Modelle scheitern am StructuredOutput-Kontrakt des PREP-Subagenten;
-  # factory-prep ist reines Bash — der LLM-Schritt ist hier unnötig. Bei leerem/
-  # ungültigem JSON fällt dispatcher.js auf den PREP-Agenten zurück.
-  PREP_JSON="$(FACTORY_DAILY_DEPLOY_CAP="${FACTORY_DAILY_DEPLOY_CAP:-5}" FACTORY_GLOBAL_CAP="${FACTORY_GLOBAL_CAP:-3}" \
-    bash "${REPO}/scripts/vda.sh" factory-prep 2>/dev/null | jq -c . 2>/dev/null || true)"
-  PREP_ARG=""
-  if [[ -n "${PREP_JSON}" ]]; then
-    # T001809: Budget-Guard + Blocked-Cleanup + Sentinel ebenfalls deterministisch —
-    # reine Bash-Orchestrierung; die LLM-Agent-Schritte in dispatcher.js scheitern mit
-    # kleinen lokalen Modellen am StructuredOutput-Kontrakt und hinterlassen den
-    # PREP-Claim als Zombie (in_progress ohne Pipeline).
-    _ok_ids='[]'
-    while IFS=$'\t' read -r _ext _brand; do
-      [[ -z "${_ext}" ]] && continue
-      if BRAND="${_brand}" bash "${REPO}/scripts/factory/budget-guard.sh" "${_brand}" >/dev/null 2>&1; then
-        BRAND="${_brand}" bash "${REPO}/scripts/factory/budget-estimate.sh" "${_ext}" "${_brand}" >/dev/null 2>&1 || true
-        _ok_ids="$(jq -c --arg e "${_ext}" '. + [$e]' <<<"${_ok_ids}")"
-      else
-        echo "wakeup.sh: budget-guard blocked ${_ext} (${_brand})" >&2
-        BRAND="${_brand}" bash "${REPO}/scripts/ticket.sh" update-status --id "${_ext}" --status blocked >/dev/null 2>&1 || true
-        BRAND="${_brand}" bash "${REPO}/scripts/ticket.sh" phase "${_ext}" scout blocked --detail 'daily budget exceeded' >/dev/null 2>&1 || true
-        BRAND="${_brand}" bash "${REPO}/scripts/ticket.sh" release-slot --id "${_ext}" >/dev/null 2>&1 || true
-      fi
-    done < <(jq -r '.launch[]? | [.external_id, .brand] | @tsv' <<<"${PREP_JSON}" 2>/dev/null)
-    PREP_JSON="$(jq -c --argjson ok "${_ok_ids}" \
-      '.launch = [.launch[]? | select(.external_id as $e | $ok | index($e) != null)]' <<<"${PREP_JSON}")"
-    _iw=false
-    bash "${REPO}/scripts/agent-lock.sh" list 2>/dev/null | grep -q interactive-worker && _iw=true
-    PREP_ARG=", prep: ${PREP_JSON}, interactive_worker: ${_iw}"
-  fi
+  # T001810: Kein Precompute/args-Durchreichen mehr (lossy durch kleine Modelle) —
+  # der Dispatcher führt prep/budget/sentinel selbst deterministisch via
+  # child_process aus. Das Modell übergibt nur noch timestamp + dry_run.
   PROMPT="Run the Software Factory dispatcher now. Invoke the Workflow tool with \
-scriptPath 'scripts/factory/dispatcher.js' and args { timestamp: '${TIMESTAMP}', dry_run: ${DRY_RUN}${PREP_ARG} }. \
-Pass the prep value through verbatim — do not alter, re-run, or improvise it. \
-The dispatcher reads all guards (kill-switch, daily-cap, dry-run-first) fresh per brand inside its PREP step. \
+scriptPath 'scripts/factory/dispatcher.js' and args { timestamp: '${TIMESTAMP}', dry_run: ${DRY_RUN} }. \
+The dispatcher runs all guards (kill-switch, daily-cap, dry-run-first) deterministically inside its PREP step. \
 Report only the dispatcher's final JSON result. Do not improvise scheduling."
 
   echo "wakeup.sh: starting tick #${TICK} at ${TIMESTAMP}" >&2

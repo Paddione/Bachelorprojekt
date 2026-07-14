@@ -3139,3 +3139,12 @@ STUB
   grep -q "tickets.factory_model_slots" scripts/factory/route-provider.sh
   grep -Eq "PHASE=" scripts/factory/route-provider.sh
 }
+
+@test "T001806: factory-prep.sh must not pipe watchdog into the non-reading log() function" {
+  # log() ignores stdin and exits immediately -> SIGPIPE (rc 141) kills PREP under pipefail.
+  run bash -c "grep -E 'watchdog\.sh.*\| *log$' scripts/vda/factory-prep.sh"
+  [ "$status" -ne 0 ]
+  # stdout muss von einer stdin-lesenden Konstruktion konsumiert werden (Folgezeile der Pipe)
+  run bash -c "grep -A2 'watchdog\.sh' scripts/vda/factory-prep.sh | grep -E 'while IFS= read'"
+  [ "$status" -eq 0 ]
+}

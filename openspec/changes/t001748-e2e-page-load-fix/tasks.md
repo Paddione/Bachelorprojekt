@@ -2,7 +2,7 @@
 title: "t001748-e2e-page-load-fix — Implementation Plan"
 ticket_id: T001748
 domains: [tests, website]
-status: plan_staged
+status: archived
 file_locks: []
 shared_changes: false
 batch_id: null

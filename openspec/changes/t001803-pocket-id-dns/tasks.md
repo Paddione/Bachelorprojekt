@@ -2,7 +2,7 @@
 title: "t001803-pocket-id-dns — Implementation Plan"
 ticket_id: T001803
 domains: [infra, auth]
-status: plan_staged
+status: archived
 file_locks: []
 shared_changes: false
 batch_id: null

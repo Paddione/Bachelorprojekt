@@ -51,7 +51,7 @@ fi
 # `[T-NNNNNN]` (literal `[T` + 6 digits + `]`, e.g. [T123456] or [T001415]).
 echo "$PRS" | while IFS=$'\t' read -r pr_num title branch; do
   # Skip if no ticket tag in title
-  ticket=$(printf '%s' "$title" | sed -n 's/.*\[(T[0-9]\{6\})\].*/\1/p' | head -1)
+  ticket=$(printf '%s' "$title" | sed -n 's/.*\[\(T[0-9]\{6\}\)\].*/\1/p' | head -1)
   [[ -z "$ticket" ]] && continue
 
   # T001580 FIX: Skip plan-only PRs (chore/archive, openspec branches)

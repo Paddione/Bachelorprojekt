@@ -3162,3 +3162,22 @@ STUB
   run grep -F 'Array.isArray(A.prep.launch)' scripts/factory/dispatcher.js
   [ "$status" -eq 0 ]
 }
+
+@test "T001809: wakeup.sh runs budget-guard deterministically and passes interactive_worker" {
+  run grep -F 'budget-guard.sh' scripts/factory/wakeup.sh
+  [ "$status" -eq 0 ]
+  run grep -F 'interactive_worker: ${_iw}' scripts/factory/wakeup.sh
+  [ "$status" -eq 0 ]
+}
+
+@test "T001809: dispatcher.js skips budget/sentinel agents on precomputed handoff" {
+  run grep -F 'prepPrecomputed' scripts/factory/dispatcher.js
+  [ "$status" -eq 0 ]
+  run grep -F "typeof A.interactive_worker === 'boolean'" scripts/factory/dispatcher.js
+  [ "$status" -eq 0 ]
+}
+
+@test "T001809: dispatcher allowedTools covers vda.sh for the PREP fallback agent" {
+  run grep -F 'Bash(bash scripts/vda.sh*)' scripts/factory/wakeup.sh
+  [ "$status" -eq 0 ]
+}

@@ -56,9 +56,11 @@ async function main() {
   // small local models fail the PREP subagent's StructuredOutput contract; the agent
   // call below survives only as fallback for invocations without a precomputed prep.
   let prep
+  let prepPrecomputed = false
   if (A.prep && typeof A.prep === 'object' && Array.isArray(A.prep.launch)) {
     log('Dispatcher: using precomputed prep from args (deterministic wakeup handoff)')
     prep = A.prep
+    prepPrecomputed = true
   } else {
     prep = await agent(
       `Run the unified Software Factory prep script from ${REPO} and return its JSON output:
@@ -96,7 +98,18 @@ async function main() {
     },
   }
 
-  const budgetResult = await agent(
+  // T001809: with a precomputed prep the budget guard already ran deterministically
+  // in wakeup.sh (blocked features were cleaned up and filtered out of prep.launch) —
+  // skip the LLM step; small local models fail its StructuredOutput contract.
+  let budgetResult
+  if (prepPrecomputed) {
+    log('Dispatcher: budget-guard precomputed in wakeup — prep.launch is pre-filtered')
+    budgetResult = {
+      ok: prep.launch.map((f) => ({ external_id: f.external_id, brand: f.brand })),
+      blocked: [],
+    }
+  } else {
+  budgetResult = await agent(
     `/goal Guard the Software Factory budget and estimate feature costs.
      You are the Software Factory budget guard. Process ONLY the features listed below.
      REPO=${REPO}
@@ -124,6 +137,7 @@ async function main() {
      Return JSON: { ok: [{external_id, brand}, ...], blocked: [{external_id, brand, reason}, ...], estimates: [...] }`,
     { label: 'budget-guard', phase: 'Launch', schema: BUDGET_RESULT_SCHEMA },
   )
+  }
 
   const okIds = new Set((budgetResult?.ok ?? []).map(f => f.external_id))
   const launches = (prep.launch ?? []).filter(f => okIds.has(f.external_id))
@@ -141,13 +155,19 @@ async function main() {
     required: ['interactive_worker_active'],
     properties: { interactive_worker_active: { type: 'boolean' } },
   }
-  const sentinel = await agent(
-    `Run this and report the result as JSON ONLY:
-       bash ${REPO}/scripts/agent-lock.sh list | grep -q interactive-worker && echo found || echo none
-     If output is "found": return {"interactive_worker_active": true}
-     If output is "none":  return {"interactive_worker_active": false}`,
-    { label: 'sentinel-check', phase: 'Launch', schema: SENTINEL_SCHEMA },
-  )
+  // T001809: prefer the sentinel state precomputed by wakeup.sh (args.interactive_worker).
+  let sentinel
+  if (typeof A.interactive_worker === 'boolean') {
+    sentinel = { interactive_worker_active: A.interactive_worker }
+  } else {
+    sentinel = await agent(
+      `Run this and report the result as JSON ONLY:
+         bash ${REPO}/scripts/agent-lock.sh list | grep -q interactive-worker && echo found || echo none
+       If output is "found": return {"interactive_worker_active": true}
+       If output is "none":  return {"interactive_worker_active": false}`,
+      { label: 'sentinel-check', phase: 'Launch', schema: SENTINEL_SCHEMA },
+    )
+  }
 
   let maxParallel = launches.length
   if (sentinel && sentinel.interactive_worker_active) {

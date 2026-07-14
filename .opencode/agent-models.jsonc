@@ -76,9 +76,9 @@
   },
   "agent": {
     "qwen35-iq4": {
-      "description": "PREFERRED FIRST CHOICE for subagent delegation: Qwen3.5-9B (IQ4_XS weights, unsloth/Qwen3.5-9B-GGUF) on LM Studio - serves up to 4 parallel subagents, ~65k ctx recommended per call (260k total). Try this before qwythos/q4_k_m/q4_k_xl variants.",
+      "description": "PREFERRED FIRST CHOICE for subagent delegation: Qwythos-9B-v2 (empero-ai, MTP Q4_K_M, 331k ctx) on LM Studio - serialized (1 at a time), shares main 330k context. Try this first for subagent dispatch.",
       "mode": "subagent",
-      "model": "lmstudio/qwen3.5-9b@iq4_xs",
+      "model": "lmstudio/qwythos-9b-v2",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#0EA5E9",
       "temperature": 0.7,
@@ -94,18 +94,18 @@
       "permission": { "edit": "deny", "write": "deny", "bash": "deny" }
     },
     "qwen35": {
-      "description": "Subagent using Qwen3.5-9B (Q4_K_M weights) on LM Studio - use when 3 parallel subagents are loaded (48k ctx each)",
+      "description": "Subagent using Qwythos-9B-v2 (empero-ai, MTP Q4_K_M, 331k ctx) on LM Studio - serialized (1 at a time), shares main 330k context",
       "mode": "subagent",
-      "model": "lmstudio/qwen3.5-9b@q4_k_m",
+      "model": "lmstudio/qwythos-9b-v2",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#22C55E",
       "temperature": 0.7,
       "permission": { "edit": "deny", "write": "deny", "bash": "deny" }
     },
     "qwen35-hq": {
-      "description": "Subagent using Qwen3.5-9B (UD-Q4_K_XL weights, higher fidelity, 140k ctx) on LM Studio - single session, serialized (no parallel dispatch), use when max per-call context matters more than concurrency",
+      "description": "Subagent using Qwythos-9B-v2 (empero-ai, MTP Q4_K_M, 331k ctx) on LM Studio - serialized (1 at a time), shares main 330k context, use when max per-call context matters more than concurrency",
       "mode": "subagent",
-      "model": "lmstudio/qwen3.5-9b@q4_k_xl",
+      "model": "lmstudio/qwythos-9b-v2",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#16A34A",
       "temperature": 0.7,

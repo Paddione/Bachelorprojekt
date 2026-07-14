@@ -2,7 +2,7 @@
 title: "factory-pr-ci-babysitter — Implementation Plan"
 ticket_id: T001805
 domains: [factory, ci]
-status: plan_staged
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

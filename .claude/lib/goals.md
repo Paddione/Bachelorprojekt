@@ -125,7 +125,7 @@ pgAdmin-Blick entdeckt.
 db_scalar "SELECT count(*) FROM pg_stat_statements WHERE mean_exec_time > 1000"
 ```
 
-> **B · Baseline:** n/a · **Target:** 0 · **Aufwand:** gering (Messbefehl in health-goals-check.sh, Fix ist Query-Optimierung) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
+> **B · Baseline:** n/a · **Target:** 0 · **Aufwand:** gering (Messbefehl in health-goals-check.sh, Fix ist Query-Optimierung) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001838
 
 ## G-DB10 — Unused Indexes (idx_scan = 0): n/a → 0
 
@@ -138,7 +138,7 @@ intrinsisch niedrig).
 db_scalar "SELECT count(*) FROM pg_stat_user_indexes WHERE idx_scan = 0 AND indisready AND NOT indisprimary AND indexrelid NOT IN (SELECT conindid FROM pg_constraint WHERE contype='u')"
 ```
 
-> **B · Baseline:** n/a · **Target:** 0 · **Aufwand:** gering (Messung) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
+> **B · Baseline:** n/a · **Target:** 0 · **Aufwand:** gering (Messung) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001839
 
 ## G-SEC06 — Container Images mit High/Critical CVEs: n/a → 0
 
@@ -154,7 +154,7 @@ kubectl get pods --all-namespaces -o jsonpath='{range .items[*]}{.spec.container
 # trivy image --severity HIGH,CRITICAL --exit-code 0 --format json <image> | jq '.Results[].Vulnerabilities | length'
 ```
 
-> **B · Baseline:** n/a · **Target:** 0 · **Aufwand:** mittel (Trivy-CI-Job + Baseline erfassen) · **Messzyklus:** wöchentlich · **Reproduzierbar:** mit Trivy ja
+> **B · Baseline:** n/a · **Target:** 0 · **Aufwand:** mittel (Trivy-CI-Job + Baseline erfassen) · **Messzyklus:** wöchentlich · **Reproduzierbar:** mit Trivy ja · **Ticket:** T001840
 
 ## G-CI03 — CI Pipeline p95 Duration > 12 min: n/a → ≤ 12 min
 
@@ -175,7 +175,7 @@ print(f'{p95:.1f}')
 "
 ```
 
-> **B · Baseline:** n/a · **Target:** ≤ 12 min (p95) · **Aufwand:** gering (Messung via gh-axi) · **Messzyklus:** täglich · **Reproduzierbar:** ja
+> **B · Baseline:** n/a · **Target:** ≤ 12 min (p95) · **Aufwand:** gering (Messung via gh-axi) · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T001841
 
 ## G-FE05 — Lighthouse Performance Score < 90: n/a → ≥ 90
 
@@ -190,7 +190,7 @@ für echte User-Performance.
 # Aktuell: manuelle Prüfung via Chrome DevTools Lighthouse-Tab
 ```
 
-> **B · Baseline:** n/a · **Target:** ≥ 90 · **Aufwand:** mittel (lighthouse-ci einrichten + Baseline-Lauf) · **Messzyklus:** wöchentlich · **Reproduzierbar:** mit lighthouse-ci ja
+> **B · Baseline:** n/a · **Target:** ≥ 90 · **Aufwand:** mittel (lighthouse-ci einrichten + Baseline-Lauf) · **Messzyklus:** wöchentlich · **Reproduzierbar:** mit lighthouse-ci ja · **Ticket:** T001842
 
 
 # Priorität C — Green Gates {#prio-c}
@@ -310,7 +310,7 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 
 **Baseline-Update 2026-07-14 (T001804):** G-AGENTIC06 1→0 (OVERVIEW.md Zähler 37→36 + Mess-Umstellung auf getrackte SKILL.md via `git ls-files` — lokal via market-cli installierte Skills kippen das Gate nicht mehr, Präzedenz T001783). G-AGENTIC07 6→0 (2 untrackte lokale Skills aus dem Mess-Scope entfernt; 4 getrackte Drittanbieter-/ML-Skills — ui-ux-pro-max, unsloth, gguf-quantization, speculative-decoding — in neuer OVERVIEW.md-Sektion registriert). G-AGENTIC08 1→0 (Mess-Bug: Regex ohne Anker matchte `scripts/search.py` als Substring des existierenden Pfads `.claude/skills/ui-ux-pro-max/scripts/search.py` — Lookbehind ergänzt). G-AGENTIC11 5→0 (CLAUDE.md-opencode-Liste um `github-mcp`, `playwright`, `sequential-thinking`, `webresearch`, `docfork` ergänzt). G-DOC02 216→190 (CLAUDE.md kondensiert: Merge=Abschluss- und Bug-Triage-Blöcke entwrappt, leere `### Brett`-Überschrift und redundantes Oracle-Beispiel entfernt). G-AGENTIC09 1→0 (dev-flow-plan/SKILL.md 513→495 Zeilen, Prosa-Entwrapping ohne Inhaltsverlust). G-GIT03 bleibt 7 (>Target 6): Kandidaten `assets/grilling-brett-admin-panel/Brett Admin Panel.html` und `environments/korczewski/KERN Logo Design.html` sind Nutzer-Assets — Löschen/LFS braucht manuelle Entscheidung.
 
-**Offene Tickets (2026-07-15):** G-SIZE02 (T001556), G-DB01/03/06/08 (T001739), G-IMG01 (T001766), G-DB09 (neu), G-DB10 (neu), G-SEC06 (neu), G-CI03 (neu), G-FE05 (neu)
+**Offene Tickets (2026-07-15):** G-SIZE02 (T001556), G-DB01/03/06/08 (T001739), G-IMG01 (T001766), G-DB09 (T001838), G-DB10 (T001839), G-SEC06 (T001840), G-CI03 (T001841), G-FE05 (T001842)
 
 | Ziel | Ticket | Status |
 |------|--------|--------|
@@ -320,11 +320,11 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 | G-DB06 | T001739 | gruen (Gate, halten) |
 | G-DB08 | T001739 | offen (dokumentierte Baseline, kein hartes Target) |
 | G-IMG01 | T001766 | offen (Regression 0→2, Helm-Digest-Drift Loki/Promtail) |
-| G-DB09 | — | neu (Slow Queries, Messung ausstehend) |
-| G-DB10 | — | neu (Unused Indexes, Messung ausstehend) |
-| G-SEC06 | — | neu (Container CVEs, Trivy-Integration ausstehend) |
-| G-CI03 | — | neu (CI Duration, Messung via gh-axi) |
-| G-FE05 | — | neu (Lighthouse Performance, lighthouse-ci ausstehend) |
+| G-DB09 | T001838 | offen (Slow Queries, Messung verdrahtet, Optimierung ausstehend) |
+| G-DB10 | T001839 | offen (Unused Indexes, Baseline fehlt) |
+| G-SEC06 | T001840 | offen (Container CVEs, Trivy-Integration ausstehend) |
+| G-CI03 | T001841 | offen (CI Duration, Baseline via gh-axi) |
+| G-FE05 | T001842 | offen (Lighthouse Performance, lighthouse-ci ausstehend) |
 | G-SIZE04 | T001280 | geschlossen (`done`), Messwert weiterhin rot → Nachfolger T001347 |
 | G-SIZE04 | T001347 | offen |
 | G-GIT03 | T001275 | **gefixt** (gitignore search-index.json [T001305]) |

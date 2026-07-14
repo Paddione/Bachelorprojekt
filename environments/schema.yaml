@@ -600,6 +600,14 @@ secrets:
   #      COLLABORA_TLS_SECRET_2
   #                          (k3d/office-stack/ingress-korczewski.yaml — hardcoded
   #                           to "korczewski-tls" in workspace:office:deploy)
+  #      WEBSITE_PRIMARY_SERVICE
+  #                          (k3d/website.yaml — derived from PRIMARY_FRONTEND
+  #                           in workspace:deploy: "website" for astro,
+  #                           "mentolder-web" for react)
+  #      POCKET_ID_SMTP_TLS
+  #                          (k3d/pocket-id.yaml — derived from SMTP_SECURE +
+  #                           SMTP_PORT in workspace:deploy: "tls" / "starttls"
+  #                           / "none")
   #
   # 6. Comment text matched by the audit regex (not real envsubst targets):
   #      VAR                 (k3d/coturn-stack/coturn.yaml line ~43 — used

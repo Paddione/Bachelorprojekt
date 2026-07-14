@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.181.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.180.0...website-v1.181.0) (2026-07-14)
+
+
+### Features
+
+* **factory:** PR-CI-Babysitter [T001805] ([#2808](https://github.com/Paddione/Bachelorprojekt/issues/2808)) ([9669e84](https://github.com/Paddione/Bachelorprojekt/commit/9669e84c86b87a5e15f0b86074f1e197b503238f))
+
 ## [1.180.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.179.5...website-v1.180.0) (2026-07-14)
 
 

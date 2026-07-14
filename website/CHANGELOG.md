@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.179.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.179.2...website-v1.179.3) (2026-07-14)
+
+
+### Bug Fixes
+
+* **website:** remove dead coaching studio route and rewire references [T001792] ([#2767](https://github.com/Paddione/Bachelorprojekt/issues/2767)) ([fc0b196](https://github.com/Paddione/Bachelorprojekt/commit/fc0b196d95fc376bf60f98cd61155e3da11b14b9))
+
 ## [1.179.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.179.1...website-v1.179.2) (2026-07-14)
 
 

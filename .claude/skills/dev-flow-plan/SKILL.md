@@ -30,8 +30,7 @@ Bei jeder Anfrage in diesem Repo, die etwas verändern will.
 
 Wenn das Feature komplex oder unklar ist, frage den User nach einer Grilling-Session (siehe [dev-flow-gotchas](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md) für den Fragenkatalog).
 **Nutze `lavish` für die Q/A-Session:** Erstelle `.lavish/<slug>-grilling.html` mit den Fragen als interaktivem Formular (Input-Playbook), öffne es mit `npx -y lavish-axi .lavish/<slug>-grilling.html` und poll auf Antworten. So kann der User strukturiert antworten, annotieren und Feedback geben.
-Falls durchgeführt, erstelle das Grilling-Ticket — **MCP-first** (`ticket-mcp`; Rückgabe-Parsing
-`external_id|uuid`: siehe [MCP-Tool-Guide](file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md) §ticket-mcp).
+Falls durchgeführt, erstelle das Grilling-Ticket — **MCP-first** (`ticket-mcp`; Rückgabe-Parsing `external_id|uuid`: siehe [MCP-Tool-Guide](file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md) §ticket-mcp).
 > `mcp__ticket-mcp__create_ticket({ type: "task", brand: "mentolder", title: "Grilling: <kurzer-titel>", priority: "mittel", description: "FUNKTIONALE ANFORDERUNGEN:\n<requirements>\n\nASSETS ZU BESCHAFFEN:\n<assets-todo>" })`
 Setze `GRILLING_TICKET_EXT_ID` (Feld 1) und `GRILLING_TICKET_UUID` (Feld 2) aus der Rückgabe.
 Fallback (ticket-mcp nicht erreichbar):
@@ -47,10 +46,7 @@ export GRILLING_TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
 export GRILLING_TICKET_UUID=$(echo "$TICKET_RESULT"   | cut -d'|' -f2)
 ```
 Hänge Dateien mit `bash scripts/ticket-attach.sh "$GRILLING_TICKET_UUID" <pfade>` an.
-> **Strukturierte Q/A persistieren:** Nach dem Deep-Grilling die Antworten zusätzlich
-> ans Ticket senden — `scripts/ticket.sh grill --id <ext-id> --answer <qid>=<text> …`
-> (akkumulierend, erscheint später im T000737-Panel). Siehe
-> `.claude/skills/references/grilling-to-ticket.md`.
+> **Strukturierte Q/A persistieren:** Nach dem Deep-Grilling die Antworten zusätzlich ans Ticket senden — `scripts/ticket.sh grill --id <ext-id> --answer <qid>=<text> …` (akkumulierend, erscheint später im T000737-Panel). Siehe `.claude/skills/references/grilling-to-ticket.md`.
 
 ## Schritt −2: Main-Branch sync (Pull-First)
 
@@ -452,24 +448,11 @@ git add tests/ openspec/changes/<slug>/tasks.md
 git commit -m "chore(plans): add failing test + stage plan [$TICKET_EXT_ID]"
 git push -u origin $(git branch --show-current)
 ```
-> **Wichtig — Commit-Titel-Konvention für Plan-Stage-Commits:** Der Stage-Commit enthält
-> NUR den RED-Test und Plan-Artefakte, KEINE Production-Code-Änderung. Verwende deshalb
-> `chore(plans):` (analog zum Feature-Pfad oben) — **nicht** `fix(<scope>):` /
-> `feat(<scope>):` / `refactor(<scope>):` / `perf(<scope>):`. Diese Implementierungs-
-> Präfixe wären eine Lüge, weil der Diff keinen Production-Code enthält. Der nachfolgende
-> `dev-flow-execute`-Implementer würde dem Titel vertrauen und den eigentlichen Fix
-> überspringen — exakt das ist bei T001434 (2026-07-02) passiert.
+> **Wichtig — Commit-Titel-Konvention für Plan-Stage-Commits:** Der Stage-Commit enthält NUR den RED-Test und Plan-Artefakte, KEINE Production-Code-Änderung. Verwende deshalb `chore(plans):` (analog zum Feature-Pfad oben) — **nicht** `fix(<scope>):` / `feat(<scope>):` / `refactor(<scope>):` / `perf(<scope>):`. Diese Implementierungs-Präfixe wären eine Lüge, weil der Diff keinen Production-Code enthält; der nachfolgende `dev-flow-execute`-Implementer würde dem Titel vertrauen und den eigentlichen Fix überspringen — exakt das ist bei T001434 (2026-07-02) passiert.
 >
-> Falls der Plan zusätzlich Production-Code-Aufgaben enthält, die der Planer bereits
-> anwendet (z.B. Boilerplate, der vom Fix unabhängig ist): trotzdem `chore(plans):`
-> verwenden und die Production-Code-Änderung in einem **separaten Commit** mit
-> `fix(<scope>):` ablegen, damit die `commit-vs-diff`-Guard (`.githooks/commit-msg`)
-> den Stage-Commit passieren lässt.
+> Falls der Plan zusätzlich Production-Code-Aufgaben enthält, die der Planer bereits anwendet (z.B. vom Fix unabhängiger Boilerplate): trotzdem `chore(plans):` verwenden und die Production-Code-Änderung in einem **separaten Commit** mit `fix(<scope>):` ablegen, damit die `commit-vs-diff`-Guard (`.githooks/commit-msg`) den Stage-Commit passieren lässt.
 >
-> Guard: `scripts/check-commit-vs-diff.sh` + `.githooks/commit-msg` (siehe
-> `openspec/specs/ci-cd.md`) blockiert jeden Commit mit Implementation-Type, dessen
-> Staged-Diff nur Test-/Spec-/Plan-Dateien enthält — mit Verweis auf die richtigen
-> Präfixe. Bypass: `SKIP_COMMIT_VS_DIFF=1 git commit ...` (Notfall).
+> Guard: `scripts/check-commit-vs-diff.sh` + `.githooks/commit-msg` (siehe `openspec/specs/ci-cd.md`) blockiert jeden Commit mit Implementation-Type, dessen Staged-Diff nur Test-/Spec-/Plan-Dateien enthält — mit Verweis auf die richtigen Präfixe. Bypass: `SKIP_COMMIT_VS_DIFF=1 git commit ...` (Notfall).
 **STOPP.** Failing Test, Spec und Plan sind committed und gepusht. Nächster Schritt: `dev-flow-execute` aufrufen.
 
 ## Chore-Pfad
@@ -501,7 +484,6 @@ Der Skill liest den Plan automatisch aus der DB (`FACTORY-PLAN-REF` Kommentar) �
 ## Nachbereitung & Mishap Report
 
 Melde alle aufgetretenen Fehler oder Prozess-Frictionen am Ende des Skills über `mishap-tracker` (aufrufbar via `bash scripts/hooks/mishap-tracker.sh`).
-
 
 ## Framework mapping
 

@@ -180,22 +180,26 @@ row gate G-AGENTIC05 "$(
 )" eq 0 "6-Agenten agent↔routing↔registry Cross-Reference"
 row gate G-AGENTIC06 "$(
   claimed=$(grep -oE '[0-9]+ project-local skills' .claude/skills/OVERVIEW.md | head -1 | grep -oE '^[0-9]+')
-  real=$(find .claude/skills -name SKILL.md | wc -l | tr -d ' ')
+  # nur getrackte SKILL.md zählen — lokal via market-cli installierte Skills sind
+  # nicht projekt-relevant und dürfen das Gate nicht kippen (Präzedenz T001783)
+  real=$(git ls-files -- .claude/skills | grep -c '/SKILL\.md$')
   echo $(( claimed>real ? claimed-real : real-claimed ))
-)" eq 0 "OVERVIEW.md Skill-Zähler vs real (Drift)"
+)" eq 0 "OVERVIEW.md Skill-Zähler vs real (Drift, nur getrackte)"
 row gate G-AGENTIC07 "$(
   c=0
-  for f in $(find .claude/skills -name SKILL.md); do
+  for f in $(git ls-files -- .claude/skills | grep '/SKILL\.md$'); do
     d=$(echo "$f" | sed 's#.claude/skills/##;s#/SKILL.md##'); base=$(basename "$d")
     awk 'BEGIN{f=0}/^---$/{f++;next} f==1&&/^description:/{print 1;exit}' "$f" | grep -q 1 || continue
     n=$( { grep -rl -- "$base" CLAUDE.md AGENTS.md .claude/skills/OVERVIEW.md 2>/dev/null
            grep -rl --include=SKILL.md -- "$base" .claude/skills 2>/dev/null | grep -v "$d/SKILL.md"; } | sort -u | wc -l)
     [ "$n" -eq 0 ] && c=$((c+1))
   done; echo $c
-)" eq 0 "Verwaiste aktive Skills (keine Referenzquelle)"
+)" eq 0 "Verwaiste aktive Skills (keine Referenzquelle, nur getrackte)"
 row gate G-AGENTIC08 "$(
+  # Lookbehind verhindert False Positives, wenn "scripts/…" Teil eines längeren,
+  # existierenden Pfads ist (z.B. .claude/skills/<name>/scripts/foo.py)
   c=0
-  for p in $(grep -rhoE 'scripts/[A-Za-z0-9_./-]+\.(sh|mjs|py)' .claude/skills --include=SKILL.md | sort -u); do
+  for p in $(grep -rhoP '(?<![A-Za-z0-9_./-])scripts/[A-Za-z0-9_./-]+\.(sh|mjs|py)' .claude/skills --include=SKILL.md | sort -u); do
     [ -f "$p" ] || c=$((c+1)); done; echo $c
 )" eq 0 "Tote Script-Pfade in SKILL.md"
 row gate G-AGENTIC11 "$(
@@ -280,7 +284,7 @@ row target G-AGENTIC01 "$(
 )" le 0 "Ungescopte Agenten (security/infra/db ohne tools:-Feld)"
 row target G-AGENTIC09 "$(
   find .claude/skills -name SKILL.md -exec wc -l {} + | awk '$2!="total"&&$1>500{c++} END{print c+0}'
-)" le 0 "SKILL.md >500 Zeilen (dev-flow-execute 662, infra-ops 595, dev-flow-plan 580)"
+)" le 0 "SKILL.md >500 Zeilen"
 row target G-AGENTIC10 "$(
   c=0; for a in bachelorprojekt-website bachelorprojekt-ops bachelorprojekt-infra bachelorprojekt-test bachelorprojekt-db bachelorprojekt-security; do
     grep -rlE "^agent:[[:space:]]*$a" .claude/skills --include=SKILL.md >/dev/null 2>&1 || c=$((c+1)); done; echo $c

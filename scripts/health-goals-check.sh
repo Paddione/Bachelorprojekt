@@ -317,6 +317,38 @@ row target G-DB03 "$(db_scalar "SELECT
 row target G-DB08 "$(db_scalar "SELECT count(*) FROM pg_stat_user_tables
     WHERE n_live_tup>10000 AND seq_scan>0
       AND (seq_scan::numeric/NULLIF(seq_scan+idx_scan,0))>0.05;")" le 3 "Tabellen >10k Rows mit Seq-Scan-Anteil >5% (messen)"
+row target G-DB09 "$(db_scalar "SELECT count(*) FROM pg_stat_statements WHERE mean_exec_time > 1000")" le 0 "Slow Queries in pg_stat_statements (mean_exec_time > 1s)"
+row target G-DB10 "$(db_scalar "SELECT count(*) FROM pg_stat_user_indexes WHERE idx_scan = 0 AND indisready AND NOT indisprimary AND indexrelid NOT IN (SELECT conindid FROM pg_constraint WHERE contype='u')")" le 0 "Unused Indexes (idx_scan=0, exkl. PK/Unique)"
+
+# ── CI-TARGETS ──
+row target G-CI03 "$(
+  gh_ok=0; out=$(gh-axi run list --workflow ci.yml --branch main --limit 20 --json createdAt,updatedAt 2>/dev/null) || gh_ok=1
+  if [ "$gh_ok" = 1 ] || [ -z "$out" ]; then echo "-"; else
+    echo "$out" | python3 -c "
+import json,sys
+runs=json.load(sys.stdin)
+durations=[(r['updatedAt']-r['createdAt']).total_seconds()/60 for r in runs if 'updatedAt' in r]
+durations.sort(); p95=durations[int(len(durations)*0.95)] if durations else 0; print(f'{p95:.0f}')
+" 2>/dev/null || echo "-"
+  fi
+)" le 12 "CI Pipeline p95 Duration (min, letzte 20 Runs auf main)"
+
+# ── SEC-TARGETS ──
+if command -v kubectl >/dev/null 2>&1 && command -v trivy >/dev/null 2>&1; then
+  row target G-SEC06 "$(trivy image --severity HIGH,CRITICAL --exit-code 0 --format json $(kubectl get pods --all-namespaces -o jsonpath='{range .items[*]}{.spec.containers[*].image}{"\n"}{end}' 2>/dev/null | sort -u | tr '\n' ' ') 2>/dev/null | jq '[.Results[].Vulnerabilities[] | select(.Severity=="HIGH" or .Severity=="CRITICAL")] | length' 2>/dev/null || echo "-")" le 0 "Container Images mit High/Critical CVEs (via Trivy)"
+else
+  row target G-SEC06 "-" le 0 "Container CVEs (erfordert kubectl + Trivy — nicht messbar)"
+fi
+
+# ── FE-TARGETS ──
+if command -v npx >/dev/null 2>&1 && npx --yes lighthouse-ci --version >/dev/null 2>&1; then
+  row target G-FE05 "$(
+    score=$(npx lhci autorun --collect.url=https://mentolder.de --collect.settings.chromeFlags='--headless --no-sandbox' --assert.performance=0 2>/dev/null | grep -oP 'Performance: \K[0-9]+' | head -1)
+    echo "${score:--}"
+  )" ge 90 "Lighthouse Performance Score"
+else
+  row target G-FE05 "-" ge 90 "Lighthouse Performance Score (erfordert lighthouse-ci — nicht messbar)"
+fi
 
 # ── Zusammenfassung ────────────────────────────────────────────────────────────
 TOTAL=$((PASS+OPEN+GATEFAIL+SKIP))

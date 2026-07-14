@@ -41,7 +41,7 @@ git ls-files -z | xargs -0 -I{} sh -c 'test -f "{}" && wc -c "{}"' 2>/dev/null \
 
 **Historie (T001348, obsolet seit T001717):** Eine LFS-Migration von `graph.db.zst` wurde ursprünglich verworfen und die Datei stattdessen per Policy-Entscheidung aus dem Gate-Scope ausgeschlossen (git-lfs lokal defekt, kein erkennbarer Gegenwert für ein intern generiertes `merge=ours`-Binärartefakt). T001717 hat das Problem an der Wurzel gelöst: die Datei is nicht mehr getrackt, der Ausschluss ist damit hinfällig.
 
-> **A · Baseline:** 6 → 7 🔴 · **Target:** ≤ 6 · **Aufwand:** erledigt · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · Ticket: T001717 (löst T001348 ab �# Priorität B — Offene Ziele {#prio-b}
+> **A · Baseline:** 6 → 7 🔴 · **Target:** ≤ 6 · **Aufwand:** erledigt · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · Ticket: T001717 (löst T001348 ab �# Priorität B — Offene Ziele {#prio-b}
 
 Im nächsten Sprint einplanen.
 
@@ -91,7 +91,7 @@ SELECT count(*) FROM (SELECT relid,col FROM fk EXCEPT SELECT relid,col FROM idx)
 haben. Live-Wert 44 von 44 Tabellen — alle `brand`-Spalten sind unconstrained. Nur Messung
 verdrahtet, kein erzwungener Fix aller 44 Tabellen (das wäre ein eigenständiges DB-Migrations-Projekt).
 
-```bash
+```sql
 SELECT
     (SELECT count(DISTINCT table_schema||'.'||table_name) FROM information_schema.columns
        WHERE column_name='brand' AND table_schema NOT IN ('pg_catalog','information_schema'))
@@ -99,10 +99,98 @@ SELECT
        WHERE contype='c' AND pg_get_constraintdef(oid) ILIKE '%brand%' AND pg_get_constraintdef(oid) ILIKE '%mentolder%');
 ```
 
-> **B · Baseline:** 44 · **Target:** 0 · **Aufwand:** gross (44 Tabellen, orchestrierte Migration) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001739 (Messung verdrahtet; CHECK-Constraints ausstehend)eb|paddione|_IMAGE' | sort -u | wc -l
+> **B · Baseline:** 44 · **Target:** 0 · **Aufwand:** gross (44 Tabellen, orchestrierte Migration) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001739 (Messung verdrahtet; CHECK-Constraints ausstehend)
+
+## G-IMG01 — Fremd-Image-Versions-Drift: 0 → 2
+
+**Was:** Zählt Fremd-Images (Helm-Chart-Referenzen) in gerenderten Monitoring-Manifesten,
+deren Image-Digest nach einem Chart-Upgrade nicht nachgezogen wurde. Aktuell 2 Drifts:
+`promtail-rendered.yaml` und `loki-rendered.yaml`.
+
+```bash
+grep -rhE 'image:' k3d/ prod*/ | grep -vE 'paddione|_IMAGE' | sort -u | awk -F'\t' '{c[$1]++} END{for(k in c)if(c[k]>1)print k,c[k]}'
 ```
 
 > **B · Baseline:** 0→2 · **Target:** 0 · **Aufwand:** gering (Digest via `docker inspect`/`crane digest` nachtragen und Chart-Render-Skript entsprechend anpassen) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001766
+
+## G-DB09 — Slow Queries in pg_stat_statements: n/a → 0
+
+**Was:** Zählt Queries in `pg_stat_statements` mit `mean_exec_time > 1000ms`.
+`pg_stat_statements` ist seit Einrichtung von `k3d/shared-db.yaml` via `shared_preload_libraries`
+geladen, wird aber nirgendwo ausgelesen. Langsame Queries sind der häufigste Grund für
+schlechte API-Antwortzeiten und werden aktuell nur von Nutzern oder gelegentlichem
+pgAdmin-Blick entdeckt.
+
+```bash
+db_scalar "SELECT count(*) FROM pg_stat_statements WHERE mean_exec_time > 1000"
+```
+
+> **B · Baseline:** n/a · **Target:** 0 · **Aufwand:** gering (Messbefehl in health-goals-check.sh, Fix ist Query-Optimierung) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
+
+## G-DB10 — Unused Indexes (idx_scan = 0): n/a → 0
+
+**Was:** Zählt Indizes mit `idx_scan = 0` seit dem letzten Reset. Unbenutzte Indizes
+verlangsamen Schreiboperationen, erhöhen Autovacuum-Last und belegen Plattenplatz.
+Primary Keys und Unique-Constraint-Träger werden ausgeschlossen (deren idx_scan ist
+intrinsisch niedrig).
+
+```bash
+db_scalar "SELECT count(*) FROM pg_stat_user_indexes WHERE idx_scan = 0 AND indisready AND NOT indisprimary AND indexrelid NOT IN (SELECT conindid FROM pg_constraint WHERE contype='u')"
+```
+
+> **B · Baseline:** n/a · **Target:** 0 · **Aufwand:** gering (Messung) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja
+
+## G-SEC06 — Container Images mit High/Critical CVEs: n/a → 0
+
+**Was:** Zählt unique Container-Images im aktiven Deployment mit bekannten CVEs der
+Severity `HIGH` oder `CRITICAL`. Kein Trivy/Grype-Scan ist aktuell eingerichtet —
+Sicherheitslücken in deployed Images werden nicht automatisch erkannt. Dieses Ziel
+schafft Sichtbarkeit; ein Trivy-CI-Job ist Voraussetzung für die Messung.
+
+```bash
+# Initial: Image-Inventur via kubectl. CVE-Zählung erfordert Trivy CI-Integration.
+kubectl get pods --all-namespaces -o jsonpath='{range .items[*]}{.spec.containers[*].image}{"\n"}{end}' | sort -u
+# Trivy-Integration (geplant):
+# trivy image --severity HIGH,CRITICAL --exit-code 0 --format json <image> | jq '.Results[].Vulnerabilities | length'
+```
+
+> **B · Baseline:** n/a · **Target:** 0 · **Aufwand:** mittel (Trivy-CI-Job + Baseline erfassen) · **Messzyklus:** wöchentlich · **Reproduzierbar:** mit Trivy ja
+
+## G-CI03 — CI Pipeline p95 Duration > 12 min: n/a → ≤ 12 min
+
+**Was:** Misst die p95-Dauer der letzten 20 CI-Runs auf `main` (von `createdAt` bis
+`updatedAt`). CI-Latenz ist ein direkter Hebel für Developer Velocity — je länger der
+Rückmeldungszyklus, desto geringer die Deployment Frequency. Der CI-Timeouts liegen
+bei 15 min für Tests; p95 sollte darunter bleiben.
+
+```bash
+gh-axi run list --workflow ci.yml --branch main --limit 20 --json createdAt,updatedAt \
+  | python3 -c "
+import json,sys
+runs=json.load(sys.stdin)
+durations=[(r['updatedAt']-r['createdAt']).total_seconds()/60 for r in runs if 'updatedAt' in r]
+durations.sort()
+p95=durations[int(len(durations)*0.95)]
+print(f'{p95:.1f}')
+"
+```
+
+> **B · Baseline:** n/a · **Target:** ≤ 12 min (p95) · **Aufwand:** gering (Messung via gh-axi) · **Messzyklus:** täglich · **Reproduzierbar:** ja
+
+## G-FE05 — Lighthouse Performance Score < 90: n/a → ≥ 90
+
+**Was:** Misst den Lighthouse Performance Score für die Website-Homepage via
+`lighthouse-ci`. Aktuell wird nur die Bundle-Größe (G-FE02) überwacht — das sagt
+nichts über FCP, LCP, CLS oder TTI aus. Core Web Vitals sind der Industriestandard
+für echte User-Performance.
+
+```bash
+# Placeholder — erfordert lighthouse-ci CI-Integration:
+# npx lhci autorun --collect.url=https://<domain>/ --assert.performance=0.9
+# Aktuell: manuelle Prüfung via Chrome DevTools Lighthouse-Tab
+```
+
+> **B · Baseline:** n/a · **Target:** ≥ 90 · **Aufwand:** mittel (lighthouse-ci einrichten + Baseline-Lauf) · **Messzyklus:** wöchentlich · **Reproduzierbar:** mit lighthouse-ci ja
 
 
 # Priorität C — Green Gates {#prio-c}
@@ -196,8 +284,8 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 
 **Messzyklus:**
 - **Pro Merge (CI-Gate):** G-RH02/07, G-TEST02/04, G-CQ04, G-SEC01/02, G-K8S04, G-CFG01, G-CI02, G-GIT02, G-SPEC01
-- **Täglich:** G-RH06, G-CI02, G-DB04, G-GIT01
-- **Wöchentlich:** G-RH01/03, G-TEST01/03, G-SIZE03, G-CI01, G-CD01, G-CQ02/05, G-IMG01, G-K8S03, G-SPEC03, G-GIT03, G-FE03/04, G-DB01, G-DB03, G-DB06, G-DB08
+- **Täglich:** G-RH06, G-CI02, G-DB04, G-GIT01, G-CI03
+- **Wöchentlich:** G-RH01/03, G-TEST01/03, G-SIZE03, G-CI01, G-CD01, G-CQ02/05, G-IMG01, G-K8S03, G-SPEC03, G-GIT03, G-FE03/04, G-DB01, G-DB03, G-DB06, G-DB08, G-DB09, G-DB10, G-SEC06, G-FE05
 - **Monatlich/Quartal:** G-DEP02, G-SEC03/04, G-DOC02, G-FE01/02
 
 **Sprint-Highlights 2026-07-01:** G-CI01 erreicht Target (85 %→95 %, 19/20 grün) und wechselt von Prio A nach Prio C. G-RH03 (OpenSpec-BATS-Abdeckung 50 %→82 %) und G-DEP02 (Major-Deps 9→2) erreichen ihr Target und wechseln von Prio B nach Prio C. G-CQ01 erstmals gemessen: 0 astro-check-Fehler. G-CQ02 (explizite `any`) fällt weiter von 154 auf 8. G-GIT03 (Dateien >1MB) erreicht Target 7→6 per Policy-Ausschluss von `.codebase-memory/` (T001348) und wechselt von Prio A nach Prio C. G-SEC05-Messfehler dokumentiert: das Skript filtert nur eine von zwei GitHub-Actions-Bot-Mail-Varianten heraus, wodurch 4 Bot-Commits fälschlich als unsigniert zählen — echter Wert 0/50, Skript-Fix noch offen.
@@ -222,7 +310,7 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 
 **Baseline-Update 2026-07-14 (T001804):** G-AGENTIC06 1→0 (OVERVIEW.md Zähler 37→36 + Mess-Umstellung auf getrackte SKILL.md via `git ls-files` — lokal via market-cli installierte Skills kippen das Gate nicht mehr, Präzedenz T001783). G-AGENTIC07 6→0 (2 untrackte lokale Skills aus dem Mess-Scope entfernt; 4 getrackte Drittanbieter-/ML-Skills — ui-ux-pro-max, unsloth, gguf-quantization, speculative-decoding — in neuer OVERVIEW.md-Sektion registriert). G-AGENTIC08 1→0 (Mess-Bug: Regex ohne Anker matchte `scripts/search.py` als Substring des existierenden Pfads `.claude/skills/ui-ux-pro-max/scripts/search.py` — Lookbehind ergänzt). G-AGENTIC11 5→0 (CLAUDE.md-opencode-Liste um `github-mcp`, `playwright`, `sequential-thinking`, `webresearch`, `docfork` ergänzt). G-DOC02 216→190 (CLAUDE.md kondensiert: Merge=Abschluss- und Bug-Triage-Blöcke entwrappt, leere `### Brett`-Überschrift und redundantes Oracle-Beispiel entfernt). G-AGENTIC09 1→0 (dev-flow-plan/SKILL.md 513→495 Zeilen, Prosa-Entwrapping ohne Inhaltsverlust). G-GIT03 bleibt 7 (>Target 6): Kandidaten `assets/grilling-brett-admin-panel/Brett Admin Panel.html` und `environments/korczewski/KERN Logo Design.html` sind Nutzer-Assets — Löschen/LFS braucht manuelle Entscheidung.
 
-**Offene Tickets (2026-07-10):** G-SIZE02 (T001556), G-DB01/03/06/08 (T001739), G-IMG01 (T001766)
+**Offene Tickets (2026-07-15):** G-SIZE02 (T001556), G-DB01/03/06/08 (T001739), G-IMG01 (T001766), G-DB09 (neu), G-DB10 (neu), G-SEC06 (neu), G-CI03 (neu), G-FE05 (neu)
 
 | Ziel | Ticket | Status |
 |------|--------|--------|
@@ -232,6 +320,11 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 | G-DB06 | T001739 | gruen (Gate, halten) |
 | G-DB08 | T001739 | offen (dokumentierte Baseline, kein hartes Target) |
 | G-IMG01 | T001766 | offen (Regression 0→2, Helm-Digest-Drift Loki/Promtail) |
+| G-DB09 | — | neu (Slow Queries, Messung ausstehend) |
+| G-DB10 | — | neu (Unused Indexes, Messung ausstehend) |
+| G-SEC06 | — | neu (Container CVEs, Trivy-Integration ausstehend) |
+| G-CI03 | — | neu (CI Duration, Messung via gh-axi) |
+| G-FE05 | — | neu (Lighthouse Performance, lighthouse-ci ausstehend) |
 | G-SIZE04 | T001280 | geschlossen (`done`), Messwert weiterhin rot → Nachfolger T001347 |
 | G-SIZE04 | T001347 | offen |
 | G-GIT03 | T001275 | **gefixt** (gitignore search-index.json [T001305]) |

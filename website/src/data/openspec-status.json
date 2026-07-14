@@ -1059,10 +1059,6 @@
   ],
   "T001813": [
     {
-      "slug": "factory-sandbox-runner",
-      "status": "plan_staged"
-    },
-    {
       "slug": "2026-07-14-factory-sandbox-runner",
       "status": "archived"
     }

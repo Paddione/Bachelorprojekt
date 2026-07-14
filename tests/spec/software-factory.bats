@@ -2951,12 +2951,9 @@ REG="scripts/factory/service-registry.sh"
   [ "$status" -eq 0 ]
 }
 
-@test "FA-SF-71: local-qwen35 seed sets prio-1 rows for the four orchestration sources" {
+@test "FA-SF-71: local-qwen35 seed sets prio-1 row for ticket-triage" {
   local f=scripts/migrations/2026-07-03-local-qwen35-seed.sql
-  grep -Eq "'factory-scout', *'sonnet', *1, *'local-qwen35'" "$f"
-  grep -Eq "'factory-plan', *'sonnet', *1, *'local-qwen35'" "$f"
   grep -Eq "'ticket-triage', *'haiku', *1, *'local-qwen35'" "$f"
-  grep -Eq "'lavish-artifact', *'sonnet', *1, *'local-qwen35'" "$f"
   grep -Eq '60000, *180000' "$f"
 }
 

@@ -1,6 +1,6 @@
 {
   "generatedFrom": "website/src/pages",
-  "count": 114,
+  "count": 117,
   "routes": [
     {
       "route": "/",
@@ -220,6 +220,14 @@
       "media": false
     },
     {
+      "route": "/admin/dora",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
       "route": "/admin/einstellungen/backup",
       "authTier": "admin",
       "brand": "both",
@@ -261,6 +269,22 @@
     },
     {
       "route": "/admin/einstellungen/rechnungen",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/factory-budget",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/factory-observability",
       "authTier": "admin",
       "brand": "both",
       "dynamic": false,

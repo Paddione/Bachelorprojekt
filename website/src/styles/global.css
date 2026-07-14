@@ -35,6 +35,9 @@
 
   /* Danger / destructive (migrated from factory-tokens.css) */
   --color-danger: #d77a6e;
+  --color-success: #4ade80;
+  --color-info: #60a5fa;
+  --color-warning: #fbbf24;
 
   /* UI surface tokens */
   --color-surface: #101826;
@@ -197,26 +200,6 @@
   --factory-phase-done:    color-mix(in oklab, var(--brass) 55%, var(--ink-850));
   --factory-phase-blocked: var(--danger);
   --factory-phase-future:  var(--ink-750);
-}
-
-/* Admin semantic color aliases — single source (was admin-foundation.css). */
-:root {
-  --admin-bg:            var(--color-ink-900);
-  --admin-sidebar-bg:    var(--color-ink-850);
-  --admin-surface:       var(--color-ink-800);
-  --admin-surface-hover: var(--color-ink-750);
-  --admin-border:        var(--color-line);
-  --admin-border-bright: var(--color-line-2);
-  --admin-primary:       var(--color-brass);
-  --admin-primary-muted: var(--color-brass-d);
-  --admin-accent:        var(--color-brass);
-  --admin-text:          var(--color-fg);
-  --admin-text-mute:     var(--color-mute);
-  --admin-text-disabled: var(--color-mute-2);
-  --admin-success:       var(--color-sage);
-  --admin-danger:        var(--color-danger);
-  --admin-info:          var(--color-brass);
-  --admin-warning:       var(--color-brass);
 }
 
 html {

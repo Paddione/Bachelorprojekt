@@ -7,6 +7,7 @@
 
 # ── File-level variables ──────────────────────────────────────────────────────
 ADMIN_FOUNDATION="$BATS_TEST_DIRNAME/../../website/src/styles/admin-foundation.css"
+FACTORY_TOKENS="$BATS_TEST_DIRNAME/../../website/src/styles/factory-tokens.css"
 ADMIN_LAYOUT="$BATS_TEST_DIRNAME/../../website/src/layouts/AdminLayout.astro"
 SIDEBAR_NAV="$BATS_TEST_DIRNAME/../../website/src/components/admin/AdminSidebarNav.astro"
 KORE_CSS="$BATS_TEST_DIRNAME/../../website/public/brand/korczewski/kore-app.css"
@@ -18,7 +19,7 @@ ADMIN_RESPONSIVE="$BATS_TEST_DIRNAME/../../website/src/styles/admin-responsive.c
                --admin-border --admin-border-bright --admin-primary --admin-primary-muted \
                --admin-accent --admin-text --admin-text-mute --admin-text-disabled \
                --admin-success --admin-danger --admin-info --admin-warning; do
-    run grep -E "^[[:space:]]*${token}[[:space:]]*:[[:space:]]*var\(--" "$ADMIN_FOUNDATION"
+    run grep -E "^[[:space:]]*${token}[[:space:]]*:[[:space:]]*var\(--" "$FACTORY_TOKENS"
     [ "$status" -eq 0 ] || { echo "missing alias for ${token}"; return 1; }
   done
 }

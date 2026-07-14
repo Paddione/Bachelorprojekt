@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.179.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.179.1...website-v1.179.2) (2026-07-14)
+
+
+### Bug Fixes
+
+* **tests:** resolve 8 pre-existing BATS test failures ([#2766](https://github.com/Paddione/Bachelorprojekt/issues/2766)) ([26ba7d8](https://github.com/Paddione/Bachelorprojekt/commit/26ba7d836d4f3cae125c04abc020b2faf31f0b76))
+
 ## [1.179.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.179.0...website-v1.179.1) (2026-07-11)
 
 

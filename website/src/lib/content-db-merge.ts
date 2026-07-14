@@ -26,7 +26,7 @@ export function mergeContentEntries(
       title: q.title,
       meta: `${q.dimension_count} Dimensionen`,
       createdAt: q.created_at,
-      detailHref: '/admin/coaching/studio',
+      detailHref: '/admin/coaching/sessions',
     });
   }
 

@@ -19,9 +19,10 @@ if [[ -z "$PHASE" ]]; then
   esac
 fi
 
-OPUS_MODEL="claude-opus-4-6"
+OPUS_MODEL="qwythos-9b-v2"
+OPUS_BASE_URL="http://127.0.0.1:1234"
 if [[ "$TIER" == "opus" ]]; then
-  printf '{"provider":"anthropic","modelId":"%s","baseUrl":null,"slotId":null,"ctx":0,"emergency":false}\n' "$OPUS_MODEL"
+  printf '{"provider":"lmstudio","modelId":"%s","baseUrl":"%s","slotId":null,"ctx":0,"emergency":false}\n' "$OPUS_MODEL" "$OPUS_BASE_URL"
   exit 0
 fi
 
@@ -72,5 +73,5 @@ SQL
   fi
 done <<< "$CANDS"
 
-# Emergency fallback: Anthropic sonnet, no slot claimed.
-printf '{"provider":"anthropic","modelId":"claude-sonnet-4-6","baseUrl":null,"slotId":null,"ctx":0,"emergency":true}\n'
+# Emergency fallback: local Qwythos, no slot claimed.
+printf '{"provider":"lmstudio","modelId":"qwythos-9b-v2","baseUrl":"http://127.0.0.1:1234","slotId":null,"ctx":0,"emergency":true}\n'

@@ -61,7 +61,11 @@ const HARNESS_TIERS = new Set(['sonnet', 'opus', 'haiku', 'fable'])
 function resolveAgentModel(route, fallbackTier, logFn) {
   if (!route) return fallbackTier
   if (HARNESS_TIERS.has(route.modelId) && !route.baseUrl) return route.modelId
-  if (typeof logFn === 'function') logFn(`resolveAgentModel: block baseUrl passthrough — modelId=${route.modelId} baseUrl=${route.baseUrl}, falling back to ${fallbackTier}`)
+  if (route.provider && route.baseUrl) {
+    if (typeof logFn === 'function') logFn(`resolveAgentModel: baseUrl passthrough — provider=${route.provider} modelId=${route.modelId} baseUrl=${route.baseUrl}`)
+    return { provider: route.provider, modelId: route.modelId, baseUrl: route.baseUrl }
+  }
+  if (typeof logFn === 'function') logFn(`resolveAgentModel: falling back to ${fallbackTier} — provider=${route.provider} modelId=${route.modelId}`)
   return fallbackTier
 }
 

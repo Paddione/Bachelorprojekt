@@ -552,20 +552,11 @@ body.kore #mobile-topbar { background: var(--ink-850); border-bottom: 1px solid 
 /* Tailwind-overriding bridges so legacy admin pages still look ok inside .kore */
 body.kore .bg-dark        { background: var(--ink-900) !important; }
 body.kore .bg-dark-light  { background: var(--ink-850) !important; }
- body.kore .bg-dark-lighter{ background: var(--ink-800) !important; }
- body.kore .text-light     { color: var(--fg) !important; }
- body.kore .text-muted     { color: var(--mute) !important; }
- body.kore .text-gold,
- body.kore .border-gold,
- body.kore .border-yellow-800,
- body.kore .border-yellow-700 { color: var(--copper) !important; border-color: var(--copper) !important; }
- body.kore .font-serif     { font-family: var(--serif) !important; }
-
- /* Admin token aliases → Kore copper palette (T001433) */
- body.kore {
-   --admin-primary:       var(--copper);
-   --admin-primary-muted: color-mix(in srgb, var(--copper) 15%, transparent);
-   --admin-accent:        var(--copper);
-   --admin-info:          var(--copper);
-   --admin-warning:       var(--copper);
- }
+body.kore .bg-dark-lighter{ background: var(--ink-800) !important; }
+body.kore .text-light     { color: var(--fg) !important; }
+body.kore .text-muted     { color: var(--mute) !important; }
+body.kore .text-gold,
+body.kore .border-gold,
+body.kore .border-yellow-800,
+body.kore .border-yellow-700 { color: var(--copper) !important; border-color: var(--copper) !important; }
+body.kore .font-serif     { font-family: var(--serif) !important; }

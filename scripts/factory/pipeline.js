@@ -28,10 +28,16 @@ const { resolveTaskSource } = require('./task-source.cjs')
 // safety net for driver attribution when dedup does not apply (T001444).
 if (!process.env.TICKET_PHASE_DRIVER) process.env.TICKET_PHASE_DRIVER = 'factory'
 function routeProviderSync(source, tier, phase) {
-  if (tier === 'opus') return { provider: 'anthropic', modelId: 'claude-opus-4-6', baseUrl: null, slotId: null, ctx: 0, emergency: false }
+  if (tier === 'opus') {
+    if (process.env.ANTHROPIC_MODEL) {
+      return { provider: 'lmstudio', modelId: process.env.ANTHROPIC_MODEL,
+               baseUrl: process.env.ANTHROPIC_BASE_URL || 'http://127.0.0.1:1234', slotId: null, ctx: 0, emergency: false }
+    }
+    return { provider: 'lmstudio', modelId: 'qwythos-9b-v2', baseUrl: 'http://127.0.0.1:1234', slotId: null, ctx: 0, emergency: false }
+  }
   if (process.env.ANTHROPIC_MODEL) {
-    return { provider: 'anthropic-compat', modelId: process.env.ANTHROPIC_MODEL,
-             baseUrl: process.env.ANTHROPIC_BASE_URL || null, slotId: null, ctx: 0, emergency: false }
+    return { provider: 'lmstudio', modelId: process.env.ANTHROPIC_MODEL,
+             baseUrl: process.env.ANTHROPIC_BASE_URL || 'http://127.0.0.1:1234', slotId: null, ctx: 0, emergency: false }
   }
   try {
     const { execFileSync } = require('child_process')
@@ -41,8 +47,8 @@ function routeProviderSync(source, tier, phase) {
       { encoding: 'utf8', timeout: 20000, env: { ...process.env, BRAND: brand } }).trim()
     return JSON.parse(out)
   } catch (e) {
-    log(`routeProvider(${source},${tier},${phase || ''}) failed -> emergency anthropic-sonnet: ${e.message}`)
-    return { provider: 'anthropic', modelId: 'claude-sonnet-4-6', baseUrl: null, slotId: null, ctx: 0, emergency: true }
+    log(`routeProvider(${source},${tier},${phase || ''}) failed -> emergency local qwythos: ${e.message}`)
+    return { provider: 'lmstudio', modelId: 'qwythos-9b-v2', baseUrl: 'http://127.0.0.1:1234', slotId: null, ctx: 0, emergency: true }
   }
 }
 

@@ -46,11 +46,11 @@ fi
 REPO="${REPO:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
 
 # ── Phase 1: Keyword extraction ──────────────────────────────────────────────
-# Title: meaningful words >3 chars, lowercased, first 4.
+# Title: meaningful words >3 chars, lowercased.
 # Slug:  parts >2 chars (split on '-').
 mapfile -t TITLE_WORDS < <(
   printf '%s' "$TITLE" | tr '[:upper:]' '[:lower:]' | tr -cs '[:alnum:]' '\n' \
-    | awk 'length>3' | head -4
+    | awk 'length>3'
 )
 mapfile -t SLUG_PARTS < <(
   printf '%s' "$SLUG" | tr '[:upper:]' '[:lower:]' | tr -cs '[:alnum:]' '\n' \
@@ -58,7 +58,7 @@ mapfile -t SLUG_PARTS < <(
 )
 
 # ── Phase 2: File discovery (three strategies) ───────────────────────────────
-SRC_DIRS=("$REPO/website/src" "$REPO/scripts" "$REPO/brett" "$REPO/k3d")
+SRC_DIRS=("$REPO/website/src" "$REPO/scripts" "$REPO/brett" "$REPO/k3d" "$REPO/environments" "$REPO/tests" "$REPO/docs" "$REPO/openspec")
 tmp_hits="$(mktemp)"
 trap 'rm -f "$tmp_hits"' EXIT
 
@@ -68,10 +68,11 @@ for kw in "${TITLE_WORDS[@]:-}"; do
   [[ -z "$kw" ]] && continue
   for d in "${SRC_DIRS[@]}"; do
     [[ -d "$d" ]] || continue
-    grep -rliF \
+    grep -rliFi \
       --include="*.ts" --include="*.js" --include="*.mjs" --include="*.cjs" \
       --include="*.svelte" --include="*.astro" \
       --include="*.yaml" --include="*.yml" --include="*.sh" \
+      --include="*.spec.ts" --include="*.test.ts" \
       -- "$kw" "$d" 2>/dev/null | head -20
   done
 done >> "$tmp_hits"
@@ -114,11 +115,11 @@ if [[ ${#TOUCHED[@]} -gt 30 ]]; then
 fi
 
 # ── Phase 2b: LLM fallback (hybrid scout) ─────────────────────────────────────
-# When deterministic discovery finds fewer than SCOUT_LLM_MIN_FILES (default 2)
+# When deterministic discovery finds fewer than SCOUT_LLM_MIN_FILES (default 4)
 # and the fallback is not explicitly disabled, invoke DeepSeek for additional paths.
 # Fail-soft: on any error the deterministic result stays untainted.
 SCOUT_LLM_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [[ ${#TOUCHED[@]} -lt ${SCOUT_LLM_MIN_FILES:-2} && "${SCOUT_LLM_ENABLED:-}" != "false" ]]; then
+if [[ ${#TOUCHED[@]} -lt ${SCOUT_LLM_MIN_FILES:-4} && "${SCOUT_LLM_ENABLED:-}" != "false" ]]; then
   if [[ -x "$SCOUT_LLM_ROOT/scout-llm-fallback.sh" ]]; then
     mapfile -t LLM_PATHS < <(
       bash "$SCOUT_LLM_ROOT/scout-llm-fallback.sh" \

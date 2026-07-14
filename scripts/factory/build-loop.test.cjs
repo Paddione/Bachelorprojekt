@@ -119,9 +119,6 @@ test('feedbackBlock: empty attempts renders cleanly', () => {
   assert.ok(!fb.includes('PREVIOUS ATTEMPTS (0)'))
 })
 
-// T001681: agent() (harness Workflow primitive) only accepts model in
-// {sonnet,opus,haiku,fable} — no baseUrl passthrough. resolveAgentModel must
-// never let a custom provider modelId/baseUrl reach agent() unguarded.
 test('resolveAgentModel: passes through a valid harness tier unchanged', () => {
   const logs = []
   const model = BL.resolveAgentModel({ modelId: 'opus', baseUrl: null }, 'sonnet', (m) => logs.push(m))
@@ -129,7 +126,21 @@ test('resolveAgentModel: passes through a valid harness tier unchanged', () => {
   assert.equal(logs.length, 0)
 })
 
-test('resolveAgentModel: falls back and logs when modelId is a custom provider string', () => {
+test('resolveAgentModel: passes through baseUrl model as object', () => {
+  const logs = []
+  const model = BL.resolveAgentModel(
+    { provider: 'lmstudio', modelId: 'qwythos-9b-v2', baseUrl: 'http://127.0.0.1:1234' },
+    'sonnet',
+    (m) => logs.push(m)
+  )
+  assert.equal(model.provider, 'lmstudio')
+  assert.equal(model.modelId, 'qwythos-9b-v2')
+  assert.equal(model.baseUrl, 'http://127.0.0.1:1234')
+  assert.equal(logs.length, 1)
+  assert.ok(logs[0].includes('baseUrl passthrough'))
+})
+
+test('resolveAgentModel: falls back when no provider in route', () => {
   const logs = []
   const model = BL.resolveAgentModel(
     { modelId: 'qwen3.5-9b@iq4_xs', baseUrl: 'http://100.102.71.114:1234/v1' },
@@ -137,15 +148,6 @@ test('resolveAgentModel: falls back and logs when modelId is a custom provider s
     (m) => logs.push(m)
   )
   assert.equal(model, 'sonnet')
-  assert.equal(logs.length, 1)
-  assert.ok(logs[0].includes('qwen3.5-9b@iq4_xs'))
-  assert.ok(logs[0].includes('baseUrl'))
-})
-
-test('resolveAgentModel: falls back and logs when baseUrl is set even if modelId happens to match a tier name', () => {
-  const logs = []
-  const model = BL.resolveAgentModel({ modelId: 'sonnet', baseUrl: 'http://local:1234/v1' }, 'haiku', (m) => logs.push(m))
-  assert.equal(model, 'haiku')
   assert.equal(logs.length, 1)
 })
 

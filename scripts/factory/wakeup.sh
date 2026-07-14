@@ -106,12 +106,7 @@ while true; do
   FACTORY_DAILY_DEPLOY_CAP="${FACTORY_DAILY_DEPLOY_CAP:-5}" FACTORY_GLOBAL_CAP="${FACTORY_GLOBAL_CAP:-3}" \
     bash "${REPO}/scripts/vda.sh" factory-prep 2>/dev/null | jq -c . > "${PREP_FILE}" 2>/dev/null || echo 'null' > "${PREP_FILE}"
 
-  PROMPT="Run the Software Factory dispatcher now. Invoke the Workflow tool with \
-scriptPath 'scripts/factory/dispatcher.js' and args { timestamp: '${TIMESTAMP}', dry_run: ${DRY_RUN}, prep_file: '${PREP_FILE}' }. \
-Pass prep_file through verbatim — do not alter, re-run, or improvise it. \
-The dispatcher reads all guards (kill-switch, daily-cap, dry-run-first) fresh per brand inside its PREP step \
-(already evaluated into prep_file by this wrapper). \
-Report only the dispatcher's final JSON result. Do not improvise scheduling."
+  DISPATCHER_BRIDGE="${REPO}/scripts/factory/dispatcher-bridge.sh"
 
   echo "wakeup.sh: starting tick #${TICK} at ${TIMESTAMP}" >&2
 

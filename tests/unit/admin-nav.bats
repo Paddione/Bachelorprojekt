@@ -80,14 +80,13 @@ EINSTELLUNGEN_TABS="$PROJECT_DIR/website/src/components/AdminEinstellungenTabs.a
   refute_output "0"
 }
 
-@test "coaching/sessions/index.astro: Sessions + Studio tabs present (post-T001649)" {
-  # T001649 / PR #2624 removed the Projekte tab; the page now exposes
-  # Sessions-Liste (href /admin/coaching/sessions) and Sessions
-  # (href /admin/coaching/studio, the renamed Studio tab). Verify the
-  # new tab state instead of the removed Projekte one.
-  run grep -c 'href="/admin/coaching/sessions"' "$PROJECT_DIR/website/src/pages/admin/coaching/sessions/index.astro"
-  refute_output "0"
+@test "coaching/sessions/index.astro: kein Studio-Link mehr, Breadcrumb vorhanden (post-T001792)" {
+  # T001792 / PR #2767 removed the dead coaching studio route and its tab
+  # links; the sessions page keeps only the Admin breadcrumb. Assert the
+  # removed route is not referenced anymore and the breadcrumb survives.
   run grep -c 'href="/admin/coaching/studio"' "$PROJECT_DIR/website/src/pages/admin/coaching/sessions/index.astro"
+  assert_output "0"
+  run grep -c 'href="/admin"' "$PROJECT_DIR/website/src/pages/admin/coaching/sessions/index.astro"
   refute_output "0"
 }
 

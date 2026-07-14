@@ -2,7 +2,7 @@
 title: "website-db-decouple — Implementation Plan"
 ticket_id: T001490
 domains: [website, infra]
-status: plan_staged
+status: archived
 file_locks:
   - Taskfile.yml
   - environments/schema.yaml

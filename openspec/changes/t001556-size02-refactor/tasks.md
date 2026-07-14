@@ -1,7 +1,7 @@
 ---
 title: "G-SIZE02: Großdateien außerhalb Gate-Scope — Refactoring (17 → ≤ 8)"
 ticket_id: T001556
-status: planning
+status: archived
 created_at: 2026-07-08
 domains: [ci, code-quality]
 ---

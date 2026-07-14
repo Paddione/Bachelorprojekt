@@ -2,7 +2,7 @@
 title: agent-model-slots
 ticket_id: T001733
 domains: [factory, website, database, tooling]
-status: plan_staged
+status: archived
 file_locks: []
 shared_changes: false
 batch_id: null

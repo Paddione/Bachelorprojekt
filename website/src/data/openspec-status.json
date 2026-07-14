@@ -1039,6 +1039,18 @@
       "status": "plan_staged"
     }
   ],
+  "T001802": [
+    {
+      "slug": "smtp-password-sync",
+      "status": "plan_staged"
+    }
+  ],
+  "T001803": [
+    {
+      "slug": "t001803-pocket-id-dns",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

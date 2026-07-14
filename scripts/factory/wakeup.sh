@@ -99,7 +99,28 @@ while true; do
     bash "${REPO}/scripts/vda.sh" factory-prep 2>/dev/null | jq -c . 2>/dev/null || true)"
   PREP_ARG=""
   if [[ -n "${PREP_JSON}" ]]; then
-    PREP_ARG=", prep: ${PREP_JSON}"
+    # T001809: Budget-Guard + Blocked-Cleanup + Sentinel ebenfalls deterministisch —
+    # reine Bash-Orchestrierung; die LLM-Agent-Schritte in dispatcher.js scheitern mit
+    # kleinen lokalen Modellen am StructuredOutput-Kontrakt und hinterlassen den
+    # PREP-Claim als Zombie (in_progress ohne Pipeline).
+    _ok_ids='[]'
+    while IFS=$'\t' read -r _ext _brand; do
+      [[ -z "${_ext}" ]] && continue
+      if BRAND="${_brand}" bash "${REPO}/scripts/factory/budget-guard.sh" "${_brand}" >/dev/null 2>&1; then
+        BRAND="${_brand}" bash "${REPO}/scripts/factory/budget-estimate.sh" "${_ext}" "${_brand}" >/dev/null 2>&1 || true
+        _ok_ids="$(jq -c --arg e "${_ext}" '. + [$e]' <<<"${_ok_ids}")"
+      else
+        echo "wakeup.sh: budget-guard blocked ${_ext} (${_brand})" >&2
+        BRAND="${_brand}" bash "${REPO}/scripts/ticket.sh" update-status --id "${_ext}" --status blocked >/dev/null 2>&1 || true
+        BRAND="${_brand}" bash "${REPO}/scripts/ticket.sh" phase "${_ext}" scout blocked --detail 'daily budget exceeded' >/dev/null 2>&1 || true
+        BRAND="${_brand}" bash "${REPO}/scripts/ticket.sh" release-slot --id "${_ext}" >/dev/null 2>&1 || true
+      fi
+    done < <(jq -r '.launch[]? | [.external_id, .brand] | @tsv' <<<"${PREP_JSON}" 2>/dev/null)
+    PREP_JSON="$(jq -c --argjson ok "${_ok_ids}" \
+      '.launch = [.launch[]? | select(.external_id as $e | $ok | index($e) != null)]' <<<"${PREP_JSON}")"
+    _iw=false
+    bash "${REPO}/scripts/agent-lock.sh" list 2>/dev/null | grep -q interactive-worker && _iw=true
+    PREP_ARG=", prep: ${PREP_JSON}, interactive_worker: ${_iw}"
   fi
   PROMPT="Run the Software Factory dispatcher now. Invoke the Workflow tool with \
 scriptPath 'scripts/factory/dispatcher.js' and args { timestamp: '${TIMESTAMP}', dry_run: ${DRY_RUN}${PREP_ARG} }. \
@@ -135,7 +156,7 @@ Report only the dispatcher's final JSON result. Do not improvise scheduling."
       | sed "s/^/[auto-triage:${_t_brand}] /" >&2 || true
   done
   "${CLAUDE_BIN}" -p "${PROMPT}" \
-    --allowedTools "Workflow,Bash(bash scripts/factory/*),Bash(bash scripts/ticket.sh*),ToolSearch,PushNotification" \
+    --allowedTools "Workflow,Bash(bash scripts/factory/*),Bash(bash scripts/ticket.sh*),Bash(bash scripts/vda.sh*),ToolSearch,PushNotification" \
     --permission-mode acceptEdits
   TICK_EXIT=$?
 

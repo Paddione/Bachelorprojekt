@@ -150,6 +150,9 @@ if [ "$BRANCH_EXISTS" -eq 1 ] && [ -f "$KEY_SRC" ]; then
   fi
 fi
 
+# Pre-compute MAIN_ROOT (needed by submodule fallback and node_modules symlink).
+MAIN_ROOT="$(dirname "$COMMON_DIR")"
+
 # 2) Init submodules (git worktree add does NOT; the BATS runner lives in one).
 git -C "$WT_PATH" submodule update --init --recursive --quiet || {
     echo "worktree-create: submodule update failed — attempting local copy fallback" >&2
@@ -168,7 +171,6 @@ git -C "$WT_PATH" submodule update --init --recursive --quiet || {
 #    worktree resolves deps instantly — no 536M reinstall, and the Taskfile's
 #    `[ -d node_modules ] || npm ci` guards short-circuit (avoiding their race
 #    under concurrent test:all). Skipped cleanly if the base has none. [T000526]
-MAIN_ROOT="$(dirname "$COMMON_DIR")"
 if [ -d "$MAIN_ROOT/node_modules" ] && [ ! -e "$WT_PATH/node_modules" ]; then
     ln -s "$MAIN_ROOT/node_modules" "$WT_PATH/node_modules"
     echo "worktree-create: linked node_modules → $MAIN_ROOT/node_modules" >&2

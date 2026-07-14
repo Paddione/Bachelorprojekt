@@ -2815,7 +2815,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 505,
+      "file_count": 506,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",

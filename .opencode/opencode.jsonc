@@ -178,20 +178,5 @@
       "command": ["npx", "-y", "@mzxrai/mcp-webresearch@latest"],
       "enabled": false
     }
-  },
-  "agent": {
-    "openspec": {
-      "description": "OpenSpec-plan orchestrator - decomposes a brainstorming spec into proposal.md/tasks.md/specs-delta and delegates the three parts to serialized qwen35 subagents (Qwythos-9B-v2, shares main 330k context, 1 at a time), then merges and runs plan-lint.sh. Serial dispatch — no parallel subagents.",
-      "mode": "primary",
-      "model": "lmstudio/qwythos-9b-v2",
-      "prompt": "{file:./prompts/local-openspec-orchestrator.md}",
-      "color": "#6366F1",
-      "temperature": 0.5,
-      "permission": {
-        "edit": "allow",
-        "write": "allow",
-        "bash": "allow"
-      }
-    }
   }
 }

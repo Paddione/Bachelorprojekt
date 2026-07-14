@@ -52,12 +52,21 @@ async function main() {
   // - ticket.sh get (fetch details for launch)
   // - scripts/factory/guards.sh (kill-switch via guard_killswitch_on, daily cap via guard_daily_cap_reached)
   phase('Prep')
-  const prep = await agent(
-    `Run the unified Software Factory prep script from ${REPO} and return its JSON output:
-       FACTORY_DAILY_DEPLOY_CAP=${A.FACTORY_DAILY_DEPLOY_CAP ?? '5'} FACTORY_GLOBAL_CAP=3 bash ${REPO}/scripts/vda.sh factory-prep
-     Return the exact JSON output from this script and nothing else.`,
-    { label: 'prep', phase: 'Prep', schema: PLAN_SCHEMA },
-  )
+  // T001808: prefer the deterministic prep JSON precomputed by wakeup.sh (args.prep) —
+  // small local models fail the PREP subagent's StructuredOutput contract; the agent
+  // call below survives only as fallback for invocations without a precomputed prep.
+  let prep
+  if (A.prep && typeof A.prep === 'object' && Array.isArray(A.prep.launch)) {
+    log('Dispatcher: using precomputed prep from args (deterministic wakeup handoff)')
+    prep = A.prep
+  } else {
+    prep = await agent(
+      `Run the unified Software Factory prep script from ${REPO} and return its JSON output:
+         FACTORY_DAILY_DEPLOY_CAP=${A.FACTORY_DAILY_DEPLOY_CAP ?? '5'} FACTORY_GLOBAL_CAP=3 bash ${REPO}/scripts/vda.sh factory-prep
+       Return the exact JSON output from this script and nothing else.`,
+      { label: 'prep', phase: 'Prep', schema: PLAN_SCHEMA },
+    )
+  }
 
   // Guard: PREP agent returned null (API error, model config mismatch, or subagent failure).
   // Fail-closed — record the outage and exit cleanly so the /loop can retry next tick.

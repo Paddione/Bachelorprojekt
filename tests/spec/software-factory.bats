@@ -3148,3 +3148,17 @@ STUB
   run bash -c "grep -A2 'watchdog\.sh' scripts/vda/factory-prep.sh | grep -E 'while IFS= read'"
   [ "$status" -eq 0 ]
 }
+
+@test "T001808: wakeup.sh precomputes factory-prep JSON and passes it as args.prep" {
+  run grep -E 'vda\.sh.? factory-prep' scripts/factory/wakeup.sh
+  [ "$status" -eq 0 ]
+  run grep -F 'prep: ${PREP_JSON}' scripts/factory/wakeup.sh
+  [ "$status" -eq 0 ]
+}
+
+@test "T001808: dispatcher.js prefers precomputed args.prep over the PREP subagent" {
+  run grep -F 'A.prep' scripts/factory/dispatcher.js
+  [ "$status" -eq 0 ]
+  run grep -F 'Array.isArray(A.prep.launch)' scripts/factory/dispatcher.js
+  [ "$status" -eq 0 ]
+}

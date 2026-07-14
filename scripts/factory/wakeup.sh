@@ -91,8 +91,19 @@ TICK=0
 while true; do
   TICK=$(( TICK + 1 ))
   TIMESTAMP="$(date -u +%FT%TZ)"
+  # T001808: PREP deterministisch vorberechnen und als args.prep durchreichen.
+  # Kleine lokale Modelle scheitern am StructuredOutput-Kontrakt des PREP-Subagenten;
+  # factory-prep ist reines Bash — der LLM-Schritt ist hier unnötig. Bei leerem/
+  # ungültigem JSON fällt dispatcher.js auf den PREP-Agenten zurück.
+  PREP_JSON="$(FACTORY_DAILY_DEPLOY_CAP="${FACTORY_DAILY_DEPLOY_CAP:-5}" FACTORY_GLOBAL_CAP="${FACTORY_GLOBAL_CAP:-3}" \
+    bash "${REPO}/scripts/vda.sh" factory-prep 2>/dev/null | jq -c . 2>/dev/null || true)"
+  PREP_ARG=""
+  if [[ -n "${PREP_JSON}" ]]; then
+    PREP_ARG=", prep: ${PREP_JSON}"
+  fi
   PROMPT="Run the Software Factory dispatcher now. Invoke the Workflow tool with \
-scriptPath 'scripts/factory/dispatcher.js' and args { timestamp: '${TIMESTAMP}', dry_run: ${DRY_RUN} }. \
+scriptPath 'scripts/factory/dispatcher.js' and args { timestamp: '${TIMESTAMP}', dry_run: ${DRY_RUN}${PREP_ARG} }. \
+Pass the prep value through verbatim — do not alter, re-run, or improvise it. \
 The dispatcher reads all guards (kill-switch, daily-cap, dry-run-first) fresh per brand inside its PREP step. \
 Report only the dispatcher's final JSON result. Do not improvise scheduling."
 

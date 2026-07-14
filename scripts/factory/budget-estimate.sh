@@ -83,17 +83,17 @@ resolved AS (
   FROM phases p
 )
 SELECT phase || '|' || COALESCE(config, CASE 
-  WHEN tier = 'opus' THEN 'anthropic|claude-opus-4-6'
-  WHEN tier = 'sonnet' THEN 'anthropic|claude-sonnet-4-6'
-  ELSE 'anthropic|claude-haiku-4-5'
+  WHEN tier = 'opus' THEN 'lmstudio|qwythos-9b-v2'
+  WHEN tier = 'sonnet' THEN 'lmstudio|qwythos-9b-v2'
+  ELSE 'lmstudio|qwythos-9b-v2'
 END) FROM resolved;
 SQL
 )
 
 TOTAL_TOKENS_EST=0
 TOTAL_COST_EST="0.000000"
-MAIN_PROVIDER="anthropic"
-MAIN_MODEL_ID="claude-sonnet-4-6"
+MAIN_PROVIDER="lmstudio"
+MAIN_MODEL_ID="qwythos-9b-v2"
 
 SQL_CMDS="BEGIN;"
 
@@ -124,12 +124,15 @@ while read -r line; do
   PRICE_IN="0.00"
   PRICE_OUT="0.00"
   
-  if [[ "$PROVIDER" == *"anthropic"* ]]; then
-    PRICE_IN="3.00"
-    PRICE_OUT="15.00"
+  if [[ "$PROVIDER" == *"lmstudio"* || "$PROVIDER" == *"local"* || "$PROVIDER" == *"qwythos"* ]]; then
+    PRICE_IN="0.00"
+    PRICE_OUT="0.00"
   elif [[ "$PROVIDER" == *"deepseek"* ]]; then
     PRICE_IN="0.27"
     PRICE_OUT="1.10"
+  elif [[ "$PROVIDER" == *"anthropic"* ]]; then
+    PRICE_IN="3.00"
+    PRICE_OUT="15.00"
   fi
   
   # Calculate cost

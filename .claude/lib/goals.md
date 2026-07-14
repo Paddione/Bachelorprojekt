@@ -30,149 +30,20 @@ Sofort angehen. Ticket-Erstellung ist **bewusst manuell** (`scripts/health-goals
 
 ---
 
-## G-DB04 — Backup-Alter: 6d19h 🔴 → ≤ 26 h ✅ (aktuell 1 h)
+## G-GIT03 — Dateien > 1MB im Tree (kein LFS): 7 🔴 (Ziel ≤ 6)
 
-**Was:** Stunden seit dem letzten erfolgreichen `db-backup`-Job im Cluster (`kubectl get jobs` mit
-`succeeded==1`). War 163 h (~6 Tage 19 h), liegt jetzt bei 1 h — deutlich unter Target. Root-Cause
-war in T001738 verfolgt; ob T001738 selbst die Ursache behoben hat oder der Job zuletzt nur planmäßig
-lief, ist hier nicht verifiziert — Messzyklus bleibt täglich, um eine erneute Regression sofort zu sehen.
-
-```bash
-ts=$(kubectl get jobs -n "${HG_DB_NS:-workspace}" --context "${HG_DB_CTX:-fleet}" \
-       --request-timeout=5s \
-       -o jsonpath='{range .items[?(@.status.succeeded==1)]}{.metadata.name}{" "}{.status.completionTime}{"\n"}{end}' \
-     | grep -E '^db-backup' | awk '{print $2}' | sort | tail -1)
-epoch=$(date -u -d "$ts" +%s)
-now=$(date -u +%s)
-echo $(( (now - epoch) / 3600 ))
-```
-
-> **A · Baseline:** 6d19h 🔴 → 1h ✓ · **Target:** ≤ 26 h · **Aufwand:** unbekannt (Root-Cause T001738) · **Messzyklus:** täglich (Regressionswache) · **Reproduzierbar:** ja · **Ticket:** T001739 (Root-Cause T001738)
-
----
-
-## G-GIT03 — Dateien > 1MB im Tree (kein LFS): 6 → ≤ 6 ✅
-
-**Was:** Zählt Dateien >1MB im Tree (u. a. gerenderte `kube-prometheus-stack`-Manifeste, gebaute Docs-HTML). `.codebase-memory/graph.db.zst` (16.7MB, ehem. PR #2281) ist seit **T001717** kein getracktes Repo-Artefakt mehr — es wird lokal via `task codebase:index` regeneriert (`.gitignore`) statt committet, daher entfällt der frühere Scope-Ausschluss (T001348) ersatzlos.
+**Was:** Zählt Dateien >1MB im Tree (u. a. gerenderte `kube-prometheus-stack`-Manifeste, gebaute Docs-HTML). `.codebase-memory/graph.db.zst` (16.7MB, ehem. PR #2281) is seit **T001717** kein getracktes Repo-Artefakt mehr — es wird lokal via `task codebase:index` regeneriert (`.gitignore`) statt committet, daher entfällt der frühere Scope-Ausschluss (T001348) ersatzlos.
 
 ```bash
 git ls-files -z | xargs -0 -I{} sh -c 'test -f "{}" && wc -c "{}"' 2>/dev/null \
   | awk '$1>1048576{c++} END{print c+0}'
 ```
 
-**Historie (T001348, obsolet seit T001717):** Eine LFS-Migration von `graph.db.zst` wurde ursprünglich verworfen und die Datei stattdessen per Policy-Entscheidung aus dem Gate-Scope ausgeschlossen (git-lfs lokal defekt, kein erkennbarer Gegenwert für ein intern generiertes `merge=ours`-Binärartefakt). T001717 hat das Problem an der Wurzel gelöst: die Datei ist nicht mehr getrackt, der Ausschluss ist damit hinfällig.
+**Historie (T001348, obsolet seit T001717):** Eine LFS-Migration von `graph.db.zst` wurde ursprünglich verworfen und die Datei stattdessen per Policy-Entscheidung aus dem Gate-Scope ausgeschlossen (git-lfs lokal defekt, kein erkennbarer Gegenwert für ein intern generiertes `merge=ours`-Binärartefakt). T001717 hat das Problem an der Wurzel gelöst: die Datei is nicht mehr getrackt, der Ausschluss ist damit hinfällig.
 
-> **A · Baseline:** 6 · **Target:** ≤ 6 · **Aufwand:** erledigt · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · Ticket: T001717 (löst T001348 ab — Artefakt nicht mehr getrackt statt Scope-Ausschluss)
-
----
-
-## G-CD01 — korczewski Website-Deploy-Rate: 100 % (≥ 90 %) ✅
-
-**Was:** 15/15 grün. Messbefehl zeigte auf den durch PR #2167/T001229 gelöschten Workflow
-`build-website-korczewski.yml` und lieferte dadurch dauerhaft den eingefrorenen Wert 53 % zurück —
-jetzt Job-Level `gh api`-Abfrage gegen den aktuell existierenden, konsolidierten Workflow
-`build-website.yml`/Job `deploy-korczewski`.
-
-```bash
-gh api "repos/{owner}/{repo}/actions/workflows/build-website.yml/runs?branch=main&per_page=15" \
-    --jq '.workflow_runs[].id' \
-  | xargs -I{} gh api repos/{owner}/{repo}/actions/runs/{}/jobs \
-      --jq '.jobs[] | select(.name=="Deploy Website (korczewski)") | .conclusion' \
-  | sort | uniq -c
-```
-
-> **C · Baseline:** 100 % (15/15) · **Target:** ≥ 90 % · **Status:** erreicht · Ticket: T001349 (gefixt)
-
----
-
-## G-CFG01 — env:validate:all grün ✅
-
-**Fix (2026-07-10):** `TERMINAL_OVERLAY_IP` (neues `required: true`-Feld aus dem terminal-sidekick-Feature, T001565) fehlte in `environments/staging.yaml` — ergänzt analog zu den anderen Environments (`10.20.0.10`, fleet-wg-Overlay des terminal-sidekick-Hosts). Alle 6 Environments passen wieder.
-
-**Fix (historisch):** PRIMARY_FRONTEND + TURN_OVERLAY_IP in fleet-* + staging ergänzt, RUSTDESK-Keys auf `required: false` gesetzt (mentolder-only via `owner_brand`). Alle 6 Environments passen.
-
-```bash
-task env:validate:all  # Exit 0 ✓
-```
-
-> **C · Baseline:** 0 · **Target:** 0 · **Aufwand:** gering (Commit 97f04f031) · **Messzyklus:** pro Merge · **Reproduzierbar:** ja · **Ticket:** T001548
-
----
-
-## G-GIT02 — Non-conventional Commits: 1/30 🔴
-
-**Fix:** Der vermeintliche non-conventional Commit war ein `Merge branch`-Commit,
-der von GitHub automatisch erzeugt wird und konventionelle Commit-Regeln nicht
-betrifft. Gate: `--no-merges` hinzugefügt (health-goals-check.sh:102).
-
-**Aktuell:** Commit `f9dc1ae4e` (`mishap-bundle-fix: verify — test:changed, freshness:check`) ist kein Konventional-Commit. Wurde von der automatischen Mishap-Bundle-Routine erstellt. Kann nicht aus der History entfernt werden; löst sich nach ~17 weiteren Commits auf main von selbst auf.
-
-```bash
-git log --format=%s --no-merges -30 origin/main | grep -vcE '^(feat|fix|chore|docs|test|refactor|perf|style|build|ci|revert)(\([^)]+\))?!?:\s'
-```
-
-> **A · Baseline:** 0→1 · **Target:** 0 · **Aufwand:** selbstlöschend (~17 weitere main-Commits) · **Messzyklus:** pro Merge · **Reproduzierbar:** ja · **Ticket:** T001552 (reopened)
-
----
-
-## G-AGENTIC06 — OVERVIEW.md Skill-Zähler vs real: 0 ✅
-
-**Fix:** OVERVIEW.md Zähler von 27→30 korrigiert (3 neue Skills: lavish, references, vitest waren nicht eingetragen). Am 2026-07-04 erneut von 30→31 korrigiert (neuer Skill: brain-ingest).
-
-```bash
-grep -cP '^\d+ project-local skills' .agents/skills/OVERVIEW.md | xargs -I{} sh -c '[ "$(find .claude/skills -name SKILL.md | wc -l)" = "{}" ]'
-```
-
-> **C · Baseline:** 0→0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** pro Merge · **Reproduzierbar:** ja · **Ticket:** T001550
-
----
-
-## G-AGENTIC07 — Verwaiste aktive Skills: 0 ✅
-
-**Fix:** website-specialist, database-specialist, security-specialist in OVERVIEW.md
-Tabellen aufgenommen (waren als Subagent-Skills nie in OVERVIEW.md registriert).
-
-```bash
-# for SKILL.md in find; if description exists && zero refs in CLAUDE.md/AGENTS.md/OVERVIEW.md/other SKILL.md → count
-```
-
-> **C · Baseline:** 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** pro Merge · **Reproduzierbar:** ja · **Ticket:** T001551
-
----
-
-# Priorität B — Offene Ziele {#prio-b}
+> **A · Baseline:** 6 → 7 🔴 · **Target:** ≤ 6 · **Aufwand:** erledigt · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · Ticket: T001717 (löst T001348 ab �# Priorität B — Offene Ziele {#prio-b}
 
 Im nächsten Sprint einplanen.
-
-## G-CQ01 — astro-check-Fehler: 0 → ≤ 20 ✅ erreicht (halten)
-
-CI-Gate aktiv (PR #2225). ESLint-Gate ebenfalls aktiv (`eslint.config.js` vorhanden).
-
-```bash
-cd website && pnpm astro check 2>&1 | grep -E '^- [0-9]+ errors'
-```
-
-> **B · Baseline:** 0 ✓ (war ?; erstmals gemessen) · **Target:** ≤ 20 · **Aufwand:** halten (CI-Gate) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001553
-
-## G-CQ03 — ESLint Warnings → 0 ✅ Gate vorhanden
-
-`eslint.config.js` in `website/` vorhanden (war: kein ESLint). Noch 2 inline `eslint-disable`-Direktiven (sepa-pain008.ts + FactoryFloor.svelte) — beide sind legitime Disables für `no-control-regex` und `no-import-assign` aus `js.configs.recommended`.
-
-```bash
-ls website/eslint.config.* 2>/dev/null; grep -rn 'eslint-disable' website/src | wc -l
-```
-
-> **B · Baseline:** 2 legitime Direktiven (war: kein ESLint, 9 tote Direktiven) · **Target:** Gate aktiv + Warnings 0 · **Aufwand:** minimal (Direktiven prüfen ob ersetzbar) · **Messzyklus:** pro Merge · **Reproduzierbar:** eingeschränkt · **Ticket:** T001554
-
-## G-CQ08 — Dead-Code / ungenutzte Exports: messen → −50 %
-
-`knip` braucht eine Minimal-Config, dann ist die Menge reproduzierbar.
-
-```bash
-npx --yes knip@latest --directory website --reporter symbols 2>/dev/null | grep -iE 'unused|exports' | head
-```
-
-> **B · Baseline:** unbekannt · **Target:** −50 % · **Aufwand:** mittel · **Messzyklus:** monatlich · **Reproduzierbar:** eingeschränkt (Tool-Setup) · **Ticket:** T001555
 
 ## G-SIZE02 — Großdateien außerhalb Gate-Scope: 17 → ≤ 8
 
@@ -185,51 +56,17 @@ git ls-files VideoVault .opencode | grep -E '\.(ts|tsx|js|mjs|svelte|sh|py)$' \
 
 > **B · Baseline:** 17 (unverändert) · **Target:** ≤ 8 · **Aufwand:** ~2–3 Wochen · **Messzyklus:** pro Merge auf VideoVault/ · **Reproduzierbar:** ja · **Ticket:** T001556
 
-## G-FE01 — Accessibility: 0 critical/serious axe-Violations
+## G-AGENTIC09 — SKILL.md > 500 Zeilen: 1 🟡 (Ziel ≤ 0)
 
-Kein a11y-Tooling vorhanden. `@axe-core/cli` gegen Preview-Server ist abgegrenztes Setup.
-
-```bash
-npx --yes @axe-core/cli http://localhost:4321 http://localhost:4321/ueber-mich --exit
-```
-
-> **B · Baseline:** unbekannt · **Target:** 0 critical/serious (Kern-Routen) · **Aufwand:** mittel (Setup + Fixes) · **Messzyklus:** pro Release · **Reproduzierbar:** eingeschränkt (Build + Tool nötig) · **Ticket:** T001557
-
-## G-FE02 — Client-JS-Bundle-Budget: messen → kein Netto-Zuwachs/Release
-
-Keine Bundle-Size-Messung. Nach Astro-Build trivial messbar.
-
-```bash
-pnpm --dir website build >/dev/null 2>&1 && find website/dist -name '*.js' -path '*_astro*' -printf '%s\n' 2>/dev/null \
-  | awk '{s+=$1} END{printf "client JS total: %.0f KiB\n", s/1024}'
-```
-
-> **B · Baseline:** unbekannt (Voll-Build nötig) · **Target:** kein Netto-Zuwachs/Release · **Aufwand:** gering + Policy · **Messzyklus:** pro Release · **Reproduzierbar:** eingeschränkt · **Ticket:** T001558
-
-## G-FE03 — Strukturiertes Logging: console.error/warn 10 → 0 ✅
-
-OpenSpec-Change [`g-fe03-structured-logger`](../../openspec/changes/g-fe03-structured-logger/) (Ticket T001299) migrierte alle `console.error`/`console.warn`-Aufrufe auf den pino-basierten Logger (`website/src/lib/logger.ts`) bzw. den Browser-Logger-Stub. **Korrektur (T001369):** diese ID war bis dahin fälschlich in der Prio-C-Tabelle als bereits-grüner Gate für `console.log/debug/info` gelistet — zwei verschiedene Metriken teilten sich eine ID. `console.log/debug/info` läuft jetzt unter der neuen ID [`G-FE04`](#prio-c) (bereits grün, keine Migration nötig). **Fix (2026-07-10):** letzte zwei rohe `console.error`-Aufrufe außerhalb der Test-Suite waren bewusste Rekursionsschutz-Fallbacks in `logger.ts`/`error-log-store.ts` selbst (der pino-Logger kann seinen eigenen Schreibfehler nicht über sich selbst loggen) — Messbefehl schließt diese beiden jetzt analog zu `browser-logger.ts` aus.
-
-```bash
-grep -rEn 'console\.(error|warn)' website/src --include='*.ts' --include='*.svelte' --include='*.astro' \
-  | grep -v 'browser-logger.ts' | grep -v 'logger.ts' | grep -v 'error-log-store.ts' | grep -v '\.test\.ts' | wc -l
-```
-
-> **C · Baseline:** 0 ✓ (war 10 → 1 → 0) · **Target:** 0 · **Aufwand:** erledigt · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001299 (Migration) — Mess-Scope-Fix ohne eigenes Ticket (Chore)
-
-
-## G-AGENTIC09 — SKILL.md > 500 Zeilen: 3 → ≤ 0 🟡
-
-**Was:** Drei Skills überschreiten die 500-Zeilen-Empfehlung: `dev-flow-execute` (662),
-`infra-ops` (595), `dev-flow-plan` (580). Längere Skills sind schwerer zu warten und
-erhöhen den Prompt-Token-Verbrauch bei Dispatch. Ein Split in Sub-Skills oder
-ausgelagerte Referenz-Dokumente würde die Lesbarkeit verbessern.
+**Was:** Ein Skill überschreitet die 500-Zeilen-Empfehlung: `dev-flow-plan` (508).
+Längere Skills sind schwerer zu warten und erhöhen den Prompt-Token-Verbrauch bei Dispatch.
+Ein Split in Sub-Skills oder ausgelagerte Referenz-Dokumente würde die Lesbarkeit verbessern.
 
 ```bash
 find .claude/skills -name SKILL.md -exec wc -l {} + | awk '$2!="total"&&$1>500{c++} END{print c+0}'
 ```
 
-> **B · Baseline:** 3 (dev-flow-execute 662, infra-ops 595, dev-flow-plan 580) · **Target:** 0 · **Aufwand:** mittel (je Skill ~2–4h Refactoring) · **Messzyklus:** monatlich · **Reproduzierbar:** ja · **Kein Gate** — Reduktionsziel · **Ticket:** T001559
+> **B · Baseline:** 3 (dev-flow-execute 662, infra-ops 595, dev-flow-plan 580) → 1 (dev-flow-plan 508) · **Target:** 0 · **Aufwand:** mittel (je Skill ~2–4h Refactoring) · **Messzyklus:** monatlich · **Reproduzierbar:** ja · **Kein Gate** — Reduktionsziel · **Ticket:** T001559
 
 ## G-DB01 — FK-Spalten ohne Index: 4 → 0
 
@@ -262,33 +99,7 @@ SELECT
        WHERE contype='c' AND pg_get_constraintdef(oid) ILIKE '%brand%' AND pg_get_constraintdef(oid) ILIKE '%mentolder%');
 ```
 
-> **B · Baseline:** 44 · **Target:** 0 · **Aufwand:** gross (44 Tabellen, orchestrierte Migration) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001739 (Messung verdrahtet; CHECK-Constraints ausstehend)
-
-## G-DB08 — Seq-Scan-Anteil >5% auf Tabellen >10k Rows: 1 → ≤ 3
-
-**Was:** Zählt benutzerdefinierte Tabellen mit >10k Live-Rows, deren Seq-Scan-Anteil >5 %
-beträgt. Live-Wert 1 (Tabelle `chunks` mit 9,5 % Seq-Scans; `questionnaire_answers` liegt
-mit 0,8 % unter der Schwelle). Messen → dokumentieren, kein hartes Target initial.
-
-```bash
-SELECT count(*) FROM pg_stat_user_tables
-  WHERE n_live_tup>10000 AND seq_scan>0
-    AND (seq_scan::numeric/NULLIF(seq_scan+idx_scan,0))>0.05;
-```
-
-> **B · Baseline:** 1 (chunks 9,5 %) · **Target:** ≤ 3 · **Aufwand:** dokumentieren · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001739 (dokumentierte Baseline, kein hartes Target)
-
-## G-IMG01 — Ungepinnte Fremd-Images (Drittanbieter, YAML-only): 0 → 2 🔴 (Regression)
-
-**Was:** Zählt Fremd-Images ohne `@sha256`-Digest-Pin. Von Prio C nach Prio B zurückgestuft:
-`k3d/monitoring/promtail-rendered.yaml` (`docker.io/grafana/promtail:3.5.1`) und
-`k3d/monitoring/loki-rendered.yaml` (`docker.io/grafana/loki:3.6.7`) sind Tag-, nicht
-Digest-gepinnt. Beide Dateien sind `helm template`-Renderings (T001703, PR #2698) — der
-Chart-Upgrade hat die Digest-Pins nicht mitgezogen.
-
-```bash
-grep -rhE '^[[:space:]]*-?[[:space:]]*image:' k3d/ prod*/ --include='*.yaml' --include='*.yml' 2>/dev/null \
-  | grep -v '@sha256' | grep -vE 'website|brett|docs|videovault|mentolder-web|paddione|_IMAGE' | sort -u | wc -l
+> **B · Baseline:** 44 · **Target:** 0 · **Aufwand:** gross (44 Tabellen, orchestrierte Migration) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001739 (Messung verdrahtet; CHECK-Constraints ausstehend)eb|paddione|_IMAGE' | sort -u | wc -l
 ```
 
 > **B · Baseline:** 0→2 · **Target:** 0 · **Aufwand:** gering (Digest via `docker inspect`/`crane digest` nachtragen und Chart-Render-Skript entsprechend anpassen) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001766

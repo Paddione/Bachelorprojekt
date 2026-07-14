@@ -24,7 +24,7 @@ function buildServer() {
 const server = new McpServer({ name: 'factory', version: '1.0.0' })
 
 server.tool('factory_status', 'Show factory queue depth and whether a tick is running', async () => {
-  const lockHeld = execFileSync('bash', ['-c', `test -f /tmp/factory-tick.lock && flock -n 9 2>/dev/null && echo false || echo true`], { encoding: 'utf8', timeout: 3000 }).trim()
+  const lockHeld = execFileSync('bash', ['-c', `test -f /tmp/factory-tick.lock || { echo 'false'; exit; }; (flock -n 9 2>/dev/null && echo 'false' || echo 'true') 9>/tmp/factory-tick.lock`], { encoding: 'utf8', timeout: 3000 }).trim()
   return { content: [{ type: 'text', text: JSON.stringify({ backlog: psqlJSON("SELECT count(*) FROM tickets.tickets WHERE status='backlog'"), plan_staged: psqlJSON("SELECT count(*) FROM tickets.tickets WHERE status='plan_staged'"), tick_running: lockHeld === 'true' }, null, 2) }] }
 })
 

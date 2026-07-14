@@ -3040,6 +3040,7 @@
         "scripts/factory/deploy-transition.cjs",
         "scripts/factory/deploy-transition.mjs",
         "scripts/factory/deploy-transition.test.mjs",
+        "scripts/factory/dispatcher-bridge.sh",
         "scripts/factory/dispatcher-prep.sh",
         "scripts/factory/dispatcher.js",
         "scripts/factory/eval.mjs",

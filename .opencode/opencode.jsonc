@@ -1,6 +1,8 @@
 {
   "$schema": "https://opencode.ai/config.json",
+<<<<<<< Updated upstream
   "model": "lmstudio/qwythos-9b-v2",
+>>>>>>> Stashed changes
   "permission": {
     "read": "allow",
     "edit": "allow",

@@ -25,7 +25,7 @@ case "$cmd" in
       --model) model="$2"; shift 2;; --base-url) burl="$2"; shift 2;;
       --max-concurrent) maxc="$2"; shift 2;; *) usage;; esac; done
     [[ -n "$src" && -n "$tier" && -n "$prio" && -n "$prov" && -n "$model" ]] || usage
-    if [[ "$tier" == "opus" ]]; then echo "ERROR: opus is code-hardcoded to Anthropic; not configurable." >&2; exit 2; fi
+    if [[ "$tier" == "opus" ]]; then echo "WARNING: opus tier — ensure a provider_config row exists for this source/tier." >&2; fi
     factory_psql \
       -v src="$src" -v tier="$tier" -v prio="$prio" -v prov="$prov" \
       -v model="$model" -v burl="${burl:-}" -v maxc="$maxc" <<'SQL'
@@ -57,7 +57,7 @@ SQL
     factory_psql -v prov="$prov" <<'SQL'
 INSERT INTO tickets.provider_health (provider,failure_count,cooldown_until,updated_at)
 VALUES (:'prov',0,NULL,now())
-ON CONFLICT (provider) DO UPDATE SET failure_count=0, cooldown_until=NULL, updated_at=now();
+ON CONFLICT (provider) DO UPDATE SET failure_count=0, cooldown_until=NULL, active_agents=0, updated_at=now();
 SQL
     echo "reset $prov";;
   health)

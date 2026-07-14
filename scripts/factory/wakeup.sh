@@ -106,6 +106,8 @@ while true; do
   FACTORY_DAILY_DEPLOY_CAP="${FACTORY_DAILY_DEPLOY_CAP:-5}" FACTORY_GLOBAL_CAP="${FACTORY_GLOBAL_CAP:-3}" \
     bash "${REPO}/scripts/vda.sh" factory-prep 2>/dev/null | jq -c . > "${PREP_FILE}" 2>/dev/null || echo 'null' > "${PREP_FILE}"
 
+  DISPATCHER_BRIDGE="${REPO}/scripts/factory/dispatcher-bridge.sh"
+
   PROMPT="Run the Software Factory dispatcher now. Invoke the Workflow tool with \
 scriptPath 'scripts/factory/dispatcher.js' and args { timestamp: '${TIMESTAMP}', dry_run: ${DRY_RUN}, prep_file: '${PREP_FILE}' }. \
 Pass prep_file through verbatim — do not alter, re-run, or improvise it. \

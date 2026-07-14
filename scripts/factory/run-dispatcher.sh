@@ -15,4 +15,4 @@ The dispatcher reads all guards (kill-switch, daily-cap, dry-run-first) fresh pe
 Report only the dispatcher's final JSON result. Do not improvise scheduling."
 exec claude -p "${PROMPT}" \
   --allowedTools "Workflow,Bash(bash scripts/factory/*),Bash(bash scripts/ticket.sh*),ToolSearch,PushNotification" \
-  --permission-mode acceptEdits
+  --dangerously-skip-permissions

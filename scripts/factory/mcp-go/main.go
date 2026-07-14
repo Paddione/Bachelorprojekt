@@ -336,7 +336,7 @@ SQL`, r, sql)
 
 func toolFactoryStatus() (string, bool, error) {
 	// Mirrors mcp-server.mjs:27 — flock -n returns 0 when lock is FREE.
-	lockHeld, err := runShell(`test -f /tmp/factory-tick.lock && flock -n 9 2>/dev/null && echo false || echo true`, 3*time.Second)
+	lockHeld, err := runShell(`test -f /tmp/factory-tick.lock || { echo 'false'; exit; }; (flock -n 9 2>/dev/null && echo 'false' || echo 'true') 9>/tmp/factory-tick.lock`, 3*time.Second)
 	if err != nil {
 		return "", false, err
 	}

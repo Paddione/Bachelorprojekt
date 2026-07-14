@@ -2,19 +2,19 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { decideOpus, OPUS_MODEL, EMERGENCY_FALLBACK, orderCandidates, isUsable, openCircuit, routeProvider, releaseSlot, hasBudget } from './provider-router.js'
 
-test('decideOpus returns hardcoded Anthropic with a no-op releaseSlot', async () => {
+test('decideOpus returns hardcoded local Qwythos with a no-op releaseSlot', async () => {
   const r = decideOpus()
-  assert.equal(r.provider, 'anthropic')
+  assert.equal(r.provider, 'lmstudio')
   assert.equal(r.modelId, OPUS_MODEL)
-  assert.equal(r.baseUrl, null)
+  assert.equal(r.baseUrl, 'http://127.0.0.1:1234')
   await r.releaseSlot(true)
   await r.releaseSlot(false)
 })
 
-test('EMERGENCY_FALLBACK is anthropic sonnet with no base url', () => {
-  assert.equal(EMERGENCY_FALLBACK.provider, 'anthropic')
-  assert.equal(EMERGENCY_FALLBACK.modelId, 'claude-sonnet-4-6')
-  assert.equal(EMERGENCY_FALLBACK.baseUrl, null)
+test('EMERGENCY_FALLBACK is local Qwythos', () => {
+  assert.equal(EMERGENCY_FALLBACK.provider, 'lmstudio')
+  assert.equal(EMERGENCY_FALLBACK.modelId, 'qwythos-9b-v2')
+  assert.equal(EMERGENCY_FALLBACK.baseUrl, 'http://127.0.0.1:1234')
 })
 
 test('orderCandidates: source-specific before wildcard, then priority asc', () => {
@@ -118,7 +118,7 @@ test('routeProvider skips a provider in cooldown, falls to next priority', async
 test('routeProvider opus path never queries the DB', async () => {
   let called = false
   const r = await routeProvider(async () => { called = true; return { rows: [] } }, 'factory-plan', 'opus')
-  assert.equal(r.provider, 'anthropic')
+  assert.equal(r.provider, 'lmstudio')
   assert.equal(called, false)
 })
 
@@ -129,7 +129,7 @@ test('routeProvider emergency fallback when no provider usable', async () => {
     [{ provider: 'deepseek', failure_count: 3, cooldown_until: future, active_agents: 0 }],
   )
   const r = await routeProvider(db.query.bind(db), 'factory-implement', 'sonnet')
-  assert.equal(r.provider, 'anthropic')
+  assert.equal(r.provider, 'lmstudio')
   assert.equal(r.modelId, EMERGENCY_FALLBACK.modelId)
   assert.equal(r.emergency, true)
 })

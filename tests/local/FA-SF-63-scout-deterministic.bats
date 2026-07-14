@@ -43,7 +43,7 @@ setup() {
 }
 
 @test "scout.sh empty slug does not crash, falls back to medium when no hits" {
-  run bash "$SCOUT" --title "zzzxqq fffvvv" --slug "" --repo "$REPO_ROOT"
+  run env SCOUT_LLM_ENABLED=false bash "$SCOUT" --title "zzzxqq fffvvv" --slug "" --repo "$REPO_ROOT"
   [ "$status" -eq 0 ]
   c="$(echo "$output" | jq -r '.complexity')"
   [ "$c" = "medium" ]

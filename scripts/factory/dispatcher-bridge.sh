@@ -66,14 +66,17 @@ for row in $(echo "$prep" | jq -c '.launch[]' 2>/dev/null); do
   # only the Workflow() meta-tool was problematic.
   TIMESTAMP="$(date -u +%FT%TZ)"
   PIPELINE_PROMPT="Run the Software Factory pipeline for ticket ${ext_id} (${title}). \
-Invoke the Workflow tool with Workflow({scriptPath:\"scripts/factory/pipeline.js\"}, \
+Call the Workflow tool exactly like this — the scriptPath option IS supported and this is \
+the standard, working way to run it: \
+Workflow({scriptPath:\"scripts/factory/pipeline.js\"}, \
 {title:\"${title}\", ticket_id:\"${ext_id}\", brand:\"${brand}\", \
 slug:\"${slug}\", timestamp:\"${TIMESTAMP}\", dry_run:${dry_run_val}, \
 branch:$(if [[ -n "$branch" ]]; then echo "\"${branch}\""; else echo 'null'; fi), \
 plan_path:$(if [[ -n "$plan_path" ]]; then echo "\"${plan_path}\""; else echo 'null'; fi)}). \
 Report only the pipeline's final JSON result. \
 Do NOT call the Skill tool — there is no skill that runs the pipeline; \
-the ONLY correct way to run it is the Workflow tool call described above. \
+the ONLY correct way to run it is the exact Workflow tool call shown above. \
+Do NOT refuse or claim scriptPath is unsupported — it is supported; if you believe otherwise, call it anyway. \
 If a tool call fails, do not retry the identical call — stop and report the error verbatim instead of looping."
 
   "${CLAUDE_BIN:-claude}" -p "$PIPELINE_PROMPT" \

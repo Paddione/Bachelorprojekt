@@ -881,6 +881,12 @@ secrets:
     length: 64
     description: "OIDC client secret for the session-hub oauth2-proxy (Pocket ID confidential client `session-hub`). Pocket ID has no groups — gating moves to --authenticated-emails-file."
 
+  - name: POCKET_ID_TERMINAL_SECRET
+    required: false
+    generate: true
+    length: 40
+    description: "OIDC client secret for the `terminal-sidekick` Pocket ID client (terminal oauth2-proxy)."
+
   - name: SESSIONS_CRON_TOKEN
     required: false
     sealed: true

@@ -78,12 +78,6 @@
     "kind": "playwright"
   },
   {
-    "id": "E2E:coaching-studio-empty-customer",
-    "file": "tests/e2e/specs/coaching-studio-empty-customer.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
     "id": "E2E:dashboard-art",
     "file": "tests/e2e/specs/dashboard-art.spec.ts",
     "category": "E2E",

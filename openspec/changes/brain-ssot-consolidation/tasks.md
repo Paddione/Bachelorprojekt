@@ -86,6 +86,8 @@ Task 4 **replaces** that with a small Markdown-template function, which shrinks 
 
 ## Task 1: Manifest glob-refresh — `ssot-specs` becomes a glob, add `health-goals` + `diagrams` groups (E1)
 
+**Status: ✅ DONE** (commit 7d42eeb2f)
+
 **Files:** `scripts/brain/ingest-sources.yaml`, `tests/spec/brain-ingest.bats`
 
 **Problem:** `ssot-specs:` lists 24 static `openspec/specs/*.md` paths; only 5 exist. `openspec/specs/`
@@ -169,6 +171,8 @@ group-name presence, not the static list.
 
 ## Task 2: Fail-loud worklist warning + `.worktrees` prune (E2)
 
+**Status: ✅ DONE** (commit 7d42eeb2f)
+
 **Files:** `scripts/brain-ingest-worklist.sh`, `tests/spec/brain-ingest.bats`
 
 **Problem:** `group_for()` silently drops files that match no group; a manifest group with **zero**
@@ -246,6 +250,8 @@ here — this file has 398 lines of budget (loc 102), plenty of room.
 ---
 
 ## Task 3: `brain-ingest.sh` Phase-2b group loop + doc-string sync (E1 cont., 26-line budget)
+
+**Status: ✅ DONE** (commit 2201ef4cd — net-zero-line, `wc -l` still 474)
 
 **Files:** `scripts/brain-ingest.sh`, `tests/spec/brain-ingest.bats`
 
@@ -405,6 +411,8 @@ docs/diagrams/architecture.md` is clean after committing.
 ---
 
 ## Task 5: Mermaid verbatim-preservation prompt rule (E5)
+
+**Status: ✅ DONE** (commit 2201ef4cd)
 
 **Files:** `scripts/brain-ingest-transform.sh`, `tests/spec/brain-ingest.bats`
 

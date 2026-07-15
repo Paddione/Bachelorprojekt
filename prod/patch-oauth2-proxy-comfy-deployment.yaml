@@ -31,6 +31,7 @@ spec:
             - "--oidc-extra-audience=comfy"
             - "--scope=openid email profile groups"
             - "--oidc-groups-claim=groups"
+            - "--email-domain=*"
             - "--allowed-group=workspace-users"
           env:
             - name: POCKET_ID_COMFY_SECRET

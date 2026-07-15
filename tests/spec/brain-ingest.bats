@@ -201,3 +201,100 @@ EOF
     return 1
   }
 }
+
+# --- T001884: glob-based ssot-specs + new groups (E1) ---
+
+@test "ssot-specs group is a single glob line, not a static per-file list" {
+  [ -f "$MANIFEST" ]
+  grep -qE '^  ssot-specs:[[:space:]]+openspec/specs/\*\.md[[:space:]]*$' "$MANIFEST" \
+    || { echo "FAIL: ssot-specs is not the glob 'openspec/specs/*.md'"; return 1; }
+}
+
+@test "manifest declares a health-goals group targeting .claude/lib/goals.md" {
+  [ -f "$MANIFEST" ]
+  grep -qE '^  health-goals:[[:space:]]+\.claude/lib/goals\.md[[:space:]]*$' "$MANIFEST" \
+    || { echo "FAIL: health-goals group missing or wrong target"; return 1; }
+}
+
+@test "manifest declares a diagrams group targeting docs/diagrams/*.md and docs/db-schema-diagram.md" {
+  [ -f "$MANIFEST" ]
+  grep -A3 '^  diagrams:[[:space:]]*|' "$MANIFEST" | grep -q 'docs/diagrams/\*\.md' \
+    || { echo "FAIL: diagrams group missing docs/diagrams/*.md"; return 1; }
+  grep -A3 '^  diagrams:[[:space:]]*|' "$MANIFEST" | grep -q 'docs/db-schema-diagram\.md' \
+    || { echo "FAIL: diagrams group missing docs/db-schema-diagram.md"; return 1; }
+}
+
+@test "type_map and tag_defaults cover health-goals and diagrams" {
+  [ -f "$MANIFEST" ]
+  for group in health-goals diagrams; do
+    grep -q "$group:" "$MANIFEST" || { echo "FAIL: type_map/tag_defaults missing $group"; return 1; }
+  done
+  grep -qE '^\s+health-goals:\s+decision' "$MANIFEST" || { echo "FAIL: health-goals default type != decision"; return 1; }
+  grep -qE '^\s+diagrams:\s+note' "$MANIFEST" || { echo "FAIL: diagrams default type != note"; return 1; }
+}
+
+@test "dead health-goals.md type_map override is removed" {
+  [ -f "$MANIFEST" ]
+  ! grep -q 'pattern: "openspec/specs/health-goals.md"' "$MANIFEST" \
+    || { echo "FAIL: dead health-goals.md override still present"; return 1; }
+}
+
+# --- T001884: fail-loud 0-match warning + .worktrees prune (E2) ---
+
+@test "worklist warns on stderr when a manifest group matches zero files (exit stays 0)" {
+  mkdir -p "$WORK/repo"
+  printf -- '---\ntype: note\ntags: [x]\nstatus: active\n---\na\n' > "$WORK/repo/a.md"
+  cat > "$WORK/manifest.yaml" <<YAML
+groups:
+  matched: a.md
+  empty-group: nonexistent-pattern-*.md
+YAML
+  run bash "$REPO_ROOT/scripts/brain-ingest-worklist.sh" --root "$WORK/repo" --manifest "$WORK/manifest.yaml"
+  [ "$status" -eq 0 ] || { echo "FAIL: exit must stay 0 even with a 0-match group"; return 1; }
+  [[ "$output" == *"empty-group"* ]] || { echo "FAIL: no drift warning naming empty-group"; return 1; }
+}
+
+@test "worklist does not warn for a group that has at least one match" {
+  mkdir -p "$WORK/repo"
+  printf -- '---\ntype: note\ntags: [x]\nstatus: active\n---\na\n' > "$WORK/repo/a.md"
+  cat > "$WORK/manifest.yaml" <<YAML
+groups:
+  matched: a.md
+YAML
+  run bash "$REPO_ROOT/scripts/brain-ingest-worklist.sh" --root "$WORK/repo" --manifest "$WORK/manifest.yaml"
+  [ "$status" -eq 0 ]
+  [[ "$output" != *"Warnung"* ]] || { echo "FAIL: warned on a group with a real match"; return 1; }
+}
+
+@test "worklist prunes a .worktrees/ subtree so it never produces duplicate slugs" {
+  mkdir -p "$WORK/repo/.worktrees/copy1"
+  printf -- '---\ntype: note\ntags: [x]\nstatus: active\n---\na\n' > "$WORK/repo/a.md"
+  printf -- '---\ntype: note\ntags: [x]\nstatus: active\n---\na\n' > "$WORK/repo/.worktrees/copy1/a.md"
+  cat > "$WORK/manifest.yaml" <<YAML
+groups:
+  matched: "**/*.md"
+YAML
+  run bash "$REPO_ROOT/scripts/brain-ingest-worklist.sh" --root "$WORK/repo" --manifest "$WORK/manifest.yaml"
+  [ "$status" -eq 0 ]
+  [[ "$output" != *".worktrees"* ]] || { echo "FAIL: .worktrees/ subtree not pruned"; return 1; }
+}
+
+# --- T001884: Phase 2b MOC loop covers the new groups (E1 cont.) ---
+
+@test "Phase 2b MOC loop includes health-goals and diagrams groups" {
+  grep -q 'for group in ssot-specs runbooks adr gotchas-footguns agent-guide-maps core-docs health-goals diagrams; do' \
+    "$INGEST" || { echo "FAIL: Phase 2b loop not extended with new groups"; return 1; }
+}
+
+@test "PR description doc-string lists health-goals and diagrams as source groups" {
+  grep -q 'ssot-specs, runbooks, adr, gotchas-footguns, agent-guide-maps, core-docs, health-goals, diagrams' \
+    "$INGEST" || { echo "FAIL: PR body source-groups string not updated"; return 1; }
+}
+
+# --- T001884: mermaid verbatim-preservation prompt rule (E5) ---
+
+@test "transform prompt instructs the LLM to keep mermaid code blocks verbatim" {
+  grep -qi 'mermaid' "$TRANSFORM" || { echo "FAIL: no mermaid rule in transform prompt"; return 1; }
+  grep -qiE 'mermaid.*(verbatim|unveraendert|unver.ndert)' "$TRANSFORM" \
+    || { echo "FAIL: mermaid rule doesn't say verbatim/unveraendert"; return 1; }
+}

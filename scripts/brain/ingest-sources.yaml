@@ -25,36 +25,16 @@ exclude:
   - .claude/commands/
 
 groups:
-  ssot-specs: |
-    openspec/specs/asset-generation.md
-    openspec/specs/brain-foundation.md
-    openspec/specs/ci-cd.md
-    openspec/specs/database.md
-    openspec/specs/deployment.md
-    openspec/specs/devflow.md
-    openspec/specs/docs-gen.md
-    openspec/specs/factory.md
-    openspec/specs/git-workflow.md
-    openspec/specs/health-goals.md
-    openspec/specs/host-node-networking.md
-    openspec/specs/incident-response.md
-    openspec/specs/kustomize-overlays.md
-    openspec/specs/livekit-llm.md
-    openspec/specs/mcp-servers.md
-    openspec/specs/openspec-conventions.md
-    openspec/specs/pre-commit-hooks.md
-    openspec/specs/project-topology.md
-    openspec/specs/repo-hygiene.md
-    openspec/specs/security.md
-    openspec/specs/testing.md
-    openspec/specs/ticket-ops.md
-    openspec/specs/videovault-mediamanager.md
-    openspec/specs/website.md
+  ssot-specs: openspec/specs/*.md
   runbooks: docs/runbooks/*.md
   adr: docs/adr/*.md
   gotchas-footguns: docs/superpowers/references/gotchas-footguns.md
   agent-guide-maps: docs/agent-guide/*.md
   core-docs: CLAUDE.md AGENTS.md
+  health-goals: .claude/lib/goals.md
+  diagrams: |
+    docs/diagrams/*.md
+    docs/db-schema-diagram.md
 
 # Type mapping: group → default type, with path-based overrides.
 # The ingest pipeline reads this to assign brain page types.
@@ -66,12 +46,14 @@ type_map:
     gotchas-footguns: note
     agent-guide-maps: moc
     core-docs: moc
+    health-goals: decision
+    diagrams: note
   overrides:
     - pattern: "openspec/specs/security*.md"
       type: decision
     - pattern: "openspec/specs/database*.md"
       type: note
-    - pattern: "openspec/specs/health-goals.md"
+    - pattern: "openspec/specs/health-goals*.md"
       type: decision
     - pattern: "docs/agent-guide/surface-*.md"
       type: moc
@@ -88,3 +70,5 @@ tag_defaults:
   gotchas-footguns: [gotchas, footguns]
   agent-guide-maps: [agent-guide, surface]
   core-docs: [core, meta]
+  health-goals: [health, goals]
+  diagrams: [diagram, architecture]

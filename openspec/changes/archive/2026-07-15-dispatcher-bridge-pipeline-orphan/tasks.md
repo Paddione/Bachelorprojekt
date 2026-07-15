@@ -2,7 +2,7 @@
 title: dispatcher-bridge-pipeline-orphan
 ticket_id: T001850
 domains: [factory]
-status: plan_staged
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

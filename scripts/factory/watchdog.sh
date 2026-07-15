@@ -1,11 +1,17 @@
 #!/usr/bin/env bash
 # scripts/factory/watchdog.sh — escalate stale in-flight features for a brand.
 #   BRAND=<brand> FACTORY_STALE_MIN=30 bash scripts/factory/watchdog.sh
-# A feature in_progress whose updated_at is older than the threshold is treated
-# as a hung/crashed pipeline: status → triage (back to queue), slot released, and
-# a comment recorded. updated_at is auto-bumped by fn_lifecycle_ts on every row
-# write; pipeline.js writes a `ticket.sh touch` at each phase boundary, so a
-# healthy long phase is not mistaken for stale. JSON array of escalated ext_ids.
+# A feature/task in_progress whose updated_at is older than the threshold is
+# treated as a hung/crashed pipeline: slot released, a comment recorded, and
+# status reset. If a FACTORY-PLAN-REF already exists (dev-flow-plan staged a
+# plan before the pipeline hung), the reset target is 'backlog' (feature) or
+# 'plan_staged' (task) instead of 'triage' — pipeline.js auto-detects
+# FACTORY-PLAN-REF and resumes at Implement, skipping Scout/Design/Plan, so a
+# ticket with a staged plan must land back in a status queue.sh dispatches
+# (triage is not dispatched, which forced a wasteful full re-plan) [T001850].
+# updated_at is auto-bumped by fn_lifecycle_ts on every row write; pipeline.js
+# writes a `ticket.sh touch` at each phase boundary, so a healthy long phase
+# is not mistaken for stale. JSON array of escalated ext_ids.
 set -euo pipefail
 HERE="$(dirname "${BASH_SOURCE[0]}")"
 source "$HERE/lib.sh"
@@ -14,15 +20,29 @@ factory_resolve
 [[ -n "${FACTORY_DRY_RESOLVE:-}" ]] && { echo "resolved: ctx=${FACTORY_CTX} ns=${FACTORY_NS}"; exit 0; }
 STALE_MIN="${FACTORY_STALE_MIN:-30}"
 
-mapfile -t stale < <(printf "SELECT external_id FROM tickets.tickets WHERE type IN ('feature','task') AND status='in_progress' AND updated_at < now() - make_interval(mins => %s);" "$STALE_MIN" | factory_psql)
+mapfile -t stale < <(printf "SELECT external_id, type FROM tickets.tickets WHERE type IN ('feature','task') AND status='in_progress' AND updated_at < now() - make_interval(mins => %s);" "$STALE_MIN" | factory_psql)
 
 escalated='[]'
-for ext_id in "${stale[@]}"; do
-  [[ -z "$ext_id" ]] && continue
-  BRAND="$BRAND" TICKET_CTX="$FACTORY_CTX" bash "$HERE/../ticket.sh" update-status --id "$ext_id" --status triage >/dev/null
+for row in "${stale[@]}"; do
+  [[ -z "$row" ]] && continue
+  ext_id="${row%%|*}"
+  ticket_type="${row##*|}"
+  ticket_json="$(BRAND="$BRAND" TICKET_CTX="$FACTORY_CTX" bash "$HERE/../ticket.sh" get --id "$ext_id")"
+  plan_ref="$(echo "$ticket_json" | jq -r '.plan_ref // empty')"
+  if [[ -n "$plan_ref" && "$ticket_type" == "feature" ]]; then
+    reset_status="backlog"
+    reset_msg="Watchdog: pipeline stale > ${STALE_MIN}min (no phase progress write). Plan already staged (${plan_ref}) — resuming via backlog instead of restarting from Scout."
+  elif [[ -n "$plan_ref" && "$ticket_type" == "task" ]]; then
+    reset_status="plan_staged"
+    reset_msg="Watchdog: pipeline stale > ${STALE_MIN}min (no phase progress write). Plan already staged (${plan_ref}) — resuming via plan_staged instead of restarting from Scout."
+  else
+    reset_status="triage"
+    reset_msg="Watchdog: pipeline stale > ${STALE_MIN}min (no phase progress write). Returned to queue (triage); slot released."
+  fi
+  BRAND="$BRAND" TICKET_CTX="$FACTORY_CTX" bash "$HERE/../ticket.sh" update-status --id "$ext_id" --status "$reset_status" >/dev/null
   BRAND="$BRAND" TICKET_CTX="$FACTORY_CTX" bash "$HERE/../ticket.sh" release-slot --id "$ext_id" >/dev/null
   BRAND="$BRAND" TICKET_CTX="$FACTORY_CTX" bash "$HERE/../ticket.sh" add-comment --id "$ext_id" \
-    --body "Watchdog: pipeline stale > ${STALE_MIN}min (no phase progress write). Returned to queue (triage); slot released." >/dev/null
+    --body "$reset_msg" >/dev/null
   # Zombie-Worktree-Cleanup: a hung pipeline leaves .worktrees/sf-* behind. Remove the
   # worktree whose branch matches this ticket (idempotent; never fails the loop).
   ext_lc="$(printf '%s' "$ext_id" | tr '[:upper:]' '[:lower:]')"

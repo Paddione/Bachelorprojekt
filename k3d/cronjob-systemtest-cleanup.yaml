@@ -36,16 +36,6 @@ spec:
       template:
         spec:
           restartPolicy: Never
-          # Hetzner-only pinning: home-LAN workers see DNS REJECTs from kube-router
-          # netpol enforcement (exit 6). Same fix as systemtest-outbox.
-          affinity:
-            nodeAffinity:
-              requiredDuringSchedulingIgnoredDuringExecution:
-                nodeSelectorTerms:
-                  - matchExpressions:
-                      - key: kubernetes.io/hostname
-                        operator: In
-                        values: [gekko-hetzner-2, gekko-hetzner-3, gekko-hetzner-4, pk-hetzner-4, pk-hetzner-6, pk-hetzner-8]
           securityContext:
             runAsNonRoot: true
             runAsUser: 65534
@@ -102,14 +92,6 @@ spec:
       template:
         spec:
           restartPolicy: Never
-          affinity:
-            nodeAffinity:
-              requiredDuringSchedulingIgnoredDuringExecution:
-                nodeSelectorTerms:
-                  - matchExpressions:
-                      - key: kubernetes.io/hostname
-                        operator: In
-                        values: [gekko-hetzner-2, gekko-hetzner-3, gekko-hetzner-4, pk-hetzner-4, pk-hetzner-6, pk-hetzner-8]
           securityContext:
             runAsNonRoot: true
             runAsUser: 65534
@@ -169,17 +151,6 @@ spec:
       template:
         spec:
           restartPolicy: Never
-          # Hetzner-only pinning: home-LAN workers see intermittent cross-node
-          # DNS REJECTs from kube-router netpol enforcement. Pinning to the
-          # Hetzner CPs (where CoreDNS lives) sidesteps the gotcha entirely.
-          affinity:
-            nodeAffinity:
-              requiredDuringSchedulingIgnoredDuringExecution:
-                nodeSelectorTerms:
-                  - matchExpressions:
-                      - key: kubernetes.io/hostname
-                        operator: In
-                        values: [gekko-hetzner-2, gekko-hetzner-3, gekko-hetzner-4, pk-hetzner-4, pk-hetzner-6, pk-hetzner-8]
           securityContext:
             runAsNonRoot: true
             runAsUser: 65534

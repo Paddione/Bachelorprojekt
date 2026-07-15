@@ -33,7 +33,7 @@ spec:
             # website Deployment lives in the `website` namespace (not `workspace`).
             # -fsS: fail on HTTP errors and surface them, instead of silently exiting 0.
             # korczewski overrides this URL to website-korczewski via prod-korczewski/patch-cronjob-urls.yaml.
-            - "curl -fsS -X POST http://website.website.svc.cluster.local/api/admin/billing/dunning/run -H \"X-Cron-Secret: ${CRON_SECRET}\" || exit 1"
+            - "curl -fsS -X POST http://website.${WEBSITE_NAMESPACE}.svc.cluster.local/api/admin/billing/dunning/run -H \"X-Cron-Secret: ${CRON_SECRET}\" || exit 1"
             resources:
               requests:
                 cpu: 10m

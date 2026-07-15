@@ -132,8 +132,8 @@ data:
     turn:
       # Disabled so coturn (in namespace "coturn", hostPort 3478/UDP) can bind
       # UDP:3478 on the same node. LiveKit-server runs with hostNetwork: true
-      # and is pinned (gekko-hetzner-3 on mentolder, pk-hetzner-6 on
-      # korczewski) — with turn.enabled=true it grabs UDP:3478 first and
+      # and is pinned to a single fleet worker node (per-brand via a prod
+      # overlay patch) — with turn.enabled=true it grabs UDP:3478 first and
       # coturn CrashLoops with "bind: Address in use". Janus+Coturn already
       # provide TURN for Talk; LiveKit clients fall back to srflx via STUN
       # (use_external_ip + public 7881/tcp + 50000-60000/udp are open).
@@ -170,10 +170,12 @@ spec:
       # WebRTC media uses UDP 50000-60000 + TCP 7881. The Service can't
       # publish a 10k-port UDP range, so the pod shares the node's network
       # namespace and binds those ports directly on the host. This locks
-      # LiveKit to one node — the nodeAffinity below pins it to gekko-hetzner-3,
-      # which the wildcard `livekit.${PROD_DOMAIN}` DNS round-robin already
-      # includes. ClusterFirstWithHostNet keeps cluster DNS (e.g. livekit-redis)
-      # resolvable from inside the pod even though the host's resolver isn't.
+      # LiveKit to one node — prod overlays (patch-livekit.yaml) add a
+      # nodeAffinity pinning it to a single fleet worker, which the wildcard
+      # `livekit.${PROD_DOMAIN}` DNS round-robin already includes. The k3d
+      # base carries no affinity (single-node dev cluster). ClusterFirstWithHostNet
+      # keeps cluster DNS (e.g. livekit-redis) resolvable from inside the pod
+      # even though the host's resolver isn't.
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       securityContext:

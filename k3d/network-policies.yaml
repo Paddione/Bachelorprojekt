@@ -295,7 +295,7 @@ spec:
       protocol: TCP
   - to:
     - ipBlock:
-        cidr: 10.20.0.0/24    # fleet wg-mesh node IPs (Janus hostNetwork on pk-hetzner-4)
+        cidr: 10.20.0.0/24    # fleet wg-mesh node IPs (Janus hostNetwork on a fleet CP node)
     ports:
     - port: 8188
       protocol: TCP

@@ -34,7 +34,7 @@ spec:
                   curl -sf -X POST \
                     -H "Authorization: Bearer $CRON_SECRET" \
                     -H "Content-Type: application/json" \
-                    http://website.website.svc.cluster.local/api/cron/notify-unread
+                    http://website.${WEBSITE_NAMESPACE}.svc.cluster.local/api/cron/notify-unread
               resources:
                 requests:
                   cpu: 10m

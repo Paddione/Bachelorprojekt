@@ -38,8 +38,11 @@ fail() {
   local yaml
   yaml=$(cat k3d/error-log-retention-cronjob.yaml)
 
-  # Should target website.website.svc.cluster.local, NOT *.workspace.*
-  echo "$yaml" | grep -q "website.website.svc.cluster.local" || fail "Wrong DNS name (not 'website.website.svc.cluster.local')"
+  # T001853: the base now targets website.${WEBSITE_NAMESPACE}.svc (resolved at
+  # deploy time via envsubst) instead of the hardcoded website.website.svc
+  # literal — the literal was a cross-brand bug on prod-korczewski, which has
+  # WEBSITE_NAMESPACE=website-korczewski, not website.
+  echo "$yaml" | grep -q 'website\.\${WEBSITE_NAMESPACE}\.svc\.cluster\.local' || fail "Wrong DNS name (not 'website.\${WEBSITE_NAMESPACE}.svc.cluster.local')"
   if echo "$yaml" | grep -q "website\.workspace\."; then
     fail "Should not target workspace namespace"
   fi

@@ -35,7 +35,7 @@ spec:
                 - |
                   curl -sf -X POST \
                     -H "Authorization: Bearer $CRON_SECRET" \
-                    http://website.website.svc.cluster.local/api/cron/error-log-retention
+                    http://website.${WEBSITE_NAMESPACE}.svc.cluster.local/api/cron/error-log-retention
               resources:
                 requests:
                   cpu: 10m

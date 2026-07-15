@@ -161,7 +161,8 @@ kubectl get pods --all-namespaces -o jsonpath='{range .items[*]}{.spec.container
 **Was:** Misst die p95-Dauer der letzten 20 CI-Runs auf `main` (von `createdAt` bis
 `updatedAt`). CI-Latenz ist ein direkter Hebel für Developer Velocity — je länger der
 Rückmeldungszyklus, desto geringer die Deployment Frequency. Der CI-Timeouts liegen
-bei 15 min für Tests; p95 sollte darunter bleiben.
+bei 15 min für Tests; p95 sollte darunter bleiben. Messung ist in
+`scripts/health-goals-check.sh` implementiert (gh-axi).
 
 ```bash
 gh-axi run list --workflow ci.yml --branch main --limit 20 --json createdAt,updatedAt \
@@ -175,7 +176,7 @@ print(f'{p95:.1f}')
 "
 ```
 
-> **B · Baseline:** n/a · **Target:** ≤ 12 min (p95) · **Aufwand:** gering (Messung via gh-axi) · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T001841
+> **B · Baseline:** n/a → 0 (Implementierung in health-goals-check.sh abgeschlossen, erster Scan ausstehend) · **Target:** ≤ 12 min (p95) · **Aufwand:** gering (Messung via gh-axi) · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T001841
 
 ## G-FE05 — Lighthouse Performance Score < 90: n/a → ≥ 90
 
@@ -323,7 +324,7 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 | G-DB09 | T001838 | offen (Slow Queries, Messung verdrahtet, Optimierung ausstehend) |
 | G-DB10 | T001839 | offen (Unused Indexes, Baseline fehlt) |
 | G-SEC06 | T001840 | offen (Container CVEs, Trivy-Integration ausstehend) |
-| G-CI03 | T001841 | offen (CI Duration, Baseline via gh-axi) |
+| G-CI03 | T001841 | offen (CI Duration, Implementierung abgeschlossen, erster Scan ausstehend) |
 | G-FE05 | T001842 | offen (Lighthouse Performance, lighthouse-ci ausstehend) |
 | G-SIZE04 | T001280 | geschlossen (`done`), Messwert weiterhin rot → Nachfolger T001347 |
 | G-SIZE04 | T001347 | offen |
@@ -348,3 +349,5 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 | G-AGENTIC09 | T001559 | **gefixt** (Whitespace-Kompression → alle <500 Zeilen) |
 | G-AGENTIC08 | — | **gefixt** (2026-07-04: toter script-path `scripts/brain-ingest.mjs` aus SKILL.md entfernt) |
 | G-GIT02 | T001552 | **regressed** (Commit f9dc1ae4e — `mishap-bundle-fix:` non-conventional) |
+
+**Baseline-Update 2026-07-15:** G-CI03 n/a→0 (Implementierung in health-goals-check.sh abgeschlossen, erster Scan ausstehend)

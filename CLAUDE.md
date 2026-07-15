@@ -4,7 +4,7 @@
 
 Before responding to any request, check these signals and delegate to the named agent. The signal lists below mirror the routing table in [`AGENTS.md`](AGENTS.md) — which is the single source of truth (it matches each agent's `description:` frontmatter in `.agents/agents/<name>.md`).
 
-> **Subagent file layout:** `.claude/agents/bachelorprojekt-*.md` is the canonical source. `.agents/agents` is a directory symlink to `../.claude/agents` — both Claude Code and opencode read the same content via the symlink. Edit files at `.claude/agents/<name>.md` (or its `.agents/agents/<name>.md` alias).
+> **Subagent file layout:** `.claude/agents/bachelorprojekt-*.md` is the canonical source. `.agents/agents` is a directory symlink to `../.claude/agents` — **Claude Code only** reads these via its native `task` tool dispatch. **opencode does NOT read `.agents/agents/`** — it uses its own agent definitions in `.opencode/agent-models.jsonc` (local LLM subagents: `qwen35-iq4`, `qwen35`, `qwen35-hq`, `qwen3-14b`). Edit domain agents at `.claude/agents/<name>.md` (or its `.agents/agents/<name>.md` alias).
 
 | Signals | Agent | MCP-Primär (Claude Code) |
 |---------|-------|--------------------------|

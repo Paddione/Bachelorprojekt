@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.183.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.182.0...website-v1.183.0) (2026-07-15)
+
+
+### Features
+
+* **factory:** consume plan_staged chore tickets from mishap-tracker [T001844] ([#2820](https://github.com/Paddione/Bachelorprojekt/issues/2820)) ([ced2c83](https://github.com/Paddione/Bachelorprojekt/commit/ced2c831c4bb5dca2f5ea2e02a8ac3c0d6aa5ead))
+
 ## [1.182.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.181.0...website-v1.182.0) (2026-07-14)
 
 

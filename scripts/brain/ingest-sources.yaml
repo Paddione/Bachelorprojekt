@@ -18,6 +18,7 @@ exclude:
   - .agy/
   - .antigravitycli/
   - .design-sync/
+  - .opencode/
   - dist/
   - tests/unit/lib/
   - .venv/

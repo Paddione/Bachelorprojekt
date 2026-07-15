@@ -1,0 +1,70 @@
+{
+  "meta": {
+    "slug": "brain-ssot-consolidation",
+    "ticket_id": "T001884",
+    "generated_from": "main@426443a0d",
+    "domains": ["brain", "docs", "website", "ci"],
+    "intel_sources": ["grep", "Read", "baseline.json", "explorer-agents"]
+  },
+  "impact_files": [
+    { "path": "scripts/brain/ingest-sources.yaml", "language": "yaml", "loc": 90, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "scripts/brain-ingest-worklist.sh", "language": "bash", "loc": 102, "s1_limit": 500, "s1_baseline": null, "s1_budget": 398 },
+    { "path": "scripts/brain-ingest-transform.sh", "language": "bash", "loc": 105, "s1_limit": 500, "s1_baseline": null, "s1_budget": 395 },
+    { "path": "scripts/brain-ingest.sh", "language": "bash", "loc": 474, "s1_limit": 500, "s1_baseline": null, "s1_budget": 26 },
+    { "path": "scripts/build-graph-docs.mjs", "language": "javascript", "loc": 350, "s1_limit": 500, "s1_baseline": null, "s1_budget": 150 },
+    { "path": "scripts/build-graph-shared.mjs", "language": "javascript", "loc": 250, "s1_limit": 500, "s1_baseline": null, "s1_budget": 250 },
+    { "path": "scripts/gen-goals-data.mjs", "language": "javascript", "loc": 0, "s1_limit": 500, "s1_baseline": null, "s1_budget": 500 },
+    { "path": "scripts/brain-merge-hook.sh", "language": "bash", "loc": 12, "s1_limit": 500, "s1_baseline": null, "s1_budget": 488 },
+    { "path": ".github/workflows/brain-merge-hook.yml", "language": "yaml", "loc": 47, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "website/src/lib/goals-data.ts", "language": "typescript", "loc": 304, "s1_limit": 600, "s1_baseline": null, "s1_budget": 296 },
+    { "path": "Taskfile.yml", "language": "yaml", "loc": 4723, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "Taskfile.brain.yaml", "language": "yaml", "loc": 41, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": ".claude/skills/brain-ingest/SKILL.md", "language": "markdown", "loc": 50, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "scripts/migrate-docs-style.mjs", "language": "javascript", "loc": 181, "s1_limit": 500, "s1_baseline": null, "s1_budget": 319 },
+    { "path": "tests/spec/brain-foundation.bats", "language": "bash", "loc": 119, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "tests/spec/brain-ingest.bats", "language": "bash", "loc": 203, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "tests/spec/brain-merge-hook.bats", "language": "bash", "loc": 35, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "tests/spec/health-goals.bats", "language": "bash", "loc": 41, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 }
+  ],
+  "symbols": [
+    { "qualified_name": "scripts/brain-group-match.sh:brain_group_for", "kind": "function", "file": "scripts/brain-group-match.sh", "signature": "brain_group_for <relative-path> <groups-section-text> -> group name on stdout, rc 1 if no match", "type_text": "(path: string, groupsSection: string) => string | rc1", "source": "grep" },
+    { "qualified_name": "scripts/brain-ingest-worklist.sh:group_for", "kind": "function", "file": "scripts/brain-ingest-worklist.sh", "signature": "group_for <relative-path> -> group name (delegates to brain_group_for; files without group are dropped)", "type_text": "(path: string) => string | drop", "source": "grep" },
+    { "qualified_name": "scripts/brain-ingest.sh:GROUPS_SECTION", "kind": "variable", "file": "scripts/brain-ingest.sh", "signature": "GROUPS_SECTION=\"$_BRAIN_GROUP_SECTION\" (line 66); MOC generation loops per worklist group dynamically (Phase 2b, lines 234-279); hardcoded group doc-string at line 455", "type_text": "string", "source": "grep" },
+    { "qualified_name": "scripts/build-graph-docs.mjs:main", "kind": "function", "file": "scripts/build-graph-docs.mjs", "signature": "main() — reads docs/generated/graph.json + api-map.json via readJson(), currently emits standalone HTML with CDN mermaid to k3d/docs-content-built/architecture/index.html", "type_text": "() => void", "source": "Read" },
+    { "qualified_name": "scripts/build-graph-shared.mjs:buildServiceMap", "kind": "function", "file": "scripts/build-graph-shared.mjs", "signature": "buildServiceMap(graph) -> mermaid flowchart string (line 147)", "type_text": "(graph: GraphJson) => string", "source": "grep" },
+    { "qualified_name": "scripts/build-graph-shared.mjs:buildTopology", "kind": "function", "file": "scripts/build-graph-shared.mjs", "signature": "buildTopology(graph) -> mermaid flowchart string (line 185)", "type_text": "(graph: GraphJson) => string", "source": "grep" },
+    { "qualified_name": "scripts/build-graph-shared.mjs:buildApiTable", "kind": "function", "file": "scripts/build-graph-shared.mjs", "signature": "buildApiTable(apiMap) -> markdown table string (line 219)", "type_text": "(apiMap: ApiMapJson) => string", "source": "grep" },
+    { "qualified_name": "website/src/lib/goals-data.ts:HealthGoal", "kind": "interface", "file": "website/src/lib/goals-data.ts", "signature": "interface HealthGoal { id, title, category, priority: 'A'|'B'|'C', direction: 'lower'|'higher', baseline: number|null, current: number|null, target: number|null, unit, status: GoalStatus, measurement, source, measured_at, note? }", "type_text": "interface", "source": "Read" },
+    { "qualified_name": "website/src/lib/goals-data.ts:computeStatus", "kind": "function", "file": "website/src/lib/goals-data.ts", "signature": "computeStatus(g: HealthGoal) -> GoalStatus (keep; applied over RAW_GOALS at line 299)", "type_text": "(g: HealthGoal) => GoalStatus", "source": "Read" },
+    { "qualified_name": "website/src/lib/goals-data.ts:exports", "kind": "constant", "file": "website/src/lib/goals-data.ts", "signature": "GOALS (299), ACTIVE_GOALS (301), GREEN_GATES (302), CATEGORIES (304) — consumed by website/src/components/GoalsDashboard.svelte; RAW_GOALS constant (~lines 55-298) is the part to replace with generated JSON import", "type_text": "HealthGoal[]", "source": "Read" },
+    { "qualified_name": "scripts/openspec-status-map.sh", "kind": "script", "file": "scripts/openspec-status-map.sh", "signature": "reference pattern: generator -> website/src/data/openspec-status.json, wired in freshness:regenerate + freshness:check FILES list (Taskfile.yml:960/974)", "type_text": "pattern-reference", "source": "explorer-agents" },
+    { "qualified_name": "Taskfile.yml:health:goals", "kind": "task", "file": "Taskfile.yml", "signature": "health:goals (line 3161) -> bash scripts/health-goals-check.sh; health:goals:update (3166) -> health-goals-update.sh; new health:goals:emit target goes alongside", "type_text": "go-task target", "source": "grep" }
+  ],
+  "call_graph": {
+    "entrypoints": ["scripts/brain-ingest.sh", "scripts/build-graph-docs.mjs:main", "Taskfile.yml:freshness:regenerate"],
+    "edges": [
+      { "from": "scripts/brain-ingest.sh", "to": "scripts/brain-ingest-worklist.sh", "kind": "calls" },
+      { "from": "scripts/brain-ingest-worklist.sh", "to": "scripts/brain-group-match.sh:brain_group_for", "kind": "calls" },
+      { "from": "scripts/brain-ingest.sh", "to": "scripts/brain-ingest-transform.sh", "kind": "calls" },
+      { "from": "scripts/brain-ingest-transform.sh", "to": "llama-server:8095 (LM_STUDIO_URL)", "kind": "data_flow" },
+      { "from": ".github/workflows/brain-merge-hook.yml", "to": "scripts/brain-merge-hook.sh", "kind": "calls" },
+      { "from": "scripts/build-graph-docs.mjs:main", "to": "scripts/build-graph-shared.mjs:buildServiceMap", "kind": "calls" },
+      { "from": "scripts/build-graph-docs.mjs:main", "to": "scripts/build-graph-shared.mjs:buildTopology", "kind": "calls" },
+      { "from": "scripts/build-graph-docs.mjs:main", "to": "scripts/build-graph-shared.mjs:buildApiTable", "kind": "calls" },
+      { "from": "Taskfile.yml:freshness:regenerate", "to": "Taskfile.yml:graph:build", "kind": "calls" },
+      { "from": "website/src/components/GoalsDashboard.svelte", "to": "website/src/lib/goals-data.ts:ACTIVE_GOALS", "kind": "data_flow" },
+      { "from": "website/src/pages/admin/repohealth.astro", "to": "website/src/components/GoalsDashboard.svelte", "kind": "calls" },
+      { "from": "website/src/components/kore/KoreHomepage.svelte:346", "to": "website/src/components/GoalsDashboard.svelte", "kind": "calls" }
+    ]
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    { "note": "brain-ingest.sh hat nur 26 Zeilen S1-Budget — Gruppen-Erweiterungen müssen den dynamischen Phase-2b-MOC-Loop nutzen (kein neuer Code pro Gruppe); nur die Doc-String-Zeile 455 anpassen.", "severity": "warn" },
+    { "note": "Unkommittiertes fremdes WIP im Haupt-Checkout ändert scripts/brain-ingest-worklist.sh (Prune-Liste) und scripts/health-goals-check.sh — Change implementiert .worktrees-Prune clean-room vom committeten Stand; im PR vermerken.", "severity": "warn" },
+    { "note": "goals.md-Meta-Zeilen haben Format-Varianten (z. B. 'Baseline: 6 → 7 🔴', 'n/a', Ticket-Suffixe) — Generator braucht tolerante Regex + Fail-loud für unparsbare Goals; BATS-Fixtures aus realem goals.md ableiten.", "severity": "warn" },
+    { "note": "codebase-memory-Graph war 9 Dateien stale — Symbole via grep/Read verifiziert statt Graph-Tools.", "severity": "info" },
+    { "note": "docs/diagrams/architecture.md wird vom docs-site discover-Walker automatisch aufgenommen (docs/** Walk, DOC_EXCLUDE_PREFIXES enthält docs/diagrams nicht) — kein docs-gen-Umbau nötig; Verhalten im Plan als Annahme testen.", "severity": "info" }
+  ]
+}

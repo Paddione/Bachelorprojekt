@@ -33,7 +33,7 @@ spec:
             - "--oidc-extra-audience=rustdesk-web"
             - "--scope=openid email profile groups"
             - "--oidc-groups-claim=groups"
-            - "--allowed-groups=workspace-users"
+            - "--allowed-group=workspace-users"
           env:
             - name: POCKET_ID_RUSTDESK_WEB_SECRET
               valueFrom:

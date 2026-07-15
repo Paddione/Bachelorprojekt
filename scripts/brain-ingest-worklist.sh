@@ -88,7 +88,21 @@ find "$ROOT" \
      -o -name generated \
      -o -name archive \
      -o -name legacy-html \
-     -o -name drift-reports \) -prune \
+     -o -name drift-reports \
+     -o -name .worktrees \
+     -o -name website \
+     -o -name mentolder-web \
+     -o -name brett \
+     -o -name tui \
+     -o -name tests \
+     -o -name scripts \
+     -o -name k3d \
+     -o -name packages \
+     -o -name VideoVault \
+     -o -name art-library \
+     -o -name studio-server \
+     -o -name mediaviewer-widget \
+     -o -name design-system \) -prune \
   -o -type f \( \
   -name '*.md' -o -name '*.yaml' -o -name '*.yml' -o \
   -name '*.sh' -o -name '*.bats' -o -name '*.json' -o \

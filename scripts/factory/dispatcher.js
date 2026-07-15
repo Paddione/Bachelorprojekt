@@ -136,7 +136,7 @@ async function main() {
           {
             title: f.title ?? f.external_id,
             description: `Dispatched by the Software Factory dispatcher (slot ${f.slot}).`,
-            slug: f.branch ? String(f.branch).replace(/^feature\//, '') : `sf-${String(f.external_id).toLowerCase()}`,
+            slug: f.branch ? String(f.branch).replace(/^(feature|fix|chore)\//, '') : `sf-${String(f.external_id).toLowerCase()}`,
             ticket_id: f.external_id,
             brand: f.brand,
             timestamp: A.timestamp,

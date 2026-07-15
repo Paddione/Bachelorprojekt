@@ -7,7 +7,7 @@
 #
 # Env:
 #   LM_STUDIO_URL    — LM Studio API URL (default: http://localhost:1234)
-#   LM_MODEL         — Model to use (default: qwen3-14b)
+#   LM_MODEL         — Model to use (default: qwen3.6-14b-a3b-fablevibes)
 #   BRAIN_INGEST_STATE — State file path (default: ~/.brain-ingest-state.json)
 set -euo pipefail
 
@@ -24,7 +24,7 @@ PILOT=0
 STATE_FILE="${BRAIN_INGEST_STATE:-$HOME/.brain-ingest-state.json}"
 BRANCH="feature/brain-initial-ingest"
 LM_URL="${LM_STUDIO_URL:-http://localhost:1234}"
-LM_MODEL="${LM_MODEL:-qwen3-14b}"
+LM_MODEL="${LM_MODEL:-qwen3.6-14b-a3b-fablevibes}"
 
 # --- Parse args ---
 while [[ $# -gt 0 ]]; do
@@ -161,35 +161,21 @@ determine_group() {
   echo "docs"
 }
 
-while IFS=$'\t' read -r src_path slug _worklist_group; do
-  [ -n "$src_path" ] || continue
-  CURRENT=$((CURRENT + 1))
+# Process a single page (extracted for reuse)
+process_page() {
+  local src_path="$1" slug="$2"
+  local src_file src_hash existing_hash type tag_defaults transformed group
 
-  # Progress indicator
-  printf "\r[%d/%d] %s " "$CURRENT" "$TOTAL" "$src_path"
-
-  # Skip if already processed (state file hash match)
   src_file="$REPO_ROOT/$src_path"
-  if [ -f "$src_file" ]; then
-    src_hash="$(sha256sum "$src_file" | cut -d' ' -f1)"
-  else
-    echo ""
-    echo "WARN: source file not found: $src_path"
-    FAILED=$((FAILED + 1))
-    continue
-  fi
-  existing_hash="$(jq -r --arg k "$src_path" '.[$k].hash // ""' "$STATE_FILE" 2>/dev/null || echo "")"
-  if [ "$src_hash" = "$existing_hash" ]; then
-    SKIPPED=$((SKIPPED + 1))
-    continue
-  fi
+  [ -f "$src_file" ] || { echo "WARN: source not found: $src_path" >&2; return 1; }
 
-  # Determine group from manifest (worklist always returns "docs")
+  src_hash="$(sha256sum "$src_file" | cut -d' ' -f1)"
+  existing_hash="$(jq -r --arg k "$src_path" '.[$k].hash // ""' "$STATE_FILE" 2>/dev/null || echo "")"
+  [ "$src_hash" = "$existing_hash" ] && return 2  # skip
+
   group="$(determine_group "$src_path")"
 
-  # Determine type from manifest type_map
   type=""
-  # Check overrides first (path patterns)
   while IFS= read -r override; do
     pattern="$(echo "$override" | jq -r '.pattern')"
     if [[ "$src_path" == $pattern ]]; then
@@ -198,40 +184,46 @@ while IFS=$'\t' read -r src_path slug _worklist_group; do
     fi
   done < <(jq -c '.type_map.overrides[]?' "$MANIFEST" 2>/dev/null || echo "")
 
-  # Fall back to group default
   if [ -z "$type" ]; then
     type="$(jq -r --arg g "$group" '.type_map.defaults[$g] // "note"' "$MANIFEST" 2>/dev/null || echo "note")"
   fi
 
-  # Get tag defaults for group
   tag_defaults="$(jq -c --arg g "$group" '.tag_defaults[$g] // ["note"]' "$MANIFEST" 2>/dev/null || echo '["note"]')"
 
-  # Transform via LLM
   transformed="$(bash "$TRANSFORM_SCRIPT" "$src_file" "$type" "$slug" "$SLUGS_JSON" "$tag_defaults" 2>/dev/null)" || {
-    echo ""
-    echo "WARN: LLM transformation failed for $src_path"
-    FAILED=$((FAILED + 1))
-    continue
+    echo "WARN: LLM failed: $src_path" >&2
+    return 1
   }
 
-  # Validate output has frontmatter
   if ! echo "$transformed" | head -20 | grep -q "^---"; then
-    echo ""
-    echo "WARN: Invalid frontmatter for $src_path"
-    FAILED=$((FAILED + 1))
-    continue
+    echo "WARN: Invalid frontmatter: $src_path" >&2
+    return 1
   fi
 
-  # Write to brain repo
   echo "$transformed" > "$BRAIN_REPO/wiki/$slug.md"
 
-  # Update state
   tmp="$(mktemp)"
   jq --arg k "$src_path" --arg h "$src_hash" --arg s "$slug" --arg t "$type" \
     '.[$k] = {hash:$h, slug:$s, type:$t, transformed_at:(now | todate)}' \
     "$STATE_FILE" > "$tmp" && mv "$tmp" "$STATE_FILE"
+  return 0
+}
 
-  PROCESSED=$((PROCESSED + 1))
+# Sequential processing (LM Studio handles one request at a time)
+while IFS=$'\t' read -r src_path slug _worklist_group; do
+  [ -n "$src_path" ] || continue
+  CURRENT=$((CURRENT + 1))
+
+  printf "\r[%d/%d] %s " "$CURRENT" "$TOTAL" "$src_path"
+
+  process_page "$src_path" "$slug"
+  exit_code=$?
+  case $exit_code in
+    0) PROCESSED=$((PROCESSED + 1)) ;;
+    2) SKIPPED=$((SKIPPED + 1)) ;;
+    *) FAILED=$((FAILED + 1)) ;;
+  esac
+
 done < "$WORKLIST"
 
 echo ""

@@ -13,3 +13,5 @@ source:: brain-foundation (self)
   repariert (Alias/Anker-Wikilinks, tags-Pflicht, Scope, Sammel-Diagnose), Site-Build
   lint-gekoppelt ohne raw/-Publikation; Nutzungs-Doku [[usage]], [[cheatsheet]],
   [[first-aid]], [[llm-workflows]] ergänzt (brain-quality-goals, T001608).
+
+- 2026-07-15: Software-Capabilities-Dokumentation [[capabilities]] hinzugefügt, um allen auf das brain zugreifenden Agents eine verlässliche Beschreibung der Systemfähigkeiten bereitzustellen. In [[index]] und [[index-moc]] verlinkt.

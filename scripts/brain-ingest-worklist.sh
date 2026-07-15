@@ -64,10 +64,26 @@ slugify() {
   echo "$rel" | tr '/_ ' '---' | tr '[:upper:]' '[:lower:]'
 }
 
-find "$ROOT" -type f \( \
+find "$ROOT" \
+  \( -name .git \
+     -o -name node_modules \
+     -o -name .astro \
+     -o -name .taskmaster \
+     -o -name .agy \
+     -o -name .antigravitycli \
+     -o -name .design-sync \
+     -o -name dist \
+     -o -name .venv \
+     -o -name __pycache__ \
+     -o -name .claude \
+     -o -name generated \
+     -o -name archive \
+     -o -name legacy-html \
+     -o -name drift-reports \) -prune \
+  -o -type f \( \
   -name '*.md' -o -name '*.yaml' -o -name '*.yml' -o \
   -name '*.sh' -o -name '*.bats' -o -name '*.json' -o \
-  -name '*.toml' \) 2>/dev/null | sort | while read -r file; do
+  -name '*.toml' \) -print 2>/dev/null | sort | while read -r file; do
   rel="${file#"$ROOT"/}"
   is_excluded "$rel" && continue
   slug="$(slugify "$rel")"

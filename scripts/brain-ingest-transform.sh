@@ -13,7 +13,8 @@
 #
 # Env:
 #   LM_STUDIO_URL    — LM Studio API URL (default: http://localhost:1234)
-#   LM_MODEL         — Model to use (default: qwen3-14b)
+#   LM_MODEL         — Model to use (default: qwen3.6-14b-a3b-fablevibes)
+#   MAX_SOURCE_CHARS — Max source chars to send to LLM (default: 4000)
 #
 # Output: Transformed markdown with frontmatter to stdout
 # Exit: 0 on success, 1 on failure
@@ -26,58 +27,53 @@ SLUGS_JSON="${4:?slugs json required}"
 TAG_DEFAULTS="${5:?tag defaults json required}"
 
 LM_URL="${LM_STUDIO_URL:-http://localhost:1234}"
-LM_MODEL="${LM_MODEL:-qwen3-14b}"
+LM_MODEL="${LM_MODEL:-qwen3.6-14b-a3b-fablevibes}"
+MAX_SOURCE_CHARS="${MAX_SOURCE_CHARS:-4000}"
 
 # Validate source file exists
 [ -f "$SOURCE" ] || { echo "error: source file not found: $SOURCE" >&2; exit 1; }
 
-# Read source content
-CONTENT="$(cat "$SOURCE")"
+# Read source content (truncated to keep prompt manageable)
+CONTENT="$(head -c "$MAX_SOURCE_CHARS" "$SOURCE")"
+SRC_LEN="$(wc -c < "$SOURCE")"
+if [ "$SRC_LEN" -gt "$MAX_SOURCE_CHARS" ]; then
+  CONTENT="${CONTENT}
 
-# Read source path relative to repo root (for source:: reference)
-# Strip everything up to and including the repo root marker
+[...truncated at ${MAX_SOURCE_CHARS} chars of ${SRC_LEN} total...]"
+fi
+
+# Read source path relative to repo root
 SRC_PATH="$(echo "$SOURCE" | sed -E 's|.*/Bachelorprojekt/||')"
 
-# Build prompt
-PROMPT="Du bist ein technischer Dokumentations-Editor. Transformiere die folgende Quelldatei in eine brain-Wiki-Seite.
+# Compact prompt — less tokens = faster generation
+PROMPT="Transformiere diese Quelldatei in eine brain-Wiki-Seite.
 
-## Konventionen (SCHEMA.md)
-- Frontmatter: type (${TYPE}), tags (nicht-leere Liste), status: active
-- Sprache: Deutsch-Prosa, englische Fachbegriffe
-- Wikilinks: [[slug]] Format zu verwandten Seiten (aus der Slug-Liste unten)
-- source:: Rückverweis auf die Quelldatei
-- Max. 2000 Wörter, keine Volltext-Kopie — destilliere die Kernaussagen
-- Behalte die technische Präzision bei, aber formuliere für Wiki-Leser
+Regeln:
+- Frontmatter: type: ${TYPE}, tags: [...], status: active
+- Deutsch-Prosa, englische Fachbegriffe
+- Wikilinks: [[slug]] zu verwandten Seiten (aus Slug-Liste)
+- source:: Rückverweis: Bachelorprojekt ${SRC_PATH}
+- Max 1500 Wörter, destilliere Kernaussagen
+- NUR fertiges Markdown ausgeben
 
-## Tags
-Generiere 2-5 relevante Tags. Grund-Tags für diese Gruppe: ${TAG_DEFAULTS}.
-Füge 1-3 inhaltspezifische Tags hinzu (z.B. den Spec-Namen, das Thema).
-Antworte NUR mit dem fertigen Markdown — keine Erklärungen, keine Metainfos.
+Tags: 2-5 Tags. Grund: ${TAG_DEFAULTS}. Füge 1-3 spezifische hinzu.
 
-## Verfügbare Slugs (für Wikilinks — verwende 2-5 davon)
-${SLUGS_JSON}
+Slugs: ${SLUGS_JSON}
 
-## Quelldatei: ${SRC_PATH}
+Quelle (${SRC_PATH}):
 ---
 ${CONTENT}
 ---
 
-## Aufgabe
-Erstelle eine brain-Wiki-Seite mit:
-1. Korrektem Frontmatter (type: ${TYPE}, tags: [...], status: active)
-2. Transformiertem Inhalt (Deutsch, technisch-präzise, max. 2000 Wörter)
-3. 2-5 Wikilinks zu verwandten Seiten aus der Liste oben
-4. source:: Rückverweis: Bachelorprojekt ${SRC_PATH}
-
 Gib NUR das fertige Markdown aus:"
 
-# Call LM Studio API
-RESPONSE="$(curl -sf --max-time 120 "${LM_URL}/v1/chat/completions" \
+# Call LM Studio API with optimized settings
+RESPONSE="$(curl -sf --max-time 90 "${LM_URL}/v1/chat/completions" \
   -H "Content-Type: application/json" \
   -d "$(jq -n \
     --arg model "$LM_MODEL" \
     --arg prompt "$PROMPT" \
-    '{model: $model, messages: [{role: "user", content: $prompt}], temperature: 0.3, max_tokens: 4096}')" 2>&1)" || {
+    '{model: $model, messages: [{role: "user", content: $prompt}], temperature: 0.2, max_tokens: 2048, top_p: 0.9}')" 2>&1)" || {
   echo "error: LM Studio API call failed" >&2
   echo "$RESPONSE" >&2
   exit 1
@@ -91,6 +87,9 @@ if [ -z "$OUTPUT" ]; then
   echo "$RESPONSE" >&2
   exit 1
 fi
+
+# Strip markdown code fences if present (LLM sometimes wraps output)
+OUTPUT="$(echo "$OUTPUT" | sed '/^```markdown$/d; /^```$/d')"
 
 # Validate output has frontmatter
 if ! echo "$OUTPUT" | head -5 | grep -q '^---'; then

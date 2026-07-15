@@ -452,6 +452,8 @@ concern.
 
 ## Task 6: `gen-goals-data.mjs` — health-goals generator (E4a)
 
+**Status: ✅ DONE** (82 goals parsed from the real `.claude/lib/goals.md`: 1 Prio-A, 10 Prio-B, 71 Prio-C)
+
 **Files:** `scripts/gen-goals-data.mjs` (new), `Taskfile.yml`, `tests/spec/health-goals.bats`
 
 **Pattern:** mirrors `scripts/openspec-status-map.sh` → `website/src/data/openspec-status.json`

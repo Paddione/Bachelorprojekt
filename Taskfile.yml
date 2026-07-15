@@ -3172,6 +3172,11 @@ tasks:
     cmds:
       - bash scripts/health-goals-update.sh {{.CLI_ARGS}}
 
+  health:goals:emit:
+    desc: "Regenerate website/src/lib/goals-data.generated.json from .claude/lib/goals.md (SSOT, E4)"
+    cmds:
+      - node scripts/gen-goals-data.mjs
+
   agent:orchestrator:
     desc: "T001588: local agent orchestration (start/stop/status/submit) via worktrees — see scripts/agent-orchestrator.sh --help"
     cmds:

@@ -41,7 +41,9 @@ git ls-files -z | xargs -0 -I{} sh -c 'test -f "{}" && wc -c "{}"' 2>/dev/null \
 
 **Historie (T001348, obsolet seit T001717):** Eine LFS-Migration von `graph.db.zst` wurde ursprünglich verworfen und die Datei stattdessen per Policy-Entscheidung aus dem Gate-Scope ausgeschlossen (git-lfs lokal defekt, kein erkennbarer Gegenwert für ein intern generiertes `merge=ours`-Binärartefakt). T001717 hat das Problem an der Wurzel gelöst: die Datei is nicht mehr getrackt, der Ausschluss ist damit hinfällig.
 
-> **A · Baseline:** 6 → 7 🔴 · **Target:** ≤ 6 · **Aufwand:** erledigt · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · Ticket: T001717 (löst T001348 ab �# Priorität B — Offene Ziele {#prio-b}
+> **A · Baseline:** 6 → 7 🔴 · **Target:** ≤ 6 · **Aufwand:** erledigt · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · Ticket: T001717 (löst T001348 ab)
+
+# Priorität B — Offene Ziele {#prio-b}
 
 Im nächsten Sprint einplanen.
 

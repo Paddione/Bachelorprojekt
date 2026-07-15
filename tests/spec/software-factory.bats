@@ -2952,8 +2952,10 @@ REG="scripts/factory/service-registry.sh"
 }
 
 @test "FA-SF-70: provider-config.sh set accepts tier=opus with warning" {
+  kubectl() { if [ "$1" = "get" ]; then echo "mock-pod"; else echo "ok"; fi; }
+  export -f kubectl
   run bash scripts/factory/provider-config.sh set --source x --tier opus --priority 1 --provider anthropic --model m
-  [ "$status" -ne 2 ]
+  [ "$status" -eq 0 ]
   [[ "$output" == *"opus"* ]]
 }
 

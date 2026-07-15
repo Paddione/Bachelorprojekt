@@ -1099,18 +1099,6 @@
       "status": "plan_staged"
     }
   ],
-  "T001867": [
-    {
-      "slug": "mishap-t001867",
-      "status": "plan_staged"
-    }
-  ],
-  "T001868": [
-    {
-      "slug": "mishap-t001868",
-      "status": "plan_staged"
-    }
-  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

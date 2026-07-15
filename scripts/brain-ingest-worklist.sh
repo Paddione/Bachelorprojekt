@@ -61,6 +61,7 @@ group_for() {
 slugify() {
   local rel="$1"
   rel="${rel%.*}"
+  rel="${rel#\.}"
   echo "$rel" | tr '/_ ' '---' | tr '[:upper:]' '[:lower:]'
 }
 

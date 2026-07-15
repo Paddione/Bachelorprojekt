@@ -133,12 +133,27 @@ YAML
 }
 
 @test "worklist does not exclude a legitimately-named dir that merely contains 'build' or 'coverage' as a substring" {
+  # Uses a broad-include test manifest, not $MANIFEST — the real manifest's
+  # groups: scope to curated doc paths only (T001608: group_for() now
+  # actually enforces group membership instead of defaulting everything to
+  # "docs"), so these openspec/changes/ fixtures wouldn't match any group
+  # there for reasons unrelated to what this test checks (the is_excluded()
+  # substring-collision bug, not group scoping).
   mkdir -p "$WORK/repo/openspec/changes/mentolder-react-rebuild" \
            "$WORK/repo/openspec/changes/vitest-coverage"
   printf -- '# rebuild notes\n' > "$WORK/repo/openspec/changes/mentolder-react-rebuild/proposal.md"
   printf -- '# coverage notes\n' > "$WORK/repo/openspec/changes/vitest-coverage/proposal.md"
+  cat > "$WORK/manifest.yaml" <<YAML
+exclude:
+  - drafts/
+groups:
+  - group: notes
+    priority: 1
+    include:
+      - "**/*.md"
+YAML
 
-  run bash "$WL" --root "$WORK/repo" --manifest "$MANIFEST"
+  run bash "$WL" --root "$WORK/repo" --manifest "$WORK/manifest.yaml"
   [ "$status" -eq 0 ] || { echo "FAIL: worklist exited with $status"; return 1; }
   [[ "$output" == *"mentolder-react-rebuild"* ]] || { echo "FAIL: *-rebuild/ dir wrongly excluded"; return 1; }
   [[ "$output" == *"vitest-coverage"* ]] || { echo "FAIL: *-coverage/ dir wrongly excluded"; return 1; }

@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # brain-ingest-transform.sh — LLM-assisted transformation of source files
-# into brain wiki pages. Calls local LM Studio API (OpenAI-compatible).
+# into brain wiki pages. Calls a local llama-server ingest-pool endpoint
+# (OpenAI-compatible; standalone llama-server.exe, not LM Studio's own
+# server — see start-qwen36-ingest-pool.ps1, -np 6 concurrent slots).
 #
 # Usage: brain-ingest-transform.sh <source_file> <type> <slug> <slugs_json> <tag_defaults_json>
 #
@@ -12,7 +14,8 @@
 #   tag_defaults_json — JSON array of default tags for the group
 #
 # Env:
-#   LM_STUDIO_URL    — LM Studio API URL (default: http://localhost:1234)
+#   LM_STUDIO_URL    — ingest-pool API URL (default: http://localhost:8095;
+#                      var name kept for backward compat, it's not LM Studio)
 #   LM_MODEL         — Model to use (default: qwen3.6-14b-a3b-fablevibes)
 #   MAX_SOURCE_CHARS — Max source chars to send to LLM (default: 4000)
 #
@@ -26,7 +29,7 @@ SLUG="${3:?page slug required}"
 SLUGS_JSON="${4:?slugs json required}"
 TAG_DEFAULTS="${5:?tag defaults json required}"
 
-LM_URL="${LM_STUDIO_URL:-http://localhost:1234}"
+LM_URL="${LM_STUDIO_URL:-http://localhost:8095}"
 LM_MODEL="${LM_MODEL:-qwen3.6-14b-a3b-fablevibes}"
 MAX_SOURCE_CHARS="${MAX_SOURCE_CHARS:-4000}"
 

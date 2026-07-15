@@ -1110,7 +1110,7 @@
       "kind_de": "Aufgabe",
       "summary_de": "Findet den richtigen Task-Befehl für ein Ziel in einfachem Deutsch.",
       "what_for_de": "Übersetzt 'Ich will X tun' in den passenden task-Befehl, ohne dass du die Taskfile kennen musst.",
-      "how_to_start_de": "Rufe auf: bash scripts/task-oracle.sh 'Dein Ziel auf Deutsch'.",
+      "how_to_start_de": "Rufe auf: bash scripts/vda.sh oracle 'Dein Ziel auf Deutsch'.",
       "what_could_go_wrong_de": "Das Orakel könnte den falschen Task vorschlagen; prüfe immer die Ausgabe kurz.",
       "danger": "safe",
       "guardrails": [],

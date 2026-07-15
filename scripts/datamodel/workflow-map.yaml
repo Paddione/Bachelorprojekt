@@ -91,16 +91,6 @@ steps:
     writes: {}
     gaps: []
 
-  - id: plan-frontmatter-hook-sh
-    family: dev-flow
-    label: "plan-frontmatter-hook.sh"
-    description: "Adds required frontmatter (domains, status) to newly created plan files."
-    writes:
-      files: ["docs/superpowers/plans/*.md"]
-    reads:
-      files: ["docs/superpowers/plans/*.md"]
-    gaps: []
-
   - id: tdd-failing-test
     family: dev-flow
     label: "TDD skill"

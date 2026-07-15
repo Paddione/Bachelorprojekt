@@ -478,10 +478,10 @@ tasks:
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/ticket-external-id-sequence.bats
 
-  test:unit:plan-frontmatter-hook:
+  test:unit:vda-frontmatter:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/plan-frontmatter-hook.bats
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/vda-frontmatter.bats
 
   test:unit:check-commit-vs-diff:
     internal: true

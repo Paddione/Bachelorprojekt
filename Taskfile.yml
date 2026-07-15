@@ -3505,8 +3505,13 @@ tasks:
         set -euo pipefail
         source scripts/env-resolve.sh "{{.ENV}}"
         IMAGE="ghcr.io/paddione/${WEBSITE_IMAGE:-workspace-website}"
+        # T001853: ENV=dev is current-context (same semantics as workspace:deploy
+        # and the brett:logs/workspace:dsgvo-check guard pattern) so a local k3d
+        # dev cluster deploys the manifest + imports the image locally, instead
+        # of dev deploying manifests remotely while the image import target
+        # stayed local ({{.CLUSTER_NAME}}) — a mismatch.
         CTX_ARG=""
-        [ -n "${ENV_CONTEXT:-}" ] && CTX_ARG="--context=${ENV_CONTEXT}"
+        [ "{{.ENV}}" != "dev" ] && CTX_ARG="--context=${ENV_CONTEXT}"
 
         # Run website DB migrations before build/rollout (T001652). Idempotent
         # and tracked — safe even though workspace:deploy also calls this.

@@ -43,6 +43,8 @@ GitHub **PRs are the CI/CD merge mechanism** and link back to a ticket by conven
 `spec_skizziert` (spec sketched) · `offene_fragen_geklaert` (open questions clarified) · `abhaengigkeiten_klar` (dependencies clear) · `aufwand_geschaetzt` (effort estimated).
 This mirrors `website/src/lib/planning-office.ts` (`DOR_KEYS`, `dorScore`) and the admin "Planungsbüro" UI — keep the two consistent; the skill is the SQL view of the same model.
 
+**DoR ≠ the factory gate.** `scripts/factory/queue.sh` (what `dispatcher-bridge.sh` actually dispatches) only picks up `type='feature' AND status='backlog'` tickets where `readiness.lastenheft_locked = true` — a fifth, separate flag, set only via `ticket.sh lastenheft lock --id <id>` (requires `requirements_list` to hold ≥1 entry; see `docs/superpowers/specs/2026-06-17-ticket-pflichtenheft-lastenheft-design.md`). A ticket can have `dorScore = 4` and still sit invisibly in `backlog` forever if nobody ran the lock. Whenever this skill moves a `type='feature'` ticket to `status='backlog'` (Step 3.3, or any ad-hoc `ticket.sh create --status backlog`), populate `requirements_list` (`ticket.sh plan-meta set --id <id> --requirements "a|b|c"`) and immediately run `ticket.sh lastenheft lock --id <id>` — do not leave that step to a later, separate pass.
+
 **DB-Zugriff:** Reads MCP-first via `mcp__mcp-postgres__query`; der `psql()`-Fallback-Helper
 (zugleich Pflichtweg für Writes) und die `tickets.ticket_plans`-`SELECT *`-Warnung sind SSOT im
 [`MCP-Tool-Guide`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md) §mcp-postgres —
@@ -212,7 +214,9 @@ The dev-flow contract splits the parallel unit, orchestrated by all available su
 - `attention_mode = 'ai_ready'` / DoR-complete → **planning wave**: dispatch `dev-flow-plan` via domain-specific subagent for plan creation and staging
 - **Any other ready ticket** → **parallel planning wave**: all available subagents work in parallel to create plans, set readiness flags, stage branches. No ready ticket is left without a route or owner.
 
-All subagents report back with: ticket_id, decisions made, branch created, plan staged. Consolidate for Phase 3 masterplan completion.
+Any subagent that lands a `type='feature'` ticket in `status='backlog'` must, in the same pass, populate `requirements_list` and call `ticket.sh lastenheft lock --id <id>` — see the DoR-vs-factory-gate note above. A ticket without the lock is invisible to `queue.sh`/`dispatcher-bridge.sh` and will silently never dispatch.
+
+All subagents report back with: ticket_id, decisions made, branch created, plan staged, **lastenheft locked (y/n)**. Consolidate for Phase 3 masterplan completion.
 
 ### Step 3.4: Present the masterplan
 ```

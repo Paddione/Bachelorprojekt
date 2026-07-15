@@ -1,0 +1,22 @@
+# Dev-only (k3d): allows pods to reach the API-server endpoint in the
+# Docker network. NetworkPolicies act post-DNAT — the base policy
+# allow-apiserver-egress (10.20.0.0/24 fleet-wg + 10.43.0.0/16 service CIDR)
+# does not cover the k3d endpoint (172.16.0.0/12). Stripped from the prod/
+# overlay via $patch: delete (same pattern as secrets.yaml). [T001853]
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-apiserver-egress-k3d
+  namespace: workspace
+  labels:
+    app.kubernetes.io/part-of: workspace-mvp
+spec:
+  podSelector: {}
+  policyTypes: [Egress]
+  egress:
+    - ports:
+        - port: 6443
+          protocol: TCP
+      to:
+        - ipBlock:
+            cidr: 172.16.0.0/12

@@ -791,6 +791,10 @@
     {
       "slug": "2026-07-02-website-db-decouple",
       "status": "archived"
+    },
+    {
+      "slug": "2026-07-15-website-db-decouple",
+      "status": "archived"
     }
   ],
   "T001537": [
@@ -809,6 +813,10 @@
     {
       "slug": "brain-auto-memory",
       "status": "plan_staged"
+    },
+    {
+      "slug": "2026-07-15-brain-auto-memory",
+      "status": "archived"
     }
   ],
   "T001568": [
@@ -899,12 +907,20 @@
     {
       "slug": "hermes-agent-mcp-access",
       "status": "plan_staged"
+    },
+    {
+      "slug": "2026-07-15-hermes-agent-mcp-access",
+      "status": "archived"
     }
   ],
   "T001610": [
     {
       "slug": "t001610",
       "status": "plan_staged"
+    },
+    {
+      "slug": "2026-07-15-t001610",
+      "status": "archived"
     }
   ],
   "T001611": [
@@ -917,6 +933,10 @@
     {
       "slug": "agent-guide-harness-badge",
       "status": "plan_staged"
+    },
+    {
+      "slug": "2026-07-15-agent-guide-harness-badge",
+      "status": "archived"
     }
   ],
   "T001638": [
@@ -967,6 +987,10 @@
     {
       "slug": "agent-model-slots",
       "status": "plan_staged"
+    },
+    {
+      "slug": "2026-07-15-agent-model-slots",
+      "status": "archived"
     }
   ],
   "T001738": [
@@ -979,12 +1003,20 @@
     {
       "slug": "db-quality-goals",
       "status": "plan_staged"
+    },
+    {
+      "slug": "2026-07-15-db-quality-goals",
+      "status": "archived"
     }
   ],
   "T001748": [
     {
       "slug": "t001748-e2e-page-load-fix",
       "status": "plan_staged"
+    },
+    {
+      "slug": "2026-07-15-t001748-e2e-page-load-fix",
+      "status": "archived"
     }
   ],
   "T001754": [
@@ -1055,6 +1087,10 @@
     {
       "slug": "t001803-pocket-id-dns",
       "status": "plan_staged"
+    },
+    {
+      "slug": "2026-07-15-t001803-pocket-id-dns",
+      "status": "archived"
     }
   ],
   "T001805": [
@@ -1096,6 +1132,22 @@
   "T001858": [
     {
       "slug": "pipeline-interface-consolidation",
+      "status": "plan_staged"
+    },
+    {
+      "slug": "2026-07-15-pipeline-interface-consolidation",
+      "status": "archived"
+    }
+  ],
+  "T001867": [
+    {
+      "slug": "mishap-t001867",
+      "status": "plan_staged"
+    }
+  ],
+  "T001868": [
+    {
+      "slug": "mishap-t001868",
       "status": "plan_staged"
     }
   ],

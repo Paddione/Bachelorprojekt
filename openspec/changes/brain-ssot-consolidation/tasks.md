@@ -783,6 +783,8 @@ tests/unit/lib/bats-core/bin/bats tests/spec/brain-merge-hook.bats
 
 ## Task 9: Delta-spec verification, SKILL.md sync, and dead-artifact cleanup (E7)
 
+**Status: ✅ DONE**
+
 **Files:** `.claude/skills/brain-ingest/SKILL.md`, `docs/code-quality/gates.yaml` (delete one
 allowlist line), delete `scripts/migrate-docs-style.mjs`, `tests/spec/brain-foundation.bats`
 

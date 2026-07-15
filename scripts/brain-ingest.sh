@@ -6,8 +6,14 @@
 # Usage: brain-ingest.sh --brain-repo <path> [--pilot N] [--dry-run] [--state <path>] [--branch <name>]
 #
 # Env:
-#   LM_STUDIO_URL    — LM Studio API URL (default: http://localhost:1234)
+#   LM_STUDIO_URL    — llama-server ingest-pool API URL (default:
+#                      http://localhost:8095 — standalone llama-server.exe,
+#                      NOT LM Studio's :1234 despite the var name; kept for
+#                      backward compat with existing callers/CI config)
 #   LM_MODEL         — Model to use (default: qwen3.6-14b-a3b-fablevibes)
+#   MAX_PARALLEL     — Concurrent process_page() jobs (default: 6, matching
+#                      the ingest-pool server's -np slot count — raising this
+#                      above the server's slot count just queues requests)
 #   BRAIN_INGEST_STATE — State file path (default: ~/.brain-ingest-state.json)
 set -euo pipefail
 
@@ -17,14 +23,24 @@ MANIFEST="$REPO_ROOT/scripts/brain/ingest-sources.yaml"
 WORKLIST_SCRIPT="$REPO_ROOT/scripts/brain-ingest-worklist.sh"
 TRANSFORM_SCRIPT="$HERE/brain-ingest-transform.sh"
 
+# shellcheck source=./brain-group-match.sh
+source "$HERE/brain-group-match.sh"
+
 # --- Defaults ---
 BRAIN_REPO=""
 DRY_RUN=0
 PILOT=0
 STATE_FILE="${BRAIN_INGEST_STATE:-$HOME/.brain-ingest-state.json}"
 BRANCH="feature/brain-initial-ingest"
-LM_URL="${LM_STUDIO_URL:-http://localhost:1234}"
+LM_URL="${LM_STUDIO_URL:-http://localhost:8095}"
 LM_MODEL="${LM_MODEL:-qwen3.6-14b-a3b-fablevibes}"
+MAX_PARALLEL="${MAX_PARALLEL:-6}"
+# transform.sh runs as a child process per page — it needs its own copy of
+# these, not just brain-ingest.sh's local vars (was previously unset here,
+# so a caller who didn't export LM_STUDIO_URL got transform.sh's own
+# default, silently disagreeing with whatever brain-ingest.sh computed).
+export LM_STUDIO_URL="$LM_URL"
+export LM_MODEL
 
 # --- Parse args ---
 while [[ $# -gt 0 ]]; do
@@ -44,6 +60,10 @@ done
 [ -f "$MANIFEST" ] || { echo "error: manifest not found: $MANIFEST" >&2; exit 1; }
 [ -f "$WORKLIST_SCRIPT" ] || { echo "error: worklist script not found: $WORKLIST_SCRIPT" >&2; exit 1; }
 [ -f "$TRANSFORM_SCRIPT" ] || { echo "error: transform script not found: $TRANSFORM_SCRIPT" >&2; exit 1; }
+
+# Extracted once (not per file — see brain-group-match.sh perf note).
+brain_group_section_for_manifest "$MANIFEST"
+GROUPS_SECTION="$_BRAIN_GROUP_SECTION"
 
 # ============================================================
 # Phase 1: Preparation
@@ -99,72 +119,25 @@ SKIPPED=0
 FAILED=0
 CURRENT=0
 
-# Determine group from manifest by matching source path against group patterns
+# Determine group from manifest by matching source path against group
+# patterns. Delegates to the shared matcher (scripts/brain-group-match.sh) so
+# worklist generation and page processing never drift on what "belongs to a
+# group" means. Falls back to "docs" — unlike the worklist's group_for(),
+# every path reaching this function already passed the worklist's group
+# filter, so the fallback should be unreachable in practice; kept as a
+# defensive default for direct/test callers.
 determine_group() {
   local src_path="$1"
-  local group_name="" pattern="" regex="" in_multiline=0
-  local old_noglob; old_noglob="$(set -o | grep noglob | head -1)"
-  set -f  # Disable glob expansion for pattern matching
-
-  while IFS= read -r line; do
-    [[ "$line" =~ ^[[:space:]]*$ ]] && continue
-    [[ "$line" =~ ^[[:space:]]*# ]] && continue
-
-    # Detect group with block scalar indicator (multi-line)
-    if [[ "$line" =~ ^[[:space:]]{2}([a-zA-Z_-]+):\|[[:space:]]*$ ]]; then
-      group_name="${BASH_REMATCH[1]}"
-      in_multiline=1
-      continue
-    fi
-
-    # Detect group with inline value (e.g., "runbooks: docs/runbooks/*.md")
-    if [[ "$line" =~ ^[[:space:]]{2}([a-zA-Z_-]+):[[:space:]]+(.+)$ ]]; then
-      group_name="${BASH_REMATCH[1]}"
-      local value="${BASH_REMATCH[2]}"
-      in_multiline=0
-
-      # Check if value is just "|" (block scalar indicator)
-      if [[ "$value" == "|" ]]; then
-        in_multiline=1
-        continue
-      fi
-
-      # Match against space-separated patterns
-      for pattern in $value; do
-        [[ -z "$pattern" ]] && continue
-        regex="$(echo "$pattern" | sed 's/\*/.*/g; s/\?/./g')"
-        if [[ "$src_path" =~ ^${regex}$ ]]; then
-          eval "$old_noglob" 2>/dev/null || true
-          echo "$group_name"
-          return 0
-        fi
-      done
-      group_name=""
-      continue
-    fi
-
-    # Collect multi-line patterns (indented lines under a group)
-    if [[ "$in_multiline" -eq 1 ]] && [[ "$line" =~ ^[[:space:]]{4}(.+)$ ]]; then
-      pattern="${BASH_REMATCH[1]}"
-      pattern="$(echo "$pattern" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
-      [[ -z "$pattern" ]] && continue
-      regex="$(echo "$pattern" | sed 's/\*/.*/g; s/\?/./g')"
-      if [[ "$src_path" =~ ^${regex}$ ]]; then
-        eval "$old_noglob" 2>/dev/null || true
-        echo "$group_name"
-        return 0
-      fi
-    fi
-  done < <(awk '/^groups:/{flag=1; next} /^[a-zA-Z]/{flag=0} flag{print}' "$MANIFEST")
-
-  eval "$old_noglob" 2>/dev/null || true
-  echo "docs"
+  brain_group_for "$src_path" "$GROUPS_SECTION" || { echo "docs"; return 0; }
+  echo "$_BRAIN_GROUP_OUT"
 }
 
-# Process a single page (extracted for reuse)
+# Process a single page (extracted for reuse). Safe to run concurrently —
+# the STATE_FILE read-modify-write is flock-protected since multiple
+# parallel jobs write to it.
 process_page() {
   local src_path="$1" slug="$2"
-  local src_file src_hash existing_hash type tag_defaults transformed group
+  local src_file src_hash existing_hash type tag_defaults transformed group tmp
 
   src_file="$REPO_ROOT/$src_path"
   [ -f "$src_file" ] || { echo "WARN: source not found: $src_path" >&2; return 1; }
@@ -202,33 +175,60 @@ process_page() {
 
   echo "$transformed" > "$BRAIN_REPO/wiki/$slug.md"
 
-  tmp="$(mktemp)"
-  jq --arg k "$src_path" --arg h "$src_hash" --arg s "$slug" --arg t "$type" \
-    '.[$k] = {hash:$h, slug:$s, type:$t, transformed_at:(now | todate)}' \
-    "$STATE_FILE" > "$tmp" && mv "$tmp" "$STATE_FILE"
+  (
+    flock -x 200
+    tmp="$(mktemp)"
+    jq --arg k "$src_path" --arg h "$src_hash" --arg s "$slug" --arg t "$type" \
+      '.[$k] = {hash:$h, slug:$s, type:$t, transformed_at:(now | todate)}' \
+      "$STATE_FILE" > "$tmp" && mv "$tmp" "$STATE_FILE"
+  ) 200>"$STATE_FILE.lock"
   return 0
 }
 
-# Sequential processing (LM Studio handles one request at a time)
+# Parallel processing — dispatches up to MAX_PARALLEL concurrent
+# process_page() jobs, matching the ingest-pool llama-server's slot count
+# (default 6, see scripts/brain-ingest-transform.sh header). Each job writes
+# its exit code to RESULTS_DIR so the parent can tally after `wait`, since
+# background subshells can't mutate the parent's PROCESSED/SKIPPED/FAILED
+# counters directly.
+RESULTS_DIR="$(mktemp -d)"
+trap 'rm -f "$WORKLIST" "$SLUGS_JSON"; rm -rf "$RESULTS_DIR"' EXIT
+
 while IFS=$'\t' read -r src_path slug _worklist_group; do
   [ -n "$src_path" ] || continue
   CURRENT=$((CURRENT + 1))
 
-  printf "\r[%d/%d] %s " "$CURRENT" "$TOTAL" "$src_path"
+  while (( $(jobs -rp | wc -l) >= MAX_PARALLEL )); do
+    wait -n
+  done
 
-  process_page "$src_path" "$slug"
-  exit_code=$?
-  case $exit_code in
+  (
+    # `|| rc=$?` (not a bare call + separate `$?` capture) — under this
+    # script's `set -e`, a non-zero exit from process_page as a bare
+    # top-level command would kill the subshell immediately, skipping the
+    # result-file write below and silently dropping the job from every
+    # PROCESSED/SKIPPED/FAILED count instead of counting it as failed.
+    rc=0
+    process_page "$src_path" "$slug" || rc=$?
+    echo "$rc" > "$RESULTS_DIR/$CURRENT"
+  ) &
+  printf "\r[%d/%d] dispatched: %s " "$CURRENT" "$TOTAL" "$src_path"
+done < "$WORKLIST"
+
+wait
+
+for result_file in "$RESULTS_DIR"/*; do
+  [ -f "$result_file" ] || continue
+  case "$(cat "$result_file")" in
     0) PROCESSED=$((PROCESSED + 1)) ;;
     2) SKIPPED=$((SKIPPED + 1)) ;;
     *) FAILED=$((FAILED + 1)) ;;
   esac
-
-done < "$WORKLIST"
+done
 
 echo ""
 echo ""
-echo "Phase 2 complete: Processed=$PROCESSED, Skipped=$SKIPPED, Failed=$FAILED"
+echo "Phase 2 complete: Processed=$PROCESSED, Skipped=$SKIPPED, Failed=$FAILED (parallel, MAX_PARALLEL=$MAX_PARALLEL)"
 
 # ============================================================
 # Phase 2b: MOC Generation

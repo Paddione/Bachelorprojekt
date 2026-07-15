@@ -173,6 +173,12 @@ s4:
     - "k3d/backup-secrets.yaml"
     - "scripts/weekly-dep-schema-audit.sh"
     # Standalone cron script — registered via crontab, not referenced by project files.
+    # One-shot / manual scripts — used ad-hoc, not referenced by Taskfile or docs (T001874).
+    - "scripts/migrate-docs-style.mjs"
+    - "scripts/provision-dev-vm.sh"
+    - "scripts/seed-lmstudio-ki-config.mjs"
+    - "scripts/setup-comfyui.sh"
+    - "scripts/api-auth-check.test.mjs"
 
 s5:
   rules:

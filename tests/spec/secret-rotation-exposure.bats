@@ -15,6 +15,10 @@ make_kubeseal_stub() {
   local stub_dir="$1"
   cat > "${stub_dir}/kubeseal" <<'STUB'
 #!/usr/bin/env bash
+if [[ "$*" == *"--fetch-cert"* ]]; then
+  echo "STUB_CERTIFICATE"
+  exit 0
+fi
 cat
 cat <<'ENVELOPE'
 ---

@@ -6,9 +6,9 @@
 #
 # Consolidates the failing-test contract for all three mishaps in the bundle.
 # Each test must FAIL on the current `fix/t001408-mishap-bundle-agent-lock`
-# branch and PASS after the corresponding fix lands. See
-# docs/superpowers/specs/2026-07-01-t001408-mishap-bundle-design.md for the
-# design note.
+# branch and PASS after the corresponding fix lands. Design note lives in
+# git history (docs/superpowers/specs/2026-07-01-t001408-mishap-bundle-design.md,
+# removed in doc cleanup T001869).
 #
 #   M1 — scripts/agent-lock.sh: grace-period + reap diagnostics so a young
 #        claim isn't reaped on a single unverifiable numeric-SID check

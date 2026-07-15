@@ -1,3 +1,25 @@
+# workflow-map.yaml — hand-curated mapping: workflow step → shared-db tables (R/W) + gaps.
+#
+# Consumed by scripts/datamodel/build_datamodel.py via `task datamodel:build`:
+#   build_datamodel.py --map <this file> --out /tmp/datamodel-workflow.md
+#   → node scripts/build-docs.mjs --rebuild-page datamodel-workflow …
+#   → rendered HTML lands in docs/legacy-html/datamodel-workflow.html (committed,
+#     served by the docs deployment). Regenerate after schema or step changes.
+#
+# Schema:
+#   families:      ordered swimlanes for the lifecycle rendering (left → right)
+#   domain_order:  stable ordering/labels of the DB domains; unknown live schemas
+#                  render loudly as "Unknown — file an issue"
+#   steps:         one entry per workflow step. `writes`/`reads` accept the keys
+#                  `tables` ("schema.table") and `files` (globs). Table refs are
+#                  resolved against live DB introspection — a typo aborts the build.
+#   gaps:          per-step gap entries. Gap-type taxonomy:
+#                    db-fk          (red)    — two pools should FK to each other but don't
+#                    workflow-to-db (orange) — step output stays file-only, never reaches a table
+#                    cross-skill    (purple) — data handoff between two steps is broken/missing
+#   cross_skill_gaps: gap edges that span two steps (see taxonomy above)
+#   heuristics:    optional auto-discovery (unbound_fk_candidates, table_with_no_writer);
+#                  results render with a "(heuristic)" tag — suggestions, not verdicts.
 families:
   - id: dev-flow
     label: "Dev-Flow Skills"

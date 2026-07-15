@@ -6,7 +6,7 @@ import globals from 'globals';
 
 export default tseslint.config(
   { ignores: [
-    'dist/', '.astro/', '.design-sync/', '.ds-sync/', 'node_modules/', '**/*.generated.*',
+    'dist/', '.astro/', '.design-sync/', '.ds-sync/', 'node_modules/', 'coverage/', '**/*.generated.*',
     'src/pages/admin/coaching/sessions/index.astro',
     'src/pages/admin/einstellungen/ordner-templates.astro',
     'src/pages/admin/kalender.astro',

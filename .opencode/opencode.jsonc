@@ -1,6 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "lmstudio/qwythos-9b-v2",
+  "model": "lmstudio/qwen3.6-14b-a3b-fablevibes",
   "permission": {
     "read": "allow",
     "edit": "allow",

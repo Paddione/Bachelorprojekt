@@ -4,7 +4,7 @@ import { readAllSlots, writeSlot, isPhase } from '../factory-model-slots';
 const mockQuery = vi.fn();
 vi.mock('../db-pool', () => ({
   pool: {
-    query: (text: string, params?: unknown[]) => mockQuery(text, params),
+    query: (text: string, params?: unknown[]) => params !== undefined ? mockQuery(text, params) : mockQuery(text),
   },
 }));
 

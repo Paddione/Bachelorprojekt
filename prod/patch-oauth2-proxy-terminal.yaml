@@ -13,7 +13,12 @@ spec:
           args:
             - "--config=/run/config/oauth2-extra.cfg"
             - "--provider=oidc"
-            - "--client-id=terminal-sidekick"
+            # pocket-id server-generates a random UUID `id` on client create and
+            # never accepts/echoes a caller-supplied id (T001327). This UUID is
+            # the real id of the name=terminal-sidekick client registered in
+            # pocket_id.oidc_clients on fleet (T001855, same pattern as brain
+            # in T001854).
+            - "--client-id=28b4ddc3-0759-42e1-a96b-52c454e85573"
             - "--client-secret=$(POCKET_ID_TERMINAL_SECRET)"
             - "--redirect-url=https://terminal.${PROD_DOMAIN}/oauth2/callback"
             - "--oidc-issuer-url=https://auth.${PROD_DOMAIN}"
@@ -35,6 +40,7 @@ spec:
             - "--oidc-extra-audience=terminal-sidekick"
             - "--scope=openid email profile groups"
             - "--oidc-groups-claim=groups"
+            - "--email-domain=*"
             - "--allowed-group=terminal-admins"
           env:
             - name: POCKET_ID_TERMINAL_SECRET

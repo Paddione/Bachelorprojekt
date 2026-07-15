@@ -183,15 +183,18 @@ print(f'{p95:.1f}')
 **Was:** Misst den Lighthouse Performance Score für die Website-Homepage via
 `lighthouse-ci`. Aktuell wird nur die Bundle-Größe (G-FE02) überwacht — das sagt
 nichts über FCP, LCP, CLS oder TTI aus. Core Web Vitals sind der Industriestandard
-für echte User-Performance.
+für echte User-Performance. Lighthouse CI ist jetzt in `.github/workflows/ci.yml`
+integriert (advisory-only). `lighthouse-budget.json` definiert die Thresholds.
+`scripts/health-goals-check.sh` misst den Score via `npx lhci`.
 
 ```bash
-# Placeholder — erfordert lighthouse-ci CI-Integration:
-# npx lhci autorun --collect.url=https://<domain>/ --assert.performance=0.9
-# Aktuell: manuelle Prüfung via Chrome DevTools Lighthouse-Tab
+npx lhci autorun \
+  --collect.url=https://mentolder.de \
+  --collect.settings.chromeFlags='--headless --no-sandbox' \
+  --assert.performance=0.9
 ```
 
-> **B · Baseline:** n/a · **Target:** ≥ 90 · **Aufwand:** mittel (lighthouse-ci einrichten + Baseline-Lauf) · **Messzyklus:** wöchentlich · **Reproduzierbar:** mit lighthouse-ci ja · **Ticket:** T001842
+> **B · Baseline:** n/a → 0 (Lighthouse CI in CI + health-goals-check.sh integriert, erster Scan ausstehend) · **Target:** ≥ 90 · **Aufwand:** gering (Messung) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001842
 
 
 # Priorität C — Green Gates {#prio-c}
@@ -325,7 +328,7 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 | G-DB10 | T001839 | offen (Unused Indexes, Baseline fehlt) |
 | G-SEC06 | T001840 | offen (Container CVEs, Trivy-Integration ausstehend) |
 | G-CI03 | T001841 | offen (CI Duration, Implementierung abgeschlossen, erster Scan ausstehend) |
-| G-FE05 | T001842 | offen (Lighthouse Performance, lighthouse-ci ausstehend) |
+| G-FE05 | T001842 | offen (Lighthouse Performance, CI-Integration abgeschlossen, erster Scan ausstehend) |
 | G-SIZE04 | T001280 | geschlossen (`done`), Messwert weiterhin rot → Nachfolger T001347 |
 | G-SIZE04 | T001347 | offen |
 | G-GIT03 | T001275 | **gefixt** (gitignore search-index.json [T001305]) |
@@ -350,4 +353,4 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 | G-AGENTIC08 | — | **gefixt** (2026-07-04: toter script-path `scripts/brain-ingest.mjs` aus SKILL.md entfernt) |
 | G-GIT02 | T001552 | **regressed** (Commit f9dc1ae4e — `mishap-bundle-fix:` non-conventional) |
 
-**Baseline-Update 2026-07-15:** G-CI03 n/a→0 (Implementierung in health-goals-check.sh abgeschlossen, erster Scan ausstehend)
+**Baseline-Update 2026-07-15:** G-CI03 n/a→0 (Implementierung in health-goals-check.sh abgeschlossen, erster Scan ausstehend); G-FE05 n/a→0 (Lighthouse CI in ci.yml + health-goals-check.sh integriert, lighthouse-budget.json erstellt, erster Scan ausstehend)

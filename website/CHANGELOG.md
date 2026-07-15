@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.185.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.185.0...website-v1.185.1) (2026-07-15)
+
+
+### Bug Fixes
+
+* **test:** update stale provider-config opus test + harden e2e-marker regex [T001868] ([#2864](https://github.com/Paddione/Bachelorprojekt/issues/2864)) ([f146779](https://github.com/Paddione/Bachelorprojekt/commit/f146779ca6aa539f29e8c9e3f7edba09b243cf5a))
+
 ## [1.185.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.184.1...website-v1.185.0) (2026-07-15)
 
 

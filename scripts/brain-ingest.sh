@@ -99,7 +99,69 @@ SKIPPED=0
 FAILED=0
 CURRENT=0
 
-while IFS=$'\t' read -r src_path slug group; do
+# Determine group from manifest by matching source path against group patterns
+determine_group() {
+  local src_path="$1"
+  local group_name="" pattern="" regex="" in_multiline=0
+  local old_noglob; old_noglob="$(set -o | grep noglob | head -1)"
+  set -f  # Disable glob expansion for pattern matching
+
+  while IFS= read -r line; do
+    [[ "$line" =~ ^[[:space:]]*$ ]] && continue
+    [[ "$line" =~ ^[[:space:]]*# ]] && continue
+
+    # Detect group with block scalar indicator (multi-line)
+    if [[ "$line" =~ ^[[:space:]]{2}([a-zA-Z_-]+):\|[[:space:]]*$ ]]; then
+      group_name="${BASH_REMATCH[1]}"
+      in_multiline=1
+      continue
+    fi
+
+    # Detect group with inline value (e.g., "runbooks: docs/runbooks/*.md")
+    if [[ "$line" =~ ^[[:space:]]{2}([a-zA-Z_-]+):[[:space:]]+(.+)$ ]]; then
+      group_name="${BASH_REMATCH[1]}"
+      local value="${BASH_REMATCH[2]}"
+      in_multiline=0
+
+      # Check if value is just "|" (block scalar indicator)
+      if [[ "$value" == "|" ]]; then
+        in_multiline=1
+        continue
+      fi
+
+      # Match against space-separated patterns
+      for pattern in $value; do
+        [[ -z "$pattern" ]] && continue
+        regex="$(echo "$pattern" | sed 's/\*/.*/g; s/\?/./g')"
+        if [[ "$src_path" =~ ^${regex}$ ]]; then
+          eval "$old_noglob" 2>/dev/null || true
+          echo "$group_name"
+          return 0
+        fi
+      done
+      group_name=""
+      continue
+    fi
+
+    # Collect multi-line patterns (indented lines under a group)
+    if [[ "$in_multiline" -eq 1 ]] && [[ "$line" =~ ^[[:space:]]{4}(.+)$ ]]; then
+      pattern="${BASH_REMATCH[1]}"
+      pattern="$(echo "$pattern" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+      [[ -z "$pattern" ]] && continue
+      regex="$(echo "$pattern" | sed 's/\*/.*/g; s/\?/./g')"
+      if [[ "$src_path" =~ ^${regex}$ ]]; then
+        eval "$old_noglob" 2>/dev/null || true
+        echo "$group_name"
+        return 0
+      fi
+    fi
+  done < <(awk '/^groups:/{flag=1; next} /^[a-zA-Z]/{flag=0} flag{print}' "$MANIFEST")
+
+  eval "$old_noglob" 2>/dev/null || true
+  echo "docs"
+}
+
+while IFS=$'\t' read -r src_path slug _worklist_group; do
   [ -n "$src_path" ] || continue
   CURRENT=$((CURRENT + 1))
 
@@ -121,6 +183,9 @@ while IFS=$'\t' read -r src_path slug group; do
     SKIPPED=$((SKIPPED + 1))
     continue
   fi
+
+  # Determine group from manifest (worklist always returns "docs")
+  group="$(determine_group "$src_path")"
 
   # Determine type from manifest type_map
   type=""

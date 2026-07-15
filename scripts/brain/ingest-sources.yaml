@@ -26,7 +26,8 @@ exclude:
 
 groups:
   ssot-specs: |
-    openspec/specs/brain/*.md
+    openspec/specs/asset-generation.md
+    openspec/specs/brain-foundation.md
     openspec/specs/ci-cd.md
     openspec/specs/database.md
     openspec/specs/deployment.md
@@ -50,8 +51,8 @@ groups:
     openspec/specs/videovault-mediamanager.md
     openspec/specs/website.md
   runbooks: docs/runbooks/*.md
-  adr: docs/architecture/*.md
-  gotchas-footguns: docs/gotchas/*.md
+  adr: docs/adr/*.md
+  gotchas-footguns: docs/superpowers/references/gotchas-footguns.md
   agent-guide-maps: docs/agent-guide/*.md
   core-docs: CLAUDE.md AGENTS.md
 

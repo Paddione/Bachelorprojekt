@@ -182,6 +182,10 @@ s5:
     - path: "website"
       allowed: ["pnpm-lock.yaml"]
       forbidden: ["package-lock.json"]
+    # brett behält BEIDE Lockfiles absichtlich: package-lock.json ist die
+    # Install-/CI-Quelle (npm), pnpm-lock.yaml existiert NUR damit Renovate
+    # Dependency-Updates für brett prüfen kann. pnpm-lock.yaml hier nicht
+    # als "verwaist" löschen — das bricht die Renovate-Checks. [T001224]
     - path: "brett"
       allowed: ["package-lock.json", "pnpm-lock.yaml"]
       forbidden: []

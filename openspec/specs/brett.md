@@ -148,6 +148,58 @@ The system SHALL maintain a per-room undo/redo stack for reversible figure mutat
 
 ---
 
+### Requirement: Snapshot-/Export-UI (PNG/JSON/PDF)
+<!-- baseline aus Codebase-Analyse am 2026-07-15 (T001869) — dokumentiert shipped Verhalten aus T000466 -->
+
+The client SHALL provide export buttons in the topbar HUD (`brett/src/client/ui/export.ts`) that export the current board state entirely client-side — as a PNG screenshot of the WebGL canvas, as a structured JSON snapshot, or as a printable PDF (via dynamic `import('jspdf')`, A4 landscape with metadata and figure list). No data leaves the browser except through the user-initiated download; there are no server endpoints for export.
+
+The JSON export SHALL be built from a client-side export cache (`updateExportCache()`/`getExportSnapshot()`), fed by `ws-client.ts` on every relevant server message (`snapshot`, `add`, `move`, `update`, `delete`, `session_phase_change`).
+
+**Constraint (non-obvious):** the Three.js scene MUST be initialized with `preserveDrawingBuffer: true`. WebGL clears the drawing buffer after each `render()` by default, so `renderer.domElement.toDataURL()` only returns a valid image within the same frame — or with the preserve flag set. The flag costs rendering performance, which is acceptable in the coaching context (no 60-fps game loop). Do not "optimize" it away without replacing the PNG export mechanism.
+
+#### Scenario: PNG-Export liefert die aktuelle 3D-Ansicht
+
+- **GIVEN** ein gebootetes Board mit gerenderten Figuren
+- **WHEN** der Nutzer den PNG-Export-Button klickt
+- **THEN** wird `renderer.domElement.toDataURL('image/png')` aufgerufen und die aktuelle Ansicht inkl. Figuren, Kamera-Perspektive und Licht als Download ausgelöst
+
+#### Scenario: JSON-Export serialisiert den Client-Cache
+
+- **GIVEN** der Export-Cache wurde durch WS-Nachrichten befüllt
+- **WHEN** der Nutzer den JSON-Export-Button klickt
+- **THEN** wird ein `ClientBoardSnapshot` (exportedAt, sessionCode, phase, stiffness, figures, optik) als JSON-Datei heruntergeladen
+
+---
+
+### Requirement: Beziehungs-/Spannungslinien zwischen Figuren
+<!-- baseline aus Codebase-Analyse am 2026-07-15 (T001869) — dokumentiert shipped Verhalten aus T000467 -->
+
+The system SHALL support persistent, bidirectional lines between two figures with three types — `relationship` (blue `#4ea1ff`, solid), `tension` (red `#e05555`, dashed), `resource` (green `#55bb77`, solid) — rendered as `CatmullRomCurve3` arcs (`brett/src/client/scene-lines.ts`). Lines are purely informational annotations by the session leader: they create no physical constraints and never influence figure movement.
+
+Lines are a separate entity (`BrettLine { id, fromId, toId, lineType, createdBy? }`), stored under the sentinel key `__lines__` in the room's figureMap (pattern of `__roles__`/`__lobby_settings__`) — deliberately NOT as `figure.relations[]`, so a line "belongs" to neither figure and deleting a figure cleanly removes its lines. Persistence rides the existing `brett_rooms.state` JSONB via `buildStateFromMutations()`/`seedFigureMapFromState()` round-trip; no schema change.
+
+The messages `line_create`, `line_delete`, `line_type_set` are in `ADMIN_TYPES` AND additionally require the `leiter` role. Validation: no self-lines (`fromId !== toId`), both figures must exist in the room, max 100 lines per room.
+
+#### Scenario: Leiter legt eine Spannungslinie an
+
+- **GIVEN** zwei existierende Figuren und ein Client mit Rolle `leiter`
+- **WHEN** er `line_create` mit `lineType: 'tension'` sendet
+- **THEN** erzeugt der Server eine `BrettLine` mit Server-generierter ID, broadcastet `line_created` und persistiert über den `__lines__`-Sentinel
+
+#### Scenario: Beobachter darf keine Linien anlegen
+
+- **GIVEN** ein Client ohne `leiter`-Rolle
+- **WHEN** er `line_create` sendet
+- **THEN** lehnt der Server mit `forbidden` ab
+
+#### Scenario: Figur-Löschung räumt ihre Linien ab
+
+- **GIVEN** eine Figur mit einer verbundenen Linie
+- **WHEN** die Figur gelöscht wird
+- **THEN** werden alle Linien mit dieser Figur als `fromId` oder `toId` mit entfernt
+
+---
+
 ### Requirement: Replay-Aufzeichnung von Board-Mutations (Dark-Launch)
 
 The system SHALL record all state-mutating WebSocket events per room and session code into the `session_events` table with monotone sequence numbers, enabling a timeline replay that reconstructs the full board history, when the `replay` feature flag is active.

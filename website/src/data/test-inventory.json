@@ -1152,12 +1152,6 @@
     "kind": "shell"
   },
   {
-    "id": "FA-SF-41",
-    "file": "tests/local/FA-SF-41-wakeup.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
     "id": "FA-SF-42",
     "file": "tests/local/FA-SF-42-dashboard-route.bats",
     "category": "FA",

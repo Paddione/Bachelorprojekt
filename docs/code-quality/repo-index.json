@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 568,
+      "file_count": 567,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -282,7 +282,6 @@
         "tests/local/FA-SF-38-canary.bats",
         "tests/local/FA-SF-39-canary-wire.bats",
         "tests/local/FA-SF-40-provision.bats",
-        "tests/local/FA-SF-41-wakeup.bats",
         "tests/local/FA-SF-42-dashboard-route.bats",
         "tests/local/FA-SF-43-worktree-gitcrypt.bats",
         "tests/local/FA-SF-44-verify-diff-killswitch.bats",

@@ -1603,38 +1603,27 @@ TASKFILE="${BATS_TEST_DIRNAME}/../../Taskfile.factory.yml"
   [ "$status" -eq 0 ]
 }
 
-@test "FA-SF-41: wakeup.sh calls headless claude with the Workflow tool allowlisted" {
-  # idle-retick: claude is called without exec (so the loop can continue after it)
-  run grep -E '"\$\{CLAUDE_BIN\}"[[:space:]]+-p' "$WAKEUP"
+@test "FA-SF-41: wakeup.sh dispatches the tick via dispatcher-bridge.sh (overridable via FACTORY_DISPATCHER_BRIDGE)" {
+  # T001845: the tick itself no longer calls claude/Workflow directly — that
+  # moved into dispatcher-bridge.sh, invoked here as a plain bash subprocess.
+  run grep -F 'FACTORY_DISPATCHER_BRIDGE' "$WAKEUP"
   [ "$status" -eq 0 ]
-  run grep -E -- '--allowedTools' "$WAKEUP"
-  [ "$status" -eq 0 ]
-  run grep -F 'Workflow' "$WAKEUP"
+  run grep -E 'bash "\$\{DISPATCHER_BRIDGE\}"' "$WAKEUP"
   [ "$status" -eq 0 ]
 }
 
-@test "FA-SF-41: wakeup.sh actually forwards -p + --allowedTools + --permission-mode to the exec'd claude (not dropped by a gamed comment)" {
-  # Behavioral guard for the line-continuation bug: a stub 'claude' records its
-  # argv; the wrapper must pass the FULL flag set, not just -p PROMPT.
-  tmp="$(mktemp -d)"
-  argfile="${tmp}/argv"
-  cat > "${tmp}/claude-stub" <<STUB
-#!/usr/bin/env bash
-printf '%s\n' "\$@" > "${argfile}"
-STUB
-  chmod +x "${tmp}/claude-stub"
-  # Isolate the single-flight lock (so a real autopilot tick holding the shared
-  # /tmp/factory-tick.lock can't false-red this) AND the env file (so a present
-  # ~/.config/factory/autopilot.env can't clobber FACTORY_CLAUDE_BIN). [T000523]
-  FACTORY_REPO="${tmp}" FACTORY_CLAUDE_BIN="${tmp}/claude-stub" FACTORY_DRY_RUN=true \
-    FACTORY_TICK_LOCK="${tmp}/tick.lock" FACTORY_ENV_FILE="${tmp}/no-env" run bash "$WAKEUP"
+@test "T001845: dispatcher-bridge.sh still allowlists the Workflow tool for its own per-ticket pipeline launches" {
+  # Only the outer dispatcher-tick call moved off Workflow (T001845). The inner
+  # per-ticket pipeline.js launch inside dispatcher-bridge.sh is a separate,
+  # not-yet-fixed instance of the same failure class — it must still exist and
+  # still be allowlisted correctly, so this asserts it wasn't silently dropped.
+  BRIDGE="${BATS_TEST_DIRNAME}/../../scripts/factory/dispatcher-bridge.sh"
+  run grep -E '"\$\{CLAUDE_BIN:-claude\}"[[:space:]]+-p' "$BRIDGE"
   [ "$status" -eq 0 ]
-  run grep -q -- '-p' "${argfile}";              [ "$status" -eq 0 ]
-  run grep -q -- '--allowedTools' "${argfile}";  [ "$status" -eq 0 ]
-  run grep -qF 'Workflow' "${argfile}";          [ "$status" -eq 0 ]
-  run grep -q -- '--permission-mode' "${argfile}"; [ "$status" -eq 0 ]
-  run grep -qF 'acceptEdits' "${argfile}";       [ "$status" -eq 0 ]
-  rm -rf "${tmp}"
+  run grep -E -- '--allowedTools' "$BRIDGE"
+  [ "$status" -eq 0 ]
+  run grep -F 'Workflow' "$BRIDGE"
+  [ "$status" -eq 0 ]
 }
 
 @test "FA-SF-41: wakeup.sh single-flight honors FACTORY_TICK_LOCK (hermetic, not the shared /tmp lock)" {
@@ -1670,6 +1659,35 @@ STUB
 @test "FA-SF-41: wakeup.sh names dispatcher.js as the nested Workflow script" {
   run grep -F 'scripts/factory/dispatcher.js' "$WAKEUP"
   [ "$status" -eq 0 ]
+}
+
+@test "T001845: wakeup.sh dispatches the tick via dispatcher-bridge.sh instead of forcing the model to call Workflow(dispatcher.js)" {
+  # qwythos-9b-v2 (local model backing ANTHROPIC_MODEL) emits tool calls in a
+  # non-standard XML form the harness's tool-call parser chokes on ("import
+  # call expects one or two arguments"), causing the Workflow(dispatcher.js)
+  # tick call to retry uselessly. dispatcher-bridge.sh (already built,
+  # previously unwired) makes the tick itself pure bash for an empty queue —
+  # no LLM/tool-call round trip at all.
+  tmp="$(mktemp -d)"
+  bridgefile="${tmp}/bridge-invoked"
+  claudefile="${tmp}/claude-invoked"
+  cat > "${tmp}/bridge-stub" <<STUB
+#!/usr/bin/env bash
+printf '%s\n' "\$@" > "${bridgefile}"
+STUB
+  chmod +x "${tmp}/bridge-stub"
+  cat > "${tmp}/claude-stub" <<STUB
+#!/usr/bin/env bash
+printf '%s\n' "\$@" > "${claudefile}"
+STUB
+  chmod +x "${tmp}/claude-stub"
+  FACTORY_REPO="${tmp}" FACTORY_CLAUDE_BIN="${tmp}/claude-stub" \
+    FACTORY_DISPATCHER_BRIDGE="${tmp}/bridge-stub" FACTORY_DRY_RUN=true \
+    FACTORY_TICK_LOCK="${tmp}/tick.lock" FACTORY_ENV_FILE="${tmp}/no-env" run bash "$WAKEUP"
+  [ "$status" -eq 0 ]
+  [ -f "${bridgefile}" ]
+  [ ! -f "${claudefile}" ]
+  rm -rf "${tmp}"
 }
 
 @test "FA-SF-41: factory.service is a oneshot that runs wakeup.sh" {
@@ -1769,11 +1787,17 @@ README="${BATS_TEST_DIRNAME}/../../scripts/factory/README.md"
 printf '%s\n' "\$@" > "${argfile}"
 STUB
   chmod +x "${tmp}/claude-stub"
-  FACTORY_REPO="${tmp}" FACTORY_CLAUDE_BIN="${tmp}/claude-stub" FACTORY_DRY_RUN=true \
+  cat > "${tmp}/bridge-stub" <<STUB
+#!/usr/bin/env bash
+exit 0
+STUB
+  chmod +x "${tmp}/bridge-stub"
+  FACTORY_REPO="${tmp}" FACTORY_CLAUDE_BIN="${tmp}/claude-stub" \
+    FACTORY_DISPATCHER_BRIDGE="${tmp}/bridge-stub" FACTORY_DRY_RUN=true \
     FACTORY_TICK_LOCK="${tmp}/tick.lock" FACTORY_ENV_FILE="${tmp}/no-env" \
     FACTORY_IDLE_RETICK_ENABLED=true run bash "$WAKEUP"
   [ "$status" -eq 0 ]
-  [ -f "${argfile}" ]   # claude was invoked exactly once
+  [ ! -f "${argfile}" ]   # claude was NOT invoked — the tick is pure bash via dispatcher-bridge.sh
   rm -rf "${tmp}"
 }
 
@@ -3212,20 +3236,23 @@ STUB
 
 @test "T001812: wakeup.sh precomputes factory-prep and passes a file path, not inline JSON" {
   # Neither the T001810 args-blob (no prep object relayed verbatim) nor a
-  # T001808/T001809-style giant inline JSON string — just a short path the
-  # model passes through untouched.
+  # T001808/T001809-style giant inline JSON string — just a short path,
+  # passed as a bash CLI arg to dispatcher-bridge.sh (T001845 — no longer
+  # relayed through a model prompt at all for the tick itself).
   run grep -F 'PREP_JSON' scripts/factory/wakeup.sh
   [ "$status" -ne 0 ]
   run grep -F 'PREP_FILE=' scripts/factory/wakeup.sh
   [ "$status" -eq 0 ]
   run grep -F 'factory-prep' scripts/factory/wakeup.sh
   [ "$status" -eq 0 ]
-  run grep -F "prep_file: '\${PREP_FILE}'" scripts/factory/wakeup.sh
+  run grep -E 'DISPATCHER_BRIDGE\}"[[:space:]]+"\$\{PREP_FILE\}"' scripts/factory/wakeup.sh
   [ "$status" -eq 0 ]
 }
 
-@test "T001809: dispatcher allowedTools covers vda.sh" {
-  run grep -F 'Bash(bash scripts/vda.sh*)' scripts/factory/wakeup.sh
+@test "T001809: dispatcher-bridge allowedTools covers vda.sh" {
+  # T001845: the --allowedTools list moved from wakeup.sh's removed claude -p
+  # call into dispatcher-bridge.sh's own per-ticket pipeline launch.
+  run grep -F 'Bash(bash scripts/vda.sh*)' scripts/factory/dispatcher-bridge.sh
   [ "$status" -eq 0 ]
 }
 

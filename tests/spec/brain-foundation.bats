@@ -117,3 +117,39 @@ teardown() { rm -rf "$WORK"; }
   [ -f "$WORK/brain/site.Dockerfile" ]
   [ -f "$WORK/brain/.github/workflows/build-site.yml" ]
 }
+
+# --- T001884: Mermaid-Markdown architecture page (E3) ---
+
+@test "build-graph-docs.mjs emits docs/diagrams/architecture.md with mermaid fences, not HTML" {
+  cd "$REPO_ROOT"
+  run node scripts/build-graph-docs.mjs
+  [ "$status" -eq 0 ] || { echo "FAIL: generator exited non-zero: $output"; return 1; }
+  [ -f "$REPO_ROOT/docs/diagrams/architecture.md" ] || { echo "FAIL: docs/diagrams/architecture.md not written"; return 1; }
+  grep -q '```mermaid' "$REPO_ROOT/docs/diagrams/architecture.md" \
+    || { echo "FAIL: no mermaid fence in output"; return 1; }
+  ! grep -q '<html' "$REPO_ROOT/docs/diagrams/architecture.md" \
+    || { echo "FAIL: output still contains raw HTML"; return 1; }
+  ! grep -q 'cdn.jsdelivr.net' "$REPO_ROOT/docs/diagrams/architecture.md" \
+    || { echo "FAIL: output still references the CDN mermaid script"; return 1; }
+}
+
+@test "docs/diagrams/architecture.md is byte-identical across two consecutive generator runs (no embedded timestamp)" {
+  cd "$REPO_ROOT"
+  run node scripts/build-graph-docs.mjs
+  [ "$status" -eq 0 ]
+  first="$(cat "$REPO_ROOT/docs/diagrams/architecture.md")"
+  run node scripts/build-graph-docs.mjs
+  [ "$status" -eq 0 ]
+  second="$(cat "$REPO_ROOT/docs/diagrams/architecture.md")"
+  [ "$first" = "$second" ] || { echo "FAIL: output differs between consecutive runs — likely an embedded timestamp"; return 1; }
+}
+
+# --- T001884: brain-ingest SKILL.md synced to the real pipeline (E7) ---
+
+@test "brain-ingest SKILL.md references the real orchestrator, not a fictional quartz CLI workflow" {
+  skill="$REPO_ROOT/.claude/skills/brain-ingest/SKILL.md"
+  grep -q 'scripts/brain-ingest.sh' "$skill" \
+    || { echo "FAIL: SKILL.md never mentions the real orchestrator script"; return 1; }
+  ! grep -q 'quartz generate --sources' "$skill" \
+    || { echo "FAIL: SKILL.md still describes the never-built quartz CLI workflow"; return 1; }
+}

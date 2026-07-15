@@ -216,6 +216,18 @@ export function buildTopology(graph) {
   return lines.join('\n');
 }
 
+export function buildApiTableMarkdown(apiMap) {
+  const authIcon = { admin: '🔐', auth: '🔑', public: '🌐' };
+  const header = '| Path | Methods | Auth |\n|------|---------|------|';
+  const rows = apiMap.endpoints.map(ep => {
+    const methods = ep.methods.join(', ');
+    const icon = authIcon[ep.auth] || '❓';
+    const pathShort = ep.path.length > 80 ? ep.path.slice(0, 78) + '…' : ep.path;
+    return `| \`${pathShort}\` | ${methods} | ${icon} ${ep.auth} |`;
+  });
+  return [header, ...rows].join('\n');
+}
+
 export function buildApiTable(apiMap) {
   const authIcon = { admin: '🔐', auth: '🔑', public: '🌐' };
   const authColor = { admin: '#ef4444', auth: '#f59e0b', public: '#10b981' };

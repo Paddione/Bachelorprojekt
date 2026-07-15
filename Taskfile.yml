@@ -912,7 +912,7 @@ tasks:
       - node scripts/build-blast-radius.mjs
 
   graph:build-docs:
-    desc: "Generiere Mermaid-Architecture-Page nach k3d/docs-content-built/architecture/ (LAD-3)"
+    desc: "Generiere Mermaid-Architecture-Markdown nach docs/diagrams/architecture.md (LAD-3)"
     cmds:
       - '[ -d node_modules ] || npm ci'
       - node scripts/build-graph-docs.mjs
@@ -969,7 +969,9 @@ tasks:
       - task: quality:index
       - task: agent-guide:emit
       - task: graph:build    # LAD: K8s graph artifacts
+      - task: graph:build-docs
       - task: openspec:status-map
+      - task: health:goals:emit
 
   freshness:check:
     desc: "Fail if any generated artifact is stale or violates invariants (CI gate + local pre-commit safety)"
@@ -983,6 +985,8 @@ tasks:
           website/src/lib/learning-assets.generated.json
           website/public/learning-assets/THIRD-PARTY-ASSETS.md
           website/src/data/openspec-status.json
+          docs/diagrams/architecture.md
+          website/src/lib/goals-data.generated.json
           docs/code-quality/repo-index.json
           docs/agent-guide/10-ziele.md
           docs/agent-guide/20-werkzeuge.md

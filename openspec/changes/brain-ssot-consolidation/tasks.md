@@ -305,6 +305,8 @@ ticket if desired, do not fix it inline here (it would require touching Phase-2b
 
 ## Task 4: Mermaid-Markdown diagram generator (E3)
 
+**Status: ✅ DONE**
+
 **Files:** `scripts/build-graph-shared.mjs`, `scripts/build-graph-docs.mjs`, `Taskfile.yml`,
 `docs/diagrams/architecture.md` (new, generated), `tests/spec/brain-foundation.bats`
 

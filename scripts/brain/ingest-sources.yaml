@@ -54,3 +54,36 @@ groups:
   gotchas-footguns: docs/gotchas/*.md
   agent-guide-maps: docs/agent-guide/*.md
   core-docs: CLAUDE.md AGENTS.md
+
+# Type mapping: group → default type, with path-based overrides.
+# The ingest pipeline reads this to assign brain page types.
+type_map:
+  defaults:
+    ssot-specs: note
+    runbooks: runbook
+    adr: decision
+    gotchas-footguns: note
+    agent-guide-maps: moc
+    core-docs: moc
+  overrides:
+    - pattern: "openspec/specs/security*.md"
+      type: decision
+    - pattern: "openspec/specs/database*.md"
+      type: note
+    - pattern: "openspec/specs/health-goals.md"
+      type: decision
+    - pattern: "docs/agent-guide/surface-*.md"
+      type: moc
+    - pattern: "CLAUDE.md"
+      type: moc
+    - pattern: "AGENTS.md"
+      type: moc
+
+# Tag defaults per group. The LLM adds content-specific tags on top.
+tag_defaults:
+  ssot-specs: [ssot, spec]
+  runbooks: [runbook, ops]
+  adr: [adr, decision, architecture]
+  gotchas-footguns: [gotchas, footguns]
+  agent-guide-maps: [agent-guide, surface]
+  core-docs: [core, meta]

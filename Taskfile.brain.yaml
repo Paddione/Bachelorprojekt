@@ -24,3 +24,18 @@ tasks:
     desc: "Zeige Worklist-Statistik nach Gruppen"
     cmds:
       - cut -f2 brain-worklist.txt | sort | uniq -c | sort -rn
+
+  ingest:run:
+    desc: "Full brain ingestion pipeline (LLM-assisted, creates PR)"
+    cmds:
+      - bash scripts/brain-ingest.sh --brain-repo ~/brain "$@"
+
+  ingest:pilot:
+    desc: "Run ingestion on 20 pages (pilot batch)"
+    cmds:
+      - bash scripts/brain-ingest.sh --brain-repo ~/brain --pilot 20 "$@"
+
+  ingest:dry:
+    desc: "Dry-run ingestion (no PR, no writes to brain repo)"
+    cmds:
+      - bash scripts/brain-ingest.sh --brain-repo ~/brain --dry-run "$@"

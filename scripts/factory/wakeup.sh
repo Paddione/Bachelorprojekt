@@ -20,6 +20,7 @@
 #     FACTORY_DRY_RUN               true|false           (default: true — fail-safe)
 #     FACTORY_GITCRYPT_KEY          path to bp-secrets.key for `task secrets:unlock`
 #     FACTORY_CLAUDE_BIN            claude binary        (default: claude on PATH)
+#     FACTORY_DISPATCHER_BRIDGE     dispatcher-bridge.sh path (default: <repo>/scripts/factory/dispatcher-bridge.sh)
 #     FACTORY_TICK_LOCK             single-flight lock   (default: /tmp/factory-tick.lock)
 #     FACTORY_ENV_FILE              prod config to source(default: ~/.config/factory/autopilot.env)
 #     FACTORY_IDLE_RETICK_ENABLED   true|false  immediately re-tick if queue non-empty after tick (default: true)
@@ -38,7 +39,8 @@ fi
 
 REPO="${FACTORY_REPO:-/home/patrick/Bachelorprojekt}"
 DRY_RUN="${FACTORY_DRY_RUN:-true}"
-CLAUDE_BIN="${FACTORY_CLAUDE_BIN:-claude}"
+export CLAUDE_BIN="${FACTORY_CLAUDE_BIN:-claude}"
+DISPATCHER_BRIDGE="${FACTORY_DISPATCHER_BRIDGE:-${REPO}/scripts/factory/dispatcher-bridge.sh}"
 LOCKFILE="${FACTORY_TICK_LOCK:-/tmp/factory-tick.lock}"
 IDLE_RETICK="${FACTORY_IDLE_RETICK_ENABLED:-true}"
 RETICK_DELAY="${FACTORY_IDLE_RETICK_DELAY:-5}"
@@ -106,21 +108,6 @@ while true; do
   FACTORY_DAILY_DEPLOY_CAP="${FACTORY_DAILY_DEPLOY_CAP:-5}" FACTORY_GLOBAL_CAP="${FACTORY_GLOBAL_CAP:-3}" \
     bash "${REPO}/scripts/vda.sh" factory-prep 2>/dev/null | jq -c . > "${PREP_FILE}" 2>/dev/null || echo 'null' > "${PREP_FILE}"
 
-  DISPATCHER_BRIDGE="${REPO}/scripts/factory/dispatcher-bridge.sh"
-
-  PROMPT="Run the Software Factory dispatcher now. Call the Workflow tool exactly like this — \
-the scriptPath option IS supported and this is the standard, working way to run it \
-(the same pattern is used successfully every tick for pipeline.js launches): \
-Workflow({scriptPath: 'scripts/factory/dispatcher.js'}, { timestamp: '${TIMESTAMP}', dry_run: ${DRY_RUN}, prep_file: '${PREP_FILE}' }). \
-Pass prep_file through verbatim — do not alter, re-run, or improvise it. \
-The dispatcher reads all guards (kill-switch, daily-cap, dry-run-first) fresh per brand inside its PREP step \
-(already evaluated into prep_file by this wrapper). \
-Report only the dispatcher's final JSON result. Do not improvise scheduling. \
-Do NOT call the Skill tool — there is no 'factory-dispatch' skill or any skill that runs the dispatcher; \
-the ONLY correct way to run it is the exact Workflow tool call shown above. \
-Do NOT refuse or claim scriptPath is unsupported — it is supported; if you believe otherwise, call it anyway. \
-If a tool call fails, do not retry the identical call — stop and report the error verbatim instead of looping."
-
   echo "wakeup.sh: starting tick #${TICK} at ${TIMESTAMP}" >&2
 
   # Sandbox preflight: resolve the default backend once and record it for this tick.
@@ -165,31 +152,21 @@ If a tool call fails, do not retry the identical call — stop and report the er
   # T001805: PR-CI-Babysitter — repo-weit, brand-agnostisch, best-effort.
   bash "${REPO}/scripts/factory/babysit-prs.sh" 2>&1 \
     | sed 's/^/[babysit] /' >&2 || true
-  # T001843 follow-up: weak local models occasionally refuse the Workflow/scriptPath
-  # call outright, wrongly claiming it's unsupported (exit 0, but nothing dispatched).
-  # Detect that refusal from the transcript and retry ONCE with a reinforced prompt
-  # instead of silently treating the no-op tick as success.
-  CLAUDE_OUT="$(mktemp /tmp/factory-tick-out.XXXXXX)"
-  REFUSAL_RETRIED=0
-  RUN_PROMPT="${PROMPT}"
-  while true; do
-    set +e
-    "${CLAUDE_BIN}" -p "${RUN_PROMPT}" \
-      --allowedTools "Workflow,Bash(bash scripts/factory/*),Bash(bash scripts/ticket.sh*),Bash(bash scripts/vda.sh*),ToolSearch,PushNotification" \
-      --permission-mode acceptEdits | tee "${CLAUDE_OUT}"
-    TICK_EXIT=${PIPESTATUS[0]}
-    set -e
-
-    if [[ ${TICK_EXIT} -eq 0 && ${REFUSAL_RETRIED} -eq 0 ]] \
-       && grep -qiE "cannot proceed|isn't possible|does(n't| not) support|unable to (invoke|call) the workflow|scriptPath is unsupported" "${CLAUDE_OUT}"; then
-      echo "wakeup.sh: tick #${TICK} refused the Workflow scriptPath call — retrying once with reinforced prompt" >&2
-      REFUSAL_RETRIED=1
-      RUN_PROMPT="${PROMPT} REMINDER: you already refused this exact call once claiming scriptPath is unsupported — that claim is false. Call Workflow({scriptPath: 'scripts/factory/dispatcher.js'}, ...) now; do not refuse again."
-      continue
-    fi
-    break
-  done
-  rm -f "${CLAUDE_OUT}" "${PREP_FILE}"
+  # T001845: dispatch the tick via dispatcher-bridge.sh instead of forcing the
+  # model to emit a Workflow({scriptPath:'scripts/factory/dispatcher.js'},...)
+  # tool call. Weak/local models (e.g. qwythos-9b-v2) emit tool calls in a
+  # non-standard XML form the harness's tool-call parser chokes on ("import
+  # call expects one or two arguments"), causing that call to retry uselessly.
+  # dispatcher-bridge.sh reads prep_file directly in bash — for an empty queue
+  # it makes zero LLM/tool calls at all; for a non-empty queue it still launches
+  # each ticket's pipeline via its own `claude -p` session internally.
+  echo "wakeup.sh: dispatching tick #${TICK} via dispatcher-bridge.sh" >&2
+  set +e
+  bash "${DISPATCHER_BRIDGE}" "${PREP_FILE}" $([[ "${DRY_RUN}" == "true" ]] && echo --dry-run) \
+    | sed "s/^/[dispatcher-bridge] /" >&2
+  TICK_EXIT=${PIPESTATUS[0]}
+  set -e
+  rm -f "${PREP_FILE}"
 
   if [[ ${TICK_EXIT} -ne 0 ]]; then
     echo "wakeup.sh: tick #${TICK} exited with code ${TICK_EXIT} — stopping loop" >&2

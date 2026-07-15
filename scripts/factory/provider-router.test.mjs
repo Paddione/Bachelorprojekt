@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { decideOpus, OPUS_MODEL, EMERGENCY_FALLBACK, orderCandidates, isUsable, openCircuit, routeProvider, releaseSlot, hasBudget } from './provider-router.js'
 
-test('decideOpus returns hardcoded local Qwythos with a no-op releaseSlot', async () => {
+test('decideOpus returns hardcoded local Qwen3.6 with a no-op releaseSlot', async () => {
   const r = decideOpus()
   assert.equal(r.provider, 'lmstudio')
   assert.equal(r.modelId, OPUS_MODEL)
@@ -11,9 +11,9 @@ test('decideOpus returns hardcoded local Qwythos with a no-op releaseSlot', asyn
   await r.releaseSlot(false)
 })
 
-test('EMERGENCY_FALLBACK is local Qwythos', () => {
+test('EMERGENCY_FALLBACK is local Qwen3.6', () => {
   assert.equal(EMERGENCY_FALLBACK.provider, 'lmstudio')
-  assert.equal(EMERGENCY_FALLBACK.modelId, 'qwythos-9b-v2')
+  assert.equal(EMERGENCY_FALLBACK.modelId, 'qwen3.6-14b-a3b-fablevibes')
   assert.equal(EMERGENCY_FALLBACK.baseUrl, 'http://127.0.0.1:1234')
 })
 

@@ -154,7 +154,7 @@ while true; do
     | sed 's/^/[babysit] /' >&2 || true
   # T001845: dispatch the tick via dispatcher-bridge.sh instead of forcing the
   # model to emit a Workflow({scriptPath:'scripts/factory/dispatcher.js'},...)
-  # tool call. Weak/local models (e.g. qwythos-9b-v2) emit tool calls in a
+  # tool call. Weak/local models (e.g. qwen3.6-14b-a3b-fablevibes) emit tool calls in a
   # non-standard XML form the harness's tool-call parser chokes on ("import
   # call expects one or two arguments"), causing that call to retry uselessly.
   # dispatcher-bridge.sh reads prep_file directly in bash — for an empty queue

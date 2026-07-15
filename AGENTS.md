@@ -27,10 +27,10 @@ opencode uses the `background-agents.ts` plugin which reads agents from `agent-m
 
 | Agent | Model | Permissions | Use case |
 |-------|-------|-------------|----------|
-| `qwen35-iq4` | Qwythos-9B-v2 (empero-ai, MTP Q4_K_M, 331k ctx) | read-only | **Preferred first choice** for delegation |
-| `qwen35` | Qwythos-9B-v2 (empero-ai, MTP Q4_K_M, 331k ctx) | read-only | General subagent, 1 at a time |
-| `qwen35-hq` | Qwythos-9B-v2 (empero-ai, MTP Q4_K_M, 331k ctx) | read-only | When max per-call context matters |
-| `qwen3-14b` | Qwen3-14B (Q4_K_M, 32k ctx) | read-only | Single-session planning |
+| `qwen35-iq4` | Qwen3.6-14B-A3B FableVibes (14B-A3B MoE, Q4_K_M, 262k ctx) | read-only | **Preferred first choice** for delegation |
+| `qwen35` | Qwen3.6-14B-A3B FableVibes (14B-A3B MoE, Q4_K_M, 262k ctx) | read-only | General subagent, 1 at a time |
+| `qwen35-hq` | Qwen3.6-14B-A3B FableVibes (14B-A3B MoE, Q4_K_M, 262k ctx) | read-only | When max per-call context matters |
+| `qwen3-14b` | Qwen3.6-14B-A3B FableVibes (14B-A3B MoE, Q4_K_M, 262k ctx) | read-only | Single-session planning |
 | `explore` | built-in | read-only | Fast codebase exploration |
 | `general` | built-in | read-only | General research tasks |
 

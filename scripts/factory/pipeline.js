@@ -33,7 +33,7 @@ function routeProviderSync(source, tier, phase) {
       return { provider: 'lmstudio', modelId: process.env.ANTHROPIC_MODEL,
                baseUrl: process.env.ANTHROPIC_BASE_URL || 'http://127.0.0.1:1234', slotId: null, ctx: 0, emergency: false }
     }
-    return { provider: 'lmstudio', modelId: 'qwythos-9b-v2', baseUrl: 'http://127.0.0.1:1234', slotId: null, ctx: 0, emergency: false }
+    return { provider: 'lmstudio', modelId: 'qwen3.6-14b-a3b-fablevibes', baseUrl: 'http://127.0.0.1:1234', slotId: null, ctx: 0, emergency: false }
   }
   if (process.env.ANTHROPIC_MODEL) {
     return { provider: 'lmstudio', modelId: process.env.ANTHROPIC_MODEL,
@@ -47,8 +47,8 @@ function routeProviderSync(source, tier, phase) {
       { encoding: 'utf8', timeout: 20000, env: { ...process.env, BRAND: brand } }).trim()
     return JSON.parse(out)
   } catch (e) {
-    log(`routeProvider(${source},${tier},${phase || ''}) failed -> emergency local qwythos: ${e.message}`)
-    return { provider: 'lmstudio', modelId: 'qwythos-9b-v2', baseUrl: 'http://127.0.0.1:1234', slotId: null, ctx: 0, emergency: true }
+    log(`routeProvider(${source},${tier},${phase || ''}) failed -> emergency local qwen3.6: ${e.message}`)
+    return { provider: 'lmstudio', modelId: 'qwen3.6-14b-a3b-fablevibes', baseUrl: 'http://127.0.0.1:1234', slotId: null, ctx: 0, emergency: true }
   }
 }
 

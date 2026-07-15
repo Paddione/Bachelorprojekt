@@ -845,6 +845,8 @@ returns `0`.
 
 ## Task 10: Test-inventory regeneration + Final Verification
 
+**Status: ✅ DONE** (test:inventory unverändert — tests/spec/ liegt außerhalb des Scan-Scopes von build-test-inventory.sh; openspec validate OK; test:changed 1872 ok/0 fail; freshness:regenerate + freshness:check Exit 0)
+
 **Files:** `website/src/data/test-inventory.json` (regenerated)
 
 Tasks 1–9 added `@test` blocks to `tests/spec/brain-foundation.bats`, `tests/spec/brain-ingest.bats`,

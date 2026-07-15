@@ -708,6 +708,8 @@ opposite problem).
 
 ## Task 8: Merge-hook path parity (E6)
 
+**Status: ✅ DONE**
+
 **Files:** `scripts/brain-merge-hook.sh`, `.github/workflows/brain-merge-hook.yml`,
 `tests/spec/brain-merge-hook.bats`
 

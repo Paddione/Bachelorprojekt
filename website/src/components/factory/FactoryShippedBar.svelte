@@ -2,6 +2,7 @@
   import { onMount, onDestroy } from 'svelte';
   import { Chart, registerables } from 'chart.js';
   import { SURFACE, BORDER, TEXT_MUTED, PHASE_COLORS, PHASE_LABELS } from './factory-chart-colors';
+  import { floorStore, acquireFloor } from '../../lib/stores/factory-floor-store';
 
   interface HallItem {
     extId: string;
@@ -19,80 +20,87 @@
     shipped: ShippedItem[];
   }
 
+  let {
+    window: _window = '7d',
+  }: {
+    window?: '7d' | '30d' | 'all';
+  } = $props();
+
   let canvas: HTMLCanvasElement;
   let chart: Chart | null = null;
   let loading = $state(true);
   let error = $state(false);
 
-  onMount(async () => {
+  function renderChart(data: FloorPayload) {
     Chart.register(...registerables);
-    try {
-      const res = await fetch('/api/factory-floor', { credentials: 'same-origin' });
-      if (!res.ok) { error = true; return; }
-      const data = (await res.json()) as FloorPayload;
+    const phaseCounts = PHASE_LABELS.map((p) =>
+      data.hall.filter((h) => h.phase === p).length
+    );
+    const shippedCount = data.shipped.length;
+    const deployIdx = PHASE_LABELS.indexOf('deploy');
+    if (deployIdx >= 0) phaseCounts[deployIdx] += shippedCount;
 
-      const phaseCounts = PHASE_LABELS.map((p) =>
-        data.hall.filter((h) => h.phase === p).length
-      );
-      const shippedCount = data.shipped.length;
-      const deployIdx = PHASE_LABELS.indexOf('deploy');
-      if (deployIdx >= 0) phaseCounts[deployIdx] += shippedCount;
+    const colors = PHASE_LABELS.map((_, i) => PHASE_COLORS[i % PHASE_COLORS.length]);
 
-      const colors = PHASE_LABELS.map((_, i) => PHASE_COLORS[i % PHASE_COLORS.length]);
-
-      chart = new Chart(canvas, {
-        type: 'bar',
-        data: {
-          labels: PHASE_LABELS,
-          datasets: [{
-            label: 'Tickets',
-            data: phaseCounts,
-            backgroundColor: colors.map((c) => c + 'cc'),
-            borderColor: colors,
+    chart?.destroy();
+    chart = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: PHASE_LABELS,
+        datasets: [{
+          label: 'Tickets',
+          data: phaseCounts,
+          backgroundColor: colors.map((c) => c + 'cc'),
+          borderColor: colors,
+          borderWidth: 1,
+          borderRadius: 4,
+        }],
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: true,
+        aspectRatio: typeof window !== 'undefined' && window.innerWidth < 640 ? 1 : 2,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: SURFACE,
+            borderColor: BORDER,
             borderWidth: 1,
-            borderRadius: 4,
-          }],
+            titleFont: { family: 'JetBrains Mono, monospace' },
+            bodyFont: { family: 'JetBrains Mono, monospace' },
+          },
         },
-        options: {
-          indexAxis: 'y',
-          responsive: true,
-          maintainAspectRatio: true,
-          aspectRatio: typeof window !== 'undefined' && window.innerWidth < 640 ? 1 : 2,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: SURFACE,
-              borderColor: BORDER,
-              borderWidth: 1,
-              titleFont: { family: 'JetBrains Mono, monospace' },
-              bodyFont: { family: 'JetBrains Mono, monospace' },
+        scales: {
+          x: {
+            beginAtZero: true,
+            grid: { color: 'rgba(255,255,255,0.05)' },
+            ticks: {
+              color: TEXT_MUTED,
+              font: { family: 'JetBrains Mono, monospace', size: 11 },
+              stepSize: 1,
             },
           },
-          scales: {
-            x: {
-              beginAtZero: true,
-              grid: { color: 'rgba(255,255,255,0.05)' },
-              ticks: {
-                color: TEXT_MUTED,
-                font: { family: 'JetBrains Mono, monospace', size: 11 },
-                stepSize: 1,
-              },
-            },
-            y: {
-              grid: { display: false },
-              ticks: {
-                color: TEXT_MUTED,
-                font: { family: 'JetBrains Mono, monospace', size: 11 },
-              },
+          y: {
+            grid: { display: false },
+            ticks: {
+              color: TEXT_MUTED,
+              font: { family: 'JetBrains Mono, monospace', size: 11 },
             },
           },
         },
-      });
-    } catch {
-      error = true;
-    } finally {
-      loading = false;
-    }
+      },
+    });
+    loading = false;
+  }
+
+  onMount(() => {
+    const release = acquireFloor();
+    const unsub = floorStore.subscribe((s) => {
+      if (s.payload) { renderChart(s.payload); error = false; }
+      else if (!loading) error = true;
+    });
+    return () => { unsub(); release(); };
   });
 
   onDestroy(() => {

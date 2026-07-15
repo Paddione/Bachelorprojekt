@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount } from 'svelte';
   import PilotLight from './PilotLight.svelte';
+  import { floorStore, acquireFloor } from '../../lib/stores/factory-floor-store';
 
   interface ControlState {
     killSwitch: boolean;
@@ -10,58 +11,21 @@
     updatedAt: string | null;
   }
 
-  let { state }: { state: ControlState } = $props();
+  let { state: control }: { state: ControlState } = $props();
 
   let watchdogStale = $state(0);
-  let lastActivity = $state<string | null>(null);
-
-  let intervalId: ReturnType<typeof setInterval> | null = null;
-
-  async function pollWatchdog() {
-    try {
-      const res = await fetch('/api/factory-floor');
-      if (!res.ok) return;
-      const data = await res.json() as { control?: { watchdogStale?: number; lastActivity?: string } };
-      if (data.control) {
-        watchdogStale = data.control.watchdogStale ?? 0;
-        lastActivity = data.control.lastActivity ?? null;
-      }
-    } catch {
-      // silent
-    }
-  }
-
-  function formatTime(iso: string | null): string {
-    if (!iso) return '—';
-    const d = new Date(iso);
-    const now = Date.now();
-    const diffMs = now - d.getTime();
-    const diffMin = Math.floor(diffMs / 60000);
-    if (diffMin < 1) return 'just now';
-    if (diffMin < 60) return `${diffMin}m ago`;
-    const diffH = Math.floor(diffMin / 60);
-    if (diffH < 24) return `${diffH}h ago`;
-    return d.toLocaleDateString();
-  }
 
   onMount(() => {
-    pollWatchdog();
-    intervalId = setInterval(pollWatchdog, 30000);
-  });
-
-  onDestroy(() => {
-    if (intervalId) clearInterval(intervalId);
+    const release = acquireFloor();
+    const unsub = floorStore.subscribe((s) => { watchdogStale = s.payload?.control.watchdogStale ?? 0; });
+    return () => { unsub(); release(); };
   });
 </script>
 
 <div class="status-strip">
   <div class="status-strip__item">
     <span class="status-strip__label">Last Update</span>
-    <span class="status-strip__value">{formatTime(state.updatedAt)}</span>
-  </div>
-  <div class="status-strip__item">
-    <span class="status-strip__label">Last Activity</span>
-    <span class="status-strip__value">{formatTime(lastActivity)}</span>
+    <span class="status-strip__value">{control.updatedAt ?? '—'}</span>
   </div>
   <div class="status-strip__item">
     <PilotLight
@@ -79,11 +43,11 @@
     justify-content: space-between;
     gap: 1.5rem;
     padding: 0.75rem 1rem;
-    background: var(--factory-surface);
-    border: 1px solid var(--factory-border);
-    border-radius: var(--factory-radius-md);
-    font-family: var(--factory-font-mono);
-    font-size: var(--factory-text-sm);
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: var(--admin-radius-md);
+    font-family: var(--admin-font-mono);
+    font-size: var(--admin-text-sm);
   }
 
   .status-strip__item {
@@ -93,13 +57,13 @@
   }
 
   .status-strip__label {
-    color: var(--factory-text-muted);
+    color: var(--admin-text-mute);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    font-size: var(--factory-text-xs);
+    font-size: var(--admin-text-xs);
   }
 
   .status-strip__value {
-    color: var(--factory-text-primary);
+    color: var(--admin-text);
   }
 </style>

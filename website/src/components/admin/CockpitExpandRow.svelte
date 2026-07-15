@@ -28,6 +28,7 @@
     {#if model.links.length}
       <div class="expand__links">
         {#each model.links as l}<a href={l.href}><AdminBadge variant="warning" size="sm">{l.label}</AdminBadge></a>{/each}
+        <a href="/admin/pipeline?tab=factory"><AdminBadge variant="warning" size="sm">Pipeline</AdminBadge></a>
       </div>
     {/if}
     {#if model.latestEvents.length}

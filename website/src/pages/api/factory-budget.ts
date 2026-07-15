@@ -13,7 +13,7 @@ export const GET: APIRoute = async ({ request, url , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 403,
+      status: 401,
       headers: { 'Content-Type': 'application/json' },
     });
   }
@@ -57,7 +57,7 @@ export const POST: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 403,
+      status: 401,
       headers: { 'Content-Type': 'application/json' },
     });
   }

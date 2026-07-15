@@ -302,56 +302,12 @@
         {#if settingsLoading}
           <div class="loading">Einstellungen laden...</div>
         {:else}
-          <div class="settings-group">
+            <div class="settings-group">
             <h3>Orchestrierungs-Globals</h3>
             
-            <div class="setting-item">
-              <label for="context-budget">Token-Budget</label>
-              <div class="input-with-hint">
-                <input 
-                  id="context-budget" 
-                  type="number" 
-                  min="0" 
-                  max="180000" 
-                  bind:value={settings.contextBudget} 
-                  onchange={saveSettings} 
-                />
-                <input 
-                  type="range" 
-                  min="0" 
-                  max="180000" 
-                  step="5000"
-                  bind:value={settings.contextBudget} 
-                  oninput={saveSettings} 
-                />
-                <span class="hint">Maximales Token-Budget (Standard: 180000)</span>
-              </div>
-            </div>
-
-            <div class="setting-item switch-row">
-              <div>
-                <label for="spawn-harness">opencode Spawn Harness</label>
-                <span class="hint">Aktiviert den opencode spawn wrapper</span>
-              </div>
-              <input 
-                id="spawn-harness" 
-                type="checkbox" 
-                bind:checked={settings.spawnHarness} 
-                onchange={saveSettings} 
-              />
-            </div>
-
-            <div class="setting-item switch-row">
-              <div>
-                <label for="lavish-delegation">Lavish HTML Delegation Review</label>
-                <span class="hint">Claude validiert die qwen3.5 Ergebnisse</span>
-              </div>
-              <input 
-                id="lavish-delegation" 
-                type="checkbox" 
-                bind:checked={settings.lavishDelegation} 
-                onchange={saveSettings} 
-              />
+            <div class="control-readonly">
+              <p>Token-Budget {settings.contextBudget.toLocaleString()} · Spawn {settings.spawnHarness ? 'an' : 'aus'} · Lavish {settings.lavishDelegation ? 'an' : 'aus'}</p>
+              <a class="control-link" href="/admin/pipeline?tab=control">Im Steuerung-Tab bearbeiten</a>
             </div>
 
             <div class="setting-item switch-row">
@@ -562,6 +518,30 @@
   .hint {
     font-size: 12px;
     color: var(--mute, #a1a1aa);
+  }
+  .control-readonly {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(232, 200, 112, 0.12);
+    border-radius: 6px;
+  }
+  .control-readonly p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--fg, #f4f4f5);
+    line-height: 1.5;
+  }
+  .control-link {
+    color: var(--brass, #e8c870);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .control-link:hover {
+    text-decoration: underline;
   }
   .setting-link {
     margin-top: 12px;

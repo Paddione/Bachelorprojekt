@@ -138,32 +138,32 @@
   .pb-detail-title {
     font-size: 1.1rem;
     margin: 0 0 12px;
-    color: var(--pb-text);
+    color: var(--admin-text);
   }
 
   .pb-field-label {
     display: block;
     font-size: 0.75rem;
-    color: var(--pb-text-muted);
+    color: var(--admin-text-muted);
     margin-bottom: 4px;
   }
 
   .pb-textarea {
     width: 100%;
     min-height: 60px;
-    background: var(--pb-bg);
-    border: 1px solid var(--pb-border);
-    color: var(--pb-text);
+    background: var(--admin-bg);
+    border: 1px solid var(--admin-border);
+    color: var(--admin-text);
     border-radius: 4px;
     padding: 6px 8px;
-    font-family: var(--pb-mono);
+    font-family: var(--admin-mono);
     font-size: 0.8rem;
     resize: vertical;
     box-sizing: border-box;
   }
 
   .pb-fieldset {
-    border: 1px solid var(--pb-border);
+    border: 1px solid var(--admin-border);
     border-radius: 4px;
     padding: 8px 12px;
     margin: 12px 0;
@@ -181,7 +181,7 @@
 
   .pb-lock-badge {
     font-size: 0.65rem;
-    color: var(--pb-amber);
+    color: var(--admin-amber);
     margin-left: 6px;
   }
 
@@ -189,23 +189,23 @@
     width: 100%;
     margin-top: 8px;
     padding: 6px 8px;
-    background: var(--pb-bg);
-    border: 1px solid var(--pb-amber);
-    color: var(--pb-amber);
+    background: var(--admin-bg);
+    border: 1px solid var(--admin-amber);
+    color: var(--admin-amber);
     border-radius: 4px;
     cursor: pointer;
-    font-family: var(--pb-mono);
+    font-family: var(--admin-mono);
     font-size: 0.75rem;
   }
 
   .pb-lock-btn.locked {
-    border-color: var(--pb-border);
-    color: var(--pb-text-muted);
+    border-color: var(--admin-border);
+    color: var(--admin-text-muted);
   }
 
   .pb-fieldset legend {
     font-size: 0.75rem;
-    color: var(--pb-text-muted);
+    color: var(--admin-text-muted);
   }
 
   .pb-check {
@@ -218,7 +218,7 @@
   }
 
   .pb-check input[type="checkbox"] {
-    accent-color: var(--pb-amber);
+    accent-color: var(--admin-amber);
   }
 
   .pb-deps {
@@ -236,18 +236,18 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    background: var(--pb-bg);
-    border: 1px solid var(--pb-border);
+    background: var(--admin-bg);
+    border: 1px solid var(--admin-border);
     border-radius: 3px;
     padding: 2px 6px;
     font-size: 0.7rem;
-    color: var(--pb-amber);
+    color: var(--admin-amber);
   }
 
   .pb-chip-x {
     background: none;
     border: none;
-    color: var(--pb-text-muted);
+    color: var(--admin-text-muted);
     cursor: pointer;
     font-size: 0.8rem;
     padding: 0;
@@ -260,12 +260,12 @@
 
   .pb-dep-input {
     width: 100%;
-    background: var(--pb-bg);
-    border: 1px solid var(--pb-border);
-    color: var(--pb-text);
+    background: var(--admin-bg);
+    border: 1px solid var(--admin-border);
+    color: var(--admin-text);
     border-radius: 4px;
     padding: 4px 8px;
-    font-family: var(--pb-mono);
+    font-family: var(--admin-mono);
     font-size: 0.75rem;
     margin-top: 4px;
     box-sizing: border-box;
@@ -278,20 +278,20 @@
   }
 
   .pb-effort-btn {
-    background: var(--pb-bg);
-    border: 1px solid var(--pb-border);
-    color: var(--pb-text-muted);
+    background: var(--admin-bg);
+    border: 1px solid var(--admin-border);
+    color: var(--admin-text-muted);
     padding: 4px 12px;
     border-radius: 4px;
     cursor: pointer;
-    font-family: var(--pb-mono);
+    font-family: var(--admin-mono);
     font-size: 0.75rem;
   }
 
   .pb-effort-btn.active {
-    border-color: var(--pb-amber);
-    color: var(--pb-amber);
-    background: var(--pb-selected-bg);
+    border-color: var(--admin-amber);
+    color: var(--admin-amber);
+    background: var(--admin-selected-bg);
   }
 
   .pb-override-check {
@@ -301,12 +301,12 @@
   .pb-promote-btn {
     width: 100%;
     padding: 8px;
-    background: var(--pb-amber);
-    color: var(--pb-bg);
+    background: var(--admin-amber);
+    color: var(--admin-bg);
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    font-family: var(--pb-mono);
+    font-family: var(--admin-mono);
     font-size: 0.8rem;
     font-weight: 600;
   }

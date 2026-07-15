@@ -81,6 +81,11 @@ load/save wiring. `ViewSwitcher.svelte` is **deleted** (Task 13).
 `factory-tokens.css` (owned by T001787), `/admin/ki-konfiguration`, Cockpit fusion,
 backend/DAL, DORA UI. No brand-domain literals in any snippet (S3).
 
+- [x] Task 1
+
+- [x]\n
+- [x] Task 1 —
+- [x]
 ## Task 1 — RED acceptance suite: `tests/spec/pipeline-interface.bats`
 
 **Goal:** land the structural acceptance suite that encodes the whole change; it is RED
@@ -197,6 +202,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/pipeline-interface.bats
 # expected: FAIL (red — every assertion fails until its task lands)
 ```
 
+- [x]
 ## Task 2 — D1: shared floor store module + Vitest (RED → GREEN)
 
 **Goal:** create the pure store module and its Vitest first (RED), then implement until
@@ -330,6 +336,7 @@ export async function getSharedMetrics(force = false): Promise<FactoryMetricsPay
 
 Rerun the Vitest — now GREEN.
 
+- [x]
 ## Task 3 — D1: read-only consumers subscribe to the store
 
 **Goal:** replace the independent floor fetches/polls in the three read-only widgets with
@@ -359,6 +366,7 @@ onMount(() => {
 Task 1 guards: each file greps for `factory-floor-store`; `StatusStrip` no longer
 contains `setInterval(pollWatchdog, 30000)`.
 
+- [x]
 ## Task 4 — D1 + D3: slim `FactoryFloor.svelte` (subscribe + extract KI routing)
 
 **Goal:** the real shrink of the Budget-0 `FactoryFloor.svelte`. **Extract** the KI
@@ -411,6 +419,7 @@ Ticket-detail / inject / release actions (`/api/factory-floor/[extId]*`) stay in
 Matching Task 1 guards: `KiRoutingPanel.svelte` exists; `FactoryFloor.svelte` no longer
 greps `KiProviderDrawer`; `FactoryFloor.svelte` greps `factory-floor-store`.
 
+- [x]
 ## Task 5 — D7.1 + D5: `PipelineSidekickView` & `DependencyGraph` subscribe to the store
 
 **Goal:** fix the dead SSE handler and remove the hardcoded 5 s DAG poll by reusing the
@@ -453,6 +462,7 @@ onMount(() => {
 Matching Task 1 guards: both files grep `factory-floor-store`; `DependencyGraph.svelte`
 no longer greps `setInterval`.
 
+- [x]
 ## Task 6 — D2 (part 1): three control cards + ControlPanel models all 7 fields
 
 **Goal:** the Steuerung tab becomes the control SSOT. Add three cards mirroring the
@@ -483,6 +493,7 @@ The existing `patch()` already PATCHes an arbitrary partial, so no API change is
 Matching Task 1 guard: `ControlPanel.svelte` greps `contextBudget`, `spawnHarness`,
 `lavishDelegation`.
 
+- [x]
 ## Task 7 — D2 (part 2): shrink `PortalSidekick.svelte` to read-only + deep link
 
 **Goal:** remove the duplicate control-edit UI from the Budget-0
@@ -518,6 +529,7 @@ Matching Task 1 guard: `PortalSidekick.svelte` no longer greps
 `bind:value={settings.contextBudget}` / `bind:checked={settings.spawnHarness}`, and does
 grep `tab=control`.
 
+- [x]
 ## Task 8 — D4 (part 1): shared analytics window filter
 
 **Goal:** one window control for the Analytics tab, driving `DeliveryHistory` first.
@@ -543,6 +555,7 @@ it down:
 `DeliveryHistory.svelte` takes `window` as a prop (removing its own internal
 buttons/`window` state) and keeps using `/api/admin/delivery-metrics?window=`.
 
+- [x]
 ## Task 9 — D4 (part 2): client-side window filtering for the metric/floor widgets
 
 **Goal:** the remaining four analytics widgets honour the shared window. Where the API
@@ -564,6 +577,7 @@ const cutoff = window === 'all' ? 0 : Date.now() - (window === '7d' ? 7 : 30) * 
 const shown = $derived(series.filter((p) => cutoff === 0 || Date.parse(p.date) >= cutoff));
 ```
 
+- [x]
 ## Task 10 — D6 (part 1): remove the `--pb-*` palette from the Planungsbüro components
 
 **Goal:** delete the bespoke `--pb-*` palette; the Planungsbüro uses `--admin-*` tokens.
@@ -583,6 +597,7 @@ equivalent (`--pb-bg` → `--admin-surface`, `--pb-text` → `--admin-text`,
 introduce **no** new `--factory-*` usage. Matching Task 1 guard: no `--pb-` remains in
 these files.
 
+- [x]
 ## Task 11 — D6 (part 2): migrate `--factory-*` usages to `--admin-*`
 
 **Goal:** the remaining pipeline components share the admin palette.
@@ -599,6 +614,7 @@ with their `--admin-*` counterparts (or the existing thin aliases in `global.css
 `factory-tokens.css` edit; no new `--factory-*` usages. This step is line-neutral and
 does not affect the S1 budgets recorded above.
 
+- [x]
 ## Task 12 — D7.2: `?tab=` deep link wins over `localStorage`
 
 **Goal:** deep links from the Leitstand tiles and Sidekick land on the intended tab.
@@ -625,6 +641,7 @@ onMount(() => {
 
 Matching Task 1 guard: `DevStatusTabs.svelte` greps `urlTab`.
 
+- [x]
 ## Task 13 — D7.3/4/5/6 + D8: dead-code cleanup, auth code, and cockpit deep link
 
 **Goal:** finish the bug/cleanup batch from D7 and add the D8 cockpit deep link.
@@ -652,6 +669,7 @@ Matching Task 1 guard: `DevStatusTabs.svelte` greps `urlTab`.
 Matching Task 1 guards: `ViewSwitcher.svelte` absent and unreferenced;
 `AdminSidebarNav.astro` has no `dev-status`; `factory-budget.ts` has no `status: 403`.
 
+- [x]
 ## Task 14 — Verification (final gate)
 
 **Goal:** all acceptance suites green and CI ratchets satisfied.

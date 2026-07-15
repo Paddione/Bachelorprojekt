@@ -96,7 +96,7 @@
 
 <style>
   .pb-queue {
-    border-right: 1px solid var(--pb-border);
+    border-right: 1px solid var(--admin-border);
     overflow-y: auto;
   }
 
@@ -107,18 +107,18 @@
     min-height: 56px;
     padding: 6px 12px;
     cursor: pointer;
-    border-bottom: 1px solid var(--pb-border);
+    border-bottom: 1px solid var(--admin-border);
     border-left: 3px solid transparent;
     transition: background 0.12s;
   }
 
   .pb-row:hover {
-    background: var(--pb-surface-hover);
+    background: var(--admin-surface-hover);
   }
 
   .pb-row.selected {
-    border-left: 3px solid var(--pb-amber);
-    background: var(--pb-selected-bg);
+    border-left: 3px solid var(--admin-amber);
+    background: var(--admin-selected-bg);
   }
 
   .pb-row.drag-source {
@@ -126,12 +126,12 @@
   }
 
   .pb-row.drop-target {
-    border-top: 2px solid var(--pb-amber);
+    border-top: 2px solid var(--admin-amber);
   }
 
   .pb-handle {
     cursor: grab;
-    color: var(--pb-text-muted);
+    color: var(--admin-text-muted);
     font-size: 1rem;
     width: 24px;
     text-align: center;
@@ -140,9 +140,9 @@
   }
 
   .pb-rank {
-    font-family: var(--pb-mono);
+    font-family: var(--admin-mono);
     font-size: 0.75rem;
-    color: var(--pb-text-muted);
+    color: var(--admin-text-muted);
     width: 20px;
   }
 
@@ -154,9 +154,9 @@
   }
 
   .pb-extid {
-    font-family: var(--pb-mono);
+    font-family: var(--admin-mono);
     font-size: 0.7rem;
-    color: var(--pb-amber);
+    color: var(--admin-amber);
     white-space: nowrap;
     min-width: 60px;
   }
@@ -179,10 +179,10 @@
     width: 6px;
     height: 6px;
     border-radius: 1px;
-    background: var(--pb-border);
+    background: var(--admin-border);
   }
 
   .pb-dor-sq.pb-dor-on {
-    background: var(--pb-amber);
+    background: var(--admin-amber);
   }
 </style>

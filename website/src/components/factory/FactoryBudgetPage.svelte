@@ -88,8 +88,8 @@
     }
   }
 
-  async function searchTicket(e: Event) {
-    e.preventDefault();
+  async function searchTicket(e?: Event) {
+    e?.preventDefault();
     if (!ticketSearchId.trim()) return;
     try {
       searchingTicket = true; ticketSearchError = ''; ticketRows = [];
@@ -242,7 +242,7 @@
                     <td class="run-title-cell" title={run.title}>{run.title}</td>
                     <td class="num font-mono">{run.totalCostEst.toFixed(4)} USD</td>
                     <td class="num font-mono">{run.totalCostAct.toFixed(4)} USD</td>
-                    <td><button class="btn-view" onclick={() => { ticketSearchId = run.externalId; searchTicket(new CustomEvent('submit')); }}>Ansehen</button></td>
+                    <td><button class="btn-view" onclick={() => { ticketSearchId = run.externalId; searchTicket(); }}>Ansehen</button></td>
                   </tr>
                 {/each}
               </tbody>
@@ -258,8 +258,6 @@
   .factory-budget-page { padding: 2rem; max-width: 1400px; margin: 0 auto; color: var(--admin-text, #eef1f3); font-family: var(--font-sans, inherit); }
   .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
   .page-header h1 { font-size: 24px; margin: 0; font-weight: 700; }
-  .btn-back { background: rgba(255,255,255,0.06); border: 1px solid var(--admin-border, rgba(255,255,255,0.07)); color: var(--admin-text, #eef1f3); text-decoration: none; padding: 8px 16px; border-radius: 4px; font-size: 13px; transition: background 0.15s; }
-  .btn-back:hover { background: rgba(255,255,255,0.1); }
   .page-loading { text-align: center; padding: 4rem 0; color: var(--admin-text-mute, #8c96a3); }
   .error-banner { background: color-mix(in srgb, var(--danger) 15%, transparent); border: 1px solid var(--danger); color: var(--danger); padding: 1rem; border-radius: 6px; margin-bottom: 2rem; }
   .dashboard-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }

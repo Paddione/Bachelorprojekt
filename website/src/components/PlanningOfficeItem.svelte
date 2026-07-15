@@ -52,7 +52,7 @@
     left: 0;
     right: 0;
     height: 60vh;
-    background: var(--pb-surface);
+    background: var(--admin-surface);
     border-radius: 12px 12px 0 0;
     transform: translateY(100%);
     transition: transform 0.25s ease;
@@ -74,7 +74,7 @@
   .pb-sheet-close {
     background: none;
     border: none;
-    color: var(--pb-text-muted);
+    color: var(--admin-text-muted);
     font-size: 1.2rem;
     cursor: pointer;
   }

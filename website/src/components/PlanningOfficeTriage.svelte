@@ -67,9 +67,9 @@
   .pb-triage {
     margin: 12px 0;
     padding: 10px 12px;
-    border: 1px solid var(--pb-border);
+    border: 1px solid var(--admin-border);
     border-radius: 6px;
-    background: var(--pb-selected-bg);
+    background: var(--admin-selected-bg);
     font-size: 0.78rem;
   }
   .pb-triage-hdr {
@@ -79,8 +79,8 @@
     margin-bottom: 8px;
   }
   .pb-triage-badge {
-    background: var(--pb-amber);
-    color: var(--pb-bg);
+    background: var(--admin-amber);
+    color: var(--admin-bg);
     padding: 2px 8px;
     border-radius: 4px;
     font-weight: 600;
@@ -88,7 +88,7 @@
     text-transform: uppercase;
   }
   .pb-triage-model {
-    color: var(--pb-text-muted);
+    color: var(--admin-text-muted);
     font-size: 0.68rem;
   }
   .pb-triage-fields {
@@ -100,17 +100,17 @@
     gap: 3px 16px;
   }
   .pb-triage-fields li {
-    color: var(--pb-text);
+    color: var(--admin-text);
   }
   .pb-triage-fields em {
     font-style: normal;
-    color: var(--pb-text-muted);
+    color: var(--admin-text-muted);
   }
   .pb-triage-rationale {
     margin: 6px 0 10px;
     padding: 6px 10px;
-    border-left: 3px solid var(--pb-amber-dim);
-    color: var(--pb-text-muted);
+    border-left: 3px solid var(--admin-amber-dim);
+    color: var(--admin-text-muted);
     font-style: italic;
     font-size: 0.75rem;
   }
@@ -120,24 +120,24 @@
   }
   .pb-triage-btn {
     padding: 4px 12px;
-    border: 1px solid var(--pb-border);
+    border: 1px solid var(--admin-border);
     border-radius: 4px;
-    background: var(--pb-surface);
-    color: var(--pb-text);
-    font-family: var(--pb-mono);
+    background: var(--admin-surface);
+    color: var(--admin-text);
+    font-family: var(--admin-mono);
     font-size: 0.72rem;
     cursor: pointer;
   }
   .pb-triage-btn:hover:not(:disabled) {
-    border-color: var(--pb-text-muted);
+    border-color: var(--admin-text-muted);
   }
   .pb-triage-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
   }
   .pb-triage-apply:hover:not(:disabled) {
-    color: var(--pb-amber);
-    border-color: var(--pb-amber);
+    color: var(--admin-amber);
+    border-color: var(--admin-amber);
   }
   .pb-triage-discard:hover:not(:disabled) {
     color: #e5534b;

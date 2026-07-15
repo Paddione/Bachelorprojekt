@@ -24,7 +24,7 @@
 
 <span
   class="phase-badge"
-  style="--pb-bg: {bgColor}; --pb-dot: {dotColor};"
+  style="--phase-bg: {bgColor}; --phase-dot: {dotColor};"
 >
   {#if dotColor}<span class="phase-badge__dot"></span>{/if}
   {phase}
@@ -41,8 +41,8 @@
     line-height: 1;
     padding: 3px 8px;
     border-radius: 999px;
-    background: color-mix(in srgb, var(--pb-bg) 20%, transparent);
-    color: var(--pb-bg);
+    background: color-mix(in srgb, var(--phase-bg) 20%, transparent);
+    color: var(--phase-bg);
     text-transform: uppercase;
     letter-spacing: 0.06em;
     white-space: nowrap;
@@ -53,7 +53,7 @@
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: var(--pb-dot);
+    background: var(--phase-dot);
     flex-shrink: 0;
   }
 </style>

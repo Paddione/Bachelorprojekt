@@ -4,6 +4,7 @@
 setup() {
   AGENT_LOCK_DIR="$(mktemp -d)"; export AGENT_LOCK_DIR
   export AGENT_LOCK_TTL=1800
+  export AGENT_LOCK_GRACE=0
   REPO_ROOT="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
   LOCK="$REPO_ROOT/scripts/agent-lock.sh"
 }

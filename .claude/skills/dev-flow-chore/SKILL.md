@@ -74,6 +74,10 @@ cd .worktrees/<slug>
 bash scripts/agent-lock.sh claim branch "chore/<slug>" --worktree "$PWD" --label dev-flow-chore
 ```
 
+> Enthält `<slug>` eine wiederverwendete `TICKET_EXT_ID` (z.B. `T001869`), sollte deren Ticketnummer
+> im Slug vorkommen (z.B. `doc-cleanup-t001869`) — `preflight-pr-scope.sh` prüft das PR-Titel↔Branch-
+> Matching case-insensitiv (T001873), Groß-/Kleinschreibung im Slug spielt also keine Rolle.
+
 Claim-Semantik, main-checkout-Sonderfall (`claim main-checkout`) und Release:
 [session-coordination](file:///home/patrick/Bachelorprojekt/.claude/skills/references/session-coordination.md).
 

@@ -29,8 +29,11 @@ fi
 # Matches [T123456] or T123456
 TICKET_ID="$(echo "$TITLE" | grep -oP '\[T\d{6}\]|T\d{6}' | tr -d '[]' | head -n 1 || true)"
 if [ -n "$TICKET_ID" ]; then
-  # Verify current branch contains the ticket ID
-  if [[ ! "$CURRENT_BRANCH" =~ $TICKET_ID ]]; then
+  # Case-insensitive Vergleich [T001873]: dev-flow-chore erzeugt chore/<slug>-Branches
+  # durchgehend in lowercase; die Ticket-ID im PR-Titel ist [T123456] (uppercase).
+  BRANCH_LC="$(echo "$CURRENT_BRANCH" | tr '[:upper:]' '[:lower:]')"
+  TICKET_LC="$(echo "$TICKET_ID" | tr '[:upper:]' '[:lower:]')"
+  if [[ "$BRANCH_LC" != *"$TICKET_LC"* ]]; then
     echo "preflight-pr-scope: FATAL: PR title ticket ID '$TICKET_ID' does not match current branch name '$CURRENT_BRANCH'" >&2
     exit 1
   fi

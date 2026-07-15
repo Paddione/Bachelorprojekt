@@ -318,31 +318,31 @@
 
 <style>
   :root {
-    --pb-bg: #0f1117;
-    --pb-surface: #161b22;
-    --pb-surface-hover: #1c2129;
-    --pb-border: #21262d;
-    --pb-text: #e6edf3;
-    --pb-text-muted: #64748b;
-    --pb-amber: #d4af37;
-    --pb-amber-dim: #b8962e;
-    --pb-mono: 'JetBrains Mono', 'Fira Code', monospace;
-    --pb-selected-bg: #1e2736;
+    --admin-bg: #0f1117;
+    --admin-surface: #161b22;
+    --admin-surface-hover: #1c2129;
+    --admin-border: #21262d;
+    --admin-text: #e6edf3;
+    --admin-text-mute: #64748b;
+    --admin-primary: #d4af37;
+    --admin-primary-dim: #b8962e;
+    --admin-font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+    --admin-selected-bg: #1e2736;
   }
 
   .pb-root {
     position: relative;
-    background: var(--pb-bg);
-    color: var(--pb-text);
-    font-family: var(--pb-mono);
+    background: var(--admin-bg);
+    color: var(--admin-text);
+    font-family: var(--admin-font-mono);
     min-height: 400px;
   }
 
   .pb-stats-bar {
-    font-family: var(--pb-mono);
-    color: var(--pb-text-muted);
-    padding: 8px 16px;
-    border-bottom: 1px solid var(--pb-border);
+    font-family: var(--admin-font-mono);
+    color: var(--admin-text-mute);
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--admin-border);
     font-size: 0.8rem;
   }
 
@@ -351,8 +351,8 @@
     top: 12px;
     right: 16px;
     background: none;
-    border: 1px solid var(--pb-border);
-    color: var(--pb-text-muted);
+    border: 1px solid var(--admin-border);
+    color: var(--admin-text-muted);
     font-size: 0.75rem;
     padding: 4px 8px;
     cursor: pointer;
@@ -360,14 +360,14 @@
   }
 
   .pb-view-toggle:hover {
-    color: var(--pb-text);
-    border-color: var(--pb-text-muted);
+    color: var(--admin-text);
+    border-color: var(--admin-text-muted);
   }
 
   .pb-loading,
   .pb-empty {
     padding: 2rem;
-    color: var(--pb-text-muted);
+    color: var(--admin-text-muted);
     text-align: center;
   }
 
@@ -384,7 +384,7 @@
   .pb-detail {
     padding: 16px;
     overflow-y: auto;
-    background: var(--pb-surface);
+    background: var(--admin-surface);
   }
 
   @media (max-width: 767px) {

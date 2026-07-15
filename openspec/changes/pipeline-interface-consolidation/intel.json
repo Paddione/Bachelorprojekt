@@ -1,0 +1,120 @@
+{
+  "meta": {
+    "slug": "pipeline-interface-consolidation",
+    "ticket_id": "",
+    "generated_from": "main@b8f0e1745",
+    "domains": ["website", "frontend", "factory"],
+    "intel_sources": ["grep", "Read", "baseline.json", "explore-subagent"]
+  },
+  "impact_files": [
+    { "path": "website/src/pages/admin/pipeline.astro", "language": "astro", "loc": 32, "s1_limit": 400, "s1_baseline": null, "s1_budget": 368 },
+    { "path": "website/src/components/DevStatusTabs.svelte", "language": "svelte", "loc": 104, "s1_limit": 500, "s1_baseline": null, "s1_budget": 396 },
+    { "path": "website/src/components/FactoryFloor.svelte", "language": "svelte", "loc": 521, "s1_limit": 500, "s1_baseline": 521, "s1_budget": 0 },
+    { "path": "website/src/components/PortalSidekick.svelte", "language": "svelte", "loc": 578, "s1_limit": 500, "s1_baseline": 578, "s1_budget": 0 },
+    { "path": "website/src/components/PlanningOffice.svelte", "language": "svelte", "loc": 395, "s1_limit": 500, "s1_baseline": null, "s1_budget": 105 },
+    { "path": "website/src/components/DependencyGraph.svelte", "language": "svelte", "loc": 412, "s1_limit": 500, "s1_baseline": null, "s1_budget": 88 },
+    { "path": "website/src/components/DeliveryHistory.svelte", "language": "svelte", "loc": 314, "s1_limit": 500, "s1_baseline": null, "s1_budget": 186 },
+    { "path": "website/src/components/assistant/PipelineSidekickView.svelte", "language": "svelte", "loc": 196, "s1_limit": 500, "s1_baseline": null, "s1_budget": 304 },
+    { "path": "website/src/components/factory/ControlPanel.svelte", "language": "svelte", "loc": 152, "s1_limit": 500, "s1_baseline": null, "s1_budget": 348 },
+    { "path": "website/src/components/factory/FactoryModelSlots.svelte", "language": "svelte", "loc": 292, "s1_limit": 500, "s1_baseline": null, "s1_budget": 208 },
+    { "path": "website/src/components/factory/KostenTab.svelte", "language": "svelte", "loc": 13, "s1_limit": 500, "s1_baseline": null, "s1_budget": 487 },
+    { "path": "website/src/components/factory/FactoryObservability.svelte", "language": "svelte", "loc": 266, "s1_limit": 500, "s1_baseline": null, "s1_budget": 234 },
+    { "path": "website/src/components/factory/FactoryBudgetPage.svelte", "language": "svelte", "loc": 306, "s1_limit": 500, "s1_baseline": null, "s1_budget": 194 },
+    { "path": "website/src/components/factory/StatusStrip.svelte", "language": "svelte", "loc": 105, "s1_limit": 500, "s1_baseline": null, "s1_budget": 395 },
+    { "path": "website/src/components/factory/FactoryKpiGrid.svelte", "language": "svelte", "loc": 139, "s1_limit": 500, "s1_baseline": null, "s1_budget": 361 },
+    { "path": "website/src/components/factory/FactoryThroughputChart.svelte", "language": "svelte", "loc": 153, "s1_limit": 500, "s1_baseline": null, "s1_budget": 347 },
+    { "path": "website/src/components/factory/FactoryPhaseHeatmap.svelte", "language": "svelte", "loc": 177, "s1_limit": 500, "s1_baseline": null, "s1_budget": 323 },
+    { "path": "website/src/components/factory/FactoryShippedBar.svelte", "language": "svelte", "loc": 155, "s1_limit": 500, "s1_baseline": null, "s1_budget": 345 },
+    { "path": "website/src/components/factory/ViewSwitcher.svelte", "language": "svelte", "loc": 95, "s1_limit": 500, "s1_baseline": null, "s1_budget": 405 },
+    { "path": "website/src/lib/factory-constants.ts", "language": "typescript", "loc": 4, "s1_limit": 600, "s1_baseline": null, "s1_budget": 596 }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "website/src/lib/factory-floor.ts:getFloor",
+      "kind": "function",
+      "file": "website/src/lib/factory-floor.ts",
+      "signature": "export async function getFloor(slotsCap: number): Promise<FloorPayload>",
+      "type_text": "(slotsCap: number) => Promise<FloorPayload>",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "website/src/lib/factory-floor-types.ts:FloorPayload",
+      "kind": "interface",
+      "file": "website/src/lib/factory-floor-types.ts",
+      "signature": "export interface FloorPayload { control: ControlSnapshot; metrics: FloorMetrics; loadingDock: LoadingDockItem[]; hall: HallItem[]; shipped: ShippedItem[]; awaitingDeploy: AwaitingDeployItem[]; awaitingDeployVisible: boolean; staged: StagedItem[]; providerHealth: ProviderStatus[]; officeWaiting: number; stagedWaiting: number; planningCount: PlanningCount; attention: AttentionPayload; fetchedAt: string }",
+      "type_text": "interface FloorPayload (13 fields, line 78)",
+      "source": "Read"
+    },
+    {
+      "qualified_name": "website/src/lib/factory-constants.ts:*",
+      "kind": "constants",
+      "file": "website/src/lib/factory-constants.ts",
+      "signature": "export const SSE_RECONNECT_MS = 5_000; export const STUCK_MIN = 15; export const STREAM_POLL_MS = 5_000; export const STREAM_HEARTBEAT_MS = 30_000",
+      "type_text": "number constants — SSOT for refresh cadence; DependencyGraph (5s) and StatusStrip (30s) currently hardcode literals instead",
+      "source": "Read"
+    },
+    {
+      "qualified_name": "website/src/pages/api/admin/factory-control.ts:ControlState",
+      "kind": "interface",
+      "file": "website/src/pages/api/admin/factory-control.ts",
+      "signature": "{ killSwitch: boolean; dryRun: boolean; slotCap: number; dailyCap: number; contextBudget: number; spawnHarness: boolean; lavishDelegation: boolean }",
+      "type_text": "7-field control state (lines 10-16); ControlPanel.svelte lines 9-15 only models 4 of 7 fields; the other 3 are editable only in PortalSidekick.svelte lines 316-352",
+      "source": "Read"
+    },
+    {
+      "qualified_name": "website/src/pages/api/factory-floor/stream.ts:events",
+      "kind": "contract",
+      "file": "website/src/pages/api/factory-floor/stream.ts",
+      "signature": "SSE named events: 'phase' payload { at: string, planningCount: number }; 'heartbeat'",
+      "type_text": "Never emits a default 'message' event and never sends a 'floor' field — PipelineSidekickView.svelte lines 100-125 uses es.onmessage + data.floor and therefore never receives updates (dead handler)",
+      "source": "Read"
+    },
+    {
+      "qualified_name": "website/src/components/DevStatusTabs.svelte:switchTab",
+      "kind": "function",
+      "file": "website/src/components/DevStatusTabs.svelte",
+      "signature": "switchTab(tab: Tab): void — sets activeTab, history.pushState('?tab='), localStorage['dev-status-tab']",
+      "type_text": "onMount (lines 36-46) overrides URL-derived initialTab from localStorage — deep-links with ?tab= are silently replaced",
+      "source": "Read"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": ["website/src/pages/admin/pipeline.astro"],
+    "edges": [
+      { "from": "pipeline.astro", "to": "lib/factory-floor.ts:getFloor", "kind": "calls" },
+      { "from": "pipeline.astro", "to": "DevStatusTabs.svelte", "kind": "renders" },
+      { "from": "DevStatusTabs.svelte", "to": "FactoryFloor.svelte", "kind": "renders(tab=factory)" },
+      { "from": "DevStatusTabs.svelte", "to": "PlanningOffice.svelte", "kind": "renders(tab=planung)" },
+      { "from": "DevStatusTabs.svelte", "to": "ControlPanel.svelte+FactoryModelSlots.svelte", "kind": "renders(tab=control)" },
+      { "from": "DevStatusTabs.svelte", "to": "DeliveryHistory+FactoryKpiGrid+FactoryThroughputChart+FactoryPhaseHeatmap+FactoryShippedBar", "kind": "renders(tab=analytics)" },
+      { "from": "DevStatusTabs.svelte", "to": "KostenTab.svelte", "kind": "renders(tab=kosten)" },
+      { "from": "DevStatusTabs.svelte", "to": "DependencyGraph.svelte", "kind": "renders(tab=abhaengigkeiten)" },
+      { "from": "KostenTab.svelte", "to": "FactoryObservability.svelte+FactoryBudgetPage.svelte", "kind": "renders" },
+      { "from": "FactoryFloor.svelte", "to": "/api/factory-floor + /stream + /{extId} + /{extId}/ci + /{extId}/inject + /{extId}/release", "kind": "data_flow" },
+      { "from": "8 components (FactoryFloor, StatusStrip, FactoryPhaseHeatmap, FactoryShippedBar, PipelineSidekickView, CockpitExpandRow, AwaitingDeployLane, DetailPanel)", "to": "/api/factory-floor*", "kind": "data_flow (duplicated, no shared store)" }
+    ]
+  },
+  "db_tables": [],
+  "api_contracts": [
+    { "endpoint": "GET /api/factory-floor", "handler": "website/src/pages/api/factory-floor.ts", "returns": "FloorPayload", "auth": "getSession+isAdmin (401)", "consumers": ["FactoryFloor", "StatusStrip(30s poll)", "FactoryPhaseHeatmap", "FactoryShippedBar", "PipelineSidekickView", "CockpitExpandRow"] },
+    { "endpoint": "GET /api/factory-floor/stream", "handler": "website/src/pages/api/factory-floor/stream.ts", "returns": "SSE named events phase{at,planningCount}, heartbeat", "auth": "getSession+isAdmin (401)", "consumers": ["FactoryFloor (correct)", "PipelineSidekickView (broken onmessage handler)"] },
+    { "endpoint": "GET /api/factory-floor/[extId] · /ci · POST /inject · /release · /deploy", "handler": "website/src/pages/api/factory-floor/[extId]*.ts", "returns": "TicketDetail | CI rollup | mutation results", "auth": "getSession+isAdmin (401)", "consumers": ["DetailPanel", "CockpitExpandRow", "StagedColumn", "AwaitingDeployLane"] },
+    { "endpoint": "GET /api/factory-metrics", "handler": "website/src/pages/api/factory-metrics.ts", "returns": "{brand, metrics[], activeFeatures[], flags[]}", "auth": "getSession+isAdmin (401)", "consumers": ["FactoryKpiGrid", "FactoryThroughputChart (duplicate fetch)"] },
+    { "endpoint": "GET/POST /api/factory-budget", "handler": "website/src/pages/api/factory-budget.ts", "returns": "budget summary | ?recent runs | ?ticketId phases; POST sets daily USD limit", "auth": "getSession+isAdmin (403 — inconsistent with siblings)", "consumers": ["FactoryBudgetPage"] },
+    { "endpoint": "GET /api/factory-observability", "handler": "website/src/pages/api/factory-observability.ts", "returns": "Prometheus cost/tokens/phase/model/ticket series + timeline", "auth": "getSession+isAdmin (401)", "consumers": ["FactoryObservability"] },
+    { "endpoint": "GET/PUT /api/factory-model-slots", "handler": "website/src/pages/api/factory-model-slots.ts", "returns": "{slots[], catalog[]} per-phase model slots", "auth": "getSession+isAdmin (401)", "consumers": ["FactoryModelSlots"] },
+    { "endpoint": "GET/PATCH /api/admin/factory-control", "handler": "website/src/pages/api/admin/factory-control.ts", "returns": "7-field ControlState, audit-logged", "auth": "getSession+isAdmin (401)", "consumers": ["ControlPanel (4/7 fields)", "PortalSidekick (remaining 3 fields)"] },
+    { "endpoint": "GET /api/tickets/graph", "handler": "website/src/pages/api/tickets/graph.ts", "returns": "{nodes, edges, criticalPath}", "auth": "getSession+isAdmin", "consumers": ["DependencyGraph (5s setInterval poll)"] },
+    { "endpoint": "GET /api/admin/delivery-metrics?window=7d|30d|all", "handler": "website/src/pages/api/admin/delivery-metrics.ts", "returns": "delivery metrics + summary + ghRepo", "auth": "getSession+isAdmin", "consumers": ["DeliveryHistory"] },
+    { "endpoint": "GET/PATCH /api/admin/planungsbuero[/extId] · POST /api/planning-office/[extId]/promote", "handler": "website/src/pages/api/admin/planungsbuero/*.ts, website/src/pages/api/planning-office/[extId].ts", "returns": "planning items + stats; promote to factory", "auth": "getSession+isAdmin", "consumers": ["PlanningOffice"] },
+    { "endpoint": "GET /api/admin/qa-queue · /api/admin/qa-criteria", "handler": "website/src/pages/api/admin/qa-*.ts", "returns": "QA acceptance queue / criteria", "auth": "getSession+isAdmin", "consumers": ["FactoryFloor", "PipelineSidekickView"] },
+    { "endpoint": "GET/POST/PUT/DELETE /api/admin/ki/providers[/id] · GET /api/admin/ki/catalog", "handler": "website/src/pages/api/admin/ki/*.ts", "returns": "per-phase KI provider priority/tiers + catalog", "auth": "getSession+isAdmin", "consumers": ["KiProviderDrawer (inside FactoryFloor)", "/admin/ki-konfiguration page — overlaps FactoryModelSlots"] }
+  ],
+  "external_types": [],
+  "risks": [
+    { "note": "codebase-memory MCP not used for symbols (grep/Read fallback verwendet) — Signaturen manuell aus Quelldateien verifiziert", "severity": "info" },
+    { "note": "db_tables leer: Change ist UI-only, alle Daten fließen über bestehende /api/*-Contracts; keine DDL", "severity": "info" },
+    { "note": "external_types leer: keine neuen Libraries geplant; Chart.js bereits im Einsatz (FactoryThroughputChart, FactoryShippedBar)", "severity": "info" },
+    { "note": "FactoryFloor.svelte (521 LOC, baseline 521) und PortalSidekick.svelte (578 LOC, baseline 578) haben s1_budget=0 — Plan MUSS echte Extract-/Shrink-Schritte enthalten, wenn diese Dateien angefasst werden", "severity": "warn" }
+  ]
+}

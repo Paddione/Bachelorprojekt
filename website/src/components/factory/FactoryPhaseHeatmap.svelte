@@ -13,53 +13,60 @@
     shipped: { extId: string; title: string; doneAt: string | null }[];
   }
 
+  import { floorStore, acquireFloor } from '../../lib/stores/factory-floor-store';
+
+  let window = $state('7d');
   let loading = $state(true);
   let error = $state(false);
   let grid = $state<number[][]>([]);
   let maxVal = $state(1);
 
-  onMount(async () => {
-    try {
-      const res = await fetch('/api/factory-floor', { credentials: 'same-origin' });
-      if (!res.ok) { error = true; return; }
-      const data = (await res.json()) as FloorPayload;
+  function computeGrid(data: FloorPayload) {
+    const counts: number[][] = Array.from({ length: 6 }, () => Array(7).fill(0));
+    const now = Date.now();
+    const cutoff = window === 'all' ? 0 : now - (window === '7d' ? 7 : 30) * 864e5;
 
-      const counts: number[][] = Array.from({ length: 6 }, () => Array(7).fill(0));
-      const now = new Date();
-      const dayOfWeek = (now.getDay() + 6) % 7;
+    const dayOfWeek = (new Date().getDay() + 6) % 7;
 
-      for (const item of data.hall) {
-        if (!item.phase || !item.phaseSince) continue;
-        const phaseIdx = PHASE_LABELS.indexOf(item.phase);
-        if (phaseIdx < 0) continue;
-        const itemDate = new Date(item.phaseSince);
-        const diffDays = Math.floor((now.getTime() - itemDate.getTime()) / 86400000);
-        for (let d = 0; d < 7; d++) {
-          const dayOffset = dayOfWeek - d;
-          if (dayOffset >= 0 && diffDays >= dayOffset) {
-            counts[phaseIdx][d]++;
-          }
+    for (const item of data.hall) {
+      if (!item.phase || !item.phaseSince) continue;
+      const phaseIdx = PHASE_LABELS.indexOf(item.phase);
+      if (phaseIdx < 0) continue;
+      const itemDate = new Date(item.phaseSince).getTime();
+      if (cutoff && itemDate < cutoff) continue;
+      const diffDays = Math.floor((now - itemDate) / 86400000);
+      for (let d = 0; d < 7; d++) {
+        const dayOffset = dayOfWeek - d;
+        if (dayOffset >= 0 && diffDays >= dayOffset) {
+          counts[phaseIdx][d]++;
         }
       }
-
-      for (const item of data.shipped) {
-        if (!item.doneAt) continue;
-        const doneDate = new Date(item.doneAt);
-        const diffDays = Math.floor((now.getTime() - doneDate.getTime()) / 86400000);
-        if (diffDays < 7) {
-          const dayIdx = (doneDate.getDay() + 6) % 7;
-          const deployIdx = PHASE_LABELS.indexOf('deploy');
-          if (deployIdx >= 0) counts[deployIdx][dayIdx]++;
-        }
-      }
-
-      grid = counts;
-      maxVal = Math.max(1, ...counts.flat());
-    } catch {
-      error = true;
-    } finally {
-      loading = false;
     }
+
+    for (const item of data.shipped) {
+      if (!item.doneAt) continue;
+      const doneTime = new Date(item.doneAt).getTime();
+      if (cutoff && doneTime < cutoff) continue;
+      const diffDays = Math.floor((now - doneTime) / 86400000);
+      if (diffDays < 7) {
+        const dayIdx = (new Date(item.doneAt).getDay() + 6) % 7;
+        const deployIdx = PHASE_LABELS.indexOf('deploy');
+        if (deployIdx >= 0) counts[deployIdx][dayIdx]++;
+      }
+    }
+
+    grid = counts;
+    maxVal = Math.max(1, ...counts.flat());
+    loading = false;
+  }
+
+  onMount(() => {
+    const release = acquireFloor();
+    const unsub = floorStore.subscribe((s) => {
+      if (s.payload) { computeGrid(s.payload); error = false; }
+      else if (!loading) error = true;
+    });
+    return () => { unsub(); release(); };
   });
 
   const CELL_W = 48;

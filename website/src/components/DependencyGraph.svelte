@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount } from 'svelte';
+  import { floorStore, acquireFloor } from '../lib/stores/factory-floor-store';
 
   interface GraphNode {
     id: string;
@@ -39,7 +40,6 @@
   let isPanning = $state(false);
   let panStart = { x: 0, y: 0 };
   let hoveredNode: string | null = $state(null);
-  let pollInterval: ReturnType<typeof setInterval> | undefined;
 
   async function fetchGraph() {
     try {
@@ -119,10 +119,10 @@
 
   function nodeColor(status: string): string {
     switch (status) {
-      case 'done': return 'var(--factory-success, #22c55e)';
-      case 'in_progress': case 'in_review': return 'var(--factory-accent, #f59e0b)';
-      case 'blocked': return 'var(--factory-error, #ef4444)';
-      default: return 'var(--factory-text-muted, #737373)';
+      case 'done': return 'var(--admin-success, #22c55e)';
+      case 'in_progress': case 'in_review': return 'var(--admin-accent, #f59e0b)';
+      case 'blocked': return 'var(--admin-error, #ef4444)';
+      default: return 'var(--admin-text-muted, #737373)';
     }
   }
 
@@ -131,7 +131,7 @@
       case 'done': return 'rgba(34, 197, 94, 0.15)';
       case 'in_progress': case 'in_review': return 'rgba(245, 158, 11, 0.15)';
       case 'blocked': return 'rgba(239, 68, 68, 0.15)';
-      default: return 'var(--factory-surface, #161b22)';
+      default: return 'var(--admin-surface, #161b22)';
     }
   }
 
@@ -146,9 +146,9 @@
 
   function priorityColor(priority: string): string {
     switch (priority) {
-      case 'hoch': return 'var(--factory-priority-high, #f97316)';
-      case 'mittel': return 'var(--factory-priority-medium, #eab308)';
-      default: return 'var(--factory-priority-low, #6b7280)';
+      case 'hoch': return 'var(--admin-priority-high, #f97316)';
+      case 'mittel': return 'var(--admin-priority-medium, #eab308)';
+      default: return 'var(--admin-priority-low, #6b7280)';
     }
   }
 
@@ -185,12 +185,14 @@
   }
 
   onMount(() => {
-    fetchGraph();
-    pollInterval = setInterval(fetchGraph, 5000);
-  });
-
-  onDestroy(() => {
-    if (pollInterval) clearInterval(pollInterval);
+    void fetchGraph();
+    const release = acquireFloor();
+    let seen: string | null = null;
+    const unsub = floorStore.subscribe((s) => {
+      const at = s.payload?.fetchedAt ?? null;
+      if (at && at !== seen) { seen = at; void fetchGraph(); }
+    });
+    return () => { unsub(); release(); };
   });
 
   const layout = $derived(graphData ? layoutNodes(graphData) : []);
@@ -224,11 +226,11 @@
       <defs>
         <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5"
           markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--factory-border, #30363d)" />
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--admin-border, #30363d)" />
         </marker>
         <marker id="arrow-critical" viewBox="0 0 10 10" refX="10" refY="5"
           markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--factory-accent, #f59e0b)" />
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--admin-accent, #f59e0b)" />
         </marker>
       </defs>
 
@@ -242,7 +244,7 @@
             y1={fromN.y + NODE_H / 2}
             x2={toN.x}
             y2={toN.y + NODE_H / 2}
-            stroke={critical ? 'var(--factory-accent, #f59e0b)' : 'var(--factory-border, #30363d)'}
+            stroke={critical ? 'var(--admin-accent, #f59e0b)' : 'var(--admin-border, #30363d)'}
             stroke-width={critical ? 2 : 1}
             marker-end={critical ? 'url(#arrow-critical)' : 'url(#arrow)'}
             class:critical-edge={critical}
@@ -274,22 +276,22 @@
           <text
             x={12}
             y={20}
-            font-family="var(--factory-font-mono, monospace)"
+            font-family="var(--admin-font-mono, monospace)"
             font-size="11"
             font-weight="bold"
-            fill="var(--factory-text-primary, #e5e5e5)"
+            fill="var(--admin-text-primary, #e5e5e5)"
           >{node.id}</text>
           <text
             x={12}
             y={38}
-            font-family="var(--factory-font-mono, monospace)"
+            font-family="var(--admin-font-mono, monospace)"
             font-size="10"
-            fill="var(--factory-text-secondary, #a3a3a3)"
+            fill="var(--admin-text-secondary, #a3a3a3)"
           >{node.title.length > 18 ? node.title.slice(0, 18) + '...' : node.title}</text>
           <text
             x={12}
             y={50}
-            font-family="var(--factory-font-mono, monospace)"
+            font-family="var(--admin-font-mono, monospace)"
             font-size="9"
             fill={nodeColor(node.status)}
           >{node.status}</text>
@@ -300,7 +302,7 @@
               height={NODE_H}
               rx={4}
               fill="none"
-              stroke="var(--factory-error, #ef4444)"
+              stroke="var(--admin-error, #ef4444)"
               stroke-width={1}
               class="pilot-light-pulse"
             />
@@ -313,9 +315,9 @@
 
 <style>
   .dag-container {
-    background: var(--factory-bg, #0d1117);
-    border: 1px solid var(--factory-border, #30363d);
-    border-radius: var(--factory-radius-md, 0.375rem);
+    background: var(--admin-bg, #0d1117);
+    border: 1px solid var(--admin-border, #30363d);
+    border-radius: var(--admin-radius-md, 0.375rem);
     overflow: hidden;
     position: relative;
     min-height: 400px;
@@ -341,25 +343,25 @@
     align-items: center;
     justify-content: center;
     min-height: 400px;
-    font-family: var(--factory-font-mono, monospace);
-    font-size: var(--factory-text-sm, 0.875rem);
-    color: var(--factory-text-muted, #737373);
+    font-family: var(--admin-font-mono, monospace);
+    font-size: var(--admin-text-sm, 0.875rem);
+    color: var(--admin-text-muted, #737373);
   }
 
   .dag-error {
-    color: var(--factory-error, #ef4444);
+    color: var(--admin-error, #ef4444);
   }
 
   .dag-legend {
     display: flex;
     gap: 0.5rem;
     padding: 0.5rem 0.75rem;
-    border-bottom: 1px solid var(--factory-border, #30363d);
+    border-bottom: 1px solid var(--admin-border, #30363d);
     flex-wrap: wrap;
   }
 
   .legend-chip {
-    font-family: var(--factory-font-mono, monospace);
+    font-family: var(--admin-font-mono, monospace);
     font-size: 10px;
     padding: 2px 8px;
     border-radius: 10px;
@@ -367,32 +369,32 @@
   }
 
   .legend-chip.done {
-    color: var(--factory-success, #22c55e);
-    border-color: var(--factory-success, #22c55e);
+    color: var(--admin-success, #22c55e);
+    border-color: var(--admin-success, #22c55e);
     background: rgba(34, 197, 94, 0.1);
   }
 
   .legend-chip.active {
-    color: var(--factory-accent, #f59e0b);
-    border-color: var(--factory-accent, #f59e0b);
+    color: var(--admin-accent, #f59e0b);
+    border-color: var(--admin-accent, #f59e0b);
     background: rgba(245, 158, 11, 0.1);
   }
 
   .legend-chip.blocked {
-    color: var(--factory-error, #ef4444);
-    border-color: var(--factory-error, #ef4444);
+    color: var(--admin-error, #ef4444);
+    border-color: var(--admin-error, #ef4444);
     background: rgba(239, 68, 68, 0.1);
   }
 
   .legend-chip.planned {
-    color: var(--factory-text-muted, #737373);
-    border-color: var(--factory-text-muted, #737373);
+    color: var(--admin-text-muted, #737373);
+    border-color: var(--admin-text-muted, #737373);
     background: rgba(115, 115, 115, 0.1);
   }
 
   .legend-chip.critical {
-    color: var(--factory-accent, #f59e0b);
-    border-color: var(--factory-accent, #f59e0b);
+    color: var(--admin-accent, #f59e0b);
+    border-color: var(--admin-accent, #f59e0b);
     background: rgba(245, 158, 11, 0.1);
     border-style: dashed;
   }

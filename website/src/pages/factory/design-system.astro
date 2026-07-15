@@ -3,7 +3,6 @@ import Layout from '../../layouts/Layout.astro';
 import PilotLight from '../../components/factory/PilotLight.svelte';
 import WorkpieceCard from '../../components/factory/WorkpieceCard.svelte';
 import PhaseBadge from '../../components/factory/PhaseBadge.svelte';
-import ViewSwitcher from '../../components/factory/ViewSwitcher.svelte';
 import type { FactoryTicket } from '../../components/factory/types';
 
 const sampleTickets: FactoryTicket[] = [
@@ -26,7 +25,6 @@ const sampleTicketsCompact: FactoryTicket[] = [
     <header class="factory-demo__header">
       <h1>Factory Design System</h1>
       <p class="factory-demo__subtitle">Industrial/Loft component library — token reference & component showcase</p>
-      <ViewSwitcher client:load />
     </header>
 
     <section class="factory-demo__section">

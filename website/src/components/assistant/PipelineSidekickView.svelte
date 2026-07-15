@@ -1,6 +1,8 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { PIPELINE_LANES } from '../../lib/tickets/pipeline-order';
   import type { FloorPayload, HallItem, StagedItem, LoadingDockItem, ShippedItem } from '../../lib/factory-floor-types';
+  import { floorStore, acquireFloor } from '../../lib/stores/factory-floor-store';
   import PhaseStepper from '../factory/PhaseStepper.svelte';
 
   let { onClose: _onClose }: { onClose: () => void } = $props();
@@ -74,54 +76,23 @@
     expandedTicket = expandedTicket === extId ? null : extId;
   }
 
-  async function loadData() {
-    loading = true;
-    error = '';
+  async function loadQa() {
     try {
-      const [floorRes, qaRes] = await Promise.all([
-        fetch('/api/factory-floor', { credentials: 'same-origin' }),
-        fetch('/api/admin/qa-queue', { credentials: 'same-origin' }),
-      ]);
-      if (!floorRes.ok) throw new Error(`Floor HTTP ${floorRes.status}`);
-      floor = await floorRes.json() as FloorPayload;
+      const qaRes = await fetch('/api/admin/qa-queue', { credentials: 'same-origin' });
       if (qaRes.ok) {
         qaItems = await qaRes.json() as { extId: string }[];
       }
-    } catch {
-      error = 'Pipeline konnte nicht geladen werden.';
-    } finally {
-      loading = false;
-    }
+    } catch { /* silent */ }
   }
 
-  $effect(() => { loadData(); });
-
-  // SSE live refresh — silent reconnect on disconnect
-  $effect(() => {
-    let es: EventSource | null = null;
-    let timer: ReturnType<typeof setTimeout> | null = null;
-
-    function connect() {
-      try {
-        es = new EventSource('/api/factory-floor/stream');
-        es.onmessage = (e: MessageEvent) => {
-          try {
-            const data = JSON.parse(e.data) as { floor?: FloorPayload };
-            if (data.floor) floor = data.floor;
-          } catch { /* ignore parse errors */ }
-        };
-        es.onerror = () => {
-          es?.close();
-          timer = setTimeout(connect, 5000);
-        };
-      } catch { /* fail-soft */ }
-    }
-
-    connect();
-    return () => {
-      es?.close();
-      if (timer) clearTimeout(timer);
-    };
+  onMount(() => {
+    void loadQa();
+    const release = acquireFloor();
+    const unsub = floorStore.subscribe((s) => {
+      if (s.payload) { floor = s.payload; loading = false; error = ''; }
+      else if (!loading) error = 'Pipeline-Daten nicht verfügbar.';
+    });
+    return () => { unsub(); release(); };
   });
 </script>
 

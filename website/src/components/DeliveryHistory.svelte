@@ -2,15 +2,18 @@
   import { onMount } from 'svelte';
   import type { DeliveryMetric, DeliverySummary } from '../lib/delivery-metrics';
 
-  type Window = '7d' | '30d' | 'all';
-
   interface ApiResponse {
     metrics: DeliveryMetric[];
     summary: DeliverySummary;
     ghRepo: string;
   }
 
-  let window: Window = $state('7d');
+  let {
+    window = '7d',
+  }: {
+    window?: '7d' | '30d' | 'all';
+  } = $props();
+
   let data: ApiResponse | null = $state(null);
   let loading = $state(true);
   let error = $state(false);
@@ -40,24 +43,17 @@
     }
   }
 
-  function setWindow(w: Window) {
-    window = w;
-    fetchData();
-  }
-
   onMount(() => {
     fetchData();
   });
+
+  $effect(() => { if (window) void fetchData(); });
 </script>
 
 <div class="delivery-section">
   <div class="delivery-header">
     <h3>Lieferhistorie</h3>
-    <div class="window-buttons">
-      <button class="win-btn" class:active={window === '7d'} onclick={() => setWindow('7d')}>7 Tage</button>
-      <button class="win-btn" class:active={window === '30d'} onclick={() => setWindow('30d')}>30 Tage</button>
-      <button class="win-btn" class:active={window === 'all'} onclick={() => setWindow('all')}>Gesamt</button>
-    </div>
+
   </div>
 
   {#if loading}
@@ -166,28 +162,6 @@
     font-weight: 600;
     margin: 0;
     color: var(--admin-text, #eef1f3);
-  }
-
-  .window-buttons {
-    display: flex;
-    gap: 4px;
-  }
-
-  .win-btn {
-    padding: 4px 10px;
-    font-size: 11px;
-    font-weight: 500;
-    border: 1px solid var(--factory-border, #2a2a2a);
-    background: transparent;
-    color: var(--admin-text-mute, #8c96a3);
-    border-radius: 4px;
-    cursor: pointer;
-    font-family: var(--font-sans, inherit);
-  }
-  .win-btn.active {
-    background: oklch(0.80 0.09 75 / 0.14);
-    color: oklch(0.80 0.09 75);
-    border-color: oklch(0.80 0.09 75 / 0.3);
   }
 
   .delivery-grid {

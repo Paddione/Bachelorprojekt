@@ -1093,6 +1093,12 @@
       "status": "plan_staged"
     }
   ],
+  "T001858": [
+    {
+      "slug": "pipeline-interface-consolidation",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

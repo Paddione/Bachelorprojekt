@@ -1,6 +1,13 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import FactoryKpiCard from './FactoryKpiCard.svelte';
+  import { getSharedMetrics } from '../../lib/stores/factory-floor-store';
+
+  let {
+    window: _window = '7d',
+  }: {
+    window?: '7d' | '30d' | 'all';
+  } = $props();
 
   interface MetricRow {
     day: string;
@@ -38,9 +45,7 @@
 
   onMount(async () => {
     try {
-      const res = await fetch('/api/factory-metrics', { credentials: 'same-origin' });
-      if (!res.ok) { error = true; return; }
-      const json = (await res.json()) as MetricsPayload;
+      const json = await getSharedMetrics() as unknown as MetricsPayload;
       if (json.metrics.length > 0) {
         latest = json.metrics[0];
         prevDay = json.metrics.length > 1 ? json.metrics[1] : null;

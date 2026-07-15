@@ -4,6 +4,9 @@
   import DryRunCard from './DryRunCard.svelte';
   import SlotCapCard from './SlotCapCard.svelte';
   import DailyCapCard from './DailyCapCard.svelte';
+  import ContextBudgetCard from './ContextBudgetCard.svelte';
+  import SpawnHarnessCard from './SpawnHarnessCard.svelte';
+  import LavishDelegationCard from './LavishDelegationCard.svelte';
   import StatusStrip from './StatusStrip.svelte';
 
   interface ControlState {
@@ -11,6 +14,9 @@
     dryRun: boolean;
     slotCap: number;
     dailyCap: number;
+    contextBudget: number;
+    spawnHarness: boolean;
+    lavishDelegation: boolean;
     updatedAt: string | null;
   }
 
@@ -83,6 +89,18 @@
         value={state.dailyCap}
         onchange={(v) => patch({ dailyCap: v })}
       />
+      <ContextBudgetCard
+        value={state.contextBudget}
+        onchange={(v) => patch({ contextBudget: v })}
+      />
+      <SpawnHarnessCard
+        value={state.spawnHarness}
+        onchange={(v) => patch({ spawnHarness: v })}
+      />
+      <LavishDelegationCard
+        value={state.lavishDelegation}
+        onchange={(v) => patch({ lavishDelegation: v })}
+      />
     </div>
 
     {#if error}
@@ -110,23 +128,23 @@
     align-items: center;
     justify-content: center;
     min-height: 300px;
-    font-family: var(--factory-font-mono);
-    color: var(--factory-text-secondary);
+    font-family: var(--admin-font-mono);
+    color: var(--admin-text-secondary);
   }
 
   .control-panel__error p {
     margin: 0 0 1rem;
-    color: var(--factory-error);
+    color: var(--admin-error);
   }
 
   .control-panel__error button {
     padding: 0.5rem 1.5rem;
-    background: var(--factory-surface);
-    border: 1px solid var(--factory-border);
-    border-radius: var(--factory-radius-md);
-    color: var(--factory-text-primary);
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: var(--admin-radius-md);
+    color: var(--admin-text-primary);
     cursor: pointer;
-    font-family: var(--factory-font-mono);
+    font-family: var(--admin-font-mono);
   }
 
   .control-panel__grid {
@@ -137,11 +155,11 @@
 
   .control-panel__toast {
     padding: 0.75rem 1rem;
-    background: var(--factory-error);
+    background: var(--admin-error);
     color: white;
-    border-radius: var(--factory-radius-md);
-    font-family: var(--factory-font-mono);
-    font-size: var(--factory-text-sm);
+    border-radius: var(--admin-radius-md);
+    font-family: var(--admin-font-mono);
+    font-size: var(--admin-text-sm);
   }
 
   @media (max-width: 768px) {

@@ -2,6 +2,13 @@
   import { onMount, onDestroy } from 'svelte';
   import { Chart, registerables } from 'chart.js';
   import { SURFACE, BORDER, TEXT_MUTED, SUCCESS } from './factory-chart-colors';
+  import { getSharedMetrics } from '../../lib/stores/factory-floor-store';
+
+  let {
+    window: _window = '7d',
+  }: {
+    window?: '7d' | '30d' | 'all';
+  } = $props();
 
   interface MetricRow {
     day: string;
@@ -23,9 +30,7 @@
   onMount(async () => {
     Chart.register(...registerables);
     try {
-      const res = await fetch('/api/factory-metrics', { credentials: 'same-origin' });
-      if (!res.ok) { error = true; return; }
-      const json = (await res.json()) as MetricsPayload;
+      const json = await getSharedMetrics() as unknown as MetricsPayload;
       const rows = json.metrics.slice(0, 7).reverse();
       const labels = rows.map((r) => {
         const d = new Date(r.day);

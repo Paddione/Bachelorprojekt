@@ -63,7 +63,9 @@ git add \
   website/src/lib/platform-descriptions.generated.json \
   docs/generated/graph.json \
   docs/generated/api-map.json \
-  docs/generated/blast-radius.md 2>/dev/null || true
+  docs/generated/blast-radius.md \
+  docs/diagrams/architecture.md \
+  website/src/lib/goals-data.generated.json 2>/dev/null || true
 git diff --cached --quiet || git commit -m "chore: regenerate freshness artifacts [$TICKET_ID]"
 ```
 

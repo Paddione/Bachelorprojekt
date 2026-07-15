@@ -473,20 +473,13 @@ jobs:
       - name: Run Lighthouse audit
         continue-on-error: true
         run: |
-          lhci autorun \
-            --collect.url=https://mentolder.de \
-            --collect.settings.chromeFlags='--headless --no-sandbox' \
-            --assert.preset=lighthouse:recommended \
-            --assert.assertions.performance=error \
-            --budget-path=lighthouse-budget.json \
-            --upload.target=temporary-public-storage \
-            || true
+          lhci autorun || true
 
       - name: Lighthouse summary
         if: always()
         run: |
           echo "### Lighthouse Performance Audit" >> "$GITHUB_STEP_SUMMARY"
-          echo "URL: https://mentolder.de" >> "$GITHUB_STEP_SUMMARY"
+          echo "URL: https://web.mentolder.de" >> "$GITHUB_STEP_SUMMARY"
           echo "Budget: lighthouse-budget.json (Performance ≥ 90)" >> "$GITHUB_STEP_SUMMARY"
           echo "Status: advisory only (does not block CI)" >> "$GITHUB_STEP_SUMMARY"
 

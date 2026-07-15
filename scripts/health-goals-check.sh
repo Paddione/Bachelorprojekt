@@ -341,13 +341,13 @@ else
 fi
 
 # ── FE-TARGETS ──
-if command -v npx >/dev/null 2>&1 && npx --yes lighthouse-ci --version >/dev/null 2>&1; then
+if command -v npx >/dev/null 2>&1 && npx --yes @lhci/cli --version >/dev/null 2>&1; then
   row target G-FE05 "$(
-    score=$(npx lhci autorun --collect.url=https://mentolder.de --collect.settings.chromeFlags='--headless --no-sandbox' --assert.performance=0 2>/dev/null | grep -oP 'Performance: \K[0-9]+' | head -1)
+    score=$(npx @lhci/cli autorun --no-lighthouserc --collect.url=https://web.mentolder.de --collect.settings.chromeFlags='--headless --no-sandbox' --assert.preset=none 2>/dev/null | grep -oP 'Performance: \K[0-9]+' | head -1)
     echo "${score:--}"
   )" ge 90 "Lighthouse Performance Score"
 else
-  row target G-FE05 "-" ge 90 "Lighthouse Performance Score (erfordert lighthouse-ci — nicht messbar)"
+  row target G-FE05 "-" ge 90 "Lighthouse Performance Score (erfordert @lhci/cli — nicht messbar)"
 fi
 
 # ── Zusammenfassung ────────────────────────────────────────────────────────────

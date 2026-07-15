@@ -185,11 +185,11 @@ print(f'{p95:.1f}')
 nichts über FCP, LCP, CLS oder TTI aus. Core Web Vitals sind der Industriestandard
 für echte User-Performance. Lighthouse CI ist jetzt in `.github/workflows/ci.yml`
 integriert (advisory-only). `lighthouse-budget.json` definiert die Thresholds.
-`scripts/health-goals-check.sh` misst den Score via `npx lhci`.
+`scripts/health-goals-check.sh` misst den Score via `npx @lhci/cli`.
 
 ```bash
-npx lhci autorun \
-  --collect.url=https://mentolder.de \
+npx @lhci/cli autorun \
+  --collect.url=https://web.mentolder.de \
   --collect.settings.chromeFlags='--headless --no-sandbox' \
   --assert.performance=0.9
 ```

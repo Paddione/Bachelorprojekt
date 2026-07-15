@@ -17,21 +17,6 @@ export function findOrphans(candidates, corpus) {
   return orphans;
 }
 
-/** Concatenate the text of every source file, excluding the candidate itself. */
-function corpusExcluding(repoRoot, sourceFiles, candidate) {
-  const parts = [];
-  for (const f of sourceFiles) {
-    if (f === candidate) continue;
-    try { parts.push(readFileSync(join(repoRoot, f), 'utf8')); }
-    catch (err) {
-      // Keep the skip (git-tracked source; a read failure is a rare race), but
-      // be loud so a systemic corpus-read failure is never silent.
-      process.stderr.write(`S4: unreadable corpus source ${f}: ${err?.message}\n`);
-    }
-  }
-  return parts.join('\n');
-}
-
 /** Run S4 over the tracked tree. Returns the gate contract object. */
 export function runS4(repoRoot, gates) {
   const s4 = gates?.s4 ?? {};
@@ -45,9 +30,23 @@ export function runS4(repoRoot, gates) {
   );
   const sourceFiles = tracked.filter((f) => srcGlobs.some((g) => matchGlob(f, g)));
 
+  const loadedSources = sourceFiles.map((f) => {
+    try {
+      return { path: f, content: readFileSync(join(repoRoot, f), 'utf8') };
+    } catch (err) {
+      process.stderr.write(`S4: unreadable corpus source ${f}: ${err?.message}\n`);
+      return { path: f, content: '' };
+    }
+  });
+
   const violations = [];
   for (const c of candidates) {
-    const corpus = corpusExcluding(repoRoot, sourceFiles, c);
+    const parts = [];
+    for (const s of loadedSources) {
+      if (s.path === c) continue;
+      parts.push(s.content);
+    }
+    const corpus = parts.join('\n');
     if (!corpus.includes(basename(c))) {
       violations.push({
         key: `S4:${c}`,

@@ -5,14 +5,21 @@
 # Render pattern follows tests/spec/brain-quartz-deploy.bats.
 load 'test_helper'
 
+setup_file() {
+  export RENDERED_MENTOLDER="${BATS_FILE_TMPDIR}/rendered-mentolder.yaml"
+  export RENDERED_KORCZEWSKI="${BATS_FILE_TMPDIR}/rendered-korczewski.yaml"
+  
+  local repo_root; repo_root="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
+  kubectl kustomize "${repo_root}/prod-fleet/mentolder" --load-restrictor=LoadRestrictionsNone > "$RENDERED_MENTOLDER" 2>/dev/null
+  kubectl kustomize "${repo_root}/prod-fleet/korczewski" --load-restrictor=LoadRestrictionsNone > "$RENDERED_KORCZEWSKI" 2>/dev/null
+}
+
 _render_mentolder() {
-  REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
-  kubectl kustomize "$REPO_ROOT/prod-fleet/mentolder" --load-restrictor=LoadRestrictionsNone 2>/dev/null
+  cat "$RENDERED_MENTOLDER"
 }
 
 _render_korczewski() {
-  REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
-  kubectl kustomize "$REPO_ROOT/prod-fleet/korczewski" --load-restrictor=LoadRestrictionsNone 2>/dev/null
+  cat "$RENDERED_KORCZEWSKI"
 }
 
 @test "prod render (mentolder): no --ssl-insecure-skip-verify anywhere" {

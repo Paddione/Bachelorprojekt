@@ -82,7 +82,7 @@ setup() {
   TMPLOG="$(mktemp)"
 
   # FA-SF-57/58/59: temp directory with all needed subdirs
-  TEST_TMP_DIR="$BATS_TMPDIR/sf-tests-$$"
+  TEST_TMP_DIR="$BATS_TEST_TMPDIR/sf-tests-$$"
   mkdir -p "$TEST_TMP_DIR/fixtures/T000725" "$TEST_TMP_DIR/out"
 
   # FA-SF-63: scout.sh deterministic tests
@@ -3307,7 +3307,7 @@ STUB
 # guard_killswitch_on resolves offline (no live cluster) — same override
 # pattern as the FA-SF-44 guard_killswitch_on tests above.
 _stub_gh_prs() {
-  BIN_DIR="${BATS_TMPDIR}/babysit-gh-stubs"
+  BIN_DIR="${BATS_TEST_TMPDIR}/babysit-gh-stubs"
   rm -rf "$BIN_DIR"; mkdir -p "$BIN_DIR"
   ARGV_LOG="$BIN_DIR/argv.log"; : > "$ARGV_LOG"
   echo '{"comments":[]}' > "$BIN_DIR/comments.json"
@@ -3327,7 +3327,7 @@ GHSTUB
   chmod +x "$BIN_DIR/gh"
   export PATH="$BIN_DIR:$PATH"
 
-  GUARDS_REPO_DIR="${BATS_TMPDIR}/babysit-guards-repo"
+  GUARDS_REPO_DIR="${BATS_TEST_TMPDIR}/babysit-guards-repo"
   rm -rf "$GUARDS_REPO_DIR"; mkdir -p "$GUARDS_REPO_DIR/scripts"
   cat > "$GUARDS_REPO_DIR/scripts/ticket.sh" <<'TSTUB'
 #!/usr/bin/env bash
@@ -3337,7 +3337,7 @@ TSTUB
   chmod +x "$GUARDS_REPO_DIR/scripts/ticket.sh"
   export GUARDS_REPO="$GUARDS_REPO_DIR"
 
-  AGENT_LOCK_DIR="${BATS_TMPDIR}/babysit-agent-locks"
+  AGENT_LOCK_DIR="${BATS_TEST_TMPDIR}/babysit-agent-locks"
   rm -rf "$AGENT_LOCK_DIR"; mkdir -p "$AGENT_LOCK_DIR"
   export AGENT_LOCK_DIR
 }
@@ -3468,7 +3468,7 @@ QA_LENS="${BATS_TEST_DIRNAME}/../../scripts/factory/qa-lens.mjs"
 
 @test "FA-SF-QA: qa-lens.mjs exists and prints REVIEW_SCHEMA-shaped JSON in degraded mode" {
   [ -f "$QA_LENS" ]
-  local wt="${BATS_TMPDIR}/qa-lens-nonexistent-wt"
+  local wt="${BATS_TEST_TMPDIR}/qa-lens-nonexistent-wt"
   rm -rf "$wt"
   FACTORY_SANDBOX=off FACTORY_QA_SKIP_STAGING=1 run node "$QA_LENS" --worktree "$wt" --branch fake/branch --ticket T000000 --diff-range origin/main...HEAD
   [ "$status" -eq 0 ]
@@ -3477,7 +3477,7 @@ QA_LENS="${BATS_TEST_DIRNAME}/../../scripts/factory/qa-lens.mjs"
 }
 
 @test "FA-SF-QA: qa-lens degradation emits a single medium finding, never high, when staging is skipped" {
-  local wt="${BATS_TMPDIR}/qa-lens-nonexistent-wt2"
+  local wt="${BATS_TEST_TMPDIR}/qa-lens-nonexistent-wt2"
   rm -rf "$wt"
   FACTORY_SANDBOX=off FACTORY_QA_SKIP_STAGING=1 run node "$QA_LENS" --worktree "$wt" --branch fake/branch --ticket T000000 --diff-range origin/main...HEAD
   [ "$status" -eq 0 ]

@@ -43,7 +43,7 @@ setup() {
   if [ ! -x "$REPO_ROOT/website/node_modules/.bin/eslint" ]; then
     skip "website deps not installed in this context — enforced by CI vitest-website job"
   fi
-  run bash -c "cd '$REPO_ROOT/website' && ./node_modules/.bin/eslint . --max-warnings 0"
+  run bash -c "cd '$REPO_ROOT/website' && ./node_modules/.bin/eslint . --max-warnings 0 --cache"
   [ "$status" -eq 0 ]
 }
 

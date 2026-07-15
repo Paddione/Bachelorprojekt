@@ -122,26 +122,30 @@ teardown() { rm -rf "$WORK"; }
 
 @test "build-graph-docs.mjs emits docs/diagrams/architecture.md with mermaid fences, not HTML" {
   cd "$REPO_ROOT"
-  run node scripts/build-graph-docs.mjs
-  [ "$status" -eq 0 ] || { echo "FAIL: generator exited non-zero: $output"; return 1; }
-  [ -f "$REPO_ROOT/docs/diagrams/architecture.md" ] || { echo "FAIL: docs/diagrams/architecture.md not written"; return 1; }
-  grep -q '```mermaid' "$REPO_ROOT/docs/diagrams/architecture.md" \
-    || { echo "FAIL: no mermaid fence in output"; return 1; }
-  ! grep -q '<html' "$REPO_ROOT/docs/diagrams/architecture.md" \
-    || { echo "FAIL: output still contains raw HTML"; return 1; }
-  ! grep -q 'cdn.jsdelivr.net' "$REPO_ROOT/docs/diagrams/architecture.md" \
-    || { echo "FAIL: output still references the CDN mermaid script"; return 1; }
+  WORK="$(mktemp -d)"
+  ARCH_OUT="$WORK/architecture.md" run node scripts/build-graph-docs.mjs
+  [ "$status" -eq 0 ] || { echo "FAIL: generator exited non-zero: $output"; rm -rf "$WORK"; return 1; }
+  [ -f "$WORK/architecture.md" ] || { echo "FAIL: architecture.md not written"; rm -rf "$WORK"; return 1; }
+  grep -q '```mermaid' "$WORK/architecture.md" \
+    || { echo "FAIL: no mermaid fence in output"; rm -rf "$WORK"; return 1; }
+  ! grep -q '<html' "$WORK/architecture.md" \
+    || { echo "FAIL: output still contains raw HTML"; rm -rf "$WORK"; return 1; }
+  ! grep -q 'cdn.jsdelivr.net' "$WORK/architecture.md" \
+    || { echo "FAIL: output still references the CDN mermaid script"; rm -rf "$WORK"; return 1; }
+  rm -rf "$WORK"
 }
 
 @test "docs/diagrams/architecture.md is byte-identical across two consecutive generator runs (no embedded timestamp)" {
   cd "$REPO_ROOT"
-  run node scripts/build-graph-docs.mjs
+  WORK="$(mktemp -d)"
+  ARCH_OUT="$WORK/architecture.md" run node scripts/build-graph-docs.mjs
   [ "$status" -eq 0 ]
-  first="$(cat "$REPO_ROOT/docs/diagrams/architecture.md")"
-  run node scripts/build-graph-docs.mjs
+  first="$(cat "$WORK/architecture.md")"
+  ARCH_OUT="$WORK/architecture.md" run node scripts/build-graph-docs.mjs
   [ "$status" -eq 0 ]
-  second="$(cat "$REPO_ROOT/docs/diagrams/architecture.md")"
-  [ "$first" = "$second" ] || { echo "FAIL: output differs between consecutive runs — likely an embedded timestamp"; return 1; }
+  second="$(cat "$WORK/architecture.md")"
+  [ "$first" = "$second" ] || { echo "FAIL: output differs between consecutive runs — likely an embedded timestamp"; rm -rf "$WORK"; return 1; }
+  rm -rf "$WORK"
 }
 
 # --- T001884: brain-ingest SKILL.md synced to the real pipeline (E7) ---

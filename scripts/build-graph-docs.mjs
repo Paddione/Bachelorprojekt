@@ -10,7 +10,7 @@
  */
 
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
-import { join } from 'path';
+import { join, dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import {
   buildServiceMap,
@@ -20,6 +20,13 @@ import {
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const ROOT = join(__dirname, '..');
+
+// ARCH_OUT lets BATS fixtures redirect output to a tempdir instead of the
+// tracked docs/diagrams/architecture.md (mirrors GOALS_JSON_OUT in
+// gen-goals-data.mjs). Default is unchanged.
+const ARCH_OUT = process.env.ARCH_OUT
+  ? resolve(process.cwd(), process.env.ARCH_OUT)
+  : join(ROOT, 'docs/diagrams/architecture.md');
 
 function readJson(relPath) {
   const full = join(ROOT, relPath);
@@ -60,11 +67,10 @@ ${topologyDiagram}
 ${apiTable}
 `;
 
-  const outDir = join(ROOT, 'docs/diagrams');
-  mkdirSync(outDir, { recursive: true });
-  const outPath = join(outDir, 'architecture.md');
+  const outPath = ARCH_OUT;
+  mkdirSync(dirname(outPath), { recursive: true });
   writeFileSync(outPath, markdown);
-  console.log(`✓ docs/diagrams/architecture.md → ${outPath}`);
+  console.log(`✓ architecture.md → ${outPath}`);
   console.log(`  ${nodeCount} nodes, ${edgeCount} edges, ${endpointCount} API endpoints`);
 }
 

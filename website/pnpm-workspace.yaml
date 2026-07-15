@@ -17,7 +17,7 @@ minimumReleaseAgeExclude:
   - pg-connection-string@2.14.0
   - pg-protocol@1.15.0
   - pg@8.22.0
-  - svelte@5.56.4
+  - svelte@5.56.4 || 5.56.5
   - livekit-client@2.20.0 || 2.20.1
   - '@astrojs/compiler-binding-darwin-arm64@0.3.0'
   - '@astrojs/compiler-binding-darwin-x64@0.3.0'
@@ -35,6 +35,11 @@ minimumReleaseAgeExclude:
   - '@astrojs/markdown-satteri@0.3.3 || 0.3.4'
   - '@vitest/coverage-v8@4.1.10'
   - '@astrojs/telemetry@3.3.3'
+  - '@stripe/stripe-js@9.10.0'
+  - 'ast-v8-to-istanbul@1.0.5'
+  - 'electron-to-chromium@1.5.392'
+  - 'openai@6.47.0'
+
 
 overrides:
   yaml: "^2.9.0"

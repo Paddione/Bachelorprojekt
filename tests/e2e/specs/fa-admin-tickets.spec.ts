@@ -13,7 +13,7 @@
 // secrets) or when the DB-level seed gates fail
 // (CRON_SECRET+SESSIONS_DATABASE_URL — see e2e-seed.ts).
 //
-// Seed strategy (T001749): instead of POSTing /api/bug-report (which
+// Seed strategy (T001749): instead of POSTing api/bug-report (which
 // races rate limits, the X-Cron-Secret gate, and the BR→T external_id
 // migration), the ticket is INSERTed directly into `tickets.tickets`
 // with `is_test_data=true`. The server-side purge sweep
@@ -67,7 +67,7 @@ test.describe('FA-admin-tickets', { tag: ['@admin'] }, () => {
     );
 
     // ── 1. Seed a bug ticket directly in the DB ──
-    // T001749: replaced POST /api/bug-report (runtime self-seed) with a
+    // T001749: replaced POST api/bug-report (runtime self-seed) with a
     // direct INSERT via e2e-seed.ts. The seeded row is stamped
     // is_test_data=true so the server-side purge sweep reaps it, and
     // the afterEach below deletes it explicitly so subsequent tests

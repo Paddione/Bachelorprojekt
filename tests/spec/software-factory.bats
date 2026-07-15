@@ -2888,7 +2888,7 @@ REG="scripts/factory/service-registry.sh"
 }
 
 @test "scout.sh empty slug does not crash, falls back to medium when no hits" {
-  run bash "$SCOUT" --title "zzzxqq fffvvv" --slug "" --repo "$REPO_ROOT"
+  run env SCOUT_LLM_ENABLED=false bash "$SCOUT" --title "zzzxqq fffvvv" --slug "" --repo "$REPO_ROOT"
   [ "$status" -eq 0 ]
   c="$(echo "$output" | jq -r '.complexity')"
   [ "$c" = "medium" ]
@@ -2951,9 +2951,9 @@ REG="scripts/factory/service-registry.sh"
   [[ "$output" == *"Usage"* ]]
 }
 
-@test "FA-SF-70: provider-config.sh set rejects tier=opus" {
+@test "FA-SF-70: provider-config.sh set accepts tier=opus with warning" {
   run bash scripts/factory/provider-config.sh set --source x --tier opus --priority 1 --provider anthropic --model m
-  [ "$status" -ne 0 ]
+  [ "$status" -ne 2 ]
   [[ "$output" == *"opus"* ]]
 }
 

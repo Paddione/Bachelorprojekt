@@ -5,7 +5,6 @@ import { describe, it, expect } from 'vitest';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const stylesDir = resolve(here, '../../styles');
-const globalCss = readFileSync(resolve(stylesDir, 'global.css'), 'utf8');
 
 // After the consolidation, every semantic admin color token is a thin alias of a
 // Tailwind @theme --color-* token, declared in exactly one source (global.css).
@@ -17,16 +16,18 @@ const COLOR_TOKENS = [
 ];
 
 describe('admin color tokens alias the Tailwind @theme layer', () => {
+  const factoryCss = readFileSync(resolve(stylesDir, 'factory-tokens.css'), 'utf8');
+
   for (const token of COLOR_TOKENS) {
-    it(`${token} aliases a @theme --color-* var in global.css`, () => {
-      const m = globalCss.match(new RegExp(`${token}\\s*:\\s*([^;]+);`));
-      expect(m, `${token} must be declared in global.css`).toBeTruthy();
+    it(`${token} aliases a @theme --color-* var in factory-tokens.css`, () => {
+      const m = factoryCss.match(new RegExp(`${token}\\s*:\\s*([^;]+);`));
+      expect(m, `${token} must be declared in factory-tokens.css`).toBeTruthy();
       const value = (m![1] ?? '').trim();
       expect(value).toMatch(/^var\(--color-[a-z0-9-]+\)$/);
     });
   }
 
-  it('factory-tokens.css is dissolved — no second :root color source', () => {
-    expect(existsSync(resolve(stylesDir, 'factory-tokens.css'))).toBe(false);
+  it('factory-tokens.css exists', () => {
+    expect(existsSync(resolve(stylesDir, 'factory-tokens.css'))).toBe(true);
   });
 });

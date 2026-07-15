@@ -2814,7 +2814,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 506,
+      "file_count": 507,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3290,6 +3290,7 @@
         "scripts/transcriber-setup.sh",
         "scripts/triage/few-shot-examples.json",
         "scripts/triage/heuristik.mjs",
+        "scripts/trivy-scan.sh",
         "scripts/tsconfig.json",
         "scripts/validate-commit-msg.sh",
         "scripts/validate-manifest.mjs",

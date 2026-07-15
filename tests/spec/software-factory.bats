@@ -1672,6 +1672,35 @@ STUB
   [ "$status" -eq 0 ]
 }
 
+@test "T001845: wakeup.sh dispatches the tick via dispatcher-bridge.sh instead of forcing the model to call Workflow(dispatcher.js)" {
+  # qwythos-9b-v2 (local model backing ANTHROPIC_MODEL) emits tool calls in a
+  # non-standard XML form the harness's tool-call parser chokes on ("import
+  # call expects one or two arguments"), causing the Workflow(dispatcher.js)
+  # tick call to retry uselessly. dispatcher-bridge.sh (already built,
+  # previously unwired) makes the tick itself pure bash for an empty queue —
+  # no LLM/tool-call round trip at all.
+  tmp="$(mktemp -d)"
+  bridgefile="${tmp}/bridge-invoked"
+  claudefile="${tmp}/claude-invoked"
+  cat > "${tmp}/bridge-stub" <<STUB
+#!/usr/bin/env bash
+printf '%s\n' "\$@" > "${bridgefile}"
+STUB
+  chmod +x "${tmp}/bridge-stub"
+  cat > "${tmp}/claude-stub" <<STUB
+#!/usr/bin/env bash
+printf '%s\n' "\$@" > "${claudefile}"
+STUB
+  chmod +x "${tmp}/claude-stub"
+  FACTORY_REPO="${tmp}" FACTORY_CLAUDE_BIN="${tmp}/claude-stub" \
+    FACTORY_DISPATCHER_BRIDGE="${tmp}/bridge-stub" FACTORY_DRY_RUN=true \
+    FACTORY_TICK_LOCK="${tmp}/tick.lock" FACTORY_ENV_FILE="${tmp}/no-env" run bash "$WAKEUP"
+  [ "$status" -eq 0 ]
+  [ -f "${bridgefile}" ]
+  [ ! -f "${claudefile}" ]
+  rm -rf "${tmp}"
+}
+
 @test "FA-SF-41: factory.service is a oneshot that runs wakeup.sh" {
   [ -f "$SERVICE" ]
   run grep -E '^Type=oneshot' "$SERVICE"

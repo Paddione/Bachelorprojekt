@@ -133,10 +133,10 @@ YAML
 }
 
 @test "worklist does not exclude a legitimately-named dir that merely contains 'build' or 'coverage' as a substring" {
-  mkdir -p "$WORK/repo/openspec/changes/archive/mentolder-react-rebuild" \
-           "$WORK/repo/openspec/changes/archive/vitest-coverage"
-  printf -- '# rebuild notes\n' > "$WORK/repo/openspec/changes/archive/mentolder-react-rebuild/proposal.md"
-  printf -- '# coverage notes\n' > "$WORK/repo/openspec/changes/archive/vitest-coverage/proposal.md"
+  mkdir -p "$WORK/repo/openspec/changes/mentolder-react-rebuild" \
+           "$WORK/repo/openspec/changes/vitest-coverage"
+  printf -- '# rebuild notes\n' > "$WORK/repo/openspec/changes/mentolder-react-rebuild/proposal.md"
+  printf -- '# coverage notes\n' > "$WORK/repo/openspec/changes/vitest-coverage/proposal.md"
 
   run bash "$WL" --root "$WORK/repo" --manifest "$MANIFEST"
   [ "$status" -eq 0 ] || { echo "FAIL: worklist exited with $status"; return 1; }

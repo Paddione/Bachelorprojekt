@@ -8,8 +8,8 @@
 // Offline lint:  node --check scripts/factory/provider-router.js
 // Unit tests:    node --test scripts/factory/provider-router.test.mjs
 
-export const OPUS_MODEL = 'qwythos-9b-v2'
-export const EMERGENCY_FALLBACK = { provider: 'lmstudio', modelId: 'qwythos-9b-v2', baseUrl: 'http://127.0.0.1:1234' }
+export const OPUS_MODEL = 'qwen3.6-14b-a3b-fablevibes'
+export const EMERGENCY_FALLBACK = { provider: 'lmstudio', modelId: 'qwen3.6-14b-a3b-fablevibes', baseUrl: 'http://127.0.0.1:1234' }
 export const FAILURE_THRESHOLD = 3
 export const COOLDOWN_MINUTES = 10
 export const DEFAULT_MAX_CONCURRENT = 8

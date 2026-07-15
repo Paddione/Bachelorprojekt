@@ -3,7 +3,7 @@
 #
 # Replaces the Workflow-tool-based dispatcher.js call with a bash loop that
 # reads the prep file, runs budget checks, and launches each pipeline as its
-# own `claude -p` session. This avoids the need for Qwythos to call Workflow().
+# own `claude -p` session. This avoids the need for qwen3.6-14b-a3b-fablevibes to call Workflow().
 #
 # Usage: dispatcher-bridge.sh <prep_file> [--dry-run]
 #   <prep_file>  path to the factory-prep JSON (launch array)
@@ -62,7 +62,7 @@ for row in $(echo "$prep" | jq -c '.launch[]' 2>/dev/null); do
     continue
   fi
 
-  # Launch pipeline via claude -p: Qwythos handles agent() calls fine,
+  # Launch pipeline via claude -p: qwen3.6-14b-a3b-fablevibes handles agent() calls fine,
   # only the Workflow() meta-tool was problematic.
   TIMESTAMP="$(date -u +%FT%TZ)"
   PIPELINE_PROMPT="Run the Software Factory pipeline for ticket ${ext_id} (${title}). \

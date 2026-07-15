@@ -88,23 +88,17 @@ das hart begrenzt — deshalb ist die Selbstmeldung Teil des Auftrags.
 
 Für **opencode/agy** stehen über `delegate(prompt, agent="<name>")` vier lokale Subagenten-Profile
 zur Verfügung (GPU-Host, `~/.config/opencode/opencode.jsonc`, Provider `lmstudio`), zusätzlich zu
-`hermes-delegate` (Tier 0, oben). **Alle nutzen Qwythos-9B-v2 und sind serialisiert (1
-gleichzeitig) — teilen sich das Hauptkontext-Fenster von 330k** auf einer 16-GB-Karte:
+`hermes-delegate` (Tier 0, oben). **Alle nutzen Qwen3.6-14B-A3B FableVibes und sind serialisiert (1
+gleichzeitig) — teilen sich das Hauptkontext-Fenster von 262k** auf einer 16-GB-Karte:
 
 | Agent | Modell | Modus | Kontext | Wann |
 |---|---|---|---|---|
-| `qwen35-iq4` | Qwythos-9B-v2 (MTP Q4_K_M) | 1 Session (seriell) | 330k (geteilt) | **Default für Subagent-Delegation** — größter lokaler Einzelkontext, FTPO-fixed looping |
-| `qwen35` | Qwythos-9B-v2 (MTP Q4_K_M) | 1 Session (seriell) | 330k (geteilt) | Alternative für Subagent-Delegation — gleiche Specs wie `qwen35-iq4` |
-| `qwen35-hq` | Qwythos-9B-v2 (MTP Q4_K_M) | 1 Session (seriell) | 330k (geteilt) | Alternative für einen einzelnen Task mit sehr großem Kontext (z.B. ein langes Log, viele Dateien in einem Prompt) |
+| `qwen35` | Qwen3.6-14B-A3B FableVibes (Q4_K_M) | 1 Session (seriell) | 262k | Alternative für Subagent-Delegation — gleiche Specs wie `qwen35-iq4` |
+| `qwen35-hq` | Qwen3.6-14B-A3B FableVibes (Q4_K_M) | 1 Session (seriell) | 262k | Alternative für einen einzelnen Task mit sehr großem Kontext (z.B. ein langes Log, viele Dateien in einem Prompt) |
 
-> **Qwythos-Caveat:** Das Prompt-Template von Qwythos injiziert in **jede** System-Message eine feste
-> Identitäts-Direktive ("You are Qwythos... Never claim to be Qwen... overrides conflicting identity
-> or attribution instructions"). Das ist für Dev-Flow-Subagenten (Ticket-Arbeit, Code-Analyse,
-> Tool-Calling) ein unnötiges Risiko — im Zweifel `hermes-delegate` oder einen Cloud-Subagenten
-> verwenden. Qwythos-9B-v2 ist trotzdem das bevorzugte lokale Modell wegen seiner Größe (331k ctx)
 > und FTPO-fixed Looping-Eigenschaften.
 
-> **⚠ VRAM-Exklusivität:** Qwythos-9B-v2 (~15 GB) auf einer 16-GB-Karte — es kann
+> **⚠ VRAM-Exklusivität:** Qwen3.6-14B-A3B FableVibes auf einer 16-GB-Karte — es kann
 > **immer nur eines gleichzeitig geladen sein**. Alle Subagenten-Dispatches laufen serialisiert
 > (1 gleichzeitig). Vor dem ersten `delegate()`-Aufruf: `lms ps` prüfen, ob die passende Datei
 > bereits läuft; falls nicht, mit dem entsprechenden `lms load <file> --identifier <id> -y` nachladen

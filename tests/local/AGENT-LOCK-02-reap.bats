@@ -4,6 +4,7 @@
 setup() {
   AGENT_LOCK_DIR="$(mktemp -d)"; export AGENT_LOCK_DIR
   export AGENT_LOCK_TTL=1800
+  export AGENT_LOCK_GRACE=0
   REPO_ROOT="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
   LOCK="$REPO_ROOT/scripts/agent-lock.sh"
 }
@@ -21,7 +22,7 @@ teardown() { rm -rf "$AGENT_LOCK_DIR"; }
   WT="$(mktemp -d)"
   AGENT_LOCK_SID=100 AGENT_LOCK_FAKE_ALIVE="100" bash "$LOCK" claim branch b1 --worktree "$WT"
   rmdir "$WT"
-  AGENT_LOCK_SID=100 AGENT_LOCK_FAKE_ALIVE="100" run bash "$LOCK" reap
+  AGENT_LOCK_SID=100 AGENT_LOCK_FAKE_ALIVE="999" run bash "$LOCK" reap
   [ ! -f "$AGENT_LOCK_DIR/branch__b1.json" ]
 }
 

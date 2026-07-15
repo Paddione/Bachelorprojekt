@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.186.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.185.1...website-v1.186.0) (2026-07-15)
+
+
+### Features
+
+* **brain:** consolidate docs/diagram generation + health-goals into brain SSOT [T001884] ([#2870](https://github.com/Paddione/Bachelorprojekt/issues/2870)) ([7b37ebe](https://github.com/Paddione/Bachelorprojekt/commit/7b37ebe71fadf8a36c9168fd02a4cd8523692d5a))
+
 ## [1.185.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.185.0...website-v1.185.1) (2026-07-15)
 
 

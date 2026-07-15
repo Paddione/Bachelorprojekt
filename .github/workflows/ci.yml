@@ -316,6 +316,42 @@ jobs:
       - name: Check client-JS bundle budget
         run: node scripts/check-bundle-size.mjs --check --fail --threshold=5
 
+  lighthouse:
+    name: Lighthouse Performance
+    if: github.event.action != 'edited'
+    needs: [vitest-website]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
+
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444  # v5
+        with:
+          node-version: '22'
+
+      - name: Install Lighthouse CI
+        run: npm install -g @lhci/cli
+
+      - name: Run Lighthouse audit
+        continue-on-error: true
+        run: |
+          lhci autorun \
+            --collect.url=https://mentolder.de \
+            --collect.settings.chromeFlags='--headless --no-sandbox' \
+            --assert.preset=lighthouse:recommended \
+            --assert.assertions.performance=error \
+            --budget-path=lighthouse-budget.json \
+            --upload.target=temporary-public-storage \
+            || true
+
+      - name: Lighthouse summary
+        if: always()
+        run: |
+          echo "### Lighthouse Performance Audit" >> "$GITHUB_STEP_SUMMARY"
+          echo "URL: https://mentolder.de" >> "$GITHUB_STEP_SUMMARY"
+          echo "Budget: lighthouse-budget.json (Performance ≥ 90)" >> "$GITHUB_STEP_SUMMARY"
+          echo "Status: advisory only (does not block CI)" >> "$GITHUB_STEP_SUMMARY"
+
   commit-lint:
     name: Conventional Commits
     runs-on: ubuntu-latest

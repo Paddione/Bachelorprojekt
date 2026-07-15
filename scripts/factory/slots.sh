@@ -24,7 +24,7 @@ case "$cmd" in
     ;;
   claim)
     ext_id="${1:?usage: claim <ext_id> <slot>}"; slot="${2:?usage: claim <ext_id> <slot>}"
-    out=$(printf '%s' "UPDATE tickets.tickets SET pipeline_slot = :'slot'::integer, status='in_progress' WHERE external_id = :'ext_id' AND pipeline_slot IS NULL AND status IN ('backlog','triage') RETURNING pipeline_slot;" | factory_psql -v ext_id="$ext_id" -v slot="$slot")
+    out=$(printf '%s' "UPDATE tickets.tickets SET pipeline_slot = :'slot'::integer, status='in_progress' WHERE external_id = :'ext_id' AND pipeline_slot IS NULL AND status IN ('backlog','triage','plan_staged') RETURNING pipeline_slot;" | factory_psql -v ext_id="$ext_id" -v slot="$slot")
     if [[ -z "$out" ]]; then echo "claim failed (already slotted or wrong status): $ext_id" >&2; exit 1; fi
     echo "$out"
     ;;

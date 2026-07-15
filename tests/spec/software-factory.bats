@@ -1957,6 +1957,37 @@ STUB
   run bash -n scripts/factory/slots.sh;           [ "$status" -eq 0 ]
 }
 
+# ── FA-SF-52: mishap auto-chore-plan factory plumbing [T001844] ──────────────#
+@test "FA-SF-52: queue.sh also selects plan_staged task tickets" {
+  run grep -Eq "type='task' AND status='plan_staged'" scripts/factory/queue.sh
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-52: slots.sh claim allows plan_staged status" {
+  run grep -Fq "status IN ('backlog','triage','plan_staged')" scripts/factory/slots.sh
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-52: dispatcher-bridge strips feature|fix|chore prefix from slug" {
+  run grep -Fq "s#^(feature|fix|chore)/#" scripts/factory/dispatcher-bridge.sh
+  [ "$status" -eq 0 ]
+  # old feature-only strip must be gone
+  run grep -Fq "sed 's/^feature\\///'" scripts/factory/dispatcher-bridge.sh
+  [ "$status" -ne 0 ]
+}
+
+@test "FA-SF-52: pipeline.js deploy guard admits chore branches" {
+  run grep -Fq '^(feature|fix|chore)/' scripts/factory/pipeline.js
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-52: pipeline.js PR title uses chore prefix for chore branches" {
+  run grep -Fq "WORK_BRANCH.startsWith('chore/') ? 'chore' : 'feat'" scripts/factory/pipeline.js
+  [ "$status" -eq 0 ]
+  run grep -Fq '${titlePrefix}(${slug})' scripts/factory/pipeline.js
+  [ "$status" -eq 0 ]
+}
+
 # ── FA-SF-46-cleanup ────────────────────────────────────────────#
 # FA-SF-46: cleanup.sh removes factory branch + worktree after pipeline completion.
 # All operations are best-effort (always exit 0). The script is idempotent — calling

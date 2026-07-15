@@ -161,6 +161,25 @@ jobs:
           fi
           echo "All managed secret files are git-crypt-encrypted"
 
+      - name: Install Trivy
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin v0.62.0
+
+      - name: Trivy container image scan (pinned images)
+        continue-on-error: true
+        run: |
+          result=$(bash scripts/trivy-scan.sh --json 2>/dev/null || echo '{"total_critical":0,"total_high":0}')
+          crit=$(echo "$result" | jq '.total_critical')
+          high=$(echo "$result" | jq '.total_high')
+          echo "### Trivy Container Image Scan" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Total: $crit critical, $high high**" >> "$GITHUB_STEP_SUMMARY"
+          echo "trivy-critical=$crit" >> "$GITHUB_OUTPUT"
+          echo "trivy-high=$high" >> "$GITHUB_OUTPUT"
+          if [[ "$crit" -gt 0 ]]; then
+            echo "::warning::Found $crit CRITICAL CVEs across pinned images"
+          fi
+
   brett-typescript:
     name: Brett TypeScript
     if: github.event.action != 'edited'

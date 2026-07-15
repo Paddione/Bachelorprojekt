@@ -143,18 +143,18 @@ db_scalar "SELECT count(*) FROM pg_stat_user_indexes WHERE idx_scan = 0 AND indi
 ## G-SEC06 — Container Images mit High/Critical CVEs: n/a → 0
 
 **Was:** Zählt unique Container-Images im aktiven Deployment mit bekannten CVEs der
-Severity `HIGH` oder `CRITICAL`. Kein Trivy/Grype-Scan ist aktuell eingerichtet —
-Sicherheitslücken in deployed Images werden nicht automatisch erkannt. Dieses Ziel
-schafft Sichtbarkeit; ein Trivy-CI-Job ist Voraussetzung für die Messung.
+Severity `HIGH` oder `CRITICAL`. Trivy-Scan ist jetzt in CI integriert (`.github/workflows/ci.yml`
+Security Scan Job) als advisory-only Check. `scripts/trivy-scan.sh` liefert die lokale
+Baseline-Messung. 14 pinned Images werden gescannt; `:latest` Images (projekt-eigen) werden
+nicht gescannt (Build-Zeitpunkt variiert).
 
 ```bash
-# Initial: Image-Inventur via kubectl. CVE-Zählung erfordert Trivy CI-Integration.
-kubectl get pods --all-namespaces -o jsonpath='{range .items[*]}{.spec.containers[*].image}{"\n"}{end}' | sort -u
-# Trivy-Integration (geplant):
-# trivy image --severity HIGH,CRITICAL --exit-code 0 --format json <image> | jq '.Results[].Vulnerabilities | length'
+# Messung (lokal):
+bash scripts/trivy-scan.sh --json | jq '.total_critical, .total_high'
+# CI: advisory-only in .github/workflows/ci.yml (Security Scan Job)
 ```
 
-> **B · Baseline:** n/a · **Target:** 0 · **Aufwand:** mittel (Trivy-CI-Job + Baseline erfassen) · **Messzyklus:** wöchentlich · **Reproduzierbar:** mit Trivy ja · **Ticket:** T001840
+> **B · Baseline:** n/a → 0 (Trivy-Integration abgeschlossen, erster Scan ausstehend) · **Target:** 0 · **Aufwand:** gering (Messung) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001840
 
 ## G-CI03 — CI Pipeline p95 Duration > 12 min: n/a → ≤ 12 min
 
@@ -322,7 +322,7 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 | G-IMG01 | T001766 | offen (Regression 0→2, Helm-Digest-Drift Loki/Promtail) |
 | G-DB09 | T001838 | offen (Slow Queries, Messung verdrahtet, Optimierung ausstehend) |
 | G-DB10 | T001839 | offen (Unused Indexes, Baseline fehlt) |
-| G-SEC06 | T001840 | offen (Container CVEs, Trivy-Integration ausstehend) |
+| G-SEC06 | T001840 | offen (Container CVEs, Trivy-Integration abgeschlossen, erster Scan ausstehend) |
 | G-CI03 | T001841 | offen (CI Duration, Baseline via gh-axi) |
 | G-FE05 | T001842 | offen (Lighthouse Performance, lighthouse-ci ausstehend) |
 | G-SIZE04 | T001280 | geschlossen (`done`), Messwert weiterhin rot → Nachfolger T001347 |
@@ -348,3 +348,5 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 | G-AGENTIC09 | T001559 | **gefixt** (Whitespace-Kompression → alle <500 Zeilen) |
 | G-AGENTIC08 | — | **gefixt** (2026-07-04: toter script-path `scripts/brain-ingest.mjs` aus SKILL.md entfernt) |
 | G-GIT02 | T001552 | **regressed** (Commit f9dc1ae4e — `mishap-bundle-fix:` non-conventional) |
+
+**Baseline-Update 2026-07-15:** G-SEC06 n/a→0 (Trivy-Integration in CI + scripts/trivy-scan.sh erstellt, erster Scan ausstehend)

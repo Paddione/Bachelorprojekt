@@ -113,3 +113,24 @@ MD
   [ "$(jq -r '.[0].baseline' "$WORK/out.json")" = "null" ]
   [ "$(jq -r '.[0].current' "$WORK/out.json")" = "0" ]
 }
+
+@test "gen-goals-data.mjs keeps a markdown-escaped pipe inside a Prio-C measurement cell intact" {
+  REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
+  setup_gen
+  cat > "$WORK/goals.md" <<'MD'
+# Repository Health Goals
+
+**Baseline-Stichtag:** `2026-07-01`
+
+# Priorität C — Green Gates {#prio-c}
+
+| ID | Ziel | Aktuell | Target | Basis-Messung |
+|----|------|---------|--------|---------------|
+| **G-TABLE02** | Beispiel-Gate mit Pipe | 0 ✓ | 0 | `git log --oneline \| wc -l` |
+MD
+  GOALS_MD_PATH="$WORK/goals.md" GOALS_JSON_OUT="$WORK/out.json" run node "$GEN"
+  [ "$status" -eq 0 ] || { echo "FAIL: $output"; return 1; }
+  [ "$(jq -r '.[0].id' "$WORK/out.json")" = "G-TABLE02" ]
+  measurement="$(jq -r '.[0].measurement' "$WORK/out.json")"
+  [[ "$measurement" == "git log --oneline | wc -l" ]] || { echo "FAIL: measurement truncated/mangled: '$measurement'"; return 1; }
+}

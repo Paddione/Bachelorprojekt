@@ -190,7 +190,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "grep -r '@ts-ignore\\",
+    "measurement": "grep -r '@ts-ignore|@ts-expect-error' website/src --include='*.ts' | grep -v goals-data.ts | wc -l",
     "source": ".claude/lib/goals.md · G-RH02",
     "measured_at": "2026-07-01"
   },
@@ -205,7 +205,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "git for-each-ref ... refs/remotes/origin \\",
+    "measurement": "git for-each-ref ... refs/remotes/origin | while IFS='",
     "source": ".claude/lib/goals.md · G-RH04",
     "measured_at": "2026-07-01"
   },
@@ -265,7 +265,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "grep -rniE \"skip [\\\"']\" tests --include=*.bats \\",
+    "measurement": "grep -rniE \"skip [\\\"']\" tests --include=*.bats | grep -ciE \"pending|todo|WP-|disabled\"",
     "source": ".claude/lib/goals.md · G-TEST01",
     "measured_at": "2026-07-01"
   },
@@ -280,7 +280,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "grep -rnE '\\.only\\b' website/src --include='*.test.ts' \\",
+    "measurement": "grep -rnE '\\.only\\b' website/src --include='*.test.ts' | wc -l",
     "source": ".claude/lib/goals.md · G-TEST02",
     "measured_at": "2026-07-01"
   },
@@ -295,7 +295,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "grep -rnE \"(describe\\",
+    "measurement": "grep -rnE \"(describe|it|test)\\.(skip|todo)\\b\" website/src --include=\"*.ts\" | wc -l",
     "source": ".claude/lib/goals.md · G-TEST03",
     "measured_at": "2026-07-01"
   },
@@ -310,7 +310,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "git status --porcelain website/src/data/test-inventory.json \\",
+    "measurement": "git status --porcelain website/src/data/test-inventory.json | wc -l",
     "source": ".claude/lib/goals.md · G-TEST04",
     "measured_at": "2026-07-01"
   },
@@ -325,7 +325,7 @@
     "target": 280,
     "unit": "",
     "status": "unknown",
-    "measurement": "grep -rn ': any\\",
+    "measurement": "grep -rn ': any|<any>|as any' website/src --include=*.ts --include=*.svelte --include=*.astro | wc -l",
     "source": ".claude/lib/goals.md · G-CQ02",
     "measured_at": "2026-07-01"
   },
@@ -340,7 +340,7 @@
     "target": 4,
     "unit": "",
     "status": "unknown",
-    "measurement": "grep -rnE '\\b(FIXME\\",
+    "measurement": "grep -rnE '\\b(FIXME|HACK|XXX)\\b' ... | wc -l",
     "source": ".claude/lib/goals.md · G-CQ04",
     "measured_at": "2026-07-01"
   },
@@ -355,7 +355,7 @@
     "target": 1,
     "unit": "",
     "status": "unknown",
-    "measurement": "grep -rnE \"\\bTODO\\b\" --include=*.ts ... website/src scripts tests k3d brett/src \\",
+    "measurement": "grep -rnE \"\\bTODO\\b\" --include=*.ts ... website/src scripts tests k3d brett/src | wc -l",
     "source": ".claude/lib/goals.md · G-CQ05",
     "measured_at": "2026-07-01"
   },
@@ -370,7 +370,7 @@
     "target": 1,
     "unit": "",
     "status": "unknown",
-    "measurement": "grep -rnE '@deprecated' website/src \\",
+    "measurement": "grep -rnE '@deprecated' website/src | wc -l",
     "source": ".claude/lib/goals.md · G-CQ06",
     "measured_at": "2026-07-01"
   },
@@ -460,7 +460,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "cd website && pnpm audit --json 2>/dev/null \\",
+    "measurement": "cd website && pnpm audit --json 2>/dev/null | python3 -c \"...\"",
     "source": ".claude/lib/goals.md · G-DEP01",
     "measured_at": "2026-07-01"
   },
@@ -475,7 +475,7 @@
     "target": 1,
     "unit": "",
     "status": "unknown",
-    "measurement": "grep -q \"npm ci\" website/Dockerfile && echo inkonsistent \\",
+    "measurement": "grep -q \"npm ci\" website/Dockerfile && echo inkonsistent || echo ok",
     "source": ".claude/lib/goals.md · G-DEP03",
     "measured_at": "2026-07-01"
   },
@@ -505,7 +505,7 @@
     "target": 3,
     "unit": "",
     "status": "unknown",
-    "measurement": "gh pr list --state open --json author,labels \\",
+    "measurement": "gh pr list --state open --json author,labels | python3 -c \"..renovate..\"",
     "source": ".claude/lib/goals.md · G-DEP05",
     "measured_at": "2026-07-01"
   },
@@ -535,7 +535,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "grep -rhE 'image:' k3d/ prod*/ \\",
+    "measurement": "grep -rhE 'image:' k3d/ prod*/ | ... sort -u | awk -F'\\t' '{c[$1]++} END{...}'",
     "source": ".claude/lib/goals.md · G-IMG02",
     "measured_at": "2026-07-01"
   },
@@ -625,7 +625,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "grep -rn 'password.*=.*[^$]' k3d/*.yaml \\",
+    "measurement": "grep -rn 'password.*=.*[^$]' k3d/*.yaml | grep -iv secretKeyRef | wc -l",
     "source": ".claude/lib/goals.md · G-SEC01",
     "measured_at": "2026-07-01"
   },
@@ -655,7 +655,7 @@
     "target": 90,
     "unit": "",
     "status": "unknown",
-    "measurement": "git log -1 --format='%at' -- environments/sealed-secrets/*.yaml \\",
+    "measurement": "git log -1 --format='%at' -- environments/sealed-secrets/*.yaml | ...",
     "source": ".claude/lib/goals.md · G-SEC03",
     "measured_at": "2026-07-01"
   },
@@ -685,7 +685,7 @@
     "target": 5,
     "unit": "",
     "status": "unknown",
-    "measurement": "git log -50 --pretty='%G? %ae' main \\",
+    "measurement": "git log -50 --pretty='%G? %ae' main | grep -v freshness-bot | grep -ciE 'github-actions\\[bot\\]",
     "source": ".claude/lib/goals.md · G-SEC05",
     "measured_at": "2026-07-01"
   },
@@ -730,7 +730,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "for d in openspec/changes/*/; do [ -f \"$d/.ticket\" ] \\",
+    "measurement": "for d in openspec/changes/*/; do [ -f \"$d/.ticket\" ] || m=$((m+1)); done",
     "source": ".claude/lib/goals.md · G-SPEC03",
     "measured_at": "2026-07-01"
   },
@@ -805,7 +805,7 @@
     "target": 5,
     "unit": "",
     "status": "unknown",
-    "measurement": "find docs -ipath '*adr*' -name '*.md' \\",
+    "measurement": "find docs -ipath '*adr*' -name '*.md' | wc -l",
     "source": ".claude/lib/goals.md · G-DOC04",
     "measured_at": "2026-07-01"
   },
@@ -820,7 +820,7 @@
     "target": 24,
     "unit": "n/a",
     "status": "unknown",
-    "measurement": "git log --since=\"8 weeks ago\" --first-parent --format='%ct %s' main \\",
+    "measurement": "git log --since=\"8 weeks ago\" --first-parent --format='%ct %s' main | grep -ciE 'revert|hotfix'",
     "source": ".claude/lib/goals.md · G-DORA04",
     "measured_at": "2026-07-01"
   },
@@ -835,7 +835,7 @@
     "target": 30,
     "unit": "",
     "status": "unknown",
-    "measurement": "find .claude/skills docs/agent-guide -name SKILL.md -o -name README.md \\",
+    "measurement": "find .claude/skills docs/agent-guide -name SKILL.md -o -name README.md | wc -l",
     "source": ".claude/lib/goals.md · G-DOC06",
     "measured_at": "2026-07-01"
   },
@@ -850,7 +850,7 @@
     "target": 95,
     "unit": "",
     "status": "unknown",
-    "measurement": "gh-axi run list --workflow ci.yml --branch main --limit 20 \\",
+    "measurement": "gh-axi run list --workflow ci.yml --branch main --limit 20 | grep -oE 'completed,(success|failure|cancelled)' | sort | uniq -c` (19/20, 1 cancelled)",
     "source": ".claude/lib/goals.md · G-CI01",
     "measured_at": "2026-07-01"
   },
@@ -865,7 +865,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "gh-axi run list --workflow ci.yml --branch main --limit 5 \\",
+    "measurement": "gh-axi run list --workflow ci.yml --branch main --limit 5 | grep -c failure",
     "source": ".claude/lib/goals.md · G-CI02",
     "measured_at": "2026-07-01"
   },
@@ -880,7 +880,7 @@
     "target": 60,
     "unit": "",
     "status": "unknown",
-    "measurement": "SPECS=$(ls openspec/specs/*.md \\",
+    "measurement": "SPECS=$(ls openspec/specs/*.md | wc -l); BATS=$(ls tests/spec/*.bats | wc -l); echo \"$BATS/$SPECS\"",
     "source": ".claude/lib/goals.md · G-RH03",
     "measured_at": "2026-07-01"
   },
@@ -895,7 +895,7 @@
     "target": 95,
     "unit": "",
     "status": "unknown",
-    "measurement": "gh-axi run list --workflow post-merge.yml --branch main --limit 15 \\",
+    "measurement": "gh-axi run list --workflow post-merge.yml --branch main --limit 15 | ...",
     "source": ".claude/lib/goals.md · G-CD02",
     "measured_at": "2026-07-01"
   },
@@ -910,7 +910,7 @@
     "target": 5,
     "unit": "Elite",
     "status": "unknown",
-    "measurement": "git log --since=\"4 weeks ago\" --first-parent --oneline main \\",
+    "measurement": "git log --since=\"4 weeks ago\" --first-parent --oneline main | wc -l",
     "source": ".claude/lib/goals.md · G-DORA01",
     "measured_at": "2026-07-01"
   },
@@ -940,7 +940,7 @@
     "target": 15,
     "unit": "",
     "status": "unknown",
-    "measurement": "git log --since=\"8 weeks ago\" --first-parent --oneline main \\",
+    "measurement": "git log --since=\"8 weeks ago\" --first-parent --oneline main | ...fix()/revert-Rate",
     "source": ".claude/lib/goals.md · G-DORA03",
     "measured_at": "2026-07-01"
   },
@@ -955,7 +955,7 @@
     "target": 24,
     "unit": "n/a",
     "status": "unknown",
-    "measurement": "git log --since=\"8 weeks ago\" --first-parent --format='%ct %s' main \\",
+    "measurement": "git log --since=\"8 weeks ago\" --first-parent --format='%ct %s' main | grep -iE 'revert|hotfix'",
     "source": ".claude/lib/goals.md · G-DORA04",
     "measured_at": "2026-07-01"
   },
@@ -970,7 +970,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "grep -rEn 'console\\.(error\\",
+    "measurement": "grep -rEn 'console\\.(error|warn)' website/src --include='*.ts' --include='*.svelte' --include='*.astro' | grep -v 'browser-logger.ts' | grep -v 'logger.ts' | grep -v 'error-log-store.ts' | grep -v '\\.test\\.ts' | wc -l",
     "source": ".claude/lib/goals.md · G-FE03",
     "measured_at": "2026-07-01"
   },
@@ -985,7 +985,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "grep -rEn 'console\\.(log\\",
+    "measurement": "grep -rEn 'console\\.(log|debug|info)' website/src --include='*.ts' --include='*.svelte' --include='*.astro' | grep -v 'browser-logger.ts' | grep -v '\\.test\\.ts' | wc -l",
     "source": ".claude/lib/goals.md · G-FE04",
     "measured_at": "2026-07-01"
   },
@@ -1000,7 +1000,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "git log --format=%s --no-merges -30 origin/main \\",
+    "measurement": "git log --format=%s --no-merges -30 origin/main | grep -vcE '^(feat|fix|chore|...)'",
     "source": ".claude/lib/goals.md · G-GIT02",
     "measured_at": "2026-07-01"
   },
@@ -1015,7 +1015,7 @@
     "target": 6,
     "unit": "",
     "status": "unknown",
-    "measurement": "git ls-files -z \\",
+    "measurement": "git ls-files -z | xargs -0 -I{} sh -c 'test -f \"{}\" && wc -c \"{}\"' | awk '$1>1048576{c++} END{print c+0}'` (`.codebase-memory/` seit T001717 nicht mehr getrackt)",
     "source": ".claude/lib/goals.md · G-GIT03",
     "measured_at": "2026-07-01"
   },
@@ -1060,7 +1060,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "awk '/test:changed/...' Taskfile.yml \\",
+    "measurement": "awk '/test:changed/...' Taskfile.yml | grep -c .claude/agents + AGENTS + agent-library",
     "source": ".claude/lib/goals.md · G-AGENTIC04",
     "measured_at": "2026-07-01"
   },
@@ -1090,7 +1090,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "claimed - real (Betrag)` via grep claim + `git ls-files -- .claude/skills \\",
+    "measurement": "claimed - real (Betrag)` via grep claim + `git ls-files -- .claude/skills | grep -c '/SKILL\\.md$'` (nur getrackte — market-cli-Installationen zählen nicht, T001783)",
     "source": ".claude/lib/goals.md · G-AGENTIC06",
     "measured_at": "2026-07-01"
   },
@@ -1120,7 +1120,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "grep -rhoP '(?<![A-Za-z0-9_./-])scripts/...\\.(sh\\",
+    "measurement": "grep -rhoP '(?<![A-Za-z0-9_./-])scripts/...\\.(sh|mjs|py)' .claude/skills | sort -u | test -f",
     "source": ".claude/lib/goals.md · G-AGENTIC08",
     "measured_at": "2026-07-01"
   },
@@ -1135,7 +1135,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "comm -3 <(grep opencode-Liste \\",
+    "measurement": "comm -3 <(grep opencode-Liste | extract backtick-names) <(mcp_servers opencode.jsonc)",
     "source": ".claude/lib/goals.md · G-AGENTIC11",
     "measured_at": "2026-07-01"
   },
@@ -1165,7 +1165,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "grep -rhoE 'mcp__...__\\",
+    "measurement": "grep -rhoE 'mcp__...__|mcp-..._browser_' .claude/skills | gegen registrierte Server",
     "source": ".claude/lib/goals.md · G-AGENTIC13",
     "measured_at": "2026-07-01"
   },

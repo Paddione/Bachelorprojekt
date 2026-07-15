@@ -108,6 +108,13 @@ function parseTableCell(text) {
   return { value: null, unitHint: cleaned };
 }
 
+// Markdown table cells can contain a backslash-escaped pipe (`\|`) to embed a
+// literal `|` without terminating the cell (e.g. shell pipelines in the
+// measurement column). Undo that escaping once the cell has been extracted.
+function unescapePipes(text) {
+  return text.replace(/\\\|/g, '|');
+}
+
 function main() {
   const content = readFileSync(GOALS_MD_PATH, 'utf8');
   const errors = [];
@@ -198,18 +205,25 @@ function main() {
   if (prioCStart !== -1) {
     const nextH1 = content.indexOf('# Mess-Werkzeug', prioCStart);
     const prioCRegion = content.slice(prioCStart, nextH1 !== -1 ? nextH1 : content.length);
-    const tableRowRe = /^\|\s*\*\*([^*]+)\*\*\s*\|([^|]*)\|([^|]*)\|([^|]*)\|([^|]*)\|/gm;
+    // Cells are captured escape-aware ((?:[^|\\]|\\.)*) so a markdown-escaped
+    // pipe (`\|`, used to embed a literal `|` inside e.g. a shell pipeline in
+    // the measurement column) doesn't prematurely terminate the cell.
+    const cell = String.raw`((?:[^|\\]|\\.)*)`;
+    const tableRowRe = new RegExp(
+      String.raw`^\|\s*\*\*([^*]+)\*\*\s*\|${cell}\|${cell}\|${cell}\|${cell}\|`,
+      'gm'
+    );
     for (const m of prioCRegion.matchAll(tableRowRe)) {
       const rawId = m[1].trim();
       if (!/^G-[A-Z0-9-]+$/.test(rawId)) {
         errors.push(`Prio-C-Tabellenzeile: ID-Spalte '${rawId}' entspricht nicht G-[A-Z0-9-]+`);
         continue;
       }
-      const title = m[2].trim();
-      const currentCell = parseTableCell(m[3]);
-      const targetCellRaw = m[4];
+      const title = unescapePipes(m[2]).trim();
+      const currentCell = parseTableCell(unescapePipes(m[3]));
+      const targetCellRaw = unescapePipes(m[4]);
       const targetCell = parseTableCell(targetCellRaw);
-      const measurement = m[5].trim().replace(/^`|`$/g, '');
+      const measurement = unescapePipes(m[5]).trim().replace(/^`|`$/g, '');
 
       goals.push({
         id: rawId,

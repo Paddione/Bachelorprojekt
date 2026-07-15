@@ -15,9 +15,6 @@
 // offline in the website `node` vitest project (no server / DB needed), so the
 // guard is part of `task test:all` / CI rather than only catching the leak in
 // production after the fact.
-//
-// RED today: tests/e2e/specs/fa-admin-tickets.spec.ts POSTs to /api/bug-report
-// with no marker. GREEN once that seed goes through the shared marker helper.
 
 import { describe, it, expect } from 'vitest';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
@@ -44,9 +41,17 @@ function collectSpecFiles(dir: string): string[] {
 
 /**
  * A spec that creates a bug report must carry the E2E marker — either inline
- * (`X-E2E-Test`) or via the shared helper (`createTestBugReport`). Detection is
- * intentionally conservative: it only flags files that POST to /api/bug-report.
+ * (`X-E2E-Test`) or via the shared helper (`createTestBugReport`).
+ *
+ * Detection matches an actual `.post(...)` call site whose URL argument
+ * contains `/api/bug-report` via regex, rather than two independent substring
+ * checks — the old approach flagged any file that merely *mentioned*
+ * '/api/bug-report' (e.g. in a comment) alongside an unrelated `.post(` call
+ * elsewhere in the same file. The URL argument may be a template literal with
+ * a variable prefix (`` `${BASE}/api/bug-report` ``), so the match spans from
+ * the opening quote to the path rather than requiring it immediately after.
  */
+const BUG_REPORT_POST_RE = /\.post\(\s*[`'"][^`'"]*\/api\/bug-report/;
 const MARKER_TOKENS = ['X-E2E-Test', 'createTestBugReport', 'bugReportMarkerHeaders', 'markerHeaders', 'markerAvailable'];
 
 describe('E2E marker hygiene (T000862/T000863)', () => {
@@ -60,7 +65,7 @@ describe('E2E marker hygiene (T000862/T000863)', () => {
     const violators: string[] = [];
     for (const file of specs) {
       const src = readFileSync(file, 'utf8');
-      const createsBugReport = src.includes('/api/bug-report') && src.includes('.post(');
+      const createsBugReport = BUG_REPORT_POST_RE.test(src);
       if (!createsBugReport) continue;
       const hasMarker = MARKER_TOKENS.some((t) => src.includes(t));
       if (!hasMarker) {

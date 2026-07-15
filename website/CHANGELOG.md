@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.184.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.183.2...website-v1.184.0) (2026-07-15)
+
+
+### Features
+
+* **website:** implement pipeline-interface-consolidation [T001858] ([#2845](https://github.com/Paddione/Bachelorprojekt/issues/2845)) ([6489839](https://github.com/Paddione/Bachelorprojekt/commit/6489839b5a1d29d6dec779e7ec84f00d8ace5f09))
+
 ## [1.183.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.183.1...website-v1.183.2) (2026-07-15)
 
 

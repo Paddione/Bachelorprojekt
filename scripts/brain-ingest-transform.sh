@@ -13,7 +13,7 @@
 #
 # Env:
 #   LM_STUDIO_URL    — LM Studio API URL (default: http://localhost:1234)
-#   LM_MODEL         — Model to use (default: qwen3-14b)
+#   LM_MODEL         — Model to use (default: qwen3.6-14b-a3b-fablevibes)
 #   MAX_SOURCE_CHARS — Max source chars to send to LLM (default: 4000)
 #
 # Output: Transformed markdown with frontmatter to stdout
@@ -27,7 +27,7 @@ SLUGS_JSON="${4:?slugs json required}"
 TAG_DEFAULTS="${5:?tag defaults json required}"
 
 LM_URL="${LM_STUDIO_URL:-http://localhost:1234}"
-LM_MODEL="${LM_MODEL:-qwen3-14b}"
+LM_MODEL="${LM_MODEL:-qwen3.6-14b-a3b-fablevibes}"
 MAX_SOURCE_CHARS="${MAX_SOURCE_CHARS:-4000}"
 
 # Validate source file exists
@@ -46,9 +46,7 @@ fi
 SRC_PATH="$(echo "$SOURCE" | sed -E 's|.*/Bachelorprojekt/||')"
 
 # Compact prompt — less tokens = faster generation
-# /no_think disables Qwen3 reasoning mode to avoid token waste
-PROMPT="/no_think
-Transformiere diese Quelldatei in eine brain-Wiki-Seite.
+PROMPT="Transformiere diese Quelldatei in eine brain-Wiki-Seite.
 
 Regeln:
 - Frontmatter: type: ${TYPE}, tags: [...], status: active

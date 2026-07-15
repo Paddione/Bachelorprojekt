@@ -7,7 +7,7 @@
 #
 # Env:
 #   LM_STUDIO_URL    — LM Studio API URL (default: http://localhost:1234)
-#   LM_MODEL         — Model to use (default: qwen3-14b)
+#   LM_MODEL         — Model to use (default: qwen3.6-14b-a3b-fablevibes)
 #   BRAIN_INGEST_STATE — State file path (default: ~/.brain-ingest-state.json)
 set -euo pipefail
 
@@ -24,7 +24,7 @@ PILOT=0
 STATE_FILE="${BRAIN_INGEST_STATE:-$HOME/.brain-ingest-state.json}"
 BRANCH="feature/brain-initial-ingest"
 LM_URL="${LM_STUDIO_URL:-http://localhost:1234}"
-LM_MODEL="${LM_MODEL:-qwen3-14b}"
+LM_MODEL="${LM_MODEL:-qwen3.6-14b-a3b-fablevibes}"
 
 # --- Parse args ---
 while [[ $# -gt 0 ]]; do

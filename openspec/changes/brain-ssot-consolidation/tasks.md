@@ -641,6 +641,8 @@ against the real `.claude/lib/goals.md` succeeds and writes a non-empty
 
 ## Task 7: `goals-data.ts` consumes the generated JSON (E4b)
 
+**Status: ✅ DONE** (304→61 lines, 15/15 vitest green)
+
 **Files:** `website/src/lib/goals-data.ts`, `website/src/lib/goals-data.test.ts`
 
 **Problem:** `RAW_GOALS` (lines ~52-297, ~245 lines) is a hand-maintained constant that has already

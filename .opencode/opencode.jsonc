@@ -1,8 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-<<<<<<< Updated upstream
   "model": "lmstudio/qwythos-9b-v2",
->>>>>>> Stashed changes
   "permission": {
     "read": "allow",
     "edit": "allow",
@@ -150,7 +148,7 @@
       "environment": {
         "GITHUB_TOKEN": "{env:GITHUB_TOKEN}"
       },
-      "enabled": true
+      "enabled": false
     },
     // ── Projekt-Override: global aktivierte, projektfremde MCPs abschalten ─
     // Reduziert opencodes initialen Session-Context (Tool-Schemas werden

@@ -2,11 +2,13 @@
 
 Loaded via `.opencode/opencode.jsonc` (and its alias `.agents/settings.json`, which is a symlink to it) → `"instructions": ["AGENTS.md"]`. Comprehensive reference: `CLAUDE.md`.
 
-> **Subagent file layout:** `.claude/agents/bachelorprojekt-*.md` is the canonical source. `.agents/agents` is a directory symlink to `../.claude/agents` — both Claude Code and opencode read the same content via the symlink. Edit files at `.claude/agents/<name>.md` (or its `.agents/agents/<name>.md` alias).
+> **Subagent file layout:** `.claude/agents/bachelorprojekt-*.md` is the canonical source. `.agents/agents` is a directory symlink to `../.claude/agents` — **Claude Code only** reads these via its native `task` tool dispatch. **opencode does NOT read `.agents/agents/`** — it uses its own agent definitions in `.opencode/agent-models.jsonc` (local LLM subagents: `qwen35-iq4`, `qwen35`, `qwen35-hq`, `qwen3-14b`). Edit domain agents at `.claude/agents/<name>.md` (or its `.agents/agents/<name>.md` alias).
 
 ## Agent Routing
 
-Delegates to sub-agents when signals match. Tie-break: prefer domain of files being changed. The signal lists below are the authoritative routing table; they match each agent's `description:` frontmatter in `.agents/agents/<name>.md`.
+### Claude Code (domain agents)
+
+Delegates to domain sub-agents via the native `task` tool when signals match. Tie-break: prefer domain of files being changed. The signal lists below are the authoritative routing table; they match each agent's `description:` frontmatter in `.agents/agents/<name>.md`.
 
 | Signals | Agent |
 |---------|-------|
@@ -18,6 +20,21 @@ Delegates to sub-agents when signals match. Tie-break: prefer domain of files be
 | SealedSecret, Keycloak realm, OIDC, DSGVO, credentials, rotate, certificate, secret | `bachelorprojekt-security` |
 
 Before dispatching: `bash scripts/plan-context.sh <role> --with-openspec` → prepend output as `<active-plans>`. Cross-cutting requests stay with orchestrator. The `--with-openspec` flag auto-loads the SSOT spec(s) for any files changed vs `main` — omit only when explicitly told to skip OpenSpec context.
+
+### opencode (local LLM subagents)
+
+opencode uses the `background-agents.ts` plugin which reads agents from `agent-models.jsonc`, not from `.agents/agents/`. Available subagent types:
+
+| Agent | Model | Permissions | Use case |
+|-------|-------|-------------|----------|
+| `qwen35-iq4` | Qwythos-9B-v2 (empero-ai, MTP Q4_K_M, 331k ctx) | read-only | **Preferred first choice** for delegation |
+| `qwen35` | Qwythos-9B-v2 (empero-ai, MTP Q4_K_M, 331k ctx) | read-only | General subagent, 1 at a time |
+| `qwen35-hq` | Qwythos-9B-v2 (empero-ai, MTP Q4_K_M, 331k ctx) | read-only | When max per-call context matters |
+| `qwen3-14b` | Qwen3-14B (Q4_K_M, 32k ctx) | read-only | Single-session planning |
+| `explore` | built-in | read-only | Fast codebase exploration |
+| `general` | built-in | read-only | General research tasks |
+
+Read-only agents use `delegate(prompt, agent)`. Write-capable work stays in the main session (no write-capable subagents defined).
 
 ## Core Commands
 

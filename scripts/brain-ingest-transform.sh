@@ -88,6 +88,9 @@ if [ -z "$OUTPUT" ]; then
   exit 1
 fi
 
+# Strip markdown code fences if present (LLM sometimes wraps output)
+OUTPUT="$(echo "$OUTPUT" | sed '/^```markdown$/d; /^```$/d')"
+
 # Validate output has frontmatter
 if ! echo "$OUTPUT" | head -5 | grep -q '^---'; then
   echo "error: output missing frontmatter delimiter" >&2

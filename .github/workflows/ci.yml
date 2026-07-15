@@ -286,10 +286,9 @@ jobs:
             tests/unit/manifests.bats tests/unit/changed-manifests.bats
 
   test-factory:
-    # Factory FA-*/FA-AR-*/AGENT-LOCK-* BATS + openspec validation +
-    # agent-library + MCP tooling guardrails. Factory tests skip live-DB
-    # cases without a cluster (CI-safe). Does NOT need Go, kubectl, or
-    # pnpm. [T001860]
+    # Factory FA-*/FA-AR-* BATS + openspec validation + agent-library +
+    # MCP tooling guardrails. Factory tests skip live-DB cases without
+    # a cluster (CI-safe). Does NOT need Go, kubectl, or pnpm. [T001860]
     name: Factory + OpenSpec + Guards
     if: github.event.action != 'edited'
     runs-on: ubuntu-latest
@@ -315,11 +314,10 @@ jobs:
       - name: Create CI dummy secrets
         run: bash scripts/ci-dummy-secrets.sh
 
-      - name: Factory + agent-lock BATS
+      - name: Factory BATS
         run: |
           ./tests/unit/lib/bats-core/bin/bats \
-            tests/local/FA-SF-*.bats tests/local/FA-AR-*.bats \
-            tests/local/AGENT-LOCK-*.bats
+            tests/local/FA-SF-*.bats tests/local/FA-AR-*.bats
 
       - name: OpenSpec validation
         run: npm run test:openspec

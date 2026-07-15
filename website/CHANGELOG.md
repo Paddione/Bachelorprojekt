@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.183.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.183.0...website-v1.183.1) (2026-07-15)
+
+
+### Bug Fixes
+
+* **factory:** wire dispatcher-bridge.sh into wakeup.sh instead of forcing Workflow(dispatcher.js) [T001845] ([#2824](https://github.com/Paddione/Bachelorprojekt/issues/2824)) ([70a820c](https://github.com/Paddione/Bachelorprojekt/commit/70a820c72d6bfd7a5c3f2aa88dc93726b2538971))
+
 ## [1.183.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.182.0...website-v1.183.0) (2026-07-15)
 
 

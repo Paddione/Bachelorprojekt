@@ -1,0 +1,23 @@
+{
+  "ci": {
+    "collect": {
+      "url": [
+        "https://web.mentolder.de"
+      ],
+      "numberOfRuns": 3,
+      "settings": {
+        "chromeFlags": "--headless --no-sandbox"
+      }
+    },
+    "assert": {
+      "preset": "lighthouse:recommended",
+      "assertions": {
+        "categories:performance": ["error", {"minScore": 0.9}]
+      },
+      "budgetsFile": "./lighthouse-budget.json"
+    },
+    "upload": {
+      "target": "temporary-public-storage"
+    }
+  }
+}

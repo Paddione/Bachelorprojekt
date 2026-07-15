@@ -14,7 +14,7 @@ factory_resolve
 [[ -n "${FACTORY_DRY_RESOLVE:-}" ]] && { echo "resolved: ctx=${FACTORY_CTX} ns=${FACTORY_NS}"; exit 0; }
 STALE_MIN="${FACTORY_STALE_MIN:-30}"
 
-mapfile -t stale < <(printf "SELECT external_id FROM tickets.tickets WHERE type='feature' AND status='in_progress' AND updated_at < now() - make_interval(mins => %s);" "$STALE_MIN" | factory_psql)
+mapfile -t stale < <(printf "SELECT external_id FROM tickets.tickets WHERE type IN ('feature','task') AND status='in_progress' AND updated_at < now() - make_interval(mins => %s);" "$STALE_MIN" | factory_psql)
 
 escalated='[]'
 for ext_id in "${stale[@]}"; do
@@ -27,8 +27,8 @@ for ext_id in "${stale[@]}"; do
   # worktree whose branch matches this ticket (idempotent; never fails the loop).
   ext_lc="$(printf '%s' "$ext_id" | tr '[:upper:]' '[:lower:]')"
   stale_wt="$(git worktree list --porcelain 2>/dev/null \
-    | awk -v b="refs/heads/feature/sf-$ext_lc" '
-        /^worktree /{w=$2} $0=="branch "b{print w}')"
+    | awk -v p1="refs/heads/feature/sf-$ext_lc" -v p2="refs/heads/chore/sf-$ext_lc" '
+        /^worktree /{w=$2} $0=="branch "p1 || $0=="branch "p2{print w}')"
   if [[ -n "$stale_wt" ]]; then
     git worktree remove --force "$stale_wt" 2>/dev/null || rm -rf "$stale_wt" 2>/dev/null || true
     git worktree prune 2>/dev/null || true

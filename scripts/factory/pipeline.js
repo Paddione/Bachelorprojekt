@@ -133,6 +133,7 @@ if (!REUSE && A.ticket_id) {
 
 const WORK_BRANCH = REUSE ? REUSE_BRANCH : `feature/${slug}`
 const WORK_WT = REUSE ? `${REPO}/.worktrees/${slug}-reuse` : WT
+const titlePrefix = WORK_BRANCH.startsWith('chore/') ? 'chore' : 'feat'
 
 let specPath = null
 let tasks = []
@@ -668,8 +669,8 @@ const deploy = await agent(
    Deploy to both brands. Operate from MAIN repo ${REPO} (NOT ${WORK_WT}).
 
    HARD GUARDS — STOP on any failure:
-   a. Branch: WORK_BRANCH must match ^(feature|fix)/ .
-      printf '%s' "${WORK_BRANCH}" | grep -Eq '^(feature|fix)/' || { echo "BLOCK: WORK_BRANCH ${WORK_BRANCH} not feature/*|fix/*"; exit 1; }
+   a. Branch: WORK_BRANCH must match ^(feature|fix|chore)/ .
+      printf '%s' "${WORK_BRANCH}" | grep -Eq '^(feature|fix|chore)/' || { echo "BLOCK: WORK_BRANCH ${WORK_BRANCH} not feature/*|fix/*|chore/*"; exit 1; }
    b. Diff-size cap: source ${REPO}/scripts/factory/guards.sh
       GUARDS_REPO=${REPO} guard_check_diff_size ${process.env.FACTORY_MAX_DIFF ?? '800'} ${WORK_BRANCH}
    c. CWD: every command MUST run from ${REPO}, never ${WORK_WT} (T000342).
@@ -681,7 +682,7 @@ const deploy = await agent(
 
    Steps:
    1. git push -u origin ${WORK_BRANCH}
-   2. Open PR: gh pr create --title "feat(${slug}): ${A.title}" --base main
+   2. Open PR: gh pr create --title "${titlePrefix}(${slug}): ${A.title}" --base main
       PR=$(gh pr view --json number -q .number); bash ${REPO}/scripts/ticket.sh add-comment --id ${A.ticket_id} --body "Factory: PR #$PR opened (phase=Deploy)."
       bash ${REPO}/scripts/ticket.sh add-pr-link --id ${A.ticket_id} --pr "$PR"
    3. SELF-HEALING RETRY LOOP (≤2 fixes, NO raw SQL):

@@ -40,7 +40,7 @@ for row in $(echo "$prep" | jq -c '.launch[]' 2>/dev/null); do
   title="$(echo "$row" | jq -r '.title // ""')"
   branch="$(echo "$row" | jq -r '.branch // ""')"
   plan_path="$(echo "$row" | jq -r '.plan_path // ""')"
-  slug="$(echo "$row" | jq -r '.branch // ""' | sed 's/^feature\///')"
+  slug="$(echo "$row" | jq -r '.branch // ""' | sed -E 's#^(feature|fix|chore)/##')"
   [[ -z "$slug" ]] && slug="sf-$(echo "$ext_id" | tr '[:upper:]' '[:lower:]')"
   dry_run_val="$(echo "$row" | jq -r '.dry_run // false')"
   [[ "$DRY_RUN" == "true" ]] && dry_run_val=true

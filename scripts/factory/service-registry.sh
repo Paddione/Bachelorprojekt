@@ -91,6 +91,7 @@ declare -A SERVICE_REGISTRY=(
 INFRA_FILES=(
   "k3d/namespace.yaml"
   "k3d/network-policies.yaml"
+  "k3d/network-policies-dev.yaml"
   "k3d/configmap-domains.yaml"
   "k3d/secrets.yaml"
   "k3d/sealed-secrets-controller.yaml"

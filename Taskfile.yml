@@ -3505,8 +3505,13 @@ tasks:
         set -euo pipefail
         source scripts/env-resolve.sh "{{.ENV}}"
         IMAGE="ghcr.io/paddione/${WEBSITE_IMAGE:-workspace-website}"
+        # T001853: ENV=dev is current-context (same semantics as workspace:deploy
+        # and the brett:logs/workspace:dsgvo-check guard pattern) so a local k3d
+        # dev cluster deploys the manifest + imports the image locally, instead
+        # of dev deploying manifests remotely while the image import target
+        # stayed local ({{.CLUSTER_NAME}}) — a mismatch.
         CTX_ARG=""
-        [ -n "${ENV_CONTEXT:-}" ] && CTX_ARG="--context=${ENV_CONTEXT}"
+        [ "{{.ENV}}" != "dev" ] && CTX_ARG="--context=${ENV_CONTEXT}"
 
         # Run website DB migrations before build/rollout (T001652). Idempotent
         # and tracked — safe even though workspace:deploy also calls this.
@@ -3590,19 +3595,28 @@ tasks:
             | kubectl ${CTX_ARG} apply --server-side --force-conflicts -f -
         fi
 
-        # Override node affinity when the env specifies non-default nodes (e.g. korczewski
-        # uses pk-hetzner-4/6/8, not the mentolder defaults gekko-hetzner-2/3).
+        # Override node affinity when the env specifies non-default nodes. The k3d/
+        # base (T001853) no longer carries a nodeAffinity block at all — it must be
+        # environment-neutral so it schedules on any single-node dev cluster — so this
+        # patch adds the whole affinity subtree (op: add) instead of replacing a
+        # values array nested inside an affinity block that may not exist yet.
         if [ -n "${WEBSITE_NODE_AFFINITY:-}" ]; then
           kubectl ${CTX_ARG} -n "${WEBSITE_NAMESPACE}" patch deployment website --type=json \
-            -p "[{\"op\":\"replace\",\"path\":\"/spec/template/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/nodeSelectorTerms/0/matchExpressions/0/values\",\"value\":${WEBSITE_NODE_AFFINITY}}]"
+            -p "[{\"op\":\"add\",\"path\":\"/spec/template/spec/affinity\",\"value\":{\"nodeAffinity\":{\"requiredDuringSchedulingIgnoredDuringExecution\":{\"nodeSelectorTerms\":[{\"matchExpressions\":[{\"key\":\"kubernetes.io/hostname\",\"operator\":\"In\",\"values\":${WEBSITE_NODE_AFFINITY}}]}]}}}}]"
           echo "✓ Node affinity patched to ${WEBSITE_NODE_AFFINITY}"
         fi
 
-        # Dev-only: apply plaintext dev secrets (prod uses SealedSecrets — never overwrite)
+        # Dev-only: apply plaintext dev secrets (prod uses SealedSecrets — never overwrite).
+        # T001853: these manifests now parameterize namespace: ${WEBSITE_NAMESPACE}
+        # (was hardcoded to "website", breaking on korczewski dev where the website
+        # namespace differs) — must flow through envsubst before apply.
         if [ "{{.ENV}}" = "dev" ]; then
-          kubectl ${CTX_ARG} apply -f k3d/website-dev-secrets.yaml
+          envsubst "\$WEBSITE_NAMESPACE" < k3d/website-dev-secrets.yaml | kubectl ${CTX_ARG} apply -f -
           # T001490 Task 9 — content-publish bot token placeholder
-          kubectl ${CTX_ARG} apply -f k3d/website-content-token-secret.yaml
+          envsubst "\$WEBSITE_NAMESPACE" < k3d/website-content-token-secret.yaml | kubectl ${CTX_ARG} apply -f -
+          # T001853: domain-config ConfigMap was never applied to the website ns in
+          # dev, causing "domain-config not found" on the website pod.
+          kubectl ${CTX_ARG} -n "${WEBSITE_NAMESPACE}" apply -f k3d/configmap-domains.yaml
         fi
 
         # Only pin to digest on pure-amd64 clusters; mixed-arch clusters (e.g. korczewski
@@ -3863,7 +3877,7 @@ tasks:
       - docker build -t ${STUDIO_IMAGE:-studio-server}:latest studio-server/
       - |
           if [ "{{.ENV}}" = "dev" ] || [ "{{.ENV}}" = "" ]; then
-            k3d image import ${STUDIO_IMAGE:-studio-server}:latest -c ${CLUSTER_NAME:-k3d-dev} || true
+            k3d image import ${STUDIO_IMAGE:-studio-server}:latest -c {{.CLUSTER_NAME}}
           fi
       - echo "✓ studio image built"
 

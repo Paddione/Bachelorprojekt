@@ -238,7 +238,9 @@ ADMIN_RESPONSIVE="$BATS_TEST_DIRNAME/../../website/src/styles/admin-responsive.c
   [ -f "$f" ] || { echo "k3d/website-content-token-secret.yaml missing"; return 1; }
   run grep -E "name:[[:space:]]*website-content-token" "$f"
   [ "$status" -eq 0 ]
-  run grep -E "namespace:[[:space:]]*website$" "$f"
+  # T001853: namespace is envsubst-parameterized (website:deploy pipes the
+  # manifest through envsubst), no longer the hardcoded `website` literal.
+  run grep -F 'namespace: ${WEBSITE_NAMESPACE}' "$f"
   [ "$status" -eq 0 ]
   run grep -E "GITHUB_CONTENT_TOKEN:" "$f"
   [ "$status" -eq 0 ]

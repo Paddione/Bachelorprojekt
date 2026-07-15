@@ -181,3 +181,86 @@ _workspace_partial_deploy_block() {
   [ "$status" -eq 0 ]
   [ "$output" -eq 0 ]
 }
+
+# ── T001853: k3d-Basis-Drift — lokaler Dev-Cluster out-of-the-box deploybar ──
+# Die k3d/-Basis muss auf jedem Single-Node-Cluster (k3d lokal, Remote-Dev)
+# funktionieren: keine Prod-/Remote-Host-Affinities, keine Namespace-Literale,
+# vollständige Dev-Secrets, dev-Netpol für den k3d-API-Server, Pocket-ID-
+# Bootstrap und stabile k3d-API-Ports.
+
+_website_deploy_block() {
+  sed -n '/^  website:deploy:$/,/^  website:dev:$/p' "$TASKFILE"
+}
+
+@test "T001853: k3d base manifests carry no prod/remote host affinities (gekko-/pk-hetzner)" {
+  run bash -c "grep -l 'gekko-hetzner\|pk-hetzner' \"$PROJECT_DIR\"/k3d/*.yaml"
+  [ "$status" -ne 0 ]
+}
+
+@test "T001853: k3d base manifests use \${WEBSITE_NAMESPACE}, not website.website.svc literal" {
+  run bash -c "grep -l 'website\.website\.svc' \"$PROJECT_DIR\"/k3d/*.yaml"
+  [ "$status" -ne 0 ]
+}
+
+@test "T001853: k3d/secrets.yaml provides SESSIONS_CRON_TOKEN" {
+  run grep -E '^[[:space:]]+SESSIONS_CRON_TOKEN:' "$PROJECT_DIR/k3d/secrets.yaml"
+  [ "$status" -eq 0 ]
+}
+
+@test "T001853: k3d/secrets.yaml provides STUDIO_DB_URL" {
+  run grep -E '^[[:space:]]+STUDIO_DB_URL:' "$PROJECT_DIR/k3d/secrets.yaml"
+  [ "$status" -eq 0 ]
+}
+
+@test "T001853: website-dev-secrets.yaml covers all website-referenced keys" {
+  local missing=0
+  for key in INTERNAL_API_TOKEN ANTHROPIC_API_KEY BRETT_OIDC_SECRET DEEPSEEK_API_KEY DEEPSEEK_API_KEY_PK IPV64_API_KEY LLM_ROUTER_API_KEY SEPA_CREDITOR_BIC SEPA_CREDITOR_IBAN SEPA_CREDITOR_ID VOYAGE_API_KEY SESSIONS_CRON_TOKEN; do
+    grep -qE "^[[:space:]]+${key}:" "$PROJECT_DIR/k3d/website-dev-secrets.yaml" || { echo "missing: $key"; missing=1; }
+  done
+  [ "$missing" -eq 0 ]
+}
+
+@test "T001853: website-dev-secrets.yaml namespace is envsubst-parameterized, not hardcoded" {
+  run grep -E '^[[:space:]]+namespace: website$' "$PROJECT_DIR/k3d/website-dev-secrets.yaml"
+  [ "$status" -ne 0 ]
+  run grep -F 'namespace: ${WEBSITE_NAMESPACE}' "$PROJECT_DIR/k3d/website-dev-secrets.yaml"
+  [ "$status" -eq 0 ]
+}
+
+@test "T001853: dev-only apiserver netpol exists in base and is stripped by prod overlay" {
+  run grep -F 'network-policies-dev.yaml' "$PROJECT_DIR/k3d/kustomization.yaml"
+  [ "$status" -eq 0 ]
+  run grep -F 'allow-apiserver-egress-k3d' "$PROJECT_DIR/k3d/network-policies-dev.yaml"
+  [ "$status" -eq 0 ]
+  run grep -F 'allow-apiserver-egress-k3d' "$PROJECT_DIR/prod/kustomization.yaml"
+  [ "$status" -eq 0 ]
+}
+
+@test "T001853: studio:build imports into the Taskfile cluster, not shell-fallback k3d-dev" {
+  run grep -F ':-k3d-dev}' "$TASKFILE"
+  [ "$status" -ne 0 ]
+}
+
+@test "T001853: studio-server base manifest uses imagePullPolicy IfNotPresent" {
+  run grep -E 'imagePullPolicy:[[:space:]]*Always' "$PROJECT_DIR/k3d/studio.yaml"
+  [ "$status" -ne 0 ]
+  run grep -E 'imagePullPolicy:[[:space:]]*IfNotPresent' "$PROJECT_DIR/k3d/studio.yaml"
+  [ "$status" -eq 0 ]
+}
+
+@test "T001853: k3d-config.yaml pins kubeAPI.hostPort against restart port drift" {
+  run bash -c "sed -n '/^kubeAPI:/,/^[a-z]/p' \"$PROJECT_DIR/k3d-config.yaml\" | grep -E '^[[:space:]]+hostPort:'"
+  [ "$status" -eq 0 ]
+}
+
+@test "T001853: pocket-id-db-init bootstraps seed-deploy api key idempotently" {
+  run bash -c "grep -F 'INSERT INTO api_keys' \"$POCKET_ID_MANIFEST\""
+  [ "$status" -eq 0 ]
+  run bash -c "grep -F 'ON CONFLICT' \"$POCKET_ID_MANIFEST\""
+  [ "$status" -eq 0 ]
+}
+
+@test "T001853: website:deploy dev branch targets current context (no ENV_CONTEXT kubectl)" {
+  run bash -c '_wd() { sed -n "/^  website:deploy:\$/,/^  website:dev:\$/p" "'"$TASKFILE"'"; }; _wd | grep -E "!= \"dev\" \] && CTX_ARG="'
+  [ "$status" -eq 0 ]
+}

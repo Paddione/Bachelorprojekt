@@ -25,15 +25,24 @@ _render_korczewski() {
   ! grep -q -- '--insecure-oidc-allow-unverified-email' <<< "$RENDER" || { echo "FAIL: insecure-oidc-allow-unverified-email still rendered"; return 1; }
 }
 
-@test "prod render (mentolder): no wildcard --email-domain=* anywhere" {
+# T001851 (PRs #2837/#2839) changed the gate posture: oauth2-proxy v7.9.0
+# hard-fails startup without --email-domain or --authenticated-emails-file,
+# so --email-domain=* is deliberately present on the group-gated services —
+# authorization is enforced by --allowed-group (singular; v7.9.0 has no
+# --allowed-groups flag). The invariant is therefore no longer "no wildcard
+# anywhere" but "every wildcard gate is group-restricted".
+@test "prod render (mentolder): every --email-domain=* gate is group-restricted" {
   RENDER="$(_render_mentolder)"
-  ! grep -q -- '--email-domain=\*' <<< "$RENDER" || { echo "FAIL: email-domain=* still rendered"; return 1; }
+  wildcard="$(grep -c -- '--email-domain=\*' <<< "$RENDER" || true)"
+  groups="$(grep -c -- '- --allowed-group=' <<< "$RENDER" || true)"
+  [ "$wildcard" -ge 1 ] || { echo "FAIL: expected wildcard email-domain gates (v7.9.0 startup requirement), got 0"; return 1; }
+  [ "$wildcard" -eq "$groups" ] || { echo "FAIL: ${wildcard} wildcard gates but ${groups} allowed-group restrictions"; return 1; }
 }
 
-@test "prod render (mentolder): exactly 8 gates carry --allowed-groups=workspace-users" {
+@test "prod render (mentolder): exactly 8 gates carry --allowed-group=workspace-users" {
   RENDER="$(_render_mentolder)"
-  count="$(grep -c -- '- --allowed-groups=workspace-users' <<< "$RENDER" || true)"
-  [ "$count" -eq 8 ] || { echo "FAIL: expected 8 allowed-groups gates, got ${count}"; return 1; }
+  count="$(grep -c -- '- --allowed-group=workspace-users' <<< "$RENDER" || true)"
+  [ "$count" -eq 8 ] || { echo "FAIL: expected 8 allowed-group gates, got ${count}"; return 1; }
 }
 
 @test "prod render (mentolder): exactly 9 gates carry --oidc-groups-claim=groups" {
@@ -57,7 +66,11 @@ _render_korczewski() {
 @test "prod render (korczewski): no insecure flags anywhere" {
   RENDER="$(_render_korczewski)"
   ! grep -qE -- '--(ssl-insecure-skip-verify|insecure-oidc-allow-unverified-email)' <<< "$RENDER" || { echo "FAIL: insecure flag rendered on korczewski"; return 1; }
-  ! grep -q -- '--email-domain=\*' <<< "$RENDER" || { echo "FAIL: email-domain=* rendered on korczewski"; return 1; }
+  # T001851: --email-domain=* is deliberate (v7.9.0 startup requirement) —
+  # assert every wildcard gate is group-restricted instead of absence.
+  wildcard="$(grep -c -- '--email-domain=\*' <<< "$RENDER" || true)"
+  groups="$(grep -c -- '- --allowed-group=' <<< "$RENDER" || true)"
+  [ "$wildcard" -eq "$groups" ] || { echo "FAIL: ${wildcard} wildcard gates but ${groups} allowed-group restrictions on korczewski"; return 1; }
 }
 
 @test "pocket-id seed job provisions the workspace-users group idempotently" {

@@ -140,35 +140,49 @@ patches:
   # nodes (pk-hetzner-4, pk-hetzner-6, pk-hetzner-8) so workloads can
   # actually schedule. Replace operates on the whole values array.
 
-  # website Deployment (k3d/website.yaml) — base pin: gekko-hetzner-2/3
+  # website Deployment (k3d/website.yaml) — the T001853 base carries no
+  # affinity block at all (must schedule on any single-node dev cluster), so
+  # this adds the whole affinity subtree rather than replacing a values array
+  # nested inside a block that no longer exists in the base.
   - target:
       kind: Deployment
       name: website
     patch: |-
-      - op: replace
-        path: /spec/template/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/nodeSelectorTerms/0/matchExpressions/0/values
+      - op: add
+        path: /spec/template/spec/affinity
         value:
-          - pk-hetzner-4
-          - pk-hetzner-6
-          - pk-hetzner-8
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: kubernetes.io/hostname
+                      operator: In
+                      values:
+                        - pk-hetzner-4
+                        - pk-hetzner-6
+                        - pk-hetzner-8
 
-  # brett Deployment (k3d/brett.yaml) — base uses NotIn against pk-hetzner
-  # and gekko-hetzner-4 (mentolder home-worker exclusion). On korczewski
-  # neither node is in our pool, so the NotIn list is vacuous; flip to a
-  # positive In selector against korczewski nodes for clarity.
+  # brett Deployment (k3d/brett.yaml) — same T001853 base change: no affinity
+  # block in the base anymore, so add the full subtree pinned to korczewski
+  # nodes (the base previously carried a NotIn against pk-hetzner/gekko-hetzner-4,
+  # which was vacuous on korczewski anyway — this is a positive In selector).
   - target:
       kind: Deployment
       name: brett
     patch: |-
-      - op: replace
-        path: /spec/template/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/nodeSelectorTerms/0/matchExpressions/0
+      - op: add
+        path: /spec/template/spec/affinity
         value:
-          key: kubernetes.io/hostname
-          operator: In
-          values:
-            - pk-hetzner-4
-            - pk-hetzner-6
-            - pk-hetzner-8
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: kubernetes.io/hostname
+                      operator: In
+                      values:
+                        - pk-hetzner-4
+                        - pk-hetzner-6
+                        - pk-hetzner-8
 
   # brett Deployment — configure environment variables on korczewski.
   # mentolder keeps the base default.
@@ -212,39 +226,67 @@ patches:
       kind: CronJob
       name: knowledge-ingest-prs
     patch: |-
-      - op: replace
-        path: /spec/jobTemplate/spec/template/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/nodeSelectorTerms/0/matchExpressions/0/values
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/affinity
         value:
-          - pk-hetzner-4
-          - pk-hetzner-6
-          - pk-hetzner-8
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: kubernetes.io/hostname
+                      operator: In
+                      values:
+                        - pk-hetzner-4
+                        - pk-hetzner-6
+                        - pk-hetzner-8
   - target:
       kind: CronJob
       name: knowledge-ingest-markdown
     patch: |-
-      - op: replace
-        path: /spec/jobTemplate/spec/template/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/nodeSelectorTerms/0/matchExpressions/0/values
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/affinity
         value:
-          - pk-hetzner-4
-          - pk-hetzner-6
-          - pk-hetzner-8
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: kubernetes.io/hostname
+                      operator: In
+                      values:
+                        - pk-hetzner-4
+                        - pk-hetzner-6
+                        - pk-hetzner-8
   - target:
       kind: CronJob
       name: knowledge-ingest-bugs
     patch: |-
-      - op: replace
-        path: /spec/jobTemplate/spec/template/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/nodeSelectorTerms/0/matchExpressions/0/values
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/affinity
         value:
-          - pk-hetzner-4
-          - pk-hetzner-6
-          - pk-hetzner-8
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: kubernetes.io/hostname
+                      operator: In
+                      values:
+                        - pk-hetzner-4
+                        - pk-hetzner-6
+                        - pk-hetzner-8
   - target:
       kind: CronJob
       name: knowledge-reindex-all
     patch: |-
-      - op: replace
-        path: /spec/jobTemplate/spec/template/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/nodeSelectorTerms/0/matchExpressions/0/values
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/affinity
         value:
-          - pk-hetzner-4
-          - pk-hetzner-6
-          - pk-hetzner-8
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: kubernetes.io/hostname
+                      operator: In
+                      values:
+                        - pk-hetzner-4
+                        - pk-hetzner-6
+                        - pk-hetzner-8

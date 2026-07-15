@@ -36,7 +36,7 @@ spec:
                 - |
                   curl -sf -X GET \
                     -H "Authorization: Bearer $CRON_SECRET" \
-                    http://website.website.svc.cluster.local/api/cron/scheduled-publish
+                    http://website.${WEBSITE_NAMESPACE}.svc.cluster.local/api/cron/scheduled-publish
               resources:
                 requests:
                   cpu: 10m

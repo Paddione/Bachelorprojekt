@@ -36,7 +36,7 @@ spec:
                   curl -sf -X POST \
                     -H "Content-Type: application/json" \
                     -H "X-Cron-Secret: $CRON_SECRET" \
-                    http://website.website.svc.cluster.local/api/admin/billing/create-monthly-invoices
+                    http://website.${WEBSITE_NAMESPACE}.svc.cluster.local/api/admin/billing/create-monthly-invoices
               resources:
                 requests:
                   cpu: 10m

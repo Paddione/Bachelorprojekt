@@ -2358,7 +2358,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 446,
+      "file_count": 447,
       "files": [
         ".opencode/agent-models.jsonc",
         ".opencode/commands/opsx-apply.md",
@@ -2634,6 +2634,7 @@
         "k3d/monitoring/values/loki-values.yaml",
         "k3d/monitoring/values/promtail-values.yaml",
         "k3d/namespace.yaml",
+        "k3d/network-policies-dev.yaml",
         "k3d/network-policies.yaml",
         "k3d/nextcloud-extra-config.php",
         "k3d/nextcloud-oidc-dev.php",

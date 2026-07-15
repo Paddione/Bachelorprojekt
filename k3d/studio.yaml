@@ -32,7 +32,7 @@ spec:
       containers:
         - name: studio-server
           image: ${STUDIO_IMAGE}
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true

@@ -74,6 +74,11 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: POCKET_ID_DB_PASSWORD
+            - name: POCKET_ID_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: POCKET_ID_API_KEY
           command:
             - /bin/sh
             - -ec
@@ -90,6 +95,48 @@ spec:
               psql -v ON_ERROR_STOP=0 --username postgres --host shared-db --dbname pocket_id <<'EOSQL'
               GRANT ALL ON SCHEMA public TO pocket_id;
               EOSQL
+
+              # T001853: idempotent Pocket-ID admin bootstrap (admin user +
+              # seed-deploy api_keys row). Closes a chicken-and-egg: the
+              # pocket-id-client-seed Job authenticates with
+              # workspace-secrets.POCKET_ID_API_KEY, but that key was
+              # previously never registered in api_keys — only ever created
+              # manually via the Pocket-ID UI. This Job runs BEFORE the
+              # Pocket-ID app (which owns users/api_keys via its own
+              # migrations), so wait for the api_keys table to exist, capped
+              # at ~120s. Best-effort / non-fatal: on prod ON CONFLICT DO
+              # NOTHING makes both inserts a no-op (rows already exist); on a
+              # fresh cluster that misses the window, the bootstrap is simply
+              # skipped and the deploy proceeds (rerun the Job or redeploy to
+              # retry).
+              echo "Waiting for pocket_id.api_keys table (Pocket-ID app migrations)..."
+              ready=0
+              for i in $(seq 1 60); do
+                exists=$(psql -X -A -t --username postgres --host shared-db --dbname pocket_id \
+                  -c "SELECT to_regclass('public.api_keys')" 2>/dev/null || true)
+                if [ -n "$exists" ]; then
+                  ready=1
+                  break
+                fi
+                sleep 2
+              done
+              if [ "$ready" != "1" ]; then
+                echo "SKIP: pocket_id.api_keys table not present after ~120s — Pocket-ID app hasn't migrated yet. Bootstrap skipped (non-fatal)."
+                exit 0
+              fi
+              psql -v ON_ERROR_STOP=0 --username postgres --host shared-db --dbname pocket_id <<EOSQL
+              INSERT INTO users (id, created_at, username, email, first_name, last_name, is_admin, display_name, email_verified)
+              VALUES ('a0000000-0000-4000-8000-000000000001', now(), 'paddione', 'admin@bootstrap.invalid', 'Admin', 'Bootstrap', true, 'Admin (Bootstrap)', true)
+              ON CONFLICT (username) DO NOTHING;
+
+              INSERT INTO api_keys (id, name, key, description, expires_at, created_at, user_id)
+              VALUES (gen_random_uuid(), 'seed-deploy',
+                      encode(sha256(convert_to('$POCKET_ID_API_KEY', 'UTF8')), 'hex'),
+                      'bootstrap key for pocket-id-client-seed (sha256 of workspace-secrets.POCKET_ID_API_KEY)',
+                      '4051-01-01T00:00:00Z', now(), 'a0000000-0000-4000-8000-000000000001')
+              ON CONFLICT (key) DO NOTHING;
+              EOSQL
+              echo "✓ Pocket-ID admin bootstrap complete"
           resources:
             requests:
               cpu: "10m"

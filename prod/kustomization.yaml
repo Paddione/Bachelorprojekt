@@ -92,6 +92,18 @@ patches:
       metadata:
         name: ntfy-tokens
       $patch: delete
+  # Drop the k3d-only apiserver egress policy from prod output — the prod
+  # apiserver endpoints live in the fleet-wg range covered by the base policy.
+  - target:
+      kind: NetworkPolicy
+      name: allow-apiserver-egress-k3d
+    patch: |-
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: allow-apiserver-egress-k3d
+        namespace: workspace
+      $patch: delete
   # Drop k3d-only localhost ingresses — production uses per-service ingresses
   # in prod/ingress.yaml with real domains and TLS.
   - target:

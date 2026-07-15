@@ -29,16 +29,6 @@ spec:
         - name: ghcr-pull-secret
       nodeSelector:
         kubernetes.io/arch: amd64
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: kubernetes.io/hostname
-                    operator: NotIn
-                    values:
-                      - pk-hetzner
-                      - gekko-hetzner-4
       containers:
         - name: brett
           image: ghcr.io/paddione/workspace-brett:latest
@@ -74,7 +64,7 @@ spec:
             - name: BRETT_PUBLIC_URL
               value: "https://brett.localhost"
             - name: WEBSITE_INTERNAL_URL
-              value: "http://website.website.svc.cluster.local:4321"
+              value: "http://website.${WEBSITE_NAMESPACE}.svc.cluster.local:4321"
             - name: NODE_ENV
               value: "production"
             - name: BRETT_SESSION_SECRET

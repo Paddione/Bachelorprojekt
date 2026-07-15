@@ -9,6 +9,9 @@ agents: 0
 kubeAPI:
   host: "127.0.0.1"
   hostIP: "127.0.0.1"
+  # Pin the API-server host port — without this k3d picks a random free port
+  # on every `k3d cluster start`, drifting the kubeconfig each time. [T001853]
+  hostPort: "6445"
 image: rancher/k3s:v1.32.13-k3s1
 # Port mappings: expose HTTP/HTTPS on host via loadbalancer
 ports:

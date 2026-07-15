@@ -785,10 +785,6 @@
   ],
   "T001490": [
     {
-      "slug": "website-db-decouple",
-      "status": "plan_staged"
-    },
-    {
       "slug": "2026-07-02-website-db-decouple",
       "status": "archived"
     },
@@ -810,10 +806,6 @@
     }
   ],
   "T001567": [
-    {
-      "slug": "brain-auto-memory",
-      "status": "plan_staged"
-    },
     {
       "slug": "2026-07-15-brain-auto-memory",
       "status": "archived"
@@ -865,8 +857,8 @@
   ],
   "T001586": [
     {
-      "slug": "t001586",
-      "status": "plan_staged"
+      "slug": "2026-07-15-t001586",
+      "status": "archived"
     }
   ],
   "T001588": [
@@ -905,19 +897,11 @@
   ],
   "T001609": [
     {
-      "slug": "hermes-agent-mcp-access",
-      "status": "plan_staged"
-    },
-    {
       "slug": "2026-07-15-hermes-agent-mcp-access",
       "status": "archived"
     }
   ],
   "T001610": [
-    {
-      "slug": "t001610",
-      "status": "plan_staged"
-    },
     {
       "slug": "2026-07-15-t001610",
       "status": "archived"
@@ -930,10 +914,6 @@
     }
   ],
   "T001612": [
-    {
-      "slug": "agent-guide-harness-badge",
-      "status": "plan_staged"
-    },
     {
       "slug": "2026-07-15-agent-guide-harness-badge",
       "status": "archived"
@@ -979,15 +959,11 @@
   ],
   "T001677": [
     {
-      "slug": "migrations-factory-runner",
-      "status": "plan_staged"
+      "slug": "2026-07-15-migrations-factory-runner",
+      "status": "archived"
     }
   ],
   "T001733": [
-    {
-      "slug": "agent-model-slots",
-      "status": "plan_staged"
-    },
     {
       "slug": "2026-07-15-agent-model-slots",
       "status": "archived"
@@ -1001,19 +977,11 @@
   ],
   "T001739": [
     {
-      "slug": "db-quality-goals",
-      "status": "plan_staged"
-    },
-    {
       "slug": "2026-07-15-db-quality-goals",
       "status": "archived"
     }
   ],
   "T001748": [
-    {
-      "slug": "t001748-e2e-page-load-fix",
-      "status": "plan_staged"
-    },
     {
       "slug": "2026-07-15-t001748-e2e-page-load-fix",
       "status": "archived"
@@ -1027,11 +995,11 @@
   ],
   "T001760": [
     {
-      "slug": "t001749-admin-tickets-e2e-seed",
-      "status": "plan_staged"
+      "slug": "2026-07-10-t001749-admin-tickets-e2e-seed",
+      "status": "archived"
     },
     {
-      "slug": "2026-07-10-t001749-admin-tickets-e2e-seed",
+      "slug": "2026-07-15-t001749-admin-tickets-e2e-seed",
       "status": "archived"
     }
   ],
@@ -1085,10 +1053,6 @@
   ],
   "T001803": [
     {
-      "slug": "t001803-pocket-id-dns",
-      "status": "plan_staged"
-    },
-    {
       "slug": "2026-07-15-t001803-pocket-id-dns",
       "status": "archived"
     }
@@ -1131,24 +1095,8 @@
   ],
   "T001858": [
     {
-      "slug": "pipeline-interface-consolidation",
-      "status": "plan_staged"
-    },
-    {
       "slug": "2026-07-15-pipeline-interface-consolidation",
       "status": "archived"
-    }
-  ],
-  "T001867": [
-    {
-      "slug": "mishap-t001867",
-      "status": "plan_staged"
-    }
-  ],
-  "T001868": [
-    {
-      "slug": "mishap-t001868",
-      "status": "plan_staged"
     }
   ],
   "TBD": [

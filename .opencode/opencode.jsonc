@@ -15,7 +15,7 @@
     "webfetch": "allow",
     "websearch": "allow",
     "lsp": "allow",
-    "doom_loop": "allow",
+    "doom_loop": "deny",
     "skill": {
       "*": "allow",
       // ── Claude Code stubs (opencode has native equivalents) ──────────

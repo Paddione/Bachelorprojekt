@@ -2,7 +2,7 @@
 title: "mishap-auto-chore-plan — Implementation Plan"
 ticket_id: T001844
 domains: [software-factory, plan-authoring]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

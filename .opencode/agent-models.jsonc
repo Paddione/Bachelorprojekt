@@ -77,6 +77,20 @@
             "context": 330000,
             "output": 8192
           }
+        },
+        "qwen3.6-14b-a3b-fablevibes": {
+          "name": "Qwen3.6-14B-A3B FableVibes (14B-A3B MoE, Q4_K_M, 32k ctx, 4 parallel slots)",
+          "limit": {
+            "context": 32768,
+            "output": 8192
+          }
+        },
+        "qwen3.6-14b-a3b-fablevibes@262k": {
+          "name": "Qwen3.6-14B-A3B FableVibes (14B-A3B MoE, Q4_K_M, 262k ctx, concurrent/single-session)",
+          "limit": {
+            "context": 262000,
+            "output": 8192
+          }
         }
       }
     }

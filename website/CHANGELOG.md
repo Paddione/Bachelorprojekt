@@ -1,5 +1,90 @@
 # Changelog
 
+## [1.185.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.184.1...website-v1.185.0) (2026-07-15)
+
+
+### Features
+
+* **agent-guide:** add harness field to registry + opencode workflow skills [T001611] ([#2600](https://github.com/Paddione/Bachelorprojekt/issues/2600)) ([1e114fc](https://github.com/Paddione/Bachelorprojekt/commit/1e114fc14375763215a4850054a4f5352ceb8960))
+* **agent-guide:** Harness-Integration in Sidekick UI ([#2672](https://github.com/Paddione/Bachelorprojekt/issues/2672)) ([9ae518d](https://github.com/Paddione/Bachelorprojekt/commit/9ae518dde155bfb800a98c3023d52c2c34237a56))
+* **assistant:** persist sidekick error log with 24h retention [T001594] ([f7fa52e](https://github.com/Paddione/Bachelorprojekt/commit/f7fa52e6c679faffa7325eed76b633d4b2b86665))
+* **brain:** 11 quality goals G-BRAIN01-11, lint gate repairs, doc pages [T001608] ([#2599](https://github.com/Paddione/Bachelorprojekt/issues/2599)) ([34ffa00](https://github.com/Paddione/Bachelorprojekt/commit/34ffa00ca9b0e641ab51875aff7e3cfd67d17c29))
+* **brain:** auto-memory export bridge to brain wiki [T001567] ([831fabf](https://github.com/Paddione/Bachelorprojekt/commit/831fabfdac82765d68faea4c56605a6df81c5a1b))
+* **coaching:** integrate real coaching sessions API into dashboard [T001659] ([db734df](https://github.com/Paddione/Bachelorprojekt/commit/db734df718ff1a07fed7a98b3eec1a2cd8c44501))
+* **coaching:** Kundenakte löschen mit Undo-Toast, State-Lifting und Empty-State Guards [T001563] ([#2648](https://github.com/Paddione/Bachelorprojekt/issues/2648)) ([c8cefb2](https://github.com/Paddione/Bachelorprojekt/commit/c8cefb2d77da14f4b99e191aa6ceed4b28715058))
+* **coaching:** sessions admin nav, popout GUI, wording + test-data hygiene [T001638] ([#2616](https://github.com/Paddione/Bachelorprojekt/issues/2616)) ([5b20570](https://github.com/Paddione/Bachelorprojekt/commit/5b20570c282802a51f045fd107eb77ea9e7a1c4a))
+* **db:** add 5 DB quality goals G-DB01/03/04/06/08 [T001739] ([#2711](https://github.com/Paddione/Bachelorprojekt/issues/2711)) ([73ec7a3](https://github.com/Paddione/Bachelorprojekt/commit/73ec7a39c333dd89a73fb74ba26135374d72cb65))
+* **db:** Phase-2-Drop coaching.ki_config + db-audit [T001676] ([#2662](https://github.com/Paddione/Bachelorprojekt/issues/2662)) ([4f25d6a](https://github.com/Paddione/Bachelorprojekt/commit/4f25d6a1e3fe8eeee41cbfa9ebfb3132c5ebf3ea))
+* factory sandbox runner ([#2804](https://github.com/Paddione/Bachelorprojekt/issues/2804)) ([3001bac](https://github.com/Paddione/Bachelorprojekt/commit/3001bace4abc8933d704faac79f8b45a5c822801))
+* **factory:** consume plan_staged chore tickets from mishap-tracker [T001844] ([#2820](https://github.com/Paddione/Bachelorprojekt/issues/2820)) ([ced2c83](https://github.com/Paddione/Bachelorprojekt/commit/ced2c831c4bb5dca2f5ea2e02a8ac3c0d6aa5ead))
+* **factory:** konsolidiere scripts/migrations/ unter getrackten Runner [T001677] ([#2673](https://github.com/Paddione/Bachelorprojekt/issues/2673)) ([4a262d9](https://github.com/Paddione/Bachelorprojekt/commit/4a262d97dab4d55f7f434610a5a8673598bf5af7))
+* **factory:** migrate to qwythos-9b-v2 local LLM provider + sandbox runner [T001837] ([#2812](https://github.com/Paddione/Bachelorprojekt/issues/2812)) ([8d036fb](https://github.com/Paddione/Bachelorprojekt/commit/8d036fba16411679f38c7ee1edf80fe62fb9c984))
+* **factory:** PR-CI-Babysitter [T001805] ([#2808](https://github.com/Paddione/Bachelorprojekt/issues/2808)) ([9669e84](https://github.com/Paddione/Bachelorprojekt/commit/9669e84c86b87a5e15f0b86074f1e197b503238f))
+* **factory:** replace qwythos-9b-v2 with qwen3.6-14b-a3b-fablevibes ([#2855](https://github.com/Paddione/Bachelorprojekt/issues/2855)) ([de36ec9](https://github.com/Paddione/Bachelorprojekt/commit/de36ec90a4a2b3b0e60a875f9a31204f427f64b7))
+* **infra:** agent-model-slots — DB-backed phase routing, Qwen3-14B agent, Svelte UI [T001733] ([#2710](https://github.com/Paddione/Bachelorprojekt/issues/2710)) ([d3473e4](https://github.com/Paddione/Bachelorprojekt/commit/d3473e47be539954ba24ce9b19feee6eaf1f96d0))
+* **infra:** update image exclusions in CLAUDE.md [T001775] ([#2738](https://github.com/Paddione/Bachelorprojekt/issues/2738)) ([db2c6bc](https://github.com/Paddione/Bachelorprojekt/commit/db2c6bc64301a58552d34398787966d67024bc27))
+* **local-runner:** implement local model runner [T001780] ([#2735](https://github.com/Paddione/Bachelorprojekt/issues/2735)) ([d5079d0](https://github.com/Paddione/Bachelorprojekt/commit/d5079d0b056f1ca5c27deb8dca7ddeee7a3e7a8c))
+* **security:** add allowed_signers for G-SEC05 commit signing [T001749] ([#2722](https://github.com/Paddione/Bachelorprojekt/issues/2722)) ([06ad816](https://github.com/Paddione/Bachelorprojekt/commit/06ad816605900519e9323c32a6c8610dcde245c8))
+* sidekick error log 24h ([3c42242](https://github.com/Paddione/Bachelorprojekt/commit/3c42242b82c0727e597e4216edee7dcbed0be550))
+* t001556 size02 refactor ([#2625](https://github.com/Paddione/Bachelorprojekt/issues/2625)) ([26e3713](https://github.com/Paddione/Bachelorprojekt/commit/26e3713077c5346427a2ad5c6dd83ed4899d01be))
+* T001641 — LM Studio Models Dropdown + Prompt Scrubber ([#2617](https://github.com/Paddione/Bachelorprojekt/issues/2617)) ([d835325](https://github.com/Paddione/Bachelorprojekt/commit/d835325f61c5d8df3ed6a114847e89d295c02201))
+* T001641 coaching-ki-model-select — model probe, scrubber, models endpoint ([#2638](https://github.com/Paddione/Bachelorprojekt/issues/2638)) ([e75db9d](https://github.com/Paddione/Bachelorprojekt/commit/e75db9da25c16aa461f2ea657975dabf95c38211))
+* T001641 coaching-ki-model-select — model probe, scrubber, models endpoint ([#2652](https://github.com/Paddione/Bachelorprojekt/issues/2652)) ([ed5614f](https://github.com/Paddione/Bachelorprojekt/commit/ed5614ffeb2178c6f01c7deae418446f68bc5b3d))
+* **terminal:** SSO-gated agentic terminal sidekick replacing grilling view [T001565] ([#2557](https://github.com/Paddione/Bachelorprojekt/issues/2557)) ([dc8e174](https://github.com/Paddione/Bachelorprojekt/commit/dc8e174cb76391235b5a971bb8dbcf74062f7a12))
+* **website:** admin-token-consolidation — single [@theme](https://github.com/theme) color source [T001787] ([#2752](https://github.com/Paddione/Bachelorprojekt/issues/2752)) ([5e1c5af](https://github.com/Paddione/Bachelorprojekt/commit/5e1c5af4b12b1b605dc9a52cc4024ebee3f3c714))
+* **website:** AdminModal/AdminDrawer primitives + migrate 8 modals + 4 drawers ([#2749](https://github.com/Paddione/Bachelorprojekt/issues/2749)) ([c3f7e57](https://github.com/Paddione/Bachelorprojekt/commit/c3f7e57434cb264a2532e09683f6066e9f2a9b51))
+* **website:** Coaching Studio in Sessions umbenennen und Sidebar bereinigen [T001649] ([#2624](https://github.com/Paddione/Bachelorprojekt/issues/2624)) ([8bde301](https://github.com/Paddione/Bachelorprojekt/commit/8bde301156b8a671f87e740758e94fc9eec51d15))
+* **website:** implement pipeline-interface-consolidation [T001858] ([#2845](https://github.com/Paddione/Bachelorprojekt/issues/2845)) ([6489839](https://github.com/Paddione/Bachelorprojekt/commit/6489839b5a1d29d6dec779e7ec84f00d8ace5f09))
+* **website:** UI changes for factory floor agent configuration and sidekick settings [T001592] ([#2676](https://github.com/Paddione/Bachelorprojekt/issues/2676)) ([7494981](https://github.com/Paddione/Bachelorprojekt/commit/7494981877cda78b15c36a5b6a4ccac97456782b))
+
+
+### Bug Fixes
+
+* **admin:** cockpit Aktiv-Filter zeigt keine Tickets via Store-Pfad ([#2778](https://github.com/Paddione/Bachelorprojekt/issues/2778)) ([cf94a2e](https://github.com/Paddione/Bachelorprojekt/commit/cf94a2ea7d5daa3127fd62096517e74c26abd13b))
+* **auth-sso:** align kustomize refs + harden render tests for oauth2-proxy hardening [T001579] ([#2587](https://github.com/Paddione/Bachelorprojekt/issues/2587)) ([93b1247](https://github.com/Paddione/Bachelorprojekt/commit/93b12478a8fba54a0be98241e1835dc602632a34))
+* brain-ingest excludes + oracle BRAND-var materialization [T001583] ([#2575](https://github.com/Paddione/Bachelorprojekt/issues/2575)) ([f409592](https://github.com/Paddione/Bachelorprojekt/commit/f4095923196e8ca6134e51c2af8b5c934ae7f418))
+* **ci:** register error-log-retention-cronjob + migrate console.error to structured logger ([64840de](https://github.com/Paddione/Bachelorprojekt/commit/64840de8b7b0069525685002101bf7cc253891be))
+* **coaching:** ensure test sessions are flagged as is_test_data and cleaned up in purge-fn ([#2621](https://github.com/Paddione/Bachelorprojekt/issues/2621)) ([9711831](https://github.com/Paddione/Bachelorprojekt/commit/9711831e65fd521f52eb6b10cbab2f5f6b9add31))
+* **coaching:** sessions-audit rest — 404-Semantik, Fehler-Logging, Config-Hygiene [T001670] ([#2643](https://github.com/Paddione/Bachelorprojekt/issues/2643)) ([e908b57](https://github.com/Paddione/Bachelorprojekt/commit/e908b57fe73af70237dcf51699100456e121c2e5))
+* **coaching:** sessions-tool gaps — sim hardening, settings mount, scrubber fail-closed [T001664] ([#2641](https://github.com/Paddione/Bachelorprojekt/issues/2641)) ([be4808e](https://github.com/Paddione/Bachelorprojekt/commit/be4808eefe4374652f0ff014f7f412e97dbad2cb))
+* **factory:** mark ticket dry-run-checked before requeuing from DRY_RUN branch [T001816] ([#2791](https://github.com/Paddione/Bachelorprojekt/issues/2791)) ([f67418e](https://github.com/Paddione/Bachelorprojekt/commit/f67418ecb00e4460e19ce4b25a5327037b554083))
+* **factory:** wire dispatcher-bridge.sh into wakeup.sh instead of forcing Workflow(dispatcher.js) [T001845] ([#2824](https://github.com/Paddione/Bachelorprojekt/issues/2824)) ([70a820c](https://github.com/Paddione/Bachelorprojekt/commit/70a820c72d6bfd7a5c3f2aa88dc93726b2538971))
+* **health-goal:** update image exclusions [T001781] ([#2740](https://github.com/Paddione/Bachelorprojekt/issues/2740)) ([cb8a9f6](https://github.com/Paddione/Bachelorprojekt/commit/cb8a9f677f78b4c94f1bf1f4a55646aa8c857be1))
+* **infra:** optimize dev stack configurations and fix local resource limits ([c521068](https://github.com/Paddione/Bachelorprojekt/commit/c521068cba5f3017060924325e8b361e6f413d87))
+* **infra:** restore k3d base for local dev cluster [T001853] ([#2842](https://github.com/Paddione/Bachelorprojekt/issues/2842)) ([b5fa0fd](https://github.com/Paddione/Bachelorprojekt/commit/b5fa0fd0921afd6df70b3c38f17175354f7d067b))
+* **k3d:** optimize dev stack configurations and fix local resource limits ([#2659](https://github.com/Paddione/Bachelorprojekt/issues/2659)) ([eeaca4a](https://github.com/Paddione/Bachelorprojekt/commit/eeaca4a04a96af5512c39fed4eba574afa8ee9b7))
+* maintenance findings T2608/T2609/T2611 + brain-auto-memory [T001567] ([#2651](https://github.com/Paddione/Bachelorprojekt/issues/2651)) ([b1bd7a7](https://github.com/Paddione/Bachelorprojekt/commit/b1bd7a71fe010a66c0224f01a8cdabd77b9ce50d))
+* remove hardcoded dev OIDC secret fallback in website auth [T001593] ([#2596](https://github.com/Paddione/Bachelorprojekt/issues/2596)) ([1905a1b](https://github.com/Paddione/Bachelorprojekt/commit/1905a1b4a2830d433d34ed6b2306a75eed35111b))
+* resolve graph.db.zst conflict after pull ([0d368e4](https://github.com/Paddione/Bachelorprojekt/commit/0d368e4d1850615bbf15ce4192393dc8777fe174))
+* **scripts:** agent-lock heartbeat reap, severity validation, offline-guard reuse [T001582] ([#2577](https://github.com/Paddione/Bachelorprojekt/issues/2577)) ([47c7f46](https://github.com/Paddione/Bachelorprojekt/commit/47c7f46bf5436f5bff4772abab98c2d6b64b02b4))
+* **secrets:** add missing SEPA_CREDITOR keys and SESSIONS_CRON_TOKEN [T001528] ([#2674](https://github.com/Paddione/Bachelorprojekt/issues/2674)) ([e5db86f](https://github.com/Paddione/Bachelorprojekt/commit/e5db86fbceada0fa855137588eb115d6fcb04649))
+* **T001784:** remove coaching-studio CDN/Babel leak, disable behind placeholder ([#2743](https://github.com/Paddione/Bachelorprojekt/issues/2743)) ([0aed76c](https://github.com/Paddione/Bachelorprojekt/commit/0aed76cf2039abe6d80671e6a5a06dae38106d1d))
+* **tests:** resolve 8 pre-existing BATS test failures ([#2766](https://github.com/Paddione/Bachelorprojekt/issues/2766)) ([26ba7d8](https://github.com/Paddione/Bachelorprojekt/commit/26ba7d836d4f3cae125c04abc020b2faf31f0b76))
+* **website:** add automated migration runner for website/src/db/migrations [T001652] ([#2629](https://github.com/Paddione/Bachelorprojekt/issues/2629)) ([31b140f](https://github.com/Paddione/Bachelorprojekt/commit/31b140f264f42d924d2a13cc57e62f6e7b78505d))
+* **website:** coaching-studio Workspace crasht bei leerem CUSTOMERS-Array [T001656] ([#2633](https://github.com/Paddione/Bachelorprojekt/issues/2633)) ([c35e309](https://github.com/Paddione/Bachelorprojekt/commit/c35e3092dbb6451d62c3a00cadc0d0e967f2d648))
+* **website:** consolidate ai-metrics/ai-quality onto shared db-pool [T001678] ([#2665](https://github.com/Paddione/Bachelorprojekt/issues/2665)) ([18b88a8](https://github.com/Paddione/Bachelorprojekt/commit/18b88a8243a90d2b48c377b82f9429c4a81031a4))
+* **website:** correct relative import path in coaching sessions API [T001685] ([#2680](https://github.com/Paddione/Bachelorprojekt/issues/2680)) ([61a3eae](https://github.com/Paddione/Bachelorprojekt/commit/61a3eae10b498463b31ba590fad84c3c04f96822))
+* **website:** exclude dist from astro:check [T001681] ([2bd6aab](https://github.com/Paddione/Bachelorprojekt/commit/2bd6aab7696e68e1a818ab3734e2639ceeb47ea0))
+* **website:** remove dead coaching studio route and rewire references [T001792] ([#2767](https://github.com/Paddione/Bachelorprojekt/issues/2767)) ([fc0b196](https://github.com/Paddione/Bachelorprojekt/commit/fc0b196d95fc376bf60f98cd61155e3da11b14b9))
+* **website:** remove dead unauthenticated coaching-sessions duplicate [T001697] ([#2686](https://github.com/Paddione/Bachelorprojekt/issues/2686)) ([519321c](https://github.com/Paddione/Bachelorprojekt/commit/519321c1fce8e3692892d9d98b911851e5babd9a))
+* **website:** restore --brass-deep fallback for portal avatar gradient [T001797] ([#2754](https://github.com/Paddione/Bachelorprojekt/issues/2754)) ([e6e2a99](https://github.com/Paddione/Bachelorprojekt/commit/e6e2a99103dc9906f47f22c180c396c52c640ef9))
+* **website:** restore Gerald's hero portrait photo on mentolder homepage [T001711] ([#2695](https://github.com/Paddione/Bachelorprojekt/issues/2695)) ([8e53f7f](https://github.com/Paddione/Bachelorprojekt/commit/8e53f7f7c1704a7a00de4aac27f3415977af04ff))
+* **website:** set avatarSrc in static fallback config to prevent drift [T001687] ([#2697](https://github.com/Paddione/Bachelorprojekt/issues/2697)) ([0918d7a](https://github.com/Paddione/Bachelorprojekt/commit/0918d7a783ae49a1491e90bff6ecbfe54718885b))
+* **website:** wire up backend support for factory-control agent-settings ([#2692](https://github.com/Paddione/Bachelorprojekt/issues/2692)) ([b62de79](https://github.com/Paddione/Bachelorprojekt/commit/b62de79a97c4313a977d79a91e596979efbb0be3))
+
+
+### Documentation
+
+* **brain:** add brain-auto-memory design spec + openspec change [T001567] ([fcfbd8a](https://github.com/Paddione/Bachelorprojekt/commit/fcfbd8a6c734e4c3b6e06f19318e2ee903346765))
+* **docs:** purge 241 orphan design-specs + allowlist S4 scripts [T001874] ([#2854](https://github.com/Paddione/Bachelorprojekt/issues/2854)) ([672294c](https://github.com/Paddione/Bachelorprojekt/commit/672294caf94b678703f36ad9764a1f07156d1a29))
+* **plans:** add design spec + openspec proposal for agent-model-slots [T001733] ([#2709](https://github.com/Paddione/Bachelorprojekt/issues/2709)) ([da6ae4d](https://github.com/Paddione/Bachelorprojekt/commit/da6ae4dd438acf69e75ede0c99052e64619c5c95))
+* **specs:** add brain-auto-memory design spec + openspec change [T001567] ([cae1482](https://github.com/Paddione/Bachelorprojekt/commit/cae14823c3fac26f31f9fb942caadbe5347bfbd5))
+
+
+### Tests
+
+* **e2e:** fa-bug-notify direct-DB seed + afterEach cleanup [T001754] ([#2717](https://github.com/Paddione/Bachelorprojekt/issues/2717)) ([71f61f2](https://github.com/Paddione/Bachelorprojekt/commit/71f61f279745ff003b4be96913cbf67ac678ce85))
+
 ## [1.184.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.184.0...website-v1.184.1) (2026-07-15)
 
 

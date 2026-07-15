@@ -1095,6 +1095,12 @@
       "status": "archived"
     }
   ],
+  "T001884": [
+    {
+      "slug": "brain-ssot-consolidation",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

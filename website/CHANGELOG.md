@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.184.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.184.0...website-v1.184.1) (2026-07-15)
+
+
+### Documentation
+
+* **docs:** purge 241 orphan design-specs + allowlist S4 scripts [T001874] ([#2854](https://github.com/Paddione/Bachelorprojekt/issues/2854)) ([672294c](https://github.com/Paddione/Bachelorprojekt/commit/672294caf94b678703f36ad9764a1f07156d1a29))
+
 ## [1.184.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.183.2...website-v1.184.0) (2026-07-15)
 
 

@@ -168,7 +168,7 @@ Findet den richtigen Task-Befehl für ein Ziel in einfachem Deutsch.
 
 **Wofür?** Übersetzt 'Ich will X tun' in den passenden task-Befehl, ohne dass du die Taskfile kennen musst.
 
-**So startest du:** Rufe auf: bash scripts/task-oracle.sh 'Dein Ziel auf Deutsch'.
+**So startest du:** Rufe auf: bash scripts/vda.sh oracle 'Dein Ziel auf Deutsch'.
 
 **Was schiefgehen kann:** Das Orakel könnte den falschen Task vorschlagen; prüfe immer die Ausgabe kurz.
 

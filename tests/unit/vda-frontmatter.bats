@@ -1,25 +1,23 @@
 #!/usr/bin/env bats
-# Tests for scripts/plan-frontmatter-hook.sh — verifies that an EXISTING but
-# INCOMPLETE frontmatter block (placeholder domains / missing status) gets
-# repaired in place instead of being skipped by the line-1-only guard. [T000422]
-#
-# RED-phase note: against the current hook (which bails at the first `---`),
-# the "repair" cases below FAIL — that is the reproduction. After the fix they
-# pass. The "preserve" / "idempotent" / "no-frontmatter" cases guard behavior
-# that must remain true before AND after the fix.
+# vda-frontmatter.bats — tests for scripts/vda/frontmatter.sh
+# Replaces the deprecated plan-frontmatter-hook.bats + frontmatter-batch.bats.
+
+bats_require_minimum_version 1.5.0
+load test_helper
+
+VDA="${PROJECT_DIR}/scripts/vda.sh"
 
 setup() {
-  HOOK="$BATS_TEST_DIRNAME/../../scripts/plan-frontmatter-hook.sh"
   TMP="$(mktemp -d)"
 
-  # A — NO frontmatter at all (writing-plans output starts with `# `).
+  # A — NO frontmatter at all
   cat > "$TMP/a-none.md" <<'EOF'
 # My Plan
 
 This plan touches k3d/ manifests and kustomize overlays.
 EOF
 
-  # B — present but domains: [] (orphaned from every role); body has infra+db signals.
+  # B — present but domains: [] (orphaned); body has infra+db signals
   cat > "$TMP/b-empty-domains.md" <<'EOF'
 ---
 title: Existing
@@ -34,7 +32,7 @@ pr_number: null
 Touches k3d/ kustomize overlays and a database schema query.
 EOF
 
-  # C — present but missing the status line entirely.
+  # C — present but missing the status line entirely
   cat > "$TMP/c-missing-status.md" <<'EOF'
 ---
 title: NoStatus
@@ -46,7 +44,7 @@ domains: [infra]
 Touches k3d/ manifests.
 EOF
 
-  # D — deliberate non-active status must be PRESERVED, never forced to active.
+  # D — deliberate non-active status must be PRESERVED
   cat > "$TMP/d-deliberate-done.md" <<'EOF'
 ---
 title: Done plan
@@ -59,7 +57,7 @@ status: done
 Touches k3d/ manifests.
 EOF
 
-  # E — already complete: re-running the hook must be a clean no-op (idempotent).
+  # E — already complete: idempotent no-op
   cat > "$TMP/e-complete.md" <<'EOF'
 ---
 title: Complete
@@ -79,7 +77,7 @@ depends_on_plans: []
 Touches k3d/ manifests.
 EOF
 
-  # F — domains: null (literal) with website signals in the body.
+  # F — domains: null with website signals
   cat > "$TMP/f-null-domains.md" <<'EOF'
 ---
 title: NullDomains
@@ -91,49 +89,81 @@ status: active
 
 Touches the website/ astro and svelte components.
 EOF
+
+  # G — incomplete frontmatter missing batch fields
+  cat > "$TMP/g-missing-batch.md" <<'EOF'
+---
+title: BatchTest
+ticket_id: T000999
+domains: [infra]
+status: active
+pr_number: null
+---
+
+# Plan
+
+Touches k3d/ manifests.
+EOF
 }
 
 teardown() { rm -rf "$TMP"; }
 
-# ── Regression guard: no-frontmatter path is unchanged ───────────────
+# ── Case A: no frontmatter → derive, prepend ──────────────────────────
 
 @test "no frontmatter: prepends a full block with derived domains + status:active" {
-  run bash "$HOOK" "$TMP/a-none.md"
+  run bash "$VDA" frontmatter "$TMP/a-none.md"
   [ "$status" -eq 0 ]
   head -1 "$TMP/a-none.md" | grep -q '^---'
   grep -Eq '^domains:.*infra' "$TMP/a-none.md"
   grep -Eq '^status: active$' "$TMP/a-none.md"
 }
 
-# ── RED: incomplete-frontmatter repair (the T000422 bug) ─────────────
+@test "no frontmatter: includes batch fields" {
+  run bash "$VDA" frontmatter "$TMP/a-none.md"
+  [ "$status" -eq 0 ]
+  grep -q 'file_locks: \[\]' "$TMP/a-none.md"
+  grep -q 'shared_changes: false' "$TMP/a-none.md"
+  grep -q 'batch_id: null' "$TMP/a-none.md"
+  grep -q 'parent_feature: null' "$TMP/a-none.md"
+  grep -q 'depends_on_plans: \[\]' "$TMP/a-none.md"
+}
+
+# ── Case B/C: incomplete frontmatter → repair ─────────────────────────
 
 @test "domains: [] is re-derived and filled from the body (infra+db)" {
-  run bash "$HOOK" "$TMP/b-empty-domains.md"
+  run bash "$VDA" frontmatter "$TMP/b-empty-domains.md"
   [ "$status" -eq 0 ]
   grep -Eq '^domains:.*infra' "$TMP/b-empty-domains.md"
-  grep -Eq '^domains:.*db'    "$TMP/b-empty-domains.md"
-  # existing fields must be preserved
+  grep -Eq '^domains:.*db' "$TMP/b-empty-domains.md"
   grep -q 'ticket_id: T000999' "$TMP/b-empty-domains.md"
 }
 
 @test "missing status: gets status: active added, domains preserved" {
-  run bash "$HOOK" "$TMP/c-missing-status.md"
+  run bash "$VDA" frontmatter "$TMP/c-missing-status.md"
   [ "$status" -eq 0 ]
   grep -Eq '^status: active$' "$TMP/c-missing-status.md"
-  grep -Eq '^domains:.*infra'  "$TMP/c-missing-status.md"
+  grep -Eq '^domains:.*infra' "$TMP/c-missing-status.md"
 }
 
 @test "domains: null is treated as incomplete and filled (website)" {
-  run bash "$HOOK" "$TMP/f-null-domains.md"
+  run bash "$VDA" frontmatter "$TMP/f-null-domains.md"
   [ "$status" -eq 0 ]
   grep -Eq '^domains:.*website' "$TMP/f-null-domains.md"
   ! grep -Eq '^domains: *null' "$TMP/f-null-domains.md"
 }
 
-# ── Guards: must hold before AND after the fix ───────────────────────
+@test "missing batch fields are added to incomplete frontmatter" {
+  run bash "$VDA" frontmatter "$TMP/g-missing-batch.md"
+  [ "$status" -eq 0 ]
+  grep -q 'file_locks: \[\]' "$TMP/g-missing-batch.md"
+  grep -q 'shared_changes: false' "$TMP/g-missing-batch.md"
+  grep -q 'batch_id: null' "$TMP/g-missing-batch.md"
+}
+
+# ── Guards: must hold before AND after ────────────────────────────────
 
 @test "deliberate status: done is preserved, not forced to active" {
-  run bash "$HOOK" "$TMP/d-deliberate-done.md"
+  run bash "$VDA" frontmatter "$TMP/d-deliberate-done.md"
   [ "$status" -eq 0 ]
   grep -Eq '^status: done$' "$TMP/d-deliberate-done.md"
   ! grep -Eq '^status: active$' "$TMP/d-deliberate-done.md"
@@ -141,7 +171,7 @@ teardown() { rm -rf "$TMP"; }
 
 @test "complete frontmatter is idempotent (no churn on re-run)" {
   before="$(cat "$TMP/e-complete.md")"
-  run bash "$HOOK" "$TMP/e-complete.md"
+  run bash "$VDA" frontmatter "$TMP/e-complete.md"
   [ "$status" -eq 0 ]
   after="$(cat "$TMP/e-complete.md")"
   [ "$before" = "$after" ]
@@ -149,22 +179,20 @@ teardown() { rm -rf "$TMP"; }
 
 @test "CRLF complete frontmatter is not duplicated (idempotent, \\r-tolerant)" {
   printf -- '---\r\ntitle: X\r\ndomains: [infra]\r\nstatus: active\r\npr_number: null\r\n---\r\n\r\n# Plan\r\n\r\nTouches k3d/.\r\n' > "$TMP/crlf.md"
-  run bash "$HOOK" "$TMP/crlf.md"
+  run bash "$VDA" frontmatter "$TMP/crlf.md"
   [ "$status" -eq 0 ]
-  # must NOT prepend a second block — exactly one delimiter pair (\r-tolerant count)
   count="$(awk '{sub(/\r$/,"")} /^---$/{c++} END{print c+0}' "$TMP/crlf.md")"
   [ "$count" -eq 2 ]
 }
 
 @test "no duplicate frontmatter block is ever created" {
-  bash "$HOOK" "$TMP/b-empty-domains.md" >/dev/null
-  # exactly one frontmatter delimiter pair at the top: line 1 is --- and the
-  # next --- closes it; there must be only ONE leading block.
+  bash "$VDA" frontmatter "$TMP/b-empty-domains.md" >/dev/null
   [ "$(head -1 "$TMP/b-empty-domains.md")" = "---" ]
   count="$(awk '/^---$/{c++} END{print c+0}' "$TMP/b-empty-domains.md")"
-  # a single frontmatter block contributes exactly 2 delimiter lines
   [ "$count" -eq 2 ]
 }
+
+# ── --activate ────────────────────────────────────────────────────────
 
 @test "--activate forces status:active even over an existing completed value" {
   cat > "$TMP/d-completed.md" <<'EOF'
@@ -177,7 +205,7 @@ status: completed
 # Done Plan
 Touches k3d/ kustomize overlays.
 EOF
-  run bash "$HOOK" --activate "$TMP/d-completed.md"
+  run bash "$VDA" frontmatter --activate "$TMP/d-completed.md"
   [ "$status" -eq 0 ]
   grep -q "^status: active$" "$TMP/d-completed.md"
 }
@@ -193,10 +221,12 @@ status: completed
 # Keep Plan
 Touches k3d/ kustomize overlays.
 EOF
-  run bash "$HOOK" "$TMP/e-keep.md"
+  run bash "$VDA" frontmatter "$TMP/e-keep.md"
   [ "$status" -eq 0 ]
   grep -q "^status: completed$" "$TMP/e-keep.md"
 }
+
+# ── --spec ────────────────────────────────────────────────────────────
 
 @test "--spec adds spec frontmatter to a spec missing it" {
   cat > "$TMP/f-spec.md" <<'EOF'
@@ -204,11 +234,11 @@ EOF
 
 Some design prose.
 EOF
-  run bash "$HOOK" --spec "$TMP/f-spec.md"
+  run bash "$VDA" frontmatter --spec "$TMP/f-spec.md"
   [ "$status" -eq 0 ]
   head -1 "$TMP/f-spec.md" | grep -q '^---$'
   grep -q '^ticket_id:' "$TMP/f-spec.md"
-  grep -q '^plan_ref:'  "$TMP/f-spec.md"
+  grep -q '^plan_ref:' "$TMP/f-spec.md"
   grep -q '^status: active$' "$TMP/f-spec.md"
   grep -q '^date:' "$TMP/f-spec.md"
 }
@@ -225,14 +255,14 @@ date: 2026-06-13
 # Already Has It
 EOF
   before="$(cat "$TMP/g-spec.md")"
-  run bash "$HOOK" --spec "$TMP/g-spec.md"
+  run bash "$VDA" frontmatter --spec "$TMP/g-spec.md"
   [ "$status" -eq 0 ]
   [ "$before" == "$(cat "$TMP/g-spec.md")" ]
 }
 
-# ── ticket_id derivation (the T000886 batch bug) ─────────────────────
+# ── ticket_id derivation ──────────────────────────────────────────────
 
-@test "no frontmatter: ticket_id derived from body **Ticket:** line, not null" {
+@test "no frontmatter: ticket_id derived from body **Ticket:** line" {
   cat > "$TMP/h-body-ticket.md" <<'EOF'
 # Plan — Some Feature
 
@@ -241,7 +271,7 @@ EOF
 
 Touches scripts/ and skills.
 EOF
-  run bash "$HOOK" "$TMP/h-body-ticket.md"
+  run bash "$VDA" frontmatter "$TMP/h-body-ticket.md"
   [ "$status" -eq 0 ]
   grep -q '^ticket_id: T000886$' "$TMP/h-body-ticket.md"
   ! grep -Eq '^ticket_id: *null' "$TMP/h-body-ticket.md"
@@ -253,7 +283,7 @@ EOF
 
 Touches scripts/factory and tests/.
 EOF
-  run bash "$HOOK" "$TMP/2026-06-16-t000884.md"
+  run bash "$VDA" frontmatter "$TMP/2026-06-16-t000884.md"
   [ "$status" -eq 0 ]
   grep -q '^ticket_id: T000884$' "$TMP/2026-06-16-t000884.md"
 }
@@ -273,14 +303,13 @@ status: active
 
 Touches k3d/ manifests.
 EOF
-  run bash "$HOOK" "$TMP/i-null-ticket.md"
+  run bash "$VDA" frontmatter "$TMP/i-null-ticket.md"
   [ "$status" -eq 0 ]
   grep -q '^ticket_id: T000999$' "$TMP/i-null-ticket.md"
-  # domains were also re-derived (infra), proving combined repair
   grep -Eq '^domains:.*infra' "$TMP/i-null-ticket.md"
 }
 
-@test "ticket_id null stays null (idempotent) when NOT derivable from body or slug" {
+@test "ticket_id null stays null (idempotent) when NOT derivable" {
   cat > "$TMP/j-undeterminable.md" <<'EOF'
 ---
 title: Generic
@@ -300,10 +329,12 @@ depends_on_plans: []
 Touches k3d/ manifests.
 EOF
   before="$(cat "$TMP/j-undeterminable.md")"
-  run bash "$HOOK" "$TMP/j-undeterminable.md"
+  run bash "$VDA" frontmatter "$TMP/j-undeterminable.md"
   [ "$status" -eq 0 ]
   [ "$before" = "$(cat "$TMP/j-undeterminable.md")" ]
 }
+
+# ── --validate ────────────────────────────────────────────────────────
 
 @test "--validate auto-fills a missing title from the first H1" {
   cat > "$TMP/v-no-title.md" <<'EOF'
@@ -317,12 +348,12 @@ status: active
 
 Touches k3d/ manifests.
 EOF
-  run bash "$HOOK" --validate "$TMP/v-no-title.md"
+  run bash "$VDA" frontmatter --validate "$TMP/v-no-title.md"
   [ "$status" -eq 0 ]
   grep -q '^title: Derived Title Plan$' "$TMP/v-no-title.md"
 }
 
-@test "--validate exits 1 when domains is missing and cannot be derived to non-empty" {
+@test "--validate exits 1 when domains is missing and cannot be derived" {
   cat > "$TMP/v-no-domains.md" <<'EOF'
 ---
 title: Has Title
@@ -335,6 +366,6 @@ domains: []
 
 Prose with no routing signals whatsoever zzz.
 EOF
-  run bash "$HOOK" --validate "$TMP/v-no-domains.md"
+  run bash "$VDA" frontmatter --validate "$TMP/v-no-domains.md"
   [ "$status" -eq 1 ]
 }

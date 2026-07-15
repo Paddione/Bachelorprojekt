@@ -42,6 +42,5 @@ jobs:
         # SHA-gepinnt (Supply-Chain: Action erhaelt OPENCODE_API_KEY). v1.17.18 (2026-07-09).
         # Bump via Review/Dependabot; nie @latest fuer secret-tragende Third-Party-Actions.
         uses: anomalyco/opencode/github@b1fc8113948b518835c2a39ece49553cffe9b30c
-        env:
         with:
           model: llamacpp-mtp/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf

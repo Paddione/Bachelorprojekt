@@ -3877,7 +3877,7 @@ tasks:
       - docker build -t ${STUDIO_IMAGE:-studio-server}:latest studio-server/
       - |
           if [ "{{.ENV}}" = "dev" ] || [ "{{.ENV}}" = "" ]; then
-            k3d image import ${STUDIO_IMAGE:-studio-server}:latest -c ${CLUSTER_NAME:-k3d-dev} || true
+            k3d image import ${STUDIO_IMAGE:-studio-server}:latest -c {{.CLUSTER_NAME}}
           fi
       - echo "✓ studio image built"
 

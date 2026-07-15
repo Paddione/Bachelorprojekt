@@ -293,6 +293,11 @@ Seit T001415 (Finding 2) beendet sich `devflow-ci-watch.sh` zusätzlich mit Exit
 
 ## Schritt 6: Auto-Merge wenn CI grün
 
+> **⚠️ M1-Lesson (T001899):** Auto-Merge **nicht** vor dem ersten Implementierungs-Push aktivieren.
+> Proposal-Commits auf Feature-Branches triggern den Auto-Merge-Flow und können das Ticket
+> vorzeitig schließen (Merge = Abschluss, T001092). Auto-Merge erst enable, wenn mindestens ein
+> Implementierungs-Commit auf dem Branch liegt.
+
 > **Hinweis:** `E2E PR` ist kein required check (T000722) — blockiert den Merge NICHT.
 > Die Required-Check-Liste lebt in [ci-fix-loop](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ci-fix-loop.md).
 **Fail-closed Phase-Chain-Gate (T001444) — PFLICHT vor dem Merge, KEIN `|| true`:**

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.183.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.183.1...website-v1.183.2) (2026-07-15)
+
+
+### Bug Fixes
+
+* **infra:** restore k3d base for local dev cluster [T001853] ([#2842](https://github.com/Paddione/Bachelorprojekt/issues/2842)) ([b5fa0fd](https://github.com/Paddione/Bachelorprojekt/commit/b5fa0fd0921afd6df70b3c38f17175354f7d067b))
+
 ## [1.183.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.183.0...website-v1.183.1) (2026-07-15)
 
 

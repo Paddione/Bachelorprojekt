@@ -50,27 +50,53 @@ is_excluded() {
   return 1
 }
 
-# --- groups: either a map "name: glob(s)" (production manifest) or a list of
-# {group,priority,include} objects (test fixtures). Full glob-priority
-# resolution is out of scope here — every row is tagged with the default
-# group; downstream compilation reads the manifest directly for grouping.
+# shellcheck source=./brain-group-match.sh
+source "$(dirname "${BASH_SOURCE[0]}")/brain-group-match.sh"
+
+# Extracted once (not per file — see brain-group-match.sh perf note).
+brain_group_section_for_manifest "$MANIFEST"
+GROUPS_SECTION="$_BRAIN_GROUP_SECTION"
+
+# Files that don't match any group's patterns are not brain-wiki sources —
+# skip them rather than defaulting to a catch-all "docs" group (T001608:
+# defaulting swept in the whole repo tree, ~1921 unrelated files).
 group_for() {
-  echo "docs"
+  local rel="$1"
+  brain_group_for "$rel" "$GROUPS_SECTION" || return 1
+  echo "$_BRAIN_GROUP_OUT"
 }
 
 slugify() {
   local rel="$1"
   rel="${rel%.*}"
+  rel="${rel#\.}"
   echo "$rel" | tr '/_ ' '---' | tr '[:upper:]' '[:lower:]'
 }
 
-find "$ROOT" -type f \( \
+find "$ROOT" \
+  \( -name .git \
+     -o -name node_modules \
+     -o -name .astro \
+     -o -name .taskmaster \
+     -o -name .agy \
+     -o -name .antigravitycli \
+     -o -name .design-sync \
+     -o -name dist \
+     -o -name .venv \
+     -o -name __pycache__ \
+     -o -name .claude \
+     -o -name generated \
+     -o -name archive \
+     -o -name legacy-html \
+     -o -name drift-reports \) -prune \
+  -o -type f \( \
   -name '*.md' -o -name '*.yaml' -o -name '*.yml' -o \
   -name '*.sh' -o -name '*.bats' -o -name '*.json' -o \
-  -name '*.toml' \) 2>/dev/null | sort | while read -r file; do
+  -name '*.toml' \) -print 2>/dev/null | sort | while read -r file; do
   rel="${file#"$ROOT"/}"
   is_excluded "$rel" && continue
+  grp="$(group_for "$rel")" || true
+  [[ -z "$grp" ]] && continue
   slug="$(slugify "$rel")"
-  grp="$(group_for "$rel")"
   printf '%s\t%s\t%s\n' "$rel" "$slug" "$grp"
 done

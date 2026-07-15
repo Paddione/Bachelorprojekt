@@ -15,7 +15,10 @@ Multi-phase audit of the `shared-db` on both `mentolder` and `korczewski` cluste
 - 0 DROP candidates qualified — Module 2 (runtime stats) gated out by recent postgres restart (3.5d uptime, needs ≥30d)
 
 ## Spec
-[`docs/superpowers/specs/2026-05-23-db-audit-phase5-design.md`](../../superpowers/specs/2026-05-23-db-audit-phase5-design.md)
+Design-Doc entfernt (Doc-Cleanup T001869) — Volltext in der Git-History
+(`docs/superpowers/specs/2026-05-23-db-audit-phase5-design.md`). Das wiederverwendbare
+Vorgehen (Module, Tiering-Kriterien, Safety-Rails) ist destilliert in
+[`docs/runbooks/db-audit-playbook.md`](../../runbooks/db-audit-playbook.md).
 
 ## Plan
 Kein separater Implementierungsplan — Audit wurde inline ausgeführt (siehe `evidence/` und Hinweis im Re-running-Abschnitt unten).

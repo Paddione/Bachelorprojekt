@@ -71,10 +71,17 @@
             "output": 8192
           }
         },
-        "qwythos-9b-v2": {
-          "name": "Qwythos-9B-v2 (empero-ai, MTP Q4_K_M, vision-capable via mmproj, loaded at 331k ctx in LM Studio) — FTPO-fixed looping (6.7%→0%), MTP head restored, replaces qwythos-9b-claude-mythos-5-1m — CAVEAT (T001733): still injects a fixed identity directive into every system message, unverified whether v2 fixed this vs. v1; use with care for tool-calling-heavy work",
+        "qwen3.6-14b-a3b-fablevibes": {
+          "name": "Qwen3.6-14B-A3B FableVibes (14B-A3B MoE, Q4_K_M, 32k ctx, 4 parallel slots)",
           "limit": {
-            "context": 330000,
+            "context": 32768,
+            "output": 8192
+          }
+        },
+        "qwen3.6-14b-a3b-fablevibes@262k": {
+          "name": "Qwen3.6-14B-A3B FableVibes (14B-A3B MoE, Q4_K_M, 262k ctx, concurrent/single-session)",
+          "limit": {
+            "context": 262000,
             "output": 8192
           }
         }
@@ -83,36 +90,36 @@
   },
   "agent": {
     "qwen35-iq4": {
-      "description": "PREFERRED FIRST CHOICE for subagent delegation: Qwythos-9B-v2 (empero-ai, MTP Q4_K_M, 331k ctx) on LM Studio - serialized (1 at a time), shares main 330k context. Try this first for subagent dispatch.",
+      "description": "PREFERRED FIRST CHOICE for subagent delegation: Qwen3.6-14B-A3B FableVibes (14B-A3B MoE, Q4_K_M, 262k ctx) on LM Studio - serialized (1 at a time). Try this first for subagent dispatch.",
       "mode": "subagent",
-      "model": "lmstudio/qwythos-9b-v2",
+      "model": "lmstudio/qwen3.6-14b-a3b-fablevibes",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#0EA5E9",
       "temperature": 0.7,
       "permission": { "edit": "deny", "write": "deny", "bash": "deny" }
     },
     "qwen3-14b": {
-      "description": "Single-session implementation/planning agent: Qwythos-9B-v2 (empero-ai, MTP Q4_K_M, 331k ctx) on LM Studio",
+      "description": "Single-session implementation/planning agent: Qwen3.6-14B-A3B FableVibes (14B-A3B MoE, Q4_K_M, 262k ctx) on LM Studio",
       "mode": "subagent",
-      "model": "lmstudio/qwythos-9b-v2",
+      "model": "lmstudio/qwen3.6-14b-a3b-fablevibes",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#F59E0B",
       "temperature": 0.7,
       "permission": { "edit": "deny", "write": "deny", "bash": "deny" }
     },
     "qwen35": {
-      "description": "Subagent using Qwythos-9B-v2 (empero-ai, MTP Q4_K_M, 331k ctx) on LM Studio - serialized (1 at a time), shares main 330k context",
+      "description": "Subagent using Qwen3.6-14B-A3B FableVibes (14B-A3B MoE, Q4_K_M, 262k ctx) on LM Studio - serialized (1 at a time)",
       "mode": "subagent",
-      "model": "lmstudio/qwythos-9b-v2",
+      "model": "lmstudio/qwen3.6-14b-a3b-fablevibes",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#22C55E",
       "temperature": 0.7,
       "permission": { "edit": "deny", "write": "deny", "bash": "deny" }
     },
     "qwen35-hq": {
-      "description": "Subagent using Qwythos-9B-v2 (empero-ai, MTP Q4_K_M, 331k ctx) on LM Studio - serialized (1 at a time), shares main 330k context, use when max per-call context matters more than concurrency",
+      "description": "Subagent using Qwen3.6-14B-A3B FableVibes (14B-A3B MoE, Q4_K_M, 262k ctx) on LM Studio - serialized (1 at a time), use when max per-call context matters more than concurrency",
       "mode": "subagent",
-      "model": "lmstudio/qwythos-9b-v2",
+      "model": "lmstudio/qwen3.6-14b-a3b-fablevibes",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#16A34A",
       "temperature": 0.7,

@@ -2821,7 +2821,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 509,
+      "file_count": 510,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -2895,6 +2895,7 @@
         "scripts/brain-auto-memory-scan.sh",
         "scripts/brain-bootstrap.sh",
         "scripts/brain-gekko-inbox.sh",
+        "scripts/brain-group-match.sh",
         "scripts/brain-ingest-transform.sh",
         "scripts/brain-ingest-worklist.sh",
         "scripts/brain-ingest.sh",

@@ -19,6 +19,10 @@ Thematischer Hub der `wiki/`-Seiten.
 - [[first-aid]] — Erste Hilfe bei roter CI.
 - [[llm-workflows]] — LLM-Anreicherung: Prompt-Vorlagen + Agent-Konventionen.
 
+## Software & Plattform
+
+- [[capabilities]] — Software-Capabilities und Plattform-Fähigkeiten.
+
 ## Beispiele
 
 - [[example-note]] — Beispielseite, demonstriert gültiges Frontmatter + Wikilink.

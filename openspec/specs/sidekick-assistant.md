@@ -312,6 +312,27 @@ when the `kiConfig.apiKey` is null and no fallback environment variable is set.
 
 ---
 
+### Requirement: Session-Agent-Factory-Routing und OpenAICompatibleSessionAgent RAG-Injection
+<!-- baseline aus Codebase-Analyse am 2026-07-15 (T001869) — dokumentiert shipped Verhalten aus feature/lmstudio-session-pgvector -->
+
+The factory (`session-agent-factory.ts`) SHALL route providers to session agents as follows: `claude` → `ClaudeSessionAgent` (Anthropic SDK, tool-based pgvector retrieval, supports custom baseURL); every `custom_*` provider plus `lumo`, `deepseek`, `anthropic`, `local-cluster`, `local-lmstudio`, `local-ollama` → `OpenAICompatibleSessionAgent`; `openai` and `mistral` → `LegacySessionAgent` (no pgvector).
+
+The `OpenAICompatibleSessionAgent` SHALL inject coaching knowledge before every LLM call: it calls `searchCoachingKnowledgeTool(assembledUserPrompt, 4)` and, when chunks are found, prepends a `## Coaching-Wissen` section to the effective system prompt. It calls the endpoint via the OpenAI SDK (Bearer auth from `kiConfig.apiKey`) and supports both `generate` and `stream`.
+
+#### Scenario: Lokaler LM-Studio-Provider erhält pgvector-RAG
+
+- **GIVEN** eine aktive `coaching.ki_config`-Zeile mit `provider = 'custom_lmstudio'` (oder z.B. `local-ollama`)
+- **WHEN** ein Session-Schritt generiert wird
+- **THEN** instanziiert die Factory `OpenAICompatibleSessionAgent`, ruft vor dem LLM-Call `searchCoachingKnowledgeTool` auf und webt gefundene Chunks als `## Coaching-Wissen` in den System-Prompt ein
+
+#### Scenario: OpenAI/Mistral bleiben ohne RAG-Injection
+
+- **GIVEN** eine aktive Config mit `provider = 'openai'` oder `'mistral'`
+- **WHEN** die Factory aufgerufen wird
+- **THEN** wird `LegacySessionAgent` zurückgegeben und kein pgvector-Retrieval durchgeführt
+
+---
+
 ### Requirement: Session-History aus akzeptierten und übersprungenen Schritten
 
 The system SHALL build a conversation history exclusively from steps with status `accepted`

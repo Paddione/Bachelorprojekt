@@ -2,7 +2,7 @@
 
 **Audit date:** 2026-05-23
 **Scope:** `shared-db` on `mentolder` + `korczewski`, `website` + `postgres` databases. `postgres` DBs are empty on both clusters; effective scope is `website` DB.
-**Spec:** [`2026-05-23-db-audit-phase5-design.md`](../../superpowers/specs/2026-05-23-db-audit-phase5-design.md)
+**Spec:** Design-Doc entfernt (T001869; Volltext in Git-History) — Vorgehen destilliert in [`docs/runbooks/db-audit-playbook.md`](../../runbooks/db-audit-playbook.md)
 **Ticket:** [T000150](https://web.mentolder.de/admin/bugs)
 
 ---

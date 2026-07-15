@@ -142,7 +142,8 @@ func RegisterMishapTools(s *server.MCPServer) {
 				mcp.Enum("broken", "degraded", "suspicious", "security", "drift", "process"),
 				mcp.Required(),
 			),
-			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)")),
+			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)"),
+				mcp.Enum("mentolder", "korczewski")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			a := getArgs(req)
@@ -212,7 +213,8 @@ func RegisterMishapTools(s *server.MCPServer) {
 	s.AddTool(
 		mcp.NewTool("flush_mishap_buffer",
 			mcp.WithDescription("Erzwingt ein Bundle-Ticket aus dem aktuellen Buffer — auch bei <3 Einträgen (Session-Ende)."),
-			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)")),
+			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)"),
+				mcp.Enum("mentolder", "korczewski")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			a := getArgs(req)

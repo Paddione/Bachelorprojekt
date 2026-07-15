@@ -17,7 +17,8 @@ func RegisterTriageTools(s *server.MCPServer) {
 		mcp.NewTool("triage_ticket",
 			mcp.WithDescription("Setzt Triage-Felder eines Tickets: type, severity, priority, attention_mode, status."),
 			mcp.WithString("id", mcp.Description("external_id z.B. T000123"), mcp.Required()),
-			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)")),
+			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)"),
+				mcp.Enum("mentolder", "korczewski")),
 			mcp.WithString("type", mcp.Description("bug, feature, task, project"),
 				mcp.Enum("bug", "feature", "task", "project")),
 			mcp.WithString("severity", mcp.Description("critical, major, minor, trivial"),
@@ -86,7 +87,8 @@ func RegisterTriageTools(s *server.MCPServer) {
 	s.AddTool(
 		mcp.NewTool("backfill_ticket_id",
 			mcp.WithDescription("Findet Tickets ohne external_id (T-Nummer) und setzt die nächste Sequenznummer."),
-			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)")),
+			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)"),
+				mcp.Enum("mentolder", "korczewski")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			a := getArgs(req)

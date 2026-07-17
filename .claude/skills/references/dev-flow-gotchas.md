@@ -74,6 +74,21 @@ bash scripts/register-scope.sh <new-scope>
 This is advisory (the post-commit `preflight-pr-scope.sh` gate still exists as the hard backstop),
 but doing it pre-commit avoids the soft-reset/recommit cycle entirely.
 
+### [T001914] Health-goal commits use scope `goals`, not `health`
+**Context**: During T001901 (health-goals-refresh, PR #2881) a commit was written with
+`chore(health): ...`. `health` is not a registered scope in `commitlint.config.cjs`
+`NAMED_SCOPES` — only `goals` is. The `pre-push` hook blocked the push and the commit had to be
+amended to `chore(goals): ...` before it could land. The confusion is understandable: the repo
+health dashboard section is literally named `#health` (see `.claude/lib/goals.md` header) and
+`HEALTH_GOAL_SCOPE_RE` (`G-[A-Z][A-Z0-9]+`) matches individual goal IDs like `G-SIZE02` — neither
+of those is the same thing as a free-standing `health` scope.
+**Rule**: Commits touching `.claude/lib/goals.md`, health-goal baselines/measurements, or any
+`G-<ID>` gate belong to scope `goals` (established, used in 15+ prior commits) — or, if the
+commit is about one specific goal ID, use that goal ID itself as the scope (e.g.
+`fix(G-SIZE02): ...`), which `HEALTH_GOAL_SCOPE_RE` already allows. Do not introduce a new
+generic `health` scope for this — `goals` already owns the domain and splitting it would only
+create ambiguity about which of the two to use for future health-goal work.
+
 ### [T000344] Database row check before file deletion
 **Context**: Deleting plan markdown file before verifying database storage.
 **Rule**: Always verify that the plan exists in `tickets.ticket_plans` by checking that the row count is greater than 0 before running `rm` on the plan file.

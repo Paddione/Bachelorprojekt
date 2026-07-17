@@ -25,8 +25,19 @@ patches:
         path: /spec/tls
         value:
           secretName: korczewski-tls
-      - op: add
+      - op: replace
         path: /spec/routes/0/middlewares
         value:
+          - name: website-compress
+            namespace: website-korczewski
+          - name: website-static-cache
+            namespace: website-korczewski
+          - name: website-security-headers
+            namespace: website-korczewski
+      - op: replace
+        path: /spec/routes/1/middlewares
+        value:
+          - name: website-compress
+            namespace: website-korczewski
           - name: website-security-headers
             namespace: website-korczewski

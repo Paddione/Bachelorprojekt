@@ -76,8 +76,11 @@ find .claude/skills -name SKILL.md -exec wc -l {} + | awk '$2!="total"&&$1>500{c
 ## G-DB01 — FK-Spalten ohne Index: 4 → 0
 
 **Was:** Zählt FK-Spalten mit Single-Column-FK, die keinen passenden Index haben. Live-Wert 4
-(3 Tabellen mit je einem fehlenden Index, plus eine Wiederholung). Nur Messung verdrahtet,
-kein erzwungener Fix — die Indizes werden in einem Folge-Ticket nachgezogen.
+(3 Tabellen mit je einem fehlenden Index, plus eine Wiederholung): `public.onboarding_state.brand`,
+`sessions.templates.created_from_template_id`, `studio.sessions.client_id`,
+`studio.sessions.template_of`. Fix als Migration `website/src/db/migrations/20260717_add_missing_fk_indexes.sql`
+erstellt (T001905); wird beim nächsten `task workspace:deploy` (push-based) automatisch über
+`pnpm --dir website db:migrate` angewendet — Live-Wert aktualisiert sich erst nach Deploy.
 
 ```bash
 WITH fk AS (
@@ -88,7 +91,7 @@ idx AS (SELECT i.indrelid AS relid, i.indkey[0] AS col FROM pg_index i)
 SELECT count(*) FROM (SELECT relid,col FROM fk EXCEPT SELECT relid,col FROM idx) x;
 ```
 
-> **B · Baseline:** 4 · **Target:** 0 · **Aufwand:** gering (3 Indizes via Migration) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001905 (Nachfolger von T001739; Messung verdrahtet, Index-Fix ausstehend)
+> **B · Baseline:** 4 · **Target:** 0 · **Aufwand:** gering (4 Indizes via Migration) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001905 (Nachfolger von T001739; Migration erstellt, Anwendung erfolgt beim nächsten Deploy)
 
 ## G-DB03 — brand-Spalten ohne CHECK-Constraint: 44 → 0
 
@@ -344,7 +347,7 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 | G-GIT03 | T001902 | offen (7 > Target 6; manuelle Entscheidung über 2 Nutzer-Assets — Nachfolger von T001717) |
 | G-SIZE02 | T001903 | offen (17 Großdateien; Nachfolger von T001556, das ohne Messwert-Fix archiviert wurde) |
 | G-AGENTIC09 | T001904 | offen (dev-flow-plan/SKILL.md 508 Zeilen; Nachfolger von T001559) |
-| G-DB01 | T001905 | offen (Messung verdrahtet; Index-Fix ausstehend — Nachfolger von T001739) |
+| G-DB01 | T001905 | Migration erstellt, Anwendung ausstehend (nächster Deploy) — Nachfolger von T001739 |
 | G-DB03 | T001906 | offen (Messung verdrahtet; CHECK-Constraints ausstehend — Nachfolger von T001739) |
 | G-DB09 | T001907 | offen (Slow Queries, erster Scan + Optimierung — Nachfolger von T001838) |
 | G-DB10 | T001908 | offen (Unused Indexes, Baseline fehlt — Nachfolger von T001839) |

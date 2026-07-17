@@ -3,6 +3,9 @@ kind: Kustomization
 
 resources:
   - claude-code-agent-sa.yaml
+  - claude-code-agent-clusterrole.yaml
+  - claude-code-agent-role.yaml
+  - claude-code-agent-rolebinding.yaml
   - claude-code-mcp-monolith-deploy.yaml
   - claude-code-mcp-monolith-svc.yaml
 

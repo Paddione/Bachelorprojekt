@@ -25,7 +25,7 @@
     "target": 8,
     "unit": "",
     "status": "unknown",
-    "measurement": "git ls-files VideoVault .opencode | grep -E '\\.(ts|tsx|js|mjs|svelte|sh|py)$' \\\n  | grep -v node_modules | xargs wc -l 2>/dev/null | grep -v ' total$' | awk '$1>600' | wc -l",
+    "measurement": "# T001903-Fix: symlinks ausschließen (.opencode/plugins/*.ts sind Symlinks auf bereits\n# gezählte .opencode/skills/dev-flow/*.ts-Dateien; die naive Variante ohne `[ -L ]`-Filter\n# zählt dieselben Zeilen doppelt, z.B. 19 statt 17 bei zwei aktiven Plugin-Symlinks).\ngit ls-files VideoVault .opencode | grep -E '\\.(ts|tsx|js|mjs|svelte|sh|py)$' \\\n  | grep -v node_modules \\\n  | while read -r f; do [ -L \"$f\" ] || echo \"$f\"; done \\\n  | xargs wc -l 2>/dev/null | grep -v ' total$' | awk '$1>600' | wc -l",
     "source": ".claude/lib/goals.md · G-SIZE02",
     "measured_at": "2026-07-01"
   },

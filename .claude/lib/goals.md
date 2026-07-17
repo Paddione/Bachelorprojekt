@@ -52,14 +52,27 @@ Im nächsten Sprint einplanen.
 
 ## G-SIZE02 — Großdateien außerhalb Gate-Scope: 17 → ≤ 8
 
-15× VideoVault/, 2× .opencode/ — von keinem Gate überwacht.
+3× .opencode/ (bereits sanktionierte S1-Gate-Ignore-Einträge, Plugin-Architektur-Zwang — siehe
+`docs/code-quality/gates.yaml` s1.ignore), 14× VideoVault/ (echter, aktiv genutzter Produktionscode) —
+von keinem Größen-Gate überwacht, da `VideoVault/` nicht in `scan.code_roots` liegt.
 
 ```bash
+# T001903-Fix: symlinks ausschließen (.opencode/plugins/*.ts sind Symlinks auf bereits
+# gezählte .opencode/skills/dev-flow/*.ts-Dateien; die naive Variante ohne `[ -L ]`-Filter
+# zählt dieselben Zeilen doppelt, z.B. 19 statt 17 bei zwei aktiven Plugin-Symlinks).
 git ls-files VideoVault .opencode | grep -E '\.(ts|tsx|js|mjs|svelte|sh|py)$' \
-  | grep -v node_modules | xargs wc -l 2>/dev/null | grep -v ' total$' | awk '$1>600' | wc -l
+  | grep -v node_modules \
+  | while read -r f; do [ -L "$f" ] || echo "$f"; done \
+  | xargs wc -l 2>/dev/null | grep -v ' total$' | awk '$1>600' | wc -l
 ```
 
-> **B · Baseline:** 17 (unverändert) · **Target:** ≤ 8 · **Aufwand:** ~2–3 Wochen · **Messzyklus:** pro Merge auf VideoVault/ · **Reproduzierbar:** ja · **Ticket:** T001903 (Nachfolger von T001556, archiviert ohne Messwert-Fix)
+> **B · Baseline:** 17 (verifiziert, unverändert — Symlink-Doppelzählungs-Bug in der Messung
+> gefixt, echter Bestand bleibt 17) · **Target:** ≤ 8 · **Aufwand:** ~2–3 Wochen · **Messzyklus:**
+> pro Merge auf VideoVault/ · **Reproduzierbar:** ja · **Ticket:** T001903 (Nachfolger von T001556,
+> archiviert ohne Messwert-Fix — dessen Plan referenzierte nicht-existente Pfade wie
+> `VideoVault/src/lib/upload.ts`, daher blieben alle Tasks wirkungslos) → Nachfolger **T001920**
+> (echtes VideoVault-Refactoring mit den 14 realen Dateipfaden, über `dev-flow-plan` statt Chore,
+> da ~9+ Datei-Splits kein "no behavior change"-Chore sind)
 
 ## G-AGENTIC09 — SKILL.md > 500 Zeilen: 1 🟡 (Ziel ≤ 0)
 
@@ -337,12 +350,14 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 
 **Baseline-Update 2026-07-14 (T001804):** G-AGENTIC06 1→0 (OVERVIEW.md Zähler 37→36 + Mess-Umstellung auf getrackte SKILL.md via `git ls-files` — lokal via market-cli installierte Skills kippen das Gate nicht mehr, Präzedenz T001783). G-AGENTIC07 6→0 (2 untrackte lokale Skills aus dem Mess-Scope entfernt; 4 getrackte Drittanbieter-/ML-Skills — ui-ux-pro-max, unsloth, gguf-quantization, speculative-decoding — in neuer OVERVIEW.md-Sektion registriert). G-AGENTIC08 1→0 (Mess-Bug: Regex ohne Anker matchte `scripts/search.py` als Substring des existierenden Pfads `.claude/skills/ui-ux-pro-max/scripts/search.py` — Lookbehind ergänzt). G-AGENTIC11 5→0 (CLAUDE.md-opencode-Liste um `github-mcp`, `playwright`, `sequential-thinking`, `webresearch`, `docfork` ergänzt). G-DOC02 216→190 (CLAUDE.md kondensiert: Merge=Abschluss- und Bug-Triage-Blöcke entwrappt, leere `### Brett`-Überschrift und redundantes Oracle-Beispiel entfernt). G-AGENTIC09 1→0 (dev-flow-plan/SKILL.md 513→495 Zeilen, Prosa-Entwrapping ohne Inhaltsverlust). G-GIT03 bleibt 7 (>Target 6): Kandidaten `assets/grilling-brett-admin-panel/Brett Admin Panel.html` und `environments/korczewski/KERN Logo Design.html` sind Nutzer-Assets — Löschen/LFS braucht manuelle Entscheidung.
 
-**Offene Tickets (2026-07-17):** G-GIT03 (T001902), G-SIZE02 (T001903), G-AGENTIC09 (T001904), G-DB01 (T001905), G-DB03 (T001906), G-DB09 (T001907), G-DB10 (T001908), G-SEC06 (T001909), G-CI03 (T001910), G-FE05 (T001911), G-BRAIN14 (T001912)
+**Offene Tickets (2026-07-17):** G-GIT03 (T001902), G-AGENTIC09 (T001904), G-DB01 (T001905), G-DB03 (T001906), G-DB09 (T001907), G-DB10 (T001908), G-SEC06 (T001909), G-CI03 (T001910), G-FE05 (T001911), G-BRAIN14 (T001912), G-SIZE02 (T001920, Nachfolger von T001903 — echtes VideoVault-Refactoring)
+
+**Baseline-Update 2026-07-17 (T001903):** G-SIZE02 Messmethode gefixt — die naive `wc -l`-Zählung folgte den Symlinks `.opencode/plugins/background-agents.ts` und `.opencode/plugins/worktree.ts` (git-tracked Symlinks auf `.opencode/skills/dev-flow/*.ts`) und zählte deren Zeilen doppelt (19 statt 17). Messkommando um `[ -L "$f" ]`-Filter ergänzt. Echter, verifizierter Bestand bleibt bei 17 (3× .opencode/, bereits sanktioniert via S1-Gate-Ignore; 14× VideoVault/, echter Produktionscode, keine Duplikate/generierte Artefakte). T001556 hatte den Wert nie wirklich gefixt — der archivierte Plan referenzierte nicht-existente Pfade (`VideoVault/src/lib/upload.ts` statt der realen `VideoVault/client/src/...` / `VideoVault/server/...`-Struktur), daher blieben alle abgehakten Tasks wirkungslos. Zielwert ≤8 erfordert echtes, getestetes Code-Splitting über ~9 Dateien (~2-3 Wochen) — kein Chore-Scope (kein `node_modules` installiert, kein Testlauf als Regressionsnetz in dieser Session verfügbar) → Nachfolger-Ticket T001920 mit konkreten Split-Vorschlägen je realer Datei, zur Umsetzung über `dev-flow-plan`.
 
 | Ziel | Ticket | Status |
 |------|--------|--------|
 | G-GIT03 | T001902 | offen (7 > Target 6; manuelle Entscheidung über 2 Nutzer-Assets — Nachfolger von T001717) |
-| G-SIZE02 | T001903 | offen (17 Großdateien; Nachfolger von T001556, das ohne Messwert-Fix archiviert wurde) |
+| G-SIZE02 | T001903 | **gefixt** (Messmethode korrigiert — Symlink-Doppelzählung behoben; echter Bestand 17 verifiziert, davon 3 bereits sanktioniert. Zielwert ≤8 nicht erreichbar ohne echtes Code-Splitting → Nachfolger T001920) |
 | G-AGENTIC09 | T001904 | offen (dev-flow-plan/SKILL.md 508 Zeilen; Nachfolger von T001559) |
 | G-DB01 | T001905 | offen (Messung verdrahtet; Index-Fix ausstehend — Nachfolger von T001739) |
 | G-DB03 | T001906 | offen (Messung verdrahtet; CHECK-Constraints ausstehend — Nachfolger von T001739) |

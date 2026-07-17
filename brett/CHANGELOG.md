@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.40.1](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.40.0...brett-v0.40.1) (2026-07-17)
+
+
+### Bug Fixes
+
+* **brett:** admin_session_create — Toast bei session-active Fehler [T001935] ([#2930](https://github.com/Paddione/Bachelorprojekt/issues/2930)) ([6e305f8](https://github.com/Paddione/Bachelorprojekt/commit/6e305f8d11fd8f69f477b01772093b9d44b0eb6f))
+
 ## [0.40.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.39.1...brett-v0.40.0) (2026-07-17)
 
 

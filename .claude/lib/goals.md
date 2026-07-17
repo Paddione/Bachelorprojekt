@@ -129,7 +129,16 @@ pgAdmin-Blick entdeckt.
 db_scalar "SELECT count(*) FROM pg_stat_statements WHERE mean_exec_time > 1000"
 ```
 
-> **B · Baseline:** n/a · **Target:** 0 · **Aufwand:** gering (Messbefehl in health-goals-check.sh, Fix ist Query-Optimierung) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001907 (Nachfolger von T001838)
+Erster Scan (2026-07-17): **1 Treffer** — `COPY knowledge.chunks (id, document_id, collection_id,
+"position", text, embedding, metadata) TO stdout`, 52 calls, mean 9170ms, max 16751ms, 533291
+rows/call. Root cause: der nächtliche `pg_dump -Fc`-Backup-CronJob (`k3d/backup-cronjob.yaml`)
+dumpt die komplette DB inkl. `knowledge.chunks` (Vector-Embeddings-Tabelle) — der `COPY`-Befehl
+ist pg_dump-intern, keine App-seitige Query. Die Latenz ist erwartetes Backup-I/O, kein
+User-facing Performance-Problem und kein Kandidat für einen Index-Fix (Full-Table-Dump).
+Kein risikoarmer Chore-Fix möglich — Messmethode müsste zwischen Backup-COPY und echten
+App-Queries unterscheiden (analog VIEW-Ausschluss bei G-DB03/T001906). Nachfolgeticket T001926.
+
+> **B · Baseline:** 1 (False-Positive: Backup-COPY, kein App-Query) · **Target:** 0 · **Aufwand:** gering (Messbefehl in health-goals-check.sh, Fix ist Messmethoden-Korrektur — siehe Nachfolger) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001907 (**gefixt** — Baseline gemessen; Nachfolger T001926 für Messmethoden-Korrektur, Nachfolger von T001838)
 
 ## G-DB10 — Unused Indexes (idx_scan = 0): n/a → 0
 
@@ -361,7 +370,7 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 
 **Baseline-Update 2026-07-17 (T001903):** G-SIZE02 Messmethode gefixt — die naive `wc -l`-Zählung folgte den Symlinks `.opencode/plugins/background-agents.ts` und `.opencode/plugins/worktree.ts` (git-tracked Symlinks auf `.opencode/skills/dev-flow/*.ts`) und zählte deren Zeilen doppelt (19 statt 17). Messkommando um `[ -L "$f" ]`-Filter ergänzt. Echter, verifizierter Bestand bleibt bei 17 (3× .opencode/, bereits sanktioniert via S1-Gate-Ignore; 14× VideoVault/, echter Produktionscode, keine Duplikate/generierte Artefakte). T001556 hatte den Wert nie wirklich gefixt — der archivierte Plan referenzierte nicht-existente Pfade (`VideoVault/src/lib/upload.ts` statt der realen `VideoVault/client/src/...` / `VideoVault/server/...`-Struktur), daher blieben alle abgehakten Tasks wirkungslos. Zielwert ≤8 erfordert echtes, getestetes Code-Splitting über ~9 Dateien (~2-3 Wochen) — kein Chore-Scope (kein `node_modules` installiert, kein Testlauf als Regressionsnetz in dieser Session verfügbar) → Nachfolger-Ticket T001920 mit konkreten Split-Vorschlägen je realer Datei, zur Umsetzung über `dev-flow-plan`.
 
-**Offene Tickets (2026-07-17):** G-AGENTIC09 (T001904), G-DB01 (T001905), G-DB09 (T001907), G-DB10 (T001908), G-SEC06 (T001909), G-CI03 (T001910), G-FE05 (T001911), G-BRAIN14 (T001912), G-SIZE02 (T001920, Nachfolger von T001903 — echtes VideoVault-Refactoring), G-DB03 (T001925, Nachfolger von T001906 — echte 41-Tabellen-Migration in 3 Gruppen)
+**Offene Tickets (2026-07-17):** G-AGENTIC09 (T001904), G-DB01 (T001905), G-DB10 (T001908), G-SEC06 (T001909), G-CI03 (T001910), G-FE05 (T001911), G-BRAIN14 (T001912), G-SIZE02 (T001920, Nachfolger von T001903 — echtes VideoVault-Refactoring), G-DB03 (T001925, Nachfolger von T001906 — echte 41-Tabellen-Migration in 3 Gruppen), G-DB09 (T001926, Nachfolger von T001907 — Messmethoden-Korrektur Backup-COPY-Ausschluss)
 
 | Ziel | Ticket | Status |
 |------|--------|--------|

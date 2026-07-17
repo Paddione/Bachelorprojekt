@@ -1,5 +1,8 @@
 import type { WsDeps } from './ws-handler';
 import { resolvePlayerId, gateMutation } from './ws-handler';
+// E9: figurenbezogene Broadcasts role-aware — Messages zu hidden-Figuren
+// (Notizen, Possess/Release) dürfen Nicht-Leiter nie erreichen (Review-Major).
+import { broadcastFigureAware } from './hidden-filter';
 
 export function handleFigurePossess(ws: any, msg: any, room: string, deps: WsDeps): void {
   if (!gateMutation(ws, room, 'figure_possess', msg.figureId, deps)) {
@@ -14,7 +17,7 @@ export function handleFigurePossess(ws: any, msg: any, room: string, deps: WsDep
   }
   const playerId = resolvePlayerId(ws);
   deps.applyMutation(room, { type: 'figure_possess', figureId: msg.figureId, playerId });
-  deps.broadcast(room, {
+  broadcastFigureAware(deps as any, room, {
     type: 'figure_possessed',
     figureId: msg.figureId,
     playerId,
@@ -39,14 +42,14 @@ export function handleFigureRelease(ws: any, msg: any, room: string, deps: WsDep
       return;
     }
     deps.applyMutation(room, { type: 'figure_release', figureId: targetId, playerId });
-    deps.broadcast(room, { type: 'figure_released', figureId: targetId, playerId });
+    broadcastFigureAware(deps as any, room, { type: 'figure_released', figureId: targetId, playerId });
   } else {
     const figMap = deps.figureMaps.get(room);
     if (figMap) {
       for (const [fid, f] of figMap.entries()) {
         if (f.possessor === playerId) {
           deps.applyMutation(room, { type: 'figure_release', figureId: fid, playerId });
-          deps.broadcast(room, { type: 'figure_released', figureId: fid, playerId });
+          broadcastFigureAware(deps as any, room, { type: 'figure_released', figureId: fid, playerId });
         }
       }
     }
@@ -65,7 +68,7 @@ export function handleFigureNoteSet(ws: any, msg: any, room: string, deps: WsDep
     figureId: msg.figureId,
     note: msg.note,
   });
-  deps.broadcast(room, {
+  broadcastFigureAware(deps as any, room, {
     type: 'figure_note_changed',
     figureId: msg.figureId,
     note: msg.note.slice(0, 1000),

@@ -1,6 +1,6 @@
 import type { WsDeps } from './ws-handler';
 import { resolvePlayerId } from './ws-handler';
-import { broadcastFigureAware } from './hidden-filter';
+import { broadcastFigureAware, broadcastSnapshotFigureAware } from './hidden-filter';
 
 function getModerationState(deps: Pick<WsDeps, 'figureMaps'>, room: string): { spotlight: string | null; dim: string | null; freeze: boolean } {
   const entry = deps.figureMaps.get(room)?.get('__moderation__');
@@ -200,13 +200,20 @@ export async function handleAdminMessage(ws: any, msg: any, adminRoom: string, d
         const freshState = deps.buildStateFromMutations(adminRoom);
         if (freshState) {
           const figures = Object.values(freshState.figures ?? {});
-          deps.broadcast(adminRoom, {
+          // E9-Review-Blocker: Re-Snapshot MUSS role-aware gefiltert werden
+          // (Plain-Broadcast leakte hidden-Figuren an Nicht-Leiter). Zones/
+          // Anchors/Lines/Moderation mitsenden, sonst wischt der Client sie.
+          broadcastSnapshotFigureAware(deps as any, adminRoom, {
             type: 'snapshot',
             figures,
             stiffness: freshState.stiffness,
             phase: freshState.sessionPhase,
             sessionCode: freshState.sessionCode,
             optik: freshState.optik,
+            moderation: freshState.moderation ?? null,
+            anchors: freshState.anchors ?? [],
+            zones: freshState.zones ?? [],
+            lines: freshState.lines ?? [],
           });
         }
         if (deps.getUndoStatus) {
@@ -231,13 +238,20 @@ export async function handleAdminMessage(ws: any, msg: any, adminRoom: string, d
         const freshState = deps.buildStateFromMutations(adminRoom);
         if (freshState) {
           const figures = Object.values(freshState.figures ?? {});
-          deps.broadcast(adminRoom, {
+          // E9-Review-Blocker: Re-Snapshot MUSS role-aware gefiltert werden
+          // (Plain-Broadcast leakte hidden-Figuren an Nicht-Leiter). Zones/
+          // Anchors/Lines/Moderation mitsenden, sonst wischt der Client sie.
+          broadcastSnapshotFigureAware(deps as any, adminRoom, {
             type: 'snapshot',
             figures,
             stiffness: freshState.stiffness,
             phase: freshState.sessionPhase,
             sessionCode: freshState.sessionCode,
             optik: freshState.optik,
+            moderation: freshState.moderation ?? null,
+            anchors: freshState.anchors ?? [],
+            zones: freshState.zones ?? [],
+            lines: freshState.lines ?? [],
           });
         }
         if (deps.getUndoStatus) {

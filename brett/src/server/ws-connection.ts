@@ -221,7 +221,7 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
             color: msg.color || '#4ea1ff',
           };
           if (deps.acquireFigureLock(room, msg.id, owner)) {
-            deps.broadcast(room, { type: 'figure_locked', id: msg.id, userId: owner.userId, name: owner.name, color: owner.color });
+            broadcastFigureAware(deps as any, room, { type: 'figure_locked', id: msg.id, userId: owner.userId, name: owner.name, color: owner.color });
           } else {
             try {
               ws.send(JSON.stringify({ type: 'figure_lock_denied', id: msg.id }));
@@ -232,7 +232,7 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
         if (msg.type === 'figure_unlock' && typeof msg.id === 'string') {
           const uid = resolvePlayerId(ws);
           if (deps.releaseFigureLock(room, msg.id, uid)) {
-            deps.broadcast(room, { type: 'figure_unlocked', id: msg.id });
+            broadcastFigureAware(deps as any, room, { type: 'figure_unlocked', id: msg.id });
           }
           return;
         }
@@ -294,7 +294,7 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
             const role = deps.resolveRole(ws, deps.buildStateFromMutations(room)?.roles || {});
             if (role === 'stellvertreter' && typeof newId === 'string') {
               deps.applyMutation(room, { type: 'figure_owner_set', figureId: newId, ownerId: playerId });
-              deps.broadcast(room, { type: 'figure_owner_changed', figureId: newId, ownerId: playerId });
+              broadcastFigureAware(deps as any, room, { type: 'figure_owner_changed', figureId: newId, ownerId: playerId });
             }
           }
           if (msg.type === 'clear') {
@@ -341,7 +341,7 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
         // null) so a permitted role can take over; broadcast per changed figure.
         const orphaned = deps.orphanFiguresForUser(room, pid);
         for (const fid of orphaned) {
-          deps.broadcast(room, { type: 'figure_owner_changed', figureId: fid, ownerId: null });
+          broadcastFigureAware(deps as any, room, { type: 'figure_owner_changed', figureId: fid, ownerId: null });
         }
         if (orphaned.length) deps.schedulePersist(room);
         // Auto-release possessions on disconnect: every figure this player

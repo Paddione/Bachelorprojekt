@@ -57,8 +57,11 @@ export function applyMutation(room: string, msg: any): void {
     case 'update':
       if (figs.has(msg.id) && msg.changes && typeof msg.changes === 'object' && !Array.isArray(msg.changes)) {
         const existing = figs.get(msg.id);
-        // Strip both `id` and `ownerId` — ownerId is server-authoritative (§5c).
-        const { id: _ignoredId, ownerId: _ignoredOwner, ...safeChanges } = msg.changes;
+        // Strip `id`, `ownerId` und `hidden` — ownerId ist server-autoritativ
+        // (§5c); hidden darf NUR über den auditierten figure_hide_set-Pfad
+        // wechseln (E9), sonst entfällt die delete/add-Übersetzung für
+        // Nicht-Leiter und sie behalten eine stale sichtbare Kopie.
+        const { id: _ignoredId, ownerId: _ignoredOwner, hidden: _ignoredHidden, ...safeChanges } = msg.changes;
         // E2: Figuren-Opacity server-autoritativ auf 0.2–1.0 klemmen.
         if (typeof safeChanges.opacity === 'number') {
           safeChanges.opacity = Math.max(0.2, Math.min(1, safeChanges.opacity));

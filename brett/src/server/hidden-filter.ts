@@ -106,6 +106,22 @@ function resolvePeerRole(peer: any, roles: Record<string, Role>, resolveRole: Fi
  * Rolle aufgelöst und `translateBroadcastForRole` angewandt. Nicht-Leiter
  * erhalten hidden-Figurendaten nie.
  */
+/**
+ * Broadcastet einen vollständigen Re-Snapshot (z. B. nach Undo/Redo) role-aware:
+ * pro Empfänger wird `figures` durch `filterSnapshotFigures` gefiltert — der
+ * Plain-Broadcast leakte hidden-Figuren an alle Nicht-Leiter (Review-Blocker).
+ */
+export function broadcastSnapshotFigureAware(deps: FigureAwareDeps, room: string, baseMsg: any, exclude?: any): void {
+  const roles: Record<string, Role> = deps.buildStateFromMutations(room)?.roles ?? {};
+  deps.broadcastRoleAware(
+    room,
+    baseMsg,
+    (peer) => resolvePeerRole(peer, roles, deps.resolveRole),
+    (m, role) => ({ ...m, figures: filterSnapshotFigures(m.figures ?? [], role) }),
+    exclude,
+  );
+}
+
 export function broadcastFigureAware(deps: FigureAwareDeps, room: string, msg: any, exclude?: any): void {
   const roles: Record<string, Role> = deps.buildStateFromMutations(room)?.roles ?? {};
   const figMap = deps.figureMaps.get(room);

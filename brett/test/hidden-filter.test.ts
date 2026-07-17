@@ -125,3 +125,25 @@ test('broadcastFigureAware: KC-Admin-Peer gilt als leiter (Free-Board ohne Sessi
   const zMsg = sent.find(s => s.who === 'zuschauer');
   assert.strictEqual(zMsg!.msg.type, 'delete', 'Zuschauer bleibt zuschauer, auch mit Admin-Session');
 });
+
+test('broadcastSnapshotFigureAware: Re-Snapshot filtert hidden pro Empfänger-Rolle (Undo/Redo-Leak-Fix)', () => {
+  const { broadcastSnapshotFigureAware } = require('../src/server/hidden-filter');
+  const received: Array<{ who: string; ids: string[] }> = [];
+  const adminPeer = { _session: { isAdmin: true, userId: 'a' } };
+  const beoPeer = { _session: { isAdmin: false, userId: 'b' } };
+  const deps = {
+    broadcastRoleAware: (_room: string, msg: any, resolveRoleForWs: any, translate: any) => {
+      for (const [name, peer] of [['admin', adminPeer], ['beo', beoPeer]] as const) {
+        const t = translate(msg, resolveRoleForWs(peer));
+        if (t !== null) received.push({ who: name, ids: (t.figures || []).map((f: any) => f.id) });
+      }
+    },
+    buildStateFromMutations: () => ({ roles: {} }),
+    figureMaps: new Map(),
+    resolveRole: () => 'beobachter' as Role,
+  };
+  const base = { type: 'snapshot', figures: [fig('v', false), fig('h', true)], zones: [{ id: 'z1' }] };
+  broadcastSnapshotFigureAware(deps as any, 'r', base);
+  assert.deepStrictEqual(received.find(r => r.who === 'admin')!.ids, ['v', 'h'], 'Admin/Leiter erhält alle Figuren');
+  assert.deepStrictEqual(received.find(r => r.who === 'beo')!.ids, ['v'], 'Nicht-Leiter erhält hidden-Figur NICHT');
+});

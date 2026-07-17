@@ -27,6 +27,7 @@ export interface PovPanelCtx {
 }
 
 let panel: HTMLElement | null = null;
+let mountedFor: string | null = null;
 let ctxRef: PovPanelCtx | null = null;
 let dialogA: string | null = null;
 let dialogB: string | null = null;
@@ -70,7 +71,19 @@ function refreshList(possessedId: string): void {
 
 /** Baut/erneuert das POV-Panel für die aktuell besessene Figur. */
 export function mountPovPanel(possessedId: string, ctx: PovPanelCtx): void {
+  // Bereits für diese Figur gemountet (z. B. possess-Echo nach switchPov):
+  // nur Kontext/Liste auffrischen — ein Remount würde den Dialog-A/B-Zustand
+  // zurücksetzen (Review-Finding #4).
+  if (panel && mountedFor === possessedId) {
+    ctxRef = ctx;
+    refreshList(possessedId);
+    return;
+  }
+  const keepDialog = panel !== null; // switchPov-Remount: Dialog-Paar erhalten
+  const savedA = dialogA, savedB = dialogB, savedNext = dialogNext;
   unmountPovPanel();
+  if (keepDialog) { dialogA = savedA; dialogB = savedB; dialogNext = savedNext; }
+  mountedFor = possessedId;
   ctxRef = ctx;
   initLang(); // Zweitinstanz-sicher: Sprache aus localStorage nachziehen.
   const box = document.createElement('div');
@@ -143,6 +156,7 @@ export function mountPovPanel(possessedId: string, ctx: PovPanelCtx): void {
 export function unmountPovPanel(): void {
   panel?.remove();
   panel = null;
+  mountedFor = null;
   ctxRef = null;
   dialogA = null;
   dialogB = null;

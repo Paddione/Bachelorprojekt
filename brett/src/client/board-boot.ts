@@ -21,6 +21,8 @@ import * as exportUi from './ui/export';
 import * as importUi from './ui/import';
 import * as groundObjects from './ground-objects';
 import { initZoneEditing } from './ui/zone-editor';
+import * as cameraModes from './camera-modes';
+import { t, initLang, applyTranslations } from './i18n';
 import { maybeStartOnboarding } from './ui/onboarding';
 import { initUndoRedo } from './ui/undo-redo-ui';
 import { updateLinePositions } from './scene-lines';
@@ -37,8 +39,23 @@ import { mountFilterInput, getFilterQuery, updateFilterVisuals } from './ui/topb
 
 export async function bootBoard(): Promise<void> {
   // ── Scene ──────────────────────────────────────────────────────────
+  // ── E8: Sprache initialisieren, bevor UI-Elemente montieren ────────────────
+  initLang();
+
   const sceneApi = initScene();
   const { renderer, scene, camera } = sceneApi;
+
+  // ── E3: 2D/3D-Kameramodus (Ortho top-down ⇄ Orbit-Perspektive) ─────────────
+  cameraModes.initCameraModes(camera, window.innerWidth, window.innerHeight - 36);
+  window.addEventListener('resize', () => cameraModes.onResize(window.innerWidth, window.innerHeight - 36));
+  hud.mountViewToggle({
+    id: 'btn-view-2d', label: t('topbar.view2d'), i18nKey: 'topbar.view2d', initialOn: false,
+    onToggle: () => {
+      const is2D = cameraModes.toggleMode() === '2d';
+      const btn = document.getElementById('btn-view-2d');
+      if (btn) { btn.textContent = is2D ? t('topbar.view3d') : t('topbar.view2d'); btn.dataset.on = is2D ? '1' : '0'; }
+    },
+  });
 
   // ── Wire dependencies ──────────────────────────────────────────────
   mannequin.setSendMove(wsClient.sendMove);
@@ -251,7 +268,7 @@ export async function bootBoard(): Promise<void> {
     }
     mannequin.setNdc(e);
     const { ndc } = mannequin.getTickRefs();
-    raycaster.setFromCamera(ndc, camera);
+    raycaster.setFromCamera(ndc, cameraModes.getActiveCamera());
     const target = new THREE.Vector3();
     raycaster.ray.intersectPlane(ui.dragging.plane, target);
     if (!target) return;
@@ -482,10 +499,11 @@ export async function bootBoard(): Promise<void> {
       return v;
     });
 
+    const activeCam = cameraModes.getActiveCamera();
     if ((window as any).__brettPostFx) {
-      (window as any).__brettPostFx.render(scene, camera);
+      (window as any).__brettPostFx.render(scene, activeCam);
     } else {
-      renderer.render(scene, camera);
+      renderer.render(scene, activeCam);
     }
   }
   tick();
@@ -501,6 +519,9 @@ export async function bootBoard(): Promise<void> {
   maybeStartOnboarding({
     role: () => wsClient.getLobbyState()?.roster?.[currentUser.userId]?.role,
   });
+
+  // ── E8: Übersetzungen auf alle montierten [data-i18n]-Elemente anwenden ─────
+  applyTranslations();
 
   console.log('[brett] scene up');
 }

@@ -10,6 +10,47 @@ const pillEl = document.getElementById('status-pill')!;
 const cssVar: VarGetter = (n: string) =>
   getComputedStyle(document.documentElement).getPropertyValue(n);
 
+// ── E3/E6/E7: Topbar-View-Toggles (2D/3D, Sichtkegel, Magnet) ────────────────
+/** Stellt die dedizierte Toggle-Gruppe in der Topbar bereit (idempotent). */
+function ensureViewToggleGroup(): HTMLElement | null {
+  const topbar = document.getElementById('topbar');
+  if (!topbar) return null;
+  let group = document.getElementById('view-toggle-group');
+  if (!group) {
+    group = document.createElement('div');
+    group.id = 'view-toggle-group';
+    group.className = 'group';
+    (group as HTMLElement).style.gap = '4px';
+    topbar.appendChild(group);
+  }
+  return group;
+}
+
+/**
+ * Fügt einen Umschalt-Button in die Topbar-View-Gruppe ein. `data-i18n` sorgt
+ * dafür, dass applyTranslations() das Label pflegt.
+ */
+export function mountViewToggle(cfg: {
+  id: string; label: string; i18nKey?: string; initialOn: boolean; onToggle: (on: boolean) => void;
+}): HTMLButtonElement | null {
+  const group = ensureViewToggleGroup();
+  if (!group || document.getElementById(cfg.id)) return null;
+  const btn = document.createElement('button');
+  btn.id = cfg.id;
+  btn.textContent = cfg.label;
+  if (cfg.i18nKey) btn.setAttribute('data-i18n', cfg.i18nKey);
+  btn.dataset.on = cfg.initialOn ? '1' : '0';
+  btn.style.opacity = cfg.initialOn ? '1' : '0.55';
+  btn.addEventListener('click', () => {
+    const on = btn.dataset.on !== '1';
+    btn.dataset.on = on ? '1' : '0';
+    btn.style.opacity = on ? '1' : '0.55';
+    cfg.onToggle(on);
+  });
+  group.appendChild(btn);
+  return btn;
+}
+
 // ── Free-Fly button (T4 / sf-t000465, DARK-LAUNCH) ───────────────────────────
 // Lazily resolved at first call to avoid top-level DOM access (keeps module
 // importable in headless/test environments).

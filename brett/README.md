@@ -23,6 +23,13 @@ Die Flags werden über die Kubernetes ConfigMap `brett-features` gesetzt:
 | Flag | Beschreibung | Status |
 |------|-------------|--------|
 | `replay` | Timeline/Replay-UI für Board-Sessions (T000472) | dark-launch |
+| `t000468-ground-anchors` | Boden-Anker & Zonen/Flächen (E1) | **default-on** (T001931) |
+| `sf-t000465` | Free-Fly-Kamera | **default-on** (T001931) |
+| `sf-t000467` | Beziehungslinien | **default-on** (T001931) |
+| `sf-t000469` | Boden-Notizen | **default-on** (T001931) |
+
+Die vier default-on-Flags werden in `public/index.html` per `Object.assign` geseedet;
+ein vorab gesetzter Wert (ConfigMap/URL) gewinnt weiterhin (Kill-Switch bleibt erhalten).
 
 ### Replay aktivieren (dev)
 

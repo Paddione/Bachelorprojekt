@@ -468,6 +468,15 @@
     document.body.appendChild(toast);
   });
 </script>
+    <!-- E1 (T001931): Kern-Dark-Launch-Flags default-aktivieren. Bereits gesetzte
+         Werte (brett-features ConfigMap / URL-Override) gewinnen via Object.assign,
+         sodass die Flags weiterhin als Kill-Switch überschreibbar bleiben. -->
+    <script>
+      window.__brettFeatures = Object.assign(
+        { 't000468-ground-anchors': true, 'sf-t000465': true, 'sf-t000467': true, 'sf-t000469': true },
+        window.__brettFeatures || {}
+      );
+    </script>
     <script type="module" src="../src/client/main.ts"></script>
 </body>
 </html>

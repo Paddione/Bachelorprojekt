@@ -100,3 +100,24 @@ test('applyMutation update: partial accessories change merges — changing head 
   assert.equal(fig.appearance.accessories.upper, 'coat');
   assert.equal(fig.appearance.accessories.feet, 'sandals');
 });
+
+// ─── E2: Figuren-Opacity (T001931) ────────────────────────────────
+
+test('applyMutation update: opacity persistiert auf der Figur', () => {
+  const room = 'appear-test-opacity';
+  applyMutation(room, { type: 'add', fig: { id: 'f5' } });
+  applyMutation(room, { type: 'update', id: 'f5', changes: { opacity: 0.5 } });
+  const fig = buildStateFromMutations(room).figures.find((f: any) => f.id === 'f5');
+  assert.equal(fig.opacity, 0.5);
+});
+
+test('applyMutation update: opacity wird auf 0.2–1.0 geklemmt', () => {
+  const room = 'appear-test-opacity-clamp';
+  applyMutation(room, { type: 'add', fig: { id: 'f6' } });
+  applyMutation(room, { type: 'update', id: 'f6', changes: { opacity: 5 } });
+  let fig = buildStateFromMutations(room).figures.find((f: any) => f.id === 'f6');
+  assert.equal(fig.opacity, 1, 'oberer Clamp');
+  applyMutation(room, { type: 'update', id: 'f6', changes: { opacity: 0.01 } });
+  fig = buildStateFromMutations(room).figures.find((f: any) => f.id === 'f6');
+  assert.equal(fig.opacity, 0.2, 'unterer Clamp');
+});

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { STATE, ui, lockSprites, noteSprites, activeLocks, currentUser, getWs, isWsReady } from '../state';
 import { lockBadgeStyle, type VarGetter } from './skin';
+import { LANGS, getLang, setLang } from '../i18n';
 import { isFreeFly } from '../free-fly-camera';
 
 const pillEl = document.getElementById('status-pill')!;
@@ -9,6 +10,84 @@ const pillEl = document.getElementById('status-pill')!;
 // module stays importable under node/tsx (no top-level DOM access).
 const cssVar: VarGetter = (n: string) =>
   getComputedStyle(document.documentElement).getPropertyValue(n);
+
+// ── E3/E6/E7: Topbar-View-Toggles (2D/3D, Sichtkegel, Magnet) ────────────────
+/** Stellt die dedizierte Toggle-Gruppe in der Topbar bereit (idempotent). */
+function ensureViewToggleGroup(): HTMLElement | null {
+  const topbar = document.getElementById('topbar');
+  if (!topbar) return null;
+  let group = document.getElementById('view-toggle-group');
+  if (!group) {
+    group = document.createElement('div');
+    group.id = 'view-toggle-group';
+    group.className = 'group';
+    (group as HTMLElement).style.gap = '4px';
+    // Vor der Export-Gruppe einsortieren: ganz rechts liegt das absolute
+    // Teilnehmer-Overlay (#coaching-participants) und verdeckte die Toggles.
+    const exportGroup = document.getElementById('export-group');
+    if (exportGroup && exportGroup.parentElement === topbar) {
+      topbar.insertBefore(group, exportGroup);
+    } else {
+      topbar.appendChild(group);
+    }
+  }
+  return group;
+}
+
+/**
+ * Fügt einen Umschalt-Button in die Topbar-View-Gruppe ein. `data-i18n` sorgt
+ * dafür, dass applyTranslations() das Label pflegt.
+ */
+export function mountViewToggle(cfg: {
+  id: string; label: string; i18nKey?: string; initialOn: boolean; onToggle: (on: boolean) => void;
+}): HTMLButtonElement | null {
+  const group = ensureViewToggleGroup();
+  if (!group || document.getElementById(cfg.id)) return null;
+  const btn = document.createElement('button');
+  btn.id = cfg.id;
+  btn.textContent = cfg.label;
+  if (cfg.i18nKey) btn.setAttribute('data-i18n', cfg.i18nKey);
+  btn.dataset.on = cfg.initialOn ? '1' : '0';
+  btn.style.opacity = cfg.initialOn ? '1' : '0.55';
+  btn.addEventListener('click', () => {
+    const on = btn.dataset.on !== '1';
+    btn.dataset.on = on ? '1' : '0';
+    btn.style.opacity = on ? '1' : '0.55';
+    cfg.onToggle(on);
+  });
+  group.appendChild(btn);
+  return btn;
+}
+
+/**
+ * E8: Sprachumschalter (DE/EN/FR/ES) in der Topbar-View-Gruppe. Persistiert
+ * über i18n.setLang (localStorage) und lädt die Seite neu — der Reload ist
+ * bewusst: der Build hält mehrere i18n-Modulinstanzen (Multi-Entry-Chunks),
+ * ein reines applyTranslations() erreichte nicht alle; nach dem Reload
+ * initialisieren alle Instanzen konsistent aus localStorage.
+ */
+export function mountLangSelect(): HTMLSelectElement | null {
+  const group = ensureViewToggleGroup();
+  if (!group || document.getElementById('lang-select')) return null;
+  const sel = document.createElement('select');
+  sel.id = 'lang-select';
+  sel.title = 'Sprache / Language';
+  Object.assign(sel.style, { fontSize: '11px', background: 'transparent', color: 'inherit', border: '1px solid rgba(200,169,110,0.4)', borderRadius: '6px', padding: '2px 4px', cursor: 'pointer' });
+  for (const lang of LANGS) {
+    const opt = document.createElement('option');
+    opt.value = lang;
+    opt.textContent = lang.toUpperCase();
+    opt.style.color = '#000';
+    if (lang === getLang()) opt.selected = true;
+    sel.appendChild(opt);
+  }
+  sel.addEventListener('change', () => {
+    setLang(sel.value as Parameters<typeof setLang>[0]);
+    location.reload();
+  });
+  group.appendChild(sel);
+  return sel;
+}
 
 // ── Free-Fly button (T4 / sf-t000465, DARK-LAUNCH) ───────────────────────────
 // Lazily resolved at first call to avoid top-level DOM access (keeps module

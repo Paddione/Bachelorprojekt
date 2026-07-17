@@ -33,6 +33,18 @@ export function handleGroundMessage(msg: ServerMessage): void {
       }
       break;
     }
+    case 'zone_updated': {
+      // E1: Zone verschoben/skaliert/umgestylt. Export-Cache aktualisieren.
+      const nextZones = STATE.zones.map(z => (z.id === msg.zone.id ? msg.zone : z));
+      if (!nextZones.some(z => z.id === msg.zone.id)) nextZones.push(msg.zone);
+      if ((window as any).__brettFeatures?.['t000468-ground-anchors']) {
+        groundObjects.applyZoneUpdated(msg.zone);
+        updateExportCache({ zones: [...STATE.zones] });
+      } else {
+        updateExportCache({ zones: nextZones });
+      }
+      break;
+    }
     case 'zone_removed': {
       if ((window as any).__brettFeatures?.['t000468-ground-anchors']) {
         groundObjects.applyZoneRemoved(msg.zoneId);

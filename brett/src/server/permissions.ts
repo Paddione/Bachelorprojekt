@@ -13,6 +13,9 @@ export type MutationType =
   | 'figure_lock'
   | 'figure_possess' | 'figure_release'
   | 'figure_note_set';  // Slice 5: Notizen pro Figur
+// NB (E1/E9): `zone_update` and `figure_hide_set` are deliberately NOT MutationTypes.
+// They travel the ADMIN_TYPES path (leiter-gated in ws-connection.ts →
+// handleAdminMessage), never the `canMutate` relay matrix — do NOT wire them here.
 
 export interface MutateContext {
   msgType: MutationType;

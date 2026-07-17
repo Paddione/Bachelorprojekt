@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.39.1](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.39.0...brett-v0.39.1) (2026-07-17)
+
+
+### Bug Fixes
+
+* **brett:** map OIDC env names to manifests, allow single-label DNS [T001932] ([#2918](https://github.com/Paddione/Bachelorprojekt/issues/2918)) ([89f4e2b](https://github.com/Paddione/Bachelorprojekt/commit/89f4e2b59fcf353779dc508cbe164522955a43b7))
+
 ## [0.39.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.38.0...brett-v0.39.0) (2026-07-17)
 
 

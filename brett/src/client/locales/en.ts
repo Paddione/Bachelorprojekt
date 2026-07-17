@@ -1,0 +1,75 @@
+// brett/src/client/locales/en.ts — English dictionary (E8). Same key set as de.ts.
+const en: Record<string, string> = {
+  // Main menu
+  'menu.title': 'Systemic Board',
+  'menu.create': 'Create session',
+  'menu.join': 'Join session',
+  'menu.template': 'Choose template',
+  'menu.language': 'Language',
+  'menu.settings': 'Settings',
+  // Lobby
+  'lobby.title': 'Lobby',
+  'lobby.ready': 'Ready',
+  'lobby.notReady': 'Not ready',
+  'lobby.start': 'Start round',
+  'lobby.waiting': 'Waiting for participants …',
+  'lobby.participants': 'Participants',
+  'lobby.leaveConfirm': 'Really leave the session?',
+  // Topbar
+  'topbar.share': 'Share',
+  'topbar.invite': 'Invite',
+  'topbar.export': 'Export',
+  'topbar.undo': 'Undo',
+  'topbar.redo': 'Redo',
+  'topbar.leave': 'Leave',
+  'topbar.view2d': '2D view',
+  'topbar.view3d': '3D view',
+  'topbar.viewCone': 'Show field of view',
+  'topbar.magnet': 'Magnet (snap)',
+  // Figure panel
+  'fig.add': 'Add figure',
+  'fig.label': 'Label',
+  'fig.color': 'Colour',
+  'fig.delete': 'Delete',
+  'fig.lock': 'Lock',
+  'fig.unlock': 'Unlock',
+  'fig.opacity': 'Transparency',
+  'fig.hide': 'Hide',
+  'fig.reveal': 'Reveal',
+  'fig.note': 'Note',
+  'fig.type': 'Figure type',
+  // Appearance
+  'appearance.title': 'Appearance',
+  'appearance.face': 'Face',
+  'appearance.body': 'Body',
+  'appearance.accessories': 'Accessories',
+  // HUD badges
+  'hud.spotlight': 'In focus',
+  'hud.dim': 'Dimmed',
+  'hud.freeze': 'Frozen',
+  'hud.hidden': 'Hidden',
+  // Export
+  'export.pdf': 'As PDF',
+  'export.png': 'As image',
+  'export.json': 'As file',
+  'export.done': 'Export complete',
+  // POV panel
+  'pov.title': 'Inner view',
+  'pov.enter': 'Enter inner view',
+  'pov.leave': 'Leave inner view',
+  'pov.meta': 'Meta position',
+  'pov.inner': 'First person',
+  'pov.dialog': 'Dialogue mode',
+  'pov.switch': 'Switch perspective',
+  // Zone editor
+  'zone.edit': 'Edit area',
+  'zone.size': 'Size',
+  'zone.variantFilled': 'Filled',
+  'zone.variantFrame': 'Frame',
+  // Onboarding
+  'onboarding.welcome': 'Welcome to the Systemic Board',
+  'onboarding.next': 'Next',
+  'onboarding.skip': 'Skip',
+  'onboarding.done': 'Let’s go',
+};
+export default en;

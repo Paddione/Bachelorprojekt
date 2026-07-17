@@ -1,0 +1,75 @@
+// brett/src/client/locales/fr.ts — Dictionnaire français (E8). Mêmes clés que de.ts.
+const fr: Record<string, string> = {
+  // Menu principal
+  'menu.title': 'Tableau systémique',
+  'menu.create': 'Créer une session',
+  'menu.join': 'Rejoindre une session',
+  'menu.template': 'Choisir un modèle',
+  'menu.language': 'Langue',
+  'menu.settings': 'Paramètres',
+  // Salon
+  'lobby.title': 'Salon',
+  'lobby.ready': 'Prêt',
+  'lobby.notReady': 'Pas prêt',
+  'lobby.start': 'Démarrer la séance',
+  'lobby.waiting': 'En attente des participants …',
+  'lobby.participants': 'Participants',
+  'lobby.leaveConfirm': 'Vraiment quitter la session ?',
+  // Barre supérieure
+  'topbar.share': 'Partager',
+  'topbar.invite': 'Inviter',
+  'topbar.export': 'Exporter',
+  'topbar.undo': 'Annuler',
+  'topbar.redo': 'Rétablir',
+  'topbar.leave': 'Quitter',
+  'topbar.view2d': 'Vue 2D',
+  'topbar.view3d': 'Vue 3D',
+  'topbar.viewCone': 'Afficher le champ de vision',
+  'topbar.magnet': 'Aimant (magnétisme)',
+  // Panneau des figurines
+  'fig.add': 'Ajouter une figurine',
+  'fig.label': 'Étiquette',
+  'fig.color': 'Couleur',
+  'fig.delete': 'Supprimer',
+  'fig.lock': 'Verrouiller',
+  'fig.unlock': 'Déverrouiller',
+  'fig.opacity': 'Transparence',
+  'fig.hide': 'Masquer',
+  'fig.reveal': 'Révéler',
+  'fig.note': 'Note',
+  'fig.type': 'Type de figurine',
+  // Apparence
+  'appearance.title': 'Apparence',
+  'appearance.face': 'Visage',
+  'appearance.body': 'Corps',
+  'appearance.accessories': 'Accessoires',
+  // Badges HUD
+  'hud.spotlight': 'En vedette',
+  'hud.dim': 'Atténuée',
+  'hud.freeze': 'Figée',
+  'hud.hidden': 'Masquée',
+  // Export
+  'export.pdf': 'En PDF',
+  'export.png': 'En image',
+  'export.json': 'En fichier',
+  'export.done': 'Export terminé',
+  // Panneau de vue intérieure
+  'pov.title': 'Vue intérieure',
+  'pov.enter': 'Adopter la vue intérieure',
+  'pov.leave': 'Quitter la vue intérieure',
+  'pov.meta': 'Méta-position',
+  'pov.inner': 'Première personne',
+  'pov.dialog': 'Mode dialogue',
+  'pov.switch': 'Changer de perspective',
+  // Éditeur de zone
+  'zone.edit': 'Modifier la zone',
+  'zone.size': 'Taille',
+  'zone.variantFilled': 'Pleine',
+  'zone.variantFrame': 'Cadre',
+  // Prise en main
+  'onboarding.welcome': 'Bienvenue sur le tableau systémique',
+  'onboarding.next': 'Suivant',
+  'onboarding.skip': 'Passer',
+  'onboarding.done': 'C’est parti',
+};
+export default fr;

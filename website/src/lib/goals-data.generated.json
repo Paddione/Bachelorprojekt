@@ -1,20 +1,5 @@
 [
   {
-    "id": "G-GIT03",
-    "title": "Dateien > 1MB im Tree (kein LFS)",
-    "category": "Repo-Hygiene",
-    "priority": "A",
-    "direction": "lower",
-    "baseline": 6,
-    "current": 7,
-    "target": 6,
-    "unit": "",
-    "status": "unknown",
-    "measurement": "git ls-files -z | xargs -0 -I{} sh -c 'test -f \"{}\" && wc -c \"{}\"' 2>/dev/null \\\n  | awk '$1>1048576{c++} END{print c+0}'",
-    "source": ".claude/lib/goals.md · G-GIT03",
-    "measured_at": "2026-07-01"
-  },
-  {
     "id": "G-SIZE02",
     "title": "Großdateien außerhalb Gate-Scope",
     "category": "Code-Größe",
@@ -447,6 +432,21 @@
     "status": "unknown",
     "measurement": "gh pr list --state open --json number,createdAt",
     "source": ".claude/lib/goals.md · G-GIT01",
+    "measured_at": "2026-07-01"
+  },
+  {
+    "id": "G-GIT03",
+    "title": "Dateien >1MB im Tree (kein LFS)",
+    "category": "Repo-Hygiene",
+    "priority": "C",
+    "direction": "lower",
+    "baseline": null,
+    "current": 6,
+    "target": 6,
+    "unit": "",
+    "status": "unknown",
+    "measurement": "git ls-files -z | xargs -0 -I{} sh -c 'test -f \"{}\" && wc -c \"{}\"' 2>/dev/null | awk '$1>1048576{c++} END{print c+0}'` — T001902: `.claude/skills/unsloth/references/llms-full.md` entfernt (redundanter, von der Skill selbst nicht referenzierter GitBook-Volldump, überlappend mit `llms-txt.md`/`llms.md`). **Manuelle Entscheidung zu den 2 Nutzer-Assets** (`assets/grilling-brett-admin-panel/Brett Admin Panel.html`, `environments/korczewski/KERN Logo Design.html`): bleiben unangetastet — Löschen ist ohne Nutzerfreigabe riskant, LFS ist repo-weit als defekt dokumentiert (T001348), und beide Dateien machen nur 2 von 6 verbleibenden >1MB-Treffern aus (Target bereits ohne sie erreicht). Keine Gate-Scope-Ausnahme nötig; siehe T001902-Ticketkommentar.",
+    "source": ".claude/lib/goals.md · G-GIT03",
     "measured_at": "2026-07-01"
   },
   {

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.188.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.187.0...website-v1.188.0) (2026-07-17)
+
+
+### Features
+
+* **brett:** Systembrett-Vollausbau auf 18 Zielfunktionen [T001931] ([#2915](https://github.com/Paddione/Bachelorprojekt/issues/2915)) ([bc84f03](https://github.com/Paddione/Bachelorprojekt/commit/bc84f038904fcb68c51a2cbb5baa8453b358a3bf))
+
 ## [1.187.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.186.2...website-v1.187.0) (2026-07-17)
 
 

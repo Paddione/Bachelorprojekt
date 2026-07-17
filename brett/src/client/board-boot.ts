@@ -22,6 +22,7 @@ import * as importUi from './ui/import';
 import * as groundObjects from './ground-objects';
 import { initZoneEditing } from './ui/zone-editor';
 import * as cameraModes from './camera-modes';
+import * as viewCone from './view-cone';
 import { t, initLang, applyTranslations } from './i18n';
 import { maybeStartOnboarding } from './ui/onboarding';
 import { initUndoRedo } from './ui/undo-redo-ui';
@@ -55,6 +56,11 @@ export async function bootBoard(): Promise<void> {
       const btn = document.getElementById('btn-view-2d');
       if (btn) { btn.textContent = is2D ? t('topbar.view3d') : t('topbar.view2d'); btn.dataset.on = is2D ? '1' : '0'; }
     },
+  });
+  // ── E6: Sichtkegel-Toggle (default an) ─────────────────────────────────────
+  hud.mountViewToggle({
+    id: 'btn-view-cone', label: t('topbar.viewCone'), i18nKey: 'topbar.viewCone', initialOn: true,
+    onToggle: (on) => viewCone.setEnabled(on),
   });
 
   // ── Wire dependencies ──────────────────────────────────────────────
@@ -461,6 +467,8 @@ export async function bootBoard(): Promise<void> {
     mannequin.updateModerationVisuals(STATE.figures, currentModerationState);
     // T000607: Filter visuals (dim non-matching figures)
     updateFilterVisuals(STATE.figures, getFilterQuery());
+    // E6: Sichtkegel live an Position/Blickrichtung ausrichten.
+    viewCone.refreshAll(STATE.figures);
 
     // T3 Single-Writer: POV has highest priority
     if (povCamera.isInPov()) {

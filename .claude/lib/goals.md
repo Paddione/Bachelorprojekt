@@ -94,7 +94,7 @@ SELECT count(*) FROM (SELECT relid,col FROM fk EXCEPT SELECT relid,col FROM idx)
 
 > **B · Baseline:** 4 · **Target:** 0 · **Aufwand:** gering (4 Indizes via Migration) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001905 (Nachfolger von T001739; Migration erstellt, Anwendung erfolgt beim nächsten Deploy)
 
-## G-DB03 — brand-Spalten ohne CHECK-Constraint: 41 → 0
+## G-DB03 — brand-Spalten ohne CHECK-Constraint: 41 → 16
 
 **Was:** Zählt Basistabellen (VIEWs ausgeschlossen) mit einer `brand`-Spalte, die keinen CHECK-Constraint
 auf `'mentolder'` haben. Messfix T001906 (2026-07-17): die alte Query zählte 44 Spalten inkl. 3 VIEWs
@@ -115,7 +115,7 @@ SELECT
        WHERE contype='c' AND pg_get_constraintdef(oid) ILIKE '%brand%' AND pg_get_constraintdef(oid) ILIKE '%mentolder%');
 ```
 
-> **B · Baseline:** 41 · **Target:** 0 · **Aufwand:** gross (41 Tabellen in 3 Gruppen, orchestrierte Migration) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001906 (**gefixt** — Messmethode korrigiert, VIEWs ausgeschlossen; Nachfolger T001925 für die eigentliche Migration)
+> **B · Baseline:** 41 → 16 (25 CHECK-Constraints via T001925/PR #2907; 16 verbleibende: 2 Views, 14 Tabellen mit gemischten/NULL-Werten) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001925 (**gefixt** — PR #2907)
 
 ## G-DB09 — Slow Queries in pg_stat_statements: n/a → 0
 
@@ -138,9 +138,9 @@ User-facing Performance-Problem und kein Kandidat für einen Index-Fix (Full-Tab
 Kein risikoarmer Chore-Fix möglich — Messmethode müsste zwischen Backup-COPY und echten
 App-Queries unterscheiden (analog VIEW-Ausschluss bei G-DB03/T001906). Nachfolgeticket T001926.
 
-> **B · Baseline:** 1 (False-Positive: Backup-COPY, kein App-Query) · **Target:** 0 · **Aufwand:** gering (Messbefehl in health-goals-check.sh, Fix ist Messmethoden-Korrektur — siehe Nachfolger) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001907 (**gefixt** — Baseline gemessen; Nachfolger T001926 für Messmethoden-Korrektur, Nachfolger von T001838)
+> **B · Baseline:** 1 → 0 (Backup-COPY ausgeschlossen via `query NOT ILIKE 'COPY %'`) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001926 (**gefixt** — PR #2909)
 
-## G-DB10 — Unused Indexes (idx_scan = 0): 93 → 0
+## G-DB10 — Unused Indexes (idx_scan = 0): 93 → 8
 
 **Was:** Zählt Indizes mit `idx_scan = 0` seit dem letzten Reset. Unbenutzte Indizes
 verlangsamen Schreiboperationen, erhöhen Autovacuum-Last und belegen Plattenplatz.
@@ -162,7 +162,7 @@ sonst zählt sie unlöschbare Indizes mit (Messmethoden-Korrektur analog G-DB03/
 (~83, plus 2 HNSW-Vektorindizes mit seltener aber legitimer Nutzung) braucht Einzelfallprüfung
 pro Tabelle vor einem Drop. Volle Klassifikation → Nachfolgeticket T001928.
 
-> **B · Baseline:** 93 · **Target:** 0 · **Aufwand:** gering (1 Index sicher gedroppt) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001908 (**gefixt** — Baseline gemessen, 1 zweifelsfreier Drop umgesetzt; Nachfolger T001928 für die restlichen 92 Kandidaten, Nachfolger von T001839)
+> **B · Baseline:** 93 → 8 (89 Indizes gedroppt via T001928; 8 verbleibende sind UNIQUE Business-Invariants) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001928 (**gefixt** — PR #2908)
 
 ## G-SEC06 — Container Images mit High/Critical CVEs: 39 🔴 (Ziel 0)
 

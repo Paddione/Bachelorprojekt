@@ -94,21 +94,28 @@ SELECT count(*) FROM (SELECT relid,col FROM fk EXCEPT SELECT relid,col FROM idx)
 
 > **B · Baseline:** 4 · **Target:** 0 · **Aufwand:** gering (4 Indizes via Migration) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001905 (Nachfolger von T001739; Migration erstellt, Anwendung erfolgt beim nächsten Deploy)
 
-## G-DB03 — brand-Spalten ohne CHECK-Constraint: 44 → 0
+## G-DB03 — brand-Spalten ohne CHECK-Constraint: 41 → 0
 
-**Was:** Zählt Tabellen mit einer `brand`-Spalte, die keinen CHECK-Constraint auf `'mentolder'`
-haben. Live-Wert 44 von 44 Tabellen — alle `brand`-Spalten sind unconstrained. Nur Messung
-verdrahtet, kein erzwungener Fix aller 44 Tabellen (das wäre ein eigenständiges DB-Migrations-Projekt).
+**Was:** Zählt Basistabellen (VIEWs ausgeschlossen) mit einer `brand`-Spalte, die keinen CHECK-Constraint
+auf `'mentolder'` haben. Messfix T001906 (2026-07-17): die alte Query zählte 44 Spalten inkl. 3 VIEWs
+(`bachelorprojekt.v_timeline`, `public.eur_bookkeeping`, `public.v_billing_invoices_with_state`) — VIEWs
+können keine CHECK-Constraints tragen, echter Bestand = 41 Basistabellen. Klassifikation: 37 Tabellen mit
+einheitlichem Wertebereich (`mentolder`/`korczewski` oder leer), 3 Tabellen mit NULL-brand
+(`knowledge.collections`, `tickets.factory_control`, `tickets.tags` — Constraint muss NULL erlauben), 1
+Tabelle mit inkompatiblem Wildcard-Wert `'*'` (`tickets.provider_config`, 16 Zeilen — würde an striktem
+`IN('mentolder','korczewski')` brechen). Kein einheitlicher Pauschal-CHECK möglich → Nachfolgeticket
+T001925 mit voller Klassifikation, statt riskanter Vollumsetzung.
 
 ```sql
 SELECT
-    (SELECT count(DISTINCT table_schema||'.'||table_name) FROM information_schema.columns
-       WHERE column_name='brand' AND table_schema NOT IN ('pg_catalog','information_schema'))
+    (SELECT count(DISTINCT c.table_schema||'.'||c.table_name) FROM information_schema.columns c
+       JOIN information_schema.tables t ON t.table_schema=c.table_schema AND t.table_name=c.table_name
+       WHERE c.column_name='brand' AND c.table_schema NOT IN ('pg_catalog','information_schema') AND t.table_type='BASE TABLE')
   - (SELECT count(DISTINCT conrelid) FROM pg_constraint
        WHERE contype='c' AND pg_get_constraintdef(oid) ILIKE '%brand%' AND pg_get_constraintdef(oid) ILIKE '%mentolder%');
 ```
 
-> **B · Baseline:** 44 · **Target:** 0 · **Aufwand:** gross (44 Tabellen, orchestrierte Migration) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001906 (Nachfolger von T001739; Messung verdrahtet, CHECK-Constraints ausstehend)
+> **B · Baseline:** 41 · **Target:** 0 · **Aufwand:** gross (41 Tabellen in 3 Gruppen, orchestrierte Migration) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001906 (**gefixt** — Messmethode korrigiert, VIEWs ausgeschlossen; Nachfolger T001925 für die eigentliche Migration)
 
 ## G-DB09 — Slow Queries in pg_stat_statements: n/a → 0
 
@@ -354,7 +361,7 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 
 **Baseline-Update 2026-07-17 (T001903):** G-SIZE02 Messmethode gefixt — die naive `wc -l`-Zählung folgte den Symlinks `.opencode/plugins/background-agents.ts` und `.opencode/plugins/worktree.ts` (git-tracked Symlinks auf `.opencode/skills/dev-flow/*.ts`) und zählte deren Zeilen doppelt (19 statt 17). Messkommando um `[ -L "$f" ]`-Filter ergänzt. Echter, verifizierter Bestand bleibt bei 17 (3× .opencode/, bereits sanktioniert via S1-Gate-Ignore; 14× VideoVault/, echter Produktionscode, keine Duplikate/generierte Artefakte). T001556 hatte den Wert nie wirklich gefixt — der archivierte Plan referenzierte nicht-existente Pfade (`VideoVault/src/lib/upload.ts` statt der realen `VideoVault/client/src/...` / `VideoVault/server/...`-Struktur), daher blieben alle abgehakten Tasks wirkungslos. Zielwert ≤8 erfordert echtes, getestetes Code-Splitting über ~9 Dateien (~2-3 Wochen) — kein Chore-Scope (kein `node_modules` installiert, kein Testlauf als Regressionsnetz in dieser Session verfügbar) → Nachfolger-Ticket T001920 mit konkreten Split-Vorschlägen je realer Datei, zur Umsetzung über `dev-flow-plan`.
 
-**Offene Tickets (2026-07-17):** G-AGENTIC09 (T001904), G-DB01 (T001905), G-DB03 (T001906), G-DB09 (T001907), G-DB10 (T001908), G-SEC06 (T001909), G-CI03 (T001910), G-FE05 (T001911), G-BRAIN14 (T001912), G-SIZE02 (T001920, Nachfolger von T001903 — echtes VideoVault-Refactoring)
+**Offene Tickets (2026-07-17):** G-AGENTIC09 (T001904), G-DB01 (T001905), G-DB09 (T001907), G-DB10 (T001908), G-SEC06 (T001909), G-CI03 (T001910), G-FE05 (T001911), G-BRAIN14 (T001912), G-SIZE02 (T001920, Nachfolger von T001903 — echtes VideoVault-Refactoring), G-DB03 (T001925, Nachfolger von T001906 — echte 41-Tabellen-Migration in 3 Gruppen)
 
 | Ziel | Ticket | Status |
 |------|--------|--------|
@@ -362,7 +369,7 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 | G-SIZE02 | T001903 | **gefixt** (Messmethode korrigiert — Symlink-Doppelzählung behoben; echter Bestand 17 verifiziert, davon 3 bereits sanktioniert. Zielwert ≤8 nicht erreichbar ohne echtes Code-Splitting → Nachfolger T001920) |
 | G-AGENTIC09 | T001904 | **gefixt** (dev-flow-plan/SKILL.md 508→479 Zeilen, Whitespace-Kompression ohne Inhaltsverlust — Nachfolger von T001559) |
 | G-DB01 | T001905 | Migration erstellt, Anwendung ausstehend (nächster Deploy) — Nachfolger von T001739 |
-| G-DB03 | T001906 | offen (Messung verdrahtet; CHECK-Constraints ausstehend — Nachfolger von T001739) |
+| G-DB03 | T001906 | **gefixt** (Messmethode korrigiert — 3 VIEWs ausgeschlossen, echter Bestand 41 Basistabellen; kein einheitlicher Wertebereich [Wildcard `'*'` + NULL-Ausnahmen] → Nachfolger T001925) |
 | G-DB09 | T001907 | offen (Slow Queries, erster Scan + Optimierung — Nachfolger von T001838) |
 | G-DB10 | T001908 | offen (Unused Indexes, Baseline fehlt — Nachfolger von T001839) |
 | G-SEC06 | T001909 | offen (Container CVEs, Baseline 39 CRITICAL erfasst — Fix erfordert Image-Pin-Refresh, Folgeticket vorgeschlagen — Nachfolger von T001840) |

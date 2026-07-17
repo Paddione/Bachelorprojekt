@@ -8,6 +8,7 @@ import * as mannequin from './mannequin';
 import * as wsClient from './ws-client';
 import * as figPanel from './ui/fig-panel';
 import { initTouchHandler, type TouchDeps } from './touch-handler';
+import * as snapping from './snapping';
 import type { ClientModerationState } from './ws-client';
 
 export interface TouchControlsDeps {
@@ -82,6 +83,8 @@ export function initBoardTouchControls(deps: TouchControlsDeps): void {
         for (const b of chain) delete fig.boneOverrides[b];
         delete fig.boneOverrides[touchDrag.boneName];
         wsClient.sendUpdate(fig, { boneOverrides: fig.boneOverrides });
+        // E7: Touch teilt denselben Snap-Hook wie die Maus.
+        snapping.finishDrag(fig);
         const ws = getWs();
         if (isWsReady() && ws) ws.send(JSON.stringify({ type: 'figure_unlock', id: fig.id }));
       }

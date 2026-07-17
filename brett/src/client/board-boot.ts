@@ -23,6 +23,7 @@ import * as groundObjects from './ground-objects';
 import { initZoneEditing } from './ui/zone-editor';
 import * as cameraModes from './camera-modes';
 import * as viewCone from './view-cone';
+import * as snapping from './snapping';
 import { t, initLang, applyTranslations } from './i18n';
 import { maybeStartOnboarding } from './ui/onboarding';
 import { initUndoRedo } from './ui/undo-redo-ui';
@@ -61,6 +62,11 @@ export async function bootBoard(): Promise<void> {
   hud.mountViewToggle({
     id: 'btn-view-cone', label: t('topbar.viewCone'), i18nKey: 'topbar.viewCone', initialOn: true,
     onToggle: (on) => viewCone.setEnabled(on),
+  });
+  // ── E7: Magnet-/Snapping-Toggle (default aus) ──────────────────────────────
+  hud.mountViewToggle({
+    id: 'btn-magnet', label: t('topbar.magnet'), i18nKey: 'topbar.magnet', initialOn: false,
+    onToggle: (on) => snapping.setMagnet(on),
   });
 
   // ── Wire dependencies ──────────────────────────────────────────────
@@ -297,6 +303,8 @@ export async function bootBoard(): Promise<void> {
       for (const b of chain) delete fig.boneOverrides[b];
       delete fig.boneOverrides[ui.dragging.boneName];
       wsClient.sendUpdate(fig, { boneOverrides: fig.boneOverrides });
+      // E7: bei aktivem Magnet die Figur aufs Raster/Achsen einrasten (+ move).
+      snapping.finishDrag(fig);
       const ws = getWs();
       if (isWsReady() && ws) {
         ws.send(JSON.stringify({ type: "figure_unlock", id: fig.id }));

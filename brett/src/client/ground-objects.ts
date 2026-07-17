@@ -336,6 +336,39 @@ export function initGroundObjectsToolbar(
   toolbar.appendChild(zoneBtn);
   document.body.appendChild(toolbar);
 
+  // Floor-click for zone placement (E1): the ZONE toolbar button toggles
+  // __brettZonePlacing; this handler consumes it and creates a default
+  // 2×2 rect zone at the clicked floor point (editable via zone-editor).
+  renderer.domElement.addEventListener('click', (e) => {
+    if (!(window as any).__brettZonePlacing) return;
+    const { floor } = sceneApi as any;
+    if (!floor) return;
+    mannequin.setNdc(e);
+    const { ndc } = mannequin.getTickRefs();
+    if (!ndc) return;
+    raycaster.setFromCamera(ndc, camera);
+    const hits = raycaster.intersectObject(floor);
+    if (hits.length > 0) {
+      const pt = hits[0].point;
+      const ws = getWs();
+      if (isWsReady() && ws) {
+        ws.send(JSON.stringify({
+          type: 'zone_create',
+          zone: {
+            shape: 'rect',
+            x: Math.round(pt.x * 10) / 10,
+            z: Math.round(pt.z * 10) / 10,
+            width: 2.0,
+            height: 2.0,
+            variant: 'filled',
+          },
+        }));
+      }
+      (window as any).__brettZonePlacing = false;
+      document.dispatchEvent(new CustomEvent('brett:zone-placed'));
+    }
+  }, { capture: true });
+
   // Floor-click for anchor placement (wired into existing click handler)
   renderer.domElement.addEventListener('click', (e) => {
     if (!(window as any).__brettAnchorPlacing) return;

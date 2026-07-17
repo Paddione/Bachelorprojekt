@@ -152,7 +152,7 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
             // Rolle (inkl. Guest/Zuschauer) erhält sie nie.
             const recipientRole: any = (ws._isGuest || ws._isZuschauer)
               ? 'zuschauer'
-              : deps.resolveRole(ws, persistedRoles);
+              : (ws._session?.isAdmin ? 'leiter' : deps.resolveRole(ws, persistedRoles));
             const snaps = filterSnapshotFigures(Object.values(freshState.figures) as any, recipientRole);
             try {
               ws.send(JSON.stringify({

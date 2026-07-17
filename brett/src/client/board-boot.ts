@@ -68,6 +68,8 @@ export async function bootBoard(): Promise<void> {
     id: 'btn-magnet', label: t('topbar.magnet'), i18nKey: 'topbar.magnet', initialOn: false,
     onToggle: (on) => snapping.setMagnet(on),
   });
+  hud.mountLangSelect(); // E8: Sprachumschalter DE/EN/FR/ES
+
 
   // ── Wire dependencies ──────────────────────────────────────────────
   mannequin.setSendMove(wsClient.sendMove);
@@ -357,10 +359,13 @@ export async function bootBoard(): Promise<void> {
     const floorPt = mannequin.pickFloor(e);
     if (!floorPt) return;
     const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+    // E7: Magnet snappt auch den Doppelklick-Teleport/-Platzierungspunkt.
+    const others = STATE.figures.filter(f => f.id !== STATE.selectedId).map(f => ({ x: f.x, z: f.z }));
+    const target = snapping.snap({ x: floorPt.x, z: floorPt.z }, others);
     if (fig) {
-      easeFigure(fig, floorPt.x, floorPt.z, 300);
+      easeFigure(fig, target.x, target.z, 300);
     } else {
-      figPanel.addFigure({ x: floorPt.x, z: floorPt.z });
+      figPanel.addFigure({ x: target.x, z: target.z });
     }
   });
 

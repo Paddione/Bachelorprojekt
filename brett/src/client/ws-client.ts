@@ -1,4 +1,4 @@
-import { STATE, activeLocks, getScene, currentUser } from './state';
+import { STATE, activeLocks, getScene, currentUser, getWs, isWsReady } from './state';
 import { initLinesFromSnapshot, applyLineMessage } from './scene-lines';
 import type { ServerMessage } from '../types/messages';
 import type { Phase, Participant } from '../types/state';
@@ -365,19 +365,48 @@ export function onWsMessage(evt: MessageEvent): void {
       if (fig) (fig as any)._serverPossessor = msg.playerId;
       // Start POV if it's our own possession
       if (msg.playerId === currentUser.userId) {
-        import('./pov-camera').then(m => m.startPov(msg.figureId));
-        // E5: POV-Panel für Innensicht-Wechsel/Dialog/Meta einblenden.
-        import('./ui/pov-panel').then(m => m.refreshPovPanelForOwnPossession(msg.figureId, msg.playerId));
+        // E5: POV starten und Panel mit unserer Instanzwelt versorgen — das
+        // Panel darf state/pov-camera nicht selbst importieren (der Build
+        // dupliziert diese Module über die Multi-Entry-Chunks; eine
+        // Zweitinstanz sähe currentUser='anon' und leere Figuren).
+        Promise.all([import('./pov-camera'), import('./ui/pov-panel')]).then(([pov, panel]) => {
+          pov.startPov(msg.figureId);
+          panel.refreshPovPanelForOwnPossession(msg.figureId, msg.playerId, {
+            figures: () => STATE.figures.map(f => ({ id: f.id, label: (f as any).label, color: (f as any).color })),
+            sendRelease: (figureId: string) => {
+              const ws = getWs();
+              if (isWsReady() && ws) ws.send(JSON.stringify({ type: 'figure_release', figureId }));
+            },
+            switchPov: (figureId: string) => {
+              const prev = pov.getPovFigureId();
+              pov.switchPov(figureId);
+              const ws = getWs();
+              if (isWsReady() && ws && prev !== figureId) {
+                if (prev) ws.send(JSON.stringify({ type: 'figure_release', figureId: prev }));
+                ws.send(JSON.stringify({ type: 'figure_possess', figureId }));
+              }
+            },
+            setPovMode: pov.setPovMode,
+            isMeta: pov.isMeta,
+            getPovFigureId: pov.getPovFigureId,
+          });
+        });
       }
       break;
     }
     case 'figure_released': {
       const fig = STATE.figures.find(f => f.id === msg.figureId);
       if (fig) (fig as any)._serverPossessor = null;
-      // Stop POV if it was our possession
+      // Stop POV if it was our possession — but only if the released figure
+      // is still the active POV figure (a switchPov releases the OLD figure
+      // after the new POV already started; that echo must not kill it).
       if (msg.playerId === currentUser.userId) {
-        import('./pov-camera').then(m => m.stopPov());
-        import('./ui/pov-panel').then(m => m.unmountPovPanel());
+        Promise.all([import('./pov-camera'), import('./ui/pov-panel')]).then(([pov, panel]) => {
+          if (pov.getPovFigureId() === msg.figureId || pov.getPovFigureId() === null) {
+            pov.stopPov();
+            panel.unmountPovPanel();
+          }
+        });
       }
       break;
     }

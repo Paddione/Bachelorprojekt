@@ -97,3 +97,31 @@ test('translateBroadcastForRole: add einer hidden Figur → null für Nicht-Leit
   }
   assert.deepStrictEqual(translateBroadcastForRole(msg, 'leiter', lookup), msg);
 });
+
+test('broadcastFigureAware: KC-Admin-Peer gilt als leiter (Free-Board ohne Session-Rollen)', () => {
+  const { broadcastFigureAware } = require('../src/server/hidden-filter');
+  const sent: Array<{ who: string; msg: any }> = [];
+  const adminPeer = { _session: { isAdmin: true, userId: 'admin1' } };
+  const plainPeer = { _session: { isAdmin: false, userId: 'user1' } };
+  const zuschauerPeer = { _isZuschauer: true, _session: { isAdmin: true, userId: 'z1' } };
+  const figMap = new Map([['h', fig('h', true)]]);
+  const deps = {
+    broadcastRoleAware: (_room: string, msg: any, resolveRoleForWs: any, translate: any) => {
+      for (const [name, peer] of [['admin', adminPeer], ['plain', plainPeer], ['zuschauer', zuschauerPeer]] as const) {
+        const t = translate(msg, resolveRoleForWs(peer));
+        if (t !== null) sent.push({ who: name, msg: t });
+      }
+    },
+    buildStateFromMutations: () => ({ roles: {} }),
+    figureMaps: new Map([['r', figMap]]),
+    resolveRole: () => 'beobachter' as Role,
+  };
+  broadcastFigureAware(deps as any, 'r', { type: 'figure_hidden_changed', figureId: 'h', hidden: true });
+  const adminMsg = sent.find(s => s.who === 'admin');
+  assert.ok(adminMsg, 'Admin erhält die Message');
+  assert.strictEqual(adminMsg!.msg.type, 'figure_hidden_changed', 'Admin bekommt rohes hidden_changed, kein delete');
+  const plainMsg = sent.find(s => s.who === 'plain');
+  assert.strictEqual(plainMsg!.msg.type, 'delete', 'Nicht-Admin bekommt delete-Übersetzung');
+  const zMsg = sent.find(s => s.who === 'zuschauer');
+  assert.strictEqual(zMsg!.msg.type, 'delete', 'Zuschauer bleibt zuschauer, auch mit Admin-Session');
+});

@@ -88,9 +88,16 @@ interface FigureAwareDeps {
   resolveRole: (ws: any, roles: Record<string, Role>) => Role;
 }
 
-/** Rolle eines Peers am Broadcast-Punkt — Guest/Zuschauer sind NIE Leiter. */
+/**
+ * Rolle eines Peers am Broadcast-Punkt — Guest/Zuschauer sind NIE Leiter.
+ * KC-Admins zählen als Leiter (konsistent zum Admin-Gate `isKcAdmin || isLeiter`):
+ * im Free-Board-Modus existieren keine Session-Rollen, resolveRole fiele auf
+ * `beobachter` zurück und der Admin verlöre die Sicht auf seine eigenen
+ * hidden-Figuren (Hide käme als `delete` statt `figure_hidden_changed` an).
+ */
 function resolvePeerRole(peer: any, roles: Record<string, Role>, resolveRole: FigureAwareDeps['resolveRole']): Role {
   if (peer?._isGuest || peer?._isZuschauer) return 'zuschauer';
+  if (peer?._session?.isAdmin) return 'leiter';
   return resolveRole(peer, roles);
 }
 

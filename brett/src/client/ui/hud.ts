@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { STATE, ui, lockSprites, noteSprites, activeLocks, currentUser, getWs, isWsReady } from '../state';
 import { lockBadgeStyle, type VarGetter } from './skin';
+import { LANGS, getLang, setLang } from '../i18n';
 import { isFreeFly } from '../free-fly-camera';
 
 const pillEl = document.getElementById('status-pill')!;
@@ -21,7 +22,14 @@ function ensureViewToggleGroup(): HTMLElement | null {
     group.id = 'view-toggle-group';
     group.className = 'group';
     (group as HTMLElement).style.gap = '4px';
-    topbar.appendChild(group);
+    // Vor der Export-Gruppe einsortieren: ganz rechts liegt das absolute
+    // Teilnehmer-Overlay (#coaching-participants) und verdeckte die Toggles.
+    const exportGroup = document.getElementById('export-group');
+    if (exportGroup && exportGroup.parentElement === topbar) {
+      topbar.insertBefore(group, exportGroup);
+    } else {
+      topbar.appendChild(group);
+    }
   }
   return group;
 }
@@ -49,6 +57,36 @@ export function mountViewToggle(cfg: {
   });
   group.appendChild(btn);
   return btn;
+}
+
+/**
+ * E8: Sprachumschalter (DE/EN/FR/ES) in der Topbar-View-Gruppe. Persistiert
+ * über i18n.setLang (localStorage) und lädt die Seite neu — der Reload ist
+ * bewusst: der Build hält mehrere i18n-Modulinstanzen (Multi-Entry-Chunks),
+ * ein reines applyTranslations() erreichte nicht alle; nach dem Reload
+ * initialisieren alle Instanzen konsistent aus localStorage.
+ */
+export function mountLangSelect(): HTMLSelectElement | null {
+  const group = ensureViewToggleGroup();
+  if (!group || document.getElementById('lang-select')) return null;
+  const sel = document.createElement('select');
+  sel.id = 'lang-select';
+  sel.title = 'Sprache / Language';
+  Object.assign(sel.style, { fontSize: '11px', background: 'transparent', color: 'inherit', border: '1px solid rgba(200,169,110,0.4)', borderRadius: '6px', padding: '2px 4px', cursor: 'pointer' });
+  for (const lang of LANGS) {
+    const opt = document.createElement('option');
+    opt.value = lang;
+    opt.textContent = lang.toUpperCase();
+    opt.style.color = '#000';
+    if (lang === getLang()) opt.selected = true;
+    sel.appendChild(opt);
+  }
+  sel.addEventListener('change', () => {
+    setLang(sel.value as Parameters<typeof setLang>[0]);
+    location.reload();
+  });
+  group.appendChild(sel);
+  return sel;
 }
 
 // ── Free-Fly button (T4 / sf-t000465, DARK-LAUNCH) ───────────────────────────

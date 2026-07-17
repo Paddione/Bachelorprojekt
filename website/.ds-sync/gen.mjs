@@ -89,7 +89,7 @@ writeFileSync(join(OUT, '_ds_bundle.css'), twCss);
 writeFileSync(join(OUT, 'tokens', 'theme.css'), twCss);
 writeFileSync(join(OUT, 'styles.css'),
   `/* mentolder design tokens + component utilities. */
-@import url("https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap");
+/* Fonts are self-hosted via src/styles/fonts.css (T001930) */
 @import "./_ds_bundle.css";
 html,body{margin:0;background:var(--color-ink-900,#0b111c);color:var(--color-fg,#eef1f3);font-family:var(--font-sans,system-ui)}
 `);

@@ -2369,7 +2369,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 453,
+      "file_count": 456,
       "files": [
         ".opencode/agent-models.jsonc",
         ".opencode/commands/opsx-apply.md",
@@ -2578,6 +2578,9 @@
         "k3d/cronjob-monthly-billing.yaml",
         "k3d/cronjob-scheduled-publish.yaml",
         "k3d/cronjob-systemtest-cleanup.yaml",
+        "k3d/default/claude-code-agent-clusterrole.yaml",
+        "k3d/default/claude-code-agent-role.yaml",
+        "k3d/default/claude-code-agent-rolebinding.yaml",
         "k3d/default/claude-code-agent-sa.yaml",
         "k3d/default/claude-code-mcp-monolith-deploy.yaml",
         "k3d/default/claude-code-mcp-monolith-svc.yaml",

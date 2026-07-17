@@ -238,7 +238,7 @@ npx @lhci/cli autorun \
   --assert.performance=0.9
 ```
 
-> **B · Baseline:** n/a → 60 (erster Lauf 2026-07-17 gegen `https://web.mentolder.de`, 3× `npx @lhci/cli autorun`, Performance-Score konstant 60/100 über alle 3 Runs; FCP 6.0s, LCP 7.5s, TTI 7.5s — größter Hebel: fehlende Text-Compression, ~622 KiB Einsparpotenzial) · **Target:** ≥ 90 · **Aufwand:** gering (Messung) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001911 (Nachfolger von T001842) · **Follow-up:** T001922 (echte Performance-Optimierung, separates Ticket, kein Chore-Scope)
+> **B · Baseline:** 60 → 74 (Messung 2026-07-17 nach T001922-Deploy, 3× `npx @lhci/cli autorun` gegen `https://web.mentolder.de`, Score konstant 74/100; FCP 3.9s, LCP 4.2s, TBT 0ms, CLS 0. T001922/PR #2899+#2902+#2903 lieferte: Traefik-Kompression + immutable `/_astro/`-Cache beide Brands, LCP-Bild → 17-KB-WebP eager/fetchpriority, Font-Doppel-Ladung entfernt, CookieConsent/PortalSidekick → client:idle. Verbleibende Hebel: Google-Fonts-Self-Hosting — 248 KB Third-Party + 806 ms render-blockend —, `sidekick-panels.css` aus dem Critical Path — 423 ms —, ~80 KB unused JS. WSL-Gotcha: `CHROME_PATH=/usr/bin/google-chrome` setzen, sonst startet LHCI den Windows-Chrome via Interop und scheitert am Port-Bind) · **Target:** ≥ 90 · **Aufwand:** mittel · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001911 (Nachfolger von T001842) · **Follow-up:** T001930 (Stufe 2: Font-Self-Hosting + Critical-CSS; Vorgänger T001922 shipped)
 
 ## G-BRAIN14 — Brain-Ingest-Backlog: 17 → 0
 

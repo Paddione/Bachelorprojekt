@@ -22,7 +22,7 @@ func getArgs(req mcp.CallToolRequest) map[string]any {
 func RegisterListTools(s *server.MCPServer) {
 	s.AddTool(
 		mcp.NewTool("list_tickets",
-			mcp.WithDescription("Listet Tickets gefiltert nach Status, Typ, Brand oder fehlender ID. Standard-Limit 200 Zeilen; mit --limit erhöhbar (max 1000)."),
+			mcp.WithDescription("Listet Tickets gefiltert nach Status, Typ, Brand oder fehlender ID. Standard-Limit 200 Zeilen, neueste zuerst (created_at DESC); mit --limit erhöhbar (max 1000)."),
 			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)"),
 				mcp.Enum("mentolder", "korczewski")),
 			mcp.WithString("status", mcp.Description("z.B. triage, planning, plan_staged, backlog")),
@@ -94,7 +94,7 @@ func RegisterListTools(s *server.MCPServer) {
 
 	s.AddTool(
 		mcp.NewTool("export_tickets",
-			mcp.WithDescription("Exportiert Tickets als JSON oder Markdown (gleiche Filter wie list_tickets). Default-Limit 200; max 1000. Ohne Filter empfiehlt sich ein Status-Filter, um den Kontextverbrauch gering zu halten."),
+			mcp.WithDescription("Exportiert Tickets als JSON oder Markdown (gleiche Filter wie list_tickets). Default-Limit 200, neueste zuerst (created_at DESC); max 1000. Ohne Filter empfiehlt sich ein Status-Filter, um den Kontextverbrauch gering zu halten."),
 			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)"),
 				mcp.Enum("mentolder", "korczewski")),
 			mcp.WithString("status", mcp.Description("z.B. triage, planning, plan_staged, backlog")),

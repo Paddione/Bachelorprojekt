@@ -48,6 +48,12 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:brett-hidden-figures",
+    "file": "tests/e2e/specs/brett-hidden-figures.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:brett-mannequin",
     "file": "tests/e2e/specs/brett-mannequin.spec.ts",
     "category": "E2E",
@@ -68,6 +74,12 @@
   {
     "id": "E2E:brett-roles",
     "file": "tests/e2e/specs/brett-roles.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:brett-session-lifecycle",
+    "file": "tests/e2e/specs/brett-session-lifecycle.spec.ts",
     "category": "E2E",
     "kind": "playwright"
   },

@@ -1107,6 +1107,12 @@
       "status": "archived"
     }
   ],
+  "T001927": [
+    {
+      "slug": "mishap-t001927",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

@@ -253,6 +253,29 @@ row gate G-AGENTIC17 "$(
   if [ "$cfg" -ge 2 ]; then echo "$orph"; else echo 99; fi
 )" le 0 "Command-Orphans via S4 (Config-Guard)"
 
+# ── Brain-Dokumentation — GATES (G-BRAIN12/13/15; 01–11 leben im brain-Repo) ──
+row gate G-BRAIN12 "$(
+  _wl_err=$(mktemp)
+  if bash scripts/brain-ingest-worklist.sh >/dev/null 2>"$_wl_err"; then
+    grep -c 'hat 0 Treffer' "$_wl_err" || true
+  else echo "-"; fi
+  rm -f "$_wl_err"
+)" eq 0 "Brain-Manifest-Gruppen ohne Treffer (Ingest-Drift)"
+row gate G-BRAIN13 "$(python3 - <<'PY' 2>/dev/null || echo "-"
+import re
+wf=open('.github/workflows/brain-merge-hook.yml').read()
+head=wf.split('jobs:')[0]
+paths=[p.strip() for p in re.findall(r'^\s+- ([^\s].*)$', head, re.M) if '/' in p or p.startswith('.claude')]
+srcs=re.findall(r'brain-merge-hook\.sh \\\n\s+bachelorprojekt/(\S+)', wf)
+norm=lambda p: p.replace('/**','').rstrip('/')
+print(len(set(map(norm,paths)) ^ set(map(norm,srcs))))
+PY
+)" eq 0 "Brain-Merge-Hook-Pfad-Parität (Trigger ↔ Handler)"
+row gate G-BRAIN15 "$(
+  bash templates/brain/scripts/lint-frontmatter.sh templates/brain >/dev/null 2>&1 \
+    && bash templates/brain/scripts/lint-wikilinks.sh templates/brain >/dev/null 2>&1; echo $?
+)" eq 0 "Brain-Seed-Template-Lint (frontmatter + wikilinks) grün"
+
 # ── DB-Gesundheit — GATES ──
 row gate G-DB06 "$(db_scalar "SELECT
   (SELECT count(*) FROM tickets.ticket_plans p    WHERE p.ticket_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM tickets.tickets t WHERE t.id=p.ticket_id))

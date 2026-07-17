@@ -11,6 +11,9 @@ Ein Ziel ohne reproduzierbaren Mess-Befehl ist kein Ziel, sondern ein Wunsch.
 >
 > **ID-Konvention.** `G-RH01`–`G-RH07` sind *stabile Anker* und werden außerhalb referenziert —
 > sie werden nie umnummeriert. Neue Ziele nutzen domänenspezifische Präfixe.
+> `G-BRAIN01`–`G-BRAIN11` sind wiki-interne Ziele des brain-Repos
+> (`templates/brain/wiki/quality-goals.md`) — Haupt-Repo-Ziele zur Brain-Doku setzen die
+> Nummerierung ab `G-BRAIN12` fort, um ID-Kollisionen zu vermeiden.
 
 ---
 
@@ -41,7 +44,7 @@ git ls-files -z | xargs -0 -I{} sh -c 'test -f "{}" && wc -c "{}"' 2>/dev/null \
 
 **Historie (T001348, obsolet seit T001717):** Eine LFS-Migration von `graph.db.zst` wurde ursprünglich verworfen und die Datei stattdessen per Policy-Entscheidung aus dem Gate-Scope ausgeschlossen (git-lfs lokal defekt, kein erkennbarer Gegenwert für ein intern generiertes `merge=ours`-Binärartefakt). T001717 hat das Problem an der Wurzel gelöst: die Datei is nicht mehr getrackt, der Ausschluss ist damit hinfällig.
 
-> **A · Baseline:** 6 → 7 🔴 · **Target:** ≤ 6 · **Aufwand:** erledigt · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · Ticket: T001717 (löst T001348 ab)
+> **A · Baseline:** 6 → 7 🔴 · **Target:** ≤ 6 · **Aufwand:** gering (manuelle Entscheidung über 2 Nutzer-Assets: löschen, LFS oder Gate-Scope-Policy) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001902 (Nachfolger von T001717/T001348)
 
 # Priorität B — Offene Ziele {#prio-b}
 
@@ -56,7 +59,7 @@ git ls-files VideoVault .opencode | grep -E '\.(ts|tsx|js|mjs|svelte|sh|py)$' \
   | grep -v node_modules | xargs wc -l 2>/dev/null | grep -v ' total$' | awk '$1>600' | wc -l
 ```
 
-> **B · Baseline:** 17 (unverändert) · **Target:** ≤ 8 · **Aufwand:** ~2–3 Wochen · **Messzyklus:** pro Merge auf VideoVault/ · **Reproduzierbar:** ja · **Ticket:** T001556
+> **B · Baseline:** 17 (unverändert) · **Target:** ≤ 8 · **Aufwand:** ~2–3 Wochen · **Messzyklus:** pro Merge auf VideoVault/ · **Reproduzierbar:** ja · **Ticket:** T001903 (Nachfolger von T001556, archiviert ohne Messwert-Fix)
 
 ## G-AGENTIC09 — SKILL.md > 500 Zeilen: 1 🟡 (Ziel ≤ 0)
 
@@ -68,7 +71,7 @@ Ein Split in Sub-Skills oder ausgelagerte Referenz-Dokumente würde die Lesbarke
 find .claude/skills -name SKILL.md -exec wc -l {} + | awk '$2!="total"&&$1>500{c++} END{print c+0}'
 ```
 
-> **B · Baseline:** 3 (dev-flow-execute 662, infra-ops 595, dev-flow-plan 580) → 1 (dev-flow-plan 508) · **Target:** 0 · **Aufwand:** mittel (je Skill ~2–4h Refactoring) · **Messzyklus:** monatlich · **Reproduzierbar:** ja · **Kein Gate** — Reduktionsziel · **Ticket:** T001559
+> **B · Baseline:** 3 (dev-flow-execute 662, infra-ops 595, dev-flow-plan 580) → 1 (dev-flow-plan 508) · **Target:** 0 · **Aufwand:** mittel (je Skill ~2–4h Refactoring) · **Messzyklus:** monatlich · **Reproduzierbar:** ja · **Kein Gate** — Reduktionsziel · **Ticket:** T001904 (Nachfolger von T001559)
 
 ## G-DB01 — FK-Spalten ohne Index: 4 → 0
 
@@ -85,7 +88,7 @@ idx AS (SELECT i.indrelid AS relid, i.indkey[0] AS col FROM pg_index i)
 SELECT count(*) FROM (SELECT relid,col FROM fk EXCEPT SELECT relid,col FROM idx) x;
 ```
 
-> **B · Baseline:** 4 · **Target:** 0 · **Aufwand:** gering (3 Indizes via Migration) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001739 (Messung verdrahtet; Index-Fix ausstehend)
+> **B · Baseline:** 4 · **Target:** 0 · **Aufwand:** gering (3 Indizes via Migration) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001905 (Nachfolger von T001739; Messung verdrahtet, Index-Fix ausstehend)
 
 ## G-DB03 — brand-Spalten ohne CHECK-Constraint: 44 → 0
 
@@ -101,19 +104,7 @@ SELECT
        WHERE contype='c' AND pg_get_constraintdef(oid) ILIKE '%brand%' AND pg_get_constraintdef(oid) ILIKE '%mentolder%');
 ```
 
-> **B · Baseline:** 44 · **Target:** 0 · **Aufwand:** gross (44 Tabellen, orchestrierte Migration) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001739 (Messung verdrahtet; CHECK-Constraints ausstehend)
-
-## G-IMG01 — Fremd-Image-Versions-Drift: 0 → 2
-
-**Was:** Zählt Fremd-Images (Helm-Chart-Referenzen) in gerenderten Monitoring-Manifesten,
-deren Image-Digest nach einem Chart-Upgrade nicht nachgezogen wurde. Aktuell 2 Drifts:
-`promtail-rendered.yaml` und `loki-rendered.yaml`.
-
-```bash
-grep -rhE 'image:' k3d/ prod*/ | grep -vE 'paddione|_IMAGE' | sort -u | awk -F'\t' '{c[$1]++} END{for(k in c)if(c[k]>1)print k,c[k]}'
-```
-
-> **B · Baseline:** 0→2 · **Target:** 0 · **Aufwand:** gering (Digest via `docker inspect`/`crane digest` nachtragen und Chart-Render-Skript entsprechend anpassen) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001766
+> **B · Baseline:** 44 · **Target:** 0 · **Aufwand:** gross (44 Tabellen, orchestrierte Migration) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001906 (Nachfolger von T001739; Messung verdrahtet, CHECK-Constraints ausstehend)
 
 ## G-DB09 — Slow Queries in pg_stat_statements: n/a → 0
 
@@ -127,7 +118,7 @@ pgAdmin-Blick entdeckt.
 db_scalar "SELECT count(*) FROM pg_stat_statements WHERE mean_exec_time > 1000"
 ```
 
-> **B · Baseline:** n/a · **Target:** 0 · **Aufwand:** gering (Messbefehl in health-goals-check.sh, Fix ist Query-Optimierung) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001838
+> **B · Baseline:** n/a · **Target:** 0 · **Aufwand:** gering (Messbefehl in health-goals-check.sh, Fix ist Query-Optimierung) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001907 (Nachfolger von T001838)
 
 ## G-DB10 — Unused Indexes (idx_scan = 0): n/a → 0
 
@@ -140,7 +131,7 @@ intrinsisch niedrig).
 db_scalar "SELECT count(*) FROM pg_stat_user_indexes WHERE idx_scan = 0 AND indisready AND NOT indisprimary AND indexrelid NOT IN (SELECT conindid FROM pg_constraint WHERE contype='u')"
 ```
 
-> **B · Baseline:** n/a · **Target:** 0 · **Aufwand:** gering (Messung) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001839
+> **B · Baseline:** n/a · **Target:** 0 · **Aufwand:** gering (Messung) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001908 (Nachfolger von T001839)
 
 ## G-SEC06 — Container Images mit High/Critical CVEs: n/a → 0
 
@@ -156,7 +147,7 @@ bash scripts/trivy-scan.sh --json | jq '.total_critical, .total_high'
 # CI: advisory-only in .github/workflows/ci.yml (Security Scan Job)
 ```
 
-> **B · Baseline:** n/a → 0 (Trivy-Integration abgeschlossen, erster Scan ausstehend) · **Target:** 0 · **Aufwand:** gering (Messung) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001840
+> **B · Baseline:** n/a → 0 (Trivy-Integration abgeschlossen, erster Scan ausstehend) · **Target:** 0 · **Aufwand:** gering (Messung) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001909 (Nachfolger von T001840)
 
 ## G-CI03 — CI Pipeline p95 Duration > 12 min: n/a → ≤ 12 min
 
@@ -178,7 +169,7 @@ print(f'{p95:.1f}')
 "
 ```
 
-> **B · Baseline:** n/a → 0 (Implementierung in health-goals-check.sh abgeschlossen, erster Scan ausstehend) · **Target:** ≤ 12 min (p95) · **Aufwand:** gering (Messung via gh-axi) · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T001841
+> **B · Baseline:** n/a → 0 (Implementierung in health-goals-check.sh abgeschlossen, erster Scan ausstehend) · **Target:** ≤ 12 min (p95) · **Aufwand:** gering (Messung via gh-axi) · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T001910 (Nachfolger von T001841)
 
 ## G-FE05 — Lighthouse Performance Score < 90: n/a → ≥ 90
 
@@ -196,7 +187,31 @@ npx @lhci/cli autorun \
   --assert.performance=0.9
 ```
 
-> **B · Baseline:** n/a → 0 (Lighthouse CI in CI + health-goals-check.sh integriert, erster Scan ausstehend) · **Target:** ≥ 90 · **Aufwand:** gering (Messung) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001842
+> **B · Baseline:** n/a → 0 (Lighthouse CI in CI + health-goals-check.sh integriert, erster Scan ausstehend) · **Target:** ≥ 90 · **Aufwand:** gering (Messung) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001911 (Nachfolger von T001842)
+
+## G-BRAIN14 — Brain-Ingest-Backlog: 17 → 0
+
+**Was:** Zählt Worklist-Seiten (`scripts/brain-ingest-worklist.sh`, aktuell 86 Quellen), die im
+lokalen Ingest-State (`~/.brain-ingest-state.json`) fehlen oder deren Quell-Hash sich seit dem
+letzten LLM-Transform geändert hat. Das Brain (`Paddione/brain`) ist die kuratierte SSOT-Kompilierung
+des Repo-Wissens (Prinzip „compile, do not move", `openspec/specs/brain-foundation.md`) — ein
+wachsender Backlog bedeutet, dass das Wiki hinter dem Repo-Stand zurückfällt. Voller kuratierter
+Ingest ist Follow-up zu PR #2851 (nur `.github`-Pilot live).
+
+```bash
+bash scripts/brain-ingest-worklist.sh 2>/dev/null | python3 -c "
+import sys, json, hashlib
+state=json.load(open('$HOME/.brain-ingest-state.json'))
+todo=0
+for line in sys.stdin:
+    path=line.split('\t')[0].strip()
+    if not path: continue
+    st=state.get(path)
+    if not st or hashlib.sha256(open(path,'rb').read()).hexdigest()!=st['hash']: todo+=1
+print(todo)"
+```
+
+> **B · Baseline:** 17 · **Target:** 0 · **Aufwand:** gering (manueller Ingest-Lauf via `scripts/brain-ingest.sh`, GPU-Host-gebunden) · **Messzyklus:** monatlich · **Reproduzierbar:** eingeschränkt (lokales State-File + GPU-Host) · **Ticket:** T001912
 
 
 # Priorität C — Green Gates {#prio-c}
@@ -215,9 +230,9 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-TEST02** | Vitest `.only` | 0 ✓ | 0 | `grep -rnE '\.only\b' website/src --include='*.test.ts' \| wc -l` |
 | **G-TEST03** | Vitest Skipped/Todo-Suiten | 0 ✓ | 0 | `grep -rnE "(describe\|it\|test)\.(skip\|todo)\b" website/src --include="*.ts" \| wc -l` |
 | **G-TEST04** | Test-Inventory-Drift | 0 ✓ | 0 | `git status --porcelain website/src/data/test-inventory.json \| wc -l` |
-| **G-CQ02** | Explizite `any`-Verwendungen | 9 ✓ | ≤ 280 | `grep -rn ': any\|<any>\|as any' website/src --include=*.ts --include=*.svelte --include=*.astro \| wc -l` |
+| **G-CQ02** | Explizite `any`-Verwendungen | 8 ✓ | ≤ 280 | `grep -rn ': any\|<any>\|as any' website/src --include=*.ts --include=*.svelte --include=*.astro \| wc -l` |
 | **G-CQ04** | FIXME/HACK/XXX (echt) | 3 ✓ | ≤4 | `grep -rnE '\b(FIXME\|HACK\|XXX)\b' ... \| wc -l` |
-| **G-CQ05** | Echte TODO-Marker | 1 ✓ | ≤ 1 | `grep -rnE "\bTODO\b" --include=*.ts ... website/src scripts tests k3d brett/src \| wc -l` |
+| **G-CQ05** | Echte TODO-Marker | 0 ✓ | ≤ 1 | `grep -rnE "\bTODO\b" --include=*.ts ... website/src scripts tests k3d brett/src \| wc -l` |
 | **G-CQ06** | `@deprecated`-Symbole | 1 ✓ | ≤ 1 | `grep -rnE '@deprecated' website/src \| wc -l` |
 | **G-CQ07** | S2 Import-Zyklen | 0 ✓ | 0 | `python3 -c "..S2-Gate.." < docs/code-quality/baseline.json` |
 | **G-CQ09** | S3 hartkodierte Hostnames | 0 ✓ | ≤ 10 | `python3 -c "..S3-Gate.." < docs/code-quality/baseline.json` |
@@ -229,7 +244,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-DEP04** | `engines >= 22.13.0` | 0 ✓ | 0 | `for p in package.json website/package.json ...; do python3 -c "..engines.."; done` |
 | **G-DEP05** | Renovate-PR-Backlog | 0 ✓ | ≤ 3 | `gh pr list --state open --json author,labels \| python3 -c "..renovate.."` |
 | **G-DEP02** | Veraltete Major-Deps | 2 ✓ | ≤ 3 | `cd website && pnpm outdated` (Major-Sprünge zählen: aktuell nur eslint-plugin-astro 1→2, knip 5→6) |
-| **G-IMG02** | Fremd-Image-Versions-Drift | 0 ✓ | 0 | `grep -rhE 'image:' k3d/ prod*/ \| ... sort -u \| awk -F'\t' '{c[$1]++} END{...}'` |
+| **G-IMG01** | Fremd-Image-Versions-Drift | 0 ✓ | 0 | `grep -rhE 'image:' k3d/ prod*/ \| ... sort -u \| awk -F'\t' '{c[$1]++} END{...}'` (T001766 gefixt: Loki/Promtail-Digests nachgezogen; war Prio B) |
 | **G-K8S01** | Deployments ohne Limits | 0/34 ✓ | 0 | `python3 -c "..resources.limits.." k3d/*.yaml` |
 | **G-K8S02** | Deployments ohne readinessProbe | 3/34 ✓ | ≤ 3 | `python3 -c "..readinessProbe.." k3d/*.yaml` |
 | **G-K8S03** | Deployments ohne securityContext | 0 ✓ | 0 | `python3 -c "..securityContext.." k3d/*.yaml` |
@@ -248,7 +263,6 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-DOC02** | Root-CLAUDE.md Zeilen | 190 ✓ | ≤ 200 | `wc -l < CLAUDE.md` |
 | **G-DOC03** | README-Index in Hauptverzeichnissen | 5/5 ✓ | 5/5 | `for d in website brett scripts tests k3d; do ls "$d"/README* ... done` |
 | **G-DOC04** | Architektur-ADRs | 5 ✓ | ≥ 5 | `find docs -ipath '*adr*' -name '*.md' \| wc -l` |
-| **G-DORA04** | MTTR (Mean Time To Recovery) | n/a ✓ | < 24h | `git log --since="8 weeks ago" --first-parent --format='%ct %s' main \| grep -ciE 'revert\|hotfix'` |
 | **G-DOC06** | Agent Guide Index | 30 ✓ | ≥ 30 | `find .claude/skills docs/agent-guide -name SKILL.md -o -name README.md \| wc -l` |
 | **G-CI01** | main CI-Erfolgsrate (letzte 20) | 95 % ✓ | ≥ 95 % | `gh-axi run list --workflow ci.yml --branch main --limit 20 \| grep -oE 'completed,(success\|failure\|cancelled)' \| sort \| uniq -c` (19/20, 1 cancelled) |
 | **G-CI02** | Rote main-HEAD-Läufe | 0 ✓ | 0 | `gh-axi run list --workflow ci.yml --branch main --limit 5 \| grep -c failure` |
@@ -261,7 +275,6 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-FE03** | rohe `console.error/warn` (exkl. Selbstschutz-Fallbacks) | 0 ✓ | 0 | `grep -rEn 'console\.(error\|warn)' website/src --include='*.ts' --include='*.svelte' --include='*.astro' \| grep -v 'browser-logger.ts' \| grep -v 'logger.ts' \| grep -v 'error-log-store.ts' \| grep -v '\.test\.ts' \| wc -l` |
 | **G-FE04** | Stray `console.log/debug/info` | 0 ✓ | 0 | `grep -rEn 'console\.(log\|debug\|info)' website/src --include='*.ts' --include='*.svelte' --include='*.astro' \| grep -v 'browser-logger.ts' \| grep -v '\.test\.ts' \| wc -l` |
 | **G-GIT02** | Non-conventional Commits (ohne Merge) | 0 ✓ | 0 | `git log --format=%s --no-merges -30 origin/main \| grep -vcE '^(feat\|fix\|chore\|...)'` |
-| **G-GIT03** | Dateien >1MB im Tree | 7 ⚠ | ≤ 6 | `git ls-files -z \| xargs -0 -I{} sh -c 'test -f "{}" && wc -c "{}"' \| awk '$1>1048576{c++} END{print c+0}'` (`.codebase-memory/` seit T001717 nicht mehr getrackt) |
 | **G-AGENTIC02** | Agent-Routing-Tabelle ↔ Frontmatter-Drift | 0 ✓ | 0 | `python3 <<'PY' ... norm/toks/fm/rows ... symmetric_difference` |
 | **G-AGENTIC03** | Agent-Frontmatter (name + description) | 0 ✓ | 0 | `for f in .claude/agents/*.md; do name==basename && description present` |
 | **G-AGENTIC04** | test:changed Agents-Bucket | 0 ✓ | 0 | `awk '/test:changed/...' Taskfile.yml \| grep -c .claude/agents + AGENTS + agent-library` |
@@ -276,6 +289,14 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-AGENTIC15** | Phantom-/opsx-Command-Referenzen | 0 ✓ | 0 | `grep -rhoE '/opsx[:-][a-z]+' in .claude/ .opencode/ .claude/skills vs valid command set` |
 | **G-AGENTIC16** | Claude ↔ opencode Command-Sync | 0 ✓ | 0 | `for each .claude/commands/opsx/*.md, compare normalized body with .opencode/opsx-$name.md` |
 | **G-AGENTIC17** | Command-Orphans via S4 | 0 ✓ | ≤ 0 | `S4 command_globs gegen Referenzquellen; Config-Guard: ohne Config → 99` |
+| **G-AGENTIC01** | Ungescopte Agenten (security/infra/db ohne `tools:`) | 0 ✓ | ≤ 0 | `awk-Frontmatter-Check über .claude/agents/bachelorprojekt-{security,infra,db}.md` |
+| **G-AGENTIC10** | Agenten ohne dispatchende Skill | 0 ✓ | ≤ 0 | `grep -rlE '^agent: <name>' .claude/skills --include=SKILL.md je Agent` |
+| **G-DB04** | Backup-Alter (h) seit letztem db-backup-Job | 1 ✓ | ≤ 26h | `db_scalar Backup-Alter (health-goals-check.sh); Regressionswache T001738` |
+| **G-DB08** | Tabellen >10k Rows mit Seq-Scan-Anteil >5 % | n/a | ≤ 3 | `db_scalar pg_stat_user_tables seq_scan-Quote (health-goals-check.sh)` |
+| **G-TEST05** | Vitest Line-Coverage `website/src/lib` | 85 % ✓ | ≥ 60 % | `cd website && pnpm vitest run --coverage` (in health-goals-check.sh, ohne --fast) |
+| **G-BRAIN12** | Brain-Manifest-Gruppen ohne Treffer (Ingest-Drift) | 0 ✓ | 0 | `bash scripts/brain-ingest-worklist.sh >/dev/null 2>&1 \| stderr-Warnungen 'hat 0 Treffer' zählen` |
+| **G-BRAIN13** | Brain-Merge-Hook-Pfad-Parität (Trigger ↔ Handler) | 0 ✓ | 0 | `paths:-Globs in .github/workflows/brain-merge-hook.yml gegen brain-merge-hook.sh-SRC-Argumente (sym. Diff)` |
+| **G-BRAIN15** | Brain-Seed-Template-Lint grün | Exit 0 ✓ | Exit 0 | `bash templates/brain/scripts/lint-frontmatter.sh templates/brain && bash templates/brain/scripts/lint-wikilinks.sh templates/brain` |
 
 ---
 
@@ -291,8 +312,8 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 **Messzyklus:**
 - **Pro Merge (CI-Gate):** G-RH02/07, G-TEST02/04, G-CQ04, G-SEC01/02, G-K8S04, G-CFG01, G-CI02, G-GIT02, G-SPEC01
 - **Täglich:** G-RH06, G-CI02, G-DB04, G-GIT01, G-CI03
-- **Wöchentlich:** G-RH01/03, G-TEST01/03, G-SIZE03, G-CI01, G-CD01, G-CQ02/05, G-IMG01, G-K8S03, G-SPEC03, G-GIT03, G-FE03/04, G-DB01, G-DB03, G-DB06, G-DB08, G-DB09, G-DB10, G-SEC06, G-FE05
-- **Monatlich/Quartal:** G-DEP02, G-SEC03/04, G-DOC02, G-FE01/02
+- **Wöchentlich:** G-RH01/03, G-TEST01/03, G-SIZE03, G-CI01, G-CD01, G-CQ02/05, G-IMG01, G-K8S03, G-SPEC03, G-GIT03, G-FE03/04, G-DB01, G-DB03, G-DB06, G-DB08, G-DB09, G-DB10, G-SEC06, G-FE05, G-BRAIN12, G-BRAIN13, G-BRAIN15
+- **Monatlich/Quartal:** G-DEP02, G-SEC03/04, G-DOC02, G-FE01/02, G-BRAIN14
 
 **Sprint-Highlights 2026-07-01:** G-CI01 erreicht Target (85 %→95 %, 19/20 grün) und wechselt von Prio A nach Prio C. G-RH03 (OpenSpec-BATS-Abdeckung 50 %→82 %) und G-DEP02 (Major-Deps 9→2) erreichen ihr Target und wechseln von Prio B nach Prio C. G-CQ01 erstmals gemessen: 0 astro-check-Fehler. G-CQ02 (explizite `any`) fällt weiter von 154 auf 8. G-GIT03 (Dateien >1MB) erreicht Target 7→6 per Policy-Ausschluss von `.codebase-memory/` (T001348) und wechselt von Prio A nach Prio C. G-SEC05-Messfehler dokumentiert: das Skript filtert nur eine von zwei GitHub-Actions-Bot-Mail-Varianten heraus, wodurch 4 Bot-Commits fälschlich als unsigniert zählen — echter Wert 0/50, Skript-Fix noch offen.
 
@@ -316,21 +337,24 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 
 **Baseline-Update 2026-07-14 (T001804):** G-AGENTIC06 1→0 (OVERVIEW.md Zähler 37→36 + Mess-Umstellung auf getrackte SKILL.md via `git ls-files` — lokal via market-cli installierte Skills kippen das Gate nicht mehr, Präzedenz T001783). G-AGENTIC07 6→0 (2 untrackte lokale Skills aus dem Mess-Scope entfernt; 4 getrackte Drittanbieter-/ML-Skills — ui-ux-pro-max, unsloth, gguf-quantization, speculative-decoding — in neuer OVERVIEW.md-Sektion registriert). G-AGENTIC08 1→0 (Mess-Bug: Regex ohne Anker matchte `scripts/search.py` als Substring des existierenden Pfads `.claude/skills/ui-ux-pro-max/scripts/search.py` — Lookbehind ergänzt). G-AGENTIC11 5→0 (CLAUDE.md-opencode-Liste um `github-mcp`, `playwright`, `sequential-thinking`, `webresearch`, `docfork` ergänzt). G-DOC02 216→190 (CLAUDE.md kondensiert: Merge=Abschluss- und Bug-Triage-Blöcke entwrappt, leere `### Brett`-Überschrift und redundantes Oracle-Beispiel entfernt). G-AGENTIC09 1→0 (dev-flow-plan/SKILL.md 513→495 Zeilen, Prosa-Entwrapping ohne Inhaltsverlust). G-GIT03 bleibt 7 (>Target 6): Kandidaten `assets/grilling-brett-admin-panel/Brett Admin Panel.html` und `environments/korczewski/KERN Logo Design.html` sind Nutzer-Assets — Löschen/LFS braucht manuelle Entscheidung.
 
-**Offene Tickets (2026-07-15):** G-SIZE02 (T001556), G-DB01/03/06/08 (T001739), G-IMG01 (T001766), G-DB09 (T001838), G-DB10 (T001839), G-SEC06 (T001840), G-CI03 (T001841), G-FE05 (T001842)
+**Offene Tickets (2026-07-17):** G-GIT03 (T001902), G-SIZE02 (T001903), G-AGENTIC09 (T001904), G-DB01 (T001905), G-DB03 (T001906), G-DB09 (T001907), G-DB10 (T001908), G-SEC06 (T001909), G-CI03 (T001910), G-FE05 (T001911), G-BRAIN14 (T001912)
 
 | Ziel | Ticket | Status |
 |------|--------|--------|
-| G-DB01 | T001739 | offen (Messung verdrahtet; Index-Fix ausstehend) |
-| G-DB03 | T001739 | offen (Messung verdrahtet; CHECK-Constraints ausstehend) |
+| G-GIT03 | T001902 | offen (7 > Target 6; manuelle Entscheidung über 2 Nutzer-Assets — Nachfolger von T001717) |
+| G-SIZE02 | T001903 | offen (17 Großdateien; Nachfolger von T001556, das ohne Messwert-Fix archiviert wurde) |
+| G-AGENTIC09 | T001904 | offen (dev-flow-plan/SKILL.md 508 Zeilen; Nachfolger von T001559) |
+| G-DB01 | T001905 | offen (Messung verdrahtet; Index-Fix ausstehend — Nachfolger von T001739) |
+| G-DB03 | T001906 | offen (Messung verdrahtet; CHECK-Constraints ausstehend — Nachfolger von T001739) |
+| G-DB09 | T001907 | offen (Slow Queries, erster Scan + Optimierung — Nachfolger von T001838) |
+| G-DB10 | T001908 | offen (Unused Indexes, Baseline fehlt — Nachfolger von T001839) |
+| G-SEC06 | T001909 | offen (Container CVEs, erster Trivy-Scan ausstehend — Nachfolger von T001840) |
+| G-CI03 | T001910 | offen (CI p95, erster Messlauf ausstehend — Nachfolger von T001841) |
+| G-FE05 | T001911 | offen (Lighthouse, erster Lauf ausstehend — Nachfolger von T001842) |
+| G-BRAIN14 | T001912 | offen (Ingest-Backlog 17/86; voller kuratierter Ingest = Follow-up zu PR #2851) |
 | G-DB04 | T001739 | gruen (1h, Target ≤26h — Root-Cause-Fix nicht verifiziert, Regressionswache bleibt täglich) |
 | G-DB06 | T001739 | gruen (Gate, halten) |
-| G-DB08 | T001739 | offen (dokumentierte Baseline, kein hartes Target) |
-| G-IMG01 | T001766 | offen (Regression 0→2, Helm-Digest-Drift Loki/Promtail) |
-| G-DB09 | T001838 | offen (Slow Queries, Messung verdrahtet, Optimierung ausstehend) |
-| G-DB10 | T001839 | offen (Unused Indexes, Baseline fehlt) |
-| G-SEC06 | T001840 | offen (Container CVEs, Trivy-Integration abgeschlossen, erster Scan ausstehend) |
-| G-CI03 | T001841 | offen (CI Duration, Implementierung abgeschlossen, erster Scan ausstehend) |
-| G-FE05 | T001842 | offen (Lighthouse Performance, CI-Integration abgeschlossen, erster Scan ausstehend) |
+| G-IMG01 | T001766 | **gefixt** (Regression 0→2→0, Helm-Digest-Drift Loki/Promtail behoben — zurück nach Prio C) |
 | G-SIZE04 | T001280 | geschlossen (`done`), Messwert weiterhin rot → Nachfolger T001347 |
 | G-SIZE04 | T001347 | offen |
 | G-GIT03 | T001275 | **gefixt** (gitignore search-index.json [T001305]) |
@@ -356,3 +380,15 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 | G-GIT02 | T001552 | **regressed** (Commit f9dc1ae4e — `mishap-bundle-fix:` non-conventional) |
 
 **Baseline-Update 2026-07-15:** G-SEC06 n/a→0 (Trivy-Integration in CI + scripts/trivy-scan.sh erstellt, erster Scan ausstehend); G-CI03 n/a→0 (Implementierung in health-goals-check.sh abgeschlossen, erster Scan ausstehend); G-FE05 n/a→0 (Lighthouse CI in ci.yml + health-goals-check.sh integriert, lighthouse-budget.json erstellt, erster Scan ausstehend)
+
+**Baseline-Update 2026-07-17 (T001901 — Struktur-Refresh + Brain-Ziele):** Strukturbereinigung:
+G-IMG01 2→0 (Helm-Digest-Drift behoben, T001766 gefixt) — von Prio B zurück nach Prio C; die
+Duplikat-Zeile G-IMG02 (identisches Ziel/Messung) und die doppelte G-DORA04-Zeile aus der
+Prio-C-Tabelle entfernt; G-GIT03-Duplikatzeile aus Prio C entfernt (lebt nur noch in Prio A).
+Fünf gemessene, aber undokumentierte Ziele als Prio-C-Zeilen nachgetragen: G-AGENTIC01, G-AGENTIC10,
+G-DB04, G-DB08, G-TEST05. **Neu: Brain-Dokumentations-Ziele** (Namespace ab G-BRAIN12; G-BRAIN01–11
+leben im brain-Repo): G-BRAIN12 Manifest-Drift 0 (Gate), G-BRAIN13 Merge-Hook-Pfad-Parität 0 (Gate),
+G-BRAIN15 Seed-Template-Lint Exit 0 (Gate) — alle drei in health-goals-check.sh verdrahtet;
+G-BRAIN14 Ingest-Backlog 17→0 (Prio B, T001912). Messwerte: G-CQ02 9→8, G-CQ05 1→0.
+Alle Alt-Tickets der offenen Ziele waren done/archived ohne Messwert-Fix — elf Nachfolge-Tickets
+T001902–T001912 angelegt und in den Meta-Zeilen referenziert.

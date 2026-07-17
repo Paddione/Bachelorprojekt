@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.189.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.189.1...website-v1.189.2) (2026-07-17)
+
+
+### Bug Fixes
+
+* **website:** PortalSidekick hydration crash [T001939] ([#2934](https://github.com/Paddione/Bachelorprojekt/issues/2934)) ([a1dd0fd](https://github.com/Paddione/Bachelorprojekt/commit/a1dd0fd6f1c10d6d068bcb748d8458144f1e9770))
+
+
+### Tests
+
+* **brett:** add E2E coverage for moderation, undo/redo, ground annotations, figure ownership [T001942] ([#2936](https://github.com/Paddione/Bachelorprojekt/issues/2936)) ([175b255](https://github.com/Paddione/Bachelorprojekt/commit/175b25581da6561dd5cd850958876a9ee78b6d0f))
+
 ## [1.189.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.189.0...website-v1.189.1) (2026-07-17)
 
 

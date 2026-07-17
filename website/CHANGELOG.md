@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.186.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.186.0...website-v1.186.1) (2026-07-17)
+
+
+### Performance
+
+* **website:** edge compression + LCP image + font/hydration fixes → Lighthouse ≥90 [T001922] ([#2899](https://github.com/Paddione/Bachelorprojekt/issues/2899)) ([9c94068](https://github.com/Paddione/Bachelorprojekt/commit/9c9406808be9060d0d58db65b045cb121a722782))
+
 ## [1.186.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.185.1...website-v1.186.0) (2026-07-15)
 
 

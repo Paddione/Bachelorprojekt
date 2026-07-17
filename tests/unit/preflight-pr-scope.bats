@@ -83,6 +83,16 @@ teardown() { rm -rf "$TMP"; }
   [ "$status" -eq 0 ]
 }
 
+@test "preflight: ticket-ID/branch mismatch suggests a git branch -m fix [T001915]" {
+  # Mishap regression: FATAL alone left no clue how to recover. The error must
+  # now propose the concrete rename command and point at the T001917 process fix.
+  run bash "$HELPER" "chore(dev-flow): some chore [T001901]" "$FIXTURE"
+  [ "$status" -ne 0 ]
+  echo "$output" | grep -q "does not match current branch"
+  echo "$output" | grep -q "git branch -m"
+  echo "$output" | grep -q "T001917"
+}
+
 @test "preflight: fix/* branch under a real .worktrees/ path is accepted [T001723]" {
   # Regression: the T001592 worktree-enforcement check used the broken glob
   # `*"\.worktrees/"*` (a literal backslash-dot inside a quoted pattern never

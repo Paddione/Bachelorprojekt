@@ -34,7 +34,12 @@ if [ -n "$TICKET_ID" ]; then
   BRANCH_LC="$(echo "$CURRENT_BRANCH" | tr '[:upper:]' '[:lower:]')"
   TICKET_LC="$(echo "$TICKET_ID" | tr '[:upper:]' '[:lower:]')"
   if [[ "$BRANCH_LC" != *"$TICKET_LC"* ]]; then
+    _suggested_branch="${CURRENT_BRANCH}-${TICKET_LC}"
     echo "preflight-pr-scope: FATAL: PR title ticket ID '$TICKET_ID' does not match current branch name '$CURRENT_BRANCH'" >&2
+    echo "  Fix: rename the branch to include the ticket ID, e.g.:" >&2
+    echo "    git branch -m '$CURRENT_BRANCH' '$_suggested_branch'" >&2
+    echo "  See T001917 (dev-flow-chore/SKILL.md, Schritt 1): create the ticket BEFORE" >&2
+    echo "  naming the branch/worktree slug so this never triggers in the first place." >&2
     exit 1
   fi
 fi

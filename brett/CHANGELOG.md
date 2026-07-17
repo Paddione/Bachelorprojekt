@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.40.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.39.1...brett-v0.40.0) (2026-07-17)
+
+
+### Features
+
+* **factory:** replace qwythos-9b-v2 with qwen3.6-14b-a3b-fablevibes [T001608] ([#2925](https://github.com/Paddione/Bachelorprojekt/issues/2925)) ([e04b53c](https://github.com/Paddione/Bachelorprojekt/commit/e04b53cd19a1fae987e3d2f6a5a991477f58bf68))
+
 ## [0.39.1](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.39.0...brett-v0.39.1) (2026-07-17)
 
 

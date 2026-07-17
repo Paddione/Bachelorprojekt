@@ -52,11 +52,18 @@ while IFS=' ' read -r LOCAL_REF LOCAL_SHA REMOTE_REF REMOTE_SHA; do
 
   CHANGED_INDEX=$(git diff --name-only "$BASE..$LOCAL_SHA" 2>/dev/null | grep 'repo-index\.json\|test-inventory\.json' || true)
   if [[ -z "$CHANGED_INDEX" ]]; then
-    warn "BATS-Dateien geändert, aber repo-index.json/test-inventory.json fehlen im Push."
-    warn "CI schlägt möglicherweise fehl. Fix:"
-    warn "  task freshness:regenerate"
-    warn "  git add docs/code-quality/repo-index.json website/src/data/test-inventory.json"
-    warn "  git commit --amend --no-edit && git push --force-with-lease"
+    # Only warn if freshness:regenerate would actually produce a diff
+    _freshness_diff=""
+    if command -v task &>/dev/null; then
+      _freshness_diff=$(cd "$repo_root" && task freshness:regenerate --quiet 2>/dev/null && git diff --stat -- docs/code-quality/repo-index.json website/src/data/test-inventory.json 2>/dev/null || true)
+    fi
+    if [[ -n "$_freshness_diff" ]]; then
+      warn "BATS-Dateien geändert, aber repo-index.json/test-inventory.json fehlen im Push."
+      warn "CI schlägt möglicherweise fehl. Fix:"
+      warn "  task freshness:regenerate"
+      warn "  git add docs/code-quality/repo-index.json website/src/data/test-inventory.json"
+      warn "  git commit --amend --no-edit && git push --force-with-lease"
+    fi
   fi
 done
 

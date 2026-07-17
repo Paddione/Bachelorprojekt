@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import KiProviderDrawer from '../admin/KiProviderDrawer.svelte';
   import { interfaceById, type InterfaceDef } from '../../lib/ki-catalog';
-  import { logger } from '../../lib/logger';
+  import { browserLogger } from '../../lib/browser-logger';
 
   interface ProviderEntry {
     id: number; source: string; tier: 'sonnet' | 'haiku'; priority: number;
@@ -50,7 +50,7 @@
         catalog = c ?? [];
       }
     } catch (err) {
-      logger.error('Failed to load providers:', err);
+      browserLogger.error({ err }, '[KiRoutingPanel] Failed to load providers');
     }
   }
 

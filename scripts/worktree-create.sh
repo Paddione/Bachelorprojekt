@@ -65,6 +65,21 @@ BRANCH="${1:?Usage: worktree-create.sh <branch> <path> [<base>]}"
 WT_PATH="${2:?Usage: worktree-create.sh <branch> <path> [<base>]}"
 BASE="${3:-origin/main}"
 
+# T001936: Enforce .worktrees/ path for feature/fix branches.
+# CLAUDE.local.md / Memory previously recommended tmp/ paths which conflict with
+# preflight-pr-scope.sh (lines 63-68). Auto-redirect non-conformant paths instead
+# of letting the PR flow fail with FATAL.
+# Skip in test mode (WT_PATH under /tmp or $TMP) — BATS tests create ephemeral
+# worktrees in temp dirs which are expected to be outside .worktrees/.
+if [[ "$BRANCH" =~ ^(feature|fix)/ ]] && [[ "$WT_PATH" != /tmp/* ]] && [[ "$WT_PATH" != "${TMP:-/nonexistent}"/* ]]; then
+  ABS_WT="$(cd "$(dirname "$WT_PATH")" 2>/dev/null && pwd)/$(basename "$WT_PATH")" 2>/dev/null || ABS_WT="$WT_PATH"
+  if [[ "$ABS_WT" != *"/worktrees/"* ]] && [[ "$ABS_WT" != *"/.worktrees/"* ]]; then
+    _wt_name="$(basename "$WT_PATH")"
+    WT_PATH=".worktrees/$_wt_name"
+    echo "worktree-create: T001936 — auto-redirected path to $WT_PATH (feature/fix branches require .worktrees/)" >&2
+  fi
+fi
+
 # Absolute path to the SHARED gitdir (.../.git), valid from main or a worktree.
 COMMON_DIR="$(cd "$(git rev-parse --git-common-dir)" && pwd)"
 KEY_SRC="$COMMON_DIR/git-crypt/keys/default"

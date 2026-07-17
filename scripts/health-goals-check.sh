@@ -333,10 +333,11 @@ row target G-DB01 "$(db_scalar "WITH fk AS (
   idx AS (SELECT i.indrelid AS relid, i.indkey[0] AS col FROM pg_index i)
   SELECT count(*) FROM (SELECT relid,col FROM fk EXCEPT SELECT relid,col FROM idx) x;")" le 0 "FK-Spalten ohne Index"
 row target G-DB03 "$(db_scalar "SELECT
-    (SELECT count(DISTINCT table_schema||'.'||table_name) FROM information_schema.columns
-       WHERE column_name='brand' AND table_schema NOT IN ('pg_catalog','information_schema'))
+    (SELECT count(DISTINCT c.table_schema||'.'||c.table_name) FROM information_schema.columns c
+       JOIN information_schema.tables t ON t.table_schema=c.table_schema AND t.table_name=c.table_name
+       WHERE c.column_name='brand' AND c.table_schema NOT IN ('pg_catalog','information_schema') AND t.table_type='BASE TABLE')
   - (SELECT count(DISTINCT conrelid) FROM pg_constraint
-       WHERE contype='c' AND pg_get_constraintdef(oid) ILIKE '%brand%' AND pg_get_constraintdef(oid) ILIKE '%mentolder%');")" le 0 "brand-Spalten ohne CHECK-Constraint (messen)"
+       WHERE contype='c' AND pg_get_constraintdef(oid) ILIKE '%brand%' AND pg_get_constraintdef(oid) ILIKE '%mentolder%');")" le 0 "brand-Spalten ohne CHECK-Constraint (messen; VIEWs ausgeschlossen T001906)"
 row target G-DB08 "$(db_scalar "SELECT count(*) FROM pg_stat_user_tables
     WHERE n_live_tup>10000 AND seq_scan>0
       AND (seq_scan::numeric/NULLIF(seq_scan+idx_scan,0))>0.05;")" le 3 "Tabellen >10k Rows mit Seq-Scan-Anteil >5% (messen)"

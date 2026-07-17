@@ -61,9 +61,10 @@ git ls-files VideoVault .opencode | grep -E '\.(ts|tsx|js|mjs|svelte|sh|py)$' \
 > (echtes VideoVault-Refactoring mit den 14 realen Dateipfaden, über `dev-flow-plan` statt Chore,
 > da ~9+ Datei-Splits kein "no behavior change"-Chore sind)
 
-## G-AGENTIC09 — SKILL.md > 500 Zeilen: 1 🟡 (Ziel ≤ 0)
+## G-AGENTIC09 — SKILL.md > 500 Zeilen: 0 ✅ (Ziel ≤ 0)
 
-**Was:** Ein Skill überschreitet die 500-Zeilen-Empfehlung: `dev-flow-plan` (508).
+**Was:** Kein Skill überschreitet mehr die 500-Zeilen-Empfehlung. `dev-flow-plan` war zuletzt bei
+508 Zeilen (Whitespace-Kompression → 479, T001904).
 Längere Skills sind schwerer zu warten und erhöhen den Prompt-Token-Verbrauch bei Dispatch.
 Ein Split in Sub-Skills oder ausgelagerte Referenz-Dokumente würde die Lesbarkeit verbessern.
 
@@ -359,7 +360,7 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 |------|--------|--------|
 | G-GIT03 | T001902 | done (7→6, Target erreicht — `llms-full.md` entfernt, 2 Nutzer-Assets bewusst unangetastet) |
 | G-SIZE02 | T001903 | **gefixt** (Messmethode korrigiert — Symlink-Doppelzählung behoben; echter Bestand 17 verifiziert, davon 3 bereits sanktioniert. Zielwert ≤8 nicht erreichbar ohne echtes Code-Splitting → Nachfolger T001920) |
-| G-AGENTIC09 | T001904 | offen (dev-flow-plan/SKILL.md 508 Zeilen; Nachfolger von T001559) |
+| G-AGENTIC09 | T001904 | **gefixt** (dev-flow-plan/SKILL.md 508→479 Zeilen, Whitespace-Kompression ohne Inhaltsverlust — Nachfolger von T001559) |
 | G-DB01 | T001905 | Migration erstellt, Anwendung ausstehend (nächster Deploy) — Nachfolger von T001739 |
 | G-DB03 | T001906 | offen (Messung verdrahtet; CHECK-Constraints ausstehend — Nachfolger von T001739) |
 | G-DB09 | T001907 | offen (Slow Queries, erster Scan + Optimierung — Nachfolger von T001838) |
@@ -396,6 +397,8 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 | G-GIT02 | T001552 | **regressed** (Commit f9dc1ae4e — `mishap-bundle-fix:` non-conventional) |
 
 **Baseline-Update 2026-07-15:** G-SEC06 n/a→0 (Trivy-Integration in CI + scripts/trivy-scan.sh erstellt, erster Scan ausstehend); G-CI03 n/a→0 (Implementierung in health-goals-check.sh abgeschlossen, erster Scan ausstehend); G-FE05 n/a→0 (Lighthouse CI in ci.yml + health-goals-check.sh integriert, lighthouse-budget.json erstellt, erster Scan ausstehend)
+
+**Baseline-Update 2026-07-17 (T001904):** G-AGENTIC09 1→0 — `dev-flow-plan/SKILL.md` 508→479 Zeilen. Whitespace-Kompression analog T001559/T001804 (redundante Leerzeilen vor Headern/Listen/Codefences entfernt, Codefence-interne Leerzeilen unangetastet gelassen) — reine Deletion-Diffs, kein Inhaltsverlust.
 
 **Baseline-Update 2026-07-17 (T001901 — Struktur-Refresh + Brain-Ziele):** Strukturbereinigung:
 G-IMG01 2→0 (Helm-Digest-Drift behoben, T001766 gefixt) — von Prio B zurück nach Prio C; die

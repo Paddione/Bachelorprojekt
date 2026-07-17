@@ -140,7 +140,7 @@ App-Queries unterscheiden (analog VIEW-Ausschluss bei G-DB03/T001906). Nachfolge
 
 > **B · Baseline:** 1 (False-Positive: Backup-COPY, kein App-Query) · **Target:** 0 · **Aufwand:** gering (Messbefehl in health-goals-check.sh, Fix ist Messmethoden-Korrektur — siehe Nachfolger) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001907 (**gefixt** — Baseline gemessen; Nachfolger T001926 für Messmethoden-Korrektur, Nachfolger von T001838)
 
-## G-DB10 — Unused Indexes (idx_scan = 0): n/a → 0
+## G-DB10 — Unused Indexes (idx_scan = 0): 93 → 0
 
 **Was:** Zählt Indizes mit `idx_scan = 0` seit dem letzten Reset. Unbenutzte Indizes
 verlangsamen Schreiboperationen, erhöhen Autovacuum-Last und belegen Plattenplatz.
@@ -148,10 +148,21 @@ Primary Keys und Unique-Constraint-Träger werden ausgeschlossen (deren idx_scan
 intrinsisch niedrig).
 
 ```bash
-db_scalar "SELECT count(*) FROM pg_stat_user_indexes WHERE idx_scan = 0 AND indisready AND NOT indisprimary AND indexrelid NOT IN (SELECT conindid FROM pg_constraint WHERE contype='u')"
+db_scalar "SELECT count(*) FROM pg_stat_user_indexes s JOIN pg_index i ON i.indexrelid = s.indexrelid WHERE s.idx_scan = 0 AND i.indisready AND NOT i.indisprimary AND s.indexrelid NOT IN (SELECT conindid FROM pg_constraint WHERE contype='u')"
 ```
 
-> **B · Baseline:** n/a · **Target:** 0 · **Aufwand:** gering (Messung) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001908 (Nachfolger von T001839)
+Erster Scan (2026-07-17): **93 Treffer** über 14 Schemas. Von diesen ist genau 1 zweifelsfrei
+sicher: `public.idx_customers_email` ist ein exaktes Duplikat von `customers_email_key`
+(UNIQUE-Constraint, idx_scan=700, aktiv genutzt) — via Migration gedropt
+(`website/src/db/migrations/20260717_drop_redundant_customers_email_index.sql`).
+Die verbleibenden 92 sind NICHT zweifelsfrei: 8 davon sind partielle UNIQUE-Indizes ohne
+formalen `pg_constraint`-Eintrag (Business-Invarianten wie "ein aktiver ki_config pro Brand",
+"ein offener Poll") — die Messquery selbst müsste um `NOT indisunique` erweitert werden,
+sonst zählt sie unlöschbare Indizes mit (Messmethoden-Korrektur analog G-DB03/G-DB09). Der Rest
+(~83, plus 2 HNSW-Vektorindizes mit seltener aber legitimer Nutzung) braucht Einzelfallprüfung
+pro Tabelle vor einem Drop. Volle Klassifikation → Nachfolgeticket T001928.
+
+> **B · Baseline:** 93 · **Target:** 0 · **Aufwand:** gering (1 Index sicher gedroppt) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001908 (**gefixt** — Baseline gemessen, 1 zweifelsfreier Drop umgesetzt; Nachfolger T001928 für die restlichen 92 Kandidaten, Nachfolger von T001839)
 
 ## G-SEC06 — Container Images mit High/Critical CVEs: 39 🔴 (Ziel 0)
 
@@ -370,7 +381,7 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 
 **Baseline-Update 2026-07-17 (T001903):** G-SIZE02 Messmethode gefixt — die naive `wc -l`-Zählung folgte den Symlinks `.opencode/plugins/background-agents.ts` und `.opencode/plugins/worktree.ts` (git-tracked Symlinks auf `.opencode/skills/dev-flow/*.ts`) und zählte deren Zeilen doppelt (19 statt 17). Messkommando um `[ -L "$f" ]`-Filter ergänzt. Echter, verifizierter Bestand bleibt bei 17 (3× .opencode/, bereits sanktioniert via S1-Gate-Ignore; 14× VideoVault/, echter Produktionscode, keine Duplikate/generierte Artefakte). T001556 hatte den Wert nie wirklich gefixt — der archivierte Plan referenzierte nicht-existente Pfade (`VideoVault/src/lib/upload.ts` statt der realen `VideoVault/client/src/...` / `VideoVault/server/...`-Struktur), daher blieben alle abgehakten Tasks wirkungslos. Zielwert ≤8 erfordert echtes, getestetes Code-Splitting über ~9 Dateien (~2-3 Wochen) — kein Chore-Scope (kein `node_modules` installiert, kein Testlauf als Regressionsnetz in dieser Session verfügbar) → Nachfolger-Ticket T001920 mit konkreten Split-Vorschlägen je realer Datei, zur Umsetzung über `dev-flow-plan`.
 
-**Offene Tickets (2026-07-17):** G-AGENTIC09 (T001904), G-DB01 (T001905), G-DB10 (T001908), G-SEC06 (T001909), G-CI03 (T001910), G-FE05 (T001911), G-BRAIN14 (T001912), G-SIZE02 (T001920, Nachfolger von T001903 — echtes VideoVault-Refactoring), G-DB03 (T001925, Nachfolger von T001906 — echte 41-Tabellen-Migration in 3 Gruppen), G-DB09 (T001926, Nachfolger von T001907 — Messmethoden-Korrektur Backup-COPY-Ausschluss)
+**Offene Tickets (2026-07-17):** G-AGENTIC09 (T001904), G-DB01 (T001905), G-SEC06 (T001909), G-CI03 (T001910), G-FE05 (T001911), G-BRAIN14 (T001912), G-SIZE02 (T001920, Nachfolger von T001903 — echtes VideoVault-Refactoring), G-DB03 (T001925, Nachfolger von T001906 — echte 41-Tabellen-Migration in 3 Gruppen), G-DB09 (T001926, Nachfolger von T001907 — Messmethoden-Korrektur Backup-COPY-Ausschluss), G-DB10 (T001928, Nachfolger von T001908 — 92 restliche Unused-Index-Kandidaten klassifizieren)
 
 | Ziel | Ticket | Status |
 |------|--------|--------|
@@ -380,7 +391,7 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 | G-DB01 | T001905 | Migration erstellt, Anwendung ausstehend (nächster Deploy) — Nachfolger von T001739 |
 | G-DB03 | T001906 | **gefixt** (Messmethode korrigiert — 3 VIEWs ausgeschlossen, echter Bestand 41 Basistabellen; kein einheitlicher Wertebereich [Wildcard `'*'` + NULL-Ausnahmen] → Nachfolger T001925) |
 | G-DB09 | T001907 | offen (Slow Queries, erster Scan + Optimierung — Nachfolger von T001838) |
-| G-DB10 | T001908 | offen (Unused Indexes, Baseline fehlt — Nachfolger von T001839) |
+| G-DB10 | T001908 | **gefixt** (Baseline 93 gemessen, 1 zweifelsfreier Drop [`idx_customers_email`] via Migration umgesetzt — Nachfolger T001928 für die restlichen 92 Kandidaten, Nachfolger von T001839) |
 | G-SEC06 | T001909 | offen (Container CVEs, Baseline 39 CRITICAL erfasst — Fix erfordert Image-Pin-Refresh, Folgeticket vorgeschlagen — Nachfolger von T001840) |
 | G-CI03 | T001910 | offen (CI p95, erster Messlauf ausstehend — Nachfolger von T001841) |
 | G-FE05 | T001911 | **gemessen** (Baseline 60/100, Target 90 — Optimierung als Follow-up-Ticket ausgelagert) |

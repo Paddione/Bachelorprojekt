@@ -1095,6 +1095,12 @@
       "status": "archived"
     }
   ],
+  "T001873": [
+    {
+      "slug": "mishap-t001873",
+      "status": "plan_staged"
+    }
+  ],
   "T001884": [
     {
       "slug": "2026-07-15-brain-ssot-consolidation",

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.187.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.186.2...website-v1.187.0) (2026-07-17)
+
+
+### Features
+
+* **website:** self-host fonts, eliminate Google Fonts CDN render-blocking [T001930] ([#2912](https://github.com/Paddione/Bachelorprojekt/issues/2912)) ([d237418](https://github.com/Paddione/Bachelorprojekt/commit/d2374184d632d5e5f7979afbe764246d993425f3))
+
 ## [1.186.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.186.1...website-v1.186.2) (2026-07-17)
 
 

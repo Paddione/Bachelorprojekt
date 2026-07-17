@@ -76,6 +76,33 @@ test.describe('Brett session lifecycle', () => {
     }
   });
 
+  test('T001935: a duplicate admin_session_create shows the session-active toast to the user', async ({ browser }) => {
+    // Client-side regression test for the fix in PR #2930 (ws-client.ts error
+    // handler): previously the session-active error was only console.warn'd,
+    // giving the admin no feedback at all.
+    const room = `e2e-lifecycle-toast-${Math.random().toString(36).slice(2, 8)}`;
+    const ctx = await browser.newContext({ ignoreHTTPSErrors: true });
+    await loginAs(ctx, 'leiter-toast-e2e', 'Leiter');
+    const leiter = await ctx.newPage();
+
+    try {
+      await leiter.goto(`${BRETT_URL}?room=${room}`);
+      await waitForBoard(leiter);
+      await sendWs(leiter, { type: 'admin_session_create' });
+      await sendWs(leiter, { type: 'admin_assign_role', targetPlayerId: 'leiter-toast-e2e', role: 'leiter' });
+      await sendWs(leiter, { type: 'admin_round_start' });
+      await leiter.waitForTimeout(500);
+
+      await sendWs(leiter, { type: 'admin_session_create' });
+
+      await expect(
+        leiter.getByText('Es läuft bereits eine Sitzung. Bitte beende diese zuerst.')
+      ).toBeVisible({ timeout: 10000 });
+    } finally {
+      await ctx.close();
+    }
+  });
+
   test('round lifecycle: start → pause → stop broadcasts the correct phase to all participants', async ({ browser }) => {
     const room = `e2e-lifecycle-phase-${Math.random().toString(36).slice(2, 8)}`;
     const leiterCtx = await browser.newContext({ ignoreHTTPSErrors: true });

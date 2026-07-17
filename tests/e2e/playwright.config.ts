@@ -224,6 +224,10 @@ export default defineConfig({
         '**/brett-share-link.spec.ts', // T000608 public view-only share link
         '**/brett-session-lifecycle.spec.ts', // session-active/round-phases/kick/handoff (opens its own contexts)
         '**/brett-hidden-figures.spec.ts',    // E9 verdecktes Arbeiten — role-filter security test (opens its own contexts)
+        '**/brett-moderation.spec.ts',        // spotlight/dim/freeze (opens its own contexts)
+        '**/brett-undo-redo.spec.ts',         // session_undo/session_redo (opens its own contexts)
+        '**/brett-ground-annotations.spec.ts',// anchors/zones/lines incl. leiter-only gate (opens its own contexts)
+        '**/brett-figure-ownership.spec.ts',  // figure_type_set/admin_assign_figure/lobby settings (opens its own contexts)
       ],
       use: {
         ...devices['Desktop Chrome'],

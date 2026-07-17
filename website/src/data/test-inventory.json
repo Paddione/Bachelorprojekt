@@ -48,6 +48,18 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:brett-figure-ownership",
+    "file": "tests/e2e/specs/brett-figure-ownership.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:brett-ground-annotations",
+    "file": "tests/e2e/specs/brett-ground-annotations.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:brett-hidden-figures",
     "file": "tests/e2e/specs/brett-hidden-figures.spec.ts",
     "category": "E2E",
@@ -72,6 +84,12 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:brett-moderation",
+    "file": "tests/e2e/specs/brett-moderation.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:brett-roles",
     "file": "tests/e2e/specs/brett-roles.spec.ts",
     "category": "E2E",
@@ -86,6 +104,12 @@
   {
     "id": "E2E:brett-share-link",
     "file": "tests/e2e/specs/brett-share-link.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:brett-undo-redo",
+    "file": "tests/e2e/specs/brett-undo-redo.spec.ts",
     "category": "E2E",
     "kind": "playwright"
   },

@@ -33,19 +33,6 @@ Sofort angehen. Ticket-Erstellung ist **bewusst manuell** (`scripts/health-goals
 
 ---
 
-## G-GIT03 — Dateien > 1MB im Tree (kein LFS): 7 🔴 (Ziel ≤ 6)
-
-**Was:** Zählt Dateien >1MB im Tree (u. a. gerenderte `kube-prometheus-stack`-Manifeste, gebaute Docs-HTML). `.codebase-memory/graph.db.zst` (16.7MB, ehem. PR #2281) is seit **T001717** kein getracktes Repo-Artefakt mehr — es wird lokal via `task codebase:index` regeneriert (`.gitignore`) statt committet, daher entfällt der frühere Scope-Ausschluss (T001348) ersatzlos.
-
-```bash
-git ls-files -z | xargs -0 -I{} sh -c 'test -f "{}" && wc -c "{}"' 2>/dev/null \
-  | awk '$1>1048576{c++} END{print c+0}'
-```
-
-**Historie (T001348, obsolet seit T001717):** Eine LFS-Migration von `graph.db.zst` wurde ursprünglich verworfen und die Datei stattdessen per Policy-Entscheidung aus dem Gate-Scope ausgeschlossen (git-lfs lokal defekt, kein erkennbarer Gegenwert für ein intern generiertes `merge=ours`-Binärartefakt). T001717 hat das Problem an der Wurzel gelöst: die Datei is nicht mehr getrackt, der Ausschluss ist damit hinfällig.
-
-> **A · Baseline:** 6 → 7 🔴 · **Target:** ≤ 6 · **Aufwand:** gering (manuelle Entscheidung über 2 Nutzer-Assets: löschen, LFS oder Gate-Scope-Policy) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001902 (Nachfolger von T001717/T001348)
-
 # Priorität B — Offene Ziele {#prio-b}
 
 Im nächsten Sprint einplanen.
@@ -239,6 +226,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-CQ10** | S4 verwaiste Scripts | 0 ✓ | ≤ 4 | `python3 -c "..S4-Gate.." < docs/code-quality/baseline.json` |
 | **G-SIZE03** | God-File `website/src/lib/website-db.ts` | 1939 ✓ | ≤ 3000 | `wc -l < website/src/lib/website-db.ts` |
 | **G-GIT01** | Offene PRs >7 Tage | 0 ✓ | 0 | `gh pr list --state open --json number,createdAt` |
+| **G-GIT03** | Dateien >1MB im Tree (kein LFS) | 6 ✓ | ≤ 6 | `git ls-files -z \| xargs -0 -I{} sh -c 'test -f "{}" && wc -c "{}"' 2>/dev/null \| awk '$1>1048576{c++} END{print c+0}'` — T001902: `.claude/skills/unsloth/references/llms-full.md` entfernt (redundanter, von der Skill selbst nicht referenzierter GitBook-Volldump, überlappend mit `llms-txt.md`/`llms.md`). **Manuelle Entscheidung zu den 2 Nutzer-Assets** (`assets/grilling-brett-admin-panel/Brett Admin Panel.html`, `environments/korczewski/KERN Logo Design.html`): bleiben unangetastet — Löschen ist ohne Nutzerfreigabe riskant, LFS ist repo-weit als defekt dokumentiert (T001348), und beide Dateien machen nur 2 von 6 verbleibenden >1MB-Treffern aus (Target bereits ohne sie erreicht). Keine Gate-Scope-Ausnahme nötig; siehe T001902-Ticketkommentar. |
 | **G-DEP01** | High/Critical npm-Vulnerabilities | 0 ✓ | 0 | `cd website && pnpm audit --json 2>/dev/null \| python3 -c "..."` |
 | **G-DEP03** | PM-Konsistenz (pnpm) | 0 ✓ | 1 PM | `grep -q "npm ci" website/Dockerfile && echo inkonsistent \|\| echo ok` |
 | **G-DEP04** | `engines >= 22.13.0` | 0 ✓ | 0 | `for p in package.json website/package.json ...; do python3 -c "..engines.."; done` |
@@ -337,11 +325,13 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 
 **Baseline-Update 2026-07-14 (T001804):** G-AGENTIC06 1→0 (OVERVIEW.md Zähler 37→36 + Mess-Umstellung auf getrackte SKILL.md via `git ls-files` — lokal via market-cli installierte Skills kippen das Gate nicht mehr, Präzedenz T001783). G-AGENTIC07 6→0 (2 untrackte lokale Skills aus dem Mess-Scope entfernt; 4 getrackte Drittanbieter-/ML-Skills — ui-ux-pro-max, unsloth, gguf-quantization, speculative-decoding — in neuer OVERVIEW.md-Sektion registriert). G-AGENTIC08 1→0 (Mess-Bug: Regex ohne Anker matchte `scripts/search.py` als Substring des existierenden Pfads `.claude/skills/ui-ux-pro-max/scripts/search.py` — Lookbehind ergänzt). G-AGENTIC11 5→0 (CLAUDE.md-opencode-Liste um `github-mcp`, `playwright`, `sequential-thinking`, `webresearch`, `docfork` ergänzt). G-DOC02 216→190 (CLAUDE.md kondensiert: Merge=Abschluss- und Bug-Triage-Blöcke entwrappt, leere `### Brett`-Überschrift und redundantes Oracle-Beispiel entfernt). G-AGENTIC09 1→0 (dev-flow-plan/SKILL.md 513→495 Zeilen, Prosa-Entwrapping ohne Inhaltsverlust). G-GIT03 bleibt 7 (>Target 6): Kandidaten `assets/grilling-brett-admin-panel/Brett Admin Panel.html` und `environments/korczewski/KERN Logo Design.html` sind Nutzer-Assets — Löschen/LFS braucht manuelle Entscheidung.
 
-**Offene Tickets (2026-07-17):** G-GIT03 (T001902), G-SIZE02 (T001903), G-AGENTIC09 (T001904), G-DB01 (T001905), G-DB03 (T001906), G-DB09 (T001907), G-DB10 (T001908), G-SEC06 (T001909), G-CI03 (T001910), G-FE05 (T001911), G-BRAIN14 (T001912)
+**Baseline-Update 2026-07-17 (T001902):** G-GIT03 7→6 — Target erreicht, wechselt von Prio A nach Prio C. Entfernt: `.claude/skills/unsloth/references/llms-full.md` (1.03 MB, redundanter GitBook-Volldump, von der Skill selbst nicht referenziert — SKILL.md listet nur `llms-txt.md`). Die 2 verbleibenden Nutzer-Assets (`assets/grilling-brett-admin-panel/Brett Admin Panel.html`, `environments/korczewski/KERN Logo Design.html`) bleiben bewusst unangetastet: Löschen ohne Nutzerfreigabe riskant, LFS repo-weit als defekt dokumentiert (T001348); da das Target auch ohne sie erreicht ist, ist keine Gate-Scope-Ausnahme nötig.
+
+**Offene Tickets (2026-07-17):** G-SIZE02 (T001903), G-AGENTIC09 (T001904), G-DB01 (T001905), G-DB03 (T001906), G-DB09 (T001907), G-DB10 (T001908), G-SEC06 (T001909), G-CI03 (T001910), G-FE05 (T001911), G-BRAIN14 (T001912)
 
 | Ziel | Ticket | Status |
 |------|--------|--------|
-| G-GIT03 | T001902 | offen (7 > Target 6; manuelle Entscheidung über 2 Nutzer-Assets — Nachfolger von T001717) |
+| G-GIT03 | T001902 | done (7→6, Target erreicht — `llms-full.md` entfernt, 2 Nutzer-Assets bewusst unangetastet) |
 | G-SIZE02 | T001903 | offen (17 Großdateien; Nachfolger von T001556, das ohne Messwert-Fix archiviert wurde) |
 | G-AGENTIC09 | T001904 | offen (dev-flow-plan/SKILL.md 508 Zeilen; Nachfolger von T001559) |
 | G-DB01 | T001905 | offen (Messung verdrahtet; Index-Fix ausstehend — Nachfolger von T001739) |

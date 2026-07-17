@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>hf-cloud-sagemaker-production-defaults — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
+  <div id="search-box">
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
+  </div>
+</div>
+<div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Dev-Workflow</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-architect.html">code-architect</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-explorer.html">code-explorer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/code-simplifier--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--comment-analyzer.html">comment-analyzer</a></li><li class="sidebar-item"><a href="../skills/dev-flow-e2e.html">dev-flow-e2e</a></li><li class="sidebar-item"><a href="../skills/dev-flow-execute.html">dev-flow-execute</a></li><li class="sidebar-item"><a href="../skills/dev-flow-plan.html">dev-flow-plan</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--pr-test-analyzer.html">pr-test-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--silent-failure-hunter.html">silent-failure-hunter</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--type-design-analyzer.html">type-design-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Bachelorprojekt-Infra</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/mishap-tracker.html">mishap-tracker</a></li><li class="sidebar-item"><a href="../skills/operations-management.html">operations-management</a></li><li class="sidebar-item"><a href="../skills/update-dependencies.html">update-dependencies</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">KI / ML</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-aws-context-discovery.html">hf-cloud-aws-context-discovery</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-aws-context-discovery.html">hf-cloud-aws-context-discovery</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-aws-context-discovery.html">hf-cloud-aws-context-discovery</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-aws-context-discovery.html">hf-cloud-aws-context-discovery</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-python-env-setup.html">hf-cloud-python-env-setup</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-python-env-setup.html">hf-cloud-python-env-setup</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-python-env-setup.html">hf-cloud-python-env-setup</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-python-env-setup.html">hf-cloud-python-env-setup</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-deployment-planner.html">hf-cloud-sagemaker-deployment-planner</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-deployment-planner.html">hf-cloud-sagemaker-deployment-planner</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-deployment-planner.html">hf-cloud-sagemaker-deployment-planner</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-deployment-planner.html">hf-cloud-sagemaker-deployment-planner</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-iam-preflight.html">hf-cloud-sagemaker-iam-preflight</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-iam-preflight.html">hf-cloud-sagemaker-iam-preflight</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-iam-preflight.html">hf-cloud-sagemaker-iam-preflight</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-iam-preflight.html">hf-cloud-sagemaker-iam-preflight</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-production-defaults.html" aria-current="page">hf-cloud-sagemaker-production-defaults</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-production-defaults.html" aria-current="page">hf-cloud-sagemaker-production-defaults</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-production-defaults.html" aria-current="page">hf-cloud-sagemaker-production-defaults</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-production-defaults.html" aria-current="page">hf-cloud-sagemaker-production-defaults</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-serving-image-selection.html">hf-cloud-serving-image-selection</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-serving-image-selection.html">hf-cloud-serving-image-selection</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-serving-image-selection.html">hf-cloud-serving-image-selection</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-serving-image-selection.html">hf-cloud-serving-image-selection</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Plugin- &amp; Skill-Bau</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../agents/plugin-dev--agent-creator.html">agent-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--agent-development.html">agent-development</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-py.html">agent-sdk-verifier-py</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-ts.html">agent-sdk-verifier-ts</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--command-development.html">command-development</a></li><li class="sidebar-item"><a href="../agents/hookify--conversation-analyzer.html">conversation-analyzer</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--hook-development.html">hook-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--mcp-integration.html">mcp-integration</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-settings.html">plugin-settings</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-structure.html">plugin-structure</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--plugin-validator.html">plugin-validator</a></li><li class="sidebar-item"><a href="../skills/skill-creator--skill-creator.html">skill-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--skill-development.html">skill-development</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--skill-reviewer.html">skill-reviewer</a></li><li class="sidebar-item"><a href="../skills/hookify--writing-rules.html">writing-hookify-rules</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Browser &amp; Debugging</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers-chrome--browsing.html">browsing</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">MCP &amp; API</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/postman--agent-ready-apis.html">agent-ready-apis</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-app.html">build-mcp-app</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-server.html">build-mcp-server</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcpb.html">build-mcpb</a></li><li class="sidebar-item"><a href="../skills/postman--generate-spec.html">generate-spec</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--mcp-cli.html">mcp-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-cli.html">postman-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-context.html">postman-context</a></li><li class="sidebar-item"><a href="../skills/postman--postman-knowledge.html">postman-knowledge</a></li><li class="sidebar-item"><a href="../skills/postman--run-collection.html">run-collection</a></li><li class="sidebar-item"><a href="../skills/postman--send-request.html">send-request</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Claude Code &amp; Tooling</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/brightdata-plugin--agent-onboarding.html">agent-onboarding</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--ai-tools-setup.html">ai-tools-setup</a></li><li class="sidebar-item"><a href="../skills/brain-ingest.html">brain-ingest — Brain-Wiki Kompilierung</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brand-listening.html">brand-listening</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brd-browser-debug.html">brd-browser-debug</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-best-practices.html">bright-data-best-practices</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-mcp.html">bright-data-mcp</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brightdata-cli.html">brightdata-cli</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--proxy.html">brightdata-proxy</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--python-sdk-best-practices.html">brightdata-sdk</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--js-sdk-best-practices.html">brightdata-sdk-js</a></li><li class="sidebar-item"><a href="../skills/claude-code-setup--claude-automation-recommender.html">claude-automation-recommender</a></li><li class="sidebar-item"><a href="../skills/claude-md-management--claude-md-improver.html">claude-md-improver</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--competitive-intel.html">competitive-intel</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--computer-health-check.html">computer-health-check</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--data-feeds.html">data-feeds</a></li><li class="sidebar-item"><a href="../skills/database-specialist.html">database-specialist</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--design-mirror.html">design-mirror</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/dev-flow-chore.html">dev-flow-chore</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--developing-claude-code-plugins.html">developing-claude-code-plugins</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--discover-api.html">discover-api</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--finding-duplicate-functions.html">finding-duplicate-functions</a></li><li class="sidebar-item"><a href="../skills/frontend-design--frontend-design.html">frontend-design</a></li><li class="sidebar-item"><a href="../skills/gguf-quantization.html">gguf-quantization</a></li><li class="sidebar-item"><a href="../skills/git-workflow.html">git-workflow</a></li><li class="sidebar-item"><a href="../skills/incident-response.html">incident-response</a></li><li class="sidebar-item"><a href="../skills/infra-ops.html">infra-ops</a></li><li class="sidebar-item"><a href="../skills/semgrep--install-mfw.html">install-mfw</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--knowledge-base.html">knowledge-base</a></li><li class="sidebar-item"><a href="../skills/lavish.html">lavish</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--live-research.html">live-research</a></li><li class="sidebar-item"><a href="../skills/llama-cpp.html">llama-cpp</a></li><li class="sidebar-item"><a href="../skills/llm-ops.html">llm-ops</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--obsidian-vault.html">obsidian-vault</a></li><li class="sidebar-item"><a href="../skills/openspec-apply-change.html">openspec-apply-change</a></li><li class="sidebar-item"><a href="../skills/openspec-archive-change.html">openspec-archive-change</a></li><li class="sidebar-item"><a href="../skills/openspec-explore.html">openspec-explore</a></li><li class="sidebar-item"><a href="../skills/openspec-propose.html">openspec-propose</a></li><li class="sidebar-item"><a href="../skills/playground--playground.html">playground</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--price-comparison.html">price-comparison</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--rag-pipeline.html">rag-pipeline</a></li><li class="sidebar-item"><a href="../skills/haniakrim21-everything-claude-code-react-bits.html">react-bits</a></li><li class="sidebar-item"><a href="../skills/references.html">references</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/repo-hygiene.html">repo-hygiene</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scrape.html">scrape</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-builder.html">scraper-builder</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-studio.html">scraper-studio</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--search.html">search</a></li><li class="sidebar-item"><a href="../skills/security-specialist.html">security-specialist</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--seo-audit.html">seo-audit</a></li><li class="sidebar-item"><a href="../skills/speculative-decoding.html">speculative-decoding</a></li><li class="sidebar-item"><a href="../skills/superpowers-brainstorming.html">superpowers:brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers-executing-plans.html">superpowers:executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers-writing-plans.html">superpowers:writing-plans</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--terminal.html">terminal</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/ticket-ops.html">ticket-ops</a></li><li class="sidebar-item"><a href="../skills/braintrust--troubleshoot-braintrust-mcp.html">troubleshoot-braintrust-mcp</a></li><li class="sidebar-item"><a href="../skills/ui-ux-pro-max.html">ui-ux-pro-max</a></li><li class="sidebar-item"><a href="../skills/unsloth.html">unsloth</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--using-tmux-for-interactive-commands.html">using-tmux-for-interactive-commands</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/vitest.html">vitest</a></li><li class="sidebar-item"><a href="../skills/website-specialist.html">website-specialist</a></li><li class="sidebar-item"><a href="../skills/whisper.html">whisper</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--windows-vm.html">windows-vm</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--working-with-claude-code.html">working-with-claude-code</a></li></ul></details>
+</aside>
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">hf-cloud-sagemaker-production-defaults</span></nav>
+    <h1>hf-cloud-sagemaker-production-defaults</h1>
+    <p class="page-desc">Create a SageMaker endpoint (real-time or async) with autoscaling, CloudWatch alarms, and tagging enabled by default. Use this skill whenever about to create a SageMaker endpoint, write deployment code that calls `create_endpoint`, or finalize a deployment after the image URI and IAM role are known. Provides deploy.py for real-time endpoints and deploy_async.py for async endpoints (with genuine scale-to-zero support). This is the last step in the SageMaker deployment workflow. Never generate a bare `create_endpoint` call without these defaults — endpoints without autoscaling or alarms are demos, not deployments.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">huggingface-skills</span> <span class="pv-ver">1.0.18</span></span>
+      <span class="domain-tag">infra</span>
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>SageMaker Production Defaults</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#what-gets-created"><span class="toc-num">1.</span> What gets created</a></li>
+<li class="toc-item"><a href="#running-the-deployment"><span class="toc-num">2.</span> Running the deployment</a></li>
+<li class="toc-item"><a href="#inservice-is-not-success--smoke-test-before-declaring-victory"><span class="toc-num">3.</span> InService is not success — smoke-test before declaring victory</a></li>
+<li class="toc-item"><a href="#testing-a-real-time-endpoint"><span class="toc-num">4.</span> Testing a real-time endpoint</a></li>
+<li class="toc-item toc-item--h3"><a href="#the-utf-8-bom-gotcha-windows"><span class="toc-num">–</span> The UTF-8 BOM gotcha (Windows)</a></li>
+<li class="toc-item toc-item--h3"><a href="#invoking-a-generative-reranker-vllm"><span class="toc-num">–</span> Invoking a generative reranker (vLLM)</a></li>
+<li class="toc-item toc-item--h3"><a href="#picking-the-image-uri"><span class="toc-num">–</span> Picking the image URI</a></li>
+<li class="toc-item"><a href="#async-inference-deployments"><span class="toc-num">5.</span> Async inference deployments</a></li>
+<li class="toc-item toc-item--h3"><a href="#how-scale-to-zero-works"><span class="toc-num">–</span> How scale-to-zero works</a></li>
+<li class="toc-item toc-item--h3"><a href="#async-alarms"><span class="toc-num">–</span> Async alarms</a></li>
+<li class="toc-item toc-item--h3"><a href="#invoking-async-endpoints"><span class="toc-num">–</span> Invoking async endpoints</a></li>
+<li class="toc-item"><a href="#defaults-at-a-glance"><span class="toc-num">6.</span> Defaults at a glance</a></li>
+<li class="toc-item toc-item--h3"><a href="#autoscaling-target--tune-by-model-type"><span class="toc-num">–</span> Autoscaling target — tune by model type</a></li>
+<li class="toc-item"><a href="#data-capture--iam-gotcha"><span class="toc-num">7.</span> Data capture + IAM gotcha</a></li>
+<li class="toc-item"><a href="#teardown"><span class="toc-num">8.</span> Teardown</a></li>
+<li class="toc-item"><a href="#when-the-deployment-fails"><span class="toc-num">9.</span> When the deployment fails</a></li></ul>
+</div>
+<p>The difference between a demo endpoint and one you can leave running is: it scales with traffic, it tells you when it breaks, and you can debug it later. This skill makes those three the default rather than optional extras.</p>
+<p>By the time this skill runs, the planner has chosen a real-time endpoint, IAM has a usable role, and image-selection has resolved a container URI + AMI version. This skill turns those into an actual deployment.</p>
+<h2 id="what-gets-created">What gets created</h2>
+<p>For every endpoint, the skill creates these as a unit:</p>
+<ol>
+<li><strong>SageMaker Model</strong> — image + env vars + execution role + S3 artifacts</li>
+<li><strong>Endpoint config</strong> — instance type, initial count, optional data capture</li>
+<li><strong>Endpoint</strong> — the real-time endpoint serving inference</li>
+<li><strong>Autoscaling target + policy</strong> — target tracking on invocations per instance</li>
+<li><strong>CloudWatch alarms</strong> — latency, errors, platform overhead</li>
+</ol>
+<p>Data capture (logging requests/responses to S3) is <strong>off by default</strong> — useful for debugging but creates ongoing S3 costs the user didn't necessarily ask for. Enable with <code>--enable-data-capture</code>.</p>
+<p>All resources get a consistent tag set including <code>CreatedBy=agentic-deploy-skills</code> for later cleanup.</p>
+<p>Defaults and reasoning in <code>references/deployment-template.md</code>.</p>
+<h2 id="running-the-deployment">Running the deployment</h2>
+<p>For a text-generation LLM (vLLM):</p>
+<div class="code-wrapper"><pre><code class="language-bash">python scripts/deploy.py \
+    --model-name qwen3-medical \
+    --image-uri "$IMAGE_URI" \
+    --inference-ami-version "$AMI" \
+    --role-arn "$ROLE_ARN" \
+    --instance-type ml.g5.xlarge \
+    --region "$REGION" \
+    --env SM_VLLM_MODEL=Qwen/Qwen3-0.6B \
+    --env SM_VLLM_HOST=0.0.0.0 \
+    --env SM_VLLM_TRUST_REMOTE_CODE=true \
+    --env SM_VLLM_MAX_MODEL_LEN=4096
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>For an embedding model (TEI, often on CPU):</p>
+<div class="code-wrapper"><pre><code class="language-bash">python scripts/deploy.py \
+    --model-name bge-large-embeddings \
+    --image-uri "$IMAGE_URI" \
+    --role-arn "$ROLE_ARN" \
+    --instance-type ml.c6i.2xlarge \
+    --region "$REGION" \
+    --env HF_MODEL_ID=BAAI/bge-large-en-v1.5
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Note: TEI deployments <strong>do not</strong> need <code>--inference-ami-version</code>. That flag is vLLM-specific. TEI env vars are also simpler (<code>HF_MODEL_ID</code> instead of <code>SM_VLLM_*</code>, no host or trust-remote-code to configure).</p>
+<p>Where each value comes from:</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>--image-uri</code></td>
+<td><code>hf-cloud-serving-image-selection</code> — agent reads from the AWS DLC catalog page</td>
+</tr>
+<tr>
+<td><code>--inference-ami-version</code></td>
+<td><code>hf-cloud-serving-image-selection</code> — required for vLLM tags containing cu130+</td>
+</tr>
+<tr>
+<td><code>--role-arn</code></td>
+<td><code>hf-cloud-sagemaker-iam-preflight</code> (<code>check_role.py</code>)</td>
+</tr>
+<tr>
+<td><code>--region</code></td>
+<td><code>hf-cloud-aws-context-discovery</code></td>
+</tr>
+<tr>
+<td><code>--instance-type</code></td>
+<td>User input or planner recommendation</td>
+</tr>
+<tr>
+<td><code>--env</code></td>
+<td>Model-specific; see <code>hf-cloud-serving-image-selection</code> for required <code>SM_VLLM_*</code> vars</td>
+</tr>
+<tr>
+<td><code>--model-s3-uri</code></td>
+<td>Optional — S3 path to model artifacts; omit if loading from HF Hub</td>
+</tr>
+</tbody></table>
+<p>The script creates resources in order with error handling, waits for <code>InService</code> (up to 30 min), surfaces failure reasons, registers autoscaling and alarms, and prints a summary including the teardown command. Outputs a JSON blob on stdout with endpoint/config/model names for downstream scripting.</p>
+<p>The scripts ship with this skill. If the installed copy is missing the <code>scripts/</code> directory (some harnesses copy only SKILL.md on install), fetch them from the source repo rather than re-implementing them from this description.</p>
+<p><strong>Cold-start expectation</strong>: when the model loads from HF Hub, the download happens inside the container after the endpoint starts — 5–15+ minutes to InService is normal, not a failure. <code>deploy.py</code> waits 30 minutes; if you write custom wait code, don't time out at 15. Pre-staging weights in S3 (<code>--model-s3-uri</code>) cuts this and removes the Hub dependency.</p>
+<h2 id="inservice-is-not-success--smoke-test-before-declaring-victory">InService is not success — smoke-test before declaring victory</h2>
+<p><code>InService</code> only means the container answered <code>/ping</code>. In MMS-based containers (HF Inference Toolkit) the Java front-end answers pings even while the Python worker crash-loops — an endpoint can be InService and serve nothing. Two checks, always:</p>
+<ol>
+<li><p><strong>One real invocation.</strong></p>
+<ul>
+<li>Real-time: <code>invoke_endpoint.py</code> (below) with a minimal payload; require an HTTP 200 with a sane body.</li>
+<li>Async: upload one input to S3, call <code>invoke-endpoint-async</code>, poll the output URI for a few minutes (see "Invoking async endpoints"). A result object = success; an object at the failure URI, or nothing appearing, = broken.</li>
+</ul>
+</li>
+<li><p><strong>Scan the endpoint logs for worker-crash markers</strong> — catches the crash-loop case even when the smoke request merely times out:</p>
+<div class="code-wrapper"><pre><code class="language-bash">aws logs filter-log-events \
+    --log-group-name /aws/sagemaker/Endpoints/&lt;endpoint-name&gt; \
+    --filter-pattern '?"Worker died" ?"Load model failed" ?"ImportError"' \
+    --region &lt;region&gt; --max-items 5
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+</ol>
+<p>Only report the deployment complete after both pass. If the log scan hits, surface the actual traceback from CloudWatch — not the InService status.</p>
+<h2 id="testing-a-real-time-endpoint">Testing a real-time endpoint</h2>
+<p>Once the endpoint is <code>InService</code>, test it with the bundled helper. It is cross-platform and <strong>BOM-safe</strong> — use it instead of hand-writing a payload file and calling <code>invoke-endpoint</code> directly:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># macOS / Linux
+python3 scripts/invoke_endpoint.py \
+    --endpoint-name &lt;endpoint-name&gt; \
+    --payload '{"inputs": "Hello"}' \
+    --region "$REGION"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<div class="code-wrapper"><pre><code class="language-powershell"># Windows (PowerShell)
+python scripts\invoke_endpoint.py `
+    --endpoint-name &lt;endpoint-name&gt; `
+    --payload-file payload.json `
+    --region $REGION
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>It accepts either <code>--payload '&lt;json&gt;'</code> (inline) or <code>--payload-file &lt;path&gt;</code>, validates JSON, writes the request body as plain UTF-8, invokes the endpoint, and prints the response body to stdout.</p>
+<h3 id="the-utf-8-bom-gotcha-windows">The UTF-8 BOM gotcha (Windows)</h3>
+<p>If you write the request payload yourself on Windows, <strong>do not</strong> use <code>Set-Content -Encoding UTF8</code> — depending on the PowerShell version it prepends a UTF-8 byte-order mark (BOM). SageMaker's JSON parser rejects a BOM with a 400 <code>ModelError</code>:</p>
+<div class="code-wrapper"><pre><code>Unexpected UTF-8 BOM (decode using utf-8-sig): line 1 column 1 (char 0)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>This is <strong>not</strong> a model, endpoint-health, or image problem — only the file encoding of the request body. <code>invoke_endpoint.py</code> avoids it entirely (it even strips a BOM from a <code>--payload-file</code> that already has one). If you must call the CLI directly, write the body as BOM-free UTF-8:</p>
+<div class="code-wrapper"><pre><code class="language-powershell"># BOM-free UTF-8 — use this
+[System.IO.File]::WriteAllText((Resolve-Path "payload.json"), $json, [System.Text.UTF8Encoding]::new($false))
+
+aws sagemaker-runtime invoke-endpoint `
+    --endpoint-name &lt;endpoint-name&gt; `
+    --content-type application/json `
+    --body fileb://payload.json `
+    --region $REGION `
+    response.json
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Fallback:</strong> if any invocation fails with <code>Unexpected UTF-8 BOM</code>, rewrite the payload as BOM-free UTF-8 (or re-run via <code>invoke_endpoint.py</code>) and retry once before treating the endpoint or model as broken.</p>
+<h3 id="invoking-a-generative-reranker-vllm">Invoking a generative reranker (vLLM)</h3>
+<p>Generative rerankers (Qwen3-Reranker etc. — routed to the HuggingFace vLLM DLC by <code>hf-cloud-serving-image-selection</code>) are causal LMs scored by their first generated token, not chat models. Use the <strong>completions API with a raw <code>prompt</code></strong>, not the messages/chat API: chat templating does not reliably honor <code>chat_template_kwargs</code> such as <code>{"enable_thinking": false}</code>, and a wrong template silently returns near-identical scores for every query–document pair instead of erroring.</p>
+<p>Payload shape (Qwen3-Reranker's expected format — substitute <code>{query}</code> / <code>{document}</code>):</p>
+<div class="code-wrapper"><pre><code class="language-json">{
+  "prompt": "&lt;|im_start|&gt;system\nJudge whether the Document meets the requirements based on the Query and the Instruct provided. Note that the answer can only be \"yes\" or \"no\".&lt;|im_end|&gt;\n&lt;|im_start|&gt;user\n&lt;Instruct&gt;: Given a web search query, retrieve relevant passages that answer the query\n&lt;Query&gt;: {query}\n&lt;Document&gt;: {document}&lt;|im_end|&gt;\n&lt;|im_start|&gt;assistant\n&lt;think&gt;\n\n&lt;/think&gt;\n\n",
+  "max_tokens": 1,
+  "temperature": 0,
+  "logprobs": 20
+}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>The trailing <code>&lt;|im_start|&gt;assistant\n&lt;think&gt;\n\n&lt;/think&gt;\n\n</code> suffix is load-bearing: it pre-fills an empty thinking block so the first generated token is the yes/no judgment. Score from the returned logprobs: <code>P("yes") / (P("yes") + P("no"))</code>. Sanity check the endpoint with one relevant pair (expect &gt;0.9) and one irrelevant pair (expect &lt;0.05) — near-identical scores across pairs mean the prompt template is wrong, not that the model is broken.</p>
+<p>The same rule generalizes: for any thinking-mode model where the prompt must be byte-exact, prefer the raw completions API over chat.</p>
+<h3 id="picking-the-image-uri">Picking the image URI</h3>
+<p>The agent reads the image URI from AWS's <a href="https://aws.github.io/deep-learning-containers/reference/available_images/">Deep Learning Containers catalog</a> — pick the row that matches the model family (HuggingFace vLLM for LLMs, TEI for embeddings, etc.), substitute <code>&lt;region&gt;</code> with the deployment region, and pass to <code>deploy.py --image-uri</code>.</p>
+<p>For vLLM images specifically (both <code>huggingface-vllm</code> and the AWS <code>vllm</code> fallback), also check the tag's CUDA version:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Example: HuggingFace vLLM 0.21.0 from the catalog
+IMAGE_URI="763104351884.dkr.ecr.eu-west-1.amazonaws.com/huggingface-vllm:0.21.0-transformers5.8.1-gpu-py312-cu130-ubuntu22.04"
+
+# cu130 tag → must pass --inference-ami-version
+python deploy.py --image-uri "$IMAGE_URI" \
+    --inference-ami-version al2-ami-sagemaker-inference-gpu-3-1 \
+    ...
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>For tags with <code>cu129</code> or lower, omit <code>--inference-ami-version</code>. See <code>hf-cloud-serving-image-selection</code> for the full vLLM AMI lookup table and the env-var requirements for each image family.</p>
+<h2 id="async-inference-deployments">Async inference deployments</h2>
+<p>For long-running inferences (&gt;60s), large payloads, or workloads that are bursty/sparse enough to benefit from scale-to-zero, use <code>deploy_async.py</code> instead of <code>deploy.py</code>. Async genuinely supports <code>MinCapacity=0</code> — real-time autoscaling can't.</p>
+<div class="code-wrapper"><pre><code class="language-bash">python scripts/deploy_async.py \
+    --model-name flux-text-to-image \
+    --image-uri "$IMAGE_URI" \
+    --role-arn "$ROLE_ARN" \
+    --instance-type ml.g5.2xlarge \
+    --region "$REGION" \
+    --output-s3-uri s3://my-bucket/async-output/ \
+    --env HF_MODEL_ID=black-forest-labs/FLUX.1-dev
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Required extras over <code>deploy.py</code>:</p>
+<ul>
+<li><code>--output-s3-uri</code> — where async results land (results are not returned synchronously)</li>
+</ul>
+<p>Optional async-specific flags:</p>
+<ul>
+<li><code>--failure-s3-uri</code> — separate path for failed invocations</li>
+<li><code>--success-sns-topic</code>, <code>--error-sns-topic</code> — get notified when async results are ready or fail</li>
+<li><code>--min-capacity 0</code> (the default) — scale to zero between batches</li>
+<li><code>--backlog-per-instance-target N</code> — target queue depth per instance (default 5)</li>
+<li><code>--max-concurrent-invocations-per-instance N</code> — default 4</li>
+</ul>
+<h3 id="how-scale-to-zero-works">How scale-to-zero works</h3>
+<p>The async script registers <strong>two</strong> autoscaling policies on the variant:</p>
+<ol>
+<li><strong>Target-tracking</strong> on <code>ApproximateBacklogSizePerInstance</code> — handles ongoing scaling between min and max</li>
+<li><strong>Step-scaling</strong> triggered by a <code>HasBacklogWithoutCapacity</code> CloudWatch alarm — handles <code>0→1</code> wake-from-zero</li>
+</ol>
+<p>Both are needed. Target-tracking alone cannot transition from zero (it can't divide by zero instances), so without the step policy the endpoint comes up, scales to zero after the first batch, and never wakes again. The script wires this up automatically.</p>
+<h3 id="async-alarms">Async alarms</h3>
+<p>The script creates three CloudWatch alarms:</p>
+<ul>
+<li><code>ApproximateBacklogSize &gt; 50</code> — queue is building faster than capacity can drain it</li>
+<li><code>InvocationsFailed &gt; 5</code> — repeated processing failures</li>
+<li><code>HasBacklogWithoutCapacity</code> — drives the wake-from-zero policy (not a notification alarm; its action is the step-scaling policy, not the SNS topic)</li>
+</ul>
+<p>If you pass <code>--sns-alarm-topic &lt;arn&gt;</code>, the first two notify on that topic. The wake alarm always points at the step policy.</p>
+<h3 id="invoking-async-endpoints">Invoking async endpoints</h3>
+<p>Async endpoints aren't called synchronously. You upload the input to S3, call <code>invoke-endpoint-async</code> with the S3 input location, and SageMaker writes the result to your <code>--output-s3-uri</code> when done:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Upload your input first
+aws s3 cp input.json s3://my-input-bucket/job1/input.json
+
+# Invoke
+aws sagemaker-runtime invoke-endpoint-async \
+    --endpoint-name &lt;endpoint-name&gt; \
+    --input-location s3://my-input-bucket/job1/input.json \
+    --content-type application/json \
+    --region &lt;region&gt;
+
+# Poll for the result at your output URI
+aws s3 cp s3://my-bucket/async-output/&lt;inference-id&gt;.out result.json
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>The same UTF-8 BOM caveat applies to the <code>input.json</code> you upload (see "The UTF-8 BOM gotcha" above) — if you build it on Windows, write it as BOM-free UTF-8 or the container's JSON parser will reject it.</p>
+<p>Teardown works the same as real-time: <code>python3 scripts/teardown.py &lt;endpoint-name&gt;</code> (the teardown script discovers policies and alarms by name prefix, so it handles both deployment modes).</p>
+<h2 id="defaults-at-a-glance">Defaults at a glance</h2>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Default</th>
+<th>Override</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Initial instance count</td>
+<td>1</td>
+<td><code>--initial-instance-count</code></td>
+</tr>
+<tr>
+<td>Autoscaling min / max</td>
+<td>1 / 4</td>
+<td><code>--min-capacity</code>, <code>--max-capacity</code></td>
+</tr>
+<tr>
+<td>Autoscaling target</td>
+<td>20 invocations/min/instance</td>
+<td><code>--target-invocations-per-instance</code></td>
+</tr>
+<tr>
+<td>Data capture</td>
+<td>disabled (opt-in)</td>
+<td><code>--enable-data-capture</code></td>
+</tr>
+<tr>
+<td>CloudWatch alarms</td>
+<td>3 alarms</td>
+<td><code>--no-alarms</code></td>
+</tr>
+<tr>
+<td>SNS notification</td>
+<td>none (alarms created but won't notify)</td>
+<td><code>--sns-alarm-topic &lt;arn&gt;</code></td>
+</tr>
+<tr>
+<td>Environment tag</td>
+<td><code>dev</code></td>
+<td><code>--environment</code></td>
+</tr>
+<tr>
+<td>InferenceAmiVersion</td>
+<td>none (SageMaker default)</td>
+<td><code>--inference-ami-version</code> (REQUIRED for vLLM CUDA 13+)</td>
+</tr>
+</tbody></table>
+<p>Not defaulted (user-specific input needed): VPC config, KMS key, multi-variant, async inference.</p>
+<h3 id="autoscaling-target--tune-by-model-type">Autoscaling target — tune by model type</h3>
+<p>The default <code>--target-invocations-per-instance 20</code> is conservative and tuned for LLM workloads where each request takes 1–5 seconds. For embedding deployments (TEI), each request is much faster (typically &lt;100ms on CPU, &lt;20ms on GPU), so a single instance can handle far more throughput. <strong>For embedding deployments, raise the target to 100–500</strong> depending on instance and model size. The default of 20 will trigger autoscaling far too aggressively for embeddings and waste money.</p>
+<p>A rule of thumb: target value ≈ 60 / (typical request latency in seconds). LLM at 3s latency → target 20. Embedding at 100ms → target 600. Generative rerankers sit in between — they generate a single token per request, so ~40–100 is a reasonable target.</p>
+<h2 id="data-capture--iam-gotcha">Data capture + IAM gotcha</h2>
+<p>If the user enables data capture, the execution role needs S3 write access to the capture prefix. The default URI (<code>s3://sagemaker-&lt;region&gt;-&lt;account&gt;/&lt;endpoint&gt;/data-capture/</code>) is typically a different bucket than the model artifact bucket. If <code>hf-cloud-sagemaker-iam-preflight</code> scoped the inline policy narrowly to just the model bucket, capture writes fail silently — endpoint keeps serving but no data appears.</p>
+<p>If the user reports "data capture isn't showing up", check the role's S3 access. Either widen the inline policy or pass <code>--data-capture-s3-uri</code> pointing to a bucket the role can write.</p>
+<h2 id="teardown">Teardown</h2>
+<div class="code-wrapper"><pre><code class="language-bash">python3 scripts/teardown.py &lt;endpoint-name&gt; &lt;region&gt;   # macOS / Linux
+python  scripts\teardown.py &lt;endpoint-name&gt; &lt;region&gt;   # Windows
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Deletes in safe order: alarms → autoscaling → endpoint (stops billing) → endpoint config → model. Idempotent.</p>
+<p>Does <strong>not</strong> delete: the IAM execution role (might be shared), data capture S3 objects (user might want to keep), SNS topic, original model artifacts.</p>
+<p>Always tell the user about the teardown command after the deployment summary. Users forget; endpoints accrue cost.</p>
+<h2 id="when-the-deployment-fails">When the deployment fails</h2>
+<p><strong><code>CannotStartContainerError</code> + no CloudWatch logs ever created</strong> — the InferenceAmiVersion problem. If the image tag contains <code>cu130</code> or later and you didn't pass <code>--inference-ami-version al2-ami-sagemaker-inference-gpu-3-1</code>, this is the cause. See <code>hf-cloud-serving-image-selection</code>. Do NOT chase images, IAM roles, env vars, or instance types — the failure signature is identical for many other things but the cause here is the AMI.</p>
+<p><strong>"Failed to pass ping health check"</strong> — the container <em>did</em> start and produced logs, but <code>/ping</code> isn't responding. Check CloudWatch at <code>/aws/sagemaker/Endpoints/&lt;endpoint-name&gt;</code>. Usually: wrong image for model architecture, missing HF token, or OOM.</p>
+<p><strong>"Container failed to start" (with logs present)</strong> — entrypoint ran, then exited. Check CloudWatch. Common: missing required env vars (<code>SM_VLLM_MODEL</code>, <code>SM_VLLM_HOST</code>, <code>SM_VLLM_TRUST_REMOTE_CODE</code>), wrong <code>ModelDataUrl</code> format, unreadable model artifacts.</p>
+<p><strong><code>ResourceLimitExceeded</code></strong> — no quota for the instance type in this region. Request increase or pick a different type (the planner should have checked quotas up front — see <code>hf-cloud-sagemaker-deployment-planner</code>).</p>
+<p><strong><code>ImportError: libtorch_cuda.so: undefined symbol: ncclCommResume</code> in CloudWatch logs</strong> — known packaging defect in <code>huggingface-pytorch-inference</code> GPU images (see "Known-broken images" in <code>hf-cloud-serving-image-selection</code>). Inside the container, so no env var, AMI, instance type, or sibling tag fixes it. Switch to DJL Inference.</p>
+<p><strong>InService, but invocations time out / async outputs never appear</strong> — dead Python worker behind a live MMS front-end. Run the log scan from "InService is not success" above; the traceback in CloudWatch is the real error.</p>
+<p><strong><code>403 Forbidden</code> downloading weights from HF Hub during startup</strong> — the container's bundled <code>huggingface_hub</code> predates HF's XET CDN auth. Add <code>--env HF_HUB_ENABLE_HF_TRANSFER=0</code>, or pre-stage the weights in S3. Note: this can <em>mask</em> a deeper failure (the worker may still crash after the download succeeds) — re-check logs after fixing it.</p>
+<p><strong>Diagnostic rule</strong>: when failures look identical across multiple configurations (different images, roles, instance types) and <strong>no logs are ever produced</strong>, the cause is almost always below the container — host AMI, networking, account-level — not the deployment config. Stop iterating on config; check the AMI version and account state.</p>
+<p>Don't retry blindly. The script prints the specific <code>FailureReason</code> from <code>describe-endpoint</code> — fix the root cause before retrying.</p>
+</body></html>
+</article>
+
+<nav class="prevnext" aria-label="Seitennavigation"><a class="prevnext-link prevnext-prev" href="../skills/huggingface-skills--hf-cloud-sagemaker-production-defaults.html"><span class="prevnext-label">← Zurück</span><span class="prevnext-title">hf-cloud-sagemaker-production-defaults</span></a><a class="prevnext-link prevnext-next" href="../skills/huggingface-skills--hf-cloud-serving-image-selection.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">hf-cloud-serving-image-selection</span></a></nav>
+  </main>
+</div>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

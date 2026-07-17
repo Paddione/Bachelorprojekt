@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>DOCS-DESIGN-STANDARDS.md — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<header class="site-header">
+  <a class="site-header-brand" href="./index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
+  <div id="search-box">
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
+  </div>
+</div>
+<div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Handbücher</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./readme.html">AI-Agent Operating Guide — Registry (SSOT)</a></li><li class="sidebar-item"><a href="./readme.html">DB Audit Phase 5 — 2026-05-23</a></li><li class="sidebar-item"><a href="./readme.html">dev.mentolder.de — Operator Runbook</a></li><li class="sidebar-item"><a href="./readme.html">Korczewski Visual Design Brief</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Architektur &amp; Bausteine</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./architecture.html">Architektur — Living Docs</a></li><li class="sidebar-item"><a href="./30-bausteine.html">Bausteine — Was läuft auf der Plattform?</a></li><li class="sidebar-item"><a href="./bereitstellungsdetails.html">Bereitstellungsdetails und Server-Topologie</a></li><li class="sidebar-item"><a href="./db-schema.html">Shared DB — Schema Reference &amp; Normalization Audit</a></li><li class="sidebar-item"><a href="./00-anleitung.html">Was will ich tun?</a></li><li class="sidebar-item"><a href="./20-werkzeuge.html">Werkzeuge — Tools und Agents</a></li><li class="sidebar-item"><a href="./10-ziele.html">Ziele — Was will ich tun?</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Audits &amp; Reports</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./2026-07-09-index-and-nplus1-audit.html">DB Audit — 2026-07-09</a></li><li class="sidebar-item"><a href="./findings.html">DB Audit Phase 5 — Findings</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Entscheidungen</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./decision-log.html">Phase 5 DROP Decision Log</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">Referenz</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./adr-001-fleet-konsolidierung.html">ADR-001: Fleet-Konsolidierung — Zusammenführung aller Marken-Cluster (Phase 3)</a></li><li class="sidebar-item"><a href="./adr-002-push-basiertes-deploy.html">ADR-002: Push-basiertes Deploy — kein GitOps-Reconciler im Cluster</a></li><li class="sidebar-item"><a href="./adr-003-brand-namespace-split.html">ADR-003: Brand-Namespace-Split — Multi-Mandanten via Kubernetes-Namespaces</a></li><li class="sidebar-item"><a href="./adr-004-llm-fail-closed.html">ADR-004: LLM-Embedding-Architektur — fail-closed, kein Cross-Space-Fallback</a></li><li class="sidebar-item"><a href="./adr-005-merge-equals-abschluss.html">ADR-005: Merge = Abschluss — Ticketmodell ohne awaiting_deploy-Happy-Path</a></li><li class="sidebar-item"><a href="./alert-email-test.html">Alert-E-Mail-Test (synthetisch)</a></li><li class="sidebar-item"><a href="./api-surface.html">API Surface Map</a></li><li class="sidebar-item"><a href="./asset-gen-gpu-host.html">Asset-Generierung: GPU-Host einrichten &amp; starten</a></li><li class="sidebar-item"><a href="./audit-log-retention.html">Audit-Log Retention — DSGVO-Dokumentation</a></li><li class="sidebar-item"><a href="./blast-radius.html">Blast-Radius-Report</a></li><li class="sidebar-item"><a href="./brainstorm-bridge-wsl.html">Brainstorm-Bridge (WSL) — Visuals &amp; Auswahl an den Nutzer kommunizieren</a></li><li class="sidebar-item"><a href="./db-audit-playbook.html">DB-Audit-Playbook (shared-db, beide Brands)</a></li><li class="sidebar-item sidebar-item--active"><a href="./docs-design-standards.html" aria-current="page">DOCS-DESIGN-STANDARDS.md</a></li><li class="sidebar-item"><a href="./envsubst-variable-management.html">envsubst Variable Management — Referenz</a></li><li class="sidebar-item"><a href="./fleet-stage2-cutover-runbook.html">Fleet Stage 2 — Cutover Runbook</a></li><li class="sidebar-item"><a href="./fleet-2026-05-31-what-changed.html">Fleet-Konsolidierung — was sich am 2026-05-31 geändert hat</a></li><li class="sidebar-item"><a href="./gotchas-footguns.html">Gotchas &amp; Footguns Reference</a></li><li class="sidebar-item"><a href="./secrets-architecture.html">Secrets-Dateiarchitektur</a></li><li class="sidebar-item"><a href="./shared-infrastructure-security.html">Shared Infrastructure Security — Cross-Brand Analysis</a></li><li class="sidebar-item"><a href="./overview.html">Skills Overview</a></li><li class="sidebar-item"><a href="./factory-usage.html">Software Factory — Usage Guide</a></li><li class="sidebar-item"><a href="./systemtest-fragebogen.html">Systemtest-Protokoll — Workspace Collaboration Platform</a></li><li class="sidebar-item"><a href="./wsl-bootstrap.html">WSL Bootstrapping Gotchas</a></li></ul></details>
+</aside>
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./docs.html">Docs</a> <span class="sep">/</span> <span class="crumb-current">DOCS-DESIGN-STANDARDS.md</span></nav>
+    <h1>DOCS-DESIGN-STANDARDS.md</h1>
+    <p class="page-desc"></p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      <span class="domain-tag">website</span>
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>DOCS-DESIGN-STANDARDS.md</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#theme"><span class="toc-num">1.</span> Theme</a></li>
+<li class="toc-item"><a href="#layout"><span class="toc-num">2.</span> Layout</a></li>
+<li class="toc-item"><a href="#mermaid--graph"><span class="toc-num">3.</span> Mermaid / graph</a></li>
+<li class="toc-item"><a href="#deploy"><span class="toc-num">4.</span> Deploy</a></li></ul>
+</div>
+<p>Design standards for the generated docs site (<code>docs.{mentolder,korczewski}.de</code>),
+built by <code>scripts/docs-gen/</code>. Parallel to <code>website/WEBSITE-STANDARDS.md</code>.</p>
+<h2 id="theme">Theme</h2>
+<ul>
+<li><strong>Single neutral dark brand theme</strong> for both domains. No per-domain runtime
+switch, no light/dark toggle, no two-image split.</li>
+<li>All colour comes from CSS custom properties in <code>theme.mjs</code> <code>editorialCss()</code>
+<code>:root</code>. Never hardcode hex outside <code>:root</code>.</li>
+<li>Accent = brass <code>#e8c870</code> (the sidekick FAB / house colour).</li>
+<li>Fonts: <strong>Geist</strong> (sans/body), <strong>Instrument Serif</strong> (headings), system mono for
+code. Loaded via a Google-Fonts <code>&lt;link&gt;</code> in <code>templates.mjs</code> <code>documentHead()</code>.</li>
+</ul>
+<h2 id="layout">Layout</h2>
+<ul>
+<li>"Mid reskin": the editorial page-shell (column, card frame, breadcrumbs, TOC)
+stays. Only colour, type, and the branded header/footer changed.</li>
+</ul>
+<h2 id="mermaid--graph">Mermaid / graph</h2>
+<ul>
+<li><strong>Never re-render mermaid to recolour.</strong> Snapshots are SHA-keyed and cached;
+recolour strictly via CSS variables on the SVG element selectors.</li>
+</ul>
+<h2 id="deploy">Deploy</h2>
+<ul>
+<li><code>docs:sync</code> does <strong>not</strong> work (read-only container rootfs). Ship via
+<code>task docs:deploy</code> (rebuild image → rollout to <code>workspace</code> +
+<code>workspace-korczewski</code> on the fleet context via <code>FLEET_KUBECONFIG</code>).</li>
+</ul>
+</body></html>
+</article>
+
+<nav class="prevnext" aria-label="Seitennavigation"><a class="prevnext-link prevnext-prev" href="./db-audit-playbook.html"><span class="prevnext-label">← Zurück</span><span class="prevnext-title">DB-Audit-Playbook (shared-db, beide Brands)</span></a><a class="prevnext-link prevnext-next" href="./envsubst-variable-management.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">envsubst Variable Management — Referenz</span></a></nav>
+  </main>
+</div>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="./app.js"></script>
+</body>
+</html>

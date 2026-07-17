@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>gguf-quantization — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
+  <div id="search-box">
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
+  </div>
+</div>
+<div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Dev-Workflow</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-architect.html">code-architect</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-explorer.html">code-explorer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/code-simplifier--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--comment-analyzer.html">comment-analyzer</a></li><li class="sidebar-item"><a href="../skills/dev-flow-e2e.html">dev-flow-e2e</a></li><li class="sidebar-item"><a href="../skills/dev-flow-execute.html">dev-flow-execute</a></li><li class="sidebar-item"><a href="../skills/dev-flow-plan.html">dev-flow-plan</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--pr-test-analyzer.html">pr-test-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--silent-failure-hunter.html">silent-failure-hunter</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--type-design-analyzer.html">type-design-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Bachelorprojekt-Infra</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/mishap-tracker.html">mishap-tracker</a></li><li class="sidebar-item"><a href="../skills/operations-management.html">operations-management</a></li><li class="sidebar-item"><a href="../skills/update-dependencies.html">update-dependencies</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">KI / ML</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-aws-context-discovery.html">hf-cloud-aws-context-discovery</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-aws-context-discovery.html">hf-cloud-aws-context-discovery</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-aws-context-discovery.html">hf-cloud-aws-context-discovery</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-aws-context-discovery.html">hf-cloud-aws-context-discovery</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-python-env-setup.html">hf-cloud-python-env-setup</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-python-env-setup.html">hf-cloud-python-env-setup</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-python-env-setup.html">hf-cloud-python-env-setup</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-python-env-setup.html">hf-cloud-python-env-setup</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-deployment-planner.html">hf-cloud-sagemaker-deployment-planner</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-deployment-planner.html">hf-cloud-sagemaker-deployment-planner</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-deployment-planner.html">hf-cloud-sagemaker-deployment-planner</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-deployment-planner.html">hf-cloud-sagemaker-deployment-planner</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-iam-preflight.html">hf-cloud-sagemaker-iam-preflight</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-iam-preflight.html">hf-cloud-sagemaker-iam-preflight</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-iam-preflight.html">hf-cloud-sagemaker-iam-preflight</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-iam-preflight.html">hf-cloud-sagemaker-iam-preflight</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-production-defaults.html">hf-cloud-sagemaker-production-defaults</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-production-defaults.html">hf-cloud-sagemaker-production-defaults</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-production-defaults.html">hf-cloud-sagemaker-production-defaults</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-production-defaults.html">hf-cloud-sagemaker-production-defaults</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-serving-image-selection.html">hf-cloud-serving-image-selection</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-serving-image-selection.html">hf-cloud-serving-image-selection</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-serving-image-selection.html">hf-cloud-serving-image-selection</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-serving-image-selection.html">hf-cloud-serving-image-selection</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Plugin- &amp; Skill-Bau</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../agents/plugin-dev--agent-creator.html">agent-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--agent-development.html">agent-development</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-py.html">agent-sdk-verifier-py</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-ts.html">agent-sdk-verifier-ts</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--command-development.html">command-development</a></li><li class="sidebar-item"><a href="../agents/hookify--conversation-analyzer.html">conversation-analyzer</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--hook-development.html">hook-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--mcp-integration.html">mcp-integration</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-settings.html">plugin-settings</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-structure.html">plugin-structure</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--plugin-validator.html">plugin-validator</a></li><li class="sidebar-item"><a href="../skills/skill-creator--skill-creator.html">skill-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--skill-development.html">skill-development</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--skill-reviewer.html">skill-reviewer</a></li><li class="sidebar-item"><a href="../skills/hookify--writing-rules.html">writing-hookify-rules</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Browser &amp; Debugging</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers-chrome--browsing.html">browsing</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">MCP &amp; API</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/postman--agent-ready-apis.html">agent-ready-apis</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-app.html">build-mcp-app</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-server.html">build-mcp-server</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcpb.html">build-mcpb</a></li><li class="sidebar-item"><a href="../skills/postman--generate-spec.html">generate-spec</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--mcp-cli.html">mcp-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-cli.html">postman-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-context.html">postman-context</a></li><li class="sidebar-item"><a href="../skills/postman--postman-knowledge.html">postman-knowledge</a></li><li class="sidebar-item"><a href="../skills/postman--run-collection.html">run-collection</a></li><li class="sidebar-item"><a href="../skills/postman--send-request.html">send-request</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">Claude Code &amp; Tooling</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/brightdata-plugin--agent-onboarding.html">agent-onboarding</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--ai-tools-setup.html">ai-tools-setup</a></li><li class="sidebar-item"><a href="../skills/brain-ingest.html">brain-ingest — Brain-Wiki Kompilierung</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brand-listening.html">brand-listening</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brd-browser-debug.html">brd-browser-debug</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-best-practices.html">bright-data-best-practices</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-mcp.html">bright-data-mcp</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brightdata-cli.html">brightdata-cli</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--proxy.html">brightdata-proxy</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--python-sdk-best-practices.html">brightdata-sdk</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--js-sdk-best-practices.html">brightdata-sdk-js</a></li><li class="sidebar-item"><a href="../skills/claude-code-setup--claude-automation-recommender.html">claude-automation-recommender</a></li><li class="sidebar-item"><a href="../skills/claude-md-management--claude-md-improver.html">claude-md-improver</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--competitive-intel.html">competitive-intel</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--computer-health-check.html">computer-health-check</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--data-feeds.html">data-feeds</a></li><li class="sidebar-item"><a href="../skills/database-specialist.html">database-specialist</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--design-mirror.html">design-mirror</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/dev-flow-chore.html">dev-flow-chore</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--developing-claude-code-plugins.html">developing-claude-code-plugins</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--discover-api.html">discover-api</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--finding-duplicate-functions.html">finding-duplicate-functions</a></li><li class="sidebar-item"><a href="../skills/frontend-design--frontend-design.html">frontend-design</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/gguf-quantization.html" aria-current="page">gguf-quantization</a></li><li class="sidebar-item"><a href="../skills/git-workflow.html">git-workflow</a></li><li class="sidebar-item"><a href="../skills/incident-response.html">incident-response</a></li><li class="sidebar-item"><a href="../skills/infra-ops.html">infra-ops</a></li><li class="sidebar-item"><a href="../skills/semgrep--install-mfw.html">install-mfw</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--knowledge-base.html">knowledge-base</a></li><li class="sidebar-item"><a href="../skills/lavish.html">lavish</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--live-research.html">live-research</a></li><li class="sidebar-item"><a href="../skills/llama-cpp.html">llama-cpp</a></li><li class="sidebar-item"><a href="../skills/llm-ops.html">llm-ops</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--obsidian-vault.html">obsidian-vault</a></li><li class="sidebar-item"><a href="../skills/openspec-apply-change.html">openspec-apply-change</a></li><li class="sidebar-item"><a href="../skills/openspec-archive-change.html">openspec-archive-change</a></li><li class="sidebar-item"><a href="../skills/openspec-explore.html">openspec-explore</a></li><li class="sidebar-item"><a href="../skills/openspec-propose.html">openspec-propose</a></li><li class="sidebar-item"><a href="../skills/playground--playground.html">playground</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--price-comparison.html">price-comparison</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--rag-pipeline.html">rag-pipeline</a></li><li class="sidebar-item"><a href="../skills/haniakrim21-everything-claude-code-react-bits.html">react-bits</a></li><li class="sidebar-item"><a href="../skills/references.html">references</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/repo-hygiene.html">repo-hygiene</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scrape.html">scrape</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-builder.html">scraper-builder</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-studio.html">scraper-studio</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--search.html">search</a></li><li class="sidebar-item"><a href="../skills/security-specialist.html">security-specialist</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--seo-audit.html">seo-audit</a></li><li class="sidebar-item"><a href="../skills/speculative-decoding.html">speculative-decoding</a></li><li class="sidebar-item"><a href="../skills/superpowers-brainstorming.html">superpowers:brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers-executing-plans.html">superpowers:executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers-writing-plans.html">superpowers:writing-plans</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--terminal.html">terminal</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/ticket-ops.html">ticket-ops</a></li><li class="sidebar-item"><a href="../skills/braintrust--troubleshoot-braintrust-mcp.html">troubleshoot-braintrust-mcp</a></li><li class="sidebar-item"><a href="../skills/ui-ux-pro-max.html">ui-ux-pro-max</a></li><li class="sidebar-item"><a href="../skills/unsloth.html">unsloth</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--using-tmux-for-interactive-commands.html">using-tmux-for-interactive-commands</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/vitest.html">vitest</a></li><li class="sidebar-item"><a href="../skills/website-specialist.html">website-specialist</a></li><li class="sidebar-item"><a href="../skills/whisper.html">whisper</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--windows-vm.html">windows-vm</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--working-with-claude-code.html">working-with-claude-code</a></li></ul></details>
+</aside>
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">gguf-quantization</span></nav>
+    <h1>gguf-quantization</h1>
+    <p class="page-desc">GGUF format and llama.cpp quantization for efficient CPU/GPU inference. Use when deploying models on consumer hardware, Apple Silicon, or when needing flexible quantization from 2-8 bit without GPU requirements.</p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      <span class="domain-tag">ops</span>
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>GGUF - Quantization Format for llama.cpp</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#when-to-use-gguf"><span class="toc-num">1.</span> When to use GGUF</a></li>
+<li class="toc-item"><a href="#quick-start"><span class="toc-num">2.</span> Quick start</a></li>
+<li class="toc-item toc-item--h3"><a href="#installation"><span class="toc-num">–</span> Installation</a></li>
+<li class="toc-item toc-item--h3"><a href="#convert-model-to-gguf"><span class="toc-num">–</span> Convert model to GGUF</a></li>
+<li class="toc-item toc-item--h3"><a href="#quantize-model"><span class="toc-num">–</span> Quantize model</a></li>
+<li class="toc-item toc-item--h3"><a href="#run-inference"><span class="toc-num">–</span> Run inference</a></li>
+<li class="toc-item"><a href="#quantization-types"><span class="toc-num">3.</span> Quantization types</a></li>
+<li class="toc-item toc-item--h3"><a href="#k-quant-methods-recommended"><span class="toc-num">–</span> K-quant methods (recommended)</a></li>
+<li class="toc-item toc-item--h3"><a href="#legacy-methods"><span class="toc-num">–</span> Legacy methods</a></li>
+<li class="toc-item"><a href="#conversion-workflows"><span class="toc-num">4.</span> Conversion workflows</a></li>
+<li class="toc-item toc-item--h3"><a href="#workflow-1-huggingface-to-gguf"><span class="toc-num">–</span> Workflow 1: HuggingFace to GGUF</a></li>
+<li class="toc-item toc-item--h3"><a href="#workflow-2-with-importance-matrix-better-quality"><span class="toc-num">–</span> Workflow 2: With importance matrix (better quality)</a></li>
+<li class="toc-item toc-item--h3"><a href="#workflow-3-multiple-quantizations"><span class="toc-num">–</span> Workflow 3: Multiple quantizations</a></li>
+<li class="toc-item"><a href="#python-usage"><span class="toc-num">5.</span> Python usage</a></li>
+<li class="toc-item toc-item--h3"><a href="#llama-cpp-python"><span class="toc-num">–</span> llama-cpp-python</a></li>
+<li class="toc-item toc-item--h3"><a href="#chat-completion"><span class="toc-num">–</span> Chat completion</a></li>
+<li class="toc-item toc-item--h3"><a href="#streaming"><span class="toc-num">–</span> Streaming</a></li>
+<li class="toc-item"><a href="#server-mode"><span class="toc-num">6.</span> Server mode</a></li>
+<li class="toc-item toc-item--h3"><a href="#start-openai-compatible-server"><span class="toc-num">–</span> Start OpenAI-compatible server</a></li>
+<li class="toc-item toc-item--h3"><a href="#use-with-openai-client"><span class="toc-num">–</span> Use with OpenAI client</a></li>
+<li class="toc-item"><a href="#hardware-optimization"><span class="toc-num">7.</span> Hardware optimization</a></li>
+<li class="toc-item toc-item--h3"><a href="#apple-silicon-metal"><span class="toc-num">–</span> Apple Silicon (Metal)</a></li>
+<li class="toc-item toc-item--h3"><a href="#nvidia-cuda"><span class="toc-num">–</span> NVIDIA CUDA</a></li>
+<li class="toc-item toc-item--h3"><a href="#cpu-optimization"><span class="toc-num">–</span> CPU optimization</a></li>
+<li class="toc-item"><a href="#integration-with-tools"><span class="toc-num">8.</span> Integration with tools</a></li>
+<li class="toc-item toc-item--h3"><a href="#ollama"><span class="toc-num">–</span> Ollama</a></li>
+<li class="toc-item toc-item--h3"><a href="#lm-studio"><span class="toc-num">–</span> LM Studio</a></li>
+<li class="toc-item toc-item--h3"><a href="#text-generation-webui"><span class="toc-num">–</span> text-generation-webui</a></li>
+<li class="toc-item"><a href="#best-practices"><span class="toc-num">9.</span> Best practices</a></li>
+<li class="toc-item"><a href="#common-issues"><span class="toc-num">10.</span> Common issues</a></li>
+<li class="toc-item"><a href="#references"><span class="toc-num">11.</span> References</a></li>
+<li class="toc-item"><a href="#resources"><span class="toc-num">12.</span> Resources</a></li></ul>
+</div>
+<p>The GGUF (GPT-Generated Unified Format) is the standard file format for llama.cpp, enabling efficient inference on CPUs, Apple Silicon, and GPUs with flexible quantization options.</p>
+<h2 id="when-to-use-gguf">When to use GGUF</h2>
+<p><strong>Use GGUF when:</strong></p>
+<ul>
+<li>Deploying on consumer hardware (laptops, desktops)</li>
+<li>Running on Apple Silicon (M1/M2/M3) with Metal acceleration</li>
+<li>Need CPU inference without GPU requirements</li>
+<li>Want flexible quantization (Q2_K to Q8_0)</li>
+<li>Using local AI tools (LM Studio, Ollama, text-generation-webui)</li>
+</ul>
+<p><strong>Key advantages:</strong></p>
+<ul>
+<li><strong>Universal hardware</strong>: CPU, Apple Silicon, NVIDIA, AMD support</li>
+<li><strong>No Python runtime</strong>: Pure C/C++ inference</li>
+<li><strong>Flexible quantization</strong>: 2-8 bit with various methods (K-quants)</li>
+<li><strong>Ecosystem support</strong>: LM Studio, Ollama, koboldcpp, and more</li>
+<li><strong>imatrix</strong>: Importance matrix for better low-bit quality</li>
+</ul>
+<p><strong>Use alternatives instead:</strong></p>
+<ul>
+<li><strong>AWQ/GPTQ</strong>: Maximum accuracy with calibration on NVIDIA GPUs</li>
+<li><strong>HQQ</strong>: Fast calibration-free quantization for HuggingFace</li>
+<li><strong>bitsandbytes</strong>: Simple integration with transformers library</li>
+<li><strong>TensorRT-LLM</strong>: Production NVIDIA deployment with maximum speed</li>
+</ul>
+<h2 id="quick-start">Quick start</h2>
+<h3 id="installation">Installation</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># Clone llama.cpp
+git clone https://github.com/ggml-org/llama.cpp
+cd llama.cpp
+
+# Build (CPU)
+make
+
+# Build with CUDA (NVIDIA)
+make GGML_CUDA=1
+
+# Build with Metal (Apple Silicon)
+make GGML_METAL=1
+
+# Install Python bindings (optional)
+pip install llama-cpp-python
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3 id="convert-model-to-gguf">Convert model to GGUF</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># Install requirements
+pip install -r requirements.txt
+
+# Convert HuggingFace model to GGUF (FP16)
+python convert_hf_to_gguf.py ./path/to/model --outfile model-f16.gguf
+
+# Or specify output type
+python convert_hf_to_gguf.py ./path/to/model \
+    --outfile model-f16.gguf \
+    --outtype f16
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3 id="quantize-model">Quantize model</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># Basic quantization to Q4_K_M
+./llama-quantize model-f16.gguf model-q4_k_m.gguf Q4_K_M
+
+# Quantize with importance matrix (better quality)
+./llama-imatrix -m model-f16.gguf -f calibration.txt -o model.imatrix
+./llama-quantize --imatrix model.imatrix model-f16.gguf model-q4_k_m.gguf Q4_K_M
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3 id="run-inference">Run inference</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># CLI inference
+./llama-cli -m model-q4_k_m.gguf -p "Hello, how are you?"
+
+# Interactive mode
+./llama-cli -m model-q4_k_m.gguf --interactive
+
+# With GPU offload
+./llama-cli -m model-q4_k_m.gguf -ngl 35 -p "Hello!"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="quantization-types">Quantization types</h2>
+<h3 id="k-quant-methods-recommended">K-quant methods (recommended)</h3>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Bits</th>
+<th>Size (7B)</th>
+<th>Quality</th>
+<th>Use Case</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Q2_K</td>
+<td>2.5</td>
+<td>~2.8 GB</td>
+<td>Low</td>
+<td>Extreme compression</td>
+</tr>
+<tr>
+<td>Q3_K_S</td>
+<td>3.0</td>
+<td>~3.0 GB</td>
+<td>Low-Med</td>
+<td>Memory constrained</td>
+</tr>
+<tr>
+<td>Q3_K_M</td>
+<td>3.3</td>
+<td>~3.3 GB</td>
+<td>Medium</td>
+<td>Balance</td>
+</tr>
+<tr>
+<td>Q4_K_S</td>
+<td>4.0</td>
+<td>~3.8 GB</td>
+<td>Med-High</td>
+<td>Good balance</td>
+</tr>
+<tr>
+<td>Q4_K_M</td>
+<td>4.5</td>
+<td>~4.1 GB</td>
+<td>High</td>
+<td><strong>Recommended default</strong></td>
+</tr>
+<tr>
+<td>Q5_K_S</td>
+<td>5.0</td>
+<td>~4.6 GB</td>
+<td>High</td>
+<td>Quality focused</td>
+</tr>
+<tr>
+<td>Q5_K_M</td>
+<td>5.5</td>
+<td>~4.8 GB</td>
+<td>Very High</td>
+<td>High quality</td>
+</tr>
+<tr>
+<td>Q6_K</td>
+<td>6.0</td>
+<td>~5.5 GB</td>
+<td>Excellent</td>
+<td>Near-original</td>
+</tr>
+<tr>
+<td>Q8_0</td>
+<td>8.0</td>
+<td>~7.2 GB</td>
+<td>Best</td>
+<td>Maximum quality</td>
+</tr>
+</tbody></table>
+<h3 id="legacy-methods">Legacy methods</h3>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Q4_0</td>
+<td>4-bit, basic</td>
+</tr>
+<tr>
+<td>Q4_1</td>
+<td>4-bit with delta</td>
+</tr>
+<tr>
+<td>Q5_0</td>
+<td>5-bit, basic</td>
+</tr>
+<tr>
+<td>Q5_1</td>
+<td>5-bit with delta</td>
+</tr>
+</tbody></table>
+<p><strong>Recommendation</strong>: Use K-quant methods (Q4_K_M, Q5_K_M) for best quality/size ratio.</p>
+<h2 id="conversion-workflows">Conversion workflows</h2>
+<h3 id="workflow-1-huggingface-to-gguf">Workflow 1: HuggingFace to GGUF</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># 1. Download model
+huggingface-cli download meta-llama/Llama-3.1-8B --local-dir ./llama-3.1-8b
+
+# 2. Convert to GGUF (FP16)
+python convert_hf_to_gguf.py ./llama-3.1-8b \
+    --outfile llama-3.1-8b-f16.gguf \
+    --outtype f16
+
+# 3. Quantize
+./llama-quantize llama-3.1-8b-f16.gguf llama-3.1-8b-q4_k_m.gguf Q4_K_M
+
+# 4. Test
+./llama-cli -m llama-3.1-8b-q4_k_m.gguf -p "Hello!" -n 50
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3 id="workflow-2-with-importance-matrix-better-quality">Workflow 2: With importance matrix (better quality)</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># 1. Convert to GGUF
+python convert_hf_to_gguf.py ./model --outfile model-f16.gguf
+
+# 2. Create calibration text (diverse samples)
+cat &gt; calibration.txt &lt;&lt; 'EOF'
+The quick brown fox jumps over the lazy dog.
+Machine learning is a subset of artificial intelligence.
+Python is a popular programming language.
+# Add more diverse text samples...
+EOF
+
+# 3. Generate importance matrix
+./llama-imatrix -m model-f16.gguf \
+    -f calibration.txt \
+    --chunk 512 \
+    -o model.imatrix \
+    -ngl 35  # GPU layers if available
+
+# 4. Quantize with imatrix
+./llama-quantize --imatrix model.imatrix \
+    model-f16.gguf \
+    model-q4_k_m.gguf \
+    Q4_K_M
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3 id="workflow-3-multiple-quantizations">Workflow 3: Multiple quantizations</h3>
+<div class="code-wrapper"><pre><code class="language-bash">#!/bin/bash
+MODEL="llama-3.1-8b-f16.gguf"
+IMATRIX="llama-3.1-8b.imatrix"
+
+# Generate imatrix once
+./llama-imatrix -m $MODEL -f wiki.txt -o $IMATRIX -ngl 35
+
+# Create multiple quantizations
+for QUANT in Q4_K_M Q5_K_M Q6_K Q8_0; do
+    OUTPUT="llama-3.1-8b-${QUANT,,}.gguf"
+    ./llama-quantize --imatrix $IMATRIX $MODEL $OUTPUT $QUANT
+    echo "Created: $OUTPUT ($(du -h $OUTPUT | cut -f1))"
+done
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="python-usage">Python usage</h2>
+<h3 id="llama-cpp-python">llama-cpp-python</h3>
+<div class="code-wrapper"><pre><code class="language-python">from llama_cpp import Llama
+
+# Load model
+llm = Llama(
+    model_path="./model-q4_k_m.gguf",
+    n_ctx=4096,          # Context window
+    n_gpu_layers=35,     # GPU offload (0 for CPU only)
+    n_threads=8          # CPU threads
+)
+
+# Generate
+output = llm(
+    "What is machine learning?",
+    max_tokens=256,
+    temperature=0.7,
+    stop=["&lt;/s&gt;", "\n\n"]
+)
+print(output["choices"][0]["text"])
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3 id="chat-completion">Chat completion</h3>
+<div class="code-wrapper"><pre><code class="language-python">from llama_cpp import Llama
+
+llm = Llama(
+    model_path="./model-q4_k_m.gguf",
+    n_ctx=4096,
+    n_gpu_layers=35,
+    chat_format="llama-3"  # Or "chatml", "mistral", etc.
+)
+
+messages = [
+    {"role": "system", "content": "You are a helpful assistant."},
+    {"role": "user", "content": "What is Python?"}
+]
+
+response = llm.create_chat_completion(
+    messages=messages,
+    max_tokens=256,
+    temperature=0.7
+)
+print(response["choices"][0]["message"]["content"])
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3 id="streaming">Streaming</h3>
+<div class="code-wrapper"><pre><code class="language-python">from llama_cpp import Llama
+
+llm = Llama(model_path="./model-q4_k_m.gguf", n_gpu_layers=35)
+
+# Stream tokens
+for chunk in llm(
+    "Explain quantum computing:",
+    max_tokens=256,
+    stream=True
+):
+    print(chunk["choices"][0]["text"], end="", flush=True)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="server-mode">Server mode</h2>
+<h3 id="start-openai-compatible-server">Start OpenAI-compatible server</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># Start server
+./llama-server -m model-q4_k_m.gguf \
+    --host 0.0.0.0 \
+    --port 8080 \
+    -ngl 35 \
+    -c 4096
+
+# Or with Python bindings
+python -m llama_cpp.server \
+    --model model-q4_k_m.gguf \
+    --n_gpu_layers 35 \
+    --host 0.0.0.0 \
+    --port 8080
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3 id="use-with-openai-client">Use with OpenAI client</h3>
+<div class="code-wrapper"><pre><code class="language-python">from openai import OpenAI
+
+client = OpenAI(
+    base_url="http://localhost:8080/v1",
+    api_key="not-needed"
+)
+
+response = client.chat.completions.create(
+    model="local-model",
+    messages=[{"role": "user", "content": "Hello!"}],
+    max_tokens=256
+)
+print(response.choices[0].message.content)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="hardware-optimization">Hardware optimization</h2>
+<h3 id="apple-silicon-metal">Apple Silicon (Metal)</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># Build with Metal
+make clean &amp;&amp; make GGML_METAL=1
+
+# Run with Metal acceleration
+./llama-cli -m model.gguf -ngl 99 -p "Hello"
+
+# Python with Metal
+llm = Llama(
+    model_path="model.gguf",
+    n_gpu_layers=99,     # Offload all layers
+    n_threads=1          # Metal handles parallelism
+)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3 id="nvidia-cuda">NVIDIA CUDA</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># Build with CUDA
+make clean &amp;&amp; make GGML_CUDA=1
+
+# Run with CUDA
+./llama-cli -m model.gguf -ngl 35 -p "Hello"
+
+# Specify GPU
+CUDA_VISIBLE_DEVICES=0 ./llama-cli -m model.gguf -ngl 35
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3 id="cpu-optimization">CPU optimization</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># Build with AVX2/AVX512
+make clean &amp;&amp; make
+
+# Run with optimal threads
+./llama-cli -m model.gguf -t 8 -p "Hello"
+
+# Python CPU config
+llm = Llama(
+    model_path="model.gguf",
+    n_gpu_layers=0,      # CPU only
+    n_threads=8,         # Match physical cores
+    n_batch=512          # Batch size for prompt processing
+)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="integration-with-tools">Integration with tools</h2>
+<h3 id="ollama">Ollama</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># Create Modelfile
+cat &gt; Modelfile &lt;&lt; 'EOF'
+FROM ./model-q4_k_m.gguf
+TEMPLATE """{{ .System }}
+{{ .Prompt }}"""
+PARAMETER temperature 0.7
+PARAMETER num_ctx 4096
+EOF
+
+# Create Ollama model
+ollama create mymodel -f Modelfile
+
+# Run
+ollama run mymodel "Hello!"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3 id="lm-studio">LM Studio</h3>
+<ol>
+<li>Place GGUF file in <code>~/.cache/lm-studio/models/</code></li>
+<li>Open LM Studio and select the model</li>
+<li>Configure context length and GPU offload</li>
+<li>Start inference</li>
+</ol>
+<h3 id="text-generation-webui">text-generation-webui</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># Place in models folder
+cp model-q4_k_m.gguf text-generation-webui/models/
+
+# Start with llama.cpp loader
+python server.py --model model-q4_k_m.gguf --loader llama.cpp --n-gpu-layers 35
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="best-practices">Best practices</h2>
+<ol>
+<li><strong>Use K-quants</strong>: Q4_K_M offers best quality/size balance</li>
+<li><strong>Use imatrix</strong>: Always use importance matrix for Q4 and below</li>
+<li><strong>GPU offload</strong>: Offload as many layers as VRAM allows</li>
+<li><strong>Context length</strong>: Start with 4096, increase if needed</li>
+<li><strong>Thread count</strong>: Match physical CPU cores, not logical</li>
+<li><strong>Batch size</strong>: Increase n_batch for faster prompt processing</li>
+</ol>
+<h2 id="common-issues">Common issues</h2>
+<p><strong>Model loads slowly:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash"># Use mmap for faster loading
+./llama-cli -m model.gguf --mmap
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Out of memory:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash"># Reduce GPU layers
+./llama-cli -m model.gguf -ngl 20  # Reduce from 35
+
+# Or use smaller quantization
+./llama-quantize model-f16.gguf model-q3_k_m.gguf Q3_K_M
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Poor quality at low bits:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash"># Always use imatrix for Q4 and below
+./llama-imatrix -m model-f16.gguf -f calibration.txt -o model.imatrix
+./llama-quantize --imatrix model.imatrix model-f16.gguf model-q4_k_m.gguf Q4_K_M
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="references">References</h2>
+<ul>
+<li><strong><a href="references/advanced-usage.md">Advanced Usage</a></strong> - Batching, speculative decoding, custom builds</li>
+<li><strong><a href="./skills/chrome-devtools-mcp--troubleshooting.html" class="xref">Troubleshooting</a></strong> - Common issues, debugging, benchmarks</li>
+</ul>
+<h2 id="resources">Resources</h2>
+<ul>
+<li><strong>Repository</strong>: <a href="https://github.com/ggml-org/llama.cpp">https://github.com/ggml-org/llama.cpp</a></li>
+<li><strong>Python Bindings</strong>: <a href="https://github.com/abetlen/llama-cpp-python">https://github.com/abetlen/llama-cpp-python</a></li>
+<li><strong>Pre-quantized Models</strong>: <a href="https://huggingface.co/TheBloke">https://huggingface.co/TheBloke</a></li>
+<li><strong>GGUF Converter</strong>: <a href="https://huggingface.co/spaces/ggml-org/gguf-my-repo">https://huggingface.co/spaces/ggml-org/gguf-my-repo</a></li>
+<li><strong>License</strong>: MIT</li>
+</ul>
+</body></html>
+</article>
+
+<nav class="prevnext" aria-label="Seitennavigation"><a class="prevnext-link prevnext-prev" href="../skills/frontend-design--frontend-design.html"><span class="prevnext-label">← Zurück</span><span class="prevnext-title">frontend-design</span></a><a class="prevnext-link prevnext-next" href="../skills/git-workflow.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">git-workflow</span></a></nav>
+  </main>
+</div>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

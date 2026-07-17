@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>hf-cloud-serving-image-selection — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
+  <div id="search-box">
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
+  </div>
+</div>
+<div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Dev-Workflow</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-architect.html">code-architect</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-explorer.html">code-explorer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/code-simplifier--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--comment-analyzer.html">comment-analyzer</a></li><li class="sidebar-item"><a href="../skills/dev-flow-e2e.html">dev-flow-e2e</a></li><li class="sidebar-item"><a href="../skills/dev-flow-execute.html">dev-flow-execute</a></li><li class="sidebar-item"><a href="../skills/dev-flow-plan.html">dev-flow-plan</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--pr-test-analyzer.html">pr-test-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--silent-failure-hunter.html">silent-failure-hunter</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--type-design-analyzer.html">type-design-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Bachelorprojekt-Infra</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/mishap-tracker.html">mishap-tracker</a></li><li class="sidebar-item"><a href="../skills/operations-management.html">operations-management</a></li><li class="sidebar-item"><a href="../skills/update-dependencies.html">update-dependencies</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">KI / ML</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-aws-context-discovery.html">hf-cloud-aws-context-discovery</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-aws-context-discovery.html">hf-cloud-aws-context-discovery</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-aws-context-discovery.html">hf-cloud-aws-context-discovery</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-aws-context-discovery.html">hf-cloud-aws-context-discovery</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-python-env-setup.html">hf-cloud-python-env-setup</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-python-env-setup.html">hf-cloud-python-env-setup</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-python-env-setup.html">hf-cloud-python-env-setup</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-python-env-setup.html">hf-cloud-python-env-setup</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-deployment-planner.html">hf-cloud-sagemaker-deployment-planner</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-deployment-planner.html">hf-cloud-sagemaker-deployment-planner</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-deployment-planner.html">hf-cloud-sagemaker-deployment-planner</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-deployment-planner.html">hf-cloud-sagemaker-deployment-planner</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-iam-preflight.html">hf-cloud-sagemaker-iam-preflight</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-iam-preflight.html">hf-cloud-sagemaker-iam-preflight</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-iam-preflight.html">hf-cloud-sagemaker-iam-preflight</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-iam-preflight.html">hf-cloud-sagemaker-iam-preflight</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-production-defaults.html">hf-cloud-sagemaker-production-defaults</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-production-defaults.html">hf-cloud-sagemaker-production-defaults</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-production-defaults.html">hf-cloud-sagemaker-production-defaults</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-production-defaults.html">hf-cloud-sagemaker-production-defaults</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/huggingface-skills--hf-cloud-serving-image-selection.html" aria-current="page">hf-cloud-serving-image-selection</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/huggingface-skills--hf-cloud-serving-image-selection.html" aria-current="page">hf-cloud-serving-image-selection</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/huggingface-skills--hf-cloud-serving-image-selection.html" aria-current="page">hf-cloud-serving-image-selection</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/huggingface-skills--hf-cloud-serving-image-selection.html" aria-current="page">hf-cloud-serving-image-selection</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Plugin- &amp; Skill-Bau</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../agents/plugin-dev--agent-creator.html">agent-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--agent-development.html">agent-development</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-py.html">agent-sdk-verifier-py</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-ts.html">agent-sdk-verifier-ts</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--command-development.html">command-development</a></li><li class="sidebar-item"><a href="../agents/hookify--conversation-analyzer.html">conversation-analyzer</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--hook-development.html">hook-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--mcp-integration.html">mcp-integration</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-settings.html">plugin-settings</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-structure.html">plugin-structure</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--plugin-validator.html">plugin-validator</a></li><li class="sidebar-item"><a href="../skills/skill-creator--skill-creator.html">skill-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--skill-development.html">skill-development</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--skill-reviewer.html">skill-reviewer</a></li><li class="sidebar-item"><a href="../skills/hookify--writing-rules.html">writing-hookify-rules</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Browser &amp; Debugging</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers-chrome--browsing.html">browsing</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">MCP &amp; API</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/postman--agent-ready-apis.html">agent-ready-apis</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-app.html">build-mcp-app</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-server.html">build-mcp-server</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcpb.html">build-mcpb</a></li><li class="sidebar-item"><a href="../skills/postman--generate-spec.html">generate-spec</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--mcp-cli.html">mcp-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-cli.html">postman-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-context.html">postman-context</a></li><li class="sidebar-item"><a href="../skills/postman--postman-knowledge.html">postman-knowledge</a></li><li class="sidebar-item"><a href="../skills/postman--run-collection.html">run-collection</a></li><li class="sidebar-item"><a href="../skills/postman--send-request.html">send-request</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Claude Code &amp; Tooling</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/brightdata-plugin--agent-onboarding.html">agent-onboarding</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--ai-tools-setup.html">ai-tools-setup</a></li><li class="sidebar-item"><a href="../skills/brain-ingest.html">brain-ingest — Brain-Wiki Kompilierung</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brand-listening.html">brand-listening</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brd-browser-debug.html">brd-browser-debug</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-best-practices.html">bright-data-best-practices</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-mcp.html">bright-data-mcp</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brightdata-cli.html">brightdata-cli</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--proxy.html">brightdata-proxy</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--python-sdk-best-practices.html">brightdata-sdk</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--js-sdk-best-practices.html">brightdata-sdk-js</a></li><li class="sidebar-item"><a href="../skills/claude-code-setup--claude-automation-recommender.html">claude-automation-recommender</a></li><li class="sidebar-item"><a href="../skills/claude-md-management--claude-md-improver.html">claude-md-improver</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--competitive-intel.html">competitive-intel</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--computer-health-check.html">computer-health-check</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--data-feeds.html">data-feeds</a></li><li class="sidebar-item"><a href="../skills/database-specialist.html">database-specialist</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--design-mirror.html">design-mirror</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/dev-flow-chore.html">dev-flow-chore</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--developing-claude-code-plugins.html">developing-claude-code-plugins</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--discover-api.html">discover-api</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--finding-duplicate-functions.html">finding-duplicate-functions</a></li><li class="sidebar-item"><a href="../skills/frontend-design--frontend-design.html">frontend-design</a></li><li class="sidebar-item"><a href="../skills/gguf-quantization.html">gguf-quantization</a></li><li class="sidebar-item"><a href="../skills/git-workflow.html">git-workflow</a></li><li class="sidebar-item"><a href="../skills/incident-response.html">incident-response</a></li><li class="sidebar-item"><a href="../skills/infra-ops.html">infra-ops</a></li><li class="sidebar-item"><a href="../skills/semgrep--install-mfw.html">install-mfw</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--knowledge-base.html">knowledge-base</a></li><li class="sidebar-item"><a href="../skills/lavish.html">lavish</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--live-research.html">live-research</a></li><li class="sidebar-item"><a href="../skills/llama-cpp.html">llama-cpp</a></li><li class="sidebar-item"><a href="../skills/llm-ops.html">llm-ops</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--obsidian-vault.html">obsidian-vault</a></li><li class="sidebar-item"><a href="../skills/openspec-apply-change.html">openspec-apply-change</a></li><li class="sidebar-item"><a href="../skills/openspec-archive-change.html">openspec-archive-change</a></li><li class="sidebar-item"><a href="../skills/openspec-explore.html">openspec-explore</a></li><li class="sidebar-item"><a href="../skills/openspec-propose.html">openspec-propose</a></li><li class="sidebar-item"><a href="../skills/playground--playground.html">playground</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--price-comparison.html">price-comparison</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--rag-pipeline.html">rag-pipeline</a></li><li class="sidebar-item"><a href="../skills/haniakrim21-everything-claude-code-react-bits.html">react-bits</a></li><li class="sidebar-item"><a href="../skills/references.html">references</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/repo-hygiene.html">repo-hygiene</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scrape.html">scrape</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-builder.html">scraper-builder</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-studio.html">scraper-studio</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--search.html">search</a></li><li class="sidebar-item"><a href="../skills/security-specialist.html">security-specialist</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--seo-audit.html">seo-audit</a></li><li class="sidebar-item"><a href="../skills/speculative-decoding.html">speculative-decoding</a></li><li class="sidebar-item"><a href="../skills/superpowers-brainstorming.html">superpowers:brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers-executing-plans.html">superpowers:executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers-writing-plans.html">superpowers:writing-plans</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--terminal.html">terminal</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/ticket-ops.html">ticket-ops</a></li><li class="sidebar-item"><a href="../skills/braintrust--troubleshoot-braintrust-mcp.html">troubleshoot-braintrust-mcp</a></li><li class="sidebar-item"><a href="../skills/ui-ux-pro-max.html">ui-ux-pro-max</a></li><li class="sidebar-item"><a href="../skills/unsloth.html">unsloth</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--using-tmux-for-interactive-commands.html">using-tmux-for-interactive-commands</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/vitest.html">vitest</a></li><li class="sidebar-item"><a href="../skills/website-specialist.html">website-specialist</a></li><li class="sidebar-item"><a href="../skills/whisper.html">whisper</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--windows-vm.html">windows-vm</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--working-with-claude-code.html">working-with-claude-code</a></li></ul></details>
+</aside>
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">hf-cloud-serving-image-selection</span></nav>
+    <h1>hf-cloud-serving-image-selection</h1>
+    <p class="page-desc">Pick the right serving container for a SageMaker model deployment and find its current image URI. Use this skill whenever about to deploy a model to a SageMaker endpoint and an image URI needs to be chosen — including when the user says &quot;deploy this LLM&quot;, &quot;host this HuggingFace model&quot;, &quot;serve this fine-tuned model&quot;, &quot;deploy this embedding model&quot;, &quot;host a reranker&quot;, &quot;serve a sentence-transformers model&quot;, or when about to hardcode any container URI in deployment code. HuggingFace-curated Deep Learning Containers are ALWAYS preferred: HuggingFace vLLM (LLMs and generative rerankers), HuggingFace vLLM-Omni (multimodal), TEI (embeddings/cross-encoder rerankers), HF Inference Toolkit (other transformers). Generic images (AWS vLLM, DJL-LMI, SGLang) are used only when no HuggingFace image is compatible — never merely because they carry a newer version. Never hardcode a container URI from memory and never default to TGI. Prevents stale-image failures and wrong-region URIs.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">huggingface-skills</span> <span class="pv-ver">1.0.18</span></span>
+      <span class="domain-tag">ops</span>
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Serving Image Selection</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#rule-zero-huggingface-images-always-win"><span class="toc-num">1.</span> Rule zero: HuggingFace images always win</a></li>
+<li class="toc-item"><a href="#where-image-uris-come-from"><span class="toc-num">2.</span> Where image URIs come from</a></li>
+<li class="toc-item"><a href="#quick-decision"><span class="toc-num">3.</span> Quick decision</a></li>
+<li class="toc-item"><a href="#rerankers-tei-or-vllm"><span class="toc-num">4.</span> Rerankers: TEI or vLLM?</a></li>
+<li class="toc-item"><a href="#workflow"><span class="toc-num">5.</span> Workflow</a></li>
+<li class="toc-item toc-item--h3"><a href="#tei-pick-the-right-variant"><span class="toc-num">–</span> TEI: pick the right variant</a></li>
+<li class="toc-item"><a href="#vllm-ami-requirement"><span class="toc-num">6.</span> vLLM AMI requirement</a></li>
+<li class="toc-item"><a href="#configuring-the-vllm-dlcs-huggingface-vllm-and-aws-vllm"><span class="toc-num">7.</span> Configuring the vLLM DLCs (HuggingFace vLLM and AWS vLLM)</a></li>
+<li class="toc-item toc-item--h3"><a href="#required-for-every-huggingface-llm-deployment"><span class="toc-num">–</span> Required for every HuggingFace LLM deployment</a></li>
+<li class="toc-item toc-item--h3"><a href="#tuning-optional"><span class="toc-num">–</span> Tuning (optional)</a></li>
+<li class="toc-item"><a href="#configuring-tei"><span class="toc-num">8.</span> Configuring TEI</a></li>
+<li class="toc-item"><a href="#cuda--instance-compatibility"><span class="toc-num">9.</span> CUDA / instance compatibility</a></li>
+<li class="toc-item"><a href="#vpc--nat-gateway-problem"><span class="toc-num">10.</span> VPC / NAT gateway problem</a></li>
+<li class="toc-item"><a href="#when-the-catalog-page-wont-render-is-stale-or-is-wrong"><span class="toc-num">11.</span> When the catalog page won't render, is stale, or is wrong</a></li>
+<li class="toc-item"><a href="#known-broken-images-last-checked-july-2026"><span class="toc-num">12.</span> Known-broken images (last checked July 2026)</a></li>
+<li class="toc-item"><a href="#hub-download-time-at-first-boot"><span class="toc-num">13.</span> Hub download time at first boot</a></li></ul>
+</div>
+<p>The serving container is the single thing most likely to break a SageMaker deployment that "looked correct on paper". Wrong container, stale tag, or the wrong AMI — all produce the same opaque <code>Failed to pass health check</code> error.</p>
+<h2 id="rule-zero-huggingface-images-always-win">Rule zero: HuggingFace images always win</h2>
+<p>When both a HuggingFace-curated family (<code>huggingface-vllm</code>, <code>huggingface-vllm-omni</code>, <code>huggingface-sglang</code>, <code>tei</code>, <code>huggingface-pytorch-inference</code>) and a generic family (<code>vllm</code>, <code>vllm-omni</code>, <code>sglang</code>, <code>djl-inference</code>) can serve the model, <strong>the HuggingFace one is mandatory, not preferred</strong>. The only valid reasons to use a generic image:</p>
+<ol>
+<li><strong>Verified incompatibility</strong> — the model needs an architecture/modality/feature no available HuggingFace tag supports, confirmed against the catalog (not assumed).</li>
+<li><strong>No HuggingFace tag exists in the target region</strong> and mirroring is not an option.</li>
+<li><strong>The HuggingFace image is in "Known-broken images"</strong> below.</li>
+</ol>
+<p>A <strong>newer version number on the generic repo is not a reason</strong>. The AWS <code>vllm</code> repo often publishes a higher vLLM version than <code>huggingface-vllm</code>; an older-but-compatible <code>huggingface-vllm</code> tag still wins. "Latest vLLM" is not a requirement anyone stated — compatibility with the model is. If you fall back, record in the deployment log which of the three reasons applied.</p>
+<h2 id="where-image-uris-come-from">Where image URIs come from</h2>
+<p><strong>Primary source: AWS's official Deep Learning Containers catalog.</strong></p>
+<p>URL: <a href="https://aws.github.io/deep-learning-containers/reference/available_images/">https://aws.github.io/deep-learning-containers/reference/available_images/</a></p>
+<p>This page is AWS-maintained and lists every image family with example URIs, tags, CUDA versions, Python versions, and platform (SageMaker vs EC2/ECS/EKS). When picking a URI for a deployment, <strong>read it from this page directly</strong> — copy the example URL, substitute <code>&lt;region&gt;</code> with the user's region, and pass it to <code>deploy.py --image-uri</code>.</p>
+<p>The example URLs use <code>763104351884</code> as the account ID for most regions. A few regions use different accounts (e.g. <code>eu-south-1</code> uses <code>692866216735</code>). Check the <a href="https://aws.github.io/deep-learning-containers/reference/region_availability/">Region Availability page</a> when in doubt.</p>
+<p><strong>Exception: none currently.</strong> Every image family used by this workflow is now on the AWS catalog page (TEI was added in late 2026). If you encounter a new family that isn't there, mirror it via <code>mirror_image.py</code> and pass the resulting URI directly.</p>
+<h2 id="quick-decision">Quick decision</h2>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Container family</th>
+<th>How to get the URI</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>HuggingFace text-generation LLM (Llama, Qwen, Mistral, etc.)</td>
+<td><strong>HuggingFace vLLM</strong></td>
+<td>AWS catalog → "HuggingFace vLLM Inference" (ECR repo <code>huggingface-vllm</code>)</td>
+</tr>
+<tr>
+<td>Same as above, multimodal</td>
+<td><strong>HuggingFace vLLM-Omni</strong></td>
+<td>AWS catalog → "HuggingFace vLLM-Omni Inference" (ECR repo <code>huggingface-vllm-omni</code>)</td>
+</tr>
+<tr>
+<td>HuggingFace embeddings</td>
+<td>TEI</td>
+<td>AWS catalog → "HuggingFace Text Embeddings Inference"</td>
+</tr>
+<tr>
+<td>Encoder / cross-encoder rerankers (BERT-family <code>*ForSequenceClassification</code>)</td>
+<td>TEI</td>
+<td>Same as embeddings</td>
+</tr>
+<tr>
+<td><strong>Generative rerankers</strong> (causal-LM, e.g. Qwen3-Reranker)</td>
+<td>HuggingFace vLLM</td>
+<td>Same as text-generation LLMs — <strong>not TEI</strong>, see "Rerankers: TEI or vLLM?"</td>
+</tr>
+<tr>
+<td>Text-to-image / diffusion (Stable Diffusion, FLUX)</td>
+<td>DJL Inference</td>
+<td>AWS catalog → "DJL Inference" — <strong>not</strong> HF Inference Toolkit, see "Known-broken images"</td>
+</tr>
+<tr>
+<td>HuggingFace classifiers, NER, QA, summarization</td>
+<td>HF Inference Toolkit (CPU)</td>
+<td>AWS catalog → "HuggingFace PyTorch Inference"; GPU tags currently broken — see "Known-broken images"</td>
+</tr>
+<tr>
+<td>User specifically wants SGLang</td>
+<td>HuggingFace SGLang</td>
+<td>AWS catalog → "HuggingFace SGLang Inference"</td>
+</tr>
+<tr>
+<td>No compatible <code>huggingface-vllm</code> tag (verified incompatibility or region gap — see "Rule zero")</td>
+<td>vLLM (AWS)</td>
+<td>AWS catalog → "vLLM" section — fallback only, never for version freshness</td>
+</tr>
+<tr>
+<td>User specifically wants DJL-LMI</td>
+<td>DJL Inference</td>
+<td>AWS catalog → "DJL Inference"</td>
+</tr>
+<tr>
+<td>Amazon Nova</td>
+<td>SageMaker JumpStart</td>
+<td>Use JumpStart, not raw endpoint creation</td>
+</tr>
+<tr>
+<td>Custom inference code</td>
+<td>BYOC</td>
+<td>User provides URI</td>
+</tr>
+</tbody></table>
+<p><strong>HuggingFace-curated DLCs are mandatory when one is compatible (see "Rule zero").</strong> <code>huggingface-vllm</code> is layered directly on the AWS vLLM DLC — <strong>identical <code>SM_VLLM_*</code> env contract and the same cu130 AMI rule</strong> — and adds current <code>transformers</code>, current <code>huggingface_hub</code> + <code>hf_xet</code> (avoids the XET-CDN 403 download failures older images hit), and HF performance defaults. It is also what SageMaker SDK v3 auto-routes to. The AWS <code>vllm</code> image is a compatibility escape hatch only; it usually shows a higher vLLM version than <code>huggingface-vllm</code>, and that is not a reason to pick it.</p>
+<p><strong>Do not use TGI.</strong> Text Generation Inference is archived. Models released after the archive (Qwen3 most famously) fail ping health checks on TGI. Use vLLM instead. (The SageMaker SDK v3 agrees: since <a href="https://github.com/aws/sagemaker-python-sdk/pull/5960">PR #5960</a>, June 2026, its <code>ModelBuilder</code> auto-routes <code>text-generation</code> to the HuggingFace vLLM DLC and multimodal tasks to HuggingFace vLLM-Omni.)</p>
+<p>Full reasoning for each family in <code>references/model-to-image.md</code>.</p>
+<h2 id="rerankers-tei-or-vllm">Rerankers: TEI or vLLM?</h2>
+<p>"Reranker" covers two very different architectures, and picking wrong wastes a full endpoint-creation cycle (~20 min) before TEI rejects the model:</p>
+<ul>
+<li><strong>Encoder cross-encoders</strong> (BAAI/bge-reranker-*, mixedbread, most <code>sentence-transformers</code> rerankers) — BERT-family models with a classification head. <code>config.json</code> has <code>architectures: [..ForSequenceClassification]</code> on a TEI-supported encoder type. → <strong>TEI</strong>.</li>
+<li><strong>Generative rerankers</strong> (Qwen/Qwen3-Reranker-*, and similar causal-LM judges) — decoder LLMs that score relevance via the logprob of a yes/no token. <code>config.json</code> has <code>architectures: [..ForCausalLM]</code>. → <strong>HuggingFace vLLM</strong>, deployed exactly like a text-generation LLM. TEI will load the architecture then reject the <code>classifier</code> model type (Qwen3 support in TEI is <em>embeddings-only</em>). Invocation pattern (raw completions API, <code>max_tokens=1</code>, logprobs scoring) is in <code>hf-cloud-sagemaker-production-defaults</code>.</li>
+</ul>
+<p><strong>Preflight before creating any resources</strong> — one HTTP GET settles it:</p>
+<div class="code-wrapper"><pre><code class="language-bash">curl -s https://huggingface.co/&lt;model-id&gt;/raw/main/config.json
+# "architectures": ["Qwen3ForCausalLM"]              → vLLM
+# "architectures": ["XLMRobertaForSequenceClassification"] → TEI
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>For TEI also confirm the <em>(architecture, task)</em> pair: an architecture appearing in TEI's supported list means embeddings support, not necessarily classification/reranking support.</p>
+<p>Heads-up: SageMaker SDK v3 (PR #5960) routes the <code>text-ranking</code> task to TEI <strong>unconditionally</strong> — correct for cross-encoders, wrong for generative rerankers. Don't treat the SDK's routing as evidence that TEI can serve a given reranker.</p>
+<h2 id="workflow">Workflow</h2>
+<p>For every family: <strong>read the URI from the AWS catalog page</strong>.</p>
+<ol>
+<li>Open <a href="https://aws.github.io/deep-learning-containers/reference/available_images/">https://aws.github.io/deep-learning-containers/reference/available_images/</a></li>
+<li>Find the section for the right family (e.g. "HuggingFace vLLM Inference" for HuggingFace LLMs, "HuggingFace Text Embeddings Inference" for embeddings)</li>
+<li>Pick the newest row marked <code>SageMaker</code> for the platform column — newest <strong>within that family</strong>. Do not switch to another family's section because it lists a higher engine version (see "Rule zero")</li>
+<li>Substitute <code>&lt;region&gt;</code> with the user's region (from <code>hf-cloud-aws-context-discovery</code>)</li>
+<li>For vLLM: also check the AMI requirement (see "vLLM AMI requirement" below)</li>
+<li>Pass the URI to <code>deploy.py --image-uri</code> (real-time) or <code>deploy_async.py --image-uri</code> (async)</li>
+</ol>
+<h3 id="tei-pick-the-right-variant">TEI: pick the right variant</h3>
+<p>The TEI catalog row lists two URIs — GPU (<code>tei</code> repo) and CPU (<code>tei-cpu</code> repo). Pick based on the instance type:</p>
+<ul>
+<li><code>ml.g*</code>, <code>ml.p*</code>, <code>ml.inf*</code> → GPU variant</li>
+<li><code>ml.c*</code>, <code>ml.m*</code>, <code>ml.t*</code> → CPU variant</li>
+</ul>
+<p>Mixing them fails: CPU image on a GPU instance wastes hardware, GPU image on a CPU instance fails to start.</p>
+<p><strong>Note on the TEI account ID</strong>: the catalog page shows <code>683313688378</code> as the example account, but TEI is published from a different account namespace than the main AWS DLCs and the per-region account IDs vary. If <code>683313688378.dkr.ecr.&lt;region&gt;.amazonaws.com/tei:...</code> returns an ECR pull error for a region other than us-east-1, check the <a href="https://aws.github.io/deep-learning-containers/reference/region_availability/">Region Availability page</a> for the correct account ID for that region.</p>
+<h2 id="vllm-ami-requirement">vLLM AMI requirement</h2>
+<p>vLLM DLC images with <strong>CUDA 13 or higher</strong> (current default: <code>cu130</code>) require setting <code>InferenceAmiVersion=al2-ami-sagemaker-inference-gpu-3-1</code> on the ProductionVariant. This applies equally to <code>huggingface-vllm</code> and <code>huggingface-vllm-omni</code> (layered on the same cu130 base) and to the AWS <code>vllm</code> repo. Without it the container dies on startup with no CloudWatch logs ever created. The failure looks identical to many other things (account-level issues, quota, networking) and routinely sends people down wrong diagnostic paths.</p>
+<p>Lookup table:</p>
+<table>
+<thead>
+<tr>
+<th>Tag contains</th>
+<th>InferenceAmiVersion to pass</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>cu130</code> (or higher)</td>
+<td><code>al2-ami-sagemaker-inference-gpu-3-1</code></td>
+</tr>
+<tr>
+<td><code>cu129</code> or lower</td>
+<td>(omit the flag; default AMI works)</td>
+</tr>
+</tbody></table>
+<p>Rule of thumb: if the vLLM tag you picked contains <code>cu130</code> or later, pass <code>--inference-ami-version al2-ami-sagemaker-inference-gpu-3-1</code> to <code>deploy.py</code>. If a future CUDA version (cu140+) needs a different AMI, add a row to the table when AWS publishes the new image.</p>
+<p>This is a vLLM-specific concern. TEI and HF Inference Toolkit images don't need an AMI override.</p>
+<h2 id="configuring-the-vllm-dlcs-huggingface-vllm-and-aws-vllm">Configuring the vLLM DLCs (HuggingFace vLLM and AWS vLLM)</h2>
+<p>Both images share the same contract: configuration as environment variables on the SageMaker model definition, <code>SM_VLLM_*</code> mapped to vLLM CLI flags. The <code>huggingface-vllm</code> entrypoint additionally auto-detects the model when <code>SM_VLLM_MODEL</code> is unset — from <code>/opt/ml/model</code> if artifacts are mounted, else from <code>HF_MODEL_ID</code> — but setting <code>SM_VLLM_MODEL</code> explicitly works on both and is what our examples use.</p>
+<h3 id="required-for-every-huggingface-llm-deployment">Required for every HuggingFace LLM deployment</h3>
+<table>
+<thead>
+<tr>
+<th>Env var</th>
+<th>Purpose</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>SM_VLLM_MODEL</code></td>
+<td>HF model ID (e.g. <code>Qwen/Qwen3-0.6B</code>) or <code>/opt/ml/model</code> if loading from S3</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>SM_VLLM_HOST</code></td>
+<td><strong>Must be <code>0.0.0.0</code></strong></td>
+<td>Otherwise vLLM binds localhost only, ping fails, container dies before logs. Top cause of mystery failures with this image.</td>
+</tr>
+<tr>
+<td><code>SM_VLLM_TRUST_REMOTE_CODE</code></td>
+<td><code>true</code> for Qwen and several recent architectures</td>
+<td>Set unconditionally — downside negligible, upside is the model loads.</td>
+</tr>
+<tr>
+<td><code>HUGGING_FACE_HUB_TOKEN</code></td>
+<td>HF token</td>
+<td>Required for gated models.</td>
+</tr>
+</tbody></table>
+<h3 id="tuning-optional">Tuning (optional)</h3>
+<table>
+<thead>
+<tr>
+<th>Env var</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>SM_VLLM_MAX_MODEL_LEN</code></td>
+<td>Max sequence length — set this; defaults can be wrong for fine-tunes</td>
+</tr>
+<tr>
+<td><code>SM_VLLM_GPU_MEMORY_UTILIZATION</code></td>
+<td>Float 0.0–1.0, ~0.9 reasonable</td>
+</tr>
+<tr>
+<td><code>SM_VLLM_TENSOR_PARALLEL_SIZE</code></td>
+<td>GPU count for multi-GPU instances</td>
+</tr>
+<tr>
+<td><code>SM_VLLM_DTYPE</code></td>
+<td><code>auto</code>, <code>bfloat16</code>, <code>float16</code></td>
+</tr>
+</tbody></table>
+<p>Any vLLM CLI flag works — uppercase, replace dashes with underscores, prepend <code>SM_VLLM_</code>.</p>
+<h2 id="configuring-tei">Configuring TEI</h2>
+<p>Simpler env contract than vLLM:</p>
+<table>
+<thead>
+<tr>
+<th>Env var</th>
+<th>Purpose</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>HF_MODEL_ID</code></td>
+<td>HF model ID (e.g. <code>BAAI/bge-large-en-v1.5</code>) or <code>/opt/ml/model</code></td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>HF_TOKEN</code></td>
+<td>HF auth token</td>
+<td>Only for gated models</td>
+</tr>
+<tr>
+<td><code>MAX_BATCH_TOKENS</code></td>
+<td>Max tokens per batch (default 16384)</td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>MAX_CLIENT_BATCH_SIZE</code></td>
+<td>Max requests per client batch (default 32)</td>
+<td>No</td>
+</tr>
+</tbody></table>
+<p>No host-binding to configure, no trust-remote-code flag. The architectures TEI supports (BERT, CamemBERT, RoBERTa, XLM-RoBERTa, NomicBert, JinaBert, JinaCodeBert, Mistral, Qwen2/3, Gemma2/3, ModernBert) are baked into the image.</p>
+<h2 id="cuda--instance-compatibility">CUDA / instance compatibility</h2>
+<p>Critical and easy to get wrong:</p>
+<table>
+<thead>
+<tr>
+<th>CUDA in image tag</th>
+<th>Default AMI</th>
+<th>With <code>al2-ami-sagemaker-inference-gpu-3-1</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>cu124 / cu128</td>
+<td>g5, g6, p5 all work</td>
+<td>(not needed)</td>
+</tr>
+<tr>
+<td>cu129</td>
+<td>g6, p5; g5 fails (driver mismatch → CannotStartContainerError)</td>
+<td>expected to fix g5 (unverified)</td>
+</tr>
+<tr>
+<td>cu130+</td>
+<td>fails everywhere — AMI flag is mandatory</td>
+<td>g5, g6, p5 all work (cu130-on-g5 verified June 2026)</td>
+</tr>
+</tbody></table>
+<p>The driver comes from the host AMI, not the instance family — so passing the gpu-3-1 AMI (which vLLM cu130 images require anyway) also makes <code>ml.g5.*</code> viable for cu129+ images.</p>
+<h2 id="vpc--nat-gateway-problem">VPC / NAT gateway problem</h2>
+<p>SageMaker endpoints inside a VPC <strong>without</strong> a NAT gateway can't pull from <code>public.ecr.aws</code>. The deployment fails with an image-pull error that doesn't mention "VPC" or "egress".</p>
+<p>For images on AWS's regional ECR (everything in the catalog): SageMaker reaches them through built-in routing, no NAT needed. Use the regional URI pattern (<code>&lt;account&gt;.dkr.ecr.&lt;region&gt;.amazonaws.com/...</code>), not the <code>public.ecr.aws/...</code> pattern.</p>
+<p>For images requiring <code>public.ecr.aws</code> access (less common): mirror to a private ECR repo in your account with <code>scripts/mirror_image.py</code> (cross-platform; needs Docker + the <code>aws</code> CLI). Run it from the shell where the AWS CLI works.</p>
+<div class="code-wrapper"><pre><code class="language-bash"># macOS / Linux
+PRIVATE_URI=$(python3 scripts/mirror_image.py \
+    public.ecr.aws/deep-learning-containers/vllm:&lt;tag&gt; \
+    vllm-mirror)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<div class="code-wrapper"><pre><code class="language-powershell"># Windows (PowerShell) — capture stdout into a variable
+$PRIVATE_URI = python scripts\mirror_image.py `
+    public.ecr.aws/deep-learning-containers/vllm:&lt;tag&gt; vllm-mirror
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="when-the-catalog-page-wont-render-is-stale-or-is-wrong">When the catalog page won't render, is stale, or is wrong</h2>
+<p><strong>The page won't render / fetch returns junk</strong>: the catalog page is JavaScript-heavy and some fetch tools get an empty shell. Fallbacks, in order:</p>
+<ol>
+<li><strong>The catalog's source data on GitHub</strong> — the page is generated from one YAML file per version, listing exact tags, CUDA, and Python versions. List a family's files, then fetch the newest:<div class="code-wrapper"><pre><code class="language-bash">curl -s https://api.github.com/repos/aws/deep-learning-containers/contents/docs/src/data/huggingface-vllm
+curl -s https://raw.githubusercontent.com/aws/deep-learning-containers/main/docs/src/data/huggingface-vllm/0.21.0-gpu-sagemaker.yml
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+Directory names match ECR repos (<code>huggingface-vllm</code>, <code>huggingface-vllm-omni</code>, <code>huggingface-tei</code>, <code>vllm</code>, <code>djl-inference</code>, ...).</li>
+<li><strong>Query ECR directly</strong> for current tags in the target region (works with credentials that can read the DLC registry; if it returns AccessDenied, use the YAML files):<div class="code-wrapper"><pre><code class="language-bash">aws ecr describe-images --registry-id 763104351884 --repository-name huggingface-vllm \
+    --region &lt;region&gt; --query 'sort_by(imageDetails,&amp;imagePushedAt)[-5:].imageTags' --output json
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+<li><a href="https://github.com/aws/deep-learning-containers/releases">Release notes on the DLC GitHub repo</a>.</li>
+</ol>
+<p><strong>A tag was just released and isn't on the page yet</strong>: rare; AWS updates the page on each release. Check the release notes above.</p>
+<p><strong>An architecture you need isn't supported by the listed image yet</strong>: for TEI specifically, you can mirror the upstream image from GHCR (<code>ghcr.io/huggingface/text-embeddings-inference:&lt;version&gt;</code>) into private ECR and pass the resulting URI directly to <code>deploy.py --image-uri</code>. Same <code>mirror_image.py</code> script.</p>
+<h2 id="known-broken-images-last-checked-july-2026">Known-broken images (last checked July 2026)</h2>
+<table>
+<thead>
+<tr>
+<th>Image</th>
+<th>Defect</th>
+<th>Use instead</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>huggingface-pytorch-inference</code> <strong>GPU</strong> tags — all recent ones tested (PT 2.3–2.6, cu121/cu124, transformers 4.48–5.5.3)</td>
+<td><code>ImportError: libtorch_cuda.so: undefined symbol: ncclCommResume</code> at <code>import torch</code>. The NCCL bundled in the image is older than what torch links against — a packaging defect <em>inside the container</em>, on g5 <strong>and</strong> g6, regardless of AMI, model, or inference code. The MMS Java front-end keeps answering <code>/ping</code>, so the endpoint can reach InService while the Python worker crash-loops and serves nothing.</td>
+<td>DJL Inference (bundles its own complete CUDA/NCCL stack) or BYOC. CPU tags are unaffected.</td>
+</tr>
+</tbody></table>
+<p>Re-check when AWS publishes new <code>huggingface-pytorch-inference</code> GPU tags — remove the row once a fixed image is confirmed.</p>
+<p><strong>General fallback rule</strong>: when an HF DLC fails with CUDA/NCCL linker errors, switch to DJL Inference rather than iterating over sibling tags — the defect class is per-repo, not per-tag (three different tags were tried for the case above; all broken).</p>
+<p><strong>Related HF Hub gotcha</strong>: older DLCs can fail model download with <code>403 Forbidden</code> from HF's XET CDN (their bundled <code>huggingface_hub</code> predates XET auth). Set <code>HF_HUB_ENABLE_HF_TRANSFER=0</code> to force the standard download path, or pre-stage weights in S3.</p>
+<h2 id="hub-download-time-at-first-boot">Hub download time at first boot</h2>
+<p>Loading the model from HF Hub happens <em>inside the container after the endpoint starts</em> — expect <strong>5–15+ minutes</strong> before InService even for small models, longer for multi-GB ones. A slow first boot is not a failure; don't tear down or re-diagnose before the deploy script's 30-minute wait expires.</p>
+<p>For production or repeated deployments, pre-stage the weights in S3 and pass <code>--model-s3-uri</code> to <code>deploy.py</code> (the model then loads from <code>/opt/ml/model</code>) — faster, immune to Hub rate limits/outages, and no <code>HUGGING_FACE_HUB_TOKEN</code> needed at runtime.</p>
+</body></html>
+</article>
+
+<nav class="prevnext" aria-label="Seitennavigation"><a class="prevnext-link prevnext-prev" href="../skills/huggingface-skills--hf-cloud-serving-image-selection.html"><span class="prevnext-label">← Zurück</span><span class="prevnext-title">hf-cloud-serving-image-selection</span></a><a class="prevnext-link prevnext-next" href="../skills/huggingface-skills--hf-mem.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">hf-mem</span></a></nav>
+  </main>
+</div>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

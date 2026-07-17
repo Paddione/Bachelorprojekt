@@ -185,7 +185,7 @@ npx @lhci/cli autorun \
   --assert.performance=0.9
 ```
 
-> **B · Baseline:** n/a → 0 (Lighthouse CI in CI + health-goals-check.sh integriert, erster Scan ausstehend) · **Target:** ≥ 90 · **Aufwand:** gering (Messung) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001911 (Nachfolger von T001842)
+> **B · Baseline:** n/a → 60 (erster Lauf 2026-07-17 gegen `https://web.mentolder.de`, 3× `npx @lhci/cli autorun`, Performance-Score konstant 60/100 über alle 3 Runs; FCP 6.0s, LCP 7.5s, TTI 7.5s — größter Hebel: fehlende Text-Compression, ~622 KiB Einsparpotenzial) · **Target:** ≥ 90 · **Aufwand:** gering (Messung) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001911 (Nachfolger von T001842) · **Follow-up:** T001922 (echte Performance-Optimierung, separates Ticket, kein Chore-Scope)
 
 ## G-BRAIN14 — Brain-Ingest-Backlog: 17 → 0
 
@@ -351,7 +351,7 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 | G-DB10 | T001908 | offen (Unused Indexes, Baseline fehlt — Nachfolger von T001839) |
 | G-SEC06 | T001909 | offen (Container CVEs, Baseline 39 CRITICAL erfasst — Fix erfordert Image-Pin-Refresh, Folgeticket vorgeschlagen — Nachfolger von T001840) |
 | G-CI03 | T001910 | offen (CI p95, erster Messlauf ausstehend — Nachfolger von T001841) |
-| G-FE05 | T001911 | offen (Lighthouse, erster Lauf ausstehend — Nachfolger von T001842) |
+| G-FE05 | T001911 | **gemessen** (Baseline 60/100, Target 90 — Optimierung als Follow-up-Ticket ausgelagert) |
 | G-BRAIN14 | T001912 | offen (Ingest-Backlog 17/86; voller kuratierter Ingest = Follow-up zu PR #2851) |
 | G-DB04 | T001739 | gruen (1h, Target ≤26h — Root-Cause-Fix nicht verifiziert, Regressionswache bleibt täglich) |
 | G-DB06 | T001739 | gruen (Gate, halten) |
@@ -401,3 +401,9 @@ pocket-id-Image (Scan schlug für dieses Image still fehl statt zu warnen). Fix 
 Folgeticket empfohlen.
 Alle Alt-Tickets der offenen Ziele waren done/archived ohne Messwert-Fix — elf Nachfolge-Tickets
 T001902–T001912 angelegt und in den Meta-Zeilen referenziert.
+
+**Baseline-Update 2026-07-17 (T001911 — erster Lighthouse-Lauf):** G-FE05 n/a→60 (3× `npx @lhci/cli
+autorun` gegen `https://web.mentolder.de`, Performance-Score konstant 60/100; FCP 6.0s, LCP 7.5s,
+TTI 7.5s, TBT 0ms, CLS 0 — größte Opportunity: fehlende Text-Compression, ~622 KiB Einsparpotenzial,
+gefolgt von unused-javascript ~278 KiB und responsive Images ~146 KiB). Score liegt deutlich unter
+Target 90 — echte Optimierung ist bewusst nicht Teil dieses Chores; Follow-up-Ticket T001922 angelegt.

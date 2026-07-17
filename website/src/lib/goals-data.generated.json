@@ -126,7 +126,7 @@
     "priority": "B",
     "direction": "higher",
     "baseline": null,
-    "current": 0,
+    "current": 60,
     "target": 90,
     "unit": "",
     "status": "unknown",

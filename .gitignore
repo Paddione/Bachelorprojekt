@@ -3,6 +3,7 @@ presentation/
 .taskmaster/state.json
 vitest-junit-report/
 website-dist/
+.lighthouseci/
 
 # ── codebase-memory-mcp Graph/Embedding-Index (lokal via `task codebase:index`) ──
 # Nicht mehr committet (T001717) — wird pro Session/Checkout bei Bedarf lokal neu gebaut.

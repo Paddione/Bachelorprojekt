@@ -33,19 +33,6 @@ Sofort angehen. Ticket-Erstellung ist **bewusst manuell** (`scripts/health-goals
 
 ---
 
-## G-GIT03 — Dateien > 1MB im Tree (kein LFS): 7 🔴 (Ziel ≤ 6)
-
-**Was:** Zählt Dateien >1MB im Tree (u. a. gerenderte `kube-prometheus-stack`-Manifeste, gebaute Docs-HTML). `.codebase-memory/graph.db.zst` (16.7MB, ehem. PR #2281) is seit **T001717** kein getracktes Repo-Artefakt mehr — es wird lokal via `task codebase:index` regeneriert (`.gitignore`) statt committet, daher entfällt der frühere Scope-Ausschluss (T001348) ersatzlos.
-
-```bash
-git ls-files -z | xargs -0 -I{} sh -c 'test -f "{}" && wc -c "{}"' 2>/dev/null \
-  | awk '$1>1048576{c++} END{print c+0}'
-```
-
-**Historie (T001348, obsolet seit T001717):** Eine LFS-Migration von `graph.db.zst` wurde ursprünglich verworfen und die Datei stattdessen per Policy-Entscheidung aus dem Gate-Scope ausgeschlossen (git-lfs lokal defekt, kein erkennbarer Gegenwert für ein intern generiertes `merge=ours`-Binärartefakt). T001717 hat das Problem an der Wurzel gelöst: die Datei is nicht mehr getrackt, der Ausschluss ist damit hinfällig.
-
-> **A · Baseline:** 6 → 7 🔴 · **Target:** ≤ 6 · **Aufwand:** gering (manuelle Entscheidung über 2 Nutzer-Assets: löschen, LFS oder Gate-Scope-Policy) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001902 (Nachfolger von T001717/T001348)
-
 # Priorität B — Offene Ziele {#prio-b}
 
 Im nächsten Sprint einplanen.
@@ -89,8 +76,11 @@ find .claude/skills -name SKILL.md -exec wc -l {} + | awk '$2!="total"&&$1>500{c
 ## G-DB01 — FK-Spalten ohne Index: 4 → 0
 
 **Was:** Zählt FK-Spalten mit Single-Column-FK, die keinen passenden Index haben. Live-Wert 4
-(3 Tabellen mit je einem fehlenden Index, plus eine Wiederholung). Nur Messung verdrahtet,
-kein erzwungener Fix — die Indizes werden in einem Folge-Ticket nachgezogen.
+(3 Tabellen mit je einem fehlenden Index, plus eine Wiederholung): `public.onboarding_state.brand`,
+`sessions.templates.created_from_template_id`, `studio.sessions.client_id`,
+`studio.sessions.template_of`. Fix als Migration `website/src/db/migrations/20260717_add_missing_fk_indexes.sql`
+erstellt (T001905); wird beim nächsten `task workspace:deploy` (push-based) automatisch über
+`pnpm --dir website db:migrate` angewendet — Live-Wert aktualisiert sich erst nach Deploy.
 
 ```bash
 WITH fk AS (
@@ -101,7 +91,7 @@ idx AS (SELECT i.indrelid AS relid, i.indkey[0] AS col FROM pg_index i)
 SELECT count(*) FROM (SELECT relid,col FROM fk EXCEPT SELECT relid,col FROM idx) x;
 ```
 
-> **B · Baseline:** 4 · **Target:** 0 · **Aufwand:** gering (3 Indizes via Migration) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001905 (Nachfolger von T001739; Messung verdrahtet, Index-Fix ausstehend)
+> **B · Baseline:** 4 · **Target:** 0 · **Aufwand:** gering (4 Indizes via Migration) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001905 (Nachfolger von T001739; Migration erstellt, Anwendung erfolgt beim nächsten Deploy)
 
 ## G-DB03 — brand-Spalten ohne CHECK-Constraint: 44 → 0
 
@@ -146,7 +136,7 @@ db_scalar "SELECT count(*) FROM pg_stat_user_indexes WHERE idx_scan = 0 AND indi
 
 > **B · Baseline:** n/a · **Target:** 0 · **Aufwand:** gering (Messung) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001908 (Nachfolger von T001839)
 
-## G-SEC06 — Container Images mit High/Critical CVEs: n/a → 0
+## G-SEC06 — Container Images mit High/Critical CVEs: 39 🔴 (Ziel 0)
 
 **Was:** Zählt unique Container-Images im aktiven Deployment mit bekannten CVEs der
 Severity `HIGH` oder `CRITICAL`. Trivy-Scan ist jetzt in CI integriert (`.github/workflows/ci.yml`
@@ -154,13 +144,21 @@ Security Scan Job) als advisory-only Check. `scripts/trivy-scan.sh` liefert die 
 Baseline-Messung. 14 pinned Images werden gescannt; `:latest` Images (projekt-eigen) werden
 nicht gescannt (Build-Zeitpunkt variiert).
 
+Erster Scan (2026-07-17): **39 CRITICAL / 706 HIGH** über alle 14 Images — Details und CVE-Triage
+in [`docs/audits/2026-07-17-trivy-cve-baseline.md`](../../docs/audits/2026-07-17-trivy-cve-baseline.md).
+Alle CRITICAL-Funde sind fixable (kein False-Positive), konzentriert auf `alpine/k8s:1.34.0`
+(23/39). Fix erfordert Image-Pin-Refresh mit Rollout-Test — separates Folgeticket vorgeschlagen,
+bewusst nicht Teil dieses Baseline-Chores. Im selben Zug wurde ein Bug in `trivy-scan.sh` behoben
+(fehlender `ghcr.io/`-Prefix beim pocket-id-Image ließ den Scan für dieses Image still auf 0
+CVEs fallen statt zu fehlschlagen).
+
 ```bash
 # Messung (lokal):
 bash scripts/trivy-scan.sh --json | jq '.total_critical, .total_high'
 # CI: advisory-only in .github/workflows/ci.yml (Security Scan Job)
 ```
 
-> **B · Baseline:** n/a → 0 (Trivy-Integration abgeschlossen, erster Scan ausstehend) · **Target:** 0 · **Aufwand:** gering (Messung) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001909 (Nachfolger von T001840)
+> **B · Baseline:** 39 · **Target:** 0 · **Aufwand:** mittel (Image-Pin-Refresh für 6 betroffene Images, siehe Audit-Report) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001909 (Nachfolger von T001840)
 
 ## G-CI03 — CI Pipeline p95 Duration > 12 min: n/a → ≤ 12 min
 
@@ -200,7 +198,7 @@ npx @lhci/cli autorun \
   --assert.performance=0.9
 ```
 
-> **B · Baseline:** n/a → 0 (Lighthouse CI in CI + health-goals-check.sh integriert, erster Scan ausstehend) · **Target:** ≥ 90 · **Aufwand:** gering (Messung) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001911 (Nachfolger von T001842)
+> **B · Baseline:** n/a → 60 (erster Lauf 2026-07-17 gegen `https://web.mentolder.de`, 3× `npx @lhci/cli autorun`, Performance-Score konstant 60/100 über alle 3 Runs; FCP 6.0s, LCP 7.5s, TTI 7.5s — größter Hebel: fehlende Text-Compression, ~622 KiB Einsparpotenzial) · **Target:** ≥ 90 · **Aufwand:** gering (Messung) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001911 (Nachfolger von T001842) · **Follow-up:** T001922 (echte Performance-Optimierung, separates Ticket, kein Chore-Scope)
 
 ## G-BRAIN14 — Brain-Ingest-Backlog: 17 → 0
 
@@ -252,6 +250,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-CQ10** | S4 verwaiste Scripts | 0 ✓ | ≤ 4 | `python3 -c "..S4-Gate.." < docs/code-quality/baseline.json` |
 | **G-SIZE03** | God-File `website/src/lib/website-db.ts` | 1939 ✓ | ≤ 3000 | `wc -l < website/src/lib/website-db.ts` |
 | **G-GIT01** | Offene PRs >7 Tage | 0 ✓ | 0 | `gh pr list --state open --json number,createdAt` |
+| **G-GIT03** | Dateien >1MB im Tree (kein LFS) | 6 ✓ | ≤ 6 | `git ls-files -z \| xargs -0 -I{} sh -c 'test -f "{}" && wc -c "{}"' 2>/dev/null \| awk '$1>1048576{c++} END{print c+0}'` — T001902: `.claude/skills/unsloth/references/llms-full.md` entfernt (redundanter, von der Skill selbst nicht referenzierter GitBook-Volldump, überlappend mit `llms-txt.md`/`llms.md`). **Manuelle Entscheidung zu den 2 Nutzer-Assets** (`assets/grilling-brett-admin-panel/Brett Admin Panel.html`, `environments/korczewski/KERN Logo Design.html`): bleiben unangetastet — Löschen ist ohne Nutzerfreigabe riskant, LFS ist repo-weit als defekt dokumentiert (T001348), und beide Dateien machen nur 2 von 6 verbleibenden >1MB-Treffern aus (Target bereits ohne sie erreicht). Keine Gate-Scope-Ausnahme nötig; siehe T001902-Ticketkommentar. |
 | **G-DEP01** | High/Critical npm-Vulnerabilities | 0 ✓ | 0 | `cd website && pnpm audit --json 2>/dev/null \| python3 -c "..."` |
 | **G-DEP03** | PM-Konsistenz (pnpm) | 0 ✓ | 1 PM | `grep -q "npm ci" website/Dockerfile && echo inkonsistent \|\| echo ok` |
 | **G-DEP04** | `engines >= 22.13.0` | 0 ✓ | 0 | `for p in package.json website/package.json ...; do python3 -c "..engines.."; done` |
@@ -350,22 +349,24 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 
 **Baseline-Update 2026-07-14 (T001804):** G-AGENTIC06 1→0 (OVERVIEW.md Zähler 37→36 + Mess-Umstellung auf getrackte SKILL.md via `git ls-files` — lokal via market-cli installierte Skills kippen das Gate nicht mehr, Präzedenz T001783). G-AGENTIC07 6→0 (2 untrackte lokale Skills aus dem Mess-Scope entfernt; 4 getrackte Drittanbieter-/ML-Skills — ui-ux-pro-max, unsloth, gguf-quantization, speculative-decoding — in neuer OVERVIEW.md-Sektion registriert). G-AGENTIC08 1→0 (Mess-Bug: Regex ohne Anker matchte `scripts/search.py` als Substring des existierenden Pfads `.claude/skills/ui-ux-pro-max/scripts/search.py` — Lookbehind ergänzt). G-AGENTIC11 5→0 (CLAUDE.md-opencode-Liste um `github-mcp`, `playwright`, `sequential-thinking`, `webresearch`, `docfork` ergänzt). G-DOC02 216→190 (CLAUDE.md kondensiert: Merge=Abschluss- und Bug-Triage-Blöcke entwrappt, leere `### Brett`-Überschrift und redundantes Oracle-Beispiel entfernt). G-AGENTIC09 1→0 (dev-flow-plan/SKILL.md 513→495 Zeilen, Prosa-Entwrapping ohne Inhaltsverlust). G-GIT03 bleibt 7 (>Target 6): Kandidaten `assets/grilling-brett-admin-panel/Brett Admin Panel.html` und `environments/korczewski/KERN Logo Design.html` sind Nutzer-Assets — Löschen/LFS braucht manuelle Entscheidung.
 
-**Offene Tickets (2026-07-17):** G-GIT03 (T001902), G-AGENTIC09 (T001904), G-DB01 (T001905), G-DB03 (T001906), G-DB09 (T001907), G-DB10 (T001908), G-SEC06 (T001909), G-CI03 (T001910), G-FE05 (T001911), G-BRAIN14 (T001912), G-SIZE02 (T001920, Nachfolger von T001903 — echtes VideoVault-Refactoring)
+**Baseline-Update 2026-07-17 (T001902):** G-GIT03 7→6 — Target erreicht, wechselt von Prio A nach Prio C. Entfernt: `.claude/skills/unsloth/references/llms-full.md` (1.03 MB, redundanter GitBook-Volldump, von der Skill selbst nicht referenziert — SKILL.md listet nur `llms-txt.md`). Die 2 verbleibenden Nutzer-Assets (`assets/grilling-brett-admin-panel/Brett Admin Panel.html`, `environments/korczewski/KERN Logo Design.html`) bleiben bewusst unangetastet: Löschen ohne Nutzerfreigabe riskant, LFS repo-weit als defekt dokumentiert (T001348); da das Target auch ohne sie erreicht ist, ist keine Gate-Scope-Ausnahme nötig.
 
 **Baseline-Update 2026-07-17 (T001903):** G-SIZE02 Messmethode gefixt — die naive `wc -l`-Zählung folgte den Symlinks `.opencode/plugins/background-agents.ts` und `.opencode/plugins/worktree.ts` (git-tracked Symlinks auf `.opencode/skills/dev-flow/*.ts`) und zählte deren Zeilen doppelt (19 statt 17). Messkommando um `[ -L "$f" ]`-Filter ergänzt. Echter, verifizierter Bestand bleibt bei 17 (3× .opencode/, bereits sanktioniert via S1-Gate-Ignore; 14× VideoVault/, echter Produktionscode, keine Duplikate/generierte Artefakte). T001556 hatte den Wert nie wirklich gefixt — der archivierte Plan referenzierte nicht-existente Pfade (`VideoVault/src/lib/upload.ts` statt der realen `VideoVault/client/src/...` / `VideoVault/server/...`-Struktur), daher blieben alle abgehakten Tasks wirkungslos. Zielwert ≤8 erfordert echtes, getestetes Code-Splitting über ~9 Dateien (~2-3 Wochen) — kein Chore-Scope (kein `node_modules` installiert, kein Testlauf als Regressionsnetz in dieser Session verfügbar) → Nachfolger-Ticket T001920 mit konkreten Split-Vorschlägen je realer Datei, zur Umsetzung über `dev-flow-plan`.
 
+**Offene Tickets (2026-07-17):** G-AGENTIC09 (T001904), G-DB01 (T001905), G-DB03 (T001906), G-DB09 (T001907), G-DB10 (T001908), G-SEC06 (T001909), G-CI03 (T001910), G-FE05 (T001911), G-BRAIN14 (T001912), G-SIZE02 (T001920, Nachfolger von T001903 — echtes VideoVault-Refactoring)
+
 | Ziel | Ticket | Status |
 |------|--------|--------|
-| G-GIT03 | T001902 | offen (7 > Target 6; manuelle Entscheidung über 2 Nutzer-Assets — Nachfolger von T001717) |
+| G-GIT03 | T001902 | done (7→6, Target erreicht — `llms-full.md` entfernt, 2 Nutzer-Assets bewusst unangetastet) |
 | G-SIZE02 | T001903 | **gefixt** (Messmethode korrigiert — Symlink-Doppelzählung behoben; echter Bestand 17 verifiziert, davon 3 bereits sanktioniert. Zielwert ≤8 nicht erreichbar ohne echtes Code-Splitting → Nachfolger T001920) |
 | G-AGENTIC09 | T001904 | offen (dev-flow-plan/SKILL.md 508 Zeilen; Nachfolger von T001559) |
-| G-DB01 | T001905 | offen (Messung verdrahtet; Index-Fix ausstehend — Nachfolger von T001739) |
+| G-DB01 | T001905 | Migration erstellt, Anwendung ausstehend (nächster Deploy) — Nachfolger von T001739 |
 | G-DB03 | T001906 | offen (Messung verdrahtet; CHECK-Constraints ausstehend — Nachfolger von T001739) |
 | G-DB09 | T001907 | offen (Slow Queries, erster Scan + Optimierung — Nachfolger von T001838) |
 | G-DB10 | T001908 | offen (Unused Indexes, Baseline fehlt — Nachfolger von T001839) |
-| G-SEC06 | T001909 | offen (Container CVEs, erster Trivy-Scan ausstehend — Nachfolger von T001840) |
+| G-SEC06 | T001909 | offen (Container CVEs, Baseline 39 CRITICAL erfasst — Fix erfordert Image-Pin-Refresh, Folgeticket vorgeschlagen — Nachfolger von T001840) |
 | G-CI03 | T001910 | offen (CI p95, erster Messlauf ausstehend — Nachfolger von T001841) |
-| G-FE05 | T001911 | offen (Lighthouse, erster Lauf ausstehend — Nachfolger von T001842) |
+| G-FE05 | T001911 | **gemessen** (Baseline 60/100, Target 90 — Optimierung als Follow-up-Ticket ausgelagert) |
 | G-BRAIN14 | T001912 | offen (Ingest-Backlog 17/86; voller kuratierter Ingest = Follow-up zu PR #2851) |
 | G-DB04 | T001739 | gruen (1h, Target ≤26h — Root-Cause-Fix nicht verifiziert, Regressionswache bleibt täglich) |
 | G-DB06 | T001739 | gruen (Gate, halten) |
@@ -405,5 +406,19 @@ G-DB04, G-DB08, G-TEST05. **Neu: Brain-Dokumentations-Ziele** (Namespace ab G-BR
 leben im brain-Repo): G-BRAIN12 Manifest-Drift 0 (Gate), G-BRAIN13 Merge-Hook-Pfad-Parität 0 (Gate),
 G-BRAIN15 Seed-Template-Lint Exit 0 (Gate) — alle drei in health-goals-check.sh verdrahtet;
 G-BRAIN14 Ingest-Backlog 17→0 (Prio B, T001912). Messwerte: G-CQ02 9→8, G-CQ05 1→0.
+
+**Baseline-Update 2026-07-17 (T001909 — G-SEC06 erster Trivy-Scan):** G-SEC06 n/a→39 (CRITICAL;
+706 HIGH). Vollständige CVE-Triage in [`docs/audits/2026-07-17-trivy-cve-baseline.md`](../../docs/audits/2026-07-17-trivy-cve-baseline.md).
+Alle CRITICAL-Funde fixable, keine False-Positives; Konzentration auf `alpine/k8s:1.34.0`
+(23/39). Bugfix im gleichen Zug: `scripts/trivy-scan.sh` fehlte der `ghcr.io/`-Prefix beim
+pocket-id-Image (Scan schlug für dieses Image still fehl statt zu warnen). Fix der CRITICAL-CVEs
+(Image-Pin-Refresh, 6 betroffene Images) ist bewusst nicht Teil dieses Baseline-Chores —
+Folgeticket empfohlen.
 Alle Alt-Tickets der offenen Ziele waren done/archived ohne Messwert-Fix — elf Nachfolge-Tickets
 T001902–T001912 angelegt und in den Meta-Zeilen referenziert.
+
+**Baseline-Update 2026-07-17 (T001911 — erster Lighthouse-Lauf):** G-FE05 n/a→60 (3× `npx @lhci/cli
+autorun` gegen `https://web.mentolder.de`, Performance-Score konstant 60/100; FCP 6.0s, LCP 7.5s,
+TTI 7.5s, TBT 0ms, CLS 0 — größte Opportunity: fehlende Text-Compression, ~622 KiB Einsparpotenzial,
+gefolgt von unused-javascript ~278 KiB und responsive Images ~146 KiB). Score liegt deutlich unter
+Target 90 — echte Optimierung ist bewusst nicht Teil dieses Chores; Follow-up-Ticket T001922 angelegt.

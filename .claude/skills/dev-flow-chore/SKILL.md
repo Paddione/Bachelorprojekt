@@ -49,6 +49,14 @@ einen Cron-Job ein. **STOPP hier.**
 
 ## Schritt 1: Worktree anlegen & claimen
 
+> **Ticket-vor-Branch-Check (T001917):** Bevor der Branch-Slug feststeht, prüfen ob für diese
+> Chore bereits ein Ticket existiert (`TICKET_EXT_ID` gesetzt oder in `./scripts/ticket.sh list`
+> auffindbar?). Existiert noch keines, **zuerst das Ticket anlegen** (Block in Schritt 1 unten)
+> und dessen ID sofort in den Branch-Slug aufnehmen (z.B. `chore/lighthouse-ci-token-t001913`
+> statt `chore/lighthouse-ci-token`) — nicht erst nach dem Worktree. Sonst schlägt
+> `preflight-pr-scope.sh` beim PR fehl (PR-Titel-Ticket-ID ≠ Branch-Name) und der Branch muss
+> nachträglich umbenannt werden (Zeitverlust, siehe T001913).
+
 > **Test-only-Kurzpfad (kein Worktree):** Berührt die Chore **ausschließlich** Testdateien
 > (`tests/**/*.bats`, `tests/spec/*.bats`, `website/**/*.test.ts`, Playwright-Specs) — z.B. "schreib
 > einen Test für X" — dann entfällt `.worktrees/*` als Standardfall. Ein eigener Worktree pro Testdatei

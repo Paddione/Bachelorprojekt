@@ -180,3 +180,48 @@ test('FA-BRT-B1d: requireLeiterOrAdmin honors the e2e secret bypass', () => {
   assert.equal(called, true);
   delete process.env.BRETT_OIDC_SECRET;
 });
+
+// T001932: env-name mismatch between manifests and code broke /auth/login in
+// prod ({"error":"internal_error"}). resolveOidcEnv must accept the names the
+// manifests actually set and treat single-label service DNS as cluster-internal.
+import { resolveOidcEnv } from '../src/server/auth';
+
+test('T001932-A1: bare service hostname (http://pocket-id:1411) is cluster-internal', () => {
+  const env = resolveOidcEnv({ POCKET_ID_URL: 'http://pocket-id:1411' } as NodeJS.ProcessEnv);
+  assert.equal(env.isClusterHttp, true);
+});
+
+test('T001932-A2: public http hostname is still rejected', () => {
+  assert.throws(
+    () => resolveOidcEnv({ POCKET_ID_URL: 'http://auth.example.com' } as NodeJS.ProcessEnv),
+    /must use HTTPS or a cluster-internal hostname/,
+  );
+});
+
+test('T001932-A3: POCKET_ID_PUBLIC_URL (manifest name) sets the issuer URL', () => {
+  const env = resolveOidcEnv({
+    POCKET_ID_URL: 'http://pocket-id:1411',
+    POCKET_ID_PUBLIC_URL: 'https://auth.mentolder.de',
+  } as NodeJS.ProcessEnv);
+  assert.equal(env.issuerUrl.href, 'https://auth.mentolder.de/');
+});
+
+test('T001932-A4: POCKET_ID_FRONTEND_URL still works as fallback', () => {
+  const env = resolveOidcEnv({
+    POCKET_ID_URL: 'http://pocket-id:1411',
+    POCKET_ID_FRONTEND_URL: 'https://auth.example.de',
+  } as NodeJS.ProcessEnv);
+  assert.equal(env.issuerUrl.href, 'https://auth.example.de/');
+});
+
+test('T001932-A5: BRETT_CLIENT_ID (manifest name) wins, default is brett', () => {
+  const base = { POCKET_ID_URL: 'http://pocket-id:1411' };
+  assert.equal(resolveOidcEnv({ ...base, BRETT_CLIENT_ID: 'brett' } as NodeJS.ProcessEnv).clientId, 'brett');
+  assert.equal(resolveOidcEnv({ ...base, BRETT_KC_CLIENT_ID: 'legacy' } as NodeJS.ProcessEnv).clientId, 'legacy');
+  assert.equal(resolveOidcEnv(base as NodeJS.ProcessEnv).clientId, 'brett');
+});
+
+test('T001932-A6: *.svc.cluster.local and localhost remain cluster-internal', () => {
+  assert.equal(resolveOidcEnv({ POCKET_ID_URL: 'http://pocket-id.workspace.svc.cluster.local:1411' } as NodeJS.ProcessEnv).isClusterHttp, true);
+  assert.equal(resolveOidcEnv({ POCKET_ID_URL: 'http://localhost:1411' } as NodeJS.ProcessEnv).isClusterHttp, true);
+});

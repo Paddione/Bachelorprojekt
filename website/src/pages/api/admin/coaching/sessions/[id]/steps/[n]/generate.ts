@@ -168,9 +168,14 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
           payload: { provider: providerName, model: activeProvider?.modelName ?? '?', prompt: anonymizedUserPromptFinal, response: fullResponse, duration_ms: durationMs, streaming: true },
         });
         await writer.write(encoder.encode(`data: ${JSON.stringify({ done: true, step, aiPrompt: anonymizedUserPromptFinal, durationMs })}\n\n`));
-      } catch (err) {
+      } catch (err: unknown) {
         locals.requestLogger.error({ err }, '[coaching/generate] stream error');
-        await writer.write(encoder.encode(`data: ${JSON.stringify({ error: 'Stream-Fehler' })}\n\n`));
+        const msg = err instanceof Error ? err.message : String(err);
+        let streamError = 'Stream-Fehler';
+        if (/API_KEY|apiKey|nicht konfiguriert/i.test(msg)) streamError = 'KI-Provider nicht konfiguriert';
+        else if (/timeout|ETIMEDOUT/i.test(msg)) streamError = 'KI-Anfrage Timeout';
+        else if (/overloaded|529|rate.?limit|429/i.test(msg)) streamError = 'KI-Provider überlastet';
+        await writer.write(encoder.encode(`data: ${JSON.stringify({ error: streamError })}\n\n`));
       } finally {
         await writer.close();
       }
@@ -192,9 +197,20 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
       stepName, phase,
     });
     aiResponse = result.aiResponse;
-  } catch (err) {
+  } catch (err: unknown) {
     locals.requestLogger.error({ err }, '[coaching/generate]');
-    return new Response(JSON.stringify({ error: 'KI-Anfrage fehlgeschlagen' }), { status: 502, headers: { 'content-type': 'application/json' } });
+    const msg = err instanceof Error ? err.message : String(err);
+    let userMessage = 'KI-Anfrage fehlgeschlagen';
+    if (/API_KEY|apiKey|nicht konfiguriert/i.test(msg)) {
+      userMessage = 'KI-Provider nicht konfiguriert — API-Key fehlt';
+    } else if (/timeout|ETIMEDOUT|ECONNRESET/i.test(msg)) {
+      userMessage = 'KI-Anfrage Timeout — Provider antwortet nicht';
+    } else if (/overloaded|529|rate.?limit|429/i.test(msg)) {
+      userMessage = 'KI-Provider überlastet — bitte später erneut versuchen';
+    } else if (/401|unauthorized|authentication/i.test(msg)) {
+      userMessage = 'KI-Provider Authentifizierung fehlgeschlagen';
+    }
+    return new Response(JSON.stringify({ error: userMessage }), { status: 502, headers: { 'content-type': 'application/json' } });
   }
 
   const durationMs = Date.now() - startMs;

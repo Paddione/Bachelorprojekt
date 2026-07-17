@@ -248,6 +248,11 @@ export function onWsMessage(evt: MessageEvent): void {
       if (c.appearance !== undefined) {
         applyAppearanceToFig(fig, c.appearance);
       }
+      // E2: Figuren-Opacity live übernehmen (Selektions-Dim berücksichtigen).
+      if ((c as any).opacity !== undefined) {
+        (fig as any).opacity = (c as any).opacity;
+        mannequin.applyFigureOpacity(fig, STATE.selectedId === fig.id ? 1.0 : 0.55);
+      }
       // Export-Cache mit aktuellen STATE.figures synchronisieren:
       updateExportCache({ figures: STATE.figures.map(toExportFig) });
       break;

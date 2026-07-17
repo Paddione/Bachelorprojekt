@@ -1,6 +1,7 @@
 import { STATE, ui } from '../state';
-import { makeMannequin, recolorFigure } from '../mannequin';
+import { makeMannequin, recolorFigure, applyFigureOpacity } from '../mannequin';
 import { sendAddFigure, sendUpdate, sendClient } from '../ws-client';
+import { t } from '../i18n';
 
 export function addFigure(position: { x: number; z: number }): any {
   const id = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : ('f-' + Math.random().toString(36).slice(2,10));
@@ -16,6 +17,10 @@ export function addFigure(position: { x: number; z: number }): any {
   return fig;
 }
 
+// E2/E9: dynamisch erzeugte Steuerelemente (Opacity-Slider + Verdecken-Toggle).
+let opacitySlider: HTMLInputElement | null = null;
+let hideToggle: HTMLButtonElement | null = null;
+
 export function syncPanelToSelection(id: string | null): void {
   const title  = document.getElementById('fig-panel-title');
   const addBtn = document.getElementById('fig-panel-add');
@@ -28,11 +33,65 @@ export function syncPanelToSelection(id: string | null): void {
     if (addBtn) addBtn.hidden = true;
     if (input) input.value = fig.label || '';
     if (noteArea) noteArea.value = (fig as any).note || '';
+    if (opacitySlider) opacitySlider.value = String((fig as any).opacity ?? 1);
+    if (hideToggle) hideToggle.textContent = (fig as any).hidden ? t('fig.reveal') : t('fig.hide');
   } else {
     title.textContent = 'NEUE FIGUR';
     if (addBtn) addBtn.hidden = false;
     if (input) input.value = '';
     if (noteArea) noteArea.value = '';
+    if (opacitySlider) opacitySlider.value = '1';
+  }
+}
+
+/**
+ * Baut den Transparenz-Slider (E2) und — nur für den Leiter — den Verdecken/
+ * Aufdecken-Toggle (E9) und hängt sie ans Figuren-Panel.
+ */
+function buildFigureControls(): void {
+  const panel = document.getElementById('fig-panel');
+  if (!panel || (window as any).__brettIsZuschauer) return;
+
+  // Opacity-Slider
+  const row = document.createElement('div');
+  row.className = 'fig-opacity-row';
+  Object.assign(row.style, { display: 'flex', alignItems: 'center', gap: '8px', margin: '8px 0' });
+  const lbl = document.createElement('span');
+  lbl.setAttribute('data-i18n', 'fig.opacity');
+  lbl.textContent = t('fig.opacity');
+  const slider = document.createElement('input');
+  slider.type = 'range'; slider.min = '0.2'; slider.max = '1'; slider.step = '0.05'; slider.value = '1';
+  slider.id = 'fig-opacity-slider';
+  slider.style.flex = '1';
+  slider.addEventListener('input', () => {
+    const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+    if (!fig) return;
+    const val = Math.max(0.2, Math.min(1, parseFloat(slider.value)));
+    (fig as any).opacity = val;
+    applyFigureOpacity(fig, 1.0); // selektierte Figur → Selektions-Dim = 1
+    sendUpdate(fig, { opacity: val });
+  });
+  row.append(lbl, slider);
+  panel.appendChild(row);
+  opacitySlider = slider;
+
+  // E9: Verdecken/Aufdecken-Toggle (nur Leiter/Admin).
+  if ((window as any).__brettCurrentUserIsAdmin) {
+    const btn = document.createElement('button');
+    btn.id = 'fig-hide-toggle';
+    btn.className = 'fig-hide-toggle';
+    btn.textContent = t('fig.hide');
+    Object.assign(btn.style, { margin: '4px 0', cursor: 'pointer', padding: '4px 8px' });
+    btn.addEventListener('click', () => {
+      const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+      if (!fig) return;
+      const next = !(fig as any).hidden;
+      (fig as any).hidden = next;
+      btn.textContent = next ? t('fig.reveal') : t('fig.hide');
+      sendClient({ type: 'figure_hide_set', figureId: fig.id, hidden: next });
+    });
+    panel.appendChild(btn);
+    hideToggle = btn;
   }
 }
 
@@ -40,14 +99,8 @@ export function selectFigure(id: string | null): void {
   STATE.selectedId = id;
   for (const f of STATE.figures) {
     f.ring.visible = (f.id === id);
-    f.root.traverse((o: any) => {
-      if (o.isMesh && !o.userData.isContact && o !== f.ring) {
-        if (o.material && 'opacity' in o.material) {
-          o.material.transparent = true;
-          o.material.opacity = (f.id === id) ? 1.0 : 0.55;
-        }
-      }
-    });
+    // E2: effektive Opacity = base (fig.opacity) × Selektions-Dim (1.0 / 0.55).
+    applyFigureOpacity(f, (f.id === id) ? 1.0 : 0.55);
   }
   syncPanelToSelection(id);
   const appBtn = document.getElementById('appearance-btn') as HTMLButtonElement | null;
@@ -157,6 +210,9 @@ export function initFigPanel(): void {
     const fig = STATE.figures.find(f => f.id === STATE.selectedId);
     if (fig) { fig.root.scale.setScalar(ui.panelScale); }
   });
+
+  // ── E2: Transparenz-Slider + E9: Verdecken-Toggle (leiter-only) ─────────────
+  buildFigureControls();
 
   // Add button — enters placing mode
   document.getElementById('fig-panel-add')!.addEventListener('click', () => {

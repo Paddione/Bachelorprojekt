@@ -54,6 +54,26 @@ function updatePossessorLabel(fig: any, text: string, hexColor: string): void {
   fig.labelSprite.visible = true;
 }
 
+/**
+ * E2 — Nutzersteuerbare Figuren-Transparenz. Effektive Opacity komponiert
+ * multiplikativ: base (`fig.opacity ?? 1`, geklemmt 0.2–1.0) × `dimFactor`
+ * (Selektions-/Moderation-Dim). So bleibt Moderation weiterhin dominant.
+ * Setzt `transparent`/`opacity` auf allen sichtbaren Figuren-Materialien
+ * (Kontakt-Spheres und Ringe ausgenommen).
+ */
+export function applyFigureOpacity(fig: any, dimFactor = 1): void {
+  const raw = typeof fig.opacity === 'number' ? fig.opacity : 1;
+  const base = Math.max(0.2, Math.min(1, raw));
+  const eff = Math.max(0, Math.min(1, base * dimFactor));
+  fig.root.traverse((o: any) => {
+    if (o.isMesh && !o.userData?.isContact && o !== fig.ring && o !== fig.possessionRing &&
+        o.material && 'opacity' in o.material) {
+      o.material.transparent = eff < 1 ? true : o.material.transparent;
+      o.material.opacity = eff;
+    }
+  });
+}
+
 export function clearPossessionVisuals(fig: any): void {
   fig.possessionRing.visible = false;
   fig.labelSprite.visible = false;

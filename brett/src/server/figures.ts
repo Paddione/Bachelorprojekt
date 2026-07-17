@@ -59,6 +59,10 @@ export function applyMutation(room: string, msg: any): void {
         const existing = figs.get(msg.id);
         // Strip both `id` and `ownerId` — ownerId is server-authoritative (§5c).
         const { id: _ignoredId, ownerId: _ignoredOwner, ...safeChanges } = msg.changes;
+        // E2: Figuren-Opacity server-autoritativ auf 0.2–1.0 klemmen.
+        if (typeof safeChanges.opacity === 'number') {
+          safeChanges.opacity = Math.max(0.2, Math.min(1, safeChanges.opacity));
+        }
         if (safeChanges.appearance && existing.appearance && typeof existing.appearance === 'object') {
           safeChanges.appearance = {
             ...existing.appearance,

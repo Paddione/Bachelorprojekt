@@ -123,7 +123,7 @@ db_scalar "SELECT count(*) FROM pg_stat_user_indexes WHERE idx_scan = 0 AND indi
 
 > **B · Baseline:** n/a · **Target:** 0 · **Aufwand:** gering (Messung) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001908 (Nachfolger von T001839)
 
-## G-SEC06 — Container Images mit High/Critical CVEs: n/a → 0
+## G-SEC06 — Container Images mit High/Critical CVEs: 39 🔴 (Ziel 0)
 
 **Was:** Zählt unique Container-Images im aktiven Deployment mit bekannten CVEs der
 Severity `HIGH` oder `CRITICAL`. Trivy-Scan ist jetzt in CI integriert (`.github/workflows/ci.yml`
@@ -131,13 +131,21 @@ Security Scan Job) als advisory-only Check. `scripts/trivy-scan.sh` liefert die 
 Baseline-Messung. 14 pinned Images werden gescannt; `:latest` Images (projekt-eigen) werden
 nicht gescannt (Build-Zeitpunkt variiert).
 
+Erster Scan (2026-07-17): **39 CRITICAL / 706 HIGH** über alle 14 Images — Details und CVE-Triage
+in [`docs/audits/2026-07-17-trivy-cve-baseline.md`](../../docs/audits/2026-07-17-trivy-cve-baseline.md).
+Alle CRITICAL-Funde sind fixable (kein False-Positive), konzentriert auf `alpine/k8s:1.34.0`
+(23/39). Fix erfordert Image-Pin-Refresh mit Rollout-Test — separates Folgeticket vorgeschlagen,
+bewusst nicht Teil dieses Baseline-Chores. Im selben Zug wurde ein Bug in `trivy-scan.sh` behoben
+(fehlender `ghcr.io/`-Prefix beim pocket-id-Image ließ den Scan für dieses Image still auf 0
+CVEs fallen statt zu fehlschlagen).
+
 ```bash
 # Messung (lokal):
 bash scripts/trivy-scan.sh --json | jq '.total_critical, .total_high'
 # CI: advisory-only in .github/workflows/ci.yml (Security Scan Job)
 ```
 
-> **B · Baseline:** n/a → 0 (Trivy-Integration abgeschlossen, erster Scan ausstehend) · **Target:** 0 · **Aufwand:** gering (Messung) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001909 (Nachfolger von T001840)
+> **B · Baseline:** 39 · **Target:** 0 · **Aufwand:** mittel (Image-Pin-Refresh für 6 betroffene Images, siehe Audit-Report) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001909 (Nachfolger von T001840)
 
 ## G-CI03 — CI Pipeline p95 Duration > 12 min: n/a → ≤ 12 min
 
@@ -341,7 +349,7 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 | G-DB03 | T001906 | offen (Messung verdrahtet; CHECK-Constraints ausstehend — Nachfolger von T001739) |
 | G-DB09 | T001907 | offen (Slow Queries, erster Scan + Optimierung — Nachfolger von T001838) |
 | G-DB10 | T001908 | offen (Unused Indexes, Baseline fehlt — Nachfolger von T001839) |
-| G-SEC06 | T001909 | offen (Container CVEs, erster Trivy-Scan ausstehend — Nachfolger von T001840) |
+| G-SEC06 | T001909 | offen (Container CVEs, Baseline 39 CRITICAL erfasst — Fix erfordert Image-Pin-Refresh, Folgeticket vorgeschlagen — Nachfolger von T001840) |
 | G-CI03 | T001910 | offen (CI p95, erster Messlauf ausstehend — Nachfolger von T001841) |
 | G-FE05 | T001911 | offen (Lighthouse, erster Lauf ausstehend — Nachfolger von T001842) |
 | G-BRAIN14 | T001912 | offen (Ingest-Backlog 17/86; voller kuratierter Ingest = Follow-up zu PR #2851) |
@@ -383,5 +391,13 @@ G-DB04, G-DB08, G-TEST05. **Neu: Brain-Dokumentations-Ziele** (Namespace ab G-BR
 leben im brain-Repo): G-BRAIN12 Manifest-Drift 0 (Gate), G-BRAIN13 Merge-Hook-Pfad-Parität 0 (Gate),
 G-BRAIN15 Seed-Template-Lint Exit 0 (Gate) — alle drei in health-goals-check.sh verdrahtet;
 G-BRAIN14 Ingest-Backlog 17→0 (Prio B, T001912). Messwerte: G-CQ02 9→8, G-CQ05 1→0.
+
+**Baseline-Update 2026-07-17 (T001909 — G-SEC06 erster Trivy-Scan):** G-SEC06 n/a→39 (CRITICAL;
+706 HIGH). Vollständige CVE-Triage in [`docs/audits/2026-07-17-trivy-cve-baseline.md`](../../docs/audits/2026-07-17-trivy-cve-baseline.md).
+Alle CRITICAL-Funde fixable, keine False-Positives; Konzentration auf `alpine/k8s:1.34.0`
+(23/39). Bugfix im gleichen Zug: `scripts/trivy-scan.sh` fehlte der `ghcr.io/`-Prefix beim
+pocket-id-Image (Scan schlug für dieses Image still fehl statt zu warnen). Fix der CRITICAL-CVEs
+(Image-Pin-Refresh, 6 betroffene Images) ist bewusst nicht Teil dieses Baseline-Chores —
+Folgeticket empfohlen.
 Alle Alt-Tickets der offenen Ziele waren done/archived ohne Messwert-Fix — elf Nachfolge-Tickets
 T001902–T001912 angelegt und in den Meta-Zeilen referenziert.

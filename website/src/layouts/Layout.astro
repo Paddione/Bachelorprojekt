@@ -3,6 +3,7 @@ import Navigation from '../components/Navigation.svelte';
 import Footer from '../components/Footer.astro';
 import CookieConsent from '../components/CookieConsent.svelte';
 import PortalSidekick from '../components/PortalSidekick.svelte';
+import '../styles/fonts.css';
 import '../styles/global.css';
 import '../styles/sidekick-panels.css';
 import { config } from '../config/index';
@@ -78,10 +79,9 @@ const siteDomain = prodDomain ? `https://web.${prodDomain}` : '';
         <meta name="twitter:image" content={effectiveOgImage} />
       </>
     )}
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
-    {isKore && <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />}
+    <link rel="preload" href="/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/Newsreader-Latin.woff2" as="font" type="font/woff2" crossorigin />
+    {isKore && <link rel="preload" href="/fonts/InstrumentSerif-Latin.woff2" as="font" type="font/woff2" crossorigin />}
     <title>{pageTitle}</title>
     {isKore && <link rel="stylesheet" href="/brand/korczewski/colors_and_type.css" />}
     {isKore && <link rel="stylesheet" href="/brand/korczewski/app.css" />}

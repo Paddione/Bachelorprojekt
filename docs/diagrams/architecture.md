@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-91 Services · 1916 Abhängigkeitskanten · 408 API-Endpoints
+92 Services · 1920 Abhängigkeitskanten · 408 API-Endpoints
 
 ## Service-Map
 
@@ -25,6 +25,7 @@ flowchart LR
   systemtest_cleanup["systemtest-cleanup"]:::default
   systemtest_purge_all["systemtest-purge-all"]:::default
   systemtest_outbox["systemtest-outbox"]:::default
+  claude_code_mcp_monolith["claude-code-mcp-monolith"]:::default
   oauth2_proxy_dev["oauth2-proxy-dev"]:::default
   shared_db_dev["shared-db-dev"]:::default
   sish["sish"]:::default
@@ -119,6 +120,9 @@ flowchart LR
   systemtest_cleanup -->|"command"| website
   systemtest_purge_all -->|"command"| website
   systemtest_outbox -->|"command"| website
+  claude_code_mcp_monolith -->|"DATABASE_URL"| shared_db
+  claude_code_mcp_monolith -->|"DATABASE_URL"| website
+  claude_code_mcp_monolith -->|"KC_URL"| keycloak
   oauth2_proxy_dev -->|"command"| traefik
   error_log_retention -->|"command"| website
   knowledge_ingest_prs -->|"PGHOST"| shared_db
@@ -221,6 +225,7 @@ flowchart LR
   brain -->|"selector"| brain
   coturn -->|"selector"| coturn
   janus -->|"selector"| janus
+  claude_code_mcp_monolith -->|"selector"| claude_code_mcp_monolith
   oauth2_proxy_dev -->|"selector"| oauth2_proxy_dev
   shared_db_dev_lb -->|"selector"| shared_db_dev
   shared_db_dev -->|"selector"| shared_db_dev
@@ -2046,6 +2051,9 @@ flowchart TB
     systemtest_cleanup(["systemtest-cleanup"])
     systemtest_purge_all(["systemtest-purge-all"])
     systemtest_outbox(["systemtest-outbox"])
+  end
+  subgraph default["default"]
+    claude_code_mcp_monolith["claude-code-mcp-monolith"]
   end
   subgraph workspace_dev["workspace-dev"]
     oauth2_proxy_dev["oauth2-proxy-dev"]

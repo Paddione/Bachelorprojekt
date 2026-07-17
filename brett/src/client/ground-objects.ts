@@ -126,28 +126,35 @@ export function applyZoneAdded(zone: Zone): void {
   const { scene } = getScene();
   const group = new THREE.Group();
   group.position.set(zone.x, 0, zone.z);
+  // E1: Live-Zone-Daten am Group hinterlegen, damit der Zonen-Editor sie beim
+  // Raycast-Treffer direkt auslesen kann.
+  group.userData.zone = zone;
 
   const color  = zone.color   ?? '#4ea1ff';
   const opacity = zone.opacity ?? 0.25;
+  // E1: 'frame' rendert NUR die Umrandung (verschiebbarer Rahmen) — keine Fläche.
+  const isFrame = zone.variant === 'frame';
 
-  // Flächen-Mesh
-  let geo: THREE.BufferGeometry;
-  if (zone.shape === 'circle') {
-    geo = new THREE.CircleGeometry(zone.radius ?? 1.5, 48);
-  } else {
-    geo = new THREE.PlaneGeometry(zone.width ?? 2.0, zone.height ?? 2.0);
+  // Flächen-Mesh (bei 'frame' übersprungen)
+  if (!isFrame) {
+    let geo: THREE.BufferGeometry;
+    if (zone.shape === 'circle') {
+      geo = new THREE.CircleGeometry(zone.radius ?? 1.5, 48);
+    } else {
+      geo = new THREE.PlaneGeometry(zone.width ?? 2.0, zone.height ?? 2.0);
+    }
+    const mat = new THREE.MeshBasicMaterial({
+      color,
+      transparent: true,
+      opacity,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.rotation.x = -Math.PI / 2;
+    mesh.position.y = 0.003; // leicht über dem Boden, unter Ankern
+    group.add(mesh);
   }
-  const mat = new THREE.MeshBasicMaterial({
-    color,
-    transparent: true,
-    opacity,
-    side: THREE.DoubleSide,
-    depthWrite: false,
-  });
-  const mesh = new THREE.Mesh(geo, mat);
-  mesh.rotation.x = -Math.PI / 2;
-  mesh.position.y = 0.003; // leicht über dem Boden, unter Ankern
-  group.add(mesh);
 
   // Rand-Outline
   let outlineGeo: THREE.BufferGeometry;
@@ -175,7 +182,8 @@ export function applyZoneAdded(zone: Zone): void {
   const outlineMat = new THREE.LineBasicMaterial({
     color,
     transparent: true,
-    opacity: Math.min(1, opacity * 2.5),
+    // 'frame' braucht eine kräftige Umrandung (keine Füllung), sonst wie gehabt.
+    opacity: isFrame ? 0.9 : Math.min(1, opacity * 2.5),
   });
   const outline = new THREE.Line(outlineGeo, outlineMat);
   outline.position.y = 0.004;
@@ -204,6 +212,18 @@ export function applyZoneRemoved(zoneId: string): void {
   zoneMeshes.delete(zoneId);
   const zIdx = STATE.zones.findIndex(z => z.id === zoneId);
   if (zIdx !== -1) STATE.zones.splice(zIdx, 1);
+}
+
+/**
+ * E1 — Zone verschieben/skalieren/umstylen. Idempotent: das bestehende Mesh
+ * wird entsorgt und mit den neuen Zone-Daten neu aufgebaut (Position, Größe,
+ * Label, Opacity, variant). No-op, falls die Zone (noch) nicht gerendert ist.
+ */
+export function applyZoneUpdated(zone: Zone): void {
+  if (zoneMeshes.has(zone.id)) {
+    applyZoneRemoved(zone.id);
+  }
+  applyZoneAdded(zone);
 }
 
 // ── Snapshot-Initialisierung ──────────────────────────────────────────────────
@@ -315,6 +335,39 @@ export function initGroundObjectsToolbar(
   toolbar.appendChild(anchorBtn);
   toolbar.appendChild(zoneBtn);
   document.body.appendChild(toolbar);
+
+  // Floor-click for zone placement (E1): the ZONE toolbar button toggles
+  // __brettZonePlacing; this handler consumes it and creates a default
+  // 2×2 rect zone at the clicked floor point (editable via zone-editor).
+  renderer.domElement.addEventListener('click', (e) => {
+    if (!(window as any).__brettZonePlacing) return;
+    const { floor } = sceneApi as any;
+    if (!floor) return;
+    mannequin.setNdc(e);
+    const { ndc } = mannequin.getTickRefs();
+    if (!ndc) return;
+    raycaster.setFromCamera(ndc, camera);
+    const hits = raycaster.intersectObject(floor);
+    if (hits.length > 0) {
+      const pt = hits[0].point;
+      const ws = getWs();
+      if (isWsReady() && ws) {
+        ws.send(JSON.stringify({
+          type: 'zone_create',
+          zone: {
+            shape: 'rect',
+            x: Math.round(pt.x * 10) / 10,
+            z: Math.round(pt.z * 10) / 10,
+            width: 2.0,
+            height: 2.0,
+            variant: 'filled',
+          },
+        }));
+      }
+      (window as any).__brettZonePlacing = false;
+      document.dispatchEvent(new CustomEvent('brett:zone-placed'));
+    }
+  }, { capture: true });
 
   // Floor-click for anchor placement (wired into existing click handler)
   renderer.domElement.addEventListener('click', (e) => {

@@ -5,25 +5,47 @@ import type { Role } from '../types/state';
 
 let oidcConfig: Configuration | null = null;
 
-export async function getOidcClient(): Promise<Configuration> {
-  if (oidcConfig) return oidcConfig;
-  const piUrl       = process.env.POCKET_ID_URL || 'http://pocket-id.workspace.svc.cluster.local:1411';
-  const piPublicUrl = process.env.POCKET_ID_FRONTEND_URL || '';
-  const clientId    = process.env.BRETT_KC_CLIENT_ID || 'brett-app';
-  const clientSecret = process.env.POCKET_ID_BRETT_SECRET || process.env.BRETT_OIDC_SECRET || '';
+export interface OidcEnv {
+  piUrl: string;
+  piPublicUrl: string;
+  clientId: string;
+  clientSecret: string;
+  internalUrl: URL;
+  issuerUrl: URL;
+  isClusterHttp: boolean;
+}
+
+export function resolveOidcEnv(env: NodeJS.ProcessEnv = process.env): OidcEnv {
+  const piUrl       = env.POCKET_ID_URL || 'http://pocket-id.workspace.svc.cluster.local:1411';
+  // Manifests (prod/patch-brett.yaml, k3d/brett.yaml) set POCKET_ID_PUBLIC_URL
+  // and BRETT_CLIENT_ID; the *_FRONTEND_URL / *_KC_* names predate the
+  // Pocket-ID migration and are kept as fallbacks.
+  const piPublicUrl = env.POCKET_ID_PUBLIC_URL || env.POCKET_ID_FRONTEND_URL || '';
+  const clientId    = env.BRETT_CLIENT_ID || env.BRETT_KC_CLIENT_ID || 'brett';
+  const clientSecret = env.POCKET_ID_BRETT_SECRET || env.BRETT_OIDC_SECRET || '';
 
   const internalUrl = new URL(piUrl);
-  // When POCKET_ID_FRONTEND_URL is set, openid-client validates the discovered
-  // issuer against the public URL while customFetch routes the actual request
-  // to the cluster-internal endpoint (avoids issuer mismatch with
-  // RFC-compliant v6).
+  // When the public URL is set, openid-client validates the discovered issuer
+  // against it while customFetch routes the actual request to the
+  // cluster-internal endpoint (avoids issuer mismatch with RFC-compliant v6).
   const issuerUrl = piPublicUrl ? new URL(piPublicUrl) : internalUrl;
 
+  // Single-label hostnames (no dot, e.g. "pocket-id") are same-namespace
+  // Kubernetes service DNS — the base manifest uses them so both brand
+  // namespaces (workspace / workspace-korczewski) resolve their own Pocket-ID.
   const isClusterHttp = internalUrl.protocol === 'http:' &&
-    (internalUrl.hostname === 'localhost' || internalUrl.hostname === '127.0.0.1' || internalUrl.hostname.endsWith('.svc.cluster.local'));
+    (internalUrl.hostname === 'localhost' || internalUrl.hostname === '127.0.0.1' ||
+      internalUrl.hostname.endsWith('.svc.cluster.local') || !internalUrl.hostname.includes('.'));
   if (internalUrl.protocol === 'http:' && !isClusterHttp) {
     throw new Error(`OIDC issuer URL must use HTTPS or a cluster-internal hostname, got: ${internalUrl.hostname}`);
   }
+
+  return { piUrl, piPublicUrl, clientId, clientSecret, internalUrl, issuerUrl, isClusterHttp };
+}
+
+export async function getOidcClient(): Promise<Configuration> {
+  if (oidcConfig) return oidcConfig;
+  const { piUrl, piPublicUrl, clientId, clientSecret, internalUrl, issuerUrl, isClusterHttp } = resolveOidcEnv();
 
   const opts: Record<string | symbol, unknown> = {};
   if (isClusterHttp) opts.execute = [allowInsecureRequests];

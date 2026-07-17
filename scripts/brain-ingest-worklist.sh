@@ -73,6 +73,9 @@ slugify() {
   echo "$rel" | tr '/_ ' '---' | tr '[:upper:]' '[:lower:]'
 }
 
+WORKLIST_TMP="$(mktemp)"
+trap 'rm -f "$WORKLIST_TMP"' EXIT
+
 find "$ROOT" \
   \( -name .git \
      -o -name node_modules \
@@ -84,7 +87,6 @@ find "$ROOT" \
      -o -name dist \
      -o -name .venv \
      -o -name __pycache__ \
-     -o -name .claude \
      -o -name generated \
      -o -name archive \
      -o -name legacy-html \
@@ -113,4 +115,18 @@ find "$ROOT" \
   [[ -z "$grp" ]] && continue
   slug="$(slugify "$rel")"
   printf '%s\t%s\t%s\n' "$rel" "$slug" "$grp"
-done
+done > "$WORKLIST_TMP"
+
+cat "$WORKLIST_TMP"
+
+# Drift detection: warn (stderr, exit stays 0) about any manifest-declared
+# group with zero matches anywhere in the walked tree — this is how the
+# 78%-dead ssot-specs list went unnoticed for weeks (T001884).
+declared_groups="$(awk '/^groups:/{flag=1; next} /^[A-Za-z]/{flag=0} flag && /^  [A-Za-z0-9_-]+:/{gsub(/^  /,""); gsub(/:.*/,""); print}' "$MANIFEST")"
+observed_groups="$(cut -f3 "$WORKLIST_TMP" | sort -u)"
+while IFS= read -r g; do
+  [[ -z "$g" ]] && continue
+  if ! grep -qxF "$g" <<< "$observed_groups"; then
+    echo "Warnung: Manifest-Gruppe '$g' hat 0 Treffer (Drift?)" >&2
+  fi
+done <<< "$declared_groups"

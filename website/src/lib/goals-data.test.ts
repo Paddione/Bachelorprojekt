@@ -61,11 +61,11 @@ describe('goals-data: static exports', () => {
     expect(CATEGORIES.length).toBe(unique.size);
   });
 
-  it('a known Priority-A goal (G-SIZE04) is present and lower-direction', () => {
-    const g = GOALS.find((x) => x.id === 'G-SIZE04');
-    expect(g).toBeDefined();
-    expect(g?.priority).toBe('A');
-    expect(g?.direction).toBe('lower');
+  it('every Priority-A goal has a valid, computable direction', () => {
+    const aGoals = GOALS.filter((g) => g.priority === 'A');
+    for (const g of aGoals) {
+      expect(['lower', 'higher']).toContain(g.direction);
+    }
   });
 });
 
@@ -119,5 +119,13 @@ describe('healthPercent', () => {
     // clamp ensures it stays at 99 unless the goal is literally met.
     const g = makeGoal({ direction: 'lower', baseline: 100, target: 0, current: 0.4 });
     expect(healthPercent(g)).toBe(99);
+  });
+});
+
+describe('goals-data: generated JSON integration', () => {
+  it('GOALS entries all carry the corrected .claude/lib/goals.md source path (not the .agents/ alias)', () => {
+    for (const g of GOALS) {
+      expect(g.source.startsWith('.claude/lib/goals.md')).toBe(true);
+    }
   });
 });

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Asset-Generierung: GPU-Host einrichten &amp; starten — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<header class="site-header">
+  <a class="site-header-brand" href="./index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
+  <div id="search-box">
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
+  </div>
+</div>
+<div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Handbücher</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./readme.html">AI-Agent Operating Guide — Registry (SSOT)</a></li><li class="sidebar-item"><a href="./readme.html">DB Audit Phase 5 — 2026-05-23</a></li><li class="sidebar-item"><a href="./readme.html">dev.mentolder.de — Operator Runbook</a></li><li class="sidebar-item"><a href="./readme.html">Korczewski Visual Design Brief</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Architektur &amp; Bausteine</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./architecture.html">Architektur — Living Docs</a></li><li class="sidebar-item"><a href="./30-bausteine.html">Bausteine — Was läuft auf der Plattform?</a></li><li class="sidebar-item"><a href="./bereitstellungsdetails.html">Bereitstellungsdetails und Server-Topologie</a></li><li class="sidebar-item"><a href="./db-schema.html">Shared DB — Schema Reference &amp; Normalization Audit</a></li><li class="sidebar-item"><a href="./00-anleitung.html">Was will ich tun?</a></li><li class="sidebar-item"><a href="./20-werkzeuge.html">Werkzeuge — Tools und Agents</a></li><li class="sidebar-item"><a href="./10-ziele.html">Ziele — Was will ich tun?</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Audits &amp; Reports</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./2026-07-09-index-and-nplus1-audit.html">DB Audit — 2026-07-09</a></li><li class="sidebar-item"><a href="./findings.html">DB Audit Phase 5 — Findings</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Entscheidungen</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./decision-log.html">Phase 5 DROP Decision Log</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">Referenz</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./adr-001-fleet-konsolidierung.html">ADR-001: Fleet-Konsolidierung — Zusammenführung aller Marken-Cluster (Phase 3)</a></li><li class="sidebar-item"><a href="./adr-002-push-basiertes-deploy.html">ADR-002: Push-basiertes Deploy — kein GitOps-Reconciler im Cluster</a></li><li class="sidebar-item"><a href="./adr-003-brand-namespace-split.html">ADR-003: Brand-Namespace-Split — Multi-Mandanten via Kubernetes-Namespaces</a></li><li class="sidebar-item"><a href="./adr-004-llm-fail-closed.html">ADR-004: LLM-Embedding-Architektur — fail-closed, kein Cross-Space-Fallback</a></li><li class="sidebar-item"><a href="./adr-005-merge-equals-abschluss.html">ADR-005: Merge = Abschluss — Ticketmodell ohne awaiting_deploy-Happy-Path</a></li><li class="sidebar-item"><a href="./alert-email-test.html">Alert-E-Mail-Test (synthetisch)</a></li><li class="sidebar-item"><a href="./api-surface.html">API Surface Map</a></li><li class="sidebar-item sidebar-item--active"><a href="./asset-gen-gpu-host.html" aria-current="page">Asset-Generierung: GPU-Host einrichten &amp; starten</a></li><li class="sidebar-item"><a href="./audit-log-retention.html">Audit-Log Retention — DSGVO-Dokumentation</a></li><li class="sidebar-item"><a href="./blast-radius.html">Blast-Radius-Report</a></li><li class="sidebar-item"><a href="./brainstorm-bridge-wsl.html">Brainstorm-Bridge (WSL) — Visuals &amp; Auswahl an den Nutzer kommunizieren</a></li><li class="sidebar-item"><a href="./db-audit-playbook.html">DB-Audit-Playbook (shared-db, beide Brands)</a></li><li class="sidebar-item"><a href="./docs-design-standards.html">DOCS-DESIGN-STANDARDS.md</a></li><li class="sidebar-item"><a href="./envsubst-variable-management.html">envsubst Variable Management — Referenz</a></li><li class="sidebar-item"><a href="./fleet-stage2-cutover-runbook.html">Fleet Stage 2 — Cutover Runbook</a></li><li class="sidebar-item"><a href="./fleet-2026-05-31-what-changed.html">Fleet-Konsolidierung — was sich am 2026-05-31 geändert hat</a></li><li class="sidebar-item"><a href="./gotchas-footguns.html">Gotchas &amp; Footguns Reference</a></li><li class="sidebar-item"><a href="./secrets-architecture.html">Secrets-Dateiarchitektur</a></li><li class="sidebar-item"><a href="./shared-infrastructure-security.html">Shared Infrastructure Security — Cross-Brand Analysis</a></li><li class="sidebar-item"><a href="./overview.html">Skills Overview</a></li><li class="sidebar-item"><a href="./factory-usage.html">Software Factory — Usage Guide</a></li><li class="sidebar-item"><a href="./systemtest-fragebogen.html">Systemtest-Protokoll — Workspace Collaboration Platform</a></li><li class="sidebar-item"><a href="./wsl-bootstrap.html">WSL Bootstrapping Gotchas</a></li></ul></details>
+</aside>
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./docs.html">Docs</a> <span class="sep">/</span> <span class="crumb-current">Asset-Generierung: GPU-Host einrichten &amp; starten</span></nav>
+    <h1>Asset-Generierung: GPU-Host einrichten &amp; starten</h1>
+    <p class="page-desc"></p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      <span class="domain-tag">ops</span>
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Asset-Generierung: GPU-Host einrichten &amp; starten</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#einmalige-einrichtung"><span class="toc-num">1.</span> Einmalige Einrichtung</a></li>
+<li class="toc-item"><a href="#dienste-starten"><span class="toc-num">2.</span> Dienste starten</a></li>
+<li class="toc-item"><a href="#verifikation"><span class="toc-num">3.</span> Verifikation</a></li></ul>
+</div>
+<p>Betriebsanleitung für die 3D-Asset-Pipeline (ComfyUI/Hunyuan3D-2 + Blender-Rigger)
+auf dem GPU-Host. Architektur &amp; Verhaltensvertrag: SSOT-Spec
+<code>openspec/specs/asset-generation.md</code>.</p>
+<h2 id="einmalige-einrichtung">Einmalige Einrichtung</h2>
+<div class="code-wrapper"><pre><code class="language-bash">bash scripts/setup-comfyui.sh
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Idempotent — installiert Python-venv (<code>~/comfy-venv</code>, PyTorch CUDA-12.8-Wheel),
+ComfyUI (<code>~/ComfyUI</code>), die kijai Hunyuan3D-2-Custom-Nodes, die Modellgewichte
+(~8 GB; <strong>Hunyuan3D-2-mini</strong> wegen 16-GB-VRAM-Limit der RTX 5070 Ti), Blender
+(headless Rigging) und FastAPI/uvicorn für den Rigger-Server.</p>
+<h2 id="dienste-starten">Dienste starten</h2>
+<div class="code-wrapper"><pre><code class="language-bash">bash scripts/start-comfyui.sh
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Startet zwei <code>screen</code>-Sessions:</p>
+<table>
+<thead>
+<tr>
+<th>Dienst</th>
+<th>Port</th>
+<th>Session</th>
+<th>Log</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ComfyUI (Hunyuan3D-2)</td>
+<td>8189</td>
+<td><code>screen -r comfyui</code></td>
+<td><code>~/comfyui.log</code></td>
+</tr>
+<tr>
+<td>Rigger (<code>scripts/rigger_server.py</code>)</td>
+<td>8190</td>
+<td><code>screen -r rigger</code></td>
+<td><code>~/rigger.log</code></td>
+</tr>
+</tbody></table>
+<h2 id="verifikation">Verifikation</h2>
+<div class="code-wrapper"><pre><code class="language-bash">curl -sf "http://${COMFY_HOST_IP}:8189/system_stats" | head -c 200   # ComfyUI lebt
+curl -s -o /dev/null -w '%{http_code}' -X POST \
+  "http://${RIGGER_HOST_IP:-$COMFY_HOST_IP}:8190/rig?method=mixamo"   # erwartet 501
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><code>method=mixamo</code> ist bewusst nicht implementiert (501) — Blender+Rigify ist der
+einzige Rigging-Pfad. Die Website erreicht die Dienste ausschließlich über
+<code>COMFY_HOST_IP</code>/<code>COMFY_PORT</code> und <code>RIGGER_HOST_IP</code>/<code>RIGGER_PORT</code>
+(<code>environments/&lt;env&gt;.yaml</code>, Schema in <code>environments/schema.yaml</code>).</p>
+</body></html>
+</article>
+
+<nav class="prevnext" aria-label="Seitennavigation"><a class="prevnext-link prevnext-prev" href="./api-surface.html"><span class="prevnext-label">← Zurück</span><span class="prevnext-title">API Surface Map</span></a><a class="prevnext-link prevnext-next" href="./audit-log-retention.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">Audit-Log Retention — DSGVO-Dokumentation</span></a></nav>
+  </main>
+</div>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="./app.js"></script>
+</body>
+</html>

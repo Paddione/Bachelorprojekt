@@ -151,3 +151,40 @@ test('D gate: beobachter figure_release is allowed through gate', () => {
   const beobWs = { _session: { userId: 'u-beob' } };
   assert.strictEqual(gateMutation(beobWs, room, 'figure_release', 'f1', deps), true, 'beobachter may release own figure');
 });
+
+// ── E4/E5: pov-camera switchPov + meta mode (T001931) ────────────────
+import * as THREE from 'three';
+import * as povCamera from '../src/client/pov-camera';
+import { STATE, setScene } from '../src/client/state';
+
+function fakeFig(id: string): any {
+  const root = new THREE.Object3D();
+  const head = new THREE.Object3D();
+  head.position.set(0, 1.6, 0);
+  root.add(head);
+  return { id, label: id, color: '#c8a96e', root, bones: { head } };
+}
+
+test('E5: switchPov targets the new figure id', () => {
+  setScene({ renderer: {} as any, scene: new THREE.Scene(), camera: new THREE.PerspectiveCamera(), floor: {} as any });
+  STATE.figures.length = 0;
+  STATE.figures.push(fakeFig('pa'), fakeFig('pb'));
+  povCamera.startPov('pa');
+  assert.strictEqual(povCamera.getPovFigureId(), 'pa');
+  povCamera.switchPov('pb');
+  assert.strictEqual(povCamera.getPovFigureId(), 'pb', 'switchPov possesses the new figure');
+  povCamera.stopPov();
+});
+
+test('E4: setPovMode("meta") reports meta active while possessed', () => {
+  setScene({ renderer: {} as any, scene: new THREE.Scene(), camera: new THREE.PerspectiveCamera(), floor: {} as any });
+  STATE.figures.length = 0;
+  STATE.figures.push(fakeFig('pm'));
+  povCamera.startPov('pm');
+  assert.strictEqual(povCamera.isMeta(), false, 'startet in first-person');
+  povCamera.setPovMode('meta');
+  assert.strictEqual(povCamera.isMeta(), true, 'meta aktiv');
+  assert.strictEqual(povCamera.getPovMode(), 'meta');
+  povCamera.stopPov();
+  assert.strictEqual(povCamera.isMeta(), false, 'nach stopPov kein meta');
+});

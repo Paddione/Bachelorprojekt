@@ -1,5 +1,47 @@
 # Changelog
 
+## [1.188.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.187.0...website-v1.188.0) (2026-07-17)
+
+
+### Features
+
+* **brett:** Systembrett-Vollausbau auf 18 Zielfunktionen [T001931] ([#2915](https://github.com/Paddione/Bachelorprojekt/issues/2915)) ([bc84f03](https://github.com/Paddione/Bachelorprojekt/commit/bc84f038904fcb68c51a2cbb5baa8453b358a3bf))
+
+## [1.187.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.186.2...website-v1.187.0) (2026-07-17)
+
+
+### Features
+
+* **website:** self-host fonts, eliminate Google Fonts CDN render-blocking [T001930] ([#2912](https://github.com/Paddione/Bachelorprojekt/issues/2912)) ([d237418](https://github.com/Paddione/Bachelorprojekt/commit/d2374184d632d5e5f7979afbe764246d993425f3))
+
+## [1.186.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.186.1...website-v1.186.2) (2026-07-17)
+
+
+### Bug Fixes
+
+* **website:** switch live avatarSrc content source to gerald.webp [T001929] ([#2903](https://github.com/Paddione/Bachelorprojekt/issues/2903)) ([523622b](https://github.com/Paddione/Bachelorprojekt/commit/523622b7451d8fa7d560cff1e0ae20e83d9bd41c))
+
+## [1.186.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.186.0...website-v1.186.1) (2026-07-17)
+
+
+### Performance
+
+* **website:** edge compression + LCP image + font/hydration fixes → Lighthouse ≥90 [T001922] ([#2899](https://github.com/Paddione/Bachelorprojekt/issues/2899)) ([9c94068](https://github.com/Paddione/Bachelorprojekt/commit/9c9406808be9060d0d58db65b045cb121a722782))
+
+## [1.186.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.185.1...website-v1.186.0) (2026-07-15)
+
+
+### Features
+
+* **brain:** consolidate docs/diagram generation + health-goals into brain SSOT [T001884] ([#2870](https://github.com/Paddione/Bachelorprojekt/issues/2870)) ([7b37ebe](https://github.com/Paddione/Bachelorprojekt/commit/7b37ebe71fadf8a36c9168fd02a4cd8523692d5a))
+
+## [1.185.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.185.0...website-v1.185.1) (2026-07-15)
+
+
+### Bug Fixes
+
+* **test:** update stale provider-config opus test + harden e2e-marker regex [T001868] ([#2864](https://github.com/Paddione/Bachelorprojekt/issues/2864)) ([f146779](https://github.com/Paddione/Bachelorprojekt/commit/f146779ca6aa539f29e8c9e3f7edba09b243cf5a))
+
 ## [1.185.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.184.1...website-v1.185.0) (2026-07-15)
 
 

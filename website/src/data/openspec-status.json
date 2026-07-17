@@ -1107,6 +1107,36 @@
       "status": "plan_staged"
     }
   ],
+  "T001873": [
+    {
+      "slug": "mishap-t001873",
+      "status": "plan_staged"
+    }
+  ],
+  "T001884": [
+    {
+      "slug": "2026-07-15-brain-ssot-consolidation",
+      "status": "archived"
+    }
+  ],
+  "T001922": [
+    {
+      "slug": "2026-07-17-lighthouse-perf-90",
+      "status": "archived"
+    }
+  ],
+  "T001927": [
+    {
+      "slug": "mishap-t001927",
+      "status": "plan_staged"
+    }
+  ],
+  "T001931": [
+    {
+      "slug": "2026-07-17-brett-vollausbau",
+      "status": "archived"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

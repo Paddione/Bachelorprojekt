@@ -72,6 +72,14 @@ export interface Figure {
    * Gesetzt via figure_note_set (server-authoritative, via applyMutation).
    */
   note?: string;
+  /**
+   * Verdecktes Arbeiten (E9). Server-autoritativ, nur via `figure_hide_set`
+   * (leiter-exklusiv). Hidden-Figuren werden am Broadcast-/Snapshot-Rand pro
+   * Empfänger-Rolle gefiltert — Nicht-Leiter erhalten sie NIE.
+   */
+  hidden?: boolean;
+  /** Nutzersteuerbare Deckkraft der Figur, 0.2–1.0 (E2). Default: 1.0 */
+  opacity?: number;
 }
 
 export interface Participant {
@@ -153,4 +161,9 @@ export interface Zone {
   color?: string;
   /** Deckkraft der Fläche, 0..1. Default: 0.25 */
   opacity?: number;
+  /**
+   * Darstellungsvariante (E1): 'filled' = gefüllte Fläche (Default),
+   * 'frame' = nur Umrandung (verschiebbarer Rahmen).
+   */
+  variant?: 'filled' | 'frame';
 }

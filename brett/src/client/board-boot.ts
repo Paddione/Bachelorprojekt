@@ -20,6 +20,11 @@ import { initBoardTouchControls } from './touch-controls';
 import * as exportUi from './ui/export';
 import * as importUi from './ui/import';
 import * as groundObjects from './ground-objects';
+import { initZoneEditing } from './ui/zone-editor';
+import * as cameraModes from './camera-modes';
+import * as viewCone from './view-cone';
+import * as snapping from './snapping';
+import { t, initLang, applyTranslations } from './i18n';
 import { maybeStartOnboarding } from './ui/onboarding';
 import { initUndoRedo } from './ui/undo-redo-ui';
 import { updateLinePositions } from './scene-lines';
@@ -36,8 +41,35 @@ import { mountFilterInput, getFilterQuery, updateFilterVisuals } from './ui/topb
 
 export async function bootBoard(): Promise<void> {
   // ── Scene ──────────────────────────────────────────────────────────
+  // ── E8: Sprache initialisieren, bevor UI-Elemente montieren ────────────────
+  initLang();
+
   const sceneApi = initScene();
   const { renderer, scene, camera } = sceneApi;
+
+  // ── E3: 2D/3D-Kameramodus (Ortho top-down ⇄ Orbit-Perspektive) ─────────────
+  cameraModes.initCameraModes(camera, window.innerWidth, window.innerHeight - 36);
+  window.addEventListener('resize', () => cameraModes.onResize(window.innerWidth, window.innerHeight - 36));
+  hud.mountViewToggle({
+    id: 'btn-view-2d', label: t('topbar.view2d'), i18nKey: 'topbar.view2d', initialOn: false,
+    onToggle: () => {
+      const is2D = cameraModes.toggleMode() === '2d';
+      const btn = document.getElementById('btn-view-2d');
+      if (btn) { btn.textContent = is2D ? t('topbar.view3d') : t('topbar.view2d'); btn.dataset.on = is2D ? '1' : '0'; }
+    },
+  });
+  // ── E6: Sichtkegel-Toggle (default an) ─────────────────────────────────────
+  hud.mountViewToggle({
+    id: 'btn-view-cone', label: t('topbar.viewCone'), i18nKey: 'topbar.viewCone', initialOn: true,
+    onToggle: (on) => viewCone.setEnabled(on),
+  });
+  // ── E7: Magnet-/Snapping-Toggle (default aus) ──────────────────────────────
+  hud.mountViewToggle({
+    id: 'btn-magnet', label: t('topbar.magnet'), i18nKey: 'topbar.magnet', initialOn: false,
+    onToggle: (on) => snapping.setMagnet(on),
+  });
+  hud.mountLangSelect(); // E8: Sprachumschalter DE/EN/FR/ES
+
 
   // ── Wire dependencies ──────────────────────────────────────────────
   mannequin.setSendMove(wsClient.sendMove);
@@ -154,6 +186,8 @@ export async function bootBoard(): Promise<void> {
   // ── T000468: Admin-Toolbar für Anker & Zonen (DARK-LAUNCH) ──────────────────
   if ((window as any).__brettFeatures?.['t000468-ground-anchors']) {
     groundObjects.initGroundObjectsToolbar(renderer, sceneApi, camera, raycaster, mannequin);
+    // E1: Zonen-Editor (Drag verschieben + Doppelklick-Edit-Popover).
+    initZoneEditing({ renderer, raycaster, mannequin, floor: sceneApi.floor });
   }
 
   // ── T000606: Touch / Pointer-Events handler ────────────────────────────────
@@ -248,7 +282,7 @@ export async function bootBoard(): Promise<void> {
     }
     mannequin.setNdc(e);
     const { ndc } = mannequin.getTickRefs();
-    raycaster.setFromCamera(ndc, camera);
+    raycaster.setFromCamera(ndc, cameraModes.getActiveCamera());
     const target = new THREE.Vector3();
     raycaster.ray.intersectPlane(ui.dragging.plane, target);
     if (!target) return;
@@ -271,6 +305,8 @@ export async function bootBoard(): Promise<void> {
       for (const b of chain) delete fig.boneOverrides[b];
       delete fig.boneOverrides[ui.dragging.boneName];
       wsClient.sendUpdate(fig, { boneOverrides: fig.boneOverrides });
+      // E7: bei aktivem Magnet die Figur aufs Raster/Achsen einrasten (+ move).
+      snapping.finishDrag(fig);
       const ws = getWs();
       if (isWsReady() && ws) {
         ws.send(JSON.stringify({ type: "figure_unlock", id: fig.id }));
@@ -323,10 +359,13 @@ export async function bootBoard(): Promise<void> {
     const floorPt = mannequin.pickFloor(e);
     if (!floorPt) return;
     const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+    // E7: Magnet snappt auch den Doppelklick-Teleport/-Platzierungspunkt.
+    const others = STATE.figures.filter(f => f.id !== STATE.selectedId).map(f => ({ x: f.x, z: f.z }));
+    const target = snapping.snap({ x: floorPt.x, z: floorPt.z }, others);
     if (fig) {
-      easeFigure(fig, floorPt.x, floorPt.z, 300);
+      easeFigure(fig, target.x, target.z, 300);
     } else {
-      figPanel.addFigure({ x: floorPt.x, z: floorPt.z });
+      figPanel.addFigure({ x: target.x, z: target.z });
     }
   });
 
@@ -441,6 +480,8 @@ export async function bootBoard(): Promise<void> {
     mannequin.updateModerationVisuals(STATE.figures, currentModerationState);
     // T000607: Filter visuals (dim non-matching figures)
     updateFilterVisuals(STATE.figures, getFilterQuery());
+    // E6: Sichtkegel live an Position/Blickrichtung ausrichten.
+    viewCone.refreshAll(STATE.figures);
 
     // T3 Single-Writer: POV has highest priority
     if (povCamera.isInPov()) {
@@ -479,10 +520,11 @@ export async function bootBoard(): Promise<void> {
       return v;
     });
 
+    const activeCam = cameraModes.getActiveCamera();
     if ((window as any).__brettPostFx) {
-      (window as any).__brettPostFx.render(scene, camera);
+      (window as any).__brettPostFx.render(scene, activeCam);
     } else {
-      renderer.render(scene, camera);
+      renderer.render(scene, activeCam);
     }
   }
   tick();
@@ -498,6 +540,9 @@ export async function bootBoard(): Promise<void> {
   maybeStartOnboarding({
     role: () => wsClient.getLobbyState()?.roster?.[currentUser.userId]?.role,
   });
+
+  // ── E8: Übersetzungen auf alle montierten [data-i18n]-Elemente anwenden ─────
+  applyTranslations();
 
   console.log('[brett] scene up');
 }

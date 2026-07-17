@@ -291,3 +291,34 @@ assert not errors, f"YAML parse errors:\n" + "\n".join(errors)
 PY
   [ "$status" -eq 0 ]
 }
+
+# --- T001873: preflight-pr-scope lowercase-Branch-Regression (Mishap-Ticket) ---
+@test "T001873: preflight-pr-scope akzeptiert lowercase Ticket-ID im Branchnamen" {
+  local tmp
+  tmp="$(mktemp -d)"
+
+  # Fixture ci.yml mit 'docs' als bekanntem Scope (isoliert von echter ci.yml-Drift)
+  local fixture="$tmp/ci.yml"
+  cat > "$fixture" <<'EOF'
+jobs:
+  commit-lint:
+    steps:
+      - uses: amannn/action-semantic-pull-request@v5.5.3
+        with:
+          scopes: |
+            docs
+            test
+EOF
+
+  # Isoliertes Fixture-Repo direkt auf dem lowercase-Branch aus dem Mishap-Report,
+  # nicht main/master/feature/fix -> preflight-pr-scope's Branch-Guards greifen nicht ein.
+  git -C "$tmp" init -q -b chore/foo-t999901
+  git -C "$tmp" config user.email "test@example.invalid"
+  git -C "$tmp" config user.name "Test Fixture"
+  git -C "$tmp" commit -q --allow-empty -m "fixture"
+
+  run bash -c "cd '$tmp' && bash '$REPO_ROOT/scripts/preflight-pr-scope.sh' 'chore(docs): x [T999901]' '$fixture'"
+  rm -rf "$tmp"
+
+  [ "$status" -eq 0 ]
+}

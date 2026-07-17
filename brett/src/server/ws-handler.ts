@@ -10,6 +10,7 @@ export interface WsDeps {
   joinRoom: (ws: any, room: string) => void;
   leaveRoom: (ws: any) => string | undefined;
   broadcast: (room: string, msg: any, exclude?: any) => void;
+  broadcastRoleAware: (room: string, msg: any, resolveRoleForWs: (ws: any) => Role, translate: (msg: any, role: Role) => any | null, exclude?: any) => void;
   broadcastInfo: (room: string) => void;
 
   // ── Participant roster ─────────────────────────────────────────────
@@ -103,7 +104,8 @@ export const ADMIN_TYPES = new Set<string>([
   'admin_set_template', 'admin_set_optik',
   'figure_type_set',
   'admin_spotlight_set', 'admin_dim_set', 'admin_freeze_set',  // ← T000471
-  'anchor_create', 'anchor_delete', 'zone_create', 'zone_delete',  // NEU T000468
+  'anchor_create', 'anchor_delete', 'zone_create', 'zone_update', 'zone_delete',  // NEU T000468 + zone_update (E1)
+  'figure_hide_set',  // E9 verdecktes Arbeiten — leiter-exklusiv
   'session_undo', 'session_redo',   // ← T000470
   // ── Line mutations (T000467) — leiter-exklusiv ────────────────────────────
   'line_create', 'line_delete', 'line_type_set',

@@ -1,0 +1,80 @@
+{
+  "meta": {
+    "slug": "brett-vollausbau",
+    "ticket_id": "T001931",
+    "generated_from": "main@bba7e59a6",
+    "domains": ["brett", "frontend", "websocket"],
+    "intel_sources": ["grep", "read", "baseline.json", "explore-agent"]
+  },
+  "impact_files": [
+    { "path": "brett/src/types/state.ts", "language": "typescript", "loc": 156, "s1_limit": 600, "s1_baseline": null, "s1_budget": 444 },
+    { "path": "brett/src/types/messages.ts", "language": "typescript", "loc": 104, "s1_limit": 600, "s1_baseline": null, "s1_budget": 496 },
+    { "path": "brett/src/server/ws-handler.ts", "language": "typescript", "loc": 228, "s1_limit": 600, "s1_baseline": null, "s1_budget": 372 },
+    { "path": "brett/src/server/permissions.ts", "language": "typescript", "loc": 116, "s1_limit": 600, "s1_baseline": null, "s1_budget": 484 },
+    { "path": "brett/src/server/ws-connection.ts", "language": "typescript", "loc": 400, "s1_limit": 600, "s1_baseline": null, "s1_budget": 200 },
+    { "path": "brett/src/server/figures.ts", "language": "typescript", "loc": 445, "s1_limit": 600, "s1_baseline": null, "s1_budget": 155 },
+    { "path": "brett/src/server/rooms.ts", "language": "typescript", "loc": 75, "s1_limit": 600, "s1_baseline": null, "s1_budget": 525 },
+    { "path": "brett/src/client/board-boot.ts", "language": "typescript", "loc": 504, "s1_limit": 600, "s1_baseline": null, "s1_budget": 96 },
+    { "path": "brett/src/client/scene.ts", "language": "typescript", "loc": 218, "s1_limit": 600, "s1_baseline": null, "s1_budget": 382 },
+    { "path": "brett/src/client/pov-camera.ts", "language": "typescript", "loc": 86, "s1_limit": 600, "s1_baseline": null, "s1_budget": 514 },
+    { "path": "brett/src/client/ground-objects.ts", "language": "typescript", "loc": 342, "s1_limit": 600, "s1_baseline": null, "s1_budget": 258 },
+    { "path": "brett/src/client/mannequin-visuals.ts", "language": "typescript", "loc": 61, "s1_limit": 600, "s1_baseline": null, "s1_budget": 539 },
+    { "path": "brett/src/client/ws-client.ts", "language": "typescript", "loc": 445, "s1_limit": 600, "s1_baseline": null, "s1_budget": 155 },
+    { "path": "brett/src/client/touch-handler.ts", "language": "typescript", "loc": 211, "s1_limit": 600, "s1_baseline": null, "s1_budget": 389 },
+    { "path": "brett/src/client/ui/fig-panel.ts", "language": "typescript", "loc": 187, "s1_limit": 600, "s1_baseline": null, "s1_budget": 413 },
+    { "path": "brett/src/client/ui/hud.ts", "language": "typescript", "loc": 273, "s1_limit": 600, "s1_baseline": null, "s1_budget": 327 },
+    { "path": "brett/src/client/ui/menu.ts", "language": "typescript", "loc": 190, "s1_limit": 600, "s1_baseline": null, "s1_budget": 410 },
+    { "path": "brett/src/client/ui/lobby.ts", "language": "typescript", "loc": 362, "s1_limit": 600, "s1_baseline": null, "s1_budget": 238 },
+    { "path": "brett/src/client/i18n.ts", "language": "typescript", "loc": 0, "s1_limit": 600, "s1_baseline": null, "s1_budget": 600 },
+    { "path": "brett/src/client/locales/de.ts", "language": "typescript", "loc": 0, "s1_limit": 600, "s1_baseline": null, "s1_budget": 600 },
+    { "path": "brett/src/client/locales/en.ts", "language": "typescript", "loc": 0, "s1_limit": 600, "s1_baseline": null, "s1_budget": 600 },
+    { "path": "brett/src/client/locales/fr.ts", "language": "typescript", "loc": 0, "s1_limit": 600, "s1_baseline": null, "s1_budget": 600 },
+    { "path": "brett/src/client/locales/es.ts", "language": "typescript", "loc": 0, "s1_limit": 600, "s1_baseline": null, "s1_budget": 600 },
+    { "path": "brett/src/client/camera-modes.ts", "language": "typescript", "loc": 0, "s1_limit": 600, "s1_baseline": null, "s1_budget": 600 },
+    { "path": "brett/src/client/snapping.ts", "language": "typescript", "loc": 0, "s1_limit": 600, "s1_baseline": null, "s1_budget": 600 },
+    { "path": "brett/src/client/view-cone.ts", "language": "typescript", "loc": 0, "s1_limit": 600, "s1_baseline": null, "s1_budget": 600 },
+    { "path": "brett/src/client/ui/pov-panel.ts", "language": "typescript", "loc": 0, "s1_limit": 600, "s1_baseline": null, "s1_budget": 600 },
+    { "path": "brett/src/client/ui/zone-editor.ts", "language": "typescript", "loc": 0, "s1_limit": 600, "s1_baseline": null, "s1_budget": 600 },
+    { "path": "tests/spec/brett.bats", "language": "bash", "loc": 0, "s1_limit": 300, "s1_baseline": null, "s1_budget": 300 }
+  ],
+  "symbols": [
+    { "qualified_name": "brett/src/server/permissions.ts:canMutate", "kind": "function", "file": "brett/src/server/permissions.ts", "signature": "canMutate(ctx: MutateContext): boolean", "type_text": "(ctx: MutateContext) => boolean — fail-closed Default-Deny, Zeile 42", "source": "grep" },
+    { "qualified_name": "brett/src/server/permissions.ts:resolveRole", "kind": "function", "file": "brett/src/server/permissions.ts", "signature": "resolveRole(ws: any, roles: Record<string, Role>): Role", "type_text": "(ws, roles) => Role — bindet Rolle an ws._session.userId, Zeile 111", "source": "grep" },
+    { "qualified_name": "brett/src/client/pov-camera.ts:startPov", "kind": "function", "file": "brett/src/client/pov-camera.ts", "signature": "startPov(figureId: string): void", "type_text": "lerpt Kamera auf Kopf-Bone, Zeile 26", "source": "grep" },
+    { "qualified_name": "brett/src/client/pov-camera.ts:switchPov", "kind": "function", "file": "brett/src/client/pov-camera.ts", "signature": "switchPov(figureId: string): void", "type_text": "release+possess atomar, Zeile 82 — existiert, hat KEINE Aufrufer", "source": "grep" },
+    { "qualified_name": "brett/src/client/ground-objects.ts:applyZoneAdded", "kind": "function", "file": "brett/src/client/ground-objects.ts", "signature": "applyZoneAdded(zone: Zone): void", "type_text": "rendert Zone-Mesh, Zeile 124; flag-gated t000468-ground-anchors", "source": "grep" },
+    { "qualified_name": "brett/src/types/state.ts:Zone", "kind": "interface", "file": "brett/src/types/state.ts", "signature": "interface Zone { id, shape: 'rect'|'circle', x, z, width?, height?, radius?, opacity?, label? }", "type_text": "Zeile 135-156; opacity? existiert bereits (Z.155)", "source": "read" },
+    { "qualified_name": "brett/src/types/state.ts:Figure", "kind": "interface", "file": "brett/src/types/state.ts", "signature": "interface Figure { id, ownerId?, label?, color?, facingY?, ... }", "type_text": "Zeile 49-75; hidden/opacity FEHLEN noch", "source": "read" },
+    { "qualified_name": "brett/src/types/messages.ts:ClientMessage", "kind": "type", "file": "brett/src/types/messages.ts", "signature": "type ClientMessage = ... | { type: 'zone_create'; zone: Omit<Zone,'id'> } | { type: 'zone_delete'; zoneId: string }", "type_text": "diskriminiertes Union Z.4-47; zone_update FEHLT (Z.41-42 nur create/delete)", "source": "read" },
+    { "qualified_name": "brett/src/server/ws-handler.ts:ADMIN_TYPES", "kind": "const", "file": "brett/src/server/ws-handler.ts", "signature": "ADMIN_TYPES: Set<string>", "type_text": "Zeile 100-110 — admin_*, zone_create/delete, line_*, session_undo/redo; neue Messages hier registrieren", "source": "explore-agent" },
+    { "qualified_name": "brett/src/server/ws-handler.ts:gateMutation", "kind": "function", "file": "brett/src/server/ws-handler.ts", "signature": "gateMutation(...)", "type_text": "Zeile 142-180 — einzige Rechte-Drossel vor Broadcast; Zuschauer read-only geklemmt Z.152-154", "source": "explore-agent" },
+    { "qualified_name": "brett/src/client/scene.ts:OrbitState", "kind": "type", "file": "brett/src/client/scene.ts", "signature": "OrbitState { theta, phi, dist } + updateCameraFromOrbit/applyOrbitDelta", "type_text": "Zeile 6-13, 132-214 — PerspectiveCamera Z.71-76", "source": "explore-agent" },
+    { "qualified_name": "brett/src/client/ui/fig-panel.ts:recolorFigure", "kind": "function", "file": "brett/src/client/ui/fig-panel.ts", "signature": "Swatches → sendUpdate({color}), Label-Input → sendUpdate({label})", "type_text": "Zeile 100-118 — Vorbild für Opacity-Slider", "source": "explore-agent" }
+  ],
+  "call_graph": {
+    "entrypoints": ["brett/src/server/index.ts:/sync (WS upgrade)", "brett/src/client/main.ts → board-boot.ts (lazy chunk)"],
+    "edges": [
+      { "from": "ws-handler.handleMessage", "to": "permissions.canMutate", "kind": "calls" },
+      { "from": "ws-handler.handleMessage", "to": "figures.applyMutation", "kind": "calls" },
+      { "from": "figures.applyMutation", "to": "db.schedulePersist", "kind": "calls" },
+      { "from": "ws-client.onMessage(figure_possessed)", "to": "pov-camera.startPov", "kind": "calls" },
+      { "from": "board-boot", "to": "ground-objects.applyZoneAdded", "kind": "calls" },
+      { "from": "touch-handler.pointermove", "to": "board-boot.dragFigure", "kind": "calls" }
+    ]
+  },
+  "db_tables": [
+    { "table": "brett_rooms", "columns": ["room_token text PK", "state jsonb", "updated_at"], "note": "Sentinel-Keys __roles__/__lines__/__lobby_settings__ im state; neue Entitäts-Felder (hidden, zone.variant) reisen im JSONB mit — KEINE Migration nötig", "source": "read brett/src/server/db.ts:64-74" }
+  ],
+  "api_contracts": [
+    { "endpoint": "WS /sync?room=<token>", "contract": "ClientMessage/ServerMessage Union aus brett/src/types/messages.ts; RELAY_TYPES vs ADMIN_TYPES Gate in ws-handler.ts", "note": "neue Messages: zone_update, figure_hide_set — beide ADMIN_TYPES + leiter" }
+  ],
+  "external_types": [
+    { "library": "three", "types": "OrthographicCamera, Raycaster (unterstützt Ortho via setFromCamera), Sprite, Line, CircleGeometry(thetaLength für Sektor)", "source": "bundled three.min.js + @types/three ^0.184" }
+  ],
+  "risks": [
+    { "note": "codebase-memory-mcp nicht für brett indiziert verwendet — Symbole via grep/Read verifiziert (Datei:Zeile-Belege vom Explore-Agenten)", "severity": "info" },
+    { "note": "mcp-postgres nicht abgefragt — brett_rooms-DDL direkt aus brett/src/server/db.ts gelesen (idempotente Migrationen im Code)", "severity": "info" },
+    { "note": "Hidden-Filterung (E9) muss am Broadcast-/Snapshot-Rand pro Empfänger-Rolle greifen — sicherheitskritisch, dedizierte MOCK_DB-Unit-Tests für alle 5 Rollen einplanen", "severity": "warn" },
+    { "note": "brett/test/*.test.ts läuft über node:test (tsx --test), NICHT vitest/jest — der plan-lint STRUCT2-Failing-Test-Step muss über BATS (tests/spec/brett.bats) laufen", "severity": "warn" }
+  ]
+}

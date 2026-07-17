@@ -57,8 +57,15 @@ export function applyMutation(room: string, msg: any): void {
     case 'update':
       if (figs.has(msg.id) && msg.changes && typeof msg.changes === 'object' && !Array.isArray(msg.changes)) {
         const existing = figs.get(msg.id);
-        // Strip both `id` and `ownerId` — ownerId is server-authoritative (§5c).
-        const { id: _ignoredId, ownerId: _ignoredOwner, ...safeChanges } = msg.changes;
+        // Strip `id`, `ownerId` und `hidden` — ownerId ist server-autoritativ
+        // (§5c); hidden darf NUR über den auditierten figure_hide_set-Pfad
+        // wechseln (E9), sonst entfällt die delete/add-Übersetzung für
+        // Nicht-Leiter und sie behalten eine stale sichtbare Kopie.
+        const { id: _ignoredId, ownerId: _ignoredOwner, hidden: _ignoredHidden, ...safeChanges } = msg.changes;
+        // E2: Figuren-Opacity server-autoritativ auf 0.2–1.0 klemmen.
+        if (typeof safeChanges.opacity === 'number') {
+          safeChanges.opacity = Math.max(0.2, Math.min(1, safeChanges.opacity));
+        }
         if (safeChanges.appearance && existing.appearance && typeof existing.appearance === 'object') {
           safeChanges.appearance = {
             ...existing.appearance,
@@ -270,10 +277,38 @@ export function applyMutation(room: string, msg: any): void {
       }
       break;
     }
+    case 'zone_update': {
+      // E1: verschieben/skalieren/umstylen einer bestehenden Zone. Shallow-Merge
+      // NUR der definierten Felder — unbekannte zoneId ist ein No-op (keine
+      // Phantom-Zone). Server-autoritativ, leiter-gated via ADMIN_TYPES.
+      if (typeof msg.zoneId === 'string') {
+        const existing: any[] = figs.get('__zones__')?.zones ?? [];
+        let changed = false;
+        const updated = existing.map((z: any) => {
+          if (z.id !== msg.zoneId) return z;
+          changed = true;
+          const patch: any = {};
+          for (const k of ['x', 'z', 'width', 'height', 'radius', 'label', 'opacity', 'variant'] as const) {
+            if (msg[k] !== undefined) patch[k] = msg[k];
+          }
+          return { ...z, ...patch };
+        });
+        if (changed) figs.set('__zones__', { id: '__zones__', zones: updated });
+      }
+      break;
+    }
     case 'zone_delete': {
       if (typeof msg.zoneId === 'string') {
         const existing: any[] = figs.get('__zones__')?.zones ?? [];
         figs.set('__zones__', { id: '__zones__', zones: existing.filter((z: any) => z.id !== msg.zoneId) });
+      }
+      break;
+    }
+    case 'figure_hide_set': {
+      // E9: verdecktes Arbeiten. Setzt Figure.hidden. Existierende Figur nötig
+      // (kein Phantom). Filterung passiert am Broadcast-/Snapshot-Rand.
+      if (typeof msg.figureId === 'string' && figs.has(msg.figureId)) {
+        figs.set(msg.figureId, { ...figs.get(msg.figureId), hidden: !!msg.hidden });
       }
       break;
     }

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-08T10:07:00.755Z",
+  "generatedAt": "2026-07-17T14:18:15.601Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -84,6 +84,12 @@
       "namespace": "${WEBSITE_NAMESPACE}",
       "type": "CronJob",
       "name": "systemtest-outbox"
+    },
+    {
+      "id": "claude-code-mcp-monolith",
+      "namespace": "default",
+      "type": "Deployment",
+      "name": "claude-code-mcp-monolith"
     },
     {
       "id": "oauth2-proxy-dev",
@@ -674,6 +680,24 @@
       "to": "website",
       "via": "command",
       "kind": "command"
+    },
+    {
+      "from": "claude-code-mcp-monolith",
+      "to": "shared-db",
+      "via": "env:DATABASE_URL",
+      "kind": "env"
+    },
+    {
+      "from": "claude-code-mcp-monolith",
+      "to": "website",
+      "via": "env:DATABASE_URL",
+      "kind": "env"
+    },
+    {
+      "from": "claude-code-mcp-monolith",
+      "to": "keycloak",
+      "via": "env:KC_URL",
+      "kind": "env"
     },
     {
       "from": "oauth2-proxy-dev",
@@ -1380,6 +1404,12 @@
     {
       "from": "janus",
       "to": "janus",
+      "via": "selector",
+      "kind": "selector"
+    },
+    {
+      "from": "claude-code-mcp-monolith",
+      "to": "claude-code-mcp-monolith",
       "via": "selector",
       "kind": "selector"
     },

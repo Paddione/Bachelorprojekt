@@ -133,7 +133,7 @@ GitHub Actions (`.github/workflows/ci.yml`) runs on every PR:
 - **Release notes**: Generate structured release notes from merged PRs via `bash scripts/vda.sh release-notes generate` or `task release:notes` (LLM/DeepSeek-gestützt mit deterministischem Fallback). Publish to GitHub Release body with `publish-github` or prepend to `CHANGELOG.md` with `publish-changelog`.
 - Systembrett template validation (`scripts/tests/systembrett-template.test.sh`)
 - Security scan: image-pin advisory + hardcoded-secret detection in `k3d/*.yaml`
-Other workflows: `renovate.yml` (self-hosted Renovate weekly dependency update bot, T000898), `e2e.yml` (nightly Playwright against both brands on fleet), `build-brett.yml` (tag `brett-v*`), `build-docs.yml` (tag `docs-v*`), `build-collabora.yml`, `build-transcriber.yml`, `build-website.yml` / `build-website-korczewski.yml` (auto build+rollout on `website/**` push to main).
+Other workflows: `renovate.yml` (self-hosted Renovate weekly dependency update bot, T000898), `e2e.yml` (nightly Playwright against both brands on fleet), `build-brett.yml` (auto build+rollout both brands on `brett/**` push to main), `build-docs.yml` (auto build on `docs/**`/docs-script push to main, plus manual dispatch), `build-collabora.yml`, `build-transcriber.yml`, `build-website.yml` / `build-website-korczewski.yml` (auto build+rollout on `website/**` push to main).
 Note: `tracking-import` CronJob was removed in PR #788 (2026-05-15); `track-pr.yml` was removed in PR #993 (2026-05-23); `build-tracking.yml` and `track-plans.yml` are gone — both parts of the tracking pipeline are fully removed. The Kore homepage timeline still renders from `v_timeline` but shows only historical data (last tracked PR: #787).
 
 ## Image Exclusions

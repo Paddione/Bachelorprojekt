@@ -29,7 +29,7 @@ IMAGES=(
   "filebrowser/filebrowser:v2.63.5@sha256:aefb0c20de10ef8b617995ca5522479ad40d41e6386bd01946a345c6026ff31c"
   "axllent/mailpit:v1.29@sha256:757f22b56c1da03570afdb3d259effe5091018008a81bbedc8158cee7e16fdbc"
   "binwiederhier/ntfy:v2.24.0@sha256:f8a9b104313b87cc24ae4f775f39e6328205b57dff6ede3eaf098a91e5d79f59"
-  "pocket-id/pocket-id:v2.9.0@sha256:a2a38a96699d7483d65b5849b015d954f294938306a03a9c0699bc5b79554e86"
+  "ghcr.io/pocket-id/pocket-id:v2.9.0@sha256:a2a38a96699d7483d65b5849b015d954f294938306a03a9c0699bc5b79554e86"
 )
 
 if ! command -v trivy &>/dev/null; then

@@ -39,7 +39,9 @@ export type ClientMessage =
   | { type: 'anchor_create'; anchor: Omit<Anchor, 'id'> }
   | { type: 'anchor_delete'; anchorId: string }
   | { type: 'zone_create'; zone: Omit<Zone, 'id'> }
+  | { type: 'zone_update'; zoneId: string; x?: number; z?: number; width?: number; height?: number; radius?: number; label?: string; opacity?: number; variant?: 'filled' | 'frame' }
   | { type: 'zone_delete'; zoneId: string }
+  | { type: 'figure_hide_set'; figureId: string; hidden: boolean }
   | { type: 'session_undo' }
   | { type: 'session_redo' }
   | { type: 'line_create'; fromId: string; toId: string; lineType: LineType }
@@ -79,7 +81,9 @@ export type ServerMessage =
   | { type: 'anchor_added'; anchor: Anchor }
   | { type: 'anchor_removed'; anchorId: string }
   | { type: 'zone_added'; zone: Zone }
+  | { type: 'zone_updated'; zone: Zone }
   | { type: 'zone_removed'; zoneId: string }
+  | { type: 'figure_hidden_changed'; figureId: string; hidden: boolean }
   | { type: 'undo_stack_changed'; canUndo: boolean; canRedo: boolean; undoCount: number; redoCount: number }
   | { type: 'error'; reason: string }
   | { type: 'line_created'; line: BrettLine }

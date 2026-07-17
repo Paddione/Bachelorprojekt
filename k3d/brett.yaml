@@ -53,7 +53,9 @@ spec:
             - name: DATABASE_URL
               value: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db:5432/website?sslmode=disable"
             - name: POCKET_ID_URL
-              value: "http://pocket-id:1411"
+              value: "${POCKET_ID_URL}"
+            - name: POCKET_ID_FRONTEND_URL
+              value: "${POCKET_ID_FRONTEND_URL}"
             - name: BRETT_CLIENT_ID
               value: "brett"
             - name: BRETT_OIDC_SECRET

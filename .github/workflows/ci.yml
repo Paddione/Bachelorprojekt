@@ -472,6 +472,8 @@ jobs:
 
       - name: Run Lighthouse audit
         continue-on-error: true
+        env:
+          LHCI_GITHUB_TOKEN: ${{ secrets.LHCI_GITHUB_TOKEN }}
         run: |
           lhci autorun || true
 
@@ -480,8 +482,8 @@ jobs:
         run: |
           echo "### Lighthouse Performance Audit" >> "$GITHUB_STEP_SUMMARY"
           echo "URL: https://web.mentolder.de" >> "$GITHUB_STEP_SUMMARY"
-          echo "Budget: lighthouse-budget.json (Performance ≥ 90)" >> "$GITHUB_STEP_SUMMARY"
-          echo "Status: advisory only (does not block CI)" >> "$GITHUB_STEP_SUMMARY"
+          echo "Budget: lighthouserc.json assertions (Performance ≥ 90)" >> "$GITHUB_STEP_SUMMARY"
+          echo "Status: advisory only (does not block CI); GitHub status check posted via LHCI_GITHUB_TOKEN" >> "$GITHUB_STEP_SUMMARY"
 
   commit-lint:
     name: Conventional Commits

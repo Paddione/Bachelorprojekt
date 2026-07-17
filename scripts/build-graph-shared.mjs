@@ -216,35 +216,15 @@ export function buildTopology(graph) {
   return lines.join('\n');
 }
 
-export function buildApiTable(apiMap) {
+export function buildApiTableMarkdown(apiMap) {
   const authIcon = { admin: '🔐', auth: '🔑', public: '🌐' };
-  const authColor = { admin: '#ef4444', auth: '#f59e0b', public: '#10b981' };
-
+  const header = '| Path | Methods | Auth |\n|------|---------|------|';
   const rows = apiMap.endpoints.map(ep => {
-    const methods = ep.methods.map(m =>
-      `<code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">${esc(m)}</code>`
-    ).join(' ');
-    const color = authColor[ep.auth] || '#6b7280';
-    const icon = authIcon[ep.auth] || '?';
-    const pathShort = ep.path.length > 60 ? ep.path.slice(0, 58) + '…' : ep.path;
-    return `<tr>
-      <td><code>${esc(pathShort)}</code></td>
-      <td>${methods}</td>
-      <td style="color:${color}">${icon} ${esc(ep.auth)}</td>
-    </tr>`;
+    const methods = ep.methods.join(', ');
+    const icon = authIcon[ep.auth] || '❓';
+    const pathShort = ep.path.length > 80 ? ep.path.slice(0, 78) + '…' : ep.path;
+    return `| \`${pathShort}\` | ${methods} | ${icon} ${ep.auth} |`;
   });
-
-  return `<table>
-    <thead>
-      <tr>
-        <th>Path</th>
-        <th>Methods</th>
-        <th>Auth</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${rows.join('\n      ')}
-    </tbody>
-  </table>`;
+  return [header, ...rows].join('\n');
 }
 

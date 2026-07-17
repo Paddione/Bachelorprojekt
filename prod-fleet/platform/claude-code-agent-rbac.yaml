@@ -1,0 +1,80 @@
+# fleet platform layer — cluster-scoped claude-code-agent RBAC, owned ONCE.
+#
+# Both brand overlays emit a byte-identical claude-code-agent ClusterRole and a
+# ClusterRoleBinding that already lists BOTH brand SAs (workspace +
+# workspace-korczewski). On a shared cluster that is a single logical singleton,
+# so the platform layer owns it and each brand's fleet-common component
+# $patch: deletes its copy — avoiding the cross-brand SharedResource conflict.
+# The per-namespace claude-code-agent ServiceAccount stays brand-owned (created
+# by each brand overlay in its own namespace); only the cluster-scoped CR/CRB
+# live here.
+#
+# T001914: re-added after PR #2052 (T001088, 2026-06-22) deleted this file
+# believing the in-cluster MCP monolith was fully decommissioned. In fact the
+# claude-code-mcp-monolith Deployment/Service (default ns) kept running —
+# deploys here are push-based with no GitOps reconciler, so removing a
+# manifest from git never tears down the live object. mcp-kubernetes
+# (localhost:18080, see mcp-tool-guide.md) still port-forwards to that pod and
+# needs `default/claude-code-agent` authorized, which the deleted file's
+# subjects list never covered even before the accidental removal — the SA was
+# added as a subject here so the still-running pod (and its NEW default-ns
+# ServiceAccount created 2026-06-01, not tracked here — brand-owned SAs are
+# workspace/workspace-korczewski only) actually resolves. The default-ns
+# Deployment/Service/SA themselves remain untracked orphans; only the RBAC
+# subject gap that broke mcp-kubernetes tool calls is fixed by this file.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: claude-code-agent
+rules:
+  - apiGroups: [""]
+    resources:
+      - pods
+      - pods/log
+      - services
+      - endpoints
+      - configmaps
+      - persistentvolumeclaims
+      - namespaces
+      - nodes
+      - events
+      - replicationcontrollers
+      - serviceaccounts
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets", "statefulsets", "daemonsets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["batch"]
+    resources: ["jobs", "cronjobs"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses", "networkpolicies"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["autoscaling"]
+    resources: ["horizontalpodautoscalers"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["patch", "update"]
+  - apiGroups: ["apps"]
+    resources: ["deployments/scale"]
+    verbs: ["get", "patch", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: claude-code-agent
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: claude-code-agent
+subjects:
+  - kind: ServiceAccount
+    name: claude-code-agent
+    namespace: workspace
+  - kind: ServiceAccount
+    name: claude-code-agent
+    namespace: workspace-korczewski
+  - kind: ServiceAccount
+    name: claude-code-agent
+    namespace: default

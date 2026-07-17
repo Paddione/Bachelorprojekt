@@ -12,12 +12,12 @@ minimumReleaseAgeExclude:
   - playwright-core@1.61.0 || 1.61.1
   - playwright@1.61.0 || 1.61.1
   - vitest@4.1.9 || 4.1.10
-  - '@anthropic-ai/sdk@0.104.2 || 0.105.0 || 0.106.0 || 0.109.0 || 0.109.1 || 0.110.0 || 0.111.0'
+  - '@anthropic-ai/sdk@0.104.2 || 0.105.0 || 0.106.0 || 0.109.0 || 0.109.1 || 0.110.0 || 0.111.0 || 0.112.1'
   - livekit-server-sdk@2.15.5 || 2.16.0 || 2.17.0
   - pg-connection-string@2.14.0
   - pg-protocol@1.15.0
   - pg@8.22.0
-  - svelte@5.56.4 || 5.56.5
+  - svelte@5.56.4 || 5.56.5 || 5.56.6
   - livekit-client@2.20.0 || 2.20.1
   - '@astrojs/compiler-binding-darwin-arm64@0.3.0'
   - '@astrojs/compiler-binding-darwin-x64@0.3.0'
@@ -30,7 +30,7 @@ minimumReleaseAgeExclude:
   - '@astrojs/compiler-binding-win32-x64-msvc@0.3.0'
   - '@astrojs/compiler-binding@0.3.0'
   - '@astrojs/compiler-rs@0.3.0'
-  - astro@7.0.4 || 7.0.5 || 7.0.6 || 7.0.7 || 7.0.9
+  - astro@7.0.4 || 7.0.5 || 7.0.6 || 7.0.7 || 7.0.9 || 7.1.0
   - '@astrojs/internal-helpers@0.10.1'
   - '@astrojs/markdown-satteri@0.3.3 || 0.3.4'
   - '@vitest/coverage-v8@4.1.10'
@@ -39,7 +39,7 @@ minimumReleaseAgeExclude:
   - 'ast-v8-to-istanbul@1.0.5'
   - 'electron-to-chromium@1.5.392'
   - 'openai@6.47.0'
-
+  - tailwindcss@4.3.3
 
 overrides:
   yaml: "^2.9.0"

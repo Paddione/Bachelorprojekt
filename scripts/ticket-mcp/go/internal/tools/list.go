@@ -22,11 +22,14 @@ func getArgs(req mcp.CallToolRequest) map[string]any {
 func RegisterListTools(s *server.MCPServer) {
 	s.AddTool(
 		mcp.NewTool("list_tickets",
-			mcp.WithDescription("Listet Tickets gefiltert nach Status, Typ, Brand oder fehlender ID. Standard-Limit 200 Zeilen; mit --limit erhöhbar (max 1000)."),
-			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)")),
+			mcp.WithDescription("Listet Tickets gefiltert nach Status, Typ, Brand oder fehlender ID. Standard-Limit 200 Zeilen, neueste zuerst (created_at DESC); mit --limit erhöhbar (max 1000)."),
+			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)"),
+				mcp.Enum("mentolder", "korczewski")),
 			mcp.WithString("status", mcp.Description("z.B. triage, planning, plan_staged, backlog")),
-			mcp.WithString("type", mcp.Description("bug, feature, task, project")),
-			mcp.WithString("attention_mode", mcp.Description("auto, ai_ready, needs_human")),
+			mcp.WithString("type", mcp.Description("bug, feature, task, project"),
+				mcp.Enum("bug", "feature", "task", "project")),
+			mcp.WithString("attention_mode", mcp.Description("auto, ai_ready, needs_human"),
+				mcp.Enum("auto", "ai_ready", "needs_human")),
 			mcp.WithBoolean("missing_id", mcp.Description("Nur Tickets ohne external_id zurückgeben")),
 			mcp.WithInteger("limit", mcp.Description("Maximale Anzahl Ergebnisse (default: 200)"), mcp.Min(1), mcp.Max(1000)),
 		),
@@ -71,7 +74,8 @@ func RegisterListTools(s *server.MCPServer) {
 		mcp.NewTool("get_ticket",
 			mcp.WithDescription("Gibt vollständige Details eines Tickets per external_id zurück."),
 			mcp.WithString("id", mcp.Description("external_id z.B. T000123"), mcp.Required()),
-			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)")),
+			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)"),
+				mcp.Enum("mentolder", "korczewski")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			a := getArgs(req)
@@ -90,10 +94,12 @@ func RegisterListTools(s *server.MCPServer) {
 
 	s.AddTool(
 		mcp.NewTool("export_tickets",
-			mcp.WithDescription("Exportiert Tickets als JSON oder Markdown (gleiche Filter wie list_tickets). Default-Limit 200; max 1000. Ohne Filter empfiehlt sich ein Status-Filter, um den Kontextverbrauch gering zu halten."),
-			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)")),
+			mcp.WithDescription("Exportiert Tickets als JSON oder Markdown (gleiche Filter wie list_tickets). Default-Limit 200, neueste zuerst (created_at DESC); max 1000. Ohne Filter empfiehlt sich ein Status-Filter, um den Kontextverbrauch gering zu halten."),
+			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)"),
+				mcp.Enum("mentolder", "korczewski")),
 			mcp.WithString("status", mcp.Description("z.B. triage, planning, plan_staged, backlog")),
-			mcp.WithString("type", mcp.Description("bug, feature, task, project")),
+			mcp.WithString("type", mcp.Description("bug, feature, task, project"),
+				mcp.Enum("bug", "feature", "task", "project")),
 			mcp.WithString("format", mcp.Description("json (default) oder markdown"),
 				mcp.Enum("json", "markdown")),
 			mcp.WithInteger("limit", mcp.Description("Maximale Anzahl Ergebnisse (default: 200)"), mcp.Min(1), mcp.Max(1000)),
@@ -160,7 +166,8 @@ func RegisterListTools(s *server.MCPServer) {
 		mcp.NewTool("export_ticket_timeline",
 			mcp.WithDescription("Exportiert die vollständige Ticket-History als chronologisches JSON. Quellen: Kommentare (ticket_comments), Factory-Phasen (factory_phase_events), PR-Links (ticket_links kind=pr), archivierte Pläne (ticket_plans). HINWEIS: CLI-Statusübergänge via ticket.sh update-status erscheinen nicht in der Timeline (bekannte Lücke — Follow-up-Ticket erforderlich)."),
 			mcp.WithString("id", mcp.Description("external_id z.B. T000123"), mcp.Required()),
-			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)")),
+			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)"),
+				mcp.Enum("mentolder", "korczewski")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			a := getArgs(req)

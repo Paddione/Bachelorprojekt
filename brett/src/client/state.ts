@@ -27,7 +27,8 @@ export const STATE: AppState = {
 interface SceneRefs {
   renderer: THREE.WebGLRenderer;
   scene: THREE.Scene;
-  camera: THREE.PerspectiveCamera;
+  // E3: kann die Orbit-Perspektive ODER die 2D-Ortho-Kamera sein (aktiver Modus).
+  camera: THREE.PerspectiveCamera | THREE.OrthographicCamera;
   floor: THREE.Mesh;
 }
 let sceneRefs: SceneRefs | null = null;
@@ -35,6 +36,10 @@ export function setScene(refs: SceneRefs): void { sceneRefs = refs; }
 export function getScene(): SceneRefs {
   if (!sceneRefs) throw new Error('scene not initialized');
   return sceneRefs;
+}
+/** E3: aktive Kamera (2D/3D) in den Singleton tauschen — Render + Picking folgen. */
+export function setActiveCamera(cam: THREE.PerspectiveCamera | THREE.OrthographicCamera): void {
+  if (sceneRefs) sceneRefs.camera = cam;
 }
 
 // ── WebSocket handle (registered by ws-client.ts) ─────────────────

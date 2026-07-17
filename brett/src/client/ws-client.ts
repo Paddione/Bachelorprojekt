@@ -8,6 +8,7 @@ import { PRESETS } from './presets';
 import { createLobbyState, applyLobbyServerMessage, type LobbyState } from './lobby-store';
 import { applyOptikToScene } from './ui/optik';
 import * as groundObjects from './ground-objects';
+import { showExportToast } from './ui/export-toast';
 import { handleLobbyMessage } from './ws-lobby-handlers';
 import { setMessageHandler } from './ws-connection-client';
 import { applyUndoStateChange } from './ws-undo-state';
@@ -462,6 +463,11 @@ export function onWsMessage(evt: MessageEvent): void {
     case 'error':
       // Non-fatal protocol error from the server (e.g. forbidden / not-ready).
       console.warn('[brett] server error:', msg.reason);
+      if (msg.reason === 'session-active') {
+        showExportToast('Es läuft bereits eine Sitzung. Bitte beende diese zuerst.', 'error');
+      } else {
+        showExportToast(`Server-Fehler: ${msg.reason ?? 'unbekannt'}`, 'error');
+      }
       break;
 
     // ── T000468: Boden-Anker & Zonen (DARK-LAUNCH-Rendering, Cache immer pflegen) ─

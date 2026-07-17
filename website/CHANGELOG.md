@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.189.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.189.0...website-v1.189.1) (2026-07-17)
+
+
+### Bug Fixes
+
+* **website:** coaching/generate — detailliertere Fehlermeldungen bei KI-Request-Fehlern [T001940] ([#2929](https://github.com/Paddione/Bachelorprojekt/issues/2929)) ([669bc17](https://github.com/Paddione/Bachelorprojekt/commit/669bc177f60d466e654f22e56db08d05f3ceeb25))
+
+
+### Tests
+
+* **brett:** add E2E coverage for session lifecycle and hidden-figure filter [T001941] ([#2932](https://github.com/Paddione/Bachelorprojekt/issues/2932)) ([c506926](https://github.com/Paddione/Bachelorprojekt/commit/c5069268a59a2cf918e1cf41dfd39d921ef087f9))
+
 ## [1.189.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.188.0...website-v1.189.0) (2026-07-17)
 
 

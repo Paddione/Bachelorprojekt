@@ -20,6 +20,7 @@ import { initBoardTouchControls } from './touch-controls';
 import * as exportUi from './ui/export';
 import * as importUi from './ui/import';
 import * as groundObjects from './ground-objects';
+import { initZoneEditing } from './ui/zone-editor';
 import { maybeStartOnboarding } from './ui/onboarding';
 import { initUndoRedo } from './ui/undo-redo-ui';
 import { updateLinePositions } from './scene-lines';
@@ -154,6 +155,8 @@ export async function bootBoard(): Promise<void> {
   // ── T000468: Admin-Toolbar für Anker & Zonen (DARK-LAUNCH) ──────────────────
   if ((window as any).__brettFeatures?.['t000468-ground-anchors']) {
     groundObjects.initGroundObjectsToolbar(renderer, sceneApi, camera, raycaster, mannequin);
+    // E1: Zonen-Editor (Drag verschieben + Doppelklick-Edit-Popover).
+    initZoneEditing({ renderer, raycaster, mannequin, floor: sceneApi.floor });
   }
 
   // ── T000606: Touch / Pointer-Events handler ────────────────────────────────

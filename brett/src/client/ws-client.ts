@@ -414,6 +414,7 @@ export function onWsMessage(evt: MessageEvent): void {
     case 'anchor_added':
     case 'anchor_removed':
     case 'zone_added':
+    case 'zone_updated':
     case 'zone_removed':
       handleGroundMessage(msg);
       break;

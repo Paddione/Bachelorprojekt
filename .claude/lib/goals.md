@@ -188,27 +188,39 @@ bash scripts/trivy-scan.sh --json | jq '.total_critical, .total_high'
 
 > **B · Baseline:** 39 · **Target:** 0 · **Aufwand:** mittel (Image-Pin-Refresh für 6 betroffene Images, siehe Audit-Report) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001909 (Nachfolger von T001840)
 
-## G-CI03 — CI Pipeline p95 Duration > 12 min: n/a → ≤ 12 min
+## G-CI03 — CI Pipeline p95 Duration: 7 min ✅ (Ziel ≤ 12 min)
 
 **Was:** Misst die p95-Dauer der letzten 20 CI-Runs auf `main` (von `createdAt` bis
 `updatedAt`). CI-Latenz ist ein direkter Hebel für Developer Velocity — je länger der
 Rückmeldungszyklus, desto geringer die Deployment Frequency. Der CI-Timeouts liegen
 bei 15 min für Tests; p95 sollte darunter bleiben. Messung ist in
-`scripts/health-goals-check.sh` implementiert (gh-axi).
+`scripts/health-goals-check.sh` implementiert.
 
 ```bash
-gh-axi run list --workflow ci.yml --branch main --limit 20 --json createdAt,updatedAt \
+# gh-axi hat kein --json fuer `run list` (nur --fields) — hier `gh` direkt (siehe gh-axi.md).
+gh run list --workflow ci.yml --branch main --limit 20 --json createdAt,updatedAt \
   | python3 -c "
 import json,sys
+from datetime import datetime
 runs=json.load(sys.stdin)
-durations=[(r['updatedAt']-r['createdAt']).total_seconds()/60 for r in runs if 'updatedAt' in r]
+def parse(ts): return datetime.fromisoformat(ts.replace('Z','+00:00'))
+durations=[(parse(r['updatedAt'])-parse(r['createdAt'])).total_seconds()/60 for r in runs if 'updatedAt' in r]
 durations.sort()
 p95=durations[int(len(durations)*0.95)]
 print(f'{p95:.1f}')
 "
 ```
 
-> **B · Baseline:** n/a → 0 (Implementierung in health-goals-check.sh abgeschlossen, erster Scan ausstehend) · **Target:** ≤ 12 min (p95) · **Aufwand:** gering (Messung via gh-axi) · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T001910 (Nachfolger von T001841)
+Erster Scan (2026-07-17): **p95 = 6.9 min** (gerundet 7) über die letzten 20 `main`-CI-Runs
+(Range 0.4–6.9 min, Median 4.0 min) — deutlich unter dem 12-min-Ziel, kein Handlungsbedarf.
+Beim Messlauf wurde ein Bug im Messscript selbst gefunden und gefixt: `gh-axi run list` kennt
+kein `--json`-Flag (nur `--fields`, siehe `.claude/skills/references/gh-axi.md`) — der Aufruf in
+`scripts/health-goals-check.sh` lief seit T001841 ins Leere und lieferte "n/a" statt einer
+Messung. Zusätzlich subtrahierte die Python-Auswertung ISO-Timestamp-Strings direkt statt sie zu
+parsen (`TypeError`, ebenfalls still verschluckt). Beide Stellen jetzt auf `gh` (statt `gh-axi`)
+und `datetime.fromisoformat` korrigiert — Messung ist erstmals tatsächlich reproduzierbar gelaufen.
+
+> **B · Baseline:** 7 min (p95) ✅ · **Target:** ≤ 12 min (p95) · **Aufwand:** gering (Messung via `gh`) · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T001910 (**gefixt** — Baseline gemessen, Messscript-Bug behoben; Nachfolger von T001841)
 
 ## G-FE05 — Lighthouse Performance Score < 90: n/a → ≥ 90
 
@@ -381,7 +393,7 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 
 **Baseline-Update 2026-07-17 (T001903):** G-SIZE02 Messmethode gefixt — die naive `wc -l`-Zählung folgte den Symlinks `.opencode/plugins/background-agents.ts` und `.opencode/plugins/worktree.ts` (git-tracked Symlinks auf `.opencode/skills/dev-flow/*.ts`) und zählte deren Zeilen doppelt (19 statt 17). Messkommando um `[ -L "$f" ]`-Filter ergänzt. Echter, verifizierter Bestand bleibt bei 17 (3× .opencode/, bereits sanktioniert via S1-Gate-Ignore; 14× VideoVault/, echter Produktionscode, keine Duplikate/generierte Artefakte). T001556 hatte den Wert nie wirklich gefixt — der archivierte Plan referenzierte nicht-existente Pfade (`VideoVault/src/lib/upload.ts` statt der realen `VideoVault/client/src/...` / `VideoVault/server/...`-Struktur), daher blieben alle abgehakten Tasks wirkungslos. Zielwert ≤8 erfordert echtes, getestetes Code-Splitting über ~9 Dateien (~2-3 Wochen) — kein Chore-Scope (kein `node_modules` installiert, kein Testlauf als Regressionsnetz in dieser Session verfügbar) → Nachfolger-Ticket T001920 mit konkreten Split-Vorschlägen je realer Datei, zur Umsetzung über `dev-flow-plan`.
 
-**Offene Tickets (2026-07-17):** G-AGENTIC09 (T001904), G-DB01 (T001905), G-SEC06 (T001909), G-CI03 (T001910), G-FE05 (T001911), G-BRAIN14 (T001912), G-SIZE02 (T001920, Nachfolger von T001903 — echtes VideoVault-Refactoring), G-DB03 (T001925, Nachfolger von T001906 — echte 41-Tabellen-Migration in 3 Gruppen), G-DB09 (T001926, Nachfolger von T001907 — Messmethoden-Korrektur Backup-COPY-Ausschluss), G-DB10 (T001928, Nachfolger von T001908 — 92 restliche Unused-Index-Kandidaten klassifizieren)
+**Offene Tickets (2026-07-17):** G-AGENTIC09 (T001904), G-DB01 (T001905), G-SEC06 (T001909), G-FE05 (T001911), G-BRAIN14 (T001912), G-SIZE02 (T001920, Nachfolger von T001903 — echtes VideoVault-Refactoring), G-DB03 (T001925, Nachfolger von T001906 — echte 41-Tabellen-Migration in 3 Gruppen), G-DB09 (T001926, Nachfolger von T001907 — Messmethoden-Korrektur Backup-COPY-Ausschluss), G-DB10 (T001928, Nachfolger von T001908 — 92 restliche Unused-Index-Kandidaten klassifizieren)
 
 | Ziel | Ticket | Status |
 |------|--------|--------|
@@ -393,7 +405,7 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 | G-DB09 | T001907 | offen (Slow Queries, erster Scan + Optimierung — Nachfolger von T001838) |
 | G-DB10 | T001908 | **gefixt** (Baseline 93 gemessen, 1 zweifelsfreier Drop [`idx_customers_email`] via Migration umgesetzt — Nachfolger T001928 für die restlichen 92 Kandidaten, Nachfolger von T001839) |
 | G-SEC06 | T001909 | offen (Container CVEs, Baseline 39 CRITICAL erfasst — Fix erfordert Image-Pin-Refresh, Folgeticket vorgeschlagen — Nachfolger von T001840) |
-| G-CI03 | T001910 | offen (CI p95, erster Messlauf ausstehend — Nachfolger von T001841) |
+| G-CI03 | T001910 | **gefixt** (CI p95 = 7 min ✅ ≤12, Messscript-Bug behoben — Nachfolger von T001841) |
 | G-FE05 | T001911 | **gemessen** (Baseline 60/100, Target 90 — Optimierung als Follow-up-Ticket ausgelagert) |
 | G-BRAIN14 | T001912 | offen (Ingest-Backlog 17/86; voller kuratierter Ingest = Follow-up zu PR #2851) |
 | G-DB04 | T001739 | gruen (1h, Target ≤26h — Root-Cause-Fix nicht verifiziert, Regressionswache bleibt täglich) |
@@ -452,3 +464,5 @@ autorun` gegen `https://web.mentolder.de`, Performance-Score konstant 60/100; FC
 TTI 7.5s, TBT 0ms, CLS 0 — größte Opportunity: fehlende Text-Compression, ~622 KiB Einsparpotenzial,
 gefolgt von unused-javascript ~278 KiB und responsive Images ~146 KiB). Score liegt deutlich unter
 Target 90 — echte Optimierung ist bewusst nicht Teil dieses Chores; Follow-up-Ticket T001922 angelegt.
+
+**Baseline-Update 2026-07-17 (T001910 — G-CI03 erster Messlauf):** G-CI03 n/a→7 min p95 ✅ (Ziel ≤12 min; Messscript-Bug behoben — `gh-axi run list` unterstützt kein `--json` (nur `--fields`), Python-Auswertung parste ISO-Timestamps nicht als datetime — beide Stellen auf `gh` direkt + `datetime.fromisoformat` korrigiert).

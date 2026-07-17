@@ -347,12 +347,17 @@ row target G-DB10 "$(db_scalar "SELECT count(*) FROM pg_stat_user_indexes WHERE 
 # ── CI-TARGETS ──
 row target G-CI03 "$(
   if [ "$FAST" = 1 ]; then echo "-"; else
-    gh_ok=0; out=$(gh-axi run list --workflow ci.yml --branch main --limit 20 --json createdAt,updatedAt 2>/dev/null) || gh_ok=1
+    # gh-axi hat kein --json-Pendant fuer `run list` (nur --fields) — hier bewusst `gh` direkt,
+    # siehe .claude/skills/references/gh-axi.md ("Wann gh statt gh-axi").
+    gh_ok=0; out=$(gh run list --workflow ci.yml --branch main --limit 20 --json createdAt,updatedAt 2>/dev/null) || gh_ok=1
     if [ "$gh_ok" = 1 ] || [ -z "$out" ]; then echo "-"; else
       echo "$out" | python3 -c "
 import json,sys
+from datetime import datetime
 runs=json.load(sys.stdin)
-durations=[(r['updatedAt']-r['createdAt']).total_seconds()/60 for r in runs if 'updatedAt' in r]
+def parse(ts):
+    return datetime.fromisoformat(ts.replace('Z','+00:00'))
+durations=[(parse(r['updatedAt'])-parse(r['createdAt'])).total_seconds()/60 for r in runs if 'updatedAt' in r]
 durations.sort(); p95=durations[int(len(durations)*0.95)] if durations else 0; print(f'{p95:.0f}')
 " 2>/dev/null || echo "-"
     fi
